@@ -555,7 +555,7 @@ void BC_TextBox::draw(int flush)
 	string text_row;
 	BC_Resources *resources = get_resources();
 
-//printf("BC_TextBox::draw 1 %s\n", text);
+//printf("BC_TextBox::draw %d %s\n", __LINE__, text.c_str());
 // Background
 	if(has_border)
 	{
@@ -1795,6 +1795,13 @@ int BC_TextBox::utf8seek(int &seekpoint, int reverse)
 
 void BC_TextBox::delete_selection(int letter1, int letter2, int text_len)
 {
+	CLAMP(letter1, 0, text.length() - 1);
+	CLAMP(letter2, letter1, text.length());
+// printf("BC_TextBox::delete_selection %d %d %d %d\n", 
+// __LINE__,
+// letter1,
+// letter2,
+// text_len);
 	text.erase(letter1, letter2 - letter1);
 
 	do_separators(1);
@@ -1812,6 +1819,7 @@ void BC_TextBox::insert_text(char *string)
 		highlight_letter2 = ibeam_letter = highlight_letter1;
 	}
 
+//printf("BC_TextBox::insert_text %d %s\n", __LINE__, string);
 	text.insert(ibeam_letter, string);
 
 	ibeam_letter += string_len;

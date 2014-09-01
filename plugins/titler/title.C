@@ -76,7 +76,7 @@ TitleConfig::TitleConfig()
 	dropshadow = 10;
 	sprintf(font, "fixed");
 
-//	sprintf(text, "hello world");
+	text.assign("");
 #ifdef X_HAVE_UTF8_STRING
 #define DEFAULT_ENCODING "UTF-8"
 #else
