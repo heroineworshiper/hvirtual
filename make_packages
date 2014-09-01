@@ -1,0 +1,434 @@
+#!/bin/sh
+
+# Release checklist
+#
+# 1) Disable memory debugging.
+# 2) Update versions
+# 3) Update credits
+# 4) Add new libraries to make_packages
+# 5) New languages
+#
+# Did you:
+# 1) Compile for targets
+# 2) Update documentation on heroinewarrior.com
+# 3) Update version numbers and changes
+# 4) Update download links
+# 5) Freshmeat
+
+
+DEST=/usr/src/redhat
+SRC=`pwd`
+ARCH=`uname -m`
+
+if [ $ARCH == x86_64 ]; then 
+PLUGINDIR=/usr/lib64/cinelerra;
+else
+PLUGINDIR=/usr/lib/cinelerra;
+fi
+
+
+
+CI_VERSION=4.3
+MIX_VERSION=1.2
+XMOVIE_VERSION=1.9.13
+LIBMPEG3_VERSION=1.8
+QUICKTIME_VERSION=2.3
+FIREHOSE_VERSION=0.6.0
+
+
+CI_NAME=cinelerra-$CI_VERSION
+XMOVIE_NAME=xmovie-$XMOVIE_VERSION
+LIBMPEG3_NAME=libmpeg3-$LIBMPEG3_VERSION
+QUICKTIME_NAME=quicktime4linux-$QUICKTIME_VERSION
+MIX_NAME=mix2005-$MIX_VERSION
+FIREHOSE_NAME=firehose-$FIREHOSE_VERSION
+
+
+
+DEST_CI=$DEST/$CI_NAME
+DEST_XMOVIE=$DEST/$XMOVIE_NAME
+DEST_LIBMPEG3=$DEST/$LIBMPEG3_NAME
+DEST_QUICKTIME=$DEST/$QUICKTIME_NAME
+DEST_MIX=$DEST/$MIX_NAME
+DEST_FIREHOSE=$DEST/$FIREHOSE_NAME
+
+
+
+
+
+
+
+
+# CLEAN SOURCE DIRECTORIES
+
+
+
+
+
+
+
+echo "Cleaning"
+make clean
+find \( -name *.d \
+	-o -name *.exr \
+	-o -name .xvpics \
+	-o -name core \) -exec rm -rf {} \; -prune
+rm -r bin/*
+
+# CREATE DIRECTORIES
+rm -rf $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
+mkdir $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
+
+
+
+
+
+
+# COPY SOURCE FILES
+
+
+
+
+
+
+
+echo "Copying Cinelerra"
+cp -a \
+	COPYING	\
+	README \
+	bin \
+	build \
+	cinelerra \
+	configure \
+	doc \
+	global_config \
+	guicast \
+	libmpeg3 \
+	Makefile \
+	mpeg2enc \
+	models \
+	mplexlo \
+	plugin_config \
+	plugins \
+	po \
+	quicktime \
+	soundtest.c \
+	thirdparty \
+	$DEST_CI
+
+
+
+
+
+
+
+
+echo "Compressing Cinelerra"
+cd $DEST/
+find $CI_NAME -name .svn -exec rm -rf {} \; -prune
+# dependancies are created in some clean rules
+find $CI_NAME -name '*.d' -exec rm {} \;
+tar jcf SOURCES/$CI_NAME-src.tar.bz2 $CI_NAME
+
+
+echo "Making spec file"
+
+cat > $CI_NAME-1.spec << EOF
+
+Summary: Complete production environment for audio and video.
+Name: cinelerra
+Version: $CI_VERSION
+Release: 1
+License: GPL
+Group: Applications/Video
+Source: http://prdownloads.sourceforge.net/heroines/$CI_NAME-src.tar.bz2
+BuildRoot: /var/tmp/%{name}-buildroot
+Provides: Everything
+Prefix: /usr
+
+%description
+
+Whether you're trying to make a movie about heroine warriors or see
+farther than ever before, it's about transforming the impossible into
+reality.
+
+%prep
+%setup -q
+%build
+./configure
+make
+
+%install
+mkdir -p /var/tmp/%{name}-buildroot$PLUGINDIR/fonts
+mkdir -p /var/tmp/%{name}-buildroot/usr/bin
+mkdir -p /var/tmp/%{name}-buildroot/usr/share/locale/de/LC_MESSAGES
+mkdir -p /var/tmp/%{name}-buildroot/usr/share/locale/sl/LC_MESSAGES
+mkdir -p /var/tmp/%{name}-buildroot/usr/share/locale/es/LC_MESSAGES
+mkdir -p /var/tmp/%{name}-buildroot/usr/share/locale/fr/LC_MESSAGES
+mkdir -p /var/tmp/%{name}-buildroot/usr/share/locale/nb/LC_MESSAGES
+cp cinelerra/$ARCH/cinelerra /var/tmp/%{name}-buildroot/usr/bin
+cp plugins/$ARCH/* /var/tmp/%{name}-buildroot$PLUGINDIR
+cp plugins/titler/fonts/*.ttf /var/tmp/%{name}-buildroot$PLUGINDIR/fonts
+cp plugins/titler/fonts/*.dir /var/tmp/%{name}-buildroot$PLUGINDIR/fonts
+cp mjpegtools*/mpeg2enc/mpeg2enc /var/tmp/%{name}-buildroot$PLUGINDIR/mpeg2enc.plugin
+cp po/de.mo /var/tmp/%{name}-buildroot/usr/share/locale/de/LC_MESSAGES/cinelerra.mo
+cp po/sl.mo /var/tmp/%{name}-buildroot/usr/share/locale/sl/LC_MESSAGES/cinelerra.mo
+cp po/es.mo /var/tmp/%{name}-buildroot/usr/share/locale/es/LC_MESSAGES/cinelerra.mo
+cp po/fr.mo /var/tmp/%{name}-buildroot/usr/share/locale/fr/LC_MESSAGES/cinelerra.mo
+cp po/it.mo /var/tmp/%{name}-buildroot/usr/share/locale/it/LC_MESSAGES/cinelerra.mo
+cp po/nb.mo /var/tmp/%{name}-buildroot/usr/share/locale/nb/LC_MESSAGES/cinelerra.mo
+
+strip libmpeg3/$ARCH/mpeg3toc
+strip libmpeg3/$ARCH/mpeg3cat
+strip libmpeg3/$ARCH/mpeg3dump
+cp libmpeg3/$ARCH/mpeg3toc /var/tmp/%{name}-buildroot/usr/bin
+cp libmpeg3/$ARCH/mpeg3cat /var/tmp/%{name}-buildroot/usr/bin
+cp libmpeg3/$ARCH/mpeg3dump /var/tmp/%{name}-buildroot/usr/bin
+
+strip mplexlo/$ARCH/mplexlo
+cp mplexlo/$ARCH/mplexlo /var/tmp/%{name}-buildroot/usr/bin/
+
+strip $ARCH/soundtest
+cp $ARCH/soundtest /var/tmp/%{name}-buildroot/usr/bin/
+
+%clean
+rm -rf /var/tmp/%{name}-buildroot
+
+%files
+%defattr(-,root,root)
+
+/usr/bin/soundtest
+/usr/bin/cinelerra
+$PLUGINDIR
+/usr/bin/mpeg3toc
+/usr/bin/mpeg3cat
+/usr/bin/mpeg3dump
+/usr/bin/mplexlo
+/usr/share/locale/de/LC_MESSAGES/cinelerra.mo
+/usr/share/locale/sl/LC_MESSAGES/cinelerra.mo
+/usr/share/locale/es/LC_MESSAGES/cinelerra.mo
+/usr/share/locale/fr/LC_MESSAGES/cinelerra.mo
+/usr/share/locale/it/LC_MESSAGES/cinelerra.mo
+/usr/share/locale/nb/LC_MESSAGES/cinelerra.mo
+
+EOF
+
+
+cd $SRC
+
+
+
+
+
+
+
+
+echo "Copying XMovie"
+cp -a \
+	build \
+	global_config \
+	guicast \
+	xmovie \
+	$DEST_XMOVIE
+
+# Make fake makefile
+cat > $DEST_XMOVIE/Makefile << EOF
+
+all:
+	make -f build/Makefile.xmovie
+
+install:
+	make -f build/Makefile.xmovie install
+
+clean:
+	make -f build/Makefile.xmovie clean
+
+EOF
+
+# Make fake configure
+cp configure $DEST_XMOVIE
+
+
+
+
+
+echo "Copying Mix2005"
+cp -a \
+	build \
+	configure \
+	global_config \
+	guicast \
+	mix2005/ \
+	$DEST_MIX
+cp build/configure.mix2005 $DEST_MIX/configure
+chmod a+x $DEST_MIX/configure
+
+cat > $DEST_MIX/Makefile << EOF
+
+all:
+	make -f build/Makefile.mix
+
+install:
+	make -f build/Makefile.mix install
+
+clean:
+	make -f build/Makefile.mix clean
+
+EOF
+
+
+
+
+
+
+echo "Copying Firehose"
+cp -a firehose/* $DEST_FIREHOSE
+
+echo "Copying Quicktime"
+cp -a quicktime/* $DEST_QUICKTIME
+
+echo "Copying Libmpeg3"
+cp -a libmpeg3/* $DEST_LIBMPEG3
+
+
+
+# MAKE TARBALLS
+
+
+
+
+
+
+
+cd $DEST/
+chmod -R u+w $CI_NAME $XMOVIE_NAME
+
+echo "Compressing XMovie"
+find $XMOVIE_NAME -name '.svn' -exec rm -rf {} \; -prune
+tar jcf SOURCES/$XMOVIE_NAME-src.tar.bz2 $XMOVIE_NAME
+
+echo "Compressing Libmpeg3"
+find $LIBMPEG3_NAME -name '.svn' -exec rm -rf {} \; -prune
+tar jcf SOURCES/$LIBMPEG3_NAME-src.tar.bz2 $LIBMPEG3_NAME
+
+echo "Compressing Quicktime"
+find $QUICKTIME_NAME -name '.svn' -exec rm -rf {} \; -prune
+find $QUICKTIME_NAME -name '.deps' -exec rm -rf {} \; -prune
+tar jcf SOURCES/$QUICKTIME_NAME-src.tar.bz2 $QUICKTIME_NAME
+
+echo "Compressing $MIX_NAME"
+find $MIX_NAME -name '.svn' -exec rm -rf {} \; -prune
+find $MIX_NAME -name '.libs' -exec rm -rf {} \; -prune
+find $MIX_NAME -name '.deps' -exec rm -rf {} \; -prune
+tar jcf SOURCES/$MIX_NAME-src.tar.bz2 $MIX_NAME
+
+echo "Compressing Firehose"
+find $FIREHOSE_NAME -name '.svn' -exec rm -rf {} \; -prune
+tar jcf SOURCES/$FIREHOSE_NAME-src.tar.bz2 $FIREHOSE_NAME
+
+
+
+
+
+
+# MAKE SPEC FILES
+
+
+exit
+
+
+
+
+
+echo "Making Spec files"
+
+
+
+
+
+
+
+
+cat > $XMOVIE_NAME-1.spec << EOF
+Summary: Player for Cinelerra exported movie files.
+Name: xmovie
+Version: $XMOVIE_VERSION
+Release: 1
+License: GPL
+Group: Applications/Video
+Source: http://prdownloads.sourceforge.net/heroines/$XMOVIE_NAME-src.tar.bz2
+BuildRoot: /var/tmp/%{name}-buildroot
+Provides: Everything
+Prefix: /usr
+
+%description
+
+It's about transforming the impossible into reality.
+
+%prep
+%setup -q
+%build
+make
+
+%install
+mkdir -p /var/tmp/%{name}-buildroot/usr/bin
+strip xmovie/$ARCH/xmovie
+cp xmovie/$ARCH/xmovie /var/tmp/%{name}-buildroot/usr/bin/
+
+
+%clean
+rm -rf /var/tmp/%{name}-buildroot
+
+%files
+%defattr(-,root,root)
+
+/usr/bin/xmovie
+
+
+EOF
+
+
+
+
+
+
+
+cat > $MIX_NAME-1.spec << EOF
+Summary: Advanced mixer for the ALSA sound driver.
+Name: mix2005
+Version: $MIX_VERSION
+Release: 1
+License: GPL
+Group: Applications/Audio
+Source: http://prdownloads.sourceforge.net/heroines/$MIX_NAME-src.tar.bz2
+BuildRoot: /var/tmp/%{name}-buildroot
+Provides: Everything
+Prefix: /usr
+
+%description
+
+Advanced mixer for the ALSA sound driver.
+
+%prep
+%setup -q
+%build
+./configure
+make
+
+%install
+mkdir -p /var/tmp/%{name}-buildroot/usr/bin
+strip mix2005/$ARCH/mix2005
+cp mix2005/$ARCH/mix2005 /var/tmp/%{name}-buildroot/usr/bin/
+
+
+%clean
+rm -rf /var/tmp/%{name}-buildroot
+
+%files
+%defattr(-,root,root)
+
+/usr/bin/mix2005
+
+
+EOF
+

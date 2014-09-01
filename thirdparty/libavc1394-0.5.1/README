@@ -1,0 +1,60 @@
+
+				   libavc1394
+				   ==========
+
+1. About libavc1394
+
+	libavc1394 is a programming interface to the AV/C specification from
+the 1394 Trade Assocation. AV/C stands for Audio/Video Control.  Currently,
+applications use the library to control the tape transport mechansim on DV
+camcorders. However, there are many devices and functions of devices that
+can be controlled via AV/C. Eventually, the library will be expanded to
+implement more of the specification and to provide high level interfaces
+to various devices.
+
+	librom1394 provides the ability to read the Configuration ROM
+on devices. It also permits the manipulation of ConfigROM images
+for the Linux 1394 host when used in conjunction with new libraw1394
+functionality to load and save config rom images. Configuration ROM is 
+addressed in a number of standards and specifications that build upon 
+the foundational standard IEEE P1212. At this time, it is only possible
+to update the rom directories by changing the root directory, updating
+the existing textual leaves of the root, and adding unit directories
+with simple ASCII textual leaves. It is not yet possible to remove unit
+directories or handle fancy stuff like icon decriptors.
+
+2. Usage Information
+
+    The library comes with a console utility called dvcont that lets you
+send commands to the tape mechanism on your DV camcorder with IEEE-1394.
+There is a man page for it, so after installation 'man dvcont' for more
+information on how to use it.
+
+3. Copyleft
+
+	libavc1394 itself is licensed under the Lesser General Public License
+(short LGPL, see file COPYING in the source distribution).  Other files in
+the source archives not belonging to but being part of the build procedure of
+libavc1394 are under their own licenses, as stated at the top of the individual
+files.
+
+4. API documentation
+
+	There is currently no external document describing the library
+functions, but you can find documentation for all functions in the header file
+avc1394.h or avc1394_vcr.h.  avc1394_vcr.h is a very high level interface
+specific to the VCR AV/C subunit.  It implements the most common functions
+that an application needs to control the tape transport meachnism on a DV
+camcorder.  Both test/avc1394_vcr.c and test/dvcont.c are the best examples of
+how to use the libavc1394 interfaces. There are also examples in the test 
+directory for librom1394.
+
+5. Maintainer
+	Maintainer of libavc1394 is currently Dan Dennedy.  Send suggestions,
+bug reports and fixes to dan@dennedy.org.  See the file AUTHORS
+for a complete list of contributors to libavc1394.
+
+	You can get updates through this project's homepage on SourceForge, see
+http://sourceforge.net/projects/libavc1394 for more information.  You can
+also submit bugs through this page.
+

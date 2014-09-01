@@ -1,0 +1,86 @@
+AWindowGUI::update_assets 1
+AWindowGUI::update_assets 3
+AWindowGUI::update_assets 6 0
+AWindowGUI::update_assets 7
+AWindowGUI::update_assets 8
+mwindow.C: 2135
+mwindow.C: 2139
+mwindowgui.C: 313
+mwindowgui.C: 324
+mwindowgui.C: 337
+mwindowgui.C: 342
+mwindowgui.C: 352
+mwindow.C: 2141
+mwindow.C: 2148
+mwindow.C: 2172
+signal_entry: got SIGINT my pid=4828 execution table size=0:
+signal_entry: lock table size=1
+    0x3074c10 RemoveThread::input_lock RemoveThread::run 
+BC_Signals::dump_buffers: buffer table size=0
+BC_Signals::delete_temps: deleting 0 temp files
+SigHandler::signal_handler total files=0
+signal_entry: got SIGINT my pid=4831 execution table size=0:
+signal_entry: lock table size=1
+    0x3074c10 RemoveThread::input_lock RemoveThread::run 
+BC_Signals::dump_buffers: buffer table size=0
+BC_Signals::delete_temps: deleting 0 temp files
+SigHandler::signal_handler total files=0
+signal_entry: got SIGINT my pid=4822 execution table size=0:
+signal_entry: lock table size=1
+    0x3074c10 RemoveThread::input_lock RemoveThread::run 
+BC_Signals::dump_buffers: buffer table size=0
+BC_Signals::delete_temps: deleting 0 temp files
+SigHandler::signal_handler total files=0
+AWindowGUI::update_assets 1
+MotionScan::scan_frame 851 angle1=-15.000000 angle2=15.000000 angle_result=15.000000
+MotionScan::scan_frame 851 angle1=7.500000 angle2=22.500000 angle_result=11.250000
+MotionScan::scan_frame 851 angle1=7.500000 angle2=15.000000 angle_result=15.000000
+MotionScan::scan_frame 851 angle1=13.125000 angle2=16.875000 angle_result=14.062500
+MotionScan::scan_frame 851 angle1=13.125000 angle2=15.000000 angle_result=15.000000
+MotionScan::scan_frame 851 angle1=14.531250 angle2=15.468750 angle_result=15.234375
+MotionScan::scan_frame 802 angle1=14.882812 angle2=15.117188 angle_result=15.000000
+MotionScan::scan_frame 818 angle1=14.824219 angle2=15.058594 angle_result=14.941406
+MotionScan::scan_frame 897 dx=181.00 dy=-92.25 dangle=15.000000
+MotionMain::process_global 570 engine->dx_result=724 engine->dy_result=-369
+MotionMain::process_global 611 total_dx=724 total_dy=-369
+MotionMain::draw_vectors 1222 724 -369 512 512 693 420
+signal_entry: got SIGINT my pid=4805 execution table size=16:
+kill_subs 262: process=4809
+    mainindexes.C: add_next_asset: 133
+    mainindexes.C: add_next_asset: 135
+    mainindexes.C: add_next_asset: 137
+    mainindexes.C: add_next_asset: 73
+    mainindexes.C: add_next_asset: 79
+    mainindexes.C: add_next_asset: 82
+    mainindexes.C: add_next_asset: 92
+    mainindexes.C: add_next_asset: 98
+    mainindexes.C: add_next_asset: 109
+    mainindexes.C: add_next_asset: 112
+    mainindexes.C: add_next_asset: 118
+    mainindexes.C: add_next_asset: 133
+    mainindexes.C: add_next_asset: 135
+    mainindexes.C: add_next_asset: 137
+    resourcepixmap.C: draw_data: 419
+    resourcepixmap.C: draw_data: 422
+signal_entry: lock table size=18
+    0x3074c10 RemoveThread::input_lock RemoveThread::run 
+    0x40d5f60 CWindowTool::input_lock CWindowTool::run 
+    0x41c1440 TransportQue::output_lock PlaybackEngine::run 
+    0x41c1f50 MainIndexes::input_lock MainIndexes::run 1 
+    0x3eaa5d0 Cinelerra: Resources MWindow::update_project *
+    0x40f9360 TransportQue::output_lock PlaybackEngine::run 
+    0x41c1bd0 CICache::total_lock CICache::delete_oldest *
+    0x428a3b0 BC_Repeater::repeat_lock BC_Repeater::run 
+    0x43459c0 LoadClient::input_lock LoadClient::run 
+    0x42f5010 LoadClient::input_lock LoadClient::run 
+    0x430a610 LoadClient::input_lock LoadClient::run 
+    0x430a370 LoadClient::input_lock LoadClient::run 
+    0x4502ff0 LoadClient::input_lock LoadClient::run 
+    0x4503230 LoadClient::input_lock LoadClient::run 
+    0x4514e30 LoadClient::input_lock LoadClient::run 
+    0x4515200 LoadClient::input_lock LoadClient::run 
+    0x4508040 LoadClient::input_lock LoadClient::run 
+    0x4507da0 LoadClient::input_lock LoadClient::run 
+BC_Signals::dump_buffers: buffer table size=0
+BC_Signals::delete_temps: deleting 0 temp files
+SigHandler::signal_handler total files=0

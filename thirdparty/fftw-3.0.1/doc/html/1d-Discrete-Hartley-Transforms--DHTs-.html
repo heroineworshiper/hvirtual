@@ -1,0 +1,53 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="1d%20Discrete%20Hartley%20Transforms%20(DHTs)">1d Discrete Hartley Transforms (DHTs)</a>,
+Next:<a rel=next accesskey=n href="Multi-dimensional-Transforms.html#Multi-dimensional%20Transforms">Multi-dimensional Transforms</a>,
+Previous:<a rel=previous accesskey=p href="1d-Real-odd-DFTs--DSTs-.html#1d%20Real-odd%20DFTs%20(DSTs)">1d Real-odd DFTs (DSTs)</a>,
+Up:<a rel=up accesskey=u href="What-FFTW-Really-Computes.html#What%20FFTW%20Really%20Computes">What FFTW Really Computes</a>
+<hr><br>
+
+<h4>4.7.5 1d Discrete Hartley Transforms (DHTs)</h4>
+
+<p>The discrete Hartley transform (DHT) of a 1d real array X of size
+n computes a real array Y of the same size, where:
+<center><img src="equation-dht.png" align="top">.</center>
+
+<p>FFTW computes an unnormalized transform, in that there is no coefficient
+in front of the summation in the DHT.  In other words, applying the
+transform twice (the DHT is its own inverse) will multiply the input by
+n.
+
+</body></html>
+

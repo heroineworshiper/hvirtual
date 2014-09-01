@@ -1,0 +1,126 @@
+This is fftw3.info, produced by makeinfo version 4.2 from fftw3.texi.
+
+This manual is for FFTW (version 3.0.1, 5 June 2003).
+
+   Copyright (C) 2003 Matteo Frigo.
+
+   Copyright (C) 2003 Massachusetts Institute of Technology.
+
+     Permission is granted to make and distribute verbatim copies of
+     this manual provided the copyright notice and this permission
+     notice are preserved on all copies.
+
+     Permission is granted to copy and distribute modified versions of
+     this manual under the conditions for verbatim copying, provided
+     that the entire resulting derived work is distributed under the
+     terms of a permission notice identical to this one.
+
+     Permission is granted to copy and distribute translations of this
+     manual into another language, under the above conditions for
+     modified versions, except that this permission notice may be
+     stated in a translation approved by the Free Software Foundation.
+   
+INFO-DIR-SECTION Texinfo documentation system
+START-INFO-DIR-ENTRY
+* fftw3: (fftw3).	FFTW User's Manual.
+END-INFO-DIR-ENTRY
+
+
+Indirect:
+fftw3.info-1: 1073
+fftw3.info-2: 51019
+fftw3.info-3: 100964
+fftw3.info-4: 144354
+fftw3.info-5: 186443
+
+Tag Table:
+(Indirect)
+Node: Top1073
+Node: Introduction3897
+Node: Tutorial10377
+Ref: Tutorial-Footnote-111617
+Node: Complex One-Dimensional DFTs11711
+Node: Complex Multi-Dimensional DFTs17270
+Node: One-Dimensional DFTs of Real Data19831
+Node: Multi-Dimensional DFTs of Real Data24059
+Node: More DFTs of Real Data27591
+Node: The Halfcomplex-format DFT31081
+Node: Real even/odd DFTs (cosine/sine transforms)33679
+Ref: Real even/odd DFTs (cosine/sine transforms)-Footnote-138933
+Ref: Real even/odd DFTs (cosine/sine transforms)-Footnote-239122
+Node: The Discrete Hartley Transform39771
+Ref: The Discrete Hartley Transform-Footnote-142102
+Node: Other Important Topics42351
+Node: Data Alignment42624
+Node: SIMD alignment and fftw_malloc43117
+Node: Stack alignment on x8644970
+Node: Multi-dimensional Array Format46486
+Node: Row-major Format47094
+Node: Column-major Format48740
+Node: Static Arrays in C49695
+Node: Dynamic Arrays in C51019
+Node: Dynamic Arrays in C-The Wrong Way52614
+Node: Words of Wisdom-Saving Plans54357
+Node: Caveats in Using Wisdom56949
+Node: FFTW Reference59022
+Node: Data Types and Files59466
+Node: Complex numbers59893
+Node: Precision61615
+Node: Memory Allocation62787
+Node: Using Plans63640
+Node: Basic Interface66298
+Node: Complex DFTs66792
+Node: Planner Flags70578
+Node: Real-data DFTs73488
+Node: Real-data DFT Array Format78372
+Node: Real-to-Real Transforms80576
+Node: Real-to-Real Transform Kinds84541
+Node: Advanced Interface86891
+Node: Advanced Complex DFTs87626
+Node: Advanced Real-data DFTs90236
+Node: Advanced Real-to-real Transforms92432
+Node: Guru Interface93399
+Node: Interleaved and split arrays94713
+Node: Guru vector and transform sizes95743
+Node: Guru Complex DFTs98135
+Node: Guru Real-data DFTs100964
+Node: Guru Real-to-real Transforms103782
+Node: Guru Execution of Plans105091
+Node: Wisdom108375
+Node: Wisdom Export108716
+Node: Wisdom Import110309
+Node: Forgetting Wisdom112073
+Node: Wisdom Utilities112433
+Node: What FFTW Really Computes113786
+Node: The 1d Discrete Fourier Transform (DFT)114606
+Node: The 1d Real-data DFT115950
+Node: 1d Real-even DFTs (DCTs)117587
+Node: 1d Real-odd DFTs (DSTs)120304
+Node: 1d Discrete Hartley Transforms (DHTs)122923
+Node: Multi-dimensional Transforms123587
+Node: Parallel FFTW126131
+Node: Multi-threaded FFTW127075
+Node: Installation and Supported Hardware/Software127942
+Node: Usage of Multi-threaded FFTW129437
+Node: How Many Threads to Use?132059
+Node: Thread safety133067
+Node: Calling FFTW from Fortran134561
+Node: Fortran-interface routines135339
+Ref: Fortran-interface routines-Footnote-1138207
+Ref: Fortran-interface routines-Footnote-2138410
+Node: FFTW Constants in Fortran138543
+Node: Fortran Examples139592
+Node: Wisdom of Fortran?142688
+Node: Upgrading from FFTW version 2144354
+Ref: Upgrading from FFTW version 2-Footnote-1153986
+Node: Installation and Customization154169
+Node: Installation on Unix155703
+Node: Installation on non-Unix systems161875
+Node: Cycle Counters164442
+Node: Generating your own code166175
+Node: Acknowledgments168276
+Node: License and Copyright171684
+Node: Concept Index173520
+Node: Library Index186443
+
+End Tag Table

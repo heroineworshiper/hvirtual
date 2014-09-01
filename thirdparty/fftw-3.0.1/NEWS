@@ -1,0 +1,150 @@
+FFTW 3.0.1
+
+* Some speed improvements in SIMD code.
+
+* --without-cycle-counter option is removed.  If no cycle counter is found,
+  then the estimator is always used.  A --with-slow-timer option is provided
+  to force the use of lower-resolution timers.
+
+* Several fixes for compilation under Visual C++, with help from Stefane Ruel.
+
+* Added x86 cycle counter for Visual C++, with help from Morten Nissov.
+
+* Added S390 cycle counter, courtesy of James Treacy.
+
+* Added missing static keyword that prevented simultaneous linkage
+  of different-precision versions; thanks to Rasmus Larson for the bug report.
+
+* Corrected accidental omission of f77_wisdom.f file; thanks to Alan Watson.
+
+* Support -xopenmp flag for SunOS; thanks to John Lou for the bug report.
+
+* Compilation with HP/UX cc requires -Wp,-H128000 flag to increase
+  preprocessor limits; thanks to Peter Vouras for the bug report.
+
+* Removed non-portable use of 'tempfile' in fftw-wisdom-to-conf script;
+  thanks to Nicolas Decoster for the patch.
+
+* Added 'make smallcheck' target in tests/ directory, at the request of
+  James Treacy.
+
+FFTW 3.0
+
+Major goals of this release:
+
+* Speed: often 20% or more faster than FFTW 2.x, even without SIMD (see below).
+
+* Complete rewrite, to make it easier to add new algorithms and transforms.
+
+* New API, to support more general semantics.
+
+Other enhancements:
+
+* SIMD acceleration on supporting CPUs (SSE, SSE2, 3DNow!, and AltiVec).
+ (With special thanks to Franz Franchetti for many experimental prototypes
+  and to Stefan Kral for the vectorizing generator from fftwgel.)
+
+* True in-place 1d transforms of large sizes (as well as compressed
+  twiddle tables for additional memory/cache savings).
+
+* More arbitrary placement of real & imaginary data, e.g. including
+  interleaved (as in FFTW 2.x) as well as separate real/imag arrays.
+
+* Efficient prime-size transforms of real data.
+
+* Multidimensional transforms can operate on a subset of a larger matrix,
+  and/or transform selected dimensions of a multidimensional array.
+
+* By popular demand, simultaneous linking to double precision (fftw),
+  single precision (fftwf), and long-double precision (fftwl) versions
+  of FFTW is now supported.
+
+* Cycle counters (on all modern CPUs) are exploited to speed planning.
+
+* Efficient transforms of real even/odd arrays, a.k.a. discrete
+  cosine/sine transforms (types I-IV).  (Currently work via pre/post
+  processing of real transforms, ala FFTPACK, so are not optimal.)
+
+* DHTs (Discrete Hartley Transforms), again via post-processing
+  of real transforms (and thus suboptimal, for now).
+
+* Support for linking to just those parts of FFTW that you need,
+  greatly reducing the size of statically linked programs when
+  only a limited set of transform sizes/types are required.
+
+* Canonical global wisdom file (/etc/fftw/wisdom) on Unix, along
+  with a command-line tool (fftw-wisdom) to generate/update it.
+
+* Fortran API can be used with both g77 and non-g77 compilers
+  simultaneously.
+
+* Multi-threaded version has optional OpenMP support.
+
+* Authors' good looks have greatly improved with age.
+
+Changes from 3.0beta3:
+
+* Separate FMA distribution to better exploit fused multiply-add instructions
+  on PowerPC (and possibly other) architectures.
+
+* Performance improvements via some inlining tweaks.
+
+* fftw_flops now returns double arguments, not int, to avoid overflows
+  for large sizes.
+
+* Workarounds for automake bugs.
+
+Changes from 3.0beta2:
+
+* The standard REDFT00/RODFT00 (DCT-I/DST-I) algorithm (used in
+  FFTPACK, NR, etcetera) turns out to have poor numerical accuracy, so
+  we replaced it with a slower routine that is more accurate.
+
+* The guru planner and execute functions now have two variants, one that
+  takes complex arguments and one that takes separate real/imag pointers.
+
+* Execute and planner routines now automatically align the stack on x86,
+  in case the calling program is misaligned.
+
+* README file for test program.
+
+* Fixed bugs in the combination of SIMD with multi-threaded transforms.
+
+* Eliminated internal fftw_threads_init function, which some people were
+  calling accidentally instead of the fftw_init_threads API function.
+
+* Check for -openmp flag (Intel C compiler) when --enable-openmp is used.
+
+* Support AMD x86-64 SIMD and cycle counter.
+
+* Support SSE2 intrinsics in forthcoming gcc 3.3.
+
+Changes from 3.0beta1:
+
+* Faster in-place 1d transforms of non-power-of-two sizes.
+
+* SIMD improvements for in-place, multi-dimensional, and/or non-FFTW_PATIENT
+  transforms.
+
+* Added support for hard-coded DCT/DST/DHT codelets of small sizes; the
+  default distribution only includes hard-coded size-8 DCT-II/III, however.
+
+* Many minor improvements to the manual.  Added section on using the
+  codelet generator to customize and enhance FFTW.
+
+* The default 'make check' should now only take a few minutes; for more
+  strenuous tests (which may take a day or so), do 'cd tests; make bigcheck'.
+
+* fftw_print_plan is split into fftw_fprint_plan and fftw_print_plan, where
+  the latter uses stdout.
+
+* Fixed ability to compile with a C++ compiler.
+
+* Fixed support for C99 complex type under glibc.
+
+* Fixed problems with alloca under MinGW, AIX.
+
+* Workaround for gcc/SPARC bug.
+
+* Fixed multi-threaded initialization failure on IRIX due to lack of
+  user-accessible PTHREAD_SCOPE_SYSTEM there.

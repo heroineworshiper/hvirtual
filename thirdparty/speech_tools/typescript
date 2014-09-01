@@ -1,0 +1,135 @@
+Script started on Fri 15 Feb 2013 01:10:53 PM PST
+amazon:/root/hvirtual/thirdparty/speech_tools% make
+Making in directory ./siod ...
+Making in directory ./rxp ...
+Making in directory ./audio ...
+Making in directory ./base_class ...
+Making in directory ./ling_class ...
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+Making in directory ./utils ...
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+Making in directory ./speech_class ...
+Making in directory ./sigpr ...
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+Making in directory ./stats ...
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+Making in directory ./grammar ...
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+Making in directory ./intonation ...
+Making in directory ./lib ...
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+Making in directory sigpr/pda ...
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+Making in directory ./main ...
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+Making in directory base_class/string ...
+Making in directory base_class/inst_tmpl ...
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+Making in directory ./scripts ...
+Making in directory intonation/tilt ...
+Making in directory stats/wagon ...
+Making in directory stats/kalman_filter ...
+Making in directory grammar/scfg ...
+Making in directory grammar/wfst ...
+Making in directory grammar/ngram ...
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+Making in directory ./testsuite ...
+Making in directory ./bin ...
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+gcc -O3 -Wall -o ch_lab ch_lab_main.o -L../lib -lestools -L../lib -lestbase -L../lib -leststring -ltermcap -ldl -lncurses -lm -lstdc++ -lgcc
+gcc -O3 -Wall -o ch_track ch_track_main.o -L../lib -lestools -L../lib -lestbase -L../lib -leststring -ltermcap -ldl -lncurses -lm -lstdc++ -lgcc
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+
+gcc -O3 -Wall -o ch_wave ch_wave_main.o -L../lib -lestools -L../lib -lestbase -L../lib -leststring -ltermcap -ldl -lncurses -lm -lstdc++ -lgcc
+Remove Links:gcc -O3 -Wall -o na_play na_play_main.o -L../lib -lestools -L../lib -lestbase -L../lib -leststring -ltermcap -ldl -lncurses -lm -lstdc++ -lgcc
+gcc -O3 -Wall -o na_record na_record_main.o -L../lib -lestools -L../lib -lestbase -L../lib -leststring -ltermcap -ldl -lncurses -lm -lstdc++ -lgcc
+gcc  -fno-implicit-templates  -O3 -Wall    -o xml_example xml_example.o    -L../lib -lestools -L../lib -lestbase -L../lib -leststring   -ltermcap   -ldl -lncurses -lm  -lstdc++ -lgcc 
+ aligngcc -O3 -Wall -o sigfilter sigfilter_main.o -L../lib -lestools -L../lib -lestbase -L../lib -leststring -ltermcap -ldl -lncurses -lm -lstdc++ -lgcc
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+make[2]: warning: -jN forced in submake: disabling jobserver mode.
+gcc  -fno-implicit-templates  -O3 -Wall    -o string_example string_example.o    -L../lib -lestools -L../lib -lestbase -L../lib -leststring   -ltermcap   -ldl -lncurses -lm  -lstdc++ -lgcc 
+gcc -O3 -Wall -o sig2fv sig2fv_main.o -L../lib -lestools -L../lib -lestbase -L../lib -leststring -ltermcap -ldl -lncurses -lm -lstdc++ -lgcc
+
+gcc  -fno-implicit-templates  -O3 -Wall    -o hash_example hash_example.o    -L../lib -lestools -L../lib -lestbase -L../lib -leststring   -ltermcap   -ldl -lncurses -lm  -lstdc++ -lgcc 
+gcc  -fno-implicit-templates  -O3 -Wall    -o pathname_example pathname_example.o    -L../lib -lestools -L../lib -lestbase -L../lib -leststring   -ltermcap   -ldl -lncurses -lm  -lstdc++ -lgcc 
+ bcatgcc -O3 -Wall -o spectgen spectgen_main.o -L../lib -lestools -L../lib -lestbase -L../lib -leststring -ltermcap -ldl -lncurses -lm -lstdc++ -lgcc
+gcc  -fno-implicit-templates  -O3 -Wall    -o track_example track_example.o    -L../lib -lestools -L../lib -lestbase -L../lib -leststring   -ltermcap   -ldl -lncurses -lm  -lstdc++ -lgcc 
+Scripts:gcc  -fno-implicit-templates  -O3 -Wall    -o token_example token_example.o    -L../lib -lestools -L../lib -lestbase -L../lib -leststring   -ltermcap   -ldl -lncurses -lm  -lstdc++ -lgcc 
+
+ build_docbook_index (sh)gcc  -fno-implicit-templates  -O3 -Wall    -o complex_example complex_example.o    -L../lib -lestools -L../lib -lestbase -L../lib -leststring   -ltermcap   -ldl -lncurses -lm  -lstdc++ -lgcc 
+gcc  -fno-implicit-templates  -O3 -Wall    -o list_example list_example.o    -L../lib -lestools -L../lib -lestbase -L../lib -leststring   -ltermcap   -ldl -lncurses -lm  -lstdc++ -lgcc 
+ ch_labMain Links: (prl) ch_track example_to_doc++ ch_lab ch_utt ch_wave ch_track cxx_to_docbook resynth design_filter ch_wave dp est_examples na_play est_gdbln: failed to create symbolic link `../bin/na_play': File exists
+ pm est_program na_record fringe_clientln: failed to create symbolic link `../bin/na_record': File exists
+ make_wagon_desc na_play sigfilter make_wagon_desc na_record ngram_build sig2fv ngram_test raw_to_xgraph ols spectgen ols_test pda pda pitchmark scfg_make est_examples pitchmark scfg_parse/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [xml_example] Error 1
+make[1]: *** Waiting for unfinished jobs....
+ scfg_test/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [ch_track] Error 1
+make[1]: *** Waiting for unfinished jobs....
+ ngram_test scfg_train siod ngram_build est_gdb/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [list_example] Error 1
+ tex_to_images tilt_synthesis wagon wagon_test tilt_analysis est_program wfst_build viterbi wfst_run wfst_train dp xml_parser cxx_to_docbook bcat
+ ch_utt fringe_client build_docbook_index design_filter/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [complex_example] Error 1
+ align tex_to_images/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [track_example] Error 1
+ siod/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [pathname_example] Error 1
+
+/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [ch_wave] Error 1
+ wagon wagon_test scfg_make scfg_train scfg_test/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2:  scfg_parseld returned 1 exit status
+make[1]: *** [ch_lab] Error 1
+ wfst_build/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [string_example] Error 1
+/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [na_record] Error 1
+ wfst_run/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [na_play] Error 1
+ wfst_train/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [token_example] Error 1
+/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [sigfilter] Error 1
+/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [sig2fv] Error 1
+ ols/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [hash_example] Error 1
+make: *** [testsuite] Error 2
+make: *** Waiting for unfinished jobs....
+ ols_test xml_parser
+/usr/bin/ld: cannot open linker script file /usr/lib/gcc/x86_64-linux-gnu/4.6/../../../x86_64-linux-gnu/libncurses.so.5: Too many open files
+collect2: ld returned 1 exit status
+make[1]: *** [spectgen] Error 1
+make: *** [main] Error 2
+amazon:/root/hvirtual/thirdparty/speech_tools% exit
+exit
+
+Script done on Fri 15 Feb 2013 01:10:57 PM PST

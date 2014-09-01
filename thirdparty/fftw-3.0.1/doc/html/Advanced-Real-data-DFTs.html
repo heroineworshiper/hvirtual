@@ -1,0 +1,82 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Advanced%20Real-data%20DFTs">Advanced Real-data DFTs</a>,
+Next:<a rel=next accesskey=n href="Advanced-Real-to-real-Transforms.html#Advanced%20Real-to-real%20Transforms">Advanced Real-to-real Transforms</a>,
+Previous:<a rel=previous accesskey=p href="Advanced-Complex-DFTs.html#Advanced%20Complex%20DFTs">Advanced Complex DFTs</a>,
+Up:<a rel=up accesskey=u href="Advanced-Interface.html#Advanced%20Interface">Advanced Interface</a>
+<hr><br>
+
+<h4>4.4.2 Advanced Real-data DFTs</h4>
+
+<br><pre>fftw_plan fftw_plan_many_dft_r2c(int rank, const int *n, int howmany,
+                                 double *in, const int *inembed,
+                                 int istride, int idist,
+                                 fftw_complex *out, const int *onembed,
+                                 int ostride, int odist,
+                                 unsigned flags);
+fftw_plan fftw_plan_many_dft_c2r(int rank, const int *n, int howmany,
+                                 fftw_complex *in, const int *inembed,
+                                 int istride, int idist,
+                                 double *out, const int *onembed,
+                                 int ostride, int odist,
+                                 unsigned flags);
+</pre>
+
+<p>Like <code>fftw_plan_many_dft</code>, these two functions add <code>howmany</code>,
+<code>nembed</code>, <code>stride</code>, and <code>dist</code> parameters to the
+<code>fftw_plan_dft_r2c</code> and <code>fftw_plan_dft_c2r</code> functions, but
+otherwise behave the same as the basic interface.
+
+<p>The interpretation of <code>howmany</code>, <code>stride</code>, and <code>dist</code> are
+the same as for <code>fftw_plan_many_dft</code>, above.  Note that the
+<code>stride</code> and <code>dist</code> for the real array are in units of
+<code>double</code>, and for the complex array are in units of
+<code>fftw_complex</code>.
+
+<p>If an <code>nembed</code> parameter is <code>NULL</code>, it is interpreted as what
+it would be in the basic interface, as described in <a href="Real-data-DFT-Array-Format.html#Real-data%20DFT%20Array%20Format">Real-data DFT Array Format</a>.  That is, for the complex array the size is assumed to be
+the same as <code>n</code>, but with the last dimension cut roughly in half. 
+For the real array, the size is assumed to be <code>n</code> if the transform
+is out-of-place, or <code>n</code> with the last dimension "padded" if the
+transform is in-place.
+
+<p>If an <code>nembed</code> parameter is non-<code>NULL</code>, it is interpreted as
+the physical size of the corresponding array, in row-major order, just
+as for <code>fftw_plan_many_dft</code>.  In this case, each dimension of
+<code>nembed</code> should be <code>&gt;=</code> what it would be in the basic
+interface (e.g. the halved or padded <code>n</code>).
+
+</body></html>
+

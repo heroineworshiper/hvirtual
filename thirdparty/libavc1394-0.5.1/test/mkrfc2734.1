@@ -1,0 +1,36 @@
+.\" mkrfc2734 - Helper for IP over IEEE 1394 for Linux 2.4
+.\" Copyright (c) 2005 Dan Dennedy
+.\"
+.\" This manual page is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc.,59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+.\"
+.TH MKRFC2734 1 "February 2005"
+.SH NAME
+mkrfc2734 \- Make Linux 2.4 IP over IEEE 1394 capable.
+.SH SYNOPSIS
+.B mkrfc2734
+.SH DESCRIPTION
+.B mkrfc2734
+adds entries to the Linux IEEE 1394 Configuration ROM to describe itself
+to other nodes on the bus as being capable of performing IP over IEEE 1394 
+(RFC 2734) duties. This utility is not necessary for Linux 2.6 as there is a kernel
+configuration option to enable this. This command takes no arguments and
+requires raw1394 kernel module, libraw1394 library, and /dev/raw1394 
+device file. Also, it makes absolutely no sense to run this unless you have
+also loaded the eth1394 kernel module--the bits that do the real work!
+.PP
+.SH AUTHORS
+.B mkrfc2734
+and this man page was written by Dan Dennedy <dan@dennedy.org>.
+

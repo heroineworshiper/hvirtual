@@ -1,0 +1,86 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Caveats%20in%20Using%20Wisdom">Caveats in Using Wisdom</a>,
+Previous:<a rel=previous accesskey=p href="Words-of-Wisdom-Saving-Plans.html#Words%20of%20Wisdom-Saving%20Plans">Words of Wisdom-Saving Plans</a>,
+Up:<a rel=up accesskey=u href="Other-Important-Topics.html#Other%20Important%20Topics">Other Important Topics</a>
+<hr><br>
+
+<h3>3.4 Caveats in Using Wisdom</h3>
+
+<blockquote>
+&lt;i&gt;
+For in much wisdom is much grief, and he that increaseth knowledge
+increaseth sorrow. 
+&lt;/i&gt;
+[Ecclesiastes 1:18]
+</blockquote>
+
+<p>There are pitfalls to using wisdom, in that it can negate FFTW's
+ability to adapt to changing hardware and other conditions. For
+example, it would be perfectly possible to export wisdom from a
+program running on one processor and import it into a program running
+on another processor.  Doing so, however, would mean that the second
+program would use plans optimized for the first processor, instead of
+the one it is running on.
+
+<p>It should be safe to reuse wisdom as long as the hardware and program
+binaries remain unchanged. (Actually, the optimal plan may change even
+between runs of the same binary on identical hardware, due to
+differences in the virtual memory environment, etcetera.  Users
+seriously interested in performance should worry about this problem,
+too.)  It is likely that, if the same wisdom is used for two
+different program binaries, even running on the same machine, the
+plans may be sub-optimal because of differing code alignments.  It is
+therefore wise to recreate wisdom every time an application is
+recompiled.  The more the underlying hardware and software changes
+between the creation of wisdom and its use, the greater grows
+the risk of sub-optimal plans.
+
+<p>Nevertheless, if the choice is between using <code>FFTW_ESTIMATE</code> or
+using possibly-suboptimal wisdom (created on the same machine, but for a
+different binary), the wisdom is likely to be better.  For this reason,
+we provide a function to import wisdom from a standard system-wide
+location (<code>/etc/fftw/wisdom</code> on Unix):
+
+<br><pre>int fftw_import_system_wisdom(void);
+</pre>
+
+<p>FFTW also provides a standalone program, <code>fftw-wisdom</code> (described
+by its own <code>man</code> page on Unix) with which users can create wisdom,
+e.g. for a canonical set of sizes to store in the system wisdom file. 
+See <a href="Wisdom-Utilities.html#Wisdom%20Utilities">Wisdom Utilities</a>.
+
+</body></html>
+

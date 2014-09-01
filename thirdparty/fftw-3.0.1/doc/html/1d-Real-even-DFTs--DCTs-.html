@@ -1,0 +1,103 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="1d%20Real-even%20DFTs%20(DCTs)">1d Real-even DFTs (DCTs)</a>,
+Next:<a rel=next accesskey=n href="1d-Real-odd-DFTs--DSTs-.html#1d%20Real-odd%20DFTs%20(DSTs)">1d Real-odd DFTs (DSTs)</a>,
+Previous:<a rel=previous accesskey=p href="The-1d-Real-data-DFT.html#The%201d%20Real-data%20DFT">The 1d Real-data DFT</a>,
+Up:<a rel=up accesskey=u href="What-FFTW-Really-Computes.html#What%20FFTW%20Really%20Computes">What FFTW Really Computes</a>
+<hr><br>
+
+<h4>4.7.3 1d Real-even DFTs (DCTs)</h4>
+
+<p>The Real-even DFTs in FFTW are exactly equivalent to the unnormalized
+forward (and backward) DFTs as defined above, where the input array
+X of length N is purely real and is also <dfn>even</dfn>.  In
+this case, the output array is likewise real and even.
+
+<p>For the case of <code>REDFT00</code>, this even symmetry means that
+<i>X<sub>j</sub> = X<sub>N-j</sub></i>,
+where we take X to be periodic so that
+<i>X<sub>N</sub> = X</i><sub>0</sub>. 
+Because of this redundancy, only the first n real numbers are
+actually stored, where N = 2(n-1).
+
+<p>The proper definition of even symmetry for <code>REDFT10</code>,
+<code>REDFT01</code>, and <code>REDFT11</code> transforms is somewhat more intricate
+because of the shifts by 1/2 of the input and/or output, although
+the corresponding boundary conditions are given in <a href="Real-even-odd-DFTs--cosine-sine-transforms-.html#Real%20even%2fodd%20DFTs%20(cosine%2fsine%20transforms)">Real even/odd DFTs (cosine/sine transforms)</a>.  Because of the even symmetry, however,
+the sine terms in the DFT all cancel and the remaining cosine terms are
+written explicitly below.  This formulation often leads people to call
+such a transform a <dfn>discrete cosine transform</dfn> (DCT), although it is
+really just a special case of the DFT.
+
+<p>In each of the definitions below, we transform a real array X of
+length n to a real array Y of length n:
+
+<h5>REDFT00 (DCT-I)</h5>
+
+<p>An <code>REDFT00</code> transform (type-I DCT) in FFTW is defined by:
+<center><img src="equation-redft00.png" align="top">.</center>
+Note that this transform is not defined for n=1.  For n=2,
+the summation term above is dropped as you might expect.
+
+<h5>REDFT10 (DCT-II)</h5>
+
+<p>An <code>REDFT10</code> transform (type-II DCT) in FFTW is defined by:
+<center><img src="equation-redft10.png" align="top">.</center>
+
+<h5>REDFT01 (DCT-III)</h5>
+
+<p>An <code>REDFT01</code> transform (type-III DCT) in FFTW is defined by:
+<center><img src="equation-redft01.png" align="top">.</center>
+In the case of n=1, this reduces to
+<i>Y</i><sub>0</sub> = <i>X</i><sub>0</sub>.
+
+<h5>REDFT11 (DCT-IV)</h5>
+
+<p>An <code>REDFT11</code> transform (type-IV DCT) in FFTW is defined by:
+<center><img src="equation-redft11.png" align="top">.</center>
+
+<h5>Inverses and Normalization</h5>
+
+<p>These definitions correspond directly to the unnormalized DFTs used
+elsewhere in FFTW (hence the factors of 2 in front of the
+summations).  The unnormalized inverse of <code>REDFT00</code> is
+<code>REDFT00</code>, of <code>REDFT10</code> is <code>REDFT01</code> and vice versa, and
+of <code>REDFT11</code> is <code>REDFT11</code>.  Each unnormalized inverse results
+in the original array multiplied by N, where N is the
+<em>logical</em> DFT size.  For <code>REDFT00</code>, N=2(n-1) (note that
+n=1 is not defined); otherwise, N=2n.
+
+</body></html>
+

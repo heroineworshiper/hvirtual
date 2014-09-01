@@ -1,0 +1,49 @@
+Thu Jul 24 20:20:31 PDT 2003
+Running ./configure with arguments:
+
+This file contains information that is captured from running the configure
+script.  Lines that begin with a "+" are command lines echoed by the
+shell.  Other lines are the output of commands; usually the contents of
+test case files or the output from compilers.  If configure does the
+wrong thing, you can use the information captured here to aid in debugging.
+
+++ . ./config.site
+++ cat dummy.c
+main(int argc, char* argv) { exit(0); }
+++ cat xgnu.c
+#ifdef __GNUC__
+yes;
+#endif
+++ gcc -E xgnu.c
+++ egrep yes
+yes;
+++ gcc -o dummy dummy.c
+++ /usr/bin/gcc -g -c dummy.c
+++ make -f confMakefile t
+/usr/bin/gcc  t.c 
+t.c:1: warning: conflicting types for built-in function `cos'
+/tmp/ccAvBuas.o: In function `main':
+/tmp/ccAvBuas.o(.text+0xa): undefined reference to `cos'
+collect2: ld returned 1 exit status
+make: *** [t] Error 1
+++ make -f confMakefile t
+/usr/bin/gcc  t.c -lm
+++ make -f confMakefile t
+/usr/bin/gcc  t.c -lm
+++ make -f confMakefile t
+/usr/bin/gcc  t.c -lm
+++ cat t.c
+int f() { return 0; }
+++ make -f confMakefile t
+/usr/bin/gcc  -fPIC -c t.c
+ld -shared -o t.so.3 t.o
+++ make -f confMakefile t
+/usr/bin/gcc  t.c -limage
+/usr/bin/ld: cannot find -limage
+collect2: ld returned 1 exit status
+make: *** [t] Error 1
+++ make -f confMakefile t
+/usr/bin/gcc  t.c -lgl
+/usr/bin/ld: cannot find -lgl
+collect2: ld returned 1 exit status
+make: *** [t] Error 1

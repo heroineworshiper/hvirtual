@@ -1,0 +1,24 @@
+
+1.	MPEG2 support for progressive sequences frame (-F 0) and  
+	field-interlaced (-F 3) is now well tested.  Field
+	sequences (-F 1 and -F 2) appear to be working but aren't yet thoroughly
+	tested and lack some recent optimisations available for
+	progressive sequences.  
+
+2. 	Currently the VCD HR Stills muxing stuff assumes *all* HR stills
+  	are the same size which is given in the initial vbv_buffer_size...
+	This will work with mpeg2enc (which does this) but will fail fail fail
+	with other streams.
+
+3.	The VBVbuffer delay code in the MPEG encoder is hopeless broken.  
+	It is currently turned off
+	and needs re-implementing from scratch.  Not urgent though since
+	no decoder ever seems to take any notice of it.  Certainly I never
+	figured out the the damn thing would be useful for once your
+	mux-er has	checked for /ensured video buffer size bounding.
+
+
+4.	mpeg2enc is currently broken for 422 and 444 video.   The problem is that
+	the calculations for checking chrominance in the the motion compensation
+	search assume 2-pel sub-sampled U and V in X and Y.
+

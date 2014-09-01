@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libiec61883
+Description: An isochronous streaming media library for IEEE 1394
+Version: @VERSION@
+Requires: libraw1394
+Libs: -L${libdir} -liec61883
+Cflags: -I${includedir}

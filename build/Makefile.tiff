@@ -1,0 +1,95 @@
+include global_config
+
+
+DIR := $(shell expr thirdparty/tiff* )
+
+
+OBJS = \
+	$(DIR)/$(OBJDIR)/libtiff/tif_aux.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_close.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_codec.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_compress.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_dir.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_dirinfo.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_dirread.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_dirwrite.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_dumpmode.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_error.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_fax3.o \
+	$(DIR)/$(OBJDIR)/libtiff/fax3sm_winnt.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_getimage.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_jpeg.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_flush.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_luv.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_lzw.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_next.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_open.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_packbits.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_pixarlog.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_predict.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_print.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_read.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_swab.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_strip.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_thunder.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_tile.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_unix.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_version.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_warning.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_write.o \
+	$(DIR)/$(OBJDIR)/libtiff/tif_zip.o
+
+OUTPUT = $(DIR)/$(OBJDIR)/libtiff.a
+
+CFLAGS += -I$(DIR)/libtiff
+
+$(shell sh -c 'mkdir -p $(DIR)/$(OBJDIR)/libtiff' )
+$(shell echo $(CFLAGS) > $(DIR)/$(OBJDIR)/c_flags)
+$(shell echo $(OUTPUT) $(OBJS) > $(DIR)/$(OBJDIR)/objs)
+
+
+all: $(OUTPUT)
+
+$(OUTPUT): $(OBJS)
+	ar rc `cat $(DIR)/$(OBJDIR)/objs`
+
+clean:
+	rm -rf $(DIR)/$(OBJDIR)
+
+$(OBJS):
+	$(GCC) -c `cat $(DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
+
+$(DIR)/$(OBJDIR)/libtiff/tif_aux.o: 	     $(DIR)/libtiff/tif_aux.c
+$(DIR)/$(OBJDIR)/libtiff/tif_close.o:       $(DIR)/libtiff/tif_close.c
+$(DIR)/$(OBJDIR)/libtiff/tif_codec.o:       $(DIR)/libtiff/tif_codec.c
+$(DIR)/$(OBJDIR)/libtiff/tif_compress.o:    $(DIR)/libtiff/tif_compress.c
+$(DIR)/$(OBJDIR)/libtiff/tif_dir.o: 	     $(DIR)/libtiff/tif_dir.c
+$(DIR)/$(OBJDIR)/libtiff/tif_dirinfo.o:     $(DIR)/libtiff/tif_dirinfo.c
+$(DIR)/$(OBJDIR)/libtiff/tif_dirread.o:     $(DIR)/libtiff/tif_dirread.c
+$(DIR)/$(OBJDIR)/libtiff/tif_dirwrite.o:    $(DIR)/libtiff/tif_dirwrite.c
+$(DIR)/$(OBJDIR)/libtiff/tif_dumpmode.o:    $(DIR)/libtiff/tif_dumpmode.c
+$(DIR)/$(OBJDIR)/libtiff/tif_error.o:       $(DIR)/libtiff/tif_error.c
+$(DIR)/$(OBJDIR)/libtiff/tif_fax3.o: 	     $(DIR)/libtiff/tif_fax3.c
+$(DIR)/$(OBJDIR)/libtiff/fax3sm_winnt.o: 	 $(DIR)/libtiff/fax3sm_winnt.c
+$(DIR)/$(OBJDIR)/libtiff/tif_getimage.o:    $(DIR)/libtiff/tif_getimage.c
+$(DIR)/$(OBJDIR)/libtiff/tif_jpeg.o: 	     $(DIR)/libtiff/tif_jpeg.c
+$(DIR)/$(OBJDIR)/libtiff/tif_flush.o:       $(DIR)/libtiff/tif_flush.c
+$(DIR)/$(OBJDIR)/libtiff/tif_luv.o: 	     $(DIR)/libtiff/tif_luv.c
+$(DIR)/$(OBJDIR)/libtiff/tif_lzw.o: 	     $(DIR)/libtiff/tif_lzw.c
+$(DIR)/$(OBJDIR)/libtiff/tif_next.o: 	     $(DIR)/libtiff/tif_next.c
+$(DIR)/$(OBJDIR)/libtiff/tif_open.o: 	     $(DIR)/libtiff/tif_open.c
+$(DIR)/$(OBJDIR)/libtiff/tif_packbits.o:    $(DIR)/libtiff/tif_packbits.c
+$(DIR)/$(OBJDIR)/libtiff/tif_pixarlog.o:    $(DIR)/libtiff/tif_pixarlog.c
+$(DIR)/$(OBJDIR)/libtiff/tif_predict.o:     $(DIR)/libtiff/tif_predict.c
+$(DIR)/$(OBJDIR)/libtiff/tif_print.o:       $(DIR)/libtiff/tif_print.c
+$(DIR)/$(OBJDIR)/libtiff/tif_read.o: 	     $(DIR)/libtiff/tif_read.c
+$(DIR)/$(OBJDIR)/libtiff/tif_swab.o: 	     $(DIR)/libtiff/tif_swab.c
+$(DIR)/$(OBJDIR)/libtiff/tif_strip.o:       $(DIR)/libtiff/tif_strip.c
+$(DIR)/$(OBJDIR)/libtiff/tif_thunder.o:     $(DIR)/libtiff/tif_thunder.c
+$(DIR)/$(OBJDIR)/libtiff/tif_tile.o: 	     $(DIR)/libtiff/tif_tile.c
+$(DIR)/$(OBJDIR)/libtiff/tif_unix.o: 	     $(DIR)/libtiff/tif_unix.c
+$(DIR)/$(OBJDIR)/libtiff/tif_version.o:     $(DIR)/libtiff/tif_version.c
+$(DIR)/$(OBJDIR)/libtiff/tif_warning.o:     $(DIR)/libtiff/tif_warning.c
+$(DIR)/$(OBJDIR)/libtiff/tif_write.o:       $(DIR)/libtiff/tif_write.c
+$(DIR)/$(OBJDIR)/libtiff/tif_zip.o: 	     $(DIR)/libtiff/tif_zip.c
+

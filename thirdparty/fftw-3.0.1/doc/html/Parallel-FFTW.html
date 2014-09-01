@@ -1,0 +1,64 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Parallel%20FFTW">Parallel FFTW</a>,
+Next:<a rel=next accesskey=n href="Calling-FFTW-from-Fortran.html#Calling%20FFTW%20from%20Fortran">Calling FFTW from Fortran</a>,
+Previous:<a rel=previous accesskey=p href="FFTW-Reference.html#FFTW%20Reference">FFTW Reference</a>,
+Up:<a rel=up accesskey=u href="index.html#Top">Top</a>
+<hr><br>
+
+<h2>5 Parallel FFTW</h2>
+
+<p>In this chapter we discuss the use of FFTW in a parallel environment.
+
+<p>Currently, FFTW 3 includes parallel transforms for shared-memory
+machiens with some flavor of threads (e.g. POSIX threads); any program
+using FFTW can be trivially modified to use these transforms, which are
+documented in <a href="Multi-threaded-FFTW.html#Multi-threaded%20FFTW">Multi-threaded FFTW</a>.
+
+<p>Users calling FFTW from a multi-threaded program should also consult
+<a href="Thread-safety.html#Thread%20safety">Thread safety</a>.  This section tells you which routines of FFTW it
+is safe to call in parallel from different shared-memory threads.
+
+<p>FFTW 2 also contains distributed-memory parallel transforms using the
+MPI message-passing standard.  MPI transforms are not yet available in
+FFTW 3, so users requiring that capability must use FFTW 2 for now.
+
+<ul>
+<li><a accesskey=1 href="Multi-threaded-FFTW.html#Multi-threaded%20FFTW">Multi-threaded FFTW</a>: 
+<li><a accesskey=2 href="Thread-safety.html#Thread%20safety">Thread safety</a>: 
+</ul>
+
+</body></html>
+

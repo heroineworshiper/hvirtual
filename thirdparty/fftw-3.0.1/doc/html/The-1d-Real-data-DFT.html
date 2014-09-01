@@ -1,0 +1,80 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="The%201d%20Real-data%20DFT">The 1d Real-data DFT</a>,
+Next:<a rel=next accesskey=n href="1d-Real-even-DFTs--DCTs-.html#1d%20Real-even%20DFTs%20(DCTs)">1d Real-even DFTs (DCTs)</a>,
+Previous:<a rel=previous accesskey=p href="The-1d-Discrete-Fourier-Transform--DFT-.html#The%201d%20Discrete%20Fourier%20Transform%20(DFT)">The 1d Discrete Fourier Transform (DFT)</a>,
+Up:<a rel=up accesskey=u href="What-FFTW-Really-Computes.html#What%20FFTW%20Really%20Computes">What FFTW Really Computes</a>
+<hr><br>
+
+<h4>4.7.2 The 1d Real-data DFT</h4>
+
+<p>The real-input (r2c) DFT in FFTW computes the <em>forward</em> transform
+Y of the size <code>n</code> real array X, exactly as defined
+above, i.e. 
+<center><img src="equation-dft.png" align="top">.</center>
+This output array Y can easily be shown to possess the
+"Hermitian" symmetry
+<i>Y<sub>k</sub> = Y<sub>n-k</sub></i><sup>*</sup>,
+where we take Y to be periodic so that
+<i>Y<sub>n</sub> = Y</i><sub>0</sub>.
+
+<p>As a result of this symmetry, half of the output Y is redundant
+(being the complex conjugate of the other half), and so the 1d r2c
+transforms only output elements 0<small>...</small>n/2 of Y
+(n/2+1 complex numbers), where the division by 2 is
+rounded down.
+
+<p>Moreover, the Hermitian symmetry implies that
+<i>Y</i><sub>0</sub>
+and, if n is even, the
+<i>Y</i><sub><i>n</i>/2</sub>
+element, are purely real.  So, for the <code>R2HC</code> r2r transform, these
+elements are not stored in the halfcomplex output format.
+
+<p>The c2r and <code>H2RC</code> r2r transforms compute the backward DFT of the
+<em>complex</em> array X with Hermitian symmetry, stored in the
+r2c/<code>R2HC</code> output formats, respectively, where the backward
+transform is defined exactly as for the complex case:
+<center><img src="equation-idft.png" align="top">.</center>
+The outputs <code>Y</code> of this transform can easily be seen to be purely
+real, and are stored as an array of real numbers.
+
+<p>Like FFTW's complex DFT, these transforms are unnormalized.  In other
+words, applying the real-to-complex (forward) and then the
+complex-to-real (backward) transform will multiply the input by
+n.
+
+</body></html>
+

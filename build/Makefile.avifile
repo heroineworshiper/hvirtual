@@ -1,0 +1,659 @@
+include global_config
+
+AVIFILE_DIR := $(shell expr avifile* )
+
+COBJS := \
+	$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/generic/video/create.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/generic/video/rgb_yuv.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/generic/create.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/i386/video/create.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/i386/video/yuv2rgb_mmx.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/i386/create.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/names.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/mmxnow.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/subtitle/subtitle.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/subtitle/subread.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/guids.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/outputpin.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/cmediasample.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/inputpin.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/DS_Filter.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/allocator.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/driver.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/elfdll.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/afl.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/ext.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/module.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/pe_image.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/pe_resource.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/registry.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/resource.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/ldt_keeper.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/win32.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/audiodec/ACM_AudioDecoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/audiodec/DS_AudioDecoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/Module.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/VideoEncoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/DS_VideoDecoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/VideoDecoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/VideoCodec.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/libwin32.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/fdct_mmx.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/cputest.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/idct_mmx.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/dsputil_mmx.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/mpegvideo_mmx.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/motion_est_mmx.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/bit_allocate.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/bitstream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/imdct.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/downmix.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/parse.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/utils.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/common.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/mpegvideo.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/h263.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/jfdctfst.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/jrevdct.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/mpegaudio.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/ac3enc.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/mjpeg.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/mpegaudiodec.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/resample.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/motion_est.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/dsputil.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/imgresample.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/imgconvert.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/msmpeg4.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/h263dec.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/rv10.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/mpeg12.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/pcm.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/ac3dec.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/simple_idct.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/FFAudioDecoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/FFVideoDecoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libffmpeg.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/brhist.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/formatBitstream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/get_audio.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/fft.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/id3tag.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/ieeefloat.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/l3bitstream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/lame.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/portableio.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/newmdct.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/parse.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/quantize.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/psymodel.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/vbrquantize.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/quantize-pvt.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/reservoir.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/tables.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/takehiro.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/timestatus.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/util.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/VbrTag.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/version.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/common.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/decode_i386.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/dct64_i386.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/layer3.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/tabinit.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/interface.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/main.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/audioencoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/mp3encoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libac3pass/ac3-iec958.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libac3pass/libac3pass.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/version.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/bit.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/timer.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/fixed.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/frame.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/synth.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/stream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/decoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/layer12.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/layer3.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/huffman.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad.o
+
+
+CXXOBJS := \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/AudioIntResampler.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/AudioFpHQResampler.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/AudioCleaner.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/aviplayprop.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/aviplay.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/AudioQueue.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/aviplay2.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/CopyAudioRenderer.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/IAudioRenderer.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/OssAudioRenderer.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/SdlAudioRenderer.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/aviplayth.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/Statistic.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/SunAudioRenderer.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/VideoDPMS.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfInputStream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfReadHandler.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfReadStream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfRedirectInputStream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfFileInputStream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfStreamSeekInfo.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfNetworkInputStream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsxReader.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/asf_guids.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/asffmt.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviMediaReadHandler.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviMediaReadStream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviRead.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviReadStreamV.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviReadStreamA.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviReadStream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/FileIterator.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/StreamInfo.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/Cache.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/NetworkIterator.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviwrite/AviAudioWriteStream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviwrite/AviVideoWriteStream.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviwrite/AviWrite.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/BaseError.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/ConfigEntry.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/ConfigFile.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/Locker.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/Registry.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/image.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/util.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/impl_audio.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/impl_video.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/mmx.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/fcc_type.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/utils.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/avm_output.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/wave_type.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/ldt_keeper.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/BitmapInfo.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/video/renderer.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/Uncompressed.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/codeckeeper.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/gsm61dec.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/adpcm.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/audiodecoder.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/adpcm_impl.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/pcm.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/aulaw.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/xa_gsm.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/huffmantable.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/bitwindow.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/filter_2.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/filter.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/mpeglayer1.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/mpeglayer2.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/mpegtable.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/mpegtoraw.o \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/mpeglayer3.o \
+
+
+DIRS := \
+	$(AVIFILE_DIR)/$(OBJDIR)/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/generic/video/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/i386/video/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/aviwrite/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/common/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/subtitle/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/lib/video/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/audiodec/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libac3pass/ \
+	$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/
+
+CFLAGS = -fmessage-length=0 \
+	-O2 \
+	-DHAVE_CONFIG_H \
+	-DWIN32_PATH=\"/usr/lib/win32\" \
+	-I$(AVIFILE_DIR)/libmmxnow/src/ \
+	-I$(AVIFILE_DIR)/include \
+	-I$(AVIFILE_DIR)/plugins/libwin32/loader
+
+OUTPUT := $(AVIFILE_DIR)/$(OBJDIR)/libavifile.a
+
+$(shell echo $(CFLAGS) > $(AVIFILE_DIR)/$(OBJDIR)/c_flags)
+
+all: $(DIRS) $(COBJS) $(CXXOBJS)
+	ar rcs $(OUTPUT) $(OBJS) $(CXXOBJS)
+
+$(DIRS):
+	if ! test -d $@ ; then mkdir -p $@ ; fi
+	
+
+$(COBJS):
+	$(GCC) -c `cat $(AVIFILE_DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
+
+$(CXXOBJS):
+	$(CC) -c `cat $(AVIFILE_DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.cpp) -o $*.o
+
+
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/AudioIntResampler.o:  						   $(AVIFILE_DIR)/lib/aviplay/AudioIntResampler.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/AudioFpHQResampler.o: 						   $(AVIFILE_DIR)/lib/aviplay/AudioFpHQResampler.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/AudioCleaner.o: 							   $(AVIFILE_DIR)/lib/aviplay/AudioCleaner.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/aviplayprop.o: 							   $(AVIFILE_DIR)/lib/aviplay/aviplayprop.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/aviplay.o: 								   $(AVIFILE_DIR)/lib/aviplay/aviplay.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/AudioQueue.o: 								   $(AVIFILE_DIR)/lib/aviplay/AudioQueue.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/aviplay2.o: 								   $(AVIFILE_DIR)/lib/aviplay/aviplay2.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/CopyAudioRenderer.o:  						   $(AVIFILE_DIR)/lib/aviplay/CopyAudioRenderer.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/IAudioRenderer.o: 							   $(AVIFILE_DIR)/lib/aviplay/IAudioRenderer.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/OssAudioRenderer.o: 						   $(AVIFILE_DIR)/lib/aviplay/OssAudioRenderer.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/SdlAudioRenderer.o: 						   $(AVIFILE_DIR)/lib/aviplay/SdlAudioRenderer.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/aviplayth.o:  								   $(AVIFILE_DIR)/lib/aviplay/aviplayth.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/Statistic.o:  								   $(AVIFILE_DIR)/lib/aviplay/Statistic.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/SunAudioRenderer.o: 						   $(AVIFILE_DIR)/lib/aviplay/SunAudioRenderer.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviplay/VideoDPMS.o:  								   $(AVIFILE_DIR)/lib/aviplay/VideoDPMS.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfInputStream.o: 							   $(AVIFILE_DIR)/lib/aviread/AsfInputStream.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfReadHandler.o: 							   $(AVIFILE_DIR)/lib/aviread/AsfReadHandler.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfReadStream.o:  							   $(AVIFILE_DIR)/lib/aviread/AsfReadStream.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfRedirectInputStream.o: 					   $(AVIFILE_DIR)/lib/aviread/AsfRedirectInputStream.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfFileInputStream.o: 						   $(AVIFILE_DIR)/lib/aviread/AsfFileInputStream.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfStreamSeekInfo.o:  						   $(AVIFILE_DIR)/lib/aviread/AsfStreamSeekInfo.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsfNetworkInputStream.o:  					   $(AVIFILE_DIR)/lib/aviread/AsfNetworkInputStream.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AsxReader.o:  								   $(AVIFILE_DIR)/lib/aviread/AsxReader.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/asf_guids.o:  								   $(AVIFILE_DIR)/lib/aviread/asf_guids.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/asffmt.o: 									   $(AVIFILE_DIR)/lib/aviread/asffmt.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviMediaReadHandler.o: 					   $(AVIFILE_DIR)/lib/aviread/AviMediaReadHandler.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviMediaReadStream.o: 						   $(AVIFILE_DIR)/lib/aviread/AviMediaReadStream.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviRead.o: 								   $(AVIFILE_DIR)/lib/aviread/AviRead.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviReadStreamV.o: 							   $(AVIFILE_DIR)/lib/aviread/AviReadStreamV.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviReadStreamA.o: 							   $(AVIFILE_DIR)/lib/aviread/AviReadStreamA.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/AviReadStream.o:  							   $(AVIFILE_DIR)/lib/aviread/AviReadStream.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/FileIterator.o: 							   $(AVIFILE_DIR)/lib/aviread/FileIterator.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/StreamInfo.o: 								   $(AVIFILE_DIR)/lib/aviread/StreamInfo.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/Cache.o:  									   $(AVIFILE_DIR)/lib/aviread/Cache.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviread/NetworkIterator.o: 						   $(AVIFILE_DIR)/lib/aviread/NetworkIterator.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviwrite/AviAudioWriteStream.o: 					   $(AVIFILE_DIR)/lib/aviwrite/AviAudioWriteStream.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviwrite/AviVideoWriteStream.o: 					   $(AVIFILE_DIR)/lib/aviwrite/AviVideoWriteStream.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/aviwrite/AviWrite.o:  								   $(AVIFILE_DIR)/lib/aviwrite/AviWrite.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/BaseError.o: 								   $(AVIFILE_DIR)/lib/common/BaseError.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/ConfigEntry.o: 								   $(AVIFILE_DIR)/lib/common/ConfigEntry.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/ConfigFile.o:  								   $(AVIFILE_DIR)/lib/common/ConfigFile.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/Locker.o:  									   $(AVIFILE_DIR)/lib/common/Locker.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/Registry.o: 								   $(AVIFILE_DIR)/lib/common/Registry.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/image.o: 									   $(AVIFILE_DIR)/lib/common/image.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/util.o: 									   $(AVIFILE_DIR)/lib/common/util.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/impl_audio.o:  								   $(AVIFILE_DIR)/lib/common/impl_audio.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/impl_video.o:  								   $(AVIFILE_DIR)/lib/common/impl_video.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/mmx.o: 										   $(AVIFILE_DIR)/lib/common/mmx.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/fcc_type.o: 								   $(AVIFILE_DIR)/lib/common/fcc_type.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/utils.o: 									   $(AVIFILE_DIR)/lib/common/utils.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/avm_output.o:  								   $(AVIFILE_DIR)/lib/common/avm_output.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/wave_type.o: 								   $(AVIFILE_DIR)/lib/common/wave_type.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/ldt_keeper.o:  								   $(AVIFILE_DIR)/lib/common/ldt_keeper.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/common/BitmapInfo.o:  								   $(AVIFILE_DIR)/lib/common/BitmapInfo.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/video/renderer.o: 									   $(AVIFILE_DIR)/lib/video/renderer.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/Uncompressed.o: 									   $(AVIFILE_DIR)/lib/Uncompressed.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/lib/codeckeeper.o: 									   $(AVIFILE_DIR)/lib/codeckeeper.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/gsm61dec.o: 						   $(AVIFILE_DIR)/plugins/libaudiodec/gsm61dec.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/adpcm.o:  							   $(AVIFILE_DIR)/plugins/libaudiodec/adpcm.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/audiodecoder.o: 					   $(AVIFILE_DIR)/plugins/libaudiodec/audiodecoder.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/adpcm_impl.o: 						   $(AVIFILE_DIR)/plugins/libaudiodec/adpcm_impl.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/pcm.o: 							   $(AVIFILE_DIR)/plugins/libaudiodec/pcm.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/aulaw.o:  							   $(AVIFILE_DIR)/plugins/libaudiodec/aulaw.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libaudiodec/xa_gsm.o: 							   $(AVIFILE_DIR)/plugins/libaudiodec/xa_gsm.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/huffmantable.o:  				   $(AVIFILE_DIR)/plugins/libmpeg_audiodec/huffmantable.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/bitwindow.o: 					   $(AVIFILE_DIR)/plugins/libmpeg_audiodec/bitwindow.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/filter_2.o:  					   $(AVIFILE_DIR)/plugins/libmpeg_audiodec/filter_2.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/filter.o: 					   $(AVIFILE_DIR)/plugins/libmpeg_audiodec/filter.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/mpeglayer1.o: 				   $(AVIFILE_DIR)/plugins/libmpeg_audiodec/mpeglayer1.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/mpeglayer2.o: 				   $(AVIFILE_DIR)/plugins/libmpeg_audiodec/mpeglayer2.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/mpegtable.o: 					   $(AVIFILE_DIR)/plugins/libmpeg_audiodec/mpegtable.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/mpegtoraw.o: 					   $(AVIFILE_DIR)/plugins/libmpeg_audiodec/mpegtoraw.cpp
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmpeg_audiodec/mpeglayer3.o: 				   $(AVIFILE_DIR)/plugins/libmpeg_audiodec/mpeglayer3.cpp
+
+
+$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/generic/video/create.o: 					   $(AVIFILE_DIR)/libmmxnow/src/generic/video/create.c
+$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/generic/video/rgb_yuv.o: 				   $(AVIFILE_DIR)/libmmxnow/src/generic/video/rgb_yuv.c
+$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/generic/create.o: 						   $(AVIFILE_DIR)/libmmxnow/src/generic/create.c
+$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/i386/video/create.o: 					   $(AVIFILE_DIR)/libmmxnow/src/i386/video/create.c
+$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/i386/video/yuv2rgb_mmx.o: 				   $(AVIFILE_DIR)/libmmxnow/src/i386/video/yuv2rgb_mmx.c
+$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/i386/create.o:  							   $(AVIFILE_DIR)/libmmxnow/src/i386/create.c
+$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/names.o: 								   $(AVIFILE_DIR)/libmmxnow/src/names.c
+$(AVIFILE_DIR)/$(OBJDIR)/libmmxnow/src/mmxnow.o: 								   $(AVIFILE_DIR)/libmmxnow/src/mmxnow.c
+$(AVIFILE_DIR)/$(OBJDIR)/lib/subtitle/subtitle.o:  								   $(AVIFILE_DIR)/lib/subtitle/subtitle.c
+$(AVIFILE_DIR)/$(OBJDIR)/lib/subtitle/subread.o: 								   $(AVIFILE_DIR)/lib/subtitle/subread.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/guids.o: 				   $(AVIFILE_DIR)/plugins/libwin32/loader/dshow/guids.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/outputpin.o: 			   $(AVIFILE_DIR)/plugins/libwin32/loader/dshow/outputpin.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/cmediasample.o: 			   $(AVIFILE_DIR)/plugins/libwin32/loader/dshow/cmediasample.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/inputpin.o: 				   $(AVIFILE_DIR)/plugins/libwin32/loader/dshow/inputpin.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/DS_Filter.o: 			   $(AVIFILE_DIR)/plugins/libwin32/loader/dshow/DS_Filter.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/dshow/allocator.o: 			   $(AVIFILE_DIR)/plugins/libwin32/loader/dshow/allocator.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/driver.o: 						   $(AVIFILE_DIR)/plugins/libwin32/loader/driver.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/elfdll.o: 						   $(AVIFILE_DIR)/plugins/libwin32/loader/elfdll.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/afl.o: 						   $(AVIFILE_DIR)/plugins/libwin32/loader/afl.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/ext.o: 						   $(AVIFILE_DIR)/plugins/libwin32/loader/ext.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/module.o: 						   $(AVIFILE_DIR)/plugins/libwin32/loader/module.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/pe_image.o: 					   $(AVIFILE_DIR)/plugins/libwin32/loader/pe_image.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/pe_resource.o: 				   $(AVIFILE_DIR)/plugins/libwin32/loader/pe_resource.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/registry.o: 					   $(AVIFILE_DIR)/plugins/libwin32/loader/registry.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/resource.o: 					   $(AVIFILE_DIR)/plugins/libwin32/loader/resource.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/ldt_keeper.o: 					   $(AVIFILE_DIR)/plugins/libwin32/loader/ldt_keeper.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/loader/win32.o:  						   $(AVIFILE_DIR)/plugins/libwin32/loader/win32.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/audiodec/ACM_AudioDecoder.o: 			   $(AVIFILE_DIR)/plugins/libwin32/audiodec/ACM_AudioDecoder.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/audiodec/DS_AudioDecoder.o:  			   $(AVIFILE_DIR)/plugins/libwin32/audiodec/DS_AudioDecoder.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/Module.o: 					   $(AVIFILE_DIR)/plugins/libwin32/videocodec/Module.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/VideoEncoder.o: 			   $(AVIFILE_DIR)/plugins/libwin32/videocodec/VideoEncoder.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/DS_VideoDecoder.o: 		   $(AVIFILE_DIR)/plugins/libwin32/videocodec/DS_VideoDecoder.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/VideoDecoder.o: 			   $(AVIFILE_DIR)/plugins/libwin32/videocodec/VideoDecoder.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/videocodec/VideoCodec.o: 				   $(AVIFILE_DIR)/plugins/libwin32/videocodec/VideoCodec.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libwin32/libwin32.o:  							   $(AVIFILE_DIR)/plugins/libwin32/libwin32.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/fdct_mmx.o: 			   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/i386/fdct_mmx.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/cputest.o:  			   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/i386/cputest.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/idct_mmx.o: 			   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/i386/idct_mmx.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/dsputil_mmx.o:  		   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/i386/dsputil_mmx.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/mpegvideo_mmx.o: 	   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/i386/mpegvideo_mmx.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/i386/motion_est_mmx.o: 	   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/i386/motion_est_mmx.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/bit_allocate.o: 	   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/libac3/bit_allocate.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/bitstream.o:  		   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/libac3/bitstream.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/imdct.o:  			   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/libac3/imdct.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/downmix.o: 		   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/libac3/downmix.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/libac3/parse.o:  			   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/libac3/parse.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/utils.o: 					   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/utils.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/common.o: 				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/common.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/mpegvideo.o: 				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/mpegvideo.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/h263.o:  					   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/h263.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/jfdctfst.o:  				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/jfdctfst.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/jrevdct.o: 				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/jrevdct.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/mpegaudio.o: 				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/mpegaudio.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/ac3enc.o: 				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/ac3enc.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/mjpeg.o: 					   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/mjpeg.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/mpegaudiodec.o:  			   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/mpegaudiodec.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/resample.o:  				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/resample.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/motion_est.o: 			   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/motion_est.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/dsputil.o: 				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/dsputil.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/imgresample.o: 			   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/imgresample.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/imgconvert.o: 			   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/imgconvert.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/msmpeg4.o: 				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/msmpeg4.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/h263dec.o: 				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/h263dec.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/rv10.o:  					   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/rv10.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/mpeg12.o: 				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/mpeg12.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/pcm.o: 					   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/pcm.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/ac3dec.o: 				   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/ac3dec.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libavcodec/simple_idct.o: 			   $(AVIFILE_DIR)/plugins/libffmpeg/libavcodec/simple_idct.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/FFAudioDecoder.o: 					   $(AVIFILE_DIR)/plugins/libffmpeg/FFAudioDecoder.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/FFVideoDecoder.o: 					   $(AVIFILE_DIR)/plugins/libffmpeg/FFVideoDecoder.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libffmpeg/libffmpeg.o: 						   $(AVIFILE_DIR)/plugins/libffmpeg/libffmpeg.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/brhist.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/brhist.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/formatBitstream.o:   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/formatBitstream.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/get_audio.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/get_audio.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/fft.o: 			   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/fft.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/id3tag.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/id3tag.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/ieeefloat.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/ieeefloat.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/l3bitstream.o: 	   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/l3bitstream.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/lame.o:  			   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/lame.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/portableio.o: 	   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/portableio.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/newmdct.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/newmdct.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/parse.o: 			   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/parse.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/quantize.o:  		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/quantize.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/psymodel.o:  		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/psymodel.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/vbrquantize.o: 	   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/vbrquantize.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/quantize-pvt.o:  	   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/quantize-pvt.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/reservoir.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/reservoir.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/tables.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/tables.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/takehiro.o:  		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/takehiro.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/timestatus.o: 	   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/timestatus.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/util.o:  			   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/util.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/VbrTag.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/VbrTag.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/version.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/version.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/common.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/common.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/decode_i386.o: 	   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/decode_i386.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/dct64_i386.o: 	   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/dct64_i386.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/layer3.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/layer3.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/tabinit.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/tabinit.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/interface.o: 		   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/interface.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/lame3.70/main.o:  			   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/lame3.70/main.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/audioencoder.o: 			   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/audioencoder.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmp3lame_audioenc/mp3encoder.o: 				   $(AVIFILE_DIR)/plugins/libmp3lame_audioenc/mp3encoder.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libac3pass/ac3-iec958.o:  						   $(AVIFILE_DIR)/plugins/libac3pass/ac3-iec958.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libac3pass/libac3pass.o:  						   $(AVIFILE_DIR)/plugins/libac3pass/libac3pass.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/version.o:  						   $(AVIFILE_DIR)/plugins/libmad/libmad/version.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/bit.o:  							   $(AVIFILE_DIR)/plugins/libmad/libmad/bit.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/timer.o: 						   $(AVIFILE_DIR)/plugins/libmad/libmad/timer.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/fixed.o: 						   $(AVIFILE_DIR)/plugins/libmad/libmad/fixed.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/frame.o: 						   $(AVIFILE_DIR)/plugins/libmad/libmad/frame.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/synth.o: 						   $(AVIFILE_DIR)/plugins/libmad/libmad/synth.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/stream.o: 						   $(AVIFILE_DIR)/plugins/libmad/libmad/stream.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/decoder.o:  						   $(AVIFILE_DIR)/plugins/libmad/libmad/decoder.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/layer12.o:  						   $(AVIFILE_DIR)/plugins/libmad/libmad/layer12.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/layer3.o: 						   $(AVIFILE_DIR)/plugins/libmad/libmad/layer3.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad/huffman.o:  						   $(AVIFILE_DIR)/plugins/libmad/libmad/huffman.c
+$(AVIFILE_DIR)/$(OBJDIR)/plugins/libmad/libmad.o:  								   $(AVIFILE_DIR)/plugins/libmad/libmad.c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

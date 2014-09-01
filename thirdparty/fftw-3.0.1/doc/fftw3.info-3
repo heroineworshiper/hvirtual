@@ -1,0 +1,1034 @@
+This is fftw3.info, produced by makeinfo version 4.2 from fftw3.texi.
+
+This manual is for FFTW (version 3.0.1, 5 June 2003).
+
+   Copyright (C) 2003 Matteo Frigo.
+
+   Copyright (C) 2003 Massachusetts Institute of Technology.
+
+     Permission is granted to make and distribute verbatim copies of
+     this manual provided the copyright notice and this permission
+     notice are preserved on all copies.
+
+     Permission is granted to copy and distribute modified versions of
+     this manual under the conditions for verbatim copying, provided
+     that the entire resulting derived work is distributed under the
+     terms of a permission notice identical to this one.
+
+     Permission is granted to copy and distribute translations of this
+     manual into another language, under the above conditions for
+     modified versions, except that this permission notice may be
+     stated in a translation approved by the Free Software Foundation.
+   
+INFO-DIR-SECTION Texinfo documentation system
+START-INFO-DIR-ENTRY
+* fftw3: (fftw3).	FFTW User's Manual.
+END-INFO-DIR-ENTRY
+
+
+File: fftw3.info,  Node: Guru Real-data DFTs,  Next: Guru Real-to-real Transforms,  Prev: Guru Complex DFTs,  Up: Guru Interface
+
+Guru Real-data DFTs
+-------------------
+
+     fftw_plan fftw_plan_guru_dft_r2c(
+          int rank, const fftw_iodim *dims,
+          int howmany_rank, const fftw_iodim *howmany_dims,
+          double *in, fftw_complex *out,
+          unsigned flags);
+     
+     fftw_plan fftw_plan_guru_split_dft_r2c(
+          int rank, const fftw_iodim *dims,
+          int howmany_rank, const fftw_iodim *howmany_dims,
+          double *in, double *ro, double *io,
+          unsigned flags);
+     
+     fftw_plan fftw_plan_guru_dft_c2r(
+          int rank, const fftw_iodim *dims,
+          int howmany_rank, const fftw_iodim *howmany_dims,
+          fftw_complex *in, double *out,
+          unsigned flags);
+     
+     fftw_plan fftw_plan_guru_split_dft_c2r(
+          int rank, const fftw_iodim *dims,
+          int howmany_rank, const fftw_iodim *howmany_dims,
+          double *ri, double *ii, double *out,
+          unsigned flags);
+
+   Plan a real-input (r2c) or real-output (c2r), multi-dimensional DFT
+with transform dimensions given by (`rank', `dims') over a
+multi-dimensional vector (loop) of dimensions (`howmany_rank',
+`howmany_dims').  `dims' and `howmany_dims' should point to
+`fftw_iodim' arrays of length `rank' and `howmany_rank', respectively.
+As for the basic and advanced interfaces, an r2c transform is
+`FFTW_FORWARD' and a c2r transform is `FFTW_BACKWARD'.
+
+   The _last_ dimension of `dims' is interpreted specially: that
+dimension of the real array has size `dims[rank-1].n', but that
+dimension of the complex array has size `dims[rank-1].n/2+1' (division
+rounded down).  The strides, on the other hand, are taken to be exactly
+as specified.  It is up to the user to specify the strides
+appropriately for the peculiar dimensions of the data, and we do not
+guarantee that the planner will succeed (return non-`NULL') for any
+dimensions other than those described in *Note Real-data DFT Array
+Format:: and generalized in *Note Advanced Real-data DFTs::.  (That is,
+for an in-place transform, each individual dimension should be able to
+operate in place.)
+
+   `in' and `out' point to the input and output arrays for r2c and c2r
+transforms, respectively.  For split arrays, `ri' and `ii' point to the
+real and imaginary input arrays for a c2r transform, and `ro' and `io'
+point to the real and imaginary output arrays for an r2c transform.
+`in' and `ro' or `ri' and `out' may be the same, indicating an in-place
+transform.
+
+   `flags' is a bitwise OR (`|') of zero or more planner flags, as
+defined in *Note Planner Flags::.
+
+   In-place transforms of rank greater than 1 are currently only
+supported for interleaved arrays.  For split arrays, the planner will
+return `NULL'.
+
+
+File: fftw3.info,  Node: Guru Real-to-real Transforms,  Next: Guru Execution of Plans,  Prev: Guru Real-data DFTs,  Up: Guru Interface
+
+Guru Real-to-real Transforms
+----------------------------
+
+     fftw_plan fftw_plan_guru_r2r(int rank, const fftw_iodim *dims,
+                                  int howmany_rank,
+                                  const fftw_iodim *howmany_dims,
+                                  double *in, double *out,
+                                  const fftw_r2r_kind *kind,
+                                  unsigned flags);
+
+   Plan a real-to-real (r2r) multi-dimensional `FFTW_FORWARD' transform
+with transform dimensions given by (`rank', `dims') over a
+multi-dimensional vector (loop) of dimensions (`howmany_rank',
+`howmany_dims').  `dims' and `howmany_dims' should point to
+`fftw_iodim' arrays of length `rank' and `howmany_rank', respectively.
+
+   The transform kind of each dimension is given by the `kind'
+parameter, which should point to an array of length `rank'.  Valid
+`fftw_r2r_kind' constants are given in *Note Real-to-Real Transform
+Kinds::.
+
+   `in' and `out' point to the real input and output arrays; they may
+be the same, indicating an in-place transform.
+
+   `flags' is a bitwise OR (`|') of zero or more planner flags, as
+defined in *Note Planner Flags::.
+
+
+File: fftw3.info,  Node: Guru Execution of Plans,  Prev: Guru Real-to-real Transforms,  Up: Guru Interface
+
+Guru Execution of Plans
+-----------------------
+
+   Normally, one executes a plan for the arrays with which the plan was
+created, by calling `fftw_execute(plan)' as described in *Note Using
+Plans::.  However, it is possible to apply a given plan to a _different_
+array using the guru functions detailed below, provided that the
+following conditions are met:
+
+   * The array size, strides, etcetera are the same (since those are
+     set by the plan).
+
+   * The input and output arrays are the same (in-place) or different
+     (out-of-place) if the plan was originally created to be in-place or
+     out-of-place, respectively.
+
+   * For split arrays, the separations between the real and imaginary
+     parts, `ii-ri' and `io-ro', are the same as they were for the
+     input and output arrays when the plan was created.  (This
+     condition is automatically satisfied for interleaved arrays.)
+
+   * The "alignment" of the new input/output arrays is the same as that
+     of the input/output arrays when the plan was created, unless the
+     plan was created with the `FFTW_UNALIGNED' flag.  Here, the
+     alignment is a platform-dependent quantity (for example, it is the
+     address modulo 16 if SSE SIMD instructions are used, but the
+     address modulo 4 for non-SIMD single-precision FFTW on the same
+     machine).  In general, only arrays allocated with `fftw_malloc'
+     are guaranteed to be equally aligned.
+
+
+   If you are tempted to use this guru interface because you want to
+transform a known bunch of arrays of the same size, *stop here* and go
+use the advanced interface instead (*note Advanced Interface::)).
+
+   The guru execute functions are:
+
+     void fftw_execute_dft(
+          const fftw_plan p,
+          fftw_complex *in, fftw_complex *out);
+     
+     void fftw_execute_split_dft(
+          const fftw_plan p,
+          double *ri, double *ii, double *ro, double *io);
+     
+     void fftw_execute_dft_r2c(
+          const fftw_plan p,
+          double *in, fftw_complex *out);
+     
+     void fftw_execute_split_dft_r2c(
+          const fftw_plan p,
+          double *in, double *ro, double *io);
+     
+     void fftw_execute_dft_c2r(
+          const fftw_plan p,
+          fftw_complex *in, double *out);
+     
+     void fftw_execute_split_dft_c2r(
+          const fftw_plan p,
+          double *ri, double *ii, double *out);
+     
+     void fftw_execute_r2r(
+          const fftw_plan p,
+          double *in, double *out);
+
+   These execute the `plan' to compute the corresponding transform on
+the input/output arrays specified by the subsequent arguments.  The
+input/output array arguments have the same meanings as the ones passed
+to the guru planner routines in the preceding sections.  The `plan' is
+not modified, and these routines can be called as many times as
+desired, or intermixed with calls to the ordinary `fftw_execute'.
+
+   The `plan' _must_ have been created for the transform type
+corresponding to the execute function, e.g. it must be a complex-DFT
+plan for `fftw_execute_dft'.  Any of the planner routines for that
+transform type, from the basic to the guru interface, could have been
+used to create the plan, however.
+
+
+File: fftw3.info,  Node: Wisdom,  Next: What FFTW Really Computes,  Prev: Guru Interface,  Up: FFTW Reference
+
+Wisdom
+======
+
+   This section documents the FFTW mechanism for saving and restoring
+plans from disk.  This mechanism is called "wisdom".
+
+* Menu:
+
+* Wisdom Export::
+* Wisdom Import::
+* Forgetting Wisdom::
+* Wisdom Utilities::
+
+
+File: fftw3.info,  Node: Wisdom Export,  Next: Wisdom Import,  Prev: Wisdom,  Up: Wisdom
+
+Wisdom Export
+-------------
+
+     void fftw_export_wisdom_to_file(FILE *output_file);
+     char *fftw_export_wisdom_to_string(void);
+     void fftw_export_wisdom(void (*write_char)(char c, void *), void *data);
+
+   These functions allow you to export all currently accumulated wisdom
+in a form from which it can be later imported and restored, even during
+a separate run of the program. (*Note Words of Wisdom-Saving Plans::.)
+The current store of wisdom is not affected by calling any of these
+routines.
+
+   `fftw_export_wisdom' exports the wisdom to any output medium, as
+specified by the callback function `write_char'. `write_char' is a
+`putc'-like function that writes the character `c' to some output; its
+second parameter is the `data' pointer passed to `fftw_export_wisdom'.
+For convenience, the following two "wrapper" routines are provided:
+
+   `fftw_export_wisdom_to_file' writes the wisdom to the current
+position in `output_file', which should be open with write permission.
+Upon exit, the file remains open and is positioned at the end of the
+wisdom data.
+
+   `fftw_export_wisdom_to_string' returns a pointer to a
+`NULL'-terminated string holding the wisdom data. This string is
+dynamically allocated, and it is the responsibility of the caller to
+deallocate it with `fftw_free' when it is no longer needed.
+
+   All of these routines export the wisdom in the same format, which we
+will not document here except to say that it is LISP-like ASCII text
+that is insensitive to white space.
+
+
+File: fftw3.info,  Node: Wisdom Import,  Next: Forgetting Wisdom,  Prev: Wisdom Export,  Up: Wisdom
+
+Wisdom Import
+-------------
+
+     int fftw_import_system_wisdom(void);
+     int fftw_import_wisdom_from_file(FILE *input_file);
+     int fftw_import_wisdom_from_string(const char *input_string);
+     int fftw_import_wisdom(int (*read_char)(void *), void *data);
+
+   These functions import wisdom into a program from data stored by the
+`fftw_export_wisdom' functions above. (*Note Words of Wisdom-Saving
+Plans::.)  The imported wisdom replaces any wisdom already accumulated
+by the running program.
+
+   `fftw_import_wisdom' imports wisdom from any input medium, as
+specified by the callback function `read_char'. `read_char' is a
+`getc'-like function that returns the next character in the input; its
+parameter is the `data' pointer passed to `fftw_import_wisdom'. If the
+end of the input data is reached (which should never happen for valid
+data), `read_char' should return `EOF' (as defined in `<stdio.h>').
+For convenience, the following two "wrapper" routines are provided:
+
+   `fftw_import_wisdom_from_file' reads wisdom from the current
+position in `input_file', which should be open with read permission.
+Upon exit, the file remains open, but the position of the read pointer
+is unspecified.
+
+   `fftw_import_wisdom_from_string' reads wisdom from the
+`NULL'-terminated string `input_string'.
+
+   `fftw_import_system_wisdom' reads wisdom from an
+implementation-defined standard file (`/etc/fftw/wisdom' on Unix and
+GNU systems).
+
+   The return value of these import routines is `1' if the wisdom was
+read successfully and `0' otherwise. Note that, in all of these
+functions, any data in the input stream past the end of the wisdom data
+is simply ignored.
+
+
+File: fftw3.info,  Node: Forgetting Wisdom,  Next: Wisdom Utilities,  Prev: Wisdom Import,  Up: Wisdom
+
+Forgetting Wisdom
+-----------------
+
+     void fftw_forget_wisdom(void);
+
+   Calling `fftw_forget_wisdom' causes all accumulated `wisdom' to be
+discarded and its associated memory to be freed. (New `wisdom' can
+still be gathered subsequently, however.)
+
+
+File: fftw3.info,  Node: Wisdom Utilities,  Prev: Forgetting Wisdom,  Up: Wisdom
+
+Wisdom Utilities
+----------------
+
+   FFTW includes two standalone utility programs that deal with wisdom.
+We merely summarize them here, since they come with their own `man'
+pages for Unix and GNU systems (with HTML versions on our web site).
+
+   The first program is `fftw-wisdom' (or `fftwf-wisdom' in single
+precision, etcetera), which can be used to create a wisdom file
+containing plans for any of the transform sizes and types supported by
+FFTW.  It is preferable to create wisdom directly from your executable
+(*note Caveats in Using Wisdom::), but this program is useful for
+creating global wisdom files for `fftw_import_system_wisdom'.
+
+   The second program is `fftw-wisdom-to-conf', which takes a wisdom
+file as input and produces a "configuration routine" as output.  The
+latter is a C subroutine that you can compile and link into your
+program, replacing a routine of the same name in the FFTW library, that
+determines which parts of FFTW are callable by your program.
+`fftw-wisdom-to-conf' produces a configuration routine that links to
+only those parts of FFTW needed by the saved plans in the wisdom,
+greatly reducing the size of statically linked executables (which should
+only attempt to create plans corresponding to those in the wisdom,
+however).
+
+
+File: fftw3.info,  Node: What FFTW Really Computes,  Prev: Wisdom,  Up: FFTW Reference
+
+What FFTW Really Computes
+=========================
+
+   In this section, we provide precise mathematical definitions for the
+transforms that FFTW computes.  These transform definitions are fairly
+standard, but some authors follow slightly different conventions for the
+normalization of the transform (the constant factor in front) and the
+sign of the complex exponent.  We begin by presenting the
+one-dimensional (1d) transform definitions, and then give the
+straightforward extension to multi-dimensional transforms.
+
+* Menu:
+
+* The 1d Discrete Fourier Transform (DFT)::
+* The 1d Real-data DFT::
+* 1d Real-even DFTs (DCTs)::
+* 1d Real-odd DFTs (DSTs)::
+* 1d Discrete Hartley Transforms (DHTs)::
+* Multi-dimensional Transforms::
+
+
+File: fftw3.info,  Node: The 1d Discrete Fourier Transform (DFT),  Next: The 1d Real-data DFT,  Prev: What FFTW Really Computes,  Up: What FFTW Really Computes
+
+The 1d Discrete Fourier Transform (DFT)
+---------------------------------------
+
+   The forward (`FFTW_FORWARD') discrete Fourier transform (DFT) of a
+1d complex array X of size n computes an array Y, where:  Y[k] = sum for j = 0 to (n - 1) of X[j] * exp(-2 pi j k sqrt(-1)/n) .
+The
+backward (`FFTW_BACKWARD') DFT computes:  Y[k] = sum for j = 0 to (n - 1) of X[j] * exp(2 pi j k sqrt(-1)/n) .
+FFTW computes an unnormalized transform, in that there is no coefficient
+in front of the summation in the DFT.  In other words, applying the
+forward and then the backward transform will multiply the input by n.
+
+   From above, an `FFTW_FORWARD' transform corresponds to a sign of -1
+in the exponent of the DFT.  Note also that we use the standard
+"in-order" output ordering--the k-th output corresponds to the
+frequency k/n (or k/T, where T is your total sampling period).  For
+those who like to think in terms of positive and negative frequencies,
+this means that the positive frequencies are stored in the first half
+of the output and the negative frequencies are stored in backwards
+order in the second half of the output.  (The frequency -k/n is the
+same as the frequency (n-k)/n.)
+
+
+File: fftw3.info,  Node: The 1d Real-data DFT,  Next: 1d Real-even DFTs (DCTs),  Prev: The 1d Discrete Fourier Transform (DFT),  Up: What FFTW Really Computes
+
+The 1d Real-data DFT
+--------------------
+
+   The real-input (r2c) DFT in FFTW computes the _forward_ transform Y
+of the size `n' real array X, exactly as defined above, i.e.   Y[k] = sum for j = 0 to (n - 1) of X[j] * exp(-2 pi j k sqrt(-1)/n) .
+This
+output array Y can easily be shown to possess the "Hermitian" symmetry
+Y[k] = Y[n-k]*, where we take Y to be periodic so that Y[n] = Y[0].
+
+   As a result of this symmetry, half of the output Y is redundant
+(being the complex conjugate of the other half), and so the 1d r2c
+transforms only output elements 0...n/2 of Y (n/2+1 complex numbers),
+where the division by 2 is rounded down.
+
+   Moreover, the Hermitian symmetry implies that Y[0] and, if n is
+even, the Y[n/2] element, are purely real.  So, for the `R2HC' r2r
+transform, these elements are not stored in the halfcomplex output
+format.
+
+   The c2r and `H2RC' r2r transforms compute the backward DFT of the
+_complex_ array X with Hermitian symmetry, stored in the r2c/`R2HC'
+output formats, respectively, where the backward transform is defined
+exactly as for the complex case:  Y[k] = sum for j = 0 to (n - 1) of X[j] * exp(2 pi j k sqrt(-1)/n) .
+The
+outputs `Y' of this transform can easily be seen to be purely real, and
+are stored as an array of real numbers.
+
+   Like FFTW's complex DFT, these transforms are unnormalized.  In other
+words, applying the real-to-complex (forward) and then the
+complex-to-real (backward) transform will multiply the input by n.
+
+
+File: fftw3.info,  Node: 1d Real-even DFTs (DCTs),  Next: 1d Real-odd DFTs (DSTs),  Prev: The 1d Real-data DFT,  Up: What FFTW Really Computes
+
+1d Real-even DFTs (DCTs)
+------------------------
+
+   The Real-even DFTs in FFTW are exactly equivalent to the unnormalized
+forward (and backward) DFTs as defined above, where the input array X
+of length N is purely real and is also "even".  In this case, the
+output array is likewise real and even.
+
+   For the case of `REDFT00', this even symmetry means that X[j] =
+X[N-j], where we take X to be periodic so that X[N] = X[0].  Because of
+this redundancy, only the first n real numbers are actually stored,
+where N = 2(n-1).
+
+   The proper definition of even symmetry for `REDFT10', `REDFT01', and
+`REDFT11' transforms is somewhat more intricate because of the shifts
+by 1/2 of the input and/or output, although the corresponding boundary
+conditions are given in *Note Real even/odd DFTs (cosine/sine
+transforms)::.  Because of the even symmetry, however, the sine terms
+in the DFT all cancel and the remaining cosine terms are written
+explicitly below.  This formulation often leads people to call such a
+transform a "discrete cosine transform" (DCT), although it is really
+just a special case of the DFT.
+
+   In each of the definitions below, we transform a real array X of
+length n to a real array Y of length n:
+
+REDFT00 (DCT-I)
+...............
+
+   An `REDFT00' transform (type-I DCT) in FFTW is defined by: Y[k] =
+X[0] + (-1)^k X[n-1] + 2 (sum for j = 1 to n-2 of X[j] cos(pi jk
+/(n-1))).  Note that this transform is not defined for n=1.  For n=2,
+the summation term above is dropped as you might expect.
+
+REDFT10 (DCT-II)
+................
+
+   An `REDFT10' transform (type-II DCT) in FFTW is defined by: Y[k] = 2
+(sum for j = 0 to n-1 of X[j] cos(pi (j+1/2) k / n)).
+
+REDFT01 (DCT-III)
+.................
+
+   An `REDFT01' transform (type-III DCT) in FFTW is defined by: Y[k] =
+X[0] + 2 (sum for j = 1 to n-1 of X[j] cos(pi j (k+1/2) / n)).  In the
+case of n=1, this reduces to Y[0] = X[0].
+
+REDFT11 (DCT-IV)
+................
+
+   An `REDFT11' transform (type-IV DCT) in FFTW is defined by: Y[k] = 2
+(sum for j = 0 to n-1 of X[j] cos(pi (j+1/2) (k+1/2) / n)).
+
+Inverses and Normalization
+..........................
+
+   These definitions correspond directly to the unnormalized DFTs used
+elsewhere in FFTW (hence the factors of 2 in front of the summations).
+The unnormalized inverse of `REDFT00' is `REDFT00', of `REDFT10' is
+`REDFT01' and vice versa, and of `REDFT11' is `REDFT11'.  Each
+unnormalized inverse results in the original array multiplied by N,
+where N is the _logical_ DFT size.  For `REDFT00', N=2(n-1) (note that
+n=1 is not defined); otherwise, N=2n.
+
+
+File: fftw3.info,  Node: 1d Real-odd DFTs (DSTs),  Next: 1d Discrete Hartley Transforms (DHTs),  Prev: 1d Real-even DFTs (DCTs),  Up: What FFTW Really Computes
+
+1d Real-odd DFTs (DSTs)
+-----------------------
+
+   The Real-odd DFTs in FFTW are exactly equivalent to the unnormalized
+forward (and backward) DFTs as defined above, where the input array X
+of length N is purely real and is also "odd".  In this case, the output
+is odd and purely imaginary.
+
+   For the case of `RODFT00', this odd symmetry means that X[j] =
+-X[N-j], where we take X to be periodic so that X[N] = X[0].  Because
+of this redundancy, only the first n real numbers starting at j=1 are
+actually stored (the j=0 element is zero), where N = 2(n+1).
+
+   The proper definition of odd symmetry for `RODFT10', `RODFT01', and
+`RODFT11' transforms is somewhat more intricate because of the shifts
+by 1/2 of the input and/or output, although the corresponding boundary
+conditions are given in *Note Real even/odd DFTs (cosine/sine
+transforms)::.  Because of the odd symmetry, however, the cosine terms
+in the DFT all cancel and the remaining sine terms are written
+explicitly below.  This formulation often leads people to call such a
+transform a "discrete sine transform" (DST), although it is really just
+a special case of the DFT.
+
+   In each of the definitions below, we transform a real array X of
+length n to a real array Y of length n:
+
+RODFT00 (DST-I)
+...............
+
+   An `RODFT00' transform (type-I DST) in FFTW is defined by: Y[k] = 2
+(sum for j = 0 to n-1 of X[j] sin(pi (j+1)(k+1) / (n+1))).
+
+RODFT10 (DST-II)
+................
+
+   An `RODFT10' transform (type-II DST) in FFTW is defined by: Y[k] = 2
+(sum for j = 0 to n-1 of X[j] sin(pi (j+1/2) (k+1) / n)).
+
+RODFT01 (DST-III)
+.................
+
+   An `RODFT01' transform (type-III DST) in FFTW is defined by: Y[k] =
+(-1)^k X[n-1] + 2 (sum for j = 0 to n-2 of X[j] sin(pi (j+1) (k+1/2) /
+n)).  In the case of n=1, this reduces to Y[0] = X[0].
+
+RODFT11 (DST-IV)
+................
+
+   An `RODFT11' transform (type-IV DST) in FFTW is defined by: Y[k] = 2
+(sum for j = 0 to n-1 of X[j] sin(pi (j+1/2) (k+1/2) / n)).
+
+Inverses and Normalization
+..........................
+
+   These definitions correspond directly to the unnormalized DFTs used
+elsewhere in FFTW (hence the factors of 2 in front of the summations).
+The unnormalized inverse of `RODFT00' is `RODFT00', of `RODFT10' is
+`RODFT01' and vice versa, and of `RODFT11' is `RODFT11'.  Each
+unnormalized inverse results in the original array multiplied by N,
+where N is the _logical_ DFT size.  For `RODFT00', N=2(n+1); otherwise,
+N=2n.
+
+
+File: fftw3.info,  Node: 1d Discrete Hartley Transforms (DHTs),  Next: Multi-dimensional Transforms,  Prev: 1d Real-odd DFTs (DSTs),  Up: What FFTW Really Computes
+
+1d Discrete Hartley Transforms (DHTs)
+-------------------------------------
+
+   The discrete Hartley transform (DHT) of a 1d real array X of size n
+computes a real array Y of the same size, where: Y[k] = sum for j = 0 to (n - 1) of X[j] * [cos(2 pi j k / n) + sin(2 pi j k / n)].
+FFTW computes an unnormalized transform, in that there is no coefficient
+in front of the summation in the DHT.  In other words, applying the
+transform twice (the DHT is its own inverse) will multiply the input by
+n.
+
+
+File: fftw3.info,  Node: Multi-dimensional Transforms,  Prev: 1d Discrete Hartley Transforms (DHTs),  Up: What FFTW Really Computes
+
+Multi-dimensional Transforms
+----------------------------
+
+   The multi-dimensional transforms of FFTW, in general, compute simply
+the separable product of the given 1d transform along each dimension of
+the array.  Since each of these transforms is unnormalized, computing
+the forward followed by the backward/inverse multi-dimensional transform
+will result in the original array scaled by the product of the
+normalization factors for each dimension (e.g. the product of the
+dimension sizes, for a multi-dimensional DFT).
+
+   The definition of FFTW's multi-dimensional DFT of real data (r2c)
+deserves special attention.  In this case, we logically compute the full
+multi-dimensional DFT of the input data; since the input data are purely
+real, the output data have the Hermitian symmetry and therefore only one
+non-redundant half need be stored.  More specifically, for an n1 x n2 x
+n3 x ... x nd  multi-dimensional real-input DFT, the full (logical)
+complex output array Y[k1, k2, ..., kd] has the symmetry: Y[k1, k2,
+..., kd] = Y[n1 - k1, n2 - k2, ..., nd - kd]* (where each dimension is
+periodic).  Because of this symmetry, we only store the kd = 0...nd/2
+elements of the _last_ dimension (division by 2 is rounded down).  (We
+could instead have cut any other dimension in half, but the last
+dimension proved computationally convenient.)  This results in the
+peculiar array format described in more detail by *Note Real-data DFT
+Array Format::.
+
+   The multi-dimensional c2r transform is simply the unnormalized
+inverse of the r2c transform.  i.e. it is the same as FFTW's complex
+backward multi-dimensional DFT, operating on a Hermitian input array in
+the peculiar format mentioned above and outputting a real array (since
+the DFT output is purely real).
+
+   We should remind the user that the separable product of 1d transforms
+along each dimension, as computed by FFTW, is not always the same thing
+as the usual multi-dimensional transform.  A multi-dimensional `R2HC'
+(or `HC2R') transform is not identical to the multi-dimensional DFT,
+requiring some post-processing to combine the requisite real and
+imaginary parts, as was described in *Note The Halfcomplex-format
+DFT::.  Likewise, FFTW's multidimensional `FFTW_DHT' r2r transform is
+not the same thing as the logical multi-dimensional discrete Hartley
+transform defined in the literature, as discussed in *Note The Discrete
+Hartley Transform::.
+
+
+File: fftw3.info,  Node: Parallel FFTW,  Next: Calling FFTW from Fortran,  Prev: FFTW Reference,  Up: Top
+
+Parallel FFTW
+*************
+
+   In this chapter we discuss the use of FFTW in a parallel environment.
+
+   Currently, FFTW 3 includes parallel transforms for shared-memory
+machiens with some flavor of threads (e.g. POSIX threads); any program
+using FFTW can be trivially modified to use these transforms, which are
+documented in *Note Multi-threaded FFTW::.
+
+   Users calling FFTW from a multi-threaded program should also consult
+*Note Thread safety::.  This section tells you which routines of FFTW it
+is safe to call in parallel from different shared-memory threads.
+
+   FFTW 2 also contains distributed-memory parallel transforms using the
+MPI message-passing standard.  MPI transforms are not yet available in
+FFTW 3, so users requiring that capability must use FFTW 2 for now.
+
+* Menu:
+
+* Multi-threaded FFTW::
+* Thread safety::
+
+
+File: fftw3.info,  Node: Multi-threaded FFTW,  Next: Thread safety,  Prev: Parallel FFTW,  Up: Parallel FFTW
+
+Multi-threaded FFTW
+===================
+
+   In this section we document the parallel FFTW routines for
+shared-memory threads on SMP hardware.  These routines, which support
+parallel one- and multi-dimensional transforms of both real and complex
+data, are the easiest way to take advantage of multiple processors with
+FFTW.  They work just like the corresponding uniprocessor transform
+routines, except that you have an extra initialization routine to call,
+and there is a routine to set the number of threads to employ.  Any
+program that uses the uniprocessor FFTW can therefore be trivially
+modified to use the multi-threaded FFTW.
+
+* Menu:
+
+* Installation and Supported Hardware/Software::
+* Usage of Multi-threaded FFTW::
+* How Many Threads to Use?::
+
+
+File: fftw3.info,  Node: Installation and Supported Hardware/Software,  Next: Usage of Multi-threaded FFTW,  Prev: Multi-threaded FFTW,  Up: Multi-threaded FFTW
+
+Installation and Supported Hardware/Software
+--------------------------------------------
+
+   All of the FFTW threads code is located in the `threads'
+subdirectory of the FFTW package.  On Unix systems, the FFTW threads
+libraries and header files can be automatically configured, compiled,
+and installed along with the uniprocessor FFTW libraries simply by
+including `--enable-threads' in the flags to the `configure' script
+(*note Installation on Unix::).
+
+   The threads routines require your operating system to have some sort
+of shared-memory threads support.  Specifically, the FFTW threads
+package works with POSIX threads (available on most Unix variants, from
+GNU/Linux to MacOS X) and Win32 threads.  We also support using OpenMP
+(http://www.openmp.org) or SGI MP compiler directives to launch
+threads, enabled by using `--with-openmp' or `--with-sgimp' in addition
+to `--enable-threads'.  (This may be useful if you are employing that
+sort of directive in your own code, in order to minimize conflicts.)
+If you have a shared-memory machine that uses a different threads API,
+it should be a simple matter of programming to include support for it;
+see the file `fftw_threads-int.h' for more detail.
+
+   Ideally, of course, you should also have multiple processors in
+order to get any benefit from the threaded transforms.
+
+
+File: fftw3.info,  Node: Usage of Multi-threaded FFTW,  Next: How Many Threads to Use?,  Prev: Installation and Supported Hardware/Software,  Up: Multi-threaded FFTW
+
+Usage of Multi-threaded FFTW
+----------------------------
+
+   Here, it is assumed that the reader is already familiar with the
+usage of the uniprocessor FFTW routines, described elsewhere in this
+manual.  We only describe what one has to change in order to use the
+multi-threaded routines.
+
+   First, programs using the parallel complex transforms should be
+linked with `-lfftw3_threads -lfftw3 -lm' on Unix. You will also need
+to link with whatever library is responsible for threads on your system
+(e.g. `-lpthread' on GNU/Linux).
+
+   Second, before calling _any_ FFTW routines, you should call the
+function:
+
+     int fftw_init_threads(void);
+
+   This function, which need only be called once, performs any one-time
+initialization required to use threads on your system.  It returns zero
+if there was some error (which should not happen under normal
+circumstances) and a non-zero value otherwise.
+
+   Third, before creating a plan that you want to parallelize, you
+should call:
+
+     void fftw_plan_with_nthreads(int nthreads);
+
+   The `nthreads' argument indicates the number of threads you want
+FFTW to use (or actually, the maximum number).  All plans subsequently
+created with any planner routine will use that many threads.  You can
+call `fftw_plan_with_nthreads', create some plans, call
+`fftw_plan_with_nthreads' again with a different argument, and create
+some more plans for a new number threads.  Plans already created before
+a call to `fftw_plan_with_nthreads' are unaffected.  If you pass an
+`nthreads' argument of `1' (the default), threads are disabled for
+subsequent plans.
+
+   Given a plan, you then execute it as usual with
+`fftw_execute(plan)', and the execution will use the number of threads
+specified when the plan was created.  When done, you destroy it as
+usual with `fftw_destroy_plan'.
+
+   There is one additional routine: if you want to get rid of all memory
+and other resources allocated internally by FFTW, you can call:
+
+     void fftw_cleanup_threads(void);
+
+   which is much like the `fftw_cleanup()' function except that it also
+gets rid of threads-related data.  You must _not_ execute any
+previously created plans after calling this function.
+
+   We should also mention one other restriction: if you save wisdom
+from a program using the multi-threaded FFTW, that wisdom _cannot be
+used_ by a program using only the single-threaded FFTW (i.e. not calling
+`fftw_init_threads').  *Note Words of Wisdom-Saving Plans::.
+
+
+File: fftw3.info,  Node: How Many Threads to Use?,  Prev: Usage of Multi-threaded FFTW,  Up: Multi-threaded FFTW
+
+How Many Threads to Use?
+------------------------
+
+   There is a fair amount of overhead involved in spawning and
+synchronizing threads, so the optimal number of threads to use depends
+upon the size of the transform as well as on the number of processors
+you have.
+
+   As a general rule, you don't want to use more threads than you have
+processors.  (Using more threads will work, but there will be extra
+overhead with no benefit.)  In fact, if the problem size is too small,
+you may want to use fewer threads than you have processors.
+
+   You will have to experiment with your system to see what level of
+parallelization is best for your problem size.  Typically, the problem
+will have to involve at least a few thousand data points before threads
+become beneficial.  If you plan with `FFTW_PATIENT', it will
+automatically disable threads for sizes that don't benefit from
+parallelization.
+
+
+File: fftw3.info,  Node: Thread safety,  Prev: Multi-threaded FFTW,  Up: Parallel FFTW
+
+Thread safety
+=============
+
+   Users writing multi-threaded programs must concern themselves with
+the "thread safety" of the libraries they use--that is, whether it is
+safe to call routines in parallel from multiple threads.  FFTW can be
+used in such an environment, but some care must be taken because the
+planner routines share data (e.g. wisdom and trigonometric tables)
+between calls and plans.
+
+   The upshot is that the only thread-safe (re-entrant) routine in FFTW
+is `fftw_execute' (and the guru variants thereof).  All other routines
+(e.g. the planner) should only be called from one thread at a time.  So,
+for example, you can wrap a semaphore lock around any calls to the
+planner; even more simply, you can just create all of your plans from
+one thread.  We do not think this should be an important restriction
+(FFTW is designed for the situation where the only performance-sensitive
+code is the actual execution of the transform), and the benefits of
+shared data between plans are great.
+
+   Note also that, since the plan is not modified by `fftw_execute', it
+is safe to execute the _same plan_ in parallel by multiple threads.
+
+   (Users should note that these comments only apply to programs using
+shared-memory threads.  Parallelism using MPI or forked processes
+involves a separate address-space and global variables for each process,
+and is not susceptible to problems of this sort.)
+
+
+File: fftw3.info,  Node: Calling FFTW from Fortran,  Next: Upgrading from FFTW version 2,  Prev: Parallel FFTW,  Up: Top
+
+Calling FFTW from Fortran
+*************************
+
+   This chapter describes the Fortran-callable interface to FFTW, which
+differs from the C interface only in the prefix (`dfftw_' instead of
+`fftw_'), and a few other minor details.  The Fortran interface is
+included in the FFTW libraries by default, unless a Fortran compiler
+isn't found on your system or `--disable-fortran' is included in the
+`configure' flags.  We assume here that the reader is already familiar
+with the usage of FFTW in C, as described elsewhere in this manual.
+
+* Menu:
+
+* Fortran-interface routines::
+* FFTW Constants in Fortran::
+* Fortran Examples::
+* Wisdom of Fortran?::
+
+
+File: fftw3.info,  Node: Fortran-interface routines,  Next: FFTW Constants in Fortran,  Prev: Calling FFTW from Fortran,  Up: Calling FFTW from Fortran
+
+Fortran-interface routines
+==========================
+
+   Nearly all of the FFTW functions have Fortran-callable equivalents.
+The name of the Fortran routine is the same as that of the
+corresponding C routine, but with the `fftw_' prefix replaced by
+`dfftw_'.  (The single and long-double precision versions use `sfftw_'
+and `lfftw_', respectively, instead of `fftwf_' and `fftwl_'.)(1)
+
+   For the most part, all of the arguments to the functions are the
+same, with the following exceptions:
+
+   * `plan' variables (what would be of type `fftw_plan' in C), must be
+     declared as a type that is at least as big as a pointer (address)
+     on your machine.  We recommend using `integer*8'.
+
+   * Any function that returns a value (e.g. `fftw_plan_dft') is
+     converted into a _subroutine_.  The return value is converted into
+     an additional _first_ parameter of this subroutine.(2)
+
+   * The Fortran routines expect multi-dimensional arrays to be in
+     _column-major_ order, which is the ordinary format of Fortran
+     arrays (*note Multi-dimensional Array Format::).  They do this
+     transparently and costlessly simply by reversing the order of the
+     dimensions passed to FFTW, but this has one important consequence
+     for multi-dimensional real-complex transforms, discussed below.
+
+   * Wisdom import and export is somewhat more tricky because one cannot
+     easily pass files or strings between C and Fortran; see *Note
+     Wisdom of Fortran?::.
+
+   * Fortran cannot use the `fftw_malloc' dynamic-allocation routine.
+     If you want to exploit the SIMD FFTW (*note Data Alignment::),
+     you'll need to figure out some other way to ensure that your
+     arrays are at least 16-byte aligned.
+
+   * Since Fortran 77 does not have data structures, the `fftw_iodim'
+     structure from the guru interface (*note Guru vector and transform
+     sizes::) must be split into separate arguments.  In particular, any
+     `fftw_iodim' array arguments in the C guru interface become three
+     integer array arguments (`n', `is', and `os') in the Fortran guru
+     interface, all of whose length should be equal to the
+     corresponding `rank' argument.
+
+
+   In general, you should take care to use Fortran data types that
+correspond to (i.e. are the same size as) the C types used by FFTW.  If
+your C and Fortran compilers are made by the same vendor, the
+correspondence is usually straightforward (i.e. `integer' corresponds
+to `int', `real' corresponds to `float', etcetera).  The native Fortran
+double/single-precision complex type should be compatible with
+`fftw_complex'/`fftwf_complex'.  Such simple correspondences are
+assumed in the examples below.
+
+   ---------- Footnotes ----------
+
+   (1) Technically, Fortran 77 identifiers are not allowed to have more
+than 6 characters, nor may they contain underscores.  Any compiler that
+enforces this limitation doesn't deserve to link to FFTW.
+
+   (2) The reason for this is that some Fortran implementations seem to
+have trouble with C function return values, and vice versa.
+
+
+File: fftw3.info,  Node: FFTW Constants in Fortran,  Next: Fortran Examples,  Prev: Fortran-interface routines,  Up: Calling FFTW from Fortran
+
+FFTW Constants in Fortran
+=========================
+
+   When creating plans in FFTW, a number of constants are used to
+specify options, such as `FFTW_FORWARD' or `FFTW_ESTIMATE'.  The same
+constants must be used with the wrapper routines, but of course the C
+header files where the constants are defined can't be incorporated
+directly into Fortran code.
+
+   Instead, we have placed Fortran equivalents of the FFTW constant
+definitions in the file `fftw3.f', which can be found in the same
+directory as `fftw3.h'.  If your Fortran compiler supports a
+preprocessor of some sort, you should be able to `include' or
+`#include' this file; otherwise, you can paste it directly into your
+code.
+
+   In C, you combine different flags (like `FFTW_PRESERVE_INPUT' and
+`FFTW_MEASURE') using the ``|'' operator; in Fortran you should just
+use ``+''.  (Take care not to add in the same flag more than once,
+though.)
+
+
+File: fftw3.info,  Node: Fortran Examples,  Next: Wisdom of Fortran?,  Prev: FFTW Constants in Fortran,  Up: Calling FFTW from Fortran
+
+Fortran Examples
+================
+
+   In C, you might have something like the following to transform a
+one-dimensional complex array:
+
+             fftw_complex in[N], out[N];
+             fftw_plan plan;
+     
+             plan = fftw_plan_dft_1d(N,in,out,FFTW_FORWARD,FFTW_ESTIMATE);
+             fftw_execute(plan);
+             fftw_destroy_plan(plan);
+
+   In Fortran, you would use the following to accomplish the same thing:
+
+             double complex in, out
+             dimension in(N), out(N)
+             integer*8 plan
+     
+             call dfftw_plan_dft_1d(plan,N,in,out,FFTW_FORWARD,FFTW_ESTIMATE)
+             call dfftw_execute(plan)
+             call dfftw_destroy_plan(plan)
+
+   Notice how all routines are called as Fortran subroutines, and the
+plan is returned via the first argument to `dfftw_plan_dft_1d'.  To do
+the same thing, but using 8 threads in parallel (*note Multi-threaded
+FFTW::), you would simply prefix these calls with:
+
+             call dfftw_init_threads
+             call dfftw_plan_with_nthreads(8)
+
+   To transform a three-dimensional array in-place with C, you might do:
+
+             fftw_complex arr[L][M][N];
+             fftw_plan plan;
+     
+             plan = fftw_plan_dft_3d(L,M,N, arr,arr,
+                                     FFTW_FORWARD, FFTW_ESTIMATE);
+             fftw_execute(plan);
+             fftw_destroy_plan(plan);
+
+   In Fortran, you would use this instead:
+
+             double complex arr
+             dimension arr(L,M,N)
+             integer*8 plan
+     
+             call dfftw_plan_dft_3d(plan, L,M,N, arr,arr,
+            &                       FFTW_FORWARD, FFTW_ESTIMATE)
+             call dfftw_execute(plan)
+             call dfftw_destroy_plan(plan)
+
+   Note that we pass the array dimensions in the "natural" order in
+both C and Fortran.
+
+   To transform a one-dimensional real array in Fortran, you might do:
+
+             double precision in
+             dimension in(N)
+             double complex out
+             dimension out(N/2 + 1)
+             integer*8 plan
+     
+             call dfftw_plan_dft_r2c_1d(plan,N,in,out,FFTW_ESTIMATE)
+             call dfftw_execute(plan)
+             call dfftw_destroy_plan(plan)
+
+   To transform a two-dimensional real array, out of place, you might
+use the following:
+
+             double precision in
+             dimension in(M,N)
+             double complex out
+             dimension out(M/2 + 1, N)
+             integer*8 plan
+     
+             call dfftw_plan_dft_r2c_2d(plan,M,N,in,out,FFTW_ESTIMATE)
+             call dfftw_execute(plan)
+             call dfftw_destroy_plan(plan)
+
+   *Important:* Notice that it is the _first_ dimension of the complex
+output array that is cut in half in Fortran, rather than the last
+dimension as in C.  This is a consequence of the interface routines
+reversing the order of the array dimensions passed to FFTW so that the
+Fortran program can use its ordinary column-major order.
+
+
+File: fftw3.info,  Node: Wisdom of Fortran?,  Prev: Fortran Examples,  Up: Calling FFTW from Fortran
+
+Wisdom of Fortran?
+==================
+
+   In this section, we discuss how one can import/export FFTW wisdom
+(saved plans) to/from a Fortran program; we assume that the reader is
+already familiar with wisdom, as described in *Note Words of
+Wisdom-Saving Plans::.
+
+   The basic problem is that is difficult to (portably) pass files and
+strings between Fortran and C, so we cannot provide a direct Fortran
+equivalent to the `fftw_export_wisdom_to_file', etcetera, functions.
+Fortran interfaces _are_ provided for the functions that do not take
+file/string arguments, however: `dfftw_import_system_wisdom',
+`dfftw_import_wisdom', `dfftw_export_wisdom', and `dfftw_forget_wisdom'.
+
+   So, for examplem to import the system-wide wisdom, you would do:
+
+             integer isuccess
+             call dfftw_import_system_wisdom(isuccess)
+
+   As usual, the C return value is turned into a first parameter;
+`isuccess' is non-zero on success and zero on failure (e.g. if there is
+no system wisdom installed).
+
+   If you want to import/export wisdom from/to an arbitrary file or
+elsewhere, you can employ the generic `dfftw_import_wisdom' and
+`dfftw_export_wisdom' functions, for which you must supply a subroutine
+to read/write one character at a time.  The FFTW package contains an
+example file `doc/f77_wisdom.f' demonstrating how to implement
+`import_wisdom_from_file' and `export_wisdom_to_file' subroutines in
+this way.  (These routines cannot be compiled into the FFTW library
+itself, lest all FFTW-using programs be required to link with the
+Fortran I/O library.)
+

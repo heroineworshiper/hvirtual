@@ -1,0 +1,493 @@
+# Makefile.in generated automatically by automake 1.4 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+host_alias = @host_alias@
+host_triplet = @host@
+AS = @AS@
+AUDIOFILE_MAJOR_VERSION = @AUDIOFILE_MAJOR_VERSION@
+AUDIOFILE_MICRO_VERSION = @AUDIOFILE_MICRO_VERSION@
+AUDIOFILE_MINOR_VERSION = @AUDIOFILE_MINOR_VERSION@
+AUDIOFILE_VERSION = @AUDIOFILE_VERSION@
+AUDIOFILE_VERSION_INFO = @AUDIOFILE_VERSION_INFO@
+CC = @CC@
+DLLTOOL = @DLLTOOL@
+LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
+MAKEINFO = @MAKEINFO@
+OBJDUMP = @OBJDUMP@
+PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
+TEST_BIN = @TEST_BIN@
+VERSION = @VERSION@
+
+SUBDIRS = modules
+
+INCLUDES = -I.
+
+lib_LTLIBRARIES = libaudiofile.la
+
+libaudiofile_la_SOURCES =  	openclose.c setup.c format.c data.c pcm.c 	error.c byteorder.c af_vfs.c 	util.c aupv.c units.c compression.c 	aes.c instrument.c loop.c marker.c misc.c track.c query.c 	raw.c raw.h 	aiff.c aiffwrite.c extended.c aiff.h 	next.c nextwrite.c next.h 	wave.c wavewrite.c wave.h 	g711.c g711.h 	afinternal.h aupvinternal.h aupvlist.h byteorder.h 	compression.h error.h extended.h instrument.h marker.h 	pcm.h setup.h track.h units.h util.h 	modules.c modules.h
+
+
+libaudiofile_la_LIBADD = modules/libmodules.la
+
+libaudiofile_la_LDFLAGS = -version-info 0:1:0 -release ${AUDIOFILE_MAJOR_VERSION}.${AUDIOFILE_MINOR_VERSION}
+
+include_HEADERS = audiofile.h aupvlist.h af_vfs.h
+
+# GNU gcc
+# AM_CFLAGS = -Wall -g
+# SGI MIPSpro cc
+# AM_CFLAGS = -fullwarn -g
+# No debugging.
+AM_CFLAGS = -DNDEBUG
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = ../config.h
+CONFIG_CLEAN_FILES = 
+LTLIBRARIES =  $(lib_LTLIBRARIES)
+
+
+DEFS = @DEFS@ -I. -I$(srcdir) -I..
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libaudiofile_la_DEPENDENCIES =  modules/libmodules.la
+libaudiofile_la_OBJECTS =  openclose.lo setup.lo format.lo data.lo \
+pcm.lo error.lo byteorder.lo af_vfs.lo util.lo aupv.lo units.lo \
+compression.lo aes.lo instrument.lo loop.lo marker.lo misc.lo track.lo \
+query.lo raw.lo aiff.lo aiffwrite.lo extended.lo next.lo nextwrite.lo \
+wave.lo wavewrite.lo g711.lo modules.lo
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+HEADERS =  $(include_HEADERS)
+
+DIST_COMMON =  Makefile.am Makefile.in
+
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+TAR = gtar
+GZIP_ENV = --best
+SOURCES = $(libaudiofile_la_SOURCES)
+OBJECTS = $(libaudiofile_la_OBJECTS)
+
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .lo .o .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps libaudiofile/Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+
+mostlyclean-libLTLIBRARIES:
+
+clean-libLTLIBRARIES:
+	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+
+distclean-libLTLIBRARIES:
+
+maintainer-clean-libLTLIBRARIES:
+
+install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
+	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    echo "$(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p"; \
+	    $(LIBTOOL)  --mode=install $(INSTALL) $$p $(DESTDIR)$(libdir)/$$p; \
+	  else :; fi; \
+	done
+
+uninstall-libLTLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	list='$(lib_LTLIBRARIES)'; for p in $$list; do \
+	  $(LIBTOOL)  --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
+	done
+
+.c.o:
+	$(COMPILE) -c $<
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+.c.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.s.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+.S.lo:
+	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+
+maintainer-clean-libtool:
+
+libaudiofile.la: $(libaudiofile_la_OBJECTS) $(libaudiofile_la_DEPENDENCIES)
+	$(LINK) -rpath $(libdir) $(libaudiofile_la_LDFLAGS) $(libaudiofile_la_OBJECTS) $(libaudiofile_la_LIBADD) $(LIBS)
+
+install-includeHEADERS: $(include_HEADERS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(includedir)
+	@list='$(include_HEADERS)'; for p in $$list; do \
+	  if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; \
+	  echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(includedir)/$$p"; \
+	  $(INSTALL_DATA) $$d$$p $(DESTDIR)$(includedir)/$$p; \
+	done
+
+uninstall-includeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	list='$(include_HEADERS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(includedir)/$$p; \
+	done
+
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+
+@SET_MAKE@
+
+all-recursive install-data-recursive install-exec-recursive \
+installdirs-recursive install-recursive uninstall-recursive  \
+check-recursive installcheck-recursive info-recursive dvi-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
+	  rev="$$subdir $$rev"; \
+	  test "$$subdir" = "." && dot_seen=yes; \
+	done; \
+	test "$$dot_seen" = "no" && rev=". $$rev"; \
+	target=`echo $@ | sed s/-recursive//`; \
+	for subdir in $$rev; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
+	done
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $$unique $(LISP)
+
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+   if test "$$subdir" = .; then :; else \
+	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+   fi; \
+	done; \
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	-rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+
+subdir = libaudiofile
+
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+	for subdir in $(SUBDIRS); do \
+	  if test "$$subdir" = .; then :; else \
+	    test -d $(distdir)/$$subdir \
+	    || mkdir $(distdir)/$$subdir \
+	    || exit 1; \
+	    chmod 777 $(distdir)/$$subdir; \
+	    (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir=../$(top_distdir) distdir=../$(distdir)/$$subdir distdir) \
+	      || exit 1; \
+	  fi; \
+	done
+aes.lo aes.o : aes.c audiofile.h aupvlist.h afinternal.h ../config.h \
+	af_vfs.h error.h util.h
+af_vfs.lo af_vfs.o : af_vfs.c afinternal.h ../config.h audiofile.h \
+	aupvlist.h af_vfs.h error.h
+aiff.lo aiff.o : aiff.c ../config.h extended.h audiofile.h aupvlist.h \
+	util.h afinternal.h af_vfs.h error.h byteorder.h aiff.h setup.h \
+	track.h marker.h
+aiffwrite.lo aiffwrite.o : aiffwrite.c extended.h afinternal.h \
+	../config.h audiofile.h aupvlist.h af_vfs.h error.h aiff.h \
+	byteorder.h util.h setup.h
+aupv.lo aupv.o : aupv.c aupvinternal.h aupvlist.h
+byteorder.lo byteorder.o : byteorder.c byteorder.h ../config.h util.h \
+	audiofile.h aupvlist.h afinternal.h af_vfs.h error.h
+compression.lo compression.o : compression.c audiofile.h aupvlist.h \
+	afinternal.h ../config.h af_vfs.h error.h units.h util.h
+data.lo data.o : data.c ../config.h audiofile.h aupvlist.h afinternal.h \
+	af_vfs.h error.h util.h modules.h
+error.lo error.o : error.c audiofile.h aupvlist.h
+extended.lo extended.o : extended.c extended.h
+format.lo format.o : format.c ../config.h audiofile.h aupvlist.h util.h \
+	afinternal.h af_vfs.h error.h units.h modules.h
+g711.lo g711.o : g711.c
+instrument.lo instrument.o : instrument.c audiofile.h aupvlist.h \
+	afinternal.h ../config.h af_vfs.h error.h instrument.h units.h \
+	setup.h util.h
+loop.lo loop.o : loop.c audiofile.h aupvlist.h afinternal.h ../config.h \
+	af_vfs.h error.h util.h setup.h instrument.h
+marker.lo marker.o : marker.c audiofile.h aupvlist.h afinternal.h \
+	../config.h af_vfs.h error.h util.h
+misc.lo misc.o : misc.c audiofile.h aupvlist.h afinternal.h ../config.h \
+	af_vfs.h error.h util.h
+modules.lo modules.o : modules.c ../config.h audiofile.h aupvlist.h \
+	afinternal.h af_vfs.h error.h modules.h pcm.h util.h units.h \
+	compression.h byteorder.h modules/rebuffer.h
+next.lo next.o : next.c ../config.h next.h afinternal.h audiofile.h \
+	aupvlist.h af_vfs.h error.h track.h util.h setup.h byteorder.h
+nextwrite.lo nextwrite.o : nextwrite.c audiofile.h aupvlist.h \
+	afinternal.h ../config.h af_vfs.h error.h next.h byteorder.h \
+	util.h setup.h
+openclose.lo openclose.o : openclose.c audiofile.h aupvlist.h \
+	afinternal.h ../config.h af_vfs.h error.h units.h util.h \
+	modules.h
+pcm.lo pcm.o : pcm.c afinternal.h ../config.h audiofile.h aupvlist.h \
+	af_vfs.h error.h pcm.h util.h
+query.lo query.o : query.c audiofile.h aupvlist.h afinternal.h \
+	../config.h af_vfs.h error.h util.h units.h instrument.h
+raw.lo raw.o : raw.c afinternal.h ../config.h audiofile.h aupvlist.h \
+	af_vfs.h error.h raw.h util.h setup.h
+setup.lo setup.o : setup.c ../config.h audiofile.h aupvlist.h \
+	afinternal.h af_vfs.h error.h pcm.h util.h units.h marker.h
+track.lo track.o : track.c audiofile.h aupvlist.h afinternal.h \
+	../config.h af_vfs.h error.h util.h
+unit.lo unit.o : unit.c audiofile.h aupvlist.h afinternal.h ../config.h \
+	af_vfs.h error.h unit.h raw.h aiff.h wave.h next.h \
+	compression.h modules/pcm.h modules.h modules/g711.h
+units.lo units.o : units.c audiofile.h aupvlist.h afinternal.h \
+	../config.h af_vfs.h error.h units.h raw.h aiff.h wave.h next.h \
+	compression.h modules/pcm.h modules.h modules/g711.h
+util.lo util.o : util.c ../config.h audiofile.h aupvlist.h afinternal.h \
+	af_vfs.h error.h util.h units.h compression.h modules.h \
+	byteorder.h
+wave.lo wave.o : wave.c ../config.h audiofile.h aupvlist.h util.h \
+	afinternal.h af_vfs.h error.h byteorder.h wave.h track.h \
+	setup.h marker.h
+wavewrite.lo wavewrite.o : wavewrite.c ../config.h audiofile.h \
+	aupvlist.h afinternal.h af_vfs.h error.h byteorder.h util.h \
+	setup.h wave.h
+
+info-am:
+info: info-recursive
+dvi-am:
+dvi: dvi-recursive
+check-am: all-am
+check: check-recursive
+installcheck-am:
+installcheck: installcheck-recursive
+install-exec-am: install-libLTLIBRARIES
+install-exec: install-exec-recursive
+
+install-data-am: install-includeHEADERS
+install-data: install-data-recursive
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-recursive
+uninstall-am: uninstall-libLTLIBRARIES uninstall-includeHEADERS
+uninstall: uninstall-recursive
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
+all-redirect: all-recursive
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs: installdirs-recursive
+installdirs-am:
+	$(mkinstalldirs)  $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
+
+
+mostlyclean-generic:
+
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+mostlyclean-am:  mostlyclean-libLTLIBRARIES mostlyclean-compile \
+		mostlyclean-libtool mostlyclean-tags \
+		mostlyclean-generic
+
+mostlyclean: mostlyclean-recursive
+
+clean-am:  clean-libLTLIBRARIES clean-compile clean-libtool clean-tags \
+		clean-generic mostlyclean-am
+
+clean: clean-recursive
+
+distclean-am:  distclean-libLTLIBRARIES distclean-compile \
+		distclean-libtool distclean-tags distclean-generic \
+		clean-am
+	-rm -f libtool
+
+distclean: distclean-recursive
+
+maintainer-clean-am:  maintainer-clean-libLTLIBRARIES \
+		maintainer-clean-compile maintainer-clean-libtool \
+		maintainer-clean-tags maintainer-clean-generic \
+		distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-recursive
+
+.PHONY: mostlyclean-libLTLIBRARIES distclean-libLTLIBRARIES \
+clean-libLTLIBRARIES maintainer-clean-libLTLIBRARIES \
+uninstall-libLTLIBRARIES install-libLTLIBRARIES mostlyclean-compile \
+distclean-compile clean-compile maintainer-clean-compile \
+mostlyclean-libtool distclean-libtool clean-libtool \
+maintainer-clean-libtool uninstall-includeHEADERS \
+install-includeHEADERS install-data-recursive uninstall-data-recursive \
+install-exec-recursive uninstall-exec-recursive installdirs-recursive \
+uninstalldirs-recursive all-recursive check-recursive \
+installcheck-recursive info-recursive dvi-recursive \
+mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
+dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs-am \
+installdirs mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

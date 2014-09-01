@@ -1,0 +1,20 @@
+/.cvsignore/1.3/Tue Aug  7 21:47:08 2001//
+/Makefile.am/1.20/Thu Jun 16 17:09:37 2005//
+/README/1.2/Fri Jul 30 04:00:57 2004//
+/common.c/1.11/Tue Oct  4 20:59:28 2005//
+/common.h/1.7/Fri Jul 30 04:00:57 2004//
+/encode.c/1.13/Wed Sep 21 22:23:43 2005//
+/encoder.h/1.6/Fri Apr 15 00:25:28 2005//
+/fft.c/1.2/Sat Dec 20 17:33:38 2003//
+/musicin.c/1.25/Wed Sep 21 22:23:43 2005//
+/psy.c/1.9/Tue Oct  4 17:45:48 2005//
+/table_absthr.h/1.1/Wed Jul 12 08:49:52 2000//
+/table_alloc.h/1.1/Wed Jul 12 08:49:52 2000//
+/table_cb.h/1.1/Wed Jul 12 08:49:52 2000//
+/table_enwindow.h/1.1/Wed Jul 12 08:49:52 2000//
+/table_th.h/1.1/Wed Jul 12 08:49:52 2000//
+/tables.c/1.4/Fri Jul 30 04:00:57 2004//
+/tonal.c/1.5/Tue Oct  4 20:59:28 2005//
+/wav_io.c/1.9/Mon Sep 23 19:46:42 2002//
+/wav_io.h/1.2/Sat Mar 23 22:47:57 2002//
+D

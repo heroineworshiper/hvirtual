@@ -1,0 +1,24 @@
+/.cvsignore/1.5/Sat Dec 11 04:55:18 2004//
+/cpuinfo.c/1.3/Sat Feb 11 05:34:04 2006//
+/fastintfns.h/1.6/Fri Feb 18 05:12:28 2005//
+/format_codes.h/1.10/Fri Dec  9 23:07:56 2005//
+/mjpeg_types.h/1.16/Thu May 18 18:19:05 2006//
+/mmx.h/1.8/Wed Sep 21 21:39:32 2005//
+/mpegconsts.c/1.16/Fri Dec  9 23:07:56 2005//
+/mpegconsts.h/1.14/Fri Dec  9 23:07:56 2005//
+/mpegtimecode.c/1.1/Tue Aug 28 16:46:21 2001//
+/mpegtimecode.h/1.1/Tue Aug 28 16:46:43 2001//
+/videodev_mjpeg.h/1.1/Tue Aug 28 16:45:44 2001//
+/yuv4mpeg.c/1.36/Mon Feb  6 21:22:21 2006//
+/yuv4mpeg.h/1.28/Wed Sep 21 21:39:32 2005//
+/yuv4mpeg_intern.h/1.10/Tue Apr 15 02:09:08 2003//
+/yuv4mpeg_ratio.c/1.8/Tue Apr 15 02:09:08 2003//
+D/altivec////
+D/mmxsse////
+/cpu_accel.h/1.11/Wed Jan  3 18:29:10 2007//
+/motionsearch.c/1.28/Wed Jan  3 18:29:10 2007//
+/mjpeg_logging.c/1.16/Mon Apr  2 15:43:34 2007//
+/mjpeg_logging.h/1.11/Mon Apr  2 15:43:34 2007//
+/Makefile.am/1.32/Thu Aug  9 11:50:03 2007//
+/motionsearch.h/1.13/Thu Aug  9 11:50:04 2007//
+/cpu_accel.c/1.30/Sun Oct  7 07:03:37 2007//

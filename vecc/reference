@@ -1,0 +1,98 @@
+unpckhps - unpack high packed single fp data
+unpcklps - unpack low packed single fp data
+ucomiss - unordered scalar single fp compare
+subss - scalar single fp subtract
+subps - packed single fp subtract
+stmxcsr - store SSE status
+sqrtss - scalar single fp square root
+sqrtps - packed single fp square root
+shufps - shuffle single fp
+rsqrtss - reciprocal scalar single fp square root
+rsqrtps - reciprocal packed single fp square root
+rcpss - scalar single fp reciprocal
+rcpps - packed single fp reciprocal
+mulss - single fp multiply
+mulps - packed single fp multiply
+movups - move 128 bits unaligned
+movss - move least significant 32 bits
+movntps - move 128 bits from register to memory without caching
+movmskps - move most significant bit of 4 floats to integer
+movlps - move low 64 bits of 128 bit register to and from memory
+movlhps - move low 64 bits of 128 bit register to upper 64 bits of 128 bit register
+movhps - move upper 64 bits of 128 bit register to and from 64 bit memory
+movhlps - move upper 64 bits of 128 bit register to lower 64 bits of 128 bit register
+movaps - move 128 bits aligned
+minss - single fp minimum
+minps - packed fp minimum
+maxss - single fp maximum
+maxps - packed fp maximum
+divss - scalar single fp divide
+divps - packed single fp divide
+cvttss2si - scalar single fp to signed int32 conversion
+cvttps2pi - packed single fp to packed int32 conversion
+cvtss2si - scalar single fp to signed int32 conversion 
+cvtsi2ss - scalar signed int32 to single fp conversion
+cvtps2pi - packed single fp to packed int32 conversion
+cvtpi2ps - packed signed int32 to packed single fp conversion
+comiss - ordered scalar single fp compare
+compss - scalar single fp compare
+compps - packed single fp compare
+andps - 128 bit and
+andnps - 128 bit and not
+addss - scalar single fp add
+addps - packed single fp add
+
+
+
+
+
+prefetch
+
+
+
+
+
+
+
+pxor - xor 64 bit register
+punpcklbw, punpcklwd, punpckldq - unpack low packed data
+punpckhbw, punpckhwd, punpckhdq - unpack high packed data
+psubusb, psubusw - packed subtract unsigned with saturation
+psubsb, psubsw - packed subtract with saturation
+psubb, psubw, psubd - packed subtract
+psrlw, psrld, psrlq - packed shift right logical
+psraw, psrad - packed shift right arithmetic
+psllw, pslld, psllq - packed shift left logical
+pshufw - packed shuffle word
+psadbw - packed sum of absolute differences
+por - bitwise logical or
+pmullw - packed multiply low
+pmulhw - packed multiply high
+pmulhuw - packed multiply high unsigned
+pmovmskb - move most significant bits of 8 bytes to lowest 8 bits of integer
+pminub - return minimum 8 unsigned bytes of two operands
+pminsw - return minimum 4 signed words of two operands
+pmaxub - return maximum 8 unsigned bytes
+pmaxsw - return maximum 4 signed words
+pmaddwd - packed signed multiply and add
+pinsrw - insert word
+pextrw - extract word
+pcmpgtb, pcmpgtw, pcmpgtd - signed packed greater than comparison
+pcmpeqb, pcmpeqw, pcmpeqd - packed equality comparison
+pavgb, pavgw - packed average with rounding
+pandn - and not
+pand - and
+paddusb, paddusw - packed add unsigned with saturation
+paddsb, paddsw - packed add with saturation
+paddb, paddw, paddd - packed add
+packuswb - pack signed words into unsigned bytes with unsigned saturation
+packsswb, packssdw - pack with signed saturation
+movq - move 64 bits
+movntq - move 64 bits from register to memory without caching
+movd - move low 32 bits between 32 bit register or memory and 64 bit register
+maskmovq - move 64 bits to location specified by edi register using byte mask
+emms
+
+
+
+

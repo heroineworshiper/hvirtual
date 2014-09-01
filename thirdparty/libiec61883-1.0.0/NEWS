@@ -1,0 +1,31 @@
+libiec61883 RELEASE NOTES
+Copyright (C) 2004-2005 Kristian Hogsberg, Dan Dennedy, and Dan Maas.
+http://www.linux1394.org/
+
+Version 1.0.0
+
+	First release. This release is mostly feature complete as opposed to
+	being an early development release! It is known to be working well on
+	little endian platforms for DV and MPEG2-TS applications and is being
+	used in early development work on FreeBob for AMDTP. A dvgrab 2.0 is
+	flexing DV and being used in a 24/7 multi-host production environment.
+	The MPEG2-TS is being used by a few MythTV enthusiasts with digital
+	cable and ATSC settop boxes.
+
+	The connection management procedures do a pretty good job of effortless,
+	multiple tranmission and reception sessions over a single bus. However,
+	it may not support all use case scenarios. Also, CMP seems to be the
+	area most poorly or inconsistently implemented by device makers.
+	Therefore, it is difficult at this time to support multiple sessions
+	in a generic fashion and expect it to Just Work.
+
+	AMDTP is a little crude at the moment. First of all, it does not support
+	low latency applications and requirements. Secondly, there are not
+	functions to help encode and decode the various audio formats, but there
+	is simple label handling for AM824 and label and encoding of IEC 60958
+	audio for transmission.
+
+	Links:
+	dvgrab 2.0 (not yet released) - http://www.kinodv.org/
+	MythTV 0.17 - http://www.mythtv.info/moin.cgi/0_2e17
+	FreeBob - http://freebob.sourceforge.net/

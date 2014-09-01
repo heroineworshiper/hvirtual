@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libdv 
+Description: DV software codec
+Requires: 
+Version: @VERSION@
+Libs: -L${libdir} -ldv -lm @REQUIRES_NOPKGCONFIG@
+Cflags: -I${includedir}

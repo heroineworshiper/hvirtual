@@ -1,0 +1,88 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Multi-dimensional%20Transforms">Multi-dimensional Transforms</a>,
+Previous:<a rel=previous accesskey=p href="1d-Discrete-Hartley-Transforms--DHTs-.html#1d%20Discrete%20Hartley%20Transforms%20(DHTs)">1d Discrete Hartley Transforms (DHTs)</a>,
+Up:<a rel=up accesskey=u href="What-FFTW-Really-Computes.html#What%20FFTW%20Really%20Computes">What FFTW Really Computes</a>
+<hr><br>
+
+<h4>4.7.6 Multi-dimensional Transforms</h4>
+
+<p>The multi-dimensional transforms of FFTW, in general, compute simply the
+separable product of the given 1d transform along each dimension of the
+array.  Since each of these transforms is unnormalized, computing the
+forward followed by the backward/inverse multi-dimensional transform
+will result in the original array scaled by the product of the
+normalization factors for each dimension (e.g. the product of the
+dimension sizes, for a multi-dimensional DFT).
+
+<p>The definition of FFTW's multi-dimensional DFT of real data (r2c)
+deserves special attention.  In this case, we logically compute the full
+multi-dimensional DFT of the input data; since the input data are purely
+real, the output data have the Hermitian symmetry and therefore only one
+non-redundant half need be stored.  More specifically, for an n<sub>1</sub> x n<sub>2</sub> x n<sub>3</sub> x ... x n<sub>d</sub>
+ multi-dimensional real-input DFT, the full (logical) complex output array
+<i>Y</i>[<i>k</i><sub>1</sub>, <i>k</i><sub>2</sub>, ...,
+<i>k</i><sub><i>d</i></sub>]
+has the symmetry:
+<i>Y</i>[<i>k</i><sub>1</sub>, <i>k</i><sub>2</sub>, ...,
+<i>k</i><sub><i>d</i></sub>] = <i>Y</i>[<i>n</i><sub>1</sub> -
+<i>k</i><sub>1</sub>, <i>n</i><sub>2</sub> - <i>k</i><sub>2</sub>, ...,
+<i>n</i><sub><i>d</i></sub> - <i>k</i><sub><i>d</i></sub>]<sup>*</sup>
+(where each dimension is periodic).  Because of this symmetry, we only
+store the
+<i>k</i><sub><i>d</i></sub> = 0...<i>n</i><sub><i>d</i></sub>/2+1
+elements of the <em>last</em> dimension (division by 2 is rounded
+down).  (We could instead have cut any other dimension in half, but the
+last dimension proved computationally convenient.)  This results in the
+peculiar array format described in more detail by <a href="Real-data-DFT-Array-Format.html#Real-data%20DFT%20Array%20Format">Real-data DFT Array Format</a>.
+
+<p>The multi-dimensional c2r transform is simply the unnormalized inverse
+of the r2c transform.  i.e. it is the same as FFTW's complex backward
+multi-dimensional DFT, operating on a Hermitian input array in the
+peculiar format mentioned above and outputting a real array (since the
+DFT output is purely real).
+
+<p>We should remind the user that the separable product of 1d transforms
+along each dimension, as computed by FFTW, is not always the same thing
+as the usual multi-dimensional transform.  A multi-dimensional
+<code>R2HC</code> (or <code>HC2R</code>) transform is not identical to the
+multi-dimensional DFT, requiring some post-processing to combine the
+requisite real and imaginary parts, as was described in <a href="The-Halfcomplex-format-DFT.html#The%20Halfcomplex-format%20DFT">The Halfcomplex-format DFT</a>.  Likewise, FFTW's multidimensional
+<code>FFTW_DHT</code> r2r transform is not the same thing as the logical
+multi-dimensional discrete Hartley transform defined in the literature,
+as discussed in <a href="The-Discrete-Hartley-Transform.html#The%20Discrete%20Hartley%20Transform">The Discrete Hartley Transform</a>.
+
+</body></html>
+

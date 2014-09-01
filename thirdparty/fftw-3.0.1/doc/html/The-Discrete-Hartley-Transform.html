@@ -1,0 +1,92 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="The%20Discrete%20Hartley%20Transform">The Discrete Hartley Transform</a>,
+Previous:<a rel=previous accesskey=p href="Real-even-odd-DFTs--cosine-sine-transforms-.html#Real%20even%2fodd%20DFTs%20(cosine%2fsine%20transforms)">Real even/odd DFTs (cosine/sine transforms)</a>,
+Up:<a rel=up accesskey=u href="More-DFTs-of-Real-Data.html#More%20DFTs%20of%20Real%20Data">More DFTs of Real Data</a>
+<hr><br>
+
+<h4>2.5.3 The Discrete Hartley Transform</h4>
+
+<p>The discrete Hartley transform (DHT) is an invertible linear transform
+closely related to the DFT.  In the DFT, one multiplies each input by
+cos - i * sin (a complex exponential), whereas in the DHT each
+input is multiplied by simply cos + sin.  Thus, the DHT
+transforms <code>n</code> real numbers to <code>n</code> real numbers, and has the
+convenient property of being its own inverse.  In FFTW, a DHT (of any
+positive <code>n</code>) can be specified by an r2r kind of <code>FFTW_DHT</code>.
+
+<p>If you are planning to use the DHT because you've heard that it is
+"faster" than the DFT (FFT), <strong>stop here</strong>.  That story is an old
+but enduring misconception that was debunked in 1987: a properly
+designed real-input FFT (such as FFTW's) has no more operations in
+general than an FHT.  Moreover, in FFTW, the DHT is ordinarily
+<em>slower</em> than the DFT for composite sizes (see below).
+
+<p>Like the DFT, in FFTW the DHT is unnormalized, so computing a DHT of
+size <code>n</code> followed by another DHT of the same size will result in
+the original array multiplied by <code>n</code>.
+
+<p>The DHT was originally proposed as a more efficient alternative to the
+DFT for real data, but it was subsequently shown that a specialized DFT
+(such as FFTW's r2hc or r2c transforms) could be just as fast.  In FFTW,
+the DHT is actually computed by post-processing an r2hc transform, so
+there is ordinarily no reason to prefer it from a performance
+perspective.<a rel=footnote href="#fn-1"><sup>1</sup></a>
+However, we have heard rumors that the DHT might be the most appropriate
+transform in its own right for certain applications, and we would be
+very interested to hear from anyone who finds it useful.
+
+<p>If <code>FFTW_DHT</code> is specified for multiple dimensions of a
+multi-dimensional transform, FFTW computes the separable product of 1d
+DHTs along each dimension.  Unfortunately, this is not quite the same
+thing as a true multi-dimensional DHT; you can compute the latter, if
+necessary, with at most <code>rank-1</code> post-processing passes
+[see e.g. H. Hao and R. N. Bracewell, <i>Proc. IEEE</i> <b>75</b>, 264-266 (1987)].
+
+<p>For the precise mathematical definition of the DHT as used by FFTW, see
+<a href="What-FFTW-Really-Computes.html#What%20FFTW%20Really%20Computes">What FFTW Really Computes</a>.
+
+<hr><h4>Footnotes</h4>
+<ol type="1">
+<li><a name="fn-1"></a>
+<p>We provide the DHT mainly as a byproduct of some
+internal algorithms. FFTW computes a real input/output DFT of
+<em>prime</em> size by re-expressing it as a DHT plus post/pre-processing
+and then using Rader's prime-DFT algorithm adapted to the DHT.</p>
+
+</ol><hr>
+
+</body></html>
+

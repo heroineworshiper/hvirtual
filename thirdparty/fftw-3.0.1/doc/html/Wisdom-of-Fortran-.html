@@ -1,0 +1,75 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Wisdom%20of%20Fortran%3f">Wisdom of Fortran?</a>,
+Previous:<a rel=previous accesskey=p href="Fortran-Examples.html#Fortran%20Examples">Fortran Examples</a>,
+Up:<a rel=up accesskey=u href="Calling-FFTW-from-Fortran.html#Calling%20FFTW%20from%20Fortran">Calling FFTW from Fortran</a>
+<hr><br>
+
+<h3>6.4 Wisdom of Fortran?</h3>
+
+<p>In this section, we discuss how one can import/export FFTW wisdom
+(saved plans) to/from a Fortran program; we assume that the reader is
+already familiar with wisdom, as described in <a href="Words-of-Wisdom-Saving-Plans.html#Words%20of%20Wisdom-Saving%20Plans">Words of Wisdom-Saving Plans</a>.
+
+<p>The basic problem is that is difficult to (portably) pass files and
+strings between Fortran and C, so we cannot provide a direct Fortran
+equivalent to the <code>fftw_export_wisdom_to_file</code>, etcetera,
+functions.  Fortran interfaces <em>are</em> provided for the functions
+that do not take file/string arguments, however:
+<code>dfftw_import_system_wisdom</code>, <code>dfftw_import_wisdom</code>,
+<code>dfftw_export_wisdom</code>, and <code>dfftw_forget_wisdom</code>.
+
+<p>So, for examplem to import the system-wide wisdom, you would do:
+
+<br><pre>        integer isuccess
+        call dfftw_import_system_wisdom(isuccess)
+</pre>
+
+<p>As usual, the C return value is turned into a first parameter;
+<code>isuccess</code> is non-zero on success and zero on failure (e.g. if
+there is no system wisdom installed).
+
+<p>If you want to import/export wisdom from/to an arbitrary file or
+elsewhere, you can employ the generic <code>dfftw_import_wisdom</code> and
+<code>dfftw_export_wisdom</code> functions, for which you must supply a
+subroutine to read/write one character at a time.  The FFTW package
+contains an example file <code>doc/f77_wisdom.f</code> demonstrating how to
+implement <code>import_wisdom_from_file</code> and
+<code>export_wisdom_to_file</code> subroutines in this way.  (These routines
+cannot be compiled into the FFTW library itself, lest all FFTW-using
+programs be required to link with the Fortran I/O library.)
+
+</body></html>
+

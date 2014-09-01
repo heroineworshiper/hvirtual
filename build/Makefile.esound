@@ -1,0 +1,63 @@
+include global_config
+
+DIR := thirdparty/esound
+
+OBJS = \
+	$(DIR)/$(OBJDIR)/audio.o \
+	$(DIR)/$(OBJDIR)/clients.o \
+	$(DIR)/$(OBJDIR)/esd_config.o \
+	$(DIR)/$(OBJDIR)/esdfile.o \
+	$(DIR)/$(OBJDIR)/esdlib.o \
+	$(DIR)/$(OBJDIR)/esdmgr.o \
+	$(DIR)/$(OBJDIR)/genrand.o \
+	$(DIR)/$(OBJDIR)/filter.o \
+	$(DIR)/$(OBJDIR)/mix.o \
+	$(DIR)/$(OBJDIR)/players.o \
+	$(DIR)/$(OBJDIR)/proto.o \
+	$(DIR)/$(OBJDIR)/samples.o
+
+
+
+OUTPUT = $(DIR)/$(OBJDIR)/libesound.a
+CFLAGS += -Ithirdparty/esound -Ithirdparty/audiofile -DSYSCONFDIR=\"/usr/local/etc\"
+
+$(shell sh -c 'mkdir -p $(DIR)/$(OBJDIR)' )
+$(shell echo $(CFLAGS) > $(DIR)/$(OBJDIR)/c_flags)
+
+all: $(OUTPUT)
+
+$(OUTPUT): $(OBJS)
+	ar rc $(OUTPUT) $(OBJS)
+
+
+clean:
+	rm -rf $(OBJDIR)
+
+$(OBJS):
+	$(GCC) -c `cat $(DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
+
+$(OBJDIR)/audio.o:	 audio.c
+$(OBJDIR)/clients.o:	 clients.c
+$(OBJDIR)/esd_config.o:  esd_config.c
+$(OBJDIR)/esdfile.o:	 esdfile.c
+$(OBJDIR)/esdlib.o:	 esdlib.c
+$(OBJDIR)/esdmgr.o:	 esdmgr.c
+$(OBJDIR)/genrand.o:	 genrand.c
+$(OBJDIR)/filter.o:	 filter.c
+$(OBJDIR)/mix.o:	 mix.c
+$(OBJDIR)/players.o:	 players.c
+$(OBJDIR)/proto.o:	 proto.c
+$(OBJDIR)/samples.o:	 samples.c
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,93 @@
+
+			       Parapin
+	 the Parallel Port Pin Programming Library for Linux
+
+		    Release 0.90 -- March 30, 2000
+
+			     Jeremy Elson
+			 jelson@circlemud.org
+
+
+----------------------------------------------------------------------
+
+
+=== What is Parapin, and where did it come from?
+
+   parapin makes it easy to write C code under Linux that controls
+   individual pins on a PC parallel port. This kind of control is very
+   useful for electronics projects that use the PC's parallel port as a
+   generic digital I/O interface. Parapin goes to great lengths to
+   insulate the programmer from the somewhat complex parallel port
+   programming interface provided by the PC hardware, making it easy to
+   use the parallel port for digital I/O. By the same token, this
+   abstraction also makes Parapin less useful in applications that need
+   to actually use the parallel port as a parallel port (e.g., for
+   talking to a printer).
+   
+   Parapin has two ``personalities'': it can either be used as a
+   user-space C library, or linked as part of a Linux kernel module. The
+   user and kernel personalities were both written with efficiency in
+   mind, so that Parapin can be used in time-sensitive applications.
+   Using Parapin should be very nearly as fast as writing directly to the
+   parallel port registers manually.
+   
+   Parapin provides a simple interface that lets programs use pins of the
+   PC parallel port as digital inputs or outputs. Using this interface,
+   it is easy to assert high or low TTL logic values on output pins or
+   poll the state of input pins. Some pins are bidirectional--that is,
+   they can be switched between input and output modes on the fly.
+
+   Parapin was written by Jeremy Elson (jelson@circlemud.org) while at
+   the University of Southern California's Information Sciences
+   Institute. This work was supported by DARPA under grant No.
+   DABT63-99-1-0011 as part of the SCADDS project, and was also made
+   possible in part due to support from Cisco Systems. It is freely
+   available under the GNU Public License (GPL). Up-to-date information
+   about Parapin, including the latest version of the software, can be
+   found at the Parapin Home Page:
+
+	http://www.circlemud.org/~jelson/software/parapin
+
+
+=== Installing Parapin
+
+   Installing parapin should generally just be a matter of 
+
+	make
+	make install
+
+   This will install the library itself (libparapin.a) in /usr/local/lib,
+   and the header file (parapin.h) in /usr/local/include.
+
+   The kernel module, kparapin.o, is not installed by default.   
+
+
+=== Detailed Documentation
+
+
+   Detailed information about compiling and using parapin can be found
+   in the 'doc' directory:
+
+      doc/parapin.ps:    Nicely formatted postscript documentation
+      doc/parapin.html:  HTML documentation, not as nicely formatted
+      doc/parapin.txt:   Plain ASCII text documentation, looks even worse
+      doc/parapin.tex:   LaTeX source of all the above
+
+
+=== Dire Warning
+
+   Attaching custom electronics to your PC using the parallel port as a
+   digital I/O interface can damage both the PC and the electronics if
+   you make a mistake. If you're using high voltage electronics, a
+   mistake can also cause serious personal injury. Be careful.
+   
+   If possible, use a parallel port that is on an ISA card, instead of
+   one integrated onto the motherboard, to minimize the expense of
+   replacing a parallel port controller that you destroy.
+   
+   USE THIS SOFTWARE AT YOUR OWN RISK.
+
+
+Jeremy Elson (jelson@circlemud.org)
+University of Southern California
+30 March 2000

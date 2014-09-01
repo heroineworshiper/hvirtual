@@ -1,0 +1,174 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Real%20even%2fodd%20DFTs%20(cosine%2fsine%20transforms)">Real even/odd DFTs (cosine/sine transforms)</a>,
+Next:<a rel=next accesskey=n href="The-Discrete-Hartley-Transform.html#The%20Discrete%20Hartley%20Transform">The Discrete Hartley Transform</a>,
+Previous:<a rel=previous accesskey=p href="The-Halfcomplex-format-DFT.html#The%20Halfcomplex-format%20DFT">The Halfcomplex-format DFT</a>,
+Up:<a rel=up accesskey=u href="More-DFTs-of-Real-Data.html#More%20DFTs%20of%20Real%20Data">More DFTs of Real Data</a>
+<hr><br>
+
+<h4>2.5.2 Real even/odd DFTs (cosine/sine transforms)</h4>
+
+<p>The Fourier transform of a real-even function f(-x) = f(x) is
+real-even, and i times the Fourier transform of a real-odd
+function f(-x) = -f(x) is real-odd.  Similar results hold for a
+discrete Fourier transform, and thus for these symmetries the need for
+complex inputs/outputs is entirely eliminated.  Moreover, one gains a
+factor of two in speed/space from the fact that the data are real, and
+an additional factor of two from the even/odd symmetry: only the
+non-redundant (first) half of the array need be stored.  The result is
+the real-even DFT (<dfn>REDFT</dfn>) and the real-odd DFT (<dfn>RODFT</dfn>), also
+known as the discrete cosine and sine transforms (<dfn>DCT</dfn> and
+<dfn>DST</dfn>), respectively.
+
+<p>(In this section, we describe the 1d transforms; multi-dimensional
+transforms are just a separable product of these transforms operating
+along each dimension.)
+
+<p>Because of the discrete sampling, one has an additional choice: is the
+data even/odd around a sampling point, or around the point halfway
+between two samples?  The latter corresponds to <em>shifting</em> the
+samples by <em>half</em> an interval, and gives rise to several transform
+variants denoted by REDFTab and RODFTab: a and
+b are 0 or 1, and indicate whether the input
+(a) and/or output (b) are shifted by half a sample
+(1 means it is shifted).  These are also known as types I-IV of
+the DCT and DST, and all four types are supported by FFTW's r2r
+interface.<a rel=footnote href="#fn-1"><sup>1</sup></a>
+
+<p>The r2r kinds for the various REDFT and RODFT types supported by FFTW,
+along with the boundary conditions at both ends of the <em>input</em>
+array (<code>n</code> real numbers <code>in[j=0..n-1]</code>), are:
+
+<ul>
+
+<li><code>FFTW_REDFT00</code> (DCT-I): even around j=0 and even around j=n-1.
+
+<li><code>FFTW_REDFT10</code> (DCT-II): even around j=-0.5 and even around j=n-0.5.
+
+<li><code>FFTW_REDFT01</code> (DCT-III): even around j=0 and odd around j=n.
+
+<li><code>FFTW_REDFT11</code> (DCT-IV): even around j=-0.5 and odd around j=n-0.5.
+
+<li><code>FFTW_RODFT00</code> (DST-I): odd around j=-1 and odd around j=n.
+
+<li><code>FFTW_RODFT10</code> (DST-II): odd around j=-0.5 and odd around j=n-0.5.
+
+<li><code>FFTW_RODFT01</code> (DST-III): odd around j=-1 and even around j=n-1.
+
+<li><code>FFTW_RODFT11</code> (DST-IV): odd around j=-0.5 and even around j=n-0.5.
+
+</ul>
+
+<p>Note that these symmetries apply to the "logical" array being
+transformed; <strong>there are no constraints on your physical input
+data</strong>.  So, for example, if you specify a size-5 REDFT00 (DCT-I) of the
+data abcde, it corresponds to the DFT of the logical even array
+abcdedcb of size 8.  A size-4 REDFT10 (DCT-II) of the data
+abcd corresponds to the size-8 logical DFT of the even array
+abcddcba, shifted by half a sample.
+
+<p>All of these transforms are invertible.  The inverse of R*DFT00 is
+R*DFT00; of R*DFT10 is R*DFT01 and vice versa; and of R*DFT11 is
+R*DFT11.  However, the transforms computed by FFTW are unnormalized,
+exactly like the corresponding real and complex DFTs, so computing a
+transform followed by its inverse yields the original array scaled by
+N, where N is the <em>logical</em> DFT size.  For REDFT00,
+N=2(n-1); for RODFT00, N=2(n+1); otherwise, N=2n.
+
+<p>Note that the boundary conditions of the transform output array are
+given by the input boundary conditions of the inverse transform. 
+Thus, the above transforms are all inequivalent in terms of
+input/output boundary conditions, even neglecting the 0.5 shift
+difference.
+
+<p>FFTW is most efficient when N is a product of small factors; note
+that this <em>differs</em> from the factorization of the physical size
+<code>n</code> for REDFT00 and RODFT00!  There is another oddity: <code>n=1</code>
+REDFT00 transforms correspond to N=0, and so are <em>not
+defined</em> (the planner will return <code>NULL</code>).  Otherwise, any positive
+<code>n</code> is supported.
+
+<p>For the precise mathematical definitions of these transforms as used by
+FFTW, see <a href="What-FFTW-Really-Computes.html#What%20FFTW%20Really%20Computes">What FFTW Really Computes</a>.  (For people accustomed to the
+DCT/DST, FFTW's definitions have a coefficient of 2 in front of
+the cos/sin functions so that they correspond precisely to an even/odd
+DFT of size N.)
+
+<h5>Which type do you need?</h5>
+
+<p>Since the required flavor of even/odd DFT depends upon your problem, you
+are the best judge of this choice, but we can make a few comments on
+relative efficiency to help you in your selection.  In particular,
+R*DFT01 and R*DFT10 tend to be slightly faster than R*DFT11 (especially
+for odd sizes), while the R*DFT00 transforms are significantly
+slower.<a rel=footnote href="#fn-2"><sup>2</sup></a>
+
+<p>Thus, if only the boundary conditions on the transform inputs are
+specified, we generally recommend R*DFT10 over R*DFT00 and R*DFT01 over
+R*DFT11 (unless the half-sample shift or the self-inverse property is
+significant for your problem).
+
+<p>If performance is important to you and you are using only small sizes
+(say n&lt;200), e.g. for multi-dimensional transforms, then you
+might consider generating hard-coded transforms of those sizes and types
+that you are interested in (see <a href="Generating-your-own-code.html#Generating%20your%20own%20code">Generating your own code</a>).
+
+<p>We are interested in hearing what types of symmetric transforms you find
+most useful.
+
+<hr><h4>Footnotes</h4>
+<ol type="1">
+<li><a name="fn-1"></a>
+<p>There are also type V-VIII transforms, which
+correspond to a logical DFT of <em>odd</em> size N, independent of
+whether the physical size <code>n</code> is odd, but we do not support these
+variants.</p>
+
+<li><a name="fn-2"></a>
+<p>R*DFT00 is slower in FFTW because we discovered that
+the standard algorithm for computing this by a pre/post-processed real
+DFT---the algorithm used in FFTPACK, Numerical Recipes, and other
+sources for decades now---has serious numerical problems: it already
+loses several decimal places of accuracy for 16k sizes.  There seem to
+be only two alternatives in the literature that do not suffer similarly:
+a recursive decomposition into smaller DCTs, which would require a large
+set of codelets for efficiency and generality, or sacrificing a factor
+of two in speed to use a real DFT of twice the size.  We currently
+employ the latter technique.</p>
+
+</ol><hr>
+
+</body></html>
+

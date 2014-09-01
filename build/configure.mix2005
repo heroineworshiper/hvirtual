@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# configuration is being done in a script because starting with GCC-3.2
+# the compiler flags are changing too much between minor releases to detect
+# with Makefile scripts alone.  For now it just tells you if you have the
+# prerequisite compilers.
+
+ERROR=0
+
+# test for nasm
+OBJDIR=`uname -m`
+TOPDIR=`pwd`
+
+
+# write configuration header
+echo "Writing hvirtual_config.h"
+cat > hvirtual_config.h << EOF
+// Configuration file made by configure.  Don't edit.
+EOF
+
+
+# success
+if [ "$ERROR" = "0" ];
+then echo "Configured successfully.  Type 'make' to build it.";
+fi
+
+
+

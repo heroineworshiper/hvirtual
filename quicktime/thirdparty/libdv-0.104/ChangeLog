@@ -1,0 +1,753 @@
+2004-11-29  Dan Dennedy <dan@dennedy.org>
+	* libdv.pc: added -lm to make build more portable.
+
+2004-10-19  Dan Dennedy <dan@dennedy.org>
+	* applied x86-64 patch from Dean Kolosiek.
+
+2004-07-14  Charles "Buck" Krasic  <krasic@acm.org>
+
+	* libdv 0.103 release
+	* update README to note that "bootstrap" is now obolete in light of
+	  autoreconf provided by autotools.
+	* some updates to the build files resulting due to changes in
+	  newer versions of autotools.
+	* the goal is that one could build libdv from a distribution
+	  tarball or even from CVS without autotools installed (one should
+	  just need make and gcc).
+
+2004-07-13  Dan Dennedy <dan@dennedy.org>
+	* libdv/dv.h, dv_types.h, headers.c, encode.c: use inttypes.h instead of
+	  stdint.h as it is more universal.
+	* libdv/dv_types.h: remove unused static variables
+	* libdv/dv1394.h: removed
+
+2004-07-06  Dan Dennedy <dan@dennedy.org>
+	* libdv/dv.c: fix SMPTE314M typo in dv_format_wide()
+
+2004-07-05  Dan Dennedy <dan@dennedy.org>
+	* libdv/encode.c: apply patch from Johannes Sixt to make encoder thread-safe
+	  by mutex locks.
+	* added libdv/enctest.c to test thread-safetiness of encoder (also from
+	  Johannes Sixt).
+	* libdv/enc_input.c: make ppm reader more compatible (specifically y4m2ppm).
+
+2004-06-10  Dan Dennedy <dan@dennedy.org>
+	* libdv/dv.c: apply patch from Johannes Sixt to fix race condition and bug
+	  using deallocated memory.
+
+2004-05-29  Dan Dennedy <dan@dennedy.org>
+	* configure.ac, libdv.pc.in: remove gtk from libdv pkg-config dependencies
+	  as the core lib has not required glib for some time now!
+	* encodedv/dvconnect.c: disable paging for dvconnect's internal buffers
+	  (patch from Daniel Kobras)
+
+2004-05-13  Dan Dennedy <dan@dennedy.org>
+	* libdv/dv.c: add another IEC widescreen code to dv_format_wide().
+
+2004-03-15  Dan Dennedy <dan@dennedy.org>
+	* libdv/dv.c: fix widescreen detection for SMPTE vs IEC.
+	* libdv/dv.h, dv.c: added dv_format_letterbox()
+	* libdv/audio.c, dv.h: added dv_is_normal_speed()
+
+2004-01-19  Dan Dennedy <dan@dennedy.org>
+	* libdv/enc_input.c: workaround potential V4L compilation error.
+	  (bug 879258)
+	* libdv/Makefile.am: set the AGE back to 0 on the current interface
+	  version due to breaking binary compatibility.
+
+2004-01-16  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* libdv 0.100 release
+
+2004-01-13  Dan Dennedy <dan@dennedy.org>
+	* encodedv/dvconnect.c: change a video1394 ioctl macro for better
+	  kernel 2.6 compatibility.
+	* libdv/enc_input.c: add luma clamping on pgm input luma for bug 874984.
+	* configure.ac, playdv/Makefile.am: do not build playdv if no gtk, xv, or
+	  sdl. Miscellaneous build fixes: no xv test if no gtk, permit cflags from
+	  make command line.
+	* encodedv/Makefile.am: build and install insert_audio.c as dubdv.
+	* encodedv/dvdub.1, dvconnect.1: added man pages.
+	* encodedv/dvconnect.c: make default video1394 device now /dev/video1394/0.
+	* encodedv/dvavi.c, dvconnect.c: OS/X build fixes from Steven Schultz.
+	* bump release version to 0.100 and increment libtool versions.
+	* libdv/dv.c: apply patch from Mathias Herberts to try getting recording
+	  date/time from vaux when ssyb fails.
+	* libdv/dv.c, encode.c: ignore ntsc_setup options.
+
+2004-01-04  Dan Dennedy <dan@dennedy.org>
+	* encodedv/dvconnect.c, libdv/dv1394.h: fix for kernel 2.6 compatibility,
+	  only backwards compatible to kernel 2.4.21.
+
+2003-12-15  Dan Dennedy <dan@dennedy.org>
+	* encode.c, dv.h: freeing the global mem in dv_encoder_free() is not safe
+	  when working with multiple encoders and free-ing them at will.
+	  Added dv_cleanup() to free memory allocated in dv_init().
+
+2003-11-23  Stefan Lucke <stefan@lucke.in-berlin.de>
+  * PAL fix for decode color rendering now in head
+  * additional API functions:
+      dv_get_num_samples (dv_decoder_t *dv)
+      dv_get_num_channels (dv_decoder_t *dv)
+      dv_get_raw_samples (dv_decoder_t *dv, int chan)
+      dv_is_4ch (dv_decoder_t *dv)
+      dv_is_PAL (dv_decoder_t *dv)
+      dv_is_progressive (dv_decoder_t *dv)
+      dv_set_quality (dv_decoder_t *dv, int q)
+      dv_get_frequency (dv_decoder_t *dv)
+   * removed some internal struct usage from playdv
+
+2003-11-17  Dan Dennedy <dan@dennedy.org>
+	* libdv/encode.c: revert change on encoder lookup table allocation.
+
+2003-11-10  Dan Dennedy  <dan@dennedy.org>
+	* libdv/dv.c, encode.c: bugfix thread safetiness of encoder.
+	  In a threaded environment, one should call dv_init() to setup
+	  libdv properly before dv_decoder_new() or dv_encoder_new().
+
+2003-10-29  Dan Dennedy  <dan@dennedy.org>
+	* libdv/parse.c: bugfix memory leak on error parsing header.
+	* libdv/dv.c: bugfix memory leak on non-freed bitstream_t
+	* libdv/dv.c, encode.c: remove encoder-specific malloc and init from
+	  the decoder init path. bugfix memory leaks in vlc.
+
+2003-10-27  Dan Dennedy  <dan@dennedy.org>
+	* libdv/enc_output.c, audio.c: fix speed flag handling for SMPTE 314M
+
+2003-10-20  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Change license to LGPL, with permission of all the authors.
+
+2003-09-23 Stefan Lucke <stefan@lucke.in-berlin.de>
+        * keep deemphasis filter state across frame boundaries
+	* extend audio frequency table with additional undefined entries.
+
+2003-08-20 Dan Dennedy <dan@dennedy.org>
+	* headers.c: correct target[3] that indicates NTSC/PAL to 
+	  correct values based upon my SMPTE 314M spec and data samples
+
+2003-07-22 Dan Dennedy <dan@dennedy.org>
+	* applied feature patches to insert_audio.c and dvconnect.c from 
+	  Marko Mäkelä.
+
+2003-07-08 Stefan Lucke <stefan@lucke.in-berlin.de>
+        * applied yv12 part of transcode's patch (by Thomas Östreich)
+
+2003-07-05 Stefan Lucke <stefan@lucke.in-berlin.de>
+        * added audio correction for single sample failure (by Jan Schmidt)
+
+2003-06-13  Dan Dennedy <dan@dennedy.org>
+	* added dv_get_ssyb_pack()
+	* encode.c: bugfix default encoding params result in poor quality due to 
+	  not setting DCT method.
+	* dvconnect.c: bugfix fopen mode on capture spotted by Marko Mäkelä.
+	* dv.c, audio.c: cleanup compilation warnings.
+
+2003-05-17  Charles Yates <charles.yates@pandora.be>
+	* parse.c: bugfix memory leak spotted by Jamie Shutler and Mike Grant.
+
+2003-01-19 Stefan Lucke <Stefan.Lucke1@epost.de>
+        * 4 channel audio support for 32kHz 12bit
+          default behaviour is mixing both channels (res = ch0 / 2 + ch1 / 2),
+          this way it breaks no applications.
+          - new functions:
+            dv_set_mixing_level (dv, level)
+            dv_is_new_recording (dv, buffer)
+        * updated playdv's man page (still some TODOs)
+
+2003-01-02  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* libdv 0.99 release.
+
+2002-12-31 Dan Dennedy   <dan@dennedy.org>
+	* playdv.c: apply patch from Timothy Shead to add --loop-count.
+	* dvconnect.c, playdv.c: large file support.
+	* all: apply patch from Daniel Kobras to qualify global symbols.
+	* all: cleanup includes to include config.h at top of each .c and
+	  to include libdv files from local instead of system local path.
+	* enc_output.c: fix misleading comments for 12 vs. 16 bit audio.
+	* libdv/Makefile.am: bump libtool versions.
+
+2002-12-03 Charles Yates <charles.yates@pandora.be>
+	*  added audio sample calculator:
+	   libdv/dv_types.h: dv_encoder_t.samples_this_frame,
+	   libdv/dv.h: dv_calculate_samples()
+
+2002-11-26 Charles 'Buck' Krasic <krasic@acm.org>
+
+	* fixes to display.c so it builds with --disable-xv
+
+2002-11-11  Dan Dennedy  <dan@dennedy.org>
+	* apply XvShm portability patch to playdv/display.c.
+	* apply build updates from Daniel Kobras to prevent core lib
+	  from linking unncessary libs.
+
+2002-11-11  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* apply patch to dvconnect.c from Charles Yates to fix stdin
+	  and devfs usage.  
+	* make dvconnect an part of libdv installation
+	* some build tweaks, since I'm running RH8.0 now
+
+2002-10-24  Dan Dennedy <dan@dennedy.org>
+	* enc_audio_input.[ch]: bugfix audio encoding due to change in
+	  max audio samples constant. Increase internal audio buffers to 
+	  4 channels to plan for future enhancement.
+
+2002-09-03  Dan Dennedy <dan@dennedy.org>
+	* bugfix to ignore ntsc setup option for PAL in lib encoder.
+
+2002-07-30  Charles 'Buck' Krasic  <krasic@acm.org>
+	* libdv 0.98 release.
+
+	* add configure script to CVS repository, to ease the pain of
+	  dealing with autotools version messiness.
+
+2002-07-30  Dan Dennedy <dan@dennedy.org>
+	* applied patch from Steven Schultz <sms@2BSD.COM> to add
+	  cross-platform checks for endian.h.
+	* Reverted YUY2 big-endian code because most adapters expect
+	  little endian even on big endian architectures(?). A PCI thing?
+
+2002-07-24  Dan Dennedy <dan@dennedy.org>
+	* enc_input.c: applied patch from Peter Schlaile for
+	  NTSC encoding, and tested and debugged ppm and pgm input filters
+	  and encode functions.
+
+2002-07-05  Dan Dennedy <dan@dennedy.org>
+	* dv.h, headers.c: added dv_encode_metadata() to write
+	  recording datetime and timcode.
+	* dv.h, headers.c: added dv_encode_timecode() to write
+	  a frame count as timecode.
+
+2002-06-27  Dan Dennedy <dan@dennedy.org>
+	* YUY2.c:dv_YUY2_init(): clamp y lut to 0..255 when clamp_luma is false.
+	* playdv/oss.c: init audio format in native instead of little endian.
+
+2002-06-19  Dan Dennedy <dan@dennedy.org>
+	* YUY2.c, bitstream.h, dv_types.h:
+		big-endian fixes by Daniel Kobras
+	* libdv.pc.in, configure.ac:
+		remove glib/gtk, add popt dependencies by Daniel Kobras
+	* libdv/Makefile.am: bump libtool version to 2:0:0
+	* configure.ac: bump package version to 0.9.6
+
+2002-05-26  Stefan Lucke <Stefan.Lucke1@epost.de>
+	* apply portability patch of Steven M. Schultz
+	* fix off by one in rgb.c array bounds check
+	
+2002-05-23  Stefan Lucke <Stefan.Lucke1@epost.de>
+	* bugfix for #440048, compile playdv with gtk support
+
+2002-05-22  Stefan Lucke <Stefan.Lucke1@epost.de>
+	* added clamping for rgb render too. (green speckle bug)
+
+2002-05-22  Dan Dennedy <dan@dennedy.org>
+	* dv.h: add int dv_get_recording_datetime_tm()
+
+2002-05-21  Stefan Lucke <Stefan.Lucke1@epost.de>
+	* avoid remaining shared memory segment after playdv crash
+	* avoid decoder crash (bug #231580, #558590 etc.). There are some
+	  viewable decoding errors now.
+	* new clamping for NTSC Xv mmx + half high render.
+
+2002-05-19  Stefan Lucke <Stefan.Lucke1@epost.de>
+	* new clamping and addtitional half high renderer of PAL Xv mmx.
+	* modified format of audio error reporting
+	* additional error reporting of video errors
+	  example of messages written to stderr
+		ver 00:01:18.21 2001-11-11 14:26:34 9f a7 37 a8
+		abf 00:01:40.18 2001-11-11 14:26:56 7f 37 00 12
+
+2002-05-17  Dan Dennedy <dan@dennedy.org>
+	* apply patch from Daniel Kobras (bug 544185) to fix compile on
+	  non-x86 architecture.
+	  
+	* add const qualifier to input buffer parameter on
+	  dv_decode_full_audio, dv_parse_audio_header, dv_update_num_samples,
+	  and dv_decode_audio_block. This makes Kino's Frame::ExtractAudio
+	  happy.
+
+2002-05-01  Stefan Lucke <Stefan.Lucke1@epost.de>
+	* audio error correction:
+	    default error reporting is set to: stderr
+	      old_file = dv_set_error_log (decoder, stderr)      
+      
+	    default correction method is set to: DV_AUDIO_CORRECT_AVERAGE
+	      old_method = dv_set_audio_correction (decoder, NEW_METHOD);      
+	      NEW_METHOD = DV_AUDIO_CORRECT_NONE |
+	                   DV_AUDIO_CORRECT_AVERAGE |
+	                   DV_AUDIO_CORRECT_SILENCE
+          
+	* updated my old invalid email addresses 
+  
+2002-04-07  Charles 'Buck' Krasic  <krasic@acm.org>
+	* Version 0.9.5
+
+	* Build fixups for 0.9.5 release.  For now, stop using an
+	  auxiliary directory (was config).  The current release of
+	  libtool has a bug where it looks to configure.in for that, which
+	  we no longer have, and so it gets terribly confused.  Some
+	  changes to bootstrap to get the right versions of autotools.
+	  This needs more work.  Autotools sure can be a pain.
+	
+2002-04-04  Dan Dennedy <dan@dennedy.org>
+	* Fix type mismatch in dv_oss_t.arg_audio_device
+	
+	* Set default playdv audio device to /dev/dsp
+	
+	* Fix build system to include gtk+ cflags and libs only for playdv
+
+2002-30-03  Dan Dennedy <dan@dennedy.org>
+	* Apply bugfix from Peter Schlaile to ppm_copy_ntsc_c block.
+	
+	* Added reppm.c test utility to test RGB recoding. Recode
+	  now tests YUV recoding. Both recode 5 times to evaluate
+	  multi-generation loss.
+	
+	* Apply patch #533329 from Erik Walthinsen to remove glib
+	  dependencies in library. Still need to modify build.
+	
+	* Added new options to disable luma and chroma clamping.
+	  The decoder's YUY2 MMX routines do not yet do any 
+	  chroma clamping regardless of option.
+	
+	* Added new options to enable addition and removal of
+	  North American NTSC 7.5 IRE setup.
+	  
+	* Added dv_decoder_free(), dv_reconfigure(), dv_encoder_new(),
+	  and dv_encoder_free(). Use dv_reconfigure() to reconfigure
+	  clamping options.
+	  
+	* Enhanced dv_decoder_new() and dv_encoder_new() to automatically
+	  invoke dv_init(). You no longer need to explicitly call dv_init().
+	  
+	* bugfix: offset luma -16 in rgb decoding (See Charles Poynton's
+	  Color FAQ). The encoder already properly offsets luma +16 on
+	  rgb input; without the -16 luma offset in the decoder
+	  recoding in rgb results in a positive luma shift.
+	  
+	* Tested decoder thread safetiness to confirm it is thread
+	  safe.
+	  
+	* Modified dvplay to add option for NTSC setup (default on)
+	  for best preview quality.
+	  
+	* Updated dvconnect from Peter Schlaile to fix a restore bug
+	  and add round robin real-time scheduling.
+
+2002-23-02  Dan Dennedy <dan@dennedy.org>
+	* Added public (shared object) interface to encoder: see dv.h
+
+	* Added dv1394.h header to support apps needing to use
+	  dv1394 IOCTL interface
+
+	* Added recode.c test utility
+
+	* Changed configure.in to configure.ac to invoke proper
+	  version of autoconf on Debian
+
+	* Applied patch from Peter Schlaile to repair encode during
+	  build on non x86 architectures
+
+2002-07-02  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+	* New dvconnect version featuring 
+	  - multi-threading and buffer control
+	  - new video1394 interface support
+	  - underrun picture support
+	
+	* Updated insert_audio to plugin interface
+	
+	* Added dvavi, a small utility to convert DV-AVIs to RAW-DV
+	
+	* Added wide-screen option to encoder
+	
+	* Made the encoder detect PAL/NTSC on /dev/video input
+	
+	* Various bugfixes
+
+2001-10-27  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Apply bugfix from bug report #448856 submitted by Tristan Dufay.
+
+	* Apply patch #475394: "Fix for mmx_ok SEGV with broken gcc-fPIC"
+	  submitted by David Daney.
+
+2001-06-24  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Version 0.9
+
+	* Apply Stefan Lucke's Xv/PPC/PAL patch.
+
+	* Move bootstrap to bleeding edge autotools, with checks in
+	  bootstrap for the proper versions.  Add support for pkgconfig.
+ 
+	* Make build more quiet.  Fixups for some gcc warnings.
+
+2001-06-24  Daniel Kobras <kobras@tat.physik.uni-tuebingen.de> 
+
+	* Fix enc_input.c with non-asm.
+
+2001-06-24  <zybi@users.sourceforge.net>
+
+	* Important bugfix.  RedHat 7.1 gcc was generating invalid code
+	  for expression in weighting.c.  This was causing video artifacts and crashes.
+	  Workaround found by changing the expression gcc was messing up on.
+
+	* New option for selecting Xvideo port.  nVidia drivers have now 2
+	  Xvideo adaptors: `Video overlay' (1 port) and `Video blitter' (32 ports).
+	  Matrox G series have a similar option.  This patch allows to select any of 
+	  their ports.
+
+2001-06-05  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+	* Added dvconnect. A small utility to grab and send dv data over
+	  firewire
+	
+	* Added --no-mmap option to playdv in order to handle pipes correctly
+	
+	* Various bugfixes
+
+2001-04-26  Charles 'Buck' Krasic  <krasic@acm.org>
+	* Version 0.8
+
+	* Restructure source: make subdirectories libdv, playdv, and
+	  encodedv.  This starts to fix some of the #include problems.
+
+	* Fix typos: missing #ifdef ARCH_X86 around #include "mmx.h"
+	
+2001-04-14  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+	* Removed "bttv bug work around". It was my VIA board...
+	
+	* Changed DV_WIDTH in rgbtoyuv to make things more clear and compile
+	  on more platforms
+	
+	* need_dct_248 now uses the ratio between field error and error in 
+	  x-direction. Hopefully fixes  encoding of cartoons with hard edges.
+	
+	* --force-dct added. Just in case.
+	
+	* Added updated man page for encodedv
+	
+2001-04-07  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+	* VLC encoder improvements: static qno tables for 3 passes
+	
+	* audio support for the encoder (plugin system with wav and /dev/dsp
+	  support)
+	
+	* renamed build_coeff to fill_macroblock and moved it into the
+	  input filter. Wrote specialized mmx copy routines. 
+	  -> now we _are_ realtime on an Athlon 800 even with 3 VLC passes 
+	  (static qno tables!) It's time to throw the video recorder away ;-)
+	
+	* New option: --fps : select frames per second if your machine isn't
+	  fast enough for the full bandwidth
+	
+	* Interface changes: -t renamed to -v since it gives additional
+	  verbose output now.
+	
+	* pgm support for mpeg2dec
+
+2001-03-30  Stefan Lucke <Stefan.Lucke@snafu.de>
+	* New options (available for Xv only):
+		--aspect ([w|wide|n|normal])
+		--size (10 .. 100)
+
+	* Reenabled scaling with Xv. Aspect ratio is keept constant when
+	  --aspect option is specified. This depends on used window
+	  manager too. KDE :-(( , fvwm, enlightment :-)
+
+	* Changed all render functions to have the same paramerlist
+
+	* Bug fixes:
+	  According to SDL linux FAQ: Applications which support
+	  SDL should have an sdl.m4 file in their config.
+	
+	  Assembler error messages with encode_x86.S
+	  my one does not like div operations with defines.
+	  replaced DV_WIDTH/2 by DV_WIDTH_2	
+		
+2001-03-29  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+	* VLC encoder improvements: Now it's more correct for 3 passes (but
+	  also slower...), faster for 2 passes. Implemented turbo mode 
+	  (static qno tables). Hopefully makes the thing finally realtime on 
+	  an Athlon 800...
+	* Separated out the input and output queue. Build general input and
+	  output filter plugin system. Included /dev/video support.
+	* several assembler optimized routines in the vlc encoder added, 
+	  reorder_88 code is now merged with the DCT postscaler to fill the 
+	  integer pipelines _and_ the MMX pipelines
+	* renamed encode to encodedv
+	* removed blur function since it doesn't make sense
+	* corrected (?) faster C version of convert_to_yuv
+	
+2001-03-19  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Version 0.7
+
+	* Faster C version of convert_to_yuv from Andreas Wacker.
+
+	* Compilation fixups for building without Xv, and without x86 asm.
+
+2001-03-17  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Typo fix:  swab32 for big endian.
+
+2001-03-09  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+	* VLC encoder improvements: Now we do 3 passes and we do it even
+	  better than my Sony Camcorder ;-)
+	
+	* need_dct_248 fixes, weighting fixes, seperated out the header
+	  writer and a lot more things I've forgotten
+	
+	* NTSC encoding works now really
+	
+	* rgbtoyuv now adapts correctly to the encoding system (PAL or NTSC)
+
+2001-03-05  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Version 0.6
+
+	* Compile fixups to dct.c and encode.c for --disable-asm
+
+2001-03-05  Thom van Os <thom@vanos.com>
+
+	* NTSC encoding fixups.
+
+2001-03-05  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+	
+	* Encoder speedups (factor 3 from realtime on my machine, it even
+	  beats playdv using gtk display ;-) )
+
+	* Fixed stupid need_dct_248() bug
+
+	* Correct(tm) and faster quantization 
+
+2001-02-14  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Version 0.5
+
+	* Integrate patch #103780 "encoder and ppmqscale improvements",
+	  from Peter Schlaile (see below)
+
+	* Bump libtool library version number to reflect dv_init()
+	  interface change.
+
+	* Bug fix for bug #131581: 
+	  "Initializating multiple dv_decoder_t	objects fails".  
+
+	  Changed dv_init() to remove dependence on per-stream object, and
+	  ignore multiple invocations.
+
+	* Bugfix from Stefan Lucke for recent PAL breakage.
+
+	* Cleaner rpm rule in Makefile.am
+
+2001-02-14  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+
+        * Again encoder speedups.
+	
+	* Fixed serious quant bugs (divide != shift!!!!)
+	
+	* Implemented DCT248 AAN version in C and MMX
+	
+	* Integrated use of DCT248 (somewhat experimental. My camcorder
+	  apparently uses motion detection for this one...)
+	
+	* General code cleanups
+	
+	* ppmqscale can now shrink pictures
+	
+	* Added a lot of FIXMEs so other people can also improve things
+	  (hint, hint ;-)
+	
+2001-02-08  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Add --enable-gprof to configure.  Disable SDL by default.  Minor
+	  fixups in display.c for missing #if HAVE_GTK and #if HAVE_SDL.
+
+2001-02-07  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Version 0.4.
+
+	* Cosmetic nit:  move to consistent use of C style comments.
+
+	* Integrate patch from Scott F. Johnston for non-gcc non-x86
+	  architectures.  Add untested fixed_multiply to idct_248.c for
+	  non-gcc non-x86 architectures.  Also disable popt on non-gcc,
+	  since our popt code uses gcc struct initialization extension
+	  heavily.
+
+	* Integrate patch from Stefan Lucke for aspect-ratio handling
+	  with Xv based display.
+
+2001-02-06  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Integrate patch from Stefan Lucke for various speedups:
+
+           - replace pointer dereferences with indexed accesses.
+
+           - merge 248 idct prescale into 248 quant.
+
+           - change IEC PAL (420) to generate YUY2 instead of YV12.  
+
+	     Is this really faster?  If so, I am suprised.  I have added a
+	     configure option to allow choosing which version to build
+	     (YUY2 is default), so I can verify the performance comparison.
+
+	   - Fix to Makefile.vanilla to include util.c in build.
+
+	   - still to do: it looks like there are incompatable versions of
+	     popt around.  Need to add a configure check to figure out
+	     whether filename needs to be declared as a const char *.
+
+	* Change license banner to read "a free DV codec" instead of "a
+	  free decoder".
+
+	* Add the banner to files that didn't have it.
+
+2001-02-03  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+
+        * Additional encoder speedups and improvements it now also uses
+	  popt, can read ppm-streams, can correct wrongly interlaced input
+	  pictures.  Speedups: we are between 4 and 5 times away from
+	  realtime on my AMD K6/400 ;-) slowest part is now the RGB to YUV
+	  conversion.	
+	
+	* added new program
+	  - ppmqscale           quality (and quick) ppm scaler.Use it like this
+	                        cat *.ppm |ppmqscale 720 576 |encode -- -
+	                        does linear interpolation, next thing is
+				MMX optimization for it.
+	
+	* playdv can now write ppm-streams  
+	  
+2001-01-20  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* version 0.3
+
+	* Minor configure.in cleanups.
+
+	* Add Peter's new utilities to Makefile.am.  Minor cleanups for
+	  -Wall.
+	
+
+2001-01-20  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+	
+	* Made encoder finally work correctly for DCT 88
+	  Inserted META information
+	
+	* Added playdv option: dump frames
+	
+	* added new programs: 
+	  - insert_audio        Audio dub an existing video stream
+	                        or just copy audio data to DV using 
+	                        insert_audio [wav_file] <<EOF |dvsend
+	                        EOF
+	  - fix_headers         Fix old encoded dv files without 
+	                        meta information
+	  - scan_packet_headers Dump dv files in a nice way. 
+	                        (Take a look how badly encode 
+	                        still performs... )
+	  - steal_headers       Copy meta headers from a captured stream for
+	                        testing.
+	
+2001-01-18  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Create a rpm .spec.in file.  configure generates the .spec.
+	  Makefile.am has a rpm target.  Update the README.  Add a debug
+	  option to configure to control "-g" in CFLAGS.
+
+2001-01-16  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Add alternate definitions of bitfield structs for architectures
+	  with big-endian bitfields.
+
+	* Add AC_C_BIGENDIAN to configure.in.
+
+	* Makefile.am tweeks: Add ac_c_bigendian_cross.m4 to
+	  AUX_DIST_EXTRA; eliminate duplicate references to header files.
+
+	* Move bitstream_t to dv_types.h.  Remove a few #include
+	  "bitstream.h"'s as a result.
+
+	* Make definition swab32() conditional on WORDS_BIGENDIAN.
+
+	* New autoconf macro for testing endianness.  The stock autoconf
+	  test doesn't work with cross-compiling, and autoconf generates a
+	  warning to that effect.
+
+
+2001-01-14  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Add bgr0 support for kino submitted by Arne Schirmacher
+	  <arne@schirmacher.de>.
+
+	* Add command line option interface to playdv, using popt.
+
+	* Add more audio code structure; pre-emphasis, speed detection
+	  (only play normal speed audio).
+
+	* Header file re-structuring.  Move types to new dv_types.h;
+	  enclose declarations in extern "C" for C++ compatibility;
+	  replace leading '_' from preprocessor symbols with 'DV_'
+	  prefix.  
+
+	* Add exit() handler to avoid Sys V shmem leak with Xv.  (Still
+	  have to do SDL, and gtk).
+
+	* Add _GNU_SOURCE define, enabling large (>2GB) file support.
+	
+2001-01-08  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Add preliminary support for audio.  New files are audio.[ch]
+	  which does the unshuffling, and oss.[ch] which is provides an
+	  example of playout via the OSS sound API.
+ 
+2000-12-27  Peter Schlaile <udbz@rz.uni-karlsruhe.de>
+	* Integrated MMX/ASM-optimizations into the encoder. 
+	  (YUV, DCT88, quant)
+	  The YUV conversion is 2 bits more accurate than before, the DCT
+	  is somewhat less accurate (approximately 1 or 2 bits) so it
+	  should be more or less the same as the old C code. Best thing:
+	  it is 8 times faster now!
+	
+2000-12-21  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Applied outstanding patch submissions.  The major parts included
+	getting the encoder to build again, and autotool'ing the build.
+	This ChangeLog files is far from complete.  The log
+	information in CVS is where most of the changes are documented.
+ 
+2000-05-08  Charlie Krasic  <krasic@cse.ogi.edu>
+
+	* Moved to macroblock at a time color conversion, based on the work
+ 	  of Scott F. Johnston <scott@fleetingimage.com>.  I rewrote his
+ 	  shuffle code.  Partly so I could understand it better (I added
+ 	  lots of comments), and also I did the PAL version too.  I decided
+ 	  to leave mapping between dif blocks/segments and superblock
+ 	  row/columns to the parse code.  I took his block at a time ycrcb
+ 	  conversion directly, except for making clamp_y lookup based.
+
+2000-05-05  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* New idct code for 2-4-8.  It's an integer version, based on an
+ 	approach like that of the AAN algorithm.  Next step will be to MMX
+ 	it.
+
+2000-04-20  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* place.c: Fixes to 4:2:0 placement.  Color resembles something
+ 	like correct now. :}
+
+	* Add initial macroblock placement for 4:2:0 (IEC61834).  Initial
+ 	  test shows luma is OK, but color isn't working correctly.
+ 
+2000-04-19  Erik Walthinnsen (Omega)  <omega@cse.ogi.edu>
+
+	* Added rudimentary PAL decoding, as well as a way to
+ 	  differentiate between IEC61834 and SMPTE314M video, which is
+ 	  critical for dealing with PAL data.
+
+2000-04-18  Charles 'Buck' Krasic  <krasic@acm.org>
+
+	* Version 0.1 - first release at libdv.sourceforge.net

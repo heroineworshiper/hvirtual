@@ -1,0 +1,26 @@
+= GIFLIB =
+
+This is the README file of giflib, a library for manipulating gif files.
+
+Latest versions of giflib are currently hosted at:
+    http://sourceforge.net/projects/giflib
+
+== Overview ==
+
+GIF is a legacy format; we recommend against generating new images in
+it.  For a cleaner, more extensible design with better color support
+and compression, look up PNG.
+
+giflib provides code for reading GIF files and transforming them into 
+RGB bitmaps, and for writing RGB bitmaps as GIF files.
+
+The (permissive) open-source license is in the file COPYING.
+
+You will find build instructions in build.txt
+
+You will find notes on the library API in api.txt.
+
+The project has a long and confusing history, described in history.txt
+
+The project to-do list is in TODO.
+

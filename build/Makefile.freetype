@@ -1,0 +1,132 @@
+include global_config
+
+DIR := $(shell expr thirdparty/freetype* )
+
+OBJS := \
+	$(DIR)/$(OBJDIR)/src/base/ftsystem.o \
+	$(DIR)/$(OBJDIR)/src/base/ftdebug.o \
+	$(DIR)/$(OBJDIR)/src/base/ftinit.o \
+	$(DIR)/$(OBJDIR)/src/base/ftbase.o \
+	$(DIR)/$(OBJDIR)/src/base/ftglyph.o \
+	$(DIR)/$(OBJDIR)/src/base/ftmm.o \
+	$(DIR)/$(OBJDIR)/src/base/ftbdf.o \
+	$(DIR)/$(OBJDIR)/src/base/fttype1.o \
+	$(DIR)/$(OBJDIR)/src/base/ftxf86.o \
+	$(DIR)/$(OBJDIR)/src/base/ftpfr.o \
+	$(DIR)/$(OBJDIR)/src/base/ftstroker.o \
+	$(DIR)/$(OBJDIR)/src/base/ftwinfnt.o \
+	$(DIR)/$(OBJDIR)/src/base/ftbbox.o \
+	$(DIR)/$(OBJDIR)/src/autohint/autohint.o \
+	$(DIR)/$(OBJDIR)/src/bdf/bdf.o \
+	$(DIR)/$(OBJDIR)/src/cache/ftcache.o \
+	$(DIR)/$(OBJDIR)/src/cff/cff.o \
+	$(DIR)/$(OBJDIR)/src/cid/type1cid.o \
+	$(DIR)/$(OBJDIR)/src/gzip/ftgzip.o \
+	$(DIR)/$(OBJDIR)/src/pcf/pcf.o \
+	$(DIR)/$(OBJDIR)/src/pfr/pfr.o \
+	$(DIR)/$(OBJDIR)/src/psaux/psaux.o \
+	$(DIR)/$(OBJDIR)/src/pshinter/pshinter.o \
+	$(DIR)/$(OBJDIR)/src/psnames/psnames.o \
+	$(DIR)/$(OBJDIR)/src/raster/raster.o \
+	$(DIR)/$(OBJDIR)/src/sfnt/sfnt.o \
+	$(DIR)/$(OBJDIR)/src/smooth/smooth.o \
+	$(DIR)/$(OBJDIR)/src/truetype/truetype.o \
+	$(DIR)/$(OBJDIR)/src/type1/type1.o \
+	$(DIR)/$(OBJDIR)/src/type42/type42.o \
+	$(DIR)/$(OBJDIR)/src/winfonts/winfnt.o 
+
+
+OUTPUT := $(DIR)/$(OBJDIR)/libfreetype.a
+
+CFLAGS += -fPIC \
+	-I$(DIR) \
+	-I$(DIR)/include/ \
+	-I$(DIR)/src \
+	-I$(DIR)/src/base/ \
+	-I$(DIR)/src/autohint/ \
+	-I$(DIR)/src/base/ \
+	-I$(DIR)/src/bdf/ \
+	-I$(DIR)/src/cff/ \
+	-I$(DIR)/src/cid/ \
+	-I$(DIR)/src/gzip/ \
+	-I$(DIR)/src/pcf/ \
+	-I$(DIR)/src/pfr/ \
+	-I$(DIR)/src/psaux/ \
+	-I$(DIR)/src/pshinter/ \
+	-I$(DIR)/src/psnames/ \
+	-I$(DIR)/src/raster/ \
+	-I$(DIR)/src/sfnt/ \
+	-I$(DIR)/src/smooth/ \
+	-I$(DIR)/src/truetype/ \
+	-I$(DIR)/src/type1/ \
+	-I$(DIR)/src/type42/ \
+	-I$(DIR)/src/winfonts/
+
+
+
+$(shell sh -c 'mkdir -p $(DIR)/$(OBJDIR)/src \
+	$(DIR)/$(OBJDIR)/src/base/ \
+	$(DIR)/$(OBJDIR)/src/autohint/ \
+	$(DIR)/$(OBJDIR)/src/base/ \
+	$(DIR)/$(OBJDIR)/src/bdf/ \
+	$(DIR)/$(OBJDIR)/src/cache/ \
+	$(DIR)/$(OBJDIR)/src/cff/ \
+	$(DIR)/$(OBJDIR)/src/cid/ \
+	$(DIR)/$(OBJDIR)/src/gzip/ \
+	$(DIR)/$(OBJDIR)/src/pcf/ \
+	$(DIR)/$(OBJDIR)/src/pfr/ \
+	$(DIR)/$(OBJDIR)/src/psaux/ \
+	$(DIR)/$(OBJDIR)/src/pshinter/ \
+	$(DIR)/$(OBJDIR)/src/psnames/ \
+	$(DIR)/$(OBJDIR)/src/raster/ \
+	$(DIR)/$(OBJDIR)/src/sfnt/ \
+	$(DIR)/$(OBJDIR)/src/smooth/ \
+	$(DIR)/$(OBJDIR)/src/truetype/ \
+	$(DIR)/$(OBJDIR)/src/type1/ \
+	$(DIR)/$(OBJDIR)/src/type42/ \
+	$(DIR)/$(OBJDIR)/src/winfonts/' )
+
+$(shell echo $(CFLAGS) > $(DIR)/$(OBJDIR)/c_flags)
+
+$(OUTPUT): $(OBJS)
+	ar rcs $(OUTPUT) $(OBJS)
+
+$(OBJS):
+	$(GCC) -c `cat $(DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
+
+clean:
+	rm -rf $(DIR)/$(OBJDIR)
+
+
+$(DIR)/$(OBJDIR)/src/base/ftsystem.o: 		$(DIR)/src/base/ftsystem.c
+$(DIR)/$(OBJDIR)/src/base/ftdebug.o: 		$(DIR)/src/base/ftdebug.c
+$(DIR)/$(OBJDIR)/src/base/ftinit.o: 		$(DIR)/src/base/ftinit.c
+$(DIR)/$(OBJDIR)/src/base/ftbase.o: 		$(DIR)/src/base/ftbase.c
+$(DIR)/$(OBJDIR)/src/base/ftglyph.o: 		$(DIR)/src/base/ftglyph.c
+$(DIR)/$(OBJDIR)/src/base/ftmm.o: 			$(DIR)/src/base/ftmm.c
+$(DIR)/$(OBJDIR)/src/base/ftbdf.o:  		$(DIR)/src/base/ftbdf.c
+$(DIR)/$(OBJDIR)/src/base/fttype1.o: 		$(DIR)/src/base/fttype1.c
+$(DIR)/$(OBJDIR)/src/base/ftxf86.o: 		$(DIR)/src/base/ftxf86.c
+$(DIR)/$(OBJDIR)/src/base/ftpfr.o:  		$(DIR)/src/base/ftpfr.c
+$(DIR)/$(OBJDIR)/src/base/ftstroker.o:  	$(DIR)/src/base/ftstroker.c
+$(DIR)/$(OBJDIR)/src/base/ftwinfnt.o: 		$(DIR)/src/base/ftwinfnt.c
+$(DIR)/$(OBJDIR)/src/base/ftbbox.o: 		$(DIR)/src/base/ftbbox.c
+$(DIR)/$(OBJDIR)/src/autohint/autohint.o: 	$(DIR)/src/autohint/autohint.c
+$(DIR)/$(OBJDIR)/src/bdf/bdf.o: 			$(DIR)/src/bdf/bdf.c
+$(DIR)/$(OBJDIR)/src/cache/ftcache.o: 		$(DIR)/src/cache/ftcache.c
+$(DIR)/$(OBJDIR)/src/cff/cff.o: 			$(DIR)/src/cff/cff.c
+$(DIR)/$(OBJDIR)/src/cid/type1cid.o: 		$(DIR)/src/cid/type1cid.c
+$(DIR)/$(OBJDIR)/src/gzip/ftgzip.o: 		$(DIR)/src/gzip/ftgzip.c
+$(DIR)/$(OBJDIR)/src/pcf/pcf.o: 			$(DIR)/src/pcf/pcf.c
+$(DIR)/$(OBJDIR)/src/pfr/pfr.o: 			$(DIR)/src/pfr/pfr.c
+$(DIR)/$(OBJDIR)/src/psaux/psaux.o: 		$(DIR)/src/psaux/psaux.c
+$(DIR)/$(OBJDIR)/src/pshinter/pshinter.o: 	$(DIR)/src/pshinter/pshinter.c
+$(DIR)/$(OBJDIR)/src/psnames/psnames.o: 	$(DIR)/src/psnames/psnames.c
+$(DIR)/$(OBJDIR)/src/raster/raster.o: 		$(DIR)/src/raster/raster.c
+$(DIR)/$(OBJDIR)/src/sfnt/sfnt.o: 			$(DIR)/src/sfnt/sfnt.c
+$(DIR)/$(OBJDIR)/src/smooth/smooth.o: 		$(DIR)/src/smooth/smooth.c
+$(DIR)/$(OBJDIR)/src/truetype/truetype.o: 	$(DIR)/src/truetype/truetype.c
+$(DIR)/$(OBJDIR)/src/type1/type1.o: 		$(DIR)/src/type1/type1.c
+$(DIR)/$(OBJDIR)/src/type42/type42.o: 		$(DIR)/src/type42/type42.c
+$(DIR)/$(OBJDIR)/src/winfonts/winfnt.o: 	$(DIR)/src/winfonts/winfnt.c
+

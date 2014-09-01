@@ -1,0 +1,21 @@
+include global_config
+
+
+all:
+	make -C guicast
+	make -C mix2005
+
+clean:
+	find -follow \( -name 'core*' \
+		-o -name '*.lo' \
+		-o -name '*.o' \
+		-o -name '*.la' \
+		-o -name '*.a' \
+		-o -name '*.plugin' \
+		-o -name '*.so' \) -exec rm -f {} \; -prune
+	find -follow \( -name $(OBJDIR) \) -exec rm -rf {} \; -prune
+
+install:
+	rm -f /usr/bin/mix2005
+	strip mix2005/$(OBJDIR)/mix2005
+	cp mix2005/$(OBJDIR)/mix2005 /usr/bin

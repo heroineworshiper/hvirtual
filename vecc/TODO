@@ -1,0 +1,21 @@
+Forth-like syntax.
+
+Put operands on a stack and call instructions.
+Type enforcement.
+ - Types must be explicitely casted or converted by a previous operation for
+   the next operation to succeed.
+
+
+
+
+Compiler theory
+
+Assign registers on a first come first serve basis.
+Call instructions.
+Instruction shuffling?
+
+
+
+
+
+

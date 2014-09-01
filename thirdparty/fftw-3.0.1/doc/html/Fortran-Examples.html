@@ -1,0 +1,133 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Fortran%20Examples">Fortran Examples</a>,
+Next:<a rel=next accesskey=n href="Wisdom-of-Fortran-.html#Wisdom%20of%20Fortran%3f">Wisdom of Fortran?</a>,
+Previous:<a rel=previous accesskey=p href="FFTW-Constants-in-Fortran.html#FFTW%20Constants%20in%20Fortran">FFTW Constants in Fortran</a>,
+Up:<a rel=up accesskey=u href="Calling-FFTW-from-Fortran.html#Calling%20FFTW%20from%20Fortran">Calling FFTW from Fortran</a>
+<hr><br>
+
+<h3>6.3 Fortran Examples</h3>
+
+<p>In C, you might have something like the following to transform a
+one-dimensional complex array:
+
+<br><pre>        fftw_complex in[N], out[N];
+        fftw_plan plan;
+
+        plan = fftw_plan_dft_1d(N,in,out,FFTW_FORWARD,FFTW_ESTIMATE);
+        fftw_execute(plan);
+        fftw_destroy_plan(plan);
+</pre>
+
+<p>In Fortran, you would use the following to accomplish the same thing:
+
+<br><pre>        double complex in, out
+        dimension in(N), out(N)
+        integer*8 plan
+
+        call dfftw_plan_dft_1d(plan,N,in,out,FFTW_FORWARD,FFTW_ESTIMATE)
+        call dfftw_execute(plan)
+        call dfftw_destroy_plan(plan)
+</pre>
+
+<p>Notice how all routines are called as Fortran subroutines, and the plan
+is returned via the first argument to <code>dfftw_plan_dft_1d</code>.  To do
+the same thing, but using 8 threads in parallel (see <a href="Multi-threaded-FFTW.html#Multi-threaded%20FFTW">Multi-threaded FFTW</a>), you would simply prefix these calls with:
+
+<br><pre>        call dfftw_init_threads
+        call dfftw_plan_with_nthreads(8)
+</pre>
+
+<p>To transform a three-dimensional array in-place with C, you might do:
+
+<br><pre>        fftw_complex arr[L][M][N];
+        fftw_plan plan;
+
+        plan = fftw_plan_dft_3d(L,M,N, arr,arr,
+                                FFTW_FORWARD, FFTW_ESTIMATE);
+        fftw_execute(plan);
+        fftw_destroy_plan(plan);
+</pre>
+
+<p>In Fortran, you would use this instead:
+
+<br><pre>        double complex arr
+        dimension arr(L,M,N)
+        integer*8 plan
+
+        call dfftw_plan_dft_3d(plan, L,M,N, arr,arr,
+       &amp;                       FFTW_FORWARD, FFTW_ESTIMATE)
+        call dfftw_execute(plan)
+        call dfftw_destroy_plan(plan)
+</pre>
+
+<p>Note that we pass the array dimensions in the "natural" order in both C
+and Fortran.
+
+<p>To transform a one-dimensional real array in Fortran, you might do:
+
+<br><pre>        double precision in
+        dimension in(N)
+        double complex out
+        dimension out(N/2 + 1)
+        integer*8 plan
+
+        call dfftw_plan_dft_r2c_1d(plan,N,in,out,FFTW_ESTIMATE)
+        call dfftw_execute(plan)
+        call dfftw_destroy_plan(plan)
+</pre>
+
+<p>To transform a two-dimensional real array, out of place, you might use
+the following:
+
+<br><pre>        double precision in
+        dimension in(M,N)
+        double complex out
+        dimension out(M/2 + 1, N)
+        integer*8 plan
+
+        call dfftw_plan_dft_r2c_2d(plan,M,N,in,out,FFTW_ESTIMATE)
+        call dfftw_execute(plan)
+        call dfftw_destroy_plan(plan)
+</pre>
+
+<p><strong>Important:</strong> Notice that it is the <em>first</em> dimension of the
+complex output array that is cut in half in Fortran, rather than the
+last dimension as in C.  This is a consequence of the interface routines
+reversing the order of the array dimensions passed to FFTW so that the
+Fortran program can use its ordinary column-major order.
+
+</body></html>
+

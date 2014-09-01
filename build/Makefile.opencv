@@ -1,0 +1,168 @@
+include global_config
+
+
+DIR := $(shell expr thirdparty/OpenCV* )
+GXX := g++
+
+OBJS := \
+	$(DIR)/modules/core/src/alloc.o         \
+	$(DIR)/modules/core/src/arithm.o        \
+	$(DIR)/modules/core/src/array.o         \
+	$(DIR)/modules/core/src/cmdparser.o     \
+	$(DIR)/modules/core/src/convert.o       \
+	$(DIR)/modules/core/src/copy.o          \
+	$(DIR)/modules/core/src/datastructs.o   \
+	$(DIR)/modules/core/src/drawing.o       \
+	$(DIR)/modules/core/src/dxt.o           \
+	$(DIR)/modules/core/src/lapack.o        \
+	$(DIR)/modules/core/src/mathfuncs.o     \
+	$(DIR)/modules/core/src/matmul.o        \
+	$(DIR)/modules/core/src/matop.o         \
+	$(DIR)/modules/core/src/matrix.o        \
+	$(DIR)/modules/core/src/out.o           \
+	$(DIR)/modules/core/src/persistence.o   \
+	$(DIR)/modules/core/src/precomp.o       \
+	$(DIR)/modules/core/src/rand.o          \
+	$(DIR)/modules/core/src/stat.o          \
+	$(DIR)/modules/core/src/system.o        \
+	$(DIR)/modules/core/src/tables.o \
+	$(DIR)/modules/features2d/src/bagofwords.o \
+	$(DIR)/modules/features2d/src/blobdetector.o \
+	$(DIR)/modules/features2d/src/brief.o \
+	$(DIR)/modules/features2d/src/calonder.o \
+	$(DIR)/modules/features2d/src/descriptors.o \
+	$(DIR)/modules/features2d/src/detectors.o \
+	$(DIR)/modules/features2d/src/draw.o \
+	$(DIR)/modules/features2d/src/dynamic.o \
+	$(DIR)/modules/features2d/src/evaluation.o \
+	$(DIR)/modules/features2d/src/fast.o \
+	$(DIR)/modules/features2d/src/keypoint.o \
+	$(DIR)/modules/features2d/src/matchers.o \
+	$(DIR)/modules/features2d/src/mser.o \
+	$(DIR)/modules/features2d/src/oneway.o \
+	$(DIR)/modules/features2d/src/orb.o \
+	$(DIR)/modules/features2d/src/planardetect.o \
+	$(DIR)/modules/features2d/src/precomp.o \
+	$(DIR)/modules/features2d/src/sift.o \
+	$(DIR)/modules/features2d/src/stardetector.o \
+	$(DIR)/modules/features2d/src/surf.o \
+	$(DIR)/modules/calib3d/src/calibinit.o \
+	$(DIR)/modules/calib3d/src/calibration.o \
+	$(DIR)/modules/calib3d/src/checkchessboard.o \
+	$(DIR)/modules/calib3d/src/circlesgrid.o \
+	$(DIR)/modules/calib3d/src/fundam.o \
+	$(DIR)/modules/calib3d/src/modelest.o \
+	$(DIR)/modules/calib3d/src/posit.o \
+	$(DIR)/modules/calib3d/src/precomp.o \
+	$(DIR)/modules/calib3d/src/quadsubpix.o \
+	$(DIR)/modules/calib3d/src/solvepnp.o \
+	$(DIR)/modules/calib3d/src/stereobm.o \
+	$(DIR)/modules/calib3d/src/stereogc.o \
+	$(DIR)/modules/calib3d/src/stereosgbm.o \
+	$(DIR)/modules/calib3d/src/triangulate.o \
+	$(DIR)/modules/imgproc/src/accum.o \
+	$(DIR)/modules/imgproc/src/approx.o \
+	$(DIR)/modules/imgproc/src/canny.o \
+	$(DIR)/modules/imgproc/src/color.o \
+	$(DIR)/modules/imgproc/src/contours.o \
+	$(DIR)/modules/imgproc/src/convhull.o \
+	$(DIR)/modules/imgproc/src/corner.o \
+	$(DIR)/modules/imgproc/src/cornersubpix.o \
+	$(DIR)/modules/imgproc/src/deriv.o \
+	$(DIR)/modules/imgproc/src/distransform.o \
+	$(DIR)/modules/imgproc/src/emd.o \
+	$(DIR)/modules/imgproc/src/featureselect.o \
+	$(DIR)/modules/imgproc/src/featuretree.o \
+	$(DIR)/modules/imgproc/src/filter.o \
+	$(DIR)/modules/imgproc/src/floodfill.o \
+	$(DIR)/modules/imgproc/src/geometry.o \
+	$(DIR)/modules/imgproc/src/grabcut.o \
+	$(DIR)/modules/imgproc/src/histogram.o \
+	$(DIR)/modules/imgproc/src/hough.o \
+	$(DIR)/modules/imgproc/src/imgwarp.o \
+	$(DIR)/modules/imgproc/src/inpaint.o \
+	$(DIR)/modules/imgproc/src/kdtree.o \
+	$(DIR)/modules/imgproc/src/linefit.o \
+	$(DIR)/modules/imgproc/src/lsh.o \
+	$(DIR)/modules/imgproc/src/matchcontours.o \
+	$(DIR)/modules/imgproc/src/moments.o \
+	$(DIR)/modules/imgproc/src/morph.o \
+	$(DIR)/modules/imgproc/src/precomp.o \
+	$(DIR)/modules/imgproc/src/pyramids.o \
+	$(DIR)/modules/imgproc/src/pyrsegmentation.o \
+	$(DIR)/modules/imgproc/src/rotcalipers.o \
+	$(DIR)/modules/imgproc/src/samplers.o \
+	$(DIR)/modules/imgproc/src/segmentation.o \
+	$(DIR)/modules/imgproc/src/shapedescr.o \
+	$(DIR)/modules/imgproc/src/smooth.o \
+	$(DIR)/modules/imgproc/src/spilltree.o \
+	$(DIR)/modules/imgproc/src/subdivision2d.o \
+	$(DIR)/modules/imgproc/src/sumpixels.o \
+	$(DIR)/modules/imgproc/src/tables.o \
+	$(DIR)/modules/imgproc/src/templmatch.o \
+	$(DIR)/modules/imgproc/src/thresh.o \
+	$(DIR)/modules/imgproc/src/undistort.o \
+	$(DIR)/modules/imgproc/src/utils.o \
+	$(DIR)/modules/flann/src/flann.o \
+	$(DIR)/modules/flann/src/miniflann.o \
+	$(DIR)/modules/flann/src/precomp.o \
+	$(DIR)/modules/video/src/bgfg_acmmm2003.o \
+	$(DIR)/modules/video/src/bgfg_codebook.o \
+	$(DIR)/modules/video/src/bgfg_common.o \
+	$(DIR)/modules/video/src/bgfg_gaussmix2.o \
+	$(DIR)/modules/video/src/bgfg_gaussmix.o \
+	$(DIR)/modules/video/src/camshift.o \
+	$(DIR)/modules/video/src/kalman.o \
+	$(DIR)/modules/video/src/lkpyramid.o \
+	$(DIR)/modules/video/src/motempl.o \
+	$(DIR)/modules/video/src/optflowbm.o \
+	$(DIR)/modules/video/src/optflowgf.o \
+	$(DIR)/modules/video/src/optflowhs.o \
+	$(DIR)/modules/video/src/optflowlk.o \
+	$(DIR)/modules/video/src/precomp.o
+
+
+
+
+
+
+
+
+OUTPUT = $(DIR)/libopencv.a
+
+CFLAGS += -I$(DIR)/modules/core/include/ \
+	-I$(DIR)/modules/features2d/include/ \
+	-I$(DIR)/modules/calib3d/include/ \
+	-I$(DIR)/modules/flann/include/ \
+	-I$(DIR)/modules/imgproc/include/ \
+	-I$(DIR)/modules/highgui/include/ \
+	-I$(DIR)/modules/video/include/ \
+	-I$(DIR) \
+	-fPIC \
+	-Dopencv_objdetect_EXPORTS \
+	-DCVAPI_EXPORTS \
+	-DNDEBUG
+
+#	-DHAVE_CVCONFIG_H
+
+$(shell echo $(CFLAGS) > $(DIR)/c_flags)
+$(shell echo $(OBJS) > $(DIR)/objs)
+
+all: $(OUTPUT)
+
+$(OUTPUT): $(OBJS)
+	ar rc $(OUTPUT) `cat $(DIR)/objs`
+
+clean:
+	rm -f $(OUTPUT) $(OBJS) $(DIR)/c_flags  $(DIR)/objs
+
+
+$(OBJS):
+	$(GXX) -c `cat $(DIR)/c_flags` $*.cpp -o $*.o
+
+
+
+
+
+
+

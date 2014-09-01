@@ -1,0 +1,71 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Static%20Arrays%20in%20C">Static Arrays in C</a>,
+Next:<a rel=next accesskey=n href="Dynamic-Arrays-in-C.html#Dynamic%20Arrays%20in%20C">Dynamic Arrays in C</a>,
+Previous:<a rel=previous accesskey=p href="Column-major-Format.html#Column-major%20Format">Column-major Format</a>,
+Up:<a rel=up accesskey=u href="Multi-dimensional-Array-Format.html#Multi-dimensional%20Array%20Format">Multi-dimensional Array Format</a>
+<hr><br>
+
+<h4>3.2.3 Static Arrays in C</h4>
+
+<p>Multi-dimensional arrays declared statically (that is, at compile time,
+not necessarily with the <code>static</code> keyword) in C are <em>already</em>
+in row-major order.  You don't have to do anything special to transform
+them.  For example:
+
+<br><pre>{
+     fftw_complex data[NX][NY][NZ];
+     fftw_plan plan;
+     ...
+     plan = fftw_plan_dft_3d(NX, NY, NZ, &amp;data[0][0][0], &amp;data[0][0][0],
+                             FFTW_FORWARD, FFTW_ESTIMATE);
+     ...
+}
+</pre>
+
+<p>This will plan a 3d in-place transform of size <code>NX x NY x NZ</code>. 
+Notice how we took the address of the zero-th element to pass to the
+planner (we could also have used a typecast).
+
+<p>However, we tend to <em>discourage</em> users from declaring their
+arrays statically in this way, for two reasons.  First, this allocates
+the array on the stack, which has a very limited size on most
+operating systems (declaring an array with more than a few thousand
+elements will often cause a crash).  Second, it may not optimally
+align the array if you link with a SIMD FFTW (see <a href="SIMD-alignment-and-fftw_malloc.html#SIMD%20alignment%20and%20fftw_malloc">SIMD alignment and fftw_malloc</a>).  Instead, we recommend using <code>fftw_malloc</code>, as
+described below.
+
+</body></html>
+

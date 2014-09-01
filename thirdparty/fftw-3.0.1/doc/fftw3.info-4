@@ -1,0 +1,830 @@
+This is fftw3.info, produced by makeinfo version 4.2 from fftw3.texi.
+
+This manual is for FFTW (version 3.0.1, 5 June 2003).
+
+   Copyright (C) 2003 Matteo Frigo.
+
+   Copyright (C) 2003 Massachusetts Institute of Technology.
+
+     Permission is granted to make and distribute verbatim copies of
+     this manual provided the copyright notice and this permission
+     notice are preserved on all copies.
+
+     Permission is granted to copy and distribute modified versions of
+     this manual under the conditions for verbatim copying, provided
+     that the entire resulting derived work is distributed under the
+     terms of a permission notice identical to this one.
+
+     Permission is granted to copy and distribute translations of this
+     manual into another language, under the above conditions for
+     modified versions, except that this permission notice may be
+     stated in a translation approved by the Free Software Foundation.
+   
+INFO-DIR-SECTION Texinfo documentation system
+START-INFO-DIR-ENTRY
+* fftw3: (fftw3).	FFTW User's Manual.
+END-INFO-DIR-ENTRY
+
+
+File: fftw3.info,  Node: Upgrading from FFTW version 2,  Next: Installation and Customization,  Prev: Calling FFTW from Fortran,  Up: Top
+
+Upgrading from FFTW version 2
+*****************************
+
+   In this chapter, we outline the process for updating codes designed
+for the older FFTW 2 interface to work with FFTW 3.  The interface for
+FFTW 3 is not backwards-compatible with the interface for FFTW 2 and
+earlier versions; codes written to use those versions will fail to link
+with FFTW 3.  Nor is it possible to write "compatibility wrappers" to
+bridge the gap (at least not efficiently), because FFTW 3 has different
+semantics from previous versions.  However, upgrading should be a
+straightforward process because the data formats are identical and the
+overall style of planning/execution is essentially the same.
+
+   Unlike FFTW 2, there are no separate header files for real and
+complex transforms (or even for different precisions) in FFTW 3; all
+interfaces are defined in the `<fftw3.h>' header file.
+
+Numeric Types
+=============
+
+   The main difference in data types is that `fftw_complex' in FFTW 2
+was defined as a `struct' with macros `c_re' and `c_im' for accessing
+the real/imaginary parts.  (This is binary-compatible with FFTW 3 on
+any machine except perhaps for some older Crays in single precision.)
+The equivalent macros for FFTW 3 are:
+
+     #define c_re(c) ((c)[0])
+     #define c_im(c) ((c)[1])
+
+   This does not work if you are using the C99 complex type, however,
+unless you insert a `double*' typecast into the above macros (*note
+Complex numbers::).
+
+   Also, FFTW 2 had an `fftw_real' typedef that was an alias for
+`double' (in double precision).  In FFTW 3 you should just use `double'
+(or whatever precision you are employing).
+
+Plans
+=====
+
+   The major difference between FFTW 2 and FFTW 3 is in the
+planning/execution division of labor.  In FFTW 2, plans were found for a
+given transform size and type, and then could be applied to _any_
+arrays and for _any_ multiplicity/stride parameters.  In FFTW 3, you
+specify the particular arrays, stride parameters, etcetera when
+creating the plan, and the plan is then executed for _those_ arrays
+(unless the guru interface is used) and _those_ parameters _only_.
+(FFTW 2 had "specific planner" routines that planned for a particular
+array and stride, but the plan could still be used for other arrays and
+strides.)  That is, much of the information that was formerly specified
+at execution time is now specified at planning time.
+
+   Like FFTW 2's specific planner routines, the FFTW 3 planner
+overwrites the input/output arrays unless you use `FFTW_ESTIMATE'.
+
+   FFTW 2 had separate data types `fftw_plan', `fftwnd_plan',
+`rfftw_plan', and `rfftwnd_plan' for complex and real one- and
+multi-dimensional transforms, and each type had its own `destroy'
+function.  In FFTW 3, all plans are of type `fftw_plan' and all are
+destroyed by `fftw_destroy_plan(plan)'.
+
+   Where you formerly used `fftw_create_plan' and `fftw_one' to plan
+and compute a single 1d transform, you would now use `fftw_plan_dft_1d'
+to plan the transform.  If you used the generic `fftw' function to
+execute the transform with multiplicity (`howmany') and stride
+parameters, you would now use the advanced interface
+`fftw_plan_many_dft' to specify those parameters.  The plans are now
+executed with `fftw_execute(plan)', which takes all of its parameters
+(including the input/output arrays) from the plan.
+
+   In-place transforms no longer interpret their output argument as
+scratch space, nor is there an `FFTW_IN_PLACE' flag.  You simply pass
+the same pointer for both the input and output arguments.  (Previously,
+the output `ostride' and `odist' parameters were ignored for in-place
+transforms; now, if they are specified via the advanced interface, they
+are significant even in the in-place case, although they should
+normally equal the corresponding input parameters.)
+
+   The `FFTW_ESTIMATE' and `FFTW_MEASURE' flags have the same meaning
+as before, although the planning time will differ.  You may also
+consider using `FFTW_PATIENT', which is like `FFTW_MEASURE' except that
+it takes more time in order to consider a wider variety of algorithms.
+
+   For multi-dimensional complex DFTs, instead of `fftwnd_create_plan'
+(or `fftw2d_create_plan' or `fftw3d_create_plan'), followed by
+`fftwnd_one', you would use `fftw_plan_dft' (or `fftw_plan_dft_2d' or
+`fftw_plan_dft_3d').  followed by `fftw_execute'.  If you used `fftwnd'
+to to specify strides etcetera, you would instead specify these via
+`fftw_plan_many_dft'.
+
+   The analogues to `rfftw_create_plan' and `rfftw_one' with
+`FFTW_REAL_TO_COMPLEX' or `FFTW_COMPLEX_TO_REAL' directions are
+`fftw_plan_r2r_1d' with kind `FFTW_R2HC' or `FFTW_HC2R', followed by
+`fftw_execute'.  The stride etcetera arguments of `rfftw' are now in
+`fftw_plan_many_r2r'.
+
+   Instead of `rfftwnd_create_plan' (or `rfftw2d_create_plan' or
+`rfftw3d_create_plan') followed by `rfftwnd_one_real_to_complex' or
+`rfftwnd_one_complex_to_real', you now use `fftw_plan_dft_r2c' (or
+`fftw_plan_dft_r2c_2d' or `fftw_plan_dft_r2c_3d') or
+`fftw_plan_dft_c2r' (or `fftw_plan_dft_c2r_2d' or
+`fftw_plan_dft_c2r_3d'), respectively, followed by `fftw_execute'.  As
+usual, the strides etcetera of `rfftwnd_real_to_complex' or
+`rfftwnd_complex_to_real' are no specified in the advanced planner
+routines, `fftw_plan_many_dft_r2c' or `fftw_plan_many_dft_c2r'.
+
+Wisdom
+======
+
+   In FFTW 2, you had to supply the `FFTW_USE_WISDOM' flag in order to
+use wisdom; in FFTW 3, wisdom is always used.  (You could simulate the
+FFTW 2 wisdom-less behavior by calling `fftw_forget_wisdom' after every
+planner call.)
+
+   The FFTW 3 wisdom import/export routines are almost the same as
+before (although the storage format is entirely different).  There is
+one significant difference, however.  In FFTW 2, the import routines
+would never read past the end of the wisdom, so you could store extra
+data beyond the wisdom in the same file, for example.  In FFTW 3, the
+file-import routine may read up to a few hundred bytes past the end of
+the wisdom, so you cannot store other data just beyond it.(1)
+
+   Wisdom has been enhanced by additional humility in FFTW 3: whereas
+FFTW 2 would re-use wisdom for a given transform size regardless of the
+stride etc., in FFTW 3 wisdom is only used with the strides etc. for
+which it was created.  Unfortunately, this means FFTW 3 has to create
+new plans from scratch more often than FFTW 2 (in FFTW 2, planning e.g.
+one transform of size 1024 also created wisdom for all smaller powers
+of 2, but this no longer occurs).
+
+   FFTW 3 also has the new routine `fftw_import_system_wisdom' to
+import wisdom from a standard system-wide location.
+
+Memory allocation
+=================
+
+   In FFTW 3, we recommend allocating your arrays with `fftw_malloc'
+and deallocating them with `fftw_free'; this is not required, but
+allows optimal performance when SIMD acceleration is used.  (Those two
+functions actually existed in FFTW 2, and worked the same way, but were
+not documented.)
+
+   In FFTW 2, there were `fftw_malloc_hook' and `fftw_free_hook'
+functions that allowed the user to replace FFTW's memory-allocation
+routines (e.g. to implement different error-handling, since by default
+FFTW prints an error message and calls `exit' to abort the program if
+`malloc' returns `NULL').  These hooks are not supported in FFTW 3;
+those few users who require this functionality can just directly modify
+the memory-allocation routines in FFTW (they are defined in
+`kernel/alloc.c').
+
+Fortran interface
+=================
+
+   In FFTW 2, the subroutine names were obtained by replacing `fftw_'
+with `fftw_f77'; in FFTW 3, you replace `fftw_' with `dfftw_' (or
+`sfftw_' or `lfftw_', depending upon the precision).
+
+   In FFTW 3, we have begun recommending that you always declare the
+type used to store plans as `integer*8'.  (Too many people didn't notice
+our instruction to switch from `integer' to `integer*8' for 64-bit
+machines.)
+
+   In FFTW 3, we provide a `fftw3.f' "header file" to include in your
+code (and which is officially installed on Unix systems).  (In FFTW 2,
+we supplied a `fftw_f77.i' file, but it was not installed.)
+
+   Otherwise, the C-Fortran interface relationship is much the same as
+it was before (e.g. return values become initial parameters, and
+multi-dimensional arrays are in column-major order).  Unlike FFTW 2, we
+do provide some support for wisdom import/export in Fortran (*note
+Wisdom of Fortran?::).
+
+Threads
+=======
+
+   Like FFTW 2, only the execution routines are thread-safe.  All
+planner routines, etcetera, should be called by only a single thread at
+a time (*note Thread safety::).  _Unlike_ FFTW 2, there is no special
+`FFTW_THREADSAFE' flag for the planner to allow a given plan to be
+usable by multiple threads in parallel; this is now the case by default.
+
+   The multi-threaded version of FFTW 2 required you to pass the number
+of threads each time you execute the transform.  The number of threads
+is now stored in the plan, and is specified before the planner is
+called by `fftw_plan_with_nthreads'.  The threads initialization
+routine used to be called `fftw_threads_init' and would return zero on
+success; the new routine is called `fftw_init_threads' and returns zero
+on failure.  *Note Multi-threaded FFTW::.
+
+   There is no separate threads header file in FFTW 3; all the function
+prototypes are in `<fftw3.h>'.  However, you still have to link to a
+separate library (`-lfftw3_threads -lfftw3 -lm' on Unix), as well as to
+the threading library (e.g. POSIX threads on Unix).
+
+   ---------- Footnotes ----------
+
+   (1) We do our own buffering because GNU libc I/O routines are
+horribly slow for single-character I/O, apparently for thread-safety
+reasons (whether you are using threads or not).
+
+
+File: fftw3.info,  Node: Installation and Customization,  Next: Acknowledgments,  Prev: Upgrading from FFTW version 2,  Up: Top
+
+Installation and Customization
+******************************
+
+   This chapter describes the installation and customization of FFTW,
+the latest version of which may be downloaded from the FFTW home page
+(http://www.fftw.org).
+
+   In principle, FFTW should work on any system with an ANSI C compiler
+(`gcc' is fine).  However, planner time is drastically reduced if FFTW
+can exploit a hardware cycle counter; FFTW comes with cycle-counter
+support for all modern general-purpose CPUs, but you may need to add a
+couple of lines of code if your compiler is not yet supported (*note
+Cycle Counters::).
+
+   Installation of FFTW is simplest if you have a Unix or a GNU system,
+such as GNU/Linux, and we describe this case in the first section below,
+including the use of special configuration options to e.g. install
+different precisions or exploit optimizations for particular
+architectures (e.g. SIMD).  Compilation on non-Unix systems is a more
+manual process, but we outline the procedure in the second section.  It
+is also likely that pre-compiled binaries will be available for popular
+systems.
+
+   Finally, we describe how you can customize FFTW for particular needs
+by generating _codelets_ for fast transforms of sizes not supported
+efficiently by the standard FFTW distribution.
+
+* Menu:
+
+* Installation on Unix::
+* Installation on non-Unix systems::
+* Cycle Counters::
+* Generating your own code::
+
+
+File: fftw3.info,  Node: Installation on Unix,  Next: Installation on non-Unix systems,  Prev: Installation and Customization,  Up: Installation and Customization
+
+Installation on Unix
+====================
+
+   FFTW comes with a `configure' program in the GNU style.
+Installation can be as simple as:
+
+     ./configure
+     make
+     make install
+
+   This will build the uniprocessor complex and real transform libraries
+along with the test programs.  (We recommend that you use GNU `make' if
+it is available; on some systems it is called `gmake'.)  The "`make
+install'" command installs the fftw and rfftw libraries in standard
+places, and typically requires root privileges (unless you specify a
+different install directory with the `--prefix' flag to `configure').
+You can also type "`make check'" to put the FFTW test programs through
+their paces.  If you have problems during configuration or compilation,
+you may want to run "`make distclean'" before trying again; this
+ensures that you don't have any stale files left over from previous
+compilation attempts.
+
+   The `configure' script chooses the `gcc' compiler by default, if it
+is available; you can select some other compiler with:
+     ./configure CC="<the name of your C compiler>"
+
+   The `configure' script knows good `CFLAGS' (C compiler flags) for a
+few systems.  If your system is not known, the `configure' script will
+print out a warning.  In this case, you should re-configure FFTW with
+the command
+     ./configure CFLAGS="<write your CFLAGS here>"
+   and then compile as usual.  If you do find an optimal set of
+`CFLAGS' for your system, please let us know what they are (along with
+the output of `config.guess') so that we can include them in future
+releases.
+
+   `configure' supports all the standard flags defined by the GNU
+Coding Standards; see the `INSTALL' file in FFTW or the GNU web page
+(http://www.gnu.org/prep/standards_toc.html).  Note especially `--help'
+to list all flags and `--enable-shared' to create shared, rather than
+static, libraries.  `configure' also accepts a few FFTW-specific flags,
+particularly:
+
+   * `--enable-float': Produces a single-precision version of FFTW
+     (`float') instead of the default double-precision (`double').
+     *Note Precision::.
+
+   * `--enable-long-double': Produces a long-double precision version of
+     FFTW (`long double') instead of the default double-precision
+     (`double').  The `configure' script will halt with an error
+     message is `long double' is the same size as `double' on your
+     machine/compiler.  *Note Precision::.
+
+   * `--enable-threads': Enables compilation and installation of the
+     FFTW threads library (*note Multi-threaded FFTW::), which provides
+     a simple interface to parallel transforms for SMP systems.  (By
+     default, the threads routines are not compiled.)
+
+   * `--with-openmp', `--with-sgimp': In conjunction with
+     `--enable-threads', causes the multi-threaded FFTW library to use
+     OpenMP or SGI MP compiler directives in order to induce
+     parallelism, rather than spawning its own threads directly.
+     (Useful especially for programs already employing such directives,
+     in order to minimize conflicts between different parallelization
+     mechanisms.)
+
+   * `--disable-fortran': Disables inclusion of Fortran-callable wrapper
+     routines (*note Calling FFTW from Fortran::) in the standard FFTW
+     libraries.  These wrapper routines increase the library size by
+     only a negligible amount, so they are included by default as long
+     as the `configure' script finds a Fortran compiler on your system.
+
+   * `--with-slow-timer': Disables the use of hardware cycle counters,
+     and falls back on `gettimeofday' or `clock'.  This greatly worsens
+     performance, and should generally not be used (unless you don't
+     have a cycle counter but still really want an optimized plan
+     regardless of the time).  *Note Cycle Counters::.
+
+   * `--enable-sse', `--enable-sse2', `--enable-k7',
+     `--enable-altivec': Enable the compilation of SIMD code for SSE
+     (Pentium III+), SSE2 (Pentium IV+), 3dNow! (AMD K7 and others), or
+     AltiVec (PowerPC G4+).  SSE, 3dNow!, and AltiVec only work with
+     `--enable-float' (above), while SSE2 only works in double precision
+     (the default).  The resulting code will _still work_ on earlier
+     CPUs lacking the SIMD extensions (SIMD is automatically disabled,
+     although the FFTW library is still larger).
+        - These options, with the exception of `--enable-k7' (which uses
+          assembly), require a compiler supporting SIMD extensions, and
+          compiler support is still a bit flaky.  We have tested SIMD
+          with `gcc' versions 3.x (which miscompile AltiVec
+          permutations on Linux, but we have an assembly workaround)
+          and with Intel's `icc' 6.0 (which misaligns SSE constants,
+          but we have a workaround).  Some 3.x versions of `gcc' crash
+          during compilation, and `gcc' 2.95 miscompiles AltiVec on
+          MacOS X.
+
+        - With the Linux kernel, you may have to recompile the kernel
+          with the option to support SSE/SSE2/AltiVec (see the
+          "Processor type and features" settings).
+
+        - With AltiVec and `gcc', you may have to use the
+          `-mabi=altivec' option when compiling any code that links to
+          FFTW, in order to properly align the stack; otherwise, FFTW
+          could crash when it tries to use an AltiVec feature.  (This
+          is not necessary on MacOS X.)
+
+        - With SSE/SSE2 and `gcc', you should use a version of gcc that
+          properly aligns the stack when compiling any code that links
+          to FFTW.  By default, `gcc' 2.95 and later versions align the
+          stack as needed, but you should not use the `-Os' option or
+          the `-mpreferred-stack-boundary' option with an argument less
+          than 4.
+
+
+   To force `configure' to use a particular C compiler (instead of the
+default, usually `gcc'), set the environment variable `CC' to the name
+of the desired compiler before running `configure'; you may also need
+to set the flags via the variable `CFLAGS'.
+
+
+File: fftw3.info,  Node: Installation on non-Unix systems,  Next: Cycle Counters,  Prev: Installation on Unix,  Up: Installation and Customization
+
+Installation on non-Unix systems
+================================
+
+   It should be relatively straightforward to compile FFTW even on
+non-Unix systems lacking the niceties of a `configure' script.
+Basically, you need to edit the `config.h' header (copy it from
+`config.h.in') to `#define' the various options and compiler
+characteristics, and then compile all the `.c' files in the relevant
+directories.
+
+   The `config.h' header contains about 100 options to set, each one
+initially an `#undef', all documented with a comment, and most of them
+fairly obvious.  For most of the options, you should simply `#define'
+them to `1' if they are applicable, although a few options require a
+particular value (e.g. `SIZEOF_LONG_LONG' should be defined to the size
+of the `long long' type, in bytes, or zero if it is not supported).  We
+will likely post some sample `config.h' files for various operating
+systems and compilers for you to use (at least as a starting point).
+Please let us know if you have to hand-create a configuration file
+(and/or a pre-compiled binary) that you want to share.
+
+   To create the FFTW library, you will then need to compile all of the
+`.c' files in the `kernel', `dft', `dft/codelets',
+`dft/codelets/standard', `dft/codelets/inplace', `rdft',
+`rdft/codelets', `rdft/codelets/r2hc', `rdft/codelets/hc2r',
+`rdft/codelets/r2r', `reodft', and `api' directories.  If you are
+compiling with SIMD support (e.g. you defined `HAVE_SSE2' in
+`config.h'), then you also need to compile the `.c' files in the
+`simd', `dft/simd', and `dft/simd/codelets' directories.  If you are
+compiling with AMD K7 optimizations (i.e. you defined `HAVE_K7'), then
+you also need to include the `dft/k7' and `dft/k7/codelets' directories.
+(See the previous section for more information on configuration options
+like SIMD and K7 optimization; each Unix configuration option has a
+corresponding `#define' in `config.h'.)
+
+   Once these files are all compiled, link them into a library, or a
+shared library, or directly into your program.
+
+   To compile the FFTW test program, additionally compile the code in
+the `libbench2/' directory, and link it into a library.  Then compile
+the code in the `tests/' directory and link it to the `libbench2' and
+FFTW libraries.  To compile the `fftw-wisdom' (command-line) tool
+(*note Wisdom Utilities::), compile `tools/fftw-wisdom.c' and link it
+to the `libbench2' and FFTW libraries
+
+
+File: fftw3.info,  Node: Cycle Counters,  Next: Generating your own code,  Prev: Installation on non-Unix systems,  Up: Installation and Customization
+
+Cycle Counters
+==============
+
+   FFTW's planner actually executes and times different possible FFT
+algorithms in order to pick the fastest plan for a given n.  In order
+to do this in as short a time as possible, however, the timer must have
+a very high resolution, and to accomplish this we employ the hardware
+"cycle counters" that are available on most CPUs.  Currently, FFTW
+supports the cycle counters on x86, PowerPC/POWER, Alpha, UltraSPARC
+(SPARC v9), IA64, PA-RISC, and MIPS processors.
+
+   Access to the cycle counters, unfortunately, is a compiler and/or
+operating-system dependent task, often requiring inline assembly
+language, and it may be that your compiler is not supported.  If you are
+_not_ supported, FFTW will by default fall back on its estimator
+(effectively using `FFTW_ESTIMATE' for all plans).
+
+   You can add support by editing the file `kernel/cycle.h'; normally,
+this will involve adapting one of the examples already present in order
+to use the inline-assembler syntax for your C compiler, and will only
+require a couple of lines of code.  Anyone adding support for a new
+system to `cycle.h' is encouraged to email us at <fftw@fftw.org>.
+
+   If a cycle counter is not available on your system (e.g. some
+embedded processor), and you don't want to use estimated plans, as a
+last resort you can use the `--with-slow-timer' option to `configure'
+(on Unix) or `#define WITH_SLOW_TIMER' in `config.h' (elsewhere).  This
+will use the much slower `gettimeofday' function, or even `clock' if
+the former is unavailable, and planning will be extremely slow.
+
+
+File: fftw3.info,  Node: Generating your own code,  Prev: Cycle Counters,  Up: Installation and Customization
+
+Generating your own code
+========================
+
+   The directory `genfft' contains the programs that were used to
+generate FFTW's "codelets," which are hard-coded transforms of small
+sizes.  We do not expect casual users to employ the generator, which is
+a rather sophisticated program that generates directed acyclic graphs
+of FFT algorithms and performs algebraic simplifications on them.  It
+was written in Objective Caml, a dialect of ML, which is available at
+`http://pauillac.inria.fr/ocaml/'.
+
+   If you have Objective Caml installed (along with recent versions of
+GNU `autoconf', `automake', and `libtool'), then you can change the set
+of codelets that are generated or play with the generation options.
+The set of generated codelets is specified by the
+`dft/codelets/*/Makefile.am', `dft/simd/codelets/Makefile.am',
+`dft/k7/codelets/Makefile.am', and `rdft/codelets/*/Makefile.am' files.
+For example, you can add efficient REDFT codelets of small sizes by
+modifying `rdft/codelets/r2r/Makefile.am'.  After you modify any
+`Makefile.am' files, you can type `sh bootstrap.sh' in the top-level
+directory followed by `make' to re-generate the files.
+
+   We do not provide more details about the code-generation process,
+since we do not expect that most users will need to generate their own
+code.  However, feel free to contact us at <fftw@fftw.org> if you are
+interested in the subject.
+
+   You might find it interesting to learn Caml and/or some modern
+programming techniques that we used in the generator (including monadic
+programming), especially if you heard the rumor that Java and
+object-oriented programming are the latest advancement in the field.
+The internal operation of the codelet generator is described in the
+paper, "A Fast Fourier Transform Compiler," by M. Frigo, which is
+available from the FFTW home page (http://www.fftw.org) and also
+appeared in the `Proceedings of the 1999 ACM SIGPLAN Conference on
+Programming Language Design and Implementation (PLDI)'.
+
+
+File: fftw3.info,  Node: Acknowledgments,  Next: License and Copyright,  Prev: Installation and Customization,  Up: Top
+
+Acknowledgments
+***************
+
+   Matteo Frigo was supported in part by the Special Research Program
+SFB F011 "AURORA" of the Austrian Science Fund FWF and by MIT Lincoln
+Laboratory.  For previous versions of FFTW, he was supported in part by
+the Defense Advanced Research Projects Agency (DARPA), under Grants
+N00014-94-1-0985 and F30602-97-1-0270, and by a Digital Equipment
+Corporation Fellowship.
+
+   Steven G. Johnson was supported in part by a Dept. of Defense NDSEG
+Fellowship, an MIT Karl Taylor Compton Fellowship, and by the Materials
+Research Science and Engineering Center program of the National Science
+Foundation under award DMR-9400334.
+
+   We are grateful to Sun Microsystems Inc. for its donation of a
+cluster of 9 8-processor Ultra HPC 5000 SMPs (24 Gflops peak). These
+machines served as the primary platform for the development of early
+versions of FFTW.
+
+   We thank Intel Corporation for donating a four-processor Pentium Pro
+machine.  We thank the GNU/Linux community for giving us a decent OS to
+run on that machine.
+
+   We are thankful to the AMD corporation for donating an AMD Athlon XP
+1700+ computer to the FFTW project.
+
+   We thank the Compaq/HP testdrive program and VA Software Corporation
+(SourceForge.net) for providing remote access to machines that were used
+to test FFTW.
+
+   The `genfft' suite of code generators was written using Objective
+Caml, a dialect of ML.  Objective Caml is a small and elegant language
+developed by Xavier Leroy.  The implementation is available from
+`http://caml.inria.fr/' (http://caml.inria.fr/).  In previous releases
+of FFTW, `genfft' was written in Caml Light, by the same authors.  An
+even earlier implementation of `genfft' was written in Scheme, but Caml
+is definitely better for this kind of application.
+
+   FFTW uses many tools from the GNU project, including `automake',
+`texinfo', and `libtool'.
+
+   Prof. Charles E. Leiserson of MIT provided continuous support and
+encouragement.  This program would not exist without him.  Charles also
+proposed the name "codelets" for the basic FFT blocks.
+
+   Prof. John D. Joannopoulos of MIT demonstrated continuing tolerance
+of Steven's "extra-curricular" computer-science activities, as well as
+remarkable creativity in working them into his grant proposals.
+Steven's physics degree would not exist without him.
+
+   Franz Franchetti wrote SIMD extensions to FFTW 2, which eventually
+led to the SIMD support in FFTW 3.
+
+   Stefan Kral wrote most of the K7 code generator distributed with
+FFTW 3.
+
+   Andrew Sterian contributed the Windows timing code in FFTW 2.
+
+   Didier Miras reported a bug in the test procedure used in FFTW 1.2.
+We now use a completely different test algorithm by Funda Ergun that
+does not require a separate FFT program to compare against.
+
+   Wolfgang Reimer contributed the Pentium cycle counter and a few fixes
+that help portability.
+
+   Ming-Chang Liu uncovered a well-hidden bug in the complex transforms
+of FFTW 2.0 and supplied a patch to correct it.
+
+   The FFTW FAQ was written in `bfnn' (Bizarre Format With No Name) and
+formatted using the tools developed by Ian Jackson for the Linux FAQ.
+
+   _We are especially thankful to all of our users for their continuing
+support, feedback, and interest during our development of FFTW._
+
+
+File: fftw3.info,  Node: License and Copyright,  Next: Concept Index,  Prev: Acknowledgments,  Up: Top
+
+License and Copyright
+*********************
+
+   FFTW is Copyright (C) 2003 Matteo Frigo, Copyright (C) 2002 Steven
+G. Johnson.
+
+   FFTW is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software Foundation,
+Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.  You can
+also find the GPL on the GNU web site
+(http://www.gnu.org/copyleft/gpl.html).
+
+   In addition, we kindly ask you to acknowledge FFTW and its authors in
+any program or publication in which you use FFTW.  (You are not
+_required_ to do so; it is up to your common sense to decide whether
+you want to comply with this request or not.)  For general
+publications, we suggest referencing: Matteo Frigo and Steven G.
+Johnson, "FFTW: An adaptive software architecture for the FFT," Proc.
+ICASSP 1998 3, 1381-1384 (1998).
+
+   Non-free versions of FFTW are available under terms different from
+those of the General Public License. (e.g. they do not require you to
+accompany any object code using FFTW with the corresponding source
+code.)  For these alternate terms you must purchase a license from MIT's
+Technology Licensing Office.  Users interested in such a license should
+contact us (<fftw@fftw.org>) for more information.
+
+
+File: fftw3.info,  Node: Concept Index,  Next: Library Index,  Prev: License and Copyright,  Up: Top
+
+Concept Index
+*************
+
+* Menu:
+
+* 3DNow!:                                SIMD alignment and fftw_malloc.
+* advanced interface <1>:                Advanced Interface.
+* advanced interface <2>:                Row-major Format.
+* advanced interface <3>:                Complex Multi-Dimensional DFTs.
+* advanced interface:                    Introduction.
+* algorithm:                             Introduction.
+* alignment <1>:                         Planner Flags.
+* alignment <2>:                         Memory Allocation.
+* alignment:                             Data Alignment.
+* AltiVec:                               SIMD alignment and fftw_malloc.
+* basic interface <1>:                   Basic Interface.
+* basic interface <2>:                   Tutorial.
+* basic interface:                       Introduction.
+* C multi-dimensional arrays:            Static Arrays in C.
+* C++ <1>:                               Complex numbers.
+* C++:                                   Dynamic Arrays in C.
+* c2r <1>:                               Real-data DFTs.
+* c2r <2>:                               Planner Flags.
+* c2r:                                   One-Dimensional DFTs of Real Data.
+* C99 <1>:                               Precision.
+* C99 <2>:                               Complex numbers.
+* C99:                                   Dynamic Arrays in C.
+* Caml <1>:                              Acknowledgments.
+* Caml:                                  Generating your own code.
+* code generator <1>:                    Generating your own code.
+* code generator:                        Introduction.
+* codelet <1>:                           Acknowledgments.
+* codelet <2>:                           Generating your own code.
+* codelet <3>:                           Installation and Customization.
+* codelet:                               Introduction.
+* column-major <1>:                      Fortran Examples.
+* column-major <2>:                      Fortran-interface routines.
+* column-major:                          Column-major Format.
+* compiler <1>:                          Cycle Counters.
+* compiler <2>:                          Installation on Unix.
+* compiler <3>:                          Installation and Customization.
+* compiler:                              Introduction.
+* compiler flags:                        Installation on Unix.
+* configuration routines:                Wisdom Utilities.
+* configure <1>:                         Installation on Unix.
+* configure:                             Installation and Supported Hardware/Software.
+* cycle counter <1>:                     Cycle Counters.
+* cycle counter:                         Installation and Customization.
+* DCT <1>:                               1d Real-even DFTs (DCTs).
+* DCT <2>:                               Real-to-Real Transform Kinds.
+* DCT:                                   Real even/odd DFTs (cosine/sine transforms).
+* Devil:                                 Complex One-Dimensional DFTs.
+* DFT <1>:                               The 1d Discrete Fourier Transform (DFT).
+* DFT <2>:                               Complex One-Dimensional DFTs.
+* DFT:                                   Introduction.
+* DHT <1>:                               1d Discrete Hartley Transforms (DHTs).
+* DHT:                                   The Discrete Hartley Transform.
+* discrete cosine transform <1>:         1d Real-even DFTs (DCTs).
+* discrete cosine transform <2>:         Real-to-Real Transform Kinds.
+* discrete cosine transform:             Real even/odd DFTs (cosine/sine transforms).
+* discrete Fourier transform <1>:        The 1d Discrete Fourier Transform (DFT).
+* discrete Fourier transform:            Introduction.
+* discrete Hartley transform <1>:        1d Discrete Hartley Transforms (DHTs).
+* discrete Hartley transform <2>:        Real-to-Real Transform Kinds.
+* discrete Hartley transform:            The Discrete Hartley Transform.
+* discrete sine transform <1>:           1d Real-odd DFTs (DSTs).
+* discrete sine transform <2>:           Real-to-Real Transform Kinds.
+* discrete sine transform:               Real even/odd DFTs (cosine/sine transforms).
+* dist <1>:                              Guru vector and transform sizes.
+* dist:                                  Advanced Complex DFTs.
+* DST <1>:                               1d Real-odd DFTs (DSTs).
+* DST <2>:                               Real-to-Real Transform Kinds.
+* DST:                                   Real even/odd DFTs (cosine/sine transforms).
+* Ecclesiastes:                          Caveats in Using Wisdom.
+* execute <1>:                           Guru Execution of Plans.
+* execute <2>:                           Complex One-Dimensional DFTs.
+* execute:                               Introduction.
+* FFTW:                                  Introduction.
+* fftw-wisdom utility <1>:               Wisdom Utilities.
+* fftw-wisdom utility:                   Caveats in Using Wisdom.
+* fftw-wisdom-to-conf utility:           Wisdom Utilities.
+* flags <1>:                             FFTW Constants in Fortran.
+* flags <2>:                             Guru Real-to-real Transforms.
+* flags <3>:                             Guru Real-data DFTs.
+* flags <4>:                             Guru Complex DFTs.
+* flags <5>:                             Real-to-Real Transforms.
+* flags <6>:                             Real-data DFTs.
+* flags <7>:                             Complex DFTs.
+* flags <8>:                             One-Dimensional DFTs of Real Data.
+* flags:                                 Complex One-Dimensional DFTs.
+* Fortran interface <1>:                 Calling FFTW from Fortran.
+* Fortran interface:                     Column-major Format.
+* Fortran-callable wrappers:             Installation on Unix.
+* frequency <1>:                         The 1d Discrete Fourier Transform (DFT).
+* frequency:                             Complex One-Dimensional DFTs.
+* guru interface <1>:                    Fortran-interface routines.
+* guru interface <2>:                    Guru Interface.
+* guru interface <3>:                    Complex Multi-Dimensional DFTs.
+* guru interface:                        Introduction.
+* halfcomplex format <1>:                The 1d Real-data DFT.
+* halfcomplex format <2>:                The Halfcomplex-format DFT.
+* halfcomplex format:                    One-Dimensional DFTs of Real Data.
+* hc2r <1>:                              Planner Flags.
+* hc2r:                                  The Halfcomplex-format DFT.
+* Hermitian <1>:                         The 1d Real-data DFT.
+* Hermitian:                             One-Dimensional DFTs of Real Data.
+* howmany loop:                          Guru vector and transform sizes.
+* howmany parameter:                     Advanced Complex DFTs.
+* in-place <1>:                          Guru Real-data DFTs.
+* in-place <2>:                          Real-to-Real Transforms.
+* in-place <3>:                          Real-data DFT Array Format.
+* in-place <4>:                          Real-data DFTs.
+* in-place <5>:                          Complex DFTs.
+* in-place <6>:                          One-Dimensional DFTs of Real Data.
+* in-place:                              Complex One-Dimensional DFTs.
+* installation:                          Installation and Customization.
+* interleaved format:                    Interleaved and split arrays.
+* kind (r2r) <1>:                        Real-to-Real Transform Kinds.
+* kind (r2r):                            More DFTs of Real Data.
+* linking on Unix:                       Usage of Multi-threaded FFTW.
+* LISP:                                  Acknowledgments.
+* monadic programming:                   Generating your own code.
+* normalization <1>:                     1d Discrete Hartley Transforms (DHTs).
+* normalization <2>:                     1d Real-odd DFTs (DSTs).
+* normalization <3>:                     1d Real-even DFTs (DCTs).
+* normalization <4>:                     The 1d Real-data DFT.
+* normalization <5>:                     The 1d Discrete Fourier Transform (DFT).
+* normalization <6>:                     Real-to-Real Transform Kinds.
+* normalization <7>:                     Real-data DFTs.
+* normalization <8>:                     Complex DFTs.
+* normalization <9>:                     The Discrete Hartley Transform.
+* normalization <10>:                    Real even/odd DFTs (cosine/sine transforms).
+* normalization <11>:                    The Halfcomplex-format DFT.
+* normalization <12>:                    Multi-Dimensional DFTs of Real Data.
+* normalization:                         Complex One-Dimensional DFTs.
+* number of threads:                     How Many Threads to Use?.
+* out-of-place <1>:                      Real-data DFT Array Format.
+* out-of-place:                          Planner Flags.
+* padding <1>:                           Real-data DFT Array Format.
+* padding <2>:                           Real-data DFTs.
+* padding <3>:                           Multi-Dimensional DFTs of Real Data.
+* padding:                               One-Dimensional DFTs of Real Data.
+* parallel transform:                    Parallel FFTW.
+* partial order:                         Complex Multi-Dimensional DFTs.
+* plan <1>:                              Complex One-Dimensional DFTs.
+* plan:                                  Introduction.
+* planner:                               Introduction.
+* precision <1>:                         Installation on Unix.
+* precision <2>:                         Precision.
+* precision <3>:                         SIMD alignment and fftw_malloc.
+* precision <4>:                         One-Dimensional DFTs of Real Data.
+* precision:                             Complex One-Dimensional DFTs.
+* r2c <1>:                               Multi-dimensional Transforms.
+* r2c <2>:                               Real-data DFTs.
+* r2c <3>:                               The Halfcomplex-format DFT.
+* r2c:                                   One-Dimensional DFTs of Real Data.
+* r2c/c2r multi-dimensional array format <1>: Fortran Examples.
+* r2c/c2r multi-dimensional array format <2>: Real-data DFT Array Format.
+* r2c/c2r multi-dimensional array format: Multi-Dimensional DFTs of Real Data.
+* r2hc:                                  The Halfcomplex-format DFT.
+* r2r <1>:                               The 1d Real-data DFT.
+* r2r <2>:                               Real-to-Real Transforms.
+* r2r:                                   More DFTs of Real Data.
+* rank:                                  Complex Multi-Dimensional DFTs.
+* real-even DFT <1>:                     1d Real-even DFTs (DCTs).
+* real-even DFT:                         Real even/odd DFTs (cosine/sine transforms).
+* real-odd DFT <1>:                      1d Real-odd DFTs (DSTs).
+* real-odd DFT:                          Real even/odd DFTs (cosine/sine transforms).
+* REDFT <1>:                             Generating your own code.
+* REDFT <2>:                             1d Real-even DFTs (DCTs).
+* REDFT:                                 Real even/odd DFTs (cosine/sine transforms).
+* RODFT <1>:                             1d Real-odd DFTs (DSTs).
+* RODFT:                                 Real even/odd DFTs (cosine/sine transforms).
+* row-major <1>:                         Real-to-Real Transforms.
+* row-major <2>:                         Complex DFTs.
+* row-major:                             Row-major Format.
+* saving plans to disk <1>:              Wisdom.
+* saving plans to disk:                  Words of Wisdom-Saving Plans.
+* SIMD <1>:                              SIMD alignment and fftw_malloc.
+* SIMD:                                  Complex One-Dimensional DFTs.
+* split format:                          Interleaved and split arrays.
+* SSE:                                   SIMD alignment and fftw_malloc.
+* SSE2:                                  SIMD alignment and fftw_malloc.
+* stride <1>:                            Guru vector and transform sizes.
+* stride <2>:                            Advanced Complex DFTs.
+* stride:                                Row-major Format.
+* thread safety:                         Thread safety.
+* threads <1>:                           Installation on Unix.
+* threads <2>:                           Thread safety.
+* threads:                               Multi-threaded FFTW.
+* vector <1>:                            Guru Interface.
+* vector:                                Advanced Complex DFTs.
+* wisdom <1>:                            Wisdom.
+* wisdom:                                Words of Wisdom-Saving Plans.
+* wisdom, problems with:                 Caveats in Using Wisdom.
+* wisdom, system-wide <1>:               Wisdom Import.
+* wisdom, system-wide:                   Caveats in Using Wisdom.
+

@@ -1,0 +1,22 @@
+Version 0.5.1:
+- bugfixes
+
+Version 0.5.0:
+- added stuff to avc1394 to support target mode and tuner and audio devices.
+- added an example of an AV/C target mode application (test/avc_vcr).
+- added simple routines to modify a config rom image 
+- added a utility to make Linux host describe itself as  capable of IP over 
+  IEEE 1394 (mkrfc2734) for use with eth1394 on kernel 2.4
+- added pkg-config support
+
+Version 0.4:
+- bugfix dvcont hanging
+
+Version 0.3:
+- added more avc1394_vcr_* commands
+
+Version 0.2:
+- second release with librom1394
+
+Version 0.1:
+- first release

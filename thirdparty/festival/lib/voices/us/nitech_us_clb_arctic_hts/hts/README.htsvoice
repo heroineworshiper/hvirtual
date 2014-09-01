@@ -1,0 +1,151 @@
+================================================================
+             HTS voices for Festival 1.95 & 1.96
+                  release June 27, 2008
+
+Six HTS voices for Festival 1.95 & 1.96 trained by using 
+"CMU ARCTIC database" (http://www.festvox.org/cmu_arctic/) 
+are released as a part of HMM-based Speech Synthesis System 
+(HTS) version 2.1 (http://hts.sp.nitech.ac.jp/).  Each of 
+HTS voices consists of HMMs trained by using HTS.
+
+****************************************************************
+                            Copying
+****************************************************************
+
+The current copyright on the scm codes for HTS voices is
+;;  ----------------------------------------------------------------  ;;
+;;                 Nagoya Institute of Technology and                 ;;
+;;                     Carnegie Mellon University                     ;;
+;;                         Copyright (c) 2002                         ;;
+;;                        All Rights Reserved.                        ;;
+;;                                                                    ;;
+;;  Permission is hereby granted, free of charge, to use and          ;;
+;;  distribute this software and its documentation without            ;;
+;;  restriction, including without limitation the rights to use,      ;;
+;;  copy, modify, merge, publish, distribute, sublicense, and/or      ;;
+;;  sell copies of this work, and to permit persons to whom this      ;;
+;;  work is furnished to do so, subject to the following conditions:  ;;
+;;                                                                    ;;
+;;    1. The source code must retain the above copyright notice,      ;;
+;;       this list of conditions and the following disclaimer.        ;;
+;;                                                                    ;;
+;;    2. Any modifications to the source code must be clearly         ;;
+::       marked as such.                                              ;;
+;;                                                                    ;;
+;;    3. Original authors' names are not deleted.                     ;;
+;;                                                                    ;;
+;;    4. The authors' names are not used to endorse or promote        ;;
+;;       products derived from this software without specific prior   ;;
+;;       written permission.                                          ;;
+;;                                                                    ;;
+;;  NAGOYA INSTITUTE OF TECHNOLOGY, CARNEGIE MELLON UNIVERSITY AND    ;;
+;;  THE CONTRIBUTORS TO THIS WORK DISCLAIM ALL WARRANTIES WITH        ;;
+;;  REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF      ;;
+;;  MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL NAGOYA INSTITUTE   ;;
+;;  OF TECHNOLOGY, CARNEGIE MELLON UNIVERSITY NOR THE CONTRIBUTORS    ;;
+;;  BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR   ;;
+;;  ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR        ;;
+;;  PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER    ;;
+;;  TORTUOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR  ;;
+;;  PERFORMANCE OF THIS SOFTWARE.                                     ;;
+;;                                                                    ;;
+
+The copyright on other binaries is
+
+/* ----------------------------------------------------------------- */
+/*           The HMM-Based Speech Synthesis System (HTS)             */
+/*           developed by HTS Working Group                          */
+/*           http://hts.sp.nitech.ac.jp/                             */
+/* ----------------------------------------------------------------- */
+/*                                                                   */
+/*  Copyright (c) 2001-2008  Nagoya Institute of Technology          */
+/*                           Department of Computer Science          */
+/*                                                                   */
+/*                2001-2008  Tokyo Institute of Technology           */
+/*                           Interdisciplinary Graduate School of    */
+/*                           Science and Engineering                 */
+/*                                                                   */
+/* All rights reserved.                                              */
+/*                                                                   */
+/* Redistribution and use in source and binary forms, with or        */
+/* without modification, are permitted provided that the following   */
+/* conditions are met:                                               */
+/*                                                                   */
+/* - Redistributions of source code must retain the above copyright  */
+/*   notice, this list of conditions and the following disclaimer.   */
+/* - Redistributions in binary form must reproduce the above         */
+/*   copyright notice, this list of conditions and the following     */
+/*   disclaimer in the documentation and/or other materials provided */
+/*   with the distribution.                                          */
+/* - Neither the name of the HTS working group nor the names of its  */
+/*   contributors may be used to endorse or promote products derived */
+/*   from this software without specific prior written permission.   */
+/*                                                                   */
+/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND            */
+/* CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,       */
+/* INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF          */
+/* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          */
+/* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS */
+/* BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,          */
+/* EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED   */
+/* TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,     */
+/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON */
+/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,   */
+/* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    */
+/* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */
+/* POSSIBILITY OF SUCH DAMAGE.                                       */
+/* ----------------------------------------------------------------- */
+
+****************************************************************
+                         Installation
+****************************************************************
+*** Installation of HTS Voice ***
+
+(nitech_us_bdl_arctic_hts-2.1.tar.bz2, 
+ nitech_us_slt_arctic_hts-2.1.tar.bz2,
+ nitech_us_jmk_arctic_hts-2.1.tar.bz2, 
+ nitech_us_rms_arctic_hts-2.1.tar.bz2,
+ and nitech_us_jmk_arctic_hts-2.1.tar.bz2)
+
+0) Download "nitech_us_awb_arctic_hts-2.1.tar.bz2" from
+   http://hts.sp.nitech.ac.jp/ and expand it in the directory
+   which you installed the Festival.
+ 
+1) Run Festival
+
+2) To change the current voice, type:
+
+   festival> (voice_nitech_us_awb_arctic_hts)
+
+3) Now you can synthesize speech using the HTS voice in the
+   framework of Festival.  See the manual of Festival.
+
+   Example:
+
+     festival > (intro)
+
+     festival > (SayText "Alice was beginning to get tired.")
+
+****************************************************************
+                           Who we are
+****************************************************************
+
+The HTS working group is a voluntary group for developing the
+HMM-Based Speech Synthesis System.  Current members are
+
+ Keiichi Tokuda      http://www.sp.nitech.ac.jp/~tokuda/
+ (Principle Designer)
+ Heiga Zen           http://www.sp.nitech.ac.jp/~zen/
+ (Main Maintainer)
+ Junichi Yamagishi   http://homepages.inf.ed.ac.uk/jyamagis/
+ Alan W. Black       http://www.cs.cmu.edu/~awb/
+ Takashi Masuko
+ Shinji Sako         http://www.mmsp.nitech.ac.jp/~sako/
+ Tomoki Toda         http://spalab.naist.jp/~tomoki/index_e.html
+ Takashi Nose
+ Keiichiro Oura      http://www.sp.nitech.ac.jp/~uratec/
+
+and the members are dynamically changing.  The current formal
+contact address of HTS working group and a mailing list for HTS
+users can be found at http://hts.sp.nitech.ac.jp/
+================================================================

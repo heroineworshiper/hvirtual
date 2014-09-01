@@ -1,0 +1,340 @@
+------------------------------------------------------------------------
+r58 | ddennedy | 2005-04-08 16:21:18 -0400 (Fri, 08 Apr 2005) | 1 line
+
+fix the requred libraw1394 in spec file
+------------------------------------------------------------------------
+r57 | ddennedy | 2005-04-08 16:14:18 -0400 (Fri, 08 Apr 2005) | 1 line
+
+simple whitespace fix
+------------------------------------------------------------------------
+r56 | ddennedy | 2005-04-08 16:12:43 -0400 (Fri, 08 Apr 2005) | 1 line
+
+updated docs
+------------------------------------------------------------------------
+r55 | ddennedy | 2005-04-08 14:15:29 -0400 (Fri, 08 Apr 2005) | 6 lines
+
+Patch from Pieter Palmers:
+The AMDTP spec 2.1 defines two types of FDF for AM824:
+binary 0000 0xxx : Basic AM824
+binary 0000 1xxx : Basic AM824. Transmission rate may be controlled by 
+an AV/C command stack
+
+------------------------------------------------------------------------
+r54 | ddennedy | 2005-04-06 15:34:11 -0400 (Wed, 06 Apr 2005) | 1 line
+
+minor changes to prep for first release
+------------------------------------------------------------------------
+r53 | ddennedy | 2005-02-19 11:47:21 -0500 (Sat, 19 Feb 2005) | 17 lines
+
+Patch from Hugo Villeneuve:
+-Fixed error for checking the number of channels
+ in amdtp.c because IEC60958 with 1 channel was
+ rejected.
+-Added support for IEC60958 format in amdtp_xmit_handler()
+ function. This is needed for SoftAcoustik SA2.0
+ speakers with firmware prior to march 31st 2000.
+-Added support for sending NODATA packets in blocking
+ mode, in addition to sending empty packets. This has
+ resulted in the replacement of IEC61883_MODE_BLOCKING
+ with two new constants:
+   IEC61883_MODE_BLOCKING_EMPTY
+   IEC61883_MODE_BLOCKING_NODATA
+-Modified test-amdtp.c to use IEC61883_MODE_BLOCKING_EMPTY.
+-Fixed inconsistency between fields of big and little
+ endian structure in iec61883-private.h.
+
+------------------------------------------------------------------------
+r52 | ddennedy | 2005-02-18 18:02:35 -0500 (Fri, 18 Feb 2005) | 1 line
+
+expand upon high level cmp functions to accept a particular plug to use or return used plug if plug -1 specified
+------------------------------------------------------------------------
+r51 | ddennedy | 2005-02-16 11:57:02 -0500 (Wed, 16 Feb 2005) | 1 line
+
+move bandwidth and channel modify functions to libraw1394
+------------------------------------------------------------------------
+r50 | ddennedy | 2005-02-05 10:01:45 -0500 (Sat, 05 Feb 2005) | 8 lines
+
+Changed amdtp xmit to allow more formats, sample formats, and apply
+label only when AMDTP RAW -- the user callback can insert label for
+other formats.
+Changed amdtp user callbacks to add dbc and consolidate many other
+parameters into a pointer to the amdtp object, and added accessor
+functions to get fields from the amdtp object.
+Cleanup some formatting in amdtp.c.
+
+------------------------------------------------------------------------
+r49 | ddennedy | 2005-02-01 07:25:12 -0500 (Tue, 01 Feb 2005) | 1 line
+
+fix mpeg2_close and dv_close segfault - calling wrong stop
+------------------------------------------------------------------------
+r48 | ddennedy | 2005-01-31 16:59:57 -0500 (Mon, 31 Jan 2005) | 1 line
+
+do not report the current dropped amount more than once to the downstream callback
+------------------------------------------------------------------------
+r47 | ddennedy | 2005-01-31 11:29:41 -0500 (Mon, 31 Jan 2005) | 10 lines
+
+Fixup the RPM spec.in template wrt license and example source
+Add asserts for application debugging of obvious error like null pointer.
+Make dv and mpeg2 APIs consistent with amdtp wrt _init() and _stop().
+Add _get_callback_data to help libraw1394 reset handler callbacks.
+In CMP functions, prevent n_p2p_connections from exceeding its limit.
+Added iec61883_cmp_reconnect() to help bus reset handlers.
+Added iec61883_cmp_normalize_output() to help apps ensure IRM-plug 
+  consistency wrt channel reservation.
+
+
+------------------------------------------------------------------------
+r46 | ddennedy | 2005-01-17 23:58:50 -0500 (Mon, 17 Jan 2005) | 1 line
+
+bugfix mpeg2 receiving single tsp
+------------------------------------------------------------------------
+r45 | ddennedy | 2005-01-13 19:05:33 -0500 (Thu, 13 Jan 2005) | 1 line
+
+fixes to rpm spec
+------------------------------------------------------------------------
+r44 | ddennedy | 2005-01-02 20:44:34 -0500 (Sun, 02 Jan 2005) | 1 line
+
+add guid to plugreport output
+------------------------------------------------------------------------
+r43 | ddennedy | 2004-12-31 11:10:50 -0500 (Fri, 31 Dec 2004) | 1 line
+
+bugfixes for plugctl.c
+------------------------------------------------------------------------
+r42 | ddennedy | 2004-12-19 23:58:18 -0500 (Sun, 19 Dec 2004) | 13 lines
+
+Added better dropped packet handling by providing parameter to user
+callbacks, not skipping callback invocations in the face of drops,
+and maintaining a running total that can get access using new functions.
+
+Added examples/plugctl.c, which provides low-level plug field get and 
+set functionality -- useful for working around problematic devices that
+do not configure their plug's initial state to something compatible with
+connection management procedures.
+
+Bugfixes in cmp.c and plugreport.c.
+Improvements to RPM spec provided by Ian Forde.
+
+
+------------------------------------------------------------------------
+r41 | ddennedy | 2004-12-18 13:54:43 -0500 (Sat, 18 Dec 2004) | 1 line
+
+bugfix in plugreport and add description to pkgconfig
+------------------------------------------------------------------------
+r40 | ddennedy | 2004-12-10 22:46:53 -0500 (Fri, 10 Dec 2004) | 1 line
+
+reduce size of stack-managed buffer in amdtp handlers
+------------------------------------------------------------------------
+r39 | ddennedy | 2004-12-09 23:24:42 -0500 (Thu, 09 Dec 2004) | 1 line
+
+in amdtp receive, add metadata params to callback and only reformat data if 16bit pcm
+------------------------------------------------------------------------
+r38 | ddennedy | 2004-12-07 22:13:42 -0500 (Tue, 07 Dec 2004) | 1 line
+
+fix amdtp receive to align PCM samples - limited to 16bit for now - just like transmission
+------------------------------------------------------------------------
+r37 | ddennedy | 2004-12-07 21:22:21 -0500 (Tue, 07 Dec 2004) | 1 line
+
+improved example/test-amdtp
+------------------------------------------------------------------------
+r36 | ddennedy | 2004-12-05 22:06:59 -0500 (Sun, 05 Dec 2004) | 1 line
+
+major overhaul of cmp; revised examples for testing cmp; silence some compilation warnings; added examples/plugreport.c
+------------------------------------------------------------------------
+r35 | ddennedy | 2004-12-04 00:36:09 -0500 (Sat, 04 Dec 2004) | 1 line
+
+convert amdtp receive to rawiso; add configurable io options to amdtp; add speed to io options for all
+------------------------------------------------------------------------
+r34 | ddennedy | 2004-11-26 15:43:48 -0500 (Fri, 26 Nov 2004) | 4 lines
+
+add symbol qualifier to deque
+let cmp functions skip bandwidth allocation if zero
+
+
+------------------------------------------------------------------------
+r33 | ddennedy | 2004-11-26 15:24:39 -0500 (Fri, 26 Nov 2004) | 6 lines
+
+add documentation to header
+add accessors to buffering parameters
+make rawiso functions use buffering parameters
+add synch handling to dv and mpeg close functions
+
+
+------------------------------------------------------------------------
+r32 | ddennedy | 2004-11-19 23:59:04 -0500 (Fri, 19 Nov 2004) | 1 line
+
+bump required version of libraw1394 and comment out unimplemented functions
+------------------------------------------------------------------------
+r31 | ddennedy | 2004-10-25 23:59:29 -0400 (Mon, 25 Oct 2004) | 1 line
+
+add nodeid mask to mpeg sid; add dv transmission cip workaround
+------------------------------------------------------------------------
+r30 | ddennedy | 2004-10-25 21:29:56 -0400 (Mon, 25 Oct 2004) | 1 line
+
+fix sid in cip header to not include bus portion
+------------------------------------------------------------------------
+r29 | ddennedy | 2004-08-29 00:16:35 -0400 (Sun, 29 Aug 2004) | 1 line
+
+set FDF properly for PAL DV transmission
+------------------------------------------------------------------------
+r28 | ddennedy | 2004-08-27 21:57:56 -0400 (Fri, 27 Aug 2004) | 1 line
+
+consolidate opcr functions
+------------------------------------------------------------------------
+r27 | ddennedy | 2004-08-27 21:44:22 -0400 (Fri, 27 Aug 2004) | 1 line
+
+add public functions to host local plugs, added example test-plugs, require payload and overhead_id when establishing connection
+------------------------------------------------------------------------
+r26 | ddennedy | 2004-07-14 23:19:35 -0400 (Wed, 14 Jul 2004) | 1 line
+
+make CIP and protocol structs private, make init functions allocate their structs, and add close functions
+------------------------------------------------------------------------
+r25 | ddennedy | 2004-07-11 20:34:34 -0400 (Sun, 11 Jul 2004) | 32 lines
+
+Patch from Hugo Villeneuve:
+
+-Added <iec61883-private.h> to hide internal stuff from the API include 
+   file <iec61883.h>
+-Moved debug macros from <cmp.c> and <plug.c> to <iec61883-private.h> 
+   so that each source file in libiec61883 can use them.
+-Added directive "CLEANFILES = *~" to Makefile.am and src/Makefile.am to clean
+   temporary files.
+-Replaced printf with debug macros in amdtp.c
+-Added macro to enable workaround for datavideo DAC-2 - DRD (plug not online). 
+   This is disabled by default.
+-Re-activated alloc_bandwidth() and free_bandwidth() functions, and merged 
+   them into a single function because the two are almost identical. Fixed
+   incorrect way of checking lock function return value.
+-Merged alloc_channel() and free_channel() functions into a single function 
+   because the two are almost identical. Fixed incorrect way of checking 
+   lock function return value.
+-Added requested bandwidth argument to iec61883_cmp_make_p2p() function. 
+   Bandwidth is now correctly allocated by iec61883_cmp_make_p2p().
+-Simplified allocation of channels in iec61883_cmp_make_p2p() function 
+   (removal of duplicate code).
+-Added temporary workaround in iec61883_cmp_make_p2p() and 
+   iec61883_cmp_break_p2p() functions because there seems to be no input 
+   plugs present with the current version of libiec61883, and so we don't 
+   try to access them when the <to> argument node id is equal to that of 
+   the local Linux machine.
+-Fixed bug which prevented the isochronous channel from being sent to the <to>
+   input plug.
+-Added recovery (deallocation of previously allocated resources) in case of 
+   errors encountered in iec61883_cmp_make_p2p().
+
+
+------------------------------------------------------------------------
+r24 | ddennedy | 2004-06-29 23:44:47 -0400 (Tue, 29 Jun 2004) | 1 line
+
+fix broken compilation of test-amdtp.c and remove put_data parameter from iec61883_amdtp_xmit_init() since previous patch splits init functions
+------------------------------------------------------------------------
+r23 | ddennedy | 2004-06-29 23:16:16 -0400 (Tue, 29 Jun 2004) | 1 line
+
+add Hugo to AUTHORS
+------------------------------------------------------------------------
+r22 | ddennedy | 2004-06-29 23:15:14 -0400 (Tue, 29 Jun 2004) | 14 lines
+
+Patch from Hugo Villeneuve <hugo@hugovil.com>
+ -Added functions for amdtp reception.
+ -Added iso_packet_header structure for checking the <tag> field
+  in amdtp reception (maybe this could be checked in libraw1394 instead).
+ -Added constants to iec61883.h for bit length and input format
+  of AM824 data.
+ -Redefined callback function for amdtp reception to pass a
+  quadlet_t buffer instead of a char buffer.
+ -Added <rate> member to iec61883_amdtp structure.
+ -Separated the transmit and receive amdtp init functions:
+     iec61883_amdtp_xmit_init
+     iec61883_amdtp_recv_init
+
+
+------------------------------------------------------------------------
+r21 | ddennedy | 2004-06-19 20:10:21 -0400 (Sat, 19 Jun 2004) | 1 line
+
+make deque LGPL with approval of copyright approval
+------------------------------------------------------------------------
+r20 | ddennedy | 2004-06-13 21:05:23 -0400 (Sun, 13 Jun 2004) | 1 line
+
+restore copyright on deque and GPL license pending LGPL approval from copyright holder
+------------------------------------------------------------------------
+r19 | ddennedy | 2004-06-13 20:43:58 -0400 (Sun, 13 Jun 2004) | 1 line
+
+fix a missing include in tsbuffer.c, add size of a mpeg2 transport stream packet to distributed header
+------------------------------------------------------------------------
+r18 | ddennedy | 2004-06-13 20:29:41 -0400 (Sun, 13 Jun 2004) | 1 line
+
+default test-mpeg2 to capture and implement PID auto discovering
+------------------------------------------------------------------------
+r17 | ddennedy | 2004-06-13 20:15:32 -0400 (Sun, 13 Jun 2004) | 1 line
+
+added mpeg2-ts reception and transmission, added to/from nodes to connection management procedures, add test for mpeg2-ts and cmp
+------------------------------------------------------------------------
+r16 | krh | 2004-06-02 08:34:20 -0400 (Wed, 02 Jun 2004) | 10 lines
+
+Patch from Hugo Villeneuve <hugo@hugovil.com>:
+
+- The TAG field in the isochronous header was hardcoded to 0, which means
+  that no CIP headers are present. Changed this to '1'.
+- Added raw1394handle_t parameter to iec61883_cip_fill_header() function
+  in order to correctly set the SID bit (raw1394handle_t is needed to
+  call raw1394_get_local_id).
+- Changed the AM824 label 0x40 for IEC61883_AM824_LABEL_RAW_16BITS (0x43)
+
+
+------------------------------------------------------------------------
+r15 | krh | 2004-04-29 07:23:33 -0400 (Thu, 29 Apr 2004) | 3 lines
+
+Fix typo: rename iec61883_amdtp_start_xmit to iec61883_amdtp_xmit_start.
+Reported by Hugo Villeneuve <hugo@hugovil.com>
+
+------------------------------------------------------------------------
+r14 | krh | 2004-03-14 12:43:21 -0500 (Sun, 14 Mar 2004) | 3 lines
+
+Add RPM spec-file, add cooked.h to SOURCES.
+
+
+------------------------------------------------------------------------
+r13 | krh | 2004-03-13 11:42:19 -0500 (Sat, 13 Mar 2004) | 2 lines
+
+Use callback_data for file pointer.
+
+------------------------------------------------------------------------
+r12 | ddennedy | 2004-03-13 10:21:09 -0500 (Sat, 13 Mar 2004) | 1 line
+
+some small fixes for dv_transmit
+------------------------------------------------------------------------
+r11 | ddennedy | 2004-03-13 01:17:04 -0500 (Sat, 13 Mar 2004) | 1 line
+
+debugged DV transmission and added to example
+------------------------------------------------------------------------
+r10 | ddennedy | 2004-03-12 23:09:13 -0500 (Fri, 12 Mar 2004) | 1 line
+
+being anal
+------------------------------------------------------------------------
+r9 | ddennedy | 2004-03-12 23:06:49 -0500 (Fri, 12 Mar 2004) | 1 line
+
+cleanup some comment headers
+------------------------------------------------------------------------
+r8 | ddennedy | 2004-03-12 23:01:20 -0500 (Fri, 12 Mar 2004) | 1 line
+
+improvements to the dv frame buffer implementation
+------------------------------------------------------------------------
+r7 | ddennedy | 2004-03-12 22:36:20 -0500 (Fri, 12 Mar 2004) | 1 line
+
+added frame buffer interface for DV capture
+------------------------------------------------------------------------
+r6 | ddennedy | 2004-03-12 20:43:49 -0500 (Fri, 12 Mar 2004) | 1 line
+
+add dv reception and untested code for dv transmission
+------------------------------------------------------------------------
+r5 | ddennedy | 2004-03-09 19:14:01 -0500 (Tue, 09 Mar 2004) | 1 line
+
+qualify plug structs
+------------------------------------------------------------------------
+r4 | ddennedy | 2004-03-09 09:11:32 -0500 (Tue, 09 Mar 2004) | 1 line
+
+initial import
+------------------------------------------------------------------------
+r1 | root | 2002-11-24 17:06:02 -0500 (Sun, 24 Nov 2002) | 1 line
+
+New dir
+------------------------------------------------------------------------

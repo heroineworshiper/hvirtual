@@ -1,0 +1,51 @@
+include global_config
+
+DIR := thirdparty/uuid
+
+OBJS := \
+	$(DIR)/$(OBJDIR)/clear.o	   \
+	$(DIR)/$(OBJDIR)/compare.o	   \
+	$(DIR)/$(OBJDIR)/copy.o 	   \
+	$(DIR)/$(OBJDIR)/gen_uuid.o    \
+	$(DIR)/$(OBJDIR)/isnull.o	   \
+	$(DIR)/$(OBJDIR)/pack.o 	   \
+	$(DIR)/$(OBJDIR)/parse.o	   \
+	$(DIR)/$(OBJDIR)/tst_uuid.o    \
+	$(DIR)/$(OBJDIR)/unpack.o	   \
+	$(DIR)/$(OBJDIR)/unparse.o	   \
+	$(DIR)/$(OBJDIR)/uuid_time.o
+
+
+
+
+OUTPUT = $(DIR)/$(OBJDIR)/libuuid.a
+
+CFLAGS += -I$(DIR) -Ithirdparty -I.
+
+$(shell sh -c 'mkdir -p $(DIR)/$(OBJDIR)' )
+$(shell echo $(CFLAGS) > $(DIR)/$(OBJDIR)/c_flags)
+
+all: $(OUTPUT)
+
+$(OUTPUT): $(OBJS)
+	ar rc $(OUTPUT) $(OBJS)
+
+$(OBJS):
+	$(GCC) -c `cat $(DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
+
+clean:
+	rm -rf $(OBJDIR)
+
+$(DIR)/$(OBJDIR)/clear.o:		  $(DIR)/clear.c
+$(DIR)/$(OBJDIR)/compare.o: 	  $(DIR)/compare.c
+$(DIR)/$(OBJDIR)/copy.o:		  $(DIR)/copy.c
+$(DIR)/$(OBJDIR)/gen_uuid.o:	  $(DIR)/gen_uuid.c
+$(DIR)/$(OBJDIR)/isnull.o:		  $(DIR)/isnull.c
+$(DIR)/$(OBJDIR)/pack.o:		  $(DIR)/pack.c
+$(DIR)/$(OBJDIR)/parse.o:		  $(DIR)/parse.c
+$(DIR)/$(OBJDIR)/tst_uuid.o:	  $(DIR)/tst_uuid.c
+$(DIR)/$(OBJDIR)/unpack.o:		  $(DIR)/unpack.c
+$(DIR)/$(OBJDIR)/unparse.o: 	  $(DIR)/unparse.c
+$(DIR)/$(OBJDIR)/uuid_time.o:	  $(DIR)/uuid_time.c
+
+

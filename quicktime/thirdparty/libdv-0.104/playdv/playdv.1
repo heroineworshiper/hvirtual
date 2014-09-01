@@ -1,0 +1,136 @@
+.\" playdv - display digital video streams on screen
+.\" Copyright (c) 2001-2004 Charles 'Buck' Krasic, Erik Walthinsen, Daniel Kobras
+.\"
+.\" This manual page is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc.,59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+.\"
+.\" This manual page was written especially for Debian Linux. It is based
+.\" on playdv's help output.
+.\"
+.TH PLAYDV 1 "January 2003"
+.SH NAME
+playdv \- display digital video streams on screen
+.SH SYNOPSIS
+.B playdv
+[ \fBoptions\fR ] \fIfile\fR
+.SH DESCRIPTION
+\fBplaydv\fR reads in DV-encoded video data from \fIfile\fR and displays
+it on screen.
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+show playdv version number.
+.TP
+\fB\-\-disable\-audio\fR
+skip audio decoding.
+.TP
+\fB\-\-disable\-video\fR
+skip video decoding.
+.TP
+\fB\-n\fR, \fB\-\-num\-frames\fR=\fIcount\fR
+stop playing after \fIcount\fR frames.
+.TP
+\fB\-\-dump\-frames\fR=\fIpattern\fR
+save a PPM image of each frame to an individual file. \fIpattern\fR determines
+the file names and may be given in \fIprintf\fR-style taking one numeric
+argument that gets replaced with the current frame number. Like
+capture%05d.ppm for files capture00001.ppm, capture00002.ppm, etc.
+Use \fI-\fR to stream the frames to stdout.
+.TP
+\fB\-\-no\-mmap\fR
+don't use mmap for reading (useful for pipes).
+.TP
+\fB\-l\fR, \fB\-\-loop\-count\fR=\fIcount\fR
+loop playback \fIcount=\fR times, 0 for infinite.
+.PP
+Audio Output Options
+.TP
+\fB\-\-audio\-device\fR=\fIdevicename\fR
+target audio device; e.g. /dev/dsp, which is also the default.
+.TP
+\fB\-\-audio\-file\fR=\fIfile\fR
+send raw decoded audio stream to \fIfile\fR, skipping audio ioctls.
+.TP
+\fB\-\-audio\-mix\fR=\fI(-16 .. 16)\fR
+mixing level of 4 channel audio for 32KHz 12bit. 0 [default].
+-16 selects second channel, 16 selects first channel.
+.PP
+Video Output Options
+.TP
+\fB\-d\fR, \fB\-\-display=\fR(0|1|2|3)
+method used to display video data on screen: 0=autoselect [default],
+1=gtk, 2=Xv, 3=SDL. Xv is usually the fastest but requires XFree86
+version 4.0 or higher with XVideo extensions.
+.TP
+\fB\-\-aspect\fR=\fR(n|w|normal|wide)
+video display aspect ratio (for Xv only): n=normal 4:3, w=wide 16:9 .
+Not all window manager support resizing at fixed aspect ratio. If they do,
+resizing is done at fixed aspect ratio.
+.TP
+\fB\-\-size\fR=\fR(10 .. 100)
+initial scaleing percentage (for Xv only): 10 <= n <= 100.
+.PP
+Decoder Options
+.TP
+\fB\-V\fR, \fB\-\-video-system\fR=(0|1|2|3)
+sets the video standard of the incoming DV data: 0=autoselect [default],
+1=525/60 4:1:1 (NTSC), 2=625/50 4:2:0 (PAL,IEC 61834 DV),
+3=625/50 4:1:1 (PAL,SMPTE 314M DV). Autoselect usually works fine. Only
+use this option if you know what you are doing.
+.PP
+Video Decode Options
+.TP
+\fB\-q\fR, \fB\-\-quality=\fR(1|2|3)
+quality level of desired video decoding.  The process of decoding DV data
+is split into several steps.  Each additional step enhances output quality,
+but of course also slows down decoding.  If your machine is too slow to
+keep up an interactive frame rate, you might want to decrease this number:
+1=DC and no ACs, 2=DC and single-pass for ACs, 3=DC and multi-pass
+for ACs [default].
+.TP
+\fB\-m\fR, \fB\-\-monochrome\fR
+skip decoding of color blocks. Another way to speed up the decoding process.
+.PP
+Audio Decode Options
+.TP
+\fB\-f\fR, \fB\-\-frequency=\fR(0|1|2|3)
+frequency of audio data in the input stream: 0=autodetect [default],
+1=32 kHz, 2=44.1 kHz, 3=48 kHz.
+.TP
+\fB\-Q\fR, \fB\-\-quantization=\fR(0|1|2)
+dynamic range of audio data in the input stream: 0=autodetect [default],
+1=12 bit, 2=16bit.
+.TP
+\fB\-e\fR, \fB\-\-emphasis=\fR(0|1|2)
+first-order preemphasis of 50/15 us:
+0=autodetect [default], 1=on, 2=off.
+.PP
+Help Options
+.TP
+-\fB?\fR, \fB\-\-help\fR
+Show help message. Use this command to get a brief description of available options.
+.TP
+\fB\-\-usage\fR
+Display brief usage message.
+.SH "SEE ALSO"
+.BR dvconnect (1), dubdv (1), encodedv (1).
+.SH AVAILABILITY
+See http://libdv.sourceforge.net/ for the latest version.
+.SH AUTHORS
+.B playdv
+was written by Charles 'Buck' Krasic <krasic@acm.org> and
+Erik Walthinsen <omega@cse.ogi.edu>.
+.PP
+This manual page is based on playdv's help message and was written by
+Daniel Kobras <kobras@debian.org> for the Debian GNU/Linux system
+(but may be used by others).

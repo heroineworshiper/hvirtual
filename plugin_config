@@ -1,0 +1,29 @@
+CFLAGS += -I../ -I../../cinelerra \
+	-I../../guicast \
+	-I../../quicktime \
+	-I../colors \
+	-fPIC -g
+
+$(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
+$(shell echo $(LFLAGS) > $(OBJDIR)/l_flags)
+
+
+$(OUTPUT): $(OBJS)
+	$(LDLINKER) -o $(OUTPUT) $(OBJS) `cat $(OBJDIR)/l_flags`
+	strip $(OUTPUT)
+
+
+install:
+	rm -f $(subst ../$(OBJDIR)/,, ../../bin/$(OUTPUT))
+	cp $(OUTPUT) ../../bin/
+
+clean:
+	find \( -name core 		-o -name '*.o' 		-o -name '*.a' \) -exec rm -f {} \;
+	rm -f $(OUTPUT)
+	rm -rf $(OBJDIR)
+
+wc:
+	cat *.C *.h | wc
+
+$(OBJS):
+	$(CC) -c `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o

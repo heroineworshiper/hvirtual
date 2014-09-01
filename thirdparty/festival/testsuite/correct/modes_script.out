@@ -1,0 +1,414 @@
+
+
+
+SABLE mode
+#
+0.9754 100 Homographs
+1.0879 100 are
+1.3103 100 words
+1.5045 100 that
+1.6452 100 are
+1.9263 100 written
+1.9977 100 the
+2.4583 100 same
+2.9092 100 but
+3.1237 100 have
+3.6219 100 different
+4.7578 100 pronunciations
+5.2959 100 such
+5.4988 100 as
+5.8839 100 lyves
+6.0835 100 and
+6.6079 100 lives
+7.2277 100 You
+7.5635 100 say
+7.6999 100 e
+7.8483 100 thur
+8.3035 100 while
+8.4901 100 I
+8.8239 100 say
+8.9466 100 i
+9.1119 100 thur
+#
+0.2600 100 We
+0.3873 100 can
+0.5265 100 say
+0.6508 100 things
+0.9309 100 fast
+#
+0.3768 100 and
+1.3958 100 slowly
+#
+0.3967 100 And
+0.5812 100 then
+0.7590 100 at
+1.2333 100 normal
+1.7070 100 speed
+
+
+OGI's mark up mode
+#
+0.3960 100 This
+0.5348 100 is
+0.6286 100 an
+1.2732 100 example
+#
+#
+0.4680 100 This
+0.6242 100 is
+0.7027 100 a
+1.1258 100 slow
+1.9616 100 example
+#
+#
+0.7113 100 This
+0.9636 100 is
+1.0665 100 a
+1.6394 100 very
+2.1746 100 slow
+3.3059 100 example
+#
+0.2384 100 a
+0.6634 100 normal
+0.9459 100 one
+#
+0.2905 100 and
+0.3276 100 a
+0.6382 100 fast
+0.9501 100 talking
+1.4134 100 example
+#
+0.2621 100 Maybe
+0.3502 100 this
+0.4247 100 one
+0.4931 100 is
+0.5780 100 too
+0.8430 100 fast
+#
+#
+0.4252 100 My
+0.7444 100 name
+0.9037 100 is
+1.3302 100 Mike
+#
+0.3706 100 m
+0.5189 100 i
+0.8360 100 k
+1.0193 100 e
+#
+0.4252 100 My
+1.0245 100 telephone
+1.3529 100 number
+1.5966 100 is
+#
+0.5775 100 six
+0.9426 100 five
+1.3702 100 zero
+1.7768 100 two
+2.1498 100 seven
+2.3428 100 eight
+2.7698 100 seven
+#
+0.5576 100 Mike
+0.8795 100 here
+#
+0.5130 100 Chris
+0.8527 100 here
+#
+0.3600 100 This
+0.4921 100 is
+0.9165 100 Gordon
+#
+0.3670 100 I'm
+0.6943 100 most
+1.1428 100 terribly
+1.4801 100 sorry
+1.7193 100 to
+2.2120 100 interrupt
+2.3679 100 at
+2.5625 100 this
+2.9508 100 time
+3.3828 100 but
+3.5964 100 my
+3.8636 100 name
+3.9962 100 is
+4.3181 100 Roger
+#
+0.2672 100 A
+0.4587 100 good
+0.6546 100 day
+0.8218 100 to
+1.1079 100 you
+
+
+An email mode
+#
+0.4325 100 From
+#
+0.4879 100 Alan
+0.8582 100 W
+1.1638 100 Black
+1.9989 100 awb
+2.3649 100 at
+3.0684 100 cstr
+3.2789 100 dot
+3.4261 100 ed
+3.6272 100 dot
+3.9380 100 ac
+4.1695 100 dot
+4.6229 100 uk
+#
+0.8100 100 Subject
+#
+0.7615 100 Example
+0.9717 100 mail
+1.4312 100 message
+#
+0.4879 100 Alan
+0.8582 100 W
+1.1744 100 Black
+1.4320 100 writes
+1.5817 100 on
+1.9377 100 twenty
+2.3531 100 seventh
+2.8842 100 November
+3.5314 100 nineteen
+3.9270 100 ninety
+4.3941 100 six
+#
+0.3495 100 I'm
+0.6522 100 looking
+0.8849 100 for
+0.9149 100 a
+1.2108 100 demo
+1.4196 100 mail
+1.8975 100 message
+2.3055 100 for
+2.9339 100 Festival
+3.3219 100 but
+3.6275 100 can't
+3.8703 100 seem
+4.0210 100 to
+4.3025 100 find
+4.5035 100 any
+5.0694 100 suitable
+#
+0.3238 100 It
+0.5006 100 should
+0.6587 100 at
+0.9169 100 least
+1.1194 100 have
+1.3094 100 some
+1.7039 100 quoted
+2.2518 100 text
+2.6097 100 and
+2.8122 100 have
+2.9957 100 some
+3.4783 100 interesting
+3.9953 100 tokens
+4.4365 100 like
+4.4744 100 a
+4.6974 100 U
+4.9333 100 R
+5.1690 100 L
+5.4977 100 or
+5.7960 100 such
+6.2144 100 like
+#
+0.5121 100 Alan
+#
+0.4171 100 Well
+0.6177 100 I'm
+0.8280 100 not
+1.0981 100 sure
+1.7706 100 exactly
+2.1386 100 what
+2.2396 100 you
+2.4730 100 mean
+2.6799 100 but
+3.4537 100 awb
+3.6200 100 at
+4.0615 100 cogsci
+4.2720 100 dot
+4.4192 100 ed
+4.6202 100 dot
+4.9311 100 ac
+5.1625 100 dot
+5.6160 100 uk
+6.0661 100 has
+6.1574 100 an
+6.6776 100 interesting
+6.9032 100 home
+7.3634 100 page
+7.7192 100 at
+8.0002 100 h
+8.1995 100 t
+8.3773 100 t
+8.6250 100 p
+0.0000 100 :
+9.2744 100 slash
+9.7220 100 slash
+10.1003 100 w
+10.4917 100 w
+10.8831 100 w
+11.1067 100 dot
+11.7935 100 cstr
+12.0040 100 dot
+12.1512 100 ed
+12.3522 100 dot
+12.6769 100 ac
+12.9139 100 dot
+13.3695 100 uk
+13.9301 100 slash
+14.1902 100 ~
+14.9238 100 awb
+15.3150 100 slash
+15.5196 100 which
+15.7327 100 might
+15.9811 100 be
+16.4010 100 what
+16.5224 100 you're
+16.8587 100 looking
+17.0790 100 for
+#
+0.5377 100 Alan
+#
+0.4348 100 P
+0.6369 100 S
+0.7647 100 Will
+0.9343 100 you
+1.2098 100 attend
+1.2730 100 the
+1.8240 100 course
+#
+0.3271 100 I
+0.6470 100 hope
+0.9680 100 so
+#
+0.4741 100 bye
+0.6674 100 for
+1.0077 100 now
+
+
+A singing mode
+"durs"
+(0.6)
+note is "G3"
+"G3"
+note "G3" freq 97.998856
+"freqs"
+(97.998859)
+"durs"
+(0.6)
+note is "A3"
+"A3"
+note "A3" freq 110.000000
+"freqs"
+(110)
+"durs"
+(0.6)
+note is "B3"
+"B3"
+note "B3" freq 123.470825
+"freqs"
+(123.47083)
+"durs"
+(0.6)
+note is "C4"
+"C4"
+note "C4" freq 130.812790
+"freqs"
+(130.81278)
+"durs"
+(0.6)
+note is "D4"
+"D4"
+note "D4" freq 146.832382
+"freqs"
+(146.83238)
+"durs"
+(0.6)
+note is "E4"
+"E4"
+note "E4" freq 164.813782
+"freqs"
+(164.81378)
+"durs"
+(0.6)
+note is "F#4"
+"F#4"
+note "F#4" freq 184.997208
+"freqs"
+(184.99721)
+"durs"
+(0.6)
+note is "G4"
+"G4"
+note "G4" freq 195.997711
+"freqs"
+(195.99772)
+Want to adjust syl by 0.090000
+Want to adjust syl by 0.000000
+Want to adjust syl by 0.040000
+Want to adjust syl by 0.050000
+Want to adjust syl by 0.040000
+Want to adjust syl by 0.030000
+Want to adjust syl by 0.050000
+Want to adjust syl by 0.090000
+Vowlen: 0.134000 conslen: 0.048000 totlen: 0.182000
+Offset: 0.000000
+Syldur: 0.600000
+restlen 0
+Vowlen: 0.132000 conslen: 0.053000 totlen: 0.185000
+Offset: 0.040000
+Syldur: 0.560000
+restlen 0
+Vowlen: 0.097000 conslen: 0.069000 totlen: 0.166000
+Offset: 0.010000
+Syldur: 0.590000
+restlen 0
+Vowlen: 0.094000 conslen: 0.095000 totlen: 0.189000
+Offset: -0.010000
+Syldur: 0.610000
+restlen 0
+Vowlen: 0.134000 conslen: 0.102000 totlen: 0.236000
+Offset: -0.010000
+Syldur: 0.610000
+restlen 0
+Vowlen: 0.094000 conslen: 0.066000 totlen: 0.160000
+Offset: 0.020000
+Syldur: 0.580000
+restlen 0
+Vowlen: 0.097000 conslen: 0.070000 totlen: 0.167000
+Offset: 0.040000
+Syldur: 0.560000
+restlen 0
+Vowlen: 0.134000 conslen: 0.048000 totlen: 0.182000
+Offset: -0.090000
+Syldur: 0.690000
+restlen 0
+segment: d end: 0.048000
+segment: ow end: 0.600000
+segment: r end: 0.653000
+segment: ey end: 1.160000
+segment: m end: 1.229000
+segment: iy end: 1.750000
+segment: f end: 1.845000
+segment: aa end: 2.360000
+segment: s end: 2.462000
+segment: ow end: 2.970000
+segment: l end: 3.036000
+segment: aa end: 3.550000
+segment: t end: 3.620000
+segment: iy end: 4.110000
+segment: d end: 4.158000
+segment: ow end: 4.800000
+#
+0.6000 100 doe
+1.1600 100 ray
+1.7500 100 me
+2.3600 100 fah
+2.9700 100 sew
+3.5500 100 lah
+4.1100 100 tee
+4.8000 100 doe

@@ -1,0 +1,46 @@
+README
+
+Vectored C was invented for several reasons, none of which was to
+further the oppresion of individual freedom by demonically posessed
+corporate chip makers.  In fact we support the populace.  Individuals
+should get whatever they want, as long as it's a wireless handheld.
+
+Vectored C is supposed to
+
+1) Generate C and vectored math assembly from the same source so it
+only has to be written and debugged once, not necessarily by someone
+who can afford the target processor.
+
+2) Make vectored math assembly slightly easier to read.
+
+3) Enforce data types when using assembly language.
+
+4) Allow operators to change the types of their destination argument and
+identifiers to permanently change their own type.
+
+While vectored C in its current state doesn't look like much
+improvement over hand coded assembly, these 4 reasons should make it
+useful.
+
+It is not a full C implementation or even close to a full language
+implementation.  It still relies on gcc to generate object code.  Since
+the vectored C compiler isn't smart enough to parse a full language yet
+it still does something useful we need an intermediate term.
+
+Many programmers in the 90's weren't smart enough to write real
+compilers either and they came up with the intermediate term
+"programming language interface".  Vectored C is a programming language
+interface.
+
+We would hope for vectored C to parse complex algebraic expressions
+eventually.  All the pieces are in place to generate vectored assembly
+from algebra, but the philosophy should remain focused on just
+abstracting the vectored math functions and not replacing the complete
+language.
+
+
+
+
+
+
+

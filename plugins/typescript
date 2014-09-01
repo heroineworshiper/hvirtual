@@ -1,0 +1,884 @@
+Script started on Mon 12 Sep 2011 04:10:38 PM PDT
+]0;root@amazon: ~/hvirtual/pluginsamazon:/root/hvirtual/plugins% make
+make -j2 -C 1080to540
+make -j2 -C 720to480
+make[1]: Entering directory `/root/hvirtual/plugins/720to480'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+make[1]: Entering directory `/root/hvirtual/plugins/1080to540'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  720to480.C -o x86_64/720to480.o
+g++ -c `cat x86_64/c_flags`  1080to540.C -o x86_64/1080to540.o
+g++ -shared  -o ../../bin//1080to540.plugin x86_64/1080to540.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//720to480.plugin x86_64/720to480.o `cat x86_64/l_flags`
+strip ../../bin//1080to540.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/1080to540'
+make -j2 -C audioscope
+make[1]: Entering directory `/root/hvirtual/plugins/audioscope'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+strip ../../bin//720to480.plugin
+g++ -c `cat x86_64/c_flags`  audioscope.C -o x86_64/audioscope.o
+make[1]: Leaving directory `/root/hvirtual/plugins/720to480'
+make -j2 -C burn
+make[1]: Entering directory `/root/hvirtual/plugins/burn'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  burn.C -o x86_64/burn.o
+g++ -c `cat x86_64/c_flags`  burnwindow.C -o x86_64/burnwindow.o
+g++ -c `cat x86_64/c_flags`  effecttv.C -o x86_64/effecttv.o
+effecttv.C: In static member function ‘static void EffectTV::effecttv_to_frame(VFrame*, uint32_t*)’:
+effecttv.C:177:4: warning: large integer implicitly truncated to unsigned type
+effecttv.C:182:4: warning: large integer implicitly truncated to unsigned type
+g++ -shared  -o ../../bin//audioscope.plugin x86_64/audioscope.o `cat x86_64/l_flags`
+strip ../../bin//audioscope.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/audioscope'
+make -j2 -C bandslide
+make[1]: Entering directory `/root/hvirtual/plugins/bandslide'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  bandslide.C -o x86_64/bandslide.o
+g++ -shared  -o ../../bin//burn.plugin x86_64/burn.o x86_64/burnwindow.o x86_64/effecttv.o `cat x86_64/l_flags`
+strip ../../bin//burn.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/burn'
+make -j2 -C bandwipe
+make[1]: Entering directory `/root/hvirtual/plugins/bandwipe'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  bandwipe.C -o x86_64/bandwipe.o
+g++ -shared  -o ../../bin//bandwipe.plugin x86_64/bandwipe.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//bandslide.plugin x86_64/bandslide.o `cat x86_64/l_flags`
+strip ../../bin//bandwipe.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/bandwipe'
+make -j2 -C blur
+make[1]: Entering directory `/root/hvirtual/plugins/blur'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  blur.C -o x86_64/blur.o
+g++ -c `cat x86_64/c_flags`  blurwindow.C -o x86_64/blurwindow.o
+strip ../../bin//bandslide.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/bandslide'
+make -j2 -C brightness
+make[1]: Entering directory `/root/hvirtual/plugins/brightness'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  brightness.C -o x86_64/brightness.o
+g++ -c `cat x86_64/c_flags`  brightnesswindow.C -o x86_64/brightnesswindow.o
+g++ -shared  -o ../../bin//brightness.plugin x86_64/brightness.o x86_64/brightnesswindow.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//blur.plugin x86_64/blur.o x86_64/blurwindow.o `cat x86_64/l_flags`
+strip ../../bin//brightness.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/brightness'
+make -j2 -C parametric
+make[1]: Entering directory `/root/hvirtual/plugins/parametric'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  parametric.C -o x86_64/parametric.o
+strip ../../bin//blur.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/blur'
+make -j2 -C aging
+make[1]: Entering directory `/root/hvirtual/plugins/aging'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  aging.C -o x86_64/aging.o
+g++ -c `cat x86_64/c_flags`  agingwindow.C -o x86_64/agingwindow.o
+g++ -c `cat x86_64/c_flags`  effecttv.C -o x86_64/effecttv.o
+effecttv.C: In static member function ‘static void EffectTV::effecttv_to_frame(VFrame*, uint32_t*)’:
+effecttv.C:177:4: warning: large integer implicitly truncated to unsigned type
+effecttv.C:182:4: warning: large integer implicitly truncated to unsigned type
+g++ -shared  -o ../../bin//parametric.plugin x86_64/parametric.o `cat x86_64/l_flags`
+strip ../../bin//parametric.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/parametric'
+make -j2 -C cdripper
+make[1]: Entering directory `/root/hvirtual/plugins/cdripper'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  cdripper.C -o x86_64/cdripper.o
+g++ -c `cat x86_64/c_flags`  cdripwindow.C -o x86_64/cdripwindow.o
+cdripper.C: In member function ‘virtual int CDRipMain::process_loop(Samples**, int64_t&)’:
+cdripper.C:328:65: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘int64_t’
+g++ -shared  -o ../../bin//cdripper.plugin x86_64/cdripper.o x86_64/cdripwindow.o `cat x86_64/l_flags`
+strip ../../bin//cdripper.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/cdripper'
+make -j2 -C chromakey
+make[1]: Entering directory `/root/hvirtual/plugins/chromakey'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  chromakey.C -o x86_64/chromakey.o
+g++ -shared  -o ../../bin//aging.plugin x86_64/aging.o x86_64/agingwindow.o x86_64/effecttv.o `cat x86_64/l_flags`
+strip ../../bin//aging.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/aging'
+make -j2 -C chromakeyhsv
+make[1]: Entering directory `/root/hvirtual/plugins/chromakeyhsv'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  chromakey.C -o x86_64/chromakey.o
+cd x86_64 && \
+	../../../guicast/x86_64/bootstrap -s chromakey_sl.o ../chromakey.sl
+g++ -shared  -o ../../bin//chromakey.plugin x86_64/chromakey.o `cat x86_64/l_flags`
+strip ../../bin//chromakey.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/chromakey'
+make -j2 -C colorbalance
+make[1]: Entering directory `/root/hvirtual/plugins/colorbalance'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  colorbalance.C -o x86_64/colorbalance.o
+g++ -c `cat x86_64/c_flags`  colorbalancewindow.C -o x86_64/colorbalancewindow.o
+g++ -shared  -o ../../bin//colorbalance.plugin x86_64/colorbalance.o x86_64/colorbalancewindow.o `cat x86_64/l_flags`
+strip ../../bin//colorbalance.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/colorbalance'
+make -j2 -C color3way
+g++ -shared  -o ../../bin//chromakeyhsv.plugin x86_64/chromakey.o x86_64/chromakey_sl.o
+make[1]: Entering directory `/root/hvirtual/plugins/color3way'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  color3way.C -o x86_64/color3way.o
+g++ -c `cat x86_64/c_flags`  color3waywindow.C -o x86_64/color3waywindow.o
+strip ../../bin//chromakeyhsv.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/chromakeyhsv'
+make -j2 -C compressor
+make[1]: Entering directory `/root/hvirtual/plugins/compressor'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  compressor.C -o x86_64/compressor.o
+g++ -shared  -o ../../bin//color3way.plugin x86_64/color3way.o x86_64/color3waywindow.o `cat x86_64/l_flags`
+strip ../../bin//color3way.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/color3way'
+make -j2 -C crossfade
+make[1]: Entering directory `/root/hvirtual/plugins/crossfade'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  crossfade.C -o x86_64/crossfade.o
+g++ -shared  -o ../../bin//crossfade.plugin x86_64/crossfade.o `cat x86_64/l_flags`
+strip ../../bin//crossfade.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/crossfade'
+make -j2 -C dcoffset
+make[1]: Entering directory `/root/hvirtual/plugins/dcoffset'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  dcoffset.C -o x86_64/dcoffset.o
+g++ -shared  -o ../../bin//dcoffset.plugin x86_64/dcoffset.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//compressor.plugin x86_64/compressor.o `cat x86_64/l_flags`
+strip ../../bin//dcoffset.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/dcoffset'
+make -j2 -C decimate
+make[1]: Entering directory `/root/hvirtual/plugins/decimate'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  decimate.C -o x86_64/decimate.o
+strip ../../bin//compressor.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/compressor'
+make -j2 -C deinterlace
+make[1]: Entering directory `/root/hvirtual/plugins/deinterlace'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  deinterlace.C -o x86_64/deinterlace.o
+g++ -c `cat x86_64/c_flags`  deinterwindow.C -o x86_64/deinterwindow.o
+g++ -shared  -o ../../bin//decimate.plugin x86_64/decimate.o `cat x86_64/l_flags`
+strip ../../bin//decimate.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/decimate'
+make -j2 -C delayaudio
+make[1]: Entering directory `/root/hvirtual/plugins/delayaudio'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  delayaudio.C -o x86_64/delayaudio.o
+g++ -shared  -o ../../bin//deinterlace.plugin x86_64/deinterlace.o x86_64/deinterwindow.o `cat x86_64/l_flags`
+strip ../../bin//deinterlace.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/deinterlace'
+make -j2 -C delayvideo
+make[1]: Entering directory `/root/hvirtual/plugins/delayvideo'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  delayvideo.C -o x86_64/delayvideo.o
+g++ -shared  -o ../../bin//delayaudio.plugin x86_64/delayaudio.o `cat x86_64/l_flags`
+strip ../../bin//delayaudio.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/delayaudio'
+make -j2 -C denoise
+make[1]: Entering directory `/root/hvirtual/plugins/denoise'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  denoise.C -o x86_64/denoise.o
+g++ -shared  -o ../../bin//delayvideo.plugin x86_64/delayvideo.o `cat x86_64/l_flags`
+strip ../../bin//delayvideo.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/delayvideo'
+make -j2 -C denoisefft
+make[1]: Entering directory `/root/hvirtual/plugins/denoisefft'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  denoisefft.C -o x86_64/denoisefft.o
+g++ -shared  -o ../../bin//denoise.plugin x86_64/denoise.o `cat x86_64/l_flags`
+strip ../../bin//denoise.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/denoise'
+make -j2 -C denoiseseltempavg
+make[1]: Entering directory `/root/hvirtual/plugins/denoiseseltempavg'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  seltempavg.C -o x86_64/seltempavg.o
+g++ -c `cat x86_64/c_flags`  seltempavgwindow.C -o x86_64/seltempavgwindow.o
+g++ -shared  -o ../../bin//denoisefft.plugin x86_64/denoisefft.o `cat x86_64/l_flags`
+strip ../../bin//denoisefft.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/denoisefft'
+make -j2 -C denoisevideo
+make[1]: Entering directory `/root/hvirtual/plugins/denoisevideo'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  denoisevideo.C -o x86_64/denoisevideo.o
+g++ -shared  -o ../../bin//denoisevideo.plugin x86_64/denoisevideo.o `cat x86_64/l_flags`
+strip ../../bin//denoisevideo.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/denoisevideo'
+make -j2 -C despike
+make[1]: Entering directory `/root/hvirtual/plugins/despike'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  despike.C -o x86_64/despike.o
+g++ -c `cat x86_64/c_flags`  despikewindow.C -o x86_64/despikewindow.o
+g++ -shared  -o ../../bin//despike.plugin x86_64/despike.o x86_64/despikewindow.o `cat x86_64/l_flags`
+strip ../../bin//despike.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/despike'
+make -j2 -C diffkey
+make[1]: Entering directory `/root/hvirtual/plugins/diffkey'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  diffkey.C -o x86_64/diffkey.o
+g++ -shared  -o ../../bin//seltempavg.plugin x86_64/seltempavg.o x86_64/seltempavgwindow.o `cat x86_64/l_flags`
+strip ../../bin//seltempavg.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/denoiseseltempavg'
+make -j2 -C dissolve
+make[1]: Entering directory `/root/hvirtual/plugins/dissolve'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  dissolve.C -o x86_64/dissolve.o
+g++ -shared  -o ../../bin//diffkey.plugin x86_64/diffkey.o `cat x86_64/l_flags`
+strip ../../bin//diffkey.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/diffkey'
+make -j2 -C dot
+make[1]: Entering directory `/root/hvirtual/plugins/dot'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  dot.C -o x86_64/dot.o
+g++ -c `cat x86_64/c_flags`  dotwindow.C -o x86_64/dotwindow.o
+g++ -shared  -o ../../bin//dissolve.plugin x86_64/dissolve.o `cat x86_64/l_flags`
+dot.C: In member function ‘void DotClient::draw_dot(int, int, unsigned char, unsigned char**, int)’:
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:403:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+g++ -c `cat x86_64/c_flags`  effecttv.C -o x86_64/effecttv.o
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+dot.C:411:4: warning: large integer implicitly truncated to unsigned type
+strip ../../bin//dissolve.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/dissolve'
+make -j2 -C downsample
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:419:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+dot.C:423:4: warning: large integer implicitly truncated to unsigned type
+make[1]: Entering directory `/root/hvirtual/plugins/downsample'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  downsample.C -o x86_64/downsample.o
+g++ -c `cat x86_64/c_flags`  downsampleengine.C -o x86_64/downsampleengine.o
+effecttv.C: In static member function ‘static void EffectTV::effecttv_to_frame(VFrame*, uint32_t*)’:
+effecttv.C:177:4: warning: large integer implicitly truncated to unsigned type
+effecttv.C:182:4: warning: large integer implicitly truncated to unsigned type
+g++ -shared  -o ../../bin//downsample.plugin x86_64/downsample.o x86_64/downsampleengine.o `cat x86_64/l_flags`
+strip ../../bin//downsample.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/downsample'
+make -j2 -C fieldframe
+make[1]: Entering directory `/root/hvirtual/plugins/fieldframe'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  fieldframe.C -o x86_64/fieldframe.o
+g++ -shared  -o ../../bin//dot.plugin x86_64/dot.o x86_64/dotwindow.o x86_64/effecttv.o `cat x86_64/l_flags`
+strip ../../bin//dot.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/dot'
+make -j2 -C flash
+make[1]: Entering directory `/root/hvirtual/plugins/flash'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  flash.C -o x86_64/flash.o
+g++ -shared  -o ../../bin//fieldframe.plugin x86_64/fieldframe.o `cat x86_64/l_flags`
+strip ../../bin//fieldframe.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/fieldframe'
+make -j2 -C flip
+make[1]: Entering directory `/root/hvirtual/plugins/flip'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  flip.C -o x86_64/flip.o
+g++ -c `cat x86_64/c_flags`  flipwindow.C -o x86_64/flipwindow.o
+g++ -shared  -o ../../bin//flip.plugin x86_64/flip.o x86_64/flipwindow.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//flash.plugin x86_64/flash.o `cat x86_64/l_flags`
+strip ../../bin//flip.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/flip'
+make -j2 -C framefield
+make[1]: Entering directory `/root/hvirtual/plugins/framefield'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  framefield.C -o x86_64/framefield.o
+strip ../../bin//flash.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/flash'
+make -j2 -C freeverb
+make[1]: Entering directory `/root/hvirtual/plugins/freeverb'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat ../../bin//c_flags`  freeverb.C -o x86_64/freeverb.o
+g++ -c `cat ../../bin//c_flags`  Components/allpass.cpp -o x86_64/Components/allpass.o
+g++ -c `cat ../../bin//c_flags`  Components/comb.cpp -o x86_64/Components/comb.o
+g++ -c `cat ../../bin//c_flags`  Components/revmodel.cpp -o x86_64/Components/revmodel.o
+g++ -shared  -o ../../bin//freeverb.plugin `cat x86_64/objs`
+g++ -shared  -o ../../bin//framefield.plugin x86_64/framefield.o `cat x86_64/l_flags`
+make[1]: Leaving directory `/root/hvirtual/plugins/freeverb'
+make -j2 -C freezeframe
+make[1]: Entering directory `/root/hvirtual/plugins/freezeframe'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  freezeframe.C -o x86_64/freezeframe.o
+strip ../../bin//framefield.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/framefield'
+make -j2 -C gain
+make[1]: Entering directory `/root/hvirtual/plugins/gain'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  gain.C -o x86_64/gain.o
+g++ -c `cat x86_64/c_flags`  gainwindow.C -o x86_64/gainwindow.o
+freezeframe.C: In member function ‘virtual int FreezeFrameMain::process_buffer(VFrame*, int64_t, double)’:
+freezeframe.C:266:72: warning: format ‘%lld’ expects type ‘long long int’, but argument 2 has type ‘int64_t’
+g++ -shared  -o ../../bin//gain.plugin x86_64/gain.o x86_64/gainwindow.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//freezeframe.plugin x86_64/freezeframe.o `cat x86_64/l_flags`
+strip ../../bin//gain.plugin
+strip ../../bin//freezeframe.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/gain'
+make -j2 -C gamma
+make[1]: Leaving directory `/root/hvirtual/plugins/freezeframe'
+make -j2 -C gradient
+make[1]: Entering directory `/root/hvirtual/plugins/gamma'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+make[1]: Entering directory `/root/hvirtual/plugins/gradient'
+g++ -c `cat x86_64/c_flags`  gamma.C -o x86_64/gamma.o
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  gammawindow.C -o x86_64/gammawindow.o
+g++ -c `cat x86_64/c_flags`  gradient.C -o x86_64/gradient.o
+g++ -shared  -o ../../bin//gamma.plugin x86_64/gamma.o x86_64/gammawindow.o `cat x86_64/l_flags`
+strip ../../bin//gamma.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/gamma'
+make -j2 -C graphic
+make[1]: Entering directory `/root/hvirtual/plugins/graphic'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  graphic.C -o x86_64/graphic.o
+g++ -shared  -o ../../bin//gradient.plugin x86_64/gradient.o `cat x86_64/l_flags`
+strip ../../bin//gradient.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/gradient'
+make -j2 -C histogram
+make[1]: Entering directory `/root/hvirtual/plugins/histogram'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  histogram.C -o x86_64/histogram.o
+g++ -c `cat x86_64/c_flags`  histogramconfig.C -o x86_64/histogramconfig.o
+g++ -c `cat x86_64/c_flags`  histogramwindow.C -o x86_64/histogramwindow.o
+g++ -shared  -o ../../bin//graphic.plugin x86_64/graphic.o `cat x86_64/l_flags`
+strip ../../bin//graphic.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/graphic'
+make -j2 -C holo
+make[1]: Entering directory `/root/hvirtual/plugins/holo'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  holo.C -o x86_64/holo.o
+g++ -c `cat x86_64/c_flags`  holowindow.C -o x86_64/holowindow.o
+g++ -c `cat x86_64/c_flags`  effecttv.C -o x86_64/effecttv.o
+effecttv.C: In static member function ‘static void EffectTV::effecttv_to_frame(VFrame*, uint32_t*)’:
+effecttv.C:177:4: warning: large integer implicitly truncated to unsigned type
+effecttv.C:182:4: warning: large integer implicitly truncated to unsigned type
+g++ -shared  -o ../../bin//histogram.plugin x86_64/histogram.o x86_64/histogramconfig.o x86_64/histogramwindow.o `cat x86_64/l_flags`
+strip ../../bin//histogram.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/histogram'
+make -j2 -C huesaturation
+make[1]: Entering directory `/root/hvirtual/plugins/huesaturation'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  huesaturation.C -o x86_64/huesaturation.o
+g++ -shared  -o ../../bin//holo.plugin x86_64/holo.o x86_64/holowindow.o x86_64/effecttv.o `cat x86_64/l_flags`
+strip ../../bin//holo.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/holo'
+make -j2 -C interpolate
+make[1]: Entering directory `/root/hvirtual/plugins/interpolate'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  interpolate.C -o x86_64/interpolate.o
+g++ -shared  -o ../../bin//huesaturation.plugin x86_64/huesaturation.o `cat x86_64/l_flags`
+strip ../../bin//huesaturation.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/huesaturation'
+make -j2 -C interpolateaudio
+make[1]: Entering directory `/root/hvirtual/plugins/interpolateaudio'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  interpolateaudio.C -o x86_64/interpolateaudio.o
+g++ -shared  -o ../../bin//interpolatepixels.plugin x86_64/interpolate.o `cat x86_64/l_flags`
+strip ../../bin//interpolatepixels.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/interpolate'
+make -j2 -C interpolatevideo
+make[1]: Entering directory `/root/hvirtual/plugins/interpolatevideo'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  interpolatevideo.C -o x86_64/interpolatevideo.o
+g++ -shared  -o ../../bin//interpolateaudio.plugin x86_64/interpolateaudio.o `cat x86_64/l_flags`
+strip ../../bin//interpolateaudio.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/interpolateaudio'
+make -j2 -C invertaudio
+make[1]: Entering directory `/root/hvirtual/plugins/invertaudio'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  invert.C -o x86_64/invert.o
+g++ -shared  -o ../../bin//invertaudio.plugin x86_64/invert.o `cat x86_64/l_flags`
+strip ../../bin//invertaudio.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/invertaudio'
+make -j2 -C invertvideo
+make[1]: Entering directory `/root/hvirtual/plugins/invertvideo'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  invert.C -o x86_64/invert.o
+g++ -shared  -o ../../bin//interpolatevideo.plugin x86_64/interpolatevideo.o `cat x86_64/l_flags`
+strip ../../bin//interpolatevideo.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/interpolatevideo'
+make -j2 -C irissquare
+make[1]: Entering directory `/root/hvirtual/plugins/irissquare'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  irissquare.C -o x86_64/irissquare.o
+g++ -shared  -o ../../bin//invertvideo.plugin x86_64/invert.o `cat x86_64/l_flags`
+strip ../../bin//invertvideo.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/invertvideo'
+make -j2 -C ivtc
+make[1]: Entering directory `/root/hvirtual/plugins/ivtc'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  ivtc.C -o x86_64/ivtc.o
+g++ -c `cat x86_64/c_flags`  ivtcwindow.C -o x86_64/ivtcwindow.o
+g++ -shared  -o ../../bin//irissquare.plugin x86_64/irissquare.o `cat x86_64/l_flags`
+strip ../../bin//irissquare.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/irissquare'
+make -j2 -C lens
+make[1]: Entering directory `/root/hvirtual/plugins/lens'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  lens.C -o x86_64/lens.o
+g++ -shared  -o ../../bin//ivtc.plugin x86_64/ivtc.o x86_64/ivtcwindow.o `cat x86_64/l_flags`
+strip ../../bin//ivtc.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/ivtc'
+make -j2 -C level
+make[1]: Entering directory `/root/hvirtual/plugins/level'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  leveleffect.C -o x86_64/leveleffect.o
+g++ -shared  -o ../../bin//leveleffect.plugin x86_64/leveleffect.o `cat x86_64/l_flags`
+strip ../../bin//leveleffect.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/level'
+make -j2 -C linearblur
+make[1]: Entering directory `/root/hvirtual/plugins/linearblur'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  linearblur.C -o x86_64/linearblur.o
+g++ -shared  -o ../../bin//linearblur.plugin x86_64/linearblur.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//lens.plugin x86_64/lens.o `cat x86_64/l_flags`
+strip ../../bin//linearblur.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/linearblur'
+make -j2 -C liveaudio
+make[1]: Entering directory `/root/hvirtual/plugins/liveaudio'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  liveaudio.C -o x86_64/liveaudio.o
+strip ../../bin//lens.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/lens'
+make -j2 -C livevideo
+make[1]: Entering directory `/root/hvirtual/plugins/livevideo'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  livevideo.C -o x86_64/livevideo.o
+g++ -shared  -o ../../bin//liveaudio.plugin x86_64/liveaudio.o `cat x86_64/l_flags`
+strip ../../bin//liveaudio.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/liveaudio'
+make -j2 -C loopaudio
+make[1]: Entering directory `/root/hvirtual/plugins/loopaudio'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  loopaudio.C -o x86_64/loopaudio.o
+g++ -shared  -o ../../bin//livevideo.plugin x86_64/livevideo.o `cat x86_64/l_flags`
+strip ../../bin//livevideo.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/livevideo'
+make -j2 -C loopvideo
+make[1]: Entering directory `/root/hvirtual/plugins/loopvideo'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  loopvideo.C -o x86_64/loopvideo.o
+g++ -shared  -o ../../bin//loopaudio.plugin x86_64/loopaudio.o `cat x86_64/l_flags`
+strip ../../bin//loopaudio.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/loopaudio'
+make -j2 -C motion
+make[1]: Entering directory `/root/hvirtual/plugins/motion'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  motion.C -o x86_64/motion.o
+g++ -c `cat x86_64/c_flags`  motionscan.C -o x86_64/motionscan.o
+g++ -shared  -o ../../bin//loopvideo.plugin x86_64/loopvideo.o `cat x86_64/l_flags`
+motionscan.C: In member function ‘void MotionScan::scan_frame(VFrame*, VFrame*, int, int, int, int, double, double, int, int, int, int, int, int, int, int, int, int, int, float, float, int, float)’:
+motionscan.C:481:21: warning: ignoring return value of ‘int fscanf(FILE*, const char*, ...)’, declared with attribute warn_unused_result
+strip ../../bin//loopvideo.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/loopvideo'
+make -j2 -C motion2point
+make[1]: Entering directory `/root/hvirtual/plugins/motion2point'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  ../motion/motionscan.C -o ../motion/x86_64/motionscan.o
+g++ -c `cat x86_64/c_flags`  motion.C -o x86_64/motion.o
+../motion/motionscan.C: In member function ‘void MotionScan::scan_frame(VFrame*, VFrame*, int, int, int, int, double, double, int, int, int, int, int, int, int, int, int, int, int, float, float, int, float)’:
+../motion/motionscan.C:481:21: warning: ignoring return value of ‘int fscanf(FILE*, const char*, ...)’, declared with attribute warn_unused_result
+motion.C: In member function ‘virtual int MotionMain2::process_buffer(VFrame**, int64_t, double)’:
+motion.C:715:77: warning: format ‘%lld’ expects type ‘long long int’, but argument 2 has type ‘int64_t’
+g++ -c `cat x86_64/c_flags`  motionwindow.C -o x86_64/motionwindow.o
+g++ -c `cat x86_64/c_flags`  motionwindow.C -o x86_64/motionwindow.o
+g++ -shared  -o ../../bin//motion.plugin ../downsample/x86_64/downsampleengine.o x86_64/motion.o x86_64/motionscan.o x86_64/motionwindow.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//motion2.plugin ../downsample/x86_64/downsampleengine.o ../motion/x86_64/motionscan.o x86_64/motion.o x86_64/motionwindow.o `cat x86_64/l_flags`
+strip ../../bin//motion.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/motion'
+make -j2 -C motionblur
+make[1]: Entering directory `/root/hvirtual/plugins/motionblur'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  motionblur.C -o x86_64/motionblur.o
+strip ../../bin//motion2.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/motion2point'
+make -j2 -C normalize
+make[1]: Entering directory `/root/hvirtual/plugins/normalize'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  normalize.C -o x86_64/normalize.o
+g++ -c `cat x86_64/c_flags`  normalizewindow.C -o x86_64/normalizewindow.o
+g++ -shared  -o ../../bin//normalize.plugin x86_64/normalize.o x86_64/normalizewindow.o `cat x86_64/l_flags`
+strip ../../bin//normalize.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/normalize'
+make -j2 -C oilpainting
+make[1]: Entering directory `/root/hvirtual/plugins/oilpainting'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  oil.C -o x86_64/oil.o
+g++ -shared  -o ../../bin//motionblur.plugin x86_64/motionblur.o `cat x86_64/l_flags`
+strip ../../bin//motionblur.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/motionblur'
+make -j2 -C overlay
+make[1]: Entering directory `/root/hvirtual/plugins/overlay'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  overlay.C -o x86_64/overlay.o
+g++ -shared  -o ../../bin//overlay.plugin x86_64/overlay.o `cat x86_64/l_flags`
+strip ../../bin//overlay.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/overlay'
+make -j2 -C overlayaudio
+make[1]: Entering directory `/root/hvirtual/plugins/overlayaudio'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  overlayaudio.C -o x86_64/overlayaudio.o
+g++ -shared  -o ../../bin//oil.plugin x86_64/oil.o `cat x86_64/l_flags`
+strip ../../bin//oil.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/oilpainting'
+make -j2 -C perspective
+make[1]: Entering directory `/root/hvirtual/plugins/perspective'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  perspective.C -o x86_64/perspective.o
+g++ -shared  -o ../../bin//overlayaudio.plugin x86_64/overlayaudio.o `cat x86_64/l_flags`
+strip ../../bin//overlayaudio.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/overlayaudio'
+make -j2 -C photoscale
+make[1]: Entering directory `/root/hvirtual/plugins/photoscale'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  photoscale.C -o x86_64/photoscale.o
+g++ -shared  -o ../../bin//perspective.plugin x86_64/perspective.o `cat x86_64/l_flags`
+strip ../../bin//perspective.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/perspective'
+make -j2 -C pitch
+make[1]: Entering directory `/root/hvirtual/plugins/pitch'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  pitch.C -o x86_64/pitch.o
+g++ -shared  -o ../../bin//photoscale.plugin x86_64/photoscale.o `cat x86_64/l_flags`
+strip ../../bin//photoscale.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/photoscale'
+make -j2 -C polar
+make[1]: Entering directory `/root/hvirtual/plugins/polar'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  polar.C -o x86_64/polar.o
+g++ -shared  -o ../../bin//pitch.plugin x86_64/pitch.o `cat x86_64/l_flags`
+strip ../../bin//pitch.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/pitch'
+make -j2 -C radialblur
+make[1]: Entering directory `/root/hvirtual/plugins/radialblur'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  radialblur.C -o x86_64/radialblur.o
+g++ -shared  -o ../../bin//polar.plugin x86_64/polar.o `cat x86_64/l_flags`
+strip ../../bin//polar.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/polar'
+make -j2 -C reframe
+make[1]: Entering directory `/root/hvirtual/plugins/reframe'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  reframe.C -o x86_64/reframe.o
+g++ -shared  -o ../../bin//radialblur.plugin x86_64/radialblur.o `cat x86_64/l_flags`
+strip ../../bin//radialblur.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/radialblur'
+make -j2 -C reframert
+g++ -shared  -o ../../bin//reframe.plugin x86_64/reframe.o `cat x86_64/l_flags`
+make[1]: Entering directory `/root/hvirtual/plugins/reframert'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  reframert.C -o x86_64/reframert.o
+strip ../../bin//reframe.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/reframe'
+make -j2 -C resample
+make[1]: Entering directory `/root/hvirtual/plugins/resample'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  resample.C -o x86_64/resample.o
+g++ -shared  -o ../../bin//reframert.plugin x86_64/reframert.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//resample.plugin x86_64/resample.o `cat x86_64/l_flags`
+strip ../../bin//reframert.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/reframert'
+make -j2 -C resamplert
+make[1]: Entering directory `/root/hvirtual/plugins/resamplert'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  resamplert.C -o x86_64/resamplert.o
+strip ../../bin//resample.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/resample'
+make -j2 -C reverb
+make[1]: Entering directory `/root/hvirtual/plugins/reverb'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  reverb.C -o x86_64/reverb.o
+g++ -c `cat x86_64/c_flags`  reverbwindow.C -o x86_64/reverbwindow.o
+g++ -shared  -o ../../bin//resamplert.plugin x86_64/resamplert.o `cat x86_64/l_flags`
+strip ../../bin//resamplert.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/resamplert'
+make -j2 -C reverseaudio
+reverb.C: In member function ‘void ReverbConfig::dump()’:
+reverb.C:576:10: warning: format ‘%d’ expects type ‘int’, but argument 3 has type ‘int64_t’
+reverb.C:576:10: warning: format ‘%d’ expects type ‘int’, but argument 6 has type ‘int64_t’
+reverb.C:576:10: warning: format ‘%d’ expects type ‘int’, but argument 7 has type ‘int64_t’
+reverb.C:576:10: warning: format ‘%d’ expects type ‘int’, but argument 8 has type ‘int64_t’
+reverb.C:576:10: warning: format ‘%d’ expects type ‘int’, but argument 9 has type ‘int64_t’
+reverb.C: In member function ‘int Reverb::load_from_file(char*)’:
+reverb.C:377:31: warning: ignoring return value of ‘size_t fread(void*, size_t, size_t, FILE*)’, declared with attribute warn_unused_result
+make[1]: Entering directory `/root/hvirtual/plugins/reverseaudio'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  reverseaudio.C -o x86_64/reverseaudio.o
+g++ -shared  -o ../../bin//reverb.plugin x86_64/reverb.o x86_64/reverbwindow.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//reverseaudio.plugin x86_64/reverseaudio.o `cat x86_64/l_flags`
+strip ../../bin//reverb.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/reverb'
+make -j2 -C reversevideo
+make[1]: Entering directory `/root/hvirtual/plugins/reversevideo'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+strip ../../bin//reverseaudio.plugin
+g++ -c `cat x86_64/c_flags`  reversevideo.C -o x86_64/reversevideo.o
+make[1]: Leaving directory `/root/hvirtual/plugins/reverseaudio'
+make -j2 -C rgb601
+make[1]: Entering directory `/root/hvirtual/plugins/rgb601'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  rgb601.C -o x86_64/rgb601.o
+g++ -c `cat x86_64/c_flags`  rgb601window.C -o x86_64/rgb601window.o
+g++ -shared  -o ../../bin//reversevideo.plugin x86_64/reversevideo.o `cat x86_64/l_flags`
+strip ../../bin//reversevideo.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/reversevideo'
+make -j2 -C rotate
+make[1]: Entering directory `/root/hvirtual/plugins/rotate'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  rotate.C -o x86_64/rotate.o
+g++ -shared  -o ../../bin//rgb601.plugin x86_64/rgb601.o x86_64/rgb601window.o `cat x86_64/l_flags`
+strip ../../bin//rgb601.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/rgb601'
+make -j2 -C scale
+make[1]: Entering directory `/root/hvirtual/plugins/scale'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  scale.C -o x86_64/scale.o
+g++ -c `cat x86_64/c_flags`  scalewin.C -o x86_64/scalewin.o
+g++ -shared  -o ../../bin//rotate.plugin x86_64/rotate.o `cat x86_64/l_flags`
+strip ../../bin//rotate.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/rotate'
+make -j2 -C shapewipe
+make[1]: Entering directory `/root/hvirtual/plugins/shapewipe'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  shapewipe.C -o x86_64/shapewipe.o
+g++ -shared  -o ../../bin//scale.plugin x86_64/scale.o x86_64/scalewin.o `cat x86_64/l_flags`
+strip ../../bin//scale.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/scale'
+make -j2 -C sharpen
+make[1]: Entering directory `/root/hvirtual/plugins/sharpen'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  sharpen.C -o x86_64/sharpen.o
+g++ -c `cat x86_64/c_flags`  sharpenwindow.C -o x86_64/sharpenwindow.o
+shapewipe.C: In member function ‘int ShapeWipeMain::read_pattern_image(int, int)’:
+shapewipe.C:461:25: warning: ignoring return value of ‘size_t fread(void*, size_t, size_t, FILE*)’, declared with attribute warn_unused_result
+g++ -shared  -o ../../bin//sharpen.plugin x86_64/sharpen.o x86_64/sharpenwindow.o `cat x86_64/l_flags`
+strip ../../bin//sharpen.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/sharpen'
+make -j2 -C shiftinterlace
+make[1]: Entering directory `/root/hvirtual/plugins/shiftinterlace'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  shiftinterlace.C -o x86_64/shiftinterlace.o
+g++ -shared  -o ../../bin//shiftinterlace.plugin x86_64/shiftinterlace.o `cat x86_64/l_flags`
+strip ../../bin//shiftinterlace.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/shiftinterlace'
+make -j2 -C slide
+make[1]: Entering directory `/root/hvirtual/plugins/slide'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  slide.C -o x86_64/slide.o
+g++ -shared  -o ../../bin//slide.plugin x86_64/slide.o `cat x86_64/l_flags`
+strip ../../bin//slide.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/slide'
+make -j2 -C spectrogram
+make[1]: Entering directory `/root/hvirtual/plugins/spectrogram'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  spectrogram.C -o x86_64/spectrogram.o
+g++ -shared  -o ../../bin//shapewipe.plugin x86_64/shapewipe.o `cat x86_64/l_flags`
+strip ../../bin//shapewipe.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/shapewipe'
+make -j2 -C suv
+make[1]: Entering directory `/root/hvirtual/plugins/suv'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  suv.C -o x86_64/suv.o
+cd x86_64 && \
+	../../../guicast/x86_64/bootstrap suv_data.o ../data/*.png
+g++ -shared  -o ../../bin//spectrogram.plugin x86_64/spectrogram.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//suv.plugin x86_64/suv.o x86_64/suv_data.o
+strip ../../bin//spectrogram.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/spectrogram'
+make -j2 -C swapchannels
+make[1]: Entering directory `/root/hvirtual/plugins/swapchannels'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  swapchannels.C -o x86_64/swapchannels.o
+strip ../../bin//suv.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/suv'
+make -j2 -C swapframes
+make[1]: Entering directory `/root/hvirtual/plugins/swapframes'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  swapframes.C -o x86_64/swapframes.o
+g++ -shared  -o ../../bin//swapframes.plugin x86_64/swapframes.o `cat x86_64/l_flags`
+strip ../../bin//swapframes.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/swapframes'
+make -j2 -C synthesizer
+make[1]: Entering directory `/root/hvirtual/plugins/synthesizer'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  synthesizer.C -o x86_64/synthesizer.o
+g++ -shared  -o ../../bin//swapchannels.plugin x86_64/swapchannels.o `cat x86_64/l_flags`
+strip ../../bin//swapchannels.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/swapchannels'
+make -j2 -C threshold
+make[1]: Entering directory `/root/hvirtual/plugins/threshold'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  histogramengine.C -o x86_64/histogramengine.o
+g++ -c `cat x86_64/c_flags`  threshold.C -o x86_64/threshold.o
+g++ -c `cat x86_64/c_flags`  thresholdwindow.C -o x86_64/thresholdwindow.o
+g++ -shared  -o ../../bin//threshold.plugin x86_64/histogramengine.o x86_64/threshold.o x86_64/thresholdwindow.o `cat x86_64/l_flags`
+strip ../../bin//threshold.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/threshold'
+make -j2 -C timeavg
+make[1]: Entering directory `/root/hvirtual/plugins/timeavg'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  timeavg.C -o x86_64/timeavg.o
+g++ -c `cat x86_64/c_flags`  timeavgwindow.C -o x86_64/timeavgwindow.o
+g++ -shared  -o ../../bin//synthesizer.plugin x86_64/synthesizer.o `cat x86_64/l_flags`
+timeavg.C: In member function ‘virtual int TimeAvgMain::process_buffer(VFrame*, int64_t, double)’:
+timeavg.C:360:2: warning: format ‘%lld’ expects type ‘long long int’, but argument 3 has type ‘int64_t’
+timeavg.C:360:2: warning: format ‘%lld’ expects type ‘long long int’, but argument 4 has type ‘int64_t’
+timeavg.C:360:2: warning: format ‘%lld’ expects type ‘long long int’, but argument 5 has type ‘int64_t’
+strip ../../bin//synthesizer.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/synthesizer'
+make -j2 -C timefront
+make[1]: Entering directory `/root/hvirtual/plugins/timefront'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  timefront.C -o x86_64/timefront.o
+g++ -shared  -o ../../bin//timeavg.plugin x86_64/timeavg.o x86_64/timeavgwindow.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//timefront.plugin x86_64/timefront.o `cat x86_64/l_flags`
+strip ../../bin//timeavg.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/timeavg'
+make -j2 -C timestretch
+make[1]: Entering directory `/root/hvirtual/plugins/timestretch'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  timestretch.C -o x86_64/timestretch.o
+g++ -c `cat x86_64/c_flags`  timestretchengine.C -o x86_64/timestretchengine.o
+strip ../../bin//timefront.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/timefront'
+make -j2 -C timestretchrt
+make[1]: Entering directory `/root/hvirtual/plugins/timestretchrt'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  timestretchrt.C -o x86_64/timestretchrt.o
+g++ -c `cat x86_64/c_flags`  ../timestretch/timestretchengine.C -o ../timestretch/x86_64/timestretchengine.o
+timestretchrt.C: In member function ‘virtual int TimeStretchRT::process_buffer(int64_t, Samples*, int64_t, int)’:
+timestretchrt.C:250:13: warning: format ‘%lld’ expects type ‘long long int’, but argument 3 has type ‘int64_t’
+timestretchrt.C:250:13: warning: format ‘%lld’ expects type ‘long long int’, but argument 4 has type ‘int64_t’
+timestretchrt.C:250:13: warning: format ‘%lld’ expects type ‘long long int’, but argument 6 has type ‘int64_t’
+g++ -shared  -o ../../bin//timestretchrt.plugin x86_64/timestretchrt.o ../timestretch/x86_64/timestretchengine.o `cat x86_64/l_flags`
+g++ -shared  -o ../../bin//timestretch.plugin x86_64/timestretch.o x86_64/timestretchengine.o `cat x86_64/l_flags`
+strip ../../bin//timestretchrt.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/timestretchrt'
+make -j2 -C titler
+make[1]: Entering directory `/root/hvirtual/plugins/titler'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  title.C -o x86_64/title.o
+g++ -c `cat x86_64/c_flags`  titlewindow.C -o x86_64/titlewindow.o
+strip ../../bin//timestretch.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/timestretch'
+make -j2 -C translate
+make[1]: Entering directory `/root/hvirtual/plugins/translate'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  translate.C -o x86_64/translate.o
+g++ -c `cat x86_64/c_flags`  translatewin.C -o x86_64/translatewin.o
+g++ -shared  -o ../../bin//translate.plugin x86_64/translate.o x86_64/translatewin.o `cat x86_64/l_flags`
+strip ../../bin//translate.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/translate'
+make -j2 -C unsharp
+make[1]: Entering directory `/root/hvirtual/plugins/unsharp'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  unsharp.C -o x86_64/unsharp.o
+g++ -c `cat x86_64/c_flags`  unsharpwindow.C -o x86_64/unsharpwindow.o
+g++ -shared  -o ../../bin//unsharp.plugin x86_64/unsharp.o x86_64/unsharpwindow.o `cat x86_64/l_flags`
+strip ../../bin//unsharp.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/unsharp'
+make -j2 -C videoscope
+make[1]: Entering directory `/root/hvirtual/plugins/videoscope'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  videoscope.C -o x86_64/videoscope.o
+g++ -shared  -o ../../bin//titler.plugin x86_64/title.o x86_64/titlewindow.o `cat x86_64/l_flags`
+strip ../../bin//titler.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/titler'
+make -j2 -C vocoder
+make[1]: Entering directory `/root/hvirtual/plugins/vocoder'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  vocoder.C -o x86_64/vocoder.o
+g++ -shared  -o ../../bin//vocoder.plugin x86_64/vocoder.o `cat x86_64/l_flags`
+strip ../../bin//vocoder.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/vocoder'
+make -j2 -C wave
+make[1]: Entering directory `/root/hvirtual/plugins/wave'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  wave.C -o x86_64/wave.o
+g++ -shared  -o ../../bin//videoscope.plugin x86_64/videoscope.o `cat x86_64/l_flags`
+strip ../../bin//videoscope.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/videoscope'
+make -j2 -C whirl
+make[1]: Entering directory `/root/hvirtual/plugins/whirl'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  whirl.C -o x86_64/whirl.o
+g++ -shared  -o ../../bin//wave.plugin x86_64/wave.o `cat x86_64/l_flags`
+strip ../../bin//wave.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/wave'
+make -j2 -C wipe
+make[1]: Entering directory `/root/hvirtual/plugins/wipe'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  wipe.C -o x86_64/wipe.o
+g++ -shared  -o ../../bin//whirl.plugin x86_64/whirl.o `cat x86_64/l_flags`
+strip ../../bin//whirl.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/whirl'
+make -j2 -C yuv
+make[1]: Entering directory `/root/hvirtual/plugins/yuv'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  yuv.C -o x86_64/yuv.o
+g++ -shared  -o ../../bin//wipe.plugin x86_64/wipe.o `cat x86_64/l_flags`
+strip ../../bin//wipe.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/wipe'
+make -j2 -C zoom
+make[1]: Entering directory `/root/hvirtual/plugins/zoom'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  zoom.C -o x86_64/zoom.o
+g++ -shared  -o ../../bin//zoom.plugin x86_64/zoom.o `cat x86_64/l_flags`
+strip ../../bin//zoom.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/zoom'
+make -j2 -C zoomblur
+make[1]: Entering directory `/root/hvirtual/plugins/zoomblur'
+make[1]: warning: -jN forced in submake: disabling jobserver mode.
+g++ -c `cat x86_64/c_flags`  zoomblur.C -o x86_64/zoomblur.o
+g++ -shared  -o ../../bin//yuv.plugin x86_64/yuv.o `cat x86_64/l_flags`
+strip ../../bin//yuv.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/yuv'
+g++ -shared  -o ../../bin//zoomblur.plugin x86_64/zoomblur.o `cat x86_64/l_flags`
+strip ../../bin//zoomblur.plugin
+make[1]: Leaving directory `/root/hvirtual/plugins/zoomblur'
+]0;root@amazon: ~/hvirtual/pluginsamazon:/root/hvirtual/plugins% .
+exit
+
+Script done on Mon 12 Sep 2011 04:13:49 PM PDT

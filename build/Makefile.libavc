@@ -1,0 +1,75 @@
+include global_config
+
+AVCDIR := libavc1394-0.4.1
+RAWDIR := libraw1394-0.9.0
+
+OBJS := \
+	$(AVCDIR)/$(OBJDIR)/common/raw1394util.o \
+	$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_internal.o \
+	$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_simple.o \
+	$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_vcr.o \
+	$(AVCDIR)/$(OBJDIR)/librom1394/rom1394_internal.o \
+	$(AVCDIR)/$(OBJDIR)/librom1394/rom1394_main.o
+
+OUTPUT := $(AVCDIR)/$(OBJDIR)/libavc.a
+
+CFLAGS += -DHAVE_CONFIG_H -I$(AVCDIR) -I$(RAWDIR)
+
+$(shell sh -c 'if ! test -d $(AVCDIR)/$(OBJDIR)/common\; then mkdir -p $(AVCDIR)/$(OBJDIR)/common\; fi' )
+$(shell sh -c 'if ! test -d $(AVCDIR)/$(OBJDIR)/libavc1394\; then mkdir -p $(AVCDIR)/$(OBJDIR)/libavc1394\; fi' )
+$(shell sh -c 'if ! test -d $(AVCDIR)/$(OBJDIR)/librom1394\; then mkdir -p $(AVCDIR)/$(OBJDIR)/librom1394\; fi' )
+$(shell echo $(CFLAGS) > $(AVCDIR)/$(OBJDIR)/c_flags)
+
+$(OUTPUT): $(OBJS)
+	ar rcs $(OUTPUT) $(OBJS)
+
+$(OBJS):
+	@echo GCC $*.o
+	@$(GCC) -c $(CFLAGS) $(subst $(OBJDIR)/,, $*.c) -o $*.o
+
+
+
+
+
+
+
+
+
+$(AVCDIR)/$(OBJDIR)/common/raw1394util.o:  		  $(AVCDIR)/common/raw1394util.c
+$(AVCDIR)/$(OBJDIR)/common/raw1394util.o:  		  $(AVCDIR)/common/raw1394util.c
+$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_simple.o: 	  $(AVCDIR)/libavc1394/avc1394_simple.c
+$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_vcr.o:  	  $(AVCDIR)/libavc1394/avc1394_vcr.c
+$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_internal.o:   $(AVCDIR)/libavc1394/avc1394_internal.c
+$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_vcr.o:  	  $(AVCDIR)/libavc1394/avc1394_vcr.c
+$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_simple.o: 	  $(AVCDIR)/libavc1394/avc1394_simple.c
+$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_internal.o:   $(AVCDIR)/libavc1394/avc1394_internal.c
+$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_internal.o:   $(AVCDIR)/libavc1394/avc1394_internal.c
+$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_vcr.o:  	  $(AVCDIR)/libavc1394/avc1394_vcr.c
+$(AVCDIR)/$(OBJDIR)/libavc1394/avc1394_simple.o: 	  $(AVCDIR)/libavc1394/avc1394_simple.c
+$(AVCDIR)/$(OBJDIR)/librom1394/rom1394_main.o: 	  $(AVCDIR)/librom1394/rom1394_main.c
+$(AVCDIR)/$(OBJDIR)/librom1394/rom1394_internal.o:   $(AVCDIR)/librom1394/rom1394_internal.c
+$(AVCDIR)/$(OBJDIR)/librom1394/rom1394_main.o: 	  $(AVCDIR)/librom1394/rom1394_main.c
+$(AVCDIR)/$(OBJDIR)/librom1394/rom1394_internal.o:   $(AVCDIR)/librom1394/rom1394_internal.c
+$(AVCDIR)/$(OBJDIR)/librom1394/rom1394_internal.o:   $(AVCDIR)/librom1394/rom1394_internal.c
+$(AVCDIR)/$(OBJDIR)/librom1394/rom1394_main.o: 	  $(AVCDIR)/librom1394/rom1394_main.c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

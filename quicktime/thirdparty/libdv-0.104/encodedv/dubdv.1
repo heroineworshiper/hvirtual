@@ -1,0 +1,68 @@
+.\" encodedv - encode a series of images to a digital video stream
+.\" Copyright (c) 2001-2004 James Bowman, Peter Schlaile, Dan Dennedy
+.\"
+.\" This manual page is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc.,59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+.\"
+.\" This manual page was written especially for Debian Linux. It is based
+.\" on encodedv's help output.
+.\"
+.TH ENCODE 1 "January 2004"
+.SH NAME
+dubdv \- insert audio into a digital video stream
+.SH SYNOPSIS
+.B dubdv
+[ \fBoptions\fR ] \fIaudio_inputfR \fI[ filename or - for stdin ]\fR
+.SH DESCRIPTION
+\fBdubdv\fR reads the audio from a WAV file or the OSS DSP device
+and overwrites the existing audio in a raw DV file or stream.
+.TP
+\fB\-\-version\fR
+show dubdv version number.
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+show encoder statistics / status information.
+.TP
+\fB\-a\fR, \fB\-\-audio\-input\fR=\fIfilter-name\fR
+Choose audio-input-filter: [none, >wav<, dsp]
+WAV is the default \fIaudio_input\fR format.
+.TP
+\fB\-o\fR, \fB\-\-output\fR=\fIfilter-name\fR
+Choose output-filter: [>raw<]
+.TP
+\fB\-t\fR, \fB\-\-truncate\fR
+truncate output at end of DV input.
+.TP
+\fB\-r\fR, \fB\-\-repeat\fR=\fIcount\fR
+repeat the first video frame \fIcount\fR times.
+This option does not dub audio into the repeated frame.
+.PP
+Help Options
+.TP
+-\fB?\fR, \fB\-\-help\fR
+Show help message.
+.TP
+\fB\-\-usage\fR
+Display brief usage message.
+.SH "SEE ALSO"
+.BR playdv (1), dvconnect (1), encodedv (1).
+.SH AVAILABILITY
+See http://libdv.sourceforge.net/ for the latest version.
+.SH AUTHORS
+.B dubdv
+was written by James Bowman <jamesb@excamera.com> and
+Peter Schlaile <udbz@rz.uni-karlsruhe.de>.
+.PP
+This manual page is based on dubdv's help message and was written by
+Dan Dennedy <dan@dennedy.org>.

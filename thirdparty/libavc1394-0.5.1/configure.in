@@ -1,0 +1,35 @@
+AC_INIT(Makefile.am)
+AM_INIT_AUTOMAKE(libavc1394, 0.5.1)
+AM_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE
+
+AC_PROG_CC
+AC_ISC_POSIX
+AC_PROG_LIBTOOL
+AM_PROG_LIBTOOL
+AC_PROG_INSTALL
+
+AC_HEADER_STDC
+AC_CHECK_HEADERS(sys/time.h sys/types.h unistd.h string.h netinet/in.h stdio.h)
+PKG_CHECK_MODULES(LIBRAW1394, libraw1394 >= 1.0.0)
+
+#set the libtool shared library version numbers
+lt_major=2
+lt_revision=1
+lt_age=2
+
+AC_SUBST(lt_major)
+AC_SUBST(lt_revision)
+AC_SUBST(lt_age)
+
+CFLAGS="$CFLAGS -Wall -Wunused"
+
+AC_OUTPUT([
+Makefile 
+common/Makefile 
+libavc1394/Makefile 
+librom1394/Makefile 
+test/Makefile
+libavc1394.spec
+libavc1394.pc
+])

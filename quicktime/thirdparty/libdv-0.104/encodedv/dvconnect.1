@@ -1,0 +1,86 @@
+.\" encodedv - encode a series of images to a digital video stream
+.\" Copyright (c) 2001-2004 Peter Schlaile, Dan Dennedy
+.\"
+.\" This manual page is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc.,59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+.\"
+.\" This manual page was written especially for Debian Linux. It is based
+.\" on encodedv's help output.
+.\"
+.TH ENCODE 1 "January 2004"
+.SH NAME
+dvconnect \- receive or transmit raw DV using the video1394 device
+.SH SYNOPSIS
+.B dvconnect
+[ \fBoptions\fR ] \fIraw dv files or '-- -' for stdin/stdout\fR
+.SH DESCRIPTION
+\fBdvconnect\fR captures raw DV streams from or sends raw DV streams
+to the Linux IEEE 1394 video1394 device.
+.TP
+\fB\-\-version\fR
+show dvconnect version number.
+.TP
+\fB\-s\fR, \fB\-\-send\fR
+send data instead of capturing.
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+show status information while receiving / sending.
+.TP
+\fB\-c\fR, \fB\-\-channel\fR=\fInumber\fR
+channel to send / receive on (range: 0 - 63, default = 63).
+.TP
+\fB\-k\fR, \fB\-\-kbuffers\fR=\fInumber\fR
+number of kernel video1394 frame buffers to use. default = 8.
+.TP
+\fB\-\-start\-frame\fR=\fIcount\fR
+start at \fIcount\fR frame (defaults to 0).
+.TP
+\fB-e\fR, \fB\-\-end-frame\fR=\fIcount\fR
+end at \fIcount\fR frame (defaults to unlimited).
+.TP
+\fB\-\-cip\-n\-ntsc\fR=\fInumber\fR
+cip n ntsc timing counter (default: 2436).
+.TP
+\fB\-\-cip\-d\-ntsc\fR=\fInumber\fR
+cip d ntsc timing counter (default: 38400).
+.TP
+\fB\-\-syt\-offset\fR=\fInumber\fR
+syt offset (default: 10000 range: 10000-26000).
+.TP
+\fB\-b\fR, \fB\-\-buffers\fR=\fInumber\fR
+max number of file io thread buffers to use. default = 250.
+.TP
+\fB\-u\fR, \fB\-\-underrun-data\fR=\fIfilename\fR
+file with the frame to send in case of underruns.
+.TP
+\fB\-d\fR, \fB\-\-device\fR=\fIfilename\fR
+Specify the video1394 device (default /dev/video1394/0).
+.PP
+Help Options
+.TP
+-\fB?\fR, \fB\-\-help\fR
+Show help message.
+.TP
+\fB\-\-usage\fR
+Display brief usage message.
+.SH "SEE ALSO"
+.BR playdv (1), dubdv (1), encodedv (1).
+.SH AVAILABILITY
+See http://libdv.sourceforge.net/ for the latest version.
+.SH AUTHORS
+.B dvconnect
+was written by Peter Schlaile <udbz@rz.uni-karlsruhe.de>.
+.PP
+This manual page is based on dvconnect's help message and was written by
+Dan Dennedy <dan@dennedy.org>.

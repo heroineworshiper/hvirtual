@@ -1,0 +1,116 @@
+HAVE_ALSA := y
+HAVE_XFT := y
+HAVE_ESOUND := y
+HAVE_AVIFILE := n
+HAVE_FIREWIRE := y
+HAVE_OSS := y
+
+OBJDIR := $(shell uname --machine)
+
+PLUGIN_DIR := ../../bin/
+
+HVIRTUAL_CONFIG := $(shell sh -c '\
+if [ -e ../hvirtual_config.h ] ; then \
+cat ../hvirtual_config.h; else \
+if [ -e ../../hvirtual_config.h ] ; then \
+cat ../../hvirtual_config.h; \
+fi; \
+fi')
+
+ifneq (,$(findstring HAVE_GL,$(HVIRTUAL_CONFIG)))
+HAVE_GL := y
+else
+HAVE_GL := n
+endif
+
+
+
+
+ifeq ($(origin CFLAGS), environment)
+HAVE_CFLAGS := y
+else
+HAVE_CFLAGS := n
+endif
+
+
+
+############################# C++ and C COMPILERS
+
+############################# FINAL DESTINATION FOR INSTALLATION BINARIES
+
+PREFIX = /usr/
+LIBPREFIX = $(PREFIX)/lib
+
+
+########################## THE COMPILER
+
+CC = g++
+GCC = gcc
+
+
+# libraries are stored in different directories depending on CPU
+#ifeq ($(OBJDIR), i686)
+#PLUGINDIR := /usr/lib/cinelerra
+#else
+#PLUGINDIR := /usr/lib64/cinelerra
+#endif
+
+
+ifneq ($(HAVE_CFLAGS), y)
+CFLAGS = -O2 
+endif
+
+ifeq ($(HAVE_GL), y)
+CFLAGS += -DHAVE_GL
+endif
+
+
+ifeq ($(HAVE_ESOUND), y)
+ESOUND_DIR := ../thirdparty/esound
+AUDIOFILE_DIR := ../thirdparty/audiofile
+ESOUNDCFLAGS = -DHAVE_ESOUND -I$(ESOUND_DIR) -I$(AUDIOFILE_DIR)
+ESOUNDLIBS = $(ESOUND_DIR)/$(OBJDIR)/libesound.a
+endif
+
+
+#CFLAGS += -g
+CFLAGS += -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+#CFLAGS += -I.      # Caused fileavi.C to fail
+
+# the directory for plugin includes
+FREETYPE_DIR := $(shell expr ../../thirdparty/freetype-* )
+CFLAGS += -I$(FREETYPE_DIR)/include -I../../
+
+ifeq ($(HAVE_OSS), y)
+CFLAGS += -DHAVE_OSS
+endif
+
+ifeq ($(HAVE_FIREWIRE), y)
+CFLAGS += -DHAVE_FIREWIRE
+endif
+
+ifeq ($(HAVE_ALSA), y)
+CFLAGS += $(ALSA_CFLAGS)
+endif
+
+ifeq ($(OBJDIR), alpha)
+CXXREPOSITORY = cxx_repository/*.o
+endif
+
+$(shell mkdir -p $(OBJDIR) )
+
+########################## LINKER
+
+LFLAGS = -L/usr/X11R6/lib
+PLUGINLFLAGS = -L../../bcbase/$(OBJDIR)/ -L/usr/X11R6/lib
+LDLINKER = g++ -shared 
+
+
+############### MAKEFILE MACROS
+
+LOOP_BEGIN = @ for i in $(DIRS) ; \
+	do \
+	
+
+LOOP_END = done
+

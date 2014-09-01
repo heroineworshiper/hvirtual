@@ -1,0 +1,109 @@
+include global_config
+
+DIR := $(shell expr thirdparty/toolame* )
+
+OBJS := \
+	$(DIR)/$(OBJDIR)/ath.o \
+	$(DIR)/$(OBJDIR)/common.o \
+	$(DIR)/$(OBJDIR)/fft.o \
+	$(DIR)/$(OBJDIR)/psycho_0.o \
+	$(DIR)/$(OBJDIR)/psycho_4.o \
+	$(DIR)/$(OBJDIR)/toolame.o \
+	$(DIR)/$(OBJDIR)/audio_read.o \
+	$(DIR)/$(OBJDIR)/crc.o \
+	$(DIR)/$(OBJDIR)/ieeefloat.o \
+	$(DIR)/$(OBJDIR)/psycho_1.o \
+	$(DIR)/$(OBJDIR)/psycho_n1.o \
+	$(DIR)/$(OBJDIR)/availbits.o \
+	$(DIR)/$(OBJDIR)/encode_new.o \
+	$(DIR)/$(OBJDIR)/mem.o \
+	$(DIR)/$(OBJDIR)/psycho_2.o \
+	$(DIR)/$(OBJDIR)/subband.o \
+	$(DIR)/$(OBJDIR)/bitstream.o \
+	$(DIR)/$(OBJDIR)/encode.o \
+	$(DIR)/$(OBJDIR)/portableio.o \
+	$(DIR)/$(OBJDIR)/psycho_3.o \
+	$(DIR)/$(OBJDIR)/tables.o
+
+OUTPUT = $(DIR)/$(OBJDIR)/toolame.a
+
+
+CFLAGS += -I$(DIR) -DNEWENCODE -DNEWATAN -DNDEBUG -DINLINE=inline  
+
+
+$(shell sh -c 'mkdir -p $(DIR)/$(OBJDIR)' )
+$(shell echo $(CFLAGS) > $(DIR)/$(OBJDIR)/c_flags)
+$(shell echo $(OUTPUT) $(OBJS) > $(DIR)/$(OBJDIR)/objs)
+
+
+
+all: $(OUTPUT)
+
+$(OUTPUT): $(OBJS)
+	ar rc `cat $(DIR)/$(OBJDIR)/objs`
+
+
+clean:
+	rm -rf $(DIR)/$(OBJDIR)
+
+
+$(OBJS):
+	$(GCC) -c `cat $(DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
+
+$(DIR)/$(OBJDIR)/ath.o: 		  $(DIR)/ath.c
+$(DIR)/$(OBJDIR)/common.o:  	  $(DIR)/common.c
+$(DIR)/$(OBJDIR)/fft.o: 		  $(DIR)/fft.c
+$(DIR)/$(OBJDIR)/psycho_0.o: 	  $(DIR)/psycho_0.c
+$(DIR)/$(OBJDIR)/psycho_4.o: 	  $(DIR)/psycho_4.c
+$(DIR)/$(OBJDIR)/toolame.o: 	  $(DIR)/toolame.c
+$(DIR)/$(OBJDIR)/audio_read.o:    $(DIR)/audio_read.c
+$(DIR)/$(OBJDIR)/crc.o: 		  $(DIR)/crc.c
+$(DIR)/$(OBJDIR)/ieeefloat.o: 	  $(DIR)/ieeefloat.c
+$(DIR)/$(OBJDIR)/psycho_1.o: 	  $(DIR)/psycho_1.c
+$(DIR)/$(OBJDIR)/psycho_n1.o: 	  $(DIR)/psycho_n1.c
+$(DIR)/$(OBJDIR)/availbits.o: 	  $(DIR)/availbits.c
+$(DIR)/$(OBJDIR)/encode_new.o:    $(DIR)/encode_new.c
+$(DIR)/$(OBJDIR)/mem.o: 		  $(DIR)/mem.c
+$(DIR)/$(OBJDIR)/psycho_2.o: 	  $(DIR)/psycho_2.c
+$(DIR)/$(OBJDIR)/subband.o: 	  $(DIR)/subband.c
+$(DIR)/$(OBJDIR)/bitstream.o: 	  $(DIR)/bitstream.c
+$(DIR)/$(OBJDIR)/encode.o:  	  $(DIR)/encode.c
+$(DIR)/$(OBJDIR)/portableio.o:    $(DIR)/portableio.c
+$(DIR)/$(OBJDIR)/psycho_3.o: 	  $(DIR)/psycho_3.c
+$(DIR)/$(OBJDIR)/tables.o:  	  $(DIR)/tables.c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

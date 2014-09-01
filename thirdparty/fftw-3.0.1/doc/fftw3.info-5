@@ -1,0 +1,188 @@
+This is fftw3.info, produced by makeinfo version 4.2 from fftw3.texi.
+
+This manual is for FFTW (version 3.0.1, 5 June 2003).
+
+   Copyright (C) 2003 Matteo Frigo.
+
+   Copyright (C) 2003 Massachusetts Institute of Technology.
+
+     Permission is granted to make and distribute verbatim copies of
+     this manual provided the copyright notice and this permission
+     notice are preserved on all copies.
+
+     Permission is granted to copy and distribute modified versions of
+     this manual under the conditions for verbatim copying, provided
+     that the entire resulting derived work is distributed under the
+     terms of a permission notice identical to this one.
+
+     Permission is granted to copy and distribute translations of this
+     manual into another language, under the above conditions for
+     modified versions, except that this permission notice may be
+     stated in a translation approved by the Free Software Foundation.
+   
+INFO-DIR-SECTION Texinfo documentation system
+START-INFO-DIR-ENTRY
+* fftw3: (fftw3).	FFTW User's Manual.
+END-INFO-DIR-ENTRY
+
+
+File: fftw3.info,  Node: Library Index,  Prev: Concept Index,  Up: Top
+
+Library Index
+*************
+
+* Menu:
+
+* dfftw_destroy_plan:                    Fortran Examples.
+* dfftw_execute:                         Fortran Examples.
+* dfftw_export_wisdom:                   Wisdom of Fortran?.
+* dfftw_forget_wisdom:                   Wisdom of Fortran?.
+* dfftw_import_system_wisdom:            Wisdom of Fortran?.
+* dfftw_import_wisdom:                   Wisdom of Fortran?.
+* dfftw_init_threads:                    Fortran Examples.
+* dfftw_plan_dft_1d:                     Fortran Examples.
+* dfftw_plan_dft_3d:                     Fortran Examples.
+* dfftw_plan_dft_r2c_1d:                 Fortran Examples.
+* dfftw_plan_dft_r2c_2d:                 Fortran Examples.
+* dfftw_plan_with_nthreads:              Fortran Examples.
+* FFTW_BACKWARD <1>:                     One-Dimensional DFTs of Real Data.
+* FFTW_BACKWARD:                         Complex One-Dimensional DFTs.
+* fftw_cleanup:                          Using Plans.
+* fftw_cleanup_threads:                  Usage of Multi-threaded FFTW.
+* fftw_complex <1>:                      Complex numbers.
+* fftw_complex:                          Complex One-Dimensional DFTs.
+* FFTW_DESTROY_INPUT:                    Planner Flags.
+* fftw_destroy_plan <1>:                 Using Plans.
+* fftw_destroy_plan:                     Complex One-Dimensional DFTs.
+* FFTW_DHT <1>:                          Real-to-Real Transform Kinds.
+* FFTW_DHT:                              The Discrete Hartley Transform.
+* FFTW_ESTIMATE <1>:                     Cycle Counters.
+* FFTW_ESTIMATE <2>:                     Planner Flags.
+* FFTW_ESTIMATE <3>:                     Words of Wisdom-Saving Plans.
+* FFTW_ESTIMATE:                         Complex One-Dimensional DFTs.
+* fftw_execute <1>:                      Guru Execution of Plans.
+* fftw_execute <2>:                      Using Plans.
+* fftw_execute:                          Complex One-Dimensional DFTs.
+* fftw_execute_dft:                      Guru Execution of Plans.
+* fftw_execute_dft_c2r:                  Guru Execution of Plans.
+* fftw_execute_dft_r2c:                  Guru Execution of Plans.
+* fftw_execute_dft_r2r:                  Guru Execution of Plans.
+* fftw_execute_split_dft:                Guru Execution of Plans.
+* fftw_execute_split_dft_c2r:            Guru Execution of Plans.
+* fftw_execute_split_dft_r2c:            Guru Execution of Plans.
+* FFTW_EXHAUSTIVE <1>:                   Planner Flags.
+* FFTW_EXHAUSTIVE:                       Words of Wisdom-Saving Plans.
+* fftw_export_wisdom:                    Wisdom Export.
+* fftw_export_wisdom_to_file <1>:        Wisdom Export.
+* fftw_export_wisdom_to_file:            Words of Wisdom-Saving Plans.
+* fftw_export_wisdom_to_string:          Wisdom Export.
+* fftw_flops:                            Using Plans.
+* fftw_forget_wisdom <1>:                Forgetting Wisdom.
+* fftw_forget_wisdom:                    Words of Wisdom-Saving Plans.
+* FFTW_FORWARD <1>:                      One-Dimensional DFTs of Real Data.
+* FFTW_FORWARD:                          Complex One-Dimensional DFTs.
+* fftw_fprint_plan:                      Using Plans.
+* fftw_free <1>:                         Memory Allocation.
+* fftw_free <2>:                         SIMD alignment and fftw_malloc.
+* fftw_free:                             Complex One-Dimensional DFTs.
+* FFTW_HC2R <1>:                         Real-to-Real Transform Kinds.
+* FFTW_HC2R:                             The Halfcomplex-format DFT.
+* fftw_import_system_wisdom <1>:         Wisdom Import.
+* fftw_import_system_wisdom:             Caveats in Using Wisdom.
+* fftw_import_wisdom:                    Wisdom Import.
+* fftw_import_wisdom_from_file <1>:      Wisdom Import.
+* fftw_import_wisdom_from_file:          Words of Wisdom-Saving Plans.
+* fftw_import_wisdom_from_string:        Wisdom Import.
+* fftw_init_threads:                     Usage of Multi-threaded FFTW.
+* fftw_iodim <1>:                        Fortran-interface routines.
+* fftw_iodim:                            Guru vector and transform sizes.
+* fftw_malloc <1>:                       Memory Allocation.
+* fftw_malloc <2>:                       Dynamic Arrays in C.
+* fftw_malloc <3>:                       SIMD alignment and fftw_malloc.
+* fftw_malloc:                           Complex One-Dimensional DFTs.
+* FFTW_MEASURE <1>:                      Planner Flags.
+* FFTW_MEASURE <2>:                      Words of Wisdom-Saving Plans.
+* FFTW_MEASURE:                          Complex One-Dimensional DFTs.
+* FFTW_PATIENT <1>:                      How Many Threads to Use?.
+* FFTW_PATIENT <2>:                      Planner Flags.
+* FFTW_PATIENT <3>:                      Words of Wisdom-Saving Plans.
+* FFTW_PATIENT:                          Complex One-Dimensional DFTs.
+* fftw_plan <1>:                         Using Plans.
+* fftw_plan:                             Complex One-Dimensional DFTs.
+* fftw_plan_dft <1>:                     Complex DFTs.
+* fftw_plan_dft:                         Complex Multi-Dimensional DFTs.
+* fftw_plan_dft_1d <1>:                  Complex DFTs.
+* fftw_plan_dft_1d:                      Complex One-Dimensional DFTs.
+* fftw_plan_dft_2d <1>:                  Complex DFTs.
+* fftw_plan_dft_2d:                      Complex Multi-Dimensional DFTs.
+* fftw_plan_dft_3d <1>:                  Complex DFTs.
+* fftw_plan_dft_3d:                      Complex Multi-Dimensional DFTs.
+* fftw_plan_dft_c2r:                     Real-data DFTs.
+* fftw_plan_dft_c2r_1d <1>:              Real-data DFTs.
+* fftw_plan_dft_c2r_1d:                  One-Dimensional DFTs of Real Data.
+* fftw_plan_dft_c2r_2d:                  Real-data DFTs.
+* fftw_plan_dft_c2r_3d:                  Real-data DFTs.
+* fftw_plan_dft_r2c <1>:                 Real-data DFTs.
+* fftw_plan_dft_r2c:                     Multi-Dimensional DFTs of Real Data.
+* fftw_plan_dft_r2c_1d <1>:              Real-data DFTs.
+* fftw_plan_dft_r2c_1d:                  One-Dimensional DFTs of Real Data.
+* fftw_plan_dft_r2c_2d <1>:              Real-data DFTs.
+* fftw_plan_dft_r2c_2d:                  Multi-Dimensional DFTs of Real Data.
+* fftw_plan_dft_r2c_3d <1>:              Real-data DFTs.
+* fftw_plan_dft_r2c_3d:                  Multi-Dimensional DFTs of Real Data.
+* fftw_plan_guru_dft:                    Guru Complex DFTs.
+* fftw_plan_guru_dft_c2r:                Guru Real-data DFTs.
+* fftw_plan_guru_dft_r2c:                Guru Real-data DFTs.
+* fftw_plan_guru_r2r:                    Guru Real-to-real Transforms.
+* fftw_plan_guru_split_dft:              Guru Complex DFTs.
+* fftw_plan_guru_split_dft_c2r:          Guru Real-data DFTs.
+* fftw_plan_guru_split_dft_r2c:          Guru Real-data DFTs.
+* fftw_plan_many_dft:                    Advanced Complex DFTs.
+* fftw_plan_many_dft_c2r:                Advanced Real-data DFTs.
+* fftw_plan_many_dft_r2c:                Advanced Real-data DFTs.
+* fftw_plan_many_r2r:                    Advanced Real-to-real Transforms.
+* fftw_plan_r2r <1>:                     Real-to-Real Transforms.
+* fftw_plan_r2r:                         More DFTs of Real Data.
+* fftw_plan_r2r_1d <1>:                  Real-to-Real Transforms.
+* fftw_plan_r2r_1d:                      More DFTs of Real Data.
+* fftw_plan_r2r_2d <1>:                  Real-to-Real Transforms.
+* fftw_plan_r2r_2d:                      More DFTs of Real Data.
+* fftw_plan_r2r_3d <1>:                  Real-to-Real Transforms.
+* fftw_plan_r2r_3d:                      More DFTs of Real Data.
+* fftw_plan_with_nthreads:               Usage of Multi-threaded FFTW.
+* FFTW_PRESERVE_INPUT <1>:               Planner Flags.
+* FFTW_PRESERVE_INPUT:                   One-Dimensional DFTs of Real Data.
+* fftw_print_plan:                       Using Plans.
+* FFTW_R2HC <1>:                         Real-to-Real Transform Kinds.
+* FFTW_R2HC:                             The Halfcomplex-format DFT.
+* fftw_r2r_kind:                         More DFTs of Real Data.
+* FFTW_REDFT00 <1>:                      Real-to-Real Transform Kinds.
+* FFTW_REDFT00 <2>:                      Real-to-Real Transforms.
+* FFTW_REDFT00:                          Real even/odd DFTs (cosine/sine transforms).
+* FFTW_REDFT01 <1>:                      Real-to-Real Transform Kinds.
+* FFTW_REDFT01:                          Real even/odd DFTs (cosine/sine transforms).
+* FFTW_REDFT10 <1>:                      Real-to-Real Transform Kinds.
+* FFTW_REDFT10:                          Real even/odd DFTs (cosine/sine transforms).
+* FFTW_REDFT11 <1>:                      Real-to-Real Transform Kinds.
+* FFTW_REDFT11:                          Real even/odd DFTs (cosine/sine transforms).
+* FFTW_RODFT00 <1>:                      Real-to-Real Transform Kinds.
+* FFTW_RODFT00:                          Real even/odd DFTs (cosine/sine transforms).
+* FFTW_RODFT01 <1>:                      Real-to-Real Transform Kinds.
+* FFTW_RODFT01:                          Real even/odd DFTs (cosine/sine transforms).
+* FFTW_RODFT10 <1>:                      Real-to-Real Transform Kinds.
+* FFTW_RODFT10:                          Real even/odd DFTs (cosine/sine transforms).
+* FFTW_RODFT11 <1>:                      Real-to-Real Transform Kinds.
+* FFTW_RODFT11:                          Real even/odd DFTs (cosine/sine transforms).
+* FFTW_UNALIGNED <1>:                    Guru Execution of Plans.
+* FFTW_UNALIGNED:                        Planner Flags.
+* R2HC:                                  The 1d Real-data DFT.
+* REDFT00:                               1d Real-even DFTs (DCTs).
+* REDFT01:                               1d Real-even DFTs (DCTs).
+* REDFT10:                               1d Real-even DFTs (DCTs).
+* REDFT11:                               1d Real-even DFTs (DCTs).
+* RODFT00:                               1d Real-odd DFTs (DSTs).
+* RODFT01:                               1d Real-odd DFTs (DSTs).
+* RODFT10:                               1d Real-odd DFTs (DSTs).
+* RODFT11:                               1d Real-odd DFTs (DSTs).
+
+

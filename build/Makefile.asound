@@ -1,0 +1,240 @@
+include global_config
+
+ALSA_DIR := $(shell expr alsa-lib-1.0.8 )
+
+
+OBJS := \
+	$(ALSA_DIR)/$(OBJDIR)/src/control/cards.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/control/hcontrol.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/control/control_hw.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/control/control.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/control/control_shm.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/control/setup.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/control/control_symbols.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/mixer/bag.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/mixer/mixer.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/mixer/simple.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/ordinary_mixer/ordinary_mixer.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/atomic.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/mask.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/interval.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_params.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_hw.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_plugin.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_copy.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_linear.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_route.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_mulaw.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_alaw.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_adpcm.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_iec958.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_rate.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_plug.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_misc.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_mmap.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_multi.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_shm.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_softvol.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_file.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_null.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_share.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_meter.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_lfloat.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_hooks.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_direct.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_ladspa.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_dmix.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_dsnoop.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_asym.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_symbols.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_dshare.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/ordinary_pcm/ordinary_pcm.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/rawmidi/rawmidi_hw.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/rawmidi/rawmidi_symbols.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/rawmidi/rawmidi.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/rawmidi/rawmidi_virt.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/timer/timer_hw.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/timer/timer.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/timer/timer_query.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/timer/timer_query_hw.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/timer/timer_symbols.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/hwdep/hwdep_hw.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/hwdep/hwdep_symbols.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/hwdep/hwdep.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/seq/seq_hw.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/seq/seq_event.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/seq/seqmid.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/seq/seq_midi_event.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/seq/seq.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/seq/seq_symbols.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/instr/simple.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/instr/fm.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/instr/iwffff.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/compat/empty.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/alisp/alisp.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/confmisc.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/input.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/output.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/async.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/error.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/conf.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/socket.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/dlmisc.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/userfile.o \
+	$(ALSA_DIR)/$(OBJDIR)/src/shmarea.o
+
+DIRS := \
+	$(ALSA_DIR)/$(OBJDIR)/src/alisp/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/control/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/mixer/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/ordinary_mixer/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/ordinary_pcm/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/pcm/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/rawmidi/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/timer/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/hwdep/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/seq/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/instr/ \
+	$(ALSA_DIR)/$(OBJDIR)/src/compat/
+
+OUTPUT = $(ALSA_DIR)/$(OBJDIR)/libasound.a
+
+CFLAGS += \
+	-DHAVE_CONFIG \
+	-I$(ALSA_DIR) \
+	-I$(ALSA_DIR)/include \
+	-I$(ALSA_DIR)/src/control/ \
+	-I$(ALSA_DIR)/src/mixer/ \
+	-I$(ALSA_DIR)/src/pcm/ \
+	-I$(ALSA_DIR)/src/rawmidi/ \
+	-I$(ALSA_DIR)/src/timer/ \
+	-I$(ALSA_DIR)/src/hwdep/ \
+	-I$(ALSA_DIR)/src/seq/
+
+$(shell mkdir -p $(ALSA_DIR)/$(OBJDIR))
+$(shell mkdir -p $(DIRS) )
+$(shell echo  $(CFLAGS) > $(ALSA_DIR)/$(OBJDIR)/c_flags)
+$(shell echo  $(OBJS) > $(ALSA_DIR)/$(OBJDIR)/objs)
+$(shell if ! test -L $(ALSA_DIR)/include/alsa \; then cd $(ALSA_DIR)/include \; ln -sf . alsa \; fi )
+
+
+
+all: $(OUTPUT)
+
+
+$(OUTPUT): $(OBJS)
+	@echo AR $(OUTPUT)
+	@ar rcs $(OUTPUT) `cat $(ALSA_DIR)/$(OBJDIR)/objs`
+
+
+$(OBJS):
+	@echo GCC $*.o
+	@$(GCC) -c `cat $(ALSA_DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
+
+clean:
+	find $(ALSA_DIR) -follow \( -name core \
+		-o -name '*.lo' \
+		-o -name '*.o' \
+		-o -name '*.la' \
+		-o -name '*.al' \
+		-o -name '*.a' \
+		-o -name '*.plugin' \
+		-o -name '*.so' \) -exec rm -f {} \; -prune
+	rm -rf $(ALSA_DIR)/$(OBJDIR) -prune
+
+
+
+
+
+$(ALSA_DIR)/$(OBJDIR)/src/control/cards.o:  			   $(ALSA_DIR)/src/control/cards.c
+$(ALSA_DIR)/$(OBJDIR)/src/control/hcontrol.o: 			   $(ALSA_DIR)/src/control/hcontrol.c
+$(ALSA_DIR)/$(OBJDIR)/src/control/control_hw.o: 		   $(ALSA_DIR)/src/control/control_hw.c
+$(ALSA_DIR)/$(OBJDIR)/src/control/control.o: 			   $(ALSA_DIR)/src/control/control.c
+$(ALSA_DIR)/$(OBJDIR)/src/control/control_shm.o: 		   $(ALSA_DIR)/src/control/control_shm.c
+$(ALSA_DIR)/$(OBJDIR)/src/control/setup.o:  			   $(ALSA_DIR)/src/control/setup.c
+$(ALSA_DIR)/$(OBJDIR)/src/control/control_symbols.o: 	   $(ALSA_DIR)/src/control/control_symbols.c
+$(ALSA_DIR)/$(OBJDIR)/src/mixer/bag.o:  				   $(ALSA_DIR)/src/mixer/bag.c
+$(ALSA_DIR)/$(OBJDIR)/src/mixer/mixer.o: 				   $(ALSA_DIR)/src/mixer/mixer.c
+$(ALSA_DIR)/$(OBJDIR)/src/mixer/simple.o: 				   $(ALSA_DIR)/src/mixer/simple.c
+$(ALSA_DIR)/$(OBJDIR)/src/ordinary_mixer/ordinary_mixer.o: $(ALSA_DIR)/src/ordinary_mixer/ordinary_mixer.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/atomic.o: 				   $(ALSA_DIR)/src/pcm/atomic.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/mask.o: 					   $(ALSA_DIR)/src/pcm/mask.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/interval.o: 				   $(ALSA_DIR)/src/pcm/interval.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_params.o: 			   $(ALSA_DIR)/src/pcm/pcm_params.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm.o: 					   $(ALSA_DIR)/src/pcm/pcm.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_hw.o: 				   $(ALSA_DIR)/src/pcm/pcm_hw.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_plugin.o: 			   $(ALSA_DIR)/src/pcm/pcm_plugin.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_copy.o: 				   $(ALSA_DIR)/src/pcm/pcm_copy.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_linear.o: 			   $(ALSA_DIR)/src/pcm/pcm_linear.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_route.o:  			   $(ALSA_DIR)/src/pcm/pcm_route.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_mulaw.o:  			   $(ALSA_DIR)/src/pcm/pcm_mulaw.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_alaw.o: 				   $(ALSA_DIR)/src/pcm/pcm_alaw.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_adpcm.o:  			   $(ALSA_DIR)/src/pcm/pcm_adpcm.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_iec958.o:                $(ALSA_DIR)/src/pcm/pcm_iec958.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_rate.o: 				   $(ALSA_DIR)/src/pcm/pcm_rate.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_plug.o: 				   $(ALSA_DIR)/src/pcm/pcm_plug.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_misc.o: 				   $(ALSA_DIR)/src/pcm/pcm_misc.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_mmap.o: 				   $(ALSA_DIR)/src/pcm/pcm_mmap.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_multi.o:  			   $(ALSA_DIR)/src/pcm/pcm_multi.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_shm.o: 				   $(ALSA_DIR)/src/pcm/pcm_shm.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_softvol.o: 			   $(ALSA_DIR)/src/pcm/pcm_softvol.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_file.o: 				   $(ALSA_DIR)/src/pcm/pcm_file.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_null.o: 				   $(ALSA_DIR)/src/pcm/pcm_null.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_share.o:  			   $(ALSA_DIR)/src/pcm/pcm_share.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_meter.o:  			   $(ALSA_DIR)/src/pcm/pcm_meter.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_lfloat.o: 			   $(ALSA_DIR)/src/pcm/pcm_lfloat.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_hooks.o:  			   $(ALSA_DIR)/src/pcm/pcm_hooks.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_direct.o: 			   $(ALSA_DIR)/src/pcm/pcm_direct.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_ladspa.o: 			   $(ALSA_DIR)/src/pcm/pcm_ladspa.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_dmix.o: 				   $(ALSA_DIR)/src/pcm/pcm_dmix.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_dsnoop.o: 			   $(ALSA_DIR)/src/pcm/pcm_dsnoop.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_asym.o: 				   $(ALSA_DIR)/src/pcm/pcm_asym.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_symbols.o: 			   $(ALSA_DIR)/src/pcm/pcm_symbols.c
+$(ALSA_DIR)/$(OBJDIR)/src/pcm/pcm_dshare.o: 			   $(ALSA_DIR)/src/pcm/pcm_dshare.c
+$(ALSA_DIR)/$(OBJDIR)/src/ordinary_pcm/ordinary_pcm.o:     $(ALSA_DIR)/src/ordinary_pcm/ordinary_pcm.c
+$(ALSA_DIR)/$(OBJDIR)/src/rawmidi/rawmidi_hw.o: 		   $(ALSA_DIR)/src/rawmidi/rawmidi_hw.c
+$(ALSA_DIR)/$(OBJDIR)/src/rawmidi/rawmidi_symbols.o: 	   $(ALSA_DIR)/src/rawmidi/rawmidi_symbols.c
+$(ALSA_DIR)/$(OBJDIR)/src/rawmidi/rawmidi.o: 			   $(ALSA_DIR)/src/rawmidi/rawmidi.c
+$(ALSA_DIR)/$(OBJDIR)/src/rawmidi/rawmidi_virt.o: 		   $(ALSA_DIR)/src/rawmidi/rawmidi_virt.c
+$(ALSA_DIR)/$(OBJDIR)/src/timer/timer_hw.o: 			   $(ALSA_DIR)/src/timer/timer_hw.c
+$(ALSA_DIR)/$(OBJDIR)/src/timer/timer.o: 				   $(ALSA_DIR)/src/timer/timer.c
+$(ALSA_DIR)/$(OBJDIR)/src/timer/timer_query.o:  		   $(ALSA_DIR)/src/timer/timer_query.c
+$(ALSA_DIR)/$(OBJDIR)/src/timer/timer_query_hw.o: 		   $(ALSA_DIR)/src/timer/timer_query_hw.c
+$(ALSA_DIR)/$(OBJDIR)/src/timer/timer_symbols.o: 		   $(ALSA_DIR)/src/timer/timer_symbols.c
+$(ALSA_DIR)/$(OBJDIR)/src/hwdep/hwdep_hw.o: 			   $(ALSA_DIR)/src/hwdep/hwdep_hw.c
+$(ALSA_DIR)/$(OBJDIR)/src/hwdep/hwdep_symbols.o: 		   $(ALSA_DIR)/src/hwdep/hwdep_symbols.c
+$(ALSA_DIR)/$(OBJDIR)/src/hwdep/hwdep.o: 				   $(ALSA_DIR)/src/hwdep/hwdep.c
+$(ALSA_DIR)/$(OBJDIR)/src/seq/seq_hw.o: 				   $(ALSA_DIR)/src/seq/seq_hw.c
+$(ALSA_DIR)/$(OBJDIR)/src/seq/seq_event.o:  			   $(ALSA_DIR)/src/seq/seq_event.c
+$(ALSA_DIR)/$(OBJDIR)/src/seq/seqmid.o: 				   $(ALSA_DIR)/src/seq/seqmid.c
+$(ALSA_DIR)/$(OBJDIR)/src/seq/seq_midi_event.o: 		   $(ALSA_DIR)/src/seq/seq_midi_event.c
+$(ALSA_DIR)/$(OBJDIR)/src/seq/seq.o: 					   $(ALSA_DIR)/src/seq/seq.c
+$(ALSA_DIR)/$(OBJDIR)/src/seq/seq_symbols.o: 			   $(ALSA_DIR)/src/seq/seq_symbols.c
+$(ALSA_DIR)/$(OBJDIR)/src/instr/simple.o: 				   $(ALSA_DIR)/src/instr/simple.c
+$(ALSA_DIR)/$(OBJDIR)/src/instr/fm.o: 					   $(ALSA_DIR)/src/instr/fm.c
+$(ALSA_DIR)/$(OBJDIR)/src/instr/iwffff.o: 				   $(ALSA_DIR)/src/instr/iwffff.c
+$(ALSA_DIR)/$(OBJDIR)/src/compat/empty.o: 				   $(ALSA_DIR)/src/compat/empty.c
+$(ALSA_DIR)/$(OBJDIR)/src/alisp/alisp.o: 				   $(ALSA_DIR)/src/alisp/alisp.c
+$(ALSA_DIR)/$(OBJDIR)/src/confmisc.o: 					   $(ALSA_DIR)/src/confmisc.c
+$(ALSA_DIR)/$(OBJDIR)/src/input.o:  					   $(ALSA_DIR)/src/input.c
+$(ALSA_DIR)/$(OBJDIR)/src/output.o: 					   $(ALSA_DIR)/src/output.c
+$(ALSA_DIR)/$(OBJDIR)/src/async.o:  					   $(ALSA_DIR)/src/async.c
+$(ALSA_DIR)/$(OBJDIR)/src/error.o:  					   $(ALSA_DIR)/src/error.c
+$(ALSA_DIR)/$(OBJDIR)/src/conf.o: 						   $(ALSA_DIR)/src/conf.c
+$(ALSA_DIR)/$(OBJDIR)/src/socket.o: 					   $(ALSA_DIR)/src/socket.c
+$(ALSA_DIR)/$(OBJDIR)/src/dlmisc.o: 					   $(ALSA_DIR)/src/dlmisc.c
+$(ALSA_DIR)/$(OBJDIR)/src/userfile.o: 					   $(ALSA_DIR)/src/userfile.c
+$(ALSA_DIR)/$(OBJDIR)/src/shmarea.o: 					   $(ALSA_DIR)/src/shmarea.c
+
+
+
+
+
+
+
+
+
+
+
+

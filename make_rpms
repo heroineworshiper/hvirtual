@@ -1,0 +1,5 @@
+# run this in /usr/src/redhat
+
+rpmbuild -ba cinelerra-1.1.8-1.spec
+rpmbuild -ba xmovie-1.9.11-1.spec
+rpmbuild -ba mix2000-1.0.0-1.spec

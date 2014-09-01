@@ -1,0 +1,218 @@
+<TITLE>XMovie User's Guide</TITLE>
+
+<H1>XMovie User's Guide</H1>
+
+XMovie was originally written as a simple, fast method to play
+uncompressed movies with stereo sound back when the only uncompressed
+movie player was <B>xanim</B> and the only MPEG player was <B>MTV</B>. 
+XAnim didn't play stereo sound and MTV was a $15 shareware.  Hard to
+believe how today's applications toss movies around without a wimper
+when just 4 years ago it was an ordeal just to play an MPEG stream.<P>
+
+Additional codecs were added over the years.<P>
+
+
+<H1>Supported file formats</H1>
+
+<BLOCKQUOTE>
+MPEG-1 program streams<BR>
+MPEG-2 program streams<BR>
+MPEG-2 transport streams<BR>
+MP3 audio<BR>
+MP2 audio<BR>
+AC3 audio<BR>
+WAV audio.  Not currently but maybe later.<BR>
+AIFF audio.  Not currently but maybe later.<BR>
+MPEG-1 video<BR>
+MPEG-2 video<BR>
+DVD rips<BR>
+VCD rips<BR>
+
+Quicktime video:
+<BLOCKQUOTE>
+Heroine 60 - Custom codec for 60fps.<BR>
+Motion JPEG A<BR>
+MPEG-4<BR>
+Uncompressed RGB<BR>
+Component video<BR>
+Progressive JPEG<BR>
+PNG<BR>
+YUV 4:2:0 uncompressed<BR>
+YUV 4:2:2 uncompressed<BR>
+DV<BR>
+</BLOCKQUOTE>
+
+Quicktime audio:
+<BLOCKQUOTE>
+Ogg Vorbis<BR>
+Twos complement<BR>
+IMA4<BR>
+ulaw<BR>
+</BLOCKQUOTE>
+
+AVI video:
+<BLOCKQUOTE>
+Motion JPEG<BR>
+MPEG-4<BR>
+</BLOCKQUOTE>
+
+</BLOCKQUOTE>
+
+<H1>Menus</H1>
+
+<B>OPTIONS</B>
+
+<BLOCKQUOTE>
+	<B>PLAY EVERY FRAME</B>
+	<BLOCKQUOTE>
+	Forces every frame to be played regardless of synchronization.
+	</BLOCKQUOTE>
+
+	<B>FULL SCREEN</B>
+	<BLOCKQUOTE>
+	Toggles between fullscreen and windowed output.  Remember to use
+the <B>f</B> key to toggle back.
+	</BLOCKQUOTE>
+
+	<B>ORIGINAL SIZE</B>
+	<BLOCKQUOTE>
+	Size the frame so that horizontal resolution is 1:1.
+	</BLOCKQUOTE>
+
+	<B>SYNCHRONIZE USING SOFTWARE</B>
+	<BLOCKQUOTE>
+	Try to guess the synchronization instead of locking on the soundcard.  
+	</BLOCKQUOTE>
+
+	<B>SETTINGS</B><BR>
+	<BLOCKQUOTE>
+	<B>Display aspect ratio -</B>
+
+	Determines the aspect ratio of the intended screen size by
+stretching pixels.  Usually either 4:3 or 16:9.  Can optionally be
+disabled so that pixels are always square.<P>
+
+	<B>Letterbox aspect ratio -</B>
+	
+	For a letterboxed movie this determines what the movie's aspect
+ratio would be if the letterbox was cropped, usually 2.2:1.  Then by
+enabling <B>Crop letterbox</B> you can save CPU time and desktop area
+by displaying only the part of the screen containing the movie.<P> 
+
+	<B>Audio Priority -</B>
+	
+	Some people think the audio interferes with smooth video.  You can
+set the nice value for the audio here.  A nice of 0 puts audio on the
+same priority as video.  A nice of 20 puts audio in the lowest priority.<P>
+
+	<B>Preload size -</B>
+	
+	CD-ROM drives can't handle seeking in Quicktime movies so preload
+size determines a maximum number of bytes ahead of the current file
+pointer the drive should read sequentially before resorting to a
+SEEK_SET.  This speeds up Quicktime playback from CD-ROM drives.<P>
+
+<A NAME="mixdown">
+	<B>Downmixing strategy -</B>
+	
+	When playing DVD's and 6 channel audio sources you can either mix 6
+channels down to stereo, send 6 discrete channels to the soundcard, or
+upmix a stereo signal to 6 channels.  When you plug a 6 channel
+soundcard into a home theater amplifier, the channel assignments are as
+follows:
+
+<PRE><TT>
+Channel:        1         2           3           4           5            6
+Speaker:    Main Left | Center | Main Right | Surr Left | Surr Right | Subwoofer
+</TT></PRE>
+<P>
+
+	<B>Video device -</B>
+	
+	An alternative device other than X Windows can be used for video
+output.<P>
+
+An alternative was once the <A
+HREF="http://digitalvideosystems.com">DVS SDStation</A>.  This is no
+longer supported.<P>
+
+</BLOCKQUOTE>
+
+</BLOCKQUOTE>
+
+<B>AUDIO</B>
+
+<BLOCKQUOTE>
+Selects among the audio streams.
+</BLOCKQUOTE>
+
+<B>VIDEO</B>
+
+<BLOCKQUOTE>
+Selects among the video streams.  After switching video streams you should 
+restart the program since not all video streams have the same dimensions.
+</BLOCKQUOTE>
+
+
+
+<H1>Quicktime Info</H1>
+
+Although not developed by Microsoft, Quicktime is really a wrapper for
+the various compression standards out there with 64 bit filesystem
+support.  What you know as Quicktime 4 is really the same as any other
+version of Quicktime.  Quicktime 4 wraps two additional compression
+standards which aren't present in the previous versions but the method
+it uses for wrapping is identical to Quicktime 2.<P>
+
+The Quicktime support in XMovie wasn't designed to play movies from the
+internet.  Internet movies are encoded using the two compression
+standards: Sorenson Vision and QDesign Music.  Apple licensed these
+compression standards for their own use after Microsoft introduced
+Windows Media Player in 1998 to avert competition, hence it is
+impossible for anyone but Apple to use Sorenson Vision or QDesign
+Music.<P>
+
+Your primary use of XMovie is uncompressed Quicktime movies that you
+create yourself, as in using your computer as a VCR.<P> <P>
+
+<H1>Low bitrate MPEG Info</H1>
+
+Be sure to disable MMX in settings->preferences.  This improves
+quality.  A lot of users notice what they call "color drifting".  This
+is because MMX is enabled.
+
+<P>
+
+
+
+
+<H1>DVD Info</H1>
+
+XMovie can be used as a rudimentary DVD player by playing the IFO files
+one by one.  50% of the DVD support in Linux is integrated in the
+kernel.  The following kernel is known to play DVD's <P>
+
+Kernel 2.4.4<P>
+
+
+The files you want to play off of DVDs are <B>.IFO</B> files.  Each of
+these is a movie.  After loading an IFO file you'll notice the time
+indicator jumping around.  This shows the timecode in the MPEG stream
+at every point, which on DVD's is discontinuous.<P>
+
+Most DVD's are encoded with 6 channel audio.  If you have a 6 channel
+sound card you can play all 6 channels as described <A
+HREF="#mixdown">above</A>.  Otherwise downmix to stereo.<P>
+
+
+<H1>MPEG transport stream info</H1>
+
+XMovie can play transport streams downloaded from the WinTV-D card and
+the reference streams from UC Berkeley.  When switching between the
+HDTV and the SDTV video you need to restart the program since we don't
+check for frame size changes.<P>
+
+
+
+<P>
+

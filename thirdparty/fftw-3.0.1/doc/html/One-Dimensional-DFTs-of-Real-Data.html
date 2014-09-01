@@ -1,0 +1,122 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="One-Dimensional%20DFTs%20of%20Real%20Data">One-Dimensional DFTs of Real Data</a>,
+Next:<a rel=next accesskey=n href="Multi-Dimensional-DFTs-of-Real-Data.html#Multi-Dimensional%20DFTs%20of%20Real%20Data">Multi-Dimensional DFTs of Real Data</a>,
+Previous:<a rel=previous accesskey=p href="Complex-Multi-Dimensional-DFTs.html#Complex%20Multi-Dimensional%20DFTs">Complex Multi-Dimensional DFTs</a>,
+Up:<a rel=up accesskey=u href="Tutorial.html#Tutorial">Tutorial</a>
+<hr><br>
+
+<h3>2.3 One-Dimensional DFTs of Real Data</h3>
+
+<p>In many practical applications, the input data <code>in[i]</code> are purely
+real numbers, in which case the DFT output satisfies the "Hermitian"
+redundancy: <code>out[i]</code> is the conjugate of <code>out[n-i]</code>.  It is
+possible to take advantage of these circumstances in order to achieve
+roughly a factor of two improvement in both speed and memory usage.
+
+<p>In exchange for these speed and space advantages, the user sacrifices
+some of the simplicity of FFTW's complex transforms. First of all, the
+input and output arrays are of <em>different sizes and types</em>: the
+input is <code>n</code> real numbers, while the output is <code>n/2+1</code>
+complex numbers (the non-redundant outputs); this also requires slight
+"padding" of the input array for
+in-place transforms.  Second, the inverse transform (complex to real)
+has the side-effect of <em>destroying its input array</em>, by default. 
+Neither of these inconveniences should pose a serious problem for
+users, but it is important to be aware of them.
+
+<p>The routines to perform real-data transforms are almost the same as
+those for complex transforms: you allocate arrays of <code>double</code>
+and/or <code>fftw_complex</code> (preferably using <code>fftw_malloc</code>),
+create an <code>fftw_plan</code>, execute it as many times as you want with
+<code>fftw_execute(plan)</code>, and clean up with
+<code>fftw_destroy_plan(plan)</code> (and <code>fftw_free</code>).  The only
+differences are that the input (or output) is of type <code>double</code>
+and there are new routines to create the plan.  In one dimension:
+
+<br><pre>fftw_plan fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out,
+                               unsigned flags);
+fftw_plan fftw_plan_dft_c2r_1d(int n, fftw_complex *in, double *out,
+                               unsigned flags);
+</pre>
+
+<p>for the real input to complex-Hermitian output (<dfn>r2c</dfn>) and
+complex-Hermitian input to real output (<dfn>c2r</dfn>) transforms. 
+Unlike the complex DFT planner, there is no <code>sign</code> argument. 
+Instead, r2c DFTs are always <code>FFTW_FORWARD</code> and c2r DFTs are
+always <code>FFTW_BACKWARD</code>. 
+(For single/long-double precision
+<code>fftwf</code> and <code>fftwl</code>, <code>double</code> should be replaced by
+<code>float</code> and <code>long double</code>, respectively.)
+
+<p>Here, <code>n</code> is the "logical" size of the DFT, not necessarily the
+physical size of the array.  In particular, the real (<code>double</code>)
+array has <code>n</code> elements, while the complex (<code>fftw_complex</code>)
+array has <code>n/2+1</code> elements (where the division is rounded down). 
+For an in-place transform,
+<code>in</code> and <code>out</code> are aliased to the same array, which must be
+big enough to hold both; so, the real array would actually have
+<code>2*(n/2+1)</code> elements, where the elements beyond the first <code>n</code>
+are unused padding.  The kth element of the complex array is
+exactly the same as the kth element of the corresponding complex
+DFT.  All positive <code>n</code> are supported; products of small factors are
+most efficient, but an <i>O</i>(<i>n</i>&nbsp;log&nbsp;<i>n</i>)
+ algorithm is used even for prime
+sizes.
+
+<p>As noted above, the c2r transform destroys its input array even for
+out-of-place transforms.  This can be prevented, if necessary, by
+including <code>FFTW_PRESERVE_INPUT</code> in the <code>flags</code>, with
+unfortunately some sacrifice in performance. 
+This flag is also not currently supported for multi-dimensional real
+DFTs (next section).
+
+<p>Readers familiar with DFTs of real data will recall that the 0th (the
+"DC") and <code>n/2</code>-th (the "Nyquist" frequency, when <code>n</code> is
+even) elements of the complex output are purely real.  Some
+implementations therefore store the Nyquist element where the DC
+imaginary part would go, in order to make the input and output arrays
+the same size.  Such packing, however, does not generalize well to
+multi-dimensional transforms, and the space savings are miniscule in
+any case; FFTW does not support it.
+
+<p>An alternate interface for one-dimensional r2c and c2r DFTs can be
+found in the <code>r2r</code> interface (see <a href="The-Halfcomplex-format-DFT.html#The%20Halfcomplex-format%20DFT">The Halfcomplex-format DFT</a>), with "halfcomplex"-format output that <em>is</em> the same size
+(and type) as the input array. 
+That interface, although it is not very useful for multi-dimensional
+transforms, may sometimes yield better performance.
+
+</body></html>
+

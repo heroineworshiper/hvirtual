@@ -1,0 +1,14 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libavcodec
+Description: FFmpeg codec library
+Version: 52.72.2
+Requires: libavutil = 50.15.1
+Requires.private: 
+Conflicts:
+Libs: -L${libdir} -lavcodec -L/root/hvirtual/quicktime/thirdparty/faad2-2.0//libfaad/.libs/ -lz -lbz2 -pthread -lm -lasound -lasound -lasound
+Libs.private: 
+Cflags: -I${includedir}

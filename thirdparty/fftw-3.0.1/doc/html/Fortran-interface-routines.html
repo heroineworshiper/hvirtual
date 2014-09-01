@@ -1,0 +1,112 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Fortran-interface%20routines">Fortran-interface routines</a>,
+Next:<a rel=next accesskey=n href="FFTW-Constants-in-Fortran.html#FFTW%20Constants%20in%20Fortran">FFTW Constants in Fortran</a>,
+Previous:<a rel=previous accesskey=p href="Calling-FFTW-from-Fortran.html#Calling%20FFTW%20from%20Fortran">Calling FFTW from Fortran</a>,
+Up:<a rel=up accesskey=u href="Calling-FFTW-from-Fortran.html#Calling%20FFTW%20from%20Fortran">Calling FFTW from Fortran</a>
+<hr><br>
+
+<h3>6.1 Fortran-interface routines</h3>
+
+<p>Nearly all of the FFTW functions have Fortran-callable equivalents.  The
+name of the Fortran routine is the same as that of the corresponding C
+routine, but with the <code>fftw_</code> prefix replaced by <code>dfftw_</code>. 
+(The single and long-double precision versions use <code>sfftw_</code> and
+<code>lfftw_</code>, respectively, instead of <code>fftwf_</code> and
+<code>fftwl_</code>.)<a rel=footnote href="#fn-1"><sup>1</sup></a>
+
+<p>For the most part, all of the arguments to the functions are the same,
+with the following exceptions:
+
+<ul>
+
+<li><code>plan</code> variables (what would be of type <code>fftw_plan</code> in C),
+must be declared as a type that is at least as big as a pointer
+(address) on your machine.  We recommend using <code>integer*8</code>.
+
+<li>Any function that returns a value (e.g. <code>fftw_plan_dft</code>) is
+converted into a <em>subroutine</em>.  The return value is converted into
+an additional <em>first</em> parameter of this subroutine.<a rel=footnote href="#fn-2"><sup>2</sup></a>
+
+<li>The Fortran routines expect multi-dimensional arrays to be in
+<em>column-major</em> order, which is the ordinary format of Fortran
+arrays (see <a href="Multi-dimensional-Array-Format.html#Multi-dimensional%20Array%20Format">Multi-dimensional Array Format</a>).  They do this
+transparently and costlessly simply by reversing the order of the
+dimensions passed to FFTW, but this has one important consequence for
+multi-dimensional real-complex transforms, discussed below.
+
+<li>Wisdom import and export is somewhat more tricky because one cannot
+easily pass files or strings between C and Fortran; see <a href="Wisdom-of-Fortran-.html#Wisdom%20of%20Fortran%3f">Wisdom of Fortran?</a>.
+
+<li>Fortran cannot use the <code>fftw_malloc</code> dynamic-allocation routine. 
+If you want to exploit the SIMD FFTW (see <a href="Data-Alignment.html#Data%20Alignment">Data Alignment</a>), you'll
+need to figure out some other way to ensure that your arrays are at
+least 16-byte aligned.
+
+<li>Since Fortran 77 does not have data structures, the <code>fftw_iodim</code>
+structure from the guru interface (see <a href="Guru-vector-and-transform-sizes.html#Guru%20vector%20and%20transform%20sizes">Guru vector and transform sizes</a>) must be split into separate arguments.  In particular, any
+<code>fftw_iodim</code> array arguments in the C guru interface become three
+integer array arguments (<code>n</code>, <code>is</code>, and <code>os</code>) in the
+Fortran guru interface, all of whose length should be equal to the
+corresponding <code>rank</code> argument.
+
+</ul>
+
+<p>In general, you should take care to use Fortran data types that
+correspond to (i.e. are the same size as) the C types used by FFTW.  If
+your C and Fortran compilers are made by the same vendor, the
+correspondence is usually straightforward (i.e. <code>integer</code>
+corresponds to <code>int</code>, <code>real</code> corresponds to <code>float</code>,
+etcetera).  The native Fortran double/single-precision complex type
+should be compatible with <code>fftw_complex</code>/<code>fftwf_complex</code>. 
+Such simple correspondences are assumed in the examples below.
+
+<hr><h4>Footnotes</h4>
+<ol type="1">
+<li><a name="fn-1"></a>
+<p>Technically, Fortran 77 identifiers are
+not allowed to have more than 6 characters, nor may they contain
+underscores.  Any compiler that enforces this limitation doesn't deserve
+to link to FFTW.</p>
+
+<li><a name="fn-2"></a>
+<p>The
+reason for this is that some Fortran implementations seem to have
+trouble with C function return values, and vice versa.</p>
+
+</ol><hr>
+
+</body></html>
+

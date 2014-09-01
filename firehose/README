@@ -1,0 +1,265 @@
+FIREHOSE stupid network utilities
+(c) 2003 Heroine Virtual Ltd. broadcast@earthling.net
+
+
+
+
+This library is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 
+USA
+
+
+
+
+
+
+****************** About
+
+
+What originally was intended to support data transfer over parallel
+network devices now is a collection of stupid utilities for
+transferring files over networks.  Only one guy ever used dual ethernet
+ports to get 200Mb/sec and no-one can afford multiple gigabit ethernet
+ports so that's not the main idea anymore.  
+
+At the heart of firehose is a library which allows any program wishing
+to stream data over striped ethernet to do so.  There are several
+utilities which demonstrate use of the library.  firerecv is a threaded
+server and firesend is a client.  firepipe allows you to send data over
+parallel network devices using pipes.  By the way.  It works just as
+well over a single ethernet port, in case you don't want to bother with
+the GNU C library documentation and just want an easy way to stream
+data.
+
+
+
+
+
+
+
+****************** Hardware requirements:
+
+The key to firehose is separate network fabrics for each port you send
+data to.  You need either a really high bandwidth switch for each port
+or crossover cables to directly connect the ethernet devices for each
+port.
+
+
+
+
+
+****************** Software configuration:
+
+The library is based on a client and a server. You run one library
+instance on the destination computer with a certain number of ports to
+listen on. You run another instance on the source computer with a
+certain number of destination hostname:ports.  It's useful to wrap the
+client and server programs in scripts containing all the port
+arguments.
+
+Parallelism is achieved by using the ifconfig utility to define
+separate IP addresses on separate devices.  Here is an example ifconfig
+and route for our destination server with three onboard ethernets:
+
+
+
+
+eth0      Link encap:Ethernet  HWaddr 00:80:C8:F8:AC:92  
+          inet addr:192.168.0.2  Bcast:192.168.0.255  Mask:255.255.255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:47718 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:115951 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          Interrupt:11 Base address:0x1800 
+
+eth1      Link encap:Ethernet  HWaddr 00:E0:81:02:E3:E9  
+          inet addr:10.0.0.1  Bcast:10.0.0.255  Mask:255.255.255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:70813 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:126398 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          Interrupt:11 Base address:0x1880 
+
+eth2      Link encap:Ethernet  HWaddr 00:E0:81:02:E3:EA  
+          inet addr:172.16.0.2  Bcast:172.16.0.255  Mask:255.255.255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:46871 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:113321 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          Interrupt:11 Base address:0x1c00 
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:77 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:77 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+
+
+
+
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+10.0.0.0        0.0.0.0         255.255.255.0   U     0      0        0 eth1
+172.16.0.0      0.0.0.0         255.255.255.0   U     0      0        0 eth2
+192.168.0.0     0.0.0.0         255.255.255.0   U     0      0        0 eth0
+
+
+
+
+
+
+
+Here is the ifconfig and route for our source client with three
+ethernets:
+
+
+
+
+
+
+
+eth0      Link encap:Ethernet  HWaddr 00:E0:81:02:05:8A  
+          inet addr:10.0.0.4  Bcast:10.0.0.255  Mask:255.255.255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:256972 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:142772 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          Interrupt:23 
+
+eth1      Link encap:Ethernet  HWaddr 00:50:8B:69:AE:C1  
+          inet addr:172.16.0.1  Bcast:172.16.0.255  Mask:255.255.255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:113321 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:46871 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          Interrupt:26 Base address:0x2000 
+
+eth2      Link encap:Ethernet  HWaddr 00:D0:B7:5D:4C:75  
+          inet addr:192.168.0.1  Bcast:192.168.0.255  Mask:255.255.255.0
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:115951 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:47718 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:100 
+          Interrupt:24 Base address:0x4000 
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:1873 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:1873 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+
+
+
+
+
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+10.0.0.0        0.0.0.0         255.255.255.0   U     0      0        0 eth0
+172.16.0.0      0.0.0.0         255.255.255.0   U     0      0        0 eth1
+192.168.0.0     0.0.0.0         255.255.255.0   U     0      0        0 eth2
+
+
+
+
+Unfortunately Linux makes network configuration hard because every time
+you change PCI cards or reset the motherboard the eth mappings get
+changed.  This wouldn't be a problem if you could afford a high
+bandwidth switch, but for normal people who have multiple slow switches
+to do this, you'll have to ping one address at a time with all the
+other cables disconnected until each ethernet channel is on the right
+fabric.  At least you don't have to reboot to change IP addresses.
+
+
+
+
+
+
+
+
+
+****************** The utilities
+
+On the destination we set up a file receiver on three ports by running
+
+firerecv -i 3085 -i 3086 -i 3087
+
+On the source we send a file off by running
+
+firesend -i 10.0.0.1:3085 -i 172.16.0.2:3086 -i 192.168.0.2:3087 40gigxenaepisode.mov
+
+You can run firesend as many times as desired without restarting the
+server.  When finished be sure to Ctrl-C the server.  Any number of
+devices may be used besides three.
+
+
+
+
+
+
+****************** FirePipe
+
+On the destination we set up a pipe receiver by running
+
+firepipe -i 3086 -i 3086 -i 3087 > cd.iso
+
+On the source we start piping data by running
+
+mkisofs cd.vob | firepipe -o 10.0.0.1:3085 -o 172.16.0.2:3086 -o 192.168.0.2:3087
+
+Firepipe has the distinction of using -i to specify input ports and -o
+to specify target hosts, all using the same executable.  mkisofs is
+probably the most useful source of data to pipe over a network.  But
+/dev/zero is another one.  This is really useful for excercising
+ethernet bandwidth.
+
+firepipe -i 1234 > /dev/null
+cat /dev/zero | firepipe -o server:1234
+
+
+
+
+********************** Bottom
+
+Ever wish there was a real simple command line CPU monitor which didn't
+screw up the console, take forever to cross compile, or require 10,000
+libraries?  Not only does Bottom show CPU usage but it also shows I/O
+of the first hard drive on the system.  Unfortunately it only works on
+a single CPU with one hard drive.
+
+
+
+
+********************* Dateget/Dateserve
+
+A really annoying fact of Linux is that it rarely succeeds in setting
+the BIOS clock or the BIOS clock doesn't work at all and resets after
+every crash.  Either you need to go into the BIOS every reboot or run
+'date' every reboot.  If you don't feel like compiling NTP or need an
+easy way to cross compile, try dateget/dateserve.
+
+Run dateserve on the server with the server port number as argument 1. 
+Every connection to that port gets a code for the date and nothing
+else.
+
+On the client run dateget server:port to set the client's software
+clock from the server.  It doesn't touch the BIOS clock.  You may have
+issues with the timezone offsetting the client from the server.  Change
+the TZ environment variable on the client to match the TZ environment
+variable on the server.
+
+
+
+

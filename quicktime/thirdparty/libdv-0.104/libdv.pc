@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libdv 
+Description: DV software codec
+Requires: 
+Version: 0.104
+Libs: -L${libdir} -ldv -lm 
+Cflags: -I${includedir}

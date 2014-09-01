@@ -1,0 +1,140 @@
+libavc1394 ChangeLog
+
+0.5.1 release
+
+2005-06-13 Dan Dennedy <dan@dennedy.org>
+	* libavc1394/avc1394_simple.c: bugfix avc1394_send_command_block not
+	  idempotent.
+	* libavc1394/avc1394_simple.[hc]: added decode_ctype and additional debug.
+	* various: indentation cleanup.
+
+2005-05-24 Dan Dennedy <dan@dennedy.org>
+	* avc1394_simple.c, avc1394_internal.c: apply patch from Pieter Palmers to 
+	fix incorrect fcp response length handling and subsequent endian conversion.
+
+0.5.0 release
+
+2005-02-17  Dan Dennedy <dan@dennedy.org>
+	* added spec and pkg-config support files
+	* added tests/mkrfc2734.1 man page
+	* fix compilation warnings and installation of pc file 
+
+2005-01-25  Dan Dennedy <dan@dennedy.org>
+	* convert build to use pkg-config for libraw1394
+	* common/raw1394util.c: remove support for libraw1394 0.8
+	* remove libplug1394 and test/plugreport and test/plugctl
+	  (these are now available in libiec61883)
+
+2005-01-10  Dan Dennedy <dan@dennedy.org>
+	* libavc1394/avc1394.h: applied patch from Daniel Wagner
+	  <wagi@monom.org> to fix AVC1394_GET_RESPONSE_OPERAND and add
+	  constants for more subunit types and subunit_music capabilities.
+	* test/dvcont.1: added man page missing in CVS!
+	  
+2004-07-10  Dan Dennedy <dan@dennedy.org>
+	* libavc1394/avc1394_vcr.c: added avc1394_vcr_get_timecode2() that uses
+	  an out param.
+	* test/dvcont.c: modified to use avc1394_vcr_get_timecode2()
+
+2004-07-09  Dan Dennedy <dan@dennedy.org>
+	* libavc1394/avc1394_simple.c: fix retry parameter of transactions.
+
+2003-12-07  Dan Dennedy <dan@dennedy.org>
+	* libavc1394/avc1394.h: apply patch from Tim Coppefield to add more
+	  operands and to correct the size of a command response.
+	* libavc1394/avc1394_simple.c: apply patch from Tim Coppefield to
+	  correct the command response in the FCP handler. Also adds more debug
+	  info.
+
+2003-11-24  Dan Dennedy <dan@dennedy.org>
+	* libavc1934/avc1394_vcr.c: patch from Phiipp Marek to report Recording
+	  vs Recording Paused.
+
+2003-04-23  Dan Dennedy <dan@dennedy.org>
+	* libplug1394: updated for changes in libraw1394 ARM
+	* librom1394: added error handling around the processing of sub directories.
+	* dvcont.c: keep looking for AV/C node if reading a configROM directory fails
+	  (minimal configROMs on some hubs).
+	* added test/mkrfc2734.c to set ConfigROM for use with eth1394--needs testing.
+
+2002-10-30  Dan Dennedy
+	* added librom1394 manipulation functions.
+	* added test/setrom.c as example of using above.
+	* added functions to libavc1394 for target mode applications.
+	* added test/avc_vcr.c as example of an AV/C target. 
+
+2002-10-22  Dan Dennedy
+	* added libplug1394/*
+	* added test/plugctl.c
+	* README: updated with librom1394 and libplug1394 info.
+
+2002-10-01  Dan Dennedy <dan@dennedy.org>
+	* common/raw1394util.c: convert from usleep to nanosleep
+	
+2002-09-26  Dan Dennedy <dan@dennedy.org>
+	* avc1394_simple.c: remove test for STABLE response from avc transactions.
+	* avc1394_simple.c: convert usleep to nanosleep.
+	* dvcont.1, dvcont.c: apply patch from Daniel Kobras for updated docs.
+	* dvcont.c: fix include
+
+2002-09-25  Dan Dennedy <dan@dennedy.org>
+	* avc1394_simple.c: added timeout support to avc transactions.
+	* avc1394_vcr.c: added avc1394_vcr_seek_timecode(), but discovered
+	  it is not supported by most devices.
+	* dvcont.c: added seek command to test above, display usage if no
+	  commands entered, added hidden pluginfo command for playing around,
+	  added more verbose output.
+	* configure.in: bump version.
+	* dvcont.c: fixup version numbers.
+
+2002-04-04  Dan Dennedy <dan@dennedy.org>
+    * Applied patch from Kirk Bateman to handle unicode US_ENGLISH
+      (Microsoft specific?) textual leaves in librom1394. Thanks!
+
+2001-09-22  Dan Dennedy <dan@dennedy.org>
+    * test/Makefile.am: tidy up
+    * libavc1394/avc1394_internal.h: added defines for DEBUG and AVC1394_SLEEP
+    * libavc1394/avc1394_simple.c: slight cleanup and conditional debug
+    * test/dvcont.c: fixed bug that required Bevis King's timeout signal
+      by using rom1394 to check for an AVC node before asking the node
+      for AV/C subunit info -- doh!
+    * test/dvcont.c: cleanup error messages and explicitly close raw1394
+      handle
+
+2001-08-15  Dan Dennedy <dan@dennedy.org>
+    * avc1394_simple.c: bug fix in avc1394_check_subunit_type() to handle
+      error return from call to avc1394_subunit_info(), set retry level =2
+    * avc1394.h: added more VCR playback speeds,
+      added enum for VCR measurement units
+    * avc1394_vcr.[ch]: added functions for timecode, reverse, trickplay,
+      index search; set retry level =2
+    * dvcont.c: now version 0.1, added commands timecode, reverse, nextindex,
+      previndex, trickplay, and status
+    * dvcont.1: added man page written by Daniel Kobras
+    * README: added usage information about dvcont.
+    
+2001-06-10  Dan Dennedy <dan@dennedy.org>
+	* bug fix in librom1394/rom1394_internal.c:proc_directory, a failed
+	  read on first quadlet could lead to an invalid directory length
+	* bug fix in librom1394/rom1394_main.c:rom1394_get_directory, was not
+	  initializing all struct members
+	* librom1394 now first checks for valid node
+
+2001-05-27  Dan Dennedy <dan@dennedy.org>
+    * added librom1394
+    * added test program, romtest, for testing librom1394
+    * moved raw1394util into a common directory because it use by
+      both libraries
+    
+2001-05-11  Dan Dennedy
+    * various build fixes requires moving src/ to libavc1394/
+    * adapt raw1394util.c to new v0.9 libraw1394 API, 
+      auto compatible with libraw1394 v0.8+
+    * change avc1394_is_subunit_recorder() to a more generic
+      avc1394_check_subunit_type()
+    * make dvcont determine first numerically sequential node
+      that is VCR subunit and use it if no dev specified.
+
+2001-05-10  Dan Dennedy  <dan@dennedy.org>
+	* converted Andreas Mickleis' simplavc into a library
+	* converted Jason Howard's dvcont to use libavc1394 vcr interface

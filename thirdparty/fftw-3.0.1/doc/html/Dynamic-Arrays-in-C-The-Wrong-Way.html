@@ -1,0 +1,77 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Dynamic%20Arrays%20in%20C-The%20Wrong%20Way">Dynamic Arrays in C-The Wrong Way</a>,
+Previous:<a rel=previous accesskey=p href="Dynamic-Arrays-in-C.html#Dynamic%20Arrays%20in%20C">Dynamic Arrays in C</a>,
+Up:<a rel=up accesskey=u href="Multi-dimensional-Array-Format.html#Multi-dimensional%20Array%20Format">Multi-dimensional Array Format</a>
+<hr><br>
+
+<h4>3.2.5 Dynamic Arrays in C--The Wrong Way</h4>
+
+<p>A different method for allocating multi-dimensional arrays in C is
+often suggested that is incompatible with FFTW: <em>using it will
+cause FFTW to die a painful death</em>.  We discuss the technique here,
+however, because it is so commonly known and used.  This method is to
+create arrays of pointers of arrays of pointers of <small>...</small>etcetera. 
+For example, the analogue in this method to the example above is:
+
+<br><pre>int i,j;
+fftw_complex ***a_bad_array;  /* another way to make a 5x12x27 array */
+
+a_bad_array = (fftw_complex ***) malloc(5 * sizeof(fftw_complex **));
+for (i = 0; i &lt; 5; ++i) {
+     a_bad_array[i] =
+        (fftw_complex **) malloc(12 * sizeof(fftw_complex *));
+     for (j = 0; j &lt; 12; ++j)
+          a_bad_array[i][j] =
+                (fftw_complex *) malloc(27 * sizeof(fftw_complex));
+}
+</pre>
+
+<p>As you can see, this sort of array is inconvenient to allocate (and
+deallocate).  On the other hand, it has the advantage that the
+(i,j,k)-th element can be referenced simply by
+<code>a_bad_array[i][j][k]</code>.
+
+<p>If you like this technique and want to maximize convenience in accessing
+the array, but still want to pass the array to FFTW, you can use a
+hybrid method.  Allocate the array as one contiguous block, but also
+declare an array of arrays of pointers that point to appropriate places
+in the block.  That sort of trick is beyond the scope of this
+documentation; for more information on multi-dimensional arrays in C,
+see the <code>comp.lang.c</code>
+<a href="http://www.eskimo.com/~scs/C-faq/s6.html">FAQ</a>.
+
+</body></html>
+

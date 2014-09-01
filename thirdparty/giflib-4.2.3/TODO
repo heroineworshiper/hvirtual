@@ -1,0 +1,48 @@
+= GIFLIB TODO list =
+
+This list is short because GIFLIB is very old, very stable code with 
+a very simple interface.  There are no new worlds to conquer here and
+we shouldn't go looking for any, just provide a rock-solid service.
+
+Thus: there used to be items on here about redesigning the API, but
+DGifSlurp()/EGifSpew() is almost all anyone ever uses. The utilities
+are historical relics mainly useful for testing, and I (ESR) don't
+think we need to be competing with the likes of ImageMagick and PIL.
+
+Accordingly, the top to-do item is...
+
+== Remove more features ==
+
+Get rid of the Windows-specific code unless someone documents it.
+
+Maybe we should even drop gif2x11.  It's nice for testing, though.
+
+== GIFLIB website ==
+
+Do something useful with doc/GifFileType.png.
+
+Merge the new git repository with a conversion of the old one so we have
+a proper and continuous history.
+
+== More regression tests ==
+
+Not all the utilities have tests yet.  Idempotency checks on some of the
+conversions that are invertible would be good ideas.  See the file 
+tests/coverage.txt.
+
+== Clean up the extensions mess ==
+
+* Add a function-code argument to AddExtensionBlock()
+* Remove MakeExtension() and its remaining uses in icon2gif
+* Remove the Function member from the image structure
+
+This will require a break in object-library compatibility.
+
+Toshio wrote: The present Extension code is pretty hacky.  It looks
+like giflib's ability to do Extension code was added on at a later
+time and also was not implemented entirely in conformance with the
+gif89a spec.  I've hacked it further to make it conform to the spec,
+but it would benefit greatly from a complete rewrite.
+
+
+

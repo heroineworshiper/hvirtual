@@ -1,0 +1,106 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Using%20Plans">Using Plans</a>,
+Next:<a rel=next accesskey=n href="Basic-Interface.html#Basic%20Interface">Basic Interface</a>,
+Previous:<a rel=previous accesskey=p href="Data-Types-and-Files.html#Data%20Types%20and%20Files">Data Types and Files</a>,
+Up:<a rel=up accesskey=u href="FFTW-Reference.html#FFTW%20Reference">FFTW Reference</a>
+<hr><br>
+
+<h3>4.2 Using Plans</h3>
+
+<p>Plans for all transform types in FFTW are stored as type
+<code>fftw_plan</code> (an opaque pointer type), and are created by one of the
+various planning routines described in the following sections. 
+An <code>fftw_plan</code> contains all information necessary to compute the
+transform, including the pointers to the input and output arrays.
+
+<br><pre>void fftw_execute(const fftw_plan plan);
+</pre>
+
+<p>This executes the <code>plan</code>, to compute the corresponding transform on
+the arrays for which it was planned (which must still exist).  The plan
+is not modified, and <code>fftw_execute</code> can be called as many times as
+desired.
+
+<p>To apply a given plan to a different array, you can use the guru
+interface.  See <a href="Guru-Interface.html#Guru%20Interface">Guru Interface</a>.
+
+<p><code>fftw_execute</code> (and equivalents) is the only function in FFTW
+guaranteed to be thread-safe; see <a href="Thread-safety.html#Thread%20safety">Thread safety</a>.
+
+<p>This function:
+<br><pre>void fftw_destroy_plan(fftw_plan plan);
+</pre>
+deallocates the <code>plan</code> and all its associated data.
+
+<p>FFTW's planner saves some other persistent data, such as the
+accumulated wisdom and a list of algorithms available in the current
+configuration.  If you want to deallocate all of that and reset FFTW
+to the pristine state it was in when you started your program, you can
+call:
+
+<br><pre>void fftw_cleanup(void);
+</pre>
+
+<p>This does not deallocate your plans; you should still call
+<code>fftw_destroy_plan</code> if you want to do this.  You should not execute
+any previously created plans after calling <code>fftw_cleanup</code>, however.
+
+<p>The following two routines are provided purely for academic purposes
+(that is, for entertainment).
+
+<br><pre>void fftw_flops(const fftw_plan plan, double *add, double *mul, double *fma);
+</pre>
+
+<p>Given a <code>plan</code>, set <code>add</code>, <code>mul</code>, and <code>fma</code> to an
+exact count of the number of floating-point additions, multiplications,
+and fused multiply-add operations involved in the plan's execution.  The
+total number of floating-point operations (flops) is <code>add + mul +
+2*fma</code>, or <code>add + mul + fma</code> if the hardware supports fused
+multiply-add instructions (although the number of FMA operations is only
+approximate because of compiler voodoo).  (The number of operations
+should be an integer, but we use <code>double</code> to avoid overflowing
+<code>int</code> for large transforms; the arguments are of type <code>double</code>
+even for single and long-double precision versions of FFTW.)
+
+<br><pre>void fftw_fprint_plan(const fftw_plan plan, FILE *output_file);
+void fftw_print_plan(const fftw_plan plan);
+</pre>
+
+<p>This outputs a "nerd-readable" representation of the <code>plan</code> to
+the given file or to <code>stdout</code>, respectively.
+
+</body></html>
+

@@ -1,0 +1,51 @@
+TODO before FFTW-$2\pi$:
+
+* MPI version
+
+* DCT/DST codelets?  which kinds?
+
+* investigate the addition-chain trig computation
+
+* I can't believe that there isn't a closed form for the omega
+  array in Rader.
+
+* merge genfft-k7 generator with the main genfft branch.
+  genfft-k7 was written by Stefan Kral based on the fftw-2.1 genfft.
+
+* implement rdft/problem2 for even radices other than 2.
+
+* convolution problem type(s)
+
+* Explore the idea of having n < 0 in tensors, possibly to mean
+  inverse DFT.
+
+* still too much code duplication in rader
+
+* better estimator: possibly, let "other" cost be coef * n, where
+  coef is a per-solver constant determined via some big numerical
+  optimization/fit.
+
+* vector radix, multidimensional codelets
+
+* it may be a good idea to unify all those little loops that do
+  copying, (X[i], X[n-i]) <- (X[i] + X[n-i], X[i] - X[n-i]),
+  and multiplication of vectors by twiddle factors.
+
+* Timed planner: run as ESTIMATE, then IMPATIENT, then PATIENT, then naive?
+  PATIENT then IMPATIENT then ESTIMATE would allow the less-patient planners
+  to benefit from more-patient sub-plans, on the other hand.
+
+* Pruned FFTs (basically, a vecloop that skips zeros).
+
+* Try FFTPACK-style back-and-forth (Stockham) FFT.  (We tried this a
+  few years ago and it was slower, but perhaps matters have changed.)
+
+* Modify generator to produce integer FFTs (etc.) of small sizes.
+
+* dif, difsq simd codelets
+
+* Bluestein's algorithm for prime sizes (and sizes with large prime factors).
+
+* Generate assembly directly for more processors, or maybe fork gcc.  =)
+
+* Find a better DCT-I algorithm.

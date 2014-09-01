@@ -1,0 +1,59 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Advanced%20Real-to-real%20Transforms">Advanced Real-to-real Transforms</a>,
+Previous:<a rel=previous accesskey=p href="Advanced-Real-data-DFTs.html#Advanced%20Real-data%20DFTs">Advanced Real-data DFTs</a>,
+Up:<a rel=up accesskey=u href="Advanced-Interface.html#Advanced%20Interface">Advanced Interface</a>
+<hr><br>
+
+<h4>4.4.3 Advanced Real-to-real Transforms</h4>
+
+<br><pre>fftw_plan fftw_plan_many_r2r(int rank, const int *n, int howmany,
+                             double *in, const int *inembed,
+                             int istride, int idist,
+                             double *out, const int *onembed,
+                             int ostride, int odist,
+                             const fftw_r2r_kind *kind, unsigned flags);
+</pre>
+
+<p>Like <code>fftw_plan_many_dft</code>, this functions adds <code>howmany</code>,
+<code>nembed</code>, <code>stride</code>, and <code>dist</code> parameters to the
+<code>fftw_plan_r2r</code> function, but otherwise behave the same as the
+basic interface.  The interpretation of those additional parameters are
+the same as for <code>fftw_plan_many_dft</code>.  (Of course, the
+<code>stride</code> and <code>dist</code> parameters are now in units of
+<code>double</code>, not <code>fftw_complex</code>.)
+
+</body></html>
+

@@ -1,0 +1,383 @@
+#ifndef MOTION_H
+#define MOTION_H
+
+#include <math.h>
+#include <stdint.h>
+#include <string.h>
+
+#include "affine.inc"
+#include "filexml.inc"
+#include "keyframe.inc"
+#include "loadbalance.h"
+#include "motionwindow.inc"
+#include "overlayframe.inc"
+#include "pluginvclient.h"
+#include "rotateframe.inc"
+#include "vframe.inc"
+
+class MotionMain;
+class MotionWindow;
+class MotionEngine;
+class MotionRotateEngine;
+
+
+#define OVERSAMPLE 4
+
+
+// Limits of global range in percent
+#define MIN_RADIUS 1
+#define MAX_RADIUS 50
+
+// Limits of rotation range in degrees
+#define MIN_ROTATION 1
+#define MAX_ROTATION 25
+
+// Limits of block size in percent.  Not used.  Block size 100 is the largest block
+// which can fit in one of the block_count divisions.
+#define MIN_BLOCK 10
+#define MAX_BLOCK 100
+
+// Limits of block count
+#define MIN_BLOCKS 1
+#define MAX_BLOCKS 200
+
+// Precision of rotation
+#define MIN_ANGLE 0.0001
+
+#define MOTION_FILE "/tmp/motion"
+#define ROTATION_FILE "/tmp/rotate"
+
+class MotionConfig
+{
+public:
+	MotionConfig();
+
+	int equivalent(MotionConfig &that);
+	void copy_from(MotionConfig &that);
+	void interpolate(MotionConfig &prev, 
+		MotionConfig &next, 
+		int64_t prev_frame, 
+		int64_t next_frame, 
+		int64_t current_frame);
+	void boundaries();
+
+	int block_count;
+	int global_range;
+	int rotation_range;
+	int magnitude;
+	int return_speed;
+	int draw_vectors;
+// Percentage of the maximum size of the blocks after subtraction of the
+// search radius.
+	int block_size;
+// Number of search positions in each refinement of the log search
+	int global_positions;
+	int rotate_positions;
+// Block position in percentage 0 - 100
+	float block_x;
+	float block_y;
+
+// Track or stabilize, single pixel, scan only, or nothing
+	int mode1;
+	int global;
+	int rotate;
+// Recalculate, no calculate, save, or load coordinates from disk
+	int mode3;
+	enum
+	{
+		TRACK,
+		STABILIZE,
+		TRACK_PIXEL,
+		STABILIZE_PIXEL,
+		NOTHING,
+		GLOBAL,
+		PERSPECTIVE,
+		RECALCULATE,
+		SAVE,
+		LOAD,
+		NO_CALCULATE
+	};
+// Track a single frame
+	int tracksingle;
+// Number of single frame to track relative to timeline start
+	int64_t track_frame;
+// Master layer
+	int bottom_is_master;
+};
+
+
+
+
+class MotionMain : public PluginVClient
+{
+public:
+	MotionMain(PluginServer *server);
+	~MotionMain();
+
+	int process_buffer(VFrame **frame,
+		int64_t start_position,
+		double frame_rate);
+	void process_global(VFrame **frame);
+	void process_rotation(VFrame **frame);
+	void draw_global_vectors(VFrame *frame);
+	void draw_rotation_vectors(VFrame *frame);
+	void remove_error(int use_quadrants);
+	int is_multichannel();
+	int is_realtime();
+	void save_data(KeyFrame *keyframe);
+	void read_data(KeyFrame *keyframe);
+	void update_gui();
+	void calculate_global();
+// Calculate frame to copy from and frame to move
+	void calculate_pointers(VFrame **frame, VFrame **src, VFrame **dst);
+	void allocate_temp(int w, int h, int color_model);
+
+	PLUGIN_CLASS_MEMBERS(MotionConfig, MotionThread)
+
+	int64_t abs_diff(unsigned char *prev_ptr,
+		unsigned char *current_ptr,
+		int row_bytes,
+		int w,
+		int h,
+		int color_model);
+	int64_t abs_diff_sub(unsigned char *prev_ptr,
+		unsigned char *current_ptr,
+		int row_bytes,
+		int w,
+		int h,
+		int color_model,
+		int sub_x,
+		int sub_y);
+
+	static void draw_pixel(VFrame *frame, int x, int y);
+	static void draw_line(VFrame *frame, int x1, int y1, int x2, int y2);
+	void draw_arrow(VFrame *frame, int x1, int y1, int x2, int y2);
+
+// The guide frame after motion compensation.
+	VFrame *match_frame;
+	int64_t match_frame_number;
+// The frame compared with the previous frame to get the motion.
+// It is moved to compensate for motion and copied to the match_frame.
+	VFrame *temp_frame;
+	MotionEngine *engine;
+	MotionRotateEngine *motion_rotate;
+	OverlayFrame *overlayer;
+	AffineEngine *rotate_engine;
+
+// Pointer to the frame to track motion of
+	VFrame *master_frame;
+	VFrame *target_frame;
+
+// Global motion tracking
+// Units for the derivatives are 1/OVERSAMPLE pixels
+// Position of current frame relative to match frame.
+	int current_dx;
+	int current_dy;
+// Accumulated offset from desired position to current frame
+	int total_dx;
+	int total_dy;
+
+// Rotation motion tracking
+	float current_angle;
+	float total_angle;
+
+
+
+
+// Oversampled current frame for motion estimation
+	int32_t *search_area;
+	int search_size;
+
+
+// Used in process_buffer
+	int master_layer;
+	int target_layer;
+	int w;
+	int h;
+};
+
+
+class MotionPackage : public LoadPackage
+{
+public:
+	MotionPackage();
+	void clamp_scan(int w, int h);
+	int get_quadrant(int w, int h);
+
+// For multiple blocks
+	int block_x1, block_y1, block_x2, block_y2;
+	int scan_x1, scan_y1, scan_x2, scan_y2;
+	int dx;
+	int dy;
+	int64_t max_difference;
+	int64_t min_difference;
+	int64_t min_pixel;
+	int is_border;
+	int valid;
+// For single block
+	int pixel;
+	int64_t difference;
+};
+
+class MotionCache
+{
+public:
+	MotionCache(int x, int y, int64_t difference);
+	int x, y;
+	int64_t difference;
+};
+
+class MotionUnit : public LoadClient
+{
+public:
+	MotionUnit(MotionEngine *server, MotionMain *plugin);
+	~MotionUnit();
+
+	void process_package(LoadPackage *package);
+	int64_t get_cache(int x, int y);
+	void put_cache(int x, int y, int64_t difference);
+
+	MotionEngine *server;
+	MotionMain *plugin;
+
+	ArrayList<MotionCache*> cache;
+	Mutex *cache_lock;
+};
+
+class MotionEngine : public LoadServer
+{
+public:
+	MotionEngine(MotionMain *plugin, 
+		int total_clients, 
+		int total_packages);
+	~MotionEngine();
+	void init_packages();
+	LoadClient* new_client();
+	LoadPackage* new_package();
+
+// Invoke the motion engine for a search
+// Frame before motion
+	void scan_frame(VFrame *match_frame,
+// Frame after motion
+		VFrame *current_frame);
+	void clamp_scan(int w, int h);
+	int64_t get_cache(int x, int y);
+	void put_cache(int x, int y, int64_t difference);
+
+	VFrame *match_frame;
+// Frame after motion
+	VFrame *current_frame;
+	MotionMain *plugin;
+	int skip;
+// For single block
+	int block_x1;
+	int block_x2;
+	int block_y1;
+	int block_y2;
+	int scan_x1;
+	int scan_y1;
+	int scan_x2;
+	int scan_y2;
+	int total_pixels;
+	int total_steps;
+	int subpixel;
+
+	ArrayList<MotionCache*> cache;
+	Mutex *cache_lock;
+};
+
+
+
+
+
+
+
+
+
+class MotionRotatePackage : public LoadPackage
+{
+public:
+	MotionRotatePackage();
+	float angle;
+	int64_t difference;
+};
+
+class MotionRotateCache
+{
+public:
+	MotionRotateCache(float angle, int64_t difference);
+	float angle;
+	int64_t difference;
+};
+
+class MotionRotateUnit : public LoadClient
+{
+public:
+	MotionRotateUnit(MotionRotateEngine *server, MotionMain *plugin);
+	~MotionRotateUnit();
+
+	void process_package(LoadPackage *package);
+
+	MotionRotateEngine *server;
+	MotionMain *plugin;
+	AffineEngine *rotater;
+	VFrame *temp;
+};
+
+class MotionRotateEngine : public LoadServer
+{
+public:
+	MotionRotateEngine(MotionMain *plugin, 
+		int total_clients, 
+		int total_packages);
+	~MotionRotateEngine();
+
+	void init_packages();
+	LoadClient* new_client();
+	LoadPackage* new_package();
+
+// Invoke the motion engine for a search
+// Frame before rotation
+	float scan_frame(VFrame *match_frame,
+// Frame after rotation
+		VFrame *current_frame);
+	int64_t get_cache(float angle);
+	void put_cache(float angle, int64_t difference);
+
+	VFrame *match_frame;
+// Frame after motion
+	VFrame *current_frame;
+
+	MotionMain *plugin;
+	int skip;
+
+// Block to rotate
+	int block_x1;
+	int block_x2;
+	int block_y1;
+	int block_y2;
+// Area to compare
+	int scan_x;
+	int scan_y;
+	int scan_w;
+	int scan_h;
+// Range of angles to compare
+	float scan_angle1, scan_angle2;
+	int total_steps;
+// Angle result
+	float result;
+
+	ArrayList<MotionRotateCache*> cache;
+	Mutex *cache_lock;
+};
+
+
+
+
+#endif
+
+
+
+
+
+

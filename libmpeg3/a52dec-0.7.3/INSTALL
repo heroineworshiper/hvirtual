@@ -1,0 +1,5 @@
+./configure
+make
+make install
+
+If you install from CVS you'll have to run ./bootstrap first

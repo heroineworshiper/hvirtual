@@ -1,0 +1,116 @@
+.\" dvcont - send control commands to DV cameras
+.\" Copyright (c) 2001 Daniel Kobras
+.\"
+.\" This manual page is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\" 
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\" 
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program; if not, write to the Free Software
+.\" Foundation, Inc.,59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+.\"
+.\" This manual page was written especially for Debian Linux. It is based
+.\" on dvcont's help output using help2man and manual hacking.
+.\"
+.TH DVCONT 1 "September 2002"
+.SH NAME
+dvcont \- send control commands to DV cameras
+.SH SYNOPSIS
+.B dvcont
+\fI<command1> \fB[ \fI<command2> \fR... \fB]\fR
+.SH DESCRIPTION
+.B dvcont
+is a command line tool to send control commands via an IEEE1394 link to a
+device that implements the AV/C specifications by the 1394 Trade Association.
+Or for the non-techies:
+.B dvcont
+lets you remote control your DV camera via a Firewire cable.
+The following \fIcommand\fRs are understood:
+.TP
+.BI "dev " <number>
+Select device
+.I number
+on chain to use. (dvcont tries to automatically detect the camera. Use the
+.B dev
+command BEFORE any other commands for manual control.)
+.TP
+.B play
+Tell the camera to play. If already playing, it toggles slow-motion.
+.TP
+.B reverse
+Tell the camera to play in reverse. If already playing, it toggles slow-motion.
+.TP
+.B trickplay < -14 to +14 >
+Tell the camera to play at various speeds. 
+0 = forward play, -14  = fastest reverse, -8 = 1X reverse, -1 = slowest reverse,
+1 = slowest forward, 8 = 1X forward, 14 = fastest forward.
+(Not supported by all cameras.)
+.TP
+.B stop
+Tell the camera to stop playing.
+.TP
+.B rewind
+Tell the camera to rewind. (Use in stop or play mode.)
+.TP
+.B ff
+Tell the camera to fast forward. (Use in stop or play mode.)
+.TP
+.B pause
+Tell the camera to toggle pause play.
+.TP
+.B next
+Tell the camera to go to the next frame. (Use in pause mode.)
+.TP
+.B nextindex
+Tell the camera to search for the next scene. (Use in pause or play mode.)
+.TP
+.B prev
+Tell the camera to go to the previous frame. (Use in pause mode)
+.TP
+.B previndex
+Tell the camera to search for the previous scene. (Use in pause or play mode)
+.TP
+.B record
+Tell the camera to record. (Use with caution!)
+.TP
+.B eject
+Tell the camera to eject the tape. (Not supported by all cameras.)
+.TP
+.B timecode
+Report the timecode on tape in the format HH:MM:SS:FF (hours, minutes,
+seconds, intra-second frames).
+.TP
+.BI "seek " <timecode>
+Tell the camera to go to the
+.IR timecode ,
+given in format HH:MM:SS:FF as above.
+.TP
+.B status
+Report the status of the device.
+.TP
+.B pluginfo
+Report available plugs.
+.TP
+.B verbose
+Tell the program to tell you debug info.
+.TP
+.B version
+Tell the program to tell you the program version.
+.TP
+.B help
+Tell the program to show you a help screen.
+.PP
+.SH AUTHORS
+.B dvcont
+was written by Jason Howard <jason@spectsoft.com> and Dan Dennedy 
+<dan@dennedy.org>.  This man page was written with the help of
+.B help2man
+by Daniel Kobras <kobras@debian.org> for the Debian GNU/Linux distribution
+(but may be used by others). Updated by Dan Dennedy <dan@dennedy.org>.
+

@@ -1,0 +1,105 @@
+<html lang="en">
+<head>
+<title>FFTW 3.0.1</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name=description content="FFTW 3.0.1">
+<meta name=generator content="makeinfo 4.2">
+<link href="http://www.gnu.org/software/texinfo/" rel=generator-home>
+<!--
+This manual is for FFTW
+(version 3.0.1, 5 June 2003).
+
+<p>Copyright &copy; 2003 Matteo Frigo.
+
+<p>Copyright &copy; 2003 Massachusetts Institute of Technology.
+
+<blockquote>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+<p>Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+<p>Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation. 
+</blockquote>
+-->
+</head>
+<body>
+<p>
+Node:<a name="Planner%20Flags">Planner Flags</a>,
+Next:<a rel=next accesskey=n href="Real-data-DFTs.html#Real-data%20DFTs">Real-data DFTs</a>,
+Previous:<a rel=previous accesskey=p href="Complex-DFTs.html#Complex%20DFTs">Complex DFTs</a>,
+Up:<a rel=up accesskey=u href="Basic-Interface.html#Basic%20Interface">Basic Interface</a>
+<hr><br>
+
+<h4>4.3.2 Planner Flags</h4>
+
+<p>All of the planner routines in FFTW accept an integer <code>flags</code>
+argument, which is a bitwise OR (<code>|</code>) of zero or more of the flag
+constants defined below.  These flags control the rigor (and time) of
+the planning process, and can also impose (or lift) restrictions on the
+type of transform algorithm that is employed.
+
+<h5>Planning-rigor flags</h5>
+
+<ul>
+
+<li><code>FFTW_ESTIMATE</code> specifies that, instead of actual measurements of
+different algorithms, a simple heuristic is used to pick a (probably
+sub-optimal) plan quickly.  With this flag, the input/output arrays are
+not overwritten during planning.
+
+<li><code>FFTW_MEASURE</code> tells FFTW to find an optimized plan by actually
+<em>computing</em> several FFTs and measuring their execution time. 
+Depending on your machine, this can take some time (often a few
+seconds).  <code>FFTW_MEASURE</code> is the default planning option.
+
+<li><code>FFTW_PATIENT</code> is like <code>FFTW_MEASURE</code>, but considers a wider
+range of algorithms and often produces a "more optimal" plan
+(especially for large transforms), but at the expense of several times
+longer planning time (especially for large transforms).
+
+<li><code>FFTW_EXHAUSTIVE</code> is like <code>FFTW_PATIENT</code>, but considers an
+even wider range of algorithms, including many that we think are
+unlikely to be fast, to produce the most optimal plan but with a
+substantially increased planning time.
+
+</ul>
+
+<h5>Algorithm-restriction flags</h5>
+
+<ul>
+
+<li><code>FFTW_DESTROY_INPUT</code> specifies that an out-of-place transform is
+allowed to <em>overwrite its input</em> array with arbitrary data; this
+can sometimes allow more efficient algorithms to be employed.
+
+<li><code>FFTW_PRESERVE_INPUT</code> specifies that an out-of-place transform must
+<em>not change its input</em> array.  This is ordinarily the
+<em>default</em>, except for c2r and hc2r (i.e. complex-to-real)
+transforms for which <code>FFTW_DESTROY_INPUT</code> is the default.  In the
+latter cases, passing <code>FFTW_PRESERVE_INPUT</code> will attempt to use
+algorithms that do not destroy the input, at the expense of worse
+performance; for multi-dimensional c2r transforms, however, no
+input-preserving algorithms are implemented and the planner will return
+<code>NULL</code> if one is requested.
+
+<li><code>FFTW_UNALIGNED</code> specifies that the algorithm may not
+impose any unusual alignment requirements on the input/output arrays
+(i.e. no SIMD may be used).  This flag is normally <em>not necessary</em>,
+since the planner automatically detects misaligned arrays.  The only use
+for this flag is if you want to use the guru interface to execute a
+given plan on a different array that may not be aligned like the
+original.  (Using <code>fftw_malloc</code> makes this flag unnecessary even
+then.)
+
+</ul>
+
+</body></html>
+

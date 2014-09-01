@@ -1,0 +1,46 @@
+include global_config
+
+# system tests
+
+SNDFILE_DIR := $(shell expr libsndfile* )
+
+
+
+DIRS := \
+	libmpeg3 \
+	quicktime \
+	guicast \
+	xmovie \
+
+
+
+
+all:
+	$(MAKE) -f build/Makefile.sndfile
+	@ for i in $(DIRS) ; \
+	do \
+		 $(MAKE) -C $$i ; \
+	done
+
+clean:
+	find -follow \( -name 'core*' \
+		-o -name '*.lo' \
+		-o -name '*.o' \
+		-o -name '*.la' \
+		-o -name '*.a' \
+		-o -name '*.plugin' \
+		-o -name '*.so' \) -exec rm -f {} \; -prune
+	find -follow \( -name $(OBJDIR) \) -exec rm -rf {} \; -prune
+
+wc:
+	cat *.C *.h | wc
+	@ for i in $(DIRS) ; \
+	do \
+		 $(MAKE) -C $$i wc; \
+	done
+
+# From make_packages
+install:
+	make -C xmovie install
+
+COMPILE = $(GCC) -c $(CFLAGS) $? -o $*.o
