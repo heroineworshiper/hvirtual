@@ -207,8 +207,10 @@ VDeviceV4L2Thread::~VDeviceV4L2Thread()
 	if(Thread::running())
 	{
 		done = 1;
+//printf("VDeviceV4L2Thread::~VDeviceV4L2Thread %d\n", __LINE__);
 		Thread::cancel();
 		Thread::join();
+//printf("VDeviceV4L2Thread::~VDeviceV4L2Thread %d\n", __LINE__);
 	}
 
 	if(put_thread) delete put_thread;
@@ -232,6 +234,7 @@ VDeviceV4L2Thread::~VDeviceV4L2Thread()
 				}
 				else
 				{
+//printf("VDeviceV4L2Thread::~VDeviceV4L2Thread %d %p\n", __LINE__, device_buffers[i]->get_data());
 					munmap(device_buffers[i]->get_data(),
 						device_buffers[i]->get_data_size());
 				}
@@ -249,6 +252,7 @@ VDeviceV4L2Thread::~VDeviceV4L2Thread()
 		if(ioctl(input_fd, VIDIOC_STREAMOFF, &streamoff_arg) < 0)
 			perror("VDeviceV4L2Thread::~VDeviceV4L2Thread VIDIOC_STREAMOFF");
 		close(input_fd);
+//printf("VDeviceV4L2Thread::~VDeviceV4L2Thread %d\n", __LINE__);
 	}
 
 	delete video_lock;
@@ -485,7 +489,7 @@ void VDeviceV4L2Thread::run()
 #endif
 
 
-printf("VDeviceV4L2Thread::run %d\n", __LINE__);
+//printf("VDeviceV4L2Thread::run %d\n", __LINE__);
 
 
 		if(device->in_config->driver == VIDEO4LINUX2JPEG)
@@ -599,7 +603,7 @@ printf("VDeviceV4L2Thread::run %d\n", __LINE__);
 		int input = 0;
 
 		if(ioctl(input_fd, VIDIOC_G_TUNER, &tuner) < 0)
-			perror("VDeviceV4L2Thread::run VIDIOC_G_INPUT");
+			perror("VDeviceV4L2Thread::run VIDIOC_G_TUNER");
 
 // printf("VDeviceV4L2Thread::run audmode=%d rxsubchans=%d\n",
 // tuner.audmode,
@@ -717,6 +721,7 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 					MAP_SHARED,
 					input_fd,
 					buffer.m.offset);
+//printf("VDeviceV4L2Thread::run %d %p\n", __LINE__, data);
 				if(data == MAP_FAILED)
 				{
 					perror("VDeviceV4L2Thread::run mmap");
@@ -784,7 +789,7 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 			buffer.index = i;
 			if(ioctl(input_fd, VIDIOC_QBUF, &buffer) < 0)
 			{
-				perror("VDeviceV4L2Thread::run VIDIOC_QBUF");
+				perror("VDeviceV4L2Thread::run 2 VIDIOC_QBUF");
 				break;
 			}
 		}
@@ -1079,7 +1084,7 @@ int VDeviceV4L2::has_signal()
 	{
 		struct v4l2_tuner tuner;
 		if(ioctl(thread->input_fd, VIDIOC_G_TUNER, &tuner) < 0)
-			perror("VDeviceV4L2::has_signal VIDIOC_S_TUNER");
+			perror("VDeviceV4L2::has_signal VIDIOC_G_TUNER");
 		return tuner.signal;
 	}
 	return 0;
@@ -1106,6 +1111,7 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 		thread = new VDeviceV4L2Thread(device, frame->get_color_model());
 		thread->start();
 
+//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
 
 // Have to make sure the 1st frame is valid for the single frame capture mode.
 // Wait for device to start
@@ -1114,7 +1120,9 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 		for(int i = 0; i < thread->total_buffers; i++)
 		{
 			int timed_out;
+//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
 			VFrame *buffer = thread->get_buffer(&timed_out);
+//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
 			if(buffer)
 			{
 				thread->put_buffer();
@@ -1122,6 +1130,7 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 			
 			if(timed_out) break;
 		}
+//printf("VDeviceV4L2::read_buffer %d timed_out=%d\n", __LINE__, timed_out);
 	}
 
 // Get buffer from thread
