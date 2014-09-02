@@ -79,6 +79,7 @@ TitleConfig::TitleConfig()
 	text.assign("");
 #ifdef X_HAVE_UTF8_STRING
 #define DEFAULT_ENCODING "UTF-8"
+	encoding[0] = 0;
 #else
 	sprintf(encoding, "ISO8859-1");
 #endif
@@ -220,14 +221,17 @@ void TitleMain::convert_encoding()
 		char *utf8text = new char[(config.text.length() + 1) * KEYPRESSLEN];
 		FcChar8 return_utf8;
 		cd = iconv_open("UTF-8",config.encoding);
+
+
 		if(cd == (iconv_t)-1)
 		{
-			// Something went wrong.
-			fprintf(stderr, ("Iconv conversion from %s to UTF-8 not available\n"),config.encoding);
+// Something went wrong.
+			printf("TitleMain::convert_encoding: Iconv conversion from %s to UTF-8 not available\n",
+				config.encoding);
+			config.textutf8.assign(config.text);	
 		}
-
-		// if iconv is working ok for current encoding
-		if(cd != (iconv_t) -1)
+		else
+// if iconv is working ok for current encoding
 		{
 			char *temp_string = new char[config.text.length() + 1];
 			char *in_ptr = temp_string;
@@ -2212,6 +2216,7 @@ void TitleMain::draw_glyphs()
 {
 // Build table of all glyphs needed
 	int total_packages = 0;
+
 // now convert text to FT_Ulong array
 #ifndef X_HAVE_UTF8_STRING
 //temp conversion to utf8
@@ -2752,7 +2757,9 @@ int TitleMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 	if(!config.text.length()) return 0;
 	if(!strlen(config.encoding)) return 0;
 
-//printf("TitleMain::process_realtime 10\n");
+// printf("TitleMain::process_realtime %d need_reconfigure=%d\n",
+// __LINE__,
+// need_reconfigure);
 
 // Handle reconfiguration
 	if(need_reconfigure)
@@ -2791,6 +2798,7 @@ int TitleMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 
 		if(!result)
 		{
+//PRINT_TRACE
 			draw_glyphs();
 			get_total_extents();
 			need_reconfigure = 0;
@@ -2799,6 +2807,7 @@ int TitleMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 
 	if(!result)
 	{
+//PRINT_TRACE
 // Determine region of text visible on the output and draw mask
 		result = draw_mask();
 	}
@@ -2807,6 +2816,7 @@ int TitleMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 // Overlay mask on output
 	if(!result)
 	{
+//PRINT_TRACE
 		overlay_mask();
 	}
 
@@ -2899,6 +2909,7 @@ void TitleMain::save_data(KeyFrame *keyframe)
 	output.tag.set_property("ENCODING", config.encoding);
 	output.tag.set_property("STYLE", (int64_t)config.style);
 	output.tag.set_property("SIZE", config.size);
+//printf("TitleMain::save_data %d %d\n", __LINE__, config.size);
 	output.tag.set_property("COLOR", config.color);
 	output.tag.set_property("OUTLINE_COLOR", config.outline_color);
 	output.tag.set_property("ALPHA", config.alpha);
@@ -2953,6 +2964,7 @@ void TitleMain::read_data(KeyFrame *keyframe)
 				input.tag.get_property("ENCODING", config.encoding);
 				config.style = input.tag.get_property("STYLE", (int64_t)config.style);
 				config.size = input.tag.get_property("SIZE", config.size);
+//printf("TitleMain::read_data %d %d\n", __LINE__, config.size);
 				config.color = input.tag.get_property("COLOR", config.color);
 				config.outline_color = input.tag.get_property("OUTLINE_COLOR", config.outline_color);
 				config.alpha = input.tag.get_property("ALPHA", config.alpha);
