@@ -1,0 +1,59 @@
+include global_config
+
+GIF_DIR := $(shell expr thirdparty/giflib* )
+
+DIRS := $(GIF_DIR)/$(OBJDIR)/lib
+
+
+
+OBJS := \
+	$(GIF_DIR)/$(OBJDIR)/lib/dgif_lib.o \
+	$(GIF_DIR)/$(OBJDIR)/lib/egif_lib.o \
+	$(GIF_DIR)/$(OBJDIR)/lib/gifalloc.o \
+	$(GIF_DIR)/$(OBJDIR)/lib/gif_err.o  \
+	$(GIF_DIR)/$(OBJDIR)/lib/gif_font.o \
+	$(GIF_DIR)/$(OBJDIR)/lib/gif_hash.o
+
+
+
+
+
+OUTPUT = $(GIF_DIR)/$(OBJDIR)/libgif.a
+
+
+ifneq ($(origin CFLAGS), environment)
+CFLAGS := -O3 -fmessage-length=0 -funroll-all-loops -fomit-frame-pointer -falign-loops=2 -falign-jumps=2 -falign-functions=2
+endif
+
+CFLAGS += -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
+
+CFLAGS += -DHAVE_CONFIG_H -I$(GIF_DIR)/lib/
+
+$(shell mkdir -p $(DIRS))
+$(shell echo  $(CFLAGS) > $(GIF_DIR)/$(OBJDIR)/c_flags)
+
+all: $(OUTPUT) $(SHARED_OUTPUT)
+
+$(OUTPUT): $(OBJS)
+	ar rcs $(OUTPUT) $(OBJS)
+
+$(SHARED_OUTPUT): $(OBJS)
+	gcc -shared -o $(SHARED_OUTPUT) $(OBJS)
+
+clean:
+	rm -rf $(GIF_DIR)/$(OBJDIR)
+
+$(OBJS):
+	$(GCC) -c `cat $(GIF_DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
+
+
+
+
+
+
+
+
+
+
+
+
