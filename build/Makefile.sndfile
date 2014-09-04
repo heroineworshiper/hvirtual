@@ -1,75 +1,74 @@
 include global_config
 
-SNDFILE_DIR := $(shell expr libsndfile* )
+SNDFILE_DIR := $(shell expr thirdparty/libsndfile* )
 
 DIRS := $(SNDFILE_DIR)/$(OBJDIR)/src/G72x\
 	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610
 
-$(shell if ! test -d $(SNDFILE_DIR)/$(OBJDIR) \; then mkdir -p $(DIRS) \; fi )
 
 
 OBJS := \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/decode.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/add.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_decode.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_encode.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/preprocess.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/short_term.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/long_term.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/code.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_create.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_destroy.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_option.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/lpc.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/rpe.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/table.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/aiff.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/alaw.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/au_g72x.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/au.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/avr.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/command.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/common.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/dither.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/double64.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/dwd.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/dwvw.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/file_io.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/float32.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g721.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g723_16.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g72x.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g723_24.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g72x_test.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g723_40.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/common.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/sndfile.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/file_io.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/command.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/ulaw.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/alaw.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/pcm.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/float32.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/double64.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/ima_adpcm.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g72x.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g72x_test.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/add.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/code.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/decode.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_create.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_decode.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_destroy.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_encode.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_option.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/long_term.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/lpc.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/gsm610.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/ms_adpcm.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/sfendian.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/dwvw.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/vox_adpcm.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/preprocess.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/rpe.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/short_term.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/table.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/htk.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/ima_adpcm.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/interleave.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/strings.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/dither.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/au.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/aiff.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/au_g72x.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/ircam.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/mat4.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/mat5.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/ms_adpcm.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/nist.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/pvf.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/ogg.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/paf.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/pcm.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/pvf.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/raw.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/rx2.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/sd2.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/sds.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/sndfile.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/strings.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/svx.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/txw.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/ulaw.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/voc.o \
+	$(SNDFILE_DIR)/$(OBJDIR)/src/vox_adpcm.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/w64.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/wav.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/wav_w64.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/htk.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/sd2.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/rx2.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/txw.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/sds.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/wve.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/dwd.o \
-	$(SNDFILE_DIR)/$(OBJDIR)/src/ogg.o \
 	$(SNDFILE_DIR)/$(OBJDIR)/src/xi.o
 
 OUTPUT = $(SNDFILE_DIR)/$(OBJDIR)/libsndfile.a
@@ -81,8 +80,9 @@ endif
 
 CFLAGS += -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 
-CFLAGS += -DHAVE_CONFIG_H -I$(SNDFILE_DIR)/$(OBJDIR)/src/
+CFLAGS += -DHAVE_CONFIG_H -I$(SNDFILE_DIR)/src/
 
+$(shell mkdir -p $(DIRS))
 $(shell echo  $(CFLAGS) > $(SNDFILE_DIR)/$(OBJDIR)/c_flags)
 
 all: $(OUTPUT) $(SHARED_OUTPUT)
@@ -102,67 +102,69 @@ $(OBJS):
 
 
 
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/decode.o:	   $(SNDFILE_DIR)/src/GSM610/decode.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/add.o:		   $(SNDFILE_DIR)/src/GSM610/add.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_decode.o:  $(SNDFILE_DIR)/src/GSM610/gsm_decode.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_encode.o:  $(SNDFILE_DIR)/src/GSM610/gsm_encode.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/preprocess.o:  $(SNDFILE_DIR)/src/GSM610/preprocess.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/short_term.o:  $(SNDFILE_DIR)/src/GSM610/short_term.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/long_term.o:   $(SNDFILE_DIR)/src/GSM610/long_term.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/code.o: 	   $(SNDFILE_DIR)/src/GSM610/code.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_create.o:  $(SNDFILE_DIR)/src/GSM610/gsm_create.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_destroy.o: $(SNDFILE_DIR)/src/GSM610/gsm_destroy.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_option.o:  $(SNDFILE_DIR)/src/GSM610/gsm_option.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/lpc.o:		   $(SNDFILE_DIR)/src/GSM610/lpc.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/rpe.o:		   $(SNDFILE_DIR)/src/GSM610/rpe.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/table.o:	   $(SNDFILE_DIR)/src/GSM610/table.c
+
+$(SNDFILE_DIR)/$(OBJDIR)/src/aiff.o:			   $(SNDFILE_DIR)/src/aiff.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/alaw.o:			   $(SNDFILE_DIR)/src/alaw.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/au_g72x.o: 		   $(SNDFILE_DIR)/src/au_g72x.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/au.o:				   $(SNDFILE_DIR)/src/au.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/avr.o:				   $(SNDFILE_DIR)/src/avr.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/command.o: 		   $(SNDFILE_DIR)/src/command.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/common.o:			   $(SNDFILE_DIR)/src/common.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/dither.o:			   $(SNDFILE_DIR)/src/dither.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/double64.o:		   $(SNDFILE_DIR)/src/double64.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/dwd.o: 			   $(SNDFILE_DIR)/src/dwd.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/dwvw.o:			   $(SNDFILE_DIR)/src/dwvw.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/file_io.o: 		   $(SNDFILE_DIR)/src/file_io.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/float32.o: 		   $(SNDFILE_DIR)/src/float32.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g721.o:		   $(SNDFILE_DIR)/src/G72x/g721.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g723_16.o:	   $(SNDFILE_DIR)/src/G72x/g723_16.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g72x.o:		   $(SNDFILE_DIR)/src/G72x/g72x.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g723_24.o:	   $(SNDFILE_DIR)/src/G72x/g723_24.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g72x_test.o:	   $(SNDFILE_DIR)/src/G72x/g72x_test.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g723_40.o:	   $(SNDFILE_DIR)/src/G72x/g723_40.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/common.o:			   $(SNDFILE_DIR)/src/common.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/sndfile.o: 		   $(SNDFILE_DIR)/src/sndfile.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/file_io.o: 		   $(SNDFILE_DIR)/src/file_io.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/command.o: 		   $(SNDFILE_DIR)/src/command.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/ulaw.o:			   $(SNDFILE_DIR)/src/ulaw.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/alaw.o:			   $(SNDFILE_DIR)/src/alaw.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/pcm.o: 			   $(SNDFILE_DIR)/src/pcm.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/float32.o: 		   $(SNDFILE_DIR)/src/float32.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/double64.o:		   $(SNDFILE_DIR)/src/double64.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/ima_adpcm.o:		   $(SNDFILE_DIR)/src/ima_adpcm.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g72x.o:		   $(SNDFILE_DIR)/src/G72x/g72x.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/G72x/g72x_test.o:	   $(SNDFILE_DIR)/src/G72x/g72x_test.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/add.o:		   $(SNDFILE_DIR)/src/GSM610/add.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/code.o: 	   $(SNDFILE_DIR)/src/GSM610/code.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/decode.o:	   $(SNDFILE_DIR)/src/GSM610/decode.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_create.o:  $(SNDFILE_DIR)/src/GSM610/gsm_create.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_decode.o:  $(SNDFILE_DIR)/src/GSM610/gsm_decode.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_destroy.o: $(SNDFILE_DIR)/src/GSM610/gsm_destroy.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_encode.o:  $(SNDFILE_DIR)/src/GSM610/gsm_encode.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/gsm_option.o:  $(SNDFILE_DIR)/src/GSM610/gsm_option.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/long_term.o:   $(SNDFILE_DIR)/src/GSM610/long_term.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/lpc.o:		   $(SNDFILE_DIR)/src/GSM610/lpc.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/gsm610.o:			   $(SNDFILE_DIR)/src/gsm610.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/ms_adpcm.o:		   $(SNDFILE_DIR)/src/ms_adpcm.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/sfendian.o:		   $(SNDFILE_DIR)/src/sfendian.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/dwvw.o:			   $(SNDFILE_DIR)/src/dwvw.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/vox_adpcm.o:		   $(SNDFILE_DIR)/src/vox_adpcm.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/preprocess.o:  $(SNDFILE_DIR)/src/GSM610/preprocess.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/rpe.o:		   $(SNDFILE_DIR)/src/GSM610/rpe.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/short_term.o:  $(SNDFILE_DIR)/src/GSM610/short_term.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/GSM610/table.o:	   $(SNDFILE_DIR)/src/GSM610/table.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/htk.o: 			   $(SNDFILE_DIR)/src/htk.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/ima_adpcm.o:		   $(SNDFILE_DIR)/src/ima_adpcm.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/interleave.o:		   $(SNDFILE_DIR)/src/interleave.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/strings.o: 		   $(SNDFILE_DIR)/src/strings.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/dither.o:			   $(SNDFILE_DIR)/src/dither.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/au.o:				   $(SNDFILE_DIR)/src/au.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/aiff.o:			   $(SNDFILE_DIR)/src/aiff.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/au_g72x.o: 		   $(SNDFILE_DIR)/src/au_g72x.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/ircam.o:			   $(SNDFILE_DIR)/src/ircam.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/mat4.o:			   $(SNDFILE_DIR)/src/mat4.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/mat5.o:			   $(SNDFILE_DIR)/src/mat5.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/ms_adpcm.o:		   $(SNDFILE_DIR)/src/ms_adpcm.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/nist.o:			   $(SNDFILE_DIR)/src/nist.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/pvf.o: 			   $(SNDFILE_DIR)/src/pvf.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/ogg.o: 			   $(SNDFILE_DIR)/src/ogg.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/paf.o: 			   $(SNDFILE_DIR)/src/paf.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/pcm.o: 			   $(SNDFILE_DIR)/src/pcm.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/pvf.o: 			   $(SNDFILE_DIR)/src/pvf.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/raw.o: 			   $(SNDFILE_DIR)/src/raw.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/rx2.o: 			   $(SNDFILE_DIR)/src/rx2.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/sd2.o: 			   $(SNDFILE_DIR)/src/sd2.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/sds.o: 			   $(SNDFILE_DIR)/src/sds.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/sfendian.o:		   $(SNDFILE_DIR)/src/sfendian.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/sndfile.o: 		   $(SNDFILE_DIR)/src/sndfile.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/strings.o: 		   $(SNDFILE_DIR)/src/strings.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/svx.o: 			   $(SNDFILE_DIR)/src/svx.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/txw.o: 			   $(SNDFILE_DIR)/src/txw.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/ulaw.o:			   $(SNDFILE_DIR)/src/ulaw.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/voc.o: 			   $(SNDFILE_DIR)/src/voc.c
+$(SNDFILE_DIR)/$(OBJDIR)/src/vox_adpcm.o:		   $(SNDFILE_DIR)/src/vox_adpcm.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/w64.o: 			   $(SNDFILE_DIR)/src/w64.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/wav.o: 			   $(SNDFILE_DIR)/src/wav.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/wav_w64.o: 		   $(SNDFILE_DIR)/src/wav_w64.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/htk.o: 			   $(SNDFILE_DIR)/src/htk.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/sd2.o: 			   $(SNDFILE_DIR)/src/sd2.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/rx2.o: 			   $(SNDFILE_DIR)/src/rx2.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/txw.o: 			   $(SNDFILE_DIR)/src/txw.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/sds.o: 			   $(SNDFILE_DIR)/src/sds.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/wve.o: 			   $(SNDFILE_DIR)/src/wve.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/dwd.o: 			   $(SNDFILE_DIR)/src/dwd.c
-$(SNDFILE_DIR)/$(OBJDIR)/src/ogg.o: 			   $(SNDFILE_DIR)/src/ogg.c
 $(SNDFILE_DIR)/$(OBJDIR)/src/xi.o:  			   $(SNDFILE_DIR)/src/xi.c
 
 

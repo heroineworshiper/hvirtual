@@ -28,6 +28,8 @@ ifeq ($(HAVE_FIREWIRE), y)
 	$(MAKE) -C thirdparty/libiec61883*
 	$(MAKE) -C thirdparty/libavc1394*
 endif
+	$(MAKE) -f build/Makefile.sndfile
+	$(MAKE) -f build/Makefile.gif
 	$(MAKE) -C thirdparty/audiofile*
 	$(MAKE) -C thirdparty/flac*
 	$(MAKE) -f build/Makefile.esound
@@ -40,7 +42,6 @@ endif
 	$(MAKE) -C $(MJPEGDIR)/mpeg2enc 
 	$(MAKE) -C $(MJPEGDIR)/mplex
 	cp $(MJPEGDIR)/mpeg2enc/mpeg2enc bin/mpeg2enc.plugin
-	$(MAKE) -C thirdparty/libsndfile*
 	$(MAKE) -C thirdparty/libtheora*
 	$(MAKE) -C thirdparty/ilmbase*
 	$(MAKE) -C thirdparty/ilmbase* install
