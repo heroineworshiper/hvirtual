@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2014 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1924,7 +1924,7 @@ CWindowMaskGUI::~CWindowMaskGUI()
 
 void CWindowMaskGUI::create_objects()
 {
-	int x = 10, y = 10;
+	int x = 10, y = 10, margin = mwindow->theme->widget_border;
 	MaskAuto *keyframe = 0;
 	Track *track = mwindow->cwindow->calculate_affected_track();
 	if(track)
@@ -1935,45 +1935,51 @@ void CWindowMaskGUI::create_objects()
 	add_subwindow(title = new BC_Title(x, y, _("Mode:")));
 	add_subwindow(mode = new CWindowMaskMode(mwindow, 
 		this, 
-		x + title->get_w(), 
+		x + title->get_w() + margin, 
 		y,
 		""));
 	mode->create_objects();
-	y += 40;
-	add_subwindow(new BC_Title(x, y, _("Value:")));
-	add_subwindow(value = new CWindowMaskValue(mwindow, this, x + 50, y));
-	y += 30;
+	y += mode->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Value:")));
+	add_subwindow(value = new CWindowMaskValue(mwindow, this, x + title->get_w() + margin, y));
+	y += value->get_h() + margin;
 	add_subwindow(delete_point = new CWindowMaskDelete(mwindow, this, x, y));
-	y += 30;
-	add_subwindow(new BC_Title(x, y, _("Mask number:")));
+	y += delete_point->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Mask number:")));
 	number = new CWindowMaskNumber(mwindow, 
 		this, 
-		x + 110, 
+		x + title->get_w() + margin, 
 		y);
 	number->create_objects();
-	y += 30;
-	add_subwindow(new BC_Title(x, y, _("Feather:")));
+	y += number->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Feather:")));
 	feather = new CWindowMaskFeather(mwindow,
 		this,
-		x + 110,
+		x + title->get_w() + margin,
 		y);
 	feather->create_objects();
-	y += 30;
+	y += feather->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("X:")));
-	x += title->get_w();
+	x += title->get_w() + margin;
 	this->x = new CWindowCoord(this, 
 		x, 
 		y, 
 		(float)0.0);
 	this->x->create_objects();
-	x += 150;
+	x += this->x->get_w() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Y:")));
-	x += title->get_w();
+	x += title->get_w() + margin;
 	this->y = new CWindowCoord(this, 
 		x, 
 		y, 
 		(float)0.0);
 	this->y->create_objects();
+	
+	x = 10;
+	y += this->y->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Press Ctrl to move a point")));
+	y += title->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Press Alt to translate the mask")));
 
 	update();
 	unlock_window();
