@@ -23,31 +23,32 @@ MJPEGDIR := $(shell expr thirdparty/mjpegtools* )
 
 
 all: $(OBJDIR)/soundtest
-ifeq ($(HAVE_FIREWIRE), y)
-	$(MAKE) -C thirdparty/libraw1394*
-	$(MAKE) -C thirdparty/libiec61883*
-	$(MAKE) -C thirdparty/libavc1394*
-endif
 	$(MAKE) -f build/Makefile.sndfile
 	$(MAKE) -f build/Makefile.gif
-	$(MAKE) -C thirdparty/audiofile*
-	$(MAKE) -C thirdparty/flac*
+	$(MAKE) -f build/Makefile.exr
 	$(MAKE) -f build/Makefile.esound
 	$(MAKE) -f build/Makefile.freetype
 	$(MAKE) -f build/Makefile.tiff
 	$(MAKE) -f build/Makefile.toolame
 	$(MAKE) -f build/Makefile.uuid
+ifeq ($(HAVE_FIREWIRE), y)
+	$(MAKE) -C thirdparty/libraw1394*
+	$(MAKE) -C thirdparty/libiec61883*
+	$(MAKE) -C thirdparty/libavc1394*
+endif
+	$(MAKE) -C thirdparty/audiofile*
+	$(MAKE) -C thirdparty/flac*
 	$(MAKE) -C quicktime
 	$(MAKE) -C $(MJPEGDIR)/utils 
 	$(MAKE) -C $(MJPEGDIR)/mpeg2enc 
 	$(MAKE) -C $(MJPEGDIR)/mplex
 	cp $(MJPEGDIR)/mpeg2enc/mpeg2enc bin/mpeg2enc.plugin
 	$(MAKE) -C thirdparty/libtheora*
-	$(MAKE) -C thirdparty/ilmbase*
-	$(MAKE) -C thirdparty/ilmbase* install
-	$(MAKE) -C thirdparty/openexr*
-	$(MAKE) -C thirdparty/openexr* install
-	$(MAKE) -C thirdparty/fftw*
+#	$(MAKE) -C thirdparty/ilmbase*
+#	$(MAKE) -C thirdparty/ilmbase* install
+#	$(MAKE) -C thirdparty/openexr*
+#	$(MAKE) -C thirdparty/openexr* install
+#	$(MAKE) -C thirdparty/fftw*
 	MAKE='make -j1' make -j1 -C thirdparty/speech_tools
 	MAKE='make -j1' make -j1 -C thirdparty/festival
 	@ for i in $(DIRS) ; \
@@ -59,7 +60,25 @@ $(OBJDIR)/soundtest: $(OBJDIR)/soundtest.o
 	$(CC) -o $(OBJDIR)/soundtest $(OBJDIR)/soundtest.o -lm
 
 clean:
+	$(MAKE) -f build/Makefile.sndfile clean
+	$(MAKE) -f build/Makefile.gif clean
+	$(MAKE) -f build/Makefile.exr clean
+	$(MAKE) -f build/Makefile.esound clean
+	$(MAKE) -f build/Makefile.freetype clean
+	$(MAKE) -f build/Makefile.tiff clean
+	$(MAKE) -f build/Makefile.toolame clean
+	$(MAKE) -f build/Makefile.uuid clean
 	rm -rf bin/*
+	make -C doc clean
+	$(MAKE) -i -C thirdparty/libraw1394* clean
+	$(MAKE) -i -C thirdparty/libiec61883* clean
+	$(MAKE) -i -C thirdparty/libavc1394* clean
+#	$(MAKE) -i -C thirdparty/fftw* clean
+	MAKE='make -j1' make -j1 -i -C thirdparty/mjpegtools* clean
+	$(MAKE) -i -C quicktime clean
+	$(MAKE) -i -C thirdparty/libtheora* clean
+	MAKE='make -j1' make -C thirdparty/speech_tools clean
+	MAKE='make -j1' make -C thirdparty/festival clean
 	find \( -name 'core*' \
 		-o -name '*.lo' \
 		-o -name '*.o' \
@@ -70,17 +89,6 @@ clean:
 	find \( -name $(OBJDIR) \) -exec rm -rf {} \; -prune
 #	find \( -name .deps \) -exec rm -rf {} \; -prune
 	find \( -name .libs \) -exec rm -rf {} \; -prune
-	make -C doc clean
-	$(MAKE) -i -C thirdparty/libraw1394* clean
-	$(MAKE) -i -C thirdparty/libiec61883* clean
-	$(MAKE) -i -C thirdparty/libavc1394* clean
-	$(MAKE) -i -C thirdparty/fftw* clean
-	MAKE='make -j1' make -j1 -i -C thirdparty/mjpegtools* clean
-	$(MAKE) -i -C thirdparty/libsndfile* clean
-	$(MAKE) -i -C quicktime clean
-	$(MAKE) -i -C thirdparty/libtheora* clean
-	MAKE='make -j1' make -C thirdparty/speech_tools clean
-	MAKE='make -j1' make -C thirdparty/festival clean
 	rm -rf thirdparty/lib
 	rm -rf thirdparty/bin
 	rm -rf thirdparty/include

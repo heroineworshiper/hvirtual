@@ -2,6 +2,8 @@ include ../global_config
 
 AVC_DIR := $(shell expr ../thirdparty/libavc1394* )
 DV_DIR := $(shell expr ../quicktime/thirdparty/libdv-*/ )
+EXRDIR := $(shell expr ../thirdparty/openexr* )
+ILMDIR := $(shell expr ../thirdparty/ilmbase* )
 FLAC_DIR := $(shell expr ../thirdparty/flac*/ )
 FFMPEG_DIR := $(shell expr ../quicktime/thirdparty/ffmpeg* )
 JPEG_DIR := $(shell expr ../quicktime/thirdparty/jpeg-mmx* )
@@ -20,15 +22,17 @@ VORBIS_DIR := $(shell expr ../quicktime/thirdparty/libvorbis* )
 AVC_LIB := $(AVC_DIR)/libavc1394/.libs/libavc1394.a $(AVC_DIR)/librom1394/.libs/librom1394.a
 RAW_LIB := $(LIBRAW_DIR)/src/.libs/libraw1394.a
 IEC_LIB := $(LIBIEC_DIR)/src/.libs/libiec61883.a
-#SNDFILE_LIB := $(SNDFILE_DIR)/src/.libs/libsndfile.a
 THEORA_LIB := $(THEORA_DIR)/lib/.libs/libtheora.a
-EXR_LIBS :=  \
-	../thirdparty/lib/libIlmImf.a \
-	../thirdparty/lib/libIlmThread.a \
-	../thirdparty/lib/libImath.a \
-	../thirdparty/lib/libHalf.a \
-	../thirdparty/lib/libIex.a
-EXR_INCLUDES := -I../thirdparty/include/OpenEXR
+EXR_INCLUDES := \
+	-I$(ILMDIR)/Iex/ \
+	-I$(ILMDIR)/Half/ \
+	-I$(ILMDIR)/Imath/ \
+	-I$(ILMDIR)/Imath/ \
+	-I$(ILMDIR)/config/ \
+	-I$(ILMDIR)/IlmThread \
+	-I$(EXRDIR)/IlmImf/ \
+	-I$(EXRDIR)/config/
+
 OBJS = \
 	$(OBJDIR)/aattachmentpoint.o \
 	$(OBJDIR)/aautomation.o \
@@ -356,7 +360,7 @@ STATICLIBS = \
 	$(IEC_LIB) \
 	../quicktime/$(OBJDIR)/libquicktime.a \
         $(ESOUNDLIBS) \
-	$(EXR_LIBS) \
+	$(EXRDIR)/$(OBJDIR)/libexr.a \
 	$(FLAC_DIR)/src/libFLAC/.libs/libFLAC.a \
 	$(GIF_DIR)/$(OBJDIR)/libgif.a \
 	$(TIFF_DIR)/$(OBJDIR)/libtiff.a \

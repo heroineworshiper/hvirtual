@@ -94,7 +94,7 @@ $(SHARED_OUTPUT): $(OBJS)
 	gcc -shared -o $(SHARED_OUTPUT) $(OBJS)
 
 clean:
-	rm -rf $(SNDFILE_DIR)/$(OBJDIR)
+	rm -rf $(DIRS)
 
 $(OBJS):
 	$(GCC) -c `cat $(SNDFILE_DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
