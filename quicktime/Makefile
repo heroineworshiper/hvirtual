@@ -366,15 +366,6 @@ util:  $(UTILS)
 	
 
 clean:
-	find \( -name 'core*' \
-		-o -name '*.lo' \
-		-o -name '*.o' \
-		-o -name '*.la' \
-		-o -name '*.a' \
-		-o -name '*.plugin' \
-		-o -name '*.so' \) -exec rm -f {} \; -prune
-	find \( -name $(OBJDIR) \) -exec rm -rf {} \; -prune
-#	find \( -name .deps \) -exec rm -rf {} \; -prune
 	make -i -C $(FFMPEG_DIR) clean
 	make -i -C $(FAAD_DIR) clean
 	make -i -C $(FAAC_DIR) clean
@@ -384,6 +375,14 @@ clean:
 	make -i -C $(OGG_DIR) clean
 	make -i -C $(VORBIS_DIR) clean
 	make -i -C $(JPEG_DIR) clean
+	find \( -name 'core*' \
+		-o -name '*.lo' \
+		-o -name '*.o' \
+		-o -name '*.la' \
+		-o -name '*.a' \
+		-o -name '*.plugin' \
+		-o -name '*.so' \) -exec rm -f {} \; -prune
+	find \( -name $(OBJDIR) \) -exec rm -rf {} \; -prune
 
 wc:
 	cat *.c *.h | wc
