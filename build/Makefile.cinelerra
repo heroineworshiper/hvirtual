@@ -79,8 +79,7 @@ clean:
 	$(MAKE) -i -C thirdparty/libtheora* clean
 	MAKE='make -j1' make -C thirdparty/speech_tools clean
 	MAKE='make -j1' make -C thirdparty/festival clean
-	find \( -name 'core*' \
-		-o -name '*.lo' \
+	find \( -name '*.lo' \
 		-o -name '*.o' \
 		-o -name '*.la' \
 		-o -name '*.a' \
