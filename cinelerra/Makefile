@@ -414,8 +414,10 @@ ifeq ($(HAVE_XFT), y)
 LIBS += -lXft
 endif
 
+#	-g \
+
+
 CFLAGS += \
-	-g \
 	-c \
 	-I../guicast \
 	-I../quicktime \
