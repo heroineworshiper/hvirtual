@@ -397,7 +397,6 @@ endif
 
 
 LIBS += \
-	-lfontconfig \
 	-lX11 \
 	-lXext \
 	-lXv \
@@ -408,6 +407,7 @@ LIBS += \
 	-ldl \
 	-lbz2
 
+#	-lfontconfig \
 #	-lXxf86vm \
 
 ifeq ($(HAVE_XFT), y)

@@ -27,7 +27,7 @@ all: $(OBJDIR)/soundtest
 	$(MAKE) -f build/Makefile.gif
 	$(MAKE) -f build/Makefile.exr
 	$(MAKE) -f build/Makefile.esound
-	$(MAKE) -f build/Makefile.freetype
+#	$(MAKE) -f build/Makefile.freetype
 	$(MAKE) -f build/Makefile.tiff
 	$(MAKE) -f build/Makefile.toolame
 	$(MAKE) -f build/Makefile.uuid
@@ -64,7 +64,7 @@ clean:
 	$(MAKE) -f build/Makefile.gif clean
 	$(MAKE) -f build/Makefile.exr clean
 	$(MAKE) -f build/Makefile.esound clean
-	$(MAKE) -f build/Makefile.freetype clean
+#	$(MAKE) -f build/Makefile.freetype clean
 	$(MAKE) -f build/Makefile.tiff clean
 	$(MAKE) -f build/Makefile.toolame clean
 	$(MAKE) -f build/Makefile.uuid clean
