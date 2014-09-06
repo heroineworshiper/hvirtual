@@ -13,9 +13,7 @@ DIRS := \
 
 
 OBJS := \
-	$(ILMDIR)/$(OBJDIR)/Half/eLut.o \
 	$(ILMDIR)/$(OBJDIR)/Half/half.o \
-	$(ILMDIR)/$(OBJDIR)/Half/toFloat.o \
 	$(ILMDIR)/$(OBJDIR)/Iex/IexBaseExc.o \
 	$(ILMDIR)/$(OBJDIR)/Iex/IexThrowErrnoExc.o \
 	$(ILMDIR)/$(OBJDIR)/IlmThread/IlmThreadMutex.o \
@@ -33,7 +31,6 @@ OBJS := \
 	$(ILMDIR)/$(OBJDIR)/Imath/ImathRandom.o \
 	$(ILMDIR)/$(OBJDIR)/Imath/ImathShear.o \
 	$(ILMDIR)/$(OBJDIR)/Imath/ImathVec.o \
-	$(EXRDIR)/$(OBJDIR)/IlmImf/b44ExpLogTable.o \
 	$(EXRDIR)/$(OBJDIR)/IlmImf/ImfAttribute.o \
 	$(EXRDIR)/$(OBJDIR)/IlmImf/ImfB44Compressor.o \
 	$(EXRDIR)/$(OBJDIR)/IlmImf/ImfBoxAttribute.o \
@@ -92,7 +89,10 @@ OBJS := \
 	$(EXRDIR)/$(OBJDIR)/IlmImf/ImfWav.o \
 	$(EXRDIR)/$(OBJDIR)/IlmImf/ImfZipCompressor.o
 
-HEADERS := $(ILMDIR)/Half/toFloat.h $(ILMDIR)/Half/eLut.h
+HEADERS := \
+	$(ILMDIR)/Half/toFloat.h \
+	$(ILMDIR)/Half/eLut.h \
+	$(EXRDIR)/IlmImf/b44ExpLogTable.h
 
 OUTPUT := $(EXRDIR)/$(OBJDIR)/libexr.a
 CFLAGS += -DHAVE_CONFIG_H \
@@ -143,6 +143,10 @@ $(ILMDIR)/Half/eLut.h:
 $(ILMDIR)/Half/toFloat.h:
 	$(GCC) `cat $(EXRDIR)/$(OBJDIR)/c_flags` $(ILMDIR)/Half/toFloat.cpp -o $(ILMDIR)/$(OBJDIR)/Half/toFloat
 	$(ILMDIR)/$(OBJDIR)/Half/toFloat > $(ILMDIR)/Half/toFloat.h
+
+$(EXRDIR)/IlmImf/b44ExpLogTable.h:
+	$(GCC) `cat $(EXRDIR)/$(OBJDIR)/c_flags` $(EXRDIR)/IlmImf/b44ExpLogTable.cpp $(ILMDIR)/Half/half.cpp -o $(EXRDIR)/$(OBJDIR)/IlmImf/b44ExpLogTable
+	$(EXRDIR)/$(OBJDIR)/IlmImf/b44ExpLogTable > $(EXRDIR)/IlmImf/b44ExpLogTable.h
 
 clean:
 	rm -rf $(DIRS) $(HEADERS)

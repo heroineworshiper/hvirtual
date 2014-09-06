@@ -1980,6 +1980,8 @@ void CWindowMaskGUI::create_objects()
 	add_subwindow(title = new BC_Title(x, y, _("Press Ctrl to move a point")));
 	y += title->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Press Alt to translate the mask")));
+	y += title->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Press Shift to edit bezier curve")));
 
 	update();
 	unlock_window();

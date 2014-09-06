@@ -1015,10 +1015,16 @@ void CWindowCanvas::draw_refresh(int flush)
 				out_x2, 
 				out_y2);
 
-			get_canvas()->clear_box(0, 
-				0, 
-				get_canvas()->get_w(), 
-				get_canvas()->get_h());
+			if(!EQUIV(out_x1, 0) ||
+				!EQUIV(out_y1, 0) ||
+				!EQUIV(out_x2, get_canvas()->get_w()) ||
+				!EQUIV(out_y2, get_canvas()->get_h()))
+			{
+				get_canvas()->clear_box(0, 
+					0, 
+					get_canvas()->get_w(), 
+					get_canvas()->get_h());
+			}
 
 //printf("CWindowCanvas::draw_refresh %.2f %.2f %.2f %.2f -> %.2f %.2f %.2f %.2f\n", 
 //in_x1, in_y1, in_x2, in_y2, out_x1, out_y1, out_x2, out_y2);
@@ -1042,6 +1048,13 @@ void CWindowCanvas::draw_refresh(int flush)
 						(int)(in_y2 - in_y1),
 						0);
 			}
+		}
+		else
+		{
+			get_canvas()->clear_box(0, 
+				0, 
+				get_canvas()->get_w(), 
+				get_canvas()->get_h());
 		}
 
 		draw_overlays();
@@ -1481,16 +1494,16 @@ int CWindowCanvas::do_mask(int &redraw,
 			get_canvas()->set_color(WHITE);
 			get_canvas()->set_inverse();
 		}
-//printf("CWindowCanvas::do_mask 1 %d\n", points.total);
+//printf("CWindowCanvas::do_mask 1 %d\n", points.size());
 
 // Never draw closed polygon and a closed
 // polygon is harder to add points to.
-		for(int i = 0; i < points.total && !result; i++)
+		for(int i = 0; i < points.size() && !result; i++)
 		{
-			MaskPoint *point1 = points.values[i];
-			MaskPoint *point2 = (i >= points.total - 1) ? 
-				points.values[0] : 
-				points.values[i + 1];
+			MaskPoint *point1 = points.get(i);
+			MaskPoint *point2 = (i >= points.size() - 1) ? 
+				points.get(0) : 
+				points.get(i + 1);
 			float x0, x1, x2, x3;
 			float y0, y1, y2, y3;
 			float old_x, old_y, x, y;
@@ -1543,7 +1556,7 @@ int CWindowCanvas::do_mask(int &redraw,
 					{
 						shortest_line_distance = line_distance;
 						shortest_point1 = i;
-						shortest_point2 = (i >= points.total - 1) ? 0 : (i + 1);
+						shortest_point2 = (i >= points.size() - 1) ? 0 : (i + 1);
 //printf("CWindowCanvas::do_mask 2 %f %f %d, %d\n", line_distance, shortest_line_distance, shortest_point1, shortest_point2);
 					}
 
@@ -1564,7 +1577,7 @@ int CWindowCanvas::do_mask(int &redraw,
 						shortest_point < 0)
 					{
 						shortest_point_distance = point_distance2;
-						shortest_point = (i >= points.total - 1) ? 0 : (i + 1);
+						shortest_point = (i >= points.size() - 1) ? 0 : (i + 1);
 					}
 				}
 
@@ -1633,20 +1646,20 @@ int CWindowCanvas::do_mask(int &redraw,
 //printf("CWindowCanvas::do_mask %d %f %f\n", i, distance, selected_control_point_distance);
 						if(distance < selected_control_point_distance)
 						{
-							selected_point = (i < points.total - 1 ? i + 1 : 0);
+							selected_point = (i < points.size() - 1 ? i + 1 : 0);
 							selected_control_point = 0;
 							selected_control_point_distance = distance;
 						}
 					}
 					else
-					if(i < points.total - 1)
+					if(i < points.size() - 1)
 					{
 						output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
 						if(!gui->ctrl_down())
 						{
 							if(TEST_BOX(cursor_x, cursor_y, canvas_x, canvas_y))
 							{
-								selected_point = (i < points.total - 1 ? i + 1 : 0);
+								selected_point = (i < points.size() - 1 ? i + 1 : 0);
 							}
 						}
 						else
@@ -1676,7 +1689,7 @@ int CWindowCanvas::do_mask(int &redraw,
 						if(draw)
 						{
 // Draw second anchor
-							if(i < points.total - 1)
+							if(i < points.size() - 1)
 							{
 								if(i == gui->affected_point - 1)
 									get_canvas()->draw_disc((int)x - CONTROL_W / 2, 
@@ -1689,7 +1702,7 @@ int CWindowCanvas::do_mask(int &redraw,
 										CONTROL_W, 
 										CONTROL_W);
 // char string[BCTEXTLEN];
-// sprintf(string, "%d", (i < points.total - 1 ? i + 1 : 0));
+// sprintf(string, "%d", (i < points.size() - 1 ? i + 1 : 0));
 // canvas->draw_text((int)x + CONTROL_W, (int)y + CONTROL_W, string);
 							}
 
@@ -1784,7 +1797,7 @@ int CWindowCanvas::do_mask(int &redraw,
 
 
 // Translate entire keyframe
-		if(gui->alt_down() && mask->points.total)
+		if(gui->alt_down() && mask->points.size())
 		{
 			mwindow->undo->update_undo_before(_("mask translate"), 0);
 			gui->current_operation = CWINDOW_MASK_TRANSLATE;
@@ -1847,7 +1860,7 @@ int CWindowCanvas::do_mask(int &redraw,
 				MaskPoint *new_point = new MaskPoint;
 				points.append(new_point);
 				*new_point = *point;
-				gui->affected_point = points.total - 1;
+				gui->affected_point = points.size() - 1;
 
 #else
 
@@ -1864,7 +1877,7 @@ int CWindowCanvas::do_mask(int &redraw,
 					else
 						current = (MaskAuto*)NEXT;
 				}
-				gui->affected_point = mask->points.total - 1;
+				gui->affected_point = mask->points.size() - 1;
 #endif
 
 				result = 1;
@@ -1877,11 +1890,11 @@ int CWindowCanvas::do_mask(int &redraw,
 #ifdef USE_KEYFRAME_SPANNING
 // In case the keyframe point count isn't synchronized with the rest of the keyframes,
 // avoid a crash.
-				if(points.total >= shortest_point2)
+				if(points.size() >= shortest_point2)
 				{
 					MaskPoint *new_point = new MaskPoint;
 					points.append(0);
-					for(int i = points.total - 1; 
+					for(int i = points.size() - 1; 
 						i > shortest_point2; 
 						i--)
 						points.values[i] = points.values[i - 1];
@@ -1898,11 +1911,11 @@ int CWindowCanvas::do_mask(int &redraw,
 					SubMask *submask = current->get_submask(mwindow->edl->session->cwindow_mask);
 // In case the keyframe point count isn't synchronized with the rest of the keyframes,
 // avoid a crash.
-					if(submask->points.total >= shortest_point2)
+					if(submask->points.size() >= shortest_point2)
 					{
 						MaskPoint *new_point = new MaskPoint;
 						submask->points.append(0);
-						for(int i = submask->points.total - 1; 
+						for(int i = submask->points.size() - 1; 
 							i > shortest_point2; 
 							i--)
 							submask->points.values[i] = submask->points.values[i - 1];
@@ -1957,7 +1970,7 @@ int CWindowCanvas::do_mask(int &redraw,
 //printf("CWindowCanvas::do_mask 2\n");
 // Create a second point if none existed before
 #ifdef USE_KEYFRAME_SPANNING
-				if(points.total < 2)
+				if(points.size() < 2)
 				{
 
 					MaskPoint *new_point = new MaskPoint;
@@ -1965,9 +1978,9 @@ int CWindowCanvas::do_mask(int &redraw,
 					*new_point = *point;
 				}
 
-				gui->affected_point = points.total - 1;
+				gui->affected_point = points.size() - 1;
 #else
-				if(mask->points.total < 2)
+				if(mask->points.size() < 2)
 				{
 
 					for(MaskAuto *current = (MaskAuto*)mask_autos->default_auto;
@@ -1984,10 +1997,10 @@ int CWindowCanvas::do_mask(int &redraw,
 					}
 				}
 
-				gui->affected_point = mask->points.total - 1;
+				gui->affected_point = mask->points.size() - 1;
 #endif
 
-//printf("CWindowCanvas::do_mask 3 %d\n", mask->points.total);
+//printf("CWindowCanvas::do_mask 3 %d\n", mask->points.size());
 			}
 
 
@@ -2033,15 +2046,18 @@ int CWindowCanvas::do_mask(int &redraw,
 
 #ifdef USE_KEYFRAME_SPANNING
 // Must update the reference keyframes for every cursor motion
-			gui->mask_keyframe = 
-				(MaskAuto*)gui->cwindow->calculate_affected_auto(
-					mask_autos,
-					0);
-			gui->orig_mask_keyframe->copy_data(gui->mask_keyframe);
+		gui->mask_keyframe = 
+			(MaskAuto*)gui->cwindow->calculate_affected_auto(
+				mask_autos,
+				0);
+		gui->orig_mask_keyframe->copy_data(gui->mask_keyframe);
 #endif
 
+//printf("CWindowCanvas::do_mask %d %d\n", __LINE__, gui->affected_point);
+
 		SubMask *mask = gui->mask_keyframe->get_submask(mwindow->edl->session->cwindow_mask);
-		if(gui->affected_point < mask->points.total)
+		if(gui->affected_point < mask->points.size() &&
+			gui->current_operation != CWINDOW_NONE)
 		{
 //			mwindow->undo->update_undo_before(_("mask point"), this);
 #ifdef USE_KEYFRAME_SPANNING
@@ -2054,7 +2070,7 @@ int CWindowCanvas::do_mask(int &redraw,
 // 			canvas_to_output(mwindow->edl, 0, cursor_x, cursor_y);
 			float cursor_x = mask_cursor_x;
 			float cursor_y = mask_cursor_y;
-//printf("CWindowCanvas::do_mask 9 %d %d\n", mask->points.total, gui->affected_point);
+//printf("CWindowCanvas::do_mask 9 %d %d\n", mask->points.size(), gui->affected_point);
 
 			float last_x = point->x;
 			float last_y = point->y;
@@ -2067,6 +2083,7 @@ int CWindowCanvas::do_mask(int &redraw,
 			switch(gui->current_operation)
 			{
 				case CWINDOW_MASK:
+//printf("CWindowCanvas::do_mask %d %d\n", __LINE__, gui->affected_point);
 					point->x = cursor_x - gui->x_origin + gui->center_x;
 					point->y = cursor_y - gui->y_origin + gui->center_y;
 					break;
@@ -2083,13 +2100,13 @@ int CWindowCanvas::do_mask(int &redraw,
 
 				case CWINDOW_MASK_TRANSLATE:
 #ifdef USE_KEYFRAME_SPANNING
-					for(int i = 0; i < points.total; i++)
+					for(int i = 0; i < points.size(); i++)
 					{
 						points.values[i]->x += cursor_x - gui->x_origin;
 						points.values[i]->y += cursor_y - gui->y_origin;
 					}
 #else
-					for(int i = 0; i < mask->points.total; i++)
+					for(int i = 0; i < mask->points.size(); i++)
 					{
 						mask->points.values[i]->x += cursor_x - gui->x_origin;
 						mask->points.values[i]->y += cursor_y - gui->y_origin;
@@ -2112,6 +2129,64 @@ int CWindowCanvas::do_mask(int &redraw,
 				redraw = 1;
 			}
 		}
+		else
+		if(gui->current_operation == CWINDOW_NONE)
+		{
+//			printf("CWindowCanvas::do_mask %d\n", __LINE__);
+			int over_point = 0;
+			for(int i = 0; i < points.size() && !over_point; i++)
+			{
+				MaskPoint *point = points.get(i);
+				float x0 = point->x;
+				float y0 = point->y;
+				float x1 = point->x + point->control_x1;
+				float y1 = point->y + point->control_y1;
+				float x2 = point->x + point->control_x2;
+				float y2 = point->y + point->control_y2;
+				float canvas_x = (x0 - half_track_w) * projector_z + projector_x;
+				float canvas_y = (y0 - half_track_h) * projector_z + projector_y;
+				int cursor_x = get_cursor_x();
+				int cursor_y = get_cursor_y();
+				
+				output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
+				if(TEST_BOX(cursor_x, cursor_y, canvas_x, canvas_y))
+				{
+					over_point = 1;
+				}
+				
+				
+				if(!over_point && gui->shift_down())
+				{
+					canvas_x = (x1 - half_track_w) * projector_z + projector_x;
+					canvas_y = (y1 - half_track_h) * projector_z + projector_y;
+					output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
+					if(TEST_BOX(cursor_x, cursor_y, canvas_x, canvas_y))
+					{
+						over_point = 1;
+					}
+					else
+					{
+						canvas_x = (x2 - half_track_w) * projector_z + projector_x;
+						canvas_y = (y2 - half_track_h) * projector_z + projector_y;
+						output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
+						if(TEST_BOX(cursor_x, cursor_y, canvas_x, canvas_y))
+						{
+							over_point = 1;
+						}
+					}
+				}
+			}
+			
+			if(over_point)
+			{
+				set_cursor(ARROW_CURSOR);
+			}
+			else
+			{
+				set_cursor(CROSS_CURSOR);
+			}
+		}
+		
 		result = 1;
 	}
 //printf("CWindowCanvas::do_mask 2 %d %d %d\n", result, rerender, redraw);
@@ -3191,6 +3266,7 @@ int CWindowCanvas::cursor_motion_event()
 	int redraw = 0, result = 0, rerender = 0, redraw_canvas = 0;
 
 
+//printf("CWindowCanvas::cursor_motion_event %d current_operation=%d\n", __LINE__, gui->current_operation);
 	switch(gui->current_operation)
 	{
 		case CWINDOW_SCROLL:
@@ -3232,14 +3308,18 @@ int CWindowCanvas::cursor_motion_event()
 
 
 		case CWINDOW_CROP:
-//printf("CWindowCanvas::cursor_motion_event 1 %d %d\n", x, y);
 			result = test_crop(0, redraw);
+// printf("CWindowCanvas::cursor_motion_event %d result=%d redraw=%d\n", 
+// __LINE__, 
+// result, 
+// redraw);
 			break;
 
 		case CWINDOW_MASK:
 		case CWINDOW_MASK_CONTROL_IN:
 		case CWINDOW_MASK_CONTROL_OUT:
 		case CWINDOW_MASK_TRANSLATE:
+
 			result = do_mask(redraw, 
 				rerender, 
 				0, 
@@ -3251,12 +3331,18 @@ int CWindowCanvas::cursor_motion_event()
 			result = do_eyedrop(rerender, 0, 0);
 			break;
 
+		default:
+			break;
+
 	}
 
 
-
+// cursor font changes
 	if(!result)
 	{
+// printf("CWindowCanvas::cursor_motion_event %d cwindow_operation=%d\n", 
+// __LINE__, 
+// mwindow->edl->session->cwindow_operation);
 		switch(mwindow->edl->session->cwindow_operation)
 		{
 			case CWINDOW_CROP:
@@ -3265,6 +3351,13 @@ int CWindowCanvas::cursor_motion_event()
 			case CWINDOW_RULER:
 				result = do_ruler(0, 1, 0, 0);
 				break;
+			case CWINDOW_MASK:
+				result = do_mask(redraw, 
+					rerender, 
+					0, 
+					1,
+					0);
+					break;
 		}
 	}
 

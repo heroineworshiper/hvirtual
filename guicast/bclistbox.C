@@ -3483,7 +3483,10 @@ int BC_ListBox::cursor_motion_event()
 
 // hide rectangle
 				if(!redraw)
+				{
+//printf("BC_ListBox::cursor_motion_event %d\n", __LINE__);
 					draw_rectangle(0);
+				}
 			}
 
 			rect_x2 = get_cursor_x();
@@ -3494,11 +3497,18 @@ int BC_ListBox::cursor_motion_event()
 				draw_items(0);
 				update_scrollbars(1);
 				selection_changed();
+//printf("BC_ListBox::cursor_motion_event %d\n", __LINE__);
 			}
 			else
+			if(old_x1 != x1 ||
+				old_x2 != x2 ||
+				old_y1 != y1 ||
+				old_y2 != y2)
 			{
+//printf("BC_ListBox::cursor_motion_event %d\n", __LINE__);
 				draw_rectangle(1);
 			}
+			
 			result = 1;
 			break;
 		}
@@ -4671,8 +4681,7 @@ int BC_ListBox::draw_rectangle(int flash)
 
 	if(flash)
 	{
-		gui->flash();
-		gui->flush();
+		gui->flash(1);
 	}
 	return 0;
 }
