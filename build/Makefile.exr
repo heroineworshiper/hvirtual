@@ -90,9 +90,7 @@ OBJS := \
 	$(EXRDIR)/$(OBJDIR)/IlmImf/ImfZipCompressor.o
 
 HEADERS := \
-	$(ILMDIR)/Half/toFloat.h \
-	$(ILMDIR)/Half/eLut.h \
-	$(EXRDIR)/IlmImf/b44ExpLogTable.h
+	$(ILMDIR)/Half/toFloat.h
 
 OUTPUT := $(EXRDIR)/$(OBJDIR)/libexr.a
 CFLAGS += -DHAVE_CONFIG_H \
@@ -128,26 +126,29 @@ $(shell mkdir -p $(DIRS) )
 $(shell echo $(CFLAGS) > $(EXRDIR)/$(OBJDIR)/c_flags)
 $(shell echo $(OBJS) > $(EXRDIR)/$(OBJDIR)/objs)
 
-$(OUTPUT): $(HEADERS) $(OBJS)
+$(OUTPUT): $(OBJS)
 	ar rcs $(OUTPUT) `cat $(EXRDIR)/$(OBJDIR)/objs`
 
 
-$(OBJS): 
+$(OBJS): $(HEADERS)
 	$(GCC) -c `cat $(EXRDIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.cpp) -o $*.o
 
-
-$(ILMDIR)/Half/eLut.h:
+$(HEADERS):
 	$(GCC) `cat $(EXRDIR)/$(OBJDIR)/c_flags` $(ILMDIR)/Half/eLut.cpp -o $(ILMDIR)/$(OBJDIR)/Half/eLut
 	$(ILMDIR)/$(OBJDIR)/Half/eLut > $(ILMDIR)/Half/eLut.h
-
-$(ILMDIR)/Half/toFloat.h:
 	$(GCC) `cat $(EXRDIR)/$(OBJDIR)/c_flags` $(ILMDIR)/Half/toFloat.cpp -o $(ILMDIR)/$(OBJDIR)/Half/toFloat
 	$(ILMDIR)/$(OBJDIR)/Half/toFloat > $(ILMDIR)/Half/toFloat.h
-
-$(EXRDIR)/IlmImf/b44ExpLogTable.h:
 	$(GCC) `cat $(EXRDIR)/$(OBJDIR)/c_flags` $(EXRDIR)/IlmImf/b44ExpLogTable.cpp $(ILMDIR)/Half/half.cpp -o $(EXRDIR)/$(OBJDIR)/IlmImf/b44ExpLogTable
 	$(EXRDIR)/$(OBJDIR)/IlmImf/b44ExpLogTable > $(EXRDIR)/IlmImf/b44ExpLogTable.h
 
+
+
 clean:
-	rm -rf $(DIRS) $(HEADERS)
+	rm -rf $(DIRS) \
+		$(ILMDIR)/Half/toFloat.h \
+		$(ILMDIR)/Half/eLut.h \
+		$(EXRDIR)/IlmImf/b44ExpLogTable.h
+
+
+
 
