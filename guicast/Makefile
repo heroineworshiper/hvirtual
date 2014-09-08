@@ -1,10 +1,6 @@
 include ../global_config
 
-# Need the freetype include that matches the X server for Xft rendering
-#FREETYPE_DIR := ..//usr/X11R6/include/freetype2
-FREETYPE_DIR := $(shell expr ../thirdparty/freetype*/include )
-
-CFLAGS += -I../quicktime -I$(FREETYPE_DIR)
+CFLAGS += -I../quicktime
 
 # must only define here so applications using libpng don't see any of the XFT
 # includes at all.  They use a conflicting setjmp.
