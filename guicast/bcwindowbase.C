@@ -1089,11 +1089,15 @@ __LINE__, title, event);
 
 
 #ifdef X_HAVE_UTF8_STRING
-			//It's Ascii or UTF8?
+//It's Ascii or UTF8?
 // 			if (keysym != 0xffff &&
 //				(keys_return[0] & 0xff) >= 0x7f ) 
-			if ( ((keys_return[1] & 0xff) > 0x80) && ((keys_return[0] & 0xff) > 0xC0) )
+//printf("BC_WindowBase::dispatch_event %d %02x%02x\n", __LINE__, keys_return[0], keys_return[1]);
+
+			if ( ((keys_return[1] & 0xff) > 0x80) && 
+				((keys_return[0] & 0xff) > 0xC0) )
 			{
+//printf("BC_WindowBase::dispatch_event %d\n", __LINE__);
  				key_pressed_utf8 = keys_return;
  				key_pressed = keysym & 0xff;
  	 		} 
@@ -1167,6 +1171,7 @@ __LINE__, title, event);
 #ifdef X_HAVE_UTF8_STRING
 
  	 				keys_return[1] = 0;
+//printf("BC_WindowBase::dispatch_event %d\n", __LINE__);
  	 				key_pressed_utf8 = keys_return;	
  	 				key_pressed = keysym & 0xff;	
 #else					
@@ -1175,6 +1180,8 @@ __LINE__, title, event);
 					break;
 			}
 #ifdef X_HAVE_UTF8_STRING
+// not set if keysym was trapped in the switch
+				key_pressed_utf8 = keys_return;
 			}
 #endif
 
