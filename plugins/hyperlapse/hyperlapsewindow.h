@@ -30,12 +30,12 @@ class HyperlapseWindow : public PluginClientWindow
 {
 public:
 	HyperlapseWindow(Hyperlapse *plugin);
-	HyperlapseWindow();
+	~HyperlapseWindow();
 
 	void create_objects();
 	
 	Hyperlapse *plugin;
-}
+};
 
 
 

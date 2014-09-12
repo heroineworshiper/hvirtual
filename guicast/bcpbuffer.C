@@ -120,8 +120,8 @@ void BC_PBuffer::new_pbuffer(int w, int h)
 		if(w % 4) pbuffer_attributes[1] += 4 - (w % 4);
 		if(h % 4) pbuffer_attributes[3] += 4 - (h % 4);
 
-		GLXFBConfig *config_result;
-		XVisualInfo *visinfo;
+		GLXFBConfig *config_result = 0;
+		XVisualInfo *visinfo = 0;
 		int config_result_count = 0;
 // Try the one that always worked on NVidia
 		config_result = glXChooseFBConfig(current_window->get_display(), 

@@ -1181,6 +1181,7 @@ __LINE__, title, event);
 			}
 #ifdef X_HAVE_UTF8_STRING
 // not set if keysym was trapped in the switch
+// Don't even know why key_pressed_utf8 is necessary
 				key_pressed_utf8 = keys_return;
 			}
 #endif

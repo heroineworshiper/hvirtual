@@ -24,7 +24,7 @@
 #include "hyperlapse.h"
 #include "hyperlapsewindow.h"
 
-HyperlapseWindow::HyperlapseWindow(HyperlapseMain *plugin)
+HyperlapseWindow::HyperlapseWindow(Hyperlapse *plugin)
  : PluginClientWindow(plugin,
  	320, 
 	240, 
