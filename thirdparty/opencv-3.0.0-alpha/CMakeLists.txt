@@ -2,7 +2,7 @@
 #  Root CMake file for OpenCV
 #
 #    From the off-tree build directory, invoke:
-#      $ cmake <PATH_TO_OPENCV_ROOT>
+#      $ cmake -DBUILD_SHARED_LIBS=OFF <PATH_TO_OPENCV_ROOT>
 #
 # ----------------------------------------------------------------------------
 
@@ -149,8 +149,8 @@ OCV_OPTION(WITH_OPENMP         "Include OpenMP support"                      OFF
 OCV_OPTION(WITH_CSTRIPES       "Include C= support"                          OFF  IF WIN32 )
 OCV_OPTION(WITH_TIFF           "Include TIFF support"                        ON   IF (NOT IOS) )
 OCV_OPTION(WITH_UNICAP         "Include Unicap support (GPL)"                OFF  IF (UNIX AND NOT APPLE AND NOT ANDROID) )
-OCV_OPTION(WITH_V4L            "Include Video 4 Linux support"               ON   IF (UNIX AND NOT ANDROID) )
-OCV_OPTION(WITH_LIBV4L         "Use libv4l for Video 4 Linux support"        ON   IF (UNIX AND NOT ANDROID) )
+OCV_OPTION(WITH_V4L            "Include Video 4 Linux support"               OFF )
+OCV_OPTION(WITH_LIBV4L         "Use libv4l for Video 4 Linux support"        OFF )
 OCV_OPTION(WITH_DSHOW          "Build VideoIO with DirectShow support"       ON   IF (WIN32 AND NOT ARM) )
 OCV_OPTION(WITH_MSMF           "Build VideoIO with Media Foundation support" OFF  IF WIN32 )
 OCV_OPTION(WITH_XIMEA          "Include XIMEA cameras support"               OFF  IF (NOT ANDROID AND NOT APPLE) )
@@ -166,16 +166,17 @@ OCV_OPTION(WITH_GDAL           "Include GDAL Support"                        OFF
 
 # OpenCV build components
 # ===================================================
-OCV_OPTION(BUILD_SHARED_LIBS        "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" NOT (ANDROID OR IOS) )
+#OCV_OPTION(BUILD_SHARED_LIBS        "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" NOT (ANDROID OR IOS) )
+OCV_OPTION(BUILD_SHARED_LIBS        "Build shared libraries (.dll/.so) instead of static ones (.lib/.a)" OFF )
 OCV_OPTION(BUILD_opencv_apps        "Build utility applications (used for example to train classifiers)" (NOT ANDROID) IF (NOT IOS) )
 OCV_OPTION(BUILD_ANDROID_EXAMPLES   "Build examples for Android platform"         ON  IF ANDROID )
 OCV_OPTION(BUILD_DOCS               "Create build rules for OpenCV Documentation" ON )
 OCV_OPTION(BUILD_EXAMPLES           "Build all examples"                          OFF )
 OCV_OPTION(BUILD_PACKAGE            "Enables 'make package_source' command"       ON )
-OCV_OPTION(BUILD_PERF_TESTS         "Build performance tests"                     ON  IF (NOT IOS) )
-OCV_OPTION(BUILD_TESTS              "Build accuracy & regression tests"           ON  IF (NOT IOS) )
+OCV_OPTION(BUILD_PERF_TESTS         "Build performance tests"                     OFF )
+OCV_OPTION(BUILD_TESTS              "Build accuracy & regression tests"           OFF )
 OCV_OPTION(BUILD_WITH_DEBUG_INFO    "Include debug info into debug libs (not MSCV only)" ON )
-OCV_OPTION(BUILD_WITH_STATIC_CRT    "Enables use of staticaly linked CRT for staticaly linked OpenCV" ON IF MSVC )
+OCV_OPTION(BUILD_WITH_STATIC_CRT    "Enables use of staticaly linked CRT for staticaly linked OpenCV" OFF )
 OCV_OPTION(BUILD_FAT_JAVA_LIB       "Create fat java wrapper containing the whole OpenCV library" ON IF NOT BUILD_SHARED_LIBS AND CMAKE_COMPILER_IS_GNUCXX )
 OCV_OPTION(BUILD_ANDROID_SERVICE    "Build OpenCV Manager for Google Play" OFF IF ANDROID AND ANDROID_SOURCE_TREE )
 OCV_OPTION(BUILD_ANDROID_PACKAGE    "Build platform-specific package for Google Play" OFF IF ANDROID )

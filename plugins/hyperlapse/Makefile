@@ -6,7 +6,7 @@ OBJS := \
 	$(OBJDIR)/hyperlapse.o \
 	$(OBJDIR)/hyperlapsewindow.o
 
-LFLAGS += $(OPENCV_DIR)/libopencv.a
+LFLAGS += $(OPENCV_DIR)/bin/lib/libopencv_core.a
 
 OUTPUT = $(PLUGIN_DIR)/hyperlapse.plugin
 
