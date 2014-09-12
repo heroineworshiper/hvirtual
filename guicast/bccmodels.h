@@ -117,6 +117,28 @@
 
 
 
+// Compression coefficients straight out of jpeglib
+#define CMODEL_R_TO_Y    0.29900
+#define CMODEL_G_TO_Y    0.58700
+#define CMODEL_B_TO_Y    0.11400
+
+#define CMODEL_R_TO_U    -0.16874
+#define CMODEL_G_TO_U    -0.33126
+#define CMODEL_B_TO_U    0.50000
+
+#define CMODEL_R_TO_V    0.50000
+#define CMODEL_G_TO_V    -0.41869
+#define CMODEL_B_TO_V    -0.08131
+
+// Decompression coefficients straight out of jpeglib
+#define CMODEL_V_TO_R    1.40200
+#define CMODEL_V_TO_G    -0.71414
+
+#define CMODEL_U_TO_G    -0.34414
+#define CMODEL_U_TO_B    1.77200
+
+
+
 
 
 
