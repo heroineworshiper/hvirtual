@@ -60,6 +60,8 @@ Hyperlapse::Hyperlapse(PluginServer *server)
 {
 	prev_image = 0;
 	next_image = 0;
+	prev_position = -1;
+	next_position = -1;
 }
 
 Hyperlapse::~Hyperlapse()
@@ -156,7 +158,54 @@ int Hyperlapse::process_buffer(VFrame **frame,
 			1);
 	}
 
+	int step = 1;
+	if(get_direction() == PLAY_REVERSE)
+		step = -1;
+
+// move currrent image to previous position
+	if(next_position >= 0 && next_position == start_position - step)
+	{
+		IplImage *temp = prev_image;
+		prev_image = next_image;
+		next_image = temp;
+	}
+	else
+// load previous image
+	if(start_position - step >= 0)
+	{
+		read_frame(get_input(0), 
+			0, 
+			start_position - step, 
+			frame_rate);
+		grey_crop((unsigned char*)prev_image->imageData, 
+			get_input(0), 
+			0, 
+			0, 
+			w, 
+			h,
+			w,
+			h);
+
+	}
 	
+// load next image
+	read_frame(get_input(0), 
+		0, 
+		start_position, 
+		frame_rate);
+	grey_crop((unsigned char*)next_image->imageData, 
+		get_input(0), 
+		0, 
+		0, 
+		w, 
+		h,
+		w,
+		h);
+
+
+
+
+
 
 	return 0;
 }

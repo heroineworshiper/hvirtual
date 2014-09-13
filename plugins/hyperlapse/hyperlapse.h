@@ -74,6 +74,8 @@ public:
 
 	IplImage *prev_image;
 	IplImage *next_image;
+	long prev_position;
+	long next_position;
 };
 
 

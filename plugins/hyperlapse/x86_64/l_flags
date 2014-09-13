@@ -1,0 +1,1 @@
+-L/usr/X11R6/lib ../../thirdparty/opencv-3.0.0-alpha/bin/lib/libopencv_core.a ../../thirdparty/opencv-3.0.0-alpha/3rdparty/ippicv/unpack/ippicv_lnx/lib/intel64/libippicv.a
