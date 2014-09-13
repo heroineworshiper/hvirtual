@@ -51,6 +51,7 @@
 namespace cv
 {
 
+#if 0
 const char* g_HersheyGlyphs[] = {
  "",
  "MWRMNV RMVV PSTS",
@@ -3354,6 +3355,10 @@ const char* g_HersheyGlyphs[] = {
  "",
  0 };
 
+#endif
+
 }
+
+
 
 /* End of file. */

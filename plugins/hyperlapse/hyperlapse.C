@@ -24,8 +24,16 @@
 #include "hyperlapse.h"
 #include "hyperlapsewindow.h"
 #include "language.h"
+#include "transportque.inc"
+
+#include "opencv2/calib3d/calib3d_c.h"
+#include "opencv2/imgproc/imgproc_c.h"
+#include "opencv2/video/tracking_c.h"
 
 REGISTER_PLUGIN(Hyperlapse)
+
+#define MAX_COUNT 250
+#define WIN_SIZE 20
 
 
 HyperlapseConfig::HyperlapseConfig()
@@ -60,6 +68,12 @@ Hyperlapse::Hyperlapse(PluginServer *server)
 {
 	prev_image = 0;
 	next_image = 0;
+	eig_image = 0;
+	tmp_image = 0;
+	next_pyr = 0;
+	prev_pyr = 0;
+	next_corners = new CvPoint2D32f[ MAX_COUNT ];   
+	prev_corners = new CvPoint2D32f[ MAX_COUNT ];       
 	prev_position = -1;
 	next_position = -1;
 }
@@ -68,6 +82,12 @@ Hyperlapse::~Hyperlapse()
 {
 	if(prev_image) cvReleaseImage(&prev_image);
 	if(next_image) cvReleaseImage(&next_image);
+	if(eig_image) cvReleaseImage(&eig_image);
+	if(tmp_image) cvReleaseImage(&tmp_image);
+	if(next_pyr) cvReleaseImage(&next_pyr);
+	if(prev_pyr) cvReleaseImage(&prev_pyr);
+	delete [] next_corners;
+	delete [] prev_corners;
 }
 
 const char* Hyperlapse::plugin_title() { return N_("Hyperlapse"); }
@@ -136,10 +156,11 @@ int Hyperlapse::process_buffer(VFrame **frame,
 	double frame_rate)
 {
 	int need_reconfigure = load_configuration();
-	int w = frame[0]->get_w();
-	int h = frame[0]->get_h();
+	int w = get_input(0)->get_w();
+	int h = get_input(0)->get_h();
 
 
+// initialize everything
 	if(!prev_image)
 	{
 // Only does greyscale
@@ -147,16 +168,26 @@ int Hyperlapse::process_buffer(VFrame **frame,
 			cvSize(w, h), 
 			8, 
 			1);
-	}
-
-	if(!next_image)
-	{
-// Only does greyscale
 		next_image = cvCreateImage( 
 			cvSize(w, h), 
 			8, 
 			1);
+        eig_image = cvCreateImage(
+			cvSize(w, h), 
+			8, 
+			3);  
+        tmp_image = cvCreateImage(
+			cvSize(w, h), 
+			8, 
+			3);  
+		CvSize pyr_sz = cvSize( w + 8, h / 3 );     
+        next_pyr = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1);     
+        prev_pyr = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1);     
+
+     	double gH[9]={1,0,0, 0,1,0, 0,0,1};  
+     	gmxH = cvMat(3, 3, CV_64F, gH);  
 	}
+
 
 	int step = 1;
 	if(get_direction() == PLAY_REVERSE)
@@ -202,9 +233,109 @@ int Hyperlapse::process_buffer(VFrame **frame,
 		w,
 		h);
 
+	int corner_count = MAX_COUNT;
+    char features_found[MAX_COUNT];     
+    float feature_errors[MAX_COUNT];     
+    cvGoodFeaturesToTrack(next_image, 
+		eig_image, 
+		tmp_image, 
+		next_corners, 
+		&corner_count, 
+		0.01, 
+		5.0, 
+		0, 
+		3, 
+		0, 
+		0.04);     
+	cvFindCornerSubPix(next_image, 
+		next_corners, 
+		corner_count, 
+		cvSize(WIN_SIZE, WIN_SIZE), 
+		cvSize(-1, -1), 
+		cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 
+			20, 
+			0.03));        
 
 
+// optical flow
 
+	cvCalcOpticalFlowPyrLK(next_image, 
+		prev_image, 
+		next_pyr, 
+		prev_pyr, 
+		next_corners, 
+		prev_corners, 
+		corner_count, 
+		cvSize(WIN_SIZE, WIN_SIZE), 
+		5, 
+		features_found, 
+		feature_errors, 
+		cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 
+			20, 
+			0.3), 
+		0);
+
+    int fCount=0;  
+    for(int i=0; i < corner_count; ++i)  
+    {
+        if(features_found[i] == 0 || feature_errors[i] > MAX_COUNT)  
+        	continue;  
+
+        fCount++;  
+    }
+
+    int inI = 0;  
+    CvPoint2D32f *pt1 = new CvPoint2D32f[ fCount ];  
+    CvPoint2D32f *pt2 = new CvPoint2D32f[ fCount ];  
+    for(int i = 0; i < corner_count; ++i)  
+    {  
+    	if(features_found[i] == 0 || feature_errors[i] > MAX_COUNT)
+    		continue;  
+		
+    	pt1[inI] = next_corners[i];  
+    	pt2[inI] = prev_corners[i];  
+
+//    	cvLine( image, cvPoint(pt1[inI].x, pt1[inI].y), cvPoint(pt2[inI].x, pt2[inI].y), CV_RGB(0, 255, 0), 2);      
+    	inI++;  
+    }  
+
+// find homography
+    CvMat M1, M2;  
+    double H[9];  
+    CvMat mxH = cvMat(3, 3, CV_64F, H);  
+    M1 = cvMat(1, fCount, CV_32FC2, pt1);  
+    M2 = cvMat(1, fCount, CV_32FC2, pt2);  
+
+//M2 = H*M1 , old = H*current  
+    if(!cvFindHomography(&M1, 
+		&M2, 
+		&mxH, 
+		CV_RANSAC, 
+		2))
+    {                   
+//    	printf("Find Homography Fail!\n");  
+
+    }
+	else
+	{  
+     //printf(" %lf %lf %lf \n %lf %lf %lf \n %lf %lf %lf\n", H[0], H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] );  
+    }  
+
+    delete [] pt1;  
+    delete [] pt2; 	 
+
+    cvMatMul(&gmxH, &mxH, &gmxH);   
+
+// // output of warping by H goes here
+//     IplImage* WarpImg = cvCreateImage(
+// 		cvSize(w, h), 
+// 		8, 
+// 		3);
+// 
+// // Ma*Mb   -> Mc  
+//     cvWarpPerspective(current_Img, WarpImg, &gmxH);   
+// 
+// 	cvReleaseImage(&WarpImg);
 
 
 	return 0;

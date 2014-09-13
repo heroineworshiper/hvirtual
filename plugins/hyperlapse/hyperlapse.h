@@ -74,6 +74,13 @@ public:
 
 	IplImage *prev_image;
 	IplImage *next_image;
+    IplImage *eig_image;  
+    IplImage *tmp_image;  
+	IplImage *next_pyr;
+	IplImage *prev_pyr;
+	CvPoint2D32f *next_corners;
+	CvPoint2D32f *prev_corners;
+	CvMat gmxH;
 	long prev_position;
 	long next_position;
 };
