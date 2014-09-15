@@ -46,7 +46,7 @@ public:
 		long next_frame, 
 		long current_frame);
 	void limits();
-	
+	int draw_vectors;
 };
 
 class Hyperlapse : public PluginVClient

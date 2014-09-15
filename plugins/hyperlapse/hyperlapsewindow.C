@@ -41,12 +41,37 @@ HyperlapseWindow::~HyperlapseWindow()
 
 void HyperlapseWindow::create_objects()
 {
+	int x1 = 10, x = 10, y = 10;
+	int x2 = 310;
+	BC_Title *title;
+
+
+
+	add_subwindow(vectors = new HyperlapseVectors(this,
+		x,
+		y));
 
 	show_window(1);
 }
 
 
+HyperlapseVectors::HyperlapseVectors(HyperlapseWindow *gui,
+	int x, 
+	int y)
+ : BC_CheckBox(x, 
+ 	y, 
+	gui->plugin->config.draw_vectors,
+	_("Draw vectors"))
+{
+	this->gui = gui;
+}
 
+int HyperlapseVectors::handle_event()
+{
+	gui->plugin->config.draw_vectors = get_value();
+	gui->plugin->send_configure_change();
+	return 1;
+}
 
 
 

@@ -38,15 +38,18 @@ REGISTER_PLUGIN(Hyperlapse)
 
 HyperlapseConfig::HyperlapseConfig()
 {
+	draw_vectors = 0;
 }
 
 int HyperlapseConfig::equivalent(HyperlapseConfig &that)
 {
+	if(this->draw_vectors != that.draw_vectors) return 0;
 	return 1;
 }
 
 void HyperlapseConfig::copy_from(HyperlapseConfig &that)
 {
+	this->draw_vectors = that.draw_vectors;
 }
 
 void HyperlapseConfig::interpolate(
@@ -56,6 +59,7 @@ void HyperlapseConfig::interpolate(
 	long next_frame, 
 	long current_frame)
 {
+	copy_from(next);
 }
 
 void HyperlapseConfig::limits()
@@ -103,6 +107,7 @@ void Hyperlapse::save_data(KeyFrame *keyframe)
 // cause data to be stored directly in text
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 	output.tag.set_title("HYPERLAPSE");
+	output.tag.set_property("DRAW_VECTORS", config.draw_vectors);
 	output.append_tag();
 	output.append_newline();
 	output.tag.set_title("/HYPERLAPSE");
@@ -126,6 +131,7 @@ void Hyperlapse::read_data(KeyFrame *keyframe)
 		{
 			if(input.tag.title_is("HYPERLAPSE"))
 			{
+				config.draw_vectors = input.tag.get_property("DRAW_VECTORS", config.draw_vectors);
 			}
 			else
 			if(input.tag.title_is("/HYPERLAPSE"))
@@ -144,6 +150,9 @@ void Hyperlapse::update_gui()
 		if(load_configuration())
 		{
 			thread->window->lock_window("Hyperlapse::update_gui");
+			HyperlapseWindow *window = (HyperlapseWindow*)thread->window;
+			window->vectors->update(config.draw_vectors);
+			
 			thread->window->unlock_window();
 		}
 	}
@@ -155,6 +164,7 @@ int Hyperlapse::process_buffer(VFrame **frame,
 	int64_t start_position,
 	double frame_rate)
 {
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
 	int need_reconfigure = load_configuration();
 	int w = get_input(0)->get_w();
 	int h = get_input(0)->get_h();
@@ -204,6 +214,7 @@ int Hyperlapse::process_buffer(VFrame **frame,
 // load previous image
 	if(start_position - step >= 0)
 	{
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
 		read_frame(get_input(0), 
 			0, 
 			start_position - step, 
@@ -220,6 +231,8 @@ int Hyperlapse::process_buffer(VFrame **frame,
 	}
 	
 // load next image
+	next_position = start_position;
+printf("Hyperlapse::process_buffer %d %d\n", __LINE__, start_position);
 	read_frame(get_input(0), 
 		0, 
 		start_position, 

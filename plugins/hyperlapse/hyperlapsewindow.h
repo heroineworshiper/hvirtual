@@ -25,6 +25,18 @@
 #include "guicast.h"
 
 class Hyperlapse;
+class HyperlapseWindow;
+
+
+class HyperlapseVectors : public BC_CheckBox
+{
+public:
+	HyperlapseVectors(HyperlapseWindow *gui,
+		int x, 
+		int y);
+	int handle_event();
+	HyperlapseWindow *gui;
+};
 
 class HyperlapseWindow : public PluginClientWindow
 {
@@ -35,6 +47,9 @@ public:
 	void create_objects();
 	
 	Hyperlapse *plugin;
+	HyperlapseVectors *vectors;
+	
+	
 };
 
 

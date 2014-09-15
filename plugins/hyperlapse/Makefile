@@ -7,9 +7,16 @@ OBJS := \
 	$(OBJDIR)/hyperlapsewindow.o
 
 LFLAGS += \
+	$(OPENCV_DIR)/bin/lib/libopencv_video.a \
 	$(OPENCV_DIR)/bin/lib/libopencv_imgproc.a \
+	$(OPENCV_DIR)/bin/lib/libopencv_core.a \
+	$(OPENCV_DIR)/bin/lib/libopencv_calib3d.a \
 	$(OPENCV_DIR)/3rdparty/ippicv/unpack/ippicv_lnx/lib/intel64/libippicv.a \
-	$(OPENCV_DIR)/bin/lib/libopencv_core.a
+	$(OPENCV_DIR)/bin/lib/libopencv_imgproc.a \
+	$(OPENCV_DIR)/bin/lib/libopencv_core.a \
+	$(OPENCV_DIR)/bin/lib/libopencv_calib3d.a \
+	$(OPENCV_DIR)/3rdparty/ippicv/unpack/ippicv_lnx/lib/intel64/libippicv.a
+
 
 OUTPUT = $(PLUGIN_DIR)/hyperlapse.plugin
 
