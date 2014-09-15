@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------------
 #  Root CMake file for OpenCV
 #
-#    From the off-tree build directory, invoke:
-#      $ cmake -DBUILD_SHARED_LIBS=OFF <PATH_TO_OPENCV_ROOT>
+#    From the off-tree build directory (bin), invoke:
+#      $ cmake -DBUILD_SHARED_LIBS=OFF -DWITH_OPENCL=OFF <PATH_TO_OPENCV_ROOT>
 #
 # ----------------------------------------------------------------------------
 
