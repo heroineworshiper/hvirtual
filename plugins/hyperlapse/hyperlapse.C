@@ -72,8 +72,6 @@ Hyperlapse::Hyperlapse(PluginServer *server)
 {
 	prev_image = 0;
 	next_image = 0;
-	eig_image = 0;
-	tmp_image = 0;
 	next_pyr = 0;
 	prev_pyr = 0;
 	next_corners = new CvPoint2D32f[ MAX_COUNT ];   
@@ -86,8 +84,6 @@ Hyperlapse::~Hyperlapse()
 {
 	if(prev_image) cvReleaseImage(&prev_image);
 	if(next_image) cvReleaseImage(&next_image);
-	if(eig_image) cvReleaseImage(&eig_image);
-	if(tmp_image) cvReleaseImage(&tmp_image);
 	if(next_pyr) cvReleaseImage(&next_pyr);
 	if(prev_pyr) cvReleaseImage(&prev_pyr);
 	delete [] next_corners;
@@ -160,11 +156,10 @@ void Hyperlapse::update_gui()
 
 
 
-int Hyperlapse::process_buffer(VFrame **frame,
+int Hyperlapse::process_buffer(VFrame *frame,
 	int64_t start_position,
 	double frame_rate)
 {
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
 	int need_reconfigure = load_configuration();
 	int w = get_input(0)->get_w();
 	int h = get_input(0)->get_h();
@@ -182,14 +177,6 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 			cvSize(w, h), 
 			8, 
 			1);
-        eig_image = cvCreateImage(
-			cvSize(w, h), 
-			8, 
-			3);  
-        tmp_image = cvCreateImage(
-			cvSize(w, h), 
-			8, 
-			3);  
 		CvSize pyr_sz = cvSize( w + 8, h / 3 );     
         next_pyr = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1);     
         prev_pyr = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1);     
@@ -232,7 +219,7 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 	
 // load next image
 	next_position = start_position;
-printf("Hyperlapse::process_buffer %d %d\n", __LINE__, start_position);
+//printf("Hyperlapse::process_buffer %d %d\n", __LINE__, start_position);
 	read_frame(get_input(0), 
 		0, 
 		start_position, 
@@ -246,20 +233,24 @@ printf("Hyperlapse::process_buffer %d %d\n", __LINE__, start_position);
 		w,
 		h);
 
+//printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//for(int i = 0; i < 256; i++) printf("%02x ", (unsigned char)next_image->imageData[i]);
+//printf("\n");
 	int corner_count = MAX_COUNT;
     char features_found[MAX_COUNT];     
     float feature_errors[MAX_COUNT];     
     cvGoodFeaturesToTrack(next_image, 
-		eig_image, 
-		tmp_image, 
-		next_corners, 
-		&corner_count, 
-		0.01, 
-		5.0, 
 		0, 
-		3, 
 		0, 
-		0.04);     
+		next_corners,  // corners
+		&corner_count,  // corner_count
+		0.01,  // quality_level
+		5.0,  // min_distance
+		0,    // mask
+		3,    // block_size
+		0,    // use_harris
+		0.04);     // k
+printf("Hyperlapse::process_buffer %d corner_count=%d\n", __LINE__, corner_count);
 	cvFindCornerSubPix(next_image, 
 		next_corners, 
 		corner_count, 
@@ -268,6 +259,7 @@ printf("Hyperlapse::process_buffer %d %d\n", __LINE__, start_position);
 		cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 
 			20, 
 			0.03));        
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
 
 // optical flow
@@ -287,6 +279,7 @@ printf("Hyperlapse::process_buffer %d %d\n", __LINE__, start_position);
 			20, 
 			0.3), 
 		0);
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
     int fCount=0;  
     for(int i=0; i < corner_count; ++i)  
@@ -297,47 +290,61 @@ printf("Hyperlapse::process_buffer %d %d\n", __LINE__, start_position);
         fCount++;  
     }
 
-    int inI = 0;  
-    CvPoint2D32f *pt1 = new CvPoint2D32f[ fCount ];  
-    CvPoint2D32f *pt2 = new CvPoint2D32f[ fCount ];  
-    for(int i = 0; i < corner_count; ++i)  
-    {  
-    	if(features_found[i] == 0 || feature_errors[i] > MAX_COUNT)
-    		continue;  
-		
-    	pt1[inI] = next_corners[i];  
-    	pt2[inI] = prev_corners[i];  
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
+	if(fCount > 0)
+	{
+    	int inI = 0;  
+    	CvPoint2D32f *pt1 = new CvPoint2D32f[fCount];  
+    	CvPoint2D32f *pt2 = new CvPoint2D32f[fCount];  
+    	for(int i = 0; i < corner_count; ++i)  
+    	{  
+    		if(features_found[i] == 0 || feature_errors[i] > MAX_COUNT)
+    			continue;  
 
-//    	cvLine( image, cvPoint(pt1[inI].x, pt1[inI].y), cvPoint(pt2[inI].x, pt2[inI].y), CV_RGB(0, 255, 0), 2);      
-    	inI++;  
-    }  
+    		pt1[inI] = next_corners[i];  
+    		pt2[inI] = prev_corners[i];  
 
-// find homography
-    CvMat M1, M2;  
-    double H[9];  
-    CvMat mxH = cvMat(3, 3, CV_64F, H);  
-    M1 = cvMat(1, fCount, CV_32FC2, pt1);  
-    M2 = cvMat(1, fCount, CV_32FC2, pt2);  
+	//    	cvLine( image, cvPoint(pt1[inI].x, pt1[inI].y), cvPoint(pt2[inI].x, pt2[inI].y), CV_RGB(0, 255, 0), 2);      
+    		inI++;  
+    	}  
+	printf("Hyperlapse::process_buffer %d fCount=%d corner_count=%d inI=%d\n", 
+	__LINE__, 
+	fCount, 
+	corner_count, 
+	inI);
 
-//M2 = H*M1 , old = H*current  
-    if(!cvFindHomography(&M1, 
-		&M2, 
-		&mxH, 
-		CV_RANSAC, 
-		2))
-    {                   
-//    	printf("Find Homography Fail!\n");  
+	// find homography
+    	CvMat M1, M2;  
+    	double H[9];  
+    	CvMat mxH = cvMat(3, 3, CV_64F, H);  
+    	M1 = cvMat(1, fCount, CV_32FC2, pt1);  
+    	M2 = cvMat(1, fCount, CV_32FC2, pt2);  
+	printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
-    }
-	else
-	{  
-     //printf(" %lf %lf %lf \n %lf %lf %lf \n %lf %lf %lf\n", H[0], H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] );  
-    }  
+	//M2 = H*M1 , old = H*current  
+    	if(!cvFindHomography(&M1, 
+			&M2, 
+			&mxH, 
+			CV_RANSAC, 
+			2))
+    	{                   
+	//    	printf("Find Homography Fail!\n");  
 
-    delete [] pt1;  
-    delete [] pt2; 	 
+    	}
+		else
+		{  
+			//printf(" %lf %lf %lf \n %lf %lf %lf \n %lf %lf %lf\n", H[0], H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] );  
+    	}  
+	printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
-    cvMatMul(&gmxH, &mxH, &gmxH);   
+    	delete [] pt1;  
+    	delete [] pt2; 	 
+
+  		cvMatMul(&gmxH, &mxH, &gmxH);   
+	printf("Hyperlapse::process_buffer %d\n", __LINE__);
+	}
+
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
 // // output of warping by H goes here
 //     IplImage* WarpImg = cvCreateImage(

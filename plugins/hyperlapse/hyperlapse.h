@@ -60,7 +60,7 @@ public:
 	void update_gui();
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
-	int process_buffer(VFrame **frame,
+	int process_buffer(VFrame *frame,
 		int64_t start_position,
 		double frame_rate);
 	void grey_crop(unsigned char *dst, 
@@ -74,8 +74,6 @@ public:
 
 	IplImage *prev_image;
 	IplImage *next_image;
-    IplImage *eig_image;  
-    IplImage *tmp_image;  
 	IplImage *next_pyr;
 	IplImage *prev_pyr;
 	CvPoint2D32f *next_corners;
