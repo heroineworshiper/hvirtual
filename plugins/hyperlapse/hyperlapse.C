@@ -201,7 +201,7 @@ int Hyperlapse::process_buffer(VFrame *frame,
 // load previous image
 	if(start_position - step >= 0)
 	{
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 		read_frame(get_input(0), 
 			0, 
 			start_position - step, 
@@ -234,7 +234,7 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 		h);
 
 //printf("Hyperlapse::process_buffer %d\n", __LINE__);
-//for(int i = 0; i < 256; i++) printf("%02x ", (unsigned char)next_image->imageData[i]);
+//for(int  i = 0; i < 256; i++) printf("%02x ", (unsigned char)next_image->imageData[i]);
 //printf("\n");
 	int corner_count = MAX_COUNT;
     char features_found[MAX_COUNT];     
@@ -250,7 +250,8 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 		3,    // block_size
 		0,    // use_harris
 		0.04);     // k
-printf("Hyperlapse::process_buffer %d corner_count=%d\n", __LINE__, corner_count);
+
+//printf("Hyperlapse::process_buffer %d corner_count=%d\n", __LINE__, corner_count);
 	cvFindCornerSubPix(next_image, 
 		next_corners, 
 		corner_count, 
@@ -259,7 +260,7 @@ printf("Hyperlapse::process_buffer %d corner_count=%d\n", __LINE__, corner_count
 		cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 
 			20, 
 			0.03));        
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
 
 // optical flow
@@ -279,10 +280,10 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 			20, 
 			0.3), 
 		0);
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
     int fCount=0;  
-    for(int i=0; i < corner_count; ++i)  
+    for(int i = 0; i < corner_count; ++i)  
     {
         if(features_found[i] == 0 || feature_errors[i] > MAX_COUNT)  
         	continue;  
@@ -290,7 +291,7 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
         fCount++;  
     }
 
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//printf("Hyperlapse::process_buffer %d fCount=%d\n", __LINE__, fCount);
 	if(fCount > 0)
 	{
     	int inI = 0;  
@@ -305,43 +306,44 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
     		pt2[inI] = prev_corners[i];  
 
 	//    	cvLine( image, cvPoint(pt1[inI].x, pt1[inI].y), cvPoint(pt2[inI].x, pt2[inI].y), CV_RGB(0, 255, 0), 2);      
+			get_input(0)->draw_arrow(pt2[inI].x, pt2[inI].y, pt1[inI].x, pt1[inI].y);
     		inI++;  
     	}  
-	printf("Hyperlapse::process_buffer %d fCount=%d corner_count=%d inI=%d\n", 
-	__LINE__, 
-	fCount, 
-	corner_count, 
-	inI);
+printf("Hyperlapse::process_buffer %d fCount=%d corner_count=%d inI=%d\n", 
+__LINE__, 
+fCount, 
+corner_count, 
+inI);
 
-	// find homography
+// find homography
     	CvMat M1, M2;  
     	double H[9];  
     	CvMat mxH = cvMat(3, 3, CV_64F, H);  
     	M1 = cvMat(1, fCount, CV_32FC2, pt1);  
     	M2 = cvMat(1, fCount, CV_32FC2, pt2);  
-	printf("Hyperlapse::process_buffer %d\n", __LINE__);
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
-	//M2 = H*M1 , old = H*current  
+//M2 = H*M1 , old = H*current  
     	if(!cvFindHomography(&M1, 
 			&M2, 
 			&mxH, 
 			CV_RANSAC, 
 			2))
     	{                   
-	//    	printf("Find Homography Fail!\n");  
+//    	printf("Find Homography Fail!\n");  
 
     	}
 		else
 		{  
 			//printf(" %lf %lf %lf \n %lf %lf %lf \n %lf %lf %lf\n", H[0], H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] );  
     	}  
-	printf("Hyperlapse::process_buffer %d\n", __LINE__);
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
     	delete [] pt1;  
     	delete [] pt2; 	 
 
   		cvMatMul(&gmxH, &mxH, &gmxH);   
-	printf("Hyperlapse::process_buffer %d\n", __LINE__);
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
 	}
 
 printf("Hyperlapse::process_buffer %d\n", __LINE__);

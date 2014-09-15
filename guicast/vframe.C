@@ -1547,6 +1547,40 @@ void VFrame::draw_rect(int x1, int y1, int x2, int y2)
 	draw_line(x1, y2 - 1, x1, y1 + 1);
 }
 
+#define ARROW_SIZE 10
+void VFrame::draw_arrow(int x1, int y1, int x2, int y2)
+{
+	double angle = atan((float)(y2 - y1) / (float)(x2 - x1));
+	double angle1 = angle + (float)145 / 360 * 2 * 3.14159265;
+	double angle2 = angle - (float)145 / 360 * 2 * 3.14159265;
+	int x3;
+	int y3;
+	int x4;
+	int y4;
+	if(x2 < x1)
+	{
+		x3 = x2 - (int)(ARROW_SIZE * cos(angle1));
+		y3 = y2 - (int)(ARROW_SIZE * sin(angle1));
+		x4 = x2 - (int)(ARROW_SIZE * cos(angle2));
+		y4 = y2 - (int)(ARROW_SIZE * sin(angle2));
+	}
+	else
+	{
+		x3 = x2 + (int)(ARROW_SIZE * cos(angle1));
+		y3 = y2 + (int)(ARROW_SIZE * sin(angle1));
+		x4 = x2 + (int)(ARROW_SIZE * cos(angle2));
+		y4 = y2 + (int)(ARROW_SIZE * sin(angle2));
+	}
+
+// Main vector
+	draw_line(x1, y1, x2, y2);
+//	draw_line(x1, y1 + 1, x2, y2 + 1);
+
+// Arrow line
+	if(abs(y2 - y1) || abs(x2 - x1)) draw_line(x2, y2, x3, y3);
+// Arrow line
+	if(abs(y2 - y1) || abs(x2 - x1)) draw_line(x2, y2, x4, y4);
+}
 
 
 
