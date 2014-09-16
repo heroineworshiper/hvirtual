@@ -217,7 +217,7 @@ int Hyperlapse::process_buffer(VFrame *frame,
 // load previous image
 	if(start_position - step >= 0)
 	{
-//printf("Hyperlapse::process_buffer %d\n", __LINE__);
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
 		read_frame(get_input(0), 
 			0, 
 			start_position - step, 
@@ -307,7 +307,10 @@ int Hyperlapse::process_buffer(VFrame *frame,
         fCount++;  
     }
 
-//printf("Hyperlapse::process_buffer %d fCount=%d\n", __LINE__, fCount);
+// printf("Hyperlapse::process_buffer %d fCount=%d draw_vectors=%d\n", 
+// __LINE__, 
+// fCount,
+// config.draw_vectors);
 	if(fCount > 0)
 	{
     	int inI = 0;  
@@ -321,18 +324,18 @@ int Hyperlapse::process_buffer(VFrame *frame,
     		pt1[inI] = next_corners[i];  
     		pt2[inI] = prev_corners[i];  
 
-//			get_input(0)->draw_arrow(pt2[inI].x, pt2[inI].y, pt1[inI].x, pt1[inI].y);
+			if(config.draw_vectors) get_input(0)->draw_arrow(pt2[inI].x, pt2[inI].y, pt1[inI].x, pt1[inI].y);
     		inI++;  
     	}  
-printf("Hyperlapse::process_buffer %d fCount=%d corner_count=%d inI=%d\n", 
-__LINE__, 
-fCount, 
-corner_count, 
-inI);
+// printf("Hyperlapse::process_buffer %d fCount=%d corner_count=%d inI=%d\n", 
+// __LINE__, 
+// fCount, 
+// corner_count, 
+// inI);
 
 // find homography
     	CvMat M1, M2;  
-    	double H[9];  
+    	double H[9]={1,0,0, 0,1,0, 0,0,1};
     	CvMat mxH = cvMat(3, 3, CV_64F, H);  
     	M1 = cvMat(1, fCount, CV_32FC2, pt1);  
     	M2 = cvMat(1, fCount, CV_32FC2, pt2);  
@@ -346,22 +349,36 @@ inI);
 			2))
     	{                   
 printf("Hyperlapse::process_buffer %d: Find Homography Fail!\n", __LINE__);  
-
     	}
 		else
-		{  
-			//printf(" %lf %lf %lf \n %lf %lf %lf \n %lf %lf %lf\n", H[0], H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] );  
-    	}  
+		{
+printf("Hyperlapse::process_buffer %d mxH=\n%f %f %f\n%f %f %f\n%f %f %f\n", 
+__LINE__,
+mxH.data.db[0],
+mxH.data.db[1],
+mxH.data.db[2],
+mxH.data.db[3],
+mxH.data.db[4],
+mxH.data.db[5],
+mxH.data.db[6],
+mxH.data.db[7],
+mxH.data.db[8]);
+  			cvMatMul(&gmxH, &mxH, &gmxH);
+    	}
 //printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
     	delete [] pt1;  
     	delete [] pt2; 	 
 
-  		cvMatMul(&gmxH, &mxH, &gmxH);   
 //printf("Hyperlapse::process_buffer %d\n", __LINE__);
 	}
+	
+	if(EQUIV(gmxH.data.db[0], 0))
+	{
+     	double gH[9]={1,0,0, 0,1,0, 0,0,1};  
+     	gmxH = cvMat(3, 3, CV_64F, gH);  
+	}
 
-//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 	AffineMatrix matrix;
 	double *src = gmxH.data.db;
 	for(int i = 0; i < 3; i++)
@@ -371,6 +388,10 @@ printf("Hyperlapse::process_buffer %d: Find Homography Fail!\n", __LINE__);
 			matrix.values[i][j] = src[i * 3 + j];
 		}
 	}
+
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
+matrix.dump();
+	
 	affine->set_matrix(&matrix);
 	temp->copy_from(get_input(0));
 	affine->process(get_input(0),

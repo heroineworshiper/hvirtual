@@ -462,17 +462,17 @@ void AffineUnit::process_package(LoadPackage *package)
 			matrix.copy_from(&server->matrix);
 		}
 
-printf("AffineUnit::process_package %d\n%f %f %f\n%f %f %f\n%f %f %f\n", 
-__LINE__,
-matrix.values[0][0],
-matrix.values[0][1],
-matrix.values[0][2],
-matrix.values[1][0],
-matrix.values[1][1],
-matrix.values[1][2],
-matrix.values[2][0],
-matrix.values[2][1],
-matrix.values[2][2]);
+// printf("AffineUnit::process_package %d\n%f %f %f\n%f %f %f\n%f %f %f\n", 
+// __LINE__,
+// matrix.values[0][0],
+// matrix.values[0][1],
+// matrix.values[0][2],
+// matrix.values[1][0],
+// matrix.values[1][1],
+// matrix.values[1][2],
+// matrix.values[2][0],
+// matrix.values[2][1],
+// matrix.values[2][2]);
 		int interpolate = 1;
 		int reverse = !server->forward;
 		float tx, ty, tw;
