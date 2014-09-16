@@ -1077,6 +1077,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 		}
 	}
 
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	undo->update_undo_before();
 
 
@@ -1435,10 +1436,10 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 		track = track->next;
 	}
 
-
-	update_project(load_mode);
-
+// need to update undo before project, since mwindow is unlocked & a new load
+// can begin here.  Should really prevent loading until we're done.
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+	undo->update_undo_after(_("load"), LOAD_ALL);
 
 	for(int i = 0; i < new_edls.size(); i++)
 	{
@@ -1456,8 +1457,8 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	new_assets.remove_all();
 	new_files.remove_all_objects();
 
-	undo->update_undo_after(_("load"), LOAD_ALL);
 
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	if(load_mode == LOADMODE_REPLACE ||
 		load_mode == LOADMODE_REPLACE_CONCATENATE)
 	{
@@ -1472,6 +1473,10 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+	update_project(load_mode);
+
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+
 	return 0;
 }
 

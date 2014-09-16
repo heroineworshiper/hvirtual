@@ -23,6 +23,7 @@
 #ifndef HYPERLAPSE_H
 #define HYPERLAPSE_H
 
+#include "affine.inc"
 #include "pluginvclient.h"
 
 #include "opencv2/core/core_c.h"
@@ -81,6 +82,8 @@ public:
 	CvMat gmxH;
 	long prev_position;
 	long next_position;
+	AffineEngine *affine;
+	VFrame *temp;
 };
 
 

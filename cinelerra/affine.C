@@ -351,7 +351,8 @@ void AffineUnit::process_package(LoadPackage *package)
 	float out_x1, out_y1, out_x2, out_y2, out_x3, out_y3, out_x4, out_y4;
 	if(server->mode == AffineEngine::STRETCH ||
 		server->mode == AffineEngine::PERSPECTIVE ||
-		server->mode == AffineEngine::ROTATE)
+		server->mode == AffineEngine::ROTATE ||
+		server->mode == AffineEngine::TRANSFORM)
 	{
 		out_x1 = (float)server->in_x + (float)server->x1 * server->in_w / 100;
 		out_y1 = (float)server->in_y + (float)server->y1 * server->in_h / 100;
@@ -422,7 +423,8 @@ void AffineUnit::process_package(LoadPackage *package)
 	else
 	if(server->mode == AffineEngine::PERSPECTIVE ||
 		server->mode == AffineEngine::SHEER ||
-		server->mode == AffineEngine::ROTATE)
+		server->mode == AffineEngine::ROTATE ||
+		server->mode == AffineEngine::TRANSFORM)
 	{
 		AffineMatrix matrix;
 		float temp;
@@ -438,31 +440,39 @@ void AffineUnit::process_package(LoadPackage *package)
 
 
 
+		if(server->mode != AffineEngine::TRANSFORM)
+		{
+			calculate_matrix(
+				server->in_x,
+				server->in_y,
+				server->in_x + server->in_w,
+				server->in_y + server->in_h,
+				out_x1,
+				out_y1,
+				out_x2,
+				out_y2,
+				out_x3,
+				out_y3,
+				out_x4,
+				out_y4,
+				&matrix);
+		}
+		else
+		{
+			matrix.copy_from(&server->matrix);
+		}
 
-		calculate_matrix(
-			server->in_x,
-			server->in_y,
-			server->in_x + server->in_w,
-			server->in_y + server->in_h,
-			out_x1,
-			out_y1,
-			out_x2,
-			out_y2,
-			out_x3,
-			out_y3,
-			out_x4,
-			out_y4,
-			&matrix);
-
-// printf("AffineUnit::process_package 10 %f %f %f %f %f %f %f %f\n", 
-// out_x1,
-// out_y1,
-// out_x2,
-// out_y2,
-// out_x3,
-// out_y3,
-// out_x4,
-// out_y4);
+printf("AffineUnit::process_package %d\n%f %f %f\n%f %f %f\n%f %f %f\n", 
+__LINE__,
+matrix.values[0][0],
+matrix.values[0][1],
+matrix.values[0][2],
+matrix.values[1][0],
+matrix.values[1][1],
+matrix.values[1][2],
+matrix.values[2][0],
+matrix.values[2][1],
+matrix.values[2][2]);
 		int interpolate = 1;
 		int reverse = !server->forward;
 		float tx, ty, tw;
@@ -1451,6 +1461,17 @@ void AffineEngine::rotate(VFrame *output,
 	{
 		set_package_count(total_packages);
 		process_packages();
+	}
+}
+
+void AffineEngine::set_matrix(AffineMatrix *matrix)
+{
+	for(int i = 0; i < 3; i++)
+	{
+		for(int j = 0; j < 3; j++)
+		{
+			this->matrix.values[i][j] = matrix->values[i][j];
+		}
 	}
 }
 

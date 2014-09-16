@@ -18,6 +18,7 @@
  * 
  */
 
+#include "affine.h"
 #include "bcsignals.h"
 #include "clip.h"
 #include "filexml.h"
@@ -78,6 +79,8 @@ Hyperlapse::Hyperlapse(PluginServer *server)
 	prev_corners = new CvPoint2D32f[ MAX_COUNT ];       
 	prev_position = -1;
 	next_position = -1;
+	affine = 0;
+	temp = 0;
 }
 
 Hyperlapse::~Hyperlapse()
@@ -88,6 +91,8 @@ Hyperlapse::~Hyperlapse()
 	if(prev_pyr) cvReleaseImage(&prev_pyr);
 	delete [] next_corners;
 	delete [] prev_corners;
+	if(affine) delete affine;
+	if(temp) delete temp;
 }
 
 const char* Hyperlapse::plugin_title() { return N_("Hyperlapse"); }
@@ -163,7 +168,7 @@ int Hyperlapse::process_buffer(VFrame *frame,
 	int need_reconfigure = load_configuration();
 	int w = get_input(0)->get_w();
 	int h = get_input(0)->get_h();
-
+	int color_model = get_input(0)->get_color_model();
 
 // initialize everything
 	if(!prev_image)
@@ -183,6 +188,17 @@ int Hyperlapse::process_buffer(VFrame *frame,
 
      	double gH[9]={1,0,0, 0,1,0, 0,0,1};  
      	gmxH = cvMat(3, 3, CV_64F, gH);  
+		
+		affine = new AffineEngine(PluginClient::get_project_smp() + 1,
+			PluginClient::get_project_smp() + 1);
+		
+		temp = new VFrame(0,
+			-1,
+			w,
+			h,
+			color_model,
+			-1);
+		
 	}
 
 
@@ -305,8 +321,7 @@ int Hyperlapse::process_buffer(VFrame *frame,
     		pt1[inI] = next_corners[i];  
     		pt2[inI] = prev_corners[i];  
 
-	//    	cvLine( image, cvPoint(pt1[inI].x, pt1[inI].y), cvPoint(pt2[inI].x, pt2[inI].y), CV_RGB(0, 255, 0), 2);      
-			get_input(0)->draw_arrow(pt2[inI].x, pt2[inI].y, pt1[inI].x, pt1[inI].y);
+//			get_input(0)->draw_arrow(pt2[inI].x, pt2[inI].y, pt1[inI].x, pt1[inI].y);
     		inI++;  
     	}  
 printf("Hyperlapse::process_buffer %d fCount=%d corner_count=%d inI=%d\n", 
@@ -321,7 +336,7 @@ inI);
     	CvMat mxH = cvMat(3, 3, CV_64F, H);  
     	M1 = cvMat(1, fCount, CV_32FC2, pt1);  
     	M2 = cvMat(1, fCount, CV_32FC2, pt2);  
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
 //M2 = H*M1 , old = H*current  
     	if(!cvFindHomography(&M1, 
@@ -330,23 +345,49 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 			CV_RANSAC, 
 			2))
     	{                   
-//    	printf("Find Homography Fail!\n");  
+printf("Hyperlapse::process_buffer %d: Find Homography Fail!\n", __LINE__);  
 
     	}
 		else
 		{  
 			//printf(" %lf %lf %lf \n %lf %lf %lf \n %lf %lf %lf\n", H[0], H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8] );  
     	}  
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
     	delete [] pt1;  
     	delete [] pt2; 	 
 
   		cvMatMul(&gmxH, &mxH, &gmxH);   
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 	}
 
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//printf("Hyperlapse::process_buffer %d\n", __LINE__);
+	AffineMatrix matrix;
+	double *src = gmxH.data.db;
+	for(int i = 0; i < 3; i++)
+	{
+		for(int j = 0; j < 3; j++)
+		{
+			matrix.values[i][j] = src[i * 3 + j];
+		}
+	}
+	affine->set_matrix(&matrix);
+	temp->copy_from(get_input(0));
+	affine->process(get_input(0),
+		temp, 
+		0,
+		AffineEngine::TRANSFORM,
+		0, 
+		0, 
+		w, 
+		0, 
+		w, 
+		h, 
+		0, 
+		h,
+		1);
+	
+	
 
 // // output of warping by H goes here
 //     IplImage* WarpImg = cvCreateImage(
