@@ -375,8 +375,10 @@ mxH.data.db[8]);
 	
 	if(EQUIV(gmxH.data.db[0], 0))
 	{
-     	double gH[9]={1,0,0, 0,1,0, 0,0,1};  
-     	gmxH = cvMat(3, 3, CV_64F, gH);  
+printf("Hyperlapse::process_buffer %d\n", __LINE__);
+    	double gH[9]={1,0,0, 0,1,0, 0,0,1};  
+     	for(int i = 0; i < 9; i++)
+			gmxH.data.db[i] = gH[i];
 	}
 
 	AffineMatrix matrix;
@@ -392,22 +394,22 @@ mxH.data.db[8]);
 printf("Hyperlapse::process_buffer %d\n", __LINE__);
 matrix.dump();
 	
-	affine->set_matrix(&matrix);
-	temp->copy_from(get_input(0));
-	affine->process(get_input(0),
-		temp, 
-		0,
-		AffineEngine::TRANSFORM,
-		0, 
-		0, 
-		w, 
-		0, 
-		w, 
-		h, 
-		0, 
-		h,
-		1);
-	
+// 	affine->set_matrix(&matrix);
+// 	temp->copy_from(get_input(0));
+// 	affine->process(get_input(0),
+// 		temp, 
+// 		0,
+// 		AffineEngine::TRANSFORM,
+// 		0, 
+// 		0, 
+// 		w, 
+// 		0, 
+// 		w, 
+// 		h, 
+// 		0, 
+// 		h,
+// 		1);
+
 	
 
 // // output of warping by H goes here
