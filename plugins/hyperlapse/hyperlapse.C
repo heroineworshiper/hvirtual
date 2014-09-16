@@ -341,6 +341,8 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
     	M2 = cvMat(1, fCount, CV_32FC2, pt2);  
 //printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
+// homography
+#if 0
 //M2 = H*M1 , old = H*current  
     	if(!cvFindHomography(&M1, 
 			&M2, 
@@ -366,6 +368,9 @@ mxH.data.db[8]);
   			cvMatMul(&gmxH, &mxH, &gmxH);
     	}
 //printf("Hyperlapse::process_buffer %d\n", __LINE__);
+#endif // 0
+
+		
 
     	delete [] pt1;  
     	delete [] pt2; 	 
