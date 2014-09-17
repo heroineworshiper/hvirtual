@@ -30,12 +30,18 @@
 #include "opencv2/calib3d/calib3d_c.h"
 #include "opencv2/imgproc/imgproc_c.h"
 #include "opencv2/video/tracking_c.h"
+#include "opencv2/videostab/motion_core.hpp"
+#include "opencv2/videostab/global_motion.hpp"
+
+#include <vector>
 
 REGISTER_PLUGIN(Hyperlapse)
 
 #define MAX_COUNT 250
 #define WIN_SIZE 20
 
+using namespace videostab;
+using namespace std;
 
 HyperlapseConfig::HyperlapseConfig()
 {
@@ -81,6 +87,9 @@ Hyperlapse::Hyperlapse(PluginServer *server)
 	next_position = -1;
 	affine = 0;
 	temp = 0;
+	x_accum = 0;
+	y_accum = 0;
+	angle_accum = 0;
 }
 
 Hyperlapse::~Hyperlapse()
@@ -165,10 +174,12 @@ int Hyperlapse::process_buffer(VFrame *frame,
 	int64_t start_position,
 	double frame_rate)
 {
+
 	int need_reconfigure = load_configuration();
 	int w = get_input(0)->get_w();
 	int h = get_input(0)->get_h();
 	int color_model = get_input(0)->get_color_model();
+    double identity_matrix[9]={1,0,0, 0,1,0, 0,0,1};
 
 // initialize everything
 	if(!prev_image)
@@ -186,9 +197,10 @@ int Hyperlapse::process_buffer(VFrame *frame,
         next_pyr = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1);     
         prev_pyr = cvCreateImage( pyr_sz, IPL_DEPTH_32F, 1);     
 
-     	double gH[9]={1,0,0, 0,1,0, 0,0,1};  
-     	gmxH = cvMat(3, 3, CV_64F, gH);  
-		
+		memcpy(accum_matrix_mem, identity_matrix, 9 * sizeof(double));
+     	accum_matrix = cvMat(3, 3, CV_64F, accum_matrix_mem);  
+
+
 		affine = new AffineEngine(PluginClient::get_project_smp() + 1,
 			PluginClient::get_project_smp() + 1);
 		
@@ -202,25 +214,60 @@ int Hyperlapse::process_buffer(VFrame *frame,
 	}
 
 
+// Get the position of previous reference frame.
+	int64_t actual_previous_number;
+	int skip_current = 0;
+	actual_previous_number = start_position;
 	int step = 1;
 	if(get_direction() == PLAY_REVERSE)
+	{
 		step = -1;
+		actual_previous_number++;
+		if(actual_previous_number >= get_source_start() + get_total_len())
+		{
+			skip_current = 1;
+		}
+		else
+		{
+			KeyFrame *keyframe = get_next_keyframe(start_position, 1);
+			if(keyframe->position > 0 &&
+				actual_previous_number >= keyframe->position)
+				skip_current = 1;
+		}
+	}
+	else
+	{
+		actual_previous_number--;
+		if(actual_previous_number < get_source_start())
+		{
+			skip_current = 1;
+		}
+		else
+		{
+			KeyFrame *keyframe = get_prev_keyframe(start_position, 1);
+			if(keyframe->position > 0 &&
+				actual_previous_number < keyframe->position)
+				skip_current = 1;
+		}
+	}
+	
 
 // move currrent image to previous position
-	if(next_position >= 0 && next_position == start_position - step)
+	if(next_position >= 0 && next_position == actual_previous_number)
 	{
 		IplImage *temp = prev_image;
 		prev_image = next_image;
 		next_image = temp;
+		prev_position = next_position;
 	}
 	else
 // load previous image
-	if(start_position - step >= 0)
+	if(actual_previous_number >= 0)
 	{
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 		read_frame(get_input(0), 
 			0, 
-			start_position - step, 
+			actual_previous_number, 
 			frame_rate);
 		grey_crop((unsigned char*)prev_image->imageData, 
 			get_input(0), 
@@ -232,7 +279,21 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 			h);
 
 	}
-	
+
+// reset the accumulator
+printf("Hyperlapse::process_buffer %d %d %lld %lld %lld\n", 
+__LINE__,
+skip_current,
+prev_position,
+actual_previous_number,
+start_position);
+	if(skip_current || prev_position != actual_previous_number)
+	{
+		skip_current = 1;
+		memcpy(accum_matrix_mem, identity_matrix, 9 * sizeof(double));
+	}
+
+
 // load next image
 	next_position = start_position;
 //printf("Hyperlapse::process_buffer %d %d\n", __LINE__, start_position);
@@ -249,9 +310,6 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 		w,
 		h);
 
-//printf("Hyperlapse::process_buffer %d\n", __LINE__);
-//for(int  i = 0; i < 256; i++) printf("%02x ", (unsigned char)next_image->imageData[i]);
-//printf("\n");
 	int corner_count = MAX_COUNT;
     char features_found[MAX_COUNT];     
     float feature_errors[MAX_COUNT];     
@@ -261,13 +319,14 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 		next_corners,  // corners
 		&corner_count,  // corner_count
 		0.01,  // quality_level
-		5.0,  // min_distance
+//		5.0,  // min_distance
+		16.0,  // min_distance
 		0,    // mask
-		3,    // block_size
+//		3,    // block_size
+		16,    // block_size
 		0,    // use_harris
 		0.04);     // k
 
-//printf("Hyperlapse::process_buffer %d corner_count=%d\n", __LINE__, corner_count);
 	cvFindCornerSubPix(next_image, 
 		next_corners, 
 		corner_count, 
@@ -276,7 +335,6 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 		cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 
 			20, 
 			0.03));        
-//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
 
 // optical flow
@@ -296,7 +354,6 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 			20, 
 			0.3), 
 		0);
-//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
     int fCount=0;  
     for(int i = 0; i < corner_count; ++i)  
@@ -311,13 +368,13 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 // __LINE__, 
 // fCount,
 // config.draw_vectors);
-	if(fCount > 0)
+	if(fCount > 0 && !skip_current)
 	{
     	int inI = 0;  
     	CvPoint2D32f *pt1 = new CvPoint2D32f[fCount];  
     	CvPoint2D32f *pt2 = new CvPoint2D32f[fCount];  
     	for(int i = 0; i < corner_count; ++i)  
-    	{  
+    	{
     		if(features_found[i] == 0 || feature_errors[i] > MAX_COUNT)
     			continue;  
 
@@ -326,48 +383,94 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
 			if(config.draw_vectors) get_input(0)->draw_arrow(pt2[inI].x, pt2[inI].y, pt1[inI].x, pt1[inI].y);
     		inI++;  
-    	}  
+    	}
 // printf("Hyperlapse::process_buffer %d fCount=%d corner_count=%d inI=%d\n", 
 // __LINE__, 
 // fCount, 
 // corner_count, 
 // inI);
 
-// find homography
+// 2D motion
+#if 0
+		MotionModel model = MM_TRANSLATION;
+		RansacParams params = RansacParams::default2dMotion(model);
+		int ninliers = 0;
+		vector<Point2f> points1;
+		vector<Point2f> points2;
+
+		for(int i = 0; i < corner_count; i++)
+		{
+			points1.push_back(Point2f(pt1[i].x, pt1[i].y));
+			points2.push_back(Point2f(pt2[i].x, pt2[i].y));
+		}
+
+		Mat_<float> translationM = estimateGlobalMotionRansac(
+        	points1, 
+			points2, 
+			model, 
+			params,
+        	0, 
+			&ninliers);
+
+		model = MM_ROTATION;
+		params = RansacParams::default2dMotion(model);
+		Mat_<float> rotationM = estimateGlobalMotionRansac(
+			points2, 
+        	points1, 
+			model, 
+			params,
+        	0, 
+			&ninliers);
+
+
+		double temp[9];
+		CvMat temp_matrix = cvMat(3, 3, CV_64F, temp);
+		for(int i = 0; i < 9; i++)
+		{
+			if(i == 2 || i == 5)
+				temp[i] = translationM(i / 3, i % 3);
+			else
+				temp[i] = rotationM(i / 3, i % 3);
+		}
+		cvMatMul(&accum_matrix, &temp_matrix, &accum_matrix);
+		
+
+
+#endif // 0
+
+
+// homography
+#if 1
     	CvMat M1, M2;  
-    	double H[9]={1,0,0, 0,1,0, 0,0,1};
+    	double H[9] = { 1,0,0, 0,1,0, 0,0,1 };
     	CvMat mxH = cvMat(3, 3, CV_64F, H);  
     	M1 = cvMat(1, fCount, CV_32FC2, pt1);  
     	M2 = cvMat(1, fCount, CV_32FC2, pt2);  
-//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 
-// homography
-#if 0
 //M2 = H*M1 , old = H*current  
     	if(!cvFindHomography(&M1, 
 			&M2, 
 			&mxH, 
 			CV_RANSAC, 
 			2))
-    	{                   
+    	{
 printf("Hyperlapse::process_buffer %d: Find Homography Fail!\n", __LINE__);  
     	}
 		else
 		{
-printf("Hyperlapse::process_buffer %d mxH=\n%f %f %f\n%f %f %f\n%f %f %f\n", 
-__LINE__,
-mxH.data.db[0],
-mxH.data.db[1],
-mxH.data.db[2],
-mxH.data.db[3],
-mxH.data.db[4],
-mxH.data.db[5],
-mxH.data.db[6],
-mxH.data.db[7],
-mxH.data.db[8]);
-  			cvMatMul(&gmxH, &mxH, &gmxH);
+// printf("Hyperlapse::process_buffer %d mxH=\n%f %f %f\n%f %f %f\n%f %f %f\n", 
+// __LINE__,
+// mxH.data.db[0],
+// mxH.data.db[1],
+// mxH.data.db[2],
+// mxH.data.db[3],
+// mxH.data.db[4],
+// mxH.data.db[5],
+// mxH.data.db[6],
+// mxH.data.db[7],
+// mxH.data.db[8]);
+  			cvMatMul(&accum_matrix, &mxH, &accum_matrix);
     	}
-//printf("Hyperlapse::process_buffer %d\n", __LINE__);
 #endif // 0
 
 		
@@ -375,19 +478,25 @@ mxH.data.db[8]);
     	delete [] pt1;  
     	delete [] pt2; 	 
 
-//printf("Hyperlapse::process_buffer %d\n", __LINE__);
-	}
-	
-	if(EQUIV(gmxH.data.db[0], 0))
-	{
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
-    	double gH[9]={1,0,0, 0,1,0, 0,0,1};  
-     	for(int i = 0; i < 9; i++)
-			gmxH.data.db[i] = gH[i];
 	}
 
+// deglitch
+// 	if(EQUIV(accum_matrix.data.db[0], 0))
+// 	{
+// printf("Hyperlapse::process_buffer %d\n", __LINE__);
+//     	double gH[9]={1,0,0, 0,1,0, 0,0,1};  
+//      	for(int i = 0; i < 9; i++)
+// 			accum_matrix.data.db[i] = gH[i];
+// 	}
+
 	AffineMatrix matrix;
-	double *src = gmxH.data.db;
+	double *src = accum_matrix.data.db;
+// interpolate with identity matrix
+ 	for(int i = 0; i < 9; i++)
+ 	{
+ 		src[i] = src[i] * .9 + identity_matrix[i] * .1;
+ 	}
+	
 	for(int i = 0; i < 3; i++)
 	{
 		for(int j = 0; j < 3; j++)
@@ -396,37 +505,26 @@ printf("Hyperlapse::process_buffer %d\n", __LINE__);
 		}
 	}
 
-printf("Hyperlapse::process_buffer %d\n", __LINE__);
-matrix.dump();
-	
-// 	affine->set_matrix(&matrix);
-// 	temp->copy_from(get_input(0));
-// 	affine->process(get_input(0),
-// 		temp, 
-// 		0,
-// 		AffineEngine::TRANSFORM,
-// 		0, 
-// 		0, 
-// 		w, 
-// 		0, 
-// 		w, 
-// 		h, 
-// 		0, 
-// 		h,
-// 		1);
+//printf("Hyperlapse::process_buffer %d %d matrix=\n", __LINE__, start_position);
+//matrix.dump();
 
-	
+	affine->set_matrix(&matrix);
+	temp->copy_from(get_input(0));
+	get_input(0)->clear_frame();
+	affine->process(get_input(0),
+		temp, 
+		0,
+		AffineEngine::TRANSFORM,
+		0, 
+		0, 
+		w, 
+		0, 
+		w, 
+		h, 
+		0, 
+		h,
+		1);
 
-// // output of warping by H goes here
-//     IplImage* WarpImg = cvCreateImage(
-// 		cvSize(w, h), 
-// 		8, 
-// 		3);
-// 
-// // Ma*Mb   -> Mc  
-//     cvWarpPerspective(current_Img, WarpImg, &gmxH);   
-// 
-// 	cvReleaseImage(&WarpImg);
 
 
 	return 0;

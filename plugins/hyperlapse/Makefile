@@ -8,9 +8,12 @@ OBJS := \
 
 LFLAGS += \
 	$(OPENCV_DIR)/bin/lib/libopencv_video.a \
+	$(OPENCV_DIR)/bin/lib/libopencv_videostab.a \
 	$(OPENCV_DIR)/bin/lib/libopencv_imgproc.a \
 	$(OPENCV_DIR)/bin/lib/libopencv_core.a \
 	$(OPENCV_DIR)/bin/lib/libopencv_calib3d.a \
+	$(OPENCV_DIR)/bin/lib/libopencv_features2d.a \
+	$(OPENCV_DIR)/bin/lib/libopencv_flann.a \
 	$(OPENCV_DIR)/3rdparty/ippicv/unpack/ippicv_lnx/lib/intel64/libippicv.a \
 	$(OPENCV_DIR)/bin/lib/libopencv_imgproc.a \
 	$(OPENCV_DIR)/bin/lib/libopencv_core.a \
@@ -29,7 +32,9 @@ CFLAGS += -I$(OPENCV_DIR)/modules/core/include/ \
 	-I$(OPENCV_DIR)/modules/legacy/include/ \
 	-I$(OPENCV_DIR)/modules/highgui/include/ \
 	-I$(OPENCV_DIR)/modules/objdetect/include/ \
-	-I$(OPENCV_DIR)/modules/video/include/
+	-I$(OPENCV_DIR)/modules/video/include/ \
+	-I$(OPENCV_DIR)/modules/videostab/include/ \
+	-I$(OPENCV_DIR)/bin/
 
 include ../../plugin_config
 

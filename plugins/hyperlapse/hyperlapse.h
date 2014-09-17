@@ -73,17 +73,21 @@ public:
 		int dst_w,
 		int dst_h);
 
+	CvMat accum_matrix;
+	double accum_matrix_mem[9];
+	long prev_position;
+	long next_position;
+	AffineEngine *affine;
+	VFrame *temp;
 	IplImage *prev_image;
 	IplImage *next_image;
 	IplImage *next_pyr;
 	IplImage *prev_pyr;
 	CvPoint2D32f *next_corners;
 	CvPoint2D32f *prev_corners;
-	CvMat gmxH;
-	long prev_position;
-	long next_position;
-	AffineEngine *affine;
-	VFrame *temp;
+	double x_accum;
+	double y_accum;
+	double angle_accum;
 };
 
 
