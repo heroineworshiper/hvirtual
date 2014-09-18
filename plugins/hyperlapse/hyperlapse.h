@@ -38,7 +38,7 @@ class HyperlapseConfig
 {
 public:
 	HyperlapseConfig();
-	
+
 	int equivalent(HyperlapseConfig &that);
 	void copy_from(HyperlapseConfig &that);
 	void interpolate(HyperlapseConfig &prev, 
@@ -47,7 +47,18 @@ public:
 		long next_frame, 
 		long current_frame);
 	void limits();
+
+
 	int draw_vectors;
+	int do_stabilization;
+// 1 - 100
+	int block_size;
+// 1 - 100
+	int search_radius;
+// 1 - 100
+	int max_movement;
+// 0 - 100
+	int settling_speed;
 };
 
 class Hyperlapse : public PluginVClient

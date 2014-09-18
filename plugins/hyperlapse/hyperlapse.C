@@ -46,17 +46,32 @@ using namespace std;
 HyperlapseConfig::HyperlapseConfig()
 {
 	draw_vectors = 0;
+	do_stabilization = 1;
+	block_size = 5;
+	search_radius = 15;
+	max_movement = 15;
+	settling_speed = 10;
 }
 
 int HyperlapseConfig::equivalent(HyperlapseConfig &that)
 {
-	if(this->draw_vectors != that.draw_vectors) return 0;
+	if(this->draw_vectors != that.draw_vectors ||
+		this->do_stabilization != do_stabilization ||
+		this->block_size != block_size ||
+		this->search_radius != search_radius ||
+		this->settling_speed != settling_speed ||
+		this->max_movement != max_movement) return 0;
 	return 1;
 }
 
 void HyperlapseConfig::copy_from(HyperlapseConfig &that)
 {
 	this->draw_vectors = that.draw_vectors;
+	this->do_stabilization = that.do_stabilization;
+	this->block_size = that.block_size;
+	this->search_radius = that.search_radius;
+	this->settling_speed = that.settling_speed;
+	this->max_movement = that.max_movement;
 }
 
 void HyperlapseConfig::interpolate(
@@ -71,6 +86,10 @@ void HyperlapseConfig::interpolate(
 
 void HyperlapseConfig::limits()
 {
+	CLAMP(block_size, 5, 100);
+	CLAMP(search_radius, 1, 100);
+	CLAMP(settling_speed, 0, 100);
+	CLAMP(max_movement, 1, 100);
 }
 
 
@@ -118,6 +137,11 @@ void Hyperlapse::save_data(KeyFrame *keyframe)
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 	output.tag.set_title("HYPERLAPSE");
 	output.tag.set_property("DRAW_VECTORS", config.draw_vectors);
+	output.tag.set_property("DO_STABILIZATION", config.do_stabilization);
+	output.tag.set_property("BLOCK_SIZE", config.block_size);
+	output.tag.set_property("SEARCH_RADIUS", config.search_radius);
+	output.tag.set_property("SETTLING_SPEED", config.settling_speed);
+	output.tag.set_property("MAX_MOVEMENT", config.max_movement);
 	output.append_tag();
 	output.append_newline();
 	output.tag.set_title("/HYPERLAPSE");
@@ -142,6 +166,13 @@ void Hyperlapse::read_data(KeyFrame *keyframe)
 			if(input.tag.title_is("HYPERLAPSE"))
 			{
 				config.draw_vectors = input.tag.get_property("DRAW_VECTORS", config.draw_vectors);
+				config.do_stabilization = input.tag.get_property("DO_STABILIZATION", config.do_stabilization);
+				config.block_size = input.tag.get_property("BLOCK_SIZE", config.block_size);
+				config.search_radius = input.tag.get_property("SEARCH_RADIUS", config.search_radius);
+				config.max_movement = input.tag.get_property("MAX_MOVEMENT", config.max_movement);
+				config.settling_speed = input.tag.get_property("SETTLING_SPEED", config.settling_speed);
+				config.limits();
+			
 			}
 			else
 			if(input.tag.title_is("/HYPERLAPSE"))
@@ -162,6 +193,10 @@ void Hyperlapse::update_gui()
 			thread->window->lock_window("Hyperlapse::update_gui");
 			HyperlapseWindow *window = (HyperlapseWindow*)thread->window;
 			window->vectors->update(config.draw_vectors);
+			window->do_stabilization->update(config.do_stabilization);
+			window->block_size->update(config.block_size);
+			window->search_radius->update(config.search_radius);
+			window->settling_speed->update(config.settling_speed);
 			
 			thread->window->unlock_window();
 		}
@@ -281,28 +316,31 @@ int Hyperlapse::process_buffer(VFrame *frame,
 	}
 
 // reset the accumulator
-printf("Hyperlapse::process_buffer %d %d %lld %lld %lld\n", 
-__LINE__,
-skip_current,
-prev_position,
-actual_previous_number,
-start_position);
+// printf("Hyperlapse::process_buffer %d %d %lld %lld %lld\n", 
+// __LINE__,
+// skip_current,
+// prev_position,
+// actual_previous_number,
+// start_position);
 	if(skip_current || prev_position != actual_previous_number)
 	{
 		skip_current = 1;
+// reset the accumulator
 		memcpy(accum_matrix_mem, identity_matrix, 9 * sizeof(double));
 	}
 
 
 // load next image
 	next_position = start_position;
+	VFrame *input_frame = get_input(0);
+	if(config.do_stabilization) input_frame = temp;
 //printf("Hyperlapse::process_buffer %d %d\n", __LINE__, start_position);
-	read_frame(get_input(0), 
+	read_frame(input_frame, 
 		0, 
 		start_position, 
 		frame_rate);
 	grey_crop((unsigned char*)next_image->imageData, 
-		get_input(0), 
+		input_frame, 
 		0, 
 		0, 
 		w, 
@@ -312,18 +350,20 @@ start_position);
 
 	int corner_count = MAX_COUNT;
     char features_found[MAX_COUNT];     
-    float feature_errors[MAX_COUNT];     
+    float feature_errors[MAX_COUNT];
+//	int block_size = MIN(w, h) * config.block_size / 100;
+	int block_size = config.block_size;
+printf("Hyperlapse::process_buffer %d block_size=%d\n", __LINE__, block_size);
+
     cvGoodFeaturesToTrack(next_image, 
 		0, 
 		0, 
 		next_corners,  // corners
 		&corner_count,  // corner_count
 		0.01,  // quality_level
-//		5.0,  // min_distance
-		16.0,  // min_distance
+		block_size,  // min_distance
 		0,    // mask
-//		3,    // block_size
-		16,    // block_size
+		block_size,    // block_size
 		0,    // use_harris
 		0.04);     // k
 
@@ -381,7 +421,14 @@ start_position);
     		pt1[inI] = next_corners[i];  
     		pt2[inI] = prev_corners[i];  
 
-			if(config.draw_vectors) get_input(0)->draw_arrow(pt2[inI].x, pt2[inI].y, pt1[inI].x, pt1[inI].y);
+			if(config.draw_vectors) 
+			{
+				input_frame->draw_arrow(
+					pt2[inI].x, 
+					pt2[inI].y, 
+					pt1[inI].x, 
+					pt1[inI].y);
+			}
     		inI++;  
     	}
 // printf("Hyperlapse::process_buffer %d fCount=%d corner_count=%d inI=%d\n", 
@@ -489,42 +536,46 @@ printf("Hyperlapse::process_buffer %d: Find Homography Fail!\n", __LINE__);
 // 			accum_matrix.data.db[i] = gH[i];
 // 	}
 
-	AffineMatrix matrix;
-	double *src = accum_matrix.data.db;
-// interpolate with identity matrix
- 	for(int i = 0; i < 9; i++)
- 	{
- 		src[i] = src[i] * .9 + identity_matrix[i] * .1;
- 	}
-	
-	for(int i = 0; i < 3; i++)
+
+	if(config.do_stabilization)
 	{
-		for(int j = 0; j < 3; j++)
+		AffineMatrix matrix;
+		double *src = accum_matrix.data.db;
+	// interpolate with identity matrix
+ 		for(int i = 0; i < 9; i++)
+ 		{
+ 			src[i] = src[i] * (100 - config.settling_speed) / 100 + 
+				identity_matrix[i] * config.settling_speed / 100;
+ 		}
+
+		for(int i = 0; i < 3; i++)
 		{
-			matrix.values[i][j] = src[i * 3 + j];
+			for(int j = 0; j < 3; j++)
+			{
+				matrix.values[i][j] = src[i * 3 + j];
+			}
 		}
+
+	//printf("Hyperlapse::process_buffer %d %d matrix=\n", __LINE__, start_position);
+	//matrix.dump();
+
+		affine->set_matrix(&matrix);
+// input_frame is always temp, if we get here
+		get_input(0)->clear_frame();
+		affine->process(get_input(0),
+			temp, 
+			0,
+			AffineEngine::TRANSFORM,
+			0, 
+			0, 
+			w, 
+			0, 
+			w, 
+			h, 
+			0, 
+			h,
+			1);
 	}
-
-//printf("Hyperlapse::process_buffer %d %d matrix=\n", __LINE__, start_position);
-//matrix.dump();
-
-	affine->set_matrix(&matrix);
-	temp->copy_from(get_input(0));
-	get_input(0)->clear_frame();
-	affine->process(get_input(0),
-		temp, 
-		0,
-		AffineEngine::TRANSFORM,
-		0, 
-		0, 
-		w, 
-		0, 
-		w, 
-		h, 
-		0, 
-		h,
-		1);
-
 
 
 	return 0;

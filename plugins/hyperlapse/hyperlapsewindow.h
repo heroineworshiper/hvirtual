@@ -38,6 +38,56 @@ public:
 	HyperlapseWindow *gui;
 };
 
+class HyperlapseDoStabilization : public BC_CheckBox
+{
+public:
+	HyperlapseDoStabilization(HyperlapseWindow *gui,
+		int x, 
+		int y);
+	int handle_event();
+	HyperlapseWindow *gui;
+};
+
+class HyperlapseBlockSize : public BC_IPot
+{
+public:
+	HyperlapseBlockSize(HyperlapseWindow *gui,
+		int x, 
+		int y);
+	int handle_event();
+	HyperlapseWindow *gui;
+};
+
+class HyperlapseSearchRadius : public BC_IPot
+{
+public:
+	HyperlapseSearchRadius(HyperlapseWindow *gui,
+		int x, 
+		int y);
+	int handle_event();
+	HyperlapseWindow *gui;
+};
+
+class HyperlapseMaxMovement : public BC_IPot
+{
+public:
+	HyperlapseMaxMovement(HyperlapseWindow *gui,
+		int x, 
+		int y);
+	int handle_event();
+	HyperlapseWindow *gui;
+};
+
+class HyperlapseSettling : public BC_IPot
+{
+public:
+	HyperlapseSettling(HyperlapseWindow *gui,
+		int x, 
+		int y);
+	int handle_event();
+	HyperlapseWindow *gui;
+};
+
 class HyperlapseWindow : public PluginClientWindow
 {
 public:
@@ -45,11 +95,15 @@ public:
 	~HyperlapseWindow();
 
 	void create_objects();
-	
+
 	Hyperlapse *plugin;
 	HyperlapseVectors *vectors;
-	
-	
+	HyperlapseDoStabilization *do_stabilization;
+	HyperlapseBlockSize *block_size;
+	HyperlapseSearchRadius *search_radius;
+// not implemented
+//	HyperlapseMaxMovement *max_movement;
+	HyperlapseSettling *settling_speed;
 };
 
 
