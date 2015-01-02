@@ -21,11 +21,18 @@
 
 //#define WIDTH 720
 //#define HEIGHT 480
-#define WIDTH 960
-#define HEIGHT 540
-#define FRAMERATE (double)30000/1001
+//#define WIDTH 960
+//#define HEIGHT 540
+#define WIDTH 640
+#define HEIGHT 480
+
+//#define FRAMERATE (double)30000/1001
 //#define FRAMERATE (double)30
-#define STARTING_OFFSET 0x28
+#define FRAMERATE (double)30000/3000
+
+
+//#define STARTING_OFFSET 0x28
+#define STARTING_OFFSET 0x0
 
 #define CHANNELS 1
 #define SAMPLERATE 48000
@@ -36,14 +43,17 @@
 // Output files
 #define AUDIO_FILE "/tmp/audio.pcm"
 #define VIDEO_FILE "/tmp/video.mov"
+
+
 //#define VCODEC QUICKTIME_MJPA
-//#define VCODEC QUICKTIME_JPEG
-
-
+#define VCODEC QUICKTIME_JPEG
+// Search for JFIF in JPEG header
+//#define USE_JFIF
 // Only 1 variation of this, recorded by 1 camcorder
-#define VCODEC QUICKTIME_H264
+//#define VCODEC QUICKTIME_H264
 // H264 rendered by Cinelerra
-#define USE_X264
+//#define USE_X264
+
 
 #define ACODEC QUICKTIME_MP4A
 
@@ -371,6 +381,7 @@ int main(int argc, char *argv[])
 		ftell_byte = current_byte + SEARCH_FRAGMENT - SEARCH_PAD;
 		FSEEK(in, ftell_byte, SEEK_SET);
 
+//printf("main %d\n", __LINE__);
 		for(i = 0; i < SEARCH_FRAGMENT - SEARCH_PAD; i++)
 		{
 // Search for image start
@@ -485,14 +496,19 @@ int main(int argc, char *argv[])
 				if(search_buffer[i] == 0xff &&
 					search_buffer[i + 1] == 0xd8 &&
 					search_buffer[i + 2] == 0xff &&
-					search_buffer[i + 3] == 0xe0 &&
-					search_buffer[i + 6] == 'J' &&
+					search_buffer[i + 3] == 0xe0
+
+#ifdef USE_JFIF					
+					&& search_buffer[i + 6] == 'J' &&
 					search_buffer[i + 7] == 'F' &&
 					search_buffer[i + 8] == 'I' &&
-					search_buffer[i + 9] == 'F')
+					search_buffer[i + 9] == 'F'
+#endif
+				)
 				{
 					state = GOT_IMAGE_START;
 					image_start = current_byte + i;
+//printf("main %d 0x%jx\n", __LINE__, image_start);
 				}
 			}
 			else
@@ -585,6 +601,7 @@ int main(int argc, char *argv[])
 				if(search_buffer[i] == 0xff &&
 					search_buffer[i + 1] == 0xd9)
 				{
+//printf("main %d 0x%jx\n", __LINE__, current_byte + i);
 // ffd9 sometimes occurs inside the mjpg tag
 					if(current_byte + i - image_start > 0x2a)
 					{
@@ -596,10 +613,12 @@ int main(int argc, char *argv[])
 // because the audio may by misaligned.  Use the extract utility to get the audio.
 						if(image_end - image_start > audio_chunk * audio_frame)
 						{
-							printf("%d: Possibly lost image between %llx and %llx\n", 
-								__LINE__,
-								image_start,
-								image_end);
+/*
+ * 							printf("%d: Possibly lost image between %llx and %llx\n", 
+ * 								__LINE__,
+ * 								image_start,
+ * 								image_end);
+ */
 // Put in fake image
 /*
  * 							APPEND_TABLE(start_table, start_size, start_allocation, image_start)
@@ -626,7 +645,7 @@ int main(int argc, char *argv[])
 
 if(!(start_size % 100))
 {
-printf("Got %d frames. %d%%\r", 
+printf("Got %d frames. %d%%\n", 
 start_size, 
 current_byte * (int64_t)100 / file_size);
 fflush(stdout);
@@ -639,6 +658,7 @@ fflush(stdout);
 
 
 
+	printf("Got %d frames %d samples total.\n", start_size, total_samples);
 
 // With the image table complete, 
 // write chunk table from the gaps in the image table
@@ -676,7 +696,6 @@ fflush(stdout);
 // 
 // 
 // // Put image table in movie
-// printf("Got %d frames %d samples total.\n", start_size, total_samples);
 // 	for(i = 0; i < start_size - fields; i += fields)
 // 	{
 // // Got a field out of order.  Skip just 1 image instead of 2.
