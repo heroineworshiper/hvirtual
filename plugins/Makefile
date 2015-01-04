@@ -38,6 +38,7 @@ DIRS = \
 	dissolve \
 	dot \
 	downsample \
+	edge \
 	fieldframe \
 	flash \
 	flip \
