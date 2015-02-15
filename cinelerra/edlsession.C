@@ -6,7 +6,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * (at  your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -43,7 +43,7 @@ EDLSession::EDLSession(EDL *edl)
 	aconfig_duplex = new AudioOutConfig(1);
 	vconfig_in = new VideoInConfig;
 	recording_format = new Asset;
-	interpolation_type = CUBIC_LINEAR;
+	interpolation_type = CUBIC_CUBIC;
 	interpolate_raw = 1;
 	white_balance_raw = 1;
 	test_playback_edits = 1;
@@ -442,6 +442,17 @@ void EDLSession::boundaries()
 	
 // Correct framerates
 	frame_rate = Units::fix_framerate(frame_rate);
+	
+	if(interpolation_type == CUBIC_LINEAR ||
+		interpolation_type == LINEAR_LINEAR ||
+		interpolation_type == LANCZOS_LANCZOS)
+	{
+		interpolation_type = CUBIC_CUBIC;
+	}
+	else
+	{
+		interpolation_type = NEAREST_NEIGHBOR;
+	}
 }
 
 

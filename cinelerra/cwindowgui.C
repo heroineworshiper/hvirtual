@@ -1194,6 +1194,7 @@ int CWindowCanvas::do_ruler(int draw,
 // Show ruler
 				do_ruler(1, 0, 0, 0);
 				get_canvas()->flash();
+				gui->update_tool();
 			}
 			else
 			switch(gui->ruler_handle)
