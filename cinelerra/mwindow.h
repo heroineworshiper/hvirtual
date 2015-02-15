@@ -398,6 +398,7 @@ public:
 	void paste_audio_transition();
 	void paste_video_transition();
 	void shuffle_edits();
+	void reverse_edits();
 	void align_edits();
 	void set_edit_length(double length);
 // Set length of single transition

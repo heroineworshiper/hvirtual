@@ -443,7 +443,8 @@ void EDLSession::boundaries()
 // Correct framerates
 	frame_rate = Units::fix_framerate(frame_rate);
 	
-	if(interpolation_type == CUBIC_LINEAR ||
+	if(interpolation_type == CUBIC_CUBIC ||
+		interpolation_type == CUBIC_LINEAR ||
 		interpolation_type == LINEAR_LINEAR ||
 		interpolation_type == LANCZOS_LANCZOS)
 	{

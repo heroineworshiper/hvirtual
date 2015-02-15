@@ -23,8 +23,8 @@
 //#define HEIGHT 480
 //#define WIDTH 960
 //#define HEIGHT 540
-#define WIDTH 640
-#define HEIGHT 480
+#define WIDTH 320
+#define HEIGHT 240
 
 //#define FRAMERATE (double)30000/1001
 //#define FRAMERATE (double)30

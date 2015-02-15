@@ -2024,6 +2024,25 @@ void MWindow::shuffle_edits()
 	gui->unlock_window();
 }
 
+void MWindow::reverse_edits()
+{
+	gui->lock_window("MWindow::reverse_edits 1");
+
+	undo->update_undo_before();
+	double start = edl->local_session->get_selectionstart();
+	double end = edl->local_session->get_selectionend();
+
+	edl->tracks->reverse_edits(start, end);
+
+	save_backup();
+	undo->update_undo_after(_("reverse edits"), LOAD_EDITS | LOAD_TIMEBAR);
+
+	sync_parameters(CHANGE_EDL);
+	restart_brender();
+	gui->update(0, 1, 1, 0, 0, 0, 0);
+	gui->unlock_window();
+}
+
 void MWindow::align_edits()
 {
 	gui->lock_window("MWindow::align_edits 1");

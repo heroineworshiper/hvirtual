@@ -114,6 +114,7 @@ public:
 // Pad pasted sections to a minimum of this length.
 		double edl_length);
 	void shuffle_edits(double start, double end, int first_track);
+	void reverse_edits(double start, double end, int first_track);
 	void align_edits(double start, 
 		double end, 
 		ArrayList<double> *times);

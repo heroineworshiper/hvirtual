@@ -130,6 +130,23 @@ void Tracks::shuffle_edits(double start, double end)
 	}
 }
 
+void Tracks::reverse_edits(double start, double end)
+{
+// This doesn't affect automation or effects
+// Labels follow the first track.
+	int first_track = 1;
+	for(Track *current_track = first; 
+		current_track; 
+		current_track = current_track->next)
+	{
+		if(current_track->record)
+		{
+			current_track->reverse_edits(start, end, first_track);
+
+			first_track = 0;
+		}
+	}
+}
 void Tracks::align_edits(double start, double end)
 {
 // This doesn't affect automation or effects

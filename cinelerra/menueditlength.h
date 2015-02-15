@@ -55,6 +55,17 @@ public:
 };
 
 
+class MenuEditReverse : public BC_MenuItem
+{
+public:
+	MenuEditReverse(MWindow *mwindow);
+
+	int handle_event();
+
+	MWindow *mwindow;
+};
+
+
 class MenuEditAlign : public BC_MenuItem
 {
 public:
