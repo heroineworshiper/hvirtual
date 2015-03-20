@@ -21,6 +21,7 @@
 
 #include "bcdisplayinfo.h"
 #include "bchash.h"
+#include "bcsignals.h"
 #include "filexml.h"
 #include "guicast.h"
 #include "language.h"
@@ -193,12 +194,14 @@ int ReverseVideo::process_buffer(VFrame *frame,
 		read_frame(frame,
 			0,
 			input_position,
-			frame_rate);
+			frame_rate,
+			0);
 	else
 		read_frame(frame,
 			0,
 			start_position,
-			frame_rate);
+			frame_rate,
+			0);
 	return 0;
 }
 
@@ -252,6 +255,13 @@ int ReverseVideo::load_configuration()
 // Convert start position to new direction
 	if(get_direction() == PLAY_FORWARD)
 	{
+//printf("ReverseVideo::load_configuration %d %ld %ld %ld %ld %ld\n",
+//	__LINE__,
+//	get_source_position(),
+//	get_source_start(),
+//	get_total_len(),
+//	range_start,
+//	range_end);
 		input_position = get_source_position() - range_start;
 		input_position = range_end - input_position - 1;
 	}

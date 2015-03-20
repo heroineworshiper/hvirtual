@@ -167,7 +167,7 @@ int PluginVClient::process_buffer(VFrame **frame,
 {
 //PRINT_TRACE
 	for(int i = 0; i < PluginClient::total_in_buffers; i++)
-		read_frame(frame[i], i, start_position, frame_rate);
+		read_frame(frame[i], i, start_position, frame_rate, 0);
 	if(is_multichannel())
 		process_realtime(frame, frame);
 	return 0;
@@ -177,7 +177,7 @@ int PluginVClient::process_buffer(VFrame *frame,
 	int64_t start_position,
 	double frame_rate)
 {
-	read_frame(frame, 0, start_position, frame_rate);
+	read_frame(frame, 0, start_position, frame_rate, 0);
 	process_realtime(frame, frame);
 	return 0;
 }

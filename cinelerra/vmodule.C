@@ -919,7 +919,7 @@ int VModule::render(VFrame *output,
 	int result = 0;
 	double edl_rate = get_edl()->session->frame_rate;
 
-//printf("VModule::render %lld\n", start_position);
+//printf("VModule::render %d %ld\n", __LINE__, start_position);
 
 	if(use_nudge) start_position += Units::to_int64(track->nudge * 
 		frame_rate / 
@@ -940,9 +940,10 @@ int VModule::render(VFrame *output,
 //printf("VModule::render %d %p %ld %d\n", __LINE__, current_edit, start_position_project, direction);
 
 	if(debug_render)
-		printf("    VModule::render %d %lld %s transition=%p opengl=%d current_edit=%p output=%p\n", 
+		printf("    VModule::render %d %d %ld %s transition=%p opengl=%d current_edit=%p output=%p\n", 
+			__LINE__, 
 			use_nudge, 
-			(long long)start_position_project,
+			start_position_project,
 			track->title,
 			transition,
 			use_opengl,

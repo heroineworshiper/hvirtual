@@ -123,7 +123,7 @@ TranslateCoord::TranslateCoord(TranslateWin *win,
  : BC_TumbleTextBox(win,
  	(int)*value,
 	(int)0,
-	(int)100,
+	(int)10000,
 	x, 
 	y, 
 	100)

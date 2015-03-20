@@ -296,6 +296,12 @@ int PluginClient::plugin_start_loop(int64_t start,
 	int64_t buffer_size, 
 	int total_buffers)
 {
+printf("PluginClient::plugin_start_loop %d %ld %ld %ld %d\n",
+__LINE__,
+start,
+end, 
+buffer_size,
+total_buffers);
 	this->source_start = start;
 	this->total_len = end - start;
 	this->start = start;
