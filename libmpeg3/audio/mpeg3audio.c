@@ -26,6 +26,7 @@ static int rewind_audio(mpeg3audio_t *audio)
 		mpeg3demux_seek_byte(track->demuxer, track->sample_offsets[0]);
 	else
 		mpeg3demux_seek_byte(track->demuxer, 0);
+	mpeg3_layer_reset(audio->layer_decoder);
 	return 0;
 }
 
@@ -440,15 +441,17 @@ static int get_length(mpeg3audio_t *audio)
 	mpeg3_atrack_t *track = audio->track;
 	int samples = 0;
 
+//printf("get_length %d\n", __LINE__);
 // Table of contents
 	if(track->sample_offsets)
 	{
 		int try = 0;
 
 /* Get stream parameters for header validation */
-		while(samples == 0)
+		while(try < 3 && samples == 0)
 		{
 			samples = read_frame(audio, 0);
+			try++;
 		}
 
 		result = track->total_samples;
@@ -457,11 +460,13 @@ static int get_length(mpeg3audio_t *audio)
 // Estimate using multiplexed stream size in seconds
 	if(!file->is_audio_stream)
 	{
+		int try = 0;
 /* Get stream parameters for header validation */
 /* Need a table of contents */
-		while(samples == 0)
+		while(try < 3 && samples == 0)
 		{
 			samples = read_frame(audio, 0);
+			try++;
 		}
 
 //		result = (long)(mpeg3demux_length(track->demuxer) * 
@@ -479,7 +484,15 @@ static int get_length(mpeg3audio_t *audio)
 
 		while(!error && test_bytes < max_bytes)
 		{
-			int samples = read_frame(audio, 0);
+			int attempts = 0;
+			int samples = 0;
+			while(attempts < 3)
+			{
+				samples = read_frame(audio, 0);
+				if(samples > 0) break;
+				attempts++;
+			}
+
 			if(!samples) error = 1;
 			test_samples += samples;
 			test_bytes += audio->framesize;
@@ -489,6 +502,7 @@ static int get_length(mpeg3audio_t *audio)
 
 	audio->output_size = 0;
 	rewind_audio(audio);
+//printf("get_length %d\n", __LINE__);
 
 	return result;
 }
@@ -712,7 +726,7 @@ static int seek(mpeg3audio_t *audio)
 				track->total_samples * 
 				total_bytes + 
 				audio->start_byte);
-//printf("seek %d byte=%lld\n", __LINE__, byte);
+printf("seek %d byte=%ld\n", __LINE__, byte);
 
 			mpeg3demux_seek_byte(demuxer, byte);
 	   		audio->output_position = audio->sample_seek;
@@ -917,7 +931,7 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 /* Always render since now the TOC contains index files. */
 	int render = 1;
 	long new_size;
-
+//printf("mpeg3audio_decode_audio %d\n", __LINE__);
 
 /* Minimum amount of data must be present for streaming mode */
 	if(!file->seekable && 
@@ -981,6 +995,11 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 
 		int samples = read_frame(audio, render);
 
+// printf("mpeg3audio_decode_audio %d current_position=%d samples=%d try=%d\n", 
+// __LINE__, 
+// track->current_position,
+// samples, 
+// try);
 		if(!samples)
 			try++;
 		else

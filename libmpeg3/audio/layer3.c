@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 struct gr_info_s 
 {
@@ -1094,14 +1095,7 @@ int mpeg3audio_dolayer3(mpeg3_layer_t *audio,
 /* Copy frame into history buffer */
 	memcpy(audio->bsbuf, frame, frame_size);
 
-/*
- * printf(__FUNCTION__ " %d %02x%02x%02x%02x\n", 
- * audio->first_frame, 
- * (unsigned char)audio->bsbuf[0],
- * (unsigned char)audio->bsbuf[1],
- * (unsigned char)audio->bsbuf[2],
- * (unsigned char)audio->bsbuf[3]);
- */
+//printf("mpeg3audio_dolayer3 %d %d\n", __LINE__, audio->first_frame);
 
 
 	if(!audio->first_frame)
@@ -1615,6 +1609,8 @@ mpeg3_layer_t* mpeg3_new_layer()
 	result->bo = 1;
 	result->channels = -1;
 	result->stream = mpeg3bits_new_stream(0, 0);
+	result->first_frame = 1;
+
 	mpeg3_new_decode_tables(result);
 	return result;
 }
