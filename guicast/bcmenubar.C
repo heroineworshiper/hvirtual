@@ -252,7 +252,12 @@ int BC_MenuBar::draw_face(int flash, int flush)
 {
 	if(menu_bar_bg)
 	{
-		draw_9segment(0, 0, get_w(), get_h(), menu_bar_bg);
+		draw_3segmenth(0, 
+			0, 
+			get_w(), 
+			menu_bar_bg);
+// 9 segment doesn't draw properly
+//		draw_9segment(0, 0, get_w(), get_h(), menu_bar_bg);
 	}
 	else
 	{

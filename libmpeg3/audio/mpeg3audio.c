@@ -726,7 +726,7 @@ static int seek(mpeg3audio_t *audio)
 				track->total_samples * 
 				total_bytes + 
 				audio->start_byte);
-printf("seek %d byte=%ld\n", __LINE__, byte);
+//printf("seek %d byte=%ld\n", __LINE__, byte);
 
 			mpeg3demux_seek_byte(demuxer, byte);
 	   		audio->output_position = audio->sample_seek;
@@ -985,7 +985,14 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 		if(audio->output_position + audio->output_size >= 
 			track->current_position + len ||
 			try >= 256 ||
-			mpeg3demux_eof(track->demuxer)) break;
+			mpeg3demux_eof(track->demuxer)) 
+		{
+			printf("mpeg3audio_decode_audio %d current_position=%d eof=%d\n",
+				__LINE__,
+				track->current_position,
+				mpeg3demux_eof(track->demuxer));
+			break;
+		}
 
 
 
@@ -1000,6 +1007,7 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 // track->current_position,
 // samples, 
 // try);
+
 		if(!samples)
 			try++;
 		else
