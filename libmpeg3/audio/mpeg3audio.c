@@ -987,10 +987,31 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 			try >= 256 ||
 			mpeg3demux_eof(track->demuxer)) 
 		{
-			printf("mpeg3audio_decode_audio %d current_position=%d eof=%d\n",
-				__LINE__,
-				track->current_position,
-				mpeg3demux_eof(track->demuxer));
+			int remaining = track->current_position + 
+				len - 
+				audio->output_position - 
+				audio->output_size;
+// 			printf("mpeg3audio_decode_audio %d sample=%d eof=%d output_size=%d len=%d remaining=%d\n",
+// 				__LINE__,
+// 				track->current_position,
+// 				mpeg3demux_eof(track->demuxer),
+// 				audio->output_size,
+// 				len,
+// 				remaining);
+
+// fill remaining buffer with 0
+			if(remaining > 0)
+			{
+				for(i = 0; i < track->channels; i++)
+				{
+					for(j = 0; j < remaining; j++)
+					{
+						audio->output[i][audio->output_size + j] = 0;
+					}
+				}
+				audio->output_size += remaining;
+			}
+
 			break;
 		}
 
