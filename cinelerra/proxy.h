@@ -27,29 +27,102 @@
 // functions for handling proxies
 
 
+#include "asset.h"
 #include "bcdialog.h"
+#include "formattools.inc"
 #include "mwindow.inc"
 
+#include <string>
 
-class ToProxyMenuItem : public BC_MenuItem
+class ProxyThread;
+class ProxyWindow;
+
+class ProxyMenuItem : public BC_MenuItem
 {
 public:
-	ToProxyMenuItem(MWindow *mwindow);
-	
+	ProxyMenuItem(MWindow *mwindow);
+
 	int handle_event();
+	void create_objects();
+
 	MWindow *mwindow;
+	ProxyThread *thread;
 };
 
 class FromProxyMenuItem : public BC_MenuItem
 {
 public:
 	FromProxyMenuItem(MWindow *mwindow);
-	
+
 	int handle_event();
 	MWindow *mwindow;
 };
 
-class ToProxyThread : public 
+class ProxyThread : public BC_DialogThread
+{
+public:
+	ProxyThread(MWindow *mwindow);
+	BC_Window* new_gui();
+	void handle_close_event(int result);
+	static void create_path(string *new_path, Asset *asset, int scale);
+
+
+	MWindow *mwindow;
+	ProxyWindow *gui;
+	Asset *asset;
+	int new_scale;
+	int orig_scale;
+};
+
+class ProxyReset : public BC_GenericButton
+{
+public:
+	ProxyReset(int x, int y, MWindow *mwindow, ProxyWindow *pwindow);
+	int handle_event();
+	MWindow *mwindow;
+	ProxyWindow *pwindow;
+};
+
+class ProxyMenu : public BC_PopupMenu
+{
+public:
+	ProxyMenu(int x, int y, int w, char *text, MWindow *mwindow, ProxyWindow *pwindow);
+	int handle_event();
+	MWindow *mwindow;
+	ProxyWindow *pwindow;
+};
+
+
+class ProxyTumbler : public BC_Tumbler
+{
+public:
+	ProxyTumbler(MWindow *mwindow, ProxyWindow *pwindow, int x, int y);
+
+	int handle_up_event();
+	int handle_down_event();
+	
+	ProxyWindow *pwindow;
+	MWindow *mwindow;
+};
+
+
+class ProxyWindow : public BC_Window
+{
+public:
+	ProxyWindow(MWindow *mwindow, ProxyThread *thread, int x, int y);
+	~ProxyWindow();
+
+	void create_objects();
+	void update();
+
+	MWindow *mwindow;
+	ProxyThread *thread;
+	FormatTools *format_tools;
+	BC_Title *new_dimensions;
+	BC_PopupMenu *scale_factor;
+	ProxyReset *reset;
+};
+
 
 
 #endif

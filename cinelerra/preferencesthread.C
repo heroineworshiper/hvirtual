@@ -69,6 +69,7 @@ PreferencesMenuitem::PreferencesMenuitem(MWindow *mwindow)
 
 	set_shift(1);
 	thread = new PreferencesThread(mwindow);
+	mwindow->preferences_thread = thread;
 }
 
 PreferencesMenuitem::~PreferencesMenuitem()

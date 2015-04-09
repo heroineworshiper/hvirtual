@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2015 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,6 +65,8 @@ public:
 	void equivalent_output(EDLSession *session, double *result);
 	void dump();
 
+// current settings are scaled this much from the original settings
+	int proxy_scale;
 // Audio
 	int achannel_positions[MAXCHANNELS];
 	AudioOutConfig *aconfig_duplex;

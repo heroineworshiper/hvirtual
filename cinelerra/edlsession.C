@@ -37,6 +37,7 @@ int EDLSession::current_id = 0;
 
 EDLSession::EDLSession(EDL *edl)
 {
+	proxy_scale = 1;
 	highlighted_track = 0;
 	playback_cursor_visible = 0;
 	aconfig_in = new AudioInConfig;
@@ -113,7 +114,8 @@ int EDLSession::need_rerender(EDLSession *ptr)
 		(decode_subtitles != ptr->decode_subtitles) ||
 		(subtitle_number != ptr->subtitle_number) ||
 		(interpolate_raw != ptr->interpolate_raw) ||
-		(white_balance_raw != ptr->white_balance_raw);
+		(white_balance_raw != ptr->white_balance_raw) ||
+		(proxy_scale != ptr->proxy_scale);
 }
 
 void EDLSession::equivalent_output(EDLSession *session, double *result)
@@ -127,7 +129,8 @@ void EDLSession::equivalent_output(EDLSession *session, double *result)
 		session->white_balance_raw != white_balance_raw ||
 		session->mpeg4_deblock != mpeg4_deblock ||
 		session->decode_subtitles != decode_subtitles ||
-		session->subtitle_number != subtitle_number)
+		session->subtitle_number != subtitle_number ||
+		session->proxy_scale != proxy_scale)
 		*result = 0;
 
 // If it's before the current brender_start, render extra data.
@@ -142,6 +145,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 {
 	char string[BCTEXTLEN];
 
+	proxy_scale = defaults->get("PROXY_SCALE", 1);
 // Default channel positions
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
@@ -282,6 +286,8 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 {
 	char string[BCTEXTLEN];
 
+	defaults->update("PROXY_SCALE", proxy_scale);
+
 // Session
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
@@ -409,6 +415,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 
 void EDLSession::boundaries()
 {
+	Workarounds::clamp(proxy_scale, 1, 32);
 	Workarounds::clamp(audio_tracks, 0, (int)BC_INFINITY);
 	Workarounds::clamp(audio_channels, 1, MAXCHANNELS - 1);
 	Workarounds::clamp(sample_rate, 1, 1000000);
@@ -460,8 +467,9 @@ void EDLSession::boundaries()
 
 int EDLSession::load_video_config(FileXML *file, int append_mode, uint32_t load_flags)
 {
-	char string[1024];
+	char string[BCTEXTLEN];
 	if(append_mode) return 0;
+	proxy_scale = file->tag.get_property("PROXY_SCALE", proxy_scale);
 	interpolation_type = file->tag.get_property("INTERPOLATION_TYPE", interpolation_type);
 	interpolate_raw = file->tag.get_property("INTERPOLATE_RAW", interpolate_raw);
 	white_balance_raw = file->tag.get_property("WHITE_BALANCE_RAW", white_balance_raw);
@@ -640,8 +648,9 @@ int EDLSession::save_xml(FileXML *file)
 
 int EDLSession::save_video_config(FileXML *file)
 {
-	char string[1024];
+	char string[BCTEXTLEN];
 	file->tag.set_title("VIDEO");
+	file->tag.set_property("PROXY_SCALE", proxy_scale);
 	file->tag.set_property("INTERPOLATION_TYPE", interpolation_type);
 	file->tag.set_property("INTERPOLATE_RAW", interpolate_raw);
 	file->tag.set_property("WHITE_BALANCE_RAW", white_balance_raw);
@@ -793,6 +802,7 @@ int EDLSession::copy(EDLSession *session)
 	view_follows_playback = session->view_follows_playback;
 	vwindow_meter = session->vwindow_meter;
 	vwindow_zoom = session->vwindow_zoom;
+	proxy_scale = session->proxy_scale;
 
 	subtitle_number = session->subtitle_number;
 	decode_subtitles = session->decode_subtitles;
@@ -805,7 +815,9 @@ void EDLSession::dump()
 {
 	printf("EDLSession::dump\n");
 	printf("    audio_tracks=%d audio_channels=%d sample_rate=%lld\n"
-			"video_tracks=%d frame_rate=%f output_w=%d output_h=%d aspect_w=%f aspect_h=%f decode subtitles=%d subtitle_number=%d\n", 
+			"video_tracks=%d frame_rate=%f output_w=%d output_h=%d\n"
+			"aspect_w=%f aspect_h=%f decode subtitles=%d subtitle_number=%d\n"
+			"proxy_scale=%d\n", 
 		audio_tracks, 
 		audio_channels, 
 		(long long)sample_rate, 
@@ -816,5 +828,6 @@ void EDLSession::dump()
 		aspect_w, 
 		aspect_h,
 		decode_subtitles,
-		subtitle_number);
+		subtitle_number,
+		proxy_scale);
 }

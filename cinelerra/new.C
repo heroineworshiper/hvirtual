@@ -137,6 +137,7 @@ NewThread::NewThread(MWindow *mwindow, New *new_project)
 {
 	this->mwindow = mwindow;
 	this->new_project = new_project;
+	nwindow = 0;
 }
 
 NewThread::~NewThread()

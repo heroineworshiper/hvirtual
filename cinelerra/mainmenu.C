@@ -56,6 +56,7 @@
 #include "playbackengine.h"
 #include "preferences.h"
 #include "preferencesthread.h"
+#include "proxy.h"
 #include "quit.h"
 #include "record.h"
 #include "render.h"
@@ -112,8 +113,8 @@ void MainMenu::create_objects()
 	filemenu->add_item(new BC_MenuItem("-"));
 	filemenu->add_item(quit_program = new Quit(mwindow));
 	quit_program->create_objects(save);
-//	filemenu->add_item(new DumpEDL(mwindow));
-//	filemenu->add_item(new DumpPlugins(mwindow));
+	filemenu->add_item(new DumpEDL(mwindow));
+	filemenu->add_item(new DumpPlugins(mwindow));
 	filemenu->add_item(new LoadBackup(mwindow));
 	filemenu->add_item(new SaveBackup(mwindow));
 
@@ -184,12 +185,16 @@ void MainMenu::create_objects()
 
 	settingsmenu->add_item(new SetFormat(mwindow));
 	settingsmenu->add_item(preferences = new PreferencesMenuitem(mwindow));
-	mwindow->preferences_thread = preferences->thread;
+	ProxyMenuItem *proxy;
+	settingsmenu->add_item(proxy = new ProxyMenuItem(mwindow));
+	proxy->create_objects();
+	settingsmenu->add_item(new BC_MenuItem("-"));
 	settingsmenu->add_item(labels_follow_edits = new LabelsFollowEdits(mwindow));
 	settingsmenu->add_item(plugins_follow_edits = new PluginsFollowEdits(mwindow));
 	settingsmenu->add_item(keyframes_follow_edits = new KeyframesFollowEdits(mwindow));
 	settingsmenu->add_item(cursor_on_frames = new CursorOnFrames(mwindow));
 	settingsmenu->add_item(typeless_keyframes = new TypelessKeyframes(mwindow));
+	settingsmenu->add_item(new BC_MenuItem("-"));
 	settingsmenu->add_item(new SaveSettingsNow(mwindow));
 	settingsmenu->add_item(loop_playback = new LoopPlayback(mwindow));
 	settingsmenu->add_item(new SetBRenderStart(mwindow));
@@ -229,6 +234,7 @@ void MainMenu::create_objects()
 	windowmenu->add_item(show_cwindow = new ShowCWindow(mwindow));
 	windowmenu->add_item(show_gwindow = new ShowGWindow(mwindow));
 	windowmenu->add_item(show_lwindow = new ShowLWindow(mwindow));
+	windowmenu->add_item(new BC_MenuItem("-"));
 	windowmenu->add_item(split_x = new SplitX(mwindow));
 	windowmenu->add_item(split_y = new SplitY(mwindow));
 //	windowmenu->add_item(new TileWindows(mwindow));

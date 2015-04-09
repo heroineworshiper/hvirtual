@@ -237,6 +237,7 @@ OBJS = \
 	$(OBJDIR)/preferencesthread.o \
 	$(OBJDIR)/presets.o \
 	$(OBJDIR)/presetsgui.o \
+	$(OBJDIR)/proxy.o \
 	$(OBJDIR)/question.o \
 	$(OBJDIR)/quit.o \
 	$(OBJDIR)/recconfirmdelete.o \
@@ -782,6 +783,7 @@ $(OBJDIR)/presets.o:                              presets.C
 $(OBJDIR)/presetsgui.o:                           presetsgui.C
 $(OBJDIR)/previewaudio.o: 			  previewaudio.C
 $(OBJDIR)/previewvideo.o: 			  previewvideo.C
+$(OBJDIR)/proxy.o: 			  	  proxy.C
 $(OBJDIR)/question.o: 				  question.C
 $(OBJDIR)/quit.o: 				  quit.C
 $(OBJDIR)/recconfirmdelete.o: 			  recconfirmdelete.C
