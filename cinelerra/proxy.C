@@ -21,6 +21,7 @@
 
 #include "assets.h"
 #include "bcsignals.h"
+#include "confirmsave.h"
 #include "edl.h"
 #include "edlsession.h"
 #include "filesystem.h"
@@ -132,57 +133,121 @@ void ProxyThread::handle_close_event(int result)
 
 	if(!result)
 	{
-		mwindow->undo->update_undo_before(_("proxy"), this);
-// set EDL proxy size
-		mwindow->edl->session->proxy_scale = new_scale;
-// test for new files
-		for(Asset *asset = mwindow->edl->assets->first;
-			asset;
-			asset = asset->next)
+// revert project if new scale is 1
+		if(new_scale == 1)
 		{
-			if(asset->video_data)
-			{
-				string new_path;
-				create_path(&new_path, asset, new_scale);
-// test if proxy file exists.
-				FILE *fd = fopen(new_path.c_str(), "r");
-				if(fd)
-				{
-					fclose(fd);
-
-					int got_it = 1;
-					int exists = 0;
-					FileSystem fs;
-// test if proxy file is newer than original.
-					if(fs.get_date(new_path.c_str()) < fs.get_date(asset->path))
-					{
-						got_it = 0;
-						exists = 1;
-					}
-				}
-				else
-				{
-// proxy doesn't exist
-					got_it = 0;
-				}
-				
-				if(!got_it)
-				{
-// prompt user to overwrite
-					if(exists)
-					{
-						
-					}
-				}
-//printf("ProxyThread::handle_close_event %d %s\n", __LINE__, new_path.c_str());
-			}
+			from_proxy();
 		}
-		
-// test for existing files
-		
-		mwindow->undo->update_undo_after(_("proxy"), LOAD_ALL);
+		else
+		{
+			to_proxy();
+		}
 	}
 }
+
+void ProxyThread::from_proxy()
+{
+	mwindow->undo->update_undo_before(_("proxy"), this);
+// resize project
+// set EDL proxy size
+	mwindow->edl->session->proxy_scale = 1;
+// revert assets
+	mwindow->undo->update_undo_after(_("proxy"), LOAD_ALL);
+}
+
+void ProxyThread::to_proxy()
+{
+// test for new files
+	ArrayList<string*> confirm_paths;
+	ArrayList<Asset*> proxy_assets;
+	for(Asset *asset = mwindow->edl->assets->first;
+		asset;
+		asset = asset->next)
+	{
+		if(asset->video_data)
+		{
+			string new_path;
+			create_path(&new_path, asset, new_scale);
+
+// add to proxy assets
+			int got_it = 0;
+			for(int i = 0; i < proxy_assets.size(); i++)
+			{
+				if(!strcmp(proxy_assets.get(i)->path, new_path.c_str()))
+				{
+					got_it = 1;
+					break;
+				}
+			}
+
+			if(!got_it)
+			{
+				Asset *proxy_asset = new Asset;
+				proxy_asset->copy_from(asset, 0);
+				proxy_asset->audio_data = 0;
+				proxy_assets.append(proxy_asset);
+			}
+
+
+// test if proxy file exists.
+			int exists = 0;
+			FILE *fd = fopen(new_path.c_str(), "r");
+			if(fd)
+			{
+				got_it = 1;
+				exists = 1;
+				fclose(fd);
+
+				FileSystem fs;
+// test if proxy file is newer than original.
+				if(fs.get_date(new_path.c_str()) < fs.get_date(asset->path))
+				{
+					got_it = 0;
+				}
+			}
+			else
+			{
+// proxy doesn't exist
+				got_it = 0;
+			}
+
+			if(!got_it)
+			{
+// prompt user to overwrite
+				if(exists)
+				{
+					confirm_paths.append(new string(new_path));
+				}
+			}
+//printf("ProxyThread::handle_close_event %d %s\n", __LINE__, new_path.c_str());
+		}
+	}
+
+// test for existing files
+	if(confirm_paths.size())
+	{
+		result = ConfirmSave::test_files(mwindow, &confirm_paths);
+	}
+
+	if(!result)
+	{
+// create proxy assets
+
+
+		mwindow->undo->update_undo_before(_("proxy"), this);
+// resize project
+// set EDL proxy size
+		mwindow->edl->session->proxy_scale = new_scale;
+// replace assets
+		mwindow->undo->update_undo_after(_("proxy"), LOAD_ALL);
+	}
+
+	for(int i = 0; i < proxy_assets.size(); i++)
+	{
+		proxy_assets.get(i)->Garbage::remove_user();
+	}
+}
+		
 
 void ProxyThread::create_path(string *new_path, Asset *asset, int scale)
 {
@@ -244,7 +309,9 @@ void ProxyWindow::create_objects()
 	int margin = mwindow->theme->widget_border;
 	int x = margin;
 	int y = margin;
-	thread->orig_scale = thread->new_scale = mwindow->edl->session->proxy_scale;
+	thread->orig_scale = 
+		thread->new_scale = 
+		mwindow->edl->session->proxy_scale;
 	
 	BC_Title *text;
 	add_subwindow(text = new BC_Title(
@@ -319,11 +386,15 @@ void ProxyWindow::create_objects()
 
 void ProxyWindow::update()
 {
+// preview the new size
 	char string[BCTEXTLEN];
+	int orig_w = mwindow->edl->session->output_w * thread->orig_scale;
+	int orig_h = mwindow->edl->session->output_h * thread->orig_scale;
+	
 	sprintf(string, 
 		"%dx%d", 
-		mwindow->edl->session->output_w / thread->new_scale,
-		mwindow->edl->session->output_h / thread->new_scale);
+		orig_w / thread->new_scale,
+		orig_h / thread->new_scale);
 	new_dimensions->update(string);
 	scale_to_text(string, thread->new_scale);
 	scale_factor->set_text(string);

@@ -65,7 +65,8 @@ public:
 	BC_Window* new_gui();
 	void handle_close_event(int result);
 	static void create_path(string *new_path, Asset *asset, int scale);
-
+	void from_proxy();
+	void to_proxy();
 
 	MWindow *mwindow;
 	ProxyWindow *gui;
