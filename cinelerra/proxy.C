@@ -224,6 +224,7 @@ void ProxyThread::to_proxy()
 	}
 
 // test for existing files
+	int result = 0;
 	if(confirm_paths.size())
 	{
 		result = ConfirmSave::test_files(mwindow, &confirm_paths);

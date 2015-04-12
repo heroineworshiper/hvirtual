@@ -45,20 +45,33 @@ int ConfirmSave::test_file(MWindow *mwindow, char *path)
 	return result;
 }
 
+int ConfirmSave::test_files(MWindow *mwindow, ArrayList<char*> *paths)
+{
+	ArrayList<string*> strings;
+	for(int i = 0; i < paths->size(); i++)
+	{
+		strings.append(new string(paths->get(i)));
+	}
+	
+	int result = test_files(mwindow, &strings);
+	strings.remove_all_objects();
+	return result;
+}
+
 int ConfirmSave::test_files(MWindow *mwindow, 
-	ArrayList<char*> *paths)
+	ArrayList<string*> *paths)
 {
 	FILE *file;
 	ArrayList<BC_ListBoxItem*> list;
 	int result = 0;
 
-	for(int i = 0; i < paths->total; i++)
+	for(int i = 0; i < paths->size(); i++)
 	{
-		char *path = paths->values[i];
-		if(file = fopen(path, "r"))
+		string *path = paths->get(i);
+		if(file = fopen(path->c_str(), "r"))
 		{
 			fclose(file);
-			list.append(new BC_ListBoxItem(path));
+			list.append(new BC_ListBoxItem(path->c_str()));
 		}
 	}
 
