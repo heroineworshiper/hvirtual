@@ -172,7 +172,8 @@ int Edge::process_buffer(VFrame *frame,
 	read_frame(frame, 
 		0, 
 		start_position, 
-		frame_rate);
+		frame_rate,
+		0);
 	engine->process(temp, frame);
 	frame->copy_from(temp);
 

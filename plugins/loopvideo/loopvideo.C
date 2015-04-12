@@ -231,7 +231,8 @@ int LoopVideo::process_buffer(VFrame *frame,
 	read_frame(frame,
 		0,
 		current_loop_position,
-		frame_rate);
+		frame_rate,
+		0);
 
 	return 0;
 }

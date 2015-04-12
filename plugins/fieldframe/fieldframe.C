@@ -443,14 +443,16 @@ int FieldFrame::process_buffer(VFrame *frame,
 	read_frame(input, 
 		0, 
 		field1_position,
-		frame_rate * 2);
+		frame_rate * 2,
+		0);
 	apply_field(frame, 
 		input, 
 		config.field_dominance == TOP_FIELD_FIRST ? 0 : 1);
 	read_frame(input, 
 		0, 
 		field2_position,
-		frame_rate * 2);
+		frame_rate * 2,
+		0);
 	apply_field(frame, 
 		input, 
 		config.field_dominance == TOP_FIELD_FIRST ? 1 : 0);

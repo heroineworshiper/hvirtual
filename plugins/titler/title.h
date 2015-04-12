@@ -327,6 +327,16 @@ public:
 	TitleMain *plugin;
 };
 
+
+typedef struct
+{
+	int in_x1;
+	float in_fraction1;
+	int in_x2;       // Might be same as in_x1 for boundary
+	float in_fraction2;
+	float output_fraction;
+} transfer_table_f;
+
 class TitleTranslate : public LoadServer
 {
 public:

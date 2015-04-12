@@ -367,7 +367,8 @@ int ReframeRT::process_buffer(VFrame *frame,
 	read_frame(frame,
 		0,
 		input_frame,
-		input_rate);
+		input_rate,
+		0);
 
 	delete fake_keyframe;
 

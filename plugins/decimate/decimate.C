@@ -674,7 +674,8 @@ void Decimate::fill_lookahead(double frame_rate,
 		read_frame(frames[lookahead_size], 
 			0, 
 			lookahead_end, 
-			config.input_rate);
+			config.input_rate,
+			0);
 // Fill difference buffer
 		if(lookahead_size > 0)
 			differences[lookahead_size] = 

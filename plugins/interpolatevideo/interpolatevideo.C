@@ -140,7 +140,8 @@ void InterpolateVideo::fill_border(double frame_rate, int64_t start_position)
 			read_frame(frames[0], 
 				0, 
 				range_start + (get_direction() == PLAY_REVERSE ? 1 : 0), 
-				active_input_rate);
+				active_input_rate,
+				0);
 		}
 	}
 
@@ -152,7 +153,8 @@ void InterpolateVideo::fill_border(double frame_rate, int64_t start_position)
 		read_frame(frames[1], 
 			0, 
 			range_end + (get_direction() == PLAY_REVERSE ? 1 : 0), 
-			active_input_rate);
+			active_input_rate,
+			0);
 	}
 
 //printf("InterpolateVideo::fill_border %d\n", __LINE__);
@@ -798,7 +800,8 @@ int InterpolateVideo::process_buffer(VFrame *frame,
 		read_frame(frame, 
 			0, 
 			range_start, 
-			active_input_rate);
+			active_input_rate,
+			0);
 		return 0;
 	}
 	else
