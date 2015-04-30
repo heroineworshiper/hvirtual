@@ -2601,8 +2601,8 @@ void MWindow::map_audio(int pattern)
 
 
 void MWindow::set_proxy(int new_scale, 
-	ArrayList<Asset*> *orig_assets, 
-	ArrayList<Asset*> *proxy_assets)
+	ArrayList<Indexable*> *orig_assets, 
+	ArrayList<Indexable*> *proxy_assets)
 {
 	int orig_scale = edl->session->proxy_scale;
 
@@ -2645,7 +2645,7 @@ void MWindow::set_proxy(int new_scale,
 // assets
 	for(int i = 0; i < proxy_assets->size(); i++)
 	{
-		Asset *proxy_asset = edl->assets->update(proxy_assets->get(i));
+		Asset *proxy_asset = edl->assets->update((Asset*)proxy_assets->get(i));
 
 // replace track contents
 		for(Track *track = edl->tracks->first;

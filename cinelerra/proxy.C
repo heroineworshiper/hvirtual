@@ -149,11 +149,11 @@ void ProxyThread::to_proxy()
 // test for new files
 	ArrayList<string*> confirm_paths;
 // all proxy assets
-	ArrayList<Asset*> proxy_assets;
+	ArrayList<Indexable*> proxy_assets;
 // assets which must be created
 	ArrayList<Asset*> needed_assets;
 // original assets
-	ArrayList<Asset*> orig_assets;
+	ArrayList<Indexable*> orig_assets;
 // original assets which match the needed_assets
 	ArrayList<Asset*> needed_orig_assets;
 	Asset *proxy_asset = 0;
@@ -181,7 +181,7 @@ void ProxyThread::to_proxy()
 				if(!strcmp(proxy_assets.get(i)->path, new_path.c_str()))
 				{
 					got_it = 1;
-					proxy_asset = proxy_assets.get(i);
+					proxy_asset = (Asset*)proxy_assets.get(i);
 					break;
 				}
 			}
@@ -240,7 +240,7 @@ void ProxyThread::to_proxy()
 					if(!strcmp(proxy_assets.get(i)->path, new_path.c_str()))
 					{
 						got_it = 1;
-						proxy_asset = proxy_assets.get(i);
+						proxy_asset = (Asset*)proxy_assets.get(i);
 						break;
 					}
 				}

@@ -454,8 +454,8 @@ public:
 
 	
 	void set_proxy(int new_scale, 
-		ArrayList<Asset*> *orig_assets,
-		ArrayList<Asset*> *proxy_assets);	
+		ArrayList<Indexable*> *orig_assets,
+		ArrayList<Indexable*> *proxy_assets);	
 	
 	
 	
