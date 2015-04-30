@@ -35,6 +35,7 @@
 #include "edlsession.h"
 #include "filexml.h"
 #include "floatauto.h"
+#include "floatautos.h"
 #include "gwindow.h"
 #include "gwindowgui.h"
 #include "keyframe.h"
@@ -192,8 +193,8 @@ void MWindow::asset_to_all()
 				current;
 				current = NEXT)
 			{
-				if(current->data_type == TRACK_VIDEO &&
-					current->record)
+				if(current->data_type == TRACK_VIDEO /* &&
+					current->record */ )
 				{
 					current->track_w = w;
 					current->track_h = h;
@@ -2595,4 +2596,92 @@ void MWindow::map_audio(int pattern)
 		0,
 		0);
 }
+
+
+
+
+void MWindow::set_proxy(int new_scale, 
+	ArrayList<Asset*> *orig_assets, 
+	ArrayList<Asset*> *proxy_assets)
+{
+	int orig_scale = edl->session->proxy_scale;
+
+	
+
+// set EDL proxy size
+	edl->session->proxy_scale = new_scale;
+
+// project size
+	float orig_w = (float)edl->session->output_w * orig_scale;
+	float orig_h = (float)edl->session->output_h * orig_scale;
+	edl->session->output_w = Units::round(orig_w / new_scale);
+	edl->session->output_h = Units::round(orig_h / new_scale);
+
+// track sizes
+	for(Track *track = edl->tracks->first;
+		track;
+		track = track->next)
+	{
+		if(track->data_type == TRACK_VIDEO)
+		{
+			orig_w = (float)track->track_w * orig_scale;
+			orig_h = (float)track->track_h * orig_scale;
+			track->track_w = Units::round(orig_w / new_scale);
+			track->track_h = Units::round(orig_h / new_scale);
+			
+			((MaskAutos*)track->automation->autos[AUTOMATION_MASK])->
+				set_proxy(orig_scale, new_scale);
+			((FloatAutos*)track->automation->autos[AUTOMATION_CAMERA_X])->
+				set_proxy(orig_scale, new_scale);
+			((FloatAutos*)track->automation->autos[AUTOMATION_CAMERA_Y])->
+				set_proxy(orig_scale, new_scale);
+			((FloatAutos*)track->automation->autos[AUTOMATION_PROJECTOR_X])->
+				set_proxy(orig_scale, new_scale);
+			((FloatAutos*)track->automation->autos[AUTOMATION_PROJECTOR_Y])->
+				set_proxy(orig_scale, new_scale);
+		}
+	}
+
+// assets
+	for(int i = 0; i < proxy_assets->size(); i++)
+	{
+		Asset *proxy_asset = edl->assets->update(proxy_assets->get(i));
+
+// replace track contents
+		for(Track *track = edl->tracks->first;
+			track;
+			track = track->next)
+		{
+			if(track->data_type == TRACK_VIDEO)
+			{
+				for(Edit *edit = track->edits->first; edit; edit = edit->next)
+				{
+					if(edit->asset)
+					{
+						if(!strcmp(edit->asset->path, orig_assets->get(i)->path))
+						{
+							edit->asset = proxy_asset;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	
+	
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -45,8 +45,6 @@ public:
 	virtual ~LoadPackage();
 	
 	Condition *completion_lock;
-// Range to search in the total scan area
-//	int pixel1, pixel2;
 };
 
 

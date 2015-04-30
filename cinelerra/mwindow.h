@@ -410,7 +410,10 @@ public:
 // Asset removal from caches
 	void reset_caches();
 	void remove_asset_from_caches(Asset *asset);
-	void remove_assets_from_project(int push_undo = 0);
+	void remove_assets_from_project(int push_undo /* = 0 */, 
+		int redraw /* 1 */,
+		ArrayList<Indexable*> *drag_assets /* mwindow->session->drag_assets */,
+		ArrayList<EDL*> *drag_clips /* mwindow->session->drag_clips */);
 	void remove_assets_from_disk();
 	void resize_track(Track *track, int w, int h);
 	
@@ -450,7 +453,9 @@ public:
 	void finish_modify_handles();
 
 	
-	
+	void set_proxy(int new_scale, 
+		ArrayList<Asset*> *orig_assets,
+		ArrayList<Asset*> *proxy_assets);	
 	
 	
 	

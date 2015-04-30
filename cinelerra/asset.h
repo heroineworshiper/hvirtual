@@ -122,7 +122,7 @@ public:
 	int write_audio(FileXML *xml);
 	int write_video(FileXML *xml);
 	int write_index(FileXML *xml);
-	int update_path(char *new_path);
+	int update_path(const char *new_path);
 
 
 

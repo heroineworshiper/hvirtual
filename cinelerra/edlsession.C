@@ -145,7 +145,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 {
 	char string[BCTEXTLEN];
 
-	proxy_scale = defaults->get("PROXY_SCALE", 1);
+//	proxy_scale = defaults->get("PROXY_SCALE", 1);
 // Default channel positions
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
@@ -286,7 +286,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 {
 	char string[BCTEXTLEN];
 
-	defaults->update("PROXY_SCALE", proxy_scale);
+//	defaults->update("PROXY_SCALE", proxy_scale);
 
 // Session
 	for(int i = 0; i < MAXCHANNELS; i++)

@@ -983,7 +983,7 @@ void Asset::save_defaults(BC_Hash *defaults,
 
 
 
-int Asset::update_path(char *new_path)
+int Asset::update_path(const char *new_path)
 {
 	strcpy(path, new_path);
 	return 0;

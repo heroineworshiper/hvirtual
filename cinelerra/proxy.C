@@ -24,12 +24,18 @@
 #include "confirmsave.h"
 #include "edl.h"
 #include "edlsession.h"
+#include "errorbox.h"
+#include "file.h"
 #include "filesystem.h"
 #include "formattools.h"
 #include "language.h"
+#include "mainprogress.h"
 #include "mainundo.h"
+#include "mutex.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
+#include "overlayframe.h"
+#include "preferences.h"
 #include "proxy.h"
 #include "quicktime.h"
 #include "theme.h"
@@ -45,8 +51,7 @@ static const char* size_text[] =
 	"1/2",
 	"1/4",
 	"1/8",
-	"1/16",
-	"1/32"
+	"1/16"
 };
 
 static int sizes = sizeof(size_text) / sizeof(char*);
@@ -93,6 +98,8 @@ ProxyThread::ProxyThread(MWindow *mwindow)
 	this->mwindow = mwindow;
 	gui = 0;
 	asset = new Asset;
+	progress = 0;
+	counter_lock = new Mutex("ProxyThread::counter_lock");
 }
 
 BC_Window* ProxyThread::new_gui()
@@ -133,124 +140,258 @@ void ProxyThread::handle_close_event(int result)
 
 	if(!result)
 	{
-// revert project if new scale is 1
-		if(new_scale == 1)
-		{
-			from_proxy();
-		}
-		else
-		{
-			to_proxy();
-		}
+		to_proxy();
 	}
-}
-
-void ProxyThread::from_proxy()
-{
-	mwindow->undo->update_undo_before(_("proxy"), this);
-// resize project
-// set EDL proxy size
-	mwindow->edl->session->proxy_scale = 1;
-// revert assets
-	mwindow->undo->update_undo_after(_("proxy"), LOAD_ALL);
 }
 
 void ProxyThread::to_proxy()
 {
 // test for new files
 	ArrayList<string*> confirm_paths;
+// all proxy assets
 	ArrayList<Asset*> proxy_assets;
-	for(Asset *asset = mwindow->edl->assets->first;
-		asset;
-		asset = asset->next)
+// assets which must be created
+	ArrayList<Asset*> needed_assets;
+// original assets
+	ArrayList<Asset*> orig_assets;
+// original assets which match the needed_assets
+	ArrayList<Asset*> needed_orig_assets;
+	Asset *proxy_asset = 0;
+	Asset *orig_asset = 0;
+
+	mwindow->edl->Garbage::add_user();
+	mwindow->save_backup();
+	mwindow->undo->update_undo_before(_("proxy"), this);
+
+
+// revert project to original size from current size
+	if(mwindow->edl->session->proxy_scale > 1)
 	{
-		if(asset->video_data)
+		for(orig_asset = mwindow->edl->assets->first;
+			orig_asset;
+			orig_asset = orig_asset->next)
 		{
 			string new_path;
-			create_path(&new_path, asset, new_scale);
-
-// add to proxy assets
+			to_proxy_path(&new_path, orig_asset, mwindow->edl->session->proxy_scale);
+// add to proxy_assets & orig_assets if it isn't already there.
 			int got_it = 0;
+			proxy_asset = 0;
 			for(int i = 0; i < proxy_assets.size(); i++)
 			{
 				if(!strcmp(proxy_assets.get(i)->path, new_path.c_str()))
 				{
 					got_it = 1;
+					proxy_asset = proxy_assets.get(i);
 					break;
 				}
 			}
 
 			if(!got_it)
 			{
-				Asset *proxy_asset = new Asset;
-				proxy_asset->copy_from(asset, 0);
+				proxy_asset = new Asset;
+				proxy_asset->copy_from(orig_asset, 0);
+				proxy_asset->update_path(new_path.c_str());
+				proxy_asset->width = orig_asset->width / new_scale;
+				proxy_asset->height = orig_asset->height / new_scale;
 				proxy_asset->audio_data = 0;
 				proxy_assets.append(proxy_asset);
+				orig_asset->add_user();
+				orig_assets.append(orig_asset);
 			}
+		}
+
+// convert from the proxy assets to the original assets	
+		mwindow->set_proxy(1, &proxy_assets, &orig_assets);
+
+// remove the proxy assets
+		mwindow->remove_assets_from_project(0, 0, &proxy_assets, NULL);
 
 
-// test if proxy file exists.
-			int exists = 0;
-			FILE *fd = fopen(new_path.c_str(), "r");
-			if(fd)
+		for(int i = 0; i < proxy_assets.size(); i++)
+		{
+			proxy_assets.get(i)->Garbage::remove_user();
+		}
+		proxy_assets.remove_all();
+
+		for(int i = 0; i < orig_assets.size(); i++)
+		{
+			orig_assets.get(i)->Garbage::remove_user();
+		}
+		orig_assets.remove_all();
+	}
+
+
+// convert to new size if not original size
+	if(new_scale != 1)
+	{
+		for(orig_asset = mwindow->edl->assets->first;
+			orig_asset;
+			orig_asset = orig_asset->next)
+		{
+			if(orig_asset->video_data)
 			{
-				got_it = 1;
-				exists = 1;
-				fclose(fd);
-
-				FileSystem fs;
-// test if proxy file is newer than original.
-				if(fs.get_date(new_path.c_str()) < fs.get_date(asset->path))
+				string new_path;
+				to_proxy_path(&new_path, orig_asset, new_scale);
+// add to proxy_assets & orig_assets if it isn't already there.
+				int got_it = 0;
+				proxy_asset = 0;
+				for(int i = 0; i < proxy_assets.size(); i++)
 				{
+					if(!strcmp(proxy_assets.get(i)->path, new_path.c_str()))
+					{
+						got_it = 1;
+						proxy_asset = proxy_assets.get(i);
+						break;
+					}
+				}
+
+				if(!got_it)
+				{
+					proxy_asset = new Asset;
+					proxy_asset->copy_from(orig_asset, 0);
+					proxy_asset->update_path(new_path.c_str());
+					proxy_asset->width = orig_asset->width / new_scale;
+					proxy_asset->height = orig_asset->height / new_scale;
+					proxy_asset->audio_data = 0;
+					proxy_assets.append(proxy_asset);
+					orig_asset->add_user();
+					orig_assets.append(orig_asset);
+				}
+
+
+	// test if proxy file exists.
+				int exists = 0;
+				FILE *fd = fopen(new_path.c_str(), "r");
+				if(fd)
+				{
+					got_it = 1;
+					exists = 1;
+					fclose(fd);
+
+					FileSystem fs;
+	// test if proxy file is newer than original.
+					if(fs.get_date(new_path.c_str()) < fs.get_date(asset->path))
+					{
+						got_it = 0;
+					}
+				}
+				else
+				{
+	// proxy doesn't exist
 					got_it = 0;
 				}
-			}
-			else
-			{
-// proxy doesn't exist
-				got_it = 0;
-			}
 
-			if(!got_it)
-			{
-// prompt user to overwrite
-				if(exists)
+				if(!got_it)
 				{
-					confirm_paths.append(new string(new_path));
+	// prompt user to overwrite
+					if(exists)
+					{
+						confirm_paths.append(new string(new_path));
+					}
+
+					needed_assets.append(proxy_asset);
+					proxy_asset->add_user();
+					needed_orig_assets.append(orig_asset);
+					orig_asset->add_user();
+				}
+	//printf("ProxyThread::handle_close_event %d %s\n", __LINE__, new_path.c_str());
+			}
+		}
+
+	// test for existing files
+		int result = 0;
+		if(confirm_paths.size())
+		{
+			result = ConfirmSave::test_files(mwindow, &confirm_paths);
+			confirm_paths.remove_all_objects();
+		}
+
+		if(!result)
+		{
+			int canceled = 0;
+			failed = 0;
+
+	// create proxy assets which don't already exist
+			if(needed_assets.size() > 0)
+			{
+				int64_t total_len = 0;
+				int64_t total_finished = 0;
+				for(int i = 0; i < needed_assets.size(); i++)
+				{
+					total_len += needed_assets.get(i)->video_length;
+				}
+
+		// start progress bar.  MWindow is locked inside this
+				progress = mwindow->mainprogress->start_progress(_("Creating proxy files..."), 
+					total_len);
+				total_rendered = 0;
+
+				ProxyFarm engine(mwindow, 
+					this, 
+					&needed_assets,
+					&needed_orig_assets);
+				engine.process_packages();
+
+// printf("failed=%d canceled=%d\n", failed, progress->is_cancelled());
+
+	// stop progress bar
+				canceled = progress->is_cancelled();
+				progress->stop_progress();
+				delete progress;
+				progress = 0;
+
+				if(failed && !progress->is_cancelled())
+				{
+					ErrorBox error_box(PROGRAM_NAME ": Error",
+						mwindow->gui->get_abs_cursor_x(1),
+						mwindow->gui->get_abs_cursor_y(1));
+					error_box.create_objects(_("Error making proxy."));
+					error_box.raise_window();
+					error_box.run_window();
 				}
 			}
-//printf("ProxyThread::handle_close_event %d %s\n", __LINE__, new_path.c_str());
+
+	// resize project
+			if(!failed && !canceled) 
+			{
+				mwindow->set_proxy(new_scale, &orig_assets, &proxy_assets);
+			}
+		}
+
+		for(int i = 0; i < proxy_assets.size(); i++)
+		{
+			proxy_assets.get(i)->Garbage::remove_user();
+		}
+
+		for(int i = 0; i < orig_assets.size(); i++)
+		{
+			orig_assets.get(i)->Garbage::remove_user();
+		}
+
+		for(int i = 0; i < needed_assets.size(); i++)
+		{
+			needed_assets.get(i)->Garbage::remove_user();
+		}
+
+		for(int i = 0; i < needed_orig_assets.size(); i++)
+		{
+			needed_orig_assets.get(i)->Garbage::remove_user();
 		}
 	}
 
-// test for existing files
-	int result = 0;
-	if(confirm_paths.size())
-	{
-		result = ConfirmSave::test_files(mwindow, &confirm_paths);
-	}
+	mwindow->undo->update_undo_after(_("proxy"), LOAD_ALL);
 
-	if(!result)
-	{
-// create proxy assets
+	mwindow->edl->Garbage::remove_user();
 
+	mwindow->restart_brender();
 
-		mwindow->undo->update_undo_before(_("proxy"), this);
-// resize project
-// set EDL proxy size
-		mwindow->edl->session->proxy_scale = new_scale;
-// replace assets
-		mwindow->undo->update_undo_after(_("proxy"), LOAD_ALL);
-	}
-
-	for(int i = 0; i < proxy_assets.size(); i++)
-	{
-		proxy_assets.get(i)->Garbage::remove_user();
-	}
+	mwindow->gui->lock_window("ProxyThread::to_proxy");
+	mwindow->update_project(LOAD_ALL);
+	mwindow->gui->unlock_window();
 }
-		
 
-void ProxyThread::create_path(string *new_path, Asset *asset, int scale)
+
+void ProxyThread::to_proxy_path(string *new_path, Asset *asset, int scale)
 {
 	new_path->assign(asset->path);
 	char code[BCTEXTLEN];
@@ -265,8 +406,8 @@ void ProxyThread::create_path(string *new_path, Asset *asset, int scale)
 	char *ptr = strrchr((char*)new_path->c_str(), '.');
 	if(ptr)
 	{
-//printf("ProxyThread::create_path %d %d\n", __LINE__, ptr - new_path->c_str());
 		new_path->insert(ptr - new_path->c_str(), code);
+//printf("ProxyThread::to_proxy_path %d %s %s\n", __LINE__, new_path->c_str(), asset->path);
 	}
 	else
 	{
@@ -274,7 +415,32 @@ void ProxyThread::create_path(string *new_path, Asset *asset, int scale)
 	}
 }
 
+void ProxyThread::from_proxy_path(string *new_path, Asset *asset, int scale)
+{
+	char code[BCTEXTLEN];
+	sprintf(code, ".proxy%d", scale);
+	int code_len = strlen(code);
+	new_path->assign(asset->path);
+	
+	char *ptr = strstr(asset->path, code);
+	if(ptr)
+	{
+		new_path->erase(ptr - asset->path, code_len);
+	}
+}
 
+void ProxyThread::update_progress()
+{
+	counter_lock->lock();
+	total_rendered++;
+	counter_lock->unlock();
+	progress->update(total_rendered);
+}
+
+int ProxyThread::is_canceled()
+{
+	return progress->is_cancelled();
+}
 
 
 
@@ -326,11 +492,9 @@ void ProxyWindow::create_objects()
 	add_subwindow(text = new BC_Title(x, y, "Scale factor:"));
 	x += text->get_w() + margin;
 
-	char string[BCTEXTLEN];
-	scale_to_text(string, thread->new_scale);
 
 	int popupmenu_w = BC_PopupMenu::calculate_w(get_text_width(MEDIUMFONT, size_text[0]));
-	add_subwindow(scale_factor = new ProxyMenu(x, y, popupmenu_w, string, mwindow, this));
+	add_subwindow(scale_factor = new ProxyMenu(x, y, popupmenu_w, "", mwindow, this));
 	for(int i = 0; i < sizes; i++)
 	{
 		scale_factor->add_item(new BC_MenuItem(size_text[i]));
@@ -352,11 +516,7 @@ void ProxyWindow::create_objects()
 	x = margin;
 	add_subwindow(text = new BC_Title(x, y, "New project dimensions: "));
 	x += text->get_w() + margin;
-	sprintf(string, 
-		"%dx%d", 
-		mwindow->edl->session->output_w / thread->new_scale,
-		mwindow->edl->session->output_h / thread->new_scale);
-	add_subwindow(new_dimensions = new BC_Title(x, y, string));
+	add_subwindow(new_dimensions = new BC_Title(x, y, ""));
 
 	x = margin;
 	y += new_dimensions->get_h() * 2 + margin;
@@ -378,7 +538,8 @@ void ProxyWindow::create_objects()
 		0,
 		0);
 
-	
+	update();
+		
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
 	show_window(1);
@@ -389,6 +550,14 @@ void ProxyWindow::update()
 {
 // preview the new size
 	char string[BCTEXTLEN];
+
+// printf("ProxyWindow::update %d %d %d %d %d\n", 
+// __LINE__, 
+// mwindow->edl->session->output_w,
+// mwindow->edl->session->output_h,
+// thread->orig_scale, 
+// thread->new_scale);
+
 	int orig_w = mwindow->edl->session->output_w * thread->orig_scale;
 	int orig_h = mwindow->edl->session->output_h * thread->orig_scale;
 	
@@ -421,7 +590,7 @@ int ProxyReset::handle_event()
 
 
 
-ProxyMenu::ProxyMenu(int x, int y, int w, char *text, MWindow *mwindow, ProxyWindow *pwindow)
+ProxyMenu::ProxyMenu(int x, int y, int w, const char *text, MWindow *mwindow, ProxyWindow *pwindow)
  : BC_PopupMenu(x, y, w, text, 1)
 {
 	this->mwindow = mwindow;
@@ -470,6 +639,175 @@ int ProxyTumbler::handle_down_event()
 		pwindow->thread->new_scale *= 2;
 		pwindow->update();
 	}
+}
+
+
+
+
+
+
+
+
+
+
+
+ProxyPackage::ProxyPackage()
+ : LoadPackage()
+{
+}
+
+
+
+
+
+
+ProxyClient::ProxyClient(MWindow *mwindow, 
+	ProxyThread *thread,
+	ProxyFarm *server)
+ : LoadClient(server)
+{
+	this->mwindow = mwindow;
+	this->thread = thread;
+}
+
+void ProxyClient::process_package(LoadPackage *ptr)
+{
+	ProxyPackage *package = (ProxyPackage*)ptr;
+	if(thread->failed) return;
+
+	File src_file;
+	File dst_file;
+	EDL *edl = mwindow->edl;
+	Preferences *preferences = mwindow->preferences;
+	int processors = 1;
+
+	int result;
+	src_file.set_processors(processors);
+	src_file.set_cache(preferences->cache_size);
+	src_file.set_preload(edl->session->playback_preload);
+	src_file.set_subtitle(edl->session->decode_subtitles ? 
+		edl->session->subtitle_number : -1);
+	src_file.set_interpolate_raw(edl->session->interpolate_raw);
+	src_file.set_white_balance_raw(edl->session->white_balance_raw);
+	// Copy decoding parameters from session to asset so file can see them.
+	package->orig_asset->divx_use_deblocking = edl->session->mpeg4_deblock;
+
+//PRINT_TRACE
+//printf("%s %s\n", package->orig_asset->path, package->proxy_asset->path);
+
+
+	result = src_file.open_file(preferences, package->orig_asset, 1, 0);
+	if(result)
+	{
+		thread->failed = 1;
+		return;
+	}
+	
+	dst_file.set_processors(processors);
+	dst_file.set_cache(preferences->cache_size);
+	result = dst_file.open_file(preferences, 
+		package->proxy_asset, 
+		0, 
+		1);
+	if(result)
+	{
+		thread->failed = 1;
+		return;
+	}
+	
+	dst_file.start_video_thread(1,
+			edl->session->color_model,
+			processors > 1 ? 2 : 1,
+			0);
+	
+	VFrame src_frame(0, 
+		-1,
+		package->orig_asset->width, 
+		package->orig_asset->height, 
+		edl->session->color_model,
+		-1);
+	VFrame ***dst_frames = dst_file.get_video_buffer();
+	VFrame *dst_frame = dst_frames[0][0];
+	
+	OverlayFrame scaler(processors);
+
+	for(int64_t i = 0; 
+		i < package->orig_asset->video_length && 
+			!thread->failed && 
+			!thread->is_canceled(); 
+		i++)
+	{
+		src_file.set_video_position(i, 0);
+		result = src_file.read_frame(&src_frame);
+//PRINT_TRACE
+//printf("result=%d\n", result);
+
+		if(result) 
+		{
+			thread->failed = 1;
+			break;
+		}
+
+		scaler.overlay(dst_frame,
+              &src_frame,
+              0,
+              0,
+              src_frame.get_w(),
+              src_frame.get_h(),
+              0,
+              0,
+              dst_frame->get_w(),
+              dst_frame->get_h(),
+              1.0,
+              TRANSFER_REPLACE,
+              NEAREST_NEIGHBOR);
+		result = dst_file.write_video_buffer(1);
+		if(result) 
+		{
+			thread->failed = 1;
+			break;
+		}
+		else
+		{
+			thread->update_progress();
+		}
+	}
+}
+
+
+
+
+ProxyFarm::ProxyFarm(MWindow *mwindow, 
+	ProxyThread *thread,
+	ArrayList<Asset*> *proxy_assets,
+	ArrayList<Asset*> *orig_assets)
+ : LoadServer(mwindow->preferences->processors, 
+ 	proxy_assets->size())
+{
+	this->mwindow = mwindow;
+	this->thread = thread;
+	this->proxy_assets = proxy_assets;
+	this->orig_assets = orig_assets;
+}
+
+void ProxyFarm::init_packages()
+{
+	for(int i = 0; i < get_total_packages(); i++)
+	{
+    	ProxyPackage *package = (ProxyPackage*)get_package(i);
+    	package->proxy_asset = proxy_assets->get(i);
+		package->orig_asset = orig_assets->get(i);
+	}
+}
+
+LoadClient* ProxyFarm::new_client()
+{
+	return new ProxyClient(mwindow, thread, this);
+}
+
+LoadPackage* ProxyFarm::new_package()
+{
+	return new ProxyPackage;
 }
 
 

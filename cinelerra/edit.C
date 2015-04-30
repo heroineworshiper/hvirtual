@@ -160,9 +160,9 @@ int Edit::copy(int64_t start,
 				char output_directory[BCTEXTLEN];
 				FileSystem fs;
 
-//printf("Edit::copy 6 %s\n", asset->path);
+//printf("Edit::copy %d %s\n", __LINE__, asset->path);
 				fs.extract_dir(asset_directory, asset->path);
-//printf("Edit::copy 6 %s\n", asset->path);
+//printf("Edit::copy %d %s\n", __LINE__, asset->path);
 
 				if(output_path)
 					fs.extract_dir(output_directory, output_path);

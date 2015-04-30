@@ -27,9 +27,12 @@
 // functions for handling proxies
 
 
+#include "arraylist.inc"
 #include "asset.h"
 #include "bcdialog.h"
 #include "formattools.inc"
+#include "loadbalance.h"
+#include "mutex.inc"
 #include "mwindow.inc"
 
 #include <string>
@@ -64,15 +67,24 @@ public:
 	ProxyThread(MWindow *mwindow);
 	BC_Window* new_gui();
 	void handle_close_event(int result);
-	static void create_path(string *new_path, Asset *asset, int scale);
+	static void to_proxy_path(string *new_path, Asset *asset, int scale);
+	static void from_proxy_path(string *new_path, Asset *asset, int scale);
 	void from_proxy();
 	void to_proxy();
+// increment the frame count by 1
+	void update_progress();
+// if user canceled progress bar
+	int is_canceled();
 
 	MWindow *mwindow;
 	ProxyWindow *gui;
+	MainProgressBar *progress;
+	Mutex *counter_lock;
 	Asset *asset;
 	int new_scale;
 	int orig_scale;
+	int total_rendered;
+	int failed;
 };
 
 class ProxyReset : public BC_GenericButton
@@ -87,7 +99,7 @@ public:
 class ProxyMenu : public BC_PopupMenu
 {
 public:
-	ProxyMenu(int x, int y, int w, char *text, MWindow *mwindow, ProxyWindow *pwindow);
+	ProxyMenu(int x, int y, int w, const char *text, MWindow *mwindow, ProxyWindow *pwindow);
 	int handle_event();
 	MWindow *mwindow;
 	ProxyWindow *pwindow;
@@ -124,6 +136,47 @@ public:
 	ProxyReset *reset;
 };
 
+class ProxyFarm;
+
+class ProxyPackage : public LoadPackage
+{
+public:
+	ProxyPackage();
+	Asset *orig_asset;
+	Asset *proxy_asset;
+};
+
+class ProxyClient : public LoadClient
+{
+public:
+	ProxyClient(MWindow *mwindow, 
+		ProxyThread *thread, 
+		ProxyFarm *server);
+
+	void process_package(LoadPackage *package);
+
+	MWindow *mwindow;
+	ProxyThread *thread;
+};
+
+
+class ProxyFarm : public LoadServer
+{
+public:
+	ProxyFarm(MWindow *mwindow, 
+		ProxyThread *thread, 
+		ArrayList<Asset*> *proxy_assets,
+		ArrayList<Asset*> *orig_assets);
+	
+	void init_packages();
+	LoadClient* new_client();
+	LoadPackage* new_package();
+	
+	MWindow *mwindow;
+	ProxyThread *thread;
+	ArrayList<Asset*> *proxy_assets;
+	ArrayList<Asset*> *orig_assets;
+};
 
 
 #endif

@@ -1041,8 +1041,9 @@ int EDL::dump()
     		"  output_w: %d\n"
     		"  output_h: %d\n"
     		"  aspect_w: %f\n"
-    		"  aspect_h %f\n"
-			"  color_model %d\n",
+    		"  aspect_h: %f\n"
+			"  color_model: %d\n"
+			"  proxy_scale: %d\n", 
 				session->video_channels,
 				session->video_tracks,
 				session->frame_rate,
@@ -1051,7 +1052,8 @@ int EDL::dump()
     			session->output_h,
     			session->aspect_w,
     			session->aspect_h,
-				session->color_model);
+				session->color_model,
+				session->proxy_scale);
 
 		printf(" CLIPS\n");
 		printf("  total: %d\n", clips.total);

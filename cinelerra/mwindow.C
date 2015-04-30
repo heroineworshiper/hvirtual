@@ -1085,11 +1085,11 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 // Define new_edls and new_assets to load
 	int result = 0;
-	for(int i = 0; i < filenames->total; i++)
+	for(int i = 0; i < filenames->size(); i++)
 	{
 // Get type of file
 		File *new_file = new File;
-		Asset *new_asset = new Asset(filenames->values[i]);
+		Asset *new_asset = new Asset(filenames->get(i));
 		EDL *new_edl = new EDL;
 		char string[BCTEXTLEN];
 
@@ -2723,73 +2723,88 @@ void MWindow::remove_asset_from_caches(Asset *asset)
 
 
 
-void MWindow::remove_assets_from_project(int push_undo)
+void MWindow::remove_assets_from_project(int push_undo /* = 0 */, 
+		int redraw /* 1 */,
+		ArrayList<Indexable*> *drag_assets /* mwindow->session->drag_assets */,
+		ArrayList<EDL*> *drag_clips /* mwindow->session->drag_clips */)
 {
-	for(int i = 0; i < session->drag_assets->total; i++)
+	if(drag_assets)
 	{
-		Indexable *indexable = session->drag_assets->values[i];
-		if(indexable->is_asset) remove_asset_from_caches((Asset*)indexable);
+		for(int i = 0; i < drag_assets->size(); i++)
+		{
+			Indexable *indexable = drag_assets->get(i);
+			if(indexable->is_asset) remove_asset_from_caches((Asset*)indexable);
+		}
 	}
 
 // Remove from VWindow.
-	for(int i = 0; i < session->drag_clips->total; i++)
+	if(drag_clips)
 	{
-		for(int j = 0; j < vwindows.size(); j++)
+		for(int i = 0; i < drag_clips->size(); i++)
 		{
-			VWindow *vwindow = vwindows.get(j);
-			if(vwindow->is_running())
+			for(int j = 0; j < vwindows.size(); j++)
 			{
-				if(session->drag_clips->values[i] == vwindow->get_edl())
+				VWindow *vwindow = vwindows.get(j);
+				if(vwindow->is_running())
 				{
-					vwindow->gui->lock_window("MWindow::remove_assets_from_project 1");
-					vwindow->delete_source(1, 1);
-					vwindow->gui->unlock_window();
+					if(drag_clips->get(i) == vwindow->get_edl())
+					{
+						vwindow->gui->lock_window("MWindow::remove_assets_from_project 1");
+						vwindow->delete_source(1, 1);
+						vwindow->gui->unlock_window();
+					}
 				}
 			}
 		}
 	}
 	
-	for(int i = 0; i < session->drag_assets->size(); i++)
+	if(drag_assets)
 	{
-		for(int j = 0; j < vwindows.size(); j++)
+		for(int i = 0; i < drag_assets->size(); i++)
 		{
-			VWindow *vwindow = vwindows.get(j);
-			if(vwindow->is_running())
+			for(int j = 0; j < vwindows.size(); j++)
 			{
-				if(session->drag_assets->get(i) == vwindow->get_source())
+				VWindow *vwindow = vwindows.get(j);
+				if(vwindow->is_running())
 				{
-					vwindow->gui->lock_window("MWindow::remove_assets_from_project 2");
-					vwindow->delete_source(1, 1);
-					vwindow->gui->unlock_window();
+					if(drag_assets->get(i) == vwindow->get_source())
+					{
+						vwindow->gui->lock_window("MWindow::remove_assets_from_project 2");
+						vwindow->delete_source(1, 1);
+						vwindow->gui->unlock_window();
+					}
 				}
 			}
 		}
 	}
 	
 	if(push_undo) undo->update_undo_before();
-	edl->remove_from_project(session->drag_assets);
-	edl->remove_from_project(session->drag_clips);
-	save_backup();
+	if(drag_assets) edl->remove_from_project(drag_assets);
+	if(drag_clips) edl->remove_from_project(session->drag_clips);
+	if(redraw) save_backup();
 	if(push_undo) undo->update_undo_after(_("remove assets"), LOAD_ALL);
-	restart_brender();
+	if(redraw) 
+	{
+		restart_brender();
 
-	gui->lock_window("MWindow::remove_assets_from_project 3");
-	gui->update(1,
-		1,
-		1,
-		1,
-		0, 
-		1,
-		0);
-	gui->unlock_window();
+		gui->lock_window("MWindow::remove_assets_from_project 3");
+		gui->update(1,
+			1,
+			1,
+			1,
+			0, 
+			1,
+			0);
+		gui->unlock_window();
 
-	awindow->gui->lock_window("MWindow::remove_assets_from_project 4");
-	awindow->gui->update_assets();
-	awindow->gui->flush();
-	awindow->gui->unlock_window();
+		awindow->gui->lock_window("MWindow::remove_assets_from_project 4");
+		awindow->gui->update_assets();
+		awindow->gui->flush();
+		awindow->gui->unlock_window();
 
-// Removes from playback here
-	sync_parameters(CHANGE_ALL);
+	// Removes from playback here
+		sync_parameters(CHANGE_ALL);
+	}
 }
 
 void MWindow::remove_assets_from_disk()
@@ -2800,7 +2815,10 @@ void MWindow::remove_assets_from_disk()
 		remove(session->drag_assets->values[i]->path);
 	}
 
-	remove_assets_from_project(1);
+	remove_assets_from_project(1, 
+		1, 
+		session->drag_assets,
+		session->drag_clips);
 }
 
 void MWindow::dump_plugins()
