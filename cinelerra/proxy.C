@@ -21,6 +21,7 @@
 
 #include "assets.h"
 #include "bcsignals.h"
+#include "clip.h"
 #include "confirmsave.h"
 #include "edl.h"
 #include "edlsession.h"
@@ -173,7 +174,8 @@ void ProxyThread::to_proxy()
 		{
 			string new_path;
 			to_proxy_path(&new_path, orig_asset, mwindow->edl->session->proxy_scale);
-// add to proxy_assets & orig_assets if it isn't already there.
+
+// test if proxy asset was already added to proxy assets
 			int got_it = 0;
 			proxy_asset = 0;
 			for(int i = 0; i < proxy_assets.size(); i++)
@@ -181,26 +183,29 @@ void ProxyThread::to_proxy()
 				if(!strcmp(proxy_assets.get(i)->path, new_path.c_str()))
 				{
 					got_it = 1;
-					proxy_asset = (Asset*)proxy_assets.get(i);
 					break;
 				}
 			}
 
+// add pointer to existing EDL asset if it exists
+// EDL won't delete it unless it's the same pointer.
 			if(!got_it)
 			{
-				proxy_asset = new Asset;
-				proxy_asset->copy_from(orig_asset, 0);
-				proxy_asset->update_path(new_path.c_str());
-				proxy_asset->width = orig_asset->width / new_scale;
-				proxy_asset->height = orig_asset->height / new_scale;
-				proxy_asset->audio_data = 0;
-				proxy_assets.append(proxy_asset);
-				orig_asset->add_user();
-				orig_assets.append(orig_asset);
+				proxy_asset = mwindow->edl->assets->get_asset(new_path.c_str());
+
+				if(proxy_asset)
+				{
+					proxy_assets.append(proxy_asset);
+					proxy_asset->Garbage::add_user();
+
+					orig_assets.append(orig_asset);
+					orig_asset->Garbage::add_user();
+				}
+
 			}
 		}
 
-// convert from the proxy assets to the original assets	
+// convert from the proxy assets to the original assets
 		mwindow->set_proxy(1, &proxy_assets, &orig_assets);
 
 // remove the proxy assets
@@ -248,11 +253,17 @@ void ProxyThread::to_proxy()
 				if(!got_it)
 				{
 					proxy_asset = new Asset;
-					proxy_asset->copy_from(orig_asset, 0);
+// new compression parameters
+					proxy_asset->copy_format(asset, 0);
 					proxy_asset->update_path(new_path.c_str());
+					proxy_asset->audio_data = 0;
+					proxy_asset->video_data = 1;
+					proxy_asset->layers = 1;
 					proxy_asset->width = orig_asset->width / new_scale;
 					proxy_asset->height = orig_asset->height / new_scale;
-					proxy_asset->audio_data = 0;
+					proxy_asset->frame_rate = orig_asset->frame_rate;
+					proxy_asset->video_length = orig_asset->video_length;
+					
 					proxy_assets.append(proxy_asset);
 					orig_asset->add_user();
 					orig_assets.append(orig_asset);
@@ -312,16 +323,16 @@ void ProxyThread::to_proxy()
 			failed = 0;
 
 	// create proxy assets which don't already exist
-			if(needed_assets.size() > 0)
+			if(needed_orig_assets.size() > 0)
 			{
 				int64_t total_len = 0;
 				int64_t total_finished = 0;
-				for(int i = 0; i < needed_assets.size(); i++)
+				for(int i = 0; i < needed_orig_assets.size(); i++)
 				{
-					total_len += needed_assets.get(i)->video_length;
+					total_len += needed_orig_assets.get(i)->video_length;
 				}
 
-		// start progress bar.  MWindow is locked inside this
+// start progress bar.  MWindow is locked inside this
 				progress = mwindow->mainprogress->start_progress(_("Creating proxy files..."), 
 					total_len);
 				total_rendered = 0;
@@ -332,7 +343,7 @@ void ProxyThread::to_proxy()
 					&needed_orig_assets);
 				engine.process_packages();
 
-// printf("failed=%d canceled=%d\n", failed, progress->is_cancelled());
+printf("failed=%d canceled=%d\n", failed, progress->is_cancelled());
 
 	// stop progress bar
 				canceled = progress->is_cancelled();
@@ -340,7 +351,7 @@ void ProxyThread::to_proxy()
 				delete progress;
 				progress = 0;
 
-				if(failed && !progress->is_cancelled())
+				if(failed && !canceled)
 				{
 					ErrorBox error_box(PROGRAM_NAME ": Error",
 						mwindow->gui->get_abs_cursor_x(1),
@@ -351,7 +362,7 @@ void ProxyThread::to_proxy()
 				}
 			}
 
-	// resize project
+// resize project
 			if(!failed && !canceled) 
 			{
 				mwindow->set_proxy(new_scale, &orig_assets, &proxy_assets);
@@ -692,14 +703,14 @@ void ProxyClient::process_package(LoadPackage *ptr)
 	// Copy decoding parameters from session to asset so file can see them.
 	package->orig_asset->divx_use_deblocking = edl->session->mpeg4_deblock;
 
-//PRINT_TRACE
 //printf("%s %s\n", package->orig_asset->path, package->proxy_asset->path);
 
 
 	result = src_file.open_file(preferences, package->orig_asset, 1, 0);
 	if(result)
 	{
-		thread->failed = 1;
+// go to the next asset if the reader fails
+//		thread->failed = 1;
 		return;
 	}
 	
@@ -726,8 +737,6 @@ void ProxyClient::process_package(LoadPackage *ptr)
 		package->orig_asset->height, 
 		edl->session->color_model,
 		-1);
-	VFrame ***dst_frames = dst_file.get_video_buffer();
-	VFrame *dst_frame = dst_frames[0][0];
 	
 	OverlayFrame scaler(processors);
 
@@ -739,15 +748,18 @@ void ProxyClient::process_package(LoadPackage *ptr)
 	{
 		src_file.set_video_position(i, 0);
 		result = src_file.read_frame(&src_frame);
-//PRINT_TRACE
 //printf("result=%d\n", result);
 
 		if(result) 
 		{
-			thread->failed = 1;
+// go to the next asset if the reader fails
+//			thread->failed = 1;
 			break;
 		}
 
+// have to write after getting the video buffer or it locks up
+		VFrame ***dst_frames = dst_file.get_video_buffer();
+		VFrame *dst_frame = dst_frames[0][0];
 		scaler.overlay(dst_frame,
               &src_frame,
               0,
@@ -764,6 +776,7 @@ void ProxyClient::process_package(LoadPackage *ptr)
 		result = dst_file.write_video_buffer(1);
 		if(result) 
 		{
+// only fail if the writer fails
 			thread->failed = 1;
 			break;
 		}
@@ -781,7 +794,7 @@ ProxyFarm::ProxyFarm(MWindow *mwindow,
 	ProxyThread *thread,
 	ArrayList<Asset*> *proxy_assets,
 	ArrayList<Asset*> *orig_assets)
- : LoadServer(mwindow->preferences->processors, 
+ : LoadServer(MIN(mwindow->preferences->processors, proxy_assets->size()), 
  	proxy_assets->size())
 {
 	this->mwindow = mwindow;

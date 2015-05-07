@@ -975,6 +975,7 @@ if(debug) printf("FileMOV::read_frame %d frame=%lld color_model=%d\n",
 __LINE__, 
 (long long)file->current_frame,
 frame->get_color_model());
+
 	switch(frame->get_color_model())
 	{
 		case BC_COMPRESSED:
@@ -1011,6 +1012,7 @@ frame->get_color_model());
 
 // Packed
 		default:
+//PRINT_TRACE
 			quicktime_set_cmodel(fd, frame->get_color_model());
 			result = quicktime_decode_video(fd, 
 				frame->get_rows(),

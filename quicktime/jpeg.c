@@ -86,6 +86,7 @@ static int decode(quicktime_t *file,
 	unsigned char **row_pointers, 
 	int track)
 {
+//printf("decode %d\n", __LINE__);
 	quicktime_video_map_t *vtrack = &(file->vtracks[track]);
 	initialize(vtrack);
 	quicktime_jpeg_codec_t *codec = ((quicktime_codec_t*)vtrack->codec)->priv;
@@ -165,6 +166,7 @@ static int decode(quicktime_t *file,
  * codec->buffer[field2_offset + 0], 
  * codec->buffer[field2_offset + 1]);
  */
+//printf("decode %d\n", __LINE__);
 
  		if(file->in_x == 0 && 
 			file->in_y == 0 && 
@@ -174,6 +176,7 @@ static int decode(quicktime_t *file,
 			file->out_h == track_height)
 		{
 			int i;
+//printf("decode %d\n", __LINE__);
 			mjpeg_decompress(codec->mjpeg, 
 				codec->buffer, 
 				size,
@@ -184,6 +187,7 @@ static int decode(quicktime_t *file,
 				row_pointers[2],
 				file->color_model,
 				file->cpus);
+//printf("decode %d\n", __LINE__);
 		}
 		else
 		{
@@ -198,7 +202,7 @@ static int decode(quicktime_t *file,
 			for(i = 0; i < track_height; i++)
 				temp_rows[i] = codec->temp_video + i * temp_rowsize;
 
-//printf("decode 10\n");
+//printf("decode %d\n", __LINE__);
 			mjpeg_decompress(codec->mjpeg, 
 				codec->buffer, 
 				size,
@@ -232,10 +236,10 @@ static int decode(quicktime_t *file,
 				track_width,
 				file->out_w);
 
-//printf("decode 30\n");
+//printf("decode %d\n", __LINE__);
 			free(temp_rows);
 
-//printf("decode 40\n");
+//printf("decode %d\n", __LINE__);
 		}
 	}
 //printf("decode 2 %d\n", result);
