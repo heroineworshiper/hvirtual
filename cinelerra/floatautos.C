@@ -455,17 +455,21 @@ void FloatAutos::get_extents(float *min,
 
 void FloatAutos::set_proxy(int orig_scale, int new_scale)
 {
+	float orig_value;
+	orig_value = ((FloatAuto*)default_auto)->value * orig_scale;
+	((FloatAuto*)default_auto)->value = orig_value / new_scale;
+
 	for(FloatAuto *current = (FloatAuto*)first; current; current = (FloatAuto*)NEXT)
 	{
 	
-		float orig_value = current->value / orig_scale;
-		current->value = orig_value * new_scale;
+		orig_value = current->value * orig_scale;
+		current->value = orig_value / new_scale;
 
-		orig_value = current->control_in_value / orig_scale;
-		current->control_in_value = orig_value * new_scale;
+		orig_value = current->control_in_value * orig_scale;
+		current->control_in_value = orig_value / new_scale;
 
-		orig_value = current->control_out_value / orig_scale;
-		current->control_out_value = orig_value * new_scale;
+		orig_value = current->control_out_value * orig_scale;
+		current->control_out_value = orig_value / new_scale;
 	}
 }
 
