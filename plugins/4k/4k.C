@@ -99,9 +99,9 @@ void FourK::initialize()
 {
 	BC_Resources *resources = BC_WindowBase::get_resources();
 
-	resources->small_font_xft = N_("Sans-18");
-	resources->medium_font_xft = N_("Sans-22");
-	resources->large_font_xft = N_("Sans-34");
+	resources->small_font_xft = N_("Sans-13");
+	resources->medium_font_xft = N_("Sans-17");
+	resources->large_font_xft = N_("Sans-17:style=bold");
 
 	resources->text_default = 0xbfbfbf;
 	resources->text_background = 0x373737;
