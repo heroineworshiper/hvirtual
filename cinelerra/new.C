@@ -53,7 +53,7 @@
 
 
 New::New(MWindow *mwindow)
- : BC_MenuItem(_("New..."), "n", 'n')
+ : BC_MenuItem(_("New"), "n", 'n')
 {
 	this->mwindow = mwindow;
 	script = 0;
@@ -68,7 +68,10 @@ void New::create_objects()
 int New::handle_event() 
 {
 	mwindow->gui->unlock_window();
-	thread->start();
+	mwindow->edl->save_defaults(mwindow->defaults);
+	create_new_edl();
+	create_new_project();
+//	thread->start();
 	mwindow->gui->lock_window("New::handle_event");
 
 	return 1;

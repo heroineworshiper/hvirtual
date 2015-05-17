@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2015 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,11 +59,11 @@ const char* BC_Resources::small_fontset = "-*-helvetica-medium-r-normal-*-10-*";
 const char* BC_Resources::medium_fontset = "-*-helvetica-bold-r-normal-*-14-*";
 const char* BC_Resources::large_fontset = "-*-helvetica-bold-r-normal-*-18-*";
 
-const char* BC_Resources::small_font_xft = N_("Sans-8");
+const char* BC_Resources::small_font_xft = N_("Sans-9");
 const char* BC_Resources::small_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
-const char* BC_Resources::medium_font_xft = N_("Sans-10");
+const char* BC_Resources::medium_font_xft = N_("Sans-11");
 const char* BC_Resources::medium_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
-const char* BC_Resources::large_font_xft = N_("Sans-16");
+const char* BC_Resources::large_font_xft = N_("Sans-17");
 const char* BC_Resources::large_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
 
 //const char* BC_Resources::small_font_xft = N_("Sans:pixelsize=10.6667");

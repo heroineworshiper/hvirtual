@@ -45,30 +45,10 @@
 
 #define WIDTH 320
 #define HEIGHT 320
+#define MAX_SCALE 16
 
-static const char* size_text[] = 
-{
-	"Original size",
-	"1/2",
-	"1/4",
-	"1/8",
-	"1/16"
-};
 
-static int sizes = sizeof(size_text) / sizeof(char*);
 
-static int scale_to_text(char *string, int scale)
-{
-	strcpy(string, size_text[0]);
-	for(int i = 0; i < sizes; i++)
-	{
-		if(scale == (1 << i))
-		{
-			strcpy(string, size_text[i]);
-			break;
-		}
-	}
-}
 
 
 ProxyMenuItem::ProxyMenuItem(MWindow *mwindow)
@@ -101,6 +81,9 @@ ProxyThread::ProxyThread(MWindow *mwindow)
 	asset = new Asset;
 	progress = 0;
 	counter_lock = new Mutex("ProxyThread::counter_lock");
+	bzero(size_text, sizeof(char*) * MAX_SIZES);
+	bzero(size_factors, sizeof(int) * MAX_SIZES);
+	total_sizes = 0;
 }
 
 BC_Window* ProxyThread::new_gui()
@@ -126,6 +109,57 @@ BC_Window* ProxyThread::new_gui()
 	gui->create_objects();
 	mwindow->gui->unlock_window();
 	return gui;
+}
+
+void ProxyThread::scale_to_text(char *string, int scale)
+{
+	calculate_sizes();
+	strcpy(string, size_text[0]);
+	for(int i = 0; i < total_sizes; i++)
+	{
+		if(scale == size_factors[i])
+		{
+			strcpy(string, size_text[i]);
+			break;
+		}
+	}
+}
+
+
+void ProxyThread::calculate_sizes()
+{
+// delete old values
+	for(int i = 0; i < MAX_SIZES; i++)
+	{
+		if(size_text[i]) delete [] size_text[i];
+	}
+	bzero(size_text, sizeof(char*) * MAX_SIZES);
+	bzero(size_factors, sizeof(int) * MAX_SIZES);
+
+	int orig_w = mwindow->edl->session->output_w * orig_scale;
+	int orig_h = mwindow->edl->session->output_h * orig_scale;
+	total_sizes = 0;
+	
+	size_text[0] = strdup("Original size");
+	size_factors[0] = 1;
+	
+	int current_factor = 2;
+	total_sizes = 1;
+	for(current_factor = 2; current_factor < MAX_SCALE; current_factor++)
+	{
+		if(current_factor * (orig_w / current_factor) == orig_w &&
+			current_factor * (orig_h / current_factor) == orig_h)
+		{
+//printf("ProxyThread::calculate_sizes %d\n", current_factor);
+			char string[BCTEXTLEN];
+			sprintf(string, "1/%d", current_factor);
+			size_text[total_sizes] = strdup(string);
+			size_factors[total_sizes] = current_factor;
+			total_sizes++;
+		}
+		
+		current_factor++;
+	}
 }
 
 void ProxyThread::handle_close_event(int result)
@@ -504,11 +538,12 @@ void ProxyWindow::create_objects()
 	x += text->get_w() + margin;
 
 
-	int popupmenu_w = BC_PopupMenu::calculate_w(get_text_width(MEDIUMFONT, size_text[0]));
+	thread->calculate_sizes();
+	int popupmenu_w = BC_PopupMenu::calculate_w(get_text_width(MEDIUMFONT, thread->size_text[0]));
 	add_subwindow(scale_factor = new ProxyMenu(x, y, popupmenu_w, "", mwindow, this));
-	for(int i = 0; i < sizes; i++)
+	for(int i = 0; i < thread->total_sizes; i++)
 	{
-		scale_factor->add_item(new BC_MenuItem(size_text[i]));
+		scale_factor->add_item(new BC_MenuItem(thread->size_text[i]));
 	}
 	x += scale_factor->get_w() + margin;
 	
@@ -577,7 +612,7 @@ void ProxyWindow::update()
 		orig_w / thread->new_scale,
 		orig_h / thread->new_scale);
 	new_dimensions->update(string);
-	scale_to_text(string, thread->new_scale);
+	thread->scale_to_text(string, thread->new_scale);
 	scale_factor->set_text(string);
 }
 
@@ -610,11 +645,11 @@ ProxyMenu::ProxyMenu(int x, int y, int w, const char *text, MWindow *mwindow, Pr
 
 int ProxyMenu::handle_event()
 {
-	for(int i = 0; i < sizes; i++)
+	for(int i = 0; i < pwindow->thread->total_sizes; i++)
 	{
-		if(!strcmp(get_text(), size_text[i]))
+		if(!strcmp(get_text(), pwindow->thread->size_text[i]))
 		{
-			pwindow->thread->new_scale = (1 << i);
+			pwindow->thread->new_scale = pwindow->thread->size_factors[i];
 			pwindow->update();
 			break;
 		}
@@ -638,18 +673,37 @@ int ProxyTumbler::handle_up_event()
 {
 	if(pwindow->thread->new_scale > 1) 
 	{
-		pwindow->thread->new_scale /= 2;
-		pwindow->update();
+		int i;
+		for(i = 0; i < pwindow->thread->total_sizes; i++)
+		{
+			if(pwindow->thread->new_scale == pwindow->thread->size_factors[i])
+			{
+				i--;
+				pwindow->thread->new_scale = pwindow->thread->size_factors[i];
+				pwindow->update();
+				return 1;
+			}
+		}		
 	}
+
+	return 0;
 }
 
 int ProxyTumbler::handle_down_event()
 {
-	if(pwindow->thread->new_scale < (1 << (sizes - 1)))
+	int i;
+	for(i = 0; i < pwindow->thread->total_sizes - 1; i++)
 	{
-		pwindow->thread->new_scale *= 2;
-		pwindow->update();
+		if(pwindow->thread->new_scale == pwindow->thread->size_factors[i])
+		{
+			i++;
+			pwindow->thread->new_scale = pwindow->thread->size_factors[i];
+			pwindow->update();
+			return 1;
+		}
 	}
+
+	return 0;
 }
 
 

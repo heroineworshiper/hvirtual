@@ -380,7 +380,10 @@ int BC_MenuPopup::get_dimensions()
 		if(!strcmp(menu_items.values[i]->text, "-")) 
 			menu_items.values[i]->h = 5;
 		else
-			menu_items.values[i]->h = top_level->get_text_height(MEDIUMFONT) + 4;
+		{
+//			menu_items.values[i]->h = top_level->get_text_height(MEDIUMFONT) + 4;
+			menu_items.values[i]->h = item_bg[0]->get_h();
+		}
 
 		menu_items.values[i]->y = h;
 		menu_items.values[i]->highlighted = 0;

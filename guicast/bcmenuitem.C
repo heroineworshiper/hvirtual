@@ -26,6 +26,7 @@
 #include "bcpopup.h"
 #include "bcpopupmenu.h"
 #include "bcresources.h"
+#include "bcsignals.h"
 #include "bcwindowbase.h"
 #include "colors.h"
 
@@ -344,10 +345,14 @@ int BC_MenuItem::draw()
 			{
 				if(menu_popup->item_bg[MENUITEM_DN])
 				{
-					menu_popup->get_popup()->draw_9segment(MENUITEM_MARGIN,
+// 					menu_popup->get_popup()->draw_9segment(MENUITEM_MARGIN,
+// 						y,
+// 						menu_popup->get_w() - MENUITEM_MARGIN * 2,
+// 						h,
+// 						menu_popup->item_bg[MENUITEM_DN]);
+					menu_popup->get_popup()->draw_3segmenth(MENUITEM_MARGIN,
 						y,
 						menu_popup->get_w() - MENUITEM_MARGIN * 2,
-						h,
 						menu_popup->item_bg[MENUITEM_DN]);
 				}
 				else
@@ -369,10 +374,14 @@ int BC_MenuItem::draw()
 			{
 				if(menu_popup->item_bg[MENUITEM_HI])
 				{
-					menu_popup->get_popup()->draw_9segment(MENUITEM_MARGIN,
+// 					menu_popup->get_popup()->draw_9segment(MENUITEM_MARGIN,
+// 						y,
+// 						menu_popup->get_w() - MENUITEM_MARGIN * 2,
+// 						h,
+// 						menu_popup->item_bg[MENUITEM_HI]);
+					menu_popup->get_popup()->draw_3segmenth(MENUITEM_MARGIN,
 						y,
 						menu_popup->get_w() - MENUITEM_MARGIN * 2,
-						h,
 						menu_popup->item_bg[MENUITEM_HI]);
 				}
 				else

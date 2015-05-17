@@ -75,6 +75,9 @@ public:
 	void update_progress();
 // if user canceled progress bar
 	int is_canceled();
+// calculate possible sizes based on the original size
+	void calculate_sizes();
+	void scale_to_text(char *string, int scale);
 
 	MWindow *mwindow;
 	ProxyWindow *gui;
@@ -85,6 +88,10 @@ public:
 	int orig_scale;
 	int total_rendered;
 	int failed;
+#define MAX_SIZES 16
+	char *size_text[MAX_SIZES];
+	int size_factors[MAX_SIZES];
+	int total_sizes;
 };
 
 class ProxyReset : public BC_GenericButton
