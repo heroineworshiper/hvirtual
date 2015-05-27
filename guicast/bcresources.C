@@ -211,6 +211,10 @@ BC_Resources::BC_Resources()
 		new VFrame(radial_checkedhi_png)
 	};
 
+#include "images/check_png.h"
+	static VFrame* default_check_image = new VFrame(check_png);
+	check = default_check_image;
+
 
 #include "images/file_text_up_png.h"
 #include "images/file_text_hi_png.h"

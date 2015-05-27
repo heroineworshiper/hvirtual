@@ -200,6 +200,8 @@ public:
 	VFrame **checkbox_images;
 	VFrame **radial_images;
 	VFrame **label_images;
+// menu check
+	VFrame *check;
 
 	VFrame **tumble_data;
 	int tumble_duration;

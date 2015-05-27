@@ -296,7 +296,7 @@ void FourK::initialize()
 		"dash.png");
 
 	resources->bar_data = new_image("bar", "bar.png");
-
+	resources->check = new_image("check", "check.png");
 
 	resources->min_menu_w = 96;
 	resources->menu_popup_bg = new_image("menu_popup_bg.png");
@@ -797,7 +797,7 @@ void FourK::build_bg_data()
 
 void FourK::build_overlays()
 {
-	keyframe_data = new VFrame(get_image_data("keyframe3.png"));
+	keyframe_data = new VFrame(get_image_data("keyframe.png"));
 	camerakeyframe_data = new VFrame(get_image_data("camerakeyframe.png"));
 	maskkeyframe_data = new VFrame(get_image_data("maskkeyframe.png"));
 	modekeyframe_data = new VFrame(get_image_data("modekeyframe.png"));

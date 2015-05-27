@@ -309,7 +309,7 @@ int BC_Menu::draw_title(int flash, int flush)
 	menu_bar->set_color(resources->menu_title_text);
 	menu_bar->set_font(MEDIUMFONT);
 	menu_bar->draw_text(x + 10 + text_offset, 
-		h / 2 + menu_bar->get_text_ascent(MEDIUMFONT) / 2 + text_offset, 
+		h / 2 + menu_bar->get_text_ascent(MEDIUMFONT) / 2 + 1 + text_offset, 
 		text);
 	if(flash) menu_bar->flash(flush);
 

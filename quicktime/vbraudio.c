@@ -2,7 +2,7 @@
 
 #include "funcprotos.h"
 #include "quicktime.h"
-
+#include <string.h>
 
 
 // Maximum samples to store in output buffer
@@ -102,6 +102,7 @@ int quicktime_read_vbr(quicktime_t *file,
 	int64_t offset = quicktime_sample_to_offset(file, 
 		trak, 
 		vbr->sample);
+
 	int size = quicktime_sample_size(trak, vbr->sample);
 	int new_allocation = vbr->input_size + size;
 	int result = 0;
@@ -112,11 +113,12 @@ int quicktime_read_vbr(quicktime_t *file,
 		vbr->input_allocation = new_allocation;
 	}
 
-
+//printf("quicktime_read_vbr %d offset=%d\n", __LINE__, offset);
 	quicktime_set_position(file, offset);
 	result = !quicktime_read_data(file, vbr->input_buffer + vbr->input_size, size);
 	vbr->input_size += size;
 	vbr->sample++;
+//printf("quicktime_read_vbr %d sample=%d offset=%d result=%d\n", __LINE__, vbr->sample, offset, result);
 	return result;
 }
 
@@ -191,11 +193,24 @@ void quicktime_copy_vbr_float(quicktime_vbr_t *vbr,
 		(vbr->buffer_end - start_position);
 	while(input_ptr < 0) input_ptr += MAX_VBR_BUFFER;
 
-	for(i = 0; i < samples; i++)
+// truncate to available samples
+	int samples_copied = samples;
+	if(samples_copied > vbr->buffer_size)
+	{
+		samples_copied = vbr->buffer_size;
+	}
+
+	for(i = 0; i < samples_copied; i++)
 	{
 		output[i] = vbr->output_buffer[channel][input_ptr++];
 		if(input_ptr >= MAX_VBR_BUFFER)
 			input_ptr = 0;
+	}
+
+	vbr->buffer_size -= samples_copied;
+	if(samples_copied < samples)
+	{
+		bzero(output + samples_copied, (samples - samples_copied) * sizeof(float));
 	}
 }
 
@@ -210,11 +225,26 @@ void quicktime_copy_vbr_int16(quicktime_vbr_t *vbr,
 	int input_ptr = vbr->buffer_ptr - 
 		(vbr->buffer_end - start_position);
 	while(input_ptr < 0) input_ptr += MAX_VBR_BUFFER;
-	for(i = 0; i < samples; i++)
+
+// truncate to available samples
+	int samples_copied = samples;
+	if(samples_copied > vbr->buffer_size)
+	{
+		samples_copied = vbr->buffer_size;
+	}
+
+	for(i = 0; i < samples_copied; i++)
 	{
 		output[i] = (int)(vbr->output_buffer[channel][input_ptr++] * 32767);
+		
 		if(input_ptr >= MAX_VBR_BUFFER)
 			input_ptr = 0;
+	}
+
+	vbr->buffer_size -= samples_copied;
+	if(samples_copied < samples)
+	{
+		bzero(output + samples_copied, (samples - samples_copied) * sizeof(int16_t));
 	}
 }
 

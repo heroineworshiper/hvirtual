@@ -293,7 +293,7 @@ void SUV::initialize()
 		"dash.png");
 
 	resources->bar_data = new_image("bar", "bar.png");
-
+	resources->check = new_image("check", "check.png");
 
 	resources->min_menu_w = 96;
 	resources->menu_popup_bg = new_image("menu_popup_bg.png");

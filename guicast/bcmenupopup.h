@@ -89,6 +89,7 @@ private:
 // Images for backgrounds
 	BC_Pixmap *window_bg;
 	BC_Pixmap *item_bg[3];
+	BC_Pixmap *check;
 };
 
 class BC_SubMenu : public BC_MenuPopup
