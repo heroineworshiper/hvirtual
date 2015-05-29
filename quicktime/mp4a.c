@@ -132,6 +132,7 @@ static int decode(quicktime_t *file,
 	else
 	{
 // Decode until buffer is full
+//printf("decode %d vbr=%p end=%d end_position=%d\n", __LINE__, vbr, quicktime_vbr_end(vbr), end_position);
 		while(quicktime_vbr_end(vbr) < end_position)
 		{
 // Fill until min buffer size reached or EOF

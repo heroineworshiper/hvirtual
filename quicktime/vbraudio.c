@@ -157,6 +157,8 @@ void quicktime_store_vbr_float(quicktime_audio_map_t *atrack,
 	}
 	vbr->buffer_end += sample_count;
 	vbr->buffer_size += sample_count;
+
+//printf("quicktime_store_vbr_float %d buffer_size=%d\n", __LINE__, vbr->buffer_size);
 	if(vbr->buffer_size > MAX_VBR_BUFFER) vbr->buffer_size = MAX_VBR_BUFFER;
 }
 
@@ -193,11 +195,16 @@ void quicktime_copy_vbr_float(quicktime_vbr_t *vbr,
 		(vbr->buffer_end - start_position);
 	while(input_ptr < 0) input_ptr += MAX_VBR_BUFFER;
 
+// printf("quicktime_copy_vbr_float %d available=%d samples=%d\n", 
+// __LINE__, 
+// vbr->buffer_end - start_position,
+// samples);
+
 // truncate to available samples
 	int samples_copied = samples;
-	if(samples_copied > vbr->buffer_size)
+	if(samples_copied > vbr->buffer_end - start_position)
 	{
-		samples_copied = vbr->buffer_size;
+		samples_copied = vbr->buffer_end - start_position;
 	}
 
 	for(i = 0; i < samples_copied; i++)
@@ -207,9 +214,15 @@ void quicktime_copy_vbr_float(quicktime_vbr_t *vbr,
 			input_ptr = 0;
 	}
 
-	vbr->buffer_size -= samples_copied;
+
+// printf("quicktime_copy_vbr_float %d samples=%d buffer_size=%d\n", 
+// __LINE__, 
+// samples, 
+// vbr->buffer_size);
+
 	if(samples_copied < samples)
 	{
+		if(samples_copied < 0) samples_copied = 0;
 		bzero(output + samples_copied, (samples - samples_copied) * sizeof(float));
 	}
 }
@@ -228,9 +241,9 @@ void quicktime_copy_vbr_int16(quicktime_vbr_t *vbr,
 
 // truncate to available samples
 	int samples_copied = samples;
-	if(samples_copied > vbr->buffer_size)
+	if(samples_copied > vbr->buffer_end - start_position)
 	{
-		samples_copied = vbr->buffer_size;
+		samples_copied = vbr->buffer_end - start_position;
 	}
 
 	for(i = 0; i < samples_copied; i++)
@@ -241,9 +254,9 @@ void quicktime_copy_vbr_int16(quicktime_vbr_t *vbr,
 			input_ptr = 0;
 	}
 
-	vbr->buffer_size -= samples_copied;
 	if(samples_copied < samples)
 	{
+		if(samples_copied < 0) samples_copied = 0;
 		bzero(output + samples_copied, (samples - samples_copied) * sizeof(int16_t));
 	}
 }
