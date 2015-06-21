@@ -1,0 +1,1 @@
+-O2 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -I/usr/include/freetype2 -I../../ -DHAVE_OSS -DHAVE_FIREWIRE -I../../thirdparty/libavc1394-0.5.1 -I../../thirdparty/libraw1394-1.2.0 -I../../quicktime/thirdparty/jpeg -I../ -I../../cinelerra -I../../guicast -I../../quicktime -I../colors -fPIC

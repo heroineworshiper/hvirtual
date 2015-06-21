@@ -450,10 +450,6 @@ void Theme::build_toggle(VFrame** &data,
 			&default_data);
 }
 
-#define TIMEBAR_HEIGHT 10
-#define PATCHBAY_W 145
-#define STATUS_H 20
-#define ZOOM_H 30
 
 void Theme::get_mwindow_sizes(MWindowGUI *gui, int w, int h)
 {

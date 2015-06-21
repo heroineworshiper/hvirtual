@@ -244,8 +244,9 @@ static int dequantize_sample(mpeg3_layer_t *audio,
 	int part2remain = gr_info->part2_3_length - part2bits;
 	int *me;
 	int num = mpeg3bits_getbitoffset(audio->stream);
+//printf("dequantize_sample %d num=%d\n", __LINE__, num);
+
 	int32_t mask = mpeg3bits_getbits(audio->stream, num);
-//printf("III_dequantize_sample 1 %08x %d\n", mask, num);
 	mask = mask << (BITSHIFT + 8 - num);
 	part2remain -= num;
 
@@ -667,13 +668,29 @@ static int dequantize_sample(mpeg3_layer_t *audio,
     	gr_info->maxb = mpeg3_longLimit[sfreq][gr_info->maxbandl];
 	}
 
+// if(-part2remain != num)
+// {
+//	printf("dequantize_sample %d: part2remain=%d num=%d\n", __LINE__, part2remain, num);
+// }
 	part2remain += num;
 
-//
-	mpeg3bits_start_reverse(audio->stream);
-	mpeg3bits_getbits_reverse(audio->stream, num);
-	mpeg3bits_start_forward(audio->stream);
-//printf("III_dequantize_sample 3 %d %04x\n", audio->stream->bit_number, mpeg3bits_showbits(audio->stream, 16));
+
+//printf("dequantize_sample %d num=%d\n", __LINE__, num);
+
+	if(part2remain >= 0)
+	{
+		mpeg3bits_start_reverse(audio->stream);
+		mpeg3bits_getbits_reverse(audio->stream, num);
+		mpeg3bits_start_forward(audio->stream);
+	}
+	else
+	{
+// defeat "can't rewind stream" errors
+		mpeg3bits_start_reverse(audio->stream);
+		mpeg3bits_getbits_reverse(audio->stream, num - part2remain);
+		mpeg3bits_start_forward(audio->stream);
+		part2remain = 0;
+	}
 	num = 0;
 
 	while(xrpnt < &xr[SBLIMIT][0]) 
