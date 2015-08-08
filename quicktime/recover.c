@@ -23,12 +23,12 @@
 //#define HEIGHT 480
 //#define WIDTH 960
 //#define HEIGHT 540
-#define WIDTH 320
+#define WIDTH 640
 #define HEIGHT 240
 
 //#define FRAMERATE (double)30000/1001
-//#define FRAMERATE (double)30
-#define FRAMERATE (double)30000/3000
+#define FRAMERATE (double)30
+//#define FRAMERATE (double)30000/3000
 
 
 //#define STARTING_OFFSET 0x28
@@ -210,7 +210,9 @@ int main(int argc, char *argv[])
 		"   BITS=%d\n"
 		"   AUDIO CHUNK=%d\n"
 		"   VCODEC=\"%s\"\n"
-		"   ACODEC=\"%s\"\n",
+		"   ACODEC=\"%s\"\n"
+		"   AUDIO_FILE=\"%s\"\n"
+		"   VIDEO_FILE=\"%s\"\n",
 		WIDTH,
 		HEIGHT,
 		FRAMERATE,
@@ -219,7 +221,9 @@ int main(int argc, char *argv[])
 		BITS,
 		audio_chunk,
 		VCODEC,
-		ACODEC);
+		ACODEC,
+		AUDIO_FILE,
+		VIDEO_FILE);
 #ifdef READ_ONLY
 	printf("   READ ONLY\n");
 #endif
