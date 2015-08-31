@@ -11,8 +11,6 @@
 // This generates our own header using fixed parameters
 //#define MANUAL_HEADER
 
-// For the working version of x264
-#define GOOD_VERSION
 
 typedef struct
 {
@@ -20,6 +18,7 @@ typedef struct
 	x264_t *encoder[FIELDS];
 	x264_picture_t *pic[FIELDS];
 	x264_param_t param;
+	int fix_bitrate;
 
 	int encode_initialized[FIELDS];
 
@@ -102,6 +101,194 @@ static int delete_codec(quicktime_video_map_t *vtrack)
 
 
 
+
+static void common_encode(quicktime_t *file, 
+	int track,
+	int size,
+	x264_nal_t *nals,
+	int nnal,
+	x264_picture_t *pic_out)
+{
+	quicktime_video_map_t *vtrack = &(file->vtracks[track]);
+	quicktime_h264_codec_t *codec = ((quicktime_codec_t*)vtrack->codec)->priv;
+	quicktime_trak_t *trak = vtrack->track;
+	quicktime_avcc_t *avcc = &trak->mdia.minf.stbl.stsd.table[0].avcc;
+	int i;
+	int width = quicktime_video_width(file, track);
+	int height = quicktime_video_height(file, track);
+	int w_2 = quicktime_quantize2(width);
+// ffmpeg interprets the codec height as the presentation height
+	int h_2 = quicktime_quantize2(height);
+	unsigned char header[1024];
+	int header_size = 0;
+	int got_pps = 0;
+	int got_sps = 0;
+
+	codec->buffer_size = 0;
+	if(size > 0)
+	{
+		for(i = 0; i < nnal; i++)
+		{
+	// Synthesize header.
+			if(!avcc->data_size)
+			{
+				if(header_size < 6)
+				{
+					header[header_size++] = 0x01;
+					header[header_size++] = 0x4d;
+					header[header_size++] = 0x40;
+					header[header_size++] = 0x1f;
+					header[header_size++] = 0xff;
+					header[header_size++] = 0xe1;
+				}
+
+				unsigned char *ptr = nals[i].p_payload;
+				int nal_type = (ptr[4] & 0x1f);
+				int avc_size = nals[i].i_payload - 4;
+
+	// Picture parameter or sequence parameter set
+				if(nal_type == 0x7 && !got_sps)
+				{
+					got_sps = 1;
+					header[header_size++] = (avc_size & 0xff00) >> 8;
+					header[header_size++] = (avc_size & 0xff);
+					memcpy(&header[header_size], 
+						ptr + 4,
+						avc_size);
+					header_size += avc_size;
+				}
+				else
+				if(nal_type == 0x8 && !got_pps)
+				{
+					got_pps = 1;
+		// Number of sps nal's.
+					header[header_size++] = 0x1;
+					header[header_size++] = (avc_size & 0xff00) >> 8;
+					header[header_size++] = (avc_size & 0xff);
+					memcpy(&header[header_size], 
+						ptr + 4,
+						avc_size);
+					header_size += avc_size;
+				}
+
+		// Write header
+				if(got_sps && got_pps)
+				{
+		/*
+		* printf("encode %d\n", __LINE__);
+		* int j;
+		* for(j = 0; j < header_size; j++)
+		* {
+		* printf("%02x ", header[j]);
+		* }
+		* printf("\n");
+		*/
+					quicktime_set_avcc_header(avcc,
+		  				header, 
+		  				header_size);
+				}
+			}
+		}
+
+		for(i = 0; i < nnal; i++)
+		{
+			size = nals[i].i_payload;
+// 			printf("common_encode %d: i=%d size=%d %02x %02x %02x %02x %02x %02x %02x %02x\n",
+// 				__LINE__,
+// 				i,
+// 				nals[i].i_payload,
+// 				nals[i].p_payload[0],
+// 				nals[i].p_payload[1],
+// 				nals[i].p_payload[2],
+// 				nals[i].p_payload[3],
+// 				nals[i].p_payload[4],
+// 				nals[i].p_payload[5],
+// 				nals[i].p_payload[6],
+// 				nals[i].p_payload[7]);
+
+
+
+// Get start of encoded data
+			unsigned char *ptr = nals[i].p_payload;
+			while(ptr - nals[i].p_payload < nals[i].i_payload && *ptr != 0x1)
+			{
+				ptr++;
+			}
+			if(ptr - nals[i].p_payload < nals[i].i_payload) ptr++;
+			
+
+// Size of encoded data in NAL
+			int avc_start = ptr - nals[i].p_payload;
+			int avc_size = size - avc_start;
+			
+			
+			int allocation = w_2 * h_2 * 3;
+			if(!codec->work_buffer)
+			{
+				codec->work_buffer = calloc(1, allocation);
+			}
+
+// encode size of NAL
+			ptr = codec->work_buffer + codec->buffer_size;
+			*ptr++ = (avc_size & 0xff000000) >> 24;
+			*ptr++ = (avc_size & 0xff0000) >> 16;
+			*ptr++ = (avc_size & 0xff00) >> 8;
+			*ptr++ = (avc_size & 0xff);
+// store compressed data
+			memcpy(ptr,
+				nals[i].p_payload + avc_start,
+				avc_size);
+			codec->buffer_size += avc_size + 4;
+
+
+
+			if(size + codec->buffer_size > allocation)
+			{
+				printf("common_encode %d: overflow size=%d allocation=%d\n",
+					__LINE__,
+					size,
+					allocation);
+			}
+
+
+
+
+		}
+
+
+		int is_keyframe = 0;
+		if(pic_out->i_type == X264_TYPE_IDR ||
+			pic_out->i_type == X264_TYPE_I)
+		{
+			is_keyframe = 1;
+		}
+
+		if(codec->buffer_size)
+		{
+			quicktime_atom_t chunk_atom;
+			quicktime_write_chunk_header(file, trak, &chunk_atom);
+			int result = !quicktime_write_data(file, 
+				codec->work_buffer, 
+				codec->buffer_size);
+			quicktime_write_chunk_footer(file, 
+				trak,
+				vtrack->current_chunk,
+				&chunk_atom, 
+				1);
+//printf("encode %d buffer_size=%d\n", __LINE__, codec->buffer_size);
+		}
+
+		if(is_keyframe)
+		{
+			quicktime_insert_keyframe(file, 
+				vtrack->current_position, 
+				track);
+		}
+		vtrack->current_chunk++;
+	}
+}
+
+
 static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 {
 	int64_t offset = quicktime_position(file);
@@ -116,13 +303,7 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 	int i;
 	int result = 0;
 	int bytes = 0;
-	int is_keyframe = 0;
 	int current_field = vtrack->current_position % codec->total_fields;
-	quicktime_atom_t chunk_atom;
-	unsigned char header[1024];
-	int header_size = 0;
-	int got_pps = 0;
-	int got_sps = 0;
 	quicktime_avcc_t *avcc = &trak->mdia.minf.stbl.stsd.table[0].avcc;
 
 
@@ -135,27 +316,36 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 	if(!codec->encode_initialized[current_field])
 	{
 		codec->encode_initialized[current_field] = 1;
+
+		x264_param_t default_params;
+		x264_param_default_preset(&default_params, "medium", NULL);
+
+
+		
 		codec->param.i_width = w_2;
 		codec->param.i_height = h_2;
 		codec->param.i_fps_num = quicktime_frame_rate_n(file, track);
 		codec->param.i_fps_den = quicktime_frame_rate_d(file, track);
 
-#ifndef GOOD_VERSION
+	    codec->param.i_csp = X264_CSP_I420;
 		codec->param.rc.i_rc_method = X264_RC_CQP;
-#endif
+	    codec->param.b_vfr_input = 0;
+	    codec->param.b_repeat_headers = 1;
+    	codec->param.b_annexb = 1;
 
-// Reset quantizer if fixed bitrate
-		x264_param_t default_params;
-		x264_param_default(&default_params);
-#ifdef GOOD_VERSION
-		if(codec->param.rc.b_cbr)
-#else
-		if(codec->param.rc.i_qp_constant)
-#endif
+// Use default quantizer parameters if fixed bitrate
+		if(codec->fix_bitrate)
 		{
+			codec->param.rc.i_rc_method = X264_RC_ABR;
 			codec->param.rc.i_qp_constant = default_params.rc.i_qp_constant;
 			codec->param.rc.i_qp_min = default_params.rc.i_qp_min;
 			codec->param.rc.i_qp_max = default_params.rc.i_qp_max;
+		}
+
+// profile restrictions
+		if((result = x264_param_apply_profile( &codec->param, "high" )) < 0)
+		{
+			printf("encode %d result=%d\n", __LINE__, result);
 		}
 
 
@@ -163,6 +353,13 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 		{
 			codec->param.i_threads = file->cpus;
 		}
+
+		printf("encode %d fix_bitrate=%d\n", __LINE__, codec->fix_bitrate);
+		printf("encode %d i_qp_constant=%d\n", __LINE__, codec->param.rc.i_qp_constant);
+		printf("encode %d i_qp_min=%d\n", __LINE__, codec->param.rc.i_qp_min);
+		printf("encode %d i_qp_max=%d\n", __LINE__, codec->param.rc.i_qp_max);
+		printf("encode %d i_bitrate=%d\n", __LINE__, codec->param.rc.i_bitrate);
+
 
 		codec->encoder[current_field] = x264_encoder_open(&codec->param);
 		codec->pic[current_field] = calloc(1, sizeof(x264_picture_t));
@@ -236,149 +433,23 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
     x264_picture_t pic_out;
     x264_nal_t *nals;
 	int nnal = 0;
-	do
-	{
-		x264_encoder_encode(codec->encoder[current_field], 
-			&nals, 
-			&nnal, 
-			codec->pic[current_field], 
-			&pic_out);
+	int size = 0;
+	size = x264_encoder_encode(codec->encoder[current_field], 
+		&nals, 
+		&nnal, 
+		codec->pic[current_field], 
+		&pic_out);
+
+
+	common_encode(file, track, size, nals, nnal, &pic_out);
+
 //printf("encode %d nnal=%d\n", __LINE__, nnal);
-	} while(codec->header_only && !nnal);
-	int allocation = w_2 * h_2 * 3;
-	if(!codec->work_buffer)
-	{
-		codec->work_buffer = calloc(1, allocation);
-	}
-
-	codec->buffer_size = 0;
-//printf("encode %d nnal=%d\n", __LINE__, nnal);
-	for(i = 0; i < nnal; i++)
-	{
-		int size_return = 0;
-		int size = x264_nal_encode(codec->work_buffer + codec->buffer_size, 
-			&size_return, 
-			1, 
-			nals + i);
-		unsigned char *ptr = codec->work_buffer + codec->buffer_size;
-
-//printf("encode %d size=%d\n", __LINE__, size);
-		if(size > 0)
-		{
-			if(size + codec->buffer_size > allocation)
-			{
-				printf("qth264.c %d: overflow size=%d allocation=%d\n",
-					__LINE__,
-					size,
-					allocation);
-			}
-
-// Size of NAL for avc
-			uint64_t avc_size = size - 4;
-
-// Synthesize header.
-// Hopefully all the parameter set NAL's are present in the first frame.
-			if(!avcc->data_size)
-			{
-				if(header_size < 6)
-				{
-					header[header_size++] = 0x01;
-					header[header_size++] = 0x4d;
-					header[header_size++] = 0x40;
-					header[header_size++] = 0x1f;
-					header[header_size++] = 0xff;
-					header[header_size++] = 0xe1;
-				}
-
-				int nal_type = (ptr[4] & 0x1f);
-// Picture parameter or sequence parameter set
-				if(nal_type == 0x7 && !got_sps)
-				{
-					got_sps = 1;
-					header[header_size++] = (avc_size & 0xff00) >> 8;
-					header[header_size++] = (avc_size & 0xff);
-					memcpy(&header[header_size], 
-						ptr + 4,
-						avc_size);
-					header_size += avc_size;
-				}
-				else
-				if(nal_type == 0x8 && !got_pps)
-				{
-					got_pps = 1;
-// Number of sps nal's.
-					header[header_size++] = 0x1;
-					header[header_size++] = (avc_size & 0xff00) >> 8;
-					header[header_size++] = (avc_size & 0xff);
-					memcpy(&header[header_size], 
-						ptr + 4,
-						avc_size);
-					header_size += avc_size;
-				}
-
-// Write header
-				if(got_sps && got_pps)
-				{
-/*
- * printf("encode %d\n", __LINE__);
- * int j;
- * for(j = 0; j < header_size; j++)
- * {
- * printf("%02x ", header[j]);
- * }
- * printf("\n");
- */
-					quicktime_set_avcc_header(avcc,
-		  				header, 
-		  				header_size);
-				}
-			}
-
-
-// Convert to avc nal
-			*ptr++ = (avc_size & 0xff000000) >> 24;
-			*ptr++ = (avc_size & 0xff0000) >> 16;
-			*ptr++ = (avc_size & 0xff00) >> 8;
-			*ptr++ = (avc_size & 0xff);
-			codec->buffer_size += size;
-		}
-		else
-			break;
-	}
+//printf("encode %d size=%d nnal=%d\n", __LINE__, size, nnal);
 
 	pthread_mutex_unlock(&h264_lock);
 
 
 
-	if(!codec->header_only)
-	{
-		if(pic_out.i_type == X264_TYPE_IDR ||
-			pic_out.i_type == X264_TYPE_I)
-		{
-			is_keyframe = 1;
-		}
-
-		if(codec->buffer_size)
-		{
-			quicktime_write_chunk_header(file, trak, &chunk_atom);
-			result = !quicktime_write_data(file, 
-				codec->work_buffer, 
-				codec->buffer_size);
-			quicktime_write_chunk_footer(file, 
-				trak,
-				vtrack->current_chunk,
-				&chunk_atom, 
-				1);
-		}
-
-		if(is_keyframe)
-		{
-			quicktime_insert_keyframe(file, 
-				vtrack->current_position, 
-				track);
-		}
-		vtrack->current_chunk++;
-	}
 	return result;
 }
 
@@ -414,36 +485,6 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 	return 1;
 }
 
-// Header copied straight out of another h264 file
-#ifdef MANUAL_HEADER
-static int write_avcc_header(unsigned char *data)
-{
-	int result = 0;
-	unsigned char *ptr = data;
-
-
-	static unsigned char test[] =
-	{
-
-		0x01, 0x42, 0xe0, 0x28, 0xff, 0xe1, 0x00, 0x1c, 0x67, 0x42, 
-		0xe0, 0x28, 0x91, 0xb0, 0x1e, 0x00, 0x89, 0xf9, 0x70, 0x16,
-		0xe0, 0x20, 0x20, 0x28, 0x00, 0x00, 0x1f, 0x48, 0x00, 0x07,
-		0x53, 0x04, 0x20, 0x00, 0x00, 0x00, 0x01, 0x00, 0x04, 0x68,
-		0xce, 0x38, 0x80
-
-// 		0x01, 0x4d, 0x40, 0x1f, 0xff, 0xe1, 0x00, 0x14,
-// 		0x27, 0x4d, 0x40, 0x1f, 0xa9, 0x18, 0x0a, 0x00, 
-// 		0xb7, 0x60, 0x0d, 0x40, 0x40, 0x40, 0x4c, 0x2b, 
-// 		0x5e, 0xf7, 0xc0, 0x40, 0x01, 0x00, 0x04, 0x28, 
-// 		0xce, 0x0f, 0x88
-	};
-
-	memcpy(data, test, sizeof(test));
-	result = sizeof(test);
-
-	return result;
-}
-#endif
 
 static void flush(quicktime_t *file, int track)
 {
@@ -451,34 +492,37 @@ static void flush(quicktime_t *file, int track)
 	quicktime_trak_t *trak = track_map->track;
 	quicktime_h264_codec_t *codec = ((quicktime_codec_t*)track_map->codec)->priv;
 	quicktime_avcc_t *avcc = &trak->mdia.minf.stbl.stsd.table[0].avcc;
+	int width = quicktime_video_width(file, track);
+	int height = quicktime_video_height(file, track);
+	int w_2 = quicktime_quantize2(width);
+// ffmpeg interprets the codec height as the presentation height
+	int h_2 = quicktime_quantize2(height);
+	int current_field = track_map->current_position % codec->total_fields;
+	int i;
 
-	if(!avcc->data_size)
+	pthread_mutex_lock(&h264_lock);
+
+// this only encodes 1 field, but field based encoding is never used anymore
+	if(codec->encode_initialized[current_field])
 	{
+		while(x264_encoder_delayed_frames(codec->encoder[current_field]))
+		{
+    		x264_picture_t pic_out;
+    		x264_nal_t *nals;
+			int nnal = 0;
+			int size = x264_encoder_encode(codec->encoder[current_field], 
+				&nals, 
+				&nnal, 
+				0, 
+				&pic_out);
+			codec->buffer_size = 0;
 
-#ifndef MANUAL_HEADER
-		codec->header_only = 1;
-		encode(file, 0, track);
-#else
-		unsigned char temp[1024];
-		int size = write_avcc_header(temp);
-
-// unsigned char temp[1024] = 
-// 0x64, 0x00, 0x29, 0xac, 0x1b, 0x1a, 0x50, 0x1e, 
-// 0x00, 0x89, 0xf9, 0x70, 0x16, 0xa0, 0x20, 0x20, 
-// 0x28, 0x00, 0x00, 0x1f, 0x48, 0x00, 0x05, 0xdc, 
-// 0x07, 0x13, 0x00, 0x00, 0x76, 0x41, 0x40, 0x00, 
-// 0x0e, 0x4e, 0x1d, 0x18, 0x9c, 0x07, 0xc7, 0x0c, 
-// 0x29, 0x60;
-// int size = 42;
-
-
-		if(size)
-			quicktime_set_avcc_header(avcc,
-				temp, 
-				size);
-#endif
-
+			common_encode(file, track, size, nals, nnal, &pic_out);
+		}
 	}
+
+	pthread_mutex_unlock(&h264_lock);
+
 /*
  * 	trak->mdia.minf.stbl.stsd.table[0].version = 1;
  * 	trak->mdia.minf.stbl.stsd.table[0].revision = 1;
@@ -517,10 +561,17 @@ static int set_parameter(quicktime_t *file,
 		quicktime_h264_codec_t *codec = ((quicktime_codec_t*)vtrack->codec)->priv;
 		if(!strcasecmp(key, "h264_bitrate"))
 		{
+
 			if(quicktime_match_32(compressor, QUICKTIME_H264))
-				codec->param.rc.i_bitrate = *(int*)value;
+			{
+				codec->param.rc.i_bitrate = *(int*)value / 1000;
+			}
 			else
-				codec->param.rc.i_bitrate = *(int*)value / 2;
+			{
+				codec->param.rc.i_bitrate = *(int*)value / 2 / 1000;
+			}
+
+//printf("set_parameter %d codec=%p h264_bitrate=%d\n", __LINE__, codec, *(int*)value);
 		}
 		else
 		if(!strcasecmp(key, "h264_quantizer"))
@@ -528,14 +579,14 @@ static int set_parameter(quicktime_t *file,
 			codec->param.rc.i_qp_constant = 
 				codec->param.rc.i_qp_min = 
 				codec->param.rc.i_qp_max = *(int*)value;
+//printf("set_parameter %d h264_quantizer=%d\n", __LINE__, *(int*)value);
 		}
 		else
 		if(!strcasecmp(key, "h264_fix_bitrate"))
-#ifdef GOOD_VERSION
-			codec->param.rc.b_cbr = (*(int*)value) / 1000;
-#else
-			codec->param.rc.i_qp_constant = (*(int*)value) / 1000;
-#endif
+		{
+			codec->fix_bitrate = *(int*)value;
+//printf("set_parameter %d fix_bitrate=%d\n", __LINE__, *(int*)value);
+		}
 	}
 }
 
@@ -561,7 +612,8 @@ static quicktime_h264_codec_t* init_common(quicktime_video_map_t *vtrack,
 
 
 	codec = (quicktime_h264_codec_t*)codec_base->priv;
-	x264_param_default(&codec->param);
+//	x264_param_default(&codec->param);
+	x264_param_default_preset(&codec->param, "medium", NULL);
 
 	return codec;
 }

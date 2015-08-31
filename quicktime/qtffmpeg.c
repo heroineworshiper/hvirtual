@@ -256,7 +256,7 @@ static int decode_wrapper(quicktime_t *file,
 		ffmpeg->buffer_size = bytes + header_bytes; 
 		ffmpeg->work_buffer = calloc(1, ffmpeg->buffer_size + 100); 
 	} 
- 
+
 	if(header_bytes)
 		memcpy(ffmpeg->work_buffer, stsd_table->esds.mpeg4_header, header_bytes);
 
@@ -270,10 +270,11 @@ static int decode_wrapper(quicktime_t *file,
 // static FILE *out = 0;
 // if(!out) out = fopen("/tmp/debug.m2v", "w");
 // fwrite(ffmpeg->work_buffer, bytes + header_bytes, 1, out);
+//printf("decode_wrapper %d frame_number=%d result=%d\n", __LINE__, frame_number, result);
 
 
 	if(!result)
-	{ 
+	{
 
 
 // No way to determine if there was an error based on nonzero status.
@@ -328,6 +329,7 @@ static int decode_wrapper(quicktime_t *file,
 			bytes + header_bytes);
 
 
+//printf("decode_wrapper %d frame_number=%d result=%d\n", __LINE__, frame_number, result);
 
 		if(ffmpeg->picture[current_field].data[0])
 		{
@@ -339,7 +341,6 @@ static int decode_wrapper(quicktime_t *file,
 // sequence.
 			result = 1;
 		}
-//printf("decode_wrapper %d %d result=%d\n", __LINE__, frame_number, result);
 
 #ifdef ARCH_X86
 		asm("emms");
