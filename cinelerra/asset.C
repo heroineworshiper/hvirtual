@@ -90,7 +90,7 @@ int Asset::init_values()
 	height = 0;
 	strcpy(vcodec, QUICKTIME_YUV2);
 	strcpy(acodec, QUICKTIME_TWOS);
-	jpeg_quality = 100;
+	jpeg_quality = 80;
 	aspect_ratio = -1;
 
 	ampeg_bitrate = 256;
@@ -111,7 +111,7 @@ int Asset::init_values()
 	mp3_bitrate = 256000;
 
 
-	mp4a_bitrate = 256000;
+	mp4a_bitrate = 192000;
 	mp4a_quantqual = 100;
 
 
@@ -144,7 +144,7 @@ int Asset::init_values()
 	divx_use_deblocking = 1;
 
 	h264_bitrate = 2000000;
-	h264_quantizer = 5;
+	h264_quantizer = 28;
 	h264_fix_bitrate = 0;
 
 	ms_bitrate = 1000000;
@@ -504,7 +504,7 @@ int Asset::read_audio(FileXML *file)
 	channels = file->tag.get_property("CHANNELS", 2);
 // This is loaded from the index file after the EDL but this 
 // should be overridable in the EDL.
-	if(!sample_rate) sample_rate = file->tag.get_property("RATE", 44100);
+	if(!sample_rate) sample_rate = file->tag.get_property("RATE", 48000);
 	bits = file->tag.get_property("BITS", 16);
 	byte_order = file->tag.get_property("BYTE_ORDER", 1);
 	signed_ = file->tag.get_property("SIGNED", 1);
@@ -751,7 +751,7 @@ void Asset::load_defaults(BC_Hash *defaults,
 
 // Used by filefork
 		channels = GET_DEFAULT("CHANNELS", 2);
-		if(!sample_rate) sample_rate = GET_DEFAULT("RATE", 44100);
+		if(!sample_rate) sample_rate = GET_DEFAULT("RATE", 48000);
 		header = GET_DEFAULT("HEADER", 0);
 		audio_length = GET_DEFAULT("AUDIO_LENGTH", (int64_t)0);
 

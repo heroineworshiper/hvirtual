@@ -95,7 +95,7 @@ Preferences::Preferences()
 	brender_fragment = 1;
 	local_rate = 0.0;
 
-	use_tipwindow = 1;
+	use_tipwindow = 0;
 
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{

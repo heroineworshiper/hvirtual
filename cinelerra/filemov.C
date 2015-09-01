@@ -542,6 +542,12 @@ int FileMOV::can_copy_from(Asset *asset, int64_t position)
 		asset->format == FILE_AVI))
 	{
 //printf("FileMOV::can_copy_from %s %s\n", asset->vcodec, this->asset->vcodec);
+		if(match4(asset->vcodec, QUICKTIME_H264) ||
+			match4(this->asset->vcodec, QUICKTIME_H264))
+		{
+			return 0;
+		}
+		
 		if(match4(asset->vcodec, this->asset->vcodec))
 			return 1;
 // there are combinations where the same codec has multiple fourcc codes

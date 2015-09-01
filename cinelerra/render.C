@@ -609,6 +609,12 @@ int Render::load_defaults(Asset *asset)
 	strategy = mwindow->defaults->get("RENDER_STRATEGY", SINGLE_PASS);
 	load_mode = mwindow->defaults->get("RENDER_LOADMODE", LOADMODE_NEW_TRACKS);
 
+// some defaults which work
+	asset->video_data = 1;
+	asset->audio_data = 1;
+	asset->format = FILE_MOV;
+	strcpy(asset->acodec, QUICKTIME_MP4A);
+	strcpy(asset->vcodec, QUICKTIME_H264);
 
 	asset->load_defaults(mwindow->defaults, 
 		"RENDER_", 

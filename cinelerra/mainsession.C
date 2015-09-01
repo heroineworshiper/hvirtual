@@ -272,7 +272,7 @@ int MainSession::load_defaults(BC_Hash *defaults)
 	batchrender_w = defaults->get("BATCHRENDER_W", batchrender_w);
 	batchrender_h = defaults->get("BATCHRENDER_H", batchrender_h);
 
-	show_vwindow = defaults->get("SHOW_VWINDOW", 1);
+	show_vwindow = defaults->get("SHOW_VWINDOW", 0);
 	show_awindow = defaults->get("SHOW_AWINDOW", 1);
 	show_cwindow = defaults->get("SHOW_CWINDOW", 1);
 	show_lwindow = defaults->get("SHOW_LWINDOW", 0);

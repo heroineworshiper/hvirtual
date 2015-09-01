@@ -29,6 +29,7 @@
 #include "filexml.h"
 #include "overlayframe.inc"
 #include "playbackconfig.h"
+#include "quicktime.h"
 #include "recordconfig.h"
 #include "tracks.h"
 #include "workarounds.h"
@@ -57,7 +58,7 @@ EDLSession::EDLSession(EDL *edl)
 	strcpy(default_atransition, "");
 	strcpy(default_vtransition, "");
 	default_transition_length = 1.0;
-	folderlist_format = ASSETS_ICONS;
+	folderlist_format = FOLDERS_TEXT;
 	frame_rate = 25; // just has to be something by default
 	autos_follow_edits = 1; // this is needed for predictability
 	labels_follow_edits = 1;
@@ -164,7 +165,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	}
 	aconfig_duplex->load_defaults(defaults);
 	aconfig_in->load_defaults(defaults);
-	assetlist_format = defaults->get("ASSETLIST_FORMAT", ASSETS_ICONS);
+	assetlist_format = defaults->get("ASSETLIST_FORMAT", ASSETS_TEXT);
 	aspect_w = defaults->get("ASPECTW", (float)4);
 	aspect_h = defaults->get("ASPECTH", (float)3);
 	for(int i = 0; i < ASSET_COLUMNS; i++)
@@ -194,9 +195,9 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	typeless_keyframes = defaults->get("TYPELESS_KEYFRAMES", 0);
 	cwindow_dest = defaults->get("CWINDOW_DEST", 0);
 	cwindow_mask = defaults->get("CWINDOW_MASK", 0);
-	cwindow_meter = defaults->get("CWINDOW_METER", 1);
+	cwindow_meter = defaults->get("CWINDOW_METER", 0);
 	cwindow_operation = defaults->get("CWINDOW_OPERATION", 0);
-	cwindow_scrollbars = defaults->get("CWINDOW_SCROLLBARS", 1);
+	cwindow_scrollbars = defaults->get("CWINDOW_SCROLLBARS", 0);
 	cwindow_xscroll = defaults->get("CWINDOW_XSCROLL", 0);
 	cwindow_yscroll = defaults->get("CWINDOW_YSCROLL", 0);
 	cwindow_zoom = defaults->get("CWINDOW_ZOOM", (float)1);
@@ -210,7 +211,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	edit_handle_mode[2] = defaults->get("EDIT_HANDLE_MODE2", MOVE_NO_EDITS);
 	editing_mode = defaults->get("EDITING_MODE", EDITING_IBEAM);
 	enable_duplex = defaults->get("ENABLE_DUPLEX", 1);
-	folderlist_format = defaults->get("FOLDERLIST_FORMAT", FOLDERS_ICONS);
+	folderlist_format = defaults->get("FOLDERLIST_FORMAT", FOLDERS_TEXT);
 	frame_rate = defaults->get("FRAMERATE", (double)30000.0/1001);
 	frames_per_foot = defaults->get("FRAMES_PER_FOOT", (float)16);
 	interpolation_type = defaults->get("INTERPOLATION_TYPE", interpolation_type);
@@ -239,6 +240,18 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 //	record_speed = defaults->get("RECORD_SPEED", 24);
 	record_fragment_size = defaults->get("RECORD_FRAGMENT_SIZE", 2048);
 	record_write_length = defaults->get("RECORD_WRITE_LENGTH", 131072);
+	
+	
+// set some defaults that work
+	recording_format->video_data = 1;
+	recording_format->audio_data = 1;
+	recording_format->format = FILE_MOV;
+	strcpy(recording_format->acodec, QUICKTIME_TWOS);
+	strcpy(recording_format->vcodec, QUICKTIME_JPEG);
+	recording_format->channels = 2;
+	recording_format->sample_rate = 48000;
+	recording_format->bits = 16;
+	recording_format->dither = 0;
 	recording_format->load_defaults(defaults,
 		"RECORD_", 
 		1,
@@ -246,7 +259,8 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 		1,
 		1,
 		1);
-	safe_regions = defaults->get("SAFE_REGIONS", 1);
+
+	safe_regions = defaults->get("SAFE_REGIONS", 0);
 	sample_rate = defaults->get("SAMPLERATE", 48000);
 	scrub_speed = defaults->get("SCRUB_SPEED", (float)2);
 	show_assets = defaults->get("SHOW_ASSETS", 1);
@@ -270,7 +284,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	video_tracks = defaults->get("VTRACKS", 1);
 	video_write_length = defaults->get("VIDEO_WRITE_LENGTH", 30);
 	view_follows_playback = defaults->get("VIEW_FOLLOWS_PLAYBACK", 1);
-	vwindow_meter = defaults->get("VWINDOW_METER", 1);
+	vwindow_meter = defaults->get("VWINDOW_METER", 0);
 
 
 	decode_subtitles = defaults->get("DECODE_SUBTITLES", decode_subtitles);
