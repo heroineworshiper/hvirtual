@@ -281,7 +281,7 @@ static void common_encode(quicktime_t *file,
 		if(is_keyframe)
 		{
 			quicktime_insert_keyframe(file, 
-				vtrack->current_position, 
+				vtrack->current_chunk - 1, 
 				track);
 		}
 		vtrack->current_chunk++;
@@ -434,12 +434,16 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
     x264_nal_t *nals;
 	int nnal = 0;
 	int size = 0;
+
+// printf("encode current_position=%lld current_chunk=%lld\n", 
+// vtrack->current_position,
+// vtrack->current_chunk);
+
 	size = x264_encoder_encode(codec->encoder[current_field], 
 		&nals, 
 		&nnal, 
 		codec->pic[current_field], 
 		&pic_out);
-
 
 	common_encode(file, track, size, nals, nnal, &pic_out);
 
@@ -475,7 +479,7 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 		width,
 		height,
 		stsd_table);
-	
+
 
 	if(codec->decoder) return quicktime_ffmpeg_decode(codec->decoder,
 		file, 
