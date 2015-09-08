@@ -329,7 +329,7 @@ static int decode_wrapper(quicktime_t *file,
 			bytes + header_bytes);
 
 
-printf("decode_wrapper %d frame_number=%d result=%d\n", __LINE__, frame_number, result);
+//printf("decode_wrapper %d frame_number=%d result=%d\n", __LINE__, frame_number, result);
 
 		if(ffmpeg->picture[current_field].data[0])
 		{
