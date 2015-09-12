@@ -223,7 +223,7 @@ float EdgeUnit::edge_detect(float *data, float max, int do_max)
 	return result;
 }
 
-#define EDGE_MACRO(type, max, components) \
+#define EDGE_MACRO(type, max, components, is_yuv) \
 { \
 	type **input_rows = (type**)server->src->get_rows(); \
 	type **output_rows = (type**)server->dst->get_rows(); \
@@ -244,11 +244,23 @@ float EdgeUnit::edge_detect(float *data, float max, int do_max)
 						{ \
 							kernel[3 * kernel_y + kernel_x] = \
 								(type)input_rows[y - 1 + kernel_y][(x - 1 + kernel_x) * components + chan]; \
+ \
+ 							if(is_yuv && chan > 0) \
+							{ \
+								kernel[3 * kernel_y + kernel_x] -= 0x80; \
+							} \
+ \
 						} \
 					} \
 /* do the business */ \
 					output_rows[y][x * components + chan] = edge_detect(kernel, max, sizeof(type) < 4); \
+ 					if(is_yuv && chan > 0) \
+					{ \
+						output_rows[y][x * components + chan] += 0x80; \
+					} \
+ \
 				} \
+ \
 				if(components == 4) output_rows[y][x * components + 3] = \
 					input_rows[y][x * components + 3]; \
 			} \
@@ -267,10 +279,18 @@ float EdgeUnit::edge_detect(float *data, float max, int do_max)
 							CLAMP(in_x, 0, w - 1); \
 							kernel[3 * kernel_y + kernel_x] = \
 								(type)input_rows[in_y][in_x * components + chan]; \
+ 							if(is_yuv && chan > 0) \
+							{ \
+								kernel[3 * kernel_y + kernel_x] -= 0x80; \
+							} \
 						} \
 					} \
 /* do the business */ \
 					output_rows[y][x * components + chan] = edge_detect(kernel, max, sizeof(type) < 4); \
+ 					if(is_yuv && chan > 0) \
+					{ \
+						output_rows[y][x * components + chan] += 0x80; \
+					} \
 				} \
 				if(components == 4) output_rows[y][x * components + 3] = \
 					input_rows[y][x * components + 3]; \
@@ -290,21 +310,24 @@ void EdgeUnit::process_package(LoadPackage *package)
 	switch(server->src->get_color_model())
 	{
 		case BC_RGB_FLOAT:
-			EDGE_MACRO(float, 1, 3);
+			EDGE_MACRO(float, 1, 3, 0);
 			break;
 		case BC_RGBA_FLOAT:
-			EDGE_MACRO(float, 1, 4);
+			EDGE_MACRO(float, 1, 4, 0);
 			break;
 		case BC_RGB888:
+			EDGE_MACRO(unsigned char, 0xff, 3, 0);
+			break;
 		case BC_YUV888:
-			EDGE_MACRO(unsigned char, 0xff, 3);
+			EDGE_MACRO(unsigned char, 0xff, 3, 1);
 			break;
 		case BC_RGBA8888:
+			EDGE_MACRO(unsigned char, 0xff, 4, 0);
+			break;
 		case BC_YUVA8888:
-			EDGE_MACRO(unsigned char, 0xff, 4);
-			break;		
+			EDGE_MACRO(unsigned char, 0xff, 4, 1);
+			break;
 	}
-
 }
 
 

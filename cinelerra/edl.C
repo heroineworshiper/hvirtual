@@ -1533,6 +1533,7 @@ void EDL::remove_vwindow_edl(EDL *edl)
 	if(vwindow_edls.number_of(edl) >= 0)
 	{
 		edl->Garbage::remove_user();
+
 		vwindow_edls.remove(edl);
 	}
 }

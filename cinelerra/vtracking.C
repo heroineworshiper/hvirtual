@@ -49,7 +49,6 @@ PlaybackEngine* VTracking::get_playback_engine()
 
 void VTracking::update_tracker(double position)
 {
-//printf("VTracking::update_tracker %ld\n", position);
 	vwindow->gui->lock_window("VTracking::update_tracker");
 	vwindow->get_edl()->local_session->set_selectionstart(position);
 	vwindow->get_edl()->local_session->set_selectionend(position);

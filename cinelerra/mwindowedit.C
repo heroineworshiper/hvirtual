@@ -2136,17 +2136,26 @@ void MWindow::redo_entry(BC_WindowBase *calling_window_gui)
 
 	for(int i = 0; i < vwindows.size(); i++)
 	{
-		vwindows.get(i)->playback_engine->que->send_command(STOP,
-			CHANGE_NONE, 
-			0,
-			0);
-		vwindows.get(i)->playback_engine->interrupt_playback(0);
+		if(vwindows.get(i)->is_running())
+		{
+			vwindows.get(i)->playback_engine->que->send_command(STOP,
+				CHANGE_NONE, 
+				0,
+				0);
+			vwindows.get(i)->playback_engine->interrupt_playback(0);
+		}
 	}
 
 	cwindow->gui->lock_window("MWindow::redo_entry");
 	for(int i = 0; i < vwindows.size(); i++)
 	{
-		vwindows.get(i)->gui->lock_window("MWindow::redo_entry 2");
+		if(vwindows.get(i)->is_running())
+		{
+			if (calling_window_gui != vwindows.get(i)->gui)
+			{
+				vwindows.get(i)->gui->lock_window("MWindow::redo_entry 2");
+			}
+		}
 	}
 	gui->lock_window();
 
@@ -2167,8 +2176,13 @@ void MWindow::redo_entry(BC_WindowBase *calling_window_gui)
 
 	for(int i = 0; i < vwindows.size(); i++)
 	{
-		if (calling_window_gui != vwindows.get(i)->gui)
-			vwindows.get(i)->gui->unlock_window();
+		if(vwindows.get(i)->is_running())
+		{
+			if (calling_window_gui != vwindows.get(i)->gui)
+			{
+				vwindows.get(i)->gui->unlock_window();
+			}
+		}
 	}
 
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
@@ -2426,20 +2440,29 @@ void MWindow::undo_entry(BC_WindowBase *calling_window_gui)
 		0);
 	cwindow->playback_engine->interrupt_playback(0);
 
-
+printf("MWindow::undo_entry %d %d\n", __LINE__, vwindows.size());
 	for(int i = 0; i < vwindows.size(); i++)
 	{
-		vwindows.get(i)->playback_engine->que->send_command(STOP,
-			CHANGE_NONE, 
-			0,
-			0);
-		vwindows.get(i)->playback_engine->interrupt_playback(0);
+		if(vwindows.get(i)->is_running())
+		{
+			vwindows.get(i)->playback_engine->que->send_command(STOP,
+				CHANGE_NONE, 
+				0,
+				0);
+			vwindows.get(i)->playback_engine->interrupt_playback(0);
+		}
 	}
 
 	cwindow->gui->lock_window("MWindow::undo_entry 1");
 	for(int i = 0; i < vwindows.size(); i++)
 	{
-		vwindows.get(i)->gui->lock_window("MWindow::undo_entry 4");
+		if(vwindows.get(i)->is_running())
+		{
+			if (calling_window_gui != vwindows.get(i)->gui)
+			{
+				vwindows.get(i)->gui->lock_window("MWindow::undo_entry 4");
+			}
+		}
 	}
 	gui->lock_window("MWindow::undo_entry 2");
 
@@ -2463,8 +2486,13 @@ void MWindow::undo_entry(BC_WindowBase *calling_window_gui)
 
 	for(int i = 0; i < vwindows.size(); i++)
 	{
-		if (calling_window_gui != vwindows.get(i)->gui)
-			vwindows.get(i)->gui->unlock_window();
+		if(vwindows.get(i)->is_running())
+		{
+			if (calling_window_gui != vwindows.get(i)->gui)
+			{
+				vwindows.get(i)->gui->unlock_window();
+			}
+		}
 	}
 	
 	if (calling_window_gui != gui)

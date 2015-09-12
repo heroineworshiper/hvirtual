@@ -25,6 +25,7 @@
 #include "awindow.h"
 #include "awindowgui.h"
 #include "awindowmenu.h"
+#include "bcsignals.h"
 #include "clipedit.h"
 #include "cwindow.h"
 #include "cwindowgui.h"
@@ -234,9 +235,13 @@ int AssetPopupView::handle_event()
 {
 	VWindow *vwindow = 0;
 	if(!mwindow->vwindows.size())
+	{
 		vwindow = mwindow->new_viewer(1);
+	}
 	else
+	{
 		vwindow = mwindow->vwindows.get(DEFAULT_VWINDOW);
+	}
 
 	if(!vwindow->is_running())
 	{

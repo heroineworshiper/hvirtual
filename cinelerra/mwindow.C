@@ -1851,6 +1851,7 @@ void MWindow::show_vwindow()
 	int total_running = 0;
 	session->show_vwindow = 1;
 
+//printf("MWindow::show_vwindow %d %d\n", __LINE__, vwindows.size());
 
 // Raise all windows which are visible
 	for(int j = 0; j < vwindows.size(); j++)
@@ -1867,7 +1868,6 @@ void MWindow::show_vwindow()
 		}
 	}
 
-//printf("MWindow::show_vwindow %d %d\n", __LINE__, vwindows.size());
 // If no windows visible but thread exists, start it
 	if(!total_running)
 	{
@@ -1880,7 +1880,7 @@ void MWindow::show_vwindow()
 // No visible windows & no existing thread
 	if(!vwindows.size())
 	{
-		vwindows.append(new_viewer(1));
+		new_viewer(1);
 	}
 
 	gui->mainmenu->show_vwindow->set_checked(1);

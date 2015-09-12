@@ -21,6 +21,7 @@
 
 #include "asset.h"
 #include "assets.h"
+#include "bcsignals.h"
 #include "clip.h"
 #include "clipedit.h"
 #include "bchash.h"
@@ -67,12 +68,11 @@ VWindow::~VWindow()
 
 void VWindow::delete_source(int do_main_edl, int update_gui)
 {
+//printf("VWindow::delete_source %d %d %p %p\n", __LINE__, gui->get_window_lock(), edl, indexable);
 	if(do_main_edl) mwindow->edl->remove_vwindow_edl(get_edl());
-
 
 	if(edl)
 	{
-//printf("VWindow::delete_source %d %p\n", __LINE__, edl);
 		edl->Garbage::remove_user();
 //printf("VWindow::delete_source %d\n", __LINE__);
 		edl = 0;
@@ -87,10 +87,10 @@ void VWindow::delete_source(int do_main_edl, int update_gui)
 
 //printf("VWindow::delete_source %d\n", __LINE__);
 	if(indexable) indexable->Garbage::remove_user();
-//printf("VWindow::delete_source %d\n", __LINE__);
 	indexable = 0;
 
 	if(update_gui) gui->change_source(0, _("Viewer"));
+//printf("VWindow::delete_source %d\n", __LINE__);
 }
 
 
@@ -103,21 +103,21 @@ void VWindow::create_objects()
 }
 
 
-void VWindow::handle_close_event(int result)
+void VWindow::handle_done_event(int result)
 {
-	delete_source(1, 0);
 	delete playback_engine;
 	delete playback_cursor;
 	delete clip_edit;
 	playback_engine = 0;
 	playback_cursor = 0;
 	clip_edit = 0;
+	delete_source(1, 0);
 
 	int total = 0;
 	for(int i = 0; i < mwindow->vwindows.size(); i++)
 	{
 
-//printf("VWindow::handle_close_event %d %d\n", __LINE__, mwindow->vwindows.get(i)->is_running());
+//printf("VWindow::handle_done_event %d %d\n", __LINE__, mwindow->vwindows.get(i)->is_running());
 		if(mwindow->vwindows.get(i)->is_running()) total++;
 	}
 // subtract ourselves
