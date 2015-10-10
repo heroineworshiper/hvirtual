@@ -419,12 +419,12 @@ void VWindowGUI::drag_motion()
 		cursor_y < canvas->y + canvas->h);
 
 
-printf("VWindowGUI::drag_motion 1 %d %d %d %d %d\n", 
-__LINE__, 
-mwindow->session->vcanvas_highlighted,
-get_cursor_over_window(),
-cursor_x,
-cursor_y);
+// printf("VWindowGUI::drag_motion 1 %d %d %d %d %d\n", 
+// __LINE__, 
+// mwindow->session->vcanvas_highlighted,
+// get_cursor_over_window(),
+// cursor_x,
+// cursor_y);
 
 
 	if(old_status != mwindow->session->vcanvas_highlighted)

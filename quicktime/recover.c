@@ -19,12 +19,8 @@
 #define FSEEK fseeko64
 
 
-//#define WIDTH 720
-//#define HEIGHT 480
-//#define WIDTH 960
-//#define HEIGHT 540
-#define WIDTH 320
-#define HEIGHT 240
+#define WIDTH 160
+#define HEIGHT 120
 
 //#define FRAMERATE (double)30000/1001
 #define FRAMERATE (double)30
@@ -339,11 +335,11 @@ int main(int argc, char *argv[])
 		HEIGHT, 
 		FRAMERATE, 
 		VCODEC);
-	quicktime_set_audio(video_out, 
-		CHANNELS, 
-		SAMPLERATE, 
-		BITS, 
-		ACODEC);
+// 	quicktime_set_audio(video_out, 
+// 		CHANNELS, 
+// 		SAMPLERATE, 
+// 		BITS, 
+// 		ACODEC);
 
 
 	if(is_h264)
