@@ -20,6 +20,7 @@
  */
 
 #include "automation.h"
+#include "cicolors.h"
 #include "clip.h"
 #include "condition.h"
 #include "cpanel.h"
@@ -481,7 +482,7 @@ CWindowEyedropGUI::CWindowEyedropGUI(MWindow *mwindow, CWindowTool *thread)
  	thread,
 	PROGRAM_NAME ": Color",
 	200,
-	200)
+	250)
 {
 }
 
@@ -496,8 +497,8 @@ void CWindowEyedropGUI::create_objects()
 	int y = margin;
 	int x2 = 70;
 	lock_window("CWindowEyedropGUI::create_objects");
-	BC_Title *title1, *title2, *title3, *title4;
-	add_subwindow(title4 = new BC_Title(x, y, "Radius:"));
+	BC_Title *title1, *title2, *title3, *title4, *title5, *title6, *title7;
+	add_subwindow(title7 = new BC_Title(x, y, "Radius:"));
 	y += BC_TextBox::calculate_h(this, MEDIUMFONT, 1, 1) + margin;
 	
 	add_subwindow(title1 = new BC_Title(x, y, "Red:"));
@@ -505,11 +506,18 @@ void CWindowEyedropGUI::create_objects()
 	add_subwindow(title2 = new BC_Title(x, y, "Green:"));
 	y += title2->get_h() + margin;
 	add_subwindow(title3 = new BC_Title(x, y, "Blue:"));
+	y += title3->get_h() + margin;
+
+	add_subwindow(title4 = new BC_Title(x, y, "Y:"));
+	y += title4->get_h() + margin;
+	add_subwindow(title5 = new BC_Title(x, y, "U:"));
+	y += title5->get_h() + margin;
+	add_subwindow(title6 = new BC_Title(x, y, "V:"));
 
 
 	radius = new CWindowCoord(this,
 		x2,
-		title4->get_y(),
+		title7->get_y(),
 		mwindow->edl->session->eyedrop_radius);
 	radius->create_objects();
 	radius->set_boundaries((int64_t)0, (int64_t)255);
@@ -519,7 +527,11 @@ void CWindowEyedropGUI::create_objects()
 	add_subwindow(green = new BC_Title(x2, title2->get_y(), "0"));
 	add_subwindow(blue = new BC_Title(x2, title3->get_y(), "0"));
 
-	y = blue->get_y() + blue->get_h() + margin;
+	add_subwindow(this->y = new BC_Title(x2, title4->get_y(), "0"));
+	add_subwindow(this->u = new BC_Title(x2, title5->get_y(), "0"));
+	add_subwindow(this->v = new BC_Title(x2, title6->get_y(), "0"));
+
+	y = title6->get_y() + this->v->get_h() + margin;
 	add_subwindow(sample = new BC_SubWindow(x, y, 50, 50));
 	update();
 	unlock_window();
@@ -532,6 +544,17 @@ void CWindowEyedropGUI::update()
 	red->update(mwindow->edl->local_session->red);
 	green->update(mwindow->edl->local_session->green);
 	blue->update(mwindow->edl->local_session->blue);
+
+	float y, u, v;
+	YUV::rgb_to_yuv_f(mwindow->edl->local_session->red, 
+		mwindow->edl->local_session->green, 
+		mwindow->edl->local_session->blue, 
+		y, 
+		u, 
+		v);
+	this->y->update(y);
+	this->u->update(u);
+	this->v->update(v);
 
 	int red = (int)(CLIP(mwindow->edl->local_session->red, 0, 1) * 0xff);
 	int green = (int)(CLIP(mwindow->edl->local_session->green, 0, 1) * 0xff);

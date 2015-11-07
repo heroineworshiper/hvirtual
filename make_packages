@@ -16,7 +16,7 @@
 # 5) Freshmeat
 
 
-DEST=/usr/src/redhat
+DEST=/usr/src
 SRC=`pwd`
 ARCH=`uname -m`
 
@@ -28,7 +28,7 @@ fi
 
 
 
-CI_VERSION=4.6
+CI_VERSION=4.6.1
 MIX_VERSION=1.2
 XMOVIE_VERSION=1.9.13
 LIBMPEG3_VERSION=1.8
@@ -70,7 +70,6 @@ DEST_FIREHOSE=$DEST/$FIREHOSE_NAME
 echo "Cleaning"
 make clean
 find \( -name *.d \
-	-o -name *.exr \
 	-o -name .xvpics \
 	-o -name core \) -exec rm -rf {} \; -prune
 rm -r bin/*
@@ -128,7 +127,14 @@ cd $DEST/
 find $CI_NAME -name .svn -exec rm -rf {} \; -prune
 # dependancies are created in some clean rules
 find $CI_NAME -name '*.d' -exec rm {} \;
-tar jcf SOURCES/$CI_NAME-src.tar.bz2 $CI_NAME
+tar Jcf $CI_NAME-src.tar.xz $CI_NAME
+
+
+
+
+exit
+
+
 
 
 echo "Making spec file"

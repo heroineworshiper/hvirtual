@@ -37,6 +37,11 @@ typedef struct
 
 // Last frame decoded
 	int64_t last_frame[FIELDS];
+
+// Frame being read from file
+// A few ahead of last_frame 
+	int64_t read_position[FIELDS];
+
 // Rounded dimensions
 	int width_i;
 	int height_i;

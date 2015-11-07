@@ -238,7 +238,7 @@ public:
 	void update();
 
 	CWindowCoord *radius;
-	BC_Title *red, *green, *blue;
+	BC_Title *red, *green, *blue, *y, *u, *v;
 	BC_SubWindow *sample;
 };
 

@@ -46,13 +46,13 @@ static void dump_context(void *ptr)
 	printf("    frame_number=%d\n", context->frame_number);
 	printf("    real_pict_num=%d\n", context->real_pict_num);
 	printf("    delay=%d\n", context->delay);
-	printf("    qcompress=%d\n", context->qcompress);
-	printf("    qblur=%d\n", context->qblur);
+	printf("    qcompress=%d\n", (int)context->qcompress);
+	printf("    qblur=%d\n", (int)context->qblur);
 	printf("    qmin=%d\n", context->qmin);
 	printf("    qmax=%d\n", context->qmax);
 	printf("    max_qdiff=%d\n", context->max_qdiff);
 	printf("    max_b_frames=%d\n", context->max_b_frames);
-	printf("    b_quant_factor=%d\n", context->b_quant_factor);
+	printf("    b_quant_factor=%d\n", (int)context->b_quant_factor);
 	printf("    b_frame_strategy=%d\n", context->b_frame_strategy);
 	printf("    hurry_up=%d\n", context->hurry_up);
 	printf("    rtp_payload_size=%d\n", context->rtp_payload_size);
@@ -67,7 +67,7 @@ static void dump_context(void *ptr)
 	printf("    slice_count=%d\n", context->slice_count);
 	printf("    slice_offset=%p\n", context->slice_offset);
 	printf("    error_concealment=%d\n", context->error_concealment);
-	printf("    dsp_mask=%p\n", context->dsp_mask);
+	printf("    dsp_mask=%08x\n", (int)context->dsp_mask);
 //	printf("    bits_per_sample=%d\n", context->bits_per_sample);
 	printf("    slice_flags=%d\n", context->slice_flags);
 	printf("    xvmc_acceleration=%d\n", context->xvmc_acceleration);
@@ -224,7 +224,7 @@ void quicktime_delete_ffmpeg(quicktime_ffmpeg_t *ptr)
 static int decode_wrapper(quicktime_t *file,
 	quicktime_video_map_t *vtrack,
 	quicktime_ffmpeg_t *ffmpeg,
-	int frame_number, 
+	int64_t current_position,
 	int current_field, 
 	int track,
 	int drop_it)
@@ -236,9 +236,12 @@ static int decode_wrapper(quicktime_t *file,
  	char *compressor = vtrack->track->mdia.minf.stbl.stsd.table[0].format;
 	quicktime_trak_t *trak = vtrack->track;
 	quicktime_stsd_table_t *stsd_table = &trak->mdia.minf.stbl.stsd.table[0];
+	int64_t frame_number = ffmpeg->read_position[current_field];
 
-// printf("decode_wrapper frame_number=%d current_field=%d drop_it=%d\n", 
+// printf("decode_wrapper %d frame_number=%ld current_position=%ld current_field=%d drop_it=%d\n", 
+// __LINE__,
 // frame_number, 
+// current_position,
 // current_field,
 // drop_it);
 
@@ -250,12 +253,12 @@ static int decode_wrapper(quicktime_t *file,
 		header_bytes = stsd_table->esds.mpeg4_header_size;
 	}
 
-	if(!ffmpeg->work_buffer || ffmpeg->buffer_size < bytes + header_bytes) 
-	{ 
+	if(!ffmpeg->work_buffer || ffmpeg->buffer_size < bytes + header_bytes)
+	{
 		if(ffmpeg->work_buffer) free(ffmpeg->work_buffer); 
 		ffmpeg->buffer_size = bytes + header_bytes; 
 		ffmpeg->work_buffer = calloc(1, ffmpeg->buffer_size + 100); 
-	} 
+	}
 
 	if(header_bytes)
 		memcpy(ffmpeg->work_buffer, stsd_table->esds.mpeg4_header, header_bytes);
@@ -265,7 +268,9 @@ static int decode_wrapper(quicktime_t *file,
 	if(!quicktime_read_data(file, 
 		ffmpeg->work_buffer + header_bytes, 
 		bytes))
+	{
 		result = -1;
+	}
 
 // static FILE *out = 0;
 // if(!out) out = fopen("/tmp/debug.m2v", "w");
@@ -329,7 +334,11 @@ static int decode_wrapper(quicktime_t *file,
 			bytes + header_bytes);
 
 
-//printf("decode_wrapper %d frame_number=%d result=%d\n", __LINE__, frame_number, result);
+// printf("decode_wrapper %d frame_number=%d got_picture=%d ptr=%p\n", 
+// __LINE__, 
+// frame_number, 
+// got_picture,
+// ffmpeg->picture[current_field].data[0]);
 
 		if(ffmpeg->picture[current_field].data[0])
 		{
@@ -345,7 +354,11 @@ static int decode_wrapper(quicktime_t *file,
 #ifdef ARCH_X86
 		asm("emms");
 #endif
+		ffmpeg->read_position[current_field] += ffmpeg->fields;
 	}
+
+// reset official position to what it was before reading the codec position
+	vtrack->current_position = current_position;
 
 	return result;
 }
@@ -397,6 +410,11 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 	int seeking_done = 0;
 	int i;
 
+// printf("quicktime_ffmpeg_decode %d current_position=%ld last_frame=%ld\n", 
+// __LINE__, 
+// vtrack->current_position,
+// ffmpeg->last_frame[current_field]);
+
 // Try frame cache
 	result = quicktime_get_frame(vtrack->frame_cache,
 		vtrack->current_position,
@@ -413,7 +431,6 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // MPEG-4
 //		pthread_mutex_lock(&ffmpeg_lock);
 
-//printf("quicktime_ffmpeg_decode 1 %d\n", ffmpeg->last_frame[current_field]);
 
 		if(ffmpeg->last_frame[current_field] == -1 &&
 			ffmpeg->ffmpeg_id != CODEC_ID_H264)
@@ -467,16 +484,16 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // For MPEG-4, get another keyframe before first keyframe.
 // The Sanyo tends to glitch with only 1 keyframe.
 // Not enough memory.
-			if( 0 /* frame1 > 0 && ffmpeg->ffmpeg_id == CODEC_ID_MPEG4 */)
-			{
-				do
-				{
-					frame1 = quicktime_get_keyframe_before(file,
-						frame1 - 1,
-						track);
-				}while(frame1 > 0 && (frame1 & ffmpeg->fields) != current_field);
-//printf("quicktime_ffmpeg_decode 2 %d\n", frame1);
-			}
+// 			if(frame1 > 0 && ffmpeg->ffmpeg_id == CODEC_ID_MPEG4)
+// 			{
+// 				do
+// 				{
+// 					frame1 = quicktime_get_keyframe_before(file,
+// 						frame1 - 1,
+// 						track);
+// 				}while(frame1 > 0 && (frame1 & ffmpeg->fields) != current_field);
+// //printf("quicktime_ffmpeg_decode 2 %d\n", frame1);
+// 			}
 
 // Keyframe is before last decoded frame and current frame is after last decoded
 // frame, so instead of rerendering from the last keyframe we can rerender from
@@ -489,6 +506,9 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 			}
 
 			first_frame = frame1;
+
+// reset read position in file
+			ffmpeg->read_position[current_field] = frame1;
 
 /*
  * printf("quicktime_ffmpeg_decode 2 last_frame=%d frame1=%d frame2=%d\n", 
@@ -508,9 +528,16 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // Don't drop if we want to cache it
 					0 /* (frame1 < frame2) */);
 
-				if(ffmpeg->picture[current_field].data[0] &&
+// read error
+				if(result < 0)
+				{
+					break;
+				}
+
+				if(result == 0 && 
+					(ffmpeg->ffmpeg_id == CODEC_ID_H264) ||
 // FFmpeg seems to glitch out if we include the first frame.
-					frame1 > first_frame)
+					(ffmpeg->ffmpeg_id != CODEC_ID_H264 && frame1 > first_frame))
 				{
 					int y_size = ffmpeg->picture[current_field].linesize[0] * ffmpeg->height_i;
 					int u_size = y_size / get_chroma_factor(ffmpeg, current_field);
@@ -523,43 +550,42 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 						y_size,
 						u_size,
 						v_size);
+
+// only advance if it decoded a frame
+					if(ffmpeg->ffmpeg_id == CODEC_ID_H264)
+					{
+						frame1 += ffmpeg->fields;
+					}
 				}
 
-// For some codecs,
-// may need to do the same frame twice if it is the first I frame.
-// 				if(do_i_frame)
-// 				{
-// printf("quicktime_ffmpeg_decode %d\n", __LINE__);
-// 					result = decode_wrapper(file, 
-// 						vtrack, 
-// 						ffmpeg, 
-// 						frame1, 
-// 						current_field, 
-// 						track,
-// 						0);
-// 					do_i_frame = 0;
-// 				}
-				frame1 += ffmpeg->fields;
+// always advance for other codecs
+				if(ffmpeg->ffmpeg_id != CODEC_ID_H264)
+				{
+					frame1 += ffmpeg->fields;
+				}
 			}
 
 			vtrack->current_position = frame2;
 			seeking_done = 1;
 		}
 
-// Not decoded in seeking process
+// Not decoded in seeking process.  Decode until a valid frame appears.
 		if(!seeking_done &&
 // Same frame not requested
 			vtrack->current_position != ffmpeg->last_frame[current_field])
 		{
-//printf("quicktime_ffmpeg_decode %d\n", __LINE__);
-			result = decode_wrapper(file, 
-				vtrack, 
-				ffmpeg, 
-				vtrack->current_position, 
-				current_field, 
-				track,
-				0);
+			do
+			{
+				result = decode_wrapper(file, 
+					vtrack, 
+					ffmpeg, 
+					vtrack->current_position, 
+					current_field, 
+					track,
+					0);
+			} while(result > 0);
 		}
+//printf("quicktime_ffmpeg_decode %d current_position=%ld\n", __LINE__, vtrack->current_position);
 
 //		pthread_mutex_unlock(&ffmpeg_lock);
 
