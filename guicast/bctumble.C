@@ -139,7 +139,8 @@ int BC_Tumbler::repeat_event(int64_t duration)
 	{
 //printf("BC_Tumbler::repeat_event 2\n");
 		repeat_count++;
-		if(repeat_count == 2) return 0;
+// delay the 1st repeat
+		if(repeat_count > 1 && repeat_count < 5) return 0;
 		if(status == TUMBLETOP_DN)
 		{
 			handle_up_event();
