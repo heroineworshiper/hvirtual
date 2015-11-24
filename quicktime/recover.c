@@ -196,6 +196,8 @@ int main(int argc, char *argv[])
 	int64_t *field_table;
 	int64_t field_size;
 	int64_t field_allocation;
+	int width = WIDTH;
+	int height = HEIGHT;
 
 // Dump codec settings
 	printf("Codec settings:\n"
@@ -292,6 +294,51 @@ int main(int argc, char *argv[])
 	
 	fseek(in, STARTING_OFFSET, SEEK_SET);
 	
+	
+	// try to get width & height
+	if(!is_h264)
+	{
+		int bytes_read = fread(search_buffer, 1, SEARCH_FRAGMENT, in);
+		int got_it = 0;
+		for(i = 0; i < bytes_read - 0x20; i++)
+		{
+			if(search_buffer[i] == 0xff &&
+				search_buffer[i + 1] == 0xd8 &&
+				search_buffer[i + 2] == 0xff &&
+				search_buffer[i + 3] == 0xe0
+#ifdef USE_JFIF					
+				&& search_buffer[i + 6] == 'J' &&
+				search_buffer[i + 7] == 'F' &&
+				search_buffer[i + 8] == 'I' &&
+				search_buffer[i + 9] == 'F'
+#endif
+			)
+			{
+				for(i += 0x14; i < bytes_read - 0x9; i++)
+				{
+					if(search_buffer[i] == 0xff &&
+						search_buffer[i + 1] == 0xc0)
+					{
+						height = (search_buffer[i + 5] << 8) |
+							search_buffer[i + 6];
+						width = (search_buffer[i + 7] << 8) |
+							search_buffer[i + 8];
+						got_it = 1;
+						break;
+					}
+				}
+				break;
+			}
+		}
+		
+		if(got_it)
+		{
+			printf("main %d: detected w=%d h=%d\n", __LINE__, width, height);
+		}
+	}
+
+
+	fseek(in, STARTING_OFFSET, SEEK_SET);
 
 
 #ifndef READ_ONLY
@@ -331,8 +378,8 @@ int main(int argc, char *argv[])
 
 	quicktime_set_video(video_out, 
 		1, 
-		WIDTH, 
-		HEIGHT, 
+		width, 
+		height, 
 		FRAMERATE, 
 		VCODEC);
 // 	quicktime_set_audio(video_out, 
@@ -377,7 +424,7 @@ int main(int argc, char *argv[])
 	while(ftell_byte < file_size)
 	{
 		current_byte = ftell_byte;
-		fread(search_buffer, SEARCH_FRAGMENT, 1, in);
+		int temp = fread(search_buffer, SEARCH_FRAGMENT, 1, in);
 		ftell_byte = current_byte + SEARCH_FRAGMENT - SEARCH_PAD;
 		FSEEK(in, ftell_byte, SEEK_SET);
 
@@ -533,7 +580,7 @@ int main(int argc, char *argv[])
 						{
 							int frame_size = image_end - image_start;
 							FSEEK(in, image_start, SEEK_SET);
-							fread(frame_buffer, frame_size, 1, in);
+							int temp = fread(frame_buffer, frame_size, 1, in);
 							FSEEK(in, ftell_byte, SEEK_SET);
 
 							int new_frame_size = get_h264_size(frame_buffer, frame_size);
@@ -551,7 +598,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							printf("%d: Possibly lost image between %llx and %llx\n", 
+							printf("%d: Possibly lost image between %lx and %lx\n", 
 								__LINE__,
 								image_start,
 								image_end);
@@ -584,7 +631,7 @@ int main(int argc, char *argv[])
 							if(audio_size > SEARCH_FRAGMENT)
 								audio_size = SEARCH_FRAGMENT;
 							FSEEK(in, prev_frame_end, SEEK_SET);
-							fread(frame_buffer, audio_size, 1, in);
+							int temp = fread(frame_buffer, audio_size, 1, in);
 							FSEEK(in, ftell_byte, SEEK_SET);
 //							fwrite(frame_buffer, audio_size, 1, audio_out);
 
@@ -633,7 +680,7 @@ int main(int argc, char *argv[])
 
 						int frame_size = image_end - image_start;
 						FSEEK(in, image_start, SEEK_SET);
-						fread(frame_buffer, frame_size, 1, in);
+						int temp = fread(frame_buffer, frame_size, 1, in);
 						FSEEK(in, ftell_byte, SEEK_SET);
 						quicktime_write_frame(video_out, 
 							frame_buffer, 
@@ -645,7 +692,7 @@ int main(int argc, char *argv[])
 
 if(!(start_size % 100))
 {
-printf("Got %d frames. %d%%\n", 
+printf("Got %d frames. %ld%%\n", 
 start_size, 
 current_byte * (int64_t)100 / file_size);
 fflush(stdout);
