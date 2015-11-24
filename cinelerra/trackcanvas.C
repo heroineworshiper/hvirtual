@@ -1672,19 +1672,28 @@ void TrackCanvas::draw_loop_points()
 //printf("TrackCanvas::draw_loop_points 7\n");
 }
 
-void TrackCanvas::draw_brender_start()
+void TrackCanvas::draw_brender_range()
 {
 	if(mwindow->preferences->use_brender)
 	{
-		int64_t x = Units::round(mwindow->edl->session->brender_start *
+		int64_t x1 = Units::round(mwindow->edl->session->brender_start *
+			mwindow->edl->session->sample_rate /
+			mwindow->edl->local_session->zoom_sample - 
+			mwindow->edl->local_session->view_start[pane->number]);
+		int64_t x2 = Units::round(mwindow->edl->session->brender_end *
 			mwindow->edl->session->sample_rate /
 			mwindow->edl->local_session->zoom_sample - 
 			mwindow->edl->local_session->view_start[pane->number]);
 
-		if(MWindowGUI::visible(x, x + 1, 0, get_w()))
+		if(MWindowGUI::visible(x2, x2 + 1, 0, get_w()))
 		{
 			set_color(RED);
-			draw_line(x, 0, x, get_h());
+			draw_line(x2, 0, x2, get_h());
+		}
+		if(MWindowGUI::visible(x1, x1 + 1, 0, get_w()))
+		{
+			set_color(RED);
+			draw_line(x1, 0, x1, get_h());
 		}
 	}
 }
@@ -3471,7 +3480,7 @@ void TrackCanvas::draw_overlays()
 
 // Loop points
 	draw_loop_points();
-	draw_brender_start();
+	draw_brender_range();
 
 // Highlighted areas
 	draw_highlighting();

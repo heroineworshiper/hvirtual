@@ -50,6 +50,7 @@ EDLSession::EDLSession(EDL *edl)
 	white_balance_raw = 1;
 	test_playback_edits = 1;
 	brender_start = 0.0;
+	brender_end = 0.0;
 	mpeg4_deblock = 1;
 
 	playback_config = new PlaybackConfig;
@@ -138,7 +139,9 @@ void EDLSession::equivalent_output(EDLSession *session, double *result)
 // If it's after brender_start, check brender map.
 	if(brender_start != session->brender_start &&
 		(*result < 0 || *result > brender_start))
+	{
 		*result = brender_start;
+	}
 }
 
 
@@ -178,6 +181,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	auto_conf->load_defaults(defaults);
 	autos_follow_edits = defaults->get("AUTOS_FOLLOW_EDITS", 1);
 	brender_start = defaults->get("BRENDER_START", brender_start);
+	brender_end = defaults->get("BRENDER_END", brender_end);
 	cmodel_to_text(string, BC_RGBA8888);
 	color_model = cmodel_from_text(defaults->get("COLOR_MODEL", string));
 	eyedrop_radius = defaults->get("EYEDROP_RADIUS", 0);
@@ -323,6 +327,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("ATRACKS", audio_tracks);
 	defaults->update("AUTOS_FOLLOW_EDITS", autos_follow_edits);
 	defaults->update("BRENDER_START", brender_start);
+	defaults->update("BRENDER_END", brender_end);
 	cmodel_to_text(string, color_model);
 	defaults->update("COLOR_MODEL", string);
 	defaults->update("EYEDROP_RADIUS", eyedrop_radius);
@@ -458,6 +463,7 @@ void EDLSession::boundaries()
 	Workarounds::clamp(ruler_y1, 0.0, output_h);
 	Workarounds::clamp(ruler_y2, 0.0, output_h);
 	if(brender_start < 0) brender_start = 0.0;
+	if(brender_end < 0) brender_end = 0.0;
 
 	Workarounds::clamp(subtitle_number, 0, 31);
 	
@@ -548,6 +554,7 @@ int EDLSession::load_xml(FileXML *file,
 		auto_keyframes = file->tag.get_property("AUTO_KEYFRAMES", auto_keyframes);
 		autos_follow_edits = file->tag.get_property("AUTOS_FOLLOW_EDITS", autos_follow_edits);
 		brender_start = file->tag.get_property("BRENDER_START", brender_start);
+		brender_end = file->tag.get_property("BRENDER_END", brender_end);
 		eyedrop_radius = file->tag.get_property("EYEDROP_RADIUS", eyedrop_radius);
 		crop_x1 = file->tag.get_property("CROP_X1", crop_x1);
 		crop_y1 = file->tag.get_property("CROP_Y1", crop_y1);
@@ -609,6 +616,7 @@ int EDLSession::save_xml(FileXML *file)
 	file->tag.set_property("AUTO_KEYFRAMES", auto_keyframes);
 	file->tag.set_property("AUTOS_FOLLOW_EDITS", autos_follow_edits);
 	file->tag.set_property("BRENDER_START", brender_start);
+	file->tag.set_property("BRENDER_END", brender_end);
 	file->tag.set_property("EYEDROP_RADIUS", eyedrop_radius);
 	file->tag.set_property("CROP_X1", crop_x1);
 	file->tag.set_property("CROP_Y1", crop_y1);
@@ -731,6 +739,7 @@ int EDLSession::copy(EDLSession *session)
 	audio_tracks = session->audio_tracks;
 	autos_follow_edits = session->autos_follow_edits;
 	brender_start = session->brender_start;
+	brender_end = session->brender_end;
 	color_model = session->color_model;
 	eyedrop_radius = session->eyedrop_radius;
 	crop_x1 = session->crop_x1;

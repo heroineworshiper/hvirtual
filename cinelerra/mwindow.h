@@ -569,7 +569,7 @@ public:
 // This one happens asynchronously of the others.  Used by playback to
 // see what frame is background rendered.
 	int brender_available(int position);
-	void set_brender_start();
+	void set_brender_range();
 
 	void init_error();
 	static void init_defaults(BC_Hash* &defaults, 

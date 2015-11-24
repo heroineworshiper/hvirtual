@@ -244,7 +244,7 @@ public:
 	void synchronize_autos(float change, Track *skip, FloatAuto *fauto, int fill_gangs);
 
 
-	void draw_brender_start();
+	void draw_brender_range();
 	void draw_loop_points();
 	void draw_transitions();
 	void draw_drag_handle();

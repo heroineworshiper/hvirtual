@@ -1033,9 +1033,16 @@ int MWindow::brender_available(int position)
 	return result;
 }
 
-void MWindow::set_brender_start()
+void MWindow::set_brender_range()
 {
 	edl->session->brender_start = edl->local_session->get_selectionstart(1);
+	edl->session->brender_end = edl->local_session->get_selectionend(1);
+
+	if(EQUIV(edl->session->brender_end, edl->session->brender_start))
+	{
+		edl->session->brender_end = edl->tracks->total_video_length();
+	}
+
 	restart_brender();
 	gui->draw_overlays(1);
 }
