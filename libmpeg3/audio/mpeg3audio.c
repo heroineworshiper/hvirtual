@@ -23,10 +23,18 @@ static int rewind_audio(mpeg3audio_t *audio)
 {
 	mpeg3_atrack_t *track = audio->track;
 	if(track->sample_offsets)
+	{
 		mpeg3demux_seek_byte(track->demuxer, track->sample_offsets[0]);
+	}
 	else
+	{
 		mpeg3demux_seek_byte(track->demuxer, 0);
-	mpeg3_layer_reset(audio->layer_decoder);
+	}
+	
+	if(audio->layer_decoder)
+	{
+		mpeg3_layer_reset(audio->layer_decoder);
+	}
 	return 0;
 }
 

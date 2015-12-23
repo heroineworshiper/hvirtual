@@ -1354,15 +1354,15 @@ int mpeg3audio_dolayer3(mpeg3_layer_t *audio,
 
 
 
-void mpeg3_layer_reset(mpeg3_layer_t *audio)
+void mpeg3_layer_reset(mpeg3_layer_t *layer_decoder)
 {
 //printf("mpeg3_layer_reset 1\n");
-	audio->first_frame = 1;
-//	audio->prev_framesize = 0;
-//	bzero(audio->bsspace, sizeof(audio->bsspace));
-	bzero(audio->mp3_block, sizeof(audio->mp3_block));
-	bzero(audio->mp3_blc, sizeof(audio->mp3_blc));
-	mpeg3audio_reset_synths(audio);
+	layer_decoder->first_frame = 1;
+//	layer_decoder->prev_framesize = 0;
+//	bzero(layer_decoder->bsspace, sizeof(layer_decoder->bsspace));
+	bzero(layer_decoder->mp3_block, sizeof(layer_decoder->mp3_block));
+	bzero(layer_decoder->mp3_blc, sizeof(layer_decoder->mp3_blc));
+	mpeg3audio_reset_synths(layer_decoder);
 }
 
 
