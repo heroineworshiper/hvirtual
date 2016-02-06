@@ -265,6 +265,7 @@ static void common_encode(quicktime_t *file,
 
 		if(codec->buffer_size)
 		{
+//printf("encode %d buffer_size=%d\n", __LINE__, codec->buffer_size);
 			quicktime_atom_t chunk_atom;
 			quicktime_write_chunk_header(file, trak, &chunk_atom);
 			int result = !quicktime_write_data(file, 
@@ -275,7 +276,6 @@ static void common_encode(quicktime_t *file,
 				vtrack->current_chunk,
 				&chunk_atom, 
 				1);
-//printf("encode %d buffer_size=%d\n", __LINE__, codec->buffer_size);
 		}
 
 		if(is_keyframe)
@@ -289,8 +289,57 @@ static void common_encode(quicktime_t *file,
 }
 
 
+static void flush(quicktime_t *file, int track)
+{
+	quicktime_video_map_t *track_map = &(file->vtracks[track]);
+	quicktime_trak_t *trak = track_map->track;
+	quicktime_h264_codec_t *codec = ((quicktime_codec_t*)track_map->codec)->priv;
+	quicktime_avcc_t *avcc = &trak->mdia.minf.stbl.stsd.table[0].avcc;
+	int width = quicktime_video_width(file, track);
+	int height = quicktime_video_height(file, track);
+	int w_2 = quicktime_quantize2(width);
+// ffmpeg interprets the codec height as the presentation height
+	int h_2 = quicktime_quantize2(height);
+	int current_field = track_map->current_position % codec->total_fields;
+	int i;
+
+	pthread_mutex_lock(&h264_lock);
+
+// this only encodes 1 field
+	if(codec->encode_initialized[current_field])
+	{
+		while(x264_encoder_delayed_frames(codec->encoder[current_field]))
+		{
+    		x264_picture_t pic_out;
+    		x264_nal_t *nals;
+			int nnal = 0;
+			int size = x264_encoder_encode(codec->encoder[current_field], 
+				&nals, 
+				&nnal, 
+				0, 
+				&pic_out);
+			codec->buffer_size = 0;
+
+			common_encode(file, track, size, nals, nnal, &pic_out);
+		}
+	}
+
+	pthread_mutex_unlock(&h264_lock);
+
+/*
+ * 	trak->mdia.minf.stbl.stsd.table[0].version = 1;
+ * 	trak->mdia.minf.stbl.stsd.table[0].revision = 1;
+ */
+}
+
+
+
+
 static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 {
+
+//printf("encode %d\n", __LINE__);
+
 	int64_t offset = quicktime_position(file);
 	quicktime_video_map_t *vtrack = &(file->vtracks[track]);
 	quicktime_h264_codec_t *codec = ((quicktime_codec_t*)vtrack->codec)->priv;
@@ -320,8 +369,8 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 		x264_param_t default_params;
 		x264_param_default_preset(&default_params, "medium", NULL);
 
-
-		
+// make it encode I frames sequentially
+		codec->param.i_bframe = 0;
 		codec->param.i_width = w_2;
 		codec->param.i_height = h_2;
 		codec->param.i_fps_num = quicktime_frame_rate_n(file, track);
@@ -332,6 +381,7 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 	    codec->param.b_vfr_input = 0;
 	    codec->param.b_repeat_headers = 1;
     	codec->param.b_annexb = 1;
+		codec->param.b_sliced_threads = 0;
 
 // Use default quantizer parameters if fixed bitrate
 		if(codec->fix_bitrate)
@@ -353,12 +403,19 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 		{
 			codec->param.i_threads = file->cpus;
 		}
+codec->param.i_threads = 0;
 
 		printf("encode %d fix_bitrate=%d\n", __LINE__, codec->fix_bitrate);
+		printf("encode %d i_bitrate=%d\n", __LINE__, codec->param.rc.i_bitrate);
 		printf("encode %d i_qp_constant=%d\n", __LINE__, codec->param.rc.i_qp_constant);
 		printf("encode %d i_qp_min=%d\n", __LINE__, codec->param.rc.i_qp_min);
 		printf("encode %d i_qp_max=%d\n", __LINE__, codec->param.rc.i_qp_max);
-		printf("encode %d i_bitrate=%d\n", __LINE__, codec->param.rc.i_bitrate);
+		printf("encode %d i_threads=%d\n", __LINE__, codec->param.i_threads);
+		printf("encode %d i_lookahead_threads=%d\n", __LINE__, codec->param.i_lookahead_threads);
+		printf("encode %d b_sliced_threads=%d\n", __LINE__, codec->param.b_sliced_threads);
+		printf("encode %d i_sync_lookahead=%d\n", __LINE__, codec->param.i_sync_lookahead);
+		printf("encode %d i_bframe=%d\n", __LINE__, codec->param.i_bframe);
+		printf("encode %d i_frame_packing=%d\n", __LINE__, codec->param.i_frame_packing);
 
 
 		codec->encoder[current_field] = x264_encoder_open(&codec->param);
@@ -452,6 +509,7 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 
 	pthread_mutex_unlock(&h264_lock);
 
+//	flush(file, track);
 
 
 	return result;
@@ -487,50 +545,6 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 		track);
 
 	return 1;
-}
-
-
-static void flush(quicktime_t *file, int track)
-{
-	quicktime_video_map_t *track_map = &(file->vtracks[track]);
-	quicktime_trak_t *trak = track_map->track;
-	quicktime_h264_codec_t *codec = ((quicktime_codec_t*)track_map->codec)->priv;
-	quicktime_avcc_t *avcc = &trak->mdia.minf.stbl.stsd.table[0].avcc;
-	int width = quicktime_video_width(file, track);
-	int height = quicktime_video_height(file, track);
-	int w_2 = quicktime_quantize2(width);
-// ffmpeg interprets the codec height as the presentation height
-	int h_2 = quicktime_quantize2(height);
-	int current_field = track_map->current_position % codec->total_fields;
-	int i;
-
-	pthread_mutex_lock(&h264_lock);
-
-// this only encodes 1 field, but field based encoding is never used anymore
-	if(codec->encode_initialized[current_field])
-	{
-		while(x264_encoder_delayed_frames(codec->encoder[current_field]))
-		{
-    		x264_picture_t pic_out;
-    		x264_nal_t *nals;
-			int nnal = 0;
-			int size = x264_encoder_encode(codec->encoder[current_field], 
-				&nals, 
-				&nnal, 
-				0, 
-				&pic_out);
-			codec->buffer_size = 0;
-
-			common_encode(file, track, size, nals, nnal, &pic_out);
-		}
-	}
-
-	pthread_mutex_unlock(&h264_lock);
-
-/*
- * 	trak->mdia.minf.stbl.stsd.table[0].version = 1;
- * 	trak->mdia.minf.stbl.stsd.table[0].revision = 1;
- */
 }
 
 
