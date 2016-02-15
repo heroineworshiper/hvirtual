@@ -327,6 +327,8 @@ static int decode_wrapper(quicktime_t *file,
 // in h263dec.c to get MPEG-4 to work.
 // Also must compile using -O2 instead of -O3 on gcc 4.1
 
+//printf("decode_wrapper %d\n", __LINE__);
+
 		result = avcodec_decode_video(ffmpeg->decoder_context[current_field], 
 			&ffmpeg->picture[current_field], 
 			&got_picture, 
@@ -334,11 +336,13 @@ static int decode_wrapper(quicktime_t *file,
 			bytes + header_bytes);
 
 
-// printf("decode_wrapper %d frame_number=%d got_picture=%d ptr=%p\n", 
-// __LINE__, 
-// frame_number, 
-// got_picture,
-// ffmpeg->picture[current_field].data[0]);
+/*
+ * printf("decode_wrapper %d frame_number=%d got_picture=%d ptr=%p\n", 
+ * __LINE__, 
+ * frame_number, 
+ * got_picture,
+ * ffmpeg->picture[current_field].data[0]);
+ */
 
 		if(ffmpeg->picture[current_field].data[0])
 		{
@@ -518,7 +522,7 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
  */
 			while(frame1 <= frame2)
 			{
-//printf("quicktime_ffmpeg_decode %d frame1=%d\n", __LINE__, frame1);
+//printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d\n", __LINE__, frame1, frame2);
 				result = decode_wrapper(file, 
 					vtrack, 
 					ffmpeg, 
@@ -574,8 +578,10 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // Same frame not requested
 			vtrack->current_position != ffmpeg->last_frame[current_field])
 		{
+			int64_t track_length = quicktime_track_samples(file, trak);
 			do
 			{
+//printf("quicktime_ffmpeg_decode %d %d %d\n", __LINE__, vtrack->current_position, track_length);
 				result = decode_wrapper(file, 
 					vtrack, 
 					ffmpeg, 
@@ -583,7 +589,8 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 					current_field, 
 					track,
 					0);
-			} while(result > 0);
+//printf("quicktime_ffmpeg_decode %d result=%d\n", __LINE__, result);
+			} while(result > 0 && vtrack->current_position < track_length - 1);
 		}
 //printf("quicktime_ffmpeg_decode %d current_position=%ld\n", __LINE__, vtrack->current_position);
 
