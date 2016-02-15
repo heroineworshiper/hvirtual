@@ -1049,7 +1049,8 @@ printf("MotionMain::process_buffer %d start_position=%lld\n", __LINE__, start_po
 
 
 
-
+//PRINT_TRACE
+//printf("skip_current=%d config.global=%d\n", skip_current, config.global);
 
 
 	if(!skip_current)

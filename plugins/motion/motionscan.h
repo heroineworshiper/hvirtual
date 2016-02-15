@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 
 
 #include "arraylist.h"
-//#include "../downsample/downsampleengine.inc"
 #include "loadbalance.h"
 #include "vframe.inc"
 #include <stdint.h>
@@ -63,14 +62,6 @@ public:
 	int sub_y;
 };
 
-class MotionScanCache
-{
-public:
-	MotionScanCache(int x, int y, int64_t difference);
-	int x, y;
-	int64_t difference;
-};
-
 class MotionScanUnit : public LoadClient
 {
 public:
@@ -78,13 +69,10 @@ public:
 	~MotionScanUnit();
 
 	void process_package(LoadPackage *package);
-	int64_t get_cache(int x, int y);
-	void put_cache(int x, int y, int64_t difference);
+	void subpixel(MotionScanPackage *pkg);
+	void single_pixel(MotionScanPackage *pkg);
 
 	MotionScan *server;
-
-	ArrayList<MotionScanCache*> cache;
-	Mutex *cache_lock;
 };
 
 class MotionScan : public LoadServer
@@ -124,8 +112,6 @@ public:
 		int total_dy,
 		int global_origin_x,
 		int global_origin_y);
-	int64_t get_cache(int x, int y);
-	void put_cache(int x, int y, int64_t difference);
 
 	static int64_t abs_diff(unsigned char *prev_ptr,
 		unsigned char *current_ptr,
@@ -188,6 +174,14 @@ public:
 	};
 
 private:
+	void downsample_frame(VFrame *dst, 
+		VFrame *src, 
+		int downsample);
+	void pixel_search(int &x_result, int &y_result);
+	void subpixel_search(int &x_result, int &y_result);
+
+
+
 // Pointer to downsampled frame before motion
 	VFrame *previous_frame;
 // Pointer to downsampled frame after motion
@@ -207,12 +201,12 @@ private:
 	int block_x2;
 	int block_y1;
 	int block_y2;
+	int scan_w;
+	int scan_h;
 	int scan_x1;
 	int scan_y1;
 	int scan_x2;
 	int scan_y2;
-	int total_pixels;
-	int total_steps;
 	int edge_steps;
 	int y_steps;
 	int x_steps;
@@ -221,10 +215,11 @@ private:
 	int vertical_only;
 	int global_origin_x;
 	int global_origin_y;
-
-	ArrayList<MotionScanCache*> cache;
-	Mutex *cache_lock;
-//	DownSampleServer *downsample;
+	int action_type;
+	int current_downsample;
+	int downsampled_w;
+	int downsampled_h;
+	int total_steps;
 };
 
 
