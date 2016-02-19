@@ -23,7 +23,6 @@
 #define MOTIONSCAN_H
 
 
-#include "arraylist.h"
 #include "loadbalance.h"
 #include "vframe.inc"
 #include <stdint.h>

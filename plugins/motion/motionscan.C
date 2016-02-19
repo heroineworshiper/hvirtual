@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,6 @@
 
 #include "bcsignals.h"
 #include "clip.h"
-#include "../downsample/downsampleengine.h"
-//#include "motion.h"
 #include "motionscan.h"
 #include "mutex.h"
 #include "vframe.h"
@@ -33,7 +31,8 @@
 
 // The module which does the actual scanning
 
-
+// starting level of detail
+#define STARTING_DOWNSAMPLE 16
 
 
 
@@ -99,6 +98,7 @@ void MotionScanUnit::single_pixel(MotionScanPackage *pkg)
 
 void MotionScanUnit::subpixel(MotionScanPackage *pkg)
 {
+//PRINT_TRACE
 	int w = server->current_frame->get_w();
 	int h = server->current_frame->get_h();
 	int color_model = server->current_frame->get_color_model();
@@ -130,10 +130,10 @@ void MotionScanUnit::subpixel(MotionScanPackage *pkg)
 		pkg->sub_x,
 		pkg->sub_y);
 // printf("MotionScanUnit::process_package sub_x=%d sub_y=%d search_x=%d search_y=%d diff1=%lld diff2=%lld\n",
-// sub_x,
-// sub_y,
-// search_x,
-// search_y,
+// pkg->sub_x,
+// pkg->sub_y,
+// pkg->search_x,
+// pkg->search_y,
 // pkg->difference1,
 // pkg->difference2);
 }
@@ -232,15 +232,15 @@ void MotionScan::init_packages()
 			pkg->sub_x = pkg->step % (OVERSAMPLE * 2);
 			pkg->sub_y = pkg->step / (OVERSAMPLE * 2);
 
-			if(horizontal_only)
-			{
-				pkg->sub_y = 0;
-			}
-
-			if(vertical_only)
-			{
-				pkg->sub_x = 0;
-			}
+// 			if(horizontal_only)
+// 			{
+// 				pkg->sub_y = 0;
+// 			}
+// 
+// 			if(vertical_only)
+// 			{
+// 				pkg->sub_x = 0;
+// 			}
 
 			pkg->search_x = pkg->scan_x1 + pkg->sub_x / OVERSAMPLE + 1;
 			pkg->search_y = pkg->scan_y1 + pkg->sub_y / OVERSAMPLE + 1;
@@ -499,6 +499,8 @@ y_result / OVERSAMPLE);
 // subpixel motion search
 void MotionScan::subpixel_search(int &x_result, int &y_result)
 {
+	this->previous_frame = previous_frame_arg;
+	this->current_frame = current_frame_arg;
 
 //printf("MotionScan::scan_frame %d %d %d\n", __LINE__, x_result, y_result);
 // Scan every subpixel in a 2 pixel * 2 pixel square
@@ -581,7 +583,7 @@ void MotionScan::scan_frame(VFrame *previous_frame,
 	this->action_type = action_type;
 	subpixel = 0;
 // starting level of detail
-	current_downsample = 16;
+	current_downsample = STARTING_DOWNSAMPLE;
 
 
 // Single macroblock
@@ -693,16 +695,16 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 
 
 // Zero out requested values
-			if(horizontal_only)
-			{
-				scan_y1 = block_y1;
-				scan_y2 = block_y1 + 1;
-			}
-			if(vertical_only)
-			{
-				scan_x1 = block_x1;
-				scan_x2 = block_x1 + 1;
-			}
+// 			if(horizontal_only)
+// 			{
+// 				scan_y1 = block_y1;
+// 				scan_y2 = block_y1 + 1;
+// 			}
+// 			if(vertical_only)
+// 			{
+// 				scan_x1 = block_x1;
+// 				scan_x2 = block_x1 + 1;
+// 			}
 
 // printf("MotionScan::scan_frame 1 %d %d %d %d %d %d %d %d\n",
 // block_x1,
@@ -807,9 +809,6 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 //printf("MotionScan::scan_frame %d\n", __LINE__);
 
 
-	if(vertical_only) dx_result = 0;
-	if(horizontal_only) dy_result = 0;
-
 
 
 // Write results
@@ -834,6 +833,10 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 			printf("MotionScan::scan_frame %d: save coordinate failed", __LINE__);
 		}
 	}
+
+
+	if(vertical_only) dx_result = 0;
+	if(horizontal_only) dy_result = 0;
 
 // printf("MotionScan::scan_frame %d dx=%.2f dy=%.2f\n", 
 // __LINE__,

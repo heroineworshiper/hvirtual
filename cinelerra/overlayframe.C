@@ -177,7 +177,116 @@ int OverlayFrame::overlay(VFrame *output,
                           float out_y2,
                           float alpha,
                           int mode,
-                          int interpolation_type){
+                          int interpolation_type)
+{
+	float w_scale = (out_x2 - out_x1) / (in_x2 - in_x1);
+	float h_scale = (out_y2 - out_y1) / (in_y2 - in_y1);
+
+//printf("OverlayFrame::overlay 1 %d %f\n", mode, alpha);
+// Limit values
+	if(in_x1 < 0)
+	{
+		out_x1 += -in_x1 * w_scale;
+		in_x1 = 0;
+	}
+	else
+	if(in_x1 >= input->get_w())
+	{
+		out_x1 -= (in_x1 - input->get_w()) * w_scale;
+		in_x1 = input->get_w();
+	}
+
+	if(in_y1 < 0)
+	{
+		out_y1 += -in_y1 * h_scale;
+		in_y1 = 0;
+	}
+	else
+	if(in_y1 >= input->get_h())
+	{
+		out_y1 -= (in_y1 - input->get_h()) * h_scale;
+		in_y1 = input->get_h();
+	}
+
+	if(in_x2 < 0)
+	{
+		out_x2 += -in_x2 * w_scale;
+		in_x2 = 0;
+	}
+	else
+	if(in_x2 >= input->get_w())
+	{
+		out_x2 -= (in_x2 - input->get_w()) * w_scale;
+		in_x2 = input->get_w();
+	}
+
+	if(in_y2 < 0)
+	{
+		out_y2 += -in_y2 * h_scale;
+		in_y2 = 0;
+	}
+	else
+	if(in_y2 >= input->get_h())
+	{
+		out_y2 -= (in_y2 - input->get_h()) * h_scale;
+		in_y2 = input->get_h();
+	}
+
+	if(out_x1 < 0)
+	{
+		in_x1 += -out_x1 / w_scale;
+		out_x1 = 0;
+	}
+	else
+	if(out_x1 >= output->get_w())
+	{
+		in_x1 -= (out_x1 - output->get_w()) / w_scale;
+		out_x1 = output->get_w();
+	}
+
+	if(out_y1 < 0)
+	{
+		in_y1 += -out_y1 / h_scale;
+		out_y1 = 0;
+	}
+	else
+	if(out_y1 >= output->get_h())
+	{
+		in_y1 -= (out_y1 - output->get_h()) / h_scale;
+		out_y1 = output->get_h();
+	}
+
+	if(out_x2 < 0)
+	{
+		in_x2 += -out_x2 / w_scale;
+		out_x2 = 0;
+	}
+	else
+	if(out_x2 >= output->get_w())
+	{
+		in_x2 -= (out_x2 - output->get_w()) / w_scale;
+		out_x2 = output->get_w();
+	}
+
+	if(out_y2 < 0)
+	{
+		in_y2 += -out_y2 / h_scale;
+		out_y2 = 0;
+	}
+	else
+	if(out_y2 >= output->get_h())
+	{
+		in_y2 -= (out_y2 - output->get_h()) / h_scale;
+		out_y2 = output->get_h();
+	}
+
+
+
+
+
+
+
+
 
   in_x1 = epsilon_snap(in_x1);
   in_x2 = epsilon_snap(in_x2);
@@ -1613,6 +1722,13 @@ void SampleUnit::process_package(LoadPackage *package){
   float o1  = engine->out1;
   float o2  = engine->out2;
 
+// printf("SampleUnit::process_package %d %f %f %f %f\n", 
+// __LINE__,
+// i1,
+// i2,
+// o1, 
+// o2);
+
   if(i2-i1 <= 0 || o2-o1 <= 0)
     return;
 
@@ -1681,6 +1797,7 @@ void SampleUnit::process_package(LoadPackage *package){
 }
 
 SampleEngine::SampleEngine(int cpus) : LoadServer(cpus, cpus){
+//SampleEngine::SampleEngine(int cpus) : LoadServer(1, 1){
   lookup_sx0 = 0;
   lookup_sx1 = 0;
   lookup_sk = 0;
