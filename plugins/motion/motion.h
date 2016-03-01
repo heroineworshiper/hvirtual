@@ -63,7 +63,6 @@ class MotionWindow;
 // Precision of rotation
 #define MIN_ANGLE 0.0001
 
-#define ROTATION_FILE "/tmp/r"
 
 class MotionConfig
 {

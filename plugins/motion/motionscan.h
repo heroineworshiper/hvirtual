@@ -23,6 +23,7 @@
 #define MOTIONSCAN_H
 
 
+#include "affine.inc"
 #include "loadbalance.h"
 #include "vframe.inc"
 #include <stdint.h>
@@ -31,6 +32,7 @@ class MotionScan;
 
 #define OVERSAMPLE 4
 #define MOTION_FILE "/tmp/m"
+#define ROTATION_FILE "/tmp/r"
 
 class MotionScanPackage : public LoadPackage
 {
@@ -38,10 +40,11 @@ public:
 	MotionScanPackage();
 
 // For multiple blocks
-// Position of stationary block
+// Position of stationary block after downsampling
 	int block_x1, block_y1, block_x2, block_y2;
-// Range of positions to scan
-	int scan_x1, scan_y1, scan_x2, scan_y2;
+// index of rotated frame
+	int angle_step;
+
 	int dx;
 	int dy;
 	int64_t max_difference;
@@ -49,11 +52,9 @@ public:
 	int64_t min_pixel;
 	int is_border;
 	int valid;
-// For single block
-	int step;
 	int64_t difference1;
 	int64_t difference2;
-// Search position to nearest pixel
+// Search position of current package to nearest pixel with downsampling
 	int search_x;
 	int search_y;
 // Subpixel of search position
@@ -92,7 +93,6 @@ public:
 // Invoke the motion engine for a search
 // Frame before motion
 	void scan_frame(VFrame *previous_frame,
-// Frame after motion
 		VFrame *current_frame,
 		int global_range_w,
 		int global_range_h,
@@ -106,11 +106,14 @@ public:
 		int horizontal_only,
 		int vertical_only,
 		int source_position,
-		int total_steps,
 		int total_dx,
 		int total_dy,
 		int global_origin_x,
-		int global_origin_y);
+		int global_origin_y,
+		int do_motion,
+		int do_rotate,
+		double rotation_center, // in deg
+		double rotation_range);
 
 	static int64_t abs_diff(unsigned char *prev_ptr,
 		unsigned char *current_ptr,
@@ -144,6 +147,7 @@ public:
 // OVERSAMPLE
 	int dx_result;
 	int dy_result;
+	float dr_result;
 
 	enum
 	{
@@ -176,11 +180,14 @@ private:
 	void downsample_frame(VFrame *dst, 
 		VFrame *src, 
 		int downsample);
-	void pixel_search(int &x_result, int &y_result);
+	void pixel_search(int &x_result, int &y_result, double &r_result);
 	void subpixel_search(int &x_result, int &y_result);
+	double step_to_angle(int step, double center);
 
 
 
+
+	AffineEngine *rotater;
 // Pointer to downsampled frame before motion
 	VFrame *previous_frame;
 // Pointer to downsampled frame after motion
@@ -191,6 +198,10 @@ private:
 // Downsampled frames
 	VFrame *downsampled_previous;
 	VFrame *downsampled_current;
+// rotated versions of current_frame
+	VFrame **rotated_current;
+// allocation of rotated_current array, a copy of angle_steps
+	int total_rotated;
 // Test for identical frames before processing
 // Faster to skip it if the frames are usually different
 	int test_match;
@@ -206,9 +217,12 @@ private:
 	int scan_y1;
 	int scan_x2;
 	int scan_y2;
-	int edge_steps;
+	double scan_angle1, scan_angle2;
 	int y_steps;
 	int x_steps;
+	int angle_steps;
+// in deg
+	double angle_step;
 	int subpixel;
 	int horizontal_only;
 	int vertical_only;
@@ -219,6 +233,12 @@ private:
 	int downsampled_w;
 	int downsampled_h;
 	int total_steps;
+	int do_motion;
+	int do_rotate;
+	int rotation_pass;
+// in deg
+	double rotation_center;
+	double rotation_range;
 };
 
 

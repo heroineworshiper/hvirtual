@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -458,11 +458,15 @@ void MotionMain::process_global()
 		config.horizontal_only,
 		config.vertical_only,
 		get_source_position(),
-		config.global_positions,
 		total_dx,
 		total_dy,
 		0,
-		0);
+		0,
+		1, // do_motion
+		config.rotate, // do_rotate
+		config.rotation_center,
+		config.rotation_range);
+		
 	current_dx = engine->dx_result;
 	current_dy = engine->dy_result;
 
@@ -595,6 +599,7 @@ void MotionMain::process_rotation()
 	int block_x;
 	int block_y;
 
+// TODO: always require global
 // Convert the previous global reference into the previous rotation reference.
 // Convert global target destination into rotation target source.
 	if(config.global)
@@ -662,17 +667,17 @@ void MotionMain::process_rotation()
 
 
 // Get rotation
-	if(!motion_rotate)
-		motion_rotate = new RotateScan(this, 
-			get_project_smp() + 1, 
-			get_project_smp() + 1);
+// 	if(!motion_rotate)
+// 		motion_rotate = new RotateScan(this, 
+// 			get_project_smp() + 1, 
+// 			get_project_smp() + 1);
+// 
+// 	current_angle = motion_rotate->scan_frame(prev_rotate_ref, 
+// 		current_rotate_ref,
+// 		block_x,
+// 		block_y);
 
-	current_angle = motion_rotate->scan_frame(prev_rotate_ref, 
-		current_rotate_ref,
-		block_x,
-		block_y);
-
-
+	current_angle = engine->dr_result;
 
 // Add current rotation to accumulation
 	if(config.tracking_object != MotionScan::TRACK_SINGLE)
@@ -780,6 +785,7 @@ printf("MotionMain::process_rotation total_angle=%f\n", total_angle);
 		}
 
 
+printf("MotionMain::process_rotation angle=%f\n", angle);
 		rotate_engine->rotate(rotate_target_dst, rotate_target_src, angle);
 // overlayer->overlay(rotate_target_dst,
 // 	prev_rotate_ref,

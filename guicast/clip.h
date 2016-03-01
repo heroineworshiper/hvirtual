@@ -33,6 +33,7 @@
 #define EQUIV(x, y) (fabs((x) - (y)) < 0.001)
 #define DISTANCE(x1, y1, x2, y2) \
 (sqrt(((x2) - (x1)) * ((x2) - (x1)) + ((y2) - (y1)) * ((y2) - (y1))))
-
+#define TO_RAD(x) ((x) * 2 * M_PI / 360)
+#define TO_DEG(x) ((x) * 360 / 2 / M_PI)
 
 #endif
