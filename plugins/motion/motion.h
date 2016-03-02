@@ -96,8 +96,8 @@ public:
 //	int rotation_block_w;
 //	int rotation_block_h;
 // Number of search positions in each refinement of the log search
-	int global_positions;
-	int rotate_positions;
+//	int global_positions;
+//	int rotate_positions;
 // Block position in percentage 0 - 100
 	double block_x;
 	double block_y;
@@ -178,7 +178,7 @@ public:
 // It is moved to compensate for motion and copied to the previous_frame.
 	VFrame *temp_frame;
 	MotionScan *engine;
-	RotateScan *motion_rotate;
+//	RotateScan *motion_rotate;
 	OverlayFrame *overlayer;
 	AffineEngine *rotate_engine;
 
