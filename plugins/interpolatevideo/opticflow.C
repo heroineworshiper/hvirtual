@@ -119,18 +119,14 @@ void OpticFlowUnit::process_package(LoadPackage *package)
 			0,
 			0,
 			0,
-			MIN(MAX_SEARCH_STEPS, plugin->config.search_radius * plugin->config.search_radius),
 			0,
+			0,
+			0,
+			0,
+			1,
 			0,
 			0,
 			0);
-// Degrees from center to maximum angle
-//			0, 
-// Accumulated angle from previous frames
-//			0,
-// Total number of angles to test in each pass
-//			0,
-//			0);
 
 
 		mb->dx = motion->dx_result;

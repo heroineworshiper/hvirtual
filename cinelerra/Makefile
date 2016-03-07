@@ -415,7 +415,6 @@ ifeq ($(HAVE_XFT), y)
 LIBS += -lXft
 endif
 
-#	-g \
 
 
 CFLAGS += \
@@ -472,7 +471,7 @@ else
 
 LDFLAGS1 = -export-dynamic
 LDFLAGS2 = 
-LINKER = g++ -g -o $(OUTPUT)
+LINKER = g++ -o $(OUTPUT)
 
 
 endif

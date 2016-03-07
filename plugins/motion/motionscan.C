@@ -982,6 +982,8 @@ void MotionScan::scan_frame(VFrame *previous_frame,
 				if(input)
 				{
 					int temp = fscanf(input, "%f", &dr_result);
+// DEBUG
+//dr_result += 0.25;
 					fclose(input);
 				}
 				else
@@ -1177,11 +1179,11 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 		dy_result *= -1;
 		dr_result *= -1;
 	}
-printf("MotionScan::scan_frame %d dx=%f dy=%f dr=%f\n", 
-__LINE__, 
-(float)dx_result / OVERSAMPLE, 
-(float)dy_result / OVERSAMPLE, 
-dr_result);
+// printf("MotionScan::scan_frame %d dx=%f dy=%f dr=%f\n", 
+// __LINE__, 
+// (float)dx_result / OVERSAMPLE, 
+// (float)dy_result / OVERSAMPLE, 
+// dr_result);
 
 
 

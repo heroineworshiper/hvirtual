@@ -740,7 +740,7 @@ int RotateEffect::process_buffer(VFrame *frame,
 		temp_frame, 
 		config.angle);
 
-//printf("RotateEffect::process_buffer %d\n", __LINE__);
+//printf("RotateEffect::process_buffer %d draw_pivot=%d\n", __LINE__, config.draw_pivot);
 
 // Draw center
 #define CENTER_H 20

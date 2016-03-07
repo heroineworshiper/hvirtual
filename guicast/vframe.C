@@ -518,6 +518,8 @@ int VFrame::allocate_data(unsigned char *data,
 	return 0;
 }
 
+
+
 void VFrame::set_memory(unsigned char *data, 
 	int shmid,
 	long y_offset,

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -462,16 +462,15 @@ void MotionMain2::scan_motion(int point)
 		config.horizontal_only,
 		config.vertical_only,
 		get_source_position(),
-		config.global_positions,
 		total_dx[point],
 		total_dy[point],
 		config.global_origin_x[point],
-		config.global_origin_y[point]);
+		config.global_origin_y[point],
+		1,
+		0,
+		0,
+		0);
 
-//		0,
-//		0,
-//		0,
-//		0);
 	current_dx[point] = engine->dx_result;
 	current_dy[point] = engine->dy_result;
 
