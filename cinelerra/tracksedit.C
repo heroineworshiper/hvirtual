@@ -988,7 +988,7 @@ void Tracks::paste_automation(double selectionstart,
 	double frame_rate = edl->session->frame_rate;
 	int64_t sample_rate = edl->session->sample_rate;
 	char string[BCTEXTLEN];
-	sprintf(string, "");
+	string[0] = 0;
 
 // Search for start
 	do{

@@ -152,7 +152,7 @@ void FormatTools::create_objects(int &init_x,
 		window->add_subwindow(path_textbox = new FormatPathText(x, y, this));
 		x += path_textbox->get_w() + 5;
 		window->add_subwindow(path_button = new BrowseButton(
-			mwindow,
+			mwindow->theme,
 			window,
 			path_textbox, 
 			x, 

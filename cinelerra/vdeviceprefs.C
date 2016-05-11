@@ -506,7 +506,7 @@ char* VDriverMenu::driver_to_string(int driver)
 			sprintf(string, PLAYBACK_IEC61883_TITLE);
 			break;
 		default:
-			sprintf(string, "");
+			string[0] = 0;
 	}
 	return string;
 }

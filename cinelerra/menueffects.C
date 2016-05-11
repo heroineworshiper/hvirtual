@@ -96,7 +96,7 @@ MenuEffectThread::MenuEffectThread(MWindow *mwindow, MenuEffects *menu_item)
 	this->mwindow = mwindow;
 	this->menu_item = menu_item;
 	dead_plugins = new ArrayList<PluginServer*>;
-	sprintf(title, "");
+	title[0] = 0;
 }
 
 MenuEffectThread::~MenuEffectThread()

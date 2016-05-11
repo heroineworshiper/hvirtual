@@ -135,7 +135,7 @@ void InterfacePrefs::create_objects()
 		y, 
 		pwindow, 
 		pwindow->thread->preferences->index_directory));
-	add_subwindow(ipath = new BrowseButton(mwindow,
+	add_subwindow(ipath = new BrowseButton(mwindow->theme,
 		this,
 		ipathtext, 
 		x + 230 + ipathtext->get_w(), 

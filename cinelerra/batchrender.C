@@ -747,7 +747,7 @@ void BatchRenderGUI::create_objects()
 
 	x += edl_path_text->get_w();
 	add_subwindow(edl_path_browse = new BrowseButton(
-		mwindow,
+		mwindow->theme,
 		this,
 		edl_path_text, 
 		x, 

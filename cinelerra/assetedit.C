@@ -690,7 +690,7 @@ AssetEditPath::AssetEditPath(MWindow *mwindow,
 	const char *text, 
 	const char *window_title, 
 	const char *window_caption)
- : BrowseButton(mwindow, 
+ : BrowseButton(mwindow->theme, 
  	fwindow, 
 	textbox, 
 	310, 
