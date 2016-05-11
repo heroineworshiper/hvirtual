@@ -2900,6 +2900,25 @@ static double read_time(char *ptr, char *end)
 		(double)numbers[3] / 1000;
 }
 
+
+// this parses a file of the form:
+// 1
+// 00:01:04,440 --> 00:01:07,318
+// <i>It's okay, son...</i>
+// 
+// 2
+// 00:01:08,611 --> 00:01:13,491
+// <i>I know you want this to be over.</i>
+// 
+// 3
+// 00:01:19,998 --> 00:01:22,125
+// <i>I'm right here.</i>
+// 
+// 4
+// 00:01:26,504 --> 00:01:29,173
+// <i>I will be right here...</i>
+
+
 void TitleMain::load_subtitle_db()
 {
 // test for change in path
@@ -3206,7 +3225,7 @@ int TitleMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 			{
 				config.text.assign(subtitle_db.get(current_subtitle)->text);
 // Force the bottom descenders to be drawn.
-				config.text.append("\n ");
+//				config.text.append("\n ");
 			}
 			else
 			{
