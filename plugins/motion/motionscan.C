@@ -421,6 +421,8 @@ void MotionScan::downsample_frame(VFrame *dst,
 	int h = src->get_h();
 	int w = src->get_w();
 
+//PRINT_TRACE
+//printf("downsample=%d w=%d h=%d dst=%d %d\n", downsample, w, h, dst->get_w(), dst->get_h());
 	switch(src->get_color_model())
 	{
 		case BC_RGB888:
@@ -442,6 +444,7 @@ void MotionScan::downsample_frame(VFrame *dst,
 			DOWNSAMPLE(uint8_t, int64_t, 4, 0xff)
 			break;
 	}
+//PRINT_TRACE
 }
 
 double MotionScan::step_to_angle(int step, double center)
@@ -526,8 +529,8 @@ void MotionScan::pixel_search(int &x_result, int &y_result, double &r_result)
 				0,
 				0,
 				0,
-				downsampled_prev_w, 
-				downsampled_prev_h, 
+				downsampled_prev_w + 1, 
+				downsampled_prev_h + 1, 
 				previous_frame_arg->get_color_model(), 
 				-1);
 		}
@@ -544,8 +547,8 @@ void MotionScan::pixel_search(int &x_result, int &y_result, double &r_result)
 				0,
 				0,
 				0,
-				downsampled_current_w, 
-				downsampled_current_h, 
+				downsampled_current_w + 1, 
+				downsampled_current_h + 1, 
 				current_frame_arg->get_color_model(), 
 				-1);
 		}
@@ -635,8 +638,8 @@ void MotionScan::pixel_search(int &x_result, int &y_result, double &r_result)
 					0,
 					0,
 					0,
-					downsampled_current_w, 
-					downsampled_current_h, 
+					downsampled_current_w + 1, 
+					downsampled_current_h + 1, 
 					current_frame_arg->get_color_model(), 
 					-1);
 //printf("MotionScan::pixel_search %d\n", __LINE__);
@@ -1358,10 +1361,8 @@ int64_t MotionScan::abs_diff(unsigned char *prev_ptr,
 					0x100 / 0x100; \
 				temp_type current_value = *current_row++; \
 				difference = prev_value - current_value; \
-				if(difference < 0) \
-					result_temp -= difference; \
-				else \
-					result_temp += difference; \
+				difference *= difference; \
+				result_temp += difference; \
 			} \
  \
 /* skip alpha */ \

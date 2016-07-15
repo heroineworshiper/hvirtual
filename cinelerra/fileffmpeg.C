@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ extern "C"
 #include "clip.h"
 #include "file.h"
 #include "fileffmpeg.h"
+#include "mpegaudio.h"
 #include "mutex.h"
 #include <unistd.h>
 #include "videodevice.inc"
@@ -78,7 +79,10 @@ FileFFMPEGStream::~FileFFMPEGStream()
 	delete [] pcm_history;
 
 	if(ffmpeg_file_context)
-		av_close_input_file((AVFormatContext*)ffmpeg_file_context);
+	{
+		avformat_close_input((AVFormatContext**)&ffmpeg_file_context);
+	}
+	
 	ffmpeg_file_context = 0;
 }
 
@@ -157,18 +161,47 @@ void FileFFMPEGStream::allocate_history(int len)
 	}
 }
 
-void FileFFMPEGStream::append_history(short *new_data, int len)
+void FileFFMPEGStream::append_history(AVFrame *frame, int len)
 {
+// printf("FileFFMPEGStream::append_history %d len=%d format=%d\n", 
+// __LINE__,
+// len,
+// frame->format);
 	allocate_history(len);
 
 	for(int i = 0; i < channels; i++)
 	{
-		double *output = pcm_history[i] + history_size;
-		short *input = new_data + i;
-		for(int j = 0; j < len; j++)
+		switch(frame->format)
 		{
-			*output++ = (double)*input / 32768;
-			input += channels;
+			case AV_SAMPLE_FMT_S16P:
+			{
+				double *output = pcm_history[i] + history_size;
+				int16_t *input = (int16_t*)frame->data[i];
+				for(int j = 0; j < len; j++)
+				{
+					*output++ = (double)*input / 32767;
+					input++;
+				}
+				break;
+			}
+			
+			case AV_SAMPLE_FMT_FLTP:
+			{
+				double *output = pcm_history[i] + history_size;
+				float *input = (float*)frame->data[i];
+				for(int j = 0; j < len; j++)
+				{
+					*output++ = *input;
+					input++;
+				}
+				break;
+			}
+			
+			default:
+				printf("FileFFMPEGStream::append_history %d unsupported audio format %d\n", 
+					__LINE__,
+					frame->format);
+				break;
 		}
 	}
 
@@ -219,9 +252,9 @@ FileFFMPEG::~FileFFMPEG()
 
 void FileFFMPEG::reset()
 {
-	ffmpeg_format = 0;
-	ffmpeg_frame = 0;
-	ffmpeg_samples = 0;
+//	ffmpeg_format = 0;
+//	ffmpeg_frame = 0;
+//	ffmpeg_samples = 0;
 }
 
 char* FileFFMPEG::get_format_string(Asset *asset)
@@ -270,29 +303,34 @@ int FileFFMPEG::check_sig(Asset *asset)
 
 
 	ffmpeg_lock->lock("FileFFMPEG::check_sig");
-	avcodec_init();
+//	avcodec_init();
     avcodec_register_all();
     av_register_all();
-	
+
 	AVFormatContext *ffmpeg_file_context = 0;
-    AVFormatParameters params;
-	bzero(&params, sizeof(params));
-	int result = av_open_input_file(
+//    AVFormatParameters params;
+//	bzero(&params, sizeof(params));
+// 	int result = av_open_input_file(
+// 		&ffmpeg_file_context, 
+// 		asset->path, 
+// 		0, 
+// 		0, 
+// 		&params);
+	int result = avformat_open_input(
 		&ffmpeg_file_context, 
 		asset->path, 
 		0, 
-		0, 
-		&params);
+		0);
 
 //printf("FileFFMPEG::check_sig %d result=%d\n", __LINE__, result);
 	if(result >= 0)
 	{
-		result = av_find_stream_info(ffmpeg_file_context);
+		result = avformat_find_stream_info(ffmpeg_file_context, 0);
 
 		
 		if(result >= 0)
 		{
-			av_close_input_file(ffmpeg_file_context);
+			avformat_close_input(&ffmpeg_file_context);
 			ffmpeg_lock->unlock();
 			return 1;
 		}
@@ -330,32 +368,37 @@ int FileFFMPEG::open_file(int rd, int wr)
 {
 	const int debug = 0;
 	int result = 0;
-    AVFormatParameters params;
-	bzero(&params, sizeof(params));
+//    AVFormatParameters params;
+//	bzero(&params, sizeof(params));
 
 	ffmpeg_lock->lock("FileFFMPEG::open_file");
-	avcodec_init();
+//	avcodec_init();
     avcodec_register_all();
     av_register_all();
 
 	if(rd)
 	{
-		void *ffmpeg_file_context;
+		AVFormatContext *ffmpeg_file_context = 0;
 
-// if(debug) printf("FileFFMPEG::open_file ffmpeg_format=%p\n", ffmpeg_format);
-		result = av_open_input_file(
-			(AVFormatContext**)&ffmpeg_file_context, 
+if(debug) printf("FileFFMPEG::open_file %d\n", __LINE__);
+// 		result = av_open_input_file(
+// 			(AVFormatContext**)&ffmpeg_file_context, 
+// 			asset->path, 
+// 			0,
+// 			0, 
+// 			&params);
+		result = avformat_open_input(
+			&ffmpeg_file_context, 
 			asset->path, 
 			0,
-			0, 
-			&params);
+			0);
 
 		if(debug) printf("FileFFMPEG::open_file %d result=%d\n", __LINE__, result);
 
 		if(result >= 0)
 		{
 			if(debug) printf("FileFFMPEG::open_file %d this=%p result=%d ffmpeg_file_context=%p\n", __LINE__, this, result, ffmpeg_file_context);
-			result = av_find_stream_info((AVFormatContext*)ffmpeg_file_context);
+			result = avformat_find_stream_info(ffmpeg_file_context, 0);
 			if(debug) printf("FileFFMPEG::open_file %d this=%p result=%d\n", __LINE__, this, result);
 		}
 		else
@@ -381,7 +424,7 @@ if(debug) printf("FileFFMPEG::open_file %d streams=%d\n", __LINE__, ((AVFormatCo
        			AVCodecContext *decoder_context = ffmpeg_stream->codec;
         		switch(decoder_context->codec_type) 
 				{
-        			case CODEC_TYPE_AUDIO:
+        			case AVMEDIA_TYPE_AUDIO:
 					{
 if(debug) printf("FileFFMPEG::open_file %d i=%d CODEC_TYPE_AUDIO\n", __LINE__, i);
 if(debug) printf("FileFFMPEG::open_file %d decoder_context->codec_id=%d\n", __LINE__, decoder_context->codec_id);
@@ -400,19 +443,19 @@ if(debug) printf("FileFFMPEG::open_file %d decoder_context->codec_id=%d\n", __LI
 
 
 // Open a new FFMPEG file for the stream
-							result = av_open_input_file(
+							result = avformat_open_input(
 								(AVFormatContext**)&new_stream->ffmpeg_file_context, 
 								asset->path, 
 								0,
-								0, 
-								&params);
-							av_find_stream_info((AVFormatContext*)new_stream->ffmpeg_file_context);
+								0);
+							avformat_find_stream_info((AVFormatContext*)new_stream->ffmpeg_file_context, 0);
 							ffmpeg_stream = ((AVFormatContext*)new_stream->ffmpeg_file_context)->streams[i];
 							decoder_context = ffmpeg_stream->codec;
 							codec = avcodec_find_decoder(decoder_context->codec_id);
 
-							avcodec_thread_init(decoder_context, file->cpus);
-							avcodec_open(decoder_context, codec);
+							//avcodec_thread_init(decoder_context, file->cpus);
+							decoder_context->thread_count = file->cpus;
+							avcodec_open2(decoder_context, codec, 0);
 
 							asset->channels += new_stream->channels;
 							asset->bits = 16;
@@ -427,7 +470,7 @@ if(debug) printf("FileFFMPEG::open_file %d audio_length=%lld\n", __LINE__, (long
             			break;
 					}
 
-        			case CODEC_TYPE_VIDEO:
+        			case AVMEDIA_TYPE_VIDEO:
 if(debug) printf("FileFFMPEG::open_file %d i=%d CODEC_TYPE_VIDEO\n", __LINE__, i);
             			if(video_streams.size() == 0)
 						{
@@ -440,18 +483,18 @@ if(debug) printf("FileFFMPEG::open_file %d i=%d CODEC_TYPE_VIDEO\n", __LINE__, i
 							asset->layers = 1;
 
 // Open a new FFMPEG file for the stream
-							result = av_open_input_file(
+							result = avformat_open_input(
 								(AVFormatContext**)&new_stream->ffmpeg_file_context, 
 								asset->path, 
 								0,
-								0, 
-								&params);
-							av_find_stream_info((AVFormatContext*)new_stream->ffmpeg_file_context);
+								0);
+							avformat_find_stream_info((AVFormatContext*)new_stream->ffmpeg_file_context, 0);
 							ffmpeg_stream = ((AVFormatContext*)new_stream->ffmpeg_file_context)->streams[i];
 							decoder_context = ffmpeg_stream->codec;
 							AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
-							avcodec_thread_init(decoder_context, file->cpus);
-							avcodec_open(decoder_context, codec);
+//							avcodec_thread_init(decoder_context, file->cpus);
+							decoder_context->thread_count = file->cpus;
+							avcodec_open2(decoder_context, codec, 0);
 
 							asset->width = decoder_context->width;
 							asset->height = decoder_context->height;
@@ -492,15 +535,18 @@ decoder_context->codec_id);
 		{
 			ffmpeg_lock->unlock();
 			if(ffmpeg_file_context)
-				av_close_input_file((AVFormatContext*)ffmpeg_file_context);
+			{
+				avformat_close_input((AVFormatContext**)&ffmpeg_file_context);
+			}
 if(debug) printf("FileFFMPEG::open_file %d\n", __LINE__);
 			return 1;
 		}
 
 
 		if(ffmpeg_file_context)
-			av_close_input_file((AVFormatContext*)ffmpeg_file_context);
-
+		{
+			avformat_close_input((AVFormatContext**)&ffmpeg_file_context);
+		}
 
 	}
 
@@ -514,9 +560,9 @@ int FileFFMPEG::close_file()
 	const int debug = 0;
 	if(debug) printf("FileFFMPEG::close_file %d\n", __LINE__);
 	ffmpeg_lock->lock("FileFFMPEG::close_file");
-	if(ffmpeg_frame) av_free(ffmpeg_frame);
+//	if(ffmpeg_frame) av_frame_free(ffmpeg_frame);
 	if(debug) printf("FileFFMPEG::close_file %d\n", __LINE__);
-	if(ffmpeg_samples) free(ffmpeg_samples);
+//	if(ffmpeg_samples) av_frame_free(ffmpeg_samples);
 	if(debug) printf("FileFFMPEG::close_file %d\n", __LINE__);
 	audio_streams.remove_all_objects();
 	if(debug) printf("FileFFMPEG::close_file %d\n", __LINE__);
@@ -561,60 +607,58 @@ void FileFFMPEG::dump_context(void *ptr)
 {
 	AVCodecContext *context = (AVCodecContext*)ptr;
 
-	printf("FileFFMPEG::dump_context %d\n", __LINE__);
-	printf("    bit_rate=%d\n", context->bit_rate);
-	printf("    bit_rate_tolerance=%d\n", context->bit_rate_tolerance);
-	printf("    flags=%d\n", context->flags);
-	printf("    sub_id=%d\n", context->sub_id);
-	printf("    me_method=%d\n", context->me_method);
-	printf("    extradata_size=%d\n", context->extradata_size);
-	printf("    time_base.num=%d\n", context->time_base.num);
-	printf("    time_base.den=%d\n", context->time_base.den);
-	printf("    width=%d\n", context->width);
-	printf("    height=%d\n", context->height);
-	printf("    gop_size=%d\n", context->gop_size);
-	printf("    pix_fmt=%d\n", context->pix_fmt);
-	printf("    rate_emu=%d\n", context->rate_emu);
-	printf("    sample_rate=%d\n", context->sample_rate);
-	printf("    channels=%d\n", context->channels);
-	printf("    sample_fmt=%d\n", context->sample_fmt);
-	printf("    frame_size=%d\n", context->frame_size);
-	printf("    frame_number=%d\n", context->frame_number);
-	printf("    real_pict_num=%d\n", context->real_pict_num);
-	printf("    delay=%d\n", context->delay);
-	printf("    qcompress=%f\n", context->qcompress);
-	printf("    qblur=%f\n", context->qblur);
-	printf("    qmin=%d\n", context->qmin);
-	printf("    qmax=%d\n", context->qmax);
-	printf("    max_qdiff=%d\n", context->max_qdiff);
-	printf("    max_b_frames=%d\n", context->max_b_frames);
-	printf("    b_quant_factor=%f\n", context->b_quant_factor);
-	printf("    b_frame_strategy=%d\n", context->b_frame_strategy);
-	printf("    hurry_up=%d\n", context->hurry_up);
-	printf("    rtp_payload_size=%d\n", context->rtp_payload_size);
-	printf("    codec_id=%d\n", context->codec_id);
-	printf("    codec_tag=%d\n", context->codec_tag);
-	printf("    workaround_bugs=%d\n", context->workaround_bugs);
-//	printf("    error_resilience=%d\n", context->error_resilience);
-	printf("    has_b_frames=%d\n", context->has_b_frames);
-	printf("    block_align=%d\n", context->block_align);
-	printf("    parse_only=%d\n", context->parse_only);
-	printf("    idct_algo=%d\n", context->idct_algo);
-	printf("    slice_count=%d\n", context->slice_count);
-	printf("    slice_offset=%p\n", context->slice_offset);
-	printf("    error_concealment=%d\n", context->error_concealment);
-	printf("    dsp_mask=%x\n", context->dsp_mask);
-//	printf("    bits_per_sample=%d\n", context->bits_per_sample);
-	printf("    slice_flags=%d\n", context->slice_flags);
-	printf("    xvmc_acceleration=%d\n", context->xvmc_acceleration);
-	printf("    antialias_algo=%d\n", context->antialias_algo);
-	printf("    thread_count=%d\n", context->thread_count);
-	printf("    skip_top=%d\n", context->skip_top);
-	printf("    profile=%d\n", context->profile);
-	printf("    level=%d\n", context->level);
-	printf("    lowres=%d\n", context->lowres);
-	printf("    coded_width=%d\n", context->coded_width);
-	printf("    coded_height=%d\n", context->coded_height);
+// 	printf("FileFFMPEG::dump_context %d\n", __LINE__);
+// 	printf("    bit_rate=%d\n", context->bit_rate);
+// 	printf("    bit_rate_tolerance=%d\n", context->bit_rate_tolerance);
+// 	printf("    flags=%d\n", context->flags);
+// 	printf("    sub_id=%d\n", context->sub_id);
+// 	printf("    me_method=%d\n", context->me_method);
+// 	printf("    extradata_size=%d\n", context->extradata_size);
+// 	printf("    time_base.num=%d\n", context->time_base.num);
+// 	printf("    time_base.den=%d\n", context->time_base.den);
+// 	printf("    width=%d\n", context->width);
+// 	printf("    height=%d\n", context->height);
+// 	printf("    gop_size=%d\n", context->gop_size);
+// 	printf("    pix_fmt=%d\n", context->pix_fmt);
+// 	printf("    rate_emu=%d\n", context->rate_emu);
+// 	printf("    sample_rate=%d\n", context->sample_rate);
+// 	printf("    channels=%d\n", context->channels);
+// 	printf("    sample_fmt=%d\n", context->sample_fmt);
+// 	printf("    frame_size=%d\n", context->frame_size);
+// 	printf("    frame_number=%d\n", context->frame_number);
+// 	printf("    real_pict_num=%d\n", context->real_pict_num);
+// 	printf("    delay=%d\n", context->delay);
+// 	printf("    qcompress=%f\n", context->qcompress);
+// 	printf("    qblur=%f\n", context->qblur);
+// 	printf("    qmin=%d\n", context->qmin);
+// 	printf("    qmax=%d\n", context->qmax);
+// 	printf("    max_qdiff=%d\n", context->max_qdiff);
+// 	printf("    max_b_frames=%d\n", context->max_b_frames);
+// 	printf("    b_quant_factor=%f\n", context->b_quant_factor);
+// 	printf("    b_frame_strategy=%d\n", context->b_frame_strategy);
+// 	printf("    hurry_up=%d\n", context->hurry_up);
+// 	printf("    rtp_payload_size=%d\n", context->rtp_payload_size);
+// 	printf("    codec_id=%d\n", context->codec_id);
+// 	printf("    codec_tag=%d\n", context->codec_tag);
+// 	printf("    workaround_bugs=%d\n", context->workaround_bugs);
+// 	printf("    has_b_frames=%d\n", context->has_b_frames);
+// 	printf("    block_align=%d\n", context->block_align);
+// 	printf("    parse_only=%d\n", context->parse_only);
+// 	printf("    idct_algo=%d\n", context->idct_algo);
+// 	printf("    slice_count=%d\n", context->slice_count);
+// 	printf("    slice_offset=%p\n", context->slice_offset);
+// 	printf("    error_concealment=%d\n", context->error_concealment);
+// 	printf("    dsp_mask=%x\n", context->dsp_mask);
+// 	printf("    slice_flags=%d\n", context->slice_flags);
+// 	printf("    xvmc_acceleration=%d\n", context->xvmc_acceleration);
+// 	printf("    antialias_algo=%d\n", context->antialias_algo);
+// 	printf("    thread_count=%d\n", context->thread_count);
+// 	printf("    skip_top=%d\n", context->skip_top);
+// 	printf("    profile=%d\n", context->profile);
+// 	printf("    level=%d\n", context->level);
+// 	printf("    lowres=%d\n", context->lowres);
+// 	printf("    coded_width=%d\n", context->coded_width);
+// 	printf("    coded_height=%d\n", context->coded_height);
 }
 
 
@@ -633,6 +677,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 		stream->ffmpeg_file_context);
 	AVStream *ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->index];
 	AVCodecContext *decoder_context = ffmpeg_stream->codec;
+	AVFrame *ffmpeg_frame = av_frame_alloc();
 
 	if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
 
@@ -651,42 +696,38 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 		while(!got_it && !error)
 		{
-			AVPacket packet;
+			AVPacket *packet = av_packet_alloc();
 			if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
 			error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
-				&packet);
+				packet);
 			if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
 
-			if(!error && packet.size > 0)
+			if(!error && packet->size > 0)
 			{
-				if(packet.stream_index == stream->index)
+				if(packet->stream_index == stream->index)
 				{
-
-					if(!ffmpeg_frame)
-						ffmpeg_frame = avcodec_alloc_frame();
 					int got_picture = 0;
 
 					if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
 
-                	avcodec_get_frame_defaults((AVFrame*)ffmpeg_frame);
+//                	avcodec_get_frame_defaults((AVFrame*)ffmpeg_frame);
 					if(debug) printf("FileFFMPEG::read_frame %d decoder_context=%p ffmpeg_frame=%p\n", 
 						__LINE__,
 						decoder_context,
 						ffmpeg_frame);
 
-		        	int result = avcodec_decode_video(
+		        	int result = avcodec_decode_video2(
 						decoder_context,
-                    	(AVFrame*)ffmpeg_frame, 
+                    	ffmpeg_frame, 
 						&got_picture,
-                    	packet.data, 
-						packet.size);
+                    	packet);
 					if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
-					if(((AVFrame*)ffmpeg_frame)->data[0] && got_picture) got_it = 1;
+					if(ffmpeg_frame->data[0] && got_picture) got_it = 1;
 					if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
 				}
 			}
 
-			av_free_packet(&packet);
+			av_packet_free(&packet);
 		}
 
 		error = 0;
@@ -746,28 +787,25 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 		while(!got_it && !error)
 		{
-			AVPacket packet;
+			AVPacket *packet = av_packet_alloc();
 
 			error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
-				&packet);
+				packet);
 
-			if(!error && packet.size > 0)
+			if(!error && packet->size > 0)
 			{
-				if(packet.stream_index == stream->index)
+				if(packet->stream_index == stream->index)
 				{
-
-					if(!ffmpeg_frame)
-						ffmpeg_frame = avcodec_alloc_frame();
 					int got_picture = 0;
-                	avcodec_get_frame_defaults((AVFrame*)ffmpeg_frame);
+//                	avcodec_get_frame_defaults((AVFrame*)ffmpeg_frame);
 
 
-// printf("FileFFMPEG::read_frame %d current_frame=%lld ffmpeg_frame=%p packet.data=%p packet.size=%d\n",
+// printf("FileFFMPEG::read_frame %d current_frame=%lld ffmpeg_frame=%p packet->data=%p packet->size=%d\n",
 // __LINE__,
 // file->current_frame, 
 // ffmpeg_frame, 
-// packet.data, 
-// packet.size);
+// packet->data, 
+// packet->size);
 // for(int i = 0; i < decoder_context->extradata_size; i++)
 // printf("0x%02x, ", decoder_context->extradata[i]);
 // printf("\n");
@@ -777,17 +815,16 @@ int FileFFMPEG::read_frame(VFrame *frame)
 // char string[1024];
 // sprintf(string, "/tmp/debug%03lld", file->current_frame);
 // FILE *out = fopen(string, "w");
-// fwrite(packet.data, packet.size, 1, out);
+// fwrite(packet->data, packet->size, 1, out);
 // fclose(out);
 // }
 
 
-		        	int result = avcodec_decode_video(
+		        	int result = avcodec_decode_video2(
 						decoder_context,
                     	(AVFrame*)ffmpeg_frame, 
 						&got_picture,
-                    	packet.data, 
-						packet.size);
+                    	packet);
 
 
 //printf("FileFFMPEG::read_frame %d result=%d\n", __LINE__, result);
@@ -797,7 +834,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 			}
 			
 			
-			av_free_packet(&packet);
+			av_packet_free(&packet);
 		}
 
 		if(got_it) stream->current_frame++;
@@ -819,19 +856,19 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 		switch(decoder_context->pix_fmt)
 		{
-			case PIX_FMT_YUV420P:
+			case AV_PIX_FMT_YUV420P:
 				input_cmodel = BC_YUV420P;
 				break;
 #ifndef FFMPEG_2010
-			case PIX_FMT_YUV422:
+			case AV_PIX_FMT_YUV422:
 				input_cmodel = BC_YUV422;
 				break;
 #endif
 
-			case PIX_FMT_YUV422P:
+			case AV_PIX_FMT_YUV422P:
 				input_cmodel = BC_YUV422P;
 				break;
-			case PIX_FMT_YUV410P:
+			case AV_PIX_FMT_YUV410P:
 				input_cmodel = BC_YUV9P;
 				break;
 			default:
@@ -881,6 +918,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 	}
 //PRINT_TRACE
 
+	av_frame_free(&ffmpeg_frame);
 
 	ffmpeg_lock->unlock();
 	if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
@@ -958,46 +996,38 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 	while(accumulation < stream->decode_len && !error)
 	{
 //printf("FileFFMPEG::read_samples %d accumulation=%d\n", __LINE__, accumulation);
-		AVPacket packet;
+		AVPacket *packet = av_packet_alloc();
+		
 		error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
-			&packet);
-		unsigned char *packet_ptr = packet.data;
-		int packet_len = packet.size;
+			packet);
+		unsigned char *packet_ptr = packet->data;
+		int packet_len = packet->size;
 		if(debug) printf("FileFFMPEG::read_samples %d error=%d packet_len=%d\n", 
 		__LINE__, 
 		error, 
 		packet_len);
 
-		if(packet.stream_index == stream->index)
+		if(packet->stream_index == stream->index)
 		{
 			while(packet_len > 0 && !error)
 			{
-				int data_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-                if(!ffmpeg_samples) ffmpeg_samples = (short*)realloc(ffmpeg_samples, data_size);
-if(debug) printf("FileFFMPEG::read_samples %d decoder_context=%p ffmpeg_samples=%p data_size=%d packet.size=%d packet.data=%p codec_id=%d\n", 
+//				int data_size = MPA_MAX_CODED_FRAME_SIZE;
+				int got_frame;
+                AVFrame *ffmpeg_samples = av_frame_alloc();
+if(debug) printf("FileFFMPEG::read_samples %d decoder_context=%p ffmpeg_samples=%p packet.size=%d packet.data=%p codec_id=%d\n", 
 __LINE__, 
 decoder_context,
 ffmpeg_samples,
-data_size,
 packet_len,
 packet_ptr,
 decoder_context->codec_id);
 //av_log_set_level(AV_LOG_DEBUG);
 
 
-#if 1
-				int bytes_decoded = avcodec_decode_audio2(decoder_context, 
+				int bytes_decoded = avcodec_decode_audio4(decoder_context, 
 					ffmpeg_samples, 
-					&data_size,
-                    packet_ptr, 
-					packet_len);
-#else
-				int bytes_decoded = avcodec_decode_audio(decoder_context, 
-					ffmpeg_samples, 
-					&data_size,
-                    packet_ptr, 
-					packet_len);
-#endif
+					&got_frame,
+                    packet);
 
 
 if(debug) PRINT_TRACE
@@ -1005,26 +1035,26 @@ if(debug) PRINT_TRACE
 				if(bytes_decoded == -1) error = 1;
 				packet_ptr += bytes_decoded;
 				packet_len -= bytes_decoded;
-if(debug) printf("FileFFMPEG::read_samples %d bytes_decoded=%d data_size=%d\n", 
+if(debug) printf("FileFFMPEG::read_samples %d bytes_decoded=%d\n", 
 __LINE__, 
-bytes_decoded,
-data_size);
+bytes_decoded);
 //				if(data_size <= 0)
 //					break;
-				int samples_decoded = data_size / 
-					stream->channels / 
-					sizeof(short);
+				if(!got_frame) break;
+				int samples_decoded = ffmpeg_samples->nb_samples;
 // Transfer decoded samples to ring buffer
 				stream->append_history(ffmpeg_samples, samples_decoded);
 // static FILE *fd = 0;
 // if(!fd) fd = fopen("/tmp/test.pcm", "w");
 // fwrite(ffmpeg_samples, data_size, 1, fd);
+				
+				av_frame_free(&ffmpeg_samples);
 				accumulation += samples_decoded;
 			}
 		}
 		if(debug) PRINT_TRACE
 		
-		av_free_packet(&packet);
+		av_packet_free(&packet);
 	}
 	if(debug) printf("FileFFMPEG::read_samples %d\n", __LINE__);
 

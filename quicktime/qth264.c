@@ -403,7 +403,7 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 		{
 			codec->param.i_threads = file->cpus;
 		}
-codec->param.i_threads = 0;
+//codec->param.i_threads = 0;
 
 		printf("encode %d fix_bitrate=%d\n", __LINE__, codec->fix_bitrate);
 		printf("encode %d i_bitrate=%d\n", __LINE__, codec->param.rc.i_bitrate);
@@ -533,7 +533,7 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 	if(!codec->decoder) codec->decoder = quicktime_new_ffmpeg(
 		file->cpus,
 		codec->total_fields,
-		CODEC_ID_H264,
+		AV_CODEC_ID_H264,
 		width,
 		height,
 		stsd_table);

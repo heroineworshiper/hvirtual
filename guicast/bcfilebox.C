@@ -549,7 +549,7 @@ BC_FileBox::BC_FileBox(int x,
 		fs->set_current_dir(this->current_path);
 //		fs->update(this->current_path);
 		strcpy(directory, fs->get_current_dir());
-		sprintf(filename, "");
+		filename[0] = 0;
 	}
 	else
 	{

@@ -1132,7 +1132,9 @@ void MotionMain::draw_vectors(VFrame *frame)
 	int search_x4, search_y4;
 
 
-	if(config.global)
+// always processing global
+//	if(config.global)
+	if(1)
 	{
 // Get vector
 // Start of vector is center of previous block.

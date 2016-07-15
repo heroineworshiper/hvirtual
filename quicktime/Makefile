@@ -205,8 +205,10 @@ UTILS := \
 	$(OBJDIR)/yuv2mov \
 	$(OBJDIR)/yuv4toyuv \
 	$(OBJDIR)/recover \
-	$(OBJDIR)/rechunk \
-	$(OBJDIR)/mts2mp4
+	$(OBJDIR)/rechunk
+
+
+#	$(OBJDIR)/mts2mp4
 
 
 
@@ -266,6 +268,7 @@ $(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(
 	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
 	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
 	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
+	find $(FFMPEG_DIR)/libswresample/ -name *.o >> $(OBJDIR)/objs
 	ar rcs $(OUTPUT) `cat $(OBJDIR)/objs`
 
 # this is the only way we figured out to merge .a files
@@ -279,9 +282,9 @@ $(FFMPEG_LIB):
 	cd ../avformat && \
 	ar x ../../../$(FFMPEG_DIR)/libavformat/libavformat.a &&  \
 	cd ../avutil && \
-	ar x ../../../$(FFMPEG_DIR)/libavutil/libavutil.a
-#	cd ../avcore && \
-#	ar x ../../../$(FFMPEG_DIR)/libavcore/libavcore.a
+	ar x ../../../$(FFMPEG_DIR)/libavutil/libavutil.a \
+	cd ../avutil && \
+	ar x ../../../$(FFMPEG_DIR)/libswresample/libswresample.a
 
 $(FAAD_LIB):
 	$(MAKE) -C $(FAAD_DIR) && \
