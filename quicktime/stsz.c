@@ -63,7 +63,7 @@ void quicktime_stsz_dump(quicktime_stsz_t *stsz)
 	{
 		for(i = 0; i < stsz->total_entries; i++)
 		{
-			printf("       sample_size %x\n", stsz->table[i].size);
+			printf("       sample_size %d\n", stsz->table[i].size);
 		}
 	}
 }

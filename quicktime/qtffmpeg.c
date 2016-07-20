@@ -296,7 +296,7 @@ static int decode_wrapper(quicktime_t *file,
 // printf("\n");
 
 // static FILE *out = 0;
-// if(!out) out = fopen("/tmp/debug.m2v", "w");
+// if(!out) out = fopen("/tmp/debug.mp4", "w");
 // fwrite(ffmpeg->work_buffer, bytes + header_bytes, 1, out);
 //printf("decode_wrapper %d frame_number=%d result=%d\n", __LINE__, frame_number, result);
 

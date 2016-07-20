@@ -214,6 +214,9 @@ int FileMOV::open_file(int rd, int wr)
 
 // Set decoding parameter
 	quicktime_set_parameter(fd, "divx_use_deblocking", &asset->divx_use_deblocking);
+// printf("FileMOV::open_file %d\n", 
+// __LINE__);
+// asset->dump();
 
 	return 0;
 }
@@ -337,9 +340,6 @@ void FileMOV::asset_to_format()
 		quicktime_set_parameter(fd, "divx_quality", &asset->divx_quality);
 		quicktime_set_parameter(fd, "divx_fix_bitrate", &asset->divx_fix_bitrate);
 
-// printf("FileMOV::asset_to_format %d\n", 
-// __LINE__);
-// asset->dump();
 		quicktime_set_parameter(fd, "ffmpeg_bitrate", &asset->ms_bitrate);
 		quicktime_set_parameter(fd, "ffmpeg_bitrate_tolerance", &asset->ms_bitrate_tolerance);
 		quicktime_set_parameter(fd, "ffmpeg_interlaced", &asset->ms_interlaced);

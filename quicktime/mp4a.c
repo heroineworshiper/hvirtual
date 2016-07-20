@@ -420,7 +420,7 @@ void quicktime_init_codec_mp4a(quicktime_audio_map_t *atrack)
 	codec_base->encode_audio = encode;
 	codec_base->set_parameter = set_parameter;
 	codec_base->flush = flush;
-	codec_base->fourcc = "mp4a";
+	codec_base->fourcc = QUICKTIME_MP4A;
 	codec_base->title = "MPEG4 audio";
 	codec_base->desc = "Audio section of MPEG4 standard";
 

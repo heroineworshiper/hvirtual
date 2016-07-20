@@ -84,25 +84,39 @@ int quicktime_read_minf(quicktime_t *file, quicktime_minf_t *minf, quicktime_ato
 
 /* mandatory */
 		if(quicktime_atom_is(&leaf_atom, "vmhd"))
-			{ minf->is_video = 1; quicktime_read_vmhd(file, &(minf->vmhd)); }
+		{ 
+//printf("quicktime_read_minf %d\n", __LINE__);
+			minf->is_video = 1; 
+			quicktime_read_vmhd(file, &(minf->vmhd)); 
+		}
 		else
 		if(quicktime_atom_is(&leaf_atom, "smhd"))
-			{ minf->is_audio = 1; quicktime_read_smhd(file, &(minf->smhd)); }
+		{ 
+//printf("quicktime_read_minf %d\n", __LINE__);
+			minf->is_audio = 1; 
+			quicktime_read_smhd(file, &(minf->smhd)); 
+		}
 		else
 		if(quicktime_atom_is(&leaf_atom, "hdlr"))
-			{ 
-				quicktime_read_hdlr(file, &(minf->hdlr)); 
+		{ 
+			quicktime_read_hdlr(file, &(minf->hdlr)); 
 /* Main Actor doesn't write component name */
-				quicktime_atom_skip(file, &leaf_atom);
-			}
+			quicktime_atom_skip(file, &leaf_atom);
+		}
 		else
 		if(quicktime_atom_is(&leaf_atom, "dinf"))
-			{ quicktime_read_dinf(file, &(minf->dinf), &leaf_atom); }
+		{ 
+			quicktime_read_dinf(file, &(minf->dinf), &leaf_atom); 
+		}
 		else
 		if(quicktime_atom_is(&leaf_atom, "stbl"))
-			{ quicktime_read_stbl(file, minf, &(minf->stbl), &leaf_atom); }
+		{ 
+			quicktime_read_stbl(file, minf, &(minf->stbl), &leaf_atom); 
+		}
 		else
+		{
 			quicktime_atom_skip(file, &leaf_atom);
+		}
 	}while(quicktime_position(file) < parent_atom->end);
 
 	return 0;

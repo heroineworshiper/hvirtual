@@ -82,9 +82,19 @@ void quicktime_read_stsd_audio(quicktime_t *file,
 	table->packet_size = quicktime_read_int16(file);
 	table->sample_rate = quicktime_read_fixed32(file);
 
-// Kluge for fixed32 limitation
-if(table->sample_rate + 65536 == 96000 ||
-	table->sample_rate + 65536 == 88200) table->sample_rate += 65536;
+//printf("quicktime_read_stsd_audio %d %f\n", __LINE__, table->sample_rate);
+
+	if(table->sample_rate == 0)
+	{
+		table->sample_rate = 44100;
+	}
+	else
+	// Kluge for fixed32 limitation
+	if(table->sample_rate + 65536 == 96000 ||
+		table->sample_rate + 65536 == 88200)
+	{
+		table->sample_rate += 65536;
+	}
 
 
 // Version 1 fields
@@ -297,6 +307,29 @@ void quicktime_read_stsd_table(quicktime_t *file, quicktime_minf_t *minf, quickt
 	table->format[3] = leaf_atom.type[3];
 	quicktime_read_data(file, table->reserved, 6);
 	table->data_reference = quicktime_read_int16(file);
+
+// printf("quicktime_read_stsd_table %d %d %d %c%c%c%c\n", 
+// __LINE__, 
+// minf->is_audio, 
+// minf->is_video,
+// table->format[0],
+// table->format[1],
+// table->format[2],
+// table->format[3]);
+
+// if minf comes after stsd, we're screwed.  Just base it on certain codecs for now.
+	if(!minf->is_audio && !minf->is_video)
+	{
+		if(quicktime_match_32(table->format, QUICKTIME_H264))
+		{
+			minf->is_video = 1;
+		}
+		else
+		if(quicktime_match_32(table->format, QUICKTIME_MP4A))
+		{
+			minf->is_audio = 1;
+		}
+	}
 
 	if(minf->is_audio) quicktime_read_stsd_audio(file, table, &leaf_atom);
 	if(minf->is_video) quicktime_read_stsd_video(file, table, &leaf_atom);
