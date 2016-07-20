@@ -1,0 +1,1 @@
+config:x86:x86_64:generic:linux:gcc 4.8 (Ubuntu 4.8.4-2ubuntu1~14.04.1):--enable-pthreads --enable-gpl --disable-ffplay --extra-cflags=-I/root/hvirtual/quicktime/thirdparty/faad2-2.0//include --extra-libs=-L/root/hvirtual/quicktime/thirdparty/faad2-2.0//libfaad/.libs/ --disable-ffserver --disable-ffplay
