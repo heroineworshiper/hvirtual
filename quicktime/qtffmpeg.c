@@ -250,9 +250,9 @@ static int decode_wrapper(quicktime_t *file,
 	quicktime_stsd_table_t *stsd_table = &trak->mdia.minf.stbl.stsd.table[0];
 	int64_t frame_number = ffmpeg->read_position[current_field];
 
-// printf("decode_wrapper %d frame_number=%ld current_position=%ld current_field=%d drop_it=%d\n", 
+// printf("decode_wrapper %d read_position=%ld current_position=%ld current_field=%d drop_it=%d\n", 
 // __LINE__,
-// frame_number, 
+// frame_number,
 // current_position,
 // current_field,
 // drop_it);
@@ -373,6 +373,7 @@ static int decode_wrapper(quicktime_t *file,
 // frame_number, 
 // got_picture,
 // ffmpeg->picture[current_field]->data[0]);
+
 // if(ffmpeg->picture[current_field]->data[0])
 // {
 // int i;
@@ -398,6 +399,7 @@ static int decode_wrapper(quicktime_t *file,
 		asm("emms");
 #endif
 		ffmpeg->read_position[current_field] += ffmpeg->fields;
+//printf("decode_wrapper %d read_position=%d\n", __LINE__, ffmpeg->read_position[current_field]);
 	}
 
 // reset official position to what it was before reading the codec position
@@ -468,13 +470,16 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 		&picture_y,
 		&picture_u,
 		&picture_v);
-// printf("quicktime_ffmpeg_decode %d result=%d picture_y=%p\n", 
+
+
+
+// printf("quicktime_ffmpeg_decode %d current_position=%d result=%d\n", 
 // __LINE__, 
-// result, 
-// picture_y);
+// vtrack->current_position,
+// result);
 
 
-// Didn't get frame
+// Didn't get frame from cache
 	if(!result)
 	{
 // Codecs which work without locking:
@@ -515,6 +520,14 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // Same frame requested twice
 			vtrack->current_position != ffmpeg->last_frame[current_field])
 		{
+
+
+// printf("quicktime_ffmpeg_decode %d current_position=%ld last_frame=%ld\n", 
+// __LINE__, 
+// vtrack->current_position,
+// ffmpeg->last_frame[current_field]);
+
+
 			int frame1;
 			int first_frame;
 			int frame2 = vtrack->current_position;
@@ -526,6 +539,8 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 			if(!quicktime_has_frame(vtrack->frame_cache, vtrack->current_position + 1))
 				quicktime_reset_cache(vtrack->frame_cache);
 
+// very important to reset the codec when seeking
+			avcodec_flush_buffers(ffmpeg->decoder_context[current_field]);
 // Get first keyframe of same field
 			frame1 = current_frame;
 			do
@@ -534,21 +549,22 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 					frame1 - 1, 
 					track);
 			}while(frame1 > 0 && (frame1 % ffmpeg->fields) != current_field);
-//printf("quicktime_ffmpeg_decode 1 %d\n", frame1);
+// printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d\n", 
+// __LINE__, 
+// frame1,
+// frame2);
 
-// For MPEG-4, get another keyframe before first keyframe.
-// The Sanyo tends to glitch with only 1 keyframe.
-// Not enough memory.
-// 			if(frame1 > 0 && ffmpeg->ffmpeg_id == CODEC_ID_MPEG4)
-// 			{
-// 				do
-// 				{
-// 					frame1 = quicktime_get_keyframe_before(file,
-// 						frame1 - 1,
-// 						track);
-// 				}while(frame1 > 0 && (frame1 & ffmpeg->fields) != current_field);
-// //printf("quicktime_ffmpeg_decode 2 %d\n", frame1);
-// 			}
+// if it's less than 4 frames earlier, get another keyframe earlier
+			if(frame2 - frame1 < 4)
+			{
+				do
+				{
+					frame1 = quicktime_get_keyframe_before(file,
+						frame1 - 1,
+						track);
+				}while(frame1 > 0 && (frame1 & ffmpeg->fields) != current_field);
+//printf("quicktime_ffmpeg_decode 2 %d\n", frame1);
+			}
 
 // Keyframe is before last decoded frame and current frame is after last decoded
 // frame, so instead of rerendering from the last keyframe we can rerender from
@@ -565,15 +581,13 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // reset read position in file
 			ffmpeg->read_position[current_field] = frame1;
 
-/*
- * printf("quicktime_ffmpeg_decode 2 last_frame=%d frame1=%d frame2=%d\n", 
- * ffmpeg->last_frame[current_field],
- * frame1,
- * frame2);
- */
+// printf("quicktime_ffmpeg_decode %d last_frame=%d frame1=%d frame2=%d\n", 
+// __LINE__,
+// ffmpeg->last_frame[current_field],
+// frame1,
+// frame2);
 			while(frame1 <= frame2)
 			{
-//printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d\n", __LINE__, frame1, frame2);
 				result = decode_wrapper(file, 
 					vtrack, 
 					ffmpeg, 
@@ -582,6 +596,12 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 					track,
 // Don't drop if we want to cache it
 					0 /* (frame1 < frame2) */);
+// printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d result=%d picture_y=%p\n", 
+// __LINE__, 
+// frame1, 
+// frame2,
+// result,
+// picture_y);
 
 // read error
 				if(result < 0)
@@ -652,13 +672,12 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 				picture_y = ffmpeg->picture[current_field]->data[0];
 				picture_u = ffmpeg->picture[current_field]->data[1];
 				picture_v = ffmpeg->picture[current_field]->data[2];
-//printf("quicktime_ffmpeg_decode %d result=%d\n", __LINE__, result);
+//printf("quicktime_ffmpeg_decode %d result=%d picture_y=%p\n", __LINE__, result, picture_y);
 			} while(result > 0 && vtrack->current_position < track_length - 1);
 		}
 		else
 // same frame requested
 		if(!seeking_done &&
-// Same frame not requested
 			vtrack->current_position == ffmpeg->last_frame[current_field])
 		{
 			rowspan = ffmpeg->picture[current_field]->linesize[0];
@@ -709,11 +728,15 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 			break;
 	}
 
-// printf("quicktime_ffmpeg_decode %d vtrack->current_position=%ld rowspan=%d picture_y=%p\n", 
+// printf("quicktime_ffmpeg_decode %d result=%d vtrack->current_position=%ld rowspan=%d picture_y=%p input_cmodel=%d output_cmodel=%d\n", 
 // __LINE__, 
+// result, 
 // vtrack->current_position, 
 // rowspan,
-// picture_y);
+// picture_y,
+// input_cmodel,
+// file->color_model);
+
 	if(picture_y)
 	{
 		unsigned char **input_rows;

@@ -439,6 +439,9 @@ void MotionMain::allocate_temp(int w, int h, int color_model)
 
 void MotionMain::process_global()
 {
+	int w = current_global_ref->get_w();
+	int h = current_global_ref->get_h();
+
 
 	if(!engine) engine = new MotionScan(PluginClient::get_project_smp() + 1,
 		PluginClient::get_project_smp() + 1);
@@ -446,12 +449,12 @@ void MotionMain::process_global()
 // Determine if frames changed
 	engine->scan_frame(current_global_ref, 
 		prev_global_ref,
-		config.global_range_w,
-		config.global_range_h,
-		config.global_block_w,
-		config.global_block_h,
-		config.block_x,
-		config.block_y,
+		config.global_range_w * w / 100,
+		config.global_range_h * h / 100,
+		config.global_block_w * w / 100,
+		config.global_block_h * h / 100,
+		config.block_x * w / 100,
+		config.block_y * h / 100,
 		config.tracking_object,
 		config.tracking_type,
 		config.action_type,
@@ -493,21 +496,21 @@ void MotionMain::process_global()
 	if(config.magnitude < 100)
 	{
 		int block_w = (int64_t)config.global_block_w * 
-				current_global_ref->get_w() / 100;
+				w / 100;
 		int block_h = (int64_t)config.global_block_h * 
-				current_global_ref->get_h() / 100;
+				h / 100;
 		int block_x_orig = (int64_t)(config.block_x * 
-			current_global_ref->get_w() / 
+			w / 
 			100);
 		int block_y_orig = (int64_t)(config.block_y *
-			current_global_ref->get_h() / 
+			h / 
 			100);
 
-		int max_block_x = (int64_t)(current_global_ref->get_w() - block_x_orig) *
+		int max_block_x = (int64_t)(w - block_x_orig) *
 			OVERSAMPLE * 
 			config.magnitude / 
 			100;
-		int max_block_y = (int64_t)(current_global_ref->get_h() - block_y_orig) *
+		int max_block_y = (int64_t)(h - block_y_orig) *
 			OVERSAMPLE *
 			config.magnitude / 
 			100;

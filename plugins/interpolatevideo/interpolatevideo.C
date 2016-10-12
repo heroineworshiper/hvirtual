@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2016 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -673,6 +673,7 @@ void InterpolateVideo::optic_flow()
 			}
 		}
 
+//printf("InterpolateVideo::optic_flow %d %d\n", __LINE__, invalid_blocks.size());
 		if(invalid_blocks.size())
 		{
 			if(!blend_engine)

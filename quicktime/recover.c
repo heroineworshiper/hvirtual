@@ -19,8 +19,8 @@
 #define FSEEK fseeko64
 
 
-#define WIDTH 160
-#define HEIGHT 120
+#define WIDTH 640
+#define HEIGHT 480
 
 //#define FRAMERATE (double)30000/1001
 #define FRAMERATE (double)30

@@ -94,21 +94,21 @@ public:
 // Frame before motion
 	void scan_frame(VFrame *previous_frame,
 		VFrame *current_frame,
-		int global_range_w,
+		int global_range_w, // in pixels
 		int global_range_h,
-		int global_block_w,
+		int global_block_w, // in pixels
 		int global_block_h,
-		double block_x,
-		double block_y,
+		int block_x, // in pixels
+		int block_y,
 		int frame_type,
 		int tracking_type,
 		int action_type,
 		int horizontal_only,
 		int vertical_only,
 		int source_position,
-		int total_dx,
+		int total_dx, // in pixels * OVERSAMPLE
 		int total_dy,
-		int global_origin_x,
+		int global_origin_x, // in pixels
 		int global_origin_y,
 		int do_motion,
 		int do_rotate,
@@ -184,6 +184,16 @@ private:
 	void subpixel_search(int &x_result, int &y_result);
 	double step_to_angle(int step, double center);
 
+// 	double calculate_variance(unsigned char *current_ptr,
+// 		int row_bytes,
+// 		int w,
+// 		int h,
+// 		int color_model);
+	double calculate_range(unsigned char *current_ptr,
+		int row_bytes,
+		int w,
+		int h,
+		int color_model);
 
 
 
@@ -206,6 +216,8 @@ private:
 // Faster to skip it if the frames are usually different
 	int test_match;
 	int skip;
+// macroblocks didn't have enough data
+	int failed;
 // For single block
 	int block_x1;
 	int block_x2;

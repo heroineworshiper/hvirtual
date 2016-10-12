@@ -444,18 +444,22 @@ void MotionMain2::allocate_temp(int w, int h, int color_model)
 
 void MotionMain2::scan_motion(int point)
 {
+	int w = current_global_ref->get_w();
+	int h = current_global_ref->get_h();
+
+
 	if(!engine) engine = new MotionScan(PluginClient::get_project_smp() + 1,
 		PluginClient::get_project_smp() + 1);
 
 // Get the current motion vector between the previous and current frame
 	engine->scan_frame(current_global_ref, 
 		prev_global_ref, 
-		config.global_range_w[point],
-		config.global_range_h[point],
-		config.global_block_w[point],
-		config.global_block_h[point],
-		config.block_x[point],
-		config.block_y[point],
+		config.global_range_w[point] * w / 100,
+		config.global_range_h[point] * h / 100,
+		config.global_block_w[point] * w / 100,
+		config.global_block_h[point] * h / 100,
+		config.block_x[point] * w / 100,
+		config.block_y[point] * h / 100,
 		config.tracking_object,
 		config.calculation,
 		config.action,
@@ -464,8 +468,8 @@ void MotionMain2::scan_motion(int point)
 		get_source_position(),
 		total_dx[point],
 		total_dy[point],
-		config.global_origin_x[point],
-		config.global_origin_y[point],
+		config.global_origin_x[point] * w / 100,
+		config.global_origin_y[point] * h / 100,
 		1,
 		0,
 		0,

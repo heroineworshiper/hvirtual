@@ -825,13 +825,13 @@ packet->data[15]);
 //                	avcodec_get_frame_defaults((AVFrame*)ffmpeg_frame);
 
 
-printf("FileFFMPEG::read_frame %d this=%p buf=%p data=%p size=%d side_data_elems=%d\n", 
-__LINE__,
-this,
-packet->buf,
-packet->data,
-packet->size,
-packet->side_data_elems);
+// printf("FileFFMPEG::read_frame %d this=%p buf=%p data=%p size=%d side_data_elems=%d\n", 
+// __LINE__,
+// this,
+// packet->buf,
+// packet->data,
+// packet->size,
+// packet->side_data_elems);
 // 
 // if(file->current_frame >= 200 && file->current_frame < 280)
 // {
