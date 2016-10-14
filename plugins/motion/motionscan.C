@@ -202,8 +202,9 @@ void MotionScanUnit::process_package(LoadPackage *package)
 MotionScan::MotionScan(int total_clients,
 	int total_packages)
  : LoadServer(
-//1, 1 
-total_clients, total_packages 
+// DEBUG
+1, 1 
+//total_clients, total_packages 
 )
 {
 	test_match = 1;
@@ -785,7 +786,7 @@ printf("MotionScan::pixel_search %d range fail range2=%f\n", __LINE__, range2);
 
 
 
-// printf("MotionScan::pixel_search %d x=%d y=%d w=%d h=%d\n", 
+// printf("MotionScan::pixel_search %d block x=%d y=%d w=%d h=%d\n", 
 // __LINE__, 
 // block_x1 / current_downsample,
 // block_y1 / current_downsample,
@@ -1196,7 +1197,8 @@ void MotionScan::scan_frame(VFrame *previous_frame,
 			break;
 	}
 
-// DEBUG
+
+
 	if(!skip && test_match)
 	{
 		if(previous_frame->data_matches(current_frame))
@@ -1278,20 +1280,18 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 				0);
 
 
-// printf("MotionScan::scan_frame %d block_x1=%d block_y1=%d block_x2=%d block_y2=%d\n", 
-// __LINE__,
-// block_x1,
-// block_y1,
-// block_x2,
-// block_y2);
-// printf("MotionScan::scan_frame %d scan_x1=%d scan_y1=%d scan_x2=%d scan_y2=%d x_result=%d y_result=%d\n", 
-// __LINE__,
-// scan_x1, 
-// scan_y1, 
-// scan_x2, 
-// scan_y2, 
-// x_result, 
-// y_result);
+printf("MotionScan::scan_frame %d block_x1=%d block_y1=%d block_x2=%d block_y2=%d scan_x1=%d scan_y1=%d scan_x2=%d scan_y2=%d x_result=%d y_result=%d\n", 
+__LINE__,
+block_x1,
+block_y1,
+block_x2,
+block_y2,
+scan_x1, 
+scan_y1, 
+scan_x2, 
+scan_y2, 
+x_result, 
+y_result);
 
 
 // Give up if invalid coords.
@@ -1308,6 +1308,10 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 			{
 
 				subpixel_search(x_result, y_result);
+printf("MotionScan::scan_frame %d x_result=%d y_result=%d\n", 
+__LINE__, 
+x_result / OVERSAMPLE, 
+y_result / OVERSAMPLE);
 
 				break;
 			}
@@ -1330,9 +1334,9 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 						action_type == MotionScan::TRACK ||
 						action_type == MotionScan::NOTHING)
 					{
-			//printf("MotionScan::scan_frame %d %d %d\n", __LINE__, x_result, y_result);
 						x_result /= OVERSAMPLE;
 						y_result /= OVERSAMPLE;
+///printf("MotionScan::scan_frame %d x_result=%d y_result=%d\n", __LINE__, x_result, y_result);
 						scan_w = SUBPIXEL_RANGE;
 						scan_h = SUBPIXEL_RANGE;
 // Final R result
@@ -1345,7 +1349,7 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 						dx_result = block_x1 * OVERSAMPLE - x_result;
 						dy_result = block_y1 * OVERSAMPLE - y_result;
 						dr_result = rotation_center - r_result;
-//printf("MotionScan::scan_frame %d %d %d\n", __LINE__, dx_result, dy_result);
+//printf("MotionScan::scan_frame %d %d %d\n", __LINE__, x_result, y_result);
 						break;
 					}
 				}

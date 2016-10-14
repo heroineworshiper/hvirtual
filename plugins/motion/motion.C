@@ -447,6 +447,10 @@ void MotionMain::process_global()
 		PluginClient::get_project_smp() + 1);
 
 // Determine if frames changed
+printf("MotionMain::process_global %d block_y=%d dy=%d\n",
+__LINE__,
+config.block_y * h / 100,
+total_dy / OVERSAMPLE);
 	engine->scan_frame(current_global_ref, 
 		prev_global_ref,
 		config.global_range_w * w / 100,
