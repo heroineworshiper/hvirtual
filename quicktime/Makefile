@@ -253,7 +253,7 @@ DIRS += \
 	$(OBJDIR)/$(ENCORE_DIR)/mbtransquant/intel_mmx
 
 
-LIBS := $(OUTPUT) $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a -lpng -lz -lpthread -ldl -lm
+LIBS := $(OUTPUT) $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a -lpng -lz -lpthread -ldl -lm -lrt
 
 
 $(shell mkdir -p $(DIRS) )

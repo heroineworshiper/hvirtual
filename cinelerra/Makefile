@@ -406,7 +406,8 @@ LIBS += \
 	-lpng \
 	-lz \
 	-ldl \
-	-lbz2
+	-lbz2 \
+	-lrt
 
 #	-lfontconfig \
 #	-lXxf86vm \
@@ -499,7 +500,7 @@ FFMPEG_CFLAGS := \
 
 
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
-$(shell echo $(CFLAGS) $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
+$(shell echo $(CFLAGS) $(FFMPEG_CFLAGS) -D__STDC_CONSTANT_MACROS > $(OBJDIR)/ffmpeg_cflags)
 $(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(FFMPEG_OBJS) $(AVIOBJS) $(CXXREPOSITORY) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
 
 

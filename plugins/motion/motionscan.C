@@ -203,8 +203,8 @@ MotionScan::MotionScan(int total_clients,
 	int total_packages)
  : LoadServer(
 // DEBUG
-1, 1 
-//total_clients, total_packages 
+//1, 1 
+total_clients, total_packages 
 )
 {
 	test_match = 1;
@@ -239,17 +239,34 @@ void MotionScan::init_packages()
 	int downsampled_scan_x2 = scan_x2 / current_downsample;
 	int downsampled_scan_y1 = scan_y1 / current_downsample;
 	int downsampled_scan_y2 = scan_y2 / current_downsample;
+	int downsampled_block_x1 = block_x1 / current_downsample;
+	int downsampled_block_x2 = block_x2 / current_downsample;
+	int downsampled_block_y1 = block_y1 / current_downsample;
+	int downsampled_block_y2 = block_y2 / current_downsample;
 
 
 //printf("MotionScan::init_packages %d %d\n", __LINE__, get_total_packages());
+// printf("MotionScan::init_packages %d current_downsample=%d scan_x1=%d scan_x2=%d block_x1=%d block_x2=%d\n", 
+// __LINE__, 
+// current_downsample,
+// downsampled_scan_x1,
+// downsampled_scan_x2,
+// downsampled_block_x1,
+// downsampled_block_x2);
+// if(current_downsample == 8 && downsampled_scan_x1 == 47)
+// {
+// downsampled_previous->write_png("/tmp/previous");
+// downsampled_current->write_png("/tmp/current");
+// }
+
 	for(int i = 0; i < get_total_packages(); i++)
 	{
 		MotionScanPackage *pkg = (MotionScanPackage*)get_package(i);
 
-		pkg->block_x1 = block_x1 / current_downsample;
-		pkg->block_x2 = block_x2 / current_downsample;
-		pkg->block_y1 = block_y1 / current_downsample;
-		pkg->block_y2 = block_y2 / current_downsample;
+		pkg->block_x1 = downsampled_block_x1;
+		pkg->block_x2 = downsampled_block_x2;
+		pkg->block_y1 = downsampled_block_y1;
+		pkg->block_y2 = downsampled_block_y2;
 		pkg->difference1 = 0;
 		pkg->difference2 = 0;
 		pkg->dx = 0;
@@ -768,7 +785,6 @@ printf("MotionScan::pixel_search %d range fail range2=%f\n", __LINE__, range2);
 				current_frame,
 				step_to_angle(i, r_result));
 
-// DEBUG
 // rotated_current[i]->draw_rect(block_x1 / current_downsample,
 // block_y1 / current_downsample,
 // block_x2 / current_downsample,
@@ -1255,7 +1271,8 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 // 				scan_x2 = block_x1 + 1;
 // 			}
 
-// printf("MotionScan::scan_frame 1 %d %d %d %d %d %d %d %d\n",
+// printf("MotionScan::scan_frame %d block_x1=%d block_y1=%d block_x2=%d block_y2=%d scan_x1=%d scan_y1=%d scan_x2=%d scan_y2=%d\n",
+// __LINE__, 
 // block_x1,
 // block_y1,
 // block_x2,
@@ -1280,18 +1297,19 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 				0);
 
 
-printf("MotionScan::scan_frame %d block_x1=%d block_y1=%d block_x2=%d block_y2=%d scan_x1=%d scan_y1=%d scan_x2=%d scan_y2=%d x_result=%d y_result=%d\n", 
-__LINE__,
-block_x1,
-block_y1,
-block_x2,
-block_y2,
-scan_x1, 
-scan_y1, 
-scan_x2, 
-scan_y2, 
-x_result, 
-y_result);
+// printf("MotionScan::scan_frame %d block_x1=%d block_y1=%d block_x2=%d block_y2=%d scan_x1=%d scan_y1=%d scan_x2=%d scan_y2=%d x_result=%d y_result=%d\n", 
+// __LINE__,
+// block_x1,
+// block_y1,
+// block_x2,
+// block_y2,
+// scan_x1, 
+// scan_y1, 
+// scan_x2, 
+// scan_y2, 
+// x_result, 
+// y_result);
+//if(y_result == 88) exit(0);
 
 
 // Give up if invalid coords.
@@ -1308,10 +1326,10 @@ y_result);
 			{
 
 				subpixel_search(x_result, y_result);
-printf("MotionScan::scan_frame %d x_result=%d y_result=%d\n", 
-__LINE__, 
-x_result / OVERSAMPLE, 
-y_result / OVERSAMPLE);
+// printf("MotionScan::scan_frame %d x_result=%d y_result=%d\n", 
+// __LINE__, 
+// x_result / OVERSAMPLE, 
+// y_result / OVERSAMPLE);
 
 				break;
 			}
@@ -1319,6 +1337,7 @@ y_result / OVERSAMPLE);
 // Single pixel
 			{
 				pixel_search(x_result, y_result, r_result);
+//printf("MotionScan::scan_frame %d x_result=%d y_result=%d\n", __LINE__, x_result / OVERSAMPLE, y_result / OVERSAMPLE);
 				
 				if(failed)
 				{
@@ -1336,7 +1355,7 @@ y_result / OVERSAMPLE);
 					{
 						x_result /= OVERSAMPLE;
 						y_result /= OVERSAMPLE;
-///printf("MotionScan::scan_frame %d x_result=%d y_result=%d\n", __LINE__, x_result, y_result);
+//printf("MotionScan::scan_frame %d x_result=%d y_result=%d\n", __LINE__, x_result, y_result);
 						scan_w = SUBPIXEL_RANGE;
 						scan_h = SUBPIXEL_RANGE;
 // Final R result
@@ -1349,7 +1368,6 @@ y_result / OVERSAMPLE);
 						dx_result = block_x1 * OVERSAMPLE - x_result;
 						dy_result = block_y1 * OVERSAMPLE - y_result;
 						dr_result = rotation_center - r_result;
-//printf("MotionScan::scan_frame %d %d %d\n", __LINE__, x_result, y_result);
 						break;
 					}
 				}
@@ -1375,6 +1393,7 @@ y_result / OVERSAMPLE);
 
 					current_downsample /= 2;
 
+// convert back to pixels
 					x_result /= OVERSAMPLE;
 					y_result /= OVERSAMPLE;
 // debug
@@ -1447,10 +1466,10 @@ y_result / OVERSAMPLE);
 	if(vertical_only) dx_result = 0;
 	if(horizontal_only) dy_result = 0;
 
-// printf("MotionScan::scan_frame %d dx=%.2f dy=%.2f\n", 
+// printf("MotionScan::scan_frame %d dx=%d dy=%d\n", 
 // __LINE__,
-// (float)this->dx_result / OVERSAMPLE,
-// (float)this->dy_result / OVERSAMPLE);
+// this->dx_result,
+// this->dy_result);
 }
 
 
@@ -1767,8 +1786,9 @@ double MotionScan::calculate_range(unsigned char *current_ptr,
 }
 
 
+//#define CLAMP_BLOCK
 
-
+// this truncates the scan area but not the macroblock unless the macro is defined
 void MotionScan::clamp_scan(int w, 
 	int h, 
 	int *block_x1,
@@ -1802,28 +1822,36 @@ void MotionScan::clamp_scan(int w,
 		if(*scan_x1 < 0)
 		{
 			int difference = -*scan_x1;
-//			*block_x1 += difference;
+#ifdef CLAMP_BLOCK
+			*block_x1 += difference;
+#endif
 			*scan_x1 = 0;
 		}
 
 		if(*scan_y1 < 0)
 		{
 			int difference = -*scan_y1;
-//			*block_y1 += difference;
+#ifdef CLAMP_BLOCK
+			*block_y1 += difference;
+#endif
 			*scan_y1 = 0;
 		}
 
 		if(*scan_x2 > w)
 		{
 			int difference = *scan_x2 - w;
-//			*block_x2 -= difference;
+#ifdef CLAMP_BLOCK
+			*block_x2 -= difference;
+#endif
 			*scan_x2 -= difference;
 		}
 
 		if(*scan_y2 > h)
 		{
 			int difference = *scan_y2 - h;
-//			*block_y2 -= difference;
+#ifdef CLAMP_BLOCK
+			*block_y2 -= difference;
+#endif
 			*scan_y2 -= difference;
 		}
 
@@ -1839,7 +1867,9 @@ void MotionScan::clamp_scan(int w,
 		if(*scan_x1 < 0)
 		{
 			int difference = -*scan_x1;
-//			*block_x1 += difference;
+#ifdef CLAMP_BLOCK
+			*block_x1 += difference;
+#endif
 			*scan_x2 += difference;
 			*scan_x1 = 0;
 		}
@@ -1847,7 +1877,9 @@ void MotionScan::clamp_scan(int w,
 		if(*scan_y1 < 0)
 		{
 			int difference = -*scan_y1;
-//			*block_y1 += difference;
+#ifdef CLAMP_BLOCK
+			*block_y1 += difference;
+#endif
 			*scan_y2 += difference;
 			*scan_y1 = 0;
 		}
@@ -1856,14 +1888,18 @@ void MotionScan::clamp_scan(int w,
 		{
 			int difference = *scan_x2 - *block_x1 + *block_x2 - w;
 			*scan_x2 -= difference;
-//			*block_x2 -= difference;
+#ifdef CLAMP_BLOCK
+			*block_x2 -= difference;
+#endif
 		}
 
 		if(*scan_y2 - *block_y1 + *block_y2 > h)
 		{
 			int difference = *scan_y2 - *block_y1 + *block_y2 - h;
 			*scan_y2 -= difference;
-//			*block_y2 -= difference;
+#ifdef CLAMP_BLOCK
+			*block_y2 -= difference;
+#endif
 		}
 
 // 		CLAMP(*scan_x1, 0, w - (*block_x2 - *block_x1));

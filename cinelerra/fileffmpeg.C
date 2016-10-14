@@ -161,13 +161,14 @@ void FileFFMPEGStream::allocate_history(int len)
 	}
 }
 
-void FileFFMPEGStream::append_history(AVFrame *frame, int len)
+void FileFFMPEGStream::append_history(void *frame2, int len)
 {
 // printf("FileFFMPEGStream::append_history %d len=%d format=%d\n", 
 // __LINE__,
 // len,
 // frame->format);
 	allocate_history(len);
+	AVFrame *frame = (AVFrame*)frame2;
 
 	for(int i = 0; i < channels; i++)
 	{

@@ -40,7 +40,7 @@ public:
 	~FileFFMPEGStream();
 
 	void update_pcm_history(int64_t current_sample, int64_t len);
-	void append_history(AVFrame *frame, int len);
+	void append_history(void *frame2, int len);
 	void read_history(double *dst,
 		int64_t start_sample, 
 		int channel,

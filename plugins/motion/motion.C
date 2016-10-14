@@ -447,10 +447,10 @@ void MotionMain::process_global()
 		PluginClient::get_project_smp() + 1);
 
 // Determine if frames changed
-printf("MotionMain::process_global %d block_y=%d dy=%d\n",
-__LINE__,
-config.block_y * h / 100,
-total_dy / OVERSAMPLE);
+// printf("MotionMain::process_global %d block_y=%f total_dy=%d\n",
+// __LINE__,
+// config.block_y * h / 100,
+// total_dy);
 	engine->scan_frame(current_global_ref, 
 		prev_global_ref,
 		config.global_range_w * w / 100,
@@ -485,9 +485,10 @@ total_dy / OVERSAMPLE);
 		total_dy = (int64_t)total_dy * (100 - config.return_speed) / 100;
 		total_dx += engine->dx_result;
 		total_dy += engine->dy_result;
-// printf("MotionMain::process_global total_dx=%d engine->dx_result=%d\n", 
-// total_dx,
-// engine->dx_result);
+// printf("MotionMain::process_global %d total_dy=%d engine->dy_result=%d\n", 
+// __LINE__,
+// total_dy,
+// engine->dy_result);
 	}
 	else
 // Make accumulation vector current
@@ -531,11 +532,10 @@ total_dy / OVERSAMPLE);
 		CLAMP(total_dy, min_block_y, max_block_y);
 	}
 
-#ifdef DEBUG
-printf("MotionMain::process_global 2 total_dx=%.02f total_dy=%.02f\n", 
-(float)total_dx / OVERSAMPLE,
-(float)total_dy / OVERSAMPLE);
-#endif
+// printf("MotionMain::process_global %d total_dx=%d total_dy=%d\n", 
+// __LINE__,
+// total_dx,
+// total_dy);
 
 	if(config.tracking_object != MotionScan::TRACK_SINGLE && !config.rotate)
 	{
