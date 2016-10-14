@@ -512,6 +512,8 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 		}
 
 
+#define SEEK_THRESHOLD 4
+
 // Handle seeking
 // Seeking requires keyframes
 		if(quicktime_has_keyframes(file, track) && 
@@ -528,10 +530,10 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // ffmpeg->last_frame[current_field]);
 
 
-			int frame1;
 			int first_frame;
 			int frame2 = vtrack->current_position;
 			int current_frame = frame2;
+			int frame1 = current_frame;
 			int do_i_frame = 1;
 
 // If an interleaved codec, the opposite field would have been decoded in the previous
@@ -539,10 +541,9 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 			if(!quicktime_has_frame(vtrack->frame_cache, vtrack->current_position + 1))
 				quicktime_reset_cache(vtrack->frame_cache);
 
-// very important to reset the codec when seeking
-			avcodec_flush_buffers(ffmpeg->decoder_context[current_field]);
+
+
 // Get first keyframe of same field
-			frame1 = current_frame;
 			do
 			{
 				frame1 = quicktime_get_keyframe_before(file, 
@@ -554,8 +555,8 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // frame1,
 // frame2);
 
-// if it's less than 4 frames earlier, get another keyframe earlier
-			if(frame2 - frame1 < 4)
+// if it's less than SEEK_THRESHOLD frames earlier, get another keyframe earlier
+			if(frame2 - frame1 < SEEK_THRESHOLD)
 			{
 				do
 				{
@@ -566,14 +567,19 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 //printf("quicktime_ffmpeg_decode 2 %d\n", frame1);
 			}
 
-// Keyframe is before last decoded frame and current frame is after last decoded
-// frame, so instead of rerendering from the last keyframe we can rerender from
-// the last decoded frame.
+// Drop frames instead of starting from a new keyframe
 			if(frame1 < ffmpeg->last_frame[current_field] &&
 				frame2 > ffmpeg->last_frame[current_field])
 			{
+//printf("quicktime_ffmpeg_decode %d\n", __LINE__);
 				frame1 = ffmpeg->last_frame[current_field] + ffmpeg->fields;
 				do_i_frame = 0;
+			}
+			else
+			{
+// very important to reset the codec when changing keyframes
+				avcodec_flush_buffers(ffmpeg->decoder_context[current_field]);
+
 			}
 
 			first_frame = frame1;
