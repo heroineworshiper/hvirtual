@@ -99,14 +99,24 @@ void AboutPrefs::create_objects()
 	credits.append(new BC_ListBoxItem("Karl Bielefeldt"));
 	credits.append(new BC_ListBoxItem("Kevin Brosius"));
 	credits.append(new BC_ListBoxItem("Jean-Luc Coulon"));
-	credits.append(new BC_ListBoxItem("Jean-Michel Poure"));
 	credits.append(new BC_ListBoxItem("Jerome Cornet"));
 	credits.append(new BC_ListBoxItem("Pierre Marc Dumuid"));
+	credits.append(new BC_ListBoxItem("Nicola Ferralis"));
 	credits.append(new BC_ListBoxItem("Alex Ferrer"));
 	credits.append(new BC_ListBoxItem("Gustavo Iñiguez"));
 	credits.append(new BC_ListBoxItem("Tefan de Konink"));
 	credits.append(new BC_ListBoxItem("Nathan Kurz"));
 	credits.append(new BC_ListBoxItem("Greg Mekkes"));
+	credits.append(new BC_ListBoxItem("Jean-Michel Poure"));
+	credits.append(new BC_ListBoxItem("Monty Montgomery"));
+	credits.append(new BC_ListBoxItem("Bill Morrow"));
+#ifdef X_HAVE_UTF8_STRING
+	credits.append(new BC_ListBoxItem("Einar Rünkaru"));
+#else
+	credits.append(new BC_ListBoxItem("Einar R\374nkaru"));
+#endif
+	credits.append(new BC_ListBoxItem("Paolo Rampino"));
+	credits.append(new BC_ListBoxItem("Petter Reinholdtsen"));
 	credits.append(new BC_ListBoxItem("Eric Seigne"));
 	credits.append(new BC_ListBoxItem("Johannes Sixt"));
 	credits.append(new BC_ListBoxItem("Joe Stewart"));
@@ -115,15 +125,9 @@ void AboutPrefs::create_objects()
 	credits.append(new BC_ListBoxItem("Mark Taraba"));
 	credits.append(new BC_ListBoxItem("Andraz Tori"));
 	credits.append(new BC_ListBoxItem("Jonas Wulff"));
-#ifdef X_HAVE_UTF8_STRING
-	credits.append(new BC_ListBoxItem("Einar Rünkaru"));
-#else
-	credits.append(new BC_ListBoxItem("Einar R\374nkaru"));
-#endif
-	credits.append(new BC_ListBoxItem("Monty Montgomery"));
-	credits.append(new BC_ListBoxItem("Paolo Rampino"));
-	credits.append(new BC_ListBoxItem("Petter Reinholdtsen"));
-	credits.append(new BC_ListBoxItem("Nicola Ferralis"));
+
+
+
 
 	BC_ListBox *listbox;
 	add_subwindow(listbox = new BC_ListBox(x, 
