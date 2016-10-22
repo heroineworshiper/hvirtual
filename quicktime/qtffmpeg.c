@@ -458,6 +458,7 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 	unsigned char *picture_u = 0;
 	unsigned char *picture_v = 0;
 	int rowspan = 0;
+	int64_t track_length = quicktime_track_samples(file, trak);
 
 // printf("quicktime_ffmpeg_decode %d current_position=%ld last_frame=%ld\n", 
 // __LINE__, 
@@ -587,12 +588,13 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // reset read position in file
 			ffmpeg->read_position[current_field] = frame1;
 
-// printf("quicktime_ffmpeg_decode %d last_frame=%d frame1=%d frame2=%d\n", 
+// printf("quicktime_ffmpeg_decode %d last_frame=%ld frame1=%d frame2=%d\n", 
 // __LINE__,
 // ffmpeg->last_frame[current_field],
 // frame1,
 // frame2);
-			while(frame1 <= frame2)
+			while(frame1 <= frame2 &&
+				ffmpeg->read_position[current_field] < track_length)
 			{
 				result = decode_wrapper(file, 
 					vtrack, 
@@ -602,10 +604,11 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 					track,
 // Don't drop if we want to cache it
 					0 /* (frame1 < frame2) */);
-// printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d result=%d picture_y=%p\n", 
+// printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d read_position=%ld result=%d picture_y=%p\n", 
 // __LINE__, 
 // frame1, 
 // frame2,
+// ffmpeg->read_position[current_field],
 // result,
 // picture_y);
 
@@ -653,6 +656,9 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 				}
 			}
 
+//printf("quicktime_ffmpeg_decode %d\n", 
+//__LINE__);
+
 			vtrack->current_position = frame2;
 			seeking_done = 1;
 		}
@@ -665,7 +671,13 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 			int64_t track_length = quicktime_track_samples(file, trak);
 			do
 			{
-//printf("quicktime_ffmpeg_decode %d %d %d\n", __LINE__, vtrack->current_position, track_length);
+
+// printf("quicktime_ffmpeg_decode %d current_position=%ld read_position=%ld track_length=%ld\n", 
+// __LINE__, 
+// vtrack->current_position, 
+// ffmpeg->read_position[current_field],
+// track_length);
+
 				result = decode_wrapper(file, 
 					vtrack, 
 					ffmpeg, 
@@ -678,8 +690,12 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 				picture_y = ffmpeg->picture[current_field]->data[0];
 				picture_u = ffmpeg->picture[current_field]->data[1];
 				picture_v = ffmpeg->picture[current_field]->data[2];
+
 //printf("quicktime_ffmpeg_decode %d result=%d picture_y=%p\n", __LINE__, result, picture_y);
-			} while(result > 0 && vtrack->current_position < track_length - 1);
+
+			} while(result > 0 && 
+				vtrack->current_position < track_length - 1 &&
+				ffmpeg->read_position[current_field] < track_length);
 		}
 		else
 // same frame requested
