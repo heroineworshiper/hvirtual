@@ -238,7 +238,7 @@ static int encode(quicktime_t *file,
 		codec->compressed_buffer = calloc(1, max_output_bytes);
 		codec->encoder_params = faacEncGetCurrentConfiguration(codec->encoder_handle);
 
-// Parameters from ffmpeg
+// Parameters from faac demo
 		codec->encoder_params->aacObjectType = LOW;
 		codec->encoder_params->mpegVersion = MPEG4;
 		codec->encoder_params->useTns = 0;
@@ -246,8 +246,11 @@ static int encode(quicktime_t *file,
 		codec->encoder_params->inputFormat = FAAC_INPUT_FLOAT;
 		codec->encoder_params->outputFormat = 0;
 		codec->encoder_params->bitRate = codec->bitrate / channels;
-		codec->encoder_params->quantqual = codec->quantizer_quality;
+//printf("mp4a encode %d codec->quantizer_quality=%d\n", __LINE__, codec->encoder_params->quantqual);
+//		codec->encoder_params->quantqual = codec->quantizer_quality;
+//		codec->encoder_params->quantqual = 0;
 		codec->encoder_params->bandWidth = sample_rate / 2;
+//		codec->encoder_params->bandWidth = 0;
 
 		if(!faacEncSetConfiguration(codec->encoder_handle, codec->encoder_params))
 		{
@@ -311,17 +314,30 @@ static int encode(quicktime_t *file,
 
 	for(i = 0; i + codec->frame_size < codec->input_size; i += codec->frame_size)
 	{
+
+// static FILE *fd = 0;
+// if(!fd)
+// {
+// fd = fopen("/tmp/x.pcm", "w");
+// }
+// for(j = 0; j < codec->frame_size * channels; j++)
+// {
+// float *sample = codec->input_buffer + i * channels + j;
+// int16_t temp = *sample;
+// fwrite(&temp, 2, 1, fd);
+// }
+
 		int bytes = faacEncEncode(codec->encoder_handle,
                 (int32_t*)(codec->input_buffer + i * channels),
                 codec->frame_size * channels,
                 codec->compressed_buffer,
                 codec->max_frame_bytes);
-/*
- * printf("encode 1 %lld %d %d\n", 
- * track_map->current_position,
- * codec->frame_size, 
- * bytes);
- */
+
+// printf("encode 1 %lld %d %d\n", 
+// track_map->current_position,
+// codec->frame_size, 
+// bytes);
+
 // Write out the packet
 		if(bytes)
 		{
