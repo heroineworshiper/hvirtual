@@ -211,7 +211,7 @@ void ReframeRTWindow::create_objects()
 	int x = plugin->get_theme()->window_border;
 	int y = plugin->get_theme()->window_border;
 	BC_Title *title;
-	add_subwindow(title = new BC_Title(x, y, _("Output frames:")));
+	add_subwindow(title = new BC_Title(x, y, _("Input frames:")));
 	y += title->get_h() + plugin->get_theme()->widget_border;
 	num = new ReframeRTNum(plugin, 
 		this,
@@ -221,7 +221,7 @@ void ReframeRTWindow::create_objects()
 	num->set_increment(1.0);
 
 	y += num->get_h() + plugin->get_theme()->widget_border;
-	add_subwindow(title = new BC_Title(x, y, _("Input frames:")));
+	add_subwindow(title = new BC_Title(x, y, _("Output frames:")));
 	y += title->get_h() + plugin->get_theme()->widget_border;
 	denom = new ReframeRTDenom(plugin, 
 		this,
