@@ -525,13 +525,14 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 		{
 
 
-// printf("quicktime_ffmpeg_decode %d current_position=%ld last_frame=%ld\n", 
-// __LINE__, 
-// vtrack->current_position,
-// ffmpeg->last_frame[current_field]);
+printf("quicktime_ffmpeg_decode %d current_position=%ld last_frame=%ld\n", 
+__LINE__, 
+vtrack->current_position,
+ffmpeg->last_frame[current_field]);
 
 
 			int first_frame;
+// positions to read into the decoder
 			int frame2 = vtrack->current_position;
 			int current_frame = frame2;
 			int frame1 = current_frame;
@@ -569,24 +570,37 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 			}
 
 // Drop frames instead of starting from a new keyframe
-			if(frame1 < ffmpeg->last_frame[current_field] &&
-				frame2 > ffmpeg->last_frame[current_field])
+			if(frame2 > ffmpeg->last_frame[current_field] &&
+				frame2 - ffmpeg->last_frame[current_field] < frame2 - frame1)
 			{
-//printf("quicktime_ffmpeg_decode %d\n", __LINE__);
-				frame1 = ffmpeg->last_frame[current_field] + ffmpeg->fields;
+// predict the read positions after the frame is dropped
+				frame1 = ffmpeg->read_position[current_field] + ffmpeg->fields;
+				frame2 = ffmpeg->read_position[current_field] + 
+					(ffmpeg->read_position[current_field] - 
+					vtrack->current_position);
+printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d dropping frames\n", 
+__LINE__,
+frame1, 
+frame2);
 				do_i_frame = 0;
 			}
 			else
 			{
+// restart decoding
+printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d last_frame=%d restarting\n", 
+__LINE__,
+frame1,
+frame2,
+ffmpeg->last_frame[current_field]);
 // very important to reset the codec when changing keyframes
 				avcodec_flush_buffers(ffmpeg->decoder_context[current_field]);
 
+// reset read position in file
+				ffmpeg->read_position[current_field] = frame1;
 			}
 
 			first_frame = frame1;
 
-// reset read position in file
-			ffmpeg->read_position[current_field] = frame1;
 
 // printf("quicktime_ffmpeg_decode %d last_frame=%ld frame1=%d frame2=%d\n", 
 // __LINE__,
@@ -604,13 +618,13 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 					track,
 // Don't drop if we want to cache it
 					0 /* (frame1 < frame2) */);
-// printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d read_position=%ld result=%d picture_y=%p\n", 
-// __LINE__, 
-// frame1, 
-// frame2,
-// ffmpeg->read_position[current_field],
-// result,
-// picture_y);
+printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d read_position=%ld result=%d picture_y=%p\n", 
+__LINE__, 
+frame1, 
+frame2,
+ffmpeg->read_position[current_field],
+result,
+picture_y);
 
 // read error
 				if(result < 0)
@@ -656,8 +670,7 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 				}
 			}
 
-//printf("quicktime_ffmpeg_decode %d\n", 
-//__LINE__);
+//printf("quicktime_ffmpeg_decode %d\n", __LINE__);
 
 			vtrack->current_position = frame2;
 			seeking_done = 1;
@@ -691,7 +704,13 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 				picture_u = ffmpeg->picture[current_field]->data[1];
 				picture_v = ffmpeg->picture[current_field]->data[2];
 
-//printf("quicktime_ffmpeg_decode %d result=%d picture_y=%p\n", __LINE__, result, picture_y);
+printf("quicktime_ffmpeg_decode %d result=%d picture_y=%p current_position=%d read_position=%d last_frame=%d\n", 
+__LINE__, 
+result, 
+picture_y,
+vtrack->current_position,
+ffmpeg->read_position[current_field],
+ffmpeg->last_frame[current_field]);
 
 			} while(result > 0 && 
 				vtrack->current_position < track_length - 1 &&
