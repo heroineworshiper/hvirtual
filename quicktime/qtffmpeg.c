@@ -513,6 +513,7 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 		}
 
 
+// number of frames to feed the decoder before it generates an output
 #define SEEK_THRESHOLD 4
 
 // Handle seeking
@@ -520,7 +521,7 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 		if(quicktime_has_keyframes(file, track) && 
 // Not next frame
 			vtrack->current_position != ffmpeg->last_frame[current_field] + ffmpeg->fields &&
-// Same frame requested twice
+// Not same frame requested twice
 			vtrack->current_position != ffmpeg->last_frame[current_field])
 		{
 
@@ -531,12 +532,9 @@ vtrack->current_position,
 ffmpeg->last_frame[current_field]);
 
 
-			int first_frame;
-// positions to read into the decoder
-			int frame2 = vtrack->current_position;
-			int current_frame = frame2;
-			int frame1 = current_frame;
-			int do_i_frame = 1;
+			int first_frame = 0;
+// new read position
+			int frame1 = vtrack->current_position;
 
 // If an interleaved codec, the opposite field would have been decoded in the previous
 // seek.
@@ -557,8 +555,8 @@ ffmpeg->last_frame[current_field]);
 // frame1,
 // frame2);
 
-// if it's less than SEEK_THRESHOLD frames earlier, get another keyframe earlier
-			if(frame2 - frame1 < SEEK_THRESHOLD)
+// if it's less than SEEK_THRESHOLD frames earlier, rewind another keyframe
+			if(vtrack->current_position - frame1 < SEEK_THRESHOLD)
 			{
 				do
 				{
@@ -569,34 +567,28 @@ ffmpeg->last_frame[current_field]);
 //printf("quicktime_ffmpeg_decode 2 %d\n", frame1);
 			}
 
-// Drop frames instead of starting from a new keyframe
-			if(frame2 > ffmpeg->last_frame[current_field] &&
-				frame2 - ffmpeg->last_frame[current_field] < frame2 - frame1)
+// Drop frames instead of starting from the keyframe
+			if(vtrack->current_position > ffmpeg->last_frame[current_field] &&
+				vtrack->current_position > frame1)
 			{
-// predict the read positions after the frame is dropped
-				frame1 = ffmpeg->read_position[current_field] + ffmpeg->fields;
-				frame2 = ffmpeg->read_position[current_field] + 
-					(ffmpeg->read_position[current_field] - 
-					vtrack->current_position);
-printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d dropping frames\n", 
+				frame1 = ffmpeg->read_position[current_field];
+printf("quicktime_ffmpeg_decode %d frame1=%d dropping frames\n", 
 __LINE__,
-frame1, 
-frame2);
-				do_i_frame = 0;
+frame1);
+
 			}
 			else
 			{
 // restart decoding
-printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d last_frame=%d restarting\n", 
+printf("quicktime_ffmpeg_decode %d frame1=%d restarting\n", 
 __LINE__,
-frame1,
-frame2,
-ffmpeg->last_frame[current_field]);
+frame1);
 // very important to reset the codec when changing keyframes
 				avcodec_flush_buffers(ffmpeg->decoder_context[current_field]);
 
-// reset read position in file
+// reset the read position
 				ffmpeg->read_position[current_field] = frame1;
+				ffmpeg->last_frame[current_field] = frame1 - ffmpeg->fields;
 			}
 
 			first_frame = frame1;
@@ -607,13 +599,14 @@ ffmpeg->last_frame[current_field]);
 // ffmpeg->last_frame[current_field],
 // frame1,
 // frame2);
-			while(frame1 <= frame2 &&
+// read frames until the current position is decoded
+			while(ffmpeg->last_frame[current_field] < vtrack->current_position &&
 				ffmpeg->read_position[current_field] < track_length)
 			{
 				result = decode_wrapper(file, 
 					vtrack, 
 					ffmpeg, 
-					frame1, 
+					ffmpeg->read_position[current_field], 
 					current_field, 
 					track,
 // Don't drop if we want to cache it
@@ -660,6 +653,7 @@ picture_y);
 					if(ffmpeg->ffmpeg_id == AV_CODEC_ID_H264)
 					{
 						frame1 += ffmpeg->fields;
+						ffmpeg->last_frame[current_field] += ffmpeg->fields;
 					}
 				}
 
@@ -667,12 +661,13 @@ picture_y);
 				if(ffmpeg->ffmpeg_id != AV_CODEC_ID_H264)
 				{
 					frame1 += ffmpeg->fields;
+					ffmpeg->last_frame[current_field] += ffmpeg->fields;
 				}
 			}
 
 //printf("quicktime_ffmpeg_decode %d\n", __LINE__);
 
-			vtrack->current_position = frame2;
+//			vtrack->current_position = frame2;
 			seeking_done = 1;
 		}
 
