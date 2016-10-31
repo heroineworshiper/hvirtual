@@ -483,10 +483,10 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 
 
 
-// printf("quicktime_ffmpeg_decode %d current_position=%d result=%d\n", 
-// __LINE__, 
-// vtrack->current_position,
-// result);
+printf("quicktime_ffmpeg_decode %d current_position=%d result=%d\n", 
+__LINE__, 
+vtrack->current_position,
+result);
 
 
 // Didn't get frame from cache
@@ -527,7 +527,7 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 
 
 // number of frames to feed the decoder before it generates an output
-#define SEEK_THRESHOLD 4
+#define SEEK_THRESHOLD 5
 
 // Handle seeking
 // Seeking requires keyframes
@@ -581,13 +581,14 @@ ffmpeg->last_frame[current_field]);
 			}
 
 // Drop frames instead of starting from the keyframe
-			if(vtrack->current_position > ffmpeg->last_frame[current_field] &&
-				vtrack->current_position > frame1)
+			if(ffmpeg->last_frame[current_field] > frame1 &&
+				vtrack->current_position > ffmpeg->last_frame[current_field])
 			{
-				frame1 = ffmpeg->read_position[current_field];
 printf("quicktime_ffmpeg_decode %d frame1=%d dropping frames\n", 
 __LINE__,
 frame1);
+
+				frame1 = ffmpeg->read_position[current_field];
 
 			}
 			else
@@ -623,13 +624,13 @@ frame1);
 					track,
 // Don't drop if we want to cache it
 					0);
-printf("quicktime_ffmpeg_decode %d frame1=%d read_position=%ld result=%d picture_y=%p\n", 
+printf("quicktime_ffmpeg_decode %d last_frame=%d read_position=%ld result=%d picture_y=%p\n", 
 __LINE__, 
-frame1, 
+ffmpeg->last_frame[current_field], 
 ffmpeg->read_position[current_field],
 result,
 picture_y);
-
+//sleep(1);
 // read error
 				if(result < 0)
 				{
@@ -642,11 +643,8 @@ picture_y);
 				picture_u = ffmpeg->picture[current_field]->data[1];
 				picture_v = ffmpeg->picture[current_field]->data[2];
 
-				if(result == 0 && 
-					(ffmpeg->ffmpeg_id == AV_CODEC_ID_H264) ||
-// FFmpeg seems to glitch out if we include the first frame.
-					(ffmpeg->ffmpeg_id != AV_CODEC_ID_H264 && 
-						frame1 > first_frame))
+// cache the frame
+				if(result == 0)
 				{
 					int y_size = rowspan * ffmpeg->height_i;
 					int u_size = y_size / get_chroma_factor(ffmpeg, current_field);
@@ -659,18 +657,6 @@ picture_y);
 						y_size,
 						u_size,
 						v_size);
-
-// only advance if it decoded a frame
-					if(ffmpeg->ffmpeg_id == AV_CODEC_ID_H264)
-					{
-						frame1 += ffmpeg->fields;
-					}
-				}
-
-// always advance for other codecs
-				if(ffmpeg->ffmpeg_id != AV_CODEC_ID_H264)
-				{
-					frame1 += ffmpeg->fields;
 				}
 			}
 
