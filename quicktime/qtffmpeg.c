@@ -233,10 +233,14 @@ void quicktime_delete_ffmpeg(quicktime_ffmpeg_t *ptr)
  
 
 
+// send the read_position to the decoder
+// advance the read_position by the number of fields
+// return -1 if read failed
+// return 0 if it succeeded
+// return 1 if it read but didn't generate output
 static int decode_wrapper(quicktime_t *file,
 	quicktime_video_map_t *vtrack,
 	quicktime_ffmpeg_t *ffmpeg,
-	int64_t current_position,
 	int current_field, 
 	int track,
 	int drop_it)
@@ -248,7 +252,8 @@ static int decode_wrapper(quicktime_t *file,
  	char *compressor = vtrack->track->mdia.minf.stbl.stsd.table[0].format;
 	quicktime_trak_t *trak = vtrack->track;
 	quicktime_stsd_table_t *stsd_table = &trak->mdia.minf.stbl.stsd.table[0];
-	int64_t frame_number = ffmpeg->read_position[current_field];
+// swap positions to get it to read the right frame
+	int64_t position_temp = vtrack->current_position;
 
 // printf("decode_wrapper %d read_position=%ld current_position=%ld current_field=%d drop_it=%d\n", 
 // __LINE__,
@@ -257,10 +262,10 @@ static int decode_wrapper(quicktime_t *file,
 // current_field,
 // drop_it);
 
-	quicktime_set_video_position(file, frame_number, track);
+	quicktime_set_video_position(file, ffmpeg->read_position[current_field], track);
 
-	bytes = quicktime_frame_size(file, frame_number, track); 
-	if(frame_number == 0)
+	bytes = quicktime_frame_size(file, ffmpeg->read_position[current_field], track); 
+	if(ffmpeg->read_position[current_field] == 0)
 	{
 		header_bytes = stsd_table->esds.mpeg4_header_size;
 	}
@@ -387,6 +392,8 @@ static int decode_wrapper(quicktime_t *file,
 		if(ffmpeg->picture[current_field]->data[0])
 		{
 			result = 0;
+// advance the position
+			ffmpeg->last_frame[current_field] += ffmpeg->fields;
 		}
 		else
 		{
@@ -398,12 +405,14 @@ static int decode_wrapper(quicktime_t *file,
 #ifdef ARCH_X86
 		asm("emms");
 #endif
+
+// advance the position
 		ffmpeg->read_position[current_field] += ffmpeg->fields;
 //printf("decode_wrapper %d read_position=%d\n", __LINE__, ffmpeg->read_position[current_field]);
 	}
 
-// reset official position to what it was before reading the codec position
-	vtrack->current_position = current_position;
+// reset official position to what it was before the read_position
+	vtrack->current_position = position_temp;
 
 	return result;
 }
@@ -489,17 +498,19 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 //		pthread_mutex_lock(&ffmpeg_lock);
 
 
+
+// this doesn't work
 		if(ffmpeg->last_frame[current_field] == -1 &&
 			ffmpeg->ffmpeg_id != AV_CODEC_ID_H264)
 		{
 			int current_frame = vtrack->current_position;
+			ffmpeg->read_position[current_field] = current_field;
 // For certain codecs,
 // must decode frame with stream header first but only the first frame in the
 // field sequence has a stream header.
 			result = decode_wrapper(file, 
 				vtrack, 
 				ffmpeg, 
-				current_field, 
 				current_field, 
 				track,
 				0);
@@ -509,6 +520,8 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 			picture_v = ffmpeg->picture[current_field]->data[2];
 // Reset position because decode wrapper set it
 			quicktime_set_video_position(file, current_frame, track);
+
+// nonsense because it never outputs the 1st frame
 			ffmpeg->last_frame[current_field] = current_field;
 		}
 
@@ -606,15 +619,13 @@ frame1);
 				result = decode_wrapper(file, 
 					vtrack, 
 					ffmpeg, 
-					ffmpeg->read_position[current_field], 
 					current_field, 
 					track,
 // Don't drop if we want to cache it
-					0 /* (frame1 < frame2) */);
-printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d read_position=%ld result=%d picture_y=%p\n", 
+					0);
+printf("quicktime_ffmpeg_decode %d frame1=%d read_position=%ld result=%d picture_y=%p\n", 
 __LINE__, 
 frame1, 
-frame2,
 ffmpeg->read_position[current_field],
 result,
 picture_y);
@@ -653,7 +664,6 @@ picture_y);
 					if(ffmpeg->ffmpeg_id == AV_CODEC_ID_H264)
 					{
 						frame1 += ffmpeg->fields;
-						ffmpeg->last_frame[current_field] += ffmpeg->fields;
 					}
 				}
 
@@ -661,13 +671,11 @@ picture_y);
 				if(ffmpeg->ffmpeg_id != AV_CODEC_ID_H264)
 				{
 					frame1 += ffmpeg->fields;
-					ffmpeg->last_frame[current_field] += ffmpeg->fields;
 				}
 			}
 
 //printf("quicktime_ffmpeg_decode %d\n", __LINE__);
 
-//			vtrack->current_position = frame2;
 			seeking_done = 1;
 		}
 
@@ -689,7 +697,6 @@ picture_y);
 				result = decode_wrapper(file, 
 					vtrack, 
 					ffmpeg, 
-					vtrack->current_position, 
 					current_field, 
 					track,
 					0);
@@ -699,7 +706,7 @@ picture_y);
 				picture_u = ffmpeg->picture[current_field]->data[1];
 				picture_v = ffmpeg->picture[current_field]->data[2];
 
-printf("quicktime_ffmpeg_decode %d result=%d picture_y=%p current_position=%d read_position=%d last_frame=%d\n", 
+printf("quicktime_ffmpeg_decode %d result=%d picture_y=%p current_position=%ld read_position=%ld last_frame=%ld\n", 
 __LINE__, 
 result, 
 picture_y,
@@ -708,7 +715,7 @@ ffmpeg->read_position[current_field],
 ffmpeg->last_frame[current_field]);
 
 			} while(result > 0 && 
-				vtrack->current_position < track_length - 1 &&
+				ffmpeg->last_frame[current_field] < track_length - 1 &&
 				ffmpeg->read_position[current_field] < track_length);
 		}
 		else
@@ -726,7 +733,7 @@ ffmpeg->last_frame[current_field]);
 //		pthread_mutex_unlock(&ffmpeg_lock);
 
 
-		ffmpeg->last_frame[current_field] = vtrack->current_position;
+//		ffmpeg->last_frame[current_field] = vtrack->current_position;
 	}
 	else
 	{
