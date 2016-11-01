@@ -46,6 +46,7 @@ public:
 		int64_t prev_frame, 
 		int64_t next_frame, 
 		int64_t current_frame);
+// was scale
 	double num;
 	double denom;
 	int stretch;
@@ -180,8 +181,8 @@ void ReframeRTConfig::interpolate(ReframeRTConfig &prev,
 
 void ReframeRTConfig::boundaries()
 {
-	if(fabs(num) < 0.0001) num = 0.0001;
-	if(fabs(denom) < 0.0001) denom = 0.0001;
+	if(num < 0.0001) num = 0.0001;
+	if(denom < 0.0001) denom = 0.0001;
 }
 
 
@@ -257,7 +258,7 @@ ReframeRTNum::ReframeRTNum(ReframeRT *plugin,
 	int y)
  : BC_TumbleTextBox(gui,
  	(float)plugin->config.num,
-	(float)-1000,
+	(float)0.0001,
 	(float)1000,
  	x, 
 	y, 

@@ -463,6 +463,7 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 	int result = 0;
 	int seeking_done = 0;
 	int i;
+	int debug = 0;
 	unsigned char *picture_y = 0;
 	unsigned char *picture_u = 0;
 	unsigned char *picture_v = 0;
@@ -483,7 +484,7 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 
 
 
-printf("quicktime_ffmpeg_decode %d current_position=%d result=%d\n", 
+if(debug) printf("quicktime_ffmpeg_decode %d current_position=%ld result=%d\n", 
 __LINE__, 
 vtrack->current_position,
 result);
@@ -539,7 +540,7 @@ result);
 		{
 
 
-printf("quicktime_ffmpeg_decode %d current_position=%ld last_frame=%ld\n", 
+if(debug) printf("quicktime_ffmpeg_decode %d current_position=%ld last_frame=%ld\n", 
 __LINE__, 
 vtrack->current_position,
 ffmpeg->last_frame[current_field]);
@@ -584,7 +585,7 @@ ffmpeg->last_frame[current_field]);
 			if(ffmpeg->last_frame[current_field] > frame1 &&
 				vtrack->current_position > ffmpeg->last_frame[current_field])
 			{
-printf("quicktime_ffmpeg_decode %d frame1=%d dropping frames\n", 
+if(debug) printf("quicktime_ffmpeg_decode %d frame1=%d dropping frames\n", 
 __LINE__,
 frame1);
 
@@ -594,7 +595,7 @@ frame1);
 			else
 			{
 // restart decoding
-printf("quicktime_ffmpeg_decode %d frame1=%d restarting\n", 
+if(debug) printf("quicktime_ffmpeg_decode %d frame1=%d restarting\n", 
 __LINE__,
 frame1);
 // very important to reset the codec when changing keyframes
@@ -624,13 +625,13 @@ frame1);
 					track,
 // Don't drop if we want to cache it
 					0);
-printf("quicktime_ffmpeg_decode %d last_frame=%d read_position=%ld result=%d picture_y=%p\n", 
+if(debug) printf("quicktime_ffmpeg_decode %d last_frame=%ld read_position=%ld result=%d picture_y=%p\n", 
 __LINE__, 
 ffmpeg->last_frame[current_field], 
 ffmpeg->read_position[current_field],
 result,
 picture_y);
-//sleep(1);
+
 // read error
 				if(result < 0)
 				{
@@ -650,7 +651,7 @@ picture_y);
 					int u_size = y_size / get_chroma_factor(ffmpeg, current_field);
 					int v_size = y_size / get_chroma_factor(ffmpeg, current_field);
 					quicktime_put_frame(vtrack->frame_cache,
-						frame1,
+						ffmpeg->last_frame[current_field],
 						picture_y,
 						picture_u,
 						picture_v,
@@ -692,7 +693,7 @@ picture_y);
 				picture_u = ffmpeg->picture[current_field]->data[1];
 				picture_v = ffmpeg->picture[current_field]->data[2];
 
-printf("quicktime_ffmpeg_decode %d result=%d picture_y=%p current_position=%ld read_position=%ld last_frame=%ld\n", 
+if(debug) printf("quicktime_ffmpeg_decode %d result=%d picture_y=%p current_position=%ld read_position=%ld last_frame=%ld\n", 
 __LINE__, 
 result, 
 picture_y,

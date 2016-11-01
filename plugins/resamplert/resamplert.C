@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2016 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,18 +41,21 @@ REGISTER_PLUGIN(ResampleRT);
 
 ResampleRTConfig::ResampleRTConfig()
 {
-	scale = 1;
+	num = 1;
+	denom = 1;
 }
 
 
 int ResampleRTConfig::equivalent(ResampleRTConfig &src)
 {
-	return fabs(scale - src.scale) < 0.0001;
+	return fabs(num - src.num) < 0.0001 &&
+		fabs(denom - src.denom) < 0.0001;
 }
 
 void ResampleRTConfig::copy_from(ResampleRTConfig &src)
 {
-	this->scale = src.scale;
+	this->num = src.num;
+	this->denom = src.denom;
 }
 
 void ResampleRTConfig::interpolate(ResampleRTConfig &prev, 
@@ -61,12 +64,14 @@ void ResampleRTConfig::interpolate(ResampleRTConfig &prev,
 	int64_t next_frame, 
 	int64_t current_frame)
 {
-	this->scale = prev.scale;
+	this->num = prev.num;
+	this->denom = prev.denom;
 }
 
 void ResampleRTConfig::boundaries()
 {
-	if(fabs(scale) < 0.0001) scale = 0.0001;
+	if(num < 0.0001) num = 0.0001;
+	if(denom < 0.0001) denom = 0.0001;
 }
 
 
@@ -89,17 +94,29 @@ ResampleRTWindow::~ResampleRTWindow()
 
 void ResampleRTWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = plugin->get_theme()->window_border;
+	int y = plugin->get_theme()->window_border;
 
 	BC_Title *title;
-	add_subwindow(title = new BC_Title(x, y, "Scale by amount:"));
+	add_subwindow(title = new BC_Title(x, y, _("Input samples:")));
 	y += title->get_h() + plugin->get_theme()->widget_border;
 
-	scale = new ResampleRTScale(this,
+	num = new ResampleRTNum(this,
 		plugin, 
 		x, 
 		y);
-	scale->create_objects();
+	num->create_objects();
+	
+	y += num->get_h() + plugin->get_theme()->widget_border;
+	add_subwindow(title = new BC_Title(x, y, _("Output samples:")));
+	y += title->get_h() + plugin->get_theme()->widget_border;
+	denom = new ResampleRTDenom(this,
+		plugin, 
+		x, 
+		y);
+	denom->create_objects();
+	
+	
 	show_window();
 }
 
@@ -108,12 +125,12 @@ void ResampleRTWindow::create_objects()
 
 
 
-ResampleRTScale::ResampleRTScale(ResampleRTWindow *window,
+ResampleRTNum::ResampleRTNum(ResampleRTWindow *window,
 	ResampleRT *plugin, 
 	int x, 
 	int y)
  : BC_TumbleTextBox(window,
- 	plugin->config.scale,
+ 	plugin->config.num,
 	(float)0.0001,
 	(float)1000,
  	x, 
@@ -124,9 +141,37 @@ ResampleRTScale::ResampleRTScale(ResampleRTWindow *window,
 	set_increment(0.001);
 }
 
-int ResampleRTScale::handle_event()
+int ResampleRTNum::handle_event()
 {
-	plugin->config.scale = atof(get_text());
+	plugin->config.num = atof(get_text());
+	plugin->config.boundaries();
+	plugin->send_configure_change();
+	return 1;
+}
+
+
+
+
+ResampleRTDenom::ResampleRTDenom(ResampleRTWindow *window,
+	ResampleRT *plugin, 
+	int x, 
+	int y)
+ : BC_TumbleTextBox(window,
+ 	plugin->config.denom,
+	(float)0.0001,
+	(float)1000,
+ 	x, 
+	y, 
+	100)
+{
+	this->plugin = plugin;
+	set_increment(0.001);
+}
+
+int ResampleRTDenom::handle_event()
+{
+	plugin->config.denom = atof(get_text());
+	plugin->config.boundaries();
 	plugin->send_configure_change();
 	return 1;
 }
@@ -222,7 +267,7 @@ int ResampleRT::process_buffer(int64_t size,
 		}
 
 		source_start = (int64_t)((start_position - prev_position) * 
-			config.scale) + prev_position;
+			config.num / config.denom) + prev_position;
 
 		resample->reset();
 		need_reconfigure = 0;
@@ -230,8 +275,8 @@ int ResampleRT::process_buffer(int64_t size,
 
 	resample->resample(buffer,
 		size,
-		(int)1000000,
-		(int)(1000000 / config.scale),
+		(int)(65536 * config.num),
+		(int)(65536 * config.denom),
 		start_position,
 		get_direction());	
 
@@ -258,7 +303,8 @@ void ResampleRT::save_data(KeyFrame *keyframe)
 // cause data to be stored directly in text
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 	output.tag.set_title("RESAMPLERT");
-	output.tag.set_property("SCALE", config.scale);
+	output.tag.set_property("SCALE", config.num);
+	output.tag.set_property("DENOM", config.denom);
 	output.append_tag();
 	output.terminate_string();
 }
@@ -275,7 +321,8 @@ void ResampleRT::read_data(KeyFrame *keyframe)
 	{
 		if(input.tag.title_is("RESAMPLERT"))
 		{
-			config.scale = input.tag.get_property("SCALE", config.scale);
+			config.num = input.tag.get_property("SCALE", config.num);
+			config.denom = input.tag.get_property("DENOM", config.denom);
 		}
 	}
 }
@@ -287,7 +334,8 @@ void ResampleRT::update_gui()
 		if(load_configuration())
 		{
 			thread->window->lock_window("ResampleRT::update_gui");
-			((ResampleRTWindow*)thread->window)->scale->update((float)config.scale);
+			((ResampleRTWindow*)thread->window)->num->update((float)config.num);
+			((ResampleRTWindow*)thread->window)->denom->update((float)config.denom);
 			thread->window->unlock_window();
 		}
 	}

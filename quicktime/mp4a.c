@@ -242,7 +242,19 @@ static int encode(quicktime_t *file,
 		codec->encoder_params->aacObjectType = LOW;
 		codec->encoder_params->mpegVersion = MPEG4;
 		codec->encoder_params->useTns = 0;
-		codec->encoder_params->allowMidside = 1;
+		
+		
+// this doesn't work with 44.1
+		if(sample_rate != 44100)
+		{
+			codec->encoder_params->allowMidside = 1;
+		}
+		else
+		{
+			codec->encoder_params->allowMidside = 0;
+		}
+		
+		
 		codec->encoder_params->inputFormat = FAAC_INPUT_FLOAT;
 		codec->encoder_params->outputFormat = 0;
 		codec->encoder_params->bitRate = codec->bitrate / channels;
