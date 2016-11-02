@@ -392,7 +392,7 @@ AWindowGUI::~AWindowGUI()
 	delete newfolder_thread;
 	delete asset_menu;
 	delete assetlist_menu;
-	delete folderlist_menu;
+//	delete folderlist_menu;
 	if(temp_picon) delete temp_picon;
 }
 
@@ -523,8 +523,8 @@ SET_TRACE
 
 SET_TRACE
 
-	add_subwindow(folderlist_menu = new FolderListMenu(mwindow, this));
-	folderlist_menu->create_objects();
+//	add_subwindow(folderlist_menu = new FolderListMenu(mwindow, this));
+//	folderlist_menu->create_objects();
 //printf("AWindowGUI::create_objects 2\n");
 
 SET_TRACE
@@ -1183,11 +1183,11 @@ int AWindowFolders::selection_changed()
 	AssetPicon *picon = (AssetPicon*)get_selection(0, 0);
 	if(picon)
 	{
-		if(get_button_down() && get_buttonpress() == 3)
-		{
-			gui->folderlist_menu->update_titles();
-			gui->folderlist_menu->activate_menu();
-		}
+//		if(get_button_down() && get_buttonpress() == 3)
+//		{
+//			gui->folderlist_menu->update_titles();
+//			gui->folderlist_menu->activate_menu();
+//		}
 
 		strcpy(mwindow->edl->session->current_folder, picon->get_text());
 //printf("AWindowFolders::selection_changed 1\n");
@@ -1205,12 +1205,12 @@ int AWindowFolders::button_press_event()
 
 	if(!result)
 	{
-		if(get_buttonpress() == 3 && is_event_win() && cursor_inside())
-		{
-			gui->folderlist_menu->update_titles();
-			gui->folderlist_menu->activate_menu();
-			result = 1;
-		}
+//		if(get_buttonpress() == 3 && is_event_win() && cursor_inside())
+//		{
+//			gui->folderlist_menu->update_titles();
+//			gui->folderlist_menu->activate_menu();
+//			result = 1;
+//		}
 	}
 
 

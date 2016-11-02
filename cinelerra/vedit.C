@@ -66,7 +66,7 @@ Asset* VEdit::get_nested_asset(int64_t *source_position,
 // Make position relative to edit
 	*source_position = position - startproject + startsource;
 
-if(debug) printf("VEdit::get_nested_asset %d %lld %lld %lld\n", 
+if(debug) printf("VEdit::get_nested_asset %d %ld %ld %ld %ld\n", 
 __LINE__, 
 *source_position, 
 position,
@@ -115,7 +115,7 @@ __LINE__);
 	else
 	{
 // Convert position to asset rate
-if(debug) printf("VEdit::get_nested_asset %d %lld %f %f\n", 
+if(debug) printf("VEdit::get_nested_asset %d %ld %f %f\n", 
 __LINE__, 
 *source_position, 
 asset->frame_rate,

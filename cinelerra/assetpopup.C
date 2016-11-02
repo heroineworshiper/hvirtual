@@ -59,7 +59,7 @@ AssetPopup::~AssetPopup()
 
 void AssetPopup::create_objects()
 {
-	add_item(format = new AssetListFormat(mwindow));
+//	add_item(format = new AssetListFormat(mwindow));
 	add_item(info = new AssetPopupInfo(mwindow, this));
 	add_item(new AssetPopupSort(mwindow, this));
 	add_item(index = new AssetPopupBuildIndex(mwindow, this));
@@ -118,7 +118,7 @@ void AssetPopup::match_all()
 
 int AssetPopup::update()
 {
-	format->update();
+//	format->update();
 	gui->collect_assets();
 	return 0;
 }

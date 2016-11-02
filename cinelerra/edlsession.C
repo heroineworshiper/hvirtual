@@ -59,6 +59,7 @@ EDLSession::EDLSession(EDL *edl)
 	strcpy(default_atransition, "");
 	strcpy(default_vtransition, "");
 	default_transition_length = 1.0;
+	assetlist_format = ASSETS_TEXT;
 	folderlist_format = FOLDERS_TEXT;
 	frame_rate = 25; // just has to be something by default
 	autos_follow_edits = 1; // this is needed for predictability
@@ -168,7 +169,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	}
 	aconfig_duplex->load_defaults(defaults);
 	aconfig_in->load_defaults(defaults);
-	assetlist_format = defaults->get("ASSETLIST_FORMAT", ASSETS_TEXT);
+//	assetlist_format = defaults->get("ASSETLIST_FORMAT", ASSETS_TEXT);
 	aspect_w = defaults->get("ASPECTW", (float)4);
 	aspect_h = defaults->get("ASPECTH", (float)3);
 	for(int i = 0; i < ASSET_COLUMNS; i++)
@@ -215,7 +216,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	edit_handle_mode[2] = defaults->get("EDIT_HANDLE_MODE2", MOVE_NO_EDITS);
 	editing_mode = defaults->get("EDITING_MODE", EDITING_IBEAM);
 	enable_duplex = defaults->get("ENABLE_DUPLEX", 1);
-	folderlist_format = defaults->get("FOLDERLIST_FORMAT", FOLDERS_TEXT);
+//	folderlist_format = defaults->get("FOLDERLIST_FORMAT", FOLDERS_TEXT);
 	frame_rate = defaults->get("FRAMERATE", (double)30000.0/1001);
 	frames_per_foot = defaults->get("FRAMES_PER_FOOT", (float)16);
 	interpolation_type = defaults->get("INTERPOLATION_TYPE", interpolation_type);
@@ -321,7 +322,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 		defaults->update(string, asset_columns[i]);
 	}
 	auto_conf->save_defaults(defaults);
-    defaults->update("ASSETLIST_FORMAT", assetlist_format);
+//    defaults->update("ASSETLIST_FORMAT", assetlist_format);
     defaults->update("ASPECTW", aspect_w);
     defaults->update("ASPECTH", aspect_h);
 	defaults->update("ATRACKS", audio_tracks);
@@ -358,7 +359,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
     defaults->update("EDIT_HANDLE_MODE2", edit_handle_mode[2]);
 	defaults->update("EDITING_MODE", editing_mode);
 	defaults->update("ENABLE_DUPLEX", enable_duplex);
-    defaults->update("FOLDERLIST_FORMAT", folderlist_format);
+//    defaults->update("FOLDERLIST_FORMAT", folderlist_format);
 	defaults->update("FRAMERATE", frame_rate);
 	defaults->update("FRAMES_PER_FOOT", frames_per_foot);
 	defaults->update("HIGHLIGHTED_TRACK", highlighted_track);
@@ -544,7 +545,7 @@ int EDLSession::load_xml(FileXML *file,
 	}
 	else
 	{
-		assetlist_format = file->tag.get_property("ASSETLIST_FORMAT", assetlist_format);
+//		assetlist_format = file->tag.get_property("ASSETLIST_FORMAT", assetlist_format);
 		for(int i = 0; i < ASSET_COLUMNS; i++)
 		{
 			sprintf(string, "ASSET_COLUMN%d", i);
@@ -576,7 +577,7 @@ int EDLSession::load_xml(FileXML *file,
 		cwindow_yscroll = file->tag.get_property("CWINDOW_YSCROLL", cwindow_yscroll);
 		cwindow_zoom = file->tag.get_property("CWINDOW_ZOOM", cwindow_zoom);
 		editing_mode = file->tag.get_property("EDITING_MODE", editing_mode);
-		folderlist_format = file->tag.get_property("FOLDERLIST_FORMAT", folderlist_format);
+//		folderlist_format = file->tag.get_property("FOLDERLIST_FORMAT", folderlist_format);
 		highlighted_track = file->tag.get_property("HIGHLIGHTED_TRACK", 0);
 		labels_follow_edits = file->tag.get_property("LABELS_FOLLOW_EDITS", labels_follow_edits);
 		mpeg4_deblock = file->tag.get_property("MPEG4_DEBLOCK", mpeg4_deblock);
@@ -606,7 +607,7 @@ int EDLSession::save_xml(FileXML *file)
 //printf("EDLSession::save_session 1\n");
 	char string[BCTEXTLEN];
 	file->tag.set_title("SESSION");
-	file->tag.set_property("ASSETLIST_FORMAT", assetlist_format);
+//	file->tag.set_property("ASSETLIST_FORMAT", assetlist_format);
 	for(int i = 0; i < ASSET_COLUMNS; i++)
 	{
 		sprintf(string, "ASSET_COLUMN%d", i);
@@ -638,7 +639,7 @@ int EDLSession::save_xml(FileXML *file)
 	file->tag.set_property("CWINDOW_YSCROLL", cwindow_yscroll);
 	file->tag.set_property("CWINDOW_ZOOM", cwindow_zoom);
 	file->tag.set_property("EDITING_MODE", editing_mode);
-	file->tag.set_property("FOLDERLIST_FORMAT", folderlist_format);
+//	file->tag.set_property("FOLDERLIST_FORMAT", folderlist_format);
 	file->tag.set_property("HIGHLIGHTED_TRACK", highlighted_track);
 	file->tag.set_property("LABELS_FOLLOW_EDITS", labels_follow_edits);
 	file->tag.set_property("MPEG4_DEBLOCK", mpeg4_deblock);
