@@ -121,7 +121,6 @@ void AboutPrefs::create_objects()
 	credits.append(new BC_ListBoxItem("Johannes Sixt"));
 	credits.append(new BC_ListBoxItem("Joe Stewart"));
 	credits.append(new BC_ListBoxItem("Dan Streetman"));
-	credits.append(new BC_ListBoxItem("Johannes Sixt"));
 	credits.append(new BC_ListBoxItem("Mark Taraba"));
 	credits.append(new BC_ListBoxItem("Andraz Tori"));
 	credits.append(new BC_ListBoxItem("Jonas Wulff"));
