@@ -37,7 +37,7 @@ class MeterMaxDB;
 class MeterVUDB;
 class MeterVUInt;
 class ViewBehaviourText;
-class ViewThumbnails;
+//class ViewThumbnails;
 
 #include "browsebutton.h"
 #include "deleteallindexes.inc"
@@ -75,7 +75,7 @@ public:
 	MeterVUDB *vu_db;
 //	MeterVUInt *vu_int;
 	ViewBehaviourText *button1, *button2, *button3;
-	ViewThumbnails *thumbnails;
+//	ViewThumbnails *thumbnails;
 };
 
 
@@ -252,13 +252,13 @@ public:
 	PreferencesWindow *pwindow;
 };
 
-class ViewThumbnails : public BC_CheckBox
-{
-public:
-	ViewThumbnails(int x, int y, PreferencesWindow *pwindow);
-	int handle_event();
-	PreferencesWindow *pwindow;
-};
+// class ViewThumbnails : public BC_CheckBox
+// {
+// public:
+// 	ViewThumbnails(int x, int y, PreferencesWindow *pwindow);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// };
 
 class ViewThemeItem : public BC_MenuItem
 {

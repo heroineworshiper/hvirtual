@@ -170,8 +170,8 @@ void InterfacePrefs::create_objects()
 	add_subwindow(new BC_Title(x, y, _("Editing"), LARGEFONT, resources->text_default));
 
 
-	y += 35;
-	add_subwindow(thumbnails = new ViewThumbnails(x, y, pwindow));
+//	y += 35;
+//	add_subwindow(thumbnails = new ViewThumbnails(x, y, pwindow));
 
 	y += 35;
 	add_subwindow(new BC_Title(x, y, _("Clicking on edit boundaries does what:")));
@@ -272,7 +272,7 @@ InterfacePrefs::~InterfacePrefs()
 	delete max_db;
 //	delete vu_db;
 //	delete vu_int;
-	delete thumbnails;
+//	delete thumbnails;
 }
 
 
@@ -605,21 +605,21 @@ int ViewThemeItem::handle_event()
 	return 1;
 }
 
-ViewThumbnails::ViewThumbnails(int x, 
-	int y, 
-	PreferencesWindow *pwindow)
- : BC_CheckBox(x, 
- 	y, 
-	pwindow->thread->preferences->use_thumbnails, _("Use thumbnails in resource window"))
-{
-	this->pwindow = pwindow;
-}
-
-int ViewThumbnails::handle_event()
-{
-	pwindow->thread->preferences->use_thumbnails = get_value();
-	return 1;
-}
+// ViewThumbnails::ViewThumbnails(int x, 
+// 	int y, 
+// 	PreferencesWindow *pwindow)
+//  : BC_CheckBox(x, 
+//  	y, 
+// 	pwindow->thread->preferences->use_thumbnails, _("Use thumbnails in resource window"))
+// {
+// 	this->pwindow = pwindow;
+// }
+// 
+// int ViewThumbnails::handle_event()
+// {
+// 	pwindow->thread->preferences->use_thumbnails = get_value();
+// 	return 1;
+// }
 
 
 
