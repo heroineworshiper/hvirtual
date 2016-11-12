@@ -293,7 +293,7 @@ fi
 # success
 if [ "$ERROR" = "0" ];
 then 
-	echo "Configured successfully.  Type 'make' to build me.";
+	echo "Configured successfully.  Type 'make' to build it.";
 else
 	echo "Error in configuration."
 fi

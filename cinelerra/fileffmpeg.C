@@ -878,8 +878,26 @@ packet->data[15]);
 		int input_cmodel;
 		AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
 
+
+printf("FileFFMPEG::read_frame %d pix_fmt=%d output_cmodel=%d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+__LINE__, 
+decoder_context->pix_fmt,
+frame->get_color_model(),
+input_frame->data[1][0],
+input_frame->data[1][1],
+input_frame->data[1][2],
+input_frame->data[1][3],
+input_frame->data[1][4],
+input_frame->data[1][5],
+input_frame->data[1][6],
+input_frame->data[1][7]);
+
 		switch(decoder_context->pix_fmt)
 		{
+			case AV_PIX_FMT_YUV420P10LE:
+				input_cmodel = BC_YUV420P10LE;
+				break;
+		
 			case AV_PIX_FMT_YUV420P:
 				input_cmodel = BC_YUV420P;
 				break;
@@ -911,10 +929,12 @@ packet->data[15]);
 
 
 		for(int i = 0; i < decoder_context->height; i++)
+		{
 			input_rows[i] = input_frame->data[0] + 
 				i * 
 				decoder_context->width * 
 				cmodel_calculate_pixelsize(input_cmodel);
+		}
 
 
 		cmodel_transfer(frame->get_rows(), /* Leave NULL if non existent */
