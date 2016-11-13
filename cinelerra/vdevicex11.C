@@ -323,7 +323,9 @@ int VDeviceX11::get_best_colormodel(int colormodel)
 
 void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 {
-//printf("VDeviceX11::new_output_buffer 1\n");
+// printf("VDeviceX11::new_output_buffer %d hardware_scaling=%d\n",
+// __LINE__,
+// bitmap ? bitmap->hardware_scaling() : 0);
 	output->lock_canvas("VDeviceX11::new_output_buffer");
 	output->get_canvas()->lock_window("VDeviceX11::new_output_buffer 1");
 
@@ -365,7 +367,17 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 			{
 				int size_change = (bitmap->get_w() != output->get_canvas()->get_w() ||
 					bitmap->get_h() != output->get_canvas()->get_h());
-//printf("VDeviceX11::new_output_buffer %d\n", __LINE__);
+
+// printf("VDeviceX11::new_output_buffer %d color_model_selected=%d %d %d %d %d %d %d\n",
+// __LINE__,
+// color_model_selected,
+// bitmap->get_w(),
+// output->get_canvas()->get_w(),
+// bitmap->get_h(),
+// output->get_canvas()->get_h(),
+// colormodel,
+// output_frame->get_color_model());
+
 				delete bitmap;
 				delete output_frame;
 				bitmap = 0;
@@ -385,7 +397,7 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 			{
 //printf("VDeviceX11::new_output_buffer %d\n", __LINE__);
 
-				output_frame->set_memory(0 /* (unsigned char*)bitmap->get_data() */,
+				output_frame->set_memory(0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */,
 					bitmap->get_shmid(),
 					bitmap->get_y_offset(),
 					bitmap->get_u_offset(),
@@ -396,9 +408,42 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 // Create new bitmap
 		if(!bitmap)
 		{
+
+// printf("VDeviceX11::new_output_buffer %d best_colormodel=%d %d %d %d %d\n", 
+// __LINE__, 
+// best_colormodel,
+// device->out_w,
+// output->get_canvas()->get_w(),
+// device->out_h,
+// output->get_canvas()->get_h());
+
 // Try hardware accelerated
 			switch(best_colormodel)
 			{
+// the standard X11 color model but only if not scaling
+				case BC_BGR8888:
+					if(device->out_w == output->get_canvas()->get_w() &&
+						device->out_h == output->get_canvas()->get_h())
+					{
+						bitmap = new BC_Bitmap(output->get_canvas(), 
+								device->out_w,
+								device->out_h,
+								best_colormodel,
+								1);
+						output_frame = new VFrame(
+							0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */, 
+							bitmap->get_shmid(),
+							0,
+							0,
+							0,
+							device->out_w,
+							device->out_h,
+							best_colormodel,
+							-1);
+						bitmap_type = BITMAP_PRIMARY;
+					}
+					break;
+
 				case BC_YUV420P:
 					if(device->out_config->driver == PLAYBACK_X11_XV &&
 						output->get_canvas()->accel_available(best_colormodel, 0) &&
@@ -516,7 +561,6 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 					colormodel,
 					-1);
 //BUFFER2(output_frame->get_rows()[0], "VDeviceX11::new_output_buffer 2");
-				bitmap_type = BITMAP_TEMP;
 			}
 			color_model_selected = 1;
 		}
@@ -591,6 +635,11 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 // printf("VDeviceX11::write_buffer %d output_channels=%p\n", 
 // __LINE__, 
 // output_channels);
+
+// printf("VDeviceX11::write_buffer %d input color_model=%d output color_model=%d\n", 
+// __LINE__, 
+// output_channels->get_color_model(),
+// bitmap->get_color_model());
 
 
 

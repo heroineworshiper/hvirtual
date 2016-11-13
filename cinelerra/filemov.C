@@ -422,7 +422,10 @@ int FileMOV::get_best_colormodel(Asset *asset, int driver)
 	{
 		case PLAYBACK_X11:
 			return BC_RGB888;
+// the standard X11 color model but only if not scaling
+//			return BC_BGR8888;
 			break;
+
 		case PLAYBACK_X11_XV:
 		case PLAYBACK_ASYNCHRONOUS:
 			if(match4(asset->vcodec, QUICKTIME_YUV420)) return BC_YUV420P;
