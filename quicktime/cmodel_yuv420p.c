@@ -424,6 +424,22 @@ static inline void transfer_YUV10P_PLANAR_to_RGB888(unsigned char *(*output),
 	(*output) += 3;
 }
 
+static inline void transfer_YUV10P_PLANAR_to_YUV888(unsigned char *(*output), 
+	unsigned char *input_y,
+	unsigned char *input_u,
+	unsigned char *input_v)
+{
+	int y, u, v;
+	y = (input_y[1] << 6) | (input_y[0] >> 2);
+	u = (input_u[1] << 6) | (input_u[0] >> 2);
+	v = (input_v[1] << 6) | (input_v[0] >> 2);
+
+	(*output)[0] = y;
+	(*output)[1] = u;
+	(*output)[2] = v;
+	(*output) += 3;
+}
+
 static inline void transfer_YUV10P_PLANAR_to_RGBA8888(unsigned char *(*output), 
 	unsigned char *input_y,
 	unsigned char *input_u,
@@ -694,6 +710,14 @@ static inline void transfer_YUV444P_to_YUV444P(unsigned char *input_y,
 		case BC_YUV420P10LE: \
 			switch(out_colormodel) \
 			{ \
+				case BC_YUV888: \
+					TRANSFER_YUV420P_IN_HEAD \
+					transfer_YUV10P_PLANAR_to_YUV888((output), \
+						input_y + (y_in_offset), \
+						input_u + (u_in_offset), \
+						input_v + (v_in_offset)); \
+					TRANSFER_FRAME_TAIL \
+					break; \
 				case BC_RGB888: \
 					TRANSFER_YUV420P_IN_HEAD \
 					transfer_YUV10P_PLANAR_to_RGB888((output), \
