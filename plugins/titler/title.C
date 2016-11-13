@@ -1395,6 +1395,8 @@ NEW_WINDOW_MACRO(TitleMain, TitleWindow);
 
 void TitleMain::build_fonts()
 {
+	int debug = 0;
+
 	if(!fonts)
 	{
 		fonts = new ArrayList<FontEntry*>;
@@ -1634,20 +1636,23 @@ void TitleMain::build_fonts()
 							!strcasecmp(entry->slant, "o")) 
 							entry->fixed_style |= FONT_ITALIC;
 						fonts->append(entry);
-//						printf("TitleMain::build_fonts %s: success\n",
-//							entry->path);
+						if(debug) printf("TitleMain::build_fonts %d %s: success\n",
+							__LINE__,
+							entry->path);
 //printf("TitleMain::build_fonts 2\n");
 					}
 					else
 					{
-//						printf("TitleMain::build_fonts %s: FT_New_Face failed\n",
-//							entry->path);
+						if(debug) printf("TitleMain::build_fonts %d %s: FT_New_Face failed\n",
+							__LINE__,
+							entry->path);
 //printf("TitleMain::build_fonts 3\n");
 						delete entry;
 					}
 				}
 				else
 				{
+					if(debug) printf("TitleMain::build_fonts %d path=%s no foundary\n", __LINE__, entry->path);
 					delete entry;
 				}
 			}

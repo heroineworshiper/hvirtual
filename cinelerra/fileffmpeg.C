@@ -879,18 +879,18 @@ packet->data[15]);
 		AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
 
 
-printf("FileFFMPEG::read_frame %d pix_fmt=%d output_cmodel=%d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
-__LINE__, 
-decoder_context->pix_fmt,
-frame->get_color_model(),
-input_frame->data[1][0],
-input_frame->data[1][1],
-input_frame->data[1][2],
-input_frame->data[1][3],
-input_frame->data[1][4],
-input_frame->data[1][5],
-input_frame->data[1][6],
-input_frame->data[1][7]);
+// printf("FileFFMPEG::read_frame %d pix_fmt=%d output_cmodel=%d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+// __LINE__, 
+// decoder_context->pix_fmt,
+// frame->get_color_model(),
+// input_frame->data[1][0],
+// input_frame->data[1][1],
+// input_frame->data[1][2],
+// input_frame->data[1][3],
+// input_frame->data[1][4],
+// input_frame->data[1][5],
+// input_frame->data[1][6],
+// input_frame->data[1][7]);
 
 		switch(decoder_context->pix_fmt)
 		{

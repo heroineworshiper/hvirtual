@@ -384,17 +384,16 @@ static inline void transfer_YUV_PLANAR_to_YUV422(unsigned char *(*output),
 
 
 
-
-
+// YUV planar 10 bits per channel
 static inline void transfer_YUV10P_PLANAR_to_BGR8888(unsigned char *(*output), 
 	unsigned char *input_y,
 	unsigned char *input_u,
 	unsigned char *input_v)
 {
 	int y, u, v;
-	y = (input_y[1] << 16) | (input_y[0] << 8) | input_y[0];
-	u = input_u[1];
-	v = input_v[1];
+	y = (input_y[1] << 22) | (input_y[0] << 14) | (input_y[0] << 6);
+	u = (input_u[1] << 6) | (input_u[0] >> 2);
+	v = (input_v[1] << 6) | (input_v[0] >> 2);
 	
 	int r, g, b;
 	YUV_TO_RGB(y, u, v, r, g, b)
@@ -405,17 +404,16 @@ static inline void transfer_YUV10P_PLANAR_to_BGR8888(unsigned char *(*output),
 	(*output) += 4;
 }
 
+
 static inline void transfer_YUV10P_PLANAR_to_RGB888(unsigned char *(*output), 
 	unsigned char *input_y,
 	unsigned char *input_u,
 	unsigned char *input_v)
 {
 	int y, u, v;
-	y = (input_y[1] << 16) | (input_y[0] << 8) | input_y[0];
-//	u = input_u[1];
-//	v = input_v[1];
-	u = 0x80;
-	v = 0x80;
+	y = (input_y[1] << 22) | (input_y[0] << 14) | (input_y[0] << 6);
+	u = (input_u[1] << 6) | (input_u[0] >> 2);
+	v = (input_v[1] << 6) | (input_v[0] >> 2);
 	
 	int r, g, b;
 	YUV_TO_RGB(y, u, v, r, g, b)
@@ -432,9 +430,9 @@ static inline void transfer_YUV10P_PLANAR_to_RGBA8888(unsigned char *(*output),
 	unsigned char *input_v)
 {
 	int y, u, v;
-	y = (input_y[1] << 16) | (input_y[0] << 8) | input_y[0];
-	u = input_u[1];
-	v = input_v[1];
+	y = (input_y[1] << 22) | (input_y[0] << 14) | (input_y[0] << 6);
+	u = (input_u[1] << 6) | (input_u[0] >> 2);
+	v = (input_v[1] << 6) | (input_v[0] >> 2);
 	
 	int r, g, b;
 	YUV_TO_RGB(y, u, v, r, g, b)
@@ -1441,19 +1439,19 @@ void cmodel_yuv420p10le(PERMUTATION_ARGS)
 	if(scale)
 	{
 		TRANSFER_FRAME_DEFAULT(&output_row, 
-			input_row + column_table[j] * in_pixelsize,
-			column_table[j],
-			column_table[j] / 2,
-			column_table[j] / 2,
+			0,
+			column_table[j] * 2,
+			column_table[j] & ~0x1,
+			column_table[j] & ~0x1,
 			0);
 	}
 	else
 	{
 		TRANSFER_FRAME_DEFAULT(&output_row, 
-			input_row + j * in_pixelsize,
-			j,
-			j / 2,
-			j / 2,
+			0,
+			j * 2,
+			j & ~0x1,
+			j & ~0x1,
 			0);
 	}
 }
