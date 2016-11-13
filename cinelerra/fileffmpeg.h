@@ -91,7 +91,7 @@ public:
 
 	int64_t get_memory_usage();
 	int colormodel_supported(int colormodel);
-	int get_best_colormodel(Asset *asset, int driver);
+	static int get_best_colormodel(Asset *asset, int driver);
 	int read_frame(VFrame *frame);
 	int read_samples(double *buffer, int64_t len);
 

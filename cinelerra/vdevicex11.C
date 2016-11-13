@@ -330,6 +330,7 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 // Get the best colormodel the display can handle.
 	int best_colormodel = get_best_colormodel(colormodel);
 
+//printf("VDeviceX11::new_output_buffer %d colormodel=%d best_colormodel=%d\n", __LINE__, colormodel, best_colormodel);
 // Only create OpenGL Pbuffer and texture.
 	if(device->out_config->driver == PLAYBACK_X11_GL)
 	{

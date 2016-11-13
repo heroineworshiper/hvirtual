@@ -590,15 +590,19 @@ int FileFFMPEG::colormodel_supported(int colormodel)
 
 int FileFFMPEG::get_best_colormodel(Asset *asset, int driver)
 {
+//printf("FileFFMPEG::get_best_colormodel %d driver=%d\n", __LINE__, driver);
 	switch(driver)
 	{
 		case PLAYBACK_X11:
 			return BC_RGB888;
+			
 		case PLAYBACK_X11_XV:
 		case PLAYBACK_ASYNCHRONOUS:
 			return BC_YUV420P;
+			
 		case PLAYBACK_X11_GL:
 			return BC_YUV888;
+			
 		default:
 			return BC_YUV420P;
 	}

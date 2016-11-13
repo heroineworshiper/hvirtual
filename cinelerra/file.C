@@ -2371,6 +2371,10 @@ int File::get_best_colormodel(Asset *asset, int driver)
 		case FILE_MPEG:
 			return FileMPEG::get_best_colormodel(asset, driver);
 			break;
+
+		case FILE_FFMPEG:
+			return FileFFMPEG::get_best_colormodel(asset, driver);
+			break;
 		
 		case FILE_JPEG:
 		case FILE_JPEG_LIST:

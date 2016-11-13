@@ -285,6 +285,7 @@ int VRender::get_colormodel(VEdit *playable_edit,
 			if(file)
 			{
 				colormodel = file->get_best_colormodel(driver);
+//printf("VRender::get_colormodel %d driver=%d colormodel=%d\n", __LINE__, driver, colormodel);
 				renderengine->get_vcache()->check_in(asset);
 			}
 		}
