@@ -180,8 +180,17 @@ int VDeviceX11::close_all()
 			output->get_canvas()->lock_window("VDeviceX11::close_all 2");
 		}
 		else
+		{
+printf("VDeviceX11::close_all %d    %d %d %d    %d %d %d\n", 
+__LINE__,
+output->refresh_frame->get_color_model(),
+output->refresh_frame->get_w(),
+output->refresh_frame->get_h(),
+output_frame->get_color_model(),
+output_frame->get_w(),
+output_frame->get_h());
 			output->refresh_frame->copy_from(output_frame);
-
+		}
 
 
 
@@ -360,10 +369,10 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 // Restart if output size changed or output colormodel changed.
 // May have to recreate if transferring between windowed and fullscreen.
 			if(!color_model_selected ||
+				colormodel != output_frame->get_color_model() ||
 				(!bitmap->hardware_scaling() && 
 					(bitmap->get_w() != output->get_canvas()->get_w() ||
-					bitmap->get_h() != output->get_canvas()->get_h())) ||
-				colormodel != output_frame->get_color_model())
+					bitmap->get_h() != output->get_canvas()->get_h())))
 			{
 				int size_change = (bitmap->get_w() != output->get_canvas()->get_w() ||
 					bitmap->get_h() != output->get_canvas()->get_h());
@@ -409,25 +418,25 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 		if(!bitmap)
 		{
 
-// printf("VDeviceX11::new_output_buffer %d best_colormodel=%d %d %d %d %d\n", 
-// __LINE__, 
-// best_colormodel,
-// device->out_w,
-// output->get_canvas()->get_w(),
-// device->out_h,
-// output->get_canvas()->get_h());
+printf("VDeviceX11::new_output_buffer %d best_colormodel=%d %d %d %d %d\n", 
+__LINE__, 
+best_colormodel,
+device->out_w,
+output->get_canvas()->get_w(),
+device->out_h,
+output->get_canvas()->get_h());
 
 // Try hardware accelerated
 			switch(best_colormodel)
 			{
-// the standard X11 color model but only if not scaling
+// blit from the codec directly to the pixmap, using the standard X11 color model.  
+// must scale in the codec
 				case BC_BGR8888:
-					if(device->out_w == output->get_canvas()->get_w() &&
-						device->out_h == output->get_canvas()->get_h())
+					if(!output->xscroll && !output->yscroll)
 					{
 						bitmap = new BC_Bitmap(output->get_canvas(), 
-								device->out_w,
-								device->out_h,
+								output->get_canvas()->get_w(),
+								output->get_canvas()->get_h(),
 								best_colormodel,
 								1);
 						output_frame = new VFrame(
@@ -436,8 +445,8 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 							0,
 							0,
 							0,
-							device->out_w,
-							device->out_h,
+							output->get_canvas()->get_w(),
+							output->get_canvas()->get_h(),
 							best_colormodel,
 							-1);
 						bitmap_type = BITMAP_PRIMARY;
@@ -599,7 +608,10 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 
 
 
-//printf("VDeviceX11::write_buffer %d %d\n", __LINE__, output->get_canvas()->get_video_on());
+// printf("VDeviceX11::write_buffer %d %d %d\n", 
+// __LINE__, 
+// output->get_canvas()->get_video_on(),
+// bitmap_type);
 	output->get_transfers(edl, 
 		output_x1, 
 		output_y1, 

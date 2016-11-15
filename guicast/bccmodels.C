@@ -144,7 +144,7 @@ int BC_CModels::is_planar(int colormodel)
 {
 	switch(colormodel)
 	{
-		case AV_PIX_FMT_YUV420P10LE:
+		case BC_YUV420P10LE:
 		case BC_YUV420P:
 		case BC_YUV422P:
 		case BC_YUV444P:
@@ -173,7 +173,7 @@ int BC_CModels::components(int colormodel)
 		case BC_YUV101010:    return 3; break;
 		case BC_RGB_FLOAT:    return 3; break;
 		case BC_RGBA_FLOAT:   return 4; break;
-		case AV_PIX_FMT_YUV420P10LE: return 3; break;
+		case BC_YUV420P10LE: return 3; break;
 	}
 }
 

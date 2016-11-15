@@ -1938,12 +1938,14 @@ int File::read_frame(VFrame *frame, int is_thread)
 		else
 // Need temp
 		if(frame->get_color_model() != BC_COMPRESSED &&
-			(supported_colormodel != frame->get_color_model() ||
-			frame->get_w() != asset->width ||
-			frame->get_h() != asset->height))
+			(supported_colormodel != frame->get_color_model()) 
+			 ||
+				(frame->get_color_model() != BC_BGR8888 && 
+					(frame->get_w() != asset->width ||
+					frame->get_h() != asset->height)))
 		{
 
-//			printf("File::read_frame %d\n", __LINE__);
+printf("File::read_frame %d using temp\n", __LINE__);
 // Can't advance position here because it needs to be added to cache
 			if(temp_frame)
 			{
@@ -2002,7 +2004,11 @@ int File::read_frame(VFrame *frame, int is_thread)
 		else
 		{
 // Can't advance position here because it needs to be added to cache
-//printf("File::read_frame %d\n", __LINE__);
+printf("File::read_frame %d reading directly colormodel=%d w=%d h=%d\n", 
+__LINE__, 
+frame->get_color_model(), 
+frame->get_w(), 
+frame->get_h());
 			file->read_frame(frame);
 //for(int i = 0; i < 100 * 1000; i++) ((float*)frame->get_rows()[0])[i] = 1.0;
 		}

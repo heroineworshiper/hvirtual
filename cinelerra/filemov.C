@@ -421,9 +421,9 @@ int FileMOV::get_best_colormodel(Asset *asset, int driver)
 	switch(driver)
 	{
 		case PLAYBACK_X11:
-			return BC_RGB888;
-// the standard X11 color model but only if not scaling
-//			return BC_BGR8888;
+//			return BC_RGB888;
+// the direct X11 color model requires scaling in the codec
+			return BC_BGR8888;
 			break;
 
 		case PLAYBACK_X11_XV:
@@ -980,10 +980,12 @@ int FileMOV::read_frame(VFrame *frame)
 	int result = 0;
 	const int debug = 0;
 
-if(debug) printf("FileMOV::read_frame %d frame=%lld color_model=%d\n", 
+/* if(debug) */ printf("FileMOV::read_frame %d frame=%lld color_model=%d %d %d\n", 
 __LINE__, 
 (long long)file->current_frame,
-frame->get_color_model());
+frame->get_color_model(),
+frame->get_w(),
+frame->get_h());
 
 	switch(frame->get_color_model())
 	{
@@ -1023,6 +1025,16 @@ frame->get_color_model());
 		default:
 //PRINT_TRACE
 			quicktime_set_cmodel(fd, frame->get_color_model());
+
+
+			quicktime_set_window(fd,
+				0,                    /* Location of input frame to take picture */
+				0,
+				asset->width,
+				asset->height,
+				frame->get_w(),                   /* Dimensions of output frame */
+				frame->get_h());
+
 			result = quicktime_decode_video(fd, 
 				frame->get_rows(),
 				file->current_layer);

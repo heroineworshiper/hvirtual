@@ -1050,6 +1050,18 @@ void VFrame::flip_horiz()
 
 int VFrame::copy_from(VFrame *frame)
 {
+	if(this->w != frame->get_w() ||
+		this->h != frame->get_h())
+	{
+		printf("VFrame::copy_from %d sizes differ src %dx%d != dst %dx%d\n",
+			__LINE__,
+			frame->get_w(),
+			frame->get_h(),
+			get_w(),
+			get_h());
+		return 1;
+	}
+
 	int w = MIN(this->w, frame->get_w());
 	int h = MIN(this->h, frame->get_h());
 	
