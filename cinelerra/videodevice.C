@@ -747,10 +747,10 @@ void VideoDevice::goose_input()
 	if(input_base) input_base->goose_input();
 }
 
-void VideoDevice::new_output_buffer(VFrame **output, int colormodel)
+void VideoDevice::new_output_buffer(VFrame **output, int colormodel, EDL *edl)
 {
 	if(!output_base) return;
-	output_base->new_output_buffer(output, colormodel);
+	output_base->new_output_buffer(output, colormodel, edl);
 }
 
 

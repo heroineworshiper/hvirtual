@@ -47,7 +47,7 @@ public:
 	int read_buffer(VFrame *frame);
 	int reset_parameters();
 // User always gets the colormodel requested
-	void new_output_buffer(VFrame **output, int colormodel);
+	void new_output_buffer(VFrame **output, int colormodel, EDL *edl);
 
 	int open_output();
 	int start_playback();

@@ -156,7 +156,9 @@ int VRender::process_buffer(int64_t input_position,
 	if(renderengine->command->realtime &&
 		!renderengine->is_nested)
 	{
-		renderengine->video->new_output_buffer(&video_out, colormodel);
+		renderengine->video->new_output_buffer(&video_out, 
+			colormodel, 
+			renderengine->get_edl());
 	}
 
 	if(debug) printf("VRender::process_buffer %d video_out=%p\n", __LINE__, video_out);

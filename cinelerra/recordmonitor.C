@@ -1050,7 +1050,9 @@ int RecordMonitorThread::render_frame()
 void RecordMonitorThread::new_output_frame()
 {
 	long offset;
-	record_monitor->device->new_output_buffer(&output_frame, output_colormodel);
+	record_monitor->device->new_output_buffer(&output_frame, 
+		output_colormodel,
+		mwindow->edl);
 }
 
 void RecordMonitorThread::run()

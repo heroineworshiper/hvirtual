@@ -330,7 +330,7 @@ int VDeviceX11::get_best_colormodel(int colormodel)
 }
 
 
-void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
+void VDeviceX11::new_output_buffer(VFrame **result, int colormodel, EDL *edl)
 {
 // printf("VDeviceX11::new_output_buffer %d hardware_scaling=%d\n",
 // __LINE__,
@@ -366,26 +366,38 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 // Conform existing bitmap to new colormodel and output size
 		if(bitmap)
 		{
+			output->get_transfers(edl, 
+				output_x1, 
+				output_y1, 
+				output_x2, 
+				output_y2, 
+				canvas_x1, 
+				canvas_y1, 
+				canvas_x2, 
+				canvas_y2,
+// Canvas may be a different size than the temporary bitmap for pure software
+				-1,
+				-1);
+			int canvas_w = canvas_x2 - canvas_x1;
+			int canvas_h = canvas_y2 - canvas_y1;
+
+printf("VDeviceX11::new_output_buffer %d %d %d %d %d\n",
+__LINE__,
+bitmap->get_w(),
+canvas_w,
+bitmap->get_h(),
+canvas_h);
+
+			int size_change = (bitmap->get_w() != canvas_w ||
+				bitmap->get_h() != canvas_h);
+
 // Restart if output size changed or output colormodel changed.
 // May have to recreate if transferring between windowed and fullscreen.
 			if(!color_model_selected ||
 				colormodel != output_frame->get_color_model() ||
-				(!bitmap->hardware_scaling() && 
-					(bitmap->get_w() != output->get_canvas()->get_w() ||
-					bitmap->get_h() != output->get_canvas()->get_h())))
+				(!bitmap->hardware_scaling() && size_change))
 			{
-				int size_change = (bitmap->get_w() != output->get_canvas()->get_w() ||
-					bitmap->get_h() != output->get_canvas()->get_h());
 
-// printf("VDeviceX11::new_output_buffer %d color_model_selected=%d %d %d %d %d %d %d\n",
-// __LINE__,
-// color_model_selected,
-// bitmap->get_w(),
-// output->get_canvas()->get_w(),
-// bitmap->get_h(),
-// output->get_canvas()->get_h(),
-// colormodel,
-// output_frame->get_color_model());
 
 				delete bitmap;
 				delete output_frame;
@@ -395,6 +407,7 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 // Blank only if size changed
 				if(size_change)
 				{
+printf("VDeviceX11::new_output_buffer %d\n", __LINE__);
 					output->get_canvas()->set_color(BLACK);
 					output->get_canvas()->draw_box(0, 0, output->w, output->h);
 					output->get_canvas()->flash();
@@ -429,14 +442,34 @@ output->get_canvas()->get_h());
 // Try hardware accelerated
 			switch(best_colormodel)
 			{
-// blit from the codec directly to the pixmap, using the standard X11 color model.  
-// must scale in the codec
+// blit from the codec directly to the window, using the standard X11 color model.
+// Must scale in the codec.  No cropping
 				case BC_BGR8888:
-					if(!output->xscroll && !output->yscroll)
+				{
+					output->get_transfers(edl, 
+						output_x1, 
+						output_y1, 
+						output_x2, 
+						output_y2, 
+						canvas_x1, 
+						canvas_y1, 
+						canvas_x2, 
+						canvas_y2,
+						-1,
+						-1);
+					int canvas_w = canvas_x2 - canvas_x1;
+					int canvas_h = canvas_y2 - canvas_y1;
+
+					if(output_x1 == 0 && 
+						output_y1 == 0 &&
+						output_x2 == device->out_w &&
+						output_y2 == device->out_h &&
+						!output->xscroll &&
+						!output->yscroll)
 					{
 						bitmap = new BC_Bitmap(output->get_canvas(), 
-								output->get_canvas()->get_w(),
-								output->get_canvas()->get_h(),
+								canvas_x2 - canvas_x1,
+								canvas_y2 - canvas_y1,
 								best_colormodel,
 								1);
 						output_frame = new VFrame(
@@ -445,13 +478,14 @@ output->get_canvas()->get_h());
 							0,
 							0,
 							0,
-							output->get_canvas()->get_w(),
-							output->get_canvas()->get_h(),
+							canvas_w,
+							canvas_h,
 							best_colormodel,
 							-1);
 						bitmap_type = BITMAP_PRIMARY;
 					}
 					break;
+				}
 
 				case BC_YUV420P:
 					if(device->out_config->driver == PLAYBACK_X11_XV &&

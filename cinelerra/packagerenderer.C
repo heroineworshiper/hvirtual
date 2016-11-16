@@ -414,7 +414,8 @@ void PackageRenderer::do_video()
 					VFrame *preview_output;
 
 					video_device->new_output_buffer(&preview_output,
-						command->get_edl()->session->color_model);
+						command->get_edl()->session->color_model,
+						command->get_edl());
 
 					preview_output->copy_from(video_output_ptr);
 					video_device->write_buffer(preview_output, 
