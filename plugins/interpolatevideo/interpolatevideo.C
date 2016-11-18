@@ -340,6 +340,11 @@ void InterpolateVideo::create_macroblocks()
 // Get macroblock size
 	x_macroblocks = frames[0]->get_w() / config.macroblock_size;
 	y_macroblocks = frames[0]->get_h() / config.macroblock_size;
+printf("InterpolateVideo::create_macroblocks %d %d %d %d\n", 
+__LINE__, 
+config.macroblock_size,
+x_macroblocks,
+y_macroblocks);
 
 	if(config.macroblock_size * x_macroblocks < frames[0]->get_w())
 	{

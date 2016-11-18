@@ -90,6 +90,9 @@ public:
 // Test for identical frames before scanning
 	void set_test_match(int value);
 
+// Use a cache of scaled intermediates shared by many MotionScan objects
+//	void set_cache(MotionCache *cache);
+
 // Invoke the motion engine for a search
 // Frame before motion
 	void scan_frame(VFrame *previous_frame,
@@ -196,7 +199,7 @@ private:
 		int color_model);
 
 
-
+//	MotionCache *downsample_cache;
 	AffineEngine *rotater;
 // Pointer to downsampled frame before motion
 	VFrame *previous_frame;

@@ -212,6 +212,7 @@ total_clients, total_packages
 	downsampled_current = 0;
 	rotated_current = 0;
 	rotater = 0;
+//	downsample_cache = 0;
 }
 
 MotionScan::~MotionScan()
@@ -558,6 +559,10 @@ void MotionScan::pixel_search(int &x_result, int &y_result, double &r_result)
 
 	if(current_downsample > 1)
 	{
+// try to get it from the cache
+		
+
+// create a new one
 		if(!downsampled_previous ||
 			downsampled_previous->get_w() != downsampled_prev_w ||
 			downsampled_previous->get_h() != downsampled_prev_h)
@@ -1101,7 +1106,9 @@ void MotionScan::scan_frame(VFrame *previous_frame,
 	subpixel = 0;
 // starting level of detail
 // TODO: base it on a table of resolutions
-	current_downsample = STARTING_DOWNSAMPLE;
+//	current_downsample = STARTING_DOWNSAMPLE;
+// DEBUG
+	current_downsample = 1;
 	angle_step = 0;
 
 // Single macroblock

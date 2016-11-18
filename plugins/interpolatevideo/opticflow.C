@@ -103,6 +103,7 @@ void OpticFlowUnit::process_package(LoadPackage *package)
 	for(int i = pkg->macroblock0; i < pkg->macroblock1; i++)
 	{
 		OpticFlowMacroblock *mb = plugin->macroblocks.get(i);
+printf("OpticFlowUnit::process_package %d i=%d x=%d y=%d\n", __LINE__, i, mb->x, mb->y);
 		motion->scan_frame(plugin->frames[0],
 // Frame after motion
 			plugin->frames[1],
@@ -127,6 +128,7 @@ void OpticFlowUnit::process_package(LoadPackage *package)
 			0,
 			0,
 			0);
+//printf("OpticFlowUnit::process_package 2\n", __LINE__);
 
 
 		mb->dx = motion->dx_result;
@@ -166,12 +168,17 @@ OpticFlow::~OpticFlow()
 
 void OpticFlow::init_packages()
 {
-//printf("OpticFlow::init_packages %d %d\n", __LINE__, get_total_packages());
 	for(int i = 0; i < get_total_packages(); i++)
 	{
 		OpticFlowPackage *pkg = (OpticFlowPackage*)get_package(i);
 		pkg->macroblock0 = plugin->total_macroblocks * i / get_total_packages();
 		pkg->macroblock1 = plugin->total_macroblocks * (i + 1) / get_total_packages();
+// printf("OpticFlow::init_packages %d %d %d %d %d\n", 
+// __LINE__, 
+// plugin->total_macroblocks,
+// get_total_packages(),
+// pkg->macroblock0,
+// pkg->macroblock1);
 	}
 }
 
