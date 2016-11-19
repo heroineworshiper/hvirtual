@@ -25,6 +25,7 @@
 
 #include "affine.inc"
 #include "loadbalance.h"
+#include "motioncache.inc"
 #include "vframe.inc"
 #include <stdint.h>
 
@@ -91,7 +92,7 @@ public:
 	void set_test_match(int value);
 
 // Use a cache of scaled intermediates shared by many MotionScan objects
-//	void set_cache(MotionCache *cache);
+	void set_cache(MotionCache *cache);
 
 // Invoke the motion engine for a search
 // Frame before motion
@@ -199,7 +200,8 @@ private:
 		int color_model);
 
 
-//	MotionCache *downsample_cache;
+	MotionCache *downsample_cache;
+	int shared_downsample;
 	AffineEngine *rotater;
 // Pointer to downsampled frame before motion
 	VFrame *previous_frame;
@@ -208,9 +210,6 @@ private:
 // Frames passed from user
 	VFrame *previous_frame_arg;
 	VFrame *current_frame_arg;
-// Downsampled frames
-	VFrame *downsampled_previous;
-	VFrame *downsampled_current;
 // rotated versions of current_frame
 	VFrame **rotated_current;
 // allocation of rotated_current array, a copy of angle_steps

@@ -24,6 +24,7 @@
 
 #include "clip.h"
 #include "interpolatevideo.h"
+#include "motioncache.h"
 #include "motionscan.h"
 #include "opticflow.h"
 
@@ -95,6 +96,8 @@ void OpticFlowUnit::process_package(LoadPackage *package)
 	if(!motion) motion = new MotionScan(1, 1);
 
 	motion->set_test_match(0);
+	motion->set_cache(server->downsample_cache);
+	
 // printf("OpticFlowUnit::process_package %d %d %d\n",
 // __LINE__,
 // pkg->macroblock0,
@@ -103,7 +106,7 @@ void OpticFlowUnit::process_package(LoadPackage *package)
 	for(int i = pkg->macroblock0; i < pkg->macroblock1; i++)
 	{
 		OpticFlowMacroblock *mb = plugin->macroblocks.get(i);
-printf("OpticFlowUnit::process_package %d i=%d x=%d y=%d\n", __LINE__, i, mb->x, mb->y);
+//printf("OpticFlowUnit::process_package %d i=%d x=%d y=%d\n", __LINE__, i, mb->x, mb->y);
 		motion->scan_frame(plugin->frames[0],
 // Frame after motion
 			plugin->frames[1],
@@ -159,15 +162,28 @@ OpticFlow::OpticFlow(InterpolateVideo *plugin,
 	total_packages)
 {
 	this->plugin = plugin;
+	downsample_cache = 0;
 }
 
 
 OpticFlow::~OpticFlow()
 {
+	if(downsample_cache)
+	{
+//printf("OpticFlow::~OpticFlow %d %p\n", __LINE__, downsample_cache);
+		delete downsample_cache;
+	}
 }
 
 void OpticFlow::init_packages()
 {
+	if(!downsample_cache)
+	{
+		downsample_cache = new MotionCache();
+	}
+	
+	downsample_cache->clear();
+
 	for(int i = 0; i < get_total_packages(); i++)
 	{
 		OpticFlowPackage *pkg = (OpticFlowPackage*)get_package(i);

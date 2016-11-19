@@ -506,6 +506,7 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 
 //printf("encode %d nnal=%d\n", __LINE__, nnal);
 //printf("encode %d size=%d nnal=%d\n", __LINE__, size, nnal);
+//printf("encode %d\n", __LINE__);
 
 	pthread_mutex_unlock(&h264_lock);
 

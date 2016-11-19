@@ -25,6 +25,21 @@
 // store previously scaled intermediates here for operations 
 // with multiple motion scans on the same frame.
 
+#include "arraylist.h"
+#include "mutex.inc"
+#include "vframe.inc"
+
+class MotionCacheItem
+{
+public:
+	MotionCacheItem();
+	~MotionCacheItem();
+
+	VFrame *image;
+	int ratio;
+	int is_previous;
+};
+
 
 class MotionCache
 {
@@ -32,13 +47,20 @@ public:
 	MotionCache();
 	~MotionCache();
 	
-	VFrame *get_image(int ratio);
-	void put_image(VFrame *frame, int ratio);
-	
-	ArrayList<VFrame*>images;
-	ArrayList<int>ratios;
+	VFrame *get_image(int ratio, 
+		int is_previous,
+		int downsampled_w,
+		int downsampled_h,
+		VFrame *src);
 	
 	void clear();
+
+	void downsample_frame(VFrame *dst, 
+		VFrame *src, 
+		int downsample);
+
+	ArrayList<MotionCacheItem*> images;
+	Mutex *lock;
 };
 
 

@@ -945,10 +945,10 @@ if(debug) printf("FileMOV::write_frames %d result=%d\n", __LINE__, result);
 // Use the library's built in compressor.
 			for(j = 0; j < len && !result; j++)
 			{
-//printf("FileMOV::write_frames 4\n");
+//printf("FileMOV::write_frames %d\n", __LINE__);
 				VFrame *frame = frames[i][j];
 				quicktime_set_cmodel(fd, frame->get_color_model());
-//printf("FileMOV::write_frames 5\n");
+//printf("FileMOV::write_frames %d\n", __LINE__);
 				if(cmodel_is_planar(frame->get_color_model()))
 				{
 					unsigned char *planes[3];
@@ -959,9 +959,9 @@ if(debug) printf("FileMOV::write_frames %d result=%d\n", __LINE__, result);
 				}
 				else
 				{
-if(debug) printf("FileMOV::write_frames 1\n");
+//printf("FileMOV::write_frames %d\n", __LINE__);
 					result = quicktime_encode_video(fd, frame->get_rows(), i);
-if(debug) printf("FileMOV::write_frames 10\n");
+//printf("FileMOV::write_frames %d\n", __LINE__);
 				}
 			}
 		}
