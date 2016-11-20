@@ -284,6 +284,7 @@ int VDeviceX11::get_best_colormodel(int colormodel)
 		{
 			return colormodel;
 		}
+		
 		return BC_RGB888;
 	}
 
@@ -315,6 +316,8 @@ int VDeviceX11::get_best_colormodel(int colormodel)
 			case BC_RGBA8888:
 			case BC_YUV888:
 			case BC_YUVA8888:
+			case BC_RGB_FLOAT:
+			case BC_RGBA_FLOAT:
 				result = colormodel;
 				break;
 
@@ -330,7 +333,9 @@ int VDeviceX11::get_best_colormodel(int colormodel)
 }
 
 
-void VDeviceX11::new_output_buffer(VFrame **result, int colormodel, EDL *edl)
+void VDeviceX11::new_output_buffer(VFrame **result, 
+	int colormodel, 
+	EDL *edl)
 {
 // printf("VDeviceX11::new_output_buffer %d hardware_scaling=%d\n",
 // __LINE__,
@@ -431,8 +436,9 @@ printf("VDeviceX11::new_output_buffer %d\n", __LINE__);
 		if(!bitmap)
 		{
 
-printf("VDeviceX11::new_output_buffer %d best_colormodel=%d %d %d %d %d\n", 
+printf("VDeviceX11::new_output_buffer %d colormodel=%d best_colormodel=%d %d %d %d %d\n", 
 __LINE__, 
+colormodel,
 best_colormodel,
 device->out_w,
 output->get_canvas()->get_w(),

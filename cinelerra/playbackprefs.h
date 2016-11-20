@@ -45,7 +45,7 @@ class PlaybackRealTime;
 class PlaybackSoftwareTimer;
 class PlaybackViewFollows;
 class PlaybackWhiteBalanceRaw;
-class VideoAsynchronous;
+//class VideoAsynchronous;
 
 #include "adeviceprefs.h"
 #include "guicast.h"
@@ -83,7 +83,7 @@ public:
 	PlaybackDeblock *mpeg4_deblock;
 	PlaybackInterpolateRaw *interpolate_raw;
 	PlaybackWhiteBalanceRaw *white_balance_raw;
-	VideoAsynchronous *asynchronous;
+//	VideoAsynchronous *asynchronous;
 
 	BC_Title *vdevice_title;
 };
@@ -138,13 +138,15 @@ public:
 	PreferencesWindow *pwindow;
 };
 
-class VideoAsynchronous : public BC_CheckBox
-{
-public:
-	VideoAsynchronous(PreferencesWindow *pwindow, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-};
+/*
+ * class VideoAsynchronous : public BC_CheckBox
+ * {
+ * public:
+ * 	VideoAsynchronous(PreferencesWindow *pwindow, int x, int y);
+ * 	int handle_event();
+ * 	PreferencesWindow *pwindow;
+ * };
+ */
 
 class VideoEveryFrame : public BC_CheckBox
 {

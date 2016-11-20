@@ -150,8 +150,8 @@ SET_TRACE
 	draw_framerate(0);
 	y += window->get_h() + 5;
 
-	add_subwindow(asynchronous = new VideoAsynchronous(pwindow, x, y));
-	y += asynchronous->get_h() + 10;
+//	add_subwindow(asynchronous = new VideoAsynchronous(pwindow, x, y));
+//	y += asynchronous->get_h() + 10;
 
 SET_TRACE
 	BC_Title *title;
@@ -528,23 +528,23 @@ int PlaybackWhiteBalanceRaw::handle_event()
 
 
 
-VideoAsynchronous::VideoAsynchronous(PreferencesWindow *pwindow, int x, int y)
- : BC_CheckBox(x, 
- 	y, 
-	pwindow->thread->edl->session->video_every_frame &&
-		pwindow->thread->edl->session->video_asynchronous, 
-	_("Decode frames asynchronously"))
-{
-	this->pwindow = pwindow;
-	if(!pwindow->thread->edl->session->video_every_frame)
-		disable();
-}
-
-int VideoAsynchronous::handle_event()
-{
-	pwindow->thread->edl->session->video_asynchronous = get_value();
-	return 1;
-}
+// VideoAsynchronous::VideoAsynchronous(PreferencesWindow *pwindow, int x, int y)
+//  : BC_CheckBox(x, 
+//  	y, 
+// 	pwindow->thread->edl->session->video_every_frame &&
+// 		pwindow->thread->edl->session->video_asynchronous, 
+// 	_("Decode frames asynchronously"))
+// {
+// 	this->pwindow = pwindow;
+// 	if(!pwindow->thread->edl->session->video_every_frame)
+// 		disable();
+// }
+// 
+// int VideoAsynchronous::handle_event()
+// {
+// 	pwindow->thread->edl->session->video_asynchronous = get_value();
+// 	return 1;
+// }
 
 
 
@@ -562,16 +562,16 @@ VideoEveryFrame::VideoEveryFrame(PreferencesWindow *pwindow,
 int VideoEveryFrame::handle_event()
 {
 	pwindow->thread->edl->session->video_every_frame = get_value();
-	if(!pwindow->thread->edl->session->video_every_frame)
-	{
-		playback_prefs->asynchronous->update(0, 0);
-		playback_prefs->asynchronous->disable();
-	}
-	else
-	{
-		playback_prefs->asynchronous->update(pwindow->thread->edl->session->video_asynchronous, 0);
-		playback_prefs->asynchronous->enable();
-	}
+// 	if(!pwindow->thread->edl->session->video_every_frame)
+// 	{
+// 		playback_prefs->asynchronous->update(0, 0);
+// 		playback_prefs->asynchronous->disable();
+// 	}
+// 	else
+// 	{
+// 		playback_prefs->asynchronous->update(pwindow->thread->edl->session->video_asynchronous, 0);
+// 		playback_prefs->asynchronous->enable();
+// 	}
 	return 1;
 }
 
