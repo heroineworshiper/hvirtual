@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -368,29 +368,29 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 	}
 	else
 	{
+		output->get_transfers(edl, 
+			output_x1, 
+			output_y1, 
+			output_x2, 
+			output_y2, 
+			canvas_x1, 
+			canvas_y1, 
+			canvas_x2, 
+			canvas_y2,
+// Canvas may be a different size than the temporary bitmap for pure software
+			-1,
+			-1);
+		int canvas_w = canvas_x2 - canvas_x1;
+		int canvas_h = canvas_y2 - canvas_y1;
+
 // Conform existing bitmap to new colormodel and output size
 		if(bitmap)
 		{
-			output->get_transfers(edl, 
-				output_x1, 
-				output_y1, 
-				output_x2, 
-				output_y2, 
-				canvas_x1, 
-				canvas_y1, 
-				canvas_x2, 
-				canvas_y2,
-// Canvas may be a different size than the temporary bitmap for pure software
-				-1,
-				-1);
-			int canvas_w = canvas_x2 - canvas_x1;
-			int canvas_h = canvas_y2 - canvas_y1;
-
-printf("VDeviceX11::new_output_buffer %d %d %d %d %d\n",
+printf("VDeviceX11::new_output_buffer %d bitmap=%dx%d canvas=%dx%d\n",
 __LINE__,
 bitmap->get_w(),
-canvas_w,
 bitmap->get_h(),
+canvas_w,
 canvas_h);
 
 			int size_change = (bitmap->get_w() != canvas_w ||
@@ -436,14 +436,10 @@ printf("VDeviceX11::new_output_buffer %d\n", __LINE__);
 		if(!bitmap)
 		{
 
-printf("VDeviceX11::new_output_buffer %d colormodel=%d best_colormodel=%d %d %d %d %d\n", 
+printf("VDeviceX11::new_output_buffer %d colormodel=%d best_colormodel=%d\n", 
 __LINE__, 
 colormodel,
-best_colormodel,
-device->out_w,
-output->get_canvas()->get_w(),
-device->out_h,
-output->get_canvas()->get_h());
+best_colormodel);
 
 // Try hardware accelerated
 			switch(best_colormodel)
@@ -452,20 +448,6 @@ output->get_canvas()->get_h());
 // Must scale in the codec.  No cropping
 				case BC_BGR8888:
 				{
-					output->get_transfers(edl, 
-						output_x1, 
-						output_y1, 
-						output_x2, 
-						output_y2, 
-						canvas_x1, 
-						canvas_y1, 
-						canvas_x2, 
-						canvas_y2,
-						-1,
-						-1);
-					int canvas_w = canvas_x2 - canvas_x1;
-					int canvas_h = canvas_y2 - canvas_y1;
-
 					if(output_x1 == 0 && 
 						output_y1 == 0 &&
 						output_x2 == device->out_w &&
@@ -473,9 +455,14 @@ output->get_canvas()->get_h());
 						!output->xscroll &&
 						!output->yscroll)
 					{
+printf("VDeviceX11::new_output_buffer %d creating direct bitmap w=%d h=%d\n", 
+__LINE__, 
+canvas_w,
+canvas_h);
+
 						bitmap = new BC_Bitmap(output->get_canvas(), 
-								canvas_x2 - canvas_x1,
-								canvas_y2 - canvas_y1,
+								canvas_w,
+								canvas_h,
 								best_colormodel,
 								1);
 						output_frame = new VFrame(
@@ -592,9 +579,15 @@ output->get_canvas()->get_h());
 			if(!bitmap)
 			{
 				best_colormodel = output->get_canvas()->get_color_model();
+printf("VDeviceX11::new_output_buffer %d creating temp bitmap colormodel=%d %dx%d\n",
+__LINE__,
+best_colormodel,
+canvas_w,
+canvas_h);
+
 				bitmap = new BC_Bitmap(output->get_canvas(), 
-					output->get_canvas()->get_w(),
-					output->get_canvas()->get_h(),
+					canvas_w,
+					canvas_h,
 					best_colormodel,
 					1);
 				bitmap_type = BITMAP_TEMP;
@@ -652,6 +645,13 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 // __LINE__, 
 // output->get_canvas()->get_video_on(),
 // bitmap_type);
+	int use_bitmap_extents = 0;
+	if(bitmap_type == BITMAP_TEMP && 
+		!bitmap->hardware_scaling())
+	{
+		use_bitmap_extents = 1;
+	}
+
 	output->get_transfers(edl, 
 		output_x1, 
 		output_y1, 
@@ -662,8 +662,8 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 		canvas_x2, 
 		canvas_y2,
 // Canvas may be a different size than the temporary bitmap for pure software
-		(bitmap_type == BITMAP_TEMP && !bitmap->hardware_scaling()) ? bitmap->get_w() : -1,
-		(bitmap_type == BITMAP_TEMP && !bitmap->hardware_scaling()) ? bitmap->get_h() : -1);
+		use_bitmap_extents ? bitmap->get_w() : -1,
+		use_bitmap_extents ? bitmap->get_h() : -1);
 
 
 // Convert colormodel
@@ -806,7 +806,12 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 	}
 	else
 	{
-//printf("VDeviceX11::write_buffer %d bitmap=%p\n", __LINE__, bitmap);
+printf("VDeviceX11::write_buffer %d x=%d y=%d w=%d h=%d\n", 
+__LINE__, 
+(int)canvas_x1,
+(int)canvas_y1,
+output->get_canvas()->get_w(),
+output->get_canvas()->get_h());
 //for(int i = 0; i < 100000; i++) bitmap->get_row_pointers()[0][i] = 255;
 		output->get_canvas()->draw_bitmap(bitmap,
 			!device->single_frame,
