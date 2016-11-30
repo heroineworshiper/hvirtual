@@ -2004,11 +2004,11 @@ printf("File::read_frame %d using temp\n", __LINE__);
 		else
 		{
 // Can't advance position here because it needs to be added to cache
-printf("File::read_frame %d reading directly colormodel=%d w=%d h=%d\n", 
-__LINE__, 
-frame->get_color_model(), 
-frame->get_w(), 
-frame->get_h());
+// printf("File::read_frame %d reading directly colormodel=%d w=%d h=%d\n", 
+// __LINE__, 
+// frame->get_color_model(), 
+// frame->get_w(), 
+// frame->get_h());
 			file->read_frame(frame);
 //for(int i = 0; i < 100 * 1000; i++) ((float*)frame->get_rows()[0])[i] = 1.0;
 		}

@@ -151,12 +151,14 @@ private:
 	int texture_h;
 	int color_model;
 	int color_model_selected;
-// Transfer coordinates from the output frame to the canvas 
-// for last frame rendered.
+// Transfer coordinates from the output frame to the canvas.
+// Calculated in new_output_buffer & retained for write_buffer
 // These stick the last frame to the display.
 // Must be floats to support OpenGL
 	float output_x1, output_y1, output_x2, output_y2;
 	float canvas_x1, canvas_y1, canvas_x2, canvas_y2;
+// rounded integer dimensions
+	int canvas_w, canvas_h;
 // Screen capture
 	BC_Capture *capture_bitmap;
 // Set when OpenGL rendering has cleared the frame buffer before write_buffer
