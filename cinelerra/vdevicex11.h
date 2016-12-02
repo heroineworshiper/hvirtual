@@ -131,7 +131,7 @@ private:
 // is passed to this to create the VFrame to which the output is rendered.
 // For OpenGL, it creates the array of row pointers used to upload the video
 // frame to the texture, the texture, and the PBuffer.
-	int get_best_colormodel(int colormodel);
+	int get_display_colormodel(int file_colormodel);
 
 // Bitmap to be written to device
 	BC_Bitmap *bitmap;        
