@@ -244,6 +244,7 @@ RecordMonitorGUI::RecordMonitorGUI(MWindow *mwindow,
 	meters = 0;
 	canvas = 0;
 	cursor_toggle = 0;
+	big_cursor_toggle = 0;
 	current_operation = MONITOR_NONE;
 }
 
@@ -254,6 +255,7 @@ RecordMonitorGUI::~RecordMonitorGUI()
 	if(cursor_toggle)
 	{
 		delete cursor_toggle;
+		delete big_cursor_toggle;
 	}
 	if(bitmap) delete bitmap;
 	if(channel_picker) delete channel_picker;
@@ -400,6 +402,10 @@ void RecordMonitorGUI::create_objects()
 				x, 
 				y));
 			x += cursor_toggle->get_w() + mwindow->theme->widget_border;
+			add_subwindow(big_cursor_toggle = new DoBigCursor(record,
+				x, 
+				y));
+			x += big_cursor_toggle->get_w() + mwindow->theme->widget_border;
 		}
 		
 
@@ -618,6 +624,8 @@ int RecordMonitorGUI::resize_event(int w, int h)
 	{
 		cursor_toggle->reposition_window(cursor_toggle->get_x(),
 			cursor_toggle->get_y());
+		big_cursor_toggle->reposition_window(big_cursor_toggle->get_x(),
+			big_cursor_toggle->get_y());
 	}
 	
 	if(canvas && record->default_asset->video_data)
@@ -705,6 +713,23 @@ DoCursor::~DoCursor()
 int DoCursor::handle_event()
 {
 	record->do_cursor = get_value();
+	return 0;
+}
+
+
+DoBigCursor::DoBigCursor(Record *record, int x, int y)
+ : BC_CheckBox(x, y, record->do_big_cursor, _("Big cursor"))
+{
+	this->record = record;
+}
+
+DoBigCursor::~DoBigCursor()
+{
+}
+
+int DoBigCursor::handle_event()
+{
+	record->do_big_cursor = get_value();
 	return 0;
 }
 

@@ -539,9 +539,19 @@ int VideoDevice::set_field_order(int odd_field_first)
 	return 0;
 }
 
-void VideoDevice::set_do_cursor(int do_cursor)
+void VideoDevice::set_do_cursor(int do_cursor, int do_big_cursor)
 {
-	this->do_cursor = do_cursor;
+	int cursor_scale = 0;
+	if(do_cursor)
+	{
+		cursor_scale = 1;
+		if(do_big_cursor)
+		{
+			cursor_scale = 2;
+		}
+	}
+
+	this->do_cursor = cursor_scale;
 }
 
 int VideoDevice::set_channel(Channel *channel)

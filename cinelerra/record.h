@@ -207,6 +207,7 @@ public:
 	int reverse_interlace;
 // record the cursor for screencapture
 	int do_cursor;
+	int do_big_cursor;
 // Color model for uncompressed device interface
 	int color_model;
 // Picture quality and parameters the device supports

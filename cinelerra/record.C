@@ -237,6 +237,7 @@ int Record::load_defaults()
 
 	reverse_interlace = defaults->get("REVERSE_INTERLACE", 0);
 	do_cursor = defaults->get("RECORD_CURSOR", 0);
+	do_big_cursor = defaults->get("RECORD_BIG_CURSOR", 0);
 	for(int i = 0; i < MAXCHANNELS; i++) 
 	{
 		sprintf(string, "RECORD_DCOFFSET_%d", i);
@@ -316,6 +317,7 @@ int Record::save_defaults()
 	picture->save_defaults();
 	defaults->update("REVERSE_INTERLACE", reverse_interlace);
 	defaults->update("RECORD_CURSOR", do_cursor);
+	defaults->update("RECORD_BIG_CURSOR", do_big_cursor);
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
 		sprintf(string, "RECORD_DCOFFSET_%d", i);
@@ -1121,7 +1123,8 @@ int Record::open_input_devices(int duplex, int context)
 		master_channel->copy_usage(vdevice->channel);
 		picture->copy_usage(vdevice->picture);
 		vdevice->set_field_order(reverse_interlace);
-		vdevice->set_do_cursor(do_cursor);
+		
+		vdevice->set_do_cursor(do_cursor, do_big_cursor);
 
 // Set the device configuration
 		set_channel(get_current_channel());

@@ -192,7 +192,10 @@ int BC_Capture::get_h() { return h; }
 
 
 
-int BC_Capture::capture_frame(VFrame *frame, int &x1, int &y1, int do_cursor)
+int BC_Capture::capture_frame(VFrame *frame, 
+	int &x1, 
+	int &y1, 
+	int do_cursor) // the scale of the cursor if nonzero
 {
 	if(!display) return 1;
 	if(x1 < 0) x1 = 0;
@@ -234,28 +237,50 @@ int BC_Capture::capture_frame(VFrame *frame, int &x1, int &y1, int do_cursor)
 	{
 		XFixesCursorImage *cursor;
 		cursor = XFixesGetCursorImage(display);
-		printf("BC_Capture::capture_frame %d cursor=%p colormodel=%d\n", 
-			__LINE__,
-			cursor,
-			frame->get_color_model());
 		if(cursor)
 		{
+// 			printf("BC_Capture::capture_frame %d cursor=%p colormodel=%d\n", 
+// 				__LINE__,
+// 				cursor, 
+// 				frame->get_color_model());
+			
+			int scale = do_cursor;
+			int cursor_x = cursor->x - x1 - cursor->xhot * scale;
+			int cursor_y = cursor->y - y1 - cursor->yhot * scale;
+			int w = frame->get_w();
+			int h = frame->get_h();
 			switch(frame->get_color_model())
 			{
 				case BC_RGB888:
 					for(int i = 0; i < cursor->height; i++)
 					{
-						unsigned char *src = (unsigned char*)(cursor->pixels + 
-							i * cursor->width);
-						unsigned char *dst = frame->get_rows()[cursor->yhot] +
-							cursor->xhot * 3;
-						for(int j = 0; j < cursor->width; j++)
+						for(int yscale = 0; yscale < scale; yscale++)
 						{
-							dst[0] = src[1];
-							dst[1] = src[2];
-							dst[2] = src[3];
-							src += 4;
-							dst += 3;
+							if(cursor_y + i * scale + yscale >= 0 && 
+								cursor_y + i * scale + yscale < h)
+							{
+								unsigned char *src = (unsigned char*)(cursor->pixels + 
+									i * cursor->width);
+								unsigned char *dst = frame->get_rows()[cursor_y + i * scale + yscale] +
+									cursor_x * 3;
+								for(int j = 0; j < cursor->width; j++)
+								{
+									for(int xscale = 0; xscale < scale ; xscale++)
+									{
+										if(cursor_x + j * scale + xscale >= 0 && 
+											cursor_x + j * scale + xscale < w)
+										{
+											int a = src[3];
+											int invert_a = 0xff - a;
+											dst[0] = (src[2] * a + dst[0] * invert_a) / 0xff;
+											dst[1] = (src[1] * a + dst[1] * invert_a) / 0xff;
+											dst[2] = (src[0] * a + dst[2] * invert_a) / 0xff;
+										}
+										dst += 3;
+									}
+									src += sizeof(long);
+								}
+							}
 						}
 					}
 				
@@ -264,8 +289,8 @@ int BC_Capture::capture_frame(VFrame *frame, int &x1, int &y1, int do_cursor)
 
 		
 		
-// TODO: must free the cursor
-			
+// This frees cursor->pixels
+			XFree(cursor);
 		}
 			
 		
