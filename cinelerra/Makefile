@@ -400,6 +400,7 @@ endif
 LIBS += \
 	-lX11 \
 	-lXext \
+	-lXfixes \
 	-lXv \
 	-lpthread \
 	-lm \

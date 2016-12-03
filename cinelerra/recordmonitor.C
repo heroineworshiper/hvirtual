@@ -243,6 +243,7 @@ RecordMonitorGUI::RecordMonitorGUI(MWindow *mwindow,
 	reverse_interlace = 0;
 	meters = 0;
 	canvas = 0;
+	cursor_toggle = 0;
 	current_operation = MONITOR_NONE;
 }
 
@@ -250,6 +251,10 @@ RecordMonitorGUI::~RecordMonitorGUI()
 {
 	lock_window("RecordMonitorGUI::~RecordMonitorGUI");
 	delete canvas;
+	if(cursor_toggle)
+	{
+		delete cursor_toggle;
+	}
 	if(bitmap) delete bitmap;
 	if(channel_picker) delete channel_picker;
 	if(avc1394transport_thread)
@@ -279,7 +284,8 @@ void RecordMonitorGUI::create_objects()
 			driver == CAPTURE_JPEG_WEBCAM ||
 			driver == CAPTURE_YUYV_WEBCAM ||
 			driver == CAPTURE_MPEG);
-	int do_scopes = do_channel || driver == SCREENCAPTURE;
+	int do_scopes = do_channel || (driver == SCREENCAPTURE);
+	int do_cursor = (driver == SCREENCAPTURE);
 	int do_interlace = (driver == CAPTURE_BUZ ||
 		driver == VIDEO4LINUX2JPEG);
 	int background_done = 0;
@@ -386,6 +392,16 @@ void RecordMonitorGUI::create_objects()
 				y));
 			x += scope_toggle->get_w() + mwindow->theme->widget_border;
 		}
+		
+		
+		if(do_cursor)
+		{
+			add_subwindow(cursor_toggle = new DoCursor(record,
+				x, 
+				y));
+			x += cursor_toggle->get_w() + mwindow->theme->widget_border;
+		}
+		
 
 		add_subwindow(monitor_menu = new BC_PopupMenu(0, 
 			0, 
@@ -587,9 +603,23 @@ int RecordMonitorGUI::resize_event(int w, int h)
 			mwindow->theme->rmonitor_tx_y);
 	}
 	
-	if(channel_picker) channel_picker->reposition();
-	if(reverse_interlace) reverse_interlace->reposition_window(reverse_interlace->get_x(),
-		reverse_interlace->get_y());
+	if(channel_picker) 
+	{
+		channel_picker->reposition();
+	}
+	
+	if(reverse_interlace) 
+	{
+		reverse_interlace->reposition_window(reverse_interlace->get_x(),
+			reverse_interlace->get_y());
+	}
+
+	if(cursor_toggle)
+	{
+		cursor_toggle->reposition_window(cursor_toggle->get_x(),
+			cursor_toggle->get_y());
+	}
+	
 	if(canvas && record->default_asset->video_data)
 	{
 		canvas->reposition_window(0,
@@ -661,6 +691,27 @@ int RecordMonitorGUI::create_bitmap()
 	}
 	return 0;
 }
+
+DoCursor::DoCursor(Record *record, int x, int y)
+ : BC_CheckBox(x, y, record->do_cursor, _("Record cursor"))
+{
+	this->record = record;
+}
+
+DoCursor::~DoCursor()
+{
+}
+
+int DoCursor::handle_event()
+{
+	record->do_cursor = get_value();
+	return 0;
+}
+
+
+
+
+
 
 ReverseInterlace::ReverseInterlace(Record *record, int x, int y)
  : BC_CheckBox(x, y, record->reverse_interlace, _("Swap fields"))

@@ -255,6 +255,7 @@ void RecordVideo::run()
 			{
 				capture_frame = frame_ptr[0][buffer_position];
 				record->vdevice->set_field_order(record->reverse_interlace);
+				record->vdevice->set_do_cursor(record->do_cursor);
 				read_buffer();
 
 
@@ -275,6 +276,7 @@ void RecordVideo::run()
 			if(record->monitor_video)
 			{
 				record->vdevice->set_field_order(record->reverse_interlace);
+				record->vdevice->set_do_cursor(record->do_cursor);
 				record->get_current_batch()->session_frames++;
 
 				read_buffer();

@@ -99,7 +99,6 @@ int VDeviceX11::open_output()
 		output->get_canvas()->unlock_window();
 
 // Enable opengl in the first routine that needs it, to reduce the complexity.
-
 		output->unlock_canvas();
 	}
 	return 0;
@@ -181,7 +180,7 @@ int VDeviceX11::close_all()
 		}
 		else
 		{
-// printf("VDeviceX11::close_all %d    %d %d %d    %d %d %d\n", 
+// printf("VDeviceX11::close_all %d refresh_frame cmodel=%d refresh_frame=%dx%d output_frame cmodel=%d output_frame=%dx%d\n", 
 // __LINE__,
 // output->refresh_frame->get_color_model(),
 // output->refresh_frame->get_w(),
@@ -189,7 +188,36 @@ int VDeviceX11::close_all()
 // output_frame->get_color_model(),
 // output_frame->get_w(),
 // output_frame->get_h());
-			output->refresh_frame->copy_from(output_frame);
+			if(output->refresh_frame->get_w() != output_frame->get_w() ||
+				output->refresh_frame->get_h() != output_frame->get_h())
+			{
+// need to scale it
+				cmodel_transfer(output->refresh_frame->get_rows(), 
+					output_frame->get_rows(),
+					0,
+					0,
+					0,
+					output_frame->get_y(),
+					output_frame->get_u(),
+					output_frame->get_v(),
+					0, 
+					0, 
+					output_frame->get_w(), 
+					output_frame->get_h(),
+					0, 
+					0, 
+					output->refresh_frame->get_w(), 
+					output->refresh_frame->get_h(),
+					output_frame->get_color_model(), 
+					output->refresh_frame->get_color_model(),
+					0,
+					output_frame->get_bytes_per_line(),
+					output->refresh_frame->get_bytes_per_line());
+			}
+			else
+			{
+				output->refresh_frame->copy_from(output_frame);
+			}
 		}
 
 
@@ -213,8 +241,9 @@ int VDeviceX11::close_all()
 // every stop.
 		if(/* device->out_config->driver != PLAYBACK_X11_GL || 
 			*/ device->single_frame)
+		{
 			output->draw_refresh();
-
+		}
 	}
 
 
@@ -232,11 +261,14 @@ int VDeviceX11::close_all()
 		output_frame = 0;
 	}
 
-	if(capture_bitmap) delete capture_bitmap;
+	if(capture_bitmap)
+	{
+		delete capture_bitmap;
+	}
 
 	if(output)
 	{
-	
+
 // Update the status bug
 		if(!device->single_frame)
 		{
@@ -253,12 +285,17 @@ int VDeviceX11::close_all()
 
 
 	reset_parameters();
+
 	return 0;
 }
 
 int VDeviceX11::read_buffer(VFrame *frame)
 {
-	capture_bitmap->capture_frame(frame, device->input_x, device->input_y);
+
+	capture_bitmap->capture_frame(frame, 
+		device->input_x, 
+		device->input_y,
+		device->do_cursor);
 	return 0;
 }
 

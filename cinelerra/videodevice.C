@@ -174,6 +174,8 @@ int VideoDevice::initialize()
 	single_frame = 0;
 	channel_changed = 0;
 	picture_changed = 0;
+	odd_field_first = 0;
+	do_cursor = 0;
 }
 
 int VideoDevice::open_input(VideoInConfig *config, 
@@ -535,6 +537,11 @@ int VideoDevice::set_field_order(int odd_field_first)
 {
 	this->odd_field_first = odd_field_first;
 	return 0;
+}
+
+void VideoDevice::set_do_cursor(int do_cursor)
+{
+	this->do_cursor = do_cursor;
 }
 
 int VideoDevice::set_channel(Channel *channel)

@@ -39,7 +39,7 @@ public:
 
 	int init_window(const char *display_path);
 // x1 and y1 are automatically adjusted if out of bounds
-	int capture_frame(VFrame *frame, int &x1, int &y1);
+	int capture_frame(VFrame *frame, int &x1, int &y1, int do_cursor);
 	int get_w();
 	int get_h();
 

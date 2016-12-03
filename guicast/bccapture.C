@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xfixes.h>
 
 
 
@@ -191,7 +192,7 @@ int BC_Capture::get_h() { return h; }
 
 
 
-int BC_Capture::capture_frame(VFrame *frame, int &x1, int &y1)
+int BC_Capture::capture_frame(VFrame *frame, int &x1, int &y1, int do_cursor)
 {
 	if(!display) return 1;
 	if(x1 < 0) x1 = 0;
@@ -227,6 +228,53 @@ int BC_Capture::capture_frame(VFrame *frame, int &x1, int &y1)
 		0,
 		frame->get_w(),
 		w);
+
+	
+	if(do_cursor)
+	{
+		XFixesCursorImage *cursor;
+		cursor = XFixesGetCursorImage(display);
+		printf("BC_Capture::capture_frame %d cursor=%p colormodel=%d\n", 
+			__LINE__,
+			cursor,
+			frame->get_color_model());
+		if(cursor)
+		{
+			switch(frame->get_color_model())
+			{
+				case BC_RGB888:
+					for(int i = 0; i < cursor->height; i++)
+					{
+						unsigned char *src = (unsigned char*)(cursor->pixels + 
+							i * cursor->width);
+						unsigned char *dst = frame->get_rows()[cursor->yhot] +
+							cursor->xhot * 3;
+						for(int j = 0; j < cursor->width; j++)
+						{
+							dst[0] = src[1];
+							dst[1] = src[2];
+							dst[2] = src[3];
+							src += 4;
+							dst += 3;
+						}
+					}
+				
+					break;
+			}
+
+		
+		
+// TODO: must free the cursor
+			
+		}
+			
+		
+	}
+
+
+
+
+
 
 	return 0;
 }

@@ -205,6 +205,8 @@ public:
 	float video_zoom;
 // Reverse the interlace in the video window display only
 	int reverse_interlace;
+// record the cursor for screencapture
+	int do_cursor;
 // Color model for uncompressed device interface
 	int color_model;
 // Picture quality and parameters the device supports
