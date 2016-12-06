@@ -25,7 +25,8 @@
 #define LARGEFONT  0
 #define MEDIUMFONT 2
 #define SMALLFONT  1
-#define MEDIUM_7SEGMENT 4
+#define CLOCKFONT 3
+#define MEDIUM_7SEGMENT 4 // no longer used
 
 // Specialized fonts not available in every widget
 #define BOLDFACE    0x8000

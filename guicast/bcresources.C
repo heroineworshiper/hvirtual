@@ -54,10 +54,13 @@ const char* BC_Resources::medium_font = N_("-*-helvetica-bold-r-normal-*-14-*");
 const char* BC_Resources::medium_font2 = N_("-*-helvetica-bold-r-normal-*-14-*");
 const char* BC_Resources::large_font = N_("-*-helvetica-bold-r-normal-*-18-*");
 const char* BC_Resources::large_font2 = N_("-*-helvetica-bold-r-normal-*-20-*");
+const char* BC_Resources::clock_font = N_("-*-helvetica-bold-r-normal-*-18-*");
+const char* BC_Resources::clock_font2 = N_("-*-helvetica-bold-r-normal-*-20-*");
 
 const char* BC_Resources::small_fontset = "-*-helvetica-medium-r-normal-*-10-*";
 const char* BC_Resources::medium_fontset = "-*-helvetica-bold-r-normal-*-14-*";
 const char* BC_Resources::large_fontset = "-*-helvetica-bold-r-normal-*-18-*";
+const char* BC_Resources::clock_fontset = "-*-helvetica-bold-r-normal-*-18-*";
 
 const char* BC_Resources::small_font_xft = N_("Sans-9");
 const char* BC_Resources::small_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
@@ -65,6 +68,8 @@ const char* BC_Resources::medium_font_xft = N_("Sans-11");
 const char* BC_Resources::medium_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
 const char* BC_Resources::large_font_xft = N_("Sans-17");
 const char* BC_Resources::large_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
+const char* BC_Resources::clock_font_xft = N_("Sans-17");
+const char* BC_Resources::clock_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
 
 
 

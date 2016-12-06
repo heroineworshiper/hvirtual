@@ -168,6 +168,8 @@ BC_WindowBase::~BC_WindowBase()
 			XFreeFont(display, mediumfont);
 		if (largefont)
 			XFreeFont(display, largefont);
+		if (clockfont)
+			XFreeFont(display, clockfont);
 
 
 		flush();
@@ -288,6 +290,7 @@ int BC_WindowBase::initialize()
 	largefont_xft = 0;
 	mediumfont_xft = 0;
 	smallfont_xft = 0;
+	clockfont_xft = 0;
 #ifdef SINGLE_THREAD
 	completion_lock = new Condition(0, "BC_WindowBase::completion_lock");
 #else
@@ -2066,6 +2069,10 @@ int BC_WindowBase::init_fonts()
 		if((smallfont = XLoadQueryFont(display, _(resources.small_font2))) == NULL)
 			smallfont = XLoadQueryFont(display, "fixed");
 
+	if((clockfont = XLoadQueryFont(display, _(resources.clock_font))) == NULL)
+		if((clockfont = XLoadQueryFont(display, _(resources.clock_font2))) == NULL)
+			clockfont = XLoadQueryFont(display, "fixed");
+
 	init_xft();
 	if(get_resources()->use_fontset)
 	{
@@ -2091,8 +2098,14 @@ int BC_WindowBase::init_fonts()
 			&n, 
 			&d)) == 0)
             smallfontset = XCreateFontSet(display, "fixed,*", &m, &n, &d);
+		if((clockfontset = XCreateFontSet(display, 
+			resources.clock_fontset,
+            &m, 
+			&n, 
+			&d)) == 0)
+            clockfontset = XCreateFontSet(display, "fixed,*", &m, &n, &d);
 
-		if(largefontset && mediumfontset && smallfontset)
+		if(largefontset && mediumfontset && smallfontset && clockfontset)
 		{
 			curr_fontset = mediumfontset;
 			get_resources()->use_fontset = 1;
@@ -2150,6 +2163,18 @@ void BC_WindowBase::init_xft()
 							resources.medium_font_xft);
 		}
 
+		if(resources.clock_font_xft[0] == '-')
+		{
+			clockfont_xft = XftFontOpenXlfd(display,
+							screen,
+							resources.clock_font_xft);
+		} else 
+		{
+			clockfont_xft = XftFontOpenName(display,
+							screen,
+							resources.clock_font_xft);
+		}
+
 
 //	if(!(smallfont_xft = XftFontOpenXlfd(display,
 //	      screen,
@@ -2170,7 +2195,10 @@ void BC_WindowBase::init_xft()
 		}
 
 // Extension failed to locate fonts
-	if(!largefont_xft || !mediumfont_xft || !smallfont_xft)
+	if(!largefont_xft || 
+		!mediumfont_xft || 
+		!smallfont_xft || 
+		!clockfont_xft)
 	{
 		printf("BC_WindowBase::init_fonts: no xft fonts found %s=%p %s=%p %s=%p\n",
 			resources.large_font_xft,
@@ -2487,6 +2515,7 @@ XFontStruct* BC_WindowBase::get_font_struct(int font)
 		case MEDIUMFONT: return top_level->mediumfont; break;
 		case SMALLFONT:  return top_level->smallfont;  break;
 		case LARGEFONT:  return top_level->largefont;  break;
+		case CLOCKFONT:  return top_level->clockfont;  break;
 	}
 	return 0;
 }
@@ -2502,6 +2531,7 @@ XFontSet BC_WindowBase::get_fontset(int font)
 			case SMALLFONT:  fs = top_level->smallfontset; break;
 			case LARGEFONT:  fs = top_level->largefontset; break;
 			case MEDIUMFONT: fs = top_level->mediumfontset; break;
+			case CLOCKFONT: fs = top_level->clockfontset; break;
 		}
 	}
 
@@ -2519,6 +2549,7 @@ XftFont* BC_WindowBase::get_xft_struct(int font)
 		case MEDIUMFONT:   return (XftFont*)top_level->mediumfont_xft; break;
 		case SMALLFONT:    return (XftFont*)top_level->smallfont_xft;  break;
 		case LARGEFONT:    return (XftFont*)top_level->largefont_xft;  break;
+		case CLOCKFONT:    return (XftFont*)top_level->clockfont_xft;  break;
 	}
 
 	return 0;
@@ -2571,6 +2602,7 @@ void BC_WindowBase::set_fontset(int font)
 			case SMALLFONT:  fs = top_level->smallfontset; break;
 			case LARGEFONT:  fs = top_level->largefontset; break;
 			case MEDIUMFONT: fs = top_level->mediumfontset; break;
+			case CLOCKFONT: fs = top_level->clockfontset; break;
 		}
 	}
 

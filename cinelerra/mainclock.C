@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,8 @@ MainClock::MainClock(MWindow *mwindow, int x, int y, int w)
  : BC_Title(x,
  		y,
 		"", 
-		MEDIUM_7SEGMENT,
+//		MEDIUM_7SEGMENT,
+		CLOCKFONT,
 		BLACK,
 		0,
 		w)

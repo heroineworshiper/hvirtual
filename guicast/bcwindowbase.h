@@ -779,14 +779,14 @@ private:
 
 
 // Font sets
-    XFontSet largefontset, mediumfontset, smallfontset, curr_fontset;
+    XFontSet largefontset, mediumfontset, smallfontset, curr_fontset, clockfontset;
 
 // Fonts
 	int current_font;
-	XFontStruct *largefont, *mediumfont, *smallfont;
+	XFontStruct *largefont, *mediumfont, *smallfont, *clockfont;
 
 // Must be void so users don't need to include the wrong libpng version.
-	void *largefont_xft, *mediumfont_xft, *smallfont_xft;
+	void *largefont_xft, *mediumfont_xft, *smallfont_xft, *clockfont_xft;
 
 
 	int line_width;

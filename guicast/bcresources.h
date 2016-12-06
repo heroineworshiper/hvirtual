@@ -303,23 +303,28 @@ public:
 	static const char *large_font;
 	static const char *medium_font;
 	static const char *small_font;
+	static const char *clock_font;
 // Backup of fonts in case the first choices don't exist
 	static const char *large_font2;
 	static const char *medium_font2;
 	static const char *small_font2;
+	static const char *clock_font2;
 
 	static const char *large_fontset;
 	static const char *medium_fontset;
 	static const char *small_fontset;
+	static const char *clock_fontset;
 
 	static const char *large_font_xft;
 	static const char *medium_font_xft;
 	static const char *small_font_xft;
+	static const char *clock_font_xft;
 
 // Backup of fonts in case the first choices don't exist
 	static const char *large_font_xft2;
 	static const char *medium_font_xft2;
 	static const char *small_font_xft2;
+	static const char *clock_font_xft2;
 
 	VFrame **medium_7segment;
 
