@@ -975,7 +975,7 @@ void SUV::draw_vwindow_bg(VWindowGUI *gui)
 
 // Clock border
 	gui->draw_3segmenth(vtime_x - 20, 
-		vtime_y - 1, 
+		vtime_y + 1, 
 		vtime_w + 40,
 		get_image("vclock"));
 }

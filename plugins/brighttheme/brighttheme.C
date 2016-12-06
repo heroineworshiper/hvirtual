@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -768,6 +768,18 @@ void BrightTheme::build_overlays()
 
 
 
+void BrightTheme::get_mwindow_sizes(MWindowGUI *gui, int w, int h)
+{
+	Theme::get_mwindow_sizes(gui, w, h);
+	mclock_y += 2;
+	
+	
+}
+
+void BrightTheme::get_vwindow_sizes(VWindowGUI *gui)
+{
+	Theme::get_vwindow_sizes(gui);
+}
 
 
 
@@ -941,7 +953,7 @@ void BrightTheme::draw_vwindow_bg(VWindowGUI *gui)
 
 // Clock border
 	gui->draw_3segmenth(vtime_x - 20, 
-		vtime_y - 1, 
+		vtime_y + 1, 
 		vtime_w + 40,
 		get_image("vclock"));
 }
