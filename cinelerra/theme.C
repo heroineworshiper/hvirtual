@@ -87,6 +87,7 @@ Theme::Theme()
 	play_h = 22;
 	title_h = 23;
 	clock_bg_color = BLACK;
+	clock_fg_color = GREEN;
 	assetedit_color = YELLOW;
 
 	preferences_category_overlap = 0;
@@ -457,9 +458,9 @@ void Theme::get_mwindow_sizes(MWindowGUI *gui, int w, int h)
 	mbuttons_y = gui->mainmenu->get_h() + 1;
 	mbuttons_w = w;
 	mbuttons_h = get_image("mbutton_bg")->get_h();
-	mclock_x = 10;
-	mclock_y = mbuttons_y - 1 + mbuttons_h + widget_border;
-	mclock_w = get_image("clock_bg")->get_w() - 40;
+	mclock_x = window_border;
+	mclock_y = mbuttons_y - 1 + mbuttons_h;
+	mclock_w = get_image("clock_bg")->get_w() - 20;
 	mclock_h = get_image("clock_bg")->get_h();
 	mtimebar_x = get_image("patchbay_bg")->get_w();
 	mtimebar_y = mbuttons_y - 1 + mbuttons_h;

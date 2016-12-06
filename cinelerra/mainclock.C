@@ -32,7 +32,7 @@ MainClock::MainClock(MWindow *mwindow, int x, int y, int w)
 		"", 
 //		MEDIUM_7SEGMENT,
 		CLOCKFONT,
-		BLACK,
+		mwindow->theme->clock_fg_color,
 		0,
 		w)
 {

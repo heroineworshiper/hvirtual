@@ -124,6 +124,7 @@ void BrightTheme::initialize()
 	resources->meter_font_color = resources->default_text_color;
 	resources->tooltip_bg_color = WHITE;
 	clock_bg_color = WHITE;
+	clock_fg_color = BLACK;
 
 	resources->menu_light = 0x000000;
 	resources->menu_highlighted = 0xe0e0e0;

@@ -287,6 +287,7 @@ public:
 	int window_border;
 	int widget_border;
 	int clock_bg_color;
+	int clock_fg_color;
 
 // Bitmaps
 	VFrame *about_bg;
