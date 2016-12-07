@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -138,39 +138,39 @@ void BC_Clipboard::run()
 
 
 			case SelectionRequest:
-				{
-					XEvent reply;
-					XSelectionRequestEvent *request = (XSelectionRequestEvent*)&event;
-					char *data_ptr = (request->selection == primary ? data[0] : data[1]);
+			{
+				XEvent reply;
+				XSelectionRequestEvent *request = (XSelectionRequestEvent*)&event;
+				char *data_ptr = (request->selection == primary ? data[0] : data[1]);
 
-//printf("BC_Clipboard::run 2\n");					
-        			XChangeProperty(out_display,
-        				request->requestor,
-        				request->property,
-        				XA_STRING,
-        				8,
-        				PropModeReplace,
-        				(unsigned char*)data_ptr,
-        				strlen(data_ptr));
-					
-        			reply.xselection.property  = request->property;
-        			reply.xselection.type      = SelectionNotify;
-        			reply.xselection.display   = request->display;
-        			reply.xselection.requestor = request->requestor;
-        			reply.xselection.selection = request->selection;
-        			reply.xselection.target    = request->target;
-        			reply.xselection.time      = request->time;
-					
+printf("BC_Clipboard::run %d selection=%p primary=%p\n", __LINE__, request->selection, primary);
+        		XChangeProperty(out_display,
+        			request->requestor,
+        			request->property,
+        			XA_STRING,
+        			8,
+        			PropModeReplace,
+        			(unsigned char*)data_ptr,
+        			strlen(data_ptr));
 
-					XSendEvent(out_display, request->requestor, 0, 0, &reply);
-					XFlush(out_display);
-				}
+        		reply.xselection.property  = request->property;
+        		reply.xselection.type      = SelectionNotify;
+        		reply.xselection.display   = request->display;
+        		reply.xselection.requestor = request->requestor;
+        		reply.xselection.selection = request->selection;
+        		reply.xselection.target    = request->target;
+        		reply.xselection.time      = request->time;
+
+
+				XSendEvent(out_display, request->requestor, 0, 0, &reply);
+				XFlush(out_display);
 //printf("SelectionRequest\n");
 				break;
-			
+			}
 			
 			
 			case SelectionClear:
+printf("BC_Clipboard::run %d\n", __LINE__);
 				if(data[0]) data[0][0] = 0;
 				if(data[1]) data[1][0] = 0;
 				break;
@@ -188,7 +188,7 @@ void BC_Clipboard::run()
 
 int BC_Clipboard::to_clipboard(const char *data, long len, int clipboard_num)
 {
-
+printf("BC_Clipboard::to_clipboard %d clipboard_num=%d\n", __LINE__, clipboard_num);
 	if(clipboard_num == BC_PRIMARY_SELECTION)
 	{
 		XStoreBuffer(out_display, data, len, clipboard_num);
