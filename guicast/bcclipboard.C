@@ -143,7 +143,7 @@ void BC_Clipboard::run()
 				XSelectionRequestEvent *request = (XSelectionRequestEvent*)&event;
 				char *data_ptr = (request->selection == primary ? data[0] : data[1]);
 
-printf("BC_Clipboard::run %d selection=%p primary=%p\n", __LINE__, request->selection, primary);
+//printf("BC_Clipboard::run %d selection=%p primary=%p\n", __LINE__, request->selection, primary);
         		XChangeProperty(out_display,
         			request->requestor,
         			request->property,
@@ -168,12 +168,27 @@ printf("BC_Clipboard::run %d selection=%p primary=%p\n", __LINE__, request->sele
 				break;
 			}
 			
-			
+// another window has copied something.  Clear our own buffer
 			case SelectionClear:
-printf("BC_Clipboard::run %d\n", __LINE__);
-				if(data[0]) data[0][0] = 0;
-				if(data[1]) data[1][0] = 0;
+			{
+				XSelectionClearEvent *request = (XSelectionClearEvent*)&event;
+// printf("BC_Clipboard::run %d selection=%p primary=%p secondary=%p\n", 
+// __LINE__, 
+// request->selection,
+// primary,
+// secondary);
+				if(data[0] && request->selection == primary)
+				{
+					data[0][0] = 0;
+				}
+				
+				
+				if(data[1] && request->selection == secondary)
+				{
+					data[1][0] = 0;
+				}
 				break;
+			}
 		}
 
 #ifdef SINGLE_THREAD
@@ -188,7 +203,7 @@ printf("BC_Clipboard::run %d\n", __LINE__);
 
 int BC_Clipboard::to_clipboard(const char *data, long len, int clipboard_num)
 {
-printf("BC_Clipboard::to_clipboard %d clipboard_num=%d\n", __LINE__, clipboard_num);
+//printf("BC_Clipboard::to_clipboard %d clipboard_num=%d\n", __LINE__, clipboard_num);
 	if(clipboard_num == BC_PRIMARY_SELECTION)
 	{
 		XStoreBuffer(out_display, data, len, clipboard_num);
