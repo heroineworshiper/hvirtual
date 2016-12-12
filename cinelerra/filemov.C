@@ -528,6 +528,13 @@ int FileMOV::get_best_colormodel(Asset *asset, int driver)
 			else
 				return BC_YUV422;
 			break;
+		
+		case SCREENCAPTURE:
+			if(!strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4))
+			{
+				return BC_YUV420P;
+			}
+			break;
 	}
 	return BC_RGB888;
 }
@@ -1336,6 +1343,7 @@ void FileMOVThread::run()
 				filemov->current_threadframe++;
 				filemov->threadframe_lock->unlock();
 
+//printf("FileMOVThread::run %d %d\n", __LINE__, frame->get_color_model());
 				mjpeg_compress(mjpeg, 
 					frame->get_rows(), 
 					frame->get_y(), 

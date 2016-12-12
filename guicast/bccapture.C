@@ -23,6 +23,7 @@
 #include "bcresources.h"
 #include "bcwindowbase.h"
 #include "bccmodels.h"
+#include "clip.h"
 #include "language.h"
 #include "vframe.h"
 #include <stdlib.h>
@@ -190,6 +191,15 @@ int BC_Capture::get_h() { return h; }
 		} \
 	}
 
+#define RGB_TO_YUV(y, u, v, r, g, b) \
+{ \
+	y = ((BC_CModels::yuv_table.rtoy_tab[r] + BC_CModels::yuv_table.gtoy_tab[g] + BC_CModels::yuv_table.btoy_tab[b]) >> 16); \
+	u = ((BC_CModels::yuv_table.rtou_tab[r] + BC_CModels::yuv_table.gtou_tab[g] + BC_CModels::yuv_table.btou_tab[b]) >> 16); \
+	v = ((BC_CModels::yuv_table.rtov_tab[r] + BC_CModels::yuv_table.gtov_tab[g] + BC_CModels::yuv_table.btov_tab[b]) >> 16); \
+	CLAMP(y, 0, 0xff); \
+	CLAMP(u, 0, 0xff); \
+	CLAMP(v, 0, 0xff); \
+}
 
 
 int BC_Capture::capture_frame(VFrame *frame, 
@@ -210,6 +220,11 @@ int BC_Capture::capture_frame(VFrame *frame,
 	else
 		XGetSubImage(display, rootwin, x1, y1, w, h, 0xffffffff, ZPixmap, ximage, 0, 0);
 
+//memset(row_data[0], 0xff, 1920 * 512);
+// printf("BC_Capture::capture_frame %d %d %d\n", 
+// __LINE__, 
+// frame->get_color_model(), 
+// bitmap_color_model);
 	BC_WindowBase::get_cmodels()->transfer(frame->get_rows(), 
 		row_data,
 		frame->get_y(),
@@ -249,42 +264,68 @@ int BC_Capture::capture_frame(VFrame *frame,
 			int cursor_y = cursor->y - y1 - cursor->yhot * scale;
 			int w = frame->get_w();
 			int h = frame->get_h();
-			switch(frame->get_color_model())
+			for(int i = 0; i < cursor->height; i++)
 			{
-				case BC_RGB888:
-					for(int i = 0; i < cursor->height; i++)
+				for(int yscale = 0; yscale < scale; yscale++)
+				{
+					if(cursor_y + i * scale + yscale >= 0 && 
+						cursor_y + i * scale + yscale < h)
 					{
-						for(int yscale = 0; yscale < scale; yscale++)
+						unsigned char *src = (unsigned char*)(cursor->pixels + 
+							i * cursor->width);
+						int dst_y = cursor_y + i * scale + yscale;
+						int dst_x = cursor_x;
+						for(int j = 0; j < cursor->width; j++)
 						{
-							if(cursor_y + i * scale + yscale >= 0 && 
-								cursor_y + i * scale + yscale < h)
+							for(int xscale = 0; xscale < scale ; xscale++)
 							{
-								unsigned char *src = (unsigned char*)(cursor->pixels + 
-									i * cursor->width);
-								unsigned char *dst = frame->get_rows()[cursor_y + i * scale + yscale] +
-									cursor_x * 3;
-								for(int j = 0; j < cursor->width; j++)
+								if(cursor_x + j * scale + xscale >= 0 && 
+									cursor_x + j * scale + xscale < w)
 								{
-									for(int xscale = 0; xscale < scale ; xscale++)
+									int a = src[3];
+									int invert_a = 0xff - a;
+									int r = src[2];
+									int g = src[1];
+									int b = src[0];
+									switch(frame->get_color_model())
 									{
-										if(cursor_x + j * scale + xscale >= 0 && 
-											cursor_x + j * scale + xscale < w)
+										case BC_RGB888:
 										{
-											int a = src[3];
-											int invert_a = 0xff - a;
-											dst[0] = (src[2] * a + dst[0] * invert_a) / 0xff;
-											dst[1] = (src[1] * a + dst[1] * invert_a) / 0xff;
-											dst[2] = (src[0] * a + dst[2] * invert_a) / 0xff;
+											unsigned char *dst = frame->get_rows()[dst_y] +
+												dst_x * 3;
+											dst[0] = (r * a + dst[0] * invert_a) / 0xff;
+											dst[1] = (g * a + dst[1] * invert_a) / 0xff;
+											dst[2] = (b * a + dst[2] * invert_a) / 0xff;
+											break;
 										}
-										dst += 3;
+
+										case BC_YUV420P:
+										{
+											unsigned char *dst_y_ = frame->get_y() + 
+												dst_y * w +
+												dst_x;
+											unsigned char *dst_u = frame->get_u() + 
+												(dst_y / 2) * (w / 2) +
+												(dst_x / 2);
+											unsigned char *dst_v = frame->get_v() + 
+												(dst_y / 2) * (w / 2) +
+												(dst_x / 2);
+											int y, u, v;
+											RGB_TO_YUV(y, u, v, r, g, b);
+											
+											*dst_y_ = (y * a + *dst_y_ * invert_a) / 0xff;
+											*dst_u = (u * a + *dst_u * invert_a) / 0xff;
+											*dst_v = (v * a + *dst_v * invert_a) / 0xff;
+											break;
+										}
 									}
-									src += sizeof(long);
 								}
+								dst_x++;
 							}
+							src += sizeof(long);
 						}
 					}
-				
-					break;
+				}
 			}
 
 		

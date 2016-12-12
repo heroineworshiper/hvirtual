@@ -1476,6 +1476,15 @@ static inline void transfer_UYVA8888_to_YUVA8888(unsigned char *(*output), unsig
 					transfer_BGR8888_to_BGR8888((output), (input));    \
 					TRANSFER_FRAME_TAIL \
 					break; \
+				case BC_YUV420P: \
+					TRANSFER_YUV420P_OUT_HEAD \
+					transfer_BGR8888_to_YUV420P_YUV422P(output_y, \
+						output_u, \
+						output_v, \
+						(input), \
+						j); \
+					TRANSFER_FRAME_TAIL \
+					break; \
 			} \
 			break; \
  \

@@ -26,6 +26,7 @@
 #include "colormodels.h"
 #include "edl.h"
 #include "edlsession.h"
+#include "file.h"
 #include "mwindow.h"
 #include "playback3d.h"
 #include "playbackconfig.h"
@@ -291,7 +292,7 @@ int VDeviceX11::close_all()
 
 int VDeviceX11::read_buffer(VFrame *frame)
 {
-
+//printf("VDeviceX11::read_buffer %d colormodel=%d\n", __LINE__, frame->get_color_model());
 	capture_bitmap->capture_frame(frame, 
 		device->input_x, 
 		device->input_y,
@@ -302,7 +303,9 @@ int VDeviceX11::read_buffer(VFrame *frame)
 
 int VDeviceX11::get_best_colormodel(Asset *asset)
 {
-	return BC_RGB888;
+	return File::get_best_colormodel(asset, SCREENCAPTURE);
+
+//	return BC_RGB888;
 }
 
 

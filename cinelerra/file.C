@@ -1021,7 +1021,10 @@ int File::start_video_thread(int buffer_size,
 
 
 // Create server copy of buffer
-//printf("File::start_video_thread %d %d\n", __LINE__, video_ring_buffers);
+// printf("File::start_video_thread %d video_ring_buffers=%d color_model=%d\n", 
+// __LINE__, 
+// video_ring_buffers,
+// color_model);
 		temp_frame_buffer = new VFrame***[video_ring_buffers];
 		for(int i = 0; i < video_ring_buffers; i++)
 		{
