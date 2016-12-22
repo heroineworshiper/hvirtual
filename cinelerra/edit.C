@@ -713,13 +713,17 @@ int Edit::shift_end_out(int edit_mode,
 				next->startproject += cut_length;
 				next->startsource += cut_length;
 				next->length -= cut_length;
-//printf("Edit::shift_end_out 2 %d\n", cut_length);
+//printf("Edit::shift_end_out %d cut_length=%d\n", __LINE__, cut_length);
 			}
 			else
 			{
+//printf("Edit::shift_end_out %d cut_length=%d next->length=%d\n", __LINE__, cut_length, next->length);
 				cut_length = next->length;
+				next->startproject += next->length;
+				next->startsource += next->length;
 				next->length = 0;
 				length += cut_length;
+//track->dump();
 			}
 		}
 		else

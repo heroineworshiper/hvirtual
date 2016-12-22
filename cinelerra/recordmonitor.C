@@ -120,6 +120,10 @@ void RecordMonitor::create_objects()
 			record->default_asset->height,
 			window->canvas,
 			0);
+// printf("RecordMonitor::create_objects %d %d %d\n", 
+// __LINE__, 
+// record->default_asset->width, 
+// record->default_asset->height);
 //SET_TRACE
 
 		scope_thread = new RecordScopeThread(mwindow, this);
@@ -955,7 +959,6 @@ RecordMonitorThread::~RecordMonitorThread()
 
 void RecordMonitorThread::init_output_format()
 {
-	long offset;
 
 //printf("RecordMonitorThread::init_output_format 1\n");
 	switch(mwindow->edl->session->vconfig_in->driver)
@@ -1125,10 +1128,9 @@ int RecordMonitorThread::render_frame()
 
 void RecordMonitorThread::new_output_frame()
 {
-	long offset;
 	record_monitor->device->new_output_buffer(&output_frame, 
 		output_colormodel,
-		mwindow->edl);
+		record->edl);
 }
 
 void RecordMonitorThread::run()

@@ -266,6 +266,7 @@ int BC_Clipboard::from_clipboard(char *data, long maxlen, int clipboard_num)
 
 	if(clipboard_num == BC_PRIMARY_SELECTION)
 	{
+//printf("BC_Clipboard::from_clipboard %d\n", __LINE__);
 		char *data2;
 		int len, i;
 		data2 = XFetchBuffer(in_display, &len, clipboard_num);
@@ -377,6 +378,7 @@ long BC_Clipboard::clipboard_len(int clipboard_num)
 
 		data2 = XFetchBuffer(in_display, &len, clipboard_num);
 		XFree(data2);
+//printf("BC_Clipboard::clipboard_len %d len=%d\n", __LINE__, len);
 		return len;
 	}
 

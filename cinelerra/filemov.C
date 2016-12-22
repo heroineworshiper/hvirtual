@@ -987,7 +987,7 @@ int FileMOV::read_frame(VFrame *frame)
 	int result = 0;
 	const int debug = 0;
 
-/* if(debug) */ printf("FileMOV::read_frame %d frame=%lld color_model=%d %d %d\n", 
+if(debug) printf("FileMOV::read_frame %d frame=%lld color_model=%d %d %d\n", 
 __LINE__, 
 (long long)file->current_frame,
 frame->get_color_model(),
@@ -1002,7 +1002,8 @@ frame->get_h());
 			frame->set_keyframe((quicktime_get_keyframe_before(fd, 
 				file->current_frame, 
 				file->current_layer) == file->current_frame));
-// printf("FileMOV::read_frame 1 %lld %d %p %d\n", 
+// printf("FileMOV::read_frame %d %lld %d %p %d\n", 
+// __LINE__, 
 // file->current_frame, 
 // frame->get_keyframe(),
 // frame->get_data(),

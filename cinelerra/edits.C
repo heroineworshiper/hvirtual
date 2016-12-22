@@ -891,7 +891,7 @@ int Edits::modify_handles(double oldposition,
 				else
 				{     
 // move end of edit out
-//printf("Edits::modify_handle 6\n");
+//printf("Edits::modify_handle %d edit_mode=%d\n", __LINE__, edit_mode);
 					current_edit->shift_end_out(edit_mode, 
 						track->to_units(newposition, 0), 
 						track->to_units(oldposition, 0),

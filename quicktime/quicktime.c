@@ -678,6 +678,7 @@ double quicktime_frame_rate(quicktime_t *file, int track)
 		quicktime_trak_t *trak = file->vtracks[track].track;
 		int time_scale = file->vtracks[track].track->mdia.mdhd.time_scale;
 		int sample_duration = quicktime_sample_duration(trak);
+//printf("quicktime_frame_rate %d %d %d\n", __LINE__, time_scale, sample_duration);
 		return (double)time_scale / sample_duration;
 //		return (float)file->vtracks[track].track->mdia.mdhd.time_scale / 
 //			file->vtracks[track].track->mdia.minf.stbl.stts.table[0].sample_duration;

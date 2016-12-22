@@ -257,7 +257,7 @@ VideoOutConfig::VideoOutConfig()
 {
 	sprintf(lml_out_device, "/dev/mvideo/stream");
 	sprintf(buz_out_device, "/dev/video0");
-	driver = PLAYBACK_X11_XV;
+	driver = PLAYBACK_X11;
 	buz_out_channel = 0;
 	buz_swap_fields = 0;
 	x11_host[0] = 0;

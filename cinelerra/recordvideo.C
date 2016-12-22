@@ -291,8 +291,10 @@ void RecordVideo::run()
 		}
 
 // Monitor the frame if monitoring
-// printf("RecordVideo::run %p %d %d %d\n", 
-// capture_frame->get_data(), 
+// printf("RecordVideo::run %d %d %d %d %d %d\n", 
+// __LINE__,
+// capture_frame->get_w(), 
+// capture_frame->get_h(), 
 // record->monitor_video, 
 // batch_done, 
 // grab_result);

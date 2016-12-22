@@ -431,12 +431,12 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 			output_y2 == device->out_h &&
 			!output->xscroll &&
 			!output->yscroll);
+
 // file wants direct frame but we need a temp
 		if(file_colormodel == BC_BGR8888 && !direct_supported)
 		{
 			file_colormodel = BC_RGB888;
 		}
-
 
 // Conform existing bitmap to new colormodel and output size
 		if(bitmap)
@@ -569,6 +569,9 @@ canvas_h);
 						output->get_canvas()->accel_available(display_colormodel, 0) &&
 						!output->use_scrollbars)
 					{
+printf("VDeviceX11::new_output_buffer %d\n", 
+__LINE__);
+
 						bitmap = new BC_Bitmap(output->get_canvas(), 
 							device->out_w,
 							device->out_h,
@@ -663,10 +666,12 @@ canvas_h);
 			if(!bitmap)
 			{
 				display_colormodel = output->get_canvas()->get_color_model();
-printf("VDeviceX11::new_output_buffer %d creating temp display_colormodel=%d file_colormodel=%d %dx%d %dx%d\n",
+printf("VDeviceX11::new_output_buffer %d creating temp display_colormodel=%d file_colormodel=%d %dx%d %dx%d %dx%d\n",
 __LINE__,
 display_colormodel,
 file_colormodel,
+device->out_w,
+device->out_h,
 output->get_canvas()->get_w(),
 output->get_canvas()->get_h(),
 canvas_w,
@@ -730,10 +735,11 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 
 
 
-// printf("VDeviceX11::write_buffer %d %d %d\n", 
+// printf("VDeviceX11::write_buffer %d %d bitmap_type=%d\n", 
 // __LINE__, 
 // output->get_canvas()->get_video_on(),
 // bitmap_type);
+
 // 	int use_bitmap_extents = 0;
 // 	canvas_w = -1;
 // 	canvas_h = -1;
@@ -842,7 +848,9 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 //printf("VDeviceX11::write_buffer 2 %d %d %d\n", bitmap_type, 
 //	bitmap->get_color_model(), 
 //	output->get_color_model());fflush(stdout);
-// printf("VDeviceX11::write_buffer 2 %d %d, %f %f %f %f -> %f %f %f %f\n",
+
+// printf("VDeviceX11::write_buffer %d %dx%d %f %f %f %f -> %f %f %f %f\n",
+// __LINE__,
 // output->w,
 // output->h,
 // output_x1, 
@@ -862,6 +870,31 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 // Output is drawn in close_all if no video.
 		if(output->get_canvas()->get_video_on())
 		{
+			int use_bitmap_extents = 0;
+			canvas_w = -1;
+			canvas_h = -1;
+// Canvas may be a different size than the temporary bitmap for pure software
+			if(bitmap_type == BITMAP_TEMP && 
+				!bitmap->hardware_scaling())
+			{
+				canvas_w = bitmap->get_w();
+				canvas_h = bitmap->get_h();
+			}
+
+			output->get_transfers(edl, 
+				output_x1, 
+				output_y1, 
+				output_x2, 
+				output_y2, 
+				canvas_x1, 
+				canvas_y1, 
+				canvas_x2, 
+				canvas_y2,
+				canvas_w,
+				canvas_h);
+
+
+//printf("VDeviceX11::write_buffer %d\n", __LINE__);
 // Draw output frame directly.  Not used for compositing.
 			output->get_canvas()->unlock_window();
 			output->unlock_canvas();

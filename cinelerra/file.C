@@ -1941,14 +1941,14 @@ int File::read_frame(VFrame *frame, int is_thread)
 		else
 // Need temp
 		if(frame->get_color_model() != BC_COMPRESSED &&
-			(supported_colormodel != frame->get_color_model()) 
+			(supported_colormodel != frame->get_color_model() 
 			 ||
 				(frame->get_color_model() != BC_BGR8888 && 
 					(frame->get_w() != asset->width ||
-					frame->get_h() != asset->height)))
+					frame->get_h() != asset->height))))
 		{
 
-printf("File::read_frame %d using temp\n", __LINE__);
+//printf("File::read_frame %d using temp\n", __LINE__);
 // Can't advance position here because it needs to be added to cache
 			if(temp_frame)
 			{

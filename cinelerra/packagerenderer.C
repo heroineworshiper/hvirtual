@@ -164,7 +164,6 @@ void PackageRenderer::create_output()
 	file->set_processors(preferences->processors);
 	file->set_cache(preferences->cache_size);
 
-//printf("PackageRenderer::create_output %d\n", __LINE__);
 	result = file->open_file(preferences, 
 					asset, 
 					0, 
@@ -731,6 +730,7 @@ int PackageRenderer::direct_frame_copy(EDL *edl,
 //printf("Render::direct_frame_copy 2\n");
 
 		if(!package->use_brender)
+		{
 			error |= ((VEdit*)playable_edit)->read_frame(compressed_output, 
 				video_position,
 				PLAY_FORWARD,
@@ -738,7 +738,9 @@ int PackageRenderer::direct_frame_copy(EDL *edl,
 				1,
 				0,
 				0);
-
+//printf("Render::direct_frame_copy %d %d\n", __LINE__, compressed_output->get_compressed_size());
+		}
+		
 
 		if(!error && video_preroll > 0)
 		{

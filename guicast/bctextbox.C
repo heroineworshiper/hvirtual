@@ -723,7 +723,8 @@ int BC_TextBox::button_press_event()
 	if(!enabled) return 0;
 	if(get_buttonpress() != WHEEL_UP &&
 		get_buttonpress() != WHEEL_DOWN &&
-		get_buttonpress() != LEFT_BUTTON) return 0;
+		get_buttonpress() != LEFT_BUTTON &&
+		get_buttonpress() != MIDDLE_BUTTON) return 0;
 
 	
 
@@ -791,7 +792,7 @@ int BC_TextBox::button_press_event()
 				copy_selection(PRIMARY_SELECTION);
 			}
 			else
-			if(get_buttonpress() == 2)
+			if(get_buttonpress() == MIDDLE_BUTTON)
 			{
 				highlight_letter3 = highlight_letter4 = 
 					ibeam_letter = highlight_letter1 = 
@@ -2225,6 +2226,7 @@ void BC_TextBox::copy_selection(int clipboard_num)
 
 void BC_TextBox::paste_selection(int clipboard_num)
 {
+//printf("BC_TextBox::paste_selection %d\n", __LINE__);
 	int len = get_clipboard()->clipboard_len(clipboard_num);
 	if(len)
 	{
