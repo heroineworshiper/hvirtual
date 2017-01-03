@@ -36,6 +36,7 @@
 #include "preferencesthread.h"
 #include "recordconfig.h"
 #include "recordprefs.h"
+#include "theme.h"
 #include <string.h>
 
 
@@ -197,6 +198,20 @@ int VDevicePrefs::delete_objects()
 	driver = -1;
 	return 0;
 }
+
+int VDevicePrefs::get_h()
+{
+	int margin = pwindow->mwindow->theme->widget_border;
+	return BC_Title::calculate_h(dialog, 
+			"XXX", 
+			MEDIUMFONT) + 
+		margin +
+		BC_TextBox::calculate_h(dialog, 
+			MEDIUMFONT, 
+			1, 
+			1);
+}
+
 
 int VDevicePrefs::create_dvb_objs()
 {

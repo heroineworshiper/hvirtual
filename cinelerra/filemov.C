@@ -530,7 +530,8 @@ int FileMOV::get_best_colormodel(Asset *asset, int driver)
 			break;
 		
 		case SCREENCAPTURE:
-			if(!strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4))
+			if(!strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4) ||
+				!strncasecmp(asset->vcodec, QUICKTIME_H264, 4))
 			{
 				return BC_YUV420P;
 			}

@@ -515,6 +515,33 @@ int BC_CheckBox::handle_event()
 	return 1;
 }
 
+int BC_CheckBox::calculate_h(BC_WindowBase *gui)
+{
+	int text_line;
+	int w;
+	int h;
+	int toggle_x;
+	int toggle_y;
+	int text_x;
+	int text_y;
+	int text_w;
+	int text_h;
+	BC_Toggle::calculate_extents(gui, 
+		BC_WindowBase::get_resources()->checkbox_images,
+		1,
+		&text_line,
+		&w,
+		&h,
+		&toggle_x,
+		&toggle_y,
+		&text_x,
+		&text_y, 
+		&text_w,
+		&text_h, 
+		"X");
+	return h;
+}
+
 
 
 BC_Label::BC_Label(int x, 

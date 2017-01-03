@@ -54,7 +54,7 @@ PlaybackPrefs::~PlaybackPrefs()
 
 void PlaybackPrefs::create_objects()
 {
-	int x, y, x2;
+	int x, y, x1, x2;
 	char string[BCTEXTLEN];
 	BC_PopupTextBox *popup;
 	BC_WindowBase *window;
@@ -68,18 +68,18 @@ void PlaybackPrefs::create_objects()
 	int margin = mwindow->theme->widget_border;
 
 // Audio
-	add_subwindow(new BC_Title(x, 
+	BC_Title *title1, *title2;
+	add_subwindow(title1 = new BC_Title(x, 
 		y, 
 		_("Audio Out"), 
 		LARGEFONT));
 
 
-	y += get_text_height(LARGEFONT) + 5;
+	y += title1->get_h() + margin;
 
 
-	BC_Title *title1, *title2;
 	add_subwindow(title2 = new BC_Title(x, y, _("Playback buffer samples:"), MEDIUMFONT));
-	x2 = MAX(title2->get_w(), title2->get_w()) + 10;
+	x2 = title2->get_x() + title2->get_w() + margin;
 
 SET_TRACE
 	sprintf(string, "%d", playback_config->aconfig->fragment_size);
@@ -100,12 +100,11 @@ SET_TRACE
 	menu->add_item(new BC_MenuItem("262144"));
 
 	y += menu->get_h() + 5;
-	x2 = x;
-	add_subwindow(title1 = new BC_Title(x2, y, _("Audio offset (sec):")));
-	x2 += title1->get_w() + 5;
+	add_subwindow(title1 = new BC_Title(x, y, _("Audio offset (sec):")));
+	x1 = x + title1->get_w() + margin;
 	PlaybackAudioOffset *audio_offset = new PlaybackAudioOffset(pwindow,
 		this,
-		x2,
+		x1,
 		y);
 	audio_offset->create_objects();
 	y += audio_offset->get_h() + 5;
@@ -117,8 +116,8 @@ SET_TRACE
 	y += 30;
 	add_subwindow(new PlaybackRealTime(pwindow, pwindow->thread->edl->session->real_time_playback, y));
 	y += 40;
-	add_subwindow(new BC_Title(x, y, _("Audio Driver:")));
-	audio_device = new ADevicePrefs(x + 100, 
+	add_subwindow(title1 = new BC_Title(x, y, _("Audio Driver:")));
+	audio_device = new ADevicePrefs(title1->get_x() + title1->get_w() + margin, 
 		y, 
 		pwindow, 
 		this, 
@@ -132,23 +131,25 @@ SET_TRACE
 
 
 // Video
- 	y += audio_device->get_h();
+ 	y += audio_device->get_h(0) + margin;
 
 SET_TRACE
-	add_subwindow(new BC_Bar(5, y, 	get_w() - 10));
+	add_subwindow(new BC_Bar(x, y, 	get_w() - x * 2));
 	y += 5;
 
 SET_TRACE
-	add_subwindow(new BC_Title(x, y, _("Video Out"), LARGEFONT));
-	y += 30;
+	add_subwindow(title1 = new BC_Title(x, y, _("Video Out"), LARGEFONT));
+	y += title1->get_h() + margin;
 
 SET_TRACE
 	add_subwindow(window = new VideoEveryFrame(pwindow, this, x, y));
-
-	add_subwindow(new BC_Title(x + 200, y + 5, _("Framerate achieved:")));
-	add_subwindow(framerate_title = new BC_Title(x + 350, y + 5, _("--"), MEDIUMFONT, RED));
+	y += window->get_h() + margin;
+	
+	add_subwindow(title1 = new BC_Title(x, y, _("Framerate achieved:")));
+	x1 = title1->get_x() + title1->get_w() + margin;
+	add_subwindow(framerate_title = new BC_Title(x1, y, _("--"), MEDIUMFONT, RED));
 	draw_framerate(0);
-	y += window->get_h() + 5;
+	y += framerate_title->get_h() + margin;
 
 //	add_subwindow(asynchronous = new VideoAsynchronous(pwindow, x, y));
 //	y += asynchronous->get_h() + 10;
@@ -186,23 +187,26 @@ SET_TRACE
 
 SET_TRACE
 //	y += nearest_neighbor->get_h() + margin;
-	add_subwindow(new BC_Title(x, y, _("Preload buffer for Quicktime:"), MEDIUMFONT));
+	add_subwindow(title1 = new BC_Title(x, y, _("Preload buffer for Quicktime:"), MEDIUMFONT));
 	sprintf(string, "%d", (int)pwindow->thread->edl->session->playback_preload);
 	PlaybackPreload *preload;
-	add_subwindow(preload = new PlaybackPreload(x + 210, y, pwindow, this, string));
+	x1 = title1->get_x() + title1->get_w() + margin;
+	add_subwindow(preload = new PlaybackPreload(x1, y, pwindow, this, string));
 
 	y += preload->get_h() + 5;
 	add_subwindow(title1 = new BC_Title(x, y, _("DVD Subtitle to display:")));
 	PlaybackSubtitleNumber *subtitle_number;
-	subtitle_number = new PlaybackSubtitleNumber(x + title1->get_w() + 10, 
+	x1 = x + title1->get_w() + margin;
+	subtitle_number = new PlaybackSubtitleNumber(x1, 
 		y, 
 		pwindow, 
 		this);
 	subtitle_number->create_objects();
 
 	PlaybackSubtitle *subtitle_toggle;
+	x1 += subtitle_number->get_w() + margin;
 	add_subwindow(subtitle_toggle = new PlaybackSubtitle(
-		x + title1->get_w() + 10 + subtitle_number->get_w() + 10, 
+		x1, 
 		y, 
 		pwindow, 
 		this));
@@ -231,7 +235,7 @@ SET_TRACE
 //	add_subwindow(new PlaybackDeblock(pwindow, 10, y));
 
 	add_subwindow(vdevice_title = new BC_Title(x, y, _("Video Driver:")));
-	video_device = new VDevicePrefs(x + vdevice_title->get_w() + 10, 
+	video_device = new VDevicePrefs(x + vdevice_title->get_w() + margin, 
 		y, 
 		pwindow, 
 		this, 

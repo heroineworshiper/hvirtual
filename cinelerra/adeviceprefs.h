@@ -49,7 +49,8 @@ public:
 	~ADevicePrefs();
 
 	void reset();
-	static int get_h(int recording = 0);
+//	static int get_h(int recording = 0);
+	int get_h(int recording = 0);
 	int update(AudioOutConfig *out_config);
 // creation - set if this is the first initialize of the object
 //            to prevent file format from being overwritten

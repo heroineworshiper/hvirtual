@@ -99,6 +99,7 @@ void FormatTools::create_objects(int &init_x,
 {
 	int x = init_x;
 	int y = init_y;
+	int margin = mwindow->theme->widget_border;
 
 	this->locked_compressor = locked_compressor;
 	this->recording = recording;
@@ -175,13 +176,13 @@ void FormatTools::create_objects(int &init_x,
 	}
 
 	window->add_subwindow(format_title = new BC_Title(x, y, _("File Format:")));
-	x += 90;
+	x += format_title->get_w() + margin;
 	window->add_subwindow(format_text = new BC_TextBox(x, 
 		y, 
 		200, 
 		1, 
 		File::formattostr(asset->format)));
-	x += format_text->get_w();
+	x += format_text->get_w() + margin;
 
 //printf("FormatTools::create_objects %d %p\n", __LINE__, window);
 	window->add_subwindow(format_button = new FormatFormat(x, 
@@ -194,9 +195,9 @@ void FormatTools::create_objects(int &init_x,
 	if(do_audio)
 	{
 		window->add_subwindow(audio_title = new BC_Title(x, y, _("Audio:"), LARGEFONT, RED));
-		x += 80;
+		x += audio_title->get_w() + margin;
 		window->add_subwindow(aparams_button = new FormatAParams(mwindow, this, x, y));
-		x += aparams_button->get_w() + 10;
+		x += aparams_button->get_w() + margin;
 		if(prompt_audio) 
 		{
 			window->add_subwindow(audio_switch = new FormatAudio(x, y, this, asset->audio_data));
@@ -226,11 +227,11 @@ void FormatTools::create_objects(int &init_x,
 
 //printf("FormatTools::create_objects 8\n");
 		window->add_subwindow(video_title = new BC_Title(x, y, _("Video:"), LARGEFONT, RED));
-		x += 80;
+		x += video_title->get_w() + margin;
 		if(prompt_video_compression)
 		{
 			window->add_subwindow(vparams_button = new FormatVParams(mwindow, this, x, y));
-			x += vparams_button->get_w() + 10;
+			x += vparams_button->get_w() + margin;
 		}
 
 //printf("FormatTools::create_objects 9\n");
