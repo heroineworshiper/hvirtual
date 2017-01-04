@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,6 +83,7 @@ RecordGUI::~RecordGUI()
 	delete batch_start;
 	delete batch_duration;
 	delete load_mode;
+
 	unlock_window();
 }
 
