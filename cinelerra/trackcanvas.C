@@ -4647,7 +4647,7 @@ int TrackCanvas::do_tracks(int cursor_x,
 		track_dimensions(track, track_x, track_y, track_w, track_h);
 
 		if(button_press && 
-			get_buttonpress() == 3 &&
+			get_buttonpress() == RIGHT_BUTTON &&
 			cursor_y >= track_y && 
 			cursor_y < track_y + track_h)
 		{
