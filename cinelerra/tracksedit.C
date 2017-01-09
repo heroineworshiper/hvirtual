@@ -61,10 +61,10 @@ int Tracks::clear(double start, double end, int clear_plugins, int edit_autos)
 				end, 
 				1, // edits
 				1, // labels
-				clear_plugins, 
+				clear_plugins, // edit_plugins
 				edit_autos,
-				1,
-				0); 
+				1, // convert_units
+				0); // trim_edits
 		}
 	}
 	return 0;

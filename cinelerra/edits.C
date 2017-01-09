@@ -689,7 +689,7 @@ void Edits::clear(int64_t start, int64_t end)
 // delete
 		for(current_edit = edit1->next; current_edit && current_edit != edit2;)
 		{
-			Edit* next = current_edit->next;
+			Edit *next = current_edit->next;
 			remove(current_edit);
 			current_edit = next;
 		}
@@ -952,4 +952,87 @@ void Edits::shift_effects_recursive(int64_t position, int64_t length, int edit_a
 {
 	track->shift_effects(position, length, edit_autos);
 }
+
+// only used for audio
+void Edits::deglitch(int64_t position)
+{
+// range from the splice junk appears
+	int64_t threshold = (int64_t)((double)edl->session->sample_rate / 
+		edl->session->frame_rate) / 2;
+
+// the edit before the splice
+	Edit *edit1 = 0;
+	for(Edit *current = first; current; current = NEXT)
+	{
+		if(current->startproject + current->length >= position - threshold)
+		{
+			edit1 = current;
+			break;
+		}
+	}
+
+// the edit after the splice
+	Edit *edit2 = 0;
+	for(Edit *current = last; current; current = PREVIOUS)
+	{
+		if(current->startproject < position + threshold)
+		{
+			edit2 = current;
+			break;
+		}
+	}
+	
+// delete junk between the edits
+	if(edit1 != 0 &&
+		edit2 != 0 &&
+		edit1 != edit2)
+	{
+// end the starting edit later
+		Edit *current = edit1->next;
+		while(current != edit2 &&
+			current->startproject < position)
+		{
+			Edit* next = NEXT;
+			
+			edit1->length += current->length;
+			remove(current);
+			
+			current = next;
+		}
+		
+// start the ending edit earlier
+		current = edit2->previous;
+		while(current != edit1)
+		{
+			Edit *previous = PREVIOUS;
+			
+			int64_t length = current->length;
+			if(!edit2->silence() && 
+				length > edit2->startsource)
+			{
+				length = edit2->startsource;
+			}
+			
+			// shift edit2 by as much as its source
+			edit2->startproject -= length;
+			edit2->startsource -= length;
+			edit2->length += length;
+			
+			// shift edit2 earlier by remainder
+			if(length < current->length)
+			{
+				edit2->startproject -= current->length - length;
+			}
+			
+			remove(current);
+			
+			
+			current = previous;
+		}
+	}
+	
+}
+
+
+
 

@@ -221,5 +221,22 @@ int ATrack::paste_derived(int64_t start, int64_t end, int64_t total_length, File
 
 
 
+void ATrack::deglitch(double position, 
+	int edit_labels,
+	int edit_plugins,
+	int edit_autos)
+{
+	int64_t samples = to_units(position, 0);
+	edits->deglitch(samples);
+}
 
 
+
+
+
+
+
+
+
+
+ 

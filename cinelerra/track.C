@@ -1172,9 +1172,6 @@ int Track::copy_assets(double start,
 }
 
 
-
-
-
 int Track::clear(double start, 
 	double end, 
 	int edit_edits,
@@ -1195,7 +1192,9 @@ int Track::clear(double start,
 
 
 	if(edit_autos)
+	{
 		automation->clear((int64_t)start, (int64_t)end, 0, 1);
+	}
 
 	if(edit_plugins)
 	{
@@ -1207,7 +1206,10 @@ int Track::clear(double start,
 	}
 
 	if(edit_edits)
+	{
 		edits->clear((int64_t)start, (int64_t)end);
+	}
+	
 	return 0;
 }
 

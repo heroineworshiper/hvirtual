@@ -355,6 +355,13 @@ void MWindow::clear(int clear_handle)
 			edl->session->labels_follow_edits, 
 			edl->session->plugins_follow_edits,
 			edl->session->autos_follow_edits);
+		if(edl->session->cursor_on_frames)
+		{
+			edl->deglitch(start, 
+				edl->session->labels_follow_edits, 
+				edl->session->plugins_follow_edits,
+				edl->session->autos_follow_edits);
+		}
 	}
 }
 

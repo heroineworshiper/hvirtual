@@ -778,6 +778,32 @@ void EDL::set_outpoint(double position)
 	}
 }
 
+int EDL::deglitch(double start, 
+	int do_labels,
+	int do_plugins,
+	int do_autos)
+{
+	Track *current_track;
+
+
+	
+	for(current_track = tracks->first; 
+		current_track; 
+		current_track = current_track->next)
+	{
+		if(current_track->record &&
+			current_track->data_type == TRACK_AUDIO) 
+		{
+			ATrack *atrack = (ATrack*)current_track;
+			atrack->deglitch(start, 
+				do_labels, 
+				do_plugins, 
+				do_autos);
+		}
+	}
+	
+}
+
 
 int EDL::clear(double start, 
 	double end, 
