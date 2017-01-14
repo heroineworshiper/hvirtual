@@ -328,7 +328,7 @@ void MWindow::asset_to_rate()
 void MWindow::clear_entry()
 {
 	undo->update_undo_before();
-	clear(1);
+	clear(1, 1);
 
 	edl->optimize();
 	save_backup();
@@ -344,7 +344,7 @@ void MWindow::clear_entry()
 	    		   1);
 }
 
-void MWindow::clear(int clear_handle)
+void MWindow::clear(int clear_handle, int deglitch)
 {
 	double start = edl->local_session->get_selectionstart();
 	double end = edl->local_session->get_selectionend();
@@ -355,13 +355,12 @@ void MWindow::clear(int clear_handle)
 			edl->session->labels_follow_edits, 
 			edl->session->plugins_follow_edits,
 			edl->session->autos_follow_edits);
-		if(edl->session->cursor_on_frames)
-		{
-			edl->deglitch(start, 
-				edl->session->labels_follow_edits, 
-				edl->session->plugins_follow_edits,
-				edl->session->autos_follow_edits);
-		}
+	}
+	
+// always needed by paste operations
+	if(deglitch)
+	{
+		edl->deglitch(start);
 	}
 }
 
@@ -595,6 +594,7 @@ void MWindow::cut()
 		edl->session->labels_follow_edits, 
 		edl->session->plugins_follow_edits,
 		edl->session->autos_follow_edits);
+	edl->deglitch(start);
 
 
 	edl->optimize();
@@ -955,16 +955,21 @@ void MWindow::finish_modify_handles()
 	if((session->drag_handle == 1 && edit_mode != MOVE_NO_EDITS) ||
 		(session->drag_handle == 0 && edit_mode == MOVE_ONE_EDIT))
 	{
+printf("MWindow::finish_modify_handles %d\n", __LINE__);
 		edl->local_session->set_selectionstart(session->drag_position);
 		edl->local_session->set_selectionend(session->drag_position);
+		edl->deglitch(session->drag_position);
 	}
 	else
 	if(edit_mode != MOVE_NO_EDITS)
 	{
+printf("MWindow::finish_modify_handles %d\n", __LINE__);
 		edl->local_session->set_selectionstart(session->drag_start);
 		edl->local_session->set_selectionend(session->drag_start);
+		edl->deglitch(session->drag_start);
 	}
 
+// clamp the selection to 0
 	if(edl->local_session->get_selectionstart(1) < 0)
 	{
 		edl->local_session->set_selectionstart(0);
@@ -1163,6 +1168,10 @@ void MWindow::mute_selection()
 			0, 
 			edl->session->plugins_follow_edits,
 			edl->session->autos_follow_edits);
+		edl->deglitch(start);
+		edl->deglitch(end);
+
+		
 		save_backup();
 		undo->update_undo_after(_("mute"), LOAD_EDITS);
 
@@ -1209,11 +1218,13 @@ void MWindow::overwrite(EDL *source)
 // FIXME: need to write simple overwrite_edl to be used for overwrite function
 	if (edl->local_session->get_inpoint() < 0 || 
 		edl->local_session->get_outpoint() < 0)
+	{
 		edl->clear(dst_start, 
 			dst_start + overwrite_len, 
 			0, 
 			0,
 			0);
+	}
 
 	paste(dst_start, 
 		dst_start + overwrite_len, 
@@ -1242,7 +1253,7 @@ int MWindow::paste(double start,
 	int edit_plugins,
 	int edit_autos)
 {
-	clear(0);
+	clear(0, 1);
 
 // Want to insert with assets shared with the master EDL.
 	insert(start, 
@@ -1278,7 +1289,7 @@ void MWindow::paste()
 
 
 
-		clear(0);
+		clear(0, 1);
 
 		insert(start, 
 			&file, 
@@ -1870,6 +1881,8 @@ void MWindow::paste_silence()
 		edl->session->labels_follow_edits, 
 		edl->session->plugins_follow_edits,
 		edl->session->autos_follow_edits);
+	edl->deglitch(start);
+	edl->deglitch(end);
 	edl->optimize();
 	save_backup();
 	undo->update_undo_after(_("silence"), LOAD_EDITS | LOAD_TIMEBAR);
@@ -2423,6 +2436,10 @@ void MWindow::trim_selection()
 		edl->session->labels_follow_edits, 
 		edl->session->plugins_follow_edits,
 		edl->session->autos_follow_edits);
+	edl->deglitch(0);
+	edl->deglitch(edl->local_session->get_selectionend() -
+		edl->local_session->get_selectionstart());
+	
 
 	save_backup();
 	undo->update_undo_after(_("trim selection"), LOAD_EDITS | LOAD_TIMEBAR);

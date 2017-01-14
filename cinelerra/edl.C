@@ -778,30 +778,30 @@ void EDL::set_outpoint(double position)
 	}
 }
 
-int EDL::deglitch(double start, 
-	int do_labels,
-	int do_plugins,
-	int do_autos)
+int EDL::deglitch(double position)
 {
-	Track *current_track;
 
-
-	
-	for(current_track = tracks->first; 
-		current_track; 
-		current_track = current_track->next)
+	if(session->cursor_on_frames)
 	{
-		if(current_track->record &&
-			current_track->data_type == TRACK_AUDIO) 
+		Track *current_track;
+
+
+
+		for(current_track = tracks->first; 
+			current_track; 
+			current_track = current_track->next)
 		{
-			ATrack *atrack = (ATrack*)current_track;
-			atrack->deglitch(start, 
-				do_labels, 
-				do_plugins, 
-				do_autos);
+			if(current_track->record &&
+				current_track->data_type == TRACK_AUDIO) 
+			{
+				ATrack *atrack = (ATrack*)current_track;
+				atrack->deglitch(position, 
+					session->labels_follow_edits, 
+					session->plugins_follow_edits, 
+					session->autos_follow_edits);
+			}
 		}
 	}
-	
 }
 
 
@@ -1046,7 +1046,7 @@ int EDL::dump()
 		local_session->loop_end);
 	for(int i = 0; i < TOTAL_PANES; i++)
 	{
-		printf("  pane %d view_start=%lld track_start=%lld\n", 
+		printf("  pane %d view_start=%ld track_start=%ld\n", 
 			i,
 			local_session->view_start[i],
 			local_session->track_start[i]);

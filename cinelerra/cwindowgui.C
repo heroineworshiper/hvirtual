@@ -620,7 +620,7 @@ int CWindowGUI::drag_stop()
 		if(mwindow->session->drag_assets->total)
 		{
 			mwindow->gui->lock_window("CWindowGUI::drag_stop 1");
-			mwindow->clear(0);
+			mwindow->clear(0, 1);
 			mwindow->load_assets(mwindow->session->drag_assets, 
 				mwindow->edl->local_session->get_selectionstart(), 
 				LOADMODE_PASTE,
@@ -634,7 +634,7 @@ int CWindowGUI::drag_stop()
 		if(mwindow->session->drag_clips->total)
 		{
 			mwindow->gui->lock_window("CWindowGUI::drag_stop 2");
-			mwindow->clear(0);
+			mwindow->clear(0, 1);
 			mwindow->paste_edls(mwindow->session->drag_clips, 
 				LOADMODE_PASTE, 
 				mwindow->session->track_highlighted,

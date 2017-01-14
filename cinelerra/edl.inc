@@ -48,9 +48,9 @@ class EDL;
 #define EDIT_HANDLE_MODES 3
 
 // Behavior for the edit handles based on mouse button
-#define MOVE_ALL_EDITS 0
-#define MOVE_ONE_EDIT 1
-#define MOVE_NO_EDITS 2
+#define MOVE_ALL_EDITS 0 // default for left button
+#define MOVE_ONE_EDIT 1 // default for middle button
+#define MOVE_NO_EDITS 2 // default for right button
 #define MOVE_EDITS_DISABLED 3
 
 

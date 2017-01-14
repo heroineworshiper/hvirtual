@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -953,16 +953,17 @@ void Edits::shift_effects_recursive(int64_t position, int64_t length, int edit_a
 	track->shift_effects(position, length, edit_autos);
 }
 
-// only used for audio
+// only used for audio but also used for plugins which inherit from Edits
 void Edits::deglitch(int64_t position)
 {
 // range from the splice junk appears
 	int64_t threshold = (int64_t)((double)edl->session->sample_rate / 
 		edl->session->frame_rate) / 2;
+	Edit *current = 0;
 
-// the edit before the splice
+// the last edit before the splice
 	Edit *edit1 = 0;
-	for(Edit *current = first; current; current = NEXT)
+	for(current = first; current; current = NEXT)
 	{
 		if(current->startproject + current->length >= position - threshold)
 		{
@@ -971,9 +972,15 @@ void Edits::deglitch(int64_t position)
 		}
 	}
 
-// the edit after the splice
+// ignore if it ends after the splice
+	if(current->startproject + current->length >= position)
+	{
+		edit1 = 0;
+	}
+
+// the first edit after the splice
 	Edit *edit2 = 0;
-	for(Edit *current = last; current; current = PREVIOUS)
+	for(current = last; current; current = PREVIOUS)
 	{
 		if(current->startproject < position + threshold)
 		{
@@ -981,53 +988,78 @@ void Edits::deglitch(int64_t position)
 			break;
 		}
 	}
-	
-// delete junk between the edits
-	if(edit1 != 0 &&
-		edit2 != 0 &&
-		edit1 != edit2)
+
+// ignore if it starts before the splice
+	if(current->startproject < position)
 	{
-// end the starting edit later
-		Edit *current = edit1->next;
-		while(current != edit2 &&
-			current->startproject < position)
+		edit2 = 0;
+	}
+
+
+
+
+// printf("Edits::deglitch %d position=%ld edit1=%p edit2=%p\n", __LINE__,
+// position, 
+// edit1, 
+// edit2);
+// delete junk between the edits
+	if(edit1 != edit2)
+	{
+		if(edit1 != 0)
 		{
-			Edit* next = NEXT;
-			
-			edit1->length += current->length;
-			remove(current);
-			
-			current = next;
+// end the starting edit later
+			current = edit1->next;
+			while(current != 0 &&
+				current != edit2 &&
+				current->startproject < position)
+			{
+				Edit* next = NEXT;
+
+				edit1->length += current->length;
+				remove(current);
+
+				current = next;
+			}
 		}
 		
-// start the ending edit earlier
-		current = edit2->previous;
-		while(current != edit1)
+		if(edit2 != 0)
 		{
-			Edit *previous = PREVIOUS;
-			
-			int64_t length = current->length;
-			if(!edit2->silence() && 
-				length > edit2->startsource)
+// start the ending edit earlier
+			current = edit2->previous;
+			while(current != 0 && 
+				current != edit1 &&
+				current->startproject >= position)
 			{
-				length = edit2->startsource;
+				Edit *previous = PREVIOUS;
+
+				int64_t length = current->length;
+//printf("Edits::deglitch %d length=%ld\n", __LINE__, length);
+				if(!edit2->silence() && 
+					length > edit2->startsource)
+				{
+					length = edit2->startsource;
+				}
+
+				// shift edit2 by using material from its source
+				edit2->startproject -= length;
+				edit2->startsource -= length;
+				// assume enough is at the end
+				edit2->length += length;
+
+				// shift edit2 & its source earlier by remainder
+				if(length < current->length)
+				{
+					int64_t remainder = current->length - length;
+					edit2->startproject -= remainder;
+					// assume enough is at the end
+					edit2->length += remainder;
+				}
+
+				remove(current);
+
+
+				current = previous;
 			}
-			
-			// shift edit2 by as much as its source
-			edit2->startproject -= length;
-			edit2->startsource -= length;
-			edit2->length += length;
-			
-			// shift edit2 earlier by remainder
-			if(length < current->length)
-			{
-				edit2->startproject -= current->length - length;
-			}
-			
-			remove(current);
-			
-			
-			current = previous;
 		}
 	}
 	

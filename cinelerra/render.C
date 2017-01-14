@@ -954,7 +954,7 @@ if(debug) printf("Render::render %d\n", __LINE__);
 		ArrayList<Indexable*> *assets = render->packages->get_asset_list();
 if(debug) printf("Render::render %d\n", __LINE__);
 		if(render->load_mode == LOADMODE_PASTE)
-			mwindow->clear(0);
+			mwindow->clear(0, 1);
 if(debug) printf("Render::render %d\n", __LINE__);
 		mwindow->load_assets(assets, 
 			-1, 

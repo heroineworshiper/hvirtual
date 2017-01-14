@@ -578,7 +578,7 @@ void Record::run()
 // For pasting, clear the active region
 			if(load_mode == LOADMODE_PASTE)
 			{
-				mwindow->clear(0);
+				mwindow->clear(0, 1);
 			}
 
 			mwindow->paste_edls(&new_edls, 

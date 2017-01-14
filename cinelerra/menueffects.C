@@ -519,7 +519,7 @@ void MenuEffectThread::run()
 
 		mwindow->undo->update_undo_before("", 0);
 		if(load_mode == LOADMODE_PASTE)
-			mwindow->clear(0);
+			mwindow->clear(0, 1);
 
 
 		mwindow->load_assets(&assets,

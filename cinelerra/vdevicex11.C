@@ -585,10 +585,10 @@ output_frame->get_color_model());
 		if(!bitmap)
 		{
 
-printf("VDeviceX11::new_output_buffer %d file_colormodel=%d display_colormodel=%d\n", 
-__LINE__, 
-file_colormodel,
-display_colormodel);
+// printf("VDeviceX11::new_output_buffer %d file_colormodel=%d display_colormodel=%d\n", 
+// __LINE__, 
+// file_colormodel,
+// display_colormodel);
 
 // Try hardware accelerated
 			switch(display_colormodel)
@@ -726,16 +726,16 @@ __LINE__);
 			if(!bitmap)
 			{
 				display_colormodel = output->get_canvas()->get_color_model();
-printf("VDeviceX11::new_output_buffer %d creating temp display_colormodel=%d file_colormodel=%d %dx%d %dx%d %dx%d\n",
-__LINE__,
-display_colormodel,
-file_colormodel,
-device->out_w,
-device->out_h,
-output->get_canvas()->get_w(),
-output->get_canvas()->get_h(),
-canvas_w,
-canvas_h);
+// printf("VDeviceX11::new_output_buffer %d creating temp display_colormodel=%d file_colormodel=%d %dx%d %dx%d %dx%d\n",
+// __LINE__,
+// display_colormodel,
+// file_colormodel,
+// device->out_w,
+// device->out_h,
+// output->get_canvas()->get_w(),
+// output->get_canvas()->get_h(),
+// canvas_w,
+// canvas_h);
 
 				bitmap = new BC_Bitmap(output->get_canvas(), 
 //					output->get_canvas()->get_w(),
