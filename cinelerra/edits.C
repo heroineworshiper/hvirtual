@@ -963,36 +963,42 @@ void Edits::deglitch(int64_t position)
 
 // the last edit before the splice
 	Edit *edit1 = 0;
-	for(current = first; current; current = NEXT)
+	if(first)
 	{
-		if(current->startproject + current->length >= position - threshold)
+		for(current = first; current; current = NEXT)
 		{
-			edit1 = current;
-			break;
+			if(current->startproject + current->length >= position - threshold)
+			{
+				edit1 = current;
+				break;
+			}
 		}
-	}
 
 // ignore if it ends after the splice
-	if(current->startproject + current->length >= position)
-	{
-		edit1 = 0;
+		if(current->startproject + current->length >= position)
+		{
+			edit1 = 0;
+		}
 	}
 
 // the first edit after the splice
 	Edit *edit2 = 0;
-	for(current = last; current; current = PREVIOUS)
+	if(last)
 	{
-		if(current->startproject < position + threshold)
+		for(current = last; current; current = PREVIOUS)
 		{
-			edit2 = current;
-			break;
+			if(current->startproject < position + threshold)
+			{
+				edit2 = current;
+				break;
+			}
 		}
-	}
 
-// ignore if it starts before the splice
-	if(current->startproject < position)
-	{
-		edit2 = 0;
+	// ignore if it starts before the splice
+		if(current->startproject < position)
+		{
+			edit2 = 0;
+		}
 	}
 
 
