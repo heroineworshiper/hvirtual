@@ -995,7 +995,7 @@ void Edits::deglitch(int64_t position)
 		}
 
 	// ignore if it starts before the splice
-		if(current->startproject < position)
+		if(current && current->startproject < position)
 		{
 			edit2 = 0;
 		}
