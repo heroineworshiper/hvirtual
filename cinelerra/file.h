@@ -88,7 +88,7 @@ public:
 // to delete the file object.  Otherwise we'd delete just the cached frames
 // while the list of open files grew.
 	void set_cache_frames(int value);
-// Delete oldest frame from cache.  Return 0 if successful.  Return 1 if 
+// Delete oldest frame from cache.  Return number of bytes freed if successful.  Return 0 if 
 // nothing to delete.
 	int purge_cache();
 

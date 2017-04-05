@@ -190,10 +190,12 @@ int VDeviceX11::close_all()
 		{
 			delete output->refresh_frame;
 			output->refresh_frame = 0;
+//printf("VDeviceX11::close_all %d deleting refresh_frame\n", __LINE__);
 		}
 
 		if(!output->refresh_frame)
 		{
+//printf("VDeviceX11::close_all %d creating refresh_frame\n", __LINE__);
 			output->refresh_frame = new VFrame(0,
 				-1,
 				device->out_w,
@@ -288,18 +290,21 @@ int VDeviceX11::close_all()
 
 	if(bitmap)
 	{
+//printf("VDeviceX11::close_all %d deleting bitmap\n", __LINE__);
 		delete bitmap;
 		bitmap = 0;
 	}
 
 	if(output_frame)
 	{
+//printf("VDeviceX11::close_all %d deleting output_frame\n", __LINE__);
 		delete output_frame;
 		output_frame = 0;
 	}
 
 	if(capture_bitmap)
 	{
+//printf("VDeviceX11::close_all %d\n", __LINE__);
 		delete capture_bitmap;
 	}
 
@@ -519,10 +524,12 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 				file_colormodel != output_frame->get_color_model() ||
 				(!bitmap->hardware_scaling() && size_change))
 			{
-printf("VDeviceX11::new_output_buffer %d file_colormodel=%d prev file_colormodel=%d\n",
-__LINE__,
-file_colormodel,
-output_frame->get_color_model());
+// printf("VDeviceX11::new_output_buffer %d file_colormodel=%d prev file_colormodel=%d bitmap=%p output_frame=%p\n",
+// __LINE__,
+// file_colormodel,
+// output_frame->get_color_model(),
+// bitmap,
+// output_frame);
 
 				delete bitmap;
 				delete output_frame;
@@ -599,10 +606,10 @@ output_frame->get_color_model());
 				{
 					if(direct_supported)
 					{
-printf("VDeviceX11::new_output_buffer %d creating direct bitmap w=%d h=%d\n", 
-__LINE__, 
-canvas_w,
-canvas_h);
+// printf("VDeviceX11::new_output_buffer %d creating direct bitmap w=%d h=%d\n", 
+// __LINE__, 
+// canvas_w,
+// canvas_h);
 
 						bitmap = new BC_Bitmap(output->get_canvas(), 
 								canvas_w,
@@ -629,8 +636,8 @@ canvas_h);
 						output->get_canvas()->accel_available(display_colormodel, 0) &&
 						!output->use_scrollbars)
 					{
-printf("VDeviceX11::new_output_buffer %d\n", 
-__LINE__);
+//printf("VDeviceX11::new_output_buffer %d\n", 
+//__LINE__);
 
 						bitmap = new BC_Bitmap(output->get_canvas(), 
 							device->out_w,
@@ -736,10 +743,8 @@ __LINE__);
 // output->get_canvas()->get_h(),
 // canvas_w,
 // canvas_h);
-
+//printf("VDeviceX11::new_output_buffer %d creating bitmap\n", __LINE__);
 				bitmap = new BC_Bitmap(output->get_canvas(), 
-//					output->get_canvas()->get_w(),
-//					output->get_canvas()->get_h(),
 					canvas_w,
 					canvas_h,
 					display_colormodel,
@@ -750,6 +755,7 @@ __LINE__);
 			if(bitmap_type == BITMAP_TEMP)
 			{
 // Intermediate frame
+//printf("VDeviceX11::new_output_buffer %d creating output_frame\n", __LINE__);
 				output_frame = new VFrame(0, 
 					-1,
 					device->out_w,

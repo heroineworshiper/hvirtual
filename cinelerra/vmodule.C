@@ -259,9 +259,9 @@ int VModule::import_frame(VFrame *output,
 	{
 		File *file = 0;
 
-		if(debug) printf("VModule::import_frame %d cache=%p\n", 
-			__LINE__,
-			get_cache());
+// 		printf("VModule::import_frame %d cache=%p\n", 
+// 			__LINE__,
+// 			get_cache());
 		if(current_edit->asset)
 		{
 			get_cache()->age();
@@ -886,6 +886,11 @@ current_cmodel);
 			}
 			result = 1;
 		}
+
+// 		printf("VModule::import_frame %d cache=%p\n", 
+// 			__LINE__,
+// 			get_cache());
+
 	}
 	else
 // Source is silence

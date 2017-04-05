@@ -59,7 +59,7 @@
 #include "stringfile.h"
 #include "vframe.h"
 
-
+//static int temp_debug = 0;
 
 
 File::File()
@@ -81,7 +81,12 @@ File::~File()
 		format_completion->unlock();
 	}
 
-	if(temp_frame) delete temp_frame;
+	if(temp_frame) 
+	{
+//temp_debug--;
+//printf("File::~File %d temp_debug=%d\n", __LINE__, temp_debug);
+		delete temp_frame;
+	}
 
 
 	close_file(0);
@@ -418,6 +423,8 @@ int File::purge_cache()
 //printf("File::purge_cache %d\n", __LINE__);
 		int result = file_fork->read_result();
 
+// update the precalculated memory usage
+		memory_usage -= result;
 // sleeping causes CICache::check_out to lock up without polling
 //sleep(1);
 //printf("File::purge_cache %d\n", __LINE__);
@@ -425,7 +432,11 @@ int File::purge_cache()
 	}
 #endif
 
-	return frame_cache->delete_oldest();
+
+//printf("File::purge_cache %d memory_usage=%d\n", __LINE__, get_memory_usage());
+	int result = frame_cache->delete_oldest();
+// return the number of bytes freed
+	return result;
 }
 
 
@@ -1954,14 +1965,17 @@ int File::read_frame(VFrame *frame, int is_thread)
 			{
 				if(!temp_frame->params_match(asset->width, asset->height, supported_colormodel))
 				{
+//temp_debug--;
+//printf("File::read_frame %d temp_debug=%d\n", __LINE__, temp_debug);
 					delete temp_frame;
 					temp_frame = 0;
 				}
 			}
 
-//			printf("File::read_frame %d\n", __LINE__);
 			if(!temp_frame)
 			{
+//temp_debug++;
+//printf("File::read_frame %d temp_debug=%d\n", __LINE__, temp_debug);
 				temp_frame = new VFrame(0,
 					-1,
 					asset->width,
