@@ -1569,19 +1569,19 @@ int AWindowDeleteProject::handle_event()
 	return 1;
 }
 
-AWindowInfo::AWindowInfo(MWindow *mwindow, AWindowGUI *gui, int x, int y)
- : BC_Button(x, y, mwindow->theme->infoasset_data)
-{
-	this->mwindow = mwindow;
-	this->gui = gui;
-	set_tooltip(_("Edit information on asset"));
-}
-
-int AWindowInfo::handle_event()
-{
-	gui->awindow->asset_edit->edit_asset(gui->selected_asset());
-	return 1;
-}
+// AWindowInfo::AWindowInfo(MWindow *mwindow, AWindowGUI *gui, int x, int y)
+//  : BC_Button(x, y, mwindow->theme->infoasset_data)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_tooltip(_("Edit information on asset"));
+// }
+// 
+// int AWindowInfo::handle_event()
+// {
+// 	gui->awindow->asset_edit->edit_asset(gui->selected_asset());
+// 	return 1;
+// }
 
 AWindowRedrawIndex::AWindowRedrawIndex(MWindow *mwindow, AWindowGUI *gui, int x, int y)
  : BC_Button(x, y, mwindow->theme->redrawindex_data)
