@@ -25,8 +25,10 @@
 #ifndef AVUTIL_LIBM_H
 #define AVUTIL_LIBM_H
 
+//#warning libm included
+
 #include <math.h>
-#include "config.h"
+#include "../config.h"
 #include "attributes.h"
 #include "intfloat.h"
 #include "mathematics.h"

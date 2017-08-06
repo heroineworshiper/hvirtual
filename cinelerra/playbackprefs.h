@@ -82,7 +82,7 @@ public:
 //	PlaybackLanczos *lanczos;
 	PlaybackDeblock *mpeg4_deblock;
 	PlaybackInterpolateRaw *interpolate_raw;
-	PlaybackWhiteBalanceRaw *white_balance_raw;
+//	PlaybackWhiteBalanceRaw *white_balance_raw;
 //	VideoAsynchronous *asynchronous;
 
 	BC_Title *vdevice_title;

@@ -451,7 +451,7 @@ int VModule::import_frame(VFrame *output,
 				!EQUIV(in_w, asset_w) ||
 				!EQUIV(in_h, asset_h))
 			{
-				if(debug) printf("VModule::import_frame %d file -> temp -> output\n", __LINE__);
+//printf("VModule::import_frame %d file -> temp -> output\n", __LINE__);
 
 
 
@@ -731,7 +731,13 @@ output->get_opengl_state(),
 						get_edl()->session->interpolation_type);
 				}
 				result = 1;
+				
 				output->copy_stacks((*input));
+				
+				
+//printf("VModule::import_frame %d\n", __LINE__); 
+//(*input)->dump_params();
+//output->dump_params();
 			}
 			else
 // file -> output

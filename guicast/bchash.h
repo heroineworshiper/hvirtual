@@ -44,7 +44,8 @@ public:
 	int load_string(const char *string);        // load from string
 	int save_string(char* &string);       // save to new string
 	void save_stringfile(StringFile *file);
-	void load_stringfile(StringFile *file);
+// keep - keeps existing values & overwrites where necessary
+	void load_stringfile(StringFile *file, int keep = 0);
 	int update(const char *name, Freq value); // update a value if it exists
 	int update(const char *name, double value); // update a value if it exists
 	int update(const char *name, float value); // update a value if it exists

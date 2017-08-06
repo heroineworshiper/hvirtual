@@ -538,6 +538,7 @@ int quicktime_set_video_position(quicktime_t *file, int64_t frame, int track)
 		file->vtracks[track].current_chunk = chunk;
 		offset = quicktime_sample_to_offset(file, trak, frame);
 		quicktime_set_position(file, offset);
+//printf("quicktime_set_video_position %d offset=%ld\n", __LINE__, offset);
 	}
 	return 0;
 }
