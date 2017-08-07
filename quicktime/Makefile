@@ -40,6 +40,10 @@ X264_DIR := $(shell expr thirdparty/x264*)
 X264_LIB := $(OBJDIR)/x264
 X264_INCLUDE := $(X264_DIR)
 
+X265_DIR := $(shell expr thirdparty/x265*)
+X265_LIB := $(OBJDIR)/x265
+X265_INCLUDE := -I$(X265_DIR)/source -I$(X265_DIR)/build
+
 DV_DIR := thirdparty/libdv-0.104
 DV_LIB := $(OBJDIR)/libdv
 DV_INCLUDE := $(DV_DIR)/
@@ -193,6 +197,7 @@ FFMPEG_OBJS := \
 	$(OBJDIR)/qdm2.o \
 	$(OBJDIR)/qtffmpeg.o \
 	$(OBJDIR)/qth264.o \
+	$(OBJDIR)/qth265.o \
 	$(OBJDIR)/wma.o
 
 
@@ -224,6 +229,7 @@ CFLAGS += \
 	-I$(FAAD_INCLUDE) \
 	-DENCORE_INCLUDE=\"$(ENCORE_INCLUDE)\" \
 	-I$(X264_INCLUDE) \
+	$(X265_INCLUDE) \
 	-I$(DV_INCLUDE) \
 	-I$(JPEG_INCLUDE) \
 	-I$(MPEG3_DIR) \
@@ -504,6 +510,7 @@ $(OBJDIR)/qtcache.o:                      qtcache.c
 $(OBJDIR)/qtdv.o:			  qtdv.c
 $(OBJDIR)/qtffmpeg.o:                     qtffmpeg.c
 $(OBJDIR)/qth264.o:                       qth264.c
+$(OBJDIR)/qth265.o:                       qth265.c
 $(OBJDIR)/qtinfo.o:			  qtinfo.c
 $(OBJDIR)/qtmp3.o:                        qtmp3.c
 $(OBJDIR)/qtpng.o:			  qtpng.c

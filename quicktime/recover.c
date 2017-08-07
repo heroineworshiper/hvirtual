@@ -19,8 +19,8 @@
 #define FSEEK fseeko64
 
 
-#define WIDTH 640
-#define HEIGHT 480
+#define WIDTH 1920
+#define HEIGHT 1080
 
 //#define FRAMERATE (double)30000/1001
 #define FRAMERATE (double)30
@@ -31,9 +31,9 @@
 #define STARTING_OFFSET 0x0
 
 #define CHANNELS 1
-#define SAMPLERATE 48000
+#define SAMPLERATE 32000
 #define AUDIO_CHUNK 2048
-#define BITS 24
+#define BITS 16
 #define TEMP_FILE "/tmp/temp.mov"
 
 // Output files
@@ -179,6 +179,8 @@ int main(int argc, char *argv[])
 	int update_time = 0;
 	int state = GOT_NOTHING;
 	char *in_path;
+	char *audio_path = AUDIO_FILE;
+	char *video_path = VIDEO_FILE;
 	int audio_frame;
 	int total_samples;
 	int field;
@@ -199,32 +201,6 @@ int main(int argc, char *argv[])
 	int width = WIDTH;
 	int height = HEIGHT;
 
-// Dump codec settings
-	printf("Codec settings:\n"
-		"   WIDTH=%d HEIGHT=%d\n"
-		"   FRAMERATE=%.2f\n"
-		"   CHANNELS=%d\n"
-		"   SAMPLERATE=%d\n"
-		"   BITS=%d\n"
-		"   AUDIO CHUNK=%d\n"
-		"   VCODEC=\"%s\"\n"
-		"   ACODEC=\"%s\"\n"
-		"   AUDIO_FILE=\"%s\"\n"
-		"   VIDEO_FILE=\"%s\"\n",
-		WIDTH,
-		HEIGHT,
-		FRAMERATE,
-		CHANNELS,
-		SAMPLERATE,
-		BITS,
-		audio_chunk,
-		VCODEC,
-		ACODEC,
-		AUDIO_FILE,
-		VIDEO_FILE);
-#ifdef READ_ONLY
-	printf("   READ ONLY\n");
-#endif
 
 	if(argc < 2)
 	{
@@ -232,6 +208,8 @@ int main(int argc, char *argv[])
 			"Usage: recover [options] <input>\n"
 			"Options:\n"
 			" -b samples     number of samples in an audio chunk (%d)\n"
+			" -a filename    alternative audio output\n"
+			" -v filename    alternative video output\n"
 			"\n",
 			audio_chunk);
 		exit(1);
@@ -258,11 +236,38 @@ int main(int argc, char *argv[])
 			}
 		}
 		else
+		if(!strcmp(argv[i], "-v"))
+		{
+			if(i + 1 < argc)
+			{
+				video_path = argv[i + 1];
+				i++;
+			}
+			else
+			{
+				printf("-v needs a filename.\n");
+				exit(1);
+			}
+		}
+		else
+		if(!strcmp(argv[i], "-a"))
+		{
+			if(i + 1 < argc)
+			{
+				audio_path = argv[i + 1];
+				i++;
+			}
+			else
+			{
+				printf("-a needs a filename.\n");
+				exit(1);
+			}
+		}
+		else
 		{
 			in_path = argv[i];
 		}
 	}
-
 
 // Get the field count
 	if(!memcmp(VCODEC, QUICKTIME_MJPA, 4))
@@ -283,6 +288,33 @@ int main(int argc, char *argv[])
 		is_h264 = 1;
 	}
 
+
+// Dump codec settings
+	printf("Codec settings:\n"
+		"   WIDTH=%d HEIGHT=%d\n"
+		"   FRAMERATE=%.2f\n"
+		"   CHANNELS=%d\n"
+		"   SAMPLERATE=%d\n"
+		"   BITS=%d\n"
+		"   AUDIO CHUNK=%d\n"
+		"   VCODEC=\"%s\"\n"
+		"   ACODEC=\"%s\"\n"
+		"   AUDIO_FILE=\"%s\"\n"
+		"   VIDEO_FILE=\"%s\"\n",
+		WIDTH,
+		HEIGHT,
+		FRAMERATE,
+		CHANNELS,
+		SAMPLERATE,
+		BITS,
+		audio_chunk,
+		VCODEC,
+		ACODEC,
+		audio_path,
+		video_path);
+#ifdef READ_ONLY
+	printf("   READ ONLY\n");
+#endif
 
 
 	in = fopen(in_path, "rb+");
@@ -305,7 +337,7 @@ int main(int argc, char *argv[])
 			if(search_buffer[i] == 0xff &&
 				search_buffer[i + 1] == 0xd8 &&
 				search_buffer[i + 2] == 0xff &&
-				search_buffer[i + 3] == 0xe0
+				search_buffer[i + 3] == 0xc0
 #ifdef USE_JFIF					
 				&& search_buffer[i + 6] == 'J' &&
 				search_buffer[i + 7] == 'F' &&
@@ -361,14 +393,14 @@ int main(int argc, char *argv[])
 // 		FRAMERATE, 
 // 		VCODEC);
 
-	audio_out = fopen(AUDIO_FILE, "w");
+	audio_out = fopen(audio_path, "w");
 	if(!audio_out)
 	{
 		perror("open audio output");
 		exit(1);
 	}
 
-	video_out = quicktime_open(VIDEO_FILE, 0, 1);
+	video_out = quicktime_open(video_path, 0, 1);
 		
 	if(!video_out)
 	{
@@ -543,7 +575,7 @@ int main(int argc, char *argv[])
 				if(search_buffer[i] == 0xff &&
 					search_buffer[i + 1] == 0xd8 &&
 					search_buffer[i + 2] == 0xff &&
-					search_buffer[i + 3] == 0xe0
+					search_buffer[i + 3] == 0xc0
 
 #ifdef USE_JFIF					
 					&& search_buffer[i + 6] == 'J' &&

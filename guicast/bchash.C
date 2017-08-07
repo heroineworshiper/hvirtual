@@ -90,19 +90,31 @@ int BC_Hash::load()
 	return 0;
 }
 
-void BC_Hash::load_stringfile(StringFile *file)
+void BC_Hash::load_stringfile(StringFile *file, int keep)
 {
 	char arg1[BCTEXTLEN], arg2[BCTEXTLEN];
-	total = 0;
-	while(file->get_pointer() < file->get_length())
+	
+	if(keep)
 	{
-		file->readline(arg1, arg2);
-		reallocate_table(total + 1);
-		names[total] = new char[strlen(arg1) + 1];
-		values[total] = new char[strlen(arg2) + 1];
-		strcpy(names[total], arg1);
-		strcpy(values[total], arg2);
-		total++;
+		while(file->get_pointer() < file->get_length())
+		{
+			file->readline(arg1, arg2);
+			update(arg1, arg2);
+		}
+	}
+	else
+	{
+		total = 0;
+		while(file->get_pointer() < file->get_length())
+		{
+			file->readline(arg1, arg2);
+			reallocate_table(total + 1);
+			names[total] = new char[strlen(arg1) + 1];
+			values[total] = new char[strlen(arg2) + 1];
+			strcpy(names[total], arg1);
+			strcpy(values[total], arg2);
+			total++;
+		}
 	}
 }
 
@@ -110,6 +122,7 @@ void BC_Hash::save_stringfile(StringFile *file)
 {
 	for(int i = 0; i < total; i++)
 	{
+//printf("BC_Hash::save_stringfile %d %s %s\n", __LINE__, names[i], values[i]);
 		file->writeline(names[i], values[i], 0);
 	}
 }

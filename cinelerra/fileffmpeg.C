@@ -730,23 +730,20 @@ packet->buf->size,
 packet->data,
 packet->size,
 packet->side_data_elems);
-printf("data=%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-packet->data[0],
-packet->data[1],
-packet->data[2],
-packet->data[3],
-packet->data[4],
-packet->data[5],
-packet->data[6],
-packet->data[7],
-packet->data[8],
-packet->data[9],
-packet->data[10],
-packet->data[11],
-packet->data[12],
-packet->data[13],
-packet->data[14],
-packet->data[15]);
+printf("FileFFMPEG::read_frame %d data=\n", __LINE__);
+for(int i = 0; i < 256; i++)
+{
+	printf("%02x", packet->data[i]);
+	if((i + 1) % 16 == 0)
+	{
+		printf("\n");
+	}
+	else
+	{
+		printf(" ");
+	}
+}
+printf("\n");
 
 		        	int result = avcodec_decode_video2(
 						decoder_context,

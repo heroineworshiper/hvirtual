@@ -385,18 +385,18 @@ void File::set_interpolate_raw(int value)
 	this->interpolate_raw = value;
 }
 
-void File::set_white_balance_raw(int value)
-{
-#ifdef USE_FILEFORK
-	if(file_fork)
-	{
-		file_fork->send_command(FileFork::SET_WHITE_BALANCE_RAW, (unsigned char*)&value, sizeof(value));
-		file_fork->read_result();
-	}
-#endif
-
-	this->white_balance_raw = value;
-}
+// void File::set_white_balance_raw(int value)
+// {
+// #ifdef USE_FILEFORK
+// 	if(file_fork)
+// 	{
+// 		file_fork->send_command(FileFork::SET_WHITE_BALANCE_RAW, (unsigned char*)&value, sizeof(value));
+// 		file_fork->read_result();
+// 	}
+// #endif
+// 
+// 	this->white_balance_raw = value;
+// }
 
 void File::set_cache_frames(int value)
 {
@@ -495,7 +495,8 @@ int File::open_file(Preferences *preferences,
 		offset += sizeof(int);
 		*(int*)(buffer + offset) = cache_size;
 		offset += sizeof(int);
-		*(int*)(buffer + offset) = white_balance_raw;
+//		*(int*)(buffer + offset) = white_balance_raw;
+		*(int*)(buffer + offset) = 0;
 		offset += sizeof(int);
 		*(int*)(buffer + offset) = interpolate_raw;
 		offset += sizeof(int);
@@ -1914,12 +1915,28 @@ int File::read_frame(VFrame *frame, int is_thread)
 //printf("File::read_frame %d %d\n", __LINE__, *(int*)(file_fork->result_data + sizeof(int)));
 			}
 		}
+		else
+		if(!result)
+		{
+// get the params if not compressed
+			if(file_fork->result_bytes > sizeof(int) * 2)
+			{
+				StringFile params((long)0);
+				params.read_from_string((char*)(file_fork->result_data + sizeof(int) * 2));
+//printf("File::read_frame %d result_data=%s\n", __LINE__, file_fork->result_data + sizeof(int) * 2);
+				frame->get_params()->load_stringfile(&params, 1);
+			}
+		}
 
 		file_fork->send_command(FileFork::GET_MEMORY_USAGE, 
 			0, 
 			0);
 		memory_usage = file_fork->read_result();
+		
 		if(debug) PRINT_TRACE
+
+//printf("File::read_frame %d frame=%p\n", __LINE__, frame);
+//frame->dump_params();
 
 		return result;
 	}
@@ -2016,17 +2033,19 @@ int File::read_frame(VFrame *frame, int is_thread)
 				0,
 				temp_frame->get_w(),
 				frame->get_w());
-//			printf("File::read_frame %d\n", __LINE__);
+//printf("File::read_frame %d file -> temp -> frame\n", __LINE__);
 		}
 		else
 		{
 // Can't advance position here because it needs to be added to cache
-// printf("File::read_frame %d reading directly colormodel=%d w=%d h=%d\n", 
+			file->read_frame(frame);
+
+// printf("File::read_frame %d reading directly frame=%p colormodel=%d w=%d h=%d\n", 
 // __LINE__, 
+// frame,
 // frame->get_color_model(), 
 // frame->get_w(), 
 // frame->get_h());
-			file->read_frame(frame);
 //for(int i = 0; i < 100 * 1000; i++) ((float*)frame->get_rows()[0])[i] = 1.0;
 		}
 

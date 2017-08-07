@@ -218,16 +218,16 @@ SET_TRACE
 		y,
 		pwindow,
 		this));
-	y += interpolate_raw->get_h();
+	y += interpolate_raw->get_h() + margin;
 
-	add_subwindow(white_balance_raw = new PlaybackWhiteBalanceRaw(
-		x, 
-		y,
-		pwindow,
-		this));
-	y += white_balance_raw->get_h() + 10;
-	if(!pwindow->thread->edl->session->interpolate_raw) 
-		white_balance_raw->disable();
+// 	add_subwindow(white_balance_raw = new PlaybackWhiteBalanceRaw(
+// 		x, 
+// 		y,
+// 		pwindow,
+// 		this));
+// 	y += white_balance_raw->get_h() + margin;
+// 	if(!pwindow->thread->edl->session->interpolate_raw) 
+// 		white_balance_raw->disable();
 
 
 SET_TRACE
@@ -489,43 +489,43 @@ PlaybackInterpolateRaw::PlaybackInterpolateRaw(
 int PlaybackInterpolateRaw::handle_event()
 {
 	pwindow->thread->edl->session->interpolate_raw = get_value();
-	if(!pwindow->thread->edl->session->interpolate_raw)
-	{
-		playback->white_balance_raw->update(0, 0);
-		playback->white_balance_raw->disable();
-	}
-	else
-	{
-		playback->white_balance_raw->update(pwindow->thread->edl->session->white_balance_raw, 0);
-		playback->white_balance_raw->enable();
-	}
+// 	if(!pwindow->thread->edl->session->interpolate_raw)
+// 	{
+// 		playback->white_balance_raw->update(0, 0);
+// 		playback->white_balance_raw->disable();
+// 	}
+// 	else
+// 	{
+// 		playback->white_balance_raw->update(pwindow->thread->edl->session->white_balance_raw, 0);
+// 		playback->white_balance_raw->enable();
+// 	}
 	return 1;
 }
 
 
 
 
-PlaybackWhiteBalanceRaw::PlaybackWhiteBalanceRaw(
-	int x, 
-	int y, 
-	PreferencesWindow *pwindow, 
-	PlaybackPrefs *playback)
- : BC_CheckBox(x, 
- 	y, 
-	pwindow->thread->edl->session->interpolate_raw &&
-		pwindow->thread->edl->session->white_balance_raw, 
-	_("White balance CR2 images"))
-{
-	this->pwindow = pwindow;
-	this->playback = playback;
-	if(!pwindow->thread->edl->session->interpolate_raw) disable();
-}
-
-int PlaybackWhiteBalanceRaw::handle_event()
-{
-	pwindow->thread->edl->session->white_balance_raw = get_value();
-	return 1;
-}
+// PlaybackWhiteBalanceRaw::PlaybackWhiteBalanceRaw(
+// 	int x, 
+// 	int y, 
+// 	PreferencesWindow *pwindow, 
+// 	PlaybackPrefs *playback)
+//  : BC_CheckBox(x, 
+//  	y, 
+// 	pwindow->thread->edl->session->interpolate_raw &&
+// 		pwindow->thread->edl->session->white_balance_raw, 
+// 	_("White balance CR2 images"))
+// {
+// 	this->pwindow = pwindow;
+// 	this->playback = playback;
+// 	if(!pwindow->thread->edl->session->interpolate_raw) disable();
+// }
+// 
+// int PlaybackWhiteBalanceRaw::handle_event()
+// {
+// 	pwindow->thread->edl->session->white_balance_raw = get_value();
+// 	return 1;
+// }
 
 
 

@@ -68,6 +68,7 @@ static void register_acodecs()
 
 
 #include "qth264.h"
+#include "qth265.h"
 #include "raw.h"
 #include "qtdv.h"
 #include "jpeg.h"
@@ -88,6 +89,7 @@ static void register_vcodecs()
 
 	register_vcodec(quicktime_init_codec_h264);
 	register_vcodec(quicktime_init_codec_hv64);
+	register_vcodec(quicktime_init_codec_h265);
 	register_vcodec(quicktime_init_codec_divx);
 	register_vcodec(quicktime_init_codec_hv60);
 	register_vcodec(quicktime_init_codec_div5);

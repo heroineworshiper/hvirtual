@@ -124,7 +124,7 @@ int FileCR2::check_sig(Asset *asset)
 int FileCR2::read_frame_header(char *path)
 {
 	int argc = 3;
-printf("FileCR2::read_frame_header %d\n", __LINE__);
+//printf("FileCR2::read_frame_header %d\n", __LINE__);
 	const char *argv[4] = 
 	{
 		"dcraw",
@@ -136,7 +136,7 @@ printf("FileCR2::read_frame_header %d\n", __LINE__);
 	int result = dcraw_main(argc, argv);
 	if(!result) format_to_asset();
 
-printf("FileCR2::read_frame_header %d %d\n", __LINE__, result);
+//printf("FileCR2::read_frame_header %d %d\n", __LINE__, result);
 	return result;
 }
 
@@ -196,9 +196,14 @@ int FileCR2::read_frame(VFrame *frame, char *path)
 // In 2006 DCraw seems to support Canon white balance.
 // Still no gamma support.
 // Need to toggle this in preferences because it defeats dark frame subtraction.
-	if(file->white_balance_raw)
-		argv[argc++] = (char*)"-w";
+//	if(file->white_balance_raw)
+//		argv[argc++] = (char*)"-w";
 
+// always white balance if interpolating.  Interpolating alone doesn't work
+	if(file->interpolate_raw)
+	{
+		argv[argc++] = (char*)"-w";
+	}
 
 	if(!file->interpolate_raw)
 	{
@@ -208,7 +213,7 @@ int FileCR2::read_frame(VFrame *frame, char *path)
 		argv[argc++] = (char*)"-d";
 	}
 
-printf("FileCR2::read_frame %d %s\n", __LINE__, path);
+//printf("FileCR2::read_frame %d %s\n", __LINE__, path);
 	argv[argc++] = path;
 
 	dcraw_data = (float**)frame->get_rows();
@@ -224,7 +229,7 @@ printf("FileCR2::read_frame %d %s\n", __LINE__, path);
 // from dcraw or a plugin & replace it.
 	char string[BCTEXTLEN];
 	sprintf(string, 
-		"%f %f %f %f %f %f %f %f %f\n",
+		"%f %f %f %f %f %f %f %f %f",
 		dcraw_matrix[0],
 		dcraw_matrix[1],
 		dcraw_matrix[2],
@@ -238,7 +243,8 @@ printf("FileCR2::read_frame %d %s\n", __LINE__, path);
 
 	frame->get_params()->update("DCRAW_MATRIX", string);
 
-// frame->dump_params();
+//printf("FileCR2::read_frame %d frame=%p\n", __LINE__, frame);
+//frame->dump_params();
 
 	return 0;
 }
