@@ -408,6 +408,7 @@ LIBS += \
 	-lz \
 	-ldl \
 	-lbz2 \
+	-llzma \
 	-lrt
 
 #	-lfontconfig \

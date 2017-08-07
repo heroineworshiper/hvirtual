@@ -26,6 +26,7 @@ extern "C" {
 #define QUICKTIME_MP4V "mp4v"
 
 #define QUICKTIME_H264 "avc1"
+#define QUICKTIME_H265 "hvc1"
 
 
 /* Basterdization of MPEG-4 which encodes alternating fields in series */

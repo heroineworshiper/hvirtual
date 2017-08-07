@@ -365,7 +365,24 @@ static int decode_wrapper(quicktime_t *file,
 		packet->data = ffmpeg->work_buffer;
 		packet->size = bytes + header_bytes;
 
-//printf("decode_wrapper %d %p\n", __LINE__, ffmpeg->picture[current_field]);
+printf("decode_wrapper %d size=%d\n", __LINE__, packet->size);
+/*
+ * for(int i = 0; i < 256; i++)
+ * {
+ * 	printf("%02x", packet->data[i]);
+ * 	if((i + 1) % 16 == 0)
+ * 	{
+ * 		printf("\n");
+ * 	}
+ * 	else
+ * 	{
+ * 		printf(" ");
+ * 	}
+ * }
+ * printf("\n");
+ */
+
+
 		result = avcodec_decode_video2(ffmpeg->decoder_context[current_field], 
 			ffmpeg->picture[current_field], 
 			&got_picture, 
@@ -373,11 +390,10 @@ static int decode_wrapper(quicktime_t *file,
 		av_packet_free(&packet);
 
 
-// printf("decode_wrapper %d frame_number=%ld got_picture=%d ptr=%p\n", 
-// __LINE__, 
-// frame_number, 
-// got_picture,
-// ffmpeg->picture[current_field]->data[0]);
+printf("decode_wrapper %d got_picture=%d ptr=%p\n", 
+__LINE__, 
+got_picture,
+ffmpeg->picture[current_field]->data[0]);
 
 // if(ffmpeg->picture[current_field]->data[0])
 // {
