@@ -282,8 +282,8 @@ static int decode_wrapper(quicktime_t *file,
 		memcpy(ffmpeg->work_buffer, stsd_table->esds.mpeg4_header, header_bytes);
 	}
 
-// printf("decode_wrapper %d frame_number=%ld field=%d offset=0x%lx bytes=%d header_bytes=%d\n", 
-// __LINE__, frame_number, current_field, quicktime_ftell(file), bytes, header_bytes);
+// printf("decode_wrapper %d  field=%d offset=0x%lx bytes=%d header_bytes=%d\n", 
+// __LINE__, current_field, quicktime_ftell(file), bytes, header_bytes);
 // usleep(100000);
 
 	if(!quicktime_read_data(file, 

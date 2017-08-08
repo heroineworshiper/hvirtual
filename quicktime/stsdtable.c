@@ -199,11 +199,11 @@ void quicktime_read_stsd_video(quicktime_t *file,
 	while(quicktime_position(file) < parent_atom->end)
 	{
 		quicktime_atom_read_header(file, &leaf_atom);
-/*
- * printf("quicktime_read_stsd_video 1 %llx %llx %llx %s\n", 
- * leaf_atom.start, leaf_atom.end, quicktime_position(file),
- * leaf_atom.type);
- */
+
+printf("quicktime_read_stsd_video 1 %llx %llx %llx %s\n", 
+leaf_atom.start, leaf_atom.end, quicktime_position(file),
+leaf_atom.type);
+
 
 
 		if(quicktime_atom_is(&leaf_atom, "esds"))
@@ -211,7 +211,13 @@ void quicktime_read_stsd_video(quicktime_t *file,
 			quicktime_read_esds(file, &leaf_atom, &table->esds);
 		}
 		else
+// TODO: consolidate these into a common mpeg4 header
 		if(quicktime_atom_is(&leaf_atom, "avcC"))
+		{
+			quicktime_read_avcc(file, &leaf_atom, &table->avcc);
+		}
+		else
+		if(quicktime_atom_is(&leaf_atom, "hvcC"))
 		{
 			quicktime_read_avcc(file, &leaf_atom, &table->avcc);
 		}

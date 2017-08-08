@@ -128,7 +128,6 @@ static void register_all(void)
     REGISTER_DEMUXER (FOURXM,           fourxm);
     REGISTER_MUXER   (FRAMECRC,         framecrc);
     REGISTER_MUXER   (FRAMEHASH,        framehash);
-    REGISTER_MUXER   (FRAMEMD5,         framemd5);
     REGISTER_DEMUXER (FRM,              frm);
     REGISTER_DEMUXER (FSB,              fsb);
     REGISTER_MUXDEMUX(G722,             g722);
@@ -173,7 +172,6 @@ static void register_all(void)
     REGISTER_DEMUXER (LVF,              lvf);
     REGISTER_DEMUXER (LXF,              lxf);
     REGISTER_MUXDEMUX(M4V,              m4v);
-    REGISTER_MUXER   (MD5,              md5);
     REGISTER_MUXDEMUX(MATROSKA,         matroska);
     REGISTER_MUXER   (MATROSKA_AUDIO,   matroska_audio);
     REGISTER_DEMUXER (MGSTS,            mgsts);

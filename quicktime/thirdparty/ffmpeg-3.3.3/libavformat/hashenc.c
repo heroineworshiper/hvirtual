@@ -117,19 +117,19 @@ static const AVClass md5enc_class = {
     .version    = LIBAVUTIL_VERSION_INT,
 };
 
-AVOutputFormat ff_md5_muxer = {
-    .name              = "md5",
-    .long_name         = NULL_IF_CONFIG_SMALL("MD5 testing"),
-    .priv_data_size    = sizeof(struct HashContext),
-    .audio_codec       = AV_CODEC_ID_PCM_S16LE,
-    .video_codec       = AV_CODEC_ID_RAWVIDEO,
-    .write_header      = hash_write_header,
-    .write_packet      = hash_write_packet,
-    .write_trailer     = hash_write_trailer,
-    .flags             = AVFMT_VARIABLE_FPS | AVFMT_TS_NONSTRICT |
-                         AVFMT_TS_NEGATIVE,
-    .priv_class        = &md5enc_class,
-};
+// AVOutputFormat ff_md5_muxer = {
+//     .name              = "md5",
+//     .long_name         = NULL_IF_CONFIG_SMALL("MD5 testing"),
+//     .priv_data_size    = sizeof(struct HashContext),
+//     .audio_codec       = AV_CODEC_ID_PCM_S16LE,
+//     .video_codec       = AV_CODEC_ID_RAWVIDEO,
+//     .write_header      = hash_write_header,
+//     .write_packet      = hash_write_packet,
+//     .write_trailer     = hash_write_trailer,
+//     .flags             = AVFMT_VARIABLE_FPS | AVFMT_TS_NONSTRICT |
+//                          AVFMT_TS_NEGATIVE,
+//     .priv_class        = &md5enc_class,
+// };
 #endif
 
 #if CONFIG_FRAMEHASH_MUXER || CONFIG_FRAMEMD5_MUXER
@@ -246,17 +246,17 @@ static const AVClass framemd5_class = {
     .version    = LIBAVUTIL_VERSION_INT,
 };
 
-AVOutputFormat ff_framemd5_muxer = {
-    .name              = "framemd5",
-    .long_name         = NULL_IF_CONFIG_SMALL("Per-frame MD5 testing"),
-    .priv_data_size    = sizeof(struct HashContext),
-    .audio_codec       = AV_CODEC_ID_PCM_S16LE,
-    .video_codec       = AV_CODEC_ID_RAWVIDEO,
-    .write_header      = framehash_write_header,
-    .write_packet      = framehash_write_packet,
-    .write_trailer     = framehash_write_trailer,
-    .flags             = AVFMT_VARIABLE_FPS | AVFMT_TS_NONSTRICT |
-                         AVFMT_TS_NEGATIVE,
-    .priv_class        = &framemd5_class,
-};
+// AVOutputFormat ff_framemd5_muxer = {
+//     .name              = "framemd5",
+//     .long_name         = NULL_IF_CONFIG_SMALL("Per-frame MD5 testing"),
+//     .priv_data_size    = sizeof(struct HashContext),
+//     .audio_codec       = AV_CODEC_ID_PCM_S16LE,
+//     .video_codec       = AV_CODEC_ID_RAWVIDEO,
+//     .write_header      = framehash_write_header,
+//     .write_packet      = framehash_write_packet,
+//     .write_trailer     = framehash_write_trailer,
+//     .flags             = AVFMT_VARIABLE_FPS | AVFMT_TS_NONSTRICT |
+//                          AVFMT_TS_NEGATIVE,
+//     .priv_class        = &framemd5_class,
+// };
 #endif
