@@ -226,7 +226,7 @@ public:
 };
 
 
-
+class CWindowEyedropCheckBox;
 class CWindowEyedropGUI : public CWindowToolGUI
 {
 public:
@@ -238,8 +238,23 @@ public:
 	void update();
 
 	CWindowCoord *radius;
+	CWindowEyedropCheckBox *use_max;
 	BC_Title *red, *green, *blue, *y, *u, *v;
 	BC_SubWindow *sample;
+};
+
+
+class CWindowEyedropCheckBox : public BC_CheckBox
+{
+public:
+	CWindowEyedropCheckBox(MWindow *mwindow, 
+		CWindowEyedropGUI *gui,
+		int x, 
+		int y);
+
+	int handle_event();
+	MWindow *mwindow;
+	CWindowEyedropGUI *gui;
 };
 
 

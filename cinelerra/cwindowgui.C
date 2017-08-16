@@ -2335,15 +2335,24 @@ int CWindowCanvas::do_eyedrop(int &rerender, int button_press, int draw)
 	float blue = (float)*row++ / max; \
 	if(do_yuv) \
 	{ \
-		mwindow->edl->local_session->red += red + V_TO_R * (blue - 0.5); \
-		mwindow->edl->local_session->green += red + U_TO_G * (green - 0.5) + V_TO_G * (blue - 0.5); \
-		mwindow->edl->local_session->blue += red + U_TO_B * (green - 0.5); \
+		float r = red + V_TO_R * (blue - 0.5); \
+		float g = red + U_TO_G * (green - 0.5) + V_TO_G * (blue - 0.5); \
+		float b = red + U_TO_B * (green - 0.5); \
+		mwindow->edl->local_session->red += r; \
+		mwindow->edl->local_session->green += g; \
+		mwindow->edl->local_session->blue += b; \
+		if(r > mwindow->edl->local_session->red_max) mwindow->edl->local_session->red_max = r; \
+		if(g > mwindow->edl->local_session->green_max) mwindow->edl->local_session->green_max = g; \
+		if(b > mwindow->edl->local_session->blue_max) mwindow->edl->local_session->blue_max = b; \
 	} \
 	else \
 	{ \
 		mwindow->edl->local_session->red += red; \
 		mwindow->edl->local_session->green += green; \
 		mwindow->edl->local_session->blue += blue; \
+		if(red > mwindow->edl->local_session->red_max) mwindow->edl->local_session->red_max = red; \
+		if(green > mwindow->edl->local_session->green_max) mwindow->edl->local_session->green_max = green; \
+		if(blue > mwindow->edl->local_session->blue_max) mwindow->edl->local_session->blue_max = blue; \
 	} \
 }
 
@@ -2352,6 +2361,9 @@ int CWindowCanvas::do_eyedrop(int &rerender, int button_press, int draw)
 			mwindow->edl->local_session->red = 0;
 			mwindow->edl->local_session->green = 0;
 			mwindow->edl->local_session->blue = 0;
+			mwindow->edl->local_session->red_max = 0;
+			mwindow->edl->local_session->green_max = 0;
+			mwindow->edl->local_session->blue_max = 0;
 			for(int i = row1; i < row2; i++)
 			{
 				for(int j = column1; j < column2; j++)

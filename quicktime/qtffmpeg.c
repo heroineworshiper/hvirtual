@@ -365,7 +365,7 @@ static int decode_wrapper(quicktime_t *file,
 		packet->data = ffmpeg->work_buffer;
 		packet->size = bytes + header_bytes;
 
-printf("decode_wrapper %d size=%d\n", __LINE__, packet->size);
+//printf("decode_wrapper %d size=%d\n", __LINE__, packet->size);
 /*
  * for(int i = 0; i < 256; i++)
  * {
@@ -390,10 +390,10 @@ printf("decode_wrapper %d size=%d\n", __LINE__, packet->size);
 		av_packet_free(&packet);
 
 
-printf("decode_wrapper %d got_picture=%d ptr=%p\n", 
-__LINE__, 
-got_picture,
-ffmpeg->picture[current_field]->data[0]);
+// printf("decode_wrapper %d got_picture=%d ptr=%p\n", 
+// __LINE__, 
+// got_picture,
+// ffmpeg->picture[current_field]->data[0]);
 
 // if(ffmpeg->picture[current_field]->data[0])
 // {

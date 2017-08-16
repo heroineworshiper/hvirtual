@@ -773,10 +773,28 @@ int PluginClient::get_interpolation_type()
 float PluginClient::get_red()
 {
 	if(server->mwindow)
-		return server->mwindow->edl->local_session->red;
+	{
+		if(server->mwindow->edl->local_session->use_max)
+		{
+			return server->mwindow->edl->local_session->red_max;
+		}
+		else
+		{
+			return server->mwindow->edl->local_session->red;
+		}
+	}
 	else
 	if(server->edl)
-		return server->edl->local_session->red;
+	{
+		if(server->edl->local_session->use_max)
+		{
+			return server->edl->local_session->red_max;
+		}
+		else
+		{
+			return server->edl->local_session->red;
+		}
+	}
 	else
 		return 0;
 }
@@ -784,10 +802,28 @@ float PluginClient::get_red()
 float PluginClient::get_green()
 {
 	if(server->mwindow)
-		return server->mwindow->edl->local_session->green;
+	{
+		if(server->mwindow->edl->local_session->use_max)
+		{
+			return server->mwindow->edl->local_session->green_max;
+		}
+		else
+		{
+			return server->mwindow->edl->local_session->green;
+		}
+	}
 	else
 	if(server->edl)
-		return server->edl->local_session->green;
+	{
+		if(server->edl->local_session->use_max)
+		{
+			return server->edl->local_session->green_max;
+		}
+		else
+		{
+			return server->edl->local_session->green;
+		}
+	}
 	else
 		return 0;
 }
@@ -795,10 +831,28 @@ float PluginClient::get_green()
 float PluginClient::get_blue()
 {
 	if(server->mwindow)
-		return server->mwindow->edl->local_session->blue;
+	{
+		if(server->mwindow->edl->local_session->use_max)
+		{
+			return server->mwindow->edl->local_session->blue_max;
+		}
+		else
+		{
+			return server->mwindow->edl->local_session->blue;
+		}
+	}
 	else
 	if(server->edl)
-		return server->edl->local_session->blue;
+	{
+		if(server->edl->local_session->use_max)
+		{
+			return server->edl->local_session->blue_max;
+		}
+		else
+		{
+			return server->edl->local_session->blue;
+		}
+	}
 	else
 		return 0;
 }
