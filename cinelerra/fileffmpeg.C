@@ -723,27 +723,27 @@ int FileFFMPEG::read_frame(VFrame *frame)
 						decoder_context,
 						ffmpeg_frame);
 
-printf("FileFFMPEG::read_frame %d buf=%p bufsize=%d data=%p size=%d side_data_elems=%d\n", 
-__LINE__,
-packet->buf,
-packet->buf->size,
-packet->data,
-packet->size,
-packet->side_data_elems);
-printf("FileFFMPEG::read_frame %d data=\n", __LINE__);
-for(int i = 0; i < 256; i++)
-{
-	printf("%02x", packet->data[i]);
-	if((i + 1) % 16 == 0)
-	{
-		printf("\n");
-	}
-	else
-	{
-		printf(" ");
-	}
-}
-printf("\n");
+// printf("FileFFMPEG::read_frame %d buf=%p bufsize=%d data=%p size=%d side_data_elems=%d\n", 
+// __LINE__,
+// packet->buf,
+// packet->buf->size,
+// packet->data,
+// packet->size,
+// packet->side_data_elems);
+// printf("FileFFMPEG::read_frame %d data=\n", __LINE__);
+// for(int i = 0; i < 256; i++)
+// {
+// 	printf("%02x", packet->data[i]);
+// 	if((i + 1) % 16 == 0)
+// 	{
+// 		printf("\n");
+// 	}
+// 	else
+// 	{
+// 		printf(" ");
+// 	}
+// }
+// printf("\n");
 
 		        	int result = avcodec_decode_video2(
 						decoder_context,

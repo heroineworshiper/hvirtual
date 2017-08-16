@@ -532,14 +532,14 @@ void CWindowEyedropGUI::create_objects()
 	add_subwindow(this->v = new BC_Title(x2, title6->get_y(), "0"));
 
 
-	y += title6->get_h() + margin;
-	add_subwindow(use_max = new CWindowEyedropCheckBox(mwindow, 
-		this,
-		x2, 
-		y));
 
 	y = title6->get_y() + this->v->get_h() + margin;
 	add_subwindow(sample = new BC_SubWindow(x, y, 50, 50));
+	y += sample->get_h() + margin;
+	add_subwindow(use_max = new CWindowEyedropCheckBox(mwindow, 
+		this,
+		x, 
+		y));
 	update();
 	unlock_window();
 }
@@ -548,41 +548,38 @@ void CWindowEyedropGUI::update()
 {
 	radius->update((int64_t)mwindow->edl->session->eyedrop_radius);
 
-	float y, u, v;
+	float r, g, b, y, u, v;
 	if(mwindow->edl->local_session->use_max)
 	{
-		red->update(mwindow->edl->local_session->red_max);
-		green->update(mwindow->edl->local_session->green_max);
-		blue->update(mwindow->edl->local_session->blue_max);
-
-		YUV::rgb_to_yuv_f(mwindow->edl->local_session->red_max, 
-			mwindow->edl->local_session->green_max, 
-			mwindow->edl->local_session->blue_max, 
-			y, 
-			u, 
-			v);
+		r = mwindow->edl->local_session->red_max;
+		g = mwindow->edl->local_session->green_max;
+		b = mwindow->edl->local_session->blue_max;
+	
 	}
 	else
 	{
-		red->update(mwindow->edl->local_session->red);
-		green->update(mwindow->edl->local_session->green);
-		blue->update(mwindow->edl->local_session->blue);
-
-		YUV::rgb_to_yuv_f(mwindow->edl->local_session->red, 
-			mwindow->edl->local_session->green, 
-			mwindow->edl->local_session->blue, 
-			y, 
-			u, 
-			v);
+		r = mwindow->edl->local_session->red;
+		g = mwindow->edl->local_session->green;
+		b = mwindow->edl->local_session->blue;
 	}
+	
+	YUV::rgb_to_yuv_f(r, 
+		g, 
+		b, 
+		y, 
+		u, 
+		v);
+	this->red->update(r);
+	this->green->update(g);
+	this->blue->update(b);
 	this->y->update(y);
 	this->u->update(u);
 	this->v->update(v);
 	use_max->update(mwindow->edl->local_session->use_max);
 
-	int red = (int)(CLIP(mwindow->edl->local_session->red, 0, 1) * 0xff);
-	int green = (int)(CLIP(mwindow->edl->local_session->green, 0, 1) * 0xff);
-	int blue = (int)(CLIP(mwindow->edl->local_session->blue, 0, 1) * 0xff);
+	int red = (int)(CLIP(r, 0, 1) * 0xff);
+	int green = (int)(CLIP(g, 0, 1) * 0xff);
+	int blue = (int)(CLIP(b, 0, 1) * 0xff);
 	sample->set_color((red << 16) | (green << 8) | blue);
 	sample->draw_box(0, 0, sample->get_w(), sample->get_h());
 	sample->set_color(BLACK);
