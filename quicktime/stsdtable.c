@@ -200,9 +200,11 @@ void quicktime_read_stsd_video(quicktime_t *file,
 	{
 		quicktime_atom_read_header(file, &leaf_atom);
 
-printf("quicktime_read_stsd_video 1 %llx %llx %llx %s\n", 
-leaf_atom.start, leaf_atom.end, quicktime_position(file),
-leaf_atom.type);
+/*
+ * printf("quicktime_read_stsd_video 1 %llx %llx %llx %s\n", 
+ * leaf_atom.start, leaf_atom.end, quicktime_position(file),
+ * leaf_atom.type);
+ */
 
 
 
