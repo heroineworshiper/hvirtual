@@ -25,7 +25,7 @@
 #include "clip.h"
 #include "filexml.h"
 #include "language.h"
-#include "fuse360.h"
+#include "360fuser.h"
 
 
 #include <string.h>
@@ -45,7 +45,7 @@ Fuse360Config::Fuse360Config()
 	radius = 0.5;
 	distance = 50;
 	feather = 0;
-	mode = Fuse360Config::STRETCHXY;
+	mode = Fuse360Config::DO_NOTHING;
 	center_x = 50.0;
 	center_y = 50.0;
 	draw_guides = 1;
@@ -105,7 +105,7 @@ void Fuse360Config::boundaries()
 	CLAMP(fov, 0.0, 1.0);
 	CLAMP(aspect, 0.3, 3.0);
 	CLAMP(radius, 0.3, 3.0);
-	CLAMP(distance, 0.0, 1.0);
+	CLAMP(distance, 0.0, 100.0);
 }
 
 
@@ -219,6 +219,7 @@ int Fuse360Mode::handle_event()
 
 void Fuse360Mode::create_objects()
 {
+	add_item(new BC_MenuItem(to_text(Fuse360Config::DO_NOTHING)));
 	add_item(new BC_MenuItem(to_text(Fuse360Config::STRETCHXY)));
 	add_item(new BC_MenuItem(to_text(Fuse360Config::STRETCHY)));
 	add_item(new BC_MenuItem(to_text(Fuse360Config::BLEND)));
@@ -238,12 +239,13 @@ int Fuse360Mode::calculate_w(Fuse360GUI *gui)
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(Fuse360Config::STRETCHXY)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(Fuse360Config::STRETCHY)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(Fuse360Config::BLEND)));
+	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(Fuse360Config::DO_NOTHING)));
 	return result + 50;
 }
 
 int Fuse360Mode::from_text(char *text)
 {
-	for(int i = 0; i < 3; i++)
+	for(int i = 0; i < 4; i++)
 	{
 		if(!strcmp(text, to_text(i)))
 		{
@@ -258,6 +260,9 @@ const char* Fuse360Mode::to_text(int mode)
 {
 	switch(mode)
 	{
+		case Fuse360Config::DO_NOTHING:
+			return "Do nothing";
+			break;
 		case Fuse360Config::STRETCHXY:
 			return "Stretch XY";
 			break;
@@ -442,7 +447,7 @@ void Fuse360GUI::create_objects()
 	distance_slider->set_precision(1.0);
 	y += distance_text->get_h() + margin;
 
-
+//printf("Fuse360GUI::create_objects %d %f\n", __LINE__, client->config.distance);
 
 
 // 	BC_Bar *bar;
@@ -527,16 +532,6 @@ void Fuse360Main::update_gui()
 	}
 }
 
-void Fuse360Main::save_presets()
-{
-	char path[BCTEXTLEN], string[BCTEXTLEN];
-	sprintf(path, "%slenspresets.rc", BCASTDIR);
-	BC_Hash *defaults = new BC_Hash(path);
-
-	defaults->save();
-	delete defaults;
-}
-
 
 void Fuse360Main::save_data(KeyFrame *keyframe)
 {
@@ -547,7 +542,7 @@ void Fuse360Main::save_data(KeyFrame *keyframe)
 
 // cause data to be stored directly in text
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
-	output.tag.set_title("FUSE360");
+	output.tag.set_title("360FUSER");
 	output.tag.set_property("FOCAL_LENGTH", config.fov);
 	output.tag.set_property("ASPECT", config.aspect);
 	output.tag.set_property("RADIUS", config.radius);
@@ -578,7 +573,7 @@ void Fuse360Main::read_data(KeyFrame *keyframe)
 
 		if(!result)
 		{
-			if(input.tag.title_is("FUSE360"))
+			if(input.tag.title_is("360FUSER"))
 			{
 				config.fov = input.tag.get_property("FOCAL_LENGTH", config.fov);
 				config.aspect = input.tag.get_property("ASPECT", config.aspect);
@@ -608,11 +603,22 @@ int Fuse360Main::process_buffer(VFrame *frame,
 		0, 
 		start_position, 
 		frame_rate,
-		get_use_opengl());
+		0); // use opengl
+
+	if(config.mode == Fuse360Config::DO_NOTHING)
+	{
+		get_output()->copy_from(input);
+	}
+	else
+	{
+	
+
+		if(!engine) engine = new Fuse360Engine(this);
+		engine->process_packages();
+	}
 
 
-	if(!engine) engine = new Fuse360Engine(this);
-	engine->process_packages();
+
 	if(config.draw_guides)
 	{
 // Draw center
@@ -705,7 +711,7 @@ Fuse360Unit::~Fuse360Unit()
 
 
 
-void Fuse360Unit::process_rectilinear_stretch(Fuse360Package *pkg)
+void Fuse360Unit::process_stretch_xy(Fuse360Package *pkg)
 {
 	float fov = plugin->config.fov;
 	float aspect = plugin->config.aspect;
@@ -726,7 +732,7 @@ void Fuse360Unit::process_rectilinear_stretch(Fuse360Package *pkg)
 
 
 
-#define DO_LENS_RECTILINEAR_STRETCH(type, components, chroma) \
+#define PROCESS_STRETCH_XY(type, components, chroma) \
 { \
 	type **in_rows = (type**)plugin->get_temp()->get_rows(); \
 	type **out_rows = (type**)plugin->get_input()->get_rows(); \
@@ -799,27 +805,27 @@ void Fuse360Unit::process_rectilinear_stretch(Fuse360Package *pkg)
 }
 
 
-		switch(plugin->get_input()->get_color_model())
-		{
-			case BC_RGB888:
-				DO_LENS_RECTILINEAR_STRETCH(unsigned char, 3, 0x0);
-				break;
-			case BC_RGBA8888:
-				DO_LENS_RECTILINEAR_STRETCH(unsigned char, 4, 0x0);
-				break;
-			case BC_RGB_FLOAT:
-				DO_LENS_RECTILINEAR_STRETCH(float, 3, 0.0);
-				break;
-			case BC_RGBA_FLOAT:
-				DO_LENS_RECTILINEAR_STRETCH(float, 4, 0.0);
-				break;
-			case BC_YUV888:
-				DO_LENS_RECTILINEAR_STRETCH(unsigned char, 3, 0x80);
-				break;
-			case BC_YUVA8888:
-				DO_LENS_RECTILINEAR_STRETCH(unsigned char, 4, 0x80);
-				break;
-		}
+	switch(plugin->get_input()->get_color_model())
+	{
+		case BC_RGB888:
+			PROCESS_STRETCH_XY(unsigned char, 3, 0x0);
+			break;
+		case BC_RGBA8888:
+			PROCESS_STRETCH_XY(unsigned char, 4, 0x0);
+			break;
+		case BC_RGB_FLOAT:
+			PROCESS_STRETCH_XY(float, 3, 0.0);
+			break;
+		case BC_RGBA_FLOAT:
+			PROCESS_STRETCH_XY(float, 4, 0.0);
+			break;
+		case BC_YUV888:
+			PROCESS_STRETCH_XY(unsigned char, 3, 0x80);
+			break;
+		case BC_YUVA8888:
+			PROCESS_STRETCH_XY(unsigned char, 4, 0x80);
+			break;
+	}
 }
 
 void Fuse360Unit::process_package(LoadPackage *package)
@@ -829,7 +835,7 @@ void Fuse360Unit::process_package(LoadPackage *package)
 	switch(plugin->config.mode)
 	{
 		case Fuse360Config::STRETCHXY:
-			process_rectilinear_stretch(pkg);
+//			process_stretch_xy(pkg);
 			break;
 		case Fuse360Config::STRETCHY:
 			break;

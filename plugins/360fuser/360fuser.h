@@ -162,6 +162,8 @@ public:
 	int mode;
 	enum
 	{
+// align guides only
+		DO_NOTHING,
 // rectilinear
 		STRETCHXY,
 // 2 cylinders
@@ -189,10 +191,7 @@ public:
 	Fuse360Unit(Fuse360Engine *engine, Fuse360Main *plugin);
 	~Fuse360Unit();
 	void process_package(LoadPackage *package);
-	void process_stretch(Fuse360Package *pkg);
-	void process_shrink(Fuse360Package *pkg);
-	void process_rectilinear_stretch(Fuse360Package *pkg);
-	void process_rectilinear_shrink(Fuse360Package *pkg);
+	void process_stretch_xy(Fuse360Package *pkg);
 	Fuse360Engine *engine;
 	Fuse360Main *plugin;
 };
@@ -224,8 +223,6 @@ public:
 	void update_gui();
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
-	void load_presets();
-	void save_presets();
 	
 	Fuse360Engine *engine;
 };
