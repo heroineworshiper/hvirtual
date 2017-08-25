@@ -8739,12 +8739,11 @@ notraw:
 
 
 // CINELERRA
-/* The T4I sets this when not rotating.  The 5D series sets it when rotating.
- *   if (flip & 4) 
- *  	sprintf(dcraw_info, "%d %d", height, width);
- *   else
- */
-	sprintf(dcraw_info, "%d %d", width, height);
+// The T4I sets this when not rotating.  The 5D series sets it when rotating.
+    if (flip & 4) 
+   		sprintf(dcraw_info, "%d %d", height, width);
+ 	else
+ 		sprintf(dcraw_info, "%d %d", width, height);
 }
 
 #ifndef NO_LCMS
