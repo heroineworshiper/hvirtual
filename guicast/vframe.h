@@ -338,6 +338,7 @@ public:
 	void draw_line(int x1, int y1, int x2, int y2);
 	void draw_pixel(int x, int y);
 	void draw_arrow(int x1, int y1, int x2, int y2);
+	void draw_oval(int x1, int y1, int x2, int y2);
 
 
 

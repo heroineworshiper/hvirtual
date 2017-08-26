@@ -156,8 +156,10 @@ public:
 // center of 2 eyes
 	float center_x;
 	float center_y;
-// distance between 2 eyes
-	float distance;
+// X distance between 2 eyes
+	float distance_x;
+// Y offset between 2 eyes
+	float distance_y;
 	int draw_guides;
 	int mode;
 	enum

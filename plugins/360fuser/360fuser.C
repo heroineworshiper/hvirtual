@@ -43,7 +43,8 @@ Fuse360Config::Fuse360Config()
 	fov = 1.0;
 	aspect = 1.0;
 	radius = 0.5;
-	distance = 50;
+	distance_x = 50;
+	distance_y = 0;
 	feather = 0;
 	mode = Fuse360Config::DO_NOTHING;
 	center_x = 50.0;
@@ -56,7 +57,8 @@ int Fuse360Config::equivalent(Fuse360Config &that)
 	if(EQUIV(fov, that.fov) &&
 		EQUIV(aspect, that.aspect) &&
 		EQUIV(feather, that.feather) && 
-		EQUIV(distance, that.distance) &&
+		EQUIV(distance_x, that.distance_x) &&
+		EQUIV(distance_y, that.distance_y) &&
 		EQUIV(radius, that.radius) &&
 		EQUIV(center_x, that.center_x) &&
 		EQUIV(center_y, that.center_y) &&
@@ -87,7 +89,8 @@ void Fuse360Config::interpolate(Fuse360Config &prev,
 
 	fov = prev.fov * prev_scale + next.fov * next_scale;
 	aspect = prev.aspect * prev_scale + next.aspect * next_scale;
-	distance = prev.distance * prev_scale + next.distance * next_scale;
+	distance_x = prev.distance_x * prev_scale + next.distance_x * next_scale;
+	distance_y = prev.distance_y * prev_scale + next.distance_y * next_scale;
 	feather = prev.feather * prev_scale + next.feather * next_scale;
 	radius = prev.radius * prev_scale + next.radius * next_scale;
 	center_x = prev.center_x * prev_scale + next.center_x * next_scale;
@@ -105,7 +108,8 @@ void Fuse360Config::boundaries()
 	CLAMP(fov, 0.0, 1.0);
 	CLAMP(aspect, 0.3, 3.0);
 	CLAMP(radius, 0.3, 3.0);
-	CLAMP(distance, 0.0, 100.0);
+	CLAMP(distance_x, 0.0, 100.0);
+	CLAMP(distance_y, 0.0, 100.0);
 }
 
 
@@ -431,7 +435,7 @@ void Fuse360GUI::create_objects()
 	add_tool(distance_slider = new Fuse360Slider(client, 
 		this,
 		0,
-		&client->config.distance, 
+		&client->config.distance_x, 
 		x, 
 		y, 
 		0.0,
@@ -440,7 +444,7 @@ void Fuse360GUI::create_objects()
 	add_tool(distance_text = new Fuse360Text(client, 
 		this,
 		distance_slider,
-		&client->config.distance, 
+		&client->config.distance_x, 
 		x1, 
 		y));
 	distance_slider->text = distance_text;
@@ -523,8 +527,8 @@ void Fuse360Main::update_gui()
 			((Fuse360GUI*)thread->window)->centerx_text->update(config.center_x);
 			((Fuse360GUI*)thread->window)->centery_slider->update(config.center_y);
 			((Fuse360GUI*)thread->window)->centery_text->update(config.center_y);
-			((Fuse360GUI*)thread->window)->distance_slider->update(config.distance);
-			((Fuse360GUI*)thread->window)->distance_text->update(config.distance);
+			((Fuse360GUI*)thread->window)->distance_slider->update(config.distance_x);
+			((Fuse360GUI*)thread->window)->distance_text->update(config.distance_x);
 			((Fuse360GUI*)thread->window)->mode->update(config.mode);
 			((Fuse360GUI*)thread->window)->draw_guides->update(config.draw_guides);
 			((Fuse360GUI*)thread->window)->unlock_window();
@@ -550,7 +554,8 @@ void Fuse360Main::save_data(KeyFrame *keyframe)
 	output.tag.set_property("CENTER_X", config.center_x);
 	output.tag.set_property("CENTER_Y", config.center_y);
 	output.tag.set_property("DRAW_GUIDES", config.draw_guides);
-	output.tag.set_property("DISTANCE", config.distance);
+	output.tag.set_property("DISTANCE_X", config.distance_x);
+	output.tag.set_property("DISTANCE_Y", config.distance_y);
 	output.append_tag();
 	output.terminate_string();
 
@@ -582,7 +587,8 @@ void Fuse360Main::read_data(KeyFrame *keyframe)
 				config.center_x = input.tag.get_property("CENTER_X", config.center_x);
 				config.center_y = input.tag.get_property("CENTER_Y", config.center_y);
 				config.draw_guides = input.tag.get_property("DRAW_GUIDES", config.draw_guides);
-				config.distance = input.tag.get_property("DISTANCE", config.distance);
+				config.distance_x = input.tag.get_property("DISTANCE_X", config.distance_x);
+				config.distance_y = input.tag.get_property("DISTANCE_Y", config.distance_y);
 			}
 		}
 	}
@@ -624,62 +630,31 @@ int Fuse360Main::process_buffer(VFrame *frame,
 // Draw center
 #define CENTER_H 20
 #define CENTER_W 20
-#define DRAW_GUIDES(components, type, max) \
-{ \
-type **rows = (type**)get_output()->get_rows(); \
-if(center_x >= 0 && center_x < w || \
-	center_y >= 0 && center_y < h) \
-{ \
-	type *hrow = rows[center_y] + components * (center_x - CENTER_W / 2); \
-	for(int i = center_x - CENTER_W / 2; i <= center_x + CENTER_W / 2; i++) \
-	{ \
-		if(i >= 0 && i < w) \
-		{ \
-			hrow[0] = max - hrow[0]; \
-			hrow[1] = max - hrow[1]; \
-			hrow[2] = max - hrow[2]; \
-			hrow += components; \
-		} \
-	} \
-\
-	for(int i = center_y - CENTER_W / 2; i <= center_y + CENTER_W / 2; i++) \
-	{ \
-		if(i >= 0 && i < h) \
-		{ \
-			type *vrow = rows[i] + center_x * components; \
-			vrow[0] = max - vrow[0]; \
-			vrow[1] = max - vrow[1]; \
-			vrow[2] = max - vrow[2]; \
-		} \
-	} \
-} \
-}
+
 
 		int w = get_output()->get_w();
 		int h = get_output()->get_h();
 		int center_x = (int)(config.center_x * w / 100);
 		int center_y = (int)(config.center_y * h / 100);
-		switch(get_output()->get_color_model())
-		{
-			case BC_RGB_FLOAT:
-				DRAW_GUIDES(3, float, 1.0)
-				break;
-			case BC_RGBA_FLOAT:
-				DRAW_GUIDES(4, float, 1.0)
-				break;
-			case BC_RGB888:
-				DRAW_GUIDES(3, unsigned char, 0xff)
-				break;
-			case BC_RGBA8888:
-				DRAW_GUIDES(4, unsigned char, 0xff)
-				break;
-			case BC_YUV888:
-				DRAW_GUIDES(3, unsigned char, 0xff)
-				break;
-			case BC_YUVA8888:
-				DRAW_GUIDES(4, unsigned char, 0xff)
-				break;
-		}
+		int center_x1 = (int)((config.center_x - config.distance_x / 2) * w / 100);
+		int center_y1 = (int)((config.center_y - config.distance_y) * h / 100);
+		int center_x2 = (int)((config.center_x + config.distance_x / 2) * w / 100);
+		int center_y2 = (int)((config.center_y + config.distance_y) * h / 100);
+		int radius = (int)(config.radius * h);
+
+		get_output()->draw_line(center_x, 0, center_x, h);
+
+// draw lenses
+		get_output()->draw_oval(center_x1 - radius * config.aspect, 
+			center_y1 - radius / config.aspect, 
+			center_x1 + radius * config.aspect, 
+			center_y1 + radius / config.aspect);
+// 		get_output()->draw_oval(center_x2 - radius, 
+// 			center_y2 - radius, 
+// 			center_x2 + radius, 
+// 			center_y2 + radius);
+
+		
 
 	}
 

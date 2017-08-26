@@ -1499,6 +1499,8 @@ void VFrame::draw_pixel(int x, int y)
 }
 
 
+
+
 void VFrame::draw_line(int x1, int y1, int x2, int y2)
 {
 	int w = labs(x2 - x1);
@@ -1553,6 +1555,8 @@ void VFrame::draw_line(int x1, int y1, int x2, int y2)
 //printf("FindObjectMain::draw_line 2\n");
 }
 
+
+
 void VFrame::draw_rect(int x1, int y1, int x2, int y2)
 {
 	draw_line(x1, y1, x2, y1);
@@ -1560,6 +1564,61 @@ void VFrame::draw_rect(int x1, int y1, int x2, int y2)
 	draw_line(x2 - 1, y2, x1, y2);
 	draw_line(x1, y2 - 1, x1, y1 + 1);
 }
+
+
+
+void VFrame::draw_oval(int x1, int y1, int x2, int y2)
+{
+	int w = x2 - x1;
+	int h = y2 - y1;
+	int center_x = (x2 + x1) / 2;
+	int center_y = (y2 + y1) / 2;
+	int x_table[h / 2];
+
+printf("VFrame::draw_oval %d %d %d %d %d\n", __LINE__, x1, y1, x2, y2);
+
+	for(int i = 0; i < h / 2; i++)
+	{
+// A^2 = -(B^2) + C^2
+		x_table[i] = (int)(sqrt(-SQR(h / 2 - i) + SQR(h / 2)) * w / h);
+//printf("VFrame::draw_oval %d i=%d x=%d\n", __LINE__, i, x_table[i]);
+	}
+
+	for(int i = 0; i < h / 2 - 1; i++)
+	{
+		int x3 = x_table[i];
+		int x4 = x_table[i + 1];
+
+		if(x4 > x3 + 1)
+		{
+			for(int j = x3; j < x4; j++)
+			{
+				draw_pixel(center_x + j, i);
+				draw_pixel(center_x - j, i);
+				draw_pixel(center_x + j, y2 - i - 1);
+				draw_pixel(center_x - j, y2 - i - 1);
+			}
+		}
+		else
+		{
+			draw_pixel(center_x + x3, i);
+			draw_pixel(center_x - x3, i);
+			draw_pixel(center_x + x3, y2 - i - 1);
+			draw_pixel(center_x - x3, y2 - i - 1);
+		}
+
+		
+		
+
+
+
+//		draw_line(x_table[i - 1], i - 1, x_table[i], i);
+	}
+	
+	
+}
+
+
 
 #define ARROW_SIZE 10
 void VFrame::draw_arrow(int x1, int y1, int x2, int y2)
