@@ -23,6 +23,7 @@
 #define FUSE360_H
 
 
+#include "affine.inc"
 #include "bchash.inc"
 #include "guicast.h"
 #include "loadbalance.h"
@@ -125,10 +126,18 @@ public:
 	Fuse360Text *centerx_text;
 	Fuse360Slider *centery_slider;
 	Fuse360Text *centery_text;
-	Fuse360Slider *distance_slider;
-	Fuse360Text *distance_text;
+	Fuse360Slider *distancex_slider;
+	Fuse360Text *distancex_text;
+	Fuse360Slider *distancey_slider;
+	Fuse360Text *distancey_text;
+	Fuse360Slider *translatex_slider;
+	Fuse360Text *translatex_text;
+	Fuse360Slider *feather_slider;
+	Fuse360Text *feather_text;
+	Fuse360Slider *rotation_slider;
+	Fuse360Text *rotation_text;
+	
 	Fuse360Mode *mode;
-	Fuse360Toggle *reverse;
 	Fuse360Toggle *draw_guides;
 };
 
@@ -160,6 +169,9 @@ public:
 	float distance_x;
 // Y offset between 2 eyes
 	float distance_y;
+// translate output position
+	float translate_x;
+	float rotation;
 	int draw_guides;
 	int mode;
 	enum
@@ -192,8 +204,13 @@ class Fuse360Unit : public LoadClient
 public:
 	Fuse360Unit(Fuse360Engine *engine, Fuse360Main *plugin);
 	~Fuse360Unit();
+	
+	
 	void process_package(LoadPackage *package);
 	void process_stretch_xy(Fuse360Package *pkg);
+	void process_blend(Fuse360Package *pkg);
+	
+	
 	Fuse360Engine *engine;
 	Fuse360Main *plugin;
 };
@@ -225,8 +242,21 @@ public:
 	void update_gui();
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
+	void calculate_extents();
 	
+	int w;
+	int h;
+	int center_x;
+	int center_y;
+	int center_x1;
+	int center_y1;
+	int center_x2;
+	int center_y2;
+	int radius_x;
+	int radius_y;
+
 	Fuse360Engine *engine;
+	AffineEngine *affine;
 };
 
 

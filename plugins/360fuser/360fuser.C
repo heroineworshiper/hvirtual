@@ -19,6 +19,7 @@
  * 
  */
 
+#include "affine.h"
 #include "bcdisplayinfo.h"
 #include "bchash.h"
 #include "bcsignals.h"
@@ -43,25 +44,29 @@ Fuse360Config::Fuse360Config()
 	fov = 1.0;
 	aspect = 1.0;
 	radius = 0.5;
+	center_x = 50.0;
+	center_y = 50.0;
 	distance_x = 50;
 	distance_y = 0;
 	feather = 0;
-	mode = Fuse360Config::DO_NOTHING;
-	center_x = 50.0;
-	center_y = 50.0;
+	translate_x = 0;
+	rotation = 0;
 	draw_guides = 1;
+	mode = Fuse360Config::DO_NOTHING;
 }
 
 int Fuse360Config::equivalent(Fuse360Config &that)
 {
 	if(EQUIV(fov, that.fov) &&
 		EQUIV(aspect, that.aspect) &&
-		EQUIV(feather, that.feather) && 
-		EQUIV(distance_x, that.distance_x) &&
-		EQUIV(distance_y, that.distance_y) &&
 		EQUIV(radius, that.radius) &&
+		EQUIV(feather, that.feather) && 
 		EQUIV(center_x, that.center_x) &&
 		EQUIV(center_y, that.center_y) &&
+		EQUIV(distance_x, that.distance_x) &&
+		EQUIV(distance_y, that.distance_y) &&
+		EQUIV(translate_x, that.translate_x) &&
+		EQUIV(rotation, that.rotation) &&
 		mode == that.mode &&
 		draw_guides == that.draw_guides)
 	{
@@ -89,27 +94,32 @@ void Fuse360Config::interpolate(Fuse360Config &prev,
 
 	fov = prev.fov * prev_scale + next.fov * next_scale;
 	aspect = prev.aspect * prev_scale + next.aspect * next_scale;
-	distance_x = prev.distance_x * prev_scale + next.distance_x * next_scale;
-	distance_y = prev.distance_y * prev_scale + next.distance_y * next_scale;
-	feather = prev.feather * prev_scale + next.feather * next_scale;
 	radius = prev.radius * prev_scale + next.radius * next_scale;
+	feather = prev.feather * prev_scale + next.feather * next_scale;
 	center_x = prev.center_x * prev_scale + next.center_x * next_scale;
 	center_y = prev.center_y * prev_scale + next.center_y * next_scale;
-	mode = prev.mode;
+	distance_x = prev.distance_x * prev_scale + next.distance_x * next_scale;
+	distance_y = prev.distance_y * prev_scale + next.distance_y * next_scale;
+	rotation = prev.rotation * prev_scale + next.rotation * next_scale;
+	translate_x = prev.translate_x * prev_scale + next.translate_x * next_scale;
 	draw_guides = prev.draw_guides;
+	mode = prev.mode;
 
 	boundaries();
 }
 
 void Fuse360Config::boundaries()
 {
+	CLAMP(fov, 0.0, 1.0);
+	CLAMP(aspect, 0.5, 2.0);
+	CLAMP(radius, 0.3, 1.0);
+	CLAMP(feather, 0, 50);
 	CLAMP(center_x, 0.0, 99.0);
 	CLAMP(center_y, 0.0, 99.0);
-	CLAMP(fov, 0.0, 1.0);
-	CLAMP(aspect, 0.3, 3.0);
-	CLAMP(radius, 0.3, 3.0);
 	CLAMP(distance_x, 0.0, 100.0);
-	CLAMP(distance_y, 0.0, 100.0);
+	CLAMP(distance_y, -50.0, 50.0);
+	CLAMP(translate_x, -100, 100);
+	CLAMP(rotation, -180, 180);
 }
 
 
@@ -295,9 +305,9 @@ const char* Fuse360Mode::to_text(int mode)
 Fuse360GUI::Fuse360GUI(Fuse360Main *client)
  : PluginClientWindow(client,
 	350, 
-	510, 
+	650, 
 	350, 
-	510, 
+	650, 
 	0)
 {
 	this->client = client;
@@ -350,8 +360,8 @@ void Fuse360GUI::create_objects()
 		&client->config.aspect, 
 		x, 
 		y, 
-		0.333,
-		3.0));
+		0.5,
+		2.0));
 	x1 = x + aspect_slider->get_w() + margin;
 	add_tool(aspect_text = new Fuse360Text(client, 
 		this,
@@ -371,8 +381,8 @@ void Fuse360GUI::create_objects()
 		&client->config.radius, 
 		x, 
 		y, 
-		0.333,
-		3.0));
+		0.3,
+		1.0));
 	x1 = x + radius_slider->get_w() + margin;
 	add_tool(radius_text = new Fuse360Text(client, 
 		this,
@@ -402,7 +412,7 @@ void Fuse360GUI::create_objects()
 		x1, 
 		y));
 	centerx_slider->text = centerx_text;
-	centerx_slider->set_precision(1.0);
+	centerx_slider->set_precision(0.1);
 	y += centerx_text->get_h() + margin;
 
 
@@ -424,15 +434,15 @@ void Fuse360GUI::create_objects()
 		x1, 
 		y));
 	centery_slider->text = centery_text;
-	centery_slider->set_precision(1.0);
+	centery_slider->set_precision(0.1);
 	y += centery_text->get_h() + margin;
 
 
 
 
-	add_tool(title = new BC_Title(x, y, _("Eye Spacing:")));
+	add_tool(title = new BC_Title(x, y, _("X Eye Spacing:")));
 	y += title->get_h() + 5;
-	add_tool(distance_slider = new Fuse360Slider(client, 
+	add_tool(distancex_slider = new Fuse360Slider(client, 
 		this,
 		0,
 		&client->config.distance_x, 
@@ -440,31 +450,130 @@ void Fuse360GUI::create_objects()
 		y, 
 		0.0,
 		100.0));
-	x1 = x + distance_slider->get_w() + margin;
-	add_tool(distance_text = new Fuse360Text(client, 
+	x1 = x + distancex_slider->get_w() + margin;
+	add_tool(distancex_text = new Fuse360Text(client, 
 		this,
-		distance_slider,
+		distancex_slider,
 		&client->config.distance_x, 
 		x1, 
 		y));
-	distance_slider->text = distance_text;
-	distance_slider->set_precision(1.0);
-	y += distance_text->get_h() + margin;
+	distancex_slider->text = distancex_text;
+	distancex_slider->set_precision(0.1);
+	y += distancex_text->get_h() + margin;
+
+
+
+
+
+
+
+	add_tool(title = new BC_Title(x, y, _("Y Eye Spacing:")));
+	y += title->get_h() + 5;
+	add_tool(distancey_slider = new Fuse360Slider(client, 
+		this,
+		0,
+		&client->config.distance_y, 
+		x, 
+		y, 
+		-50,
+		50));
+	x1 = x + distancey_slider->get_w() + margin;
+	add_tool(distancey_text = new Fuse360Text(client, 
+		this,
+		distancey_slider,
+		&client->config.distance_y, 
+		x1, 
+		y));
+	distancey_slider->text = distancey_text;
+	distancey_slider->set_precision(0.1);
+	y += distancey_text->get_h() + margin;
+
+
+
+
+
+
+	add_tool(title = new BC_Title(x, y, _("X Translation:")));
+	y += title->get_h() + 5;
+	add_tool(translatex_slider = new Fuse360Slider(client, 
+		this,
+		0,
+		&client->config.translate_x, 
+		x, 
+		y, 
+		-50.0,
+		50.0));
+	x1 = x + translatex_slider->get_w() + margin;
+	add_tool(translatex_text = new Fuse360Text(client, 
+		this,
+		translatex_slider,
+		&client->config.translate_x, 
+		x1, 
+		y));
+	translatex_slider->text = translatex_text;
+	translatex_slider->set_precision(0.1);
+	y += translatex_text->get_h() + margin;
+
+
+
+
+
+
+	add_tool(title = new BC_Title(x, y, _("Feather:")));
+	y += title->get_h() + 5;
+	add_tool(feather_slider = new Fuse360Slider(client, 
+		this,
+		0,
+		&client->config.feather, 
+		x, 
+		y, 
+		0,
+		50));
+	x1 = x + feather_slider->get_w() + margin;
+	add_tool(feather_text = new Fuse360Text(client, 
+		this,
+		feather_slider,
+		&client->config.feather, 
+		x1, 
+		y));
+	feather_slider->text = feather_text;
+	feather_slider->set_precision(1);
+	y += feather_text->get_h() + margin;
+
+
+
+
+
+
+	add_tool(title = new BC_Title(x, y, _("Rotation:")));
+	y += title->get_h() + 5;
+	add_tool(rotation_slider = new Fuse360Slider(client, 
+		this,
+		0,
+		&client->config.rotation, 
+		x, 
+		y, 
+		-180,
+		180));
+	x1 = x + rotation_slider->get_w() + margin;
+	add_tool(rotation_text = new Fuse360Text(client, 
+		this,
+		rotation_slider,
+		&client->config.rotation, 
+		x1, 
+		y));
+	rotation_slider->text = rotation_text;
+	rotation_slider->set_precision(0.1);
+	y += rotation_text->get_h() + margin;
+
+
+
+
+
+
 
 //printf("Fuse360GUI::create_objects %d %f\n", __LINE__, client->config.distance);
 
-
-// 	BC_Bar *bar;
-// 	add_tool(bar = new BC_Bar(x, y, get_w() - x * 2));
-// 	y += bar->get_h() + margin;
-
-
-// 	add_tool(reverse = new Fuse360Toggle(client, 
-// 		&client->config.reverse, 
-// 		x, 
-// 		y,
-// 		_("Reverse")));
-// 	y += reverse->get_h() + 5;
 
 	add_tool(draw_guides = new Fuse360Toggle(client, 
 		&client->config.draw_guides, 
@@ -498,11 +607,13 @@ Fuse360Main::Fuse360Main(PluginServer *server)
  : PluginVClient(server)
 {
 	engine = 0;
+	affine = 0;
 }
 
 Fuse360Main::~Fuse360Main()
 {
 	delete engine;
+	delete affine;
 }
 
 NEW_WINDOW_MACRO(Fuse360Main, Fuse360GUI)
@@ -527,8 +638,16 @@ void Fuse360Main::update_gui()
 			((Fuse360GUI*)thread->window)->centerx_text->update(config.center_x);
 			((Fuse360GUI*)thread->window)->centery_slider->update(config.center_y);
 			((Fuse360GUI*)thread->window)->centery_text->update(config.center_y);
-			((Fuse360GUI*)thread->window)->distance_slider->update(config.distance_x);
-			((Fuse360GUI*)thread->window)->distance_text->update(config.distance_x);
+			((Fuse360GUI*)thread->window)->distancex_slider->update(config.distance_x);
+			((Fuse360GUI*)thread->window)->distancex_text->update(config.distance_x);
+			((Fuse360GUI*)thread->window)->distancey_slider->update(config.distance_y);
+			((Fuse360GUI*)thread->window)->distancey_text->update(config.distance_y);
+			((Fuse360GUI*)thread->window)->translatex_slider->update(config.translate_x);
+			((Fuse360GUI*)thread->window)->translatex_text->update(config.translate_x);
+			((Fuse360GUI*)thread->window)->feather_slider->update(config.feather);
+			((Fuse360GUI*)thread->window)->feather_text->update(config.feather);
+			((Fuse360GUI*)thread->window)->rotation_slider->update(config.rotation);
+			((Fuse360GUI*)thread->window)->rotation_text->update(config.rotation);
 			((Fuse360GUI*)thread->window)->mode->update(config.mode);
 			((Fuse360GUI*)thread->window)->draw_guides->update(config.draw_guides);
 			((Fuse360GUI*)thread->window)->unlock_window();
@@ -550,12 +669,15 @@ void Fuse360Main::save_data(KeyFrame *keyframe)
 	output.tag.set_property("FOCAL_LENGTH", config.fov);
 	output.tag.set_property("ASPECT", config.aspect);
 	output.tag.set_property("RADIUS", config.radius);
-	output.tag.set_property("MODE", config.mode);
+	output.tag.set_property("FEATHER", config.feather);
 	output.tag.set_property("CENTER_X", config.center_x);
 	output.tag.set_property("CENTER_Y", config.center_y);
-	output.tag.set_property("DRAW_GUIDES", config.draw_guides);
 	output.tag.set_property("DISTANCE_X", config.distance_x);
 	output.tag.set_property("DISTANCE_Y", config.distance_y);
+	output.tag.set_property("TRANSLATE_X", config.translate_x);
+	output.tag.set_property("ROTATION", config.rotation);
+	output.tag.set_property("DRAW_GUIDES", config.draw_guides);
+	output.tag.set_property("MODE", config.mode);
 	output.append_tag();
 	output.terminate_string();
 
@@ -583,12 +705,15 @@ void Fuse360Main::read_data(KeyFrame *keyframe)
 				config.fov = input.tag.get_property("FOCAL_LENGTH", config.fov);
 				config.aspect = input.tag.get_property("ASPECT", config.aspect);
 				config.radius = input.tag.get_property("RADIUS", config.radius);
-				config.mode = input.tag.get_property("MODE", config.mode);
+				config.feather = input.tag.get_property("FEATHER", config.feather);
 				config.center_x = input.tag.get_property("CENTER_X", config.center_x);
 				config.center_y = input.tag.get_property("CENTER_Y", config.center_y);
-				config.draw_guides = input.tag.get_property("DRAW_GUIDES", config.draw_guides);
 				config.distance_x = input.tag.get_property("DISTANCE_X", config.distance_x);
 				config.distance_y = input.tag.get_property("DISTANCE_Y", config.distance_y);
+				config.translate_x = input.tag.get_property("TRANSLATE_X", config.translate_x);
+				config.rotation = input.tag.get_property("ROTATION", config.rotation);
+				config.draw_guides = input.tag.get_property("DRAW_GUIDES", config.draw_guides);
+				config.mode = input.tag.get_property("MODE", config.mode);
 			}
 		}
 	}
@@ -600,10 +725,9 @@ int Fuse360Main::process_buffer(VFrame *frame,
 	int64_t start_position,
 	double frame_rate)
 {
-	VFrame *input;
 	load_configuration();
 	
-	input = new_temp(frame->get_w(), frame->get_h(), frame->get_color_model());
+	VFrame *input = new_temp(frame->get_w(), frame->get_h(), frame->get_color_model());
 	
 	read_frame(input, 
 		0, 
@@ -611,13 +735,59 @@ int Fuse360Main::process_buffer(VFrame *frame,
 		frame_rate,
 		0); // use opengl
 
+	calculate_extents();
+
+// always rotate it
+	if(!EQUIV(config.rotation, 0))
+	{
+printf("Fuse360Main::process_buffer %d\n", __LINE__);
+		int center_x = w / 2;
+		int center_y = h / 2;
+		int center_x1 = w / 4;
+		int center_y1 = h / 2;
+		int center_x2 = w * 3 / 4;
+		int center_y2 = h / 2;
+		int radius_x = 0;
+		int radius_y = 0;
+
+		if(config.aspect > 1)
+		{
+			radius_x = config.radius * h;
+			radius_y = radius_x / config.aspect;
+		}
+		else
+		{
+			radius_y = config.radius * h;
+			radius_x = radius_y * config.aspect;
+		}
+
+		if(!affine) affine = new AffineEngine(PluginClient::smp + 1, 
+			PluginClient::smp + 1);
+		affine->set_in_pivot(center_x1, center_y1);
+		affine->set_in_viewport(0, 0, center_x, h);
+		affine->set_out_viewport(0, 0, center_x, h);
+		affine->rotate(get_output(),
+			input, 
+			config.rotation);
+
+		affine->set_in_pivot(center_x2, center_y2);
+		affine->set_in_viewport(center_x, 0, w - center_x, h);
+		affine->set_out_viewport(center_x, 0, w - center_x, h);
+		affine->rotate(get_output(),
+			input, 
+			-config.rotation);
+
+		input->copy_from(get_output());
+		get_output()->clear_frame();
+
+	}
+
 	if(config.mode == Fuse360Config::DO_NOTHING)
 	{
 		get_output()->copy_from(input);
 	}
 	else
 	{
-	
 
 		if(!engine) engine = new Fuse360Engine(this);
 		engine->process_packages();
@@ -627,32 +797,18 @@ int Fuse360Main::process_buffer(VFrame *frame,
 
 	if(config.draw_guides)
 	{
-// Draw center
-#define CENTER_H 20
-#define CENTER_W 20
-
-
-		int w = get_output()->get_w();
-		int h = get_output()->get_h();
-		int center_x = (int)(config.center_x * w / 100);
-		int center_y = (int)(config.center_y * h / 100);
-		int center_x1 = (int)((config.center_x - config.distance_x / 2) * w / 100);
-		int center_y1 = (int)((config.center_y - config.distance_y) * h / 100);
-		int center_x2 = (int)((config.center_x + config.distance_x / 2) * w / 100);
-		int center_y2 = (int)((config.center_y + config.distance_y) * h / 100);
-		int radius = (int)(config.radius * h);
 
 		get_output()->draw_line(center_x, 0, center_x, h);
 
 // draw lenses
-		get_output()->draw_oval(center_x1 - radius * config.aspect, 
-			center_y1 - radius / config.aspect, 
-			center_x1 + radius * config.aspect, 
-			center_y1 + radius / config.aspect);
-// 		get_output()->draw_oval(center_x2 - radius, 
-// 			center_y2 - radius, 
-// 			center_x2 + radius, 
-// 			center_y2 + radius);
+		get_output()->draw_oval(center_x1 - radius_x, 
+			center_y1 - radius_y, 
+			center_x1 + radius_x, 
+			center_y1 + radius_y);
+		get_output()->draw_oval(center_x2 - radius_x, 
+			center_y2 - radius_y, 
+			center_x2 + radius_x, 
+			center_y2 + radius_y);
 
 		
 
@@ -662,6 +818,30 @@ int Fuse360Main::process_buffer(VFrame *frame,
 }
 
 
+void Fuse360Main::calculate_extents()
+{
+	w = get_output()->get_w();
+	h = get_output()->get_h();
+	center_x = (int)(config.center_x * w / 100);
+	center_y = (int)(config.center_y * h / 100);
+	center_x1 = (int)((config.center_x - config.distance_x / 2) * w / 100);
+	center_y1 = (int)((config.center_y - config.distance_y) * h / 100);
+	center_x2 = (int)((config.center_x + config.distance_x / 2) * w / 100);
+	center_y2 = (int)((config.center_y + config.distance_y) * h / 100);
+	radius_x = 0;
+	radius_y = 0;
+
+	if(config.aspect > 1)
+	{
+		radius_x = config.radius * h;
+		radius_y = radius_x / config.aspect;
+	}
+	else
+	{
+		radius_y = config.radius * h;
+		radius_x = radius_y * config.aspect;
+	}
+}
 
 
 
@@ -680,29 +860,83 @@ Fuse360Unit::Fuse360Unit(Fuse360Engine *engine, Fuse360Main *plugin)
 	this->plugin = plugin;
 }
 
+
 Fuse360Unit::~Fuse360Unit()
 {
 }
 
 
 
+void Fuse360Unit::process_blend(Fuse360Package *pkg)
+{
+	VFrame *input = plugin->get_temp();
+	VFrame *output = plugins->get_output();
+
+	int row1 = pkg->row1;
+ 	int row2 = pkg->row2;
+	int width = input->get_w();
+	int height = input->get_h();
+
+#define PROCESS_BLEND(type, components, chroma) \
+{ \
+	type **in_rows = (type**)input->get_rows(); \
+	type **out_rows = (type**)output->get_rows(); \
+	type black[4] = { 0, chroma, chroma, 0 }; \
+ \
+	for(int y = row1; y < row2; y++) \
+	{ \
+		type *out_row = out_rows[y]; \
+		type *in_row = in_rows[y]; \
+ \
+		for(int x = 0; x < width; x++) \
+		{ \
+		} \
+	} \
+ \
+ 	type *out_pixel = out_rows[(int)center_y] + (int)center_x * components; \
+ 	type *in_pixel = in_rows[(int)center_y] + (int)center_x * components; \
+	for(int c = 0; c < components; c++) \
+	{ \
+		*out_pixel++ = *in_pixel++; \
+	} \
+}
+
+
+	switch(plugin->get_input()->get_color_model())
+	{
+		case BC_RGB888:
+			PROCESS_BLEND(unsigned char, 3, 0x0);
+			break;
+		case BC_RGBA8888:
+			PROCESS_BLEND(unsigned char, 4, 0x0);
+			break;
+		case BC_RGB_FLOAT:
+			PROCESS_BLEND(float, 3, 0.0);
+			break;
+		case BC_RGBA_FLOAT:
+			PROCESS_BLEND(float, 4, 0.0);
+			break;
+		case BC_YUV888:
+			PROCESS_BLEND(unsigned char, 3, 0x80);
+			break;
+		case BC_YUVA8888:
+			PROCESS_BLEND(unsigned char, 4, 0x80);
+			break;
+	}
+	
+}
+
+
+
 void Fuse360Unit::process_stretch_xy(Fuse360Package *pkg)
 {
+	VFrame *input = plugin->get_temp();
+	VFrame *output = plugins->get_output();
+
 	float fov = plugin->config.fov;
 	float aspect = plugin->config.aspect;
 	int row1 = pkg->row1;
 	int row2 = pkg->row2;
-	double x_factor = aspect;
-	double y_factor = 1.0 / aspect;
-	if(x_factor < 1) x_factor = 1;
-	if(y_factor < 1) y_factor = 1;
-	int width = plugin->get_input()->get_w();
-	int height = plugin->get_input()->get_h();
-//	double dim = MAX(width, height) * plugin->config.radius;
-//	double max_z = dim * sqrt(2.0) / 2;
-	double max_z = sqrt(SQR(width) + SQR(height)) / 2;
-	double center_x = width * plugin->config.center_x / 100.0;
-	double center_y = height * plugin->config.center_y / 100.0;
 	double r = max_z / M_PI / (fov / 2.0);
 
 
@@ -810,11 +1044,12 @@ void Fuse360Unit::process_package(LoadPackage *package)
 	switch(plugin->config.mode)
 	{
 		case Fuse360Config::STRETCHXY:
-//			process_stretch_xy(pkg);
+			process_stretch_xy(pkg);
 			break;
 		case Fuse360Config::STRETCHY:
 			break;
 		case Fuse360Config::BLEND:
+			process_blend(pkg);
 			break;
 	}
 }

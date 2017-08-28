@@ -1593,28 +1593,28 @@ printf("VFrame::draw_oval %d %d %d %d %d\n", __LINE__, x1, y1, x2, y2);
 		{
 			for(int j = x3; j < x4; j++)
 			{
-				draw_pixel(center_x + j, i);
-				draw_pixel(center_x - j, i);
+				draw_pixel(center_x + j, y1 + i);
+				draw_pixel(center_x - j, y1 + i);
 				draw_pixel(center_x + j, y2 - i - 1);
 				draw_pixel(center_x - j, y2 - i - 1);
 			}
 		}
 		else
 		{
-			draw_pixel(center_x + x3, i);
-			draw_pixel(center_x - x3, i);
+			draw_pixel(center_x + x3, y1 + i);
+			draw_pixel(center_x - x3, y1 + i);
 			draw_pixel(center_x + x3, y2 - i - 1);
 			draw_pixel(center_x - x3, y2 - i - 1);
 		}
-
-		
-		
-
-
-
-//		draw_line(x_table[i - 1], i - 1, x_table[i], i);
 	}
 	
+	draw_pixel(center_x, y1);
+	draw_pixel(center_x, y2 - 1);
+ 	draw_pixel(x1, center_y);
+ 	draw_pixel(x2 - 1, center_y);
+ 	draw_pixel(x1, center_y - 1);
+ 	draw_pixel(x2 - 1, center_y - 1);
+
 	
 }
 
