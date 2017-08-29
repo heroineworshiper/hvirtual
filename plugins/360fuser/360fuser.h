@@ -209,7 +209,8 @@ public:
 	void process_package(LoadPackage *package);
 	void process_stretch_xy(Fuse360Package *pkg);
 	void process_blend(Fuse360Package *pkg);
-	
+	double calculate_max_z(double a, int r);
+
 	
 	Fuse360Engine *engine;
 	Fuse360Main *plugin;
@@ -243,7 +244,8 @@ public:
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
 	void calculate_extents();
-	
+	double calculate_max_z(double a, int r);
+
 	int w;
 	int h;
 	int center_x;

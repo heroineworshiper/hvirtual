@@ -870,7 +870,7 @@ Fuse360Unit::~Fuse360Unit()
 void Fuse360Unit::process_blend(Fuse360Package *pkg)
 {
 	VFrame *input = plugin->get_temp();
-	VFrame *output = plugins->get_output();
+	VFrame *output = plugin->get_output();
 
 	int row1 = pkg->row1;
  	int row2 = pkg->row2;
@@ -891,13 +891,6 @@ void Fuse360Unit::process_blend(Fuse360Package *pkg)
 		for(int x = 0; x < width; x++) \
 		{ \
 		} \
-	} \
- \
- 	type *out_pixel = out_rows[(int)center_y] + (int)center_x * components; \
- 	type *in_pixel = in_rows[(int)center_y] + (int)center_x * components; \
-	for(int c = 0; c < components; c++) \
-	{ \
-		*out_pixel++ = *in_pixel++; \
 	} \
 }
 
@@ -926,19 +919,51 @@ void Fuse360Unit::process_blend(Fuse360Package *pkg)
 	
 }
 
+double Fuse360Unit::calculate_max_z(double a, int r)
+{
+	if(a < M_PI / 4)
+	{
+		return r / cos(a); // bottom right edge
+	}
+	else
+	if(a < 3 * M_PI / 4)
+	{
+		return r / cos(M_PI / 2 - a); // bottom edge
+	}
+	else
+	if(a < 5 * M_PI / 4)
+	{
+		return r / cos(M_PI - a); // left edge
+	}
+	else
+	if(a < 7 * M_PI / 4)
+	{
+		return r / cos(3 * M_PI / 2 - a); // top edge
+	}
+	else
+	{
+		return r / cos(a); // top right edge
+	}
+}
+
 
 
 void Fuse360Unit::process_stretch_xy(Fuse360Package *pkg)
 {
 	VFrame *input = plugin->get_temp();
-	VFrame *output = plugins->get_output();
+	VFrame *output = plugin->get_output();
 
 	float fov = plugin->config.fov;
 	float aspect = plugin->config.aspect;
 	int row1 = pkg->row1;
 	int row2 = pkg->row2;
-	double r = max_z / M_PI / (fov / 2.0);
-
+	int center_x1 = plugin->center_x1;
+	int center_x2 = plugin->center_x2;
+	int center_y1 = plugin->center_y1;
+	int center_y2 = plugin->center_y2;
+	int center_x = plugin->center_x;
+	int center_y = plugin->center_y;
+	double radius = plugin->radius_x;
 
 
 #define PROCESS_STRETCH_XY(type, components, chroma) \
@@ -947,46 +972,32 @@ void Fuse360Unit::process_stretch_xy(Fuse360Package *pkg)
 	type **out_rows = (type**)plugin->get_input()->get_rows(); \
 	type black[4] = { 0, chroma, chroma, 0 }; \
  \
+/* left eye */ \
 	for(int y = row1; y < row2; y++) \
 	{ \
 		type *out_row = out_rows[y]; \
 		type *in_row = in_rows[y]; \
-		double y_diff = y - center_y; \
+		double y_diff = y - center_y1; \
  \
-		for(int x = 0; x < width; x++) \
+		for(int x = 0; x < center_x; x++) \
 		{ \
-			double x_diff = (x - center_x); \
-/* Compute magnitude */ \
-			double z = sqrt(x_diff * x_diff + \
-				y_diff * y_diff); \
-/* Compute angle */ \
-			double angle; \
-			if(x == center_x) \
-			{ \
-				if(y < center_y) \
-					angle = 3 * M_PI / 2; \
-				else \
-					angle = M_PI / 2; \
-			} \
-			else \
-			{ \
-				angle = atan(y_diff / x_diff); \
-			} \
-			if(x_diff < 0.0) angle += M_PI; \
+			double x_diff = (x - center_x1); \
+/* polar output coordinate */ \
+			double z = hypot(x_diff, y_diff); \
+			double a = atan2(y_diff, x_diff); \
+/* scale the magnitude to the radius */ \
+			double scaled_z = z * radius / calculate_max_z(a, radius); \
+/* xy input coordinate */ \
+			double x_in = scaled_z * cos(a) + center_x1; \
+			double y_in = scaled_z * sin(a) + center_y1; \
  \
-			for(int i = 0; i < components; i++) \
-			{ \
-/* Compute new radius */ \
-				double radius1 = (z / r) * 2 * plugin->config.radius; \
-				double z_in = r * atan(radius1) / (M_PI / 2); \
- \
-				double x_in = z_in * cos(angle) * x_factor + center_x; \
-				double y_in = z_in * sin(angle) * y_factor + center_y; \
- \
- 				if(x_in < 0.0 || x_in >= width - 1 || \
-					y_in < 0.0 || y_in >= height - 1) \
+ 				if(x_in < 0.0 || x_in >= plugin->w - 1 || \
+					y_in < 0.0 || y_in >= plugin->h - 1) \
 				{ \
-					*out_row++ = black[i]; \
+					*out_row++ = black[0]; \
+					*out_row++ = black[1]; \
+					*out_row++ = black[2]; \
+					if(components == 4) *out_row++ = black[3]; \
 				} \
 				else \
 				{ \
@@ -996,17 +1007,20 @@ void Fuse360Unit::process_stretch_xy(Fuse360Package *pkg)
 					float x2_fraction = 1.0 - x1_fraction; \
 					type *in_pixel1 = in_rows[(int)y_in] + (int)x_in * components; \
 					type *in_pixel2 = in_rows[(int)y_in + 1] + (int)x_in * components; \
-					*out_row++ = (type)(in_pixel1[i] * x2_fraction * y2_fraction + \
+					for(int i = 0; i < components; i++) \
+					{ \
+						*out_row++ = (type)(in_pixel1[i] * x2_fraction * y2_fraction + \
 								in_pixel2[i] * x2_fraction * y1_fraction + \
 								in_pixel1[i + components] * x1_fraction * y2_fraction + \
 								in_pixel2[i + components] * x1_fraction * y1_fraction); \
+					} \
 				} \
 			} \
 		} \
 	} \
  \
- 	type *out_pixel = out_rows[(int)center_y] + (int)center_x * components; \
- 	type *in_pixel = in_rows[(int)center_y] + (int)center_x * components; \
+ 	type *out_pixel = out_rows[(int)center_y1] + (int)center_x1 * components; \
+ 	type *in_pixel = in_rows[(int)center_y1] + (int)center_x1 * components; \
 	for(int c = 0; c < components; c++) \
 	{ \
 		*out_pixel++ = *in_pixel++; \
