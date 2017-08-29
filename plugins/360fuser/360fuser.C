@@ -991,29 +991,28 @@ void Fuse360Unit::process_stretch_xy(Fuse360Package *pkg)
 			double x_in = scaled_z * cos(a) + center_x1; \
 			double y_in = scaled_z * sin(a) + center_y1; \
  \
- 				if(x_in < 0.0 || x_in >= plugin->w - 1 || \
-					y_in < 0.0 || y_in >= plugin->h - 1) \
+ 			if(x_in < 0.0 || x_in >= plugin->w - 1 || \
+				y_in < 0.0 || y_in >= plugin->h - 1) \
+			{ \
+				*out_row++ = black[0]; \
+				*out_row++ = black[1]; \
+				*out_row++ = black[2]; \
+				if(components == 4) *out_row++ = black[3]; \
+			} \
+			else \
+			{ \
+				float y1_fraction = y_in - floor(y_in); \
+				float y2_fraction = 1.0 - y1_fraction; \
+				float x1_fraction = x_in - floor(x_in); \
+				float x2_fraction = 1.0 - x1_fraction; \
+				type *in_pixel1 = in_rows[(int)y_in] + (int)x_in * components; \
+				type *in_pixel2 = in_rows[(int)y_in + 1] + (int)x_in * components; \
+				for(int i = 0; i < components; i++) \
 				{ \
-					*out_row++ = black[0]; \
-					*out_row++ = black[1]; \
-					*out_row++ = black[2]; \
-					if(components == 4) *out_row++ = black[3]; \
-				} \
-				else \
-				{ \
-					float y1_fraction = y_in - floor(y_in); \
-					float y2_fraction = 1.0 - y1_fraction; \
-					float x1_fraction = x_in - floor(x_in); \
-					float x2_fraction = 1.0 - x1_fraction; \
-					type *in_pixel1 = in_rows[(int)y_in] + (int)x_in * components; \
-					type *in_pixel2 = in_rows[(int)y_in + 1] + (int)x_in * components; \
-					for(int i = 0; i < components; i++) \
-					{ \
-						*out_row++ = (type)(in_pixel1[i] * x2_fraction * y2_fraction + \
-								in_pixel2[i] * x2_fraction * y1_fraction + \
-								in_pixel1[i + components] * x1_fraction * y2_fraction + \
-								in_pixel2[i + components] * x1_fraction * y1_fraction); \
-					} \
+					*out_row++ = (type)(in_pixel1[i] * x2_fraction * y2_fraction + \
+							in_pixel2[i] * x2_fraction * y1_fraction + \
+							in_pixel1[i + components] * x1_fraction * y2_fraction + \
+							in_pixel2[i + components] * x1_fraction * y1_fraction); \
 				} \
 			} \
 		} \
