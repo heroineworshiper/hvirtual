@@ -180,8 +180,8 @@ public:
 		DO_NOTHING,
 // rectilinear
 		STRETCHXY,
-// 2 cylinders
-		STRETCHY,
+// the standard blend
+		STANDARD,
 // don't stretch eyes
 		BLEND
 	};
@@ -207,9 +207,10 @@ public:
 	
 	
 	void process_package(LoadPackage *package);
-	void process_stretch_xy(Fuse360Package *pkg);
+	void process_stretch(Fuse360Package *pkg);
 	void process_blend(Fuse360Package *pkg);
-	double calculate_max_z(double a, int r);
+	void process_standard(Fuse360Package *pkg);
+	double calculate_max_z(double a, double r);
 
 	
 	Fuse360Engine *engine;

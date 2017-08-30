@@ -235,7 +235,7 @@ void Fuse360Mode::create_objects()
 {
 	add_item(new BC_MenuItem(to_text(Fuse360Config::DO_NOTHING)));
 	add_item(new BC_MenuItem(to_text(Fuse360Config::STRETCHXY)));
-	add_item(new BC_MenuItem(to_text(Fuse360Config::STRETCHY)));
+	add_item(new BC_MenuItem(to_text(Fuse360Config::STANDARD)));
 	add_item(new BC_MenuItem(to_text(Fuse360Config::BLEND)));
 	update(plugin->config.mode);
 }
@@ -251,7 +251,7 @@ int Fuse360Mode::calculate_w(Fuse360GUI *gui)
 {
 	int result = 0;
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(Fuse360Config::STRETCHXY)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(Fuse360Config::STRETCHY)));
+	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(Fuse360Config::STANDARD)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(Fuse360Config::BLEND)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(Fuse360Config::DO_NOTHING)));
 	return result + 50;
@@ -278,10 +278,10 @@ const char* Fuse360Mode::to_text(int mode)
 			return "Do nothing";
 			break;
 		case Fuse360Config::STRETCHXY:
-			return "Stretch XY";
+			return "Stretch";
 			break;
-		case Fuse360Config::STRETCHY:
-			return "Stretch Y only";
+		case Fuse360Config::STANDARD:
+			return "Standard";
 			break;
 	}
 	return "Blend";
@@ -740,7 +740,6 @@ int Fuse360Main::process_buffer(VFrame *frame,
 // always rotate it
 	if(!EQUIV(config.rotation, 0))
 	{
-printf("Fuse360Main::process_buffer %d\n", __LINE__);
 		int center_x = w / 2;
 		int center_y = h / 2;
 		int center_x1 = w / 4;
@@ -919,8 +918,63 @@ void Fuse360Unit::process_blend(Fuse360Package *pkg)
 	
 }
 
-double Fuse360Unit::calculate_max_z(double a, int r)
+#define BLEND_PIXEL(type, components) \
+ 	if(x_in < 0.0 || x_in >= w - 1 || \
+		y_in < 0.0 || y_in >= h - 1) \
+	{ \
+		*out_row++ = black[0]; \
+		*out_row++ = black[1]; \
+		*out_row++ = black[2]; \
+		if(components == 4) *out_row++ = black[3]; \
+	} \
+	else \
+	{ \
+		float y1_fraction = y_in - floor(y_in); \
+		float y2_fraction = 1.0 - y1_fraction; \
+		float x1_fraction = x_in - floor(x_in); \
+		float x2_fraction = 1.0 - x1_fraction; \
+		type *in_pixel1 = in_rows[(int)y_in] + (int)x_in * components; \
+		type *in_pixel2 = in_rows[(int)y_in + 1] + (int)x_in * components; \
+		for(int i = 0; i < components; i++) \
+		{ \
+			*out_row++ = (type)(in_pixel1[i] * x2_fraction * y2_fraction + \
+				in_pixel2[i] * x2_fraction * y1_fraction + \
+				in_pixel1[i + components] * x1_fraction * y2_fraction + \
+				in_pixel2[i + components] * x1_fraction * y1_fraction); \
+		} \
+	} \
+
+
+
+
+#define PROCESS_SWITCH(function) \
+	switch(plugin->get_input()->get_color_model()) \
+	{ \
+		case BC_RGB888: \
+			function(unsigned char, 3, 0x0); \
+			break; \
+		case BC_RGBA8888: \
+			function(unsigned char, 4, 0x0); \
+			break; \
+		case BC_RGB_FLOAT: \
+			function(float, 3, 0.0); \
+			break; \
+		case BC_RGBA_FLOAT: \
+			function(float, 4, 0.0); \
+			break; \
+		case BC_YUV888: \
+			function(unsigned char, 3, 0x80); \
+			break; \
+		case BC_YUVA8888: \
+			function(unsigned char, 4, 0x80); \
+			break; \
+	}
+
+
+double Fuse360Unit::calculate_max_z(double a, double r)
 {
+	if(a < 0) a += 2 * M_PI;
+
 	if(a < M_PI / 4)
 	{
 		return r / cos(a); // bottom right edge
@@ -946,9 +1000,7 @@ double Fuse360Unit::calculate_max_z(double a, int r)
 	}
 }
 
-
-
-void Fuse360Unit::process_stretch_xy(Fuse360Package *pkg)
+void Fuse360Unit::process_stretch(Fuse360Package *pkg)
 {
 	VFrame *input = plugin->get_temp();
 	VFrame *output = plugin->get_output();
@@ -963,13 +1015,104 @@ void Fuse360Unit::process_stretch_xy(Fuse360Package *pkg)
 	int center_y2 = plugin->center_y2;
 	int center_x = plugin->center_x;
 	int center_y = plugin->center_y;
+	int w = plugin->w;
+	int h = plugin->h;
 	double radius = plugin->radius_x;
 
 
-#define PROCESS_STRETCH_XY(type, components, chroma) \
+#define PROCESS_STRETCH(type, components, chroma) \
 { \
-	type **in_rows = (type**)plugin->get_temp()->get_rows(); \
-	type **out_rows = (type**)plugin->get_input()->get_rows(); \
+	type **in_rows = (type**)input->get_rows(); \
+	type **out_rows = (type**)output->get_rows(); \
+	type black[4] = { 0, chroma, chroma, 0 }; \
+ \
+	for(int y = row1; y < row2; y++) \
+	{ \
+		type *out_row = out_rows[y]; \
+		type *in_row = in_rows[y]; \
+		double y_diff = y - center_y1; \
+ \
+/* left eye */ \
+		for(int x = 0; x < center_x; x++) \
+		{ \
+			double x_diff = x - center_x1; \
+/* polar output coordinate */ \
+			double z = hypot(x_diff, y_diff); \
+			double a = atan2(y_diff, x_diff); \
+ \
+/* scale the magnitude to the radius */ \
+			double scaled_z = z * radius / calculate_max_z(a, radius); \
+/* xy input coordinate */ \
+			double x_in = scaled_z * cos(a) + center_x1; \
+			double y_in = scaled_z * sin(a) + center_y1; \
+ \
+ 			if(x_in < center_x) \
+ 			{ \
+				BLEND_PIXEL(type, components) \
+			} \
+		} \
+	} \
+ \
+	for(int y = row1; y < row2; y++) \
+	{ \
+		type *out_row = out_rows[y] + center_x * components; \
+		type *in_row = in_rows[y]; \
+		double y_diff = y - center_y2; \
+ \
+/* right eye */ \
+		for(int x = center_x; x < w; x++) \
+		{ \
+			double x_diff = x - center_x2; \
+/* polar output coordinate */ \
+			double z = hypot(x_diff, y_diff); \
+			double a = atan2(y_diff, x_diff); \
+ \
+/* scale the magnitude to the radius */ \
+			double scaled_z = z * radius / calculate_max_z(a, radius); \
+/* xy input coordinate */ \
+			double x_in = scaled_z * cos(a) + center_x2; \
+			double y_in = scaled_z * sin(a) + center_y2; \
+ \
+ 			if(x_in >= center_x) \
+ 			{ \
+				BLEND_PIXEL(type, components) \
+			} \
+		} \
+	} \
+}
+
+
+
+	PROCESS_SWITCH(PROCESS_STRETCH)
+}
+
+
+
+
+void Fuse360Unit::process_standard(Fuse360Package *pkg)
+{
+	VFrame *input = plugin->get_temp();
+	VFrame *output = plugin->get_output();
+
+	float fov = plugin->config.fov;
+	float aspect = plugin->config.aspect;
+	int row1 = pkg->row1;
+	int row2 = pkg->row2;
+	int center_x1 = plugin->center_x1;
+	int center_x2 = plugin->center_x2;
+	int center_y1 = plugin->center_y1;
+	int center_y2 = plugin->center_y2;
+	int center_x = plugin->center_x;
+	int center_y = plugin->center_y;
+	int w = plugin->w;
+	int h = plugin->h;
+	double radius_y = plugin->radius_y;
+	
+
+#define PROCESS_STANDARD(type, components, chroma) \
+{ \
+	type **in_rows = (type**)input->get_rows(); \
+	type **out_rows = (type**)output->get_rows(); \
 	type black[4] = { 0, chroma, chroma, 0 }; \
  \
 /* left eye */ \
@@ -978,77 +1121,43 @@ void Fuse360Unit::process_stretch_xy(Fuse360Package *pkg)
 		type *out_row = out_rows[y]; \
 		type *in_row = in_rows[y]; \
 		double y_diff = y - center_y1; \
- \
-		for(int x = 0; x < center_x; x++) \
+		double x_scale = 1; \
+		if(fabs(y_diff) < radius_y) \
 		{ \
-			double x_diff = (x - center_x1); \
-/* polar output coordinate */ \
-			double z = hypot(x_diff, y_diff); \
-			double a = atan2(y_diff, x_diff); \
-/* scale the magnitude to the radius */ \
-			double scaled_z = z * radius / calculate_max_z(a, radius); \
-/* xy input coordinate */ \
-			double x_in = scaled_z * cos(a) + center_x1; \
-			double y_in = scaled_z * sin(a) + center_y1; \
+			x_scale = 1.0f / cos(fabs(y_diff) * M_PI / 2 / radius_y); \
+		} \
  \
- 			if(x_in < 0.0 || x_in >= plugin->w - 1 || \
-				y_in < 0.0 || y_in >= plugin->h - 1) \
+ 		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
+ \
+		for(int x = 0; x < w; x++) \
+		{ \
+/* xy input coordinate */ \
+			double x_in = 0; \
+			double y_in = 0; \
+			if(x < center_x2) \
 			{ \
-				*out_row++ = black[0]; \
-				*out_row++ = black[1]; \
-				*out_row++ = black[2]; \
-				if(components == 4) *out_row++ = black[3]; \
+				double x_diff = x - center_x1; \
+				x_in = x_diff / x_scale + center_x1; \
+				y_in = y; \
 			} \
 			else \
 			{ \
-				float y1_fraction = y_in - floor(y_in); \
-				float y2_fraction = 1.0 - y1_fraction; \
-				float x1_fraction = x_in - floor(x_in); \
-				float x2_fraction = 1.0 - x1_fraction; \
-				type *in_pixel1 = in_rows[(int)y_in] + (int)x_in * components; \
-				type *in_pixel2 = in_rows[(int)y_in + 1] + (int)x_in * components; \
-				for(int i = 0; i < components; i++) \
-				{ \
-					*out_row++ = (type)(in_pixel1[i] * x2_fraction * y2_fraction + \
-							in_pixel2[i] * x2_fraction * y1_fraction + \
-							in_pixel1[i + components] * x1_fraction * y2_fraction + \
-							in_pixel2[i + components] * x1_fraction * y1_fraction); \
-				} \
+				double x_diff = (x - w) - center_x1; \
+				x_in = ; \
+			} \
+ \
+ 			if(x_in < center_x) \
+			{ \
+ 				BLEND_PIXEL(type, components) \
 			} \
 		} \
 	} \
- \
- 	type *out_pixel = out_rows[(int)center_y1] + (int)center_x1 * components; \
- 	type *in_pixel = in_rows[(int)center_y1] + (int)center_x1 * components; \
-	for(int c = 0; c < components; c++) \
-	{ \
-		*out_pixel++ = *in_pixel++; \
-	} \
+}
+
+	PROCESS_SWITCH(PROCESS_STANDARD)
 }
 
 
-	switch(plugin->get_input()->get_color_model())
-	{
-		case BC_RGB888:
-			PROCESS_STRETCH_XY(unsigned char, 3, 0x0);
-			break;
-		case BC_RGBA8888:
-			PROCESS_STRETCH_XY(unsigned char, 4, 0x0);
-			break;
-		case BC_RGB_FLOAT:
-			PROCESS_STRETCH_XY(float, 3, 0.0);
-			break;
-		case BC_RGBA_FLOAT:
-			PROCESS_STRETCH_XY(float, 4, 0.0);
-			break;
-		case BC_YUV888:
-			PROCESS_STRETCH_XY(unsigned char, 3, 0x80);
-			break;
-		case BC_YUVA8888:
-			PROCESS_STRETCH_XY(unsigned char, 4, 0x80);
-			break;
-	}
-}
 
 void Fuse360Unit::process_package(LoadPackage *package)
 {
@@ -1057,9 +1166,10 @@ void Fuse360Unit::process_package(LoadPackage *package)
 	switch(plugin->config.mode)
 	{
 		case Fuse360Config::STRETCHXY:
-			process_stretch_xy(pkg);
+			process_stretch(pkg);
 			break;
-		case Fuse360Config::STRETCHY:
+		case Fuse360Config::STANDARD:
+			process_standard(pkg);
 			break;
 		case Fuse360Config::BLEND:
 			process_blend(pkg);
@@ -1072,8 +1182,8 @@ void Fuse360Unit::process_package(LoadPackage *package)
 
 
 Fuse360Engine::Fuse360Engine(Fuse360Main *plugin)
- : LoadServer(plugin->PluginClient::smp + 1, plugin->PluginClient::smp + 1)
-// : LoadServer(1, 1)
+// : LoadServer(plugin->PluginClient::smp + 1, plugin->PluginClient::smp + 1)
+ : LoadServer(1, 1)
 {
 	this->plugin = plugin;
 }
