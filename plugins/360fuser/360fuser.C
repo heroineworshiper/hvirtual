@@ -942,12 +942,12 @@ void Fuse360Unit::process_blend(Fuse360Package *pkg)
 				in_pixel1[i + components] * x1_fraction * y2_fraction + \
 				in_pixel2[i + components] * x1_fraction * y1_fraction); \
 		} \
-	} \
+	}
 
 
 
 
-#define PROCESS_SWITCH(function) \
+#define COLORSPACE_SWITCH(function) \
 	switch(plugin->get_input()->get_color_model()) \
 	{ \
 		case BC_RGB888: \
@@ -1083,7 +1083,7 @@ void Fuse360Unit::process_stretch(Fuse360Package *pkg)
 
 
 
-	PROCESS_SWITCH(PROCESS_STRETCH)
+	COLORSPACE_SWITCH(PROCESS_STRETCH)
 }
 
 
@@ -1132,29 +1132,35 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 		for(int x = 0; x < w; x++) \
 		{ \
 /* xy input coordinate */ \
-			double x_in = 0; \
-			double y_in = 0; \
+			double x_diff = 0; \
 			if(x < center_x2) \
 			{ \
-				double x_diff = x - center_x1; \
-				x_in = x_diff / x_scale + center_x1; \
-				y_in = y; \
+				x_diff = x - center_x1; \
 			} \
 			else \
 			{ \
-				double x_diff = (x - w) - center_x1; \
-				x_in = ; \
+				x_diff = (x - w) - center_x1; \
 			} \
+ \
+			double x_in = x_diff / x_scale + center_x1; \
+			double y_in = y; \
  \
  			if(x_in < center_x) \
 			{ \
  				BLEND_PIXEL(type, components) \
 			} \
+			else \
+			{ \
+				*out_row++ = black[0]; \
+				*out_row++ = black[1]; \
+				*out_row++ = black[2]; \
+				if(components == 4) *out_row++ = black[3]; \
+			} \
 		} \
 	} \
 }
 
-	PROCESS_SWITCH(PROCESS_STANDARD)
+	COLORSPACE_SWITCH(PROCESS_STANDARD)
 }
 
 
