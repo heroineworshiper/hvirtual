@@ -821,14 +821,17 @@ void Fuse360Main::calculate_extents()
 {
 	w = get_output()->get_w();
 	h = get_output()->get_h();
-	center_x = (int)(config.center_x * w / 100);
-	center_y = (int)(config.center_y * h / 100);
-	center_x1 = (int)((config.center_x - config.distance_x / 2) * w / 100);
-	center_y1 = (int)((config.center_y - config.distance_y) * h / 100);
-	center_x2 = (int)((config.center_x + config.distance_x / 2) * w / 100);
-	center_y2 = (int)((config.center_y + config.distance_y) * h / 100);
+	center_x = w / 2;
+	center_y = h / 2;
+	center_x1 = w * 1 / 4;
+	center_y1 = h / 2;
+	center_x2 = w * 3 / 4;
+	center_y2 = h / 2;
 	radius_x = 0;
 	radius_y = 0;
+	distance_x = (int)((config.distance_x - 50) * w / 100 / 2);
+	distance_y = (int)(config.distance_y * h / 100 / 2);
+	feather = (int)(config.feather * w / 100);
 
 	if(config.aspect > 1)
 	{
@@ -1107,6 +1110,9 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 	int w = plugin->w;
 	int h = plugin->h;
 	double radius_y = plugin->radius_y;
+	int distance_x = plugin->distance_x;
+	int distance_y = plugin->distance_y;
+	int feather = plugin->feather;
 	
 
 #define PROCESS_STANDARD(type, components, chroma) \
@@ -1129,33 +1135,39 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
  \
  		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
  \
-		for(int x = 0; x < w; x++) \
+		for(int x = 0; x < center_x; x++) \
 		{ \
 /* xy input coordinate */ \
-			double x_diff = 0; \
-			if(x < center_x2) \
-			{ \
-				x_diff = x - center_x1; \
-			} \
-			else \
-			{ \
-				x_diff = (x - w) - center_x1; \
-			} \
+			double x_diff = x - center_x1; \
+			double x_in = x_diff / x_scale + center_x1 + distance_x; \
+			double y_in = y + distance_y; \
  \
-			double x_in = x_diff / x_scale + center_x1; \
-			double y_in = y; \
+ 			BLEND_PIXEL(type, components) \
+		} \
+	} \
  \
- 			if(x_in < center_x) \
-			{ \
- 				BLEND_PIXEL(type, components) \
-			} \
-			else \
-			{ \
-				*out_row++ = black[0]; \
-				*out_row++ = black[1]; \
-				*out_row++ = black[2]; \
-				if(components == 4) *out_row++ = black[3]; \
-			} \
+/* right eye */ \
+	for(int y = row1; y < row2; y++) \
+	{ \
+		type *out_row = out_rows[y] + center_x * components; \
+		type *in_row = in_rows[y]; \
+		double y_diff = y - center_y1; \
+		double x_scale = 1; \
+		if(fabs(y_diff) < radius_y) \
+		{ \
+			x_scale = 1.0f / cos(fabs(y_diff) * M_PI / 2 / radius_y); \
+		} \
+ \
+ 		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
+ \
+		for(int x = center_x; x < w; x++) \
+		{ \
+/* xy input coordinate */ \
+			double x_diff = x - center_x2; \
+			double x_in = x_diff / x_scale + center_x2 - distance_x; \
+			double y_in = y - distance_y; \
+ \
+ 			BLEND_PIXEL(type, components) \
 		} \
 	} \
 }

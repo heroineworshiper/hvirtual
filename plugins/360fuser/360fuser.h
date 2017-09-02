@@ -257,6 +257,9 @@ public:
 	int center_y2;
 	int radius_x;
 	int radius_y;
+	int distance_x;
+	int distance_y;
+	int feather;
 
 	Fuse360Engine *engine;
 	AffineEngine *affine;
