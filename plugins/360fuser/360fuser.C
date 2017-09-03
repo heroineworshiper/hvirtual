@@ -809,6 +809,9 @@ int Fuse360Main::process_buffer(VFrame *frame,
 			center_x2 + radius_x, 
 			center_y2 + radius_y);
 
+// draw feather
+		get_output()->draw_line(feather_x1, 0, feather_x1, h);
+		get_output()->draw_line(feather_x2, 0, feather_x2, h);
 		
 
 	}
@@ -832,6 +835,8 @@ void Fuse360Main::calculate_extents()
 	distance_x = (int)((config.distance_x - 50) * w / 100 / 2);
 	distance_y = (int)(config.distance_y * h / 100 / 2);
 	feather = (int)(config.feather * w / 100);
+ 	feather_x1 = center_x - (int)(config.feather * w / 100 / 2);
+	feather_x2 = center_x + (int)(config.feather * w / 100 / 2);
 
 	if(config.aspect > 1)
 	{
@@ -921,6 +926,7 @@ void Fuse360Unit::process_blend(Fuse360Package *pkg)
 	
 }
 
+// interpolate 1 eye
 #define BLEND_PIXEL(type, components) \
  	if(x_in < 0.0 || x_in >= w - 1 || \
 		y_in < 0.0 || y_in >= h - 1) \
@@ -946,6 +952,71 @@ void Fuse360Unit::process_blend(Fuse360Package *pkg)
 				in_pixel2[i + components] * x1_fraction * y1_fraction); \
 		} \
 	}
+
+
+// interpolate 2 eyes
+#define BLEND_PIXEL2(type, components) \
+	type pixel1[components], pixel2[components]; \
+ \
+/* calculate the left eye */ \
+ 	if(x_in1 < 0.0 || x_in1 >= w - 1 || \
+		y_in1 < 0.0 || y_in1 >= h - 1) \
+	{ \
+		pixel1[0] = black[0]; \
+		pixel1[1] = black[1]; \
+		pixel1[2] = black[2]; \
+		if(components == 4) pixel1[3] = black[3]; \
+	} \
+	else \
+	{ \
+		float y1_fraction = y_in1 - floor(y_in1); \
+		float y2_fraction = 1.0 - y1_fraction; \
+		float x1_fraction = x_in1 - floor(x_in1); \
+		float x2_fraction = 1.0 - x1_fraction; \
+		type *in_pixel1 = in_rows[(int)y_in1] + (int)x_in1 * components; \
+		type *in_pixel2 = in_rows[(int)y_in1 + 1] + (int)x_in1 * components; \
+		for(int i = 0; i < components; i++) \
+		{ \
+			pixel1[i] = (type)(in_pixel1[i] * x2_fraction * y2_fraction + \
+				in_pixel2[i] * x2_fraction * y1_fraction + \
+				in_pixel1[i + components] * x1_fraction * y2_fraction + \
+				in_pixel2[i + components] * x1_fraction * y1_fraction); \
+		} \
+	} \
+ \
+ \
+/* calculate the right eye */ \
+ 	if(x_in2 < 0.0 || x_in2 >= w - 1 || \
+		y_in2 < 0.0 || y_in2 >= h - 1) \
+	{ \
+		pixel2[0] = black[0]; \
+		pixel2[1] = black[1]; \
+		pixel2[2] = black[2]; \
+		if(components == 4) pixel2[3] = black[3]; \
+	} \
+	else \
+	{ \
+		float y1_fraction = y_in2 - floor(y_in2); \
+		float y2_fraction = 1.0 - y1_fraction; \
+		float x1_fraction = x_in2 - floor(x_in2); \
+		float x2_fraction = 1.0 - x1_fraction; \
+		type *in_pixel1 = in_rows[(int)y_in2] + (int)x_in2 * components; \
+		type *in_pixel2 = in_rows[(int)y_in2 + 1] + (int)x_in2 * components; \
+		for(int i = 0; i < components; i++) \
+		{ \
+			pixel2[i] = (type)(in_pixel1[i] * x2_fraction * y2_fraction + \
+				in_pixel2[i] * x2_fraction * y1_fraction + \
+				in_pixel1[i + components] * x1_fraction * y2_fraction + \
+				in_pixel2[i + components] * x1_fraction * y1_fraction); \
+		} \
+	} \
+ \
+/* blend the 2 eyes */ \
+	for(int i = 0; i < components; i++) \
+	{ \
+		*out_row++ = (type)(pixel1[i] * (1.0f - fraction) + \
+			pixel2[i] * fraction); \
+	} \
 
 
 
@@ -1107,12 +1178,14 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 	int center_y2 = plugin->center_y2;
 	int center_x = plugin->center_x;
 	int center_y = plugin->center_y;
+	int feather = plugin->feather;
+	int feather_x1 = plugin->feather_x1;
+	int feather_x2 = plugin->feather_x2;
 	int w = plugin->w;
 	int h = plugin->h;
 	double radius_y = plugin->radius_y;
 	int distance_x = plugin->distance_x;
 	int distance_y = plugin->distance_y;
-	int feather = plugin->feather;
 	
 
 #define PROCESS_STANDARD(type, components, chroma) \
@@ -1126,8 +1199,8 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 	{ \
 		type *out_row = out_rows[y]; \
 		type *in_row = in_rows[y]; \
-		double y_diff = y - center_y1; \
-		double x_scale = 1; \
+		float y_diff = y - center_y1; \
+		float x_scale = 1; \
 		if(fabs(y_diff) < radius_y) \
 		{ \
 			x_scale = 1.0f / cos(fabs(y_diff) * M_PI / 2 / radius_y); \
@@ -1135,24 +1208,53 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
  \
  		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
  \
-		for(int x = 0; x < center_x; x++) \
+		for(int x = 0; x < feather_x1; x++) \
 		{ \
 /* xy input coordinate */ \
-			double x_diff = x - center_x1; \
-			double x_in = x_diff / x_scale + center_x1 + distance_x; \
-			double y_in = y + distance_y; \
+			float x_diff = x - center_x1; \
+			float x_in = x_diff / x_scale + center_x1 + distance_x; \
+			float y_in = y + distance_y; \
  \
  			BLEND_PIXEL(type, components) \
+		} \
+	} \
+ \
+/* overlap */ \
+	for(int y = row1; y < row2; y++) \
+	{ \
+		type *out_row = out_rows[y] + feather_x1 * components; \
+		type *in_row = in_rows[y]; \
+		float y_diff = y - center_y1; \
+		float x_scale = 1; \
+		if(fabs(y_diff) < radius_y) \
+		{ \
+			x_scale = 1.0f / cos(fabs(y_diff) * M_PI / 2 / radius_y); \
+		} \
+ \
+ 		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
+ \
+		for(int x = feather_x1; x < feather_x2; x++) \
+		{ \
+/* xy input coordinate */ \
+			float x_diff1 = x - center_x1; \
+			float x_diff2 = x - center_x2; \
+			float x_in1 = x_diff1 / x_scale + center_x1 + distance_x; \
+			float x_in2 = x_diff2 / x_scale + center_x2 - distance_x; \
+			float y_in1 = y + distance_y; \
+			float y_in2 = y - distance_y; \
+			float fraction = (float)(x - feather_x1) / feather; \
+ \
+ 			BLEND_PIXEL2(type, components) \
 		} \
 	} \
  \
 /* right eye */ \
 	for(int y = row1; y < row2; y++) \
 	{ \
-		type *out_row = out_rows[y] + center_x * components; \
+		type *out_row = out_rows[y] + feather_x2 * components; \
 		type *in_row = in_rows[y]; \
-		double y_diff = y - center_y1; \
-		double x_scale = 1; \
+		float y_diff = y - center_y1; \
+		float x_scale = 1; \
 		if(fabs(y_diff) < radius_y) \
 		{ \
 			x_scale = 1.0f / cos(fabs(y_diff) * M_PI / 2 / radius_y); \
@@ -1160,12 +1262,12 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
  \
  		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
  \
-		for(int x = center_x; x < w; x++) \
+		for(int x = feather_x2; x < w; x++) \
 		{ \
 /* xy input coordinate */ \
-			double x_diff = x - center_x2; \
-			double x_in = x_diff / x_scale + center_x2 - distance_x; \
-			double y_in = y - distance_y; \
+			float x_diff = x - center_x2; \
+			float x_in = x_diff / x_scale + center_x2 - distance_x; \
+			float y_in = y - distance_y; \
  \
  			BLEND_PIXEL(type, components) \
 		} \

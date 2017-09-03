@@ -260,6 +260,8 @@ public:
 	int distance_x;
 	int distance_y;
 	int feather;
+	int feather_x1;
+	int feather_x2;
 
 	Fuse360Engine *engine;
 	AffineEngine *affine;
