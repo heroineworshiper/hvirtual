@@ -1183,7 +1183,8 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 	int feather_x2 = plugin->feather_x2;
 	int w = plugin->w;
 	int h = plugin->h;
-	double radius_y = plugin->radius_y;
+	float radius_x = plugin->radius_x;
+	float radius_y = plugin->radius_y;
 	int distance_x = plugin->distance_x;
 	int distance_y = plugin->distance_y;
 	
@@ -1205,6 +1206,7 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 		{ \
 			x_scale = 1.0f / cos(fabs(y_diff) * M_PI / 2 / radius_y); \
 		} \
+		float y_in = y + distance_y; \
  \
  		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
  \
@@ -1213,7 +1215,6 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 /* xy input coordinate */ \
 			float x_diff = x - center_x1; \
 			float x_in = x_diff / x_scale + center_x1 + distance_x; \
-			float y_in = y + distance_y; \
  \
  			BLEND_PIXEL(type, components) \
 		} \
@@ -1232,6 +1233,8 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 		} \
  \
  		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
+		float y_in1 = y + distance_y; \
+		float y_in2 = y - distance_y; \
  \
 		for(int x = feather_x1; x < feather_x2; x++) \
 		{ \
@@ -1240,8 +1243,6 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 			float x_diff2 = x - center_x2; \
 			float x_in1 = x_diff1 / x_scale + center_x1 + distance_x; \
 			float x_in2 = x_diff2 / x_scale + center_x2 - distance_x; \
-			float y_in1 = y + distance_y; \
-			float y_in2 = y - distance_y; \
 			float fraction = (float)(x - feather_x1) / feather; \
  \
  			BLEND_PIXEL2(type, components) \
@@ -1261,13 +1262,13 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 		} \
  \
  		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
+		float y_in = y - distance_y; \
  \
 		for(int x = feather_x2; x < w; x++) \
 		{ \
 /* xy input coordinate */ \
 			float x_diff = x - center_x2; \
 			float x_in = x_diff / x_scale + center_x2 - distance_x; \
-			float y_in = y - distance_y; \
  \
  			BLEND_PIXEL(type, components) \
 		} \
