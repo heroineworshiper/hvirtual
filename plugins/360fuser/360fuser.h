@@ -118,10 +118,10 @@ public:
 	Fuse360Main *client;
 	Fuse360Slider *fov_slider;
 	Fuse360Text *fov_text;
-	Fuse360Slider *aspect_slider;
-	Fuse360Text *aspect_text;
-	Fuse360Slider *radius_slider;
-	Fuse360Text *radius_text;
+	Fuse360Slider *radiusx_slider;
+	Fuse360Text *radiusx_text;
+	Fuse360Slider *radiusy_slider;
+	Fuse360Text *radiusy_text;
 	Fuse360Slider *centerx_slider;
 	Fuse360Text *centerx_text;
 	Fuse360Slider *centery_slider;
@@ -157,9 +157,9 @@ public:
 
 
 	float fov;
-	float aspect;
 // radius of each eye
-	float radius;
+	float radius_x;
+	float radius_y;
 // amount to feather eye edges
 	float feather;
 // center of 2 eyes

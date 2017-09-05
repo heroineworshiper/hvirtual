@@ -42,8 +42,8 @@ REGISTER_PLUGIN(Fuse360Main)
 Fuse360Config::Fuse360Config()
 {
 	fov = 1.0;
-	aspect = 1.0;
-	radius = 0.5;
+	radius_x = 0.5;
+	radius_y = 0.5;
 	center_x = 50.0;
 	center_y = 50.0;
 	distance_x = 50;
@@ -58,8 +58,8 @@ Fuse360Config::Fuse360Config()
 int Fuse360Config::equivalent(Fuse360Config &that)
 {
 	if(EQUIV(fov, that.fov) &&
-		EQUIV(aspect, that.aspect) &&
-		EQUIV(radius, that.radius) &&
+		EQUIV(radius_x, that.radius_x) &&
+		EQUIV(radius_y, that.radius_y) &&
 		EQUIV(feather, that.feather) && 
 		EQUIV(center_x, that.center_x) &&
 		EQUIV(center_y, that.center_y) &&
@@ -93,8 +93,8 @@ void Fuse360Config::interpolate(Fuse360Config &prev,
 	double prev_scale = (double)(next_frame - current_frame) / (next_frame - prev_frame);
 
 	fov = prev.fov * prev_scale + next.fov * next_scale;
-	aspect = prev.aspect * prev_scale + next.aspect * next_scale;
-	radius = prev.radius * prev_scale + next.radius * next_scale;
+	radius_x = prev.radius_x * prev_scale + next.radius_x * next_scale;
+	radius_y = prev.radius_y * prev_scale + next.radius_y * next_scale;
 	feather = prev.feather * prev_scale + next.feather * next_scale;
 	center_x = prev.center_x * prev_scale + next.center_x * next_scale;
 	center_y = prev.center_y * prev_scale + next.center_y * next_scale;
@@ -111,8 +111,8 @@ void Fuse360Config::interpolate(Fuse360Config &prev,
 void Fuse360Config::boundaries()
 {
 	CLAMP(fov, 0.0, 1.0);
-	CLAMP(aspect, 0.5, 2.0);
-	CLAMP(radius, 0.3, 1.0);
+	CLAMP(radius_x, 0.3, 1.0);
+	CLAMP(radius_y, 0.3, 1.0);
 	CLAMP(feather, 0, 50);
 	CLAMP(center_x, 0.0, 99.0);
 	CLAMP(center_y, 0.0, 99.0);
@@ -281,7 +281,7 @@ const char* Fuse360Mode::to_text(int mode)
 			return "Stretch";
 			break;
 		case Fuse360Config::STANDARD:
-			return "Standard";
+			return "Equirectangular";
 			break;
 	}
 	return "Blend";
@@ -352,46 +352,46 @@ void Fuse360GUI::create_objects()
 
 
 
-	add_tool(title = new BC_Title(x, y, _("Aspect Ratio:")));
+	add_tool(title = new BC_Title(x, y, _("Eye Radius X:")));
 	y += title->get_h() + 5;
-	add_tool(aspect_slider = new Fuse360Slider(client, 
+	add_tool(radiusx_slider = new Fuse360Slider(client, 
 		this,
 		0,
-		&client->config.aspect, 
-		x, 
-		y, 
-		0.5,
-		2.0));
-	x1 = x + aspect_slider->get_w() + margin;
-	add_tool(aspect_text = new Fuse360Text(client, 
-		this,
-		aspect_slider,
-		&client->config.aspect, 
-		x1, 
-		y));
-	aspect_slider->text = aspect_text;
-	y += aspect_text->get_h() + 5;
-
-
-	add_tool(title = new BC_Title(x, y, _("Eye Radius:")));
-	y += title->get_h() + margin;
-	add_tool(radius_slider = new Fuse360Slider(client, 
-		this,
-		0,
-		&client->config.radius, 
+		&client->config.radius_x, 
 		x, 
 		y, 
 		0.3,
 		1.0));
-	x1 = x + radius_slider->get_w() + margin;
-	add_tool(radius_text = new Fuse360Text(client, 
+	x1 = x + radiusx_slider->get_w() + margin;
+	add_tool(radiusx_text = new Fuse360Text(client, 
 		this,
-		radius_slider,
-		&client->config.radius, 
+		radiusx_slider,
+		&client->config.radius_x, 
 		x1, 
 		y));
-	radius_slider->text = radius_text;
-	y += radius_text->get_h() + margin;
+	radiusx_slider->text = radiusx_text;
+	y += radiusx_text->get_h() + 5;
+
+
+	add_tool(title = new BC_Title(x, y, _("Eye Radius Y:")));
+	y += title->get_h() + margin;
+	add_tool(radiusy_slider = new Fuse360Slider(client, 
+		this,
+		0,
+		&client->config.radius_y, 
+		x, 
+		y, 
+		0.3,
+		1.0));
+	x1 = x + radiusy_slider->get_w() + margin;
+	add_tool(radiusy_text = new Fuse360Text(client, 
+		this,
+		radiusy_slider,
+		&client->config.radius_y, 
+		x1, 
+		y));
+	radiusy_slider->text = radiusy_text;
+	y += radiusy_text->get_h() + margin;
 
 
 	add_tool(title = new BC_Title(x, y, _("Center X:")));
@@ -630,10 +630,10 @@ void Fuse360Main::update_gui()
 			((Fuse360GUI*)thread->window)->lock_window("Fuse360Main::update_gui");
 			((Fuse360GUI*)thread->window)->fov_slider->update(config.fov);
 			((Fuse360GUI*)thread->window)->fov_text->update(config.fov);
-			((Fuse360GUI*)thread->window)->aspect_slider->update(config.aspect);
-			((Fuse360GUI*)thread->window)->aspect_text->update(config.aspect);
-			((Fuse360GUI*)thread->window)->radius_slider->update(config.radius);
-			((Fuse360GUI*)thread->window)->radius_text->update(config.radius);
+			((Fuse360GUI*)thread->window)->radiusx_slider->update(config.radius_x);
+			((Fuse360GUI*)thread->window)->radiusx_text->update(config.radius_x);
+			((Fuse360GUI*)thread->window)->radiusy_slider->update(config.radius_y);
+			((Fuse360GUI*)thread->window)->radiusy_text->update(config.radius_y);
 			((Fuse360GUI*)thread->window)->centerx_slider->update(config.center_x);
 			((Fuse360GUI*)thread->window)->centerx_text->update(config.center_x);
 			((Fuse360GUI*)thread->window)->centery_slider->update(config.center_y);
@@ -667,8 +667,8 @@ void Fuse360Main::save_data(KeyFrame *keyframe)
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 	output.tag.set_title("360FUSER");
 	output.tag.set_property("FOCAL_LENGTH", config.fov);
-	output.tag.set_property("ASPECT", config.aspect);
-	output.tag.set_property("RADIUS", config.radius);
+	output.tag.set_property("RADIUS_X", config.radius_x);
+	output.tag.set_property("RADIUS_Y", config.radius_y);
 	output.tag.set_property("FEATHER", config.feather);
 	output.tag.set_property("CENTER_X", config.center_x);
 	output.tag.set_property("CENTER_Y", config.center_y);
@@ -703,8 +703,8 @@ void Fuse360Main::read_data(KeyFrame *keyframe)
 			if(input.tag.title_is("360FUSER"))
 			{
 				config.fov = input.tag.get_property("FOCAL_LENGTH", config.fov);
-				config.aspect = input.tag.get_property("ASPECT", config.aspect);
-				config.radius = input.tag.get_property("RADIUS", config.radius);
+				config.radius_x = input.tag.get_property("RADIUS_X", config.radius_x);
+				config.radius_y = input.tag.get_property("RADIUS_Y", config.radius_y);
 				config.feather = input.tag.get_property("FEATHER", config.feather);
 				config.center_x = input.tag.get_property("CENTER_X", config.center_x);
 				config.center_y = input.tag.get_property("CENTER_Y", config.center_y);
@@ -749,16 +749,8 @@ int Fuse360Main::process_buffer(VFrame *frame,
 		int radius_x = 0;
 		int radius_y = 0;
 
-		if(config.aspect > 1)
-		{
-			radius_x = config.radius * h;
-			radius_y = radius_x / config.aspect;
-		}
-		else
-		{
-			radius_y = config.radius * h;
-			radius_x = radius_y * config.aspect;
-		}
+		radius_x = config.radius_x * w / 2;
+		radius_y = config.radius_y * h;
 
 		if(!affine) affine = new AffineEngine(PluginClient::smp + 1, 
 			PluginClient::smp + 1);
@@ -800,14 +792,14 @@ int Fuse360Main::process_buffer(VFrame *frame,
 		get_output()->draw_line(center_x, 0, center_x, h);
 
 // draw lenses
-		get_output()->draw_oval(center_x1 - radius_x, 
-			center_y1 - radius_y, 
-			center_x1 + radius_x, 
-			center_y1 + radius_y);
-		get_output()->draw_oval(center_x2 - radius_x, 
-			center_y2 - radius_y, 
-			center_x2 + radius_x, 
-			center_y2 + radius_y);
+		get_output()->draw_oval(center_x1 - radius_x + distance_x, 
+			center_y1 - radius_y + distance_y, 
+			center_x1 + radius_x + distance_x, 
+			center_y1 + radius_y + distance_y);
+		get_output()->draw_oval(center_x2 - radius_x - distance_x, 
+			center_y2 - radius_y - distance_y, 
+			center_x2 + radius_x - distance_x, 
+			center_y2 + radius_y - distance_y);
 
 // draw feather
 		get_output()->draw_line(feather_x1, 0, feather_x1, h);
@@ -832,22 +824,14 @@ void Fuse360Main::calculate_extents()
 	center_y2 = h / 2;
 	radius_x = 0;
 	radius_y = 0;
-	distance_x = (int)((config.distance_x - 50) * w / 100 / 2);
+	distance_x = (int)((50 - config.distance_x) * w / 100 / 2);
 	distance_y = (int)(config.distance_y * h / 100 / 2);
 	feather = (int)(config.feather * w / 100);
  	feather_x1 = center_x - (int)(config.feather * w / 100 / 2);
 	feather_x2 = center_x + (int)(config.feather * w / 100 / 2);
-
-	if(config.aspect > 1)
-	{
-		radius_x = config.radius * h;
-		radius_y = radius_x / config.aspect;
-	}
-	else
-	{
-		radius_y = config.radius * h;
-		radius_x = radius_y * config.aspect;
-	}
+	radius_x = config.radius_x * w / 2;
+	radius_y = config.radius_y * h;
+//printf("Fuse360Main::calculate_extents %d radius_y=%d\n", __LINE__, radius_y);
 }
 
 
@@ -1080,7 +1064,6 @@ void Fuse360Unit::process_stretch(Fuse360Package *pkg)
 	VFrame *output = plugin->get_output();
 
 	float fov = plugin->config.fov;
-	float aspect = plugin->config.aspect;
 	int row1 = pkg->row1;
 	int row2 = pkg->row2;
 	int center_x1 = plugin->center_x1;
@@ -1169,7 +1152,6 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 	VFrame *output = plugin->get_output();
 
 	float fov = plugin->config.fov;
-	float aspect = plugin->config.aspect;
 	int row1 = pkg->row1;
 	int row2 = pkg->row2;
 	int center_x1 = plugin->center_x1;
@@ -1201,53 +1183,30 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 		type *out_row = out_rows[y]; \
 		type *in_row = in_rows[y]; \
 		float y_diff = y - center_y1; \
-		float x_scale = 1; \
-		if(fabs(y_diff) < radius_y) \
+		float x_scale = 0; \
+/* this stretches the top & bottom to fill the poles */ \
+		if(fabs(y_diff) < center_y) \
 		{ \
-			x_scale = 1.0f / cos(fabs(y_diff) * M_PI / 2 / radius_y); \
+			x_scale = sqrt(-(SQR(y_diff) - SQR(center_y))) / center_y; \
 		} \
-		float y_in = y + distance_y; \
+		float y_in = y_diff * radius_y / center_y + center_y1 + distance_y; \
+/* sphere to cylinder */ \
+/*		float y_in = sin(y_diff * M_PI / 2 / center_y) * radius_y + center_y1 + distance_y; */ \
  \
- 		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
  \
 		for(int x = 0; x < feather_x1; x++) \
 		{ \
 /* xy input coordinate */ \
 			float x_diff = x - center_x1; \
-			float x_in = x_diff / x_scale + center_x1 + distance_x; \
+/* sphere to cylinder */ \
+			x_diff = sin(x_diff * M_PI / 2 / center_x1) * radius_x; \
+/* stretch top & bottom to fill poles */ \
+			float x_in = x_diff * x_scale + center_x1 + distance_x; \
  \
  			BLEND_PIXEL(type, components) \
 		} \
 	} \
  \
-/* overlap */ \
-	for(int y = row1; y < row2; y++) \
-	{ \
-		type *out_row = out_rows[y] + feather_x1 * components; \
-		type *in_row = in_rows[y]; \
-		float y_diff = y - center_y1; \
-		float x_scale = 1; \
-		if(fabs(y_diff) < radius_y) \
-		{ \
-			x_scale = 1.0f / cos(fabs(y_diff) * M_PI / 2 / radius_y); \
-		} \
- \
- 		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
-		float y_in1 = y + distance_y; \
-		float y_in2 = y - distance_y; \
- \
-		for(int x = feather_x1; x < feather_x2; x++) \
-		{ \
-/* xy input coordinate */ \
-			float x_diff1 = x - center_x1; \
-			float x_diff2 = x - center_x2; \
-			float x_in1 = x_diff1 / x_scale + center_x1 + distance_x; \
-			float x_in2 = x_diff2 / x_scale + center_x2 - distance_x; \
-			float fraction = (float)(x - feather_x1) / feather; \
- \
- 			BLEND_PIXEL2(type, components) \
-		} \
-	} \
  \
 /* right eye */ \
 	for(int y = row1; y < row2; y++) \
@@ -1255,24 +1214,28 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 		type *out_row = out_rows[y] + feather_x2 * components; \
 		type *in_row = in_rows[y]; \
 		float y_diff = y - center_y1; \
-		float x_scale = 1; \
+		float x_scale = 0; \
 		if(fabs(y_diff) < radius_y) \
 		{ \
-			x_scale = 1.0f / cos(fabs(y_diff) * M_PI / 2 / radius_y); \
+			x_scale = sqrt(-(SQR(y_diff) - SQR(center_y))) / center_y; \
 		} \
+		float y_in = y_diff * radius_y / center_y + center_y2 - distance_y; \
+/*		float y_in = sin(y_diff * M_PI / 2 / radius_y) * radius_y + center_y1 + distance_y; */ \
  \
- 		x_scale = 1.0f + (x_scale - 1.0f) / 2; \
-		float y_in = y - distance_y; \
  \
 		for(int x = feather_x2; x < w; x++) \
 		{ \
 /* xy input coordinate */ \
 			float x_diff = x - center_x2; \
-			float x_in = x_diff / x_scale + center_x2 - distance_x; \
+/* sphere to cylinder */ \
+			x_diff = sin(x_diff * M_PI / 2 / center_x1) * radius_x; \
+/* stretch top & bottom to fill poles */ \
+			float x_in = x_diff * x_scale + center_x2 - distance_x; \
  \
  			BLEND_PIXEL(type, components) \
 		} \
 	} \
+ \
 }
 
 	COLORSPACE_SWITCH(PROCESS_STANDARD)
