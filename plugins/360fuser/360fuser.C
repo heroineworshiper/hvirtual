@@ -1182,26 +1182,26 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 	{ \
 		type *out_row = out_rows[y]; \
 		type *in_row = in_rows[y]; \
-		float y_diff = y - center_y1; \
+		float y_diff = y - center_y1 + distance_y; \
 		float x_scale = 0; \
 /* this stretches the top & bottom to fill the poles */ \
 		if(fabs(y_diff) < center_y) \
 		{ \
 			x_scale = sqrt(-(SQR(y_diff) - SQR(center_y))) / center_y; \
 		} \
-		float y_in = y_diff * radius_y / center_y + center_y1 + distance_y; \
+		float y_in = y_diff * radius_y / center_y + center_y1; \
 /* sphere to cylinder */ \
-/*		float y_in = sin(y_diff * M_PI / 2 / center_y) * radius_y + center_y1 + distance_y; */ \
+/*		float y_in = sin(y_diff * M_PI / 2 / center_y) * radius_y + center_y1; */ \
  \
  \
 		for(int x = 0; x < feather_x1; x++) \
 		{ \
 /* xy input coordinate */ \
-			float x_diff = x - center_x1; \
+			float x_diff = x - center_x1 + distance_x; \
 /* sphere to cylinder */ \
 			x_diff = sin(x_diff * M_PI / 2 / center_x1) * radius_x; \
 /* stretch top & bottom to fill poles */ \
-			float x_in = x_diff * x_scale + center_x1 + distance_x; \
+			float x_in = x_diff * x_scale + center_x1; \
  \
  			BLEND_PIXEL(type, components) \
 		} \
@@ -1213,24 +1213,24 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 	{ \
 		type *out_row = out_rows[y] + feather_x2 * components; \
 		type *in_row = in_rows[y]; \
-		float y_diff = y - center_y1; \
+		float y_diff = y - center_y1 - distance_y; \
 		float x_scale = 0; \
 		if(fabs(y_diff) < radius_y) \
 		{ \
 			x_scale = sqrt(-(SQR(y_diff) - SQR(center_y))) / center_y; \
 		} \
-		float y_in = y_diff * radius_y / center_y + center_y2 - distance_y; \
-/*		float y_in = sin(y_diff * M_PI / 2 / radius_y) * radius_y + center_y1 + distance_y; */ \
+		float y_in = y_diff * radius_y / center_y + center_y2; \
+/*		float y_in = sin(y_diff * M_PI / 2 / radius_y) * radius_y + center_y1; */ \
  \
  \
 		for(int x = feather_x2; x < w; x++) \
 		{ \
 /* xy input coordinate */ \
-			float x_diff = x - center_x2; \
+			float x_diff = x - center_x2 - distance_x; \
 /* sphere to cylinder */ \
 			x_diff = sin(x_diff * M_PI / 2 / center_x1) * radius_x; \
 /* stretch top & bottom to fill poles */ \
-			float x_in = x_diff * x_scale + center_x2 - distance_x; \
+			float x_in = x_diff * x_scale + center_x2; \
  \
  			BLEND_PIXEL(type, components) \
 		} \
