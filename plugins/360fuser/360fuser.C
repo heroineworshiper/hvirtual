@@ -327,27 +327,27 @@ void Fuse360GUI::create_objects()
 	BC_Title *title;
 	Fuse360Toggle *toggle;
 
-	add_tool(title = new BC_Title(x, y, _("Field of View:")));
-	y += title->get_h() + 5;
-	add_tool(fov_slider = new Fuse360Slider(client, 
-		this,
-		0,
-		&client->config.fov, 
-		x, 
-		y, 
-		0.0001,
-		1.0));
-
-
-	x1 = x + fov_slider->get_w() + margin;
-	add_tool(fov_text = new Fuse360Text(client, 
-		this,
-		fov_slider,
-		&client->config.fov, 
-		x1, 
-		y));
-	fov_slider->text = fov_text;
-	y += fov_text->get_h() + margin;
+// 	add_tool(title = new BC_Title(x, y, _("Field of View:")));
+// 	y += title->get_h() + 5;
+// 	add_tool(fov_slider = new Fuse360Slider(client, 
+// 		this,
+// 		0,
+// 		&client->config.fov, 
+// 		x, 
+// 		y, 
+// 		0.0001,
+// 		1.0));
+// 
+// 
+// 	x1 = x + fov_slider->get_w() + margin;
+// 	add_tool(fov_text = new Fuse360Text(client, 
+// 		this,
+// 		fov_slider,
+// 		&client->config.fov, 
+// 		x1, 
+// 		y));
+// 	fov_slider->text = fov_text;
+// 	y += fov_text->get_h() + margin;
 
 
 
@@ -394,48 +394,48 @@ void Fuse360GUI::create_objects()
 	y += radiusy_text->get_h() + margin;
 
 
-	add_tool(title = new BC_Title(x, y, _("Center X:")));
-	y += title->get_h() + 5;
-	add_tool(centerx_slider = new Fuse360Slider(client, 
-		this,
-		0,
-		&client->config.center_x, 
-		x, 
-		y, 
-		0.0,
-		99.0));
-	x1 = x + centerx_slider->get_w() + margin;
-	add_tool(centerx_text = new Fuse360Text(client, 
-		this,
-		centerx_slider,
-		&client->config.center_x, 
-		x1, 
-		y));
-	centerx_slider->text = centerx_text;
-	centerx_slider->set_precision(0.1);
-	y += centerx_text->get_h() + margin;
-
-
-	add_tool(title = new BC_Title(x, y, _("Center Y:")));
-	y += title->get_h() + 5;
-	add_tool(centery_slider = new Fuse360Slider(client, 
-		this,
-		0,
-		&client->config.center_y, 
-		x, 
-		y, 
-		0.0,
-		99.0));
-	x1 = x + centery_slider->get_w() + margin;
-	add_tool(centery_text = new Fuse360Text(client, 
-		this,
-		centery_slider,
-		&client->config.center_y, 
-		x1, 
-		y));
-	centery_slider->text = centery_text;
-	centery_slider->set_precision(0.1);
-	y += centery_text->get_h() + margin;
+// 	add_tool(title = new BC_Title(x, y, _("Center X:")));
+// 	y += title->get_h() + 5;
+// 	add_tool(centerx_slider = new Fuse360Slider(client, 
+// 		this,
+// 		0,
+// 		&client->config.center_x, 
+// 		x, 
+// 		y, 
+// 		0.0,
+// 		99.0));
+// 	x1 = x + centerx_slider->get_w() + margin;
+// 	add_tool(centerx_text = new Fuse360Text(client, 
+// 		this,
+// 		centerx_slider,
+// 		&client->config.center_x, 
+// 		x1, 
+// 		y));
+// 	centerx_slider->text = centerx_text;
+// 	centerx_slider->set_precision(0.1);
+// 	y += centerx_text->get_h() + margin;
+// 
+// 
+// 	add_tool(title = new BC_Title(x, y, _("Center Y:")));
+// 	y += title->get_h() + 5;
+// 	add_tool(centery_slider = new Fuse360Slider(client, 
+// 		this,
+// 		0,
+// 		&client->config.center_y, 
+// 		x, 
+// 		y, 
+// 		0.0,
+// 		99.0));
+// 	x1 = x + centery_slider->get_w() + margin;
+// 	add_tool(centery_text = new Fuse360Text(client, 
+// 		this,
+// 		centery_slider,
+// 		&client->config.center_y, 
+// 		x1, 
+// 		y));
+// 	centery_slider->text = centery_text;
+// 	centery_slider->set_precision(0.1);
+// 	y += centery_text->get_h() + margin;
 
 
 
@@ -628,16 +628,16 @@ void Fuse360Main::update_gui()
 		if(load_configuration())
 		{
 			((Fuse360GUI*)thread->window)->lock_window("Fuse360Main::update_gui");
-			((Fuse360GUI*)thread->window)->fov_slider->update(config.fov);
-			((Fuse360GUI*)thread->window)->fov_text->update(config.fov);
+//			((Fuse360GUI*)thread->window)->fov_slider->update(config.fov);
+//			((Fuse360GUI*)thread->window)->fov_text->update(config.fov);
 			((Fuse360GUI*)thread->window)->radiusx_slider->update(config.radius_x);
 			((Fuse360GUI*)thread->window)->radiusx_text->update(config.radius_x);
 			((Fuse360GUI*)thread->window)->radiusy_slider->update(config.radius_y);
 			((Fuse360GUI*)thread->window)->radiusy_text->update(config.radius_y);
-			((Fuse360GUI*)thread->window)->centerx_slider->update(config.center_x);
-			((Fuse360GUI*)thread->window)->centerx_text->update(config.center_x);
-			((Fuse360GUI*)thread->window)->centery_slider->update(config.center_y);
-			((Fuse360GUI*)thread->window)->centery_text->update(config.center_y);
+//			((Fuse360GUI*)thread->window)->centerx_slider->update(config.center_x);
+//			((Fuse360GUI*)thread->window)->centerx_text->update(config.center_x);
+//			((Fuse360GUI*)thread->window)->centery_slider->update(config.center_y);
+//			((Fuse360GUI*)thread->window)->centery_text->update(config.center_y);
 			((Fuse360GUI*)thread->window)->distancex_slider->update(config.distance_x);
 			((Fuse360GUI*)thread->window)->distancex_text->update(config.distance_x);
 			((Fuse360GUI*)thread->window)->distancey_slider->update(config.distance_y);
@@ -1200,6 +1200,7 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 			float x_diff = x - center_x1 + distance_x; \
 /* sphere to cylinder */ \
 			x_diff = sin(x_diff * M_PI / 2 / center_x1) * radius_x; \
+/* 			x_diff = x_diff / center_x1 * radius_x; */ \
 /* stretch top & bottom to fill poles */ \
 			float x_in = x_diff * x_scale + center_x1; \
  \
@@ -1229,6 +1230,7 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 			float x_diff = x - center_x2 - distance_x; \
 /* sphere to cylinder */ \
 			x_diff = sin(x_diff * M_PI / 2 / center_x1) * radius_x; \
+/*			x_diff = x_diff / center_x1 * radius_x; */ \
 /* stretch top & bottom to fill poles */ \
 			float x_in = x_diff * x_scale + center_x2; \
  \

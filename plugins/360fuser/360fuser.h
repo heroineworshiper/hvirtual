@@ -116,16 +116,16 @@ public:
 	void create_objects();
 
 	Fuse360Main *client;
-	Fuse360Slider *fov_slider;
-	Fuse360Text *fov_text;
+//	Fuse360Slider *fov_slider;
+//	Fuse360Text *fov_text;
 	Fuse360Slider *radiusx_slider;
 	Fuse360Text *radiusx_text;
 	Fuse360Slider *radiusy_slider;
 	Fuse360Text *radiusy_text;
-	Fuse360Slider *centerx_slider;
-	Fuse360Text *centerx_text;
-	Fuse360Slider *centery_slider;
-	Fuse360Text *centery_text;
+//	Fuse360Slider *centerx_slider;
+//	Fuse360Text *centerx_text;
+//	Fuse360Slider *centery_slider;
+//	Fuse360Text *centery_text;
 	Fuse360Slider *distancex_slider;
 	Fuse360Text *distancex_text;
 	Fuse360Slider *distancey_slider;
