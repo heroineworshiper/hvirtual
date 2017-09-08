@@ -1146,6 +1146,8 @@ void Fuse360Unit::process_stretch(Fuse360Package *pkg)
 
 
 
+
+// http://paulbourke.net/dome/fish2/
 void Fuse360Unit::process_standard(Fuse360Package *pkg)
 {
 	VFrame *input = plugin->get_temp();
@@ -1169,7 +1171,8 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 	float radius_y = plugin->radius_y;
 	int distance_x = plugin->distance_x;
 	int distance_y = plugin->distance_y;
-	
+// field of view of the fisheye
+	float FOV = M_PI;
 
 #define PROCESS_STANDARD(type, components, chroma) \
 { \
@@ -1182,61 +1185,36 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 	{ \
 		type *out_row = out_rows[y]; \
 		type *in_row = in_rows[y]; \
-		float y_diff = y - center_y1 + distance_y; \
-		float x_scale = 0; \
-/* this stretches the top & bottom to fill the poles */ \
-		if(fabs(y_diff) < center_y) \
-		{ \
-			x_scale = sqrt(-(SQR(y_diff) - SQR(center_y))) / center_y; \
-		} \
-		float y_in = y_diff * radius_y / center_y + center_y1; \
-/* sphere to cylinder */ \
-/*		float y_in = sin(y_diff * M_PI / 2 / center_y) * radius_y + center_y1; */ \
  \
- \
+/* -M_PI/2 to M_PI/2 */ \
+		float y_diff = y - center_y1; \
+/* polar angles */ \
+		float phi = M_PI / 2 * (y_diff / radius_y); \
+/* printf("y=%f phi=%f\n", y_diff, phi); */ \
 		for(int x = 0; x < feather_x1; x++) \
 		{ \
-/* xy input coordinate */ \
-			float x_diff = x - center_x1 + distance_x; \
-/* sphere to cylinder */ \
-			x_diff = sin(x_diff * M_PI / 2 / center_x1) * radius_x; \
-/* 			x_diff = x_diff / center_x1 * radius_x; */ \
-/* stretch top & bottom to fill poles */ \
-			float x_in = x_diff * x_scale + center_x1; \
+			float x_diff = x - center_x1; \
+/* polar angles */ \
+/* -M_PI to M_PI */ \
+			float theta = M_PI * (x_diff / radius_x); \
+/* if(y == row1) printf("x=%f theta=%f\n", x_diff, theta); */ \
+/* vector in 3D space */ \
+			float vect_x = cos(phi) * sin(theta); \
+			float vect_y = cos(phi) * cos(theta); \
+			float vect_z = sin(phi); \
+/* fisheye angle & radius */ \
+			float theta2 = atan2(vect_z, vect_x); \
+			float phi2 = atan2(hypot(vect_x, vect_z), vect_y); \
+			float r = radius_x * 2 * phi2 / FOV; \
+/* pixel in fisheye space */ \
+			float x_in = center_x1 + r * cos(theta2); \
+			float y_in = center_y1 + r * sin(theta2); \
  \
  			BLEND_PIXEL(type, components) \
 		} \
 	} \
  \
  \
-/* right eye */ \
-	for(int y = row1; y < row2; y++) \
-	{ \
-		type *out_row = out_rows[y] + feather_x2 * components; \
-		type *in_row = in_rows[y]; \
-		float y_diff = y - center_y1 - distance_y; \
-		float x_scale = 0; \
-		if(fabs(y_diff) < radius_y) \
-		{ \
-			x_scale = sqrt(-(SQR(y_diff) - SQR(center_y))) / center_y; \
-		} \
-		float y_in = y_diff * radius_y / center_y + center_y2; \
-/*		float y_in = sin(y_diff * M_PI / 2 / radius_y) * radius_y + center_y1; */ \
- \
- \
-		for(int x = feather_x2; x < w; x++) \
-		{ \
-/* xy input coordinate */ \
-			float x_diff = x - center_x2 - distance_x; \
-/* sphere to cylinder */ \
-			x_diff = sin(x_diff * M_PI / 2 / center_x1) * radius_x; \
-/*			x_diff = x_diff / center_x1 * radius_x; */ \
-/* stretch top & bottom to fill poles */ \
-			float x_in = x_diff * x_scale + center_x2; \
- \
- 			BLEND_PIXEL(type, components) \
-		} \
-	} \
  \
 }
 
