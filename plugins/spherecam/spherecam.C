@@ -387,7 +387,7 @@ void SphereCamGUI::create_objects()
 			y, 
 			1,
 			359));
-		fov_slider[i]->set_precision(0.01);
+		fov_slider[i]->set_precision(0.1);
 		x3 += fov_slider[i]->get_w() + margin;
 		add_tool(fov_text[i] = new SphereCamText(client, 
 			this,
@@ -414,7 +414,7 @@ void SphereCamGUI::create_objects()
 			y, 
 			1,
 			100));
-		radius_slider[i]->set_precision(0.01);
+		radius_slider[i]->set_precision(0.1);
 		x3 += radius_slider[i]->get_w() + margin;
 		add_tool(radius_text[i] = new SphereCamText(client, 
 			this,
@@ -441,7 +441,7 @@ void SphereCamGUI::create_objects()
 			y, 
 			0,
 			100));
-		centerx_slider[i]->set_precision(0.01);
+		centerx_slider[i]->set_precision(0.1);
 		x3 += centerx_slider[i]->get_w() + margin;
 		add_tool(centerx_text[i] = new SphereCamText(client, 
 			this,
@@ -469,7 +469,7 @@ void SphereCamGUI::create_objects()
 			y, 
 			0,
 			100));
-		centery_slider[i]->set_precision(0.01);
+		centery_slider[i]->set_precision(0.1);
 		x3 += centery_slider[i]->get_w() + margin;
 		add_tool(centery_text[i] = new SphereCamText(client, 
 			this,
@@ -498,7 +498,7 @@ void SphereCamGUI::create_objects()
 			y, 
 			-180,
 			180));
-		rotatex_slider[i]->set_precision(0.01);
+		rotatex_slider[i]->set_precision(0.1);
 		x3 += rotatex_slider[i]->get_w() + margin;
 		add_tool(rotatex_text[i] = new SphereCamText(client, 
 			this,
@@ -526,7 +526,7 @@ void SphereCamGUI::create_objects()
 			y, 
 			-180,
 			180));
-		rotatey_slider[i]->set_precision(0.01);
+		rotatey_slider[i]->set_precision(0.1);
 		x3 += rotatey_slider[i]->get_w() + margin;
 		add_tool(rotatey_text[i] = new SphereCamText(client, 
 			this,
@@ -554,7 +554,7 @@ void SphereCamGUI::create_objects()
 			y, 
 			-180,
 			180));
-		rotatez_slider[i]->set_precision(0.01);
+		rotatez_slider[i]->set_precision(0.1);
 		x3 += rotatez_slider[i]->get_w() + margin;
 		add_tool(rotatez_text[i] = new SphereCamText(client, 
 			this,
@@ -586,7 +586,7 @@ void SphereCamGUI::create_objects()
 		y, 
 		0,
 		100));
-	feather_slider->set_precision(1);
+	feather_slider->set_precision(0.1);
 	x3 += feather_slider->get_w() + margin;
 	add_tool(feather_text = new SphereCamText(client, 
 		this,
@@ -839,9 +839,9 @@ int SphereCamMain::process_buffer(VFrame *frame,
 	// __LINE__,
 	// out_x1[eye],
 	// out_x4[eye]);
-				if(feather != 0)
+				if(feather != 0 && eye == 1)
 				{
-// crosshatch feather
+// crosshatch feather of right eye only, since only the right eye feathers
 					int feather_gap = h / 40;
 					for(int j = 0; j < h + feather; j += feather_gap)
 					{
