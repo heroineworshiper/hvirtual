@@ -33,6 +33,9 @@
 
 
 
+// largely based on equations from http://paulbourke.net/dome/fish2/
+
+
 
 REGISTER_PLUGIN(Fuse360Main)
 
@@ -1147,7 +1150,6 @@ void Fuse360Unit::process_stretch(Fuse360Package *pkg)
 
 
 
-// http://paulbourke.net/dome/fish2/
 void Fuse360Unit::process_standard(Fuse360Package *pkg)
 {
 	VFrame *input = plugin->get_temp();
@@ -1184,20 +1186,17 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 	for(int y = row1; y < row2; y++) \
 	{ \
 		type *out_row = out_rows[y]; \
-		type *in_row = in_rows[y]; \
  \
 /* -M_PI/2 to M_PI/2 */ \
 		float y_diff = y - center_y1; \
 /* polar angles */ \
 		float phi = M_PI / 2 * (y_diff / radius_y); \
-/* printf("y=%f phi=%f\n", y_diff, phi); */ \
 		for(int x = 0; x < feather_x1; x++) \
 		{ \
 			float x_diff = x - center_x1; \
 /* polar angles */ \
-/* -M_PI to M_PI */ \
-			float theta = M_PI * (x_diff / radius_x); \
-/* if(y == row1) printf("x=%f theta=%f\n", x_diff, theta); */ \
+/* -M_PI/2 to M_PI/2 */ \
+			float theta = M_PI / 2 * (x_diff / radius_x); \
 /* vector in 3D space */ \
 			float vect_x = cos(phi) * sin(theta); \
 			float vect_y = cos(phi) * cos(theta); \
@@ -1214,6 +1213,38 @@ void Fuse360Unit::process_standard(Fuse360Package *pkg)
 		} \
 	} \
  \
+ \
+ \
+/* right eye */ \
+	for(int y = row1; y < row2; y++) \
+	{ \
+		type *out_row = out_rows[y] + components * feather_x2; \
+ \
+/* -M_PI/2 to M_PI/2 */ \
+		float y_diff = y - center_y2; \
+/* polar angles */ \
+		float phi = M_PI / 2 * (y_diff / radius_y); \
+		for(int x = feather_x2; x < w; x++) \
+		{ \
+			float x_diff = x - center_x2; \
+/* polar angles */ \
+/* -M_PI/2 to M_PI/2 */ \
+			float theta = M_PI / 2 * (x_diff / radius_x); \
+/* vector in 3D space */ \
+			float vect_x = cos(phi) * sin(theta); \
+			float vect_y = cos(phi) * cos(theta); \
+			float vect_z = sin(phi); \
+/* fisheye angle & radius */ \
+			float theta2 = atan2(vect_z, vect_x); \
+			float phi2 = atan2(hypot(vect_x, vect_z), vect_y); \
+			float r = radius_x * 2 * phi2 / FOV; \
+/* pixel in fisheye space */ \
+			float x_in = center_x2 + r * cos(theta2); \
+			float y_in = center_y2 + r * sin(theta2); \
+ \
+ 			BLEND_PIXEL(type, components) \
+		} \
+	} \
  \
  \
 }
