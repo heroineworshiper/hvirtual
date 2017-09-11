@@ -120,8 +120,8 @@ public:
 	SphereCamToggle *enabled[EYES];
 	SphereCamSlider *fov_slider[EYES];
 	SphereCamText *fov_text[EYES];
-	SphereCamSlider *radius_slider[EYES];
-	SphereCamText *radius_text[EYES];
+//	SphereCamSlider *radius_slider[EYES];
+//	SphereCamText *radius_text[EYES];
 	SphereCamSlider *centerx_slider[EYES];
 	SphereCamText *centerx_text[EYES];
 	SphereCamSlider *centery_slider[EYES];
@@ -157,7 +157,7 @@ public:
 // degrees 1-359
 	float fov[EYES];
 // radius of each eye 1-100
-	float radius[EYES];
+//	float radius[EYES];
 // center of 2 eyes  0-100
 	float center_x[EYES];
 	float center_y[EYES];
