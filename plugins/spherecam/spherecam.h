@@ -174,7 +174,9 @@ public:
 // draw guides only
 		DO_NOTHING,
 // the standard algorithm
-		EQUIRECT
+		EQUIRECT,
+// alignment only
+		ALIGN,
 	};
 };
 
@@ -199,6 +201,7 @@ public:
 	
 	void process_package(LoadPackage *package);
 	void process_equirect(SphereCamPackage *pkg);
+	void process_align(SphereCamPackage *pkg);
 	double calculate_max_z(double a, double r);
 
 	
@@ -241,7 +244,10 @@ public:
 	int w;
 	int h;
 
-// The output of each eye is split into 2 halves so they can wrap around
+// the center of the output regions, shifted by the rotations
+	int output_x[EYES];
+	int output_y[EYES];
+// The output of each eye is split into 2 halves so it can wrap around
 	int out_x1[EYES];
 	int out_y1[EYES];
 	int out_x2[EYES];
@@ -250,12 +256,13 @@ public:
 	int out_y3[EYES];
 	int out_x4[EYES];
 	int out_y4[EYES];
-	int center_x[EYES];
-	int center_y[EYES];
+// the center of the input regions
+	int input_x[EYES];
+	int input_y[EYES];
+// radius of the input regions
 	int radius[EYES];
+// pixels to add to the output regions
 	int feather;
-	int feather_x1;
-	int feather_x2;
 
 	SphereCamEngine *engine;
 	AffineEngine *affine;

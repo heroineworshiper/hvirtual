@@ -53,13 +53,14 @@ SphereCamConfig::SphereCamConfig()
 		fov[i] = 180;
 		radius[i] = 50.0;
 		center_y[i] = 50.0;
-		rotate_x[i] = 0;
-		rotate_y[i] = 0;
+		rotate_y[i] = 50.0;
 		rotate_z[i] = 0;
 	}
 	
 	center_x[0] = 25.0;
 	center_x[1] = 75.0;
+	rotate_x[0] = 50.0;
+	rotate_x[1] = 100.0;
 	draw_guides = 1;
 	mode = SphereCamConfig::DO_NOTHING;
 }
@@ -135,8 +136,8 @@ void SphereCamConfig::boundaries()
 		CLAMP(radius[i], 1.0, 100.0);
 		CLAMP(center_x[i], 0.0, 100.0);
 		CLAMP(center_y[i], 0.0, 100.0);
-		CLAMP(rotate_x[i], -180.0, 180.0);
-		CLAMP(rotate_y[i], -180.0, 180.0);
+		CLAMP(rotate_x[i], 0.0, 100.0);
+		CLAMP(rotate_y[i], 0.0, 100.0);
 		CLAMP(rotate_z[i], -180.0, 180.0);
 	}
 	
@@ -263,6 +264,7 @@ void SphereCamMode::create_objects()
 {
 	add_item(new BC_MenuItem(to_text(SphereCamConfig::DO_NOTHING)));
 	add_item(new BC_MenuItem(to_text(SphereCamConfig::EQUIRECT)));
+	add_item(new BC_MenuItem(to_text(SphereCamConfig::ALIGN)));
 	update(plugin->config.mode);
 }
 
@@ -278,12 +280,13 @@ int SphereCamMode::calculate_w(SphereCamGUI *gui)
 	int result = 0;
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(SphereCamConfig::EQUIRECT)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(SphereCamConfig::DO_NOTHING)));
+	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(SphereCamConfig::ALIGN)));
 	return result + 50;
 }
 
 int SphereCamMode::from_text(char *text)
 {
-	for(int i = 0; i < 2; i++)
+	for(int i = 0; i < 3; i++)
 	{
 		if(!strcmp(text, to_text(i)))
 		{
@@ -303,6 +306,9 @@ const char* SphereCamMode::to_text(int mode)
 			break;
 		case SphereCamConfig::EQUIRECT:
 			return "Equirectangular";
+			break;
+		case SphereCamConfig::ALIGN:
+			return "Align only";
 			break;
 	}
 	return "Equirectangular";
@@ -431,7 +437,7 @@ void SphereCamGUI::create_objects()
 
 
 		x3 = x[i];
-		add_tool(title = new BC_Title(x3, y, _("Center X:")));
+		add_tool(title = new BC_Title(x3, y, _("Input X:")));
 		y += title->get_h() + margin2;
 		add_tool(centerx_slider[i] = new SphereCamSlider(client, 
 			this,
@@ -459,7 +465,7 @@ void SphereCamGUI::create_objects()
 
 
 		x3 = x[i];
-		add_tool(title = new BC_Title(x3, y, _("Center Y:")));
+		add_tool(title = new BC_Title(x3, y, _("Input Y:")));
 		y += title->get_h() + margin2;
 		add_tool(centery_slider[i] = new SphereCamSlider(client, 
 			this,
@@ -488,7 +494,7 @@ void SphereCamGUI::create_objects()
 
 
 		x3 = x[i];
-		add_tool(title = new BC_Title(x3, y, _("Rotate X:")));
+		add_tool(title = new BC_Title(x3, y, _("Output X:")));
 		y += title->get_h() + margin2;
 		add_tool(rotatex_slider[i] = new SphereCamSlider(client, 
 			this,
@@ -496,8 +502,8 @@ void SphereCamGUI::create_objects()
 			&client->config.rotate_x[i], 
 			x3, 
 			y, 
-			-180,
-			180));
+			0,
+			100));
 		rotatex_slider[i]->set_precision(0.1);
 		x3 += rotatex_slider[i]->get_w() + margin;
 		add_tool(rotatex_text[i] = new SphereCamText(client, 
@@ -516,7 +522,7 @@ void SphereCamGUI::create_objects()
 
 
 		x3 = x[i];
-		add_tool(title = new BC_Title(x3, y, _("Rotate Y:")));
+		add_tool(title = new BC_Title(x3, y, _("Output Y:")));
 		y += title->get_h() + margin2;
 		add_tool(rotatey_slider[i] = new SphereCamSlider(client, 
 			this,
@@ -524,8 +530,8 @@ void SphereCamGUI::create_objects()
 			&client->config.rotate_y[i], 
 			x3, 
 			y, 
-			-180,
-			180));
+			0,
+			100));
 		rotatey_slider[i]->set_precision(0.1);
 		x3 += rotatey_slider[i]->get_w() + margin;
 		add_tool(rotatey_text[i] = new SphereCamText(client, 
@@ -544,7 +550,7 @@ void SphereCamGUI::create_objects()
 
 
 		x3 = x[i];
-		add_tool(title = new BC_Title(x3, y, _("Rotate Z:")));
+		add_tool(title = new BC_Title(x3, y, _("Rotate:")));
 		y += title->get_h() + margin2;
 		add_tool(rotatez_slider[i] = new SphereCamSlider(client, 
 			this,
@@ -825,15 +831,22 @@ int SphereCamMain::process_buffer(VFrame *frame,
 			if(config.enabled[eye])
 			{
 // input regions
-				get_output()->draw_oval(center_x[eye] - radius[eye], 
-					center_y[eye] - radius[eye], 
-					center_x[eye] + radius[eye], 
-					center_y[eye] + radius[eye]);
+				get_output()->draw_oval(input_x[eye] - radius[eye], 
+					input_y[eye] - radius[eye], 
+					input_x[eye] + radius[eye], 
+					input_y[eye] + radius[eye]);
 
 
-// output regions
-				get_output()->draw_line(out_x1[eye], 0, out_x1[eye], h);
-				get_output()->draw_line(out_x4[eye], 0, out_x4[eye], h);
+// output regions.  If they overlap, don't xor out the line
+				if(eye == 0 || (out_x1[eye] != out_x1[0] && out_x1[eye] != out_x4[0]))
+				{
+					get_output()->draw_line(out_x1[eye], 0, out_x1[eye], h);
+				}
+				
+				if(eye == 0 || (out_x4[eye] != out_x4[0] && out_x4[eye] != out_x1[0]))
+				{
+					get_output()->draw_line(out_x4[eye], 0, out_x4[eye], h);
+				}
 
 	// printf("SphereCamMain::process_buffer %d %d %d\n", 
 	// __LINE__,
@@ -842,7 +855,7 @@ int SphereCamMain::process_buffer(VFrame *frame,
 				if(feather != 0 && eye == 1)
 				{
 // crosshatch feather of right eye only, since only the right eye feathers
-					int feather_gap = h / 40;
+					int feather_gap = h / 20;
 					for(int j = 0; j < h + feather; j += feather_gap)
 					{
 						draw_feather(out_x1[eye], out_x1[eye] + feather, eye, j);
@@ -892,23 +905,24 @@ void SphereCamMain::calculate_extents()
 	h = get_output()->get_h();
 
 	feather = (int)(config.feather * w / 100);
- 	feather_x1 = w / 2 - (int)(config.feather * w / 100 / 2);
-	feather_x2 = w / 2 + (int)(config.feather * w / 100 / 2);
 	
 	for(int i = 0; i < EYES; i++)
 	{
 // innput regions
-		center_x[i] = (int)(w * config.center_x[i] / 100);
-		center_y[i] = (int)(h * config.center_y[i] / 100);
+		input_x[i] = (int)(config.center_x[i] * w / 100);
+		input_y[i] = (int)(config.center_y[i] * h / 100);
 		radius[i] = (int)(h * config.radius[i] / 100);
 
 // output regions
-		int center_x_out = center_x[i] - config.rotate_x[i] * w / 360;
-// Assume each lens has to fill 1/2 the width
-		out_x1[i] = center_x_out - w / 4 - feather / 2;
-		out_x2[i] = center_x_out;
-		out_x3[i] = center_x_out;
-		out_x4[i] = center_x_out + w / 4 + feather / 2;
+		output_x[i] = (int)(config.rotate_x[i] * w / 100);
+		output_y[i] = (int)(config.rotate_y[i] * h / 100);
+		
+		
+// Assume each lens fills 1/2 the width
+		out_x1[i] = output_x[i] - w / 4 - feather / 2;
+		out_x2[i] = output_x[i];
+		out_x3[i] = output_x[i];
+		out_x4[i] = output_x[i] + w / 4 + feather / 2;
 
 // wrap around
 		if(out_x1[i] < 0)
@@ -985,6 +999,25 @@ SphereCamUnit::~SphereCamUnit()
 	}
 
 
+// nearest neighbor & accumulate a pixel in the output
+#define BLEND_NEAREST(type, components) \
+ 	if(x_in < 0.0 || x_in >= w - 1 || \
+		y_in < 0.0 || y_in >= h - 1) \
+	{ \
+		out_row += components; \
+	} \
+	else \
+	{ \
+		type *in_pixel = in_rows[(int)y_in] + (int)x_in * components; \
+		for(int i = 0; i < components; i++) \
+		{ \
+			float value = in_pixel[i]; \
+			value = *out_row * inv_a + value * a; \
+			*out_row++ = (type)value; \
+		} \
+	}
+
+
 
 
 
@@ -1029,25 +1062,25 @@ void SphereCamUnit::process_equirect(SphereCamPackage *pkg)
  \
 	type black[4] = { 0, chroma, chroma, 0 }; \
  \
-	for(int y = row1; y < row2; y++) \
+	for(int out_y = row1; out_y < row2; out_y++) \
 	{ \
-		type *out_row = out_rows[y]; \
+		type *out_row = out_rows[out_y]; \
 /* polar angle */ \
 /* -M_PI/2 to M_PI/2 */ \
-		float y_diff = y - center_y; \
-		float phi = M_PI / 2 * (y_diff / radius) + rotate_y; \
+		float y_diff = out_y - output_y; \
+		float phi = M_PI / 2 * (y_diff / radius); \
  \
- 		for(int x = 0; x < w; x++) \
+ 		for(int out_x = 0; out_x < w; out_x++) \
 		{ \
 /* alpha */ \
- 			float a = alpha[x]; \
+ 			float a = alpha[out_x]; \
  			float inv_a = 1.0f - a; \
 			if(a > 0) \
 			{ \
 /* polar angle */ \
-				float x_diff = x - center_x; \
+				float x_diff = out_x - output_x; \
 /* -M_PI/2 to M_PI/2 */ \
-				float theta = M_PI / 2 * (x_diff / radius) + rotate_x; \
+				float theta = M_PI / 2 * (x_diff / radius); \
 /* vector in 3D space */ \
 				float vect_x = cos(phi) * sin(theta); \
 				float vect_y = cos(phi) * cos(theta); \
@@ -1057,8 +1090,8 @@ void SphereCamUnit::process_equirect(SphereCamPackage *pkg)
 				float phi2 = atan2(hypot(vect_x, vect_z), vect_y); \
 				float r = radius * 2 * phi2 / fov; \
 /* pixel in fisheye space */ \
-				float x_in = center_x + r * cos(theta2); \
-				float y_in = center_y + r * sin(theta2); \
+				float x_in = input_x + r * cos(theta2); \
+				float y_in = input_y + r * sin(theta2); \
  \
  				BLEND_PIXEL(type, components) \
 			} \
@@ -1082,10 +1115,10 @@ void SphereCamUnit::process_equirect(SphereCamPackage *pkg)
 			int h = plugin->h;
 			float fov = plugin->config.fov[eye] * M_PI * 2 / 360;
 			float radius = plugin->radius[eye];
-			float center_x = plugin->center_x[eye];
-			float center_y = plugin->center_y[eye];
-			float rotate_x = plugin->config.rotate_x[eye] * M_PI * 2 / 360;
-			float rotate_y = plugin->config.rotate_y[eye] * M_PI * 2 / 360;
+			float input_x = plugin->input_x[eye];
+			float input_y = plugin->input_y[eye];
+			float output_x = plugin->output_x[eye];
+			float output_y = plugin->output_y[eye];
 			float rotate_z = plugin->config.rotate_z[eye] * M_PI * 2 / 360;
 			int feather = plugin->feather;
 			int out_x1 = plugin->out_x1[eye];
@@ -1153,6 +1186,121 @@ void SphereCamUnit::process_equirect(SphereCamPackage *pkg)
 
 
 
+void SphereCamUnit::process_align(SphereCamPackage *pkg)
+{
+	VFrame *input = plugin->get_temp();
+	VFrame *output = plugin->get_output();
+
+
+// overlay a single eye
+#define PROCESS_ALIGN(type, components, chroma) \
+{ \
+	type **in_rows = (type**)input->get_rows(); \
+	type **out_rows = (type**)output->get_rows(); \
+ \
+	type black[4] = { 0, chroma, chroma, 0 }; \
+ \
+	for(int out_y = row1; out_y < row2; out_y++) \
+	{ \
+		type *out_row = out_rows[out_y]; \
+/* polar angle */ \
+/* -M_PI/2 to M_PI/2 */ \
+		float y_diff = out_y - output_y; \
+		float phi = M_PI / 2 * (y_diff / radius); \
+ \
+ 		for(int out_x = 0; out_x < w; out_x++) \
+		{ \
+/* alpha */ \
+ 			float a = alpha[out_x]; \
+ 			float inv_a = 1.0f - a; \
+			if(a > 0) \
+			{ \
+/* polar angle */ \
+				float x_diff = out_x - output_x; \
+/* -M_PI/2 to M_PI/2 */ \
+				float theta = M_PI / 2 * (x_diff / radius); \
+	/* vector in 3D space */ \
+				float vect_x = cos(phi) * sin(theta); \
+				float vect_y = cos(phi) * cos(theta); \
+				float vect_z = sin(phi); \
+	/* fisheye angle & radius */ \
+				float theta2 = atan2(vect_z, vect_x) - rotate_z; \
+				float phi2 = atan2(hypot(vect_x, vect_z), vect_y); \
+				float r = radius * 2 * phi2 / fov; \
+	/* pixel in fisheye space */ \
+				float x_in = input_x + r * cos(theta2); \
+				float y_in = input_y + r * sin(theta2); \
+	\
+ 				BLEND_NEAREST(type, components) \
+			} \
+			else \
+			{ \
+				out_row += components; \
+			} \
+		} \
+	} \
+}
+
+
+
+	int row1 = pkg->row1;
+	int row2 = pkg->row2;
+	for(int eye = 0; eye < EYES; eye++)
+	{
+		if(plugin->config.enabled[eye])
+		{
+			int w = plugin->w;
+			int h = plugin->h;
+			float fov = plugin->config.fov[eye] * M_PI * 2 / 360;
+			float radius = plugin->radius[eye];
+			float input_x = plugin->input_x[eye];
+			float input_y = plugin->input_y[eye];
+			float output_x = plugin->output_x[eye];
+			float output_y = plugin->output_y[eye];
+			float rotate_z = plugin->config.rotate_z[eye] * M_PI * 2 / 360;
+			int feather = plugin->feather;
+			int out_x1 = plugin->out_x1[eye];
+			int out_x2 = plugin->out_x2[eye];
+			int out_x3 = plugin->out_x3[eye];
+			int out_x4 = plugin->out_x4[eye];
+// left eye is opaque.  right eye overlaps
+// compute the alpha for every X
+			float alpha[w];
+			for(int i = 0; i < w; i++)
+			{
+				alpha[i] = 0;
+			}
+
+			for(int i = out_x1; i < out_x2; i++)
+			{
+				if(eye == 0 || !plugin->config.enabled[0])
+				{
+					alpha[i] = 1.0f;
+				}
+				else
+				{
+					alpha[i] = 0.5f;
+				}
+			}
+
+			for(int i = out_x3; i < out_x4; i++)
+			{
+				if(eye == 0 || !plugin->config.enabled[0])
+				{
+					alpha[i] = 1.0f;
+				}
+				else
+				{
+					alpha[i] = 0.5f;
+				}
+			}
+
+
+			COLORSPACE_SWITCH(PROCESS_ALIGN)
+		}
+	}
+}
+
 void SphereCamUnit::process_package(LoadPackage *package)
 {
 	SphereCamPackage *pkg = (SphereCamPackage*)package;
@@ -1161,6 +1309,9 @@ void SphereCamUnit::process_package(LoadPackage *package)
 	{
 		case SphereCamConfig::EQUIRECT:
 			process_equirect(pkg);
+			break;
+		case SphereCamConfig::ALIGN:
+			process_align(pkg);
 			break;
 	}
 }
