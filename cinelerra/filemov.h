@@ -289,7 +289,7 @@ public:
 	MOVConfigVideoFixQuant *h264_fix_quant;
 
 
-	MOVConfigVideoCheckBox *is_sphere;
+	MOVConfigVideoCheckBox *mov_sphere;
 };
 
 class MOVConfigVideoPopup : public BC_PopupTextBox

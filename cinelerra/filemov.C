@@ -351,7 +351,7 @@ void FileMOV::asset_to_format()
 		quicktime_set_parameter(fd, "h264_quantizer", &asset->h264_quantizer);
 		quicktime_set_parameter(fd, "h264_fix_bitrate", &asset->h264_fix_bitrate);
 
-		quicktime_set_sphere(fd, asset->is_sphere);
+		quicktime_set_sphere(fd, asset->mov_sphere);
 	}
 
 	if(file->wr && asset->format == FILE_AVI)
@@ -1814,7 +1814,7 @@ void MOVConfigVideo::reset()
 	ms_fix_bitrate = 0;
 	ms_fix_quant = 0;
 	
-	is_sphere = 0;
+	mov_sphere = 0;
 }
 
 void MOVConfigVideo::update_parameters()
@@ -1845,7 +1845,7 @@ void MOVConfigVideo::update_parameters()
 	if(ms_fix_bitrate) delete ms_fix_bitrate;
 	if(ms_fix_quant) delete ms_fix_quant;
 
-	if(is_sphere) delete is_sphere;
+	if(mov_sphere) delete mov_sphere;
 
 	delete h264_bitrate;
 	delete h264_quantizer;
@@ -1894,10 +1894,10 @@ void MOVConfigVideo::update_parameters()
 
 
 		y += h264_fix_quant->get_h() + 10;
-		add_subwindow(is_sphere = new MOVConfigVideoCheckBox(_("Tag for spherical playback"), 
+		add_subwindow(mov_sphere = new MOVConfigVideoCheckBox(_("Tag for spherical playback"), 
 			x, 
 			y, 
-			&asset->is_sphere));
+			&asset->mov_sphere));
 
 	}
 	else
