@@ -1,12 +1,13 @@
 #include "colormodels.h"
 #include "funcprotos.h"
+#include "qtasf.h"
 #include "qtasf_codes.h"
 #include "quicktime.h"
 #include <string.h>
 #include <sys/stat.h>
 #include "workarounds.h"
 
-int quicktime_make_streamable(char *in_path, char *out_path)
+int quicktime_make_streamable(char *in_path, char *out_path, int do_360)
 {
 	quicktime_t file, *old_file, new_file;
 	int moov_exists = 0, mdat_exists = 0, result, atoms = 1;
@@ -18,6 +19,7 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 	unsigned char *ftyp_data = 0;
 	
 	quicktime_init(&file);
+	quicktime_init(&new_file);
 
 /* find the moov atom in the old file */
 	
@@ -84,7 +86,10 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 /* copy the old file to the new file */
 	if(moov_exists && mdat_exists)
 	{
+
+
 /* moov wasn't the first atom */
+// TODO: write it anyway, to add a spherical tag
 		if(moov_exists > 1)
 		{
 			char *buffer;
@@ -99,6 +104,12 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 				return 1;
 			}
 
+//printf("quicktime_make_streamable %d do_360=%d\n", __LINE__, do_360);
+// set the spherical tag
+			if(do_360)
+			{
+				quicktime_set_sphere(&new_file, 1);
+			}
 
 /* open the output file */
 			if(!(new_file.stream = fopen(out_path, "wb")))
@@ -124,7 +135,7 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 				quicktime_write_moov(&new_file, &(old_file->moov), 0);
 				moov_end = quicktime_position(&new_file);
 
-printf("make_streamable 0x%llx 0x%llx\n", (long long)moov_end - moov_start, (long long)mdat_start);
+//printf("make_streamable 0x%llx 0x%llx\n", (long long)moov_end - moov_start, (long long)mdat_start);
 				quicktime_shift_offsets(&(old_file->moov), 
 					moov_end - moov_start - mdat_start + ftyp_size);
 
@@ -132,6 +143,7 @@ printf("make_streamable 0x%llx 0x%llx\n", (long long)moov_end - moov_start, (lon
 				quicktime_set_position(&new_file, moov_start);
 				quicktime_write_moov(&new_file, &(old_file->moov), 0);
 				quicktime_set_position(old_file, mdat_start);
+
 
 				if(!(buffer = calloc(1, buf_size)))
 				{
@@ -184,6 +196,11 @@ void quicktime_set_name(quicktime_t *file, const char *string)
 void quicktime_set_info(quicktime_t *file, const char *string)
 {
 	quicktime_set_udta_string(&(file->moov.udta.info), &(file->moov.udta.info_len), string);
+}
+
+void quicktime_set_sphere(quicktime_t *file, int value)
+{
+	file->is_sphere = value;
 }
 
 char* quicktime_get_copyright(quicktime_t *file)

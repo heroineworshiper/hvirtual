@@ -729,7 +729,8 @@ typedef struct
 	int is_odml;
 
 
-
+/* tag the file for spherical playback */
+	int is_sphere;
 
 
 

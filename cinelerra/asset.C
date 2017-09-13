@@ -162,6 +162,7 @@ int Asset::init_values()
 
 	tiff_cmodel = 0;
 	tiff_compression = 0;
+	is_sphere = 0;
 
 	use_header = 1;
 
@@ -299,6 +300,9 @@ void Asset::copy_format(Asset *asset, int do_index)
 
 	tiff_cmodel = asset->tiff_cmodel;
 	tiff_compression = asset->tiff_compression;
+	
+	
+	is_sphere = asset->is_sphere;
 }
 
 int64_t Asset::get_index_offset(int channel)
@@ -379,7 +383,8 @@ int Asset::equivalent(Asset &asset,
 			frame_rate == asset.frame_rate &&
 			width == asset.width &&
 			height == asset.height &&
-			!strcmp(vcodec, asset.vcodec));
+			!strcmp(vcodec, asset.vcodec) &&
+			is_sphere == asset.is_sphere);
 	}
 
 	return result;
@@ -534,6 +539,7 @@ int Asset::read_video(FileXML *file)
 	file->tag.get_property("VCODEC", vcodec);
 
 	video_length = file->tag.get_property("VIDEO_LENGTH", (int64_t)0);
+	is_sphere = file->tag.get_property("IS_SPHERE", 0);
 
 	return 0;
 }
@@ -672,6 +678,7 @@ int Asset::write_video(FileXML *file)
 		file->tag.set_property("VCODEC", vcodec);
 
 	file->tag.set_property("VIDEO_LENGTH", video_length);
+	file->tag.set_property("IS_SPHERE", is_sphere);
 
 
 
@@ -834,6 +841,7 @@ void Asset::load_defaults(BC_Hash *defaults,
 	tiff_cmodel = GET_DEFAULT("TIFF_CMODEL", tiff_cmodel);
 	tiff_compression = GET_DEFAULT("TIFF_COMPRESSION", tiff_compression);
 
+	is_sphere = GET_DEFAULT("IS_SPHERE", is_sphere);
 	boundaries();
 }
 
@@ -944,7 +952,14 @@ void Asset::save_defaults(BC_Hash *defaults,
 		UPDATE_DEFAULT("EXR_COMPRESSION", exr_compression);
 		UPDATE_DEFAULT("TIFF_CMODEL", tiff_cmodel);
 		UPDATE_DEFAULT("TIFF_COMPRESSION", tiff_compression);
+
+
+
+		UPDATE_DEFAULT("IS_SPHERE", is_sphere);
 	}
+
+
+
 
 	if(do_bits)
 	{
@@ -1014,6 +1029,7 @@ int Asset::dump()
 	printf("   h264_bitrate=%d\n", h264_bitrate);
 	printf("   h264_quantizer=%d\n", h264_quantizer);
 	printf("   h264_fix_bitrate=%d\n", h264_fix_bitrate);
+	printf("   is_sphere=%d\n", is_sphere);
 	return 0;
 }
 

@@ -4,13 +4,19 @@
 #include "graphics.h"
 #include "qtprivate.h"
 
+int quicktime_init(quicktime_t *file);
+
+
 /* atom handling routines */
 int quicktime_atom_write_header(quicktime_t *file, quicktime_atom_t *atom, char *text);
 int quicktime_atom_write_header64(quicktime_t *file, quicktime_atom_t *atom, char *text);
+void quicktime_atom_write_footer(quicktime_t *file, quicktime_atom_t *atom);
+int quicktime_atom_read_header(quicktime_t *file, quicktime_atom_t *atom);
 int64_t quicktime_byte_position(quicktime_t *file);
 // Used internally to replace ftello values
 int64_t quicktime_ftell(quicktime_t *file);
 int quicktime_atom_is(quicktime_atom_t *atom, unsigned char *type);
+int quicktime_atom_skip(quicktime_t *file, quicktime_atom_t *atom);
 
 quicktime_trak_t* quicktime_add_track(quicktime_t *file);
 
@@ -69,7 +75,15 @@ void quicktime_id_to_codec(char *result, int id);
 
 int quicktime_find_vcodec(quicktime_video_map_t *vtrack);
 int quicktime_find_acodec(quicktime_audio_map_t *atrack);
+int quicktime_init_acodec(quicktime_audio_map_t *atrack);
+int quicktime_init_vcodec(quicktime_video_map_t *vtrack);
+int quicktime_delete_vcodec(quicktime_video_map_t *vtrack);
+int quicktime_delete_acodec(quicktime_audio_map_t *atrack);
 
+int quicktime_init_video_map(quicktime_video_map_t *vtrack, quicktime_trak_t *trak);
+int quicktime_init_audio_map(quicktime_audio_map_t *atrack, quicktime_trak_t *trak);
+int quicktime_delete_audio_map(quicktime_audio_map_t *atrack);
+int quicktime_delete_video_map(quicktime_video_map_t *vtrack);
 
 
 
@@ -241,6 +255,11 @@ void quicktime_read_riff(quicktime_t *file, quicktime_atom_t *parent_atom);
 void quicktime_init_riff(quicktime_t *file);
 void quicktime_finalize_riff(quicktime_t *file, quicktime_riff_t *riff);
 
+void quicktime_import_avi(quicktime_t *file);
+
+
+
+
 
 /* Create ix object for writing only */
 quicktime_ix_t* quicktime_new_ix(quicktime_t *file, 
@@ -264,7 +283,17 @@ void quicktime_read_ix(quicktime_t *file,
 void quicktime_write_moov(quicktime_t *file, 
 	quicktime_moov_t *moov,
 	int rewind);
+int quicktime_read_moov(quicktime_t *file, 
+	quicktime_moov_t *moov, 
+	quicktime_atom_t *parent_atom);
+void quicktime_moov_dump(quicktime_moov_t *moov);
+int quicktime_moov_delete(quicktime_moov_t *moov);
+int quicktime_moov_init(quicktime_moov_t *moov);
+int quicktime_shift_offsets(quicktime_moov_t *moov, int64_t offset);
 
+
+void quicktime_mdat_delete(quicktime_mdat_t *mdat);
+void quicktime_read_mdat(quicktime_t *file, quicktime_mdat_t *mdat, quicktime_atom_t *parent_atom);
 
 /* compression_id is for AVI reading */
 int quicktime_trak_init_audio(quicktime_t *file, 
@@ -279,6 +308,7 @@ int quicktime_trak_init_video(quicktime_t *file,
 							int frame_h, 
 							float frame_rate,
 							char *compressor);
+int quicktime_trak_init(quicktime_trak_t *trak);
 int quicktime_trak_delete(quicktime_trak_t *trak);
 int quicktime_trak_dump(quicktime_trak_t *trak);
 int quicktime_delete_trak(quicktime_moov_t *moov);
@@ -429,6 +459,10 @@ void quicktime_minf_init_audio(quicktime_t *file,
 							int sample_rate, 
 							int bits, 
 							char *compressor);
+
+
+
+
 void quicktime_mdia_init_video(quicktime_t *file, 
 								quicktime_mdia_t *mdia,
 								int frame_w,
@@ -441,10 +475,35 @@ void quicktime_mdia_init_audio(quicktime_t *file,
 							int sample_rate, 
 							int bits, 
 							char *compressor);
+void quicktime_mdia_init(quicktime_mdia_t *mdia);
+void quicktime_mdia_delete(quicktime_mdia_t *mdia);
+void quicktime_mdia_dump(quicktime_mdia_t *mdia);
+int quicktime_read_mdia(quicktime_t *file, quicktime_mdia_t *mdia, quicktime_atom_t *trak_atom);
+void quicktime_write_mdia(quicktime_t *file, quicktime_mdia_t *mdia);
+
+
+
+
+
 void quicktime_tkhd_init_video(quicktime_t *file, 
 								quicktime_tkhd_t *tkhd, 
 								int frame_w, 
 								int frame_h);
+int quicktime_tkhd_init(quicktime_tkhd_t *tkhd);
+int quicktime_tkhd_delete(quicktime_tkhd_t *tkhd);
+void quicktime_tkhd_dump(quicktime_tkhd_t *tkhd);
+void quicktime_read_tkhd(quicktime_t *file, quicktime_tkhd_t *tkhd);
+void quicktime_write_tkhd(quicktime_t *file, quicktime_tkhd_t *tkhd);
+
+
+void quicktime_edts_init(quicktime_edts_t *edts);
+void quicktime_edts_init_table(quicktime_edts_t *edts);
+void quicktime_edts_delete(quicktime_edts_t *edts);
+void quicktime_edts_dump(quicktime_edts_t *edts);
+void quicktime_read_edts(quicktime_t *file, quicktime_edts_t *edts, quicktime_atom_t *edts_atom);
+void quicktime_write_edts(quicktime_t *file, quicktime_edts_t *edts, long duration);
+
+
 int quicktime_get_timescale(double frame_rate);
 
 unsigned long quicktime_current_time(void);
@@ -497,6 +556,13 @@ void quicktime_copy_vbr_float(quicktime_vbr_t *vbr,
 	int samples,
 	float *output, 
 	int channel);
+
+
+
+int quicktime_codecs_flush(quicktime_t *file);
+
+
+
 
 
 

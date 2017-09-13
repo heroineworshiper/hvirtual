@@ -1575,7 +1575,7 @@ void VFrame::draw_oval(int x1, int y1, int x2, int y2)
 	int center_y = (y2 + y1) / 2;
 	int x_table[h / 2];
 
-printf("VFrame::draw_oval %d %d %d %d %d\n", __LINE__, x1, y1, x2, y2);
+//printf("VFrame::draw_oval %d %d %d %d %d\n", __LINE__, x1, y1, x2, y2);
 
 	for(int i = 0; i < h / 2; i++)
 	{

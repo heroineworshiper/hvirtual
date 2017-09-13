@@ -273,7 +273,8 @@ public:
 
 
 	int ac3_bitrate;
-
+// Insert tag for spherical playback
+	int is_sphere;
 
 
 // Image file sequences.  Background rendering doesn't want to write a 

@@ -183,15 +183,11 @@ void Theme::build_menus()
 	frame_sizes.append(new BC_ListBoxItem("320x240"));
 	frame_sizes.append(new BC_ListBoxItem("360x240"));
 	frame_sizes.append(new BC_ListBoxItem("400x300"));
-	frame_sizes.append(new BC_ListBoxItem("424x318"));
-	frame_sizes.append(new BC_ListBoxItem("512x384"));
 	frame_sizes.append(new BC_ListBoxItem("640x480"));
 	frame_sizes.append(new BC_ListBoxItem("720x480"));
-	frame_sizes.append(new BC_ListBoxItem("720x576"));
 	frame_sizes.append(new BC_ListBoxItem("1280x720"));
-	frame_sizes.append(new BC_ListBoxItem("960x1080"));
 	frame_sizes.append(new BC_ListBoxItem("1920x1080"));
-	frame_sizes.append(new BC_ListBoxItem("1920x1088"));
+	frame_sizes.append(new BC_ListBoxItem("3840x2160"));
 	sample_rates.append(new BC_ListBoxItem("8000"));
 	sample_rates.append(new BC_ListBoxItem("16000"));
 	sample_rates.append(new BC_ListBoxItem("22050"));

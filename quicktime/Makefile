@@ -12,6 +12,7 @@ HAVE_CFLAGS := n
 endif
 
 
+
 ENCORE_DIR := thirdparty/encore50
 ENCORE_INCLUDE := $(ENCORE_DIR)/encore.h
 MPEG3_DIR := $(shell expr ../libmpeg3* )
@@ -259,7 +260,7 @@ DIRS += \
 	$(OBJDIR)/$(ENCORE_DIR)/mbtransquant/intel_mmx
 
 
-LIBS := $(OUTPUT) $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a -lpng -lz -lpthread -ldl -lm -lrt
+LIBS := $(OUTPUT) $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a -lpng -lz -lpthread -ldl -lm -llzma -lrt
 
 
 $(shell mkdir -p $(DIRS) )

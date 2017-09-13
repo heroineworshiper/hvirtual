@@ -237,6 +237,9 @@ void quicktime_write_moov(quicktime_t *file,
 	file->mdat.atom.end = quicktime_position(file);
 	result = quicktime_atom_write_header(file, &atom, "moov");
 
+
+
+
 // Disk full.  Rewind and try again
 	if(result)
 	{

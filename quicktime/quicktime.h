@@ -163,12 +163,14 @@ void quicktime_set_asf(quicktime_t *file, int value);
 
 
 /* make the quicktime file streamable */
-int quicktime_make_streamable(char *in_path, char *out_path);
+int quicktime_make_streamable(char *in_path, char *out_path, int do_360);
 
 /* Set various options in the file. */
 void quicktime_set_copyright(quicktime_t *file, const char *string);
 void quicktime_set_name(quicktime_t *file, const char *string);
 void quicktime_set_info(quicktime_t *file, const char *string);
+/* tag the file for spherical playback */
+void quicktime_set_sphere(quicktime_t *file, int value);
 char* quicktime_get_copyright(quicktime_t *file);
 char* quicktime_get_name(quicktime_t *file);
 char* quicktime_get_info(quicktime_t *file);

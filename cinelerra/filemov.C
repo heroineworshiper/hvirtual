@@ -351,7 +351,7 @@ void FileMOV::asset_to_format()
 		quicktime_set_parameter(fd, "h264_quantizer", &asset->h264_quantizer);
 		quicktime_set_parameter(fd, "h264_fix_bitrate", &asset->h264_fix_bitrate);
 
-
+		quicktime_set_sphere(fd, asset->is_sphere);
 	}
 
 	if(file->wr && asset->format == FILE_AVI)
@@ -1689,8 +1689,8 @@ MOVConfigVideo::MOVConfigVideo(BC_WindowBase *parent_window,
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	420,
-	420)
+	512,
+	512)
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -1813,6 +1813,8 @@ void MOVConfigVideo::reset()
 	ms_gop_size = 0;
 	ms_fix_bitrate = 0;
 	ms_fix_quant = 0;
+	
+	is_sphere = 0;
 }
 
 void MOVConfigVideo::update_parameters()
@@ -1843,13 +1845,14 @@ void MOVConfigVideo::update_parameters()
 	if(ms_fix_bitrate) delete ms_fix_bitrate;
 	if(ms_fix_quant) delete ms_fix_quant;
 
+	if(is_sphere) delete is_sphere;
+
 	delete h264_bitrate;
 	delete h264_quantizer;
 	delete h264_fix_bitrate;
 	delete h264_fix_quant;
 
 	reset();
-
 
 	char *vcodec = asset->vcodec;
 	if(locked_compressor) vcodec = locked_compressor;
@@ -1886,6 +1889,16 @@ void MOVConfigVideo::update_parameters()
 				0));
 		h264_fix_bitrate->opposite = h264_fix_quant;
 		h264_fix_quant->opposite = h264_fix_bitrate;
+
+
+
+
+		y += h264_fix_quant->get_h() + 10;
+		add_subwindow(is_sphere = new MOVConfigVideoCheckBox(_("Tag for spherical playback"), 
+			x, 
+			y, 
+			&asset->is_sphere));
+
 	}
 	else
 // ffmpeg parameters
