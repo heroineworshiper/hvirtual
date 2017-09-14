@@ -43,8 +43,8 @@
 
 #include <string.h>
 
-#define WIDTH 320
-#define HEIGHT 320
+#define WIDTH 512
+#define HEIGHT 512
 #define MAX_SCALE 16
 
 
@@ -757,7 +757,7 @@ void ProxyClient::process_package(LoadPackage *ptr)
 	// Copy decoding parameters from session to asset so file can see them.
 	package->orig_asset->divx_use_deblocking = edl->session->mpeg4_deblock;
 
-//printf("%s %s\n", package->orig_asset->path, package->proxy_asset->path);
+//printf("ProxyClient::process_package %d %s %s\n", __LINE__, package->orig_asset->path, package->proxy_asset->path);
 
 
 	result = src_file.open_file(preferences, package->orig_asset, 1, 0);
@@ -794,15 +794,23 @@ void ProxyClient::process_package(LoadPackage *ptr)
 	
 	OverlayFrame scaler(processors);
 
+//printf("ProxyClient::process_package %d video_length=%ld\n", __LINE__, package->orig_asset->video_length);
+// If it's a still photo, the EDL length is -1
+	int64_t transcode_length = package->orig_asset->video_length;
+	if(transcode_length < 0)
+	{
+		transcode_length = 1;
+	}
+
 	for(int64_t i = 0; 
-		i < package->orig_asset->video_length && 
+		i < transcode_length && 
 			!thread->failed && 
 			!thread->is_canceled(); 
 		i++)
 	{
 		src_file.set_video_position(i, 0);
 		result = src_file.read_frame(&src_frame);
-//printf("result=%d\n", result);
+//printf("ProxyClient::process_package %d i=%ld result=%d\n", __LINE__, i, result);
 
 		if(result) 
 		{

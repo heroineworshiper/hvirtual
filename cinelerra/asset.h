@@ -164,6 +164,7 @@ public:
 	char vcodec[BCTEXTLEN];
 
 // Length in frames
+// -1 means a still photo
 	int64_t video_length;
 
 
