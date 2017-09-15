@@ -118,7 +118,10 @@ void PresetsDB::save()
 	for(int i = 0; i < plugins.size(); i++)
 	{
 		PresetsDBPlugin *plugin = plugins.get(i);
-		plugin->save(&file);
+		if(plugin->get_total_presets(1) > 0)
+		{
+			plugin->save(&file);
+		}
 	}
 	file.terminate_string();
 
@@ -130,14 +133,14 @@ void PresetsDB::save()
 }
 
 
-int PresetsDB::get_total_presets(char *plugin_title)
+int PresetsDB::get_total_presets(char *plugin_title, int user_only)
 {
 	for(int i = 0; i < plugins.size(); i++)
 	{
 		PresetsDBPlugin *plugin = plugins.get(i);
 		if(!strcasecmp(plugin->title, plugin_title))
 		{
-			return plugin->keyframes.size();
+			return plugin->get_total_presets(user_only);
 		}
 	}
 
@@ -316,6 +319,26 @@ PresetsDBPlugin::~PresetsDBPlugin()
 	delete [] title;
 }
 
+int PresetsDBPlugin::get_total_presets(int user_only)
+{
+	if(user_only)
+	{
+		int result = 0;
+		for(int j = 0; j < keyframes.size(); j++)
+		{
+			if(!keyframes.get(j)->is_factory) 
+			{
+				result++;
+			}
+		}
+		return result;
+	}
+	else
+	{
+		return keyframes.size();
+	}
+}
+
 void PresetsDBPlugin::load(FileXML *file, int is_factory)
 {
 	int result = 0;
@@ -356,13 +379,17 @@ void PresetsDBPlugin::save(FileXML *file)
 	for(int j = 0; j < keyframes.size(); j++)
 	{
 		PresetsDBKeyframe *keyframe = keyframes.get(j);
-		file->tag.set_title("KEYFRAME");
-		file->tag.set_property("TITLE", keyframe->title);
-		file->append_tag();
-		file->append_text(keyframe->data);
-		file->tag.set_title("/KEYFRAME");
-		file->append_tag();
-		file->append_newline();
+		
+		if(!keyframe->is_factory)
+		{
+			file->tag.set_title("KEYFRAME");
+			file->tag.set_property("TITLE", keyframe->title);
+			file->append_tag();
+			file->append_text(keyframe->data);
+			file->tag.set_title("/KEYFRAME");
+			file->append_tag();
+			file->append_newline();
+		}
 	}
 
 	file->tag.set_title("/PLUGIN");

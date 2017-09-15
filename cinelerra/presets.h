@@ -66,6 +66,7 @@ public:
 		KeyFrame *keyframe,
 		int is_factory);
 	int preset_exists(const char *preset_title, int is_factory);
+	int get_total_presets(int user_only);
 
 	ArrayList<PresetsDBKeyframe*> keyframes;
 	char *title;
@@ -86,7 +87,7 @@ public:
 	void save();
 
 // Get the total number of presets for a plugin
-	int get_total_presets(char *plugin_title);
+	int get_total_presets(char *plugin_title, int user_only);
 // Get the title of a preset
 	char* get_preset_title(char *plugin_title, int number);
 	int get_is_factory(char *plugin_title, int number);

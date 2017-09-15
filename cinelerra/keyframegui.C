@@ -34,15 +34,12 @@
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "plugin.h"
+#include "preferences.h"
 #include "presets.h"
 #include "theme.h"
 #include "trackcanvas.h"
 #include "tracks.h"
 
-
-
-// The factory defaults
-static char *factory_defaults = "";
 
 
 
@@ -166,15 +163,25 @@ void KeyFrameThread::start_window(Plugin *plugin, KeyFrame *keyframe)
 		sprintf(window_title, PROGRAM_NAME ": %s Keyframe", plugin_title);
 
 
+
+// Load all the presets from disk
 		char path[BCTEXTLEN];
-		sprintf(path, "%s%s", BCASTDIR, FACTORY_FILE);
+
+
+// system wide presets
+		sprintf(path, "%s/%s", mwindow->preferences->plugin_dir, FACTORY_FILE);
+		
 		FileSystem fs;
 		fs.complete_path(path);
+		presets_db->load_from_file(path, 1, 1);
 
-		presets_db->load_from_string(path, 1, 1);
 
+
+// user presets
 		sprintf(path, "%s%s", BCASTDIR, PRESETS_FILE);
 		fs.complete_path(path);
+
+
 
 		presets_db->load_from_file(path, 0, 0);
 		calculate_preset_list();
@@ -249,7 +256,7 @@ void KeyFrameThread::calculate_preset_list()
 	presets_data->remove_all_objects();
 	is_factories.remove_all();
 	preset_titles.remove_all_objects();
-	int total_presets = presets_db->get_total_presets(plugin_title);
+	int total_presets = presets_db->get_total_presets(plugin_title, 0);
 	for(int i = 0; i < total_presets; i++)
 	{
 		char text[BCTEXTLEN];
@@ -809,7 +816,7 @@ int KeyFramePresetsList::selection_changed()
 		thread->is_factory = thread->is_factories.get(number);
 // show title without factory symbol in the textbox
 		window->preset_text->update(
-			thread->preset_titles.get(number));
+			thread->presets_data->get(number)->get_text());
 	}
 	
 	return 0;
@@ -883,7 +890,10 @@ KeyFramePresetsDelete::KeyFramePresetsDelete(KeyFrameThread *thread,
 
 int KeyFramePresetsDelete::handle_event()
 {
-	thread->delete_preset(thread->preset_text, thread->is_factory);
+	if(!thread->is_factory)
+	{
+		thread->delete_preset(thread->preset_text, thread->is_factory);
+	}
 	return 1;
 }
 
@@ -905,7 +915,10 @@ KeyFramePresetsSave::KeyFramePresetsSave(KeyFrameThread *thread,
 
 int KeyFramePresetsSave::handle_event()
 {
-	thread->save_preset(thread->preset_text, thread->is_factory);
+	if(!thread->is_factory)
+	{
+		thread->save_preset(thread->preset_text, thread->is_factory);
+	}
 	return 1;
 }
 
@@ -956,8 +969,11 @@ int KeyFramePresetsOK::keypress_event()
 		else
 // Save the preset
 		{
-			thread->save_preset(thread->preset_text, thread->is_factory);
-			return 1;
+			if(!thread->is_factory)
+			{
+				thread->save_preset(thread->preset_text, thread->is_factory);
+				return 1;
+			}
 		}
 	}
 	return 0;

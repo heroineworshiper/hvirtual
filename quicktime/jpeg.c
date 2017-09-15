@@ -107,11 +107,13 @@ static int decode(quicktime_t *file,
 	size = quicktime_frame_size(file, vtrack->current_position, track);
 	codec->buffer_size = size;
 
-printf("decode %d current_position=%ld offset=%lx size=%ld\n", 
-__LINE__, 
-vtrack->current_position,
-quicktime_ftell(file),
-size);
+/*
+ * printf("decode %d current_position=%ld offset=%lx size=%ld\n", 
+ * __LINE__, 
+ * vtrack->current_position,
+ * quicktime_ftell(file),
+ * size);
+ */
 
 	if(size > codec->buffer_allocated)
 	{
@@ -120,16 +122,20 @@ size);
 	}
 
 	result = !quicktime_read_data(file, codec->buffer, size);
-printf("decode %d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
-__LINE__,
-codec->buffer[0],
-codec->buffer[1],
-codec->buffer[2],
-codec->buffer[3],
-codec->buffer[4],
-codec->buffer[5],
-codec->buffer[6],
-codec->buffer[7]);
+
+
+/*
+ * printf("decode %d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+ * __LINE__,
+ * codec->buffer[0],
+ * codec->buffer[1],
+ * codec->buffer[2],
+ * codec->buffer[3],
+ * codec->buffer[4],
+ * codec->buffer[5],
+ * codec->buffer[6],
+ * codec->buffer[7]);
+ */
 
 	if(!result)
 	{
@@ -247,7 +253,7 @@ codec->buffer[7]);
 //printf("decode %d\n", __LINE__);
 		}
 	}
-printf("decode %d result=%d\n", __LINE__, result);
+//printf("decode %d result=%d\n", __LINE__, result);
 
 	return result;
 }
