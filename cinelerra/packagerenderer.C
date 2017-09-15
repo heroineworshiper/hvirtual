@@ -248,7 +248,12 @@ void PackageRenderer::create_engine()
 		direct_frame_copying = 0;
 
 
-//printf("PackageRenderer::create_engine %d\n", __LINE__);
+//printf("PackageRenderer::create_engine %d video_write_length=%d\n", __LINE__, video_write_length);
+// starting frames are corrupted if video_write_length > 2.  Work around it, for now.
+		if(video_write_length > 2)
+		{
+			video_write_length = 2;
+		}
 		file->start_video_thread(video_write_length,
 			command->get_edl()->session->color_model,
 			preferences->processors > 1 ? 2 : 1,

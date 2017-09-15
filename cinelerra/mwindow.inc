@@ -23,11 +23,14 @@
 #define MWINDOW_INC
 
 #define PROGRAM_NAME "Cinelerra"
-#define CINELERRA_VERSION "6"
-#define COPYRIGHT_DATE 2016
+#define CINELERRA_VERSION "7"
+#define COPYRIGHT_DATE 2017
 #define DEFAULT_THEME "S.U.V."
 #define CONFIG_FILE "Cinelerra_rc"
+// user presets
 #define PRESETS_FILE "Cinelerra_presets"
+// factory presets
+#define FACTORY_FILE "Cinelerra_factory"
 #define PICTURE_FILE "Cinelerra_picture"
 #define PLUGIN_FILE "Cinelerra_plugins"
 #define PLUGIN_FILE_VERSION 0
@@ -48,3 +51,8 @@
 class MWindow;
 
 #endif
+
+
+
+
+

@@ -22,6 +22,7 @@
 #include "bchash.h"
 #include "bcsignals.h"
 #include "edl.h"
+#include "filesystem.h"
 #include "keyframe.h"
 #include "keyframes.h"
 #include "keyframegui.h"
@@ -40,6 +41,16 @@
 
 
 
+// The factory defaults
+static char *factory_defaults = "";
+
+
+
+
+
+
+
+
 
 KeyFrameThread::KeyFrameThread(MWindow *mwindow)
  : BC_DialogThread()
@@ -49,6 +60,8 @@ KeyFrameThread::KeyFrameThread(MWindow *mwindow)
 	keyframe = 0;
 	keyframe_data = new ArrayList<BC_ListBoxItem*>[KEYFRAME_COLUMNS];
 	plugin_title[0] = 0;
+	is_factory = 0;
+	preset_text[0] = 0;
 	window_title[0] = 0;
 	column_titles[0] = (char*)"Parameter";
 	column_titles[1] = (char*)"Value";
@@ -65,6 +78,8 @@ KeyFrameThread::~KeyFrameThread()
 	delete [] keyframe_data;
 	presets_data->remove_all_objects();
 	delete presets_data;
+	is_factories.remove_all();
+	preset_titles.remove_all_objects();
 }
 
 
@@ -149,7 +164,19 @@ void KeyFrameThread::start_window(Plugin *plugin, KeyFrame *keyframe)
 		this->plugin = plugin;
 		plugin->calculate_title(plugin_title, 0);
 		sprintf(window_title, PROGRAM_NAME ": %s Keyframe", plugin_title);
-		presets_db->load();
+
+
+		char path[BCTEXTLEN];
+		sprintf(path, "%s%s", BCASTDIR, FACTORY_FILE);
+		FileSystem fs;
+		fs.complete_path(path);
+
+		presets_db->load_from_string(path, 1, 1);
+
+		sprintf(path, "%s%s", BCASTDIR, PRESETS_FILE);
+		fs.complete_path(path);
+
+		presets_db->load_from_file(path, 0, 0);
 		calculate_preset_list();
 
 #ifdef EDIT_KEYFRAME
@@ -193,8 +220,7 @@ void KeyFrameThread::handle_done_event(int result)
 // Apply the preset
 	if(!result)
 	{
-		const char *title = ((KeyFrameWindow*)get_gui())->preset_text->get_text();
-		apply_preset(title);
+		apply_preset(preset_text, is_factory);
 	}
 }
 
@@ -221,12 +247,23 @@ void KeyFrameThread::close_window()
 void KeyFrameThread::calculate_preset_list()
 {
 	presets_data->remove_all_objects();
+	is_factories.remove_all();
+	preset_titles.remove_all_objects();
 	int total_presets = presets_db->get_total_presets(plugin_title);
 	for(int i = 0; i < total_presets; i++)
 	{
-		presets_data->append(new BC_ListBoxItem(presets_db->get_preset_title(
+		char text[BCTEXTLEN];
+		char *orig_title = presets_db->get_preset_title(
 			plugin_title,
-			i)));
+			i);
+		int is_factory = presets_db->get_is_factory(plugin_title,
+			i);
+		sprintf(text, "%s%s", is_factory ? "*" : "", orig_title);
+		presets_data->append(new BC_ListBoxItem(text));
+		
+		
+		preset_titles.append(strdup(orig_title));
+		is_factories.append(is_factory);
 	}
 }
 
@@ -266,7 +303,7 @@ void KeyFrameThread::update_gui(int update_value_text)
 #endif
 }
 
-void KeyFrameThread::save_preset(const char *title)
+void KeyFrameThread::save_preset(const char *title, int is_factory)
 {
 	get_gui()->unlock_window();
 	mwindow->gui->lock_window("KeyFrameThread::save_preset");
@@ -288,7 +325,9 @@ void KeyFrameThread::save_preset(const char *title)
 			PLAY_FORWARD);
 
 // Send to database
-	presets_db->save_preset(plugin_title, title, keyframe->get_data());
+	presets_db->save_preset(plugin_title, 
+		title, 
+		keyframe->get_data());
 
 	mwindow->gui->unlock_window();
 	get_gui()->lock_window("KeyFrameThread::save_preset 2");
@@ -302,7 +341,7 @@ void KeyFrameThread::save_preset(const char *title)
 		1);
 }
 
-void KeyFrameThread::delete_preset(const char *title)
+void KeyFrameThread::delete_preset(const char *title, int is_factory)
 {
 	get_gui()->unlock_window();
 	mwindow->gui->lock_window("KeyFrameThread::save_preset");
@@ -315,7 +354,7 @@ void KeyFrameThread::delete_preset(const char *title)
 		return;
 	}
 
-	presets_db->delete_preset(plugin_title, title);
+	presets_db->delete_preset(plugin_title, title, is_factory);
 	
 	mwindow->gui->unlock_window();
 	get_gui()->lock_window("KeyFrameThread::delete_preset 2");
@@ -330,9 +369,9 @@ void KeyFrameThread::delete_preset(const char *title)
 }
 
 
-void KeyFrameThread::apply_preset(const char *title)
+void KeyFrameThread::apply_preset(const char *title, int is_factory)
 {
-	if(presets_db->preset_exists(plugin_title, title))
+	if(presets_db->preset_exists(plugin_title, title, is_factory))
 	{
 		get_gui()->unlock_window();
 		mwindow->gui->lock_window("KeyFrameThread::apply_preset");
@@ -341,7 +380,7 @@ void KeyFrameThread::apply_preset(const char *title)
 		if(!mwindow->edl->tracks->plugin_exists(plugin))
 		{
 			mwindow->gui->unlock_window();
-			get_gui()->lock_window("KeyFrameThread::delete_preset 1");
+			get_gui()->lock_window("KeyFrameThread::apply_preset 1");
 			return;
 		}
 
@@ -350,11 +389,11 @@ void KeyFrameThread::apply_preset(const char *title)
 
 #ifdef USE_KEYFRAME_SPANNING
 		KeyFrame keyframe;
-		presets_db->load_preset(plugin_title, title, &keyframe);
+		presets_db->load_preset(plugin_title, title, &keyframe, is_factory);
 		plugin->keyframes->update_parameter(&keyframe);
 #else
 		KeyFrame *keyframe = plugin->get_keyframe();
-		presets_db->load_preset(plugin_title, title, keyframe);
+		presets_db->load_preset(plugin_title, title, keyframe, is_factory);
 #endif
 		mwindow->save_backup();
 		mwindow->undo->update_undo_after(_("apply preset"), LOAD_AUTOMATION); 
@@ -763,15 +802,22 @@ KeyFramePresetsList::KeyFramePresetsList(KeyFrameThread *thread,
 
 int KeyFramePresetsList::selection_changed()
 {
-	if(get_selection_number(0, 0) >= 0)
+	int number = get_selection_number(0, 0);
+	if(number >= 0)
+	{
+		strcpy(thread->preset_text, thread->preset_titles.get(number));
+		thread->is_factory = thread->is_factories.get(number);
+// show title without factory symbol in the textbox
 		window->preset_text->update(
-			thread->presets_data->get(get_selection_number(0, 0))->get_text());
+			thread->preset_titles.get(number));
+	}
+	
 	return 0;
 }
 
 int KeyFramePresetsList::handle_event()
 {
-	thread->apply_preset(window->preset_text->get_text());
+	thread->apply_preset(thread->preset_text, thread->is_factory);
 	window->set_done(0);
 	return 0;
 }
@@ -794,14 +840,18 @@ KeyFramePresetsText::KeyFramePresetsText(KeyFrameThread *thread,
 	y, 
 	w, 
 	1, 
-	(char*)"")
+	thread->preset_text)
 {
 	this->thread = thread;
 	this->window = window;
 }
 
+// user entered a title
 int KeyFramePresetsText::handle_event()
 {
+	strcpy(thread->preset_text, get_text());
+// assume it's not a factory preset
+	thread->is_factory = 0;
 	return 0;
 }
 
@@ -833,7 +883,7 @@ KeyFramePresetsDelete::KeyFramePresetsDelete(KeyFrameThread *thread,
 
 int KeyFramePresetsDelete::handle_event()
 {
-	thread->delete_preset(window->preset_text->get_text());
+	thread->delete_preset(thread->preset_text, thread->is_factory);
 	return 1;
 }
 
@@ -855,7 +905,7 @@ KeyFramePresetsSave::KeyFramePresetsSave(KeyFrameThread *thread,
 
 int KeyFramePresetsSave::handle_event()
 {
-	thread->save_preset(window->preset_text->get_text());
+	thread->save_preset(thread->preset_text, thread->is_factory);
 	return 1;
 }
 
@@ -878,7 +928,7 @@ KeyFramePresetsApply::KeyFramePresetsApply(KeyFrameThread *thread,
 
 int KeyFramePresetsApply::handle_event()
 {
-	thread->apply_preset(window->preset_text->get_text());
+	thread->apply_preset(thread->preset_text, thread->is_factory);
 	return 1;
 }
 
@@ -897,7 +947,8 @@ int KeyFramePresetsOK::keypress_event()
 	{
 // Apply the preset
 		if(thread->presets_db->preset_exists(thread->plugin_title, 
-			window->preset_text->get_text()))
+			thread->preset_text,
+			thread->is_factory))
 		{
 			window->set_done(0);
 			return 1;
@@ -905,7 +956,7 @@ int KeyFramePresetsOK::keypress_event()
 		else
 // Save the preset
 		{
-			thread->save_preset(window->preset_text->get_text());
+			thread->save_preset(thread->preset_text, thread->is_factory);
 			return 1;
 		}
 	}

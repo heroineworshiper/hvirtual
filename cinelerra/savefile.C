@@ -132,7 +132,7 @@ int Save::save_before_quit()
 }
 
 SaveAs::SaveAs(MWindow *mwindow)
- : BC_MenuItem(_("Save as..."), ""), Thread()
+ : BC_MenuItem(_("Save as..."), "Shift+S", 'S'), Thread()
 { 
 	this->mwindow = mwindow; 
 	quit_now = 0;

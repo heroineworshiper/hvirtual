@@ -43,29 +43,50 @@ void PresetsDB::clear()
 	plugins.remove_all_objects();
 }
 
-void PresetsDB::load()
+void PresetsDB::load_from_file(char *path, int is_factory, int clear_it)
 {
-	clear();
+	if(clear_it)
+	{
+		clear();
+	}
 
 	FileXML file;
-	char path[BCTEXTLEN];
-	char string[BCTEXTLEN];
-	sprintf(path, "%s%s", BCASTDIR, PRESETS_FILE);
-	FileSystem fs;
-	fs.complete_path(path);
+
+
 	file.read_from_file(path);
+	load_common(&file, is_factory);
+}
+
+void PresetsDB::load_from_string(char *string, int is_factory, int clear_it)
+{
+	if(clear_it)
+	{
+		clear();
+	}
+	
+	FileXML file;
+	file.read_from_string(string);
+	load_common(&file, is_factory);
+	
+}
+
+
+
+void PresetsDB::load_common(FileXML *file, int is_factory)
+{
 	int result = 0;
+	char string[BCTEXTLEN];
 
 	do
 	{
-		result = file.read_tag();
+		result = file->read_tag();
 		if(!result)
 		{
-			if(file.tag.title_is("PLUGIN"))
+			if(file->tag.title_is("PLUGIN"))
 			{
 				PresetsDBPlugin *plugin = 0;
 				sprintf(string, "Unknown");
-				const char *title = file.tag.get_property("TITLE", string);
+				const char *title = file->tag.get_property("TITLE", string);
 
 // Search for existing plugin
 				for(int i = 0; i < plugins.size(); i++)
@@ -84,11 +105,12 @@ void PresetsDB::load()
 					plugins.append(plugin);
 				}
 
-				plugin->load(&file);
+				plugin->load(file, is_factory);
 			}
 		}
 	}while(!result);
 }
+
 
 void PresetsDB::save()
 {
@@ -143,6 +165,29 @@ char* PresetsDB::get_preset_title(char *plugin_title, int number)
 	return 0;
 }
 
+
+int PresetsDB::get_is_factory(char *plugin_title, int number)
+{
+	for(int i = 0; i < plugins.size(); i++)
+	{
+		PresetsDBPlugin *plugin = plugins.get(i);
+		if(!strcasecmp(plugin->title, plugin_title))
+		{
+			if(number < plugin->keyframes.size())
+			{
+				return plugin->keyframes.get(number)->is_factory;
+			}
+			else
+			{
+				printf("PresetsDB::get_preset_title %d buffer overrun\n", __LINE__);
+			}
+			break;
+		}
+	}
+	return 0;
+}
+
+
 char* PresetsDB::get_preset_data(char *plugin_title, int number)
 {
 	for(int i = 0; i < plugins.size(); i++)
@@ -185,11 +230,13 @@ PresetsDBPlugin* PresetsDB::new_plugin(const char *plugin_title)
 }
 
 
-void PresetsDB::save_preset(const char *plugin_title, const char *preset_title, char *data)
+void PresetsDB::save_preset(const char *plugin_title, 
+	const char *preset_title, 
+	char *data)
 {
 	PresetsDBPlugin *plugin = get_plugin(plugin_title);
 	if(!plugin) plugin = new_plugin(plugin_title);
-	PresetsDBKeyframe *keyframe = plugin->get_keyframe(preset_title);
+	PresetsDBKeyframe *keyframe = plugin->get_keyframe(preset_title, 0);
 	if(!keyframe) keyframe = plugin->new_keyframe(preset_title);
 	keyframe->set_data(data);
 	save();
@@ -197,7 +244,9 @@ void PresetsDB::save_preset(const char *plugin_title, const char *preset_title, 
 }
 
 
-void PresetsDB::delete_preset(const char *plugin_title, const char *preset_title)
+void PresetsDB::delete_preset(const char *plugin_title, 
+	const char *preset_title,
+	int is_factory)
 {
 	PresetsDBPlugin *plugin = get_plugin(plugin_title);
 	if(plugin)
@@ -207,21 +256,26 @@ void PresetsDB::delete_preset(const char *plugin_title, const char *preset_title
 	save();
 }
 
-void PresetsDB::load_preset(const char *plugin_title, const char *preset_title, KeyFrame *keyframe)
+void PresetsDB::load_preset(const char *plugin_title,
+	const char *preset_title, 
+	KeyFrame *keyframe,
+	int is_factory)
 {
 	PresetsDBPlugin *plugin = get_plugin(plugin_title);
 	if(plugin)
 	{
-		plugin->load_preset(preset_title, keyframe);
+		plugin->load_preset(preset_title, keyframe, is_factory);
 	}
 }
 
-int PresetsDB::preset_exists(const char *plugin_title, const char *preset_title)
+int PresetsDB::preset_exists(const char *plugin_title, 
+	const char *preset_title,
+	int is_factory)
 {
 	PresetsDBPlugin *plugin = get_plugin(plugin_title);
 	if(plugin)
 	{
-		return plugin->preset_exists(preset_title);
+		return plugin->preset_exists(preset_title, is_factory);
 	}
 	return 0;
 }
@@ -229,10 +283,11 @@ int PresetsDB::preset_exists(const char *plugin_title, const char *preset_title)
 
 
 
-PresetsDBKeyframe::PresetsDBKeyframe(const char *title)
+PresetsDBKeyframe::PresetsDBKeyframe(const char *title, int is_factory)
 {
 	this->title = strdup(title);
 	data = 0;
+	this->is_factory = is_factory;
 }
 
 PresetsDBKeyframe::~PresetsDBKeyframe()
@@ -261,7 +316,7 @@ PresetsDBPlugin::~PresetsDBPlugin()
 	delete [] title;
 }
 
-void PresetsDBPlugin::load(FileXML *file)
+void PresetsDBPlugin::load(FileXML *file, int is_factory)
 {
 	int result = 0;
 	char string[BCTEXTLEN];
@@ -277,7 +332,7 @@ void PresetsDBPlugin::load(FileXML *file)
 			{
 				sprintf(string, "Unknown");
 				const char *keyframe_title = file->tag.get_property("TITLE", string);
-				PresetsDBKeyframe *keyframe = new PresetsDBKeyframe(keyframe_title);
+				PresetsDBKeyframe *keyframe = new PresetsDBKeyframe(keyframe_title, is_factory);
 
 				char data[MESSAGESIZE];
 				file->read_text_until("/KEYFRAME", data, MESSAGESIZE);
@@ -315,12 +370,17 @@ void PresetsDBPlugin::save(FileXML *file)
 	file->append_newline();
 }
 
-PresetsDBKeyframe* PresetsDBPlugin::get_keyframe(const char *title)
+PresetsDBKeyframe* PresetsDBPlugin::get_keyframe(const char *title, 
+	int is_factory)
 {
 	for(int i = 0; i < keyframes.size(); i++)
 	{
 		PresetsDBKeyframe *keyframe = keyframes.get(i);
-		if(!strcasecmp(keyframe->title, title)) return keyframe;
+		if(!strcasecmp(keyframe->title, title) && 
+			keyframe->is_factory == is_factory) 
+		{
+			return keyframe;
+		}
 	}
 	return 0;
 }
@@ -330,7 +390,7 @@ void PresetsDBPlugin::delete_keyframe(const char *title)
 	for(int i = 0; i < keyframes.size(); i++)
 	{
 		PresetsDBKeyframe *keyframe = keyframes.get(i);
-		if(!strcasecmp(keyframe->title, title)) 
+		if(!strcasecmp(keyframe->title, title) && !keyframe->is_factory) 
 		{
 			keyframes.remove_object_number(i);
 			return;
@@ -341,14 +401,16 @@ void PresetsDBPlugin::delete_keyframe(const char *title)
 
 PresetsDBKeyframe* PresetsDBPlugin::new_keyframe(const char *title)
 {
-	PresetsDBKeyframe *keyframe = new PresetsDBKeyframe(title);
+	PresetsDBKeyframe *keyframe = new PresetsDBKeyframe(title, 0);
 	keyframes.append(keyframe);
 	return keyframe;
 }
 
-void PresetsDBPlugin::load_preset(const char *preset_title, KeyFrame *keyframe)
+void PresetsDBPlugin::load_preset(const char *preset_title, 
+	KeyFrame *keyframe,
+	int is_factory)
 {
-	PresetsDBKeyframe *src = get_keyframe(preset_title);
+	PresetsDBKeyframe *src = get_keyframe(preset_title, is_factory);
 	if(src)
 	{
 		keyframe->set_data(src->data);
@@ -390,9 +452,9 @@ void PresetsDBPlugin::load_preset(const char *preset_title, KeyFrame *keyframe)
 	}
 }
 
-int PresetsDBPlugin::preset_exists(const char *preset_title)
+int PresetsDBPlugin::preset_exists(const char *preset_title, int is_factory)
 {
-	PresetsDBKeyframe *src = get_keyframe(preset_title);
+	PresetsDBKeyframe *src = get_keyframe(preset_title, is_factory);
 	if(src)
 	{
 		return 1;

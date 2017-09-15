@@ -640,7 +640,7 @@ int Redo::update_caption(const char *new_caption)
 }
 
 CutKeyframes::CutKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Cut keyframes"), "Shift-X", 'X')
+ : BC_MenuItem(_("Cut keyframes"), "Shift+X", 'X')
 { 
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -652,7 +652,7 @@ int CutKeyframes::handle_event()
 }
 
 CopyKeyframes::CopyKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Copy keyframes"), "Shift-C", 'C')
+ : BC_MenuItem(_("Copy keyframes"), "Shift+C", 'C')
 { 
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -665,7 +665,7 @@ int CopyKeyframes::handle_event()
 }
 
 PasteKeyframes::PasteKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Paste keyframes"), "Shift-V", 'V')
+ : BC_MenuItem(_("Paste keyframes"), "Shift+V", 'V')
 {
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -677,7 +677,7 @@ int PasteKeyframes::handle_event()
 }
 
 ClearKeyframes::ClearKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Clear keyframes"), "Shift-Del", BACKSPACE)
+ : BC_MenuItem(_("Clear keyframes"), "Shift+Del", BACKSPACE)
 {
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -997,7 +997,7 @@ int MapAudio2::handle_event()
 
 
 AddVideoTrack::AddVideoTrack(MWindow *mwindow)
- : BC_MenuItem(_("Add track"), "Shift-T", 'T')
+ : BC_MenuItem(_("Add track"), "Shift+T", 'T')
 {
 	set_shift();
 	this->mwindow = mwindow;
@@ -1037,7 +1037,7 @@ int ResetTranslation::handle_event()
 
 
 DefaultVTransition::DefaultVTransition(MWindow *mwindow)
- : BC_MenuItem(_("Default Transition"), "Shift-U", 'U')
+ : BC_MenuItem(_("Default Transition"), "Shift+U", 'U')
 {
 	set_shift();
 	this->mwindow = mwindow;

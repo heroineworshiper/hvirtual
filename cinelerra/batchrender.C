@@ -63,7 +63,7 @@ static int list_widths[] =
 };
 
 BatchRenderMenuItem::BatchRenderMenuItem(MWindow *mwindow)
- : BC_MenuItem(_("Batch Render..."), "Shift-B", 'B')
+ : BC_MenuItem(_("Batch Render..."), "Shift+B", 'B')
 {
 	set_shift(1); 
 	this->mwindow = mwindow;

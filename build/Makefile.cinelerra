@@ -103,6 +103,7 @@ wc:
 install:
 	$(MAKE) -C plugins install
 	cp libmpeg3/x86_64/mpeg3dump libmpeg3/x86_64/mpeg3peek libmpeg3/x86_64/mpeg3toc  libmpeg3/x86_64/mpeg3cat bin
+	cp quicktime/x86_64/make_streamable bin
 	$(MAKE) -C po install
 	$(MAKE) -C doc install
 	cp COPYING README bin

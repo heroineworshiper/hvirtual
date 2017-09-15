@@ -49,9 +49,9 @@ public:
 	void handle_close_event(int result);
 	void update_values();
 	void save_value(char *value);
-	void save_preset(const char *title);
-	void delete_preset(const char *title);
-	void apply_preset(const char *title);
+	void save_preset(const char *title, int is_factory);
+	void delete_preset(const char *title, int is_factory);
+	void apply_preset(const char *title, int is_factory);
 	void apply_value();
 	void calculate_preset_list();
 	void update_gui(int update_value_text = 1);
@@ -63,9 +63,19 @@ public:
 	MWindow *mwindow;
 	char window_title[BCTEXTLEN];
 	char plugin_title[BCTEXTLEN];
+
+// the currently selected preset
+	int is_factory;
+	char preset_text[BCTEXTLEN];
+	
 	char *column_titles[KEYFRAME_COLUMNS];
 	int column_width[KEYFRAME_COLUMNS];
+// list of preset text to display
 	ArrayList<BC_ListBoxItem*> *presets_data;
+// flag for each preset shown
+	ArrayList<int> is_factories;
+// title of each preset shown
+	ArrayList<char*> preset_titles;
 	PresetsDB *presets_db;
 };
 
