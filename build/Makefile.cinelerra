@@ -111,6 +111,8 @@ install:
 	cp -a thirdparty/festival/lib bin/
 	cp -a models bin
 	cd bin && find -name '.svn' -exec rm -r {} \; -prune
+	cp cinelerra/Cinelerra_factory bin
+
 
 
 COMPILE = $(GCC) -c $(CFLAGS) $? -o $*.o
