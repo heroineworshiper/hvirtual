@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -610,6 +610,24 @@ void KeyFrameWindow::create_objects()
 	unlock_window();
 }
 
+
+// called when going in & out of a factory preset
+void KeyFrameWindow::update_editing()
+{
+	if(thread->is_factory)
+	{
+		delete_preset->disable();
+		save_preset->disable();
+	}
+	else
+	{
+		delete_preset->enable();
+		save_preset->enable();
+	}
+}
+
+
+
 int KeyFrameWindow::resize_event(int w, int h)
 {
 	Theme *theme = mwindow->theme;
@@ -817,6 +835,7 @@ int KeyFramePresetsList::selection_changed()
 // show title without factory symbol in the textbox
 		window->preset_text->update(
 			thread->presets_data->get(number)->get_text());
+		window->update_editing();
 	}
 	
 	return 0;
@@ -857,8 +876,9 @@ KeyFramePresetsText::KeyFramePresetsText(KeyFrameThread *thread,
 int KeyFramePresetsText::handle_event()
 {
 	strcpy(thread->preset_text, get_text());
-// assume it's not a factory preset
+// once changed, it's now not a factory preset
 	thread->is_factory = 0;
+	window->update_editing();
 	return 0;
 }
 

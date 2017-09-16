@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,8 +64,9 @@ public:
 	char window_title[BCTEXTLEN];
 	char plugin_title[BCTEXTLEN];
 
-// the currently selected preset
+// the currently selected preset is a factory preset
 	int is_factory;
+// title of the currently selected preset from the DB
 	char preset_text[BCTEXTLEN];
 	
 	char *column_titles[KEYFRAME_COLUMNS];
@@ -232,6 +233,7 @@ public:
 		char *title);
 	void create_objects();
 	int resize_event(int w, int h);
+	void update_editing();
 
 #ifdef EDIT_KEYFRAME
 
