@@ -807,6 +807,11 @@ int SphereCamMain::process_buffer(VFrame *frame,
 		frame_rate,
 		0); // use opengl
 
+
+
+//	find_lenses();
+
+
 	calculate_extents();
 
 
@@ -898,6 +903,10 @@ void SphereCamMain::draw_feather(int left, int right, int eye, int y)
 }
 
 
+// void SphereCamMain::find_lenses()
+// {
+// }
+
 
 void SphereCamMain::calculate_extents()
 {
@@ -908,7 +917,7 @@ void SphereCamMain::calculate_extents()
 	
 	for(int i = 0; i < EYES; i++)
 	{
-// innput regions
+// input regions
 		input_x[i] = (int)(config.center_x[i] * w / 100);
 		input_y[i] = (int)(config.center_y[i] * h / 100);
 //		radius[i] = (int)(h * config.radius[i] / 100);
@@ -917,22 +926,51 @@ void SphereCamMain::calculate_extents()
 // output regions
 		output_x[i] = (int)(config.rotate_x[i] * w / 100);
 		output_y[i] = (int)(config.rotate_y[i] * h / 100);
-		
-		
+
+
 // Assume each lens fills 1/2 the width
 		out_x1[i] = output_x[i] - w / 4 - feather / 2;
 		out_x2[i] = output_x[i];
 		out_x3[i] = output_x[i];
 		out_x4[i] = output_x[i] + w / 4 + feather / 2;
+	}
+
+// If the output isn't 50% apart, we have to expand the left eye to fill the feathering region
+//printf("SphereCamMain::calculate_extents %d %f\n", __LINE__, config.rotate_x[0] - config.rotate_x[1]);
+	float x_separation = config.rotate_x[0] - config.rotate_x[1];
+	if(!EQUIV(fabs(x_separation), 50))
+	{
+		if(x_separation < -50)
+		{
+			out_x4[0] += (-49.5 - x_separation) * w / 100;
+		}
+		else
+		if(x_separation < 0)
+		{
+			out_x1[0] -= (x_separation + 50) * w / 100;
+		}
+		else
+		if(x_separation < 50)
+		{
+			out_x4[0] += (50.5 - x_separation) * w / 100;
+		}
+		else
+		{
+			out_x1[0] -= (x_separation - 49.5) * w / 100;
+		}
+	}
+
 
 // wrap around
+	for(int i = 0; i < EYES; i++)
+	{
 		if(out_x1[i] < 0)
 		{
 			out_x1[i] = w + out_x1[i];
 			out_x2[i] = w;
 			out_x3[i] = 0;
 		}
-		
+
 		if(out_x4[i] > w)
 		{
 			out_x2[i] = w;
