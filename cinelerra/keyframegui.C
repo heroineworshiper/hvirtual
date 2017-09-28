@@ -257,6 +257,10 @@ void KeyFrameThread::calculate_preset_list()
 	is_factories.remove_all();
 	preset_titles.remove_all_objects();
 	int total_presets = presets_db->get_total_presets(plugin_title, 0);
+
+// sort the list
+	presets_db->sort(plugin_title);
+	
 	for(int i = 0; i < total_presets; i++)
 	{
 		char text[BCTEXTLEN];

@@ -85,6 +85,7 @@ public:
 	
 // Save the database to the file.
 	void save();
+	void sort(char *plugin_title);
 
 // Get the total number of presets for a plugin
 	int get_total_presets(char *plugin_title, int user_only);

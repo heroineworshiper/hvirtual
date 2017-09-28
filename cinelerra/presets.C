@@ -147,6 +147,59 @@ int PresetsDB::get_total_presets(char *plugin_title, int user_only)
 	return 0;
 }
 
+
+// move factory presets to the start, followed by sorted preset titles
+void PresetsDB::sort(char *plugin_title)
+{
+	PresetsDBPlugin *plugin = 0;
+	for(int i = 0; i < plugins.size(); i++)
+	{
+		plugin = plugins.get(i);
+		if(!strcasecmp(plugin->title, plugin_title))
+		{
+			break;
+		}
+		else
+		{
+			plugin = 0;
+		}
+	}
+
+	if(plugin)
+	{
+		int done = 0;
+		int total_presets = plugin->get_total_presets(0);
+		while(!done)
+		{
+			done = 1;
+			for(int i = 0; i < total_presets - 1; i++)
+			{
+				PresetsDBKeyframe *keyframe1 = plugin->keyframes.get(i);
+				PresetsDBKeyframe *keyframe2 = plugin->keyframes.get(i + 1);
+
+				if(keyframe2->is_factory && !keyframe1->is_factory)
+				{
+					done = 0;
+				}
+				else
+				if(keyframe2->is_factory == keyframe1->is_factory &&
+					strcmp(keyframe2->title, keyframe1->title) < 0)
+				{
+					done = 0;
+				}
+
+// swap them
+				if(!done)
+				{
+					plugin->keyframes.set(i, keyframe2);
+					plugin->keyframes.set(i + 1, keyframe1);
+				}
+			}
+		}
+	}
+}
+
+
 char* PresetsDB::get_preset_title(char *plugin_title, int number)
 {
 	for(int i = 0; i < plugins.size(); i++)
