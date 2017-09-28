@@ -121,7 +121,8 @@ int MotionConfig::equivalent(MotionConfig &that)
 		track_frame == that.track_frame &&
 		bottom_is_master == that.bottom_is_master &&
 		horizontal_only == that.horizontal_only &&
-		vertical_only == that.vertical_only;
+		vertical_only == that.vertical_only &&
+		tracking_type == that.tracking_type;
 }
 
 void MotionConfig::copy_from(MotionConfig &that)
@@ -310,6 +311,9 @@ void MotionMain::update_gui()
 
 			((MotionWindow*)thread->window)->action_type->set_text(
 				ActionType::to_text(config.action_type));
+
+
+//printf("MotionMain::update_gui %d %d\n", __LINE__, config.tracking_type);
 			((MotionWindow*)thread->window)->tracking_type->set_text(
 				TrackingType::to_text(config.tracking_type));
 			((MotionWindow*)thread->window)->track_direction->set_text(
