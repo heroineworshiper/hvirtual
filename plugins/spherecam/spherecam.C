@@ -51,7 +51,7 @@ SphereCamConfig::SphereCamConfig()
 	{
 		enabled[i] = 1;
 		fov[i] = 180;
-//		radius[i] = 50.0;
+		radius[i] = 100.0;
 		center_y[i] = 50.0;
 		rotate_y[i] = 50.0;
 		rotate_z[i] = 0;
@@ -71,7 +71,7 @@ int SphereCamConfig::equivalent(SphereCamConfig &that)
 	{
 		if(enabled[i] != that.enabled[i] ||
 			!EQUIV(fov[i], that.fov[i]) ||
-//			!EQUIV(radius[i], that.radius[i]) ||
+			!EQUIV(radius[i], that.radius[i]) ||
 			!EQUIV(center_x[i], that.center_x[i]) ||
 			!EQUIV(center_y[i], that.center_y[i]) ||
 			!EQUIV(rotate_x[i], that.rotate_x[i]) ||
@@ -113,7 +113,7 @@ void SphereCamConfig::interpolate(SphereCamConfig &prev,
 	{
 		enabled[i] = prev.enabled[i];
 		fov[i] = prev.fov[i] * prev_scale + next.fov[i] * next_scale;
-//		radius[i] = prev.radius[i] * prev_scale + next.radius[i] * next_scale;
+		radius[i] = prev.radius[i] * prev_scale + next.radius[i] * next_scale;
 		center_x[i] = prev.center_x[i] * prev_scale + next.center_x[i] * next_scale;
 		center_y[i] = prev.center_y[i] * prev_scale + next.center_y[i] * next_scale;
 		rotate_x[i] = prev.rotate_x[i] * prev_scale + next.rotate_x[i] * next_scale;
@@ -133,7 +133,7 @@ void SphereCamConfig::boundaries()
 	for(int i = 0; i < EYES; i++)
 	{
 		CLAMP(fov[i], 1.0, 359.0);
-//		CLAMP(radius[i], 1.0, 100.0);
+		CLAMP(radius[i], 1.0, 150.0);
 		CLAMP(center_x[i], 0.0, 100.0);
 		CLAMP(center_y[i], 0.0, 100.0);
 		CLAMP(rotate_x[i], 0.0, 100.0);
@@ -409,30 +409,30 @@ void SphereCamGUI::create_objects()
 
 
 
-// 		x3 = x[i];
-// 		add_tool(title = new BC_Title(x3, y, _("Radius:")));
-// 		y += title->get_h() + margin2;
-// 		add_tool(radius_slider[i] = new SphereCamSlider(client, 
-// 			this,
-// 			0,
-// 			&client->config.radius[i], 
-// 			x3, 
-// 			y, 
-// 			1,
-// 			100));
-// 		radius_slider[i]->set_precision(0.1);
-// 		x3 += radius_slider[i]->get_w() + margin;
-// 		add_tool(radius_text[i] = new SphereCamText(client, 
-// 			this,
-// 			radius_slider[i],
-// 			&client->config.radius[i], 
-// 			x3, 
-// 			y));
-// 		radius_slider[i]->text = radius_text[i];
-// 		y += radius_text[i]->get_h() + margin2;
-// 
-// 
-// 
+		x3 = x[i];
+		add_tool(title = new BC_Title(x3, y, _("Radius:")));
+		y += title->get_h() + margin2;
+		add_tool(radius_slider[i] = new SphereCamSlider(client, 
+			this,
+			0,
+			&client->config.radius[i], 
+			x3, 
+			y, 
+			1,
+			150));
+		radius_slider[i]->set_precision(0.1);
+		x3 += radius_slider[i]->get_w() + margin;
+		add_tool(radius_text[i] = new SphereCamText(client, 
+			this,
+			radius_slider[i],
+			&client->config.radius[i], 
+			x3, 
+			y));
+		radius_slider[i]->text = radius_text[i];
+		y += radius_text[i]->get_h() + margin2;
+
+
+
 
 
 
@@ -675,8 +675,8 @@ void SphereCamMain::update_gui()
 				((SphereCamGUI*)thread->window)->fov_slider[i]->update(config.fov[i]);
 				((SphereCamGUI*)thread->window)->fov_text[i]->update(config.fov[i]);
 
-//				((SphereCamGUI*)thread->window)->radius_slider[i]->update(config.radius[i]);
-//				((SphereCamGUI*)thread->window)->radius_text[i]->update(config.radius[i]);
+				((SphereCamGUI*)thread->window)->radius_slider[i]->update(config.radius[i]);
+				((SphereCamGUI*)thread->window)->radius_text[i]->update(config.radius[i]);
 
 				((SphereCamGUI*)thread->window)->centerx_slider[i]->update(config.center_x[i]);
 				((SphereCamGUI*)thread->window)->centerx_text[i]->update(config.center_x[i]);
@@ -722,8 +722,8 @@ void SphereCamMain::save_data(KeyFrame *keyframe)
 		output.tag.set_property(string, config.enabled[i]);
 		sprintf(string, "FOV_%d", i);
 		output.tag.set_property(string, config.fov[i]);
-//		sprintf(string, "RADIUS_%d", i);
-//		output.tag.set_property(string, config.radius[i]);
+		sprintf(string, "RADIUS_%d", i);
+		output.tag.set_property(string, config.radius[i]);
 		sprintf(string, "CENTER_X_%d", i);
 		output.tag.set_property(string, config.center_x[i]);
 		sprintf(string, "CENTER_Y_%d", i);
@@ -769,8 +769,8 @@ void SphereCamMain::read_data(KeyFrame *keyframe)
 					config.enabled[i] = input.tag.get_property(string, config.enabled[i]);
 					sprintf(string, "FOV_%d", i);
 					config.fov[i] = input.tag.get_property(string, config.fov[i]);
-//					sprintf(string, "RADIUS_%d", i);
-//					config.radius[i] = input.tag.get_property(string, config.radius[i]);
+					sprintf(string, "RADIUS_%d", i);
+					config.radius[i] = input.tag.get_property(string, config.radius[i]);
 					sprintf(string, "CENTER_X_%d", i);
 					config.center_x[i] = input.tag.get_property(string, config.center_x[i]);
 					sprintf(string, "CENTER_Y_%d", i);
@@ -831,6 +831,10 @@ int SphereCamMain::process_buffer(VFrame *frame,
 	if(config.draw_guides)
 	{
 // input regions
+// printf("SphereCamMain::process_buffer %d %d %d\n", 
+// __LINE__,
+// out_x1[0],
+// out_x4[0]);
 		for(int eye = 0; eye < EYES; eye++)
 		{
 			if(config.enabled[eye])
@@ -853,10 +857,6 @@ int SphereCamMain::process_buffer(VFrame *frame,
 					get_output()->draw_line(out_x4[eye], 0, out_x4[eye], h);
 				}
 
-	// printf("SphereCamMain::process_buffer %d %d %d\n", 
-	// __LINE__,
-	// out_x1[eye],
-	// out_x4[eye]);
 				if(feather != 0 && eye == 1)
 				{
 // crosshatch feather of right eye only, since only the right eye feathers
@@ -920,8 +920,7 @@ void SphereCamMain::calculate_extents()
 // input regions
 		input_x[i] = (int)(config.center_x[i] * w / 100);
 		input_y[i] = (int)(config.center_y[i] * h / 100);
-//		radius[i] = (int)(h * config.radius[i] / 100);
-		radius[i] = h / 2;
+		radius[i] = (int)(h / 2 * config.radius[i] / 100);
 
 // output regions
 		output_x[i] = (int)(config.rotate_x[i] * w / 100);
@@ -1153,7 +1152,8 @@ void SphereCamUnit::process_equirect(SphereCamPackage *pkg)
 			int w = plugin->w;
 			int h = plugin->h;
 			float fov = plugin->config.fov[eye] * M_PI * 2 / 360;
-			float radius = plugin->radius[eye];
+//			float radius = plugin->radius[eye];
+			float radius = h / 2;
 			float input_x = plugin->input_x[eye];
 			float input_y = plugin->input_y[eye];
 			float output_x = plugin->output_x[eye];
@@ -1291,7 +1291,8 @@ void SphereCamUnit::process_align(SphereCamPackage *pkg)
 			int w = plugin->w;
 			int h = plugin->h;
 			float fov = plugin->config.fov[eye] * M_PI * 2 / 360;
-			float radius = plugin->radius[eye];
+//			float radius = plugin->radius[eye];
+			float radius = h / 2;
 			float input_x = plugin->input_x[eye];
 			float input_y = plugin->input_y[eye];
 			float output_x = plugin->output_x[eye];

@@ -120,8 +120,8 @@ public:
 	SphereCamToggle *enabled[EYES];
 	SphereCamSlider *fov_slider[EYES];
 	SphereCamText *fov_text[EYES];
-//	SphereCamSlider *radius_slider[EYES];
-//	SphereCamText *radius_text[EYES];
+	SphereCamSlider *radius_slider[EYES];
+	SphereCamText *radius_text[EYES];
 	SphereCamSlider *centerx_slider[EYES];
 	SphereCamText *centerx_text[EYES];
 	SphereCamSlider *centery_slider[EYES];
@@ -156,8 +156,8 @@ public:
 	int enabled[EYES];
 // degrees 1-359
 	float fov[EYES];
-// radius of each eye 1-100
-//	float radius[EYES];
+// radius of each eye 1-150
+	float radius[EYES];
 // center of 2 eyes  0-100
 	float center_x[EYES];
 	float center_y[EYES];
@@ -259,7 +259,7 @@ public:
 // the center of the input regions
 	int input_x[EYES];
 	int input_y[EYES];
-// radius of the input regions
+// radius of the input regions for drawing the guide only
 	int radius[EYES];
 // pixels to add to the output regions
 	int feather;
