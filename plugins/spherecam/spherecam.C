@@ -332,9 +332,9 @@ const char* SphereCamMode::to_text(int mode)
 SphereCamGUI::SphereCamGUI(SphereCamMain *client)
  : PluginClientWindow(client,
 	640, 
-	500, 
+	600, 
 	640, 
-	500, 
+	600, 
 	0)
 {
 	this->client = client;
