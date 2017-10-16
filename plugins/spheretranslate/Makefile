@@ -1,11 +1,11 @@
 include ../../global_config
 
-OBJS = 	$(OBJDIR)/translate.o  \
-	$(OBJDIR)/translatewin.o
+OBJS = 	$(OBJDIR)/spheretranslate.o  \
+	$(OBJDIR)/spheretranslatewin.o
 
-OUTPUT = $(PLUGIN_DIR)/translate.plugin
+OUTPUT = $(PLUGIN_DIR)/spheretranslate.plugin
 
 include ../../plugin_config
 
-$(OBJDIR)/translate.o: translate.C
-$(OBJDIR)/translatewin.o: translatewin.C
+$(OBJDIR)/spheretranslate.o: spheretranslate.C
+$(OBJDIR)/spheretranslatewin.o: spheretranslatewin.C

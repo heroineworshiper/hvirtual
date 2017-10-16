@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +19,12 @@
  * 
  */
 
-#ifndef TRANSLATE_H
-#define TRANSLATE_H
+#ifndef SPHERETRANSLATE_H
+#define SPHERETRANSLATE_H
 
 // the simplest plugin possible
 
-class TranslateMain;
+class SphereTranslateMain;
 
 #include "bchash.h"
 #include "mutex.h"
@@ -32,30 +32,31 @@ class TranslateMain;
 #include "overlayframe.h"
 #include "pluginvclient.h"
 
-class TranslateConfig
+class SphereTranslateConfig
 {
 public:
-	TranslateConfig();
-	int equivalent(TranslateConfig &that);
-	void copy_from(TranslateConfig &that);
-	void interpolate(TranslateConfig &prev, 
-		TranslateConfig &next, 
+	SphereTranslateConfig();
+	int equivalent(SphereTranslateConfig &that);
+	void copy_from(SphereTranslateConfig &that);
+	void interpolate(SphereTranslateConfig &prev, 
+		SphereTranslateConfig &next, 
 		int64_t prev_frame, 
 		int64_t next_frame, 
 		int64_t current_frame);
 
-	float in_x, in_y, in_w, in_h, out_x, out_y, out_w, out_h;
+	float translate_x, translate_y, translate_z;
+	float rotate_x, rotate_y, rotate_z;
 };
 
 
-class TranslateMain : public PluginVClient
+class SphereTranslateMain : public PluginVClient
 {
 public:
-	TranslateMain(PluginServer *server);
-	~TranslateMain();
+	SphereTranslateMain(PluginServer *server);
+	~SphereTranslateMain();
 
 // required for all realtime plugins
-	PLUGIN_CLASS_MEMBERS(TranslateConfig)
+	PLUGIN_CLASS_MEMBERS(SphereTranslateConfig)
 	int process_realtime(VFrame *input_ptr, VFrame *output_ptr);
 	int is_realtime();
 	void update_gui();
@@ -64,7 +65,6 @@ public:
 
 
 	OverlayFrame *overlayer;   // To translate images
-	VFrame *temp_frame;
 };
 
 

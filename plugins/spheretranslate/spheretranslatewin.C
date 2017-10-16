@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
 #include "bcdisplayinfo.h"
 #include "clip.h"
 #include "language.h"
-#include "translate.h"
-#include "translatewin.h"
+#include "spheretranslate.h"
+#include "spheretranslatewin.h"
 
 
 
@@ -37,7 +37,7 @@
 
 
 
-TranslateWin::TranslateWin(TranslateMain *client)
+SphereTranslateWin::SphereTranslateWin(SphereTranslateMain *client)
  : PluginClientWindow(client,
 	300, 
 	220, 
@@ -48,35 +48,35 @@ TranslateWin::TranslateWin(TranslateMain *client)
 	this->client = client; 
 }
 
-TranslateWin::~TranslateWin()
+SphereTranslateWin::~SphereTranslateWin()
 {
 }
 
-void TranslateWin::create_objects()
+void SphereTranslateWin::create_objects()
 {
 	int x = 10, y = 10;
 
 	add_tool(new BC_Title(x, y, _("In X:")));
 	y += 20;
-	in_x = new TranslateCoord(this, client, x, y, &client->config.in_x);
+	in_x = new SphereTranslateCoord(this, client, x, y, &client->config.in_x);
 	in_x->create_objects();
 	y += 30;
 
 	add_tool(new BC_Title(x, y, _("In Y:")));
 	y += 20;
-	in_y = new TranslateCoord(this, client, x, y, &client->config.in_y);
+	in_y = new SphereTranslateCoord(this, client, x, y, &client->config.in_y);
 	in_y->create_objects();
 	y += 30;
 
 	add_tool(new BC_Title(x, y, _("In W:")));
 	y += 20;
-	in_w = new TranslateCoord(this, client, x, y, &client->config.in_w);
+	in_w = new SphereTranslateCoord(this, client, x, y, &client->config.in_w);
 	in_w->create_objects();
 	y += 30;
 
 	add_tool(new BC_Title(x, y, _("In H:")));
 	y += 20;
-	in_h = new TranslateCoord(this, client, x, y, &client->config.in_h);
+	in_h = new SphereTranslateCoord(this, client, x, y, &client->config.in_h);
 	in_h->create_objects();
 	y += 30;
 
@@ -85,25 +85,25 @@ void TranslateWin::create_objects()
 	y = 10;
 	add_tool(new BC_Title(x, y, _("Out X:")));
 	y += 20;
-	out_x = new TranslateCoord(this, client, x, y, &client->config.out_x);
+	out_x = new SphereTranslateCoord(this, client, x, y, &client->config.out_x);
 	out_x->create_objects();
 	y += 30;
 
 	add_tool(new BC_Title(x, y, _("Out Y:")));
 	y += 20;
-	out_y = new TranslateCoord(this, client, x, y, &client->config.out_y);
+	out_y = new SphereTranslateCoord(this, client, x, y, &client->config.out_y);
 	out_y->create_objects();
 	y += 30;
 
 	add_tool(new BC_Title(x, y, _("Out W:")));
 	y += 20;
-	out_w = new TranslateCoord(this, client, x, y, &client->config.out_w);
+	out_w = new SphereTranslateCoord(this, client, x, y, &client->config.out_w);
 	out_w->create_objects();
 	y += 30;
 
 	add_tool(new BC_Title(x, y, _("Out H:")));
 	y += 20;
-	out_h = new TranslateCoord(this, client, x, y, &client->config.out_h);
+	out_h = new SphereTranslateCoord(this, client, x, y, &client->config.out_h);
 	out_h->create_objects();
 	y += 30;
 
@@ -115,8 +115,8 @@ void TranslateWin::create_objects()
 
 
 
-TranslateCoord::TranslateCoord(TranslateWin *win, 
-	TranslateMain *client, 
+SphereTranslateCoord::SphereTranslateCoord(SphereTranslateWin *win, 
+	SphereTranslateMain *client, 
 	int x, 
 	int y,
 	float *value)
@@ -128,17 +128,17 @@ TranslateCoord::TranslateCoord(TranslateWin *win,
 	y, 
 	100)
 {
-//printf("TranslateWidth::TranslateWidth %f\n", client->config.w);
+//printf("SphereTranslateWidth::SphereTranslateWidth %f\n", client->config.w);
 	this->client = client;
 	this->win = win;
 	this->value = value;
 }
 
-TranslateCoord::~TranslateCoord()
+SphereTranslateCoord::~SphereTranslateCoord()
 {
 }
 
-int TranslateCoord::handle_event()
+int SphereTranslateCoord::handle_event()
 {
 	*value = atof(get_text());
 
