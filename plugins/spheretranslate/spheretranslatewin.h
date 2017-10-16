@@ -24,8 +24,9 @@
 
 #include "guicast.h"
 
-class SphereTranslateThread;
 class SphereTranslateWin;
+class SphereTranslateText;
+
 
 #include "filexml.h"
 #include "mutex.h"
@@ -39,7 +40,7 @@ class SphereTranslateSlider : public BC_FSlider
 {
 public:
 	SphereTranslateSlider(SphereTranslateMain *client, 
-		SphereTranslateGUI *gui,
+		SphereTranslateWin *gui,
 		SphereTranslateText *text,
 		float *output, 
 		int x, 
@@ -48,7 +49,7 @@ public:
 		float max);
 	int handle_event();
 
-	SphereTranslateGUI *gui;
+	SphereTranslateWin *gui;
 	SphereTranslateMain *client;
 	SphereTranslateText *text;
 	float *output;
@@ -58,14 +59,14 @@ class SphereTranslateText : public BC_TextBox
 {
 public:
 	SphereTranslateText(SphereTranslateMain *client, 
-		SphereTranslateGUI *gui,
+		SphereTranslateWin *gui,
 		SphereTranslateSlider *slider,
 		float *output, 
 		int x, 
 		int y);
 	int handle_event();
 
-	SphereTranslateGUI *gui;
+	SphereTranslateWin *gui;
 	SphereTranslateMain *client;
 	SphereTranslateSlider *slider;
 	float *output;
@@ -80,11 +81,19 @@ public:
 	~SphereTranslateWin();
 
 	void create_objects();
+	int new_control(SphereTranslateSlider **slider, 
+		SphereTranslateText **text,
+		float *value,
+		int x,
+		int y,
+		char *title_text,
+		float min,
+		float max);
 
 	SphereTranslateSlider *translate_x, *translate_y, *translate_z;
 	SphereTranslateSlider *rotate_x, *rotate_y, *rotate_z;
-	SphereTranslateSlider *translate_x, *translate_y, *translate_z;
-	SphereTranslateSlider *rotate_x, *rotate_y, *rotate_z;
+	SphereTranslateText *translate_x_text, *translate_y_text, *translate_z_text;
+	SphereTranslateText *rotate_x_text, *rotate_y_text, *rotate_z_text;
 
 	SphereTranslateMain *client;
 };

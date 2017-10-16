@@ -38,6 +38,9 @@ class BC_WindowList;
 #define MIDDLE_BUTTON 2
 #define RIGHT_BUTTON 3
 
+// placeholder for future coordinate scaling based on DPI
+#define DP(x) (x)
+
 
 // Use single thread for all windows.
 // This is a bad idea because it's very slow.  Windows which share the same

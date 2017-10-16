@@ -25,10 +25,13 @@
 // the simplest plugin possible
 
 class SphereTranslateMain;
+class SphereTranslateEngine;
+
 
 #include "bchash.h"
+#include "loadbalance.h"
 #include "mutex.h"
-#include "translatewin.h"
+#include "spheretranslatewin.h"
 #include "overlayframe.h"
 #include "pluginvclient.h"
 
@@ -43,6 +46,7 @@ public:
 		int64_t prev_frame, 
 		int64_t next_frame, 
 		int64_t current_frame);
+	void boundaries();
 
 	float translate_x, translate_y, translate_z;
 	float rotate_x, rotate_y, rotate_z;
@@ -56,7 +60,7 @@ public:
 	~SphereTranslateMain();
 
 // required for all realtime plugins
-	PLUGIN_CLASS_MEMBERS(SphereTranslateConfig)
+	PLUGIN_CLASS_MEMBERS2(SphereTranslateConfig)
 	int process_realtime(VFrame *input_ptr, VFrame *output_ptr);
 	int is_realtime();
 	void update_gui();
@@ -64,7 +68,49 @@ public:
 	void read_data(KeyFrame *keyframe);
 
 
-	OverlayFrame *overlayer;   // To translate images
+	SphereTranslateEngine *engine;
+};
+
+
+
+
+
+class SphereTranslatePackage : public LoadPackage
+{
+public:
+	SphereTranslatePackage();
+	int row1, row2;
+};
+
+
+class SphereTranslateUnit : public LoadClient
+{
+public:
+	SphereTranslateUnit(SphereTranslateEngine *engine, SphereTranslateMain *plugin);
+	~SphereTranslateUnit();
+	
+	
+	void process_package(LoadPackage *package);
+	void process_equirect(SphereTranslatePackage *pkg);
+	void process_align(SphereTranslatePackage *pkg);
+	double calculate_max_z(double a, double r);
+
+	
+	SphereTranslateEngine *engine;
+	SphereTranslateMain *plugin;
+};
+
+class SphereTranslateEngine : public LoadServer
+{
+public:
+	SphereTranslateEngine(SphereTranslateMain *plugin);
+	~SphereTranslateEngine();
+	
+	void init_packages();
+	LoadClient* new_client();
+	LoadPackage* new_package();
+	
+	SphereTranslateMain *plugin;
 };
 
 

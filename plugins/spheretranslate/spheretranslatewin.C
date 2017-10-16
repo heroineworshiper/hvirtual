@@ -24,7 +24,71 @@
 #include "language.h"
 #include "spheretranslate.h"
 #include "spheretranslatewin.h"
+#include "theme.h"
 
+#define TEXT_W DP(90)
+
+SphereTranslateSlider::SphereTranslateSlider(SphereTranslateMain *client, 
+	SphereTranslateWin *gui,
+	SphereTranslateText *text,
+	float *output, 
+	int x, 
+	int y, 
+	float min,
+	float max)
+ : BC_FSlider(x, 
+ 	y, 
+	0, 
+	gui->get_w() - client->get_theme()->widget_border * 3 - TEXT_W, 
+	gui->get_w() - client->get_theme()->widget_border * 3 - TEXT_W, 
+	min, 
+	max, 
+	*output)
+{
+	this->gui = gui;
+	this->client = client;
+	this->output = output;
+	this->text = text;
+	set_precision(0.01);
+}
+
+int SphereTranslateSlider::handle_event()
+{
+	float prev_output = *output;
+	*output = get_value();
+	text->update(*output);
+
+
+	client->send_configure_change();
+	return 1;
+}
+
+
+
+SphereTranslateText::SphereTranslateText(SphereTranslateMain *client, 
+	SphereTranslateWin *gui,
+	SphereTranslateSlider *slider,
+	float *output, 
+	int x, 
+	int y)
+ : BC_TextBox(x, y, TEXT_W, 1, *output)
+{
+	this->gui = gui;
+	this->client = client;
+	this->output = output;
+	this->slider = slider;
+}
+
+int SphereTranslateText::handle_event()
+{
+	float prev_output = *output;
+	*output = atof(get_text());
+	slider->update(*output);
+
+
+	client->send_configure_change();
+	return 1;
+}
 
 
 
@@ -39,10 +103,10 @@
 
 SphereTranslateWin::SphereTranslateWin(SphereTranslateMain *client)
  : PluginClientWindow(client,
-	300, 
-	220, 
-	300, 
-	220, 
+	DP(300), 
+	DP(160), 
+	DP(300), 
+	DP(160), 
 	0)
 { 
 	this->client = client; 
@@ -52,98 +116,102 @@ SphereTranslateWin::~SphereTranslateWin()
 {
 }
 
+int SphereTranslateWin::new_control(SphereTranslateSlider **slider, 
+	SphereTranslateText **text,
+	float *value,
+	int x,
+	int y,
+	char *title_text,
+	float min,
+	float max)
+{
+	int margin = client->get_theme()->widget_border;
+	BC_Title *title = 0;
+	add_tool(title = new BC_Title(x, y, title_text));
+	y += title->get_h() + margin;
+	add_tool((*slider) = new SphereTranslateSlider(client, 
+		this,
+		0,
+		value, 
+		x, 
+		y, 
+		min,
+		max));
+	(*slider)->set_precision(0.1);
+	x += (*slider)->get_w() + margin;
+	add_tool((*text) = new SphereTranslateText(client, 
+		this,
+		(*slider),
+		value, 
+		x, 
+		y));
+	(*slider)->text = (*text);
+	y += (*text)->get_h() + margin;
+	return y;
+}
+
 void SphereTranslateWin::create_objects()
 {
-	int x = 10, y = 10;
+	int margin = client->get_theme()->widget_border;
+	int x = margin;
+	int y = margin;
 
-	add_tool(new BC_Title(x, y, _("In X:")));
-	y += 20;
-	in_x = new SphereTranslateCoord(this, client, x, y, &client->config.in_x);
-	in_x->create_objects();
-	y += 30;
+// 	y = new_control(&translate_x, 
+// 		&translate_x_text,
+// 		&client->config.translate_x,
+// 		x,
+// 		y,
+// 		_("Translate X:"),
+// 		-1,
+// 		1);
+// 
+// 	y = new_control(&translate_y, 
+// 		&translate_y_text,
+// 		&client->config.translate_y,
+// 		x,
+// 		y,
+// 		_("Translate Y:"),
+// 		-1,
+// 		1);
+// 
+// 	y = new_control(&translate_z, 
+// 		&translate_z_text,
+// 		&client->config.translate_z,
+// 		x,
+// 		y,
+// 		_("Translate Z:"),
+// 		-1,
+// 		1);
 
-	add_tool(new BC_Title(x, y, _("In Y:")));
-	y += 20;
-	in_y = new SphereTranslateCoord(this, client, x, y, &client->config.in_y);
-	in_y->create_objects();
-	y += 30;
+	y = new_control(&rotate_x, 
+		&rotate_x_text,
+		&client->config.rotate_x,
+		x,
+		y,
+		_("Rotate X:"),
+		-180,
+		180);
 
-	add_tool(new BC_Title(x, y, _("In W:")));
-	y += 20;
-	in_w = new SphereTranslateCoord(this, client, x, y, &client->config.in_w);
-	in_w->create_objects();
-	y += 30;
+	y = new_control(&rotate_y, 
+		&rotate_y_text,
+		&client->config.rotate_y,
+		x,
+		y,
+		_("Rotate Y:"),
+		-180,
+		180);
 
-	add_tool(new BC_Title(x, y, _("In H:")));
-	y += 20;
-	in_h = new SphereTranslateCoord(this, client, x, y, &client->config.in_h);
-	in_h->create_objects();
-	y += 30;
-
-
-	x += 150;
-	y = 10;
-	add_tool(new BC_Title(x, y, _("Out X:")));
-	y += 20;
-	out_x = new SphereTranslateCoord(this, client, x, y, &client->config.out_x);
-	out_x->create_objects();
-	y += 30;
-
-	add_tool(new BC_Title(x, y, _("Out Y:")));
-	y += 20;
-	out_y = new SphereTranslateCoord(this, client, x, y, &client->config.out_y);
-	out_y->create_objects();
-	y += 30;
-
-	add_tool(new BC_Title(x, y, _("Out W:")));
-	y += 20;
-	out_w = new SphereTranslateCoord(this, client, x, y, &client->config.out_w);
-	out_w->create_objects();
-	y += 30;
-
-	add_tool(new BC_Title(x, y, _("Out H:")));
-	y += 20;
-	out_h = new SphereTranslateCoord(this, client, x, y, &client->config.out_h);
-	out_h->create_objects();
-	y += 30;
-
-
-
-	show_window();
-	flush();
-}
-
+	y = new_control(&rotate_z, 
+		&rotate_z_text,
+		&client->config.rotate_z,
+		x,
+		y,
+		_("Rotate Z:"),
+		-180,
+		180);
 
 
-SphereTranslateCoord::SphereTranslateCoord(SphereTranslateWin *win, 
-	SphereTranslateMain *client, 
-	int x, 
-	int y,
-	float *value)
- : BC_TumbleTextBox(win,
- 	(int)*value,
-	(int)0,
-	(int)10000,
-	x, 
-	y, 
-	100)
-{
-//printf("SphereTranslateWidth::SphereTranslateWidth %f\n", client->config.w);
-	this->client = client;
-	this->win = win;
-	this->value = value;
-}
-
-SphereTranslateCoord::~SphereTranslateCoord()
-{
-}
-
-int SphereTranslateCoord::handle_event()
-{
-	*value = atof(get_text());
-
-	client->send_configure_change();
-	return 1;
+	show_window(1);
 }
 
 
