@@ -40,6 +40,8 @@ SphereTranslateConfig::SphereTranslateConfig()
 {
 	translate_x = translate_y = translate_z = 0;
 	rotate_x = rotate_y = rotate_z = 0;
+	pivot_x = pivot_y = 50;
+	draw_pivot = 0;
 }
 
 int SphereTranslateConfig::equivalent(SphereTranslateConfig &that)
@@ -49,7 +51,10 @@ int SphereTranslateConfig::equivalent(SphereTranslateConfig &that)
 		EQUIV(translate_z, that.translate_z) && 
 		EQUIV(rotate_x, that.rotate_x) &&
 		EQUIV(rotate_y, that.rotate_y) && 
-		EQUIV(rotate_z, that.rotate_z);
+		EQUIV(rotate_z, that.rotate_z) &&
+		EQUIV(pivot_x, that.pivot_x) && 
+		EQUIV(pivot_y, that.pivot_y) &&
+		draw_pivot == that.draw_pivot;
 }
 
 void SphereTranslateConfig::copy_from(SphereTranslateConfig &that)
@@ -60,6 +65,9 @@ void SphereTranslateConfig::copy_from(SphereTranslateConfig &that)
 	rotate_x = that.rotate_x;
 	rotate_y = that.rotate_y;
 	rotate_z = that.rotate_z;
+	pivot_x = that.pivot_x;
+	pivot_y = that.pivot_y;
+	draw_pivot = that.draw_pivot;
 }
 
 void SphereTranslateConfig::interpolate(SphereTranslateConfig &prev, 
@@ -77,6 +85,9 @@ void SphereTranslateConfig::interpolate(SphereTranslateConfig &prev,
 	this->rotate_x = prev.rotate_x * prev_scale + next.rotate_x * next_scale;
 	this->rotate_y = prev.rotate_y * prev_scale + next.rotate_y * next_scale;
 	this->rotate_z = prev.rotate_z * prev_scale + next.rotate_z * next_scale;
+	this->pivot_x = prev.pivot_x * prev_scale + next.pivot_x * next_scale;
+	this->pivot_y = prev.pivot_y * prev_scale + next.pivot_y * next_scale;
+	this->draw_pivot = prev.draw_pivot;
 	boundaries();
 }
 
@@ -88,6 +99,8 @@ void SphereTranslateConfig::boundaries()
 	CLAMP(rotate_x, -180.0, 180.0);
 	CLAMP(rotate_y, -180.0, 180.0);
 	CLAMP(rotate_z, -180.0, 180.0);
+	CLAMP(pivot_x, 0, 100.0);
+	CLAMP(pivot_y, 0, 100.0);
 }
 
 
@@ -129,6 +142,9 @@ void SphereTranslateMain::save_data(KeyFrame *keyframe)
 	output.tag.set_property("ROTATE_X", config.rotate_x);
 	output.tag.set_property("ROTATE_Y", config.rotate_y);
 	output.tag.set_property("ROTATE_Z", config.rotate_z);
+	output.tag.set_property("PIVOT_X", config.pivot_x);
+	output.tag.set_property("PIVOT_Y", config.pivot_y);
+	output.tag.set_property("DRAW_PIVOT", config.draw_pivot);
 	output.append_tag();
 
 	output.terminate_string();
@@ -156,6 +172,9 @@ void SphereTranslateMain::read_data(KeyFrame *keyframe)
  				config.rotate_x = input.tag.get_property("ROTATE_X", config.rotate_x);
  				config.rotate_y = input.tag.get_property("ROTATE_Y", config.rotate_y);
  				config.rotate_z = input.tag.get_property("ROTATE_Z", config.rotate_z);
+ 				config.pivot_x = input.tag.get_property("PIVOT_X", config.pivot_x);
+ 				config.pivot_y = input.tag.get_property("PIVOT_Y", config.pivot_y);
+ 				config.draw_pivot = input.tag.get_property("DRAW_PIVOT", config.draw_pivot);
 			}
 		}
 	}
@@ -191,7 +210,16 @@ int SphereTranslateMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 	if(!engine) engine = new SphereTranslateEngine(this);
 	engine->process_packages();
 
+	if(config.draw_pivot)
+	{
+		int w = output_ptr->get_w();
+		int h = output_ptr->get_h();
+		int pivot_x = config.pivot_x * w / 100;
+		int pivot_y = config.pivot_y * h / 100;
 
+		output_ptr->draw_line(0, pivot_y, w, pivot_y);
+		output_ptr->draw_line(pivot_x, 0, pivot_x, h);
+	}
 }
 
 
@@ -211,12 +239,20 @@ void SphereTranslateMain::update_gui()
 			((SphereTranslateWin*)thread->window)->rotate_x->update(config.rotate_x);
 			((SphereTranslateWin*)thread->window)->rotate_y->update(config.rotate_y);
 			((SphereTranslateWin*)thread->window)->rotate_z->update(config.rotate_z);
+			((SphereTranslateWin*)thread->window)->pivot_x->update(config.pivot_x);
+			((SphereTranslateWin*)thread->window)->pivot_y->update(config.pivot_y);
+
 			((SphereTranslateWin*)thread->window)->translate_x_text->update(config.translate_x);
 			((SphereTranslateWin*)thread->window)->translate_y_text->update(config.translate_y);
 			((SphereTranslateWin*)thread->window)->translate_z_text->update(config.translate_z);
 			((SphereTranslateWin*)thread->window)->rotate_x_text->update(config.rotate_x);
 			((SphereTranslateWin*)thread->window)->rotate_y_text->update(config.rotate_y);
 			((SphereTranslateWin*)thread->window)->rotate_z_text->update(config.rotate_z);
+			((SphereTranslateWin*)thread->window)->pivot_x_text->update(config.pivot_x);
+			((SphereTranslateWin*)thread->window)->pivot_y_text->update(config.pivot_y);
+
+
+			((SphereTranslateWin*)thread->window)->draw_pivot->update(config.draw_pivot);
 			thread->window->unlock_window();
 		}
 	}
@@ -257,7 +293,8 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
 	int w = input->get_w();
 	int h = input->get_h();
 
-
+	float pivot_x = plugin->config.pivot_x * w / 100 - w / 2;
+	float pivot_y = plugin->config.pivot_y * h / 100 - h / 2;
 
 	float matrix[3][3];
     double cos_a = cos(plugin->config.rotate_x * 2 * M_PI / 360);
@@ -298,12 +335,12 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
  \
  	if(x_in < 0.0) \
 	{ \
-		x_in = 0; \
+		x_in += w; \
 	} \
 	else \
 	if(x_in > w - 1) \
 	{ \
-		x_in = w - 1; \
+		x_in -= w; \
 	} \
  \
 	if(y_in < 0.0) \
@@ -318,12 +355,12 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
  \
  	if(x_in2 < 0.0) \
 	{ \
-		x_in2 = 0; \
+		x_in2 += w; \
 	} \
 	else \
 	if(x_in2 > w - 1) \
 	{ \
-		x_in2 = w - 1; \
+		x_in2 -= w; \
 	} \
  \
 	if(y_in2 < 0.0) \
@@ -335,6 +372,8 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
 	{ \
 		y_in2 = h - 1; \
 	} \
+ \
+/* printf("%f %f %f %f\n", x_in, y_in, x_in2, y_in2); */ \
  \
 	float y1_fraction = y_in - floor(y_in); \
 	float y2_fraction = 1.0 - y1_fraction; \
@@ -366,14 +405,14 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
 	for(int out_y = row1; out_y < row2; out_y++) \
 	{ \
 		type *out_row = out_rows[out_y]; \
-    	float dy = (((float)out_y / h) - 0.5) * M_PI; \
+    	float dy = (((float)(out_y - pivot_y) / h) - 0.5) * M_PI; \
  \
  		for(int out_x = 0; out_x < w; out_x++) \
 		{ \
  \
  \
                 /* Compute mapping pixel angular coordinates */ \
-                float dx = (((float)out_x / w) * 2.0) * M_PI; \
+                float dx = (((float)(out_x - pivot_x) / w) * 2.0) * M_PI; \
  \
                 /* Compute pixel position in 3d-frame */ \
                 pvi[0] = cos(dy); \
@@ -389,13 +428,27 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
                 /* Retrieve mapping pixel (x,y)-coordinates */ \
                 float x_in = w * (LG_ATN(pvf[0], pvf[1]) / (M_PI * 2)); \
                 float y_in = h * ((LG_ASN(pvf[2] ) / M_PI) + 0.5); \
+				x_in += pivot_x; \
+				y_in += pivot_y; \
  \
+ 				if(isnan(x_in) || isnan(y_in)) \
+				{ \
+					printf("SphereTranslateUnit::process_package %d: %f %f\n", __LINE__, x_in, y_in); \
+				} \
+				else \
+				{ \
  \
- 				BLEND_PIXEL(type, components) \
+	 				BLEND_PIXEL(type, components) \
+				} \
  \
 		} \
 	} \
 }
+
+printf("SphereTranslateUnit::process_package %d %f %f %f %f %f\n", 
+__LINE__,
+plugin->config.rotate_x, plugin->config.rotate_y, plugin->config.rotate_z,
+plugin->config.pivot_x, plugin->config.pivot_y);
 
 	switch(plugin->get_input()->get_color_model())
 	{
@@ -418,6 +471,7 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
 			FUNCTION(unsigned char, 4, 0x80);
 			break;
 	}
+//printf("SphereTranslateUnit::process_package %d\n", __LINE__);
 
 }
 
@@ -430,8 +484,8 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
 
 
 SphereTranslateEngine::SphereTranslateEngine(SphereTranslateMain *plugin)
- : LoadServer(plugin->PluginClient::smp + 1, plugin->PluginClient::smp + 1)
-// : LoadServer(1, 1)
+// : LoadServer(plugin->PluginClient::smp + 1, plugin->PluginClient::smp + 1)
+ : LoadServer(1, 1)
 {
 	this->plugin = plugin;
 }

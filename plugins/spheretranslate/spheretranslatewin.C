@@ -97,6 +97,29 @@ int SphereTranslateText::handle_event()
 
 
 
+SphereTranslateToggle::SphereTranslateToggle(SphereTranslateMain *client, 
+	int *output, 
+	int x, 
+	int y,
+	const char *text)
+ : BC_CheckBox(x, y, *output, text)
+{
+	this->output = output;
+	this->client = client;
+}
+
+int SphereTranslateToggle::handle_event()
+{
+	*output = get_value();
+	client->send_configure_change();
+	return 1;
+}
+
+
+
+
+
+
 
 
 
@@ -104,9 +127,9 @@ int SphereTranslateText::handle_event()
 SphereTranslateWin::SphereTranslateWin(SphereTranslateMain *client)
  : PluginClientWindow(client,
 	DP(300), 
-	DP(160), 
 	DP(300), 
-	DP(160), 
+	DP(300), 
+	DP(300), 
 	0)
 { 
 	this->client = client; 
@@ -210,6 +233,29 @@ void SphereTranslateWin::create_objects()
 		-180,
 		180);
 
+	y = new_control(&pivot_x, 
+		&pivot_x_text,
+		&client->config.pivot_x,
+		x,
+		y,
+		_("Pivot X:"),
+		0,
+		100);
+
+	y = new_control(&pivot_y, 
+		&pivot_y_text,
+		&client->config.pivot_y,
+		x,
+		y,
+		_("Pivot Y:"),
+		0,
+		100);
+
+	add_tool(draw_pivot = new SphereTranslateToggle(client, 
+		&client->config.draw_pivot, 
+		x, 
+		y,
+		_("Draw pivot")));
 
 	show_window(1);
 }

@@ -73,6 +73,21 @@ public:
 };
 
 
+class SphereTranslateToggle : public BC_CheckBox
+{
+public:
+	SphereTranslateToggle(SphereTranslateMain *client, 
+		int *output, 
+		int x, 
+		int y,
+		const char *text);
+	int handle_event();
+
+	SphereTranslateMain *client;
+	int *output;
+};
+
+
 
 class SphereTranslateWin : public PluginClientWindow
 {
@@ -94,6 +109,11 @@ public:
 	SphereTranslateSlider *rotate_x, *rotate_y, *rotate_z;
 	SphereTranslateText *translate_x_text, *translate_y_text, *translate_z_text;
 	SphereTranslateText *rotate_x_text, *rotate_y_text, *rotate_z_text;
+
+	SphereTranslateSlider *pivot_x, *pivot_y;
+	SphereTranslateText *pivot_x_text, *pivot_y_text;
+	
+	SphereTranslateToggle *draw_pivot;
 
 	SphereTranslateMain *client;
 };

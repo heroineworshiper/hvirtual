@@ -50,6 +50,8 @@ public:
 
 	float translate_x, translate_y, translate_z;
 	float rotate_x, rotate_y, rotate_z;
+	float pivot_x, pivot_y;
+	int draw_pivot;
 };
 
 
