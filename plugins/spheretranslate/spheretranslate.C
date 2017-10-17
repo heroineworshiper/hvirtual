@@ -350,6 +350,8 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
 	int h = input->get_h();
 	float pivot_x = (float)(plugin->config.pivot_x - 50) * w / 100;
 
+// since this is the foundation of the motion effect,
+// apply rotation in a way that cancels a motion vector at the pivot point
 // matrix which centers the Y pivot point
 	float matrix1[3][3];
 	rotate_to_matrix(matrix1, 
