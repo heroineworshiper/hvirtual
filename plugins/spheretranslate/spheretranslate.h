@@ -92,7 +92,15 @@ public:
 	SphereTranslateUnit(SphereTranslateEngine *engine, SphereTranslateMain *plugin);
 	~SphereTranslateUnit();
 	
-	
+	void rotate_to_matrix(float matrix[3][3], 
+		float rotate_x, 
+		float rotate_y, 
+		float rotate_z);
+	void multiply_pixel_matrix(float *pvf, float *pvi, float matrix[3][3]);
+	void multiply_matrix_matrix(float dst[3][3], 
+		float arg1[3][3], 
+		float arg2[3][3]);
+
 	void process_package(LoadPackage *package);
 	void process_equirect(SphereTranslatePackage *pkg);
 	void process_align(SphereTranslatePackage *pkg);

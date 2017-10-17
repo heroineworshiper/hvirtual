@@ -282,27 +282,17 @@ SphereTranslateUnit::~SphereTranslateUnit()
 }
 
 
-
-void SphereTranslateUnit::process_package(LoadPackage *package)
+void SphereTranslateUnit::rotate_to_matrix(float matrix[3][3], 
+	float rotate_x, 
+	float rotate_y, 
+	float rotate_z)
 {
-	SphereTranslatePackage *pkg = (SphereTranslatePackage*)package;
-	VFrame *input = plugin->input;
-	VFrame *output = plugin->get_output();
-	int row1 = pkg->row1;
-	int row2 = pkg->row2;
-	int w = input->get_w();
-	int h = input->get_h();
-
-	float pivot_x = plugin->config.pivot_x * w / 100 - w / 2;
-	float pivot_y = plugin->config.pivot_y * h / 100 - h / 2;
-
-	float matrix[3][3];
-    double cos_a = cos(plugin->config.rotate_x * 2 * M_PI / 360);
-    double sin_a = sin(plugin->config.rotate_x * 2 * M_PI / 360);
-    double cos_e = cos(plugin->config.rotate_y * 2 * M_PI / 360);
-    double sin_e = sin(plugin->config.rotate_y * 2 * M_PI / 360);
-    double cos_r = cos(plugin->config.rotate_z * 2 * M_PI / 360);
-    double sin_r = sin(plugin->config.rotate_z * 2 * M_PI / 360);
+    double cos_a = cos(rotate_x * 2 * M_PI / 360);
+    double sin_a = sin(rotate_x * 2 * M_PI / 360);
+    double cos_e = cos(rotate_y * 2 * M_PI / 360);
+    double sin_e = sin(rotate_y * 2 * M_PI / 360);
+    double cos_r = cos(rotate_z * 2 * M_PI / 360);
+    double sin_r = sin(rotate_z * 2 * M_PI / 360);
 
     /* Compute matrix entries */
     matrix[0][0] = cos_a * cos_e;
@@ -314,11 +304,92 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
     matrix[2][0] = -sin_e;
     matrix[2][1] = cos_e * sin_r;
     matrix[2][2] = cos_e * cos_r;
+}
 
-	
+void SphereTranslateUnit::multiply_pixel_matrix(float *pvf, float *pvi, float matrix[3][3])
+{
+    pvf[0] = matrix[0][0] * pvi[0] + matrix[0][1] * pvi[1] + matrix[0][2] * pvi[2];
+    pvf[1] = matrix[1][0] * pvi[0] + matrix[1][1] * pvi[1] + matrix[1][2] * pvi[2];
+    pvf[2] = matrix[2][0] * pvi[0] + matrix[2][1] * pvi[1] + matrix[2][2] * pvi[2];
+}
 
-	float pvi[3];
-	float pvf[3];
+void SphereTranslateUnit::multiply_matrix_matrix(float dst[3][3], 
+	float arg1[3][3], 
+	float arg2[3][3])
+{
+	int i, j, k;
+
+
+	for(i = 0; i < 3; i++)
+	{
+		float *dst_row = dst[i];
+		float *arg1_row = arg1[i];
+
+		for(j = 0; j < 3; j++)
+		{
+			double sum = 0;
+			for(k = 0; k < 3; k++)
+			{
+				sum += arg2[k][j] * arg1_row[k];
+			}
+
+			dst_row[j] = sum;
+		}
+	}
+}
+
+
+void SphereTranslateUnit::process_package(LoadPackage *package)
+{
+	SphereTranslatePackage *pkg = (SphereTranslatePackage*)package;
+	VFrame *input = plugin->input;
+	VFrame *output = plugin->get_output();
+	int row1 = pkg->row1;
+	int row2 = pkg->row2;
+	int w = input->get_w();
+	int h = input->get_h();
+	float pivot_x = (float)(plugin->config.pivot_x - 50) * w / 100;
+
+// matrix which centers the Y pivot point
+	float matrix1[3][3];
+	rotate_to_matrix(matrix1, 
+		0, 
+		-(plugin->config.pivot_y - 50) * 180 / 100, 
+		0);
+
+
+// matrix which applies the Y, Z rotation to the point defined by the pivot
+	float matrix2[3][3];
+	rotate_to_matrix(matrix2, 
+		0, 
+		plugin->config.rotate_y, 
+		plugin->config.rotate_z);
+
+
+// matrix which undoes the Y pivot & applies X rotation
+	float matrix3[3][3];
+	rotate_to_matrix(matrix3, 
+		plugin->config.rotate_x, 
+		(plugin->config.pivot_y - 50) * 180 / 100, 
+		0);
+
+
+// 	float matrix4[3][3];
+// // combine the transformations in order
+// 	multiply_matrix_matrix(matrix4, 
+// 		matrix1, 
+// 		matrix2);
+// 	multiply_matrix_matrix(matrix1, 
+// 		matrix4, 
+// 		matrix3);
+
+
+
+
+	float pixel1[3];
+	float pixel2[3];
+	float pixel3[3];
+	float pixel4[3];
 
 
 
@@ -405,7 +476,7 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
 	for(int out_y = row1; out_y < row2; out_y++) \
 	{ \
 		type *out_row = out_rows[out_y]; \
-    	float dy = (((float)(out_y - pivot_y) / h) - 0.5) * M_PI; \
+    	float dy = (((float)out_y / h) - 0.5) * M_PI; \
  \
  		for(int out_x = 0; out_x < w; out_x++) \
 		{ \
@@ -415,25 +486,25 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
                 float dx = (((float)(out_x - pivot_x) / w) * 2.0) * M_PI; \
  \
                 /* Compute pixel position in 3d-frame */ \
-                pvi[0] = cos(dy); \
-                pvi[1] = sin(dx) * pvi[0]; \
-                pvi[0] = cos(dx) * pvi[0]; \
-                pvi[2] = sin(dy); \
+                pixel1[0] = cos(dy); \
+                pixel1[1] = sin(dx) * pixel1[0]; \
+                pixel1[0] = cos(dx) * pixel1[0]; \
+                pixel1[2] = sin(dy); \
  \
                 /* Compute rotated pixel position in 3d-frame */ \
-                pvf[0] = matrix[0][0] * pvi[0] + matrix[0][1] * pvi[1] + matrix[0][2] * pvi[2]; \
-                pvf[1] = matrix[1][0] * pvi[0] + matrix[1][1] * pvi[1] + matrix[1][2] * pvi[2]; \
-                pvf[2] = matrix[2][0] * pvi[0] + matrix[2][1] * pvi[1] + matrix[2][2] * pvi[2]; \
+				multiply_pixel_matrix(pixel2, pixel1, matrix1); \
+				multiply_pixel_matrix(pixel3, pixel2, matrix2); \
+				multiply_pixel_matrix(pixel4, pixel3, matrix3); \
  \
                 /* Retrieve mapping pixel (x,y)-coordinates */ \
-                float x_in = w * (LG_ATN(pvf[0], pvf[1]) / (M_PI * 2)); \
-                float y_in = h * ((LG_ASN(pvf[2] ) / M_PI) + 0.5); \
+                float x_in = w * (LG_ATN(pixel4[0], pixel4[1]) / (M_PI * 2)); \
+                float y_in = h * ((LG_ASN(pixel4[2] ) / M_PI) + 0.5); \
 				x_in += pivot_x; \
-				y_in += pivot_y; \
  \
  				if(isnan(x_in) || isnan(y_in)) \
 				{ \
-					printf("SphereTranslateUnit::process_package %d: %f %f\n", __LINE__, x_in, y_in); \
+					printf("SphereTranslateUnit::process_package %d: out_x=%d out_y=%d x_in=%f y_in=%f\n", \
+						__LINE__, out_x, out_y, x_in, y_in); \
 				} \
 				else \
 				{ \
