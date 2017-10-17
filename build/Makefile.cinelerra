@@ -5,7 +5,6 @@ include global_config
 
 DIRS := \
 	doc \
-	libmpeg3 \
 	mpeg2enc \
 	mplexlo \
 	guicast \
@@ -38,6 +37,7 @@ ifeq ($(HAVE_FIREWIRE), y)
 endif
 	$(MAKE) -C thirdparty/audiofile*
 	$(MAKE) -C thirdparty/flac*
+	$(MAKE) -C libmpeg3
 	$(MAKE) -C quicktime
 	$(MAKE) -C $(MJPEGDIR)/utils 
 	$(MAKE) -C $(MJPEGDIR)/mpeg2enc 
@@ -55,6 +55,9 @@ endif
 	do \
 		 $(MAKE) -C $$i ; \
 	done
+
+
+
 
 $(OBJDIR)/soundtest: $(OBJDIR)/soundtest.o
 	$(CC) -o $(OBJDIR)/soundtest $(OBJDIR)/soundtest.o -lm

@@ -19,6 +19,10 @@
  * 
  */
 
+
+// the rotation algorithm is from https://github.com/FoxelSA/libgnomonic.git
+
+
 #include "clip.h"
 #include "filexml.h"
 #include "language.h"
@@ -166,16 +170,14 @@ void SphereTranslateMain::read_data(KeyFrame *keyframe)
 
 int SphereTranslateMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 {
-	VFrame *input, *output;
 	
 	
 	input = input_ptr;
-	output = output_ptr;
 
 	load_configuration();
 
 //printf("SphereTranslateMain::process_realtime 1 %p\n", input);
-	if(input->get_rows()[0] == output->get_rows()[0])
+	if(input->get_rows()[0] == output_ptr->get_rows()[0])
 	{
 		new_temp(input_ptr->get_w(), 
 				input_ptr->get_h(),
@@ -243,45 +245,117 @@ SphereTranslateUnit::~SphereTranslateUnit()
 {
 }
 
-#define PIXEL_TO_ANGLE(x, y) \
-	
 
 
 void SphereTranslateUnit::process_package(LoadPackage *package)
 {
 	SphereTranslatePackage *pkg = (SphereTranslatePackage*)package;
-	VFrame *input = plugin->get_temp();
+	VFrame *input = plugin->input;
 	VFrame *output = plugin->get_output();
 	int row1 = pkg->row1;
 	int row2 = pkg->row2;
 	int w = input->get_w();
 	int h = input->get_h();
 
+
+
+	float matrix[3][3];
+    double cos_a = cos(plugin->config.rotate_x * 2 * M_PI / 360);
+    double sin_a = sin(plugin->config.rotate_x * 2 * M_PI / 360);
+    double cos_e = cos(plugin->config.rotate_y * 2 * M_PI / 360);
+    double sin_e = sin(plugin->config.rotate_y * 2 * M_PI / 360);
+    double cos_r = cos(plugin->config.rotate_z * 2 * M_PI / 360);
+    double sin_r = sin(plugin->config.rotate_z * 2 * M_PI / 360);
+
+    /* Compute matrix entries */
+    matrix[0][0] = cos_a * cos_e;
+    matrix[0][1] = cos_a * sin_e * sin_r - sin_a * cos_r;
+    matrix[0][2] = cos_a * sin_e * cos_r + sin_a * sin_r;
+    matrix[1][0] = sin_a * cos_e; 
+    matrix[1][1] = sin_a * sin_e * sin_r + cos_a * cos_r;
+    matrix[1][2] = sin_a * sin_e * cos_r - cos_a * sin_r;
+    matrix[2][0] = -sin_e;
+    matrix[2][1] = cos_e * sin_r;
+    matrix[2][2] = cos_e * cos_r;
+
+	
+
+	float pvi[3];
+	float pvf[3];
+
+
+
+
+
+
+
+
+
 // interpolate & accumulate a pixel in the output
 #define BLEND_PIXEL(type, components) \
- 	if(x_in < 0.0 || x_in >= w - 1 || \
-		y_in < 0.0 || y_in >= h - 1) \
+	float x_in2 = x_in + 1; \
+	float y_in2 = y_in + 1; \
+ \
+ 	if(x_in < 0.0) \
 	{ \
-		out_row += components; \
+		x_in = 0; \
 	} \
 	else \
+	if(x_in > w - 1) \
 	{ \
-		float y1_fraction = y_in - floor(y_in); \
-		float y2_fraction = 1.0 - y1_fraction; \
-		float x1_fraction = x_in - floor(x_in); \
-		float x2_fraction = 1.0 - x1_fraction; \
-		type *in_pixel1 = in_rows[(int)y_in] + (int)x_in * components; \
-		type *in_pixel2 = in_rows[(int)y_in + 1] + (int)x_in * components; \
-		for(int i = 0; i < components; i++) \
-		{ \
-			float value = in_pixel1[i] * x2_fraction * y2_fraction + \
-				in_pixel2[i] * x2_fraction * y1_fraction + \
-				in_pixel1[i + components] * x1_fraction * y2_fraction + \
-				in_pixel2[i + components] * x1_fraction * y1_fraction; \
-			value = *out_row * inv_a + value * a; \
-			*out_row++ = (type)value; \
-		} \
-	}
+		x_in = w - 1; \
+	} \
+ \
+	if(y_in < 0.0) \
+	{ \
+		y_in = 0; \
+	} \
+	else \
+	if(y_in > h - 1) \
+	{ \
+		y_in = h - 1; \
+	} \
+ \
+ 	if(x_in2 < 0.0) \
+	{ \
+		x_in2 = 0; \
+	} \
+	else \
+	if(x_in2 > w - 1) \
+	{ \
+		x_in2 = w - 1; \
+	} \
+ \
+	if(y_in2 < 0.0) \
+	{ \
+		y_in2 = 0; \
+	} \
+	else \
+	if(y_in2 > h - 1) \
+	{ \
+		y_in2 = h - 1; \
+	} \
+ \
+	float y1_fraction = y_in - floor(y_in); \
+	float y2_fraction = 1.0 - y1_fraction; \
+	float x1_fraction = x_in - floor(x_in); \
+	float x2_fraction = 1.0 - x1_fraction; \
+	type *in_pixel1 = in_rows[(int)y_in] + (int)x_in * components; \
+	type *in_pixel2 = in_rows[(int)y_in2] + (int)x_in * components; \
+	type *in_pixel3 = in_rows[(int)y_in] + (int)x_in2 * components; \
+	type *in_pixel4 = in_rows[(int)y_in2] + (int)x_in2 * components; \
+	for(int i = 0; i < components; i++) \
+	{ \
+		float value = in_pixel1[i] * x2_fraction * y2_fraction + \
+			in_pixel2[i] * x2_fraction * y1_fraction + \
+			in_pixel3[i] * x1_fraction * y2_fraction + \
+			in_pixel4[i] * x1_fraction * y1_fraction; \
+		*out_row++ = (type)value; \
+	} \
+
+
+# define LG_ATN(x,y) ( ( ( x ) >= 0 ) ? ( ( ( y ) >= 0 ) ? atan( ( y ) / ( x ) ) : (M_PI * 2) + atan( ( y ) / ( x ) ) ) : M_PI + atan( ( y ) / ( x ) ) )
+# define LG_ASN(x)   ( asin( x ) )
 
 
 #define FUNCTION(type, components, chroma) \
@@ -292,9 +366,33 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
 	for(int out_y = row1; out_y < row2; out_y++) \
 	{ \
 		type *out_row = out_rows[out_y]; \
+    	float dy = (((float)out_y / h) - 0.5) * M_PI; \
  \
  		for(int out_x = 0; out_x < w; out_x++) \
 		{ \
+ \
+ \
+                /* Compute mapping pixel angular coordinates */ \
+                float dx = (((float)out_x / w) * 2.0) * M_PI; \
+ \
+                /* Compute pixel position in 3d-frame */ \
+                pvi[0] = cos(dy); \
+                pvi[1] = sin(dx) * pvi[0]; \
+                pvi[0] = cos(dx) * pvi[0]; \
+                pvi[2] = sin(dy); \
+ \
+                /* Compute rotated pixel position in 3d-frame */ \
+                pvf[0] = matrix[0][0] * pvi[0] + matrix[0][1] * pvi[1] + matrix[0][2] * pvi[2]; \
+                pvf[1] = matrix[1][0] * pvi[0] + matrix[1][1] * pvi[1] + matrix[1][2] * pvi[2]; \
+                pvf[2] = matrix[2][0] * pvi[0] + matrix[2][1] * pvi[1] + matrix[2][2] * pvi[2]; \
+ \
+                /* Retrieve mapping pixel (x,y)-coordinates */ \
+                float x_in = w * (LG_ATN(pvf[0], pvf[1]) / (M_PI * 2)); \
+                float y_in = h * ((LG_ASN(pvf[2] ) / M_PI) + 0.5); \
+ \
+ \
+ 				BLEND_PIXEL(type, components) \
+ \
 		} \
 	} \
 }
@@ -361,6 +459,11 @@ LoadPackage* SphereTranslateEngine::new_package()
 {
 	return new SphereTranslatePackage;
 }
+
+
+
+
+
 
 
 

@@ -69,6 +69,7 @@ public:
 
 
 	SphereTranslateEngine *engine;
+	VFrame *input;
 };
 
 

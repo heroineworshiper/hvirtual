@@ -28,7 +28,9 @@ fi
 
 
 
-CI_VERSION=6
+CI_VERSION=7
+
+
 MIX_VERSION=1.2
 XMOVIE_VERSION=1.9.13
 LIBMPEG3_VERSION=1.8
@@ -76,7 +78,8 @@ rm -r bin/*
 
 # CREATE DIRECTORIES
 rm -rf $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
-mkdir $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
+#mkdir $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
+mkdir $DEST_CI
 
 
 
@@ -125,9 +128,11 @@ cp -a \
 echo "Compressing Cinelerra"
 cd $DEST/
 find $CI_NAME -name .svn -exec rm -rf {} \; -prune
+find $CI_NAME -name .git -exec rm -rf {} \; -prune
 # dependancies are created in some clean rules
 find $CI_NAME -name '*.d' -exec rm {} \;
 tar Jcf $CI_NAME-src.tar.xz $CI_NAME
+
 
 
 

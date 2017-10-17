@@ -95,6 +95,7 @@ DIRS = \
 	slide \
 	spectrogram \
 	spherecam \
+	spheretranslate \
 	suv \
 	swapchannels \
 	swapframes \
