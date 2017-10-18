@@ -930,6 +930,7 @@ void ActionType::create_objects()
 	add_item(new BC_MenuItem(to_text(MotionScan::TRACK_PIXEL)));
 	add_item(new BC_MenuItem(to_text(MotionScan::STABILIZE)));
 	add_item(new BC_MenuItem(to_text(MotionScan::STABILIZE_PIXEL)));
+	add_item(new BC_MenuItem(to_text(MotionScan::STABILIZE_SPHERE)));
 	add_item(new BC_MenuItem(to_text(MotionScan::NOTHING)));
 }
 
@@ -939,6 +940,7 @@ int ActionType::from_text(char *text)
 	if(!strcmp(text, _("Track Pixel"))) return MotionScan::TRACK_PIXEL;
 	if(!strcmp(text, _("Stabilize Subpixel"))) return MotionScan::STABILIZE;
 	if(!strcmp(text, _("Stabilize Pixel"))) return MotionScan::STABILIZE_PIXEL;
+	if(!strcmp(text, _("Stabilize Sphere"))) return MotionScan::STABILIZE_SPHERE;
 	if(!strcmp(text, _("Do Nothing"))) return MotionScan::NOTHING;
 }
 
@@ -958,6 +960,9 @@ char* ActionType::to_text(int mode)
 		case MotionScan::STABILIZE_PIXEL:
 			return _("Stabilize Pixel");
 			break;
+		case MotionScan::STABILIZE_SPHERE:
+			return _("Stabilize Sphere");
+			break;
 		case MotionScan::NOTHING:
 			return _("Do Nothing");
 			break;
@@ -971,6 +976,7 @@ int ActionType::calculate_w(MotionWindow *gui)
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::TRACK_PIXEL)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::STABILIZE)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::STABILIZE_PIXEL)));
+	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::STABILIZE_SPHERE)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::NOTHING)));
 	return result + 50;
 }

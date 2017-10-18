@@ -34,6 +34,7 @@
 #include "overlayframe.h"
 #include "rotateframe.h"
 #include "rotatescan.h"
+#include "spheretranslator.h"
 #include "transportque.h"
 
 
@@ -221,6 +222,7 @@ MotionMain::MotionMain(PluginServer *server)
 	total_dy = 0;
 	total_angle = 0;
 	overlayer = 0;
+	sphere = 0;
 	search_area = 0;
 	search_size = 0;
 	temp_frame = 0;
@@ -231,14 +233,15 @@ MotionMain::MotionMain(PluginServer *server)
 	global_target_src = 0;
 	global_target_dst = 0;
 
-	prev_rotate_ref = 0;
-	current_rotate_ref = 0;
+//	prev_rotate_ref = 0;
+//	current_rotate_ref = 0;
 	rotate_target_src = 0;
 	rotate_target_dst = 0;
 }
 
 MotionMain::~MotionMain()
 {
+	delete sphere;
 
 	delete engine;
 	delete overlayer;
@@ -253,8 +256,8 @@ MotionMain::~MotionMain()
 	delete global_target_src;
 	delete global_target_dst;
 
-	delete prev_rotate_ref;
-	delete current_rotate_ref;
+//	delete prev_rotate_ref;
+//	delete current_rotate_ref;
 	delete rotate_target_src;
 	delete rotate_target_dst;
 }
@@ -575,6 +578,7 @@ void MotionMain::process_global()
 			dy = (float)total_dy / OVERSAMPLE;
 			break;
 		case MotionScan::STABILIZE:
+		case MotionScan::STABILIZE_SPHERE:
 			interpolation = CUBIC_LINEAR;
 			dx = -(float)total_dx / OVERSAMPLE;
 			dy = -(float)total_dy / OVERSAMPLE;
@@ -582,7 +586,8 @@ void MotionMain::process_global()
 	}
 
 
-	if(config.action_type != MotionScan::NOTHING)
+	if(config.action_type != MotionScan::NOTHING &&
+		config.action_type != MotionScan::STABILIZE_SPHERE)
 	{
 		if(!overlayer) 
 			overlayer = new OverlayFrame(PluginClient::get_project_smp() + 1);
@@ -602,7 +607,6 @@ void MotionMain::process_global()
 			interpolation);
 	}
 }
-
 
 
 void MotionMain::process_rotation()
@@ -631,33 +635,38 @@ void MotionMain::process_rotation()
 			dy = (float)current_dy / OVERSAMPLE;
 		}
 
-		prev_rotate_ref->clear_frame();
-		overlayer->overlay(prev_rotate_ref,
-			prev_global_ref,
-			0,
-			0,
-			prev_global_ref->get_w(),
-			prev_global_ref->get_h(),
-			dx,
-			dy,
-			(float)prev_global_ref->get_w() + dx,
-			(float)prev_global_ref->get_h() + dy,
-			1,
-			TRANSFER_REPLACE,
-			CUBIC_LINEAR);
+// 		prev_rotate_ref->clear_frame();
+// 		overlayer->overlay(prev_rotate_ref,
+// 			prev_global_ref,
+// 			0,
+// 			0,
+// 			prev_global_ref->get_w(),
+// 			prev_global_ref->get_h(),
+// 			dx,
+// 			dy,
+// 			(float)prev_global_ref->get_w() + dx,
+// 			(float)prev_global_ref->get_h() + dy,
+// 			1,
+// 			TRANSFER_REPLACE,
+// 			CUBIC_LINEAR);
 // Pivot is destination global position
-		block_x = (int)(prev_rotate_ref->get_w() * 
+		block_x = (int)(w * 
 			config.block_x / 
 			100 +
 			(float)total_dx / 
 			OVERSAMPLE);
-		block_y = (int)(prev_rotate_ref->get_h() * 
+		block_y = (int)(h * 
 			config.block_y / 
 			100 +
 			(float)total_dy / 
 			OVERSAMPLE);
+
+
 // Use the global target output as the rotation target input
 		rotate_target_src->copy_from(global_target_dst);
+
+
+
 // Transfer current reference frame to previous reference frame for global.
 		if(config.tracking_object != MotionScan::TRACK_SINGLE)
 		{
@@ -665,16 +674,16 @@ void MotionMain::process_rotation()
 			previous_frame_number = get_source_position();
 		}
 	}
-	else
-	{
-// Pivot is fixed
-		block_x = (int)(prev_rotate_ref->get_w() * 
-			config.block_x / 
-			100);
-		block_y = (int)(prev_rotate_ref->get_h() * 
-			config.block_y / 
-			100);
-	}
+// 	else
+// 	{
+// // Pivot is fixed
+// 		block_x = (int)(prev_rotate_ref->get_w() * 
+// 			config.block_x / 
+// 			100);
+// 		block_y = (int)(prev_rotate_ref->get_h() * 
+// 			config.block_y / 
+// 			100);
+// 	}
 
 
 
@@ -724,7 +733,7 @@ printf("MotionMain::process_rotation total_angle=%f\n", total_angle);
 
 
 // Calculate rotation parameters based on requested operation
-	float angle;
+	float angle = 0;
 	switch(config.action_type)
 	{
 		case MotionScan::NOTHING:
@@ -736,13 +745,16 @@ printf("MotionMain::process_rotation total_angle=%f\n", total_angle);
 			break;
 		case MotionScan::STABILIZE:
 		case MotionScan::STABILIZE_PIXEL:
+		case MotionScan::STABILIZE_SPHERE:
 			angle = -total_angle;
 			break;
 	}
 
+printf("MotionMain::process_rotation angle=%f\n", angle);
 
 
-	if(config.action_type != MotionScan::NOTHING)
+	if(config.action_type != MotionScan::NOTHING &&
+		config.action_type != MotionScan::STABILIZE_SPHERE)
 	{
 		if(!rotate_engine)
 			rotate_engine = new AffineEngine(PluginClient::get_project_smp() + 1,
@@ -798,7 +810,6 @@ printf("MotionMain::process_rotation total_angle=%f\n", total_angle);
 		}
 
 
-printf("MotionMain::process_rotation angle=%f\n", angle);
 		rotate_engine->rotate(rotate_target_dst, rotate_target_src, angle);
 // overlayer->overlay(rotate_target_dst,
 // 	prev_rotate_ref,
@@ -833,6 +844,33 @@ printf("MotionMain::process_rotation angle=%f\n", angle);
 
 }
 
+void MotionMain::process_sphere()
+{
+	if(!sphere)
+	{
+		sphere = new SphereTranslateEngine(PluginClient::get_project_smp() + 1, 
+				PluginClient::get_project_smp() + 1);
+	}
+
+// function arguments in the right units
+	float rotate_x = 0, rotate_y = 0, rotate_z = 0;
+	float pivot_x = 0, pivot_y = 0;
+	
+//	rotate_x = 
+	if(config.rotate)
+	{
+		
+	}
+
+	sphere->process(global_target_dst,
+		global_target_src,
+		rotate_x,
+		rotate_y,
+		rotate_z,
+		pivot_x,
+		pivot_y);
+
+}
 
 
 
@@ -1006,12 +1044,12 @@ printf("MotionMain::process_buffer %d start_position=%lld\n", __LINE__, start_po
 // accumulation vector to match the current global reference.
 // The center of the search area is always the user value + the accumulation
 // vector.
-			if(!prev_rotate_ref)
-				prev_rotate_ref = new VFrame(w, h, color_model);
+//			if(!prev_rotate_ref)
+//				prev_rotate_ref = new VFrame(w, h, color_model);
 // The current global reference is the current rotation reference.
-			if(!current_rotate_ref)
-				current_rotate_ref = new VFrame(w, h, color_model);
-			current_rotate_ref->copy_from(current_global_ref);
+//			if(!current_rotate_ref)
+//				current_rotate_ref = new VFrame(w, h, color_model);
+//			current_rotate_ref->copy_from(current_global_ref);
 
 // The global target destination is copied to the rotation target source
 // then written to the rotation output with rotation.
@@ -1024,45 +1062,45 @@ printf("MotionMain::process_buffer %d start_position=%lld\n", __LINE__, start_po
 				rotate_target_dst = new VFrame(w, h, color_model);
 		}
 	}
-	else
+//	else
 // Rotation only
-	if(config.rotate)
-	{
-// Rotation reads the previous reference frame and compares it with current 
-// reference frame.
-		if(!prev_rotate_ref)
-			prev_rotate_ref = new VFrame(w, h, color_model);
-		if(!current_rotate_ref)
-			current_rotate_ref = new VFrame(w, h, color_model);
-
-// Rotation loads target frame to temporary, rotates it, and writes it to the
-// target frame.  The pivot is always fixed.
-		if(!rotate_target_src)
-			rotate_target_src = new VFrame(w, h, color_model);
-		if(!rotate_target_dst)
-			rotate_target_dst = new VFrame(w, h, color_model);
-
-
-// Load the rotate frames
-		if(need_reload)
-		{
-			read_frame(prev_rotate_ref, 
-				reference_layer, 
-				previous_frame_number, 
-				frame_rate,
-				0);
-		}
-		read_frame(current_rotate_ref, 
-			reference_layer, 
-			start_position, 
-			frame_rate,
-			0);
-		read_frame(rotate_target_src,
-			target_layer,
-			start_position,
-			frame_rate,
-			0);
-	}
+// 	if(config.rotate)
+// 	{
+// // Rotation reads the previous reference frame and compares it with current 
+// // reference frame.
+// 		if(!prev_rotate_ref)
+// 			prev_rotate_ref = new VFrame(w, h, color_model);
+// 		if(!current_rotate_ref)
+// 			current_rotate_ref = new VFrame(w, h, color_model);
+// 
+// // Rotation loads target frame to temporary, rotates it, and writes it to the
+// // target frame.  The pivot is always fixed.
+// 		if(!rotate_target_src)
+// 			rotate_target_src = new VFrame(w, h, color_model);
+// 		if(!rotate_target_dst)
+// 			rotate_target_dst = new VFrame(w, h, color_model);
+// 
+// 
+// // Load the rotate frames
+// 		if(need_reload)
+// 		{
+// 			read_frame(prev_rotate_ref, 
+// 				reference_layer, 
+// 				previous_frame_number, 
+// 				frame_rate,
+// 				0);
+// 		}
+// 		read_frame(current_rotate_ref, 
+// 			reference_layer, 
+// 			start_position, 
+// 			frame_rate,
+// 			0);
+// 		read_frame(rotate_target_src,
+// 			target_layer,
+// 			start_position,
+// 			frame_rate,
+// 			0);
+// 	}
 
 
 
@@ -1077,22 +1115,20 @@ printf("MotionMain::process_buffer %d start_position=%lld\n", __LINE__, start_po
 	if(!skip_current)
 	{
 // Get position change from previous frame to current frame
-		/* if(config.global) */ process_global();
+		process_global();
 // Get rotation change from previous frame to current frame
 		if(config.rotate) process_rotation();
 //frame[target_layer]->copy_from(prev_rotate_ref);
 //frame[target_layer]->copy_from(current_rotate_ref);
-	}
 
-
-
-
+		if(config.action_type == MotionScan::STABILIZE_SPHERE)
+		{
+			process_sphere();
+		}
 
 
 // Transfer the relevant target frame to the output
-	if(!skip_current)
-	{
-		if(config.rotate)
+		if(config.rotate && config.action_type != MotionScan::STABILIZE_SPHERE)
 		{
 			frame[target_layer]->copy_from(rotate_target_dst);
 		}

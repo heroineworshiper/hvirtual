@@ -36,6 +36,7 @@
 #include "overlayframe.inc"
 #include "pluginvclient.h"
 #include "rotatescan.inc"
+#include "spheretranslator.inc"
 #include "vframe.inc"
 
 class MotionMain;
@@ -155,6 +156,7 @@ public:
 		double frame_rate);
 	void process_global();
 	void process_rotation();
+	void process_sphere();
 	void draw_vectors(VFrame *frame);
 	int is_multichannel();
 	int is_realtime();
@@ -178,8 +180,8 @@ public:
 // It is moved to compensate for motion and copied to the previous_frame.
 	VFrame *temp_frame;
 	MotionScan *engine;
-//	RotateScan *motion_rotate;
 	OverlayFrame *overlayer;
+	SphereTranslateEngine *sphere;
 	AffineEngine *rotate_engine;
 
 // Accumulation of all global tracks since the plugin start.
@@ -220,9 +222,9 @@ public:
 	VFrame *global_target_dst;
 
 // The previous reference frame for rotation tracking
-	VFrame *prev_rotate_ref;
+//	VFrame *prev_rotate_ref;
 // The current reference frame for rotation tracking
-	VFrame *current_rotate_ref;
+//	VFrame *current_rotate_ref;
 // The input target frame for rotation tracking.
 	VFrame *rotate_target_src;
 // The output target frame for rotation tracking.
