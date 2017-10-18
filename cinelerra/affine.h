@@ -107,7 +107,7 @@ public:
 // This removes some of the extremely faint artifacts in the trig rotation.
 	void rotate(VFrame *output,
 		VFrame *input, 
-		float angle);
+		float angle); // in degrees
 	void set_matrix(AffineMatrix *matrix);
 // Set the viewport to transform.  The transform is based on the input viewport.  
 // The output viewport clips the transformed output.

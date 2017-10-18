@@ -328,14 +328,46 @@ void SphereTranslateUnit::process_package(LoadPackage *package)
 
 SphereTranslateEngine::SphereTranslateEngine(int total_clients,
 		int total_packages)
-// : LoadServer(total_clients, total_packages)
- : LoadServer(1, 1)
+ : LoadServer(total_clients, total_packages)
+// : LoadServer(1, 1)
 {
 }
 
 SphereTranslateEngine::~SphereTranslateEngine()
 {
 }
+
+
+void SphereTranslateEngine::set_pivot(float x, float y)
+{
+	this->pivot_x = x;
+	this->pivot_y = y;
+}
+
+void SphereTranslateEngine::set_x(float value)
+{
+	this->rotate_x = value;
+}
+
+void SphereTranslateEngine::set_y(float value)
+{
+	this->rotate_y = value;
+}
+
+void SphereTranslateEngine::set_z(float value)
+{
+	this->rotate_z = value;
+}
+
+
+void SphereTranslateEngine::process(VFrame *output, 
+		VFrame *input)
+{
+	this->input = input;
+	this->output = output;
+	process_packages();
+}
+
 
 
 void SphereTranslateEngine::process(VFrame *output, 

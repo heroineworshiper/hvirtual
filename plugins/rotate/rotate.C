@@ -751,27 +751,21 @@ int RotateEffect::process_buffer(VFrame *frame,
 	if(center_x >= 0 && center_x < w || \
 		center_y >= 0 && center_y < h) \
 	{ \
-		type *hrow = rows[center_y] + components * (center_x - CENTER_W / 2); \
-		for(int i = center_x - CENTER_W / 2; i <= center_x + CENTER_W / 2; i++) \
+		type *hrow = rows[center_y]; \
+		for(int i = 0; i < w; i++) \
 		{ \
-			if(i >= 0 && i < w) \
-			{ \
-				hrow[0] = max - hrow[0]; \
-				hrow[1] = max - hrow[1]; \
-				hrow[2] = max - hrow[2]; \
-				hrow += components; \
-			} \
+			hrow[0] = max - hrow[0]; \
+			hrow[1] = max - hrow[1]; \
+			hrow[2] = max - hrow[2]; \
+			hrow += components; \
 		} \
  \
-		for(int i = center_y - CENTER_W / 2; i <= center_y + CENTER_W / 2; i++) \
+		for(int i = 0; i < h; i++) \
 		{ \
-			if(i >= 0 && i < h) \
-			{ \
-				type *vrow = rows[i] + center_x * components; \
-				vrow[0] = max - vrow[0]; \
-				vrow[1] = max - vrow[1]; \
-				vrow[2] = max - vrow[2]; \
-			} \
+			type *vrow = rows[i] + center_x * components; \
+			vrow[0] = max - vrow[0]; \
+			vrow[1] = max - vrow[1]; \
+			vrow[2] = max - vrow[2]; \
 		} \
 	} \
 }

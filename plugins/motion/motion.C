@@ -547,7 +547,7 @@ void MotionMain::process_global()
 	if(config.tracking_object != MotionScan::TRACK_SINGLE && !config.rotate)
 	{
 // Transfer current reference frame to previous reference frame and update
-// counter.  Must wait for rotate to compare.
+// counter.
 		prev_global_ref->copy_from(current_global_ref);
 		previous_frame_number = get_source_position();
 	}
@@ -606,6 +606,14 @@ void MotionMain::process_global()
 			TRANSFER_REPLACE,
 			interpolation);
 	}
+
+	if(config.action_type == MotionScan::STABILIZE_SPHERE)
+	{
+		sphere->set_pivot(config.block_x, config.block_y);
+		sphere->set_x(-dx * 360 / w);
+		sphere->set_y(-dy * 180 / h);
+		sphere->set_z(0);
+	}
 }
 
 
@@ -617,86 +625,55 @@ void MotionMain::process_rotation()
 // Always require global
 // Convert the previous global reference into the previous rotation reference.
 // Convert global target destination into rotation target source.
-//	if(config.global)
-	if(1)
+	if(!overlayer) 
 	{
-		if(!overlayer) 
-			overlayer = new OverlayFrame(PluginClient::get_project_smp() + 1);
-		float dx;
-		float dy;
-		if(config.tracking_object == MotionScan::TRACK_SINGLE)
-		{
-			dx = (float)total_dx / OVERSAMPLE;
-			dy = (float)total_dy / OVERSAMPLE;
-		}
-		else
-		{
-			dx = (float)current_dx / OVERSAMPLE;
-			dy = (float)current_dy / OVERSAMPLE;
-		}
+		overlayer = new OverlayFrame(PluginClient::get_project_smp() + 1);
+	}
+	
+	float dx;
+	float dy;
+	if(config.tracking_object == MotionScan::TRACK_SINGLE)
+	{
+		dx = (float)total_dx / OVERSAMPLE;
+		dy = (float)total_dy / OVERSAMPLE;
+	}
+	else
+	{
+		dx = (float)current_dx / OVERSAMPLE;
+		dy = (float)current_dy / OVERSAMPLE;
+	}
 
-// 		prev_rotate_ref->clear_frame();
-// 		overlayer->overlay(prev_rotate_ref,
-// 			prev_global_ref,
-// 			0,
-// 			0,
-// 			prev_global_ref->get_w(),
-// 			prev_global_ref->get_h(),
-// 			dx,
-// 			dy,
-// 			(float)prev_global_ref->get_w() + dx,
-// 			(float)prev_global_ref->get_h() + dy,
-// 			1,
-// 			TRANSFER_REPLACE,
-// 			CUBIC_LINEAR);
 // Pivot is destination global position
-		block_x = (int)(w * 
-			config.block_x / 
-			100 +
-			(float)total_dx / 
-			OVERSAMPLE);
-		block_y = (int)(h * 
-			config.block_y / 
-			100 +
-			(float)total_dy / 
-			OVERSAMPLE);
+	block_x = (int)(w * 
+		config.block_x / 
+		100 +
+		(float)total_dx / 
+		OVERSAMPLE);
+	block_y = (int)(h * 
+		config.block_y / 
+		100 +
+		(float)total_dy / 
+		OVERSAMPLE);
 
 
 // Use the global target output as the rotation target input
+	if(config.action_type != MotionScan::STABILIZE_SPHERE)
+	{
 		rotate_target_src->copy_from(global_target_dst);
-
-
-
-// Transfer current reference frame to previous reference frame for global.
-		if(config.tracking_object != MotionScan::TRACK_SINGLE)
-		{
-			prev_global_ref->copy_from(current_global_ref);
-			previous_frame_number = get_source_position();
-		}
 	}
-// 	else
-// 	{
-// // Pivot is fixed
-// 		block_x = (int)(prev_rotate_ref->get_w() * 
-// 			config.block_x / 
-// 			100);
-// 		block_y = (int)(prev_rotate_ref->get_h() * 
-// 			config.block_y / 
-// 			100);
-// 	}
 
 
 
-// Get rotation
-// 	if(!motion_rotate)
-// 		motion_rotate = new RotateScan(this, 
-// 			get_project_smp() + 1, 
-// 			get_project_smp() + 1);
-// 
-// 	current_angle = motion_rotate->scan_frame(prev_rotate_ref, 
-// 		current_rotate_ref,
-// 		block_x,
-// 		block_y);
+// Transfer current reference frame to previous reference frame and update
+// counter.
+	if(config.tracking_object != MotionScan::TRACK_SINGLE)
+	{
+		prev_global_ref->copy_from(current_global_ref);
+		previous_frame_number = get_source_position();
+	}
+
+
+
 
 	current_angle = engine->dr_result;
 
@@ -714,13 +691,6 @@ void MotionMain::process_rotation()
 			CLAMP(total_angle, -config.rotate_magnitude, config.rotate_magnitude);
 		}
 
-//		if(!config.global)
-//		{
-// Transfer current reference frame to previous reference frame and update
-// counter.
-//			prev_rotate_ref->copy_from(current_rotate_ref);
-//			previous_frame_number = get_source_position();
-//		}
 	}
 	else
 	{
@@ -753,6 +723,7 @@ printf("MotionMain::process_rotation total_angle=%f\n", total_angle);
 printf("MotionMain::process_rotation angle=%f\n", angle);
 
 
+// apply the rotation
 	if(config.action_type != MotionScan::NOTHING &&
 		config.action_type != MotionScan::STABILIZE_SPHERE)
 	{
@@ -768,77 +739,38 @@ printf("MotionMain::process_rotation angle=%f\n", angle);
 			case MotionScan::TRACK:
 			case MotionScan::TRACK_PIXEL:
 // Use destination of global tracking.
-//				rotate_engine->set_pivot(block_x, block_y);
 				rotate_engine->set_in_pivot(block_x, block_y);
 				rotate_engine->set_out_pivot(block_x, block_y);
 				break;
 
 			case MotionScan::STABILIZE:
 			case MotionScan::STABILIZE_PIXEL:
-//				if(config.global)
-				if(1)
-				{
 // Use origin of global stabilize operation
-// 					rotate_engine->set_pivot((int)(rotate_target_dst->get_w() * 
-// 							config.block_x / 
-// 							100),
-// 						(int)(rotate_target_dst->get_h() * 
-// 							config.block_y / 
-// 							100));
-					rotate_engine->set_in_pivot((int)(rotate_target_dst->get_w() * 
-							config.block_x / 
-							100),
-						(int)(rotate_target_dst->get_h() * 
-							config.block_y / 
-							100));
-					rotate_engine->set_out_pivot((int)(rotate_target_dst->get_w() * 
-							config.block_x / 
-							100),
-						(int)(rotate_target_dst->get_h() * 
-							config.block_y / 
-							100));
-				
-				}
-				else
-				{
-// Use origin
-//					rotate_engine->set_pivot(block_x, block_y);
-					rotate_engine->set_in_pivot(block_x, block_y);
-					rotate_engine->set_out_pivot(block_x, block_y);
-				}
+				rotate_engine->set_in_pivot((int)(rotate_target_dst->get_w() * 
+						config.block_x / 
+						100),
+					(int)(rotate_target_dst->get_h() * 
+						config.block_y / 
+						100));
+				rotate_engine->set_out_pivot((int)(rotate_target_dst->get_w() * 
+						config.block_x / 
+						100),
+					(int)(rotate_target_dst->get_h() * 
+						config.block_y / 
+						100));
+
 				break;
 		}
 
 
 		rotate_engine->rotate(rotate_target_dst, rotate_target_src, angle);
-// overlayer->overlay(rotate_target_dst,
-// 	prev_rotate_ref,
-// 	0,
-// 	0,
-// 	prev_rotate_ref->get_w(),
-// 	prev_rotate_ref->get_h(),
-// 	0,
-// 	0,
-// 	prev_rotate_ref->get_w(),
-// 	prev_rotate_ref->get_h(),
-// 	1,
-// 	TRANSFER_NORMAL,
-// 	CUBIC_LINEAR);
-// overlayer->overlay(rotate_target_dst,
-// 	current_rotate_ref,
-// 	0,
-// 	0,
-// 	prev_rotate_ref->get_w(),
-// 	prev_rotate_ref->get_h(),
-// 	0,
-// 	0,
-// 	prev_rotate_ref->get_w(),
-// 	prev_rotate_ref->get_h(),
-// 	1,
-// 	TRANSFER_NORMAL,
-// 	CUBIC_LINEAR);
 
 
+	}
+	
+	if(config.action_type == MotionScan::STABILIZE_SPHERE)
+	{
+		sphere->set_z(angle);
 	}
 
 
@@ -846,29 +778,9 @@ printf("MotionMain::process_rotation angle=%f\n", angle);
 
 void MotionMain::process_sphere()
 {
-	if(!sphere)
-	{
-		sphere = new SphereTranslateEngine(PluginClient::get_project_smp() + 1, 
-				PluginClient::get_project_smp() + 1);
-	}
-
-// function arguments in the right units
-	float rotate_x = 0, rotate_y = 0, rotate_z = 0;
-	float pivot_x = 0, pivot_y = 0;
-	
-//	rotate_x = 
-	if(config.rotate)
-	{
-		
-	}
-
+// process with arguments set in the global/rotate functions
 	sphere->process(global_target_dst,
-		global_target_src,
-		rotate_x,
-		rotate_y,
-		rotate_z,
-		pivot_x,
-		pivot_y);
+		global_target_src);
 
 }
 
@@ -1114,6 +1026,15 @@ printf("MotionMain::process_buffer %d start_position=%lld\n", __LINE__, start_po
 
 	if(!skip_current)
 	{
+		if(config.action_type == MotionScan::STABILIZE_SPHERE)
+		{
+			if(!sphere)
+			{
+				sphere = new SphereTranslateEngine(PluginClient::get_project_smp() + 1, 
+						PluginClient::get_project_smp() + 1);
+			}
+		}
+	
 // Get position change from previous frame to current frame
 		process_global();
 // Get rotation change from previous frame to current frame
