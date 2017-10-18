@@ -73,6 +73,11 @@ public:
 	~SphereTranslateEngine();
 	
 	
+	void set_pivot(float x, float y);
+	void set_x(float value);
+	void set_y(float value);
+	void set_z(float value);
+	void process(VFrame *output, VFrame *input);
 	void process(VFrame *output, 
 		VFrame *input, 
 		float rotate_x,

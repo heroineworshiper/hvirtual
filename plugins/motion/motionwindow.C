@@ -20,6 +20,7 @@
  */
 
 #include "bcdisplayinfo.h"
+#include "bcsignals.h"
 #include "clip.h"
 #include "language.h"
 #include "motion.h"
@@ -101,32 +102,6 @@ void MotionWindow::create_objects()
 		y,
 		&plugin->config.global_block_h));
 
-// 	add_subwindow(title = new BC_Title(x2, 
-// 		y, 
-// 		_("Rotation block size:\n(W/H Percent of image)")));
-// 	add_subwindow(rotation_block_w = new BlockSize(plugin, 
-// 		x2 + title->get_w() + 10, 
-// 		y,
-// 		&plugin->config.rotation_block_w));
-// 	add_subwindow(rotation_block_h = new BlockSize(plugin, 
-// 		x2 + title->get_w() + 10 + rotation_block_w->get_w(), 
-// 		y,
-// 		&plugin->config.rotation_block_h));
-
-// 	y += 50;
-// 	add_subwindow(title = new BC_Title(x1, y, _("Translation search steps:")));
-// 	add_subwindow(global_search_positions = new GlobalSearchPositions(plugin, 
-// 		x1 + title->get_w() + 10, 
-// 		y, 
-// 		80));
-// 	global_search_positions->create_objects();
-// 
-// 	add_subwindow(title = new BC_Title(x2, y, _("Rotation search steps:")));
-// 	add_subwindow(rotation_search_positions = new RotationSearchPositions(plugin, 
-// 		x2 + title->get_w() + 10, 
-// 		y, 
-// 		80));
-// 	rotation_search_positions->create_objects();
 
 	y += 50;
 	add_subwindow(title = new BC_Title(x, y, _("Translation direction:")));
@@ -661,7 +636,7 @@ MotionBlockXText::MotionBlockXText(MotionMain *plugin,
 	int y)
  : BC_TextBox(x,
  	y,
-	75,
+	DP(100),
 	1,
 	(float)plugin->config.block_x)
 {
@@ -687,7 +662,7 @@ MotionBlockYText::MotionBlockYText(MotionMain *plugin,
 	int y)
  : BC_TextBox(x,
  	y,
-	75,
+	DP(100),
 	1,
 	(float)plugin->config.block_y)
 {
