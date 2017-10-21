@@ -619,7 +619,6 @@ private:
 	int allocate_color_table();
 	int init_gc();
 	int init_fonts();
-	void init_xft();
 	int get_color_rgb8(int color);
 	int64_t get_color_rgb16(int color);
 	int64_t get_color_bgr16(int color);

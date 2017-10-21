@@ -48,28 +48,29 @@ VFrame* BC_Resources::bg_image = 0;
 VFrame* BC_Resources::menu_bg = 0;
 
 
-const char* BC_Resources::small_font = N_("-*-helvetica-medium-r-normal-*-10-*");
-const char* BC_Resources::small_font2 = N_("-*-helvetica-medium-r-normal-*-11-*");
-const char* BC_Resources::medium_font = N_("-*-helvetica-bold-r-normal-*-14-*");
-const char* BC_Resources::medium_font2 = N_("-*-helvetica-bold-r-normal-*-14-*");
-const char* BC_Resources::large_font = N_("-*-helvetica-bold-r-normal-*-18-*");
-const char* BC_Resources::large_font2 = N_("-*-helvetica-bold-r-normal-*-20-*");
-const char* BC_Resources::clock_font = N_("-*-helvetica-bold-r-normal-*-16-*");
-const char* BC_Resources::clock_font2 = N_("-*-helvetica-bold-r-normal-*-18-*");
+const char* BC_Resources::small_font = N_("-*-helvetica-medium-r-normal");
+const char* BC_Resources::medium_font = N_("-*-helvetica-bold-r-normal");
+const char* BC_Resources::large_font = N_("-*-helvetica-bold-r-normal");
+const char* BC_Resources::clock_font = N_("-*-helvetica-bold-r-normal");
+int BC_Resources::large_fontsize = DP(18);
+int BC_Resources::medium_fontsize = DP(14);
+int BC_Resources::small_fontsize = DP(10);
+int BC_Resources::clock_fontsize = DP(16);
 
 const char* BC_Resources::small_fontset = "-*-helvetica-medium-r-normal-*-10-*";
-const char* BC_Resources::medium_fontset = "-*-helvetica-bold-r-normal-*-14-*";
-const char* BC_Resources::large_fontset = "-*-helvetica-bold-r-normal-*-18-*";
-const char* BC_Resources::clock_fontset = "-*-helvetica-bold-r-normal-*-16-*";
+// const char* BC_Resources::medium_fontset = "-*-helvetica-bold-r-normal-*-14-*";
+// const char* BC_Resources::large_fontset = "-*-helvetica-bold-r-normal-*-18-*";
+// const char* BC_Resources::clock_fontset = "-*-helvetica-bold-r-normal-*-16-*";
 
-const char* BC_Resources::small_font_xft = N_("Sans-9");
-const char* BC_Resources::small_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
-const char* BC_Resources::medium_font_xft = N_("Sans-11");
-const char* BC_Resources::medium_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
-const char* BC_Resources::large_font_xft = N_("Sans-17");
-const char* BC_Resources::large_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
-const char* BC_Resources::clock_font_xft = N_("Sans-16");
-const char* BC_Resources::clock_font_xft2 = N_("-microsoft-verdana-*-*-*-*-*-*-*-*-*-*-*-*");
+
+const char* BC_Resources::small_font_xft = N_("Sans");
+const char* BC_Resources::medium_font_xft = N_("Sans");
+const char* BC_Resources::large_font_xft = N_("Sans");
+const char* BC_Resources::clock_font_xft = N_("Sans");
+int BC_Resources::large_font_xftsize = DP(17);
+int BC_Resources::medium_font_xftsize = DP(11);
+int BC_Resources::small_font_xftsize = DP(9);
+int BC_Resources::clock_font_xftsize = DP(16);
 
 
 
@@ -749,7 +750,7 @@ BC_Resources::BC_Resources()
 	medium_7segment = default_medium_7segment;
 
 
-	use_fontset = 0;
+//	use_fontset = 0;
 
 // Xft has priority over font set
 #ifdef HAVE_XFT

@@ -304,32 +304,25 @@ public:
 	static const char *medium_font;
 	static const char *small_font;
 	static const char *clock_font;
-// Backup of fonts in case the first choices don't exist
-	static const char *large_font2;
-	static const char *medium_font2;
-	static const char *small_font2;
-	static const char *clock_font2;
+	int large_fontsize;
+	int medium_fontsize;
+	int small_fontsize;
+	int clock_fontsize;
 
-	static const char *large_fontset;
-	static const char *medium_fontset;
-	static const char *small_fontset;
-	static const char *clock_fontset;
+// 	static const char *large_fontset;
+// 	static const char *medium_fontset;
+// 	static const char *small_fontset;
+// 	static const char *clock_fontset;
 
 	static const char *large_font_xft;
 	static const char *medium_font_xft;
 	static const char *small_font_xft;
 	static const char *clock_font_xft;
 
-// Backup of fonts in case the first choices don't exist
-	static const char *large_font_xft2;
-	static const char *medium_font_xft2;
-	static const char *small_font_xft2;
-	static const char *clock_font_xft2;
-
 	VFrame **medium_7segment;
 
 
-	int use_fontset;
+//	int use_fontset;
 // This must be constitutive since applications access the private members here.
 	int use_xft;
 
