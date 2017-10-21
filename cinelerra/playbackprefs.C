@@ -99,7 +99,7 @@ SET_TRACE
 	menu->add_item(new BC_MenuItem("131072"));
 	menu->add_item(new BC_MenuItem("262144"));
 
-	y += menu->get_h() + 5;
+	y += menu->get_h() + margin;
 	add_subwindow(title1 = new BC_Title(x, y, _("Audio offset (sec):")));
 	x1 = x + title1->get_w() + margin;
 	PlaybackAudioOffset *audio_offset = new PlaybackAudioOffset(pwindow,
@@ -107,15 +107,15 @@ SET_TRACE
 		x1,
 		y);
 	audio_offset->create_objects();
-	y += audio_offset->get_h() + 5;
+	y += audio_offset->get_h() + margin;
 
 SET_TRACE
 	add_subwindow(new PlaybackViewFollows(pwindow, pwindow->thread->edl->session->view_follows_playback, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new PlaybackSoftwareTimer(pwindow, pwindow->thread->edl->session->playback_software_position, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new PlaybackRealTime(pwindow, pwindow->thread->edl->session->real_time_playback, y));
-	y += 40;
+	y += DP(40);
 	add_subwindow(title1 = new BC_Title(x, y, _("Audio Driver:")));
 	audio_device = new ADevicePrefs(title1->get_x() + title1->get_w() + margin, 
 		y, 
@@ -135,7 +135,7 @@ SET_TRACE
 
 SET_TRACE
 	add_subwindow(new BC_Bar(x, y, 	get_w() - x * 2));
-	y += 5;
+	y += margin;
 
 SET_TRACE
 	add_subwindow(title1 = new BC_Title(x, y, _("Video Out"), LARGEFONT));
@@ -161,7 +161,7 @@ SET_TRACE
 	add_subwindow(nearest_neighbor = new PlaybackNearest(pwindow, 
 		this, 
 		pwindow->thread->edl->session->interpolation_type == NEAREST_NEIGHBOR, 
-		10, 
+		DP(10), 
 		y));
 	y += nearest_neighbor->get_h();
 	add_subwindow(cubic_cubic = new PlaybackBicubicBicubic(pwindow, 
@@ -170,7 +170,7 @@ SET_TRACE
 			pwindow->thread->edl->session->interpolation_type == CUBIC_LINEAR ||
 			pwindow->thread->edl->session->interpolation_type == LINEAR_LINEAR ||
 			pwindow->thread->edl->session->interpolation_type == LANCZOS_LANCZOS, 
-		10, 
+		DP(10), 
 		y));
 	y += cubic_cubic->get_h() + margin;
 // 	add_subwindow(cubic_linear = new PlaybackBicubicBilinear(pwindow, 
@@ -193,7 +193,7 @@ SET_TRACE
 	x1 = title1->get_x() + title1->get_w() + margin;
 	add_subwindow(preload = new PlaybackPreload(x1, y, pwindow, this, string));
 
-	y += preload->get_h() + 5;
+	y += preload->get_h() + margin;
 	add_subwindow(title1 = new BC_Title(x, y, _("DVD Subtitle to display:")));
 	PlaybackSubtitleNumber *subtitle_number;
 	x1 = x + title1->get_w() + margin;
