@@ -610,6 +610,16 @@ private:
 	void init_cursors();
 	int init_colors();
 	int init_window_shape();
+
+
+
+	XFontStruct* query_font(const char *font_string, int size);
+	XFontSet query_fontset(const char *font_string, int size);
+	void* query_xft_font(const char *font_string, int size);
+	int init_fonts();
+
+
+
 	static int evaluate_color_model(int client_byte_order, int server_byte_order, int depth);
 	int create_private_colors();
 	int create_color(int color);
@@ -618,7 +628,8 @@ private:
 	int get_single_text_width(int font, const char *text, int length);
 	int allocate_color_table();
 	int init_gc();
-	int init_fonts();
+
+
 	int get_color_rgb8(int color);
 	int64_t get_color_rgb16(int color);
 	int64_t get_color_bgr16(int color);

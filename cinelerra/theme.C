@@ -62,16 +62,16 @@ new VFrame(0, -1, default_data.get_w(), default_data.get_h(), BC_RGBA8888, -1)
 Theme::Theme()
  : BC_Theme()
 {
-	window_border = 10;
-	widget_border = 5;
+	window_border = DP(10);
+	widget_border = DP(5);
 	this->mwindow = 0;
 	theme_title = DEFAULT_THEME;
 	data_buffer = 0;
 	contents_buffer = 0;
 	last_image = 0;
-	mtransport_margin = 0;
-	toggle_margin = 0;
-	control_pixels = 50;
+	mtransport_margin = DP(0);
+	toggle_margin = DP(0);
+	control_pixels = DP(50);
 	timebar_cursor_color = RED;
 
 	BC_WindowBase::get_resources()->bg_color = BLOND;
@@ -79,20 +79,20 @@ Theme::Theme()
 	BC_WindowBase::get_resources()->button_highlighted = 0xffe000;
 	BC_WindowBase::get_resources()->recursive_resizing = 0;
 	audio_color = BLACK;
-	fade_h = 22;
-	meter_h = 17;
-	mode_h = 30;
-	pan_h = 32;
-	pan_x = 50;
-	play_h = 22;
-	title_h = 23;
+	fade_h = DP(22);
+	meter_h = DP(17);
+	mode_h = DP(30);
+	pan_h = DP(32);
+	pan_x = DP(50);
+	play_h = DP(22);
+	title_h = DP(23);
 	clock_bg_color = BLACK;
 	clock_fg_color = GREEN;
 	assetedit_color = YELLOW;
 
 	preferences_category_overlap = 0;
 
-	loadmode_w = 350;
+	loadmode_w = DP(350);
 
 #include "data/about_png.h"
 	about_bg = new VFrame(about_png);
@@ -450,31 +450,31 @@ void Theme::build_toggle(VFrame** &data,
 
 void Theme::get_mwindow_sizes(MWindowGUI *gui, int w, int h)
 {
-	mbuttons_x = 0;
+	mbuttons_x = DP(0);
 	mbuttons_y = gui->mainmenu->get_h() + 1;
 	mbuttons_w = w;
 	mbuttons_h = get_image("mbutton_bg")->get_h();
-	mclock_x = window_border - 5;
+	mclock_x = window_border - DP(5);
 	mclock_y = mbuttons_y - 1 + mbuttons_h;
-	mclock_w = get_image("clock_bg")->get_w() - 20;
+	mclock_w = get_image("clock_bg")->get_w() - DP(20);
 	mclock_h = get_image("clock_bg")->get_h();
 	mtimebar_x = get_image("patchbay_bg")->get_w();
 	mtimebar_y = mbuttons_y - 1 + mbuttons_h;
 	mtimebar_w = w - mtimebar_x;
 	mtimebar_h = get_image("timebar_bg")->get_h();
-	mzoom_h = 25;
-	mzoom_x = 0;
+	mzoom_h = DP(25);
+	mzoom_x = DP(0);
 	mzoom_y = h - get_image("statusbar")->get_h();
 	mzoom_w = w;
-	mstatus_x = 0;
+	mstatus_x = DP(0);
 	mstatus_y = mzoom_y + mzoom_h;
 	mstatus_w = w;
 	mstatus_h = h - mstatus_y;
-	mstatus_message_x = 10;
-	mstatus_message_y = 5;
-	mstatus_progress_x = mstatus_w - statusbar_cancel_data[0]->get_w() - 240;
+	mstatus_message_x = DP(10);
+	mstatus_message_y = DP(5);
+	mstatus_progress_x = mstatus_w - statusbar_cancel_data[0]->get_w() - DP(240);
 	mstatus_progress_y = mstatus_h - BC_WindowBase::get_resources()->progress_images[0]->get_h() - 3;
-	mstatus_progress_w = 230;
+	mstatus_progress_w = DP(230);
 	mstatus_cancel_x = mstatus_w - statusbar_cancel_data[0]->get_w();
 	mstatus_cancel_y = mstatus_h - statusbar_cancel_data[0]->get_h();
 	mcanvas_x = 0;

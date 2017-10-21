@@ -261,18 +261,18 @@ void BC_WindowBase::draw_text(int x,
 						}
 						else
 #endif
-						if(get_resources()->use_fontset && top_level->get_curr_fontset())
-						{
-        					XmbDrawString(top_level->display, 
-                				pixmap ? pixmap->opaque_pixmap : this->pixmap->opaque_pixmap, 
-                				top_level->get_curr_fontset(),
-                				top_level->gc, 
-                				x2 + k, 
-                				y2 + k, 
-                				&text[j], 
-                				i - j);
-						}
-						else
+// 						if(get_resources()->use_fontset && top_level->get_curr_fontset())
+// 						{
+//         					XmbDrawString(top_level->display, 
+//                 				pixmap ? pixmap->opaque_pixmap : this->pixmap->opaque_pixmap, 
+//                 				top_level->get_curr_fontset(),
+//                 				top_level->gc, 
+//                 				x2 + k, 
+//                 				y2 + k, 
+//                 				&text[j], 
+//                 				i - j);
+// 						}
+// 						else
 						{
 //printf("BC_WindowBase::draw_text 3\n");
 							XDrawString(top_level->display, 

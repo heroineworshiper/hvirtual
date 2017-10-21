@@ -80,6 +80,7 @@ Window XGroupLeader = 0;
 
 BC_WindowBase::BC_WindowBase()
 {
+	resources.init();
 //printf("BC_WindowBase::BC_WindowBase 1\n");
 	BC_WindowBase::initialize();
 }
@@ -2055,7 +2056,7 @@ int BC_WindowBase::init_gc()
 	return 0;
 }
 
-XFontStruct* query_font(char *font_string, int size)
+XFontStruct* BC_WindowBase::query_font(const char *font_string, int size)
 {
 	char string[BCTEXTLEN];
 	sprintf(string, "%s-*-%d-*", font_string, size);
@@ -2068,7 +2069,7 @@ XFontStruct* query_font(char *font_string, int size)
 	return result;
 }
 
-XFontSet query_fontset(char *font_string, int size)
+XFontSet BC_WindowBase::query_fontset(const char *font_string, int size)
 {
 	char string[BCTEXTLEN];
 	sprintf(string, "%s-*-%d-*", font_string, size);
@@ -2090,7 +2091,7 @@ XFontSet query_fontset(char *font_string, int size)
 }
 
 
-void* query_xft_font(char *font_string, int size)
+void* BC_WindowBase::query_xft_font(const char *font_string, int size)
 {
 	void *result = 0;
 	if(font_string[0] == '-')
@@ -2122,8 +2123,8 @@ int BC_WindowBase::init_fonts()
 #ifdef HAVE_XFT
 	largefont_xft = query_xft_font(resources.large_font_xft, resources.large_font_xftsize);
 	mediumfont_xft = query_xft_font(resources.medium_font_xft, resources.medium_font_xftsize);
-	clockfont_xft = query_xft_font(resources.clockfont_xft, resources.clockfont_xftsize);
-	smallfont_xft = query_xft_font(resources.smallfont_xft, resources.smallfont_xftsize);
+	clockfont_xft = query_xft_font(resources.clock_font_xft, resources.clock_font_xftsize);
+	smallfont_xft = query_xft_font(resources.small_font_xft, resources.small_font_xftsize);
 
 // Extension failed to locate fonts
 	if(!largefont_xft || 
@@ -2615,9 +2616,9 @@ int BC_WindowBase::get_single_text_width(int font, const char *text, int length)
 	}
 	else
 #endif
-	if(get_resources()->use_fontset && top_level->get_fontset(font))
-		return XmbTextEscapement(top_level->get_fontset(font), text, length);
-	else
+//	if(get_resources()->use_fontset && top_level->get_fontset(font))
+//		return XmbTextEscapement(top_level->get_fontset(font), text, length);
+//	else
 	if(get_font_struct(font)) 
 		return XTextWidth(get_font_struct(font), text, length);
 	else
@@ -2684,14 +2685,14 @@ int BC_WindowBase::get_text_ascent(int font)
 	}
 	else
 #endif
-	if(get_resources()->use_fontset && top_level->get_fontset(font))
-	{
-        XFontSetExtents *extents;
-
-        extents = XExtentsOfFontSet(top_level->get_fontset(font));
-        return -extents->max_logical_extent.y;
-	}
-	else
+//	if(get_resources()->use_fontset && top_level->get_fontset(font))
+//	{
+//       XFontSetExtents *extents;
+//
+//        extents = XExtentsOfFontSet(top_level->get_fontset(font));
+//        return -extents->max_logical_extent.y;
+//	}
+//	else
 	if(get_font_struct(font))
 		return top_level->get_font_struct(font)->ascent;
 	else
@@ -2725,15 +2726,15 @@ int BC_WindowBase::get_text_descent(int font)
 	}
 	else
 #endif
-    if(get_resources()->use_fontset && top_level->get_fontset(font))
-    {
-        XFontSetExtents *extents;
-
-        extents = XExtentsOfFontSet(top_level->get_fontset(font));
-        return (extents->max_logical_extent.height
-                        + extents->max_logical_extent.y);
-    }
-    else
+//     if(get_resources()->use_fontset && top_level->get_fontset(font))
+//     {
+//         XFontSetExtents *extents;
+// 
+//         extents = XExtentsOfFontSet(top_level->get_fontset(font));
+//         return (extents->max_logical_extent.height
+//                         + extents->max_logical_extent.y);
+//     }
+//     else
 	if(get_font_struct(font))
 		return top_level->get_font_struct(font)->descent;
 	else

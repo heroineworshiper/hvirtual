@@ -59,7 +59,10 @@ public:
 
 	friend class BC_WindowBase;
 
+// can't initialize until DPI is known
+	void init();
 	int initialize_display(BC_WindowBase *window);
+	static void init_fonts();
 
 // Get unique ID
 	int get_id();
@@ -83,6 +86,14 @@ public:
 	static void set_signals(BC_Signals *signal_handler);
 	static BC_Signals* get_signals();
 
+// scale DP units to pixels
+	static int dp_to_px(int dp);
+
+
+	static int initialized;
+
+// the DPI of the monitor
+	static int dpi;
 
 // These values should be changed before the first window is created.
 // colors
@@ -304,10 +315,10 @@ public:
 	static const char *medium_font;
 	static const char *small_font;
 	static const char *clock_font;
-	int large_fontsize;
-	int medium_fontsize;
-	int small_fontsize;
-	int clock_fontsize;
+	static int large_fontsize;
+	static int medium_fontsize;
+	static int small_fontsize;
+	static int clock_fontsize;
 
 // 	static const char *large_fontset;
 // 	static const char *medium_fontset;
@@ -318,6 +329,10 @@ public:
 	static const char *medium_font_xft;
 	static const char *small_font_xft;
 	static const char *clock_font_xft;
+	static int large_font_xftsize;
+	static int medium_font_xftsize;
+	static int small_font_xftsize;
+	static int clock_font_xftsize;
 
 	VFrame **medium_7segment;
 

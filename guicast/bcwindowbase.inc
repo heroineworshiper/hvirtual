@@ -38,8 +38,12 @@ class BC_WindowList;
 #define MIDDLE_BUTTON 2
 #define RIGHT_BUTTON 3
 
-// placeholder for future coordinate scaling based on DPI
-#define DP(x) (x)
+// coordinate scaling based on DPI
+// what DP are scaled by when scaling is invoked
+#define BASE_DPI 100
+// only DPI above this invoke scaling
+#define MIN_DPI 125
+#define DP(x) (BC_Resources::dp_to_px(x))
 
 
 // Use single thread for all windows.

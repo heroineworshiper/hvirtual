@@ -90,7 +90,7 @@ int BC_MenuBar::calculate_height(BC_WindowBase *window)
 	if(get_resources()->menu_bar_bg)
 		return get_resources()->menu_bar_bg->get_h();
 	else
-		return window->get_text_height(MEDIUMFONT) + 8;
+		return window->get_text_height(MEDIUMFONT) + DP(8);
 }
 
 void BC_MenuBar::draw_items()
