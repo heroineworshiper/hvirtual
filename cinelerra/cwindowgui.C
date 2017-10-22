@@ -81,8 +81,8 @@ CWindowGUI::CWindowGUI(MWindow *mwindow, CWindow *cwindow)
     mwindow->session->cwindow_y, 
     mwindow->session->cwindow_w, 
     mwindow->session->cwindow_h,
-    100,
-    100,
+    DP(100),
+    DP(100),
     1,
     1,
     1,
@@ -1063,8 +1063,8 @@ void CWindowCanvas::draw_refresh(int flush)
 //printf("CWindowCanvas::draw_refresh 10\n");
 }
 
-#define CROPHANDLE_W 10
-#define CROPHANDLE_H 10
+#define CROPHANDLE_W DP(10)
+#define CROPHANDLE_H DP(10)
 
 void CWindowCanvas::draw_crophandle(int x, int y)
 {
@@ -1076,15 +1076,15 @@ void CWindowCanvas::draw_crophandle(int x, int y)
 
 
 
-#define CONTROL_W 10
-#define CONTROL_H 10
-#define FIRST_CONTROL_W 20
-#define FIRST_CONTROL_H 20
+#define CONTROL_W DP(10)
+#define CONTROL_H DP(10)
+#define FIRST_CONTROL_W DP(20)
+#define FIRST_CONTROL_H DP(20)
 #undef BC_INFINITY
 #define BC_INFINITY 65536
 
-#define RULERHANDLE_W 16
-#define RULERHANDLE_H 16
+#define RULERHANDLE_W DP(16)
+#define RULERHANDLE_H DP(16)
 
 
 

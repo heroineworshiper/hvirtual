@@ -753,9 +753,9 @@ void BC_Resources::init()
 
 		pot_images = default_pot_images;
 		pot_offset = 2;
-		pot_x1 = pot_images[0]->get_w() / 2 - pot_offset;
-		pot_y1 = pot_images[0]->get_h() / 2 - pot_offset;
-		pot_r = pot_x1;
+//		pot_x1 = pot_images[0]->get_w() / 2 - pot_offset;
+//		pot_y1 = pot_images[0]->get_h() / 2 - pot_offset;
+//		pot_r = pot_x1;
 		pot_needle_color = BLACK;
 
 		progress_images = default_progress_images;

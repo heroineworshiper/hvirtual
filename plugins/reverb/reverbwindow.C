@@ -26,6 +26,7 @@
 #include "language.h"
 #include "reverb.h"
 #include "reverbwindow.h"
+#include "theme.h"
 
 #include <string.h>
 
@@ -33,10 +34,10 @@
 
 ReverbWindow::ReverbWindow(Reverb *reverb)
  : PluginClientWindow(reverb, 
-	300, 
-	230, 
-	300, 
-	230, 
+	DP(300), 
+	DP(230), 
+	DP(300), 
+	DP(230), 
 	0)
 { 
 	this->reverb = reverb; 
@@ -48,23 +49,35 @@ ReverbWindow::~ReverbWindow()
 
 void ReverbWindow::create_objects()
 {
-	int x = 200, y = 10;
-	add_tool(new BC_Title(5, y + 10, _("Initial signal level:")));
-	add_tool(level_init = new ReverbLevelInit(reverb, x, y)); y += 25;
-	add_tool(new BC_Title(5, y + 10, _("ms before reflections:")));
-	add_tool(delay_init = new ReverbDelayInit(reverb, x + 35, y)); y += 25;
-	add_tool(new BC_Title(5, y + 10, _("First reflection level:")));
-	add_tool(ref_level1 = new ReverbRefLevel1(reverb, x, y)); y += 25;
-	add_tool(new BC_Title(5, y + 10, _("Last reflection level:")));
-	add_tool(ref_level2 = new ReverbRefLevel2(reverb, x + 35, y)); y += 25;
-	add_tool(new BC_Title(5, y + 10, _("Number of reflections:")));
-	add_tool(ref_total = new ReverbRefTotal(reverb, x, y)); y += 25;
-	add_tool(new BC_Title(5, y + 10, _("ms of reflections:")));
-	add_tool(ref_length = new ReverbRefLength(reverb, x + 35, y)); y += 25;
-	add_tool(new BC_Title(5, y + 10, _("Start band for lowpass:")));
-	add_tool(lowpass1 = new ReverbLowPass1(reverb, x, y)); y += 25;
-	add_tool(new BC_Title(5, y + 10, _("End band for lowpass:")));
-	add_tool(lowpass2 = new ReverbLowPass2(reverb, x + 35, y)); y += 40;
+	int x = DP(200), y = DP(10);
+	int margin = client->get_theme()->widget_border;
+	int xmargin2 = DP(35);
+	int ymargin = DP(10);
+	int ymargin2 = DP(25);
+
+	add_tool(new BC_Title(margin, y + ymargin, _("Initial signal level:")));
+	add_tool(level_init = new ReverbLevelInit(reverb, x, y)); 
+	y += ymargin2;
+	add_tool(new BC_Title(margin, y + ymargin, _("ms before reflections:")));
+	add_tool(delay_init = new ReverbDelayInit(reverb, x + xmargin2, y)); 
+	y += ymargin2;
+	add_tool(new BC_Title(margin, y + ymargin, _("First reflection level:")));
+	add_tool(ref_level1 = new ReverbRefLevel1(reverb, x, y)); 
+	y += ymargin2;
+	add_tool(new BC_Title(margin, y + ymargin, _("Last reflection level:")));
+	add_tool(ref_level2 = new ReverbRefLevel2(reverb, x + xmargin2, y)); 
+	y += ymargin2;
+	add_tool(new BC_Title(margin, y + ymargin, _("Number of reflections:")));
+	add_tool(ref_total = new ReverbRefTotal(reverb, x, y)); 
+	y += ymargin2;
+	add_tool(new BC_Title(margin, y + ymargin, _("ms of reflections:")));
+	add_tool(ref_length = new ReverbRefLength(reverb, x + xmargin2, y)); 
+	y += ymargin2;
+	add_tool(new BC_Title(margin, y + ymargin, _("Start band for lowpass:")));
+	add_tool(lowpass1 = new ReverbLowPass1(reverb, x, y)); 
+	y += ymargin2;
+	add_tool(new BC_Title(margin, y + ymargin, _("End band for lowpass:")));
+	add_tool(lowpass2 = new ReverbLowPass2(reverb, x + xmargin2, y)); 
 	show_window();
 	flush();
 }

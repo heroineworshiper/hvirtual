@@ -263,7 +263,7 @@ public:
 
 // Pots
 	VFrame **pot_images;
-	int pot_x1, pot_y1, pot_r;
+//	int pot_x1, pot_y1, pot_r;
 // Amount of deflection of pot when down
 	int pot_offset;
 	int pot_needle_color;
