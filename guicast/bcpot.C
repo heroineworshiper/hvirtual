@@ -214,7 +214,7 @@ void BC_Pot::show_value_tooltip()
 	if(use_caption)
 	{
 		set_tooltip(get_caption());
-		show_tooltip(50);
+		show_tooltip(DP(50));
 		keypress_tooltip_timer = 2000;
 	}
 }
@@ -243,7 +243,7 @@ int BC_Pot::repeat_event(int64_t duration)
 				if(!tooltip_text[0] || isdigit(tooltip_text[0]))
 				{
 					set_tooltip(get_caption());
-					show_tooltip(50);
+					show_tooltip(DP(50));
 				}
 				else
 					show_tooltip();

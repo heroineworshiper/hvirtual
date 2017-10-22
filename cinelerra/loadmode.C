@@ -110,7 +110,8 @@ int LoadMode::calculate_w(BC_WindowBase *gui,
 	int use_none, 
 	int use_nested)
 {
-	int total = gui->get_text_width(MEDIUMFONT, _("Insertion strategy:")) + 10;
+	int margin = theme->widget_border;
+	int total = gui->get_text_width(MEDIUMFONT, _("Insertion strategy:")) + margin;
 	for(int i = 0; i < TOTAL_LOADMODES; i++)
 	{
 		if((i != LOADMODE_NOTHING || use_none) &&
@@ -138,7 +139,7 @@ int LoadMode::calculate_w(BC_WindowBase *gui,
 				&text_w,
 				&text_h, 
 				0);
-			total += w + 10;
+			total += w + margin;
 		}
 	}
 	return total;
@@ -155,9 +156,10 @@ int LoadMode::get_h()
 void LoadMode::create_objects()
 {
 	int x = this->x, y = this->y;
+	int margin = mwindow->theme->widget_border;
 
 	window->add_subwindow(title = new BC_Title(x, y, _("Insertion strategy:")));
-	x += title->get_w() + 10;
+	x += title->get_w() + margin;
 	int x1 = x;
 	for(int i = 0; i < TOTAL_LOADMODES; i++)
 	{
@@ -165,18 +167,18 @@ void LoadMode::create_objects()
 			(i != LOADMODE_NESTED || use_nested))
 		{
 			VFrame **images = mwindow->theme->get_image_set(mode_images[i]);
-			if(x + images[0]->get_w() > window->get_w())
-			{
-				x = x1;
-				y += images[0]->get_h() + 5;
-			}
+// 			if(x + images[0]->get_w() > window->get_w())
+// 			{
+// 				x = x1;
+// 				y += images[0]->get_h() + margin;
+// 			}
 			window->add_subwindow(mode[i] = new LoadModeToggle(x, 
 				y, 
 				this, 
 				i, 
 				mode_images[i],
 				tooltips[i]));
-			x += mode[i]->get_w() + 10;
+			x += mode[i]->get_w() + margin;
 		}
 	}
 
@@ -195,23 +197,24 @@ int LoadMode::get_y()
 
 int LoadMode::reposition_window(int x, int y)
 {
+	int margin = mwindow->theme->widget_border;
 	this->x = x;
 	this->y = y;
 	title->reposition_window(x, y);
-	x += title->get_w() + 10;
+	x += title->get_w() + margin;
 	int x1 = x;
 	for(int i = 0; i < TOTAL_LOADMODES; i++)
 	{
 		if(mode[i])
 		{
 			VFrame **images = mwindow->theme->get_image_set(mode_images[i]);
-			if(x + images[0]->get_w() > window->get_w())
-			{
-				x = x1;
-				y += images[0]->get_h() + 5;
-			}
+// 			if(x + images[0]->get_w() > window->get_w())
+// 			{
+// 				x = x1;
+// 				y += images[0]->get_h() + margin;
+// 			}
 			mode[i]->reposition_window(x, y);
-			x += mode[i]->get_w() + 10;
+			x += mode[i]->get_w() + margin;
 		}
 	}
 

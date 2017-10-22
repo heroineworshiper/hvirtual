@@ -131,8 +131,8 @@ void AboutPrefs::create_objects()
 	BC_ListBox *listbox;
 	add_subwindow(listbox = new BC_ListBox(x, 
 		y,
-		200,
-		300,
+		DP(200),
+		DP(300),
 		LISTBOX_TEXT,
 		&credits,
 		0,
@@ -175,8 +175,7 @@ void AboutPrefs::create_objects()
 	y += get_text_height(LARGEFONT) * 2;
 
 
-	flash();
-	flush();
+	flash(1);
 }
 
 

@@ -54,13 +54,9 @@ static const char *list_titles[] =
 	"Elapsed"
 };
 
-static int list_widths[] =
-{
-	50,
-	100,
-	200,
-	100
-};
+static int *list_widths = 0;
+
+#define HALF_W DP(350)
 
 BatchRenderMenuItem::BatchRenderMenuItem(MWindow *mwindow)
  : BC_MenuItem(_("Batch Render..."), "Shift+B", 'B')
@@ -231,6 +227,16 @@ BC_Window* BatchRenderThread::new_gui()
 	current_start = 0.0;
 	current_end = 0.0;
 	default_job = new BatchRenderJob(mwindow->preferences);
+
+
+	if(!list_widths)
+	{
+		list_widths = new int[4];
+		list_widths[0] = 50;
+		list_widths[1] = 100;
+		list_widths[2] = 200;
+		list_widths[3] = 100;
+	}
 	
 	
 	if(!file_entries)
@@ -675,8 +681,8 @@ BatchRenderGUI::BatchRenderGUI(MWindow *mwindow,
 	y,
 	w, 
 	h, 
-	50, 
-	50, 
+	DP(50), 
+	DP(50), 
 	1,
 	0, 
 	1)
@@ -695,12 +701,14 @@ BatchRenderGUI::~BatchRenderGUI()
 
 void BatchRenderGUI::create_objects()
 {
+	int margin = mwindow->theme->widget_border;
+
 	lock_window("BatchRenderGUI::create_objects");
 	mwindow->theme->get_batchrender_sizes(this, get_w(), get_h());
 	create_list(0);
 
 	int x = mwindow->theme->batchrender_x1;
-	int y = 5;
+	int y = margin;
 	int x1 = mwindow->theme->batchrender_x1;
 	int x2 = mwindow->theme->batchrender_x2;
 	int x3 = mwindow->theme->batchrender_x3;
@@ -709,11 +717,11 @@ void BatchRenderGUI::create_objects()
 
 // output file
 	add_subwindow(output_path_title = new BC_Title(x1, y, _("Output path:")));
-	y += 20;
+	y += DP(20);
 	format_tools = new BatchFormat(mwindow,
 					this, 
 					thread->get_current_asset());
-	format_tools->set_w(get_w() / 2);
+	format_tools->set_w(HALF_W - margin);
 	format_tools->create_objects(x, 
 						y, 
 						1, 
@@ -728,21 +736,21 @@ void BatchRenderGUI::create_objects()
 						0);
 
 	x2 = x;
-	y2 = y + 10;
+	y2 = y + DP(10);
 	x += format_tools->get_w();
 	y = y1;
-	x1 = x;
-	x3 = x + 80;
+	x1 = HALF_W;
+	x3 = x + DP(80);
 
 // input EDL
-	x = x1;
+	x = HALF_W;
 	add_subwindow(edl_path_title = new BC_Title(x, y, _("EDL Path:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(edl_path_text = new BatchRenderEDLPath(
 		thread, 
 		x, 
 		y, 
-		get_w() - x - 40, 
+		get_w() - x - DP(30), 
 		thread->get_current_edl()));
 
 	x += edl_path_text->get_w();
@@ -759,11 +767,11 @@ void BatchRenderGUI::create_objects()
 
 	x = x1;
 
-	y += 30;
+	y += DP(30);
 	add_subwindow(new_batch = new BatchRenderNew(thread, 
 		x, 
 		y));
-	x += new_batch->get_w() + 10;
+	x += new_batch->get_w() + DP(10);
 
 	add_subwindow(delete_batch = new BatchRenderDelete(thread, 
 		x, 
@@ -777,14 +785,14 @@ void BatchRenderGUI::create_objects()
 	x = x2;
 	y = y2;
 	add_subwindow(list_title = new BC_Title(x, y, _("Batches to render:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(batch_list = new BatchRenderList(thread, 
 		x, 
 		y,
-		get_w() - x - 10,
-		get_h() - y - BC_GenericButton::calculate_h() - 15));
+		get_w() - x - DP(10),
+		get_h() - y - BC_GenericButton::calculate_h() - DP(15)));
 
-	y += batch_list->get_h() + 10;
+	y += batch_list->get_h() + DP(10);
 	add_subwindow(start_button = new BatchRenderStart(thread, 
 	    x, 
 	    y));
@@ -795,7 +803,7 @@ void BatchRenderGUI::create_objects()
 		y));
 	x = get_w() - 
 		BC_GenericButton::calculate_w(this, _("Close")) - 
-		10;
+		DP(10);
 	add_subwindow(cancel_button = new BatchRenderCancel(thread, 
 		x, 
 		y));
@@ -809,9 +817,10 @@ int BatchRenderGUI::resize_event(int w, int h)
 	mwindow->session->batchrender_w = w;
 	mwindow->session->batchrender_h = h;
 	mwindow->theme->get_batchrender_sizes(this, w, h);
+	int margin = mwindow->theme->widget_border;
 
 	int x = mwindow->theme->batchrender_x1;
-	int y = 5;
+	int y = margin;
 	int x1 = mwindow->theme->batchrender_x1;
 	int x2 = mwindow->theme->batchrender_x2;
 	int x3 = mwindow->theme->batchrender_x3;
@@ -819,19 +828,19 @@ int BatchRenderGUI::resize_event(int w, int h)
 	int y2;
 
 	output_path_title->reposition_window(x1, y);
-	y += 20;
+	y += DP(20);
 	format_tools->reposition_window(x, y);
 	x2 = x;
-	y2 = y + 10;
+	y2 = y + DP(10);
 	y = y1;
 	x += format_tools->get_w();
-	x1 = x;
-	x3 = x + 80;
+	x1 = HALF_W;
+	x3 = x + DP(80);
 
-	x = x1;
+	x = HALF_W;
 	edl_path_title->reposition_window(x, y);
-	y += 20;
-	edl_path_text->reposition_window(x, y, w - x - 40);
+	y += DP(20);
+	edl_path_text->reposition_window(x, y, w - x - DP(30));
 	x += edl_path_text->get_w();
 	edl_path_browse->reposition_window(x, y);
 
@@ -844,9 +853,9 @@ int BatchRenderGUI::resize_event(int w, int h)
 // 	y += 30;
 // 	progress_bar->reposition_window(x, y, w - x - 10);
 
-	y += 30;
+	y += DP(30);
 	new_batch->reposition_window(x, y);
-	x += new_batch->get_w() + 10;
+	x += new_batch->get_w() + DP(10);
 	delete_batch->reposition_window(x, y);
 	x = new_batch->get_x();
 	y += new_batch->get_h() + mwindow->theme->widget_border;
@@ -856,17 +865,17 @@ int BatchRenderGUI::resize_event(int w, int h)
 	y = y2;
 	int y_margin = get_h() - batch_list->get_h();
 	list_title->reposition_window(x, y);
-	y += 20;
+	y += DP(20);
 	batch_list->reposition_window(x, y, w - x - 10, h - y_margin);
 
-	y += batch_list->get_h() + 10;
+	y += batch_list->get_h() + DP(10);
 	start_button->reposition_window(x, y);
 	x = w / 2 - 
 		stop_button->get_w() / 2;
 	stop_button->reposition_window(x, y);
 	x = w -
 		cancel_button->get_w() - 
-		10;
+		DP(10);
 	cancel_button->reposition_window(x, y);
 	return 1;
 }

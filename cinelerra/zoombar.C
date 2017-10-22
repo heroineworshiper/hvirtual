@@ -61,7 +61,8 @@ ZoomBar::~ZoomBar()
 
 void ZoomBar::create_objects()
 {
-	int x = 3;
+	int margin = mwindow->theme->widget_border;
+	int x = margin;
 	int y = get_h() / 2 - 
 		mwindow->theme->get_image_set("zoombar_menu", 0)[0]->get_h() / 2;
 
@@ -80,7 +81,7 @@ void ZoomBar::create_objects()
 	track_zoom->set_menu_images(mwindow->theme->get_image_set("zoombar_menu", 0));
 	track_zoom->set_tumbler_images(mwindow->theme->get_image_set("zoombar_tumbler", 0));
 	track_zoom->create_objects();
-	x += track_zoom->get_w() + 10;
+	x += track_zoom->get_w() + DP(10);
 
 #define DEFAULT_TEXT "000.00 - 000.00"
 	add_subwindow(auto_zoom_popup = new AutoZoomPopup(
@@ -90,30 +91,30 @@ void ZoomBar::create_objects()
 		y,
 		get_text_width(MEDIUMFONT, DEFAULT_TEXT) + 20));
 	auto_zoom_popup->create_objects();
-	x += auto_zoom_popup->get_w() + 5;
+	x += auto_zoom_popup->get_w() + margin;
 // 	add_subwindow(auto_zoom_text = new BC_Title(
 // 		x, 
 // 		get_h() / 2 - BC_Title::calculate_h(this, "0") / 2, 
 // 		DEFAULT_TEXT));
-// 	x += auto_zoom_text->get_w() + 5;
+// 	x += auto_zoom_text->get_w() + margin;
 	add_subwindow(auto_zoom = new AutoZoom(mwindow, this, x, y));
 	update_autozoom();
-	x += auto_zoom->get_w() + 5;
+	x += auto_zoom->get_w() + margin;
 
 	add_subwindow(from_value = new FromTextBox(mwindow, this, x, y));
-	x += from_value->get_w() + 5;
+	x += from_value->get_w() + margin;
 	add_subwindow(length_value = new LengthTextBox(mwindow, this, x, y));
-	x += length_value->get_w() + 5;
+	x += length_value->get_w() + margin;
 	add_subwindow(to_value = new ToTextBox(mwindow, this, x, y));
-	x += to_value->get_w() + 5;
+	x += to_value->get_w() + margin;
 
 	update_formatting(from_value);
 	update_formatting(length_value);
 	update_formatting(to_value);
 
-	add_subwindow(playback_value = new BC_Title(x, 100, _("--"), MEDIUMFONT, RED));
+	add_subwindow(playback_value = new BC_Title(x, DP(100), _("--"), MEDIUMFONT, RED));
 
-	add_subwindow(zoom_value = new BC_Title(x, 100, _("--"), MEDIUMFONT, BLACK));
+	add_subwindow(zoom_value = new BC_Title(x, DP(100), _("--"), MEDIUMFONT, BLACK));
 	update();
 }
 
@@ -328,7 +329,7 @@ SampleZoomPanel::SampleZoomPanel(MWindow *mwindow,
 	mwindow->edl->local_session->zoom_sample, 
 	x, 
 	y, 
-	110, 
+	DP(110), 
 	MIN_ZOOM_TIME, 
 	MAX_ZOOM_TIME, 
 //	ZOOM_LONG)
@@ -359,7 +360,7 @@ AmpZoomPanel::AmpZoomPanel(MWindow *mwindow, ZoomBar *zoombar, int x, int y)
 	mwindow->edl->local_session->zoom_y, 
 	x, 
 	y, 
-	80,
+	DP(80),
 	MIN_AMP_ZOOM, 
 	MAX_AMP_ZOOM, 
 	ZOOM_LONG)
@@ -379,7 +380,7 @@ TrackZoomPanel::TrackZoomPanel(MWindow *mwindow, ZoomBar *zoombar, int x, int y)
 	mwindow->edl->local_session->zoom_track, 
 	x, 
 	y, 
-	70,
+	DP(70),
 	MIN_TRACK_ZOOM, 
 	MAX_TRACK_ZOOM, 
 	ZOOM_LONG)
@@ -477,7 +478,7 @@ int AutoZoomPopup::handle_event()
 
 
 FromTextBox::FromTextBox(MWindow *mwindow, ZoomBar *zoombar, int x, int y)
- : BC_TextBox(x, y, 90, 1, "")
+ : BC_TextBox(x, y, DP(90), 1, "")
 {
 	this->mwindow = mwindow;
 	this->zoombar = zoombar;
@@ -512,7 +513,7 @@ int FromTextBox::update_position(double new_position)
 
 
 LengthTextBox::LengthTextBox(MWindow *mwindow, ZoomBar *zoombar, int x, int y)
- : BC_TextBox(x, y, 90, 1, "")
+ : BC_TextBox(x, y, DP(90), 1, "")
 {
 	this->mwindow = mwindow;
 	this->zoombar = zoombar;
@@ -545,7 +546,7 @@ int LengthTextBox::update_position(double new_position)
 
 
 ToTextBox::ToTextBox(MWindow *mwindow, ZoomBar *zoombar, int x, int y)
- : BC_TextBox(x, y, 90, 1, "")
+ : BC_TextBox(x, y, DP(90), 1, "")
 {
 	this->mwindow = mwindow;
 	this->zoombar = zoombar;

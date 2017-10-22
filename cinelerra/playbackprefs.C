@@ -288,7 +288,7 @@ PlaybackAudioOffset::PlaybackAudioOffset(PreferencesWindow *pwindow,
 	10.0,
 	x,
 	y,
-	100)
+	DP(100))
 {
 	this->pwindow = pwindow;
 	this->playback = playback;
@@ -312,7 +312,7 @@ PlaybackModuleFragment::PlaybackModuleFragment(int x,
 	char *text)
  : BC_PopupMenu(x, 
  	y, 
-	100, 
+	DP(100), 
 	text,
 	1)
 { 
@@ -459,7 +459,7 @@ PlaybackPreload::PlaybackPreload(int x,
 	PreferencesWindow *pwindow, 
 	PlaybackPrefs *playback, 
 	char *text)
- : BC_TextBox(x, y, 100, 1, text)
+ : BC_TextBox(x, y, DP(100), 1, text)
 { 
 	this->pwindow = pwindow; 
 	this->playback = playback; 
@@ -623,7 +623,7 @@ PlaybackSubtitleNumber::PlaybackSubtitleNumber(int x,
 	31,
 	x, 
  	y, 
-	50)
+	DP(50))
 {
 	this->pwindow = pwindow;
 	this->playback = playback;

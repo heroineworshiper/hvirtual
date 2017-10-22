@@ -208,8 +208,8 @@ PluginDialog::PluginDialog(MWindow *mwindow,
 	y,
 	mwindow->session->plugindialog_w, 
 	mwindow->session->plugindialog_h, 
-	510, 
-	415,
+	DP(510), 
+	DP(415),
 	1,
 	0,
 	1)
@@ -241,6 +241,7 @@ PluginDialog::~PluginDialog()
 
 void PluginDialog::create_objects()
 {
+	int margin = mwindow->theme->widget_border;
 	int use_default = 1;
 	char string[BCTEXTLEN];
 	int module_number;
@@ -317,7 +318,7 @@ void PluginDialog::create_objects()
 
 // Create widgets
 	add_subwindow(standalone_title = new BC_Title(mwindow->theme->plugindialog_new_x, 
-		mwindow->theme->plugindialog_new_y - 20, 
+		mwindow->theme->plugindialog_new_y - DP(20), 
 		_("Plugins:")));
 	add_subwindow(standalone_list = new PluginDialogNew(this, 
 		&standalone_data, 
@@ -345,7 +346,7 @@ void PluginDialog::create_objects()
 
 
 	add_subwindow(shared_title = new BC_Title(mwindow->theme->plugindialog_shared_x, 
-		mwindow->theme->plugindialog_shared_y - 20, 
+		mwindow->theme->plugindialog_shared_y - DP(20), 
 		_("Shared effects:")));
 	add_subwindow(shared_list = new PluginDialogShared(this, 
 		&shared_data, 
@@ -373,7 +374,7 @@ void PluginDialog::create_objects()
 
 
 	add_subwindow(module_title = new BC_Title(mwindow->theme->plugindialog_module_x, 
-		mwindow->theme->plugindialog_module_y - 20, 
+		mwindow->theme->plugindialog_module_y - DP(20), 
 		_("Shared tracks:")));
 	add_subwindow(module_list = new PluginDialogModules(this, 
 		&module_data, 
@@ -402,12 +403,13 @@ void PluginDialog::create_objects()
 // 		"Shared effects are attached to the remaining tracks.")));
 
 	if(thread->is_mainmenu)
+	{
 		add_subwindow(single_standalone = new PluginDialogSingle(this, 
-			mwindow->theme->plugindialog_new_x + BC_OKButton::calculate_w() + 10, 
+			mwindow->theme->plugindialog_new_x + BC_OKButton::calculate_w() + DP(10), 
 			mwindow->theme->plugindialog_new_y + 
 				mwindow->theme->plugindialog_new_h +
 				get_text_height(MEDIUMFONT)));
-
+	}
 
 
 	add_subwindow(new BC_OKButton(this));
@@ -430,7 +432,7 @@ int PluginDialog::resize_event(int w, int h)
 
 
 	standalone_title->reposition_window(mwindow->theme->plugindialog_new_x, 
-		mwindow->theme->plugindialog_new_y - 20);
+		mwindow->theme->plugindialog_new_y - DP(20));
 	standalone_list->reposition_window(mwindow->theme->plugindialog_new_x, 
 		mwindow->theme->plugindialog_new_y,
 		mwindow->theme->plugindialog_new_w,
@@ -447,7 +449,7 @@ int PluginDialog::resize_event(int w, int h)
 
 
 	shared_title->reposition_window(mwindow->theme->plugindialog_shared_x, 
-		mwindow->theme->plugindialog_shared_y - 20);
+		mwindow->theme->plugindialog_shared_y - DP(20));
 	shared_list->reposition_window(mwindow->theme->plugindialog_shared_x, 
 		mwindow->theme->plugindialog_shared_y,
 		mwindow->theme->plugindialog_shared_w,
@@ -464,7 +466,7 @@ int PluginDialog::resize_event(int w, int h)
 
 
 	module_title->reposition_window(mwindow->theme->plugindialog_module_x, 
-		mwindow->theme->plugindialog_module_y - 20);
+		mwindow->theme->plugindialog_module_y - DP(20));
 	module_list->reposition_window(mwindow->theme->plugindialog_module_x, 
 		mwindow->theme->plugindialog_module_y,
 		mwindow->theme->plugindialog_module_w,
@@ -478,10 +480,13 @@ int PluginDialog::resize_event(int w, int h)
 
 
 	if(single_standalone)
-		single_standalone->reposition_window(mwindow->theme->plugindialog_new_x, 
+	{
+		single_standalone->reposition_window(
+			mwindow->theme->plugindialog_new_x + BC_OKButton::calculate_w() + DP(10), 
 			mwindow->theme->plugindialog_new_y + 
 				mwindow->theme->plugindialog_new_h +
 				get_text_height(MEDIUMFONT));
+	}
 
 	flush();
 }

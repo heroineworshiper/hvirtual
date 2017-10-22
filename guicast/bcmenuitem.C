@@ -327,9 +327,9 @@ int BC_MenuItem::draw()
 	if(!strcmp(text, "-"))
 	{
 		menu_popup->get_popup()->set_color(DKGREY);
-		menu_popup->get_popup()->draw_line(5, y + h / 2, menu_popup->get_w() - 5, y + h / 2);
+		menu_popup->get_popup()->draw_line(DP(5), y + h / 2, menu_popup->get_w() - DP(5), y + h / 2);
 		menu_popup->get_popup()->set_color(LTGREY);
-		menu_popup->get_popup()->draw_line(5, y + h / 2 + 1, menu_popup->get_w() - 5, y + h / 2 + 1);
+		menu_popup->get_popup()->draw_line(DP(5), y + h / 2 + 1, menu_popup->get_w() - DP(5), y + h / 2 + 1);
 	}
 	else
 	{

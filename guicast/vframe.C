@@ -79,7 +79,7 @@ VFrameScene::~VFrameScene()
 //static BCCounter counter;
 
 
-VFrame::VFrame(unsigned char *png_data)
+VFrame::VFrame(const unsigned char *png_data)
 {
 	reset_parameters(1);
 	params = new BC_Hash;
@@ -672,6 +672,94 @@ UNBUFFER(data);
 	return 0;
 }
 
+// scale based on the dpi for the GUI
+void VFrame::read_png(const unsigned char *data, int dpi)
+{
+// test if scaling is needed based on BC_Resources::dp_to_px rules
+	if(dpi <= MIN_DPI)
+	{
+		read_png(data);
+		return;
+	}
+
+// Load it in a temporary VFrame
+	VFrame *src = new VFrame(data);
+	int src_w = src->get_w();
+	int src_h = src->get_h();
+	int dst_w = src->get_w() * dpi / BASE_DPI;
+	int dst_h = src->get_h() * dpi / BASE_DPI;
+
+
+	reallocate(NULL, 
+		-1,
+		0, 
+		0, 
+		0, 
+		dst_w, 
+		dst_h, 
+		src->get_color_model(),
+		-1);
+
+	int components = BC_CModels::components(get_color_model());
+
+	int src_x1[dst_w];
+	int src_x2[dst_w];
+	int src_x1_a[dst_w];
+	int src_x2_a[dst_w];
+	for(int dst_x = 0; dst_x < dst_w; dst_x++)
+	{
+		float src_x = (float)dst_x * BASE_DPI / dpi;
+		src_x1[dst_x] = (int)src_x;
+		src_x2_a[dst_x] = (int)(255 * (src_x - src_x1[dst_x]));
+		src_x2[dst_x] = src_x1[dst_x] + 1;
+		if(src_x2[dst_x] >= src_w)
+		{
+			src_x2[dst_x] = src_w - 1;
+		}
+		src_x1_a[dst_x] = 255 - src_x2_a[dst_x];
+	}
+
+	for(int dst_y = 0; dst_y < dst_h; dst_y++)
+	{
+		float src_y = (float)dst_y * BASE_DPI / dpi;
+		int src_y1 = (int)src_y;
+		int src_y2_a = (int)(255 * (src_y - src_y1));
+		int src_y2 = src_y1 + 1;
+		if(src_y2 >= src_h)
+		{
+			src_y2 = src_h - 1;
+		}
+		int src_y1_a = 255 - src_y2_a;
+		unsigned char *src_row1 = src->get_rows()[src_y1];
+		unsigned char *src_row2 = src->get_rows()[src_y2];
+		unsigned char *dst_row = get_rows()[dst_y];
+//printf("VFrame::read_png %d %d %d %d %d\n", __LINE__, src_w, src_h, src_y1, src_y2);
+
+		for(int dst_x = 0; dst_x < dst_w; dst_x++)
+		{
+			int x1 = src_x1[dst_x];
+			int x2 = src_x2[dst_x];
+			int x1_a = src_x1_a[dst_x];
+			int x2_a = src_x2_a[dst_x];
+			for(int i = 0; i < components; i++)
+			{
+				int accum = 
+					(int)src_row1[x1 * components + i] * x1_a * src_y1_a +
+					(int)src_row1[x2 * components + i] * x2_a * src_y1_a +
+					(int)src_row2[x1 * components + i] * x1_a * src_y2_a +
+					(int)src_row2[x2 * components + i] * x2_a * src_y2_a;
+				accum /= 255 * 255;
+				*dst_row++ = accum;
+			}
+		}
+	}
+
+
+	delete src;
+
+}
+
+
 int VFrame::read_png(const unsigned char *data)
 {
 
@@ -681,6 +769,8 @@ int VFrame::read_png(const unsigned char *data)
 		data[6] == 'W' &&
 		data[7] == ' ')
 	{
+printf("VFrame::read_png %d", __LINE__);
+
 		int new_color_model;
 		w = (data[8]) |
 			(data[9] << 8) |

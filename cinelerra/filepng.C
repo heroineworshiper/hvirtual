@@ -438,8 +438,8 @@ PNGConfigVideo::PNGConfigVideo(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	200,
-	100)
+	DP(200),
+	DP(100))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -451,7 +451,7 @@ PNGConfigVideo::~PNGConfigVideo()
 
 void PNGConfigVideo::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("PNGConfigVideo::create_objects");
 	add_subwindow(new PNGUseAlpha(this, x, y));
 	add_subwindow(new BC_OKButton(this));

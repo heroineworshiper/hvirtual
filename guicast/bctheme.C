@@ -19,6 +19,7 @@
  * 
  */
 
+#include "bcresources.h"
 #include "bctheme.h"
 #include "bcwindowbase.h"
 #include "clip.h"
@@ -67,7 +68,9 @@ VFrame* BC_Theme::new_image(const char *title, const char *path)
 
 //printf("BC_Theme::new_image %d added %s\n", __LINE__, title);
 	BC_ThemeSet *result = new BC_ThemeSet(1, 0, title);
-	result->data[0] = new VFrame(get_image_data(path));
+//	result->data[0] = new VFrame(get_image_data(path));
+	result->data[0] = new VFrame();
+	result->data[0]->read_png(get_image_data(path), BC_Resources::dpi);
 	image_sets.append(result);
 	return result->data[0];
 }
@@ -230,7 +233,10 @@ VFrame** BC_Theme::new_button(const char *overlay_path,
 	const char *dn_path,
 	const char *title)
 {
-	VFrame default_data(get_image_data(overlay_path));
+//	VFrame default_data(get_image_data(overlay_path));
+	VFrame default_data;
+	default_data.read_png(get_image_data(overlay_path), BC_Resources::dpi);
+
 	BC_ThemeSet *result = new BC_ThemeSet(3, 1, title ? title : (char*)"");
 	if(title) image_sets.append(result);
 
@@ -251,7 +257,9 @@ VFrame** BC_Theme::new_button(const char *overlay_path,
 	VFrame *dn,
 	const char *title)
 {
-	VFrame default_data(get_image_data(overlay_path));
+//	VFrame default_data(get_image_data(overlay_path));
+	VFrame default_data;
+	default_data.read_png(get_image_data(overlay_path), BC_Resources::dpi);
 	BC_ThemeSet *result = new BC_ThemeSet(3, 0, title ? title : (char*)"");
 	if(title) image_sets.append(result);
 
@@ -272,7 +280,9 @@ VFrame** BC_Theme::new_toggle(const char *overlay_path,
 	const char *checkedhi_path,
 	const char *title)
 {
-	VFrame default_data(get_image_data(overlay_path));
+//	VFrame default_data(get_image_data(overlay_path));
+	VFrame default_data;
+	default_data.read_png(get_image_data(overlay_path), BC_Resources::dpi);
 	BC_ThemeSet *result = new BC_ThemeSet(5, 1, title ? title : (char*)"");
 	if(title) image_sets.append(result);
 
@@ -294,7 +304,10 @@ VFrame** BC_Theme::new_toggle(const char *overlay_path,
 	VFrame *checkedhi,
 	const char *title)
 {
-	VFrame default_data(get_image_data(overlay_path));
+//	VFrame default_data(get_image_data(overlay_path));
+	VFrame default_data;
+	default_data.read_png(get_image_data(overlay_path), BC_Resources::dpi);
+
 	BC_ThemeSet *result = new BC_ThemeSet(5, 0, title ? title : (char*)"");
 	if(title) image_sets.append(result);
 

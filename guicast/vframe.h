@@ -72,7 +72,7 @@ public:
 		int color_model,  /* = BC_RGBA8888 */
 		long bytes_per_line /* = -1 */);
 // Create a frame with the png image
-	VFrame(unsigned char *png_data);
+	VFrame(const unsigned char *png_data);
 	VFrame(VFrame &vframe);
 // Create new frame for compressed data.
 	VFrame();
@@ -106,6 +106,9 @@ public:
 		int shmid,
 		int data_size,
 		int data_allocated);
+
+// scale based on the dpi for the GUI
+	void read_png(const unsigned char *data, int dpi);
 
 // Read a PNG into the frame with alpha
 	int read_png(const unsigned char *data);

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -906,8 +906,8 @@ TGAConfigVideo::TGAConfigVideo(BC_WindowBase *gui, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	gui->get_abs_cursor_x(1),
  	gui->get_abs_cursor_y(1),
-	400,
-	100)
+	DP(400),
+	DP(100))
 {
 	this->gui = gui;
 	this->asset = asset;
@@ -925,11 +925,11 @@ TGAConfigVideo::~TGAConfigVideo()
 
 void TGAConfigVideo::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("TGAConfigVideo::create_objects");
 	add_subwindow(new BC_Title(x, y, _("Compression:")));
 	TGACompression *textbox = new TGACompression(this, 
-		x + 110, 
+		x + DP(110), 
 		y, 
 		asset, 
 		&compression_items);
@@ -956,8 +956,8 @@ TGACompression::TGACompression(TGAConfigVideo *gui,
  	FileTGA::compression_to_str(gui->asset->vcodec),
 	x, 
  	y, 
-	200,
-	200)
+	DP(200),
+	DP(200))
 {
 	this->asset = asset;
 }

@@ -602,8 +602,8 @@ MenuEffectWindow::MenuEffectWindow(MWindow *mwindow,
 		mwindow->gui->get_abs_cursor_y(1) - mwindow->session->menueffect_h / 2,
 		mwindow->session->menueffect_w, 
 		mwindow->session->menueffect_h, 
-		580,
-		350,
+		DP(580),
+		DP(350),
 		1,
 		0,
 		1)
@@ -629,7 +629,10 @@ MenuEffectWindow::~MenuEffectWindow()
 void MenuEffectWindow::create_objects()
 {
 	int x, y;
+	int margin = mwindow->theme->widget_border;
 	result = -1;
+	mwindow->session->menueffect_w = MAX(get_w(), DP(580));
+	mwindow->session->menueffect_h = MAX(get_h(), DP(350));
 	mwindow->theme->get_menueffect_sizes(plugin_list ? 1 : 0);
 
 	lock_window("MenuEffectWindow::create_objects");
@@ -641,9 +644,9 @@ void MenuEffectWindow::create_objects()
 			_("Select an effect")));
 		add_subwindow(list = new MenuEffectWindowList(this, 
 			mwindow->theme->menueffect_list_x, 
-			mwindow->theme->menueffect_list_y + list_title->get_h() + 5, 
+			mwindow->theme->menueffect_list_y + list_title->get_h() + margin, 
 			mwindow->theme->menueffect_list_w,
-			mwindow->theme->menueffect_list_h - list_title->get_h() - 5,
+			mwindow->theme->menueffect_list_h - list_title->get_h() - margin,
 			plugin_list));
 	}
 
@@ -659,6 +662,7 @@ void MenuEffectWindow::create_objects()
 	format_tools = new FormatTools(mwindow,
 					this, 
 					asset);
+	format_tools->set_w(get_w() - x);
 	format_tools->create_objects(x, 
 					y, 
 					asset->audio_data, 
@@ -689,6 +693,7 @@ void MenuEffectWindow::create_objects()
 
 int MenuEffectWindow::resize_event(int w, int h)
 {
+	int margin = mwindow->theme->widget_border;
 	mwindow->session->menueffect_w = w;
 	mwindow->session->menueffect_h = h;
 	mwindow->theme->get_menueffect_sizes(plugin_list ? 1 : 0);
@@ -698,16 +703,20 @@ int MenuEffectWindow::resize_event(int w, int h)
 		list_title->reposition_window(mwindow->theme->menueffect_list_x, 
 			mwindow->theme->menueffect_list_y);
 		list->reposition_window(mwindow->theme->menueffect_list_x, 
-			mwindow->theme->menueffect_list_y + list_title->get_h() + 5, 
+			mwindow->theme->menueffect_list_y + list_title->get_h() + margin, 
 			mwindow->theme->menueffect_list_w,
-			mwindow->theme->menueffect_list_h - list_title->get_h() - 5);
+			mwindow->theme->menueffect_list_h - list_title->get_h() - margin);
 	}
 
 	if(file_title) file_title->reposition_window(mwindow->theme->menueffect_file_x, 
 		mwindow->theme->menueffect_file_y);
 	int x = mwindow->theme->menueffect_tools_x;
 	int y = mwindow->theme->menueffect_tools_y;
-	if(format_tools) format_tools->reposition_window(x, y);
+	if(format_tools) 
+	{
+		format_tools->set_w(w - x);
+		format_tools->reposition_window(x, y);
+	}
 	if(loadmode) loadmode->reposition_window(x, y);
 }
 
@@ -784,8 +793,8 @@ int MenuEffectWindowList::handle_event()
 
 MenuEffectPrompt::MenuEffectPrompt(MWindow *mwindow)
  : BC_Window(PROGRAM_NAME ": Effect Prompt", 
- 		mwindow->gui->get_abs_cursor_x(1) - 260 / 2,
-		mwindow->gui->get_abs_cursor_y(1) - 300,
+ 		mwindow->gui->get_abs_cursor_x(1) - DP(260) / 2,
+		mwindow->gui->get_abs_cursor_y(1) - DP(300),
  		MenuEffectPrompt::calculate_w(mwindow->gui), 
 		MenuEffectPrompt::calculate_h(mwindow->gui), 
 		MenuEffectPrompt::calculate_w(mwindow->gui),
@@ -798,15 +807,15 @@ MenuEffectPrompt::MenuEffectPrompt(MWindow *mwindow)
 
 int MenuEffectPrompt::calculate_w(BC_WindowBase *gui)
 {
-	int w = BC_Title::calculate_w(gui, PROMPT_TEXT) + 10;
-	w = MAX(w, BC_OKButton::calculate_w() + BC_CancelButton::calculate_w() + 30);
+	int w = BC_Title::calculate_w(gui, PROMPT_TEXT) + DP(10);
+	w = MAX(w, BC_OKButton::calculate_w() + BC_CancelButton::calculate_w() + DP(30));
 	return w;
 }
 
 int MenuEffectPrompt::calculate_h(BC_WindowBase *gui)
 {
 	int h = BC_Title::calculate_h(gui, PROMPT_TEXT);
-	h += BC_OKButton::calculate_h() + 30;
+	h += BC_OKButton::calculate_h() + DP(30);
 	return h;
 }
 

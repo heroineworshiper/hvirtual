@@ -362,8 +362,8 @@ FLACConfigAudio::FLACConfigAudio(BC_WindowBase *parent_window,
  : BC_Window(PROGRAM_NAME ": Audio Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	350,
-	170,
+	DP(350),
+	DP(170),
 	-1,
 	-1,
 	0,
@@ -380,7 +380,7 @@ FLACConfigAudio::~FLACConfigAudio()
 
 void FLACConfigAudio::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("FLACConfigAudio::create_objects");
 	bits_popup = new BitsPopup(this, 
 		x, 

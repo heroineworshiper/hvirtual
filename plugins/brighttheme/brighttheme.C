@@ -465,10 +465,10 @@ void BrightTheme::initialize()
 	setformat_w = get_image("setformat_bg")->get_w();
 	setformat_h = get_image("setformat_bg")->get_h();
 	setformat_x1 = DP(15);
-	setformat_x2 = DP(100);
+	setformat_x2 = DP(120);
 
 	setformat_x3 = DP(315);
-	setformat_x4 = DP(415);
+	setformat_x4 = DP(430);
 	setformat_y1 = DP(20);
 	setformat_y2 = DP(85);
 	setformat_y3 = DP(125);
@@ -738,7 +738,8 @@ void BrightTheme::initialize()
 void BrightTheme::build_bg_data()
 {
 // Audio settings
-	channel_position_data = new VFrame(get_image_data("channel_position.png"));
+	channel_position_data = new VFrame();
+	channel_position_data->read_png(get_image_data("channel_position.png"), BC_Resources::dpi);
 
 // Track bitmaps
 	new_image("resource1024", "resource1024.png");
@@ -886,7 +887,7 @@ void BrightTheme::draw_cwindow_bg(CWindowGUI *gui)
 	{
 		gui->draw_3segmenth(cstatus_x, 
 			ccomposite_h, 
-			cmeter_x - widget_border - cstatus_x + 100, 
+			cmeter_x - widget_border - cstatus_x + DP(100), 
 			get_image("cbuttons_right"));
 	}
 }
@@ -915,7 +916,7 @@ void BrightTheme::draw_vwindow_bg(VWindowGUI *gui)
 	{
 		gui->draw_3segmenth(vdivision_x, 
 			vcanvas_h, 
-			vmeter_x - widget_border - vdivision_x + 100, 
+			vmeter_x - widget_border - vdivision_x + DP(100), 
 			get_image("cbuttons_right"));
 	}
 

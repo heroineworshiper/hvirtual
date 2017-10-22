@@ -175,13 +175,13 @@ void RecordPrefs::create_objects()
 		x, 
 		y, 
 		pwindow->thread->edl->session->real_time_record));
-	y += 45;
+	y += DP(45);
 
 
 
 
 // Video hardware
-	add_subwindow(new BC_Bar(5, y, 	get_w() - 10));
+	add_subwindow(new BC_Bar(5, y, 	get_w() - DP(10)));
 	y += margin;
 
 
@@ -214,7 +214,7 @@ void RecordPrefs::create_objects()
 	x1 += textbox->get_w() + margin;
 	add_subwindow(new CaptureLengthTumbler(pwindow, textbox, x1, y));
 
-	y += 27;
+	y += DP(27);
 	
 	sprintf(string, "%d", pwindow->thread->edl->session->vconfig_in->capture_length);
 	add_subwindow(title1 = new BC_Title(x, y, _("Frames to buffer in device:")));
@@ -229,17 +229,17 @@ void RecordPrefs::create_objects()
 		x1, 
 		y));
 
-	y += 27;
+	y += DP(27);
 	add_subwindow(new RecordSoftwareTimer(pwindow, 
 		pwindow->thread->edl->session->record_software_position, 
 		x, 
 		y));
-	y += 27;
+	y += DP(27);
 	add_subwindow(new RecordSyncDrives(pwindow, 
 		pwindow->thread->edl->session->record_sync_drives, 
 		x, 
 		y));
-	y += 35;
+	y += DP(35);
 
 	BC_TextBox *w_text, *h_text;
 	add_subwindow(title1 = new BC_Title(x, y, _("Size of captured frame:")));
@@ -280,7 +280,7 @@ RecordFragment::RecordFragment(int x,
 	char *text)
  : BC_PopupMenu(x, 
  	y, 
-	100, 
+	DP(100), 
 	text,
 	1)
 { 
@@ -301,7 +301,7 @@ int RecordFragment::handle_event()
 
 
 RecordWriteLength::RecordWriteLength(MWindow *mwindow, PreferencesWindow *pwindow, int x, int y, char *text)
- : BC_TextBox(x, y, 100, 1, text)
+ : BC_TextBox(x, y, DP(100), 1, text)
 { 
 	this->pwindow = pwindow; 
 }
@@ -334,7 +334,7 @@ int RecordRealTime::handle_event()
 
 
 RecordSampleRate::RecordSampleRate(PreferencesWindow *pwindow, int x, int y)
- : BC_TextBox(x, y, 70, 1, pwindow->thread->edl->session->aconfig_in->in_samplerate)
+ : BC_TextBox(x, y, DP(70), 1, pwindow->thread->edl->session->aconfig_in->in_samplerate)
 {
 	this->pwindow = pwindow;
 }
@@ -357,7 +357,7 @@ int RecordSampleRate::handle_event()
 
 
 RecordW::RecordW(PreferencesWindow *pwindow, int x, int y)
- : BC_TextBox(x, y, 70, 1, pwindow->thread->edl->session->vconfig_in->w)
+ : BC_TextBox(x, y, DP(70), 1, pwindow->thread->edl->session->vconfig_in->w)
 {
 	this->pwindow = pwindow;
 }
@@ -368,7 +368,7 @@ int RecordW::handle_event()
 }
 
 RecordH::RecordH(PreferencesWindow *pwindow, int x, int y)
- : BC_TextBox(x, y, 70, 1, pwindow->thread->edl->session->vconfig_in->h)
+ : BC_TextBox(x, y, DP(70), 1, pwindow->thread->edl->session->vconfig_in->h)
 {
 	this->pwindow = pwindow;
 }
@@ -379,7 +379,7 @@ int RecordH::handle_event()
 }
 
 RecordFrameRate::RecordFrameRate(PreferencesWindow *pwindow, int x, int y)
- : BC_TextBox(x, y, 140, 1, pwindow->thread->edl->session->vconfig_in->in_framerate)
+ : BC_TextBox(x, y, DP(140), 1, pwindow->thread->edl->session->vconfig_in->in_framerate)
 {
 	this->pwindow = pwindow;
 }
@@ -398,7 +398,7 @@ RecordChannels::RecordChannels(PreferencesWindow *pwindow, BC_SubWindow *gui, in
 		MAX_CHANNELS,
 		x, 
 		y, 
-		100)
+		DP(100))
 {
 	this->pwindow = pwindow; 
 }
@@ -412,7 +412,7 @@ int RecordChannels::handle_event()
 
 
 VideoWriteLength::VideoWriteLength(PreferencesWindow *pwindow, char *text, int x, int y)
- : BC_TextBox(x, y, 100, 1, text)
+ : BC_TextBox(x, y, DP(100), 1, text)
 { 
 	this->pwindow = pwindow; 
 }
@@ -425,7 +425,7 @@ int VideoWriteLength::handle_event()
 
 
 VideoCaptureLength::VideoCaptureLength(PreferencesWindow *pwindow, char *text, int x, int y)
- : BC_TextBox(x, y, 100, 1, text)
+ : BC_TextBox(x, y, DP(100), 1, text)
 { 
 	this->pwindow = pwindow;
 }

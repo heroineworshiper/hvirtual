@@ -33,8 +33,8 @@ ConfirmQuitWindow::ConfirmQuitWindow(MWindow *mwindow)
  : BC_Window(PROGRAM_NAME ": Confirm Quit", 
  	mwindow->gui->get_abs_cursor_x(1), 
 	mwindow->gui->get_abs_cursor_y(1), 
-	375, 
-	160)
+	DP(375), 
+	DP(160))
 {
 	this->mwindow = mwindow;
 }
@@ -45,7 +45,7 @@ ConfirmQuitWindow::~ConfirmQuitWindow()
 
 void ConfirmQuitWindow::create_objects(char *string)
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	BC_Title *title;
 
 	lock_window("ConfirmQuitWindow::create_objects");
@@ -62,7 +62,7 @@ void ConfirmQuitWindow::create_objects(char *string)
 
 ConfirmQuitYesButton::ConfirmQuitYesButton(MWindow *mwindow, 
 	ConfirmQuitWindow *gui)
- : BC_GenericButton(10, 
+ : BC_GenericButton(DP(10), 
  	gui->get_h() - BC_GenericButton::calculate_h() - 10, 
 	_("Yes"))
 {
@@ -104,7 +104,7 @@ int ConfirmQuitNoButton::keypress_event()
 
 ConfirmQuitCancelButton::ConfirmQuitCancelButton(MWindow *mwindow, 
 	ConfirmQuitWindow *gui)
- : BC_GenericButton(gui->get_w() - BC_GenericButton::calculate_w(gui, _("Cancel")) - 10, 
+ : BC_GenericButton(gui->get_w() - BC_GenericButton::calculate_w(gui, _("Cancel")) - DP(10), 
  	gui->get_h() - BC_GenericButton::calculate_h() - 10, 
 	_("Cancel"))
 {

@@ -111,7 +111,7 @@ int BC_MenuBar::add_menu(BC_Menu* menu)
 		x = menu_titles.values[menu_titles.total - 1]->x + 
 			menu_titles.values[menu_titles.total - 1]->w;
 
-	w = get_text_width(MEDIUMFONT, menu->text) + 20;
+	w = get_text_width(MEDIUMFONT, menu->text) + DP(20);
 // get pointer
 	menu_titles.append(menu);
 // initialize and draw

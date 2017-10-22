@@ -43,8 +43,8 @@
 
 #include <string.h>
 
-#define WIDTH 512
-#define HEIGHT 512
+#define WIDTH DP(512)
+#define HEIGHT DP(512)
 #define MAX_SCALE 16
 
 

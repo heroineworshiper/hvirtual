@@ -281,10 +281,10 @@ AC3ConfigAudio::AC3ConfigAudio(BC_WindowBase *parent_window,
  : BC_Window(PROGRAM_NAME ": Audio Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	500,
-	BC_OKButton::calculate_h() + 100,
-	500,
-	BC_OKButton::calculate_h() + 100,
+	DP(500),
+	BC_OKButton::calculate_h() + DP(100),
+	DP(500),
+	BC_OKButton::calculate_h() + DP(100),
 	0,
 	0,
 	1)
@@ -295,8 +295,8 @@ AC3ConfigAudio::AC3ConfigAudio(BC_WindowBase *parent_window,
 
 void AC3ConfigAudio::create_objects()
 {
-	int x = 10, y = 10;
-	int x1 = 150;
+	int x = DP(10), y = DP(10);
+	int x1 = DP(150);
 	lock_window("AC3ConfigAudio::create_objects");
 	add_tool(new BC_Title(x, y, "Bitrate (kbps):"));
 	AC3ConfigAudioBitrate *bitrate;
@@ -327,7 +327,7 @@ AC3ConfigAudioBitrate::AC3ConfigAudioBitrate(AC3ConfigAudio *gui,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	150,
+	DP(150),
 	AC3ConfigAudioBitrate::bitrate_to_string(gui->string, gui->asset->ac3_bitrate))
 {
 	this->gui = gui;

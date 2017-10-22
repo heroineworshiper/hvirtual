@@ -1397,8 +1397,8 @@ MOVConfigAudio::MOVConfigAudio(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Audio Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	350,
-	250)
+	DP(350),
+	DP(250))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -1432,7 +1432,7 @@ void MOVConfigAudio::reset()
 
 void MOVConfigAudio::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("MOVConfigAudio::create_objects");
 
 	if(asset->format == FILE_MOV)
@@ -1454,7 +1454,7 @@ void MOVConfigAudio::create_objects()
 	}
 
 	add_tool(new BC_Title(x, y, _("Compression:")));
-	y += 25;
+	y += DP(25);
 	compression_popup = new MOVConfigAudioPopup(this, x, y);
 	compression_popup->create_objects();
 
@@ -1467,7 +1467,7 @@ void MOVConfigAudio::create_objects()
 
 void MOVConfigAudio::update_parameters()
 {
-	int x = 10, y = 70;
+	int x = DP(10), y = DP(70);
 	if(bits_title) delete bits_title;
 	if(bits_popup) delete bits_popup;
 	if(dither) delete dither;
@@ -1488,7 +1488,7 @@ void MOVConfigAudio::update_parameters()
 	{
 		add_subwindow(bits_title = new BC_Title(x, y, _("Bits per channel:")));
 		bits_popup = new BitsPopup(this, 
-			x + 150, 
+			x + DP(150), 
 			y, 
 			&asset->bits, 
 			0, 
@@ -1497,7 +1497,7 @@ void MOVConfigAudio::update_parameters()
 			0, 
 			0);
 		bits_popup->create_objects();
-		y += 40;
+		y += DP(40);
 		add_subwindow(dither = new BC_CheckBox(x, y, &asset->dither, _("Dither")));
 	}
 	else
@@ -1527,21 +1527,21 @@ void MOVConfigAudio::update_parameters()
 			x,
 			y,
 			&asset->vorbis_vbr));
-		y += 35;
+		y += DP(35);
 		vorbis_min_bitrate = new MOVConfigAudioNum(this, 
 			_("Min bitrate:"), 
 			x, 
 			y, 
 			&asset->vorbis_min_bitrate);
 		vorbis_min_bitrate->set_increment(1000);
-		y += 30;
+		y += DP(30);
 		vorbis_bitrate = new MOVConfigAudioNum(this, 
 			_("Avg bitrate:"), 
 			x, 
 			y, 
 			&asset->vorbis_bitrate);
 		vorbis_bitrate->set_increment(1000);
-		y += 30;
+		y += DP(30);
 		vorbis_max_bitrate = new MOVConfigAudioNum(this, 
 			_("Max bitrate:"), 
 			x, 
@@ -1566,7 +1566,7 @@ void MOVConfigAudio::update_parameters()
 		mp4a_bitrate->set_increment(64000);
 		mp4a_bitrate->create_objects();
 
-		y += 30;
+		y += DP(30);
 		mp4a_quantqual = new MOVConfigAudioNum(this, 
 			_("Quantization Quality (%):"), 
 			x, 
@@ -1613,9 +1613,9 @@ MOVConfigAudioNum::MOVConfigAudioNum(MOVConfigAudio *popup, char *title_text, in
 		(int64_t)*output,
 		(int64_t)-1,
 		(int64_t)25000000,
-		popup->get_w() - 150, 
+		popup->get_w() - DP(130), 
 		y, 
-		100)
+		DP(100))
 {
 	this->popup = popup;
 	this->title_text = title_text;
@@ -1654,8 +1654,8 @@ MOVConfigAudioPopup::MOVConfigAudioPopup(MOVConfigAudio *popup, int x, int y)
 		FileMOV::compressiontostr(popup->asset->acodec),
 		x, 
 		y, 
-		300,
-		300)
+		DP(300),
+		DP(300))
 {
 	this->popup = popup;
 }
@@ -1689,8 +1689,8 @@ MOVConfigVideo::MOVConfigVideo(BC_WindowBase *parent_window,
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	512,
-	512)
+	DP(512),
+	DP(512))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -1710,7 +1710,7 @@ MOVConfigVideo::~MOVConfigVideo()
 
 void MOVConfigVideo::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("MOVConfigVideo::create_objects");
 
 	if(asset->format == FILE_MOV)
@@ -1750,7 +1750,7 @@ void MOVConfigVideo::create_objects()
 	}
 
 	add_subwindow(new BC_Title(x, y, _("Compression:")));
-	y += 25;
+	y += DP(25);
 
 	if(!locked_compressor)
 	{
@@ -1766,7 +1766,7 @@ void MOVConfigVideo::create_objects()
 			RED,
 			0));
 	}
-	y += 40;
+	y += DP(40);
 
 	param_x = x;
 	param_y = y;
@@ -1870,11 +1870,11 @@ void MOVConfigVideo::update_parameters()
 			&asset->h264_bitrate);
 		h264_bitrate->set_increment(1000000);
 		h264_bitrate->create_objects();
-		add_subwindow(h264_fix_bitrate = new MOVConfigVideoFixBitrate(x + 260, 
+		add_subwindow(h264_fix_bitrate = new MOVConfigVideoFixBitrate(x + DP(280), 
 				y,
 				&asset->h264_fix_bitrate,
 				1));
-		y += 30;
+		y += DP(30);
 		h264_quantizer = new MOVConfigVideoNum(this, 
 			_("Quantization:"), 
 			x, 
@@ -1883,7 +1883,7 @@ void MOVConfigVideo::update_parameters()
 			51,
 			&asset->h264_quantizer);
 		h264_quantizer->create_objects();
-		add_subwindow(h264_fix_quant = new MOVConfigVideoFixQuant(x + 260, 
+		add_subwindow(h264_fix_quant = new MOVConfigVideoFixQuant(x + DP(280), 
 				y,
 				&asset->h264_fix_bitrate,
 				0));
@@ -1893,7 +1893,7 @@ void MOVConfigVideo::update_parameters()
 
 
 
-		y += h264_fix_quant->get_h() + 10;
+		y += h264_fix_quant->get_h() + DP(10);
 		add_subwindow(mov_sphere = new MOVConfigVideoCheckBox(_("Tag for spherical playback"), 
 			x, 
 			y, 
@@ -1913,11 +1913,11 @@ void MOVConfigVideo::update_parameters()
 			&asset->ms_bitrate);
 		ms_bitrate->set_increment(1000000);
 		ms_bitrate->create_objects();
-		add_subwindow(ms_fix_bitrate = new MOVConfigVideoFixBitrate(x + 260, 
+		add_subwindow(ms_fix_bitrate = new MOVConfigVideoFixBitrate(x + DP(280), 
 				y,
 				&asset->ms_fix_bitrate,
 				1));
-		y += 30;
+		y += DP(30);
 
 		ms_bitrate_tolerance = new MOVConfigVideoNum(this, 
 			_("Bitrate tolerance:"), 
@@ -1925,7 +1925,7 @@ void MOVConfigVideo::update_parameters()
 			y, 
 			&asset->ms_bitrate_tolerance);
 		ms_bitrate_tolerance->create_objects();
-		y += 30;
+		y += DP(30);
 
 
 
@@ -1935,7 +1935,7 @@ void MOVConfigVideo::update_parameters()
 			y, 
 			&asset->ms_quantization);
 		ms_quantization->create_objects();
-		add_subwindow(ms_fix_quant = new MOVConfigVideoFixQuant(x + 260, 
+		add_subwindow(ms_fix_quant = new MOVConfigVideoFixQuant(x + DP(280), 
 				y,
 				&asset->ms_fix_bitrate,
 				0));
@@ -1943,12 +1943,12 @@ void MOVConfigVideo::update_parameters()
 		ms_fix_quant->opposite = ms_fix_bitrate;
 
 
-		y += 30;
+		y += DP(30);
 		add_subwindow(ms_interlaced = new MOVConfigVideoCheckBox(_("Interlaced"), 
 			x, 
 			y, 
 			&asset->ms_interlaced));
-		y += 30;
+		y += DP(30);
 		ms_gop_size = new MOVConfigVideoNum(this, 
 			_("Keyframe interval:"), 
 			x, 
@@ -1971,11 +1971,11 @@ void MOVConfigVideo::update_parameters()
 		divx_bitrate->set_increment(1000000);
 		divx_bitrate->create_objects();
 		add_subwindow(divx_fix_bitrate = 
-			new MOVConfigVideoFixBitrate(x + 260, 
+			new MOVConfigVideoFixBitrate(x + DP(280), 
 				y,
 				&asset->divx_fix_bitrate,
 				1));
-		y += 30;
+		y += DP(30);
 		divx_quantizer = new MOVConfigVideoNum(this, 
 			_("Quantizer:"), 
 			x, 
@@ -1983,55 +1983,55 @@ void MOVConfigVideo::update_parameters()
 			&asset->divx_quantizer);
 		divx_quantizer->create_objects();
 		add_subwindow(divx_fix_quant =
-			new MOVConfigVideoFixQuant(x + 260, 
+			new MOVConfigVideoFixQuant(x + DP(280), 
 				y,
 				&asset->divx_fix_bitrate,
 				0));
 		divx_fix_quant->opposite = divx_fix_bitrate;
 		divx_fix_bitrate->opposite = divx_fix_quant;
-		y += 30;
+		y += DP(30);
 		divx_rc_period = new MOVConfigVideoNum(this, 
 			_("RC Period:"), 
 			x, 
 			y, 
 			&asset->divx_rc_period);
 		divx_rc_period->create_objects();
-		y += 30;
+		y += DP(30);
 		divx_rc_reaction_ratio = new MOVConfigVideoNum(this, 
 			_("Reaction Ratio:"), 
 			x, 
 			y, 
 			&asset->divx_rc_reaction_ratio);
 		divx_rc_reaction_ratio->create_objects();
-		y += 30;
+		y += DP(30);
 		divx_rc_reaction_period = new MOVConfigVideoNum(this, 
 			_("Reaction Period:"), 
 			x, 
 			y, 
 			&asset->divx_rc_reaction_period);
 		divx_rc_reaction_period->create_objects();
-		y += 30;
+		y += DP(30);
 		divx_max_key_interval = new MOVConfigVideoNum(this, 
 			_("Max Key Interval:"), 
 			x, 
 			y, 
 			&asset->divx_max_key_interval);
 		divx_max_key_interval->create_objects();
-		y += 30;
+		y += DP(30);
 		divx_max_quantizer = new MOVConfigVideoNum(this, 
 			_("Max Quantizer:"), 
 			x, 
 			y, 
 			&asset->divx_max_quantizer);
 		divx_max_quantizer->create_objects();
-		y += 30;
+		y += DP(30);
 		divx_min_quantizer = new MOVConfigVideoNum(this, 
 			_("Min Quantizer:"), 
 			x, 
 			y, 
 			&asset->divx_min_quantizer);
 		divx_min_quantizer->create_objects();
-		y += 30;
+		y += DP(30);
 		divx_quality = new MOVConfigVideoNum(this, 
 			_("Quality:"), 
 			x, 
@@ -2044,11 +2044,11 @@ void MOVConfigVideo::update_parameters()
 		!strcmp(vcodec, QUICKTIME_MJPA))
 	{
 		add_subwindow(jpeg_quality_title = new BC_Title(param_x, param_y, _("Quality:")));
-		add_subwindow(jpeg_quality = new BC_ISlider(param_x + 80, 
+		add_subwindow(jpeg_quality = new BC_ISlider(param_x + DP(80), 
 			param_y,
 			0,
-			200,
-			200,
+			DP(200),
+			DP(200),
 			0,
 			100,
 			asset->jpeg_quality,
@@ -2068,9 +2068,9 @@ MOVConfigVideoNum::MOVConfigVideoNum(MOVConfigVideo *popup, char *title_text, in
 		(int64_t)*output,
 		(int64_t)1,
 		(int64_t)25000000,
-		x + 130, 
+		x + DP(150), 
 		y, 
-		100)
+		DP(100))
 {
 	this->popup = popup;
 	this->title_text = title_text;
@@ -2090,9 +2090,9 @@ MOVConfigVideoNum::MOVConfigVideoNum(MOVConfigVideo *popup,
 		(int64_t)*output,
 		(int64_t)min,
 		(int64_t)max,
-		x + 130, 
+		x + DP(150), 
 		y, 
-		100)
+		DP(100))
 {
 	this->popup = popup;
 	this->title_text = title_text;
@@ -2196,8 +2196,8 @@ MOVConfigVideoPopup::MOVConfigVideoPopup(MOVConfigVideo *popup, int x, int y)
 		FileMOV::compressiontostr(popup->asset->vcodec),
 		x, 
 		y, 
-		300,
-		300)
+		DP(300),
+		DP(300))
 {
 	this->popup = popup;
 }

@@ -586,8 +586,8 @@ TIFFConfigVideo::TIFFConfigVideo(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	400,
-	200)
+	DP(400),
+	DP(200))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -599,17 +599,17 @@ TIFFConfigVideo::~TIFFConfigVideo()
 
 void TIFFConfigVideo::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	lock_window("TIFFConfigVideo::create_objects");
 	add_subwindow(new BC_Title(x, y, "Colorspace:"));
 	TIFFColorspace *menu1;
-	add_subwindow(menu1 = new TIFFColorspace(this, x + 150, y, 200));
+	add_subwindow(menu1 = new TIFFColorspace(this, x + DP(150), y, DP(200)));
 	menu1->create_objects();
-	y += 40;
+	y += DP(40);
 	add_subwindow(new BC_Title(x, y, "Compression:"));
 	TIFFCompression *menu2;
-	add_subwindow(menu2 = new TIFFCompression(this, x + 150, y, 200));
+	add_subwindow(menu2 = new TIFFCompression(this, x + DP(150), y, DP(200)));
 	menu2->create_objects();
 
 	add_subwindow(new BC_OKButton(this));

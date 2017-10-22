@@ -117,10 +117,10 @@ int ConfirmSave::test_files(MWindow *mwindow,
 ConfirmSaveWindow::ConfirmSaveWindow(MWindow *mwindow, 
 	ArrayList<BC_ListBoxItem*> *list)
  : BC_Window(PROGRAM_NAME ": File Exists", 
- 		mwindow->gui->get_abs_cursor_x(1) - 160, 
-		mwindow->gui->get_abs_cursor_y(1) - 120, 
-		320, 
-		320)
+ 		mwindow->gui->get_abs_cursor_x(1) - DP(160), 
+		mwindow->gui->get_abs_cursor_y(1) - DP(120), 
+		DP(320), 
+		DP(320))
 {
 	this->list = list;
 }
@@ -132,7 +132,7 @@ ConfirmSaveWindow::~ConfirmSaveWindow()
 
 void ConfirmSaveWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("ConfirmSaveWindow::create_objects");
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
@@ -140,16 +140,16 @@ void ConfirmSaveWindow::create_objects()
 	add_subwindow(title = new BC_Title(x, 
 		y, 
 		_("The following files exist.  Overwrite them?")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(listbox = new BC_ListBox(x, 
 		y, 
-		get_w() - x - 10,
-		get_h() - y - BC_OKButton::calculate_h() - 10,
+		get_w() - x - DP(10),
+		get_h() - y - BC_OKButton::calculate_h() - DP(10),
 		LISTBOX_TEXT,
 		list));
-	y = get_h() - 40;
+	y = get_h() - DP(40);
 	add_subwindow(new BC_OKButton(this));
-	x = get_w() - 100;
+	x = get_w() - DP(100);
 	add_subwindow(new BC_CancelButton(this));
 	show_window(1);
 	unlock_window();
@@ -157,13 +157,13 @@ void ConfirmSaveWindow::create_objects()
 
 int ConfirmSaveWindow::resize_event(int w, int h)
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	title->reposition_window(x, y);
-	y += 30;
+	y += DP(30);
 	listbox->reposition_window(x,
 		y,
-		w - x - 10,
-		h - y - 50);
+		w - x - DP(10),
+		h - y - DP(50));
 	return 1;
 }
 

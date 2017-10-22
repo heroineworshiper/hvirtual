@@ -354,8 +354,8 @@ JPEGConfigVideo::JPEGConfigVideo(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	400,
-	200)
+	DP(400),
+	DP(200))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -367,22 +367,22 @@ JPEGConfigVideo::~JPEGConfigVideo()
 
 void JPEGConfigVideo::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("JPEGConfigVideo::create_objects");
 	add_subwindow(new BC_Title(x, y, _("Quality:")));
 	BC_ISlider *slider;
-	add_subwindow(slider = new BC_ISlider(x + 80, 
+	add_subwindow(slider = new BC_ISlider(x + DP(80), 
 		y,
 		0,
-		200,
-		200,
+		DP(200),
+		DP(200),
 		0,
 		100,
 		asset->jpeg_quality,
 		0,
 		0,
 		&asset->jpeg_quality));
-	y += slider->get_h() + 10;
+	y += slider->get_h() + DP(10);
 	add_subwindow(new BC_CheckBox(x, 
 		y, 
 		&asset->jpeg_sphere, 

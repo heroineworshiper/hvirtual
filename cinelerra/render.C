@@ -1112,8 +1112,8 @@ void RenderThread::run()
 
 
 
-#define WIDTH 410
-#define HEIGHT 360
+#define WIDTH DP(410)
+#define HEIGHT DP(360)
 
 
 RenderWindow::RenderWindow(MWindow *mwindow, 
@@ -1154,7 +1154,8 @@ SET_TRACE
 
 void RenderWindow::create_objects()
 {
-	int x = 10, y = 5;
+	int margin = mwindow->theme->widget_border;
+	int x = DP(10), y = margin;
 	lock_window("RenderWindow::create_objects");
 	add_subwindow(new BC_Title(x, 
 		y, 
@@ -1162,7 +1163,7 @@ void RenderWindow::create_objects()
 				render->strategy == FILE_PER_LABEL_FARM) ? 
 			_("Select the first file to render to:") : 
 			_("Select a file to render to:"))));
-	y += 25;
+	y += DP(25);
 
 	format_tools = new FormatTools(mwindow,
 					this, 

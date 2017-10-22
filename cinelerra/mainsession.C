@@ -145,8 +145,8 @@ void MainSession::default_window_positions()
 	awindow_w = root_x + root_w - awindow_x - border_left - border_right;
 	awindow_h = mwindow_h;
 
-	ewindow_w = 640;
-	ewindow_h = 240;
+	ewindow_w = DP(640);
+	ewindow_h = DP(240);
 
 	channels_x = 0;
 	channels_y = 0;
@@ -154,12 +154,12 @@ void MainSession::default_window_positions()
 	picture_y = 0;
 	scope_x = 0;
 	scope_y = 0;
-	scope_w = 640;
-	scope_h = 320;
+	scope_w = DP(640);
+	scope_h = DP(320);
 	histogram_x = 0;
 	histogram_y = 0;
-	histogram_w = 320;
-	histogram_h = 480;
+	histogram_w = DP(320);
+	histogram_h = DP(480);
 	record_scope = 0;
 	use_hist = 1;
 	use_wave = 1;
@@ -168,11 +168,15 @@ void MainSession::default_window_positions()
 	use_wave_parade = 1;
 
 	if(mwindow->edl)
+	{
 		lwindow_w = MeterPanel::get_meters_width(mwindow->theme, 
 			mwindow->edl->session->audio_channels, 
 			1);
+	}
 	else
-		lwindow_w = 100;
+	{
+		lwindow_w = DP(100);
+	}
 
 	lwindow_y = 0;
 	lwindow_x = root_w - lwindow_w;
@@ -180,16 +184,16 @@ void MainSession::default_window_positions()
 
 	rwindow_x = 0;
 	rwindow_y = 0;
-	rwindow_h = 500;
-	rwindow_w = 650;
+	rwindow_h = DP(500);
+	rwindow_w = DP(650);
 
 	rmonitor_x = rwindow_x + rwindow_w + 10;
 	rmonitor_y = rwindow_y;
 	rmonitor_w = root_w - rmonitor_x;
 	rmonitor_h = rwindow_h;
 
-	batchrender_w = 540;
-	batchrender_h = 340;
+	batchrender_w = DP(540);
+	batchrender_h = DP(340);
 	batchrender_x = root_w / 2 - batchrender_w / 2;
 	batchrender_y = root_h / 2 - batchrender_h / 2;
 }
@@ -256,7 +260,7 @@ int MainSession::load_defaults(BC_Hash *defaults)
 //printf("MainSession::load_defaults 1\n");
 
 // Other windows
-	afolders_w = defaults->get("ABINS_W", 100);
+	afolders_w = defaults->get("ABINS_W", DP(100));
 	rwindow_x = defaults->get("RWINDOW_X", rwindow_x);
 	rwindow_y = defaults->get("RWINDOW_Y", rwindow_y);
 	rwindow_w = defaults->get("RWINDOW_W", rwindow_w);
@@ -280,19 +284,19 @@ int MainSession::load_defaults(BC_Hash *defaults)
 
 	cwindow_controls = defaults->get("CWINDOW_CONTROLS", cwindow_controls);
 
-	plugindialog_w = defaults->get("PLUGINDIALOG_W", 510);
-	plugindialog_h = defaults->get("PLUGINDIALOG_H", 415);
-	presetdialog_w = defaults->get("PRESETDIALOG_W", 510);
-	presetdialog_h = defaults->get("PRESETDIALOG_H", 415);
-	keyframedialog_w = defaults->get("KEYFRAMEDIALOG_W", 510);
-	keyframedialog_h = defaults->get("KEYFRAMEDIALOG_H", 415);
-	keyframedialog_column1 = defaults->get("KEYFRAMEDIALOG_COLUMN1", 150);
-	keyframedialog_column2 = defaults->get("KEYFRAMEDIALOG_COLUMN2", 100);
+	plugindialog_w = defaults->get("PLUGINDIALOG_W", DP(510));
+	plugindialog_h = defaults->get("PLUGINDIALOG_H", DP(415));
+	presetdialog_w = defaults->get("PRESETDIALOG_W", DP(510));
+	presetdialog_h = defaults->get("PRESETDIALOG_H", DP(415));
+	keyframedialog_w = defaults->get("KEYFRAMEDIALOG_W", DP(510));
+	keyframedialog_h = defaults->get("KEYFRAMEDIALOG_H", DP(415));
+	keyframedialog_column1 = defaults->get("KEYFRAMEDIALOG_COLUMN1", DP(150));
+	keyframedialog_column2 = defaults->get("KEYFRAMEDIALOG_COLUMN2", DP(100));
 	keyframedialog_all = defaults->get("KEYFRAMEDIALOG_ALL", 0);
-	menueffect_w = defaults->get("MENUEFFECT_W", 580);
-	menueffect_h = defaults->get("MENUEFFECT_H", 350);
-	transitiondialog_w = defaults->get("TRANSITIONDIALOG_W", 320);
-	transitiondialog_h = defaults->get("TRANSITIONDIALOG_H", 512);
+	menueffect_w = defaults->get("MENUEFFECT_W", DP(580));
+	menueffect_h = defaults->get("MENUEFFECT_H", DP(350));
+	transitiondialog_w = defaults->get("TRANSITIONDIALOG_W", DP(320));
+	transitiondialog_h = defaults->get("TRANSITIONDIALOG_H", DP(512));
 
 	current_tip = defaults->get("CURRENT_TIP", current_tip);
 	actual_frame_rate = defaults->get("ACTUAL_FRAME_RATE", (float)-1);

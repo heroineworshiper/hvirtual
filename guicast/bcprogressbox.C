@@ -115,8 +115,8 @@ BC_ProgressWindow::BC_ProgressWindow(int x, int y)
  : BC_Window("Progress", 
  	x, 
 	y, 
-	340, 
-	100 + get_resources()->ok_images[0]->get_h(), 
+	DP(340), 
+	DP(100) + get_resources()->ok_images[0]->get_h(), 
 	0, 
 	0, 
 	0)
@@ -129,14 +129,14 @@ BC_ProgressWindow::~BC_ProgressWindow()
 
 int BC_ProgressWindow::create_objects(const char *text, int64_t length)
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	lock_window("BC_ProgressWindow::create_objects");
 // Recalculate width based on text
 	if(text)
 	{
 		int text_w = get_text_width(MEDIUMFONT, text);
-		int new_w = text_w + x + 10;
+		int new_w = text_w + x + DP(10);
 
 		if(new_w > get_root_w()) new_w = get_root_w();
 		if(new_w > get_w())
@@ -147,8 +147,8 @@ int BC_ProgressWindow::create_objects(const char *text, int64_t length)
 
 	this->text = text;
 	add_tool(caption = new BC_Title(x, y, text));
-	y += caption->get_h() + 20;
-	add_tool(bar = new BC_ProgressBar(x, y, get_w() - 20, length));
+	y += caption->get_h() + DP(20);
+	add_tool(bar = new BC_ProgressBar(x, y, get_w() - DP(20), length));
 	add_tool(new BC_CancelButton(this));
 	show_window(1);
 	unlock_window();
