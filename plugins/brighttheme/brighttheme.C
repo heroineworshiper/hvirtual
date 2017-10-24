@@ -117,7 +117,7 @@ void BrightTheme::initialize()
 	resources->menu_title_text = 0x000000;
 	resources->popup_title_text = 0x000000;
 	resources->menu_item_text = 0x000000;
-	resources->generic_button_margin = DP(20);
+	resources->generic_button_margin = DP(5);
 	resources->pot_needle_color = resources->text_default;
 	resources->pot_offset = 1;
 	resources->progress_text = resources->text_default;
@@ -131,7 +131,7 @@ void BrightTheme::initialize()
 	resources->menu_down = 0xc0c0c0;
 	resources->menu_up = 0xffffff;
 	resources->menu_shadow = 0x000000;
-	resources->popupmenu_margin = DP(10);
+	resources->popupmenu_margin = DP(5);
 	resources->popupmenu_triangle_margin = DP(15);
 
 	resources->listbox_title_color = 0x000000;

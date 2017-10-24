@@ -158,8 +158,8 @@ SphereCamSlider::SphereCamSlider(SphereCamMain *client,
  : BC_FSlider(x, 
  	y, 
 	0, 
-	gui->get_w() / 2 - client->get_theme()->widget_border * 3 - 100, 
-	gui->get_w() / 2 - client->get_theme()->widget_border * 3 - 100, 
+	gui->get_w() / 2 - client->get_theme()->widget_border * 3 - DP(100), 
+	gui->get_w() / 2 - client->get_theme()->widget_border * 3 - DP(100), 
 	min, 
 	max, 
 	*output)
@@ -190,7 +190,7 @@ SphereCamText::SphereCamText(SphereCamMain *client,
 	float *output, 
 	int x, 
 	int y)
- : BC_TextBox(x, y, 100, 1, *output)
+ : BC_TextBox(x, y, DP(100), 1, *output)
 {
 	this->gui = gui;
 	this->client = client;
@@ -331,10 +331,10 @@ const char* SphereCamMode::to_text(int mode)
 
 SphereCamGUI::SphereCamGUI(SphereCamMain *client)
  : PluginClientWindow(client,
-	640, 
-	600, 
-	640, 
-	600, 
+	DP(640), 
+	DP(600), 
+	DP(640), 
+	DP(600), 
 	0)
 {
 	this->client = client;

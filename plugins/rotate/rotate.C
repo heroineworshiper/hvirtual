@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -370,7 +370,7 @@ RotateText::RotateText(RotateWindow *window,
 	int y)
  : BC_TextBox(x, 
  	y, 
-	100,
+	DP(100),
 	1,
 	(float)plugin->config.angle)
 {
@@ -439,27 +439,27 @@ int RotateY::handle_event()
 
 RotateWindow::RotateWindow(RotateEffect *plugin)
  : PluginClientWindow(plugin,
-	250, 
-	230, 
-	250, 
-	230, 
+	DP(250), 
+	DP(230), 
+	DP(250), 
+	DP(230), 
 	0)
 {
 	this->plugin = plugin;
 }
 
-#define RADIUS 30
+#define RADIUS DP(30)
 
 void RotateWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	BC_Title *title;
 
 
 
 	add_tool(new BC_Title(x, y, _("Rotate")));
-	x += 50;
-	y += 20;
+	x += DP(50);
+	y += DP(20);
 	add_tool(toggle0 = new RotateToggle(this, 
 		plugin, 
 		plugin->config.angle == 0, 
@@ -494,28 +494,27 @@ void RotateWindow::create_objects()
 		y, 
 		270, 
 		"270"));
-//	add_subwindow(bilinear = new RotateInterpolate(plugin, 10, y + 60));
-	x += 120;
-	y -= 50;
+	x += DP(120);
+	y -= DP(50);
 	add_tool(fine = new RotateFine(this, plugin, x, y));
-	y += fine->get_h() + 10;
+	y += fine->get_h() + DP(10);
 	add_tool(text = new RotateText(this, plugin, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(new BC_Title(x, y, _("Degrees")));
 	
 
 
 
 
-	y += text->get_h() + 10;
+	y += text->get_h() + DP(10);
 	add_subwindow(title = new BC_Title(x, y, _("Pivot (x,y):")));
-	y += title->get_h() + 10;
+	y += title->get_h() + DP(10);
 	add_subwindow(this->x = new RotateX(this, plugin, x, y));
-	x += this->x->get_w() + 10;
+	x += this->x->get_w() + DP(10);
 	add_subwindow(this->y = new RotateY(this, plugin, x, y));
 
-	x = 10;
-	y += this->y->get_h() + 10;
+	x = DP(10);
+	y += this->y->get_h() + DP(10);
 	add_subwindow(draw_pivot = new RotateDrawPivot(this, plugin, x, y));
 
 	show_window();
