@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,8 +60,8 @@ TitleWindow::TitleWindow(TitleMain *client)
  : PluginClientWindow(client,
 	client->config.window_w, 
 	client->config.window_h, 
-	100, 
-	100, 
+	DP(100), 
+	DP(100), 
 	1)
 {
 //printf("TitleWindow::TitleWindow %d %d %d\n", __LINE__, client->config.window_w, client->config.window_h);
@@ -140,8 +140,8 @@ void TitleWindow::create_objects()
 	int top_margin = client->get_theme()->window_border;
 	int x = left_margin, y = top_margin;
 	char string[BCTEXTLEN];
-#define COLOR_W 50
-#define COLOR_H 30
+#define COLOR_W DP(50)
+#define COLOR_H DP(30)
 	client->build_fonts();
 	client->build_previews(this);
 
@@ -287,71 +287,71 @@ void TitleWindow::create_objects()
 	x += size_tumbler->get_w() + margin;
 
 	add_tool(style_title = new BC_Title(x, y, _("Style:")));
-	add_tool(italic = new TitleItalic(client, this, x, y + 20));
-	add_tool(bold = new TitleBold(client, this, x, y + 50));
+	add_tool(italic = new TitleItalic(client, this, x, y + DP(20)));
+	add_tool(bold = new TitleBold(client, this, x, y + DP(50)));
 #ifdef USE_OUTLINE
-	add_tool(stroke = new TitleStroke(client, this, x, y + 80));
+	add_tool(stroke = new TitleStroke(client, this, x, y + DP(80)));
 #endif
-	x += 90;
+	x += DP(90);
 	add_tool(justify_title = new BC_Title(x, y, _("Justify:")));
-	add_tool(left = new TitleLeft(client, this, x, y + 20));
-	add_tool(center = new TitleCenter(client, this, x, y + 50));
-	add_tool(right = new TitleRight(client, this, x, y + 80));
+	add_tool(left = new TitleLeft(client, this, x, y + DP(20)));
+	add_tool(center = new TitleCenter(client, this, x, y + DP(50)));
+	add_tool(right = new TitleRight(client, this, x, y + DP(80)));
 
-	x += 80;
-	add_tool(top = new TitleTop(client, this, x, y + 20));
-	add_tool(mid = new TitleMid(client, this, x, y + 50));
-	add_tool(bottom= new TitleBottom(client, this, x, y + 80));
+	x += DP(80);
+	add_tool(top = new TitleTop(client, this, x, y + DP(20)));
+	add_tool(mid = new TitleMid(client, this, x, y + DP(50)));
+	add_tool(bottom= new TitleBottom(client, this, x, y + DP(80)));
 	
 
 
-	y += 50;
+	y += DP(50);
 	x = left_margin;
 
 	add_tool(x_title = new BC_Title(x, y, _("X:")));
-	title_x = new TitleX(client, this, x, y + 20);
+	title_x = new TitleX(client, this, x, y + DP(20));
 	title_x->create_objects();
-	x += 90;
+	x += DP(90);
 
 	add_tool(y_title = new BC_Title(x, y, _("Y:")));
-	title_y = new TitleY(client, this, x, y + 20);
+	title_y = new TitleY(client, this, x, y + DP(20));
 	title_y->create_objects();
-	x += 90;
+	x += DP(90);
 
 	add_tool(motion_title = new BC_Title(x, y, _("Motion type:")));
 
-	motion = new TitleMotion(client, this, x, y + 20);
+	motion = new TitleMotion(client, this, x, y + DP(20));
 	motion->create_objects();
-	x += 150;
+	x += DP(150);
 	
-	add_tool(loop = new TitleLoop(client, x, y + 20));
-	x += 100;
+	add_tool(loop = new TitleLoop(client, x, y + DP(20)));
+	x += DP(100);
 	
 	x = left_margin;
-	y += 50;
+	y += DP(50);
 
 	add_tool(dropshadow_title = new BC_Title(x, y, _("Drop shadow:")));
-	dropshadow = new TitleDropShadow(client, this, x, y + 20);
+	dropshadow = new TitleDropShadow(client, this, x, y + DP(20));
 	dropshadow->create_objects();
-	x += 100;
+	x += dropshadow_title->get_w() + margin;
 
 	add_tool(fadein_title = new BC_Title(x, y, _("Fade in (sec):")));
-	add_tool(fade_in = new TitleFade(client, this, &client->config.fade_in, x, y + 20));
-	x += 100;
+	add_tool(fade_in = new TitleFade(client, this, &client->config.fade_in, x, y + DP(20)));
+	x += fadein_title->get_w() + margin;
 
 	add_tool(fadeout_title = new BC_Title(x, y, _("Fade out (sec):")));
-	add_tool(fade_out = new TitleFade(client, this, &client->config.fade_out, x, y + 20));
-	x += 110;
+	add_tool(fade_out = new TitleFade(client, this, &client->config.fade_out, x, y + DP(20)));
+	x += fadeout_title->get_w() + margin;
 
 	add_tool(speed_title = new BC_Title(x, y, _("Speed:")));
-	speed = new TitleSpeed(client, this, x, y + 20);
+	speed = new TitleSpeed(client, this, x, y + DP(20));
 	speed->create_objects();
-	x += 110;
+	x += speed->get_w() + margin;
 
 	color_x = x;
-	color_y = y + 20;
+	color_y = y + DP(10);
 	x += COLOR_W + margin;
-	add_tool(color_button = new TitleColorButton(client, this, x, y + 20, 0));
+	add_tool(color_button = new TitleColorButton(client, this, x, y + DP(20), 0));
 	x += color_button->get_w();
 	color_thread = new TitleColorThread(client, this, 0);
 
@@ -359,9 +359,9 @@ void TitleWindow::create_objects()
 	y += COLOR_H + margin;
 
 	outline_color_x = x;
-	outline_color_y = y + 20;
-	x += COLOR_W + 5;
-	add_tool(outline_color_button = new TitleColorButton(client, this, x, y + 20, 1));
+	outline_color_y = y + DP(10);
+	x += COLOR_W + DP(5);
+	add_tool(outline_color_button = new TitleColorButton(client, this, x, y + DP(20), 1));
 	x += outline_color_button->get_w();
 	outline_color_thread = new TitleColorThread(client, this, 1);
 
@@ -375,16 +375,16 @@ void TitleWindow::create_objects()
 	x += outline->get_w() + margin;
 
 #ifndef X_HAVE_UTF8_STRING
-	add_tool(encoding_title = new BC_Title(x, y + 3, _("Encoding:")));
+	add_tool(encoding_title = new BC_Title(x, y + DP(3), _("Encoding:")));
 	encoding = new TitleEncoding(client, this, x, y + encoding_title->get_h() + margin);
 	encoding->create_objects();
-	x += 100;
+	x += DP(100);
 #endif
 
 	x = left_margin;
 	y += outline_title->get_h() + margin + outline->get_h() + margin;
 	add_tool(timecode = new TitleTimecode(client, x, y));
-	x = timecode->get_w() + margin;
+	x += timecode->get_w() + margin;
 	add_tool(timecode_format = new TitleTimecodeFormat(
 		client, 
 		x, 
@@ -417,7 +417,7 @@ void TitleWindow::create_objects()
 
 	x = left_margin;
 	y += subtitle_browse->get_h() + margin;
-	add_tool(text_title = new BC_Title(x, y + 3, _("Text:")));
+	add_tool(text_title = new BC_Title(x, y + DP(3), _("Text:")));
 
 	x = left_margin;
 	y += text_title->get_h() + margin;
@@ -509,6 +509,7 @@ int TitleWindow::resize_event(int w, int h)
 	speed->reposition_window(speed->get_x(), speed->get_y());
 	update_color();
 	flash();
+	client->send_configure_change();
 
 	return 1;
 }
@@ -529,7 +530,6 @@ void TitleWindow::previous_font()
 
 	font->update(fonts.values[current_font]->get_text());
 	strcpy(client->config.font, fonts.values[current_font]->get_text());
-	client->send_configure_change();
 }
 
 void  TitleWindow::next_font()
@@ -626,7 +626,7 @@ void TitleWindow::update()
 
 
 TitleSubsText::TitleSubsText(TitleWindow *window, int x, int y)
- : BC_TextBox(x, y, 300, 1, window->client->config.subs_path.c_str())
+ : BC_TextBox(x, y, DP(300), 1, window->client->config.subs_path.c_str())
 {
 	this->window = window;
 }
@@ -782,8 +782,8 @@ TitleSize::TitleSize(TitleMain *client, TitleWindow *window, int x, int y, char 
 		text,
 		x, 
 		y, 
-		100,
-		300)
+		DP(100),
+		DP(300))
 {
 	this->client = client;
 	this->window = window;
@@ -810,8 +810,8 @@ TitleEncoding::TitleEncoding(TitleMain *client, TitleWindow *window, int x, int 
 		client->config.encoding,
 		x, 
 		y, 
-		100,
-		300)
+		DP(100),
+		DP(300))
 {
 	this->client = client;
 	this->window = window;
@@ -855,8 +855,8 @@ TitleMotion::TitleMotion(TitleMain *client, TitleWindow *window, int x, int y)
 		client->motion_to_text(client->config.motion_strategy),
 		x, 
 		y, 
-		120,
-		100)
+		DP(120),
+		DP(100))
 {
 	this->client = client;
 	this->window = window;
@@ -895,7 +895,7 @@ int TitleTimecode::handle_event()
 TitleTimecodeFormat::TitleTimecodeFormat(TitleMain *client, int x, int y, const char *text)
  : BC_PopupMenu(x, 
  	y, 
-	300, 
+	DP(300), 
 	text,
 	1)
 {
@@ -918,7 +918,7 @@ TitleFade::TitleFade(TitleMain *client,
 	double *value, 
 	int x, 
 	int y)
- : BC_TextBox(x, y, 90, 1, (float)*value)
+ : BC_TextBox(x, y, DP(90), 1, (float)*value)
 {
 	this->client = client;
 	this->window = window;
@@ -938,8 +938,8 @@ TitleFont::TitleFont(TitleMain *client, TitleWindow *window, int x, int y)
 		client->config.font,
 		x, 
 		y, 
-		200,
-		500,
+		DP(200),
+		DP(500),
 		LISTBOX_ICON_LIST)
 {
 	this->client = client;
@@ -985,7 +985,7 @@ TitleDropShadow::TitleDropShadow(TitleMain *client, TitleWindow *window, int x, 
 	(int64_t)1000,
 	x, 
 	y, 
-	70)
+	DP(70))
 {
 	this->client = client;
 	this->window = window;
@@ -1005,7 +1005,7 @@ TitleOutline::TitleOutline(TitleMain *client, TitleWindow *window, int x, int y)
 	(int64_t)1000,
 	x, 
 	y, 
-	70)
+	DP(70))
 {
 	this->client = client;
 	this->window = window;
@@ -1025,7 +1025,7 @@ TitleX::TitleX(TitleMain *client, TitleWindow *window, int x, int y)
 	(int64_t)2048,
 	x, 
 	y, 
-	60)
+	DP(60))
 {
 	this->client = client;
 	this->window = window;
@@ -1044,7 +1044,7 @@ TitleY::TitleY(TitleMain *client, TitleWindow *window, int x, int y)
 	(int64_t)2048,
 	x, 
 	y, 
-	60)
+	DP(60))
 {
 	this->client = client;
 	this->window = window;
@@ -1063,7 +1063,7 @@ TitleSpeed::TitleSpeed(TitleMain *client, TitleWindow *window, int x, int y)
 	(float)1000,
 	x, 
 	y, 
-	70)
+	DP(70))
 {
 	this->client = client;
 }

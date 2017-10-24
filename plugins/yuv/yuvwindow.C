@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,19 +20,25 @@
  */
 
 #include "yuvwindow.h"
-
-#include <libintl.h>
-#define _(String) gettext(String)
-#define gettext_noop(String) String
-#define N_(String) gettext_noop (String)
+#include "language.h"
 
 
 
 
 
 YUVWindow::YUVWindow(YUVMain *client)
- : BC_Window("", MEGREY, client->gui_string, 210, 170, 200, 170, 0, !client->show_initially)
-{ this->client = client; }
+ : BC_Window("", 
+ 	MEGREY, 
+	client->gui_string, 
+	DP(210), 
+	DP(170), 
+	DP(200), 
+	DP(170), 
+	0, 
+	!client->show_initially)
+{ 
+	this->client = client; 
+}
 
 YUVWindow::~YUVWindow()
 {
@@ -46,20 +52,20 @@ YUVWindow::~YUVWindow()
 
 int YUVWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_tool(new BC_Title(x, y, _("Y:")));
-	add_tool(automation[0] = new AutomatedFn(client, this, x + 80, y, 0));
-	y += 20;
+	add_tool(automation[0] = new AutomatedFn(client, this, x + DP(80), y, 0));
+	y += DP(20);
 	add_tool(y_slider = new YSlider(client, x, y));
-	y += 35;
+	y += DP(35);
 	add_tool(new BC_Title(x, y, _("U:")));
-	add_tool(automation[1] = new AutomatedFn(client, this, x + 80, y, 1));
-	y += 20;
+	add_tool(automation[1] = new AutomatedFn(client, this, x + DP(80), y, 1));
+	y += DP(20);
 	add_tool(u_slider = new USlider(client, x, y));
-	y += 35;
+	y += DP(35);
 	add_tool(new BC_Title(x, y, _("V:")));
-	add_tool(automation[2] = new AutomatedFn(client, this, x + 80, y, 2));
-	y += 20;
+	add_tool(automation[2] = new AutomatedFn(client, this, x + DP(80), y, 2));
+	y += DP(20);
 	add_tool(v_slider = new VSlider(client, x, y));
 }
 
@@ -71,7 +77,17 @@ int YUVWindow::close_event()
 }
 
 YSlider::YSlider(YUVMain *client, int x, int y)
- : BC_ISlider(x, y, 190, 30, 200, client->y, -MAXVALUE, MAXVALUE, DKGREY, BLACK, 1)
+ : BC_ISlider(x, 
+ 	y, 
+	DP(190), 
+	DP(30), 
+	DP(200), 
+	client->y, 
+	-MAXVALUE, 
+	MAXVALUE, 
+	DKGREY, 
+	BLACK, 
+	1)
 {
 	this->client = client;
 }
@@ -85,7 +101,17 @@ int YSlider::handle_event()
 }
 
 USlider::USlider(YUVMain *client, int x, int y)
- : BC_ISlider(x, y, 190, 30, 200, client->u, -MAXVALUE, MAXVALUE, DKGREY, BLACK, 1)
+ : BC_ISlider(x, 
+ 	y, 
+	DP(190), 
+	DP(30), 
+	DP(200), 
+	client->u, 
+	-MAXVALUE,
+	MAXVALUE, 
+	DKGREY, 
+	BLACK, 
+	1)
 {
 	this->client = client;
 }
@@ -99,7 +125,17 @@ int USlider::handle_event()
 }
 
 VSlider::VSlider(YUVMain *client, int x, int y)
- : BC_ISlider(x, y, 190, 30, 200, client->v, -MAXVALUE, MAXVALUE, DKGREY, BLACK, 1)
+ : BC_ISlider(x, 
+ 	y, 
+	DP(190), 
+	DP(30), 
+	DP(200), 
+	client->v, 
+	-MAXVALUE, 
+	MAXVALUE, 
+	DKGREY, 
+	BLACK, 
+	1)
 {
 	this->client = client;
 }
@@ -113,7 +149,12 @@ int VSlider::handle_event()
 }
 
 AutomatedFn::AutomatedFn(YUVMain *client, YUVWindow *window, int x, int y, int number)
- : BC_CheckBox(x, y, 16, 16, client->automated_function == number, _("Automate"))
+ : BC_CheckBox(x, 
+ 	y, 
+	16, 
+	16, 
+	client->automated_function == number, 
+	_("Automate"))
 {
 	this->client = client;
 	this->window = window;

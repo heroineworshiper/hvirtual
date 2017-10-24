@@ -313,8 +313,8 @@ WaveAmplitude::WaveAmplitude(WaveEffect *plugin, int x, int y)
  : BC_FSlider(x, 
 			y,
 			0,
-			200, 
-			200, 
+			DP(200), 
+			DP(200), 
 			(float)0, 
 			(float)100, 
 			plugin->config.amplitude)
@@ -334,8 +334,8 @@ WavePhase::WavePhase(WaveEffect *plugin, int x, int y)
  : BC_FSlider(x, 
 			y,
 			0,
-			200, 
-			200, 
+			DP(200), 
+			DP(200), 
 			(float)0, 
 			(float)360, 
 			plugin->config.phase)
@@ -353,8 +353,8 @@ WaveLength::WaveLength(WaveEffect *plugin, int x, int y)
  : BC_FSlider(x, 
 			y,
 			0,
-			200, 
-			200, 
+			DP(200), 
+			DP(200), 
 			(float)0, 
 			(float)50, 
 			plugin->config.wavelength)
@@ -378,10 +378,10 @@ int WaveLength::handle_event()
 
 WaveWindow::WaveWindow(WaveEffect *plugin)
  : PluginClientWindow(plugin, 
-	320, 
-	150, 
-	320, 
-	150, 
+	DP(330), 
+	DP(150), 
+	DP(330), 
+	DP(150), 
 	0)
 {
 	this->plugin = plugin;
@@ -393,7 +393,7 @@ WaveWindow::~WaveWindow()
 
 void WaveWindow::create_objects()
 {
-	int x = 10, y = 10, x1 = 100;
+	int x = DP(10), y = DP(10), x1 = DP(120);
 
 //	add_subwindow(new BC_Title(x, y, _("Mode:")));
 //	add_subwindow(smear = new WaveSmear(plugin, this, x1, y));
@@ -402,12 +402,14 @@ void WaveWindow::create_objects()
 //	y += 30;
 //	add_subwindow(reflective = new WaveReflective(plugin, x1, y));
 //	y += 30;
+
+
 	add_subwindow(new BC_Title(x, y, _("Amplitude:")));
 	add_subwindow(amplitude = new WaveAmplitude(plugin, x1, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Phase:")));
 	add_subwindow(phase = new WavePhase(plugin, x1, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Wavelength:")));
 	add_subwindow(wavelength = new WaveLength(plugin, x1, y));
 

@@ -439,9 +439,9 @@ int RotateY::handle_event()
 
 RotateWindow::RotateWindow(RotateEffect *plugin)
  : PluginClientWindow(plugin,
-	DP(250), 
+	DP(260), 
 	DP(230), 
-	DP(250), 
+	DP(260), 
 	DP(230), 
 	0)
 {

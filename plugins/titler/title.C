@@ -91,8 +91,8 @@ TitleConfig::TitleConfig()
 	timecode = 0;
 	timecode_format = TIME_HMS;
 	outline_size = 0;
-	window_w = 640;
-	window_h = 480;
+	window_w = DP(640);
+	window_h = DP(480);
 	ucs4text = 0;
 	tlen = 0;
 	next_keyframe_position = 0;
@@ -210,8 +210,8 @@ void TitleConfig::interpolate(TitleConfig &prev,
 
 void TitleConfig::limits()
 {
-	if(window_w < 100) window_w = 100;
-	if(window_h < 100) window_h = 100;
+	if(window_w < DP(100)) window_w = DP(100);
+	if(window_h < DP(100)) window_h = DP(100);
 }
 
 
@@ -3205,7 +3205,9 @@ int TitleMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 		string prev_text;
 		prev_text.assign(config.text);
 
-		if(current_subtitle < subtitle_db.size())
+//printf("%d %d\n", current_subtitle, subtitle_db.size());
+		if(current_subtitle >= 0 &&
+			current_subtitle < subtitle_db.size())
 		{
 // don't hide it after the end_time, because they're always too short
 			while(current_subtitle < subtitle_db.size() &&
@@ -3241,7 +3243,7 @@ int TitleMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 		{
 			config.text.assign("");
 		}
-		
+
 		if(prev_text.compare(config.text))
 		{
 			need_reconfigure = 1;

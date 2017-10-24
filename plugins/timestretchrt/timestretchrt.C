@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,10 +93,10 @@ void TimeStretchRTConfig::boundaries()
 
 TimeStretchRTWindow::TimeStretchRTWindow(TimeStretchRT *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	200, 
-	200, 
-	200, 
+	DP(210), 
+	DP(200), 
+	DP(200), 
+	DP(200), 
 	0)
 {
 	this->plugin = plugin;
@@ -108,7 +108,7 @@ TimeStretchRTWindow::~TimeStretchRTWindow()
 
 void TimeStretchRTWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	int margin = plugin->get_theme()->widget_border;
 
 	BC_Title *title = 0;
