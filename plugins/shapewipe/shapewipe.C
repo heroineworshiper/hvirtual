@@ -186,10 +186,10 @@ int ShapeWipeShape::handle_event()
 
 ShapeWipeWindow::ShapeWipeWindow(ShapeWipeMain *plugin)
  : PluginClientWindow(plugin, 
-	450, 
-	125, 
-	450,
-	125,
+	DP(450), 
+	DP(125), 
+	DP(450),
+	DP(125),
 	0)
 {
 	this->plugin = plugin;
@@ -252,8 +252,8 @@ void ShapeWipeWindow::create_objects()
 		this, 
 		x, 
 		y, 
-		150,
-		200);
+		DP(150) ,
+		DP(200));
 	shape_text->create_objects();
 	x += shape_text->get_w() + widget_border;
 	add_subwindow(new ShapeWipeTumble(plugin, 

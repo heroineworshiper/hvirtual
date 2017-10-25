@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -210,12 +210,12 @@ BC_Window* AssetEdit::new_gui()
 
 AssetEditWindow::AssetEditWindow(MWindow *mwindow, AssetEdit *asset_edit)
  : BC_Window(PROGRAM_NAME ": Asset Info", 
- 	mwindow->gui->get_abs_cursor_x(1) - 400 / 2, 
-	mwindow->gui->get_abs_cursor_y(1) - 500 / 2, 
-	400, 
-	510,
-	400,
-	510,
+ 	mwindow->gui->get_abs_cursor_x(1) - DP(400) / 2, 
+	mwindow->gui->get_abs_cursor_y(1) - DP(500) / 2, 
+	DP(400), 
+	DP(510),
+	DP(400),
+	DP(510),
 	0,
 	0,
 	1)
@@ -246,10 +246,10 @@ AssetEditWindow::~AssetEditWindow()
 
 void AssetEditWindow::create_objects()
 {
-	int y = 10, x = 10, x1 = 10, x2 = 150;
+	int y = DP(10), x = DP(10), x1 = DP(10), x2 = DP(150);
 	char string[BCTEXTLEN];
 	int vmargin;
-	int hmargin1 = 180, hmargin2 = 290;
+	int hmargin1 = DP(180), hmargin2 = DP(290);
 	FileSystem fs;
 	BC_Title *title;
 	Asset *asset = 0;
@@ -268,9 +268,9 @@ void AssetEditWindow::create_objects()
 
 	lock_window("AssetEditWindow::create_objects");
 	if(allow_edits) 
-		vmargin = 30;
+		vmargin = DP(30);
 	else
-		vmargin = 20;
+		vmargin = DP(20);
 
 	add_subwindow(path_text = new AssetEditPathText(this, y));
 	add_subwindow(path_button = new AssetEditPath(mwindow, 
@@ -279,7 +279,7 @@ void AssetEditWindow::create_objects()
 		y, 
 		asset_edit->indexable->path, 
 		PROGRAM_NAME ": Asset path", _("Select a file for this asset:")));
-	y += 30;
+	y += DP(30);
 
 	if(asset)
 	{
@@ -290,7 +290,7 @@ void AssetEditWindow::create_objects()
 			MEDIUMFONT, 
 			mwindow->theme->assetedit_color));
 		x = x1;
-		y += 20;
+		y += DP(20);
 
 		int64_t bytes = 1;
 		if(asset->format == FILE_MPEG &&
@@ -309,7 +309,7 @@ void AssetEditWindow::create_objects()
 	
 
 		add_subwindow(new BC_Title(x2, y, string, MEDIUMFONT, mwindow->theme->assetedit_color));
-		y += 20;
+		y += DP(20);
 		x = x1;
 
 		double length;
@@ -328,18 +328,18 @@ void AssetEditWindow::create_objects()
 		Units::punctuate(string);
 		add_subwindow(new BC_Title(x2, y, string, MEDIUMFONT, mwindow->theme->assetedit_color));
 
-		y += 30;
+		y += DP(30);
 		x = x1;
 	}
 
 	if((asset && asset->audio_data) || nested_edl)
 	{
 		add_subwindow(new BC_Bar(x, y, get_w() - x * 2));
-		y += 5;
+		y += DP(5);
 
 		add_subwindow(new BC_Title(x, y, _("Audio:"), LARGEFONT, RED));
 
-		y += 30;
+		y += DP(30);
 
 		if(asset)
 		{
@@ -373,7 +373,7 @@ void AssetEditWindow::create_objects()
 		else
 		{
 			add_subwindow(new BC_Title(x, y, string, MEDIUMFONT, mwindow->theme->assetedit_color));
-			y += 20;
+			y += DP(20);
 		}
 
 		x = x1;
@@ -393,7 +393,7 @@ void AssetEditWindow::create_objects()
 			add_subwindow(new BC_Title(x, y, string, MEDIUMFONT, mwindow->theme->assetedit_color));
 		}
 
-		y += 30;
+		y += DP(30);
 		x = x1;
 
 		if(asset)
@@ -441,7 +441,7 @@ void AssetEditWindow::create_objects()
 					asset->byte_order, 
 					x, 
 					y));
-				x += 70;
+				x += DP(70);
 				add_subwindow(hilo = new AssetEditByteOrderHILO(this, 
 					!asset->byte_order, 
 					x, 
@@ -473,7 +473,7 @@ void AssetEditWindow::create_objects()
 					add_subwindow(new BC_Title(x, y, _("Values are signed")));
 			}
 
-			y += 30;
+			y += DP(30);
 		}
 	}
 
@@ -481,10 +481,10 @@ void AssetEditWindow::create_objects()
 	if(asset && asset->video_data || nested_edl)
 	{
 		add_subwindow(new BC_Bar(x, y, get_w() - x * 2));
-		y += 5;
+		y += DP(5);
 
 		add_subwindow(new BC_Title(x, y, _("Video:"), LARGEFONT, RED));
-		y += 30;
+		y += DP(30);
 		x = x1;
 
 
@@ -510,7 +510,7 @@ void AssetEditWindow::create_objects()
 		{
 			BC_TextBox *framerate;
 			add_subwindow(framerate = new AssetEditFRate(this, string, x, y));
-			x += 105;
+			x += DP(105);
 			add_subwindow(new FrameRatePulldown(mwindow, framerate, x, y));
 		}
 		else
@@ -518,7 +518,7 @@ void AssetEditWindow::create_objects()
 			add_subwindow(new BC_Title(x, y, string, MEDIUMFONT, mwindow->theme->assetedit_color));
 		}
 
-		y += 30;
+		y += DP(30);
 		x = x1;
 		add_subwindow(new BC_Title(x, y, _("Width:")));
 		x = x2;
@@ -531,7 +531,7 @@ void AssetEditWindow::create_objects()
 		x = x2;
 		sprintf(string, "%d", asset_edit->changed_params->height);
 		add_subwindow(title = new BC_Title(x, y, string, MEDIUMFONT, mwindow->theme->assetedit_color));
-		y += title->get_h() + 5;
+		y += title->get_h() + DP(5);
 
 		if(asset && asset->format == FILE_MPEG)
 		{
@@ -540,7 +540,7 @@ void AssetEditWindow::create_objects()
 			x = x2;
 			sprintf(string, "%d", subtitle_tracks);
 			add_subwindow(title = new BC_Title(x, y, string, MEDIUMFONT, mwindow->theme->assetedit_color));
-			y += title->get_h() + 5;
+			y += title->get_h() + DP(5);
 		}
 	}
 
@@ -560,7 +560,7 @@ AssetEditChannels::AssetEditChannels(AssetEditWindow *fwindow,
 		(int)MAXCHANNELS,
 		x, 
 		y, 
-		50)
+		DP(50))
 {
 	this->fwindow = fwindow;
 }
@@ -573,7 +573,7 @@ int AssetEditChannels::handle_event()
 }
 
 AssetEditRate::AssetEditRate(AssetEditWindow *fwindow, char *text, int x, int y)
- : BC_TextBox(x, y, 100, 1, text)
+ : BC_TextBox(x, y, DP(100), 1, text)
 {
 	this->fwindow = fwindow;
 }
@@ -586,7 +586,7 @@ int AssetEditRate::handle_event()
 }
 
 AssetEditFRate::AssetEditFRate(AssetEditWindow *fwindow, char *text, int x, int y)
- : BC_TextBox(x, y, 100, 1, text)
+ : BC_TextBox(x, y, DP(100), 1, text)
 {
 	this->fwindow = fwindow;
 }
@@ -599,7 +599,7 @@ int AssetEditFRate::handle_event()
 }
 
 AssetEditHeader::AssetEditHeader(AssetEditWindow *fwindow, char *text, int x, int y)
- : BC_TextBox(x, y, 100, 1, text)
+ : BC_TextBox(x, y, DP(100), 1, text)
 {
 	this->fwindow = fwindow;
 }
@@ -670,7 +670,7 @@ int AssetEditSigned::handle_event()
 
 
 AssetEditPathText::AssetEditPathText(AssetEditWindow *fwindow, int y)
- : BC_TextBox(5, y, 300, 1, fwindow->asset_edit->changed_params->path) 
+ : BC_TextBox(DP(5), y, DP(350), 1, fwindow->asset_edit->changed_params->path) 
 {
 	this->fwindow = fwindow; 
 }
@@ -693,7 +693,7 @@ AssetEditPath::AssetEditPath(MWindow *mwindow,
  : BrowseButton(mwindow->theme, 
  	fwindow, 
 	textbox, 
-	310, 
+	DP(360), 
 	y, 
 	text, 
 	window_title, 
@@ -710,7 +710,7 @@ AssetEditPath::~AssetEditPath() {}
 
 
 AssetEditFormat::AssetEditFormat(AssetEditWindow *fwindow, char* default_, int y)
- : FormatPopup(fwindow->mwindow->plugindb, 90, y)
+ : FormatPopup(fwindow->mwindow->plugindb, DP(90), y)
 { 
 	this->fwindow = fwindow; 
 }

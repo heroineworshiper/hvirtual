@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include "language.h"
 #include "overlayframe.h"
 #include "picon_png.h"
+#include "theme.h"
 #include "vframe.h"
 #include "wipe.h"
 
@@ -93,10 +94,10 @@ int WipeRight::handle_event()
 
 WipeWindow::WipeWindow(WipeMain *plugin)
  : PluginClientWindow(plugin, 
-	320, 
-	50, 
-	320, 
-	50, 
+	DP(320), 
+	DP(50), 
+	DP(320), 
+	DP(50), 
 	0)
 {
 	this->plugin = plugin;
@@ -107,20 +108,22 @@ WipeWindow::WipeWindow(WipeMain *plugin)
 
 void WipeWindow::create_objects()
 {
-	int x = 10, y = 10;
-	add_subwindow(new BC_Title(x, y, _("Direction:")));
-	x += 100;
+	int widget_border = plugin->get_theme()->widget_border;
+	int window_border = plugin->get_theme()->window_border;
+	int x = window_border, y = window_border;
+	BC_Title *title;
+	add_subwindow(title = new BC_Title(x, y, _("Direction:")));
+	x += title->get_w() + widget_border;
 	add_subwindow(left = new WipeLeft(plugin, 
 		this,
 		x,
 		y));
-	x += 100;
+	x += left->get_w() + widget_border;
 	add_subwindow(right = new WipeRight(plugin, 
 		this,
 		x,
 		y));
 	show_window();
-	flush();
 }
 
 

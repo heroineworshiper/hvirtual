@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,12 @@
 #include "bchash.h"
 #include "edl.inc"
 #include "filexml.h"
+#include "irissquare.h"
 #include "language.h"
 #include "overlayframe.h"
 #include "picon_png.h"
+#include "theme.h"
 #include "vframe.h"
-#include "irissquare.h"
 
 
 #include <stdint.h>
@@ -93,10 +94,10 @@ int IrisSquareOut::handle_event()
 
 IrisSquareWindow::IrisSquareWindow(IrisSquareMain *plugin)
  : PluginClientWindow(plugin, 
-	320, 
-	50, 
-	320, 
-	50, 
+	DP(320), 
+	DP(50), 
+	DP(320), 
+	DP(50), 
 	0)
 {
 	this->plugin = plugin;
@@ -105,20 +106,20 @@ IrisSquareWindow::IrisSquareWindow(IrisSquareMain *plugin)
 
 void IrisSquareWindow::create_objects()
 {
-	int x = 10, y = 10;
-	add_subwindow(new BC_Title(x, y, _("Direction:")));
-	x += 100;
+	int x = DP(10), y = DP(10);
+	BC_Title *title;
+	add_subwindow(title = new BC_Title(x, y, _("Direction:")));
+	x += title->get_w() + client->get_theme()->widget_border;
 	add_subwindow(in = new IrisSquareIn(plugin, 
 		this,
 		x,
 		y));
-	x += 100;
+	x += in->get_w() + client->get_theme()->widget_border;
 	add_subwindow(out = new IrisSquareOut(plugin, 
 		this,
 		x,
 		y));
 	show_window();
-	flush();
 }
 
 

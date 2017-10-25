@@ -622,11 +622,11 @@ void BC_FileBox::create_objects()
 
 	x = get_w() - resources->filebox_icons_images[0]->get_w() - DP(10);
 
-	add_subwindow(icon_button = new BC_FileBoxIcons(x, y, this));
-	x -= resources->filebox_text_images[0]->get_w() + DP(5);
+//	add_subwindow(icon_button = new BC_FileBoxIcons(x, y, this));
+//	x -= resources->filebox_text_images[0]->get_w() + DP(5);
 
-	add_subwindow(text_button = new BC_FileBoxText(x, y, this));
-	x -= resources->filebox_newfolder_images[0]->get_w() + DP(5);
+//	add_subwindow(text_button = new BC_FileBoxText(x, y, this));
+//	x -= resources->filebox_newfolder_images[0]->get_w() + DP(5);
 
 	add_subwindow(folder_button = new BC_FileBoxNewfolder(x, y, this));
 	x -= resources->filebox_delete_images[0]->get_w() + DP(5);
@@ -745,10 +745,10 @@ int BC_FileBox::resize_event(int w, int h)
 		w - (get_w() - listbox->get_w()),
 		h - (get_h() - listbox->get_h()),
 		0);
-	icon_button->reposition_window(w - (get_w() - icon_button->get_x()), 
-		icon_button->get_y());
-	text_button->reposition_window(w - (get_w() - text_button->get_x()), 
-		text_button->get_y());
+//	icon_button->reposition_window(w - (get_w() - icon_button->get_x()), 
+//		icon_button->get_y());
+//	text_button->reposition_window(w - (get_w() - text_button->get_x()), 
+//		text_button->get_y());
 	folder_button->reposition_window(w - (get_w() - folder_button->get_x()), 
 		folder_button->get_y());
 	rename_button->reposition_window(w - (get_w() - rename_button->get_x()), 
@@ -1232,7 +1232,8 @@ void BC_FileBox::create_history()
 
 int BC_FileBox::get_display_mode()
 {
-	return top_level->get_resources()->filebox_mode;
+	return LISTBOX_TEXT;
+//	return top_level->get_resources()->filebox_mode;
 }
 
 void BC_FileBox::create_listbox(int x, int y, int mode)

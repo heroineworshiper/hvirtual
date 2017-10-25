@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,8 @@ AssetRemoveWindow::AssetRemoveWindow(MWindow *mwindow)
  : BC_Window(PROGRAM_NAME ": Remove assets", 
 	mwindow->gui->get_abs_cursor_x(1),
 	mwindow->gui->get_abs_cursor_y(1),
-	320, 
-	400, 
+	DP(320), 
+	DP(400), 
 	-1, 
 	-1, 
 	0,
@@ -51,7 +51,7 @@ AssetRemoveWindow::~AssetRemoveWindow()
 
 void AssetRemoveWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	int margin = mwindow->theme->widget_border;
 
 	data = new ArrayList<BC_ListBoxItem*>;

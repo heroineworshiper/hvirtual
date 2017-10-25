@@ -525,8 +525,8 @@ int NewSampleRate::handle_event()
 SampleRatePulldown::SampleRatePulldown(MWindow *mwindow, BC_TextBox *output, int x, int y)
  : BC_ListBox(x,
  	y,
-	100,
-	200,
+	DP(100),
+	DP(200),
 	LISTBOX_TEXT,
 	&mwindow->theme->sample_rates,
 	0,

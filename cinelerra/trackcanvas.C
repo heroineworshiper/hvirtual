@@ -1155,8 +1155,8 @@ void TrackCanvas::get_transition_coords(int64_t &x, int64_t &y, int64_t &w, int6
 //printf("TrackCanvas::get_transition_coords 1\n");
 // 	int transition_w = mwindow->theme->transitionhandle_data[0]->get_w();
 // 	int transition_h = mwindow->theme->transitionhandle_data[0]->get_h();
-	int transition_w = 30;
-	int transition_h = 30;
+	int transition_w = DP(30);
+	int transition_h = DP(30);
 //printf("TrackCanvas::get_transition_coords 1\n");
 
 	if(mwindow->edl->session->show_titles)
