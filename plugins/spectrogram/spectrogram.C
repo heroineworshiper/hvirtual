@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,7 +126,7 @@ SpectrogramMode::SpectrogramMode(Spectrogram *plugin,
 	int y)
  : BC_PopupMenu(x, 
 	y, 
-	120, 
+	DP(120), 
 	mode_to_text(plugin->config.mode))
 {
 	this->plugin = plugin;
@@ -199,7 +199,7 @@ SpectrogramWindowSize::SpectrogramWindowSize(Spectrogram *plugin,
 	char *text)
  : BC_PopupMenu(x, 
 	y, 
-	80, 
+	DP(80), 
 	text)
 {
 	this->plugin = plugin;
@@ -266,7 +266,7 @@ int SpectrogramNormalize::handle_event()
 SpectrogramFreq::SpectrogramFreq(Spectrogram *plugin, int x, int y)
  : BC_TextBox(x, 
 		y, 
-		100, 
+		DP(100), 
 		1, 
 		(int)plugin->config.frequency)
 {
@@ -377,8 +377,8 @@ SpectrogramWindow::SpectrogramWindow(Spectrogram *plugin)
  : PluginClientWindow(plugin, 
 	plugin->w, 
 	plugin->h, 
-	320, 
-	320,
+	DP(320), 
+	DP(320),
 	1)
 {
 	this->plugin = plugin;
@@ -663,8 +663,8 @@ Spectrogram::Spectrogram(PluginServer *server)
 {
 	reset();
 	timer = new Timer;
-	w = 640;
-	h = 480;
+	w = DP(640);
+	h = DP(480);
 }
 
 Spectrogram::~Spectrogram()

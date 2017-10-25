@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,10 +84,10 @@ void RemoveGapsConfig::boundaries()
 
 RemoveGapsWindow::RemoveGapsWindow(RemoveGaps *plugin)
  : PluginClientWindow(plugin, 
-	320, 
-	160, 
-	320, 
-	160, 
+	DP(320), 
+	DP(160), 
+	DP(320), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -99,7 +99,7 @@ RemoveGapsWindow::~RemoveGapsWindow()
 
 void RemoveGapsWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	BC_Title *title;
 	
 	add_subwindow(title = new BC_Title(x, y, "Threshold of gap (DB):"));

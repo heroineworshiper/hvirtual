@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ REGISTER_PLUGIN(TimeStretch)
 
 
 TimeStretchFraction::TimeStretchFraction(TimeStretch *plugin, int x, int y)
- : BC_TextBox(x, y, 100, 1, (float)(1.0 / plugin->scale))
+ : BC_TextBox(x, y, DP(100), 1, (float)(1.0 / plugin->scale))
 {
 	this->plugin = plugin;
 }
@@ -118,12 +118,12 @@ int TimeStretchTime::handle_event()
 
 TimeStretchWindow::TimeStretchWindow(TimeStretch *plugin, int x, int y)
  : BC_Window(PROGRAM_NAME ": Time stretch", 
- 				x - 160,
-				y - 75,
- 				320, 
-				200, 
-				320, 
-				200,
+ 				x - DP(160),
+				y - DP(75),
+ 				DP(320), 
+				DP(200), 
+				DP(320), 
+				DP(200),
 				0,
 				0,
 				1)
@@ -138,7 +138,7 @@ TimeStretchWindow::~TimeStretchWindow()
 
 void TimeStretchWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Fraction of original speed:")));
@@ -158,7 +158,6 @@ void TimeStretchWindow::create_objects()
 
 
 
-	flush();
 }
 
 

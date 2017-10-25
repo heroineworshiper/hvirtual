@@ -109,12 +109,12 @@ float keyboard_freqs[] =
 
 #define MAX_FREQS 16
 #define TOTALOSCILLATORS 1
-#define OSCILLATORHEIGHT 40
+#define OSCILLATORHEIGHT DP(40)
 #define TOTALNOTES (sizeof(keyboard_freqs) / sizeof(float))
 #define MIDDLE_C 24
 #define FIRST_TITLE (MIDDLE_C - 12)
 #define LAST_TITLE (MIDDLE_C + 12)
-#define MARGIN 10
+#define MARGIN DP(10)
 
 #define SINE 0
 #define SAWTOOTH 1

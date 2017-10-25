@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2010-2016 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,10 +79,10 @@ void ResampleRTConfig::boundaries()
 
 ResampleRTWindow::ResampleRTWindow(ResampleRT *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	160, 
-	200, 
-	160, 
+	DP(210), 
+	DP(160), 
+	DP(200), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -135,7 +135,7 @@ ResampleRTNum::ResampleRTNum(ResampleRTWindow *window,
 	(float)1000,
  	x, 
 	y, 
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
 	set_increment(0.001);
@@ -162,7 +162,7 @@ ResampleRTDenom::ResampleRTDenom(ResampleRTWindow *window,
 	(float)1000,
  	x, 
 	y, 
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
 	set_increment(0.001);

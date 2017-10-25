@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -105,10 +105,10 @@ ReverseAudioConfig::ReverseAudioConfig()
 
 ReverseAudioWindow::ReverseAudioWindow(ReverseAudio *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	160, 
-	200, 
-	160, 
+	DP(210), 
+	DP(160), 
+	DP(200), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -120,13 +120,12 @@ ReverseAudioWindow::~ReverseAudioWindow()
 
 void ReverseAudioWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_subwindow(enabled = new ReverseAudioEnabled(plugin, 
 		x, 
 		y));
 	show_window();
-	flush();
 }
 
 

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -232,7 +232,7 @@ int ParametricMagnitude::handle_event()
 ParametricMode::ParametricMode(ParametricEQ *plugin, int x, int y, int band)
  : BC_PopupMenu(x, 
 		y, 
-		150, 
+		DP(150), 
 		mode_to_text(plugin->config.band[band].mode))
 {
 //printf("ParametricMode::ParametricMode %d %d\n", band, plugin->config.band[band].mode);
@@ -312,10 +312,10 @@ ParametricBandGUI::~ParametricBandGUI()
 }
 
 
-#define X1 10
-#define X2 60
-#define X3 110
-#define X4 160
+#define X1 DP(10)
+#define X2 DP(60)
+#define X3 DP(110)
+#define X4 DP(160)
 
 	
 void ParametricBandGUI::create_objects()
@@ -361,7 +361,7 @@ int ParametricWetness::handle_event()
 
 
 ParametricSize::ParametricSize(ParametricWindow *window, ParametricEQ *plugin, int x, int y)
- : BC_PopupMenu(x, y, 100, "4096", 1)
+ : BC_PopupMenu(x, y, DP(100), "4096", 1)
 {
 	this->plugin = plugin;
 	this->window = window;
@@ -402,10 +402,10 @@ void ParametricSize::update(int size)
 
 ParametricWindow::ParametricWindow(ParametricEQ *plugin)
  : PluginClientWindow(plugin, 
-	350, 
-	400, 
-	350, 
-	400,
+	DP(350), 
+	DP(400), 
+	DP(350), 
+	DP(400),
 	0)
 {
 	this->plugin = plugin;
@@ -419,46 +419,46 @@ ParametricWindow::~ParametricWindow()
 
 void ParametricWindow::create_objects()
 {
-	int y = 35;
+	int y = DP(35);
 SET_TRACE	
 	
-	add_subwindow(new BC_Title(X1, 10, _("Freq")));
-	add_subwindow(new BC_Title(X2, 10, _("Qual")));
-	add_subwindow(new BC_Title(X3, 10, _("Level")));
-	add_subwindow(new BC_Title(X4, 10, _("Mode")));
+	add_subwindow(new BC_Title(X1, DP(10), _("Freq")));
+	add_subwindow(new BC_Title(X2, DP(10), _("Qual")));
+	add_subwindow(new BC_Title(X3, DP(10), _("Level")));
+	add_subwindow(new BC_Title(X4, DP(10), _("Mode")));
 	for(int i = 0; i < BANDS; i++)
 	{
-		bands[i] = new ParametricBandGUI(plugin, this, 10, y, i);
+		bands[i] = new ParametricBandGUI(plugin, this, DP(10), y, i);
 		bands[i]->create_objects();
-		y += 50;
+		y += DP(50);
 	}
 
 SET_TRACE	
 	BC_Title *title;
 	int x = plugin->get_theme()->widget_border;
-	add_subwindow(title = new BC_Title(x, y + 10, _("Wetness:")));
+	add_subwindow(title = new BC_Title(x, y + DP(10), _("Wetness:")));
 	x += title->get_w() + plugin->get_theme()->widget_border;
 	add_subwindow(wetness = new ParametricWetness(plugin, 
 		x, 
 		y));
 	x += wetness->get_w() + plugin->get_theme()->widget_border;
 
-	add_subwindow(title = new BC_Title(x, y + 10, _("Window:")));
+	add_subwindow(title = new BC_Title(x, y + DP(10), _("Window:")));
 	x += title->get_w() + plugin->get_theme()->widget_border;
 	add_subwindow(size = new ParametricSize(this, 
 		plugin, 
 		x, 
-		y + 10));
+		y + DP(10)));
 	size->create_objects();
 	size->update(plugin->config.window_size);
 
 
 
-	y += 50;
-	int canvas_x = 30;
+	y += DP(50);
+	int canvas_x = DP(30);
 	int canvas_y = y;
-	int canvas_w = get_w() - canvas_x - 10;
-	int canvas_h = get_h() - canvas_y - 30;
+	int canvas_w = get_w() - canvas_x - DP(10);
+	int canvas_h = get_h() - canvas_y - DP(30);
 	add_subwindow(canvas = new BC_SubWindow(canvas_x, 
 		canvas_y, 
 		canvas_w, 
@@ -472,11 +472,11 @@ SET_TRACE
 #define MINOR_DIVISIONS 5
 	for(int i = 0; i <= MAJOR_DIVISIONS; i++)
 	{
-		int y1 = canvas_y + canvas_h - i * (canvas_h / MAJOR_DIVISIONS) - 2;
-		int y2 = y1 + 3;
-		int x1 = canvas_x - 25;
-		int x2 = canvas_x - 10;
-		int x3 = canvas_x - 2;
+		int y1 = canvas_y + canvas_h - i * (canvas_h / MAJOR_DIVISIONS) - DP(2);
+		int y2 = y1 + DP(3);
+		int x1 = canvas_x - DP(25);
+		int x2 = canvas_x - DP(10);
+		int x3 = canvas_x - DP(2);
 
 		char string[BCTEXTLEN];
 		if(i == 0)
@@ -496,7 +496,7 @@ SET_TRACE
 			for(int j = 1; j < MINOR_DIVISIONS; j++)
 			{
 				int y3 = y1 - j * (canvas_h / MAJOR_DIVISIONS) / MINOR_DIVISIONS;
-				int x4 = x3 - 5;
+				int x4 = x3 - DP(5);
 				set_color(BLACK);
 				draw_line(x4 + 1, y3 + 1, x3 + 1, y3 + 1);
 				set_color(RED);
@@ -512,12 +512,12 @@ SET_TRACE
 	{
 		int freq = Freq::tofreq(i * TOTALFREQS / MAJOR_DIVISIONS);
 		int x1 = canvas_x + i * canvas_w / MAJOR_DIVISIONS;
-		int y1 = canvas_y + canvas_h + 20;
+		int y1 = canvas_y + canvas_h + DP(20);
 		char string[BCTEXTLEN];
 		sprintf(string, "%d", freq);
 		int x2 = x1 - get_text_width(SMALLFONT, string);
-		int y2 = y1 - 10;
-		int y3 = y2 - 5;
+		int y2 = y1 - DP(10);
+		int y3 = y2 - DP(5);
 		int y4 = canvas_y + canvas_h;
 		
 		set_color(BLACK);

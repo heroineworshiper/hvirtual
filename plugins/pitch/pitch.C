@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -402,10 +402,10 @@ void PitchConfig::interpolate(PitchConfig &prev,
 
 PitchWindow::PitchWindow(PitchEffect *plugin)
  : PluginClientWindow(plugin, 
-	150, 
-	100, 
-	150, 
-	100,
+	DP(150), 
+	DP(100), 
+	DP(150), 
+	DP(100),
 	0)
 {
 	this->plugin = plugin;
@@ -413,7 +413,7 @@ PitchWindow::PitchWindow(PitchEffect *plugin)
 
 void PitchWindow::create_objects()
 {
-	int x1 = 10, x = 10, y = 10;
+	int x1 = DP(10), x = DP(10), y = DP(10);
 	
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Scale:")));
@@ -466,7 +466,7 @@ int PitchScale::handle_event()
 
 
 PitchSize::PitchSize(PitchWindow *window, PitchEffect *plugin, int x, int y)
- : BC_PopupMenu(x, y, 100, "4096", 1)
+ : BC_PopupMenu(x, y, DP(100), "4096", 1)
 {
 	this->plugin = plugin;
 }

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ PluginClient* new_plugin(PluginServer *server)
 
 
 ResampleFraction::ResampleFraction(ResampleEffect *plugin, int x, int y)
- : BC_TextBox(x, y, 100, 1, (float)plugin->scale, 1, MEDIUMFONT, 6)
+ : BC_TextBox(x, y, DP(100), 1, (float)plugin->scale, 1, MEDIUMFONT, 6)
 {
 	this->plugin = plugin;
 }
@@ -62,12 +62,12 @@ int ResampleFraction::handle_event()
 
 ResampleWindow::ResampleWindow(ResampleEffect *plugin, int x, int y)
  : BC_Window(PROGRAM_NAME ": Resample", 
- 				x - 160,
-				y - 75,
- 				320, 
-				150, 
-				320, 
-				150,
+ 				x - DP(160),
+				y - DP(75),
+ 				DP(320), 
+				DP(150), 
+				DP(320), 
+				DP(150),
 				0,
 				0,
 				1)
@@ -77,10 +77,10 @@ ResampleWindow::ResampleWindow(ResampleEffect *plugin, int x, int y)
 
 void ResampleWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("ResampleWindow::create_objects");
 	add_subwindow(new BC_Title(x, y, _("Scale factor:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(new ResampleFraction(plugin, x, y));
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));

@@ -159,7 +159,7 @@ TimeStretchRTScale::TimeStretchRTScale(TimeStretchRTWindow *window,
 	(float)1000,
  	x, 
 	y, 
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
 	this->value = value;
@@ -187,7 +187,7 @@ TimeStretchRTSize::TimeStretchRTSize(TimeStretchRTWindow *window,
 	1000,
  	x, 
 	y, 
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
 	set_increment(10);

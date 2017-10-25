@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ const char* ReFrame::plugin_title() { return N_("Reframe"); }
 
 int ReFrame::load_defaults()
 {
-	char directory[1024];
+	char directory[BCTEXTLEN];
 
 // set the default directory
 	sprintf(directory, "%sreframe.rc", BCASTDIR);
@@ -151,7 +151,7 @@ int ReFrame::process_loop(VFrame *buffer)
 
 
 ReFrameOutput::ReFrameOutput(ReFrame *plugin, int x, int y)
- : BC_TextBox(x, y, 150, 1, (float)plugin->scale)
+ : BC_TextBox(x, y, DP(150), 1, (float)plugin->scale)
 {
 	this->plugin = plugin;
 }
@@ -168,10 +168,10 @@ ReFrameWindow::ReFrameWindow(ReFrame *plugin, int x, int y)
  : BC_Window(plugin->plugin_title(), 
  	x, 
 	y, 
-	230, 
-	160, 
-	230, 
-	160, 
+	DP(230), 
+	DP(160), 
+	DP(230), 
+	DP(160), 
 	0, 
 	0,
 	1)
@@ -186,10 +186,10 @@ ReFrameWindow::~ReFrameWindow()
 
 void ReFrameWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("ReFrameWindow::create_objects");
 	add_subwindow(new BC_Title(x, y, _("Scale factor:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(new ReFrameOutput(plugin, x, y));
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));

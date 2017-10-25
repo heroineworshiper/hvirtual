@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "language.h"
 #include "picon_png.h"
 #include "samples.h"
+#include "theme.h"
 #include "vframe.h"
 
 #include <string.h>
@@ -207,10 +208,10 @@ void DelayAudio::update_gui()
 
 DelayAudioWindow::DelayAudioWindow(DelayAudio *plugin)
  : PluginClientWindow(plugin, 
-	200, 
-	80, 
-	200, 
-	80, 
+	DP(200), 
+	DP(80), 
+	DP(200), 
+	DP(80), 
 	0)
 {
 	this->plugin = plugin;
@@ -222,12 +223,17 @@ DelayAudioWindow::~DelayAudioWindow()
 
 void DelayAudioWindow::create_objects()
 {
-	add_subwindow(new BC_Title(10, 10, _("Delay seconds:")));
+	BC_Title *title;
+	int margin = client->get_theme()->widget_border;
+	int y = margin;
+
+	add_subwindow(title = new BC_Title(margin, y, _("Delay seconds:")));
+	y += title->get_h() + margin;
 	length = new DelayAudioTextBox(
 		plugin, 
 		this,
-		10, 
-		40);
+		margin, 
+		y);
 	length->create_objects();
 	update_gui();
 	show_window();
@@ -262,7 +268,7 @@ DelayAudioTextBox::DelayAudioTextBox(
 	(float)10,
  	x, 
 	y, 
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
 	set_increment(0.01);
