@@ -758,7 +758,7 @@ void SUV::initialize()
 	recordgui_variable_color = RED;
 
 	channel_position_color = MEYELLOW;
-	resources->meter_title_w = DP(25);
+	resources->meter_title_w = DP(30);
 }
 
 #define VWINDOW_METER_MARGIN DP(5)

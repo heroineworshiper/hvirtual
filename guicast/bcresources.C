@@ -520,22 +520,23 @@ void BC_Resources::init()
 	#include "images/over_vertical_png.h"
 		static VFrame* default_xmeter_data[] =
 		{
-			new VFrame(xmeter_normal_png),
-			new VFrame(xmeter_green_png),
-			new VFrame(xmeter_red_png),
-			new VFrame(xmeter_yellow_png),
-			new VFrame(xmeter_white_png),
-			new VFrame(over_horiz_png)
+			new VFrame(),
+			new VFrame(),
+			new VFrame(),
+			new VFrame(),
+			new VFrame(),
+			new VFrame()
 		};
+		
 
 		static VFrame* default_ymeter_data[] =
 		{
-			new VFrame(ymeter_normal_png),
-			new VFrame(ymeter_green_png),
-			new VFrame(ymeter_red_png),
-			new VFrame(ymeter_yellow_png),
-			new VFrame(ymeter_white_png),
-			new VFrame(over_vertical_png)
+			new VFrame(),
+			new VFrame(),
+			new VFrame(),
+			new VFrame(),
+			new VFrame(),
+			new VFrame()
 		};
 
 	#include "images/generic_up_png.h"
@@ -762,6 +763,24 @@ void BC_Resources::init()
 
 		xmeter_images = default_xmeter_data;
 		ymeter_images = default_ymeter_data;
+		
+		xmeter_images[0]->read_png(xmeter_normal_png, dpi);
+		xmeter_images[1]->read_png(xmeter_green_png, dpi);
+		xmeter_images[2]->read_png(xmeter_red_png, dpi);
+		xmeter_images[3]->read_png(xmeter_yellow_png, dpi);
+		xmeter_images[4]->read_png(xmeter_white_png, dpi);
+		xmeter_images[5]->read_png(over_horiz_png, dpi);
+		
+
+		ymeter_images[0]->read_png(ymeter_normal_png, dpi);
+		ymeter_images[1]->read_png(ymeter_green_png, dpi);
+		ymeter_images[2]->read_png(ymeter_red_png, dpi);
+		ymeter_images[3]->read_png(ymeter_yellow_png, dpi);
+		ymeter_images[4]->read_png(ymeter_white_png, dpi);
+		ymeter_images[5]->read_png(over_vertical_png, dpi);
+
+		
+
 		meter_font = SMALLFONT_3D;
 		meter_font_color = RED;
 		meter_title_w = DP(20);

@@ -35,6 +35,10 @@
 
 // Distance from subwindow border to top and bottom tick mark
 #define METER_MARGIN 0
+// tick width
+#define TICK_W1 DP(10)
+#define TICK_W2 DP(5)
+
 
 class BC_Meter : public BC_SubWindow
 {
@@ -90,6 +94,8 @@ private:
 	int use_titles;
 // Tick mark positions
 	ArrayList<int> tick_pixels;
+// Tick widths
+	ArrayList<int> tick_w;
 // Title positions
 	ArrayList<int> title_pixels;
 	ArrayList<char*> db_titles;
