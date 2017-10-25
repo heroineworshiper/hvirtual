@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,10 +38,10 @@
 
 ScaleWin::ScaleWin(ScaleMain *client)
  : PluginClientWindow(client,
-	150, 
-	150, 
-	150, 
-	150, 
+	DP(180), 
+	DP(150), 
+	DP(180), 
+	DP(150), 
 	0)
 { 
 	this->client = client; 
@@ -53,18 +53,18 @@ ScaleWin::~ScaleWin()
 
 void ScaleWin::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_tool(new BC_Title(x, y, _("X Scale:")));
-	y += 20;
+	y += DP(20);
 	width = new ScaleWidth(this, client, x, y);
 	width->create_objects();
-	y += 30;
+	y += DP(30);
 	add_tool(new BC_Title(x, y, _("Y Scale:")));
-	y += 20;
+	y += DP(20);
 	height = new ScaleHeight(this, client, x, y);
 	height->create_objects();
-	y += 35;
+	y += DP(35);
 	add_tool(constrain = new ScaleConstrain(client, x, y));
 	show_window();
 	flush();
@@ -80,7 +80,7 @@ ScaleWidth::ScaleWidth(ScaleWin *win,
 	(float)100,
 	x, 
 	y, 
-	100)
+	DP(100))
 {
 //printf("ScaleWidth::ScaleWidth %f\n", client->config.w);
 	this->client = client;
@@ -118,7 +118,7 @@ ScaleHeight::ScaleHeight(ScaleWin *win, ScaleMain *client, int x, int y)
 	(float)100,
 	x, 
 	y, 
-	100)
+	DP(100))
 {
 	this->client = client;
 	this->win = win;

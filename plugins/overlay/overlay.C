@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -244,10 +244,10 @@ const char* OverlayConfig::output_to_text(int output_layer)
 
 OverlayWindow::OverlayWindow(Overlay *plugin)
  : PluginClientWindow(plugin, 
-	300, 
-	160, 
-	300, 
-	160, 
+	DP(300), 
+	DP(160), 
+	DP(300), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -259,26 +259,26 @@ OverlayWindow::~OverlayWindow()
 
 void OverlayWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Mode:")));
 	add_subwindow(mode = new OverlayMode(plugin, 
-		x + title->get_w() + 5, 
+		x + title->get_w() + DP(5), 
 		y));
 	mode->create_objects();
 
-	y += 30;
+	y += DP(30);
 	add_subwindow(title = new BC_Title(x, y, _("Layer order:")));
 	add_subwindow(direction = new OverlayDirection(plugin, 
-		x + title->get_w() + 5, 
+		x + title->get_w() + DP(5), 
 		y));
 	direction->create_objects();
 
-	y += 30;
+	y += DP(30);
 	add_subwindow(title = new BC_Title(x, y, _("Output layer:")));
 	add_subwindow(output = new OverlayOutput(plugin, 
-		x + title->get_w() + 5, 
+		x + title->get_w() + DP(5), 
 		y));
 	output->create_objects();
 
@@ -297,7 +297,7 @@ OverlayMode::OverlayMode(Overlay *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	150,
+	DP(150),
 	OverlayConfig::mode_to_text(plugin->config.mode),
 	1)
 {
@@ -333,7 +333,7 @@ OverlayDirection::OverlayDirection(Overlay *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	150,
+	DP(150),
 	OverlayConfig::direction_to_text(plugin->config.direction),
 	1)
 {
@@ -374,7 +374,7 @@ OverlayOutput::OverlayOutput(Overlay *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	100,
+	DP(100),
 	OverlayConfig::output_to_text(plugin->config.output_layer),
 	1)
 {

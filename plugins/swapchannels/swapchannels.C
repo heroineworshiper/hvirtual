@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,10 +81,10 @@ void SwapConfig::copy_from(SwapConfig &that)
 
 SwapWindow::SwapWindow(SwapMain *plugin)
  : PluginClientWindow(plugin,
-	250, 
-	170, 
-	250, 
-	170, 
+	DP(250), 
+	DP(170), 
+	DP(250), 
+	DP(170), 
 	0)
 {
 	this->plugin = plugin;
@@ -97,24 +97,24 @@ SwapWindow::~SwapWindow()
 	
 void SwapWindow::create_objects()
 {
-	int x = 10, y = 10;
-	int margin = 30;
+	int x = DP(10), y = DP(10);
+	int margin = DP(30);
 
 	add_subwindow(new BC_Title(x, y, _("Swap channels")));
 	y += margin;
-	add_subwindow(new BC_Title(x + 160, y + 5, _("-> Red")));
+	add_subwindow(new BC_Title(x + DP(170), y + DP(5), _("-> Red")));
 	add_subwindow(red = new SwapMenu(plugin, &(plugin->config.red), x, y));
 	red->create_objects();
 	y += margin;
-	add_subwindow(new BC_Title(x + 160, y + 5, _("-> Green")));
+	add_subwindow(new BC_Title(x + DP(170), y + DP(5), _("-> Green")));
 	add_subwindow(green = new SwapMenu(plugin, &(plugin->config.green), x, y));
 	green->create_objects();
 	y += margin;
-	add_subwindow(new BC_Title(x + 160, y + 5, _("-> Blue")));
+	add_subwindow(new BC_Title(x + DP(170), y + DP(5), _("-> Blue")));
 	add_subwindow(blue = new SwapMenu(plugin, &(plugin->config.blue), x, y));
 	blue->create_objects();
 	y += margin;
-	add_subwindow(new BC_Title(x + 160, y + 5, _("-> Alpha")));
+	add_subwindow(new BC_Title(x + DP(170), y + DP(5), _("-> Alpha")));
 	add_subwindow(alpha = new SwapMenu(plugin, &(plugin->config.alpha), x, y));
 	alpha->create_objects();
 
@@ -131,7 +131,7 @@ void SwapWindow::create_objects()
 
 
 SwapMenu::SwapMenu(SwapMain *client, int *output, int x, int y)
- : BC_PopupMenu(x, y, 150, client->output_to_text(*output))
+ : BC_PopupMenu(x, y, DP(150), client->output_to_text(*output))
 {
 	this->client = client;
 	this->output = output;

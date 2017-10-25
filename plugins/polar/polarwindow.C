@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,11 +20,7 @@
  */
 
 #include "polarwindow.h"
-
-#include <libintl.h>
-#define _(String) gettext(String)
-#define gettext_noop(String) String
-#define N_(String) gettext_noop (String)
+#include "language.h"
 
 
 PLUGIN_THREAD_OBJECT(PolarMain, PolarThread, PolarWindow)
@@ -39,10 +35,10 @@ PolarWindow::PolarWindow(PolarMain *client)
  : BC_Window("", 
  	MEGREY, 
 	client->gui_string, 
-	210, 
-	120, 
-	200, 
-	120, 
+	DP(210), 
+	DP(120), 
+	DP(200), 
+	DP(120), 
 	0, 
 	!client->show_initially)
 {
@@ -59,15 +55,15 @@ PolarWindow::~PolarWindow()
 
 int PolarWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_tool(new BC_Title(x, y, _("Depth")));
-	add_tool(automation[0] = new AutomatedFn(client, this, x + 80, y, 0));
-	y += 20;
+	add_tool(automation[0] = new AutomatedFn(client, this, x + DP(80), y, 0));
+	y += DP(20);
 	add_tool(depth_slider = new DepthSlider(client, x, y));
-	y += 35;
+	y += DP(35);
 	add_tool(new BC_Title(x, y, _("Angle")));
-	add_tool(automation[1] = new AutomatedFn(client, this, x + 80, y, 1));
-	y += 20;
+	add_tool(automation[1] = new AutomatedFn(client, this, x + DP(80), y, 1));
+	y += DP(20);
 	add_tool(angle_slider = new AngleSlider(client, x, y));
 }
 
@@ -79,7 +75,7 @@ int PolarWindow::close_event()
 }
 
 DepthSlider::DepthSlider(PolarMain *client, int x, int y)
- : BC_ISlider(x, y, 190, 30, 200, client->depth, 0, MAXDEPTH, DKGREY, BLACK, 1)
+ : BC_ISlider(x, y, DP(190), 30, 200, client->depth, 0, MAXDEPTH, DKGREY, BLACK, 1)
 {
 	this->client = client;
 }
@@ -93,7 +89,7 @@ int DepthSlider::handle_event()
 }
 
 AngleSlider::AngleSlider(PolarMain *client, int x, int y)
- : BC_ISlider(x, y, 190, 30, 200, client->angle, 0, MAXANGLE, DKGREY, BLACK, 1)
+ : BC_ISlider(x, y, DP(190), 30, 200, client->angle, 0, MAXANGLE, DKGREY, BLACK, 1)
 {
 	this->client = client;
 }
