@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,8 +46,8 @@ InterpolatePixelsOffset::InterpolatePixelsOffset(InterpolatePixelsWindow *window
  : BC_ISlider(x,
  	y,
 	0,
-	50,
-	50,
+	DP(50),
+	DP(50),
 	0,
 	1,
 	*output,
@@ -75,10 +75,10 @@ int InterpolatePixelsOffset::handle_event()
 
 InterpolatePixelsWindow::InterpolatePixelsWindow(InterpolatePixelsMain *client)
  : PluginClientWindow(client,
-	200, 
-	100, 
-	200, 
-	100, 
+	DP(200), 
+	DP(100), 
+	DP(200), 
+	DP(100), 
 	0)
 { 
 	this->client = client; 
@@ -90,21 +90,21 @@ InterpolatePixelsWindow::~InterpolatePixelsWindow()
 
 void InterpolatePixelsWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	
 	BC_Title *title;
 	add_tool(title = new BC_Title(x, y, _("X Offset:")));
 	add_tool(x_offset = new InterpolatePixelsOffset(this, 
-		x + title->get_w() + 5,
+		x + title->get_w() + DP(5),
 		y, 
 		&client->config.x));
-	y += MAX(x_offset->get_h(), title->get_h()) + 5;
+	y += MAX(x_offset->get_h(), title->get_h()) + DP(5);
 	add_tool(title = new BC_Title(x, y, _("Y Offset:")));
 	add_tool(y_offset = new InterpolatePixelsOffset(this, 
-		x + title->get_w() + 5,
+		x + title->get_w() + DP(5),
 		y, 
 		&client->config.y));
-	y += MAX(y_offset->get_h(), title->get_h()) + 5;
+	y += MAX(y_offset->get_h(), title->get_h()) + DP(5);
 
 	show_window();
 }

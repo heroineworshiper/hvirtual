@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -642,8 +642,8 @@ FrameRatePulldown::FrameRatePulldown(MWindow *mwindow,
 	int y)
  : BC_ListBox(x,
  	y,
-	150,
-	250,
+	DP(150),
+	DP(250),
 	LISTBOX_TEXT,
 	&mwindow->theme->frame_rates,
 	0,
@@ -670,8 +670,8 @@ FrameSizePulldown::FrameSizePulldown(Theme *theme,
 		int y)
  : BC_ListBox(x,
  	y,
-	150,
-	250,
+	DP(150),
+	DP(250),
 	LISTBOX_TEXT,
 	&theme->frame_sizes,
 	0,
@@ -763,8 +763,8 @@ AspectPulldown::AspectPulldown(MWindow *mwindow,
 		int y)
  : BC_ListBox(x,
  	y,
-	100,
-	200,
+	DP(100),
+	DP(200),
 	LISTBOX_TEXT,
 	&mwindow->theme->aspect_ratios,
 	0,

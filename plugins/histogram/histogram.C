@@ -79,8 +79,8 @@ HistogramMain::HistogramMain(PluginServer *server)
 	dragging_point = 0;
 	input = 0;
 	output = 0;
-	w = 440;
-	h = 500;
+	w = DP(440);
+	h = DP(500);
 	parade = 0;
 }
 

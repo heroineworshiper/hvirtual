@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -134,10 +134,10 @@ ColorWindow::ColorWindow(ColorThread *thread, int x, int y, char *title)
  : BC_Window(title, 
 	x,
 	y,
-	410, 
-	320, 
-	410, 
-	320, 
+	DP(410), 
+	DP(320), 
+	DP(410), 
+	DP(320), 
 	0, 
 	0,
 	1)
@@ -147,7 +147,7 @@ ColorWindow::ColorWindow(ColorThread *thread, int x, int y, char *title)
 
 void ColorWindow::create_objects()
 {
-	int x = 10, init_x = 10, y = 10, init_y = 10;
+	int x = DP(10), init_x = DP(10), y = DP(10), init_y = DP(10);
 	
 	lock_window("ColorWindow::create_objects");
 	change_values();
@@ -160,13 +160,13 @@ void ColorWindow::create_objects()
 	wheel->create_objects();
 //printf("ColorWindow::create_objects 1\n");
 
-	x += 180;
+	x += DP(180);
 	add_tool(wheel_value = new PaletteWheelValue(this, x, y));
 //printf("ColorWindow::create_objects 1\n");
 	wheel_value->create_objects();
 
 
-	y += 180;
+	y += DP(180);
 	x = init_x; 
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(output = new PaletteOutput(this, x, y));
@@ -174,53 +174,53 @@ void ColorWindow::create_objects()
 	output->create_objects();
 //printf("ColorWindow::create_objects 1\n");
 	
-	x += 240; y = init_y;
+	x += DP(230); 
+	y = init_y;
 	add_tool(new BC_Title(x, y, _("Hue"), SMALLFONT));
-	y += 15;
+	y += DP(15);
 //printf("ColorWindow::create_objects 1 %p\n", this);
 	add_tool(hue = new PaletteHue(this, x, y));
-	y += 30;
+	y += DP(30);
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(new BC_Title(x, y, _("Saturation"), SMALLFONT));
-	y += 15;
+	y += DP(15);
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(saturation = new PaletteSaturation(this, x, y));
-	y += 30;
+	y += DP(30);
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(new BC_Title(x, y, _("Value"), SMALLFONT));
-	y += 15;
+	y += DP(15);
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(value = new PaletteValue(this, x, y));
-	y += 30;
+	y += DP(30);
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(new BC_Title(x, y, _("Red"), SMALLFONT));
-	y += 15;
+	y += DP(15);
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(red = new PaletteRed(this, x, y));
-	y += 30;
+	y += DP(30);
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(new BC_Title(x, y, _("Green"), SMALLFONT));
-	y += 15;
+	y += DP(15);
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(green = new PaletteGreen(this, x, y));
-	y += 30;
+	y += DP(30);
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(new BC_Title(x, y, _("Blue"), SMALLFONT));
-	y += 15;
+	y += DP(15);
 //printf("ColorWindow::create_objects 1\n");
 	add_tool(blue = new PaletteBlue(this, x, y));
 
 	if(thread->do_alpha)
 	{
-		y += 30;
+		y += DP(30);
 		add_tool(new BC_Title(x, y, _("Alpha"), SMALLFONT));
-		y += 15;
+		y += DP(15);
 		add_tool(alpha = new PaletteAlpha(this, x, y));
 	}
 
 	update_display();
 	show_window();
-	flush();
 	unlock_window();
 	return;
 }
@@ -306,7 +306,7 @@ int ColorWindow::handle_event()
 
 
 PaletteWheel::PaletteWheel(ColorWindow *window, int x, int y)
- : BC_SubWindow(x, y, 170, 170)
+ : BC_SubWindow(x, y, DP(170), DP(170))
 {
 	this->window = window;
 	oldhue = 0;
@@ -530,7 +530,7 @@ int PaletteWheel::get_angle(float x1, float y1, float x2, float y2)
 }
 
 PaletteWheelValue::PaletteWheelValue(ColorWindow *window, int x, int y)
- : BC_SubWindow(x, y, 40, 170, BLACK)
+ : BC_SubWindow(x, y, DP(40), DP(170), BLACK)
 {
 	this->window = window;
 	button_down = 0;
@@ -638,7 +638,7 @@ int PaletteWheelValue::draw(float hue, float saturation, float value)
 }
 
 PaletteOutput::PaletteOutput(ColorWindow *window, int x, int y)
- : BC_SubWindow(x, y, 180, 30, BLACK)
+ : BC_SubWindow(x, y, DP(180), DP(30), BLACK)
 {
 	this->window = window;
 }
@@ -675,8 +675,10 @@ int PaletteOutput::draw()
 	return 0;
 }
 
+#define SLIDER_W DP(160)
+
 PaletteHue::PaletteHue(ColorWindow *window, int x, int y)
- : BC_ISlider(x, y, 0, 150, 200, 0, 359, (int)(window->h), 0)
+ : BC_ISlider(x, y, 0, SLIDER_W, DP(200), 0, 359, (int)(window->h), 0)
 {
 	this->window = window;
 }
@@ -693,7 +695,7 @@ int PaletteHue::handle_event()
 }
 
 PaletteSaturation::PaletteSaturation(ColorWindow *window, int x, int y)
- : BC_FSlider(x, y, 0, 150, 200, 0, 1.0, window->s, 0)
+ : BC_FSlider(x, y, 0, SLIDER_W, DP(200), 0, 1.0, window->s, 0)
 {
 	this->window = window;
 	set_precision(0.01);
@@ -713,7 +715,7 @@ int PaletteSaturation::handle_event()
 }
 
 PaletteValue::PaletteValue(ColorWindow *window, int x, int y)
- : BC_FSlider(x, y, 0, 150, 200, 0, 1.0, window->v, 0)
+ : BC_FSlider(x, y, 0, SLIDER_W, DP(200), 0, 1.0, window->v, 0)
 {
 	this->window = window;
 	set_precision(0.01);
@@ -732,7 +734,7 @@ int PaletteValue::handle_event()
 
 
 PaletteRed::PaletteRed(ColorWindow *window, int x, int y)
- : BC_FSlider(x, y, 0, 150, 200, 0, 1, window->r, 0)
+ : BC_FSlider(x, y, 0, SLIDER_W, DP(200), 0, 1, window->r, 0)
 {
 	this->window = window;
 	set_precision(0.01);
@@ -749,7 +751,7 @@ int PaletteRed::handle_event()
 }
 
 PaletteGreen::PaletteGreen(ColorWindow *window, int x, int y)
- : BC_FSlider(x, y, 0, 150, 200, 0, 1, window->g, 0)
+ : BC_FSlider(x, y, 0, SLIDER_W, DP(200), 0, 1, window->g, 0)
 {
 	this->window = window;
 	set_precision(0.01);
@@ -766,7 +768,7 @@ int PaletteGreen::handle_event()
 }
 
 PaletteBlue::PaletteBlue(ColorWindow *window, int x, int y)
- : BC_FSlider(x, y, 0, 150, 200, 0, 1, window->b, 0)
+ : BC_FSlider(x, y, 0, SLIDER_W, DP(200), 0, 1, window->b, 0)
 {
 	this->window = window;
 	set_precision(0.01);
@@ -783,7 +785,7 @@ int PaletteBlue::handle_event()
 }
 
 PaletteAlpha::PaletteAlpha(ColorWindow *window, int x, int y)
- : BC_FSlider(x, y, 0, 150, 200, 0, 1, window->a, 0)
+ : BC_FSlider(x, y, 0, SLIDER_W, DP(200), 0, 1, window->a, 0)
 {
 	this->window = window;
 	set_precision(0.01);

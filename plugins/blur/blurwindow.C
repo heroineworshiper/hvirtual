@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@
 
 BlurWindow::BlurWindow(BlurMain *client)
  : PluginClientWindow(client, 
-	200, 
-	330, 
-	200, 
-	330, 
+	DP(300), 
+	DP(330), 
+	DP(300), 
+	DP(330), 
 	0)
 { 
 	this->client = client; 
@@ -47,32 +47,31 @@ BlurWindow::~BlurWindow()
 
 void BlurWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	BC_Title *title;
 
 	add_subwindow(new BC_Title(x, y, _("Blur")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(horizontal = new BlurHorizontal(client, this, x, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(vertical = new BlurVertical(client, this, x, y));
-	y += 35;
+	y += DP(35);
 	add_subwindow(title = new BC_Title(x, y, _("Radius:")));
 	y += title->get_h() + 10;
 	add_subwindow(radius = new BlurRadius(client, this, x, y));
 	add_subwindow(radius_text = new BlurRadiusText(client, this, x + radius->get_w() + 10, y, 100));
 	y += radius->get_h() + 10;
 	add_subwindow(a_key = new BlurAKey(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(a = new BlurA(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(r = new BlurR(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(g = new BlurG(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(b = new BlurB(client, x, y));
 	
 	show_window();
-	flush();
 }
 
 BlurRadius::BlurRadius(BlurMain *client, BlurWindow *gui, int x, int y)

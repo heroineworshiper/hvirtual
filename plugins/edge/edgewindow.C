@@ -27,10 +27,10 @@
 
 EdgeWindow::EdgeWindow(Edge *plugin)
  : PluginClientWindow(plugin,
- 	320, 
-	120, 
-	320,
-	120,
+ 	DP(320), 
+	DP(120), 
+	DP(320),
+	DP(120),
 	0)
 {
 	this->plugin = plugin; 
@@ -42,8 +42,8 @@ EdgeWindow::~EdgeWindow()
 
 void EdgeWindow::create_objects()
 {
-	int x1 = 10, x = 10, y = 10;
-	int x2 = 310;
+	int x1 = DP(10), x = DP(10), y = DP(10);
+	int x2 = DP(310);
 	int margin = plugin->get_theme()->widget_border;
 	BC_Title *title;
 

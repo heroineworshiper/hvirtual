@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2014-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
  */
 
 #include "bcdisplayinfo.h"
+#include "bcsignals.h"
 #include "clip.h"
 #include "language.h"
 #include "hyperlapse.h"
@@ -42,6 +43,7 @@ HyperlapseWindow::~HyperlapseWindow()
 
 void HyperlapseWindow::create_objects()
 {
+PRINT_TRACE
 	int x1 = 10, x = 10, y = 10;
 	int x2 = 310;
 	int margin = plugin->get_theme()->widget_border;
@@ -73,6 +75,7 @@ void HyperlapseWindow::create_objects()
 		y));
 
 	show_window(1);
+PRINT_TRACE
 }
 
 

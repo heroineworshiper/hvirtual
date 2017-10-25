@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,10 +35,10 @@
 
 ColorBalanceWindow::ColorBalanceWindow(ColorBalanceMain *client)
  : PluginClientWindow(client,
-	330, 
-	250, 
-	330, 
-	250, 
+	DP(370), 
+	DP(250), 
+	DP(370), 
+	DP(250), 
 	0)
 { 
 	this->client = client; 
@@ -50,31 +50,30 @@ ColorBalanceWindow::~ColorBalanceWindow()
 
 void ColorBalanceWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_tool(new BC_Title(x, y, _("Color Balance")));
-	y += 25;
+	y += DP(25);
 	add_tool(new BC_Title(x, y, _("Cyan")));
-	add_tool(cyan = new ColorBalanceSlider(client, &(client->config.cyan), x + 70, y));
-	add_tool(new BC_Title(x + 270, y, _("Red")));
-	y += 25;
+	add_tool(cyan = new ColorBalanceSlider(client, &(client->config.cyan), x + DP(80), y));
+	add_tool(new BC_Title(x + DP(290), y, _("Red")));
+	y += DP(25);
 	add_tool(new BC_Title(x, y, _("Magenta")));
-	add_tool(magenta = new ColorBalanceSlider(client, &(client->config.magenta), x + 70, y));
-	add_tool(new BC_Title(x + 270, y, _("Green")));
-	y += 25;
+	add_tool(magenta = new ColorBalanceSlider(client, &(client->config.magenta), x + DP(80), y));
+	add_tool(new BC_Title(x + DP(290), y, _("Green")));
+	y += DP(25);
 	add_tool(new BC_Title(x, y, _("Yellow")));
-	add_tool(yellow = new ColorBalanceSlider(client, &(client->config.yellow), x + 70, y));
-	add_tool(new BC_Title(x + 270, y, _("Blue")));
-	y += 25;
-	add_tool(preserve = new ColorBalancePreserve(client, x + 70, y));
-	y += preserve->get_h() + 10;
-	add_tool(lock_params = new ColorBalanceLock(client, x + 70, y));
-	y += lock_params->get_h() + 10;
+	add_tool(yellow = new ColorBalanceSlider(client, &(client->config.yellow), x + DP(80), y));
+	add_tool(new BC_Title(x + DP(290), y, _("Blue")));
+	y += DP(25);
+	add_tool(preserve = new ColorBalancePreserve(client, x + DP(70), y));
+	y += preserve->get_h() + DP(10);
+	add_tool(lock_params = new ColorBalanceLock(client, x + DP(70), y));
+	y += lock_params->get_h() + DP(10);
 	add_tool(new ColorBalanceWhite(client, this, x, y));
-	y += lock_params->get_h() + 10;
+	y += lock_params->get_h() + DP(10);
 	add_tool(new ColorBalanceReset(client, this, x, y));
 
 	show_window();
-	flush();
 }
 
 void ColorBalanceWindow::update()
@@ -90,8 +89,8 @@ ColorBalanceSlider::ColorBalanceSlider(ColorBalanceMain *client,
  : BC_ISlider(x, 
  	y, 
 	0, 
-	200, 
-	200,
+	DP(200), 
+	DP(200),
 	-1000, 
 	1000, 
 	(int)*output)

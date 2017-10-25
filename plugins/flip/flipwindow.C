@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@
 
 FlipWindow::FlipWindow(FlipMain *client)
  : PluginClientWindow(client,
-	140,
-	100,
-	140,
-	100,
+	DP(140),
+	DP(100),
+	DP(140),
+	DP(100),
 	0)
 { 
 	this->client = client; 
@@ -46,20 +46,19 @@ FlipWindow::~FlipWindow()
 
 void FlipWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_tool(flip_vertical = new FlipToggle(client, 
 		&(client->config.flip_vertical), 
 		_("Vertical"),
 		x, 
 		y));
-	y += 30;
+	y += DP(30);
 	add_tool(flip_horizontal = new FlipToggle(client, 
 		&(client->config.flip_horizontal), 
 		_("Horizontal"),
 		x, 
 		y));
 	show_window();
-	flush();
 }
 
 
