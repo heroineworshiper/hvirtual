@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -138,7 +138,7 @@ void AboutPrefs::create_objects()
 		0,
 		0,
 		1));
-	y += listbox->get_h() + get_text_height(LARGEFONT) + 10;
+	y += listbox->get_h() + get_text_height(LARGEFONT) + DP(10);
 
 	set_font(LARGEFONT);
 	set_color(resources->text_default);
@@ -159,7 +159,7 @@ void AboutPrefs::create_objects()
 "\n"));
 	draw_text(x, y, license3);
 
-	x = get_w() - mwindow->theme->about_bg->get_w() - 10;
+	x = get_w() - mwindow->theme->about_bg->get_w() - DP(10);
 	y = mwindow->theme->preferencesoptions_y;
 	BC_Pixmap *temp_pixmap = new BC_Pixmap(this, 
 		mwindow->theme->about_bg,
@@ -171,7 +171,7 @@ void AboutPrefs::create_objects()
 	delete temp_pixmap;
 
 
-	x += mwindow->theme->about_bg->get_w() + 10;
+	x += mwindow->theme->about_bg->get_w() + DP(10);
 	y += get_text_height(LARGEFONT) * 2;
 
 

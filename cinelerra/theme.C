@@ -95,7 +95,8 @@ Theme::Theme()
 	loadmode_w = DP(350);
 
 #include "data/about_png.h"
-	about_bg = new VFrame(about_png);
+	about_bg = new VFrame;
+	about_bg->read_png(about_png, BC_Resources::dpi);
 
 	pane_color = BLACK;
 	drag_pane_color = WHITE;
