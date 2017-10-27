@@ -676,7 +676,7 @@ UNBUFFER(data);
 void VFrame::read_png(const unsigned char *data, int dpi)
 {
 // test if scaling is needed based on BC_Resources::dp_to_px rules
-	if(dpi <= MIN_DPI)
+	if(dpi < MIN_DPI)
 	{
 		read_png(data);
 		return;

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2015 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -275,5 +275,24 @@ public:
 	int handle_event();
 	PreferencesWindow *pwindow;
 };
+
+
+class OverrideDPI : public BC_CheckBox
+{
+public:
+	OverrideDPI(PreferencesWindow *pwindow, int x, int y);
+	int handle_event();
+	PreferencesWindow *pwindow;
+};
+
+class DPIText : public BC_TextBox
+{
+public:
+	DPIText(PreferencesWindow *pwindow, int x, int y, int w);
+	int handle_event();
+	PreferencesWindow *pwindow;
+};
+
+
 
 #endif

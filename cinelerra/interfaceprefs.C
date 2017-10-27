@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -224,6 +224,16 @@ void InterfacePrefs::create_objects()
 	x += DP(60);
 	add_subwindow(theme = new ViewTheme(x, y, pwindow));
 	theme->create_objects();
+
+
+	x = x1;
+	y += theme->get_h() + margin;
+	BC_CheckBox *checkbox;
+	add_subwindow(checkbox = new OverrideDPI(pwindow, x, y));
+	y += checkbox->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("DPI:")));
+	x += title->get_w() + margin;
+	add_subwindow(new DPIText(pwindow, x, y, DP(100)));
 
 }
 
@@ -638,6 +648,47 @@ int UseTipWindow::handle_event()
 	pwindow->thread->preferences->use_tipwindow = get_value();
 	return 1;
 }
+
+
+
+
+
+
+OverrideDPI::OverrideDPI(PreferencesWindow *pwindow, int x, int y)
+ : BC_CheckBox(x, y, pwindow->thread->preferences->override_dpi, _("Override DPI"))
+{
+	this->pwindow = pwindow;
+}
+
+int OverrideDPI::handle_event()
+{
+	
+	return 1;
+}
+
+
+
+
+
+
+DPIText::DPIText(PreferencesWindow *pwindow, int x, int y, int w)
+ : BC_TextBox(x, y, w, 1, pwindow->thread->preferences->dpi)
+{
+	this->pwindow = pwindow;
+}
+
+int DPIText::handle_event()
+{
+	
+	return 1;
+}
+
+
+
+
+
+
+
 
 
 

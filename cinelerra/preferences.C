@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,6 +96,8 @@ Preferences::Preferences()
 	local_rate = 0.0;
 
 	use_tipwindow = 0;
+	override_dpi = 0;
+	dpi = BASE_DPI;
 
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
@@ -162,6 +164,8 @@ void Preferences::copy_from(Preferences *that)
 	strcpy(theme, that->theme);
 
 	use_tipwindow = that->use_tipwindow;
+	override_dpi = that->override_dpi;
+	dpi = that->dpi;
 
 	cache_size = that->cache_size;
 	force_uniprocessor = that->force_uniprocessor;
@@ -274,6 +278,8 @@ int Preferences::load_defaults(BC_Hash *defaults)
 	char string[BCTEXTLEN];
 
 	use_tipwindow = defaults->get("USE_TIPWINDOW", use_tipwindow);
+	override_dpi = defaults->get("OVERRIDE_DPI", override_dpi);
+	dpi = defaults->get("DPI", dpi);
 	defaults->get("INDEX_DIRECTORY", index_directory);
 	index_size = defaults->get("INDEX_SIZE", index_size);
 	index_count = defaults->get("INDEX_COUNT", index_count);
@@ -369,6 +375,8 @@ int Preferences::save_defaults(BC_Hash *defaults)
 
 
 	defaults->update("USE_TIPWINDOW", use_tipwindow);
+	defaults->update("OVERRIDE_DPI", override_dpi);
+	defaults->update("DPI", dpi);
 
 	defaults->update("CACHE_SIZE", cache_size);
 	defaults->update("INDEX_DIRECTORY", index_directory);

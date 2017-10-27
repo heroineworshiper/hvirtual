@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,6 +126,8 @@ public:
 // Tip of the day
 	int use_tipwindow;
 
+	int override_dpi;
+	int dpi;
 
 // ====================================== Plugin Set ==============================
 	char plugin_dir[BCTEXTLEN];

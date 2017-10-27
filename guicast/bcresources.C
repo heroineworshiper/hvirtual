@@ -922,7 +922,7 @@ int BC_Resources::get_bg_light2() { return bg_light2; }
 
 int BC_Resources::dp_to_px(int dp)
 {
-	if(dpi <= MIN_DPI)
+	if(dpi < MIN_DPI)
 	{
 		return dp;
 	}
