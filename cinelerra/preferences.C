@@ -280,6 +280,8 @@ int Preferences::load_defaults(BC_Hash *defaults)
 	use_tipwindow = defaults->get("USE_TIPWINDOW", use_tipwindow);
 	override_dpi = defaults->get("OVERRIDE_DPI", override_dpi);
 	dpi = defaults->get("DPI", dpi);
+//printf("Preferences::load_defaults %d dpi=%d\n", __LINE__, dpi);
+
 	defaults->get("INDEX_DIRECTORY", index_directory);
 	index_size = defaults->get("INDEX_SIZE", index_size);
 	index_count = defaults->get("INDEX_COUNT", index_count);

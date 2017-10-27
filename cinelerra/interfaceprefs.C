@@ -19,6 +19,7 @@
  * 
  */
 
+#include "clip.h"
 #include "deleteallindexes.h"
 #include "edl.h"
 #include "edlsession.h"
@@ -175,34 +176,34 @@ void InterfacePrefs::create_objects()
 //	y += 35;
 //	add_subwindow(thumbnails = new ViewThumbnails(x, y, pwindow));
 
-	y += DP(35);
-	add_subwindow(new BC_Title(x, y, _("Clicking on edit boundaries does what:")));
-	y += DP(25);
-	add_subwindow(new BC_Title(x, y, _("Button 1:")));
-	
-	ViewBehaviourText *text;
-	add_subwindow(text = new ViewBehaviourText(DP(80), 
-		y - DP(5), 
-		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[0]), 
-			pwindow, 
-			&(pwindow->thread->edl->session->edit_handle_mode[0])));
-	text->create_objects();
-	y += DP(30);
-	add_subwindow(new BC_Title(x, y, _("Button 2:")));
-	add_subwindow(text = new ViewBehaviourText(DP(80), 
-		y - DP(5), 
-		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[1]), 
-			pwindow, 
-			&(pwindow->thread->edl->session->edit_handle_mode[1])));
-	text->create_objects();
-	y += DP(30);
-	add_subwindow(new BC_Title(x, y, _("Button 3:")));
-	add_subwindow(text = new ViewBehaviourText(DP(80), 
-		y - DP(5), 
-		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[2]), 
-			pwindow, 
-			&(pwindow->thread->edl->session->edit_handle_mode[2])));
-	text->create_objects();
+//	y += DP(35);
+// 	add_subwindow(new BC_Title(x, y, _("Clicking on edit boundaries does what:")));
+// 	y += DP(25);
+// 	add_subwindow(new BC_Title(x, y, _("Button 1:")));
+// 	
+// 	ViewBehaviourText *text;
+// 	add_subwindow(text = new ViewBehaviourText(DP(80), 
+// 		y - DP(5), 
+// 		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[0]), 
+// 			pwindow, 
+// 			&(pwindow->thread->edl->session->edit_handle_mode[0])));
+// 	text->create_objects();
+// 	y += DP(30);
+// 	add_subwindow(new BC_Title(x, y, _("Button 2:")));
+// 	add_subwindow(text = new ViewBehaviourText(DP(80), 
+// 		y - DP(5), 
+// 		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[1]), 
+// 			pwindow, 
+// 			&(pwindow->thread->edl->session->edit_handle_mode[1])));
+// 	text->create_objects();
+// 	y += DP(30);
+// 	add_subwindow(new BC_Title(x, y, _("Button 3:")));
+// 	add_subwindow(text = new ViewBehaviourText(DP(80), 
+// 		y - DP(5), 
+// 		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[2]), 
+// 			pwindow, 
+// 			&(pwindow->thread->edl->session->edit_handle_mode[2])));
+// 	text->create_objects();
 
 	y += DP(40);
 	x1 = x;
@@ -662,7 +663,7 @@ OverrideDPI::OverrideDPI(PreferencesWindow *pwindow, int x, int y)
 
 int OverrideDPI::handle_event()
 {
-	
+	pwindow->thread->preferences->override_dpi = get_value();
 	return 1;
 }
 
@@ -679,7 +680,8 @@ DPIText::DPIText(PreferencesWindow *pwindow, int x, int y, int w)
 
 int DPIText::handle_event()
 {
-	
+	pwindow->thread->preferences->dpi = atoi(get_text());
+	CLAMP(pwindow->thread->preferences->dpi, 72, 500);
 	return 1;
 }
 

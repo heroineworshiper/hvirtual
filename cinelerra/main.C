@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -174,19 +174,19 @@ int main(int argc, char *argv[])
 			operation = DO_USAGE;
 		}
 		else
-		if(!strcmp(argv[i], "-dpi"))
-		{
-			if(argc > i + 1)
-			{
-				BC_Resources::dpi = atoi(argv[i + 1]);
-				i++;
-			}
-			else
-			{
-				fprintf(stderr, "%s: -dpi needs a DPI.\n", argv[0]);
-			}
-		}
-		else
+// 		if(!strcmp(argv[i], "-dpi"))
+// 		{
+// 			if(argc > i + 1)
+// 			{
+// 				BC_Resources::dpi = atoi(argv[i + 1]);
+// 				i++;
+// 			}
+// 			else
+// 			{
+// 				fprintf(stderr, "%s: -dpi needs a DPI.\n", argv[0]);
+// 			}
+// 		}
+// 		else
 		if(!strcmp(argv[i], "-r"))
 		{
 			operation = DO_BATCHRENDER;
@@ -291,7 +291,7 @@ COPYRIGHT_DATE);
 			printf(_("-d = Run in the background as renderfarm client.  The port (400) is optional.\n"));
 			printf(_("-f = Run in the foreground as renderfarm client.  Substitute for -d.\n"));
 			printf(_("-n = Nice value if running as renderfarm client. (20)\n"));
-			printf(_("-dpi = DPI of the screen. (%d)\n"), BC_Resources::dpi);
+//			printf(_("-dpi = DPI of the screen. (%d)\n"), BC_Resources::dpi);
 			printf(_("-c = Configuration file to use instead of %s%s.\n"), 
 				BCASTDIR, 
 				CONFIG_FILE);

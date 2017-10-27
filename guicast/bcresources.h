@@ -94,6 +94,8 @@ public:
 
 // the DPI of the monitor
 	static int dpi;
+// don't probe for DPI
+	static int override_dpi;
 
 // These values should be changed before the first window is created.
 // colors

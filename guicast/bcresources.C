@@ -49,6 +49,7 @@ VFrame* BC_Resources::menu_bg = 0;
 
 
 
+int BC_Resources::override_dpi = 0;
 int BC_Resources::dpi = BASE_DPI;
 
 
@@ -128,15 +129,22 @@ void BC_Resources::init()
 //printf("BC_Resources::init\n");
 		initialized = 1;
 		
-		init_fonts();
 
 		synchronous = 0;
 		vframe_shm = 0;
 		display_info = new BC_DisplayInfo((char*)"", 0);
+
+// get DPI from BC_DisplayInfo
+		if(!override_dpi)
+		{
+			dpi = display_info->dpi;
+		}
+		
 		id_lock = new Mutex("BC_Resources::id_lock");
 		create_window_lock = new Mutex("BC_Resources::create_window_lock", 1);
 		id = 0;
 		filebox_id = 0;
+		init_fonts();
 
 		for(int i = 0; i < FILEBOX_HISTORY_SIZE; i++)
 			filebox_history[i].path[0] = 0;

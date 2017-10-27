@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,9 @@ EDLSession::EDLSession(EDL *edl)
 	assetlist_format = ASSETS_TEXT;
 	folderlist_format = FOLDERS_TEXT;
 	frame_rate = 25; // just has to be something by default
+	edit_handle_mode[0] = MOVE_ALL_EDITS;
+	edit_handle_mode[1] = MOVE_ONE_EDIT;
+	edit_handle_mode[2] = MOVE_NO_EDITS;
 	autos_follow_edits = 1; // this is needed for predictability
 	labels_follow_edits = 1;
 	plugins_follow_edits = 1;
@@ -211,9 +214,9 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	sprintf(default_vtransition, "Dissolve");
 	defaults->get("DEFAULT_VTRANSITION", default_vtransition);
 	default_transition_length = defaults->get("DEFAULT_TRANSITION_LENGTH", (double)1);
-	edit_handle_mode[0] = defaults->get("EDIT_HANDLE_MODE0", MOVE_ALL_EDITS);
-	edit_handle_mode[1] = defaults->get("EDIT_HANDLE_MODE1", MOVE_ONE_EDIT);
-	edit_handle_mode[2] = defaults->get("EDIT_HANDLE_MODE2", MOVE_NO_EDITS);
+//	edit_handle_mode[0] = defaults->get("EDIT_HANDLE_MODE0", MOVE_ALL_EDITS);
+//	edit_handle_mode[1] = defaults->get("EDIT_HANDLE_MODE1", MOVE_ONE_EDIT);
+//	edit_handle_mode[2] = defaults->get("EDIT_HANDLE_MODE2", MOVE_NO_EDITS);
 	editing_mode = defaults->get("EDITING_MODE", EDITING_IBEAM);
 	enable_duplex = defaults->get("ENABLE_DUPLEX", 1);
 //	folderlist_format = defaults->get("FOLDERLIST_FORMAT", FOLDERS_TEXT);
@@ -354,9 +357,9 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("DEFAULT_ATRANSITION", default_atransition);
 	defaults->update("DEFAULT_VTRANSITION", default_vtransition);
 	defaults->update("DEFAULT_TRANSITION_LENGTH", default_transition_length);
-    defaults->update("EDIT_HANDLE_MODE0", edit_handle_mode[0]);
-    defaults->update("EDIT_HANDLE_MODE1", edit_handle_mode[1]);
-    defaults->update("EDIT_HANDLE_MODE2", edit_handle_mode[2]);
+//     defaults->update("EDIT_HANDLE_MODE0", edit_handle_mode[0]);
+//     defaults->update("EDIT_HANDLE_MODE1", edit_handle_mode[1]);
+//     defaults->update("EDIT_HANDLE_MODE2", edit_handle_mode[2]);
 	defaults->update("EDITING_MODE", editing_mode);
 	defaults->update("ENABLE_DUPLEX", enable_duplex);
 //    defaults->update("FOLDERLIST_FORMAT", folderlist_format);
@@ -765,9 +768,9 @@ int EDLSession::copy(EDLSession *session)
 	strcpy(default_atransition, session->default_atransition);
 	strcpy(default_vtransition, session->default_vtransition);
 	default_transition_length = session->default_transition_length;
-	edit_handle_mode[0] = session->edit_handle_mode[0];
-	edit_handle_mode[1] = session->edit_handle_mode[1];
-	edit_handle_mode[2] = session->edit_handle_mode[2];
+//	edit_handle_mode[0] = session->edit_handle_mode[0];
+//	edit_handle_mode[1] = session->edit_handle_mode[1];
+//	edit_handle_mode[2] = session->edit_handle_mode[2];
 	editing_mode = session->editing_mode;
 	enable_duplex = session->enable_duplex;
 	folderlist_format = session->folderlist_format;

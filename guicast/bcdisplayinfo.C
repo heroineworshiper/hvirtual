@@ -263,6 +263,15 @@ void BC_DisplayInfo::init_window(const char *display_name, int show_error)
 	rootwin = RootWindow(display, screen);
 	vis = DefaultVisual(display, screen);
 	default_depth = DefaultDepth(display, screen);
+	
+	dpi = (int)(XDisplayWidth(display, screen) * 25.4 /
+		XDisplayWidthMM(display, screen));
+
+
+//	XDisplayHeight(display, screen);
+//	XDisplayHeightMM(display, screen);
+	
+	
 #ifdef SINGLE_THREAD
 	BC_Display::unlock_display();
 #endif // SINGLE_THREAD

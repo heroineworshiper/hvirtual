@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1630,6 +1630,13 @@ void MWindow::create_objects(int want_gui,
 
 	if(debug) PRINT_TRACE
 
+// need DPI before initializing graphics
+	init_defaults(defaults, config_path);
+	init_preferences();
+	
+	BC_Resources::override_dpi = preferences->override_dpi;
+	BC_Resources::dpi = preferences->dpi;
+	if(debug) PRINT_TRACE
 
 	init_3d();
 
@@ -1657,9 +1664,6 @@ void MWindow::create_objects(int want_gui,
 	init_error();
 	if(debug) PRINT_TRACE
 
-	init_defaults(defaults, config_path);
-	init_preferences();
-	if(debug) PRINT_TRACE
 
 	init_plugins(preferences, splash_window);
 	if(debug) PRINT_TRACE
