@@ -328,7 +328,10 @@ void BatchRenderThread::load_defaults(BC_Hash *defaults)
 	{
 		char string[BCTEXTLEN];
 		sprintf(string, "BATCHRENDER_COLUMN%d", i);
-		column_width[i] = defaults->get(string, list_widths[i]);
+		if(list_widths != 0)
+		{
+			column_width[i] = defaults->get(string, list_widths[i]);
+		}
 	}
 }
 

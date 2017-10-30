@@ -136,6 +136,7 @@ SaveAs::SaveAs(MWindow *mwindow)
 { 
 	this->mwindow = mwindow; 
 	quit_now = 0;
+	set_shift(); 
 }
 
 int SaveAs::set_mainmenu(MainMenu *mmenu)
