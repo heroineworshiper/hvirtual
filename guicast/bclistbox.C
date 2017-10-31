@@ -340,6 +340,7 @@ BC_ListBox::BC_ListBox(int x,
 	int allow_drag)
  : BC_SubWindow(x, y, w, h, -1)
 {
+//printf("BC_ListBox::BC_ListBox %d\n", __LINE__);
 	justify = LISTBOX_RIGHT;
 	xposition = 0;
 	highlighted_item = -1;
@@ -365,6 +366,7 @@ BC_ListBox::BC_ListBox(int x,
 	bg_surface = 0;
  	bg_pixmap = 0;
 
+//printf("BC_ListBox::BC_ListBox %d\n", __LINE__);
 
  	current_operation = NO_OPERATION;
 	button_highlighted = 0;
@@ -382,19 +384,22 @@ BC_ListBox::BC_ListBox(int x,
 
 	popup_w = w;
 	popup_h = h;
+//printf("BC_ListBox::BC_ListBox %d\n", __LINE__);
 
 	for(int i = 0; i < 3; i++)
 	{
 		button_images[i] = 0;
 		column_bg[i] = 0;
 	}
+//printf("BC_ListBox::BC_ListBox %d\n", __LINE__);
 	for(int i = 0; i < 5; i++)
 		toggle_images[i] = 0;
 
+//printf("BC_ListBox::BC_ListBox %d\n", __LINE__);
 	column_sort_up = 0;
 	column_sort_dn = 0;
 
-//printf("BC_ListBox::BC_ListBox 1\n");
+//printf("BC_ListBox::BC_ListBox %d\n", __LINE__);
 	this->data = data;
 	this->columns = columns;
 	this->yposition = yposition;
@@ -427,9 +432,9 @@ BC_ListBox::BC_ListBox(int x,
 
 
 // reset the search engine
-//printf("BC_ListBox::BC_ListBox 4\n");
+//printf("BC_ListBox::BC_ListBox %d\n", __LINE__);
 	reset_query();
-//printf("BC_ListBox::BC_ListBox 5\n");
+//printf("BC_ListBox::BC_ListBox %d\n", __LINE__);
 }
 
 BC_ListBox::~BC_ListBox()
@@ -4589,6 +4594,7 @@ void BC_ListBox::draw_title(int number)
 			image_number = 2;
 	}
 
+//printf("BC_ListBox::draw_title %d %d\n", __LINE__, column_width[number]);
 	int column_offset = get_column_offset(number) - xposition + LISTBOX_BORDER;
 	int column_width = get_column_width(number, 1);
 	gui->draw_3segmenth(get_column_offset(number) - xposition + LISTBOX_BORDER,
@@ -4643,7 +4649,6 @@ int BC_ListBox::draw_titles(int flash)
 		(display_format == LISTBOX_TEXT ||
 		display_format == LISTBOX_ICON_LIST))
 	{
-//printf("BC_ListBox::draw_titles 1 %d\n", highlighted_title);
 		for(int i = 0; i < columns; i++)
 		{
 			if(i != highlighted_title)

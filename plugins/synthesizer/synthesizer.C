@@ -1328,9 +1328,9 @@ int SynthOscGUIPhase::handle_event()
 
 
 SynthOscGUIFreq::SynthOscGUIFreq(Synth *synth, SynthOscGUI *gui, int y)
- : BC_IPot(DP(200), 
+ : BC_FPot(DP(200), 
  	y, 
-	(int64_t)(synth->config.oscillator_config.values[gui->number]->freq_factor), 
+	synth->config.oscillator_config.values[gui->number]->freq_factor, 
 	1, 
 	100)
 {

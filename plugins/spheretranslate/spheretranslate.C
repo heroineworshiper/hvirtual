@@ -239,18 +239,18 @@ void SphereTranslateMain::update_gui()
 		if(load_configuration())
 		{
 			thread->window->lock_window();
-			((SphereTranslateWin*)thread->window)->translate_x->update(config.translate_x);
-			((SphereTranslateWin*)thread->window)->translate_y->update(config.translate_y);
-			((SphereTranslateWin*)thread->window)->translate_z->update(config.translate_z);
+// 			((SphereTranslateWin*)thread->window)->translate_x->update(config.translate_x);
+// 			((SphereTranslateWin*)thread->window)->translate_y->update(config.translate_y);
+// 			((SphereTranslateWin*)thread->window)->translate_z->update(config.translate_z);
 			((SphereTranslateWin*)thread->window)->rotate_x->update(config.rotate_x);
 			((SphereTranslateWin*)thread->window)->rotate_y->update(config.rotate_y);
 			((SphereTranslateWin*)thread->window)->rotate_z->update(config.rotate_z);
 			((SphereTranslateWin*)thread->window)->pivot_x->update(config.pivot_x);
 			((SphereTranslateWin*)thread->window)->pivot_y->update(config.pivot_y);
 
-			((SphereTranslateWin*)thread->window)->translate_x_text->update(config.translate_x);
-			((SphereTranslateWin*)thread->window)->translate_y_text->update(config.translate_y);
-			((SphereTranslateWin*)thread->window)->translate_z_text->update(config.translate_z);
+// 			((SphereTranslateWin*)thread->window)->translate_x_text->update(config.translate_x);
+// 			((SphereTranslateWin*)thread->window)->translate_y_text->update(config.translate_y);
+// 			((SphereTranslateWin*)thread->window)->translate_z_text->update(config.translate_z);
 			((SphereTranslateWin*)thread->window)->rotate_x_text->update(config.rotate_x);
 			((SphereTranslateWin*)thread->window)->rotate_y_text->update(config.rotate_y);
 			((SphereTranslateWin*)thread->window)->rotate_z_text->update(config.rotate_z);

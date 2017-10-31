@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,6 @@ static const char *list_titles[] =
 	"Elapsed"
 };
 
-static int *list_widths = 0;
 
 #define HALF_W DP(350)
 
@@ -228,16 +227,6 @@ BC_Window* BatchRenderThread::new_gui()
 	current_end = 0.0;
 	default_job = new BatchRenderJob(mwindow->preferences);
 
-
-	if(!list_widths)
-	{
-		list_widths = new int[4];
-		list_widths[0] = 50;
-		list_widths[1] = 100;
-		list_widths[2] = 200;
-		list_widths[3] = 100;
-	}
-	
 	
 	if(!file_entries)
 	{
@@ -312,6 +301,14 @@ void BatchRenderThread::save_jobs(char *path)
 
 void BatchRenderThread::load_defaults(BC_Hash *defaults)
 {
+	static int default_list_widths[] = 
+	{
+		50,
+		100,
+		200,
+		100
+	};
+	
 	if(default_job)
 	{
 		default_job->asset->load_defaults(defaults,
@@ -328,10 +325,9 @@ void BatchRenderThread::load_defaults(BC_Hash *defaults)
 	{
 		char string[BCTEXTLEN];
 		sprintf(string, "BATCHRENDER_COLUMN%d", i);
-		if(list_widths != 0)
-		{
-			column_width[i] = defaults->get(string, list_widths[i]);
-		}
+		column_width[i] = defaults->get(string, default_list_widths[i]);
+
+//printf("BatchRenderThread::load_defaults %d %d %p\n", __LINE__, column_width[i], list_widths);
 	}
 }
 
@@ -789,6 +785,13 @@ void BatchRenderGUI::create_objects()
 	y = y2;
 	add_subwindow(list_title = new BC_Title(x, y, _("Batches to render:")));
 	y += DP(20);
+
+// for(int i = 0; i < BATCHRENDER_COLUMNS; i++)
+// {
+// printf("BatchRenderGUI::create_objects %d %d\n", __LINE__, thread->column_width[i]);
+// }
+
+
 	add_subwindow(batch_list = new BatchRenderList(thread, 
 		x, 
 		y,

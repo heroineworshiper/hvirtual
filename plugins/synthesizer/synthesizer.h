@@ -254,7 +254,7 @@ public:
 	SynthOscGUI *gui;
 };
 
-class SynthOscGUIFreq : public BC_IPot
+class SynthOscGUIFreq : public BC_FPot
 {
 public:
 	SynthOscGUIFreq(Synth *synth, SynthOscGUI *gui, int y);
