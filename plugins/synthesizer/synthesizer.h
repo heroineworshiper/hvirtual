@@ -108,7 +108,7 @@ float keyboard_freqs[] =
 };
 
 #define MAX_FREQS 16
-#define TOTALOSCILLATORS 1
+#define MAX_OSCILLATORS 256
 #define OSCILLATORHEIGHT DP(40)
 #define TOTALNOTES (sizeof(keyboard_freqs) / sizeof(float))
 #define MIDDLE_C 24
@@ -506,6 +506,24 @@ class SynthFreqRandom : public BC_MenuItem
 public:
 	SynthFreqRandom(Synth *synth);
 	~SynthFreqRandom();
+	int handle_event();
+	Synth *synth;
+};
+
+class SynthFreqPow1 : public BC_MenuItem
+{
+public:
+	SynthFreqPow1(Synth *synth);
+	~SynthFreqPow1();
+	int handle_event();
+	Synth *synth;
+};
+
+class SynthFreqPow2 : public BC_MenuItem
+{
+public:
+	SynthFreqPow2(Synth *synth);
+	~SynthFreqPow2();
 	int handle_event();
 	Synth *synth;
 };

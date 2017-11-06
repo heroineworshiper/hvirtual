@@ -192,7 +192,7 @@ void Synth::update_gui()
 
 void Synth::add_oscillator()
 {
-	if(config.oscillator_config.total > 20) return;
+	if(config.oscillator_config.total > MAX_OSCILLATORS) return;
 
 	config.oscillator_config.append(new SynthOscillatorConfig(config.oscillator_config.total - 1));
 }
@@ -592,6 +592,8 @@ void SynthWindow::create_objects()
 	harmonicmenu->add_item(new SynthFreqFibonacci(synth));
 	harmonicmenu->add_item(new SynthFreqOdd(synth));
 	harmonicmenu->add_item(new SynthFreqPrime(synth));
+	harmonicmenu->add_item(new SynthFreqPow1(synth));
+	harmonicmenu->add_item(new SynthFreqPow2(synth));
 
 	int x = DP(10), y = DP(30), i;
 	
@@ -1001,7 +1003,7 @@ void SynthWindow::update_oscillators()
 			gui->phase->update((int64_t)(config->phase * 360));
 
 			gui->freq->reposition_window(gui->freq->get_x(), y);
-			gui->freq->update((int64_t)(config->freq_factor));
+			gui->freq->update(config->freq_factor);
 		}
 		y += OSCILLATORHEIGHT;
 	}
@@ -1929,6 +1931,51 @@ int SynthFreqRandom::handle_event()
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
 }
+
+SynthFreqPow1::SynthFreqPow1(Synth *synth)
+ : BC_MenuItem(_("Powers of 1.4"))
+{
+	this->synth = synth;
+}
+SynthFreqPow1::~SynthFreqPow1()
+{
+}
+
+int SynthFreqPow1::handle_event()
+{
+	for(int i = 0; i < synth->config.oscillator_config.total; i++)
+	{
+		synth->config.oscillator_config.values[i]->freq_factor = pow(sqrt(2), i);
+	}
+
+	((SynthWindow*)synth->thread->window)->update_gui();
+	synth->send_configure_change();
+}
+
+
+SynthFreqPow2::SynthFreqPow2(Synth *synth)
+ : BC_MenuItem(_("Powers of 2"))
+{
+	this->synth = synth;
+}
+SynthFreqPow2::~SynthFreqPow2()
+{
+}
+
+int SynthFreqPow2::handle_event()
+{
+	for(int i = 0; i < synth->config.oscillator_config.total; i++)
+	{
+		synth->config.oscillator_config.values[i]->freq_factor = pow(2, i);
+	}
+
+	((SynthWindow*)synth->thread->window)->update_gui();
+	synth->send_configure_change();
+}
+
+
+
+
 
 SynthFreqEnum::SynthFreqEnum(Synth *synth)
  : BC_MenuItem(_("Enumerate"))

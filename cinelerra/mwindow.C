@@ -273,6 +273,10 @@ void MWindow::init_defaults(BC_Hash* &defaults, char *config_path)
 
 	defaults = new BC_Hash(path);
 	defaults->load();
+	BC_WindowBase::get_resources()->filebox_sortcolumn = 
+		mwindow->defaults->get("FILEBOX_SORT_COLUMN", 0);
+	BC_WindowBase::get_resources()->filebox_sortorder = 
+		mwindow->defaults->get("FILEBOX_SORT_ORDER", BC_ListBox::SORT_ASCENDING);
 }
 
 
@@ -2874,6 +2878,11 @@ void MWindow::dump_plugins()
 
 int MWindow::save_defaults()
 {
+	defaults->update("FILEBOX_SORT_COLUMN", 
+		BC_WindowBase::get_resources()->filebox_sortcolumn);
+	defaults->update("FILEBOX_SORT_ORDER", 
+		BC_WindowBase::get_resources()->filebox_sortorder);
+
 	gui->save_defaults(defaults);
 	edl->save_defaults(defaults);
 	session->save_defaults(defaults);

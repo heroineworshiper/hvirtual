@@ -808,12 +808,35 @@ int Spectrogram::process_buffer(int64_t size,
 		float *sample_output = header->samples + total_windows * (HALF_WINDOW + 1);
 // 1st sample is maximum
 		sample_output[0] = max;
+//printf("Spectrogram::process_buffer %d\n", __LINE__);
+//static int debug = 1;
+//float accum = 0;
+
 		for(int i = 0; i < HALF_WINDOW; i++)
 		{
-			sample_output[i + 1] = sqrt(freq_real[i] * freq_real[i] +
-				freq_imag[i] * freq_imag[i]);
+
+// if(debug)
+// {
+// float mag = hypot(freq_real[i], freq_imag[i]);
+// float angle = atan2(freq_real[i], freq_imag[i]);
+// if(angle < 0) angle += 2 * M_PI;
+// printf("%f %f\n", 
+// mag, 
+// angle * 360 / (2 * M_PI));
+// accum += freq_real[i];
+// }
+
+			sample_output[i + 1] = hypot(freq_real[i],
+				freq_imag[i]);
 //			sample_output[i + 1] = freq_real[i];
 		}
+
+// if(debug) 
+// {
+// printf("accum=%f\n", accum);
+// debug = 0;
+// }
+
 
 // Shift audio buffer out
 		memcpy(audio_buffer->get_data(), 
