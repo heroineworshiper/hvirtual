@@ -969,23 +969,34 @@ void PluginServer::hide_gui()
 
 void PluginServer::update_gui()
 {
-	if(!plugin_open || !plugin) return;
 
-	client->total_len = plugin->length;
-	client->source_start = plugin->startproject;
+	if(!plugin_open) return;
 
-	if(video)
+
+	if(plugin)
 	{
-		client->source_position = Units::to_int64(
-			mwindow->edl->local_session->get_selectionstart(1) * 
-				mwindow->edl->session->frame_rate);
+		client->total_len = plugin->length;
+		client->source_start = plugin->startproject;
+
+		if(video)
+		{
+			client->source_position = Units::to_int64(
+				mwindow->edl->local_session->get_selectionstart(1) * 
+					mwindow->edl->session->frame_rate);
+		}
+		else
+		if(audio)
+		{
+			client->source_position = Units::to_int64(
+				mwindow->edl->local_session->get_selectionstart(1) * 
+					mwindow->edl->session->sample_rate);
+		}
 	}
 	else
-	if(audio)
 	{
-		client->source_position = Units::to_int64(
-			mwindow->edl->local_session->get_selectionstart(1) * 
-				mwindow->edl->session->sample_rate);
+		client->total_len = 1;
+		client->source_start = 0;
+		client->source_position = 0;
 	}
 
 	client->plugin_update_gui();

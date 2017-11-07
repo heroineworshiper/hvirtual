@@ -273,10 +273,6 @@ void MWindow::init_defaults(BC_Hash* &defaults, char *config_path)
 
 	defaults = new BC_Hash(path);
 	defaults->load();
-	BC_WindowBase::get_resources()->filebox_sortcolumn = 
-		mwindow->defaults->get("FILEBOX_SORT_COLUMN", 0);
-	BC_WindowBase::get_resources()->filebox_sortorder = 
-		mwindow->defaults->get("FILEBOX_SORT_ORDER", BC_ListBox::SORT_ASCENDING);
 }
 
 
@@ -2101,15 +2097,16 @@ void MWindow::age_caches()
 }
 
 
-void MWindow::show_keyframe_gui(Plugin *plugin)
+void MWindow::show_keyframe_gui(Plugin *plugin, PluginServer *plugin_server)
 {
 	keyframe_gui_lock->lock("MWindow::show_keyframe_gui");
 // Find existing thread
 	for(int i = 0; i < keyframe_threads->size(); i++)
 	{
-		if(keyframe_threads->get(i)->plugin == plugin)
+		if(plugin && keyframe_threads->get(i)->plugin == plugin ||
+			plugin_server && keyframe_threads->get(i)->plugin_server == plugin_server)
 		{
-			keyframe_threads->get(i)->start_window(plugin, 0);
+			keyframe_threads->get(i)->start_window(plugin, plugin_server, 0);
 			keyframe_gui_lock->unlock();
 			return;
 		}
@@ -2118,9 +2115,10 @@ void MWindow::show_keyframe_gui(Plugin *plugin)
 // Find unused thread
 	for(int i = 0; i < keyframe_threads->size(); i++)
 	{
-		if(!keyframe_threads->get(i)->plugin)
+		if(!keyframe_threads->get(i)->plugin &&
+			!keyframe_threads->get(i)->plugin_server)
 		{
-			keyframe_threads->get(i)->start_window(plugin, 0);
+			keyframe_threads->get(i)->start_window(plugin, plugin_server, 0);
 			keyframe_gui_lock->unlock();
 			return;
 		}
@@ -2129,7 +2127,7 @@ void MWindow::show_keyframe_gui(Plugin *plugin)
 // Create new thread
 	KeyFrameThread *thread = new KeyFrameThread(this);
 	keyframe_threads->append(thread);
-	thread->start_window(plugin, 0);
+	thread->start_window(plugin, plugin_server, 0);
 
 	keyframe_gui_lock->unlock();
 }
@@ -2274,6 +2272,20 @@ void MWindow::hide_keyframe_gui(Plugin *plugin)
 	keyframe_gui_lock->unlock();
 }
 
+void MWindow::hide_keyframe_gui(PluginServer *plugin_server)
+{
+	keyframe_gui_lock->lock("MWindow::hide_keyframe_gui");
+	for(int i = 0; i < keyframe_threads->size(); i++)
+	{
+		if(keyframe_threads->get(i)->plugin_server = plugin_server)
+		{
+			keyframe_threads->get(i)->close_window();
+			break;
+		}
+	}
+	keyframe_gui_lock->unlock();
+}
+
 void MWindow::update_keyframe_guis()
 {
 // Send new configuration to keyframe GUI's
@@ -2282,7 +2294,9 @@ void MWindow::update_keyframe_guis()
 	{
 		KeyFrameThread *ptr = keyframe_threads->get(i);
 		if(edl->tracks->plugin_exists(ptr->plugin))
-			ptr->update_gui(1);
+		{
+//			ptr->update_gui(1);
+		}
 		else
 		{
 			ptr->close_window();
@@ -2300,7 +2314,9 @@ void MWindow::update_plugin_guis(int do_keyframe_guis)
 	{
 		PluginServer *ptr = plugin_guis->get(i);
 		if(edl->tracks->plugin_exists(ptr->plugin))
+		{
 			ptr->update_gui();
+		}
 		else
 		{
 // Schedule for deletion if no plugin
@@ -2878,10 +2894,6 @@ void MWindow::dump_plugins()
 
 int MWindow::save_defaults()
 {
-	defaults->update("FILEBOX_SORT_COLUMN", 
-		BC_WindowBase::get_resources()->filebox_sortcolumn);
-	defaults->update("FILEBOX_SORT_ORDER", 
-		BC_WindowBase::get_resources()->filebox_sortorder);
 
 	gui->save_defaults(defaults);
 	edl->save_defaults(defaults);

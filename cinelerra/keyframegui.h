@@ -33,8 +33,6 @@ class KeyFrameWindow;
 
 
 #define KEYFRAME_COLUMNS 2
-// Enable editing of detailed keyframe parameters.
-//#define EDIT_KEYFRAME
 
 class KeyFrameThread : public BC_DialogThread
 {
@@ -44,7 +42,7 @@ public:
 
 
 	BC_Window* new_gui();
-	void start_window(Plugin *plugin, KeyFrame *keyframe);
+	void start_window(Plugin *plugin, PluginServer *plugin_server, KeyFrame *keyframe);
 	void handle_done_event(int result);
 	void handle_close_event(int result);
 	void update_values();
@@ -54,11 +52,11 @@ public:
 	void apply_preset(const char *title, int is_factory);
 	void apply_value();
 	void calculate_preset_list();
-	void update_gui(int update_value_text = 1);
 	void close_window();
 
 	ArrayList<BC_ListBoxItem*> *keyframe_data;
 	Plugin *plugin;
+	PluginServer *plugin_server;
 	KeyFrame *keyframe;
 	MWindow *mwindow;
 	char window_title[BCTEXTLEN];
@@ -80,25 +78,6 @@ public:
 	PresetsDB *presets_db;
 };
 
-#ifdef EDIT_KEYFRAME
-
-
-class KeyFrameList : public BC_ListBox
-{
-public:
-	KeyFrameList(KeyFrameThread *thread,
-		KeyFrameWindow *window,
-		int x,
-		int y,
-		int w, 
-		int h);
-	int selection_changed();
-	int handle_event();
-	int column_resize_event();
-	KeyFrameThread *thread;
-	KeyFrameWindow *window;
-};
-#endif
 
 class KeyFramePresetsList : public BC_ListBox
 {
@@ -180,35 +159,6 @@ public:
  * };
  */
 
-#ifdef EDIT_KEYFRAME
-
-
-class KeyFrameValue : public BC_TextBox
-{
-public:
-	KeyFrameValue(KeyFrameThread *thread,
-		KeyFrameWindow *window,
-		int x,
-		int y,
-		int w);
-	int handle_event();
-	KeyFrameThread *thread;
-	KeyFrameWindow *window;
-};
-
-class KeyFrameAll : public BC_CheckBox
-{
-public:
-	KeyFrameAll(KeyFrameThread *thread,
-		KeyFrameWindow *window,
-		int x,
-		int y);
-	int handle_event();
-	KeyFrameThread *thread;
-	KeyFrameWindow *window;
-};
-
-#endif
 
 
 class KeyFramePresetsOK : public BC_OKButton
@@ -235,16 +185,6 @@ public:
 	int resize_event(int w, int h);
 	void update_editing();
 
-#ifdef EDIT_KEYFRAME
-
-// List of parameters, values, & whether the parameter is defined by the current keyframe.
-	KeyFrameList *keyframe_list;
-// The text area of the plugin
-//	KeyFrameText *keyframe_text;
-// Value text of the current parameter
-	KeyFrameValue *value_text;
-	KeyFrameAll *all_toggle;
-#endif
 	
 	KeyFramePresetsList *preset_list;
 	KeyFramePresetsText *preset_text;
@@ -252,12 +192,6 @@ public:
 	KeyFramePresetsSave *save_preset;
 	KeyFramePresetsApply *apply_preset;
 
-#ifdef EDIT_KEYFRAME
-
-	BC_Title *title1;
-//	BC_Title *title2;
-	BC_Title *title3;
-#endif
 
 	BC_Title *title4;
 	BC_Title *title5;

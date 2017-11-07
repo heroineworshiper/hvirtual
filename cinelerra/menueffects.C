@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -318,7 +318,7 @@ void MenuEffectThread::run()
 		if(plugin->realtime)
 		{
 // Open a prompt GUI
-			MenuEffectPrompt prompt(mwindow);
+			MenuEffectPrompt prompt(mwindow, plugin);
 			prompt.create_objects();
 			char title[BCTEXTLEN];
 			sprintf(title, PROGRAM_NAME ": %s", plugin->title);
@@ -340,6 +340,7 @@ void MenuEffectThread::run()
 // Close plugin.
 			plugin->save_data(&plugin_data);
 			plugin->hide_gui();
+			mwindow->hide_keyframe_gui(plugin);
 
 // Can't delete here.
 			dead_plugins->append(plugin);
@@ -791,18 +792,20 @@ int MenuEffectWindowList::handle_event()
 
 #define PROMPT_TEXT _("Set up effect panel and hit \"OK\"")
 
-MenuEffectPrompt::MenuEffectPrompt(MWindow *mwindow)
+MenuEffectPrompt::MenuEffectPrompt(MWindow *mwindow, PluginServer *plugin_server)
  : BC_Window(PROGRAM_NAME ": Effect Prompt", 
  		mwindow->gui->get_abs_cursor_x(1) - DP(260) / 2,
 		mwindow->gui->get_abs_cursor_y(1) - DP(300),
  		MenuEffectPrompt::calculate_w(mwindow->gui), 
-		MenuEffectPrompt::calculate_h(mwindow->gui), 
+		MenuEffectPrompt::calculate_h(mwindow), 
 		MenuEffectPrompt::calculate_w(mwindow->gui),
-		MenuEffectPrompt::calculate_h(mwindow->gui),
+		MenuEffectPrompt::calculate_h(mwindow),
 		0,
 		0,
 		1)
 {
+	this->mwindow = mwindow;
+	this->plugin_server = plugin_server;
 }
 
 int MenuEffectPrompt::calculate_w(BC_WindowBase *gui)
@@ -812,22 +815,59 @@ int MenuEffectPrompt::calculate_w(BC_WindowBase *gui)
 	return w;
 }
 
-int MenuEffectPrompt::calculate_h(BC_WindowBase *gui)
+int MenuEffectPrompt::calculate_h(MWindow *mwindow)
 {
-	int h = BC_Title::calculate_h(gui, PROMPT_TEXT);
-	h += BC_OKButton::calculate_h() + DP(30);
+	int margin = mwindow->theme->widget_border;
+	int h = BC_Title::calculate_h(mwindow->gui, PROMPT_TEXT) + margin;
+	h += BC_OKButton::calculate_h() + margin;
+	h += BC_GenericButton::calculate_h() + margin;
 	return h;
 }
 
 
 void MenuEffectPrompt::create_objects()
 {
-	int x = 10, y = 10;
+	int x = mwindow->theme->widget_border;
+	int y = mwindow->theme->widget_border;
+	int margin = mwindow->theme->widget_border;
 	BC_Title *title;
+
 	add_subwindow(title = new BC_Title(x, y, PROMPT_TEXT));
+	y += title->get_h() + margin;
+	
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
+	MenuEffectPresets *button;
+	add_subwindow(button = new MenuEffectPresets(mwindow, this, x, y));
+	y += button->get_h() + margin;
+	
+	
 	show_window();
 	raise_window();
 }
+
+
+
+
+
+
+
+MenuEffectPresets::MenuEffectPresets(MWindow *mwindow, MenuEffectPrompt *gui, int x, int y)
+ : BC_GenericButton(x, 
+ 	y,
+	_("Presets..."))
+{
+	this->mwindow = mwindow;
+	this->gui = gui;
+}
+
+int MenuEffectPresets::handle_event()
+{
+	mwindow->show_keyframe_gui(0, gui->plugin_server);
+	return 1;
+}
+
+
+
+
 

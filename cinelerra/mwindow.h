@@ -259,9 +259,10 @@ public:
 // they can run.
 	int plugin_gui_open(Plugin *plugin);
 
-	void show_keyframe_gui(Plugin *plugin);
+	void show_keyframe_gui(Plugin *plugin, PluginServer *plugin_server);
 	void hide_keyframe_guis();
 	void hide_keyframe_gui(Plugin *plugin);
+	void hide_keyframe_gui(PluginServer *plugin_server);
 	void update_keyframe_guis();
 
 

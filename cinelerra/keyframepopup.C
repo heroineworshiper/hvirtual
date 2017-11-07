@@ -451,7 +451,7 @@ KeyframePopupEdit::KeyframePopupEdit(MWindow *mwindow, KeyframePopup *popup)
 
 int KeyframePopupEdit::handle_event()
 {
-	mwindow->show_keyframe_gui(popup->keyframe_plugin);
+	mwindow->show_keyframe_gui(popup->keyframe_plugin, 0);
 	return 1;
 }
 

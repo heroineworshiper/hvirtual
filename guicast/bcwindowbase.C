@@ -3889,6 +3889,8 @@ int BC_WindowBase::load_defaults(BC_Hash *defaults)
 	resources->filebox_columnwidth[0] = defaults->get("FILEBOX_WIDTH0", resources->filebox_columnwidth[0]);
 	resources->filebox_columnwidth[1] = defaults->get("FILEBOX_WIDTH1", resources->filebox_columnwidth[1]);
 	resources->filebox_columnwidth[2] = defaults->get("FILEBOX_WIDTH2", resources->filebox_columnwidth[2]);
+	resources->filebox_sortcolumn = defaults->get("FILEBOX_SORTCOLUMN", resources->filebox_sortcolumn);
+	resources->filebox_sortorder = defaults->get("FILEBOX_SORTORDER", resources->filebox_sortorder);
 	defaults->get("FILEBOX_FILTER", resources->filebox_filter);
 	return 0;
 }
@@ -3914,6 +3916,8 @@ int BC_WindowBase::save_defaults(BC_Hash *defaults)
 	defaults->update("FILEBOX_WIDTH1", resources->filebox_columnwidth[1]);
 	defaults->update("FILEBOX_WIDTH2", resources->filebox_columnwidth[2]);
 	defaults->update("FILEBOX_FILTER", resources->filebox_filter);
+	defaults->update("FILEBOX_SORTCOLUMN", resources->filebox_sortcolumn);
+	defaults->update("FILEBOX_SORTORDER", resources->filebox_sortorder);
 	return 0;
 }
 
