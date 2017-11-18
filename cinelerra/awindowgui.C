@@ -1010,18 +1010,20 @@ void AWindowGUI::filter_displayed_assets()
 
 void AWindowGUI::update_assets()
 {
-//printf("AWindowGUI::update_assets 1\n");
+//PRINT_TRACE
 	update_folder_list();
-//printf("AWindowGUI::update_assets 2\n");
+//PRINT_TRACE
 	update_asset_list();
-//printf("AWindowGUI::update_assets 3\n");
+//PRINT_TRACE
 	filter_displayed_assets();
+//PRINT_TRACE
 
 //for(int i = 0; i < folders.total; i++)
 //printf("AWindowGUI::update_assets 4\n");
 //	printf("AWindowGUI::update_assets %s\n", folders.values[i]->get_text());
 	if(mwindow->edl->session->folderlist_format != folder_list->get_format())
 		folder_list->update_format(mwindow->edl->session->folderlist_format, 0);
+//PRINT_TRACE
 	folder_list->update(&folders,
 		0,
 		0,
@@ -1029,13 +1031,13 @@ void AWindowGUI::update_assets()
 		folder_list->get_xposition(),
 		folder_list->get_yposition(),
 		-1);
-//printf("AWindowGUI::update_assets 5\n");
+//PRINT_TRACE
 
 	if(mwindow->edl->session->assetlist_format != asset_list->get_format())
 		asset_list->update_format(mwindow->edl->session->assetlist_format, 0);
+//PRINT_TRACE
 
 
-//printf("AWindowGUI::update_assets 6 %d\n", displayed_assets[0].total);
 	asset_list->update(displayed_assets,
 		asset_titles,
 		mwindow->edl->session->asset_columns,
@@ -1044,10 +1046,9 @@ void AWindowGUI::update_assets()
 		asset_list->get_yposition(),
 		-1,
 		0);
-//printf("AWindowGUI::update_assets 7\n");
+//PRINT_TRACE
 
 	flush();
-//printf("AWindowGUI::update_assets 8\n");
 	return;
 }
 
