@@ -294,6 +294,7 @@ void PresetsDB::save_preset(const char *plugin_title,
 	if(!plugin) plugin = new_plugin(plugin_title);
 	PresetsDBKeyframe *keyframe = plugin->get_keyframe(preset_title, 0);
 	if(!keyframe) keyframe = plugin->new_keyframe(preset_title);
+printf("PresetsDB::save_preset %d %s %p %p\n", __LINE__, plugin_title, keyframe, data);
 	keyframe->set_data(data);
 	save();
 

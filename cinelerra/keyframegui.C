@@ -248,15 +248,20 @@ void KeyFrameThread::save_preset(const char *title, int is_factory)
 // Get current plugin keyframe
 		EDL *edl = mwindow->edl;
 		Track *track = plugin->track;
-		KeyFrame *keyframe = 0;
 		keyframe = plugin->get_prev_keyframe(
 			track->to_units(edl->local_session->get_selectionstart(1), 0), 
 			PLAY_FORWARD);
+//printf("KeyFrameThread::save_preset %d %p %p\n", __LINE__, keyframe, keyframe->get_data());
 	}
 	else
 	{
 		keyframe = plugin_server->keyframe;
+//printf("KeyFrameThread::save_preset %d\n", __LINE__);
 	}
+
+//printf("KeyFrameThread::save_preset %d %p %p\n", __LINE__, keyframe, keyframe->get_data());
+//plugin->dump();
+
 
 // Send to database
 	presets_db->save_preset(plugin_title, 
