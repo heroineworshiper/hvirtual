@@ -197,6 +197,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	ruler_x2 = defaults->get("RULER_X2", 0.0);
 	ruler_y1 = defaults->get("RULER_Y1", 0.0);
 	ruler_y2 = defaults->get("RULER_Y2", 0.0);
+	always_draw_ruler = defaults->get("ALWAYS_DRAW_RULER", 0);
 	sprintf(current_folder, MEDIA_FOLDER);
 	defaults->get("CURRENT_FOLDER", current_folder);
 	cursor_on_frames = defaults->get("CURSOR_ON_FRAMES", 0);
@@ -343,6 +344,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("RULER_X2", ruler_x2);
 	defaults->update("RULER_Y1", ruler_y1);
 	defaults->update("RULER_Y2", ruler_y2);
+	defaults->update("ALWAYS_DRAW_RULER", always_draw_ruler);
 	defaults->update("CURRENT_FOLDER", current_folder);
 	defaults->update("CURSOR_ON_FRAMES", cursor_on_frames);
 	defaults->update("TYPELESS_KEYFRAMES", typeless_keyframes);
@@ -568,6 +570,7 @@ int EDLSession::load_xml(FileXML *file,
 		ruler_y1 = file->tag.get_property("RULER_Y1", ruler_y1);
 		ruler_x2 = file->tag.get_property("RULER_X2", ruler_x2);
 		ruler_y2 = file->tag.get_property("RULER_Y2", ruler_y2);
+		always_draw_ruler = file->tag.get_property("ALWAYS_DRAW_RULER", always_draw_ruler);
 		file->tag.get_property("CURRENT_FOLDER", current_folder);
 		cursor_on_frames = file->tag.get_property("CURSOR_ON_FRAMES", cursor_on_frames);
 		typeless_keyframes = file->tag.get_property("TYPELESS_KEYFRAMES", typeless_keyframes);
@@ -630,6 +633,7 @@ int EDLSession::save_xml(FileXML *file)
 	file->tag.set_property("RULER_Y1", ruler_y1);
 	file->tag.set_property("RULER_X2", ruler_x2);
 	file->tag.set_property("RULER_Y2", ruler_y2);
+	file->tag.set_property("ALWAYS_DRAW_RULER", always_draw_ruler);
 	file->tag.set_property("CURRENT_FOLDER", current_folder);
 	file->tag.set_property("CURSOR_ON_FRAMES", cursor_on_frames);
 	file->tag.set_property("TYPELESS_KEYFRAMES", typeless_keyframes);
@@ -754,6 +758,7 @@ int EDLSession::copy(EDLSession *session)
 	ruler_y1 = session->ruler_y1;
 	ruler_x2 = session->ruler_x2;
 	ruler_y2 = session->ruler_y2;
+	always_draw_ruler = session->always_draw_ruler;
 	strcpy(current_folder, session->current_folder);
 	cursor_on_frames = session->cursor_on_frames;
 	typeless_keyframes = session->typeless_keyframes;

@@ -97,6 +97,7 @@ public:
 	int eyedrop_radius;
 	float ruler_x1, ruler_y1;
 	float ruler_x2, ruler_y2;
+	int always_draw_ruler;
 // Ruler points relative to the output frame.
 // Current folder in resource window
 	char current_folder[BCTEXTLEN];

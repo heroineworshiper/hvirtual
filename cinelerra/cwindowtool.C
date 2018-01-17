@@ -2223,35 +2223,45 @@ CWindowRulerGUI::~CWindowRulerGUI()
 
 void CWindowRulerGUI::create_objects()
 {
-	int x = DP(10), y = DP(10);
 	int margin = mwindow->theme->widget_border;
+	int x = margin;
+	int y = margin;
 	BC_Title *title;
 
 	lock_window("CWindowRulerGUI::create_objects");
 	add_subwindow(title = new BC_Title(x, y, "Current:"));
-	add_subwindow(current = new BC_Title(x + title->get_w() + DP(10), y, ""));
+	add_subwindow(current = new BC_Title(x + title->get_w() + margin, y, ""));
 	y += title->get_h() + margin;
 	
 	add_subwindow(title = new BC_Title(x, y, "Point 1:"));
-	add_subwindow(point1 = new BC_Title(x + title->get_w() + DP(10), y, ""));
+	add_subwindow(point1 = new BC_Title(x + title->get_w() + margin, y, ""));
 	y += title->get_h() + margin;
 
 	add_subwindow(title = new BC_Title(x, y, "Point 2:"));
-	add_subwindow(point2 = new BC_Title(x + title->get_w() + DP(10), y, ""));
+	add_subwindow(point2 = new BC_Title(x + title->get_w() + margin, y, ""));
 	y += title->get_h() + margin;
 
+
+	
+
+
 	add_subwindow(title = new BC_Title(x, y, "Distance:"));
-	add_subwindow(distance = new BC_Title(x + title->get_w() + DP(10), y, ""));
+	add_subwindow(distance = new BC_Title(x + title->get_w() + margin, y, ""));
 	y += title->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, "Angle:"));
-	add_subwindow(angle = new BC_Title(x + title->get_w() + DP(10), y, ""));
-	y += title->get_h() + DP(10);
+	add_subwindow(angle = new BC_Title(x + title->get_w() + margin, y, ""));
+	y += title->get_h() + margin;
+	
+	add_subwindow(always_draw_ruler = new AlwaysDrawRuler(mwindow, this, x, y));
+	y += always_draw_ruler->get_h() + margin;
+
+	
 	char string[BCTEXTLEN];
 	sprintf(string, _("Press Ctrl to lock ruler to the\nnearest 45%c angle."), 0xb0);
 	add_subwindow(title = new BC_Title(x, 
 		y, 
 		string));
-	y += title->get_h() + DP(10);
+	y += title->get_h() + margin;
 	sprintf(string, _("Press Alt to translate the ruler."));
 	add_subwindow(title = new BC_Title(x, 
 		y, 
@@ -2299,6 +2309,8 @@ void CWindowRulerGUI::update()
 	distance->update(string);
 	sprintf(string, "%0.02f %c", angle_value, 0xb0);
 	angle->update(string);
+	
+	always_draw_ruler->update(mwindow->edl->session->always_draw_ruler);
 }
 
 void CWindowRulerGUI::handle_event()
@@ -2306,5 +2318,26 @@ void CWindowRulerGUI::handle_event()
 }
 
 
+
+
+AlwaysDrawRuler::AlwaysDrawRuler(MWindow *mwindow, 
+	CWindowRulerGUI *gui,
+	int x, 
+	int y)
+ : BC_CheckBox(x, 
+ 	y, 
+	mwindow->edl->session->always_draw_ruler, 
+	"Always draw it")
+{
+	this->mwindow = mwindow;
+	this->gui = gui;
+}
+
+int AlwaysDrawRuler::handle_event()
+{
+	mwindow->edl->session->always_draw_ruler = get_value();
+	
+	gui->update();
+}
 
 

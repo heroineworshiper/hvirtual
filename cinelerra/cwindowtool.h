@@ -397,6 +397,19 @@ public:
 
 
 
+class CWindowRulerGUI;
+class AlwaysDrawRuler : public BC_CheckBox
+{
+public:
+	AlwaysDrawRuler(MWindow *mwindow, 
+		CWindowRulerGUI *gui,
+		int x, 
+		int y);
+
+	int handle_event();
+	MWindow *mwindow;
+	CWindowRulerGUI *gui;
+};
 
 class CWindowRulerGUI : public CWindowToolGUI
 {
@@ -413,6 +426,7 @@ public:
 	BC_Title *point2;
 	BC_Title *distance;
 	BC_Title *angle;
+	AlwaysDrawRuler *always_draw_ruler;
 };
 
 

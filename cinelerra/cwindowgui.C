@@ -1083,8 +1083,8 @@ void CWindowCanvas::draw_crophandle(int x, int y)
 #undef BC_INFINITY
 #define BC_INFINITY 65536
 
-#define RULERHANDLE_W DP(16)
-#define RULERHANDLE_H DP(16)
+#define RULERHANDLE_W DP(32)
+#define RULERHANDLE_H DP(32)
 
 
 
@@ -2496,6 +2496,12 @@ void CWindowCanvas::draw_overlays()
 			gui->eyedrop_visible = 1;
 			break;
 		}
+	}
+	
+	if(mwindow->edl->session->cwindow_operation != CWINDOW_RULER &&
+		mwindow->edl->session->always_draw_ruler)
+	{
+		do_ruler(1, 0, 0, 0);
 	}
 }
 
