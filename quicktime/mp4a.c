@@ -31,6 +31,8 @@ typedef struct
 
 	faacEncHandle encoder_handle;
 	faacEncConfigurationPtr encoder_params;
+// encoded channels always disagrees with MOOV channels
+	int channels;
 // Number of frames
 	int frame_size;
 	int max_frame_bytes;
@@ -120,7 +122,16 @@ static int decode(quicktime_t *file,
 		{
 			return 1;
 		}
-//printf("decode %d samplerate=%d channels=%d\n", __LINE__, samplerate, channels);
+
+// printf("decode %d samplerate=%d channels=%d channels=%d\n", 
+// __LINE__, 
+// samplerate, 
+// channels,
+// track_map->channels);
+// encoded channel count is always different
+		codec->channels = channels;
+// reinitialize with encoded channel count
+		quicktime_init_vbr(vbr, channels);
 		codec->decoder_initialized = 1;
 	}
 
@@ -186,7 +197,7 @@ static int decode(quicktime_t *file,
 				quicktime_shift_vbr(track_map, quicktime_vbr_input_size(vbr));
 				quicktime_store_vbr_float(track_map,
 					sample_buffer,
-					codec->frame_info.samples / track_map->channels);
+					codec->frame_info.samples / codec->channels);
 		}
 
 
@@ -281,9 +292,9 @@ static int encode(quicktime_t *file,
  		quicktime_set_mpeg4_header(&trak->mdia.minf.stbl.stsd.table[0],
 			buffer, 
 			buffer_size);
-		trak->mdia.minf.stbl.stsd.table[0].version = 1;
-// Quicktime player needs this.
-		trak->mdia.minf.stbl.stsd.table[0].compression_id = 0xfffe;
+// Quicktime player needs this.  But it doesn't work on IOS player.
+//		trak->mdia.minf.stbl.stsd.table[0].version = 1;
+//		trak->mdia.minf.stbl.stsd.table[0].compression_id = 0xfffe;
 	}
 
 

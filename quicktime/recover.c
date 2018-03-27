@@ -19,8 +19,8 @@
 #define FSEEK fseeko64
 
 
-#define WIDTH 1920
-#define HEIGHT 1080
+#define WIDTH 640
+#define HEIGHT 480
 
 //#define FRAMERATE (double)30000/1001
 #define FRAMERATE (double)30
@@ -43,8 +43,16 @@
 
 //#define VCODEC QUICKTIME_MJPA
 #define VCODEC QUICKTIME_JPEG
+
+
 // Search for JFIF in JPEG header
 //#define USE_JFIF
+
+
+// Search for ffe8ffe0
+#define USE_FFE8FFE0
+
+
 // Only 1 variation of this, recorded by 1 camcorder
 //#define VCODEC QUICKTIME_H264
 // H264 rendered by Cinelerra
@@ -334,10 +342,19 @@ int main(int argc, char *argv[])
 		int got_it = 0;
 		for(i = 0; i < bytes_read - 0x20; i++)
 		{
-			if(search_buffer[i] == 0xff &&
+			if(
+#ifdef USE_FFE8FFE0
+			search_buffer[i] == 0xff &&
+				search_buffer[i + 1] == 0xd8 &&
+				search_buffer[i + 2] == 0xff &&
+				search_buffer[i + 3] == 0xe0
+#else
+			
+			search_buffer[i] == 0xff &&
 				search_buffer[i + 1] == 0xd8 &&
 				search_buffer[i + 2] == 0xff &&
 				search_buffer[i + 3] == 0xc0
+#endif
 #ifdef USE_JFIF					
 				&& search_buffer[i + 6] == 'J' &&
 				search_buffer[i + 7] == 'F' &&
@@ -572,10 +589,18 @@ int main(int argc, char *argv[])
 					}
 				}
 				else
-				if(search_buffer[i] == 0xff &&
+				if(
+#ifdef USE_FFE8FFE0
+					search_buffer[i] == 0xff &&
+					search_buffer[i + 1] == 0xd8 &&
+					search_buffer[i + 2] == 0xff &&
+					search_buffer[i + 3] == 0xe0
+#else
+					search_buffer[i] == 0xff &&
 					search_buffer[i + 1] == 0xd8 &&
 					search_buffer[i + 2] == 0xff &&
 					search_buffer[i + 3] == 0xc0
+#endif
 
 #ifdef USE_JFIF					
 					&& search_buffer[i + 6] == 'J' &&

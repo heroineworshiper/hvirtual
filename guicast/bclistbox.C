@@ -375,6 +375,7 @@ BC_ListBox::BC_ListBox(int x,
  	allow_drag_scroll = 1;
 	process_drag = 1;
 
+// set to invalid to avoid drawing the carrot
 	sort_column = -1;
 	sort_order = 0;
 
@@ -912,6 +913,16 @@ int BC_ListBox::get_sort_column()
 
 void BC_ListBox::set_sort_column(int value, int redraw)
 {
+	if(value < 0)
+	{
+		value = 0;
+	}
+	
+	if(value >= columns)
+	{
+		value = columns - 1;
+	}
+	
 	sort_column = value;
 	if(redraw)
 	{
@@ -3250,9 +3261,11 @@ int BC_ListBox::button_release_event()
 
 		case COLUMN_DN:
 			current_operation = NO_OPERATION;
-// Update the sort column and the sort order for the user only if the existing
-// sort column is valid.
-			if(sort_column >= 0)
+// Update the sort column and the sort order only if the existing
+// & future sort columns are valid.
+			if(sort_column >= 0 && 
+				highlighted_title >= 0 &&
+				highlighted_title < columns)
 			{
 // Invert order only if column is the same
 				if(highlighted_title == sort_column)

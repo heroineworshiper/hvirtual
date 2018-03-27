@@ -556,6 +556,11 @@ void quicktime_copy_vbr_float(quicktime_vbr_t *vbr,
 	int samples,
 	float *output, 
 	int channel);
+void quicktime_copy_vbr_int16(quicktime_vbr_t *vbr,
+	int64_t start_position, 
+	int samples,
+	int16_t *output, 
+	int channel);
 
 
 

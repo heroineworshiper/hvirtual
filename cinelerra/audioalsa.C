@@ -370,6 +370,7 @@ int AudioALSA::close_input()
 		snd_pcm_drop(dsp_in);
 		snd_pcm_drain(dsp_in);
 		snd_pcm_close(dsp_in);
+		dsp_in = 0;
 	}
 	return 0;
 }

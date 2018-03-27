@@ -543,6 +543,9 @@ int FileMOV::get_best_colormodel(Asset *asset, int driver)
 int FileMOV::can_copy_from(Asset *asset, int64_t position)
 {
 	if(!fd) return 0;
+return 0;
+
+
 
 //printf("FileMOV::can_copy_from 1 %d %s %s\n", asset->format, asset->vcodec, this->asset->vcodec);
 	if(asset->format == FILE_JPEG_LIST && 
