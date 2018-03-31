@@ -24,10 +24,12 @@ void quicktime_delete_esds(quicktime_esds_t *esds)
 void quicktime_esds_samplerate(quicktime_stsd_table_t *table, 
 	quicktime_esds_t *esds)
 {
+//printf("quicktime_esds_samplerate %d\n", __LINE__);
 // Straight out of ffmpeg
 	if(esds->mpeg4_header_size > 1 &&
 		quicktime_match_32(table->format, QUICKTIME_MP4A))
 	{
+//printf("quicktime_esds_samplerate %d\n", __LINE__);
 		static int samplerate_table[] = 
 		{
              96000, 88200, 64000, 48000, 44100, 32000, 
@@ -54,6 +56,7 @@ void quicktime_read_esds(quicktime_t *file,
 // flags
 	quicktime_read_int24(file);
 // elementary stream descriptor tag
+printf("quicktime_read_esds %d\n", __LINE__);
 
 	if(quicktime_read_char(file) == 0x3)
 	{
@@ -77,9 +80,11 @@ void quicktime_read_esds(quicktime_t *file,
 // average bitrate
 			quicktime_read_int32(file);
 
+printf("quicktime_read_esds %d\n", __LINE__);
 // decoder specific description tag
 			if(quicktime_read_char(file) == 0x5)
 			{
+printf("quicktime_read_esds %d\n", __LINE__);
 				esds->mpeg4_header_size = decode_length(file);
 				if(!esds->mpeg4_header_size) return;
 

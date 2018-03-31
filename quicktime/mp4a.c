@@ -93,9 +93,10 @@ static int decode(quicktime_t *file,
 // Initialize decoder
 	if(!codec->decoder_initialized)
 	{
-		uint32_t samplerate = trak->mdia.minf.stbl.stsd.table[0].sample_rate;
+		uint32_t samplerate = quicktime_sample_rate(file, track);
+		quicktime_esds_t *esds = &trak->mdia.minf.stbl.stsd.table[0].esds;
 // FAAD needs unsigned char here
-		uint8_t channels = track_map->channels;
+		uint8_t channels = codec->channels = track_map->channels;
 		quicktime_init_vbr(vbr, channels);
 		codec->decoder_handle = faacDecOpen();
 		codec->decoder_config = faacDecGetCurrentConfiguration(codec->decoder_handle);
@@ -105,34 +106,73 @@ static int decode(quicktime_t *file,
 
 		faacDecSetConfiguration(codec->decoder_handle, codec->decoder_config);
 
-
-		quicktime_align_vbr(track_map, samples);
-
-//while(quicktime_vbr_input_size(vbr) < 65536)
-		quicktime_read_vbr(file, track_map);
-
-//printf("decode %d buffer=%p size=%d\n", __LINE__, quicktime_vbr_input(vbr), quicktime_vbr_input_size(vbr));
-//samplerate = -1;
-//channels = 0;
-		if(faacDecInit(codec->decoder_handle,
-			quicktime_vbr_input(vbr), 
-			quicktime_vbr_input_size(vbr),
-			&samplerate,
-			&channels) < 0)
+// Always initialize from sample 0
+		
+		int done = 0;
+		int total_read = 0;
+		while(!done && total_read < 65536)
 		{
-			return 1;
+//printf("decode %d vbr->sample=%ld\n", __LINE__, vbr->sample);
+			if(quicktime_read_vbr(file, track_map))
+			{
+				break;
+			}
+		
+			int result = 0;
+			if(!codec->decoder_initialized)
+			{
+// always fails to decode any header
+				result = faacDecInit(codec->decoder_handle,
+					quicktime_vbr_input(vbr), 
+					quicktime_vbr_input_size(vbr),
+					&samplerate,
+					&channels);
+				codec->decoder_initialized = 1;
+			}
+			
+			faacDecDecode(codec->decoder_handle, 
+				&codec->frame_info,
+            	quicktime_vbr_input(vbr), 
+				quicktime_vbr_input_size(vbr));
+			
+//printf("decode %d size=%d\n", __LINE__, quicktime_vbr_input_size(vbr));
+//quicktime_print_buffer("", quicktime_vbr_input(vbr), quicktime_vbr_input_size(vbr));
+
+			if(codec->frame_info.error > 0)
+			{
+            	printf("decode %d: %s\n",
+					__LINE__,
+                	faacDecGetErrorMessage(codec->frame_info.error));
+			}
+
+			quicktime_shift_vbr(track_map, quicktime_vbr_input_size(vbr));
+			total_read += quicktime_vbr_input_size(vbr);
+			if(codec->frame_info.samples > 0)
+			{
+// reinitialize with encoded channel count
+				if(codec->frame_info.channels != track_map->channels)
+				{
+printf("decode %d: AAC channel count=%d MPEG4 channel count=%d\n", 
+__LINE__, 
+codec->frame_info.channels,
+track_map->channels);
+					codec->channels = codec->frame_info.channels;
+					quicktime_init_vbr(vbr, codec->channels);
+				}
+				
+				if(codec->frame_info.samplerate != quicktime_sample_rate(file, track))
+				{
+printf("decode %d: AAC samplerate=%d MPEG4 samplerate=%ld\n", 
+__LINE__, 
+codec->frame_info.samplerate,
+quicktime_sample_rate(file, track));
+				}
+				break;
+			}
+
+
 		}
 
-// printf("decode %d samplerate=%d channels=%d channels=%d\n", 
-// __LINE__, 
-// samplerate, 
-// channels,
-// track_map->channels);
-// encoded channel count is always different
-		codec->channels = channels;
-// reinitialize with encoded channel count
-		quicktime_init_vbr(vbr, channels);
-		codec->decoder_initialized = 1;
 	}
 
 	if(quicktime_align_vbr(track_map, 
@@ -169,11 +209,13 @@ static int decode(quicktime_t *file,
 //                	faacDecGetErrorMessage(codec->frame_info.error));
         	}
 
+// printf("decode %d channels=%d samplerate=%d samples=%d\n",
+// __LINE__,
+// codec->frame_info.channels,
+// codec->frame_info.samplerate,
+// codec->frame_info.samples);
+
 /*
- * printf("decode 1 %d %d %d\n", 
- * quicktime_vbr_input_size(vbr), 
- * codec->frame_info.bytesconsumed,
- * codec->frame_info.samples);
  * 
  * static FILE *test = 0;
  * if(!test) test = fopen("/tmp/test.aac", "w");
@@ -193,11 +235,10 @@ static int decode(quicktime_t *file,
  * fflush(test);
  */
 
-//				quicktime_shift_vbr(track_map, codec->frame_info.bytesconsumed);
-				quicktime_shift_vbr(track_map, quicktime_vbr_input_size(vbr));
-				quicktime_store_vbr_float(track_map,
-					sample_buffer,
-					codec->frame_info.samples / codec->channels);
+			quicktime_shift_vbr(track_map, quicktime_vbr_input_size(vbr));
+			quicktime_store_vbr_float(track_map,
+				sample_buffer,
+				codec->frame_info.samples / codec->channels);
 		}
 
 

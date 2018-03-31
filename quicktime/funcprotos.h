@@ -25,6 +25,8 @@ quicktime_trak_t* quicktime_add_track(quicktime_t *file);
 int quicktime_file_open(quicktime_t *file, char *path, int rd, int wr);
 int quicktime_file_close(quicktime_t *file);
 int64_t quicktime_get_file_length(char *path);
+void quicktime_print_chars(char *desc, char *input, int len);
+void quicktime_print_buffer(char *desc, uint8_t *input, int len);
 
 /* Initialize audio_map_t and video_map_t objects after loading headers */
 /* Called by quicktime_read_info */
@@ -36,6 +38,7 @@ float quicktime_read_fixed16(quicktime_t *file);
 int64_t quicktime_read_int64(quicktime_t *file);
 int64_t quicktime_read_int64_le(quicktime_t *file);
 unsigned long quicktime_read_uint32(quicktime_t *file);
+int quicktime_read_int16(quicktime_t *file);
 long quicktime_read_int32(quicktime_t *file);
 long quicktime_read_int32_le(quicktime_t *file);
 long quicktime_read_int24(quicktime_t *file);

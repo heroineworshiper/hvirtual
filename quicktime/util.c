@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <linux/cdrom.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -684,6 +685,21 @@ void quicktime_print_chars(char *desc, char *input, int len)
 	int i;
 	printf("%s", desc);
 	for(i = 0; i < len; i++) printf("%c", input[i]);
+	printf("\n");
+}
+
+void quicktime_print_buffer(char *desc, uint8_t *input, int len)
+{
+	int i;
+	printf("%s\n", desc);
+	for(i = 0; i < len; i++)
+	{
+		printf("%02x ", input[i]);
+		if(!((i + 1) % 16) && i < len - 1)
+		{
+			printf("\n");
+		}
+	}
 	printf("\n");
 }
 

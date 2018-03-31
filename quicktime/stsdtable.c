@@ -96,6 +96,7 @@ void quicktime_read_stsd_audio(quicktime_t *file,
 		table->sample_rate += 65536;
 	}
 
+//printf("quicktime_read_stsd_audio %d version=%d\n", __LINE__, table->version);
 
 // Version 1 fields
 	if(table->version > 0)
@@ -121,6 +122,9 @@ void quicktime_read_stsd_audio(quicktime_t *file,
 			}
 			else
 			{
+//printf("quicktime_read_stsd_audio %d %s\n", 
+//__LINE__, 
+//leaf_atom.type);
 				quicktime_atom_skip(file, &leaf_atom);
 			}
 		}
