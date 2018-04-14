@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2016 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016-2018 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1626,7 +1626,8 @@ double MotionScan::calculate_variance(unsigned char *current_ptr,
  \
 	for(int i = 0; i < h; i++) \
 	{ \
-		type *row = (type*)current_ptr + i * row_bytes; \
+/* printf("RANGE i=%d\n", i); */ \
+		type *row = (type*)(current_ptr + i * row_bytes); \
 		for(int j = 0; j < w; j++) \
 		{ \
 			for(int k = 0; k < 3; k++) \
@@ -1643,6 +1644,7 @@ double MotionScan::calculate_variance(unsigned char *current_ptr,
 		/* printf("MotionScan::calculate_range %d k=%d max=%d min=%d\n", __LINE__, k, max[k], min[k]); */ \
 		if(max[k] - min[k] > result) result = max[k] - min[k]; \
 	} \
+	result *= multiplier; \
  \
 }
 
@@ -1654,6 +1656,13 @@ double MotionScan::calculate_range(unsigned char *current_ptr,
 {
 	double result = 0;
 
+// printf("MotionScan::calculate_range %d row_bytes=%d current_ptr=%p w=%d h=%d color_model=%d\n", 
+// __LINE__,
+// row_bytes,
+// current_ptr,
+// w,
+// h,
+// color_model);
 	switch(color_model)
 	{
 		case BC_RGB888:

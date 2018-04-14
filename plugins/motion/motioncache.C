@@ -200,8 +200,12 @@ VFrame* MotionCache::get_image(int ratio,
 	downsample_frame(result, 
 		src, 
 		ratio);
-	
-	
+// printf("MotionCache::get_image %d ptr=%p w=%d h=%d\n", 
+// __LINE__, 
+// result->get_rows()[0],
+// result->get_w(),
+// result->get_h());
+
 	MotionCacheItem *item = new MotionCacheItem();
 	item->image = result;
 	item->is_previous = is_previous;
