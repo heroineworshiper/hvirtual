@@ -1,7 +1,5 @@
 include ../global_config
 
-CFLAGS += -I../quicktime
-
 # must only define here so applications using libpng don't see any of the XFT
 # includes at all.  They use a conflicting setjmp.
 ifeq ($(HAVE_XFT), y)
@@ -98,7 +96,6 @@ STATICOUTPUT = $(OBJDIR)/libguicast.a
 
 TESTLIBS := \
 		$(STATICOUTPUT) \
-		../quicktime/$(OBJDIR)/libquicktime.a \
 		$(LFLAGS) \
 		$(GLLIBS) \
 		-lX11 \

@@ -98,7 +98,12 @@ int MainProgressBar::is_cancelled()
 void MainProgressBar::update_title(char *string, int default_)
 {
 	if(default_) strcpy(default_title, string);
-//printf("MainProgressBar::update_title %p %p %s\n", progress_bar, progress_box, string);
+
+// printf("MainProgressBar::update_title %d %p %p %s\n", 
+// __LINE__,
+// progress_bar, 
+// progress_box, 
+// string);
 
 	if(progress_box)
 	{
@@ -143,14 +148,18 @@ int MainProgressBar::update(int64_t value)
 		double eta;
 
 		if(value > 0.001)
+		{
 			eta = (double)current_eta / 
 				1000 * 
 				length / 
 				value - 
 				current_eta / 
 				1000;
+		}
 		else
+		{
 			eta = 0;
+		}
 
 //printf("MainProgressBar::update %f %d %d %f\n", current_eta, length, value, eta);
  		Units::totext(time_string, 

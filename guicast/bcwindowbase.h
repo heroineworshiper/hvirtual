@@ -292,7 +292,7 @@ public:
 	BC_Pixmap* get_bg_pixmap();
 	int get_text_ascent(int font);
 	int get_text_descent(int font);
-	int get_text_height(int font, char *text = 0);
+	int get_text_height(int font, const char *text = 0);
 	int get_text_width(int font, const char *text, int length = -1);
 	BC_Clipboard* get_clipboard();
 	void set_dragging(int value);

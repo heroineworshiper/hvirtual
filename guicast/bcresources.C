@@ -75,6 +75,7 @@ int BC_Resources::large_fontsize;
 int BC_Resources::medium_fontsize;
 int BC_Resources::small_fontsize;
 int BC_Resources::clock_fontsize;
+Mutex* BC_Resources::xft_lock;
 
 //const char* BC_Resources::small_fontset;
 // const char* BC_Resources::medium_fonts;
@@ -142,6 +143,7 @@ void BC_Resources::init()
 		
 		id_lock = new Mutex("BC_Resources::id_lock");
 		create_window_lock = new Mutex("BC_Resources::create_window_lock", 1);
+		xft_lock = new Mutex("BC_Resources::xft_lock", 1);
 		id = 0;
 		filebox_id = 0;
 		init_fonts();
@@ -815,17 +817,42 @@ void BC_Resources::init()
 	}
 }
 
+
+static int nearest_size(const int *supported, int size)
+{
+	int i = 1;
+	while(1)
+	{
+		if(supported[i] == 0 || 
+			supported[i] > size)
+		{
+			return supported[i - 1];
+		}
+		
+		if(supported[i] == size)
+		{
+			return supported[i];
+		}
+		
+		i++;
+	}
+	
+	return supported[0];
+}
+
 void BC_Resources::init_fonts()
 {
+// supported helvetica sizes
+	int supported[] = { 11, 14, 17, 20, 25, 34, 0 };
 //printf("BC_Resources::BC_Resources %d dpi=%d\n", __LINE__, dpi);
 	small_font = N_("-*-helvetica-medium-r-normal");
 	medium_font = N_("-*-helvetica-bold-r-normal");
 	large_font = N_("-*-helvetica-bold-r-normal");
 	clock_font = N_("-*-helvetica-bold-r-normal");
-	large_fontsize = DP(18);
-	medium_fontsize = DP(14);
-	small_fontsize = DP(10);
-	clock_fontsize = DP(16);
+	large_fontsize = nearest_size(supported, DP(24));
+	medium_fontsize = nearest_size(supported, DP(14));
+	small_fontsize = nearest_size(supported, DP(10));
+	clock_fontsize = nearest_size(supported, DP(24));
 
 
 	small_font_xft = N_("Sans");

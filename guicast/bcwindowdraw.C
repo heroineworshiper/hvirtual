@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2018 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "colors.h"
 #include "cursors.h"
 #include "fonts.h"
+#include "mutex.h"
 #include "vframe.h"
 #include <string.h>
 
@@ -322,6 +323,8 @@ void BC_WindowBase::draw_xft_text(int x,
 	color.blue |= color.blue << 8;
 	color.alpha = 0xffff;
 
+	BC_Resources::xft_lock->lock("BC_WindowBase::draw_xft_text");
+
 	XftColorAllocValue(top_level->display,
 		top_level->vis,
 		top_level->cmap,
@@ -353,6 +356,9 @@ void BC_WindowBase::draw_xft_text(int x,
 	    top_level->vis,
 	    top_level->cmap,
 	    &xft_color);
+	
+	BC_Resources::xft_lock->unlock();
+
 #endif // HAVE_XFT
 }
 

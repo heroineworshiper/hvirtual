@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2018 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -407,18 +407,16 @@ SET_TRACE
 		redraw_timer->update();
 SET_TRACE
 
-// thread out index thread
+// create the former index thread
 		IndexThread *index_thread = new IndexThread(mwindow, 
 			this, 
 			index_filename, 
 			buffersize, 
 			source_length);
-		index_thread->start_build();
 
 // current sample in source file
 		int64_t position = 0;
 		int64_t fragment_size = buffersize;
-		int current_buffer = 0;
 
 
 // pass through file once
@@ -433,16 +431,11 @@ SET_TRACE
 SET_TRACE
 			if(source_length - position < fragment_size && fragment_size == buffersize) fragment_size = source_length - position;
 
-			index_thread->input_lock[current_buffer]->lock("IndexFile::create_index 1");
-			index_thread->input_len[current_buffer] = fragment_size;
-
 SET_TRACE
 			int cancelled = progress->update(position);
 //printf("IndexFile::create_index cancelled=%d\n", cancelled);
 SET_TRACE
-			if(cancelled || 
-				index_thread->interrupt_flag || 
-				interrupt_flag)
+			if(cancelled || interrupt_flag)
 			{
 				result = 3;
 			}
@@ -461,7 +454,7 @@ SET_TRACE
 					source->set_channel(channel);
 
 					if(source->read_samples(
-						index_thread->buffer_in[current_buffer][channel],
+						index_thread->buffer_in[channel],
 						fragment_size)) 
 						result = 1;
 				}
@@ -474,7 +467,7 @@ SET_TRACE
 				if(render_engine->arender)
 				{
 					result = render_engine->arender->process_buffer(
-						index_thread->buffer_in[current_buffer], 
+						index_thread->buffer_in, 
 						fragment_size,
 						position);
 				}
@@ -482,7 +475,7 @@ SET_TRACE
 				{
 					for(int i = 0; i < source_channels; i++)
 					{
-						bzero(index_thread->buffer_in[current_buffer][i]->get_data(),
+						bzero(index_thread->buffer_in[i]->get_data(),
 							fragment_size * sizeof(double));
 					}
 				}
@@ -493,25 +486,13 @@ SET_TRACE
 // Release buffer to thread
 			if(!result)
 			{
-				index_thread->output_lock[current_buffer]->unlock();
-				current_buffer++;
-				if(current_buffer >= TOTAL_BUFFERS) current_buffer = 0;
+				index_thread->process(fragment_size);
 				position += fragment_size;
-			}
-			else
-			{
-				index_thread->input_lock[current_buffer]->unlock();
 			}
 SET_TRACE
 		}
 
-
-// end thread cleanly
-		index_thread->input_lock[current_buffer]->lock("IndexFile::create_index 2");
-		index_thread->last_buffer[current_buffer] = 1;
-		index_thread->output_lock[current_buffer]->unlock();
-		index_thread->stop_build();
-
+		progress->update(position);
 
 		delete index_thread;
 
@@ -537,7 +518,7 @@ int IndexFile::redraw_edits(int force)
 {
 	int64_t difference = redraw_timer->get_scaled_difference(1000);
 
-	if(difference > 250 || force)
+	if(difference > 16 || force)
 	{
 		IndexState *index_state = get_state();
 		redraw_timer->update();

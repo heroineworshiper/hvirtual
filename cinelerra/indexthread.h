@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2018 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,13 +26,13 @@
 #include "indexfile.inc"
 #include "mwindow.inc"
 #include "samples.inc"
-#include "thread.h"
 
 #define TOTAL_BUFFERS 2
 
-// Recieves buffers from Indexfile and calculates the index.
+// Formerly a thread that recieved buffers from Indexfile and 
+// calculated the index asynchronously.
 
-class IndexThread : public Thread
+class IndexThread
 {
 public:
 	IndexThread(MWindow *mwindow, 
@@ -44,9 +44,7 @@ public:
 
 	friend class IndexFile;
 
-	int start_build();
-	int stop_build();
-	void run();
+	void process(int fragment_size);
 
 	IndexFile *index_file;
 	MWindow *mwindow;
@@ -55,11 +53,19 @@ public:
 	int current_buffer;
 
 private:
-	int interrupt_flag;
-	Samples **buffer_in[TOTAL_BUFFERS];
-	Condition *input_lock[TOTAL_BUFFERS], *output_lock[TOTAL_BUFFERS];
-	int last_buffer[TOTAL_BUFFERS];
-	int64_t input_len[TOTAL_BUFFERS];
+	Samples **buffer_in;
+	
+	
+// current high samples in index
+	int64_t *highpoint;            
+// current low samples in the index
+	int64_t *lowpoint;             
+// position in current indexframe
+	int64_t *frame_position;
+	int first_point;
+
+	
+	
 };
 
 

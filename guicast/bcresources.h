@@ -355,6 +355,8 @@ public:
 	int use_xvideo;
 // Seems to help if only 1 window is created at a time.
 	Mutex *create_window_lock;
+// try to fix xft crashes
+	static Mutex *xft_lock;
 
 private:
 // Test for availability of shared memory pixmaps

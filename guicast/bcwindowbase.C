@@ -2094,6 +2094,7 @@ XFontSet BC_WindowBase::query_fontset(const char *font_string, int size)
 void* BC_WindowBase::query_xft_font(const char *font_string, int size)
 {
 	void *result = 0;
+	BC_Resources::xft_lock->lock("BC_WindowBase::query_xft_font");
 	if(font_string[0] == '-')
 	{
 		result = XftFontOpenXlfd(display,
@@ -2108,6 +2109,8 @@ void* BC_WindowBase::query_xft_font(const char *font_string, int size)
 			screen,
 			string);
 	}
+	BC_Resources::xft_lock->unlock();
+	return result;
 }
 
 
@@ -2603,6 +2606,7 @@ int BC_WindowBase::get_single_text_width(int font, const char *text, int length)
 	if(get_resources()->use_xft && get_xft_struct(font))
 	{
 		XGlyphInfo extents;
+		BC_Resources::xft_lock->lock("BC_WindowBase::get_single_text_width");
 #ifdef X_HAVE_UTF8_STRING
 		XftTextExtentsUtf8(top_level->display,
 #else
@@ -2612,6 +2616,7 @@ int BC_WindowBase::get_single_text_width(int font, const char *text, int length)
 			(const FcChar8*)text, 
 			length,
 			&extents);
+		BC_Resources::xft_lock->unlock();
 		return extents.xOff;
 	}
 	else
@@ -2672,6 +2677,7 @@ int BC_WindowBase::get_text_ascent(int font)
 	if(get_resources()->use_xft && get_xft_struct(font))
 	{
 		XGlyphInfo extents;
+		BC_Resources::xft_lock->lock("BC_WindowBase::get_text_ascent");
 #ifdef X_HAVE_UTF8_STRING
 		XftTextExtentsUtf8(top_level->display,
 #else
@@ -2681,6 +2687,7 @@ int BC_WindowBase::get_text_ascent(int font)
 			(const FcChar8*)"O", 
 			1,
 			&extents);
+		BC_Resources::xft_lock->unlock();
 		return extents.y + 2;
 	}
 	else
@@ -2694,16 +2701,20 @@ int BC_WindowBase::get_text_ascent(int font)
 //	}
 //	else
 	if(get_font_struct(font))
-		return top_level->get_font_struct(font)->ascent;
-	else
-	switch(font)
 	{
-		case MEDIUM_7SEGMENT:
-			return get_resources()->medium_7segment[0]->get_h();
-			break;
+		return top_level->get_font_struct(font)->ascent;
+	}
+	else
+	{
+		switch(font)
+		{
+			case MEDIUM_7SEGMENT:
+				return get_resources()->medium_7segment[0]->get_h();
+				break;
 
-		default:
-			return 0;
+			default:
+				return 0;
+		}
 	}
 }
 
@@ -2713,6 +2724,8 @@ int BC_WindowBase::get_text_descent(int font)
 	if(get_resources()->use_xft && get_xft_struct(font))
 	{
 		XGlyphInfo extents;
+		BC_Resources::xft_lock->lock("BC_WindowBase::get_text_descent");
+
 #ifdef X_HAVE_UTF8_STRING
 		XftTextExtentsUtf8(top_level->display,
 #else
@@ -2722,6 +2735,7 @@ int BC_WindowBase::get_text_descent(int font)
 			(const FcChar8*)"j", 
 			1,
 			&extents);
+		BC_Resources::xft_lock->unlock();
 		return extents.height - extents.y;
 	}
 	else
@@ -2736,16 +2750,20 @@ int BC_WindowBase::get_text_descent(int font)
 //     }
 //     else
 	if(get_font_struct(font))
-		return top_level->get_font_struct(font)->descent;
-	else
-	switch(font)
 	{
-		default:
-			return 0;
+		return top_level->get_font_struct(font)->descent;
+	}
+	else
+	{
+		switch(font)
+		{
+			default:
+				return 0;
+		}
 	}
 }
 
-int BC_WindowBase::get_text_height(int font, char *text)
+int BC_WindowBase::get_text_height(int font, const char *text)
 {
 	if(!text) return get_text_ascent(font) + get_text_descent(font);
 
