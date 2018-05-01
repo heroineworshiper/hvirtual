@@ -806,7 +806,8 @@ void Canvas::create_canvas()
 		{
 			canvas_fullscreen->reposition_window(subwindow->get_root_x(0), 
 				subwindow->get_root_y(0));
-			canvas_fullscreen->show_window();
+			canvas_fullscreen->show_window(0);
+			canvas_fullscreen->raise_window(1);
 		}
 
 	}

@@ -158,7 +158,6 @@ public:
 // When batch rendering is cancelled from the batch dialog
 	int batch_cancelled;
 
-
 	int load_mode;
 	int in_progress;
 // Background compression must be disabled when direct frame copying and reenabled afterwards

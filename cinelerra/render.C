@@ -233,6 +233,12 @@ void MainPackageRenderer::set_progress(int64_t value)
 
 int MainPackageRenderer::progress_cancelled()
 {
+
+// printf("MainPackageRenderer::progress_cancelled %d progress canceled=%d batch canceled=%d\n", 
+// __LINE__, 
+// render->progress ? render->progress->is_cancelled() : 0,
+// render->batch_cancelled);
+
 	return (render->progress && render->progress->is_cancelled()) || 
 		render->batch_cancelled;
 }
@@ -296,24 +302,30 @@ void Render::start_interactive()
 	}
 }
 
-
+// when rendering from the GUI
 void Render::start_batches(ArrayList<BatchRenderJob*> *jobs)
 {
+//printf("Render::start_batches %d running=%d\n", __LINE__, thread->running());
 	if(!thread->running())
 	{
 		mode = Render::BATCH;
+		batch_cancelled = 0;
+		in_progress = 1;
+		result = 0;
 		this->jobs = jobs;
 		completion->reset();
 		start_render();
 	}
 }
 
+// when rendering from the command line
 void Render::start_batches(ArrayList<BatchRenderJob*> *jobs,
 	BC_Hash *boot_defaults,
 	Preferences *preferences)
 {
 	mode = Render::BATCH;
 	batch_cancelled = 0;
+	in_progress = 1;
 	this->jobs = jobs;
 	this->preferences = preferences;
 
@@ -329,6 +341,7 @@ BC_Window* Render::new_gui()
 {
 	this->jobs = 0;
 	batch_cancelled = 0;
+	in_progress = 0;
 	format_error = 0;
 	result = 0;
 	completion->reset();
@@ -395,8 +408,10 @@ PRINT_TRACE
 
 void Render::stop_operation()
 {
-	if(Thread::running())
+	if(Thread::running() ||
+		in_progress)
 	{
+printf("Render::stop_operation %d\n", __LINE__);
 		batch_cancelled = 1;
 // Wait for completion
 		completion->lock("Render::stop_operation");
@@ -684,6 +699,7 @@ void RenderThread::render_single(int test_overwrite,
 	int done = 0;
 	const int debug = 0;
 
+//printf("RenderThread::render_single %d\n", __LINE__);
 	render->in_progress = 1;
 
 
@@ -880,8 +896,9 @@ void RenderThread::render_single(int test_overwrite,
 			timer.update();
 
 			if(package_renderer.render_package(package))
+			{
 				render->result = 1;
-
+			}
 
 		} // file_number
 
@@ -1036,7 +1053,7 @@ void RenderThread::run()
 	if(render->mode == Render::BATCH)
 	{
 // PRINT_TRACE
-// printf("RenderThread::run %d %d %d\n", 
+// printf("RenderThread::run %d total jobs=%d result=%d\n", 
 // __LINE__, 
 // render->jobs->total, 
 // render->result);
@@ -1073,7 +1090,9 @@ void RenderThread::run()
 				if(!render->result)
 				{
 					if(mwindow)
+					{
 						mwindow->batch_render->update_done(i, 1, render->elapsed_time);
+					}
 					else
 					{
 						char string[BCTEXTLEN];

@@ -541,7 +541,12 @@ int FileFork::handle_command()
 				*(int*)result_data = frame->get_compressed_size();
 				*(int*)(result_data + sizeof(int)) = frame->get_keyframe();
 // send the params
-				memcpy(result_data + sizeof(int) * 2, params.string, params.get_length() + 1);
+				memcpy(result_data + sizeof(int) * 2, 
+					params.string, 
+					params.get_length() + 1);
+
+//printf("FileFork::handle_command %d params=\n", __LINE__);
+//frame->get_params()->dump();
 //printf("FileFork::handle_command %d result_data=%s\n", __LINE__, params.string);
 
 				send_result(result, result_data, result_size);

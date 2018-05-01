@@ -595,14 +595,16 @@ void BatchRenderThread::start_rendering()
 		is_rendering = 0;
 		gui->new_batch->enable();
 		gui->delete_batch->enable();
-		return;
 	}
-
-	mwindow->render->start_batches(&jobs);
+	else
+	{
+		mwindow->render->start_batches(&jobs);
+	}
 }
 
 void BatchRenderThread::stop_rendering()
 {
+//printf("BatchRenderThread::stop_rendering %d is_rendering=%d\n", __LINE__, is_rendering);
 	if(!is_rendering) return;
 	mwindow->render->stop_operation();
 	is_rendering = 0;

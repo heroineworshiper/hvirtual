@@ -408,7 +408,7 @@ void PackageRenderer::do_video()
 						0);
 
 
-				if(debug) printf("PackageRenderer::do_video %d %d\n", __LINE__, result);
+if(debug) printf("PackageRenderer::do_video %d %d\n", __LINE__, result);
 
  				if(!result && 
 					mwindow && 
@@ -465,7 +465,13 @@ void PackageRenderer::do_video()
 						video_write_position = 0;
 					}
 				}
-				if(debug) printf("PackageRenderer::do_video %d %lld\n", __LINE__, (long long)video_position);
+				if(debug) printf("PackageRenderer::do_video %d video_position=%ld video_end=%ld result=%d get_result=%d canceled=%d\n", 
+					__LINE__, 
+					video_position,
+					video_end,
+					result,
+					get_result(),
+					progress_cancelled());
 
 
 			}
@@ -544,12 +550,12 @@ int PackageRenderer::render_package(RenderPackage *package)
 	result = 0;
 	this->package = package;
 
-// printf(
-// "PackageRenderer::render_package: audio s=%lld l=%lld video s=%lld l=%lld\n",
-// 	package->audio_start, 
-// 	package->audio_end - package->audio_start, 
-// 	package->video_start, 
-// 	package->video_end - package->video_start);
+printf(
+	"PackageRenderer::render_package: audio s=%lld l=%lld video s=%lld l=%lld\n",
+	package->audio_start, 
+ 	package->audio_end - package->audio_start, 
+ 	package->video_start, 
+ 	package->video_end - package->video_start);
 
 	if(debug) PRINT_TRACE
 

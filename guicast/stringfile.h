@@ -25,6 +25,7 @@
 
 // Line based reading and writing from text files or arrays.
 // Use for extracting databases.
+#include "bcwindowbase.inc"
 #include "units.h"
 
 class StringFile
@@ -60,7 +61,7 @@ public:
 
 	char *string;
 	long pointer, length, available;
-	char string1[1024];      // general purpose strings
+	char string1[BCTEXTLEN];      // general purpose strings
 };
 
 #endif
