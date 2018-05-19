@@ -906,7 +906,7 @@ printf("VFrame::read_png %d", __LINE__);
 	return 0;
 }
 
-int VFrame::write_png(const char *path)
+int VFrame::write_png(const char *path, int compression)
 {
 	png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
 	png_infop info_ptr = png_create_info_struct(png_ptr);
@@ -931,7 +931,7 @@ int VFrame::write_png(const char *path)
 	}
 
 	png_init_io(png_ptr, out_fd);
-	png_set_compression_level(png_ptr, 9);
+	png_set_compression_level(png_ptr, compression);
 	png_set_IHDR(png_ptr, 
 		info_ptr, 
 		get_w(), 

@@ -633,7 +633,6 @@ void SphereCamGUI::create_objects()
 
 
 	show_window();
-	flush();
 }
 
 

@@ -113,7 +113,7 @@ public:
 // Read a PNG into the frame with alpha
 	int read_png(const unsigned char *data);
 // Write a PNG for debugging
-	int write_png(const char *path);
+	int write_png(const char *path, int compression);
 
 // if frame points to the same data as this return 1
 	int equals(VFrame *frame);
