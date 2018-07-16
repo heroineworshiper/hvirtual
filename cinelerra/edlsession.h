@@ -189,7 +189,7 @@ public:
 // Format to display nudge in, either seconds or track units.
 	int nudge_seconds;
 // Show tool window in CWindow
-	int tool_window;
+//	int tool_window;
 // Location of video outs
 	int vchannel_x[MAXCHANNELS];
 	int vchannel_y[MAXCHANNELS];

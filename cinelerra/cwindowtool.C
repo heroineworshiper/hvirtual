@@ -119,7 +119,7 @@ void CWindowTool::start_tool(int operation)
 			this->tool_gui = new_gui;
 			tool_gui->create_objects();
 			
-			if(mwindow->edl->session->tool_window &&
+			if(/* mwindow->edl->session->tool_window && */
 				mwindow->session->show_cwindow) tool_gui->show_window();
 			tool_gui->lock_window("CWindowTool::start_tool 1");
 			tool_gui->flush();
@@ -156,7 +156,7 @@ void CWindowTool::stop_tool()
 
 void CWindowTool::show_tool()
 {
-	if(tool_gui && mwindow->edl->session->tool_window)
+	if(tool_gui /* && mwindow->edl->session->tool_window */ )
 	{
 		tool_gui->lock_window("CWindowTool::show_tool");
 		tool_gui->show_window();
@@ -166,7 +166,7 @@ void CWindowTool::show_tool()
 
 void CWindowTool::hide_tool()
 {
-	if(tool_gui && mwindow->edl->session->tool_window)
+	if(tool_gui /* && mwindow->edl->session->tool_window */ )
 	{
 		tool_gui->lock_window("CWindowTool::show_tool");
 		tool_gui->hide_window();
@@ -198,7 +198,7 @@ void CWindowTool::update_show_window()
 	{
 		tool_gui->lock_window("CWindowTool::update_show_window");
 
-		if(mwindow->edl->session->tool_window) 
+		if(/* mwindow->edl->session->tool_window */ 1) 
 		{
 			tool_gui->update();
 			tool_gui->show_window();
@@ -271,7 +271,7 @@ int CWindowToolGUI::close_event()
 {
 	hide_window();
 	flush();
-	mwindow->edl->session->tool_window = 0;
+//	mwindow->edl->session->tool_window = 0;
 	unlock_window();
 
 

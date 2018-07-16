@@ -369,7 +369,7 @@ $(OBJDIR)/yuv4toyuv: $(OBJDIR)/yuv4toyuv.o $(OUTPUT)
 $(OBJDIR)/yuv2mov: $(OBJDIR)/yuv2mov.o $(OUTPUT)
 	$(CC) -o $(OBJDIR)/yuv2mov $(OBJDIR)/yuv2mov.o $(LIBS)
 
-$(OBJDIR)/qtinfo: $(OBJDIR)/qtinfo.o
+$(OBJDIR)/qtinfo: $(OBJDIR)/qtinfo.o $(OUTPUT)
 	$(CC) -o $(OBJDIR)/qtinfo $(OBJDIR)/qtinfo.o $(LIBS)
 
 util:  $(UTILS)

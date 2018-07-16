@@ -277,7 +277,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 //	test_playback_edits = defaults->get("TEST_PLAYBACK_EDITS", 1);
 	time_format = defaults->get("TIME_FORMAT", TIME_HMS);
 	nudge_seconds = defaults->get("NUDGE_FORMAT", 1);
-	tool_window = defaults->get("TOOL_WINDOW", 0);
+//	tool_window = defaults->get("TOOL_WINDOW", 0);
 	vconfig_in->load_defaults(defaults);
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
@@ -407,7 +407,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 //	defaults->update("TEST_PLAYBACK_EDITS", test_playback_edits);
 	defaults->update("TIME_FORMAT", time_format);
 	defaults->update("NUDGE_FORMAT", nudge_seconds);
-	defaults->update("TOOL_WINDOW", tool_window);
+//	defaults->update("TOOL_WINDOW", tool_window);
     vconfig_in->save_defaults(defaults);
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
@@ -596,7 +596,7 @@ int EDLSession::load_xml(FileXML *file,
 //		test_playback_edits = file->tag.get_property("TEST_PLAYBACK_EDITS", test_playback_edits);
 		time_format = file->tag.get_property("TIME_FORMAT", time_format);
 		nudge_seconds = file->tag.get_property("NUDGE_FORMAT", nudge_seconds);
-		tool_window = file->tag.get_property("TOOL_WINDOW", tool_window);
+//		tool_window = file->tag.get_property("TOOL_WINDOW", tool_window);
 		vwindow_meter = file->tag.get_property("VWINDOW_METER", vwindow_meter);
 		vwindow_zoom = file->tag.get_property("VWINDOW_ZOOM", vwindow_zoom);
 
@@ -659,7 +659,7 @@ int EDLSession::save_xml(FileXML *file)
 	file->tag.set_property("TEST_PLAYBACK_EDITS", test_playback_edits);
 	file->tag.set_property("TIME_FORMAT", time_format);
 	file->tag.set_property("NUDGE_SECONDS", nudge_seconds);
-	file->tag.set_property("TOOL_WINDOW", tool_window);
+//	file->tag.set_property("TOOL_WINDOW", tool_window);
 	file->tag.set_property("VWINDOW_METER", vwindow_meter);
 	file->tag.set_property("VWINDOW_ZOOM", vwindow_zoom);
 
@@ -819,7 +819,7 @@ int EDLSession::copy(EDLSession *session)
 	test_playback_edits = session->test_playback_edits;
 	time_format = session->time_format;
 	nudge_seconds = session->nudge_seconds;
-	tool_window = session->tool_window;
+//	tool_window = session->tool_window;
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
 		vchannel_x[i] = session->vchannel_x[i];

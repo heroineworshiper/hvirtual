@@ -1,4 +1,4 @@
-
+ 
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -1304,7 +1304,7 @@ if(debug) printf("FileMPEG::read_frame %d\n", __LINE__);
 						asset->width,
 						frame->get_w());
 				}
-if(debug) printf("FileMPEG::read_frame %d\n", __LINE__);
+if(debug) printf("FileMPEG::read_frame %d %d %d\n", __LINE__, asset->width, frame->get_w());
 			}
 			break;
 	}

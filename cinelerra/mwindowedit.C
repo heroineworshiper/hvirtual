@@ -184,10 +184,14 @@ void MWindow::asset_to_all()
 			edl->session->output_w = w;
 			edl->session->output_h = h;
 			edl->session->frame_rate = new_framerate;
-			create_aspect_ratio(edl->session->aspect_w, 
-				edl->session->aspect_h, 
-				w, 
-				h);
+            
+            if(defaults->get("AUTOASPECT", 0))
+            {
+			    create_aspect_ratio(edl->session->aspect_w, 
+				    edl->session->aspect_h, 
+				    w, 
+				    h);
+            }
 
 			for(Track *current = edl->tracks->first;
 				current;

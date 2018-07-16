@@ -634,18 +634,40 @@ int mpeg3video_reconstruct(mpeg3video_t *video,
     		{
 /* field-based prediction */
         		if(stwtop < 2)
-        			recon(video, predframe,mv_field_sel[0][0],video->newframe,0,
-            			video->coded_picture_width << 1,video->coded_picture_width << 1,WIDTH,16,bx,by,
-            			PMV[0][0][0],PMV[0][0][1],stwtop);
+        			recon(video, 
+                        predframe,
+                        mv_field_sel[0][0],
+                        video->newframe,
+                        0,
+            			video->coded_picture_width << 1,
+                        video->coded_picture_width << 1,
+                        WIDTH,
+                        16,
+                        bx,
+                        by,
+            			PMV[0][0][0],
+                        PMV[0][0][1],
+                        stwtop);
     		}
     		else 
 			if(motion_type == MC_16X8)
     		{
         		if(stwtop < 2)
         		{
-        			recon(video, predframe, mv_field_sel[0][0], video->newframe, 0, 
-            			video->coded_picture_width << 1, video->coded_picture_width << 1, WIDTH, 8, bx, by, 
-            			PMV[0][0][0], PMV[0][0][1], stwtop);
+        			recon(video, 
+                        predframe, 
+                        mv_field_sel[0][0], 
+                        video->newframe, 
+                        0, 
+            			video->coded_picture_width << 1, 
+                        video->coded_picture_width << 1, 
+                        WIDTH, 
+                        8, 
+                        bx, 
+                        by, 
+            			PMV[0][0][0], 
+                        PMV[0][0][1], 
+                        stwtop);
 
         			/* determine which frame to use for lower half prediction */
         			if((video->pict_type==P_TYPE) && video->secondfield
@@ -654,9 +676,20 @@ int mpeg3video_reconstruct(mpeg3video_t *video,
         			else
             		  predframe = video->oldrefframe; /* previous frame */
 
-        			recon(video, predframe, mv_field_sel[1][0], video->newframe, 0, 
-            			video->coded_picture_width << 1, video->coded_picture_width << 1, WIDTH, 8, bx, by+8, 
-            			PMV[1][0][0], PMV[1][0][1], stwtop);
+        			recon(video, 
+                        predframe, 
+                        mv_field_sel[1][0], 
+                        video->newframe, 
+                        0, 
+            			video->coded_picture_width << 1, 
+                        video->coded_picture_width << 1, 
+                        WIDTH, 
+                        8, 
+                        bx, 
+                        by + 8, 
+            			PMV[1][0][0], 
+                        PMV[1][0][1], 
+                        stwtop);
         		}
     		}
     		else 

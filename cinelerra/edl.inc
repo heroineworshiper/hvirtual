@@ -78,7 +78,7 @@ class EDL;
 // Active tool in CWindow corresponds to a member of the CPanel array
 // and the current drag operation
 
-#define CPANEL_OPERATIONS 10
+#define CPANEL_OPERATIONS 9
 
 
 #define CWINDOW_NONE -1
@@ -90,8 +90,8 @@ class EDL;
 #define CWINDOW_PROJECTOR   5
 #define CWINDOW_CROP        6
 #define CWINDOW_EYEDROP     7
-#define CWINDOW_TOOL_WINDOW 8
-#define CWINDOW_TITLESAFE   9
+//#define CWINDOW_TOOL_WINDOW 8
+#define CWINDOW_TITLESAFE   8
 
 // Current dragging operations not available in the CPanel
 #define CWINDOW_SCROLL 0x10
