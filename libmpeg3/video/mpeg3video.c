@@ -88,12 +88,13 @@ int mpeg3video_initdecoder(mpeg3video_t *video)
 	}
 
 /* Get dimensions rounded to nearest multiple of coded macroblocks */
-    video->block_w = 8;
+    video->block_w = 16;
     video->block_h = 8;
     if(video->mpeg2 && !video->prog_seq)
     {
         video->block_h = 16;
     }
+
 // 	video->mb_width = (video->horizontal_size + 15) / 16;
 // 	video->mb_height = (video->mpeg2 && !video->prog_seq) ? 
 // 					(2 * ((video->vertical_size + 31) / 32)) : 

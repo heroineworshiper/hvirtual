@@ -484,7 +484,7 @@ void HueUnit::process_package(LoadPackage *package)
 			break;
 
 		case BC_RGB_FLOAT:
-			HUESATURATION(float, 1, 3, 0)
+			HUESATURATION(float, 1.0f, 3, 0)
 			break;
 
 		case BC_YUV888:
@@ -500,7 +500,7 @@ void HueUnit::process_package(LoadPackage *package)
 			break;
 
 		case BC_RGBA_FLOAT:
-			HUESATURATION(float, 1, 4, 0)
+			HUESATURATION(float, 1.0f, 4, 0)
 			break;
 
 		case BC_RGBA8888:

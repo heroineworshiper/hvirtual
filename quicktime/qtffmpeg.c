@@ -458,14 +458,98 @@ static int get_chroma_factor(quicktime_ffmpeg_t *ffmpeg, int current_field)
 		case AV_PIX_FMT_YUV410P:
 			return 9;
 			break;
+        case AV_PIX_FMT_YUV420P10LE:
+            return 4;
+            break;
 		default:
 			fprintf(stderr, 
-				"get_chroma_factor: unrecognized color model %d\n", 
-				ffmpeg->decoder_context[current_field]->pix_fmt);
+				"get_chroma_factor: unrecognized color model %d %d\n", 
+				ffmpeg->decoder_context[current_field]->pix_fmt,
+                AV_PIX_FMT_YUV420P10LE);
 			return 9;
 			break;
 	}
 }
+
+
+static void downsample(quicktime_ffmpeg_t *ffmpeg, 
+    quicktime_t *file, 
+    unsigned char **picture_y,
+    unsigned char **picture_u,
+    unsigned char **picture_v,
+    int *rowspan)
+{
+//printf("downsample %d\n", __LINE__);
+// reduce bits per pixel
+    if(ffmpeg->decoder_context[0]->pix_fmt ==
+        AV_PIX_FMT_YUV420P10LE)
+    {
+        int i, j;
+        if(!ffmpeg->temp_frame)
+        {
+            ffmpeg->temp_frame = malloc(ffmpeg->width_i * ffmpeg->height_i * 3 / 2);
+        }
+
+
+// printf("downsample %d %d %d\n", 
+// __LINE__, 
+// rowspan,
+// file->in_w);
+
+// for(i = 0; i < 16; i++)
+// {
+//     printf("%02x ", (*picture_y)[i]);
+// }
+// printf("\n");
+
+
+
+
+
+        for(i = file->in_y; i < file->in_y + file->in_h; i++)
+        {
+            unsigned char *in_y = (*picture_y) + i * *rowspan;
+            unsigned char *out_y = ffmpeg->temp_frame + i * ffmpeg->width_i;
+
+
+            for(j = 0; j < ffmpeg->width_i; j++)
+            {
+                *out_y++ = (in_y[1] << 6) | (in_y[0] >> 2);
+                in_y += 2;
+            }
+
+            if(!(i % 2))
+            {
+                unsigned char *in_u = (*picture_u) + (i / 2) * *rowspan / 2 + file->in_x;
+                unsigned char *in_v = (*picture_v) + (i / 2) * *rowspan / 2 + file->in_x;
+                unsigned char *out_u = ffmpeg->temp_frame + 
+                   ffmpeg->width_i * ffmpeg->height_i +
+                   (i / 2) * ffmpeg->width_i / 2;
+                unsigned char *out_v = ffmpeg->temp_frame + 
+                   ffmpeg->width_i * ffmpeg->height_i +
+                   ffmpeg->width_i / 2 * ffmpeg->height_i / 2 +
+                   (i / 2) * ffmpeg->width_i / 2;
+
+
+                for(j = 0; j < ffmpeg->width_i / 2; j++)
+                {
+                      *out_u++ = (in_u[1] << 6) | (in_u[0] >> 2);
+                      in_u += 2;
+                      *out_v++ = (in_v[1] << 6) | (in_v[0] >> 2);
+                      in_v += 2;
+                }
+            }
+        }
+
+        *picture_y = ffmpeg->temp_frame;
+        *picture_u = ffmpeg->temp_frame + ffmpeg->width_i * ffmpeg->height_i;
+        *picture_v = *picture_u + ffmpeg->width_i / 2 * ffmpeg->height_i / 2;
+        *rowspan = ffmpeg->width_i;
+    }
+//printf("downsample %d\n", __LINE__);
+
+}
+
 
 int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 	quicktime_t *file, 
@@ -660,9 +744,21 @@ picture_y);
 				picture_u = ffmpeg->picture[current_field]->data[1];
 				picture_v = ffmpeg->picture[current_field]->data[2];
 
+
+
 // cache the frame
 				if(result == 0)
 				{
+
+
+// downsample the pixels
+                    downsample(ffmpeg, 
+                        file, 
+                        &picture_y, 
+                        &picture_u, 
+                        &picture_v, 
+                        &rowspan);
+
 					int y_size = rowspan * ffmpeg->height_i;
 					int u_size = y_size / get_chroma_factor(ffmpeg, current_field);
 					int v_size = y_size / get_chroma_factor(ffmpeg, current_field);
@@ -720,6 +816,14 @@ ffmpeg->last_frame[current_field]);
 			} while(result > 0 && 
 				ffmpeg->last_frame[current_field] < track_length - 1 &&
 				ffmpeg->read_position[current_field] < track_length);
+
+
+            downsample(ffmpeg, 
+                file, 
+                &picture_y, 
+                &picture_u, 
+                &picture_v, 
+                &rowspan);
 		}
 		else
 // same frame requested
@@ -730,6 +834,13 @@ ffmpeg->last_frame[current_field]);
 			picture_y = ffmpeg->picture[current_field]->data[0];
 			picture_u = ffmpeg->picture[current_field]->data[1];
 			picture_v = ffmpeg->picture[current_field]->data[2];
+
+            downsample(ffmpeg, 
+                file, 
+                &picture_y, 
+                &picture_u, 
+                &picture_v, 
+                &rowspan);
 		}
 //printf("quicktime_ffmpeg_decode %d current_position=%ld\n", __LINE__, vtrack->current_position);
 
@@ -740,7 +851,16 @@ ffmpeg->last_frame[current_field]);
 	}
 	else
 	{
-		rowspan = ffmpeg->picture[current_field]->linesize[0];
+// handle the case of colorspaces that were downsampled before caching    
+        if(ffmpeg->decoder_context[current_field]->pix_fmt == AV_PIX_FMT_YUV420P10LE)
+        {
+            rowspan = ffmpeg->width_i;
+        }
+        else
+        {
+    		rowspan = ffmpeg->picture[current_field]->linesize[0];
+        }
+    
 	}
 
 // Hopefully this setting will be left over if the cache was used.
@@ -766,6 +886,9 @@ ffmpeg->last_frame[current_field]);
 		case AV_PIX_FMT_YUV410P:
 			input_cmodel = BC_YUV9P;
 			break;
+        case AV_PIX_FMT_YUV420P10LE:
+            input_cmodel = BC_YUV420P;
+            break;
 		default:
 			fprintf(stderr, 
 				"quicktime_ffmpeg_decode: unrecognized color model %d\n", 

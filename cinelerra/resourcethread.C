@@ -316,7 +316,7 @@ void ResourceThread::run()
 			}
 			item_lock->unlock();
 
-//printf("ResourceThread::run %d %d\n", __LINE__, items.size());
+//printf("ResourceThread::run %d %d\n", __LINE__, total_items);
 			if(!total_items) break;
 
 			if(item->data_type == TRACK_VIDEO)

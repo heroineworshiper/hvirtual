@@ -243,7 +243,12 @@ int FileCR2::read_frame(VFrame *frame, char *path)
 
 	frame->get_params()->update("DCRAW_MATRIX", string);
 
-//printf("FileCR2::read_frame %d frame=%p\n", __LINE__, frame);
+// float *ptr = (float*)frame->get_rows()[1346];
+// printf("FileCR2::read_frame %d %f %f %f\n", 
+// __LINE__, 
+// ptr[3046 * 3 + 0],
+// ptr[3046 * 3 + 1],
+// ptr[3046 * 3 + 2]);
 //frame->dump_params();
 
 	return 0;

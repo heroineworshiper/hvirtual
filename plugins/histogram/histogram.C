@@ -300,7 +300,11 @@ float HistogramMain::calculate_level(float input,
 
 	if(!EQUIV(config.gamma[mode], 0))
 	{
-		output = pow(output, 1.0 / config.gamma[mode]);
+        if(output > 0)
+        {
+    		output = pow(output, 1.0 / config.gamma[mode]);
+        }
+
 		CLAMP(output, 0, 1.0);
 	}
 

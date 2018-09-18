@@ -38,6 +38,8 @@
 #include "thread.h"
 
 
+#include <string>
+using std::string;
 
 
 
@@ -194,6 +196,12 @@ public:
 };
 
 
+class BC_DirectoryPosition
+{
+public:
+    string path;
+    int y_offset;
+};
 
 
 class BC_FileBox : public BC_Window
@@ -240,7 +248,7 @@ public:
 
 	void create_history();
 	void update_history();
-	int refresh();
+	int refresh(int reload_y_position, int reset_y_position);
 
 // The OK and Use This button submits a path.
 // The cancel button has a current path highlighted but possibly different from the
@@ -270,6 +278,8 @@ private:
 // filename untouched.
 	int submit_dir(char *dir);
 	int submit_file(const char *path, int use_this = 0);
+    void store_yposition();
+    int reload_yposition(char *directory);
 // Called by move_column_event
 	void move_column(int src, int dst);
 	int get_display_mode();
@@ -320,6 +330,11 @@ private:
 	BC_DeleteThread *delete_thread;
 	int h_padding;
 	ArrayList<BC_ListBoxItem*> recent_dirs;
+
+
+// Y positions of every past directory, shared between every filebox
+    static Mutex *history_lock;
+    static ArrayList<BC_DirectoryPosition*> directory_positions;
 };
 
 
