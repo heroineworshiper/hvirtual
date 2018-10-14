@@ -816,7 +816,7 @@ int Edits::modify_handles(double oldposition,
 	int result = 0;
 	Edit *current_edit;
 
-//printf("Edits::modify_handles 1 %d %f %f\n", currentend, newposition, oldposition);
+//printf("Edits::modify_handles %d: %d %f %f\n", __LINE__, currentend, newposition, oldposition);
 	if(currentend == 0)
 	{
 // left handle
@@ -826,13 +826,13 @@ int Edits::modify_handles(double oldposition,
 				oldposition))
 			{
 // edit matches selection
-//printf("Edits::modify_handles 3 %f %f\n", newposition, oldposition);
+//printf("Edits::modify_handles %d: %f %f\n", __LINE__, newposition, oldposition);
 				oldposition = track->from_units(current_edit->startproject);
 				result = 1;
 
 				if(newposition >= oldposition)
 				{
-//printf("Edits::modify_handle 1 %s %f %f\n", track->title, oldposition, newposition);
+//printf("Edits::modify_handle %d: %s %f %f\n", __LINE__, track->title, oldposition, newposition);
 // shift start of edit in
 					current_edit->shift_start_in(edit_mode, 
 						track->to_units(newposition, 0), 
@@ -845,7 +845,7 @@ int Edits::modify_handles(double oldposition,
 				}
 				else
 				{
-//printf("Edits::modify_handle 2 %s\n", track->title);
+//printf("Edits::modify_handle %d: %s\n", __LINE__, track->title);
 // move start of edit out
 					current_edit->shift_start_out(edit_mode, 
 						track->to_units(newposition, 0), 

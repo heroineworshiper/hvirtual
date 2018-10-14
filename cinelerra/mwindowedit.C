@@ -937,6 +937,7 @@ int MWindow::modify_pluginhandles()
 {
 	undo->update_undo_before();
 
+//printf("MWindow::modify_pluginhandles %d\n", __LINE__);
 	edl->modify_pluginhandles(session->drag_start, 
 		session->drag_position, 
 		session->drag_handle, 
@@ -959,7 +960,7 @@ void MWindow::finish_modify_handles()
 	if((session->drag_handle == 1 && edit_mode != MOVE_NO_EDITS) ||
 		(session->drag_handle == 0 && edit_mode == MOVE_ONE_EDIT))
 	{
-printf("MWindow::finish_modify_handles %d\n", __LINE__);
+//printf("MWindow::finish_modify_handles %d\n", __LINE__);
 		edl->local_session->set_selectionstart(session->drag_position);
 		edl->local_session->set_selectionend(session->drag_position);
 		edl->deglitch(session->drag_position);
@@ -967,7 +968,7 @@ printf("MWindow::finish_modify_handles %d\n", __LINE__);
 	else
 	if(edit_mode != MOVE_NO_EDITS)
 	{
-printf("MWindow::finish_modify_handles %d\n", __LINE__);
+//printf("MWindow::finish_modify_handles %d drag_start=%f\n", __LINE__, session->drag_start);
 		edl->local_session->set_selectionstart(session->drag_start);
 		edl->local_session->set_selectionend(session->drag_start);
 		edl->deglitch(session->drag_start);

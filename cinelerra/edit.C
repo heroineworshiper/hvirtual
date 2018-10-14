@@ -499,6 +499,8 @@ int Edit::shift_start_out(int edit_mode,
 {
 	int64_t cut_length = oldposition - newposition;
 
+//printf("Edit::shift_start_out %d: edit_mode=%d startsource=%ld cut_length=%ld\n", 
+//__LINE__, edit_mode, startsource, cut_length);
 
 	if(asset || nested_edl)
 	{
@@ -513,7 +515,7 @@ int Edit::shift_start_out(int edit_mode,
 
 	if(edit_mode == MOVE_ALL_EDITS)
 	{
-//printf("Edit::shift_start_out 10 %lld\n", cut_length);
+//printf("Edit::shift_start_out %d: %lld\n", __LINE__, cut_length);
 		startsource -= cut_length;
 		length += cut_length;
 
@@ -533,6 +535,7 @@ int Edit::shift_start_out(int edit_mode,
 	else
 	if(edit_mode == MOVE_ONE_EDIT)
 	{
+//printf("Edit::shift_start_out %d: previous=%p\n", __LINE__, previous);
 		if(previous)
 		{
 			if(cut_length < previous->length)
@@ -541,7 +544,7 @@ int Edit::shift_start_out(int edit_mode,
 				startproject -= cut_length;
 				startsource -= cut_length;
 				length += cut_length;
-printf("Edit::shift_start_out 2\n");
+//printf("Edit::shift_start_out 2\n");
 			}
 			else
 			{   // Clear entire previous edit
@@ -556,6 +559,10 @@ printf("Edit::shift_start_out 2\n");
 	else
 	if(edit_mode == MOVE_NO_EDITS)
 	{
+//printf("Edit::shift_start_out %d: cut_length=%ld startsource=%ld\n",
+//__LINE__,
+//cut_length,
+//startsource);
 		startsource -= cut_length;
 	}
 
