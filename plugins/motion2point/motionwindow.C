@@ -839,8 +839,8 @@ void Calculation::create_objects()
 {
 	add_item(new BC_MenuItem(to_text(MotionScan::NO_CALCULATE)));
 	add_item(new BC_MenuItem(to_text(MotionScan::CALCULATE)));
-	add_item(new BC_MenuItem(to_text(MotionScan::SAVE)));
-	add_item(new BC_MenuItem(to_text(MotionScan::LOAD)));
+//	add_item(new BC_MenuItem(to_text(MotionScan::SAVE)));
+//	add_item(new BC_MenuItem(to_text(MotionScan::LOAD)));
 }
 
 int Calculation::from_text(char *text)

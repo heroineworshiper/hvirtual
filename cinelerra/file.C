@@ -36,6 +36,7 @@
 #include "file.h"
 #include "filegif.h"
 #include "filejpeg.h"
+//#include "filemkv.h"
 #include "filemov.h"
 #include "filempeg.h"
 #include "fileogg.h"
@@ -667,6 +668,12 @@ int File::open_file(Preferences *preferences,
 				file = new FileMOV(this->asset, this);
 			}
 			else
+// 			if(FileMKV::check_sig(this->asset))
+// 			{
+// 				fclose(stream);
+// 				file = new FileMKV(this->asset, this);
+// 			}
+// 			else
 // FFMPEG last because it sux
 			if(FileFFMPEG::check_sig(this->asset))
 			{

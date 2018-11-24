@@ -186,7 +186,7 @@ int IndexFile::open_file()
 	if(fd = fopen(index_filename, "rb"))
 	{
 // Index file already exists.
-// Get its last size without changing the real asset status.
+// Get its last date without changing the real asset status.
 		Indexable *test_indexable = new Indexable(0);
 		if(indexable)
 		{

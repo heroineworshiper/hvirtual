@@ -89,6 +89,12 @@ void MotionConfig::boundaries()
 		CLAMP(global_block_h[i], MIN_BLOCK, MAX_BLOCK);
 	}
 
+
+    if(calculation != MotionScan::NO_CALCULATE &&
+        calculation != MotionScan::CALCULATE)
+    {
+        calculation = MotionScan::NO_CALCULATE;
+    }
 }
 
 int MotionConfig::equivalent(MotionConfig &that)

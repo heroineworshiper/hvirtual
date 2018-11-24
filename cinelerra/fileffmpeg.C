@@ -782,14 +782,67 @@ int FileFFMPEG::read_frame(VFrame *frame)
 			ffmpeg_stream->time_base.den /
 			ffmpeg_stream->time_base.num /
 			asset->frame_rate);
+
+//printf("FileFFMPEG::read_frame %d: timestamp=%ld\n", __LINE__, timestamp);
+
 // Want to seek to the nearest keyframe and read up to the current frame
-// but ffmpeg doesn't support that kind of precision.
-// Also, basing all the seeking on the same stream seems to be required for synchronization.
+// but ffmpeg seeks to the next keyframe.
+// The best workaround was basing all the seeking on the same stream.
+// 		av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
+// 			/* stream->index */ 0, 
+// 			timestamp, 
+// 			AVSEEK_FLAG_ANY);
+//		stream->current_frame = file->current_frame - 1;
+
+
+// The new plan is to find the keyframe ourselves.
+// Always need a seek to force ffmpeg to read the index.
 		av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
-			/* stream->index */ 0, 
+			stream->index, 
 			timestamp, 
 			AVSEEK_FLAG_ANY);
-		stream->current_frame = file->current_frame - 1;
+
+        AVStream *av_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->index];
+        AVIndexEntry *av_index = av_stream->index_entries;
+
+// for(int i = 0; i < av_stream->nb_index_entries; i++)
+// {
+//     AVIndexEntry *entry = &av_index[i];
+//     printf("FileFFMPEG::read_frame %d: timestamp=%ld pos=%ld keyframe=%d\n",
+//         __LINE__,
+//         entry->timestamp,
+//         entry->pos,
+//         entry->flags);
+// }
+
+        int index = -1;
+        for(int i = av_stream->nb_index_entries - 1; i >= 0; i--)
+        {
+            AVIndexEntry *entry = &av_index[i];
+            if(entry->timestamp <= timestamp &&
+                (entry->flags & AVINDEX_KEYFRAME))
+            {
+                index = i;
+                break;
+            }
+        }
+        
+        
+        if(index >= 0)
+        {
+// convert the keyframe timecode to the current frame
+            stream->current_frame = av_index[index].timestamp *
+                asset->frame_rate *
+                ffmpeg_stream->time_base.num /
+                ffmpeg_stream->time_base.den;
+// printf("FileFFMPEG::read_frame %d: stream->current_frame=%ld offset=%ld\n", 
+// __LINE__, 
+// stream->current_frame,
+// av_index[index].pos);
+            avio_seek(((AVFormatContext*)stream->ffmpeg_file_context)->pb, 
+                av_index[index].pos, SEEK_SET);
+        }
+
 	}
 	if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
 
