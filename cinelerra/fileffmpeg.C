@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2016 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ extern "C"
 #include "fileffmpeg.h"
 #include "mpegaudio.h"
 #include "mutex.h"
+#include "quicktime.h"
 #include <unistd.h>
 #include "videodevice.inc"
 
@@ -458,10 +459,29 @@ if(debug) printf("FileFFMPEG::open_file %d decoder_context->codec_id=%d\n", __LI
 							decoder_context->thread_count = file->cpus;
 							avcodec_open2(decoder_context, codec, 0);
 
+                            switch(decoder_context->codec_id)
+                            {
+                                case AV_CODEC_ID_AAC:
+                                    strcpy (asset->acodec, QUICKTIME_MP4A);
+                                    break;
+                                case AV_CODEC_ID_AC3:
+                                    strcpy (asset->acodec, "AC3");
+                                    break;
+                                case AV_CODEC_ID_OPUS:
+                                    strcpy (asset->acodec, "OPUS");
+                                    break;
+                                default:
+                                    asset->acodec[0] = 0;
+                                    break;
+                            }
+
 							asset->channels += new_stream->channels;
 							asset->bits = 16;
 							asset->audio_data = 1;
 							asset->sample_rate = decoder_context->sample_rate;
+                            
+//printf("FileFFMPEG::open_file %d codec_id=%d\n", __LINE__, decoder_context->codec_id);
+                            
 							int64_t audio_length = (int64_t)(((AVFormatContext*)new_stream->ffmpeg_file_context)->duration * 
 								asset->sample_rate / 
 								AV_TIME_BASE);
@@ -497,6 +517,22 @@ if(debug) printf("FileFFMPEG::open_file %d i=%d CODEC_TYPE_VIDEO\n", __LINE__, i
 							decoder_context->thread_count = file->cpus;
 							avcodec_open2(decoder_context, codec, 0);
 
+//printf("FileFFMPEG::open_file %d codec_id=%d\n", __LINE__, decoder_context->codec_id);
+                            switch(decoder_context->codec_id)
+                            {
+                                case AV_CODEC_ID_H264:
+                                    strcpy (asset->vcodec, QUICKTIME_H264);
+                                    break;
+                                case AV_CODEC_ID_H265:
+                                    strcpy (asset->vcodec, QUICKTIME_H265);
+                                    break;
+                                case AV_CODEC_ID_VP9:
+                                    strcpy (asset->vcodec, "VP9");
+                                    break;
+                                default:
+                                    asset->vcodec[0] = 0;
+                                    break;
+                            }
 							asset->width = decoder_context->width;
 							asset->height = decoder_context->height;
 							if(EQUIV(asset->frame_rate, 0))
@@ -802,10 +838,9 @@ int FileFFMPEG::read_frame(VFrame *frame)
 			timestamp, 
 			AVSEEK_FLAG_ANY);
 
-        AVStream *av_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->index];
-        AVIndexEntry *av_index = av_stream->index_entries;
+        AVIndexEntry *av_index = ffmpeg_stream->index_entries;
 
-// for(int i = 0; i < av_stream->nb_index_entries; i++)
+// for(int i = 0; i < ffmpeg_stream->nb_index_entries; i++)
 // {
 //     AVIndexEntry *entry = &av_index[i];
 //     printf("FileFFMPEG::read_frame %d: timestamp=%ld pos=%ld keyframe=%d\n",
@@ -815,20 +850,37 @@ int FileFFMPEG::read_frame(VFrame *frame)
 //         entry->flags);
 // }
 
-        int index = -1;
-        for(int i = av_stream->nb_index_entries - 1; i >= 0; i--)
+
+// default to the start of the file
+        int index = 0;
+// rewind this many keyframes
+        int count = 2;
+        if(decoder_context->codec_id == AV_CODEC_ID_VP9)
+        {
+            count = 1;
+        }
+// if no keyframes are detected, don't seek to a keyframe
+        int total_keyframes = 0;
+        for(int i = ffmpeg_stream->nb_index_entries - 1; i >= 0; i--)
         {
             AVIndexEntry *entry = &av_index[i];
-            if(entry->timestamp <= timestamp &&
-                (entry->flags & AVINDEX_KEYFRAME))
+            if(entry->timestamp <= timestamp)
             {
-                index = i;
-                break;
+                if(entry->flags & AVINDEX_KEYFRAME)
+                {
+                    total_keyframes++;
+                    count--;
+                    if(count == 0)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
             }
         }
         
         
-        if(index >= 0)
+        if(index >= 0 && total_keyframes > 0)
         {
 // convert the keyframe timecode to the current frame
             stream->current_frame = av_index[index].timestamp *
@@ -1068,15 +1120,28 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 			ffmpeg_stream->time_base.den /
 			ffmpeg_stream->time_base.num /
 			asset->sample_rate);
-// Want to seek to the nearest keyframe and read up to the current frame
-// but ffmpeg doesn't support that kind of precision.
-// Also, basing all the seeking on the same stream seems to be required for synchronization.
+// Basing all the seeking on the same stream seems to be required for synchronization.
 		if(debug) printf("FileFFMPEG::read_samples %d\n",
 			__LINE__);
 		av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
-			/* stream->index */ 0, 
+			stream->index /* 0 */, 
 			timestamp, 
 			AVSEEK_FLAG_ANY);
+
+printf("FileFFMPEG::read_samples %d: timestamp=%ld\n", __LINE__, timestamp);
+// AVIndexEntry *av_index = ffmpeg_stream->index_entries;
+// for(int i = 0; i < ffmpeg_stream->nb_index_entries; i++)
+// {
+//     AVIndexEntry *entry = &av_index[i];
+//     printf("FileFFMPEG::read_samples %d: timestamp=%ld pos=%ld %x\n",
+//         __LINE__,
+//         entry->timestamp,
+//         entry->pos,
+//         entry->flags);
+// }
+
+// MKV gives the same offset for large chunks at a time, so seek & discard samples
+
 		if(debug) printf("FileFFMPEG::read_samples %d\n",
 			__LINE__);
 		stream->current_sample = file->current_sample;
