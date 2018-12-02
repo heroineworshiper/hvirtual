@@ -2695,7 +2695,7 @@ int MWindow::create_aspect_ratio(float &w, float &h, int width, int height)
 	float fraction = (float)width / height;
 
 	for(denominator = 1; 
-		denominator < 100 && 
+		denominator < 10000 && 
 			fabs(fraction * denominator - (int)(fraction * denominator)) > .001; 
 		denominator++)
 		;

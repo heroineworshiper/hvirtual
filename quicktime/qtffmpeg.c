@@ -145,12 +145,14 @@ quicktime_ffmpeg_t* quicktime_new_ffmpeg(int cpus,
 
 		if(esds->mpeg4_header && esds->mpeg4_header_size) 
 		{
+//printf("quicktime_new_ffmpeg %d\n", __LINE__);
 			context->extradata = (unsigned char *)esds->mpeg4_header;
 			context->extradata_size = esds->mpeg4_header_size;
 		}
 
 		if(avcc->data && avcc->data_size)
 		{
+//printf("quicktime_new_ffmpeg %d\n", __LINE__);
 			context->extradata = (unsigned char *)avcc->data;
 			context->extradata_size = avcc->data_size;
 		}

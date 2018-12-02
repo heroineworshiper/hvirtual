@@ -266,12 +266,13 @@ LIBS := $(OUTPUT) $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a -lpng -lz -lpthread -ldl -lm
 $(shell mkdir -p $(DIRS) )
 $(shell echo  $(CFLAGS) > $(OBJDIR)/c_flags)
 $(shell echo  $(LAME_CFLAGS) > $(OBJDIR)/lame_flags)
-$(shell echo  $(OBJS) $(FFMPEG_OBJS) $(JPEG_LIB)/*.o $(DV_LIB)/*.o $(FAAD_LIB)/*.o $(FAAC_LIB)/*.o $(X264_LIB)/*.o $(OGG_LIB)/*.o $(VORBIS_LIB)/*.o $(LAME_OBJS) > $(OBJDIR)/objs)
+$(shell echo  $(OBJS) $(FFMPEG_OBJS) $(JPEG_LIB)/*.o $(DV_LIB)/*.o $(FAAD_LIB)/*.o $(FAAC_LIB)/*.o $(X264_LIB)/*.o $(X265_LIB)/*.o $(OGG_LIB)/*.o $(VORBIS_LIB)/*.o $(LAME_OBJS) > $(OBJDIR)/objs)
 $(shell echo  $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
 
-all: $(OBJDIR) $(OUTPUT) $(UTILS)
+all: $(OBJDIR) $(OUTPUT)
+#all: $(OBJDIR) $(OUTPUT) $(UTILS)
 
-$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(FFMPEG_LIB) $(X264_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
+$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(FFMPEG_LIB) $(X264_LIB) $(X265_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
 	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
 	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
 	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
@@ -328,6 +329,15 @@ $(X264_LIB):
 	mv macroblock.o macroblock2.o && \
 	mv set.o set2.o && \
 	ar xN 1 ../../$(X264_DIR)/libx264.a predict.o cabac.o macroblock.o set.o
+
+
+$(X265_LIB):
+	$(MAKE) -C $(X265_DIR)/build && \
+	mkdir -p $(X265_LIB) && \
+	cd $(X265_LIB) && \
+	ar x ../../$(X265_DIR)/build/libx265.a
+
+
 
 $(OGG_LIB):
 	$(MAKE) -C $(OGG_DIR) && \

@@ -320,12 +320,15 @@ int64_t Asset::get_index_size(int channel)
 
 char* Asset::get_compression_text(int audio, int video)
 {
+
+//printf("Asset::get_compression_text %d %s %s\n", __LINE__, acodec, vcodec);
 	if(audio)
 	{
 		switch(format)
 		{
 			case FILE_MOV:
 			case FILE_AVI:
+            case FILE_FFMPEG:
 				if(acodec[0])
 					return quicktime_acodec_title(acodec);
 				else
@@ -340,6 +343,7 @@ char* Asset::get_compression_text(int audio, int video)
 		{
 			case FILE_MOV:
 			case FILE_AVI:
+            case FILE_FFMPEG:
 				if(vcodec[0])
 					return quicktime_vcodec_title(vcodec);
 				else

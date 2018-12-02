@@ -143,7 +143,8 @@ ushort *raw_image, (*image)[4], cblack[4102];
 ushort white[8][8], curve[0x10000], cr2_slice[3], sraw_mul[4];
 double pixel_aspect, aber[4]={1,1,1,1}, gamm[6]={ 0.45,4.5,0,0,0,0 };
 float bright=1, user_mul[4]={0,0,0,0}, threshold=0;
-int mask[8][4];
+// CINELERRA
+int mask_[8][4];
 int half_size=0, four_color_rgb=0, document_mode=0, highlight=0;
 int verbose=0, use_auto_wb=0, use_camera_wb=0, use_camera_matrix=1;
 int output_color=1, output_bps=8, output_tiff=0, med_passes=0;
@@ -3784,11 +3785,11 @@ void CLASS crop_masked_pixels()
       for (col=0; col < width; col++)
 	BAYER2(row,col) = RAW(row+top_margin,col+left_margin);
   }
-  if (mask[0][3] > 0) goto mask_set;
+  if (mask_[0][3] > 0) goto mask_set;
   if (load_raw == &CLASS canon_load_raw ||
       load_raw == &CLASS lossless_jpeg_load_raw) {
-    mask[0][1] = mask[1][1] += 2;
-    mask[0][3] -= 2;
+    mask_[0][1] = mask_[1][1] += 2;
+    mask_[0][3] -= 2;
     goto sides;
   }
   if (load_raw == &CLASS canon_600_load_raw ||
@@ -3797,21 +3798,21 @@ void CLASS crop_masked_pixels()
       load_raw == &CLASS kodak_262_load_raw ||
      (load_raw == &CLASS packed_load_raw && (load_flags & 32))) {
 sides:
-    mask[0][0] = mask[1][0] = top_margin;
-    mask[0][2] = mask[1][2] = top_margin+height;
-    mask[0][3] += left_margin;
-    mask[1][1] += left_margin+width;
-    mask[1][3] += raw_width;
+    mask_[0][0] = mask_[1][0] = top_margin;
+    mask_[0][2] = mask_[1][2] = top_margin+height;
+    mask_[0][3] += left_margin;
+    mask_[1][1] += left_margin+width;
+    mask_[1][3] += raw_width;
   }
   if (load_raw == &CLASS nokia_load_raw) {
-    mask[0][2] = top_margin;
-    mask[0][3] = width;
+    mask_[0][2] = top_margin;
+    mask_[0][3] = width;
   }
 mask_set:
   memset (mblack, 0, sizeof mblack);
   for (zero=m=0; m < 8; m++)
-    for (row=MAX(mask[m][0],0); row < MIN(mask[m][2],raw_height); row++)
-      for (col=MAX(mask[m][1],0); col < MIN(mask[m][3],raw_width); col++) {
+    for (row=MAX(mask_[m][0],0); row < MIN(mask_[m][2],raw_height); row++)
+      for (col=MAX(mask_[m][1],0); col < MIN(mask_[m][3],raw_width); col++) {
 	c = FC(row-top_margin,col-left_margin);
 	mblack[c] += val = RAW(row,col);
 	mblack[4+c]++;
@@ -6141,7 +6142,7 @@ guess_cfa_pc:
 	break;
       case 50830:			/* MaskedAreas */
         for (i=0; i < len && i < 32; i++)
-	  ((int *)mask)[i] = getint(type);
+	  ((int *)mask_)[i] = getint(type);
 	black = 0;
 	break;
       case 51009:			/* OpcodeList2 */
@@ -8436,7 +8437,7 @@ void CLASS identify()
   memset (gpsdata, 0, sizeof gpsdata);
   memset (cblack, 0, sizeof cblack);
   memset (white, 0, sizeof white);
-  memset (mask, 0, sizeof mask);
+  memset (mask_, 0, sizeof mask_);
   thumb_offset = thumb_length = thumb_width = thumb_height = 0;
   load_raw = thumb_load_raw = 0;
   write_thumb = &CLASS jpeg_thumb;
@@ -8545,7 +8546,7 @@ void CLASS identify()
       case 10: load_raw = &CLASS nokia_load_raw;
     }
     raw_height = height + (top_margin = i / (width * tiff_bps/8) - height);
-    mask[0][3] = 1;
+    mask_[0][3] = 1;
     filters = 0x61616161;
   } else if (!memcmp (head,"ARRI",4)) {
     order = 0x4949;
@@ -8702,10 +8703,10 @@ void CLASS identify()
 	height = raw_height - (top_margin = canon[i][3]);
 	width  -= canon[i][4];
 	height -= canon[i][5];
-	mask[0][1] =  canon[i][6];
-	mask[0][3] = -canon[i][7];
-	mask[1][1] =  canon[i][8];
-	mask[1][3] = -canon[i][9];
+	mask_[0][1] =  canon[i][6];
+	mask_[0][3] = -canon[i][7];
+	mask_[1][1] =  canon[i][8];
+	mask_[1][3] = -canon[i][9];
 	if (canon[i][10]) filters = canon[i][10] * 0x01010101;
       }
     if ((unique_id | 0x20000) == 0x2720000) {
@@ -8797,7 +8798,7 @@ canon_a5:
   } else if (!strcmp(model,"PowerShot A610")) {
     if (canon_s2is()) strcpy (model+10, "S2 IS");
   } else if (!strcmp(model,"PowerShot SX220 HS")) {
-    mask[1][3] = -4;
+    mask_[1][3] = -4;
   } else if (!strcmp(model,"EOS D2000C")) {
     filters = 0x61616161;
     black = curve[200];
@@ -9187,7 +9188,7 @@ konica_400z:
   } else if (!strcmp(model,"DSC-F828")) {
     width = 3288;
     left_margin = 5;
-    mask[1][3] = -17;
+    mask_[1][3] = -17;
     data_offset = 862144;
     load_raw = &CLASS sony_load_raw;
     filters = 0x9c9c9c9c;
@@ -9196,7 +9197,7 @@ konica_400z:
   } else if (!strcmp(model,"DSC-V3")) {
     width = 3109;
     left_margin = 59;
-    mask[0][1] = 9;
+    mask_[0][1] = 9;
     data_offset = 787392;
     load_raw = &CLASS sony_load_raw;
   } else if (!strcmp(make,"Sony") && raw_width == 3984) {
