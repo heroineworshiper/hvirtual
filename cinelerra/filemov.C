@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +72,7 @@ N_("MPEG-4 Audio")
 #define DIVX_NAME "MPEG-4"
 #define HV64_NAME "Dual H.264"
 #define MP4V_NAME "MPEG-4 Video"
+#define H265_NAME "H.265"
 #define H264_NAME "H.264"
 #define H263_NAME "H.263"
 #define HV60_NAME "Dual MPEG-4"
@@ -350,6 +351,9 @@ void FileMOV::asset_to_format()
 		quicktime_set_parameter(fd, "h264_bitrate", &asset->h264_bitrate);
 		quicktime_set_parameter(fd, "h264_quantizer", &asset->h264_quantizer);
 		quicktime_set_parameter(fd, "h264_fix_bitrate", &asset->h264_fix_bitrate);
+		quicktime_set_parameter(fd, "h265_bitrate", &asset->h265_bitrate);
+		quicktime_set_parameter(fd, "h265_quantizer", &asset->h265_quantizer);
+		quicktime_set_parameter(fd, "h265_fix_bitrate", &asset->h265_fix_bitrate);
 
 		quicktime_set_sphere(fd, asset->mov_sphere);
 	}
@@ -531,7 +535,8 @@ int FileMOV::get_best_colormodel(Asset *asset, int driver)
 		
 		case SCREENCAPTURE:
 			if(!strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4) ||
-				!strncasecmp(asset->vcodec, QUICKTIME_H264, 4))
+				!strncasecmp(asset->vcodec, QUICKTIME_H264, 4) ||
+				!strncasecmp(asset->vcodec, QUICKTIME_H265, 4))
 			{
 				return BC_YUV420P;
 			}
@@ -1174,6 +1179,7 @@ const char* FileMOV::strtocompression(const char *string)
 {
 	if(!strcasecmp(string, _(DIVX_NAME))) return QUICKTIME_DIVX;
 	if(!strcasecmp(string, _(H264_NAME))) return QUICKTIME_H264;
+	if(!strcasecmp(string, _(H265_NAME))) return QUICKTIME_H265;
 	if(!strcasecmp(string, _(HV64_NAME))) return QUICKTIME_HV64;
 	if(!strcasecmp(string, _(MP4V_NAME))) return QUICKTIME_MP4V;
 	if(!strcasecmp(string, _(H263_NAME))) return QUICKTIME_H263;
@@ -1214,6 +1220,7 @@ const char* FileMOV::compressiontostr(const char *string)
 {
 	if(match4(string, QUICKTIME_H263)) return _(H263_NAME);
 	if(match4(string, QUICKTIME_H264)) return _(H264_NAME);
+	if(match4(string, QUICKTIME_H265)) return _(H265_NAME);
 	if(match4(string, QUICKTIME_HV64)) return _(HV64_NAME);
 	if(match4(string, QUICKTIME_DIVX)) return _(DIVX_NAME);
 	if(match4(string, QUICKTIME_MP4V)) return _(MP4V_NAME);
@@ -1718,6 +1725,7 @@ void MOVConfigVideo::create_objects()
 
 	if(asset->format == FILE_MOV)
 	{
+		compression_items.append(new BC_ListBoxItem(_(H265_NAME)));
 		compression_items.append(new BC_ListBoxItem(_(H264_NAME)));
 		compression_items.append(new BC_ListBoxItem(_(HV64_NAME)));
 //		compression_items.append(new BC_ListBoxItem(_(DIVX_NAME)));
@@ -1862,7 +1870,8 @@ void MOVConfigVideo::update_parameters()
 
 
 // H264 parameters
-	if(!strcmp(vcodec, QUICKTIME_H264) ||
+	if(!strcmp(vcodec, QUICKTIME_H265) ||
+		!strcmp(vcodec, QUICKTIME_H264) ||
 		!strcmp(vcodec, QUICKTIME_HV64))
 	{
 		int x = param_x, y = param_y;

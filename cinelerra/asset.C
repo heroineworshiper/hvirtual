@@ -147,6 +147,10 @@ int Asset::init_values()
 	h264_quantizer = 28;
 	h264_fix_bitrate = 0;
 
+	h265_bitrate = 2000000;
+	h265_quantizer = 28;
+	h265_fix_bitrate = 0;
+
 	ms_bitrate = 1000000;
 	ms_bitrate_tolerance = 500000;
 	ms_quantization = 10;
@@ -283,6 +287,10 @@ void Asset::copy_format(Asset *asset, int do_index)
 	h264_bitrate = asset->h264_bitrate;
 	h264_quantizer = asset->h264_quantizer;
 	h264_fix_bitrate = asset->h264_fix_bitrate;
+
+	h265_bitrate = asset->h265_bitrate;
+	h265_quantizer = asset->h265_quantizer;
+	h265_fix_bitrate = asset->h265_fix_bitrate;
 
 
 	ms_bitrate = asset->ms_bitrate;
@@ -822,6 +830,10 @@ void Asset::load_defaults(BC_Hash *defaults,
 	h264_quantizer = GET_DEFAULT("H264_QUANTIZER", h264_quantizer);
 	h264_fix_bitrate = GET_DEFAULT("H264_FIX_BITRATE", h264_fix_bitrate);
 
+	h265_bitrate = GET_DEFAULT("H265_BITRATE", h265_bitrate);
+	h265_quantizer = GET_DEFAULT("H265_QUANTIZER", h265_quantizer);
+	h265_fix_bitrate = GET_DEFAULT("H265_FIX_BITRATE", h265_fix_bitrate);
+
 
 	divx_bitrate = GET_DEFAULT("DIVX_BITRATE", divx_bitrate);
 	divx_rc_period = GET_DEFAULT("DIVX_RC_PERIOD", divx_rc_period);
@@ -934,6 +946,10 @@ void Asset::save_defaults(BC_Hash *defaults,
 		UPDATE_DEFAULT("H264_QUANTIZER", h264_quantizer);
 		UPDATE_DEFAULT("H264_FIX_BITRATE", h264_fix_bitrate);
 
+		UPDATE_DEFAULT("H265_BITRATE", h265_bitrate);
+		UPDATE_DEFAULT("H265_QUANTIZER", h265_quantizer);
+		UPDATE_DEFAULT("H265_FIX_BITRATE", h265_fix_bitrate);
+
 		UPDATE_DEFAULT("DIVX_BITRATE", divx_bitrate);
 		UPDATE_DEFAULT("DIVX_RC_PERIOD", divx_rc_period);
 		UPDATE_DEFAULT("DIVX_RC_REACTION_RATIO", divx_rc_reaction_ratio);
@@ -1040,6 +1056,9 @@ int Asset::dump()
 	printf("   h264_bitrate=%d\n", h264_bitrate);
 	printf("   h264_quantizer=%d\n", h264_quantizer);
 	printf("   h264_fix_bitrate=%d\n", h264_fix_bitrate);
+	printf("   h265_bitrate=%d\n", h265_bitrate);
+	printf("   h265_quantizer=%d\n", h265_quantizer);
+	printf("   h265_fix_bitrate=%d\n", h265_fix_bitrate);
 	printf("   mov_sphere=%d\n", mov_sphere);
 	printf("   jpeg_sphere=%d\n", jpeg_sphere);
 	return 0;

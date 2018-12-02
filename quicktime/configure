@@ -94,7 +94,7 @@ if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
 
 echo "CONFIGURING X265"
-cd thirdparty/x265*/build/linux && cmake ../source && cd ../../../..
+cd thirdparty/x265*/build && cmake ../source && cd ../../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 

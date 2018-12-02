@@ -250,6 +250,10 @@ public:
 	int h264_quantizer;
 	int h264_fix_bitrate;
 
+	int h265_bitrate;
+	int h265_quantizer;
+	int h265_fix_bitrate;
+
 // Divx video decompression
 	int divx_use_deblocking;
 

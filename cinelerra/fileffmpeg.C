@@ -1116,19 +1116,34 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 // Seek occurred
 	if(stream->decode_start != stream->decode_end)
 	{
+// mkv doesn't have useful offsets for audio, so seek based on the video track
+        FileFFMPEGStream *stream2 = video_streams.get(0);
+        AVStream *ffmpeg_stream2 = ((AVFormatContext*)stream2->ffmpeg_file_context)->streams[stream2->index];
+        
 		int64_t timestamp = (int64_t)((double)file->current_sample * 
-			ffmpeg_stream->time_base.den /
-			ffmpeg_stream->time_base.num /
+			ffmpeg_stream2->time_base.den /
+			ffmpeg_stream2->time_base.num /
 			asset->sample_rate);
-// Basing all the seeking on the same stream seems to be required for synchronization.
-		if(debug) printf("FileFFMPEG::read_samples %d\n",
-			__LINE__);
-		av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
-			stream->index /* 0 */, 
+        av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
+			stream2->index, 
 			timestamp, 
 			AVSEEK_FLAG_ANY);
 
-printf("FileFFMPEG::read_samples %d: timestamp=%ld\n", __LINE__, timestamp);
+
+
+// seeking based on the audio track
+// 		int64_t timestamp = (int64_t)((double)file->current_sample * 
+// 			ffmpeg_stream->time_base.den /
+// 			ffmpeg_stream->time_base.num /
+// 			asset->sample_rate);
+// 		if(debug) printf("FileFFMPEG::read_samples %d\n",
+// 			__LINE__);
+// 		av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
+// 			stream->index, 
+// 			timestamp, 
+// 			AVSEEK_FLAG_ANY);
+
+//printf("FileFFMPEG::read_samples %d: timestamp=%ld\n", __LINE__, timestamp);
 // AVIndexEntry *av_index = ffmpeg_stream->index_entries;
 // for(int i = 0; i < ffmpeg_stream->nb_index_entries; i++)
 // {
@@ -1140,7 +1155,6 @@ printf("FileFFMPEG::read_samples %d: timestamp=%ld\n", __LINE__, timestamp);
 //         entry->flags);
 // }
 
-// MKV gives the same offset for large chunks at a time, so seek & discard samples
 
 		if(debug) printf("FileFFMPEG::read_samples %d\n",
 			__LINE__);
