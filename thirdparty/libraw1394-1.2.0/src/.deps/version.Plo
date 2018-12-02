@@ -1,3 +1,0 @@
-version.lo: version.c ../config.h
-
-../config.h:
