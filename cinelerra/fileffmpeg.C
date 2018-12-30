@@ -821,7 +821,7 @@ int FileFFMPEG::create_toc(void *ptr)
 		&index_directory, 
 		&index_filename, 
 		&path_string);
-    
+
     int need_toc = 1;
     int result = 0;
     int i, j;
@@ -879,7 +879,7 @@ int FileFFMPEG::create_toc(void *ptr)
         {
             result = 1;
         }
-        
+
         if(!result)
         {
 // load the indexes
@@ -911,6 +911,7 @@ int FileFFMPEG::create_toc(void *ptr)
         if(!result)
         {
 // read the tables
+
             int toc_audio_streams = READ_INT32(fd);
             if(debug) printf("FileFFMPEG::create_toc %d reading toc_audio_streams=%d\n", __LINE__, toc_audio_streams);
             int64_t max_samples = 0;
@@ -931,6 +932,8 @@ int FileFFMPEG::create_toc(void *ptr)
                     result = 1;
                     break;
                 }
+
+
                 stream->audio_samples.allocate(chunks);
                 stream->audio_samples.total = chunks;
                 if(fread(stream->audio_samples.values, sizeof(int32_t), chunks, fd) < chunks)
@@ -954,6 +957,7 @@ int FileFFMPEG::create_toc(void *ptr)
                 asset->audio_length = max_samples;
             }
         }
+
 
 
         if(!result)
@@ -987,7 +991,8 @@ int FileFFMPEG::create_toc(void *ptr)
             
             
         }
-        
+
+
         if(!result)
         {
             need_toc = 0;
@@ -996,7 +1001,10 @@ int FileFFMPEG::create_toc(void *ptr)
         fclose(fd);
         fd = 0;
     }
-    
+
+
+
+
     if(need_toc)
     {
         result = 0;
@@ -1317,6 +1325,7 @@ int FileFFMPEG::create_toc(void *ptr)
     
     
 
+
     return result;
 }
 
@@ -1407,6 +1416,11 @@ int FileFFMPEG::close_file()
 
 int64_t FileFFMPEG::get_memory_usage()
 {
+// estimate the frame size, to avoid a complicated color space dependent calculation
+    if(ffmpeg_frame)
+    {
+        return asset->width * asset->height * 3;
+    }
 	return 0;
 }
 

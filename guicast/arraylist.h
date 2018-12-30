@@ -40,7 +40,7 @@ public:
 	TYPE insert(TYPE value, int number);
 
 // allocate
-	void allocate(int total);
+	void allocate(int new_available);
 // remove last pointer from end
 	void remove();          
 // remove last pointer and object from end
@@ -103,12 +103,12 @@ void ArrayList<TYPE>::set_array_delete()
 
 
 template<class TYPE>
-void ArrayList<TYPE>::allocate(int total)
+void ArrayList<TYPE>::allocate(int new_available)
 {
-	if(total > available)
+	if(new_available > available)
 	{
-		available = total;
-		TYPE* newvalues = new TYPE[available];
+		available = new_available;
+		TYPE* newvalues = new TYPE[new_available];
 		for(int i = 0; i < total; i++) newvalues[i] = values[i];
 		delete [] values;
 		values = newvalues;

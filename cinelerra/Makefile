@@ -129,7 +129,6 @@ OBJS = \
 	$(OBJDIR)/filegif.o \
 	$(OBJDIR)/filelist.o \
 	$(OBJDIR)/filejpeg.o \
-	$(OBJDIR)/filemkv.o \
 	$(OBJDIR)/filemov.o \
 	$(OBJDIR)/filempeg.o \
 	$(OBJDIR)/fileogg.o \
@@ -675,7 +674,6 @@ $(OBJDIR)/fileformat.o: 			  fileformat.C
 $(OBJDIR)/filegif.o: 				  filegif.C
 $(OBJDIR)/filejpeg.o: 				  filejpeg.C
 $(OBJDIR)/filelist.o: 				  filelist.C
-$(OBJDIR)/filemkv.o: 				  filemkv.C
 $(OBJDIR)/filemov.o: 				  filemov.C
 $(OBJDIR)/filempeg.o:                             filempeg.C
 $(OBJDIR)/fileogg.o:                              fileogg.C
