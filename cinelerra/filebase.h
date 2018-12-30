@@ -36,7 +36,7 @@
 #include <sys/types.h>
 
 // Number of samples saved before the current read position
-#define HISTORY_MAX 0x10000
+#define HISTORY_MAX 0x100000
 
 // inherited by every file interpreter
 class FileBase

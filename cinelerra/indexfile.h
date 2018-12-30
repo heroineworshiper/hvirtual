@@ -63,6 +63,11 @@ public:
 		char *index_directory, 
 		char *index_filename, 
 		const char *input_filename);
+// get the TOC for formats which use it instead of an index file
+	static int get_toc_filename(string *source_filename, 
+		string *index_directory, 
+		string *index_filename, 
+		const string *input_filename);
 	void update_edl_asset();
 	int redraw_edits(int force);
 	int draw_index(TrackCanvas *canvas,

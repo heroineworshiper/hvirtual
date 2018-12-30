@@ -236,6 +236,8 @@ private:
 	int y_steps;
 	int x_steps;
 	int angle_steps;
+// best angle step to be passed from single pixel to subpixel motion scan
+    int best_angle_step;
 // in deg
 	double angle_step;
 	int subpixel;
@@ -250,7 +252,6 @@ private:
 	int total_steps;
 	int do_motion;
 	int do_rotate;
-	int rotation_pass;
 // in deg
 	double rotation_center;
 	double rotation_range;

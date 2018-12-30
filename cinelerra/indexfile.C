@@ -348,6 +348,39 @@ int IndexFile::get_index_filename(char *source_filename,
 	return 0;
 }
 
+
+int IndexFile::get_toc_filename(string *source_filename, 
+	string *index_directory, 
+	string *index_filename, 
+	const string *input_filename)
+{
+// Replace slashes and dots
+	int i;
+	int len = input_filename->length();
+	for(i = 0; i < len; i++)
+	{
+		if(input_filename->at(i) != '/' &&
+			input_filename->at(i) != '.')
+        {
+			source_filename->push_back(input_filename->at(i));
+		}
+        else
+		{
+			if(i > 0)
+            {
+				source_filename->push_back('_');
+            }
+		}
+	}
+
+	FileSystem fs;
+	fs.join_names(index_filename, index_directory, source_filename);
+	index_filename->append(".toc");
+	return 0;
+}
+
+
+
 int IndexFile::interrupt_index()
 {
 	interrupt_flag = 1;

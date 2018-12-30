@@ -644,10 +644,10 @@ int FileMPEG::create_index()
 				int64_t eta = total_seconds - elapsed_seconds;
 				progress->update(bytes_processed, 1);
 				sprintf(string, 
-					"%sETA: %lldm%llds",
+					"%sETA: %ldm%lds",
 					progress_title,
-					(long long)eta / 60,
-					(long long)eta % 60);
+					(int64_t)eta / 60,
+					(int64_t)eta % 60);
 				progress->update_title(string, 1);
 // 				fprintf(stderr, "ETA: %dm%ds        \r", 
 // 					bytes_processed * 100 / total_bytes,
@@ -877,7 +877,8 @@ int FileMPEG::get_index(char *index_path)
 			asset,
 			asset->audio_length);
 		delete [] index_state->index_buffer;
-
+        index_state->index_buffer = 0;
+        
 		return 0;
 	}
 

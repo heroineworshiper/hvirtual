@@ -134,9 +134,14 @@ static void common_encode(quicktime_t *file,
             codec->buffer_size += size;
             
             int is_keyframe = 0;
-            printf("common_encode %d sliceType=%d\n",
-                __LINE__,
-                pic_out->sliceType);
+            if(pic_out->sliceType == X265_TYPE_IDR ||
+                pic_out->sliceType == X265_TYPE_I)
+            {
+                is_keyframe = 1;
+            }
+//             printf("common_encode %d sliceType=%d\n",
+//                 __LINE__,
+//                 pic_out->sliceType);
             
             
 		    if(codec->buffer_size)
@@ -183,6 +188,7 @@ static void flush(quicktime_t *file, int track)
 
 	pthread_mutex_lock(&h265_lock);
 
+    printf("flush %d\n", __LINE__);
 	if(codec->encode_initialized)
 	{
         x265_nal *nals;
@@ -278,7 +284,7 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
         codec->api->encoder_headers(codec->encoder, &nals, &nalcount);
         
         int i;
-        unsigned char header[1024];
+        unsigned char header[4096];
 	    int header_size = 0;
         for(i = 0; i < nalcount; i++)
         {
@@ -291,6 +297,13 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
             memcpy(header + header_size, nals[i].payload, nals[i].sizeBytes);
             header_size += nals[i].sizeBytes;
         }
+        
+//         int total_size = 0;
+//         for(i = 0; i < nalcount; i++)
+//         {
+//             total_size += nals[i].sizeBytes;
+//         }
+//         printf("encode %d header size=%d\n", __LINE__,  total_size);
         
         quicktime_set_avcc_header(avcc,
 		  	header, 

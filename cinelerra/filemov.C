@@ -1870,8 +1870,48 @@ void MOVConfigVideo::update_parameters()
 
 
 // H264 parameters
-	if(!strcmp(vcodec, QUICKTIME_H265) ||
-		!strcmp(vcodec, QUICKTIME_H264) ||
+	if(!strcmp(vcodec, QUICKTIME_H265))
+    {
+		int x = param_x, y = param_y;
+		h264_bitrate = new MOVConfigVideoNum(this, 
+			_("Bitrate:"), 
+			x, 
+			y, 
+			&asset->h265_bitrate);
+		h264_bitrate->set_increment(1000000);
+		h264_bitrate->create_objects();
+		add_subwindow(h264_fix_bitrate = new MOVConfigVideoFixBitrate(x + DP(280), 
+				y,
+				&asset->h265_fix_bitrate,
+				1));
+		y += DP(30);
+		h264_quantizer = new MOVConfigVideoNum(this, 
+			_("Quantization:"), 
+			x, 
+			y, 
+			0,
+			51,
+			&asset->h265_quantizer);
+		h264_quantizer->create_objects();
+		add_subwindow(h264_fix_quant = new MOVConfigVideoFixQuant(x + DP(280), 
+				y,
+				&asset->h265_fix_bitrate,
+				0));
+		h264_fix_bitrate->opposite = h264_fix_quant;
+		h264_fix_quant->opposite = h264_fix_bitrate;
+
+
+
+
+		y += h264_fix_quant->get_h() + DP(10);
+		add_subwindow(mov_sphere = new MOVConfigVideoCheckBox(_("Tag for spherical playback"), 
+			x, 
+			y, 
+			&asset->mov_sphere));
+
+    }
+    else
+    if(!strcmp(vcodec, QUICKTIME_H264) ||
 		!strcmp(vcodec, QUICKTIME_HV64))
 	{
 		int x = param_x, y = param_y;

@@ -36,7 +36,7 @@
 #include "file.h"
 #include "filegif.h"
 #include "filejpeg.h"
-//#include "filemkv.h"
+#include "filemkv.h"
 #include "filemov.h"
 #include "filempeg.h"
 #include "fileogg.h"

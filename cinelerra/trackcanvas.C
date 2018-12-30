@@ -4132,7 +4132,8 @@ int TrackCanvas::cursor_motion_event()
 					get_cursor_y(), 
 					0, 
 					new_cursor,
-					update_cursor))
+					update_cursor,
+                    rerender))
 				{
 					break;
 				}
@@ -4142,7 +4143,8 @@ int TrackCanvas::cursor_motion_event()
 					get_cursor_y(), 
 					0, 
 					new_cursor,
-					update_cursor))
+					update_cursor,
+                    rerender))
 				{
 					break;
 				}
@@ -4442,7 +4444,8 @@ int TrackCanvas::do_edit_handles(int cursor_x,
 	int cursor_y, 
 	int button_press, 
 	int &new_cursor,
-	int &update_cursor)
+	int &update_cursor,
+    int &rerender)
 {
 	Edit *edit_result = 0;
 	int handle_result = 0;
@@ -4513,7 +4516,7 @@ int TrackCanvas::do_edit_handles(int cursor_x,
 			mwindow->session->drag_origin_y = get_cursor_y();
 			mwindow->session->drag_start = position;
 
-			int rerender = start_selection(position);
+			rerender = start_selection(position);
 			if(rerender)
 			{
 				gui->unlock_window();
@@ -4536,7 +4539,8 @@ int TrackCanvas::do_plugin_handles(int cursor_x,
 	int cursor_y, 
 	int button_press,
 	int &new_cursor,
-	int &update_cursor)
+	int &update_cursor,
+    int &rerender)
 {
 	Plugin *plugin_result = 0;
 	int handle_result = 0;
@@ -5038,7 +5042,8 @@ int TrackCanvas::button_press_event()
 					cursor_y, 
 					1, 
 					new_cursor, 
-					update_cursor))
+					update_cursor,
+                    rerender))
 				{
 					break;
 				}
@@ -5048,7 +5053,8 @@ int TrackCanvas::button_press_event()
 					cursor_y, 
 					1, 
 					new_cursor, 
-					update_cursor))
+					update_cursor,
+                    rerender))
 				{
 					break;
 				}
@@ -5113,7 +5119,8 @@ int TrackCanvas::button_press_event()
 					cursor_y, 
 					1, 
 					new_cursor, 
-					update_cursor))
+					update_cursor,
+                    rerender))
 				{
 					break;
 				}
@@ -5123,7 +5130,8 @@ int TrackCanvas::button_press_event()
 					cursor_y, 
 					1, 
 					new_cursor, 
-					update_cursor))
+					update_cursor,
+                    rerender))
 				{
 					break;
 				}
@@ -5167,14 +5175,16 @@ int TrackCanvas::button_press_event()
 		}
 
 
+printf("MWindow::button_press_event %d rerender=%d\n", __LINE__, rerender);
 		if(rerender)
 		{
 			gui->unlock_window();
 			mwindow->cwindow->update(1, 0, 0, 0, 1);
 
 			gui->lock_window("TrackCanvas::button_press_event 2");
-// Update faders
+// update plugins
 			mwindow->update_plugin_guis();
+// Update faders
 			gui->update_patchbay();
 		}
 

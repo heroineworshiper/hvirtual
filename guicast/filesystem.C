@@ -791,21 +791,46 @@ int FileSystem::extract_name(char *out, const char *in, int test_dir)
 
 int FileSystem::join_names(char *out, const char *dir_in, const char *name_in)
 {
+// set *out to the directory
 	strcpy(out, dir_in);
+
 	int len = strlen(out);
 	int result = 0;
 
-	while(!result)
-		if(len == 0 || out[len] != 0) result = 1; else len--;
-	
-	if(len != 0)
+
+
+// add / to *out
+	if(len > 0)
 	{
-		if(out[len] != '/') strcat(out, "/");
+		if(out[len - 1] != '/') 
+        {
+            strcat(out, "/");
+        }
 	}
 	
+// append name to out
 	strcat(out, name_in);
 	return 0;
 }
+
+int FileSystem::join_names(std::string *out, const std::string *dir_in, const std::string *name_in)
+{
+// set *out to the directory
+	out->assign(*dir_in);
+
+	int len = out->length();
+
+// add / to *out
+    if(len > 0 && out->at(len - 1) != '/')
+    {
+        out->push_back('/');
+    }
+
+// append name to out
+	out->append(*name_in);
+	return 0;
+}
+
 
 int64_t FileSystem::get_date(const char *filename)
 {

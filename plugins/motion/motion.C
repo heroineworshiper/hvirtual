@@ -1093,138 +1093,136 @@ void MotionMain::draw_vectors(VFrame *frame)
 	int block_x2, block_y2;
 	int block_x3, block_y3;
 	int block_x4, block_y4;
-	int search_w, search_h;
-	int search_x1, search_y1;
-	int search_x2, search_y2;
-	int search_x3, search_y3;
-	int search_x4, search_y4;
+	int scan_w, scan_h;
+	int scan_x1, scan_y1;
+	int scan_x2, scan_y2;
+	int scan_x3, scan_y3;
+	int scan_x4, scan_y4;
 
 
-// always processing global
-//	if(config.global)
-	if(1)
-	{
+// global motion search
 // Get vector
 // Start of vector is center of previous block.
 // End of vector is total accumulation.
-		if(config.tracking_object == MotionScan::TRACK_SINGLE)
-		{
-			global_x1 = (int64_t)(config.block_x * 
-				w / 
-				100);
-			global_y1 = (int64_t)(config.block_y *
-				h / 
-				100);
-			global_x2 = global_x1 + total_dx / OVERSAMPLE;
-			global_y2 = global_y1 + total_dy / OVERSAMPLE;
+	if(config.tracking_object == MotionScan::TRACK_SINGLE)
+	{
+		global_x1 = (int64_t)(config.block_x * 
+			w / 
+			100);
+		global_y1 = (int64_t)(config.block_y *
+			h / 
+			100);
+		global_x2 = global_x1 + total_dx / OVERSAMPLE;
+		global_y2 = global_y1 + total_dy / OVERSAMPLE;
 //printf("MotionMain::draw_vectors %d %d %d %d %d %d\n", total_dx, total_dy, global_x1, global_y1, global_x2, global_y2);
-		}
-		else
+	}
+	else
 // Start of vector is center of previous block.
 // End of vector is current change.
-		if(config.tracking_object == MotionScan::PREVIOUS_SAME_BLOCK)
-		{
-			global_x1 = (int64_t)(config.block_x * 
-				w / 
-				100);
-			global_y1 = (int64_t)(config.block_y *
-				h / 
-				100);
-			global_x2 = global_x1 + current_dx / OVERSAMPLE;
-			global_y2 = global_y1 + current_dy / OVERSAMPLE;
-		}
-		else
-		{
-			global_x1 = (int64_t)(config.block_x * 
-				w / 
-				100 + 
-				(total_dx - current_dx) / 
-				OVERSAMPLE);
-			global_y1 = (int64_t)(config.block_y *
-				h / 
-				100 +
-				(total_dy - current_dy) /
-				OVERSAMPLE);
-			global_x2 = (int64_t)(config.block_x * 
-				w / 
-				100 + 
-				total_dx / 
-				OVERSAMPLE);
-			global_y2 = (int64_t)(config.block_y *
-				h / 
-				100 +
-				total_dy /
-				OVERSAMPLE);
-		}
+	if(config.tracking_object == MotionScan::PREVIOUS_SAME_BLOCK)
+	{
+		global_x1 = (int64_t)(config.block_x * 
+			w / 
+			100);
+		global_y1 = (int64_t)(config.block_y *
+			h / 
+			100);
+		global_x2 = global_x1 + current_dx / OVERSAMPLE;
+		global_y2 = global_y1 + current_dy / OVERSAMPLE;
+	}
+	else
+	{
+		global_x1 = (int64_t)(config.block_x * 
+			w / 
+			100 + 
+			(total_dx - current_dx) / 
+			OVERSAMPLE);
+		global_y1 = (int64_t)(config.block_y *
+			h / 
+			100 +
+			(total_dy - current_dy) /
+			OVERSAMPLE);
+		global_x2 = (int64_t)(config.block_x * 
+			w / 
+			100 + 
+			total_dx / 
+			OVERSAMPLE);
+		global_y2 = (int64_t)(config.block_y *
+			h / 
+			100 +
+			total_dy /
+			OVERSAMPLE);
+	}
 
-		block_x = global_x1;
-		block_y = global_y1;
-		block_w = config.global_block_w * w / 100;
-		block_h = config.global_block_h * h / 100;
-		block_x1 = block_x - block_w / 2;
-		block_y1 = block_y - block_h / 2;
-		block_x2 = block_x + block_w / 2;
-		block_y2 = block_y + block_h / 2;
-		search_w = config.global_range_w * w / 100;
-		search_h = config.global_range_h * h / 100;
-		search_x1 = block_x1 - search_w / 2;
-		search_y1 = block_y1 - search_h / 2;
-		search_x2 = block_x2 + search_w / 2;
-		search_y2 = block_y2 + search_h / 2;
+	block_x = global_x1;
+	block_y = global_y1;
+	block_w = config.global_block_w * w / 100;
+	block_h = config.global_block_h * h / 100;
+	block_x1 = block_x - block_w / 2;
+	block_y1 = block_y - block_h / 2;
+	block_x2 = block_x + block_w / 2;
+	block_y2 = block_y + block_h / 2;
+	scan_w = config.global_range_w * w / 100;
+	scan_h = config.global_range_h * h / 100;
+	scan_x1 = block_x1 - scan_w / 2;
+	scan_y1 = block_y1 - scan_h / 2;
+	scan_x2 = block_x2 + scan_w / 2;
+	scan_y2 = block_y2 + scan_h / 2;
 
-// printf("MotionMain::draw_vectors %d %d %d %d %d %d %d %d %d %d %d %d\n",
-// global_x1,
-// global_y1,
-// block_w,
-// block_h,
+// printf("MotionMain::draw_vectors block_x1=%d block_y1=%d block_x2=%d block_y2=%d scan_x1=%d scan_y1=%d scan_x2=%d scan_y2=%d\n",
 // block_x1,
 // block_y1,
 // block_x2,
 // block_y2,
-// search_x1,
-// search_y1,
-// search_x2,
-// search_y2);
+// scan_x1,
+// scan_y1,
+// scan_x2,
+// scan_y2);
 
-		MotionScan::clamp_scan(w, 
-			h, 
-			&block_x1,
-			&block_y1,
-			&block_x2,
-			&block_y2,
-			&search_x1,
-			&search_y1,
-			&search_x2,
-			&search_y2,
-			1);
+	MotionScan::clamp_scan(w, 
+		h, 
+		&block_x1,
+		&block_y1,
+		&block_x2,
+		&block_y2,
+		&scan_x1,
+		&scan_y1,
+		&scan_x2,
+		&scan_y2,
+		1);
 
 // Vector
-		draw_arrow(frame, global_x1, global_y1, global_x2, global_y2);
+	draw_arrow(frame, global_x1, global_y1, global_x2, global_y2);
 
 // Macroblock
-		draw_line(frame, block_x1, block_y1, block_x2, block_y1);
-		draw_line(frame, block_x2, block_y1, block_x2, block_y2);
-		draw_line(frame, block_x2, block_y2, block_x1, block_y2);
-		draw_line(frame, block_x1, block_y2, block_x1, block_y1);
+	draw_line(frame, block_x1, block_y1, block_x2, block_y1);
+	draw_line(frame, block_x2, block_y1, block_x2, block_y2);
+	draw_line(frame, block_x2, block_y2, block_x1, block_y2);
+	draw_line(frame, block_x1, block_y2, block_x1, block_y1);
 
 
 // Search area
-		draw_line(frame, search_x1, search_y1, search_x2, search_y1);
-		draw_line(frame, search_x2, search_y1, search_x2, search_y2);
-		draw_line(frame, search_x2, search_y2, search_x1, search_y2);
-		draw_line(frame, search_x1, search_y2, search_x1, search_y1);
+	draw_line(frame, scan_x1, scan_y1, scan_x2, scan_y1);
+	draw_line(frame, scan_x2, scan_y1, scan_x2, scan_y2);
+	draw_line(frame, scan_x2, scan_y2, scan_x1, scan_y2);
+	draw_line(frame, scan_x1, scan_y2, scan_x1, scan_y1);
+
+// printf("MotionMain::draw_vectors %d block_x1=%d block_y1=%d block_x2=%d block_y2=%d scan_x1=%d scan_y1=%d scan_x2=%d scan_y2=%d\n", 
+// __LINE__,
+// block_x1,
+// block_y1,
+// block_x2,
+// block_y2,
+// scan_x1,
+// scan_y1,
+// scan_x2,
+// scan_y2);
 
 // Block should be endpoint of motion
-		if(config.rotate)
-		{
-			block_x = global_x2;
-			block_y = global_y2;
-		}
-	}
-	else
+	if(config.rotate)
 	{
-		block_x = (int64_t)(config.block_x * w / 100);
-		block_y = (int64_t)(config.block_y * h / 100);
+		block_x = global_x2;
+		block_y = global_y2;
 	}
 
 	block_w = config.global_block_w * w / 100;

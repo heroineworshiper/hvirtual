@@ -268,13 +268,15 @@ public:
 	int do_edit_handles(int cursor_x, 
 		int cursor_y, 
 		int button_press,
-		int &redraw,
-		int &rerender);
+		int &new_cursor,
+		int &update_cursor,
+        int &rerender);
 // Get plugin and handle the cursor if over
 	int do_plugin_handles(int cursor_x, 
 		int cursor_y, 
 		int button_press,
-		int &redraw,
+		int &new_cursor,
+        int &update_cursor,
 		int &rerender);
 // Get edit the cursor is over
 	int do_edits(int cursor_x, 
