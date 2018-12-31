@@ -5,7 +5,7 @@ Effects not getting rendered if multiple effects have random starting times.
 Drag effect before timeline is finished drawing after a load -> lockup
 Load a sound file.  Change the file on the disk.  Crash on exit.
 Change asset path, CPlayback never returns to redraw the frame.
-Don't save an index file if there's a TOC.
+Don't save an index file if there's a TOC for MPEG.
 
 
 
