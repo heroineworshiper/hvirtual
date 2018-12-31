@@ -532,7 +532,7 @@ SET_TRACE
 		mwindow->edl->session->sample_rate;
 
 // Develop strategy for drawing
-// printf("ResourcePixmap::draw_audio_resource %d %p %d\n", 
+// printf("ResourcePixmap::draw_audio_resource %d index_state=%p index_status=%d\n", 
 // __LINE__, 
 // index_state,
 // index_state->index_status);

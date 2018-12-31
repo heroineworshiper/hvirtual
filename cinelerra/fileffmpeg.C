@@ -51,8 +51,10 @@ using std::string;
 #define FFMPEG_2010
 
 
-// something
+// stuff
 #define QUICKTIME_VP9 "VP9"
+
+#define FFMPEG_TOC_SIG "FFMPEGTOC01"
 
 // MKV/WEBM doesn't have the required information for frame accurate
 // seeking. It stores only a table of offsets where a packet is guaranteed
@@ -826,7 +828,6 @@ int FileFFMPEG::create_toc(void *ptr)
     int result = 0;
     int i, j;
 
-#define TOC_VERSION 0x00000001
 #define PUT_INT32(x) \
 { \
     uint32_t temp = x; \
@@ -857,18 +858,13 @@ int FileFFMPEG::create_toc(void *ptr)
     FILE *fd = fopen(index_filename.c_str(), "r");
     if(fd)
     {
-        if(fread(string3, 1, 8, fd) < 8)
+        if(fread(string3, 1, strlen(FFMPEG_TOC_SIG), fd) < strlen(FFMPEG_TOC_SIG))
         {
             result = 1;
         }
 
 // test start code
-        if(result ||
-            string3[0] != 'T' ||
-            string3[1] != 'O' ||
-            string3[2] != 'C' ||
-            string3[3] != ' ' ||
-            *(uint32_t*)&string3[4] != TOC_VERSION)
+        if(result || strcmp(string3, FFMPEG_TOC_SIG))
         {
             result = 1;
         }
@@ -889,22 +885,26 @@ int FileFFMPEG::create_toc(void *ptr)
             {
                 FileFFMPEGStream *stream = audio_streams.get(i);
                 stream->index_zoom = READ_INT32(fd);
+// this is required to skip the table
                 stream->index_size = READ_INT32(fd);
+// channels of index data written
+                int channels = READ_INT32(fd);
                 stream->delete_index();
                 if(debug) printf("FileFFMPEG::create_toc %d reading index_zoom=%d index_size=%d\n", __LINE__, stream->index_zoom, stream->index_size);
-//                 fseek(fd, 
-//                     index_size * sizeof(float) * 2 * stream->channels, 
-//                     SEEK_CUR);
-                stream->index_data = new float*[stream->channels];
-                for(j = 0; j < stream->channels; j++)
-                {
-                    stream->index_data[j] = new float[stream->index_size * 2];
-                    if(fread(stream->index_data[j], sizeof(float) * 2, stream->index_size, fd) < stream->index_size)
-                    {
-                        result = 1;
-                        break;
-                    }
-                }
+// skip the table
+                fseek(fd, 
+                    stream->index_size * sizeof(float) * 2 * channels, 
+                    SEEK_CUR);
+//                 stream->index_data = new float*[stream->channels];
+//                 for(j = 0; j < channels && j < stream->channels; j++)
+//                 {
+//                     stream->index_data[j] = new float[stream->index_size * 2];
+//                     if(fread(stream->index_data[j], sizeof(float) * 2, stream->index_size, fd) < stream->index_size)
+//                     {
+//                         result = 1;
+//                         break;
+//                     }
+//                 }
             }
         }
 
@@ -1225,8 +1225,7 @@ int FileFFMPEG::create_toc(void *ptr)
         
         if(!result)
         {
-            fwrite("TOC ", 4, 1, fd);
-            PUT_INT32(TOC_VERSION);
+            fwrite(FFMPEG_TOC_SIG, strlen(FFMPEG_TOC_SIG), 1, fd);
 
 // put the audio indexes first so they can be drawn quickly
             PUT_INT32(audio_streams.size());
@@ -1235,9 +1234,11 @@ int FileFFMPEG::create_toc(void *ptr)
                 FileFFMPEGStream *stream = audio_streams.get(i);
                 PUT_INT32(stream->index_zoom);
                 PUT_INT32(stream->index_size);
+                PUT_INT32(stream->channels);
                 if(debug) printf("FileFFMPEG::create_toc %d writing index_zoom=%d index_size=%d\n", __LINE__, stream->index_zoom, stream->index_size);
                 if(stream->index_size > 0)
                 {
+// write the channels sequentially
                     for(j = 0; j < stream->channels; j++)
                     {
                         fwrite(stream->index_data[j], 
@@ -1277,7 +1278,7 @@ int FileFFMPEG::create_toc(void *ptr)
                     result = 1;
                     break;
                 }
-                if(debug) printf("FileFFMPEG::create_toc %d writing total_samples=%ld chunks=%ld\n", __LINE__, stream->total_samples, chunks);
+                if(debug) printf("FileFFMPEG::create_toc %d writing total_samples=%d chunks=%ld\n", __LINE__, stream->total_samples, chunks);
             }
 // replace the estimated total samples
             asset->audio_length = max_samples;
@@ -1329,67 +1330,150 @@ int FileFFMPEG::create_toc(void *ptr)
     return result;
 }
 
-int FileFFMPEG::get_index(char *index_path)
+
+
+int FileFFMPEG::read_index_state(FILE *fd, Indexable *dst)
 {
-// convert the table of contents to an index file
-    if(has_toc)
+    char string[BCTEXTLEN];
+    int i, j;
+    int debug = 0;
+    IndexState *index_state = dst->index_state;
+
+// test signature
+    int sig_len = strlen(FFMPEG_TOC_SIG);
+    if(fread(string, 1, sig_len, fd) < sig_len)
     {
-// Convert the index tables to Cinelerra format
-        int buffer_size = 0;
-        IndexState *index_state = asset->index_state;
-        for(int i = 0; i < audio_streams.size(); i++)
-		{
-            FileFFMPEGStream *stream = audio_streams.get(i);
-            index_state->index_zoom = stream->index_zoom;
-			buffer_size += stream->index_size *
-				stream->channels *
-				2;
-		}
-
-// allocate 1 big buffer
-		index_state->index_buffer = new float[buffer_size];
-
-
-// Output offset in floats
-		int current_offset = 0;
-// Current asset channel
-		int current_channel = 0;
-        index_state->channels = asset->channels;
-        index_state->index_offsets = new int64_t[index_state->channels];
-        index_state->index_sizes = new int64_t[index_state->channels];
-        for(int i = 0; i < audio_streams.size(); i++)
-		{
-            FileFFMPEGStream *stream = audio_streams.get(i);
-			for(int j = 0; j < stream->channels; j++)
-			{
-				index_state->index_offsets[current_channel] = current_offset;
-				index_state->index_sizes[current_channel] = stream->index_size * 2;
-				memcpy(index_state->index_buffer + current_offset,
-					stream->index_data[j],
-					stream->index_size * sizeof(float) * 2);
-
-				current_offset += stream->index_size * 2;
-				current_channel++;
-			}
-		}
-        
-// write the index file
-		FileSystem fs;
-		index_state->index_bytes = fs.get_size(asset->path);
-		index_state->write_index(index_path, 
-			buffer_size * sizeof(float),
-			asset,
-			asset->audio_length);
-		delete [] index_state->index_buffer;
-        index_state->index_buffer = 0;
-        
-        return 0;
-    }
-    else
-    {
+//        printf("FileFFMPEG::read_index_state %d: failed to read the TOC\n", __LINE__);
         return 1;
     }
+
+    string[sig_len] = 0;
+// not a TOC belonging to this format
+    if(strcmp(string, FFMPEG_TOC_SIG))
+    {
+//        printf("FileFFMPEG::read_index_state %d: failed to read the TOC\n", __LINE__);
+        return 1;
+    }
+
+// offsets of the tables in bytes
+    ArrayList<int> offsets;
+// sizes of the tables in floats
+    ArrayList<int> sizes;
+
+    int toc_audio_streams = READ_INT32(fd);
+    for(i = 0; i < toc_audio_streams; i++)
+    {
+// the same for all audio streams
+        index_state->index_zoom = READ_INT32(fd);
+// size of source file isn't stored
+        index_state->index_bytes = 0;
+// number of high/low pairs per channel in this stream
+        int index_size = READ_INT32(fd);
+// number of channels in this stream
+        int channels = READ_INT32(fd);
+        if(debug) printf("FileFFMPEG::read_index_state %d: index_zoom=%d index_size=%d channels=%d\n",
+            __LINE__,
+            index_state->index_zoom,
+            index_size,
+            channels);
+// store the offsets & sizes of the index tables
+        for(j = 0; j < channels ; j++)
+        {
+            offsets.append(ftell(fd));
+            sizes.append(index_size * 2);
+            if(debug) printf("FileFFMPEG::read_index_state %d: offset=%ld size=%d\n",
+                __LINE__,
+                ftell(fd),
+                index_size * 2);
+// skip the table to get to the next stream
+            fseek(fd, 
+                index_size * sizeof(float) * 2, 
+                SEEK_CUR);
+        }
+    }
+
+// offsets are used instead of this when drawing from a TOC
+    index_state->index_start = 0;
+// copy the offsets & sizes to the index state
+    delete [] index_state->index_offsets;
+    delete [] index_state->index_sizes;
+    index_state->channels = offsets.size();
+    index_state->index_offsets = new int64_t[offsets.size()];
+    index_state->index_sizes = new int64_t[offsets.size()];
+    for(i = 0; i < offsets.size(); i++)
+    {
+        index_state->index_offsets[i] = offsets.get(i);
+        index_state->index_sizes[i] = sizes.get(i);
+    }
+    
+    return 0;
 }
+            
+            
+
+// this copied the TOC over to a .idx file for easy integration
+// now, we draw directly from the .toc file
+// int FileFFMPEG::get_index(char *index_path)
+// {
+// // convert the table of contents to an index file
+//     if(has_toc)
+//     {
+// // Convert the index tables to Cinelerra format
+//         int buffer_size = 0;
+//         IndexState *index_state = asset->index_state;
+//         for(int i = 0; i < audio_streams.size(); i++)
+// 		{
+//             FileFFMPEGStream *stream = audio_streams.get(i);
+//             index_state->index_zoom = stream->index_zoom;
+// 			buffer_size += stream->index_size *
+// 				stream->channels *
+// 				2;
+// 		}
+// 
+// // allocate 1 big buffer
+// 		index_state->index_buffer = new float[buffer_size];
+// 
+// 
+// // Output offset in floats
+// 		int current_offset = 0;
+// // Current asset channel
+// 		int current_channel = 0;
+//         index_state->channels = asset->channels;
+//         index_state->index_offsets = new int64_t[index_state->channels];
+//         index_state->index_sizes = new int64_t[index_state->channels];
+//         for(int i = 0; i < audio_streams.size(); i++)
+// 		{
+//             FileFFMPEGStream *stream = audio_streams.get(i);
+// 			for(int j = 0; j < stream->channels; j++)
+// 			{
+// 				index_state->index_offsets[current_channel] = current_offset;
+// 				index_state->index_sizes[current_channel] = stream->index_size * 2;
+// 				memcpy(index_state->index_buffer + current_offset,
+// 					stream->index_data[j],
+// 					stream->index_size * sizeof(float) * 2);
+// 
+// 				current_offset += stream->index_size * 2;
+// 				current_channel++;
+// 			}
+// 		}
+//         
+// // write the index file
+// 		FileSystem fs;
+// 		index_state->index_bytes = fs.get_size(asset->path);
+// 		index_state->write_index(index_path, 
+// 			buffer_size * sizeof(float),
+// 			asset,
+// 			asset->audio_length);
+// 		delete [] index_state->index_buffer;
+//         index_state->index_buffer = 0;
+//         
+//         return 0;
+//     }
+//     else
+//     {
+//         return 1;
+//     }
+// }
 
 
 

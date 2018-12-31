@@ -172,7 +172,7 @@ void IndexState::read_xml(FileXML *file, int channels)
 				if(current_offset < channels)
 				{
 					index_offsets[current_offset++] = file->tag.get_property("FLOAT", 0);
-//printf("Asset::read_index %d %d\n", current_offset - 1, index_offsets[current_offset - 1]);
+//printf("Asset::read_xml %d %d\n", current_offset - 1, index_offsets[current_offset - 1]);
 				}
 			}
 			else

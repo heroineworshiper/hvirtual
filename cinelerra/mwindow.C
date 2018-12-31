@@ -2646,16 +2646,19 @@ void MWindow::update_project(int load_mode)
 
 void MWindow::rebuild_indices()
 {
-	char source_filename[BCTEXTLEN], index_filename[BCTEXTLEN];
 	for(int i = 0; i < session->drag_assets->total; i++)
 	{
+        string dir(preferences->index_directory);
+	    string source_filename;
+        string index_filename;
+        string path(session->drag_assets->values[i]->path);
 //printf("MWindow::rebuild_indices 1 %s\n", session->drag_assets->values[i]->path);
 // Erase file
-		IndexFile::get_index_filename(source_filename, 
-			preferences->index_directory,
-			index_filename, 
-			session->drag_assets->values[i]->path);
-		remove(index_filename);
+		IndexFile::get_index_filename(&source_filename, 
+			&dir,
+			&index_filename, 
+			&path);
+		remove(index_filename.c_str());
 // Schedule index build
 		IndexState *index_state = session->drag_assets->values[i]->index_state;
 		index_state->index_status = INDEX_NOTTESTED;

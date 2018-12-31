@@ -31,6 +31,7 @@
 #include "edlsession.h"
 #include "errorbox.h"
 #include "file.h"
+#include "fileffmpeg.h"
 #include "filesystem.h"
 #include "filexml.h"
 #include "indexable.h"
@@ -133,7 +134,8 @@ int IndexFile::open_index()
 	if(!(result = open_file()))
 	{
 // opened existing file
-		if(read_info())
+//printf("IndexFile::open_index %d indexable=%p is_toc=%d\n", __LINE__, indexable, is_toc);
+		if(read_info(indexable))
 		{
 			result = 1;
 			close_index();
@@ -154,72 +156,107 @@ int IndexFile::open_index()
 void IndexFile::delete_index(Preferences *preferences, 
 	Indexable *indexable)
 {
-	char index_filename[BCTEXTLEN];
-	char source_filename[BCTEXTLEN];
-	const char *path = indexable->path;
+	string index_filename;
+	string source_filename;
+    string index_directory(preferences->index_directory);
+	const string path(indexable->path);
 
-	get_index_filename(source_filename, 
-		preferences->index_directory,
-		index_filename, 
-		path);
+	get_index_filename(&source_filename, 
+		&index_directory,
+		&index_filename, 
+		&path);
 //printf("IndexFile::delete_index %s %s\n", source_filename, index_filename);
-	remove(index_filename);
+	remove(index_filename.c_str());
 }
 
 int IndexFile::open_file()
 {
 	int result = 0;
 	const int debug = 0;
-	const char *path = indexable->path;
+	const string path(indexable->path);
+    string index_directory(mwindow->preferences->index_directory);
 
+    is_index = 0;
+    is_toc = 0;
 
 //printf("IndexFile::open_file %f\n", indexable->get_frame_rate());
 
-	get_index_filename(source_filename, 
-		mwindow->preferences->index_directory,
-		index_filename, 
-		path);
+	get_index_filename(&source_filename, 
+		&index_directory,
+		&index_filename, 
+		&path);
 
 	if(debug) printf("IndexFile::open_file %d index_filename=%s\n", 
 		__LINE__,
-		index_filename);
-	if(fd = fopen(index_filename, "rb"))
+		index_filename.c_str());
+// try an index file
+	if(fd = fopen(index_filename.c_str(), "rb"))
 	{
-// Index file already exists.
-// Get its last date without changing the real asset status.
-		Indexable *test_indexable = new Indexable(0);
+        is_index = 1;
+    }
+    else
+    {
+		if(debug) printf("IndexFile::open_file %d index_filename=%s doesn't exist\n", 
+			__LINE__,
+			index_filename.c_str());
+// try table of contents file which also contains offsets for all the media
+        get_toc_filename(&source_filename, 
+		    &index_directory,
+		    &index_filename, 
+		    &path);
+        if(fd = fopen(index_filename.c_str(), "rb"))
+	    {
+            is_toc = 1;
+        }
+        else
+        {
+		    if(debug) printf("IndexFile::open_file %d toc_filename=%s doesn't exist\n", 
+			    __LINE__,
+			    index_filename.c_str());
+// doesn't exist
+		    result = 1;
+        }
+    }
+    
+    
+    if(fd)
+    {
+// Index file exists.
+// Get info without changing the real asset.
+		Indexable *temp_indexable = new Indexable(0);
 		if(indexable)
 		{
-			test_indexable->copy_indexable(indexable);
+			temp_indexable->copy_indexable(indexable);
 		}
 
-		read_info(test_indexable);
+		read_info(temp_indexable);
 
 		FileSystem fs;
-		if(fs.get_date(index_filename) < fs.get_date(test_indexable->path))
+// is index older than source?
+		if(fs.get_date(index_filename.c_str()) < fs.get_date(temp_indexable->path))
 		{
-			if(debug) printf("IndexFile::open_file %d index_date=%lld source_date=%lld\n",
+			if(debug) printf("IndexFile::open_file %d index_date=%ld source_date=%ld\n",
 				__LINE__,
-				(long long)fs.get_date(index_filename),
-				(long long)fs.get_date(test_indexable->path));
+				fs.get_date(index_filename.c_str()),
+				fs.get_date(temp_indexable->path));
 
-// index older than source
 			result = 2;
 			fclose(fd);
 			fd = 0;
 		}
-		else
-		if(fs.get_size(test_indexable->path) != test_indexable->index_state->index_bytes)
-		{
-// source file is a different size than index source file
-			if(debug) printf("IndexFile::open_file %d index_size=%lld source_size=%lld\n",
-				__LINE__,
-				(long long)test_indexable->index_state->index_bytes,
-				(long long)fs.get_size(test_indexable->path));
-			result = 2;
-			fclose(fd);	
-			fd = 0;
-		}
+// Shouldn't be necessary.  Not bothering to port it to toc files
+// 		else
+// 		if(fs.get_size(temp_indexable->path) != temp_indexable->index_state->index_bytes)
+// 		{
+// // source file is a different size than index source file
+// 			if(debug) printf("IndexFile::open_file %d index_size=%lld source_size=%lld\n",
+// 				__LINE__,
+// 				(long long)temp_indexable->index_state->index_bytes,
+// 				(long long)fs.get_size(temp_indexable->path));
+// 			result = 2;
+// 			fclose(fd);	
+// 			fd = 0;
+// 		}
 		else
 		{
 			if(debug) printf("IndexFile::open_file %d\n",
@@ -229,15 +266,7 @@ int IndexFile::open_file()
 			fseek(fd, 0, SEEK_SET);
 			result = 0;
 		}
-		test_indexable->Garbage::remove_user();
-	}
-	else
-	{
-// doesn't exist
-		if(debug) printf("IndexFile::open_file %d index_filename=%s doesn't exist\n", 
-			__LINE__,
-			index_filename);
-		result = 1;
+		temp_indexable->Garbage::remove_user();
 	}
 
 	return result;
@@ -322,29 +351,35 @@ int64_t IndexFile::get_required_scale()
 	return result;
 }
 
-int IndexFile::get_index_filename(char *source_filename, 
-	char *index_directory, 
-	char *index_filename, 
-	const char *input_filename)
+
+int IndexFile::get_index_filename(string *source_filename, 
+	string *index_directory, 
+	string *index_filename, 
+	const string *input_filename)
 {
 // Replace slashes and dots
 	int i, j;
-	int len = strlen(input_filename);
+	int len = input_filename->length();
+    source_filename->clear();
 	for(i = 0, j = 0; i < len; i++)
 	{
-		if(input_filename[i] != '/' &&
-			input_filename[i] != '.')
-			source_filename[j++] = input_filename[i];
-		else
+		if(input_filename->at(i) != '/' &&
+			input_filename->at(i) != '.')
+        {
+			source_filename->push_back(input_filename->at(i));
+		}
+        else
 		{
 			if(i > 0)
-				source_filename[j++] = '_';
+            {
+				source_filename->push_back('_');
+            }
 		}
 	}
-	source_filename[j] = 0;
+
 	FileSystem fs;
 	fs.join_names(index_filename, index_directory, source_filename);
-	strcat(index_filename, ".idx");
+	index_filename->append(".idx");
 	return 0;
 }
 
@@ -357,6 +392,7 @@ int IndexFile::get_toc_filename(string *source_filename,
 // Replace slashes and dots
 	int i;
 	int len = input_filename->length();
+    source_filename->clear();
 	for(i = 0; i < len; i++)
 	{
 		if(input_filename->at(i) != '/' &&
@@ -403,17 +439,23 @@ SET_TRACE
 	if(open_source()) return 1;
 
 SET_TRACE
+    string index_directory(mwindow->preferences->index_directory);
+    string path(indexable->path);
+	get_index_filename(&source_filename, 
+		&index_directory, 
+		&index_filename, 
+		&path);
 
-	get_index_filename(source_filename, 
-		mwindow->preferences->index_directory, 
-		index_filename, 
-		indexable->path);
+printf("IndexFile::create_index %d %s %s %s %s\n", 
+__LINE__, 
+source_filename.c_str(),
+index_directory.c_str(),
+index_filename.c_str(),
+path.c_str());
 
-SET_TRACE
-
-// Some file formats have their own sample index.
-// Test for index in stream table of contents
-	if(source && !source->get_index(index_filename))
+// Copy a table of contents over to an index file.  Very wasteful.
+// This only applies to MPEG, since it's hardly ever used anymore.
+	if(source && !source->get_index((char*)index_filename.c_str()))
 	{
 		redraw_edits(1);
 	}
@@ -432,10 +474,11 @@ SET_TRACE
 
 // get amount to read at a time in floats
 		int64_t buffersize = 65536;
-		char string[BCTEXTLEN];
-		sprintf(string, _("Creating %s."), index_filename);
+		string string2("Creating ");
+        string2.append(index_filename);
+        string2.append(".");
 
-		progress->update_title(string);
+		progress->update_title((char*)string2.c_str());
 		progress->update_length(source_length);
 		redraw_timer->update();
 SET_TRACE
@@ -443,7 +486,7 @@ SET_TRACE
 // create the former index thread
 		IndexThread *index_thread = new IndexThread(mwindow, 
 			this, 
-			index_filename, 
+			(char*)index_filename.c_str(), 
 			buffersize, 
 			source_length);
 
@@ -581,20 +624,19 @@ int IndexFile::draw_index(
 	int pane_number = canvas->pane->number;
 //index_state->dump();
 
-SET_TRACE
-	if(debug) printf("IndexFile::draw_index %d\n", __LINE__);
+
 // check against index_end when being built
 	if(index_state->index_zoom == 0)
 	{
 		printf(_("IndexFile::draw_index: index has 0 zoom\n"));
 		return 0;
 	}
-	if(debug) printf("IndexFile::draw_index %d\n", __LINE__);
 
 // test channel number
 	if(edit->channel > source_channels) return 1;
-	if(debug) printf("IndexFile::draw_index %d source_samplerate=%d w=%d samplerate=%lld zoom_sample=%lld\n", 
+	if(debug) printf("IndexFile::draw_index %d indexable=%p source_samplerate=%d w=%d samplerate=%lld zoom_sample=%lld\n", 
 		__LINE__,
+        indexable,
 		(int)source_samplerate,
 		w,
 		(long long)mwindow->edl->session->sample_rate,
@@ -626,11 +668,11 @@ SET_TRACE
 			length = index_state->index_end - startsource;
 	}
 
-// length of index to read in samples * 2
+// length of index to read in floats
 	int64_t lengthindex = length / index_state->index_zoom * 2;
-// start of data in samples
+// start of data in floats
 	int64_t startindex = startsource / index_state->index_zoom * 2;  
-// Clamp length of index to read by available data
+// Clamp length of index to read
 	if(startindex + lengthindex > index_state->get_index_size(edit->channel))
 		lengthindex = index_state->get_index_size(edit->channel) - startindex;
 
@@ -662,8 +704,11 @@ SET_TRACE
 		index_state->index_zoom * 
 		asset_over_session;
 
-// get channel offset
-	startindex += index_state->get_index_offset(edit->channel);
+// add start of channel index
+    if(is_index)
+    {
+	    startindex += index_state->get_index_offset(edit->channel);
+    }
 
 
 	if(index_state->index_status == INDEX_BUILDING)
@@ -675,11 +720,26 @@ SET_TRACE
 	else
 	{
 // index is stored in a file
-		buffer = new float[lengthindex + 1];
+		buffer = new float[lengthindex + 2];
 		buffer_shared = 0;
-		startfile = index_state->index_start + startindex * sizeof(float);
+        if(is_index)
+        {
+    		startfile = index_state->index_start + startindex * sizeof(float);
+        }
+        else
+        {
+            startfile = startindex * 
+                sizeof(float) + 
+                index_state->get_index_offset(edit->channel);
+        }
+        
 		lengthfile = lengthindex * sizeof(float);
 		length_read = 0;
+
+// printf("IndexFile::draw_index %d startfile=%ld lengthfile=%ld\n", 
+// __LINE__,
+// startfile,
+// lengthfile);
 
 		if(startfile < file_length)
 		{
@@ -689,7 +749,7 @@ SET_TRACE
 			if(startfile + length_read > file_length)
 				length_read = file_length - startfile;
 
-			int temp = fread(buffer, length_read + sizeof(float), 1, fd);
+			int temp = fread(buffer, length_read + sizeof(float) * 2, 1, fd);
 		}
 
 		if(length_read < lengthfile)
@@ -786,8 +846,6 @@ SET_TRACE
 
 
 	if(!buffer_shared) delete [] buffer;
-SET_TRACE
-	if(debug) printf("IndexFile::draw_index %d\n", __LINE__);
 	return 0;
 }
 
@@ -807,81 +865,95 @@ int IndexFile::remove_index()
 		index_state->index_status == INDEX_NOTTESTED)
 	{
 		close_index();
-		remove(index_filename);
+		remove(index_filename.c_str());
 	}
 }
 
-int IndexFile::read_info(Indexable *test_indexable)
+int IndexFile::read_info(Indexable *dst)
 {
 	const int debug = 0;
 
-// Store format in actual asset.
-// If it's a nested EDL, we never want the format, just the index info.
-	if(!test_indexable) test_indexable = indexable;
-
 
 	IndexState *index_state = 0;
-	if(test_indexable) 
-		index_state = test_indexable->index_state;
-	else
-		return 1;
+	if(dst) 
+	{
+    	index_state = dst->index_state;
+	}
+    else
+	{
+    	return 1;
+    }
 	
-
+//printf("IndexFile::read_info %d: index_status=%d\n", __LINE__, index_state->index_status);
 	if(index_state->index_status == INDEX_NOTTESTED)
 	{
-// read start of index data
-		int temp = fread((char*)&(index_state->index_start), sizeof(int64_t), 1, fd);
-//printf("IndexFile::read_info %d %f\n", __LINE__, test_indexable->get_frame_rate());
+        if(is_index)
+        {
+// get start of index data
+		    int temp = fread((char*)&(index_state->index_start), sizeof(int64_t), 1, fd);
+//printf("IndexFile::read_info %d %f\n", __LINE__, dst->get_frame_rate());
 
-		if(!temp) return 1;
-// read test_indexable info from index
-		char *data;
+		    if(!temp) return 1;
+// get metadata
+		    char *data;
 		
-		data = new char[index_state->index_start];
-		temp = fread(data, index_state->index_start - sizeof(int64_t), 1, fd);
-		if(!temp) return 1;
+		    data = new char[index_state->index_start];
+		    temp = fread(data, index_state->index_start - sizeof(int64_t), 1, fd);
+		    if(!temp) return 1;
 
-		data[index_state->index_start - sizeof(int64_t)] = 0;
-		FileXML xml;
-		xml.read_from_string(data);
-		delete [] data;
+		    data[index_state->index_start - sizeof(int64_t)] = 0;
+		    FileXML xml;
+		    xml.read_from_string(data);
+		    delete [] data;
 
 
 
-// Read the file format & index state.
-		if(test_indexable->is_asset)
-		{
-			Asset *asset = (Asset*)test_indexable;
-			asset->read(&xml);
+// Read the file format & index state from the index.
+		    if(dst->is_asset)
+		    {
+			    Asset *asset = (Asset*)dst;
+			    asset->read(&xml);
 
 //printf("IndexFile::read_info %d %f\n", __LINE__, asset->get_frame_rate());
 
-			if(asset->format == FILE_UNKNOWN)
-			{
-if(debug) printf("IndexFile::read_info %d\n", __LINE__);
-				return 1;
-			}
-		}
-		else
-		{
+			    if(asset->format == FILE_UNKNOWN)
+			    {
+                    if(debug) printf("IndexFile::read_info %d\n", __LINE__);
+				    return 1;
+			    }
+		    }
+		    else
+		    {
 // Read only the index state for a nested EDL
-			int result = 0;
-if(debug) printf("IndexFile::read_info %d\n", __LINE__);
-			while(!result)
-			{
-				result = xml.read_tag();
-				if(!result)
-				{
-					if(xml.tag.title_is("INDEX"))
-					{
-						index_state->read_xml(&xml, source_channels);
-if(debug) printf("IndexFile::read_info %d\n", __LINE__);
-if(debug) index_state->dump();
-						result = 1;
-					}
-				}
-			}
-		}
+			    int result = 0;
+                if(debug) printf("IndexFile::read_info %d\n", __LINE__);
+			    while(!result)
+			    {
+				    result = xml.read_tag();
+				    if(!result)
+				    {
+					    if(xml.tag.title_is("INDEX"))
+					    {
+						    index_state->read_xml(&xml, source_channels);
+                            if(debug) printf("IndexFile::read_info %d\n", __LINE__);
+                            if(debug) index_state->dump();
+						    result = 1;
+					    }
+				    }
+			    }
+		    }
+        }
+        else
+// the toc file only contains an index state
+// & doesn't apply to nested EDL's.  For now, only FFMPEG uses it.
+        if(is_toc && dst->is_asset)
+        {
+            return FileFFMPEG::read_index_state(fd, dst);
+        }
+        else
+        {
+            return 1;
+        }
 	}
 
 	return 0;

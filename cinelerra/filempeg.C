@@ -576,47 +576,42 @@ if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 int FileMPEG::create_index()
 {
 // Calculate TOC path
-	char index_filename[BCTEXTLEN];
-	char source_filename[BCTEXTLEN];
+	string index_filename;
+	string source_filename;
+    string path(asset->path);
+    string dir(file->preferences->index_directory);
 	const int debug = 0;
 
-	if(debug) printf("FileMPEG::create_index %d %p\n", __LINE__, file->preferences);
-	IndexFile::get_index_filename(source_filename, 
-		file->preferences->index_directory, 
-		index_filename, 
-		asset->path);
-	if(debug) printf("FileMPEG::create_index %d\n", __LINE__);
-	char *ptr = strrchr(index_filename, '.');
+	IndexFile::get_toc_filename(&source_filename, 
+		&dir, 
+		&index_filename, 
+		&path);
 	int error = 0;
 
-	if(!ptr) return 1;
 
-	if(debug) printf("FileMPEG::create_index %d\n", __LINE__);
 // File is a table of contents.
 	if(fd && mpeg3_has_toc(fd)) return 0;
-	if(debug) printf("FileMPEG::create_index %d\n", __LINE__);
-
-	sprintf(ptr, ".toc");
 
 	int need_toc = 1;
 
 	if(fd) mpeg3_close(fd);
 	fd = 0;
-	if(debug) printf("FileMPEG::create_index %d\n", __LINE__);
 
 // Test existing copy of TOC
-	if((fd = mpeg3_open(index_filename, &error)))
+	if((fd = mpeg3_open((char*)index_filename.c_str(), &error)))
 		need_toc = 0;
 
 	if(need_toc)
 	{
 // Create progress window.
 // This gets around the fact that MWindowGUI is locked.
-		char progress_title[BCTEXTLEN];
-		char string[BCTEXTLEN];
-		sprintf(progress_title, "Creating %s\n", index_filename);
+		string progress_title("Creating ");
+        progress_title.append(index_filename);
+        progress_title.append("\n");
 		int64_t total_bytes;
-		mpeg3_t *index_file = mpeg3_start_toc(asset->path, index_filename, &total_bytes);
+		mpeg3_t *index_file = mpeg3_start_toc(asset->path, 
+            (char*)index_filename.c_str(), 
+            &total_bytes);
 		struct timeval new_time;
 		struct timeval prev_time;
 		struct timeval start_time;
@@ -626,7 +621,7 @@ int FileMPEG::create_index()
 
 		BC_ProgressBox *progress = new BC_ProgressBox(-1, 
 			-1, 
-			progress_title, 
+			progress_title.c_str(), 
 			total_bytes);
 		progress->start();
 		int result = 0;
@@ -643,12 +638,15 @@ int FileMPEG::create_index()
 				int64_t total_seconds = elapsed_seconds * total_bytes / bytes_processed;
 				int64_t eta = total_seconds - elapsed_seconds;
 				progress->update(bytes_processed, 1);
-				sprintf(string, 
-					"%sETA: %ldm%lds",
-					progress_title,
+                string string2(progress_title);
+                string2.append("ETA: ");
+                char string3[BCTEXTLEN];
+				sprintf(string3, 
+					"%ldm%lds",
 					(int64_t)eta / 60,
 					(int64_t)eta % 60);
-				progress->update_title(string, 1);
+                string2.append(string3);
+				progress->update_title(string2.c_str(), 1);
 // 				fprintf(stderr, "ETA: %dm%ds        \r", 
 // 					bytes_processed * 100 / total_bytes,
 // 					eta / 60,
@@ -672,7 +670,7 @@ int FileMPEG::create_index()
 // Remove if error
 		if(result)
 		{
-			remove(index_filename);
+			remove(index_filename.c_str());
 			return 1;
 		}
 		else
@@ -689,7 +687,7 @@ int FileMPEG::create_index()
 // Reopen file from index path instead of asset path.
 	if(!fd)
 	{
-		if(!(fd = mpeg3_open(index_filename, &error)))
+		if(!(fd = mpeg3_open((char*)index_filename.c_str(), &error)))
 		{
 			return 1;
 		}

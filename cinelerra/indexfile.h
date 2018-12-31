@@ -39,6 +39,7 @@
 #include "bctimer.inc"
 #include "tracks.inc"
 
+#include <string>
 
 
 class IndexFile
@@ -59,10 +60,10 @@ public:
 	int interrupt_index();
 	static void delete_index(Preferences *preferences, 
 		Indexable *indexable);
-	static int get_index_filename(char *source_filename, 
-		char *index_directory, 
-		char *index_filename, 
-		const char *input_filename);
+	static int get_index_filename(string *source_filename, 
+		string *index_directory, 
+		string *index_filename, 
+		const string *input_filename);
 // get the TOC for formats which use it instead of an index file
 	static int get_toc_filename(string *source_filename, 
 		string *index_directory, 
@@ -77,11 +78,12 @@ public:
 		int w);
 	int close_index();
 	int remove_index();
-	int read_info(Indexable *indexable = 0);
+	int read_info(Indexable *dst);
 	int write_info();
 
 	MWindow *mwindow;
-	char index_filename[BCTEXTLEN], source_filename[BCTEXTLEN];
+	std::string index_filename;
+    std::string source_filename;
 // Object to create an index for
 	Indexable *indexable;
 	Timer *redraw_timer;
@@ -94,6 +96,9 @@ public:
 	int64_t get_required_scale();
 // File descriptor for index file.
 	FILE *fd;
+// what type of file the index is stored in.
+    int is_index;
+    int is_toc;
 // File object for source if an asset
 	File *source;
 // Render engine for source if the source is a nested EDL

@@ -162,13 +162,15 @@ void AssetEdit::handle_close_event(int result)
 			if(asset && asset->audio_data ||
 				nested_edl)
 			{
-				char source_filename[BCTEXTLEN];
-				char index_filename[BCTEXTLEN];
-				IndexFile::get_index_filename(source_filename, 
-					mwindow->preferences->index_directory,
-					index_filename, 
-					indexable->path);
-				remove(index_filename);
+				string source_filename;
+				string index_filename;
+                string index_dir(mwindow->preferences->index_directory);
+                string path(indexable->path);
+				IndexFile::get_index_filename(&source_filename, 
+					&index_dir,
+					&index_filename, 
+					&path);
+				remove(index_filename.c_str());
 				indexable->index_state->index_status = INDEX_NOTTESTED;
 				mwindow->mainindexes->add_next_asset(0, indexable);
 				mwindow->mainindexes->start_build();

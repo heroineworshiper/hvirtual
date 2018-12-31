@@ -22,6 +22,7 @@
 #ifndef FILEFFMPEG_H
 #define FILEFFMPEG_H
 
+// Decoding for all FFMPEG formats
 
 #include "asset.inc" 
 #include "filebase.h"
@@ -29,8 +30,6 @@
 #include "mutex.inc"
 #include "preferences.inc"
 
-
-// Decoding for all FFMPEG formats
 
 
 // Handler for audio streams
@@ -120,7 +119,8 @@ public:
 	int open_file(int rd, int wr);
 	int close_file();
     int create_toc(void *ptr);
-    int get_index(char *index_path);
+//    int get_index(char *index_path);
+    static int read_index_state(FILE *fd, Indexable *dst);
 
 	int64_t get_memory_usage();
 	int colormodel_supported(int colormodel);

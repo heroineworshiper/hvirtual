@@ -551,7 +551,7 @@ int PackageRenderer::render_package(RenderPackage *package)
 	this->package = package;
 
 printf(
-	"PackageRenderer::render_package: audio s=%lld l=%lld video s=%lld l=%lld\n",
+	"PackageRenderer::render_package: audio s=%ld l=%ld video s=%ld l=%ld\n",
 	package->audio_start, 
  	package->audio_end - package->audio_start, 
  	package->video_start, 
