@@ -74,7 +74,8 @@ using std::string;
 // Cinelerra does this for every MKV file anyway to draw the audio
 // waveform, so it's just keeping more of the data it already reads.
 
-
+// If different audio tracks are different lengths, they have different
+// sample rates.
 
 Mutex* FileFFMPEG::ffmpeg_lock = new Mutex("FileFFMPEG::ffmpeg_lock");
 
@@ -1033,7 +1034,7 @@ int FileFFMPEG::create_toc(void *ptr)
             
             if(decoder_context->codec_type == AVMEDIA_TYPE_AUDIO)
             {
-printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_AUDIO\n", __LINE__, i);
+//printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_AUDIO\n", __LINE__, i);
                 FileFFMPEGStream *dst = audio_streams.get(current_astream++);
 // force it to update this
                 dst->next_frame_offset = -1;
@@ -1045,7 +1046,7 @@ printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_AUDIO\n", __LINE__, i);
             else
             if(decoder_context->codec_type == AVMEDIA_TYPE_VIDEO)
             {
-printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_VIDEO\n", __LINE__, i);
+//printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_VIDEO\n", __LINE__, i);
 // only 1 video track supported
                 if(current_vstream == 0)
                 {
@@ -1071,13 +1072,22 @@ printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_VIDEO\n", __LINE__, i);
 			0, 
 			AVSEEK_FLAG_ANY);
 
-        progress_title.assign("Creating ");
-        progress_title.append(index_filename);
-        BC_ProgressBox *progress = new BC_ProgressBox(-1, 
-			-1, 
-			progress_title.c_str(), 
-			total_bytes);
-        progress->start();
+        BC_ProgressBox *progress = 0;
+        if(BC_WindowBase::get_resources()->initialized)
+        {
+            progress_title.assign("Creating ");
+            progress_title.append(index_filename);
+            progress = new BC_ProgressBox(-1, 
+			    -1, 
+			    progress_title.c_str(), 
+			    total_bytes);
+            progress->start();
+        }
+        else
+        {
+            printf("FileFFMPEG::create_toc %d: creating table of contents\n", __LINE__);
+        }
+        
         while(1)
         {
             AVPacket *packet = av_packet_alloc();
@@ -1089,14 +1099,14 @@ printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_VIDEO\n", __LINE__, i);
             {
                 break;
             }
-            if(progress->is_cancelled()) 
+            if(progress && progress->is_cancelled()) 
 			{
 				result = 1;
 				break;
 			}
 
 // update the progress bar            
-            if(new_time.get_difference() >= 1000 && offset > 0)
+            if(progress && new_time.get_difference() >= 1000 && offset > 0)
             {
                 new_time.update();
                 
@@ -1144,11 +1154,13 @@ printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_VIDEO\n", __LINE__, i);
                         AVStream *ffmpeg_stream = 
                             ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
                         AVCodecContext *decoder_context = ffmpeg_stream->codec;
+                        
                         int got_frame = 0;
                         int bytes_decoded = avcodec_decode_audio4(decoder_context, 
 					        ffmpeg_samples, 
 					        &got_frame,
                             packet);
+
 
                         if(got_frame)
                         {
@@ -1168,8 +1180,8 @@ printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_VIDEO\n", __LINE__, i);
                             stream->append_index(ffmpeg_samples, 
                                 asset, 
                                 file->preferences);
-
                         }
+
 
                         av_frame_free(&ffmpeg_samples);
                     }
@@ -1229,8 +1241,15 @@ printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_VIDEO\n", __LINE__, i);
             
         }
 
-        progress->stop_progress();
-		delete progress;
+        if(progress)
+        {
+            progress->stop_progress();
+		    delete progress;
+        }
+        else
+        {
+            printf("FileFFMPEG::create_toc %d: done creating table of contents\n", __LINE__);
+        }
         
         av_seek_frame(ffmpeg, 
 			0, 

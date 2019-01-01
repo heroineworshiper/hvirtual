@@ -33,6 +33,8 @@ BC_ProgressBox::BC_ProgressBox(int x, int y, const char *text, int64_t length)
 {
 	set_synchronous(1);
 
+
+
 // Calculate default x, y
 	if(x < 0 || y < 0)
 	{
@@ -40,6 +42,10 @@ BC_ProgressBox::BC_ProgressBox(int x, int y, const char *text, int64_t length)
 		x = display_info.get_abs_cursor_x();
 		y = display_info.get_abs_cursor_y();
 	}
+// printf("BC_ProgressBox::BC_ProgressBox %d %d\n", 
+// __LINE__, 
+// BC_WindowBase::get_resources()->initialized);
+
 
 	pwindow = new BC_ProgressWindow(x, y);
 	pwindow->create_objects(text, length);

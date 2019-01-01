@@ -619,11 +619,20 @@ int FileMPEG::create_index()
 		gettimeofday(&prev_time, 0);
 		gettimeofday(&start_time, 0);
 
-		BC_ProgressBox *progress = new BC_ProgressBox(-1, 
-			-1, 
-			progress_title.c_str(), 
-			total_bytes);
-		progress->start();
+        BC_ProgressBox *progress = 0;
+        if(BC_WindowBase::get_resources()->initialized)
+        {
+		    progress = new BC_ProgressBox(-1, 
+			    -1, 
+			    progress_title.c_str(), 
+			    total_bytes);
+		    progress->start();
+        }
+        else
+        {
+            printf("FileMPEG::create_index %d: creating table of contents\n", __LINE__);
+        }
+
 		int result = 0;
 		while(1)
 		{
@@ -631,7 +640,9 @@ int FileMPEG::create_index()
 			mpeg3_do_toc(index_file, &bytes_processed);
 			gettimeofday(&new_time, 0);
 
-			if(new_time.tv_sec - prev_time.tv_sec >= 1)
+			if(progress && 
+                new_time.tv_sec - prev_time.tv_sec >= 1 && 
+                bytes_processed > 0)
 			{
 				gettimeofday(&current_time, 0);
 				int64_t elapsed_seconds = current_time.tv_sec - start_time.tv_sec;
@@ -655,7 +666,7 @@ int FileMPEG::create_index()
 				prev_time = new_time;
 			}
 			if(bytes_processed >= total_bytes) break;
-			if(progress->is_cancelled()) 
+			if(progress && progress->is_cancelled()) 
 			{
 				result = 1;
 				break;
@@ -664,9 +675,16 @@ int FileMPEG::create_index()
 
 		mpeg3_stop_toc(index_file);
 
-		progress->stop_progress();
-		delete progress;
-
+        if(progress)
+        {
+		    progress->stop_progress();
+		    delete progress;
+        }
+        else
+        {
+            printf("FileMPEG::create_index %d: done creating table of contents\n", __LINE__);
+        }
+        
 // Remove if error
 		if(result)
 		{
