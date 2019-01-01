@@ -331,6 +331,8 @@ int FileSystem::test_filter(FileItem *file)
 	int result = 0;
 	int done = 0, token_done;
 	int token_number = 0;
+    char string2[BCTEXTLEN];
+    char string3[BCTEXTLEN];
 
 // Don't filter directories
 	if(file->is_dir) return 0;
@@ -342,7 +344,7 @@ int FileSystem::test_filter(FileItem *file)
 	{
 // Get next token
 		filter1 = strchr(filter2, '[');
-		string[0] = 0;
+		string3[0] = 0;
 
 // Get next filter
 		if(filter1)
@@ -354,28 +356,28 @@ int FileSystem::test_filter(FileItem *file)
 			{
 				int i;
 				for(i = 0; filter1 + i < filter2; i++)
-					string[i] = filter1[i];
-				string[i] = 0;
+					string3[i] = filter1[i];
+				string3[i] = 0;
 			}
 			else
 			{
-				strcpy(string, filter1);
+				strcpy(string3, filter1);
 				done = 1;
 			}
 		}
 		else
 		{
 			if(!token_number) 
-				strcpy(string, filter);
+				strcpy(string3, filter);
 			else
 				done = 1;
 		}
 
 // Process the token
-		if(string[0] != 0)
+		if(string3[0] != 0)
 		{
 			char *path = file->name;
-			subfilter1 = string;
+			subfilter1 = string3;
 			token_done = 0;
 			result = 0;
 
@@ -401,7 +403,7 @@ int FileSystem::test_filter(FileItem *file)
 				if(string2[0] != 0)
 				{
 // Subfilter must exist at some later point in the string
-					if(subfilter1 > string)
+					if(subfilter1 > string3)
 					{
 						if(!strstr(path, string2)) 
 						{
@@ -750,6 +752,45 @@ int FileSystem::complete_path(char *filename)
 	return 0;
 }
 
+
+int FileSystem::parse_tildas(string *new_dir_)
+{
+    char *new_dir = strdup(new_dir_->c_str());
+    int result = parse_tildas(new_dir);
+    new_dir_->assign(new_dir);
+    free(new_dir);
+    return result;
+}
+
+int FileSystem::parse_directories(string *new_dir_)
+{
+    char *new_dir = strdup(new_dir_->c_str());
+    int result = parse_directories(new_dir);
+    new_dir_->assign(new_dir);
+    free(new_dir);
+    return result;
+}
+
+int FileSystem::parse_dots(string *new_dir_)
+{
+    char *new_dir = strdup(new_dir_->c_str());
+    int result = parse_dots(new_dir);
+    new_dir_->assign(new_dir);
+    free(new_dir);
+    return result;
+}
+
+
+int FileSystem::complete_path(string *filename)
+{
+	if(!filename->length()) return 1;
+	parse_tildas(filename);
+	parse_directories(filename);
+	parse_dots(filename);
+// don't add end slash since this requires checking if dir
+	return 0;
+}
+
 int FileSystem::extract_dir(char *out, const char *in)
 {
 	strcpy(out, in);
@@ -886,6 +927,15 @@ int FileSystem::set_current_dir(const char *new_dir)
 int FileSystem::add_end_slash(char *new_dir)
 {
 	if(new_dir[strlen(new_dir) - 1] != '/') strcat(new_dir, "/");
+	return 0;
+}
+
+int FileSystem::add_end_slash(string *new_dir)
+{
+	if(new_dir->at(new_dir->length() - 1) != '/') 
+    {
+        new_dir->append("/");
+    }
 	return 0;
 }
 

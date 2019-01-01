@@ -163,11 +163,10 @@ void IndexFile::delete_index(Preferences *preferences,
 {
 	string index_path;
 	string source_path;
-    string index_directory(preferences->index_directory);
 	const string path(indexable->path);
 
 	get_index_filename(&source_path, 
-		&index_directory,
+		&preferences->index_directory,
 		&index_path, 
 		&path);
 //printf("IndexFile::delete_index %s %s\n", source_path, index_path);
@@ -179,7 +178,6 @@ int IndexFile::open_file()
 	int result = 0;
 	const int debug = 0;
 	const string path(indexable->path);
-    string index_directory(mwindow->preferences->index_directory);
 
     is_index = 0;
     is_toc = 0;
@@ -187,7 +185,7 @@ int IndexFile::open_file()
 //printf("IndexFile::open_file %d\n", __LINE__);
 
 	get_index_filename(&source_path, 
-		&index_directory,
+		&mwindow->preferences->index_directory,
 		&index_path, 
 		&path);
 
@@ -208,7 +206,7 @@ int IndexFile::open_file()
 
 // try a table of contents file which also contains offsets for all the media
         get_toc_filename(&source_path, 
-		    &index_directory,
+		    &mwindow->preferences->index_directory,
 		    &index_path, 
 		    &path);
 
@@ -482,10 +480,9 @@ SET_TRACE
 	if(open_source()) return 1;
 
 SET_TRACE
-    string index_directory(mwindow->preferences->index_directory);
     string path(indexable->path);
 	get_index_filename(&source_path, 
-		&index_directory, 
+		&mwindow->preferences->index_directory, 
 		&index_path, 
 		&path);
 

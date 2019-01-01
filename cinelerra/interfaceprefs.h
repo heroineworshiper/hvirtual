@@ -82,7 +82,7 @@ public:
 class IndexPathText : public BC_TextBox
 {
 public:
-	IndexPathText(int x, int y, PreferencesWindow *pwindow, char *text);
+	IndexPathText(int x, int y, PreferencesWindow *pwindow, string *text);
 	~IndexPathText();
 	int handle_event();
 	PreferencesWindow *pwindow;

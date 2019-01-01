@@ -60,6 +60,20 @@ BC_TextBox::BC_TextBox(int x,
 	int y, 
 	int w, 
 	int rows, 
+	string *text, 
+	int has_border, 
+	int font)
+ : BC_SubWindow(x, y, w, 0, -1)
+{
+	skip_cursor = 0;
+	reset_parameters(rows, has_border, font);
+	this->text.assign(*text);
+}
+
+BC_TextBox::BC_TextBox(int x, 
+	int y, 
+	int w, 
+	int rows, 
 	int64_t text, 
 	int has_border, 
 	int font)

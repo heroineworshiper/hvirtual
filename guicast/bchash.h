@@ -30,6 +30,9 @@
 #include "bcwindowbase.inc"
 #include "stringfile.inc"
 #include "units.h"
+#include <string>
+
+using std::string;
 
 
 class BC_Hash
@@ -52,12 +55,14 @@ public:
 	int update(const char *name, int32_t value); // update a value if it exists
 	int update(const char *name, int64_t value); // update a value if it exists
 	int update(const char *name, const char *value); // create it if it doesn't
+	int update(const char *name, string *value); // create it if it doesn't
 
 	double get(const char *name, double default_);   // retrieve a value if it exists
 	float get(const char *name, float default_);   // retrieve a value if it exists
 	int32_t get(const char *name, int32_t default_);   // retrieve a value if it exists
 	int64_t get(const char *name, int64_t default_);   // retrieve a value if it exists
-	char* get(const char *name, char *default_); // return 1 if it doesn't
+	char* get(const char *name, char *default_);
+	string* get(const char *name, string *default_);
 
 // Update values with values from another table.
 // Adds values that don't exist and updates existing values.

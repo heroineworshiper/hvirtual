@@ -31,6 +31,9 @@
 #include "preferences.inc"
 #include "videoconfig.inc"
 
+#include <string>
+using std::string;
+
 
 class Preferences
 {
@@ -77,7 +80,7 @@ public:
 
 // ================================= Performance ================================
 // directory to look in for indexes
-	char index_directory[BCTEXTLEN];   
+	string index_directory;   
 // size of index file in bytes
 	int64_t index_size;                  
 	int index_count;

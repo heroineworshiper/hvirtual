@@ -164,10 +164,9 @@ void AssetEdit::handle_close_event(int result)
 			{
 				string source_filename;
 				string index_filename;
-                string index_dir(mwindow->preferences->index_directory);
                 string path(indexable->path);
 				IndexFile::get_index_filename(&source_filename, 
-					&index_dir,
+					&mwindow->preferences->index_directory,
 					&index_filename, 
 					&path);
 				remove(index_filename.c_str());

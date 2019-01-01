@@ -109,11 +109,10 @@ SET_TRACE
 SET_TRACE
 		string index_filename;
 		string source_filename;
-        string dir(mwindow->preferences->index_directory);
         string path(indexable->path);
 SET_TRACE
 		IndexFile::get_index_filename(&source_filename, 
-			&dir, 
+			&mwindow->preferences->index_directory, 
 			&index_filename, 
 			&path);
 

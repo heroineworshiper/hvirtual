@@ -58,6 +58,13 @@ public:
 		int y, 
 		int w, 
 		int rows, 
+		string *text, 
+		int has_border = 1, 
+		int font = MEDIUMFONT);
+	BC_TextBox(int x, 
+		int y, 
+		int w, 
+		int rows, 
 		int64_t text, 
 		int has_border = 1, 
 		int font = MEDIUMFONT);

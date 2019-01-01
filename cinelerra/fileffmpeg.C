@@ -815,13 +815,12 @@ int FileFFMPEG::create_toc(void *ptr)
 	string index_filename;
 	string source_filename;
 	string string2;
-    string index_directory(file->preferences->index_directory);
     string path_string(asset->path);
     char string3[BCTEXTLEN];
     int debug = 0;
 
 	IndexFile::get_toc_filename(&source_filename, 
-		&index_directory, 
+		&file->preferences->index_directory, 
 		&index_filename, 
 		&path_string);
 

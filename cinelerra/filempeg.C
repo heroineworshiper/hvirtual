@@ -579,11 +579,10 @@ int FileMPEG::create_index()
 	string index_filename;
 	string source_filename;
     string path(asset->path);
-    string dir(file->preferences->index_directory);
 	const int debug = 0;
 
 	IndexFile::get_toc_filename(&source_filename, 
-		&dir, 
+		&file->preferences->index_directory, 
 		&index_filename, 
 		&path);
 	int error = 0;

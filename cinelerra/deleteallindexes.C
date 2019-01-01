@@ -57,9 +57,9 @@ void DeleteAllIndexes::run()
 {
 	char string[BCTEXTLEN], string1[BCTEXTLEN], string2[BCTEXTLEN];
 // prepare directory
-	strcpy(string1, pwindow->thread->preferences->index_directory);
+	strcpy(string1, pwindow->thread->preferences->index_directory.c_str());
 	FileSystem dir;
-	dir.update(pwindow->thread->preferences->index_directory);
+	dir.update(pwindow->thread->preferences->index_directory.c_str());
 	dir.complete_path(string1);
 // prepare filter
 	const char *filter1 = ".idx";

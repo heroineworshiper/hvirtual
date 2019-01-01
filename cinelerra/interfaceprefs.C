@@ -136,13 +136,13 @@ void InterfacePrefs::create_objects()
 	add_subwindow(ipathtext = new IndexPathText(x2, 
 		y, 
 		pwindow, 
-		pwindow->thread->preferences->index_directory));
+		&pwindow->thread->preferences->index_directory));
 	add_subwindow(ipath = new BrowseButton(mwindow->theme,
 		this,
 		ipathtext, 
 		x2 + ipathtext->get_w(), 
 		y, 
-		pwindow->thread->preferences->index_directory,
+		pwindow->thread->preferences->index_directory.c_str(),
 		_("Index Path"), 
 		_("Select the directory for index files"),
 		1));
@@ -306,7 +306,7 @@ InterfacePrefs::~InterfacePrefs()
 IndexPathText::IndexPathText(int x, 
 	int y, 
 	PreferencesWindow *pwindow, 
-	char *text)
+	string *text)
  : BC_TextBox(x, y, DP(240), 1, text)
 {
 	this->pwindow = pwindow; 
@@ -316,7 +316,7 @@ IndexPathText::~IndexPathText() {}
 
 int IndexPathText::handle_event()
 {
-	strcpy(pwindow->thread->preferences->index_directory, get_text());
+	pwindow->thread->preferences->index_directory.assign(get_text());
 }
 
 

@@ -747,8 +747,8 @@ void MWindow::clean_indexes()
 
 // Delete extra indexes
 	fs.set_filter("*.idx");
-	fs.complete_path(preferences->index_directory);
-	fs.update(preferences->index_directory);
+	fs.complete_path(&preferences->index_directory);
+	fs.update(preferences->index_directory.c_str());
 //printf("MWindow::clean_indexes 1 %d\n", fs.dir_list.total);
 
 // Eliminate directories
@@ -758,7 +758,9 @@ void MWindow::clean_indexes()
 		result = 0;
 		for(int i = 0; i < fs.dir_list.total && !result; i++)
 		{
-			fs.join_names(string, preferences->index_directory, fs.dir_list.values[i]->name);
+			fs.join_names(string, 
+                preferences->index_directory.c_str(), 
+                fs.dir_list.values[i]->name);
 			if(fs.is_dir(string))
 			{
 				delete fs.dir_list.values[i];
@@ -775,7 +777,9 @@ void MWindow::clean_indexes()
 // Get oldest
 		for(int i = 0; i < fs.dir_list.total; i++)
 		{
-			fs.join_names(string, preferences->index_directory, fs.dir_list.values[i]->name);
+			fs.join_names(string, 
+                preferences->index_directory.c_str(), 
+                fs.dir_list.values[i]->name);
 
 			if(i == 0 || fs.get_date(string) <= oldest)
 			{
@@ -788,7 +792,7 @@ void MWindow::clean_indexes()
 		{
 // Remove index file
 			fs.join_names(string, 
-				preferences->index_directory, 
+				preferences->index_directory.c_str(), 
 				fs.dir_list.values[oldest_item]->name);
 //printf("MWindow::clean_indexes 1 %s\n", string);
 			if(remove(string))
@@ -2648,14 +2652,13 @@ void MWindow::rebuild_indices()
 {
 	for(int i = 0; i < session->drag_assets->total; i++)
 	{
-        string dir(preferences->index_directory);
 	    string source_filename;
         string index_filename;
         string path(session->drag_assets->values[i]->path);
 //printf("MWindow::rebuild_indices 1 %s\n", session->drag_assets->values[i]->path);
 // Erase file
 		IndexFile::get_index_filename(&source_filename, 
-			&dir,
+			&preferences->index_directory,
 			&index_filename, 
 			&path);
 		remove(index_filename.c_str());

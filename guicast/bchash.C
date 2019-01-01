@@ -219,6 +219,19 @@ char* BC_Hash::get(const char *name, char *default_)
 	return default_;  // failed
 }
 
+string* BC_Hash::get(const char *name, string *default_)
+{
+	for(int i = 0; i < total; i++)
+	{
+		if(!strcmp(names[i], name))
+		{
+			default_->assign(values[i]);
+			return default_;
+		}
+	}
+	return default_;
+}
+
 int BC_Hash::update(const char *name, double value) // update a value if it exists
 {
 	char string[BCTEXTLEN];
@@ -266,6 +279,29 @@ int BC_Hash::update(const char *name, const char *value)
 	strcpy(names[total], name);
 	values[total] = new char[strlen(value) + 1];
 	strcpy(values[total], value);
+	total++;
+	return 1;
+}
+
+int BC_Hash::update(const char *name, string *value)
+{
+	for(int i = 0; i < total; i++)
+	{
+		if(!strcmp(names[i], name))
+		{
+			delete [] values[i];
+			values[i] = new char[value->length() + 1];
+			strcpy(values[i], value->c_str());
+			return 0;
+		}
+	}
+
+// didn't find so create new entry
+	reallocate_table(total + 1);
+	names[total] = new char[strlen(name) + 1];
+	strcpy(names[total], name);
+	values[total] = new char[value->length() + 1];
+	strcpy(values[total], value->c_str());
 	total++;
 	return 1;
 }
