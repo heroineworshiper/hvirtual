@@ -60,15 +60,15 @@ public:
 	int interrupt_index();
 	static void delete_index(Preferences *preferences, 
 		Indexable *indexable);
-	static int get_index_filename(string *source_filename, 
+	static int get_index_filename(string *source_path, 
 		string *index_directory, 
-		string *index_filename, 
-		const string *input_filename);
+		string *index_path, 
+		const string *input_path);
 // get the TOC for formats which use it instead of an index file
-	static int get_toc_filename(string *source_filename, 
+	static int get_toc_filename(string *source_path, 
 		string *index_directory, 
-		string *index_filename, 
-		const string *input_filename);
+		string *index_path, 
+		const string *input_path);
 	void update_edl_asset();
 	int redraw_edits(int force);
 	int draw_index(TrackCanvas *canvas,
@@ -82,8 +82,8 @@ public:
 	int write_info();
 
 	MWindow *mwindow;
-	std::string index_filename;
-    std::string source_filename;
+	std::string index_path;
+    std::string source_path;
 // Object to create an index for
 	Indexable *indexable;
 	Timer *redraw_timer;
@@ -99,6 +99,8 @@ public:
 // what type of file the index is stored in.
     int is_index;
     int is_toc;
+// the source file is the table of contents rather than the media
+    int is_source_toc;
 // File object for source if an asset
 	File *source;
 // Render engine for source if the source is a nested EDL

@@ -118,7 +118,7 @@ SET_TRACE
 			&path);
 
 SET_TRACE
-		if(this_file && !this_file->get_index((char*)index_filename.c_str()))
+		if(this_file /* && !this_file->get_index((char*)index_filename.c_str()) */)
 		{
 SET_TRACE
 			if(!indexfile.open_index())

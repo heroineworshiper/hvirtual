@@ -939,23 +939,23 @@ int File::close_file(int ignore_thread)
 
 
 
-int File::get_index(char *index_path)
-{
-#ifdef USE_FILEFORK
-	if(file_fork)
-	{
-		file_fork->send_command(FileFork::GET_INDEX, (unsigned char*)index_path, strlen(index_path) + 1);
-		int result = file_fork->read_result();
-		return result;
-	}
-#endif
-
-	if(file)
-	{
-		return file->get_index(index_path);
-	}
-	return 1;
-}
+// int File::get_index(char *index_path)
+// {
+// #ifdef USE_FILEFORK
+// 	if(file_fork)
+// 	{
+// 		file_fork->send_command(FileFork::GET_INDEX, (unsigned char*)index_path, strlen(index_path) + 1);
+// 		int result = file_fork->read_result();
+// 		return result;
+// 	}
+// #endif
+// 
+// 	if(file)
+// 	{
+// 		return file->get_index(index_path);
+// 	}
+// 	return 1;
+// }
 
 
 

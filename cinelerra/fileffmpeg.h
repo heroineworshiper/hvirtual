@@ -81,8 +81,10 @@ public:
     ArrayList<int64_t> audio_offsets;
 // samples in each chunk.  Uses less space than absolute sample numbers.
     ArrayList<int32_t> audio_samples;
-// next offset to be stored when audio is decoded
-    int64_t next_audio_offset;
+// next offset to be stored when something is decoded
+    int64_t next_frame_offset;
+// next frame to be stored is a keyframe
+    int is_keyframe;
 // offset vs frame
     ArrayList<int64_t> video_offsets;
 // keyframe numbers

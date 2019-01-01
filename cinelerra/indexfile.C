@@ -12,8 +12,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
+; * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
@@ -32,6 +31,7 @@
 #include "errorbox.h"
 #include "file.h"
 #include "fileffmpeg.h"
+#include "filempeg.h"
 #include "filesystem.h"
 #include "filexml.h"
 #include "indexable.h"
@@ -106,6 +106,9 @@ void IndexFile::reset()
 	indexable = 0;
 	render_engine = 0;
 	cache = 0;
+    is_toc = 0;
+    is_index = 0;
+    is_source_toc = 0;
 }
 
 IndexState* IndexFile::get_state()
@@ -137,6 +140,7 @@ int IndexFile::open_index()
 //printf("IndexFile::open_index %d indexable=%p is_toc=%d\n", __LINE__, indexable, is_toc);
 		if(read_info(indexable))
 		{
+//printf("IndexFile::open_index %d indexable=%p is_toc=%d\n", __LINE__, indexable, is_toc);
 			result = 1;
 			close_index();
 		}
@@ -147,6 +151,7 @@ int IndexFile::open_index()
 	}
 	else
 	{
+printf("IndexFile::open_index %d is_toc=%d\n", __LINE__, is_toc);
 		result = 1;
 	}
 
@@ -156,17 +161,17 @@ int IndexFile::open_index()
 void IndexFile::delete_index(Preferences *preferences, 
 	Indexable *indexable)
 {
-	string index_filename;
-	string source_filename;
+	string index_path;
+	string source_path;
     string index_directory(preferences->index_directory);
 	const string path(indexable->path);
 
-	get_index_filename(&source_filename, 
+	get_index_filename(&source_path, 
 		&index_directory,
-		&index_filename, 
+		&index_path, 
 		&path);
-//printf("IndexFile::delete_index %s %s\n", source_filename, index_filename);
-	remove(index_filename.c_str());
+//printf("IndexFile::delete_index %s %s\n", source_path, index_path);
+	remove(index_path.c_str());
 }
 
 int IndexFile::open_file()
@@ -179,95 +184,133 @@ int IndexFile::open_file()
     is_index = 0;
     is_toc = 0;
 
-//printf("IndexFile::open_file %f\n", indexable->get_frame_rate());
+//printf("IndexFile::open_file %d\n", __LINE__);
 
-	get_index_filename(&source_filename, 
+	get_index_filename(&source_path, 
 		&index_directory,
-		&index_filename, 
+		&index_path, 
 		&path);
 
-	if(debug) printf("IndexFile::open_file %d index_filename=%s\n", 
+	if(debug) printf("IndexFile::open_file %d index_path=%s\n", 
 		__LINE__,
-		index_filename.c_str());
+		index_path.c_str());
 // try an index file
-	if(fd = fopen(index_filename.c_str(), "rb"))
+	if(fd = fopen(index_path.c_str(), "rb"))
 	{
         is_index = 1;
     }
     else
     {
-		if(debug) printf("IndexFile::open_file %d index_filename=%s doesn't exist\n", 
+		if(debug) printf("IndexFile::open_file %d index_path=%s doesn't exist\n", 
 			__LINE__,
-			index_filename.c_str());
-// try table of contents file which also contains offsets for all the media
-        get_toc_filename(&source_filename, 
+			index_path.c_str());
+
+
+// try a table of contents file which also contains offsets for all the media
+        get_toc_filename(&source_path, 
 		    &index_directory,
-		    &index_filename, 
+		    &index_path, 
 		    &path);
-        if(fd = fopen(index_filename.c_str(), "rb"))
+
+        if(fd = fopen(index_path.c_str(), "rb"))
 	    {
             is_toc = 1;
         }
         else
+        if(indexable && indexable->is_asset)
         {
-		    if(debug) printf("IndexFile::open_file %d toc_filename=%s doesn't exist\n", 
-			    __LINE__,
-			    index_filename.c_str());
-// doesn't exist
-		    result = 1;
+// the source file itself may be an index, 
+// in the case of a TOC created by the user.
+            index_path.assign(path);
+            const char *ptr = strrchr(index_path.c_str(), '.');
+            if(ptr && !strcasecmp(ptr, ".toc"))
+            {
+// good chance of being a .toc file, so don't wait for it to open an MPEG
+                if(fd = fopen(index_path.c_str(), "rb"))
+                {
+                    is_toc = 1;
+                    is_source_toc = 1;
+                }
+            }
         }
     }
     
-    
+
     if(fd)
     {
 // Index file exists.
-// Get info without changing the real asset.
-		Indexable *temp_indexable = new Indexable(0);
+// Get some info without changing the real asset.
+//printf("IndexFile::open_file %d is_asset=%d\n", __LINE__, indexable->is_asset);
+		Indexable *temp_indexable = 0;
+        if(indexable->is_asset)
+        {
+            temp_indexable = new Asset;
+        }
+        else
+        {
+            temp_indexable = new Indexable(0);
+        }
+        
 		if(indexable)
 		{
 			temp_indexable->copy_indexable(indexable);
 		}
 
-		read_info(temp_indexable);
-
-		FileSystem fs;
+		if(read_info(temp_indexable))
+        {
+//printf("IndexFile::open_file %d\n", __LINE__);
+// failed to read the index file or toc
+            result = 2;
+			fclose(fd);
+			fd = 0;
+        }
+        else
 // is index older than source?
-		if(fs.get_date(index_filename.c_str()) < fs.get_date(temp_indexable->path))
+		if(FileSystem::get_date(index_path.c_str()) < FileSystem::get_date(temp_indexable->path))
 		{
-			if(debug) printf("IndexFile::open_file %d index_date=%ld source_date=%ld\n",
-				__LINE__,
-				fs.get_date(index_filename.c_str()),
-				fs.get_date(temp_indexable->path));
+// 			printf("IndexFile::open_file %d index_date=%ld source_date=%ld\n",
+// 				__LINE__,
+// 				FileSystem::get_date(index_path.c_str()),
+// 				FileSystem::get_date(temp_indexable->path));
 
 			result = 2;
 			fclose(fd);
 			fd = 0;
 		}
-// Shouldn't be necessary.  Not bothering to port it to toc files
-// 		else
-// 		if(fs.get_size(temp_indexable->path) != temp_indexable->index_state->index_bytes)
-// 		{
-// // source file is a different size than index source file
-// 			if(debug) printf("IndexFile::open_file %d index_size=%lld source_size=%lld\n",
+// Test for a change of removable media by testing the source size
+		else
+		if(!is_source_toc &&
+            FileSystem::get_size(temp_indexable->path) != temp_indexable->index_state->index_bytes)
+		{
+// source file is a different size than index source file
+// 			printf("IndexFile::open_file %d index_size=%ld source_size=%ld\n",
 // 				__LINE__,
-// 				(long long)temp_indexable->index_state->index_bytes,
-// 				(long long)fs.get_size(temp_indexable->path));
-// 			result = 2;
-// 			fclose(fd);	
-// 			fd = 0;
-// 		}
+// 				temp_indexable->index_state->index_bytes,
+// 				FileSystem::get_size(temp_indexable->path));
+			result = 2;
+			fclose(fd);	
+			fd = 0;
+		}
 		else
 		{
-			if(debug) printf("IndexFile::open_file %d\n",
-				__LINE__);
+//printf("IndexFile::open_file %d\n", __LINE__);
+// get the size of the index file
 			fseek(fd, 0, SEEK_END);
 			file_length = ftell(fd);
 			fseek(fd, 0, SEEK_SET);
 			result = 0;
 		}
+
+        
 		temp_indexable->Garbage::remove_user();
 	}
+    else
+    {
+	    if(debug) printf("IndexFile::open_file %d no index file exists\n", 
+		    __LINE__);
+// doesn't exist
+    	result = 1;
+    }
 
 	return result;
 }
@@ -352,66 +395,66 @@ int64_t IndexFile::get_required_scale()
 }
 
 
-int IndexFile::get_index_filename(string *source_filename, 
+int IndexFile::get_index_filename(string *source_path, 
 	string *index_directory, 
-	string *index_filename, 
-	const string *input_filename)
+	string *index_path, 
+	const string *input_path)
 {
 // Replace slashes and dots
 	int i, j;
-	int len = input_filename->length();
-    source_filename->clear();
+	int len = input_path->length();
+    source_path->clear();
 	for(i = 0, j = 0; i < len; i++)
 	{
-		if(input_filename->at(i) != '/' &&
-			input_filename->at(i) != '.')
+		if(input_path->at(i) != '/' &&
+			input_path->at(i) != '.')
         {
-			source_filename->push_back(input_filename->at(i));
+			source_path->push_back(input_path->at(i));
 		}
         else
 		{
 			if(i > 0)
             {
-				source_filename->push_back('_');
+				source_path->push_back('_');
             }
 		}
 	}
 
 	FileSystem fs;
-	fs.join_names(index_filename, index_directory, source_filename);
-	index_filename->append(".idx");
+	fs.join_names(index_path, index_directory, source_path);
+	index_path->append(".idx");
 	return 0;
 }
 
 
-int IndexFile::get_toc_filename(string *source_filename, 
+int IndexFile::get_toc_filename(string *source_path, 
 	string *index_directory, 
-	string *index_filename, 
-	const string *input_filename)
+	string *index_path, 
+	const string *input_path)
 {
 // Replace slashes and dots
 	int i;
-	int len = input_filename->length();
-    source_filename->clear();
+	int len = input_path->length();
+    source_path->clear();
 	for(i = 0; i < len; i++)
 	{
-		if(input_filename->at(i) != '/' &&
-			input_filename->at(i) != '.')
+		if(input_path->at(i) != '/' &&
+			input_path->at(i) != '.')
         {
-			source_filename->push_back(input_filename->at(i));
+			source_path->push_back(input_path->at(i));
 		}
         else
 		{
 			if(i > 0)
             {
-				source_filename->push_back('_');
+				source_path->push_back('_');
             }
 		}
 	}
 
 	FileSystem fs;
-	fs.join_names(index_filename, index_directory, source_filename);
-	index_filename->append(".toc");
+	fs.join_names(index_path, index_directory, source_path);
+	index_path->append(".toc");
 	return 0;
 }
 
@@ -441,58 +484,48 @@ SET_TRACE
 SET_TRACE
     string index_directory(mwindow->preferences->index_directory);
     string path(indexable->path);
-	get_index_filename(&source_filename, 
+	get_index_filename(&source_path, 
 		&index_directory, 
-		&index_filename, 
+		&index_path, 
 		&path);
 
-printf("IndexFile::create_index %d %s %s %s %s\n", 
-__LINE__, 
-source_filename.c_str(),
-index_directory.c_str(),
-index_filename.c_str(),
-path.c_str());
-
-// Copy a table of contents over to an index file.  Very wasteful.
-// This only applies to MPEG, since it's hardly ever used anymore.
-	if(source && !source->get_index((char*)index_filename.c_str()))
-	{
-		redraw_edits(1);
-	}
-	else
-// Build index from scratch
-	{
+// printf("IndexFile::create_index %d %s %s %s %s\n", 
+// __LINE__, 
+// source_path.c_str(),
+// index_directory.c_str(),
+// index_path.c_str(),
+// path.c_str());
 
 
 
 
-		index_state->index_zoom = get_required_scale();
+	index_state->index_zoom = get_required_scale();
 SET_TRACE
 
 // Indexes are now built for everything since it takes too long to draw
 // from CDROM source.
 
 // get amount to read at a time in floats
-		int64_t buffersize = 65536;
-		string string2("Creating ");
-        string2.append(index_filename);
-        string2.append(".");
+	int64_t buffersize = 65536;
+	string string2("Creating ");
+    string2.append(index_path);
+    string2.append(".");
 
-		progress->update_title((char*)string2.c_str());
-		progress->update_length(source_length);
-		redraw_timer->update();
+	progress->update_title((char*)string2.c_str());
+	progress->update_length(source_length);
+	redraw_timer->update();
 SET_TRACE
 
 // create the former index thread
-		IndexThread *index_thread = new IndexThread(mwindow, 
-			this, 
-			(char*)index_filename.c_str(), 
-			buffersize, 
-			source_length);
+	IndexThread *index_thread = new IndexThread(mwindow, 
+		this, 
+		(char*)index_path.c_str(), 
+		buffersize, 
+		source_length);
 
 // current sample in source file
-		int64_t position = 0;
-		int64_t fragment_size = buffersize;
+	int64_t position = 0;
+	int64_t fragment_size = buffersize;
 
 
 // pass through file once
@@ -502,77 +535,76 @@ SET_TRACE
 // source,
 // progress);
 SET_TRACE
-		while(position < source_length && !result)
-		{
+	while(position < source_length && !result)
+	{
 SET_TRACE
-			if(source_length - position < fragment_size && fragment_size == buffersize) fragment_size = source_length - position;
+		if(source_length - position < fragment_size && fragment_size == buffersize) fragment_size = source_length - position;
 
 SET_TRACE
-			int cancelled = progress->update(position);
+		int cancelled = progress->update(position);
 //printf("IndexFile::create_index cancelled=%d\n", cancelled);
 SET_TRACE
-			if(cancelled || interrupt_flag)
-			{
-				result = 3;
-			}
+		if(cancelled || interrupt_flag)
+		{
+			result = 3;
+		}
 
 
 SET_TRACE
-			if(source && !result)
-			{
+		if(source && !result)
+		{
 SET_TRACE
-				for(int channel = 0; 
-					!result && channel < source_channels; 
-					channel++)
-				{
+			for(int channel = 0; 
+				!result && channel < source_channels; 
+				channel++)
+			{
 // Read from source file
-					source->set_audio_position(position);
-					source->set_channel(channel);
+				source->set_audio_position(position);
+				source->set_channel(channel);
 
-					if(source->read_samples(
-						index_thread->buffer_in[channel],
-						fragment_size)) 
-						result = 1;
-				}
-SET_TRACE
-			}
-			else
-			if(render_engine && !result)
-			{
-SET_TRACE
-				if(render_engine->arender)
-				{
-					result = render_engine->arender->process_buffer(
-						index_thread->buffer_in, 
-						fragment_size,
-						position);
-				}
-				else
-				{
-					for(int i = 0; i < source_channels; i++)
-					{
-						bzero(index_thread->buffer_in[i]->get_data(),
-							fragment_size * sizeof(double));
-					}
-				}
-SET_TRACE
-			}
-SET_TRACE
-
-// Release buffer to thread
-			if(!result)
-			{
-				index_thread->process(fragment_size);
-				position += fragment_size;
+				if(source->read_samples(
+					index_thread->buffer_in[channel],
+					fragment_size)) 
+					result = 1;
 			}
 SET_TRACE
 		}
+		else
+		if(render_engine && !result)
+		{
+SET_TRACE
+			if(render_engine->arender)
+			{
+				result = render_engine->arender->process_buffer(
+					index_thread->buffer_in, 
+					fragment_size,
+					position);
+			}
+			else
+			{
+				for(int i = 0; i < source_channels; i++)
+				{
+					bzero(index_thread->buffer_in[i]->get_data(),
+						fragment_size * sizeof(double));
+				}
+			}
+SET_TRACE
+		}
+SET_TRACE
 
-		progress->update(position);
-
-		delete index_thread;
-
+// Release buffer to thread
+		if(!result)
+		{
+			index_thread->process(fragment_size);
+			position += fragment_size;
+		}
+SET_TRACE
 	}
+
+	progress->update(position);
+
+	delete index_thread;
+
 
 
 
@@ -865,7 +897,7 @@ int IndexFile::remove_index()
 		index_state->index_status == INDEX_NOTTESTED)
 	{
 		close_index();
-		remove(index_filename.c_str());
+		remove(index_path.c_str());
 	}
 }
 
@@ -884,7 +916,11 @@ int IndexFile::read_info(Indexable *dst)
     	return 1;
     }
 	
-//printf("IndexFile::read_info %d: index_status=%d\n", __LINE__, index_state->index_status);
+// printf("IndexFile::read_info %d: index_status=%d is_toc=%d is_asset=%d\n", 
+// __LINE__, 
+// index_state->index_status, 
+// is_toc,
+// dst->is_asset);
 	if(index_state->index_status == INDEX_NOTTESTED)
 	{
         if(is_index)
@@ -945,10 +981,16 @@ int IndexFile::read_info(Indexable *dst)
         }
         else
 // the toc file only contains an index state
-// & doesn't apply to nested EDL's.  For now, only FFMPEG uses it.
+// & doesn't apply to nested EDL's.  For now, only FFMPEG & MPEG use it.
         if(is_toc && dst->is_asset)
         {
-            return FileFFMPEG::read_index_state(fd, dst);
+            if(FileFFMPEG::read_index_state(fd, dst))
+            {
+                if(FileMPEG::read_index_state(&index_path, dst))
+                {
+                    return 1;
+                }
+            }
         }
         else
         {

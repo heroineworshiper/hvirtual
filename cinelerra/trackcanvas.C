@@ -5175,7 +5175,7 @@ int TrackCanvas::button_press_event()
 		}
 
 
-printf("MWindow::button_press_event %d rerender=%d\n", __LINE__, rerender);
+//printf("MWindow::button_press_event %d rerender=%d\n", __LINE__, rerender);
 		if(rerender)
 		{
 			gui->unlock_window();

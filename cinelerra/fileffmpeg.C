@@ -858,23 +858,28 @@ int FileFFMPEG::create_toc(void *ptr)
     FILE *fd = fopen(index_filename.c_str(), "r");
     if(fd)
     {
-        if(fread(string3, 1, strlen(FFMPEG_TOC_SIG), fd) < strlen(FFMPEG_TOC_SIG))
+        int sig_len = strlen(FFMPEG_TOC_SIG);
+        if(fread(string3, 1, sig_len, fd) < sig_len)
         {
             result = 1;
         }
 
 // test start code
+        string3[sig_len] = 0;
         if(result || strcmp(string3, FFMPEG_TOC_SIG))
         {
             result = 1;
         }
-        
+
 // test creation date
         FileSystem fs;
         if(result || fs.get_date(index_filename.c_str()) < fs.get_date(asset->path))
         {
             result = 1;
         }
+
+// skip file size
+        fseek(fd, sizeof(int64_t), SEEK_CUR);
 
         if(!result)
         {
@@ -1028,10 +1033,10 @@ int FileFFMPEG::create_toc(void *ptr)
             
             if(decoder_context->codec_type == AVMEDIA_TYPE_AUDIO)
             {
-//printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_AUDIO\n", __LINE__, i);
+printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_AUDIO\n", __LINE__, i);
                 FileFFMPEGStream *dst = audio_streams.get(current_astream++);
 // force it to update this
-                dst->next_audio_offset = -1;
+                dst->next_frame_offset = -1;
                 dst->index_zoom = 1;
                 dst->total_samples = 0;
                 dst->delete_index();
@@ -1040,11 +1045,14 @@ int FileFFMPEG::create_toc(void *ptr)
             else
             if(decoder_context->codec_type == AVMEDIA_TYPE_VIDEO)
             {
-//printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_VIDEO\n", __LINE__, i);
+printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_VIDEO\n", __LINE__, i);
 // only 1 video track supported
                 if(current_vstream == 0)
                 {
-                    stream_map.append(video_streams.get(current_vstream++));
+                    FileFFMPEGStream *dst = video_streams.get(current_vstream++);
+                    dst->next_frame_offset = -1;
+                    dst->is_keyframe = 0;
+                    stream_map.append(dst);
                 }
                 else
                 {
@@ -1124,9 +1132,9 @@ int FileFFMPEG::create_toc(void *ptr)
                     if(stream->is_audio)
                     {
 // next samples to be decoded will come after this offset
-                        if(stream->next_audio_offset < 0)
+                        if(stream->next_frame_offset < 0)
                         {
-                            stream->next_audio_offset = offset;
+                            stream->next_frame_offset = offset;
                         }
 
 // decode the audio samples
@@ -1150,11 +1158,11 @@ int FileFFMPEG::create_toc(void *ptr)
 //                                 offset,
 //                                 packet->size,
 //                                 samples_decoded);
-                            stream->audio_offsets.append(stream->next_audio_offset);
+                            stream->audio_offsets.append(stream->next_frame_offset);
                             stream->audio_samples.append(samples_decoded);
                             stream->total_samples += samples_decoded;
 // next samples to be decoded will come after the next offset
-                            stream->next_audio_offset = -1;
+                            stream->next_frame_offset = -1;
 
 
                             stream->append_index(ffmpeg_samples, 
@@ -1174,13 +1182,41 @@ int FileFFMPEG::create_toc(void *ptr)
 //                             packet->size,
 //                             packet->flags);
 
+// next frame to be decoded will come after this offset
+                        if(stream->next_frame_offset < 0)
+                        {
+                            stream->next_frame_offset = offset;
+                        }
 
                         if(packet->flags)
                         {
-                            stream->video_keyframes.append(stream->video_offsets.size());
+                            stream->is_keyframe = 1;
                         }
-                        stream->video_offsets.append(offset);
+                        
+// fudge for different codecs
+                        int got_frame = 1;
+                        if(!strcmp(asset->vcodec, QUICKTIME_VP9))
+                        {
+// VP9 skips some.  0x84 doesn't denote this is a skipped frame, 
+// but a frame somewhere else is skipped for every 0x84 code & no more than 1
+// 0x84 occurs for every skipped frame.
+                            if(packet->data[0] == 0x84)
+                            {
+                                got_frame = 0;
+                            }
+                        }
+// store a frame
+                        if(got_frame)
+                        {
+                            if(stream->is_keyframe)
+                            {
+                                stream->video_keyframes.append(stream->video_offsets.size());
+                            }
+                            stream->video_offsets.append(stream->next_frame_offset);
 
+                            stream->next_frame_offset = -1;
+                            stream->is_keyframe = 0;
+                        }
                     }
                 }
                 
@@ -1226,6 +1262,9 @@ int FileFFMPEG::create_toc(void *ptr)
         if(!result)
         {
             fwrite(FFMPEG_TOC_SIG, strlen(FFMPEG_TOC_SIG), 1, fd);
+
+// store the size of the source file to handle removable media
+            PUT_INT64(total_bytes);
 
 // put the audio indexes first so they can be drawn quickly
             PUT_INT32(audio_streams.size());
@@ -1340,6 +1379,7 @@ int FileFFMPEG::read_index_state(FILE *fd, Indexable *dst)
     IndexState *index_state = dst->index_state;
 
 // test signature
+    fseek(fd, 0, SEEK_SET);
     int sig_len = strlen(FFMPEG_TOC_SIG);
     if(fread(string, 1, sig_len, fd) < sig_len)
     {
@@ -1355,6 +1395,8 @@ int FileFFMPEG::read_index_state(FILE *fd, Indexable *dst)
         return 1;
     }
 
+    index_state->index_bytes = READ_INT64(fd);
+
 // offsets of the tables in bytes
     ArrayList<int> offsets;
 // sizes of the tables in floats
@@ -1365,8 +1407,6 @@ int FileFFMPEG::read_index_state(FILE *fd, Indexable *dst)
     {
 // the same for all audio streams
         index_state->index_zoom = READ_INT32(fd);
-// size of source file isn't stored
-        index_state->index_bytes = 0;
 // number of high/low pairs per channel in this stream
         int index_size = READ_INT32(fd);
 // number of channels in this stream
@@ -1753,7 +1793,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 //                 stream->video_offsets.size());
             
 // rewind this many keyframes
-            int rewind_count = 4;
+            int rewind_count = 2;
 // Some codecs only require rewinding 1 keyframe
             if(decoder_context->codec_id == AV_CODEC_ID_VP9)
             {
@@ -1859,11 +1899,18 @@ int FileFFMPEG::read_frame(VFrame *frame)
                     {
                         got_frame = 1;
                     }
-// printf("FileFFMPEG::read_frame %d result=%d stream->current_frame=%ld file->current_frame=%ld got_frame=%d\n", 
+// printf("FileFFMPEG::read_frame %d result=%d %02x %02x %02x %02x %02x %02x %02x %02x packet->flags=0x%x got_frame=%d\n", 
 // __LINE__, 
 // result, 
-// stream->current_frame,
-// file->current_frame,
+// packet->data[0],
+// packet->data[1],
+// packet->data[2],
+// packet->data[3],
+// packet->data[4],
+// packet->data[5],
+// packet->data[6],
+// packet->data[7],
+// packet->flags,
 // got_frame);
 				}
 			}

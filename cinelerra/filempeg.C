@@ -824,64 +824,124 @@ int FileMPEG::colormodel_supported(int colormodel)
 	return colormodel;
 }
 
-int FileMPEG::get_index(char *index_path)
+
+
+
+int FileMPEG::read_index_state(string *index_path, Indexable *dst)
 {
-	if(!fd) return 1;
+// reopen the file with our parser
+    int error = 0;
+    int i, j;
+    IndexState *index_state = dst->index_state;
 
 
-// Convert the index tables from tracks to channels.
-	if(mpeg3_index_tracks(fd))
-	{
-// Calculate size of buffer needed for all channels
-		int buffer_size = 0;
-		for(int i = 0; i < mpeg3_index_tracks(fd); i++)
-		{
-			buffer_size += mpeg3_index_size(fd, i) *
-				mpeg3_index_channels(fd, i) *
-				2;
-		}
+    mpeg3_t *fd = mpeg3_open((char*)index_path->c_str(), &error);
+    if(error) return 1;
 
-		IndexState *index_state = asset->index_state;
-		index_state->index_buffer = new float[buffer_size];
-
-// Size of index buffer in floats
-		int current_offset = 0;
-// Current asset channel
-		int current_channel = 0;
-		index_state->channels = asset->channels;
-		index_state->index_zoom = mpeg3_index_zoom(fd);
-		index_state->index_offsets = new int64_t[index_state->channels];
-		index_state->index_sizes = new int64_t[index_state->channels];
-		for(int i = 0; i < mpeg3_index_tracks(fd); i++)
-		{
-			for(int j = 0; j < mpeg3_index_channels(fd, i); j++)
-			{
-				index_state->index_offsets[current_channel] = current_offset;
-				index_state->index_sizes[current_channel] = mpeg3_index_size(fd, i) * 2;
-				memcpy(index_state->index_buffer + current_offset,
-					mpeg3_index_data(fd, i, j),
-					mpeg3_index_size(fd, i) * sizeof(float) * 2);
-
-				current_offset += mpeg3_index_size(fd, i) * 2;
-				current_channel++;
-			}
-		}
-
-		FileSystem fs;
-		index_state->index_bytes = fs.get_size(asset->path);
-
-		index_state->write_index(index_path, 
-			buffer_size * sizeof(float),
-			asset,
-			asset->audio_length);
-		delete [] index_state->index_buffer;
-        index_state->index_buffer = 0;
+//printf("FileMPEG::read_index_state %d %s %d\n", __LINE__, index_path->c_str(), mpeg3_index_tracks(fd));
+// do we have audio indexes?
+    if(mpeg3_index_tracks(fd))
+    {
+//printf("FileMPEG::read_index_state %d\n", __LINE__);
+        int channels = 0;
+        for(i = 0; i < mpeg3_index_tracks(fd); i++)
+        {
+            channels += mpeg3_index_channels(fd, i);
+        }
         
-		return 0;
-	}
 
+        index_state->channels = channels;
+        index_state->index_zoom = mpeg3_index_zoom(fd);
+        index_state->index_offsets = new int64_t[index_state->channels];
+        index_state->index_sizes = new int64_t[index_state->channels];
+        index_state->index_bytes = mpeg3_index_source_size(fd);
+        
+        int current_channel = 0;
+        for(i = 0; i < mpeg3_index_tracks(fd); i++)
+        {
+            for(int j = 0; j < mpeg3_index_channels(fd, i); j++)
+			{
+                index_state->index_offsets[current_channel] = mpeg3_index_offset(fd, i, j);
+                index_state->index_sizes[current_channel] = mpeg3_index_size(fd, i) * 2;
+                current_channel++;
+            }
+        }
+                
+        mpeg3_close(fd);
+        return 0;
+    }
+
+    mpeg3_close(fd);
 	return 1;
+    
 }
+
+
+
+
+
+
+
+
+
+// int FileMPEG::get_index(char *index_path)
+// {
+// 	if(!fd) return 1;
+// 
+// 
+// // Convert the index tables from tracks to channels.
+// 	if(mpeg3_index_tracks(fd))
+// 	{
+// // Calculate size of buffer needed for all channels
+// 		int buffer_size = 0;
+// 		for(int i = 0; i < mpeg3_index_tracks(fd); i++)
+// 		{
+// 			buffer_size += mpeg3_index_size(fd, i) *
+// 				mpeg3_index_channels(fd, i) *
+// 				2;
+// 		}
+// 
+// 		IndexState *index_state = asset->index_state;
+// 		index_state->index_buffer = new float[buffer_size];
+// 
+// // Size of index buffer in floats
+// 		int current_offset = 0;
+// // Current asset channel
+// 		int current_channel = 0;
+// 		index_state->channels = asset->channels;
+// 		index_state->index_zoom = mpeg3_index_zoom(fd);
+// 		index_state->index_offsets = new int64_t[index_state->channels];
+// 		index_state->index_sizes = new int64_t[index_state->channels];
+// 		for(int i = 0; i < mpeg3_index_tracks(fd); i++)
+// 		{
+// 			for(int j = 0; j < mpeg3_index_channels(fd, i); j++)
+// 			{
+// 				index_state->index_offsets[current_channel] = current_offset;
+// 				index_state->index_sizes[current_channel] = mpeg3_index_size(fd, i) * 2;
+// 				memcpy(index_state->index_buffer + current_offset,
+// 					mpeg3_index_data(fd, i, j),
+// 					mpeg3_index_size(fd, i) * sizeof(float) * 2);
+// 
+// 				current_offset += mpeg3_index_size(fd, i) * 2;
+// 				current_channel++;
+// 			}
+// 		}
+// 
+// 		FileSystem fs;
+// 		index_state->index_bytes = fs.get_size(asset->path);
+// 
+// 		index_state->write_index(index_path, 
+// 			buffer_size * sizeof(float),
+// 			asset,
+// 			asset->audio_length);
+// 		delete [] index_state->index_buffer;
+//         index_state->index_buffer = 0;
+//         
+// 		return 0;
+// 	}
+// 
+// 	return 1;
+// }
 
 
 int FileMPEG::can_copy_from(Asset *asset, int64_t position)

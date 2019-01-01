@@ -194,10 +194,10 @@ int FileFork::handle_command()
 			break;
 		}
 
-		case GET_INDEX:
-			result = file->get_index((char*)command_data);
-			send_result(result, 0, 0);
-			break;
+// 		case GET_INDEX:
+// 			result = file->get_index((char*)command_data);
+// 			send_result(result, 0, 0);
+// 			break;
 
 
 		case START_AUDIO_THREAD:
