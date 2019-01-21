@@ -188,7 +188,7 @@ static void flush(quicktime_t *file, int track)
 
 	pthread_mutex_lock(&h265_lock);
 
-    printf("flush %d\n", __LINE__);
+//    printf("flush %d\n", __LINE__);
 	if(codec->encode_initialized)
 	{
         x265_nal *nals;
@@ -271,10 +271,11 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 			codec->param->frameNumThreads = 1;
 		}
 
-		printf("encode %d fix_bitrate=%d\n", __LINE__, codec->fix_bitrate);
-		printf("encode %d bitrate=%d\n", __LINE__, codec->param->rc.bitrate);
-		printf("encode %d q=%d\n", __LINE__, codec->param->rc.qp);
-		printf("encode %d threads=%d\n", __LINE__, codec->param->frameNumThreads);
+// 		printf("encode %d fix_bitrate=%d\n", __LINE__, codec->fix_bitrate);
+// 		printf("encode %d bitrate=%d\n", __LINE__, codec->param->rc.bitrate);
+// 		printf("encode %d q=%d\n", __LINE__, codec->param->rc.qp);
+// 		printf("encode %d threads=%d\n", __LINE__, codec->param->frameNumThreads);
+//      printf("encode %d internalCsp=%d\n", __LINE__, codec->param->internalCsp);
 
 
 		codec->encoder = codec->api->encoder_open(codec->param);
@@ -307,7 +308,8 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
         
         quicktime_set_avcc_header(avcc,
 		  	header, 
-		  	header_size);
+		  	header_size,
+            1);
         
         codec->pic_in = x265_picture_alloc();
         codec->pic_out = x265_picture_alloc();

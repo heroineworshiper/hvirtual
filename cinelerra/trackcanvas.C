@@ -677,6 +677,7 @@ void TrackCanvas::draw_resources(int mode,
 				if(pixmap_w && pixmap_h)
 				{
 // Create pixmap if it doesn't exist
+//printf("TrackCanvas::draw_resources %d edit_x=%ld\n", __LINE__, edit_x);
 					ResourcePixmap* pixmap = create_pixmap(edit, 
 						edit_x, 
 						pixmap_x, 
@@ -717,13 +718,19 @@ void TrackCanvas::draw_resources(int mode,
 // Delete unused pixmaps
 	if(debug) PRINT_TRACE
 	if(!indexes_only)
+    {
 		for(int i = gui->resource_pixmaps.total - 1; i >= 0; i--)
-			if(gui->resource_pixmaps.values[i]->visible < PIXMAP_AGE)
+		{
+        	if(gui->resource_pixmaps.values[i]->visible < PIXMAP_AGE)
 			{
-//printf("TrackCanvas::draw_resources %d\n", __LINE__);
+// printf("TrackCanvas::draw_resources %d age=%d\n", 
+// __LINE__,
+// gui->resource_pixmaps.values[i]->visible);
 				delete gui->resource_pixmaps.values[i];
 				gui->resource_pixmaps.remove(gui->resource_pixmaps.values[i]);
 			}
+        }
+    }
 	if(debug) PRINT_TRACE
 
 	if(hourglass_enabled) 
@@ -751,10 +758,11 @@ ResourcePixmap* TrackCanvas::create_pixmap(Edit *edit,
 
 	for(int i = 0; i < gui->resource_pixmaps.total; i++)
 	{
-//printf("TrackCanvas::create_pixmap 1 %d %d\n", edit->id, resource_pixmaps.values[i]->edit->id);
+//printf("TrackCanvas::create_pixmap %d %d %d\n", __LINE__, edit->id, gui->resource_pixmaps.values[i]->edit->id);
 		if(gui->resource_pixmaps.values[i]->edit_id == edit->id &&
 			gui->resource_pixmaps.values[i]->pane_number == pane->number) 
 		{
+//printf("TrackCanvas::create_pixmap %d %d %d\n", __LINE__, edit->id, gui->resource_pixmaps.values[i]->edit_id);
 			result = gui->resource_pixmaps.values[i];
 			break;
 		}
@@ -762,7 +770,7 @@ ResourcePixmap* TrackCanvas::create_pixmap(Edit *edit,
 
 	if(!result)
 	{
-//SET_TRACE
+//printf("TrackCanvas::create_pixmap %d %d %d\n", __LINE__, edit->id, edit->id);
 		result = new ResourcePixmap(mwindow, 
 			gui, 
 			edit,

@@ -2053,14 +2053,11 @@ void MWindow::age_caches()
 
 	do
 	{
-//printf("MWindow::age_caches %d %lld %lld\n", __LINE__, memory_usage, preferences->cache_size);
 		memory_usage = audio_cache->get_memory_usage(1);
-//printf("MWindow::age_caches %d %lld %lld\n", __LINE__, memory_usage, preferences->cache_size);
 		memory_usage += video_cache->get_memory_usage(1);
-//printf("MWindow::age_caches %d %lld %lld\n", __LINE__, memory_usage, preferences->cache_size);
 		memory_usage += frame_cache->get_memory_usage();
 		memory_usage += wave_cache->get_memory_usage();
-// printf("MWindow::age_caches %d %lld %lld %lld %lld\n", 
+// printf("MWindow::age_caches %d preferences->cache_size=%ld audio_cache=%ld video_cache=%ld frame_cache=%ld wave_cache=%ld memory_usage=%ld\n", 
 // __LINE__, 
 // preferences->cache_size,
 // audio_cache->get_memory_usage(1),
@@ -2069,6 +2066,7 @@ void MWindow::age_caches()
 // wave_cache->get_memory_usage(),
 // memory_usage);
 
+//printf("MWindow::age_caches %d memory_usage=%ld preferences->cache_size=%ld\n", __LINE__, memory_usage, preferences->cache_size);
 		if(memory_usage > preferences->cache_size)
 		{
 			int target = 1;
@@ -2080,7 +2078,13 @@ void MWindow::age_caches()
 			int oldest4 = wave_cache->get_oldest();
 			if(oldest4 < oldest3 && oldest4 < oldest2 && oldest4 < oldest1) target = 4;
 
-//printf("MWindow::age_caches %d %d\n", __LINE__, target);
+// printf("MWindow::age_caches %d oldest1=%d oldest2=%d oldest3=%d oldest4=%d target=%d\n", 
+// __LINE__, 
+// oldest1,
+// oldest2,
+// oldest3,
+// oldest4,
+// target);
 
 			switch(target)
 			{

@@ -445,10 +445,11 @@ int main(int argc, char *argv[])
 		quicktime_avcc_t *avcc = &trak->mdia.minf.stbl.stsd.table[0].avcc;
 		quicktime_set_avcc_header(avcc,
 		  	h264_desc, 
-		  	sizeof(h264_desc));
+		  	sizeof(h264_desc),
+            1);
 	}
 	
-#endif
+#endif // !READ_ONLY
 
 	audio_start = (int64_t)0x10;
 	ftell_byte = STARTING_OFFSET;

@@ -151,7 +151,7 @@ int IndexFile::open_index()
 	}
 	else
 	{
-printf("IndexFile::open_index %d is_toc=%d\n", __LINE__, is_toc);
+//printf("IndexFile::open_index %d is_toc=%d\n", __LINE__, is_toc);
 		result = 1;
 	}
 

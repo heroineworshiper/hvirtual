@@ -53,11 +53,8 @@ public:
 	void *ffmpeg_file_context;
 
 // Video
-// Next read positions
+// The last frame to come out of the decoder
 	int64_t current_frame;
-// Last decoded positions
-	int64_t decoded_frame;
-	int first_frame;
     int is_video;
 	
 

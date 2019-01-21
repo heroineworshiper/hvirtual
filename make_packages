@@ -28,7 +28,7 @@ fi
 
 
 
-CI_VERSION=7
+CI_VERSION=7.1
 
 
 MIX_VERSION=1.2

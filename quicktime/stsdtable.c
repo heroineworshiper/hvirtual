@@ -205,7 +205,7 @@ void quicktime_read_stsd_video(quicktime_t *file,
 		quicktime_atom_read_header(file, &leaf_atom);
 
 /*
- * printf("quicktime_read_stsd_video 1 %llx %llx %llx %s\n", 
+ * printf("quicktime_read_stsd_video 1 %lx %lx %lx %s\n", 
  * leaf_atom.start, leaf_atom.end, quicktime_position(file),
  * leaf_atom.type);
  */
@@ -220,12 +220,18 @@ void quicktime_read_stsd_video(quicktime_t *file,
 // TODO: consolidate these into a common mpeg4 header
 		if(quicktime_atom_is(&leaf_atom, "avcC"))
 		{
-			quicktime_read_avcc(file, &leaf_atom, &table->avcc);
+			quicktime_read_avcc(file, &leaf_atom, &table->avcc, 0);
 		}
 		else
 		if(quicktime_atom_is(&leaf_atom, "hvcC"))
 		{
-			quicktime_read_avcc(file, &leaf_atom, &table->avcc);
+			quicktime_read_avcc(file, &leaf_atom, &table->avcc, 1);
+		}
+		else
+		if(quicktime_atom_is(&leaf_atom, "colr"))
+		{
+//printf("quicktime_read_stsd_video %d\n", __LINE__);
+			quicktime_atom_skip(file, &leaf_atom);
 		}
 		else
 		if(quicktime_atom_is(&leaf_atom, "ctab"))
@@ -244,7 +250,9 @@ void quicktime_read_stsd_video(quicktime_t *file,
 			table->field_dominance = quicktime_read_char(file);
 		}
 		else
+        {
 			quicktime_atom_skip(file, &leaf_atom);
+        }
 
 
 /* 		if(quicktime_atom_is(&leaf_atom, "mjqt")) */
@@ -301,6 +309,7 @@ void quicktime_write_stsd_video(quicktime_t *file, quicktime_stsd_table_t *table
 	{
 		quicktime_write_avcc(file, &table->avcc);
 	}
+    
 
 // Write another 32 bits
 	if(table->version == 1)

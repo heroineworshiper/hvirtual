@@ -174,6 +174,7 @@ int64_t CacheBase::get_memory_usage()
 		result += current->get_size();
 	}
 	lock->unlock();
+//printf("CacheBase::get_memory_usage %d result=%ld\n", __LINE__, result);
 	return result;
 }
 

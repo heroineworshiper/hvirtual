@@ -1401,9 +1401,24 @@ quicktime_t* quicktime_open(char *filename, int rd, int wr)
 // android requires the ftyp header
 			const unsigned char ftyp_data[] = 
 			{
-				0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32, 0x00, 0x00, 0x00, 0x01, 0x6d, 0x70, 0x34, 0x32, 0x61, 0x76, 0x63, 0x31
+				0x00, 0x00, 0x00, 0x18,  'f',  't',  'y', 'p', 
+                 'm',  'p',  '4',  '2', 0x00, 0x00, 0x00, 0x01, 
+                 'm',  'p',  '4',  '2', 0x61, 0x76, 0x63, 0x31
 			};
-			quicktime_write_data(new_file, (unsigned char*)ftyp_data, sizeof(ftyp_data));
+            
+			const unsigned char ftyp_data2[] = 
+			{
+				0x00, 0x00, 0x00, 0x14,  'f',  't',  'y', 'p', 
+                 'q',  't',  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 
+                 'q',  't',  ' ',  ' '
+			};
+            
+// 			quicktime_write_data(new_file, 
+//                 (unsigned char*)ftyp_data, 
+//                 sizeof(ftyp_data));
+			quicktime_write_data(new_file, 
+                (unsigned char*)ftyp_data2, 
+                sizeof(ftyp_data2));
 			
 
 

@@ -185,7 +185,8 @@ static void common_encode(quicktime_t *file,
 		*/
 					quicktime_set_avcc_header(avcc,
 		  				header, 
-		  				header_size);
+		  				header_size,
+                        0);
 				}
 			}
 		}

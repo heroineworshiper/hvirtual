@@ -111,6 +111,15 @@ void quicktime_esds_samplerate(quicktime_stsd_table_t *table,
 /* Graphics */
 quicktime_scaletable_t* quicktime_new_scaletable(int input_w, int input_h, int output_w, int output_h);
 
+int quicktime_ctab_init(quicktime_ctab_t *ctab);
+int quicktime_ctab_delete(quicktime_ctab_t *ctab);
+void quicktime_ctab_dump(quicktime_ctab_t *ctab);
+int quicktime_read_ctab(quicktime_t *file, quicktime_ctab_t *ctab);
+
+
+
+
+
 
 
 /* chunks always start on 1 */
@@ -188,11 +197,15 @@ void quicktime_esds_dump(quicktime_esds_t *esds);
 void quicktime_delete_avcc(quicktime_avcc_t *avcc);
 int quicktime_read_avcc(quicktime_t *file, 
 	quicktime_atom_t *parent_atom,
+	quicktime_avcc_t *avcc,
+    int is_hvcc);
+void quicktime_write_avcc(quicktime_t *file, 
 	quicktime_avcc_t *avcc);
 void quicktime_avcc_dump(quicktime_avcc_t *avcc);
 void quicktime_set_avcc_header(quicktime_avcc_t *avcc,
 	unsigned char *data, 
-	int size);
+	int size,
+    int is_hvcc);
 
 void quicktime_delete_frma(quicktime_frma_t *frma);
 int quicktime_read_frma(quicktime_t *file, 

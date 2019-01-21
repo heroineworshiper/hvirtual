@@ -474,6 +474,7 @@ static int get_chroma_factor(quicktime_ffmpeg_t *ffmpeg, int current_field)
 }
 
 
+// reduce bits per pixel
 static void downsample(quicktime_ffmpeg_t *ffmpeg, 
     quicktime_t *file, 
     unsigned char **picture_y,
@@ -482,7 +483,6 @@ static void downsample(quicktime_ffmpeg_t *ffmpeg,
     int *rowspan)
 {
 //printf("downsample %d\n", __LINE__);
-// reduce bits per pixel
     if(ffmpeg->decoder_context[0]->pix_fmt ==
         AV_PIX_FMT_YUV420P10LE)
     {

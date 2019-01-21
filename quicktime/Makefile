@@ -1,7 +1,7 @@
 OBJDIR := $(shell uname --machine)
 USE_MMX = 0
 CC = gcc
-
+CXX = g++
 
 
 
@@ -269,8 +269,7 @@ $(shell echo  $(LAME_CFLAGS) > $(OBJDIR)/lame_flags)
 $(shell echo  $(OBJS) $(FFMPEG_OBJS) $(JPEG_LIB)/*.o $(DV_LIB)/*.o $(FAAD_LIB)/*.o $(FAAC_LIB)/*.o $(X264_LIB)/*.o $(X265_LIB)/*.o $(OGG_LIB)/*.o $(VORBIS_LIB)/*.o $(LAME_OBJS) > $(OBJDIR)/objs)
 $(shell echo  $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
 
-all: $(OBJDIR) $(OUTPUT)
-#all: $(OBJDIR) $(OUTPUT) $(UTILS)
+all: $(OBJDIR) $(OUTPUT) $(UTILS)
 
 $(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(FFMPEG_LIB) $(X264_LIB) $(X265_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
 	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
@@ -356,36 +355,37 @@ $(VORBIS_LIB):
 
 
 $(OBJDIR)/mts2mp4: $(OBJDIR)/mts2mp4.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/mts2mp4 $(OBJDIR)/mts2mp4.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/mts2mp4 $(OBJDIR)/mts2mp4.o $(LIBS)
 
 $(OBJDIR)/qtdump: $(OBJDIR)/dump.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/qtdump $(OBJDIR)/dump.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/qtdump $(OBJDIR)/dump.o $(LIBS)
 
 $(OBJDIR)/make_streamable: $(OBJDIR)/make_streamable.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/make_streamable $(OBJDIR)/make_streamable.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/make_streamable $(OBJDIR)/make_streamable.o $(LIBS)
 
 $(OBJDIR)/dechunk: $(OBJDIR)/dechunk.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/dechunk $(OBJDIR)/dechunk.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/dechunk $(OBJDIR)/dechunk.o $(LIBS)
 
 $(OBJDIR)/rechunk: $(OBJDIR)/rechunk.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/rechunk $(OBJDIR)/rechunk.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/rechunk $(OBJDIR)/rechunk.o $(LIBS)
 
 $(OBJDIR)/recover: $(OBJDIR)/recover.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/recover $(OBJDIR)/recover.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/recover $(OBJDIR)/recover.o $(LIBS)
 
 $(OBJDIR)/yuv4toyuv: $(OBJDIR)/yuv4toyuv.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/yuv4toyuv $(OBJDIR)/yuv4toyuv.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/yuv4toyuv $(OBJDIR)/yuv4toyuv.o $(LIBS)
 
 $(OBJDIR)/yuv2mov: $(OBJDIR)/yuv2mov.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/yuv2mov $(OBJDIR)/yuv2mov.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/yuv2mov $(OBJDIR)/yuv2mov.o $(LIBS)
 
 $(OBJDIR)/qtinfo: $(OBJDIR)/qtinfo.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/qtinfo $(OBJDIR)/qtinfo.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/qtinfo $(OBJDIR)/qtinfo.o $(LIBS)
 
 util:  $(UTILS)
 	
 
 clean:
+	rm -rf  $(X265_DIR)/build
 	make -i -C $(FFMPEG_DIR) clean
 	make -i -C $(FAAD_DIR) clean
 	make -i -C $(FAAC_DIR) clean

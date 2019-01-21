@@ -530,6 +530,7 @@ void TitleWindow::previous_font()
 
 	font->update(fonts.values[current_font]->get_text());
 	strcpy(client->config.font, fonts.values[current_font]->get_text());
+	client->send_configure_change();
 }
 
 void  TitleWindow::next_font()
