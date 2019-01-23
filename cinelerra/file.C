@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -750,7 +750,17 @@ int File::open_file(Preferences *preferences,
 			break;
 
 		case FILE_MOV:
-			file = new FileMOV(this->asset, this);
+#ifdef USE_FFMPEG_OUTPUT
+// use ffmpeg if a MOV & writing to it
+            if(wr)
+            {
+                file = new FileFFMPEG(this->asset, this);
+            }
+            else
+#endif // USE_FFMPEG_OUTPUT
+            {
+			    file = new FileMOV(this->asset, this);
+            }
 			break;
 
 		case FILE_MPEG:

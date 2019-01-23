@@ -32,7 +32,7 @@
 
 
 
-// Handler for audio streams
+// Mapper between cinelerra & ffmpeg stream
 class FileFFMPEGStream
 {
 public:
@@ -139,6 +139,12 @@ public:
     int got_frame;
 	static Mutex *ffmpeg_lock;
     int has_toc;
+
+#ifdef USE_FFMPEG_OUTPUT
+// AVFormatContext for encoding
+    void *ffmpeg_output;
+#endif // USE_FFMPEG_OUTPUT
+
 };
 
 

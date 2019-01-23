@@ -25,6 +25,8 @@
 #include "language.h"
 
 #define USE_FILEFORK
+// use ffmpeg to encode video output.  Not as easy as it looks.
+//#define USE_FFMPEG_OUTPUT
 
 // Return values for open_file
 #define FILE_OK 0
