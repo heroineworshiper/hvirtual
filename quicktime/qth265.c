@@ -9,6 +9,10 @@
 #include "x265.h"
 
 
+// encoding H265 directly with ffmpeg:
+// ffmpeg -i test.mp4 -c:v libx265 -crf 28 -tag:v hvc1 test2.mp4
+
+
 typedef struct
 {
 // Encoder side
@@ -105,12 +109,19 @@ static void common_encode(quicktime_t *file,
     {
         codec->buffer_size = 0;
         
-        int i;
+        int i, j;
   		for(i = 0; i < nalcount; i++)
 		{
             int size = nals[i].sizeBytes;
             uint8_t *data = nals[i].payload;
-            
+
+// printf("common_encode %d i=%d nalcount=%d\n", __LINE__, i, nalcount);
+// for(j = 0; j < size && j < 16; j++)
+// {
+//     printf("%02x ", data[j]);
+// }
+// printf("\n");
+
             if(!codec->work_buffer)
             {
                 codec->work_buffer = malloc(size);
@@ -127,11 +138,20 @@ static void common_encode(quicktime_t *file,
                 codec->allocated = new_allocated;
             }
             
+// add size code
+            int modified_size = size - 4;
+            uint8_t *modified_data = data + 4;
+            codec->work_buffer[codec->buffer_size++] = (modified_size >> 24) & 0xff;
+            codec->work_buffer[codec->buffer_size++] = (modified_size >> 16) & 0xff;
+            codec->work_buffer[codec->buffer_size++] = (modified_size >> 8) & 0xff;
+            codec->work_buffer[codec->buffer_size++] = modified_size & 0xff;
             
             memcpy(codec->work_buffer + codec->buffer_size, 
-                data,
-                size);
-            codec->buffer_size += size;
+                modified_data,
+                modified_size);
+            codec->buffer_size += modified_size;
+
+            
             
             int is_keyframe = 0;
             if(pic_out->sliceType == X265_TYPE_IDR ||
@@ -271,6 +291,11 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 			codec->param->frameNumThreads = 1;
 		}
 
+       codec->param->bEmitHDRSEI = 0;
+       codec->param->bEmitHRDSEI = 0;
+       codec->param->bEmitInfoSEI = 0;
+
+
 // 		printf("encode %d fix_bitrate=%d\n", __LINE__, codec->fix_bitrate);
 // 		printf("encode %d bitrate=%d\n", __LINE__, codec->param->rc.bitrate);
 // 		printf("encode %d q=%d\n", __LINE__, codec->param->rc.qp);
@@ -278,15 +303,41 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 //      printf("encode %d internalCsp=%d\n", __LINE__, codec->param->internalCsp);
 
 
+
 		codec->encoder = codec->api->encoder_open(codec->param);
         codec->api->encoder_parameters(codec->encoder, codec->param);
-        x265_nal *nals;
-        uint32_t nalcount;
+        x265_nal *nals = 0;
+        uint32_t nalcount = 0;
         codec->api->encoder_headers(codec->encoder, &nals, &nalcount);
-        
-        int i;
+
+
+        int i, j;
         unsigned char header[4096];
 	    int header_size = 0;
+        
+// NALs are heavily reformatted
+// libavformat/hevc.c: hvcc_write
+        const uint8_t hvcc_data[] = 
+        {
+            0x01, // configurationVersion
+            0x01, // general_profile_space...
+            0x60, 0x00, 0x00, 0x00, // general_profile_compatibility_flags
+            0x90, 0x00, 0x00, 0x00, 0x00, 0x00, // general_constraint_indicator_flags
+            0x78, // general_level_idc
+            0xf0, 0x00, // min_spatial_segmentation_idc
+            0xfc, // parallelismType
+            0xfd, // chromaFormat
+            0xf8, // bitDepthLumaMinus8
+            0xf8, // bitDepthChromaMinus8
+            0x00, 0x00, // avgFrameRate
+            0x0f // constantFrameRate...
+        };
+        memcpy(header, hvcc_data, sizeof(hvcc_data));
+        header_size += sizeof(hvcc_data);
+
+// numOfArrays
+        header[header_size++] = nalcount;
+        
         for(i = 0; i < nalcount; i++)
         {
             if(header_size + nals[i].sizeBytes > sizeof(header))
@@ -294,9 +345,31 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
                 printf("encode %d header overflowed\n", __LINE__);
                 break;
             }
-            
-            memcpy(header + header_size, nals[i].payload, nals[i].sizeBytes);
-            header_size += nals[i].sizeBytes;
+
+// array_completeness, NAL_unit_type
+            header[header_size++] = 0xa0 | i;
+
+// numNalus
+            header[header_size++] = 0;
+            header[header_size++] = 1;
+
+// nalUnitLength
+            int modified_size = nals[i].sizeBytes - 4;
+            uint8_t *modified_payload = nals[i].payload + 4;
+            header[header_size++] = (modified_size >> 8) & 0xff;
+            header[header_size++] = modified_size & 0xff;
+
+// printf("\nencode %d i=%d nalcount=%d\n", __LINE__, i, nalcount);
+// for(j = 0; j < nals[i].sizeBytes; j++)
+// {
+//     printf(" %02x", nals[i].payload[j]);
+// }
+// printf("\n");
+
+            memcpy(header + header_size, 
+                modified_payload, 
+                modified_size);
+            header_size += modified_size;
         }
         
 //         int total_size = 0;
