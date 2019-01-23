@@ -332,6 +332,9 @@ void ResourceThread::run()
 
 			delete item;
 		}
+
+// only delete assets when not drawing
+		mwindow->age_caches();
 	}
 }
 
@@ -487,8 +490,9 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 
 		source->read_frame(temp_picon);
 		mwindow->video_cache->check_in(asset);
-		
-		mwindow->age_caches();
+
+// don't delete assets after every picon	
+//		mwindow->age_caches();
 		
 		need_conversion = 1;
 	}

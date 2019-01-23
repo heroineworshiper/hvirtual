@@ -71,11 +71,19 @@ using std::string;
 // The other option is making a better table of contents when opening the
 // file, reading the entire file, tabulating every frame offset, tabulating
 // whether it's a keyframe, & tabulating every audio packet offset.
-// Cinelerra does this for every MKV file anyway to draw the audio
+// Cinelerra does this for every file anyway to draw the audio
 // waveform, so it's just keeping more of the data it already reads.
 
-// If different audio tracks are different lengths, they have different
-// sample rates.
+
+// If different audio tracks have different sample rates, the tracks are
+// different lengths.  The user has to select the right samplerate in the 
+// asset edit window.
+
+
+
+// encoding H265 directly with ffmpeg:
+// ffmpeg -i test.mp4 -c:v libx265 -crf 28 -tag:v hvc1 test2.mp4
+
 
 Mutex* FileFFMPEG::ffmpeg_lock = new Mutex("FileFFMPEG::ffmpeg_lock");
 
@@ -449,6 +457,9 @@ void FileFFMPEG::reset()
     has_toc = 0;
     ffmpeg_frame = 0;
     got_frame = 0;
+#ifdef USE_FFMPEG_OUTPUT
+    ffmpeg_output = 0;
+#endif
 }
 
 char* FileFFMPEG::get_format_string(Asset *asset)
@@ -773,6 +784,48 @@ decoder_context->codec_id);
 		}
 
 	}
+
+
+
+
+#ifdef USE_FFMPEG_OUTPUT
+    if(wr)
+    {
+// only generating quicktime/mp4 for now
+        avformat_alloc_output_context2(&ffmpeg_output, 
+            NULL, 
+            "mp4", 
+            asset->path);
+        
+        int current_id = 0;
+        if(asset->video_data)
+	    {
+            FileFFMPEGStream *new_stream = new FileFFMPEGStream;
+            AVStream *ffmpeg_stream = avformat_new_stream(ffmpeg_output, NULL);
+            video_streams.append(new_stream);
+            new_stream->ffmpeg_id = current_id++;
+            new_stream->is_video = 1;
+            ffmpeg_stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
+            
+            
+        }
+        
+        
+        if(asset->audio_data)
+        {
+            FileFFMPEGStream *new_stream = new FileFFMPEGStream;
+            AVStream *st = avformat_new_stream(ffmpeg_output, NULL);
+            video_streams.append(new_stream);
+            new_stream->ffmpeg_id = current_id++;
+            new_stream->is_video = 0;
+            ffmpeg_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
+        }
+        
+        
+    }
+#endif // USE_FFMPEG_OUTPUT
+
+
 
 if(debug) printf("FileFFMPEG::open_file %d result=%d\n", __LINE__, result);
 	ffmpeg_lock->unlock();
@@ -1458,6 +1511,15 @@ int FileFFMPEG::close_file()
 	video_streams.remove_all_objects();
 
 	if(debug) printf("FileFFMPEG::close_file %d\n", __LINE__);
+
+#ifdef USE_FFMPEG_OUTPUT
+    if(ffmpeg_output)
+    {
+        avformat_free_context(ffmpeg_output);
+    }
+#endif
+
+
 
 	reset();
 	if(debug) printf("FileFFMPEG::close_file %d\n", __LINE__);

@@ -1398,14 +1398,16 @@ quicktime_t* quicktime_open(char *filename, int rd, int wr)
 
 
 
-// android requires the ftyp header
+// android/IOS requires the ftyp header
+// this works for H265, H264, & AAC audio
 			const unsigned char ftyp_data[] = 
 			{
 				0x00, 0x00, 0x00, 0x18,  'f',  't',  'y', 'p', 
                  'm',  'p',  '4',  '2', 0x00, 0x00, 0x00, 0x01, 
                  'm',  'p',  '4',  '2', 0x61, 0x76, 0x63, 0x31
 			};
-            
+
+// this works for H265 but not H264 or AAC audio
 			const unsigned char ftyp_data2[] = 
 			{
 				0x00, 0x00, 0x00, 0x14,  'f',  't',  'y', 'p', 
@@ -1413,12 +1415,12 @@ quicktime_t* quicktime_open(char *filename, int rd, int wr)
                  'q',  't',  ' ',  ' '
 			};
             
-// 			quicktime_write_data(new_file, 
-//                 (unsigned char*)ftyp_data, 
-//                 sizeof(ftyp_data));
 			quicktime_write_data(new_file, 
-                (unsigned char*)ftyp_data2, 
-                sizeof(ftyp_data2));
+                (unsigned char*)ftyp_data, 
+                sizeof(ftyp_data));
+// 			quicktime_write_data(new_file, 
+//                 (unsigned char*)ftyp_data2, 
+//                 sizeof(ftyp_data2));
 			
 
 
