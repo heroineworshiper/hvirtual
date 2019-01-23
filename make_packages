@@ -20,11 +20,11 @@ DEST=/usr/src
 SRC=`pwd`
 ARCH=`uname -m`
 
-if [ $ARCH == x86_64 ]; then 
-PLUGINDIR=/usr/lib64/cinelerra;
-else
-PLUGINDIR=/usr/lib/cinelerra;
-fi
+#if [ $ARCH == x86_64 ]; then 
+#PLUGINDIR=/usr/lib64/cinelerra;
+#else
+#PLUGINDIR=/usr/lib/cinelerra;
+#fi
 
 
 
@@ -62,19 +62,19 @@ DEST_FIREHOSE=$DEST/$FIREHOSE_NAME
 
 
 # CLEAN SOURCE DIRECTORIES
+# this doesn't work
 
 
 
 
 
 
-
-echo "Cleaning"
-make clean
-find \( -name *.d \
-	-o -name .xvpics \
-	-o -name core \) -exec rm -rf {} \; -prune
-rm -r bin/*
+#echo "Cleaning"
+#make clean
+#find \( -name *.d \
+#	-o -name .xvpics \
+#	-o -name core \) -exec rm -rf {} \; -prune
+#rm -r bin/*
 
 # CREATE DIRECTORIES
 rm -rf $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
