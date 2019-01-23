@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,10 +30,10 @@
 
 DotWindow::DotWindow(DotMain *client)
  : PluginClientWindow(client,
-	300, 
-	170, 
-	300, 
-	170, 
+	DP(320), 
+	DP(170), 
+	DP(320), 
+	DP(170), 
 	0)
 { 
 	this->client = client; 
@@ -45,14 +45,13 @@ DotWindow::~DotWindow()
 
 void DotWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_subwindow(new BC_Title(x, y, 
 		_("DotTV from EffectTV\n"
 		"Copyright (C) 2001 FUKUCHI Kentarou")
 	));
 
 	show_window();
-	flush();
 }
 
 

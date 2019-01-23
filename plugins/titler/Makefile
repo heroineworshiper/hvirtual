@@ -6,8 +6,8 @@ OBJS = $(OBJDIR)/title.o  \
 
 
 OUTPUT = $(PLUGIN_DIR)/titler.plugin
-CFLAGS += -I$(FREETYPE_DIR)/include -I../../thirdparty/
-LFLAGS += $(FREETYPE_DIR)/$(OBJDIR)/libfreetype.a
+#CFLAGS += -I$(FREETYPE_DIR)/include -I../../thirdparty/
+#LFLAGS += $(FREETYPE_DIR)/$(OBJDIR)/libfreetype.a
 
 include ../../plugin_config
 

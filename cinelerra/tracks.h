@@ -237,6 +237,7 @@ public:
 
 	void clear_transitions(double start, double end);
 	void shuffle_edits(double start, double end);
+	void reverse_edits(double start, double end);
 	void align_edits(double start, double end);
 	void set_edit_length(double start, double end, double length);
 	void set_transition_length(double start, double end, double length);

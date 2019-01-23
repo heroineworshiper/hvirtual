@@ -191,10 +191,10 @@ void PolarConfig::interpolate(PolarConfig &prev,
 
 PolarWindow::PolarWindow(PolarEffect *plugin)
  : PluginClientWindow(plugin, 
-	270, 
-	100, 
-	270, 
-	100, 
+	DP(290), 
+	DP(100), 
+	DP(290), 
+	DP(100), 
 	0)
 {
 	this->plugin = plugin;
@@ -202,12 +202,12 @@ PolarWindow::PolarWindow(PolarEffect *plugin)
 
 void PolarWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_subwindow(new BC_Title(x, y, _("Depth:")));
-	add_subwindow(depth = new PolarDepth(plugin, x + 50, y));
-	y += 40;
+	add_subwindow(depth = new PolarDepth(plugin, x + DP(60), y));
+	y += DP(40);
 	add_subwindow(new BC_Title(x, y, _("Angle:")));
-	add_subwindow(angle = new PolarAngle(plugin, x + 50, y));
+	add_subwindow(angle = new PolarAngle(plugin, x + DP(60), y));
 
 	show_window();
 	flush();
@@ -223,8 +223,8 @@ PolarDepth::PolarDepth(PolarEffect *plugin, int x, int y)
  : BC_FSlider(x, 
 	   	y, 
 		0,
-		200,
-		200, 
+		DP(200),
+		DP(200), 
 		(float)1, 
 		(float)100,
 		plugin->config.depth)
@@ -246,8 +246,8 @@ PolarAngle::PolarAngle(PolarEffect *plugin, int x, int y)
  : BC_FSlider(x, 
 	   	y, 
 		0,
-		200,
-		200, 
+		DP(200),
+		DP(200), 
 		(float)1, 
 		(float)360, 
 		plugin->config.angle)

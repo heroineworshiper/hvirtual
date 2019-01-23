@@ -137,8 +137,10 @@ float BC_Pot::angle_to_percentage(float angle)
 int BC_Pot::angle_to_coords(int &x1, int &y1, int &x2, int &y2, float angle)
 {
 	BC_Resources *resources = get_resources();
-	x1 = resources->pot_x1;
-	y1 = resources->pot_y1;
+	x1 = w / 2 - resources->pot_offset;
+	y1 = h / 2 - resources->pot_offset;
+//	x1 = resources->pot_x1;
+//	y1 = resources->pot_y1;
 	if(status == POT_DN)
 	{
 		x1 += resources->pot_offset;
@@ -147,8 +149,9 @@ int BC_Pot::angle_to_coords(int &x1, int &y1, int &x2, int &y2, float angle)
 
 	while(angle < 0) angle += 360;
 
-	x2 = (int)(cos(angle / 360 * (2 * M_PI)) * resources->pot_r + x1);
-	y2 = (int)(-sin(angle / 360 * (2 * M_PI)) * resources->pot_r + y1);
+	int r = x1;
+	x2 = (int)(cos(angle / 360 * (2 * M_PI)) * r + x1);
+	y2 = (int)(-sin(angle / 360 * (2 * M_PI)) * r + y1);
 	return 0;
 }
 
@@ -156,9 +159,12 @@ float BC_Pot::coords_to_angle(int x2, int y2)
 {
 	int x1, y1, x, y;
 	float angle;
+	BC_Resources *resources = get_resources();
 
-	x1 = get_resources()->pot_x1;
-	y1 = get_resources()->pot_y1;
+	x1 = w / 2 - resources->pot_offset;
+	y1 = h / 2 - resources->pot_offset;
+//	x1 = get_resources()->pot_x1;
+//	y1 = get_resources()->pot_y1;
 	if(status == POT_DN)
 	{
 		x1 += 2;
@@ -214,7 +220,7 @@ void BC_Pot::show_value_tooltip()
 	if(use_caption)
 	{
 		set_tooltip(get_caption());
-		show_tooltip(50);
+		show_tooltip(DP(50));
 		keypress_tooltip_timer = 2000;
 	}
 }
@@ -243,7 +249,7 @@ int BC_Pot::repeat_event(int64_t duration)
 				if(!tooltip_text[0] || isdigit(tooltip_text[0]))
 				{
 					set_tooltip(get_caption());
-					show_tooltip(50);
+					show_tooltip(DP(50));
 				}
 				else
 					show_tooltip();

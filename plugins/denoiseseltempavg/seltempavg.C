@@ -293,7 +293,8 @@ int SelTempAvgMain::process_buffer(VFrame *frame,
 						read_frame(history[j],
 							0,
 							history_frame[j],
-							frame_rate);
+							frame_rate,
+							0);
 						add_accum(history[j]);
 						break;
 					}
@@ -319,7 +320,8 @@ int SelTempAvgMain::process_buffer(VFrame *frame,
 			read_frame(frame,
 				0,
 				i,
-				frame_rate);
+				frame_rate,
+				0);
 			add_accum(frame);
 //printf("SelTempAvgMain::process_buffer 1 %lld %lld %lld\n", prev_frame, start_position, i);
 		}
@@ -333,7 +335,8 @@ int SelTempAvgMain::process_buffer(VFrame *frame,
 	read_frame(frame,
 			0,
 			start_position,
-			frame_rate);
+			frame_rate,
+			0);
 
 
 // Transfer accumulation to output with division if average is desired.

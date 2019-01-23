@@ -70,8 +70,8 @@ void CPanel::create_objects()
 	y += operation[CWINDOW_CROP]->get_h();
 	subwindow->add_subwindow(operation[CWINDOW_EYEDROP] = new CPanelEyedrop(mwindow, this, x, y));
 	y += operation[CWINDOW_EYEDROP]->get_h();
-	subwindow->add_subwindow(operation[CWINDOW_TOOL_WINDOW] = new CPanelToolWindow(mwindow, this, x, y));
-	y += operation[CWINDOW_TOOL_WINDOW]->get_h();
+//	subwindow->add_subwindow(operation[CWINDOW_TOOL_WINDOW] = new CPanelToolWindow(mwindow, this, x, y));
+//	y += operation[CWINDOW_TOOL_WINDOW]->get_h();
 	subwindow->add_subwindow(operation[CWINDOW_TITLESAFE] = new CPanelTitleSafe(mwindow, this, x, y));
 }
 
@@ -92,11 +92,11 @@ void CPanel::set_operation(int value)
 {
 	for(int i = 0; i < CPANEL_OPERATIONS; i++)
 	{
-		if(i == CWINDOW_TOOL_WINDOW)
-		{
-			operation[i]->update(mwindow->edl->session->tool_window);
-		}
-		else
+//		if(i == CWINDOW_TOOL_WINDOW)
+//		{
+//			operation[i]->update(mwindow->edl->session->tool_window);
+//		}
+//		else
 		if(i == CWINDOW_TITLESAFE)
 		{
 			operation[i]->update(mwindow->edl->session->safe_regions);
@@ -296,30 +296,30 @@ int CPanelEyedrop::handle_event()
 
 
 
-CPanelToolWindow::CPanelToolWindow(MWindow *mwindow, CPanel *gui, int x, int y)
- : BC_Toggle(x, 
- 	y, 
-	mwindow->theme->get_image_set("tool"), 
-	mwindow->edl->session->tool_window)
-{
-	this->mwindow = mwindow;
-	this->gui = gui;
-	set_tooltip(_("Show tool info"));
-}
-
-CPanelToolWindow::~CPanelToolWindow()
-{
-}
-
-int CPanelToolWindow::handle_event()
-{
-	unlock_window();
-	mwindow->edl->session->tool_window = get_value();
-	gui->subwindow->tool_panel->update_show_window();
-	lock_window("CPanelToolWindow::handle_event");
-	return 1;
-}
-
+// CPanelToolWindow::CPanelToolWindow(MWindow *mwindow, CPanel *gui, int x, int y)
+//  : BC_Toggle(x, 
+//  	y, 
+// 	mwindow->theme->get_image_set("tool"), 
+// 	mwindow->edl->session->tool_window)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_tooltip(_("Show tool info"));
+// }
+// 
+// CPanelToolWindow::~CPanelToolWindow()
+// {
+// }
+// 
+// int CPanelToolWindow::handle_event()
+// {
+// 	unlock_window();
+// 	mwindow->edl->session->tool_window = get_value();
+// 	gui->subwindow->tool_panel->update_show_window();
+// 	lock_window("CPanelToolWindow::handle_event");
+// 	return 1;
+// }
+// 
 
 CPanelTitleSafe::CPanelTitleSafe(MWindow *mwindow, CPanel *gui, int x, int y)
  : BC_Toggle(x, 

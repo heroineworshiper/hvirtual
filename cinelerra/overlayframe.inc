@@ -30,7 +30,7 @@
 #define TRANSFER_ADDITION     1
 #define TRANSFER_SUBTRACT     2
 #define TRANSFER_MULTIPLY     3
-#define TRANSFER_DIVIDE 	  4
+#define TRANSFER_DIVIDE       4
 #define TRANSFER_REPLACE      5
 #define TRANSFER_MAX          6
 #define TRANSFER_MIN          7
@@ -39,9 +39,10 @@
 
 
 #define NEAREST_NEIGHBOR 0        // Nearest for enlargement and reduction
-#define CUBIC_CUBIC      1        // Bicubic enlargement and reduction
-#define CUBIC_LINEAR     2        // Bicubic enlargement and linear reduction
-#define LINEAR_LINEAR    3        // Not explicitely called but provided for user
+#define CUBIC_CUBIC      1        // Catmull-Rom
+#define CUBIC_LINEAR     2        // not supported anymore
+#define LINEAR_LINEAR    3        // not supported anymore
+#define LANCZOS_LANCZOS  4        // not used
 
 class OverlayFrame;
 

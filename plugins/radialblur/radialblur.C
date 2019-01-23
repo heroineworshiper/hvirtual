@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -257,10 +257,10 @@ void RadialBlurConfig::interpolate(RadialBlurConfig &prev,
 
 RadialBlurWindow::RadialBlurWindow(RadialBlurMain *plugin)
  : PluginClientWindow(plugin,
-	230, 
-	340, 
-	230, 
-	340, 
+	DP(230), 
+	DP(340), 
+	DP(230), 
+	DP(340), 
 	0)
 {
 	this->plugin = plugin; 
@@ -272,32 +272,32 @@ RadialBlurWindow::~RadialBlurWindow()
 
 void RadialBlurWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_subwindow(new BC_Title(x, y, _("X:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(this->x = new RadialBlurSize(plugin, x, y, &plugin->config.x, 0, 100));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Y:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(this->y = new RadialBlurSize(plugin, x, y, &plugin->config.y, 0, 100));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Angle:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(angle = new RadialBlurSize(plugin, x, y, &plugin->config.angle, 0, 360));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Steps:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(steps = new RadialBlurSize(plugin, x, y, &plugin->config.steps, 1, 100));
-	y += 30;
+	y += DP(30);
 	add_subwindow(r = new RadialBlurToggle(plugin, x, y, &plugin->config.r, _("Red")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(g = new RadialBlurToggle(plugin, x, y, &plugin->config.g, _("Green")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(b = new RadialBlurToggle(plugin, x, y, &plugin->config.b, _("Blue")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(a = new RadialBlurToggle(plugin, x, y, &plugin->config.a, _("Alpha")));
-	y += 30;
+	y += DP(30);
 
 	show_window();
 	flush();
@@ -343,7 +343,7 @@ RadialBlurSize::RadialBlurSize(RadialBlurMain *plugin,
 	int *output,
 	int min,
 	int max)
- : BC_ISlider(x, y, 0, 200, 200, min, max, *output)
+ : BC_ISlider(x, y, 0, DP(200), DP(200), min, max, *output)
 {
 	this->plugin = plugin;
 	this->output = output;

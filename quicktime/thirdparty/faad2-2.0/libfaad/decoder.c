@@ -198,9 +198,11 @@ int32_t FAADAPI faacDecInit(faacDecHandle hDecoder, uint8_t *buffer,
     bitfile ld;
     adif_header adif;
     adts_header adts;
+//printf("faacDecInit %d\n", __LINE__);
 
     if ((hDecoder == NULL) || (samplerate == NULL) || (channels == NULL))
         return -1;
+//printf("faacDecInit %d\n", __LINE__);
 
     hDecoder->sf_index = get_sr_index(hDecoder->config.defSampleRate);
     hDecoder->object_type = hDecoder->config.defObjectType;
@@ -209,12 +211,14 @@ int32_t FAADAPI faacDecInit(faacDecHandle hDecoder, uint8_t *buffer,
 
     if (buffer != NULL)
     {
+//printf("faacDecInit %d\n", __LINE__);
         faad_initbits(&ld, buffer, buffer_size);
 
         /* Check if an ADIF header is present */
         if ((buffer[0] == 'A') && (buffer[1] == 'D') &&
             (buffer[2] == 'I') && (buffer[3] == 'F'))
         {
+//printf("faacDecInit %d\n", __LINE__);
             hDecoder->adif_header_present = 1;
 
             get_adif_header(&adif, &ld);
@@ -233,6 +237,7 @@ int32_t FAADAPI faacDecInit(faacDecHandle hDecoder, uint8_t *buffer,
 
         /* Check if an ADTS header is present */
         } else if (faad_showbits(&ld, 12) == 0xfff) {
+//printf("faacDecInit %d\n", __LINE__);
             hDecoder->adts_header_present = 1;
 
             adts.old_format = hDecoder->config.useOldADTSFormat;
@@ -252,7 +257,9 @@ int32_t FAADAPI faacDecInit(faacDecHandle hDecoder, uint8_t *buffer,
             return -1;
         }
         faad_endbits(&ld);
+//printf("faacDecInit %d\n", __LINE__);
     }
+//printf("faacDecInit %d\n", __LINE__);
     hDecoder->channelConfiguration = *channels;
 
 #ifdef SBR_DEC

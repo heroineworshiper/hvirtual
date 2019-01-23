@@ -23,6 +23,7 @@
 #include "awindow.h"
 #include "bcdisplayinfo.h"
 #include "bcsignals.h"
+#include "clip.h"
 #include "cwindowgui.h"
 #include "cwindow.h"
 #include "bchash.h"
@@ -63,7 +64,7 @@
 #include "vwindow.h"
 #include "zoombar.h"
 
-#define PANE_DRAG_MARGIN 50
+#define PANE_DRAG_MARGIN MAX(mwindow->theme->pane_w, mwindow->theme->pane_h)
 
 
 // the main window uses its own private colormap for video
@@ -356,6 +357,54 @@ int MWindowGUI::resize_event(int w, int h)
 	
 	resource_thread->stop_draw(1);
 	
+	if(total_panes() > 1)
+	{
+		if(horizontal_panes())
+		{
+// 			printf("MWindowGUI::resize_event %d %d %d\n", 
+// 				__LINE__,
+// 				pane[TOP_RIGHT_PANE]->x,
+// 				mwindow->theme->mcanvas_w - 
+// 					BC_ScrollBar::get_span(SCROLL_VERT) - 
+// 					PANE_DRAG_MARGIN);
+			if(pane[TOP_RIGHT_PANE]->x >= mwindow->theme->mcanvas_w - 
+				BC_ScrollBar::get_span(SCROLL_VERT) - 
+				PANE_DRAG_MARGIN)
+			{
+				delete_x_pane(pane[TOP_RIGHT_PANE]->x);
+				mwindow->edl->local_session->x_pane = -1;
+			}
+		}
+		else
+		if(vertical_panes())
+		{
+			if(pane[BOTTOM_LEFT_PANE]->y >= mwindow->theme->mzoom_y - 
+				BC_ScrollBar::get_span(SCROLL_HORIZ) - 
+				PANE_DRAG_MARGIN)
+			{
+				delete_y_pane(pane[BOTTOM_LEFT_PANE]->y);
+				mwindow->edl->local_session->y_pane = -1;
+			}
+		}
+		else
+		{
+			if(pane[TOP_RIGHT_PANE]->x >= mwindow->theme->mcanvas_w - 
+					BC_ScrollBar::get_span(SCROLL_VERT) - 
+					PANE_DRAG_MARGIN)
+			{
+				delete_x_pane(pane[TOP_RIGHT_PANE]->x);
+				mwindow->edl->local_session->x_pane = -1;
+			}
+			
+			if(pane[BOTTOM_LEFT_PANE]->y >= mwindow->theme->mzoom_y - 
+				BC_ScrollBar::get_span(SCROLL_HORIZ) - 
+				PANE_DRAG_MARGIN)
+			{
+				delete_y_pane(pane[BOTTOM_LEFT_PANE]->y);
+				mwindow->edl->local_session->y_pane = -1;
+			}
+		}
+	}
 	
 	if(total_panes() == 1)
 	{
@@ -433,7 +482,8 @@ int MWindowGUI::resize_event(int w, int h)
 //	get_scrollbars(0);
 //	canvas->resize_event();
 //printf("MWindowGUI::resize_event %d\n", __LINE__);
-	flash(0);
+// required to get new widgets to appear after a pane deletion
+	show_window();
 	return 0;
 }
 
@@ -1723,73 +1773,76 @@ void MWindowGUI::delete_y_pane(int cursor_y)
 
 void MWindowGUI::stop_pane_drag()
 {
-	dragging_pane = 0;
-	resource_thread->stop_draw(1);
-	
-	if(x_pane_drag)
-	{
-// cursor position relative to canvas
-		int cursor_x = x_pane_drag->get_x() - 
-			get_x() - 
-			get_resources()->get_left_border() -
-			mwindow->theme->mcanvas_x +
-			mwindow->theme->pane_w;
-		delete x_pane_drag;
-		x_pane_drag = 0;
+    if(dragging_pane)
+    {
+    	resource_thread->stop_draw(1);
+	    dragging_pane = 0;
+
+	    if(x_pane_drag)
+	    {
+    // cursor position relative to canvas
+		    int cursor_x = x_pane_drag->get_x() - 
+			    get_x() - 
+			    get_resources()->get_left_border() -
+			    mwindow->theme->mcanvas_x +
+			    mwindow->theme->pane_w;
+		    delete x_pane_drag;
+		    x_pane_drag = 0;
 
 
-		if(cursor_x >= mwindow->theme->patchbay_w + PANE_DRAG_MARGIN && 
-			cursor_x < mwindow->theme->mcanvas_w - 
-				BC_ScrollBar::get_span(SCROLL_VERT) - 
-				PANE_DRAG_MARGIN)
-		{
-			create_x_pane(cursor_x);
-			mwindow->edl->local_session->x_pane = cursor_x;
-		}
-		else
-// deleted a pane
-		{
-			delete_x_pane(cursor_x);
-			mwindow->edl->local_session->x_pane = -1;
-		}
-		
-		
-	}
-	
-	if(y_pane_drag)
-	{
-// cursor position relative to canvas
-		int cursor_y = y_pane_drag->get_y() - 
-			get_y() - 
-			get_resources()->get_top_border() -
-			mwindow->theme->mcanvas_y +
-			mwindow->theme->pane_h;
-		delete y_pane_drag;
-		y_pane_drag = 0;
-		
-		
+		    if(cursor_x >= mwindow->theme->patchbay_w + PANE_DRAG_MARGIN && 
+			    cursor_x < mwindow->theme->mcanvas_w - 
+				    BC_ScrollBar::get_span(SCROLL_VERT) - 
+				    PANE_DRAG_MARGIN)
+		    {
+			    create_x_pane(cursor_x);
+			    mwindow->edl->local_session->x_pane = cursor_x;
+		    }
+		    else
+    // deleted a pane
+		    {
+			    delete_x_pane(cursor_x);
+			    mwindow->edl->local_session->x_pane = -1;
+		    }
 
-		if(cursor_y >= mwindow->theme->mtimebar_h +
-				PANE_DRAG_MARGIN &&
-			cursor_y < mwindow->theme->mcanvas_h -
-				BC_ScrollBar::get_span(SCROLL_HORIZ) - 
-				PANE_DRAG_MARGIN)
-		{
-			create_y_pane(cursor_y);
-			mwindow->edl->local_session->y_pane = cursor_y;
-		}
-		else
-		{
-			delete_y_pane(cursor_y);
-			mwindow->edl->local_session->y_pane = -1;
-		}
-	}
-	
-	update_pane_dividers();
-	update_cursor();
-// required to get new widgets to appear
-	show_window();
-	resource_thread->start_draw();
+
+	    }
+
+	    if(y_pane_drag)
+	    {
+    // cursor position relative to canvas
+		    int cursor_y = y_pane_drag->get_y() - 
+			    get_y() - 
+			    get_resources()->get_top_border() -
+			    mwindow->theme->mcanvas_y +
+			    mwindow->theme->pane_h;
+		    delete y_pane_drag;
+		    y_pane_drag = 0;
+
+
+
+		    if(cursor_y >= mwindow->theme->mtimebar_h +
+				    PANE_DRAG_MARGIN &&
+			    cursor_y < mwindow->theme->mcanvas_h -
+				    BC_ScrollBar::get_span(SCROLL_HORIZ) - 
+				    PANE_DRAG_MARGIN)
+		    {
+			    create_y_pane(cursor_y);
+			    mwindow->edl->local_session->y_pane = cursor_y;
+		    }
+		    else
+		    {
+			    delete_y_pane(cursor_y);
+			    mwindow->edl->local_session->y_pane = -1;
+		    }
+	    }
+
+	    update_pane_dividers();
+	    update_cursor();
+    // required to get new widgets to appear
+	    show_window();
+	    resource_thread->start_draw();
+    }
 }
 
 // create panes from EDL
@@ -2208,6 +2261,8 @@ int PaneButton::cursor_motion_event()
 
 int PaneButton::button_release_event()
 {
+    
+
 	mwindow->gui->stop_pane_drag();
 
 

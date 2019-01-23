@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -196,8 +196,8 @@ LiveVideoWindow::LiveVideoWindow(LiveVideo *plugin)
  : PluginClientWindow(plugin, 
 	plugin->w, 
 	plugin->h, 
-	100, 
-	100, 
+	DP(100), 
+	DP(100), 
 	1)
 {
 	this->plugin = plugin;
@@ -210,7 +210,7 @@ LiveVideoWindow::~LiveVideoWindow()
 
 void LiveVideoWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	EDLSession *session = plugin->PluginClient::get_edlsession();
 	if(session)
@@ -224,14 +224,14 @@ void LiveVideoWindow::create_objects()
 	}
 
 	add_subwindow(title = new BC_Title(x, y, _("Channels:")));
-	y += title->get_h() + 5;
+	y += title->get_h() + DP(5);
 	add_subwindow(list = new LiveChannelList(plugin, 
 		this, 
 		x, 
 		y,
-		get_w() - x - 10,
-		get_h() - y - BC_OKButton::calculate_h() - 10 - 10));
-	y += list->get_h() + 10;
+		get_w() - x - DP(10),
+		get_h() - y - BC_OKButton::calculate_h() - DP(10) - DP(10)));
+	y += list->get_h() + DP(10);
 	add_subwindow(select = new LiveChannelSelect(plugin, 
 		this, 
 		x, 
@@ -344,8 +344,8 @@ LiveVideo::LiveVideo(PluginServer *server)
 	vdevice = 0;
 	temp = 0;
 	channeldb = new ChannelDB;
-	w = 320;
-	h = 640;
+	w = DP(320);
+	h = DP(640);
 	prev_channel = 0;
 	dv = 0;
 	mjpeg = 0;
@@ -378,8 +378,8 @@ int LiveVideo::process_buffer(VFrame *frame,
 	double frame_rate)
 {
 	load_configuration();
-//printf("LiveVideo::process_buffer 10 start_position=%lld buffer_size=%d size=%d\n", 
-//start_position, get_buffer_size(), size);
+//printf("LiveVideo::process_buffer %d start_position=%lld buffer_size=%d\n", 
+//__LINE__, start_position, get_buffer_size());
 
 	EDLSession *session = PluginClient::get_edlsession();
 	if(!vdevice)
@@ -387,11 +387,13 @@ int LiveVideo::process_buffer(VFrame *frame,
 		if(session)
 		{
 			vdevice = new VideoDevice;
+//printf("LiveVideo::process_buffer %d\n", __LINE__);
 			vdevice->open_input(session->vconfig_in, 
 				0, 
 				0,
 				1.0,
 				frame_rate);
+//printf("LiveVideo::process_buffer %d\n", __LINE__);
 
 // The color model depends on the asset configured by the user for recording.
 // Unfortunately, get_best_colormodel returns the best colormodel for displaying
@@ -411,12 +413,14 @@ int LiveVideo::process_buffer(VFrame *frame,
 					break;
 			}
 
+//printf("LiveVideo::process_buffer %d\n", __LINE__);
 
 // Load the picture config from the main defaults file.
 
 // Load channel table
 			VideoDevice::load_channeldb(channeldb, session->vconfig_in);
 
+//printf("LiveVideo::process_buffer %d\n", __LINE__);
 			if(!picture)
 			{
 				picture = new PictureConfig;
@@ -424,16 +428,21 @@ int LiveVideo::process_buffer(VFrame *frame,
 			}
 
 // Picture must have usage from driver before it can load defaults.
+//printf("LiveVideo::process_buffer %d\n", __LINE__);
 			master_channel.copy_usage(vdevice->channel);
 			picture->copy_usage(vdevice->picture);
 			picture->load_defaults();
+//printf("LiveVideo::process_buffer %d\n", __LINE__);
 
 // Need to load picture defaults but this requires MWindow.
 			vdevice->set_picture(picture);
 			vdevice->set_channel(channeldb->get(config.channel));
+//printf("LiveVideo::process_buffer %d\n", __LINE__);
 		}
 		prev_channel = config.channel;
 	}
+//printf("LiveVideo::process_buffer %d\n", __LINE__);
+
 
 	if(session && vdevice)
 	{
@@ -558,6 +567,7 @@ int LiveVideo::process_buffer(VFrame *frame,
 			}
 		}
 	}
+//printf("LiveVideo::process_buffer %d\n", __LINE__);
 
 	return 0;
 }

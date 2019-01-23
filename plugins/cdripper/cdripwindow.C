@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,10 +29,10 @@ CDRipWindow::CDRipWindow(CDRipMain *cdripper, int x, int y)
  : BC_Window(PROGRAM_NAME ": CD Ripper", 
  	x,
 	y,
- 	450, 
-	230, 
-	450, 
-	230,
+ 	DP(450), 
+	DP(230), 
+	DP(450), 
+	DP(230),
 	0,
 	0,
 	1)
@@ -46,46 +46,56 @@ CDRipWindow::~CDRipWindow()
 
 void CDRipWindow::create_objects()
 {
-	int y = 10, x = 10;
-	add_tool(new BC_Title(x, y, _("Select the range to transfer:"))); y += 25;
-	add_tool(new BC_Title(x, y, _("Track"))); x += 70;
-	add_tool(new BC_Title(x, y, _("Min"))); x += 70;
-	add_tool(new BC_Title(x, y, _("Sec"))); x += 100;
+	int y = DP(10), x = DP(10);
+	add_tool(new BC_Title(x, y, _("Select the range to transfer:"))); 
+	y += DP(25);
+	add_tool(new BC_Title(x, y, _("Track"))); 
+	x += DP(70);
+	add_tool(new BC_Title(x, y, _("Min"))); 
+	x += DP(70);
+	add_tool(new BC_Title(x, y, _("Sec"))); 
+	x += DP(100);
 
-	add_tool(new BC_Title(x, y, _("Track"))); x += 70;
-	add_tool(new BC_Title(x, y, _("Min"))); x += 70;
-	add_tool(new BC_Title(x, y, _("Sec"))); x += 100;
+	add_tool(new BC_Title(x, y, _("Track"))); 
+	x += DP(70);
+	add_tool(new BC_Title(x, y, _("Min"))); 
+	x += DP(70);
+	add_tool(new BC_Title(x, y, _("Sec"))); 
+	x += DP(100);
 	
-	x = 10;  y += 25;
-	add_tool(track1 = new CDRipTextValue(this, &(cdripper->track1), x, y, 50));
-	x += 70;
-	add_tool(min1 = new CDRipTextValue(this, &(cdripper->min1), x, y, 50));
-	x += 70;
-	add_tool(sec1 = new CDRipTextValue(this, &(cdripper->sec1), x, y, 50));
-	x += 100;
+	x = DP(10);  
+	y += DP(25);
+	add_tool(track1 = new CDRipTextValue(this, &(cdripper->track1), x, y, DP(50)));
+	x += DP(70);
+	add_tool(min1 = new CDRipTextValue(this, &(cdripper->min1), x, y, DP(50)));
+	x += DP(70);
+	add_tool(sec1 = new CDRipTextValue(this, &(cdripper->sec1), x, y, DP(50)));
+	x += DP(100);
 	
-	add_tool(track2 = new CDRipTextValue(this, &(cdripper->track2), x, y, 50));
-	x += 70;
-	add_tool(min2 = new CDRipTextValue(this, &(cdripper->min2), x, y, 50));
-	x += 70;
-	add_tool(sec2 = new CDRipTextValue(this, &(cdripper->sec2), x, y, 50));
+	add_tool(track2 = new CDRipTextValue(this, &(cdripper->track2), x, y, DP(50)));
+	x += DP(70);
+	add_tool(min2 = new CDRipTextValue(this, &(cdripper->min2), x, y, DP(50)));
+	x += DP(70);
+	add_tool(sec2 = new CDRipTextValue(this, &(cdripper->sec2), x, y, DP(50)));
 
-	x = 10;   y += 30;
+	x = DP(10);   
+	y += DP(30);
 	add_tool(new BC_Title(x, y, _("From"), LARGEFONT, RED));
-	x += 240;
+	x += DP(240);
 	add_tool(new BC_Title(x, y, _("To"), LARGEFONT, RED));
 
-	x = 10;   y += 35;
+	x = DP(10);   
+	y += DP(35);
 	add_tool(new BC_Title(x, y, _("CD Device:")));
-	x += 100;
-	add_tool(device = new CDRipWindowDevice(this, cdripper->device, x, y, 200));
+	x += DP(100);
+	add_tool(device = new CDRipWindowDevice(this, cdripper->device, x, y, DP(200)));
 
-	x = 10;   y += 35;
+	x = DP(10);   
+	y += DP(35);
 	add_tool(new BC_OKButton(this));
-	x += 300;
+	x += DP(300);
 	add_tool(new BC_CancelButton(this));
 	show_window();
-	flush();
 }
 
 

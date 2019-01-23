@@ -80,7 +80,7 @@ public:
 // Set whether to interpolate raw images
 	void set_interpolate_raw(int value);
 // Set whether to white balance raw images.  Always 0 if no interpolation.
-	void set_white_balance_raw(int value);
+//	void set_white_balance_raw(int value);
 // When loading, the asset is deleted and a copy created in the EDL.
 //	void set_asset(Asset *asset);
 
@@ -88,7 +88,7 @@ public:
 // to delete the file object.  Otherwise we'd delete just the cached frames
 // while the list of open files grew.
 	void set_cache_frames(int value);
-// Delete oldest frame from cache.  Return 0 if successful.  Return 1 if 
+// Delete oldest frame from cache.  Return number of bytes freed if successful.  Return 0 if 
 // nothing to delete.
 	int purge_cache();
 
@@ -99,7 +99,7 @@ public:
 		int wr);
 
 // Get index from the file if one exists.  Returns 0 on success.
-	int get_index(char *index_path);
+//	int get_index(char *index_path);
 
 // start a thread for writing to avoid blocking during record
 	int start_audio_thread(int buffer_size, int ring_buffers);
@@ -267,7 +267,7 @@ public:
 	int64_t playback_preload;
 	int playback_subtitle;
 	int interpolate_raw;
-	int white_balance_raw;
+//	int white_balance_raw;
 
 // Position information is migrated here to allow samplerate conversion.
 // Current position in file's samplerate.

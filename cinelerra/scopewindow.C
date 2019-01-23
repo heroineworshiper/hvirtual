@@ -675,7 +675,7 @@ void ScopeGUI::toggle_event()
 void ScopeGUI::calculate_sizes(int w, int h)
 {
 	int margin = theme->widget_border;
-	int text_w = 20;
+	int text_w = get_text_width(SMALLFONT, "000") + margin * 2;
 	int total_panels = ((use_hist || use_hist_parade) ? 1 : 0) +
 		((use_wave || use_wave_parade) ? 1 : 0) +
 		(use_vector ? 1 : 0);
@@ -794,6 +794,13 @@ int ScopeGUI::translation_event()
 
 void ScopeGUI::draw_overlays(int overlays, int borders, int flush)
 {
+	BC_Resources *resources = BC_WindowBase::get_resources();
+	int text_color = GREEN;
+	if(resources->bg_color == 0xffffff)
+	{
+		text_color = BLACK;
+	}
+	
 	if(overlays && borders)
 	{
 		clear_box(0, 0, get_w(), get_h());
@@ -802,7 +809,7 @@ void ScopeGUI::draw_overlays(int overlays, int borders, int flush)
 	if(overlays)
 	{
 		set_line_dashes(1);
-		set_color(GREEN);
+		set_color(text_color);
 		set_font(SMALLFONT);
 
 		if(histogram && (use_hist || use_hist_parade))
@@ -824,18 +831,18 @@ void ScopeGUI::draw_overlays(int overlays, int borders, int flush)
 // Waveform overlay
 		if(waveform && (use_wave || use_wave_parade))
 		{
-			set_color(GREEN);
+			set_color(text_color);
 			for(int i = 0; i <= WAVEFORM_DIVISIONS; i++)
 			{
 				int y = wave_h * i / WAVEFORM_DIVISIONS;
 				int text_y = y + wave_y + get_text_ascent(SMALLFONT) / 2;
 				CLAMP(text_y, waveform->get_y() + get_text_ascent(SMALLFONT), waveform->get_y() + waveform->get_h() - 1);
-				int x = wave_x - 20;
 				char string[BCTEXTLEN];
 				sprintf(string, "%d", 
 					(int)((FLOAT_MAX - 
 					i * (FLOAT_MAX - FLOAT_MIN) / WAVEFORM_DIVISIONS) * 100));
-				draw_text(x, text_y, string);
+				int text_x = wave_x - get_text_width(SMALLFONT, string) - theme->widget_border;
+				draw_text(text_x, text_y, string);
 
 				waveform->draw_line(0, 
 					CLAMP(y, 0, waveform->get_h() - 1), 
@@ -853,13 +860,12 @@ void ScopeGUI::draw_overlays(int overlays, int borders, int flush)
 // Vectorscope overlay
 		if(vectorscope && use_vector)
 		{
-			set_color(GREEN);
+			set_color(text_color);
 			int radius = MIN(vector_w / 2, vector_h / 2);
 			for(int i = 1; i <= VECTORSCOPE_DIVISIONS; i += 2)
 			{
 				int x = vector_w / 2 - radius * i / VECTORSCOPE_DIVISIONS;
 				int y = vector_h / 2 - radius * i / VECTORSCOPE_DIVISIONS;
-				int text_x = vector_x - 20;
 				int text_y = y + vector_y + get_text_ascent(SMALLFONT) / 2;
 				int w = radius * i / VECTORSCOPE_DIVISIONS * 2;
 				int h = radius * i / VECTORSCOPE_DIVISIONS * 2;
@@ -867,6 +873,7 @@ void ScopeGUI::draw_overlays(int overlays, int borders, int flush)
 
 				sprintf(string, "%d", 
 					(int)((FLOAT_MAX / VECTORSCOPE_DIVISIONS * i) * 100));
+				int text_x = vector_x - get_text_width(SMALLFONT, string) - theme->widget_border;
 				draw_text(text_x, text_y, string);
 //printf("ScopeGUI::draw_overlays %d %d %d %s\n", __LINE__, text_x, text_y, string);
 				

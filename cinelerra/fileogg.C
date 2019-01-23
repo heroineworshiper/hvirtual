@@ -2006,8 +2006,8 @@ OGGConfigAudio::OGGConfigAudio(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Audio Compression",
 	parent_window->get_abs_cursor_x(1),
 	parent_window->get_abs_cursor_y(1),
-	350,
-	250)
+	DP(350),
+	DP(250))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -2022,25 +2022,27 @@ void OGGConfigAudio::create_objects()
 {
 //	add_tool(new BC_Title(10, 10, _("There are no audio options for this format")));
 
-	int x = 10, y = 10;
-	int x1 = 150;
+	int x = DP(10), y = DP(10);
+	int x1 = DP(150);
 	char string[BCTEXTLEN];
 
 	lock_window("OGGConfigAudio::create_objects");
 	add_tool(fixed_bitrate = new OGGVorbisFixedBitrate(x, y, this));
-	add_tool(variable_bitrate = new OGGVorbisVariableBitrate(x1, y, this));
+	add_tool(variable_bitrate = new OGGVorbisVariableBitrate(x + fixed_bitrate->get_w() + DP(5), 
+		y, 
+		this));
 
-	y += 30;
+	y += DP(30);
 	sprintf(string, "%d", asset->vorbis_min_bitrate);
 	add_tool(new BC_Title(x, y, _("Min bitrate:")));
 	add_tool(new OGGVorbisMinBitrate(x1, y, this, string));
 
-	y += 30;
+	y += DP(30);
 	add_tool(new BC_Title(x, y, _("Avg bitrate:")));
 	sprintf(string, "%d", asset->vorbis_bitrate);
 	add_tool(new OGGVorbisAvgBitrate(x1, y, this, string));
 
-	y += 30;
+	y += DP(30);
 	add_tool(new BC_Title(x, y, _("Max bitrate:")));
 	sprintf(string, "%d", asset->vorbis_max_bitrate);
 	add_tool(new OGGVorbisMaxBitrate(x1, y, this, string));
@@ -2086,7 +2088,7 @@ OGGVorbisMinBitrate::OGGVorbisMinBitrate(int x,
 	int y, 
 	OGGConfigAudio *gui, 
 	char *text)
- : BC_TextBox(x, y, 180, 1, text)
+ : BC_TextBox(x, y, DP(180), 1, text)
 {
 	this->gui = gui;
 }
@@ -2102,7 +2104,7 @@ OGGVorbisMaxBitrate::OGGVorbisMaxBitrate(int x,
 	int y, 
 	OGGConfigAudio *gui,
 	char *text)
- : BC_TextBox(x, y, 180, 1, text)
+ : BC_TextBox(x, y, DP(180), 1, text)
 {
 	this->gui = gui;
 }
@@ -2115,7 +2117,7 @@ int OGGVorbisMaxBitrate::handle_event()
 
 
 OGGVorbisAvgBitrate::OGGVorbisAvgBitrate(int x, int y, OGGConfigAudio *gui, char *text)
- : BC_TextBox(x, y, 180, 1, text)
+ : BC_TextBox(x, y, DP(180), 1, text)
 {
 	this->gui = gui;
 }
@@ -2133,8 +2135,8 @@ OGGConfigVideo::OGGConfigVideo(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Video Compression",
 	parent_window->get_abs_cursor_x(1),
 	parent_window->get_abs_cursor_y(1),
-	450,
-	220)
+	DP(450),
+	DP(220))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -2148,22 +2150,23 @@ OGGConfigVideo::~OGGConfigVideo()
 void OGGConfigVideo::create_objects()
 {
 //	add_tool(new BC_Title(10, 10, _("There are no video options for this format")));
-	int x = 10, y = 10;
-	int x1 = x + 150;
-	int x2 = x + 300;
+	int x = DP(10), y = DP(10);
+	int x1 = x + DP(150);
+	int x2 = x + DP(300);
 
 	lock_window("OGGConfigVideo::create_objects");
-	add_subwindow(new BC_Title(x, y + 5, _("Bitrate:")));
-	add_subwindow(new OGGTheoraBitrate(x1, y, this));
+	BC_Title *title;
+	add_subwindow(title = new BC_Title(x, y, _("Bitrate:")));
+	add_subwindow(new OGGTheoraBitrate(x + title->get_w() + DP(5), y, this));
 	add_subwindow(fixed_bitrate = new OGGTheoraFixedBitrate(x2, y, this));
-	y += 30;
+	y += DP(30);
 
 	add_subwindow(new BC_Title(x, y, _("Quality:")));
-	add_subwindow(new BC_ISlider(x + 80, 
+	add_subwindow(new BC_ISlider(x + DP(80), 
 		y,
 		0,
-		200,
-		200,
+		DP(200),
+		DP(200),
 		0,
 		63,
 		asset->theora_quality,
@@ -2173,25 +2176,25 @@ void OGGConfigVideo::create_objects()
 
 	
 	add_subwindow(fixed_quality = new OGGTheoraFixedQuality(x2, y, this));
-	y += 30;
+	y += DP(30);
 
 	add_subwindow(new BC_Title(x, y, _("Keyframe frequency:")));
 	OGGTheoraKeyframeFrequency *keyframe_frequency = 
-		new OGGTheoraKeyframeFrequency(x1 + 60, y, this);
+		new OGGTheoraKeyframeFrequency(x1 + DP(60), y, this);
 	keyframe_frequency->create_objects();
-	y += 30;
+	y += DP(30);
 	
 	add_subwindow(new BC_Title(x, y, _("Keyframe force frequency:")));
 	OGGTheoraKeyframeForceFrequency *keyframe_force_frequency = 
-		new OGGTheoraKeyframeForceFrequency(x1 + 60, y, this);
+		new OGGTheoraKeyframeForceFrequency(x1 + DP(60), y, this);
 	keyframe_force_frequency->create_objects();
-	y += 30;
+	y += DP(30);
 
 	add_subwindow(new BC_Title(x, y, _("Sharpness:")));
 	OGGTheoraSharpness *sharpness = 
-		new OGGTheoraSharpness(x1 + 60, y, this);
+		new OGGTheoraSharpness(x1 + DP(60), y, this);
 	sharpness->create_objects();
-	y += 30;
+	y += DP(30);
 	
 
 	add_subwindow(new BC_OKButton(this));
@@ -2209,7 +2212,7 @@ int OGGConfigVideo::close_event()
 }
 
 OGGTheoraBitrate::OGGTheoraBitrate(int x, int y, OGGConfigVideo *gui)
- : BC_TextBox(x, y, 100, 1, gui->asset->theora_bitrate)
+ : BC_TextBox(x, y, DP(100), 1, gui->asset->theora_bitrate)
 {
 	this->gui = gui;
 }
@@ -2260,7 +2263,7 @@ OGGTheoraKeyframeFrequency::OGGTheoraKeyframeFrequency(int x, int y, OGGConfigVi
 	(int64_t)500,
 	x, 
 	y,
-	40)
+	DP(40))
 {
 	this->gui = gui;
 }
@@ -2278,7 +2281,7 @@ OGGTheoraKeyframeForceFrequency::OGGTheoraKeyframeForceFrequency(int x, int y, O
 	(int64_t)500,
 	x, 
 	y,
-	40)
+	DP(40))
 {
 	this->gui = gui;
 }
@@ -2297,7 +2300,7 @@ OGGTheoraSharpness::OGGTheoraSharpness(int x, int y, OGGConfigVideo *gui)
 	(int64_t)2,
 	x, 
 	y,
-	40)
+	DP(40))
 {
 	this->gui = gui;
 }

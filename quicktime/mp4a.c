@@ -31,6 +31,8 @@ typedef struct
 
 	faacEncHandle encoder_handle;
 	faacEncConfigurationPtr encoder_params;
+// encoded channels always disagrees with MOOV channels
+	int channels;
 // Number of frames
 	int frame_size;
 	int max_frame_bytes;
@@ -91,9 +93,10 @@ static int decode(quicktime_t *file,
 // Initialize decoder
 	if(!codec->decoder_initialized)
 	{
-		uint32_t samplerate = trak->mdia.minf.stbl.stsd.table[0].sample_rate;
+		uint32_t samplerate = quicktime_sample_rate(file, track);
+		quicktime_esds_t *esds = &trak->mdia.minf.stbl.stsd.table[0].esds;
 // FAAD needs unsigned char here
-		uint8_t channels = track_map->channels;
+		uint8_t channels = codec->channels = track_map->channels;
 		quicktime_init_vbr(vbr, channels);
 		codec->decoder_handle = faacDecOpen();
 		codec->decoder_config = faacDecGetCurrentConfiguration(codec->decoder_handle);
@@ -103,25 +106,73 @@ static int decode(quicktime_t *file,
 
 		faacDecSetConfiguration(codec->decoder_handle, codec->decoder_config);
 
-
-		quicktime_align_vbr(track_map, samples);
-
-//while(quicktime_vbr_input_size(vbr) < 65536)
-		quicktime_read_vbr(file, track_map);
-
-//printf("decode %d buffer=%p size=%d\n", __LINE__, quicktime_vbr_input(vbr), quicktime_vbr_input_size(vbr));
-//samplerate = -1;
-//channels = 0;
-		if(faacDecInit(codec->decoder_handle,
-			quicktime_vbr_input(vbr), 
-			quicktime_vbr_input_size(vbr),
-			&samplerate,
-			&channels) < 0)
+// Always initialize from sample 0
+		
+		int done = 0;
+		int total_read = 0;
+		while(!done && total_read < 65536)
 		{
-			return 1;
+//printf("decode %d vbr->sample=%ld\n", __LINE__, vbr->sample);
+			if(quicktime_read_vbr(file, track_map))
+			{
+				break;
+			}
+		
+			int result = 0;
+			if(!codec->decoder_initialized)
+			{
+// always fails to decode any header
+				result = faacDecInit(codec->decoder_handle,
+					quicktime_vbr_input(vbr), 
+					quicktime_vbr_input_size(vbr),
+					&samplerate,
+					&channels);
+				codec->decoder_initialized = 1;
+			}
+			
+			faacDecDecode(codec->decoder_handle, 
+				&codec->frame_info,
+            	quicktime_vbr_input(vbr), 
+				quicktime_vbr_input_size(vbr));
+			
+//printf("decode %d size=%d\n", __LINE__, quicktime_vbr_input_size(vbr));
+//quicktime_print_buffer("", quicktime_vbr_input(vbr), quicktime_vbr_input_size(vbr));
+
+			if(codec->frame_info.error > 0)
+			{
+            	printf("decode %d: %s\n",
+					__LINE__,
+                	faacDecGetErrorMessage(codec->frame_info.error));
+			}
+
+			quicktime_shift_vbr(track_map, quicktime_vbr_input_size(vbr));
+			total_read += quicktime_vbr_input_size(vbr);
+			if(codec->frame_info.samples > 0)
+			{
+// reinitialize with encoded channel count
+				if(codec->frame_info.channels != track_map->channels)
+				{
+printf("decode %d: AAC channel count=%d MPEG4 channel count=%d\n", 
+__LINE__, 
+codec->frame_info.channels,
+track_map->channels);
+					codec->channels = codec->frame_info.channels;
+					quicktime_init_vbr(vbr, codec->channels);
+				}
+				
+				if(codec->frame_info.samplerate != quicktime_sample_rate(file, track))
+				{
+printf("decode %d: AAC samplerate=%d MPEG4 samplerate=%ld\n", 
+__LINE__, 
+codec->frame_info.samplerate,
+quicktime_sample_rate(file, track));
+				}
+				break;
+			}
+
+
 		}
-//printf("decode %d samplerate=%d channels=%d\n", __LINE__, samplerate, channels);
-		codec->decoder_initialized = 1;
+
 	}
 
 	if(quicktime_align_vbr(track_map, 
@@ -132,6 +183,7 @@ static int decode(quicktime_t *file,
 	else
 	{
 // Decode until buffer is full
+//printf("decode %d vbr=%p end=%d end_position=%d\n", __LINE__, vbr, quicktime_vbr_end(vbr), end_position);
 		while(quicktime_vbr_end(vbr) < end_position)
 		{
 // Fill until min buffer size reached or EOF
@@ -157,11 +209,13 @@ static int decode(quicktime_t *file,
 //                	faacDecGetErrorMessage(codec->frame_info.error));
         	}
 
+// printf("decode %d channels=%d samplerate=%d samples=%d\n",
+// __LINE__,
+// codec->frame_info.channels,
+// codec->frame_info.samplerate,
+// codec->frame_info.samples);
+
 /*
- * printf("decode 1 %d %d %d\n", 
- * quicktime_vbr_input_size(vbr), 
- * codec->frame_info.bytesconsumed,
- * codec->frame_info.samples);
  * 
  * static FILE *test = 0;
  * if(!test) test = fopen("/tmp/test.aac", "w");
@@ -181,11 +235,10 @@ static int decode(quicktime_t *file,
  * fflush(test);
  */
 
-//				quicktime_shift_vbr(track_map, codec->frame_info.bytesconsumed);
-				quicktime_shift_vbr(track_map, quicktime_vbr_input_size(vbr));
-				quicktime_store_vbr_float(track_map,
-					sample_buffer,
-					codec->frame_info.samples / track_map->channels);
+			quicktime_shift_vbr(track_map, quicktime_vbr_input_size(vbr));
+			quicktime_store_vbr_float(track_map,
+				sample_buffer,
+				codec->frame_info.samples / codec->channels);
 		}
 
 
@@ -237,16 +290,31 @@ static int encode(quicktime_t *file,
 		codec->compressed_buffer = calloc(1, max_output_bytes);
 		codec->encoder_params = faacEncGetCurrentConfiguration(codec->encoder_handle);
 
-// Parameters from ffmpeg
+// Parameters from faac demo
 		codec->encoder_params->aacObjectType = LOW;
 		codec->encoder_params->mpegVersion = MPEG4;
 		codec->encoder_params->useTns = 0;
-		codec->encoder_params->allowMidside = 1;
+		
+		
+// this doesn't work with 44.1
+		if(sample_rate != 44100)
+		{
+			codec->encoder_params->allowMidside = 1;
+		}
+		else
+		{
+			codec->encoder_params->allowMidside = 0;
+		}
+		
+		
 		codec->encoder_params->inputFormat = FAAC_INPUT_FLOAT;
 		codec->encoder_params->outputFormat = 0;
 		codec->encoder_params->bitRate = codec->bitrate / channels;
-		codec->encoder_params->quantqual = codec->quantizer_quality;
+//printf("mp4a encode %d codec->quantizer_quality=%d\n", __LINE__, codec->encoder_params->quantqual);
+//		codec->encoder_params->quantqual = codec->quantizer_quality;
+//		codec->encoder_params->quantqual = 0;
 		codec->encoder_params->bandWidth = sample_rate / 2;
+//		codec->encoder_params->bandWidth = 0;
 
 		if(!faacEncSetConfiguration(codec->encoder_handle, codec->encoder_params))
 		{
@@ -265,9 +333,9 @@ static int encode(quicktime_t *file,
  		quicktime_set_mpeg4_header(&trak->mdia.minf.stbl.stsd.table[0],
 			buffer, 
 			buffer_size);
-		trak->mdia.minf.stbl.stsd.table[0].version = 1;
-// Quicktime player needs this.
-		trak->mdia.minf.stbl.stsd.table[0].compression_id = 0xfffe;
+// Quicktime player needs this.  But it doesn't work on IOS player.
+//		trak->mdia.minf.stbl.stsd.table[0].version = 1;
+//		trak->mdia.minf.stbl.stsd.table[0].compression_id = 0xfffe;
 	}
 
 
@@ -310,17 +378,30 @@ static int encode(quicktime_t *file,
 
 	for(i = 0; i + codec->frame_size < codec->input_size; i += codec->frame_size)
 	{
+
+// static FILE *fd = 0;
+// if(!fd)
+// {
+// fd = fopen("/tmp/x.pcm", "w");
+// }
+// for(j = 0; j < codec->frame_size * channels; j++)
+// {
+// float *sample = codec->input_buffer + i * channels + j;
+// int16_t temp = *sample;
+// fwrite(&temp, 2, 1, fd);
+// }
+
 		int bytes = faacEncEncode(codec->encoder_handle,
                 (int32_t*)(codec->input_buffer + i * channels),
                 codec->frame_size * channels,
                 codec->compressed_buffer,
                 codec->max_frame_bytes);
-/*
- * printf("encode 1 %lld %d %d\n", 
- * track_map->current_position,
- * codec->frame_size, 
- * bytes);
- */
+
+// printf("encode 1 %lld %d %d\n", 
+// track_map->current_position,
+// codec->frame_size, 
+// bytes);
+
 // Write out the packet
 		if(bytes)
 		{
@@ -419,7 +500,7 @@ void quicktime_init_codec_mp4a(quicktime_audio_map_t *atrack)
 	codec_base->encode_audio = encode;
 	codec_base->set_parameter = set_parameter;
 	codec_base->flush = flush;
-	codec_base->fourcc = "mp4a";
+	codec_base->fourcc = QUICKTIME_MP4A;
 	codec_base->title = "MPEG4 audio";
 	codec_base->desc = "Audio section of MPEG4 standard";
 

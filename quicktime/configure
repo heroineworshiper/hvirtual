@@ -58,6 +58,14 @@ fi
 # configure them all
 # Requires some 
 
+echo "CONFIGURING X265"
+X265_DIR=$(cd thirdparty/x265*/; pwd)
+mkdir -p $X265_DIR/build
+cd $X265_DIR/build && cmake ../source && cd ../../..
+
+if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+
+
 # version 2.0 of faad2 produced defective Makefile
 LIBFAAD_PATH=`expr thirdparty/faad2*/`
 
@@ -91,6 +99,9 @@ echo "CONFIGURING X264"
 cd thirdparty/x264* && ./configure --enable-pthread && cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+
+
+
 
 echo "CONFIGURING LIBDV"
 cd thirdparty/libdv* && ./configure --disable-gtk --enable-shared=no && cd ../..

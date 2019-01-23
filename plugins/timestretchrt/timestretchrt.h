@@ -45,7 +45,9 @@ public:
 		int64_t prev_frame, 
 		int64_t next_frame, 
 		int64_t current_frame);
-	double scale;
+//	double scale;
+	double num;
+	double denom;
 	int size;
 };
 
@@ -56,9 +58,11 @@ public:
 	TimeStretchRTScale(TimeStretchRTWindow *window,
 		TimeStretchRT *plugin,
 		int x,
-		int y);
+		int y,
+		double *value);
 	int handle_event();
 	TimeStretchRT *plugin;
+	double *value;
 };
 
 
@@ -80,7 +84,8 @@ public:
 	void create_objects();
 
 	TimeStretchRT *plugin;
-	TimeStretchRTScale *scale;
+	TimeStretchRTScale *num;
+	TimeStretchRTScale *denom;
 	TimeStretchRTSize *size;
 };
 

@@ -90,7 +90,7 @@ int Asset::init_values()
 	height = 0;
 	strcpy(vcodec, QUICKTIME_YUV2);
 	strcpy(acodec, QUICKTIME_TWOS);
-	jpeg_quality = 100;
+	jpeg_quality = 80;
 	aspect_ratio = -1;
 
 	ampeg_bitrate = 256;
@@ -111,7 +111,7 @@ int Asset::init_values()
 	mp3_bitrate = 256000;
 
 
-	mp4a_bitrate = 256000;
+	mp4a_bitrate = 192000;
 	mp4a_quantqual = 100;
 
 
@@ -144,8 +144,12 @@ int Asset::init_values()
 	divx_use_deblocking = 1;
 
 	h264_bitrate = 2000000;
-	h264_quantizer = 5;
+	h264_quantizer = 28;
 	h264_fix_bitrate = 0;
+
+	h265_bitrate = 2000000;
+	h265_quantizer = 28;
+	h265_fix_bitrate = 0;
 
 	ms_bitrate = 1000000;
 	ms_bitrate_tolerance = 500000;
@@ -162,6 +166,8 @@ int Asset::init_values()
 
 	tiff_cmodel = 0;
 	tiff_compression = 0;
+	mov_sphere = 0;
+	jpeg_sphere = 0;
 
 	use_header = 1;
 
@@ -282,6 +288,10 @@ void Asset::copy_format(Asset *asset, int do_index)
 	h264_quantizer = asset->h264_quantizer;
 	h264_fix_bitrate = asset->h264_fix_bitrate;
 
+	h265_bitrate = asset->h265_bitrate;
+	h265_quantizer = asset->h265_quantizer;
+	h265_fix_bitrate = asset->h265_fix_bitrate;
+
 
 	ms_bitrate = asset->ms_bitrate;
 	ms_bitrate_tolerance = asset->ms_bitrate_tolerance;
@@ -299,6 +309,10 @@ void Asset::copy_format(Asset *asset, int do_index)
 
 	tiff_cmodel = asset->tiff_cmodel;
 	tiff_compression = asset->tiff_compression;
+	
+	
+	mov_sphere = asset->mov_sphere;
+	jpeg_sphere = asset->jpeg_sphere;
 }
 
 int64_t Asset::get_index_offset(int channel)
@@ -314,12 +328,15 @@ int64_t Asset::get_index_size(int channel)
 
 char* Asset::get_compression_text(int audio, int video)
 {
+
+//printf("Asset::get_compression_text %d %s %s\n", __LINE__, acodec, vcodec);
 	if(audio)
 	{
 		switch(format)
 		{
 			case FILE_MOV:
 			case FILE_AVI:
+            case FILE_FFMPEG:
 				if(acodec[0])
 					return quicktime_acodec_title(acodec);
 				else
@@ -334,6 +351,7 @@ char* Asset::get_compression_text(int audio, int video)
 		{
 			case FILE_MOV:
 			case FILE_AVI:
+            case FILE_FFMPEG:
 				if(vcodec[0])
 					return quicktime_vcodec_title(vcodec);
 				else
@@ -379,7 +397,9 @@ int Asset::equivalent(Asset &asset,
 			frame_rate == asset.frame_rate &&
 			width == asset.width &&
 			height == asset.height &&
-			!strcmp(vcodec, asset.vcodec));
+			!strcmp(vcodec, asset.vcodec) &&
+			mov_sphere == asset.mov_sphere &&
+			jpeg_sphere == asset.jpeg_sphere);
 	}
 
 	return result;
@@ -504,7 +524,7 @@ int Asset::read_audio(FileXML *file)
 	channels = file->tag.get_property("CHANNELS", 2);
 // This is loaded from the index file after the EDL but this 
 // should be overridable in the EDL.
-	if(!sample_rate) sample_rate = file->tag.get_property("RATE", 44100);
+	if(!sample_rate) sample_rate = file->tag.get_property("RATE", 48000);
 	bits = file->tag.get_property("BITS", 16);
 	byte_order = file->tag.get_property("BYTE_ORDER", 1);
 	signed_ = file->tag.get_property("SIGNED", 1);
@@ -534,6 +554,8 @@ int Asset::read_video(FileXML *file)
 	file->tag.get_property("VCODEC", vcodec);
 
 	video_length = file->tag.get_property("VIDEO_LENGTH", (int64_t)0);
+	mov_sphere = file->tag.get_property("MOV_SPHERE", 0);
+	jpeg_sphere = file->tag.get_property("JPEG_SPHERE", 0);
 
 	return 0;
 }
@@ -672,6 +694,8 @@ int Asset::write_video(FileXML *file)
 		file->tag.set_property("VCODEC", vcodec);
 
 	file->tag.set_property("VIDEO_LENGTH", video_length);
+	file->tag.set_property("MOV_SPHERE", mov_sphere);
+	file->tag.set_property("JPEG_SPHERE", jpeg_sphere);
 
 
 
@@ -751,7 +775,7 @@ void Asset::load_defaults(BC_Hash *defaults,
 
 // Used by filefork
 		channels = GET_DEFAULT("CHANNELS", 2);
-		if(!sample_rate) sample_rate = GET_DEFAULT("RATE", 44100);
+		if(!sample_rate) sample_rate = GET_DEFAULT("RATE", 48000);
 		header = GET_DEFAULT("HEADER", 0);
 		audio_length = GET_DEFAULT("AUDIO_LENGTH", (int64_t)0);
 
@@ -806,6 +830,10 @@ void Asset::load_defaults(BC_Hash *defaults,
 	h264_quantizer = GET_DEFAULT("H264_QUANTIZER", h264_quantizer);
 	h264_fix_bitrate = GET_DEFAULT("H264_FIX_BITRATE", h264_fix_bitrate);
 
+	h265_bitrate = GET_DEFAULT("H265_BITRATE", h265_bitrate);
+	h265_quantizer = GET_DEFAULT("H265_QUANTIZER", h265_quantizer);
+	h265_fix_bitrate = GET_DEFAULT("H265_FIX_BITRATE", h265_fix_bitrate);
+
 
 	divx_bitrate = GET_DEFAULT("DIVX_BITRATE", divx_bitrate);
 	divx_rc_period = GET_DEFAULT("DIVX_RC_PERIOD", divx_rc_period);
@@ -834,6 +862,8 @@ void Asset::load_defaults(BC_Hash *defaults,
 	tiff_cmodel = GET_DEFAULT("TIFF_CMODEL", tiff_cmodel);
 	tiff_compression = GET_DEFAULT("TIFF_COMPRESSION", tiff_compression);
 
+	mov_sphere = GET_DEFAULT("MOV_SPHERE", mov_sphere);
+	jpeg_sphere = GET_DEFAULT("JPEG_SPHERE", jpeg_sphere);
 	boundaries();
 }
 
@@ -916,6 +946,10 @@ void Asset::save_defaults(BC_Hash *defaults,
 		UPDATE_DEFAULT("H264_QUANTIZER", h264_quantizer);
 		UPDATE_DEFAULT("H264_FIX_BITRATE", h264_fix_bitrate);
 
+		UPDATE_DEFAULT("H265_BITRATE", h265_bitrate);
+		UPDATE_DEFAULT("H265_QUANTIZER", h265_quantizer);
+		UPDATE_DEFAULT("H265_FIX_BITRATE", h265_fix_bitrate);
+
 		UPDATE_DEFAULT("DIVX_BITRATE", divx_bitrate);
 		UPDATE_DEFAULT("DIVX_RC_PERIOD", divx_rc_period);
 		UPDATE_DEFAULT("DIVX_RC_REACTION_RATIO", divx_rc_reaction_ratio);
@@ -944,7 +978,15 @@ void Asset::save_defaults(BC_Hash *defaults,
 		UPDATE_DEFAULT("EXR_COMPRESSION", exr_compression);
 		UPDATE_DEFAULT("TIFF_CMODEL", tiff_cmodel);
 		UPDATE_DEFAULT("TIFF_COMPRESSION", tiff_compression);
+
+
+
+		UPDATE_DEFAULT("MOV_SPHERE", mov_sphere);
+		UPDATE_DEFAULT("JPEG_SPHERE", jpeg_sphere);
 	}
+
+
+
 
 	if(do_bits)
 	{
@@ -983,7 +1025,7 @@ void Asset::save_defaults(BC_Hash *defaults,
 
 
 
-int Asset::update_path(char *new_path)
+int Asset::update_path(const char *new_path)
 {
 	strcpy(path, new_path);
 	return 0;
@@ -1014,6 +1056,11 @@ int Asset::dump()
 	printf("   h264_bitrate=%d\n", h264_bitrate);
 	printf("   h264_quantizer=%d\n", h264_quantizer);
 	printf("   h264_fix_bitrate=%d\n", h264_fix_bitrate);
+	printf("   h265_bitrate=%d\n", h265_bitrate);
+	printf("   h265_quantizer=%d\n", h265_quantizer);
+	printf("   h265_fix_bitrate=%d\n", h265_fix_bitrate);
+	printf("   mov_sphere=%d\n", mov_sphere);
+	printf("   jpeg_sphere=%d\n", jpeg_sphere);
 	return 0;
 }
 

@@ -89,7 +89,6 @@ void BC_PBuffer::new_pbuffer(int w, int h)
 // You're supposed to try different configurations of decreasing overhead 
 // until one works.
 // In reality, only a very specific configuration works at all.
-#define TOTAL_CONFIGS 1
 		static int framebuffer_attributes[] = 
 		{
         	GLX_RENDER_TYPE, GLX_RGBA_BIT,
@@ -121,38 +120,56 @@ void BC_PBuffer::new_pbuffer(int w, int h)
 		if(w % 4) pbuffer_attributes[1] += 4 - (w % 4);
 		if(h % 4) pbuffer_attributes[3] += 4 - (h % 4);
 
-		GLXFBConfig *config_result;
-		XVisualInfo *visinfo;
+		GLXFBConfig *config_result = 0;
+		XVisualInfo *visinfo = 0;
 		int config_result_count = 0;
+// Try the one that always worked on NVidia
 		config_result = glXChooseFBConfig(current_window->get_display(), 
 			current_window->get_screen(), 
 			framebuffer_attributes, 
 			&config_result_count);
-// printf("BC_PBuffer::new_pbuffer 1 config_result=%p config_result_count=%d\n", 
+// If it doesn't work, try the default
+		if(!config_result_count || !config_result)
+		{
+			config_result = glXChooseFBConfig(current_window->get_display(), 
+				current_window->get_screen(), 
+				None,
+				&config_result_count);
+		}
+		
+// printf("BC_PBuffer::new_pbuffer %d display=%p screen=%d config_result=%p config_result_count=%d\n", 
+// __LINE__,
+// current_window->get_display(),
+// current_window->get_screen(),
 // config_result, 
 // config_result_count);
 
 		if(!config_result || !config_result_count)
 		{
-			printf("BC_PBuffer::new_pbuffer: glXChooseFBConfig failed\n");
+			printf("BC_PBuffer::new_pbuffer %d: glXChooseFBConfig failed\n", 
+				__LINE__);
 			return;
 		}
 
+		for(int current_config = 0; current_config < config_result_count; current_config++)
+		{
 
-static int current_config = 0;
+			BC_Resources::error = 0;
+			pbuffer = glXCreatePbuffer(current_window->get_display(), 
+				config_result ? config_result[current_config] : 0, 
+				pbuffer_attributes);
+	    	visinfo = glXGetVisualFromFBConfig(current_window->get_display(), 
+				config_result ? config_result[current_config] : 0);
 
-		BC_Resources::error = 0;
-		pbuffer = glXCreatePbuffer(current_window->get_display(), 
-			config_result[current_config], 
-			pbuffer_attributes);
-    	visinfo = glXGetVisualFromFBConfig(current_window->get_display(), 
-			config_result[current_config]);
-// printf("BC_PBuffer::new_pbuffer 2 visual=%d current_config=%d error=%d pbuffer=%p\n",
-// visinfo->visual,
+// printf("BC_PBuffer::new_pbuffer %d current_config=%d visinfo=%p error=%d pbuffer=%p\n",
+// __LINE__,
 // current_config,
+// visinfo,
 // BC_Resources::error,
 // pbuffer);
-///current_config++;
+
+			if(visinfo) break;
+		}
 
 // Got it
 		if(!BC_Resources::error && pbuffer && visinfo)
@@ -169,6 +186,11 @@ static int current_config = 0;
 // printf("BC_PBuffer::new_pbuffer gl_context=%p window_id=%d\n",
 // gl_context,
 // current_window->get_id());
+		}
+		else
+		{
+			printf("BC_PBuffer::new_pbuffer %d: no valid FBConfig found\n", 
+				__LINE__);
 		}
 
 		if(config_result) XFree(config_result);

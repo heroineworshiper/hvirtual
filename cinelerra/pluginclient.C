@@ -296,6 +296,12 @@ int PluginClient::plugin_start_loop(int64_t start,
 	int64_t buffer_size, 
 	int total_buffers)
 {
+printf("PluginClient::plugin_start_loop %d %ld %ld %ld %d\n",
+__LINE__,
+start,
+end, 
+buffer_size,
+total_buffers);
 	this->source_start = start;
 	this->total_len = end - start;
 	this->start = start;
@@ -635,13 +641,16 @@ void PluginClient::save_defaults_xml()
 	if(fd)
 	{
 		fprintf(fd, "%d\n%d\n", window_x, window_y);
-		if(!fwrite(temp_keyframe.get_data(), strlen(temp_keyframe.get_data()), 1, fd))
+		if(strlen(temp_keyframe.get_data()))
 		{
-			fprintf(stderr, "PluginClient::save_defaults_xml %d \"%s\" %d bytes: %s\n",
-				__LINE__,
-				path,
-				(int)strlen(temp_keyframe.get_data()),
-				strerror(errno));
+			if(!fwrite(temp_keyframe.get_data(), strlen(temp_keyframe.get_data()), 1, fd))
+			{
+				fprintf(stderr, "PluginClient::save_defaults_xml %d: \"%s\" %d bytes: %s\n",
+					__LINE__,
+					path,
+					(int)strlen(temp_keyframe.get_data()),
+					strerror(errno));
+			}
 		}
 
 		fclose(fd);
@@ -767,10 +776,28 @@ int PluginClient::get_interpolation_type()
 float PluginClient::get_red()
 {
 	if(server->mwindow)
-		return server->mwindow->edl->local_session->red;
+	{
+		if(server->mwindow->edl->local_session->use_max)
+		{
+			return server->mwindow->edl->local_session->red_max;
+		}
+		else
+		{
+			return server->mwindow->edl->local_session->red;
+		}
+	}
 	else
 	if(server->edl)
-		return server->edl->local_session->red;
+	{
+		if(server->edl->local_session->use_max)
+		{
+			return server->edl->local_session->red_max;
+		}
+		else
+		{
+			return server->edl->local_session->red;
+		}
+	}
 	else
 		return 0;
 }
@@ -778,10 +805,28 @@ float PluginClient::get_red()
 float PluginClient::get_green()
 {
 	if(server->mwindow)
-		return server->mwindow->edl->local_session->green;
+	{
+		if(server->mwindow->edl->local_session->use_max)
+		{
+			return server->mwindow->edl->local_session->green_max;
+		}
+		else
+		{
+			return server->mwindow->edl->local_session->green;
+		}
+	}
 	else
 	if(server->edl)
-		return server->edl->local_session->green;
+	{
+		if(server->edl->local_session->use_max)
+		{
+			return server->edl->local_session->green_max;
+		}
+		else
+		{
+			return server->edl->local_session->green;
+		}
+	}
 	else
 		return 0;
 }
@@ -789,10 +834,28 @@ float PluginClient::get_green()
 float PluginClient::get_blue()
 {
 	if(server->mwindow)
-		return server->mwindow->edl->local_session->blue;
+	{
+		if(server->mwindow->edl->local_session->use_max)
+		{
+			return server->mwindow->edl->local_session->blue_max;
+		}
+		else
+		{
+			return server->mwindow->edl->local_session->blue;
+		}
+	}
 	else
 	if(server->edl)
-		return server->edl->local_session->blue;
+	{
+		if(server->edl->local_session->use_max)
+		{
+			return server->edl->local_session->blue_max;
+		}
+		else
+		{
+			return server->edl->local_session->blue;
+		}
+	}
 	else
 		return 0;
 }

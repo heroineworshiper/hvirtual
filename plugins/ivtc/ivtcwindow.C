@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,10 +42,10 @@ static const char *pattern_text[] =
 
 IVTCWindow::IVTCWindow(IVTCMain *client)
  : PluginClientWindow(client,
-	210, 
-	230, 
-	210, 
-	230, 
+	DP(210), 
+	DP(230), 
+	DP(210), 
+	DP(230), 
 	0)
 { 
 	this->client = client; 
@@ -57,18 +57,18 @@ IVTCWindow::~IVTCWindow()
 
 void IVTCWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	
 	add_tool(new BC_Title(x, y, _("Pattern offset:")));
-	y += 20;
+	y += DP(20);
 	add_tool(frame_offset = new IVTCOffset(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(first_field = new IVTCFieldOrder(client, x, y));
 //	y += 30;
 //	add_tool(automatic = new IVTCAuto(client, x, y));
-	y += 40;
+	y += DP(40);
 	add_subwindow(new BC_Title(x, y, _("Pattern:")));
-	y += 20;
+	y += DP(20);
 	for(int i = 0; i < TOTAL_PATTERNS; i++)
 	{
 		add_subwindow(pattern[i] = new IVTCPattern(client, 
@@ -77,7 +77,7 @@ void IVTCWindow::create_objects()
 			_(pattern_text[i]), 
 			x, 
 			y));
-		y += 20;
+		y += DP(20);
 	}
 	
 	if(client->config.pattern == IVTCConfig::AUTOMATIC)
@@ -90,7 +90,6 @@ void IVTCWindow::create_objects()
 //	y += 20;
 //	add_tool(threshold = new IVTCAutoThreshold(client, x, y));
 	show_window();
-	flush();
 }
 
 
@@ -98,7 +97,7 @@ void IVTCWindow::create_objects()
 IVTCOffset::IVTCOffset(IVTCMain *client, int x, int y)
  : BC_TextBox(x, 
  	y, 
-	190,
+	DP(190),
 	1, 
 	client->config.frame_offset)
 {
@@ -189,7 +188,7 @@ int IVTCPattern::handle_event()
 
 
 IVTCAutoThreshold::IVTCAutoThreshold(IVTCMain *client, int x, int y)
- : BC_TextBox(x, y, 190, 1, client->config.auto_threshold)
+ : BC_TextBox(x, y, DP(190), 1, client->config.auto_threshold)
 {
 	this->client = client;
 }

@@ -10,9 +10,13 @@ Change asset path, CPlayback never returns to redraw the frame.
 
 
 
-
 WISH LIST
 ----------------
+reverse reverb
+variable fast fwd speed
+flanger
+
+
 
 Private plugin data storage in the track.
  - save_private(position) & load_private(position) calls

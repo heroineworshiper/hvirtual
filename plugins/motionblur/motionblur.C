@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -232,10 +232,10 @@ void MotionBlurConfig::interpolate(MotionBlurConfig &prev,
 
 MotionBlurWindow::MotionBlurWindow(MotionBlurMain *plugin)
  : PluginClientWindow(plugin,
-	260, 
-	120, 
-	260, 
-	120, 
+	DP(260), 
+	DP(120), 
+	DP(260), 
+	DP(120), 
 	0)
 {
 	this->plugin = plugin; 
@@ -247,18 +247,17 @@ MotionBlurWindow::~MotionBlurWindow()
 
 void MotionBlurWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_subwindow(new BC_Title(x, y, _("Length:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(radius = new MotionBlurSize(plugin, x, y, &plugin->config.radius, 0, 100));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Steps:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(steps = new MotionBlurSize(plugin, x, y, &plugin->config.steps, 1, 100));
 
 	show_window();
-	flush();
 }
 
 
@@ -271,7 +270,7 @@ MotionBlurSize::MotionBlurSize(MotionBlurMain *plugin,
 	int *output,
 	int min,
 	int max)
- : BC_ISlider(x, y, 0, 240, 240, min, max, *output)
+ : BC_ISlider(x, y, 0, DP(240), DP(240), min, max, *output)
 {
 	this->plugin = plugin;
 	this->output = output;

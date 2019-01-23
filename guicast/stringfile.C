@@ -36,6 +36,7 @@ StringFile::StringFile(long length)
 		this->length = length;
 	}
 	string = new char[this->length + 1];
+	string[0] = 0;
 	available = this->length;
 }
 

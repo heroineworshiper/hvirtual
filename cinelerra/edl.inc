@@ -48,9 +48,9 @@ class EDL;
 #define EDIT_HANDLE_MODES 3
 
 // Behavior for the edit handles based on mouse button
-#define MOVE_ALL_EDITS 0
-#define MOVE_ONE_EDIT 1
-#define MOVE_NO_EDITS 2
+#define MOVE_ALL_EDITS 0 // default for left button
+#define MOVE_ONE_EDIT 1 // default for middle button
+#define MOVE_NO_EDITS 2 // default for right button
 #define MOVE_EDITS_DISABLED 3
 
 
@@ -78,7 +78,7 @@ class EDL;
 // Active tool in CWindow corresponds to a member of the CPanel array
 // and the current drag operation
 
-#define CPANEL_OPERATIONS 10
+#define CPANEL_OPERATIONS 9
 
 
 #define CWINDOW_NONE -1
@@ -90,8 +90,8 @@ class EDL;
 #define CWINDOW_PROJECTOR   5
 #define CWINDOW_CROP        6
 #define CWINDOW_EYEDROP     7
-#define CWINDOW_TOOL_WINDOW 8
-#define CWINDOW_TITLESAFE   9
+//#define CWINDOW_TOOL_WINDOW 8
+#define CWINDOW_TITLESAFE   8
 
 // Current dragging operations not available in the CPanel
 #define CWINDOW_SCROLL 0x10

@@ -60,6 +60,8 @@ LocalSession::LocalSession(EDL *edl)
 	automation_max = 10;
 	floatauto_type = Auto::BEZIER;
 	red = green = blue = 0;
+	red_max = green_max = blue_max = 0;
+	use_max = 0;
 }
 
 LocalSession::~LocalSession()
@@ -94,10 +96,14 @@ void LocalSession::copy_from(LocalSession *that)
 //	preview_end = that->preview_end;
 	red = that->red;
 	green = that->green;
+	blue = that->blue;
+	red_max = that->red_max;
+	green_max = that->green_max;
+	blue_max = that->blue_max;
+	use_max = that->use_max;
 	automation_min = that->automation_min;
 	automation_max = that->automation_max;
 	floatauto_type = that->floatauto_type;
-	blue = that->blue;
 }
 
 void LocalSession::save_xml(FileXML *file, double start)
@@ -134,6 +140,10 @@ void LocalSession::save_xml(FileXML *file, double start)
 	file->tag.set_property("RED", red);
 	file->tag.set_property("GREEN", green);
 	file->tag.set_property("BLUE", blue);
+	file->tag.set_property("RED_MAX", red_max);
+	file->tag.set_property("GREEN_MAX", green_max);
+	file->tag.set_property("BLUE_MAX", blue_max);
+	file->tag.set_property("USE_MAX", use_max);
 	file->tag.set_property("AUTOMATION_MIN", automation_min);
 	file->tag.set_property("AUTOMATION_MAX", automation_max);
 	file->tag.set_property("FLOATAUTO_TYPE", floatauto_type);
@@ -150,6 +160,9 @@ void LocalSession::synchronize_params(LocalSession *that)
 	red = that->red;
 	green = that->green;
 	blue = that->blue;
+	red_max = that->red_max;
+	green_max = that->green_max;
+	blue_max = that->blue_max;
 }
 
 
@@ -187,6 +200,10 @@ void LocalSession::load_xml(FileXML *file, unsigned long load_flags)
 		red = file->tag.get_property("RED", red);
 		green = file->tag.get_property("GREEN", green);
 		blue = file->tag.get_property("BLUE", blue);
+		red_max = file->tag.get_property("RED_MAX", red_max);
+		green_max = file->tag.get_property("GREEN_MAX", green_max);
+		blue_max = file->tag.get_property("BLUE_MAX", blue_max);
+		use_max = file->tag.get_property("USE_MAX", use_max);
 		automation_min = file->tag.get_property("AUTOMATION_MIN", automation_min);
 		automation_max = file->tag.get_property("AUTOMATION_MAX", automation_max);
 		floatauto_type = file->tag.get_property("FLOATAUTO_TYPE", floatauto_type);
@@ -230,6 +247,10 @@ int LocalSession::load_defaults(BC_Hash *defaults)
 	red = defaults->get("RED", 0.0);
 	green = defaults->get("GREEN", 0.0);
 	blue = defaults->get("BLUE", 0.0);
+	red_max = defaults->get("RED_MAX", 0.0);
+	green_max = defaults->get("GREEN_MAX", 0.0);
+	blue_max = defaults->get("BLUE_MAX", 0.0);
+	use_max = defaults->get("USE_MAX", 0);
 	automation_min = defaults->get("AUTOMATION_MIN", automation_min);
 	automation_max = defaults->get("AUTOMATION_MAX", automation_max);
 	floatauto_type = defaults->get("FLOATAUTO_TYPE", floatauto_type);
@@ -253,6 +274,10 @@ int LocalSession::save_defaults(BC_Hash *defaults)
 	defaults->update("RED", red);
 	defaults->update("GREEN", green);
 	defaults->update("BLUE", blue);
+	defaults->update("RED_MAX", red_max);
+	defaults->update("GREEN_MAX", green_max);
+	defaults->update("BLUE_MAX", blue_max);
+	defaults->update("USE_MAX", use_max);
 	defaults->update("AUTOMATION_MIN", automation_min);
 	defaults->update("AUTOMATION_MAX", automation_max);
 	defaults->update("FLOATAUTO_TYPE", floatauto_type);

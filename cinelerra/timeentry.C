@@ -81,7 +81,7 @@ void TimeEntry::time_to_seconds(char *result, double time)
 	sprintf(result, "%.3f", second);
 }
 
-#define DEFAULT_TIMEW 200
+#define DEFAULT_TIMEW DP(200)
 
 void TimeEntry::create_objects()
 {
@@ -97,7 +97,7 @@ void TimeEntry::create_objects()
 		gui->add_subwindow(day_text = new DayText(this, 
 			x, 
 			y, 
-			50, 
+			DP(50), 
 			day_table, 
 			TOTAL_DAYS, 
 			day_table[*output_day]));

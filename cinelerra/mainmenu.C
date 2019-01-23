@@ -56,6 +56,7 @@
 #include "playbackengine.h"
 #include "preferences.h"
 #include "preferencesthread.h"
+#include "proxy.h"
 #include "quit.h"
 #include "record.h"
 #include "render.h"
@@ -132,6 +133,7 @@ void MainMenu::create_objects()
 	editmenu->add_item(new SelectAll(mwindow));
 	editmenu->add_item(new BC_MenuItem("-"));
 	editmenu->add_item(new MenuEditShuffle(mwindow));
+	editmenu->add_item(new MenuEditReverse(mwindow));
 	editmenu->add_item(new MenuEditLength(mwindow));
 	editmenu->add_item(new MenuEditAlign(mwindow));
 	editmenu->add_item(new MenuTransitionLength(mwindow));
@@ -183,15 +185,19 @@ void MainMenu::create_objects()
 
 	settingsmenu->add_item(new SetFormat(mwindow));
 	settingsmenu->add_item(preferences = new PreferencesMenuitem(mwindow));
-	mwindow->preferences_thread = preferences->thread;
+	ProxyMenuItem *proxy;
+	settingsmenu->add_item(proxy = new ProxyMenuItem(mwindow));
+	proxy->create_objects();
+	settingsmenu->add_item(new BC_MenuItem("-"));
 	settingsmenu->add_item(labels_follow_edits = new LabelsFollowEdits(mwindow));
 	settingsmenu->add_item(plugins_follow_edits = new PluginsFollowEdits(mwindow));
 	settingsmenu->add_item(keyframes_follow_edits = new KeyframesFollowEdits(mwindow));
 	settingsmenu->add_item(cursor_on_frames = new CursorOnFrames(mwindow));
 	settingsmenu->add_item(typeless_keyframes = new TypelessKeyframes(mwindow));
+	settingsmenu->add_item(new BC_MenuItem("-"));
 	settingsmenu->add_item(new SaveSettingsNow(mwindow));
 	settingsmenu->add_item(loop_playback = new LoopPlayback(mwindow));
-	settingsmenu->add_item(new SetBRenderStart(mwindow));
+	settingsmenu->add_item(new SetBRenderRange(mwindow));
 // set scrubbing speed
 //	ScrubSpeed *scrub_speed;
 //	settingsmenu->add_item(scrub_speed = new ScrubSpeed(mwindow));
@@ -228,6 +234,7 @@ void MainMenu::create_objects()
 	windowmenu->add_item(show_cwindow = new ShowCWindow(mwindow));
 	windowmenu->add_item(show_gwindow = new ShowGWindow(mwindow));
 	windowmenu->add_item(show_lwindow = new ShowLWindow(mwindow));
+	windowmenu->add_item(new BC_MenuItem("-"));
 	windowmenu->add_item(split_x = new SplitX(mwindow));
 	windowmenu->add_item(split_y = new SplitY(mwindow));
 //	windowmenu->add_item(new TileWindows(mwindow));
@@ -633,7 +640,7 @@ int Redo::update_caption(const char *new_caption)
 }
 
 CutKeyframes::CutKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Cut keyframes"), "Shift-X", 'X')
+ : BC_MenuItem(_("Cut keyframes"), "Shift+X", 'X')
 { 
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -645,7 +652,7 @@ int CutKeyframes::handle_event()
 }
 
 CopyKeyframes::CopyKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Copy keyframes"), "Shift-C", 'C')
+ : BC_MenuItem(_("Copy keyframes"), "Shift+C", 'C')
 { 
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -658,7 +665,7 @@ int CopyKeyframes::handle_event()
 }
 
 PasteKeyframes::PasteKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Paste keyframes"), "Shift-V", 'V')
+ : BC_MenuItem(_("Paste keyframes"), "Shift+V", 'V')
 {
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -670,7 +677,7 @@ int PasteKeyframes::handle_event()
 }
 
 ClearKeyframes::ClearKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Clear keyframes"), "Shift-Del", BACKSPACE)
+ : BC_MenuItem(_("Clear keyframes"), "Shift+Del", BACKSPACE)
 {
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -990,7 +997,7 @@ int MapAudio2::handle_event()
 
 
 AddVideoTrack::AddVideoTrack(MWindow *mwindow)
- : BC_MenuItem(_("Add track"), "Shift-T", 'T')
+ : BC_MenuItem(_("Add track"), "Shift+T", 'T')
 {
 	set_shift();
 	this->mwindow = mwindow;
@@ -1030,7 +1037,7 @@ int ResetTranslation::handle_event()
 
 
 DefaultVTransition::DefaultVTransition(MWindow *mwindow)
- : BC_MenuItem(_("Default Transition"), "Shift-U", 'U')
+ : BC_MenuItem(_("Default Transition"), "Shift+U", 'U')
 {
 	set_shift();
 	this->mwindow = mwindow;
@@ -1144,15 +1151,15 @@ int LoopPlayback::handle_event()
 
 
 
-SetBRenderStart::SetBRenderStart(MWindow *mwindow)
- : BC_MenuItem(_("Set background render"))
+SetBRenderRange::SetBRenderRange(MWindow *mwindow)
+ : BC_MenuItem(_("Set background rendering"))
 {
 	this->mwindow = mwindow;
 }
 
-int SetBRenderStart::handle_event()
+int SetBRenderRange::handle_event()
 {
-	mwindow->set_brender_start();
+	mwindow->set_brender_range();
 	return 1;
 }
 

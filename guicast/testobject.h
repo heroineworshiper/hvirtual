@@ -27,7 +27,7 @@
 class TestObject
 {
 public:
-	TestObject(char *text = "TestObject");
+	TestObject(const char *text = "TestObject");
 	~TestObject();
 };
 

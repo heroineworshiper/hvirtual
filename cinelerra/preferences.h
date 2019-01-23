@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,9 @@
 #include "mutex.inc"
 #include "preferences.inc"
 #include "videoconfig.inc"
+
+#include <string>
+using std::string;
 
 
 class Preferences
@@ -77,7 +80,7 @@ public:
 
 // ================================= Performance ================================
 // directory to look in for indexes
-	char index_directory[BCTEXTLEN];   
+	string index_directory;   
 // size of index file in bytes
 	int64_t index_size;                  
 	int index_count;
@@ -126,6 +129,8 @@ public:
 // Tip of the day
 	int use_tipwindow;
 
+	int override_dpi;
+	int dpi;
 
 // ====================================== Plugin Set ==============================
 	char plugin_dir[BCTEXTLEN];

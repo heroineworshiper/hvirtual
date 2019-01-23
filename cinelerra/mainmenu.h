@@ -500,10 +500,10 @@ public:
 	MWindow *mwindow;
 };
 
-class SetBRenderStart : public BC_MenuItem
+class SetBRenderRange : public BC_MenuItem
 {
 public:
-	SetBRenderStart(MWindow *mwindow);
+	SetBRenderRange(MWindow *mwindow);
 	int handle_event();
 	MWindow *mwindow;
 };

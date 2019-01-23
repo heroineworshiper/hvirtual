@@ -61,10 +61,10 @@ int Tracks::clear(double start, double end, int clear_plugins, int edit_autos)
 				end, 
 				1, // edits
 				1, // labels
-				clear_plugins, 
+				clear_plugins, // edit_plugins
 				edit_autos,
-				1,
-				0); 
+				1, // convert_units
+				0); // trim_edits
 		}
 	}
 	return 0;
@@ -130,6 +130,23 @@ void Tracks::shuffle_edits(double start, double end)
 	}
 }
 
+void Tracks::reverse_edits(double start, double end)
+{
+// This doesn't affect automation or effects
+// Labels follow the first track.
+	int first_track = 1;
+	for(Track *current_track = first; 
+		current_track; 
+		current_track = current_track->next)
+	{
+		if(current_track->record)
+		{
+			current_track->reverse_edits(start, end, first_track);
+
+			first_track = 0;
+		}
+	}
+}
 void Tracks::align_edits(double start, double end)
 {
 // This doesn't affect automation or effects
@@ -971,7 +988,7 @@ void Tracks::paste_automation(double selectionstart,
 	double frame_rate = edl->session->frame_rate;
 	int64_t sample_rate = edl->session->sample_rate;
 	char string[BCTEXTLEN];
-	sprintf(string, "");
+	string[0] = 0;
 
 // Search for start
 	do{

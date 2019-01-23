@@ -43,13 +43,13 @@ static const char *xml_titles[] =
 static int auto_defaults[] = 
 {
 	0,
-	1,
-	1,
 	0,
 	0,
 	0,
-	1,
-	1,
+	0,
+	0,
+	0,
+	0,
 	0,
 	0,
 	0,

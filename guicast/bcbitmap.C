@@ -514,8 +514,8 @@ int BC_Bitmap::write_drawable(Drawable &pixmap,
 		}
 		else
 		{
-// printf("BC_Bitmap::write_drawable %p %d %d %d %d -> %d %d %d %d\n", 
-// 	this,
+// printf("BC_Bitmap::write_drawable %d src=%d %d %d %d -> dst=%d %d %d %d\n", 
+// 	__LINE__,
 // 	source_x, 
 // 	source_y, 
 // 	source_w, 

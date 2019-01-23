@@ -60,6 +60,7 @@ public:
 		int64_t unit_end);
 
 	void set_automation_mode(int64_t start, int64_t end, int mode);
+	void set_proxy(int orig_scale, int new_scale);
 
 	void dump();
 	Auto* new_auto();

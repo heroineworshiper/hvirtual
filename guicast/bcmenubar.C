@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2015 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,7 +90,7 @@ int BC_MenuBar::calculate_height(BC_WindowBase *window)
 	if(get_resources()->menu_bar_bg)
 		return get_resources()->menu_bar_bg->get_h();
 	else
-		return window->get_text_height(MEDIUMFONT) + 8;
+		return window->get_text_height(MEDIUMFONT) + DP(8);
 }
 
 void BC_MenuBar::draw_items()
@@ -111,7 +111,7 @@ int BC_MenuBar::add_menu(BC_Menu* menu)
 		x = menu_titles.values[menu_titles.total - 1]->x + 
 			menu_titles.values[menu_titles.total - 1]->w;
 
-	w = get_text_width(MEDIUMFONT, menu->text) + 20;
+	w = get_text_width(MEDIUMFONT, menu->text) + DP(20);
 // get pointer
 	menu_titles.append(menu);
 // initialize and draw
@@ -252,7 +252,12 @@ int BC_MenuBar::draw_face(int flash, int flush)
 {
 	if(menu_bar_bg)
 	{
-		draw_9segment(0, 0, get_w(), get_h(), menu_bar_bg);
+		draw_3segmenth(0, 
+			0, 
+			get_w(), 
+			menu_bar_bg);
+// 9 segment doesn't draw properly
+//		draw_9segment(0, 0, get_w(), get_h(), menu_bar_bg);
 	}
 	else
 	{

@@ -174,22 +174,35 @@ public:
 };
 
 
+class MenuEffectPrompt;
 class MenuEffectPromptOK;
 class MenuEffectPromptCancel;
 
+class MenuEffectPresets : public BC_GenericButton
+{
+public:
+	MenuEffectPresets(MWindow *mwindow, MenuEffectPrompt *gui, int x, int y);
+	int handle_event();
+	MWindow *mwindow;
+	MenuEffectPrompt *gui;
+};
 
 class MenuEffectPrompt : public BC_Window
 {
 public:
-	MenuEffectPrompt(MWindow *mwindow);
+	MenuEffectPrompt(MWindow *mwindow, PluginServer *plugin_server);
 
 	static int calculate_w(BC_WindowBase *gui);
-	static int calculate_h(BC_WindowBase *gui);	
+	static int calculate_h(MWindow *mwindow);	
 	void create_objects();
 
+	MWindow *mwindow;
+	PluginServer *plugin_server;
 	MenuEffectPromptOK *ok;
 	MenuEffectPromptCancel *cancel;
 };
+
+
 
 
 #endif

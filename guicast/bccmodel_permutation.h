@@ -408,6 +408,22 @@ static inline void transfer_RGB888_to_YUV420P_YUV422P(unsigned char *output_y,
 	output_v[output_column / 2] = v;
 }
 
+static inline void transfer_BGR8888_to_YUV420P_YUV422P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *input,
+	int output_column)
+{
+	int y, u, v;
+
+	RGB_TO_YUV(y, u, v, input[2], input[1], input[0]);
+
+	output_y[output_column] = y;
+	output_u[output_column / 2] = u;
+	output_v[output_column / 2] = v;
+}
+
+
 static inline void transfer_RGB888_to_YUV444P(unsigned char *output_y, 
 	unsigned char *output_u, 
 	unsigned char *output_v, 

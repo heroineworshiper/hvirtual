@@ -21,6 +21,7 @@
 
 #include "asset.h"
 #include "assets.h"
+#include "bcsignals.h"
 #include "byteorder.h"
 #include "colormodels.h"
 #include "file.h"

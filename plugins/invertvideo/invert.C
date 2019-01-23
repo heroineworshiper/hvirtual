@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -159,10 +159,10 @@ int InvertVideoEnable::handle_event()
 
 InvertVideoWindow::InvertVideoWindow(InvertVideoEffect *plugin)
  : PluginClientWindow(plugin, 
-	260, 
-	130, 
-	260, 
-	130, 
+	DP(260), 
+	DP(130), 
+	DP(260), 
+	DP(130), 
 	0)
 {
 	this->plugin = plugin;
@@ -170,17 +170,16 @@ InvertVideoWindow::InvertVideoWindow(InvertVideoEffect *plugin)
 
 void InvertVideoWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_subwindow(r = new InvertVideoEnable(plugin, &plugin->config.r, x, y, _("Invert R")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(g = new InvertVideoEnable(plugin, &plugin->config.g, x, y, _("Invert G")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(b = new InvertVideoEnable(plugin, &plugin->config.b, x, y, _("Invert B")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(a = new InvertVideoEnable(plugin, &plugin->config.a, x, y, _("Invert A")));
 
 	show_window();
-	flush();
 }
 
 

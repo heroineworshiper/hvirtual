@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,8 +46,8 @@ InterpolatePixelsOffset::InterpolatePixelsOffset(InterpolatePixelsWindow *window
  : BC_ISlider(x,
  	y,
 	0,
-	50,
-	50,
+	DP(50),
+	DP(50),
 	0,
 	1,
 	*output,
@@ -75,10 +75,10 @@ int InterpolatePixelsOffset::handle_event()
 
 InterpolatePixelsWindow::InterpolatePixelsWindow(InterpolatePixelsMain *client)
  : PluginClientWindow(client,
-	200, 
-	100, 
-	200, 
-	100, 
+	DP(200), 
+	DP(100), 
+	DP(200), 
+	DP(100), 
 	0)
 { 
 	this->client = client; 
@@ -90,21 +90,21 @@ InterpolatePixelsWindow::~InterpolatePixelsWindow()
 
 void InterpolatePixelsWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	
 	BC_Title *title;
 	add_tool(title = new BC_Title(x, y, _("X Offset:")));
 	add_tool(x_offset = new InterpolatePixelsOffset(this, 
-		x + title->get_w() + 5,
+		x + title->get_w() + DP(5),
 		y, 
 		&client->config.x));
-	y += MAX(x_offset->get_h(), title->get_h()) + 5;
+	y += MAX(x_offset->get_h(), title->get_h()) + DP(5);
 	add_tool(title = new BC_Title(x, y, _("Y Offset:")));
 	add_tool(y_offset = new InterpolatePixelsOffset(this, 
-		x + title->get_w() + 5,
+		x + title->get_w() + DP(5),
 		y, 
 		&client->config.y));
-	y += MAX(y_offset->get_h(), title->get_h()) + 5;
+	y += MAX(y_offset->get_h(), title->get_h()) + DP(5);
 
 	show_window();
 }
@@ -168,7 +168,7 @@ InterpolatePixelsMain::~InterpolatePixelsMain()
 	delete engine;
 }
 
-const char* InterpolatePixelsMain::plugin_title() { return N_("Interpolate Pixels"); }
+const char* InterpolatePixelsMain::plugin_title() { return N_("Interpolate Bayer"); }
 int InterpolatePixelsMain::is_realtime() { return 1; }
 
 
@@ -369,6 +369,13 @@ void InterpolatePixelsUnit::process_package(LoadPackage *package)
 	float color_matrix[9];
 	memcpy(color_matrix, server->color_matrix, sizeof(color_matrix));
 
+// printf("InterpolatePixelsUnit::process_package %d color_matrix=", __LINE__);
+// for(int i = 0; i < 9; i++)
+// {
+// 	printf("%f ", color_matrix[i]);
+// }
+// printf("\n");
+
 	y1 = MAX(y1, 1);
 	y2 = MIN(y2, h - 1);
 
@@ -420,9 +427,14 @@ void InterpolatePixelsUnit::process_package(LoadPackage *package)
 					b = current_row[BLUE];
 				}
 
-				out_row[0] = r * color_matrix[0] + g * color_matrix[1] + b * color_matrix[2];
-				out_row[1] = r * color_matrix[3] + g * color_matrix[4] + b * color_matrix[5];
-				out_row[2] = r * color_matrix[6] + g * color_matrix[7] + b * color_matrix[8];
+// 				out_row[0] = r * color_matrix[0] + g * color_matrix[1] + b * color_matrix[2];
+// 				out_row[1] = r * color_matrix[3] + g * color_matrix[4] + b * color_matrix[5];
+// 				out_row[2] = r * color_matrix[6] + g * color_matrix[7] + b * color_matrix[8];
+
+				out_row[0] = r;
+				out_row[1] = g;
+				out_row[2] = b;
+
 				prev_row += components;
 				current_row += components;
 				next_row += components;
@@ -455,9 +467,14 @@ void InterpolatePixelsUnit::process_package(LoadPackage *package)
 					float b = (prev_row[BLUE] + next_row[BLUE]) / 2;
 				}
 
-				out_row[0] = r * color_matrix[0] + g * color_matrix[1] + b * color_matrix[2];
-				out_row[1] = r * color_matrix[3] + g * color_matrix[4] + b * color_matrix[5];
-				out_row[2] = r * color_matrix[6] + g * color_matrix[7] + b * color_matrix[8];
+//				out_row[0] = r * color_matrix[0] + g * color_matrix[1] + b * color_matrix[2];
+//				out_row[1] = r * color_matrix[3] + g * color_matrix[4] + b * color_matrix[5];
+//				out_row[2] = r * color_matrix[6] + g * color_matrix[7] + b * color_matrix[8];
+
+				out_row[0] = r;
+				out_row[1] = g;
+				out_row[2] = b;
+
 				prev_row += components;
 				current_row += components;
 				next_row += components;
@@ -481,6 +498,10 @@ void InterpolatePixelsEngine::init_packages()
 	char string[BCTEXTLEN];
 	string[0] = 0;
 	plugin->get_output()->get_params()->get("DCRAW_MATRIX", string);
+
+// printf("InterpolatePixelsEngine::init_packages %d\n", __LINE__);
+// plugin->get_output()->dump_params();
+
 	sscanf(string, 
 		"%f %f %f %f %f %f %f %f %f", 
 		&color_matrix[0],

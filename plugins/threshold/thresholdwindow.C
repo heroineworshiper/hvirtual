@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -223,6 +223,8 @@ void ThresholdCanvas::draw()
 	int max = 0;
 	set_color(WHITE);
 	draw_box(0, 0, get_w(), get_h());
+	set_color(BLACK);
+	draw_rectangle(0, 0, get_w(), get_h());
 	int border_x1 = (int)((0 - HISTOGRAM_MIN) / 
 		(HISTOGRAM_MAX - HISTOGRAM_MIN) *
 		get_w());
@@ -312,7 +314,7 @@ void ThresholdCanvas::draw()
 
 
 ThresholdWindow::ThresholdWindow(ThresholdMain *plugin)
-: PluginClientWindow(plugin, 440, 350, 440, 350, 0)
+: PluginClientWindow(plugin, DP(440), DP(350), DP(440), DP(350), 0)
 {
 	this->plugin = plugin;
 }
@@ -323,35 +325,35 @@ ThresholdWindow::~ThresholdWindow()
 
 void ThresholdWindow::create_objects()
 {
-	int x1 = 10, x = 10;
-	int y = 10;
+	int x1 = DP(10), x = DP(10);
+	int y = DP(10);
 	add_subwindow(canvas = new ThresholdCanvas(plugin,
 		this,
 		x,
 		y,
-		get_w() - x - 10,
-		get_h() - 100));
+		get_w() - x - DP(10),
+		get_h() - DP(100)));
 	canvas->draw();
-	y += canvas->get_h() + 10;
+	y += canvas->get_h() + DP(10);
 
 	add_subwindow(new BC_Title(x, y, _("Min:")));
-	x += 50;
+	x += DP(50);
 	min = new ThresholdMin(plugin,
 		this,
 		x,
 		y,
-		100);
+		DP(100));
 	min->create_objects();
 	min->set_increment(0.1);
 
-	x += 200;
+	x += DP(200);
 	add_subwindow(new BC_Title(x, y, _("Max:")));
-	x += 50;
+	x += DP(50);
 	max = new ThresholdMax(plugin,
 		this,
 		x,
 		y,
-		100);
+		DP(100));
 	max->create_objects();
 	max->set_increment(0.1);
 

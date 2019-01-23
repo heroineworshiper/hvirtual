@@ -44,7 +44,13 @@ void quicktime_put_frame(quicktime_cache_t *ptr,
 	quicktime_cacheframe_t *frame = 0;
 	int i;
 
-//printf("quicktime_put_frame %d total=%d allocation=%d\n", __LINE__, ptr->total, ptr->allocation);
+// printf("quicktime_put_frame %d total=%d allocation=%d size=%d %d %d\n", 
+// __LINE__, 
+// ptr->total, 
+// ptr->allocation,
+// y_size,
+// u_size,
+// v_size);
 // Get existing frame
 	for(i = 0; i < ptr->total; i++)
 	{

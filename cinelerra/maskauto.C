@@ -426,5 +426,29 @@ void MaskAuto::translate_submasks(float translate_x, float translate_y)
 	}
 }
 
+void MaskAuto::scale_submasks(int orig_scale, int new_scale)
+{
+	for(int i = 0; i < masks.size(); i++)
+	{
+		SubMask *mask = get_submask(i);
+		for (int j = 0; j < mask->points.total; j++) 
+		{
+			float orig_x = mask->points.values[j]->x * orig_scale;
+			float orig_y = mask->points.values[j]->y * orig_scale;
+			mask->points.values[j]->x = orig_x / new_scale;
+			mask->points.values[j]->y = orig_y / new_scale;
+			
+			orig_x = mask->points.values[j]->control_x1 * orig_scale;
+			orig_y = mask->points.values[j]->control_y1 * orig_scale;
+			mask->points.values[j]->control_x1 = orig_x / new_scale;
+			mask->points.values[j]->control_y1 = orig_y / new_scale;
+			
+			orig_x = mask->points.values[j]->control_x2 * orig_scale;
+			orig_y = mask->points.values[j]->control_y2 * orig_scale;
+			mask->points.values[j]->control_x2 = orig_x / new_scale;
+			mask->points.values[j]->control_y2 = orig_y / new_scale;
+		}
+	}
+}
 
 

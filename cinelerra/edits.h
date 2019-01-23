@@ -132,6 +132,7 @@ public:
 		int edit_plugins,
 		int edit_autos,
 		Edits *trim_edits);
+	void deglitch(int64_t position);
 	virtual int optimize();
 
 

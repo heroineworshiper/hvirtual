@@ -59,6 +59,21 @@ int MenuEditShuffle::handle_event()
 }
 
 
+MenuEditReverse::MenuEditReverse(MWindow *mwindow)
+ : BC_MenuItem(_("Reverse Edits"))
+{
+	this->mwindow = mwindow;
+}
+
+
+
+int MenuEditReverse::handle_event()
+{
+	mwindow->reverse_edits();
+	return 1;
+}
+
+
 
 
 

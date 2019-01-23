@@ -156,6 +156,8 @@ typedef struct
 {
 	char *data;
 	int data_size;
+// same struct is used for avcC & hvcC blocks
+    int is_hvcc;
 } quicktime_avcc_t;
 
 typedef struct
@@ -729,7 +731,8 @@ typedef struct
 	int is_odml;
 
 
-
+/* tag the file for spherical playback */
+	int is_sphere;
 
 
 

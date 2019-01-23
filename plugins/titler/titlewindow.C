@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,12 +21,15 @@
 
 #include "bcdisplayinfo.h"
 #include "bcsignals.h"
+#include "browsebutton.h"
+#include "filesystem.h"
 #include "language.h"
 #include "theme.h"
 #include "titlewindow.h"
 
 
 
+#include <unistd.h>
 
 
 
@@ -57,8 +60,8 @@ TitleWindow::TitleWindow(TitleMain *client)
  : PluginClientWindow(client,
 	client->config.window_w, 
 	client->config.window_h, 
-	100, 
-	100, 
+	DP(100), 
+	DP(100), 
 	1)
 {
 //printf("TitleWindow::TitleWindow %d %d %d\n", __LINE__, client->config.window_w, client->config.window_h);
@@ -104,6 +107,7 @@ TitleWindow::TitleWindow(TitleMain *client)
 	mid = 0;
 	encoding_title = 0;
 	encoding = 0;
+	file_entries = 0;
 }
 
 TitleWindow::~TitleWindow()
@@ -122,17 +126,35 @@ TitleWindow::~TitleWindow()
 #endif
 	delete title_x;
 	delete title_y;
+	if(file_entries)
+	{
+		file_entries->remove_all_objects();
+		delete file_entries;
+	}
 }
 
 void TitleWindow::create_objects()
 {
-	int x = 10, y = 10;
 	int margin = client->get_theme()->widget_border;
+	int left_margin = client->get_theme()->window_border;
+	int top_margin = client->get_theme()->window_border;
+	int x = left_margin, y = top_margin;
 	char string[BCTEXTLEN];
-#define COLOR_W 50
-#define COLOR_H 30
+#define COLOR_W DP(50)
+#define COLOR_H DP(30)
 	client->build_fonts();
 	client->build_previews(this);
+
+	file_entries = new ArrayList<BC_ListBoxItem*>;
+	FileSystem fs;
+// Load current directory
+	fs.update(getcwd(string, BCTEXTLEN));
+	for(int i = 0; i < fs.total_files(); i++)
+	{
+		file_entries->append(
+			new BC_ListBoxItem(
+				fs.get_entry(i)->get_name()));
+	}
 
 	encodings.append(new BC_ListBoxItem("ISO8859-1"));
 	encodings.append(new BC_ListBoxItem("ISO8859-2"));
@@ -254,98 +276,98 @@ void TitleWindow::create_objects()
 	font = new TitleFont(client, this, x, y + font_title->get_h());
 	font->create_objects();
 	x += font->get_w() + margin;
-	add_subwindow(font_tumbler = new TitleFontTumble(client, this, x, y + 20));
+	add_subwindow(font_tumbler = new TitleFontTumble(client, this, x, y + font_title->get_h()));
 	x += font_tumbler->get_w() + margin;
 	add_tool(size_title = new BC_Title(x, y, _("Size:")));
 	sprintf(string, "%d", client->config.size);
-	size = new TitleSize(client, this, x, y + 20, string);
+	size = new TitleSize(client, this, x, y + size_title->get_h(), string);
 	size->create_objects();
 	x += size->get_w() + margin;
-	add_subwindow(size_tumbler = new TitleSizeTumble(client, this, x, y + 20));
+	add_subwindow(size_tumbler = new TitleSizeTumble(client, this, x, y + size_title->get_h()));
 	x += size_tumbler->get_w() + margin;
 
 	add_tool(style_title = new BC_Title(x, y, _("Style:")));
-	add_tool(italic = new TitleItalic(client, this, x, y + 20));
-	add_tool(bold = new TitleBold(client, this, x, y + 50));
+	add_tool(italic = new TitleItalic(client, this, x, y + DP(20)));
+	add_tool(bold = new TitleBold(client, this, x, y + DP(50)));
 #ifdef USE_OUTLINE
-	add_tool(stroke = new TitleStroke(client, this, x, y + 80));
+	add_tool(stroke = new TitleStroke(client, this, x, y + DP(80)));
 #endif
-	x += 90;
+	x += DP(90);
 	add_tool(justify_title = new BC_Title(x, y, _("Justify:")));
-	add_tool(left = new TitleLeft(client, this, x, y + 20));
-	add_tool(center = new TitleCenter(client, this, x, y + 50));
-	add_tool(right = new TitleRight(client, this, x, y + 80));
+	add_tool(left = new TitleLeft(client, this, x, y + DP(20)));
+	add_tool(center = new TitleCenter(client, this, x, y + DP(50)));
+	add_tool(right = new TitleRight(client, this, x, y + DP(80)));
 
-	x += 80;
-	add_tool(top = new TitleTop(client, this, x, y + 20));
-	add_tool(mid = new TitleMid(client, this, x, y + 50));
-	add_tool(bottom= new TitleBottom(client, this, x, y + 80));
+	x += DP(80);
+	add_tool(top = new TitleTop(client, this, x, y + DP(20)));
+	add_tool(mid = new TitleMid(client, this, x, y + DP(50)));
+	add_tool(bottom= new TitleBottom(client, this, x, y + DP(80)));
 	
 
 
-	y += 50;
-	x = 10;
+	y += DP(50);
+	x = left_margin;
 
 	add_tool(x_title = new BC_Title(x, y, _("X:")));
-	title_x = new TitleX(client, this, x, y + 20);
+	title_x = new TitleX(client, this, x, y + DP(20));
 	title_x->create_objects();
-	x += 90;
+	x += DP(90);
 
 	add_tool(y_title = new BC_Title(x, y, _("Y:")));
-	title_y = new TitleY(client, this, x, y + 20);
+	title_y = new TitleY(client, this, x, y + DP(20));
 	title_y->create_objects();
-	x += 90;
+	x += DP(90);
 
 	add_tool(motion_title = new BC_Title(x, y, _("Motion type:")));
 
-	motion = new TitleMotion(client, this, x, y + 20);
+	motion = new TitleMotion(client, this, x, y + DP(20));
 	motion->create_objects();
-	x += 150;
+	x += DP(150);
 	
-	add_tool(loop = new TitleLoop(client, x, y + 20));
-	x += 100;
+	add_tool(loop = new TitleLoop(client, x, y + DP(20)));
+	x += DP(100);
 	
-	x = 10;
-	y += 50;
+	x = left_margin;
+	y += DP(50);
 
 	add_tool(dropshadow_title = new BC_Title(x, y, _("Drop shadow:")));
-	dropshadow = new TitleDropShadow(client, this, x, y + 20);
+	dropshadow = new TitleDropShadow(client, this, x, y + DP(20));
 	dropshadow->create_objects();
-	x += 100;
+	x += dropshadow_title->get_w() + margin;
 
 	add_tool(fadein_title = new BC_Title(x, y, _("Fade in (sec):")));
-	add_tool(fade_in = new TitleFade(client, this, &client->config.fade_in, x, y + 20));
-	x += 100;
+	add_tool(fade_in = new TitleFade(client, this, &client->config.fade_in, x, y + DP(20)));
+	x += fadein_title->get_w() + margin;
 
 	add_tool(fadeout_title = new BC_Title(x, y, _("Fade out (sec):")));
-	add_tool(fade_out = new TitleFade(client, this, &client->config.fade_out, x, y + 20));
-	x += 110;
+	add_tool(fade_out = new TitleFade(client, this, &client->config.fade_out, x, y + DP(20)));
+	x += fadeout_title->get_w() + margin;
 
 	add_tool(speed_title = new BC_Title(x, y, _("Speed:")));
-	speed = new TitleSpeed(client, this, x, y + 20);
+	speed = new TitleSpeed(client, this, x, y + DP(20));
 	speed->create_objects();
-	x += 110;
+	x += speed->get_w() + margin;
 
 	color_x = x;
-	color_y = y + 20;
-	x += COLOR_W + 5;
-	add_tool(color_button = new TitleColorButton(client, this, x, y + 20, 0));
+	color_y = y + DP(10);
+	x += COLOR_W + margin;
+	add_tool(color_button = new TitleColorButton(client, this, x, y + DP(20), 0));
 	x += color_button->get_w();
 	color_thread = new TitleColorThread(client, this, 0);
 
 	x = color_x;
-	y += 50;
+	y += COLOR_H + margin;
 
 	outline_color_x = x;
-	outline_color_y = y + 20;
-	x += COLOR_W + 5;
-	add_tool(outline_color_button = new TitleColorButton(client, this, x, y + 20, 1));
+	outline_color_y = y + DP(10);
+	x += COLOR_W + DP(5);
+	add_tool(outline_color_button = new TitleColorButton(client, this, x, y + DP(20), 1));
 	x += outline_color_button->get_w();
 	outline_color_thread = new TitleColorThread(client, this, 1);
 
-	x = 10;
-//	y += 50;
-	
+	x = left_margin;
+	y = dropshadow->get_y() + dropshadow->get_h() + margin;
+
 	
 	add_tool(outline_title = new BC_Title(x, y, _("Outline:")));
 	outline = new TitleOutline(client, this, x, y + outline_title->get_h() + margin);
@@ -353,13 +375,14 @@ void TitleWindow::create_objects()
 	x += outline->get_w() + margin;
 
 #ifndef X_HAVE_UTF8_STRING
-	add_tool(encoding_title = new BC_Title(x, y + 3, _("Encoding:")));
+	add_tool(encoding_title = new BC_Title(x, y + DP(3), _("Encoding:")));
 	encoding = new TitleEncoding(client, this, x, y + encoding_title->get_h() + margin);
 	encoding->create_objects();
-	x += 100;
+	x += DP(100);
 #endif
 
-	y += outline_title->get_h() + margin;
+	x = left_margin;
+	y += outline_title->get_h() + margin + outline->get_h() + margin;
 	add_tool(timecode = new TitleTimecode(client, x, y));
 	x += timecode->get_w() + margin;
 	add_tool(timecode_format = new TitleTimecodeFormat(
@@ -373,20 +396,38 @@ void TitleWindow::create_objects()
 			Units::print_time_format(timecode_formats[i], string)));
 	}
 
-	x = 10;
+	x = left_margin;
 	y += timecode_format->get_h() + margin;
 
-	add_tool(text_title = new BC_Title(x, y + 3, _("Text:")));
 
-	x = 10;
+	add_tool(subtitles = new TitleSubs(this, x, y));
+	x += subtitles->get_w() + margin;
+	add_tool(subtitle_text = new TitleSubsText(this, x, y));
+	x += subtitle_text->get_w() + margin;
+	add_tool(subtitle_browse = new BrowseButton(
+		client->get_theme(),
+		this,
+		subtitle_text, 
+		x, 
+		y, 
+		client->config.subs_path.c_str(),
+		_("Subtitle path"),
+		_("Select a file to read:"),
+		0));
+
+	x = left_margin;
+	y += subtitle_browse->get_h() + margin;
+	add_tool(text_title = new BC_Title(x, y + DP(3), _("Text:")));
+
+	x = left_margin;
 	y += text_title->get_h() + margin;
 
 	text = new TitleText(client, 
 		this, 
 		x, 
 		y, 
-		get_w() - x - 10, 
-		get_h() - y - 10);
+		get_w() - x - left_margin, 
+		get_h() - y - left_margin);
 	text->create_objects();
 
 	update_color();
@@ -396,6 +437,9 @@ void TitleWindow::create_objects()
 
 int TitleWindow::resize_event(int w, int h)
 {
+	int margin = client->get_theme()->widget_border;
+	int left_margin = client->get_theme()->window_border;
+	int top_margin = client->get_theme()->window_border;
 	client->config.window_w = w;
 	client->config.window_h = h;
 
@@ -442,11 +486,15 @@ int TitleWindow::resize_event(int w, int h)
 	strokewidth_title->reposition_window(strokewidth_title->get_x(), strokewidth_title->get_y());
 #endif
 	timecode->reposition_window(timecode->get_x(), timecode->get_y());
+	
+	subtitles->reposition_window(subtitles->get_x(), subtitles->get_y());
+	subtitle_text->reposition_window(subtitle_text->get_x(), subtitle_text->get_y());
+	subtitle_browse->reposition_window(subtitle_browse->get_x(), subtitle_browse->get_y());
 
 	text->reposition_window(text->get_x(), 
 		text->get_y(), 
-		w - text->get_x() - 10,
-		BC_TextBox::pixels_to_rows(this, MEDIUMFONT, h - text->get_y() - 10));
+		w - text->get_x() - left_margin,
+		BC_TextBox::pixels_to_rows(this, MEDIUMFONT, h - text->get_y() - top_margin));
 
 
 
@@ -461,6 +509,7 @@ int TitleWindow::resize_event(int w, int h)
 	speed->reposition_window(speed->get_x(), speed->get_y());
 	update_color();
 	flash();
+	client->send_configure_change();
 
 	return 1;
 }
@@ -554,6 +603,9 @@ void TitleWindow::update()
 	speed->update(client->config.pixels_per_second);
 	outline->update((int64_t)client->config.outline_size);
 	timecode->update(client->config.timecode);
+	
+	subtitles->update(client->config.use_subs);
+	subtitle_text->update(client->config.subs_path.c_str());
 
 	char string[BCTEXTLEN];
 	for(int i = 0; i < sizeof(timecode_formats) / sizeof(int); i++)
@@ -568,6 +620,55 @@ void TitleWindow::update()
 	update_justification();
 	update_color();
 }
+
+
+
+
+
+
+TitleSubsText::TitleSubsText(TitleWindow *window, int x, int y)
+ : BC_TextBox(x, y, DP(300), 1, window->client->config.subs_path.c_str())
+{
+	this->window = window;
+}
+
+TitleSubsText::~TitleSubsText()
+{
+}
+
+int TitleSubsText::handle_event()
+{
+// Suggestions
+	calculate_suggestions(window->file_entries);
+
+	window->client->config.subs_path.assign(get_text());
+	window->client->send_configure_change();
+	return 1;
+}
+
+
+
+
+
+
+
+
+TitleSubs::TitleSubs(TitleWindow *window, int x, int y)
+ : BC_CheckBox(x, y, window->client->config.use_subs, _("Use subtitle file"))
+{
+	this->window = window;
+}
+
+int TitleSubs::handle_event()
+{
+	window->client->config.use_subs = get_value();
+	window->client->send_configure_change();
+	return 1;
+}
+
+
+
+
 
 
 TitleFontTumble::TitleFontTumble(TitleMain *client, TitleWindow *window, int x, int y)
@@ -682,8 +783,8 @@ TitleSize::TitleSize(TitleMain *client, TitleWindow *window, int x, int y, char 
 		text,
 		x, 
 		y, 
-		100,
-		300)
+		DP(100),
+		DP(300))
 {
 	this->client = client;
 	this->window = window;
@@ -710,8 +811,8 @@ TitleEncoding::TitleEncoding(TitleMain *client, TitleWindow *window, int x, int 
 		client->config.encoding,
 		x, 
 		y, 
-		100,
-		300)
+		DP(100),
+		DP(300))
 {
 	this->client = client;
 	this->window = window;
@@ -755,8 +856,8 @@ TitleMotion::TitleMotion(TitleMain *client, TitleWindow *window, int x, int y)
 		client->motion_to_text(client->config.motion_strategy),
 		x, 
 		y, 
-		120,
-		100)
+		DP(120),
+		DP(100))
 {
 	this->client = client;
 	this->window = window;
@@ -795,7 +896,7 @@ int TitleTimecode::handle_event()
 TitleTimecodeFormat::TitleTimecodeFormat(TitleMain *client, int x, int y, const char *text)
  : BC_PopupMenu(x, 
  	y, 
-	100, 
+	DP(300), 
 	text,
 	1)
 {
@@ -818,7 +919,7 @@ TitleFade::TitleFade(TitleMain *client,
 	double *value, 
 	int x, 
 	int y)
- : BC_TextBox(x, y, 90, 1, (float)*value)
+ : BC_TextBox(x, y, DP(90), 1, (float)*value)
 {
 	this->client = client;
 	this->window = window;
@@ -838,8 +939,8 @@ TitleFont::TitleFont(TitleMain *client, TitleWindow *window, int x, int y)
 		client->config.font,
 		x, 
 		y, 
-		200,
-		500,
+		DP(200),
+		DP(500),
 		LISTBOX_ICON_LIST)
 {
 	this->client = client;
@@ -885,7 +986,7 @@ TitleDropShadow::TitleDropShadow(TitleMain *client, TitleWindow *window, int x, 
 	(int64_t)1000,
 	x, 
 	y, 
-	70)
+	DP(70))
 {
 	this->client = client;
 	this->window = window;
@@ -905,7 +1006,7 @@ TitleOutline::TitleOutline(TitleMain *client, TitleWindow *window, int x, int y)
 	(int64_t)1000,
 	x, 
 	y, 
-	70)
+	DP(70))
 {
 	this->client = client;
 	this->window = window;
@@ -925,7 +1026,7 @@ TitleX::TitleX(TitleMain *client, TitleWindow *window, int x, int y)
 	(int64_t)2048,
 	x, 
 	y, 
-	60)
+	DP(60))
 {
 	this->client = client;
 	this->window = window;
@@ -944,7 +1045,7 @@ TitleY::TitleY(TitleMain *client, TitleWindow *window, int x, int y)
 	(int64_t)2048,
 	x, 
 	y, 
-	60)
+	DP(60))
 {
 	this->client = client;
 	this->window = window;
@@ -963,7 +1064,7 @@ TitleSpeed::TitleSpeed(TitleMain *client, TitleWindow *window, int x, int y)
 	(float)1000,
 	x, 
 	y, 
-	70)
+	DP(70))
 {
 	this->client = client;
 }

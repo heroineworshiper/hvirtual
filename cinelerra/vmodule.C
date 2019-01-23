@@ -259,9 +259,9 @@ int VModule::import_frame(VFrame *output,
 	{
 		File *file = 0;
 
-		if(debug) printf("VModule::import_frame %d cache=%p\n", 
-			__LINE__,
-			get_cache());
+// 		printf("VModule::import_frame %d cache=%p\n", 
+// 			__LINE__,
+// 			get_cache());
 		if(current_edit->asset)
 		{
 			get_cache()->age();
@@ -344,19 +344,19 @@ int VModule::import_frame(VFrame *output,
 
 			int use_cache = renderengine && 
 				renderengine->command->single_frame();
-			int use_asynchronous = !use_cache && 
-				renderengine &&
+//			int use_asynchronous = !use_cache && 
+//				renderengine &&
 // Try to make rendering go faster.
 // But converts some formats to YUV420, which may degrade input format.
-//				renderengine->command->realtime &&
-				renderengine->get_edl()->session->video_asynchronous;
+////				renderengine->command->realtime &&
+//				renderengine->get_edl()->session->video_asynchronous;
 
 			if(file)
 			{
 				if(debug) printf("VModule::import_frame %d\n", __LINE__);
-				if(use_asynchronous)
-					file->start_video_decode_thread();
-				else
+//				if(use_asynchronous)
+//					file->start_video_decode_thread();
+//				else
 					file->stop_video_thread();
 
 				int64_t normalized_position = Units::to_int64(position *
@@ -451,7 +451,7 @@ int VModule::import_frame(VFrame *output,
 				!EQUIV(in_w, asset_w) ||
 				!EQUIV(in_h, asset_h))
 			{
-				if(debug) printf("VModule::import_frame %d file -> temp -> output\n", __LINE__);
+//printf("VModule::import_frame %d file -> temp -> output\n", __LINE__);
 
 
 
@@ -731,7 +731,13 @@ output->get_opengl_state(),
 						get_edl()->session->interpolation_type);
 				}
 				result = 1;
+				
 				output->copy_stacks((*input));
+				
+				
+//printf("VModule::import_frame %d\n", __LINE__); 
+//(*input)->dump_params();
+//output->dump_params();
 			}
 			else
 // file -> output
@@ -886,6 +892,11 @@ current_cmodel);
 			}
 			result = 1;
 		}
+
+// 		printf("VModule::import_frame %d cache=%p\n", 
+// 			__LINE__,
+// 			get_cache());
+
 	}
 	else
 // Source is silence
@@ -919,7 +930,7 @@ int VModule::render(VFrame *output,
 	int result = 0;
 	double edl_rate = get_edl()->session->frame_rate;
 
-//printf("VModule::render %lld\n", start_position);
+//printf("VModule::render %d %ld\n", __LINE__, start_position);
 
 	if(use_nudge) start_position += Units::to_int64(track->nudge * 
 		frame_rate / 
@@ -940,9 +951,10 @@ int VModule::render(VFrame *output,
 //printf("VModule::render %d %p %ld %d\n", __LINE__, current_edit, start_position_project, direction);
 
 	if(debug_render)
-		printf("    VModule::render %d %lld %s transition=%p opengl=%d current_edit=%p output=%p\n", 
+		printf("    VModule::render %d %d %ld %s transition=%p opengl=%d current_edit=%p output=%p\n", 
+			__LINE__, 
 			use_nudge, 
-			(long long)start_position_project,
+			start_position_project,
 			track->title,
 			transition,
 			use_opengl,

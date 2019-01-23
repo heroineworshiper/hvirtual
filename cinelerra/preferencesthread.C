@@ -58,8 +58,8 @@
 
 
 
-#define WIDTH 750
-#define HEIGHT 730
+#define WIDTH DP(750)
+#define HEIGHT DP(730)
 
 
 PreferencesMenuitem::PreferencesMenuitem(MWindow *mwindow)
@@ -69,6 +69,7 @@ PreferencesMenuitem::PreferencesMenuitem(MWindow *mwindow)
 
 	set_shift(1);
 	thread = new PreferencesThread(mwindow);
+	mwindow->preferences_thread = thread;
 }
 
 PreferencesMenuitem::~PreferencesMenuitem()
@@ -553,10 +554,10 @@ int PreferencesButton::handle_event()
 
 PreferencesDialog::PreferencesDialog(MWindow *mwindow, 
 	PreferencesWindow *pwindow)
- : BC_SubWindow(10, 
- 	40, 
-	pwindow->get_w() - 20, 
- 	pwindow->get_h() - BC_GenericButton::calculate_h() - 10 - 40)
+ : BC_SubWindow(DP(10), 
+ 	DP(40), 
+	pwindow->get_w() - DP(20), 
+ 	pwindow->get_h() - BC_GenericButton::calculate_h() - DP(10) - DP(40))
 {
 	this->pwindow = pwindow;
 	this->mwindow = mwindow;
@@ -574,7 +575,7 @@ PreferencesDialog::~PreferencesDialog()
 
 PreferencesApply::PreferencesApply(MWindow *mwindow, PreferencesThread *thread)
  : BC_GenericButton(thread->window->get_w() / 2 - BC_GenericButton::calculate_w(thread->window, _("Apply")) / 2, 
- 	thread->window->get_h() - BC_GenericButton::calculate_h() - 10, 
+ 	thread->window->get_h() - BC_GenericButton::calculate_h() - DP(10), 
 	_("Apply"))
 {
 	this->mwindow = mwindow;
@@ -592,7 +593,7 @@ int PreferencesApply::handle_event()
 
 PreferencesOK::PreferencesOK(MWindow *mwindow, PreferencesThread *thread)
  : BC_GenericButton(10, 
- 	thread->window->get_h() - BC_GenericButton::calculate_h() - 10,
+ 	thread->window->get_h() - BC_GenericButton::calculate_h() - DP(10),
 	_("OK"))
 {
 	this->mwindow = mwindow;
@@ -618,7 +619,7 @@ int PreferencesOK::handle_event()
 
 PreferencesCancel::PreferencesCancel(MWindow *mwindow, PreferencesThread *thread)
  : BC_GenericButton(thread->window->get_w() - BC_GenericButton::calculate_w(thread->window, _("Cancel")) - 10,
- 	thread->window->get_h() - BC_GenericButton::calculate_h() - 10,
+ 	thread->window->get_h() - BC_GenericButton::calculate_h() - DP(10),
  	_("Cancel"))
 {
 	this->mwindow = mwindow;
@@ -655,8 +656,8 @@ PreferencesCategory::PreferencesCategory(MWindow *mwindow, PreferencesThread *th
 		thread->category_to_text(thread->current_dialog),
 		x, 
 		y, 
-		200,
-		150)
+		DP(200),
+		DP(150))
 {
 	this->mwindow = mwindow;
 	this->thread = thread;

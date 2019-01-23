@@ -47,7 +47,7 @@ public:
 	int read_buffer(VFrame *frame);
 	int reset_parameters();
 // User always gets the colormodel requested
-	void new_output_buffer(VFrame **output, int colormodel);
+	void new_output_buffer(VFrame **output, int colormodel, EDL *edl);
 
 	int open_output();
 	int start_playback();
@@ -131,7 +131,13 @@ private:
 // is passed to this to create the VFrame to which the output is rendered.
 // For OpenGL, it creates the array of row pointers used to upload the video
 // frame to the texture, the texture, and the PBuffer.
-	int get_best_colormodel(int colormodel);
+	int get_display_colormodel(int file_colormodel);
+
+// windows which overlay the screencap area
+#define SCREENCAP_BORDERS 4
+#define SCREENCAP_PIXELS 5
+#define SCREENCAP_COLOR BLACK
+	BC_Popup *screencap_border[SCREENCAP_BORDERS];
 
 // Bitmap to be written to device
 	BC_Bitmap *bitmap;        
@@ -151,12 +157,14 @@ private:
 	int texture_h;
 	int color_model;
 	int color_model_selected;
-// Transfer coordinates from the output frame to the canvas 
-// for last frame rendered.
+// Transfer coordinates from the output frame to the canvas.
+// Calculated in new_output_buffer & retained for write_buffer
 // These stick the last frame to the display.
 // Must be floats to support OpenGL
 	float output_x1, output_y1, output_x2, output_y2;
 	float canvas_x1, canvas_y1, canvas_x2, canvas_y2;
+// rounded integer dimensions
+	int canvas_w, canvas_h;
 // Screen capture
 	BC_Capture *capture_bitmap;
 // Set when OpenGL rendering has cleared the frame buffer before write_buffer

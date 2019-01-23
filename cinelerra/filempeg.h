@@ -80,7 +80,9 @@ public:
 	int create_index();
 
 
-	int get_index(char *index_path);
+    static int read_index_state(string *index_path, Indexable *dst);
+
+//	int get_index(char *index_path);
 	int set_video_position(int64_t x);
 	int set_audio_position(int64_t x);
 	int write_samples(double **buffer, 

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,10 +75,10 @@ int ZoomLimit::handle_event()
 
 ZoomWindow::ZoomWindow(ZoomMain *plugin)
  : PluginClientWindow(plugin, 
-	250, 
-	125, 
-	250,
-	125,
+	DP(250), 
+	DP(125), 
+	DP(250),
+	DP(125),
 	0)
 {
 	this->plugin = plugin;

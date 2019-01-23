@@ -36,8 +36,8 @@
 #define TOTAL_IMAGES 3
 
 
-#define TRIANGLE_W 10
-#define TRIANGLE_H 10
+#define TRIANGLE_W DP(10)
+#define TRIANGLE_H DP(10)
 
 
 BC_PopupMenu::BC_PopupMenu(int x, 

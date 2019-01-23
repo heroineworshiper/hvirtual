@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +33,10 @@
 
 BrightnessWindow::BrightnessWindow(BrightnessMain *client)
  : PluginClientWindow(client, 
-	330, 
-	160, 
-	330, 
-	160, 
+	DP(330), 
+	DP(160), 
+	DP(330), 
+	DP(160), 
 	0)
 { 
 	this->client = client; 
@@ -48,23 +48,23 @@ BrightnessWindow::~BrightnessWindow()
 
 void BrightnessWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_tool(new BC_Title(x, y, _("Brightness/Contrast")));
-	y += 25;
+	y += DP(25);
 	add_tool(new BC_Title(x, y,_("Brightness:")));
 	add_tool(brightness = new BrightnessSlider(client, 
 		&(client->config.brightness), 
-		x + 80, 
+		x + DP(100), 
 		y,
 		1));
-	y += 25;
+	y += DP(25);
 	add_tool(new BC_Title(x, y, _("Contrast:")));
 	add_tool(contrast = new BrightnessSlider(client, 
 		&(client->config.contrast), 
-		x + 80, 
+		x + DP(100), 
 		y,
 		0));
-	y += 30;
+	y += DP(30);
 	add_tool(luma = new BrightnessLuma(client, 
 		x, 
 		y));
@@ -81,8 +81,8 @@ BrightnessSlider::BrightnessSlider(BrightnessMain *client,
  : BC_FSlider(x, 
  	y, 
 	0, 
-	200, 
-	200,
+	DP(200), 
+	DP(200),
 	-100, 
 	100, 
 	(int)*output)

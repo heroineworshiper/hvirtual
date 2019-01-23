@@ -16,19 +16,21 @@
 # 5) Freshmeat
 
 
-DEST=/usr/src/redhat
+DEST=/usr/src
 SRC=`pwd`
 ARCH=`uname -m`
 
-if [ $ARCH == x86_64 ]; then 
-PLUGINDIR=/usr/lib64/cinelerra;
-else
-PLUGINDIR=/usr/lib/cinelerra;
-fi
+#if [ $ARCH == x86_64 ]; then 
+#PLUGINDIR=/usr/lib64/cinelerra;
+#else
+#PLUGINDIR=/usr/lib/cinelerra;
+#fi
 
 
 
-CI_VERSION=4.3
+CI_VERSION=7.1
+
+
 MIX_VERSION=1.2
 XMOVIE_VERSION=1.9.13
 LIBMPEG3_VERSION=1.8
@@ -60,24 +62,24 @@ DEST_FIREHOSE=$DEST/$FIREHOSE_NAME
 
 
 # CLEAN SOURCE DIRECTORIES
+# this doesn't work
 
 
 
 
 
 
-
-echo "Cleaning"
-make clean
-find \( -name *.d \
-	-o -name *.exr \
-	-o -name .xvpics \
-	-o -name core \) -exec rm -rf {} \; -prune
-rm -r bin/*
+#echo "Cleaning"
+#make clean
+#find \( -name *.d \
+#	-o -name .xvpics \
+#	-o -name core \) -exec rm -rf {} \; -prune
+#rm -r bin/*
 
 # CREATE DIRECTORIES
 rm -rf $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
-mkdir $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
+#mkdir $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
+mkdir $DEST_CI
 
 
 
@@ -126,9 +128,18 @@ cp -a \
 echo "Compressing Cinelerra"
 cd $DEST/
 find $CI_NAME -name .svn -exec rm -rf {} \; -prune
+find $CI_NAME -name .git -exec rm -rf {} \; -prune
 # dependancies are created in some clean rules
 find $CI_NAME -name '*.d' -exec rm {} \;
-tar jcf SOURCES/$CI_NAME-src.tar.bz2 $CI_NAME
+tar Jcf $CI_NAME-src.tar.xz $CI_NAME
+
+
+
+
+
+exit
+
+
 
 
 echo "Making spec file"

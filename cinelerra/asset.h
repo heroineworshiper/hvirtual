@@ -122,7 +122,7 @@ public:
 	int write_audio(FileXML *xml);
 	int write_video(FileXML *xml);
 	int write_index(FileXML *xml);
-	int update_path(char *new_path);
+	int update_path(const char *new_path);
 
 
 
@@ -164,6 +164,7 @@ public:
 	char vcodec[BCTEXTLEN];
 
 // Length in frames
+// -1 means a still photo
 	int64_t video_length;
 
 
@@ -249,6 +250,10 @@ public:
 	int h264_quantizer;
 	int h264_fix_bitrate;
 
+	int h265_bitrate;
+	int h265_quantizer;
+	int h265_fix_bitrate;
+
 // Divx video decompression
 	int divx_use_deblocking;
 
@@ -273,7 +278,10 @@ public:
 
 
 	int ac3_bitrate;
-
+// Insert tag for spherical playback into quicktime
+	int mov_sphere;
+// Insert tag for spherical playback into JPEG
+	int jpeg_sphere;
 
 
 // Image file sequences.  Background rendering doesn't want to write a 

@@ -290,7 +290,7 @@ int FileList::read_frame(VFrame *frame)
 
 		FILE *in;
 
-// Fix path for VFS
+// Fix path for VFS.  Not used anymore.
 		if(!strncmp(asset->path, RENDERFARM_FS_PREFIX, strlen(RENDERFARM_FS_PREFIX)))
 			sprintf(string, "%s%s", RENDERFARM_FS_PREFIX, path);
 		else
@@ -402,6 +402,7 @@ int FileList::read_frame(VFrame *frame)
 		if(frame->get_color_model() == temp->get_color_model())
 		{
 			frame->copy_from(temp);
+			frame->copy_stacks(temp);
 		}
 		else
 		{

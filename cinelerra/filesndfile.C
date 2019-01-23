@@ -373,8 +373,8 @@ SndFileConfig::SndFileConfig(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Audio Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	250,
-	250)
+	DP(250),
+	DP(250))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -392,7 +392,7 @@ SndFileConfig::~SndFileConfig()
 
 void SndFileConfig::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	lock_window("SndFileConfig::create_objects");
 	bits_popup = 0;
@@ -402,28 +402,32 @@ void SndFileConfig::create_objects()
 		case FILE_PCM:
 		case FILE_AIFF:
 			add_tool(new BC_Title(x, y, _("Compression:")));
-			y += 25;
+			y += DP(25);
 			if(asset->format == FILE_WAV)
 				bits_popup = new BitsPopup(this, x, y, &asset->bits, 0, 0, 1, 1, 0);
 			else
 				bits_popup = new BitsPopup(this, x, y, &asset->bits, 0, 0, 0, 0, 0);
-			y += 40;
+			y += DP(40);
 			bits_popup->create_objects();
 			break;
 	}
 
-	x = 10;
+	x = DP(10);
 	if(asset->format != FILE_AU)
+	{
 		add_subwindow(new BC_CheckBox(x, y, &asset->dither, _("Dither")));
-	y += 30;
+	}
+	
+	y += DP(30);
 	if(asset->format == FILE_PCM)
 	{
 		add_subwindow(new BC_CheckBox(x, y, &asset->signed_, _("Signed")));
-		y += 35;
+		y += DP(35);
 		add_subwindow(new BC_Title(x, y, _("Byte order:")));
-		add_subwindow(hilo = new SndFileHILO(this, x + 100, y));
-		add_subwindow(lohi = new SndFileLOHI(this, x + 170, y));
+		add_subwindow(hilo = new SndFileHILO(this, x + DP(100), y));
+		add_subwindow(lohi = new SndFileLOHI(this, x + DP(170), y));
 	}
+	
 	add_subwindow(new BC_OKButton(this));
 	show_window(1);
 	unlock_window();

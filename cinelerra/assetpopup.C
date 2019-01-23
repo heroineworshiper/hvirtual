@@ -25,6 +25,7 @@
 #include "awindow.h"
 #include "awindowgui.h"
 #include "awindowmenu.h"
+#include "bcsignals.h"
 #include "clipedit.h"
 #include "cwindow.h"
 #include "cwindowgui.h"
@@ -58,7 +59,7 @@ AssetPopup::~AssetPopup()
 
 void AssetPopup::create_objects()
 {
-	add_item(format = new AssetListFormat(mwindow));
+//	add_item(format = new AssetListFormat(mwindow));
 	add_item(info = new AssetPopupInfo(mwindow, this));
 	add_item(new AssetPopupSort(mwindow, this));
 	add_item(index = new AssetPopupBuildIndex(mwindow, this));
@@ -117,7 +118,7 @@ void AssetPopup::match_all()
 
 int AssetPopup::update()
 {
-	format->update();
+//	format->update();
 	gui->collect_assets();
 	return 0;
 }
@@ -143,19 +144,41 @@ AssetPopupInfo::~AssetPopupInfo()
 
 int AssetPopupInfo::handle_event()
 {
-	if(mwindow->session->drag_assets->total)
+	if(mwindow->session->drag_assets->size())
 	{
-		if(mwindow->awindow->asset_edit->running() && 
-			mwindow->awindow->asset_edit->window)
+		int got_it = 0;
+// try reusing an existing window
+		for(int i = 0; i < mwindow->awindow->asset_editors.size(); i++)
 		{
-			mwindow->awindow->asset_edit->window->raise_window();
-			mwindow->awindow->asset_edit->window->flush();
+			AssetEdit *thread = mwindow->awindow->asset_editors.get(i);
+			if(!thread->running())
+			{
+				thread->edit_asset(mwindow->session->drag_assets->values[0]);
+				got_it = 1;
+			}
 		}
-		else
+
+// make a new window
+		if(!got_it)
 		{
-			mwindow->awindow->asset_edit->edit_asset(
+			AssetEdit *thread = new AssetEdit(mwindow);
+			mwindow->awindow->asset_editors.append(thread);
+			thread->edit_asset(
 				mwindow->session->drag_assets->values[0]);
 		}
+
+// old way
+// 		if(mwindow->awindow->asset_edit->running() && 
+// 			mwindow->awindow->asset_edit->window)
+// 		{
+// 			mwindow->awindow->asset_edit->window->raise_window();
+// 			mwindow->awindow->asset_edit->window->flush();
+// 		}
+// 		else
+// 		{
+// 			mwindow->awindow->asset_edit->edit_asset(
+// 				mwindow->session->drag_assets->values[0]);
+// 		}
 	}
 	else
 	if(mwindow->session->drag_clips->total)
@@ -234,9 +257,13 @@ int AssetPopupView::handle_event()
 {
 	VWindow *vwindow = 0;
 	if(!mwindow->vwindows.size())
+	{
 		vwindow = mwindow->new_viewer(1);
+	}
 	else
+	{
 		vwindow = mwindow->vwindows.get(DEFAULT_VWINDOW);
+	}
 
 	if(!vwindow->is_running())
 	{
@@ -418,7 +445,10 @@ AssetPopupProjectRemove::~AssetPopupProjectRemove()
 
 int AssetPopupProjectRemove::handle_event()
 {
-	mwindow->remove_assets_from_project(1);
+	mwindow->remove_assets_from_project(1, 
+		1, 
+		mwindow->session->drag_assets,
+		mwindow->session->drag_clips);
 	return 1;
 }
 

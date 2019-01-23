@@ -284,10 +284,7 @@ PluginPresets::PluginPresets(MWindow *mwindow, PluginPopup *popup)
 
 int PluginPresets::handle_event()
 {
-	mwindow->show_keyframe_gui(popup->plugin);
-#if 0
-	popup->thread->start_window(popup->plugin);
-#endif
+	mwindow->show_keyframe_gui(popup->plugin, 0);
 	return 1;
 }
 

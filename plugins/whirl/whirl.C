@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -227,10 +227,10 @@ void WhirlConfig::interpolate(WhirlConfig &prev,
 
 WhirlWindow::WhirlWindow(WhirlEffect *plugin)
  : PluginClientWindow(plugin, 
-	220, 
-	200, 
-	220, 
-	200, 
+	DP(220), 
+	DP(200), 
+	DP(220), 
+	DP(200), 
 	0)
 {
 	this->plugin = plugin;
@@ -240,17 +240,17 @@ WhirlWindow::WhirlWindow(WhirlEffect *plugin)
 
 void WhirlWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_subwindow(new BC_Title(x, y, _("Radius")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(radius = new WhirlRadius(plugin, x, y));
-	y += 40;
+	y += DP(40);
 	add_subwindow(new BC_Title(x, y, _("Pinch")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(pinch = new WhirlPinch(plugin, x, y));
-	y += 40;
+	y += DP(40);
 	add_subwindow(new BC_Title(x, y, _("Angle")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(angle = new WhirlAngle(plugin, x, y));
 
 	show_window();
@@ -274,8 +274,8 @@ WhirlAngle::WhirlAngle(WhirlEffect *plugin, int x, int y)
  : BC_FSlider(x, 
 	   	y, 
 		0,
-		200,
-		200, 
+		DP(200),
+		DP(200), 
 		(float)0, 
 		(float)360,
 		plugin->config.angle)
@@ -296,8 +296,8 @@ WhirlPinch::WhirlPinch(WhirlEffect *plugin, int x, int y)
  : BC_FSlider(x, 
 	   	y, 
 		0,
-		200,
-		200, 
+		DP(200),
+		DP(200), 
 		(float)0, 
 		(float)MAXPINCH, 
 		plugin->config.pinch)
@@ -318,8 +318,8 @@ WhirlRadius::WhirlRadius(WhirlEffect *plugin, int x, int y)
  : BC_FSlider(x, 
 	   	y, 
 		0,
-		200,
-		200, 
+		DP(200),
+		DP(200), 
 		(float)0, 
 		(float)MAXRADIUS, 
 		plugin->config.radius)

@@ -255,6 +255,8 @@ void RecordVideo::run()
 			{
 				capture_frame = frame_ptr[0][buffer_position];
 				record->vdevice->set_field_order(record->reverse_interlace);
+				record->vdevice->set_do_cursor(record->do_cursor,
+					record->do_big_cursor);
 				read_buffer();
 
 
@@ -275,6 +277,8 @@ void RecordVideo::run()
 			if(record->monitor_video)
 			{
 				record->vdevice->set_field_order(record->reverse_interlace);
+				record->vdevice->set_do_cursor(record->do_cursor,
+					record->do_big_cursor);
 				record->get_current_batch()->session_frames++;
 
 				read_buffer();
@@ -287,8 +291,10 @@ void RecordVideo::run()
 		}
 
 // Monitor the frame if monitoring
-// printf("RecordVideo::run %p %d %d %d\n", 
-// capture_frame->get_data(), 
+// printf("RecordVideo::run %d %d %d %d %d %d\n", 
+// __LINE__,
+// capture_frame->get_w(), 
+// capture_frame->get_h(), 
 // record->monitor_video, 
 // batch_done, 
 // grab_result);

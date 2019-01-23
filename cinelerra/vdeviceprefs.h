@@ -61,6 +61,7 @@ public:
 	int initialize(int creation /* = 0 */);
 	int delete_objects();
 	void reset_objects();
+	int get_h();
 
 	PreferencesWindow *pwindow;
 	PreferencesDialog *dialog;

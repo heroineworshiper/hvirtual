@@ -44,7 +44,11 @@ public:
 		int data_bytes, 
 		Asset *asset,
 		int64_t length_source);
+// for .idx files, the offset of each channel in the index buffer in floats
+// for .toc files, the absolute file offset of each channel in bytes
 	int64_t get_index_offset(int channel);
+// Size of each channel's index in floats.  This allows
+// each channel to be a different size.
 	int64_t get_index_size(int channel);
 	void dump();
 
@@ -55,10 +59,11 @@ public:
 // Total bytes in the source file when the index was buillt
 	int64_t index_bytes;
 	int64_t index_end, old_index_end;    // values for index build
-// offsets of channels in index buffer in floats
+// for .idx files, the offset of each channel in the index buffer in floats
+// for .toc files, the absolute file offset of each channel in bytes
 	int64_t *index_offsets;
-// Sizes of channels in index buffer in floats.  This allows
-// variable channel size.
+// Size of each channel's index in floats.  This allows
+// each channel to be a different size.
 	int64_t *index_sizes;
 // [ index channel      ][ index channel      ]
 // [high][low][high][low][high][low][high][low]

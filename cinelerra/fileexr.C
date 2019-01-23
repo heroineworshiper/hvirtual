@@ -576,8 +576,8 @@ EXRConfigVideo::EXRConfigVideo(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	300,
-	BC_OKButton::calculate_h() + 100)
+	DP(300),
+	BC_OKButton::calculate_h() + DP(100))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -590,13 +590,13 @@ EXRConfigVideo::~EXRConfigVideo()
 void EXRConfigVideo::create_objects()
 {
 	lock_window("EXRConfigVideo::create_objects");
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_subwindow(new EXRUseAlpha(this, x, y));
-	y += 30;
+	y += DP(30);
 	EXRCompression *menu;
 	add_subwindow(new BC_Title(x, y, "Compression:"));
-	x += 110;
-	add_subwindow(menu = new EXRCompression(this, x, y, 100));
+	x += DP(110);
+	add_subwindow(menu = new EXRCompression(this, x, y, DP(100)));
 	menu->create_objects();
 	add_subwindow(new BC_OKButton(this));
 	show_window(1);

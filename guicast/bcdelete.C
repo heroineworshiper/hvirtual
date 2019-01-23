@@ -32,8 +32,8 @@ BC_DeleteFile::BC_DeleteFile(BC_FileBox *filebox, int x, int y)
  : BC_Window(filebox->get_delete_title(), 
  	x, 
 	y, 
-	320, 
-	480, 
+	DP(320), 
+	DP(480), 
 	0, 
 	0, 
 	0, 
@@ -51,7 +51,7 @@ BC_DeleteFile::~BC_DeleteFile()
 
 void BC_DeleteFile::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	data = new ArrayList<BC_ListBoxItem*>;
 	int i = 1;
 	char *path;
@@ -67,15 +67,15 @@ void BC_DeleteFile::create_objects()
 		
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Really delete the following files?")));
-	y += title->get_h() + 5;
+	y += title->get_h() + DP(5);
 	BC_DeleteList *list;
 	add_subwindow(list = new BC_DeleteList(filebox, 
 		x, 
 		y, 
 		get_w() - x * 2, 
-		get_h() - y - BC_OKButton::calculate_h() - 20,
+		get_h() - y - BC_OKButton::calculate_h() - DP(20),
 		data));
-	y += list->get_h() + 5;
+	y += list->get_h() + DP(5);
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
 	show_window();

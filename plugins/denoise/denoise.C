@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -755,10 +755,10 @@ void DenoiseConfig::interpolate(DenoiseConfig &prev,
 
 DenoiseWindow::DenoiseWindow(DenoiseEffect *plugin)
  : PluginClientWindow(plugin, 
-	150, 
-	50, 
-	150, 
-	50,
+	DP(150), 
+	DP(70), 
+	DP(150), 
+	DP(70),
 	0)
 {
 	this->plugin = plugin;
@@ -766,13 +766,12 @@ DenoiseWindow::DenoiseWindow(DenoiseEffect *plugin)
 
 void DenoiseWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	
 	add_subwindow(new BC_Title(x, y, _("Level:")));
-	x += 70;
+	x += DP(70);
 	add_subwindow(scale = new DenoiseLevel(plugin, x, y));
 	show_window();
-	flush();
 }
 
 

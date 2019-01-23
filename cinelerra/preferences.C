@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,13 +64,16 @@ Preferences::Preferences()
 
 	get_exe_path(plugin_dir);
 
-	sprintf(index_directory, BCASTDIR);
-	if(strlen(index_directory))
-		fs.complete_path(index_directory);
-	cache_size = 0xa00000;
+	index_directory.assign(BCASTDIR);
+	if(index_directory.length() > 0)
+	{
+    	fs.complete_path(&index_directory);
+	}
+    
+    cache_size = 0xa00000;
 	index_size = 0x300000;
 	index_count = 100;
-	use_thumbnails = 1;
+//	use_thumbnails = 1;
 	theme[0] = 0;
 	use_renderfarm = 0;
 	force_uniprocessor = 0;
@@ -95,7 +98,9 @@ Preferences::Preferences()
 	brender_fragment = 1;
 	local_rate = 0.0;
 
-	use_tipwindow = 1;
+	use_tipwindow = 0;
+	override_dpi = 0;
+	dpi = BASE_DPI;
 
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
@@ -155,13 +160,15 @@ void Preferences::copy_rates_from(Preferences *preferences)
 void Preferences::copy_from(Preferences *that)
 {
 // ================================= Performance ================================
-	strcpy(index_directory, that->index_directory);
+	index_directory.assign(that->index_directory);
 	index_size = that->index_size;
 	index_count = that->index_count;
-	use_thumbnails = that->use_thumbnails;
+//	use_thumbnails = that->use_thumbnails;
 	strcpy(theme, that->theme);
 
 	use_tipwindow = that->use_tipwindow;
+	override_dpi = that->override_dpi;
+	dpi = that->dpi;
 
 	cache_size = that->cache_size;
 	force_uniprocessor = that->force_uniprocessor;
@@ -194,10 +201,10 @@ void Preferences::copy_from(Preferences *that)
 // Check boundaries
 
 	FileSystem fs;
-	if(strlen(index_directory))
+	if(index_directory.length() > 0)
 	{
-		fs.complete_path(index_directory);
-		fs.add_end_slash(index_directory);
+		fs.complete_path(&index_directory);
+		fs.add_end_slash(&index_directory);
 	}
 	
 // 	if(strlen(global_plugin_dir))
@@ -274,10 +281,14 @@ int Preferences::load_defaults(BC_Hash *defaults)
 	char string[BCTEXTLEN];
 
 	use_tipwindow = defaults->get("USE_TIPWINDOW", use_tipwindow);
-	defaults->get("INDEX_DIRECTORY", index_directory);
+	override_dpi = defaults->get("OVERRIDE_DPI", override_dpi);
+	dpi = defaults->get("DPI", dpi);
+//printf("Preferences::load_defaults %d dpi=%d\n", __LINE__, dpi);
+
+	defaults->get("INDEX_DIRECTORY", &index_directory);
 	index_size = defaults->get("INDEX_SIZE", index_size);
 	index_count = defaults->get("INDEX_COUNT", index_count);
-	use_thumbnails = defaults->get("USE_THUMBNAILS", use_thumbnails);
+//	use_thumbnails = defaults->get("USE_THUMBNAILS", use_thumbnails);
 
 //	sprintf(global_plugin_dir, PLUGIN_DIR);
 //	defaults->get("GLOBAL_PLUGIN_DIR", global_plugin_dir);
@@ -369,12 +380,14 @@ int Preferences::save_defaults(BC_Hash *defaults)
 
 
 	defaults->update("USE_TIPWINDOW", use_tipwindow);
+	defaults->update("OVERRIDE_DPI", override_dpi);
+	defaults->update("DPI", dpi);
 
 	defaults->update("CACHE_SIZE", cache_size);
-	defaults->update("INDEX_DIRECTORY", index_directory);
+	defaults->update("INDEX_DIRECTORY", &index_directory);
 	defaults->update("INDEX_SIZE", index_size);
 	defaults->update("INDEX_COUNT", index_count);
-	defaults->update("USE_THUMBNAILS", use_thumbnails);
+//	defaults->update("USE_THUMBNAILS", use_thumbnails);
 //	defaults->update("GLOBAL_PLUGIN_DIR", global_plugin_dir);
 	defaults->update("THEME", theme);
 

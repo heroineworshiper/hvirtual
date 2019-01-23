@@ -29,6 +29,7 @@
 #include "cursors.h"
 #include "filesystem.h"
 #include "keys.h"
+#include "language.h"
 #include <math.h>
 #include "bctimer.h"
 #include "vframe.h"
@@ -53,6 +54,20 @@ BC_TextBox::BC_TextBox(int x,
 	skip_cursor = 0;
 	reset_parameters(rows, has_border, font);
 	this->text.assign(text);
+}
+
+BC_TextBox::BC_TextBox(int x, 
+	int y, 
+	int w, 
+	int rows, 
+	string *text, 
+	int has_border, 
+	int font)
+ : BC_SubWindow(x, y, w, 0, -1)
+{
+	skip_cursor = 0;
+	reset_parameters(rows, has_border, font);
+	this->text.assign(*text);
 }
 
 BC_TextBox::BC_TextBox(int x, 
@@ -112,6 +127,7 @@ BC_TextBox::~BC_TextBox()
 	suggestions->remove_all_objects();
 	delete suggestions;
 	delete suggestions_popup;
+	delete menu;
 }
 
 int BC_TextBox::reset_parameters(int rows, int has_border, int font)
@@ -142,11 +158,13 @@ int BC_TextBox::reset_parameters(int rows, int has_border, int font)
 	last_keypress = 0;
 	separators = 0;
 	yscroll = 0;
+	menu = 0;
 	return 0;
 }
 
 int BC_TextBox::initialize()
 {
+
 	if (!skip_cursor)
 		skip_cursor = new Timer;
 	skip_cursor->update();
@@ -188,6 +206,10 @@ int BC_TextBox::initialize()
 	draw(0);
 	set_cursor(IBEAM_CURSOR, 0, 0);
 	show_window(0);
+
+	add_subwindow(menu = new BC_TextMenu(this));
+	menu->create_objects();
+
 	return 0;
 }
 
@@ -555,7 +577,7 @@ void BC_TextBox::draw(int flush)
 	string text_row;
 	BC_Resources *resources = get_resources();
 
-//printf("BC_TextBox::draw 1 %s\n", text);
+//printf("BC_TextBox::draw %d %s\n", __LINE__, text.c_str());
 // Background
 	if(has_border)
 	{
@@ -721,9 +743,10 @@ int BC_TextBox::button_press_event()
 	const int debug = 0;
 	
 	if(!enabled) return 0;
-	if(get_buttonpress() != WHEEL_UP &&
-		get_buttonpress() != WHEEL_DOWN &&
-		get_buttonpress() != LEFT_BUTTON) return 0;
+// 	if(get_buttonpress() != WHEEL_UP &&
+// 		get_buttonpress() != WHEEL_DOWN &&
+// 		get_buttonpress() != LEFT_BUTTON &&
+// 		get_buttonpress() != MIDDLE_BUTTON) return 0;
 
 	
 
@@ -763,6 +786,11 @@ int BC_TextBox::button_press_event()
 			update_scroll = 1;
 		}
 		else
+		if(get_buttonpress() == RIGHT_BUTTON)
+		{
+			menu->activate_menu();
+		}
+		else
 		{
 
 			cursor_letter = get_cursor_letter(top_level->cursor_x, top_level->cursor_y);
@@ -791,7 +819,7 @@ int BC_TextBox::button_press_event()
 				copy_selection(PRIMARY_SELECTION);
 			}
 			else
-			if(get_buttonpress() == 2)
+			if(get_buttonpress() == MIDDLE_BUTTON)
 			{
 				highlight_letter3 = highlight_letter4 = 
 					ibeam_letter = highlight_letter1 = 
@@ -1669,35 +1697,22 @@ int BC_TextBox::keypress_event()
 			{
 				if(get_keypress() == 'c' || get_keypress() == 'C')
 				{
-					if(highlight_letter1 != highlight_letter2)
-					{
-						copy_selection(SECONDARY_SELECTION);
-						result = 1;
-					}
+					result = copy(0);
 				}
 				else
 				if(get_keypress() == 'v' || get_keypress() == 'V')
 				{
-					paste_selection(SECONDARY_SELECTION);
-					find_ibeam(1);
-					if(keypress_draw) draw(1);
+					result = paste(0);
+
+					
 					dispatch_event = 1;
-					result = 1;
 				}
 				else
 				if(get_keypress() == 'x' || get_keypress() == 'X')
 				{
-					if(highlight_letter1 != highlight_letter2)
-					{
-						copy_selection(SECONDARY_SELECTION);
-						delete_selection(highlight_letter1, highlight_letter2, text_len);
-						highlight_letter2 = ibeam_letter = highlight_letter1;
-					}
+					result = cut(0);
 
-					find_ibeam(1);
-					if(keypress_draw) draw(1);
 					dispatch_event = 1;
-					result = 1;
 				}
 				
 				break;
@@ -1712,6 +1727,54 @@ int BC_TextBox::keypress_event()
 	return result;
 }
 
+int BC_TextBox::cut(int do_housekeeping)
+{
+	int text_len = text.length();
+	if(highlight_letter1 != highlight_letter2)
+	{
+		copy_selection(SECONDARY_SELECTION);
+		delete_selection(highlight_letter1, highlight_letter2, text_len);
+		highlight_letter2 = ibeam_letter = highlight_letter1;
+	}
+
+	find_ibeam(1);
+	if(keypress_draw) draw(1);
+	
+	if(do_housekeeping)
+	{
+		skip_cursor->update();
+		handle_event();
+	}
+	return 1;
+}
+
+int BC_TextBox::copy(int do_housekeeping)
+{
+	int result = 0;
+	if(highlight_letter1 != highlight_letter2)
+	{
+		copy_selection(SECONDARY_SELECTION);
+		result = 1;
+		if(do_housekeeping)
+		{
+			skip_cursor->update();
+		}
+	}
+	return result;
+}
+
+int BC_TextBox::paste(int do_housekeeping)
+{
+	paste_selection(SECONDARY_SELECTION);
+	find_ibeam(1);
+	if(keypress_draw) draw(1);
+	if(do_housekeeping)
+	{
+		skip_cursor->update();
+		handle_event();
+	}
+	return 1;
+}
 
 
 int BC_TextBox::uses_text()
@@ -1795,6 +1858,13 @@ int BC_TextBox::utf8seek(int &seekpoint, int reverse)
 
 void BC_TextBox::delete_selection(int letter1, int letter2, int text_len)
 {
+	CLAMP(letter1, 0, text.length() - 1);
+	CLAMP(letter2, letter1, text.length());
+// printf("BC_TextBox::delete_selection %d %d %d %d\n", 
+// __LINE__,
+// letter1,
+// letter2,
+// text_len);
 	text.erase(letter1, letter2 - letter1);
 
 	do_separators(1);
@@ -1812,6 +1882,7 @@ void BC_TextBox::insert_text(char *string)
 		highlight_letter2 = ibeam_letter = highlight_letter1;
 	}
 
+//printf("BC_TextBox::insert_text %d %s\n", __LINE__, string);
 	text.insert(ibeam_letter, string);
 
 	ibeam_letter += string_len;
@@ -2217,6 +2288,7 @@ void BC_TextBox::copy_selection(int clipboard_num)
 
 void BC_TextBox::paste_selection(int clipboard_num)
 {
+//printf("BC_TextBox::paste_selection %d\n", __LINE__);
 	int len = get_clipboard()->clipboard_len(clipboard_num);
 	if(len)
 	{
@@ -2982,3 +3054,77 @@ void BC_TumbleTextBox::set_boundaries(float min, float max)
 {
 	tumbler->set_boundaries(min, max);
 }
+
+
+
+
+
+
+
+BC_TextMenu::BC_TextMenu(BC_TextBox *textbox)
+ : BC_PopupMenu(0, 
+		0, 
+		0, 
+		"", 
+		0)
+{
+	this->textbox = textbox;
+}
+
+BC_TextMenu::~BC_TextMenu()
+{
+}
+
+void BC_TextMenu::create_objects()
+{
+	add_item(new BC_TextMenuCut(this));
+	add_item(new BC_TextMenuCopy(this));
+	add_item(new BC_TextMenuPaste(this));
+}
+
+
+
+BC_TextMenuCut::BC_TextMenuCut(BC_TextMenu *menu) 
+ : BC_MenuItem(_("Cut"))
+{
+	this->menu = menu;
+}
+
+int BC_TextMenuCut::handle_event()
+{
+	menu->textbox->cut(1);
+	
+	return 0;
+}
+
+
+BC_TextMenuCopy::BC_TextMenuCopy(BC_TextMenu *menu) 
+ : BC_MenuItem(_("Copy"))
+{
+	this->menu = menu;
+}
+
+int BC_TextMenuCopy::handle_event()
+{
+	menu->textbox->copy(1);
+	return 0;
+}
+
+
+
+BC_TextMenuPaste::BC_TextMenuPaste(BC_TextMenu *menu) 
+ : BC_MenuItem(_("Paste"))
+{
+	this->menu = menu;
+}
+
+int BC_TextMenuPaste::handle_event()
+{
+	menu->textbox->paste(1);
+	return 0;
+}
+
+
+
+
+

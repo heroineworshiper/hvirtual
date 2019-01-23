@@ -38,6 +38,7 @@ DIRS = \
 	dissolve \
 	dot \
 	downsample \
+	edge \
 	fieldframe \
 	flash \
 	flip \
@@ -93,6 +94,8 @@ DIRS = \
 	shiftinterlace \
 	slide \
 	spectrogram \
+	spherecam \
+	spheretranslate \
 	suv \
 	swapchannels \
 	swapframes \

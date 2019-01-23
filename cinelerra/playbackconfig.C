@@ -41,7 +41,7 @@ AudioOutConfig::AudioOutConfig(int duplex)
 		sprintf(oss_out_device[i], "/dev/dsp");
 	}
 
-	sprintf(esound_out_server, "");
+	esound_out_server[0] = 0;
 	esound_out_port = 0;
 
 	sprintf(alsa_out_device, "default");
@@ -257,10 +257,10 @@ VideoOutConfig::VideoOutConfig()
 {
 	sprintf(lml_out_device, "/dev/mvideo/stream");
 	sprintf(buz_out_device, "/dev/video0");
-	driver = PLAYBACK_X11_XV;
+	driver = PLAYBACK_X11;
 	buz_out_channel = 0;
 	buz_swap_fields = 0;
-	sprintf(x11_host, "");
+	x11_host[0] = 0;
 	x11_use_fields = USE_NO_FIELDS;
 
 	firewire_channel = 63;

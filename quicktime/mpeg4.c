@@ -16,9 +16,6 @@
 #include ENCORE_INCLUDE
 //#include DECORE_INCLUDE
 
-
-
-#include <pthread.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -93,7 +90,6 @@ typedef struct
 
 
 // Decore needs the user to specify handles
-static int decode_handle = 1;
 static int encode_handle = 0;
 
 
@@ -210,7 +206,6 @@ int quicktime_mpeg4_write_vol(unsigned char *data_start,
 	unsigned char *data = data_start;
 	int bit_pos;
 	uint64_t bit_store;
-	int i, j;
 
 	bit_store = 0;
 	bit_pos = 0;
@@ -567,9 +562,44 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 }
 
 
+static int encode_video2(AVCodecContext *avctx, uint8_t *buf, int buf_size,
+                                             const AVFrame *pict)
+{       
+	AVPacket *pkt = av_packet_alloc();
+	pkt->data = buf;
+	pkt->size = buf_size;
+
+	int got_packet = 0;
+	int ret = avcodec_encode_video2(avctx, pkt, pict, &got_packet);
+	if (!ret && got_packet && avctx->coded_frame) {
+		avctx->coded_frame->pts = pkt->pts;
+		avctx->coded_frame->key_frame = !!(pkt->flags & AV_PKT_FLAG_KEY);
+	}
+
+	if( pkt->side_data_elems > 0 ) {
+		int i = pkt->side_data_elems;
+		while( --i >= 0 ) av_free(pkt->side_data[i].data);
+		av_freep(&pkt->side_data);
+		pkt->side_data_elems = 0;
+	}
+	
+	int size = pkt->size;
+	av_packet_free(&pkt);
+
+	return ret ? ret : size;
+}
+
+
+static void frame_defaults(AVFrame *frame)
+{
+    memset(frame, 0, sizeof(AVFrame));
+    av_frame_unref(frame);
+}
+
+
 static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 {
-	int64_t offset = quicktime_position(file);
+//	int64_t offset = quicktime_position(file);
 	quicktime_video_map_t *vtrack = &(file->vtracks[track]);
 	quicktime_mpeg4_codec_t *codec = ((quicktime_codec_t*)vtrack->codec)->priv;
 	quicktime_trak_t *trak = vtrack->track;
@@ -595,7 +625,7 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 	if(!codec->encode_initialized[current_field])
 	{
 // Encore section
-		if(codec->ffmpeg_id == CODEC_ID_MPEG4 && codec->use_encore)
+		if(codec->ffmpeg_id == AV_CODEC_ID_MPEG4 && codec->use_encore)
 		{
 			codec->encode_initialized[current_field] = 1;
 			codec->encode_handle[current_field] = encode_handle++;
@@ -624,16 +654,16 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 		else
 // ffmpeg section
 		{
-			static char *video_rc_eq="tex^qComp";
 			codec->encode_initialized[current_field] = 1;
 			if(!ffmpeg_initialized)
 			{
 				ffmpeg_initialized = 1;
-  				avcodec_init();
 				avcodec_register_all();
 			}
 
-			codec->encoder[current_field] = avcodec_find_encoder(codec->ffmpeg_id);
+			AVCodec *av_codec = avcodec_find_encoder(codec->ffmpeg_id);
+			codec->encoder[current_field] = av_codec;
+
 			if(!codec->encoder[current_field])
 			{
 				printf("encode: avcodec_find_encoder returned NULL.\n");
@@ -641,13 +671,13 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 				return 1;
 			}
 
-			codec->encoder_context[current_field] = avcodec_alloc_context();
-			AVCodecContext *context = codec->encoder_context[current_field];
+			AVCodecContext *context = avcodec_alloc_context3(av_codec);
+			codec->encoder_context[current_field] = context;
 
 			context->width = width_i;
 			context->height = height_i;
 			context->gop_size = codec->gop_size;
-			context->pix_fmt = PIX_FMT_YUV420P;
+			context->pix_fmt = AV_PIX_FMT_YUV420P;
 			context->bit_rate = codec->bitrate / codec->total_fields / 1000;
 			context->bit_rate_tolerance = codec->bitrate_tolerance / 1000;
 //			context->rc_eq = video_rc_eq;
@@ -704,16 +734,25 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
         	context->profile= FF_PROFILE_UNKNOWN;
 //			context->rc_buffer_aggressivity = 1.0;
         	context->level= FF_LEVEL_UNKNOWN;
-			context->flags |= CODEC_FLAG_H263P_UMV;
+//			context->flags |= CODEC_FLAG_H263P_UMV;
 			context->flags |= CODEC_FLAG_AC_PRED;
 			context->flags |= CODEC_FLAG_4MV;
 // Not compatible with Win
 //			context->flags |= CODEC_FLAG_QPEL;
 
+			if( codec->ffmpeg_id == AV_CODEC_ID_MPEG4 ||
+			    codec->ffmpeg_id == AV_CODEC_ID_H263 ||
+			    codec->ffmpeg_id == AV_CODEC_ID_H263P ||
+			    codec->ffmpeg_id == AV_CODEC_ID_FLV1 )
+				context->flags |= CODEC_FLAG_4MV;
+
+			if( codec->ffmpeg_id == AV_CODEC_ID_MPEG4)
+				context->flags |= CODEC_FLAG_QPEL;
+
 			if(file->cpus > 1)
 			{
-				avcodec_thread_init(context, file->cpus);
-//				context->thread_count = file->cpus;
+//				avcodec_thread_init(context, file->cpus);
+				context->thread_count = file->cpus;
 			}
 
 			if(!codec->fix_bitrate)
@@ -732,10 +771,8 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
  * codec->fix_bitrate,
  * codec->quantizer);
  */
-			avcodec_open(context, codec->encoder[current_field]);
-
-   			avcodec_get_frame_defaults(&codec->picture[current_field]);
-
+			avcodec_open2(context, codec->encoder[current_field], 0);
+   			frame_defaults(&codec->picture[current_field]);
 		}
 	}
 
@@ -772,12 +809,12 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 			{
 				codec->temp_frame = malloc(width_i * height_i * 3 / 2);
 			}
-
+			unsigned char *utmp_frame = (unsigned char *)codec->temp_frame;
 			cmodel_transfer(0, /* Leave NULL if non existent */
 				row_pointers,
-				codec->temp_frame, /* Leave NULL if non existent */
-				codec->temp_frame + width_i * height_i,
-				codec->temp_frame + width_i * height_i + width_i * height_i / 4,
+				utmp_frame, /* Leave NULL if non existent */
+				utmp_frame + width_i * height_i,
+				utmp_frame + width_i * height_i + width_i * height_i / 4,
 				row_pointers[0], /* Leave NULL if non existent */
 				row_pointers[1],
 				row_pointers[2],
@@ -849,12 +886,13 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 			{
 				codec->temp_frame = malloc(width_i * height_i * 3 / 2);
 			}
+			unsigned char *utmp_frame = (unsigned char *)codec->temp_frame;
 
 			cmodel_transfer(0, /* Leave NULL if non existent */
 				row_pointers,
-				codec->temp_frame, /* Leave NULL if non existent */
-				codec->temp_frame + width_i * height_i,
-				codec->temp_frame + width_i * height_i + width_i * height_i / 4,
+				utmp_frame, /* Leave NULL if non existent */
+				utmp_frame + width_i * height_i,
+				utmp_frame + width_i * height_i + width_i * height_i / 4,
 				row_pointers[0], /* Leave NULL if non existent */
 				row_pointers[1],
 				row_pointers[2],
@@ -872,9 +910,9 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 				width,       /* For planar use the luma rowspan */
 				width_i);
 
-			picture->data[0] = codec->temp_frame;
-			picture->data[1] = codec->temp_frame + width_i * height_i;
-			picture->data[2] = codec->temp_frame + width_i * height_i + width_i * height_i / 4;
+			picture->data[0] = utmp_frame;
+			picture->data[1] = utmp_frame + width_i * height_i;
+			picture->data[2] = utmp_frame + width_i * height_i + width_i * height_i / 4;
 			picture->linesize[0] = width_i;
 			picture->linesize[1] = width_i / 2;
 			picture->linesize[2] = width_i / 2;
@@ -885,10 +923,7 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 		picture->quality = 0;
 		picture->pts = vtrack->current_position * quicktime_frame_rate_d(file, track);
 		picture->key_frame = 0;
-		bytes = avcodec_encode_video(context, 
-			codec->work_buffer, 
-        	codec->buffer_size, 
-        	picture);
+		bytes = encode_video2(context, codec->work_buffer, codec->buffer_size, picture);
 		is_keyframe = context->coded_frame && context->coded_frame->key_frame;
 /*
  * printf("encode current_position=%d is_keyframe=%d\n", 
@@ -927,18 +962,10 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 
 	pthread_mutex_unlock(&ffmpeg_lock);
 	quicktime_write_chunk_header(file, trak, &chunk_atom);
-	result = !quicktime_write_data(file, 
-		codec->work_buffer, 
-		bytes);
-	quicktime_write_chunk_footer(file, 
-		trak,
-		vtrack->current_chunk,
-		&chunk_atom, 
-		1);
+	result = !quicktime_write_data(file, (char*)codec->work_buffer, bytes);
+	quicktime_write_chunk_footer(file, trak, vtrack->current_chunk, &chunk_atom, 1);
 	if(is_keyframe || vtrack->current_position == 0)
-		quicktime_insert_keyframe(file, 
-			vtrack->current_position, 
-			track);
+		quicktime_insert_keyframe(file, vtrack->current_position, track);
 
 	vtrack->current_chunk++;
 	return result;
@@ -953,7 +980,6 @@ static void flush(quicktime_t *file, int track)
 {
 	quicktime_video_map_t *track_map = &(file->vtracks[track]);
 	quicktime_trak_t *trak = track_map->track;
-	quicktime_mpeg4_codec_t *codec = ((quicktime_codec_t*)track_map->codec)->priv;
 
 // Create header
 	if(!trak->mdia.minf.stbl.stsd.table[0].esds.mpeg4_header_size &&
@@ -965,13 +991,9 @@ static void flush(quicktime_t *file, int track)
 		int height_i = quicktime_quantize16(height);
 
 		unsigned char temp[1024];
-		int size = write_mp4v_header(temp,
-			width_i,
-			height_i,
+		int size = write_mp4v_header(temp, width_i, height_i,
 			quicktime_frame_rate(file, track));
-		quicktime_set_mpeg4_header(&trak->mdia.minf.stbl.stsd.table[0],
-			temp, 
-			size);
+		quicktime_set_mpeg4_header(&trak->mdia.minf.stbl.stsd.table[0], temp, size);
 	}
 
 // Create udta
@@ -1156,7 +1178,7 @@ void quicktime_init_codec_div3(quicktime_video_map_t *vtrack)
 		QUICKTIME_DIV3,
 		"DIVX",
 		"Mike Row Soft MPEG4 Version 3");
-	result->ffmpeg_id = CODEC_ID_MSMPEG4V3;
+	result->ffmpeg_id = AV_CODEC_ID_MSMPEG4V3;
 }
 
 void quicktime_init_codec_div5(quicktime_video_map_t *vtrack)
@@ -1165,7 +1187,7 @@ void quicktime_init_codec_div5(quicktime_video_map_t *vtrack)
 		QUICKTIME_DX50,
 		"DIVX",
 		"Mike Row Soft MPEG4 Version 5");
-	result->ffmpeg_id = CODEC_ID_MPEG4;
+	result->ffmpeg_id = AV_CODEC_ID_MPEG4;
 }
 
 // Mike Rowe Soft MPEG-4
@@ -1175,7 +1197,7 @@ void quicktime_init_codec_div3lower(quicktime_video_map_t *vtrack)
 		QUICKTIME_DIV3_LOWER,
 		"DIVX",
 		"Mike Row Soft MPEG4 Version 3");
-	result->ffmpeg_id = CODEC_ID_MSMPEG4V3;
+	result->ffmpeg_id = AV_CODEC_ID_MSMPEG4V3;
 }
 
 void quicktime_init_codec_div3v2(quicktime_video_map_t *vtrack)
@@ -1184,7 +1206,7 @@ void quicktime_init_codec_div3v2(quicktime_video_map_t *vtrack)
 		QUICKTIME_MP42,
 		"MP42",
 		"Mike Row Soft MPEG4 Version 2");
-	result->ffmpeg_id = CODEC_ID_MSMPEG4V2;
+	result->ffmpeg_id = AV_CODEC_ID_MSMPEG4V2;
 }
 
 // Generic MPEG-4
@@ -1194,7 +1216,7 @@ void quicktime_init_codec_divx(quicktime_video_map_t *vtrack)
 		QUICKTIME_DIVX,
 		"MPEG-4",
 		"Generic MPEG Four");
-	result->ffmpeg_id = CODEC_ID_MPEG4;
+	result->ffmpeg_id = AV_CODEC_ID_MPEG4;
 	result->use_encore = 1;
 }
 
@@ -1204,7 +1226,7 @@ void quicktime_init_codec_mpg4(quicktime_video_map_t *vtrack)
 		QUICKTIME_MPG4,
 		"MPEG-4",
 		"FFMPEG (msmpeg4)");
-	result->ffmpeg_id = CODEC_ID_MSMPEG4V1;
+	result->ffmpeg_id = AV_CODEC_ID_MSMPEG4V1;
 }
 
 void quicktime_init_codec_dx50(quicktime_video_map_t *vtrack)
@@ -1213,7 +1235,7 @@ void quicktime_init_codec_dx50(quicktime_video_map_t *vtrack)
 		QUICKTIME_DX50,
 		"MPEG-4",
 		"FFMPEG (mpeg4)");
-	result->ffmpeg_id = CODEC_ID_MPEG4;
+	result->ffmpeg_id = AV_CODEC_ID_MPEG4;
 }
 
 // Generic MPEG-4
@@ -1223,7 +1245,7 @@ void quicktime_init_codec_mp4v(quicktime_video_map_t *vtrack)
 		QUICKTIME_MP4V,
 		"MPEG4",
 		"Generic MPEG Four");
-	result->ffmpeg_id = CODEC_ID_MPEG4;
+	result->ffmpeg_id = AV_CODEC_ID_MPEG4;
 //	result->use_encore = 1;
 }
 
@@ -1235,7 +1257,7 @@ void quicktime_init_codec_svq1(quicktime_video_map_t *vtrack)
 		QUICKTIME_SVQ1,
 		"Sorenson Version 1",
 		"From the chearch of codecs of yesterday's sights");
-	result->ffmpeg_id = CODEC_ID_SVQ1;
+	result->ffmpeg_id = AV_CODEC_ID_SVQ1;
 }
 
 void quicktime_init_codec_svq3(quicktime_video_map_t *vtrack)
@@ -1244,7 +1266,7 @@ void quicktime_init_codec_svq3(quicktime_video_map_t *vtrack)
 		QUICKTIME_SVQ3,
 		"Sorenson Version 3",
 		"From the chearch of codecs of yesterday's sights");
-	result->ffmpeg_id = CODEC_ID_SVQ3;
+	result->ffmpeg_id = AV_CODEC_ID_SVQ3;
 }
 
 void quicktime_init_codec_h263(quicktime_video_map_t *vtrack)
@@ -1253,7 +1275,7 @@ void quicktime_init_codec_h263(quicktime_video_map_t *vtrack)
         QUICKTIME_H263,
         "H.263",
         "H.263");
-    result->ffmpeg_id = CODEC_ID_H263;
+    result->ffmpeg_id = AV_CODEC_ID_H263;
 }
 
 void quicktime_init_codec_xvid(quicktime_video_map_t *vtrack)
@@ -1262,7 +1284,7 @@ void quicktime_init_codec_xvid(quicktime_video_map_t *vtrack)
         QUICKTIME_XVID,
         "XVID",
         "FFmpeg MPEG-4");
-    result->ffmpeg_id = CODEC_ID_MPEG4;
+    result->ffmpeg_id = AV_CODEC_ID_MPEG4;
 }
 
 // field based MPEG-4
@@ -1273,7 +1295,7 @@ void quicktime_init_codec_hv60(quicktime_video_map_t *vtrack)
 		"Dual MPEG-4",
 		"MPEG 4 with alternating streams every other frame.  (Not standardized)");
 	result->total_fields = 2;
-	result->ffmpeg_id = CODEC_ID_MPEG4;
+	result->ffmpeg_id = AV_CODEC_ID_MPEG4;
 }
 
 

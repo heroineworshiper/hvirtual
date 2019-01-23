@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "language.h"
 #include "overlayframe.h"
 #include "picon_png.h"
+#include "theme.h"
 #include "vframe.h"
 
 
@@ -121,10 +122,10 @@ int BandSlideOut::handle_event()
 
 BandSlideWindow::BandSlideWindow(BandSlideMain *plugin)
  : PluginClientWindow(plugin, 
-	320, 
-	100, 
-	320, 
-	100, 
+	DP(320), 
+	DP(100), 
+	DP(320), 
+	DP(100), 
 	0)
 {
 	this->plugin = plugin;
@@ -133,31 +134,31 @@ BandSlideWindow::BandSlideWindow(BandSlideMain *plugin)
 
 void BandSlideWindow::create_objects()
 {
-	int x = 10, y = 10;
-	add_subwindow(new BC_Title(x, y, _("Bands:")));
-	x += 50;
+	int x = DP(10), y = DP(10);
+	BC_Title *title;
+	add_subwindow(title = new BC_Title(x, y, _("Bands:")));
+	x += title->get_w() + client->get_theme()->widget_border;
 	count = new BandSlideCount(plugin, 
 		this,
 		x,
 		y);
 	count->create_objects();
 
-	y += 30;
-	x = 10;
+	y += DP(30);
+	x = DP(10);
 	add_subwindow(new BC_Title(x, y, _("Direction:")));
-	x += 100;
+	x += DP(100);
 	add_subwindow(in = new BandSlideIn(plugin, 
 		this,
 		x,
 		y));
-	x += 100;
+	x += DP(100);
 	add_subwindow(out = new BandSlideOut(plugin, 
 		this,
 		x,
 		y));
 
 	show_window();
-	flush();
 }
 
 

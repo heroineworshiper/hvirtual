@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,43 +99,46 @@ void AboutPrefs::create_objects()
 	credits.append(new BC_ListBoxItem("Karl Bielefeldt"));
 	credits.append(new BC_ListBoxItem("Kevin Brosius"));
 	credits.append(new BC_ListBoxItem("Jean-Luc Coulon"));
-	credits.append(new BC_ListBoxItem("Jean-Michel Poure"));
 	credits.append(new BC_ListBoxItem("Jerome Cornet"));
 	credits.append(new BC_ListBoxItem("Pierre Marc Dumuid"));
+	credits.append(new BC_ListBoxItem("Nicola Ferralis"));
 	credits.append(new BC_ListBoxItem("Alex Ferrer"));
 	credits.append(new BC_ListBoxItem("Gustavo Iñiguez"));
 	credits.append(new BC_ListBoxItem("Tefan de Konink"));
 	credits.append(new BC_ListBoxItem("Nathan Kurz"));
 	credits.append(new BC_ListBoxItem("Greg Mekkes"));
-	credits.append(new BC_ListBoxItem("Eric Seigne"));
-	credits.append(new BC_ListBoxItem("Johannes Sixt"));
-	credits.append(new BC_ListBoxItem("Joe Stewart"));
-	credits.append(new BC_ListBoxItem("Dan Streetman"));
-	credits.append(new BC_ListBoxItem("Johannes Sixt"));
-	credits.append(new BC_ListBoxItem("Mark Taraba"));
-	credits.append(new BC_ListBoxItem("Andraz Tori"));
-	credits.append(new BC_ListBoxItem("Jonas Wulff"));
+	credits.append(new BC_ListBoxItem("Jean-Michel Poure"));
+	credits.append(new BC_ListBoxItem("Monty Montgomery"));
+	credits.append(new BC_ListBoxItem("Bill Morrow"));
 #ifdef X_HAVE_UTF8_STRING
 	credits.append(new BC_ListBoxItem("Einar Rünkaru"));
 #else
 	credits.append(new BC_ListBoxItem("Einar R\374nkaru"));
 #endif
-	credits.append(new BC_ListBoxItem("Monty Montgomery"));
 	credits.append(new BC_ListBoxItem("Paolo Rampino"));
 	credits.append(new BC_ListBoxItem("Petter Reinholdtsen"));
-	credits.append(new BC_ListBoxItem("Nicola Ferralis"));
+	credits.append(new BC_ListBoxItem("Eric Seigne"));
+	credits.append(new BC_ListBoxItem("Johannes Sixt"));
+	credits.append(new BC_ListBoxItem("Joe Stewart"));
+	credits.append(new BC_ListBoxItem("Dan Streetman"));
+	credits.append(new BC_ListBoxItem("Mark Taraba"));
+	credits.append(new BC_ListBoxItem("Andraz Tori"));
+	credits.append(new BC_ListBoxItem("Jonas Wulff"));
+
+
+
 
 	BC_ListBox *listbox;
 	add_subwindow(listbox = new BC_ListBox(x, 
 		y,
-		200,
-		300,
+		DP(200),
+		DP(300),
 		LISTBOX_TEXT,
 		&credits,
 		0,
 		0,
 		1));
-	y += listbox->get_h() + get_text_height(LARGEFONT) + 10;
+	y += listbox->get_h() + get_text_height(LARGEFONT) + DP(10);
 
 	set_font(LARGEFONT);
 	set_color(resources->text_default);
@@ -156,7 +159,7 @@ void AboutPrefs::create_objects()
 "\n"));
 	draw_text(x, y, license3);
 
-	x = get_w() - mwindow->theme->about_bg->get_w() - 10;
+	x = get_w() - mwindow->theme->about_bg->get_w() - DP(10);
 	y = mwindow->theme->preferencesoptions_y;
 	BC_Pixmap *temp_pixmap = new BC_Pixmap(this, 
 		mwindow->theme->about_bg,
@@ -168,12 +171,11 @@ void AboutPrefs::create_objects()
 	delete temp_pixmap;
 
 
-	x += mwindow->theme->about_bg->get_w() + 10;
+	x += mwindow->theme->about_bg->get_w() + DP(10);
 	y += get_text_height(LARGEFONT) * 2;
 
 
-	flash();
-	flush();
+	flash(1);
 }
 
 

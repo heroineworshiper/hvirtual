@@ -1,11 +1,5 @@
 include ../global_config
 
-# Need the freetype include that matches the X server for Xft rendering
-#FREETYPE_DIR := ..//usr/X11R6/include/freetype2
-FREETYPE_DIR := $(shell expr ../thirdparty/freetype*/include )
-
-CFLAGS += -I../quicktime -I$(FREETYPE_DIR)
-
 # must only define here so applications using libpng don't see any of the XFT
 # includes at all.  They use a conflicting setjmp.
 ifeq ($(HAVE_XFT), y)
@@ -14,7 +8,7 @@ endif
 
 DEST := /usr/bin
 
-CFLAGS += -g
+#CFLAGS += -g
 
 ifeq ($(OBJDIR), i686)
 BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B i386 -I binary -O elf32-i386\""
@@ -102,7 +96,6 @@ STATICOUTPUT = $(OBJDIR)/libguicast.a
 
 TESTLIBS := \
 		$(STATICOUTPUT) \
-		../quicktime/$(OBJDIR)/libquicktime.a \
 		$(LFLAGS) \
 		$(GLLIBS) \
 		-lX11 \

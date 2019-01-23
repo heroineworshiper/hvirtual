@@ -78,8 +78,9 @@ CFLAGS += -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 #CFLAGS += -I.      # Caused fileavi.C to fail
 
 # the directory for plugin includes
-FREETYPE_DIR := $(shell expr ../../thirdparty/freetype-* )
-CFLAGS += -I$(FREETYPE_DIR)/include -I../../
+#FREETYPE_DIR := $(shell expr ../../thirdparty/freetype-* )
+FREETYPE_DIR := $(shell pkg-config --cflags freetype2 )
+CFLAGS += $(FREETYPE_DIR) -I../../
 
 ifeq ($(HAVE_OSS), y)
 CFLAGS += -DHAVE_OSS

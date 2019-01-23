@@ -139,6 +139,7 @@ public:
 	void set_quality(int quality);
 // Change field order
 	int set_field_order(int odd_field_first);
+	void set_do_cursor(int do_cursor, int do_big_cursor);
 // Set frames to clear after translation change.
 	int set_latency_counter(int value);
 // Values from -100 to 100
@@ -170,7 +171,7 @@ public:
 	int interrupt_playback();
 // Get output buffer for playback using colormodel.
 // colormodel argument should be as close to best_colormodel as possible
-	void new_output_buffer(VFrame **output, int colormodel);
+	void new_output_buffer(VFrame **output, int colormodel, EDL *edl);
 	int wait_for_startup();
 	int wait_for_completion();
 	int output_visible();     // Whether the output is visible or not.
@@ -238,6 +239,7 @@ public:
 // All the input sources on the device
 	ArrayList<Channel*> input_sources;
 	int odd_field_first;
+	int do_cursor;
 // Quality for the JPEG compressor
 	int quality;
 // Single frame mode for playback

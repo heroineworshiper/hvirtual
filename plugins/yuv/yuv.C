@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -144,8 +144,8 @@ YUVLevel::YUVLevel(YUVEffect *plugin, float *output, int x, int y)
  : BC_FSlider(x, 
 			y,
 			0,
-			200, 
-			200, 
+			DP(200), 
+			DP(200), 
 			-MAXVALUE, 
 			MAXVALUE, 
 			*output)
@@ -164,10 +164,10 @@ int YUVLevel::handle_event()
 
 YUVWindow::YUVWindow(YUVEffect *plugin)
  : PluginClientWindow(plugin, 
-	260, 
-	100, 
-	260, 
-	100, 
+	DP(260), 
+	DP(100), 
+	DP(260), 
+	DP(100), 
 	0)
 {
 	this->plugin = plugin;
@@ -175,13 +175,13 @@ YUVWindow::YUVWindow(YUVEffect *plugin)
 
 void YUVWindow::create_objects()
 {
-	int x = 10, y = 10, x1 = 50;
+	int x = DP(10), y = DP(10), x1 = DP(50);
 	add_subwindow(new BC_Title(x, y, _("Y:")));
 	add_subwindow(this->y = new YUVLevel(plugin, &plugin->config.y, x1, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("U:")));
 	add_subwindow(u = new YUVLevel(plugin, &plugin->config.u, x1, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("V:")));
 	add_subwindow(v = new YUVLevel(plugin, &plugin->config.v, x1, y));
 

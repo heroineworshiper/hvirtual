@@ -160,9 +160,9 @@ int Edit::copy(int64_t start,
 				char output_directory[BCTEXTLEN];
 				FileSystem fs;
 
-//printf("Edit::copy 6 %s\n", asset->path);
+//printf("Edit::copy %d %s\n", __LINE__, asset->path);
 				fs.extract_dir(asset_directory, asset->path);
-//printf("Edit::copy 6 %s\n", asset->path);
+//printf("Edit::copy %d %s\n", __LINE__, asset->path);
 
 				if(output_path)
 					fs.extract_dir(output_directory, output_path);
@@ -499,6 +499,8 @@ int Edit::shift_start_out(int edit_mode,
 {
 	int64_t cut_length = oldposition - newposition;
 
+//printf("Edit::shift_start_out %d: edit_mode=%d startsource=%ld cut_length=%ld\n", 
+//__LINE__, edit_mode, startsource, cut_length);
 
 	if(asset || nested_edl)
 	{
@@ -513,7 +515,7 @@ int Edit::shift_start_out(int edit_mode,
 
 	if(edit_mode == MOVE_ALL_EDITS)
 	{
-//printf("Edit::shift_start_out 10 %lld\n", cut_length);
+//printf("Edit::shift_start_out %d: %lld\n", __LINE__, cut_length);
 		startsource -= cut_length;
 		length += cut_length;
 
@@ -533,6 +535,7 @@ int Edit::shift_start_out(int edit_mode,
 	else
 	if(edit_mode == MOVE_ONE_EDIT)
 	{
+//printf("Edit::shift_start_out %d: previous=%p\n", __LINE__, previous);
 		if(previous)
 		{
 			if(cut_length < previous->length)
@@ -541,7 +544,7 @@ int Edit::shift_start_out(int edit_mode,
 				startproject -= cut_length;
 				startsource -= cut_length;
 				length += cut_length;
-printf("Edit::shift_start_out 2\n");
+//printf("Edit::shift_start_out 2\n");
 			}
 			else
 			{   // Clear entire previous edit
@@ -556,6 +559,10 @@ printf("Edit::shift_start_out 2\n");
 	else
 	if(edit_mode == MOVE_NO_EDITS)
 	{
+//printf("Edit::shift_start_out %d: cut_length=%ld startsource=%ld\n",
+//__LINE__,
+//cut_length,
+//startsource);
 		startsource -= cut_length;
 	}
 
@@ -713,13 +720,17 @@ int Edit::shift_end_out(int edit_mode,
 				next->startproject += cut_length;
 				next->startsource += cut_length;
 				next->length -= cut_length;
-//printf("Edit::shift_end_out 2 %d\n", cut_length);
+//printf("Edit::shift_end_out %d cut_length=%d\n", __LINE__, cut_length);
 			}
 			else
 			{
+//printf("Edit::shift_end_out %d cut_length=%d next->length=%d\n", __LINE__, cut_length, next->length);
 				cut_length = next->length;
+				next->startproject += next->length;
+				next->startsource += next->length;
 				next->length = 0;
 				length += cut_length;
+//track->dump();
 			}
 		}
 		else

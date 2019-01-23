@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -151,15 +151,15 @@ int GradientConfig::get_out_color()
 
 
 
-#define COLOR_W 100
-#define COLOR_H 30
+#define COLOR_W DP(100)
+#define COLOR_H DP(30)
 
 GradientWindow::GradientWindow(GradientMain *plugin)
  : PluginClientWindow(plugin,
-	350, 
-	290, 
-	350, 
-	290, 
+	DP(350), 
+	DP(290), 
+	DP(350), 
+	DP(290), 
 	0)
 {
 	this->plugin = plugin;
@@ -180,7 +180,7 @@ GradientWindow::~GradientWindow()
 void GradientWindow::create_objects()
 {
 	int margin = plugin->get_theme()->widget_border;
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	BC_Title *title;
 
 	add_subwindow(title = new BC_Title(x, y, _("Shape:")));
@@ -330,7 +330,7 @@ GradientShape::GradientShape(GradientMain *plugin,
 	GradientWindow *gui, 
 	int x, 
 	int y)
- : BC_PopupMenu(x, y, 100, to_text(plugin->config.shape), 1)
+ : BC_PopupMenu(x, y, DP(100), to_text(plugin->config.shape), 1)
 {
 	this->plugin = plugin;
 	this->gui = gui;
@@ -417,7 +417,7 @@ int GradientAngle::handle_event()
 GradientRate::GradientRate(GradientMain *plugin, int x, int y)
  : BC_PopupMenu(x,
  	y,
-	100,
+	DP(100),
 	to_text(plugin->config.rate),
 	1)
 {
@@ -462,8 +462,8 @@ GradientInRadius::GradientInRadius(GradientMain *plugin, int x, int y)
  : BC_FSlider(x,
  	y,
 	0,
-	200,
-	200,
+	DP(200),
+	DP(200),
 	(float)0,
 	(float)100,
 	(float)plugin->config.in_radius)
@@ -483,8 +483,8 @@ GradientOutRadius::GradientOutRadius(GradientMain *plugin, int x, int y)
  : BC_FSlider(x,
  	y,
 	0,
-	200,
-	200,
+	DP(200),
+	DP(200),
 	(float)0,
 	(float)100,
 	(float)plugin->config.out_radius)

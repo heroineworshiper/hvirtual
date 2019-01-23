@@ -72,6 +72,7 @@ BC_Meter::~BC_Meter()
 {
 	db_titles.remove_all_objects();
 	title_pixels.remove_all();
+	tick_w.remove_all();
 	tick_pixels.remove_all();
 	for(int i = 0; i < TOTAL_METER_IMAGES; i++) delete images[i];
 }
@@ -234,6 +235,7 @@ void BC_Meter::get_divisions()
 	db_titles.remove_all_objects();
 	title_pixels.remove_all();
 	tick_pixels.remove_all();
+	tick_w.remove_all();
 
 	low_division = 0;
 	medium_division = 0;
@@ -257,8 +259,7 @@ void BC_Meter::get_divisions()
 				current == 0 ||
 				(current - min > 4 && max - current > 4 && !(current % 5)))
 			{
-				int title_pixel = (pixels - 
-					METER_MARGIN * 2) * 
+				int title_pixel = (pixels - METER_MARGIN * 2) * 
 					(current - min) /
 					(max - min);
 				sprintf(string, "%d", (int)labs(current));
@@ -266,6 +267,11 @@ void BC_Meter::get_divisions()
 				strcpy(new_string, string);
 				db_titles.append(new_string);
 				title_pixels.append(title_pixel);
+				tick_w.append(TICK_W1);
+			}
+			else
+			{
+				tick_w.append(TICK_W2);
 			}
 		}
 		else
@@ -274,6 +280,7 @@ void BC_Meter::get_divisions()
 				(current - min) /
 				(max - min);
 			tick_pixels.append(current_pixel);
+			tick_w.append(TICK_W1);
 // Titles not supported for horizontal
 		}
 
@@ -344,11 +351,12 @@ void BC_Meter::draw_titles(int flush)
 // Tick marks
 			int tick_y = pixels - tick_pixels.values[i] - METER_MARGIN;
 			set_color(get_resources()->meter_font_color);
-			draw_line(get_title_w() - 10 - 1, tick_y, get_title_w() - 1, tick_y);
+			draw_line(get_title_w() - tick_w.get(i) - 1, tick_y, get_title_w() - 1, tick_y);
+			
 			if(get_resources()->meter_3d)
 			{
 				set_color(BLACK);
-				draw_line(get_title_w() - 10, tick_y + 1, get_title_w(), tick_y + 1);
+				draw_line(get_title_w() - tick_w.get(i), tick_y + 1, get_title_w(), tick_y + 1);
 			}
 		}
 
@@ -553,12 +561,12 @@ void BC_Meter::draw_face(int flush)
 	{
 		if(orientation == METER_HORIZ)
 			draw_pixmap(images[METER_OVER], 
-				10, 
-				2);
+				DP(10), 
+				DP(2));
 		else
 			draw_pixmap(images[METER_OVER],
-				x + 2,
-				get_h() - 100);
+				x + DP(2),
+				get_h() - DP(100));
 
 		over_timer--;
 	}

@@ -167,6 +167,9 @@ const int debug = 0;
 		return MPEG3_INVALID_TOC_VERSION;
 	}
 
+// size of source file, for handling removable media
+    file->source_length = read_int64(buffer, &position);
+
 
 // File type
 	int done = 0;
@@ -200,15 +203,19 @@ const int debug = 0;
 				position += MPEG3_STRLEN;
 				file->source_date = read_int64(buffer, &position);
 				int64_t current_date = mpeg3_calculate_source_date(string2);
-/*
- * printf("mpeg3_read_toc file=%s source_date=%lld current_date=%lld\n", 
- * string2, 
- * file->source_date,
- * current_date);
- */
+
+// printf("mpeg3_read_toc file=%s source_date=%lld current_date=%lld\n", 
+// string2, 
+// file->source_date,
+// current_date);
+
 				if(current_date != file->source_date)
 				{
-					fprintf(stderr, "read_toc: date mismatch\n");
+					fprintf(stderr, 
+                        "read_toc %d: date mismatch source date=%ld source date from TOC=%ld\n", 
+                        __LINE__, 
+                        current_date,
+                        file->source_date);
 					free(buffer);
 					return MPEG3_TOC_DATE_MISMATCH;
 				}
@@ -267,9 +274,13 @@ const int debug = 0;
 					int channels = index->index_channels = file->channel_counts[i];
 					if(channels)
 					{
+                        index->offsets = calloc(sizeof(int64_t), channels);
+                        
+                        
 						index->index_data = calloc(sizeof(float*), channels);
 						for(j = 0; j < channels; j++)
 						{
+                            index->offsets[j] = position;
 							index->index_data[j] = calloc(sizeof(float), 
 								index->index_size * 2);
 							read_data(buffer,
@@ -1253,6 +1264,15 @@ void mpeg3_stop_toc(mpeg3_t *file)
 // Write version
 	PUT_INT32(MPEG3_TOC_VERSION);
 
+// write size of source file
+	struct stat file_status;
+	bzero(&file_status, sizeof(struct stat));
+	stat(file->fs->path, &file_status);
+	PUT_INT64(file_status.st_size);
+
+
+
+
 // Write stream type
 	if(file->is_program_stream)
 	{
@@ -1452,6 +1472,12 @@ int mpeg3_index_zoom(mpeg3_t *file)
 	return file->indexes[0]->index_zoom;
 }
 
+int64_t mpeg3_index_offset(mpeg3_t *file, int track, int channel)
+{
+	if(!file->total_indexes) return 0;
+	return file->indexes[track]->offsets[channel];
+}
+
 int mpeg3_index_size(mpeg3_t *file, int track)
 {
 	if(!file->total_indexes) return 0;
@@ -1478,6 +1504,11 @@ char* mpeg3_title_path(mpeg3_t *file, int number)
 		return file->demuxer->titles[number]->fs->path;
 	}
 	return 0;
+}
+
+int64_t mpeg3_index_source_size(mpeg3_t *file)
+{
+    return file->source_length;
 }
 
 int64_t mpeg3_get_source_date(mpeg3_t *file)

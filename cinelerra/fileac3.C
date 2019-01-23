@@ -88,20 +88,20 @@ int FileAC3::open_file(int rd, int wr)
 
 	if(wr)
 	{
-  		avcodec_init();
+//  		avcodec_init();
 		avcodec_register_all();
-		codec = avcodec_find_encoder(CODEC_ID_AC3);
+		codec = avcodec_find_encoder(AV_CODEC_ID_AC3);
 		if(!codec)
 		{
 			fprintf(stderr, 
 				"FileAC3::open_file codec not found.\n");
 			return 1;
 		}
-		codec_context = avcodec_alloc_context();
+		codec_context = avcodec_alloc_context3((AVCodec*)codec);
 		((AVCodecContext*)codec_context)->bit_rate = asset->ac3_bitrate * 1000;
 		((AVCodecContext*)codec_context)->sample_rate = asset->sample_rate;
 		((AVCodecContext*)codec_context)->channels = asset->channels;
-		if(avcodec_open(((AVCodecContext*)codec_context), ((AVCodec*)codec)))
+		if(avcodec_open2(((AVCodecContext*)codec_context), ((AVCodec*)codec), 0))
 		{
 			fprintf(stderr, 
 				"FileAC3::open_file failed to open codec.\n");
@@ -218,12 +218,41 @@ int FileAC3::write_samples(double **buffer, int64_t len)
 		current_sample + frame_size <= temp_raw_size; 
 		current_sample += frame_size)
 	{
-		int compressed_size = avcodec_encode_audio(
-			((AVCodecContext*)codec_context), 
-			temp_compressed + output_size, 
-			compressed_allocated - output_size, 
-            temp_raw + current_sample * asset->channels);
-		output_size += compressed_size;
+		AVPacket packet;
+		packet.data = temp_compressed + output_size;
+		packet.size = compressed_allocated - output_size;
+		int got_packet = 0;
+		AVFrame *frame = av_frame_alloc();
+		frame->format = AV_SAMPLE_FMT_S16;
+		frame->nb_samples = frame_size;
+		for(int i = 0; i < asset->channels; i++)
+		{
+			frame->data[i] = new unsigned char[frame->nb_samples * sizeof(int16_t)];
+			int16_t *out = (int16_t*)frame->data[i];
+			for(int j = 0; j < frame->nb_samples; j++)
+			{
+				out[j] = *(temp_raw + (current_sample + j) * asset->channels + i);
+			}
+		}
+		
+		avcodec_encode_audio2(((AVCodecContext*)codec_context), 
+			&packet,
+        	frame, 
+			&got_packet);
+		
+
+// 		avcodec_encode_audio(
+// 			((AVCodecContext*)codec_context), 
+// 			temp_compressed + output_size, 
+// 			compressed_allocated - output_size, 
+//             temp_raw + current_sample * asset->channels);
+
+		for(int i = 0; i < asset->channels; i++)
+		{
+			delete [] frame->data[i];
+		}
+		av_frame_free(&frame);
+		output_size += packet.size;
 	}
 
 // Shift buffer back
@@ -252,10 +281,10 @@ AC3ConfigAudio::AC3ConfigAudio(BC_WindowBase *parent_window,
  : BC_Window(PROGRAM_NAME ": Audio Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	500,
-	BC_OKButton::calculate_h() + 100,
-	500,
-	BC_OKButton::calculate_h() + 100,
+	DP(500),
+	BC_OKButton::calculate_h() + DP(100),
+	DP(500),
+	BC_OKButton::calculate_h() + DP(100),
 	0,
 	0,
 	1)
@@ -266,8 +295,8 @@ AC3ConfigAudio::AC3ConfigAudio(BC_WindowBase *parent_window,
 
 void AC3ConfigAudio::create_objects()
 {
-	int x = 10, y = 10;
-	int x1 = 150;
+	int x = DP(10), y = DP(10);
+	int x1 = DP(150);
 	lock_window("AC3ConfigAudio::create_objects");
 	add_tool(new BC_Title(x, y, "Bitrate (kbps):"));
 	AC3ConfigAudioBitrate *bitrate;
@@ -298,7 +327,7 @@ AC3ConfigAudioBitrate::AC3ConfigAudioBitrate(AC3ConfigAudio *gui,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	150,
+	DP(150),
 	AC3ConfigAudioBitrate::bitrate_to_string(gui->string, gui->asset->ac3_bitrate))
 {
 	this->gui = gui;

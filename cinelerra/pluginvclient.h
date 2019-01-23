@@ -104,7 +104,7 @@ public:
 		int channel, 
 		int64_t start_position,
 		double frame_rate,
-		int use_opengl = 0);
+		int use_opengl /* = 0 */);
 
 
 // User calls this to request an opengl routine to be run synchronously.

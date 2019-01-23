@@ -647,6 +647,20 @@ const char* XMLTag::get_property(const char *property, char *value)
 	return value;
 }
 
+const char* XMLTag::get_property_text(const char *property)
+{
+	int i, result;
+	for(i = 0, result = 0; i < total_properties && !result; i++)
+	{
+		if(!strcasecmp(tag_properties[i], property))
+		{
+//printf("XMLTag::get_property %s %s\n", tag_properties[i], tag_property_values[i]);
+			return tag_property_values[i];
+		}
+	}
+	return "";
+}
+
 const char* XMLTag::get_property_text(int number)
 {
 	if(number < total_properties) 
