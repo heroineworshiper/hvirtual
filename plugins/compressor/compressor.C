@@ -512,7 +512,7 @@ int CompressorEffect::process_buffer(int64_t size,
 			current_value = (next_target * target_current_sample +
 				previous_target * (target_samples - target_current_sample)) /
 				target_samples;
-//buffer[0][i] = current_value;
+
 			target_current_sample++;
 
 			if(config.smoothing_only)
@@ -585,12 +585,29 @@ double CompressorEffect::calculate_gain(double input)
 //  	double x_db = DB::todb(input);
 //  	double y_db = config.calculate_db(x_db);
 //  	double y_linear = DB::fromdb(y_db);
+
+
 	double y_linear = calculate_output(input);
 	double gain;
-	if(input != 0)
-		gain = y_linear / input;
-	else
+	if(fabs(input - 0.0) > 0.000001)
+	{
+    	gain = y_linear / input;
+	}
+    else
+    {
 		gain = 100000;
+    }
+
+// if(isinf(gain) || isnan(gain))
+// {
+// printf("CompressorEffect::process_buffer %d y_linear=%f input=%f gain=%f\n", 
+// __LINE__, 
+// y_linear,
+// input,
+// gain);
+// }
+
+
 	return gain;
 }
 
