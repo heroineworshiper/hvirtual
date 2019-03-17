@@ -28,7 +28,6 @@ extern "C"
 }
 
 #include "filesystem.h"
-#include "bcprogressbox.h"
 #include "bcsignals.h"
 #include "clip.h"
 #include "file.h"
@@ -112,7 +111,8 @@ FileFFMPEGStream::FileFFMPEGStream()
     index_allocated = 0;
     index_size = 0;
     index_zoom = 0;
-    next_index_frame = 0;
+    next_index_max = 0;
+    next_index_min = 0;
     next_index_size = 0;
     next_index_allocated = 0;
 }
@@ -133,13 +133,14 @@ FileFFMPEGStream::~FileFFMPEGStream()
 	
 	ffmpeg_file_context = 0;
     
-    if(next_index_frame)
+    if(next_index_max)
     {
-        for(int i = 0; i < channels; i++)
-        {
-            delete [] next_index_frame[i];
-        }
-        delete [] next_index_frame;
+        delete [] next_index_max;
+    }
+    
+    if(next_index_min)
+    {
+        delete [] next_index_min;
     }
     
     delete_index();
@@ -183,7 +184,9 @@ void FileFFMPEGStream::update_pcm_history(int64_t current_sample)
 }
 
 
-void FileFFMPEGStream::append_index(void *ptr, Asset *asset, Preferences *preferences)
+void FileFFMPEGStream::append_index(void *ptr, 
+    Asset *asset, 
+    Preferences *preferences)
 {
     AVFrame *frame = (AVFrame*)ptr;
     int len = frame->nb_samples;
@@ -221,20 +224,24 @@ void FileFFMPEGStream::append_index(void *ptr, Asset *asset, Preferences *prefer
         }
 	}
 
-    if(!next_index_frame)
+    if(!next_index_max)
     {
-        next_index_frame = new float*[channels];
-        for(i = 0; i < channels; i++)
-        {
-            next_index_frame[i] = new float[index_zoom];
-        }
+        next_index_max = new float[channels];
+        next_index_min = new float[channels];
     }
 
+// in case the number of channels in the source changed
+    int current_channels = channels;
+    if(frame->channels < current_channels)
+    {
+        current_channels = frame->channels;
+    }
 
     for(int j = 0; j < len; j++)
 	{
+
 // add a sample to the next frame
-	    for(i = 0; i < channels; i++)
+	    for(i = 0; i < current_channels; i++)
 	    {
             float value = 0;
             switch(frame->format)
@@ -260,10 +267,18 @@ void FileFFMPEGStream::append_index(void *ptr, Asset *asset, Preferences *prefer
 				    break;
             }
             
-            float *next_index_frame_channel = next_index_frame[i];
-            next_index_frame_channel[next_index_size] = value;
+            if(value > next_index_max[i] || next_index_size == 0)
+            {
+                next_index_max[i] = value;
+            }
+            
+            if(value < next_index_min[i] || next_index_size == 0)
+            {
+                next_index_min[i] = value;
+            }
         }
-        
+//printf("FileFFMPEGStream::append_index %d\n", __LINE__);
+
         next_index_size++;
 
 // index frame is ready to be added to the index
@@ -283,37 +298,16 @@ void FileFFMPEGStream::flush_index()
     int i, k;
     if(next_index_size > 0)
     {
-        for(i = 0; i < channels; i++)
-        {
-            float *next_index_frame_channel = next_index_frame[i];
-		    float min = next_index_frame_channel[0];
-		    float max = next_index_frame_channel[0];
-            for(k = 1; k < index_zoom && k < next_index_size; k++)
-            {
-                if(next_index_frame_channel[k] > max)
-                {
-                    max = next_index_frame_channel[k];
-                }
-                if(next_index_frame_channel[k] < min)
-                {
-                    min = next_index_frame_channel[k];
-                }
-            }
-
-//printf("FileFFMPEGStream::flush_index %d %d %d\n", __LINE__, index_size, index_allocated);
-
-            if(index_size < index_allocated)
-            {
-                index_data[i][index_size * 2] = max;
-                index_data[i][index_size * 2 + 1] = min;
-            }
-        }
-
         if(index_size < index_allocated)
         {
+            for(i = 0; i < channels; i++)
+            {
+                index_data[i][index_size * 2] = next_index_max[i];
+                index_data[i][index_size * 2 + 1] = next_index_min[i];
+            }
             index_size++;
-        
         }
+
 
 // reset the next index frame
         next_index_size = 0;
@@ -1040,7 +1034,6 @@ int FileFFMPEG::create_toc(void *ptr)
     {
         result = 0;
 
-        string progress_title;
         Timer prev_time;
         Timer new_time;
         Timer current_time;
@@ -1097,22 +1090,12 @@ int FileFFMPEG::create_toc(void *ptr)
 			0, 
 			AVSEEK_FLAG_ANY);
 
-        BC_ProgressBox *progress = 0;
-        if(BC_WindowBase::get_resources()->initialized)
-        {
-            progress_title.assign("Creating ");
-            progress_title.append(index_filename);
-            progress = new BC_ProgressBox(-1, 
-			    -1, 
-			    progress_title.c_str(), 
-			    total_bytes);
-            progress->start();
-        }
-        else
-        {
-            printf("FileFFMPEG::create_toc %d: creating table of contents\n", __LINE__);
-        }
-        
+        string progress_title;
+        progress_title.assign("Creating ");
+        progress_title.append(index_filename);
+        file->start_progress(progress_title.c_str(), total_bytes);
+
+
         while(1)
         {
             AVPacket *packet = av_packet_alloc();
@@ -1124,14 +1107,14 @@ int FileFFMPEG::create_toc(void *ptr)
             {
                 break;
             }
-            if(progress && progress->is_cancelled()) 
+            if(file->progress_canceled()) 
 			{
 				result = 1;
 				break;
 			}
 
 // update the progress bar            
-            if(progress && new_time.get_difference() >= 1000 && offset > 0)
+            if(new_time.get_difference() >= 1000 && offset > 0)
             {
                 new_time.update();
                 
@@ -1139,14 +1122,14 @@ int FileFFMPEG::create_toc(void *ptr)
                 int64_t elapsed_s = current_time.get_difference() / 1000;
                 int64_t total_s = elapsed_s * total_bytes / offset;
                 int64_t eta = total_s - elapsed_s;
-                progress->update(offset, 1);
+                file->update_progress(offset);
                 string2.assign(progress_title);
                 sprintf(string3, 
 					"\nETA: %ldm%lds",
 					(int64_t)eta / 60,
 					(int64_t)eta % 60);
                 string2.append(string3);
-				progress->update_title(string2.c_str(), 1);
+				file->update_progress_title(string2.c_str());
             }
             
             if(packet->size > 0)
@@ -1202,9 +1185,11 @@ int FileFFMPEG::create_toc(void *ptr)
                             stream->next_frame_offset = -1;
 
 
+//printf("FileFFMPEG::create_toc %d\n", __LINE__);
                             stream->append_index(ffmpeg_samples, 
                                 asset, 
                                 file->preferences);
+//printf("FileFFMPEG::create_toc %d\n", __LINE__);
                         }
 
 
@@ -1218,6 +1203,7 @@ int FileFFMPEG::create_toc(void *ptr)
 //                             offset,
 //                             packet->size,
 //                             packet->flags);
+
 
 // next frame to be decoded will come after this offset
                         if(stream->next_frame_offset < 0)
@@ -1266,15 +1252,8 @@ int FileFFMPEG::create_toc(void *ptr)
             
         }
 
-        if(progress)
-        {
-            progress->stop_progress();
-		    delete progress;
-        }
-        else
-        {
-            printf("FileFFMPEG::create_toc %d: done creating table of contents\n", __LINE__);
-        }
+
+        file->stop_progress("done creating table of contents");
         
         av_seek_frame(ffmpeg, 
 			0, 

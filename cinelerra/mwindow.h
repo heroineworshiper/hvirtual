@@ -27,6 +27,7 @@
 #include "audiodevice.inc"
 #include "awindow.inc"
 #include "batchrender.inc"
+#include "bcprogressbox.inc"
 #include "bcwindowbase.inc"
 #include "brender.inc"
 #include "cache.inc"
@@ -502,6 +503,8 @@ public:
 	ChannelDB *channeldb_v4l2jpeg;
 
 	static FileServer *file_server;
+// progress bar for building tables of contents
+    static BC_ProgressBox *file_progress;
 
 // ====================================== plugins ==============================
 

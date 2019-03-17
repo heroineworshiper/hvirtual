@@ -98,6 +98,15 @@ public:
 		int rd, 
 		int wr);
 
+// manage a single progress bar when opening multiple files
+    void start_progress(const char *title, int64_t total);
+    void update_progress(int64_t value);
+    void update_progress_title(const char *title);
+    int progress_canceled();
+    void stop_progress(const char *title);
+
+
+
 // Get index from the file if one exists.  Returns 0 on success.
 //	int get_index(char *index_path);
 

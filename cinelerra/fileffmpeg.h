@@ -94,8 +94,10 @@ public:
 	int index_size;
 /* Downsampling of index buffers when constructing index */
 	int index_zoom;
-// frames yet to be added to the index_data
-    float **next_index_frame;
+// next frame to add to the index_data
+    float *next_index_max;
+    float *next_index_min;
+// number of samples added to next_index_ tables
     int next_index_size;
     int next_index_allocated;
 

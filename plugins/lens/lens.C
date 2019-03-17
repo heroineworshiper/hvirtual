@@ -1576,6 +1576,8 @@ void LensUnit::process_rectilinear_stretch(LensPackage *pkg)
 	r[2] = max_z / M_PI / (fov[2] / 2.0);
 	r[3] = max_z / M_PI / (fov[3] / 2.0);
 
+//printf("LensUnit::process_rectilinear_stretch %d r=%f\n", __LINE__, r[0]);
+
 #define DO_LENS_RECTILINEAR_STRETCH(type, components, chroma) \
 { \
 	type **in_rows = (type**)plugin->get_temp()->get_rows(); \

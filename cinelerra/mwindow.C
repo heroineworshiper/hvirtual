@@ -151,6 +151,9 @@ int atexit(void (*function)(void))
 
 ArrayList<PluginServer*>* MWindow::plugindb = 0;
 FileServer* MWindow::file_server = 0;
+BC_ProgressBox* MWindow::file_progress = 0;
+
+
 
 
 MWindow::MWindow()
@@ -746,10 +749,16 @@ void MWindow::clean_indexes()
 	char string2[BCTEXTLEN];
 
 // Delete extra indexes
-	fs.set_filter("*.idx");
+	fs.set_filter("[*.idx][*.toc]");
 	fs.complete_path(&preferences->index_directory);
 	fs.update(preferences->index_directory.c_str());
-//printf("MWindow::clean_indexes 1 %d\n", fs.dir_list.total);
+    
+    
+//     printf("MWindow::clean_indexes %d %d\n", __LINE__, fs.dir_list.total);
+//     for(int i = 0; i < fs.dir_list.total; i++)
+//     {
+//         printf("MWindow::clean_indexes %d %s\n", __LINE__, fs.dir_list.values[i]->name);
+//     }
 
 // Eliminate directories
 	result = 1;
@@ -799,16 +808,6 @@ void MWindow::clean_indexes()
 				perror("delete_indexes");
 			delete fs.dir_list.values[oldest_item];
 			fs.dir_list.remove_number(oldest_item);
-
-// Remove table of contents if it exists
-			strcpy(string2, string);
-			char *ptr = strrchr(string2, '.');
-			if(ptr)
-			{
-//printf("MWindow::clean_indexes 2 %s\n", string2);
-				sprintf(ptr, ".toc");
-				remove(string2);
-			}
 		}
 
 		total_excess--;
