@@ -20,6 +20,7 @@
 
 #include "asset.h"
 #include "bchash.h"
+#include "bcprogressbox.h"
 #include "bcsignals.h"
 #include "byteorder.h"
 #include "cache.inc"
@@ -475,6 +476,11 @@ int File::open_file(Preferences *preferences,
 // rd, 
 // wr, 
 // asset->ms_quantization);
+
+
+BC_Signals::dump_stack();
+
+
 		file_fork = MWindow::file_server->new_filefork();
 //printf("File::open_file %d\n", __LINE__);
 
@@ -510,18 +516,71 @@ int File::open_file(Preferences *preferences,
 		delete [] string;
 //printf("File::open_file %d\n", __LINE__);
 
-// Get the updated asset from the fork
-		result = file_fork->read_result();
-//printf("File::open_file %d\n", __LINE__);
-		if(!result)
-		{
-			table.load_string((char*)file_fork->result_data);
 
-			asset->load_defaults(&table, "", 1, 1, 1, 1, 1);
-			this->asset->load_defaults(&table, "", 1, 1, 1, 1, 1);
+
+// get progress & completion from the fork
+        int done = 0;
+        while(!done)
+        {
+            result = file_fork->read_result();
+
+// done loading
+            switch(result)
+            {
+		        case 0:
+		        {
+// Get the updated asset from the fork
+			        table.load_string((char*)file_fork->result_data);
+
+			        asset->load_defaults(&table, "", 1, 1, 1, 1, 1);
+			        this->asset->load_defaults(&table, "", 1, 1, 1, 1, 1);
+                    done = 1;
 //this->asset->dump();
-		}
-//printf("File::open_file %d\n", __LINE__);
+                    break;
+		        }
+
+// progress bar commands sent by the fork
+                case FileFork::START_PROGRESS:
+                {
+                    int64_t total = *(int64_t*)file_fork->result_data;
+                    const char *title = (const char *)file_fork->result_data + sizeof(int64_t);
+                    start_progress(title, total);
+                    break;
+                }
+                
+                case FileFork::UPDATE_PROGRESS:
+                {
+                    int64_t value = *(int64_t*)file_fork->result_data;
+                    update_progress(value);
+                    break;
+                }
+
+                case FileFork::UPDATE_PROGRESS_TITLE:
+                {
+                    const char *title = (const char *)file_fork->result_data;
+                    update_progress_title(title);
+                    break;
+                }
+
+                case FileFork::PROGRESS_CANCELED:
+                {
+                    int result2 = progress_canceled();
+                    file_fork->send_command(result2, 
+		                0,
+		                0);
+                    break;
+                }
+
+                case FileFork::STOP_PROGRESS:
+                {
+                    const char *title = (const char *)file_fork->result_data;
+                    stop_progress(title);
+                    break;
+                }
+            }
+        }
+
+
 
 
 // If it's a scene renderer, close it & reopen it locally to get the 
@@ -539,7 +598,7 @@ int File::open_file(Preferences *preferences,
 			return result;
 		}
 	}
-#endif
+#endif // USE_FILEFORK
 
 
 	if(debug) printf("File::open_file %p %d\n", this, __LINE__);
@@ -827,6 +886,99 @@ int File::open_file(Preferences *preferences,
 	else
 		return FILE_NOT_FOUND;
 }
+
+
+
+// called by the fork to show a progress bar when building a table of contents
+void File::start_progress(const char *title, int64_t total)
+{
+    if(file_fork)
+	{
+        return;
+    }
+    
+// show progress only if there's a GUI
+    if(BC_WindowBase::get_resources()->initialized)
+    {
+        if(!MWindow::file_progress)
+        {
+// Always going to be a dedicated window, even if we use MainProgress
+            MWindow::file_progress = new BC_ProgressBox(-1, 
+			    -1, 
+			    title, 
+			    total);
+            MWindow::file_progress->start();
+        }
+    }
+    else
+    {
+        printf("File::start_progress %d: %s\n", __LINE__, title);
+    }
+}
+
+void File::update_progress(int64_t value)
+{
+    if(file_fork)
+	{
+        return;
+    }
+    
+    if(MWindow::file_progress)
+    {
+        MWindow::file_progress->update(value, 1);
+    }
+}
+
+void File::update_progress_title(const char *title)
+{
+    if(file_fork)
+	{
+        return;
+    }
+    
+    if(MWindow::file_progress)
+    {
+        MWindow::file_progress->update_title(title, 1);
+    }
+}
+
+
+
+// returns 1 if the user cancelled
+int File::progress_canceled()
+{
+    if(file_fork)
+	{
+        return 0;
+    }
+    
+    if(MWindow::file_progress && MWindow::file_progress->is_cancelled())
+    {
+        return 1;
+    }
+    
+    return 0;
+}
+
+void File::stop_progress(const char *title)
+{
+    if(file_fork)
+	{
+        return;
+    }
+    
+    if(MWindow::file_progress)
+    {
+        MWindow::file_progress->stop_progress();
+        delete MWindow::file_progress;
+        MWindow::file_progress = 0;
+    }
+    else
+    {
+        printf("File::stop_progress %d: %s\n", __LINE__, title);
+    }
+}
+
 
 void File::delete_temp_samples_buffer()
 {

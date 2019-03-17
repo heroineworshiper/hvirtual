@@ -90,7 +90,14 @@ public:
 		CAN_COPY_FROM,
 		COLORMODEL_SUPPORTED,
 		GET_MEMORY_USAGE,
-		SET_CACHE
+		SET_CACHE,
+        
+// progress bar commands sent by the fork
+        START_PROGRESS, // 38
+        UPDATE_PROGRESS, 
+        UPDATE_PROGRESS_TITLE,
+        PROGRESS_CANCELED,
+        STOP_PROGRESS
 	};
 };
 
