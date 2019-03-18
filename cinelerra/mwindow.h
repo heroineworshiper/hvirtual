@@ -184,7 +184,8 @@ public:
 
 
 
-	
+	static void stop_file_progress();
+
 	int load_filenames(ArrayList<char*> *filenames, 
 		int load_mode = LOADMODE_REPLACE,
 // Cause the project filename on the top of the window to be updated.
@@ -505,6 +506,8 @@ public:
 	static FileServer *file_server;
 // progress bar for building tables of contents
     static BC_ProgressBox *file_progress;
+// if we shouldn't delete the file_progress after each file
+	static int is_loading;
 
 // ====================================== plugins ==============================
 

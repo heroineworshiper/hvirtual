@@ -79,6 +79,7 @@ int FileFork::handle_command()
 		{
 			file = new File;
 			file->is_fork = 1;
+            file->file_fork = this;
 
 
 // Read file modes

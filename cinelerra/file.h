@@ -306,7 +306,7 @@ private:
 	FrameCache *frame_cache;
 
 #ifdef USE_FILEFORK
-// Pointer to the fork object.  0 if this instance of File is the fork.
+// Pointer to the fork object used to communicate between processes.
 	FileFork *file_fork;
 // If this instance is the fork.
 	int is_fork;
