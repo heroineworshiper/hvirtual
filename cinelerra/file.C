@@ -100,7 +100,6 @@ File::~File()
 	delete write_lock;
 
 	if(frame_cache) delete frame_cache;
-
 }
 
 void File::reset_parameters()
@@ -315,7 +314,7 @@ int File::get_options(BC_WindowBase *parent_window,
 int File::set_processors(int cpus)   // Set the number of cpus for certain codecs
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::SET_PROCESSORS, (unsigned char*)&cpus, sizeof(cpus));
 		file_fork->read_result();
@@ -331,7 +330,7 @@ int File::set_processors(int cpus)   // Set the number of cpus for certain codec
 void File::set_cache(int bytes)
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::SET_CACHE, 
 			(unsigned char*)&bytes, 
@@ -348,7 +347,7 @@ void File::set_cache(int bytes)
 int File::set_preload(int64_t size)
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::SET_PRELOAD, (unsigned char*)&size, sizeof(size));
 		file_fork->read_result();
@@ -363,7 +362,7 @@ int File::set_preload(int64_t size)
 void File::set_subtitle(int value)
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::SET_SUBTITLE, (unsigned char*)&value, sizeof(value));
 		file_fork->read_result();
@@ -376,7 +375,7 @@ void File::set_subtitle(int value)
 void File::set_interpolate_raw(int value)
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::SET_INTERPOLATE_RAW, (unsigned char*)&value, sizeof(value));
 		file_fork->read_result();
@@ -390,7 +389,7 @@ void File::set_interpolate_raw(int value)
 // void File::set_white_balance_raw(int value)
 // {
 // #ifdef USE_FILEFORK
-// 	if(file_fork)
+// 	if(!is_fork && file_fork)
 // 	{
 // 		file_fork->send_command(FileFork::SET_WHITE_BALANCE_RAW, (unsigned char*)&value, sizeof(value));
 // 		file_fork->read_result();
@@ -403,7 +402,7 @@ void File::set_interpolate_raw(int value)
 void File::set_cache_frames(int value)
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::SET_CACHE_FRAMES, (unsigned char*)&value, sizeof(value));
 		file_fork->read_result();
@@ -418,7 +417,7 @@ void File::set_cache_frames(int value)
 int File::purge_cache()
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 //printf("File::purge_cache %d\n", __LINE__);
 		file_fork->send_command(FileFork::PURGE_CACHE, 0, 0);
@@ -478,11 +477,9 @@ int File::open_file(Preferences *preferences,
 // asset->ms_quantization);
 
 
-BC_Signals::dump_stack();
 
 
 		file_fork = MWindow::file_server->new_filefork();
-//printf("File::open_file %d\n", __LINE__);
 
 // Send the asset
 // Convert to hash table
@@ -514,19 +511,18 @@ BC_Signals::dump_stack();
 			buffer_size);
 		delete [] buffer;
 		delete [] string;
-//printf("File::open_file %d\n", __LINE__);
 
 
 
-// get progress & completion from the fork
+// get progress & completion from the fork when building a table of contents
         int done = 0;
         while(!done)
         {
             result = file_fork->read_result();
 
-// done loading
             switch(result)
             {
+// done loading
 		        case 0:
 		        {
 // Get the updated asset from the fork
@@ -892,8 +888,13 @@ BC_Signals::dump_stack();
 // called by the fork to show a progress bar when building a table of contents
 void File::start_progress(const char *title, int64_t total)
 {
-    if(file_fork)
+    if(is_fork)
 	{
+		int data_len = sizeof(int64_t) + strlen(title) + 1;
+		unsigned char buffer[data_len];
+		*(int64_t*)buffer = total;
+		memcpy(buffer + sizeof(int64_t), title, strlen(title) + 1);
+		file_fork->send_result(FileFork::START_PROGRESS, buffer, data_len);
         return;
     }
     
@@ -918,8 +919,11 @@ void File::start_progress(const char *title, int64_t total)
 
 void File::update_progress(int64_t value)
 {
-    if(file_fork)
+    if(is_fork)
 	{
+		file_fork->send_result(FileFork::UPDATE_PROGRESS, 
+            (unsigned char*)&value, 
+            sizeof(int64_t));
         return;
     }
     
@@ -931,8 +935,11 @@ void File::update_progress(int64_t value)
 
 void File::update_progress_title(const char *title)
 {
-    if(file_fork)
+    if(is_fork)
 	{
+		file_fork->send_result(FileFork::UPDATE_PROGRESS_TITLE, 
+            (unsigned char*)title, 
+            strlen(title) + 1);
         return;
     }
     
@@ -947,9 +954,11 @@ void File::update_progress_title(const char *title)
 // returns 1 if the user cancelled
 int File::progress_canceled()
 {
-    if(file_fork)
+    if(is_fork)
 	{
-        return 0;
+		file_fork->send_result(FileFork::PROGRESS_CANCELED, 0, 0);
+		file_fork->read_command();
+        return file_fork->command_token;
     }
     
     if(MWindow::file_progress && MWindow::file_progress->is_cancelled())
@@ -962,16 +971,22 @@ int File::progress_canceled()
 
 void File::stop_progress(const char *title)
 {
-    if(file_fork)
+    if(is_fork)
 	{
+		file_fork->send_result(FileFork::STOP_PROGRESS, 
+            (unsigned char*)title, 
+            strlen(title) + 1);
         return;
     }
     
     if(MWindow::file_progress)
     {
-        MWindow::file_progress->stop_progress();
-        delete MWindow::file_progress;
-        MWindow::file_progress = 0;
+		if(!MWindow::is_loading)
+		{
+        	MWindow::file_progress->stop_progress();
+        	delete MWindow::file_progress;
+        	MWindow::file_progress = 0;
+		}
     }
     else
     {
@@ -1030,9 +1045,10 @@ int File::close_file(int ignore_thread)
 	const int debug = 0;
 
 #ifdef USE_FILEFORK
-	if(debug) printf("File::close_file file=%p file_fork=%p %d\n", file, file_fork, __LINE__);
+	if(debug) printf("File::close_file %d: file=%p file_fork=%p\n", __LINE__, file, file_fork);
 
-	if(file_fork)
+
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::CLOSE_FILE, 0, 0);
 		file_fork->read_result();
@@ -1052,6 +1068,7 @@ int File::close_file(int ignore_thread)
 		file_fork = 0;
 		
 	}
+
 #endif
 
 	if(debug) printf("File::close_file file=%p %d\n", file, __LINE__);
@@ -1089,8 +1106,14 @@ int File::close_file(int ignore_thread)
 	if(debug) printf("File::close_file file=%p %d\n", file, __LINE__);
 
 #ifdef USE_FILEFORK
-	delete file_fork;
+    if(!is_fork && file_fork)
+    {
+    	delete file_fork;
+        file_fork = 0;
+    }
 #endif
+
+
 	if(debug) printf("File::close_file file=%p %d\n", file, __LINE__);
 
 	reset_parameters();
@@ -1104,7 +1127,7 @@ int File::close_file(int ignore_thread)
 // int File::get_index(char *index_path)
 // {
 // #ifdef USE_FILEFORK
-// 	if(file_fork)
+// 	if(!is_fork && file_fork)
 // 	{
 // 		file_fork->send_command(FileFork::GET_INDEX, (unsigned char*)index_path, strlen(index_path) + 1);
 // 		int result = file_fork->read_result();
@@ -1126,7 +1149,7 @@ int File::start_audio_thread(int buffer_size, int ring_buffers)
 	this->audio_ring_buffers = ring_buffers;
 
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		unsigned char buffer[sizeof(int) * 2];
 		*(int*)(buffer) = buffer_size;
@@ -1181,7 +1204,7 @@ int File::start_video_thread(int buffer_size,
 	this->video_buffer_size = buffer_size;
 
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 // This resets variables
 		delete_temp_frame_buffer();
@@ -1246,7 +1269,7 @@ int File::start_video_thread(int buffer_size,
 int File::start_video_decode_thread()
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::START_VIDEO_DECODE_THREAD, 0, 0);
 		file_fork->read_result();
@@ -1269,7 +1292,7 @@ int File::start_video_decode_thread()
 int File::stop_audio_thread()
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::STOP_AUDIO_THREAD, 0, 0);
 		file_fork->read_result();
@@ -1289,7 +1312,7 @@ int File::stop_audio_thread()
 int File::stop_video_thread()
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::STOP_VIDEO_THREAD, 0, 0);
 		file_fork->read_result();
@@ -1315,7 +1338,7 @@ FileThread* File::get_video_thread()
 int File::set_channel(int channel) 
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 // Set it locally for get_channel
 		current_channel = channel;
@@ -1371,7 +1394,7 @@ int File::set_layer(int layer, int is_thread)
 int64_t File::get_audio_length()
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::GET_AUDIO_LENGTH, 0, 0);
 		int64_t result = file_fork->read_result();
@@ -1395,7 +1418,7 @@ int64_t File::get_audio_length()
 int64_t File::get_video_length()
 { 
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::GET_VIDEO_LENGTH, 0, 0);
 		int64_t result = file_fork->read_result();
@@ -1421,7 +1444,7 @@ int64_t File::get_video_length()
 int64_t File::get_video_position() 
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::GET_VIDEO_POSITION, 0, 0);
 		int64_t result = file_fork->read_result();
@@ -1439,7 +1462,7 @@ int64_t File::get_video_position()
 int64_t File::get_audio_position() 
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::GET_AUDIO_POSITION, 0, 0);
 		int64_t result = file_fork->read_result();
@@ -1471,7 +1494,7 @@ int64_t File::get_audio_position()
 int File::set_audio_position(int64_t position) 
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::SET_AUDIO_POSITION, 
 			(unsigned char*)&position, 
@@ -1599,7 +1622,7 @@ int File::set_video_position(int64_t position,
 int File::write_samples(Samples **buffer, int64_t len)
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		int entry_size = Samples::filefork_size();
 		int buffer_size = entry_size * asset->channels + sizeof(int64_t);
@@ -1655,7 +1678,7 @@ int File::write_frames(VFrame ***frames, int len)
 {
 //printf("File::write_frames %d\n", __LINE__);
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 //printf("File::write_frames %d\n", __LINE__);
 		int entry_size = frames[0][0]->filefork_size();
@@ -1732,7 +1755,7 @@ int File::write_compressed_frame(VFrame *buffer)
 int File::write_audio_buffer(int64_t len)
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::WRITE_AUDIO_BUFFER, (unsigned char*)&len, sizeof(len));
 		int result = file_fork->read_result();
@@ -1751,7 +1774,7 @@ int File::write_audio_buffer(int64_t len)
 int File::write_video_buffer(int64_t len)
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 // Copy over sequence numbers for background rendering
 // frame sizes for direct copy
@@ -1806,7 +1829,7 @@ int File::write_video_buffer(int64_t len)
 Samples** File::get_audio_buffer()
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		file_fork->send_command(FileFork::GET_AUDIO_BUFFER, 0, 0);
 		int result = file_fork->read_result();
@@ -1839,7 +1862,7 @@ Samples** File::get_audio_buffer()
 VFrame*** File::get_video_buffer()
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 
 		file_fork->send_command(FileFork::GET_VIDEO_BUFFER, 0, 0);
@@ -1901,7 +1924,7 @@ int File::read_samples(Samples *samples, int64_t len)
 	if(debug) PRINT_TRACE
 
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		int buffer_bytes = Samples::filefork_size() + sizeof(int64_t);
 		unsigned char buffer[buffer_bytes];
@@ -1986,7 +2009,7 @@ int File::read_samples(Samples *samples, int64_t len)
 // int File::read_compressed_frame(VFrame *buffer)
 // {
 // #ifdef USE_FILEFORK
-// 	if(file_fork)
+// 	if(!is_fork && file_fork)
 // 	{
 // 		unsigned char fork_buffer[buffer->filefork_size()];
 // 		buffer->to_filefork(fork_buffer);
@@ -2012,7 +2035,7 @@ int File::read_samples(Samples *samples, int64_t len)
 // int64_t File::compressed_frame_size()
 // {
 // #ifdef USE_FILEFORK
-// 	if(file_fork)
+// 	if(!is_fork && file_fork)
 // 	{
 // 		file_fork->send_command(FileFork::COMPRESSED_FRAME_SIZE, 
 // 			0, 
@@ -2243,7 +2266,7 @@ int File::can_copy_from(Asset *asset,
 	if(!asset) return 0;
 
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		FileXML xml;
 		asset->write(&xml, 1, "");
@@ -2620,7 +2643,7 @@ int File::get_best_colormodel(Asset *asset, int driver)
 int File::colormodel_supported(int colormodel)
 {
 #ifdef USE_FILEFORK
-	if(file_fork)
+	if(!is_fork && file_fork)
 	{
 		unsigned char buffer[sizeof(int)];
 		*(int*)buffer = colormodel;
@@ -2647,7 +2670,7 @@ int64_t File::get_memory_usage()
 
 
 //printf("File::get_memory_usage %d this=%p is_fork=%d file_fork=%p memory_usage=%lld\n", __LINE__, this, is_fork, file_fork, memory_usage);
-	if(file_fork)
+	if(!is_fork && file_fork)
  	{
 // Return a precalculated value so it doesn't block.
 		return memory_usage;

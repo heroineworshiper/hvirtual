@@ -132,8 +132,10 @@ void ForkWrapper::run()
 			command_token);
 
 		if(!result && command_token == EXIT_CODE) 
-			done = 1;
-		else
+		{
+        	done = 1;
+		}
+        else
 		if(!result)
 		{
 			handle_command();

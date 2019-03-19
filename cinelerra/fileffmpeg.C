@@ -52,6 +52,7 @@ using std::string;
 
 // stuff
 #define QUICKTIME_VP9 "VP9"
+#define QUICKTIME_VP8 "VP8"
 
 #define FFMPEG_TOC_SIG "FFMPEGTOC01"
 
@@ -307,7 +308,6 @@ void FileFFMPEGStream::flush_index()
             }
             index_size++;
         }
-
 
 // reset the next index frame
         next_index_size = 0;
@@ -695,7 +695,8 @@ if(debug) printf("FileFFMPEG::open_file %d audio_length=%lld\n", __LINE__, (long
 							decoder_context->thread_count = file->cpus;
 							avcodec_open2(decoder_context, codec, 0);
 
-//printf("FileFFMPEG::open_file %d codec_id=%d\n", __LINE__, decoder_context->codec_id);
+//printf("FileFFMPEG::open_file %d codec_id=%d %d\n", 
+//__LINE__, decoder_context->codec_id, AV_CODEC_ID_VP8);
                             switch(decoder_context->codec_id)
                             {
                                 case AV_CODEC_ID_H264:
@@ -707,6 +708,9 @@ if(debug) printf("FileFFMPEG::open_file %d audio_length=%lld\n", __LINE__, (long
                                 case AV_CODEC_ID_VP9:
                                     strcpy (asset->vcodec, QUICKTIME_VP9);
                                     break;
+								case AV_CODEC_ID_VP8:
+									strcpy (asset->vcodec, QUICKTIME_VP8);
+									break;
                                 default:
                                     asset->vcodec[0] = 0;
                                     break;
@@ -1240,6 +1244,7 @@ int FileFFMPEG::create_toc(void *ptr)
                             stream->next_frame_offset = -1;
                             stream->is_keyframe = 0;
                         }
+
                     }
                 }
                 
@@ -1254,13 +1259,13 @@ int FileFFMPEG::create_toc(void *ptr)
 
 
         file->stop_progress("done creating table of contents");
-        
+
         av_seek_frame(ffmpeg, 
 			0, 
 			0, 
 			AVSEEK_FLAG_ANY);
 
-        
+
 // write the last incomplete high/low pairs to the indexes
         if(!result)
         {
@@ -1282,6 +1287,8 @@ int FileFFMPEG::create_toc(void *ptr)
             }
         }
         
+        
+
         if(!result)
         {
             fwrite(FFMPEG_TOC_SIG, strlen(FFMPEG_TOC_SIG), 1, fd);

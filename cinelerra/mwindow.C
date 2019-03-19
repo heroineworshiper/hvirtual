@@ -25,6 +25,7 @@
 #include "awindow.h"
 #include "batchrender.h"
 #include "bcdisplayinfo.h"
+#include "bcprogressbox.h"
 #include "bcsignals.h"
 #include "bctimer.h"
 #include "brender.h"
@@ -152,7 +153,7 @@ int atexit(void (*function)(void))
 ArrayList<PluginServer*>* MWindow::plugindb = 0;
 FileServer* MWindow::file_server = 0;
 BC_ProgressBox* MWindow::file_progress = 0;
-
+int MWindow::is_loading = 0;
 
 
 
@@ -1050,7 +1051,17 @@ void MWindow::set_brender_range()
 	gui->draw_overlays(1);
 }
 
-
+// stop the progress box created while building tables of contents
+void MWindow::stop_file_progress()
+{
+	if(MWindow::file_progress)
+	{
+    	MWindow::file_progress->stop_progress();
+    	delete MWindow::file_progress;
+    	MWindow::file_progress = 0;
+	}
+	MWindow::is_loading = 0;
+}
 
 int MWindow::load_filenames(ArrayList<char*> *filenames, 
 	int load_mode,
@@ -1064,6 +1075,8 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 //	save_defaults();
 	gui->start_hourglass();
+// make progress box for file loading persistent
+	MWindow::is_loading = 1;
 
 // Need to stop playback since tracking depends on the EDL not getting
 // deleted.
@@ -1480,7 +1493,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	}
 
 	gui->stop_hourglass();
-
+	stop_file_progress();
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	update_project(load_mode);

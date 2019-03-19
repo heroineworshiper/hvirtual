@@ -352,10 +352,16 @@ char* Asset::get_compression_text(int audio, int video)
 			case FILE_MOV:
 			case FILE_AVI:
             case FILE_FFMPEG:
+			
+//printf("Asset::get_compression_text %d %s\n", __LINE__, vcodec);
 				if(vcodec[0])
+				{
 					return quicktime_vcodec_title(vcodec);
+				}
 				else
+				{
 					return 0;
+				}
 				break;
 		}
 	}
