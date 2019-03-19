@@ -514,7 +514,7 @@ int File::open_file(Preferences *preferences,
 
 
 
-// get progress & completion from the fork
+// get progress & completion from the fork when building a table of contents
         int done = 0;
         while(!done)
         {
