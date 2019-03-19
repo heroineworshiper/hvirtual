@@ -469,8 +469,9 @@ int File::open_file(Preferences *preferences,
 #ifdef USE_FILEFORK
 	if(!is_fork)
 	{
-// printf("File::open_file %d file_server=%p rd=%d wr=%d %d\n", 
+// printf("File::open_file %d %s file_server=%p rd=%d wr=%d %d\n", 
 // __LINE__, 
+// asset->path,
 // MWindow::file_server,
 // rd, 
 // wr, 
@@ -509,8 +510,10 @@ int File::open_file(Preferences *preferences,
 		file_fork->send_command(FileFork::OPEN_FILE, 
 			buffer, 
 			buffer_size);
+//printf("File::open_file %d\n", __LINE__);
 		delete [] buffer;
 		delete [] string;
+//printf("File::open_file %d\n", __LINE__);
 
 
 
@@ -523,7 +526,10 @@ int File::open_file(Preferences *preferences,
             switch(result)
             {
 // done loading
-		        case 0:
+		        case FILE_OK:
+                case FILE_NOT_FOUND:
+                case FILE_IS_XML:
+                case FILE_UNRECOGNIZED_CODEC:
 		        {
 // Get the updated asset from the fork
 			        table.load_string((char*)file_fork->result_data);
@@ -575,6 +581,7 @@ int File::open_file(Preferences *preferences,
                 }
             }
         }
+//printf("File::open_file %d\n", __LINE__);
 
 
 
@@ -597,7 +604,7 @@ int File::open_file(Preferences *preferences,
 #endif // USE_FILEFORK
 
 
-	if(debug) printf("File::open_file %p %d\n", this, __LINE__);
+//printf("File::open_file %d format=%d\n", __LINE__, this->asset->format);
 
 	switch(this->asset->format)
 	{
@@ -710,6 +717,7 @@ int File::open_file(Preferences *preferences,
 				test[0] == '<' && test[1] == 'H' && test[2] == 'T' && test[3] == 'A' && test[4] == 'L' && test[5] == '>' ||
 				test[0] == '<' && test[1] == '?' && test[2] == 'x' && test[3] == 'm' && test[4] == 'l')
 			{
+//printf("File::open_file %d\n", __LINE__);
 // XML file
 				fclose(stream);
 				return FILE_IS_XML;
@@ -845,9 +853,10 @@ int File::open_file(Preferences *preferences,
 
 // try plugins
 		default:
-			return 1;
+			return FILE_NOT_FOUND;
 			break;
 	}
+//printf("File::open_file %d\n", __LINE__);
 
 
 // Reopen file with correct parser and get header.
@@ -857,6 +866,7 @@ int File::open_file(Preferences *preferences,
 		file = 0;
 	}
 
+//printf("File::open_file %d\n", __LINE__);
 
 
 // Set extra writing parameters to mandatory settings.
@@ -874,7 +884,7 @@ int File::open_file(Preferences *preferences,
 //asset->dump();
 	}
 
-	if(debug) printf("File::open_file %d file=%p\n", __LINE__, file);
+printf("File::open_file %d file=%p\n", __LINE__, file);
 // sleep(1);
 
 	if(file)
@@ -909,6 +919,11 @@ void File::start_progress(const char *title, int64_t total)
 			    title, 
 			    total);
             MWindow::file_progress->start();
+        }
+        else
+        {
+            MWindow::file_progress->update_title(title, 1);
+            MWindow::file_progress->update_length(total, 1);
         }
     }
     else

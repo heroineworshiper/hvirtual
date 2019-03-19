@@ -121,9 +121,9 @@ int FileFork::handle_command()
 				rd, 
 				wr);
 			new_asset->Garbage::remove_user();
-			if(debug) printf("FileFork::handle_command %d result=%d\n", 
-				__LINE__, 
-				(int)result);
+// 			printf("FileFork::handle_command %d result=%d\n", 
+// 				__LINE__, 
+// 				(int)result);
 
 
 
@@ -134,6 +134,7 @@ int FileFork::handle_command()
 			int buffer_size = strlen(string) + 1;
 			send_result(result, (unsigned char*)string, buffer_size);
 			delete [] string;
+// 			printf("FileFork::handle_command %d\n", __LINE__);
 			break;
 		}
 

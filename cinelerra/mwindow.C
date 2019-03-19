@@ -1071,12 +1071,12 @@ int MWindow::load_filenames(ArrayList<char*> *filenames,
 	ArrayList<Asset*> new_assets;
 	ArrayList<File*> new_files;
 	const int debug = 0;
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 //	save_defaults();
 	gui->start_hourglass();
 // make progress box for file loading persistent
 	MWindow::is_loading = 1;
+printf("MWindow::load_filenames %d\n", __LINE__);
 
 // Need to stop playback since tracking depends on the EDL not getting
 // deleted.
@@ -1493,12 +1493,13 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	}
 
 	gui->stop_hourglass();
+//printf("MWindow::load_filenames %d\n", __LINE__);
 	stop_file_progress();
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	update_project(load_mode);
 
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+printf("MWindow::load_filenames %d\n", __LINE__);
 
 	return 0;
 }

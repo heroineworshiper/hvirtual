@@ -92,8 +92,8 @@ public:
 		GET_MEMORY_USAGE,
 		SET_CACHE,
         
-// progress bar commands sent by the fork
-        START_PROGRESS, // 38
+// progress bar commands that are packed into send_result by the file fork
+        START_PROGRESS = 0x100,
         UPDATE_PROGRESS, 
         UPDATE_PROGRESS_TITLE,
         PROGRESS_CANCELED,
