@@ -54,6 +54,7 @@
 #include "formatwindow.h"
 #include "framecache.h"
 #include "language.h"
+#include "mainprogress.h"
 #include "mutex.h"
 #include "mwindow.h"
 #include "pluginserver.h"
@@ -913,17 +914,21 @@ void File::start_progress(const char *title, int64_t total)
     {
         if(!MWindow::file_progress)
         {
-// Always going to be a dedicated window, even if we use MainProgress
-            MWindow::file_progress = new BC_ProgressBox(-1, 
-			    -1, 
-			    title, 
-			    total);
-            MWindow::file_progress->start();
+//             MWindow::file_progress = new BC_ProgressBox(-1, 
+// 			    -1, 
+// 			    title, 
+// 			    total);
+//             MWindow::file_progress->start();
+
+			MWindow::file_progress = MWindow::mainprogress->start_progress(title, 
+				total);
+
         }
         else
         {
             MWindow::file_progress->update_title(title, 1);
-            MWindow::file_progress->update_length(total, 1);
+//            MWindow::file_progress->update_length(total, 1);
+            MWindow::file_progress->update_length(total);
         }
     }
     else
@@ -944,7 +949,8 @@ void File::update_progress(int64_t value)
     
     if(MWindow::file_progress)
     {
-        MWindow::file_progress->update(value, 1);
+//        MWindow::file_progress->update(value, 1);
+        MWindow::file_progress->update(value);
     }
 }
 

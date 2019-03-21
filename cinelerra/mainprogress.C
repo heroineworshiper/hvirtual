@@ -95,7 +95,7 @@ int MainProgressBar::is_cancelled()
 	return 0;
 }
 
-void MainProgressBar::update_title(char *string, int default_)
+void MainProgressBar::update_title(const char *string, int default_)
 {
 	if(default_) strcpy(default_title, string);
 
@@ -231,7 +231,7 @@ MainProgress::~MainProgress()
 {
 }
 
-MainProgressBar* MainProgress::start_progress(char *text, 
+MainProgressBar* MainProgress::start_progress(const char *text, 
 	int64_t total_length,
 	int use_window)
 {

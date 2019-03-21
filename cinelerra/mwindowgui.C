@@ -865,7 +865,7 @@ int MWindowGUI::visible(int64_t x1, int64_t x2, int64_t view_x1, int64_t view_x2
 }
 
 
-int MWindowGUI::show_message(char *message, int color)
+int MWindowGUI::show_message(const char *message, int color)
 {
 // printf("MWindowGUI::show_message %d: %s 0x%08x 0x%08x\n", 
 // __LINE__, message, color, mwindow->theme->message_normal);

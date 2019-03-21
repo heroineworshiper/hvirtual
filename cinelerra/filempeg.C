@@ -606,7 +606,7 @@ int FileMPEG::create_index()
 // This gets around the fact that MWindowGUI is locked.
 		string progress_title("Creating ");
         progress_title.append(index_filename);
-        progress_title.append("\n");
+        progress_title.append(" ");
 		int64_t total_bytes;
 		mpeg3_t *index_file = mpeg3_start_toc(asset->path, 
             (char*)index_filename.c_str(), 
@@ -618,19 +618,7 @@ int FileMPEG::create_index()
 		gettimeofday(&prev_time, 0);
 		gettimeofday(&start_time, 0);
 
-        BC_ProgressBox *progress = 0;
-        if(BC_WindowBase::get_resources()->initialized)
-        {
-		    progress = new BC_ProgressBox(-1, 
-			    -1, 
-			    progress_title.c_str(), 
-			    total_bytes);
-		    progress->start();
-        }
-        else
-        {
-            printf("FileMPEG::create_index %d: creating table of contents\n", __LINE__);
-        }
+        file->start_progress(progress_title.c_str(), total_bytes);
 
 		int result = 0;
 		while(1)
@@ -639,15 +627,14 @@ int FileMPEG::create_index()
 			mpeg3_do_toc(index_file, &bytes_processed);
 			gettimeofday(&new_time, 0);
 
-			if(progress && 
-                new_time.tv_sec - prev_time.tv_sec >= 1 && 
+			if(new_time.tv_sec - prev_time.tv_sec >= 1 && 
                 bytes_processed > 0)
 			{
 				gettimeofday(&current_time, 0);
 				int64_t elapsed_seconds = current_time.tv_sec - start_time.tv_sec;
 				int64_t total_seconds = elapsed_seconds * total_bytes / bytes_processed;
 				int64_t eta = total_seconds - elapsed_seconds;
-				progress->update(bytes_processed, 1);
+                file->update_progress(bytes_processed);
                 string string2(progress_title);
                 string2.append("ETA: ");
                 char string3[BCTEXTLEN];
@@ -656,7 +643,7 @@ int FileMPEG::create_index()
 					(int64_t)eta / 60,
 					(int64_t)eta % 60);
                 string2.append(string3);
-				progress->update_title(string2.c_str(), 1);
+				file->update_progress_title(string2.c_str());
 // 				fprintf(stderr, "ETA: %dm%ds        \r", 
 // 					bytes_processed * 100 / total_bytes,
 // 					eta / 60,
@@ -665,7 +652,7 @@ int FileMPEG::create_index()
 				prev_time = new_time;
 			}
 			if(bytes_processed >= total_bytes) break;
-			if(progress && progress->is_cancelled()) 
+			if(file->progress_canceled()) 
 			{
 				result = 1;
 				break;
@@ -674,15 +661,7 @@ int FileMPEG::create_index()
 
 		mpeg3_stop_toc(index_file);
 
-        if(progress)
-        {
-		    progress->stop_progress();
-		    delete progress;
-        }
-        else
-        {
-            printf("FileMPEG::create_index %d: done creating table of contents\n", __LINE__);
-        }
+		file->stop_progress("done creating table of contents");
         
 // Remove if error
 		if(result)

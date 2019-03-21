@@ -116,7 +116,7 @@ public:
 	int save_defaults(BC_Hash *defaults);
 	int menu_h();
 // Draw on the status bar only.
-	int show_message(char *message, int color = -1);
+	int show_message(const char *message, int color = -1);
 // Pop up a box if the statusbar is taken and show an error.
 	void show_error(char *message, int color = BLACK);
 	int repeat_event(int64_t duration);
