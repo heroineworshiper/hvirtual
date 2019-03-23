@@ -26,7 +26,11 @@
 #include "mwindow.inc"
 #include "mwindowgui.inc"
 
+
+
+
 class StatusBarCancel;
+
 
 class StatusBar : public BC_SubWindow
 {

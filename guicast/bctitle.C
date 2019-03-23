@@ -40,7 +40,7 @@ BC_Title::BC_Title(int x,
 		this->color = color;
 	this->centered = centered;
 	this->fixed_w = fixed_w;
-	strcpy(this->text, text);
+	this->text.assign(text);
 }
 
 BC_Title::~BC_Title()
@@ -51,7 +51,9 @@ BC_Title::~BC_Title()
 int BC_Title::initialize()
 {
 	if(w <= 0 || h <= 0)
-		get_size(this, font, text, fixed_w, w, h);
+	{
+		get_size(this, font, text.c_str(), fixed_w, w, h);
+	}
 
 	if(centered) x -= w / 2;
 
@@ -75,9 +77,18 @@ int BC_Title::resize(int w, int h)
 	return 0;
 }
 
-int BC_Title::reposition(int x, int y)
+int BC_Title::reposition(int x, int y, int fixed_w)
 {
-	reposition_window(x, y, w, h);
+	this->fixed_w = fixed_w;
+	if(fixed_w > 0)
+	{
+		reposition_window(x, y, fixed_w, h);
+	}
+	else
+	{
+		reposition_window(x, y, w, h);
+	}
+	
 	draw(0);
 	return 0;
 }
@@ -87,12 +98,10 @@ int BC_Title::update(const char *text, int flush)
 {
 	int new_w, new_h;
 
-	strcpy(this->text, text);
-	get_size(this, font, text, fixed_w, new_w, new_h);
-	if(new_w > w || new_h > h)
-	{
-		resize_window(new_w, new_h);
-	}
+	this->text.assign(text);
+	get_size(this, font, this->text.c_str(), fixed_w, new_w, new_h);
+	resize_window(new_w, new_h);
+	
 	draw(flush);
 	return 0;
 }
@@ -104,9 +113,9 @@ void BC_Title::update(float value)
 	update(string);
 }
 
-char* BC_Title::get_text()
+const char* BC_Title::get_text()
 {
-	return text;
+	return text.c_str();
 }
 
 int BC_Title::draw(int flush)
@@ -128,17 +137,18 @@ int BC_Title::draw(int flush)
 
 	set_font(font);
 	BC_WindowBase::set_color(color);
+	const char *ptr = text.c_str();
 	for(i = 0, j = 0, x = 0, y = get_text_ascent(font); 
-		i <= strlen(text); 
+		i <= text.length(); 
 		i++)
 	{
-		if(text[i] == '\n' || text[i] == 0)
+		if(ptr[i] == '\n' || ptr[i] == 0)
 		{
 			if(centered)
 			{
 				draw_center_text(get_w() / 2, 
 					y,
-					&text[j],
+					text.c_str() + j,
 					i - j);
 				j = i + 1;
 			}
@@ -146,7 +156,7 @@ int BC_Title::draw(int flush)
 			{
 				draw_text(x, 
 					y,
-					&text[j],
+					text.c_str() + j,
 					i - j);
 				j = i + 1;
 			}
@@ -174,7 +184,12 @@ int BC_Title::calculate_h(BC_WindowBase *gui, const char *text, int font)
 
 
 
-void BC_Title::get_size(BC_WindowBase *gui, int font, const char *text, int fixed_w, int &w, int &h)
+void BC_Title::get_size(BC_WindowBase *gui, 
+	int font, 
+	const char *text, 
+	int fixed_w, 
+	int &w, 
+	int &h)
 {
 	int i, j, x, y, line_w = 0;
 	w = 0;
