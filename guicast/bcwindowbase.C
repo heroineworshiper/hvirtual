@@ -2625,19 +2625,21 @@ int BC_WindowBase::get_single_text_width(int font, const char *text, int length)
 //		return XmbTextEscapement(top_level->get_fontset(font), text, length);
 //	else
 	if(get_font_struct(font)) 
-		return XTextWidth(get_font_struct(font), text, length);
-	else
+	{
+    	return XTextWidth(get_font_struct(font), text, length);
+	}
+    else
 	{
 		int w = 0;
-		switch(font)
-		{
-			case MEDIUM_7SEGMENT:
-				return get_resources()->medium_7segment[0]->get_w() * length;
-				break;
-
-			default:
-				return 0;
-		}
+// 		switch(font)
+// 		{
+// 			case MEDIUM_7SEGMENT:
+// 				return get_resources()->medium_7segment[0]->get_w() * length;
+// 				break;
+// 
+// 			default:
+// 				return 0;
+// 		}
 		return w;
 	}
 }
@@ -2704,18 +2706,20 @@ int BC_WindowBase::get_text_ascent(int font)
 	{
 		return top_level->get_font_struct(font)->ascent;
 	}
-	else
-	{
-		switch(font)
-		{
-			case MEDIUM_7SEGMENT:
-				return get_resources()->medium_7segment[0]->get_h();
-				break;
-
-			default:
-				return 0;
-		}
-	}
+// 	else
+// 	{
+// 		switch(font)
+// 		{
+// 			case MEDIUM_7SEGMENT:
+// 				return get_resources()->medium_7segment[0]->get_h();
+// 				break;
+// 
+// 			default:
+// 				return 0;
+// 		}
+// 	}
+    
+    return 0;
 }
 
 int BC_WindowBase::get_text_descent(int font)
@@ -2779,6 +2783,89 @@ int BC_WindowBase::get_text_height(int font, const char *text)
 	}
 	return h * (get_text_ascent(font) + get_text_descent(font));
 }
+
+
+
+// truncate the text with ... & return a new string
+string* BC_WindowBase::get_truncated_text(int font, const string *text, int max_w)
+{
+    string *result = new string;
+    result->assign(*text);
+    
+    int w = get_text_width(font, text->c_str());
+    
+    if(w <= max_w)
+    {
+        return result;
+    }
+
+    int center_x = w / 2;
+    int center_index = -1;
+    int center_x2 = -1;
+
+// get center of string
+// TODO: definitely faster to do with libfreetype
+    for(int i = 1; i <= text->length(); i++)
+    {
+        int current_w = get_text_width(font, text->c_str(), i);
+        if(abs(current_w - center_x) < abs(center_x2 - center_x) || 
+            center_x2 == -1)
+        {
+            center_x2 = current_w;
+            center_index = i;
+        }
+    }
+
+// insert ... in the center
+    if(center_index < text->length() && center_index > -1)
+    {
+        result->insert(center_index, "...");
+// recalculate the width
+        w = get_text_width(font, result->c_str());
+    }
+    else
+    {
+// nothing to do
+        return result;
+    }
+
+    while(w > max_w && 
+        center_index > 0 && 
+        center_index + 3 < result->length())
+    {
+// take away a character from the longer side
+        int left_w = get_text_width(font, 
+            result->c_str(), 
+            center_index);
+        int right_w = get_text_width(font, 
+            result->c_str() + center_index + 3, 
+            result->length() - center_index - 3);
+// printf("BC_WindowBase::get_truncated_text %d left_w=%d right_w=%d center_index=%d w=%d\n", 
+// __LINE__, 
+// left_w,
+// right_w,
+// center_index, 
+// w);
+        if(left_w < right_w)
+        {
+            result->erase(center_index + 3, 1);
+        }
+        else
+        {
+            result->erase(center_index - 1, 1);
+            center_index--;
+        }
+        
+        
+// recalculate the width
+        w = get_text_width(font, result->c_str());
+    }
+    
+    return result;
+}
+
+
+
 
 BC_Bitmap* BC_WindowBase::new_bitmap(int w, int h, int color_model)
 {

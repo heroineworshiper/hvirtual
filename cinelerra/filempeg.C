@@ -636,7 +636,7 @@ int FileMPEG::create_index()
 				int64_t eta = total_seconds - elapsed_seconds;
                 file->update_progress(bytes_processed);
                 string string2(progress_title);
-                string2.append("ETA: ");
+                string2.append("\nETA: ");
                 char string3[BCTEXTLEN];
 				sprintf(string3, 
 					"%ldm%lds",

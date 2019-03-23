@@ -130,108 +130,112 @@ void BC_WindowBase::draw_text(int x,
 	int boldface = top_level->current_font & BOLDFACE;
 	int font = top_level->current_font & 0xff;
 
-	switch(font)
-	{
-		case MEDIUM_7SEGMENT:
-// Create pixmaps for font, to speed up drawing
-			if(!_7segment_pixmaps)
-			{
-				_7segment_pixmaps = new BC_Pixmap*[TOTAL_7SEGMENT];
-				for(int i = 0; i < TOTAL_7SEGMENT; i++)
-				{
-					_7segment_pixmaps[i] = new BC_Pixmap(
-						this, 
-						get_resources()->medium_7segment[i], 
-						PIXMAP_ALPHA);
-				}
-			}
-		
-		
-			for(int i = 0; i < length; i++)
-			{
-				BC_Pixmap *image;
-				switch(text[i])
-				{
-					case '0':
-						image = _7segment_pixmaps[0];
-						break;
-					case '1':
-						image = _7segment_pixmaps[1];
-						break;
-					case '2':
-						image = _7segment_pixmaps[2];
-						break;
-					case '3':
-						image = _7segment_pixmaps[3];
-						break;
-					case '4':
-						image = _7segment_pixmaps[4];
-						break;
-					case '5':
-						image = _7segment_pixmaps[5];
-						break;
-					case '6':
-						image = _7segment_pixmaps[6];
-						break;
-					case '7':
-						image = _7segment_pixmaps[7];
-						break;
-					case '8':
-						image = _7segment_pixmaps[8];
-						break;
-					case '9':
-						image = _7segment_pixmaps[9];
-						break;
-					case ':':
-						image = _7segment_pixmaps[10];
-						break;
-					case '.':
-						image = _7segment_pixmaps[11];
-						break;
-					case 'a':
-					case 'A':
-						image = _7segment_pixmaps[12];
-						break;
-					case 'b':
-					case 'B':
-						image = _7segment_pixmaps[13];
-						break;
-					case 'c':
-					case 'C':
-						image = _7segment_pixmaps[14];
-						break;
-					case 'd':
-					case 'D':
-						image = _7segment_pixmaps[15];
-						break;
-					case 'e':
-					case 'E':
-						image = _7segment_pixmaps[16];
-						break;
-					case 'f':
-					case 'F':
-						image = _7segment_pixmaps[17];
-						break;
-					case ' ':
-						image = _7segment_pixmaps[18];
-						break;
-					case '-':
-						image = _7segment_pixmaps[19];
-						break;
-					default:
-						image = _7segment_pixmaps[18];
-						break;
-				}
+// 	switch(font)
+// 	{
+// 		case MEDIUM_7SEGMENT:
+// // Create pixmaps for font, to speed up drawing
+// 			if(!_7segment_pixmaps)
+// 			{
+// 				_7segment_pixmaps = new BC_Pixmap*[TOTAL_7SEGMENT];
+// 				for(int i = 0; i < TOTAL_7SEGMENT; i++)
+// 				{
+// 					_7segment_pixmaps[i] = new BC_Pixmap(
+// 						this, 
+// 						get_resources()->medium_7segment[i], 
+// 						PIXMAP_ALPHA);
+// 				}
+// 			}
+// 		
+// 		
+// 			for(int i = 0; i < length; i++)
+// 			{
+// 				BC_Pixmap *image;
+// 				switch(text[i])
+// 				{
+// 					case '0':
+// 						image = _7segment_pixmaps[0];
+// 						break;
+// 					case '1':
+// 						image = _7segment_pixmaps[1];
+// 						break;
+// 					case '2':
+// 						image = _7segment_pixmaps[2];
+// 						break;
+// 					case '3':
+// 						image = _7segment_pixmaps[3];
+// 						break;
+// 					case '4':
+// 						image = _7segment_pixmaps[4];
+// 						break;
+// 					case '5':
+// 						image = _7segment_pixmaps[5];
+// 						break;
+// 					case '6':
+// 						image = _7segment_pixmaps[6];
+// 						break;
+// 					case '7':
+// 						image = _7segment_pixmaps[7];
+// 						break;
+// 					case '8':
+// 						image = _7segment_pixmaps[8];
+// 						break;
+// 					case '9':
+// 						image = _7segment_pixmaps[9];
+// 						break;
+// 					case ':':
+// 						image = _7segment_pixmaps[10];
+// 						break;
+// 					case '.':
+// 						image = _7segment_pixmaps[11];
+// 						break;
+// 					case 'a':
+// 					case 'A':
+// 						image = _7segment_pixmaps[12];
+// 						break;
+// 					case 'b':
+// 					case 'B':
+// 						image = _7segment_pixmaps[13];
+// 						break;
+// 					case 'c':
+// 					case 'C':
+// 						image = _7segment_pixmaps[14];
+// 						break;
+// 					case 'd':
+// 					case 'D':
+// 						image = _7segment_pixmaps[15];
+// 						break;
+// 					case 'e':
+// 					case 'E':
+// 						image = _7segment_pixmaps[16];
+// 						break;
+// 					case 'f':
+// 					case 'F':
+// 						image = _7segment_pixmaps[17];
+// 						break;
+// 					case ' ':
+// 						image = _7segment_pixmaps[18];
+// 						break;
+// 					case '-':
+// 						image = _7segment_pixmaps[19];
+// 						break;
+// 					default:
+// 						image = _7segment_pixmaps[18];
+// 						break;
+// 				}
+// 
+// 				draw_pixmap(image, 
+// 					x, 
+// 					y - image->get_h());
+// 				x += image->get_w();
+// 			}
+// 			break;
+// 
+// 		default:
+// 		{
 
-				draw_pixmap(image, 
-					x, 
-					y - image->get_h());
-				x += image->get_w();
-			}
-			break;
 
-		default:
-		{
+
+
 // Set drawing color for dropshadow
 			int color = get_color();
 			if(boldface) set_color(BLACK);
@@ -293,9 +297,13 @@ void BC_WindowBase::draw_text(int x,
 				}
 				if(boldface) set_color(color);
 			}
-			break;
-		}
-	}
+            
+            
+            
+            
+// 			break;
+// 		}
+// 	}
 }
 
 void BC_WindowBase::draw_xft_text(int x, 

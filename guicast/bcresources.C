@@ -460,49 +460,49 @@ void BC_Resources::init()
 		pan_data = default_pan_data;
 		pan_text_color = YELLOW;
 
-	#include "images/7seg_small/0_png.h"
-	#include "images/7seg_small/1_png.h"
-	#include "images/7seg_small/2_png.h"
-	#include "images/7seg_small/3_png.h"
-	#include "images/7seg_small/4_png.h"
-	#include "images/7seg_small/5_png.h"
-	#include "images/7seg_small/6_png.h"
-	#include "images/7seg_small/7_png.h"
-	#include "images/7seg_small/8_png.h"
-	#include "images/7seg_small/9_png.h"
-	#include "images/7seg_small/colon_png.h"
-	#include "images/7seg_small/period_png.h"
-	#include "images/7seg_small/a_png.h"
-	#include "images/7seg_small/b_png.h"
-	#include "images/7seg_small/c_png.h"
-	#include "images/7seg_small/d_png.h"
-	#include "images/7seg_small/e_png.h"
-	#include "images/7seg_small/f_png.h"
-	#include "images/7seg_small/space_png.h"
-	#include "images/7seg_small/dash_png.h"
-		static VFrame* default_medium_7segment[] = 
-		{
-			new VFrame(_0_png),
-			new VFrame(_1_png),
-			new VFrame(_2_png),
-			new VFrame(_3_png),
-			new VFrame(_4_png),
-			new VFrame(_5_png),
-			new VFrame(_6_png),
-			new VFrame(_7_png),
-			new VFrame(_8_png),
-			new VFrame(_9_png),
-			new VFrame(colon_png),
-			new VFrame(period_png),
-			new VFrame(a_png),
-			new VFrame(b_png),
-			new VFrame(c_png),
-			new VFrame(d_png),
-			new VFrame(e_png),
-			new VFrame(f_png),
-			new VFrame(space_png),
-			new VFrame(dash_png)
-		};
+// 	#include "images/7seg_small/0_png.h"
+// 	#include "images/7seg_small/1_png.h"
+// 	#include "images/7seg_small/2_png.h"
+// 	#include "images/7seg_small/3_png.h"
+// 	#include "images/7seg_small/4_png.h"
+// 	#include "images/7seg_small/5_png.h"
+// 	#include "images/7seg_small/6_png.h"
+// 	#include "images/7seg_small/7_png.h"
+// 	#include "images/7seg_small/8_png.h"
+// 	#include "images/7seg_small/9_png.h"
+// 	#include "images/7seg_small/colon_png.h"
+// 	#include "images/7seg_small/period_png.h"
+// 	#include "images/7seg_small/a_png.h"
+// 	#include "images/7seg_small/b_png.h"
+// 	#include "images/7seg_small/c_png.h"
+// 	#include "images/7seg_small/d_png.h"
+// 	#include "images/7seg_small/e_png.h"
+// 	#include "images/7seg_small/f_png.h"
+// 	#include "images/7seg_small/space_png.h"
+// 	#include "images/7seg_small/dash_png.h"
+// 		static VFrame* default_medium_7segment[] = 
+// 		{
+// 			new VFrame(_0_png),
+// 			new VFrame(_1_png),
+// 			new VFrame(_2_png),
+// 			new VFrame(_3_png),
+// 			new VFrame(_4_png),
+// 			new VFrame(_5_png),
+// 			new VFrame(_6_png),
+// 			new VFrame(_7_png),
+// 			new VFrame(_8_png),
+// 			new VFrame(_9_png),
+// 			new VFrame(colon_png),
+// 			new VFrame(period_png),
+// 			new VFrame(a_png),
+// 			new VFrame(b_png),
+// 			new VFrame(c_png),
+// 			new VFrame(d_png),
+// 			new VFrame(e_png),
+// 			new VFrame(f_png),
+// 			new VFrame(space_png),
+// 			new VFrame(dash_png)
+// 		};
 
 	#include "images/tumble_bottomdn_png.h"
 	#include "images/tumble_topdn_png.h"
@@ -795,7 +795,7 @@ void BC_Resources::init()
 		meter_font_color = RED;
 		meter_title_w = DP(20);
 		meter_3d = 1;
-		medium_7segment = default_medium_7segment;
+//		medium_7segment = default_medium_7segment;
 
 
 	//	use_fontset = 0;

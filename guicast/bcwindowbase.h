@@ -81,6 +81,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <X11/Xatom.h>
 #ifdef HAVE_XFT
 #include <X11/Xft/Xft.h>
@@ -101,6 +102,8 @@
 #ifdef HAVE_GL
 //typedef void* GLXContext;
 #endif
+
+using std::string;
 
 class BC_ResizeCall
 {
@@ -294,6 +297,8 @@ public:
 	int get_text_descent(int font);
 	int get_text_height(int font, const char *text = 0);
 	int get_text_width(int font, const char *text, int length = -1);
+// truncate the text with ... & return a new string
+    string* get_truncated_text(int font, const string *text, int max_w);
 	BC_Clipboard* get_clipboard();
 	void set_dragging(int value);
 	int set_w(int w);

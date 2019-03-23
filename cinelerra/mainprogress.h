@@ -81,6 +81,8 @@ public:
 		int use_window = 0);
 	void end_progress(MainProgressBar* progress_bar);
 
+    static string* format_newlines(const char *text);
+
 	ArrayList<MainProgressBar*> progress_bars;
 	MainProgressBar *mwindow_progress;
 

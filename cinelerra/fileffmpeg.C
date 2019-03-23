@@ -1129,7 +1129,7 @@ int FileFFMPEG::create_toc(void *ptr)
                 file->update_progress(offset);
                 string2.assign(progress_title);
                 sprintf(string3, 
-					" ETA: %ldm%lds",
+					"\nETA: %ldm%lds",
 					(int64_t)eta / 60,
 					(int64_t)eta % 60);
                 string2.append(string3);

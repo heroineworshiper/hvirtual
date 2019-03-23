@@ -336,7 +336,7 @@ public:
 	static int small_font_xftsize;
 	static int clock_font_xftsize;
 
-	VFrame **medium_7segment;
+//	VFrame **medium_7segment;
 
 
 //	int use_fontset;
