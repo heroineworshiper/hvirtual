@@ -596,7 +596,8 @@ BC_FileBox::~BC_FileBox()
 
 void BC_FileBox::create_objects()
 {
-	int x = DP(10), y = DP(10);
+    int margin = DP(10);
+	int x = margin, y = margin;
 	BC_Resources *resources = BC_WindowBase::get_resources();
 	int directory_title_margin = MAX(DP(20),
 		resources->filebox_text_images[0]->get_h());
@@ -650,7 +651,7 @@ void BC_FileBox::create_objects()
 
 	add_subwindow(updir_button = new BC_FileBoxUpdir(x, y, this));
 
-	x = DP(10);
+	x = margin;
 	y += directory_title_margin;
 
 	add_subwindow(recent_popup = new BC_FileBoxRecent(this, 
@@ -660,16 +661,22 @@ void BC_FileBox::create_objects()
 	x += recent_popup->get_w();
 
 	add_subwindow(directory_title = 
-		new BC_Title(x, y, fs->get_current_dir()));
+		new BC_Title(x, 
+            y, 
+            fs->get_current_dir(), 
+            MEDIUMFONT, 
+            -1, 
+            0, 
+            get_w() - x - margin));
 
-	x = DP(10);
+	x = margin;
 	y += directory_title->get_h() + DP(5);
 	listbox = 0;
 
 	create_listbox(x, y, get_display_mode());
-	y += listbox->get_h() + DP(10);
+	y += listbox->get_h() + margin;
 	add_subwindow(textbox = new BC_FileBoxTextBox(x, y, this));
-	y += textbox->get_h() + DP(10);
+	y += textbox->get_h() + margin;
 
 
 	if(!want_directory)
@@ -720,6 +727,7 @@ int BC_FileBox::create_icons()
 
 int BC_FileBox::resize_event(int w, int h)
 {
+    int margin = DP(10);
 	draw_background(0, 0, w, h);
 	flash(0);
 
@@ -767,6 +775,11 @@ int BC_FileBox::resize_event(int w, int h)
 		delete_button->get_y());
 	updir_button->reposition_window(w - (get_w() - updir_button->get_x()), 
 		updir_button->get_y());
+    directory_title->reposition(directory_title->get_x(),
+        directory_title->get_y(),
+        w - directory_title->get_x() - margin);
+        
+        
 	set_w(w);
 	set_h(h);
 	get_resources()->filebox_w = get_w();
