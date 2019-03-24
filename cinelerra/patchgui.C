@@ -104,8 +104,12 @@ int PatchGUI::reposition(int x, int y)
 TRACE("PatchGUI::reposition 1\n");
 			title->reposition_window(title->get_x(), y1 + y, 0);
 TRACE("PatchGUI::reposition 2\n");
+    		y1 += title->get_h();
 		}
-		y1 += mwindow->theme->title_h;
+        else
+        {
+    		y1 += mwindow->theme->title_h;
+        }
 
 		if(play)
 		{
@@ -144,7 +148,14 @@ TRACE("PatchGUI::reposition 11\n");
 	}
 	else
 	{
-		y1 += mwindow->theme->title_h;
+		if(title)
+		{
+    		y1 += title->get_h();
+		}
+        else
+        {
+    		y1 += mwindow->theme->title_h;
+        }
 		y1 += mwindow->theme->play_h;
 	}
 
@@ -179,7 +190,16 @@ int PatchGUI::update(int x, int y)
 	{
 		patchbay->add_subwindow(title = new TitlePatch(mwindow, this, x1 + x, y1 + y));
 	}
-	y1 += mwindow->theme->title_h;
+    
+    if(title)
+    {
+	    y1 += title->get_h();
+    }
+    else
+    {
+    	y1 += mwindow->theme->title_h;
+    }
+    
 
 	if(play)
 	{

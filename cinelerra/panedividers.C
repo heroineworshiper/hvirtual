@@ -74,7 +74,6 @@ void PaneDivider::reposition_window(int x, int y, int length)
 	BC_SubWindow::reposition_window(x, 
 		y, 
 		is_x ? mwindow->theme->pane_w : length, 
-		
 		is_x ? length : mwindow->theme->pane_h);
 }
 

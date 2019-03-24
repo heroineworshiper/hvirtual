@@ -103,7 +103,7 @@ int BC_Resources::x_error_handler(Display *display, XErrorEvent *event)
 // 		event->request_code,
 // 		event->minor_code,
 // 		string);
-
+//    printf("BC_Resources::x_error_handler %d display=%p\n", __LINE__, display);
 
 	BC_Resources::error = 1;
 // This bug only happens in 32 bit mode.

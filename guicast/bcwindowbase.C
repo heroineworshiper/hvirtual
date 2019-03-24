@@ -369,9 +369,13 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 	this->bg_pixmap = bg_pixmap;
 	this->allow_resize = allow_resize;
 	if(display_name) 
-		strcpy(this->display_name, display_name);
-	else
-		this->display_name[0] = 0;
+	{
+    	strcpy(this->display_name, display_name);
+	}
+    else
+	{
+    	this->display_name[0] = 0;
+    }
 
 	strcpy(this->title, _(title));
 	if(bg_pixmap) shared_bg_pixmap = 1;
@@ -399,6 +403,8 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 		XInitThreads();
 		display = init_display(display_name);
 #endif
+
+        XSetErrorHandler(BC_Resources::x_error_handler);
 
 // window placement boundaries
 		root_w = get_root_w(1, 0);

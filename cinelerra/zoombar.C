@@ -101,11 +101,11 @@ void ZoomBar::create_objects()
 	update_autozoom();
 	x += auto_zoom->get_w() + margin;
 
-	add_subwindow(from_value = new FromTextBox(mwindow, this, x, y));
+	add_subwindow(from_value = new FromTextBox(mwindow, this, x, 0));
 	x += from_value->get_w() + margin;
-	add_subwindow(length_value = new LengthTextBox(mwindow, this, x, y));
+	add_subwindow(length_value = new LengthTextBox(mwindow, this, x, 0));
 	x += length_value->get_w() + margin;
-	add_subwindow(to_value = new ToTextBox(mwindow, this, x, y));
+	add_subwindow(to_value = new ToTextBox(mwindow, this, x, 0));
 	x += to_value->get_w() + margin;
 
 	update_formatting(from_value);
