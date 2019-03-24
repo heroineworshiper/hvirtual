@@ -94,11 +94,15 @@ int BC_Bitmap::initialize(BC_WindowBase *parent_window,
 	this->color_model = color_model;
 	this->use_shm = use_shm ? parent_window->get_resources()->use_shm : 0;
 	this->bg_color = parent_window->bg_color;
+
+//if(w == 1920) printf("BC_Bitmap::initialize %d use_shm=%d\n", __LINE__, use_shm);
+
 	for(int i = 0; i < BITMAP_RING; i++)
 	{
 		ximage[0] = 0;
 		xv_image[0] = 0;
 		data[0] = 0;
+        shm_info[i].shmid = -1;
 	}
 	last_pixmap_used = 0;
 	last_pixmap = 0;
@@ -288,6 +292,8 @@ int BC_Bitmap::allocate_data()
 						perror("BC_Bitmap::allocate_data XShmAttach");
 					}
 				}
+                
+
 				break;
 		}
 

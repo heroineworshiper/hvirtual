@@ -270,28 +270,28 @@ void SUV::initialize()
 		"new_bigbutton_dn.png",
 		"new_cancel_images");
 
-	resources->medium_7segment = new_image_set(TOTAL_7SEGMENT,
-		"0.png",
-		"1.png",
-		"2.png",
-		"3.png",
-		"4.png",
-		"5.png",
-		"6.png",
-		"7.png",
-		"8.png",
-		"9.png",
-		"colon.png",
-		"period.png",
-		"a.png",
-		"b.png",
-		"c.png",
-		"d.png",
-		"e.png",
-		"f.png",
-		"space.png",
-		"dash.png");
-
+// 	resources->medium_7segment = new_image_set(TOTAL_7SEGMENT,
+// 		"0.png",
+// 		"1.png",
+// 		"2.png",
+// 		"3.png",
+// 		"4.png",
+// 		"5.png",
+// 		"6.png",
+// 		"7.png",
+// 		"8.png",
+// 		"9.png",
+// 		"colon.png",
+// 		"period.png",
+// 		"a.png",
+// 		"b.png",
+// 		"c.png",
+// 		"d.png",
+// 		"e.png",
+// 		"f.png",
+// 		"space.png",
+// 		"dash.png");
+// 
 	resources->bar_data = new_image("bar", "bar.png");
 	resources->check = new_image("check", "check.png");
 

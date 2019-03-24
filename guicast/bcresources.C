@@ -106,6 +106,7 @@ int BC_Resources::x_error_handler(Display *display, XErrorEvent *event)
 //    printf("BC_Resources::x_error_handler %d display=%p\n", __LINE__, display);
 
 	BC_Resources::error = 1;
+
 // This bug only happens in 32 bit mode.
 	if(sizeof(long) == 4)
 		BC_WindowBase::get_resources()->use_xft = 0;
@@ -616,10 +617,9 @@ void BC_Resources::init()
 		scroll_minhandle = DP(10);
 
 
-
 		use_shm = -1;
 
-	// Initialize
+// Initialize
 		bg_color = MEGREY;
 		bg_shadow1 = DKGREY;
 		bg_shadow2 = BLACK;
@@ -881,7 +881,10 @@ int BC_Resources::init_shm(BC_WindowBase *window)
 	use_shm = 1;
 	XSetErrorHandler(BC_Resources::x_error_handler);
 
-	if(!XShmQueryExtension(window->display)) use_shm = 0;
+	if(!XShmQueryExtension(window->display)) 
+    {
+        use_shm = 0;
+    }
 	else
 	{
 		XShmSegmentInfo test_shm;
@@ -896,7 +899,11 @@ int BC_Resources::init_shm(BC_WindowBase *window)
 		BC_Resources::error = 0;
  	   	XShmAttach(window->display, &test_shm);
     	XSync(window->display, False);
-		if(BC_Resources::error) use_shm = 0;
+		if(BC_Resources::error) 
+        {
+            use_shm = 0;
+        }
+        
 		XDestroyImage(test_image);
 		shmdt(test_shm.shmaddr);
 	}

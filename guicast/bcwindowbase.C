@@ -81,7 +81,6 @@ Window XGroupLeader = 0;
 BC_WindowBase::BC_WindowBase()
 {
 	resources.init();
-//printf("BC_WindowBase::BC_WindowBase 1\n");
 	BC_WindowBase::initialize();
 }
 
@@ -404,7 +403,6 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 		display = init_display(display_name);
 #endif
 
-        XSetErrorHandler(BC_Resources::x_error_handler);
 
 // window placement boundaries
 		root_w = get_root_w(1, 0);
@@ -423,7 +421,10 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 // This must be done before fonts to know if antialiasing is available.
 		init_colors();
 // get the resources
-		if(resources.use_shm < 0) resources.initialize_display(this);
+		if(resources.use_shm < 0)
+        {
+            resources.initialize_display(this);
+        }
 		x_correction = get_resources()->get_left_border();
 		y_correction = get_resources()->get_top_border();
 

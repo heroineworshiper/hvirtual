@@ -582,13 +582,13 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 // Update the ring buffer
 			if(bitmap_type == BITMAP_PRIMARY)
 			{
-//printf("VDeviceX11::new_output_buffer %d\n", __LINE__);
 
 				output_frame->set_memory(0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */,
 					bitmap->get_shmid(),
 					bitmap->get_y_offset(),
 					bitmap->get_u_offset(),
 					bitmap->get_v_offset());
+//printf("VDeviceX11::new_output_buffer %d rows=%p\n", __LINE__, output_frame->get_rows()[0]);
 			}
 		}
 
@@ -630,6 +630,8 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 							canvas_h,
 							display_colormodel,
 							-1);
+
+//printf("VDeviceX11::new_output_buffer %d shmid=%d rows=%p\n", __LINE__, bitmap->get_shmid(), output_frame->get_rows()[0]);
 						bitmap_type = BITMAP_PRIMARY;
 					}
 					break;

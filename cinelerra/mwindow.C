@@ -1079,7 +1079,7 @@ int MWindow::load_filenames(ArrayList<char*> *filenames,
 	gui->start_hourglass();
 // make progress box for file loading persistent
 	MWindow::is_loading = 1;
-printf("MWindow::load_filenames %d\n", __LINE__);
+//printf("MWindow::load_filenames %d\n", __LINE__);
 
 // Need to stop playback since tracking depends on the EDL not getting
 // deleted.
@@ -1502,7 +1502,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	update_project(load_mode);
 
-printf("MWindow::load_filenames %d\n", __LINE__);
+//printf("MWindow::load_filenames %d\n", __LINE__);
 
 	return 0;
 }
@@ -1652,7 +1652,9 @@ void MWindow::create_objects(int want_gui,
 
 // need DPI before initializing graphics
 	init_defaults(defaults, config_path);
+	if(debug) PRINT_TRACE
 	init_preferences();
+	if(debug) PRINT_TRACE
 	
 	BC_Resources::override_dpi = preferences->override_dpi;
 	BC_Resources::dpi = preferences->dpi;
@@ -1688,9 +1690,7 @@ void MWindow::create_objects(int want_gui,
 	init_plugins(preferences, splash_window);
 	if(debug) PRINT_TRACE
 	if(splash_window) splash_window->operation->update(_("Initializing GUI"));
-	if(debug) PRINT_TRACE
 	init_theme();
-	if(debug) PRINT_TRACE
 
 
 // Initialize before too much else is running

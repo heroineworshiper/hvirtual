@@ -87,6 +87,7 @@ int FrameCache::get_frame(VFrame *frame,
 	lock->lock("FrameCache::get_frame");
 	FrameCacheItem *result = 0;
 
+//printf("FrameCache::get_frame %d\n", __LINE__);
 	if(frame_exists(frame,
 		position, 
 		layer,
@@ -131,6 +132,7 @@ int FrameCache::get_frame(VFrame *frame,
 		}
 		result->age = get_age();
 	}
+//printf("FrameCache::get_frame %d\n", __LINE__);
 
 
 

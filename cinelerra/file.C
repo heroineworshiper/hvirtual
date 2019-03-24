@@ -885,7 +885,7 @@ int File::open_file(Preferences *preferences,
 //asset->dump();
 	}
 
-printf("File::open_file %d file=%p\n", __LINE__, file);
+//printf("File::open_file %d file=%p\n", __LINE__, file);
 // sleep(1);
 
 	if(file)
@@ -2160,11 +2160,10 @@ int File::read_frame(VFrame *frame, int is_thread)
 
 	if(video_thread && !is_thread) return video_thread->read_frame(frame);
 
-//printf("File::read_frame %d\n", __LINE__);
 	if(debug) PRINT_TRACE
 	if(file)
 	{
-		if(debug) PRINT_TRACE
+		if(debug) printf("File::read_frame %d\n", __LINE__);
 		int supported_colormodel = colormodel_supported(frame->get_color_model());
 		int advance_position = 1;
 
@@ -2251,7 +2250,9 @@ int File::read_frame(VFrame *frame, int is_thread)
 		else
 		{
 // Can't advance position here because it needs to be added to cache
+//printf("File::read_frame %d file=%p\n", __LINE__, file);
 			file->read_frame(frame);
+//printf("File::read_frame %d\n", __LINE__);
 
 // printf("File::read_frame %d reading directly frame=%p colormodel=%d w=%d h=%d\n", 
 // __LINE__, 

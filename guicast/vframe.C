@@ -489,7 +489,7 @@ int VFrame::allocate_data(unsigned char *data,
 			}
 
 			this->data = (unsigned char*)shmat(this->shmid, NULL, 0);
-//printf("VFrame::allocate_data %d %d %d\n", __LINE__, size, this->shmid);
+//if(size > 0x100000) printf("VFrame::allocate_data %d size=%d shmid=%d data=%p\n", __LINE__, size, this->shmid, this->data);
 
 //printf("VFrame::allocate_data %d %p\n", __LINE__, this->data);
 // This causes it to automatically delete when the program exits.
@@ -1460,6 +1460,7 @@ int VFrame::filefork_size()
 
 void VFrame::to_filefork(unsigned char *buffer)
 {
+//printf("VFrame::to_filefork %d shmid=%d w=%d h=%d\n", __LINE__, shmid, w, h);
 	*(int*)(buffer + 0) = shmid;
 	*(int*)(buffer + 4) = y_offset;
 	*(int*)(buffer + 8) = u_offset;
