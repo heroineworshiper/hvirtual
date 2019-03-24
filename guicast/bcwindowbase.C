@@ -2736,8 +2736,8 @@ int BC_WindowBase::get_text_descent(int font)
  		XftTextExtents8(top_level->display,
 #endif
 			get_xft_struct(font),
-			(const FcChar8*)"j", 
-			1,
+			(const FcChar8*)"j_", 
+			2,
 			&extents);
 		BC_Resources::xft_lock->unlock();
 		return extents.height - extents.y;
