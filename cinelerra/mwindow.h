@@ -489,7 +489,7 @@ public:
 	Preferences *preferences;
 	PreferencesThread *preferences_thread;
 	MainSession *session;
-	Theme *theme;
+	static Theme *theme;
 	MainIndexes *mainindexes;
 	static MainProgress *mainprogress;
 	BRender *brender;

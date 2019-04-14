@@ -217,6 +217,8 @@ public:
 	int preferencestitle_x, preferencestitle_y;
 	int preferencesoptions_x, preferencesoptions_y;
 	int patchbay_x, patchbay_y, patchbay_w, patchbay_h;
+// height required to show a complete patch
+    int patch_h;
 // pixels between toggles and buttons in edit panel
 	int toggle_margin;
 // Distance to left and right of automation point for control points

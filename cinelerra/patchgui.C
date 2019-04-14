@@ -733,7 +733,8 @@ TitlePatch::TitlePatch(MWindow *mwindow, PatchGUI *patch, int x, int y)
  		y, 
 		patch->patchbay->get_w() - 10, 
 		1,
-		patch->track->title)
+		patch->track->title,
+        1)
 {
 	this->mwindow = mwindow;
 	this->patch = patch;

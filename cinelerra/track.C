@@ -33,12 +33,13 @@
 #include "keyframe.h"
 #include "labels.h"
 #include "localsession.h"
+#include "mainsession.h"
 #include "module.h"
+#include "mwindow.h"
 #include "patch.h"
 #include "patchbay.h"
 #include "plugin.h"
 #include "pluginset.h"
-#include "mainsession.h"
 #include "theme.h"
 #include "intautos.h"
 #include "track.h"
@@ -217,11 +218,19 @@ int Track::vertical_span(Theme *theme)
 {
 	int result = 0;
 	if(expand_view)
-		result = edl->local_session->zoom_track + 
+	{
+    	result = edl->local_session->zoom_track + 
 			plugin_set.total * 
 			theme->get_image("plugin_bg_data")->get_h();
-	else
-		result = edl->local_session->zoom_track;
+        if(MWindow::theme->patch_h > result)
+        {
+            result = MWindow::theme->patch_h;
+        }
+	}
+    else
+	{
+    	result = edl->local_session->zoom_track;
+    }
 
 	if(edl->session->show_titles)
 		result += theme->get_image("title_bg_data")->get_h();

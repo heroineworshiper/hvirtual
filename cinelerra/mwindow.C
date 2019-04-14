@@ -155,6 +155,7 @@ FileServer* MWindow::file_server = 0;
 //BC_ProgressBox* MWindow::file_progress = 0;
 MainProgressBar* MWindow::file_progress = 0;
 MainProgress* MWindow::mainprogress = 0;
+Theme* MWindow::theme = 0;
 
 int MWindow::is_loading = 0;
 
