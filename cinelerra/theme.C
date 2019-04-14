@@ -486,7 +486,7 @@ void Theme::get_mwindow_sizes(MWindowGUI *gui, int w, int h)
 	patchbay_y = mcanvas_y + mclock_h;
 	patchbay_w = get_image("patchbay_bg")->get_w();
 	patchbay_h = mcanvas_h - mclock_h;
-    patch_h = DP(50);
+    patch_h = DP(100);
 	pane_w = get_image_set("xpane")[0]->get_w();
 	pane_h = get_image_set("ypane")[0]->get_h();
 	pane_x = mcanvas_x + mcanvas_w;
