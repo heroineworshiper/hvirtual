@@ -108,12 +108,12 @@ ResizeTrackWindow::ResizeTrackWindow(MWindow *mwindow,
 	int x,
 	int y)
  : BC_Window(PROGRAM_NAME ": Resize Track", 
-				x - 320 / 2,
-				y - get_resources()->ok_images[0]->get_h() + 100 / 2,
-				340, 
-				get_resources()->ok_images[0]->get_h() + 100, 
-				340, 
-				get_resources()->ok_images[0]->get_h() + 100, 
+				x - DP(300) / 2,
+				y - get_resources()->ok_images[0]->get_h() + DP(100) / 2,
+				DP(300), 
+				get_resources()->ok_images[0]->get_h() + DP(100), 
+				DP(300), 
+				get_resources()->ok_images[0]->get_h() + DP(100), 
 				0,
 				0, 
 				1)
@@ -128,44 +128,46 @@ ResizeTrackWindow::~ResizeTrackWindow()
 
 void ResizeTrackWindow::create_objects()
 {
-	int x = 10, y = 10;
+    int margin = mwindow->theme->widget_border;
+	int x = margin, y = margin;
+    BC_Title *text;
 
 	lock_window("ResizeTrackWindow::create_objects");
-	add_subwindow(new BC_Title(x, y, _("Size:")));
-	x += 50;
+	add_subwindow(text = new BC_Title(x, y, _("Size:")));
+	x += text->get_w() + margin;
 	add_subwindow(w = new ResizeTrackWidth(this, 
 		thread,
 		x,
 		y));
-	x += w->get_w() + 10;
-	add_subwindow(new BC_Title(x, y, _("x")));
-	x += 15;
+	x += w->get_w() + margin;
+	add_subwindow(text = new BC_Title(x, y, _("x")));
+	x += text->get_w() + margin;
 	add_subwindow(h = new ResizeTrackHeight(this, 
 		thread,
 		x,
 		y));
-	x += h->get_w() + 5;
+	x += h->get_w() + margin;
 	FrameSizePulldown *pulldown;
 	add_subwindow(pulldown = new FrameSizePulldown(mwindow->theme, 
 		w, 
 		h, 
 		x, 
 		y));
-	x += pulldown->get_w() + 5;
+	x += pulldown->get_w() + margin;
 	add_subwindow(new ResizeTrackSwap(this, thread, x, y));
 
 
-	y += 30;
-	x = 10;
-	add_subwindow(new BC_Title(x, y, _("Scale:")));
-	x += 50;
+	y += pulldown->get_h() + margin;
+	x = margin;
+	add_subwindow(text = new BC_Title(x, y, _("Scale:")));
+	x += text->get_w() + margin;
 	add_subwindow(w_scale = new ResizeTrackScaleW(this, 
 		thread,
 		x,
 		y));
-	x += 100;
-	add_subwindow(new BC_Title(x, y, _("x")));
-	x += 15;
+	x += w_scale->get_w() + margin;
+	add_subwindow(text = new BC_Title(x, y, _("x")));
+	x += text->get_w() + margin;
 	add_subwindow(h_scale = new ResizeTrackScaleH(this, 
 		thread,
 		x,

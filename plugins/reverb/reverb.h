@@ -24,7 +24,9 @@
 
 class Reverb;
 class ReverbEngine;
+class ReverbFFT;
 
+#include "fft.h"
 #include "reverbwindow.h"
 #include "pluginaclient.h"
 
@@ -58,6 +60,22 @@ public:
 	int64_t lowpass1, lowpass2;
 };
 
+
+
+class ReverbGUIFrame : public PluginClientFrame
+{
+public:
+	ReverbGUIFrame(int window_size, int sample_rate);
+	virtual ~ReverbGUIFrame();
+	double *data;
+// Maximum of window in frequency domain
+	double freq_max;
+// Maximum of window in time domain
+	double time_max;
+	int window_size;
+};
+
+
 class Reverb : public PluginAClient
 {
 public:
@@ -90,7 +108,28 @@ public:
 	void read_data(KeyFrame *keyframe);
 
 	ReverbEngine **engine;
+    ReverbFFT **fft;
 	int initialized;
+// For refreshing the canvas
+    ReverbGUIFrame *last_frame;
+};
+
+
+class ReverbFFT :public CrossfadeFFT
+{
+public:
+    ReverbFFT(Reverb *plugin);
+    ~ReverbFFT();
+    
+    int signal_process();
+	int post_process();
+	int read_samples(int64_t output_sample, 
+		int samples, 
+		Samples *buffer);
+
+// Current GUI frame being filled
+    ReverbGUIFrame *frame;
+    Reverb *plugin;
 };
 
 class ReverbEngine : public Thread
@@ -112,3 +151,6 @@ public:
 };
 
 #endif
+
+
+

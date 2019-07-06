@@ -478,7 +478,8 @@ int ReverbEngine::process_overlay(double *in, double *out, double &out1, double 
 	}
 	else
 	{
-		double coef = 0.25 * 2.0 * M_PI * (double)lowpass / (double)plugin->project_sample_rate;
+		double coef = 0.25 * 2.0 * M_PI * (double)lowpass / 
+            (double)plugin->project_sample_rate;
 		double a = coef * 0.25;
 		double b = coef * 0.50;
 

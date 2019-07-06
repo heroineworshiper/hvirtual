@@ -84,6 +84,9 @@ char* AudioESound::translate_device_string(char *server, int port)
 	if(port > 0 && strlen(server))
 		sprintf(device_string, "%s:%d", server, port);
 	else
+    if(strlen(server))
+        sprintf(device_string, "%s", server);
+    else
 		device_string[0] = 0;
 	return device_string;
 }
@@ -123,9 +126,10 @@ int AudioESound::open_output()
 		device->out_config->esound_out_server, 
 		device->out_config->esound_out_port))) <= 0)
 	{
-		fprintf(stderr, "AudioESound::open_output %s:%d: open failed\n",
-			device->out_config->esound_out_server, 
-		device->out_config->esound_out_port);
+		fprintf(stderr, "AudioESound::open_output %s: open failed\n",
+			translate_device_string(
+		        device->out_config->esound_out_server, 
+		        device->out_config->esound_out_port));
 		return 1;
 	}
 

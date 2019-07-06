@@ -786,6 +786,10 @@ int ParametricFFT::read_samples(int64_t output_sample,
 	int samples, 
 	Samples *buffer)
 {
+printf("ParametricFFT::read_samples %d output_sample=%ld samples=%d\n", 
+__LINE__,
+output_sample,
+samples);
 	return plugin->read_samples(buffer,
 		0,
 		plugin->get_samplerate(),
