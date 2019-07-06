@@ -101,19 +101,21 @@ void ResizeTrackThread::run()
 }
 
 
-
+#define WINDOW_W DP(350)
+#define WINDOW_H DP(100)
+#define TEXT_W DP(90)
 
 ResizeTrackWindow::ResizeTrackWindow(MWindow *mwindow, 
 	ResizeTrackThread *thread,
 	int x,
 	int y)
  : BC_Window(PROGRAM_NAME ": Resize Track", 
-				x - DP(300) / 2,
-				y - get_resources()->ok_images[0]->get_h() + DP(100) / 2,
-				DP(300), 
-				get_resources()->ok_images[0]->get_h() + DP(100), 
-				DP(300), 
-				get_resources()->ok_images[0]->get_h() + DP(100), 
+				x - WINDOW_W / 2,
+				y - get_resources()->ok_images[0]->get_h() + WINDOW_H / 2,
+				WINDOW_W, 
+				get_resources()->ok_images[0]->get_h() + WINDOW_H, 
+				WINDOW_W, 
+				get_resources()->ok_images[0]->get_h() + WINDOW_H, 
 				0,
 				0, 
 				1)
@@ -240,7 +242,7 @@ ResizeTrackWidth::ResizeTrackWidth(ResizeTrackWindow *gui,
 	ResizeTrackThread *thread,
 	int x,
 	int y)
- : BC_TextBox(x, y, 90, 1, thread->w)
+ : BC_TextBox(x, y, TEXT_W, 1, thread->w)
 {
 	this->gui = gui;
 	this->thread = thread;
@@ -256,7 +258,7 @@ ResizeTrackHeight::ResizeTrackHeight(ResizeTrackWindow *gui,
 	ResizeTrackThread *thread,
 	int x,
 	int y)
- : BC_TextBox(x, y, 90, 1, thread->h)
+ : BC_TextBox(x, y, TEXT_W, 1, thread->h)
 {
 	this->gui = gui;
 	this->thread = thread;
@@ -273,7 +275,7 @@ ResizeTrackScaleW::ResizeTrackScaleW(ResizeTrackWindow *gui,
 	ResizeTrackThread *thread,
 	int x,
 	int y)
- : BC_TextBox(x, y, 90, 1, (float)thread->w_scale)
+ : BC_TextBox(x, y, TEXT_W, 1, (float)thread->w_scale)
 {
 	this->gui = gui;
 	this->thread = thread;
@@ -289,7 +291,7 @@ ResizeTrackScaleH::ResizeTrackScaleH(ResizeTrackWindow *gui,
 	ResizeTrackThread *thread,
 	int x,
 	int y)
- : BC_TextBox(x, y, 90, 1, (float)thread->h_scale)
+ : BC_TextBox(x, y, TEXT_W, 1, (float)thread->h_scale)
 {
 	this->gui = gui;
 	this->thread = thread;

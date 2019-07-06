@@ -22,6 +22,7 @@
 #include "condition.h"
 #include "bcfilebox.h"
 #include "bcnewfolder.h"
+#include "bcresources.h"
 #include "bctitle.h"
 #include "filesystem.h"
 #include "language.h"
@@ -32,15 +33,16 @@
 
 
 
-
-
+#define WINDOW_W DP(320)
+#define WINDOW_H DP(120)
+#define MARGIN DP(10)
 
 BC_NewFolder::BC_NewFolder(int x, int y, BC_FileBox *filebox)
  : BC_Window(filebox->get_newfolder_title(), 
  	x, 
 	y, 
-	320, 
-	120, 
+	WINDOW_W, 
+	WINDOW_H, 
 	0, 
 	0, 
 	0, 
@@ -56,14 +58,15 @@ BC_NewFolder::~BC_NewFolder()
 
 void BC_NewFolder::create_objects()
 {
-	int x = 10, y = 10;
+	int x = MARGIN, y = MARGIN;
 	lock_window("BC_NewFolder::create_objects");
-	add_tool(new BC_Title(x, y, _("Enter the name of the folder:")));
-	y += 20;
+    BC_Title *text;
+	add_tool(text = new BC_Title(x, y, _("Enter the name of the folder:")));
+	y += text->get_h() + MARGIN;
 	add_subwindow(textbox = new BC_TextBox(x, y, 300, 1, _("Untitled")));
-	y += 30;
+	y += textbox->get_h() + MARGIN;
 	add_subwindow(new BC_OKButton(this));
-	x = get_w() - 100;
+	x = get_w() - BC_CancelButton::calculate_w() - MARGIN;
 	add_subwindow(new BC_CancelButton(this));
 	show_window();
 	unlock_window();
