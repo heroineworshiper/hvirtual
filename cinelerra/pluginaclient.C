@@ -56,27 +56,27 @@ int PluginAClient::is_audio()
 }
 
 
-int PluginAClient::get_render_ptrs()
-{
-	int i, j, double_buffer, fragment_position;
-
-	for(i = 0; i < total_in_buffers; i++)
-	{
-		double_buffer = double_buffer_in_render.values[i];
-		fragment_position = offset_in_render.values[i];
-		input_ptr_render[i] = &input_ptr_master.values[i][double_buffer][fragment_position];
-//printf("PluginAClient::get_render_ptrs %x\n", input_ptr_master.values[i][double_buffer]);
-	}
-
-	for(i = 0; i < total_out_buffers; i++)
-	{
-		double_buffer = double_buffer_out_render.values[i];
-		fragment_position = offset_out_render.values[i];
-		output_ptr_render[i] = &output_ptr_master.values[i][double_buffer][fragment_position];
-	}
-//printf("PluginAClient::get_render_ptrs %x %x\n", input_ptr_render[0], output_ptr_render[0]);
-	return 0;
-}
+// int PluginAClient::get_render_ptrs()
+// {
+// 	int i, j, double_buffer, fragment_position;
+// 
+// 	for(i = 0; i < total_in_buffers; i++)
+// 	{
+// 		double_buffer = double_buffer_in_render.values[i];
+// 		fragment_position = offset_in_render.values[i];
+// 		input_ptr_render[i] = &input_ptr_master.values[i][double_buffer][fragment_position];
+// //printf("PluginAClient::get_render_ptrs %x\n", input_ptr_master.values[i][double_buffer]);
+// 	}
+// 
+// 	for(i = 0; i < total_out_buffers; i++)
+// 	{
+// 		double_buffer = double_buffer_out_render.values[i];
+// 		fragment_position = offset_out_render.values[i];
+// 		output_ptr_render[i] = &output_ptr_master.values[i][double_buffer][fragment_position];
+// 	}
+// //printf("PluginAClient::get_render_ptrs %x %x\n", input_ptr_render[0], output_ptr_render[0]);
+// 	return 0;
+// }
 
 int PluginAClient::init_realtime_parameters()
 {
@@ -224,7 +224,10 @@ int PluginAClient::get_samplerate()
 	return sample_rate;
 }
 
-
+Samples* PluginAClient::get_output(int channel)
+{
+    return output_buffers[channel];
+}
 
 
 

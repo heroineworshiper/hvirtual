@@ -204,18 +204,34 @@ private:
 
 
 
-// Client overrides for GUI update data
+// Client overrides for GUI update data.  We have
+// abandonned subclasses for audio & video.
 class PluginClientFrame
 {
 public:
+	PluginClientFrame();
 // Period_d is 1 second
 	PluginClientFrame(int data_size, int period_n, int period_d);
 	virtual ~PluginClientFrame();
+    
+    void reset();
+    
+// Draw immediately
+	int force;
+
+
+// some commonly used data
+// a user allocated buffer
+    double *data;
+// Maximum of window in frequency domain
+	double freq_max;
+// Maximum of window in time domain
+	double time_max;
+// the window size of a FFT / 2
 	int data_size;
 	int period_n;
 	int period_d;
-// Draw immediately
-	int force;
+    int nyquist;
 };
 
 
@@ -391,7 +407,7 @@ public:
 // Get total tracks to process
 	int get_total_buffers();
 
-// Get size of buffer to fill in non-realtime plugin
+// Get size of buffer to fill
 	int get_buffer_size();
 
 // Get interpolation used by EDL from overlayframe.inc
@@ -464,7 +480,7 @@ public:
 
 // Called by client to get the total number of frames to draw in update_gui
 	int get_gui_update_frames();
-// Get GUI frame from frame_buffer.  Client must delete it.
+// Get latest GUI frame from frame_buffer.  Client must delete it.
 	PluginClientFrame* get_gui_frame();
 
 // Called by client to cause GUI to be rendered with data.

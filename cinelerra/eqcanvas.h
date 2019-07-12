@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +18,40 @@
  * 
  */
 
-#ifndef PLUGINCLIENT_INC
-#define PLUGINCLIENT_INC
 
-class PluginClient;
-class PluginClientFrame;
-class PluginClientThread;
-class PluginClientWindow;
+// A canvas for drawing a spectrogram on top of a filter envelope
 
-#endif
+#ifndef EQCANVAS_H
+#define EQCANVAS_H
+
+#include "guicast.h"
+#include "pluginclient.inc"
+
+class EQCanvas
+{
+public:
+    EQCanvas(BC_WindowBase *parent, 
+        int x, 
+        int y, 
+        int w, 
+        int h, 
+        float min_db,
+        float max_db);
+    virtual ~EQCanvas();
+    
+    void initialize();
+    void update_spectrogram(PluginClient *plugin);
+
+    
+    BC_WindowBase *parent;
+    BC_SubWindow *canvas;
+    int x, y, w, h;
+    float min_db;
+    float max_db;
+    PluginClientFrame *last_frame;
+};
+
+
+
+#endif // EQCANVAS_H
+

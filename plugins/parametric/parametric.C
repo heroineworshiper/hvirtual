@@ -593,7 +593,7 @@ void ParametricWindow::update_canvas()
 	}
 
 // Draw most recent frame
-	if(frame)
+	if(frame && frame->freq_max > 0.001)
 	{
 		canvas->set_color(MEGREY);
 		int y1 = 0;
@@ -774,7 +774,7 @@ int ParametricFFT::post_process()
 	double time_max = 0;
 	for(int i = 0; i < window_size; i++)
 	{
-		if(output_real[i] > time_max) time_max = output_real[i];
+		if(fabs(output_real[i]) > time_max) time_max = fabs(output_real[i]);
 	}
 	frame->time_max = time_max;
 	return 0;
@@ -786,10 +786,10 @@ int ParametricFFT::read_samples(int64_t output_sample,
 	int samples, 
 	Samples *buffer)
 {
-printf("ParametricFFT::read_samples %d output_sample=%ld samples=%d\n", 
-__LINE__,
-output_sample,
-samples);
+// printf("ParametricFFT::read_samples %d output_sample=%ld samples=%d\n", 
+// __LINE__,
+// output_sample,
+// samples);
 	return plugin->read_samples(buffer,
 		0,
 		plugin->get_samplerate(),
@@ -807,7 +807,6 @@ samples);
 ParametricEQ::ParametricEQ(PluginServer *server)
  : PluginAClient(server)
 {
-	
 	fft = 0;
 	need_reconfigure = 1;
 	envelope = 0;

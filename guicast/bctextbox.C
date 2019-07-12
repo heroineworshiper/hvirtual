@@ -98,10 +98,12 @@ BC_TextBox::BC_TextBox(int x,
  : BC_SubWindow(x, y, w, 0, -1)
 {
 	skip_cursor = 0;
-	this->precision = precision;
 	reset_parameters(rows, has_border, font);
+	this->precision = precision;
+
 	char temp[BCTEXTLEN];
 	sprintf(temp, "%0.*f", precision, text);
+//  printf("BC_TextBox::BC_TextBox precision=%d %s\n", precision, temp);
 	this->text.assign(temp);
 }
 
@@ -426,6 +428,7 @@ int BC_TextBox::update(float value)
 {
 	char string[BCTEXTLEN];
 	sprintf(string, "%0.*f", precision, value);
+//printf("BC_TextBox::update %d precision=%d text =%s\n", __LINE__, precision, string);
 
 	update(string);
 	return 0;

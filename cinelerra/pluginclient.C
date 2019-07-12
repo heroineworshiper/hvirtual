@@ -120,15 +120,36 @@ PluginClientFrame::PluginClientFrame(int data_size,
 	int period_n, 
 	int period_d)
 {
+    reset();
 	this->data_size = data_size;
-	force = 0;
 	this->period_n = period_n;
 	this->period_d = period_d;
 }
 
+
+PluginClientFrame::PluginClientFrame()
+{
+    reset();
+}
+
 PluginClientFrame::~PluginClientFrame()
 {
-	
+	if(data)
+    {
+        delete [] data;
+    }
+}
+
+void PluginClientFrame::reset()
+{
+	data_size = 0;
+	force = 0;
+	period_n = 0;
+	period_d = 0;
+    data = 0;
+    freq_max = 0;
+    time_max = 0;
+    nyquist = 0;
 }
 
 
@@ -444,27 +465,38 @@ int PluginClient::get_gui_update_frames()
 	if(frame_buffer.size())
 	{
 		PluginClientFrame *frame = frame_buffer.get(0);
-		int total_frames = update_timer->get_difference() * 
-			frame->period_d / 
-			frame->period_n / 
-			1000;
-		if(total_frames) update_timer->subtract(total_frames * 
-			frame->period_n * 
-			1000 / 
-			frame->period_d);
+        
+        int total_frames;
+        if(frame->period_d > 0 && frame->period_n > 0)
+        {
+// get the expired frames based on time
+		    total_frames = update_timer->get_difference() * 
+			    frame->period_d / 
+			    frame->period_n / 
+			    1000;
+		    if(total_frames) update_timer->subtract(total_frames * 
+			    frame->period_n * 
+			    1000 / 
+			    frame->period_d);
 
-// printf("PluginClient::get_gui_update_frames %d %ld %d %d %d\n", 
-// __LINE__, 
-// update_timer->get_difference(),
-// frame->period_n * 1000 / frame->period_d,
-// total_frames,
-// frame_buffer.size());
+    // printf("PluginClient::get_gui_update_frames %d %ld %d %d %d\n", 
+    // __LINE__, 
+    // update_timer->get_difference(),
+    // frame->period_n * 1000 / frame->period_d,
+    // total_frames,
+    // frame_buffer.size());
 
-// Add forced frames
-		for(int i = 0; i < frame_buffer.size(); i++)
-			if(frame_buffer.get(i)->force) total_frames++;
-		total_frames = MIN(frame_buffer.size(), total_frames);
-
+    // Add forced frames
+		    for(int i = 0; i < frame_buffer.size(); i++)
+			    if(frame_buffer.get(i)->force) total_frames++;
+		}
+        else
+        {
+            total_frames = frame_buffer.size();
+        }
+        
+        total_frames = MIN(frame_buffer.size(), total_frames);
+        
 
 		return total_frames;
 	}
@@ -523,7 +555,7 @@ void PluginClient::render_gui(void *data)
 {
 	if(thread)
 	{
-		thread->get_window()->lock_window("AudioScope::render_gui");
+		thread->get_window()->lock_window("PluginClient::render_gui");
 		
 // Set all previous frames to draw immediately
 		for(int i = 0; i < frame_buffer.size(); i++)

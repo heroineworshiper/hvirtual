@@ -102,16 +102,22 @@ public:
 // Get the requested sample rate
 	int get_samplerate();
 
+// get the buffer argument to process_buffer
+    Samples* get_output(int channel);
+
 	int64_t local_to_edl(int64_t position);
 	int64_t edl_to_local(int64_t position);
 
+// the buffers passed to process_buffer
+	Samples **output_buffers;
 
-// point to the start of the buffers
-	ArrayList<float**> input_ptr_master;
-	ArrayList<float**> output_ptr_master;
-// point to the regions for a single render
-	float **input_ptr_render;
-	float **output_ptr_render;
+
+// // point to the start of the buffers
+// 	ArrayList<float**> input_ptr_master;
+// 	ArrayList<float**> output_ptr_master;
+// // point to the regions for a single render
+// 	float **input_ptr_render;
+// 	float **output_ptr_render;
 // sample rate of EDL.  Used for normalizing keyframes
 	int project_sample_rate;
 // Local parameters set by non realtime plugin about the file to be generated.

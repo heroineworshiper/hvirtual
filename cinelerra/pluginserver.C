@@ -569,6 +569,7 @@ void PluginServer::process_buffer(VFrame **frame,
 	if(!plugin_open) return;
 	PluginVClient *vclient = (PluginVClient*)client;
 
+    vclient->in_buffer_size = vclient->out_buffer_size = 1;
 	vclient->source_position = current_position;
 	vclient->total_len = total_len;
 	vclient->frame_rate = frame_rate;
@@ -626,6 +627,8 @@ void PluginServer::process_buffer(Samples **buffer,
 	aclient->source_position = current_position;
 	aclient->total_len = total_len;
 	aclient->sample_rate = sample_rate;
+    aclient->in_buffer_size = aclient->out_buffer_size = fragment_size;
+    aclient->output_buffers = buffer;
 
 	if(plugin)
 		aclient->source_start = plugin->startproject * 

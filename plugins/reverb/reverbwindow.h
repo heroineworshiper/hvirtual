@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,11 +22,14 @@
 #ifndef REVERBWINDOW_H
 #define REVERBWINDOW_H
 
-#define TOTAL_LOADS 5
+#define TOTAL_PARAMS 9
 
 class ReverbThread;
 class ReverbWindow;
+class ReverbParam;
 
+
+#include "eqcanvas.inc"
 #include "guicast.h"
 #include "mutex.h"
 #include "pluginclient.h"
@@ -54,18 +57,100 @@ public:
 	~ReverbWindow();
 	
 	void create_objects();
-	
+    void update();
+	void update_canvas();
+
 	Reverb *reverb;
-	ReverbLevelInit *level_init;
-	ReverbDelayInit *delay_init;
-	ReverbRefLevel1 *ref_level1;
-	ReverbRefLevel2 *ref_level2;
-	ReverbRefTotal *ref_total;
-	ReverbRefLength *ref_length;
-	ReverbHigh *high;
-	ReverbLow *low;
-    ReverbQ *q;
+    
+    ReverbParam *params[TOTAL_PARAMS];
+    
+	ReverbParam *level_init;
+	ReverbParam *delay_init;
+	ReverbParam *ref_level1;
+	ReverbParam *ref_level2;
+	ReverbParam *ref_total;
+	ReverbParam *ref_length;
+	ReverbParam *high;
+	ReverbParam *low;
+    ReverbParam *q;
+    EQCanvas *canvas;
 };
+
+class ReverbFPot : public BC_FPot
+{
+public:
+    ReverbFPot(ReverbParam *param, int x, int y);
+    int handle_event();
+	ReverbParam *param;
+};
+
+class ReverbIPot : public BC_IPot
+{
+public:
+    ReverbIPot(ReverbParam *param, int x, int y);
+    int handle_event();
+	ReverbParam *param;
+};
+
+class ReverbQPot : public BC_QPot
+{
+public:
+    ReverbQPot(ReverbParam *param, int x, int y);
+    int handle_event();
+	ReverbParam *param;
+};
+
+class ReverbText : public BC_TextBox
+{
+public:
+    ReverbText(ReverbParam *param, int x, int y, int value);
+    ReverbText(ReverbParam *param, int x, int y, float value);
+    int handle_event();
+	ReverbParam *param;
+};
+
+class ReverbParam
+{
+public:
+    ReverbParam(Reverb *reverb,
+        ReverbWindow *gui,
+        int x, 
+        int x2,
+        int x3,
+        int y, 
+        int *output_i, 
+        float *output_f, // floating point output
+        int *output_q, // frequency output
+        const char *title,
+        float min,
+        float max);
+    ~ReverbParam();
+    
+    void initialize();
+    void update(int skip_text, int skip_pot);
+
+// 2 possible outputs
+    float *output_f;
+    ReverbFPot *fpot;
+    
+    int *output_i;
+    ReverbIPot *ipot;
+    
+    int *output_q;
+    ReverbQPot *qpot;
+    
+    string title;
+    ReverbText *text;
+    ReverbWindow *gui;
+    Reverb *reverb;
+    int x;
+    int x2;
+    int x3;
+    int y;
+    float min;
+    float max;
+};
+
 
 class ReverbLevelInit : public BC_FPot
 {

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -415,10 +415,12 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 
 // Fill enough input to make a window starting at output_sample
 		if(first_window)
+        {
 			result = read_samples(this->input_sample,
 				window_size,
 				input_buffer);
-		else
+		}
+        else
 		{
 			input_buffer->set_offset(HALF_WINDOW);
 // printf("CrossfadeFFT::process_buffer %d %lld %lld\n", 
@@ -513,13 +515,20 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 
 
 
-// Transfer output buffer
+// Transfer output buffer if the user wants it
 	if(output_ptr)
 	{
 		memcpy(output_ptr->get_data(), output_buffer, sizeof(double) * size);
 	}
-	for(int i = 0, j = size; j < output_size + HALF_WINDOW; i++, j++)
-		output_buffer[i] = output_buffer[j];
+
+// shift output buffer forward
+    memcpy(output_buffer, 
+        output_buffer + size, 
+        sizeof(double) * (output_size + HALF_WINDOW - size));
+// 	for(int i = 0, j = size; j < output_size + HALF_WINDOW; i++, j++)
+// 	{
+//     	output_buffer[i] = output_buffer[j];
+//     }
 
 	this->output_sample += step * size;
 	this->output_size -= size;

@@ -338,7 +338,7 @@ void GraphicCanvas::process(int buttonpress, int motion, int draw)
 		}
 
 // Draw most recent frame
-		if(frame)
+		if(frame && frame->freq_max > 0.001)
 		{
 			set_color(MEGREY);
 			int y1 = 0;

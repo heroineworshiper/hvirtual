@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "bcdisplayinfo.h"
 #include "bchash.h"
 #include "bcsignals.h"
+#include "eqcanvas.h"
 #include "filesystem.h"
 #include "language.h"
 #include "reverb.h"
@@ -30,14 +31,16 @@
 
 #include <string.h>
 
-
+#define TEXT_W DP(90)
+#define WINDOW_W DP(250)
+#define WINDOW_H DP(250)
 
 ReverbWindow::ReverbWindow(Reverb *reverb)
  : PluginClientWindow(reverb, 
-	DP(300), 
-	DP(230), 
-	DP(300), 
-	DP(230), 
+	DP(WINDOW_W), 
+	DP(WINDOW_H), 
+	DP(WINDOW_W), 
+	DP(WINDOW_H), 
 	0)
 { 
 	this->reverb = reverb; 
@@ -45,500 +48,457 @@ ReverbWindow::ReverbWindow(Reverb *reverb)
 
 ReverbWindow::~ReverbWindow()
 {
+    for(int i = 0; i < TOTAL_PARAMS; i++)
+    {
+        delete params[i];
+    }
+    delete canvas;
 }
 
 void ReverbWindow::create_objects()
 {
-	int x = DP(200), y = DP(10);
 	int margin = client->get_theme()->widget_border;
-	int xmargin2 = DP(35);
-	int ymargin = DP(10);
-	int ymargin2 = DP(25);
+	int x = DP(200), y = margin;
+    int x1 = x + BC_Pot::calculate_w();
+    int x2 = x1 + BC_Pot::calculate_w() + margin;
+    int height = BC_TextBox::calculate_h(this, MEDIUMFONT, 1, 1) + margin;
 
-	add_tool(new BC_Title(margin, y + ymargin, _("Initial signal level:")));
-	add_tool(level_init = new ReverbLevelInit(reverb, x, y)); 
-	y += ymargin2;
-	add_tool(new BC_Title(margin, y + ymargin, _("ms before reflections:")));
-	add_tool(delay_init = new ReverbDelayInit(reverb, x + xmargin2, y)); 
-	y += ymargin2;
-	add_tool(new BC_Title(margin, y + ymargin, _("First reflection level:")));
-	add_tool(ref_level1 = new ReverbRefLevel1(reverb, x, y)); 
-	y += ymargin2;
-	add_tool(new BC_Title(margin, y + ymargin, _("Last reflection level:")));
-	add_tool(ref_level2 = new ReverbRefLevel2(reverb, x + xmargin2, y)); 
-	y += ymargin2;
-	add_tool(new BC_Title(margin, y + ymargin, _("Number of reflections:")));
-	add_tool(ref_total = new ReverbRefTotal(reverb, x, y)); 
-	y += ymargin2;
-	add_tool(new BC_Title(margin, y + ymargin, _("ms of reflections:")));
-	add_tool(ref_length = new ReverbRefLength(reverb, x + xmargin2, y)); 
-	y += ymargin2;
-	add_tool(new BC_Title(margin, y + ymargin, _("Start band for lowpass:")));
-	add_tool(lowpass1 = new ReverbLowPass1(reverb, x, y)); 
-	y += ymargin2;
-	add_tool(new BC_Title(margin, y + ymargin, _("End band for lowpass:")));
-	add_tool(lowpass2 = new ReverbLowPass2(reverb, x + xmargin2, y)); 
+
+    int i = 0;
+    params[i] = new ReverbParam(reverb,
+        this,
+        margin, 
+        x,
+        x2,
+        y, 
+        0,  // output_i
+        &reverb->config.level_init, // output_f
+        0, // output_q
+        "Initial signal level:",
+        INFINITYGAIN, // min
+        0); // max
+    params[i]->initialize();
+    i++;
+    y += height;
+
+    params[i] = new ReverbParam(reverb,
+        this,
+        margin, 
+        x1,
+        x2,
+        y, 
+        &reverb->config.delay_init,  // output_i
+        0, // output_f
+        0, // output_q
+        "ms before reflections:",
+        0, // min
+        MAX_DELAY_INIT); // max
+    params[i]->initialize();
+    i++;
+    y += height;
+
+    params[i] = new ReverbParam(reverb,
+        this,
+        margin, 
+        x,
+        x2,
+        y, 
+        0,  // output_i
+        &reverb->config.ref_level1, // output_f
+        0, // output_q
+        "First reflection level:",
+        INFINITYGAIN, // min
+        0); // max
+    params[i]->initialize();
+    i++;
+    y += height;
+
+    params[i] = new ReverbParam(reverb,
+        this,
+        margin, 
+        x1,
+        x2,
+        y, 
+        0,  // output_i
+        &reverb->config.ref_level2, // output_f
+        0, // output_q
+        "Last reflection level:",
+        INFINITYGAIN, // min
+        0); // max
+    params[i]->initialize();
+    i++;
+    y += height;
+
+    params[i] = new ReverbParam(reverb,
+        this,
+        margin, 
+        x,
+        x2,
+        y, 
+        &reverb->config.ref_total,  // output_i
+        0, // output_f
+        0, // output_q
+        "Number of reflections:",
+        MIN_REFLECTIONS, // min
+        MAX_REFLECTIONS); // max
+    params[i]->initialize();
+    i++;
+    y += height;
+
+    params[i] = new ReverbParam(reverb,
+        this,
+        margin, 
+        x1,
+        x2,
+        y, 
+        &reverb->config.ref_length,  // output_i
+        0, // output_f
+        0, // output_q
+        "ms of reflections:",
+        0, // min
+        MAX_REFLENGTH); // max
+    params[i]->initialize();
+    i++;
+    y += height;
+
+    params[i] = new ReverbParam(reverb,
+        this,
+        margin, 
+        x,
+        x2,
+        y, 
+        0,  // output_i
+        0, // output_f
+        &reverb->config.low, // output_q
+        "Low freq of bandpass:",
+        0, // min
+        0); // max
+    params[i]->initialize();
+    i++;
+    y += height;
+
+    params[i] = new ReverbParam(reverb,
+        this,
+        margin, 
+        x1,
+        x2,
+        y, 
+        0,  // output_i
+        0, // output_f
+        &reverb->config.high, // output_q
+        "High freq of bandpass:",
+        0, // min
+        0); // max
+    params[i]->initialize();
+    i++;
+    y += height;
+
+    params[i] = new ReverbParam(reverb,
+        this,
+        margin, 
+        x,
+        x2,
+        y, 
+        0,  // output_i
+        &reverb->config.q, // output_f
+        0, // output_q
+        "Steepness of bandpass:",
+        0.8, // min
+        1.0); // max
+    params[i]->initialize();
+    params[i]->fpot->set_precision(0.01);
+    i++;
+    y += BC_Pot::calculate_h() + margin;
+
+	int canvas_x = 0;
+	int canvas_y = y;
+	int canvas_w = get_w() - margin;
+	int canvas_h = get_h() - canvas_y - margin;
+	canvas = new EQCanvas(this,
+        canvas_x, 
+		canvas_y, 
+		canvas_w, 
+		canvas_h,
+        INFINITYGAIN,
+        0.0);
+    canvas->initialize();
+    update_canvas();
+
 	show_window();
-	flush();
+}
+
+void ReverbWindow::update()
+{
+    for(int i = 0; i < TOTAL_PARAMS; i++)
+    {
+        params[i]->update(1, 1);
+    }
+}
+
+
+void ReverbWindow::update_canvas()
+{
+    int niquist = reverb->PluginAClient::project_sample_rate / 2;
+    BC_SubWindow *gui = canvas->canvas;
+    canvas->update_spectrogram(reverb);
+
+// draw the envelope
+    reverb->calculate_envelope();
+	gui->set_color(WHITE);
+	gui->set_line_width(2);
+
+    int y1;
+    for(int i = 0; i < gui->get_w(); i++)
+    {
+        int freq = Freq::tofreq(i * TOTALFREQS / gui->get_w());
+        int index = (int64_t)freq * (int64_t)MAX_WINDOW / 2 / niquist;
+        if(freq < niquist && index < MAX_WINDOW / 2)
+        {
+            double mag = reverb->envelope[index];
+            int y2 = (int)(DB::todb(mag) * gui->get_h() / INFINITYGAIN);
+            
+            if(y2 >= gui->get_h())
+            {
+                y2 = gui->get_h() - 1;
+            }
+            
+            if(i > 0)
+            {
+                gui->draw_line(i - 1, y1, i, y2);
+            }
+            y1 = y2;
+        }
+        else
+        if(i > 0)
+        {
+            int y2 = gui->get_h() - 1;
+            gui->draw_line(i - 1, y1, i, y2);
+            y1 = y2;
+        }
+    }
+
+    gui->set_line_width(1);
+	gui->flash(1);
+
+
+//printf("ReverbWindow::update_canvas %d\n", __LINE__);
+}
+
+
+ReverbParam::ReverbParam(Reverb *reverb,
+    ReverbWindow *gui,
+    int x, 
+    int x2,
+    int x3,
+    int y, 
+    int *output_i, 
+    float *output_f, // floating point output
+    int *output_q,
+    const char *title,
+    float min,
+    float max)
+{
+    this->output_i = output_i;
+    this->output_f = output_f;
+    this->output_q = output_q;
+    this->title.assign(title);
+    this->reverb = reverb;
+    this->gui = gui;
+    this->x = x;
+    this->x2 = x2;
+    this->x3 = x3;
+    this->y = y;
+    this->min = min;
+    this->max = max;
+    fpot = 0;
+    ipot = 0;
+    qpot = 0;
+    text = 0;
+}
+
+ReverbParam::~ReverbParam()
+{
+    if(fpot) delete fpot;
+    if(ipot) delete ipot;
+    if(qpot) delete qpot;
+    if(text) text;
+}
+
+
+void ReverbParam::initialize()
+{
+    BC_Title *title_;
+    int y2 = y + 
+        (BC_Pot::calculate_h() - 
+        BC_Title::calculate_h(gui, _(title.c_str()), MEDIUMFONT)) / 2;
+    gui->add_tool(title_ = new BC_Title(x, y2, _(title.c_str())));
+    
+    if(output_f)
+    {
+        gui->add_tool(fpot = new ReverbFPot(this, x2, y));
+    }
+    
+    if(output_i)
+    {
+        gui->add_tool(ipot = new ReverbIPot(this, x2, y));
+    }
+    
+    if(output_q)
+    {
+        gui->add_tool(qpot = new ReverbQPot(this, x2, y));
+    }
+    
+    int y3 = y + 
+        (BC_Pot::calculate_h() - 
+        BC_TextBox::calculate_h(gui, MEDIUMFONT, 1, 1)) / 2;
+    if(output_i)
+    {
+        gui->add_tool(text = new ReverbText(this, x3, y3, *output_i));
+    }
+    if(output_f)
+    {
+        gui->add_tool(text = new ReverbText(this, x3, y3, *output_f));
+    }
+    if(output_q)
+    {
+        gui->add_tool(text = new ReverbText(this, x3, y3, *output_q));
+    }
+}
+
+void ReverbParam::update(int skip_text, int skip_pot)
+{
+    if(!skip_text)
+    {
+        if(output_i)
+        {
+            text->update((int64_t)*output_i);
+        }
+        if(output_q)
+        {
+            text->update((int64_t)*output_q);
+        }
+        if(output_f)
+        {
+            text->update((float)*output_f);
+        }
+    }
+    
+    if(!skip_pot)
+    {
+        if(ipot)
+        {
+            ipot->update((int64_t)*output_i);
+        }
+        if(qpot)
+        {
+            ipot->update((int64_t)*output_q);
+        }
+        if(fpot)
+        {
+            ipot->update((float)*output_f);
+        }
+    }
 }
 
 
 
-
-
-
-ReverbLevelInit::ReverbLevelInit(Reverb *reverb, int x, int y)
+ReverbFPot::ReverbFPot(ReverbParam *param, int x, int y) 
  : BC_FPot(x, 
  	y, 
-	reverb->config.level_init, 
-	INFINITYGAIN, 
-	0)
+	*param->output_f, 
+	param->min, 
+	param->max)
 {
-	this->reverb = reverb;
-}
-ReverbLevelInit::~ReverbLevelInit() 
-{
-}
-int ReverbLevelInit::handle_event()
-{
-//printf("ReverbLevelInit::handle_event 1 %p\n", reverb);
-	reverb->config.level_init = get_value();
-//printf("ReverbLevelInit::handle_event 1\n");
-	reverb->send_configure_change();
-//printf("ReverbLevelInit::handle_event 2\n");
-	return 1;
+    this->param = param;
+    set_use_caption(0);
 }
 
-ReverbDelayInit::ReverbDelayInit(Reverb *reverb, int x, int y)
+int ReverbFPot::handle_event()
+{
+	*param->output_f = get_value();
+    param->update(0, 1);
+	param->reverb->send_configure_change();
+    param->gui->update_canvas();
+    return 1;
+}
+
+
+ReverbIPot::ReverbIPot(ReverbParam *param, int x, int y)
  : BC_IPot(x, 
  	y, 
-	reverb->config.delay_init, 
-	0, 
-	MAX_DELAY_INIT)
+	*param->output_i, 
+	(int)param->min, 
+	(int)param->max)
 {
-	this->reverb = reverb;
-}
-ReverbDelayInit::~ReverbDelayInit() 
-{
-}
-int ReverbDelayInit::handle_event()
-{
-	reverb->config.delay_init = get_value();
-	reverb->send_configure_change();
-	return 1;
+    this->param = param;
+    set_use_caption(0);
 }
 
-ReverbRefLevel1::ReverbRefLevel1(Reverb *reverb, int x, int y)
- : BC_FPot(x, 
- 	y, 
-	reverb->config.ref_level1, 
-	INFINITYGAIN, 
-	0)
+int ReverbIPot::handle_event()
 {
-	this->reverb = reverb;
-}
-ReverbRefLevel1::~ReverbRefLevel1() {}
-int ReverbRefLevel1::handle_event()
-{
-	reverb->config.ref_level1 = get_value();
-	reverb->send_configure_change();
-	return 1;
+	*param->output_i = get_value();
+    param->update(0, 1);
+	param->reverb->send_configure_change();
+    param->gui->update_canvas();
+    return 1;
 }
 
 
-ReverbRefLevel2::ReverbRefLevel2(Reverb *reverb, int x, int y)
- : BC_FPot(x, 
- 	y, 
-	reverb->config.ref_level2, 
-	INFINITYGAIN, 
-	0)
-{
-	this->reverb = reverb;
-}
-ReverbRefLevel2::~ReverbRefLevel2() {}
-int ReverbRefLevel2::handle_event()
-{
-	reverb->config.ref_level2 = get_value();
-	reverb->send_configure_change();
-	return 1;
-}
-
-ReverbRefTotal::ReverbRefTotal(Reverb *reverb, int x, int y)
- : BC_IPot(x, 
- 	y, 
-	reverb->config.ref_total, 
-	MIN_REFLECTIONS, 
-	MAX_REFLECTIONS)
-{
-	this->reverb = reverb;
-}
-ReverbRefTotal::~ReverbRefTotal() {}
-int ReverbRefTotal::handle_event()
-{
-	reverb->config.ref_total = get_value();
-	reverb->send_configure_change();
-	return 1;
-}
-
-
-ReverbRefLength::ReverbRefLength(Reverb *reverb, int x, int y)
- : BC_IPot(x, 
- 	y, 
-	reverb->config.ref_length, 
-	0, 
-	MAX_REFLENGTH)
-{
-	this->reverb = reverb;
-}
-ReverbRefLength::~ReverbRefLength() {}
-int ReverbRefLength::handle_event()
-{
-	reverb->config.ref_length = get_value();
-	reverb->send_configure_change();
-	return 1;
-}
-
-ReverbLowPass1::ReverbLowPass1(Reverb *reverb, int x, int y)
+ReverbQPot::ReverbQPot(ReverbParam *param, int x, int y)
  : BC_QPot(x, 
  	y, 
-	reverb->config.lowpass1)
+	*param->output_q)
 {
-	this->reverb = reverb;
-}
-ReverbLowPass1::~ReverbLowPass1() {}
-int ReverbLowPass1::handle_event()
-{
-	reverb->config.lowpass1 = get_value();
-	reverb->send_configure_change();
-	return 1;
+    this->param = param;
+    set_use_caption(0);
 }
 
-ReverbLowPass2::ReverbLowPass2(Reverb *reverb, int x, int y)
- : BC_QPot(x, 
- 	y, 
-	reverb->config.lowpass2)
+int ReverbQPot::handle_event()
 {
-	this->reverb = reverb;
+	*param->output_q = get_value();
+    param->update(0, 1);
+	param->reverb->send_configure_change();
+    param->gui->update_canvas();
+    return 1;
 }
-ReverbLowPass2::~ReverbLowPass2() {}
-int ReverbLowPass2::handle_event()
+
+
+ReverbText::ReverbText(ReverbParam *param, int x, int y, int value)
+ : BC_TextBox(x, y, TEXT_W, 1, (int64_t)value, 1, MEDIUMFONT)
 {
-	reverb->config.lowpass2 = get_value();
-	reverb->send_configure_change();
-	return 1;
+    this->param = param;
 }
-// 
-// ReverbMenu::ReverbMenu(Reverb *reverb, ReverbWindow *window)
-//  : BC_MenuBar(0, 0, window->get_w())
-// {
-// 	this->window = window;
-// 	this->reverb = reverb;
-// }
-// 
-// ReverbMenu::~ReverbMenu()
-// {
-// 	delete load;
-// 	delete save;
-// 	//delete set_default;
-// 	for(int i = 0; i < total_loads; i++)
-// 	{
-// 		delete prev_load[i];
-// 	}
-// 	delete prev_load_thread;
-// }
-// 
-// void ReverbMenu::create_objects(BC_Hash *defaults)
-// {
-// 	add_menu(filemenu = new BC_Menu(_("File")));
-// 	filemenu->add_item(load = new ReverbLoad(reverb, this));
-// 	filemenu->add_item(save = new ReverbSave(reverb, this));
-// 	//filemenu->add_item(set_default = new ReverbSetDefault);
-// 	load_defaults(defaults);
-// 	prev_load_thread = new ReverbLoadPrevThread(reverb, this);
-// }
-// 
-// int ReverbMenu::load_defaults(BC_Hash *defaults)
-// {
-// 	FileSystem fs;
-// 	total_loads = defaults->get("TOTAL_LOADS", 0);
-// 	if(total_loads > 0)
-// 	{
-// 		filemenu->add_item(new BC_MenuItem("-"));
-// 		char string[1024], path[1024], filename[1024];
-// 	
-// 		for(int i = 0; i < total_loads; i++)
-// 		{
-// 			sprintf(string, "LOADPREVIOUS%d", i);
-// 			defaults->get(string, path);
-// 			fs.extract_name(filename, path);
-// //printf("ReverbMenu::load_defaults %s\n", path);
-// 			filemenu->add_item(prev_load[i] = new ReverbLoadPrev(reverb, this, filename, path));
-// 		}
-// 	}
-// 	return 0;
-// }
-// 
-// int ReverbMenu::save_defaults(BC_Hash *defaults)
-// {
-// 	if(total_loads > 0)
-// 	{
-// 		defaults->update("TOTAL_LOADS",  total_loads);
-// 		char string[1024];
-// 		
-// 		for(int i = 0; i < total_loads; i++)
-// 		{
-// 			sprintf(string, "LOADPREVIOUS%d", i);
-// 			defaults->update(string, prev_load[i]->path);
-// 		}
-// 	}
-// 	return 0;
-// }
-// 
-// int ReverbMenu::add_load(char *path)
-// {
-// 	if(total_loads == 0)
-// 	{
-// 		filemenu->add_item(new BC_MenuItem("-"));
-// 	}
-// 	
-// // test for existing copy
-// 	FileSystem fs;
-// 	char text[1024], new_path[1024];      // get text and path
-// 	fs.extract_name(text, path);
-// 	strcpy(new_path, path);
-// 	
-// 	for(int i = 0; i < total_loads; i++)
-// 	{
-// 		if(!strcmp(prev_load[i]->get_text(), text))     // already exists
-// 		{                                // swap for top load
-// 			for(int j = i; j > 0; j--)   // move preceeding loads down
-// 			{
-// 				prev_load[j]->set_text(prev_load[j - 1]->get_text());
-// 				prev_load[j]->set_path(prev_load[j - 1]->path);
-// 			}
-// 			prev_load[0]->set_text(text);
-// 			prev_load[0]->set_path(new_path);
-// 			return 1;
-// 		}
-// 	}
-// 	
-// // add another load
-// 	if(total_loads < TOTAL_LOADS)
-// 	{
-// 		filemenu->add_item(prev_load[total_loads] = new ReverbLoadPrev(reverb, this));
-// 		total_loads++;
-// 	}
-// 	
-// // cycle loads down
-// 	for(int i = total_loads - 1; i > 0; i--)
-// 	{         
-// 	// set menu item text
-// 		prev_load[i]->set_text(prev_load[i - 1]->get_text());
-// 	// set filename
-// 		prev_load[i]->set_path(prev_load[i - 1]->path);
-// 	}
-// 
-// // set up the new load
-// 	prev_load[0]->set_text(text);
-// 	prev_load[0]->set_path(new_path);
-// 	return 0;
-// }
-// 
-// ReverbLoad::ReverbLoad(Reverb *reverb, ReverbMenu *menu)
-//  : BC_MenuItem(_("Load..."))
-// {
-// 	this->reverb = reverb;
-// 	this->menu = menu;
-// 	thread = new ReverbLoadThread(reverb, menu);
-// }
-// ReverbLoad::~ReverbLoad()
-// {
-// 	delete thread;
-// }
-// int ReverbLoad::handle_event()
-// {
-// 	thread->start();
-// 	return 0;
-// }
-// 
-// ReverbSave::ReverbSave(Reverb *reverb, ReverbMenu *menu)
-//  : BC_MenuItem(_("Save..."))
-// {
-// 	this->reverb = reverb;
-// 	this->menu = menu;
-// 	thread = new ReverbSaveThread(reverb, menu);
-// }
-// ReverbSave::~ReverbSave()
-// {
-// 	delete thread;
-// }
-// int ReverbSave::handle_event()
-// {
-// 	thread->start();
-// 	return 0;
-// }
-// 
-// ReverbSetDefault::ReverbSetDefault()
-//  : BC_MenuItem(_("Set default"))
-// {
-// }
-// int ReverbSetDefault::handle_event()
-// {
-// 	return 0;
-// }
-// 
-// ReverbLoadPrev::ReverbLoadPrev(Reverb *reverb, ReverbMenu *menu, char *filename, char *path)
-//  : BC_MenuItem(filename)
-// {
-// 	this->reverb = reverb;
-// 	this->menu = menu;
-// 	strcpy(this->path, path);
-// }
-// ReverbLoadPrev::ReverbLoadPrev(Reverb *reverb, ReverbMenu *menu)
-//  : BC_MenuItem("")
-// {
-// 	this->reverb = reverb;
-// 	this->menu = menu;
-// }
-// int ReverbLoadPrev::handle_event()
-// {
-// 	menu->prev_load_thread->set_path(path);
-// 	menu->prev_load_thread->start();
-// }
-// int ReverbLoadPrev::set_path(char *path)
-// {
-// 	strcpy(this->path, path);
-// }
-// 
-// 
-// ReverbSaveThread::ReverbSaveThread(Reverb *reverb, ReverbMenu *menu)
-//  : Thread()
-// {
-// 	this->reverb = reverb;
-// 	this->menu = menu;
-// }
-// ReverbSaveThread::~ReverbSaveThread()
-// {
-// }
-// void ReverbSaveThread::run()
-// {
-// 	int result = 0;
-// 	{
-// 		ReverbSaveDialog dialog(reverb);
-// 		dialog.create_objects();
-// 		result = dialog.run_window();
-// //		if(!result) strcpy(reverb->config_directory, dialog.get_path());
-// 	}
-// 	if(!result) 
-// 	{
-// 		result = reverb->save_to_file(reverb->config_directory);
-// 		menu->add_load(reverb->config_directory);
-// 	}
-// }
-// 
-// ReverbSaveDialog::ReverbSaveDialog(Reverb *reverb)
-//  : BC_FileBox(0,
-//  			0, 
-//  			reverb->config_directory, 
-//  			_("Save reverb"), 
-//  			_("Select the reverb file to save as"), 0, 0)
-// {
-// 	this->reverb = reverb;
-// }
-// ReverbSaveDialog::~ReverbSaveDialog()
-// {
-// }
-// int ReverbSaveDialog::ok_event()
-// {
-// 	set_done(0);
-// 	return 0;
-// }
-// int ReverbSaveDialog::cancel_event()
-// {
-// 	set_done(1);
-// 	return 0;
-// }
-// 
-// 
-// 
-// ReverbLoadThread::ReverbLoadThread(Reverb *reverb, ReverbMenu *menu)
-//  : Thread()
-// {
-// 	this->reverb = reverb;
-// 	this->menu = menu;
-// }
-// ReverbLoadThread::~ReverbLoadThread()
-// {
-// }
-// void ReverbLoadThread::run()
-// {
-// 	int result = 0;
-// 	{
-// 		ReverbLoadDialog dialog(reverb);
-// 		dialog.create_objects();
-// 		result = dialog.run_window();
-// //		if(!result) strcpy(reverb->config_directory, dialog.get_path());
-// 	}
-// 	if(!result) 
-// 	{
-// 		result = reverb->load_from_file(reverb->config_directory);
-// 		if(!result)
-// 		{
-// 			menu->add_load(reverb->config_directory);
-// 			reverb->send_configure_change();
-// 		}
-// 	}
-// }
-// 
-// ReverbLoadPrevThread::ReverbLoadPrevThread(Reverb *reverb, ReverbMenu *menu) : Thread()
-// {
-// 	this->reverb = reverb;
-// 	this->menu = menu;
-// }
-// ReverbLoadPrevThread::~ReverbLoadPrevThread()
-// {
-// }
-// void ReverbLoadPrevThread::run()
-// {
-// 	int result = 0;
-// 	strcpy(reverb->config_directory, path);
-// 	result = reverb->load_from_file(path);
-// 	if(!result)
-// 	{
-// 		menu->add_load(path);
-// 		reverb->send_configure_change();
-// 	}
-// }
-// int ReverbLoadPrevThread::set_path(char *path)
-// {
-// 	strcpy(this->path, path);
-// 	return 0;
-// }
-// 
-// 
-// 
-// 
-// 
-// ReverbLoadDialog::ReverbLoadDialog(Reverb *reverb)
-//  : BC_FileBox(0,
-//  			0, 
-//  			reverb->config_directory, 
-//  			_("Load reverb"), 
-//  			_("Select the reverb file to load from"), 0, 0)
-// {
-// 	this->reverb = reverb;
-// }
-// ReverbLoadDialog::~ReverbLoadDialog()
-// {
-// }
-// int ReverbLoadDialog::ok_event()
-// {
-// 	set_done(0);
-// 	return 0;
-// }
-// int ReverbLoadDialog::cancel_event()
-// {
-// 	set_done(1);
-// 	return 0;
-// }
+
+ReverbText::ReverbText(ReverbParam *param, int x, int y, float value)
+ : BC_TextBox(x, y, TEXT_W, 1, (float)value, 1, MEDIUMFONT, 2)
+{
+    this->param = param;
+}
+
+int ReverbText::handle_event()
+{
+    if(param->output_i)
+    {
+        *param->output_i = atoi(get_text());
+    }
+
+    if(param->output_f)
+    {
+        *param->output_f = atof(get_text());
+    }
+
+    if(param->output_q)
+    {
+        *param->output_q = atoi(get_text());
+    }
+    
+    param->update(1, 0);
+    param->reverb->send_configure_change();
+    param->gui->update_canvas();
+    return 1;
+}
+
+
+
+
 

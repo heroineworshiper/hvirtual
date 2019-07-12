@@ -116,6 +116,7 @@ OBJS = \
 	$(OBJDIR)/edits.o \
 	$(OBJDIR)/edl.o \
 	$(OBJDIR)/edlsession.o \
+        $(OBJDIR)/eqcanvas.o \
 	$(OBJDIR)/fadeengine.o \
 	$(OBJDIR)/file.o \
 	$(OBJDIR)/fileavi.o \
@@ -656,6 +657,7 @@ $(OBJDIR)/editpopup.o:  			  editpopup.C
 $(OBJDIR)/edits.o: 				  edits.C
 $(OBJDIR)/edl.o: 				  edl.C
 $(OBJDIR)/edlsession.o: 			  edlsession.C
+$(OBJDIR)/eqcanvas.o:                             eqcanvas.C
 $(OBJDIR)/fadeengine.o: 			  fadeengine.C
 $(OBJDIR)/file.o: 				  file.C
 $(OBJDIR)/fileac3.o:                              fileac3.C
