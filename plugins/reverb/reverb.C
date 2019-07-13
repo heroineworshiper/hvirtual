@@ -123,11 +123,29 @@ int Reverb::process_buffer(int64_t size,
         need_reconfigure = 0;
         calculate_envelope();
 
+        if(fft && fft[0]->window_size != config.window_size)
+        {
+		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    {
+ 			    delete fft[i];
+		    }
+            delete [] fft;
+            fft = 0;
+        }
 
-// allocate the stuff
         if(!fft)
         {
             fft = new ReverbFFT*[PluginClient::total_in_buffers];
+		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    {
+			    fft[i] = new ReverbFFT(this, i);
+                fft[i]->initialize(config.window_size);
+		    }
+        }
+
+// allocate the stuff
+        if(!dsp_in)
+        {
             dsp_in = new double*[PluginClient::total_in_buffers];
  		    ref_channels = new int*[PluginClient::total_in_buffers];
  		    ref_offsets = new int*[PluginClient::total_in_buffers];
@@ -138,8 +156,6 @@ int Reverb::process_buffer(int64_t size,
                 ref_channels[i] = 0;
                 ref_offsets[i] = 0;
                 ref_levels[i] = 0;
-			    fft[i] = new ReverbFFT(this, i);
-                fft[i]->initialize(MAX_WINDOW);
 		    }
 
             engine = new ReverbEngine(this);
@@ -175,10 +191,11 @@ int Reverb::process_buffer(int64_t size,
  				ref_offsets[i][j] += ref_division * j - (rand() % ref_division) / 2;
 
 // set changing levels
- 				ref_levels[i][j] = db.fromdb(config.ref_level1 + 
+                double level_db = config.ref_level1 + 
                     (config.ref_level2 - config.ref_level1) *
                     (j - 1) / 
-                    (config.ref_total - 1));
+                    (config.ref_total - 1);
+ 				ref_levels[i][j] = DB::fromdb(level_db);
  			}
 		}
 
@@ -239,6 +256,7 @@ int Reverb::process_buffer(int64_t size,
     for(int i = 0; i < PluginClient::total_in_buffers; i++)
     {
         memcpy(dsp_in[i], dsp_in[i] + size, (dsp_in_length - size) * sizeof(double));
+        bzero(dsp_in[i] + (dsp_in_length - size), size * sizeof(double));
     }
 
     dsp_in_length -= size;
@@ -291,10 +309,14 @@ double Reverb::gauss(double sigma, double center, double x)
 
 void Reverb::calculate_envelope()
 {
-    if(!envelope)
+// assume the window size changed
+    if(envelope)
     {
-        envelope = new double[MAX_WINDOW / 2];
+        delete[] envelope;
+        envelope = 0;
     }
+
+    envelope = new double[config.window_size / 2];
 
     int max_freq = Freq::tofreq(TOTALFREQS - 1);
     int niquist = PluginAClient::project_sample_rate / 2;
@@ -315,9 +337,9 @@ void Reverb::calculate_envelope()
     }
     double low_fraction = (double)Freq::fromfreq(low) / TOTALFREQS;
     double high_fraction = (double)Freq::fromfreq(high) / TOTALFREQS;
-    for(int i = 0; i < MAX_WINDOW / 2; i++)
+    for(int i = 0; i < config.window_size / 2; i++)
     {
-        int freq = i * niquist / (MAX_WINDOW / 2);
+        int freq = i * niquist / (config.window_size / 2);
         int slot = Freq::fromfreq(freq);
 
         if(freq < low)
@@ -496,7 +518,7 @@ int ReverbFFT::signal_process()
         }
     }
 
-    symmetry(MAX_WINDOW, freq_real, freq_imag);
+    symmetry(window_size, freq_real, freq_imag);
     return 0;
 }
 
@@ -527,6 +549,8 @@ int ReverbFFT::post_process()
     return 0;
 }
 
+
+static int counter = 0;
 int ReverbFFT::read_samples(int64_t output_sample, 
 	int samples, 
 	Samples *buffer)
@@ -549,10 +573,21 @@ int ReverbFFT::read_samples(int64_t output_sample,
     double *dst = plugin->dsp_in[channel] + plugin->new_dsp_length;
     double *src = buffer->get_data();
     double level = DB::fromdb(plugin->config.level_init);
+    if(plugin->config.level_init <= INFINITYGAIN)
+    {
+        level = 0;
+    }
+
+if(counter == 0)
+{
+printf("ReverbFFT::read_samples %d counter=%d samples=%d level_init=%f %f\n", 
+__LINE__, counter, samples, plugin->config.level_init, level);
     for(int i = 0; i < samples; i++)
     {
-        *dst++ = *src++ * level;
+        *dst++ += *src++ * level;
     }
+}
+counter++;
     plugin->new_dsp_length += samples;
     
 
@@ -595,15 +630,13 @@ void ReverbUnit::process_package(LoadPackage *package)
         double *dst = plugin->dsp_in[channel] + dst_offset;
         double *src = plugin->get_output(channel)->get_data();
         int size = plugin->get_buffer_size();
+
+printf("ReverbUnit::process_package %d size=%d\n", __LINE__, size);
         for(int j = 0; j < size; j++)
         {
             *dst++ += *src++ * level;
         }
     }
-
-    
-
-
 }
 
 
@@ -658,6 +691,7 @@ ReverbConfig::ReverbConfig()
 	high = Freq::tofreq(TOTALFREQS);
 	low = Freq::tofreq(0);
 	q = 1.0;
+    window_size = 4096;
 }
 
 int ReverbConfig::equivalent(ReverbConfig &that)
@@ -670,7 +704,8 @@ int ReverbConfig::equivalent(ReverbConfig &that)
 		ref_length == that.ref_length &&
 		high == that.high &&
 		low == that.low &&
-        EQUIV(q, that.q));
+        EQUIV(q, that.q) && 
+        window_size == that.window_size);
 }
 
 void ReverbConfig::copy_from(ReverbConfig &that)
@@ -684,6 +719,7 @@ void ReverbConfig::copy_from(ReverbConfig &that)
 	high = that.high;
 	low = that.low;
     q = that.q;
+    window_size = that.window_size;
 }
 
 void ReverbConfig::interpolate(ReverbConfig &prev, 
@@ -701,6 +737,7 @@ void ReverbConfig::interpolate(ReverbConfig &prev,
     high = prev.high;
     low = prev.low;
     q = prev.q;
+    window_size = prev.window_size;
 }
 
 void ReverbConfig::boundaries()

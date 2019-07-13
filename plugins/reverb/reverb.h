@@ -35,7 +35,6 @@ class ReverbFFT;
 #define MIN_REFLECTIONS 1
 #define MAX_REFLECTIONS 255
 #define MAX_REFLENGTH 5000
-#define MAX_WINDOW 8192
 
 class ReverbConfig
 {
@@ -64,6 +63,7 @@ public:
 // low frequency
     int low;
     float q;
+    int window_size;
 };
 
 

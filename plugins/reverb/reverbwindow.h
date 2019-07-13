@@ -49,6 +49,7 @@ class ReverbRefLength;
 class ReverbHigh;
 class ReverbLow;
 class ReverbQ;
+class ReverbSize;
 
 class ReverbWindow : public PluginClientWindow
 {
@@ -74,7 +75,25 @@ public:
 	ReverbParam *low;
     ReverbParam *q;
     EQCanvas *canvas;
+    ReverbSize *size;
 };
+
+class ReverbSize : public BC_PopupMenu
+{
+public:
+	ReverbSize(ReverbWindow *window, Reverb *plugin, int x, int y);
+
+	int handle_event();
+	void create_objects();         // add initial items
+	void update(int size);
+
+	ReverbWindow *window;
+	Reverb *plugin;
+};
+
+
+
+
 
 class ReverbFPot : public BC_FPot
 {

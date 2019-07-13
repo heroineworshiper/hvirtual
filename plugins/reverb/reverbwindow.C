@@ -33,7 +33,7 @@
 
 #define TEXT_W DP(90)
 #define WINDOW_W DP(250)
-#define WINDOW_H DP(250)
+#define WINDOW_H DP(280)
 
 ReverbWindow::ReverbWindow(Reverb *reverb)
  : PluginClientWindow(reverb, 
@@ -210,6 +210,17 @@ void ReverbWindow::create_objects()
     i++;
     y += BC_Pot::calculate_h() + margin;
 
+
+    BC_Title *title;
+    add_subwindow(title = new BC_Title(margin, y, _("Window:")));
+	add_subwindow(size = new ReverbSize(this, 
+		reverb, 
+		margin + title->get_w() + margin, 
+		y));
+	size->create_objects();
+	size->update(reverb->config.window_size);
+    y += size->get_h() + margin;
+
 	int canvas_x = 0;
 	int canvas_y = y;
 	int canvas_w = get_w() - margin;
@@ -248,11 +259,12 @@ void ReverbWindow::update_canvas()
 	gui->set_line_width(2);
 
     int y1;
+    int window_size = reverb->config.window_size;
     for(int i = 0; i < gui->get_w(); i++)
     {
         int freq = Freq::tofreq(i * TOTALFREQS / gui->get_w());
-        int index = (int64_t)freq * (int64_t)MAX_WINDOW / 2 / niquist;
-        if(freq < niquist && index < MAX_WINDOW / 2)
+        int index = (int64_t)freq * (int64_t)window_size / 2 / niquist;
+        if(freq < niquist && index < window_size / 2)
         {
             double mag = reverb->envelope[index];
             int y2 = (int)(DB::todb(mag) * gui->get_h() / INFINITYGAIN);
@@ -283,6 +295,54 @@ void ReverbWindow::update_canvas()
 
 //printf("ReverbWindow::update_canvas %d\n", __LINE__);
 }
+
+
+
+
+
+
+
+
+ReverbSize::ReverbSize(ReverbWindow *window, Reverb *plugin, int x, int y)
+ : BC_PopupMenu(x, y, DP(100), "4096", 1)
+{
+	this->plugin = plugin;
+	this->window = window;
+}
+
+int ReverbSize::handle_event()
+{
+	plugin->config.window_size = atoi(get_text());
+	plugin->send_configure_change();
+
+	window->update_canvas();
+	return 1;
+}
+
+void ReverbSize::create_objects()
+{
+	add_item(new BC_MenuItem("2048"));
+	add_item(new BC_MenuItem("4096"));
+	add_item(new BC_MenuItem("8192"));
+	add_item(new BC_MenuItem("16384"));
+	add_item(new BC_MenuItem("32768"));
+	add_item(new BC_MenuItem("65536"));
+	add_item(new BC_MenuItem("131072"));
+	add_item(new BC_MenuItem("262144"));
+}
+
+void ReverbSize::update(int size)
+{
+	char string[BCTEXTLEN];
+	sprintf(string, "%d", size);
+	set_text(string);
+}
+
+
+
+
+
+
 
 
 ReverbParam::ReverbParam(Reverb *reverb,
