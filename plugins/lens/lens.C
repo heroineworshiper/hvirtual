@@ -26,6 +26,7 @@
 #include "filexml.h"
 #include "language.h"
 #include "lens.h"
+#include "theme.h"
 
 
 #include <string.h>
@@ -481,8 +482,9 @@ LensGUI::~LensGUI()
 
 void LensGUI::create_objects()
 {
-	int x = DP(10);
-	int y = DP(10);
+	int margin = client->get_theme()->widget_border;
+	int x = margin;
+	int y = margin;
 	int x1;
 	BC_Title *title;
 	LensToggle *toggle;
@@ -497,7 +499,7 @@ void LensGUI::create_objects()
 			case 3: add_tool(title = new BC_Title(x, y, _("A Field of View:"))); break;
 		}
 
-		y += title->get_h() + DP(5);
+		y += title->get_h() + margin;
 		add_tool(fov_slider[i] = new LensSlider(client, 
 			this,
 			0,
@@ -506,7 +508,7 @@ void LensGUI::create_objects()
 			y, 
 			0.0001,
 			1.0));
-		x1 = x + fov_slider[i]->get_w() + DP(5);
+		x1 = x + fov_slider[i]->get_w() + margin;
 		add_tool(fov_text[i] = new LensText(client, 
 			this,
 			fov_slider[i],
@@ -514,7 +516,7 @@ void LensGUI::create_objects()
 			x1, 
 			y));
 		fov_slider[i]->text = fov_text[i];
-		y += fov_text[i]->get_h() + DP(5);
+		y += fov_slider[i]->get_h() + margin;
 	}
 
 	add_tool(toggle = new LensToggle(client, 
@@ -522,14 +524,14 @@ void LensGUI::create_objects()
 		x, 
 		y,
 		"Lock"));
-	y += toggle->get_h() + DP(10);
+	y += toggle->get_h() + margin;
 	
 	BC_Bar *bar;
 	add_tool(bar = new BC_Bar(x, y, get_w() - x * 2));
-	y += bar->get_h() + DP(5);
+	y += bar->get_h() + margin;
 
 	add_tool(title = new BC_Title(x, y, _("Aspect Ratio:")));
-	y += title->get_h() + DP(5);
+	y += title->get_h() + margin;
 	add_tool(aspect_slider = new LensSlider(client, 
 		this,
 		0,
@@ -538,7 +540,7 @@ void LensGUI::create_objects()
 		y, 
 		0.333,
 		3.0));
-	x1 = x + aspect_slider->get_w() + DP(5);
+	x1 = x + aspect_slider->get_w() + margin;
 	add_tool(aspect_text = new LensText(client, 
 		this,
 		aspect_slider,
@@ -546,11 +548,11 @@ void LensGUI::create_objects()
 		x1, 
 		y));
 	aspect_slider->text = aspect_text;
-	y += aspect_text->get_h() + DP(5);
+	y += aspect_slider->get_h() + margin;
 
 
 	add_tool(title = new BC_Title(x, y, _("Radius:")));
-	y += title->get_h() + DP(5);
+	y += title->get_h() + margin;
 	add_tool(radius_slider = new LensSlider(client, 
 		this,
 		0,
@@ -559,7 +561,7 @@ void LensGUI::create_objects()
 		y, 
 		0.333,
 		3.0));
-	x1 = x + radius_slider->get_w() + DP(5);
+	x1 = x + radius_slider->get_w() + margin;
 	add_tool(radius_text = new LensText(client, 
 		this,
 		radius_slider,
@@ -567,11 +569,11 @@ void LensGUI::create_objects()
 		x1, 
 		y));
 	radius_slider->text = radius_text;
-	y += radius_text->get_h() + DP(5);
+	y += radius_slider->get_h() + margin;
 
 
 	add_tool(title = new BC_Title(x, y, _("Center X:")));
-	y += title->get_h() + DP(5);
+	y += title->get_h() + margin;
 	add_tool(centerx_slider = new LensSlider(client, 
 		this,
 		0,
@@ -580,7 +582,7 @@ void LensGUI::create_objects()
 		y, 
 		0.0,
 		99.0));
-	x1 = x + centerx_slider->get_w() + DP(5);
+	x1 = x + centerx_slider->get_w() + margin;
 	add_tool(centerx_text = new LensText(client, 
 		this,
 		centerx_slider,
@@ -589,11 +591,11 @@ void LensGUI::create_objects()
 		y));
 	centerx_slider->text = centerx_text;
 	centerx_slider->set_precision(1.0);
-	y += centerx_text->get_h() + DP(5);
+	y += centerx_slider->get_h() + margin;
 
 
 	add_tool(title = new BC_Title(x, y, _("Center Y:")));
-	y += title->get_h() + DP(5);
+	y += title->get_h() + margin;
 	add_tool(centery_slider = new LensSlider(client, 
 		this,
 		0,
@@ -602,7 +604,7 @@ void LensGUI::create_objects()
 		y, 
 		0.0,
 		99.0));
-	x1 = x + centery_slider->get_w() + DP(5);
+	x1 = x + centery_slider->get_w() + margin;
 	add_tool(centery_text = new LensText(client, 
 		this,
 		centery_slider,
@@ -611,10 +613,10 @@ void LensGUI::create_objects()
 		y));
 	centery_slider->text = centery_text;
 	centery_slider->set_precision(1.0);
-	y += centery_text->get_h() + DP(10);
+	y += centery_slider->get_h() + DP(10);
 
 	add_tool(bar = new BC_Bar(x, y, get_w() - x * 2));
-	y += bar->get_h() + DP(5);
+	y += bar->get_h() + margin;
 
 
 // 	add_tool(reverse = new LensToggle(client, 
@@ -629,16 +631,16 @@ void LensGUI::create_objects()
 		x, 
 		y,
 		_("Draw center")));
-	y += draw_guides->get_h() + DP(5);
+	y += draw_guides->get_h() + margin;
 
 	
 	add_tool(title = new BC_Title(x, y, _("Mode:")));
 	add_tool(mode = new LensMode(client, 
 		this, 
-		x + title->get_w() + DP(5), 
+		x + title->get_w() + margin, 
 		y));
 	mode->create_objects();
-	y += mode->get_h() + DP(5);
+	y += mode->get_h() + margin;
 
 
 // 	add_tool(title = new BC_Title(x, y, _("Preset:")));
@@ -679,7 +681,7 @@ LensMain::LensMain(PluginServer *server)
 {
 	
 	engine = 0;
-	lock = 0;
+	lock = 1;
 	current_preset = -1;
 }
 

@@ -106,16 +106,25 @@ int Reverb::process_buffer(int64_t size,
 {
     need_reconfigure |= load_configuration();
 
-// invalid configuration
-    if(!config.ref_total) 
- 	{
- 		return 0;
- 	}
 
 // reset after seeking
     if(last_position != start_position)
     {
         dsp_in_length = 0;
+        if(fft)
+        {
+		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    {
+ 			    if(fft[i]) fft[i]->reset();
+		    }
+        }
+        if(dsp_in)
+        {
+		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    {
+                if(dsp_in[i]) bzero(dsp_in[i], sizeof(double) * dsp_in_allocated);
+		    }
+        }
     }
 
     if(need_reconfigure)
@@ -253,11 +262,13 @@ int Reverb::process_buffer(int64_t size,
 
 
 // shift the DSP buffer forward
+    int remane = dsp_in_allocated - size;
     for(int i = 0; i < PluginClient::total_in_buffers; i++)
     {
-        memcpy(dsp_in[i], dsp_in[i] + size, (dsp_in_length - size) * sizeof(double));
-        bzero(dsp_in[i] + (dsp_in_length - size), size * sizeof(double));
+        memcpy(dsp_in[i], dsp_in[i] + size, remane * sizeof(double));
+        bzero(dsp_in[i] + remane, size * sizeof(double));
     }
+//printf("Reverb::process_buffer %d size=%d dsp_in_allocated=%d\n", __LINE__, size, dsp_in_allocated);
 
     dsp_in_length -= size;
     
@@ -285,6 +296,8 @@ void Reverb::reallocate_dsp(int new_dsp_allocated)
             double *old_dsp = dsp_in[i];
             double *new_dsp = new double[new_dsp_allocated];
             memcpy(new_dsp, old_dsp, sizeof(double) * dsp_in_length);
+            bzero(new_dsp + dsp_in_allocated, 
+                sizeof(double) * (new_dsp_allocated - dsp_in_allocated));
             delete [] old_dsp;
             dsp_in[i] = new_dsp;
         }
@@ -550,7 +563,6 @@ int ReverbFFT::post_process()
 }
 
 
-static int counter = 0;
 int ReverbFFT::read_samples(int64_t output_sample, 
 	int samples, 
 	Samples *buffer)
@@ -578,16 +590,13 @@ int ReverbFFT::read_samples(int64_t output_sample,
         level = 0;
     }
 
-if(counter == 0)
-{
-printf("ReverbFFT::read_samples %d counter=%d samples=%d level_init=%f %f\n", 
-__LINE__, counter, samples, plugin->config.level_init, level);
+// printf("ReverbFFT::read_samples %d counter=%d samples=%d level_init=%f %f\n", 
+// __LINE__, counter, samples, plugin->config.level_init, level);
     for(int i = 0; i < samples; i++)
     {
         *dst++ += *src++ * level;
     }
-}
-counter++;
+
     plugin->new_dsp_length += samples;
     
 
@@ -617,21 +626,25 @@ ReverbUnit::~ReverbUnit()
 {
 }
 
+static int counter = 0;
 void ReverbUnit::process_package(LoadPackage *package)
 {
 	ReverbPackage *pkg = (ReverbPackage*)package;
     int channel = pkg->channel;
-    
+
     for(int i = 0; i < plugin->config.ref_total; i++)
     {
         int src_channel = plugin->ref_channels[channel][i];
         int dst_offset = plugin->ref_offsets[channel][i];
         double level = plugin->ref_levels[channel][i];
         double *dst = plugin->dsp_in[channel] + dst_offset;
-        double *src = plugin->get_output(channel)->get_data();
+        double *src = plugin->get_output(src_channel)->get_data();
         int size = plugin->get_buffer_size();
 
-printf("ReverbUnit::process_package %d size=%d\n", __LINE__, size);
+// printf("ReverbUnit::process_package %d size=%d dst_offset=%d\n", 
+// __LINE__, 
+// size,
+// dst_offset);
         for(int j = 0; j < size; j++)
         {
             *dst++ += *src++ * level;
@@ -742,13 +755,12 @@ void ReverbConfig::interpolate(ReverbConfig &prev,
 
 void ReverbConfig::boundaries()
 {
-
 	CLAMP(level_init, INFINITYGAIN, 0);
 	CLAMP(delay_init, 0, MAX_DELAY_INIT);
 	CLAMP(ref_level1, INFINITYGAIN, 0);
 	CLAMP(ref_level2, INFINITYGAIN, 0);
 	CLAMP(ref_total, MIN_REFLECTIONS, MAX_REFLECTIONS);
-	CLAMP(ref_length, 0, MAX_REFLENGTH);
+	CLAMP(ref_length, MIN_REFLENGTH, MAX_REFLENGTH);
 	CLAMP(high, 0, Freq::tofreq(TOTALFREQS));
 	CLAMP(low, 0, Freq::tofreq(TOTALFREQS));
     CLAMP(q, 0.0, 1.0);

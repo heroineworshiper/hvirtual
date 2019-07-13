@@ -32,15 +32,15 @@
 #include <string.h>
 
 #define TEXT_W DP(90)
-#define WINDOW_W DP(250)
-#define WINDOW_H DP(280)
+#define WINDOW_W DP(400)
+#define WINDOW_H DP(490)
 
 ReverbWindow::ReverbWindow(Reverb *reverb)
  : PluginClientWindow(reverb, 
-	DP(WINDOW_W), 
-	DP(WINDOW_H), 
-	DP(WINDOW_W), 
-	DP(WINDOW_H), 
+	WINDOW_W, 
+	WINDOW_H, 
+	WINDOW_W, 
+	WINDOW_H, 
 	0)
 { 
 	this->reverb = reverb; 

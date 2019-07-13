@@ -34,6 +34,7 @@ class ReverbFFT;
 #define MAX_DELAY_INIT 1000
 #define MIN_REFLECTIONS 1
 #define MAX_REFLECTIONS 255
+#define MIN_REFLENGTH 3
 #define MAX_REFLENGTH 5000
 
 class ReverbConfig
