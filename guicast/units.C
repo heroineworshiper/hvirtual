@@ -114,7 +114,7 @@ void Freq::init_table()
   		for(int i = 1, j = 0; i <= TOTALFREQS; i++, j++)
   		{
     		freqtable[i] = (int)(freq1 + (freq2 - freq1) / scale * j + 0.5);
-//printf("Freq::init_table %d\n", freqtable[i]);
+printf("Freq::init_table %d\n", freqtable[i]);
     		if(j >= scale)
 			{
 				freq1 = freq2;

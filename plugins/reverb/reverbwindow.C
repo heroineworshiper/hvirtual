@@ -203,7 +203,7 @@ void ReverbWindow::create_objects()
         &reverb->config.q, // output_f
         0, // output_q
         "Steepness of bandpass:",
-        0.8, // min
+        0.0, // min
         1.0); // max
     params[i]->initialize();
     params[i]->fpot->set_precision(0.01);

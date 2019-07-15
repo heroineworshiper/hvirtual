@@ -332,52 +332,54 @@ void Reverb::calculate_envelope()
     envelope = new double[config.window_size / 2];
 
     int max_freq = Freq::tofreq(TOTALFREQS - 1);
-    int niquist = PluginAClient::project_sample_rate / 2;
-    double sigma = (config.q < 1) ?
-		(1.0 - config.q) :
-		0.01;
-    double normalize = gauss(sigma, 0, 0);
+    int nyquist = PluginAClient::project_sample_rate / 2;
     int low = config.low;
     int high = config.high;
+
+
+// limit the frequencies
     if(high >= max_freq)
     {
-        high = niquist;
+        high = nyquist;
     }
 
     if(low > high)
     {
         low = high;
     }
-    double low_fraction = (double)Freq::fromfreq(low) / TOTALFREQS;
-    double high_fraction = (double)Freq::fromfreq(high) / TOTALFREQS;
+    
+    int edge = (1.0 - config.q) * TOTALFREQS / 2;
+    int low_slot = Freq::fromfreq(low);
+    int high_slot = Freq::fromfreq(high);
     for(int i = 0; i < config.window_size / 2; i++)
     {
-        int freq = i * niquist / (config.window_size / 2);
+        int freq = i * nyquist / (config.window_size / 2);
         int slot = Freq::fromfreq(freq);
 
-        if(freq < low)
+        if(slot < low_slot - edge)
         {
-            envelope[i] = DB::fromdb(INFINITYGAIN - INFINITYGAIN * 
-                gauss(sigma, low_fraction, (double)slot / TOTALFREQS) /
-                normalize);
+            envelope[i] = 0.0;
         }
         else
-        if(freq < high)
+        if(slot < low_slot)
+        {
+            envelope[i] = DB::fromdb((low_slot - slot) * INFINITYGAIN / edge);
+        }
+        else
+        if(slot < high_slot)
         {
             envelope[i] = 1.0;
         }
         else
+        if(slot < high_slot + edge)
         {
-            envelope[i] = DB::fromdb(INFINITYGAIN - INFINITYGAIN * 
-                gauss(sigma, high_fraction, (double)slot / TOTALFREQS) /
-                normalize);
+            envelope[i] = DB::fromdb((slot - high_slot) * INFINITYGAIN / edge);
+        }
+        else
+        {
+            envelope[i] = 0.0;
         }
 
-// limit it to allow true cutoffs outside the band
-        if(envelope[i] < 0.01)
-        {
-            envelope[i] = 0;
-        }
 //        printf("Reverb::calculate_envelope %d %f\n", __LINE__, envelope[i]);
     }
 }
