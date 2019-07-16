@@ -316,6 +316,8 @@ ParametricBandGUI::~ParametricBandGUI()
 #define X2 DP(60)
 #define X3 DP(110)
 #define X4 DP(160)
+// the DB limits we'll be drawing
+#define DB_SCALE 15
 
 	
 void ParametricBandGUI::create_objects()
@@ -468,27 +470,24 @@ SET_TRACE
 SET_TRACE	
 // Draw canvas titles
 	set_font(SMALLFONT);
-#define MAJOR_DIVISIONS 4
+#define MAJOR_DIVISIONS 6
 #define MINOR_DIVISIONS 5
 	for(int i = 0; i <= MAJOR_DIVISIONS; i++)
 	{
 		int y1 = canvas_y + canvas_h - i * (canvas_h / MAJOR_DIVISIONS) - DP(2);
 		int y2 = y1 + DP(3);
-		int x1 = canvas_x - DP(25);
+		int x1 = canvas_x - DP(30);
 		int x2 = canvas_x - DP(10);
-		int x3 = canvas_x - DP(2);
+		int x3 = canvas_x;
 
 		char string[BCTEXTLEN];
-		if(i == 0)
-			sprintf(string, "oo");
-		else
-			sprintf(string, "%d", i * 5 - 5);
+		sprintf(string, "%d", i * 5 - DB_SCALE);
 
 		set_color(BLACK);
-		draw_text(x1 + 1, y2 + 1, string);
+		draw_text(x2 - get_text_width(SMALLFONT, string), y2 + 1, string);
 		draw_line(x2 + 1, y1 + 1, x3 + 1, y1 + 1);
 		set_color(RED);
-		draw_text(x1, y2, string);
+		draw_text(x2 - get_text_width(SMALLFONT, string), y2, string);
 		draw_line(x2, y1, x3, y1);
 
 		if(i < MAJOR_DIVISIONS)
@@ -657,22 +656,14 @@ void ParametricWindow::update_canvas()
 		int index = (int64_t)freq * (int64_t)plugin->config.window_size / 2 / niquist;
 		if(freq < niquist && index < plugin->config.window_size / 2)
 		{
-//printf("ParametricWindow::update_canvas %d %d\n", __LINE__, index);
 			double magnitude = plugin->envelope[index];
-			int y2 = canvas->get_h() * 3 / 4;
+//printf("ParametricWindow::update_canvas %d %d %f\n", __LINE__, index, magnitude);
+			int y2 = canvas->get_h() / 2;
 
-			if(magnitude > 1)
-			{
-				y2 -= (int)(DB::todb(magnitude) * 
-					canvas->get_h() * 
-					3 / 
-					4 / 
-					15);
-			}
-			else
-			{
-				y2 += (int)((1 - magnitude) * canvas->get_h() / 4);
-			}
+			y2 -= (int)(DB::todb(magnitude) * 
+				canvas->get_h() / 
+				2 / 
+				MAXMAGNITUDE);
 			if(i > 0) canvas->draw_line(i - 1, y1, i, y2);
 			y1 = y2;
 		}
@@ -917,16 +908,15 @@ void ParametricEQ::reconfigure()
 
 double ParametricEQ::calculate_envelope()
 {
-	double wetness = DB::fromdb(config.wetness);
-	if(EQUIV(config.wetness, INFINITYGAIN)) wetness = 0;
 	int niquist = PluginAClient::project_sample_rate / 2;
 
+// calculate envelope in DB, then convert to power
 	if(!envelope) envelope = new double[MAX_WINDOW / 2];
 
 //printf("ParametricEQ::calculate_envelope %d %f\n", __LINE__, wetness);
 	for(int i = 0; i < config.window_size / 2; i++)
 	{
-		envelope[i] = wetness;
+		envelope[i] = config.wetness;
 	}
 
 	for(int pass = 0; pass < 2; pass++)
@@ -936,14 +926,41 @@ double ParametricEQ::calculate_envelope()
 			switch(config.band[band].mode)
 			{
 				case ParametricBand::LOWPASS:
+// printf("ParametricEQ::calculate_envelope %d magnitude=%f\n", 
+// __LINE__, 
+// config.band[band].magnitude);
 					if(pass == 1)
 					{
-						double magnitude = DB::fromdb(config.band[band].magnitude);
-						int cutoff = (int)((double)config.band[band].freq / niquist * config.window_size / 2);
+// slots per DB
+                        double slope = (1.0 - config.band[band].quality) * OCTAVE / 6;
+						double magnitude = config.band[band].magnitude;
+						double cutoff = Freq::fromfreq_f(config.band[band].freq);
 						for(int i = 0; i < config.window_size / 2; i++)
 						{
-							if(i < cutoff) 
-								envelope[i] += magnitude;
+                            double freq = i * niquist / (config.window_size / 2);
+                            double slot = Freq::fromfreq_f(freq);
+							if(slot < cutoff) 
+							{
+                            	envelope[i] += magnitude;
+                            }
+                            else
+                            if(EQUIV(config.band[band].quality, 1))
+                            {
+                                envelope[i] = INFINITYGAIN;
+                            }
+                            else
+                            {
+                                double db = (slot - cutoff) / slope;
+// printf("ParametricEQ::calculate_envelope %d slot=%f db=%f\n", 
+// __LINE__, 
+// slot,
+// db);
+                                envelope[i] = envelope[i] + magnitude - db;
+                                if(envelope[i] < INFINITYGAIN)
+                                {
+                                    envelope[i] = INFINITYGAIN;
+                                }
+                            }
 						}
 					}
 					break;
@@ -951,12 +968,35 @@ double ParametricEQ::calculate_envelope()
 				case ParametricBand::HIGHPASS:
 					if(pass == 1)
 					{
-						double magnitude = DB::fromdb(config.band[band].magnitude);
-						int cutoff = (int)((double)config.band[band].freq / niquist * config.window_size / 2);
+                        double slope = (1.0 - config.band[band].quality) * OCTAVE / 6;
+						double magnitude = config.band[band].magnitude;
+						double cutoff = Freq::fromfreq_f(config.band[band].freq);
 						for(int i = 0; i < config.window_size / 2; i++)
 						{
-							if(i > cutoff) 
+                            double freq = i * niquist / (config.window_size / 2);
+                            double slot = Freq::fromfreq_f(freq);
+							if(slot > cutoff)
+                            {
 								envelope[i] += magnitude;
+                            }
+                            else
+                            if(EQUIV(config.band[band].quality, 1))
+                            {
+                                envelope[i] = INFINITYGAIN;
+                            }
+                            else
+                            {
+                                double db = (cutoff - slot) / slope;
+// printf("ParametricEQ::calculate_envelope %d slot=%f db=%f\n", 
+// __LINE__, 
+// slot,
+// db);
+                                envelope[i] = envelope[i] + magnitude - db;
+                                if(envelope[i] < INFINITYGAIN)
+                                {
+                                    envelope[i] = INFINITYGAIN;
+                                }
+                            }
 						}
 					}
 					break;
@@ -964,32 +1004,32 @@ double ParametricEQ::calculate_envelope()
 				case ParametricBand::BANDPASS:
 					if(pass == 0)
 					{
-						double magnitude = (config.band[band].magnitude > 0) ? 
-							(DB::fromdb(config.band[band].magnitude) - 1) : 
-							(-1 + DB::fromdb(config.band[band].magnitude));
+						double magnitude = config.band[band].magnitude;
 						double sigma = (config.band[band].quality < 1) ?
 							(1.0 - config.band[band].quality) :
 							0.01;
 						sigma /= 4;
-						double center = (double)Freq::fromfreq(config.band[band].freq) / 
+						double center = (double)Freq::fromfreq_f(config.band[band].freq) / 
 							TOTALFREQS;
 						double normalize = gauss(sigma, 0, 0);
-						if(config.band[band].magnitude <= -MAXMAGNITUDE) 
-							magnitude = -1;
+// mute it
+						if(config.band[band].magnitude <= -MAXMAGNITUDE + 0.001) 
+                        {
+							magnitude = INFINITYGAIN;
+                        }
 
 						for(int i = 0; i < config.window_size / 2; i++)
 						{
 							int freq = i * niquist / (config.window_size / 2);
-							int current_slot = Freq::fromfreq(freq);
+							double current_slot = Freq::fromfreq_f(freq);
 							envelope[i] += magnitude * 
 								gauss(sigma, center, (double)current_slot / TOTALFREQS) / 
 								normalize;
-// printf("freq=%d magnitude=%f gauss=%f normalize=%f envelope[i]=%f\n",
-// freq,
-// magnitude,
-// gauss(sigma, center, (double)current_slot / TOTALFREQS),
-// normalize,
+// printf("ParametricEQ::calculate_envelope %d i=%d envelope=%f\n", 
+// __LINE__, 
+// i,
 // envelope[i]);
+
 						}
 					}
 					break;
@@ -997,6 +1037,12 @@ double ParametricEQ::calculate_envelope()
 		}
 	}
 
+    for(int i = 0; i < config.window_size / 2; i++)
+	{
+        envelope[i] = DB::fromdb(envelope[i]);
+    }
+    
+    
 	return 0;
 }
 
