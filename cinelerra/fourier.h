@@ -52,7 +52,6 @@ public:
 	CrossfadeFFT();
 	virtual ~CrossfadeFFT();
 
-	int reset();
 	int initialize(int window_size);
 	long get_delay();     // Number of samples fifo is delayed
 	int reconfigure();
@@ -94,6 +93,8 @@ public:
 	double *output_imag;
 
 private:
+// resets the variables but doesn't delete anything
+	int reset();
 
 // input for complete windows
 	Samples *input_buffer;

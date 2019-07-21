@@ -413,6 +413,7 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 		if(!output_real) output_real = new double[window_size];
 		if(!output_imag) output_imag = new double[window_size];
 
+//printf("CrossfadeFFT::process_buffer %d offset=%d\n", __LINE__, input_buffer->get_offset());
 // Fill enough input to make a window starting at output_sample
 		if(first_window)
         {
@@ -423,6 +424,7 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
         else
 		{
 			input_buffer->set_offset(HALF_WINDOW);
+//printf("CrossfadeFFT::process_buffer %d offset=%d\n", __LINE__, input_buffer->get_offset());
 // printf("CrossfadeFFT::process_buffer %d %lld %lld\n", 
 // __LINE__, 
 // this->input_sample + step * HALF_WINDOW,
@@ -528,7 +530,7 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 // 	for(int i = 0, j = size; j < output_size + HALF_WINDOW; i++, j++)
 // 	{
 //     	output_buffer[i] = output_buffer[j];
-//     }
+//  }
 
 	this->output_sample += step * size;
 	this->output_size -= size;

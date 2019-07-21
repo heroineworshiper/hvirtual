@@ -233,7 +233,7 @@ void ReverbWindow::create_objects()
         INFINITYGAIN,
         0.0);
     canvas->initialize();
-    update_canvas();
+    update();
 
 	show_window();
 }
@@ -244,6 +244,8 @@ void ReverbWindow::update()
     {
         params[i]->update(1, 1);
     }
+    size->update(reverb->config.window_size);
+    update_canvas();
 }
 
 
@@ -255,41 +257,9 @@ void ReverbWindow::update_canvas()
 
 // draw the envelope
     reverb->calculate_envelope();
-	gui->set_color(WHITE);
-	gui->set_line_width(2);
-
-    int y1;
-    int window_size = reverb->config.window_size;
-    for(int i = 0; i < gui->get_w(); i++)
-    {
-        int freq = Freq::tofreq(i * TOTALFREQS / gui->get_w());
-        int index = (int64_t)freq * (int64_t)window_size / 2 / niquist;
-        if(freq < niquist && index < window_size / 2)
-        {
-            double mag = reverb->envelope[index];
-            int y2 = (int)(DB::todb(mag) * gui->get_h() / INFINITYGAIN);
-            
-            if(y2 >= gui->get_h())
-            {
-                y2 = gui->get_h() - 1;
-            }
-            
-            if(i > 0)
-            {
-                gui->draw_line(i - 1, y1, i, y2);
-            }
-            y1 = y2;
-        }
-        else
-        if(i > 0)
-        {
-            int y2 = gui->get_h() - 1;
-            gui->draw_line(i - 1, y1, i, y2);
-            y1 = y2;
-        }
-    }
-
-    gui->set_line_width(1);
+    canvas->draw_envelope(reverb->envelope,
+        reverb->PluginAClient::project_sample_rate,
+        reverb->config.window_size);
 	gui->flash(1);
 
 

@@ -115,7 +115,7 @@ int Reverb::process_buffer(int64_t size,
         {
 		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
 		    {
- 			    if(fft[i]) fft[i]->reset();
+ 			    if(fft[i]) fft[i]->delete_fft();
 		    }
         }
         if(dsp_in)
@@ -127,10 +127,13 @@ int Reverb::process_buffer(int64_t size,
         }
     }
 
+
     if(need_reconfigure)
     {
         need_reconfigure = 0;
+
         calculate_envelope();
+
 
         if(fft && fft[0]->window_size != config.window_size)
         {
@@ -170,6 +173,7 @@ int Reverb::process_buffer(int64_t size,
             engine = new ReverbEngine(this);
         }
 
+
 		for(int i = 0; i < PluginClient::total_in_buffers; i++)
 		{
  			if(ref_channels[i]) delete [] ref_channels[i];
@@ -207,15 +211,16 @@ int Reverb::process_buffer(int64_t size,
  				ref_levels[i][j] = DB::fromdb(level_db);
  			}
 		}
+    }
+
 
 // guess DSP allocation from the reflection time & requested samples
-        int new_dsp_allocated = size + 
-     		((int64_t)config.delay_init + config.ref_length) * 
-            project_sample_rate / 
-            1000 + 
-            1;
-        reallocate_dsp(new_dsp_allocated);
-    }
+    int new_dsp_allocated = size + 
+     	((int64_t)config.delay_init + config.ref_length) * 
+        project_sample_rate / 
+        1000 + 
+        1;
+    reallocate_dsp(new_dsp_allocated);
 
 // Always read in the new samples & process the bandpass, even if there is no
 // bandpass.  This way the user can tweek the bandpass without causing glitches.
@@ -223,17 +228,21 @@ int Reverb::process_buffer(int64_t size,
 	{
         new_dsp_length = dsp_in_length;
         new_spectrogram_frames = 0;
+//printf("Reverb::process_buffer %d start_position=%ld buffer[i]=%p size=%ld fft[i]=%p\n", 
+//__LINE__, start_position, buffer[i], size, fft[i]);
         fft[i]->process_buffer(start_position, 
 		    size, 
 		    buffer[i],   // temporary storage for the bandpassed output
 		    get_direction());
     }
 
+
 // send the spectrograms to the plugin.  This consumes the pointers
 	for(int i = 0; i < spectrogram_frames.size(); i++)
     {
         add_gui_frame(spectrogram_frames.get(i));
     }
+
 
 // update the length with what the FFT reads appended
     dsp_in_length = new_dsp_length;
@@ -249,8 +258,10 @@ int Reverb::process_buffer(int64_t size,
 
 
 
+
 // now paint the reflections
     engine->process_packages();
+
 
 
 
@@ -259,6 +270,7 @@ int Reverb::process_buffer(int64_t size,
     {
         memcpy(buffer[i]->get_data(), dsp_in[i], size * sizeof(double));
     }
+
 
 
 // shift the DSP buffer forward
@@ -280,6 +292,7 @@ int Reverb::process_buffer(int64_t size,
     {
         last_position = start_position - size;
     }
+
     
 
     return 0;
@@ -302,6 +315,7 @@ void Reverb::reallocate_dsp(int new_dsp_allocated)
             dsp_in[i] = new_dsp;
         }
         dsp_in_allocated = new_dsp_allocated;
+//printf("Reverb::reallocate_dsp %d dsp_in_allocated=%d\n", __LINE__, dsp_in_allocated);
     }
 
 }
@@ -325,13 +339,13 @@ void Reverb::calculate_envelope()
 // assume the window size changed
     if(envelope)
     {
-        delete[] envelope;
+        delete [] envelope;
         envelope = 0;
     }
 
     envelope = new double[config.window_size / 2];
 
-    int max_freq = Freq::tofreq(TOTALFREQS - 1);
+    int max_freq = Freq::tofreq_f(TOTALFREQS - 1);
     int nyquist = PluginAClient::project_sample_rate / 2;
     int low = config.low;
     int high = config.high;
@@ -348,14 +362,20 @@ void Reverb::calculate_envelope()
         low = high;
     }
     
-    int edge = (1.0 - config.q) * TOTALFREQS / 2;
-    int low_slot = Freq::fromfreq(low);
-    int high_slot = Freq::fromfreq(high);
+    double edge = (1.0 - config.q) * TOTALFREQS / 2;
+    double low_slot = Freq::fromfreq_f(low);
+    double high_slot = Freq::fromfreq_f(high);
     for(int i = 0; i < config.window_size / 2; i++)
     {
-        int freq = i * nyquist / (config.window_size / 2);
-        int slot = Freq::fromfreq(freq);
+        double freq = i * nyquist / (config.window_size / 2);
+        double slot = Freq::fromfreq_f(freq);
 
+// printf("Reverb::calculate_envelope %d i=%d freq=%f slot=%f slot1=%f\n", 
+// __LINE__, 
+// i, 
+// freq,
+// slot, 
+// low_slot - edge);
         if(slot < low_slot - edge)
         {
             envelope[i] = 0.0;
@@ -380,7 +400,7 @@ void Reverb::calculate_envelope()
             envelope[i] = 0.0;
         }
 
-//        printf("Reverb::calculate_envelope %d %f\n", __LINE__, envelope[i]);
+//        printf("Reverb::calculate_envelope %d i=%d %f\n", __LINE__, i, envelope[i]);
     }
 }
 
@@ -569,6 +589,11 @@ int ReverbFFT::read_samples(int64_t output_sample,
 	int samples, 
 	Samples *buffer)
 {
+// printf("ReverbFFT::read_samples %d channel=%d buffer=%p offset=%d\n", 
+// __LINE__, 
+// channel, 
+// buffer, 
+// buffer->get_offset());
 	int result = plugin->read_samples(buffer,
 		channel,
 		plugin->get_samplerate(),
@@ -643,10 +668,16 @@ void ReverbUnit::process_package(LoadPackage *package)
         double *src = plugin->get_output(src_channel)->get_data();
         int size = plugin->get_buffer_size();
 
-// printf("ReverbUnit::process_package %d size=%d dst_offset=%d\n", 
-// __LINE__, 
-// size,
-// dst_offset);
+        if(size + dst_offset > plugin->dsp_in_allocated)
+        {
+            printf("ReverbUnit::process_package %d size=%d dst_offset=%d needed=%d allocated=%d\n", 
+            __LINE__, 
+            size,
+            dst_offset,
+            size + dst_offset,
+            plugin->dsp_in_allocated);
+        }
+
         for(int j = 0; j < size; j++)
         {
             *dst++ += *src++ * level;

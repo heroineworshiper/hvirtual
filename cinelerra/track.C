@@ -163,7 +163,8 @@ void Track::equivalent_output(Track *track, double *result)
 
 
 int Track::is_synthesis(int64_t position, 
-	int direction)
+	int direction,
+    int depth)
 {
 	int is_synthesis = 0;
 	for(int i = 0; i < plugin_set.total; i++)
@@ -180,7 +181,8 @@ int Track::is_synthesis(int64_t position,
 				is_synthesis = 1;
 			else
 				is_synthesis = plugin->is_synthesis(position, 
-					direction);
+					direction,
+                    depth);
 
 //printf("Track::is_synthesis %d %d\n", __LINE__, is_synthesis);
 			if(is_synthesis) break;

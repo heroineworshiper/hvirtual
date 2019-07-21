@@ -223,6 +223,8 @@ public:
 	ParametricBandGUI* bands[BANDS];
 	ParametricWetness *wetness;
 	ParametricSize *size;
+    int db_divisions;
+    int freq_divisions;
 };
 
 

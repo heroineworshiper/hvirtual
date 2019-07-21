@@ -161,7 +161,7 @@ int esd_send_auth( int sock )
     int namelen, retval;
     void (*phandler)(int);
   
-printf("esd_send_auth %d\n", __LINE__);
+//printf("esd_send_auth %d\n", __LINE__);
 /* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
 /* we need to catch SIGPIPE to avoid the default handler form giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
@@ -244,12 +244,12 @@ printf("esd_send_auth %d\n", __LINE__);
     /* we've run the gauntlet, everything's ok, proceed as usual */
     /* fsync( sock ); */
     retval = 1;
-printf("esd_send_auth %d OK\n", __LINE__);
+//printf("esd_send_auth %d OK\n", __LINE__);
 
  exit_fd:
     close( auth_fd );
  exit_fn:
-printf("esd_send_auth %d\n", __LINE__);
+//printf("esd_send_auth %d\n", __LINE__);
     free( auth_filename );
     signal( SIGPIPE, phandler ); 
     return retval;
@@ -450,7 +450,7 @@ esd_connect_tcpip(const char *host)
 		strcpy( connect_host, default_host );
 
 	connect_host[sizeof(connect_host) - 1] = '\0';
-printf("esd_connect_tcpip %d host=%s port=%d\n", __LINE__, host, port);
+//printf("esd_connect_tcpip %d host=%s port=%d\n", __LINE__, host, port);
 
 	/* Resolving the host name */
 	if ( ( he = gethostbyname( connect_host ) ) == NULL ) {
@@ -498,7 +498,7 @@ printf("esd_connect_tcpip %d host=%s port=%d\n", __LINE__, host, port);
 	fprintf(stderr,"Unable to set for a fresh socket\n");
 	goto error_out;
     }
-printf("esd_connect_tcpip %d host=%s port=%d socket_out=%d\n", __LINE__, host, port, socket_out);
+//printf("esd_connect_tcpip %d host=%s port=%d socket_out=%d\n", __LINE__, host, port, socket_out);
 
     /* set the connect information */
     socket_addr.sin_family = AF_INET;
@@ -512,7 +512,7 @@ printf("esd_connect_tcpip %d host=%s port=%d socket_out=%d\n", __LINE__, host, p
 
         goto error_out;
     }
-printf("esd_connect_tcpip %d host=%s port=%d socket_out=%d SUCCESS\n", __LINE__, host, port, socket_out);
+//printf("esd_connect_tcpip %d host=%s port=%d socket_out=%d SUCCESS\n", __LINE__, host, port, socket_out);
 
     return socket_out;
 
@@ -626,7 +626,7 @@ int esd_open_sound( const char *host )
     char *display;
 
     if ( !host ) host = getenv("ESPEAKER");
-printf("esd_open_sound %d\n", __LINE__);
+//printf("esd_open_sound %d\n", __LINE__);
 
     display = getenv( "DISPLAY" );
     if ( !(host && *host) && display ) {
@@ -732,14 +732,14 @@ printf("esd_open_sound %d\n", __LINE__);
 	sigaction(SIGUSR1, &sa_orig, NULL);
 	sigaction(SIGALRM, &sa_orig_alarm, NULL);
     }
-printf("esd_open_sound %d socket_out=%d\n", __LINE__, socket_out);
+//printf("esd_open_sound %d socket_out=%d\n", __LINE__, socket_out);
 
  finish_connect:
     if (socket_out >= 0
 	&& !esd_send_auth (socket_out)) {
 	close(socket_out); socket_out = -1;
     }
-printf("esd_open_sound %d socket_out=%d\n", __LINE__, socket_out);
+//printf("esd_open_sound %d socket_out=%d\n", __LINE__, socket_out);
 
     return socket_out;
 }

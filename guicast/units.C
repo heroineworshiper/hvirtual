@@ -165,7 +165,15 @@ double Freq::fromfreq_f(double f)
         return 0;
     }
 
-    return log(f / 440) / log(2.0) * OCTAVE + 421;
+    double result = log(f / 440) / log(2.0) * OCTAVE + 421;
+    if(result < 0) 
+    {
+        return 0;
+    }
+    else
+    {
+        return result;
+    }
 }
 
 

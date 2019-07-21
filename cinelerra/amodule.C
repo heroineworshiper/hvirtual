@@ -763,7 +763,10 @@ int AModule::render(Samples *buffer,
 	int64_t edl_rate = get_edl()->session->sample_rate;
 	const int debug = 0;
 
-if(debug) printf("AModule::render %d\n", __LINE__);
+if(debug) printf("AModule::render %d %p %ld\n", 
+__LINE__, 
+buffer->get_data(), 
+input_len);
 
 	if(use_nudge) 
 		start_position += track->nudge * 
@@ -786,9 +789,11 @@ if(debug) printf("AModule::render %d\n", __LINE__);
 // 		end_position -= input_len;
 // 	}
 
+if(debug) printf("AModule::render %d\n", __LINE__);
 
 // Clear buffer
 	bzero(buffer->get_data(), input_len * sizeof(double));
+if(debug) printf("AModule::render %d\n", __LINE__);
 
 // The EDL is normalized to the requested sample rate because 
 // the requested rate may be the project sample rate and a sample rate 

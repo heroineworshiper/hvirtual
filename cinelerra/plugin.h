@@ -59,6 +59,8 @@ public:
 	virtual Plugin& operator=(Plugin& edit);
 	virtual Edit& operator=(Edit& edit);
 
+    const char* type_to_text(int type);
+
 // Called by Edits::equivalent_output to override the keyframe behavior and check
 // title.
 	void equivalent_output(Edit *edit, int64_t *result);
@@ -66,7 +68,8 @@ public:
 // Called by playable tracks to test for playable server.
 // Descends the plugin tree without creating a virtual console.
 	int is_synthesis(int64_t position, 
-		int direction);
+		int direction,
+        int depth = 0);
 
 	virtual int operator==(Plugin& that);
 	virtual int operator==(Edit& that);

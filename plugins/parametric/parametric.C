@@ -470,11 +470,11 @@ SET_TRACE
 SET_TRACE	
 // Draw canvas titles
 	set_font(SMALLFONT);
-#define MAJOR_DIVISIONS 6
+    db_divisions = 6;
 #define MINOR_DIVISIONS 5
-	for(int i = 0; i <= MAJOR_DIVISIONS; i++)
+	for(int i = 0; i <= db_divisions; i++)
 	{
-		int y1 = canvas_y + canvas_h - i * (canvas_h / MAJOR_DIVISIONS) - DP(2);
+		int y1 = canvas_y + canvas_h - i * (canvas_h / db_divisions) - DP(2);
 		int y2 = y1 + DP(3);
 		int x1 = canvas_x - DP(30);
 		int x2 = canvas_x - DP(10);
@@ -490,11 +490,11 @@ SET_TRACE
 		draw_text(x2 - get_text_width(SMALLFONT, string), y2, string);
 		draw_line(x2, y1, x3, y1);
 
-		if(i < MAJOR_DIVISIONS)
+		if(i < db_divisions)
 		{
 			for(int j = 1; j < MINOR_DIVISIONS; j++)
 			{
-				int y3 = y1 - j * (canvas_h / MAJOR_DIVISIONS) / MINOR_DIVISIONS;
+				int y3 = y1 - j * (canvas_h / db_divisions) / MINOR_DIVISIONS;
 				int x4 = x3 - DP(5);
 				set_color(BLACK);
 				draw_line(x4 + 1, y3 + 1, x3 + 1, y3 + 1);
@@ -505,12 +505,11 @@ SET_TRACE
 	}
 
 SET_TRACE	
-#undef MAJOR_DIVISIONS
-#define MAJOR_DIVISIONS 5
-	for(int i = 0; i <= MAJOR_DIVISIONS; i++)
+    freq_divisions = 5;
+	for(int i = 0; i <= freq_divisions; i++)
 	{
-		int freq = Freq::tofreq(i * TOTALFREQS / MAJOR_DIVISIONS);
-		int x1 = canvas_x + i * canvas_w / MAJOR_DIVISIONS;
+		int freq = Freq::tofreq(i * TOTALFREQS / freq_divisions);
+		int x1 = canvas_x + i * canvas_w / freq_divisions;
 		int y1 = canvas_y + canvas_h + DP(20);
 		char string[BCTEXTLEN];
 		sprintf(string, "%d", freq);
@@ -526,16 +525,16 @@ SET_TRACE
 		draw_text(x2, y1, string);
 		draw_line(x1, y4, x1, y2);
 
-		if(i < MAJOR_DIVISIONS)
+		if(i < freq_divisions)
 		{
 #undef MINOR_DIVISIONS
 #define MINOR_DIVISIONS 5
 			for(int j = 0; j < MINOR_DIVISIONS; j++)
 			{
 				int x3 = (int)(x1 + 
-					(canvas_w / MAJOR_DIVISIONS) -
+					(canvas_w / freq_divisions) -
 					exp(-(double)j * 0.7) * 
-					(canvas_w / MAJOR_DIVISIONS));
+					(canvas_w / freq_divisions));
 				set_color(BLACK);
 				draw_line(x3 + 1, y4 + 1, x3 + 1, y3 + 1);
 				set_color(RED);
@@ -545,7 +544,7 @@ SET_TRACE
 	}
 
 SET_TRACE	
-	update_canvas();
+	update_gui();
 	show_window();
 SET_TRACE	
 }
@@ -565,7 +564,9 @@ void ParametricWindow::update_gui()
 void ParametricWindow::update_canvas()
 {
 	double scale = 1;
-	int y1 = canvas->get_h() / 2;
+    int canvas_h = canvas->get_h();
+    int canvas_w = canvas->get_w();
+	int y1 = canvas_h / 2;
 	int niquist = plugin->PluginAClient::project_sample_rate / 2;
 	int wetness = canvas->get_h() -
 		(int)((plugin->config.wetness - INFINITYGAIN) /
@@ -574,6 +575,25 @@ void ParametricWindow::update_canvas()
 			4);
 
 	canvas->clear_box(0, 0, canvas->get_w(), canvas->get_h());
+
+
+// draw the grid
+	canvas->set_line_dashes(1);
+	canvas->set_color(GREEN);
+    for(int i = 1; i < db_divisions; i++)
+    {
+        int y = canvas_h - 
+            i * canvas_h / db_divisions;
+        canvas->draw_line(0, y, canvas_w, y);
+    }
+
+    for(int i = 1; i < freq_divisions; i++)
+    {
+        int x = i * canvas_w / freq_divisions;
+        canvas->draw_line(x, 0, x, canvas_h);
+    }
+    canvas->set_line_dashes(0);
+
 
 
 
@@ -688,6 +708,8 @@ void ParametricWindow::update_canvas()
 
 	canvas->flash(1);
 }
+
+
 
 
 

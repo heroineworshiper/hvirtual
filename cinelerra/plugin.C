@@ -102,6 +102,25 @@ int Plugin::operator==(Edit& that)
 	return identical((Plugin*)&that);
 }
 
+
+const char* Plugin::type_to_text(int type)
+{
+    switch(type)
+    {
+        case PLUGIN_STANDALONE:
+            return "standalone";
+            break;
+        case PLUGIN_SHAREDPLUGIN:
+            return "shared plugin";
+            break;
+        case PLUGIN_SHAREDMODULE:
+            return "shared module";
+            break;
+        default:
+            return "none";
+    }
+}
+
 int Plugin::silence()
 {
 	if(plugin_type != PLUGIN_NONE) 
@@ -210,8 +229,19 @@ void Plugin::equivalent_output(Edit *edit, int64_t *result)
 
 
 int Plugin::is_synthesis(int64_t position, 
-		int direction)
+		int direction,
+        int depth)
 {
+// too many recursions
+    if(depth > 255)
+    {
+        printf("Plugin::is_synthesis %d: infinitely recursive plugin. type=%s title=%s\n",
+            __LINE__,
+            type_to_text(plugin_type),
+            title);
+        return 0;
+    }
+
 	switch(plugin_type)
 	{
 		case PLUGIN_STANDALONE:
@@ -245,7 +275,7 @@ int Plugin::is_synthesis(int64_t position,
 				0);
 
 			if(plugin)
-				return plugin->is_synthesis(position, direction);
+				return plugin->is_synthesis(position, direction, depth + 1);
 			break;
 		}
 
@@ -254,7 +284,7 @@ int Plugin::is_synthesis(int64_t position,
 		{
 			int real_module_number = shared_location.module;
 			Track *track = edl->tracks->number(real_module_number);
-			return track->is_synthesis(position, direction);
+			return track->is_synthesis(position, direction, depth + 1);
 			break;
 		}
 	}

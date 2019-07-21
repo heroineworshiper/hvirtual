@@ -158,7 +158,8 @@ public:
 // Descends the plugin tree without creating a virtual console.
 // Used by PlayableTracks::is_playable.
 	int is_synthesis(int64_t position, 
-		int direction);
+		int direction,
+        int depth = 0);
 
 // Used by PlayableTracks::is_playable
 // Returns 1 if the track is in the output boundaries.

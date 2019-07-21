@@ -40,14 +40,23 @@ public:
     virtual ~EQCanvas();
     
     void initialize();
+    void draw_grid();
     void update_spectrogram(PluginClient *plugin);
-
+    void draw_envelope(double *envelope, 
+        int samplerate,
+        int window_size);
     
     BC_WindowBase *parent;
     BC_SubWindow *canvas;
     int x, y, w, h;
+	int canvas_x;
+	int canvas_y;
+	int canvas_w;
+	int canvas_h;
     float min_db;
     float max_db;
+    int freq_divisions;
+    int db_divisions;
     PluginClientFrame *last_frame;
 };
 
