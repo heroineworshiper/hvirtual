@@ -481,7 +481,7 @@ void Reverb::update_gui()
 		if(load_configuration())
 		{
 //printf("Reverb::update_gui %d %d\n", __LINE__, config.ref_length);
-			thread->window->lock_window("Reverb::update_gui");
+			thread->window->lock_window("Reverb::update_gui 1");
             ((ReverbWindow*)thread->window)->update();
 			thread->window->unlock_window();
 		}
@@ -491,7 +491,7 @@ void Reverb::update_gui()
 //printf("ParametricEQ::update_gui %d %d\n", __LINE__, total_frames);
 			if(total_frames)
 			{
-				thread->window->lock_window("ParametricEQ::update_gui");
+				thread->window->lock_window("ParametricEQ::update_gui 2");
 				((ReverbWindow*)thread->window)->update_canvas();
 				thread->window->unlock_window();
 			}

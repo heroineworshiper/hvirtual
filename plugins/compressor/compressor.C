@@ -118,6 +118,7 @@ void CompressorEffect::delete_dsp()
     filtered_size = 0;
 	input_buffer = 0;
 	input_size = 0;
+    new_input_size = 0;
     fft = 0;
 //	input_allocated = 0;
 }
@@ -129,6 +130,7 @@ void CompressorEffect::reset()
     filtered_size = 0;
 	input_buffer = 0;
 	input_size = 0;
+    new_input_size = 0;
 	input_start = 0;
 
     last_position = 0;
@@ -141,6 +143,7 @@ void CompressorEffect::reset()
 	current_value = 1.0;
 
     envelope = 0;
+    envelope_allocated = 0;
     fft = 0;
     need_reconfigure = 1;
 }
@@ -220,10 +223,21 @@ void CompressorEffect::update_gui()
 	{
 		if(load_configuration())
 		{
-			thread->window->lock_window("CompressorEffect::update_gui");
+			thread->window->lock_window("CompressorEffect::update_gui 1");
 			((CompressorWindow*)thread->window)->update();
 			thread->window->unlock_window();
 		}
+        else
+        {
+            int total_frames = get_gui_update_frames();
+			if(total_frames)
+			{
+				thread->window->lock_window("CompressorEffect::update_gui 2");
+				((CompressorWindow*)thread->window)->update_eqcanvas();
+				thread->window->unlock_window();
+			}
+        }
+        
 	}
 }
 
@@ -294,6 +308,7 @@ int CompressorEffect::process_buffer(int64_t size,
         
         input_size = 0;
         filtered_size = 0;
+        input_start = start_position;
     }
 
 
@@ -326,6 +341,8 @@ int CompressorEffect::process_buffer(int64_t size,
         for(int i = 0; i < total_buffers; i++)
 		{
             new_spectrogram_frames = 0;
+// reset the input size for each channel
+            new_input_size = input_size;
 // this puts bandpassed input in the start of filtered_buffer 
 // & raw input on the end of input_buffer
             fft[i]->process_buffer(start_position, 
@@ -339,9 +356,10 @@ int CompressorEffect::process_buffer(int64_t size,
                 size * sizeof(double));
             memcpy(input_buffer[i]->get_data(),
                 input_buffer[i]->get_data() + size,
-                (input_size - size) * sizeof(double));
-            input_size -= size;
+                (new_input_size - size) * sizeof(double));
+            new_input_size -= size;
 		}
+        input_size = new_input_size;
 
 // send the spectrograms to the plugin.  This consumes the pointers
 	    for(int i = 0; i < spectrogram_frames.size(); i++)
@@ -452,60 +470,36 @@ int CompressorEffect::process_buffer(int64_t size,
 		if(target_current_sample < 0) target_current_sample = target_samples;
 		int64_t preview_samples = -reaction_samples;
 
-// Start of new buffer is outside the current buffer.  Start buffer over.
-		if(start_position < input_start ||
-			start_position >= input_start + input_size)
-		{
-			input_size = 0;
-			input_start = start_position;
-		}
-		else
-// Shift current buffer so the buffer starts on start_position
-		if(start_position > input_start &&
-			start_position < input_start + input_size)
-		{
-			if(input_buffer)
-			{
-				int len = input_start + input_size - start_position;
-				for(int i = 0; i < total_buffers; i++)
-				{
-					memcpy(input_buffer[i]->get_data(),
-						input_buffer[i]->get_data() + (start_position - input_start),
-						len * sizeof(double));
-				}
-				input_size = len;
-				input_start = start_position;
-			}
-		}
+        allocate_filtered(size + preview_samples);
 
-// Expand buffer to handle preview size
-        allocate_input(size + preview_samples);
-
-// Append data to the input buffer to construct the readahead area.
-#define MAX_FRAGMENT_SIZE 131072
-		while(input_size < size + preview_samples)
+// Append data to the buffers to fill the readahead area.
+        int new_filtered_size = size + preview_samples;
+        int remane = new_filtered_size - filtered_size;
+		for(int i = 0; i < total_buffers; i++)
 		{
-			int fragment_size = MAX_FRAGMENT_SIZE;
-			if(fragment_size + input_size > size + preview_samples)
-				fragment_size = size + preview_samples - input_size;
-			for(int i = 0; i < total_buffers; i++)
-			{
-				input_buffer[i]->set_offset(input_size);
-//printf("CompressorEffect::process_buffer %d %p %d\n", __LINE__, input_buffer[i], input_size);
-				read_samples(input_buffer[i],
-					i,
-					sample_rate,
-					input_start + input_size,
-					fragment_size);
-				input_buffer[i]->set_offset(0);
-			}
-			input_size += fragment_size;
+            new_spectrogram_frames = 0;
+            new_input_size = input_size;
+            filtered_buffer[i]->set_offset(input_size);
+            fft[i]->process_buffer(input_start + input_size, 
+		        remane, 
+		        filtered_buffer[i],
+		        get_direction());
+            filtered_buffer[i]->set_offset(0);
 		}
+        input_size = new_input_size;
+        filtered_size = new_filtered_size;
 
+
+// send the spectrograms to the plugin.  This consumes the pointers
+	    for(int i = 0; i < spectrogram_frames.size(); i++)
+        {
+            add_gui_frame(spectrogram_frames.get(i));
+        }
+        spectrogram_frames.remove_all();
 
 		double current_slope = (next_target - previous_target) /
 			target_samples;
-		double *trigger_buffer = input_buffer[trigger]->get_data();
+		double *trigger_buffer = filtered_buffer[trigger]->get_data();
 		for(int i = 0; i < size; i++)
 		{
 // Get slope from current sample to every sample in preview_samples.
@@ -530,7 +524,7 @@ int CompressorEffect::process_buffer(int64_t size,
 						double max = 0;
 						for(int k = 0; k < total_buffers; k++)
 						{
-							sample = fabs(input_buffer[k]->get_data()[i + j]);
+							sample = fabs(filtered_buffer[k]->get_data()[i + j]);
 							if(sample > max) max = sample;
 						}
 						sample = max;
@@ -546,7 +540,7 @@ int CompressorEffect::process_buffer(int64_t size,
 						double max = 0;
 						for(int k = 0; k < total_buffers; k++)
 						{
-							sample = fabs(input_buffer[k]->get_data()[i + j]);
+							sample = fabs(filtered_buffer[k]->get_data()[i + j]);
 							max += sample;
 						}
 						sample = max;
@@ -618,7 +612,18 @@ int CompressorEffect::process_buffer(int64_t size,
 			}
 		}
 
-
+// shift buffers
+        for(int i = 0; i < total_buffers; i++)
+        {
+            memcpy(input_buffer[i]->get_data(),
+                input_buffer[i]->get_data() + size,
+                (input_size - size) * sizeof(double));
+            memcpy(filtered_buffer[i]->get_data(),
+                filtered_buffer[i]->get_data() + size,
+                (filtered_size - size) * sizeof(double));
+        }
+        input_size -= size;
+        filtered_size -= size;
 
 	}
 
@@ -764,13 +769,17 @@ double CompressorEffect::calculate_gain(double input)
 void CompressorEffect::calculate_envelope()
 {
 // assume the window size changed
-    if(envelope)
+    if(envelope && envelope_allocated < config.window_size / 2)
     {
         delete [] envelope;
         envelope = 0;
     }
 
-    envelope = new double[config.window_size / 2];
+    if(!envelope)
+    {
+        envelope_allocated = config.window_size / 2;
+        envelope = new double[envelope_allocated];
+    }
 
     int max_freq = Freq::tofreq_f(TOTALFREQS - 1);
     int nyquist = PluginAClient::project_sample_rate / 2;
@@ -842,19 +851,23 @@ int CompressorFFT::signal_process()
 {
 // Create new spectrogram for updating the GUI
     PluginClientFrame *frame = 0;
-    if(plugin->new_spectrogram_frames >= plugin->spectrogram_frames.size())
+    if(plugin->config.input != CompressorConfig::TRIGGER ||
+        channel == plugin->config.trigger)
     {
-	    frame = new PluginClientFrame(window_size / 2, 
-            window_size / 2, 
-            plugin->PluginAClient::project_sample_rate);
-        plugin->spectrogram_frames.append(frame);
-        frame->data = new double[window_size / 2];
-        bzero(frame->data, sizeof(double) * window_size / 2);
-        frame->nyquist = plugin->PluginAClient::project_sample_rate / 2;
-    }
-    else
-    {
-        frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
+        if(plugin->new_spectrogram_frames >= plugin->spectrogram_frames.size())
+        {
+	        frame = new PluginClientFrame(window_size / 2, 
+                window_size / 2, 
+                plugin->PluginAClient::project_sample_rate);
+            plugin->spectrogram_frames.append(frame);
+            frame->data = new double[window_size / 2];
+            bzero(frame->data, sizeof(double) * window_size / 2);
+            frame->nyquist = plugin->PluginAClient::project_sample_rate / 2;
+        }
+        else
+        {
+            frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
+        }
     }
 
 // apply the bandpass filter
@@ -868,13 +881,18 @@ int CompressorFFT::signal_process()
 
 		freq_real[i] = mag2 * cos(angle);
 		freq_imag[i] = mag2 * sin(angle);
+
 // update the spectrogram with the output
-        frame->data[i] = MAX(frame->data[i], mag2);
+// neglect the true average & max spectrograms, but always use the trigger
+        if(frame)
+        {
+            frame->data[i] = MAX(frame->data[i], mag2);
 
 // get the maximum output in the frequency domane
-        if(mag2 > frame->freq_max)
-        {
-            frame->freq_max = mag2;
+            if(mag2 > frame->freq_max)
+            {
+                frame->freq_max = mag2;
+            }
         }
     }
 
@@ -884,18 +902,21 @@ int CompressorFFT::signal_process()
 
 int CompressorFFT::post_process()
 {
-    PluginClientFrame *frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
-// get the maximum output in the time domane
-	double time_max = 0;
-	for(int i = 0; i < window_size; i++)
-	{
-		if(fabs(output_real[i]) > time_max) time_max = fabs(output_real[i]);
-	}
-
-    if(time_max > frame->time_max)
+    if(plugin->config.input != CompressorConfig::TRIGGER ||
+        channel == plugin->config.trigger)
     {
-    	frame->time_max = time_max;
-    }
+        PluginClientFrame *frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
+// get the maximum output in the time domane
+	    double time_max = 0;
+	    for(int i = 0; i < window_size; i++)
+	    {
+		    if(fabs(output_real[i]) > time_max) time_max = fabs(output_real[i]);
+	    }
+
+        if(time_max > frame->time_max)
+        {
+    	    frame->time_max = time_max;
+        }
 
 // printf("CompressorFFT::post_process %d frame=%p data=%p freq_max=%f time_max=%f\n",
 // __LINE__,
@@ -904,7 +925,8 @@ int CompressorFFT::post_process()
 // frame->freq_max,
 // frame->time_max);
 
-    plugin->new_spectrogram_frames++;
+        plugin->new_spectrogram_frames++;
+    }
 
     return 0;
 }
@@ -932,14 +954,14 @@ int CompressorFFT::read_samples(int64_t output_sample,
 // samples);
 
 // append unprocessed samples to the input_buffer
-    int new_input_size = plugin->input_size + samples;
+    int new_input_size = plugin->new_input_size + samples;
     plugin->allocate_input(new_input_size);
-    memcpy(plugin->input_buffer[channel]->get_data() + plugin->input_size,
+    memcpy(plugin->input_buffer[channel]->get_data() + plugin->new_input_size,
         buffer->get_data(),
         samples * sizeof(double));
 
 
-    plugin->input_size = new_input_size;
+    plugin->new_input_size = new_input_size;
     
 
     return result;
