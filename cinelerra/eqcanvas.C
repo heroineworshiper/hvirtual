@@ -88,9 +88,10 @@ void EQCanvas::initialize()
             string,
             -1);
         int x1 = canvas_x - big_tick - text_w;
-		parent->draw_text(x1 + 1, y2 + 1, string);
-		parent->draw_line(x2 + 1, y1 + 1, x3 + 1, y1 + 1);
-		parent->set_color(RED);
+// 		parent->draw_text(x1 + 1, y2 + 1, string);
+// 		parent->draw_line(x2 + 1, y1 + 1, x3 + 1, y1 + 1);
+// 		parent->set_color(RED);
+        parent->set_color(parent->get_resources()->default_text_color);
 		parent->draw_text(x1, y2, string);
 		parent->draw_line(x2, y1, x3, y1);
 
@@ -100,9 +101,10 @@ void EQCanvas::initialize()
 			{
 				int y3 = y1 - j * (canvas_h / db_divisions) / minor_divisions;
 				int x4 = x3 - DP(5);
-				parent->set_color(BLACK);
-				parent->draw_line(x4 + 1, y3 + 1, x3 + 1, y3 + 1);
-				parent->set_color(RED);
+//				parent->set_color(BLACK);
+//				parent->draw_line(x4 + 1, y3 + 1, x3 + 1, y3 + 1);
+//				parent->set_color(RED);
+            	parent->set_color(parent->get_resources()->default_text_color);
 				parent->draw_line(x4, y3, x3, y3);
 			}
 		}
@@ -122,10 +124,11 @@ void EQCanvas::initialize()
             parent->get_text_ascent(SMALLFONT);
 
 		
-		parent->set_color(BLACK);
-		parent->draw_text(x2 + 1, y4 + 1, string);
-		parent->draw_line(x1 + 1, y1 + 1, x1 + 1, y2 + 1);
-		parent->set_color(RED);
+// 		parent->set_color(BLACK);
+// 		parent->draw_text(x2 + 1, y4 + 1, string);
+// 		parent->draw_line(x1 + 1, y1 + 1, x1 + 1, y2 + 1);
+// 		parent->set_color(RED);
+        parent->set_color(parent->get_resources()->default_text_color);
 		parent->draw_text(x2, y4, string);
 		parent->draw_line(x1, y1, x1, y2);
 
@@ -137,9 +140,10 @@ void EQCanvas::initialize()
 					(canvas_w / freq_divisions) -
 					exp(-(double)j * 0.7) * 
 					(canvas_w / freq_divisions));
-				parent->set_color(BLACK);
-				parent->draw_line(x3 + 1, y1 + 1, x3 + 1, y3 + 1);
-				parent->set_color(RED);
+// 				parent->set_color(BLACK);
+// 				parent->draw_line(x3 + 1, y1 + 1, x3 + 1, y3 + 1);
+// 				parent->set_color(RED);
+                parent->set_color(parent->get_resources()->default_text_color);
 				parent->draw_line(x3, y1, x3, y3);
 			}
 		}

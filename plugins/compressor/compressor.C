@@ -985,10 +985,10 @@ int CompressorFFT::read_samples(int64_t output_sample,
 	int samples, 
 	Samples *buffer)
 {
-printf("CompressorFFT::read_samples %d channel=%d output_sample=%ld\n", 
-__LINE__, 
-channel, 
-output_sample);
+// printf("CompressorFFT::read_samples %d channel=%d output_sample=%ld\n", 
+// __LINE__, 
+// channel, 
+// output_sample);
 	int result = plugin->read_samples(buffer,
 		channel,
 		plugin->get_samplerate(),
