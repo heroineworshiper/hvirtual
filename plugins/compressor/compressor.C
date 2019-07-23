@@ -173,7 +173,11 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 				config.decay_len = input.tag.get_property("DECAY_LEN", config.decay_len);
 				config.trigger = input.tag.get_property("TRIGGER", config.trigger);
 				config.smoothing_only = input.tag.get_property("SMOOTHING_ONLY", config.smoothing_only);
+				config.pass_trigger = input.tag.get_property("PASS_TRIGGER", config.pass_trigger);
 				config.input = input.tag.get_property("INPUT", config.input);
+	            config.low = input.tag.get_property("LOW", config.low);
+	            config.high = input.tag.get_property("HIGH", config.high);
+	            config.q = input.tag.get_property("Q", config.q);
 			}
 			else
 			if(input.tag.title_is("LEVEL"))
@@ -198,7 +202,11 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	output.tag.set_property("REACTION_LEN", config.reaction_len);
 	output.tag.set_property("DECAY_LEN", config.decay_len);
 	output.tag.set_property("SMOOTHING_ONLY", config.smoothing_only);
+	output.tag.set_property("PASS_TRIGGER", config.pass_trigger);
 	output.tag.set_property("INPUT", config.input);
+	output.tag.set_property("LOW", config.low);
+	output.tag.set_property("HIGH", config.high);
+	output.tag.set_property("Q", config.q);
 	output.append_tag();
 	output.append_newline();
 
@@ -465,6 +473,16 @@ int CompressorEffect::process_buffer(int64_t size,
 				}
 			}
 		}
+        
+// pass filtered trigger through
+        if(config.pass_trigger)
+        {
+            for(int i = 0; i < total_buffers; i++)
+            {
+                memcpy(buffer[i]->get_data(), filtered_buffer[i]->get_data(), size * sizeof(double));
+            }
+        }
+
 	}
 	else
 // read the current size + extra to look ahead
@@ -628,9 +646,16 @@ int CompressorEffect::process_buffer(int64_t size,
 			}
 		}
 
+
 // shift buffers
         for(int i = 0; i < total_buffers; i++)
         {
+// pass filtered trigger through
+            if(config.pass_trigger)
+            {
+                memcpy(buffer[i]->get_data(), filtered_buffer[i]->get_data(), size * sizeof(double));
+            }
+
             memcpy(input_buffer[i]->get_data(),
                 input_buffer[i]->get_data() + size,
                 (input_size - size) * sizeof(double));
@@ -960,11 +985,10 @@ int CompressorFFT::read_samples(int64_t output_sample,
 	int samples, 
 	Samples *buffer)
 {
-// printf("CompressorFFT::read_samples %d channel=%d buffer=%p offset=%d\n", 
-// __LINE__, 
-// channel, 
-// buffer, 
-// buffer->get_offset());
+printf("CompressorFFT::read_samples %d channel=%d output_sample=%ld\n", 
+__LINE__, 
+channel, 
+output_sample);
 	int result = plugin->read_samples(buffer,
 		channel,
 		plugin->get_samplerate(),
@@ -1006,6 +1030,7 @@ CompressorConfig::CompressorConfig()
 	trigger = 0;
 	input = CompressorConfig::TRIGGER;
 	smoothing_only = 0;
+    pass_trigger = 0;
 	decay_len = 1.0;
     high = Freq::tofreq(TOTALFREQS);
     low = Freq::tofreq(0);
@@ -1025,6 +1050,7 @@ void CompressorConfig::copy_from(CompressorConfig &that)
 	this->trigger = that.trigger;
 	this->input = that.input;
 	this->smoothing_only = that.smoothing_only;
+	this->pass_trigger = that.pass_trigger;
 	levels.remove_all();
 	for(int i = 0; i < that.levels.total; i++)
 		this->levels.append(that.levels.values[i]);
@@ -1041,9 +1067,13 @@ int CompressorConfig::equivalent(CompressorConfig &that)
 		!EQUIV(this->decay_len, that.decay_len) ||
 		this->trigger != that.trigger ||
 		this->input != that.input ||
-		this->smoothing_only != that.smoothing_only)
-		return 0;
-	if(this->levels.total != that.levels.total) return 0;
+		this->smoothing_only != that.smoothing_only ||
+		this->pass_trigger != that.pass_trigger ||
+        this->levels.total != that.levels.total)
+	{
+    	return 0;
+	}
+
 	for(int i = 0; 
 		i < this->levels.total && i < that.levels.total; 
 		i++)
@@ -1244,9 +1274,9 @@ void CompressorConfig::optimize()
 CompressorWindow::CompressorWindow(CompressorEffect *plugin)
  : PluginClientWindow(plugin,
 	DP(650), 
-	DP(550), 
+	DP(560), 
 	DP(650), 
-	DP(550),
+	DP(560),
 	0)
 {
 	this->plugin = plugin;
@@ -1266,7 +1296,7 @@ void CompressorWindow::create_objects()
     BC_Title *title;
 
     add_subwindow(title = new BC_Title(x, y, _("Sound level:")));
-    y += title->get_h();
+    y += title->get_h() + 1;
 	add_subwindow(canvas = new CompressorCanvas(plugin, 
 		x, 
 		y, 
@@ -1312,6 +1342,8 @@ void CompressorWindow::create_objects()
 
 	add_subwindow(smooth = new CompressorSmooth(plugin, x, y));
     y += smooth->get_h() + margin;
+	add_subwindow(pass_trigger = new CompressorPassTrigger(plugin, x, y));
+    y += pass_trigger->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Output:")));
     y += title->get_h();
 	add_subwindow(y_text = new CompressorY(plugin, x, y));
@@ -1482,6 +1514,7 @@ void CompressorWindow::update_textboxes()
 	if(!EQUIV(atof(decay->get_text()), plugin->config.decay_len))
 		decay->update((float)plugin->config.decay_len);
 	smooth->update(plugin->config.smoothing_only);
+	pass_trigger->update(plugin->config.pass_trigger);
 	if(canvas->current_operation == CompressorCanvas::DRAG)
 	{
 		x_text->update((float)plugin->config.levels.values[canvas->current_point].x);
@@ -2038,6 +2071,20 @@ CompressorSmooth::CompressorSmooth(CompressorEffect *plugin, int x, int y)
 int CompressorSmooth::handle_event()
 {
 	plugin->config.smoothing_only = get_value();
+	plugin->send_configure_change();
+	return 1;
+}
+
+
+CompressorPassTrigger::CompressorPassTrigger(CompressorEffect *plugin, int x, int y) 
+ : BC_CheckBox(x, y, plugin->config.pass_trigger, _("Pass trigger"))
+{
+	this->plugin = plugin;
+}
+
+int CompressorPassTrigger::handle_event()
+{
+	plugin->config.pass_trigger = get_value();
 	plugin->send_configure_change();
 	return 1;
 }

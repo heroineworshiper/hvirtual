@@ -119,6 +119,14 @@ public:
 	CompressorEffect *plugin;
 };
 
+class CompressorPassTrigger : public BC_CheckBox
+{
+public:
+	CompressorPassTrigger(CompressorEffect *plugin, int x, int y);
+	int handle_event();
+	CompressorEffect *plugin;
+};
+
 class CompressorInput : public BC_PopupMenu
 {
 public:
@@ -201,6 +209,7 @@ public:
 	CompressorTrigger *trigger;
 	CompressorDecay *decay;
 	CompressorSmooth *smooth;
+	CompressorPassTrigger *pass_trigger;
 	CompressorInput *input;
 
 
@@ -259,6 +268,7 @@ public:
 	double min_x, min_y;
 	double max_x, max_y;
 	int smoothing_only;
+    int pass_trigger;
 	ArrayList<compressor_point_t> levels;
 
 // bandpass filter
