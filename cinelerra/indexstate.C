@@ -258,6 +258,11 @@ int IndexState::write_index(const char *path,
 
 int64_t IndexState::get_index_offset(int channel)
 {
+// printf("IndexState::get_index_offset %d channels=%d index_offsets=%p\n",
+// __LINE__,
+// channels,
+// index_offsets);
+
 	if(channel < channels && index_offsets)
 		return index_offsets[channel];
 	else

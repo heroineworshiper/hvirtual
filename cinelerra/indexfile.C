@@ -132,6 +132,7 @@ int IndexFile::open_index()
 	{
 // use buffer
 		result = 0;
+        is_index = 1;
 	}
 	else
 	if(!(result = open_file()))
@@ -495,7 +496,6 @@ SET_TRACE
 
 
 
-
 	index_state->index_zoom = get_required_scale();
 SET_TRACE
 
@@ -733,6 +733,7 @@ int IndexFile::draw_index(
 		index_state->index_zoom * 
 		asset_over_session;
 
+
 // add start of channel index
     if(is_index)
     {
@@ -740,6 +741,11 @@ int IndexFile::draw_index(
     }
 
 
+// printf("IndexFile::draw_index %d is_index=%d channel=%d startindex=%ld\n", 
+// __LINE__, 
+// is_index,
+// edit->channel, 
+// startindex);
 	if(index_state->index_status == INDEX_BUILDING)
 	{
 // index is in RAM, being built

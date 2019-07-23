@@ -33,7 +33,7 @@
 
 #define TEXT_W DP(90)
 #define WINDOW_W DP(400)
-#define WINDOW_H DP(490)
+#define WINDOW_H DP(450)
 
 ReverbWindow::ReverbWindow(Reverb *reverb)
  : PluginClientWindow(reverb, 

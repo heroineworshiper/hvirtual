@@ -259,6 +259,7 @@ int CompressorEffect::process_buffer(int64_t size,
 
     if(need_reconfigure)
     {
+//printf("CompressorEffect::process_buffer %d\n", __LINE__);
         need_reconfigure = 0;
     
         if(fft && fft[0]->window_size != config.window_size)
@@ -298,6 +299,7 @@ int CompressorEffect::process_buffer(int64_t size,
 // reset after seeking
     if(last_position != start_position)
     {
+//printf("CompressorEffect::process_buffer %d\n", __LINE__);
         if(fft)
         {
 		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
@@ -331,7 +333,7 @@ int CompressorEffect::process_buffer(int64_t size,
 
 	int total_buffers = get_total_buffers();
 
-// read behind playhead
+// Only read the current size
 	if(reaction_samples >= 0)
 	{
 		if(target_current_sample < 0) target_current_sample = reaction_samples;
@@ -465,22 +467,33 @@ int CompressorEffect::process_buffer(int64_t size,
 		}
 	}
 	else
-// read in front of playhead
+// read the current size + extra to look ahead
 	{
 		if(target_current_sample < 0) target_current_sample = target_samples;
 		int64_t preview_samples = -reaction_samples;
 
-        allocate_filtered(size + preview_samples);
+        int new_filtered_size = size + preview_samples;
+        allocate_filtered(new_filtered_size);
 
 // Append data to the buffers to fill the readahead area.
-        int new_filtered_size = size + preview_samples;
         int remane = new_filtered_size - filtered_size;
 		for(int i = 0; i < total_buffers; i++)
 		{
             new_spectrogram_frames = 0;
             new_input_size = input_size;
-            filtered_buffer[i]->set_offset(input_size);
-            fft[i]->process_buffer(input_start + input_size, 
+            filtered_buffer[i]->set_offset(filtered_size);
+            
+            int64_t start;
+            if(get_direction() == PLAY_FORWARD)
+            {
+                start = input_start + filtered_size;
+            }
+            else
+            {
+                start = input_start - filtered_size;
+            }
+            
+            fft[i]->process_buffer(start, 
 		        remane, 
 		        filtered_buffer[i],
 		        get_direction());
@@ -511,8 +524,11 @@ int CompressorEffect::process_buffer(int64_t size,
             int first_slope = preview_samples - 1;
 // Need new slope immediately
 			if(target_current_sample >= target_samples)
-				first_slope = 1;
-			for(int j = first_slope; 
+			{
+            	first_slope = 1;
+			}
+            
+            for(int j = first_slope; 
 				j < preview_samples; 
 				j++)
 			{
@@ -625,6 +641,14 @@ int CompressorEffect::process_buffer(int64_t size,
         input_size -= size;
         filtered_size -= size;
 
+        if(get_direction() == PLAY_FORWARD)
+        {
+            input_start += size;
+        }
+        else
+        {
+            input_start -= size;
+        }
 	}
 
 
@@ -658,7 +682,7 @@ void CompressorEffect::allocate_input(int new_size)
 			{
 				memcpy(new_input_buffer[i]->get_data(), 
 					input_buffer[i]->get_data(), 
-					input_size * sizeof(double));
+					input_buffer[i]->get_allocated() * sizeof(double));
 				delete input_buffer[i];
 			}
             
@@ -684,7 +708,7 @@ void CompressorEffect::allocate_filtered(int new_size)
             {
 				memcpy(new_filtered_buffer[i]->get_data(), 
 					filtered_buffer[i]->get_data(), 
-					filtered_size * sizeof(double));
+					filtered_buffer[i]->get_allocated() * sizeof(double));
 				delete filtered_buffer[i];
             }
         }
