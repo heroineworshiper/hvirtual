@@ -273,16 +273,16 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 		input_size = 0;
 		first_window = 1;
 		this->output_sample = output_sample;
-		this->input_sample = output_sample;
+		input_sample = output_sample;
 	}
 
 
-printf("CrossfadeFFT::process_buffer %d size=%ld input_size=%ld output_size=%ld window_size=%ld\n",
-__LINE__,
-size,
-input_size,
-output_size,
-window_size);
+// printf("CrossfadeFFT::process_buffer %d size=%ld input_size=%ld output_size=%ld window_size=%ld\n",
+// __LINE__,
+// size,
+// input_size,
+// output_size,
+// window_size);
 
 // must call read_samples once so the upstream plugins don't have to seek
 // must be a multiple of 1/2 window
@@ -312,15 +312,19 @@ window_size);
         input_buffer = new_input_buffer;
     }
 
-printf("CrossfadeFFT::process_buffer %d need_samples=%d\n", __LINE__, need_samples);
+// printf("CrossfadeFFT::process_buffer %d input_sample=%ld need_samples=%d input_size=%ld\n", 
+// __LINE__, 
+// input_sample,
+// need_samples,
+// input_size);
 	input_buffer->set_offset(input_size);
-    result = read_samples(this->input_sample,
+    result = read_samples(input_sample,
 		need_samples - input_size,
 		input_buffer);
     input_buffer->set_offset(0);
+    input_sample += step * (need_samples - input_size);
     input_size = need_samples;
 
-    this->input_sample += step * (need_samples - input_size);
 
 	if(!freq_real) freq_real = new double[window_size];
 	if(!freq_imag) freq_imag = new double[window_size];
@@ -394,12 +398,15 @@ printf("CrossfadeFFT::process_buffer %d need_samples=%d\n", __LINE__, need_sampl
 		output_size += HALF_WINDOW;
 
 // Shift input buffer half a window forward
-		for(int i = HALF_WINDOW, j = 0;
-			i < input_size;
-			i++, j++)
-		{
-			input_buffer->get_data()[j] = input_buffer->get_data()[i];
-		}
+        memcpy(input_buffer->get_data(),
+            input_buffer->get_data() + HALF_WINDOW,
+            (input_size - HALF_WINDOW) * sizeof(double));
+// 		for(int i = HALF_WINDOW, j = 0;
+// 			i < input_size;
+// 			i++, j++)
+// 		{
+// 			input_buffer->get_data()[j] = input_buffer->get_data()[i];
+// 		}
 
 		input_size -= HALF_WINDOW;
 	}

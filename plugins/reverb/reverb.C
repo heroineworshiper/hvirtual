@@ -110,10 +110,10 @@ int Reverb::process_buffer(int64_t size,
 // reset after seeking
     if(last_position != start_position)
     {
-// printf("Reverb::process_buffer %d last_position=%ld start_position=%ld\n",
-// __LINE__,
-// last_position,
-// start_position);
+printf("Reverb::process_buffer %d last_position=%ld start_position=%ld\n",
+__LINE__,
+last_position,
+start_position);
 
         dsp_in_length = 0;
         if(fft)
