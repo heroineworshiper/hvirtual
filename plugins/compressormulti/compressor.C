@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,13 @@
 #include "compressor.h"
 #include "cursors.h"
 #include "bchash.h"
+#include "eqcanvas.h"
 #include "filexml.h"
 #include "language.h"
 #include "picon_png.h"
 #include "samples.h"
 #include "theme.h"
+#include "transportque.inc"
 #include "units.h"
 #include "vframe.h"
 
@@ -80,7 +82,8 @@ CompressorEffect::CompressorEffect(PluginServer *server)
 
 CompressorEffect::~CompressorEffect()
 {
-	
+	delete [] envelope;
+    
 	delete_dsp();
 	levels.remove_all();
 }
@@ -94,28 +97,58 @@ void CompressorEffect::delete_dsp()
 		delete [] input_buffer;
 	}
 
+	if(filtered_buffer)
+	{
+		for(int i = 0; i < PluginClient::total_in_buffers; i++)
+			delete filtered_buffer[i];
+		delete [] filtered_buffer;
+	}
 
+
+	if(fft)
+	{
+		for(int i = 0; i < PluginClient::total_in_buffers; i++)
+			delete fft[i];
+		delete [] fft;
+	}
+
+
+
+    filtered_buffer = 0;
+    filtered_size = 0;
 	input_buffer = 0;
 	input_size = 0;
-	input_allocated = 0;
+    new_input_size = 0;
+    fft = 0;
+//	input_allocated = 0;
 }
 
 
 void CompressorEffect::reset()
 {
+    filtered_buffer = 0;
+    filtered_size = 0;
 	input_buffer = 0;
 	input_size = 0;
-	input_allocated = 0;
+    new_input_size = 0;
 	input_start = 0;
+
+    last_position = 0;
+
 
 	next_target = 1.0;
 	previous_target = 1.0;
 	target_samples = 1;
 	target_current_sample = -1;
 	current_value = 1.0;
+
+    envelope = 0;
+    envelope_allocated = 0;
+    fft = 0;
+    need_reconfigure = 1;
 }
 
-const char* CompressorEffect::plugin_title() { return N_("Compressor"); }
+const char* CompressorEffect::plugin_title() { return N_("Compressor Multi"); }
 int CompressorEffect::is_realtime() { return 1; }
 int CompressorEffect::is_multichannel() { return 1; }
 
@@ -134,13 +167,17 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 
 		if(!result)
 		{
-			if(input.tag.title_is("COMPRESSOR"))
+			if(input.tag.title_is("COMPRESSOR_MULTI"))
 			{
 				config.reaction_len = input.tag.get_property("REACTION_LEN", config.reaction_len);
 				config.decay_len = input.tag.get_property("DECAY_LEN", config.decay_len);
 				config.trigger = input.tag.get_property("TRIGGER", config.trigger);
 				config.smoothing_only = input.tag.get_property("SMOOTHING_ONLY", config.smoothing_only);
+				config.pass_trigger = input.tag.get_property("PASS_TRIGGER", config.pass_trigger);
 				config.input = input.tag.get_property("INPUT", config.input);
+	            config.low = input.tag.get_property("LOW", config.low);
+	            config.high = input.tag.get_property("HIGH", config.high);
+	            config.q = input.tag.get_property("Q", config.q);
 			}
 			else
 			if(input.tag.title_is("LEVEL"))
@@ -160,12 +197,16 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	FileXML output;
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 
-	output.tag.set_title("COMPRESSOR");
+	output.tag.set_title("COMPRESSOR_MULTI");
 	output.tag.set_property("TRIGGER", config.trigger);
 	output.tag.set_property("REACTION_LEN", config.reaction_len);
 	output.tag.set_property("DECAY_LEN", config.decay_len);
 	output.tag.set_property("SMOOTHING_ONLY", config.smoothing_only);
+	output.tag.set_property("PASS_TRIGGER", config.pass_trigger);
 	output.tag.set_property("INPUT", config.input);
+	output.tag.set_property("LOW", config.low);
+	output.tag.set_property("HIGH", config.high);
+	output.tag.set_property("Q", config.q);
 	output.append_tag();
 	output.append_newline();
 
@@ -190,10 +231,21 @@ void CompressorEffect::update_gui()
 	{
 		if(load_configuration())
 		{
-			thread->window->lock_window("CompressorEffect::update_gui");
+			thread->window->lock_window("CompressorEffect::update_gui 1");
 			((CompressorWindow*)thread->window)->update();
 			thread->window->unlock_window();
 		}
+        else
+        {
+            int total_frames = get_gui_update_frames();
+			if(total_frames)
+			{
+				thread->window->lock_window("CompressorEffect::update_gui 2");
+				((CompressorWindow*)thread->window)->update_eqcanvas();
+				thread->window->unlock_window();
+			}
+        }
+        
 	}
 }
 
@@ -210,16 +262,67 @@ int CompressorEffect::process_buffer(int64_t size,
 		int64_t start_position,
 		int sample_rate)
 {
-	load_configuration();
+	need_reconfigure |= load_configuration();
+
+
+    if(need_reconfigure)
+    {
+//printf("CompressorEffect::process_buffer %d\n", __LINE__);
+        need_reconfigure = 0;
+    
+        if(fft && fft[0]->window_size != config.window_size)
+        {
+		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    {
+ 			    delete fft[i];
+		    }
+            delete [] fft;
+            fft = 0;
+        }
+
+        if(!fft)
+        {
+            fft = new CompressorFFT*[PluginClient::total_in_buffers];
+		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    {
+			    fft[i] = new CompressorFFT(this, i);
+                fft[i]->initialize(config.window_size);
+		    }
+        }
 
 // Calculate linear transfer from db 
-	levels.remove_all();
-	for(int i = 0; i < config.levels.total; i++)
-	{
-		levels.append();
-		levels.values[i].x = DB::fromdb(config.levels.values[i].x);
-		levels.values[i].y = DB::fromdb(config.levels.values[i].y);
-	}
+	    levels.remove_all();
+	    for(int i = 0; i < config.levels.total; i++)
+	    {
+		    levels.append();
+		    levels.values[i].x = DB::fromdb(config.levels.values[i].x);
+		    levels.values[i].y = DB::fromdb(config.levels.values[i].y);
+	    }
+
+
+        calculate_envelope();
+    }
+    
+    
+// reset after seeking
+    if(last_position != start_position)
+    {
+//printf("CompressorEffect::process_buffer %d\n", __LINE__);
+        if(fft)
+        {
+		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    {
+ 			    if(fft[i]) fft[i]->delete_fft();
+		    }
+        }
+        
+        input_size = 0;
+        filtered_size = 0;
+        input_start = start_position;
+    }
+
+
+
 	min_x = DB::fromdb(config.min_db);
 	min_y = DB::fromdb(config.min_db);
 	max_x = 1.0;
@@ -237,21 +340,47 @@ int CompressorEffect::process_buffer(int64_t size,
 	if(labs(decay_samples) < 1) decay_samples = 1;
 
 	int total_buffers = get_total_buffers();
+
+// Only read the current size
 	if(reaction_samples >= 0)
 	{
 		if(target_current_sample < 0) target_current_sample = reaction_samples;
-		for(int i = 0; i < total_buffers; i++)
+		
+        
+        allocate_filtered(size);
+        for(int i = 0; i < total_buffers; i++)
 		{
-			read_samples(buffer[i],
-				i,
-				sample_rate,
-				start_position,
-				size);
+            new_spectrogram_frames = 0;
+// reset the input size for each channel
+            new_input_size = input_size;
+// this puts bandpassed input in the start of filtered_buffer 
+// & raw input on the end of input_buffer
+            fft[i]->process_buffer(start_position, 
+		        size, 
+		        filtered_buffer[i],
+		        get_direction());
+
+// shift raw input to the output
+            memcpy(buffer[i]->get_data(), 
+                input_buffer[i]->get_data(),
+                size * sizeof(double));
+            memcpy(input_buffer[i]->get_data(),
+                input_buffer[i]->get_data() + size,
+                (new_input_size - size) * sizeof(double));
+            new_input_size -= size;
 		}
+        input_size = new_input_size;
+
+// send the spectrograms to the plugin.  This consumes the pointers
+	    for(int i = 0; i < spectrogram_frames.size(); i++)
+        {
+            add_gui_frame(spectrogram_frames.get(i));
+        }
+        spectrogram_frames.remove_all();
 
 		double current_slope = (next_target - previous_target) / 
 			reaction_samples;
-		double *trigger_buffer = buffer[trigger]->get_data();
+		double *trigger_buffer = filtered_buffer[trigger]->get_data();
 		for(int i = 0; i < size; i++)
 		{
 // Get slope required to reach current sample from smoothed sample over reaction
@@ -264,7 +393,7 @@ int CompressorEffect::process_buffer(int64_t size,
 					double max = 0;
 					for(int j = 0; j < total_buffers; j++)
 					{
-						sample = fabs(buffer[j]->get_data()[i]);
+						sample = fabs(filtered_buffer[j]->get_data()[i]);
 						if(sample > max) max = sample;
 					}
 					sample = max;
@@ -280,7 +409,7 @@ int CompressorEffect::process_buffer(int64_t size,
 					double max = 0;
 					for(int j = 0; j < total_buffers; j++)
 					{
-						sample = fabs(buffer[j]->get_data()[i]);
+						sample = fabs(filtered_buffer[j]->get_data()[i]);
 						max += sample;
 					}
 					sample = max;
@@ -331,7 +460,9 @@ int CompressorEffect::process_buffer(int64_t size,
 			if(config.smoothing_only)
 			{
 				for(int j = 0; j < total_buffers; j++)
+                {
 					buffer[j]->get_data()[i] = current_value;
+                }
 			}
 			else
 			{
@@ -342,84 +473,64 @@ int CompressorEffect::process_buffer(int64_t size,
 				}
 			}
 		}
+        
+// pass filtered trigger through
+        if(config.pass_trigger)
+        {
+            for(int i = 0; i < total_buffers; i++)
+            {
+                memcpy(buffer[i]->get_data(), filtered_buffer[i]->get_data(), size * sizeof(double));
+            }
+        }
+
 	}
 	else
+// read the current size + extra to look ahead
 	{
 		if(target_current_sample < 0) target_current_sample = target_samples;
 		int64_t preview_samples = -reaction_samples;
 
-// Start of new buffer is outside the current buffer.  Start buffer over.
-		if(start_position < input_start ||
-			start_position >= input_start + input_size)
-		{
-			input_size = 0;
-			input_start = start_position;
-		}
-		else
-// Shift current buffer so the buffer starts on start_position
-		if(start_position > input_start &&
-			start_position < input_start + input_size)
-		{
-			if(input_buffer)
-			{
-				int len = input_start + input_size - start_position;
-				for(int i = 0; i < total_buffers; i++)
-				{
-					memcpy(input_buffer[i]->get_data(),
-						input_buffer[i]->get_data() + (start_position - input_start),
-						len * sizeof(double));
-				}
-				input_size = len;
-				input_start = start_position;
-			}
-		}
+        int new_filtered_size = size + preview_samples;
+        allocate_filtered(new_filtered_size);
 
-// Expand buffer to handle preview size
-		if(size + preview_samples > input_allocated)
+// Append data to the buffers to fill the readahead area.
+        int remane = new_filtered_size - filtered_size;
+		for(int i = 0; i < total_buffers; i++)
 		{
-			Samples **new_input_buffer = new Samples*[total_buffers];
-			for(int i = 0; i < total_buffers; i++)
-			{
-				new_input_buffer[i] = new Samples(size + preview_samples);
-				if(input_buffer)
-				{
-					memcpy(new_input_buffer[i]->get_data(), 
-						input_buffer[i]->get_data(), 
-						input_size * sizeof(double));
-					delete input_buffer[i];
-				}
-			}
-			if(input_buffer) delete [] input_buffer;
-
-			input_allocated = size + preview_samples;
-			input_buffer = new_input_buffer;
+            new_spectrogram_frames = 0;
+            new_input_size = input_size;
+            filtered_buffer[i]->set_offset(filtered_size);
+            
+            int64_t start;
+            if(get_direction() == PLAY_FORWARD)
+            {
+                start = input_start + filtered_size;
+            }
+            else
+            {
+                start = input_start - filtered_size;
+            }
+            
+            fft[i]->process_buffer(start, 
+		        remane, 
+		        filtered_buffer[i],
+		        get_direction());
+            filtered_buffer[i]->set_offset(0);
 		}
+        input_size = new_input_size;
+        filtered_size = new_filtered_size;
 
-// Append data to input buffer to construct readahead area.
-#define MAX_FRAGMENT_SIZE 131072
-		while(input_size < size + preview_samples)
-		{
-			int fragment_size = MAX_FRAGMENT_SIZE;
-			if(fragment_size + input_size > size + preview_samples)
-				fragment_size = size + preview_samples - input_size;
-			for(int i = 0; i < total_buffers; i++)
-			{
-				input_buffer[i]->set_offset(input_size);
-//printf("CompressorEffect::process_buffer %d %p %d\n", __LINE__, input_buffer[i], input_size);
-				read_samples(input_buffer[i],
-					i,
-					sample_rate,
-					input_start + input_size,
-					fragment_size);
-				input_buffer[i]->set_offset(0);
-			}
-			input_size += fragment_size;
-		}
 
+// send the spectrograms to the plugin.  This consumes the pointers
+	    for(int i = 0; i < spectrogram_frames.size(); i++)
+        {
+            add_gui_frame(spectrogram_frames.get(i));
+        }
+        spectrogram_frames.remove_all();
 
 		double current_slope = (next_target - previous_target) /
 			target_samples;
-		double *trigger_buffer = input_buffer[trigger]->get_data();
+		double *trigger_buffer = filtered_buffer[trigger]->get_data();
 		for(int i = 0; i < size; i++)
 		{
 // Get slope from current sample to every sample in preview_samples.
@@ -431,8 +542,11 @@ int CompressorEffect::process_buffer(int64_t size,
             int first_slope = preview_samples - 1;
 // Need new slope immediately
 			if(target_current_sample >= target_samples)
-				first_slope = 1;
-			for(int j = first_slope; 
+			{
+            	first_slope = 1;
+			}
+            
+            for(int j = first_slope; 
 				j < preview_samples; 
 				j++)
 			{
@@ -444,7 +558,7 @@ int CompressorEffect::process_buffer(int64_t size,
 						double max = 0;
 						for(int k = 0; k < total_buffers; k++)
 						{
-							sample = fabs(input_buffer[k]->get_data()[i + j]);
+							sample = fabs(filtered_buffer[k]->get_data()[i + j]);
 							if(sample > max) max = sample;
 						}
 						sample = max;
@@ -460,7 +574,7 @@ int CompressorEffect::process_buffer(int64_t size,
 						double max = 0;
 						for(int k = 0; k < total_buffers; k++)
 						{
-							sample = fabs(input_buffer[k]->get_data()[i + j]);
+							sample = fabs(filtered_buffer[k]->get_data()[i + j]);
 							max += sample;
 						}
 						sample = max;
@@ -533,15 +647,104 @@ int CompressorEffect::process_buffer(int64_t size,
 		}
 
 
+// shift buffers
+        for(int i = 0; i < total_buffers; i++)
+        {
+// pass filtered trigger through
+            if(config.pass_trigger)
+            {
+                memcpy(buffer[i]->get_data(), filtered_buffer[i]->get_data(), size * sizeof(double));
+            }
 
+            memcpy(input_buffer[i]->get_data(),
+                input_buffer[i]->get_data() + size,
+                (input_size - size) * sizeof(double));
+            memcpy(filtered_buffer[i]->get_data(),
+                filtered_buffer[i]->get_data() + size,
+                (filtered_size - size) * sizeof(double));
+        }
+        input_size -= size;
+        filtered_size -= size;
+
+        if(get_direction() == PLAY_FORWARD)
+        {
+            input_start += size;
+        }
+        else
+        {
+            input_start -= size;
+        }
 	}
 
 
 
+    if(get_direction() == PLAY_FORWARD)
+    {
+        last_position = start_position + size;
+    }
+    else
+    {
+        last_position = start_position - size;
+    }
 
+    
 
 	return 0;
 }
+
+void CompressorEffect::allocate_input(int new_size)
+{
+	if(!input_buffer ||
+        new_size > input_buffer[0]->get_allocated())
+	{
+		Samples **new_input_buffer = new Samples*[get_total_buffers()];
+
+		for(int i = 0; i < get_total_buffers(); i++)
+		{
+			new_input_buffer[i] = new Samples(new_size);
+            
+			if(input_buffer)
+			{
+				memcpy(new_input_buffer[i]->get_data(), 
+					input_buffer[i]->get_data(), 
+					input_buffer[i]->get_allocated() * sizeof(double));
+				delete input_buffer[i];
+			}
+            
+		}
+        
+		if(input_buffer) delete [] input_buffer;
+		
+		input_buffer = new_input_buffer;
+   	}
+}
+
+void CompressorEffect::allocate_filtered(int new_size)
+{
+    if(!filtered_buffer ||
+        new_size > filtered_buffer[0]->get_allocated())
+    {
+        Samples **new_filtered_buffer = new Samples*[get_total_buffers()];
+        for(int i = 0; i < get_total_buffers(); i++)
+		{
+            new_filtered_buffer[i] = new Samples(new_size);
+            
+            if(filtered_buffer)
+            {
+				memcpy(new_filtered_buffer[i]->get_data(), 
+					filtered_buffer[i]->get_data(), 
+					filtered_buffer[i]->get_allocated() * sizeof(double));
+				delete filtered_buffer[i];
+            }
+        }
+        
+        if(filtered_buffer) delete [] filtered_buffer;
+        filtered_buffer = new_filtered_buffer;
+    }
+}
+
+
+
 
 double CompressorEffect::calculate_output(double x)
 {
@@ -612,9 +815,205 @@ double CompressorEffect::calculate_gain(double input)
 }
 
 
+void CompressorEffect::calculate_envelope()
+{
+// assume the window size changed
+    if(envelope && envelope_allocated < config.window_size / 2)
+    {
+        delete [] envelope;
+        envelope = 0;
+    }
+
+    if(!envelope)
+    {
+        envelope_allocated = config.window_size / 2;
+        envelope = new double[envelope_allocated];
+    }
+
+    int max_freq = Freq::tofreq_f(TOTALFREQS - 1);
+    int nyquist = PluginAClient::project_sample_rate / 2;
+    int low = config.low;
+    int high = config.high;
+
+
+// limit the frequencies
+    if(high >= max_freq)
+    {
+        high = nyquist;
+    }
+
+    if(low > high)
+    {
+        low = high;
+    }
+    
+    double edge = (1.0 - config.q) * TOTALFREQS / 2;
+    double low_slot = Freq::fromfreq_f(low);
+    double high_slot = Freq::fromfreq_f(high);
+    for(int i = 0; i < config.window_size / 2; i++)
+    {
+        double freq = i * nyquist / (config.window_size / 2);
+        double slot = Freq::fromfreq_f(freq);
+
+        if(slot < low_slot - edge)
+        {
+            envelope[i] = 0.0;
+        }
+        else
+        if(slot < low_slot)
+        {
+            envelope[i] = DB::fromdb((low_slot - slot) * INFINITYGAIN / edge);
+        }
+        else
+        if(slot < high_slot)
+        {
+            envelope[i] = 1.0;
+        }
+        else
+        if(slot < high_slot + edge)
+        {
+            envelope[i] = DB::fromdb((slot - high_slot) * INFINITYGAIN / edge);
+        }
+        else
+        {
+            envelope[i] = 0.0;
+        }
+
+    }
+//printf("CompressorEffect::calculate_envelope %d\n", __LINE__);
+}
 
 
 
+
+CompressorFFT::CompressorFFT(CompressorEffect *plugin, int channel)
+{
+    this->plugin = plugin;
+    this->channel = channel;
+}
+
+CompressorFFT::~CompressorFFT()
+{
+}
+
+int CompressorFFT::signal_process()
+{
+// Create new spectrogram for updating the GUI
+    PluginClientFrame *frame = 0;
+    if(plugin->config.input != CompressorConfig::TRIGGER ||
+        channel == plugin->config.trigger)
+    {
+        if(plugin->new_spectrogram_frames >= plugin->spectrogram_frames.size())
+        {
+	        frame = new PluginClientFrame(window_size / 2, 
+                window_size / 2, 
+                plugin->PluginAClient::project_sample_rate);
+            plugin->spectrogram_frames.append(frame);
+            frame->data = new double[window_size / 2];
+            bzero(frame->data, sizeof(double) * window_size / 2);
+            frame->nyquist = plugin->PluginAClient::project_sample_rate / 2;
+        }
+        else
+        {
+            frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
+        }
+    }
+
+// apply the bandpass filter
+    for(int i = 0; i < window_size / 2; i++)
+    {
+        double mag = sqrt(freq_real[i] * freq_real[i] + 
+            freq_imag[i] * freq_imag[i]);
+
+        double mag2 = plugin->envelope[i] * mag;
+        double angle = atan2(freq_imag[i], freq_real[i]);
+
+		freq_real[i] = mag2 * cos(angle);
+		freq_imag[i] = mag2 * sin(angle);
+
+// update the spectrogram with the output
+// neglect the true average & max spectrograms, but always use the trigger
+        if(frame)
+        {
+            frame->data[i] = MAX(frame->data[i], mag2);
+
+// get the maximum output in the frequency domane
+            if(mag2 > frame->freq_max)
+            {
+                frame->freq_max = mag2;
+            }
+        }
+    }
+
+    symmetry(window_size, freq_real, freq_imag);
+    return 0;
+}
+
+int CompressorFFT::post_process()
+{
+    if(plugin->config.input != CompressorConfig::TRIGGER ||
+        channel == plugin->config.trigger)
+    {
+        PluginClientFrame *frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
+// get the maximum output in the time domane
+	    double time_max = 0;
+	    for(int i = 0; i < window_size; i++)
+	    {
+		    if(fabs(output_real[i]) > time_max) time_max = fabs(output_real[i]);
+	    }
+
+        if(time_max > frame->time_max)
+        {
+    	    frame->time_max = time_max;
+        }
+
+// printf("CompressorFFT::post_process %d frame=%p data=%p freq_max=%f time_max=%f\n",
+// __LINE__,
+// frame,
+// frame->data,
+// frame->freq_max,
+// frame->time_max);
+
+        plugin->new_spectrogram_frames++;
+    }
+
+    return 0;
+}
+
+
+int CompressorFFT::read_samples(int64_t output_sample, 
+	int samples, 
+	Samples *buffer)
+{
+// printf("CompressorFFT::read_samples %d channel=%d output_sample=%ld\n", 
+// __LINE__, 
+// channel, 
+// output_sample);
+	int result = plugin->read_samples(buffer,
+		channel,
+		plugin->get_samplerate(),
+		output_sample,
+		samples);
+
+// printf("CompressorFFT::read_samples %d output_sample=%ld dsp_in_length=%d samples=%d\n",
+// __LINE__,
+// output_sample,
+// plugin->new_dsp_length,
+// samples);
+
+// append unprocessed samples to the input_buffer
+    int new_input_size = plugin->new_input_size + samples;
+    plugin->allocate_input(new_input_size);
+    memcpy(plugin->input_buffer[channel]->get_data() + plugin->new_input_size,
+        buffer->get_data(),
+        samples * sizeof(double));
+
+
+    plugin->new_input_size = new_input_size;
+    
+
+    return result;
+}
 
 
 
@@ -631,7 +1030,12 @@ CompressorConfig::CompressorConfig()
 	trigger = 0;
 	input = CompressorConfig::TRIGGER;
 	smoothing_only = 0;
+    pass_trigger = 0;
 	decay_len = 1.0;
+    high = Freq::tofreq(TOTALFREQS);
+    low = Freq::tofreq(0);
+    q = 1.0;
+    window_size = 4096;
 }
 
 void CompressorConfig::copy_from(CompressorConfig &that)
@@ -646,9 +1050,15 @@ void CompressorConfig::copy_from(CompressorConfig &that)
 	this->trigger = that.trigger;
 	this->input = that.input;
 	this->smoothing_only = that.smoothing_only;
+	this->pass_trigger = that.pass_trigger;
 	levels.remove_all();
 	for(int i = 0; i < that.levels.total; i++)
 		this->levels.append(that.levels.values[i]);
+    
+    high = that.high;
+    low = that.low;
+    q = that.q;
+    window_size = that.window_size;
 }
 
 int CompressorConfig::equivalent(CompressorConfig &that)
@@ -657,9 +1067,13 @@ int CompressorConfig::equivalent(CompressorConfig &that)
 		!EQUIV(this->decay_len, that.decay_len) ||
 		this->trigger != that.trigger ||
 		this->input != that.input ||
-		this->smoothing_only != that.smoothing_only)
-		return 0;
-	if(this->levels.total != that.levels.total) return 0;
+		this->smoothing_only != that.smoothing_only ||
+		this->pass_trigger != that.pass_trigger ||
+        this->levels.total != that.levels.total)
+	{
+    	return 0;
+	}
+
 	for(int i = 0; 
 		i < this->levels.total && i < that.levels.total; 
 		i++)
@@ -670,6 +1084,15 @@ int CompressorConfig::equivalent(CompressorConfig &that)
 			!EQUIV(this_level->y, that_level->y))
 			return 0;
 	}
+    
+    if(high != that.high ||
+        low != that.low ||
+        !EQUIV(q, that.q) ||
+        window_size != that.window_size)
+    {
+        return 0;
+    }
+    
 	return 1;
 }
 
@@ -851,26 +1274,52 @@ void CompressorConfig::optimize()
 CompressorWindow::CompressorWindow(CompressorEffect *plugin)
  : PluginClientWindow(plugin,
 	DP(650), 
-	DP(480), 
+	DP(560), 
 	DP(650), 
-	DP(480),
+	DP(560),
 	0)
 {
 	this->plugin = plugin;
 }
 
+CompressorWindow::~CompressorWindow()
+{
+    delete eqcanvas;
+}
+
+
 void CompressorWindow::create_objects()
 {
-	int x = DP(35), y = DP(10);
-	int control_margin = DP(130);
+    int margin = client->get_theme()->widget_border;
+	int x = DP(35), y = margin;
+	int control_margin = DP(150);
+    BC_Title *title;
 
+    add_subwindow(title = new BC_Title(x, y, _("Sound level:")));
+    y += title->get_h() + 1;
 	add_subwindow(canvas = new CompressorCanvas(plugin, 
 		x, 
 		y, 
 		get_w() - x - control_margin - DP(10), 
-		get_h() - y - DP(70)));
+		get_h() * 2 / 3 - y));
 	canvas->set_cursor(CROSS_CURSOR, 0, 0);
+    y += canvas->get_h() + DP(30);
+    
+    add_subwindow(title = new BC_Title(x, y, _("Trigger bandwidth:")));
+    y += title->get_h();
+    eqcanvas = new EQCanvas(this,
+        margin,
+        y,
+        canvas->get_w() + x - margin,
+        get_h() - y - margin,
+        INFINITYGAIN,
+        0.0);
+    eqcanvas->freq_divisions = 10;
+    eqcanvas->initialize();
+    
+    
 	x = get_w() - control_margin;
+    y = margin;
 	add_subwindow(new BC_Title(x, y, _("Reaction secs:")));
 	y += DP(20);
 	add_subwindow(reaction = new CompressorReaction(plugin, x, y));
@@ -889,21 +1338,66 @@ void CompressorWindow::create_objects()
 	add_subwindow(trigger = new CompressorTrigger(plugin, x, y));
 	if(plugin->config.input != CompressorConfig::TRIGGER) trigger->disable();
 	y += DP(30);
-	add_subwindow(smooth = new CompressorSmooth(plugin, x, y));
-	y += DP(60);
-	add_subwindow(clear = new CompressorClear(plugin, x, y));
-	x = DP(10);
-	y = get_h() - DP(40);
-	add_subwindow(new BC_Title(x, y, _("Point:")));
-	x += DP(50);
-	add_subwindow(x_text = new CompressorX(plugin, x, y));
-	x += DP(110);
-	add_subwindow(new BC_Title(x, y, _("x")));
-	x += DP(20);
-	add_subwindow(y_text = new CompressorY(plugin, x, y));
-	draw_scales();
 
+
+	add_subwindow(smooth = new CompressorSmooth(plugin, x, y));
+    y += smooth->get_h() + margin;
+	add_subwindow(pass_trigger = new CompressorPassTrigger(plugin, x, y));
+    y += pass_trigger->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Output:")));
+    y += title->get_h();
+	add_subwindow(y_text = new CompressorY(plugin, x, y));
+    y += y_text->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Input:")));
+    y += title->get_h();
+	add_subwindow(x_text = new CompressorX(plugin, x, y));
+    y += x_text->get_h() + margin;
+
+    add_subwindow(title = new BC_Title(x, y, _("Low Freq:")));
+    add_subwindow(low = new CompressorQPot(this, 
+        plugin, 
+        get_w() - margin - BC_Pot::calculate_w(), 
+        y, 
+        &plugin->config.low));
+    y += low->get_h() + margin;
+    
+    add_subwindow(title = new BC_Title(x, y, _("High Freq:")));
+    add_subwindow(high = new CompressorQPot(this, 
+        plugin, 
+        get_w() - margin - BC_Pot::calculate_w(), 
+        y, 
+        &plugin->config.high));
+        
+    y += high->get_h() + margin;
+    add_subwindow(title = new BC_Title(x, y, _("Steepness:")));
+    add_subwindow(q = new CompressorFPot(this, 
+        plugin, 
+        get_w() - margin - BC_Pot::calculate_w(), 
+        y, 
+        &plugin->config.q,
+        0,
+        1));
+    y += q->get_h() + margin;
+    
+    add_subwindow(title = new BC_Title(x, y, _("Window size:")));
+    y += title->get_h();
+    add_subwindow(size = new CompressorSize(this,
+        plugin,
+        x,
+        y));
+    size->create_objects();
+    size->update(plugin->config.window_size);
+    y += size->get_h() + margin;
+    
+	add_subwindow(clear = new CompressorClear(plugin, x, y));
+
+    
+
+    plugin->calculate_envelope();
+
+	draw_scales();
 	update_canvas();
+    update_eqcanvas();
 	show_window();
 }
 
@@ -923,6 +1417,7 @@ void CompressorWindow::draw_scales()
 	set_color(get_resources()->default_text_color);
 
 #define DIVISIONS 8
+// output divisions
 	for(int i = 0; i <= DIVISIONS; i++)
 	{
 		int y = canvas->get_y() + DP(10) + canvas->get_h() / DIVISIONS * i;
@@ -949,15 +1444,18 @@ void CompressorWindow::draw_scales()
 		}
 	}
 
-
+// input divisions
 	for(int i = 0; i <= DIVISIONS; i++)
 	{
-		int y = canvas->get_h() + DP(30);
+		int y = canvas->get_y() + canvas->get_h();
 		int x = canvas->get_x() + (canvas->get_w() - 10) / DIVISIONS * i;
+        int y1 = y + get_text_ascent(SMALLFONT);
 		char string[BCTEXTLEN];
 
-		sprintf(string, "%.0f", (1.0 - (float)i / DIVISIONS) * plugin->config.min_db);
-		draw_text(x, y, string);
+		sprintf(string, 
+            "%.0f", 
+            (1.0 - (float)i / DIVISIONS) * plugin->config.min_db);
+		draw_text(x, y1 + DP(10), string);
 
 		int x1 = canvas->get_x() + canvas->get_w() / DIVISIONS * i;
 		int x2 = canvas->get_x() + canvas->get_w() / DIVISIONS * (i + 1);
@@ -966,12 +1464,18 @@ void CompressorWindow::draw_scales()
 			x = x1 + (x2 - x1) * j / 10;
 			if(j == 0)
 			{
-				draw_line(x, canvas->get_y() + canvas->get_h(), x, canvas->get_y() + canvas->get_h() + DP(10));
+				draw_line(x, 
+                    y, 
+                    x, 
+                    y + DP(10));
 			}
 			else
 			if(i < DIVISIONS)
 			{
-				draw_line(x, canvas->get_y() + canvas->get_h(), x, canvas->get_y() + canvas->get_h() + DP(5));
+				draw_line(x, 
+                    y, 
+                    x, 
+                    y + DP(5));
 			}
 		}
 	}
@@ -984,7 +1488,12 @@ void CompressorWindow::draw_scales()
 void CompressorWindow::update()
 {
 	update_textboxes();
+    low->update(plugin->config.low);
+    high->update(plugin->config.high);
+    q->update(plugin->config.q);
+    size->update(plugin->config.window_size);
 	update_canvas();
+    update_eqcanvas();
 }
 
 void CompressorWindow::update_textboxes()
@@ -1005,11 +1514,15 @@ void CompressorWindow::update_textboxes()
 	if(!EQUIV(atof(decay->get_text()), plugin->config.decay_len))
 		decay->update((float)plugin->config.decay_len);
 	smooth->update(plugin->config.smoothing_only);
+	pass_trigger->update(plugin->config.pass_trigger);
 	if(canvas->current_operation == CompressorCanvas::DRAG)
 	{
 		x_text->update((float)plugin->config.levels.values[canvas->current_point].x);
 		y_text->update((float)plugin->config.levels.values[canvas->current_point].y);
 	}
+    
+    
+    
 }
 
 #define POINT_W DP(10)
@@ -1074,10 +1587,134 @@ void CompressorWindow::update_canvas()
 	canvas->flash();
 }
 
+
+void CompressorWindow::update_eqcanvas()
+{
+    plugin->calculate_envelope();
+    eqcanvas->update_spectrogram(plugin);
+    
+    eqcanvas->draw_envelope(plugin->envelope,
+        plugin->PluginAClient::project_sample_rate,
+        plugin->config.window_size);
+    
+}
+
 int CompressorWindow::resize_event(int w, int h)
 {
 	return 1;
 }
+
+
+
+
+
+CompressorFPot::CompressorFPot(CompressorWindow *gui, 
+    CompressorEffect *plugin, 
+    int x, 
+    int y, 
+    double *output,
+    double min,
+    double max)
+ : BC_FPot(x,
+    y,
+    *output,
+    min,
+    max)
+{
+    this->gui = gui;
+    this->plugin = plugin;
+    this->output = output;
+    set_precision(0.01);
+}
+
+
+
+int CompressorFPot::handle_event()
+{
+    *output = get_value();
+    plugin->send_configure_change();
+    gui->update_eqcanvas();
+    return 1;
+}
+
+
+
+
+
+
+CompressorQPot::CompressorQPot(CompressorWindow *gui, 
+    CompressorEffect *plugin, 
+    int x, 
+    int y, 
+    int *output)
+ : BC_QPot(x,
+    y,
+    *output)
+{
+    this->gui = gui;
+    this->plugin = plugin;
+    this->output = output;
+}
+
+
+int CompressorQPot::handle_event()
+{
+    *output = get_value();
+    plugin->send_configure_change();
+    gui->update_eqcanvas();
+    return 1;
+}
+
+
+
+
+
+
+
+CompressorSize::CompressorSize(CompressorWindow *gui, 
+    CompressorEffect *plugin, 
+    int x, 
+    int y)
+ : BC_PopupMenu(x, 
+    y, 
+    DP(100), 
+    "4096", 
+    1)
+{
+    this->gui = gui;
+    this->plugin = plugin;
+}
+
+int CompressorSize::handle_event()
+{
+    plugin->config.window_size = atoi(get_text());
+    plugin->send_configure_change();
+    gui->update_eqcanvas();
+    return 1;
+}
+
+
+void CompressorSize::create_objects()
+{
+	add_item(new BC_MenuItem("2048"));
+	add_item(new BC_MenuItem("4096"));
+	add_item(new BC_MenuItem("8192"));
+	add_item(new BC_MenuItem("16384"));
+	add_item(new BC_MenuItem("32768"));
+	add_item(new BC_MenuItem("65536"));
+	add_item(new BC_MenuItem("131072"));
+	add_item(new BC_MenuItem("262144"));
+}
+
+
+void CompressorSize::update(int size)
+{
+	char string[BCTEXTLEN];
+	sprintf(string, "%d", size);
+	set_text(string);
+}
+
+
 
 
 
@@ -1106,8 +1743,8 @@ int CompressorCanvas::button_press_event()
 			int x = (int)(((double)1 - x_db / plugin->config.min_db) * get_w());
 			int y = (int)(y_db / plugin->config.min_db * get_h());
 
-			if(get_cursor_x() < x + POINT_W / 2 && get_cursor_x() >= x - POINT_W / 2 &&
-				get_cursor_y() < y + POINT_W / 2 && get_cursor_y() >= y - POINT_W / 2)
+			if(get_cursor_x() <= x + POINT_W / 2 && get_cursor_x() >= x - POINT_W / 2 &&
+				get_cursor_y() <= y + POINT_W / 2 && get_cursor_y() >= y - POINT_W / 2)
 			{
 				current_operation = DRAG;
 				current_point = i;
@@ -1189,8 +1826,8 @@ int CompressorCanvas::cursor_motion_event()
 			int x = (int)(((double)1 - x_db / plugin->config.min_db) * get_w());
 			int y = (int)(y_db / plugin->config.min_db * get_h());
 
-			if(get_cursor_x() < x + POINT_W / 2 && get_cursor_x() >= x - POINT_W / 2 &&
-				get_cursor_y() < y + POINT_W / 2 && get_cursor_y() >= y - POINT_W / 2)
+			if(get_cursor_x() <= x + POINT_W / 2 && get_cursor_x() >= x - POINT_W / 2 &&
+				get_cursor_y() <= y + POINT_W / 2 && get_cursor_y() >= y - POINT_W / 2)
 			{
 				new_cursor = UPRIGHT_ARROW_CURSOR;
 				break;
@@ -1434,6 +2071,20 @@ CompressorSmooth::CompressorSmooth(CompressorEffect *plugin, int x, int y)
 int CompressorSmooth::handle_event()
 {
 	plugin->config.smoothing_only = get_value();
+	plugin->send_configure_change();
+	return 1;
+}
+
+
+CompressorPassTrigger::CompressorPassTrigger(CompressorEffect *plugin, int x, int y) 
+ : BC_CheckBox(x, y, plugin->config.pass_trigger, _("Pass trigger"))
+{
+	this->plugin = plugin;
+}
+
+int CompressorPassTrigger::handle_event()
+{
+	plugin->config.pass_trigger = get_value();
 	plugin->send_configure_change();
 	return 1;
 }
