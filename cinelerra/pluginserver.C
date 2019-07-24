@@ -806,20 +806,20 @@ int PluginServer::read_samples(Samples *buffer,
 	int channel,
 	int64_t sample_rate,
 	int64_t start_position,
-	int64_t len)
+	int64_t size)
 {
-// len is now in buffer
+// size is now in buffer
 	if(!multichannel) channel = 0;
 
 	if(nodes->total > channel)
 		return ((VirtualANode*)nodes->values[channel])->read_data(buffer,
-			len,
+			size,
 			start_position,
 			sample_rate);
 	else
 	if(modules->total > channel)
 		return ((AModule*)modules->values[channel])->render(buffer,
-			len,
+			size,
 			start_position,
 			PLAY_FORWARD,
 			sample_rate,

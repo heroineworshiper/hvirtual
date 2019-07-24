@@ -110,6 +110,11 @@ int Reverb::process_buffer(int64_t size,
 // reset after seeking
     if(last_position != start_position)
     {
+// printf("Reverb::process_buffer %d last_position=%ld start_position=%ld\n",
+// __LINE__,
+// last_position,
+// start_position);
+
         dsp_in_length = 0;
         if(fft)
         {
@@ -125,6 +130,13 @@ int Reverb::process_buffer(int64_t size,
                 if(dsp_in[i]) bzero(dsp_in[i], sizeof(double) * dsp_in_allocated);
 		    }
         }
+    }
+    else
+    {
+// printf("Reverb::process_buffer %d last_position=%ld start_position=%ld\n",
+// __LINE__,
+// last_position,
+// start_position);
     }
 
 
@@ -435,6 +447,7 @@ void Reverb::save_data(KeyFrame *keyframe)
 	output.tag.set_property("HIGH", config.high);
 	output.tag.set_property("LOW", config.low);
     output.tag.set_property("Q", config.q);
+    output.tag.set_property("WINDOW_SIZE", config.window_size);
 //printf("Reverb::save_data config.ref_level2 %f\n", config.ref_level2);
 	output.append_tag();
 	output.append_newline();
@@ -468,6 +481,7 @@ void Reverb::read_data(KeyFrame *keyframe)
 			config.high = input.tag.get_property("HIGH", config.high);
 			config.low = input.tag.get_property("LOW", config.low);
 			config.q = input.tag.get_property("Q", config.q);
+			config.window_size = input.tag.get_property("WINDOW_SIZE", config.window_size);
 		}
 	}
 
@@ -589,11 +603,10 @@ int ReverbFFT::read_samples(int64_t output_sample,
 	int samples, 
 	Samples *buffer)
 {
-// printf("ReverbFFT::read_samples %d channel=%d buffer=%p offset=%d\n", 
-// __LINE__, 
-// channel, 
-// buffer, 
-// buffer->get_offset());
+printf("ReverbFFT::read_samples %d channel=%d samples=%d\n", 
+__LINE__, 
+channel, 
+samples);
 	int result = plugin->read_samples(buffer,
 		channel,
 		plugin->get_samplerate(),

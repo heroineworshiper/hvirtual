@@ -101,10 +101,8 @@ private:
 // output for crossfaded windows with overflow
 	double *output_buffer;
 
-// samples in input_buffer
+// samples in input_buffer including the tail
 	long input_size;
-// window_size
-	long input_allocation;
 // Samples in output buffer less window border
 	long output_size;
 // Space in output buffer including window border
