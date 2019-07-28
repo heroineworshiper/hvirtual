@@ -25,210 +25,40 @@
 
 
 #include "bchash.inc"
-#include "eqcanvas.inc"
 #include "fourier.h"
-#include "guicast.h"
 #include "mutex.h"
 #include "pluginaclient.h"
 #include "samples.inc"
 #include "vframe.inc"
 
 class CompressorEffect;
-class CompressorWindow;
 class CompressorFFT;
 
-
-
-class CompressorCanvas : public BC_SubWindow
-{
-public:
-	CompressorCanvas(CompressorEffect *plugin, int x, int y, int w, int h);
-	int button_press_event();
-	int button_release_event();
-	int cursor_motion_event();
-
-
-	enum
-	{
-		NONE,
-		DRAG
-	};
-
-	int current_point;
-	int current_operation;
-	CompressorEffect *plugin;
-};
-
-
-class CompressorReaction : public BC_TextBox
-{
-public:
-	CompressorReaction(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	int button_press_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorClear : public BC_GenericButton
-{
-public:
-	CompressorClear(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorX : public BC_TextBox
-{
-public:
-	CompressorX(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorY : public BC_TextBox
-{
-public:
-	CompressorY(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorTrigger : public BC_TextBox
-{
-public:
-	CompressorTrigger(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	int button_press_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorDecay : public BC_TextBox
-{
-public:
-	CompressorDecay(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	int button_press_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorSmooth : public BC_CheckBox
-{
-public:
-	CompressorSmooth(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorPassTrigger : public BC_CheckBox
-{
-public:
-	CompressorPassTrigger(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorInput : public BC_PopupMenu
-{
-public:
-	CompressorInput(CompressorEffect *plugin, int x, int y);
-	void create_objects();
-	int handle_event();
-	static const char* value_to_text(int value);
-	static int text_to_value(char *text);
-	CompressorEffect *plugin;
-};
-
-
-class CompressorFPot : public BC_FPot
-{
-public:
-    CompressorFPot(CompressorWindow *gui, 
-        CompressorEffect *plugin, 
-        int x, 
-        int y, 
-        double *output,
-        double min,
-        double max);
-    int handle_event();
-    CompressorWindow *gui;
-    CompressorEffect *plugin;
-    double *output;
-};
-
-class CompressorQPot : public BC_QPot
-{
-public:
-    CompressorQPot(CompressorWindow *gui, 
-        CompressorEffect *plugin, 
-        int x, 
-        int y, 
-        int *output);
-    int handle_event();
-    CompressorWindow *gui;
-    CompressorEffect *plugin;
-    int *output;
-};
-
-
-class CompressorSize : public BC_PopupMenu
-{
-public:
-	CompressorSize(CompressorWindow *gui, 
-        CompressorEffect *plugin, 
-        int x, 
-        int y);
-
-	int handle_event();
-	void create_objects();         // add initial items
-	void update(int size);
-    CompressorWindow *gui;
-    CompressorEffect *plugin;    
-};
-
-
-class CompressorWindow : public PluginClientWindow
-{
-public:
-	CompressorWindow(CompressorEffect *plugin);
-    ~CompressorWindow();
-	void create_objects();
-	void update();
-	void update_textboxes();
-// draw the dynamic range canvas
-	void update_canvas();
-// draw the bandpass canvas
-    void update_eqcanvas();
-	void draw_scales();
-	int resize_event(int w, int h);	
-	
-	CompressorCanvas *canvas;
-	CompressorReaction *reaction;
-	CompressorClear *clear;
-	CompressorX *x_text;
-	CompressorY *y_text;
-	CompressorTrigger *trigger;
-	CompressorDecay *decay;
-	CompressorSmooth *smooth;
-	CompressorPassTrigger *pass_trigger;
-	CompressorInput *input;
-
-
-	CompressorQPot *high;
-	CompressorQPot *low;
-    CompressorFPot *q;
-    CompressorSize *size;
-    EQCanvas *eqcanvas;
-
-	CompressorEffect *plugin;
-};
-
-
+#define TOTAL_BANDS 3
 
 typedef struct
 {
 // DB from min_db - 0
 	double x, y;
 } compressor_point_t;
+
+class BandConfig
+{
+public:
+    BandConfig();
+    ~BandConfig();
+
+    void copy_from(BandConfig *src);
+    int equiv(BandConfig *src);
+
+	ArrayList<compressor_point_t> levels;
+    int solo;
+
+// bandpass filter
+    int low;
+    int high;
+    double q;
+};
 
 class CompressorConfig
 {
@@ -243,15 +73,13 @@ public:
 		int64_t next_frame, 
 		int64_t current_frame);
 
-	int total_points();
-	void remove_point(int number);
-	void optimize();
+	void remove_point(int band, int number);
 // Return values of a specific point
-	double get_y(int number);
-	double get_x(int number);
+	double get_y(int band, int number);
+	double get_x(int band, int number);
 // Returns db output from db input
-	double calculate_db(double x);
-	int set_point(double x, double y);
+	double calculate_db(int band, double x);
+	int set_point(int band, double x, double y);
 	void dump();
 
 	int trigger;
@@ -268,14 +96,8 @@ public:
 	double min_x, min_y;
 	double max_x, max_y;
 	int smoothing_only;
-    int pass_trigger;
-	ArrayList<compressor_point_t> levels;
-
-// bandpass filter
-    int low;
-    int high;
-    double q;
     int window_size;
+    BandConfig bands[TOTAL_BANDS];
 };
 
 
@@ -285,8 +107,8 @@ public:
     CompressorFFT(CompressorEffect *plugin, int channel);
     ~CompressorFFT();
     
-    int signal_process();
-	int post_process();
+    int signal_process(int band);
+	int post_process(int band);
 	int read_samples(int64_t output_sample, 
 		int samples, 
 		Samples *buffer);
@@ -295,6 +117,48 @@ public:
     int channel;
 };
 
+// processing state of a single band
+class CompressorEngine
+{
+public:
+    CompressorEngine(CompressorEffect *plugin, int band);
+    ~CompressorEngine();
+
+    void delete_dsp();
+    void reset();
+    void reconfigure();
+    void calculate_envelope();
+    void process_readbehind(int size, 
+        int reaction_samples, 
+        int decay_samples,
+        int trigger);
+    void process_readahead(int size, 
+        int preview_samples,
+        int reaction_samples, 
+        int decay_samples,
+        int trigger);
+    void allocate_filtered(int new_size);
+
+// bandpass filter for this band
+    double *envelope;
+    int envelope_allocated;
+// The input for all channels with filtering by this band
+    Samples **filtered_buffer;
+// ending input value of smoothed input
+	double next_target;
+// starting input value of smoothed input
+	double previous_target;
+// samples between previous and next target value for readahead
+	int target_samples;
+// current sample from 0 to target_samples
+	int target_current_sample;
+// current smoothed input value
+	double current_value;
+// Temporaries for linear transfer
+	ArrayList<compressor_point_t> levels;
+    CompressorEffect *plugin;
+    int band;
+};
 
 class CompressorEffect : public PluginAClient
 {
@@ -310,15 +174,15 @@ public:
 		Samples **buffer,
 		int64_t start_position,
 		int sample_rate);
-	double calculate_gain(double input);
+
+// calculate envelopes of all the bands
+    void calculate_envelope();
+	double calculate_gain(int band, double input);
 
 // Calculate linear output from linear input
-	double calculate_output(double x);
+	double calculate_output(int band, double x);
 
     void allocate_input(int new_size);
-    void allocate_filtered(int new_size);
-
-    void calculate_envelope();
 
 	void reset();
 	void update_gui();
@@ -326,41 +190,23 @@ public:
 
 	PLUGIN_CLASS_MEMBERS(CompressorConfig)
 
-// The raw input data for each channel with readahead
+// The out of band data for each channel with readahead
 	Samples **input_buffer;
 // Number of samples in the input buffers
 	int64_t input_size;
-// input buffer size being calculated by the FFT reader
+// input buffer size being calculated by the FFT readers
     int64_t new_input_size;
-// Number of samples allocated in the input buffers
-//	int64_t input_allocated;
-// Starting sample of input buffer relative to project in the requested rate.
+// Starting sample of the input buffer relative to project in the requested rate.
 	int64_t input_start;
-// The input with filtering for the trigger
-    Samples **filtered_buffer;
+// total samples in the filtered buffers
     int64_t filtered_size;
-    
+
 // detect seeking
     int64_t last_position;
 
-// ending input value of smoothed input
-	double next_target;
-// starting input value of smoothed input
-	double previous_target;
-// samples between previous and next target value for readahead
-	int target_samples;
-// current sample from 0 to target_samples
-	int target_current_sample;
-// current smoothed input value
-	double current_value;
-// Temporaries for linear transfer
-	ArrayList<compressor_point_t> levels;
 	double min_x, min_y;
 	double max_x, max_y;
-// bandpass filter
-    double *envelope;
-    int envelope_allocated;
-    CompressorFFT **fft;
+
 // total spectrogram frames generated by the FFT.  Each channel overwrites the same
 // spectrograms
     int new_spectrogram_frames;
@@ -368,9 +214,13 @@ public:
 // Since multiple windows can be processed in a single process_buffer, the frames
 // must be buffered before being added to the plugin.
     ArrayList<PluginClientFrame *> spectrogram_frames;
-
+    CompressorEngine *engines[TOTAL_BANDS];
+// The big FFT with multiple channels & multiple bands extracted per channel.
+    CompressorFFT **fft;
 
 	int need_reconfigure;
+// band on the GUI
+    int current_band;
 };
 
 

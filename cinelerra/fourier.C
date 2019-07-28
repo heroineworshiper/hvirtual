@@ -197,6 +197,8 @@ int CrossfadeFFT::reset()
 	output_buffer = 0;
 	freq_real = 0;
 	freq_imag = 0;
+	freq_real2 = 0;
+	freq_imag2 = 0;
 	output_real = 0;
 	output_imag = 0;
 	first_window = 1;
@@ -206,15 +208,25 @@ int CrossfadeFFT::reset()
 	output_allocation = 0;
 	output_sample = 0;
 	input_sample = 0;
+    bands = 1;
 	return 0;
 }
 
 int CrossfadeFFT::delete_fft()
 {
 	if(input_buffer) delete input_buffer;
-	if(output_buffer) delete [] output_buffer;
+	if(output_buffer) 
+    {
+        for(int i = 0; i < bands; i++)
+        {
+            delete [] output_buffer[i];
+        }
+        delete [] output_buffer;
+    }
 	if(freq_real) delete [] freq_real;
 	if(freq_imag) delete [] freq_imag;
+	if(freq_real2) delete [] freq_real2;
+	if(freq_imag2) delete [] freq_imag2;
 	if(output_real) delete [] output_real;
 	if(output_imag) delete [] output_imag;
 	reset();
@@ -232,9 +244,10 @@ int CrossfadeFFT::fix_window_size()
 	return 0;
 }
 
-int CrossfadeFFT::initialize(int window_size)
+int CrossfadeFFT::initialize(int window_size, int bands)
 {
 	this->window_size = window_size;
+    this->bands = bands;
 	first_window = 1;
 	reconfigure();
 	return 0;
@@ -255,12 +268,50 @@ int CrossfadeFFT::reconfigure()
 	return 0;
 }
 
-
-
+void CrossfadeFFT::allocate_output(int new_allocation)
+{
+// Allocate output buffer
+	if(new_allocation > output_allocation)
+	{
+        if(!output_buffer)
+        {
+            output_buffer = new double*[bands];
+            bzero(output_buffer, sizeof(double) * bands);
+        }
+        
+        for(int i = 0; i < bands; i++)
+        {
+		    double *new_output = new double[new_allocation];
+		    if(output_buffer[i])
+		    {
+			    memcpy(new_output, 
+				    output_buffer[i], 
+				    sizeof(double) * (output_size + HALF_WINDOW));
+			    delete [] output_buffer[i];
+		    }
+		    output_buffer[i] = new_output;
+        }
+		output_allocation = new_allocation;
+	}
+}
 
 int CrossfadeFFT::process_buffer(int64_t output_sample, 
 	long size, 
 	Samples *output_ptr,
+	int direction)
+{
+    Samples *output_temp[1];
+    output_temp[0] = output_ptr;
+    return process_buffer(output_sample, 
+	    size, 
+	    output_temp,
+	    direction);
+}
+
+
+int CrossfadeFFT::process_buffer(int64_t output_sample, 
+	long size, 
+	Samples **output_ptr,
 	int direction)
 {
 	int result = 0;
@@ -328,6 +379,8 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 
 	if(!freq_real) freq_real = new double[window_size];
 	if(!freq_imag) freq_imag = new double[window_size];
+	if(!freq_real2) freq_real2 = new double[window_size];
+	if(!freq_imag2) freq_imag2 = new double[window_size];
 	if(!output_real) output_real = new double[window_size];
 	if(!output_imag) output_imag = new double[window_size];
 
@@ -339,62 +392,55 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
     		0,                // 0 = forward FFT, 1 = inverse
     		input_buffer->get_data(),     // array of input's real samples
     		0,                // array of input's imag samples
-    		freq_real,        // array of output's reals
-    		freq_imag);
-		signal_process();
-		do_fft(window_size,  // must be a power of 2
-    		1,               // 0 = forward FFT, 1 = inverse
-    		freq_real,       // array of input's real samples
-    		freq_imag,       // array of input's imag samples
-    		output_real,       // array of output's reals
-    		output_imag);      // array of output's imaginaries
-        post_process();
+    		freq_real2,        // array of output's reals
+    		freq_imag2);
+        allocate_output(output_size + window_size);
 
-// Allocate output buffer
-		int new_allocation = output_size + window_size;
-		if(new_allocation > output_allocation)
-		{
-			double *new_output = new double[new_allocation];
-			if(output_buffer)
-			{
-				memcpy(new_output, 
-					output_buffer, 
-					sizeof(double) * (output_size + HALF_WINDOW));
-				delete [] output_buffer;
-			}
-			output_buffer = new_output;
-			output_allocation = new_allocation;
-		}
+// process & overlay each band separately
+        for(int band = 0; band < bands; band++)
+        {
+// restore from the backup
+            memcpy(freq_real, freq_real2, sizeof(double) * window_size);
+            memcpy(freq_imag, freq_imag2, sizeof(double) * window_size);
+		    signal_process(band);
+		    do_fft(window_size,  // must be a power of 2
+    		    1,               // 0 = forward FFT, 1 = inverse
+    		    freq_real,       // array of input's real samples
+    		    freq_imag,       // array of input's imag samples
+    		    output_real,       // array of output's reals
+    		    output_imag);      // array of output's imaginaries
+            post_process(band);
 
-// Overlay processed window on the output
-		if(first_window)
-		{
-// copy entire window
-			memcpy(output_buffer + output_size,
-				output_real,
-				sizeof(double) * window_size);
-			first_window = 0;
-		}
-		else
-		{
-// dissolve 1st half of window
-			for(int i = 0, j = output_size; i < HALF_WINDOW; i++, j++)
-			{
-				double src_level = (double)i / HALF_WINDOW;
-				double dst_level = (double)(HALF_WINDOW - i) / HALF_WINDOW;
-				output_buffer[j] = output_buffer[j] * dst_level +
-					output_real[i] * src_level;
-			}
-			
+
+// Overlay processed window on the output buffers
+		    if(first_window)
+		    {
+// direct copy the 1st window
+			    memcpy(output_buffer[band] + output_size,
+				    output_real,
+				    sizeof(double) * window_size);
+		    }
+		    else
+		    {
+// dissolve 1st half of later windows
+			    for(int i = 0, j = output_size; i < HALF_WINDOW; i++, j++)
+			    {
+				    double src_level = (double)i / HALF_WINDOW;
+				    double dst_level = (double)(HALF_WINDOW - i) / HALF_WINDOW;
+				    output_buffer[band][j] = output_buffer[band][j] * dst_level +
+					    output_real[i] * src_level;
+			    }
+
 //output_buffer[output_size] = 100.0;
 //output_buffer[output_size + HALF_WINDOW] = -100.0;
 // copy 2nd half of window
-			memcpy(output_buffer + output_size + HALF_WINDOW,
-				output_real + HALF_WINDOW,
-				sizeof(double) * HALF_WINDOW);
-		}
+			    memcpy(output_buffer[band] + output_size + HALF_WINDOW,
+				    output_real + HALF_WINDOW,
+				    sizeof(double) * HALF_WINDOW);
+		    }
+        }
 
-
+	    first_window = 0;
 		output_size += HALF_WINDOW;
 
 // Shift input buffer half a window forward
@@ -416,13 +462,19 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 // Transfer output buffer if the user wants it
 	if(output_ptr)
 	{
-		memcpy(output_ptr->get_data(), output_buffer, sizeof(double) * size);
+        for(int band = 0; band < bands; band++)
+        {
+    		memcpy(output_ptr[band]->get_data(), output_buffer[band], sizeof(double) * size);
+        }
 	}
 
-// shift output buffer forward
-    memcpy(output_buffer, 
-        output_buffer + size, 
-        sizeof(double) * (output_size + HALF_WINDOW - size));
+// shift output buffers forward
+    for(int band = 0; band < bands; band++)
+    {
+        memcpy(output_buffer[band], 
+            output_buffer[band] + size, 
+            sizeof(double) * (output_size + HALF_WINDOW - size));
+    }
 
 	this->output_sample += step * size;
 	this->output_size -= size;
@@ -447,6 +499,21 @@ int CrossfadeFFT::signal_process()
 
 int CrossfadeFFT::post_process()
 {
+	return 0;
+}
+
+
+int CrossfadeFFT::signal_process(int band)
+{
+    signal_process();
+	return 0;
+}
+
+
+
+int CrossfadeFFT::post_process(int band)
+{
+    post_process();
 	return 0;
 }
 

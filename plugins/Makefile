@@ -23,6 +23,7 @@ DIRS = \
 	colorbalance \
 	color3way \
 	compressor \
+        compressormulti \
 	crossfade \
 	dcoffset \
 	decimate \

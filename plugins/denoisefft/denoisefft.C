@@ -433,7 +433,7 @@ void DenoiseFFTEffect::collect_noise()
 	{
 		collect_engine->process_buffer(collection_start,
 			WINDOW_SIZE,
-			0,
+			(Samples*)0,
 			get_direction());
 
 		collection_start += step * WINDOW_SIZE;
