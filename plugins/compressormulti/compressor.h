@@ -53,11 +53,10 @@ public:
 
 	ArrayList<compressor_point_t> levels;
     int solo;
+    int bypass;
 
-// bandpass filter
-    int low;
-    int high;
-    double q;
+// upper frequency in Hz
+    int freq;
 };
 
 class CompressorConfig
@@ -95,6 +94,7 @@ public:
 	double decay_len;
 	double min_x, min_y;
 	double max_x, max_y;
+    double q;
 	int smoothing_only;
     int window_size;
     BandConfig bands[TOTAL_BANDS];
@@ -127,6 +127,7 @@ public:
     void delete_dsp();
     void reset();
     void reconfigure();
+// calculate the envelope for only this band
     void calculate_envelope();
     void process_readbehind(int size, 
         int reaction_samples, 

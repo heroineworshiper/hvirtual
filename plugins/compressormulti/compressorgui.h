@@ -35,7 +35,8 @@ public:
         CompressorEffect *plugin, 
         int x, 
         int y,
-        int number);
+        int number,
+        char *text);
     int handle_event();
     
     CompressorWindow *window;
@@ -108,6 +109,14 @@ class CompressorSolo : public BC_CheckBox
 {
 public:
 	CompressorSolo(CompressorEffect *plugin, int x, int y);
+	int handle_event();
+	CompressorEffect *plugin;
+};
+
+class CompressorBypass : public BC_CheckBox
+{
+public:
+	CompressorBypass(CompressorEffect *plugin, int x, int y);
 	int handle_event();
 	CompressorEffect *plugin;
 };
@@ -194,12 +203,12 @@ public:
 	CompressorDecay *decay;
 	CompressorSmooth *smooth;
 	CompressorSolo *solo;
+    CompressorBypass *bypass;
 	CompressorInput *input;
     CompressorBand *band[TOTAL_BANDS];
 
 
-	CompressorQPot *high;
-	CompressorQPot *low;
+	CompressorQPot *freq;
     CompressorFPot *q;
     CompressorSize *size;
     EQCanvas *eqcanvas;

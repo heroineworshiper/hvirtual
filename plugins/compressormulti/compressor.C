@@ -72,10 +72,9 @@ REGISTER_PLUGIN(CompressorEffect)
 
 BandConfig::BandConfig()
 {
-    high = Freq::tofreq(TOTALFREQS);
-    low = Freq::tofreq(0);
-    q = 1.0;
+    freq = 0;
     solo = 0;
+    bypass = 0;
 }
 
 BandConfig::~BandConfig()
@@ -89,19 +88,17 @@ void BandConfig::copy_from(BandConfig *src)
 	for(int i = 0; i < src->levels.total; i++)
 		levels.append(src->levels.values[i]);
 
-    high = src->high;
-    low = src->low;
-    q = src->q;
+    freq = src->freq;
     solo = src->solo;
+    bypass = src->bypass;
 }
 
 int BandConfig::equiv(BandConfig *src)
 {
     if(levels.total != levels.total ||
         solo != src->solo ||
-        high != src->high ||
-        low != src->low ||
-        !EQUIV(q, src->q))
+        bypass != src->bypass ||
+        freq != src->freq)
     {
         return 0;
     }
@@ -127,6 +124,7 @@ int BandConfig::equiv(BandConfig *src)
 
 CompressorConfig::CompressorConfig()
 {
+    q = 1.0;
 	reaction_len = 1.0;
 	min_db = -80.0;
 	min_x = min_db;
@@ -138,6 +136,10 @@ CompressorConfig::CompressorConfig()
 	smoothing_only = 0;
 	decay_len = 1.0;
     window_size = 4096;
+    for(int band = 0; band < TOTAL_BANDS; band++)
+    {
+        bands[band].freq = Freq::tofreq((band + 1) * TOTALFREQS / TOTAL_BANDS);
+    }
 }
 
 void CompressorConfig::copy_from(CompressorConfig &that)
@@ -153,7 +155,7 @@ void CompressorConfig::copy_from(CompressorConfig &that)
 	input = that.input;
 	smoothing_only = that.smoothing_only;
     window_size = that.window_size;
-
+    q = that.q;
 
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
@@ -175,6 +177,7 @@ int CompressorConfig::equivalent(CompressorConfig &that)
 
 	if(!EQUIV(reaction_len, that.reaction_len) ||
 		!EQUIV(decay_len, that.decay_len) ||
+		!EQUIV(q, that.q) ||
 		trigger != that.trigger ||
 		input != that.input ||
 		smoothing_only != that.smoothing_only ||
@@ -387,7 +390,7 @@ void CompressorEffect::reset()
 {
     for(int i = 0; i < TOTAL_BANDS; i++)
     {
-        engines[i]->reset();
+        engines[i] = 0;
     }
 
 
@@ -433,15 +436,14 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 				config.trigger = input.tag.get_property("TRIGGER", config.trigger);
 				config.smoothing_only = input.tag.get_property("SMOOTHING_ONLY", config.smoothing_only);
 				config.input = input.tag.get_property("INPUT", config.input);
+				config.q = input.tag.get_property("Q", config.q);
 
                 for(int i = 0; i < TOTAL_BANDS; i++)
                 {
-                    sprintf(string,"LOW%d", i);
-	                config.bands[i].low = input.tag.get_property(string, config.bands[i].low);
-                    sprintf(string,"HIGH%d", i);
-	                config.bands[i].high = input.tag.get_property(string, config.bands[i].high);
-                    sprintf(string,"Q%d", i);
-	                config.bands[i].q = input.tag.get_property(string, config.bands[i].q);
+                    sprintf(string,"FREQ%d", i);
+	                config.bands[i].freq = input.tag.get_property(string, config.bands[i].freq);
+                    sprintf(string,"BYPASS%d", i);
+	                config.bands[i].bypass = input.tag.get_property(string, config.bands[i].bypass);
                     sprintf(string,"SOLO%d", i);
 	                config.bands[i].solo = input.tag.get_property(string, config.bands[i].solo);
                 }
@@ -477,16 +479,15 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	output.tag.set_property("DECAY_LEN", config.decay_len);
 	output.tag.set_property("SMOOTHING_ONLY", config.smoothing_only);
 	output.tag.set_property("INPUT", config.input);
+	output.tag.set_property("Q", config.q);
     
     char string[BCTEXTLEN];
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
-        sprintf(string, "LOW%d", band);
-	    output.tag.set_property(string, config.bands[band].low);
-        sprintf(string, "HIGH%d", band);
-	    output.tag.set_property(string, config.bands[band].high);
-        sprintf(string, "Q%d", band);
-	    output.tag.set_property(string, config.bands[band].q);
+        sprintf(string, "FREQ%d", band);
+	    output.tag.set_property(string, config.bands[band].freq);
+        sprintf(string, "BYPASS%d", band);
+	    output.tag.set_property(string, config.bands[band].bypass);
         sprintf(string, "SOLO%d", band);
 	    output.tag.set_property(string, config.bands[band].solo);
 	}
@@ -588,7 +589,6 @@ int CompressorEffect::process_buffer(int64_t size,
         {
             engines[i]->reconfigure();
         }
-
 
     }
     
@@ -757,7 +757,33 @@ int CompressorEffect::process_buffer(int64_t size,
 
 // Add together filtered buffers + unfiltered buffer.
 // Apply the solo here.
-
+    int have_solo = 0;
+    for(int band = 0; band < TOTAL_BANDS; band++)
+    {
+        if(config.bands[band].solo)
+        {
+            have_solo = 1;
+            break;
+        }
+    }
+    
+    for(int channel = 0; channel < channels; channel++)
+    {
+        double *dst = buffer[channel]->get_data();
+        bzero(dst, size * sizeof(double));
+        
+        for(int band = 0; band < TOTAL_BANDS; band++)
+        {
+            if(!have_solo || config.bands[band].solo)
+            {
+                double *src = engines[band]->filtered_buffer[channel]->get_data();
+                for(int i = 0; i < size; i++)
+                {
+                    dst[i] += src[i];
+                }
+            }
+        }
+    }
 
 
 
@@ -1003,7 +1029,7 @@ void CompressorEngine::calculate_envelope()
 {
     
 
-// assume the window size changed
+// the window size changed
     if(envelope && envelope_allocated < plugin->config.window_size / 2)
     {
         delete [] envelope;
@@ -1018,12 +1044,27 @@ void CompressorEngine::calculate_envelope()
 
     int max_freq = Freq::tofreq_f(TOTALFREQS - 1);
     int nyquist = plugin->project_sample_rate / 2;
-    int low = plugin->config.bands[band].low;
-    int high = plugin->config.bands[band].high;
+    int freq = plugin->config.bands[band].freq;
+    int low = 0;
+    int high = max_freq;
+
+// max frequency of all previous bands is the min
+    for(int i = 0; i < band; i++)
+    {
+        if(plugin->config.bands[i].freq > low)
+        {
+            low = plugin->config.bands[i].freq;
+        }
+    }
+    
+    if(band < TOTAL_BANDS - 1)
+    {
+        high = freq;
+    }
 
 
 // limit the frequencies
-    if(high >= max_freq)
+    if(high >= nyquist)
     {
         high = nyquist;
     }
@@ -1032,33 +1073,64 @@ void CompressorEngine::calculate_envelope()
     {
         low = high;
     }
+
+//#define LOG_CROSSOVER
+// number of slots in the edge
+    double edge = (1.0 - plugin->config.q) * TOTALFREQS / 2;
+// number of slots to arrive at 1/2 power
+
+#ifndef LOG_CROSSOVER
+// linear
+    double edge2 = edge / 2;
+#else
+// log
+    double edge2 = edge * 6 / -INFINITYGAIN;
+#endif
     
-    double edge = (1.0 - plugin->config.bands[band].q) * TOTALFREQS / 2;
     double low_slot = Freq::fromfreq_f(low);
     double high_slot = Freq::fromfreq_f(high);
+// shift slots to allow crossover
+    if(band < TOTAL_BANDS - 1)
+    {
+        high_slot -= edge2;
+    }
+    
+    if(band > 0)
+    {
+        low_slot += edge2;
+    }
+
     for(int i = 0; i < plugin->config.window_size / 2; i++)
     {
         double freq = i * nyquist / (plugin->config.window_size / 2);
         double slot = Freq::fromfreq_f(freq);
 
-        if(slot < low_slot - edge)
+// sum of previous bands
+        double prev_sum = 0;
+        for(int prev_band = 0; prev_band < band; prev_band++)
         {
-            envelope[i] = 0.0;
+            double *prev_envelope = plugin->engines[prev_band]->envelope;
+            prev_sum += prev_envelope[i];
         }
-        else
-        if(slot < low_slot)
-        {
-            envelope[i] = DB::fromdb((low_slot - slot) * INFINITYGAIN / edge);
-        }
-        else
+
         if(slot < high_slot)
         {
-            envelope[i] = 1.0;
+// remaneder of previous bands
+            envelope[i] = 1.0 - prev_sum;
         }
         else
+// next crossover
         if(slot < high_slot + edge)
         {
+            double remane = 1.0 - prev_sum;
+#ifndef LOG_CROSSOVER
+// linear
+            envelope[i] = remane - remane * (slot - high_slot) / edge;
+#else
+// log TODO
             envelope[i] = DB::fromdb((slot - high_slot) * INFINITYGAIN / edge);
+#endif
+
         }
         else
         {
@@ -1165,8 +1237,8 @@ void CompressorEngine::process_readbehind(int size,
             }
 		}
 		else
-//        if(!plugin->config.bands[band].solo)
-		{
+        if(!plugin->config.bands[band].bypass)
+        {
 			double gain = plugin->calculate_gain(band, current_value);
 			for(int j = 0; j < channels; j++)
 			{
@@ -1295,7 +1367,7 @@ void CompressorEngine::process_readahead(int size,
 			}
 		}
 		else
-//        if(!plugin->config.bands[band].solo)
+        if(!plugin->config.bands[band].bypass)
 		{
 			double gain = plugin->calculate_gain(band, current_value);
 			for(int j = 0; j < channels; j++)
@@ -1323,8 +1395,9 @@ int CompressorFFT::signal_process(int band)
 {
 // Create new spectrogram for updating the GUI
     PluginClientFrame *frame = 0;
-    if(plugin->config.input != CompressorConfig::TRIGGER ||
-        channel == plugin->config.trigger)
+    if(band == plugin->current_band &&
+        (plugin->config.input != CompressorConfig::TRIGGER ||
+        channel == plugin->config.trigger))
     {
         if(plugin->new_spectrogram_frames >= plugin->spectrogram_frames.size())
         {
@@ -1374,8 +1447,9 @@ int CompressorFFT::signal_process(int band)
 
 int CompressorFFT::post_process(int band)
 {
-    if(plugin->config.input != CompressorConfig::TRIGGER ||
-        channel == plugin->config.trigger)
+    if(band == plugin->current_band &&
+        (plugin->config.input != CompressorConfig::TRIGGER ||
+        channel == plugin->config.trigger))
     {
         PluginClientFrame *frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
 // get the maximum output in the time domane

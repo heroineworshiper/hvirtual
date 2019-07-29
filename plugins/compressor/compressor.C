@@ -871,11 +871,11 @@ void CompressorWindow::create_objects()
 		get_h() - y - DP(70)));
 	canvas->set_cursor(CROSS_CURSOR, 0, 0);
 	x = get_w() - control_margin;
-	add_subwindow(new BC_Title(x, y, _("Reaction secs:")));
+	add_subwindow(new BC_Title(x, y, _("Attack secs:")));
 	y += DP(20);
 	add_subwindow(reaction = new CompressorReaction(plugin, x, y));
 	y += DP(30);
-	add_subwindow(new BC_Title(x, y, _("Decay secs:")));
+	add_subwindow(new BC_Title(x, y, _("Release secs:")));
 	y += DP(20);
 	add_subwindow(decay = new CompressorDecay(plugin, x, y));
 	y += DP(30);

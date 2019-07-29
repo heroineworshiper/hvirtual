@@ -1,3 +1,4 @@
+#include "bcsignals.h"
 #include "clip.h"
 #include "compressorgui.h"
 #include "cursors.h"
@@ -33,7 +34,26 @@ void CompressorWindow::create_objects()
     BC_Title *title;
     BandConfig *band_config = &plugin->config.bands[plugin->current_band];
 
-    add_subwindow(title = new BC_Title(x, y, _("Sound level:")));
+    add_subwindow(title = new BC_Title(margin, y, _("Current band:")));
+    
+    int x1 = title->get_x() + title->get_w() + margin;
+    char string[BCTEXTLEN];
+    for(int i = 0; i < TOTAL_BANDS; i++)
+    {
+        sprintf(string, "%d", i + 1);
+        add_subwindow(band[i] = new CompressorBand(this, 
+            plugin, 
+            x1, 
+            y,
+            i,
+            string));
+        x1 += band[i]->get_w() + margin;
+    }
+    
+    y += band[0]->get_h() + 1;
+
+
+    add_subwindow(title = new BC_Title(margin, y, _("Sound level:")));
     y += title->get_h() + 1;
 	add_subwindow(canvas = new CompressorCanvas(plugin, 
 		x, 
@@ -43,7 +63,7 @@ void CompressorWindow::create_objects()
 	canvas->set_cursor(CROSS_CURSOR, 0, 0);
     y += canvas->get_h() + DP(30);
     
-    add_subwindow(title = new BC_Title(x, y, _("Trigger bandwidth:")));
+    add_subwindow(title = new BC_Title(margin, y, _("Bandwidth:")));
     y += title->get_h();
     eqcanvas = new EQCanvas(this,
         margin,
@@ -58,11 +78,11 @@ void CompressorWindow::create_objects()
     
 	x = get_w() - control_margin;
     y = margin;
-	add_subwindow(new BC_Title(x, y, _("Reaction secs:")));
+	add_subwindow(new BC_Title(x, y, _("Attack secs:")));
 	y += DP(20);
 	add_subwindow(reaction = new CompressorReaction(plugin, x, y));
 	y += DP(30);
-	add_subwindow(new BC_Title(x, y, _("Decay secs:")));
+	add_subwindow(new BC_Title(x, y, _("Release secs:")));
 	y += DP(20);
 	add_subwindow(decay = new CompressorDecay(plugin, x, y));
 	y += DP(30);
@@ -82,6 +102,8 @@ void CompressorWindow::create_objects()
     y += smooth->get_h() + margin;
 	add_subwindow(solo = new CompressorSolo(plugin, x, y));
     y += solo->get_h() + margin;
+	add_subwindow(bypass = new CompressorBypass(plugin, x, y));
+    y += bypass->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Output:")));
     y += title->get_h();
 	add_subwindow(y_text = new CompressorY(plugin, x, y));
@@ -91,28 +113,24 @@ void CompressorWindow::create_objects()
 	add_subwindow(x_text = new CompressorX(plugin, x, y));
     y += x_text->get_h() + margin;
 
-    add_subwindow(title = new BC_Title(x, y, _("Low Freq:")));
-    add_subwindow(low = new CompressorQPot(this, 
-        plugin, 
-        get_w() - margin - BC_Pot::calculate_w(), 
-        y, 
-        &band_config->low));
-    y += low->get_h() + margin;
     
-    add_subwindow(title = new BC_Title(x, y, _("High Freq:")));
-    add_subwindow(high = new CompressorQPot(this, 
+	add_subwindow(clear = new CompressorClear(plugin, x, y));
+    y += clear->get_h() + margin;
+
+    add_subwindow(title = new BC_Title(x, y, _("Freq:")));
+    add_subwindow(freq = new CompressorQPot(this, 
         plugin, 
         get_w() - margin - BC_Pot::calculate_w(), 
         y, 
-        &band_config->high));
-        
-    y += high->get_h() + margin;
+        &band_config->freq));
+    y += freq->get_h() + margin;
+    
     add_subwindow(title = new BC_Title(x, y, _("Steepness:")));
     add_subwindow(q = new CompressorFPot(this, 
         plugin, 
         get_w() - margin - BC_Pot::calculate_w(), 
         y, 
-        &band_config->q,
+        &plugin->config.q,
         0,
         1));
     y += q->get_h() + margin;
@@ -126,12 +144,9 @@ void CompressorWindow::create_objects()
     size->create_objects();
     size->update(plugin->config.window_size);
     y += size->get_h() + margin;
-    
-	add_subwindow(clear = new CompressorClear(plugin, x, y));
 
     
 
-    plugin->calculate_envelope();
 
 	draw_scales();
 	update_canvas();
@@ -227,10 +242,32 @@ void CompressorWindow::update()
 {
     BandConfig *band_config = &plugin->config.bands[plugin->current_band];
 
-    low->update(band_config->low);
-    high->update(band_config->high);
-    q->update(band_config->q);
+    for(int i = 0; i < TOTAL_BANDS; i++)
+    {
+        if(plugin->current_band == i)
+        {
+            band[i]->update(1);
+        }
+        else
+        {
+            band[i]->update(0);
+        }
+    }
+
+// top band edits the penultimate band
+    if(plugin->current_band == TOTAL_BANDS - 1)
+    {
+        freq->output = &plugin->config.bands[plugin->current_band - 1].freq;
+    }
+    else
+    {
+        freq->output = &band_config->freq;
+    }
+    freq->update(*freq->output);
+
+    q->update(plugin->config.q);
     solo->update(band_config->solo);
+    bypass->update(band_config->bypass);
     size->update(plugin->config.window_size);
 
 	if(atol(trigger->get_text()) != plugin->config.trigger)
@@ -292,37 +329,59 @@ void CompressorWindow::update_canvas()
 		_("Input"));
 
 
-	canvas->set_color(WHITE);
-	canvas->set_line_width(2);
-	for(int i = 0; i < canvas->get_w(); i++)
-	{
-		double x_db = ((double)1 - (double)i / canvas->get_w()) * plugin->config.min_db;
-		double y_db = plugin->config.calculate_db(plugin->current_band, x_db);
-		y2 = (int)(y_db / plugin->config.min_db * canvas->get_h());
-
-		if(i > 0)
-		{
-			canvas->draw_line(i - 1, y1, i, y2);
-		}
-
-		y1 = y2;
-	}
-	canvas->set_line_width(1);
-
-    for(int band = 0; band < TOTAL_BANDS; band++)
+// draw the active band on top of the others
+    for(int pass = 0; pass < 2; pass++)
     {
-        BandConfig *band_config = &plugin->config.bands[band];
-	    int total = band_config->levels.total ? band_config->levels.total : 1;
-	    for(int i = 0; i < band_config->levels.total; i++)
-	    {
-		    double x_db = plugin->config.get_x(band, i);
-		    double y_db = plugin->config.get_y(band, i);
+        for(int band = 0; band < TOTAL_BANDS; band++)
+        {
+            if(band == plugin->current_band && pass == 0 ||
+                band != plugin->current_band && pass == 1)
+            {
+                continue;
+            }
+        
+            if(band == plugin->current_band)
+            {
+	            canvas->set_color(WHITE);
+	            canvas->set_line_width(2);
+            }
+            else
+            {
+	            canvas->set_color(MEGREY);
+	            canvas->set_line_width(1);
+            }
 
-		    int x = (int)(((double)1 - x_db / plugin->config.min_db) * canvas->get_w());
-		    int y = (int)(y_db / plugin->config.min_db * canvas->get_h());
+	        for(int i = 0; i < canvas->get_w(); i++)
+	        {
+		        double x_db = ((double)1 - (double)i / canvas->get_w()) * plugin->config.min_db;
+		        double y_db = plugin->config.calculate_db(band, x_db);
+		        y2 = (int)(y_db / plugin->config.min_db * canvas->get_h());
 
-		    canvas->draw_box(x - POINT_W / 2, y - POINT_W / 2, POINT_W, POINT_W);
-	    }
+		        if(i > 0)
+		        {
+			        canvas->draw_line(i - 1, y1, i, y2);
+		        }
+
+		        y1 = y2;
+	        }
+	        canvas->set_line_width(1);
+
+            if(band == plugin->current_band)
+            {
+                BandConfig *band_config = &plugin->config.bands[band];
+	            int total = band_config->levels.total ? band_config->levels.total : 1;
+	            for(int i = 0; i < band_config->levels.total; i++)
+	            {
+		            double x_db = plugin->config.get_x(band, i);
+		            double y_db = plugin->config.get_y(band, i);
+
+		            int x = (int)(((double)1 - x_db / plugin->config.min_db) * canvas->get_w());
+		            int y = (int)(y_db / plugin->config.min_db * canvas->get_h());
+
+		            canvas->draw_box(x - POINT_W / 2, y - POINT_W / 2, POINT_W, POINT_W);
+	            }
+            }
+        }
     }
 	
 	canvas->flash();
@@ -332,13 +391,44 @@ void CompressorWindow::update_canvas()
 void CompressorWindow::update_eqcanvas()
 {
     plugin->calculate_envelope();
+
+
+// dump envelope sum
+    printf("CompressorWindow::update_eqcanvas %d\n", __LINE__);
+    for(int i = 0; i < plugin->config.window_size / 2; i++)
+    {
+        double sum = 0;
+        for(int band = 0; band < TOTAL_BANDS; band++)
+        {
+            sum += plugin->engines[band]->envelope[i];
+        }
+        
+        printf("%f ", sum);
+        for(int band = 0; band < TOTAL_BANDS; band++)
+        {
+            printf("%f ", plugin->engines[band]->envelope[i]);
+        }
+        printf("\n");
+    }
+
     eqcanvas->update_spectrogram(plugin);
     
-    for(int band; band < TOTAL_BANDS; band++)
+    // draw the active band on top of the others
+    for(int pass = 0; pass < 2; pass++)
     {
-        eqcanvas->draw_envelope(plugin->engines[band]->envelope,
-            plugin->PluginAClient::project_sample_rate,
-            plugin->config.window_size);
+        for(int band = 0; band < TOTAL_BANDS; band++)
+        {
+            if(band == plugin->current_band && pass == 0 ||
+                band != plugin->current_band && pass == 1)
+            {
+                continue;
+            }
+
+            eqcanvas->draw_envelope(plugin->engines[band]->envelope,
+                plugin->PluginAClient::project_sample_rate,
+                plugin->config.window_size,
+                band == plugin->current_band);
+        }
     }
 }
 
@@ -835,7 +925,7 @@ int CompressorSmooth::handle_event()
 
 
 CompressorSolo::CompressorSolo(CompressorEffect *plugin, int x, int y) 
- : BC_CheckBox(x, y, plugin->config.bands[plugin->current_band].solo, _("Solo this band"))
+ : BC_CheckBox(x, y, plugin->config.bands[plugin->current_band].solo, _("Solo band"))
 {
 	this->plugin = plugin;
 }
@@ -843,10 +933,54 @@ CompressorSolo::CompressorSolo(CompressorEffect *plugin, int x, int y)
 int CompressorSolo::handle_event()
 {
 	plugin->config.bands[plugin->current_band].solo = get_value();
+    for(int i = 0; i < TOTAL_BANDS; i++)
+    {
+        if(i != plugin->current_band)
+        {
+            plugin->config.bands[i].solo = 0;
+        }
+    }
 	plugin->send_configure_change();
 	return 1;
 }
 
+
+CompressorBypass::CompressorBypass(CompressorEffect *plugin, int x, int y) 
+ : BC_CheckBox(x, y, plugin->config.bands[plugin->current_band].bypass, _("Bypass band"))
+{
+	this->plugin = plugin;
+}
+
+int CompressorBypass::handle_event()
+{
+	plugin->config.bands[plugin->current_band].bypass = get_value();
+	plugin->send_configure_change();
+	return 1;
+}
+
+
+CompressorBand::CompressorBand(CompressorWindow *window, 
+    CompressorEffect *plugin, 
+    int x, 
+    int y,
+    int number,
+    char *text)
+ : BC_Radial(x, y, plugin->current_band == number, text)
+{
+    this->window = window;
+    this->plugin = plugin;
+    this->number = number;
+}
+
+int CompressorBand::handle_event()
+{
+    if(plugin->current_band != number)
+    {
+        plugin->current_band = number;
+        window->update();
+    }
+    return 1;
+}
 
 
 

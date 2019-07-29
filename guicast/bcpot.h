@@ -148,7 +148,7 @@ class BC_QPot : public BC_Pot
 public:
 	BC_QPot(int x, 
 		int y, 
-		int64_t value,      // Units of frequencies
+		int64_t value,      // Units of hz
 		VFrame **data = 0);
 	~BC_QPot();
 
@@ -157,9 +157,9 @@ public:
 	int decrease_value();
 	float get_percentage();
 	int percentage_to_value(float percentage);
-// Units of frequencies
+// Units of hz
 	int64_t get_value();
-// Units of frequencies
+// Units of hz
 	void update(int64_t value);
 
 private:

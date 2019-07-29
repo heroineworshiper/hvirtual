@@ -252,12 +252,22 @@ void EQCanvas::update_spectrogram(PluginClient *plugin)
 
 void EQCanvas::draw_envelope(double *envelope, 
     int samplerate,
-    int window_size)
+    int window_size,
+    int is_top)
 {
     int niquist = samplerate / 2;
     
-	canvas->set_color(WHITE);
-	canvas->set_line_width(2);
+    if(is_top)
+    {
+	    canvas->set_color(WHITE);
+    	canvas->set_line_width(2);
+    }
+    else
+    {
+        canvas->set_color(MEGREY);
+        canvas->set_line_width(1);
+    }
+    
 
     int y1;
     for(int i = 0; i < canvas->get_w(); i++)

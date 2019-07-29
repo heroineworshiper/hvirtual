@@ -44,7 +44,8 @@ public:
     void update_spectrogram(PluginClient *plugin);
     void draw_envelope(double *envelope, 
         int samplerate,
-        int window_size);
+        int window_size,
+        int is_top);
     
     BC_WindowBase *parent;
     BC_SubWindow *canvas;

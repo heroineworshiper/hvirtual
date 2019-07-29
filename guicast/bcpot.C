@@ -661,12 +661,12 @@ int64_t BC_QPot::get_value()
 
 void BC_QPot::update(int64_t value)
 {
-	value = Freq::fromfreq(value);
-	if(this->value != value)
+	int index = Freq::fromfreq(value);
+	if(this->value != index)
 	{
-		if(value < minvalue) value = minvalue;
-		if(value > maxvalue) value = maxvalue;
-//		this->value = Freq::fromfreq(value);
+		if(index < minvalue) index = minvalue;
+		if(index > maxvalue) index = maxvalue;
+        this->value = index;
 		draw(1);
 	}
 }
