@@ -1397,12 +1397,13 @@ int CompressorFFT::signal_process(int band)
 {
 // Create new spectrogram for updating the GUI
     frame = 0;
-    if((plugin->config.input != CompressorConfig::TRIGGER ||
+    if(band == 0 &&
+        (plugin->config.input != CompressorConfig::TRIGGER ||
         channel == plugin->config.trigger))
     {
         if(plugin->new_spectrogram_frames[band] >= plugin->spectrogram_frames.size())
         {
-            int total_data = TOTAL_BANDS * window_size / 2;
+            int total_data = /* TOTAL_BANDS * */ window_size / 2;
 // store all bands in the same GUI frame
 	        frame = new PluginClientFrame(total_data, 
                 window_size / 2, 
@@ -1436,7 +1437,7 @@ int CompressorFFT::signal_process(int band)
         if(frame)
         {
             int offset = band * window_size / 2 + i;
-            frame->data[offset] = MAX(frame->data[offset], mag2);
+            frame->data[offset] = MAX(frame->data[offset], mag);
 
 // get the maximum output in the frequency domane
             if(mag2 > frame->freq_max)

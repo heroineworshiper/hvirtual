@@ -411,10 +411,10 @@ void CompressorWindow::update_eqcanvas()
 //         printf("\n");
 //     }
 
-    eqcanvas->update_spectrogram(plugin, 
-        plugin->current_band * plugin->config.window_size / 2,
-        TOTAL_BANDS * plugin->config.window_size / 2,
-        plugin->config.window_size);
+    eqcanvas->update_spectrogram(plugin); 
+//         plugin->current_band * plugin->config.window_size / 2,
+//         TOTAL_BANDS * plugin->config.window_size / 2,
+//         plugin->config.window_size);
     
     // draw the active band on top of the others
     for(int pass = 0; pass < 2; pass++)
