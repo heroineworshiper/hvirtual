@@ -86,7 +86,9 @@ void BandConfig::copy_from(BandConfig *src)
 {
 	levels.remove_all();
 	for(int i = 0; i < src->levels.total; i++)
-		levels.append(src->levels.values[i]);
+	{
+    	levels.append(src->levels.values[i]);
+    }
 
     freq = src->freq;
     solo = src->solo;
@@ -95,7 +97,7 @@ void BandConfig::copy_from(BandConfig *src)
 
 int BandConfig::equiv(BandConfig *src)
 {
-    if(levels.total != levels.total ||
+    if(levels.total != src->levels.total ||
         solo != src->solo ||
         bypass != src->bypass ||
         freq != src->freq)
@@ -486,12 +488,14 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
     char string[BCTEXTLEN];
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
+        BandConfig *band_config = &config.bands[band];
+
         sprintf(string, "FREQ%d", band);
-	    output.tag.set_property(string, config.bands[band].freq);
+	    output.tag.set_property(string, band_config->freq);
         sprintf(string, "BYPASS%d", band);
-	    output.tag.set_property(string, config.bands[band].bypass);
+	    output.tag.set_property(string, band_config->bypass);
         sprintf(string, "SOLO%d", band);
-	    output.tag.set_property(string, config.bands[band].solo);
+	    output.tag.set_property(string, band_config->solo);
 	}
 
     output.append_tag();
@@ -500,12 +504,15 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
-	    for(int i = 0; i < config.bands[i].levels.total; i++)
+        BandConfig *band_config = &config.bands[band];
+
+//printf("CompressorEffect::save_data %d %d\n", __LINE__, band_config->levels.total);
+	    for(int i = 0; i < band_config->levels.total; i++)
 	    {
             sprintf(string, "LEVEL%d", band);
 		    output.tag.set_title(string);
-		    output.tag.set_property("X", config.bands[band].levels.values[i].x);
-		    output.tag.set_property("Y", config.bands[band].levels.values[i].y);
+		    output.tag.set_property("X", band_config->levels.values[i].x);
+		    output.tag.set_property("Y", band_config->levels.values[i].y);
 
 		    output.append_tag();
 		    output.append_newline();
