@@ -437,6 +437,7 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 				config.smoothing_only = input.tag.get_property("SMOOTHING_ONLY", config.smoothing_only);
 				config.input = input.tag.get_property("INPUT", config.input);
 				config.q = input.tag.get_property("Q", config.q);
+				config.window_size = input.tag.get_property("WINDOW_SIZE", config.window_size);
 
                 for(int i = 0; i < TOTAL_BANDS; i++)
                 {
@@ -480,6 +481,7 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	output.tag.set_property("SMOOTHING_ONLY", config.smoothing_only);
 	output.tag.set_property("INPUT", config.input);
 	output.tag.set_property("Q", config.q);
+	output.tag.set_property("WINDOW_SIZE", config.window_size);
     
     char string[BCTEXTLEN];
     for(int band = 0; band < TOTAL_BANDS; band++)
@@ -637,13 +639,13 @@ int CompressorEffect::process_buffer(int64_t size,
 // FFT all the channels & bands
         for(int channel = 0; channel < total_buffers; channel++)
 		{
-            new_spectrogram_frames = 0;
 // reset the input size for each channel
             new_input_size = input_size;
 // array of filtered buffers for each band
             Samples *filtered_array[TOTAL_BANDS];
             for(int band = 0; band < TOTAL_BANDS; band++)
             {
+                new_spectrogram_frames[band] = 0;
                 filtered_array[band] = engines[band]->filtered_buffer[channel];
             }
 
@@ -698,13 +700,13 @@ int CompressorEffect::process_buffer(int64_t size,
         int remane = new_filtered_size - filtered_size;
 		for(int channel = 0; channel < total_buffers; channel++)
 		{
-            new_spectrogram_frames = 0;
             new_input_size = input_size;
 
 // array of filtered buffers for each band
             Samples *filtered_array[TOTAL_BANDS];
             for(int band = 0; band < TOTAL_BANDS; band++)
             {
+                new_spectrogram_frames[band] = 0;
                 filtered_array[band] = engines[band]->filtered_buffer[channel];
                 filtered_array[band]->set_offset(filtered_size);
             }
@@ -1394,27 +1396,29 @@ CompressorFFT::~CompressorFFT()
 int CompressorFFT::signal_process(int band)
 {
 // Create new spectrogram for updating the GUI
-    PluginClientFrame *frame = 0;
-    if(band == plugin->current_band &&
-        (plugin->config.input != CompressorConfig::TRIGGER ||
+    frame = 0;
+    if((plugin->config.input != CompressorConfig::TRIGGER ||
         channel == plugin->config.trigger))
     {
-        if(plugin->new_spectrogram_frames >= plugin->spectrogram_frames.size())
+        if(plugin->new_spectrogram_frames[band] >= plugin->spectrogram_frames.size())
         {
-	        frame = new PluginClientFrame(window_size / 2, 
+            int total_data = TOTAL_BANDS * window_size / 2;
+// store all bands in the same GUI frame
+	        frame = new PluginClientFrame(total_data, 
                 window_size / 2, 
                 plugin->PluginAClient::project_sample_rate);
             plugin->spectrogram_frames.append(frame);
-            frame->data = new double[window_size / 2];
-            bzero(frame->data, sizeof(double) * window_size / 2);
+            frame->data = new double[total_data];
+            bzero(frame->data, sizeof(double) * total_data);
             frame->nyquist = plugin->PluginAClient::project_sample_rate / 2;
         }
         else
         {
-            frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
+            frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames[band]);
         }
     }
 
+//printf("CompressorFFT::signal_process %d channel=%d band=%d frame=%p\n", __LINE__, channel, band, frame);
 // apply the bandpass filter
     for(int i = 0; i < window_size / 2; i++)
     {
@@ -1431,7 +1435,8 @@ int CompressorFFT::signal_process(int band)
 // neglect the true average & max spectrograms, but always use the trigger
         if(frame)
         {
-            frame->data[i] = MAX(frame->data[i], mag2);
+            int offset = band * window_size / 2 + i;
+            frame->data[offset] = MAX(frame->data[offset], mag2);
 
 // get the maximum output in the frequency domane
             if(mag2 > frame->freq_max)
@@ -1447,11 +1452,8 @@ int CompressorFFT::signal_process(int band)
 
 int CompressorFFT::post_process(int band)
 {
-    if(band == plugin->current_band &&
-        (plugin->config.input != CompressorConfig::TRIGGER ||
-        channel == plugin->config.trigger))
+    if(frame)
     {
-        PluginClientFrame *frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
 // get the maximum output in the time domane
 	    double time_max = 0;
 	    for(int i = 0; i < window_size; i++)
@@ -1471,7 +1473,7 @@ int CompressorFFT::post_process(int band)
 // frame->freq_max,
 // frame->time_max);
 
-        plugin->new_spectrogram_frames++;
+        plugin->new_spectrogram_frames[band]++;
     }
 
     return 0;

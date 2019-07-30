@@ -394,24 +394,27 @@ void CompressorWindow::update_eqcanvas()
 
 
 // dump envelope sum
-    printf("CompressorWindow::update_eqcanvas %d\n", __LINE__);
-    for(int i = 0; i < plugin->config.window_size / 2; i++)
-    {
-        double sum = 0;
-        for(int band = 0; band < TOTAL_BANDS; band++)
-        {
-            sum += plugin->engines[band]->envelope[i];
-        }
-        
-        printf("%f ", sum);
-        for(int band = 0; band < TOTAL_BANDS; band++)
-        {
-            printf("%f ", plugin->engines[band]->envelope[i]);
-        }
-        printf("\n");
-    }
+//     printf("CompressorWindow::update_eqcanvas %d\n", __LINE__);
+//     for(int i = 0; i < plugin->config.window_size / 2; i++)
+//     {
+//         double sum = 0;
+//         for(int band = 0; band < TOTAL_BANDS; band++)
+//         {
+//             sum += plugin->engines[band]->envelope[i];
+//         }
+//         
+//         printf("%f ", sum);
+//         for(int band = 0; band < TOTAL_BANDS; band++)
+//         {
+//             printf("%f ", plugin->engines[band]->envelope[i]);
+//         }
+//         printf("\n");
+//     }
 
-    eqcanvas->update_spectrogram(plugin);
+    eqcanvas->update_spectrogram(plugin, 
+        plugin->current_band * plugin->config.window_size / 2,
+        TOTAL_BANDS * plugin->config.window_size / 2,
+        plugin->config.window_size);
     
     // draw the active band on top of the others
     for(int pass = 0; pass < 2; pass++)

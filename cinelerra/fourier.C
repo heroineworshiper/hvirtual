@@ -182,6 +182,7 @@ int FFT::symmetry(int size, double *freq_real, double *freq_imag)
 
 CrossfadeFFT::CrossfadeFFT() : FFT()
 {
+    bands = 1;
 	reset();
 	window_size = 4096;
 }
@@ -208,7 +209,6 @@ int CrossfadeFFT::reset()
 	output_allocation = 0;
 	output_sample = 0;
 	input_sample = 0;
-    bands = 1;
 	return 0;
 }
 
@@ -399,6 +399,7 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 // process & overlay each band separately
         for(int band = 0; band < bands; band++)
         {
+//printf("CrossfadeFFT::process_buffer %d band=%d bands=%d\n", __LINE__, band, bands);
 // restore from the backup
             memcpy(freq_real, freq_real2, sizeof(double) * window_size);
             memcpy(freq_imag, freq_imag2, sizeof(double) * window_size);

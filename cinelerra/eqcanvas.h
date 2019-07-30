@@ -41,7 +41,11 @@ public:
     
     void initialize();
     void draw_grid();
-    void update_spectrogram(PluginClient *plugin);
+// a hack to draw a spectrogram from a frame with multiple windows
+    void update_spectrogram(PluginClient *plugin, 
+        int offset = -1, 
+        int size = -1,
+        int window_size = -1);
     void draw_envelope(double *envelope, 
         int samplerate,
         int window_size,

@@ -174,7 +174,10 @@ void EQCanvas::draw_grid()
 
 
 // update the spectrogram in a plugin
-void EQCanvas::update_spectrogram(PluginClient *plugin)
+void EQCanvas::update_spectrogram(PluginClient *plugin, 
+    int offset, 
+    int size, 
+    int window_size)
 {
     int total_frames = plugin->get_gui_update_frames();
 	PluginClientFrame *frame = plugin->get_gui_frame();
@@ -203,30 +206,54 @@ void EQCanvas::update_spectrogram(PluginClient *plugin)
 	{
 		int y1 = 0;
 		int y2 = 0;
+        if(offset < 0)
+        {
+            offset = 0;
+            size = frame->data_size;
+            window_size = frame->data_size * 2;
+        }
+        
 		canvas->set_color(MEGREY);
         if(!EQUIV(frame->freq_max, 0))
         {
 		    for(int i = 0; i < canvas->get_w(); i++)
 		    {
 			    int freq = Freq::tofreq(i * TOTALFREQS / canvas->get_w());
-			    int index = (int64_t)freq * (int64_t)frame->data_size / 
-                    frame->nyquist;
-			    if(index < frame->data_size)
-			    {
-				    double magnitude = frame->data[index] / 
-					    frame->freq_max * 
-					    frame->time_max;
-				    y2 = (int)(canvas->get_h() - 
-					    (DB::todb(magnitude) - INFINITYGAIN) *
-					    canvas->get_h() / 
-					    -INFINITYGAIN);
-				    CLAMP(y2, 0, canvas->get_h() - 1);
-				    if(i > 0)
-				    {
-					    canvas->draw_line(i - 1, y1, i, y2);
-				    }
-				    y1 = y2;
-			    }
+
+                if(freq < frame->nyquist)
+                {
+			        int index = offset +
+                        (int64_t)freq * (int64_t)window_size / 2 / 
+                        frame->nyquist;
+
+			        if(index < frame->data_size)
+			        {
+				        double magnitude = frame->data[index] / 
+					        frame->freq_max * 
+					        frame->time_max;
+
+				        y2 = (int)(canvas->get_h() - 
+					        (DB::todb(magnitude) - INFINITYGAIN) *
+					        canvas->get_h() / 
+					        -INFINITYGAIN);
+				        CLAMP(y2, 0, canvas->get_h() - 1);
+				        if(i > 0)
+				        {
+					        canvas->draw_line(i - 1, y1, i, y2);
+				        }
+				        y1 = y2;
+			        }
+                }
+                else
+                {
+                    
+//                     printf("EQCanvas::update_spectrogram %d i=%d freq=%d nyquist=%d\n", 
+//                         __LINE__, 
+//                         i,
+//                         freq,
+//                         frame->nyquist);
+
+                }
 		    }
         }
     }
