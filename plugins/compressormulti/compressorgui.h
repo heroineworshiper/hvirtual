@@ -1,6 +1,7 @@
 #ifndef COMPRESSORGUI_H
 #define COMPRESSORGUI_H
 
+#include "bchash.inc"
 #include "compressor.h"
 #include "eqcanvas.inc"
 #include "guicast.h"
@@ -11,11 +12,19 @@ class CompressorWindow;
 class CompressorCanvas : public BC_SubWindow
 {
 public:
-	CompressorCanvas(CompressorEffect *plugin, int x, int y, int w, int h);
+	CompressorCanvas(CompressorEffect *plugin, 
+        CompressorWindow *window,
+        int x, 
+        int y, 
+        int w, 
+        int h);
 	int button_press_event();
 	int button_release_event();
 	int cursor_motion_event();
-
+    void create_objects();
+	void draw_scales();
+    void update();
+    int calculate_y2(int band, int x);
 
 	enum
 	{
@@ -23,9 +32,15 @@ public:
 		DRAG
 	};
 
+// clickable area of canvas
+    int graph_x;
+    int graph_y;
+    int graph_w;
+    int graph_h;
 	int current_point;
 	int current_operation;
 	CompressorEffect *plugin;
+    CompressorWindow *window;
 };
 
 class CompressorBand : public BC_Radial
@@ -191,7 +206,6 @@ public:
 	void update_canvas();
 // draw the bandpass canvas
     void update_eqcanvas();
-	void draw_scales();
 	int resize_event(int w, int h);	
 	
 	CompressorCanvas *canvas;
@@ -214,6 +228,7 @@ public:
     EQCanvas *eqcanvas;
 
 	CompressorEffect *plugin;
+    BC_Hash *defaults;
 };
 
 

@@ -34,6 +34,10 @@
 class CompressorEffect;
 class CompressorFFT;
 
+
+//#define LOG_CROSSOVER
+//#define DRAW_AFTER_BANDPASS
+
 #define TOTAL_BANDS 3
 
 typedef struct
@@ -89,6 +93,7 @@ public:
 		MAX,
 		SUM
 	};
+// min DB of the graph
 	double min_db;
 	double reaction_len;
 	double decay_len;

@@ -170,6 +170,7 @@ public:
 	
 	void create_objects();
 
+    BC_Hash *defaults;
 	LensMain *client;
 	LensSlider *fov_slider[FOV_CHANNELS];
 	LensText *fov_text[FOV_CHANNELS];

@@ -1,3 +1,4 @@
+#include "bchash.h"
 #include "bcsignals.h"
 #include "clip.h"
 #include "compressorgui.h"
@@ -18,10 +19,22 @@ CompressorWindow::CompressorWindow(CompressorEffect *plugin)
 	0)
 {
 	this->plugin = plugin;
+    
+	char string[BCTEXTLEN];
+// set the default directory
+	sprintf(string, "%scompressormulti.rc", BCASTDIR);
+    defaults = new BC_Hash(string);
+	defaults->load();
+    plugin->current_band = defaults->get("CURRENT_BAND", plugin->current_band);
+
 }
 
 CompressorWindow::~CompressorWindow()
 {
+	defaults->update("CURRENT_BAND", plugin->current_band);
+	defaults->save();
+    delete defaults;
+
     delete eqcanvas;
 }
 
@@ -56,6 +69,7 @@ void CompressorWindow::create_objects()
     add_subwindow(title = new BC_Title(margin, y, _("Sound level:")));
     y += title->get_h() + 1;
 	add_subwindow(canvas = new CompressorCanvas(plugin, 
+        this,
 		x, 
 		y, 
 		get_w() - x - control_margin - DP(10), 
@@ -124,7 +138,14 @@ void CompressorWindow::create_objects()
         y, 
         &band_config->freq));
     y += freq->get_h() + margin;
-    
+// top band edits the penultimate band
+    if(plugin->current_band == TOTAL_BANDS - 1)
+    {
+        freq->output = &plugin->config.bands[plugin->current_band - 1].freq;
+    }
+    freq->update(*freq->output);
+
+
     add_subwindow(title = new BC_Title(x, y, _("Steepness:")));
     add_subwindow(q = new CompressorFPot(this, 
         plugin, 
@@ -145,97 +166,11 @@ void CompressorWindow::create_objects()
     size->update(plugin->config.window_size);
     y += size->get_h() + margin;
 
-    
 
 
-	draw_scales();
-	update_canvas();
+	canvas->create_objects();
     update_eqcanvas();
 	show_window();
-}
-
-void CompressorWindow::draw_scales()
-{
-	draw_3d_border(canvas->get_x() - 2, 
-		canvas->get_y() - 2, 
-		canvas->get_w() + 4, 
-		canvas->get_h() + 4, 
-		get_bg_color(),
-		BLACK,
-		MDGREY, 
-		get_bg_color());
-
-
-	set_font(SMALLFONT);
-	set_color(get_resources()->default_text_color);
-
-#define DIVISIONS 8
-// output divisions
-	for(int i = 0; i <= DIVISIONS; i++)
-	{
-		int y = canvas->get_y() + DP(10) + canvas->get_h() / DIVISIONS * i;
-		int x = canvas->get_x() - DP(30);
-		char string[BCTEXTLEN];
-		
-		sprintf(string, "%.0f", (float)i / DIVISIONS * plugin->config.min_db);
-		draw_text(x, y, string);
-		
-		int y1 = canvas->get_y() + canvas->get_h() / DIVISIONS * i;
-		int y2 = canvas->get_y() + canvas->get_h() / DIVISIONS * (i + 1);
-		for(int j = 0; j < 10; j++)
-		{
-			y = y1 + (y2 - y1) * j / 10;
-			if(j == 0)
-			{
-				draw_line(canvas->get_x() - DP(10), y, canvas->get_x(), y);
-			}
-			else
-			if(i < DIVISIONS)
-			{
-				draw_line(canvas->get_x() - DP(5), y, canvas->get_x(), y);
-			}
-		}
-	}
-
-// input divisions
-	for(int i = 0; i <= DIVISIONS; i++)
-	{
-		int y = canvas->get_y() + canvas->get_h();
-		int x = canvas->get_x() + (canvas->get_w() - 10) / DIVISIONS * i;
-        int y1 = y + get_text_ascent(SMALLFONT);
-		char string[BCTEXTLEN];
-
-		sprintf(string, 
-            "%.0f", 
-            (1.0 - (float)i / DIVISIONS) * plugin->config.min_db);
-		draw_text(x, y1 + DP(10), string);
-
-		int x1 = canvas->get_x() + canvas->get_w() / DIVISIONS * i;
-		int x2 = canvas->get_x() + canvas->get_w() / DIVISIONS * (i + 1);
-		for(int j = 0; j < 10; j++)
-		{
-			x = x1 + (x2 - x1) * j / 10;
-			if(j == 0)
-			{
-				draw_line(x, 
-                    y, 
-                    x, 
-                    y + DP(10));
-			}
-			else
-			if(i < DIVISIONS)
-			{
-				draw_line(x, 
-                    y, 
-                    x, 
-                    y + DP(5));
-			}
-		}
-	}
-
-
-
-	flash();
 }
 
 void CompressorWindow::update()
@@ -295,97 +230,11 @@ void CompressorWindow::update()
     
     
 
-	update_canvas();
+	canvas->update();
     update_eqcanvas();
 }
 
-#define POINT_W DP(10)
-void CompressorWindow::update_canvas()
-{
-	int y1, y2;
 
-
-	canvas->clear_box(0, 0, canvas->get_w(), canvas->get_h());
-	canvas->set_line_dashes(1);
-	canvas->set_color(GREEN);
-	
-	for(int i = 1; i < DIVISIONS; i++)
-	{
-		int y = canvas->get_h() * i / DIVISIONS;
-		canvas->draw_line(0, y, canvas->get_w(), y);
-		
-		int x = canvas->get_w() * i / DIVISIONS;
-		canvas->draw_line(x, 0, x, canvas->get_h());
-	}
-	canvas->set_line_dashes(0);
-
-
-	canvas->set_font(MEDIUMFONT);
-	canvas->draw_text(plugin->get_theme()->widget_border, 
-		canvas->get_h() / 2, 
-		_("Output"));
-	canvas->draw_text(canvas->get_w() / 2 - canvas->get_text_width(MEDIUMFONT, _("Input")) / 2, 
-		canvas->get_h() - plugin->get_theme()->widget_border, 
-		_("Input"));
-
-
-// draw the active band on top of the others
-    for(int pass = 0; pass < 2; pass++)
-    {
-        for(int band = 0; band < TOTAL_BANDS; band++)
-        {
-            if(band == plugin->current_band && pass == 0 ||
-                band != plugin->current_band && pass == 1)
-            {
-                continue;
-            }
-        
-            if(band == plugin->current_band)
-            {
-	            canvas->set_color(WHITE);
-	            canvas->set_line_width(2);
-            }
-            else
-            {
-	            canvas->set_color(MEGREY);
-	            canvas->set_line_width(1);
-            }
-
-	        for(int i = 0; i < canvas->get_w(); i++)
-	        {
-		        double x_db = ((double)1 - (double)i / canvas->get_w()) * plugin->config.min_db;
-		        double y_db = plugin->config.calculate_db(band, x_db);
-		        y2 = (int)(y_db / plugin->config.min_db * canvas->get_h());
-
-		        if(i > 0)
-		        {
-			        canvas->draw_line(i - 1, y1, i, y2);
-		        }
-
-		        y1 = y2;
-	        }
-	        canvas->set_line_width(1);
-
-            if(band == plugin->current_band)
-            {
-                BandConfig *band_config = &plugin->config.bands[band];
-	            int total = band_config->levels.total ? band_config->levels.total : 1;
-	            for(int i = 0; i < band_config->levels.total; i++)
-	            {
-		            double x_db = plugin->config.get_x(band, i);
-		            double y_db = plugin->config.get_y(band, i);
-
-		            int x = (int)(((double)1 - x_db / plugin->config.min_db) * canvas->get_w());
-		            int y = (int)(y_db / plugin->config.min_db * canvas->get_h());
-
-		            canvas->draw_box(x - POINT_W / 2, y - POINT_W / 2, POINT_W, POINT_W);
-	            }
-            }
-        }
-    }
-	
-	canvas->flash();
-}
 
 
 void CompressorWindow::update_eqcanvas()
@@ -411,10 +260,16 @@ void CompressorWindow::update_eqcanvas()
 //         printf("\n");
 //     }
 
+
+#ifndef DRAW_AFTER_BANDPASS
     eqcanvas->update_spectrogram(plugin); 
-//         plugin->current_band * plugin->config.window_size / 2,
-//         TOTAL_BANDS * plugin->config.window_size / 2,
-//         plugin->config.window_size);
+#else
+    eqcanvas->update_spectrogram(plugin,
+        plugin->current_band * plugin->config.window_size / 2,
+        TOTAL_BANDS * plugin->config.window_size / 2,
+        plugin->config.window_size);
+#endif
+
     
     // draw the active band on top of the others
     for(int pass = 0; pass < 2; pass++)
@@ -559,26 +414,291 @@ void CompressorSize::update(int size)
 
 
 
-CompressorCanvas::CompressorCanvas(CompressorEffect *plugin, int x, int y, int w, int h) 
+CompressorCanvas::CompressorCanvas(CompressorEffect *plugin, 
+    CompressorWindow *window, 
+    int x, 
+    int y, 
+    int w, 
+    int h) 
  : BC_SubWindow(x, y, w, h, BLACK)
 {
 	this->plugin = plugin;
+    this->window = window;
 	current_operation = NONE;
+
+    graph_x = 0;
+    graph_y = h / 8;
+    graph_w = w * 7 / 8;
+    graph_h = h - graph_y;
+}
+
+void CompressorCanvas::create_objects()
+{
+    draw_scales();
+    update();
+}
+
+void CompressorCanvas::draw_scales()
+{
+	window->set_font(SMALLFONT);
+	window->set_color(get_resources()->default_text_color);
+
+#define DIVISIONS 8
+// output divisions
+	for(int i = 0; i <= DIVISIONS; i++)
+	{
+		int y = get_y() + DP(10) + graph_y + graph_h / DIVISIONS * i;
+		int x = get_x() - DP(30);
+		char string[BCTEXTLEN];
+		
+		sprintf(string, "%.0f", (float)i / DIVISIONS * plugin->config.min_db);
+		window->draw_text(x, y, string);
+		
+		int y1 = get_y() + graph_y + graph_h / DIVISIONS * i;
+		int y2 = get_y() + graph_y + graph_h / DIVISIONS * (i + 1);
+		for(int j = 0; j < 10; j++)
+		{
+			y = y1 + (y2 - y1) * j / 10;
+			if(j == 0)
+			{
+				window->draw_line(get_x() - DP(10), y, get_x(), y);
+			}
+			else
+			if(i < DIVISIONS)
+			{
+				window->draw_line(get_x() - DP(5), y, get_x(), y);
+			}
+		}
+	}
+
+// input divisions
+	for(int i = 0; i <= DIVISIONS; i++)
+	{
+		int y = get_y() + get_h();
+		int x = get_x() + graph_x + (graph_w - 10) / DIVISIONS * i;
+        int y1 = y + window->get_text_ascent(SMALLFONT);
+		char string[BCTEXTLEN];
+
+		sprintf(string, 
+            "%.0f", 
+            (1.0 - (float)i / DIVISIONS) * plugin->config.min_db);
+		window->draw_text(x, y1 + DP(10), string);
+
+		int x1 = get_x() + graph_x + graph_w / DIVISIONS * i;
+		int x2 = get_x() + graph_x + graph_w / DIVISIONS * (i + 1);
+		for(int j = 0; j < 10; j++)
+		{
+			x = x1 + (x2 - x1) * j / 10;
+			if(j == 0)
+			{
+				window->draw_line(x, 
+                    y, 
+                    x, 
+                    y + DP(10));
+			}
+			else
+			if(i < DIVISIONS)
+			{
+				window->draw_line(x, 
+                    y, 
+                    x, 
+                    y + DP(5));
+			}
+		}
+	}
+
+
+}
+
+#define POINT_W DP(10)
+
+int CompressorCanvas::calculate_y2(int band, int x)
+{
+	double x_db = ((double)1 - (double)x / graph_w) * plugin->config.min_db;
+	double y_db = plugin->config.calculate_db(band, x_db);
+	return (int)(y_db / plugin->config.min_db * graph_h) + graph_y;
+}
+
+void CompressorCanvas::update()
+{
+	int y1, y2;
+
+// headroom boxes
+    set_color(window->get_bg_color());
+    draw_box(graph_x, 0, get_w(), graph_y);
+    draw_box(graph_w, graph_y, get_w() - graph_w, get_h() - graph_y);
+//     const int checker_w = DP(10);
+//     const int checker_h = DP(10);
+//     set_color(MDGREY);
+//     for(int i = 0; i < get_h(); i += checker_h)
+//     {
+//         for(int j = (i % 2) * checker_w; j < get_w(); j += checker_w * 2)
+//         {
+//             if(!(i >= graph_y && 
+//                 i + checker_h < graph_y + graph_h &&
+//                 j >= graph_x &&
+//                 j + checker_w < graph_x + graph_w))
+//             {
+//                 draw_box(j, i, checker_w, checker_h);
+//             }
+//         }
+//     }
+
+// canvas boxes
+	clear_box(graph_x, graph_y, graph_w, graph_h);
+
+	draw_3d_border(0, 
+		0, 
+		get_w(), 
+		get_h(), 
+		window->get_bg_color(),
+		BLACK,
+		MDGREY, 
+		window->get_bg_color());
+
+
+
+	set_line_dashes(1);
+	set_color(GREEN);
+	
+	for(int i = 1; i < DIVISIONS; i++)
+	{
+		int y = graph_y + graph_h * i / DIVISIONS;
+		draw_line(graph_x, y, graph_x + graph_w, y);
+		
+		int x = graph_x + graph_w * i / DIVISIONS;
+		draw_line(x, graph_y, x, graph_y + graph_h);
+	}
+	set_line_dashes(0);
+
+
+	set_font(MEDIUMFONT);
+	draw_text(plugin->get_theme()->widget_border, 
+		get_h() / 2, 
+		_("Output"));
+	draw_text(get_w() / 2 - get_text_width(MEDIUMFONT, _("Input")) / 2, 
+		get_h() - plugin->get_theme()->widget_border, 
+		_("Input"));
+
+
+// draw the active band on top of the others
+    for(int pass = 0; pass < 2; pass++)
+    {
+        for(int band = 0; band < TOTAL_BANDS; band++)
+        {
+            if(band == plugin->current_band && pass == 0 ||
+                band != plugin->current_band && pass == 1)
+            {
+                continue;
+            }
+
+            int default_color;
+            if(band == plugin->current_band)
+            {
+	            default_color = WHITE;
+	            set_line_width(2);
+            }
+            else
+            {
+	            default_color = MEGREY;
+	            set_line_width(1);
+            }
+
+            set_color(default_color);
+	        for(int i = graph_x; i <= graph_x + graph_w; i++)
+	        {
+		        y2 = calculate_y2(band, i);
+
+		        if(i > graph_x)
+		        {
+			        draw_line(i - 1, y1, i, y2);
+		        }
+
+		        y1 = y2;
+	        }
+            
+// draw the headroom
+            float headroom_slope = (plugin->config.calculate_db(band, 6.0) -
+                plugin->config.calculate_db(band, 0.0)) / 6.0;
+            if(headroom_slope > 1)
+            {
+                for(int i = graph_x + graph_w; i < get_w(); i++)
+                {
+                    y2 = calculate_y2(band, i);
+
+                    for(int j = y2; j < y1; j++)
+                    {
+// dissolve the color in the headroom
+                        float fraction = (float)j / graph_y;
+                        int color = (int)(fraction * (default_color & 0xff) + 
+                            (1.0 - fraction) * (window->get_bg_color() & 0xff));
+                        int color2 = (color << 16) | (color << 8) | color;
+                        set_color(color2);
+
+//printf("CompressorCanvas::update %d fraction=%f color=%x\n", __LINE__, fraction, color);
+                        draw_line(i, j - 1, i, j);
+                    }
+                    
+                    y1 = y2;
+                }
+            }
+            else
+            {
+                for(int i = graph_x + graph_w; i < get_w(); i++)
+                {
+                    y2 = calculate_y2(band, i);
+                    
+// dissolve the color in the headroom
+                    float fraction = 1.0 - (float)(i - graph_w) /
+                        (get_w() - graph_w);
+                    int color = (int)(fraction * (default_color & 0xff) + 
+                        (1.0 - fraction) * (window->get_bg_color() & 0xff));
+                    int color2 = (color << 16) | (color << 8) | color;
+                    set_color(color2);
+                    
+                    draw_line(i - 1, y1, i, y2);
+                    y1 = y2;
+                }
+            }
+
+            set_color(default_color);
+	        set_line_width(1);
+
+            if(band == plugin->current_band)
+            {
+                BandConfig *band_config = &plugin->config.bands[band];
+	            int total = band_config->levels.total ? band_config->levels.total : 1;
+	            for(int i = 0; i < band_config->levels.total; i++)
+	            {
+		            double x_db = plugin->config.get_x(band, i);
+		            double y_db = plugin->config.get_y(band, i);
+
+		            int x = (int)(((double)1 - x_db / plugin->config.min_db) * graph_w);
+		            int y = (int)(y_db / plugin->config.min_db * graph_h) + graph_y;
+
+		            draw_box(x - POINT_W / 2, y - POINT_W / 2, POINT_W, POINT_W);
+	            }
+            }
+        }
+    }
+	
+	flash();
 }
 
 int CompressorCanvas::button_press_event()
 {
     BandConfig *band_config = &plugin->config.bands[plugin->current_band];
 // Check existing points
-	if(is_event_win() && cursor_inside())
+	if(is_event_win() && 
+        cursor_inside())
 	{
 		for(int i = 0; i < band_config->levels.total; i++)
 		{
 			double x_db = plugin->config.get_x(plugin->current_band, i);
 			double y_db = plugin->config.get_y(plugin->current_band, i);
 
-			int x = (int)(((double)1 - x_db / plugin->config.min_db) * get_w());
-			int y = (int)(y_db / plugin->config.min_db * get_h());
+			int x = (int)(((double)1 - x_db / plugin->config.min_db) * graph_w) + graph_x;
+			int y = (int)(y_db / plugin->config.min_db * graph_h) + graph_y;
 
 			if(get_cursor_x() <= x + POINT_W / 2 && get_cursor_x() >= x - POINT_W / 2 &&
 				get_cursor_y() <= y + POINT_W / 2 && get_cursor_y() >= y - POINT_W / 2)
@@ -591,15 +711,25 @@ int CompressorCanvas::button_press_event()
 
 
 
+        if(get_cursor_x() >= graph_x &&
+            get_cursor_x() < graph_x + graph_w &&
+            get_cursor_y() >= graph_y &&
+            get_cursor_y() < graph_y + graph_h)
+        {
 // Create new point
-		double x_db = (double)(1 - (double)get_cursor_x() / get_w()) * plugin->config.min_db;
-		double y_db = (double)get_cursor_y() / get_h() * plugin->config.min_db;
+		    double x_db = (double)(1 - (double)(get_cursor_x() - graph_x) / 
+                graph_w) * 
+                plugin->config.min_db;
+		    double y_db = (double)(get_cursor_y() - graph_y) / 
+                graph_h * 
+                plugin->config.min_db;
 
-		current_point = plugin->config.set_point(plugin->current_band, x_db, y_db);
-		current_operation = DRAG;
-		((CompressorWindow*)plugin->thread->window)->update();
-		plugin->send_configure_change();
-		return 1;
+		    current_point = plugin->config.set_point(plugin->current_band, x_db, y_db);
+		    current_operation = DRAG;
+		    ((CompressorWindow*)plugin->thread->window)->update();
+		    plugin->send_configure_change();
+		    return 1;
+        }
 	}
 	return 0;
 //plugin->config.dump();
@@ -648,8 +778,14 @@ int CompressorCanvas::cursor_motion_event()
 		int y = get_cursor_y();
 		CLAMP(x, 0, get_w());
 		CLAMP(y, 0, get_h());
-		double x_db = (double)(1 - (double)x / get_w()) * plugin->config.min_db;
-		double y_db = (double)y / get_h() * plugin->config.min_db;
+		double x_db = (double)(1 - (double)(x - graph_x) / 
+            graph_w) * 
+            plugin->config.min_db;
+		double y_db = (double)(y - graph_y) / 
+            graph_h * 
+            plugin->config.min_db;
+        CLAMP(x_db, plugin->config.min_db, 0);
+        CLAMP(y_db, plugin->config.min_db, 0);
 		band_config->levels.values[current_point].x = x_db;
 		band_config->levels.values[current_point].y = y_db;
 		((CompressorWindow*)plugin->thread->window)->update();
@@ -668,8 +804,8 @@ int CompressorCanvas::cursor_motion_event()
 			double x_db = plugin->config.get_x(plugin->current_band, i);
 			double y_db = plugin->config.get_y(plugin->current_band, i);
 
-			int x = (int)(((double)1 - x_db / plugin->config.min_db) * get_w());
-			int y = (int)(y_db / plugin->config.min_db * get_h());
+			int x = (int)(((double)1 - x_db / plugin->config.min_db) * graph_w) + graph_x;
+			int y = (int)(y_db / plugin->config.min_db * graph_h) + graph_y;
 
 			if(get_cursor_x() <= x + POINT_W / 2 && get_cursor_x() >= x - POINT_W / 2 &&
 				get_cursor_y() <= y + POINT_W / 2 && get_cursor_y() >= y - POINT_W / 2)
@@ -679,6 +815,12 @@ int CompressorCanvas::cursor_motion_event()
 			}
 		}
 
+// out of active area
+        if(get_cursor_x() >= graph_x + graph_w ||
+            get_cursor_y() < graph_y)
+        {
+            new_cursor = UPRIGHT_ARROW_CURSOR;
+        }
 
 		if(new_cursor != get_cursor())
 		{
@@ -774,7 +916,7 @@ int CompressorX::handle_event()
 	if(current_point < band_config->levels.total)
 	{
 		band_config->levels.values[current_point].x = atof(get_text());
-		((CompressorWindow*)plugin->thread->window)->update_canvas();
+		((CompressorWindow*)plugin->thread->window)->canvas->update();
 		plugin->send_configure_change();
 	}
 	return 1;
@@ -795,7 +937,7 @@ int CompressorY::handle_event()
 	if(current_point < band_config->levels.total)
 	{
 		band_config->levels.values[current_point].y = atof(get_text());
-		((CompressorWindow*)plugin->thread->window)->update_canvas();
+		((CompressorWindow*)plugin->thread->window)->canvas->update();
 		plugin->send_configure_change();
 	}
 	return 1;

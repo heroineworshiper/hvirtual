@@ -603,10 +603,10 @@ int ReverbFFT::read_samples(int64_t output_sample,
 	int samples, 
 	Samples *buffer)
 {
-printf("ReverbFFT::read_samples %d channel=%d samples=%d\n", 
-__LINE__, 
-channel, 
-samples);
+// printf("ReverbFFT::read_samples %d channel=%d samples=%d\n", 
+// __LINE__, 
+// channel, 
+// samples);
 	int result = plugin->read_samples(buffer,
 		channel,
 		plugin->get_samplerate(),
