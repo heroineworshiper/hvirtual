@@ -95,6 +95,8 @@ public:
 	};
 // min DB of the graph
 	double min_db;
+// max DB of the graph
+    double max_db;
 	double reaction_len;
 	double decay_len;
 	double min_x, min_y;

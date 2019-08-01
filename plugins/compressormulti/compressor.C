@@ -127,7 +127,8 @@ CompressorConfig::CompressorConfig()
 {
     q = 1.0;
 	reaction_len = 1.0;
-	min_db = -80.0;
+	min_db = -78.0;
+    max_db = 6.0;
 	min_x = min_db;
 	min_y = min_db;
 	max_x = 0;
@@ -249,92 +250,53 @@ double CompressorConfig::calculate_db(int band, double x)
 {
     ArrayList<compressor_point_t> *levels = &bands[band].levels;
 
-// maximum
-	if(x > -0.001) 
+    if(!levels->total)
     {
-        if(levels->total > 1)
-        {
-            compressor_point_t *point2 = &levels->values[levels->total - 1];
-            compressor_point_t *point1 = &levels->values[levels->total - 2];
-// slope == last slope
-            if(point2->x > -0.001)
-            {
-                double slope = (point2->y - point1->y) / (point2->x - point1->x);
-                return point2->y + slope * (x - point2->x);
-            }
-        }
-        else
-        if(levels->total == 1)
-        {
-// slope == last slope in the graph
-            compressor_point_t *point = &levels->values[levels->total - 1];
-            if(point->y > -0.001)
-            {
-// no gain?  Flatten headroom.
-                if(point->x > -0.001)
-                {
-                    return 0.0;
-                }
-                else
-// apply gain to headroom
-                {
-                    double slope = (point->y - min_db) / (-min_db);
-                    return point->y + slope * (x - point->x);
-                }
-            }
-            else
-            if(point->x > -0.001)
-            {
-// apply gain to headroom
-                double slope = (point->y - min_db) / (-min_db);
-                return point->y + slope * (x - point->x);
-            }
-            else
-            {
-                double slope = -point->y / -point->x;
-                return point->y + slope * (x - point->x);
-            }
-        }
-        else
-        {
-// output == input
-            return x;
-        }
+		return x;
+    }
+    else
+// the only point.  Use slope from min_db
+    if(levels->total == 1)
+    {
+        compressor_point_t *point = &levels->values[0];
+        return point->y +
+            (x - point->x) *
+            (point->y - min_db) / 
+            (point->x - min_db);
     }
 
 	for(int i = levels->total - 1; i >= 0; i--)
 	{
-		if(levels->values[i].x <= x)
+        compressor_point_t *point = &levels->values[i];
+		if(point->x <= x)
 		{
+// between 2 points.  Use slope between 2 points
 			if(i < levels->total - 1)
 			{
-				return levels->values[i].y + 
-					(x - levels->values[i].x) *
-					(levels->values[i + 1].y - levels->values[i].y) / 
-					(levels->values[i + 1].x - levels->values[i].x);
+                compressor_point_t *next_point = &levels->values[i + 1];
+				return point->y + 
+					(x - point->x) *
+					(next_point->y - point->y) / 
+					(next_point->x - point->x);
 			}
 			else
 			{
-				return levels->values[i].y +
-					(x - levels->values[i].x) * 
-					(max_y - levels->values[i].y) / 
-					(max_x - levels->values[i].x);
+// the last point.  Use slope of last 2 points
+                compressor_point_t *prev_point = &levels->values[i - 1];
+				return point->y +
+					(x - point->x) * 
+					(point->y - prev_point->y) / 
+					(point->x - prev_point->x);
 			}
 		}
 	}
 
-	if(levels->total)
-	{
-		return min_y + 
-			(x - min_x) * 
-			(levels->values[0].y - min_y) / 
-			(levels->values[0].x - min_x);
-	}
-	else
-    {
-// output = input
-		return x;
-    }
+// before 1st point.  Use slope between 1st point & min_db
+    compressor_point_t *point = &levels->values[0];
+    return point->y +
+        (x - point->x) *
+        (point->y - min_db) / 
+        (point->x - min_db);
 }
 
 

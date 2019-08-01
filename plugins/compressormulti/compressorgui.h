@@ -24,7 +24,11 @@ public:
     void create_objects();
 	void draw_scales();
     void update();
-    int calculate_y2(int band, int x);
+    int x_to_y(int band, int x);
+    int db_to_x(double db);
+    int db_to_y(double db);
+    double x_to_db(int x);
+    double y_to_db(int y);
 
 	enum
 	{
@@ -39,6 +43,8 @@ public:
     int graph_h;
 	int current_point;
 	int current_operation;
+    int divisions;
+    int subdivisions;
 	CompressorEffect *plugin;
     CompressorWindow *window;
 };
