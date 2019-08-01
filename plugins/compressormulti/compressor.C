@@ -268,8 +268,24 @@ double CompressorConfig::calculate_db(int band, double x)
         {
 // slope == last slope in the graph
             compressor_point_t *point = &levels->values[levels->total - 1];
+            if(point->y > -0.001)
+            {
+// no gain?  Flatten headroom.
+                if(point->x > -0.001)
+                {
+                    return 0.0;
+                }
+                else
+// apply gain to headroom
+                {
+                    double slope = (point->y - min_db) / (-min_db);
+                    return point->y + slope * (x - point->x);
+                }
+            }
+            else
             if(point->x > -0.001)
             {
+// apply gain to headroom
                 double slope = (point->y - min_db) / (-min_db);
                 return point->y + slope * (x - point->x);
             }
@@ -1500,15 +1516,20 @@ int CompressorFFT::signal_process(int band)
             int offset = band * window_size / 2 + i;
 #ifndef DRAW_AFTER_BANDPASS
             frame->data[offset] = MAX(frame->data[offset], mag);
+// get the maximum output in the frequency domane
+            if(mag > frame->freq_max)
+            {
+                frame->freq_max = mag;
+            }
 #else
             frame->data[offset] = MAX(frame->data[offset], mag2);
-#endif
-
 // get the maximum output in the frequency domane
             if(mag2 > frame->freq_max)
             {
                 frame->freq_max = mag2;
             }
+#endif
+
         }
     }
 
@@ -1516,15 +1537,22 @@ int CompressorFFT::signal_process(int band)
     return 0;
 }
 
+
 int CompressorFFT::post_process(int band)
 {
     if(frame)
     {
 // get the maximum output in the time domane
 	    double time_max = 0;
+        double *buffer = output_real;
+#ifndef DRAW_AFTER_BANDPASS
+        buffer = input_buffer->get_data();
+#endif
+
 	    for(int i = 0; i < window_size; i++)
 	    {
-		    if(fabs(output_real[i]) > time_max) time_max = fabs(output_real[i]);
+
+		    if(fabs(buffer[i]) > time_max) time_max = fabs(buffer[i]);
 	    }
 
         if(time_max > frame->time_max)

@@ -93,6 +93,8 @@ public:
 // Size of a window.  Automatically fixed to a power of 2
 	long window_size;   
 
+// Time domane input of complete windows
+	Samples *input_buffer;
 // Frequency domain output of FFT
 	double *freq_real;
 	double *freq_imag;
@@ -105,8 +107,6 @@ private:
 	int reset();
     void allocate_output(int new_allocation);
 
-// input of complete windows
-	Samples *input_buffer;
 // output of crossfaded windows with overflow.  1 buffer for each band
 	double **output_buffer;
 
