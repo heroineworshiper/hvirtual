@@ -69,66 +69,11 @@ REGISTER_PLUGIN(CompressorEffect)
 
 
 
-BandConfig::BandConfig()
-{
-    freq = 0;
-    solo = 0;
-    bypass = 0;
-}
-
-BandConfig::~BandConfig()
-{
-    
-}
-
-void BandConfig::copy_from(BandConfig *src)
-{
-	levels.remove_all();
-	for(int i = 0; i < src->levels.total; i++)
-	{
-    	levels.append(src->levels.values[i]);
-    }
-
-    freq = src->freq;
-    solo = src->solo;
-    bypass = src->bypass;
-}
-
-int BandConfig::equiv(BandConfig *src)
-{
-    if(levels.total != src->levels.total ||
-        solo != src->solo ||
-        bypass != src->bypass ||
-        freq != src->freq)
-    {
-        return 0;
-    }
-
-
-	for(int i = 0; 
-		i < levels.total && i < src->levels.total; 
-		i++)
-	{
-		compressor_point_t *this_level = &levels.values[i];
-		compressor_point_t *that_level = &src->levels.values[i];
-		if(!EQUIV(this_level->x, that_level->x) ||
-			!EQUIV(this_level->y, that_level->y))
-		{
-        	return 0;
-        }
-	}
-    
-    return 1;
-}
-
-
-
 CompressorConfig::CompressorConfig()
+ : CompressorConfigBase(TOTAL_BANDS)
 {
     q = 1.0;
 	reaction_len = 1.0;
-	min_db = -78.0;
-    max_db = 6.0;
 	min_x = min_db;
 	min_y = min_db;
 	max_x = 0;
@@ -138,10 +83,6 @@ CompressorConfig::CompressorConfig()
 	smoothing_only = 0;
 	decay_len = 1.0;
     window_size = 4096;
-    for(int band = 0; band < TOTAL_BANDS; band++)
-    {
-        bands[band].freq = Freq::tofreq((band + 1) * TOTALFREQS / TOTAL_BANDS);
-    }
 }
 
 void CompressorConfig::copy_from(CompressorConfig &that)
@@ -199,147 +140,6 @@ void CompressorConfig::interpolate(CompressorConfig &prev,
 {
 	copy_from(prev);
 }
-
-void CompressorConfig::dump()
-{
-	printf("CompressorConfig::dump\n");
-// 	for(int i = 0; i < levels.total; i++)
-// 	{
-// 		printf("	%f %f\n", levels.values[i].x, levels.values[i].y);
-// 	}
-}
-
-
-double CompressorConfig::get_y(int band, int number)
-{
-    BandConfig *ptr = &bands[band];
-	if(!ptr->levels.total) 
-    {
-		return 1.0;
-	}
-    else
-	if(number >= ptr->levels.total)
-	{
-    	return ptr->levels.values[ptr->levels.total - 1].y;
-	}
-    else
-	{
-    	return ptr->levels.values[number].y;
-    }
-}
-
-double CompressorConfig::get_x(int band, int number)
-{
-    BandConfig *ptr = &bands[band];
-	if(!ptr->levels.total)
-    {
-		return 0.0;
-	}
-    else
-	if(number >= ptr->levels.total)
-	{
-    	return ptr->levels.values[ptr->levels.total - 1].x;
-	}
-    else
-	{
-    	return ptr->levels.values[number].x;
-    }
-}
-
-double CompressorConfig::calculate_db(int band, double x)
-{
-    ArrayList<compressor_point_t> *levels = &bands[band].levels;
-
-    if(!levels->total)
-    {
-		return x;
-    }
-    else
-// the only point.  Use slope from min_db
-    if(levels->total == 1)
-    {
-        compressor_point_t *point = &levels->values[0];
-        return point->y +
-            (x - point->x) *
-            (point->y - min_db) / 
-            (point->x - min_db);
-    }
-
-	for(int i = levels->total - 1; i >= 0; i--)
-	{
-        compressor_point_t *point = &levels->values[i];
-		if(point->x <= x)
-		{
-// between 2 points.  Use slope between 2 points
-			if(i < levels->total - 1)
-			{
-                compressor_point_t *next_point = &levels->values[i + 1];
-				return point->y + 
-					(x - point->x) *
-					(next_point->y - point->y) / 
-					(next_point->x - point->x);
-			}
-			else
-			{
-// the last point.  Use slope of last 2 points
-                compressor_point_t *prev_point = &levels->values[i - 1];
-				return point->y +
-					(x - point->x) * 
-					(point->y - prev_point->y) / 
-					(point->x - prev_point->x);
-			}
-		}
-	}
-
-// before 1st point.  Use slope between 1st point & min_db
-    compressor_point_t *point = &levels->values[0];
-    return point->y +
-        (x - point->x) *
-        (point->y - min_db) / 
-        (point->x - min_db);
-}
-
-
-int CompressorConfig::set_point(int band, double x, double y)
-{
-    BandConfig *ptr = &bands[band];
-	for(int i = ptr->levels.total - 1; i >= 0; i--)
-	{
-		if(ptr->levels.values[i].x < x)
-		{
-			ptr->levels.append();
-			i++;
-			for(int j = ptr->levels.total - 2; j >= i; j--)
-			{
-				ptr->levels.values[j + 1] = ptr->levels.values[j];
-			}
-			ptr->levels.values[i].x = x;
-			ptr->levels.values[i].y = y;
-
-			return i;
-		}
-	}
-
-	ptr->levels.append();
-	for(int j = ptr->levels.total - 2; j >= 0; j--)
-	{
-		ptr->levels.values[j + 1] = ptr->levels.values[j];
-	}
-	ptr->levels.values[0].x = x;
-	ptr->levels.values[0].y = y;
-	return 0;
-}
-
-void CompressorConfig::remove_point(int band, int number)
-{
-    BandConfig *ptr = &bands[band];
-	for(int j = number; j < ptr->levels.total - 1; j++)
-	{
-		ptr->levels.values[j] = ptr->levels.values[j + 1];
-	}
-	ptr->levels.remove();
-}
-
 
 
 
@@ -416,7 +216,7 @@ void CompressorEffect::reset()
     last_position = 0;
     fft = 0;
     need_reconfigure = 1;
-    current_band = 0;
+    config.current_band = 0;
 }
 
 const char* CompressorEffect::plugin_title() { return N_("Compressor Multi"); }
@@ -879,82 +679,6 @@ void CompressorEffect::allocate_input(int new_size)
 }
 
 
-double CompressorEffect::calculate_output(int band, double x)
-{
-    double x_db = DB::todb(x);
-    return DB::fromdb(config.calculate_db(band, x_db));
-    
-// // clamp headroom to 0db if...
-// 	if(x > 0.999) return 1.0;
-// 
-// // extend slope if...
-//     
-// 
-//     ArrayList<compressor_point_t> *levels = &config.bands[band].levels;
-// 
-// 	for(int i = levels->total - 1; i >= 0; i--)
-// 	{
-// 		if(levels->values[i].x <= x)
-// 		{
-// 			if(i < levels->total - 1)
-// 			{
-// 				return levels->values[i].y + 
-// 					(x - levels->values[i].x) *
-// 					(levels->values[i + 1].y - levels->values[i].y) / 
-// 					(levels->values[i + 1].x - levels->values[i].x);
-// 			}
-// 			else
-// 			{
-// 				return levels->values[i].y +
-// 					(x - levels->values[i].x) * 
-// 					(max_y - levels->values[i].y) / 
-// 					(max_x - levels->values[i].x);
-// 			}
-// 		}
-// 	}
-// 
-// 	if(levels->total)
-// 	{
-// 		return min_y + 
-// 			(x - min_x) * 
-// 			(levels->values[0].y - min_y) / 
-// 			(levels->values[0].x - min_x);
-// 	}
-// 	else
-//     {
-// 		return x;
-//     }
-}
-
-
-double CompressorEffect::calculate_gain(int band, double input)
-{
-	double y_linear = calculate_output(band, input);
-	double gain;
-// limit the gain to a sane number
-	if(fabs(input - 0.0) > 0.000001)
-	{
-    	gain = y_linear / input;
-	}
-    else
-    {
-		gain = 100000;
-    }
-
-// if(isinf(gain) || isnan(gain))
-// {
-// printf("CompressorEffect::process_buffer %d y_linear=%f input=%f gain=%f\n", 
-// __LINE__, 
-// y_linear,
-// input,
-// gain);
-// }
-
-
-	return gain;
-}
-
-
 void CompressorEffect::calculate_envelope()
 {
     for(int i = 0; i < TOTAL_BANDS; i++)
@@ -1271,7 +995,7 @@ void CompressorEngine::process_readbehind(int size,
 		else
         if(!plugin->config.bands[band].bypass)
         {
-			double gain = plugin->calculate_gain(band, current_value);
+			double gain = plugin->config.calculate_gain(band, current_value);
 			for(int j = 0; j < channels; j++)
 			{
 				filtered_buffer[j]->get_data()[i] *= gain;
@@ -1401,7 +1125,7 @@ void CompressorEngine::process_readahead(int size,
 		else
         if(!plugin->config.bands[band].bypass)
 		{
-			double gain = plugin->calculate_gain(band, current_value);
+			double gain = plugin->config.calculate_gain(band, current_value);
 			for(int j = 0; j < channels; j++)
 			{
 				filtered_buffer[j]->get_data()[i] *= gain;

@@ -25,6 +25,7 @@
 
 
 #include "bchash.inc"
+#include "compressortools.h"
 #include "fourier.h"
 #include "mutex.h"
 #include "pluginaclient.h"
@@ -40,30 +41,7 @@ class CompressorFFT;
 
 #define TOTAL_BANDS 3
 
-typedef struct
-{
-// DB from min_db - 0
-	double x, y;
-} compressor_point_t;
-
-class BandConfig
-{
-public:
-    BandConfig();
-    ~BandConfig();
-
-    void copy_from(BandConfig *src);
-    int equiv(BandConfig *src);
-
-	ArrayList<compressor_point_t> levels;
-    int solo;
-    int bypass;
-
-// upper frequency in Hz
-    int freq;
-};
-
-class CompressorConfig
+class CompressorConfig : public CompressorConfigBase
 {
 public:
 	CompressorConfig();
@@ -76,15 +54,6 @@ public:
 		int64_t next_frame, 
 		int64_t current_frame);
 
-	void remove_point(int band, int number);
-// Return values of a specific point
-	double get_y(int band, int number);
-	double get_x(int band, int number);
-// Returns db output from db input
-	double calculate_db(int band, double x);
-	int set_point(int band, double x, double y);
-	void dump();
-
 	int trigger;
 	int input;
 	enum
@@ -93,10 +62,6 @@ public:
 		MAX,
 		SUM
 	};
-// min DB of the graph
-	double min_db;
-// max DB of the graph
-    double max_db;
 	double reaction_len;
 	double decay_len;
 	double min_x, min_y;
@@ -104,7 +69,6 @@ public:
     double q;
 	int smoothing_only;
     int window_size;
-    BandConfig bands[TOTAL_BANDS];
 };
 
 
@@ -186,10 +150,6 @@ public:
 
 // calculate envelopes of all the bands
     void calculate_envelope();
-	double calculate_gain(int band, double input);
-
-// Calculate linear output from linear input
-	double calculate_output(int band, double x);
 
     void allocate_input(int new_size);
 
@@ -228,8 +188,6 @@ public:
     CompressorFFT **fft;
 
 	int need_reconfigure;
-// band on the GUI
-    int current_band;
 };
 
 

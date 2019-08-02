@@ -3,13 +3,14 @@
 
 #include "bchash.inc"
 #include "compressor.h"
+#include "compressortools.h"
 #include "eqcanvas.inc"
 #include "guicast.h"
 
 class CompressorWindow;
 
 
-class CompressorCanvas : public BC_SubWindow
+class CompressorCanvas : public CompressorCanvasBase
 {
 public:
 	CompressorCanvas(CompressorEffect *plugin, 
@@ -18,35 +19,7 @@ public:
         int y, 
         int w, 
         int h);
-	int button_press_event();
-	int button_release_event();
-	int cursor_motion_event();
-    void create_objects();
-	void draw_scales();
-    void update();
-    int x_to_y(int band, int x);
-    int db_to_x(double db);
-    int db_to_y(double db);
-    double x_to_db(int x);
-    double y_to_db(int y);
-
-	enum
-	{
-		NONE,
-		DRAG
-	};
-
-// clickable area of canvas
-    int graph_x;
-    int graph_y;
-    int graph_w;
-    int graph_h;
-	int current_point;
-	int current_operation;
-    int divisions;
-    int subdivisions;
-	CompressorEffect *plugin;
-    CompressorWindow *window;
+    void update_window();
 };
 
 class CompressorBand : public BC_Radial

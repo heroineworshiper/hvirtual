@@ -25,6 +25,7 @@
 
 
 #include "bchash.inc"
+#include "compressortools.h"
 #include "guicast.h"
 #include "mutex.h"
 #include "pluginaclient.h"
@@ -32,29 +33,21 @@
 #include "vframe.inc"
 
 class CompressorEffect;
+class CompressorWindow;
 
 
 
 
-
-class CompressorCanvas : public BC_SubWindow
+class CompressorCanvas : public CompressorCanvasBase
 {
 public:
-	CompressorCanvas(CompressorEffect *plugin, int x, int y, int w, int h);
-	int button_press_event();
-	int button_release_event();
-	int cursor_motion_event();
-
-
-	enum
-	{
-		NONE,
-		DRAG
-	};
-
-	int current_point;
-	int current_operation;
-	CompressorEffect *plugin;
+	CompressorCanvas(CompressorEffect *plugin, 
+        CompressorWindow *window,
+        int x, 
+        int y, 
+        int w, 
+        int h);
+    void update_window();
 };
 
 
@@ -137,7 +130,6 @@ public:
 	void create_objects();
 	void update();
 	void update_textboxes();
-	void update_canvas();
 	void draw_scales();
 	int resize_event(int w, int h);	
 	
@@ -155,13 +147,7 @@ public:
 
 
 
-typedef struct
-{
-// DB from min_db - 0
-	double x, y;
-} compressor_point_t;
-
-class CompressorConfig
+class CompressorConfig : public CompressorConfigBase
 {
 public:
 	CompressorConfig();
@@ -174,16 +160,6 @@ public:
 		int64_t next_frame, 
 		int64_t current_frame);
 
-	int total_points();
-	void remove_point(int number);
-	void optimize();
-// Return values of a specific point
-	double get_y(int number);
-	double get_x(int number);
-// Returns db output from db input
-	double calculate_db(double x);
-	int set_point(double x, double y);
-	void dump();
 
 	int trigger;
 	int input;
@@ -193,13 +169,11 @@ public:
 		MAX,
 		SUM
 	};
-	double min_db;
 	double reaction_len;
 	double decay_len;
 	double min_x, min_y;
 	double max_x, max_y;
 	int smoothing_only;
-	ArrayList<compressor_point_t> levels;
 };
 
 class CompressorEffect : public PluginAClient
@@ -216,10 +190,6 @@ public:
 		Samples **buffer,
 		int64_t start_position,
 		int sample_rate);
-	double calculate_gain(double input);
-
-// Calculate linear output from linear input
-	double calculate_output(double x);
 
 
 	void reset();

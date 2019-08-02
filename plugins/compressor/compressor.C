@@ -124,10 +124,11 @@ int CompressorEffect::is_multichannel() { return 1; }
 void CompressorEffect::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
+    BandConfig *band_config = &config.bands[0];
 	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
 
 	int result = 0;
-	config.levels.remove_all();
+	band_config->levels.remove_all();
 	while(!result)
 	{
 		result = input.read_tag();
@@ -149,7 +150,7 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 				double y = input.tag.get_property("Y", (double)0);
 				compressor_point_t point = { x, y };
 
-				config.levels.append(point);
+				band_config->levels.append(point);
 			}
 		}
 	}
@@ -158,6 +159,7 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 void CompressorEffect::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
+    BandConfig *band_config = &config.bands[0];
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 
 	output.tag.set_title("COMPRESSOR");
@@ -170,11 +172,11 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	output.append_newline();
 
 
-	for(int i = 0; i < config.levels.total; i++)
+	for(int i = 0; i < band_config->levels.total; i++)
 	{
 		output.tag.set_title("LEVEL");
-		output.tag.set_property("X", config.levels.values[i].x);
-		output.tag.set_property("Y", config.levels.values[i].y);
+		output.tag.set_property("X", band_config->levels.values[i].x);
+		output.tag.set_property("Y", band_config->levels.values[i].y);
 
 		output.append_tag();
 		output.append_newline();
@@ -210,15 +212,16 @@ int CompressorEffect::process_buffer(int64_t size,
 		int64_t start_position,
 		int sample_rate)
 {
+    BandConfig *band_config = &config.bands[0];
 	load_configuration();
 
 // Calculate linear transfer from db 
 	levels.remove_all();
-	for(int i = 0; i < config.levels.total; i++)
+	for(int i = 0; i < band_config->levels.total; i++)
 	{
 		levels.append();
-		levels.values[i].x = DB::fromdb(config.levels.values[i].x);
-		levels.values[i].y = DB::fromdb(config.levels.values[i].y);
+		levels.values[i].x = DB::fromdb(band_config->levels.values[i].x);
+		levels.values[i].y = DB::fromdb(band_config->levels.values[i].y);
 	}
 	min_x = DB::fromdb(config.min_db);
 	min_y = DB::fromdb(config.min_db);
@@ -335,7 +338,7 @@ int CompressorEffect::process_buffer(int64_t size,
 			}
 			else
 			{
-				double gain = calculate_gain(current_value);
+				double gain = config.calculate_gain(0, current_value);
 				for(int j = 0; j < total_buffers; j++)
 				{
 					buffer[j]->get_data()[i] *= gain;
@@ -524,7 +527,7 @@ int CompressorEffect::process_buffer(int64_t size,
 			}
 			else
 			{
-				double gain = calculate_gain(current_value);
+				double gain = config.calculate_gain(0, current_value);
 				for(int j = 0; j < total_buffers; j++)
 				{
 					buffer[j]->get_data()[i] = input_buffer[j]->get_data()[i] * gain;
@@ -543,74 +546,6 @@ int CompressorEffect::process_buffer(int64_t size,
 	return 0;
 }
 
-double CompressorEffect::calculate_output(double x)
-{
-	if(x > 0.999) return 1.0;
-
-	for(int i = levels.total - 1; i >= 0; i--)
-	{
-		if(levels.values[i].x <= x)
-		{
-			if(i < levels.total - 1)
-			{
-				return levels.values[i].y + 
-					(x - levels.values[i].x) *
-					(levels.values[i + 1].y - levels.values[i].y) / 
-					(levels.values[i + 1].x - levels.values[i].x);
-			}
-			else
-			{
-				return levels.values[i].y +
-					(x - levels.values[i].x) * 
-					(max_y - levels.values[i].y) / 
-					(max_x - levels.values[i].x);
-			}
-		}
-	}
-
-	if(levels.total)
-	{
-		return min_y + 
-			(x - min_x) * 
-			(levels.values[0].y - min_y) / 
-			(levels.values[0].x - min_x);
-	}
-	else
-		return x;
-}
-
-
-double CompressorEffect::calculate_gain(double input)
-{
-//  	double x_db = DB::todb(input);
-//  	double y_db = config.calculate_db(x_db);
-//  	double y_linear = DB::fromdb(y_db);
-
-
-	double y_linear = calculate_output(input);
-	double gain;
-	if(fabs(input - 0.0) > 0.000001)
-	{
-    	gain = y_linear / input;
-	}
-    else
-    {
-		gain = 100000;
-    }
-
-// if(isinf(gain) || isnan(gain))
-// {
-// printf("CompressorEffect::process_buffer %d y_linear=%f input=%f gain=%f\n", 
-// __LINE__, 
-// y_linear,
-// input,
-// gain);
-// }
-
-
-	return gain;
-}
-
 
 
 
@@ -621,9 +556,9 @@ double CompressorEffect::calculate_gain(double input)
 
 
 CompressorConfig::CompressorConfig()
+ : CompressorConfigBase(1)
 {
 	reaction_len = 1.0;
-	min_db = -80.0;
 	min_x = min_db;
 	min_y = min_db;
 	max_x = 0;
@@ -638,7 +573,6 @@ void CompressorConfig::copy_from(CompressorConfig &that)
 {
 	this->reaction_len = that.reaction_len;
 	this->decay_len = that.decay_len;
-	this->min_db = that.min_db;
 	this->min_x = that.min_x;
 	this->min_y = that.min_y;
 	this->max_x = that.max_x;
@@ -646,9 +580,7 @@ void CompressorConfig::copy_from(CompressorConfig &that)
 	this->trigger = that.trigger;
 	this->input = that.input;
 	this->smoothing_only = that.smoothing_only;
-	levels.remove_all();
-	for(int i = 0; i < that.levels.total; i++)
-		this->levels.append(that.levels.values[i]);
+    bands[0].copy_from(&that.bands[0]);
 }
 
 int CompressorConfig::equivalent(CompressorConfig &that)
@@ -659,17 +591,10 @@ int CompressorConfig::equivalent(CompressorConfig &that)
 		this->input != that.input ||
 		this->smoothing_only != that.smoothing_only)
 		return 0;
-	if(this->levels.total != that.levels.total) return 0;
-	for(int i = 0; 
-		i < this->levels.total && i < that.levels.total; 
-		i++)
-	{
-		compressor_point_t *this_level = &this->levels.values[i];
-		compressor_point_t *that_level = &that.levels.values[i];
-		if(!EQUIV(this_level->x, that_level->x) ||
-			!EQUIV(this_level->y, that_level->y))
-			return 0;
-	}
+    if(!bands[0].equiv(&that.bands[0]))
+    {
+        return 0;
+    }
 	return 1;
 }
 
@@ -680,146 +605,6 @@ void CompressorConfig::interpolate(CompressorConfig &prev,
 	int64_t current_frame)
 {
 	copy_from(prev);
-}
-
-int CompressorConfig::total_points()
-{
-	if(!levels.total) 
-		return 1;
-	else
-		return levels.total;
-}
-
-void CompressorConfig::dump()
-{
-	printf("CompressorConfig::dump\n");
-	for(int i = 0; i < levels.total; i++)
-	{
-		printf("	%f %f\n", levels.values[i].x, levels.values[i].y);
-	}
-}
-
-
-double CompressorConfig::get_y(int number)
-{
-	if(!levels.total) 
-		return 1.0;
-	else
-	if(number >= levels.total)
-		return levels.values[levels.total - 1].y;
-	else
-		return levels.values[number].y;
-}
-
-double CompressorConfig::get_x(int number)
-{
-	if(!levels.total)
-		return 0.0;
-	else
-	if(number >= levels.total)
-		return levels.values[levels.total - 1].x;
-	else
-		return levels.values[number].x;
-}
-
-double CompressorConfig::calculate_db(double x)
-{
-	if(x > -0.001) return 0.0;
-
-	for(int i = levels.total - 1; i >= 0; i--)
-	{
-		if(levels.values[i].x <= x)
-		{
-			if(i < levels.total - 1)
-			{
-				return levels.values[i].y + 
-					(x - levels.values[i].x) *
-					(levels.values[i + 1].y - levels.values[i].y) / 
-					(levels.values[i + 1].x - levels.values[i].x);
-			}
-			else
-			{
-				return levels.values[i].y +
-					(x - levels.values[i].x) * 
-					(max_y - levels.values[i].y) / 
-					(max_x - levels.values[i].x);
-			}
-		}
-	}
-
-	if(levels.total)
-	{
-		return min_y + 
-			(x - min_x) * 
-			(levels.values[0].y - min_y) / 
-			(levels.values[0].x - min_x);
-	}
-	else
-		return x;
-}
-
-
-int CompressorConfig::set_point(double x, double y)
-{
-	for(int i = levels.total - 1; i >= 0; i--)
-	{
-		if(levels.values[i].x < x)
-		{
-			levels.append();
-			i++;
-			for(int j = levels.total - 2; j >= i; j--)
-			{
-				levels.values[j + 1] = levels.values[j];
-			}
-			levels.values[i].x = x;
-			levels.values[i].y = y;
-
-			return i;
-		}
-	}
-
-	levels.append();
-	for(int j = levels.total - 2; j >= 0; j--)
-	{
-		levels.values[j + 1] = levels.values[j];
-	}
-	levels.values[0].x = x;
-	levels.values[0].y = y;
-	return 0;
-}
-
-void CompressorConfig::remove_point(int number)
-{
-	for(int j = number; j < levels.total - 1; j++)
-	{
-		levels.values[j] = levels.values[j + 1];
-	}
-	levels.remove();
-}
-
-void CompressorConfig::optimize()
-{
-	int done = 0;
-	
-	while(!done)
-	{
-		done = 1;
-		
-		
-		for(int i = 0; i < levels.total - 1; i++)
-		{
-			if(levels.values[i].x >= levels.values[i + 1].x)
-			{
-				done = 0;
-				for(int j = i + 1; j < levels.total - 1; j++)
-				{
-					levels.values[j] = levels.values[j + 1];
-				}
-				levels.remove();
-			}
-		}
-		
-	}
 }
 
 
@@ -861,134 +646,71 @@ CompressorWindow::CompressorWindow(CompressorEffect *plugin)
 
 void CompressorWindow::create_objects()
 {
-	int x = DP(35), y = DP(10);
+    int margin = client->get_theme()->widget_border;
+	int x = DP(35), y = margin;
 	int control_margin = DP(130);
+    BC_Title *title;
 
+    add_subwindow(title = new BC_Title(margin, y, _("Sound level (Press shift to snap to grid):")));
+    y += title->get_h() + 1;
 	add_subwindow(canvas = new CompressorCanvas(plugin, 
+        this,
 		x, 
 		y, 
 		get_w() - x - control_margin - DP(10), 
 		get_h() - y - DP(70)));
-	canvas->set_cursor(CROSS_CURSOR, 0, 0);
 	x = get_w() - control_margin;
 	add_subwindow(new BC_Title(x, y, _("Attack secs:")));
-	y += DP(20);
+	y += title->get_h() + margin;
 	add_subwindow(reaction = new CompressorReaction(plugin, x, y));
-	y += DP(30);
-	add_subwindow(new BC_Title(x, y, _("Release secs:")));
-	y += DP(20);
+	y += reaction->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Release secs:")));
+	y += title->get_h() + margin;
 	add_subwindow(decay = new CompressorDecay(plugin, x, y));
-	y += DP(30);
-	add_subwindow(new BC_Title(x, y, _("Trigger Type:")));
-	y += DP(20);
+	y += decay->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Trigger Type:")));
+	y += title->get_h() + margin;
 	add_subwindow(input = new CompressorInput(plugin, x, y));
 	input->create_objects();
-	y += DP(30);
-	add_subwindow(new BC_Title(x, y, _("Trigger:")));
-	y += DP(20);
+	y += input->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Trigger:")));
+	y += title->get_h() + margin;
 	add_subwindow(trigger = new CompressorTrigger(plugin, x, y));
 	if(plugin->config.input != CompressorConfig::TRIGGER) trigger->disable();
-	y += DP(30);
+	y += trigger->get_h() + margin;
 	add_subwindow(smooth = new CompressorSmooth(plugin, x, y));
-	y += DP(60);
+	y += smooth->get_h() + margin;
+    
+	add_subwindow(title = new BC_Title(x, y, _("Output:")));
+	y += title->get_h();
+	add_subwindow(y_text = new CompressorY(plugin, x, y));
+	y += y_text->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Input:")));
+	y += title->get_h();
+	add_subwindow(x_text = new CompressorX(plugin, x, y));
+	y += x_text->get_h() + margin;
+    
+    
 	add_subwindow(clear = new CompressorClear(plugin, x, y));
 	x = DP(10);
 	y = get_h() - DP(40);
-	add_subwindow(new BC_Title(x, y, _("Point:")));
-	x += DP(50);
-	add_subwindow(x_text = new CompressorX(plugin, x, y));
-	x += DP(110);
-	add_subwindow(new BC_Title(x, y, _("x")));
-	x += DP(20);
-	add_subwindow(y_text = new CompressorY(plugin, x, y));
-	draw_scales();
 
-	update_canvas();
+    canvas->create_objects();
+	canvas->update();
 	show_window();
 }
 
-void CompressorWindow::draw_scales()
-{
-	draw_3d_border(canvas->get_x() - 2, 
-		canvas->get_y() - 2, 
-		canvas->get_w() + 4, 
-		canvas->get_h() + 4, 
-		get_bg_color(),
-		BLACK,
-		MDGREY, 
-		get_bg_color());
-
-
-	set_font(SMALLFONT);
-	set_color(get_resources()->default_text_color);
-
-#define DIVISIONS 8
-	for(int i = 0; i <= DIVISIONS; i++)
-	{
-		int y = canvas->get_y() + DP(10) + canvas->get_h() / DIVISIONS * i;
-		int x = canvas->get_x() - DP(30);
-		char string[BCTEXTLEN];
-		
-		sprintf(string, "%.0f", (float)i / DIVISIONS * plugin->config.min_db);
-		draw_text(x, y, string);
-		
-		int y1 = canvas->get_y() + canvas->get_h() / DIVISIONS * i;
-		int y2 = canvas->get_y() + canvas->get_h() / DIVISIONS * (i + 1);
-		for(int j = 0; j < 10; j++)
-		{
-			y = y1 + (y2 - y1) * j / 10;
-			if(j == 0)
-			{
-				draw_line(canvas->get_x() - DP(10), y, canvas->get_x(), y);
-			}
-			else
-			if(i < DIVISIONS)
-			{
-				draw_line(canvas->get_x() - DP(5), y, canvas->get_x(), y);
-			}
-		}
-	}
-
-
-	for(int i = 0; i <= DIVISIONS; i++)
-	{
-		int y = canvas->get_h() + DP(30);
-		int x = canvas->get_x() + (canvas->get_w() - 10) / DIVISIONS * i;
-		char string[BCTEXTLEN];
-
-		sprintf(string, "%.0f", (1.0 - (float)i / DIVISIONS) * plugin->config.min_db);
-		draw_text(x, y, string);
-
-		int x1 = canvas->get_x() + canvas->get_w() / DIVISIONS * i;
-		int x2 = canvas->get_x() + canvas->get_w() / DIVISIONS * (i + 1);
-		for(int j = 0; j < 10; j++)
-		{
-			x = x1 + (x2 - x1) * j / 10;
-			if(j == 0)
-			{
-				draw_line(x, canvas->get_y() + canvas->get_h(), x, canvas->get_y() + canvas->get_h() + DP(10));
-			}
-			else
-			if(i < DIVISIONS)
-			{
-				draw_line(x, canvas->get_y() + canvas->get_h(), x, canvas->get_y() + canvas->get_h() + DP(5));
-			}
-		}
-	}
-
-
-
-	flash();
-}
 
 void CompressorWindow::update()
 {
 	update_textboxes();
-	update_canvas();
+	canvas->update();
 }
 
 void CompressorWindow::update_textboxes()
 {
+    BandConfig *band_config = &plugin->config.bands[0];
+
 	if(atol(trigger->get_text()) != plugin->config.trigger)
 		trigger->update((int64_t)plugin->config.trigger);
 	if(strcmp(input->get_text(), CompressorInput::value_to_text(plugin->config.input)))
@@ -1007,71 +729,9 @@ void CompressorWindow::update_textboxes()
 	smooth->update(plugin->config.smoothing_only);
 	if(canvas->current_operation == CompressorCanvas::DRAG)
 	{
-		x_text->update((float)plugin->config.levels.values[canvas->current_point].x);
-		y_text->update((float)plugin->config.levels.values[canvas->current_point].y);
+		x_text->update((float)band_config->levels.values[canvas->current_point].x);
+		y_text->update((float)band_config->levels.values[canvas->current_point].y);
 	}
-}
-
-#define POINT_W DP(10)
-void CompressorWindow::update_canvas()
-{
-	int y1, y2;
-
-
-	canvas->clear_box(0, 0, canvas->get_w(), canvas->get_h());
-	canvas->set_line_dashes(1);
-	canvas->set_color(GREEN);
-	
-	for(int i = 1; i < DIVISIONS; i++)
-	{
-		int y = canvas->get_h() * i / DIVISIONS;
-		canvas->draw_line(0, y, canvas->get_w(), y);
-		
-		int x = canvas->get_w() * i / DIVISIONS;
-		canvas->draw_line(x, 0, x, canvas->get_h());
-	}
-	canvas->set_line_dashes(0);
-
-
-	canvas->set_font(MEDIUMFONT);
-	canvas->draw_text(plugin->get_theme()->widget_border, 
-		canvas->get_h() / 2, 
-		_("Output"));
-	canvas->draw_text(canvas->get_w() / 2 - canvas->get_text_width(MEDIUMFONT, _("Input")) / 2, 
-		canvas->get_h() - plugin->get_theme()->widget_border, 
-		_("Input"));
-
-
-	canvas->set_color(WHITE);
-	canvas->set_line_width(2);
-	for(int i = 0; i < canvas->get_w(); i++)
-	{
-		double x_db = ((double)1 - (double)i / canvas->get_w()) * plugin->config.min_db;
-		double y_db = plugin->config.calculate_db(x_db);
-		y2 = (int)(y_db / plugin->config.min_db * canvas->get_h());
-
-		if(i > 0)
-		{
-			canvas->draw_line(i - 1, y1, i, y2);
-		}
-
-		y1 = y2;
-	}
-	canvas->set_line_width(1);
-
-	int total = plugin->config.levels.total ? plugin->config.levels.total : 1;
-	for(int i = 0; i < plugin->config.levels.total; i++)
-	{
-		double x_db = plugin->config.get_x(i);
-		double y_db = plugin->config.get_y(i);
-
-		int x = (int)(((double)1 - x_db / plugin->config.min_db) * canvas->get_w());
-		int y = (int)(y_db / plugin->config.min_db * canvas->get_h());
-		
-		canvas->draw_box(x - POINT_W / 2, y - POINT_W / 2, POINT_W, POINT_W);
-	}
-	
-	canvas->flash();
 }
 
 int CompressorWindow::resize_event(int w, int h)
@@ -1086,125 +746,28 @@ int CompressorWindow::resize_event(int w, int h)
 
 
 
-CompressorCanvas::CompressorCanvas(CompressorEffect *plugin, int x, int y, int w, int h) 
- : BC_SubWindow(x, y, w, h, BLACK)
+CompressorCanvas::CompressorCanvas(CompressorEffect *plugin, 
+    CompressorWindow *window, 
+    int x, 
+    int y, 
+    int w, 
+    int h) 
+ : CompressorCanvasBase(&plugin->config,
+    plugin,
+    window,
+    x, 
+    y, 
+    w, 
+    h)
 {
-	this->plugin = plugin;
-	current_operation = NONE;
 }
 
-int CompressorCanvas::button_press_event()
+
+void CompressorCanvas::update_window()
 {
-// Check existing points
-	if(is_event_win() && cursor_inside())
-	{
-		for(int i = 0; i < plugin->config.levels.total; i++)
-		{
-			double x_db = plugin->config.get_x(i);
-			double y_db = plugin->config.get_y(i);
-
-			int x = (int)(((double)1 - x_db / plugin->config.min_db) * get_w());
-			int y = (int)(y_db / plugin->config.min_db * get_h());
-
-			if(get_cursor_x() < x + POINT_W / 2 && get_cursor_x() >= x - POINT_W / 2 &&
-				get_cursor_y() < y + POINT_W / 2 && get_cursor_y() >= y - POINT_W / 2)
-			{
-				current_operation = DRAG;
-				current_point = i;
-				return 1;
-			}
-		}
-
-
-
-// Create new point
-		double x_db = (double)(1 - (double)get_cursor_x() / get_w()) * plugin->config.min_db;
-		double y_db = (double)get_cursor_y() / get_h() * plugin->config.min_db;
-
-		current_point = plugin->config.set_point(x_db, y_db);
-		current_operation = DRAG;
-		((CompressorWindow*)plugin->thread->window)->update();
-		plugin->send_configure_change();
-		return 1;
-	}
-	return 0;
-//plugin->config.dump();
+    ((CompressorWindow*)window)->update();
 }
 
-int CompressorCanvas::button_release_event()
-{
-	if(current_operation == DRAG)
-	{
-		if(current_point > 0)
-		{
-			if(plugin->config.levels.values[current_point].x <
-				plugin->config.levels.values[current_point - 1].x)
-				plugin->config.remove_point(current_point);
-		}
-
-		if(current_point < plugin->config.levels.total - 1)
-		{
-			if(plugin->config.levels.values[current_point].x >=
-				plugin->config.levels.values[current_point + 1].x)
-				plugin->config.remove_point(current_point);
-		}
-
-		((CompressorWindow*)plugin->thread->window)->update();
-		plugin->send_configure_change();
-		current_operation = NONE;
-		return 1;
-	}
-
-	return 0;
-}
-
-int CompressorCanvas::cursor_motion_event()
-{
-	if(current_operation == DRAG)
-	{
-		int x = get_cursor_x();
-		int y = get_cursor_y();
-		CLAMP(x, 0, get_w());
-		CLAMP(y, 0, get_h());
-		double x_db = (double)(1 - (double)x / get_w()) * plugin->config.min_db;
-		double y_db = (double)y / get_h() * plugin->config.min_db;
-		plugin->config.levels.values[current_point].x = x_db;
-		plugin->config.levels.values[current_point].y = y_db;
-		((CompressorWindow*)plugin->thread->window)->update();
-		plugin->send_configure_change();
-		return 1;
-//plugin->config.dump();
-	}
-	else
-// Change cursor over points
-	if(is_event_win() && cursor_inside())
-	{
-		int new_cursor = CROSS_CURSOR;
-
-		for(int i = 0; i < plugin->config.levels.total; i++)
-		{
-			double x_db = plugin->config.get_x(i);
-			double y_db = plugin->config.get_y(i);
-
-			int x = (int)(((double)1 - x_db / plugin->config.min_db) * get_w());
-			int y = (int)(y_db / plugin->config.min_db * get_h());
-
-			if(get_cursor_x() < x + POINT_W / 2 && get_cursor_x() >= x - POINT_W / 2 &&
-				get_cursor_y() < y + POINT_W / 2 && get_cursor_y() >= y - POINT_W / 2)
-			{
-				new_cursor = UPRIGHT_ARROW_CURSOR;
-				break;
-			}
-		}
-
-
-		if(new_cursor != get_cursor())
-		{
-			set_cursor(new_cursor, 0, 1);
-		}
-	}
-	return 0;
-}
 
 
 
@@ -1286,11 +849,12 @@ CompressorX::CompressorX(CompressorEffect *plugin, int x, int y)
 }
 int CompressorX::handle_event()
 {
+    BandConfig *band_config = &plugin->config.bands[0];
 	int current_point = ((CompressorWindow*)plugin->thread->window)->canvas->current_point;
-	if(current_point < plugin->config.levels.total)
+	if(current_point < band_config->levels.total)
 	{
-		plugin->config.levels.values[current_point].x = atof(get_text());
-		((CompressorWindow*)plugin->thread->window)->update_canvas();
+		band_config->levels.values[current_point].x = atof(get_text());
+		((CompressorWindow*)plugin->thread->window)->canvas->update();
 		plugin->send_configure_change();
 	}
 	return 1;
@@ -1305,11 +869,12 @@ CompressorY::CompressorY(CompressorEffect *plugin, int x, int y)
 }
 int CompressorY::handle_event()
 {
+    BandConfig *band_config = &plugin->config.bands[0];
 	int current_point = ((CompressorWindow*)plugin->thread->window)->canvas->current_point;
-	if(current_point < plugin->config.levels.total)
+	if(current_point < band_config->levels.total)
 	{
-		plugin->config.levels.values[current_point].y = atof(get_text());
-		((CompressorWindow*)plugin->thread->window)->update_canvas();
+		band_config->levels.values[current_point].y = atof(get_text());
+		((CompressorWindow*)plugin->thread->window)->canvas->update();
 		plugin->send_configure_change();
 	}
 	return 1;
@@ -1416,7 +981,8 @@ CompressorClear::CompressorClear(CompressorEffect *plugin, int x, int y)
 
 int CompressorClear::handle_event()
 {
-	plugin->config.levels.remove_all();
+    BandConfig *band_config = &plugin->config.bands[0];
+	band_config->levels.remove_all();
 //plugin->config.dump();
 	((CompressorWindow*)plugin->thread->window)->update();
 	plugin->send_configure_change();

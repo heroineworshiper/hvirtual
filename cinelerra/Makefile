@@ -91,6 +91,7 @@ OBJS = \
 	$(OBJDIR)/cicolors.o \
 	$(OBJDIR)/colorpicker.o \
 	$(OBJDIR)/commonrender.o \
+        $(OBJDIR)/compressortools.o \
 	$(OBJDIR)/confirmsave.o \
 	$(OBJDIR)/confirmquit.o \
 	$(OBJDIR)/cpanel.o \
@@ -628,6 +629,7 @@ $(OBJDIR)/clipedit.o: 			  	  clipedit.C
 $(OBJDIR)/cicolors.o:                             cicolors.C
 $(OBJDIR)/colorpicker.o:                          colorpicker.C
 $(OBJDIR)/commonrender.o: 			  commonrender.C
+$(OBJDIR)/compressortools.o:                      compressortools.C
 $(OBJDIR)/confirmsave.o: 			  confirmsave.C
 $(OBJDIR)/confirmquit.o: 			  confirmquit.C
 $(OBJDIR)/console.o: 				  console.C
