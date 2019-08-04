@@ -569,7 +569,14 @@ void CompressorCanvasBase::update()
 		            int x = db_to_x(x_db);
 		            int y = db_to_y(y_db);
 
-		            draw_box(x - POINT_W / 2, y - POINT_W / 2, POINT_W, POINT_W);
+                    if(i == current_point)
+                    {
+    		            draw_box(x - POINT_W / 2, y - POINT_W / 2, POINT_W, POINT_W);
+                    }
+                    else
+                    {
+    		            draw_rectangle(x - POINT_W / 2, y - POINT_W / 2, POINT_W, POINT_W);
+                    }
 	            }
             }
         }

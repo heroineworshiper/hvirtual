@@ -103,7 +103,6 @@ BC_TextBox::BC_TextBox(int x,
 
 	char temp[BCTEXTLEN];
 	sprintf(temp, "%0.*f", precision, text);
-//  printf("BC_TextBox::BC_TextBox precision=%d %s\n", precision, temp);
 	this->text.assign(temp);
 }
 
@@ -417,7 +416,7 @@ int BC_TextBox::update(const char *text)
 int BC_TextBox::update(int64_t value)
 {
 	char string[BCTEXTLEN];
-	sprintf(string, "%lld", (long long)value);
+	sprintf(string, "%ld", value);
 
 
 	update(string);

@@ -1,7 +1,7 @@
  
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -220,6 +220,272 @@ int PluginClientWindow::close_event()
 	set_done(1);
 	return 1;
 }
+
+void PluginClientWindow::param_updated()
+{
+    printf("PluginClientWindow::param_updated %d undefined\n", __LINE__);
+}
+
+
+
+
+
+PluginParam::PluginParam(PluginClient *plugin,
+    PluginClientWindow *gui,
+    int x1, 
+    int x2,
+    int x3,
+    int y, 
+    int text_w,
+    int *output_i, 
+    float *output_f, // floating point output
+    int *output_q,
+    const char *title,
+    float min,
+    float max)
+{
+    this->output_i = output_i;
+    this->output_f = output_f;
+    this->output_q = output_q;
+    this->title.assign(title);
+    this->plugin = plugin;
+    this->gui = gui;
+    this->x1 = x1;
+    this->x2 = x2;
+    this->x3 = x3;
+    this->text_w = text_w;
+    this->y = y;
+    this->min = min;
+    this->max = max;
+    fpot = 0;
+    ipot = 0;
+    qpot = 0;
+    text = 0;
+    precision = 2;
+}
+
+PluginParam::~PluginParam()
+{
+    if(fpot) delete fpot;
+    if(ipot) delete ipot;
+    if(qpot) delete qpot;
+    if(text) text;
+}
+
+
+void PluginParam::initialize()
+{
+    BC_Title *title_;
+    int y2 = y + 
+        (BC_Pot::calculate_h() - 
+        BC_Title::calculate_h(gui, _(title.c_str()), MEDIUMFONT)) / 2;
+    gui->add_tool(title_ = new BC_Title(x1, y2, _(title.c_str())));
+    
+    if(output_f)
+    {
+        gui->add_tool(fpot = new PluginFPot(this, x2, y));
+    }
+    
+    if(output_i)
+    {
+        gui->add_tool(ipot = new PluginIPot(this, x2, y));
+    }
+    
+    if(output_q)
+    {
+        gui->add_tool(qpot = new PluginQPot(this, x2, y));
+    }
+    
+    int y3 = y + 
+        (BC_Pot::calculate_h() - 
+        BC_TextBox::calculate_h(gui, MEDIUMFONT, 1, 1)) / 2;
+    if(output_i)
+    {
+        gui->add_tool(text = new PluginText(this, x3, y3, *output_i));
+    }
+    if(output_f)
+    {
+        gui->add_tool(text = new PluginText(this, x3, y3, *output_f));
+    }
+    if(output_q)
+    {
+        gui->add_tool(text = new PluginText(this, x3, y3, *output_q));
+    }
+    
+    set_precision(precision);
+}
+
+void PluginParam::update(int skip_text, int skip_pot)
+{
+    if(!skip_text)
+    {
+        if(output_i)
+        {
+            text->update((int64_t)*output_i);
+        }
+        if(output_q)
+        {
+            text->update((int64_t)*output_q);
+        }
+        if(output_f)
+        {
+            text->update((float)*output_f);
+        }
+    }
+    
+    if(!skip_pot)
+    {
+        if(ipot)
+        {
+            ipot->update((int64_t)*output_i);
+        }
+        if(qpot)
+        {
+            ipot->update((int64_t)*output_q);
+        }
+        if(fpot)
+        {
+            ipot->update((float)*output_f);
+        }
+    }
+}
+
+void PluginParam::set_precision(int digits)
+{
+    this->precision = digits;
+    if(fpot)
+    {
+        if(text)
+        {
+            text->set_precision(digits);
+        }
+
+        fpot->set_precision(1.0f / pow(10, digits));
+    }
+}
+
+
+PluginFPot::PluginFPot(PluginParam *param, int x, int y) 
+ : BC_FPot(x, 
+ 	y, 
+	*param->output_f, 
+	param->min, 
+	param->max)
+{
+    this->param = param;
+    set_use_caption(0);
+}
+
+int PluginFPot::handle_event()
+{
+	*param->output_f = get_value();
+    param->update(0, 1);
+	param->plugin->send_configure_change();
+    param->gui->param_updated();
+    return 1;
+}
+
+
+PluginIPot::PluginIPot(PluginParam *param, int x, int y)
+ : BC_IPot(x, 
+ 	y, 
+	*param->output_i, 
+	(int)param->min, 
+	(int)param->max)
+{
+    this->param = param;
+    set_use_caption(0);
+}
+
+int PluginIPot::handle_event()
+{
+	*param->output_i = get_value();
+    param->update(0, 1);
+	param->plugin->send_configure_change();
+    param->gui->param_updated();
+    return 1;
+}
+
+
+PluginQPot::PluginQPot(PluginParam *param, int x, int y)
+ : BC_QPot(x, 
+ 	y, 
+	*param->output_q)
+{
+    this->param = param;
+    set_use_caption(0);
+}
+
+int PluginQPot::handle_event()
+{
+	*param->output_q = get_value();
+    param->update(0, 1);
+	param->plugin->send_configure_change();
+    param->gui->param_updated();
+    return 1;
+}
+
+
+PluginText::PluginText(PluginParam *param, int x, int y, int value)
+ : BC_TextBox(x, 
+    y, 
+    param->text_w, 
+    1, 
+    (int64_t)value, 
+    1, 
+    MEDIUMFONT)
+{
+    this->param = param;
+}
+
+PluginText::PluginText(PluginParam *param, int x, int y, float value)
+ : BC_TextBox(x, 
+    y, 
+    param->text_w, 
+    1, 
+    (float)value, 
+    1, 
+    MEDIUMFONT, 
+    param->precision)
+{
+    this->param = param;
+}
+
+int PluginText::handle_event()
+{
+    if(param->output_i)
+    {
+        *param->output_i = atoi(get_text());
+    }
+
+    if(param->output_f)
+    {
+        *param->output_f = atof(get_text());
+    }
+
+    if(param->output_q)
+    {
+        *param->output_q = atoi(get_text());
+    }
+    
+    param->update(1, 0);
+    param->plugin->send_configure_change();
+    param->gui->param_updated();
+    return 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

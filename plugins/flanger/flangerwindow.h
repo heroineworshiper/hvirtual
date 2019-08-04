@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,38 @@
  * 
  */
 
-#ifndef PLUGINCLIENT_INC
-#define PLUGINCLIENT_INC
+#ifndef FLANGERWINDOW_H
+#define FLANGERWINDOW_H
 
-class PluginClient;
-class PluginClientFrame;
-class PluginClientThread;
-class PluginClientWindow;
-class PluginParam;
+
+#include "guicast.h"
+#include "pluginclient.h"
+#include "flanger.inc"
+
+
+
+
+class FlangerWindow : public PluginClientWindow
+{
+public:
+	FlangerWindow(Flanger *plugin);
+	~FlangerWindow();
+	
+	void create_objects();
+    void update();
+    void param_updated();
+
+	Flanger *plugin;
+    PluginParam *voices;
+    PluginParam *offset;
+    PluginParam *starting_phase;
+    PluginParam *depth;
+    PluginParam *rate;
+    PluginParam *wetness;
+};
+
+
+
+
 
 #endif

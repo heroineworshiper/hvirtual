@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,11 @@
  * 
  */
 
-#ifndef PLUGINCLIENT_INC
-#define PLUGINCLIENT_INC
+#ifndef PHASERWINDOW_INC
+#define PHASERWINDOW_INC
 
-class PluginClient;
-class PluginClientFrame;
-class PluginClientThread;
-class PluginClientWindow;
-class PluginParam;
+
+class PhaserThread;
+class PhaserWindow;
 
 #endif

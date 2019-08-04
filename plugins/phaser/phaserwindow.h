@@ -24,6 +24,7 @@
 
 #define TOTAL_PARAMS 9
 
+class ReverbThread;
 class ReverbWindow;
 class ReverbParam;
 

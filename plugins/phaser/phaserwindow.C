@@ -74,7 +74,7 @@ void ReverbWindow::create_objects()
         0,  // output_i
         &reverb->config.level_init, // output_f
         0, // output_q
-        "Initial signal level (db):",
+        "Initial signal level:",
         INFINITYGAIN, // min
         0); // max
     params[i]->initialize();
@@ -106,7 +106,7 @@ void ReverbWindow::create_objects()
         0,  // output_i
         &reverb->config.ref_level1, // output_f
         0, // output_q
-        "First reflection level (db):",
+        "First reflection level:",
         INFINITYGAIN, // min
         0); // max
     params[i]->initialize();
@@ -122,7 +122,7 @@ void ReverbWindow::create_objects()
         0,  // output_i
         &reverb->config.ref_level2, // output_f
         0, // output_q
-        "Last reflection level (db):",
+        "Last reflection level:",
         INFINITYGAIN, // min
         0); // max
     params[i]->initialize();
