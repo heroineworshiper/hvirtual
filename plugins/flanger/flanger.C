@@ -51,18 +51,24 @@ Flanger::Flanger(PluginServer *server)
 {
 	need_reconfigure = 1;
     dsp_in = 0;
+    voices = 0;
+    last_position = -1;
+    flanging_waveform = 0;
 }
 
 Flanger::~Flanger()
 {
     if(dsp_in)
     {
-		for(int i = 0; i < total_in_buffers; i++)
+		for(int i = 0; i < PluginClient::total_in_buffers; i++)
 		{
 			delete [] dsp_in[i];
         }
         delete [] dsp_in;
     }
+    
+    delete [] voices;
+    delete [] flanging_waveform;
 }
 
 const char* Flanger::plugin_title() { return N_("Flanger"); }
@@ -80,10 +86,32 @@ int Flanger::process_buffer(int64_t size,
     need_reconfigure |= load_configuration();
 
 
+    if(!voices)
+    {
+        voices = new Voice[PluginClient::total_in_buffers];
+    }
+
+    if(!dsp_in)
+    {
+        dsp_in = new double*[PluginClient::total_in_buffers];
+		for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		{
+ 			dsp_in[i] = 0;
+        }
+    }
+
 // reset after seeking
     if(last_position != start_position)
     {
         dsp_in_length = 0;
+        if(voices)
+        {
+// reset the accumulators
+            for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    {
+ 			    voices[i].accum = 0;
+            }
+        }
     }
 
 
@@ -91,11 +119,56 @@ int Flanger::process_buffer(int64_t size,
     {
         need_reconfigure = 0;
 
+        if(flanging_waveform)
+        {
+            delete [] flanging_waveform;
+        }
+
+// flanging waveform is a whole number of samples that repeats
+        flanging_period = (int)((double)sample_rate / rate);
+        flanging_waveform = new flange_sample_t[flanging_period];
+        double offset = 0;
+        for(int i = 0; i < flanging_period; i++)
+        {
+            double current_period = 1.0;
+            
+            offset += current_period;
+        }
+    }
+    
+// how much buffer to allocate
+    int new_allocation = size + (int)((config.offset + config.depth) * 
+        sample_rate / 
+        1000 + 1);
+    reallocate_dsp(size);
+
+
+// paint each voice
+    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+	{
+        
     }
 
 
-    
 
+
+
+// copy the DSP buffer to the output
+    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+    {
+        memcpy(buffer[i]->get_data(), dsp_in[i], size * sizeof(double));
+    }
+
+// shift the DSP buffer forward
+    int remane = dsp_in_allocated - size;
+    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+    {
+        memcpy(dsp_in[i], dsp_in[i] + size, remane * sizeof(double));
+        bzero(dsp_in[i] + remane, size * sizeof(double));
+    }
+
+    dsp_in_length -= size;
+    
     
     if(get_direction() == PLAY_FORWARD)
     {
@@ -121,10 +194,13 @@ void Flanger::reallocate_dsp(int new_dsp_allocated)
 		{
             double *old_dsp = dsp_in[i];
             double *new_dsp = new double[new_dsp_allocated];
-            memcpy(new_dsp, old_dsp, sizeof(double) * dsp_in_length);
+            if(old_dsp)
+            {
+                memcpy(new_dsp, old_dsp, sizeof(double) * dsp_in_length);
+                delete [] old_dsp;
+            }
             bzero(new_dsp + dsp_in_allocated, 
                 sizeof(double) * (new_dsp_allocated - dsp_in_allocated));
-            delete [] old_dsp;
             dsp_in[i] = new_dsp;
         }
         dsp_in_allocated = new_dsp_allocated;
@@ -201,7 +277,11 @@ void Flanger::update_gui()
 
 
 
-
+Voice::Voice()
+{
+    accum = 0;
+    phase = 0;
+}
 
 
 
@@ -249,11 +329,11 @@ void FlangerConfig::interpolate(FlangerConfig &prev,
 
 void FlangerConfig::boundaries()
 {
-	CLAMP(voices, 1, MAX_VOICES);
-	CLAMP(offset, 0, 1.0);
-	CLAMP(starting_phase, 0, 100);
-	CLAMP(depth, 0, 100);
-	CLAMP(rate, 0, 1.0);
+	CLAMP(voices, MIN_VOICES, MAX_VOICES);
+	CLAMP(offset, MIN_OFFSET, MAX_OFFSET);
+	CLAMP(starting_phase, MIN_STARTING_PHASE, MAX_STARTING_PHASE);
+	CLAMP(depth, MIN_DEPTH, MAX_DEPTH);
+	CLAMP(rate, MIN_RATE, MAX_RATE);
 	CLAMP(wetness, INFINITYGAIN, 0.0);
 }
 

@@ -144,7 +144,7 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 				config.input = input.tag.get_property("INPUT", config.input);
 			}
 			else
-			if(input.tag.title_is("LEVEL"))
+			if(input.tag.title_is("LEVEL2"))
 			{
 				double x = input.tag.get_property("X", (double)0);
 				double y = input.tag.get_property("Y", (double)0);
@@ -174,7 +174,7 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 
 	for(int i = 0; i < band_config->levels.total; i++)
 	{
-		output.tag.set_title("LEVEL");
+		output.tag.set_title("LEVEL2");
 		output.tag.set_property("X", band_config->levels.values[i].x);
 		output.tag.set_property("Y", band_config->levels.values[i].y);
 

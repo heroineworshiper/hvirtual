@@ -45,11 +45,11 @@ public:
 
 // 1 voice for a flange.  More voices for a chorus
     int voices;
-// phase offset in seconds
+// phase offset in ms
 	float offset;
 // starting position of oscillation in %
 	float starting_phase;
-// how much the phase oscillates
+// how much the phase oscillates in ms
 	float depth;
 // rate of phase oscillation in Hz
 	float rate;
@@ -58,7 +58,30 @@ public:
 };
 
 
+// state of a single voice
+class Voice
+{
+public:
+    Voice();
 
+// last sample being constructed
+    double accum;
+// phase in samples
+    double phase;
+// destination channel
+    int dst_channel;
+// source channel
+    int src_channel;
+};
+
+// each sample in the flanging waveform has 2 input offsets & 2 weights
+typedef struct 
+{
+    int input1;
+    int input2;
+    double weight1;
+    double weight2;
+} flange_sample_t;
 
 class Flanger : public PluginAClient
 {
@@ -86,12 +109,17 @@ public:
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
 
-// the output all reflections are painted on
+// the output all voices are painted on
 	double **dsp_in;
 // may have to expand it for fft windows larger than the reflected time
     int dsp_in_allocated;
 // total samples written into dsp_in
 	int dsp_in_length;
+
+    Voice *voices;
+// flanging waveform is a whole number of samples that repeats
+    int flanging_period;
+    flange_sample_t *flanging_waveform;
 
 // detect seeking
     int64_t last_position;

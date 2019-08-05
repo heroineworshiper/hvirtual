@@ -24,6 +24,16 @@
 
 
 class Flanger;
+
+#define MIN_RATE 0.1
+#define MAX_RATE 10.0
+#define MIN_OFFSET 0.0
+#define MAX_OFFSET 100.0
+#define MIN_DEPTH 0.0
+#define MAX_DEPTH 100.0
+#define MIN_VOICES 1
 #define MAX_VOICES 256
+#define MIN_STARTING_PHASE 0
+#define MAX_STARTING_PHASE 100
 
 #endif

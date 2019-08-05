@@ -29,7 +29,6 @@
 
 #include <string.h>
 
-#define TEXT_W DP(90)
 #define WINDOW_W DP(400)
 #define WINDOW_H DP(200)
 
@@ -58,9 +57,10 @@ void FlangerWindow::create_objects()
 {
 	int margin = client->get_theme()->widget_border;
     int x1 = margin;
-	int x2 = DP(200), y = margin;
+	int x2 = DP(230), y = margin;
     int x3 = x2 + BC_Pot::calculate_w() + margin;
     int x4 = x3 + BC_Pot::calculate_w() + margin;
+    int text_w = get_w() - margin - x4;
     int height = BC_TextBox::calculate_h(this, MEDIUMFONT, 1, 1) + margin;
 
 
@@ -70,12 +70,12 @@ void FlangerWindow::create_objects()
         x2,
         x4,
         y, 
-        TEXT_W,
+        text_w,
         &plugin->config.voices,  // output_i
         0, // output_f
         0, // output_q
         "Voices:",
-        1, // min
+        MIN_VOICES, // min
         MAX_VOICES); // max
     voices->initialize();
     y += height;
@@ -86,14 +86,14 @@ void FlangerWindow::create_objects()
         x3,
         x4,
         y, 
-        TEXT_W,
+        text_w,
         0,  // output_i
         &plugin->config.offset, // output_f
         0, // output_q
-        "Phase offset (seconds):",
-        0, // min
-        1); // max
-    offset->set_precision(4);
+        "Phase offset (ms):",
+        MIN_OFFSET, // min
+        MAX_OFFSET); // max
+    offset->set_precision(2);
     offset->initialize();
     y += height;
 
@@ -104,13 +104,14 @@ void FlangerWindow::create_objects()
         x2,
         x4,
         y, 
-        TEXT_W,
+        text_w,
         0,  // output_i
         &plugin->config.starting_phase, // output_f
         0, // output_q
         "Starting phase (%):",
-        0, // min
-        100); // max
+        MIN_STARTING_PHASE, // min
+        MAX_STARTING_PHASE); // max
+    offset->set_precision(2);
     starting_phase->initialize();
     y += height;
 
@@ -122,13 +123,14 @@ void FlangerWindow::create_objects()
         x3,
         x4,
         y, 
-        TEXT_W,
+        text_w,
         0,  // output_i
         &plugin->config.depth, // output_f
         0, // output_q
-        "Depth (%):",
-        0, // min
-        100); // max
+        "Depth (ms):",
+        MIN_DEPTH, // min
+        MAX_DEPTH); // max
+    offset->set_precision(2);
     depth->initialize();
     y += height;
 
@@ -140,13 +142,13 @@ void FlangerWindow::create_objects()
         x2,
         x4,
         y, 
-        TEXT_W,
+        text_w,
         0,  // output_i
         &plugin->config.rate, // output_f
         0, // output_q
         "Rate (Hz):",
-        0, // min
-        1); // max
+        MIN_RATE, // min
+        MAX_RATE); // max
     rate->initialize();
     y += height;
 
@@ -158,7 +160,7 @@ void FlangerWindow::create_objects()
         x3,
         x4,
         y, 
-        TEXT_W,
+        text_w,
         0,  // output_i
         &plugin->config.wetness, // output_f
         0, // output_q

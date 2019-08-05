@@ -58,9 +58,10 @@ ReverbWindow::~ReverbWindow()
 void ReverbWindow::create_objects()
 {
 	int margin = client->get_theme()->widget_border;
-	int x = DP(200), y = margin;
+	int x = DP(230), y = margin;
     int x1 = x + BC_Pot::calculate_w();
     int x2 = x1 + BC_Pot::calculate_w() + margin;
+    int text_w = get_w() - margin - x2;
     int height = BC_TextBox::calculate_h(this, MEDIUMFONT, 1, 1) + margin;
 
 
@@ -71,6 +72,7 @@ void ReverbWindow::create_objects()
         x,
         x2,
         y, 
+        text_w,
         0,  // output_i
         &reverb->config.level_init, // output_f
         0, // output_q
@@ -87,6 +89,7 @@ void ReverbWindow::create_objects()
         x1,
         x2,
         y, 
+        text_w,
         &reverb->config.delay_init,  // output_i
         0, // output_f
         0, // output_q
@@ -103,6 +106,7 @@ void ReverbWindow::create_objects()
         x,
         x2,
         y, 
+        text_w,
         0,  // output_i
         &reverb->config.ref_level1, // output_f
         0, // output_q
@@ -119,6 +123,7 @@ void ReverbWindow::create_objects()
         x1,
         x2,
         y, 
+        text_w,
         0,  // output_i
         &reverb->config.ref_level2, // output_f
         0, // output_q
@@ -135,6 +140,7 @@ void ReverbWindow::create_objects()
         x,
         x2,
         y, 
+        text_w,
         &reverb->config.ref_total,  // output_i
         0, // output_f
         0, // output_q
@@ -151,6 +157,7 @@ void ReverbWindow::create_objects()
         x1,
         x2,
         y, 
+        text_w,
         &reverb->config.ref_length,  // output_i
         0, // output_f
         0, // output_q
@@ -167,6 +174,7 @@ void ReverbWindow::create_objects()
         x,
         x2,
         y, 
+        text_w,
         0,  // output_i
         0, // output_f
         &reverb->config.low, // output_q
@@ -183,6 +191,7 @@ void ReverbWindow::create_objects()
         x1,
         x2,
         y, 
+        text_w,
         0,  // output_i
         0, // output_f
         &reverb->config.high, // output_q
@@ -199,6 +208,7 @@ void ReverbWindow::create_objects()
         x,
         x2,
         y, 
+        text_w,
         0,  // output_i
         &reverb->config.q, // output_f
         0, // output_q
@@ -322,6 +332,7 @@ ReverbParam::ReverbParam(Reverb *reverb,
     int x2,
     int x3,
     int y, 
+    int text_w,
     int *output_i, 
     float *output_f, // floating point output
     int *output_q,
@@ -339,6 +350,7 @@ ReverbParam::ReverbParam(Reverb *reverb,
     this->x2 = x2;
     this->x3 = x3;
     this->y = y;
+    this->text_w = text_w;
     this->min = min;
     this->max = max;
     fpot = 0;
@@ -384,15 +396,15 @@ void ReverbParam::initialize()
         BC_TextBox::calculate_h(gui, MEDIUMFONT, 1, 1)) / 2;
     if(output_i)
     {
-        gui->add_tool(text = new ReverbText(this, x3, y3, *output_i));
+        gui->add_tool(text = new ReverbText(this, x3, y3, text_w, *output_i));
     }
     if(output_f)
     {
-        gui->add_tool(text = new ReverbText(this, x3, y3, *output_f));
+        gui->add_tool(text = new ReverbText(this, x3, y3, text_w, *output_f));
     }
     if(output_q)
     {
-        gui->add_tool(text = new ReverbText(this, x3, y3, *output_q));
+        gui->add_tool(text = new ReverbText(this, x3, y3, text_w, *output_q));
     }
 }
 
@@ -494,14 +506,14 @@ int ReverbQPot::handle_event()
 }
 
 
-ReverbText::ReverbText(ReverbParam *param, int x, int y, int value)
- : BC_TextBox(x, y, TEXT_W, 1, (int64_t)value, 1, MEDIUMFONT)
+ReverbText::ReverbText(ReverbParam *param, int x, int y, int text_w, int value)
+ : BC_TextBox(x, y, text_w, 1, (int64_t)value, 1, MEDIUMFONT)
 {
     this->param = param;
 }
 
-ReverbText::ReverbText(ReverbParam *param, int x, int y, float value)
- : BC_TextBox(x, y, TEXT_W, 1, (float)value, 1, MEDIUMFONT, 2)
+ReverbText::ReverbText(ReverbParam *param, int x, int y, int text_w, float value)
+ : BC_TextBox(x, y, text_w, 1, (float)value, 1, MEDIUMFONT, 2)
 {
     this->param = param;
 }

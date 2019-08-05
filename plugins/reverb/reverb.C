@@ -320,10 +320,14 @@ void Reverb::reallocate_dsp(int new_dsp_allocated)
 		{
             double *old_dsp = dsp_in[i];
             double *new_dsp = new double[new_dsp_allocated];
-            memcpy(new_dsp, old_dsp, sizeof(double) * dsp_in_length);
+            
+            if(old_dsp)
+            {
+                memcpy(new_dsp, old_dsp, sizeof(double) * dsp_in_length);
+                delete [] old_dsp;
+            }
             bzero(new_dsp + dsp_in_allocated, 
                 sizeof(double) * (new_dsp_allocated - dsp_in_allocated));
-            delete [] old_dsp;
             dsp_in[i] = new_dsp;
         }
         dsp_in_allocated = new_dsp_allocated;

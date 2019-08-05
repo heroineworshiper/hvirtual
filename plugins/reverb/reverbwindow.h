@@ -121,8 +121,8 @@ public:
 class ReverbText : public BC_TextBox
 {
 public:
-    ReverbText(ReverbParam *param, int x, int y, int value);
-    ReverbText(ReverbParam *param, int x, int y, float value);
+    ReverbText(ReverbParam *param, int x, int y, int w, int value);
+    ReverbText(ReverbParam *param, int x, int y, int w, float value);
     int handle_event();
 	ReverbParam *param;
 };
@@ -136,6 +136,7 @@ public:
         int x2,
         int x3,
         int y, 
+        int text_w,
         int *output_i, 
         float *output_f, // floating point output
         int *output_q, // frequency output
@@ -165,6 +166,7 @@ public:
     int x2;
     int x3;
     int y;
+    int text_w;
     float min;
     float max;
 };
