@@ -55,7 +55,7 @@ Flanger::Flanger(PluginServer *server)
     last_position = -1;
     flanging_table = 0;
     history_buffer = 0;
-    history_allocated = 0;
+    history_size = 0;
     history_size = 0;
 }
 
@@ -97,11 +97,13 @@ int Flanger::process_buffer(int64_t size,
 {
     need_reconfigure |= load_configuration();
 
+PRINT_TRACE
 
     if(!voices)
     {
         voices = new Voice[PluginClient::total_in_buffers];
     }
+PRINT_TRACE
 
     if(!dsp_in)
     {
@@ -118,6 +120,7 @@ int Flanger::process_buffer(int64_t size,
         need_reconfigure = 1;
     }
 
+PRINT_TRACE
 
     if(need_reconfigure)
     {
@@ -196,11 +199,14 @@ int Flanger::process_buffer(int64_t size,
             prev_position + 
             config.starting_phase * table_size / 100) % table_size;
     }
+PRINT_TRACE
 
     reallocate_dsp(size);
+PRINT_TRACE
     reallocate_history((int)((config.offset + config.depth) * 
         sample_rate / 
         1000 + 1));
+PRINT_TRACE
 
 // read the input
 	for(int i = 0; i < PluginClient::total_in_buffers; i++)
@@ -213,6 +219,7 @@ int Flanger::process_buffer(int64_t size,
 	}
 
 
+PRINT_TRACE
 
 // paint the voices
     double wetness = DB::fromdb(config.wetness);
@@ -220,19 +227,30 @@ int Flanger::process_buffer(int64_t size,
     {
         wetness = 0;
     }
+PRINT_TRACE
 
     Voice *voice = &voices[0];
     for(int i = 0; i < PluginClient::total_in_buffers; i++)
 	{
+PRINT_TRACE
         double *output = dsp_in[i];
+PRINT_TRACE
         double *input = buffer[i]->get_data();
+PRINT_TRACE
 
 // input signal
-printf("Flanger::process_buffer %d wetness=%f\n", __LINE__, wetness);
+//printf("Flanger::process_buffer %d wetness=%f\n", __LINE__, wetness);
         for(int j = 0; j < size; j++)
         {
             output[j] = input[j] * wetness;
         }
+
+printf("Flanger::process_buffer %d start_position=%ld table_offset=%d table_size=%d size=%ld\n",
+__LINE__,
+start_position, 
+voice->table_offset,
+table_size,
+size);
 
 // delayed signal
         int table_offset = voice->table_offset;
@@ -251,8 +269,7 @@ printf("Flanger::process_buffer %d wetness=%f\n", __LINE__, wetness);
             double fraction2 = 1.0 - fraction1;
             if(input_sample1 < 0)
             {
-                sample1 = history_buffer[i][history_allocated + input_sample1];
-sample1 = 0;
+                sample1 = history_buffer[i][history_size + input_sample1];
             }
             else
             {
@@ -261,14 +278,14 @@ sample1 = 0;
 
             if(input_sample2 < 0)
             {
-                sample2 = history_buffer[i][history_allocated + input_sample2];
+                sample2 = history_buffer[i][history_size + input_sample2];
             }
             else
             {
                 sample2 = input[input_sample2];
             }
-//            output[j] += sample1 * fraction1 + sample2 * fraction2;
-            output[j] += sample1;
+            output[j] += sample1 * fraction1 + sample2 * fraction2;
+//            output[j] += sample1;
             
             table_offset++;
             table_offset %= table_size;
@@ -276,28 +293,30 @@ sample1 = 0;
         voice->table_offset = table_offset;
     }
 
-    int history_shift = history_allocated;
-    if(size < history_shift)
-    {
-        history_shift = size;
-    }
+PRINT_TRACE
 
     for(int i = 0; i < PluginClient::total_in_buffers; i++)
 	{
-// shift the history
-        if(history_shift < history_allocated)
+// history is bigger than input buffer.  Copy entire input buffer.
+        if(history_size > size)
         {
             memcpy(history_buffer[i], 
-                history_buffer[i] + history_shift,
-                (history_allocated - history_shift) * sizeof(double));
+                history_buffer[i] + size,
+                (history_size - size) * sizeof(double));
+            memcpy(history_buffer[i] + (history_size - size),
+                buffer[i]->get_data(),
+                size * sizeof(double));
         }
-
-// shift the input to the history
-        memcpy(history_buffer[i] + history_allocated - history_shift, 
-            buffer[i]->get_data(),
-            history_shift * sizeof(double));
+        else
+        {
+// input is bigger than history buffer.  Copy only history size
+           memcpy(history_buffer[i],
+                buffer[i]->get_data() + size - history_size,
+                history_size * sizeof(double));
+        }
     }
 
+PRINT_TRACE
 
 // copy the DSP buffer to the output
     for(int i = 0; i < PluginClient::total_in_buffers; i++)
@@ -305,6 +324,7 @@ sample1 = 0;
         memcpy(buffer[i]->get_data(), dsp_in[i], size * sizeof(double));
     }
 
+PRINT_TRACE
 
     if(get_direction() == PLAY_FORWARD)
     {
@@ -341,9 +361,9 @@ void Flanger::reallocate_dsp(int new_dsp_allocated)
     }
 }
 
-void Flanger::reallocate_history(int new_allocation)
+void Flanger::reallocate_history(int new_size)
 {
-    if(new_allocation != history_allocated)
+    if(new_size != history_size)
     {
 // copy samples already read into the new buffers
         for(int i = 0; i < PluginClient::total_in_buffers; i++)
@@ -354,17 +374,19 @@ void Flanger::reallocate_history(int new_allocation)
             {
                 old_history = history_buffer[i];
             }
-            double *new_history = new double[new_allocation];
+            double *new_history = new double[new_size];
+            bzero(new_history, sizeof(double) * new_size);
             if(old_history)
             {
-                memcpy(new_history, old_history + new_allocation - history_allocated, 
-                    sizeof(double) * history_allocated);
+                int copy_size = MIN(new_size, history_size);
+                memcpy(new_history, 
+                    old_history + history_size - copy_size, 
+                    sizeof(double) * copy_size);
                 delete [] old_history;
             }
-            bzero(new_history, sizeof(double) * (new_allocation - history_allocated));
             history_buffer[i] = new_history;
         }
-        history_allocated = new_allocation;
+        history_size = new_size;
     }
 }
 

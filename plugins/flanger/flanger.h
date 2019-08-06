@@ -109,7 +109,6 @@ public:
 	double **history_buffer;
 // Number of samples in the history buffer 
 	int64_t history_size;
-    int64_t history_allocated;
 
 // the temporary all voices are painted on
 	double **dsp_in;
