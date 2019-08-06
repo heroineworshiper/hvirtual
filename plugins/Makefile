@@ -18,6 +18,7 @@ DIRS = \
 	parametric \
 	aging \
 	cdripper \
+	chorus \
 	chromakey \
 	chromakeyhsv \
 	colorbalance \
@@ -41,6 +42,7 @@ DIRS = \
 	downsample \
 	edge \
 	fieldframe \
+	flanger \
 	flash \
 	flip \
 	framefield \

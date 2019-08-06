@@ -19,24 +19,26 @@
  * 
  */
 
+#include "chorus.h"
 #include "clip.h"
-#include "bcdisplayinfo.h"
+#include "confirmsave.h"
 #include "bchash.h"
 #include "bcsignals.h"
+#include "errorbox.h"
 #include "filexml.h"
-#include "flanger.h"
-#include "guicast.h"
 #include "language.h"
 #include "samples.h"
 #include "theme.h"
 #include "transportque.inc"
 #include "units.h"
 
+#include "vframe.h"
 
 #include <math.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+
 
 
 #define MIN_RATE 0.1
@@ -52,17 +54,17 @@
 
 
 
-
 PluginClient* new_plugin(PluginServer *server)
 {
-	return new Flanger(server);
+	return new Chorus(server);
 }
 
 
 
-Flanger::Flanger(PluginServer *server)
+Chorus::Chorus(PluginServer *server)
  : PluginAClient(server)
 {
+	srand(time(0));
 	need_reconfigure = 1;
     dsp_in = 0;
     dsp_in_allocated = 0;
@@ -74,7 +76,7 @@ Flanger::Flanger(PluginServer *server)
     history_size = 0;
 }
 
-Flanger::~Flanger()
+Chorus::~Chorus()
 {
     if(dsp_in)
     {
@@ -98,20 +100,20 @@ Flanger::~Flanger()
     delete [] flanging_table;
 }
 
-const char* Flanger::plugin_title() { return N_("Flanger"); }
-int Flanger::is_realtime() { return 1; }
-int Flanger::is_multichannel() { return 1; }
-int Flanger::is_synthesis() { return 0; }
-VFrame* Flanger::new_picon() { return 0; }
+const char* Chorus::plugin_title() { return N_("Chorus"); }
+int Chorus::is_realtime() { return 1; }
+int Chorus::is_multichannel() { return 1; }
+int Chorus::is_synthesis() { return 1; }
+VFrame* Chorus::new_picon() { return 0; }
 
 
-int Flanger::process_buffer(int64_t size, 
+int Chorus::process_buffer(int64_t size, 
 	Samples **buffer, 
 	int64_t start_position,
 	int sample_rate)
 {
     need_reconfigure |= load_configuration();
-// printf("Flanger::process_buffer %d start_position=%ld size=%ld\n",
+// printf("Chorus::process_buffer %d start_position=%ld size=%ld\n",
 // __LINE__,
 // start_position, 
 // size);
@@ -160,15 +162,15 @@ int Flanger::process_buffer(int64_t size,
 // read behind so the flange can work in realtime
         double ratio = (double)depth_samples /
             (table_size / 2);
-        double offset = config.offset * sample_rate / 1000;
-// printf("Flanger::process_buffer %d %f %f\n", 
+        double offset = config.offset1 * sample_rate / 1000;
+// printf("Chorus::process_buffer %d %f %f\n", 
 // __LINE__, 
 // depth_samples,
 // sample_rate / 2 - depth_samples);
         for(int i = 0; i <= table_size / 2; i++)
         {
             double input_sample = -i * ratio;
-// printf("Flanger::process_buffer %d i=%d input_sample=%f ratio=%f\n", 
+// printf("Chorus::process_buffer %d i=%d input_sample=%f ratio=%f\n", 
 // __LINE__, 
 // i, 
 // input_sample,
@@ -182,7 +184,7 @@ int Flanger::process_buffer(int64_t size,
             double input_sample = -ratio * (table_size - i);
             flanging_table[i].input_sample = input_sample;
             flanging_table[i].input_period = ratio;
-// printf("Flanger::process_buffer %d i=%d input_sample=%f ratio=%f\n", 
+// printf("Chorus::process_buffer %d i=%d input_sample=%f ratio=%f\n", 
 // __LINE__, 
 // i, 
 // input_sample,
@@ -217,7 +219,7 @@ int Flanger::process_buffer(int64_t size,
     }
 
     reallocate_dsp(size);
-    reallocate_history((int)((config.offset + config.depth) * 
+    reallocate_history((int)((config.offset1 + config.depth) * 
         sample_rate / 
         1000 + 1));
 
@@ -339,7 +341,9 @@ int Flanger::process_buffer(int64_t size,
 }
 
 
-void Flanger::reallocate_dsp(int new_dsp_allocated)
+
+
+void Chorus::reallocate_dsp(int new_dsp_allocated)
 {
     if(new_dsp_allocated > dsp_in_allocated)
     {
@@ -359,7 +363,7 @@ void Flanger::reallocate_dsp(int new_dsp_allocated)
     }
 }
 
-void Flanger::reallocate_history(int new_size)
+void Chorus::reallocate_history(int new_size)
 {
     if(new_size != history_size)
     {
@@ -389,33 +393,37 @@ void Flanger::reallocate_history(int new_size)
 }
 
 
-NEW_WINDOW_MACRO(Flanger, FlangerWindow)
-LOAD_CONFIGURATION_MACRO(Flanger, FlangerConfig)
 
 
-void Flanger::save_data(KeyFrame *keyframe)
+
+NEW_WINDOW_MACRO(Chorus, ChorusWindow)
+
+
+LOAD_CONFIGURATION_MACRO(Chorus, ChorusConfig)
+
+
+void Chorus::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
 
 // cause xml file to store data directly in text
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 
-	output.tag.set_title("FLANGER");
+	output.tag.set_title("CHORUS");
 	output.tag.set_property("VOICES", config.voices);
-	output.tag.set_property("OFFSET", config.offset);
+	output.tag.set_property("OFFSET1", config.offset1);
+	output.tag.set_property("OFFSET2", config.offset2);
 	output.tag.set_property("STARTING_PHASE", config.starting_phase);
 	output.tag.set_property("DEPTH", config.depth);
 	output.tag.set_property("RATE", config.rate);
 	output.tag.set_property("WETNESS", config.wetness);
 	output.append_tag();
 	output.append_newline();
-	
-	
-	
+
 	output.terminate_string();
 }
 
-void Flanger::read_data(KeyFrame *keyframe)
+void Chorus::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 // cause xml file to read directly from text
@@ -429,7 +437,8 @@ void Flanger::read_data(KeyFrame *keyframe)
 		if(input.tag.title_is("FLANGER"))
 		{
 			config.voices = input.tag.get_property("VOICES", config.voices);
-			config.offset = input.tag.get_property("OFFSET", config.offset);
+			config.offset1 = input.tag.get_property("OFFSET1", config.offset1);
+			config.offset2 = input.tag.get_property("OFFSET2", config.offset2);
 			config.starting_phase = input.tag.get_property("STARTING_PHASE", config.starting_phase);
 			config.depth = input.tag.get_property("DEPTH", config.depth);
 			config.rate = input.tag.get_property("RATE", config.rate);
@@ -440,63 +449,65 @@ void Flanger::read_data(KeyFrame *keyframe)
 	config.boundaries();
 }
 
-void Flanger::update_gui()
+void Chorus::update_gui()
 {
 	if(thread)
 	{
 		if(load_configuration())
 		{
-			thread->window->lock_window("Flanger::update_gui 1");
-            ((FlangerWindow*)thread->window)->update();
+			thread->window->lock_window("Chorus::update_gui 1");
+            ((ChorusWindow*)thread->window)->update();
 			thread->window->unlock_window();
-		}
+        }
 	}
 }
 
 
 
 
-Voice::Voice()
-{
-}
 
 
 
 
 
 
-FlangerConfig::FlangerConfig()
+
+
+ChorusConfig::ChorusConfig()
 {
 	voices = 1;
-	offset = 0.005;
+	offset1 = 0.005;
+	offset2 = 0.005;
 	starting_phase = 0;
 	depth = 0.001;
 	rate = 1.0;
 	wetness = 0;
 }
 
-int FlangerConfig::equivalent(FlangerConfig &that)
+int ChorusConfig::equivalent(ChorusConfig &that)
 {
 	return (voices == that.voices) &&
-		EQUIV(offset, that.offset) &&
+		EQUIV(offset1, that.offset1) &&
+		EQUIV(offset2, that.offset2) &&
 		EQUIV(starting_phase, that.starting_phase) &&
 		EQUIV(depth, that.depth) &&
 		EQUIV(rate, that.rate) &&
 		EQUIV(wetness, that.wetness);
 }
 
-void FlangerConfig::copy_from(FlangerConfig &that)
+void ChorusConfig::copy_from(ChorusConfig &that)
 {
 	voices = that.voices;
-	offset = that.offset;
+	offset1 = that.offset1;
+	offset2 = that.offset2;
 	starting_phase = that.starting_phase;
 	depth = that.depth;
 	rate = that.rate;
 	wetness = that.wetness;
 }
 
-void FlangerConfig::interpolate(FlangerConfig &prev, 
-	FlangerConfig &next, 
+void ChorusConfig::interpolate(ChorusConfig &prev, 
+	ChorusConfig &next, 
 	int64_t prev_frame, 
 	int64_t next_frame, 
 	int64_t current_frame)
@@ -504,10 +515,11 @@ void FlangerConfig::interpolate(FlangerConfig &prev,
 	copy_from(prev);
 }
 
-void FlangerConfig::boundaries()
+void ChorusConfig::boundaries()
 {
 	CLAMP(voices, MIN_VOICES, MAX_VOICES);
-	CLAMP(offset, MIN_OFFSET, MAX_OFFSET);
+	CLAMP(offset1, MIN_OFFSET, MAX_OFFSET);
+	CLAMP(offset2, MIN_OFFSET, MAX_OFFSET);
 	CLAMP(starting_phase, MIN_STARTING_PHASE, MAX_STARTING_PHASE);
 	CLAMP(depth, MIN_DEPTH, MAX_DEPTH);
 	CLAMP(rate, MIN_RATE, MAX_RATE);
@@ -521,10 +533,13 @@ void FlangerConfig::boundaries()
 
 
 
+
+
+
 #define WINDOW_W DP(400)
 #define WINDOW_H DP(200)
 
-FlangerWindow::FlangerWindow(Flanger *plugin)
+ChorusWindow::ChorusWindow(Chorus *plugin)
  : PluginClientWindow(plugin, 
 	WINDOW_W, 
 	WINDOW_H, 
@@ -535,19 +550,20 @@ FlangerWindow::FlangerWindow(Flanger *plugin)
 	this->plugin = plugin; 
 }
 
-FlangerWindow::~FlangerWindow()
+ChorusWindow::~ChorusWindow()
 {
     delete voices;
-    delete offset;
+    delete offset1;
+    delete offset2;
     delete starting_phase;
     delete depth;
     delete rate;
     delete wetness;
 }
 
-void FlangerWindow::create_objects()
+void ChorusWindow::create_objects()
 {
-	int margin = client->get_theme()->widget_border;
+	int margin = plugin->get_theme()->widget_border;
     int x1 = margin;
 	int x2 = DP(230), y = margin;
     int x3 = x2 + BC_Pot::calculate_w() + margin;
@@ -572,7 +588,7 @@ void FlangerWindow::create_objects()
     voices->initialize();
     y += height;
 
-    offset = new PluginParam(plugin,
+    offset1 = new PluginParam(plugin,
         this,
         x1, 
         x3,
@@ -580,13 +596,30 @@ void FlangerWindow::create_objects()
         y, 
         text_w,
         0,  // output_i
-        &plugin->config.offset, // output_f
+        &plugin->config.offset1, // output_f
         0, // output_q
-        "Phase offset (ms):",
+        "Starting phase offset (ms):",
         MIN_OFFSET, // min
         MAX_OFFSET); // max
-    offset->set_precision(2);
-    offset->initialize();
+    offset1->set_precision(2);
+    offset1->initialize();
+    y += height;
+
+    offset2 = new PluginParam(plugin,
+        this,
+        x1, 
+        x3,
+        x4,
+        y, 
+        text_w,
+        0,  // output_i
+        &plugin->config.offset2, // output_f
+        0, // output_q
+        "Ending phase offset (ms):",
+        MIN_OFFSET, // min
+        MAX_OFFSET); // max
+    offset2->set_precision(2);
+    offset2->initialize();
     y += height;
 
 
@@ -665,17 +698,30 @@ void FlangerWindow::create_objects()
 	show_window();
 }
 
-void FlangerWindow::update()
+void ChorusWindow::update()
 {
     voices->update(1, 1);
-    offset->update(1, 1);
+    offset1->update(1, 1);
+    offset2->update(1, 1);
     starting_phase->update(1, 1);
     depth->update(1, 1);
     rate->update(1, 1);
     wetness->update(1, 1);
 }
 
-void FlangerWindow::param_updated()
+void ChorusWindow::param_updated()
 {
 }
+
+
+
+
+
+
+
+
+
+
+
+
 

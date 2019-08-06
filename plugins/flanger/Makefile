@@ -1,7 +1,6 @@
 include ../../global_config
 
-OBJS = $(OBJDIR)/flanger.o  \
-	$(OBJDIR)/flangerwindow.o
+OBJS = $(OBJDIR)/flanger.o
 
 OUTPUT = $(PLUGIN_DIR)/flanger.plugin
 

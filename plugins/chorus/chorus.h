@@ -19,33 +19,35 @@
  * 
  */
 
-#ifndef FLANGER_H
-#define FLANGER_H
+#ifndef CHORUS_H
+#define CHORUS_H
 
-class Flanger;
+class Chorus;
 
 #include "pluginaclient.h"
 
-
-class FlangerConfig
+class ChorusConfig
 {
 public:
-	FlangerConfig();
+	ChorusConfig();
 
 
-	int equivalent(FlangerConfig &that);
-	void copy_from(FlangerConfig &that);
-	void interpolate(FlangerConfig &prev, 
-		FlangerConfig &next, 
+	int equivalent(ChorusConfig &that);
+	void copy_from(ChorusConfig &that);
+	void interpolate(ChorusConfig &prev, 
+		ChorusConfig &next, 
 		int64_t prev_frame, 
 		int64_t next_frame, 
 		int64_t current_frame);
 	void boundaries();
 
+
 // 1 voice for a flange.  More voices for a chorus
     int voices;
-// phase offset in ms
-	float offset;
+// starting phase offset in ms
+	float offset1;
+// ending phase offset in ms
+	float offset2;
 // starting position of oscillation in %
 	float starting_phase;
 // how much the phase oscillates in ms
@@ -55,7 +57,6 @@ public:
 // how much of input signal
 	float wetness;
 };
-
 
 // state of a single voice
 class Voice
@@ -71,6 +72,7 @@ public:
     int src_channel;
 };
 
+
 // each sample in the flanging waveform
 typedef struct 
 {
@@ -78,18 +80,19 @@ typedef struct
     double input_period;
 } flange_sample_t;
 
-class Flanger : public PluginAClient
+
+class Chorus : public PluginAClient
 {
 public:
-	Flanger(PluginServer *server);
-	~Flanger();
+	Chorus(PluginServer *server);
+	~Chorus();
 
 	void update_gui();
 
 
 
 // required for all realtime/multichannel plugins
-	PLUGIN_CLASS_MEMBERS(FlangerConfig);
+	PLUGIN_CLASS_MEMBERS(ChorusConfig);
     int process_buffer(int64_t size, 
 	    Samples **buffer, 
 	    int64_t start_position,
@@ -126,20 +129,20 @@ public:
 
 
 
-
-class FlangerWindow : public PluginClientWindow
+class ChorusWindow : public PluginClientWindow
 {
 public:
-	FlangerWindow(Flanger *plugin);
-	~FlangerWindow();
+	ChorusWindow(Chorus *plugin);
+	~ChorusWindow();
 	
 	void create_objects();
     void update();
     void param_updated();
 
-	Flanger *plugin;
+	Chorus *plugin;
     PluginParam *voices;
-    PluginParam *offset;
+    PluginParam *offset1;
+    PluginParam *offset2;
     PluginParam *starting_phase;
     PluginParam *depth;
     PluginParam *rate;
