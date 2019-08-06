@@ -42,8 +42,6 @@ public:
 		int64_t current_frame);
 	void boundaries();
 
-// 1 voice for a flange.  More voices for a chorus
-    int voices;
 // phase offset in ms
 	float offset;
 // starting position of oscillation in %
@@ -65,10 +63,6 @@ public:
 
 // position in the waveform table
     int table_offset;
-// destination channel
-    int dst_channel;
-// source channel
-    int src_channel;
 };
 
 // each sample in the flanging waveform
@@ -91,7 +85,7 @@ public:
 // required for all realtime/multichannel plugins
 	PLUGIN_CLASS_MEMBERS(FlangerConfig);
     int process_buffer(int64_t size, 
-	    Samples **buffer, 
+	    Samples *buffer, 
 	    int64_t start_position,
 	    int sample_rate);
     void reallocate_dsp(int new_dsp_allocated);
@@ -103,15 +97,15 @@ public:
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
 
-	double **history_buffer;
+	double *history_buffer;
 // Number of samples in the history buffer 
 	int64_t history_size;
 
 // the temporary all voices are painted on
-	double **dsp_in;
+	double *dsp_in;
     int dsp_in_allocated;
 
-    Voice *voices;
+    Voice voice;
 // flanging table is a whole number of samples that repeats
 // always an even number
     int table_size;
@@ -138,7 +132,6 @@ public:
     void param_updated();
 
 	Flanger *plugin;
-    PluginParam *voices;
     PluginParam *offset;
     PluginParam *starting_phase;
     PluginParam *depth;

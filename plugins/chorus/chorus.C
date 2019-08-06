@@ -49,8 +49,6 @@
 #define MAX_DEPTH 100.0
 #define MIN_VOICES 1
 #define MAX_VOICES 256
-#define MIN_STARTING_PHASE 0
-#define MAX_STARTING_PHASE 100
 
 
 
@@ -119,11 +117,6 @@ int Chorus::process_buffer(int64_t size,
 // size);
 
 
-    if(!voices)
-    {
-        voices = new Voice[PluginClient::total_in_buffers];
-    }
-
     if(!dsp_in)
     {
         dsp_in = new double*[PluginClient::total_in_buffers];
@@ -133,14 +126,8 @@ int Chorus::process_buffer(int64_t size,
         }
     }
 
-// reset after seeking
-    if(last_position != start_position)
-    {
-        need_reconfigure = 1;
-    }
-
-
-    if(need_reconfigure)
+// reset after seeking & configuring
+    if(last_position != start_position || need_reconfigure)
     {
         need_reconfigure = 0;
 
@@ -162,7 +149,6 @@ int Chorus::process_buffer(int64_t size,
 // read behind so the flange can work in realtime
         double ratio = (double)depth_samples /
             (table_size / 2);
-        double offset = config.offset1 * sample_rate / 1000;
 // printf("Chorus::process_buffer %d %f %f\n", 
 // __LINE__, 
 // depth_samples,
@@ -201,9 +187,8 @@ int Chorus::process_buffer(int64_t size,
             }
         }
         history_size = 0;
-        Voice *voice = &voices[0];
 
-// keyframe position
+// compute the phase position from the keyframe position & the phase offset
 		int64_t prev_position = edl_to_local(
 			get_prev_keyframe(
 				get_source_position())->position);
@@ -213,15 +198,39 @@ int Chorus::process_buffer(int64_t size,
 			prev_position = get_source_start();
 		}
 
-        voice->table_offset = (int64_t)(start_position - 
-            prev_position + 
-            config.starting_phase * table_size / 100) % table_size;
+        if(voices)
+        {
+            delete [] voices;
+            voices = 0;
+        }
+        
+        if(!voices)
+        {
+            voices = new Voice[total_voices()];
+        }
+        
+        for(int i = 0; i < total_voices(); i++)
+        {
+            Voice *voice = &voices[i];
+            voice->src_channel = i / config.voices;
+            voice->dst_channel = i % PluginClient::total_in_buffers;
+
+// randomize the starting phase
+            voice->table_offset = (int64_t)(start_position - 
+                prev_position + 
+                (rand() % table_size)) % table_size;
+// printf("Chorus::process_buffer %d i=%d src=%d dst=%d\n",
+// __LINE__,
+// i,
+// voice->src_channel,
+// voice->dst_channel);
+        }
     }
 
+    int starting_offset = (int)(config.offset * sample_rate / 1000);
+    int depth_offset = (int)(config.depth * sample_rate / 1000);
     reallocate_dsp(size);
-    reallocate_history((int)((config.offset1 + config.depth) * 
-        sample_rate / 
-        1000 + 1));
+    reallocate_history(starting_offset + depth_offset + 1);
 
 // read the input
 	for(int i = 0; i < PluginClient::total_in_buffers; i++)
@@ -242,25 +251,35 @@ int Chorus::process_buffer(int64_t size,
         wetness = 0;
     }
 
-    Voice *voice = &voices[0];
+// input signal
     for(int i = 0; i < PluginClient::total_in_buffers; i++)
-	{
+    {
         double *output = dsp_in[i];
         double *input = buffer[i]->get_data();
-
-// input signal
         for(int j = 0; j < size; j++)
         {
             output[j] = input[j] * wetness;
         }
+    }
 
+// delayed signals
+    for(int i = 0; i < total_voices(); i++)
+    {
+        Voice *voice = &voices[i];
+        double *output = dsp_in[voice->dst_channel];
+        double *input = buffer[voice->src_channel]->get_data();
+        double *history = history_buffer[voice->src_channel];
+// 
+// printf("Chorus::process_buffer %d table_offset=%d table=%f\n", 
+// __LINE__, 
+// voice->table_offset, 
+// flanging_table[table_size / 2].input_sample);
 
-// delayed signal
         int table_offset = voice->table_offset;
         for(int j = 0; j < size; j++)
         {
             flange_sample_t *table = &flanging_table[table_offset];
-            double input_sample = j + table->input_sample;
+            double input_sample = j - starting_offset + table->input_sample;
             double input_period = table->input_period;
 
 // values to interpolate
@@ -272,7 +291,7 @@ int Chorus::process_buffer(int64_t size,
             double fraction2 = 1.0 - fraction1;
             if(input_sample1 < 0)
             {
-                sample1 = history_buffer[i][history_size + input_sample1];
+                sample1 = history[history_size + input_sample1];
             }
             else
             {
@@ -281,14 +300,13 @@ int Chorus::process_buffer(int64_t size,
 
             if(input_sample2 < 0)
             {
-                sample2 = history_buffer[i][history_size + input_sample2];
+                sample2 = history[history_size + input_sample2];
             }
             else
             {
                 sample2 = input[input_sample2];
             }
             output[j] += sample1 * fraction1 + sample2 * fraction2;
-//            output[j] += sample1;
             
             table_offset++;
             table_offset %= table_size;
@@ -341,6 +359,10 @@ int Chorus::process_buffer(int64_t size,
 }
 
 
+int Chorus::total_voices()
+{
+    return PluginClient::total_in_buffers * config.voices;
+}
 
 
 void Chorus::reallocate_dsp(int new_dsp_allocated)
@@ -359,7 +381,6 @@ void Chorus::reallocate_dsp(int new_dsp_allocated)
             dsp_in[i] = new_dsp;
         }
         dsp_in_allocated = new_dsp_allocated;
-//printf("Reverb::reallocate_dsp %d dsp_in_allocated=%d\n", __LINE__, dsp_in_allocated);
     }
 }
 
@@ -411,9 +432,7 @@ void Chorus::save_data(KeyFrame *keyframe)
 
 	output.tag.set_title("CHORUS");
 	output.tag.set_property("VOICES", config.voices);
-	output.tag.set_property("OFFSET1", config.offset1);
-	output.tag.set_property("OFFSET2", config.offset2);
-	output.tag.set_property("STARTING_PHASE", config.starting_phase);
+	output.tag.set_property("OFFSET", config.offset);
 	output.tag.set_property("DEPTH", config.depth);
 	output.tag.set_property("RATE", config.rate);
 	output.tag.set_property("WETNESS", config.wetness);
@@ -434,12 +453,10 @@ void Chorus::read_data(KeyFrame *keyframe)
 
 	if(!result)
 	{
-		if(input.tag.title_is("FLANGER"))
+		if(input.tag.title_is("CHORUS"))
 		{
 			config.voices = input.tag.get_property("VOICES", config.voices);
-			config.offset1 = input.tag.get_property("OFFSET1", config.offset1);
-			config.offset2 = input.tag.get_property("OFFSET2", config.offset2);
-			config.starting_phase = input.tag.get_property("STARTING_PHASE", config.starting_phase);
+			config.offset = input.tag.get_property("OFFSET", config.offset);
 			config.depth = input.tag.get_property("DEPTH", config.depth);
 			config.rate = input.tag.get_property("RATE", config.rate);
 			config.wetness = input.tag.get_property("WETNESS", config.wetness);
@@ -469,16 +486,16 @@ void Chorus::update_gui()
 
 
 
-
+Voice::Voice()
+{
+}
 
 
 
 ChorusConfig::ChorusConfig()
 {
 	voices = 1;
-	offset1 = 0.005;
-	offset2 = 0.005;
-	starting_phase = 0;
+	offset = 0.005;
 	depth = 0.001;
 	rate = 1.0;
 	wetness = 0;
@@ -487,9 +504,7 @@ ChorusConfig::ChorusConfig()
 int ChorusConfig::equivalent(ChorusConfig &that)
 {
 	return (voices == that.voices) &&
-		EQUIV(offset1, that.offset1) &&
-		EQUIV(offset2, that.offset2) &&
-		EQUIV(starting_phase, that.starting_phase) &&
+		EQUIV(offset, that.offset) &&
 		EQUIV(depth, that.depth) &&
 		EQUIV(rate, that.rate) &&
 		EQUIV(wetness, that.wetness);
@@ -498,9 +513,7 @@ int ChorusConfig::equivalent(ChorusConfig &that)
 void ChorusConfig::copy_from(ChorusConfig &that)
 {
 	voices = that.voices;
-	offset1 = that.offset1;
-	offset2 = that.offset2;
-	starting_phase = that.starting_phase;
+	offset = that.offset;
 	depth = that.depth;
 	rate = that.rate;
 	wetness = that.wetness;
@@ -518,9 +531,7 @@ void ChorusConfig::interpolate(ChorusConfig &prev,
 void ChorusConfig::boundaries()
 {
 	CLAMP(voices, MIN_VOICES, MAX_VOICES);
-	CLAMP(offset1, MIN_OFFSET, MAX_OFFSET);
-	CLAMP(offset2, MIN_OFFSET, MAX_OFFSET);
-	CLAMP(starting_phase, MIN_STARTING_PHASE, MAX_STARTING_PHASE);
+	CLAMP(offset, MIN_OFFSET, MAX_OFFSET);
 	CLAMP(depth, MIN_DEPTH, MAX_DEPTH);
 	CLAMP(rate, MIN_RATE, MAX_RATE);
 	CLAMP(wetness, INFINITYGAIN, 0.0);
@@ -553,9 +564,7 @@ ChorusWindow::ChorusWindow(Chorus *plugin)
 ChorusWindow::~ChorusWindow()
 {
     delete voices;
-    delete offset1;
-    delete offset2;
-    delete starting_phase;
+    delete offset;
     delete depth;
     delete rate;
     delete wetness;
@@ -588,7 +597,7 @@ void ChorusWindow::create_objects()
     voices->initialize();
     y += height;
 
-    offset1 = new PluginParam(plugin,
+    offset = new PluginParam(plugin,
         this,
         x1, 
         x3,
@@ -596,56 +605,20 @@ void ChorusWindow::create_objects()
         y, 
         text_w,
         0,  // output_i
-        &plugin->config.offset1, // output_f
+        &plugin->config.offset, // output_f
         0, // output_q
-        "Starting phase offset (ms):",
+        "Phase offset (ms):",
         MIN_OFFSET, // min
         MAX_OFFSET); // max
-    offset1->set_precision(2);
-    offset1->initialize();
+    offset->set_precision(2);
+    offset->initialize();
     y += height;
-
-    offset2 = new PluginParam(plugin,
-        this,
-        x1, 
-        x3,
-        x4,
-        y, 
-        text_w,
-        0,  // output_i
-        &plugin->config.offset2, // output_f
-        0, // output_q
-        "Ending phase offset (ms):",
-        MIN_OFFSET, // min
-        MAX_OFFSET); // max
-    offset2->set_precision(2);
-    offset2->initialize();
-    y += height;
-
-
-    starting_phase = new PluginParam(plugin,
-        this,
-        x1, 
-        x2,
-        x4,
-        y, 
-        text_w,
-        0,  // output_i
-        &plugin->config.starting_phase, // output_f
-        0, // output_q
-        "Starting phase (%):",
-        MIN_STARTING_PHASE, // min
-        MAX_STARTING_PHASE); // max
-    starting_phase->set_precision(2);
-    starting_phase->initialize();
-    y += height;
-
 
 
     depth = new PluginParam(plugin,
         this,
         x1, 
-        x3,
+        x2,
         x4,
         y, 
         text_w,
@@ -664,7 +637,7 @@ void ChorusWindow::create_objects()
     rate = new PluginParam(plugin,
         this,
         x1, 
-        x2,
+        x3,
         x4,
         y, 
         text_w,
@@ -682,7 +655,7 @@ void ChorusWindow::create_objects()
     wetness = new PluginParam(plugin,
         this,
         x1, 
-        x3,
+        x2,
         x4,
         y, 
         text_w,
@@ -701,9 +674,7 @@ void ChorusWindow::create_objects()
 void ChorusWindow::update()
 {
     voices->update(1, 1);
-    offset1->update(1, 1);
-    offset2->update(1, 1);
-    starting_phase->update(1, 1);
+    offset->update(1, 1);
     depth->update(1, 1);
     rate->update(1, 1);
     wetness->update(1, 1);

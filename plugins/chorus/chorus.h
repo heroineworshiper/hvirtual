@@ -42,14 +42,10 @@ public:
 	void boundaries();
 
 
-// 1 voice for a flange.  More voices for a chorus
+// number of voices per channel to be rendered
     int voices;
 // starting phase offset in ms
-	float offset1;
-// ending phase offset in ms
-	float offset2;
-// starting position of oscillation in %
-	float starting_phase;
+	float offset;
 // how much the phase oscillates in ms
 	float depth;
 // rate of phase oscillation in Hz
@@ -66,10 +62,10 @@ public:
 
 // position in the waveform table
     int table_offset;
-// destination channel
-    int dst_channel;
 // source channel
     int src_channel;
+// destination channel
+    int dst_channel;
 };
 
 
@@ -99,6 +95,7 @@ public:
 	    int sample_rate);
     void reallocate_dsp(int new_dsp_allocated);
     void reallocate_history(int new_allocation);
+    int total_voices();
 
 	int is_realtime();
 	int is_synthesis();
@@ -141,9 +138,7 @@ public:
 
 	Chorus *plugin;
     PluginParam *voices;
-    PluginParam *offset1;
-    PluginParam *offset2;
-    PluginParam *starting_phase;
+    PluginParam *offset;
     PluginParam *depth;
     PluginParam *rate;
     PluginParam *wetness;

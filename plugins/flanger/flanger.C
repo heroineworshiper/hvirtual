@@ -45,12 +45,8 @@
 #define MAX_OFFSET 100.0
 #define MIN_DEPTH 0.0
 #define MAX_DEPTH 100.0
-#define MIN_VOICES 1
-#define MAX_VOICES 256
 #define MIN_STARTING_PHASE 0
 #define MAX_STARTING_PHASE 100
-
-
 
 
 PluginClient* new_plugin(PluginServer *server)
@@ -66,7 +62,6 @@ Flanger::Flanger(PluginServer *server)
 	need_reconfigure = 1;
     dsp_in = 0;
     dsp_in_allocated = 0;
-    voices = 0;
     last_position = -1;
     flanging_table = 0;
     table_size = 0;
@@ -78,35 +73,26 @@ Flanger::~Flanger()
 {
     if(dsp_in)
     {
-		for(int i = 0; i < PluginClient::total_in_buffers; i++)
-		{
-			delete [] dsp_in[i];
-        }
         delete [] dsp_in;
     }
-    
+
     if(history_buffer)
     {
-        for(int i = 0; i < PluginClient::total_in_buffers; i++)
-		{
-			delete [] history_buffer[i];
-        }
         delete [] history_buffer;
     }
-    
-    delete [] voices;
+
     delete [] flanging_table;
 }
 
 const char* Flanger::plugin_title() { return N_("Flanger"); }
 int Flanger::is_realtime() { return 1; }
-int Flanger::is_multichannel() { return 1; }
+int Flanger::is_multichannel() { return 0; }
 int Flanger::is_synthesis() { return 0; }
 VFrame* Flanger::new_picon() { return 0; }
 
 
 int Flanger::process_buffer(int64_t size, 
-	Samples **buffer, 
+	Samples *buffer, 
 	int64_t start_position,
 	int sample_rate)
 {
@@ -117,28 +103,9 @@ int Flanger::process_buffer(int64_t size,
 // size);
 
 
-    if(!voices)
-    {
-        voices = new Voice[PluginClient::total_in_buffers];
-    }
 
-    if(!dsp_in)
-    {
-        dsp_in = new double*[PluginClient::total_in_buffers];
-		for(int i = 0; i < PluginClient::total_in_buffers; i++)
-		{
- 			dsp_in[i] = 0;
-        }
-    }
-
-// reset after seeking
-    if(last_position != start_position)
-    {
-        need_reconfigure = 1;
-    }
-
-
-    if(need_reconfigure)
+// reset after seeking & configuring
+    if(last_position != start_position || need_reconfigure)
     {
         need_reconfigure = 0;
 
@@ -160,7 +127,6 @@ int Flanger::process_buffer(int64_t size,
 // read behind so the flange can work in realtime
         double ratio = (double)depth_samples /
             (table_size / 2);
-        double offset = config.offset * sample_rate / 1000;
 // printf("Flanger::process_buffer %d %f %f\n", 
 // __LINE__, 
 // depth_samples,
@@ -190,18 +156,8 @@ int Flanger::process_buffer(int64_t size,
         }
 
 
-        if(!history_buffer)
-        {
-            history_buffer = new double*[PluginClient::total_in_buffers];
-            for(int i = 0; i < PluginClient::total_in_buffers; i++)
-            {
-                history_buffer[i] = 0;
-            }
-        }
-        history_size = 0;
-        Voice *voice = &voices[0];
 
-// keyframe position
+// compute the phase position from the keyframe position & the phase offset
 		int64_t prev_position = edl_to_local(
 			get_prev_keyframe(
 				get_source_position())->position);
@@ -211,25 +167,22 @@ int Flanger::process_buffer(int64_t size,
 			prev_position = get_source_start();
 		}
 
-        voice->table_offset = (int64_t)(start_position - 
+        voice.table_offset = (int64_t)(start_position - 
             prev_position + 
             config.starting_phase * table_size / 100) % table_size;
     }
 
+    int starting_offset = (int)(config.offset * sample_rate / 1000);
+    int depth_offset = (int)(config.depth * sample_rate / 1000);
     reallocate_dsp(size);
-    reallocate_history((int)((config.offset + config.depth) * 
-        sample_rate / 
-        1000 + 1));
+    reallocate_history(starting_offset + depth_offset + 1);
 
 // read the input
-	for(int i = 0; i < PluginClient::total_in_buffers; i++)
-	{
-		read_samples(buffer[i],
-			i,
-			sample_rate,
-			start_position,
-			size);
-	}
+	read_samples(buffer,
+		0,
+		sample_rate,
+		start_position,
+		size);
 
 
 
@@ -240,88 +193,77 @@ int Flanger::process_buffer(int64_t size,
         wetness = 0;
     }
 
-    Voice *voice = &voices[0];
-    for(int i = 0; i < PluginClient::total_in_buffers; i++)
-	{
-        double *output = dsp_in[i];
-        double *input = buffer[i]->get_data();
+    double *output = dsp_in;
+    double *input = buffer->get_data();
 
 // input signal
-        for(int j = 0; j < size; j++)
-        {
-            output[j] = input[j] * wetness;
-        }
-
-
-// delayed signal
-        int table_offset = voice->table_offset;
-        for(int j = 0; j < size; j++)
-        {
-            flange_sample_t *table = &flanging_table[table_offset];
-            double input_sample = j + table->input_sample;
-            double input_period = table->input_period;
-
-// values to interpolate
-            double sample1;
-            double sample2;
-            int input_sample1 = (int)(input_sample);
-            int input_sample2 = (int)(input_sample + 1);
-            double fraction1 = (double)((int)(input_sample + 1)) - input_sample;
-            double fraction2 = 1.0 - fraction1;
-            if(input_sample1 < 0)
-            {
-                sample1 = history_buffer[i][history_size + input_sample1];
-            }
-            else
-            {
-                sample1 = input[input_sample1];
-            }
-
-            if(input_sample2 < 0)
-            {
-                sample2 = history_buffer[i][history_size + input_sample2];
-            }
-            else
-            {
-                sample2 = input[input_sample2];
-            }
-            output[j] += sample1 * fraction1 + sample2 * fraction2;
-//            output[j] += sample1;
-            
-            table_offset++;
-            table_offset %= table_size;
-        }
-        voice->table_offset = table_offset;
+    for(int j = 0; j < size; j++)
+    {
+        output[j] = input[j] * wetness;
     }
 
 
-    for(int i = 0; i < PluginClient::total_in_buffers; i++)
-	{
-// history is bigger than input buffer.  Copy entire input buffer.
-        if(history_size > size)
+// delayed signal
+    int table_offset = voice.table_offset;
+    for(int j = 0; j < size; j++)
+    {
+        flange_sample_t *table = &flanging_table[table_offset];
+        double input_sample = j - starting_offset + table->input_sample;
+        double input_period = table->input_period;
+
+// values to interpolate
+        double sample1;
+        double sample2;
+        int input_sample1 = (int)(input_sample);
+        int input_sample2 = (int)(input_sample + 1);
+        double fraction1 = (double)((int)(input_sample + 1)) - input_sample;
+        double fraction2 = 1.0 - fraction1;
+        if(input_sample1 < 0)
         {
-            memcpy(history_buffer[i], 
-                history_buffer[i] + size,
-                (history_size - size) * sizeof(double));
-            memcpy(history_buffer[i] + (history_size - size),
-                buffer[i]->get_data(),
-                size * sizeof(double));
+            sample1 = history_buffer[history_size + input_sample1];
         }
         else
         {
-// input is bigger than history buffer.  Copy only history size
-           memcpy(history_buffer[i],
-                buffer[i]->get_data() + size - history_size,
-                history_size * sizeof(double));
+            sample1 = input[input_sample1];
         }
+
+        if(input_sample2 < 0)
+        {
+            sample2 = history_buffer[history_size + input_sample2];
+        }
+        else
+        {
+            sample2 = input[input_sample2];
+        }
+        output[j] += sample1 * fraction1 + sample2 * fraction2;
+
+        table_offset++;
+        table_offset %= table_size;
+    }
+    voice.table_offset = table_offset;
+
+
+// history is bigger than input buffer.  Copy entire input buffer.
+    if(history_size > size)
+    {
+        memcpy(history_buffer, 
+            history_buffer + size,
+            (history_size - size) * sizeof(double));
+        memcpy(history_buffer + (history_size - size),
+            buffer->get_data(),
+            size * sizeof(double));
+    }
+    else
+    {
+// input is bigger than history buffer.  Copy only history size
+       memcpy(history_buffer,
+            buffer->get_data() + size - history_size,
+            history_size * sizeof(double));
     }
 
 
 // copy the DSP buffer to the output
-    for(int i = 0; i < PluginClient::total_in_buffers; i++)
-    {
-        memcpy(buffer[i]->get_data(), dsp_in[i], size * sizeof(double));
-    }
+    memcpy(buffer->get_data(), dsp_in, size * sizeof(double));
 
 
     if(get_direction() == PLAY_FORWARD)
@@ -343,19 +285,12 @@ void Flanger::reallocate_dsp(int new_dsp_allocated)
 {
     if(new_dsp_allocated > dsp_in_allocated)
     {
-// copy samples already read into the new buffers
-        for(int i = 0; i < PluginClient::total_in_buffers; i++)
-		{
-            double *old_dsp = dsp_in[i];
-            double *new_dsp = new double[new_dsp_allocated];
-            if(old_dsp)
-            {
-                delete [] old_dsp;
-            }
-            dsp_in[i] = new_dsp;
+        if(dsp_in)
+        {
+            delete [] dsp_in;
         }
+        dsp_in = new double[new_dsp_allocated];
         dsp_in_allocated = new_dsp_allocated;
-//printf("Reverb::reallocate_dsp %d dsp_in_allocated=%d\n", __LINE__, dsp_in_allocated);
     }
 }
 
@@ -364,26 +299,17 @@ void Flanger::reallocate_history(int new_size)
     if(new_size != history_size)
     {
 // copy samples already read into the new buffers
-        for(int i = 0; i < PluginClient::total_in_buffers; i++)
-		{
-            double *old_history = 0;
-            
-            if(history_buffer)
-            {
-                old_history = history_buffer[i];
-            }
-            double *new_history = new double[new_size];
-            bzero(new_history, sizeof(double) * new_size);
-            if(old_history)
-            {
-                int copy_size = MIN(new_size, history_size);
-                memcpy(new_history, 
-                    old_history + history_size - copy_size, 
-                    sizeof(double) * copy_size);
-                delete [] old_history;
-            }
-            history_buffer[i] = new_history;
+        double *new_history = new double[new_size];
+        bzero(new_history, sizeof(double) * new_size);
+        if(history_buffer)
+        {
+            int copy_size = MIN(new_size, history_size);
+            memcpy(new_history, 
+                history_buffer + history_size - copy_size, 
+                sizeof(double) * copy_size);
+            delete [] history_buffer;
         }
+        history_buffer = new_history;
         history_size = new_size;
     }
 }
@@ -401,7 +327,6 @@ void Flanger::save_data(KeyFrame *keyframe)
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 
 	output.tag.set_title("FLANGER");
-	output.tag.set_property("VOICES", config.voices);
 	output.tag.set_property("OFFSET", config.offset);
 	output.tag.set_property("STARTING_PHASE", config.starting_phase);
 	output.tag.set_property("DEPTH", config.depth);
@@ -428,7 +353,6 @@ void Flanger::read_data(KeyFrame *keyframe)
 	{
 		if(input.tag.title_is("FLANGER"))
 		{
-			config.voices = input.tag.get_property("VOICES", config.voices);
 			config.offset = input.tag.get_property("OFFSET", config.offset);
 			config.starting_phase = input.tag.get_property("STARTING_PHASE", config.starting_phase);
 			config.depth = input.tag.get_property("DEPTH", config.depth);
@@ -467,7 +391,6 @@ Voice::Voice()
 
 FlangerConfig::FlangerConfig()
 {
-	voices = 1;
 	offset = 0.005;
 	starting_phase = 0;
 	depth = 0.001;
@@ -477,8 +400,7 @@ FlangerConfig::FlangerConfig()
 
 int FlangerConfig::equivalent(FlangerConfig &that)
 {
-	return (voices == that.voices) &&
-		EQUIV(offset, that.offset) &&
+	return EQUIV(offset, that.offset) &&
 		EQUIV(starting_phase, that.starting_phase) &&
 		EQUIV(depth, that.depth) &&
 		EQUIV(rate, that.rate) &&
@@ -487,7 +409,6 @@ int FlangerConfig::equivalent(FlangerConfig &that)
 
 void FlangerConfig::copy_from(FlangerConfig &that)
 {
-	voices = that.voices;
 	offset = that.offset;
 	starting_phase = that.starting_phase;
 	depth = that.depth;
@@ -506,7 +427,6 @@ void FlangerConfig::interpolate(FlangerConfig &prev,
 
 void FlangerConfig::boundaries()
 {
-	CLAMP(voices, MIN_VOICES, MAX_VOICES);
 	CLAMP(offset, MIN_OFFSET, MAX_OFFSET);
 	CLAMP(starting_phase, MIN_STARTING_PHASE, MAX_STARTING_PHASE);
 	CLAMP(depth, MIN_DEPTH, MAX_DEPTH);
@@ -537,7 +457,6 @@ FlangerWindow::FlangerWindow(Flanger *plugin)
 
 FlangerWindow::~FlangerWindow()
 {
-    delete voices;
     delete offset;
     delete starting_phase;
     delete depth;
@@ -555,22 +474,6 @@ void FlangerWindow::create_objects()
     int text_w = get_w() - margin - x4;
     int height = BC_TextBox::calculate_h(this, MEDIUMFONT, 1, 1) + margin;
 
-
-    voices = new PluginParam(plugin,
-        this,
-        x1, 
-        x2,
-        x4,
-        y, 
-        text_w,
-        &plugin->config.voices,  // output_i
-        0, // output_f
-        0, // output_q
-        "Voices:",
-        MIN_VOICES, // min
-        MAX_VOICES); // max
-    voices->initialize();
-    y += height;
 
     offset = new PluginParam(plugin,
         this,
@@ -667,7 +570,6 @@ void FlangerWindow::create_objects()
 
 void FlangerWindow::update()
 {
-    voices->update(1, 1);
     offset->update(1, 1);
     starting_phase->update(1, 1);
     depth->update(1, 1);
