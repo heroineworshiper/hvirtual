@@ -814,9 +814,9 @@ void CompressorEngine::calculate_envelope()
 
 
 // limit the frequencies
-    if(high >= nyquist)
+    if(high >= max_freq)
     {
-        high = nyquist;
+        high = max_freq;
 // hard edges on the lowest & highest
         edge = 0;
     }

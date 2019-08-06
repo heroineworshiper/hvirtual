@@ -53,7 +53,10 @@ Flanger::Flanger(PluginServer *server)
     dsp_in = 0;
     voices = 0;
     last_position = -1;
-    flanging_waveform = 0;
+    flanging_table = 0;
+    history_buffer = 0;
+    history_allocated = 0;
+    history_size = 0;
 }
 
 Flanger::~Flanger()
@@ -67,8 +70,17 @@ Flanger::~Flanger()
         delete [] dsp_in;
     }
     
+    if(history_buffer)
+    {
+        for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		{
+			delete [] history_buffer[i];
+        }
+        delete [] history_buffer;
+    }
+    
     delete [] voices;
-    delete [] flanging_waveform;
+    delete [] flanging_table;
 }
 
 const char* Flanger::plugin_title() { return N_("Flanger"); }
@@ -103,15 +115,7 @@ int Flanger::process_buffer(int64_t size,
 // reset after seeking
     if(last_position != start_position)
     {
-        dsp_in_length = 0;
-        if(voices)
-        {
-// reset the accumulators
-            for(int i = 0; i < PluginClient::total_in_buffers; i++)
-		    {
- 			    voices[i].accum = 0;
-            }
-        }
+        need_reconfigure = 1;
     }
 
 
@@ -119,38 +123,180 @@ int Flanger::process_buffer(int64_t size,
     {
         need_reconfigure = 0;
 
-        if(flanging_waveform)
+        if(flanging_table)
         {
-            delete [] flanging_waveform;
+            delete [] flanging_table;
         }
 
 // flanging waveform is a whole number of samples that repeats
-        flanging_period = (int)((double)sample_rate / rate);
-        flanging_waveform = new flange_sample_t[flanging_period];
-        double offset = 0;
-        for(int i = 0; i < flanging_period; i++)
+        table_size = (int)((double)sample_rate / config.rate);
+        if(table_size % 2)
         {
-            double current_period = 1.0;
-            
-            offset += current_period;
+            table_size++;
         }
+
+        flanging_table = new flange_sample_t[table_size];
+        double depth_samples = config.depth * 
+            sample_rate / 1000;
+// read behind so the flange can work in realtime
+        double ratio = (double)depth_samples /
+            (table_size / 2);
+        double offset = config.offset * sample_rate / 1000;
+// printf("Flanger::process_buffer %d %f %f\n", 
+// __LINE__, 
+// depth_samples,
+// sample_rate / 2 - depth_samples);
+        for(int i = 0; i <= table_size / 2; i++)
+        {
+            double input_sample = -i * ratio;
+// printf("Flanger::process_buffer %d i=%d input_sample=%f ratio=%f\n", 
+// __LINE__, 
+// i, 
+// input_sample,
+// ratio);
+            flanging_table[i].input_sample = input_sample;
+            flanging_table[i].input_period = ratio;
+        }
+        
+        for(int i = table_size / 2 + 1; i < table_size; i++)
+        {
+            double input_sample = -ratio * (table_size - i);
+            flanging_table[i].input_sample = input_sample;
+            flanging_table[i].input_period = ratio;
+// printf("Flanger::process_buffer %d i=%d input_sample=%f ratio=%f\n", 
+// __LINE__, 
+// i, 
+// input_sample,
+// ratio);
+        }
+
+
+        if(!history_buffer)
+        {
+            history_buffer = new double*[PluginClient::total_in_buffers];
+            for(int i = 0; i < PluginClient::total_in_buffers; i++)
+            {
+                history_buffer[i] = 0;
+            }
+        }
+        history_size = 0;
+        Voice *voice = &voices[0];
+
+// keyframe position
+		int64_t prev_position = edl_to_local(
+			get_prev_keyframe(
+				get_source_position())->position);
+
+		if(prev_position == 0)
+		{
+			prev_position = get_source_start();
+		}
+
+        voice->table_offset = (int64_t)(start_position - 
+            prev_position + 
+            config.starting_phase * table_size / 100) % table_size;
     }
-    
-// how much buffer to allocate
-    int new_allocation = size + (int)((config.offset + config.depth) * 
-        sample_rate / 
-        1000 + 1);
+
     reallocate_dsp(size);
+    reallocate_history((int)((config.offset + config.depth) * 
+        sample_rate / 
+        1000 + 1));
+
+// read the input
+	for(int i = 0; i < PluginClient::total_in_buffers; i++)
+	{
+		read_samples(buffer[i],
+			i,
+			sample_rate,
+			start_position,
+			size);
+	}
 
 
-// paint each voice
+
+// paint the voices
+    double wetness = DB::fromdb(config.wetness);
+    if(config.wetness <= INFINITYGAIN)
+    {
+        wetness = 0;
+    }
+
+    Voice *voice = &voices[0];
     for(int i = 0; i < PluginClient::total_in_buffers; i++)
 	{
-        
+        double *output = dsp_in[i];
+        double *input = buffer[i]->get_data();
+
+// input signal
+printf("Flanger::process_buffer %d wetness=%f\n", __LINE__, wetness);
+        for(int j = 0; j < size; j++)
+        {
+            output[j] = input[j] * wetness;
+        }
+
+// delayed signal
+        int table_offset = voice->table_offset;
+        for(int j = 0; j < size; j++)
+        {
+            flange_sample_t *table = &flanging_table[table_offset];
+            double input_sample = j + table->input_sample;
+            double input_period = table->input_period;
+
+// values to interpolate
+            double sample1;
+            double sample2;
+            int input_sample1 = (int)(input_sample);
+            int input_sample2 = (int)(input_sample + 1);
+            double fraction1 = (double)((int)(input_sample + 1)) - input_sample;
+            double fraction2 = 1.0 - fraction1;
+            if(input_sample1 < 0)
+            {
+                sample1 = history_buffer[i][history_allocated + input_sample1];
+sample1 = 0;
+            }
+            else
+            {
+                sample1 = input[input_sample1];
+            }
+
+            if(input_sample2 < 0)
+            {
+                sample2 = history_buffer[i][history_allocated + input_sample2];
+            }
+            else
+            {
+                sample2 = input[input_sample2];
+            }
+//            output[j] += sample1 * fraction1 + sample2 * fraction2;
+            output[j] += sample1;
+            
+            table_offset++;
+            table_offset %= table_size;
+        }
+        voice->table_offset = table_offset;
     }
 
+    int history_shift = history_allocated;
+    if(size < history_shift)
+    {
+        history_shift = size;
+    }
 
+    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+	{
+// shift the history
+        if(history_shift < history_allocated)
+        {
+            memcpy(history_buffer[i], 
+                history_buffer[i] + history_shift,
+                (history_allocated - history_shift) * sizeof(double));
+        }
 
+// shift the input to the history
+        memcpy(history_buffer[i] + history_allocated - history_shift, 
+            buffer[i]->get_data(),
+            history_shift * sizeof(double));
+    }
 
 
 // copy the DSP buffer to the output
@@ -159,17 +305,7 @@ int Flanger::process_buffer(int64_t size,
         memcpy(buffer[i]->get_data(), dsp_in[i], size * sizeof(double));
     }
 
-// shift the DSP buffer forward
-    int remane = dsp_in_allocated - size;
-    for(int i = 0; i < PluginClient::total_in_buffers; i++)
-    {
-        memcpy(dsp_in[i], dsp_in[i] + size, remane * sizeof(double));
-        bzero(dsp_in[i] + remane, size * sizeof(double));
-    }
 
-    dsp_in_length -= size;
-    
-    
     if(get_direction() == PLAY_FORWARD)
     {
         last_position = start_position + size;
@@ -196,17 +332,40 @@ void Flanger::reallocate_dsp(int new_dsp_allocated)
             double *new_dsp = new double[new_dsp_allocated];
             if(old_dsp)
             {
-                memcpy(new_dsp, old_dsp, sizeof(double) * dsp_in_length);
                 delete [] old_dsp;
             }
-            bzero(new_dsp + dsp_in_allocated, 
-                sizeof(double) * (new_dsp_allocated - dsp_in_allocated));
             dsp_in[i] = new_dsp;
         }
         dsp_in_allocated = new_dsp_allocated;
 //printf("Reverb::reallocate_dsp %d dsp_in_allocated=%d\n", __LINE__, dsp_in_allocated);
     }
+}
 
+void Flanger::reallocate_history(int new_allocation)
+{
+    if(new_allocation != history_allocated)
+    {
+// copy samples already read into the new buffers
+        for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		{
+            double *old_history = 0;
+            
+            if(history_buffer)
+            {
+                old_history = history_buffer[i];
+            }
+            double *new_history = new double[new_allocation];
+            if(old_history)
+            {
+                memcpy(new_history, old_history + new_allocation - history_allocated, 
+                    sizeof(double) * history_allocated);
+                delete [] old_history;
+            }
+            bzero(new_history, sizeof(double) * (new_allocation - history_allocated));
+            history_buffer[i] = new_history;
+        }
+        history_allocated = new_allocation;
+    }
 }
 
 
@@ -279,8 +438,6 @@ void Flanger::update_gui()
 
 Voice::Voice()
 {
-    accum = 0;
-    phase = 0;
 }
 
 

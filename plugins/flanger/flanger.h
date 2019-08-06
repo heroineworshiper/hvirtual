@@ -64,10 +64,8 @@ class Voice
 public:
     Voice();
 
-// last sample being constructed
-    double accum;
-// phase in samples
-    double phase;
+// position in the waveform table
+    int table_offset;
 // destination channel
     int dst_channel;
 // source channel
@@ -77,10 +75,8 @@ public:
 // each sample in the flanging waveform has 2 input offsets & 2 weights
 typedef struct 
 {
-    int input1;
-    int input2;
-    double weight1;
-    double weight2;
+    double input_sample;
+    double input_period;
 } flange_sample_t;
 
 class Flanger : public PluginAClient
@@ -102,6 +98,7 @@ public:
     double gauss(double sigma, double center, double x);
     void calculate_envelope();
     void reallocate_dsp(int new_dsp_allocated);
+    void reallocate_history(int new_allocation);
 
 	int is_realtime();
 	int is_synthesis();
@@ -109,17 +106,20 @@ public:
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
 
-// the output all voices are painted on
+	double **history_buffer;
+// Number of samples in the history buffer 
+	int64_t history_size;
+    int64_t history_allocated;
+
+// the temporary all voices are painted on
 	double **dsp_in;
-// may have to expand it for fft windows larger than the reflected time
     int dsp_in_allocated;
-// total samples written into dsp_in
-	int dsp_in_length;
 
     Voice *voices;
-// flanging waveform is a whole number of samples that repeats
-    int flanging_period;
-    flange_sample_t *flanging_waveform;
+// flanging table is a whole number of samples that repeats
+// always an even number
+    int table_size;
+    flange_sample_t *flanging_table;
 
 // detect seeking
     int64_t last_position;
