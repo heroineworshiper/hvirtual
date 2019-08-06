@@ -495,9 +495,9 @@ Voice::Voice()
 ChorusConfig::ChorusConfig()
 {
 	voices = 1;
-	offset = 0.005;
-	depth = 0.001;
-	rate = 1.0;
+	offset = 0.00;
+	depth = 10.0;
+	rate = 0.20;
 	wetness = 0;
 }
 
@@ -591,7 +591,7 @@ void ChorusWindow::create_objects()
         &plugin->config.voices,  // output_i
         0, // output_f
         0, // output_q
-        "Voices:",
+        "Voices per channel:",
         MIN_VOICES, // min
         MAX_VOICES); // max
     voices->initialize();

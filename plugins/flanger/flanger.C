@@ -391,10 +391,10 @@ Voice::Voice()
 
 FlangerConfig::FlangerConfig()
 {
-	offset = 0.005;
+	offset = 0.00;
 	starting_phase = 0;
-	depth = 0.001;
-	rate = 1.0;
+	depth = 10.0;
+	rate = 0.20;
 	wetness = 0;
 }
 
