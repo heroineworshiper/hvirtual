@@ -377,7 +377,8 @@ void Reverb::calculate_envelope()
     {
         low = high;
     }
-    
+
+// frequency slots of the edge
     double edge = (1.0 - config.q) * TOTALFREQS / 2;
     double low_slot = Freq::fromfreq_f(low);
     double high_slot = Freq::fromfreq_f(high);
@@ -399,7 +400,11 @@ void Reverb::calculate_envelope()
         else
         if(slot < low_slot)
         {
+#ifndef LOG_CROSSOVER
+            envelope[i] = 1.0 - (low_slot - slot) / edge;
+#else
             envelope[i] = DB::fromdb((low_slot - slot) * INFINITYGAIN / edge);
+#endif
         }
         else
         if(slot < high_slot)
@@ -409,7 +414,11 @@ void Reverb::calculate_envelope()
         else
         if(slot < high_slot + edge)
         {
+#ifndef LOG_CROSSOVER
+            envelope[i] = 1.0 - (slot - high_slot) / edge;
+#else
             envelope[i] = DB::fromdb((slot - high_slot) * INFINITYGAIN / edge);
+#endif
         }
         else
         {
