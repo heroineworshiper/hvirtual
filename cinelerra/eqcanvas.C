@@ -65,6 +65,8 @@ void EQCanvas::initialize()
     {
         db_divisions /= 2;
         db_per_division *= 2;
+        pixels_per_division = (max_db - min_db) / 
+            (db_divisions * minor_divisions);
     }
 
     

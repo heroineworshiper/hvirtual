@@ -517,41 +517,45 @@ int CompressorEffect::process_buffer(int64_t size,
 
 // Append data to the buffers to fill the readahead area.
         int remane = new_filtered_size - filtered_size;
-		for(int channel = 0; channel < total_buffers; channel++)
-		{
-            new_input_size = input_size;
+        if(remane > 0)
+        {
+		    for(int channel = 0; channel < total_buffers; channel++)
+		    {
+                new_input_size = input_size;
 
-// array of filtered buffers for each band
-            Samples *filtered_array[TOTAL_BANDS];
-            for(int band = 0; band < TOTAL_BANDS; band++)
-            {
-                new_spectrogram_frames[band] = 0;
-                filtered_array[band] = engines[band]->filtered_buffer[channel];
-                filtered_array[band]->set_offset(filtered_size);
-            }
+    // array of filtered buffers for each band
+                Samples *filtered_array[TOTAL_BANDS];
+                for(int band = 0; band < TOTAL_BANDS; band++)
+                {
+                    new_spectrogram_frames[band] = 0;
+                    filtered_array[band] = engines[band]->filtered_buffer[channel];
+                    filtered_array[band]->set_offset(filtered_size);
+                }
 
 
-            
-            int64_t start;
-            if(get_direction() == PLAY_FORWARD)
-            {
-                start = input_start + filtered_size;
-            }
-            else
-            {
-                start = input_start - filtered_size;
-            }
-            
-            fft[channel]->process_buffer(start, 
-		        remane, 
-		        filtered_array,
-		        get_direction());
 
-            for(int band = 0; band < TOTAL_BANDS; band++)
-            {
-                filtered_array[band]->set_offset(0);
-            }
-		}
+                int64_t start;
+                if(get_direction() == PLAY_FORWARD)
+                {
+                    start = input_start + filtered_size;
+                }
+                else
+                {
+                    start = input_start - filtered_size;
+                }
+
+// printf("CompressorEffect::process_buffer %d start=%ld remane=%d\n", __LINE__, start, remane);
+                fft[channel]->process_buffer(start, 
+		            remane, 
+		            filtered_array,
+		            get_direction());
+
+                for(int band = 0; band < TOTAL_BANDS; band++)
+                {
+                    filtered_array[band]->set_offset(0);
+                }
+		    }
+        }
         
         input_size = new_input_size;
         filtered_size = new_filtered_size;
@@ -1264,20 +1268,21 @@ int CompressorFFT::read_samples(int64_t output_sample,
 	int samples, 
 	Samples *buffer)
 {
-// printf("CompressorFFT::read_samples %d channel=%d output_sample=%ld\n", 
+// printf("CompressorFFT::read_samples %d channel=%d output_sample=%ld samples=%d\n", 
 // __LINE__, 
 // channel, 
-// output_sample);
+// output_sample,
+// samples);
+
 	int result = plugin->read_samples(buffer,
 		channel,
 		plugin->get_samplerate(),
 		output_sample,
 		samples);
 
-// printf("CompressorFFT::read_samples %d output_sample=%ld dsp_in_length=%d samples=%d\n",
+// printf("CompressorFFT::read_samples %d output_sample=%ld samples=%d\n",
 // __LINE__,
 // output_sample,
-// plugin->new_dsp_length,
 // samples);
 
 // append unprocessed samples to the input_buffer

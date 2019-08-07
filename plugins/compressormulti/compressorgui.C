@@ -83,7 +83,7 @@ void CompressorWindow::create_objects()
         y,
         canvas->get_w() + x - margin,
         get_h() - y - margin,
-        INFINITYGAIN,
+        plugin->config.min_db,
         0.0);
     eqcanvas->freq_divisions = 10;
     eqcanvas->initialize();
