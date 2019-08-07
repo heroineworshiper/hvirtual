@@ -62,7 +62,8 @@ void EQCanvas::initialize()
         (max_db - min_db) * 
         db_per_division;
 // increase the DB per minor division until they fit
-    while(pixels_per_division < 3)
+//printf("EQCanvas::initialize %d pixels_per_division=%f\n", __LINE__, pixels_per_division);
+    while(pixels_per_division < 5)
     {
         db_per_division *= 2;
         pixels_per_division = (float)canvas_h / 

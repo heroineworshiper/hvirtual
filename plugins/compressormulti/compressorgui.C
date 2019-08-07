@@ -46,6 +46,11 @@ void CompressorWindow::create_objects()
 	int control_margin = DP(150);
     BC_Title *title;
     BandConfig *band_config = &plugin->config.bands[plugin->config.current_band];
+    BandConfig *prev_band = 0;
+    if(plugin->config.current_band > 0)
+    {
+        prev_band = &plugin->config.bands[plugin->config.current_band - 1];
+    }
 
     add_subwindow(title = new BC_Title(margin, y, _("Current band:")));
     
@@ -132,18 +137,33 @@ void CompressorWindow::create_objects()
 
     add_subwindow(title = new BC_Title(x, y, _("Freq range:")));
     y += title->get_h();
-    add_subwindow(freq = new CompressorQPot(this, 
+
+// the previous high frequency
+    int *ptr = 0;
+    if(prev_band)
+    {
+        ptr = &prev_band->freq;
+    }
+    
+    add_subwindow(freq1 = new CompressorQPot(this, 
+        plugin, 
+        get_w() - (margin + BC_Pot::calculate_w()) * 2, 
+        y, 
+        ptr));
+
+// the current high frequency
+    ptr = &band_config->freq;
+    if(plugin->config.current_band == TOTAL_BANDS - 1)
+    {
+        ptr = 0;
+    }
+
+    add_subwindow(freq2 = new CompressorQPot(this, 
         plugin, 
         get_w() - margin - BC_Pot::calculate_w(), 
         y, 
-        &band_config->freq));
-    y += freq->get_h() + margin;
-// top band edits the penultimate band
-    if(plugin->config.current_band == TOTAL_BANDS - 1)
-    {
-        freq->output = &plugin->config.bands[plugin->config.current_band - 1].freq;
-    }
-    freq->update(*freq->output);
+        ptr));
+    y += freq1->get_h() + margin;
 
 
     add_subwindow(title = new BC_Title(x, y, _("Steepness:")));
@@ -173,6 +193,7 @@ void CompressorWindow::create_objects()
 	show_window();
 }
 
+// called when the user selects a different band
 void CompressorWindow::update()
 {
     BandConfig *band_config = &plugin->config.bands[plugin->config.current_band];
@@ -189,16 +210,37 @@ void CompressorWindow::update()
         }
     }
 
-// top band edits the penultimate band
-    if(plugin->config.current_band == TOTAL_BANDS - 1)
+    int *ptr = 0;
+    if(plugin->config.current_band > 0)
     {
-        freq->output = &plugin->config.bands[plugin->config.current_band - 1].freq;
+        ptr = &plugin->config.bands[plugin->config.current_band - 1].freq;
     }
     else
     {
-        freq->output = &band_config->freq;
+        ptr = 0;
     }
-    freq->update(*freq->output);
+
+    freq1->output = ptr;
+    if(ptr)
+    {
+        freq1->update(*ptr);
+    }
+
+// top band edits the penultimate band
+    if(plugin->config.current_band < TOTAL_BANDS - 1)
+    {
+        ptr = &band_config->freq;
+    }
+    else
+    {
+        ptr = 0;
+    }
+
+    freq2->output = ptr;
+    if(ptr)
+    {
+        freq2->update(*ptr);
+    }
 
     q->update(plugin->config.q);
     solo->update(band_config->solo);
@@ -354,7 +396,7 @@ CompressorQPot::CompressorQPot(CompressorWindow *gui,
     int *output)
  : BC_QPot(x,
     y,
-    *output)
+    output ? *output : 0)
 {
     this->gui = gui;
     this->plugin = plugin;
@@ -364,9 +406,12 @@ CompressorQPot::CompressorQPot(CompressorWindow *gui,
 
 int CompressorQPot::handle_event()
 {
-    *output = get_value();
-    plugin->send_configure_change();
-    gui->update_eqcanvas();
+    if(output)
+    {
+        *output = get_value();
+        plugin->send_configure_change();
+        gui->update_eqcanvas();
+    }
     return 1;
 }
 

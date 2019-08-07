@@ -201,7 +201,8 @@ public:
     CompressorBand *band[TOTAL_BANDS];
 
 
-	CompressorQPot *freq;
+	CompressorQPot *freq1;
+	CompressorQPot *freq2;
     CompressorFPot *q;
     CompressorSize *size;
     EQCanvas *eqcanvas;

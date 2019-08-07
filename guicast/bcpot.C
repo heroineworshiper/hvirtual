@@ -32,6 +32,9 @@
 #define MIN_ANGLE 225
 #define MAX_ANGLE -45
 
+// detect cursor movement in a straight line rather than a circle
+#define LINEAR_POINTER
+
 BC_Pot::BC_Pot(int x, int y, VFrame **data)
  : BC_SubWindow(x, y, -1, -1, -1)
 {
@@ -40,6 +43,7 @@ BC_Pot::BC_Pot(int x, int y, VFrame **data)
 		images[i] = 0;
 	use_caption = 1;
 	enabled = 1;
+    pointer_range = DP(200);
 }
 
 BC_Pot::~BC_Pot()
@@ -95,6 +99,11 @@ void BC_Pot::set_use_caption(int value)
 	use_caption = value;
 }
 
+
+void BC_Pot::set_pointer_range(int x)
+{
+    pointer_range = x;
+}
 
 void BC_Pot::enable()
 {
@@ -343,11 +352,18 @@ int BC_Pot::button_press_event()
 			else
 			{
 				status = POT_DN;
+#ifndef LINEAR_POINTER
 				start_cursor_angle = coords_to_angle(get_cursor_x(), get_cursor_y());
 				start_needle_angle = percentage_to_angle(get_percentage());
 				angle_offset = start_cursor_angle - start_needle_angle;
 				prev_angle = start_cursor_angle;
 				angle_correction = 0;
+#else
+                start_cursor_x = get_cursor_x();
+                start_percent = get_percentage();
+#endif
+
+
 				draw(1);
 				top_level->deactivate();
 				top_level->active_subwindow = this;
@@ -385,6 +401,7 @@ int BC_Pot::cursor_motion_event()
 		top_level->event_win == win && 
 		status == POT_DN)
 	{
+#ifndef LINEAR_POINTER
 		float angle = coords_to_angle(get_cursor_x(), get_cursor_y());
 
 		if(prev_angle >= 0 && prev_angle < 90 &&
@@ -408,6 +425,20 @@ int BC_Pot::cursor_motion_event()
 			draw(1);
 			handle_event();
 		}
+#else
+        float new_percent = (float)(get_cursor_x() - start_cursor_x) /
+            pointer_range +
+            start_percent;
+        if(percentage_to_value(new_percent))
+        {
+            set_tooltip(get_caption());
+			draw(1);
+			handle_event();
+        }
+#endif
+
+
+
 		return 1;
 	}
 	return 0;

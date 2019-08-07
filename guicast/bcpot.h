@@ -70,6 +70,7 @@ public:
 	virtual int button_release_event();
 	int cursor_motion_event();
 	int keypress_event();
+    void set_pointer_range(int x);
 
 private:
 	int set_data(VFrame **data);
@@ -91,6 +92,9 @@ private:
 	float prev_angle, angle_correction;
 	int use_caption;
 	int enabled;
+    int pointer_range;
+    int start_cursor_x;
+    float start_percent;
 };
 
 class BC_FPot : public BC_Pot
