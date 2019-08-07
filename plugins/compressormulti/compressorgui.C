@@ -92,20 +92,20 @@ void CompressorWindow::create_objects()
 	x = get_w() - control_margin;
     y = margin;
 	add_subwindow(title = new BC_Title(x, y, _("Attack secs:")));
-	y += title->get_h() + margin;
+	y += title->get_h();
 	add_subwindow(reaction = new CompressorReaction(plugin, x, y));
 	y += reaction->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Release secs:")));
-	y += title->get_h() + margin;
+	y += title->get_h();
 	add_subwindow(decay = new CompressorDecay(plugin, x, y));
 	y += decay->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Trigger Type:")));
-	y += title->get_h() + margin;
+	y += title->get_h();
 	add_subwindow(input = new CompressorInput(plugin, x, y));
 	input->create_objects();
 	y += input->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Trigger:")));
-	y += title->get_h() + margin;
+	y += title->get_h();
 	add_subwindow(trigger = new CompressorTrigger(plugin, x, y));
 	if(plugin->config.input != CompressorConfig::TRIGGER) trigger->disable();
 	y += trigger->get_h() + margin;
@@ -118,11 +118,11 @@ void CompressorWindow::create_objects()
 	add_subwindow(bypass = new CompressorBypass(plugin, x, y));
     y += bypass->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Output:")));
-    y += title->get_h() + margin;
+    y += title->get_h();
 	add_subwindow(y_text = new CompressorY(plugin, x, y));
     y += y_text->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Input:")));
-    y += title->get_h() + margin;
+    y += title->get_h();
 	add_subwindow(x_text = new CompressorX(plugin, x, y));
     y += x_text->get_h() + margin;
 
@@ -130,7 +130,8 @@ void CompressorWindow::create_objects()
 	add_subwindow(clear = new CompressorClear(plugin, x, y));
     y += clear->get_h() + margin;
 
-    add_subwindow(title = new BC_Title(x, y, _("Freq:")));
+    add_subwindow(title = new BC_Title(x, y, _("Freq range:")));
+    y += title->get_h();
     add_subwindow(freq = new CompressorQPot(this, 
         plugin, 
         get_w() - margin - BC_Pot::calculate_w(), 

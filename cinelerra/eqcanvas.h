@@ -60,8 +60,13 @@ public:
 	int canvas_h;
     float min_db;
     float max_db;
+// divisions for the frequency
     int freq_divisions;
-    int db_divisions;
+// divisions for the DB
+    int db_per_division;
+    float pixels_per_division;
+    int minor_divisions;
+    int total_divisions;
     PluginClientFrame *last_frame;
 };
 

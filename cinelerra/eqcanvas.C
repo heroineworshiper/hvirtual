@@ -2,7 +2,6 @@
 #include "eqcanvas.h"
 #include "pluginclient.h"
 
-#define MINOR_DIVISIONS 5
 EQCanvas::EQCanvas(BC_WindowBase *parent, 
     int x, 
     int y, 
@@ -21,7 +20,7 @@ EQCanvas::EQCanvas(BC_WindowBase *parent,
     last_frame = 0;
     canvas = 0;
     
-    db_divisions = (max_db - min_db) / MINOR_DIVISIONS;
+    minor_divisions = 5;
     freq_divisions = 5;
 }
 
@@ -57,59 +56,56 @@ void EQCanvas::initialize()
 // DB
 	parent->set_font(SMALLFONT);
     int ascent = parent->get_text_ascent(SMALLFONT);
-    int minor_divisions = MINOR_DIVISIONS;
-    int pixels_per_division = (max_db - min_db) / 
-        (db_divisions * minor_divisions);
-    int db_per_division = 1;
-    if(pixels_per_division < 3)
+// DB per minor division
+    db_per_division = 1;
+    pixels_per_division = (float)canvas_h / 
+        (max_db - min_db) * 
+        db_per_division;
+// increase the DB per minor division until they fit
+    while(pixels_per_division < 3)
     {
-        db_divisions /= 2;
         db_per_division *= 2;
-        pixels_per_division = (max_db - min_db) / 
-            (db_divisions * minor_divisions);
+        pixels_per_division = (float)canvas_h / 
+            (max_db - min_db) * 
+            db_per_division;
     }
+    total_divisions = (int)((max_db - min_db) / db_per_division);
 
     
 	char string[BCTEXTLEN];
-	for(int i = 0; i <= db_divisions; i++)
+	for(int i = 0; i <= total_divisions; i++)
 	{
-		int y1 = canvas_y + canvas_h - 
-            i * (canvas_h / db_divisions) - DP(2);
+		int y1 = canvas_y + (int)(i * pixels_per_division);
 		int y2 = y1 + ascent;
 		int x2 = canvas_x - big_tick;
 		int x3 = canvas_x - DP(2);
+		int x4 = x3 - DP(5);
 
-        
-		if(i == 0)
-			sprintf(string, "oo");
-		else
-			sprintf(string, "%d", (int)(i * minor_divisions * db_per_division + min_db));
-
-		parent->set_color(BLACK);
-        int text_w = parent->get_text_width(SMALLFONT,
-            string,
-            -1);
-        int x1 = canvas_x - big_tick - text_w;
-// 		parent->draw_text(x1 + 1, y2 + 1, string);
-// 		parent->draw_line(x2 + 1, y1 + 1, x3 + 1, y1 + 1);
-// 		parent->set_color(RED);
-        parent->set_color(parent->get_resources()->default_text_color);
-		parent->draw_text(x1, y2, string);
-		parent->draw_line(x2, y1, x3, y1);
-
-		if(i < db_divisions)
-		{
-			for(int j = 1; j < minor_divisions; j++)
+        if(!(i % minor_divisions) ||
+            i == total_divisions)
+        {
+    		if(i == total_divisions)
+    		{
+            	sprintf(string, "oo");
+    		}
+            else
 			{
-				int y3 = y1 - j * (canvas_h / db_divisions) / minor_divisions;
-				int x4 = x3 - DP(5);
-//				parent->set_color(BLACK);
-//				parent->draw_line(x4 + 1, y3 + 1, x3 + 1, y3 + 1);
-//				parent->set_color(RED);
-            	parent->set_color(parent->get_resources()->default_text_color);
-				parent->draw_line(x4, y3, x3, y3);
-			}
-		}
+                sprintf(string, "%d", (int)(max_db - i * db_per_division));
+            }
+
+		    parent->set_color(BLACK);
+            int text_w = parent->get_text_width(SMALLFONT,
+                string,
+                -1);
+            int x1 = canvas_x - big_tick - text_w;
+            parent->set_color(parent->get_resources()->default_text_color);
+		    parent->draw_text(x1, y2, string);
+		    parent->draw_line(x2, y1, x3, y1);
+        }
+        else
+        {
+            parent->draw_line(x4, y1, x3, y1);
+        }
 	}
 
 // freq
@@ -159,12 +155,18 @@ void EQCanvas::draw_grid()
 {
 	canvas->set_line_dashes(1);
 	canvas->set_color(GREEN);
-    for(int i = 1; i < db_divisions; i++)
-    {
-        int y = canvas_h - 
-            i * canvas_h / db_divisions;
+    for(int i = minor_divisions; i < total_divisions; i += minor_divisions)
+	{
+        int y = (int)(i * pixels_per_division);
         canvas->draw_line(0, y, canvas_w, y);
     }
+
+//     for(int i = 1; i < major_divisions; i++)
+//     {
+//         int y = canvas_h - 
+//             i * canvas_h / major_divisions;
+//         canvas->draw_line(0, y, canvas_w, y);
+//     }
 
     for(int i = 1; i < freq_divisions; i++)
     {
