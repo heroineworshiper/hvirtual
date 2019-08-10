@@ -941,14 +941,6 @@ void DirectUnit::process_package(LoadPackage *package){
     case BC_YUVA8888:
       BLEND_ONLY_TRANSFER_REPLACE(unsigned char, 4);
       break;
-    case BC_RGB161616:
-    case BC_YUV161616:
-      BLEND_ONLY_TRANSFER_REPLACE(uint16_t, 3);
-      break;
-    case BC_RGBA16161616:
-    case BC_YUVA16161616:
-      BLEND_ONLY_TRANSFER_REPLACE(uint16_t, 4);
-      break;
     }
 
   }else if (mode == TRANSFER_NORMAL) {
@@ -1017,18 +1009,6 @@ void DirectUnit::process_package(LoadPackage *package){
     case BC_YUVA8888:
       BLEND_ONLY_4_NORMAL(int32_t, unsigned char, 0xff, 0x80);
       break;
-    case BC_RGB161616:
-      BLEND_ONLY_3_NORMAL(uint64_t, uint16_t, 0xffff, 0);
-      break;
-    case BC_YUV161616:
-      BLEND_ONLY_3_NORMAL(int64_t, uint16_t, 0xffff, 0x8000);
-      break;
-    case BC_RGBA16161616:
-      BLEND_ONLY_4_NORMAL(uint64_t, uint16_t, 0xffff, 0);
-      break;
-    case BC_YUVA16161616:
-      BLEND_ONLY_4_NORMAL(int64_t, uint16_t, 0xffff, 0x8000);
-      break;
     }
 
   }else
@@ -1051,18 +1031,6 @@ void DirectUnit::process_package(LoadPackage *package){
       break;
     case BC_YUVA8888:
       BLEND_ONLY(int32_t, unsigned char, 0xff, 4, 0x80);
-      break;
-    case BC_RGB161616:
-      BLEND_ONLY(int64_t, uint16_t, 0xffff, 3, 0);
-      break;
-    case BC_YUV161616:
-      BLEND_ONLY(int64_t, uint16_t, 0xffff, 3, 0x8000);
-      break;
-    case BC_RGBA16161616:
-      BLEND_ONLY(int64_t, uint16_t, 0xffff, 4, 0);
-      break;
-    case BC_YUVA16161616:
-      BLEND_ONLY(int64_t, uint16_t, 0xffff, 4, 0x8000);
       break;
     }
 }
@@ -1279,14 +1247,6 @@ void NNUnit::process_package(LoadPackage *package){
     case BC_YUVA8888:
       BLEND_NN_TRANSFER_REPLACE(unsigned char, 4);
       break;
-    case BC_RGB161616:
-    case BC_YUV161616:
-      BLEND_NN_TRANSFER_REPLACE(uint16_t, 3);
-      break;
-    case BC_RGBA16161616:
-    case BC_YUVA16161616:
-      BLEND_NN_TRANSFER_REPLACE(uint16_t, 4);
-      break;
     }
 
   }else if (mode == TRANSFER_NORMAL) {
@@ -1363,18 +1323,6 @@ void NNUnit::process_package(LoadPackage *package){
     case BC_YUVA8888:
       BLEND_NN_4_NORMAL(int32_t, unsigned char, 0xff, 0x80);
       break;
-    case BC_RGB161616:
-      BLEND_NN_3_NORMAL(uint64_t, uint16_t, 0xffff, 0);
-      break;
-    case BC_YUV161616:
-      BLEND_NN_3_NORMAL(int64_t, uint16_t, 0xffff, 0x8000);
-      break;
-    case BC_RGBA16161616:
-      BLEND_NN_4_NORMAL(uint64_t, uint16_t, 0xffff, 0);
-      break;
-    case BC_YUVA16161616:
-      BLEND_NN_4_NORMAL(int64_t, uint16_t, 0xffff, 0x8000);
-      break;
     }
 
   }else
@@ -1397,18 +1345,6 @@ void NNUnit::process_package(LoadPackage *package){
       break;
     case BC_YUVA8888:
       BLEND_NN(int32_t, unsigned char, 0xff, 4, 0x80);
-      break;
-    case BC_RGB161616:
-      BLEND_NN(int64_t, uint16_t, 0xffff, 3, 0);
-      break;
-    case BC_YUV161616:
-      BLEND_NN(int64_t, uint16_t, 0xffff, 3, 0x8000);
-      break;
-    case BC_RGBA16161616:
-      BLEND_NN(int64_t, uint16_t, 0xffff, 4, 0);
-      break;
-    case BC_YUVA16161616:
-      BLEND_NN(int64_t, uint16_t, 0xffff, 4, 0x8000);
       break;
     }
 }
@@ -1456,15 +1392,11 @@ void NNEngine::init_packages(){
   case BC_RGB_FLOAT:
   case BC_RGB888:
   case BC_YUV888:
-  case BC_RGB161616:
-  case BC_YUV161616:
-  case BC_YUVA16161616:
     components = 3;
     break;
   case BC_RGBA_FLOAT:
   case BC_RGBA8888:
   case BC_YUVA8888:
-  case BC_RGBA16161616:
     components=4;
     break;
   }
@@ -1780,18 +1712,6 @@ void SampleUnit::process_package(LoadPackage *package){
     break;
   case BC_YUVA8888:
     SAMPLE_4(255, int32_t, unsigned char, 128.f, .5f);
-    break;
-  case BC_RGB161616:
-    SAMPLE_3(0xffff, int64_t, uint16_t, 0.f, .5f);
-    break;
-  case BC_YUV161616:
-    SAMPLE_3(0xffff, int64_t, uint16_t, 32768.f, .5f);
-    break;
-  case BC_RGBA16161616:
-    SAMPLE_4(0xffff, int64_t, uint16_t, 0.f, .5f);
-    break;
-  case BC_YUVA16161616:
-    SAMPLE_4(0xffff, int64_t, uint16_t, 32768.f, .5f);
     break;
   }
 }
