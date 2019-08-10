@@ -285,7 +285,8 @@ void EQCanvas::update_spectrogram(PluginClient *plugin,
 void EQCanvas::draw_envelope(double *envelope, 
     int samplerate,
     int window_size,
-    int is_top)
+    int is_top,
+    int flash_it)
 {
     int niquist = samplerate / 2;
     
@@ -332,7 +333,10 @@ void EQCanvas::draw_envelope(double *envelope,
     }
 
     canvas->set_line_width(1);
-	canvas->flash(1);
+	if(flash_it)
+    {
+        canvas->flash(1);
+    }
     
 }
 

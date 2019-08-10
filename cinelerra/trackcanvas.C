@@ -249,7 +249,6 @@ int TrackCanvas::drag_stop(int *redraw)
 	int cursor_x = get_relative_cursor_x();
 	int cursor_y = get_relative_cursor_y();
 
-
 	if(get_cursor_over_window() &&
 		cursor_x >= 0 && 
 		cursor_y >= 0 && 
@@ -408,6 +407,7 @@ int TrackCanvas::drag_stop(int *redraw)
 			case DRAG_ASSET:
 				if(mwindow->session->track_highlighted)
 				{
+                    mwindow->session->current_operation = NO_OPERATION;
 					int64_t position = mwindow->session->edit_highlighted ?
 						mwindow->session->edit_highlighted->startproject :
 						mwindow->session->track_highlighted->edits->length();
@@ -451,7 +451,7 @@ int TrackCanvas::drag_stop(int *redraw)
 				break;
 		}
 	}
-	
+
 	return result;
 }
 
@@ -1182,7 +1182,6 @@ void TrackCanvas::draw_highlighting()
 {
 	int64_t x, y, w, h;
 	int draw_box = 0;
-
 
 
 

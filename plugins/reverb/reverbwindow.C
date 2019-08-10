@@ -270,7 +270,8 @@ void ReverbWindow::update_canvas()
     canvas->draw_envelope(reverb->envelope,
         reverb->PluginAClient::project_sample_rate,
         reverb->config.window_size,
-        1);
+        1,
+        0);
 	gui->flash(1);
 
 

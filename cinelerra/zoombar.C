@@ -340,7 +340,8 @@ SampleZoomPanel::SampleZoomPanel(MWindow *mwindow,
 }
 int SampleZoomPanel::handle_event()
 {
-	mwindow->zoom_sample((int64_t)get_value());
+	mwindow->zoom_sample(mwindow->edl->local_session->zoom_sample,
+        (int64_t)get_value());
 	return 1;
 }
 

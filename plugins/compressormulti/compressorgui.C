@@ -341,9 +341,11 @@ void CompressorWindow::update_eqcanvas()
             eqcanvas->draw_envelope(plugin->engines[band]->envelope,
                 plugin->PluginAClient::project_sample_rate,
                 plugin->config.window_size,
-                band == plugin->config.current_band);
+                band == plugin->config.current_band,
+                0);
         }
     }
+    eqcanvas->canvas->flash(1);
 }
 
 int CompressorWindow::resize_event(int w, int h)

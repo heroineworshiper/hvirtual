@@ -49,7 +49,8 @@ public:
     void draw_envelope(double *envelope, 
         int samplerate,
         int window_size,
-        int is_top);
+        int is_top,
+        int flash_it);
     
     BC_WindowBase *parent;
     BC_SubWindow *canvas;

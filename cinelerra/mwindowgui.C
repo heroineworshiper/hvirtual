@@ -970,7 +970,6 @@ int MWindowGUI::drag_stop()
 			&redraw);
 	}
 
-
 // since we don't have subwindows we have to terminate any drag operation
 	if(result)
 	{

@@ -59,9 +59,10 @@ int MWindow::expand_sample()
 	{
 		if(edl->local_session->zoom_sample < 0x100000)
 		{
+            int64_t prev_zoom_sample = edl->local_session->zoom_sample;
 			edl->local_session->zoom_sample *= 2;
 			gui->zoombar->sample_zoom->update(edl->local_session->zoom_sample);
-			zoom_sample(edl->local_session->zoom_sample);
+			zoom_sample(prev_zoom_sample, edl->local_session->zoom_sample);
 		}
 	}
 	return 0;
@@ -73,22 +74,73 @@ int MWindow::zoom_in_sample()
 	{
 		if(edl->local_session->zoom_sample > 1)
 		{
+            int64_t prev_zoom_sample = edl->local_session->zoom_sample;
 			edl->local_session->zoom_sample /= 2;
 			gui->zoombar->sample_zoom->update(edl->local_session->zoom_sample);
-			zoom_sample(edl->local_session->zoom_sample);
+			zoom_sample(prev_zoom_sample, edl->local_session->zoom_sample);
 		}
 	}
 	return 0;
 }
 
-int MWindow::zoom_sample(int64_t zoom_sample)
+int MWindow::zoom_sample(int64_t prev_zoom_sample, int64_t zoom_sample)
 {
 	CLIP(zoom_sample, 1, 0x100000);
+	TimelinePane *focused_pane = gui->get_focused_pane();
+
 	edl->local_session->zoom_sample = zoom_sample;
+// center the active pane on the cursor
 	find_cursor();
 
-	TimelinePane *pane = gui->get_focused_pane();
-	samplemovement(edl->local_session->view_start[pane->number], pane->number);
+// center the inactive panes on their center sample
+    int top_pane = -1;
+    int bottom_pane = -1;
+	if(focused_pane->number == TOP_LEFT_PANE ||
+		focused_pane->number == BOTTOM_LEFT_PANE)
+	{
+        top_pane = TOP_RIGHT_PANE;
+        bottom_pane = BOTTOM_RIGHT_PANE;
+    }
+    else
+    {
+        top_pane = TOP_LEFT_PANE;
+        bottom_pane = BOTTOM_LEFT_PANE;
+    }
+
+//printf("MWindow::zoom_sample %d %p %p\n", __LINE__, gui->pane[top_pane], gui->pane[bottom_pane]);
+
+    TimelinePane *pane = gui->pane[top_pane];
+    if(pane)
+    {
+        int64_t prev_view_start = edl->local_session->view_start[top_pane];
+        int w = pane->canvas->get_w();
+        int64_t prev_center_sample = 
+            prev_zoom_sample * (prev_view_start + w / 2);
+        int64_t view_start = (prev_center_sample - 
+            zoom_sample * w / 2) / 
+            zoom_sample;
+
+        if(view_start < 0)
+        {
+            view_start = 0;
+        }
+
+        edl->local_session->view_start[top_pane] =
+		    edl->local_session->view_start[bottom_pane] =
+		    view_start;
+// printf("MWindow::zoom_sample %d prev_view_start=%ld prev_zoom_sample=%ld w=%d prev_center_sample=%ld\n", 
+// __LINE__, 
+// prev_view_start,
+// prev_zoom_sample,
+// w,
+// prev_center_sample);
+    }
+
+
+	samplemovement(edl->local_session->view_start[focused_pane->number], 
+        focused_pane->number);
+
+
 	return 0;
 }
 
@@ -97,12 +149,12 @@ void MWindow::find_cursor()
 	TimelinePane *pane = gui->get_focused_pane();
 	edl->local_session->view_start[pane->number] = 
 		Units::round((edl->local_session->get_selectionend(1) + 
-		edl->local_session->get_selectionstart(1)) / 
-		2 *
-		edl->session->sample_rate /
-		edl->local_session->zoom_sample - 
-		(double)pane->canvas->get_w() / 
-		2);
+		    edl->local_session->get_selectionstart(1)) / 
+		    2 *
+		    edl->session->sample_rate /
+		    edl->local_session->zoom_sample - 
+		    (double)pane->canvas->get_w() / 
+		    2);
 
 	if(edl->local_session->view_start[pane->number] < 0) 
 		edl->local_session->view_start[pane->number] = 0;
@@ -111,6 +163,7 @@ void MWindow::find_cursor()
 
 void MWindow::fit_selection()
 {
+    int64_t prev_zoom_sample = edl->local_session->zoom_sample;
 	if(EQUIV(edl->local_session->get_selectionstart(1),
 		edl->local_session->get_selectionend(1)))
 	{
@@ -136,7 +189,7 @@ void MWindow::fit_selection()
 
 	edl->local_session->zoom_sample = MIN(0x100000, 
 		edl->local_session->zoom_sample);
-	zoom_sample(edl->local_session->zoom_sample);
+	zoom_sample(prev_zoom_sample, edl->local_session->zoom_sample);
 }
 
 
@@ -382,6 +435,7 @@ int MWindow::samplemovement(int64_t view_start, int pane_number)
 	if(edl->local_session->view_start[pane_number] < 0) 
 		edl->local_session->view_start[pane_number] = 0;
 
+// copy the view start to the neighboring panes
 	if(pane_number == TOP_LEFT_PANE ||
 		pane_number == BOTTOM_LEFT_PANE)
 	{
