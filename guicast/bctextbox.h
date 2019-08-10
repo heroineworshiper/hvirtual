@@ -323,6 +323,7 @@ public:
 	int get_y();
 	int get_w();
 	int get_h();
+    void set_list_w(int value);
 	void update(const char *text);
 	void update_list(ArrayList<BC_ListBoxItem*> *data);
 	void reposition_window(int x, int y);
@@ -331,7 +332,7 @@ public:
 	friend class BC_PopupTextBoxList;
 
 private:
-	int x, y, text_w, list_h;
+	int x, y, text_w, list_w, list_h;
 	int list_format;
 	char *default_text;
 	ArrayList<BC_ListBoxItem*> *list_items;

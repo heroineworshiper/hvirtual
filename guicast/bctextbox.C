@@ -2532,7 +2532,6 @@ void BC_ScrollTextBox::reposition_window(int x, int y, int w, int rows)
 
 
 
-
 BC_ScrollTextBoxText::BC_ScrollTextBoxText(BC_ScrollTextBox *gui)
  : BC_TextBox(gui->x, 
  	gui->y, 
@@ -2551,6 +2550,8 @@ BC_ScrollTextBoxText::~BC_ScrollTextBoxText()
 		delete gui;
 	}
 }
+
+
 
 int BC_ScrollTextBoxText::handle_event()
 {
@@ -2631,7 +2632,7 @@ int BC_PopupTextBoxText::handle_event()
 BC_PopupTextBoxList::BC_PopupTextBoxList(BC_PopupTextBox *popup, int x, int y)
  : BC_ListBox(x,
  	y,
-	popup->text_w + BC_WindowBase::get_resources()->listbox_button[0]->get_w(),
+	popup->list_w,
 	popup->list_h,
 	popup->list_format,
 	popup->list_items,
@@ -2672,6 +2673,7 @@ BC_PopupTextBox::BC_PopupTextBox(BC_WindowBase *parent_window,
 	this->list_format = list_format;
 	this->default_text = (char*)default_text;
 	this->text_w = text_w;
+    this->list_w = text_w + BC_WindowBase::get_resources()->listbox_button[0]->get_w();
 	this->parent_window = parent_window;
 	this->list_items = list_items;
 }
@@ -2684,6 +2686,11 @@ BC_PopupTextBox::~BC_PopupTextBox()
 		textbox->popup = 0;
 		delete textbox;
 	}
+}
+
+void BC_PopupTextBox::set_list_w(int value)
+{
+    this->list_w = value;
 }
 
 int BC_PopupTextBox::create_objects()

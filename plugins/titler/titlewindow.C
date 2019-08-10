@@ -945,6 +945,7 @@ TitleFont::TitleFont(TitleMain *client, TitleWindow *window, int x, int y)
 {
 	this->client = client;
 	this->window = window;
+    set_list_w(DP(400));
 }
 int TitleFont::handle_event()
 {
