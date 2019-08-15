@@ -29,6 +29,15 @@
 #include "pluginclient.inc"
 
 
+#define MIN_ATTACK -10
+#define MAX_ATTACK 10
+#define MIN_DECAY 0
+#define MAX_DECAY 255
+#define MIN_TRIGGER 0
+#define MAX_TRIGGER 255
+
+
+
 typedef struct
 {
 // DB from min_db - 0

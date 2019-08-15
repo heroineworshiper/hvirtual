@@ -40,54 +40,55 @@ public:
 };
 
 
-class CompressorReaction : public BC_TextBox
+class CompressorReaction : public BC_TumbleTextBox
 {
 public:
-	CompressorReaction(CompressorEffect *plugin, int x, int y);
+	CompressorReaction(CompressorEffect *plugin, 
+        CompressorWindow *window, 
+        int x, 
+        int y);
 	int handle_event();
-	int button_press_event();
 	CompressorEffect *plugin;
 };
+
+class CompressorX : public BC_TumbleTextBox
+{
+public:
+	CompressorX(CompressorEffect *plugin, CompressorWindow *window, int x, int y);
+	int handle_event();
+	CompressorEffect *plugin;
+};
+
+class CompressorY : public BC_TumbleTextBox
+{
+public:
+	CompressorY(CompressorEffect *plugin, CompressorWindow *window, int x, int y);
+	int handle_event();
+	CompressorEffect *plugin;
+};
+
+class CompressorTrigger : public BC_TumbleTextBox
+{
+public:
+	CompressorTrigger(CompressorEffect *plugin, CompressorWindow *window, int x, int y);
+	int handle_event();
+	CompressorEffect *plugin;
+};
+
+class CompressorDecay : public BC_TumbleTextBox
+{
+public:
+	CompressorDecay(CompressorEffect *plugin, CompressorWindow *window, int x, int y);
+	int handle_event();
+	CompressorEffect *plugin;
+};
+
 
 class CompressorClear : public BC_GenericButton
 {
 public:
 	CompressorClear(CompressorEffect *plugin, int x, int y);
 	int handle_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorX : public BC_TextBox
-{
-public:
-	CompressorX(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorY : public BC_TextBox
-{
-public:
-	CompressorY(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorTrigger : public BC_TextBox
-{
-public:
-	CompressorTrigger(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	int button_press_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorDecay : public BC_TextBox
-{
-public:
-	CompressorDecay(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	int button_press_event();
 	CompressorEffect *plugin;
 };
 

@@ -51,14 +51,28 @@ public:
 };
 
 
-class CompressorReaction : public BC_TextBox
+class CompressorReaction : public BC_TumbleTextBox
 {
 public:
-	CompressorReaction(CompressorEffect *plugin, int x, int y);
+	CompressorReaction(CompressorEffect *plugin, 
+        CompressorWindow *window, 
+        int x, 
+        int y);
 	int handle_event();
-	int button_press_event();
 	CompressorEffect *plugin;
 };
+
+class CompressorDecay : public BC_TumbleTextBox
+{
+public:
+	CompressorDecay(CompressorEffect *plugin, 
+        CompressorWindow *window, 
+        int x, 
+        int y);
+	int handle_event();
+	CompressorEffect *plugin;
+};
+
 
 class CompressorClear : public BC_GenericButton
 {
@@ -68,37 +82,36 @@ public:
 	CompressorEffect *plugin;
 };
 
-class CompressorX : public BC_TextBox
+class CompressorX : public BC_TumbleTextBox
 {
 public:
-	CompressorX(CompressorEffect *plugin, int x, int y);
+	CompressorX(CompressorEffect *plugin, 
+        CompressorWindow *window, 
+        int x, 
+        int y);
 	int handle_event();
 	CompressorEffect *plugin;
 };
 
-class CompressorY : public BC_TextBox
+class CompressorY : public BC_TumbleTextBox
 {
 public:
-	CompressorY(CompressorEffect *plugin, int x, int y);
+	CompressorY(CompressorEffect *plugin, 
+        CompressorWindow *window, 
+        int x, 
+        int y);
 	int handle_event();
 	CompressorEffect *plugin;
 };
 
-class CompressorTrigger : public BC_TextBox
+class CompressorTrigger : public BC_TumbleTextBox
 {
 public:
-	CompressorTrigger(CompressorEffect *plugin, int x, int y);
+	CompressorTrigger(CompressorEffect *plugin, 
+        CompressorWindow *window, 
+        int x, 
+        int y);
 	int handle_event();
-	int button_press_event();
-	CompressorEffect *plugin;
-};
-
-class CompressorDecay : public BC_TextBox
-{
-public:
-	CompressorDecay(CompressorEffect *plugin, int x, int y);
-	int handle_event();
-	int button_press_event();
 	CompressorEffect *plugin;
 };
 
@@ -127,6 +140,8 @@ class CompressorWindow : public PluginClientWindow
 {
 public:
 	CompressorWindow(CompressorEffect *plugin);
+    ~CompressorWindow();
+
 	void create_objects();
 	void update();
 	void update_textboxes();

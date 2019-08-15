@@ -48,6 +48,9 @@ public:
 	virtual void set_boundaries(int64_t min, int64_t max) {};
 	virtual void set_boundaries(float min, float max) {};
 	virtual void set_increment(float value) {};
+    void disable();
+    void enable();
+    
 
 private:
 	int draw_face(int flush = 1);
@@ -56,6 +59,7 @@ private:
 	int status;
 	int64_t repeat_count;
 	VFrame **data;
+    int enabled;
 };
 
 class BC_ITumbler : public BC_Tumbler

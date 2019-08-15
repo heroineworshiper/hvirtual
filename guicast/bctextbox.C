@@ -2807,7 +2807,10 @@ BC_TumbleTextBoxText::BC_TumbleTextBoxText(BC_TumbleTextBox *popup,
  	y, 
 	popup->text_w, 
 	1, 
-	default_value)
+	default_value,
+    1,
+    MEDIUMFONT,
+    popup->precision)
 {
 	this->popup = popup;
 }
@@ -2964,12 +2967,14 @@ int BC_TumbleTextBox::create_objects()
 		textbox->set_precision(precision);
 	}
 	else
+    {
 		parent_window->add_subwindow(textbox = new BC_TumbleTextBoxText(this, 
 			default_value,
 			min, 
 			max, 
 			x, 
 			y));
+    }
 
 	x += textbox->get_w();
 
@@ -3013,6 +3018,41 @@ int BC_TumbleTextBox::update(float value)
 	return 0;
 }
 
+void BC_TumbleTextBox::disable()
+{
+    if(textbox)
+    {
+        textbox->disable();
+    }
+    
+    if(tumbler)
+    {
+        tumbler->disable();
+    }
+}
+
+void BC_TumbleTextBox::enable()
+{
+    if(textbox)
+    {
+        textbox->enable();
+    }
+    
+    if(tumbler)
+    {
+        tumbler->enable();
+    }
+}
+
+int BC_TumbleTextBox::get_enabled()
+{
+    if(textbox)
+    {
+        return textbox->get_enabled();
+    }
+    
+    return 0;
+}
 
 int BC_TumbleTextBox::get_x()
 {

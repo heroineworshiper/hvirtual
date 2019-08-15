@@ -404,6 +404,9 @@ public:
 	void set_boundaries(float min, float max);
 	void set_precision(int precision);
 	void set_increment(float value);
+    void disable();
+    void enable();
+    int get_enabled();
 
 	friend class BC_TumbleTextBoxText;
 	friend class BC_TumbleTextBoxTumble;

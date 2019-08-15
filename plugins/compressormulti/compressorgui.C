@@ -36,6 +36,11 @@ CompressorWindow::~CompressorWindow()
     delete defaults;
 
     delete eqcanvas;
+    delete reaction;
+    delete x_text;
+    delete y_text;
+    delete trigger;
+    delete decay;
 }
 
 
@@ -98,12 +103,18 @@ void CompressorWindow::create_objects()
     y = margin;
 	add_subwindow(title = new BC_Title(x, y, _("Attack secs:")));
 	y += title->get_h();
-	add_subwindow(reaction = new CompressorReaction(plugin, x, y));
+	reaction = new CompressorReaction(plugin, this, x, y);
+    reaction->create_objects();
 	y += reaction->get_h() + margin;
+    
+    
 	add_subwindow(title = new BC_Title(x, y, _("Release secs:")));
 	y += title->get_h();
-	add_subwindow(decay = new CompressorDecay(plugin, x, y));
+	decay = new CompressorDecay(plugin, this, x, y);
+    decay->create_objects();
 	y += decay->get_h() + margin;
+    
+    
 	add_subwindow(title = new BC_Title(x, y, _("Trigger Type:")));
 	y += title->get_h();
 	add_subwindow(input = new CompressorInput(plugin, x, y));
@@ -111,7 +122,10 @@ void CompressorWindow::create_objects()
 	y += input->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Trigger:")));
 	y += title->get_h();
-	add_subwindow(trigger = new CompressorTrigger(plugin, x, y));
+    
+    
+	trigger = new CompressorTrigger(plugin, this, x, y);
+    trigger->create_objects();
 	if(plugin->config.input != CompressorConfig::TRIGGER) trigger->disable();
 	y += trigger->get_h() + margin;
 
@@ -124,11 +138,17 @@ void CompressorWindow::create_objects()
     y += bypass->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Output:")));
     y += title->get_h();
-	add_subwindow(y_text = new CompressorY(plugin, x, y));
+    
+    
+	y_text = new CompressorY(plugin, this, x, y);
+    y_text->create_objects();
     y += y_text->get_h() + margin;
+    
+    
 	add_subwindow(title = new BC_Title(x, y, _("Input:")));
     y += title->get_h();
-	add_subwindow(x_text = new CompressorX(plugin, x, y));
+	x_text = new CompressorX(plugin, this, x, y);
+    x_text->create_objects();
     y += x_text->get_h() + margin;
 
     
@@ -498,10 +518,21 @@ void CompressorCanvas::update_window()
 
 
 
-CompressorReaction::CompressorReaction(CompressorEffect *plugin, int x, int y) 
- : BC_TextBox(x, y, DP(100), 1, (float)plugin->config.reaction_len)
+CompressorReaction::CompressorReaction(CompressorEffect *plugin, 
+    CompressorWindow *window, 
+    int x, 
+    int y) 
+ : BC_TumbleTextBox(window,
+    (float)plugin->config.reaction_len,
+    (float)MIN_ATTACK,
+    (float)MAX_ATTACK,
+    x, 
+    y, 
+    DP(100))
 {
 	this->plugin = plugin;
+    set_increment(0.1);
+    set_precision(2);
 }
 
 int CompressorReaction::handle_event()
@@ -511,31 +542,23 @@ int CompressorReaction::handle_event()
 	return 1;
 }
 
-int CompressorReaction::button_press_event()
-{
-	if(is_event_win())
-	{
-		if(get_buttonpress() < 4) return BC_TextBox::button_press_event();
-		if(get_buttonpress() == 4)
-		{
-			plugin->config.reaction_len += 0.1;
-		}
-		else
-		if(get_buttonpress() == 5)
-		{
-			plugin->config.reaction_len -= 0.1;
-		}
-		update((float)plugin->config.reaction_len);
-		plugin->send_configure_change();
-		return 1;
-	}
-	return 0;
-}
 
-CompressorDecay::CompressorDecay(CompressorEffect *plugin, int x, int y) 
- : BC_TextBox(x, y, DP(100), 1, (float)plugin->config.decay_len)
+
+CompressorDecay::CompressorDecay(CompressorEffect *plugin, 
+    CompressorWindow *window, 
+    int x, 
+    int y) 
+ : BC_TumbleTextBox(window,
+    (float)plugin->config.decay_len,
+    (float)MIN_DECAY,
+    (float)MAX_DECAY,
+    x, 
+    y, 
+    DP(100))
 {
 	this->plugin = plugin;
+    set_increment(0.1);
+    set_precision(2);
 }
 int CompressorDecay::handle_event()
 {
@@ -544,33 +567,24 @@ int CompressorDecay::handle_event()
 	return 1;
 }
 
-int CompressorDecay::button_press_event()
-{
-	if(is_event_win())
-	{
-		if(get_buttonpress() < 4) return BC_TextBox::button_press_event();
-		if(get_buttonpress() == 4)
-		{
-			plugin->config.decay_len += 0.1;
-		}
-		else
-		if(get_buttonpress() == 5)
-		{
-			plugin->config.decay_len -= 0.1;
-		}
-		update((float)plugin->config.decay_len);
-		plugin->send_configure_change();
-		return 1;
-	}
-	return 0;
-}
 
 
 
-CompressorX::CompressorX(CompressorEffect *plugin, int x, int y) 
- : BC_TextBox(x, y, DP(100), 1, "")
+CompressorX::CompressorX(CompressorEffect *plugin, 
+    CompressorWindow *window, 
+    int x, 
+    int y) 
+ : BC_TumbleTextBox(window,
+     (float)0.0,
+    plugin->config.min_db,
+    plugin->config.max_db,
+    x, 
+    y, 
+    DP(100))
 {
 	this->plugin = plugin;
+    set_increment(0.1);
+    set_precision(2);
 }
 int CompressorX::handle_event()
 {
@@ -588,10 +602,21 @@ int CompressorX::handle_event()
 
 
 
-CompressorY::CompressorY(CompressorEffect *plugin, int x, int y) 
- : BC_TextBox(x, y, DP(100), 1, "")
+CompressorY::CompressorY(CompressorEffect *plugin, 
+    CompressorWindow *window, 
+    int x, 
+    int y) 
+ : BC_TumbleTextBox(window,
+     (float)0.0,
+    plugin->config.min_db,
+    plugin->config.max_db,
+    x, 
+    y, 
+    DP(100))
 {
 	this->plugin = plugin;
+    set_increment(0.1);
+    set_precision(2);
 }
 int CompressorY::handle_event()
 {
@@ -611,8 +636,17 @@ int CompressorY::handle_event()
 
 
 
-CompressorTrigger::CompressorTrigger(CompressorEffect *plugin, int x, int y) 
- : BC_TextBox(x, y, DP(100), 1, (int64_t)plugin->config.trigger)
+CompressorTrigger::CompressorTrigger(CompressorEffect *plugin, 
+    CompressorWindow *window,
+    int x, 
+    int y) 
+ : BC_TumbleTextBox(window,
+    (int)plugin->config.trigger,
+    MIN_TRIGGER,
+    MAX_TRIGGER,
+    x, 
+    y, 
+    DP(100))
 {
 	this->plugin = plugin;
 }
@@ -622,28 +656,6 @@ int CompressorTrigger::handle_event()
 	plugin->send_configure_change();
 	return 1;
 }
-
-int CompressorTrigger::button_press_event()
-{
-	if(is_event_win())
-	{
-		if(get_buttonpress() < 4) return BC_TextBox::button_press_event();
-		if(get_buttonpress() == 4)
-		{
-			plugin->config.trigger++;
-		}
-		else
-		if(get_buttonpress() == 5)
-		{
-			plugin->config.trigger--;
-		}
-		update((int64_t)plugin->config.trigger);
-		plugin->send_configure_change();
-		return 1;
-	}
-	return 0;
-}
-
 
 
 

@@ -51,6 +51,12 @@ PerformancePrefs::~PerformancePrefs()
 	nodes[1].remove_all_objects();
 	nodes[2].remove_all_objects();
 	nodes[3].remove_all_objects();
+    
+    delete edit_port;
+    delete brender_fragment;
+    delete preroll;
+    delete bpreroll;
+    delete jobs;
 }
 
 void PerformancePrefs::create_objects()
@@ -96,7 +102,7 @@ void PerformancePrefs::create_objects()
 
 	y += DP(30);
 	add_subwindow(new BC_Title(x, y + margin, _("Seconds to preroll renders:")));
-	PrefsRenderPreroll *preroll = new PrefsRenderPreroll(pwindow, 
+	preroll = new PrefsRenderPreroll(pwindow, 
 		this, 
 		x + DP(230), 
 		y);
@@ -125,7 +131,7 @@ void PerformancePrefs::create_objects()
 	y += DP(40);
 	add_subwindow(new BC_Title(x, y, _("Frames per background rendering job:")));
 	y += DP(20);
-	PrefsBRenderFragment *brender_fragment = new PrefsBRenderFragment(pwindow, 
+	brender_fragment = new PrefsBRenderFragment(pwindow, 
 		this, 
 		x, 
 		y);
@@ -134,7 +140,7 @@ void PerformancePrefs::create_objects()
 	
 	y += DP(30);
 	add_subwindow(new BC_Title(x, y + DP(5), _("Frames to preroll background:")));
-	PrefsBRenderPreroll *bpreroll = new PrefsBRenderPreroll(pwindow, 
+	bpreroll = new PrefsBRenderPreroll(pwindow, 
 		this, 
 		x + xmargin3, 
 		y + margin);
@@ -234,7 +240,7 @@ void PerformancePrefs::create_objects()
 	add_subwindow(new BC_Title(x, 
 		y + DP(30), 
 		_("(overridden if new file at each label is checked)")));
-	PrefsRenderFarmJobs *jobs = new PrefsRenderFarmJobs(pwindow, 
+	jobs = new PrefsRenderFarmJobs(pwindow, 
 		this, 
 		x + xmargin3, 
 		y);

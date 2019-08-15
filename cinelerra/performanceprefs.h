@@ -32,6 +32,11 @@ class CICacheSize;
 class PrefsRenderFarmEditNode;
 class PrefsRenderFarmNodes;
 class PrefsRenderFarmPort;
+class PrefsBRenderFragment;
+class PrefsRenderPreroll;
+class PrefsBRenderPreroll;
+class PrefsRenderFarmJobs;
+
 
 class PerformancePrefs : public PreferencesDialog
 {
@@ -64,6 +69,10 @@ public:
 	PrefsRenderFarmNodes *node_list;
 	FormatTools *brender_tools;
 	BC_Title *master_rate;
+    PrefsBRenderFragment *brender_fragment;
+    PrefsRenderPreroll *preroll;
+    PrefsBRenderPreroll *bpreroll;
+    PrefsRenderFarmJobs *jobs;
 };
 
 
