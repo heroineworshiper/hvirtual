@@ -33,6 +33,8 @@ BandConfig::BandConfig()
     freq = 0;
     solo = 0;
     bypass = 0;
+	reaction_len = 1.0;
+	decay_len = 1.0;
 }
 
 BandConfig::~BandConfig()
@@ -48,6 +50,8 @@ void BandConfig::copy_from(BandConfig *src)
     	levels.append(src->levels.values[i]);
     }
 
+	reaction_len = src->reaction_len;
+	decay_len = src->decay_len;
     freq = src->freq;
     solo = src->solo;
     bypass = src->bypass;
@@ -58,7 +62,9 @@ int BandConfig::equiv(BandConfig *src)
     if(levels.total != src->levels.total ||
         solo != src->solo ||
         bypass != src->bypass ||
-        freq != src->freq)
+        freq != src->freq ||
+        !EQUIV(reaction_len, src->reaction_len) ||
+		!EQUIV(decay_len, src->decay_len))
     {
         return 0;
     }
@@ -89,6 +95,13 @@ CompressorConfigBase::CompressorConfigBase(int total_bands)
     bands = new BandConfig[total_bands];
 	min_db = -78.0;
     max_db = 6.0;
+	min_x = min_db;
+	min_y = min_db;
+	max_x = 0;
+	max_y = 0;
+	smoothing_only = 0;
+	trigger = 0;
+	input = CompressorConfigBase::TRIGGER;
     for(int band = 0; band < total_bands; band++)
     {
         bands[band].freq = Freq::tofreq((band + 1) * TOTALFREQS / total_bands);
@@ -102,6 +115,44 @@ CompressorConfigBase::~CompressorConfigBase()
     delete [] bands;
 }
 
+void CompressorConfigBase::copy_from(CompressorConfigBase &that)
+{
+	min_x = that.min_x;
+	min_y = that.min_y;
+	max_x = that.max_x;
+	max_y = that.max_y;
+	trigger = that.trigger;
+	input = that.input;
+	smoothing_only = that.smoothing_only;
+
+    for(int band = 0; band < total_bands; band++)
+    {
+        BandConfig *dst = &bands[band];
+        BandConfig *src = &that.bands[band];
+        dst->copy_from(src);
+    }
+}
+
+
+int CompressorConfigBase::equivalent(CompressorConfigBase &that)
+{
+    for(int band = 0; band < total_bands; band++)
+    {
+        if(!bands[band].equiv(&that.bands[band]))
+        {
+            return 0;
+        }
+    }
+    
+	if(trigger != that.trigger ||
+		input != that.input ||
+		smoothing_only != that.smoothing_only)
+	{
+    	return 0;
+	}
+
+    return 1;
+}
 
 double CompressorConfigBase::get_y(int band, int number)
 {

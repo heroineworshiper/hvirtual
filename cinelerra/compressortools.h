@@ -56,6 +56,8 @@ public:
 	ArrayList<compressor_point_t> levels;
     int solo;
     int bypass;
+	double reaction_len;
+	double decay_len;
 
 // upper frequency in Hz
     int freq;
@@ -67,6 +69,10 @@ public:
     CompressorConfigBase(int total_bands);
     virtual ~CompressorConfigBase();
 
+    virtual void copy_from(CompressorConfigBase &that);
+    virtual int equivalent(CompressorConfigBase &that);
+
+    
     void remove_point(int band, int number);
     int set_point(int band, double x, double y);
     double calculate_db(int band, double x);
@@ -85,6 +91,17 @@ public:
     BandConfig *bands;
     int total_bands;
     int current_band;
+	int trigger;
+	int input;
+	enum
+	{
+		TRIGGER,
+		MAX,
+		SUM
+	};
+	double min_x, min_y;
+	double max_x, max_y;
+	int smoothing_only;
 };
 
 

@@ -287,13 +287,13 @@ void CompressorWindow::update()
     	trigger->enable();
     }
 
-	if(!EQUIV(atof(reaction->get_text()), plugin->config.reaction_len))
+	if(!EQUIV(atof(reaction->get_text()), band_config->reaction_len))
 	{
-    	reaction->update((float)plugin->config.reaction_len);
+    	reaction->update((float)band_config->reaction_len);
 	}
-    if(!EQUIV(atof(decay->get_text()), plugin->config.decay_len))
+    if(!EQUIV(atof(decay->get_text()), band_config->decay_len))
 	{
-    	decay->update((float)plugin->config.decay_len);
+    	decay->update((float)band_config->decay_len);
 	}
     
     smooth->update(plugin->config.smoothing_only);
@@ -523,7 +523,7 @@ CompressorReaction::CompressorReaction(CompressorEffect *plugin,
     int x, 
     int y) 
  : BC_TumbleTextBox(window,
-    (float)plugin->config.reaction_len,
+    (float)plugin->config.bands[plugin->config.current_band].reaction_len,
     (float)MIN_ATTACK,
     (float)MAX_ATTACK,
     x, 
@@ -537,7 +537,7 @@ CompressorReaction::CompressorReaction(CompressorEffect *plugin,
 
 int CompressorReaction::handle_event()
 {
-	plugin->config.reaction_len = atof(get_text());
+	plugin->config.bands[plugin->config.current_band].reaction_len = atof(get_text());
 	plugin->send_configure_change();
 	return 1;
 }
@@ -549,7 +549,7 @@ CompressorDecay::CompressorDecay(CompressorEffect *plugin,
     int x, 
     int y) 
  : BC_TumbleTextBox(window,
-    (float)plugin->config.decay_len,
+    (float)plugin->config.bands[plugin->config.current_band].decay_len,
     (float)MIN_DECAY,
     (float)MAX_DECAY,
     x, 
@@ -562,7 +562,7 @@ CompressorDecay::CompressorDecay(CompressorEffect *plugin,
 }
 int CompressorDecay::handle_event()
 {
-	plugin->config.decay_len = atof(get_text());
+	plugin->config.bands[plugin->config.current_band].decay_len = atof(get_text());
 	plugin->send_configure_change();
 	return 1;
 }

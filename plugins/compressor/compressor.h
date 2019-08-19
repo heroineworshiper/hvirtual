@@ -176,19 +176,6 @@ public:
 		int64_t current_frame);
 
 
-	int trigger;
-	int input;
-	enum
-	{
-		TRIGGER,
-		MAX,
-		SUM
-	};
-	double reaction_len;
-	double decay_len;
-	double min_x, min_y;
-	double max_x, max_y;
-	int smoothing_only;
 };
 
 class CompressorEffect : public PluginAClient

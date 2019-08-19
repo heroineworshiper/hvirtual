@@ -54,6 +54,8 @@ public:
 
 	int initialize(int window_size, int bands = 1);
 	long get_delay();     // Number of samples fifo is delayed
+// get position relative to the last read_samples of the current _process call
+//    int get_read_offset(); 
 	int reconfigure();
 	int fix_window_size();
 	int delete_fft();
@@ -116,6 +118,8 @@ private:
 
 // samples in input_buffer including the tail
 	long input_size;
+// position relative to the last read_samples of the current _process call
+//    int input_offset;
 // Samples in output buffer less window border
 	long output_size;
 // Space in output buffer including window border

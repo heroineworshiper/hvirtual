@@ -137,8 +137,8 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 		{
 			if(input.tag.title_is("COMPRESSOR"))
 			{
-				config.reaction_len = input.tag.get_property("REACTION_LEN", config.reaction_len);
-				config.decay_len = input.tag.get_property("DECAY_LEN", config.decay_len);
+				band_config->reaction_len = input.tag.get_property("REACTION_LEN", band_config->reaction_len);
+				band_config->decay_len = input.tag.get_property("DECAY_LEN", band_config->decay_len);
 				config.trigger = input.tag.get_property("TRIGGER", config.trigger);
 				config.smoothing_only = input.tag.get_property("SMOOTHING_ONLY", config.smoothing_only);
 				config.input = input.tag.get_property("INPUT", config.input);
@@ -164,10 +164,10 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 
 	output.tag.set_title("COMPRESSOR");
 	output.tag.set_property("TRIGGER", config.trigger);
-	output.tag.set_property("REACTION_LEN", config.reaction_len);
-	output.tag.set_property("DECAY_LEN", config.decay_len);
 	output.tag.set_property("SMOOTHING_ONLY", config.smoothing_only);
 	output.tag.set_property("INPUT", config.input);
+	output.tag.set_property("REACTION_LEN", band_config->reaction_len);
+	output.tag.set_property("DECAY_LEN", band_config->decay_len);
 	output.append_tag();
 	output.append_newline();
 
@@ -229,8 +229,8 @@ int CompressorEffect::process_buffer(int64_t size,
 	max_y = 1.0;
 
 
-	int reaction_samples = (int)(config.reaction_len * sample_rate + 0.5);
-	int decay_samples = (int)(config.decay_len * sample_rate + 0.5);
+	int reaction_samples = (int)(band_config->reaction_len * sample_rate + 0.5);
+	int decay_samples = (int)(band_config->decay_len * sample_rate + 0.5);
 	int trigger = CLIP(config.trigger, 0, PluginAClient::total_in_buffers - 1);
 
 	CLAMP(reaction_samples, -1000000, 1000000);
@@ -558,43 +558,16 @@ int CompressorEffect::process_buffer(int64_t size,
 CompressorConfig::CompressorConfig()
  : CompressorConfigBase(1)
 {
-	reaction_len = 1.0;
-	min_x = min_db;
-	min_y = min_db;
-	max_x = 0;
-	max_y = 0;
-	trigger = 0;
-	input = CompressorConfig::TRIGGER;
-	smoothing_only = 0;
-	decay_len = 1.0;
 }
 
 void CompressorConfig::copy_from(CompressorConfig &that)
 {
-	this->reaction_len = that.reaction_len;
-	this->decay_len = that.decay_len;
-	this->min_x = that.min_x;
-	this->min_y = that.min_y;
-	this->max_x = that.max_x;
-	this->max_y = that.max_y;
-	this->trigger = that.trigger;
-	this->input = that.input;
-	this->smoothing_only = that.smoothing_only;
-    bands[0].copy_from(&that.bands[0]);
+    CompressorConfigBase::copy_from(that);
 }
 
 int CompressorConfig::equivalent(CompressorConfig &that)
 {
-	if(!EQUIV(this->reaction_len, that.reaction_len) ||
-		!EQUIV(this->decay_len, that.decay_len) ||
-		this->trigger != that.trigger ||
-		this->input != that.input ||
-		this->smoothing_only != that.smoothing_only)
-		return 0;
-    if(!bands[0].equiv(&that.bands[0]))
-    {
-        return 0;
-    }
+    return CompressorConfigBase::equivalent(that);
 	return 1;
 }
 
@@ -745,10 +718,10 @@ void CompressorWindow::update_textboxes()
 	if(plugin->config.input == CompressorConfig::TRIGGER && !trigger->get_enabled())
 		trigger->enable();
 
-	if(!EQUIV(atof(reaction->get_text()), plugin->config.reaction_len))
-		reaction->update((float)plugin->config.reaction_len);
-	if(!EQUIV(atof(decay->get_text()), plugin->config.decay_len))
-		decay->update((float)plugin->config.decay_len);
+	if(!EQUIV(atof(reaction->get_text()), band_config->reaction_len))
+		reaction->update((float)band_config->reaction_len);
+	if(!EQUIV(atof(decay->get_text()), band_config->decay_len))
+		decay->update((float)band_config->decay_len);
 	smooth->update(plugin->config.smoothing_only);
 	if(canvas->current_operation == CompressorCanvas::DRAG)
 	{
@@ -801,7 +774,7 @@ CompressorReaction::CompressorReaction(CompressorEffect *plugin,
     int x, 
     int y) 
  : BC_TumbleTextBox(window, 
-    (float)plugin->config.reaction_len,
+    (float)plugin->config.bands[0].reaction_len,
     (float)MIN_ATTACK,
     (float)MAX_ATTACK,
     x, 
@@ -815,7 +788,7 @@ CompressorReaction::CompressorReaction(CompressorEffect *plugin,
 
 int CompressorReaction::handle_event()
 {
-	plugin->config.reaction_len = atof(get_text());
+	plugin->config.bands[0].reaction_len = atof(get_text());
 	plugin->send_configure_change();
 	return 1;
 }
@@ -829,7 +802,7 @@ CompressorDecay::CompressorDecay(CompressorEffect *plugin,
     int x, 
     int y) 
  : BC_TumbleTextBox(window,
-    (float)plugin->config.decay_len,
+    (float)plugin->config.bands[0].decay_len,
     (float)MIN_DECAY,
     (float)MAX_DECAY,
     x, 
@@ -842,7 +815,7 @@ CompressorDecay::CompressorDecay(CompressorEffect *plugin,
 }
 int CompressorDecay::handle_event()
 {
-	plugin->config.decay_len = atof(get_text());
+	plugin->config.bands[0].decay_len = atof(get_text());
 	plugin->send_configure_change();
 	return 1;
 }

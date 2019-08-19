@@ -308,6 +308,10 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 	    direction);
 }
 
+int CrossfadeFFT::get_read_offset()
+{
+    
+}
 
 int CrossfadeFFT::process_buffer(int64_t output_sample, 
 	long size, 

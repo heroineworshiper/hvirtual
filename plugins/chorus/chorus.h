@@ -73,7 +73,7 @@ public:
 typedef struct 
 {
     double input_sample;
-    double input_period;
+//    double input_period;
 } flange_sample_t;
 
 

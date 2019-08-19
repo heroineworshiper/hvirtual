@@ -40,8 +40,10 @@
 #include <unistd.h>
 
 
-
-#define MIN_RATE 0.1
+// min rate for the GUI
+#define MIN_RATE 0.0
+// min rate to avoid division by zero
+#define MIN_RATE2 0.10
 #define MAX_RATE 10.0
 #define MIN_OFFSET 0.0
 #define MAX_OFFSET 100.0
@@ -137,18 +139,28 @@ int Chorus::process_buffer(int64_t size,
         }
 
 // flanging waveform is a whole number of samples that repeats
-        table_size = (int)((double)sample_rate / config.rate);
-        if(table_size % 2)
+        if(config.rate < MIN_RATE2)
         {
-            table_size++;
+            table_size = 256;
+        }
+        else
+        {
+            table_size = (int)((double)sample_rate / config.rate);
+            if(table_size % 2)
+            {
+                table_size++;
+            }
         }
 
         flanging_table = new flange_sample_t[table_size];
         double depth_samples = config.depth * 
             sample_rate / 1000;
 // read behind so the flange can work in realtime
-        double ratio = (double)depth_samples /
+        double ratio = 0;
+
+        ratio = (double)depth_samples /
             (table_size / 2);
+
 // printf("Chorus::process_buffer %d %f %f\n", 
 // __LINE__, 
 // depth_samples,
@@ -162,14 +174,14 @@ int Chorus::process_buffer(int64_t size,
 // input_sample,
 // ratio);
             flanging_table[i].input_sample = input_sample;
-            flanging_table[i].input_period = ratio;
+//            flanging_table[i].input_period = ratio;
         }
         
         for(int i = table_size / 2 + 1; i < table_size; i++)
         {
             double input_sample = -ratio * (table_size - i);
             flanging_table[i].input_sample = input_sample;
-            flanging_table[i].input_period = ratio;
+//            flanging_table[i].input_period = ratio;
 // printf("Chorus::process_buffer %d i=%d input_sample=%f ratio=%f\n", 
 // __LINE__, 
 // i, 
@@ -280,7 +292,7 @@ int Chorus::process_buffer(int64_t size,
         {
             flange_sample_t *table = &flanging_table[table_offset];
             double input_sample = j - starting_offset + table->input_sample;
-            double input_period = table->input_period;
+//            double input_period = table->input_period;
 
 // values to interpolate
             double sample1;
@@ -308,8 +320,11 @@ int Chorus::process_buffer(int64_t size,
             }
             output[j] += sample1 * fraction1 + sample2 * fraction2;
             
-            table_offset++;
-            table_offset %= table_size;
+            if(config.rate >= MIN_RATE2)
+            {
+                table_offset++;
+                table_offset %= table_size;
+            }
         }
         voice->table_offset = table_offset;
     }

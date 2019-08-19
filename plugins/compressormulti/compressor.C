@@ -73,57 +73,26 @@ CompressorConfig::CompressorConfig()
  : CompressorConfigBase(TOTAL_BANDS)
 {
     q = 1.0;
-	reaction_len = 1.0;
-	min_x = min_db;
-	min_y = min_db;
-	max_x = 0;
-	max_y = 0;
-	trigger = 0;
-	input = CompressorConfig::TRIGGER;
-	smoothing_only = 0;
-	decay_len = 1.0;
     window_size = 4096;
 }
 
 void CompressorConfig::copy_from(CompressorConfig &that)
 {
-	reaction_len = that.reaction_len;
-	decay_len = that.decay_len;
-	min_db = that.min_db;
-	min_x = that.min_x;
-	min_y = that.min_y;
-	max_x = that.max_x;
-	max_y = that.max_y;
-	trigger = that.trigger;
-	input = that.input;
-	smoothing_only = that.smoothing_only;
+    CompressorConfigBase::copy_from(that);
+
     window_size = that.window_size;
     q = that.q;
-
-    for(int band = 0; band < TOTAL_BANDS; band++)
-    {
-        BandConfig *dst = &bands[band];
-        BandConfig *src = &that.bands[band];
-        dst->copy_from(src);
-    }
 }
 
 int CompressorConfig::equivalent(CompressorConfig &that)
 {
-    for(int band = 0; band < TOTAL_BANDS; band++)
+    if(!CompressorConfigBase::equivalent(that))
     {
-        if(!bands[band].equiv(&that.bands[band]))
-        {
-            return 0;
-        }
+        return 0;
     }
 
-	if(!EQUIV(reaction_len, that.reaction_len) ||
-		!EQUIV(decay_len, that.decay_len) ||
-		!EQUIV(q, that.q) ||
-		trigger != that.trigger ||
-		input != that.input ||
-		smoothing_only != that.smoothing_only ||
+
+	if(!EQUIV(q, that.q) ||
         window_size != that.window_size)
 	{
     	return 0;
@@ -170,12 +139,17 @@ CompressorEffect::~CompressorEffect()
 
 void CompressorEffect::delete_dsp()
 {
+#ifndef DRAW_AFTER_BANDPASS
 	if(input_buffer)
 	{
 		for(int i = 0; i < PluginClient::total_in_buffers; i++)
 			delete input_buffer[i];
 		delete [] input_buffer;
 	}
+	input_buffer = 0;
+	input_size = 0;
+    new_input_size = 0;
+#endif
 
 
 	if(fft)
@@ -192,11 +166,7 @@ void CompressorEffect::delete_dsp()
 
 
     filtered_size = 0;
-	input_buffer = 0;
-	input_size = 0;
-    new_input_size = 0;
     fft = 0;
-//	input_allocated = 0;
 }
 
 
@@ -207,10 +177,12 @@ void CompressorEffect::reset()
         engines[i] = 0;
     }
 
-
+#ifndef DRAW_AFTER_BANDPASS
 	input_buffer = 0;
 	input_size = 0;
     new_input_size = 0;
+#endif
+
 	input_start = 0;
     filtered_size = 0;
     last_position = 0;
@@ -245,8 +217,6 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 		{
 			if(input.tag.title_is("COMPRESSOR_MULTI"))
 			{
-				config.reaction_len = input.tag.get_property("REACTION_LEN", config.reaction_len);
-				config.decay_len = input.tag.get_property("DECAY_LEN", config.decay_len);
 				config.trigger = input.tag.get_property("TRIGGER", config.trigger);
 				config.smoothing_only = input.tag.get_property("SMOOTHING_ONLY", config.smoothing_only);
 				config.input = input.tag.get_property("INPUT", config.input);
@@ -261,6 +231,10 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 	                config.bands[i].bypass = input.tag.get_property(string, config.bands[i].bypass);
                     sprintf(string,"SOLO%d", i);
 	                config.bands[i].solo = input.tag.get_property(string, config.bands[i].solo);
+				    sprintf(string,"REACTION_LEN%d", i);
+                    config.bands[i].reaction_len = input.tag.get_property(string, config.bands[i].reaction_len);
+				    sprintf(string,"DECAY_LEN%d", i);
+                    config.bands[i].decay_len = input.tag.get_property(string, config.bands[i].decay_len);
                 }
 			}
 			else
@@ -290,8 +264,6 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 
 	output.tag.set_title("COMPRESSOR_MULTI");
 	output.tag.set_property("TRIGGER", config.trigger);
-	output.tag.set_property("REACTION_LEN", config.reaction_len);
-	output.tag.set_property("DECAY_LEN", config.decay_len);
 	output.tag.set_property("SMOOTHING_ONLY", config.smoothing_only);
 	output.tag.set_property("INPUT", config.input);
 	output.tag.set_property("Q", config.q);
@@ -308,6 +280,10 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	    output.tag.set_property(string, band_config->bypass);
         sprintf(string, "SOLO%d", band);
 	    output.tag.set_property(string, band_config->solo);
+	    sprintf(string, "REACTION_LEN%d", band);
+        output.tag.set_property(string, band_config->reaction_len);
+	    sprintf(string, "DECAY_LEN%d", band);
+        output.tag.set_property(string, band_config->decay_len);
 	}
 
     output.append_tag();
@@ -426,158 +402,135 @@ int CompressorEffect::process_buffer(int64_t size,
 		    }
         }
         
+#ifndef DRAW_AFTER_BANDPASS
         input_size = 0;
+#endif
         filtered_size = 0;
         input_start = start_position;
     }
 
 
+// process frequency domane for all bands simultaneously
+// read enough samples ahead to process all the bands
+    int new_filtered_size = 0;
+    for(int band = 0; band < TOTAL_BANDS; band++)
+    {
+        BandConfig *band_config = &config.bands[band];
+        int reaction_samples = Units::round(band_config->reaction_len * sample_rate);
+	    CLAMP(reaction_samples, -1000000, 1000000);
 
-
-	int reaction_samples = (int)(config.reaction_len * sample_rate + 0.5);
-	int decay_samples = (int)(config.decay_len * sample_rate + 0.5);
-	int trigger = CLIP(config.trigger, 0, channels - 1);
-
-	CLAMP(reaction_samples, -1000000, 1000000);
-	CLAMP(decay_samples, reaction_samples, 1000000);
-	CLAMP(decay_samples, 1, 1000000);
-	if(labs(reaction_samples) < 1) reaction_samples = 1;
-	if(labs(decay_samples) < 1) decay_samples = 1;
-
-	int total_buffers = get_total_buffers();
-
-// Only read the current size
-	if(reaction_samples >= 0)
-	{
-        for(int band = 0; band < TOTAL_BANDS; band++)
+        if(-reaction_samples > new_filtered_size)
         {
-            engines[band]->allocate_filtered(size);
+            new_filtered_size = -reaction_samples;
         }
+    }
+    new_filtered_size += size;
+    if(new_filtered_size < size)
+    {
+        new_filtered_size = size;
+    }
+    
+    for(int band = 0; band < TOTAL_BANDS; band++)
+    {
+        engines[band]->allocate_filtered(new_filtered_size);
+    }
+    
+// Append data to the buffers to fill the readahead area.
+    int remane = new_filtered_size - filtered_size;
 
-
-// FFT all the channels & bands
-        for(int channel = 0; channel < total_buffers; channel++)
+    if(remane > 0)
+    {
+		for(int channel = 0; channel < channels; channel++)
 		{
-// reset the input size for each channel
+#ifndef DRAW_AFTER_BANDPASS
             new_input_size = input_size;
-// array of filtered buffers for each band
-            Samples *filtered_array[TOTAL_BANDS];
+printf("CompressorEffect::process_buffer %d new_input_size=%ld remane=%d\n", 
+__LINE__, 
+new_input_size,
+remane);
+#endif
+
+
+// create an array of filtered buffers for the output
+            Samples *filtered_arg[TOTAL_BANDS];
             for(int band = 0; band < TOTAL_BANDS; band++)
             {
                 new_spectrogram_frames[band] = 0;
-                filtered_array[band] = engines[band]->filtered_buffer[channel];
+                filtered_arg[band] = engines[band]->filtered_buffer[channel];
+// temporarily set the output to the end to append data
+                filtered_arg[band]->set_offset(filtered_size);
             }
 
-// this puts bandpassed input in the start of filtered_buffer 
-// & raw input on the end of input_buffer
-            fft[channel]->process_buffer(start_position, 
-		        size, 
-		        filtered_array,
+
+// starting position of the input reads
+            int64_t start;
+            if(get_direction() == PLAY_FORWARD)
+            {
+                start = input_start + filtered_size;
+            }
+            else
+            {
+                start = input_start - filtered_size;
+            }
+
+// printf("CompressorEffect::process_buffer %d start=%ld remane=%d\n", __LINE__, start, remane);
+            fft[channel]->process_buffer(start, 
+		        remane, 
+		        filtered_arg,
 		        get_direction());
 
-// shift raw input to the output
-            memcpy(buffer[channel]->get_data(), 
-                input_buffer[channel]->get_data(),
-                size * sizeof(double));
-            memcpy(input_buffer[channel]->get_data(),
-                input_buffer[channel]->get_data() + size,
-                (new_input_size - size) * sizeof(double));
-            new_input_size -= size;
+            for(int band = 0; band < TOTAL_BANDS; band++)
+            {
+                filtered_arg[band]->set_offset(0);
+            }
+//printf("CompressorEffect::process_buffer %d new_input_size=%ld\n", __LINE__, new_input_size);
 		}
-        input_size = new_input_size;
+    }
+
+#ifndef DRAW_AFTER_BANDPASS
+    input_size = new_input_size;
+#endif
+    filtered_size = new_filtered_size;
+
 
 // send the spectrograms to the plugin.  This consumes the pointers
-	    for(int i = 0; i < spectrogram_frames.size(); i++)
-        {
-            add_gui_frame(spectrogram_frames.get(i));
-        }
-        spectrogram_frames.remove_all();
+	for(int i = 0; i < spectrogram_frames.size(); i++)
+    {
+        add_gui_frame(spectrogram_frames.get(i));
+    }
+    spectrogram_frames.remove_all();
 
 
-// compression for each band
-        for(int band = 0; band < TOTAL_BANDS; band++)
+// process time domane for each band separately
+	int trigger = CLIP(config.trigger, 0, channels - 1);
+    for(int band = 0; band < TOTAL_BANDS; band++)
+    {
+        BandConfig *band_config = &config.bands[band];
+        int reaction_samples = Units::round(band_config->reaction_len * sample_rate);
+        int decay_samples = Units::round(band_config->decay_len * sample_rate);
+        
+	    CLAMP(reaction_samples, -1000000, 1000000);
+	    CLAMP(decay_samples, reaction_samples, 1000000);
+	    CLAMP(decay_samples, 1, 1000000);
+	    if(labs(decay_samples) < 1) decay_samples = 1;
+        
+        if(reaction_samples >= 0)
         {
+	        if(labs(reaction_samples) < 1) reaction_samples = 1;
             engines[band]->process_readbehind(size,
                 reaction_samples,
                 decay_samples,
                 trigger);
-		}
-
-	}
-	else
-// read the current size + extra to look ahead
-	{
-		int64_t preview_samples = -reaction_samples;
-
-        int new_filtered_size = size + preview_samples;
-        for(int band = 0; band < TOTAL_BANDS; band++)
-        {
-            engines[band]->allocate_filtered(new_filtered_size);
         }
-
-// Append data to the buffers to fill the readahead area.
-        int remane = new_filtered_size - filtered_size;
-        if(remane > 0)
-        {
-		    for(int channel = 0; channel < total_buffers; channel++)
-		    {
-                new_input_size = input_size;
-
-    // array of filtered buffers for each band
-                Samples *filtered_array[TOTAL_BANDS];
-                for(int band = 0; band < TOTAL_BANDS; band++)
-                {
-                    new_spectrogram_frames[band] = 0;
-                    filtered_array[band] = engines[band]->filtered_buffer[channel];
-                    filtered_array[band]->set_offset(filtered_size);
-                }
-
-
-
-                int64_t start;
-                if(get_direction() == PLAY_FORWARD)
-                {
-                    start = input_start + filtered_size;
-                }
-                else
-                {
-                    start = input_start - filtered_size;
-                }
-
-// printf("CompressorEffect::process_buffer %d start=%ld remane=%d\n", __LINE__, start, remane);
-                fft[channel]->process_buffer(start, 
-		            remane, 
-		            filtered_array,
-		            get_direction());
-
-                for(int band = 0; band < TOTAL_BANDS; band++)
-                {
-                    filtered_array[band]->set_offset(0);
-                }
-		    }
-        }
-        
-        input_size = new_input_size;
-        filtered_size = new_filtered_size;
-
-
-// send the spectrograms to the plugin.  This consumes the pointers
-	    for(int i = 0; i < spectrogram_frames.size(); i++)
-        {
-            add_gui_frame(spectrogram_frames.get(i));
-        }
-        spectrogram_frames.remove_all();
-
-// compression for each band
-        for(int band = 0; band < TOTAL_BANDS; band++)
+        else
         {
             engines[band]->process_readahead(size,
-                preview_samples,
+                -reaction_samples,
                 reaction_samples,
                 decay_samples,
                 trigger);
         }
-	}
+    }
 
 
 // Add together filtered buffers + unfiltered buffer.
@@ -612,51 +565,51 @@ int CompressorEffect::process_buffer(int64_t size,
 
 
 
-    if(reaction_samples < 0)
+// shift input buffers
+    for(int band = 0; band < TOTAL_BANDS; band++)
     {
-        for(int band = 0; band < TOTAL_BANDS; band++)
+
+        for(int i = 0; i < channels; i++)
         {
-
-// shift buffers if readahead
-            for(int i = 0; i < channels; i++)
-            {
-                memcpy(engines[band]->filtered_buffer[i]->get_data(),
-                    engines[band]->filtered_buffer[i]->get_data() + size,
-                    (filtered_size - size) * sizeof(double));
-            }
-        }
-
-
-        input_size -= size;
-        filtered_size -= size;
-
-        if(get_direction() == PLAY_FORWARD)
-        {
-            input_start += size;
-        }
-        else
-        {
-            input_start -= size;
+            memcpy(engines[band]->filtered_buffer[i]->get_data(),
+                engines[band]->filtered_buffer[i]->get_data() + size,
+                (filtered_size - size) * sizeof(double));
+                
         }
     }
 
+#ifndef DRAW_AFTER_BANDPASS
+    for(int i = 0; i < channels; i++)
+    {
+        memcpy(input_buffer[i]->get_data(),
+            input_buffer[i]->get_data() + size,
+            (input_size - size) * sizeof(double));
+    }
+    input_size -= size;
+#endif
+
+// update the counters
+    filtered_size -= size;
 
     if(get_direction() == PLAY_FORWARD)
     {
+        input_start += size;
         last_position = start_position + size;
     }
     else
     {
+        input_start -= size;
         last_position = start_position - size;
     }
 
-    
+
 
 	return 0;
 }
 
 void CompressorEffect::allocate_input(int new_size)
 {
+#ifndef DRAW_AFTER_BANDPASS
 	if(!input_buffer ||
         new_size > input_buffer[0]->get_allocated())
 	{
@@ -680,6 +633,7 @@ void CompressorEffect::allocate_input(int new_size)
 		
 		input_buffer = new_input_buffer;
    	}
+#endif // !DRAW_AFTER_BANDPASS
 }
 
 
@@ -1006,7 +960,6 @@ void CompressorEngine::process_readbehind(int size,
 			}
 		}
     }
-
 }
 
 void CompressorEngine::process_readahead(int size, 
@@ -1235,6 +1188,9 @@ int CompressorFFT::post_process(int band)
 // get the maximum output in the time domane
 	    double time_max = 0;
         double *buffer = output_real;
+
+//        printf("CompressorFFT::post_process %d band=%d\n", __LINE__, band);
+// TODO: for each window, it's coming from the start of the last read_samples
 #ifndef DRAW_AFTER_BANDPASS
         buffer = input_buffer->get_data();
 #endif
@@ -1285,6 +1241,7 @@ int CompressorFFT::read_samples(int64_t output_sample,
 // output_sample,
 // samples);
 
+#ifndef DRAW_AFTER_BANDPASS
 // append unprocessed samples to the input_buffer
     int new_input_size = plugin->new_input_size + samples;
     plugin->allocate_input(new_input_size);
@@ -1294,8 +1251,8 @@ int CompressorFFT::read_samples(int64_t output_sample,
 
 
     plugin->new_input_size = new_input_size;
-    
-
+printf("CompressorFFT::read_samples %d new_input_size=%d samples=%d\n", __LINE__, new_input_size, samples);
+#endif // !DRAW_AFTER_BANDPASS
     return result;
 }
 

@@ -37,7 +37,7 @@ class CompressorFFT;
 
 
 //#define LOG_CROSSOVER
-//#define DRAW_AFTER_BANDPASS
+#define DRAW_AFTER_BANDPASS
 
 #define TOTAL_BANDS 3
 
@@ -54,20 +54,7 @@ public:
 		int64_t next_frame, 
 		int64_t current_frame);
 
-	int trigger;
-	int input;
-	enum
-	{
-		TRIGGER,
-		MAX,
-		SUM
-	};
-	double reaction_len;
-	double decay_len;
-	double min_x, min_y;
-	double max_x, max_y;
     double q;
-	int smoothing_only;
     int window_size;
 };
 
@@ -159,15 +146,17 @@ public:
 
 	PLUGIN_CLASS_MEMBERS(CompressorConfig)
 
+#ifndef DRAW_AFTER_BANDPASS
 // The out of band data for each channel with readahead
 	Samples **input_buffer;
-// Number of samples in the input buffers
+// Number of samples in the unfiltered input buffers
 	int64_t input_size;
 // input buffer size being calculated by the FFT readers
     int64_t new_input_size;
+#endif // !DRAW_AFTER_BANDPASS
 // Starting sample of the input buffer relative to project in the requested rate.
 	int64_t input_start;
-// total samples in the filtered buffers
+// Number of samples in the filtered input buffers
     int64_t filtered_size;
 
 // detect seeking
