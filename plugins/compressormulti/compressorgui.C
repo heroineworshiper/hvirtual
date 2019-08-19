@@ -115,23 +115,7 @@ void CompressorWindow::create_objects()
 	y += decay->get_h() + margin;
     
     
-	add_subwindow(title = new BC_Title(x, y, _("Trigger Type:")));
-	y += title->get_h();
-	add_subwindow(input = new CompressorInput(plugin, x, y));
-	input->create_objects();
-	y += input->get_h() + margin;
-	add_subwindow(title = new BC_Title(x, y, _("Trigger:")));
-	y += title->get_h();
     
-    
-	trigger = new CompressorTrigger(plugin, this, x, y);
-    trigger->create_objects();
-	if(plugin->config.input != CompressorConfig::TRIGGER) trigger->disable();
-	y += trigger->get_h() + margin;
-
-
-	add_subwindow(smooth = new CompressorSmooth(plugin, x, y));
-    y += smooth->get_h() + margin;
 	add_subwindow(solo = new CompressorSolo(plugin, x, y));
     y += solo->get_h() + margin;
 	add_subwindow(bypass = new CompressorBypass(plugin, x, y));
@@ -185,6 +169,30 @@ void CompressorWindow::create_objects()
         ptr));
     y += freq1->get_h() + margin;
 
+    
+    BC_Bar *bar;
+    add_subwindow(bar = new BC_Bar(x, y, get_w() - x - margin));
+    y += bar->get_h() + margin;
+    
+    
+	add_subwindow(title = new BC_Title(x, y, _("Trigger Type:")));
+	y += title->get_h();
+	add_subwindow(input = new CompressorInput(plugin, x, y));
+	input->create_objects();
+	y += input->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Trigger:")));
+	y += title->get_h();
+    
+    
+	trigger = new CompressorTrigger(plugin, this, x, y);
+    trigger->create_objects();
+	if(plugin->config.input != CompressorConfig::TRIGGER) trigger->disable();
+	y += trigger->get_h() + margin;
+
+
+	add_subwindow(smooth = new CompressorSmooth(plugin, x, y));
+    y += smooth->get_h() + margin;
+
 
     add_subwindow(title = new BC_Title(x, y, _("Steepness:")));
     add_subwindow(q = new CompressorFPot(this, 
@@ -197,7 +205,7 @@ void CompressorWindow::create_objects()
     y += q->get_h() + margin;
     
     add_subwindow(title = new BC_Title(x, y, _("Window size:")));
-    y += title->get_h() + margin;
+    y += title->get_h();
     add_subwindow(size = new CompressorSize(this,
         plugin,
         x,
