@@ -82,7 +82,7 @@ public:
 	void stop_fullscreen();
 
 // Don't call from inside the canvas
-	void create_canvas();
+	void create_canvas(int flush);
 
 
 
@@ -142,7 +142,7 @@ public:
 	virtual int get_yscroll() { return 0; };
 	virtual float get_zoom() { return 0; };
 // Redraws the image
-	virtual void draw_refresh(int flush = 1) {};
+	virtual void draw_refresh(int flush);
 
 // Get top left offset of canvas relative to output.
 // Normally negative.  Can be positive if output is smaller than canvas.

@@ -24,6 +24,7 @@
 
 // designed for lists of track numbers
 
+#include "bcsignals.h"
 #include <stdio.h>
 
 
@@ -314,6 +315,7 @@ TYPE ArrayList<TYPE>::get(int number)
 	printf("ArrayList<TYPE>::get number=%d total=%d\n",
 		number,
 		total);
+    BC_Signals::dump_stack();
 	return 0;
 }
 

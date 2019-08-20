@@ -178,7 +178,6 @@ void VWindow::change_source(int edl_number)
 {
 	if(!running()) return;
 
-//printf("VWindow::change_source %d %p\n", __LINE__, mwindow->edl->get_vwindow_edl(edl_number));
 	if(mwindow->edl->get_vwindow_edl(edl_number))
 	{
 		this->edl = mwindow->edl->get_vwindow_edl(edl_number);

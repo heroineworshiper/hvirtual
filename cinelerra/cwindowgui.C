@@ -1003,112 +1003,7 @@ void CWindowCanvas::draw_refresh(int flush)
 
 		if(refresh_frame)
 		{
-			float in_x1, in_y1, in_x2, in_y2;
-			float out_x1, out_y1, out_x2, out_y2;
-			get_transfers(mwindow->edl, 
-				in_x1, 
-				in_y1, 
-				in_x2, 
-				in_y2, 
-				out_x1, 
-				out_y1, 
-				out_x2, 
-				out_y2);
-
-			if(!EQUIV(out_x1, 0) ||
-				!EQUIV(out_y1, 0) ||
-				!EQUIV(out_x2, get_canvas()->get_w()) ||
-				!EQUIV(out_y2, get_canvas()->get_h()))
-			{
-				get_canvas()->clear_box(0, 
-					0, 
-					get_canvas()->get_w(), 
-					get_canvas()->get_h());
-			}
-
-//printf("CWindowCanvas::draw_refresh %.2f %.2f %.2f %.2f -> %.2f %.2f %.2f %.2f\n", 
-//in_x1, in_y1, in_x2, in_y2, out_x1, out_y1, out_x2, out_y2);
-
-
-			if(out_x2 > out_x1 && 
-				out_y2 > out_y1 && 
-				in_x2 > in_x1 && 
-				in_y2 > in_y1)
-			{
-// Can't use OpenGL here because it is called asynchronously of the
-// playback operation.
-		        int dest_x = (int)out_x1; 
-		        int dest_y = (int)out_y1;
-		        int dest_w = (int)(out_x2 - out_x1);
-		        int dest_h = (int)(out_y2 - out_y1);
-		        int src_x = (int)in_x1;
-		        int src_y = (int)in_y1;
-		        int src_w = (int)(in_x2 - in_x1);
-		        int src_h = (int)(in_y2 - in_y1);
-                if(BC_CModels::has_alpha(refresh_frame->get_color_model()))
-                {
-                    BC_Bitmap *temp_bitmap = get_canvas()->get_temp_bitmap(
-                        dest_w,
-                        dest_h,
-                        get_canvas()->get_color_model());
-                    int checker_w = CHECKER_W;
-                    int checker_h = CHECKER_H;
-// printf("CWindowCanvas::draw_refresh %d %p %d %d %d %d %d %d %d %d %d %d\n", 
-// __LINE__,
-// temp_bitmap->get_row_pointers(),
-// refresh_frame->get_color_model(),
-// get_canvas()->get_color_model(),
-// src_x, 
-// src_y, 
-// src_w, 
-// src_h,
-// dest_x,
-// dest_y,
-// dest_w,
-// dest_h);
-
-                    BC_CModels::transfer_alpha(temp_bitmap->get_row_pointers(), 
-			            refresh_frame->get_rows(),
-			            src_x, 
-			            src_y, 
-			            src_w, 
-			            src_h,
-			            0, 
-			            0, 
-			            dest_w, 
-			            dest_h,
-			            refresh_frame->get_color_model(), 
-			            temp_bitmap->get_color_model(),
-                        refresh_frame->get_bytes_per_line(),
-			            temp_bitmap->get_bytes_per_line(),
-                        checker_w,
-                        checker_h);
-                    get_canvas()->draw_bitmap(temp_bitmap, 
-		                0, 
-		                dest_x, 
-		                dest_y,
-		                dest_w,
-		                dest_h,
-		                0,
-		                0,
-		                -1,
-		                -1,
-		                0);
-                }
-                else
-                {   
-				    get_canvas()->draw_vframe(refresh_frame,
-                        dest_x,
-                        dest_y,
-                        dest_w,
-                        dest_h,
-                        src_x,
-                        src_y,
-                        src_w,
-                        src_h,
-						0);
-                }
-			}
+            Canvas::draw_refresh(flush);
 		}
 		else
 		{
@@ -1118,10 +1013,9 @@ void CWindowCanvas::draw_refresh(int flush)
 				get_canvas()->get_h());
 		}
 
-		draw_overlays();
-		get_canvas()->flash(flush);
+    	draw_overlays();
+	    get_canvas()->flash(flush);
 	}
-//printf("CWindowCanvas::draw_refresh 10\n");
 }
 
 #define CROPHANDLE_W DP(10)

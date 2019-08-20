@@ -1567,7 +1567,14 @@ void EDL::remove_vwindow_edl(EDL *edl)
 
 EDL* EDL::get_vwindow_edl(int number)
 {
-	return vwindow_edls.get(number);
+    if(vwindow_edls.size())
+    {
+    	return vwindow_edls.get(number);
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 int EDL::total_vwindow_edls()

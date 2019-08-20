@@ -285,7 +285,7 @@ int VDeviceX11::close_all()
 		if(/* device->out_config->driver != PLAYBACK_X11_GL || 
 			*/ device->single_frame)
 		{
-			output->draw_refresh();
+			output->draw_refresh(1);
 		}
 	}
 

@@ -24,7 +24,6 @@
 #ifndef BCSIGNALS_H
 #define BCSIGNALS_H
 
-#include "arraylist.h"
 #include "bcsignals.inc"
 #include <pthread.h>
 #include <signal.h>
