@@ -25,4 +25,7 @@
 
 class CWindowGUI;
 
+#define CHECKER_W DP(8)
+#define CHECKER_H DP(8)
+
 #endif

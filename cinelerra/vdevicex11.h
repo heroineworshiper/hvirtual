@@ -47,14 +47,14 @@ public:
 	int read_buffer(VFrame *frame);
 	int reset_parameters();
 // User always gets the colormodel requested
-	void new_output_buffer(VFrame **output, int colormodel, EDL *edl);
+	void new_output_buffer(VFrame **output_frame, int colormodel, EDL *edl);
 
 	int open_output();
 	int start_playback();
 	int stop_playback();
 	int output_visible();
 // After loading the bitmap with a picture, write it
-	int write_buffer(VFrame *result, EDL *edl);
+	int write_buffer(VFrame *output_frame, EDL *edl);
 // Get best colormodel for recording
 	int get_best_colormodel(Asset *asset);
 
@@ -126,6 +126,8 @@ public:
 	void copy_frame(VFrame *dst, VFrame *src);
 
 private:
+    void output_to_bitmap(VFrame *output_frame);
+
 // Closest colormodel the hardware can do for playback.
 // Only used by VDeviceX11::new_output_buffer.  The value from File::get_best_colormodel
 // is passed to this to create the VFrame to which the output is rendered.

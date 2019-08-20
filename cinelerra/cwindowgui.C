@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1037,16 +1037,77 @@ void CWindowCanvas::draw_refresh(int flush)
 			{
 // Can't use OpenGL here because it is called asynchronously of the
 // playback operation.
-				get_canvas()->draw_vframe(refresh_frame,
-						(int)out_x1, 
-						(int)out_y1, 
-						(int)(out_x2 - out_x1), 
-						(int)(out_y2 - out_y1),
-						(int)in_x1, 
-						(int)in_y1, 
-						(int)(in_x2 - in_x1), 
-						(int)(in_y2 - in_y1),
+		        int dest_x = (int)out_x1; 
+		        int dest_y = (int)out_y1;
+		        int dest_w = (int)(out_x2 - out_x1);
+		        int dest_h = (int)(out_y2 - out_y1);
+		        int src_x = (int)in_x1;
+		        int src_y = (int)in_y1;
+		        int src_w = (int)(in_x2 - in_x1);
+		        int src_h = (int)(in_y2 - in_y1);
+                if(BC_CModels::has_alpha(refresh_frame->get_color_model()))
+                {
+                    BC_Bitmap *temp_bitmap = get_canvas()->get_temp_bitmap(
+                        dest_w,
+                        dest_h,
+                        get_canvas()->get_color_model());
+                    int checker_w = CHECKER_W;
+                    int checker_h = CHECKER_H;
+// printf("CWindowCanvas::draw_refresh %d %p %d %d %d %d %d %d %d %d %d %d\n", 
+// __LINE__,
+// temp_bitmap->get_row_pointers(),
+// refresh_frame->get_color_model(),
+// get_canvas()->get_color_model(),
+// src_x, 
+// src_y, 
+// src_w, 
+// src_h,
+// dest_x,
+// dest_y,
+// dest_w,
+// dest_h);
+
+                    BC_CModels::transfer_alpha(temp_bitmap->get_row_pointers(), 
+			            refresh_frame->get_rows(),
+			            src_x, 
+			            src_y, 
+			            src_w, 
+			            src_h,
+			            0, 
+			            0, 
+			            dest_w, 
+			            dest_h,
+			            refresh_frame->get_color_model(), 
+			            temp_bitmap->get_color_model(),
+                        refresh_frame->get_bytes_per_line(),
+			            temp_bitmap->get_bytes_per_line(),
+                        checker_w,
+                        checker_h);
+                    get_canvas()->draw_bitmap(temp_bitmap, 
+		                0, 
+		                dest_x, 
+		                dest_y,
+		                dest_w,
+		                dest_h,
+		                0,
+		                0,
+		                -1,
+		                -1,
+		                0);
+                }
+                else
+                {   
+				    get_canvas()->draw_vframe(refresh_frame,
+                        dest_x,
+                        dest_y,
+                        dest_w,
+                        dest_h,
+                        src_x,
+                        src_y,
+                        src_w,
+                        src_h,
 						0);
+                }
 			}
 		}
 		else
@@ -2230,6 +2291,7 @@ int CWindowCanvas::do_eyedrop(int &rerender, int button_press, int draw)
 
 		if(draw)
 		{
+printf("CWindowCanvas::do_eyedrop %d x=%d y=%d\n", __LINE__, gui->eyedrop_x, gui->eyedrop_y);
 			row1 = gui->eyedrop_y - radius;
 			row2 = gui->eyedrop_y + radius;
 			column1 = gui->eyedrop_x - radius;
@@ -2250,7 +2312,8 @@ int CWindowCanvas::do_eyedrop(int &rerender, int button_press, int draw)
 
 			output_to_canvas(mwindow->edl, 0, x1, y1);
 			output_to_canvas(mwindow->edl, 0, x2, y2);
-//printf("CWindowCanvas::do_eyedrop %d %f %f %f %f\n", __LINE__, x1, x2, y1, y2);
+//printf("CWindowCanvas::do_eyedrop %d cmodel=%d %f %f %f %f\n", 
+//__LINE__, refresh_frame->get_color_model(), x1, x2, y1, y2);
 
 			if(x2 - x1 >= 1 && y2 - y1 >= 1)
 			{
@@ -2916,28 +2979,34 @@ void CWindowCanvas::draw_bezier(int do_camera)
 		(int)track_y1 + offset, \
 		(int)(track_x2 - track_x1), \
 		(int)(track_y2 - track_y1)); \
-	get_canvas()->draw_line((int)track_x1 + offset,  \
+	get_canvas()->draw_line((int)track_x1,  \
 		(int)track_y1 + offset, \
-		(int)track_x2 + offset, \
+		(int)track_x2, \
 		(int)track_y2 + offset); \
-	get_canvas()->draw_line((int)track_x2 + offset,  \
+	get_canvas()->draw_line((int)track_x2,  \
 		(int)track_y1 + offset, \
-		(int)track_x1 + offset, \
+		(int)track_x1, \
 		(int)track_y2 + offset); \
 
 
 // Drop shadow
-	get_canvas()->set_color(BLACK);
+	get_canvas()->set_color(WHITE);
+    get_canvas()->set_inverse();
 	DRAW_PROJECTION(1);
 
-//	canvas->set_inverse();
 	if(do_camera)
 		get_canvas()->set_color(GREEN);
 	else
 		get_canvas()->set_color(RED);
 
 	DRAW_PROJECTION(0);
-//	canvas->set_opaque();
+    get_canvas()->set_opaque();
+
+// 	get_canvas()->set_inverse();
+//     get_canvas()->set_color(WHITE);
+// 	DRAW_PROJECTION(0);
+// 	get_canvas()->set_opaque();
+//     get_canvas()->set_line_dashes(0);
 
 }
 

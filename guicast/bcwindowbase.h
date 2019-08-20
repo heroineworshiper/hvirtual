@@ -582,6 +582,7 @@ public:
    void restore_vm();
 #endif
 
+    BC_Bitmap* get_temp_bitmap(int w, int h, int color_model);
 	
 	int test_keypress;
   	char keys_return[KEYPRESSLEN];

@@ -4201,6 +4201,20 @@ int BC_WindowBase::get_id()
 	return id;
 }
 
+BC_Bitmap* BC_WindowBase::get_temp_bitmap(int w, int h, int color_model)
+{
+    if(!temp_bitmap) temp_bitmap = new BC_Bitmap(top_level, 
+		w, 
+		h, 
+		color_model, 
+		1);
+    temp_bitmap->match_params(w, 
+		h, 
+		color_model, 
+		1);
+    return temp_bitmap;
+}
+
 
 
 

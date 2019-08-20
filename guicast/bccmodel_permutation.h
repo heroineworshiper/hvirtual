@@ -21,18 +21,6 @@
 #include "clip.h"
 #include <stdint.h>
 
-// All variables are unsigned
-// y -> 24 bits u, v, -> 8 bits r, g, b -> 8 bits
-#define YUV_TO_RGB(y, u, v, r, g, b) \
-{ \
-	(r) = ((y + BC_CModels::yuv_table.vtor_tab[v]) >> 16); \
-	(g) = ((y + BC_CModels::yuv_table.utog_tab[u] + BC_CModels::yuv_table.vtog_tab[v]) >> 16); \
-	(b) = ((y + BC_CModels::yuv_table.utob_tab[u]) >> 16); \
-	CLAMP(r, 0, 0xff); \
-	CLAMP(g, 0, 0xff); \
-	CLAMP(b, 0, 0xff); \
-}
-
 // y -> 0 - 1 float
 // u, v, -> 8 bits
 // r, g, b -> float

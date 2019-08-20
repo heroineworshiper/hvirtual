@@ -140,6 +140,18 @@
 
 
 
+// All variables are unsigned
+// y -> 24 bits u, v, -> 8 bits r, g, b -> 8 bits
+#define YUV_TO_RGB(y, u, v, r, g, b) \
+{ \
+	(r) = ((y + BC_CModels::yuv_table.vtor_tab[v]) >> 16); \
+	(g) = ((y + BC_CModels::yuv_table.utog_tab[u] + BC_CModels::yuv_table.vtog_tab[v]) >> 16); \
+	(b) = ((y + BC_CModels::yuv_table.utob_tab[u]) >> 16); \
+	CLAMP(r, 0, 0xff); \
+	CLAMP(g, 0, 0xff); \
+	CLAMP(b, 0, 0xff); \
+}
+
 
 
 
@@ -197,6 +209,24 @@ public:
 	static void to_text(char *string, int cmodel);
 	static int from_text(const char *text);
 
+
+// transfer limited colormodels with alpha checkerboard to BC_BGR8888
+    static void transfer_alpha(unsigned char **output_rows, /* Leave NULL if non existent */
+		unsigned char **input_rows,
+        int in_x,        /* Dimensions to capture from input frame */
+		int in_y, 
+		int in_w, 
+		int in_h,
+		int out_x,       /* Dimensions to project on output frame */
+		int out_y, 
+		int out_w, 
+		int out_h,
+        int in_colormodel, 
+		int out_colormodel,
+        int in_rowspan,    // bytes per line
+		int out_rowspan,
+        int checker_w,
+        int checker_h);
 
 
 	static void transfer(unsigned char **output_rows, /* Leave NULL if non existent */

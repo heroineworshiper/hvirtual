@@ -18,6 +18,7 @@
 
 
 #include "bccmodels.h"
+#include "clip.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -429,6 +430,108 @@ void BC_CModels::transfer(unsigned char **output_rows,
 	free(column_table);
 	free(row_table);
 }
+
+void BC_CModels::transfer_alpha(unsigned char **output_rows, /* Leave NULL if non existent */
+		unsigned char **input_rows,
+        int in_x,        /* Dimensions to capture from input frame */
+		int in_y, 
+		int in_w, 
+		int in_h,
+		int out_x,       /* Dimensions to project on output frame */
+		int out_y, 
+		int out_w, 
+		int out_h,
+        int in_colormodel, 
+		int out_colormodel,
+        int in_rowspan,    // bytes per line
+		int out_rowspan,
+        int checker_w,
+        int checker_h)
+{
+	int *column_table;
+	int *row_table;
+	get_scale_tables(&column_table, 
+        &row_table, 
+		in_x, 
+        in_y, 
+        in_x + in_w, 
+        in_y + in_h,
+		out_x, 
+        out_y, 
+        out_x + out_w, 
+        out_y + out_h);
+
+
+#define HEAD(type, temp, max) \
+    for(int i = 0; i < out_h; i++) \
+	{ \
+		unsigned char *output_row = (unsigned char*)output_rows[i + out_y] + out_x * 4; \
+		type *input_row = (type*)input_rows[row_table[i]]; \
+        int color1 = (i / checker_h) % 2; \
+ \
+        for(int j = 0; j < out_w; j++) \
+		{ \
+            type *input = input_row + column_table[j] * 4; \
+            int color2 = (color1 + j / checker_w) % 2; \
+            temp bg_r, bg_g, bg_b; \
+	        temp a, anti_a; \
+	        a = input[3]; \
+	        anti_a = max - a; \
+ \
+            if(color2) \
+            { \
+                bg_r = bg_g = bg_b = (temp)(0.6 * max); \
+            } \
+            else \
+            { \
+                bg_r = bg_g = bg_b = (temp)(0.4 * max); \
+            }
+
+#define TAIL \
+	        *output_row++ = (unsigned char)b; \
+	        *output_row++ = (unsigned char)g; \
+	        *output_row++ = (unsigned char)r; \
+	        output_row++; \
+        } \
+    }
+
+
+
+    switch(in_colormodel)
+    {
+        case BC_RGBA8888:
+            HEAD(unsigned char, unsigned int, 0xff)
+	        int r = ((int)input[0] * a + bg_r * anti_a) / 255;
+	        int g = ((int)input[1] * a + bg_g * anti_a) / 255;
+	        int b = ((int)input[2] * a + bg_b * anti_a) / 255;
+            TAIL
+            break;
+        
+        case BC_RGBA_FLOAT:
+            HEAD(float, float, 1.0)
+            float r = 255 * (input[0] * a + bg_r * anti_a);
+            float g = 255 * (input[1] * a + bg_g * anti_a);
+            float b = 255 * (input[2] * a + bg_b * anti_a);
+            TAIL
+            break;
+        
+        case BC_YUVA8888:
+            HEAD(unsigned char, unsigned int, 0xff)
+            int y = (input[0] << 16) | (input[0] << 8) | input[0];
+            int u = input[1];
+            int v = input[2];
+            int r, g, b;
+            YUV_TO_RGB(y, u, v, r, g, b)
+	        r = ((unsigned int)r * a + bg_r * anti_a) / 255;
+	        g = ((unsigned int)g * a + bg_g * anti_a) / 255;
+	        b = ((unsigned int)b * a + bg_b * anti_a) / 255;
+            TAIL
+            break;
+    }
+}
+
+
+
 
 int BC_CModels::bc_to_x(int color_model)
 {

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2016 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -767,13 +767,13 @@ void TitleUnit::draw_glyph(VFrame *output, TitleGlyph *glyph, int x, int y)
 					if(x_out >= 0 && x_out < output_w)
 					{
 						int opacity = in_row[in_x] * a / 0xff;
-						int transparency = out_row[x_out * 4 + 3] * (0xff - opacity) / 0xff;
-//						int transparency = 0xff - opacity;
+//						int transparency = out_row[x_out * 4 + 3] * (0xff - opacity) / 0xff;
+						int transparency = 0xff - opacity;
 						if(in_row[in_x] > 0)
 						{
 							out_row[x_out * 4 + 0] = (r * opacity + 
 								out_row[x_out * 4 + 0] * transparency) / 0xff;
-							out_row[x_out * 4 + 1] = (g * opacity + 
+                            out_row[x_out * 4 + 1] = (g * opacity + 
 								out_row[x_out * 4 + 1] * transparency) / 0xff;
 							out_row[x_out * 4 + 2] = (b * opacity + 
 								out_row[x_out * 4 + 2] * transparency) / 0xff;
@@ -1144,6 +1144,7 @@ static void translation_array_f(transfer_table_f* &table,
 					float fraction2 = x_fraction2 * y_fraction1; \
 					float fraction3 = x_fraction1 * y_fraction2; \
 					float fraction4 = x_fraction2 * y_fraction2; \
+/* inputs are always 0-255 */ \
 					type input_r = (type)(in_row1[in_x1 * 4 + 0] * fraction1 +  \
 								in_row1[in_x2 * 4 + 0] * fraction2 +  \
 								in_row2[in_x1 * 4 + 0] * fraction3 +  \
@@ -1160,33 +1161,61 @@ static void translation_array_f(transfer_table_f* &table,
 								in_row1[in_x2 * 4 + 3] * fraction2 +  \
 								in_row2[in_x1 * 4 + 3] * fraction3 +  \
 								in_row2[in_x2 * 4 + 3] * fraction4); \
-/* Plugin alpha is actually 0 - 0x100 */ \
+/* plugin->alpha is 0 - 0x100 */ \
 					input_a = input_a * plugin->alpha / 0x100; \
-					type transparency; \
- \
- \
-					if(components == 4) \
-					{ \
-						transparency = out_row[j * components + 3] * (max - input_a) / max; \
-						out_row[j * components + 0] =  \
-							(input_r * input_a + out_row[j * components + 0] * transparency) / max; \
-						out_row[j * components + 1] =  \
-							(input_g * input_a + out_row[j * components + 1] * transparency) / max; \
-						out_row[j * components + 2] =  \
-							(input_b * input_a + out_row[j * components + 2] * transparency) / max; \
-						out_row[j * components + 3] =  \
-							MAX(input_a, out_row[j * components + 3]); \
-					} \
-					else \
-					{ \
-						transparency = max - input_a; \
-						out_row[j * components + 0] =  \
-							(input_r * input_a + out_row[j * components + 0] * transparency) / max; \
-						out_row[j * components + 1] =  \
-							(input_g * input_a + out_row[j * components + 1] * transparency) / max; \
-						out_row[j * components + 2] =  \
-							(input_b * input_a + out_row[j * components + 2] * transparency) / max; \
-					} \
+					type transparency, opacity;
+
+
+#define TRANSLATE_INT4 \
+	/* transparency = out_row[j * 4 + 3] * (0xff - input_a) / 0xff; */ \
+	transparency = 0xff - input_a; \
+	out_row[j * 4 + 0] =  \
+		(input_r * input_a + out_row[j * 4 + 0] * transparency) / 0xff; \
+	out_row[j * 4 + 1] =  \
+		(input_g * input_a + out_row[j * 4 + 1] * transparency) / 0xff; \
+	out_row[j * 4 + 2] =  \
+		(input_b * input_a + out_row[j * 4 + 2] * transparency) / 0xff; \
+	out_row[j * 4 + 3] =  \
+		MAX(input_a, out_row[j * 4 + 3]); \
+
+
+#define TRANSLATE_INT3 \
+	transparency = 0xff - input_a; \
+	out_row[j * 3 + 0] =  \
+		(input_r * input_a + out_row[j * 3 + 0] * transparency) / 0xff; \
+	out_row[j * 3 + 1] =  \
+		(input_g * input_a + out_row[j * 3 + 1] * transparency) / 0xff; \
+	out_row[j * 3 + 2] =  \
+		(input_b * input_a + out_row[j * 3 + 2] * transparency) / 0xff; \
+
+
+
+#define TRANSLATE_FLOAT4 \
+    opacity = (float)input_a / 0xff; \
+	transparency = out_row[j * 4 + 3] * (0xff - input_a) / 0xff; \
+	out_row[j * 4 + 0] =  \
+		((float)input_r * opacity / 0xff + out_row[j * 4 + 0] * transparency); \
+	out_row[j * 4 + 1] =  \
+		((float)input_g * opacity / 0xff + out_row[j * 4 + 1] * transparency); \
+	out_row[j * 4 + 2] =  \
+		((float)input_b * opacity / 0xff + out_row[j * 4 + 2] * transparency); \
+	out_row[j * 4 + 3] =  \
+		MAX(opacity, out_row[j * 4 + 3]);
+
+
+
+#define TRANSLATE_FLOAT3 \
+    opacity = (float)input_a / 0xff; \
+	transparency = (float)(0xff - input_a) / 0xff; \
+	out_row[j * 3 + 0] =  \
+		((float)input_r * opacity / 0xff + out_row[j * 3 + 0] * transparency); \
+	out_row[j * 3 + 1] =  \
+		((float)input_g * opacity / 0xff + out_row[j * 3 + 1] * transparency); \
+	out_row[j * 3 + 2] =  \
+		((float)input_b * opacity / 0xff + out_row[j * 3 + 2] * transparency);
+
+
+#define TAIL \
 				} \
 			} \
 		} \
@@ -1204,31 +1233,69 @@ void TitleTranslateUnit::process_package(LoadPackage *package)
 		case BC_RGB888:
 		{
 			TRANSLATE(unsigned char, 0xff, 3);
+            TRANSLATE_INT3
+            TAIL
 			break;
 		}
+        
 		case BC_RGB_FLOAT:
 		{
 			TRANSLATE(float, 1.0, 3);
+            TRANSLATE_FLOAT3
+            TAIL
 			break;
 		}
 		case BC_YUV888:
 		{
 			TRANSLATE(unsigned char, 0xff, 3);
+//             if(j == 87 && i == 55)
+//             {
+//                 printf("TitleTranslateUnit::process_package %d: i=%d j=%d output=%d %d %d input=%d %d %d %d\n", 
+//                     __LINE__,
+//                     i,
+//                     j,
+//                     out_row[j * 3 + 0], 
+//                     out_row[j * 3 + 1], 
+//                     out_row[j * 3 + 2],
+//                     input_r,
+//                     input_g, 
+//                     input_b,
+//                     input_a);
+//             }
+            TRANSLATE_INT3
+//             if(j == 87 && i == 55)
+//             {
+//                 printf("TitleTranslateUnit::process_package %d: result=%d %d %d\n", 
+//                     __LINE__,
+//                     out_row[j * 3 + 0], 
+//                     out_row[j * 3 + 1], 
+//                     out_row[j * 3 + 2]);
+//                 out_row[j * 3 + 0] = 255;
+//                 out_row[j * 3 + 1] = 0;
+//                 out_row[j * 3 + 2] = 0;
+//             }
+            TAIL
 			break;
 		}
 		case BC_RGBA_FLOAT:
 		{
 			TRANSLATE(float, 1.0, 4);
+            TRANSLATE_FLOAT4
+            TAIL
 			break;
 		}
 		case BC_RGBA8888:
 		{	
 			TRANSLATE(unsigned char, 0xff, 4);
+            TRANSLATE_INT4
+            TAIL
 			break;
 		}
 		case BC_YUVA8888:
 		{	
 			TRANSLATE(unsigned char, 0xff, 4);
+            TRANSLATE_INT4
+            TAIL
 			break;
 		}
 	}
@@ -2660,7 +2727,17 @@ int TitleMain::draw_mask()
 		need_redraw)
 	{
 		text_mask->clear_frame();
-
+//         for(int i = 0; i < text_h; i++)
+//         {
+//             unsigned char *row = text_mask->get_rows()[i];
+//             for(int j = 0; j < text_w; j++)
+//             {
+//                 *row++ = 0xff;
+//                 *row++ = 0x80;
+//                 *row++ = 0x80;
+//                 *row++ = 0;
+//             }
+//         }
 
 		if(!title_engine)
 			title_engine = new TitleEngine(this, PluginClient::smp + 1);

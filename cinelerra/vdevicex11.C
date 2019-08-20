@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,11 @@
 
 #include "assets.h"
 #include "bccapture.h"
+#include "bccmodels.h"
 #include "bcsignals.h"
 #include "canvas.h"
 #include "colormodels.h"
+#include "cwindowgui.inc"
 #include "edl.h"
 #include "edlsession.h"
 #include "file.h"
@@ -799,7 +801,87 @@ int VDeviceX11::stop_playback()
 	return 0;
 }
 
-int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
+void VDeviceX11::output_to_bitmap(VFrame *output_frame)
+{
+	if(bitmap->hardware_scaling())
+	{
+		cmodel_transfer(bitmap->get_row_pointers(), 
+			output_frame->get_rows(),
+			0,
+			0,
+			0,
+			output_frame->get_y(),
+			output_frame->get_u(),
+			output_frame->get_v(),
+			0, 
+			0, 
+			output_frame->get_w(), 
+			output_frame->get_h(),
+			0, 
+			0, 
+			bitmap->get_w(), 
+			bitmap->get_h(),
+			output_frame->get_color_model(), 
+			bitmap->get_color_model(),
+			0,
+			output_frame->get_w(),
+			bitmap->get_w());
+	}
+	else
+	{
+// multiply alpha
+        if(BC_CModels::has_alpha(output_frame->get_color_model()))
+        {
+            int checker_w = CHECKER_W;
+            int checker_h = CHECKER_H;
+            BC_CModels::transfer_alpha(bitmap->get_row_pointers(), 
+			    output_frame->get_rows(),
+			    (int)output_x1, 
+			    (int)output_y1, 
+			    (int)(output_x2 - output_x1), 
+			    (int)(output_y2 - output_y1),
+			    0, 
+			    0, 
+			    (int)(canvas_x2 - canvas_x1), 
+			    (int)(canvas_y2 - canvas_y1),
+			    output_frame->get_color_model(), 
+			    bitmap->get_color_model(),
+                output_frame->get_bytes_per_line(),
+			    bitmap->get_bytes_per_line(),
+                checker_w,
+                checker_h);
+            
+//printf("VDeviceX11::output_to_bitmap %d\n", __LINE__);
+        }
+        else
+        {
+
+		    cmodel_transfer(bitmap->get_row_pointers(), 
+			    output_frame->get_rows(),
+			    0,
+			    0,
+			    0,
+			    output_frame->get_y(),
+			    output_frame->get_u(),
+			    output_frame->get_v(),
+			    (int)output_x1, 
+			    (int)output_y1, 
+			    (int)(output_x2 - output_x1), 
+			    (int)(output_y2 - output_y1),
+			    0, 
+			    0, 
+			    (int)(canvas_x2 - canvas_x1), 
+			    (int)(canvas_y2 - canvas_y1),
+			    output_frame->get_color_model(), 
+			    bitmap->get_color_model(),
+			    0,
+			    output_frame->get_bytes_per_line(),
+			    bitmap->get_bytes_per_line());
+        }
+	}
+}
+
+int VDeviceX11::write_buffer(VFrame *output_frame, EDL *edl)
 {
 	int i = 0;
 	output->lock_canvas("VDeviceX11::write_buffer");
@@ -807,33 +889,12 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 
 
 
-// printf("VDeviceX11::write_buffer %d %d bitmap_type=%d\n", 
+// printf("VDeviceX11::write_buffer %d bitmap_type=%d output color_model=%d bitmap color_model=%d\n", 
 // __LINE__, 
-// output->get_canvas()->get_video_on(),
-// bitmap_type);
+// bitmap_type,
+// output_frame->get_color_model(),
+// bitmap->get_color_model());
 
-// 	int use_bitmap_extents = 0;
-// 	canvas_w = -1;
-// 	canvas_h = -1;
-// // Canvas may be a different size than the temporary bitmap for pure software
-// 	if(bitmap_type == BITMAP_TEMP && 
-// 		!bitmap->hardware_scaling())
-// 	{
-// 		canvas_w = bitmap->get_w();
-// 		canvas_h = bitmap->get_h();
-// 	}
-// 
-// 	output->get_transfers(edl, 
-// 		output_x1, 
-// 		output_y1, 
-// 		output_x2, 
-// 		output_y2, 
-// 		canvas_x1, 
-// 		canvas_y1, 
-// 		canvas_x2, 
-// 		canvas_y2,
-// 		canvas_w,
-// 		canvas_h);
 
 
 // Convert colormodel
@@ -853,66 +914,8 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 // fflush(stdout);
 
 
+        output_to_bitmap(output_frame);
 
-// printf("VDeviceX11::write_buffer %d output_channels=%p\n", 
-// __LINE__, 
-// output_channels);
-
-// printf("VDeviceX11::write_buffer %d input color_model=%d output color_model=%d\n", 
-// __LINE__, 
-// output_channels->get_color_model(),
-// bitmap->get_color_model());
-
-
-
-		if(bitmap->hardware_scaling())
-		{
-			cmodel_transfer(bitmap->get_row_pointers(), 
-				output_channels->get_rows(),
-				0,
-				0,
-				0,
-				output_channels->get_y(),
-				output_channels->get_u(),
-				output_channels->get_v(),
-				0, 
-				0, 
-				output_channels->get_w(), 
-				output_channels->get_h(),
-				0, 
-				0, 
-				bitmap->get_w(), 
-				bitmap->get_h(),
-				output_channels->get_color_model(), 
-				bitmap->get_color_model(),
-				0,
-				output_channels->get_w(),
-				bitmap->get_w());
-		}
-		else
-		{
-			cmodel_transfer(bitmap->get_row_pointers(), 
-				output_channels->get_rows(),
-				0,
-				0,
-				0,
-				output_channels->get_y(),
-				output_channels->get_u(),
-				output_channels->get_v(),
-				(int)output_x1, 
-				(int)output_y1, 
-				(int)(output_x2 - output_x1), 
-				(int)(output_y2 - output_y1),
-				0, 
-				0, 
-				(int)(canvas_x2 - canvas_x1), 
-				(int)(canvas_y2 - canvas_y1),
-				output_channels->get_color_model(), 
-				bitmap->get_color_model(),
-				0,
-				output_channels->get_w(),
-				bitmap->get_w());
-		}
 	}
 
 //printf("VDeviceX11::write_buffer 4 %p\n", bitmap);
