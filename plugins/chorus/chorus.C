@@ -152,6 +152,11 @@ int Chorus::process_buffer(int64_t size,
             }
         }
 
+
+// printf("Chorus::process_buffer %d table_size=%d\n", 
+// __LINE__, 
+// table_size);
+
         flanging_table = new flange_sample_t[table_size];
         double depth_samples = config.depth * 
             sample_rate / 1000;
@@ -168,25 +173,25 @@ int Chorus::process_buffer(int64_t size,
         for(int i = 0; i <= table_size / 2; i++)
         {
             double input_sample = -i * ratio;
-// printf("Chorus::process_buffer %d i=%d input_sample=%f ratio=%f\n", 
+// printf("Chorus::process_buffer %d i=%d input_sample=%f\n", 
 // __LINE__, 
 // i, 
-// input_sample,
-// ratio);
+// input_sample);
             flanging_table[i].input_sample = input_sample;
 //            flanging_table[i].input_period = ratio;
         }
-        
+
+
+// mirror the 1st half
         for(int i = table_size / 2 + 1; i < table_size; i++)
         {
             double input_sample = -ratio * (table_size - i);
             flanging_table[i].input_sample = input_sample;
 //            flanging_table[i].input_period = ratio;
-// printf("Chorus::process_buffer %d i=%d input_sample=%f ratio=%f\n", 
+// printf("Chorus::process_buffer %d i=%d input_sample=%f\n", 
 // __LINE__, 
 // i, 
-// input_sample,
-// ratio);
+// input_sample);
         }
 
 
@@ -230,12 +235,14 @@ int Chorus::process_buffer(int64_t size,
 // randomize the starting phase
             voice->table_offset = (int64_t)(start_position - 
                 prev_position + 
-                (rand() % table_size)) % table_size;
-// printf("Chorus::process_buffer %d i=%d src=%d dst=%d\n",
+                i * (table_size / 2) / total_voices()) % (table_size / 2);
+//                (rand() % (table_size / 2))) % (table_size / 2);
+// printf("Chorus::process_buffer %d i=%d src=%d dst=%d input_sample=%f\n",
 // __LINE__,
 // i,
 // voice->src_channel,
-// voice->dst_channel);
+// voice->dst_channel,
+// flanging_table[voice->table_offset].input_sample);
         }
     }
 
