@@ -124,7 +124,7 @@ CompressorEffect::CompressorEffect(PluginServer *server)
 	reset();
 	for(int i = 0; i < TOTAL_BANDS; i++)
     {
-        engines[i] = new CompressorEngine(this, i);
+        band_states[i] = new BandState(this, i);
     }
 }
 
@@ -133,7 +133,7 @@ CompressorEffect::~CompressorEffect()
    	delete_dsp();
 	for(int i = 0; i < TOTAL_BANDS; i++)
     {
-        delete engines[i];
+        delete band_states[i];
     }
 }
 
@@ -161,7 +161,7 @@ void CompressorEffect::delete_dsp()
 
     for(int i = 0; i < TOTAL_BANDS; i++)
     {
-        engines[i]->delete_dsp();
+        band_states[i]->delete_dsp();
     }
 
 
@@ -174,7 +174,7 @@ void CompressorEffect::reset()
 {
     for(int i = 0; i < TOTAL_BANDS; i++)
     {
-        engines[i] = 0;
+        band_states[i] = 0;
     }
 
 #ifndef DRAW_AFTER_BANDPASS
@@ -231,10 +231,10 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 	                config.bands[i].bypass = input.tag.get_property(string, config.bands[i].bypass);
                     sprintf(string,"SOLO%d", i);
 	                config.bands[i].solo = input.tag.get_property(string, config.bands[i].solo);
-				    sprintf(string,"REACTION_LEN%d", i);
-                    config.bands[i].reaction_len = input.tag.get_property(string, config.bands[i].reaction_len);
-				    sprintf(string,"DECAY_LEN%d", i);
-                    config.bands[i].decay_len = input.tag.get_property(string, config.bands[i].decay_len);
+				    sprintf(string,"ATTACK_LEN%d", i);
+                    config.bands[i].attack_len = input.tag.get_property(string, config.bands[i].attack_len);
+				    sprintf(string,"RELEASE_LEN%d", i);
+                    config.bands[i].release_len = input.tag.get_property(string, config.bands[i].release_len);
                 }
 			}
 			else
@@ -280,10 +280,10 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	    output.tag.set_property(string, band_config->bypass);
         sprintf(string, "SOLO%d", band);
 	    output.tag.set_property(string, band_config->solo);
-	    sprintf(string, "REACTION_LEN%d", band);
-        output.tag.set_property(string, band_config->reaction_len);
-	    sprintf(string, "DECAY_LEN%d", band);
-        output.tag.set_property(string, band_config->decay_len);
+	    sprintf(string, "ATTACK_LEN%d", band);
+        output.tag.set_property(string, band_config->attack_len);
+	    sprintf(string, "RELEASE_LEN%d", band);
+        output.tag.set_property(string, band_config->release_len);
 	}
 
     output.append_tag();
@@ -384,7 +384,7 @@ int CompressorEffect::process_buffer(int64_t size,
 
         for(int i = 0; i < TOTAL_BANDS; i++)
         {
-            engines[i]->reconfigure();
+            band_states[i]->reconfigure();
         }
 
     }
@@ -416,7 +416,7 @@ int CompressorEffect::process_buffer(int64_t size,
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
         BandConfig *band_config = &config.bands[band];
-        int reaction_samples = Units::round(band_config->reaction_len * sample_rate);
+        int reaction_samples = Units::round(band_config->attack_len * sample_rate);
 	    CLAMP(reaction_samples, -1000000, 1000000);
 
         if(-reaction_samples > new_filtered_size)
@@ -432,7 +432,7 @@ int CompressorEffect::process_buffer(int64_t size,
     
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
-        engines[band]->allocate_filtered(new_filtered_size);
+        band_states[band]->allocate_filtered(new_filtered_size);
     }
     
 // Append data to the buffers to fill the readahead area.
@@ -456,7 +456,7 @@ remane);
             for(int band = 0; band < TOTAL_BANDS; band++)
             {
                 new_spectrogram_frames[band] = 0;
-                filtered_arg[band] = engines[band]->filtered_buffer[channel];
+                filtered_arg[band] = band_states[band]->filtered_buffer[channel];
 // temporarily set the output to the end to append data
                 filtered_arg[band]->set_offset(filtered_size);
             }
@@ -506,32 +506,21 @@ remane);
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
         BandConfig *band_config = &config.bands[band];
-        int reaction_samples = Units::round(band_config->reaction_len * sample_rate);
-        int decay_samples = Units::round(band_config->decay_len * sample_rate);
+        BandState *band_state = band_states[band];
         
-	    CLAMP(reaction_samples, -1000000, 1000000);
-	    CLAMP(decay_samples, reaction_samples, 1000000);
-	    CLAMP(decay_samples, 1, 1000000);
-	    if(labs(decay_samples) < 1) decay_samples = 1;
         
-        if(reaction_samples >= 0)
+        if(!band_state->engine)
         {
-	        if(labs(reaction_samples) < 1) reaction_samples = 1;
-            engines[band]->process_readbehind(size,
-                reaction_samples,
-                decay_samples,
-                trigger);
+            band_state->engine = new CompressorEngine(&config, band);
         }
-        else
-        {
-            engines[band]->process_readahead(size,
-                -reaction_samples,
-                reaction_samples,
-                decay_samples,
-                trigger);
-        }
-    }
+        band_state->engine->process(band_states[band]->filtered_buffer,
+            band_states[band]->filtered_buffer,
+            size,
+            sample_rate,
+            channels,
+            start_position);
 
+    }
 
 // Add together filtered buffers + unfiltered buffer.
 // Apply the solo here.
@@ -554,7 +543,7 @@ remane);
         {
             if(!have_solo || config.bands[band].solo)
             {
-                double *src = engines[band]->filtered_buffer[channel]->get_data();
+                double *src = band_states[band]->filtered_buffer[channel]->get_data();
                 for(int i = 0; i < size; i++)
                 {
                     dst[i] += src[i];
@@ -571,8 +560,8 @@ remane);
 
         for(int i = 0; i < channels; i++)
         {
-            memcpy(engines[band]->filtered_buffer[i]->get_data(),
-                engines[band]->filtered_buffer[i]->get_data() + size,
+            memcpy(band_states[band]->filtered_buffer[i]->get_data(),
+                band_states[band]->filtered_buffer[i]->get_data() + size,
                 (filtered_size - size) * sizeof(double));
                 
         }
@@ -641,26 +630,26 @@ void CompressorEffect::calculate_envelope()
 {
     for(int i = 0; i < TOTAL_BANDS; i++)
     {
-        engines[i]->calculate_envelope();
+        band_states[i]->calculate_envelope();
     }
 }
 
 
 
 
-CompressorEngine::CompressorEngine(CompressorEffect *plugin, int band)
+BandState::BandState(CompressorEffect *plugin, int band)
 {
     this->plugin = plugin;
     this->band = band;
     reset();
 }
 
-CompressorEngine::~CompressorEngine()
+BandState::~BandState()
 {
     delete_dsp();
 }
 
-void CompressorEngine::delete_dsp()
+void BandState::delete_dsp()
 {
 	delete [] envelope;
 	levels.remove_all();
@@ -672,11 +661,16 @@ void CompressorEngine::delete_dsp()
 		}
         delete [] filtered_buffer;
 	}
+    if(engine)
+    {
+        delete engine;
+    }
     reset();
 }
 
-void CompressorEngine::reset()
+void BandState::reset()
 {
+    engine = 0;
     envelope = 0;
     envelope_allocated = 0;
     filtered_buffer = 0;
@@ -688,7 +682,7 @@ void CompressorEngine::reset()
 	current_value = 1.0;
 }
 
-void CompressorEngine::reconfigure()
+void BandState::reconfigure()
 {
 // Calculate linear transfer from db 
 	levels.remove_all();
@@ -705,7 +699,7 @@ void CompressorEngine::reconfigure()
 }
 
 
-void CompressorEngine::allocate_filtered(int new_size)
+void BandState::allocate_filtered(int new_size)
 {
     if(!filtered_buffer ||
         new_size > filtered_buffer[0]->get_allocated())
@@ -731,7 +725,7 @@ void CompressorEngine::allocate_filtered(int new_size)
 
 
 
-void CompressorEngine::calculate_envelope()
+void BandState::calculate_envelope()
 {
     
 
@@ -823,7 +817,7 @@ void CompressorEngine::calculate_envelope()
         double prev_sum = 0;
         for(int prev_band = 0; prev_band < band; prev_band++)
         {
-            double *prev_envelope = plugin->engines[prev_band]->envelope;
+            double *prev_envelope = plugin->band_states[prev_band]->envelope;
             prev_sum += prev_envelope[i];
         }
 
@@ -855,7 +849,7 @@ void CompressorEngine::calculate_envelope()
 }
 
 
-void CompressorEngine::process_readbehind(int size, 
+void BandState::process_readbehind(int size, 
     int reaction_samples, 
     int decay_samples,
     int trigger)
@@ -962,7 +956,7 @@ void CompressorEngine::process_readbehind(int size,
     }
 }
 
-void CompressorEngine::process_readahead(int size, 
+void BandState::process_readahead(int size, 
     int preview_samples,
     int reaction_samples, 
     int decay_samples,
@@ -1146,7 +1140,7 @@ int CompressorFFT::signal_process(int band)
         double mag = sqrt(freq_real[i] * freq_real[i] + 
             freq_imag[i] * freq_imag[i]);
 
-        double mag2 = plugin->engines[band]->envelope[i] * mag;
+        double mag2 = plugin->band_states[band]->envelope[i] * mag;
         double angle = atan2(freq_imag[i], freq_real[i]);
 
 		freq_real[i] = mag2 * cos(angle);

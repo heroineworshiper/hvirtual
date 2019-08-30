@@ -25,6 +25,7 @@
 #include "cursors.h"
 #include "language.h"
 #include "pluginclient.h"
+#include "samples.h"
 #include "theme.h"
 
 
@@ -33,8 +34,9 @@ BandConfig::BandConfig()
     freq = 0;
     solo = 0;
     bypass = 0;
-	reaction_len = 1.0;
-	decay_len = 1.0;
+//	readahead_len = 1.0;
+    attack_len = 1.0;
+	release_len = 1.0;
 }
 
 BandConfig::~BandConfig()
@@ -50,8 +52,9 @@ void BandConfig::copy_from(BandConfig *src)
     	levels.append(src->levels.values[i]);
     }
 
-	reaction_len = src->reaction_len;
-	decay_len = src->decay_len;
+//	readahead_len = src->readahead_len;
+    attack_len = src->attack_len;
+	release_len = src->release_len;
     freq = src->freq;
     solo = src->solo;
     bypass = src->bypass;
@@ -63,8 +66,9 @@ int BandConfig::equiv(BandConfig *src)
         solo != src->solo ||
         bypass != src->bypass ||
         freq != src->freq ||
-        !EQUIV(reaction_len, src->reaction_len) ||
-		!EQUIV(decay_len, src->decay_len))
+//        !EQUIV(readahead_len, src->readahead_len) ||
+        !EQUIV(attack_len, src->attack_len) ||
+		!EQUIV(release_len, src->release_len))
     {
         return 0;
     }
@@ -679,7 +683,6 @@ int CompressorCanvasBase::button_press_event()
         }
 	}
 	return 0;
-//plugin->config.dump();
 }
 
 int CompressorCanvasBase::button_release_event()
@@ -741,7 +744,6 @@ int CompressorCanvasBase::cursor_motion_event()
 		update_window();
 		plugin->send_configure_change();
 		return 1;
-//plugin->config.dump();
 	}
 	else
 // Change cursor over points
@@ -785,6 +787,231 @@ void CompressorCanvasBase::update_window()
 {
     printf("CompressorCanvasBase::update_window %d empty\n", __LINE__);
 }
+
+
+
+
+
+
+
+
+
+CompressorEngine::CompressorEngine(CompressorConfigBase *config,
+    int band)
+{
+    this->config = config;
+    this->band = band;
+	reset();
+}
+
+CompressorEngine::~CompressorEngine()
+{
+}
+
+
+void CompressorEngine::reset()
+{
+    slope_samples = 0;
+    slope_current_sample = 0;
+    peak_samples = 0;
+	slope_value2 = 1.0;
+	slope_value1 = 1.0;
+	slope_samples = 0;
+	slope_current_sample = 0;
+}
+
+
+void CompressorEngine::calculate_ranges(int *attack_samples,
+    int *release_samples,
+    int *preview_samples,
+    int sample_rate)
+{
+    BandConfig *band_config = &config->bands[band];
+	*attack_samples = labs(Units::round(band_config->attack_len * sample_rate));
+	*release_samples = Units::round(band_config->release_len * sample_rate);
+	CLAMP(*attack_samples, 1, 1000000);
+	CLAMP(*release_samples, 1, 1000000);
+    *preview_samples = MAX(*attack_samples, *release_samples);
+}
+
+
+void CompressorEngine::process(Samples **output_buffer,
+    Samples **input_buffer,
+    int size,
+    int sample_rate,
+    int channels,
+    int64_t start_position)
+{
+    BandConfig *band_config = &config->bands[band];
+	int attack_samples;
+	int release_samples;
+    int preview_samples;
+	int trigger = CLIP(config->trigger, 0, channels - 1);
+
+    
+    calculate_ranges(&attack_samples,
+        &release_samples,
+        &preview_samples,
+        sample_rate);
+	if(slope_current_sample < 0) slope_current_sample = slope_samples;
+
+	double *trigger_buffer = input_buffer[trigger]->get_data();
+
+	for(int i = 0; i < size; i++)
+	{
+		double current_slope = (slope_value2 - slope_value1) /
+			slope_samples;
+
+// maximums in the 2 time ranges
+        double attack_slope = -0x7fffffff;
+        double attack_sample = -1;
+        int attack_offset = -1;
+        double release_slope = -0x7fffffff;
+        double release_sample = -1;
+        int release_offset = -1;
+        if(slope_current_sample >= slope_samples)
+        {
+// start new line segment
+            for(int j = 1; j < preview_samples; j++)
+            {
+                GET_TRIGGER(input_buffer[channel]->get_data(), i + j)
+                double new_slope = (sample - current_value) / j;
+                if(j < attack_samples && new_slope >= attack_slope)
+                {
+                    attack_slope = new_slope;
+                    attack_sample = sample;
+                    attack_offset = j;
+                }
+                
+                if(j < release_samples && 
+                    new_slope <= 0 && 
+                    new_slope > release_slope)
+                {
+                    release_slope = new_slope;
+                    release_sample = sample;
+                    release_offset = j;
+                }
+            }
+
+			slope_current_sample = 0;
+            if(attack_slope >= 0)
+            {
+// attack
+                peak_samples = attack_offset;
+				slope_samples = attack_offset;
+                slope_value1 = current_value;
+                slope_value2 = attack_sample;
+                current_slope = attack_slope;
+printf("Compressor::process_buffer %d position=%ld slope=%f samples=%d\n", 
+__LINE__, start_position + i, current_slope, slope_samples);
+            }
+            else
+            {
+// release
+                slope_samples = release_offset;
+//                slope_samples = release_samples;
+                peak_samples = release_offset;
+                slope_value1 = current_value;
+                slope_value2 = release_sample;
+                current_slope = release_slope;
+printf("Compressor::process_buffer %d position=%ld slope=%f\n", 
+__LINE__, start_position + i, current_slope);
+            }
+        }
+        else
+        {
+// check for new peak after the line segment
+            GET_TRIGGER(input_buffer[channel]->get_data(), i + attack_samples)
+            double new_slope = (sample - current_value) /
+				attack_samples;
+            if(current_slope >= 0)
+            {
+                if(new_slope > current_slope)
+                {
+                    peak_samples = attack_samples;
+                    slope_samples = attack_samples;
+                    slope_current_sample = 0;
+                    slope_value1 = current_value;
+                    slope_value2 = sample;
+				    current_slope = new_slope;
+printf("Compressor::process_buffer %d position=%ld slope=%f\n", 
+__LINE__, start_position + i, current_slope);
+                }
+            }
+            else
+// this strings together multiple release periods instead of 
+// approaching but never reaching the ending gain
+            if(current_slope < 0)
+            {
+                if(sample > slope_value2)
+                {
+                    peak_samples = attack_samples;
+                    slope_samples = release_samples;
+                    slope_current_sample = 0;
+                    slope_value1 = current_value;
+                    slope_value2 = sample;
+                    new_slope = (sample - current_value) /
+				        release_samples;
+				    current_slope = new_slope;
+printf("Compressor::process_buffer %d position=%ld slope=%f\n", 
+__LINE__, start_position + i, current_slope);
+                }
+//                else
+//                 {
+//                     GET_TRIGGER(input_buffer[channel]->get_data(), i + release_samples)
+//                     new_slope = (sample - current_value) /
+// 				        release_samples;
+//                     if(new_slope < current_slope &&
+//                         slope_current_sample >= peak_samples)
+//                     {
+//                         peak_samples = release_samples;
+//                         slope_samples = release_samples;
+//                         slope_current_sample = 0;
+//                         slope_value1 = current_value;
+//                         slope_value2 = sample;
+// 				        current_slope = new_slope;
+// printf("Compressor::process_buffer %d position=%ld slope=%f\n", 
+// __LINE__, start_position + i, current_slope);
+//                     }
+//                 }
+            }
+        }
+
+
+
+// Update current value and multiply gain
+		slope_current_sample++;
+        current_value = slope_value1 +
+            (slope_value2 - slope_value1) * 
+            slope_current_sample / 
+            slope_samples;
+
+
+		if(config->smoothing_only)
+		{
+			for(int j = 0; j < channels; j++)
+			{
+				output_buffer[j]->get_data()[i] = current_value * 2 - 1;
+			}
+		}
+		else
+		{
+			double gain = config->calculate_gain(0, current_value);
+			for(int j = 0; j < channels; j++)
+			{
+				output_buffer[j]->get_data()[i] = input_buffer[j]->get_data()[i] * gain;
+			}
+		}
+	}
+}
+
+
+
+
+
+
+
+
 
 
 

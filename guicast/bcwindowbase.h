@@ -180,6 +180,7 @@ public:
 	virtual int drag_motion_event() { return 0; };
 	virtual int drag_stop_event() { return 0; };
 	virtual int uses_text() { return 0; };
+    virtual int get_enabled() { return 0; };
 // Only if opengl is enabled
 	virtual int expose_event() { return 0; };
 	virtual void create_objects() { return; };

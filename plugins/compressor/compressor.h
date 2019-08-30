@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,10 +51,10 @@ public:
 };
 
 
-class CompressorReaction : public BC_TumbleTextBox
+class CompressorLookAhead : public BC_TumbleTextBox
 {
 public:
-	CompressorReaction(CompressorEffect *plugin, 
+	CompressorLookAhead(CompressorEffect *plugin, 
         CompressorWindow *window, 
         int x, 
         int y);
@@ -62,10 +62,21 @@ public:
 	CompressorEffect *plugin;
 };
 
-class CompressorDecay : public BC_TumbleTextBox
+class CompressorAttack : public BC_TumbleTextBox
 {
 public:
-	CompressorDecay(CompressorEffect *plugin, 
+	CompressorAttack(CompressorEffect *plugin, 
+        CompressorWindow *window, 
+        int x, 
+        int y);
+	int handle_event();
+	CompressorEffect *plugin;
+};
+
+class CompressorRelease : public BC_TumbleTextBox
+{
+public:
+	CompressorRelease(CompressorEffect *plugin, 
         CompressorWindow *window, 
         int x, 
         int y);
@@ -149,12 +160,13 @@ public:
 	int resize_event(int w, int h);	
 	
 	CompressorCanvas *canvas;
-	CompressorReaction *reaction;
+	CompressorLookAhead *readahead;
+	CompressorAttack *attack;
 	CompressorClear *clear;
 	CompressorX *x_text;
 	CompressorY *y_text;
 	CompressorTrigger *trigger;
-	CompressorDecay *decay;
+	CompressorRelease *release;
 	CompressorSmooth *smooth;
 	CompressorInput *input;
 	CompressorEffect *plugin;
@@ -178,6 +190,9 @@ public:
 
 };
 
+
+
+
 class CompressorEffect : public PluginAClient
 {
 public:
@@ -192,33 +207,28 @@ public:
 		Samples **buffer,
 		int64_t start_position,
 		int sample_rate);
+    void allocate_input(int size);
 
 
-	void reset();
 	void update_gui();
-	void delete_dsp();
 
 	PLUGIN_CLASS_MEMBERS(CompressorConfig)
 
-// The raw input data for each channel with readahead
+// Input data + read ahead for each channel
 	Samples **input_buffer;
+
 // Number of samples in the input buffer 
 	int64_t input_size;
 // Number of samples allocated in the input buffer
 	int64_t input_allocated;
 // Starting sample of input buffer relative to project in requested rate.
 	int64_t input_start;
+    int64_t last_position;
+    int need_reconfigure;
 
-// ending input value of smoothed input
-	double next_target;
-// starting input value of smoothed input
-	double previous_target;
-// samples between previous and next target value for readahead
-	int target_samples;
-// current sample from 0 to target_samples
-	int target_current_sample;
-// current smoothed input value
-	double current_value;
+
+    CompressorEngine *engine;
+
 // Temporaries for linear transfer
 	ArrayList<compressor_point_t> levels;
 	double min_x, min_y;

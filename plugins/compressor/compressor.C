@@ -79,11 +79,8 @@ CompressorEffect::CompressorEffect(PluginServer *server)
 	input_allocated = 0;
 	input_start = 0;
     
-	next_target = 1.0;
-	prev_target = 1.0;
-	target_samples = 0;
-	target_current_sample = 0;
 	need_reconfigure = 1;
+    engine = 0;
 }
 
 CompressorEffect::~CompressorEffect()
@@ -104,6 +101,10 @@ CompressorEffect::~CompressorEffect()
 	input_allocated = 0;
 
 	levels.remove_all();
+    if(engine)
+    {
+        delete engine;
+    }
 }
 
 
@@ -243,9 +244,8 @@ int CompressorEffect::process_buffer(int64_t size,
     if(last_position != start_position)
     {
         last_position = start_position;
+        engine->reset();
         input_size = 0;
-        target_samples = 0;
-        target_current_sample = 0;
     }
 
 // Calculate linear transfer from db 
@@ -264,26 +264,21 @@ int CompressorEffect::process_buffer(int64_t size,
 
 	int attack_samples = labs(Units::round(band_config->attack_len * sample_rate));
 	int release_samples = Units::round(band_config->release_len * sample_rate);
-	int trigger = CLIP(config.trigger, 0, PluginAClient::total_in_buffers - 1);
 
 	CLAMP(attack_samples, 1, 1000000);
 	CLAMP(release_samples, 1, 1000000);
 
 
-// 	for(int i = 0; i < channels; i++)
-// 	{
-// 		read_samples(buffer[i],
-// 			i,
-// 			sample_rate,
-// 			start_position,
-// 			size);
-// 	}
-
-	double current_slope = (next_target - prev_target) / 
-		attack_samples;
-	double *trigger_buffer = buffer[trigger]->get_data();
     int preview_samples = MAX(attack_samples, release_samples);
-	if(target_current_sample < 0) target_current_sample = target_samples;
+
+    if(!engine)
+    {
+        engine = new CompressorEngine(&config, 0);
+    }
+    engine->calculate_ranges(&attack_samples,
+        &release_samples,
+        &preview_samples,
+        sample_rate);
 
 
 // Start of new buffer is outside the current buffer.  Start buffer over.
@@ -351,201 +346,13 @@ int CompressorEffect::process_buffer(int64_t size,
 		input_size += fragment_size;
 	}
 
+    engine->process(buffer,
+        input_buffer,
+        size,
+        sample_rate,
+        PluginClient::total_in_buffers,
+        start_position);
 
-// release has to be a constant rate
-	for(int i = 0; i < size; i++)
-	{
-		double current_slope = (next_target - prev_target) /
-			target_samples;
-
-#define ADAPTIVE
-
-#ifdef ADAPTIVE
-// maximums in the 2 time ranges
-        double attack_slope = -0x7fffffff;
-        double attack_sample = -1;
-        int attack_offset = -1;
-        double release_slope = -0x7fffffff;
-        double release_sample = -1;
-        int release_offset = -1;
-        if(target_current_sample >= target_samples)
-        {
-// start new line segment
-            for(int j = 1; j < preview_samples; j++)
-            {
-                GET_TRIGGER(input_buffer[channel]->get_data(), i + j)
-                double new_slope = (sample - current_value) / j;
-                if(j < attack_samples && new_slope >= attack_slope)
-                {
-                    attack_slope = new_slope;
-                    attack_sample = sample;
-                    attack_offset = j;
-                }
-                
-                if(j < release_samples && 
-                    new_slope <= 0 && 
-                    new_slope > release_slope)
-                {
-                    release_slope = new_slope;
-                    release_sample = sample;
-                    release_offset = j;
-                }
-            }
-
-			target_current_sample = 0;
-            if(attack_slope >= 0)
-            {
-// attack
-				target_samples = attack_offset;
-                prev_target = current_value;
-                next_target = attack_sample;
-                current_slope = attack_slope;
-printf("Compressor::process_buffer %d position=%ld slope=%f samples=%d\n", 
-__LINE__, start_position + i, current_slope, target_samples);
-            }
-            else
-            {
-// release
-//                target_samples = release_offset;
-                target_samples = release_samples;
-                prev_target = current_value;
-                next_target = release_sample;
-                current_slope = release_slope;
-printf("Compressor::process_buffer %d position=%ld slope=%f\n", 
-__LINE__, start_position + i, current_slope);
-            }
-        }
-        else
-        {
-// check for new peak after the line segment
-            GET_TRIGGER(input_buffer[channel]->get_data(), i + attack_samples)
-            double new_slope = (sample - current_value) /
-				attack_samples;
-            if(current_slope >= 0)
-            {
-                if(new_slope > current_slope)
-                {
-                    target_samples = attack_samples;
-                    target_current_sample = 0;
-                    prev_target = current_value;
-                    next_target = sample;
-				    current_slope = new_slope;
-printf("Compressor::process_buffer %d position=%ld slope=%f\n", 
-__LINE__, start_position + i, current_slope);
-                }
-            }
-            else
-            if(current_slope < 0)
-            {
-                if(sample > next_target)
-                {
-                    target_samples = attack_samples;
-                    target_current_sample = 0;
-                    prev_target = current_value;
-                    next_target = sample;
-				    current_slope = new_slope;
-                }
-            }
-        }
-
-
-#else // ADAPTIVE
-
-
-// Get slope from current sample to every sample in readahead_samples.
-// Take highest one or first one after target_samples are up.
-
-// For optimization, calculate the first slope we really need.
-// Assume every slope up to the end of readahead_samples has been calculated and
-// found <= to current slope.
-        int first_slope = preview_samples - 1;
-
-// Need new slope immediately
-		if(target_current_sample >= target_samples)
-		{
-            first_slope = 1;
-		}
-
-        for(int j = first_slope; 
-			j < preview_samples; 
-			j++)
-		{
-            GET_TRIGGER(input_buffer[channel]->get_data(), i + j)
-
-			double new_slope = (sample - current_value) /
-				j;
-// Got equal or higher slope
-			if(new_slope > current_slope && 
-				(current_slope >= 0 ||
-				new_slope >= 0))
-			{
-// if(sample > 0) 
-// printf("CompressorEffect::process_buffer %d %ld %f\n", 
-// __LINE__, 
-// start_position + i, 
-// sample);
-
-				target_current_sample = 0;
-				target_samples = j;
-				current_slope = new_slope;
-				next_target = sample;
-				prev_target = current_value;
-			}
-// 				else
-// 				if(sample > next_target && current_slope < 0)
-// 				{
-// 					target_current_sample = 0;
-// 					target_samples = release_samples;
-// 					current_slope = (sample - current_value) /
-// 						release_samples;
-// 					next_target = sample;
-// 					prev_target = current_value;
-// 				}
-            else
-// Hit end of current slope range without finding higher slope
-			if(target_current_sample >= target_samples)
-			{
-				current_slope = sample - current_value;
-				target_current_sample = 0;
- 				target_samples = release_samples;
-				prev_target = current_value;
-				next_target = sample;
-// printf("CompressorEffect::process_buffer %d position=%ld next_target=%f target_samples=%d\n", 
-// __LINE__,
-// start_position + i + j,
-// next_target,
-// target_samples);
-			}
-		}
-#endif // !ADAPTIVE
-
-
-
-
-// Update current value and multiply gain
-		target_current_sample++;
-        current_value = prev_target +
-            (next_target - prev_target) * 
-            target_current_sample / 
-            target_samples;
-
-
-		if(config.smoothing_only)
-		{
-			for(int j = 0; j < channels; j++)
-			{
-				buffer[j]->get_data()[i] = current_value * 2 - 1;
-			}
-		}
-		else
-		{
-			double gain = config.calculate_gain(0, current_value);
-			for(int j = 0; j < channels; j++)
-			{
-				buffer[j]->get_data()[i] = input_buffer[j]->get_data()[i] * gain;
-			}
-		}
-	}
 
 
     if(get_direction() == PLAY_FORWARD)

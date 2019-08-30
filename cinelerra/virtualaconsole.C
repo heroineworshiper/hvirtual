@@ -279,8 +279,10 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 		}
 		if(!renderengine->audio->get_interrupted())
 		{
+if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 			renderengine->audio->write_buffer(audio_out_packed, 
 				real_output_len);
+if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 		}
 
 		if(renderengine->audio->get_interrupted()) interrupt = 1;

@@ -67,12 +67,19 @@ private:
 	char *title;
 };
 
+class ColorObjects
+{
+public:
+    
+};
+
 class ColorWindow : public BC_Window
 {
 public:
 	ColorWindow(ColorThread *thread, int x, int y, char *title);
 
 	void create_objects();
+    static void create_color_objects(BC_Window *window);
 	void change_values();
 	int close_event();
 	void update_display();

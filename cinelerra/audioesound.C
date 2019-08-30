@@ -95,7 +95,7 @@ int AudioESound::open_input()
 {
 	esd_format_t format = ESD_STREAM | ESD_RECORD;
 	
-	device->in_channels = 2;
+	device->in_channels = device->get_ichannels();
 	device->in_bits = 16;
 
 	format |= get_channels_flag(device->in_channels);
@@ -116,7 +116,7 @@ int AudioESound::open_output()
 {
 	esd_format_t format = ESD_STREAM | ESD_PLAY;
 
-	device->out_channels = 2;
+	device->out_channels = device->get_ochannels();
 	device->out_bits = 16;
 
 	format |= get_channels_flag(device->out_channels);

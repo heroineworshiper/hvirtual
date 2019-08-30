@@ -27,6 +27,7 @@
 
 #include "guicast.h"
 #include "pluginclient.inc"
+#include "samples.inc"
 
 
 #define MIN_ATTACK -10
@@ -35,6 +36,45 @@
 #define MAX_DECAY 255
 #define MIN_TRIGGER 0
 #define MAX_TRIGGER 255
+
+
+
+
+// get sample from trigger buffer
+#define GET_TRIGGER(buffer, offset) \
+double sample = 0; \
+switch(config->input) \
+{ \
+	case CompressorConfigBase::MAX: \
+	{ \
+		double max = 0; \
+		for(int channel = 0; channel < channels; channel++) \
+		{ \
+			sample = fabs((buffer)[offset]); \
+			if(sample > max) max = sample; \
+		} \
+		sample = max; \
+		break; \
+	} \
+ \
+	case CompressorConfigBase::TRIGGER: \
+		sample = fabs(trigger_buffer[offset]); \
+		break; \
+ \
+	case CompressorConfigBase::SUM: \
+	{ \
+		double max = 0; \
+		for(int channel = 0; channel < channels; channel++) \
+		{ \
+			sample = fabs((buffer)[offset]); \
+			max += sample; \
+		} \
+		sample = max; \
+		break; \
+	} \
+}
+
+
 
 
 
@@ -56,8 +96,10 @@ public:
 	ArrayList<compressor_point_t> levels;
     int solo;
     int bypass;
-	double reaction_len;
-	double decay_len;
+// units of seconds
+//	double readahead_len;
+    double attack_len;
+	double release_len;
 
 // upper frequency in Hz
     int freq;
@@ -152,6 +194,42 @@ public:
 
 
 
+
+class CompressorEngine
+{
+public:
+    CompressorEngine(CompressorConfigBase *config,
+        int band);
+    ~CompressorEngine();
+    
+    void reset();
+    void calculate_ranges(int *attack_samples,
+        int *release_samples,
+        int *preview_samples,
+        int sample_rate);
+    void process(Samples **output_buffer,
+        Samples **input_buffer,
+        int size,
+        int sample_rate,
+        int channels,
+        int64_t start_position);
+
+    CompressorConfigBase *config;
+    int band;
+// the current line segment defining the smooth signal level
+// starting input value of line segment
+	double slope_value1;
+// ending input value of line segment
+	double slope_value2;
+// samples comprising the line segment
+	int slope_samples;
+// samples from the start of the line to the peak that determined the slope
+    int peak_samples;
+// current sample from 0 to slope_samples
+	int slope_current_sample;
+// current value in the line segment
+	double current_value;
+};
 
 
 

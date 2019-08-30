@@ -77,11 +77,11 @@ public:
 };
 
 // processing state of a single band
-class CompressorEngine
+class BandState
 {
 public:
-    CompressorEngine(CompressorEffect *plugin, int band);
-    ~CompressorEngine();
+    BandState(CompressorEffect *plugin, int band);
+    ~BandState();
 
     void delete_dsp();
     void reset();
@@ -118,6 +118,7 @@ public:
 	ArrayList<compressor_point_t> levels;
     CompressorEffect *plugin;
     int band;
+    CompressorEngine *engine;
 };
 
 class CompressorEffect : public PluginAClient
@@ -172,7 +173,7 @@ public:
 // Since multiple windows can be processed in a single process_buffer, the frames
 // must be buffered before being added to the plugin.
     ArrayList<PluginClientFrame *> spectrogram_frames;
-    CompressorEngine *engines[TOTAL_BANDS];
+    BandState *band_states[TOTAL_BANDS];
 // The big FFT with multiple channels & multiple bands extracted per channel.
     CompressorFFT **fft;
 

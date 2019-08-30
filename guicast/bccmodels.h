@@ -139,7 +139,7 @@
 #define CMODEL_U_TO_B    1.77200
 
 
-
+#ifndef YUV_TO_RGB
 // All variables are unsigned
 // y -> 24 bits u, v, -> 8 bits r, g, b -> 8 bits
 #define YUV_TO_RGB(y, u, v, r, g, b) \
@@ -152,7 +152,7 @@
 	CLAMP(b, 0, 0xff); \
 }
 
-
+#endif // !YUV_TO_RGB
 
 
 

@@ -3445,7 +3445,7 @@ int BC_WindowBase::find_next_textbox(BC_WindowBase **first_textbox, BC_WindowBas
 
 	if(result < 2)
 	{
-		if(uses_text())
+		if(uses_text() && get_enabled())
 		{
 			if(!*first_textbox) *first_textbox = this;
 
@@ -3468,7 +3468,7 @@ int BC_WindowBase::find_prev_textbox(BC_WindowBase **last_textbox, BC_WindowBase
 {
 	if(result < 2)
 	{
-		if(uses_text())
+		if(uses_text() && get_enabled())
 		{
 			if(!*last_textbox) *last_textbox = this;
 
