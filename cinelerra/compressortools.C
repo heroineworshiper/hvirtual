@@ -866,9 +866,11 @@ void CompressorEngine::process(Samples **output_buffer,
         double attack_slope = -0x7fffffff;
         double attack_sample = -1;
         int attack_offset = -1;
+        int have_attack_sample = 0;
         double release_slope = -0x7fffffff;
         double release_sample = -1;
         int release_offset = -1;
+        int have_release_sample = 0;
         if(slope_current_sample >= slope_samples)
         {
 // start new line segment
@@ -881,6 +883,7 @@ void CompressorEngine::process(Samples **output_buffer,
                     attack_slope = new_slope;
                     attack_sample = sample;
                     attack_offset = j;
+                    have_attack_sample = 1;
                 }
                 
                 if(j < release_samples && 
@@ -890,11 +893,12 @@ void CompressorEngine::process(Samples **output_buffer,
                     release_slope = new_slope;
                     release_sample = sample;
                     release_offset = j;
+                    have_release_sample = 1;
                 }
             }
 
 			slope_current_sample = 0;
-            if(attack_slope >= 0)
+            if(have_attack_sample && attack_slope >= 0)
             {
 // attack
                 peak_samples = attack_offset;
@@ -902,10 +906,11 @@ void CompressorEngine::process(Samples **output_buffer,
                 slope_value1 = current_value;
                 slope_value2 = attack_sample;
                 current_slope = attack_slope;
-printf("Compressor::process_buffer %d position=%ld slope=%f samples=%d\n", 
-__LINE__, start_position + i, current_slope, slope_samples);
+//printf("CompressorEngine::process %d position=%ld slope=%f samples=%d\n", 
+//__LINE__, start_position + i, current_slope, slope_samples);
             }
             else
+            if(have_release_sample)
             {
 // release
                 slope_samples = release_offset;
@@ -914,8 +919,21 @@ __LINE__, start_position + i, current_slope, slope_samples);
                 slope_value1 = current_value;
                 slope_value2 = release_sample;
                 current_slope = release_slope;
-printf("Compressor::process_buffer %d position=%ld slope=%f\n", 
-__LINE__, start_position + i, current_slope);
+//printf("CompressorEngine::process %d position=%ld slope=%f\n", 
+//__LINE__, start_position + i, current_slope);
+            }
+            else
+            {
+static int bug = 0;
+if(!bug)
+{
+printf("CompressorEngine::process %d have neither attack nor release position=%ld attack=%f release=%f\n",
+__LINE__,
+start_position + i,
+attack_slope,
+release_slope);
+bug = 1;
+}
             }
         }
         else
@@ -934,8 +952,8 @@ __LINE__, start_position + i, current_slope);
                     slope_value1 = current_value;
                     slope_value2 = sample;
 				    current_slope = new_slope;
-printf("Compressor::process_buffer %d position=%ld slope=%f\n", 
-__LINE__, start_position + i, current_slope);
+//printf("CompressorEngine::process %d position=%ld slope=%f\n", 
+//__LINE__, start_position + i, current_slope);
                 }
             }
             else
@@ -953,8 +971,8 @@ __LINE__, start_position + i, current_slope);
                     new_slope = (sample - current_value) /
 				        release_samples;
 				    current_slope = new_slope;
-printf("Compressor::process_buffer %d position=%ld slope=%f\n", 
-__LINE__, start_position + i, current_slope);
+//printf("CompressorEngine::process %d position=%ld slope=%f\n", 
+//__LINE__, start_position + i, current_slope);
                 }
 //                else
 //                 {
@@ -970,7 +988,7 @@ __LINE__, start_position + i, current_slope);
 //                         slope_value1 = current_value;
 //                         slope_value2 = sample;
 // 				        current_slope = new_slope;
-// printf("Compressor::process_buffer %d position=%ld slope=%f\n", 
+// printf("CompressorEngine::process %d position=%ld slope=%f\n", 
 // __LINE__, start_position + i, current_slope);
 //                     }
 //                 }
@@ -996,7 +1014,7 @@ __LINE__, start_position + i, current_slope);
 		}
 		else
 		{
-			double gain = config->calculate_gain(0, current_value);
+			double gain = config->calculate_gain(band, current_value);
 			for(int j = 0; j < channels; j++)
 			{
 				output_buffer[j]->get_data()[i] = input_buffer[j]->get_data()[i] * gain;
