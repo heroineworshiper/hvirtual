@@ -851,7 +851,7 @@ void VDeviceX11::output_to_bitmap(VFrame *output_frame)
                 checker_w,
                 checker_h);
             
-//printf("VDeviceX11::output_to_bitmap %d\n", __LINE__);
+printf("VDeviceX11::output_to_bitmap %d\n", __LINE__);
         }
         else
         {

@@ -9,12 +9,13 @@ DIRS = \
 	1080to540 \
 	720to480 \
 	audioscope \
-	burn \
+        background \
 	bandslide \
 	bandwipe \
 	blur \
 	brightness \
 	brighttheme \
+	burn \
 	parametric \
 	aging \
 	cdripper \

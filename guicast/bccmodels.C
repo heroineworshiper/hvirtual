@@ -512,6 +512,9 @@ void BC_CModels::transfer_alpha(unsigned char **output_rows, /* Leave NULL if no
             float r = 255 * (input[0] * a + bg_r * anti_a);
             float g = 255 * (input[1] * a + bg_g * anti_a);
             float b = 255 * (input[2] * a + bg_b * anti_a);
+            CLAMP(r, 0, 255);
+            CLAMP(g, 0, 255);
+            CLAMP(b, 0, 255);
             TAIL
             break;
         

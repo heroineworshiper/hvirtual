@@ -23,19 +23,14 @@
 #define BACKGROUND_H
 
 class BackgroundMain;
-class BackgroundEngine;
 class BackgroundThread;
 class BackgroundWindow;
-class BackgroundServer;
 
-
-#define MAXRADIUS 10000
 
 #include "colorpicker.h"
 #include "bchash.inc"
 #include "filexml.inc"
 #include "guicast.h"
-#include "loadbalance.h"
 #include "overlayframe.inc"
 #include "cicolors.h"
 #include "pluginvclient.h"
@@ -55,13 +50,23 @@ public:
 		long next_frame, 
 		long current_frame);
 // Int to hex triplet conversion
-	int get_in_color();
-	int get_out_color();
+	int get_color();
 
 	int r, g, b, a;
 };
 
-
+class BackgroundColorObjects : public ColorObjects
+{
+public:
+    BackgroundColorObjects(BackgroundWindow *window, 
+        BackgroundMain *plugin,
+        int x,
+        int y);
+    void handle_event();
+    
+    BackgroundWindow *window;
+    BackgroundMain *plugin;
+};
 
 
 class BackgroundWindow : public PluginClientWindow
@@ -71,29 +76,10 @@ public:
 	~BackgroundWindow();
 	
 	void create_objects();
-	void update_in_color();
-	void update_out_color();
-	void update_shape();
+	void update();
 
 	BackgroundMain *plugin;
-	BC_Title *angle_title;
-	BackgroundAngle *angle;
-	BackgroundInRadius *in_radius;
-	BackgroundOutRadius *out_radius;
-	BackgroundInColorButton *in_color;
-	BackgroundOutColorButton *out_color;
-	BackgroundInColorThread *in_color_thread;
-	BackgroundOutColorThread *out_color_thread;
-	BackgroundShape *shape;
-	BC_Title *shape_title;
-	BackgroundCenterX *center_x;
-	BC_Title *center_x_title;
-	BC_Title *center_y_title;
-	BackgroundCenterY *center_y;
-	BackgroundRate *rate;
-	int in_color_x, in_color_y;
-	int out_color_x, out_color_y;
-	int shape_x, shape_y;
+	BackgroundColorObjects *color_objs;
 };
 
 
@@ -116,9 +102,10 @@ public:
 	void read_data(KeyFrame *keyframe);
 	void update_gui();
 	int is_synthesis();
-	int handle_opengl();
+    
 
 	PLUGIN_CLASS_MEMBERS(BackgroundConfig)
+    YUV yuv;
 };
 
 
