@@ -99,10 +99,11 @@ CompressorConfigBase::CompressorConfigBase(int total_bands)
     bands = new BandConfig[total_bands];
 	min_db = -78.0;
     max_db = 6.0;
-	min_x = min_db;
-	min_y = min_db;
-	max_x = 0;
-	max_y = 0;
+    min_value = DB::fromdb(min_db) + 0.001;
+//	min_x = min_db;
+//	min_y = min_db;
+//	max_x = 0;
+//	max_y = 0;
 	smoothing_only = 0;
 	trigger = 0;
 	input = CompressorConfigBase::TRIGGER;
@@ -111,6 +112,7 @@ CompressorConfigBase::CompressorConfigBase(int total_bands)
         bands[band].freq = Freq::tofreq((band + 1) * TOTALFREQS / total_bands);
     }
     current_band = 0;
+//printf("CompressorConfigBase::CompressorConfigBase %d min_value=%f\n", __LINE__, min_value);
 }
 
 
@@ -121,10 +123,10 @@ CompressorConfigBase::~CompressorConfigBase()
 
 void CompressorConfigBase::copy_from(CompressorConfigBase &that)
 {
-	min_x = that.min_x;
-	min_y = that.min_y;
-	max_x = that.max_x;
-	max_y = that.max_y;
+//	min_x = that.min_x;
+//	min_y = that.min_y;
+//	max_x = that.max_x;
+//	max_y = that.max_y;
 	trigger = that.trigger;
 	input = that.input;
 	smoothing_only = that.smoothing_only;
@@ -147,7 +149,7 @@ int CompressorConfigBase::equivalent(CompressorConfigBase &that)
             return 0;
         }
     }
-    
+
 	if(trigger != that.trigger ||
 		input != that.input ||
 		smoothing_only != that.smoothing_only)
@@ -297,19 +299,26 @@ double CompressorConfigBase::calculate_output(int band, double x)
 }
 
 
-double CompressorConfigBase::calculate_gain(int band, double input)
+double CompressorConfigBase::calculate_gain(int band, double input_linear)
 {
-	double y_linear = calculate_output(band, input);
+	double output_linear = calculate_output(band, input_linear);
 	double gain;
-// limit the gain to a sane number
-	if(fabs(input - 0.0) > 0.000001)
-	{
-    	gain = y_linear / input;
-	}
-    else
+
+// output is below minimum.  Mute it
+    if(output_linear < min_value)
     {
-		gain = 100000;
+        gain = 0.0;
     }
+    else
+// input is below minimum.  Don't change it.
+    if(fabs(input_linear - 0.0) < min_value)
+    {
+        gain = 1.0;
+    }
+    else
+	{
+    	gain = output_linear / input_linear;
+	}
 
 	return gain;
 }

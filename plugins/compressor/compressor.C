@@ -259,10 +259,10 @@ int CompressorEffect::process_buffer(int64_t size,
 		levels.values[i].x = DB::fromdb(band_config->levels.values[i].x);
 		levels.values[i].y = DB::fromdb(band_config->levels.values[i].y);
 	}
-	min_x = DB::fromdb(config.min_db);
-	min_y = DB::fromdb(config.min_db);
-	max_x = 1.0;
-	max_y = 1.0;
+// 	min_x = DB::fromdb(config.min_db);
+// 	min_y = DB::fromdb(config.min_db);
+// 	max_x = 1.0;
+// 	max_y = 1.0;
 
 
 	int attack_samples;

@@ -141,8 +141,10 @@ public:
 		MAX,
 		SUM
 	};
-	double min_x, min_y;
-	double max_x, max_y;
+    
+    double min_value;
+//	double min_x, min_y;
+//	double max_x, max_y;
 	int smoothing_only;
 };
 

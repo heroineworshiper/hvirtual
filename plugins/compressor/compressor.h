@@ -231,8 +231,8 @@ public:
 
 // Temporaries for linear transfer
 	ArrayList<compressor_point_t> levels;
-	double min_x, min_y;
-	double max_x, max_y;
+//	double min_x, min_y;
+//	double max_x, max_y;
 };
 
 

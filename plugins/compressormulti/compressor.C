@@ -357,10 +357,10 @@ int CompressorEffect::process_buffer(int64_t size,
 //printf("CompressorEffect::process_buffer %d\n", __LINE__);
         need_reconfigure = 0;
 
-	    min_x = DB::fromdb(config.min_db);
-	    min_y = DB::fromdb(config.min_db);
-	    max_x = 1.0;
-	    max_y = 1.0;
+//	    min_x = DB::fromdb(config.min_db);
+//	    min_y = DB::fromdb(config.min_db);
+//	    max_x = 1.0;
+//	    max_y = 1.0;
 
         if(fft && fft[0]->window_size != config.window_size)
         {
