@@ -47,59 +47,26 @@ REGISTER_PLUGIN(BackgroundMain)
 
 BackgroundConfig::BackgroundConfig()
 {
-	angle = 0;
-	in_radius = 0;
-	out_radius = 100;
-	in_r = 0xff;
-	in_g = 0xff;
-	in_b = 0xff;
-	in_a = 0xff;
-	out_r = 0x0;
-	out_g = 0x0;
-	out_b = 0x0;
-	out_a = 0x0;
-	shape = BackgroundConfig::LINEAR;
-	rate = BackgroundConfig::LINEAR;
-	center_x = 50;
-	center_y = 50;
+	r = 0xff;
+	g = 0xff;
+	b = 0xff;
+	a = 0xff;
 }
 
 int BackgroundConfig::equivalent(BackgroundConfig &that)
 {
-	return (EQUIV(angle, that.angle) &&
-		EQUIV(in_radius, that.in_radius) &&
-		EQUIV(out_radius, that.out_radius) &&
-		in_r == that.in_r &&
-		in_g == that.in_g &&
-		in_b == that.in_b &&
-		in_a == that.in_a &&
-		out_r == that.out_r &&
-		out_g == that.out_g &&
-		out_b == that.out_b &&
-		out_a == that.out_a &&
-		shape == that.shape &&
-		rate == that.rate &&
-		EQUIV(center_x, that.center_x) &&
-		EQUIV(center_y, that.center_y));
+	return (r == that.r &&
+		g == that.g &&
+		b == that.b &&
+		a == that.a);
 }
 
 void BackgroundConfig::copy_from(BackgroundConfig &that)
 {
-	angle = that.angle;
-	in_radius = that.in_radius;
-	out_radius = that.out_radius;
-	in_r = that.in_r;
-	in_g = that.in_g;
-	in_b = that.in_b;
-	in_a = that.in_a;
-	out_r = that.out_r;
-	out_g = that.out_g;
-	out_b = that.out_b;
-	out_a = that.out_a;
-	shape = that.shape;
-	rate = that.rate;
-	center_x = that.center_x;
-	center_y = that.center_y;
+	r = that.r;
+	g = that.g;
+	b = that.b;
+	a = that.a;
 }
 
 void BackgroundConfig::interpolate(BackgroundConfig &prev, 
@@ -112,32 +79,15 @@ void BackgroundConfig::interpolate(BackgroundConfig &prev,
 	double prev_scale = (double)(next_frame - current_frame) / (next_frame - prev_frame);
 
 
-	this->angle = (int)(prev.angle * prev_scale + next.angle * next_scale);
-	this->in_radius = (int)(prev.in_radius * prev_scale + next.in_radius * next_scale);
-	this->out_radius = (int)(prev.out_radius * prev_scale + next.out_radius * next_scale);
-	in_r = (int)(prev.in_r * prev_scale + next.in_r * next_scale);
-	in_g = (int)(prev.in_g * prev_scale + next.in_g * next_scale);
-	in_b = (int)(prev.in_b * prev_scale + next.in_b * next_scale);
-	in_a = (int)(prev.in_a * prev_scale + next.in_a * next_scale);
-	out_r = (int)(prev.out_r * prev_scale + next.out_r * next_scale);
-	out_g = (int)(prev.out_g * prev_scale + next.out_g * next_scale);
-	out_b = (int)(prev.out_b * prev_scale + next.out_b * next_scale);
-	out_a = (int)(prev.out_a * prev_scale + next.out_a * next_scale);
-	shape = prev.shape;
-	rate = prev.rate;
-	center_x = prev.center_x * prev_scale + next.center_x * next_scale;
-	center_y = prev.center_y * prev_scale + next.center_y * next_scale;
+	r = (int)(prev.r * prev_scale + next.r * next_scale);
+	g = (int)(prev.g * prev_scale + next.g * next_scale);
+	b = (int)(prev.b * prev_scale + next.b * next_scale);
+	a = (int)(prev.a * prev_scale + next.a * next_scale);
 }
 
-int BackgroundConfig::get_in_color()
+int BackgroundConfig::get_color()
 {
-	int result = (in_r << 16) | (in_g << 8) | (in_b);
-	return result;
-}
-
-int BackgroundConfig::get_out_color()
-{
-	int result = (out_r << 16) | (out_g << 8) | (out_b);
+	int result = (r << 16) | (g << 8) | (b);
 	return result;
 }
 

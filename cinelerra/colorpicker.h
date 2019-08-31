@@ -54,6 +54,7 @@ public:
 	ColorWindow* get_gui();
 
 private:
+	friend class ColorObjectsListener;
 	friend class ColorWindow;
 
 	ColorWindow *window;
@@ -67,27 +68,21 @@ private:
 	char *title;
 };
 
+// base class for adding color widgets to any window
 class ColorObjects
 {
 public:
+    ColorObjects(BC_Window *window, int do_alpha, int x, int y);
+    virtual ~ColorObjects();
     
-};
+    void create_objects();
+    virtual void handle_event();
+// redraw with new values
+    void update();
+// convert HSV to new RGB & update
+    void update_rgb();
 
-class ColorWindow : public BC_Window
-{
-public:
-	ColorWindow(ColorThread *thread, int x, int y, char *title);
-
-	void create_objects();
-    static void create_color_objects(BC_Window *window);
-	void change_values();
-	int close_event();
-	void update_display();
-	void update_rgb();
-	int handle_event();
-
-	ColorThread *thread;
-
+    BC_Window *window;
 	PaletteWheel *wheel;
 	PaletteWheelValue *wheel_value;
 	PaletteOutput *output;
@@ -100,13 +95,46 @@ public:
 	PaletteAlpha *alpha;
 	VFrame *value_bitmap;
 	float h, s, v, r, g, b, a;
+    int do_alpha;
+    int x, y;
+};
+
+// subclass for just the ColorWindow
+class ColorObjectsListener : public ColorObjects
+{
+public:
+    ColorObjectsListener(ColorWindow *window, 
+        ColorThread *thread,
+        int x,
+        int y);
+    void handle_event();
+    
+    ColorWindow *window;
+    ColorThread *thread;
+};
+
+
+class ColorWindow : public BC_Window
+{
+public:
+	ColorWindow(ColorThread *thread, int x, int y, char *title);
+
+	void create_objects();
+    static void create_color_objects(BC_Window *window);
+	void update_values();
+	int close_event();
+	void update_display();
+	void update_rgb();
+
+	ColorThread *thread;
+    ColorObjectsListener *color_objects;
 };
 
 
 class PaletteWheel : public BC_SubWindow
 {
 public:
-	PaletteWheel(ColorWindow *window, int x, int y);
+	PaletteWheel(ColorObjects *objs, int x, int y);
 	~PaletteWheel();
 	int button_press_event();
 	int cursor_motion_event();
@@ -116,7 +144,7 @@ public:
 	int draw(float hue, float saturation);
 	int get_angle(float x1, float y1, float x2, float y2);
 	float torads(float angle);
-	ColorWindow *window;
+	ColorObjects *objs;
 	float oldhue;
 	float oldsaturation;
 	int button_down;
@@ -125,14 +153,14 @@ public:
 class PaletteWheelValue : public BC_SubWindow
 {
 public:
-	PaletteWheelValue(ColorWindow *window, int x, int y);
+	PaletteWheelValue(ColorObjects *objs, int x, int y);
 	~PaletteWheelValue();
 	void create_objects();
 	int button_press_event();
 	int cursor_motion_event();
 	int button_release_event();
 	int draw(float hue, float saturation, float value);
-	ColorWindow *window;
+	ColorObjects *objs;
 	int button_down;
 // Gradient
 	VFrame *frame;
@@ -141,75 +169,75 @@ public:
 class PaletteOutput : public BC_SubWindow
 {
 public:
-	PaletteOutput(ColorWindow *window, int x, int y);
+	PaletteOutput(ColorObjects *objs, int x, int y);
 	~PaletteOutput();
 	void create_objects();
 	int handle_event();
 	int draw();
-	ColorWindow *window;
+	ColorObjects *objs;
 };
 
 class PaletteHue : public BC_ISlider
 {
 public:
-	PaletteHue(ColorWindow *window, int x, int y);
+	PaletteHue(ColorObjects *objs, int x, int y);
 	~PaletteHue();
 	int handle_event();
-	ColorWindow *window;
+	ColorObjects *objs;
 };
 
 class PaletteSaturation : public BC_FSlider
 {
 public:
-	PaletteSaturation(ColorWindow *window, int x, int y);
+	PaletteSaturation(ColorObjects *objs, int x, int y);
 	~PaletteSaturation();
 	int handle_event();
-	ColorWindow *window;
+	ColorObjects *objs;
 };
 
 class PaletteValue : public BC_FSlider
 {
 public:
-	PaletteValue(ColorWindow *window, int x, int y);
+	PaletteValue(ColorObjects *objs, int x, int y);
 	~PaletteValue();
 	int handle_event();
-	ColorWindow *window;
+	ColorObjects *objs;
 };
 
 class PaletteRed : public BC_FSlider
 {
 public:
-	PaletteRed(ColorWindow *window, int x, int y);
+	PaletteRed(ColorObjects *objs, int x, int y);
 	~PaletteRed();
 	int handle_event();
-	ColorWindow *window;
+	ColorObjects *objs;
 };
 
 class PaletteGreen : public BC_FSlider
 {
 public:
-	PaletteGreen(ColorWindow *window, int x, int y);
+	PaletteGreen(ColorObjects *objs, int x, int y);
 	~PaletteGreen();
 	int handle_event();
-	ColorWindow *window;
+	ColorObjects *objs;
 };
 
 class PaletteBlue : public BC_FSlider
 {
 public:
-	PaletteBlue(ColorWindow *window, int x, int y);
+	PaletteBlue(ColorObjects *objs, int x, int y);
 	~PaletteBlue();
 	int handle_event();
-	ColorWindow *window;
+	ColorObjects *objs;
 };
 
 class PaletteAlpha : public BC_FSlider
 {
 public:
-	PaletteAlpha(ColorWindow *window, int x, int y);
+	PaletteAlpha(ColorObjects *objs, int x, int y);
 	~PaletteAlpha();
 	int handle_event();
-	ColorWindow *window;
+	ColorObjects *objs;
 };
 
 #endif

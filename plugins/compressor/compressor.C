@@ -262,14 +262,9 @@ int CompressorEffect::process_buffer(int64_t size,
 	max_y = 1.0;
 
 
-	int attack_samples = labs(Units::round(band_config->attack_len * sample_rate));
-	int release_samples = Units::round(band_config->release_len * sample_rate);
-
-	CLAMP(attack_samples, 1, 1000000);
-	CLAMP(release_samples, 1, 1000000);
-
-
-    int preview_samples = MAX(attack_samples, release_samples);
+	int attack_samples;
+	int release_samples;
+    int preview_samples;
 
     if(!engine)
     {

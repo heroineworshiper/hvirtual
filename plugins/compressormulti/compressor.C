@@ -407,6 +407,14 @@ int CompressorEffect::process_buffer(int64_t size,
 #endif
         filtered_size = 0;
         input_start = start_position;
+        for(int band = 0; band < TOTAL_BANDS; band++)
+        {
+            BandState *band_state = band_states[band];
+            if(band_state->engine)
+            {
+                band_state->engine->reset();
+            }
+        }
     }
 
 
@@ -416,12 +424,23 @@ int CompressorEffect::process_buffer(int64_t size,
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
         BandConfig *band_config = &config.bands[band];
-        int reaction_samples = Units::round(band_config->attack_len * sample_rate);
-	    CLAMP(reaction_samples, -1000000, 1000000);
-
-        if(-reaction_samples > new_filtered_size)
+        BandState *band_state = band_states[band];
+        if(!band_state->engine)
         {
-            new_filtered_size = -reaction_samples;
+            band_state->engine = new CompressorEngine(&config, band);
+        }
+        
+	    int attack_samples;
+	    int release_samples;
+        int preview_samples;
+        band_state->engine->calculate_ranges(&attack_samples,
+            &release_samples,
+            &preview_samples,
+            sample_rate);
+        
+        if(preview_samples > new_filtered_size)
+        {
+            new_filtered_size = preview_samples;
         }
     }
     new_filtered_size += size;
@@ -505,14 +524,9 @@ remane);
 	int trigger = CLIP(config.trigger, 0, channels - 1);
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
-        BandConfig *band_config = &config.bands[band];
         BandState *band_state = band_states[band];
         
         
-        if(!band_state->engine)
-        {
-            band_state->engine = new CompressorEngine(&config, band);
-        }
         band_state->engine->process(band_states[band]->filtered_buffer,
             band_states[band]->filtered_buffer,
             size,
