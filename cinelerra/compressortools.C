@@ -936,11 +936,12 @@ void CompressorEngine::process(Samples **output_buffer,
 static int bug = 0;
 if(!bug)
 {
-printf("CompressorEngine::process %d have neither attack nor release position=%ld attack=%f release=%f\n",
+printf("CompressorEngine::process %d have neither attack nor release position=%ld attack=%f release=%f current_value=%f\n",
 __LINE__,
 start_position + i,
 attack_slope,
-release_slope);
+release_slope,
+current_value);
 bug = 1;
 }
             }

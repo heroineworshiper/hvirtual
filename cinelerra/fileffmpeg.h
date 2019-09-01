@@ -129,6 +129,11 @@ public:
 	int read_frame(VFrame *frame);
 	int read_samples(double *buffer, int64_t len);
 
+// open ffmpeg objects for reading
+    int open_ffmpeg();
+// close ffmpeg objects
+    void close_ffmpeg();
+
 // get the stream for seeking
     int get_seek_stream();
 	void dump_context(void *ptr);
