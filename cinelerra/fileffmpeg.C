@@ -1818,6 +1818,23 @@ int FileFFMPEG::read_frame(VFrame *frame)
 // avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
 		    error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
 			    packet);
+
+            if(error)
+            {
+                printf("FileFFMPEG::read_frame %d error=%d stream->current_frame=%ld file->current_frame=%ld\n",
+    		        __LINE__,
+                    error,
+                    stream->current_frame,
+                    file->current_frame);
+// give up & reopen the ffmpeg objects
+                av_packet_free(&packet);
+                ffmpeg_lock->unlock();
+
+                close_ffmpeg();
+                open_ffmpeg();
+                return 1;
+            }
+
             av_packet_merge_side_data(packet);
 
 
@@ -2153,9 +2170,10 @@ stream->audio_offsets.get(chunk));
             
         if(error)
         {
-            if(debug) printf("FileFFMPEG::read_samples %d error=%d\n",
+            printf("FileFFMPEG::read_samples %d error=%d current_sample=%ld\n",
     			__LINE__,
-                error);
+                error,
+                file->current_sample);
 // give up & reopen the ffmpeg objects
             av_packet_free(&packet);
             ffmpeg_lock->unlock();

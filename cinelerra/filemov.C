@@ -376,10 +376,17 @@ void FileMOV::format_to_asset()
 		asset->channels = 0;
 		int qt_tracks = quicktime_audio_tracks(fd);
 		for(int i = 0; i < qt_tracks; i++)
-			asset->channels += quicktime_track_channels(fd, i);
-	
+		{
+        	asset->channels += quicktime_track_channels(fd, i);
+        }
+//printf("FileMOV::format_to_asset %d qt_tracks=%d channels=%d\n", 
+//__LINE__, qt_tracks, asset->channels);
+
 		if(!asset->sample_rate)
-			asset->sample_rate = quicktime_sample_rate(fd, 0);
+		{
+        	asset->sample_rate = quicktime_sample_rate(fd, 0);
+        }
+
 		asset->bits = quicktime_audio_bits(fd, 0);
 		asset->audio_length = quicktime_audio_length(fd, 0);
 		strncpy(asset->acodec, quicktime_audio_compressor(fd, 0), 4);

@@ -827,6 +827,7 @@ void CompressorEngine::reset()
 	slope_value1 = 1.0;
 	slope_samples = 0;
 	slope_current_sample = 0;
+    current_value = 1.0;
 }
 
 

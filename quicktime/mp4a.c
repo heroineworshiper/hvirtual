@@ -152,17 +152,18 @@ static int decode(quicktime_t *file,
 // reinitialize with encoded channel count
 				if(codec->frame_info.channels != track_map->channels)
 				{
-printf("decode %d: AAC channel count=%d MPEG4 channel count=%d\n", 
+printf("decode %d: mp4a channel count=%d Quicktime channel count=%d\n", 
 __LINE__, 
 codec->frame_info.channels,
 track_map->channels);
 					codec->channels = codec->frame_info.channels;
+                    track_map->channels = codec->frame_info.channels;
 					quicktime_init_vbr(vbr, codec->channels);
 				}
 				
 				if(codec->frame_info.samplerate != quicktime_sample_rate(file, track))
 				{
-printf("decode %d: AAC samplerate=%d MPEG4 samplerate=%ld\n", 
+printf("decode %d: mp4a samplerate=%d Quicktime samplerate=%ld\n", 
 __LINE__, 
 codec->frame_info.samplerate,
 quicktime_sample_rate(file, track));

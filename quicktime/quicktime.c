@@ -265,7 +265,7 @@ int quicktime_set_audio(quicktime_t *file,
 			sample_rate, 
 			bits, 
 			compressor);
-		quicktime_init_audio_map(&(file->atracks[0]), trak);
+		quicktime_init_audio_map(file, &(file->atracks[0]), trak);
 		file->atracks[file->total_atracks].track = trak;
 		file->atracks[file->total_atracks].channels = channels;
 		file->atracks[file->total_atracks].current_position = 0;
@@ -592,7 +592,9 @@ char* quicktime_audio_compressor(quicktime_t *file, int track)
 int quicktime_track_channels(quicktime_t *file, int track)
 {
 	if(track < file->total_atracks)
+    {
 		return file->atracks[track].channels;
+    }
 
 	return 0;
 }
@@ -1059,19 +1061,22 @@ void quicktime_set_cache_max(quicktime_t *file, int bytes)
 
 
 
-int quicktime_init_audio_map(quicktime_audio_map_t *atrack, quicktime_trak_t *trak)
+int quicktime_init_audio_map(quicktime_t *file, 
+    quicktime_audio_map_t *atrack, 
+    quicktime_trak_t *trak)
 {
 	atrack->track = trak;
 	atrack->channels = trak->mdia.minf.stbl.stsd.table[0].channels;
 	atrack->current_position = 0;
 	atrack->current_chunk = 1;
 	quicktime_init_acodec(atrack);
+
+
 	return 0;
 }
 
 int quicktime_delete_audio_map(quicktime_audio_map_t *atrack)
 {
-	int i;
 	quicktime_delete_acodec(atrack);
 	quicktime_clear_vbr(&atrack->vbr);
 	return 0;
@@ -1088,7 +1093,22 @@ void quicktime_init_maps(quicktime_t *file)
 	{
 		while(!file->moov.trak[track]->mdia.minf.is_audio)
 			track++;
-		quicktime_init_audio_map(&(file->atracks[i]), file->moov.trak[track]);
+		quicktime_init_audio_map(file, &(file->atracks[i]), file->moov.trak[track]);
+
+
+        
+/* Read some audio to fix broken headers */
+        const int temp_count = 4096;
+        float *temp_buffer = malloc(sizeof(float) * temp_count);
+        ((quicktime_codec_t*)file->atracks[i].codec)->decode_audio(file, 
+			0, 
+			temp_buffer, 
+			temp_count, 
+			i, 
+			0);
+        free(temp_buffer);
+
+
 	}
 
 	file->total_vtracks = quicktime_video_tracks(file);
@@ -1255,7 +1275,9 @@ int quicktime_read_info(quicktime_t *file)
 	if(got_header)
 	{
 		quicktime_init_maps(file);
+
 	}
+
 
 /* Shut down preload in case of an obsurdly high temp_size */
 	quicktime_set_preload(file, 0);
