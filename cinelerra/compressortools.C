@@ -375,7 +375,8 @@ void CompressorCanvasBase::draw_scales()
 // output divisions
 	for(int i = 0; i <= divisions; i++)
 	{
-		int y = get_y() + DP(10) + graph_y + graph_h / divisions * i;
+        int fudge = DP(10);
+		int y = get_y() + fudge + graph_y + graph_h * i / divisions;
 		int x = get_x() - big_line;
 		char string[BCTEXTLEN];
 		
@@ -383,10 +384,18 @@ void CompressorCanvasBase::draw_scales()
             (float)i / divisions * 
             (config->max_db - config->min_db));
 		int text_w = get_text_width(SMALLFONT, string);
-		window->draw_text(x - text_w, y, string);
 		
-		int y1 = get_y() + graph_y + graph_h / divisions * i;
-		int y2 = get_y() + graph_y + graph_h / divisions * (i + 1);
+        if(i < divisions)
+        {
+            window->draw_text(x - text_w, y, string);
+        }
+        else
+        {
+            window->draw_text(x - text_w, y - fudge, string);
+        }
+		
+		int y1 = get_y() + graph_y + graph_h * i / divisions;
+		int y2 = get_y() + graph_y + graph_h * (i + 1) / divisions;
 		for(int j = 0; j < subdivisions; j++)
 		{
 			y = y1 + (y2 - y1) * j / subdivisions;
