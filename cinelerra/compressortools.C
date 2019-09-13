@@ -241,12 +241,18 @@ double CompressorConfigBase::calculate_db(int band, double x)
 		}
 	}
 
-// before 1st point.  Use slope between 1st point & min_db
+// before 1st point.
     compressor_point_t *point = &levels->values[0];
+
+// Use slope between 1st point & min_db
+//     return point->y +
+//         (x - point->x) *
+//         (point->y - min_db) / 
+//         (point->x - min_db);
+
+// use 1:1 gain before 1st point
     return point->y +
-        (x - point->x) *
-        (point->y - min_db) / 
-        (point->x - min_db);
+        (x - point->x);
 }
 
 
