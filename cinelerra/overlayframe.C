@@ -636,6 +636,7 @@ static float my_abs(float x)
     pixel_opacity = opacity * input4;                              \
     pixel_transparency = (temp_type)max * max - pixel_opacity;     \
     a = output4 + ((max - output4) * input4) / max;                \
+    /*a = MAX(output4, input4);*/                                  \
                                                                         \
     switch(mode) {                                                      \
     case TRANSFER_DIVIDE:                                               \

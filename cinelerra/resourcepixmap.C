@@ -510,6 +510,13 @@ void ResourcePixmap::draw_title(TrackCanvas *canvas,
 }
 
 
+int ResourcePixmap::calculate_center_pixel()
+{
+   	int center_pixel = mwindow->edl->local_session->zoom_track / 2;
+	if(mwindow->edl->session->show_titles) center_pixel += mwindow->theme->get_image("title_bg_data")->get_h();
+    return center_pixel;
+}
+
 // Need to draw one more x
 void ResourcePixmap::draw_audio_resource(TrackCanvas *canvas,
 	Edit *edit, 
@@ -530,6 +537,19 @@ SET_TRACE
 	IndexState *index_state = indexable->index_state;
 	double asset_over_session = (double)indexable->get_sample_rate() / 
 		mwindow->edl->session->sample_rate;
+
+
+// draw zero crossing
+	int center_pixel = calculate_center_pixel();
+// printf("ResourcePixmap::draw_audio_resource %d x=%d w=%d y=%d\n", 
+// __LINE__,
+// x,
+// w,
+// center_pixel);
+    canvas->set_line_dashes(1);
+    canvas->set_color(mwindow->theme->zero_crossing_color);
+    canvas->draw_line(x, center_pixel, x + w, center_pixel, this);
+    canvas->set_line_dashes(0);
 
 // Develop strategy for drawing
 // printf("ResourcePixmap::draw_audio_resource %d index_state=%p index_status=%d\n", 
@@ -576,6 +596,7 @@ SET_TRACE
 			break;
 		}
 	}
+
 }
 
 
@@ -605,8 +626,7 @@ void ResourcePixmap::draw_audio_source(TrackCanvas *canvas,
 	double asset_over_session = (double)indexable->get_sample_rate() / 
 		mwindow->edl->session->sample_rate;
 	int source_len = w * mwindow->edl->local_session->zoom_sample;
-	int center_pixel = mwindow->edl->local_session->zoom_track / 2;
-	if(mwindow->edl->session->show_titles) center_pixel += mwindow->theme->get_image("title_bg_data")->get_h();
+	int center_pixel = calculate_center_pixel();
 
 // Single sample zoom
 	if(mwindow->edl->local_session->zoom_sample == 1)

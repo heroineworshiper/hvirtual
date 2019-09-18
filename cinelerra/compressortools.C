@@ -552,7 +552,8 @@ void CompressorCanvasBase::update()
 //     }
 
 // canvas boxes
-	clear_box(graph_x, graph_y, graph_w, graph_h);
+    set_color(plugin->get_theme()->graph_bg_color);
+	draw_box(graph_x, graph_y, graph_w, graph_h);
 
 // graph border
 	draw_3d_border(0, 

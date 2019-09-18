@@ -1,6 +1,8 @@
 #include "clip.h"
 #include "eqcanvas.h"
+#include "mwindow.h"
 #include "pluginclient.h"
+#include "theme.h"
 
 EQCanvas::EQCanvas(BC_WindowBase *parent, 
     int x, 
@@ -155,7 +157,7 @@ void EQCanvas::initialize()
 void EQCanvas::draw_grid()
 {
 	canvas->set_line_dashes(1);
-	canvas->set_color(GREEN);
+	canvas->set_color(MWindow::theme->graph_grid_color);
     for(int i = minor_divisions; i < total_divisions; i += minor_divisions)
 	{
         int y = (int)(i * pixels_per_division);
@@ -203,7 +205,8 @@ void EQCanvas::update_spectrogram(PluginClient *plugin,
 // frame ? frame->data : 0,
 // frame ? frame->freq_max : 0,
 // frame ? frame->time_max : 0);
-    canvas->clear_box(0, 0, canvas->get_w(), canvas->get_h());
+    canvas->set_color(MWindow::theme->graph_bg_color);
+    canvas->draw_box(0, 0, canvas->get_w(), canvas->get_h());
     draw_grid();
 
 // Draw most recent frame
@@ -218,7 +221,7 @@ void EQCanvas::update_spectrogram(PluginClient *plugin,
             window_size = frame->data_size * 2;
         }
         
-		canvas->set_color(MEGREY);
+		canvas->set_color(MWindow::theme->graph_inactive_color);
         if(!EQUIV(frame->freq_max, 0))
         {
 		    for(int i = 0; i < canvas->get_w(); i++)
@@ -292,12 +295,12 @@ void EQCanvas::draw_envelope(double *envelope,
     
     if(is_top)
     {
-	    canvas->set_color(WHITE);
+	    canvas->set_color(MWindow::theme->graph_active_color);
     	canvas->set_line_width(2);
     }
     else
     {
-        canvas->set_color(MEGREY);
+        canvas->set_color(MWindow::theme->graph_inactive_color);
         canvas->set_line_width(1);
     }
     

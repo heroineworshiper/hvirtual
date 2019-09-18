@@ -408,6 +408,14 @@ void BrightTheme::initialize()
 // MWindow
 	message_normal = resources->text_default;
 	audio_color = 0x00ff00;
+    zero_crossing_color = BLACK;
+    graph_active_color = BLACK;
+    graph_inactive_color = MEGREY;
+    graph_grid_color = BLACK;
+    graph_bg_color = WHITE;
+    graph_border1_color = BLACK;
+    graph_border2_color = BLACK;
+    
 	assetedit_color = BLACK;
 	mtransport_margin = DP(20);
 	toggle_margin = DP(20);
