@@ -170,6 +170,11 @@ int Flanger::process_buffer(int64_t size,
         voice.table_offset = (int64_t)(start_position - 
             prev_position + 
             config.starting_phase * table_size / 100) % table_size;
+// printf("Flanger::process_buffer %d start_position=%ld table_offset=%d table_size=%d\n", 
+// __LINE__,
+// start_position,
+// voice.table_offset,
+// table_size);
     }
 
     int starting_offset = (int)(config.offset * sample_rate / 1000);
@@ -211,6 +216,11 @@ int Flanger::process_buffer(int64_t size,
         double input_sample = j - starting_offset + table->input_sample;
         double input_period = table->input_period;
 
+// if(j == 0)
+// printf("Flanger::process_buffer %d input_sample=%f\n", 
+// __LINE__,
+// input_sample);
+
 // values to interpolate
         double sample1;
         double sample2;
@@ -242,7 +252,6 @@ int Flanger::process_buffer(int64_t size,
     }
     voice.table_offset = table_offset;
 
-
 // history is bigger than input buffer.  Copy entire input buffer.
     if(history_size > size)
     {
@@ -260,6 +269,8 @@ int Flanger::process_buffer(int64_t size,
             buffer->get_data() + size - history_size,
             history_size * sizeof(double));
     }
+//printf("Flanger::process_buffer %d\n", 
+//__LINE__);
 
 
 // copy the DSP buffer to the output
@@ -488,7 +499,7 @@ void FlangerWindow::create_objects()
         "Phase offset (ms):",
         MIN_OFFSET, // min
         MAX_OFFSET); // max
-    offset->set_precision(2);
+    offset->set_precision(3);
     offset->initialize();
     y += height;
 
@@ -506,7 +517,7 @@ void FlangerWindow::create_objects()
         "Starting phase (%):",
         MIN_STARTING_PHASE, // min
         MAX_STARTING_PHASE); // max
-    starting_phase->set_precision(2);
+    starting_phase->set_precision(3);
     starting_phase->initialize();
     y += height;
 
@@ -525,7 +536,7 @@ void FlangerWindow::create_objects()
         "Depth (ms):",
         MIN_DEPTH, // min
         MAX_DEPTH); // max
-    depth->set_precision(2);
+    depth->set_precision(3);
     depth->initialize();
     y += height;
 
@@ -544,6 +555,7 @@ void FlangerWindow::create_objects()
         "Rate (Hz):",
         MIN_RATE, // min
         MAX_RATE); // max
+    rate->set_precision(3);
     rate->initialize();
     y += height;
 
@@ -562,6 +574,7 @@ void FlangerWindow::create_objects()
         "Wetness (db):",
         INFINITYGAIN, // min
         0); // max
+    wetness->set_precision(3);
     wetness->initialize();
     y += height;
 
@@ -570,11 +583,11 @@ void FlangerWindow::create_objects()
 
 void FlangerWindow::update()
 {
-    offset->update(1, 1);
-    starting_phase->update(1, 1);
-    depth->update(1, 1);
-    rate->update(1, 1);
-    wetness->update(1, 1);
+    offset->update(0, 0);
+    starting_phase->update(0, 0);
+    depth->update(0, 0);
+    rate->update(0, 0);
+    wetness->update(0, 0);
 }
 
 void FlangerWindow::param_updated()

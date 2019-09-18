@@ -554,19 +554,20 @@ void CompressorCanvasBase::update()
 // canvas boxes
 	clear_box(graph_x, graph_y, graph_w, graph_h);
 
+// graph border
 	draw_3d_border(0, 
 		0, 
 		get_w(), 
 		get_h(), 
 		window->get_bg_color(),
-		BLACK,
-		MDGREY, 
+		plugin->get_theme()->graph_border1_color,
+		plugin->get_theme()->graph_border2_color, 
 		window->get_bg_color());
 
 
 
 	set_line_dashes(1);
-	set_color(GREEN);
+	set_color(plugin->get_theme()->graph_grid_color);
 	
 	for(int i = 1; i < divisions; i++)
 	{
@@ -611,12 +612,12 @@ void CompressorCanvasBase::update()
 
             if(band == config->current_band)
             {
-	            set_color(WHITE);
+	            set_color(plugin->get_theme()->graph_active_color);
 	            set_line_width(2);
             }
             else
             {
-	            set_color(MEGREY);
+	            set_color(plugin->get_theme()->graph_inactive_color);
 	            set_line_width(1);
             }
 

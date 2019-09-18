@@ -50,7 +50,7 @@
 #define MIN_DEPTH 0.0
 #define MAX_DEPTH 100.0
 #define MIN_VOICES 1
-#define MAX_VOICES 256
+#define MAX_VOICES 64
 
 
 
@@ -632,7 +632,7 @@ void ChorusWindow::create_objects()
         "Phase offset (ms):",
         MIN_OFFSET, // min
         MAX_OFFSET); // max
-    offset->set_precision(2);
+    offset->set_precision(3);
     offset->initialize();
     y += height;
 
@@ -650,7 +650,7 @@ void ChorusWindow::create_objects()
         "Depth (ms):",
         MIN_DEPTH, // min
         MAX_DEPTH); // max
-    depth->set_precision(2);
+    depth->set_precision(3);
     depth->initialize();
     y += height;
 
@@ -669,6 +669,7 @@ void ChorusWindow::create_objects()
         "Rate (Hz):",
         MIN_RATE, // min
         MAX_RATE); // max
+    rate->set_precision(3);
     rate->initialize();
     y += height;
 
@@ -695,11 +696,11 @@ void ChorusWindow::create_objects()
 
 void ChorusWindow::update()
 {
-    voices->update(1, 1);
-    offset->update(1, 1);
-    depth->update(1, 1);
-    rate->update(1, 1);
-    wetness->update(1, 1);
+    voices->update(0, 0);
+    offset->update(0, 0);
+    depth->update(0, 0);
+    rate->update(0, 0);
+    wetness->update(0, 0);
 }
 
 void ChorusWindow::param_updated()

@@ -217,7 +217,8 @@ int ARender::process_buffer(Samples **buffer_out,
 		reconfigure = vconsole->test_reconfigure(input_position, 
 			fragment_len);
 
-//printf("ARender::process_buffer 1 %lld %d\n", input_position, reconfigure);
+// printf("ARender::process_buffer %d input_position=%ld fragment_len=%ld reconfigure=%d\n", 
+// __LINE__, input_position, fragment_len, reconfigure);
 
 		if(reconfigure) restart_playback();
 
