@@ -479,7 +479,7 @@ int AutoZoomPopup::handle_event()
 
 
 FromTextBox::FromTextBox(MWindow *mwindow, ZoomBar *zoombar, int x, int y)
- : BC_TextBox(x, y, DP(90), 1, "")
+ : BC_TextBox(x, y, DP(120), 1, "")
 {
 	this->mwindow = mwindow;
 	this->zoombar = zoombar;
@@ -514,7 +514,7 @@ int FromTextBox::update_position(double new_position)
 
 
 LengthTextBox::LengthTextBox(MWindow *mwindow, ZoomBar *zoombar, int x, int y)
- : BC_TextBox(x, y, DP(90), 1, "")
+ : BC_TextBox(x, y, DP(120), 1, "")
 {
 	this->mwindow = mwindow;
 	this->zoombar = zoombar;
@@ -547,7 +547,7 @@ int LengthTextBox::update_position(double new_position)
 
 
 ToTextBox::ToTextBox(MWindow *mwindow, ZoomBar *zoombar, int x, int y)
- : BC_TextBox(x, y, DP(90), 1, "")
+ : BC_TextBox(x, y, DP(120), 1, "")
 {
 	this->mwindow = mwindow;
 	this->zoombar = zoombar;

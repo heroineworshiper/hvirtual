@@ -90,6 +90,33 @@ int BandConfig::equiv(BandConfig *src)
     return 1;
 }
 
+void BandConfig::boundaries(CompressorConfigBase *base)
+{
+	for(int i = 0; 
+		i < levels.size(); 
+		i++)
+	{
+		compressor_point_t *level = &levels.values[i];
+		if(level->x < base->min_db)
+		{
+        	level->x = base->min_db;
+        }
+		if(level->y < base->min_db)
+		{
+        	level->y = base->min_db;
+        }
+		if(level->x > base->max_db)
+		{
+        	level->x = base->max_db;
+        }
+		if(level->y > base->max_db)
+		{
+        	level->y = base->max_db;
+        }
+	}
+}
+
+
 
 
 
@@ -120,6 +147,15 @@ CompressorConfigBase::~CompressorConfigBase()
 {
     delete [] bands;
 }
+
+void CompressorConfigBase::boundaries()
+{
+    for(int band = 0; band < total_bands; band++)
+    {
+        bands[band].boundaries(this);
+    }
+}
+
 
 void CompressorConfigBase::copy_from(CompressorConfigBase &that)
 {

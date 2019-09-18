@@ -255,6 +255,8 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
             }
 		}
 	}
+    
+    config.boundaries();
 }
 
 void CompressorEffect::save_data(KeyFrame *keyframe)

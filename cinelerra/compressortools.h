@@ -38,6 +38,8 @@
 #define MAX_TRIGGER 255
 
 
+class CompressorConfigBase;
+
 
 
 // get sample from trigger buffer
@@ -92,6 +94,7 @@ public:
 
     void copy_from(BandConfig *src);
     int equiv(BandConfig *src);
+    void boundaries(CompressorConfigBase *base);
 
 	ArrayList<compressor_point_t> levels;
     int solo;
@@ -113,7 +116,7 @@ public:
 
     virtual void copy_from(CompressorConfigBase &that);
     virtual int equivalent(CompressorConfigBase &that);
-
+    void boundaries();
     
     void remove_point(int band, int number);
     int set_point(int band, double x, double y);
