@@ -472,8 +472,16 @@ void Canvas::get_transfers(EDL *edl,
 
 void Canvas::draw_refresh(int flush)
 {
+//printf("Canvas::draw_refresh %d refresh_frame=%p\n", __LINE__, refresh_frame);
     float in_x1, in_y1, in_x2, in_y2;
     float out_x1, out_y1, out_x2, out_y2;
+    
+    if(!refresh_frame)
+    {
+        return;
+    }
+    
+    
     get_transfers(mwindow->edl, 
 	    in_x1, 
 	    in_y1, 
