@@ -33,7 +33,7 @@
 #define FACTORY_FILE "Cinelerra_factory"
 #define PICTURE_FILE "Cinelerra_picture"
 #define PLUGIN_FILE "Cinelerra_plugins"
-#define PLUGIN_FILE_VERSION 0
+#define PLUGIN_FILE_VERSION 1
 
 // Behavior of region selections
 #define SELECTION_SAMPLES 0
