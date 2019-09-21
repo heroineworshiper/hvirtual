@@ -126,6 +126,10 @@ void AAttachmentPoint::render(Samples *output,
 				output_temp[i] = buffer_vector[i];
 		}
 
+// process in fragments bounded by keyframes. 
+// Plugins assume the offset is random
+        
+
 // Process plugin
 		plugin_servers.values[0]->process_buffer(output_temp,
 			start_position,
@@ -145,12 +149,23 @@ void AAttachmentPoint::render(Samples *output,
 		Samples *output_temp[1];
 		output_temp[0] = output;
 
-if(0) printf("AAttachmentPoint::render %d buffer_number=%d renderengine=%p plugin_server=%p\n", 
-__LINE__, 
-buffer_number,
-renderengine,
-plugin_servers.values[buffer_number]);
-		plugin_servers.values[buffer_number]->process_buffer(output_temp,
+// printf("AAttachmentPoint::render %d buffer_number=%d renderengine=%p plugin_server=%p\n", 
+// __LINE__, 
+// buffer_number,
+// renderengine,
+// plugin_servers.values[buffer_number]);
+
+// process in fragments bounded by keyframes. 
+// Plugins assume the offset is random
+        PluginServer *plugin_server = plugin_servers.get(buffer_number);
+        for(int64_t offset = 0, fragment = 0; offset < len; offset += fragment)
+        {
+            fragment = len - offset;
+            plugin_server->get_prev_keyframe(position, client->direction);
+            plugin_server->get_next_keyframe(position, client->direction);
+        }
+
+		plugin_server->process_buffer(output_temp,
 			start_position,
 			len,
 			sample_rate,
@@ -160,5 +175,6 @@ plugin_servers.values[buffer_number]);
 			renderengine->command->get_direction());
 	}
 }
+
 
 

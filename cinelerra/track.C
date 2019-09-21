@@ -1020,8 +1020,10 @@ int Track::paste_automation(double selectionstart,
 		if(!result)
 		{
 			if(file->tag.title_is("/TRACK"))
-				result = 1;
-			else
+			{
+            	result = 1;
+			}
+            else
 			if(automation->paste(start, 
 					length, 
 					scale,

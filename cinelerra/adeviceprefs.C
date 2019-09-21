@@ -594,7 +594,10 @@ void ADriverMenu::create_objects()
 	add_item(new ADriverItem(this, AUDIO_ALSA_TITLE, AUDIO_ALSA));
 #endif
 
-	if(!do_input) add_item(new ADriverItem(this, AUDIO_ESOUND_TITLE, AUDIO_ESOUND));
+	/* if(!do_input) */
+    {
+        add_item(new ADriverItem(this, AUDIO_ESOUND_TITLE, AUDIO_ESOUND));
+    }
 //	add_item(new ADriverItem(this, AUDIO_NAS_TITLE, AUDIO_NAS));
 	if(!do_input) add_item(new ADriverItem(this, AUDIO_1394_TITLE, AUDIO_1394));
 	add_item(new ADriverItem(this, AUDIO_DV1394_TITLE, AUDIO_DV1394));

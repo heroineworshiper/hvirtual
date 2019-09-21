@@ -731,7 +731,7 @@ int ExpandPatch::button_release_event()
 TitlePatch::TitlePatch(MWindow *mwindow, PatchGUI *patch, int x, int y)
  : BC_TextBox(x, 
  		y, 
-		patch->patchbay->get_w() - 10, 
+		patch->patchbay->get_w() - x - mwindow->theme->widget_border, 
 		1,
 		patch->track->title,
         1)

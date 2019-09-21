@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,15 +100,21 @@ int AudioESound::open_input()
 
 	format |= get_channels_flag(device->in_channels);
 	format |= get_bit_flag(device->in_bits);
+//printf("AudioESound::open_input %d %s\n", __LINE__, device->in_config->esound_in_server);
 
-	if((esd_in = esd_open_sound(translate_device_string(device->in_config->esound_in_server, device->in_config->esound_in_port))) <= 0)
+	if((esd_in = esd_open_sound(translate_device_string(
+        device->in_config->esound_in_server, 
+        device->in_config->esound_in_port))) <= 0)
 	{
 		fprintf(stderr, "AudioESound::open_input: open failed\n");
 		return 1;
 	}
-	esd_in_fd = esd_record_stream_fallback(format, device->in_samplerate, 
-			    	translate_device_string(device->out_config->esound_out_server, device->out_config->esound_out_port), 
-						"Cinelerra");
+	esd_in_fd = esd_record_stream_fallback(format, 
+        device->in_samplerate, 
+		translate_device_string(device->in_config->esound_in_server, 
+            device->in_config->esound_in_port), 
+			"Cinelerra");
+
 	return 0;
 }
 
