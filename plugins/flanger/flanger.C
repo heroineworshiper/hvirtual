@@ -180,7 +180,9 @@ int Flanger::process_buffer(int64_t size,
     int starting_offset = (int)(config.offset * sample_rate / 1000);
     int depth_offset = (int)(config.depth * sample_rate / 1000);
     reallocate_dsp(size);
-    reallocate_history(starting_offset + depth_offset + 1);
+//    reallocate_history(starting_offset + depth_offset + 1);
+// always use the maximum history, in case of keyframes
+    reallocate_history((MAX_OFFSET + MAX_DEPTH) * sample_rate / 1000 + 1);
 
 // read the input
 	read_samples(buffer,
@@ -479,7 +481,7 @@ void FlangerWindow::create_objects()
 {
 	int margin = client->get_theme()->widget_border;
     int x1 = margin;
-	int x2 = DP(230), y = margin;
+	int x2 = DP(200), y = margin;
     int x3 = x2 + BC_Pot::calculate_w() + margin;
     int x4 = x3 + BC_Pot::calculate_w() + margin;
     int text_w = get_w() - margin - x4;

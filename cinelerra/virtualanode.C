@@ -197,6 +197,9 @@ if(debug) printf("VirtualANode::render %d this=%p\n", __LINE__, this);
 	return 0;
 }
 
+// If we're the first plugin in the parent module, data needs to be read from 
+// what comes before the parent module.  Otherwise, data needs to come from the
+// previous plugin.
 void VirtualANode::render_as_plugin(Samples *output_temp,
 	int64_t size,
 	int64_t start_position, 
@@ -206,9 +209,7 @@ void VirtualANode::render_as_plugin(Samples *output_temp,
 		!real_plugin ||
 		!real_plugin->on) return;
 
-// If we're the first plugin in the parent module, data needs to be read from 
-// what comes before the parent module.  Otherwise, data needs to come from the
-// previous plugin.
+
 	((AAttachmentPoint*)attachment)->render(
 		output_temp, 
 		plugin_buffer_number,

@@ -182,30 +182,30 @@ int AttachmentPoint::attach_virtual_plugin(VirtualNode *virtual_plugin)
 	return buffer_number;
 }
 
-int AttachmentPoint::multichannel_shared(int search_new)
-{
-	if(!this) printf("AttachmentPoint::multichannel_shared NULL\n");
-	if(search_new)
-	{
-		if(new_virtual_plugins.total && 
-			plugin_server && 
-			plugin_server->multichannel) return 1;
-	}
-	else
-	{
-		if(virtual_plugins.total && 
-			plugin_server && 
-			plugin_server->multichannel) return 1;
-	}
-	return 0;
-}
-
-int AttachmentPoint::singlechannel()
-{
-	if(!this) printf("AttachmentPoint::singlechannel NULL\n");
-	if(plugin_server && !plugin_server->multichannel) return 1;
-	return 0;
-}
+// int AttachmentPoint::multichannel_shared(int search_new)
+// {
+// 	if(!this) printf("AttachmentPoint::multichannel_shared NULL\n");
+// 	if(search_new)
+// 	{
+// 		if(new_virtual_plugins.total && 
+// 			plugin_server && 
+// 			plugin_server->multichannel) return 1;
+// 	}
+// 	else
+// 	{
+// 		if(virtual_plugins.total && 
+// 			plugin_server && 
+// 			plugin_server->multichannel) return 1;
+// 	}
+// 	return 0;
+// }
+// 
+// int AttachmentPoint::singlechannel()
+// {
+// 	if(!this) printf("AttachmentPoint::singlechannel NULL\n");
+// 	if(plugin_server && !plugin_server->multichannel) return 1;
+// 	return 0;
+// }
 
 
 void AttachmentPoint::render_gui(void *data, PluginServer *server)

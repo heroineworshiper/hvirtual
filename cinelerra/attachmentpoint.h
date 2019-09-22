@@ -120,8 +120,8 @@ public:
 
 
 
-	int multichannel_shared(int search_new);
-	int singlechannel();
+//	int multichannel_shared(int search_new);
+//	int singlechannel();
 
 
 

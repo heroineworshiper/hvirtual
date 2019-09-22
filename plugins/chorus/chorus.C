@@ -113,10 +113,12 @@ int Chorus::process_buffer(int64_t size,
 	int sample_rate)
 {
     need_reconfigure |= load_configuration();
-// printf("Chorus::process_buffer %d start_position=%ld size=%ld\n",
+// printf("Chorus::process_buffer %d start_position=%ld size=%ld need_reconfigure=%d buffer_offset=%d\n",
 // __LINE__,
 // start_position, 
-// size);
+// size,
+// need_reconfigure,
+// buffer[0]->get_offset());
 
 
     if(!dsp_in)
@@ -202,8 +204,8 @@ int Chorus::process_buffer(int64_t size,
             {
                 history_buffer[i] = 0;
             }
+            history_size = 0;
         }
-        history_size = 0;
 
 // compute the phase position from the keyframe position & the phase offset
 		int64_t prev_position = edl_to_local(
@@ -249,7 +251,9 @@ int Chorus::process_buffer(int64_t size,
     int starting_offset = (int)(config.offset * sample_rate / 1000);
     int depth_offset = (int)(config.depth * sample_rate / 1000);
     reallocate_dsp(size);
-    reallocate_history(starting_offset + depth_offset + 1);
+//    reallocate_history(starting_offset + depth_offset + 1);
+// always use the maximum history, in case of keyframes
+    reallocate_history((MAX_OFFSET + MAX_DEPTH) * sample_rate / 1000 + 1);
 
 // read the input
 	for(int i = 0; i < PluginClient::total_in_buffers; i++)
@@ -357,7 +361,7 @@ int Chorus::process_buffer(int64_t size,
                 history_size * sizeof(double));
         }
     }
-
+//printf("Chorus::process_buffer %d history_size=%ld\n", __LINE__, history_size);
 
 // copy the DSP buffer to the output
     for(int i = 0; i < PluginClient::total_in_buffers; i++)
@@ -596,7 +600,7 @@ void ChorusWindow::create_objects()
 {
 	int margin = plugin->get_theme()->widget_border;
     int x1 = margin;
-	int x2 = DP(230), y = margin;
+	int x2 = DP(200), y = margin;
     int x3 = x2 + BC_Pot::calculate_w() + margin;
     int x4 = x3 + BC_Pot::calculate_w() + margin;
     int text_w = get_w() - margin - x4;
