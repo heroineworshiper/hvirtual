@@ -128,9 +128,13 @@ void AAttachmentPoint::render(Samples *output,
 		for(int i = 0; i < virtual_plugins.size(); i++)
 		{
 			if(i == buffer_number)
-				output_temp[i] = output;
-			else
-				output_temp[i] = buffer_vector[i];
+			{
+            	output_temp[i] = output;
+			}
+            else
+			{
+            	output_temp[i] = buffer_vector[i];
+            }
             output_offsets[i] = output_temp[i]->get_offset();
 		}
     }
@@ -166,7 +170,6 @@ void AAttachmentPoint::render(Samples *output,
                 sample_rate);
     }
 
-//printf("AAttachmentPoint::render %d %p\n", __LINE__, keyframe);
 // keyframe position in local samplerate
     int64_t keyframe_position = keyframe->position *
         sample_rate /
@@ -176,16 +179,20 @@ void AAttachmentPoint::render(Samples *output,
     {
         fragment = len - offset;
         int limit_fragment = 1;
+//printf("AAttachmentPoint::render %d this=%p keyframe=%p\n", __LINE__, this, keyframe);
 
 // get the next keyframe
-        if(direction == PLAY_FORWARD)
+        if(keyframe)
         {
-            keyframe = (KeyFrame*)keyframe->next;
-        }
-        else
-// backward
-        {
-            keyframe = (KeyFrame*)keyframe->previous;
+            if(direction == PLAY_FORWARD)
+            {
+                keyframe = (KeyFrame*)keyframe->next;
+            }
+            else
+    // backward
+            {
+                keyframe = (KeyFrame*)keyframe->previous;
+            }
         }
 
 // previous keyframe is before the current position
@@ -230,41 +237,23 @@ void AAttachmentPoint::render(Samples *output,
         }
 
 // process the fragment
-	    if(plugin_server->multichannel)
-	    {
-// printf("AAttachmentPoint::render %d start_position=%ld offset=%ld fragment=%ld\n", 
+// printf("AAttachmentPoint::render %d this=%p title=%s keyframe=%p fragment=%ld offset=%d allocated=%d\n", 
 // __LINE__, 
-// start_position,
-// offset,
-// fragment);
-		    edl_plugin_server->process_buffer(output_temp,
-			    start_position + offset * sign,
-			    fragment,
-			    sample_rate,
-			    plugin->length *
-				    sample_rate /
-				    project_sample_rate,
-			    direction);
-	    }
-	    else
-	    {
-    // printf("AAttachmentPoint::render %d buffer_number=%d renderengine=%p plugin_server=%p\n", 
-    // __LINE__, 
-    // buffer_number,
-    // renderengine,
-    // plugin_servers.values[buffer_number]);
+// this,
+// edl_plugin_server->title,
+// keyframe,
+// fragment,
+// output_temp[0]->get_offset(),
+// output_temp[0]->get_allocated());
+		edl_plugin_server->process_buffer(output_temp,
+			start_position + offset * sign,
+			fragment,
+			sample_rate,
+			plugin->length *
+				sample_rate /
+				project_sample_rate,
+			direction);
 
-
-		    edl_plugin_server->process_buffer(output_temp,
-			    start_position + offset * sign,
-			    fragment,
-			    sample_rate,
-			    plugin->length *
-				    sample_rate /
-				    project_sample_rate,
-			    direction);
-
-        }
 	}
 
 // reset the buffer offsets
