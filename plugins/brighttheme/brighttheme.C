@@ -407,7 +407,7 @@ void BrightTheme::initialize()
 
 // MWindow
 	message_normal = resources->text_default;
-	audio_color = 0x00ff00;
+	audio_color = 0x000000;
     zero_crossing_color = BLACK;
     graph_active_color = BLACK;
     graph_inactive_color = MEGREY;

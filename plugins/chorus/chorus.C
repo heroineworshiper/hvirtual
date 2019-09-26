@@ -162,40 +162,63 @@ int Chorus::process_buffer(int64_t size,
         flanging_table = new flange_sample_t[table_size];
         double depth_samples = config.depth * 
             sample_rate / 1000;
-// read behind so the flange can work in realtime
-        double ratio = 0;
-
-        ratio = (double)depth_samples /
-            (table_size / 2);
+        double half_depth = depth_samples / 2;
+        int half_table = table_size / 2;
+        int quarter_table = table_size / 4;
+// slow down over time to read from history buffer
+//        double ratio = (double)depth_samples /
+//            half;
+         double coef = (double)half_depth /
+             pow(quarter_table, 2);
 
 // printf("Chorus::process_buffer %d %f %f\n", 
 // __LINE__, 
 // depth_samples,
 // sample_rate / 2 - depth_samples);
-        for(int i = 0; i <= table_size / 2; i++)
+        for(int i = 0; i <= quarter_table; i++)
         {
-            double input_sample = -i * ratio;
+//            double input_sample = -i * ratio;
+            double input_sample = -(coef * pow(i, 2));
 // printf("Chorus::process_buffer %d i=%d input_sample=%f\n", 
 // __LINE__, 
 // i, 
 // input_sample);
             flanging_table[i].input_sample = input_sample;
-//            flanging_table[i].input_period = ratio;
         }
 
-
-// mirror the 1st half
-        for(int i = table_size / 2 + 1; i < table_size; i++)
+        for(int i = 0; i <= quarter_table; i++)
         {
-            double input_sample = -ratio * (table_size - i);
-            flanging_table[i].input_sample = input_sample;
-//            flanging_table[i].input_period = ratio;
+            double input_sample = -depth_samples + 
+                (coef * pow(quarter_table - i, 2));
+// printf("Chorus::process_buffer %d i=%d input_sample=%f\n", 
+// __LINE__, 
+// quarter_table + i, 
+// input_sample);
+            flanging_table[quarter_table + i].input_sample = input_sample;
+        }
+
+// rounding error may drop quarter_table * 2
+        flanging_table[half_table].input_sample = -depth_samples;
+
+        for(int i = 1; i < half_table; i++)
+        {
+            flanging_table[half_table + i].input_sample = 
+                flanging_table[half_table - i].input_sample;
 // printf("Chorus::process_buffer %d i=%d input_sample=%f\n", 
 // __LINE__, 
 // i, 
 // input_sample);
         }
 
+
+// dump the table
+// for(int i = 0; i < table_size; i++)
+// {
+// printf("Chorus::process_buffer %d i=%d input_sample=%f\n", 
+// __LINE__, 
+// i, 
+// flanging_table[i].input_sample);
+// }
 
         if(!history_buffer)
         {
@@ -292,18 +315,18 @@ int Chorus::process_buffer(int64_t size,
         double *output = dsp_in[voice->dst_channel];
         double *input = buffer[voice->src_channel]->get_data();
         double *history = history_buffer[voice->src_channel];
-// 
+
 // printf("Chorus::process_buffer %d table_offset=%d table=%f\n", 
 // __LINE__, 
 // voice->table_offset, 
 // flanging_table[table_size / 2].input_sample);
 
+//static int debug = 1;
         int table_offset = voice->table_offset;
         for(int j = 0; j < size; j++)
         {
             flange_sample_t *table = &flanging_table[table_offset];
             double input_sample = j - starting_offset + table->input_sample;
-//            double input_period = table->input_period;
 
 // values to interpolate
             double sample1;
@@ -330,13 +353,17 @@ int Chorus::process_buffer(int64_t size,
                 sample2 = input[input_sample2];
             }
             output[j] += sample1 * fraction1 + sample2 * fraction2;
-            
+// if(start_position + j > 49600 && start_position + j < 49700)
+// printf("%ld %d input_sample=%f sample1=%f sample2=%f output=%f\n", 
+// start_position + j, table_offset, input_sample, sample1, sample2, output[j]);
+
             if(config.rate >= MIN_RATE2)
             {
                 table_offset++;
                 table_offset %= table_size;
             }
         }
+//debug = 0;
         voice->table_offset = table_offset;
     }
 
