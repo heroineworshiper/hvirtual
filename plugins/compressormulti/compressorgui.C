@@ -252,6 +252,12 @@ void CompressorWindow::update()
     if(ptr)
     {
         freq1->update(*ptr);
+        freq1->enable();
+    }
+    else
+    {
+        freq1->update(0);
+        freq1->disable();
     }
 
 // top band edits the penultimate band
@@ -268,6 +274,12 @@ void CompressorWindow::update()
     if(ptr)
     {
         freq2->update(*ptr);
+        freq2->enable();
+    }
+    else
+    {
+        freq2->update(0);
+        freq2->disable();
     }
 
     q->update(plugin->config.q);

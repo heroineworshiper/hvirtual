@@ -126,7 +126,17 @@ int BC_Pot::draw(int flush)
 	set_color(get_resources()->pot_needle_color);
 
 	angle_to_coords(x1, y1, x2, y2, percentage_to_angle(get_percentage()));
-	draw_line(x1, y1, x2, y2);
+	if(!enabled)
+    {
+        set_line_dashes(1);
+    }
+    set_line_width(2);
+    draw_line(x1, y1, x2, y2);
+    set_line_width(1);
+    if(!enabled)
+    {
+        set_line_dashes(0);
+    }
 
 	flash(flush);
 	return 0;
@@ -158,7 +168,7 @@ int BC_Pot::angle_to_coords(int &x1, int &y1, int &x2, int &y2, float angle)
 
 	while(angle < 0) angle += 360;
 
-	int r = x1;
+	int r = x1 - 2;
 	x2 = (int)(cos(angle / 360 * (2 * M_PI)) * r + x1);
 	y2 = (int)(-sin(angle / 360 * (2 * M_PI)) * r + y1);
 	return 0;

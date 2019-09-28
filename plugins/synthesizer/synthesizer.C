@@ -1562,13 +1562,10 @@ SynthFreqPot::~SynthFreqPot()
 }
 int SynthFreqPot::handle_event()
 {
-	if(get_value() > 0 && get_value() < 30000)
-	{
-		synth->config.base_freq[0] = get_value();
-		freq_text->update(get_value());
-		synth->send_configure_change();
-		window->update_note_selection();
-	}
+	synth->config.base_freq[0] = get_value();
+	freq_text->update(get_value());
+	synth->send_configure_change();
+	window->update_note_selection();
 	return 1;
 }
 
