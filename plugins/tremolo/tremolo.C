@@ -181,11 +181,16 @@ int Tremolo::process_buffer(int64_t size,
 			prev_position = get_source_start();
 		}
 
-        int64_t starting_offset = (int64_t)(config.offset * sample_rate / 100);
+        int64_t starting_offset = (int64_t)(config.offset * table_size / 100);
         table_offset = (int64_t)(start_position - 
             prev_position +
             starting_offset) %
             table_size;
+// printf("Tremolo::process_buffer %d table_offet=%d table_size=%d\n",
+// __LINE__,
+// table_offset,
+// table_size);
+
 // printf("Tremolo::process_buffer %d i=%d src=%d dst=%d input_sample=%f\n",
 // __LINE__,
 // i,
@@ -392,7 +397,7 @@ void TremoloWindow::create_objects()
         0,  // output_i
         &plugin->config.offset, // output_f
         0, // output_q
-        "Wave offset (%):",
+        "Phase offset (%):",
         MIN_OFFSET, // min
         MAX_OFFSET); // max
     offset->set_precision(3);
