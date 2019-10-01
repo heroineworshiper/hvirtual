@@ -111,6 +111,7 @@ DIRS = \
 	timestretchrt \
 	titler \
 	translate \
+        tremolo \
 	unsharp \
 	videoscope \
 	vocoder \

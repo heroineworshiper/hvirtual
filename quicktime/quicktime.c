@@ -722,7 +722,9 @@ int quicktime_frame_rate_d(quicktime_t *file, int track)
 
 char* quicktime_video_compressor(quicktime_t *file, int track)
 {
-	return file->vtracks[track].track->mdia.minf.stbl.stsd.table[0].format;
+	if(file->total_vtracks > track)
+    	return file->vtracks[track].track->mdia.minf.stbl.stsd.table[0].format;
+    return "";
 }
 
 int quicktime_write_audio(quicktime_t *file, 

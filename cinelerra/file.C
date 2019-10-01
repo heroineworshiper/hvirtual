@@ -465,7 +465,7 @@ int File::open_file(Preferences *preferences,
 	this->wr = wr;
 	file = 0;
 
-	if(debug) printf("File::open_file %d\n", __LINE__);
+	if(debug) printf("File::open_file %d path=%s\n", __LINE__, asset->path);
 
 #ifdef USE_FILEFORK
 	if(!is_fork)
@@ -605,7 +605,7 @@ int File::open_file(Preferences *preferences,
 #endif // USE_FILEFORK
 
 
-//printf("File::open_file %d format=%d\n", __LINE__, this->asset->format);
+    if(debug) printf("File::open_file %d format=%d\n", __LINE__, this->asset->format);
 
 	switch(this->asset->format)
 	{
@@ -857,7 +857,7 @@ int File::open_file(Preferences *preferences,
 			return FILE_NOT_FOUND;
 			break;
 	}
-//printf("File::open_file %d\n", __LINE__);
+    if(debug) printf("File::open_file %d\n", __LINE__);
 
 
 // Reopen file with correct parser and get header.
@@ -867,7 +867,7 @@ int File::open_file(Preferences *preferences,
 		file = 0;
 	}
 
-//printf("File::open_file %d\n", __LINE__);
+    if(debug) printf("File::open_file %d\n", __LINE__);
 
 
 // Set extra writing parameters to mandatory settings.
@@ -875,6 +875,7 @@ int File::open_file(Preferences *preferences,
 	{
 		if(this->asset->dither) file->set_dither();
 	}
+    if(debug) printf("File::open_file %d\n", __LINE__);
 
 
 
@@ -882,10 +883,9 @@ int File::open_file(Preferences *preferences,
 	if(file)
 	{
 		asset->copy_from(this->asset, 1);
-//asset->dump();
 	}
 
-//printf("File::open_file %d file=%p\n", __LINE__, file);
+    if(debug) printf("File::open_file %d file=%p\n", __LINE__, file);
 // sleep(1);
 
 	if(file)

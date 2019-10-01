@@ -407,6 +407,7 @@ void FileMOV::format_to_asset()
 		if(EQUIV(asset->frame_rate, 0))
 			asset->frame_rate = quicktime_frame_rate(fd, 0);
 
+        //printf("FileMOV::format_to_asset %d %s\n", __LINE__, quicktime_video_compressor(fd, 0));
 		strncpy(asset->vcodec, quicktime_video_compressor(fd, 0), 4);
 	}
 }
