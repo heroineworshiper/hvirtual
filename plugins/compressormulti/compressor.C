@@ -236,6 +236,7 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 				    sprintf(string,"RELEASE_LEN%d", i);
                     config.bands[i].release_len = input.tag.get_property(string, config.bands[i].release_len);
                 }
+
 			}
 			else
             {
@@ -270,7 +271,7 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	output.tag.set_property("INPUT", config.input);
 	output.tag.set_property("Q", config.q);
 	output.tag.set_property("WINDOW_SIZE", config.window_size);
-    
+
     char string[BCTEXTLEN];
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
@@ -287,7 +288,6 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	    sprintf(string, "RELEASE_LEN%d", band);
         output.tag.set_property(string, band_config->release_len);
 	}
-
     output.append_tag();
 	output.append_newline();
 

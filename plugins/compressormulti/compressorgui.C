@@ -307,20 +307,22 @@ void CompressorWindow::update()
     	trigger->enable();
     }
 
-   if(!EQUIV(atof(decay->get_text()), band_config->release_len))
+    if(!EQUIV(atof(reaction->get_text()), band_config->attack_len))
+	{
+    	reaction->update((float)band_config->attack_len);
+	}
+
+    if(!EQUIV(atof(decay->get_text()), band_config->release_len))
 	{
     	decay->update((float)band_config->release_len);
 	}
-    
+
     smooth->update(plugin->config.smoothing_only);
 	if(canvas->current_operation == CompressorCanvas::DRAG)
 	{
 		x_text->update((float)band_config->levels.values[canvas->current_point].x);
 		y_text->update((float)band_config->levels.values[canvas->current_point].y);
 	}
-    
-    
-    
 
 	canvas->update();
     update_eqcanvas();
