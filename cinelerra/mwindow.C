@@ -2340,6 +2340,7 @@ void MWindow::update_plugin_guis(int do_keyframe_guis)
 		PluginServer *ptr = plugin_guis->get(i);
 		if(edl->tracks->plugin_exists(ptr->plugin))
 		{
+//printf("MWindow::update_plugin_guis %d\n", __LINE__);
 			ptr->update_gui();
 		}
 		else
@@ -2373,13 +2374,13 @@ void MWindow::update_plugin_guis(int do_keyframe_guis)
 						break;
 					}
 				}
-				
+
 				if(!got_it) plugin->show = 0;
 
 				plugin = (Plugin*)plugin->next;
 			}
 		}
-		
+
 		track = track->next;
 	}
 

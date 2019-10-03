@@ -250,7 +250,8 @@ int Reverb::process_buffer(int64_t size,
 		    get_direction());
     }
 
-
+// printf("Reverb::process_buffer %d\n", 
+// __LINE__);
 // send the spectrograms to the plugin.  This consumes the pointers
 	for(int i = 0; i < spectrogram_frames.size(); i++)
     {
@@ -514,17 +515,15 @@ void Reverb::update_gui()
             ((ReverbWindow*)thread->window)->update();
 			thread->window->unlock_window();
 		}
-        else
-        {
-			int total_frames = get_gui_update_frames();
+
+		int total_frames = get_gui_update_frames();
 //printf("ParametricEQ::update_gui %d %d\n", __LINE__, total_frames);
-			if(total_frames)
-			{
-				thread->window->lock_window("ParametricEQ::update_gui 2");
-				((ReverbWindow*)thread->window)->update_canvas();
-				thread->window->unlock_window();
-			}
-        }
+		if(total_frames)
+		{
+			thread->window->lock_window("ParametricEQ::update_gui 2");
+			((ReverbWindow*)thread->window)->update_canvas();
+			thread->window->unlock_window();
+		}
 	}
 }
 
@@ -561,6 +560,10 @@ int ReverbFFT::signal_process()
     {
         frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
     }
+
+    frame->edl_position = plugin->get_top_position() + 
+        plugin->local_to_edl(plugin->new_spectrogram_frames *
+            window_size);
 
     for(int i = 0; i < window_size / 2; i++)
     {

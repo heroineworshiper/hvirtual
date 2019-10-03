@@ -854,6 +854,7 @@ int Spectrogram::process_buffer(int64_t size,
 // Linear output level
 	header->level = DB::fromdb(config.level);
 
+//printf("Spectrogram::process_buffer %d data=%p\n", __LINE__, data);
 	send_render_gui(data, 
 		sizeof(data_header_t) + 
 			sizeof(float) * total_windows * (HALF_WINDOW + 1));
@@ -884,7 +885,10 @@ void Spectrogram::update_gui()
 		if(result) window->update_gui();
 		
 		
-//printf("Spectrogram::update_gui %d\n", __LINE__);
+printf("Spectrogram::update_gui %d this=%p source_position=%ld\n", 
+__LINE__, 
+this,
+get_source_position());
 // Shift in accumulated canvas columns
 		if(frame_buffer.size())
 		{
@@ -1092,6 +1096,8 @@ void Spectrogram::render_gui(void *data, int size)
 {
 	if(thread)
 	{
+//printf("Spectrogram::render_gui %d data=%p\n", __LINE__, data);
+
 		thread->get_window()->lock_window("Spectrogram::render_gui");
 		data_header_t *header = (data_header_t*)data;
 		memcpy(&this->header, header, sizeof(data_header_t));
@@ -1225,6 +1231,7 @@ LOAD_CONFIGURATION_MACRO(Spectrogram, SpectrogramConfig)
 
 void Spectrogram::read_data(KeyFrame *keyframe)
 {
+//printf("Spectrogram::read_data %d this=%p\n", __LINE__, this);
 	FileXML input;
 	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
 

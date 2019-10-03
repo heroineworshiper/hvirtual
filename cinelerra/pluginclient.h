@@ -298,6 +298,8 @@ public:
     
 // Draw immediately
 	int force;
+// offset in EDL for synchronizing with playback
+    int64_t edl_position;
 
 
 // some commonly used data
@@ -400,6 +402,7 @@ public:
 	int get_configure_change();                             // get propogated configuration change from a send_configure_change
 
 // Called by plugin server to update GUI with rendered data.
+// Manely for video.  Audio has to render data in update_gui
 	void plugin_render_gui(void *data);
 	void plugin_render_gui(void *data, int size);
 
@@ -472,6 +475,9 @@ public:
 // and the end of the range to process in reverse.  Relative to start of EDL in
 // the requested rate.
 	int64_t get_source_position();
+
+// Get the top level position in the EDL rate for annotating GUI data
+    int64_t get_top_position();
 
 // Get the EDL Session.  May return 0 if the server has no edl.
 	EDLSession* get_edlsession();
@@ -554,8 +560,9 @@ public:
 	void add_gui_frame(PluginClientFrame *frame);
 
 
-
+// called by server to draw video data
 	virtual void render_gui(void *data);
+// called by server to draw audio data
 	virtual void render_gui(void *data, int size);
 
 // Called by client to get the total number of frames to draw in update_gui
@@ -565,7 +572,9 @@ public:
 
 // Called by client to cause GUI to be rendered with data.
 	void send_render_gui();
+// called by user to draw video data
 	void send_render_gui(void *data);
+// called by user to draw audio data
 	void send_render_gui(void *data, int size);
 
 

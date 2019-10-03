@@ -19,6 +19,8 @@
  * 
  */
 
+#include "attachmentpoint.h"
+#include "arender.h"
 #include "bcdisplayinfo.h"
 #include "bchash.h"
 #include "bcsignals.h"
@@ -34,6 +36,7 @@
 #include "pluginclient.h"
 #include "pluginserver.h"
 #include "preferences.h"
+#include "renderengine.h"
 #include "transportque.inc"
 
 
@@ -150,6 +153,7 @@ void PluginClientFrame::reset()
     freq_max = 0;
     time_max = 0;
     nyquist = 0;
+    edl_position = -1;
 }
 
 
@@ -713,7 +717,10 @@ void PluginClient::end_process_buffer()
 
 void PluginClient::plugin_update_gui()
 {
-	
+printf("PluginClient::plugin_update_gui %d source_position=%ld\n",
+__LINE__,
+source_position);
+
 	update_gui();
 	
 // Delete unused GUI frames
@@ -745,14 +752,14 @@ int PluginClient::get_gui_update_frames()
 			    1000 / 
 			    frame->period_d);
 
-    // printf("PluginClient::get_gui_update_frames %d %ld %d %d %d\n", 
-    // __LINE__, 
-    // update_timer->get_difference(),
-    // frame->period_n * 1000 / frame->period_d,
-    // total_frames,
-    // frame_buffer.size());
+// printf("PluginClient::get_gui_update_frames %d %ld %d %d %d\n", 
+// __LINE__, 
+// update_timer->get_difference(),
+// frame->period_n * 1000 / frame->period_d,
+// total_frames,
+// frame_buffer.size());
 
-    // Add forced frames
+// Add forced frames
 		    for(int i = 0; i < frame_buffer.size(); i++)
 			    if(frame_buffer.get(i)->force) total_frames++;
 		}
@@ -788,6 +795,9 @@ PluginClientFrame* PluginClient::get_gui_frame()
 
 void PluginClient::add_gui_frame(PluginClientFrame *frame)
 {
+printf("PluginClient::add_gui_frame %d edl_position=%ld\n", 
+__LINE__,
+frame->edl_position);
 	frame_buffer.append(frame);
 }
 
@@ -817,6 +827,7 @@ void PluginClient::plugin_render_gui(void *data)
 	render_gui(data);
 }
 
+// for video
 void PluginClient::render_gui(void *data)
 {
 	if(thread)
@@ -843,6 +854,7 @@ void PluginClient::render_gui(void *data)
 	}
 }
 
+// for audio
 void PluginClient::render_gui(void *data, int size)
 {
 	printf("PluginClient::render_gui %d\n", __LINE__);
@@ -1158,7 +1170,15 @@ float PluginClient::get_blue()
 		return 0;
 }
 
+int64_t PluginClient::get_top_position()
+{
+    if(server->attachmentpoint)
+    {
+        return server->attachmentpoint->renderengine->arender->current_position;
+    }
 
+    return -1;
+}
 
 int64_t PluginClient::get_source_position()
 {
