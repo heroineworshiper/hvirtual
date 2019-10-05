@@ -30,24 +30,29 @@
 //#define MAX_FRAME_BUFFER 1024
 
 
-PluginClientFrame::PluginClientFrame(int data_size, 
-	int period_n, 
-	int period_d)
-{
-    reset();
-	this->data_size = data_size;
-	this->period_n = period_n;
-	this->period_d = period_d;
-}
+// PluginClientFrame::PluginClientFrame(int data_size, 
+// 	int period_n, 
+// 	int period_d)
+// {
+//     reset();
+// 	this->data_size = data_size;
+// 	this->period_n = period_n;
+// 	this->period_d = period_d;
+// }
 
 
+//static int allocations = 0;
 PluginClientFrame::PluginClientFrame()
 {
+//allocations++;
+//printf("PluginClientFrame::PluginClientFrame %d allocations=%d\n", __LINE__, allocations);
     reset();
 }
 
 PluginClientFrame::~PluginClientFrame()
 {
+//allocations--;
+//printf("PluginClientFrame::~PluginClientFrame %d allocations=%d\n", __LINE__, allocations);
 	if(data)
     {
         delete [] data;
@@ -259,23 +264,26 @@ void PluginAClient::send_reset_gui_frames()
     server->send_reset_gui_frames();
 }
 
-void PluginAClient::send_render_gui()
-{
-// send the frame buffer as a void data object to the GUI instance
-	server->send_render_gui(&frame_buffer);
-}
+// void PluginAClient::send_render_gui()
+// {
+// // send the frame buffer as a void data object to the GUI instance
+// 	server->send_render_gui(&frame_buffer);
+// }
 
 
 // used by audio plugins.  runs on the GUI instance
 void PluginAClient::reset_gui_frames()
 {
+    if(thread)
+    {
 // must lock this to get access to the frame_buffer
-	thread->get_window()->lock_window("PluginClient::render_gui");
+	    thread->get_window()->lock_window("PluginClient::render_gui");
 
 //printf("PluginClient::reset_gui_frames %d\n", __LINE__);
-    this->frame_buffer.remove_all_objects();
-    
-    thread->get_window()->unlock_window();
+        this->frame_buffer.remove_all_objects();
+
+        thread->get_window()->unlock_window();
+    }
 }
 
 // used by audio plugins
@@ -415,7 +423,9 @@ void PluginAClient::end_process_buffer()
 {
 	if(frame_buffer.size())
 	{
-		send_render_gui();
+// send the frame buffer as a void data object to the GUI instance
+    	server->send_render_gui(&frame_buffer);
+//		send_render_gui();
 	}
 }
 

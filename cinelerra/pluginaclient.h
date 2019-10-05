@@ -35,7 +35,7 @@ class PluginClientFrame
 public:
 	PluginClientFrame();
 // Period_d is 1 second
-	PluginClientFrame(int data_size, int period_n, int period_d);
+//	PluginClientFrame(int data_size, int period_n, int period_d);
 	virtual ~PluginClientFrame();
     
     void reset();
@@ -138,7 +138,7 @@ public:
 // User calls to send data to the GUI instance
 	void add_gui_frame(PluginClientFrame *frame);
 // Called by client to send data to the GUI instance
-	void send_render_gui();
+//	void send_render_gui();
 
 // Called by the GUI instance to get the number of GUI frames to show
 	int pending_gui_frames();

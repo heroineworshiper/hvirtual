@@ -154,6 +154,7 @@ int PluginServer::reset_parameters()
 	modules = 0;
 	nodes = 0;
 	picon = 0;
+    attachmentpoint = 0;
 	
 
 	is_lad = 0;
@@ -658,7 +659,7 @@ void PluginServer::process_buffer(Samples **buffer,
 // used by audio plugins
 void PluginServer::send_render_gui(void *data)
 {
-//printf("PluginServer::send_render_gui 1 %p\n", attachmentpoint);
+//printf("PluginServer::send_render_gui %d %p\n", __LINE__, attachmentpoint);
 	if(attachmentpoint) attachmentpoint->render_gui(data, this);
 }
 

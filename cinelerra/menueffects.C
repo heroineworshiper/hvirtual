@@ -414,14 +414,18 @@ void MenuEffectThread::run()
 // Get path
 			char path[BCTEXTLEN];
 			if(strategy == FILE_PER_LABEL || strategy == FILE_PER_LABEL_FARM) 
-				Render::create_filename(path, 
+			{
+            	Render::create_filename(path, 
 					default_asset->path, 
 					current_number,
 					total_digits,
 					number_start);
-			else
-				strcpy(path, default_asset->path);
-			current_number++;
+			}
+            else
+			{
+            	strcpy(path, default_asset->path);
+			}
+            current_number++;
 
 			MenuEffectPacket *packet = new MenuEffectPacket(path, 
 				fragment_start,

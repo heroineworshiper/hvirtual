@@ -227,6 +227,9 @@ void AttachmentPoint::reset_gui_frames(PluginServer *server)
         return;
     }
     
+//     printf("AttachmentPoint::reset_gui_frames %d renderengine=%p\n", 
+//         __LINE__, 
+//         renderengine);
     if(renderengine && renderengine->mwindow)
     {
         renderengine->mwindow->reset_plugin_gui_frames(plugin);

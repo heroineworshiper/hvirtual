@@ -225,8 +225,9 @@ int PluginArray::run_plugins()
 		delete progress;
 
 		sprintf(string, _("%s took %s"), plugin_server->title, string2);
+//printf("PluginArray::run_plugins %d %s\n", __LINE__, string);
 		mwindow->gui->lock_window();
-		mwindow->gui->show_message(string2);
+		mwindow->gui->show_message(string);
 		mwindow->gui->unlock_window();
 	}
 	else
