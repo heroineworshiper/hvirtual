@@ -44,7 +44,7 @@ public:
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
 	void update_gui();
-	void render_gui(void *data);
+	void render_gui(void *data, int size);
 	int calculate_use_opengl();
 	int handle_opengl();
 

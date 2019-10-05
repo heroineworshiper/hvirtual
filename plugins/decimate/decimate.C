@@ -140,7 +140,7 @@ public:
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
 	void update_gui();
-	void render_gui(void *data);
+	void render_gui(void *data, int size);
 
 	int64_t calculate_difference(VFrame *frame1, VFrame *frame2);
 	void fill_lookahead(double frame_rate,
@@ -637,7 +637,7 @@ void Decimate::decimate_frame()
 
 	frames[lookahead_size - 1] = temp;
 	lookahead_size--;
-	send_render_gui(&result);
+	send_render_gui(&result, 1);
 }
 
 void Decimate::fill_lookahead(double frame_rate,
@@ -812,7 +812,7 @@ void Decimate::update_gui()
 	}
 }
 
-void Decimate::render_gui(void *data)
+void Decimate::render_gui(void *data, int size)
 {
 	if(thread)
 	{

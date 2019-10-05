@@ -287,6 +287,7 @@ public:
 	ParametricFFT *fft;
 // For refreshing the canvas
 	ParametricGUIFrame *last_frame;
+    int64_t last_position;
 };
 
 

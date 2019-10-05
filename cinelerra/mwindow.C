@@ -2348,7 +2348,7 @@ void MWindow::update_plugin_guis(int do_keyframe_guis)
 // Schedule for deletion if no plugin
 			plugin_guis->remove_number(i);
 			i--;
-			
+
 			ptr->hide_gui();
 			delete_plugin(ptr);
 		}
@@ -2404,6 +2404,20 @@ int MWindow::plugin_gui_open(Plugin *plugin)
 	}
 	plugin_gui_lock->unlock();
 	return result;
+}
+
+void MWindow::reset_plugin_gui_frames(Plugin *plugin)
+{
+	plugin_gui_lock->lock("MWindow::reset_plugin_frame_buffer");
+	for(int i = 0; i < plugin_guis->total; i++)
+	{
+		if(plugin_guis->values[i]->plugin->identical_location(plugin))
+		{
+			plugin_guis->values[i]->reset_gui_frames();
+			break;
+		}
+	}
+	plugin_gui_lock->unlock();
 }
 
 void MWindow::render_plugin_gui(void *data, Plugin *plugin)

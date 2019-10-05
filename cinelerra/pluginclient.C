@@ -37,7 +37,7 @@
 #include "pluginserver.h"
 #include "preferences.h"
 #include "renderengine.h"
-#include "transportque.inc"
+#include "transportque.h"
 
 
 #include <ctype.h>
@@ -116,45 +116,6 @@ PluginClient* PluginClientThread::get_client()
 
 
 
-
-
-
-PluginClientFrame::PluginClientFrame(int data_size, 
-	int period_n, 
-	int period_d)
-{
-    reset();
-	this->data_size = data_size;
-	this->period_n = period_n;
-	this->period_d = period_d;
-}
-
-
-PluginClientFrame::PluginClientFrame()
-{
-    reset();
-}
-
-PluginClientFrame::~PluginClientFrame()
-{
-	if(data)
-    {
-        delete [] data;
-    }
-}
-
-void PluginClientFrame::reset()
-{
-	data_size = 0;
-	force = 0;
-	period_n = 0;
-	period_d = 0;
-    data = 0;
-    freq_max = 0;
-    time_max = 0;
-    nyquist = 0;
-    edl_position = -1;
-}
 
 
 
@@ -500,7 +461,7 @@ PluginClient::PluginClient(PluginServer *server)
 	reset();
 	this->server = server;
 	defaults = 0;
-	update_timer = new Timer;
+//	update_timer = new Timer;
 // Virtual functions don't work here.
 }
 
@@ -515,8 +476,7 @@ PluginClient::~PluginClient()
 
 // Virtual functions don't work here.
 	if(defaults) delete defaults;
-	frame_buffer.remove_all_objects();
-	delete update_timer;
+//	delete update_timer;
 }
 
 int PluginClient::reset()
@@ -698,34 +658,13 @@ int PluginClient::set_string()
 
 
 
-void PluginClient::begin_process_buffer()
-{
-// Delete all unused GUI frames
-	frame_buffer.remove_all_objects();
-}
-
-
-void PluginClient::end_process_buffer()
-{
-	if(frame_buffer.size())
-	{
-		send_render_gui();
-	}
-}
-
-
-
 void PluginClient::plugin_update_gui()
 {
-printf("PluginClient::plugin_update_gui %d source_position=%ld\n",
-__LINE__,
-source_position);
+// printf("PluginClient::plugin_update_gui %d source_position=%ld\n",
+// __LINE__,
+// source_position);
 
 	update_gui();
-	
-// Delete unused GUI frames
-	while(frame_buffer.size() > MAX_FRAME_BUFFER)
-		frame_buffer.remove_object_number(0);
 
 }
 
@@ -733,132 +672,13 @@ void PluginClient::update_gui()
 {
 }
 
-int PluginClient::get_gui_update_frames()
-{
-	if(frame_buffer.size())
-	{
-		PluginClientFrame *frame = frame_buffer.get(0);
-        
-        int total_frames;
-        if(frame->period_d > 0 && frame->period_n > 0)
-        {
-// get the expired frames based on time
-		    total_frames = update_timer->get_difference() * 
-			    frame->period_d / 
-			    frame->period_n / 
-			    1000;
-		    if(total_frames) update_timer->subtract(total_frames * 
-			    frame->period_n * 
-			    1000 / 
-			    frame->period_d);
 
-// printf("PluginClient::get_gui_update_frames %d %ld %d %d %d\n", 
-// __LINE__, 
-// update_timer->get_difference(),
-// frame->period_n * 1000 / frame->period_d,
-// total_frames,
-// frame_buffer.size());
-
-// Add forced frames
-		    for(int i = 0; i < frame_buffer.size(); i++)
-			    if(frame_buffer.get(i)->force) total_frames++;
-		}
-        else
-        {
-            total_frames = frame_buffer.size();
-        }
-        
-        total_frames = MIN(frame_buffer.size(), total_frames);
-        
-
-		return total_frames;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-PluginClientFrame* PluginClient::get_gui_frame()
-{
-	if(frame_buffer.size())
-	{
-		PluginClientFrame *frame = frame_buffer.get(0);
-		frame_buffer.remove_number(0);
-		return frame;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-void PluginClient::add_gui_frame(PluginClientFrame *frame)
-{
-printf("PluginClient::add_gui_frame %d edl_position=%ld\n", 
-__LINE__,
-frame->edl_position);
-	frame_buffer.append(frame);
-}
-
-void PluginClient::send_render_gui()
-{
-	server->send_render_gui(&frame_buffer);
-}
-
-void PluginClient::send_render_gui(void *data)
-{
-	server->send_render_gui(data);
-}
-
-void PluginClient::send_render_gui(void *data, int size)
-{
-	server->send_render_gui(data, size);
-}
-
-void PluginClient::plugin_render_gui(void *data, int size)
-{
-	render_gui(data, size);
-}
+// void PluginClient::send_render_gui(void *data)
+// {
+// 	server->send_render_gui(data);
+// }
 
 
-void PluginClient::plugin_render_gui(void *data)
-{
-	render_gui(data);
-}
-
-// for video
-void PluginClient::render_gui(void *data)
-{
-	if(thread)
-	{
-		thread->get_window()->lock_window("PluginClient::render_gui");
-		
-// Set all previous frames to draw immediately
-		for(int i = 0; i < frame_buffer.size(); i++)
-			frame_buffer.get(i)->force = 1;
-
-		ArrayList<PluginClientFrame*> *src = 
-			(ArrayList<PluginClientFrame*>*)data;
-
-// Shift GUI data to GUI client
-		while(src->size())
-		{
-			this->frame_buffer.append(src->get(0));
-			src->remove_number(0);
-		}
-		
-// Start the timer for the current buffer
-		update_timer->update();
-		thread->get_window()->unlock_window();
-	}
-}
-
-// for audio
-void PluginClient::render_gui(void *data, int size)
-{
-	printf("PluginClient::render_gui %d\n", __LINE__);
-}
 
 
 
@@ -1180,6 +1000,15 @@ int64_t PluginClient::get_top_position()
     return -1;
 }
 
+int PluginClient::get_top_direction()
+{
+    if(server->attachmentpoint)
+    {
+        return server->attachmentpoint->renderengine->command->get_direction();
+    }
+    return PLAY_FORWARD;
+}
+
 int64_t PluginClient::get_source_position()
 {
 	return source_position;
@@ -1199,6 +1028,9 @@ int PluginClient::get_direction()
 {
 	return direction;
 }
+
+
+
 
 
 int64_t PluginClient::local_to_edl(int64_t position)

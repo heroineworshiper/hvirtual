@@ -29,6 +29,7 @@
 #include "picon_png.h"
 #include "samples.h"
 #include "theme.h"
+#include "transportque.inc"
 #include "units.h"
 #include "vframe.h"
 
@@ -598,21 +599,27 @@ void ParametricWindow::update_canvas()
 
 
 // Draw spectrogram
-	int total_frames = plugin->get_gui_update_frames();
-	ParametricGUIFrame *frame = (ParametricGUIFrame*)plugin->get_gui_frame();
+    int done = 0;
+    ParametricGUIFrame *frame = 0;
+    while(!done)
+    {
+// pop off all obsolete frames
+	    frame = (ParametricGUIFrame*)plugin->get_gui_frame();
 
-	if(frame)
-	{
-		delete plugin->last_frame;
-		plugin->last_frame = frame;
-	}
-	else
-	{
-		frame = plugin->last_frame;
-	}
+        if(frame)
+        {
+            delete plugin->last_frame;
+            plugin->last_frame = frame;
+        }
+        else
+        {
+            frame = plugin->last_frame;
+            done = 1;
+        }
+    }
 
 // Draw most recent frame
-	if(frame && frame->freq_max > 0.001)
+	if(frame && frame->freq_max > 0.001 && frame->data)
 	{
 		canvas->set_color(MEGREY);
 		int y1 = 0;
@@ -638,24 +645,10 @@ void ParametricWindow::update_canvas()
 				y1 = y2;
 			}
 		}
-
-		total_frames--;
 	}
 
 
 
-
-
-
-// Delete remaining frames
-	while(total_frames > 0)
-	{
-		PluginClientFrame *frame = plugin->get_gui_frame();
-
-		if(frame) delete frame;
-		total_frames--;
-	}
-	
 
 
 
@@ -756,6 +749,15 @@ int ParametricFFT::signal_process()
 // Create new frame for updating GUI
 	frame = new ParametricGUIFrame(window_size, 
 		plugin->PluginAClient::project_sample_rate);
+
+    int sign = 1;
+    if(plugin->get_top_direction() == PLAY_REVERSE)
+    {
+        sign = -1;
+    }
+    frame->edl_position = plugin->get_top_position() + 
+        plugin->local_to_edl(plugin->get_gui_frames() *
+            window_size) * sign;
 	plugin->add_gui_frame(frame);
 
 	double freq_max = 0;
@@ -824,6 +826,7 @@ ParametricEQ::ParametricEQ(PluginServer *server)
 	need_reconfigure = 1;
 	envelope = 0;
 	last_frame = 0;
+    last_position = 0;
 }
 
 ParametricEQ::~ParametricEQ()
@@ -1090,13 +1093,25 @@ int ParametricEQ::process_buffer(int64_t size,
 {
 	need_reconfigure |= load_configuration();
 	if(need_reconfigure) reconfigure();
-	
+    if(last_position != start_position)
+    {
+        send_reset_gui_frames();
+    }
 
 	fft->process_buffer(start_position, 
 		size, 
 		buffer, 
 		get_direction());
 
+
+    if(get_direction() == PLAY_FORWARD)
+    {
+        last_position = start_position + size;
+    }
+    else
+    {
+        last_position = start_position - size;
+    }
 
 
 	return 0;
@@ -1130,16 +1145,13 @@ void ParametricEQ::update_gui()
 			((ParametricWindow*)thread->window)->update_gui();
 			((ParametricWindow*)thread->window)->unlock_window();
 		}
-		else
-		{
-			int total_frames = get_gui_update_frames();
+
 //printf("ParametricEQ::update_gui %d %d\n", __LINE__, total_frames);
-			if(total_frames)
-			{
-				((ParametricWindow*)thread->window)->lock_window("ParametricEQ::update_gui");
-				((ParametricWindow*)thread->window)->update_canvas();
-				((ParametricWindow*)thread->window)->unlock_window();
-			}
+		if(pending_gui_frames())
+		{
+			((ParametricWindow*)thread->window)->lock_window("ParametricEQ::update_gui");
+			((ParametricWindow*)thread->window)->update_canvas();
+			((ParametricWindow*)thread->window)->unlock_window();
 		}
 	}
 }

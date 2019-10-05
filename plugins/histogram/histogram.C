@@ -107,7 +107,7 @@ NEW_WINDOW_MACRO(HistogramMain, HistogramWindow)
 
 LOAD_CONFIGURATION_MACRO(HistogramMain, HistogramConfig)
 
-void HistogramMain::render_gui(void *data)
+void HistogramMain::render_gui(void *data, int size)
 {
 	if(thread)
 	{
@@ -464,7 +464,7 @@ int HistogramMain::process_buffer(VFrame *frame,
 	this->input = frame;
 	this->output = frame;
 // Always plot to set the curves if automatic
-	if(config.plot || config.automatic) send_render_gui(frame);
+	if(config.plot || config.automatic) send_render_gui(frame, 1);
 
 // Generate tables here.  The same table is used by many packages to render
 // each horizontal stripe.  Need to cover the entire output range in  each

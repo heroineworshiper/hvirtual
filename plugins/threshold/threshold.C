@@ -145,7 +145,7 @@ int ThresholdMain::process_buffer(VFrame *frame,
 
 	if(use_opengl) return run_opengl();
 
-	send_render_gui(frame);
+	send_render_gui(frame, 1);
 
 	if(!threshold_engine)
 		threshold_engine = new ThresholdEngine(this);
@@ -200,7 +200,7 @@ void ThresholdMain::update_gui()
 	}
 }
 
-void ThresholdMain::render_gui(void *data)
+void ThresholdMain::render_gui(void *data, int size)
 {
 	if(thread)
 	{

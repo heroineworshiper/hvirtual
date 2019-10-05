@@ -1,7 +1,7 @@
 #include "clip.h"
 #include "eqcanvas.h"
 #include "mwindow.h"
-#include "pluginclient.h"
+#include "pluginaclient.h"
 #include "theme.h"
 
 EQCanvas::EQCanvas(BC_WindowBase *parent, 
@@ -181,22 +181,28 @@ void EQCanvas::draw_grid()
 
 
 // update the spectrogram in a plugin
-void EQCanvas::update_spectrogram(PluginClient *plugin, 
+void EQCanvas::update_spectrogram(PluginAClient *plugin, 
     int offset, 
     int size, 
     int window_size)
-{
-    int total_frames = plugin->get_gui_update_frames();
-	PluginClientFrame *frame = plugin->get_gui_frame();
+{    
+    int done = 0;
+    PluginClientFrame *frame = 0;
+    while(!done)
+    {
+// pop off all obsolete frames
+	    frame = plugin->get_gui_frame();
 
-    if(frame)
-    {
-        delete last_frame;
-        last_frame = frame;
-    }
-    else
-    {
-        frame = last_frame;
+        if(frame)
+        {
+            delete last_frame;
+            last_frame = frame;
+        }
+        else
+        {
+            frame = last_frame;
+            done = 1;
+        }
     }
 
 // printf("EQCanvas::update_spectrogram %d frame=%p data=%p freq_max=%f time_max=%f\n", 
@@ -209,7 +215,7 @@ void EQCanvas::update_spectrogram(PluginClient *plugin,
     canvas->draw_box(0, 0, canvas->get_w(), canvas->get_h());
     draw_grid();
 
-// Draw most recent frame
+// Draw it
 	if(frame && !EQUIV(frame->freq_max, 0.0) && frame->data)
 	{
 		int y1 = 0;
@@ -266,22 +272,6 @@ void EQCanvas::update_spectrogram(PluginClient *plugin,
         }
     }
 
-// keep the last_frame
-    if(frame)
-    {
-        total_frames--;
-	}
-
-
-// Delete remaining expired frames
-	while(total_frames > 0)
-	{
-		PluginClientFrame *frame = plugin->get_gui_frame();
-
-		if(frame) delete frame;
-		total_frames--;
-	}
-    
 }
 
 

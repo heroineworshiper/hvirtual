@@ -29,6 +29,7 @@
 #include "picon_png.h"
 #include "samples.h"
 #include "theme.h"
+#include "transportque.inc"
 #include "units.h"
 #include "vframe.h"
 
@@ -195,6 +196,7 @@ void SoundLevelEffect::reset()
 	rms_accum = 0;
 	max_accum = 0;
 	accum_size = 0;
+    last_position = 0;
 }
 
 const char* SoundLevelEffect::plugin_title() { return N_("SoundLevel"); }
@@ -248,10 +250,16 @@ void SoundLevelEffect::update_gui()
 //printf("SoundLevelEffect::update_gui 2\n");
 }
 
-int SoundLevelEffect::process_realtime(int64_t size, Samples *input_ptr, Samples *output_ptr)
+int SoundLevelEffect::process_realtime(int64_t size, 
+    Samples *input_ptr, 
+    Samples *output_ptr)
 {
 	load_configuration();
-
+	if(last_position != get_source_position())
+    {
+        send_reset_gui_frames();
+    }
+    
 	accum_size += size;
 	for(int i = 0; i < size; i++)
 	{
@@ -264,14 +272,30 @@ int SoundLevelEffect::process_realtime(int64_t size, Samples *input_ptr, Samples
 	{
 //printf("SoundLevelEffect::process_realtime 1 %f %d\n", rms_accum, accum_size);
 		rms_accum = sqrt(rms_accum / accum_size);
+        
+        PluginClientFrame *frame = new PluginClientFrame();
+        frame->data = new double[2];
+        frame->data_size = 2;
 		double arg[2];
-		arg[0] = max_accum;
-		arg[1] = rms_accum;
-		send_render_gui(arg, 2);
+		frame->data[0] = max_accum;
+		frame->data[1] = rms_accum;
+        frame->edl_position = get_top_position();
+		add_gui_frame(frame);
+        
 		rms_accum = 0;
 		max_accum = 0;
 		accum_size = 0;
 	}
+
+
+    if(get_direction() == PLAY_FORWARD)
+    {
+        last_position = get_source_position() + size;
+    }
+    else
+    {
+        last_position = get_source_position() - size;
+    }
 	return 0;
 }
 

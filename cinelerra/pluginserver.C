@@ -593,7 +593,7 @@ void PluginServer::process_buffer(VFrame **frame,
 //PRINT_TRACE
 //printf("plugin=%p source_start=%ld\n", plugin, vclient->source_start);
 
-	vclient->begin_process_buffer();
+//	vclient->begin_process_buffer();
 	if(multichannel)
 	{
 		vclient->process_buffer(frame, current_position, frame_rate);
@@ -602,7 +602,7 @@ void PluginServer::process_buffer(VFrame **frame,
 	{
 		vclient->process_buffer(frame[0], current_position, frame_rate);
 	}
-	vclient->end_process_buffer();
+//	vclient->end_process_buffer();
 
 	for(int i = 0; i < total_in_buffers; i++)
 		frame[i]->push_prev_effect(title);
@@ -655,26 +655,53 @@ void PluginServer::process_buffer(Samples **buffer,
 }
 
 
+// used by audio plugins
 void PluginServer::send_render_gui(void *data)
 {
 //printf("PluginServer::send_render_gui 1 %p\n", attachmentpoint);
 	if(attachmentpoint) attachmentpoint->render_gui(data, this);
 }
 
+void PluginServer::send_reset_gui_frames()
+{
+    if(attachmentpoint) attachmentpoint->reset_gui_frames(this);
+}
+
+// used by video plugins
 void PluginServer::send_render_gui(void *data, int size)
 {
 //printf("PluginServer::send_render_gui 1 %p\n", attachmentpoint);
 	if(attachmentpoint) attachmentpoint->render_gui(data, size, this);
 }
 
+// used by audio plugins
 void PluginServer::render_gui(void *data)
 {
-	if(client) client->plugin_render_gui(data);
+	if(client)
+    {
+	    PluginAClient *aclient = (PluginAClient*)client;
+        aclient->direction = mwindow->cwindow->playback_engine->command->get_direction();
+        aclient->plugin_render_gui(data);
+    }
 }
 
+void PluginServer::reset_gui_frames()
+{
+    if(client)
+    {
+	    PluginAClient *aclient = (PluginAClient*)client;
+        aclient->reset_gui_frames();
+    }
+}
+
+// used by video plugins
 void PluginServer::render_gui(void *data, int size)
 {
-	if(client) client->plugin_render_gui(data, size);
+	if(client) 
+    {
+	    PluginVClient *vclient = (PluginVClient*)client;
+        vclient->plugin_render_gui(data, size);
+    }
 }
 
 MainProgressBar* PluginServer::start_progress(char *string, int64_t length)
@@ -980,6 +1007,7 @@ void PluginServer::update_gui()
 	{
 		client->total_len = plugin->length;
 		client->source_start = plugin->startproject;
+        client->direction = mwindow->cwindow->playback_engine->command->get_direction();
 
 		if(video)
 		{
@@ -1000,6 +1028,7 @@ void PluginServer::update_gui()
 		client->total_len = 1;
 		client->source_start = 0;
 		client->source_position = 0;
+        client->direction = PLAY_FORWARD;
 	}
 
 	client->plugin_update_gui();

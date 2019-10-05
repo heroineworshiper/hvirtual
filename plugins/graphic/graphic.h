@@ -270,6 +270,7 @@ public:
 	int active_point;
 // For refreshing the canvas
 	GraphicGUIFrame *last_frame;
+    int64_t last_position;
 	GraphicFFT *fft;
 	int need_reconfigure;
 	int w, h;

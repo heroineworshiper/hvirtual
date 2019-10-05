@@ -25,7 +25,6 @@
 // Base class inherited by all the different types of plugins.
 
 #define BCASTDIR "~/.bcast/"
-#define MAX_FRAME_BUFFER 1024
 
 class PluginClient;
 
@@ -269,7 +268,7 @@ class PluginClientThread : public Thread
 {
 public:
 	PluginClientThread(PluginClient *client);
-	~PluginClientThread();
+	virtual ~PluginClientThread();
 	void run();
 	
 	friend class PluginClient;
@@ -284,37 +283,6 @@ private:
 };
 
 
-
-// Base class for spectrogram data.
-class PluginClientFrame
-{
-public:
-	PluginClientFrame();
-// Period_d is 1 second
-	PluginClientFrame(int data_size, int period_n, int period_d);
-	virtual ~PluginClientFrame();
-    
-    void reset();
-    
-// Draw immediately
-	int force;
-// offset in EDL for synchronizing with playback
-    int64_t edl_position;
-
-
-// some commonly used data
-// a user allocated buffer
-    double *data;
-// Maximum of window in frequency domain
-	double freq_max;
-// Maximum of window in time domain
-	double time_max;
-// the window size of a FFT / 2
-	int data_size;
-	int period_n;
-	int period_d;
-    int nyquist;
-};
 
 
 
@@ -403,11 +371,7 @@ public:
 
 // Called by plugin server to update GUI with rendered data.
 // Manely for video.  Audio has to render data in update_gui
-	void plugin_render_gui(void *data);
 	void plugin_render_gui(void *data, int size);
-
-	void begin_process_buffer();
-	void end_process_buffer();
 
 	void plugin_update_gui();
 	virtual int plugin_process_loop(VFrame **buffers, int64_t &write_length) { return 1; };
@@ -476,8 +440,10 @@ public:
 // the requested rate.
 	int64_t get_source_position();
 
-// Get the top level position in the EDL rate for annotating GUI data
+// Get the rendering position of the top level for annotating GUI data
     int64_t get_top_position();
+// Get the rendering direction of the top level for annotating GUI data
+    int get_top_direction();
 
 // Get the EDL Session.  May return 0 if the server has no edl.
 	EDLSession* get_edlsession();
@@ -556,27 +522,9 @@ public:
 
 
 // GUI updating wrappers for realtime plugins
-// Append frame to queue for next send_frame_buffer
-	void add_gui_frame(PluginClientFrame *frame);
 
-
-// called by server to draw video data
-	virtual void render_gui(void *data);
-// called by server to draw audio data
-	virtual void render_gui(void *data, int size);
-
-// Called by client to get the total number of frames to draw in update_gui
-	int get_gui_update_frames();
-// Get latest GUI frame from frame_buffer.  Client must delete it.
-	PluginClientFrame* get_gui_frame();
-
-// Called by client to cause GUI to be rendered with data.
-	void send_render_gui();
-// called by user to draw video data
-	void send_render_gui(void *data);
 // called by user to draw audio data
-	void send_render_gui(void *data, int size);
-
+//	void send_render_gui(void *data);
 
 
 
@@ -639,7 +587,8 @@ public:
 
 
 
-// Direction of most recent process_buffer
+// Direction of most recent process_buffer in the rendering instance
+// in the GUI instance, the top direction
 	int direction;
 
 // Operating system scheduling
@@ -660,10 +609,8 @@ public:
 	BC_Hash *defaults;
 	PluginClientThread *thread;
 
-// Frames for updating GUI
-	ArrayList<PluginClientFrame*> frame_buffer;
 // Time of last GUI update
-	Timer *update_timer;
+//	Timer *update_timer;
 
 
 private:

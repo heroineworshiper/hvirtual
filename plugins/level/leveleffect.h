@@ -97,6 +97,7 @@ public:
 	double rms_accum;
 	double max_accum;
 	int accum_size;
+    int64_t last_position;
 };
 
 

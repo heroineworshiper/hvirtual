@@ -323,17 +323,13 @@ void CompressorEffect::update_gui()
 			((CompressorWindow*)thread->window)->update();
 			thread->window->unlock_window();
 		}
-        else
-        {
-            int total_frames = get_gui_update_frames();
-			if(total_frames)
-			{
-				thread->window->lock_window("CompressorEffect::update_gui 2");
-				((CompressorWindow*)thread->window)->update_eqcanvas();
-				thread->window->unlock_window();
-			}
-        }
-        
+
+		if(pending_gui_frames())
+		{
+			thread->window->lock_window("CompressorEffect::update_gui 2");
+			((CompressorWindow*)thread->window)->update_eqcanvas();
+			thread->window->unlock_window();
+		}
 	}
 }
 
@@ -395,6 +391,8 @@ int CompressorEffect::process_buffer(int64_t size,
 // reset after seeking
     if(last_position != start_position)
     {
+        send_reset_gui_frames();
+
 //printf("CompressorEffect::process_buffer %d\n", __LINE__);
         if(fft)
         {
@@ -518,6 +516,8 @@ remane);
     {
         add_gui_frame(spectrogram_frames.get(i));
     }
+
+// remove the pointers
     spectrogram_frames.remove_all();
 
 
@@ -1115,6 +1115,7 @@ CompressorFFT::~CompressorFFT()
 
 int CompressorFFT::signal_process(int band)
 {
+    int sample_rate = plugin->PluginAClient::project_sample_rate;
 // Create new spectrogram for updating the GUI
     frame = 0;
     if(
@@ -1136,17 +1137,31 @@ int CompressorFFT::signal_process(int band)
 // store all bands in the same GUI frame
 	        frame = new PluginClientFrame(total_data, 
                 window_size / 2, 
-                plugin->PluginAClient::project_sample_rate);
+                sample_rate);
             plugin->spectrogram_frames.append(frame);
             frame->data = new double[total_data];
             bzero(frame->data, sizeof(double) * total_data);
-            frame->nyquist = plugin->PluginAClient::project_sample_rate / 2;
+            frame->nyquist = sample_rate / 2;
         }
         else
         {
-            frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames[band]);
+            frame = plugin->spectrogram_frames.get(
+                plugin->new_spectrogram_frames[band]);
         }
     }
+
+
+    int sign = 1;
+    if(plugin->get_top_direction() == PLAY_REVERSE)
+    {
+        sign = -1;
+    }
+
+    frame->edl_position = plugin->get_top_position() + 
+        (plugin->config.bands[band].attack_len * sample_rate + 
+        plugin->local_to_edl(plugin->new_spectrogram_frames[band] *
+            window_size)) * sign;
+
 
 //printf("CompressorFFT::signal_process %d channel=%d band=%d frame=%p\n", __LINE__, channel, band, frame);
 // apply the bandpass filter

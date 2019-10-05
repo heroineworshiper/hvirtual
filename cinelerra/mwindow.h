@@ -255,6 +255,7 @@ public:
 // Searches for matching plugin and renders data in it.
 	void render_plugin_gui(void *data, Plugin *plugin);
 	void render_plugin_gui(void *data, int size, Plugin *plugin);
+    void reset_plugin_gui_frames(Plugin *plugin);
 
 // Called from PluginVClient::process_buffer
 // Returns 1 if a GUI for the plugin is open so OpenGL routines can determine if

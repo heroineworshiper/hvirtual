@@ -80,12 +80,12 @@ void AudioScopeConfig::interpolate(AudioScopeConfig &prev,
 
 
 AudioScopeFrame::AudioScopeFrame(int data_size, int channels)
+ : PluginClientFrame()
 {
 	this->size = data_size;
 	this->channels = channels;
 	for(int i = 0; i < CHANNELS; i++)
 		data[i] = new float[data_size];
-	force = 0;
 }
 
 AudioScopeFrame::~AudioScopeFrame()
@@ -628,18 +628,18 @@ AudioScope::AudioScope(PluginServer *server)
  : PluginAClient(server)
 {
 	reset();
-	timer = new Timer;
+//	timer = new Timer;
 	w = DP(640);
 	h = DP(480);
 }
 
 AudioScope::~AudioScope()
 {
-	delete [] data;
+//	delete [] data;
 	for(int i = 0; i < CHANNELS; i++)
 		delete audio_buffer[i];
-	delete timer;
-	frame_buffer.remove_all_objects();
+//	delete timer;
+//	frame_buffer.remove_all_objects();
 	frame_history.remove_all_objects();
 }
 
@@ -647,14 +647,15 @@ AudioScope::~AudioScope()
 void AudioScope::reset()
 {
 	thread = 0;
-	data = 0;
+//	data = 0;
 	for(int i = 0; i < CHANNELS; i++)
 		audio_buffer[i] = 0;
-	allocated_data = 0;
-	total_windows = 0;
+//	allocated_data = 0;
+//	total_windows = 0;
 	buffer_size = 0;
-	bzero(&header, sizeof(data_header_t));
+//	bzero(&header, sizeof(data_header_t));
 	current_frame = 0;
+    last_position = 0;
 }
 
 
@@ -681,6 +682,12 @@ int AudioScope::process_buffer(int64_t size,
 
 	load_configuration();
 
+    if(window_size != config.window_size ||
+        last_position != start_position)
+    {
+        send_reset_gui_frames();
+    }
+
 // Reset audio buffer
 	if(window_size != config.window_size)
 	{
@@ -688,11 +695,11 @@ int AudioScope::process_buffer(int64_t size,
 		window_size = config.window_size;
 	}
 
-	if(!data)
-	{
-		data = new unsigned char[sizeof(data_header_t)];
-		allocated_data = 0;
-	}
+// 	if(!data)
+// 	{
+// 		data = new unsigned char[sizeof(data_header_t)];
+// 		allocated_data = 0;
+// 	}
 
 	if(!audio_buffer[0])
 	{
@@ -726,27 +733,9 @@ int AudioScope::process_buffer(int64_t size,
 	buffer_size += size;
 
 
-// Append a windows to end of GUI buffer
-	total_windows = 0;
+// Convert windows to GUI frames
 	while(buffer_size >= window_size)
 	{
-		if(allocated_data < (total_windows + 1) * window_size * CHANNELS)
-		{
-			int new_allocation = (total_windows + 1) * 
-				window_size * 
-				CHANNELS;
-			unsigned char *new_data = new unsigned char[sizeof(data_header_t) +
-				sizeof(float) * new_allocation];
-			data_header_t *new_header = (data_header_t*)new_data;
-			data_header_t *old_header = (data_header_t*)data;
-			memcpy(new_header->samples, 
-				old_header->samples, 
-				sizeof(float) * allocated_data);
-			delete [] data;
-			data = new_data;
-			allocated_data = new_allocation;
-		}
-
 // Search for trigger
 		int need_trigger = 0;
 		int got_trigger = 0;
@@ -785,7 +774,7 @@ int AudioScope::process_buffer(int64_t size,
 		}
 
 //printf("AudioScope::process_buffer %d\n", __LINE__);
-// Flush buffer
+// Skip buffer if no trigger found
 		if(need_trigger && !got_trigger)
 		{
 //printf("AudioScope::process_buffer %d\n", __LINE__);
@@ -803,13 +792,24 @@ int AudioScope::process_buffer(int64_t size,
 		}
 		else
 		{
-			data_header_t *header = (data_header_t*)data;
+            AudioScopeFrame *frame = new AudioScopeFrame(window_size, 
+                channels);
+            frame->window_size = window_size;
+            frame->sample_rate = sample_rate;
+
+
+            int sign = 1;
+            if(get_top_direction() == PLAY_REVERSE)
+            {
+                sign = -1;
+            }
+            frame->edl_position = get_top_position() +
+                local_to_edl(get_gui_frames() * window_size) * sign;
+
 //printf("AudioScope::process_buffer %d\n", __LINE__);
 			for(int j = 0; j < CHANNELS; j++)
 			{
-				float *sample_output = header->samples + 
-					total_windows * CHANNELS * window_size + 
-					window_size * j;
+				float *sample_output = frame->data[j];
 				double *sample_input = audio_buffer[j]->get_data();
 				for(int i = 0; i < window_size; i++)
 				{
@@ -826,22 +826,25 @@ int AudioScope::process_buffer(int64_t size,
 
 //printf("AudioScope::process_buffer %d\n", __LINE__);
 
-			total_windows++;
+			add_gui_frame(frame);
 			buffer_size -= window_size + trigger_sample;
 //printf("AudioScope::process_buffer %d\n", __LINE__);
 		}
+
+
+
+
 	}
 
-	data_header_t *header = (data_header_t*)data;
-	header->window_size = window_size;
-	header->sample_rate = sample_rate;
-	header->channels = channels;
-	header->total_windows = total_windows;
 
-	send_render_gui(data, 
-		sizeof(data_header_t) + 
-			sizeof(float) * total_windows * window_size * CHANNELS);
-
+    if(get_direction() == PLAY_FORWARD)
+    {
+        last_position = start_position + size;
+    }
+    else
+    {
+        last_position = start_position - size;
+    }
 	return 0;
 }
 
@@ -861,235 +864,181 @@ void AudioScope::update_gui()
 	if(thread)
 	{
 		int result = load_configuration();
-		AudioScopeWindow *window = (AudioScopeWindow*)thread->get_window();
-		window->lock_window("AudioScope::update_gui");
-		if(result) window->update_gui();
+        int total_frames = pending_gui_frames();
+        
+        if(result || total_frames)
+        {
+		    AudioScopeWindow *window = (AudioScopeWindow*)thread->get_window();
+		    window->lock_window("AudioScope::update_gui");
 
-// Shift in accumulated frames
-		if(frame_buffer.size())
-		{
-			BC_SubWindow *canvas = window->canvas;
-// Frames to draw in this iteration
-			int total_frames = timer->get_difference() * 
-				header.sample_rate / 
-				header.window_size / 
-				1000;
-			if(total_frames) timer->subtract(total_frames * 
-				header.window_size * 
-				1000 / 
-				header.sample_rate);
+// widgets
+		    if(result)
+            {
+                window->update_gui();
+            }
 
-// Add forced frame drawing
-			for(int i = 0; i < frame_buffer.size(); i++)
-				if(frame_buffer.get(i)->force) total_frames++;
-			total_frames = MIN(frame_buffer.size(), total_frames);
-//printf("AudioScope::update_gui %d %d\n", __LINE__, total_frames);
-
+// waveform
+		    if(total_frames)
+		    {
+			    BC_SubWindow *canvas = window->canvas;
 
 
 // Shift frames into history
-			for(int frame = 0; frame < total_frames; frame++)
-			{
-				if(frame_history.size() >= config.history_size)
-					frame_history.remove_object_number(0);
-				
-				frame_history.append(frame_buffer.get(0));
-				frame_buffer.remove_number(0);
-			}
+			    for(int frame = 0; frame < total_frames; frame++)
+			    {
+                    AudioScopeFrame *ptr = (AudioScopeFrame*)get_gui_frame();
+                    frame_history.append(ptr);
+			    }
 
 // Reduce history size
-			while(frame_history.size() > config.history_size)
-				frame_history.remove_object_number(0);
+			    while(frame_history.size() > config.history_size)
+				    frame_history.remove_object_number(0);
 
-// Point probe data at history
-			current_frame = frame_history.get(frame_history.size() - 1);
+    // Point probe data at history
+			    current_frame = frame_history.get(frame_history.size() - 1);
 
-// Draw frames from history
-			canvas->clear_box(0, 0, canvas->get_w(), canvas->get_h());
-			for(int frame = 0; frame < frame_history.size(); frame++)
-			{
-				AudioScopeFrame *ptr = frame_history.get(frame);
+    // Draw frames from history
+			    canvas->clear_box(0, 0, canvas->get_w(), canvas->get_h());
+			    for(int frame = 0; frame < frame_history.size(); frame++)
+			    {
+				    AudioScopeFrame *ptr = frame_history.get(frame);
 
-				int luma = (frame + 1) * 0x80 / frame_history.size();
-				if(frame == frame_history.size() - 1)
-				{
-					canvas->set_color(WHITE);
-					canvas->set_line_width(2);
-				}
-				else
-				{
-					canvas->set_color((luma << 16) |
-						(luma << 8) |
-						luma);
-				}
+				    int luma = (frame + 1) * 0x80 / frame_history.size();
+				    if(frame == frame_history.size() - 1)
+				    {
+					    canvas->set_color(WHITE);
+					    canvas->set_line_width(2);
+				    }
+				    else
+				    {
+					    canvas->set_color((luma << 16) |
+						    (luma << 8) |
+						    luma);
+				    }
 
-				int x1 = 0;
-				int y1 = 0;
-				int w = canvas->get_w();
-				int h = canvas->get_h();
-				float *channel0 = ptr->data[0];
-				float *channel1 = ptr->data[1];
+				    int x1 = 0;
+				    int y1 = 0;
+				    int w = canvas->get_w();
+				    int h = canvas->get_h();
+				    float *channel0 = ptr->data[0];
+				    float *channel1 = ptr->data[1];
 
-				if(config.mode == XY_MODE)
-				{
+				    if(config.mode == XY_MODE)
+				    {
 
-					int number = 0;
-					for(int point = 0; point < ptr->size; point++)
-					{
-						int x2 = (int)(channel0[point] * w / 2 + w / 2);
-						int y2 = (int)(-channel1[point] * h / 2 + h / 2);
-						CLAMP(x2, 0, w - 1);
-						CLAMP(y2, 0, h - 1);
+					    int number = 0;
+					    for(int point = 0; point < ptr->size; point++)
+					    {
+						    int x2 = (int)(channel0[point] * w / 2 + w / 2);
+						    int y2 = (int)(-channel1[point] * h / 2 + h / 2);
+						    CLAMP(x2, 0, w - 1);
+						    CLAMP(y2, 0, h - 1);
 
-						if(number)
-						{
-							canvas->draw_line(x1, y1, x2, y2);
-						}
-						else
-						{
-							number++;
-						}
+						    if(number)
+						    {
+							    canvas->draw_line(x1, y1, x2, y2);
+						    }
+						    else
+						    {
+							    number++;
+						    }
 
-						x1 = x2;
-						y1 = y2;
-					}
-				}
-				else
-				{
-					for(int channel = ptr->channels - 1; channel >= 0; channel--)
-					{
-						if(channel > 0)
-						{
-							if(frame == frame_history.size() - 1)
-							{
-								canvas->set_color(PINK);
-								canvas->set_line_width(2);
-							}
-							else
-								canvas->set_color(((luma * 0xff / 0xff) << 16) |
-									((luma * 0x80 / 0xff) << 8) |
-									((luma * 0x80 / 0xff)));
-						}
-						else
-						{
-							if(frame == frame_history.size() - 1)
-								canvas->set_color(WHITE);
-							else
-								canvas->set_color((luma << 16) |
-									(luma << 8) |
-									luma);
-						}
+						    x1 = x2;
+						    y1 = y2;
+					    }
+				    }
+				    else
+				    {
+					    for(int channel = ptr->channels - 1; channel >= 0; channel--)
+					    {
+						    if(channel > 0)
+						    {
+							    if(frame == frame_history.size() - 1)
+							    {
+								    canvas->set_color(PINK);
+								    canvas->set_line_width(2);
+							    }
+							    else
+								    canvas->set_color(((luma * 0xff / 0xff) << 16) |
+									    ((luma * 0x80 / 0xff) << 8) |
+									    ((luma * 0x80 / 0xff)));
+						    }
+						    else
+						    {
+							    if(frame == frame_history.size() - 1)
+								    canvas->set_color(WHITE);
+							    else
+								    canvas->set_color((luma << 16) |
+									    (luma << 8) |
+									    luma);
+						    }
 
-						if(ptr->size < w)
-						{
-							for(int point = 0; point < ptr->size; point++)
-							{
-								int x2 = point * w / ptr->size;
-								int y2 = (int)(-ptr->data[channel][point] * h / 2 + h / 2);
-								CLAMP(y2, 0, h - 1);
-								if(point > 0)
-								{
-									canvas->draw_line(x1, y1, x2, y2);
-								}
+						    if(ptr->size < w)
+						    {
+							    for(int point = 0; point < ptr->size; point++)
+							    {
+								    int x2 = point * w / ptr->size;
+								    int y2 = (int)(-ptr->data[channel][point] * h / 2 + h / 2);
+								    CLAMP(y2, 0, h - 1);
+								    if(point > 0)
+								    {
+									    canvas->draw_line(x1, y1, x2, y2);
+								    }
 
-								x1 = x2;
-								y1 = y2;
-							}
-						}
-						else
-						{
-							for(int x2 = 0; x2 < w; x2++)
-							{
-								int sample1 = x2 * ptr->size / w;
-								int sample2 = (x2 + 1) * ptr->size / w;
-								double min = ptr->data[channel][sample1];
-								double max = ptr->data[channel][sample1];
-								for(int i = sample1 + 1; i < sample2; i++)
-								{
-									double value = ptr->data[channel][i];
-									if(value < min) min = value;
-									if(value > max) max = value;
-								}
+								    x1 = x2;
+								    y1 = y2;
+							    }
+						    }
+						    else
+						    {
+							    for(int x2 = 0; x2 < w; x2++)
+							    {
+								    int sample1 = x2 * ptr->size / w;
+								    int sample2 = (x2 + 1) * ptr->size / w;
+								    double min = ptr->data[channel][sample1];
+								    double max = ptr->data[channel][sample1];
+								    for(int i = sample1 + 1; i < sample2; i++)
+								    {
+									    double value = ptr->data[channel][i];
+									    if(value < min) min = value;
+									    if(value > max) max = value;
+								    }
 
-								int min2 = (int)(-min * h / 2 + h / 2);
-								int max2 = (int)(-max * h / 2 + h / 2);
-								CLAMP(min2, 0, h - 1);
-								CLAMP(max2, 0, h - 1);
-								int y2 = (min2 + max2) / 2;
-								canvas->draw_line(x2, min2, x2, max2);
-								if(x2 > 0)
-								{
-									canvas->draw_line(x2, y1, x2, y2);
-								}
+								    int min2 = (int)(-min * h / 2 + h / 2);
+								    int max2 = (int)(-max * h / 2 + h / 2);
+								    CLAMP(min2, 0, h - 1);
+								    CLAMP(max2, 0, h - 1);
+								    int y2 = (min2 + max2) / 2;
+								    canvas->draw_line(x2, min2, x2, max2);
+								    if(x2 > 0)
+								    {
+									    canvas->draw_line(x2, y1, x2, y2);
+								    }
 
-								y1 = y2;
-							}
-						}
-					}
-				}
-				
-				canvas->set_line_width(1);
-			}
+								    y1 = y2;
+							    }
+						    }
+					    }
+				    }
 
-// Recompute probe level
-			window->calculate_probe(window->probe_x, window->probe_y, 0);
+				    canvas->set_line_width(1);
+			    }
 
-
-// Draw overlay
-			window->draw_overlay();
-			canvas->flash();
-		}
+    // Recompute probe level
+			    window->calculate_probe(window->probe_x, window->probe_y, 0);
 
 
+    // Draw overlay
+			    window->draw_overlay();
+			    canvas->flash();
+		    } // total_frames > 0
 
-		while(frame_buffer.size() > MAX_COLUMNS)
-			frame_buffer.remove_object_number(0);
 
-		thread->get_window()->unlock_window();
-	}
+    		thread->get_window()->unlock_window();
+        } // result || total_frames
+	} // thread
 }
 
-void AudioScope::render_gui(void *data, int size)
-{
-	if(thread)
-	{
-		thread->get_window()->lock_window("AudioScope::render_gui");
-		data_header_t *header = (data_header_t*)data;
-		memcpy(&this->header, header, sizeof(data_header_t));
-		BC_SubWindow *canvas = ((AudioScopeWindow*)thread->get_window())->canvas;
-		int h = canvas->get_h();
-
-// Set all previous frames to draw immediately
-		for(int i = 0; i < frame_buffer.size(); i++)
-			frame_buffer.get(i)->force = 1;
-
-		for(int current_fragment = 0; 
-			current_fragment < header->total_windows;
-			current_fragment++)
-		{
-			float *in_frame = header->samples + 
-				current_fragment * header->window_size * CHANNELS;
-			AudioScopeFrame *out_frame = new AudioScopeFrame(
-				header->window_size, 
-				header->channels);
-
-// Copy the window to the frame
-			for(int j = 0; j < CHANNELS; j++)
-			{
-				for(int i = 0; i < header->window_size; i++)
-				{
-					out_frame->data[j][i] = in_frame[header->window_size * j + i];
-				}
-			}
-
-			frame_buffer.append(out_frame);
-			total_windows++;
-		}
-
-		timer->update();
-		thread->get_window()->unlock_window();
-	}
-}
 
 
 

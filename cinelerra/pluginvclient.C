@@ -201,6 +201,30 @@ int PluginVClient::plugin_get_parameters()
 	return PluginClient::plugin_get_parameters();
 }
 
+
+
+
+
+void PluginVClient::send_render_gui(void *data, int size)
+{
+	server->send_render_gui(data, size);
+}
+
+void PluginVClient::plugin_render_gui(void *data, int size)
+{
+	render_gui(data, size);
+}
+
+// used by video plugins
+void PluginVClient::render_gui(void *data, int size)
+{
+	printf("PluginClient::render_gui %d\n", __LINE__);
+}
+
+
+
+
+
 int64_t PluginVClient::local_to_edl(int64_t position)
 {
 	if(position < 0) return position;

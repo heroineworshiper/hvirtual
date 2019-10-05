@@ -108,7 +108,7 @@ public:
 	PLUGIN_CLASS_MEMBERS2(VideoScopeConfig)
 	int process_realtime(VFrame *input, VFrame *output);
 	int is_realtime();
-	void render_gui(void *input);
+	void render_gui(void *input, int size);
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
 
@@ -307,14 +307,14 @@ NEW_WINDOW_MACRO(VideoScopeEffect, VideoScopeWindow)
 int VideoScopeEffect::process_realtime(VFrame *input, VFrame *output)
 {
 
-	send_render_gui(input);
+	send_render_gui(input, 1);
 //printf("VideoScopeEffect::process_realtime 1\n");
 	if(input->get_rows()[0] != output->get_rows()[0])
 		output->copy_from(input);
 	return 1;
 }
 
-void VideoScopeEffect::render_gui(void *input)
+void VideoScopeEffect::render_gui(void *input, int size)
 {
 	if(thread)
 	{

@@ -198,9 +198,11 @@ public:
 // Called by rendering client to cause the GUI to display something with the data.
 	void send_render_gui(void *data);
 	void send_render_gui(void *data, int size);
+    void send_reset_gui_frames();
 // Called by MWindow to cause GUI to display
 	void render_gui(void *data);
 	void render_gui(void *data, int size);
+    void reset_gui_frames();
 
 // Send the boundary autos of the next fragment
 	int set_automation(FloatAutos *autos, FloatAuto **start_auto, FloatAuto **end_auto, int reverse);

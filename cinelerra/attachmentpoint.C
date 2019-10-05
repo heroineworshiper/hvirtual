@@ -220,6 +220,19 @@ void AttachmentPoint::render_gui(void *data, PluginServer *server)
 		renderengine->mwindow->render_plugin_gui(data, plugin);
 }
 
+void AttachmentPoint::reset_gui_frames(PluginServer *server)
+{
+    if(server != plugin_servers.get(0))
+    {
+        return;
+    }
+    
+    if(renderengine && renderengine->mwindow)
+    {
+        renderengine->mwindow->reset_plugin_gui_frames(plugin);
+    }
+}
+
 void AttachmentPoint::render_gui(void *data, int size, PluginServer *server)
 {
 	if(!this) printf("AttachmentPoint::render_gui 2 NULL\n");

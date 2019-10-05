@@ -25,7 +25,7 @@
 #define EQCANVAS_H
 
 #include "guicast.h"
-#include "pluginclient.inc"
+#include "pluginaclient.inc"
 
 class EQCanvas
 {
@@ -42,7 +42,7 @@ public:
     void initialize();
     void draw_grid();
 // a hack to draw a spectrogram from a frame with multiple windows
-    void update_spectrogram(PluginClient *plugin, 
+    void update_spectrogram(PluginAClient *plugin, 
         int offset = -1, 
         int size = -1,
         int window_size = -1);

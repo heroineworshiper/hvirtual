@@ -31,6 +31,7 @@
 #include "picon_png.h"
 #include "samples.h"
 #include "theme.h"
+#include "transportque.inc"
 #include "units.h"
 #include "vframe.h"
 
@@ -324,18 +325,24 @@ void GraphicCanvas::process(int buttonpress, int motion, int draw)
 
 
 		int niquist = plugin->PluginAClient::project_sample_rate / 2;
-		int total_frames = plugin->get_gui_update_frames();
-		GraphicGUIFrame *frame = (GraphicGUIFrame*)plugin->get_gui_frame();
+		int done = 0;
+        GraphicGUIFrame *frame = 0;
+        while(!done)
+        {
+    // pop off all obsolete frames
+	        frame = (GraphicGUIFrame*)plugin->get_gui_frame();
 
-		if(frame)
-		{
-			delete plugin->last_frame;
-			plugin->last_frame = frame;
-		}
-		else
-		{
-			frame = plugin->last_frame;
-		}
+            if(frame)
+            {
+                delete plugin->last_frame;
+                plugin->last_frame = frame;
+            }
+            else
+            {
+                frame = plugin->last_frame;
+                done = 1;
+            }
+        }
 
 // Draw most recent frame
 		if(frame && frame->freq_max > 0.001)
@@ -368,22 +375,6 @@ void GraphicCanvas::process(int buttonpress, int motion, int draw)
 				}
 			}
 //printf( "\n");
-
-			total_frames--;
-		}
-
-
-
-
-
-
-// Delete remaining frames
-		while(total_frames > 0)
-		{
-			PluginClientFrame *frame = plugin->get_gui_frame();
-
-			if(frame) delete frame;
-			total_frames--;
 		}
 	}
 
@@ -1034,6 +1025,7 @@ GraphicEQ::GraphicEQ(PluginServer *server)
 	active_point = -1;
 	w = DP(640);
 	h = DP(480);
+    last_position = 0;
 }
 
 GraphicEQ::~GraphicEQ()
@@ -1139,9 +1131,8 @@ void GraphicEQ::update_gui()
 		}
 		else
 		{
-			int total_frames = get_gui_update_frames();
 //printf("ParametricEQ::update_gui %d %d\n", __LINE__, total_frames);
-			if(total_frames)
+			if(pending_gui_frames())
 			{
 				((GraphicGUI*)thread->window)->lock_window("GraphicEQ::update_gui");
 				((GraphicGUI*)thread->window)->update_canvas();
@@ -1182,8 +1173,22 @@ int GraphicEQ::process_buffer(int64_t size,
 {
 	need_reconfigure |= load_configuration();
 	if(need_reconfigure) reconfigure();
-	
+	if(last_position != start_position)
+    {
+        send_reset_gui_frames();
+    }
+    
 	fft->process_buffer(start_position, size, buffer, get_direction());
+
+
+    if(get_direction() == PLAY_FORWARD)
+    {
+        last_position = start_position + size;
+    }
+    else
+    {
+        last_position = start_position - size;
+    }
 
 
 	return 0;
@@ -1343,6 +1348,14 @@ int GraphicFFT::signal_process()
 // Create new frame for updating GUI
 	frame = new GraphicGUIFrame(window_size, 
 		plugin->PluginAClient::project_sample_rate);
+    int sign = 1;
+    if(plugin->get_top_direction() == PLAY_REVERSE)
+    {
+        sign = -1;
+    }
+    frame->edl_position = plugin->get_top_position() + 
+        plugin->local_to_edl(plugin->get_gui_frames() *
+            window_size) * sign;
 	plugin->add_gui_frame(frame);
 
 	double freq_max = 0;

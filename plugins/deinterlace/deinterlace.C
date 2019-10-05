@@ -411,7 +411,7 @@ int DeInterlaceMain::process_buffer(VFrame *frame,
 			deinterlace_swap(frame, frame, 0);
 			break;
 	}
-	send_render_gui(&changed_rows);
+	send_render_gui(&changed_rows, 1);
 	return 0;
 }
 
@@ -532,7 +532,7 @@ int DeInterlaceMain::handle_opengl()
 #endif
 }
 
-void DeInterlaceMain::render_gui(void *data)
+void DeInterlaceMain::render_gui(void *data, int size)
 {
 	if(thread)
 	{

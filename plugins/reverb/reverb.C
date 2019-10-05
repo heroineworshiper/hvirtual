@@ -116,7 +116,7 @@ int Reverb::process_buffer(int64_t size,
 // reset after seeking
     if(last_position != start_position)
     {
-
+        send_reset_gui_frames();
         dsp_in_length = 0;
         if(fft)
         {
@@ -258,6 +258,9 @@ int Reverb::process_buffer(int64_t size,
         add_gui_frame(spectrogram_frames.get(i));
     }
 
+// remove the pointers
+    spectrogram_frames.remove_all();
+
 
 // update the length with what the FFT reads appended
     dsp_in_length = new_dsp_length;
@@ -267,9 +270,6 @@ int Reverb::process_buffer(int64_t size,
 // size,
 // spectrogram_frames.size(),
 // new_spectrogram_frames);
-
-// remove the pointers
-    spectrogram_frames.remove_all();
 
 
 
@@ -516,9 +516,9 @@ void Reverb::update_gui()
 			thread->window->unlock_window();
 		}
 
-		int total_frames = get_gui_update_frames();
-//printf("ParametricEQ::update_gui %d %d\n", __LINE__, total_frames);
-		if(total_frames)
+// printf("Reverb::update_gui %d frame_buffer=%p total_frames=%d size=%d\n", 
+// __LINE__, frame_buffer, total_frames, frame_buffer.size());
+		if(pending_gui_frames())
 		{
 			thread->window->lock_window("ParametricEQ::update_gui 2");
 			((ReverbWindow*)thread->window)->update_canvas();
@@ -561,9 +561,15 @@ int ReverbFFT::signal_process()
         frame = plugin->spectrogram_frames.get(plugin->new_spectrogram_frames);
     }
 
+    int sign = 1;
+    if(plugin->get_top_direction() == PLAY_REVERSE)
+    {
+        sign = -1;
+    }
+    
     frame->edl_position = plugin->get_top_position() + 
         plugin->local_to_edl(plugin->new_spectrogram_frames *
-            window_size);
+            window_size) * sign;
 
     for(int i = 0; i < window_size / 2; i++)
     {
