@@ -242,12 +242,37 @@ void SoundLevelEffect::update_gui()
 //printf("SoundLevelEffect::update_gui 1\n");
 	if(thread)
 	{
-		load_configuration();
-		thread->window->lock_window();
-		((SoundLevelWindow*)thread->window)->duration->update(config.duration);
+		int reconfigure = load_configuration();
+        int total_frames = pending_gui_frames();
+        
+        if(reconfigure || total_frames)
+        {
+    		thread->window->lock_window();
+        }
+        
+        if(reconfigure)
+        {
+    		((SoundLevelWindow*)thread->window)->duration->update(config.duration);
+        }
+
+        if(total_frames)
+        {
+            PluginClientFrame *frame = 0;
+            for(int i = 0; i < total_frames; i++)
+            {
+                frame = get_gui_frame();
+            }
+            
+		    char string[BCTEXTLEN];
+		    sprintf(string, "%.2f", DB::todb(frame->data[0]));
+		    ((SoundLevelWindow*)thread->window)->soundlevel_max->update(string);
+		    sprintf(string, "%.2f", DB::todb(frame->data[1]));
+		    ((SoundLevelWindow*)thread->window)->soundlevel_rms->update(string);
+		    thread->window->flush();
+        }
+        
 		thread->window->unlock_window();
 	}
-//printf("SoundLevelEffect::update_gui 2\n");
 }
 
 int SoundLevelEffect::process_realtime(int64_t size, 
@@ -297,20 +322,4 @@ int SoundLevelEffect::process_realtime(int64_t size,
         last_position = get_source_position() - size;
     }
 	return 0;
-}
-
-void SoundLevelEffect::render_gui(void *data, int size)
-{
-	if(thread)
-	{
-		thread->window->lock_window();
-		char string[BCTEXTLEN];
-		double *arg = (double*)data;
-		sprintf(string, "%.2f", DB::todb(arg[0]));
-		((SoundLevelWindow*)thread->window)->soundlevel_max->update(string);
-		sprintf(string, "%.2f", DB::todb(arg[1]));
-		((SoundLevelWindow*)thread->window)->soundlevel_rms->update(string);
-		thread->window->flush();
-		thread->window->unlock_window();
-	}
 }

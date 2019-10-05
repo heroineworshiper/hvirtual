@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -740,7 +740,10 @@ int AudioScope::process_buffer(int64_t size,
 		int need_trigger = 0;
 		int got_trigger = 0;
 		int trigger_sample = 0;
-//printf("AudioScope::process_buffer %d\n", __LINE__);
+// printf("AudioScope::process_buffer %d buffer_size=%d window_size=%d\n", 
+// __LINE__,
+// buffer_size,
+// window_size);
 		if(config.mode == WAVEFORM_RISING_TRIGGER)
 		{
 			need_trigger = 1;
@@ -828,13 +831,13 @@ int AudioScope::process_buffer(int64_t size,
 
 			add_gui_frame(frame);
 			buffer_size -= window_size + trigger_sample;
-//printf("AudioScope::process_buffer %d\n", __LINE__);
 		}
 
 
 
 
 	}
+//printf("AudioScope::process_buffer %d get_gui_frames=%d\n", __LINE__, get_gui_frames());
 
 
     if(get_direction() == PLAY_FORWARD)
@@ -865,7 +868,8 @@ void AudioScope::update_gui()
 	{
 		int result = load_configuration();
         int total_frames = pending_gui_frames();
-        
+
+//printf("AudioScope::update_gui %d total_frames=%d\n", __LINE__, total_frames);
         if(result || total_frames)
         {
 		    AudioScopeWindow *window = (AudioScopeWindow*)thread->get_window();

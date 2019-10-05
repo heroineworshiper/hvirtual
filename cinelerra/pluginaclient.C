@@ -27,7 +27,7 @@
 #include "transportque.inc"
 
 #include <string.h>
-#define MAX_FRAME_BUFFER 1024
+//#define MAX_FRAME_BUFFER 1024
 
 
 PluginClientFrame::PluginClientFrame(int data_size, 
@@ -316,8 +316,8 @@ void PluginAClient::plugin_render_gui(void *data)
 
 	
 // Delete unused GUI frames
-	    while(frame_buffer.size() > MAX_FRAME_BUFFER)
-		    frame_buffer.remove_object_number(0);
+//	    while(frame_buffer.size() > MAX_FRAME_BUFFER)
+//		    frame_buffer.remove_object_number(0);
 
 // printf("PluginClient::render_gui %d direction=%d source_position=%ld ", 
 // __LINE__, direction, source_position);
@@ -351,6 +351,8 @@ int PluginAClient::get_gui_frames()
 
 int PluginAClient::pending_gui_frames()
 {
+//printf("PluginAClient::pending_gui_frames %d source_position=%ld frame_buffer.size=%d\n", 
+//__LINE__, source_position, frame_buffer.size());
     if(frame_buffer.size())
 	{
         int total = 0;
@@ -359,14 +361,15 @@ int PluginAClient::pending_gui_frames()
 // in the GUI instance, the source_position is the playhead position in the top
 // samplerate
 		    PluginClientFrame *frame = frame_buffer.get(i);
-
+//printf("%ld ", frame->edl_position);
             if(direction == PLAY_FORWARD && frame->edl_position <= source_position ||
                 direction == PLAY_REVERSE && frame->edl_position >= source_position)
             {
 		        total++;
             }
         }
-        
+//printf("\n");
+
         return total;
 	}
 	else

@@ -88,7 +88,6 @@ public:
 	int process_realtime(int64_t size, Samples *input_ptr, Samples *output_ptr);
 	void reset();
 	void update_gui();
-	void render_gui(void *data, int size);
 
 
 
