@@ -355,17 +355,53 @@ void CompressorWindow::update_eqcanvas()
 //     }
 
 
+
+// filter GUI frames by band & data type
+    int done = 0;
+    CompressorFrame *frame = 0;
+    while(!done)
+    {
+// pop off all obsolete frames
+	    frame = (CompressorFrame*)plugin->get_gui_frame();
+
+        if(frame)
+        {
+// keep desired band
+            if(frame->band == plugin->config.current_band)
+            {
+                delete eqcanvas->last_frame;
+                eqcanvas->last_frame = frame;
+            }
+            else
+// discard other bands
+            {
+                delete frame;
+                frame = (CompressorFrame*)eqcanvas->last_frame;
+            }
+        }
+        else
+        {
+// no more GUI frames
+            frame = (CompressorFrame*)eqcanvas->last_frame;
+            done = 1;
+        }
+    }
+
+
+
 #ifndef DRAW_AFTER_BANDPASS
-    eqcanvas->update_spectrogram(plugin); 
+    eqcanvas->update_spectrogram(frame); 
 #else
-    eqcanvas->update_spectrogram(plugin,
+//printf("CompressorWindow::update_eqcanvas %d source_position=%ld edl_position=%ld\n", 
+//__LINE__, plugin->source_position, frame ? frame->edl_position : -1);
+    eqcanvas->update_spectrogram(frame,
         plugin->config.current_band * plugin->config.window_size / 2,
         TOTAL_BANDS * plugin->config.window_size / 2,
         plugin->config.window_size);
 #endif
 
     
-    // draw the active band on top of the others
+// draw the active band on top of the others
     for(int pass = 0; pass < 2; pass++)
     {
         for(int band = 0; band < TOTAL_BANDS; band++)

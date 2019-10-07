@@ -62,8 +62,8 @@ PluginClientFrame::~PluginClientFrame()
 void PluginClientFrame::reset()
 {
 	data_size = 0;
-	period_n = 0;
-	period_d = 0;
+//	period_n = 0;
+//	period_d = 0;
     data = 0;
     freq_max = 0;
     time_max = 0;

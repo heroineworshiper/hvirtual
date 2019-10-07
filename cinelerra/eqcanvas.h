@@ -46,6 +46,10 @@ public:
         int offset = -1, 
         int size = -1,
         int window_size = -1);
+    void update_spectrogram(PluginClientFrame *frame, 
+        int offset, 
+        int size, 
+        int window_size);
     void draw_envelope(double *envelope, 
         int samplerate,
         int window_size,

@@ -317,19 +317,24 @@ void CompressorEffect::update_gui()
 {
 	if(thread)
 	{
-		if(load_configuration())
-		{
-			thread->window->lock_window("CompressorEffect::update_gui 1");
-			((CompressorWindow*)thread->window)->update();
-			thread->window->unlock_window();
-		}
+        int reconfigured = load_configuration();
+        int total_frames = pending_gui_frames();
 
-		if(pending_gui_frames())
-		{
-			thread->window->lock_window("CompressorEffect::update_gui 2");
-			((CompressorWindow*)thread->window)->update_eqcanvas();
+//printf("CompressorEffect::update_gui %d %d %d\n", __LINE__, reconfigured, total_frames);
+        if(reconfigured || total_frames)
+        {
+			thread->window->lock_window("CompressorEffect::update_gui 1");
+		    if(reconfigured)
+		    {
+			    ((CompressorWindow*)thread->window)->update();
+		    }
+
+		    if(total_frames)
+		    {
+			    ((CompressorWindow*)thread->window)->update_eqcanvas();
+		    }
 			thread->window->unlock_window();
-		}
+        }
 	}
 }
 
@@ -458,14 +463,14 @@ int CompressorEffect::process_buffer(int64_t size,
 
     if(remane > 0)
     {
+// printf("CompressorEffect::process_buffer %d filtered_size=%ld remane=%d\n", 
+// __LINE__, 
+// filtered_size,
+// remane);
 		for(int channel = 0; channel < channels; channel++)
 		{
 #ifndef DRAW_AFTER_BANDPASS
             new_input_size = input_size;
-printf("CompressorEffect::process_buffer %d new_input_size=%ld remane=%d\n", 
-__LINE__, 
-new_input_size,
-remane);
 #endif
 
 
@@ -510,15 +515,6 @@ remane);
 #endif
     filtered_size = new_filtered_size;
 
-
-// send the spectrograms to the plugin.  This consumes the pointers
-	for(int i = 0; i < spectrogram_frames.size(); i++)
-    {
-        add_gui_frame(spectrogram_frames.get(i));
-    }
-
-// remove the pointers
-    spectrogram_frames.remove_all();
 
 
 // process time domane for each band separately
@@ -1116,51 +1112,68 @@ CompressorFFT::~CompressorFFT()
 int CompressorFFT::signal_process(int band)
 {
     int sample_rate = plugin->PluginAClient::project_sample_rate;
-// Create new spectrogram for updating the GUI
+    BandState *band_state = plugin->band_states[band];
+    
+// Create new spectrogram frame for updating the GUI
     frame = 0;
     if(
 #ifndef DRAW_AFTER_BANDPASS
         band == 0 &&
 #endif
-
-        (plugin->config.input != CompressorConfig::TRIGGER ||
+        ((plugin->config.input != CompressorConfig::TRIGGER && channel == 0) ||
         channel == plugin->config.trigger))
     {
-        if(plugin->new_spectrogram_frames[band] >= plugin->spectrogram_frames.size())
-        {
 #ifndef DRAW_AFTER_BANDPASS
-            int total_data = window_size / 2;
+        int total_data = window_size / 2;
 #else
-            int total_data = TOTAL_BANDS * window_size / 2;
+        int total_data = TOTAL_BANDS * window_size / 2;
 #endif
 
 // store all bands in the same GUI frame
-	        frame = new PluginClientFrame(total_data, 
-                window_size / 2, 
-                sample_rate);
-            plugin->spectrogram_frames.append(frame);
-            frame->data = new double[total_data];
-            bzero(frame->data, sizeof(double) * total_data);
-            frame->nyquist = sample_rate / 2;
-        }
-        else
+	    frame = new CompressorFrame;
+        frame->type = SPECTROGRAM_COMPRESSORFRAME;
+        frame->band = band;
+        frame->data_size = total_data;
+        frame->data = new double[total_data];
+        bzero(frame->data, sizeof(double) * total_data);
+        frame->nyquist = sample_rate / 2;
+
+        int sign = 1;
+        if(plugin->get_top_direction() == PLAY_REVERSE)
         {
-            frame = plugin->spectrogram_frames.get(
-                plugin->new_spectrogram_frames[band]);
+            sign = -1;
         }
+
+	    int attack_samples;
+	    int release_samples;
+        int preview_samples;
+
+        band_state->engine->calculate_ranges(&attack_samples,
+            &release_samples,
+            &preview_samples,
+            sample_rate);
+
+// FFT advances 1/2 a window for each signal_process
+        frame->edl_position = plugin->get_top_position() + 
+            plugin->local_to_edl(plugin->filtered_size + 
+                plugin->new_spectrogram_frames[band] *
+                window_size / 2) * sign;
+//if(band == 1)
+//{
+// printf("CompressorFFT::signal_process %d top_position=%ld frame->edl_position=%ld\n", 
+// __LINE__, 
+// plugin->get_top_position(),
+// frame->edl_position);
+// printf("CompressorFFT::signal_process %d band=%d preview_samples=%d frames size=%ld filtered_size=%ld\n", 
+// __LINE__, 
+// band, 
+// preview_samples,
+// plugin->new_spectrogram_frames[band] * window_size,
+// plugin->filtered_size);
+//}
+        plugin->new_spectrogram_frames[band]++;
     }
 
-
-    int sign = 1;
-    if(plugin->get_top_direction() == PLAY_REVERSE)
-    {
-        sign = -1;
-    }
-
-    frame->edl_position = plugin->get_top_position() + 
-        (plugin->config.bands[band].attack_len * sample_rate + 
-        plugin->local_to_edl(plugin->new_spectrogram_frames[band] *
-            window_size)) * sign;
 
 
 //printf("CompressorFFT::signal_process %d channel=%d band=%d frame=%p\n", __LINE__, channel, band, frame);
@@ -1170,7 +1183,7 @@ int CompressorFFT::signal_process(int band)
         double mag = sqrt(freq_real[i] * freq_real[i] + 
             freq_imag[i] * freq_imag[i]);
 
-        double mag2 = plugin->band_states[band]->envelope[i] * mag;
+        double mag2 = band_state->envelope[i] * mag;
         double angle = atan2(freq_imag[i], freq_real[i]);
 
 		freq_real[i] = mag2 * cos(angle);
@@ -1237,7 +1250,7 @@ int CompressorFFT::post_process(int band)
 // frame->freq_max,
 // frame->time_max);
 
-        plugin->new_spectrogram_frames[band]++;
+        plugin->add_gui_frame(frame);
     }
 
     return 0;

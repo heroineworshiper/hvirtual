@@ -548,10 +548,9 @@ int ReverbFFT::signal_process()
     PluginClientFrame *frame = 0;
     if(plugin->new_spectrogram_frames >= plugin->spectrogram_frames.size())
     {
-	    frame = new PluginClientFrame(window_size / 2, 
-            window_size / 2, 
-            plugin->PluginAClient::project_sample_rate);
+	    frame = new PluginClientFrame;
         plugin->spectrogram_frames.append(frame);
+        frame->data_size = window_size / 2;
         frame->data = new double[window_size / 2];
         bzero(frame->data, sizeof(double) * window_size / 2);
         frame->nyquist = plugin->PluginAClient::project_sample_rate / 2;

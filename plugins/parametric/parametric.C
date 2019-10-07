@@ -711,9 +711,10 @@ void ParametricWindow::update_canvas()
 
 
 ParametricGUIFrame::ParametricGUIFrame(int window_size, int sample_rate)
- : PluginClientFrame(window_size / 2, window_size / 2, sample_rate)
+ : PluginClientFrame()
 {
 	this->window_size = window_size;
+    this->data_size = window_size / 2;
 	data = new double[window_size / 2];
 	freq_max = 0;
 	time_max = 0;

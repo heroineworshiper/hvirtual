@@ -204,13 +204,31 @@ void EQCanvas::update_spectrogram(PluginAClient *plugin,
             done = 1;
         }
     }
+    
+    if(frame)
+    {
+        update_spectrogram(frame, 
+            offset, 
+            size, 
+            window_size);
+    }
+}
 
-// printf("EQCanvas::update_spectrogram %d frame=%p data=%p freq_max=%f time_max=%f\n", 
+
+void EQCanvas::update_spectrogram(PluginClientFrame *frame, 
+    int offset, 
+    int size, 
+    int window_size)
+{
+// if(frame)
+// {
+// printf("EQCanvas::update_spectrogram %d frame->freq_max=%f frame->data=%p\n", 
 // __LINE__, 
-// frame,
-// frame ? frame->data : 0,
-// frame ? frame->freq_max : 0,
-// frame ? frame->time_max : 0);
+// frame->freq_max,
+// frame->data);
+// }
+
+
     canvas->set_color(MWindow::theme->graph_bg_color);
     canvas->draw_box(0, 0, canvas->get_w(), canvas->get_h());
     draw_grid();

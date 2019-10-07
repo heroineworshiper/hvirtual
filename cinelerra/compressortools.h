@@ -26,7 +26,7 @@
 
 
 #include "guicast.h"
-#include "pluginclient.inc"
+#include "pluginaclient.h"
 #include "samples.inc"
 
 
@@ -197,6 +197,18 @@ public:
 };
 
 
+// something to be drawn on the GUI
+class CompressorFrame : public PluginClientFrame
+{
+public:
+    CompressorFrame();
+    ~CompressorFrame();
+
+#define SPECTROGRAM_COMPRESSORFRAME 0
+#define GAIN_COMPRESSORFRAME 1
+    int type;
+    int band;
+};
 
 
 

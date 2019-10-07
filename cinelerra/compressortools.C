@@ -852,6 +852,17 @@ void CompressorCanvasBase::update_window()
 
 
 
+CompressorFrame::CompressorFrame()
+{
+}
+
+CompressorFrame::~CompressorFrame()
+{
+}
+
+
+
+
 
 
 

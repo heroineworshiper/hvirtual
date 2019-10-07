@@ -53,8 +53,8 @@ public:
 	double time_max;
 // the window size of a FFT / 2
 	int data_size;
-	int period_n;
-	int period_d;
+//	int period_n;
+//	int period_d;
     int nyquist;
 };
 
