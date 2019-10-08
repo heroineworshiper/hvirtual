@@ -47,8 +47,9 @@ CompressorWindow::~CompressorWindow()
 void CompressorWindow::create_objects()
 {
     int margin = client->get_theme()->widget_border;
-	int x = DP(35), y = margin;
+	int x = margin, y = margin;
 	int control_margin = DP(150);
+    int canvas_y2 = get_h() * 2 / 3;
     BC_Title *title;
     BandConfig *band_config = &plugin->config.bands[plugin->config.current_band];
     BandConfig *prev_band = 0;
@@ -57,7 +58,23 @@ void CompressorWindow::create_objects()
         prev_band = &plugin->config.bands[plugin->config.current_band - 1];
     }
 
-    add_subwindow(title = new BC_Title(margin, y, _("Current band:")));
+
+    add_subwindow(title = new BC_Title(x, y, "Gain:"));
+    int y2 = y + title->get_h() + margin;
+    add_subwindow(gain_change = new BC_Meter(x, 
+        y2, 
+        METER_VERT,
+        canvas_y2 - y2,
+        MIN_GAIN_CHANGE,
+        MAX_GAIN_CHANGE,
+        METER_DB,
+        1, // use_titles
+        -1, // span
+        1)); // is_gain_change
+
+
+    x += gain_change->get_w() + DP(35);
+    add_subwindow(title = new BC_Title(x, y, _("Current band:")));
     
     int x1 = title->get_x() + title->get_w() + margin;
     char string[BCTEXTLEN];
@@ -76,14 +93,14 @@ void CompressorWindow::create_objects()
     y += band[0]->get_h() + 1;
 
 
-    add_subwindow(title = new BC_Title(margin, y, _("Sound level (Press shift to snap to grid):")));
+    add_subwindow(title = new BC_Title(x, y, _("Sound level (Press shift to snap to grid):")));
     y += title->get_h() + 1;
 	add_subwindow(canvas = new CompressorCanvas(plugin, 
         this,
 		x, 
 		y, 
 		get_w() - x - control_margin - DP(10), 
-		get_h() * 2 / 3 - y));
+		canvas_y2 - y));
     y += canvas->get_h() + DP(30);
     
     add_subwindow(title = new BC_Title(margin, y, _("Bandwidth:")));
@@ -359,6 +376,9 @@ void CompressorWindow::update_eqcanvas()
 // filter GUI frames by band & data type
     int done = 0;
     CompressorFrame *frame = 0;
+    double gain_change_value = 0;
+    int have_gain_change = 0;
+    
     while(!done)
     {
 // pop off all obsolete frames
@@ -369,8 +389,17 @@ void CompressorWindow::update_eqcanvas()
 // keep desired band
             if(frame->band == plugin->config.current_band)
             {
-                delete eqcanvas->last_frame;
-                eqcanvas->last_frame = frame;
+                if(frame->type == SPECTROGRAM_COMPRESSORFRAME)
+                {
+                    delete eqcanvas->last_frame;
+                    eqcanvas->last_frame = frame;
+                }
+                else
+                {
+                    gain_change_value = frame->data[0];
+                    have_gain_change = 1;
+                    delete frame;
+                }
             }
             else
 // discard other bands
@@ -387,6 +416,14 @@ void CompressorWindow::update_eqcanvas()
         }
     }
 
+
+    if(have_gain_change)
+    {
+// printf("CompressorWindow::update_eqcanvas %d gain_change_value=%f\n",
+// __LINE__,
+// gain_change_value);
+        gain_change->update(gain_change_value, 0);
+    }
 
 
 #ifndef DRAW_AFTER_BANDPASS

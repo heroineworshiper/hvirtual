@@ -157,6 +157,7 @@ public:
 	void update();
 	void update_textboxes();
 	void draw_scales();
+    void update_meter(CompressorFrame *frame);
 	int resize_event(int w, int h);	
 	
 	CompressorCanvas *canvas;
@@ -169,6 +170,7 @@ public:
 	CompressorRelease *release;
 	CompressorSmooth *smooth;
 	CompressorInput *input;
+    BC_Meter *gain_change;
 	CompressorEffect *plugin;
 };
 

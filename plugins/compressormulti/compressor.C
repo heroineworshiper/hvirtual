@@ -517,20 +517,39 @@ int CompressorEffect::process_buffer(int64_t size,
 
 
 
+    int sign = 1;
+    if(get_top_direction() == PLAY_REVERSE)
+    {
+        sign = -1;
+    }
+
 // process time domane for each band separately
 	int trigger = CLIP(config.trigger, 0, channels - 1);
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
         BandState *band_state = band_states[band];
+        CompressorEngine *engine = band_state->engine;
         
-        
-        band_state->engine->process(band_states[band]->filtered_buffer,
+        engine->process(band_states[band]->filtered_buffer,
             band_states[band]->filtered_buffer,
             size,
             sample_rate,
             channels,
             start_position);
 
+        for(int i = 0; i < engine->gui_values.size(); i++)
+        {
+            CompressorFrame *frame = new CompressorFrame;
+            frame->data_size = 1;
+            frame->data = new double[1];
+
+            frame->data[0] = engine->gui_values.get(i);
+            frame->type = GAIN_COMPRESSORFRAME;
+            frame->band = band;
+            frame->edl_position = get_top_position() + 
+                local_to_edl(engine->gui_offsets.get(i)) * sign;
+            add_gui_frame(frame);
+        }
     }
 
 // Add together filtered buffers + unfiltered buffer.
@@ -1144,14 +1163,14 @@ int CompressorFFT::signal_process(int band)
             sign = -1;
         }
 
-	    int attack_samples;
-	    int release_samples;
-        int preview_samples;
-
-        band_state->engine->calculate_ranges(&attack_samples,
-            &release_samples,
-            &preview_samples,
-            sample_rate);
+// 	    int attack_samples;
+// 	    int release_samples;
+//         int preview_samples;
+// 
+//         band_state->engine->calculate_ranges(&attack_samples,
+//             &release_samples,
+//             &preview_samples,
+//             sample_rate);
 
 // FFT advances 1/2 a window for each signal_process
         frame->edl_position = plugin->get_top_position() + 

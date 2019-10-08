@@ -36,6 +36,9 @@
 #define MAX_DECAY 255
 #define MIN_TRIGGER 0
 #define MAX_TRIGGER 255
+// range of the meter
+#define MIN_GAIN_CHANGE -20
+#define MAX_GAIN_CHANGE 20
 
 
 class CompressorConfigBase;
@@ -246,6 +249,15 @@ public:
 	int slope_current_sample;
 // current value in the line segment
 	double current_value;
+// values applied in the last process() for the user to update a GUI
+    ArrayList<double> gui_values;
+// which sample in process() the gui_values came from
+    ArrayList<int> gui_offsets;
+// samples between gui_values.  Set by the user.
+    int gui_frame_samples;
+// temporaries
+    int gui_frame_counter;
+    double gui_frame_max;
 };
 
 

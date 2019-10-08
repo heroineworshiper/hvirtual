@@ -51,9 +51,11 @@ BC_Meter::BC_Meter(int x,
 	int max,
 	int mode, 
 	int use_titles,
-	int span)
+	int span,
+    int is_gain_change)
  : BC_SubWindow(x, y, -1, -1)
 {
+    this->is_gain_change = is_gain_change;
 	this->over_delay = 150;
 	this->peak_delay = 15;
 	this->use_titles = use_titles;
@@ -101,7 +103,15 @@ int BC_Meter::initialize()
 	level_pixel = peak_pixel = 0;
 	over_timer = 0;
 	over_count = 0;
-	peak = level = -100;
+    
+    if(is_gain_change)
+    {
+        peak = level = 0;
+    }
+    else
+    {
+    	peak = level = -100;
+    }
 
 	if(orientation == METER_VERT)
 	{
@@ -308,6 +318,7 @@ void BC_Meter::get_divisions()
 void BC_Meter::draw_titles(int flush)
 {
 	if(!use_titles) return;
+    int tick_fudge = DP(1);
 
 	set_font(get_resources()->meter_font);
 
@@ -333,15 +344,19 @@ void BC_Meter::draw_titles(int flush)
 			int title_y = pixels - 
 				title_pixels.values[i];
 			if(i == 0) 
-				title_y -= get_text_descent(SMALLFONT_3D);
+				title_y -= get_text_descent(get_resources()->meter_font);
 			else
 			if(i == db_titles.total - 1)
-				title_y += get_text_ascent(SMALLFONT_3D);
+				title_y += get_text_ascent(get_resources()->meter_font);
 			else
-				title_y += get_text_ascent(SMALLFONT_3D) / 2;
+				title_y += get_text_ascent(get_resources()->meter_font) / 2;
+            int title_x = get_title_w() - 
+                TICK_W1 - 
+                tick_fudge -
+                get_text_width(get_resources()->meter_font, db_titles.values[i]);
 
 			set_color(get_resources()->meter_font_color);
-			draw_text(0, 
+			draw_text(title_x, 
 				title_y,
 				db_titles.values[i]);
 		}
@@ -351,12 +366,18 @@ void BC_Meter::draw_titles(int flush)
 // Tick marks
 			int tick_y = pixels - tick_pixels.values[i] - METER_MARGIN;
 			set_color(get_resources()->meter_font_color);
-			draw_line(get_title_w() - tick_w.get(i) - 1, tick_y, get_title_w() - 1, tick_y);
+			draw_line(get_title_w() - tick_w.get(i) - tick_fudge, 
+                tick_y, 
+                get_title_w() - tick_fudge, 
+                tick_y);
 			
 			if(get_resources()->meter_3d)
 			{
 				set_color(BLACK);
-				draw_line(get_title_w() - tick_w.get(i), tick_y + 1, get_title_w(), tick_y + 1);
+				draw_line(get_title_w() - tick_w.get(i), 
+                    tick_y + 1, 
+                    get_title_w(), 
+                    tick_y + 1);
 			}
 		}
 
@@ -367,7 +388,7 @@ void BC_Meter::draw_titles(int flush)
 int BC_Meter::region_pixel(int region)
 {
 	VFrame **reference_images = get_resources()->xmeter_images;
-	int result;
+	int result = 0;
 
 	if(region == METER_RIGHT) 
 		result = region * reference_images[0]->get_w() / 4;
@@ -417,145 +438,266 @@ void BC_Meter::draw_face(int flush)
 // w, 
 // h);
 
-	while(pixel < pixels)
-	{
+    if(is_gain_change)
+    {
+        int in_h = images[0]->get_h();
+        int in_third = in_h / 3;
+        int in_third3 = in_h - in_third * 2;
+
+// printf("BC_Meter::draw_face %d level=%f level_pixel=%d high_division=%d\n", 
+// __LINE__, 
+// level,
+// level_pixel,
+// high_division);
+
+
+// fudge a line when no gain change
+        if(level_pixel == high_division)
+        {
+            level_pixel += 1;
+        }
+
+        while(pixel < pixels)
+        {
+// Select image to draw & extents
+            if(level_pixel < high_division)
+            {
+// always vertical
+                if(pixel < level_pixel)
+                {
+                    image_number = METER_NORMAL;
+                    in_span = level_pixel - pixel;
+                }
+                else
+                if(pixel < high_division)
+                {
+                    image_number = METER_RED;
+                    in_span = high_division - pixel;
+                }
+                else
+                {
+                    image_number = METER_NORMAL;
+                    in_span = pixels - pixel;
+                }
+            }
+            else
+            {
+// determine pixel range & image to draw
+                if(pixel < high_division)
+                {
+                    image_number = METER_NORMAL;
+                    in_span = high_division - pixel;
+                }
+                else
+                if(pixel < level_pixel)
+                {
+                    image_number = METER_GREEN;
+                    in_span = level_pixel - pixel;
+                }
+                else
+                {
+                    image_number = METER_NORMAL;
+                    in_span = pixels - pixel;
+                }
+            }
+
+// determine starting point in source to draw
+// draw starting section
+            if(pixel == 0)
+            {
+                in_start = 0;
+            }
+            else
+// draw middle section
+            if(pixels - pixel > in_third3)
+            {
+                in_start = in_third;
+            }
+            else
+// draw last section
+            {
+                in_start = in_third * 2;
+            }
+
+// clamp the region to the source dimensions
+            if(in_start < in_third * 2)
+            {
+                if(in_span > in_third)
+                {
+                    in_span = in_third;
+                }
+            }
+            else
+// last segment
+            if(pixels - pixel < in_third3)
+            {
+                in_span = pixels - pixel;
+                in_start = in_h - in_span;
+            }
+
+// printf("BC_Meter::draw_face %d dst_y=%d src_y=%d pixels=%d pixel=%d in_h=%d in_start=%d in_span=%d in_third=%d in_third3=%d\n", 
+// __LINE__, 
+// get_h() - pixel - in_span,
+// in_h - in_start - in_span,
+// pixels,
+// pixel,
+// in_h,
+// in_start,
+// in_span,
+// in_third,
+// in_third3);
+            draw_pixmap(images[image_number],
+				x,
+				get_h() - pixel - in_span,
+				get_w(),
+				in_span + 1,
+				0,
+				in_h - in_start - in_span);
+            pixel += in_span;
+        }
+    }
+    else
+    {
+	    while(pixel < pixels)
+	    {
 // Select image to draw
-		if(pixel < level_pixel ||
-			(pixel >= peak_pixel1 && pixel < peak_pixel2))
-		{
-			if(pixel < low_division)
-				image_number = METER_GREEN;
-			else
-			if(pixel < medium_division)
-				image_number = METER_YELLOW;
-			else
-			if(pixel < high_division)
-				image_number = METER_RED;
-			else
-				image_number = METER_WHITE;
-		}
-		else
-		{
-			image_number = METER_NORMAL;
-		}
+		    if(pixel < level_pixel ||
+			    (pixel >= peak_pixel1 && pixel < peak_pixel2))
+		    {
+			    if(pixel < low_division)
+				    image_number = METER_GREEN;
+			    else
+			    if(pixel < medium_division)
+				    image_number = METER_YELLOW;
+			    else
+			    if(pixel < high_division)
+				    image_number = METER_RED;
+			    else
+				    image_number = METER_WHITE;
+		    }
+		    else
+		    {
+			    image_number = METER_NORMAL;
+		    }
 
 // Select region of image to duplicate
-		if(pixel < left_pixel)
-		{
-			region = METER_LEFT;
-			in_start = pixel + region_pixel(region);
-			in_span = region_pixels(region) - (in_start - region_pixel(region));
-		}
-		else
-		if(pixel < right_pixel)
-		{
-			region = METER_MID;
-			in_start = region_pixel(region);
-			in_span = region_pixels(region);
-		}
-		else
-		{
-			region = METER_RIGHT;
-			in_start = (pixel - right_pixel) + region_pixel(region);
-			in_span = region_pixels(region) - (in_start - region_pixel(region));;
-		}
+		    if(pixel < left_pixel)
+		    {
+			    region = METER_LEFT;
+			    in_start = pixel + region_pixel(region);
+			    in_span = region_pixels(region) - (in_start - region_pixel(region));
+		    }
+		    else
+		    if(pixel < right_pixel)
+		    {
+			    region = METER_MID;
+			    in_start = region_pixel(region);
+			    in_span = region_pixels(region);
+		    }
+		    else
+		    {
+			    region = METER_RIGHT;
+			    in_start = (pixel - right_pixel) + region_pixel(region);
+			    in_span = region_pixels(region) - (in_start - region_pixel(region));;
+		    }
 
-//printf("BC_Meter::draw_face region %d pixel %d pixels %d in_start %d in_span %d\n", region, pixel, pixels, in_start, in_span);
-		if(in_span > 0)
-		{
-// Clip length to peaks
-			if(pixel < level_pixel && pixel + in_span > level_pixel)
-				in_span = level_pixel - pixel;
-			else
-			if(pixel < peak_pixel1 && pixel + in_span > peak_pixel1)
-				in_span = peak_pixel1 - pixel;
-			else
-			if(pixel < peak_pixel2 && pixel + in_span > peak_pixel2) 
-				in_span = peak_pixel2 - pixel;
+    //printf("BC_Meter::draw_face region %d pixel %d pixels %d in_start %d in_span %d\n", region, pixel, pixels, in_start, in_span);
+		    if(in_span > 0)
+		    {
+    // Clip length to peaks
+			    if(pixel < level_pixel && pixel + in_span > level_pixel)
+				    in_span = level_pixel - pixel;
+			    else
+			    if(pixel < peak_pixel1 && pixel + in_span > peak_pixel1)
+				    in_span = peak_pixel1 - pixel;
+			    else
+			    if(pixel < peak_pixel2 && pixel + in_span > peak_pixel2) 
+				    in_span = peak_pixel2 - pixel;
 
-// Clip length to color changes
-			if(image_number == METER_GREEN && pixel + in_span > low_division)
-				in_span = low_division - pixel;
-			else
-			if(image_number == METER_YELLOW && pixel + in_span > medium_division)
-				in_span = medium_division - pixel;
-			else
-			if(image_number == METER_RED && pixel + in_span > high_division)
-				in_span = high_division - pixel;
+    // Clip length to color changes
+			    if(image_number == METER_GREEN && pixel + in_span > low_division)
+				    in_span = low_division - pixel;
+			    else
+			    if(image_number == METER_YELLOW && pixel + in_span > medium_division)
+				    in_span = medium_division - pixel;
+			    else
+			    if(image_number == METER_RED && pixel + in_span > high_division)
+				    in_span = high_division - pixel;
 
-// Clip length to regions
-			if(pixel < left_pixel && pixel + in_span > left_pixel)
-				in_span = left_pixel - pixel;
-			else
-			if(pixel < right_pixel && pixel + in_span > right_pixel)
-				in_span = right_pixel - pixel;
+    // Clip length to regions
+			    if(pixel < left_pixel && pixel + in_span > left_pixel)
+				    in_span = left_pixel - pixel;
+			    else
+			    if(pixel < right_pixel && pixel + in_span > right_pixel)
+				    in_span = right_pixel - pixel;
 
-//printf("BC_Meter::draw_face image_number %d pixel %d pixels %d in_start %d in_span %d\n", image_number, pixel, pixels, in_start, in_span);
-//printf("BC_Meter::draw_face %d %d %d %d\n", orientation, region, images[image_number]->get_h() - in_start - in_span);
-			if(orientation == METER_HORIZ)
-			{
-				draw_pixmap(images[image_number], 
-					pixel, 
-					x, 
-					in_span + 1, 
-					get_h(), 
-					in_start, 
-					0);
-			}
-			else
-			{
-//printf("BC_Meter::draw_face %d %d\n", __LINE__, span);
-				if(span < 0)
-				{
-					draw_pixmap(images[image_number],
-						x,
-						get_h() - pixel - in_span,
-						get_w(),
-						in_span + 1,
-						0,
-						images[image_number]->get_h() - in_start - in_span);
-				}
-				else
-				{
-					int total_w = get_w() - x;
-					int third = images[image_number]->get_w() / 3 + 1;
-
-
-					for(int x1 = 0; x1 < total_w; x1 += third)
-					{
-						int in_x = 0;
-						int in_w = third;
-						if(x1 >= third) in_x = third;
-						if(x1 >= total_w - third)
-						{
-							in_x = images[image_number]->get_w() - 
-								(total_w - x1);
-							in_w = total_w - x1;
-						}
-
-						int in_y = images[image_number]->get_h() - in_start - in_span;
-//printf("BC_Meter::draw_face %d %d %d\n", __LINE__, get_w(), x + x1 + in_w, in_x, in_y, in_w, span);
+    //printf("BC_Meter::draw_face image_number %d pixel %d pixels %d in_start %d in_span %d\n", image_number, pixel, pixels, in_start, in_span);
+    //printf("BC_Meter::draw_face %d %d %d %d\n", orientation, region, images[image_number]->get_h() - in_start - in_span);
+			    if(orientation == METER_HORIZ)
+			    {
+				    draw_pixmap(images[image_number], 
+					    pixel, 
+					    x, 
+					    in_span + 1, 
+					    get_h(), 
+					    in_start, 
+					    0);
+			    }
+			    else
+			    {
+    //printf("BC_Meter::draw_face %d %d\n", __LINE__, span);
+				    if(span < 0)
+				    {
+					    draw_pixmap(images[image_number],
+						    x,
+						    get_h() - pixel - in_span,
+						    get_w(),
+						    in_span + 1,
+						    0,
+						    images[image_number]->get_h() - in_start - in_span);
+				    }
+				    else
+				    {
+					    int total_w = get_w() - x;
+					    int third = images[image_number]->get_w() / 3 + 1;
 
 
-						draw_pixmap(images[image_number],
-							x + x1,
-							get_h() - pixel - in_span,
-							in_w,
-							in_span + 1,
-							in_x,
-							in_y);
-					}
-				}
-			}
+					    for(int x1 = 0; x1 < total_w; x1 += third)
+					    {
+						    int in_x = 0;
+						    int in_w = third;
+						    if(x1 >= third) in_x = third;
+						    if(x1 >= total_w - third)
+						    {
+							    in_x = images[image_number]->get_w() - 
+								    (total_w - x1);
+							    in_w = total_w - x1;
+						    }
 
-			pixel += in_span;
-		}
-		else
-		{
-// Sanity check
-			break;
-		}
-	}
+						    int in_y = images[image_number]->get_h() - in_start - in_span;
+    //printf("BC_Meter::draw_face %d %d %d\n", __LINE__, get_w(), x + x1 + in_w, in_x, in_y, in_w, span);
+
+
+						    draw_pixmap(images[image_number],
+							    x + x1,
+							    get_h() - pixel - in_span,
+							    in_w,
+							    in_span + 1,
+							    in_x,
+							    in_y);
+					    }
+				    }
+			    }
+
+			    pixel += in_span;
+		    }
+		    else
+		    {
+    // Sanity check
+			    break;
+		    }
+	    }
+    }
 
 	if(over_timer)
 	{
@@ -586,10 +728,13 @@ int BC_Meter::update(float new_value, int over)
 		if(new_value == 0) 
 			level = min;
 		else
-			level = db.todb(new_value);        // db value
+			level = DB::todb(new_value);        // db value
 	}
 
-	if(level > peak || peak_timer > peak_delay)
+
+	if(is_gain_change && fabs(level) > fabs(peak) ||
+        !is_gain_change && level > peak || 
+        peak_timer > peak_delay)
 	{
 		peak = level;
 		peak_timer = 0;

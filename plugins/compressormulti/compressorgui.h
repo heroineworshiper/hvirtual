@@ -199,6 +199,7 @@ public:
 	CompressorSolo *solo;
     CompressorBypass *bypass;
 	CompressorInput *input;
+    BC_Meter *gain_change;
     CompressorBand *band[TOTAL_BANDS];
 
 

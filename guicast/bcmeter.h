@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,8 @@ public:
 		int max,
 		int mode, /* = METER_DB, */
 		int use_titles, /* = 0, */
-		int span /* = -1 width for vertical mode only */);
+		int span /* = -1 width for vertical mode only */,
+        int is_gain_change = 0);
 	virtual ~BC_Meter();
 
 	int initialize();
@@ -101,8 +102,8 @@ private:
 	ArrayList<char*> db_titles;
 	float level, peak;
 	int mode;
-	DB db;
 	int peak_timer;
+    int is_gain_change;
 
 
 

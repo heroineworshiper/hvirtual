@@ -29,6 +29,7 @@
 #include "language.h"
 #include "samples.h"
 #include "theme.h"
+#include "tracking.inc"
 #include "transportque.inc"
 #include "units.h"
 #include "vframe.h"
@@ -213,12 +214,32 @@ void CompressorEffect::update_gui()
 {
 	if(thread)
 	{
-		if(load_configuration())
-		{
+        int reconfigured = load_configuration();
+        int total_frames = pending_gui_frames();
+        if(reconfigured || total_frames)
+        {
 			thread->window->lock_window("CompressorEffect::update_gui");
-			((CompressorWindow*)thread->window)->update();
+		    if(reconfigured)
+		    {
+			    ((CompressorWindow*)thread->window)->update();
+		    }
+            
+            if(total_frames)
+            {
+                CompressorFrame *frame;
+                for(int i = 0; i < total_frames; i++)
+                {
+                    frame = (CompressorFrame*)get_gui_frame();
+                    if(i < total_frames - 1)
+                    {
+                        delete frame;
+                    }
+                }
+                ((CompressorWindow*)thread->window)->update_meter(frame);
+                delete frame;
+            }
 			thread->window->unlock_window();
-		}
+        }
 	}
 }
 
@@ -273,6 +294,7 @@ int CompressorEffect::process_buffer(int64_t size,
     if(!engine)
     {
         engine = new CompressorEngine(&config, 0);
+        engine->gui_frame_samples = sample_rate / TRACKING_RATE + 1;
     }
     engine->calculate_ranges(&attack_samples,
         &release_samples,
@@ -352,7 +374,22 @@ int CompressorEffect::process_buffer(int64_t size,
         PluginClient::total_in_buffers,
         start_position);
 
+    int sign = 1;
+    if(get_top_direction() == PLAY_REVERSE)
+    {
+        sign = -1;
+    }
 
+    for(int i = 0; i < engine->gui_values.size(); i++)
+    {
+        CompressorFrame *frame = new CompressorFrame;
+        frame->data_size = 1;
+        frame->data = new double[1];
+        frame->data[0] = engine->gui_values.get(i);
+        frame->edl_position = get_top_position() + 
+            local_to_edl(engine->gui_offsets.get(i)) * sign;
+        add_gui_frame(frame);
+    }
 
     if(get_direction() == PLAY_FORWARD)
     {
@@ -452,18 +489,34 @@ CompressorWindow::~CompressorWindow()
 void CompressorWindow::create_objects()
 {
     int margin = client->get_theme()->widget_border;
-	int x = DP(35), y = margin;
+	int x = margin, y = margin;
 	int control_margin = DP(130);
+    int canvas_y2 = get_h() - DP(35);
     BC_Title *title;
 
-    add_subwindow(title = new BC_Title(margin, y, _("Sound level (Press shift to snap to grid):")));
+    add_subwindow(title = new BC_Title(x, y, "Gain:"));
+    int y2 = y + title->get_h() + margin;
+    add_subwindow(gain_change = new BC_Meter(x, 
+        y2, 
+        METER_VERT,
+        canvas_y2 - y2,
+        MIN_GAIN_CHANGE,
+        MAX_GAIN_CHANGE,
+        METER_DB,
+        1, // use_titles
+        -1, // span
+        1)); // is_gain_change
+//    gain_change->update(1, 0);
+
+    x += gain_change->get_w() + DP(35);
+    add_subwindow(title = new BC_Title(x, y, _("Sound level (Press shift to snap to grid):")));
     y += title->get_h() + 1;
 	add_subwindow(canvas = new CompressorCanvas(plugin, 
         this,
 		x, 
 		y, 
 		get_w() - x - control_margin - DP(10), 
-		get_h() - y - DP(70)));
+		canvas_y2 - y));
 	x = get_w() - control_margin;
     
     
@@ -533,6 +586,13 @@ void CompressorWindow::update()
 {
 	update_textboxes();
 	canvas->update();
+}
+
+void CompressorWindow::update_meter(CompressorFrame *frame)
+{
+//printf("CompressorWindow::update_meter %d %f\n", __LINE__, frame->data[0]);
+    double value = frame->data[0];
+    gain_change->update(value, 0);
 }
 
 void CompressorWindow::update_textboxes()

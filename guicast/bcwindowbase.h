@@ -407,20 +407,6 @@ public:
 		int total_w,
 		BC_Pixmap *src,
 		BC_Pixmap *dst = 0);
-	void draw_3segmentv(int x, 
-		int y, 
-		int h, 
-		int total_y,
-		int total_h,
-		BC_Pixmap *src,
-		BC_Pixmap *dst = 0);
-	void draw_3segmentv(int x, 
-		int y, 
-		int h, 
-		int total_y,
-		int total_h,
-		VFrame *src,
-		BC_Pixmap *dst = 0);
 // For drawing a single level
 	void draw_3segmenth(int x, 
 		int y, 

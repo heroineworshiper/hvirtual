@@ -892,6 +892,9 @@ void CompressorEngine::reset()
 	slope_samples = 0;
 	slope_current_sample = 0;
     current_value = 1.0;
+    gui_frame_samples = 2048;
+    gui_frame_max = 1.0;
+    gui_frame_counter = 0;
 }
 
 
@@ -922,6 +925,8 @@ void CompressorEngine::process(Samples **output_buffer,
     int preview_samples;
 	int trigger = CLIP(config->trigger, 0, channels - 1);
 
+    gui_values.remove_all();
+    gui_offsets.remove_all();
     
     calculate_ranges(&attack_samples,
         &release_samples,
@@ -1079,7 +1084,6 @@ bug = 1;
             slope_current_sample / 
             slope_samples;
 
-
 		if(config->smoothing_only)
 		{
 			for(int j = 0; j < channels; j++)
@@ -1089,7 +1093,33 @@ bug = 1;
 		}
 		else
 		{
-			double gain = config->calculate_gain(band, current_value);
+	        double gain = 1.0;
+            
+            if(band_config->bypass)
+            {
+                gain = 1.0;
+            }
+            else
+            {
+                gain = config->calculate_gain(band, current_value);
+            }
+// update the GUI frames
+            if(fabs(gain - 1.0) > fabs(gui_frame_max - 1.0))
+            {
+                gui_frame_max = gain;
+            }
+//if(!EQUIV(gain, 1.0)) printf("CompressorEngine::process %d gain=%f\n", __LINE__, gain);
+
+            gui_frame_counter++;
+            if(gui_frame_counter > gui_frame_samples)
+            {
+//if(!EQUIV(gui_frame_max, 1.0)) printf("CompressorEngine::process %d offset=%d gui_frame_max=%f\n", __LINE__, i, gui_frame_max);
+                gui_values.append(gui_frame_max);
+                gui_offsets.append(i);
+                gui_frame_max = 1.0;
+                gui_frame_counter = 0;
+            }
+
 			for(int j = 0; j < channels; j++)
 			{
 				output_buffer[j]->get_data()[i] = input_buffer[j]->get_data()[i] * gain;
