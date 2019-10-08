@@ -22,7 +22,8 @@ MJPEGDIR := $(shell expr thirdparty/mjpegtools* )
 
 
 all: $(OBJDIR)/soundtest
-	$(MAKE) -f build/Makefile.sndfile
+#	$(MAKE) -f build/Makefile.sndfile
+    $(MAKE) -C thirdparty/libsndfile*
 	$(MAKE) -f build/Makefile.gif
 	$(MAKE) -f build/Makefile.exr
 	$(MAKE) -f build/Makefile.esound
@@ -63,7 +64,8 @@ $(OBJDIR)/soundtest: $(OBJDIR)/soundtest.o
 	$(CC) -o $(OBJDIR)/soundtest $(OBJDIR)/soundtest.o -lm
 
 clean:
-	$(MAKE) -f build/Makefile.sndfile clean
+    $(MAKE) -C thirdparty/libsndfile* clean
+#	$(MAKE) -f build/Makefile.sndfile clean
 	$(MAKE) -f build/Makefile.gif clean
 	$(MAKE) -f build/Makefile.exr clean
 	$(MAKE) -f build/Makefile.esound clean

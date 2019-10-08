@@ -369,7 +369,7 @@ STATICLIBS = \
 	$(TIFF_DIR)/$(OBJDIR)/libtiff.a \
 	../guicast/$(OBJDIR)/libguicast.a \
 	../libmpeg3/$(OBJDIR)/libmpeg3.a \
-	$(SNDFILE_DIR)/$(OBJDIR)/libsndfile.a \
+	$(SNDFILE_DIR)/src/.libs/libsndfile.a \
 	$(UUID_DIR)/$(OBJDIR)/libuuid.a \
 	../mpeg2enc/$(OBJDIR)/mpeg2enc.a \
 	$(TOOLAME_DIR)/$(OBJDIR)/toolame.a \
