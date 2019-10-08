@@ -360,6 +360,24 @@ void BrightTheme::initialize()
 		"radial_checkedhi.png");
 
 
+
+	resources->ymeter_images = new_image_set(6, 
+		"ymeter_normal.png",
+		"ymeter_green.png",
+		"ymeter_red.png",
+		"ymeter_yellow.png",
+		"ymeter_white.png",
+		"ymeter_over.png");
+
+	resources->xmeter_images = new_image_set(6, 
+		"xmeter_normal.png",
+		"xmeter_green.png",
+		"xmeter_red.png",
+		"xmeter_yellow.png",
+		"xmeter_white.png",
+		"xmeter_over.png");
+
+
 	resources->hscroll_data = new_image_set(10,
 			"bright_hscroll_handle_up.png",
 			"bright_hscroll_handle_hi.png",
