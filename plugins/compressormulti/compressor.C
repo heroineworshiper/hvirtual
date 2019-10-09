@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
@@ -537,13 +536,14 @@ int CompressorEffect::process_buffer(int64_t size,
             channels,
             start_position);
 
-        for(int i = 0; i < engine->gui_values.size(); i++)
+        for(int i = 0; i < engine->gui_gains.size(); i++)
         {
             CompressorFrame *frame = new CompressorFrame;
             frame->data_size = 1;
-            frame->data = new double[1];
+            frame->data = new double[2];
 
-            frame->data[0] = engine->gui_values.get(i);
+            frame->data[0] = engine->gui_gains.get(i);
+            frame->data[1] = engine->gui_levels.get(i);
             frame->type = GAIN_COMPRESSORFRAME;
             frame->band = band;
             frame->edl_position = get_top_position() + 

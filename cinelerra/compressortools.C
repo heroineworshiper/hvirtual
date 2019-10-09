@@ -893,7 +893,7 @@ void CompressorEngine::reset()
 	slope_current_sample = 0;
     current_value = 1.0;
     gui_frame_samples = 2048;
-    gui_frame_max = 1.0;
+    gui_max_gain = 1.0;
     gui_frame_counter = 0;
 }
 
@@ -925,7 +925,8 @@ void CompressorEngine::process(Samples **output_buffer,
     int preview_samples;
 	int trigger = CLIP(config->trigger, 0, channels - 1);
 
-    gui_values.remove_all();
+    gui_gains.remove_all();
+    gui_levels.remove_all();
     gui_offsets.remove_all();
     
     calculate_ranges(&attack_samples,
@@ -1094,7 +1095,7 @@ bug = 1;
 		else
 		{
 	        double gain = 1.0;
-            
+
             if(band_config->bypass)
             {
                 gain = 1.0;
@@ -1103,20 +1104,30 @@ bug = 1;
             {
                 gain = config->calculate_gain(band, current_value);
             }
+
 // update the GUI frames
-            if(fabs(gain - 1.0) > fabs(gui_frame_max - 1.0))
+            if(fabs(gain - 1.0) > fabs(gui_max_gain - 1.0))
             {
-                gui_frame_max = gain;
+                gui_max_gain = gain;
             }
 //if(!EQUIV(gain, 1.0)) printf("CompressorEngine::process %d gain=%f\n", __LINE__, gain);
+
+// calculate the input level to draw.  Should it be the trigger or a channel?
+            GET_TRIGGER(input_buffer[channel]->get_data(), i);
+            if(sample > gui_max_level)
+            {
+                gui_max_level = sample;
+            }
 
             gui_frame_counter++;
             if(gui_frame_counter > gui_frame_samples)
             {
 //if(!EQUIV(gui_frame_max, 1.0)) printf("CompressorEngine::process %d offset=%d gui_frame_max=%f\n", __LINE__, i, gui_frame_max);
-                gui_values.append(gui_frame_max);
+                gui_gains.append(gui_max_gain);
+                gui_levels.append(gui_max_level);
                 gui_offsets.append(i);
-                gui_frame_max = 1.0;
+                gui_max_gain = 1.0;
+                gui_max_level = 0.0;
                 gui_frame_counter = 0;
             }
 

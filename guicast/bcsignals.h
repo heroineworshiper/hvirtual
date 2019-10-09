@@ -33,8 +33,11 @@
 
 // BC_Signals must be initialized at the start of every program using
 // debugging.
+
 //#define ENABLE_TRACE
-//#define TRACE_LOCKS
+
+#define TRACE_LOCKS
+
 //#ifdef TRACE_LOCKS
 //#undef TRACE_LOCKS
 //#endif

@@ -170,6 +170,7 @@ public:
 	CompressorRelease *release;
 	CompressorSmooth *smooth;
 	CompressorInput *input;
+    BC_Meter *in;
     BC_Meter *gain_change;
 	CompressorEffect *plugin;
 };
