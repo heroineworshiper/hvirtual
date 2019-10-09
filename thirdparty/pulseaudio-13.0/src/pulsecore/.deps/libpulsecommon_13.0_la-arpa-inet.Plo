@@ -1,0 +1,6 @@
+pulsecore/libpulsecommon_13.0_la-arpa-inet.lo: pulsecore/arpa-inet.c \
+ /usr/include/stdc-predef.h ../config.h
+
+/usr/include/stdc-predef.h:
+
+../config.h:

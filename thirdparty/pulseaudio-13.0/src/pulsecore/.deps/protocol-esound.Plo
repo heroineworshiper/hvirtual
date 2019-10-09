@@ -1,0 +1,466 @@
+pulsecore/protocol-esound.lo: pulsecore/protocol-esound.c \
+ /usr/include/stdc-predef.h ../config.h /usr/include/errno.h \
+ /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/x86_64-linux-gnu/bits/wordsize.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs.h \
+ /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
+ /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
+ /usr/include/x86_64-linux-gnu/asm/errno.h \
+ /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
+ /usr/include/string.h /usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h \
+ /usr/include/xlocale.h /usr/include/x86_64-linux-gnu/bits/string.h \
+ /usr/include/x86_64-linux-gnu/bits/string2.h /usr/include/endian.h \
+ /usr/include/x86_64-linux-gnu/bits/endian.h \
+ /usr/include/x86_64-linux-gnu/bits/byteswap.h \
+ /usr/include/x86_64-linux-gnu/bits/types.h \
+ /usr/include/x86_64-linux-gnu/bits/typesizes.h \
+ /usr/include/x86_64-linux-gnu/bits/byteswap-16.h /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/string3.h /usr/include/stdio.h \
+ /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/sys_errlist.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio2.h \
+ /usr/include/x86_64-linux-gnu/bits/waitflags.h \
+ /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
+ /usr/include/x86_64-linux-gnu/sys/types.h /usr/include/time.h \
+ /usr/include/x86_64-linux-gnu/sys/select.h \
+ /usr/include/x86_64-linux-gnu/bits/select.h \
+ /usr/include/x86_64-linux-gnu/bits/sigset.h \
+ /usr/include/x86_64-linux-gnu/bits/time.h \
+ /usr/include/x86_64-linux-gnu/bits/select2.h \
+ /usr/include/x86_64-linux-gnu/sys/sysmacros.h \
+ /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h pulse/rtclock.h \
+ pulse/cdecl.h pulse/sample.h /usr/include/inttypes.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h /usr/include/stdint.h \
+ /usr/include/x86_64-linux-gnu/bits/wchar.h \
+ /usr/include/x86_64-linux-gnu/sys/param.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/limits.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/syslimits.h \
+ /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/local_lim.h \
+ /usr/include/linux/limits.h \
+ /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/xopen_lim.h /usr/include/signal.h \
+ /usr/include/x86_64-linux-gnu/bits/signum.h \
+ /usr/include/x86_64-linux-gnu/bits/siginfo.h \
+ /usr/include/x86_64-linux-gnu/bits/sigaction.h \
+ /usr/include/x86_64-linux-gnu/bits/sigcontext.h \
+ /usr/include/x86_64-linux-gnu/bits/sigstack.h \
+ /usr/include/x86_64-linux-gnu/sys/ucontext.h \
+ /usr/include/x86_64-linux-gnu/bits/sigthread.h \
+ /usr/include/x86_64-linux-gnu/bits/param.h /usr/include/linux/param.h \
+ /usr/include/x86_64-linux-gnu/asm/param.h \
+ /usr/include/asm-generic/param.h pulse/gccmacro.h pulse/version.h \
+ pulse/timeval.h pulse/utf8.h pulse/xmalloc.h /usr/include/assert.h \
+ pulse/proplist.h pulsecore/esound.h pulsecore/memblock.h pulse/def.h \
+ /usr/include/x86_64-linux-gnu/sys/time.h pulsecore/atomic.h \
+ pulsecore/macro.h /usr/include/unistd.h \
+ /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
+ /usr/include/x86_64-linux-gnu/bits/environments.h \
+ /usr/include/x86_64-linux-gnu/bits/confname.h /usr/include/getopt.h \
+ /usr/include/x86_64-linux-gnu/bits/unistd.h \
+ /usr/lib/gcc/x86_64-linux-gnu/5/include/stdbool.h pulsecore/log.h \
+ pulsecore/memchunk.h pulsecore/mem.h pulsecore/creds.h \
+ pulsecore/socket.h /usr/include/x86_64-linux-gnu/sys/socket.h \
+ /usr/include/x86_64-linux-gnu/sys/uio.h \
+ /usr/include/x86_64-linux-gnu/bits/uio.h \
+ /usr/include/x86_64-linux-gnu/bits/socket.h \
+ /usr/include/x86_64-linux-gnu/bits/socket_type.h \
+ /usr/include/x86_64-linux-gnu/bits/sockaddr.h \
+ /usr/include/x86_64-linux-gnu/asm/socket.h \
+ /usr/include/asm-generic/socket.h \
+ /usr/include/x86_64-linux-gnu/asm/sockios.h \
+ /usr/include/asm-generic/sockios.h \
+ /usr/include/x86_64-linux-gnu/bits/socket2.h pulsecore/client.h \
+ pulsecore/typedefs.h pulsecore/core.h pulse/mainloop-api.h \
+ pulsecore/cpu.h pulsecore/cpu-x86.h pulsecore/cpu-arm.h \
+ pulsecore/idxset.h pulsecore/hashmap.h pulsecore/resampler.h \
+ pulse/channelmap.h pulsecore/sconv.h pulsecore/remap.h \
+ pulsecore/filter/lfe-filter.h pulsecore/memblockq.h pulsecore/llist.h \
+ pulsecore/hook-list.h pulsecore/asyncmsgq.h pulsecore/asyncq.h \
+ pulsecore/msgobject.h pulsecore/object.h pulsecore/refcnt.h \
+ pulsecore/sample-util.h pulse/volume.h pulsecore/sink.h pulse/format.h \
+ pulsecore/source.h pulsecore/module.h /usr/include/ltdl.h \
+ /usr/include/libltdl/lt_system.h /usr/include/libltdl/lt_error.h \
+ /usr/include/libltdl/lt_dlloader.h pulsecore/dynarray.h \
+ pulsecore/rtpoll.h pulsecore/fdsem.h pulsecore/card.h \
+ pulsecore/device-port.h pulsecore/queue.h pulsecore/thread-mq.h \
+ pulsecore/source-output.h pulsecore/sink-input.h \
+ pulsecore/core-subscribe.h pulsecore/native-common.h \
+ pulsecore/pdispatch.h pulsecore/tagstruct.h pulsecore/packet.h \
+ pulsecore/pstream.h pulsecore/iochannel.h pulsecore/srbchannel.h \
+ pulsecore/core-scache.h pulsecore/namereg.h pulsecore/core-util.h \
+ /usr/include/x86_64-linux-gnu/sys/resource.h \
+ /usr/include/x86_64-linux-gnu/bits/resource.h pulsecore/i18n.h \
+ /usr/include/libintl.h /usr/include/locale.h \
+ /usr/include/x86_64-linux-gnu/bits/locale.h pulsecore/core-error.h \
+ pulsecore/ipacl.h pulsecore/shared.h pulsecore/strbuf.h \
+ pulsecore/endianmacros.h /usr/include/byteswap.h \
+ pulsecore/protocol-esound.h pulsecore/auth-cookie.h pulsecore/modargs.h
+
+/usr/include/stdc-predef.h:
+
+../config.h:
+
+/usr/include/errno.h:
+
+/usr/include/features.h:
+
+/usr/include/x86_64-linux-gnu/sys/cdefs.h:
+
+/usr/include/x86_64-linux-gnu/bits/wordsize.h:
+
+/usr/include/x86_64-linux-gnu/gnu/stubs.h:
+
+/usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
+
+/usr/include/x86_64-linux-gnu/bits/errno.h:
+
+/usr/include/linux/errno.h:
+
+/usr/include/x86_64-linux-gnu/asm/errno.h:
+
+/usr/include/asm-generic/errno.h:
+
+/usr/include/asm-generic/errno-base.h:
+
+/usr/include/string.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h:
+
+/usr/include/xlocale.h:
+
+/usr/include/x86_64-linux-gnu/bits/string.h:
+
+/usr/include/x86_64-linux-gnu/bits/string2.h:
+
+/usr/include/endian.h:
+
+/usr/include/x86_64-linux-gnu/bits/endian.h:
+
+/usr/include/x86_64-linux-gnu/bits/byteswap.h:
+
+/usr/include/x86_64-linux-gnu/bits/types.h:
+
+/usr/include/x86_64-linux-gnu/bits/typesizes.h:
+
+/usr/include/x86_64-linux-gnu/bits/byteswap-16.h:
+
+/usr/include/stdlib.h:
+
+/usr/include/x86_64-linux-gnu/bits/string3.h:
+
+/usr/include/stdio.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdarg.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/sys_errlist.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:
+
+/usr/include/x86_64-linux-gnu/bits/waitflags.h:
+
+/usr/include/x86_64-linux-gnu/bits/waitstatus.h:
+
+/usr/include/x86_64-linux-gnu/sys/types.h:
+
+/usr/include/time.h:
+
+/usr/include/x86_64-linux-gnu/sys/select.h:
+
+/usr/include/x86_64-linux-gnu/bits/select.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigset.h:
+
+/usr/include/x86_64-linux-gnu/bits/time.h:
+
+/usr/include/x86_64-linux-gnu/bits/select2.h:
+
+/usr/include/x86_64-linux-gnu/sys/sysmacros.h:
+
+/usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
+
+/usr/include/alloca.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib.h:
+
+pulse/rtclock.h:
+
+pulse/cdecl.h:
+
+pulse/sample.h:
+
+/usr/include/inttypes.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/x86_64-linux-gnu/bits/wchar.h:
+
+/usr/include/x86_64-linux-gnu/sys/param.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/limits.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed/syslimits.h:
+
+/usr/include/limits.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix1_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/local_lim.h:
+
+/usr/include/linux/limits.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix2_lim.h:
+
+/usr/include/x86_64-linux-gnu/bits/xopen_lim.h:
+
+/usr/include/signal.h:
+
+/usr/include/x86_64-linux-gnu/bits/signum.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigaction.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigcontext.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigstack.h:
+
+/usr/include/x86_64-linux-gnu/sys/ucontext.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigthread.h:
+
+/usr/include/x86_64-linux-gnu/bits/param.h:
+
+/usr/include/linux/param.h:
+
+/usr/include/x86_64-linux-gnu/asm/param.h:
+
+/usr/include/asm-generic/param.h:
+
+pulse/gccmacro.h:
+
+pulse/version.h:
+
+pulse/timeval.h:
+
+pulse/utf8.h:
+
+pulse/xmalloc.h:
+
+/usr/include/assert.h:
+
+pulse/proplist.h:
+
+pulsecore/esound.h:
+
+pulsecore/memblock.h:
+
+pulse/def.h:
+
+/usr/include/x86_64-linux-gnu/sys/time.h:
+
+pulsecore/atomic.h:
+
+pulsecore/macro.h:
+
+/usr/include/unistd.h:
+
+/usr/include/x86_64-linux-gnu/bits/posix_opt.h:
+
+/usr/include/x86_64-linux-gnu/bits/environments.h:
+
+/usr/include/x86_64-linux-gnu/bits/confname.h:
+
+/usr/include/getopt.h:
+
+/usr/include/x86_64-linux-gnu/bits/unistd.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/5/include/stdbool.h:
+
+pulsecore/log.h:
+
+pulsecore/memchunk.h:
+
+pulsecore/mem.h:
+
+pulsecore/creds.h:
+
+pulsecore/socket.h:
+
+/usr/include/x86_64-linux-gnu/sys/socket.h:
+
+/usr/include/x86_64-linux-gnu/sys/uio.h:
+
+/usr/include/x86_64-linux-gnu/bits/uio.h:
+
+/usr/include/x86_64-linux-gnu/bits/socket.h:
+
+/usr/include/x86_64-linux-gnu/bits/socket_type.h:
+
+/usr/include/x86_64-linux-gnu/bits/sockaddr.h:
+
+/usr/include/x86_64-linux-gnu/asm/socket.h:
+
+/usr/include/asm-generic/socket.h:
+
+/usr/include/x86_64-linux-gnu/asm/sockios.h:
+
+/usr/include/asm-generic/sockios.h:
+
+/usr/include/x86_64-linux-gnu/bits/socket2.h:
+
+pulsecore/client.h:
+
+pulsecore/typedefs.h:
+
+pulsecore/core.h:
+
+pulse/mainloop-api.h:
+
+pulsecore/cpu.h:
+
+pulsecore/cpu-x86.h:
+
+pulsecore/cpu-arm.h:
+
+pulsecore/idxset.h:
+
+pulsecore/hashmap.h:
+
+pulsecore/resampler.h:
+
+pulse/channelmap.h:
+
+pulsecore/sconv.h:
+
+pulsecore/remap.h:
+
+pulsecore/filter/lfe-filter.h:
+
+pulsecore/memblockq.h:
+
+pulsecore/llist.h:
+
+pulsecore/hook-list.h:
+
+pulsecore/asyncmsgq.h:
+
+pulsecore/asyncq.h:
+
+pulsecore/msgobject.h:
+
+pulsecore/object.h:
+
+pulsecore/refcnt.h:
+
+pulsecore/sample-util.h:
+
+pulse/volume.h:
+
+pulsecore/sink.h:
+
+pulse/format.h:
+
+pulsecore/source.h:
+
+pulsecore/module.h:
+
+/usr/include/ltdl.h:
+
+/usr/include/libltdl/lt_system.h:
+
+/usr/include/libltdl/lt_error.h:
+
+/usr/include/libltdl/lt_dlloader.h:
+
+pulsecore/dynarray.h:
+
+pulsecore/rtpoll.h:
+
+pulsecore/fdsem.h:
+
+pulsecore/card.h:
+
+pulsecore/device-port.h:
+
+pulsecore/queue.h:
+
+pulsecore/thread-mq.h:
+
+pulsecore/source-output.h:
+
+pulsecore/sink-input.h:
+
+pulsecore/core-subscribe.h:
+
+pulsecore/native-common.h:
+
+pulsecore/pdispatch.h:
+
+pulsecore/tagstruct.h:
+
+pulsecore/packet.h:
+
+pulsecore/pstream.h:
+
+pulsecore/iochannel.h:
+
+pulsecore/srbchannel.h:
+
+pulsecore/core-scache.h:
+
+pulsecore/namereg.h:
+
+pulsecore/core-util.h:
+
+/usr/include/x86_64-linux-gnu/sys/resource.h:
+
+/usr/include/x86_64-linux-gnu/bits/resource.h:
+
+pulsecore/i18n.h:
+
+/usr/include/libintl.h:
+
+/usr/include/locale.h:
+
+/usr/include/x86_64-linux-gnu/bits/locale.h:
+
+pulsecore/core-error.h:
+
+pulsecore/ipacl.h:
+
+pulsecore/shared.h:
+
+pulsecore/strbuf.h:
+
+pulsecore/endianmacros.h:
+
+/usr/include/byteswap.h:
+
+pulsecore/protocol-esound.h:
+
+pulsecore/auth-cookie.h:
+
+pulsecore/modargs.h:
