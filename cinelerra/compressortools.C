@@ -833,7 +833,7 @@ int CompressorCanvasBase::cursor_motion_event()
         if(get_cursor_x() >= graph_x + graph_w ||
             get_cursor_y() < graph_y)
         {
-            new_cursor = UPRIGHT_ARROW_CURSOR;
+            new_cursor = ARROW_CURSOR;
         }
 
 		if(new_cursor != get_cursor())
