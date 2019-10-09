@@ -66,11 +66,13 @@ private:
 	int create_firewire_objs();
 	int create_alsa_objs();
 	int create_cine_objs();
+    void create_pulse_objs();
 
 	int delete_oss_objs();
 	int delete_esound_objs();
 	int delete_firewire_objs();
 	int delete_alsa_objs();
+    void delete_pulse_objs();
 
 // The output config resolved from playback strategy and render engine.
 	AudioOutConfig *out_config;
@@ -80,12 +82,12 @@ private:
 	int x;
 	int y;
 	ADriverMenu *menu;
-	BC_Title *driver_title, *path_title, *bits_title;
+	BC_Title *path_title, *bits_title;
 	BC_Title *server_title, *port_title, *channel_title, *syt_title;
 	OSSEnable *oss_enable[MAXDEVICES];
 	ADeviceTextBox *oss_path[MAXDEVICES];
 	BitsPopup *oss_bits;
-	ADeviceTextBox *esound_server;
+	ADeviceTextBox *server;
 	ADeviceIntBox *esound_port;
 	ADeviceIntBox *firewire_port;
 	ADeviceIntBox *firewire_channel;

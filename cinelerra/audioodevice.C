@@ -311,6 +311,10 @@ int64_t AudioDevice::current_position()
 
 	if(w)
 	{
+        if(get_obits() == 0)
+        {
+            printf("AudioDevice::current_position %d bits not set\n", __LINE__);
+        }
 		frame = get_obits() / 8;
 
 // get hardware position
@@ -322,6 +326,12 @@ int64_t AudioDevice::current_position()
 // get software position
 		if(hardware_result < 0 || software_position_info)
 		{
+// printf("AudioDevice::current_position %d total_samples=%d last_buffer_size=%d device_buffer=%d\n", 
+// __LINE__,
+// total_samples,
+// last_buffer_size,
+// device_buffer);
+
 			timer_lock->lock("AudioDevice::current_position");
 			software_result = total_samples - last_buffer_size - 
 				device_buffer / frame / get_ochannels();

@@ -18,11 +18,17 @@ TIFF_DIR := ../thirdparty/tiff-v3.5.7
 TOOLAME_DIR := ../thirdparty/toolame-02l
 UUID_DIR := ../thirdparty/uuid
 VORBIS_DIR := $(shell expr ../quicktime/thirdparty/libvorbis* )
+PULSE_DIR := $(shell expr ../thirdparty/pulseaudio-* )
 
 AVC_LIB := $(AVC_DIR)/libavc1394/.libs/libavc1394.a $(AVC_DIR)/librom1394/.libs/librom1394.a
 RAW_LIB := $(LIBRAW_DIR)/src/.libs/libraw1394.a
 IEC_LIB := $(LIBIEC_DIR)/src/.libs/libiec61883.a
 THEORA_LIB := $(THEORA_DIR)/lib/.libs/libtheora.a
+#PULSE_LIB := -L$(PULSE_DIR)/src/.libs/ -lpulse -lpulse-simple
+PULSE_LIB := $(PULSE_DIR)/src/.libs/libpulse-simple.a \
+	$(PULSE_DIR)/src/.libs/libpulse.a \
+	$(PULSE_DIR)/src/.libs/libpulsecommon*.a 
+
 EXR_INCLUDES := \
 	-I$(ILMDIR)/Iex/ \
 	-I$(ILMDIR)/Half/ \
@@ -344,6 +350,7 @@ FILEFLAC := $(OBJDIR)/fileflac.o
 FFMPEG_OBJS := $(OBJDIR)/fileffmpeg.o \
 	$(OBJDIR)/fileac3.o
 DCRAW := $(OBJDIR)/dcraw.o
+AUDIOPULSE := $(OBJDIR)/audiopulse.o
 
 THEME_DATA := $(OBJDIR)/theme_data.o
 
@@ -374,11 +381,13 @@ STATICLIBS = \
 	../mpeg2enc/$(OBJDIR)/mpeg2enc.a \
 	$(TOOLAME_DIR)/$(OBJDIR)/toolame.a \
 	$(THEME_DATA) \
-	$(THEORA_LIB)
+	$(THEORA_LIB) \
+        $(PULSE_LIB)
 
 LIBS := \
 	-L./ \
 	-L../guicast
+        
 
 
 ifeq ($(OBJDIR), x86_64)
@@ -505,7 +514,7 @@ FFMPEG_CFLAGS := \
 
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
 $(shell echo $(CFLAGS) $(FFMPEG_CFLAGS) -D__STDC_CONSTANT_MACROS > $(OBJDIR)/ffmpeg_cflags)
-$(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(FFMPEG_OBJS) $(AVIOBJS) $(CXXREPOSITORY) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
+$(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(AVIOBJS) $(CXXREPOSITORY) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
 
 
 
@@ -514,7 +523,7 @@ $(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(FFMPEG_OBJS) 
 # Static linking is not possible because the plugins depend on symbols
 # in the main executable.
 # Also VFS only overrides the C library when dynamic linking is used.
-$(OUTPUT): $(OBJS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILEFLAC) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
+$(OUTPUT): $(OBJS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
 	$(LINKER) `cat $(OBJDIR)/objs`
 #	strip $(OUTPUT)
 
@@ -550,6 +559,10 @@ wc:
 
 $(LIBOBJS) $(OBJS):
 	$(CC) `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
+
+$(AUDIOPULSE): audiopulse.C
+	$(CC) `cat $(OBJDIR)/c_flags` -I$(PULSE_DIR)/src/ $(subst $(OBJDIR)/,, $*.C) -o $*.o
+
 
 $(FILEEXR): fileexr.C
 	$(CC) `cat $(OBJDIR)/c_flags` $(EXR_INCLUDES) $(subst $(OBJDIR)/,, $*.C) -o $*.o

@@ -66,6 +66,9 @@ void ADevicePrefs::reset()
 	menu = 0;
 	firewire_path = 0;
 	firewire_syt = 0;
+    channel_title = 0;
+    firewire_port = 0;
+    firewire_channel = 0;
 	syt_title = 0;
 	path_title = 0;
 
@@ -84,6 +87,11 @@ void ADevicePrefs::reset()
 
 	cine_bits = 0;
 	cine_path = 0;
+    
+    server_title = 0;
+    server = 0;
+    port_title = 0;
+    esound_port = 0;
 }
 
 int ADevicePrefs::initialize(int creation)
@@ -136,6 +144,9 @@ int ADevicePrefs::initialize(int creation)
 		case AUDIO_CINE:
 			create_cine_objs();
 			break;
+        case AUDIO_PULSE:
+            create_pulse_objs();
+            break;
 	}
 	
 	return 0;
@@ -179,6 +190,9 @@ int ADevicePrefs::delete_objects()
 		case AUDIO_IEC61883:
 			delete_firewire_objs();
 			break;
+        case AUDIO_PULSE:
+            delete_pulse_objs();
+            break;
 	}
 
 	delete cine_bits;
@@ -210,7 +224,7 @@ int ADevicePrefs::delete_esound_objs()
 {
 	delete server_title;
 	delete port_title;
-	delete esound_server;
+	delete server;
 	delete esound_port;
 	return 0;
 }
@@ -442,7 +456,7 @@ int ADevicePrefs::create_esound_objs()
 			break;
 	}
 	dialog->add_subwindow(server_title = new BC_Title(x1, y, _("Server:"), MEDIUMFONT, resources->text_default));
-	dialog->add_subwindow(esound_server = new ADeviceTextBox(x1, y + DP(20), output_char));
+	dialog->add_subwindow(server = new ADeviceTextBox(x1, y + DP(20), output_char));
 
 	switch(mode)
 	{
@@ -456,7 +470,7 @@ int ADevicePrefs::create_esound_objs()
 			output_int = &out_config->esound_out_port;
 			break;
 	}
-	x1 += esound_server->get_w() + margin;
+	x1 += server->get_w() + margin;
 	dialog->add_subwindow(port_title = new BC_Title(x1, y, _("Port:"), MEDIUMFONT, resources->text_default));
 	dialog->add_subwindow(esound_port = new ADeviceIntBox(x1, y + DP(20), output_int));
 	return 0;
@@ -568,6 +582,32 @@ int ADevicePrefs::create_cine_objs()
 }
 
 
+void ADevicePrefs::create_pulse_objs()
+{
+	int x1 = x + menu->get_w() + 5;
+	int margin = pwindow->mwindow->theme->widget_border;
+	char *output_char;
+	BC_Resources *resources = BC_WindowBase::get_resources();
+	switch(mode)
+	{
+		case MODEPLAY: 
+			output_char = out_config->pulse_out_server;
+			break;
+		case MODERECORD:
+			output_char = in_config->pulse_in_server;
+			break;
+	}
+	dialog->add_subwindow(server_title = new BC_Title(x1, y, _("Server:"), MEDIUMFONT, resources->text_default));
+	dialog->add_subwindow(server = new ADeviceTextBox(x1, y + DP(20), output_char));
+}
+
+void ADevicePrefs::delete_pulse_objs()
+{
+    delete server_title;
+    delete server;
+}
+
+
 
 ADriverMenu::ADriverMenu(int x, 
 	int y, 
@@ -593,6 +633,8 @@ void ADriverMenu::create_objects()
 #ifdef HAVE_ALSA
 	add_item(new ADriverItem(this, AUDIO_ALSA_TITLE, AUDIO_ALSA));
 #endif
+
+	add_item(new ADriverItem(this, AUDIO_PULSE_TITLE, AUDIO_PULSE));
 
 	/* if(!do_input) */
     {
@@ -623,6 +665,9 @@ char* ADriverMenu::adriver_to_string(int driver)
 			break;
 		case AUDIO_ALSA:
 			sprintf(string, AUDIO_ALSA_TITLE);
+			break;
+		case AUDIO_PULSE:
+			sprintf(string, AUDIO_PULSE_TITLE);
 			break;
 		case AUDIO_1394:
 			sprintf(string, AUDIO_1394_TITLE);

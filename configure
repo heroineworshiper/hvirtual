@@ -181,6 +181,17 @@ cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
+echo CONFIGURING PULSEAUDIO
+cd thirdparty/pulseaudio* && \
+SNDFILE_PATH=`expr $TOPDIR/thirdparty/libsndfile*` && \
+./configure  --without-caps LIBSNDFILE_LIBS="-L$SNDFILE_PATH/src/.libs/ -lsndfile" LIBSNDFILE_CFLAGS="-I$SNDFILE_PATH/src" --enable-static && \
+cd ../..
+
+if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+
+
+
+
 echo CONFIGURING RAW1394
 cd thirdparty/libraw1394* && \
 ./configure --enable-shared=no && \

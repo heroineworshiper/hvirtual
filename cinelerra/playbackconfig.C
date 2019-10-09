@@ -42,6 +42,7 @@ AudioOutConfig::AudioOutConfig(int duplex)
 	}
 
 	esound_out_server[0] = 0;
+	pulse_out_server[0] = 0;
 	esound_out_port = 0;
 
 	sprintf(alsa_out_device, "default");
@@ -85,6 +86,7 @@ int AudioOutConfig::operator==(AudioOutConfig &that)
 
 
 		!strcmp(esound_out_server, that.esound_out_server) && 
+		!strcmp(pulse_out_server, that.pulse_out_server) && 
 		(esound_out_port == that.esound_out_port) && 
 
 
@@ -119,6 +121,7 @@ void AudioOutConfig::copy_from(AudioOutConfig *src)
 	audio_offset = src->audio_offset;
 
 	strcpy(esound_out_server, src->esound_out_server);
+	strcpy(pulse_out_server, src->pulse_out_server);
 	esound_out_port = src->esound_out_port;
 	for(int i = 0; i < MAXDEVICES; i++)
 	{
@@ -168,6 +171,8 @@ int AudioOutConfig::load_defaults(BC_Hash *defaults)
 
 	sprintf(string, "ESOUND_OUT_SERVER_%d", duplex);
 	defaults->get(string, esound_out_server);
+	sprintf(string, "PULSE_OUT_SERVER_%d", duplex);
+	defaults->get(string, pulse_out_server);
 	sprintf(string, "ESOUND_OUT_PORT_%d", duplex);
 	esound_out_port =             defaults->get(string, esound_out_port);
 
@@ -219,6 +224,8 @@ int AudioOutConfig::save_defaults(BC_Hash *defaults)
 
 	sprintf(string, "ESOUND_OUT_SERVER_%d", duplex);
 	defaults->update(string, esound_out_server);
+	sprintf(string, "PULSE_OUT_SERVER_%d", duplex);
+	defaults->update(string, pulse_out_server);
 	sprintf(string, "ESOUND_OUT_PORT_%d", duplex);
 	defaults->update(string, esound_out_port);
 
@@ -483,7 +490,7 @@ void PlaybackConfig::copy_from(PlaybackConfig *src)
 
 int PlaybackConfig::load_defaults(BC_Hash *defaults)
 {
-	char string[1024];
+	char string[BCTEXTLEN];
 	sprintf(string, "PLAYBACK_HOSTNAME");
 	defaults->get(string, hostname);
 	sprintf(string, "PLAYBACK_PORT");
@@ -495,7 +502,7 @@ int PlaybackConfig::load_defaults(BC_Hash *defaults)
 
 int PlaybackConfig::save_defaults(BC_Hash *defaults)
 {
-	char string[1024];
+	char string[BCTEXTLEN];
 	sprintf(string, "PLAYBACK_HOSTNAME");
 	defaults->update(string, hostname);
 	sprintf(string, "PLAYBACK_PORT");

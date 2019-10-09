@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ public:
 	char firewire_path[BCTEXTLEN];
 
 	char esound_in_server[BCTEXTLEN];
+	char pulse_in_server[BCTEXTLEN];
 	int esound_in_port;
 	char alsa_in_device[BCTEXTLEN];
 	int alsa_in_bits;
