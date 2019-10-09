@@ -1167,7 +1167,15 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 				if(load_mode == LOADMODE_REPLACE || 
 					load_mode == LOADMODE_REPLACE_CONCATENATE)
 				{
-					set_filename("");
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+                    if(gui)
+                    {
+                        gui->lock_window("MWindow::load_filenames");
+					    set_filename("");
+                        gui->unlock_window();
+                    }
+                    
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 // Reset timeline position
 					for(int i = 0; i < TOTAL_PANES; i++)
 					{
@@ -1340,7 +1348,12 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 
-	if(!result) gui->statusbar->default_message();
+	if(!result) 
+    {
+        gui->lock_window("MWindow::load_filenames");
+        gui->statusbar->default_message();
+        gui->unlock_window();
+    }
 
 
 
