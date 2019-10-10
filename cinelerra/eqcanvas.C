@@ -205,13 +205,10 @@ void EQCanvas::update_spectrogram(PluginAClient *plugin,
         }
     }
     
-    if(frame)
-    {
-        update_spectrogram(frame, 
-            offset, 
-            size, 
-            window_size);
-    }
+    update_spectrogram(frame, 
+        offset, 
+        size, 
+        window_size);
 }
 
 

@@ -597,7 +597,7 @@ void ADevicePrefs::create_pulse_objs()
 			output_char = in_config->pulse_in_server;
 			break;
 	}
-	dialog->add_subwindow(server_title = new BC_Title(x1, y, _("Server:"), MEDIUMFONT, resources->text_default));
+	dialog->add_subwindow(server_title = new BC_Title(x1, y, _("Server (blank for default):"), MEDIUMFONT, resources->text_default));
 	dialog->add_subwindow(server = new ADeviceTextBox(x1, y + DP(20), output_char));
 }
 
