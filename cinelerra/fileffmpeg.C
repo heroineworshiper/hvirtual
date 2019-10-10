@@ -835,7 +835,7 @@ decoder_context->codec_id);
 		avformat_close_input((AVFormatContext**)&ffmpeg_file_context);
 	}
 	ffmpeg_lock->unlock();
-    return 0;
+    return result;
 }
 
 void FileFFMPEG::close_ffmpeg()

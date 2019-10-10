@@ -1,8 +1,32 @@
+/*
+ * CINELERRA
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ */
+
+
+
+#include "asset.h"
 #include "bchash.h"
 #include "bcsignals.h"
 #include "clip.h"
 #include "compressorgui.h"
 #include "cursors.h"
+#include "edlsession.h"
 #include "eqcanvas.h"
 #include "language.h"
 #include "theme.h"
@@ -59,8 +83,25 @@ void CompressorWindow::create_objects()
     }
 
 
-    add_subwindow(title = new BC_Title(x, y, "Gain:"));
+
+    add_subwindow(title = new BC_Title(x, y, "In:"));
     int y2 = y + title->get_h() + margin;
+    add_subwindow(in = new BC_Meter(x, 
+        y2, 
+        METER_VERT,
+        canvas_y2 - y2,
+        plugin->get_edlsession()->min_meter_db,
+        plugin->get_edlsession()->max_meter_db,
+        plugin->get_edlsession()->meter_format,
+        1, // use_titles
+        -1)); // span
+
+    x += in->get_w() + margin;
+
+
+
+
+    add_subwindow(title = new BC_Title(x, y, "Gain:"));
     add_subwindow(gain_change = new BC_Meter(x, 
         y2, 
         METER_VERT,
@@ -377,7 +418,8 @@ void CompressorWindow::update_eqcanvas()
     int done = 0;
     CompressorFrame *frame = 0;
     double gain_change_value = 0;
-    int have_gain_change = 0;
+    double level_value = 0;
+    int have_meter = 0;
     
     while(!done)
     {
@@ -397,7 +439,8 @@ void CompressorWindow::update_eqcanvas()
                 else
                 {
                     gain_change_value = frame->data[0];
-                    have_gain_change = 1;
+                    level_value = frame->data[1];
+                    have_meter = 1;
                     delete frame;
                 }
             }
@@ -417,12 +460,13 @@ void CompressorWindow::update_eqcanvas()
     }
 
 
-    if(have_gain_change)
+    if(have_meter)
     {
 // printf("CompressorWindow::update_eqcanvas %d gain_change_value=%f\n",
 // __LINE__,
 // gain_change_value);
         gain_change->update(gain_change_value, 0);
+        in->update(level_value, 0);
     }
 
 

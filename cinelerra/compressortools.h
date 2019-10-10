@@ -249,15 +249,18 @@ public:
 	int slope_current_sample;
 // current value in the line segment
 	double current_value;
-// values applied in the last process() for the user to update a GUI
-    ArrayList<double> gui_values;
+// gain change values to draw on the GUI
+    ArrayList<double> gui_gains;
+// input levels to draw on the GUI
+    ArrayList<double> gui_levels;
 // which sample in process() the gui_values came from
     ArrayList<int> gui_offsets;
 // samples between gui_values.  Set by the user.
     int gui_frame_samples;
 // temporaries
     int gui_frame_counter;
-    double gui_frame_max;
+    double gui_max_gain;
+    double gui_max_level;
 };
 
 

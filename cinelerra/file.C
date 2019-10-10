@@ -920,8 +920,10 @@ void File::start_progress(const char *title, int64_t total)
 // 			    total);
 //             MWindow::file_progress->start();
 
+// has to be a standalone window to allow the user to cancel
 			MWindow::file_progress = MWindow::mainprogress->start_progress(title, 
-				total);
+				total,
+                1);
 
         }
         else

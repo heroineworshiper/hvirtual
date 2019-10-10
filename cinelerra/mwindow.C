@@ -1167,7 +1167,15 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 				if(load_mode == LOADMODE_REPLACE || 
 					load_mode == LOADMODE_REPLACE_CONCATENATE)
 				{
-					set_filename("");
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+                    if(gui)
+                    {
+                        gui->lock_window("MWindow::load_filenames");
+					    set_filename("");
+                        gui->unlock_window();
+                    }
+                    
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 // Reset timeline position
 					for(int i = 0; i < TOTAL_PANES; i++)
 					{
@@ -1182,7 +1190,9 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 // File not found
 			case FILE_NOT_FOUND:
 				sprintf(string, _("Failed to open %s"), new_asset->path);
-				gui->show_message(string, theme->message_error);
+				gui->lock_window("MWindow::load_filenames 1");
+                gui->show_message(string, theme->message_error);
+                gui->unlock_window();
 				result = 1;
 				break;
 
@@ -1338,7 +1348,12 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 
-	if(!result) gui->statusbar->default_message();
+	if(!result) 
+    {
+        gui->lock_window("MWindow::load_filenames");
+        gui->statusbar->default_message();
+        gui->unlock_window();
+    }
 
 
 
@@ -1496,14 +1511,17 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 		session->changes_made = 1;
 	}
 
-	gui->stop_hourglass();
-//printf("MWindow::load_filenames %d\n", __LINE__);
 	stop_file_progress();
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
-	update_project(load_mode);
+    gui->lock_window("MWindow::load_filenames 2");
+	gui->stop_hourglass();
 
-//printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+	update_project(load_mode);
+    gui->unlock_window();
+
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 	return 0;
 }
@@ -2597,6 +2615,7 @@ int MWindow::edl_to_nested(EDL *new_edl,
 }
 
 // Reset everything after a load.
+// Assume mwindow is locked
 void MWindow::update_project(int load_mode)
 {
 	const int debug = 0;
@@ -2617,7 +2636,7 @@ void MWindow::update_project(int load_mode)
 	if(debug) PRINT_TRACE
 	gui->unlock_window();
 
-	cwindow->gui->lock_window("MWindow::update_project 1");
+	cwindow->gui->lock_window("MWindow::update_project 2");
 	cwindow->update(0, 0, 1, 1, 1);
 	cwindow->gui->unlock_window();
 
@@ -2649,14 +2668,14 @@ void MWindow::update_project(int load_mode)
 		VWindow *vwindow = vwindows.get(DEFAULT_VWINDOW);
 		if(vwindow->is_running())
 		{
-			vwindow->gui->lock_window("MWindow::update_project");
+			vwindow->gui->lock_window("MWindow::update_project 3");
 			vwindow->update(1);
 			vwindow->gui->unlock_window();
 		}
 	}
 
 	if(debug) PRINT_TRACE
-	cwindow->gui->lock_window("MWindow::update_project 2");
+	cwindow->gui->lock_window("MWindow::update_project 4");
 #ifdef USE_SLIDER
 	cwindow->gui->slider->set_position();
 #endif
@@ -2671,14 +2690,14 @@ void MWindow::update_project(int load_mode)
 
 	if(debug) PRINT_TRACE
 
-	awindow->gui->lock_window("MWindow::update_project");
+	awindow->gui->lock_window("MWindow::update_project 5");
 	awindow->gui->update_assets();
 	awindow->gui->flush();
 	awindow->gui->unlock_window();
 
 	if(debug) PRINT_TRACE
 
-	gui->lock_window("MWindow::update_project");
+	gui->lock_window("MWindow::update_project 6");
 	gui->flush();
 	if(debug) PRINT_TRACE
 }

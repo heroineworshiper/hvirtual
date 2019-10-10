@@ -19,12 +19,14 @@
  * 
  */
 
+#include "asset.h"
 #include "bcdisplayinfo.h"
 #include "bcsignals.h"
 #include "clip.h"
 #include "compressor.h"
 #include "cursors.h"
 #include "bchash.h"
+#include "edlsession.h"
 #include "filexml.h"
 #include "language.h"
 #include "samples.h"
@@ -380,12 +382,14 @@ int CompressorEffect::process_buffer(int64_t size,
         sign = -1;
     }
 
-    for(int i = 0; i < engine->gui_values.size(); i++)
+    for(int i = 0; i < engine->gui_gains.size(); i++)
     {
         CompressorFrame *frame = new CompressorFrame;
         frame->data_size = 1;
-        frame->data = new double[1];
-        frame->data[0] = engine->gui_values.get(i);
+        frame->data = new double[2];
+        frame->type = GAIN_COMPRESSORFRAME;
+        frame->data[0] = engine->gui_gains.get(i);
+        frame->data[1] = engine->gui_levels.get(i);
         frame->edl_position = get_top_position() + 
             local_to_edl(engine->gui_offsets.get(i)) * sign;
         add_gui_frame(frame);
@@ -494,8 +498,24 @@ void CompressorWindow::create_objects()
     int canvas_y2 = get_h() - DP(35);
     BC_Title *title;
 
-    add_subwindow(title = new BC_Title(x, y, "Gain:"));
+
+    add_subwindow(title = new BC_Title(x, y, "In:"));
     int y2 = y + title->get_h() + margin;
+    add_subwindow(in = new BC_Meter(x,
+        y2,
+        METER_VERT,
+        canvas_y2 - y2,
+        plugin->get_edlsession()->min_meter_db,
+        plugin->get_edlsession()->max_meter_db,
+        plugin->get_edlsession()->meter_format,
+        1, // use_titles
+        -1)); // span
+    x += in->get_w() + margin;
+        
+        
+
+
+    add_subwindow(title = new BC_Title(x, y, "Gain:"));
     add_subwindow(gain_change = new BC_Meter(x, 
         y2, 
         METER_VERT,
@@ -593,6 +613,9 @@ void CompressorWindow::update_meter(CompressorFrame *frame)
 //printf("CompressorWindow::update_meter %d %f\n", __LINE__, frame->data[0]);
     double value = frame->data[0];
     gain_change->update(value, 0);
+    value = frame->data[1];
+//    in->update(value, value > 1.0);
+    in->update(value, 0);
 }
 
 void CompressorWindow::update_textboxes()
