@@ -1,4 +1,3 @@
- 
 /*
  * CINELERRA
  * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
@@ -988,16 +987,6 @@ float PluginClient::get_blue()
 	}
 	else
 		return 0;
-}
-
-int64_t PluginClient::get_top_position()
-{
-    if(server->attachmentpoint)
-    {
-        return server->attachmentpoint->renderengine->arender->current_position;
-    }
-
-    return -1;
 }
 
 int PluginClient::get_top_direction()

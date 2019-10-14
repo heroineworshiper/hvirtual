@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -803,8 +802,10 @@ int Spectrogram::process_buffer(int64_t size,
         }
 
         frame->edl_position = get_top_position() + 
-            local_to_edl(get_gui_frames() *
-                window_size) * sign;
+            (double)get_gui_frames() *
+                window_size * 
+                sign /
+                get_samplerate();
         frame->data[0] =  max;
 		for(int i = 0; i < HALF_WINDOW; i++)
 		{

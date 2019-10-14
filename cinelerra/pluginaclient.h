@@ -40,16 +40,16 @@ public:
     
     void reset();
     
-// offset in EDL for synchronizing with playback
-    int64_t edl_position;
+// offset in EDL seconds for synchronizing with GUI
+    double edl_position;
 
 
 // some commonly used data
 // a user allocated buffer
     double *data;
-// Maximum of window in frequency domain
+// Maximum of FFT window in frequency domain
 	double freq_max;
-// Maximum of window in time domain
+// Maximum of FFT window in time domain
 	double time_max;
 // the window size of a FFT / 2
 	int data_size;
@@ -137,8 +137,9 @@ public:
     void reset_gui_frames();
 // User calls to send data to the GUI instance
 	void add_gui_frame(PluginClientFrame *frame);
-// Called by client to send data to the GUI instance
-//	void send_render_gui();
+
+// Get the playhead position for showing GUI data in seconds
+    double get_top_position();
 
 // Called by the GUI instance to get the number of GUI frames to show
 	int pending_gui_frames();
@@ -158,7 +159,7 @@ public:
 
 // Get the sample rate of the EDL
 	int get_project_samplerate();
-// Get the requested sample rate
+// Get the requested sample rate in process_buffer
 	int get_samplerate();
 
 // get the buffer argument to process_buffer
@@ -183,8 +184,7 @@ public:
 	int project_sample_rate;
 // Local parameters set by non realtime plugin about the file to be generated.
 // Retrieved by server to set output file format.
-// In realtime plugins, these are set before every process_buffer as the
-// requested rates.
+// In realtime plugins, these are the requested rates for process_buffer.
 	int sample_rate;
 };
 

@@ -19,10 +19,13 @@
  * 
  */
 
+#include "arender.h"
+#include "attachmentpoint.h"
 #include "edl.h"
 #include "edlsession.h"
 #include "pluginaclient.h"
 #include "pluginserver.h"
+#include "renderengine.h"
 #include "samples.h"
 #include "transportque.inc"
 
@@ -331,7 +334,7 @@ void PluginAClient::plugin_render_gui(void *data)
 // __LINE__, direction, source_position);
 // for(int i = 0; i < this->frame_buffer.size(); i++)
 // {
-// printf("%ld ", this->frame_buffer.get(i)->edl_position);
+// printf("%f ", this->frame_buffer.get(i)->edl_position);
 // }
 // printf("\n");
 
@@ -345,7 +348,7 @@ void PluginAClient::plugin_render_gui(void *data)
 void PluginAClient::add_gui_frame(PluginClientFrame *frame)
 {
 	frame_buffer.append(frame);
-// printf("PluginClient::add_gui_frame %d frame_buffer=%p edl_position=%ld total=%d\n", 
+// printf("PluginClient::add_gui_frame %d frame_buffer=%p edl_position=%f total=%d\n", 
 // __LINE__,
 // &frame_buffer,
 // frame->edl_position,
@@ -364,14 +367,16 @@ int PluginAClient::pending_gui_frames()
     if(frame_buffer.size())
 	{
         int total = 0;
+        double source_position2 = (double)this->source_position / 
+            project_sample_rate;
         for(int i = 0; i < frame_buffer.size(); i++)
         {
 // in the GUI instance, the source_position is the playhead position in the top
 // samplerate
 		    PluginClientFrame *frame = frame_buffer.get(i);
-//printf("%ld ", frame->edl_position);
-            if(direction == PLAY_FORWARD && frame->edl_position <= source_position ||
-                direction == PLAY_REVERSE && frame->edl_position >= source_position)
+//printf("%f ", frame->edl_position);
+            if(direction == PLAY_FORWARD && frame->edl_position <= source_position2 ||
+                direction == PLAY_REVERSE && frame->edl_position >= source_position2)
             {
 		        total++;
             }
@@ -393,9 +398,11 @@ PluginClientFrame* PluginAClient::get_gui_frame()
 // in the GUI instance, the source_position is the playhead position in the EDL
 // samplerate
 		PluginClientFrame *frame = frame_buffer.get(0);
+        double source_position2 = (double)this->source_position / 
+            project_sample_rate;
 
-        if(direction == PLAY_FORWARD && frame->edl_position <= source_position ||
-            direction == PLAY_REVERSE && frame->edl_position >= source_position)
+        if(direction == PLAY_FORWARD && frame->edl_position <= source_position2 ||
+            direction == PLAY_REVERSE && frame->edl_position >= source_position2)
         {
 		    frame_buffer.remove_number(0);
 		    return frame;
@@ -407,6 +414,19 @@ PluginClientFrame* PluginAClient::get_gui_frame()
 	{
 		return 0;
 	}
+}
+
+
+
+double PluginAClient::get_top_position()
+{
+    if(server->attachmentpoint)
+    {
+        return (double)server->attachmentpoint->renderengine->arender->current_position /
+            get_project_samplerate();
+    }
+
+    return -1.0;
 }
 
 

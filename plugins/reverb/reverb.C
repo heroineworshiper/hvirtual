@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2017-2019 Adam Williams <broadcast at earthling dot net>
@@ -567,8 +566,10 @@ int ReverbFFT::signal_process()
     }
     
     frame->edl_position = plugin->get_top_position() + 
-        plugin->local_to_edl(plugin->new_spectrogram_frames *
-            window_size) * sign;
+        (double)plugin->new_spectrogram_frames *
+            window_size * 
+            sign /
+            plugin->get_samplerate();
 
     for(int i = 0; i < window_size / 2; i++)
     {

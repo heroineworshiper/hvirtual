@@ -391,7 +391,8 @@ int CompressorEffect::process_buffer(int64_t size,
         frame->data[0] = engine->gui_gains.get(i);
         frame->data[1] = engine->gui_levels.get(i);
         frame->edl_position = get_top_position() + 
-            local_to_edl(engine->gui_offsets.get(i)) * sign;
+            engine->gui_offsets.get(i) * 
+            sign;
         add_gui_frame(frame);
     }
 

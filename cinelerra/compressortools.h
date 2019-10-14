@@ -253,8 +253,8 @@ public:
     ArrayList<double> gui_gains;
 // input levels to draw on the GUI
     ArrayList<double> gui_levels;
-// which sample in process() the gui_values came from
-    ArrayList<int> gui_offsets;
+// which second in process() the gui_values came from
+    ArrayList<double> gui_offsets;
 // samples between gui_values.  Set by the user.
     int gui_frame_samples;
 // temporaries

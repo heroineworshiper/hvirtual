@@ -440,8 +440,6 @@ public:
 // the requested rate.
 	int64_t get_source_position();
 
-// Get the rendering position of the top level for annotating GUI data
-    int64_t get_top_position();
 // Get the rendering direction of the top level for annotating GUI data
     int get_top_direction();
 

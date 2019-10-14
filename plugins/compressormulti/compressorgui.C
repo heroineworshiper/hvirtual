@@ -473,7 +473,7 @@ void CompressorWindow::update_eqcanvas()
 #ifndef DRAW_AFTER_BANDPASS
     eqcanvas->update_spectrogram(frame); 
 #else
-//printf("CompressorWindow::update_eqcanvas %d source_position=%ld edl_position=%ld\n", 
+//printf("CompressorWindow::update_eqcanvas %d source_position=%ld edl_position=%f\n", 
 //__LINE__, plugin->source_position, frame ? frame->edl_position : -1);
     eqcanvas->update_spectrogram(frame,
         plugin->config.current_band * plugin->config.window_size / 2,

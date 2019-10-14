@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1355,8 +1354,10 @@ int GraphicFFT::signal_process()
         sign = -1;
     }
     frame->edl_position = plugin->get_top_position() + 
-        plugin->local_to_edl(plugin->get_gui_frames() *
-            window_size) * sign;
+        (double)plugin->get_gui_frames() *
+            window_size * 
+            sign /
+            plugin->get_samplerate();
 	plugin->add_gui_frame(frame);
 
 	double freq_max = 0;

@@ -1125,7 +1125,7 @@ bug = 1;
 //if(!EQUIV(gui_frame_max, 1.0)) printf("CompressorEngine::process %d offset=%d gui_frame_max=%f\n", __LINE__, i, gui_frame_max);
                 gui_gains.append(gui_max_gain);
                 gui_levels.append(gui_max_level);
-                gui_offsets.append(i);
+                gui_offsets.append((double)i / sample_rate);
                 gui_max_gain = 1.0;
                 gui_max_level = 0.0;
                 gui_frame_counter = 0;

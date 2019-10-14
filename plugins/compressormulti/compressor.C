@@ -547,7 +547,8 @@ int CompressorEffect::process_buffer(int64_t size,
             frame->type = GAIN_COMPRESSORFRAME;
             frame->band = band;
             frame->edl_position = get_top_position() + 
-                local_to_edl(engine->gui_offsets.get(i)) * sign;
+                engine->gui_offsets.get(i) * 
+                sign;
             add_gui_frame(frame);
         }
     }
@@ -1172,11 +1173,13 @@ int CompressorFFT::signal_process(int band)
 //             &preview_samples,
 //             sample_rate);
 
-// FFT advances 1/2 a window for each signal_process
+// FFT advances 1/2 a window for each spectrogram frame
         frame->edl_position = plugin->get_top_position() + 
-            plugin->local_to_edl(plugin->filtered_size + 
+            (double)(plugin->filtered_size + 
                 plugin->new_spectrogram_frames[band] *
-                window_size / 2) * sign;
+                window_size / 2) * 
+                sign /
+                plugin->get_samplerate();
 //if(band == 1)
 //{
 // printf("CompressorFFT::signal_process %d top_position=%ld frame->edl_position=%ld\n", 

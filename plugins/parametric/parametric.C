@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -710,7 +710,7 @@ void ParametricWindow::update_canvas()
 
 
 
-ParametricGUIFrame::ParametricGUIFrame(int window_size, int sample_rate)
+ParametricGUIFrame::ParametricGUIFrame(int window_size)
  : PluginClientFrame()
 {
 	this->window_size = window_size;
@@ -748,8 +748,7 @@ ParametricFFT::~ParametricFFT()
 int ParametricFFT::signal_process()
 {
 // Create new frame for updating GUI
-	frame = new ParametricGUIFrame(window_size, 
-		plugin->PluginAClient::project_sample_rate);
+	frame = new ParametricGUIFrame(window_size);
 
     int sign = 1;
     if(plugin->get_top_direction() == PLAY_REVERSE)
@@ -757,8 +756,10 @@ int ParametricFFT::signal_process()
         sign = -1;
     }
     frame->edl_position = plugin->get_top_position() + 
-        plugin->local_to_edl(plugin->get_gui_frames() *
-            window_size) * sign;
+        (double)plugin->get_gui_frames() *
+            window_size * 
+            sign /
+            plugin->get_samplerate();
 	plugin->add_gui_frame(frame);
 
 	double freq_max = 0;
