@@ -111,6 +111,10 @@ int Reverb::process_buffer(int64_t size,
 // last_position,
 // start_position);
 
+// printf("Reverb::process_buffer %d playhead=%f\n", 
+// __LINE__, 
+// get_playhead_position());
+
 
 // reset after seeking
     if(last_position != start_position)
@@ -249,8 +253,9 @@ int Reverb::process_buffer(int64_t size,
 		    get_direction());
     }
 
-// printf("Reverb::process_buffer %d\n", 
-// __LINE__);
+// printf("Reverb::process_buffer %d spectrogram_frames=%d\n", 
+// __LINE__,
+// spectrogram_frames.size());
 // send the spectrograms to the plugin.  This consumes the pointers
 	for(int i = 0; i < spectrogram_frames.size(); i++)
     {
@@ -507,22 +512,27 @@ void Reverb::update_gui()
 {
 	if(thread)
 	{
-		if(load_configuration())
-		{
-//printf("Reverb::update_gui %d %d\n", __LINE__, config.ref_length);
+        int reconfigured = load_configuration();
+        int total_frames = pending_gui_frames();
+//printf("Reverb::update_gui %d frame_buffer.size()=%d total_frames=%d source_position=%f\n", 
+//__LINE__, frame_buffer.size(), total_frames, (double)source_position / project_sample_rate);
+        
+        if(reconfigured || total_frames)
+        {
 			thread->window->lock_window("Reverb::update_gui 1");
-            ((ReverbWindow*)thread->window)->update();
-			thread->window->unlock_window();
-		}
 
-// printf("Reverb::update_gui %d frame_buffer=%p total_frames=%d size=%d\n", 
-// __LINE__, frame_buffer, total_frames, frame_buffer.size());
-		if(pending_gui_frames())
-		{
-			thread->window->lock_window("ParametricEQ::update_gui 2");
-			((ReverbWindow*)thread->window)->update_canvas();
+		    if(reconfigured)
+		    {
+    //printf("Reverb::update_gui %d %d\n", __LINE__, config.ref_length);
+                ((ReverbWindow*)thread->window)->update();
+		    }
+
+		    if(total_frames)
+		    {
+			    ((ReverbWindow*)thread->window)->update_canvas();
+		    }
 			thread->window->unlock_window();
-		}
+        }
 	}
 }
 
@@ -564,10 +574,18 @@ int ReverbFFT::signal_process()
     {
         sign = -1;
     }
-    
-    frame->edl_position = plugin->get_top_position() + 
+
+// printf("ReverbFFT::signal_process %d edl_position=%f\n", 
+// __LINE__, 
+// plugin->get_playhead_position() + 
+// (double)plugin->new_spectrogram_frames *
+// (window_size / 2) * 
+// sign /
+// plugin->get_samplerate());
+
+    frame->edl_position = plugin->get_playhead_position() + 
         (double)plugin->new_spectrogram_frames *
-            window_size * 
+            (window_size / 2) * 
             sign /
             plugin->get_samplerate();
 

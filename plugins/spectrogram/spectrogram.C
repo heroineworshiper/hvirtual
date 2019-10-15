@@ -801,7 +801,7 @@ int Spectrogram::process_buffer(int64_t size,
             sign = -1;
         }
 
-        frame->edl_position = get_top_position() + 
+        frame->edl_position = get_playhead_position() + 
             (double)get_gui_frames() *
                 window_size * 
                 sign /

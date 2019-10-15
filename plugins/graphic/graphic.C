@@ -1353,9 +1353,9 @@ int GraphicFFT::signal_process()
     {
         sign = -1;
     }
-    frame->edl_position = plugin->get_top_position() + 
+    frame->edl_position = plugin->get_playhead_position() + 
         (double)plugin->get_gui_frames() *
-            window_size * 
+            (window_size / 2) * 
             sign /
             plugin->get_samplerate();
 	plugin->add_gui_frame(frame);

@@ -368,6 +368,9 @@ public:
 
 	VFrame *temp_frame;
 
+// playhead position overridden by user
+    double playhead_position;
+
 // Icon for Asset Window
 	VFrame *picon;
 

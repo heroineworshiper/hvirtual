@@ -81,7 +81,8 @@ void AAttachmentPoint::render(Samples *output,
 	int buffer_number,
 	int64_t start_position, 
 	int64_t len,
-	int64_t sample_rate)
+	int64_t sample_rate,
+    double playhead_position)
 {
 	if(!plugin_server || !plugin->on) return;
     int project_sample_rate = renderengine->get_edl()->session->sample_rate;
@@ -235,6 +236,12 @@ void AAttachmentPoint::render(Samples *output,
         {
             output_temp[i]->set_offset(output_offsets[i] + offset);
         }
+
+// set the playhead position
+        edl_plugin_server->playhead_position = playhead_position + 
+            (double)offset * 
+                sign / 
+                sample_rate;
 
 // process the fragment
 // printf("AAttachmentPoint::render %d this=%p title=%s keyframe=%p fragment=%ld offset=%d allocated=%d\n", 

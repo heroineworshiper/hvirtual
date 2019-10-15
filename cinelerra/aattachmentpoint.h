@@ -38,7 +38,8 @@ public:
 		int buffer_number,
 		int64_t start_position, 
 		int64_t len,
-		int64_t sample_rate);
+		int64_t sample_rate,
+        double playhead_position);
 	void dispatch_plugin_server(int buffer_number, 
 		long current_position, 
 		long fragment_size);

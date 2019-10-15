@@ -138,11 +138,13 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 	{
 		VirtualANode *node = (VirtualANode*)exit_nodes.values[i];
 		Track *track = node->track;
+        int sample_rate = renderengine->get_edl()->session->sample_rate;
 
 		result |= node->render(output_temp, 
 			len,
 			start_position + track->nudge,
-			renderengine->get_edl()->session->sample_rate);
+			renderengine->get_edl()->session->sample_rate,
+            (double)renderengine->arender->current_position / sample_rate);
 	}
 if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 

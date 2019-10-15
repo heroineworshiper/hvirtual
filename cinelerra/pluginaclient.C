@@ -282,7 +282,7 @@ void PluginAClient::reset_gui_frames()
 // must lock this to get access to the frame_buffer
 	    thread->get_window()->lock_window("PluginClient::render_gui");
 
-//printf("PluginClient::reset_gui_frames %d\n", __LINE__);
+printf("PluginClient::reset_gui_frames %d %s\n", __LINE__, plugin_title());
         this->frame_buffer.remove_all_objects();
 
         thread->get_window()->unlock_window();
@@ -325,7 +325,12 @@ void PluginAClient::plugin_render_gui(void *data)
             }
 		}
 
-	
+// printf("PluginAClient::plugin_render_gui %d %s src size=%d this size=%d\n",
+// __LINE__,
+// plugin_title(),
+// src->size(),
+// this->frame_buffer.size());
+
 // Delete unused GUI frames
 //	    while(frame_buffer.size() > MAX_FRAME_BUFFER)
 //		    frame_buffer.remove_object_number(0);
@@ -362,8 +367,8 @@ int PluginAClient::get_gui_frames()
 
 int PluginAClient::pending_gui_frames()
 {
-//printf("PluginAClient::pending_gui_frames %d source_position=%ld frame_buffer.size=%d\n", 
-//__LINE__, source_position, frame_buffer.size());
+//printf("PluginAClient::pending_gui_frames %d %s source_position=%ld frame_buffer.size=%d\n", 
+//__LINE__, plugin_title(), source_position, frame_buffer.size());
     if(frame_buffer.size())
 	{
         int total = 0;
@@ -374,7 +379,11 @@ int PluginAClient::pending_gui_frames()
 // in the GUI instance, the source_position is the playhead position in the top
 // samplerate
 		    PluginClientFrame *frame = frame_buffer.get(i);
-//printf("%f ", frame->edl_position);
+// printf("PluginAClient::pending_gui_frames %d %s edl_position=%f source_position=%f\n",
+// __LINE__,
+// plugin_title(),
+// frame->edl_position,
+// source_position2);
             if(direction == PLAY_FORWARD && frame->edl_position <= source_position2 ||
                 direction == PLAY_REVERSE && frame->edl_position >= source_position2)
             {
@@ -401,13 +410,19 @@ PluginClientFrame* PluginAClient::get_gui_frame()
         double source_position2 = (double)this->source_position / 
             project_sample_rate;
 
+// printf("PluginAClient::get_gui_frame %d direction=%d edl_position=%f source_position=%f\n",
+// __LINE__,
+// direction,
+// frame->edl_position,
+// source_position2);
+
         if(direction == PLAY_FORWARD && frame->edl_position <= source_position2 ||
             direction == PLAY_REVERSE && frame->edl_position >= source_position2)
         {
 		    frame_buffer.remove_number(0);
 		    return frame;
         }
-        
+
         return 0;
 	}
 	else
@@ -418,23 +433,33 @@ PluginClientFrame* PluginAClient::get_gui_frame()
 
 
 
-double PluginAClient::get_top_position()
+double PluginAClient::get_playhead_position()
 {
     if(server->attachmentpoint)
     {
-        return (double)server->attachmentpoint->renderengine->arender->current_position /
-            get_project_samplerate();
+        return server->playhead_position;
+//        return (double)server->attachmentpoint->renderengine->arender->current_position /
+//            get_project_samplerate();
     }
 
     return -1.0;
 }
 
 
+void PluginAClient::set_playhead_position(double position)
+{
+    server->playhead_position = position;
+}
+
 
 
 void PluginAClient::begin_process_buffer()
 {
-// Delete all unused GUI frames
+// Delete all GUI frames which haven't been consumed by the GUI
+// printf("PluginAClient::begin_process_buffer %d frame_buffer=%d\n", 
+// __LINE__,
+// frame_buffer.size());
+
 	frame_buffer.remove_all_objects();
 }
 
@@ -443,6 +468,9 @@ void PluginAClient::end_process_buffer()
 {
 	if(frame_buffer.size())
 	{
+// printf("PluginAClient::end_process_buffer %d frame_buffer=%d\n", 
+// __LINE__,
+// frame_buffer.size());
 // send the frame buffer as a void data object to the GUI instance
     	server->send_render_gui(&frame_buffer);
 //		send_render_gui();

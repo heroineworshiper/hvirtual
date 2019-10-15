@@ -53,14 +53,16 @@ public:
 	int render(Samples *output_temp,
 		int64_t size,
 		int64_t start_position,
-		int64_t sample_rate);
+		int64_t sample_rate,
+        double playhead_position);
 
 // Read data from whatever comes before this node.
 // Calls render in either the parent node or the module for the track.
 	int read_data(Samples *output_temp,
 		int64_t size,
 		int64_t start_position,
-		int64_t sample_rate);
+		int64_t sample_rate,
+        double playhead_position);
 
 private:
 // need *arender for peak updating
@@ -68,11 +70,13 @@ private:
 		Samples *output_temp,
 		int64_t size,
 		int64_t start_position,
-		int64_t sample_rate);
+		int64_t sample_rate,
+        double playhead_position);
 	void render_as_plugin(Samples *output_temp,
 		int64_t size,
 		int64_t start_position, 
-		int64_t sample_rate);
+		int64_t sample_rate,
+        double playhead_position);
 
 	int render_fade(double *buffer,
 					int64_t len,

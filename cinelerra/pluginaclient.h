@@ -118,9 +118,10 @@ public:
 		int64_t start_position, 
 		int64_t len);
 
-// Called by realtime plugin to read audio from previous entity
-// sample_rate - scale of start_position.  Provided so the client can get data
-//     at a higher fidelity than provided by the EDL.
+// Called by realtime plugin to read audio from previous entity.
+// Only 1 read works per channel per process_buffer.
+// TODO: should read all channels instead of 1.
+// sample_rate - new sample rate of the data
 	int read_samples(Samples *buffer,
 		int channel,
 		int sample_rate,
@@ -138,8 +139,11 @@ public:
 // User calls to send data to the GUI instance
 	void add_gui_frame(PluginClientFrame *frame);
 
-// Get the playhead position for showing GUI data in seconds
-    double get_top_position();
+// Get the position for showing GUI data in seconds
+    double get_playhead_position();
+
+// Override the GUI position for next read_samples in seconds
+    void set_playhead_position(double position);
 
 // Called by the GUI instance to get the number of GUI frames to show
 	int pending_gui_frames();

@@ -101,7 +101,8 @@ VirtualNode* VirtualANode::create_plugin(Plugin *real_plugin)
 int VirtualANode::read_data(Samples *output_temp,
 	int64_t size,
 	int64_t start_position,
-	int64_t sample_rate)
+	int64_t sample_rate,
+    double playhead_position)
 {
 	VirtualNode *previous_plugin = 0;
 
@@ -137,7 +138,8 @@ int VirtualANode::read_data(Samples *output_temp,
 		((VirtualANode*)previous_plugin)->render(output_temp,
 			size,
 			start_position,
-			sample_rate);
+			sample_rate,
+            playhead_position);
 	}
 	else
 // The current node is the first plugin on parent module.
@@ -149,7 +151,8 @@ int VirtualANode::read_data(Samples *output_temp,
 		((VirtualANode*)parent_node)->read_data(output_temp,
 			size,
 			start_position,
-			sample_rate);
+			sample_rate,
+            playhead_position);
 	}
 	else
 	if(real_module)
@@ -168,7 +171,8 @@ int VirtualANode::read_data(Samples *output_temp,
 int VirtualANode::render(Samples *output_temp,
 	int64_t size,
 	int64_t start_position,
-	int64_t sample_rate)
+	int64_t sample_rate,
+    double playhead_position)
 {
 	const int debug = 0;
 if(debug) printf("VirtualANode::render %d this=%p\n", __LINE__, this);
@@ -180,7 +184,8 @@ if(debug) printf("VirtualANode::render %d this=%p\n", __LINE__, this);
 			output_temp,
 			size,
 			start_position, 
-			sample_rate);
+			sample_rate,
+            playhead_position);
 if(debug) printf("VirtualANode::render %d this=%p\n", __LINE__, this);
 	}
 	else
@@ -190,7 +195,8 @@ if(debug) printf("VirtualANode::render %d this=%p\n", __LINE__, this);
 		render_as_plugin(output_temp,
 			size,
 			start_position,
-			sample_rate);
+			sample_rate,
+            playhead_position);
 if(debug) printf("VirtualANode::render %d this=%p\n", __LINE__, this);
 	}
 if(debug) printf("VirtualANode::render %d this=%p\n", __LINE__, this);
@@ -203,7 +209,8 @@ if(debug) printf("VirtualANode::render %d this=%p\n", __LINE__, this);
 void VirtualANode::render_as_plugin(Samples *output_temp,
 	int64_t size,
 	int64_t start_position, 
-	int64_t sample_rate)
+	int64_t sample_rate,
+    double playhead_position)
 {
 	if(!attachment ||
 		!real_plugin ||
@@ -215,14 +222,16 @@ void VirtualANode::render_as_plugin(Samples *output_temp,
 		plugin_buffer_number,
 		start_position,
 		size,
-	  	sample_rate);
+	  	sample_rate,
+        playhead_position);
 }
 
 int VirtualANode::render_as_module(Samples **audio_out, 
 				Samples *output_temp,
 				int64_t len,
 				int64_t start_position,
-				int64_t sample_rate)
+				int64_t sample_rate,
+                double playhead_position)
 {
 	int in_output = 0;
 	int direction = renderengine->command->get_direction();
@@ -237,7 +246,8 @@ int VirtualANode::render_as_module(Samples **audio_out,
 		node->render(output_temp,
 			len,
 			start_position,
-			sample_rate);
+			sample_rate,
+            playhead_position);
 
 	}
 	else
@@ -246,7 +256,8 @@ int VirtualANode::render_as_module(Samples **audio_out,
 		read_data(output_temp,
 			len,
 			start_position,
-			sample_rate);
+			sample_rate,
+            playhead_position);
 	}
 
 // for(int k = 0; k < len; k++)

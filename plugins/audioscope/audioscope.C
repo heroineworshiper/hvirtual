@@ -806,7 +806,7 @@ int AudioScope::process_buffer(int64_t size,
             {
                 sign = -1;
             }
-            frame->edl_position = get_top_position() +
+            frame->edl_position = get_playhead_position() +
                 local_to_edl(get_gui_frames() * window_size) * sign;
 
 //printf("AudioScope::process_buffer %d\n", __LINE__);

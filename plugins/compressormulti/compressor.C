@@ -546,7 +546,7 @@ int CompressorEffect::process_buffer(int64_t size,
             frame->data[1] = engine->gui_levels.get(i);
             frame->type = GAIN_COMPRESSORFRAME;
             frame->band = band;
-            frame->edl_position = get_top_position() + 
+            frame->edl_position = get_playhead_position() + 
                 engine->gui_offsets.get(i) * 
                 sign;
             add_gui_frame(frame);
@@ -1174,7 +1174,7 @@ int CompressorFFT::signal_process(int band)
 //             sample_rate);
 
 // FFT advances 1/2 a window for each spectrogram frame
-        frame->edl_position = plugin->get_top_position() + 
+        frame->edl_position = plugin->get_playhead_position() + 
             (double)(plugin->filtered_size + 
                 plugin->new_spectrogram_frames[band] *
                 window_size / 2) * 
@@ -1184,7 +1184,7 @@ int CompressorFFT::signal_process(int band)
 //{
 // printf("CompressorFFT::signal_process %d top_position=%ld frame->edl_position=%ld\n", 
 // __LINE__, 
-// plugin->get_top_position(),
+// plugin->get_playhead_position(),
 // frame->edl_position);
 // printf("CompressorFFT::signal_process %d band=%d preview_samples=%d frames size=%ld filtered_size=%ld\n", 
 // __LINE__, 
@@ -1289,11 +1289,26 @@ int CompressorFFT::read_samples(int64_t output_sample,
 // output_sample,
 // samples);
 
+// tweek the playhead position for the read command
+// sign for playhead direction
+    int playhead_sign = 1;
+    if(plugin->get_top_direction() == PLAY_REVERSE)
+    {
+        playhead_sign = -1;
+    }
+
+    double playhead_position = plugin->get_playhead_position();
+    plugin->set_playhead_position(
+        playhead_position + 
+            (double)plugin->filtered_size * 
+            playhead_sign / 
+            plugin->get_samplerate());
 	int result = plugin->read_samples(buffer,
 		channel,
 		plugin->get_samplerate(),
 		output_sample,
 		samples);
+    plugin->set_playhead_position(playhead_position);
 
 // printf("CompressorFFT::read_samples %d output_sample=%ld samples=%d\n",
 // __LINE__,

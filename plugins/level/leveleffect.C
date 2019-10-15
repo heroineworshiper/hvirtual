@@ -303,7 +303,7 @@ int SoundLevelEffect::process_realtime(int64_t size,
 		double arg[2];
 		frame->data[0] = max_accum;
 		frame->data[1] = rms_accum;
-        frame->edl_position = get_top_position();
+        frame->edl_position = get_playhead_position();
 		add_gui_frame(frame);
         
 		rms_accum = 0;

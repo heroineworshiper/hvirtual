@@ -218,6 +218,9 @@ void CompressorEffect::update_gui()
 	{
         int reconfigured = load_configuration();
         int total_frames = pending_gui_frames();
+//printf("CompressorEffect::update_gui %d total_frames=%d\n", 
+//__LINE__, total_frames);
+
         if(reconfigured || total_frames)
         {
 			thread->window->lock_window("CompressorEffect::update_gui");
@@ -228,17 +231,22 @@ void CompressorEffect::update_gui()
             
             if(total_frames)
             {
-                CompressorFrame *frame;
+                CompressorFrame *frame = 0;
                 for(int i = 0; i < total_frames; i++)
                 {
                     frame = (CompressorFrame*)get_gui_frame();
                     if(i < total_frames - 1)
                     {
                         delete frame;
+                        frame = 0;
                     }
                 }
-                ((CompressorWindow*)thread->window)->update_meter(frame);
-                delete frame;
+                
+                if(frame)
+                {
+                    ((CompressorWindow*)thread->window)->update_meter(frame);
+                    delete frame;
+                }
             }
 			thread->window->unlock_window();
         }
@@ -260,6 +268,12 @@ int CompressorEffect::process_buffer(int64_t size,
 {
     int channels = PluginClient::total_in_buffers;
     BandConfig *band_config = &config.bands[0];
+// sign for rendering direction
+    int sign = 1;
+    if(get_direction() == PLAY_REVERSE)
+    {
+        sign = -1;
+    }
 
 // don't restart after every tweek
 	load_configuration();
@@ -273,6 +287,7 @@ int CompressorEffect::process_buffer(int64_t size,
             engine->reset();
         }
         input_size = 0;
+        input_start = start_position;
     }
 
 // Calculate linear transfer from db 
@@ -305,24 +320,51 @@ int CompressorEffect::process_buffer(int64_t size,
 
 
 // Start of new buffer is outside the current buffer.  Start buffer over.
-	if(start_position < input_start ||
-		start_position >= input_start + input_size)
+	if(get_direction() == PLAY_FORWARD && 
+        (start_position < input_start ||
+		start_position >= input_start + input_size) 
+        ||
+        get_direction() == PLAY_REVERSE && 
+        (start_position > input_start ||
+        start_position <= input_start - input_size))
 	{
+// printf("CompressorEffect::process_buffer %d start_position=%ld input_start=%ld input_size=%ld\n",
+// __LINE__,
+// start_position,
+// input_start,
+// input_size);
 		input_size = 0;
 		input_start = start_position;
 	}
 	else
 // Shift current buffer so the buffer starts on start_position
-	if(start_position > input_start &&
-		start_position < input_start + input_size)
+	if(get_direction() == PLAY_FORWARD && 
+        start_position > input_start &&
+		start_position < input_start + input_size
+        ||
+        get_direction() == PLAY_REVERSE && 
+        start_position < input_start &&
+		start_position > input_start - input_size)
 	{
 		if(input_buffer)
 		{
-			int len = input_start + input_size - start_position;
+			int len;
+            int offset;
+            if(get_direction() == PLAY_FORWARD)
+            {
+                len = input_start + input_size - start_position;
+                offset = start_position - input_start;
+            }
+            else
+            {
+                len = start_position - (input_start - input_size);
+                offset = input_start - start_position;
+            }
+            
 			for(int i = 0; i < channels; i++)
 			{
 				memcpy(input_buffer[i]->get_data(),
-					input_buffer[i]->get_data() + (start_position - input_start),
+					input_buffer[i]->get_data() + offset,
 					len * sizeof(double));
 			}
 			input_size = len;
@@ -351,10 +393,40 @@ int CompressorEffect::process_buffer(int64_t size,
 		input_buffer = new_input_buffer;
 	}
 
+// sign for playhead direction
+    int playhead_sign = 1;
+    if(get_top_direction() == PLAY_REVERSE)
+    {
+        playhead_sign = -1;
+    }
+
+// printf("CompressorEffect::process_buffer %d playhead=%f %f input_size=%ld\n", 
+// __LINE__, 
+// get_playhead_position(),
+// get_playhead_position() + 
+// (double)input_size * 
+// playhead_sign / 
+// sample_rate,
+// input_size);
+
 // Append data to input buffer to construct readahead area.  
 	if(input_size < size + preview_samples)
 	{
 		int fragment_size = size + preview_samples - input_size;
+printf("CompressorEffect::process_buffer %d input_start=%ld input_size=%ld remane=%d\n", 
+__LINE__,
+input_start,
+input_size,
+fragment_size);
+
+// tweek the playhead position with the readahead size
+        double playhead_position = get_playhead_position();
+        set_playhead_position(
+            playhead_position + 
+                (double)input_size * 
+                playhead_sign / 
+                sample_rate);
+
 		for(int i = 0; i < channels; i++)
 		{
 			input_buffer[i]->set_offset(input_size);
@@ -362,11 +434,12 @@ int CompressorEffect::process_buffer(int64_t size,
 			read_samples(input_buffer[i],
 				i,
 				sample_rate,
-				input_start + input_size,
+				input_start + input_size * sign,
 				fragment_size);
 			input_buffer[i]->set_offset(0);
 		}
 		input_size += fragment_size;
+        set_playhead_position(playhead_position);
 	}
 
     engine->process(buffer,
@@ -376,12 +449,6 @@ int CompressorEffect::process_buffer(int64_t size,
         PluginClient::total_in_buffers,
         start_position);
 
-    int sign = 1;
-    if(get_top_direction() == PLAY_REVERSE)
-    {
-        sign = -1;
-    }
-
     for(int i = 0; i < engine->gui_gains.size(); i++)
     {
         CompressorFrame *frame = new CompressorFrame;
@@ -390,9 +457,9 @@ int CompressorEffect::process_buffer(int64_t size,
         frame->type = GAIN_COMPRESSORFRAME;
         frame->data[0] = engine->gui_gains.get(i);
         frame->data[1] = engine->gui_levels.get(i);
-        frame->edl_position = get_top_position() + 
+        frame->edl_position = get_playhead_position() + 
             engine->gui_offsets.get(i) * 
-            sign;
+            playhead_sign;
         add_gui_frame(frame);
     }
 

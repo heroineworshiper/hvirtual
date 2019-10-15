@@ -155,7 +155,7 @@ int PluginServer::reset_parameters()
 	nodes = 0;
 	picon = 0;
     attachmentpoint = 0;
-	
+	playhead_position = 0;
 
 	is_lad = 0;
 	lad_descriptor_function = 0;
@@ -843,7 +843,8 @@ int PluginServer::read_samples(Samples *buffer,
 		return ((VirtualANode*)nodes->values[channel])->read_data(buffer,
 			size,
 			start_position,
-			sample_rate);
+			sample_rate,
+            playhead_position);
 	else
 	if(modules->total > channel)
 		return ((AModule*)modules->values[channel])->render(buffer,
