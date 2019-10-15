@@ -282,7 +282,7 @@ void PluginAClient::reset_gui_frames()
 // must lock this to get access to the frame_buffer
 	    thread->get_window()->lock_window("PluginClient::render_gui");
 
-printf("PluginClient::reset_gui_frames %d %s\n", __LINE__, plugin_title());
+//printf("PluginClient::reset_gui_frames %d %s\n", __LINE__, plugin_title());
         this->frame_buffer.remove_all_objects();
 
         thread->get_window()->unlock_window();

@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
@@ -413,11 +412,11 @@ int CompressorEffect::process_buffer(int64_t size,
 	if(input_size < size + preview_samples)
 	{
 		int fragment_size = size + preview_samples - input_size;
-printf("CompressorEffect::process_buffer %d input_start=%ld input_size=%ld remane=%d\n", 
-__LINE__,
-input_start,
-input_size,
-fragment_size);
+// printf("CompressorEffect::process_buffer %d input_start=%ld input_size=%ld remane=%d\n", 
+// __LINE__,
+// input_start,
+// input_size,
+// fragment_size);
 
 // tweek the playhead position with the readahead size
         double playhead_position = get_playhead_position();
