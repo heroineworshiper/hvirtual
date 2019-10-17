@@ -96,7 +96,7 @@ FileFFMPEGStream::FileFFMPEGStream()
 {
 	ffmpeg_file_context = 0;
 
-	current_frame = 0;
+	current_frame = -1;
     is_video = 0;
 
 // Interleaved samples
@@ -1657,7 +1657,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
     if(debug) printf("FileFFMPEG::read_frame %d file->current_frame=%ld\n", __LINE__, file->current_frame);
 
 
-
+// seek if reading ahead this many frames
 #define SEEK_THRESHOLD 16
 
 // printf("FileFFMPEG::read_frame %d current_frame=%lld file->current_frame=%lld\n", 
@@ -1782,7 +1782,11 @@ int FileFFMPEG::read_frame(VFrame *frame)
         
         got_frame = 0;
 	}
-	if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
+if(debug) printf("FileFFMPEG::read_frame %d file->current_frame=%ld file->current_frame=%ld error=%d\n", 
+__LINE__,
+file->current_frame,
+file->current_frame,
+error);
 
 
 
@@ -1801,10 +1805,10 @@ int FileFFMPEG::read_frame(VFrame *frame)
 	while(stream->current_frame < file->current_frame && !error)
 	{
 		got_frame = 0;
-// 		printf("FileFFMPEG::read_frame %d stream->current_frame=%lld file->current_frame=%lld\n", 
-// 			__LINE__,
-// 			(long long)stream->current_frame,
-// 			(long long)file->current_frame);
+if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%lld file->current_frame=%lld\n", 
+__LINE__,
+(long long)stream->current_frame,
+(long long)file->current_frame);
 
 		while(!got_frame && !error)
 		{
@@ -1812,10 +1816,10 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 
 
-// printf("FileFFMPEG::read_frame %d %p ftell=%ld\n", 
-// __LINE__, 
-// ((AVFormatContext*)stream->ffmpeg_file_context)->pb,
-// avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
+if(debug) printf("FileFFMPEG::read_frame %d %p ftell=%ld\n", 
+__LINE__, 
+((AVFormatContext*)stream->ffmpeg_file_context)->pb,
+avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
 		    error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
 			    packet);
 
@@ -1866,12 +1870,12 @@ int FileFFMPEG::read_frame(VFrame *frame)
                     packet);
 
 
-// printf("FileFFMPEG::read_frame %d stream->current_frame=%ld result=%d got_picture=%d ptr=%p\n", 
-// __LINE__, 
-// stream->current_frame,
-// result,
-// got_picture,
-// ((AVFrame*)ffmpeg_frame)->data[0]);
+if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%ld result=%d got_picture=%d ptr=%p\n", 
+__LINE__, 
+stream->current_frame,
+result,
+got_picture,
+((AVFrame*)ffmpeg_frame)->data[0]);
 				if(((AVFrame*)ffmpeg_frame)->data[0] && got_picture) 
                 {
                     got_frame = 1;
@@ -2106,7 +2110,10 @@ stream->history_start + stream->history_size);
 // __LINE__,
 // chunk,
 // sample_counter);
-                if(sample_counter > file->current_sample)
+
+
+// start a certain amount before the desired sample for the decoder to warm up
+                if(sample_counter > file->current_sample - asset->sample_rate)
                 {
                     sample_counter -= stream->audio_samples.get(chunk);
                     got_it = 1;
@@ -2114,7 +2121,7 @@ stream->history_start + stream->history_size);
                 }
                 chunk++;
             }
-            
+
             if(!got_it)
             {
                 chunk = chunks - 1;
