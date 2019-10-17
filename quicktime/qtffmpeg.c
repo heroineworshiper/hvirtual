@@ -602,7 +602,6 @@ result);
 
 
 
-// this doesn't work
 		if(ffmpeg->last_frame[current_field] == -1 &&
 			ffmpeg->ffmpeg_id != AV_CODEC_ID_H264)
 		{
@@ -611,12 +610,21 @@ result);
 // For certain codecs,
 // must decode frame with stream header first but only the first frame in the
 // field sequence has a stream header.
-			result = decode_wrapper(file, 
-				vtrack, 
-				ffmpeg, 
-				current_field, 
-				track,
-				0);
+            while(1)
+            {
+			    result = decode_wrapper(file, 
+				    vtrack, 
+				    ffmpeg, 
+				    current_field, 
+				    track,
+				    0);
+                if(result == 0 || result == -1) break;
+            }
+// printf("quicktime_ffmpeg_decode %d current_position=%ld result=%d %p\n", 
+// __LINE__, 
+// vtrack->current_position,
+// result,
+// ffmpeg->picture[current_field]);
 			rowspan = ffmpeg->picture[current_field]->linesize[0];
 			picture_y = ffmpeg->picture[current_field]->data[0];
 			picture_u = ffmpeg->picture[current_field]->data[1];
@@ -711,11 +719,11 @@ frame1);
 			first_frame = frame1;
 
 
-// printf("quicktime_ffmpeg_decode %d last_frame=%ld frame1=%d frame2=%d\n", 
+// printf("quicktime_ffmpeg_decode %d vtrack->current_position=%ld last_frame=%ld frame1=%d\n", 
 // __LINE__,
+// vtrack->current_position,
 // ffmpeg->last_frame[current_field],
-// frame1,
-// frame2);
+// frame1);
 // read frames until the current position is decoded
 			while(ffmpeg->last_frame[current_field] < vtrack->current_position &&
 				ffmpeg->read_position[current_field] < track_length)

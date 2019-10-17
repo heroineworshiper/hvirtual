@@ -1778,13 +1778,20 @@ int FileFFMPEG::read_frame(VFrame *frame)
                 file->current_frame);
 
 		    stream->current_frame = keyframe;
+
+// want 1st frame in the stream
+            if(stream->current_frame == 0 &&
+                file->current_frame == 0)
+            {
+                stream->current_frame = -1;
+            }
         }
         
         got_frame = 0;
 	}
-if(debug) printf("FileFFMPEG::read_frame %d file->current_frame=%ld file->current_frame=%ld error=%d\n", 
+if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%ld file->current_frame=%ld error=%d\n", 
 __LINE__,
-file->current_frame,
+stream->current_frame,
 file->current_frame,
 error);
 
