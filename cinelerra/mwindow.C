@@ -2408,6 +2408,23 @@ void MWindow::update_plugin_guis(int do_keyframe_guis)
 	if(do_keyframe_guis) update_keyframe_guis();
 }
 
+void MWindow::stop_plugin_guis()
+{
+// Send new configuration to plugin GUI's
+	plugin_gui_lock->lock("MWindow::stop_plugin_guis");
+
+	for(int i = 0; i < plugin_guis->size(); i++)
+	{
+		PluginServer *ptr = plugin_guis->get(i);
+		if(edl->tracks->plugin_exists(ptr->plugin))
+		{
+			ptr->render_stop();
+		}
+	}
+	plugin_gui_lock->unlock();
+}
+
+
 int MWindow::plugin_gui_open(Plugin *plugin)
 {
 	int result = 0;

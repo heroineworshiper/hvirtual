@@ -117,7 +117,7 @@ public:
 	void reverse_edits(double start, double end, int first_track);
 	void align_edits(double start, 
 		double end, 
-		ArrayList<double> *times);
+		Track *master_track);
 // Optimize editing
 	void optimize();
 	int is_muted(int64_t position, int direction);  // Test muting status

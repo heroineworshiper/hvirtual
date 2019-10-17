@@ -789,6 +789,7 @@ void GraphicGUI::create_objects()
 			freq_h));
 	y += canvas->get_h() + freq_h + margin;
 
+    x = margin;
 	int x1 = x;
 	int y1 = y;
 	add_subwindow(freq_title = new BC_Title(x, y, "Frequency:"));

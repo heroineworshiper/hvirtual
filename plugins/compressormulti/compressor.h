@@ -143,6 +143,7 @@ public:
 
 	void reset();
 	void update_gui();
+    void render_stop();
 	void delete_dsp();
 
 	PLUGIN_CLASS_MEMBERS(CompressorConfig)

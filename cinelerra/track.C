@@ -1754,62 +1754,80 @@ void Track::reverse_edits(double start, double end, int first_track)
 
 void Track::align_edits(double start, 
 	double end, 
-	ArrayList<double> *times)
+	Track *master_track)
 {
 	int64_t start_units = to_units(start, 0);
 	int64_t end_units = to_units(end, 0);
 
-// If 1st track with data, times is empty & we need to collect the edit times.
-	if(!times->size())
-	{
-		for(Edit *current = edits->first; current; current = NEXT)
-		{
-			if(current->startproject >= start_units &&
-				current->startproject + current->length <= end_units)
-			{
-				times->append(from_units(current->startproject));
-			}
-		}
-	}
-	else
 // All other tracks get silence or cut to align the edits on the times.
+	Edit *master = master_track->edits->first;
+	for(Edit *current = edits->first; 
+		current && master; )
 	{
-		int current_time = 0;
-		for(Edit *current = edits->first; 
-			current && current_time < times->size(); )
+// edit is in highlighted region
+		if(current->startproject >= start_units &&
+			current->startproject + current->length <= end_units)
 		{
-			if(current->startproject >= start_units &&
-				current->startproject + current->length <= end_units)
+            int64_t master_length_units = to_units(master_track->from_units(master->length), 0);
+// starting time of master edit
+            int64_t master_start_units = to_units(master_track->from_units(master->startproject), 0);
+// starting time of current edit
+			int64_t current_startunits = current->startproject;
+
+// the following occur if multiple aligns are performed
+// master edit is not silence but current edit is silence
+            if(!master->silence() &&
+                current->silence())
+            {
+// try again with next edit
+                current = NEXT;
+                continue;
+            }
+            else
+// master edit is silence but current edit is not silence
+            if(master->silence() &&
+                !current->silence())
+            {
+                master = master->next;
+                continue;
+            }
+            else
+// current edit is a glitch edit between 2 required edits
+            if(current->length < master_length_units / 2)
+            {
+                current = NEXT;
+                continue;
+            }
+
+
+			current = NEXT;
+
+// current edit starts before master edit
+			if(current_startunits < master_start_units)
 			{
-				int64_t desired_startunits = to_units(times->get(current_time), 0);
-				int64_t current_startunits = current->startproject;
-				current = NEXT;
-
-
-				if(current_startunits < desired_startunits)
-				{
 //printf("Track::align_edits %d\n", __LINE__);
-					edits->paste_silence(current_startunits,
-						desired_startunits);
-					shift_keyframes(current_startunits,
-						desired_startunits - current_startunits);
-				}
-				else
-				if(current_startunits > desired_startunits)
-				{
-					edits->clear(desired_startunits,
-						current_startunits);
-					if(edl->session->autos_follow_edits)
-						shift_keyframes(desired_startunits,
-							current_startunits - desired_startunits);
-				}
-
-				current_time++;
+				edits->paste_silence(current_startunits,
+					master_start_units);
+				shift_keyframes(current_startunits,
+					master_start_units - current_startunits);
 			}
 			else
+// current edit starts after master edit
+			if(current_startunits > master_start_units)
 			{
-				current = NEXT;
+				edits->clear(master_start_units,
+					current_startunits);
+				if(edl->session->autos_follow_edits)
+					shift_keyframes(master_start_units,
+						current_startunits - master_start_units);
 			}
+
+			master = master->next;
+		}
+		else
+		{
+			current = NEXT;
+            master = master->next;
 		}
 	}
 

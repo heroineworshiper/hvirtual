@@ -247,8 +247,10 @@ public:
 	void hide_plugins();
 	void delete_plugin(PluginServer *plugin);
 // Update plugins with configuration changes.
-// Called by TrackCanvas::cursor_motion_event.
+// Called by TrackCanvas::cursor_motion_event, CTracking::update_tracker.
 	void update_plugin_guis(int do_keyframe_guis = 1);
+// update the plugins when playback stops
+    void stop_plugin_guis();
 	void update_plugin_states();
 	void update_plugin_titles();
 // Called by Attachmentpoint during playback.

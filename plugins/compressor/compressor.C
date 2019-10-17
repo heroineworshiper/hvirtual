@@ -252,6 +252,18 @@ void CompressorEffect::update_gui()
 	}
 }
 
+void CompressorEffect::render_stop()
+{
+	if(thread)
+	{
+		thread->window->lock_window("CompressorEffect::render_stop");
+        ((CompressorWindow*)thread->window)->in->reset();
+        ((CompressorWindow*)thread->window)->gain_change->update(1, 0);
+        thread->window->unlock_window();
+    }
+}
+
+
 
 LOAD_CONFIGURATION_MACRO(CompressorEffect, CompressorConfig)
 NEW_WINDOW_MACRO(CompressorEffect, CompressorWindow)

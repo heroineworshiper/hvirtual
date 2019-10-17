@@ -1586,11 +1586,13 @@ int File::set_audio_position(int64_t position)
 		result = file->set_audio_position(current_sample);
 
 		if(result)
-			printf("File::set_audio_position position=%d base_samplerate=%f asset=%p asset->sample_rate=%d\n",
+		{
+        	printf("File::set_audio_position position=%d base_samplerate=%f asset=%p asset->sample_rate=%d\n",
 				(int)position, 
 				base_samplerate, 
 				asset, 
 				(int)asset->sample_rate);
+        }
 	}
 
 //printf("File::set_audio_position %d %d %d\n", current_channel, current_sample, position);

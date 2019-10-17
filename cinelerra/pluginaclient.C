@@ -277,7 +277,7 @@ void PluginAClient::send_reset_gui_frames()
 // used by audio plugins.  runs on the GUI instance
 void PluginAClient::reset_gui_frames()
 {
-    if(thread)
+    if(thread && thread->get_window())
     {
 // must lock this to get access to the frame_buffer
 	    thread->get_window()->lock_window("PluginClient::render_gui");

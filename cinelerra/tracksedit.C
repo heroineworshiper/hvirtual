@@ -150,7 +150,7 @@ void Tracks::reverse_edits(double start, double end)
 void Tracks::align_edits(double start, double end)
 {
 // This doesn't affect automation or effects
-	ArrayList<double> times;
+	Track *master_track = 0;
 
 	for(Track *current_track = first; 
 		current_track; 
@@ -158,7 +158,14 @@ void Tracks::align_edits(double start, double end)
 	{
 		if(current_track->record)
 		{
-			current_track->align_edits(start, end, &times);
+            if(!master_track)
+            {
+                master_track = current_track;
+            }
+            else
+            {
+    			current_track->align_edits(start, end, master_track);
+            }
 		}
 	}
 }

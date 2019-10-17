@@ -214,6 +214,7 @@ public:
 
 
 	void update_gui();
+    void render_stop();
 
 	PLUGIN_CLASS_MEMBERS(CompressorConfig)
 

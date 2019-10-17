@@ -387,8 +387,11 @@ void PluginServer::client_side_close()
 
 void PluginServer::render_stop()
 {
+    reset_gui_frames();
 	if(client)
+    {
 		client->render_stop();
+    }
 }
 
 void PluginServer::write_table(FILE *fd)
@@ -688,7 +691,7 @@ void PluginServer::render_gui(void *data)
 
 void PluginServer::reset_gui_frames()
 {
-    if(client)
+    if(client && audio)
     {
 	    PluginAClient *aclient = (PluginAClient*)client;
         aclient->reset_gui_frames();
