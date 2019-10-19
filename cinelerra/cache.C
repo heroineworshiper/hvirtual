@@ -76,7 +76,7 @@ File* CICache::check_out(Asset *asset, EDL *edl, int block)
 // Debugging
 		int is_checked_out = 0;
 //		printf("CICache::check_out %d asset=%p\n", __LINE__, asset);
-		total_lock->lock("CICache::check_out");
+		total_lock->lock("CICache::check_out 1");
 //		printf("CICache::check_out %d\n", __LINE__);
 		for(current = first; current && !got_it; current = NEXT)
 		{
@@ -86,6 +86,7 @@ File* CICache::check_out(Asset *asset, EDL *edl, int block)
 				break;
 			}
 		}
+//        printf("CICache::check_out %d got_it=%d\n", __LINE__, got_it);
 
 // Test availability
 		if(got_it)
@@ -105,8 +106,14 @@ File* CICache::check_out(Asset *asset, EDL *edl, int block)
 		}
 		else
 		{
+//            printf("CICache::check_out %d block=%d\n", __LINE__, block);
 // Create new item
-			new_item = append(new CICacheItem(this, edl, asset));
+            total_lock->unlock();
+            CICacheItem *new_item = new CICacheItem(this, edl, asset);
+			total_lock->lock("CICache::check_out 2");
+            
+            append(new_item);
+//            printf("CICache::check_out %d block=%d\n", __LINE__, block);
 
 			if(new_item->file)
 			{

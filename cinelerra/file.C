@@ -912,14 +912,13 @@ void File::start_progress(const char *title, int64_t total)
 // show progress only if there's a GUI
     if(BC_WindowBase::get_resources()->initialized)
     {
+        if(!MWindow::is_loading)
+        {
+            printf("File::start_progress %d should only be called when loading files\n", __LINE__);
+        }
+
         if(!MWindow::file_progress)
         {
-//             MWindow::file_progress = new BC_ProgressBox(-1, 
-// 			    -1, 
-// 			    title, 
-// 			    total);
-//             MWindow::file_progress->start();
-
 // has to be a standalone window to allow the user to cancel
 			MWindow::file_progress = MWindow::mainprogress->start_progress(title, 
 				total,
@@ -929,7 +928,6 @@ void File::start_progress(const char *title, int64_t total)
         else
         {
             MWindow::file_progress->update_title(title, 1);
-//            MWindow::file_progress->update_length(total, 1);
             MWindow::file_progress->update_length(total);
         }
     }

@@ -815,16 +815,14 @@ void MWindowGUI::update(int scrollbars,
 	
 	if(do_canvas && do_canvas != IGNORE_THREAD)
 	{
+	    if(debug) PRINT_TRACE
 		resource_thread->start_draw();
+    	if(debug) PRINT_TRACE
 	}
 	
-//	if(scrollbars) this->get_scrollbars(0);
-//	if(timebar) this->timebar->update(0);
 	if(zoombar) this->zoombar->update();
-//	if(patchbay) this->patchbay->update();
 	if(clock) this->mainclock->update(
 		mwindow->edl->local_session->get_selectionstart(1));
-	if(debug) PRINT_TRACE
 
 
 
@@ -849,10 +847,12 @@ void MWindowGUI::update(int scrollbars,
 	if(do_canvas != FORCE_REDRAW && do_canvas != IGNORE_THREAD)
 	{
 		unlock_window();
+	    if(debug) PRINT_TRACE
 		mwindow->age_caches();
+	    if(debug) PRINT_TRACE
 		lock_window("MWindowGUI::update");
 	}
-	
+
 	flush();
 	if(debug) PRINT_TRACE
 }

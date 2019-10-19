@@ -508,7 +508,6 @@ public:
 
 	static FileServer *file_server;
 // progress bar for building tables of contents
-//    static BC_ProgressBox *file_progress;
     static MainProgressBar *file_progress;
 // if we shouldn't delete the file_progress after each file
 	static int is_loading;

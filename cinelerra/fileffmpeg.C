@@ -798,6 +798,7 @@ decoder_context->codec_id);
 
 
 //printf("FileFFMPEG::open_ffmpeg %d: %s %d %d\n", __LINE__, asset->vcodec, asset->video_data, strcmp(asset->vcodec, QUICKTIME_H264));
+        if(debug) printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
 
 // does the format need a table of contents?
         if(asset->video_data &&
@@ -808,6 +809,7 @@ decoder_context->codec_id);
 //printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
             result = create_toc(ffmpeg_file_context);
         }
+        if(debug) printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
 
 
 		if(debug) 
@@ -828,6 +830,7 @@ decoder_context->codec_id);
 		}
 		return 1;
 	}
+    if(debug) printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
 
 
 	if(ffmpeg_file_context)
@@ -835,6 +838,8 @@ decoder_context->codec_id);
 		avformat_close_input((AVFormatContext**)&ffmpeg_file_context);
 	}
 	ffmpeg_lock->unlock();
+    if(debug) printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
+
     return result;
 }
 
@@ -859,11 +864,13 @@ int FileFFMPEG::create_toc(void *ptr)
     string path_string(asset->path);
     char string3[BCTEXTLEN];
     int debug = 0;
+    if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
 
 	IndexFile::get_toc_filename(&source_filename, 
 		&file->preferences->index_directory, 
 		&index_filename, 
 		&path_string);
+    if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
 
     int need_toc = 1;
     int result = 0;
@@ -897,6 +904,7 @@ int FileFFMPEG::create_toc(void *ptr)
 
 // test for existing TOC
     FILE *fd = fopen(index_filename.c_str(), "r");
+    int64_t creation_date = FileSystem::get_date(asset->path);
     if(fd)
     {
         int sig_len = strlen(FFMPEG_TOC_SIG);
@@ -914,7 +922,8 @@ int FileFFMPEG::create_toc(void *ptr)
 
 // test creation date
         FileSystem fs;
-        if(result || fs.get_date(index_filename.c_str()) < fs.get_date(asset->path))
+        if(result || 
+            fs.get_date(index_filename.c_str()) < creation_date)
         {
             result = 1;
         }
@@ -953,6 +962,7 @@ int FileFFMPEG::create_toc(void *ptr)
 //                 }
             }
         }
+        if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
 
         if(!result)
         {
@@ -1049,6 +1059,7 @@ int FileFFMPEG::create_toc(void *ptr)
     }
 
 
+    if(debug) printf("FileFFMPEG::create_toc %d need_toc=%d\n", __LINE__, need_toc);
 
 
     if(need_toc)
@@ -1070,7 +1081,7 @@ int FileFFMPEG::create_toc(void *ptr)
         {
             AVStream *ffmpeg_stream = ffmpeg->streams[i];
             AVCodecContext *decoder_context = ffmpeg_stream->codec;
-            
+
             if(decoder_context->codec_type == AVMEDIA_TYPE_AUDIO)
             {
 //printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_AUDIO\n", __LINE__, i);
@@ -1114,7 +1125,9 @@ int FileFFMPEG::create_toc(void *ptr)
         string progress_title;
         progress_title.assign("Creating ");
         progress_title.append(index_filename);
+        if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
         file->start_progress(progress_title.c_str(), total_bytes);
+        if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
 
 
         while(1)
@@ -1143,16 +1156,20 @@ int FileFFMPEG::create_toc(void *ptr)
                 int64_t elapsed_s = current_time.get_difference() / 1000;
                 int64_t total_s = elapsed_s * total_bytes / offset;
                 int64_t eta = total_s - elapsed_s;
+                if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
                 file->update_progress(offset);
+                if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
                 string2.assign(progress_title);
                 sprintf(string3, 
 					"\nETA: %ldm%lds",
 					(int64_t)eta / 60,
 					(int64_t)eta % 60);
                 string2.append(string3);
+                if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
 				file->update_progress_title(string2.c_str());
+                if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
             }
-            
+
             if(packet->size > 0)
             {
 //                 printf("FileFFMPEG::create_toc %d: offset=0x%lx size=%d stream=%d\n", 
@@ -1270,12 +1287,12 @@ int FileFFMPEG::create_toc(void *ptr)
             
             
             av_packet_free(&packet);
-            
-            
         }
 
 
+        if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
         file->stop_progress("done creating table of contents");
+        if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
 
         av_seek_frame(ffmpeg, 
 			0, 
@@ -1407,10 +1424,13 @@ int FileFFMPEG::create_toc(void *ptr)
         if(fd)
         {
             fclose(fd);
+// set the creation date to the file's creation date to handle future times
+            FileSystem::set_date(index_filename.c_str(), creation_date);
         }
     }
     
     
+    if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
 
 
     return result;

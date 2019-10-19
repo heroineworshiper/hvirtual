@@ -83,7 +83,6 @@ int MainProgressBar::is_cancelled()
 {
 	if(progress_box)
 	{
-//printf("MainProgressBar::is_cancelled 1 %d\n", progress_box->is_cancelled());
 		return progress_box->is_cancelled();
 	}
 	else

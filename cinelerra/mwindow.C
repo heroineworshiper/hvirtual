@@ -2649,6 +2649,7 @@ void MWindow::update_project(int load_mode)
 		gui->load_panes();
 	}
 
+	if(debug) PRINT_TRACE
 	gui->update(1, 1, 1, 1, 1, 1, 1);
 	if(debug) PRINT_TRACE
 	gui->unlock_window();
