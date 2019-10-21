@@ -591,6 +591,7 @@ BC_FileBox::~BC_FileBox()
 	delete [] column_type;
 	delete [] column_width;
 	delete delete_thread;
+    delete rename_thread;
 	recent_dirs.remove_all_objects();
 }
 

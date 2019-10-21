@@ -36,7 +36,7 @@
 
 
 #define WINDOW_W DP(320)
-#define WINDOW_H DP(120)
+#define WINDOW_H DP(150)
 #define MARGIN DP(10)
 
 
@@ -70,9 +70,9 @@ void BC_Rename::create_objects()
 	y += text->get_h() + MARGIN;
 	add_subwindow(textbox = new BC_TextBox(x, y, 300, 1, thread->orig_name));
 	y += textbox->get_h() + MARGIN;
-	add_subwindow(new BC_OKButton(this));
+	add_subwindow(new BC_OKButton(x, y));
 	x = get_w() - BC_CancelButton::calculate_w() - MARGIN;
-	add_subwindow(new BC_CancelButton(this));
+	add_subwindow(new BC_CancelButton(x, y));
 	show_window();
 	unlock_window();
 }
