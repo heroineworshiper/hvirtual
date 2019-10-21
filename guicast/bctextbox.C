@@ -146,6 +146,7 @@ int BC_TextBox::reset_parameters(int rows, int has_border, int font)
 	highlight_letter3 = highlight_letter4 = 0;
 	ibeam_letter = 0;
 	active = 0;
+    read_only = 0;
 	text_selected = 0;
 	word_selected = 0;
 	line_selected = 0;
@@ -461,6 +462,19 @@ void BC_TextBox::enable()
 int BC_TextBox::get_enabled()
 {
 	return enabled;
+}
+
+void BC_TextBox::set_read_only(int value)
+{
+    this->read_only = value;
+    
+    if(value)
+    {
+        menu->remove_item(menu->cut);
+        menu->remove_item(menu->paste);
+        menu->cut = 0;
+        menu->paste = 0;
+    }
 }
 
 int BC_TextBox::pixels_to_rows(BC_WindowBase *window, int font, int pixels)
@@ -1126,6 +1140,11 @@ int BC_TextBox::repeat_event(int64_t duration)
 
 void BC_TextBox::default_keypress(int &dispatch_event, int &result)
 {
+    if(read_only)
+    {
+        return;
+    }
+
 	if((top_level->get_keypress() == RETURN) ||
         (top_level->get_keypress() > 30 && top_level->get_keypress() <= 255))
 //		(top_level->get_keypress() > 30 && top_level->get_keypress() < 127))
@@ -1634,6 +1653,11 @@ int BC_TextBox::keypress_event()
 		}
 
     	case BACKSPACE:
+            if(read_only)
+            {
+                break;
+            }
+
 			if(suggestions_popup)
 			{
 				delete suggestions_popup;
@@ -1667,6 +1691,11 @@ int BC_TextBox::keypress_event()
     		break;
 
 		case DELETE:
+            if(read_only)
+            {
+                break;
+            }
+
 //printf("BC_TextBox::keypress_event %d\n", __LINE__);
 			if(highlight_letter1 == highlight_letter2)
 			{
@@ -1702,7 +1731,7 @@ int BC_TextBox::keypress_event()
 					result = copy(0);
 				}
 				else
-				if(get_keypress() == 'v' || get_keypress() == 'V')
+				if(!read_only && (get_keypress() == 'v' || get_keypress() == 'V'))
 				{
 					result = paste(0);
 
@@ -1710,7 +1739,7 @@ int BC_TextBox::keypress_event()
 					dispatch_event = 1;
 				}
 				else
-				if(get_keypress() == 'x' || get_keypress() == 'X')
+				if(!read_only && (get_keypress() == 'x' || get_keypress() == 'X'))
 				{
 					result = cut(0);
 
@@ -3126,9 +3155,9 @@ BC_TextMenu::~BC_TextMenu()
 
 void BC_TextMenu::create_objects()
 {
-	add_item(new BC_TextMenuCut(this));
+	add_item(cut = new BC_TextMenuCut(this));
 	add_item(new BC_TextMenuCopy(this));
-	add_item(new BC_TextMenuPaste(this));
+	add_item(paste = new BC_TextMenuPaste(this));
 }
 
 

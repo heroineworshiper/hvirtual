@@ -99,6 +99,7 @@ public:
 	int update(float value);
 	void disable();
 	void enable();
+    void set_read_only(int value);
 	int get_enabled();
 	int get_rows();
 
@@ -211,6 +212,7 @@ private:
 	char temp_string[KEYPRESSLEN];
 	int active;
 	int enabled;
+    int read_only;
 	int precision;
 	int keypress_draw;
 // Cause the repeater to skip a cursor refresh if a certain event happened
@@ -445,7 +447,8 @@ public:
 	BC_TumbleTextBox *popup;
 };
 
-
+class BC_TextMenuCut;
+class BC_TextMenuPaste;
 class BC_TextMenu : public BC_PopupMenu
 {
 public:
@@ -455,6 +458,8 @@ public:
 	void create_objects();
 	
 	BC_TextBox *textbox;
+    BC_TextMenuCut *cut;
+    BC_TextMenuPaste *paste;
 };
 
 class BC_TextMenuCut : public BC_MenuItem

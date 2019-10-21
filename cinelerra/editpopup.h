@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #ifndef EDITPOPUP_H
 #define EDITPOPUP_H
 
+#include "bcdialog.h"
 #include "guicast.h"
 #include "mwindow.inc"
 #include "mwindowgui.inc"
@@ -36,6 +37,8 @@ class EditPopupTitleText;
 class EditPopupTitleWindow;
 class EditPopupTitleButton;
 class EditPopupTitleButtonRes;
+class EditInfo;
+class EditInfoThread;
 
 class EditPopup : public BC_PopupMenu
 {
@@ -53,6 +56,10 @@ public:
 	Track *track;
 	EditPopupResize *resize_option;
 	EditPopupMatchSize *matchsize_option;
+    EditInfo *info;
+    
+    ArrayList<EditInfoThread*> edit_editors;
+    
 };
 
 class EditPopupMatchSize : public BC_MenuItem
@@ -133,49 +140,95 @@ public:
 };
 
 
-class EditPopupTitle : public BC_MenuItem
+class EditInfo : public BC_MenuItem
 {
 public:
-	EditPopupTitle (MWindow *mwindow, EditPopup *popup);
-	~EditPopupTitle();
+	EditInfo(MWindow *mwindow, EditPopup *popup);
+	~EditInfo();
 
 	int handle_event();
 
 	MWindow *mwindow;
 	EditPopup *popup;
-	EditPopupTitleWindow *window;
 };
 
-class EditPopupTitleText : public BC_TextBox
+class EditInfoThread : public BC_DialogThread
 {
 public:
-	EditPopupTitleText (EditPopupTitleWindow *window,
-		MWindow *mwindow, int x, int y);
-	~EditPopupTitleText();
-
-	int handle_event();
-
-	EditPopupTitleWindow *window;
-	MWindow *mwindow;
+    EditInfoThread(MWindow *mwindow);
+    ~EditInfoThread();
+    
+    void show_edit(Edit *edit);
+    BC_Window* new_gui();
+    
+    MWindow *mwindow;
+    string path;
+    int64_t startsource;
+    int64_t startproject;
+    int64_t length;
+    int channel;
+    int is_silence;
 };
 
-
-class EditPopupTitleWindow : public BC_Window
+class EditInfoGUI : public BC_Window
 {
 public:
-	EditPopupTitleWindow (MWindow *mwindow, EditPopup *popup);
-	~EditPopupTitleWindow ();
+    EditInfoGUI(MWindow *mwindow, EditInfoThread *thread, int x, int y);
+    ~EditInfoGUI();
 
-	void create_objects();
-	int close_event();
-
-	EditPopupTitleText *title_text;
-	Edit *edt;
-	MWindow *mwindow;
-	EditPopup *popup;
-	char new_text[BCTEXTLEN];
+    void create_objects();
+    
+    
+    MWindow *mwindow;
+    EditInfoThread *thread;
+    
 };
 
+
+
+// class EditPopupTitle : public BC_MenuItem
+// {
+// public:
+// 	EditPopupTitle (MWindow *mwindow, EditPopup *popup);
+// 	~EditPopupTitle();
+// 
+// 	int handle_event();
+// 
+// 	MWindow *mwindow;
+// 	EditPopup *popup;
+// 	EditPopupTitleWindow *window;
+// };
+
+// class EditPopupTitleText : public BC_TextBox
+// {
+// public:
+// 	EditPopupTitleText (EditPopupTitleWindow *window,
+// 		MWindow *mwindow, int x, int y);
+// 	~EditPopupTitleText();
+// 
+// 	int handle_event();
+// 
+// 	EditPopupTitleWindow *window;
+// 	MWindow *mwindow;
+// };
+// 
+// 
+// class EditPopupTitleWindow : public BC_Window
+// {
+// public:
+// 	EditPopupTitleWindow (MWindow *mwindow, EditPopup *popup);
+// 	~EditPopupTitleWindow ();
+// 
+// 	void create_objects();
+// 	int close_event();
+// 
+// 	EditPopupTitleText *title_text;
+// 	Edit *edt;
+// 	MWindow *mwindow;
+// 	EditPopup *popup;
+// 	char new_text[BCTEXTLEN];
+// };
+// 
 
 
 #endif

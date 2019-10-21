@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,14 +19,17 @@
  * 
  */
 
+#include "asset.h"
 #include "edit.h"
 #include "editpopup.h"
+#include "edl.h"
 #include "language.h"
 #include "mainsession.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "plugindialog.h"
 #include "resizetrackthread.h"
+#include "theme.h"
 #include "track.h"
 #include "tracks.h"
 #include "trackcanvas.h"
@@ -47,6 +50,7 @@ EditPopup::EditPopup(MWindow *mwindow, MWindowGUI *gui)
 
 EditPopup::~EditPopup()
 {
+    edit_editors.remove_all_objects();
 }
 
 void EditPopup::create_objects()
@@ -57,7 +61,10 @@ void EditPopup::create_objects()
 	add_item(new EditPopupDeleteTrack(mwindow, this));
 	add_item(new EditPopupAddTrack(mwindow, this));
 //	add_item(new EditPopupTitle(mwindow, this));
+
 	resize_option = 0;
+	matchsize_option = 0;
+    info = 0;
 }
 
 int EditPopup::update(Track *track, Edit *edit)
@@ -65,18 +72,38 @@ int EditPopup::update(Track *track, Edit *edit)
 	this->edit = edit;
 	this->track = track;
 
+// make them always the same order
+    if(resize_option)
+    {
+    	remove_item(resize_option);
+    }
+    
+    if(matchsize_option)
+    {
+    	remove_item(matchsize_option);
+    }
+    
+    if(info)
+    {
+        remove_item(info);
+    }
+
+	resize_option = 0;
+	matchsize_option = 0;
+    info = 0;
+
+
+    if(edit && !info)
+    {
+        add_item(info = new EditInfo(mwindow, this));
+    }
+
+
+
 	if(track->data_type == TRACK_VIDEO && !resize_option)
 	{
 		add_item(resize_option = new EditPopupResize(mwindow, this));
 		add_item(matchsize_option = new EditPopupMatchSize(mwindow, this));
-	}
-	else
-	if(track->data_type == TRACK_AUDIO && resize_option)
-	{
-		remove_item(resize_option);
-		remove_item(matchsize_option);
-		resize_option = 0;
-		matchsize_option = 0;
 	}
 	return 0;
 }
@@ -144,6 +171,187 @@ int EditMoveTrackDown::handle_event()
 	mwindow->move_track_down(popup->track);
 	return 1;
 }
+
+
+EditInfo::EditInfo(MWindow *mwindow, EditPopup *popup)
+ : BC_MenuItem(_("Edit info..."))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+EditInfo::~EditInfo()
+{
+}
+int EditInfo::handle_event()
+{
+    int got_it = 0;
+    if(!popup->edit)
+    {
+        return 0;
+    }
+
+    for(int i = 0; i < popup->edit_editors.size(); i++)
+    {
+        EditInfoThread *thread = popup->edit_editors.get(i);
+        if(!thread->running())
+        {
+            thread->show_edit(popup->edit);
+            got_it = 1;
+        }
+    }
+    
+    if(!got_it)
+    {
+//printf("EditInfo::handle_event %d edit=%p\n", __LINE__, popup->edit);
+        EditInfoThread *thread = new EditInfoThread(mwindow);
+        popup->edit_editors.append(thread);
+        thread->show_edit(popup->edit);
+    }
+	return 1;
+}
+
+
+EditInfoThread::EditInfoThread(MWindow *mwindow)
+ : BC_DialogThread()
+{
+    this->mwindow = mwindow;
+}
+
+EditInfoThread::~EditInfoThread()
+{
+}
+
+void EditInfoThread::show_edit(Edit *edit)
+{
+    this->is_silence = edit->silence();
+    if(this->is_silence)
+    {
+        path.assign("SILENCE");
+    }
+    else
+    {
+        if(edit->asset)
+        {
+            this->path.assign(edit->asset->path);
+        }
+        else
+        if(edit->nested_edl)
+        {
+            this->path.assign(edit->nested_edl->path);
+        }
+    }
+    
+    this->startsource = edit->startsource;
+    this->startproject = edit->startproject;
+    this->length = edit->length;
+    this->channel = edit->channel;
+    mwindow->gui->unlock_window();
+    BC_DialogThread::start();
+    mwindow->gui->lock_window("EditInfoThread::show_edit");
+}
+
+BC_Window* EditInfoThread::new_gui()
+{
+	mwindow->gui->lock_window("EditInfoThread::new_gui");
+	int x = mwindow->gui->get_abs_cursor_x(0) - 
+		mwindow->session->plugindialog_w / 2;
+	int y = mwindow->gui->get_abs_cursor_y(0) - 
+		mwindow->session->plugindialog_h / 2;
+    EditInfoGUI *gui = new EditInfoGUI(mwindow, this, x, y);
+    gui->create_objects();
+	mwindow->gui->unlock_window();
+    return gui;
+}
+
+#define WINDOW_W DP(400)
+#define WINDOW_H DP(200)
+
+EditInfoGUI::EditInfoGUI(MWindow *mwindow, EditInfoThread *thread, int x, int y)
+ : BC_Window(PROGRAM_NAME ": Edit Info", 
+ 	x, 
+	y, 
+	WINDOW_W, 
+	WINDOW_H,
+	WINDOW_W,
+	WINDOW_H,
+	0,
+	0,
+	1)
+{
+    this->mwindow = mwindow;
+    this->thread = thread;
+}
+
+
+EditInfoGUI::~EditInfoGUI()
+{
+}
+
+
+void EditInfoGUI::create_objects()
+{
+    int margin = mwindow->theme->widget_border;
+    int x = margin;
+    int x1 = x;
+    int y = margin;
+    BC_Title *title;
+    BC_TextBox *text;
+    
+    add_subwindow(title = new BC_Title(x, y, _("Path:")));
+    x1 = x + title->get_w() + margin;
+    add_subwindow(text = new BC_TextBox(x1, 
+        y,
+        get_w() - margin - x1,
+        1,
+        &thread->path));
+    text->set_read_only(1);
+
+    y += text->get_h() + margin;
+    add_subwindow(title = new BC_Title(x, y, _("Source Start:")));
+    x1 = x + title->get_w() + margin;
+    add_subwindow(text = new BC_TextBox(x1, 
+        y,
+        get_w() - margin - x1,
+        1,
+        thread->startsource));
+    text->set_read_only(1);
+
+    y += text->get_h() + margin;
+    add_subwindow(title = new BC_Title(x, y, _("Project Start:")));
+    x1 = x + title->get_w() + margin;
+    add_subwindow(text = new BC_TextBox(x1, 
+        y,
+        get_w() - margin - x1,
+        1,
+        thread->startproject));
+    text->set_read_only(1);
+
+    y += text->get_h() + margin;
+    add_subwindow(title = new BC_Title(x, y, _("Length:")));
+    x1 = x + title->get_w() + margin;
+    add_subwindow(text = new BC_TextBox(x1, 
+        y,
+        get_w() - margin - x1,
+        1,
+        thread->length));
+    text->set_read_only(1);
+
+    y += text->get_h() + margin;
+    add_subwindow(title = new BC_Title(x, y, _("Channel:")));
+    x1 = x + title->get_w() + margin;
+    add_subwindow(text = new BC_TextBox(x1, 
+        y,
+        get_w() - margin - x1,
+        1,
+        thread->channel));
+    text->set_read_only(1);
+    add_subwindow(new BC_CancelButton(this));
+	show_window();
+}
+
+
+
+
 
 
 
@@ -232,112 +440,112 @@ int EditPopupAddTrack::handle_event()
 
 
 
-EditPopupTitle::EditPopupTitle(MWindow *mwindow, EditPopup *popup)
- : BC_MenuItem(_("User title..."))
-{
-	this->mwindow = mwindow;
-	this->popup = popup;
-	window = 0;
-}
-
-EditPopupTitle::~EditPopupTitle()
-{
-	delete popup;
-}
-
-int EditPopupTitle::handle_event()
-{
-	int result;
-
-	Track *trc = mwindow->session->track_highlighted;
-
-	if (trc && trc->record)
-	{
-		Edit *edt = mwindow->session->edit_highlighted;
-		if(!edt) return 1;
-
-		window = new EditPopupTitleWindow (mwindow, popup);
-		window->create_objects();
-		result = window->run_window();
-
-
-		if(!result && edt)
-		{
-			strcpy(edt->user_title, window->title_text->get_text());
-		}
-
-		delete window;
-		window = 0;
-	}
-
-	return 1;
-}
-
-
-EditPopupTitleWindow::EditPopupTitleWindow (MWindow *mwindow, EditPopup *popup)
- : BC_Window (PROGRAM_NAME ": Set edit title",
-	mwindow->gui->get_abs_cursor_x(0) - 400 / 2,
-	mwindow->gui->get_abs_cursor_y(0) - 500 / 2,
-	300,
-	100,
-	300,
-	100,
-	0,
-	0,
-	1)
-{
-	this->mwindow = mwindow;
-	this->popup = popup;
-	this->edt = this->mwindow->session->edit_highlighted;
-	if(this->edt)
-	{
-		strcpy(new_text, this->edt->user_title);
-	}
-}
-
-EditPopupTitleWindow::~EditPopupTitleWindow()
-{
-}
-
-int EditPopupTitleWindow::close_event()
-{
-	set_done(1);
-	return 1;
-}
-
-void EditPopupTitleWindow::create_objects()
-{
-	int x = 5;
-	int y = 10;
-
-	add_subwindow (new BC_Title (x, y, _("User title")));
-	add_subwindow (title_text = new EditPopupTitleText (this,
-		mwindow, x, y + 20));
-	add_tool(new BC_OKButton(this));
-	add_tool(new BC_CancelButton(this));
-
-
-	show_window();
-	flush();
-}
-
-
-EditPopupTitleText::EditPopupTitleText (EditPopupTitleWindow *window, 
-	MWindow *mwindow, int x, int y)
- : BC_TextBox(x, y, 250, 1, (char*)(window->edt ? window->edt->user_title : ""))
-{
-	this->window = window;
-	this->mwindow = mwindow;
-}
-
-EditPopupTitleText::~EditPopupTitleText() 
-{ 
-}
- 
-int EditPopupTitleText::handle_event()
-{
-	return 1;
-}
+// EditPopupTitle::EditPopupTitle(MWindow *mwindow, EditPopup *popup)
+//  : BC_MenuItem(_("User title..."))
+// {
+// 	this->mwindow = mwindow;
+// 	this->popup = popup;
+// 	window = 0;
+// }
+// 
+// EditPopupTitle::~EditPopupTitle()
+// {
+// 	delete popup;
+// }
+// 
+// int EditPopupTitle::handle_event()
+// {
+// 	int result;
+// 
+// 	Track *trc = mwindow->session->track_highlighted;
+// 
+// 	if (trc && trc->record)
+// 	{
+// 		Edit *edt = mwindow->session->edit_highlighted;
+// 		if(!edt) return 1;
+// 
+// 		window = new EditPopupTitleWindow (mwindow, popup);
+// 		window->create_objects();
+// 		result = window->run_window();
+// 
+// 
+// 		if(!result && edt)
+// 		{
+// 			strcpy(edt->user_title, window->title_text->get_text());
+// 		}
+// 
+// 		delete window;
+// 		window = 0;
+// 	}
+// 
+// 	return 1;
+// }
+// 
+// 
+// EditPopupTitleWindow::EditPopupTitleWindow (MWindow *mwindow, EditPopup *popup)
+//  : BC_Window (PROGRAM_NAME ": Set edit title",
+// 	mwindow->gui->get_abs_cursor_x(0) - 400 / 2,
+// 	mwindow->gui->get_abs_cursor_y(0) - 500 / 2,
+// 	300,
+// 	100,
+// 	300,
+// 	100,
+// 	0,
+// 	0,
+// 	1)
+// {
+// 	this->mwindow = mwindow;
+// 	this->popup = popup;
+// 	this->edt = this->mwindow->session->edit_highlighted;
+// 	if(this->edt)
+// 	{
+// 		strcpy(new_text, this->edt->user_title);
+// 	}
+// }
+// 
+// EditPopupTitleWindow::~EditPopupTitleWindow()
+// {
+// }
+// 
+// int EditPopupTitleWindow::close_event()
+// {
+// 	set_done(1);
+// 	return 1;
+// }
+// 
+// void EditPopupTitleWindow::create_objects()
+// {
+// 	int x = 5;
+// 	int y = 10;
+// 
+// 	add_subwindow (new BC_Title (x, y, _("User title")));
+// 	add_subwindow (title_text = new EditPopupTitleText (this,
+// 		mwindow, x, y + 20));
+// 	add_tool(new BC_OKButton(this));
+// 	add_tool(new BC_CancelButton(this));
+// 
+// 
+// 	show_window();
+// 	flush();
+// }
+// 
+// 
+// EditPopupTitleText::EditPopupTitleText (EditPopupTitleWindow *window, 
+// 	MWindow *mwindow, int x, int y)
+//  : BC_TextBox(x, y, 250, 1, (char*)(window->edt ? window->edt->user_title : ""))
+// {
+// 	this->window = window;
+// 	this->mwindow = mwindow;
+// }
+// 
+// EditPopupTitleText::~EditPopupTitleText() 
+// { 
+// }
+//  
+// int EditPopupTitleText::handle_event()
+// {
+// 	return 1;
+// }
 
 
 

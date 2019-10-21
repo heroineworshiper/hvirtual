@@ -4701,9 +4701,17 @@ int TrackCanvas::do_edits(int cursor_x,
 			if(cursor_x >= edit_x && cursor_x < edit_x + edit_w &&
 				cursor_y >= edit_y && cursor_y < edit_y + edit_h)
 			{
-// Select duration of edit
+// button press inside edit
 				if(button_press)
 				{
+// context menu
+                    if(get_buttonpress() == RIGHT_BUTTON)
+                    {
+                        gui->edit_menu->update(track, edit);
+                        gui->edit_menu->activate_menu();
+                        result = 1;
+                    }
+// Select duration of edit
 					if(get_double_click() && !drag_start)
 					{
 						mwindow->edl->local_session->set_selectionstart(edit->track->from_units(edit->startproject));
