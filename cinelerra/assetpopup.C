@@ -155,6 +155,7 @@ int AssetPopupInfo::handle_event()
 			{
 				thread->edit_asset(mwindow->session->drag_assets->values[0]);
 				got_it = 1;
+                break;
 			}
 		}
 

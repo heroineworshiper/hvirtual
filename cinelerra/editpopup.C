@@ -197,6 +197,7 @@ int EditInfo::handle_event()
         {
             thread->show_edit(popup->edit);
             got_it = 1;
+            break;
         }
     }
     
@@ -347,7 +348,9 @@ EditInfoFormat::~EditInfoFormat()
 int EditInfoFormat::handle_event()
 {
     mwindow->session->edit_info_format = thread->text_to_format(get_text());
+    gui->lock_window("EditInfoFormat::handle_event");
     gui->update();
+    gui->unlock_window();
 //    printf("EditInfoFormat::handle_event %d %d\n", __LINE__, mwindow->session->edit_info_format);
     return 1;
 }
@@ -455,7 +458,9 @@ void EditInfoGUI::create_objects()
 
     add_subwindow(new BC_CancelButton(this));
 // print the titles in the right format
+    lock_window("EditInfoGUI::create_objects");
     update();
+    unlock_window();
 
 	show_window();
 }
