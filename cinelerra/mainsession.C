@@ -22,6 +22,7 @@
 #include "bcdisplayinfo.h"
 #include "clip.h"
 #include "bchash.h"
+#include "editpopup.inc"
 #include "edl.h"
 #include "edlsession.h"
 #include "guicast.h"
@@ -35,6 +36,7 @@
 MainSession::MainSession(MWindow *mwindow)
 {
 	this->mwindow = mwindow;
+    reset();
 	changes_made = 0;
 	filename[0] = 0;
 //	playback_cursor_visible = 0;
@@ -96,6 +98,20 @@ void MainSession::boundaries()
 	rmonitor_x = MAX(0, rmonitor_x);
 	rmonitor_y = MAX(0, rmonitor_y);
 	cwindow_controls = CLIP(cwindow_controls, 0, 1);
+}
+
+void MainSession::reset()
+{
+	record_scope = 0;
+	use_hist = 1;
+	use_wave = 1;
+	use_vector = 1;
+	use_hist_parade = 1;
+	use_wave_parade = 1;
+    edit_info_format = EDIT_INFO_FRAMES;
+
+
+    default_window_positions();
 }
 
 void MainSession::default_window_positions()
@@ -160,12 +176,6 @@ void MainSession::default_window_positions()
 	histogram_y = 0;
 	histogram_w = DP(320);
 	histogram_h = DP(480);
-	record_scope = 0;
-	use_hist = 1;
-	use_wave = 1;
-	use_vector = 1;
-	use_hist_parade = 1;
-	use_wave_parade = 1;
 
 	if(mwindow->edl)
 	{
@@ -201,7 +211,7 @@ void MainSession::default_window_positions()
 int MainSession::load_defaults(BC_Hash *defaults)
 {
 // Setup main windows
-	default_window_positions();
+	reset();
 	vwindow_x = defaults->get("VWINDOW_X", vwindow_x);
 	vwindow_y = defaults->get("VWINDOW_Y", vwindow_y);
 	vwindow_w = defaults->get("VWINDOW_W", vwindow_w);
@@ -256,6 +266,7 @@ int MainSession::load_defaults(BC_Hash *defaults)
 	use_vector = defaults->get("USE_VECTOR", use_vector);
 	use_hist_parade = defaults->get("USE_HIST_PARADE", use_hist_parade);
 	use_wave_parade = defaults->get("USE_WAVE_PARADE", use_wave_parade);
+    edit_info_format = defaults->get("EDIT_INFO_FORMAT", edit_info_format);
 
 //printf("MainSession::load_defaults 1\n");
 
@@ -361,6 +372,7 @@ int MainSession::save_defaults(BC_Hash *defaults)
 	defaults->update("USE_VECTOR", use_vector);
 	defaults->update("USE_HIST_PARADE", use_hist_parade);
 	defaults->update("USE_WAVE_PARADE", use_wave_parade);
+    defaults->update("EDIT_INFO_FORMAT", edit_info_format);
 
  	defaults->update("ABINS_W", afolders_w);
 

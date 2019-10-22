@@ -48,6 +48,7 @@ public:
 
 	int load_defaults(BC_Hash *defaults);
 	int save_defaults(BC_Hash *defaults);
+    void reset();
 	void default_window_positions();
 	void boundaries();
 
@@ -153,6 +154,7 @@ public:
 	int use_vector;
 	int use_hist_parade;
 	int use_wave_parade;
+    int edit_info_format;
 
 
 	int afolders_w;

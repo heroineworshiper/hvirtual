@@ -24,4 +24,7 @@
 
 class EditPopup;
 
+#define EDIT_INFO_FRAMES 0
+#define EDIT_INFO_HHMMSS 1
+
 #endif

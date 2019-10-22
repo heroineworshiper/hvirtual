@@ -160,14 +160,20 @@ public:
     
     void show_edit(Edit *edit);
     BC_Window* new_gui();
-    
+    int text_to_format(char *text);
+    char* format_to_text(int format);
+
     MWindow *mwindow;
     string path;
     int64_t startsource;
     int64_t startproject;
     int64_t length;
+    double startsource_s;
+    double startproject_s;
+    double length_s;
     int channel;
     int is_silence;
+    int data_type;
 };
 
 class EditInfoGUI : public BC_Window
@@ -177,14 +183,33 @@ public:
     ~EditInfoGUI();
 
     void create_objects();
-    
+    char* format_to_text(int format);
+    void update();
     
     MWindow *mwindow;
     EditInfoThread *thread;
+    BC_TextBox *startsource;
+    BC_TextBox *startproject;
+    BC_TextBox *length;
     
 };
 
-
+class EditInfoFormat : public BC_PopupMenu
+{
+public:
+    EditInfoFormat(MWindow *mwindow, 
+        EditInfoGUI *gui, 
+        EditInfoThread *thread,
+        int x,
+        int y);
+    ~EditInfoFormat();
+    
+    int handle_event();
+    
+    MWindow *mwindow;
+    EditInfoGUI *gui;
+    EditInfoThread *thread;
+};
 
 // class EditPopupTitle : public BC_MenuItem
 // {

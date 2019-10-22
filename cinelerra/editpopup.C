@@ -224,26 +224,49 @@ EditInfoThread::~EditInfoThread()
 void EditInfoThread::show_edit(Edit *edit)
 {
     this->is_silence = edit->silence();
+    Indexable *edit_source = 0;
+    if(edit->asset)
+    {
+        edit_source = edit->asset;
+    }
+    else
+    {
+        edit_source = edit->nested_edl;
+    }
+    
+    
     if(this->is_silence)
     {
         path.assign("SILENCE");
     }
     else
     {
-        if(edit->asset)
-        {
-            this->path.assign(edit->asset->path);
-        }
-        else
-        if(edit->nested_edl)
-        {
-            this->path.assign(edit->nested_edl->path);
-        }
+        this->path.assign(edit_source->path);
     }
     
+    this->data_type = edit->track->data_type;
     this->startsource = edit->startsource;
     this->startproject = edit->startproject;
     this->length = edit->length;
+    int edl_rate = 1;
+    int source_rate = 1;
+    if(this->data_type == TRACK_AUDIO)
+    {
+        edl_rate = edit->edl->get_sample_rate();
+        source_rate = edit_source->get_sample_rate();
+    }
+    else
+    {
+        edl_rate = edit->edl->get_frame_rate();
+        source_rate = edit_source->get_frame_rate();
+    }
+    
+    this->startsource_s = (double)edit->startsource / 
+        edl_rate;
+    this->startproject_s = (double)edit->startproject / 
+        source_rate;
+    this->length_s = (double)edit->length / 
+        edl_rate;
     this->channel = edit->channel;
     mwindow->gui->unlock_window();
     BC_DialogThread::start();
@@ -262,6 +285,77 @@ BC_Window* EditInfoThread::new_gui()
 	mwindow->gui->unlock_window();
     return gui;
 }
+
+char* EditInfoThread::format_to_text(int format)
+{
+    switch(format)
+    {
+        case EDIT_INFO_HHMMSS:
+            return TIME_HMS_TEXT;
+        default:
+            if(data_type == TRACK_AUDIO)
+            {
+                return TIME_SAMPLES_TEXT;
+            }
+            else
+            {
+                return TIME_FRAMES_TEXT;
+            }
+    }
+    return (char*)"";
+}
+
+int EditInfoThread::text_to_format(char *text)
+{
+    if(!strcmp(text, TIME_HMS_TEXT))
+    {
+        return EDIT_INFO_HHMMSS;
+    }
+    else
+    {
+        return EDIT_INFO_FRAMES;
+    }
+}
+
+
+
+
+
+
+EditInfoFormat::EditInfoFormat(MWindow *mwindow, 
+    EditInfoGUI *gui, 
+    EditInfoThread *thread,
+    int x,
+    int y)
+ : BC_PopupMenu(x,
+    y,
+    DP(200),
+    thread->format_to_text(mwindow->session->edit_info_format),
+    1)
+{
+    this->mwindow = mwindow;
+    this->gui = gui;
+    this->thread = thread;
+}
+
+EditInfoFormat::~EditInfoFormat()
+{
+}
+
+
+int EditInfoFormat::handle_event()
+{
+    mwindow->session->edit_info_format = thread->text_to_format(get_text());
+    gui->update();
+//    printf("EditInfoFormat::handle_event %d %d\n", __LINE__, mwindow->session->edit_info_format);
+    return 1;
+}
+
+
+
+
+
+
 
 #define WINDOW_W DP(400)
 #define WINDOW_H DP(200)
@@ -309,34 +403,34 @@ void EditInfoGUI::create_objects()
     y += text->get_h() + margin;
     add_subwindow(title = new BC_Title(x, y, _("Source Start:")));
     x1 = x + title->get_w() + margin;
-    add_subwindow(text = new BC_TextBox(x1, 
+    add_subwindow(startsource = new BC_TextBox(x1, 
         y,
         get_w() - margin - x1,
         1,
         thread->startsource));
-    text->set_read_only(1);
+    startsource->set_read_only(1);
 
-    y += text->get_h() + margin;
+    y += startsource->get_h() + margin;
     add_subwindow(title = new BC_Title(x, y, _("Project Start:")));
     x1 = x + title->get_w() + margin;
-    add_subwindow(text = new BC_TextBox(x1, 
+    add_subwindow(startproject = new BC_TextBox(x1, 
         y,
         get_w() - margin - x1,
         1,
         thread->startproject));
-    text->set_read_only(1);
+    startproject->set_read_only(1);
 
-    y += text->get_h() + margin;
+    y += startproject->get_h() + margin;
     add_subwindow(title = new BC_Title(x, y, _("Length:")));
     x1 = x + title->get_w() + margin;
-    add_subwindow(text = new BC_TextBox(x1, 
+    add_subwindow(length = new BC_TextBox(x1, 
         y,
         get_w() - margin - x1,
         1,
         thread->length));
-    text->set_read_only(1);
+    length->set_read_only(1);
 
-    y += text->get_h() + margin;
+    y += length->get_h() + margin;
     add_subwindow(title = new BC_Title(x, y, _("Channel:")));
     x1 = x + title->get_w() + margin;
     add_subwindow(text = new BC_TextBox(x1, 
@@ -345,10 +439,51 @@ void EditInfoGUI::create_objects()
         1,
         thread->channel));
     text->set_read_only(1);
+
+    y += text->get_h() + margin;
+    add_subwindow(title = new BC_Title(x, y, _("Format:")));
+    x1 = x + title->get_w() + margin;
+    EditInfoFormat *format;
+    add_subwindow(format = new EditInfoFormat(mwindow, 
+        this, 
+        thread,
+        x1,
+        y));
+    format->add_item(new BC_MenuItem(thread->format_to_text(EDIT_INFO_FRAMES)));
+    format->add_item(new BC_MenuItem(thread->format_to_text(EDIT_INFO_HHMMSS)));
+
     add_subwindow(new BC_CancelButton(this));
+// print the titles in the right format
+    update();
+
 	show_window();
 }
 
+void EditInfoGUI::update()
+{
+    if(mwindow->session->edit_info_format == EDIT_INFO_FRAMES)
+    {
+        startsource->update(thread->startsource);
+        startproject->update(thread->startproject);
+        length->update(thread->length);
+    }
+    else
+    {
+        char string[BCTEXTLEN];
+        Units::totext(string, 
+				thread->startsource_s, 
+				TIME_HMS);
+        startsource->update(string);
+        Units::totext(string, 
+				thread->startproject_s, 
+				TIME_HMS);
+        startproject->update(string);
+        Units::totext(string, 
+				thread->length_s, 
+				TIME_HMS);
+        length->update(string);
+    }
+}
 
 
 
