@@ -174,7 +174,7 @@ private:
 // ibeam_left causes the ibeam to move left.
 	void do_separators(int ibeam_left);
 	void get_ibeam_position(int &x, int &y);
-	void find_ibeam(int dispatch_event);
+	void find_ibeam(int dispatch_event, int init = 0);
 	void select_word(int &letter1, int &letter2, int ibeam_letter);
 	void select_line(int &letter1, int &letter2, int ibeam_letter);
 	int get_cursor_letter(int cursor_x, int cursor_y);
@@ -183,12 +183,6 @@ private:
 	void default_keypress(int &dispatch_event, int &result);
 
 
-
-	int repeat_state;
-	enum
-	{
-		
-	};
 
 // Top left of text relative to window
 	int text_x, text_y;

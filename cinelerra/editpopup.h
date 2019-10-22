@@ -201,7 +201,8 @@ public:
         EditInfoGUI *gui, 
         EditInfoThread *thread,
         int x,
-        int y);
+        int y,
+        int w);
     ~EditInfoFormat();
     
     int handle_event();

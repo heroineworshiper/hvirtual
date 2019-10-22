@@ -188,7 +188,7 @@ int BC_TextBox::initialize()
 	h = get_row_h(rows);
 	text_x = left_margin;
 	text_y = top_margin;
-	find_ibeam(0);
+	find_ibeam(0, 1);
 
 // Create the subwindow
 	BC_SubWindow::initialize();
@@ -2025,30 +2025,45 @@ int BC_TextBox::get_text_row()
 	return -(text_y - top_margin) / text_height;
 }
 
-void BC_TextBox::find_ibeam(int dispatch_event)
+void BC_TextBox::find_ibeam(int dispatch_event,
+    int init)
 {
 	int x, y;
 	int old_x = text_x, old_y = text_y;
+    int x_pad = get_w() / 4;
+    int y_pad = get_h() / 2;
 
 	get_ibeam_position(x, y);
 
+//printf("BC_TextBox::find_ibeam %d x=%d y=%d\n", __LINE__, x, y);
+	if(init)
+    {
+        if(has_border)
+	    {
+		    x_pad = HORIZONTAL_MARGIN * 2 + BCCURSORW;
+	    }
+	    else
+	    {
+		    x_pad = HORIZONTAL_MARGIN_NOBORDER * 2 + BCCURSORW;
+	    }
+    }
+    
+
 	if(left_margin + text_x + x >= get_w() - right_margin - BCCURSORW)
 	{
-		text_x = -(x - (get_w() - get_w() / 4)) + left_margin;
+		text_x = -(x - (get_w() - x_pad)) + left_margin;
 		if(text_x > left_margin) text_x = left_margin;
 	}
 	else
 	if(left_margin + text_x + x < left_margin)
 	{
-		text_x = -(x - (get_w() / 4)) + left_margin;
+		text_x = -(x - x_pad) + left_margin;
 		if(text_x > left_margin) text_x = left_margin;
 	}
 
 	while(y + text_y >= get_h() - text_height - bottom_margin)
 	{
 		text_y -= text_height;
-// 		text_y = -(y - (get_h() / 2)) + top_margin;
-// 		if(text_y > top_margin) text_y = top_margin;
 	}
 
 	while(y + text_y < top_margin)

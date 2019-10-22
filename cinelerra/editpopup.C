@@ -20,6 +20,7 @@
  */
 
 #include "asset.h"
+#include "clip.h"
 #include "edit.h"
 #include "editpopup.h"
 #include "edl.h"
@@ -328,10 +329,11 @@ EditInfoFormat::EditInfoFormat(MWindow *mwindow,
     EditInfoGUI *gui, 
     EditInfoThread *thread,
     int x,
-    int y)
+    int y,
+    int w)
  : BC_PopupMenu(x,
     y,
-    DP(200),
+    w,
     thread->format_to_text(mwindow->session->edit_info_format),
     1)
 {
@@ -390,13 +392,47 @@ void EditInfoGUI::create_objects()
 {
     int margin = mwindow->theme->widget_border;
     int x = margin;
-    int x1 = x;
+    int x1 = 0;
     int y = margin;
+    int text_h = margin + BC_TextBox::calculate_h(this, MEDIUMFONT, 1, 1);
     BC_Title *title;
     BC_TextBox *text;
-    
+
+
+    add_subwindow(title = new BC_Title(x, y, _("Format:")));
+    x1 = MAX(x1, x + title->get_w());
+    y += text_h;
     add_subwindow(title = new BC_Title(x, y, _("Path:")));
-    x1 = x + title->get_w() + margin;
+    x1 = MAX(x1, x + title->get_w());
+    y += text_h;
+    add_subwindow(title = new BC_Title(x, y, _("Source Start:")));
+    x1 = MAX(x1, x + title->get_w());
+    y += text_h;
+    add_subwindow(title = new BC_Title(x, y, _("Project Start:")));
+    x1 = MAX(x1, x + title->get_w());
+    y += text_h;
+    add_subwindow(title = new BC_Title(x, y, _("Length:")));
+    x1 = MAX(x1, x + title->get_w());
+    y += text_h;
+    add_subwindow(title = new BC_Title(x, y, _("Channel:")));
+    x1 = MAX(x1, x + title->get_w());
+    y += text_h;
+    add_subwindow(title = new BC_Title(x, y, _("Units:")));
+    x1 = MAX(x1, x + title->get_w());
+    y += text_h;
+
+    y = margin;
+    x1 += margin;
+    if(thread->data_type == TRACK_AUDIO)
+    {
+        add_subwindow(title = new BC_Title(x1, y, _("AUDIO")));
+    }
+    else
+    {
+        add_subwindow(title = new BC_Title(x1, y, _("VIDEO")));
+    }
+    
+    y += text_h;
     add_subwindow(text = new BC_TextBox(x1, 
         y,
         get_w() - margin - x1,
@@ -404,57 +440,49 @@ void EditInfoGUI::create_objects()
         &thread->path));
     text->set_read_only(1);
 
-    y += text->get_h() + margin;
-    add_subwindow(title = new BC_Title(x, y, _("Source Start:")));
-    x1 = x + title->get_w() + margin;
+    y += text_h;
     add_subwindow(startsource = new BC_TextBox(x1, 
         y,
         get_w() - margin - x1,
         1,
         thread->startsource));
     startsource->set_read_only(1);
-
-    y += startsource->get_h() + margin;
-    add_subwindow(title = new BC_Title(x, y, _("Project Start:")));
-    x1 = x + title->get_w() + margin;
+    y += text_h;
     add_subwindow(startproject = new BC_TextBox(x1, 
         y,
         get_w() - margin - x1,
         1,
         thread->startproject));
     startproject->set_read_only(1);
-
-    y += startproject->get_h() + margin;
-    add_subwindow(title = new BC_Title(x, y, _("Length:")));
-    x1 = x + title->get_w() + margin;
+    y += text_h;
     add_subwindow(length = new BC_TextBox(x1, 
         y,
         get_w() - margin - x1,
         1,
         thread->length));
     length->set_read_only(1);
-
-    y += length->get_h() + margin;
-    add_subwindow(title = new BC_Title(x, y, _("Channel:")));
-    x1 = x + title->get_w() + margin;
+    y += text_h;
     add_subwindow(text = new BC_TextBox(x1, 
         y,
         get_w() - margin - x1,
         1,
         thread->channel));
     text->set_read_only(1);
-
-    y += text->get_h() + margin;
-    add_subwindow(title = new BC_Title(x, y, _("Format:")));
-    x1 = x + title->get_w() + margin;
+    y += text_h;
     EditInfoFormat *format;
+    int w_argument = get_w() - x1 - margin;
+// this adds a button to its w argument
     add_subwindow(format = new EditInfoFormat(mwindow, 
         this, 
         thread,
         x1,
-        y));
+        y,
+        w_argument - (BC_PopupMenu::calculate_w(w_argument) - w_argument)));
     format->add_item(new BC_MenuItem(thread->format_to_text(EDIT_INFO_FRAMES)));
     format->add_item(new BC_MenuItem(thread->format_to_text(EDIT_INFO_HHMMSS)));
+
+
+
 
     add_subwindow(new BC_CancelButton(this));
 // print the titles in the right format
