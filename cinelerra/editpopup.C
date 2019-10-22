@@ -248,8 +248,8 @@ void EditInfoThread::show_edit(Edit *edit)
     this->startsource = edit->startsource;
     this->startproject = edit->startproject;
     this->length = edit->length;
-    int edl_rate = 1;
-    int source_rate = 1;
+    double edl_rate = 1;
+    double source_rate = 1;
     if(this->data_type == TRACK_AUDIO)
     {
         edl_rate = edit->edl->get_sample_rate();
@@ -267,6 +267,7 @@ void EditInfoThread::show_edit(Edit *edit)
         source_rate;
     this->length_s = (double)edit->length / 
         edl_rate;
+    
     this->channel = edit->channel;
     mwindow->gui->unlock_window();
     BC_DialogThread::start();
@@ -358,7 +359,7 @@ int EditInfoFormat::handle_event()
 
 
 #define WINDOW_W DP(400)
-#define WINDOW_H DP(200)
+#define WINDOW_H DP(300)
 
 EditInfoGUI::EditInfoGUI(MWindow *mwindow, EditInfoThread *thread, int x, int y)
  : BC_Window(PROGRAM_NAME ": Edit Info", 
