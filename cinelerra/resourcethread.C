@@ -327,7 +327,9 @@ void ResourceThread::run()
 			else
 			if(item->data_type == TRACK_AUDIO)
 			{
+PRINT_TRACE
 				do_audio((AResourceThreadItem*)item);
+PRINT_TRACE
 			}
 
 			delete item;
@@ -630,69 +632,82 @@ void ResourceThread::do_audio(AResourceThreadItem *item)
 				if(fragment + sample > total_samples)
 					fragment = total_samples - sample;
 
-				if(!item->indexable->is_asset)
-				{
-					if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
-					open_render_engine((EDL*)item->indexable, 1, 0);
-					if(debug) printf("ResourceThread::do_audio %d %p\n", __LINE__, render_engine);
-					if(render_engine->arender)
-					{
-						if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
-						int source_channels = item->indexable->get_audio_channels();
-						if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
-						for(int i = 0; i < MAXCHANNELS; i++)
-						{
-							if(i < source_channels &&
-								!temp_buffer[i])
-							{
-								temp_buffer[i] = new Samples(BUFFERSIZE);
-							}
-							else
-							if(i >= source_channels &&
-								temp_buffer[i])
-							{
-								delete temp_buffer[i];
-								temp_buffer[i] = 0;
-							}
-						}
+                if(fragment > 0)
+                {
+				    if(!item->indexable->is_asset)
+				    {
+					    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
+					    open_render_engine((EDL*)item->indexable, 1, 0);
+					    if(debug) printf("ResourceThread::do_audio %d %p\n", __LINE__, render_engine);
+					    if(render_engine->arender)
+					    {
+						    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
+						    int source_channels = item->indexable->get_audio_channels();
+						    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
+						    for(int i = 0; i < MAXCHANNELS; i++)
+						    {
+							    if(i < source_channels &&
+								    !temp_buffer[i])
+							    {
+								    temp_buffer[i] = new Samples(BUFFERSIZE);
+							    }
+							    else
+							    if(i >= source_channels &&
+								    temp_buffer[i])
+							    {
+								    delete temp_buffer[i];
+								    temp_buffer[i] = 0;
+							    }
+						    }
 
-						
-						if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
-						render_engine->arender->process_buffer(
-							temp_buffer, 
-							fragment,
-							sample);
-						if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
-						memcpy(audio_buffer->get_data(), 
-							temp_buffer[item->channel]->get_data(),
-							fragment * sizeof(double));
-					}
-					else
-					{
-						if(debug) printf("ResourceThread::do_audio %d %d\n", __LINE__, fragment);
-						if(fragment > 0) bzero(audio_buffer->get_data(), sizeof(double) * fragment);
-						if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
 
-					}
-				}
-				else
-				{
-					File *source = mwindow->audio_cache->check_out(
-						(Asset*)item->indexable,
-						mwindow->edl);
-					if(!source)
-						return;
+						    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
+						    render_engine->arender->process_buffer(
+							    temp_buffer, 
+							    fragment,
+							    sample);
+						    if(debug) printf("ResourceThread::do_audio %d audio_buffer=%p temp_buffer=%p channel=%d total_samples=%ld sample=%ld fragment=%d\n", 
+                                __LINE__, 
+                                audio_buffer,
+                                temp_buffer,
+                                item->channel,
+                                total_samples,
+                                sample,
+                                fragment);
+						    memcpy(audio_buffer->get_data(), 
+							    temp_buffer[item->channel]->get_data(),
+							    fragment * sizeof(double));
+						    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
+					    }
+					    else
+					    {
+						    if(debug) printf("ResourceThread::do_audio %d %d\n", __LINE__, fragment);
+						    if(fragment > 0) bzero(audio_buffer->get_data(), sizeof(double) * fragment);
+						    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
 
-					source->set_channel(item->channel);
-					source->set_audio_position(sample);
-					source->read_samples(audio_buffer, fragment);
-					mwindow->audio_cache->check_in((Asset*)item->indexable);
-				}
+					    }
+				    } // !item->indexable->is_asset
+				    else
+				    {
+					    File *source = mwindow->audio_cache->check_out(
+						    (Asset*)item->indexable,
+						    mwindow->edl);
+					    if(!source)
+						    return;
 
+					    source->set_channel(item->channel);
+					    source->set_audio_position(sample);
+					    source->read_samples(audio_buffer, fragment);
+					    mwindow->audio_cache->check_in((Asset*)item->indexable);
+				    }
+                } // fragment > 0
+
+		    	if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
 				audio_asset_id = item->indexable->id;
 				audio_channel = item->channel;
 				audio_start = sample;
 				audio_samples = fragment;
+		    	if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
 			}
 
 
