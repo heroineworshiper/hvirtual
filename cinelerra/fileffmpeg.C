@@ -806,7 +806,7 @@ decoder_context->codec_id);
             !strcmp(asset->vcodec, QUICKTIME_H265) ||
             !strcmp(asset->vcodec, QUICKTIME_VP9)))
         {
-//printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
+printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
             result = create_toc(ffmpeg_file_context);
         }
         if(debug) printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
@@ -870,7 +870,9 @@ int FileFFMPEG::create_toc(void *ptr)
 		&file->preferences->index_directory, 
 		&index_filename, 
 		&path_string);
-    if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
+    if(debug) printf("FileFFMPEG::create_toc %d index_filename='%s'\n", 
+        __LINE__, 
+        index_filename.c_str());
 
     int need_toc = 1;
     int result = 0;
@@ -1051,11 +1053,16 @@ int FileFFMPEG::create_toc(void *ptr)
 
         if(!result)
         {
+            printf("FileFFMPEG::create_toc %d\n", __LINE__);
             need_toc = 0;
             has_toc = 1;
         }
         fclose(fd);
         fd = 0;
+    }
+    else
+    {
+        printf("FileFFMPEG::create_toc %d couldn't open TOC\n", __LINE__);
     }
 
 
