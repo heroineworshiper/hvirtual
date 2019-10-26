@@ -22,6 +22,7 @@
 #ifndef FILEXML_H
 #define FILEXML_H
 
+#include "bcwindowbase.inc"
 #include "sizes.h"
 #include <stdio.h>
 
@@ -66,6 +67,11 @@ public:
 	int set_property(const char *text, double value);
 	int write_tag();
 
+// encode the special character at the head of the string
+ 	const char* encode_char(const char *text);
+// convert all the encodings to special characters
+    void decode_text(char *text);
+
 	char tag_title[MAX_TITLE];       // title of this tag
 
 	char *tag_properties[MAX_PROPERTIES];      // list of properties for this tag
@@ -93,8 +99,6 @@ public:
 	int append_text(const char *text);
 // add generic text to the string
 	int append_text(const char *text, long len);        
-// add generic text to the string which contains <>& characters
- 	int encode_text(const char *text);      
 
 // Text array is dynamically allocated and deleted when FileXML is deleted
 	char* read_text();         // read text, put it in *output, and return it

@@ -806,7 +806,7 @@ decoder_context->codec_id);
             !strcmp(asset->vcodec, QUICKTIME_H265) ||
             !strcmp(asset->vcodec, QUICKTIME_VP9)))
         {
-printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
+            if(debug) printf("FileFFMPEG::open_ffmpeg %d vcodec=%s\n", __LINE__, asset->vcodec);
             result = create_toc(ffmpeg_file_context);
         }
         if(debug) printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
@@ -1053,7 +1053,7 @@ int FileFFMPEG::create_toc(void *ptr)
 
         if(!result)
         {
-            printf("FileFFMPEG::create_toc %d\n", __LINE__);
+            if(debug) printf("FileFFMPEG::create_toc %d opened\n", __LINE__);
             need_toc = 0;
             has_toc = 1;
         }
@@ -1062,7 +1062,7 @@ int FileFFMPEG::create_toc(void *ptr)
     }
     else
     {
-        printf("FileFFMPEG::create_toc %d couldn't open TOC\n", __LINE__);
+        if(debug) printf("FileFFMPEG::create_toc %d couldn't open TOC\n", __LINE__);
     }
 
 
@@ -1179,11 +1179,11 @@ int FileFFMPEG::create_toc(void *ptr)
 
             if(packet->size > 0)
             {
-//                 printf("FileFFMPEG::create_toc %d: offset=0x%lx size=%d stream=%d\n", 
-//                     __LINE__, 
-//                     offset,
-//                     packet->size,
-//                     packet->stream_index);
+                if(debug) printf("FileFFMPEG::create_toc %d: offset=0x%lx size=%d stream=%d\n", 
+                    __LINE__, 
+                    offset,
+                    packet->size,
+                    packet->stream_index);
 
 // DEBUG
 //usleep(100000);
@@ -1207,7 +1207,7 @@ int FileFFMPEG::create_toc(void *ptr)
                         AVStream *ffmpeg_stream = 
                             ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
                         AVCodecContext *decoder_context = ffmpeg_stream->codec;
-                        
+
                         int got_frame = 0;
                         int bytes_decoded = avcodec_decode_audio4(decoder_context, 
 					        ffmpeg_samples, 
@@ -1284,6 +1284,9 @@ int FileFFMPEG::create_toc(void *ptr)
 
                             stream->next_frame_offset = -1;
                             stream->is_keyframe = 0;
+                            if(debug) printf("FileFFMPEG::create_toc %d: total frames=%d\n", 
+                                __LINE__,
+                                stream->video_offsets.size());
                         }
 
                     }
@@ -1870,10 +1873,14 @@ avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
 
                 close_ffmpeg();
                 open_ffmpeg();
+// TODO: still have frames buffered in the decoder
                 return 1;
             }
+            else
+            {
 
-            av_packet_merge_side_data(packet);
+                av_packet_merge_side_data(packet);
+            }
 
 
 // printf("FileFFMPEG::read_frame %d error=%d want stream=%d got=%d\n", 
@@ -1882,7 +1889,9 @@ avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
 // stream->ffmpeg_id,
 // packet->stream_index);
 
-			if(!error && packet->size > 0 && packet->stream_index == stream->ffmpeg_id)
+			if(!error && 
+                packet->size > 0 && 
+                packet->stream_index == stream->ffmpeg_id)
 			{
 				int got_picture = 0;
 

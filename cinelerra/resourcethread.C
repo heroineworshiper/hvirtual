@@ -327,9 +327,7 @@ void ResourceThread::run()
 			else
 			if(item->data_type == TRACK_AUDIO)
 			{
-PRINT_TRACE
 				do_audio((AResourceThreadItem*)item);
-PRINT_TRACE
 			}
 
 			delete item;
