@@ -452,6 +452,7 @@ void FileFFMPEG::reset()
     ffmpeg_frame = 0;
     got_frame = 0;
     need_restart = 0;
+    last_pts = -1;
 #ifdef USE_FFMPEG_OUTPUT
     ffmpeg_output = 0;
 #endif
@@ -1787,20 +1788,20 @@ int FileFFMPEG::read_frame(VFrame *frame)
             }
 
             int keyframe = stream->video_keyframes.get(i);
-            avformat_close_input((AVFormatContext**)&stream->ffmpeg_file_context);
+//            avformat_close_input((AVFormatContext**)&stream->ffmpeg_file_context);
 // Open a new FFMPEG file for the stream
-            avformat_open_input((AVFormatContext**)&stream->ffmpeg_file_context, 
-                asset->path, 
-                0,
-                0);
+//            avformat_open_input((AVFormatContext**)&stream->ffmpeg_file_context, 
+//                asset->path, 
+//                0,
+//                0);
 
 // reinitialize the codec
-			avformat_find_stream_info((AVFormatContext*)stream->ffmpeg_file_context, 0);
-			ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
-			decoder_context = ffmpeg_stream->codec;
-			AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
-			decoder_context->thread_count = file->cpus;
-			avcodec_open2(decoder_context, codec, 0);
+//			avformat_find_stream_info((AVFormatContext*)stream->ffmpeg_file_context, 0);
+//			ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
+//			decoder_context = ffmpeg_stream->codec;
+//			AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
+//			decoder_context->thread_count = file->cpus;
+//			avcodec_open2(decoder_context, codec, 0);
 
 
             avio_seek(((AVFormatContext*)stream->ffmpeg_file_context)->pb, 
@@ -1826,6 +1827,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
         }
         
         got_frame = 0;
+        last_pts = -1;
 	}
 if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%ld file->current_frame=%ld error=%d\n", 
 __LINE__,
@@ -1910,7 +1912,7 @@ avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
                 packet->stream_index == stream->ffmpeg_id)
 			{
 				int got_picture = 0;
-
+                AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
 
 // if(file->current_frame >= 200 && file->current_frame < 280)
 // {
@@ -1928,7 +1930,7 @@ ffmpeg_frame);
 
 		        int result = avcodec_decode_video2(
 					decoder_context,
-                    (AVFrame*)ffmpeg_frame, 
+                    input_frame, 
 					&got_picture,
                     packet);
 
@@ -1939,9 +1941,13 @@ stream->current_frame,
 result,
 got_picture,
 ((AVFrame*)ffmpeg_frame)->data[0]);
-				if(((AVFrame*)ffmpeg_frame)->data[0] && got_picture) 
+// check multiple ways it could glitch
+				if(input_frame->data[0] && 
+                    got_picture &&
+                    (last_pts < 0 || input_frame->pts > last_pts)) 
                 {
                     got_frame = 1;
+                    last_pts = input_frame->pts;
                 }
 // printf("FileFFMPEG::read_frame %d result=%d %02x %02x %02x %02x %02x %02x %02x %02x packet->flags=0x%x got_frame=%d\n", 
 // __LINE__, 
@@ -1976,16 +1982,17 @@ got_picture,
 			
 			
 			av_packet_free(&packet);
+
+// printf("FileFFMPEG::read_frame %d got_frame=%d stream->current_frame=%ld file->current_frame=%ld pts=%ld\n", 
+// __LINE__,
+// got_frame,
+// stream->current_frame,
+// file->current_frame,
+// ((AVFrame*)ffmpeg_frame)->pts);
 		}
 
 // only count frames which actually come out of the decoder
 		if(got_frame) stream->current_frame++;
-
-// 		printf("FileFFMPEG::read_frame %d got_frame=%d stream->current_frame=%ld file->current_frame=%ld\n", 
-// 			__LINE__,
-//             got_frame,
-// 			stream->current_frame,
-// 			file->current_frame);
 	}
 
 // printf("FileFFMPEG::read_frame %d current_frame=%lld file->current_frame=%lld got_it=%d\n", 
@@ -2000,8 +2007,16 @@ got_picture,
 		int input_cmodel;
 		AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
 
-
-//printf("FileFFMPEG::read_frame %d decoded pts=%ld\n", __LINE__, input_frame->pts);
+// print a chksum for the frame
+// int64_t chksum = 0;
+// for(int i = 0; i < decoder_context->height * decoder_context->width; i++)
+// {
+//     chksum += input_frame->data[0][i];
+// }
+// printf("FileFFMPEG::read_frame %d decoded pts=%ld chksum=%ld\n", 
+// __LINE__, 
+// input_frame->pts,
+// chksum);
 
 // printf("FileFFMPEG::read_frame %d pix_fmt=%d output_cmodel=%d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
 // __LINE__, 

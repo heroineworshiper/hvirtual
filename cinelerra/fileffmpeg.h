@@ -147,6 +147,8 @@ public:
 // read for last frame failed & we're flushing the decoder
 // Restart the decoder in the next seek
     int need_restart;
+// hack for ffmpeg glitching after a seek
+    int64_t last_pts;
 	static Mutex *ffmpeg_lock;
     int has_toc;
 
