@@ -144,6 +144,9 @@ public:
 // last decoded video frame for redisplay
     void *ffmpeg_frame;
     int got_frame;
+// read for last frame failed & we're flushing the decoder
+// Restart the decoder in the next seek
+    int need_restart;
 	static Mutex *ffmpeg_lock;
     int has_toc;
 

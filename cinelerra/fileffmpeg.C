@@ -451,6 +451,7 @@ void FileFFMPEG::reset()
     has_toc = 0;
     ffmpeg_frame = 0;
     got_frame = 0;
+    need_restart = 0;
 #ifdef USE_FFMPEG_OUTPUT
     ffmpeg_output = 0;
 #endif
@@ -610,6 +611,7 @@ int FileFFMPEG::open_ffmpeg()
     const int debug = 0;
     int result = 0;
 	AVFormatContext *ffmpeg_file_context = 0;
+    need_restart = 0;
     ffmpeg_lock->lock("FileFFMPEG::open_file");
 
     if(debug) printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
@@ -1667,7 +1669,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 	int error = 0;
 	const int debug = 0;
 
-	ffmpeg_lock->lock("FileFFMPEG::read_frame");
+	ffmpeg_lock->lock("FileFFMPEG::read_frame 1");
 	
 	
 	FileFFMPEGStream *stream = video_streams.get(0);
@@ -1677,11 +1679,6 @@ int FileFFMPEG::read_frame(VFrame *frame)
 		stream->ffmpeg_file_context);
 	AVStream *ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
 	AVCodecContext *decoder_context = ffmpeg_stream->codec;
-
-	if(!ffmpeg_frame)
-    {
-        ffmpeg_frame = av_frame_alloc();
-    }
 
 
     if(debug) printf("FileFFMPEG::read_frame %d file->current_frame=%ld\n", __LINE__, file->current_frame);
@@ -1699,9 +1696,21 @@ int FileFFMPEG::read_frame(VFrame *frame)
 		file->current_frame > stream->current_frame + SEEK_THRESHOLD))
 	{
 		if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%lld file->current_frame=%lld\n", 
-		__LINE__, 
-		(long long)stream->current_frame, 
-		(long long)file->current_frame);
+		    __LINE__, 
+		    (long long)stream->current_frame, 
+		    (long long)file->current_frame);
+
+        if(need_restart)
+        {
+            ffmpeg_lock->unlock();
+            close_ffmpeg();
+            open_ffmpeg();
+	        ffmpeg_lock->lock("FileFFMPEG::read_frame 2");
+
+	        stream = video_streams.get(0);
+	        ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
+	        decoder_context = ffmpeg_stream->codec;
+        }
 
         AVStream *seek_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[get_seek_stream()];
 		int64_t timestamp = (int64_t)((double)file->current_frame * 
@@ -1790,16 +1799,15 @@ int FileFFMPEG::read_frame(VFrame *frame)
 			ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
 			decoder_context = ffmpeg_stream->codec;
 			AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
-//			avcodec_thread_init(decoder_context, file->cpus);
 			decoder_context->thread_count = file->cpus;
 			avcodec_open2(decoder_context, codec, 0);
-
-
 
 
             avio_seek(((AVFormatContext*)stream->ffmpeg_file_context)->pb, 
                 stream->video_offsets.get(keyframe), 
                 SEEK_SET);
+
+// this doesn't work
             avcodec_flush_buffers(decoder_context);
             if(debug) printf("FileFFMPEG::read_frame %d offset=0x%x keyframe=%d file->current_frame=%ld\n", 
                 __LINE__, 
@@ -1825,6 +1833,11 @@ stream->current_frame,
 file->current_frame,
 error);
 
+
+	if(!ffmpeg_frame)
+    {
+        ffmpeg_frame = av_frame_alloc();
+    }
 
 
 // Read frames until we catch up to the current position.
@@ -1853,8 +1866,9 @@ __LINE__,
 
 
 
-if(debug) printf("FileFFMPEG::read_frame %d %p ftell=%ld\n", 
+if(debug) printf("FileFFMPEG::read_frame %d ffmpeg_file_context=%p pb=%p ftell=%ld\n", 
 __LINE__, 
+stream->ffmpeg_file_context,
 ((AVFormatContext*)stream->ffmpeg_file_context)->pb,
 avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
 		    error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
@@ -1867,14 +1881,16 @@ avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
                     error,
                     stream->current_frame,
                     file->current_frame);
-// give up & reopen the ffmpeg objects
-                av_packet_free(&packet);
-                ffmpeg_lock->unlock();
+// give up & reopen the ffmpeg objects.
+// Still have frames buffered in the decoder, so reopen in the next seek.
+                need_restart = 1;
 
-                close_ffmpeg();
-                open_ffmpeg();
-// TODO: still have frames buffered in the decoder
-                return 1;
+//                 av_packet_free(&packet);
+//                 ffmpeg_lock->unlock();
+// 
+//                 close_ffmpeg();
+//                 open_ffmpeg();
+//                 return 1;
             }
             else
             {
@@ -1905,6 +1921,10 @@ avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
 // fclose(out);
 // }
 
+if(debug) printf("FileFFMPEG::read_frame %d decoder_context=%p ffmpeg_frame=%p\n", 
+__LINE__,
+decoder_context,
+ffmpeg_frame);
 
 		        int result = avcodec_decode_video2(
 					decoder_context,
@@ -1961,11 +1981,11 @@ got_picture,
 // only count frames which actually come out of the decoder
 		if(got_frame) stream->current_frame++;
 
-// 		printf("FileFFMPEG::read_frame %d stream->current_frame=%lld file->current_frame=%lld\n", 
+// 		printf("FileFFMPEG::read_frame %d got_frame=%d stream->current_frame=%ld file->current_frame=%ld\n", 
 // 			__LINE__,
-// 			(long long)stream->current_frame,
-// 			(long long)file->current_frame);
-
+//             got_frame,
+// 			stream->current_frame,
+// 			file->current_frame);
 	}
 
 // printf("FileFFMPEG::read_frame %d current_frame=%lld file->current_frame=%lld got_it=%d\n", 

@@ -435,6 +435,7 @@ int IndexFile::get_toc_filename(string *source_path,
 	int i;
 	int len = input_path->length();
     source_path->clear();
+    index_path->clear();
 	for(i = 0; i < len; i++)
 	{
 		if(input_path->at(i) != '/' &&
