@@ -165,6 +165,7 @@ public:
         int y, 
         int w, 
         int h);
+    int is_dragging();
 	int button_press_event();
 	int button_release_event();
 	int cursor_motion_event();

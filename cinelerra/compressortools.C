@@ -851,6 +851,11 @@ void CompressorCanvasBase::update_window()
 }
 
 
+int CompressorCanvasBase::is_dragging()
+{
+    return current_operation == DRAG;
+}
+
 
 CompressorFrame::CompressorFrame()
 {

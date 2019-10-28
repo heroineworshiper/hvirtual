@@ -316,7 +316,13 @@ void CompressorEffect::update_gui()
 {
 	if(thread)
 	{
-        int reconfigured = load_configuration();
+        int reconfigured = 0;
+// Can't update points if the user is editing
+        if(((CompressorWindow*)thread->window)->canvas->is_dragging())
+        {
+            reconfigured = load_configuration();
+        }
+        
         int total_frames = pending_gui_frames();
 
 //printf("CompressorEffect::update_gui %d %d %d\n", __LINE__, reconfigured, total_frames);
