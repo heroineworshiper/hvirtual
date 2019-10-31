@@ -1121,24 +1121,23 @@ void GraphicEQ::update_gui()
 {
 	if(thread)
 	{
+// user can't change levels when loading configuration    
+		((GraphicGUI*)thread->window)->lock_window("GraphicEQ::update_gui");
 		if(load_configuration() && 
 			((GraphicGUI*)thread->window)->canvas->state != GraphicCanvas::DRAG_POINT)
 		{
-			((GraphicGUI*)thread->window)->lock_window("GraphicEQ::update_gui");
 			((GraphicGUI*)thread->window)->update_canvas();
 			((GraphicGUI*)thread->window)->update_textboxes();
-			((GraphicGUI*)thread->window)->unlock_window();
 		}
 		else
 		{
 //printf("ParametricEQ::update_gui %d %d\n", __LINE__, total_frames);
 			if(pending_gui_frames())
 			{
-				((GraphicGUI*)thread->window)->lock_window("GraphicEQ::update_gui");
 				((GraphicGUI*)thread->window)->update_canvas();
-				((GraphicGUI*)thread->window)->unlock_window();
 			}
 		}
+		((GraphicGUI*)thread->window)->unlock_window();
 	}
 }
 

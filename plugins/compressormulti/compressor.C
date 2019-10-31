@@ -316,13 +316,14 @@ void CompressorEffect::update_gui()
 {
 	if(thread)
 	{
+// user can't change levels when loading configuration    
+		thread->window->lock_window("CompressorEffect::update_gui 1");
         int reconfigured = load_configuration();
         int total_frames = pending_gui_frames();
 
 //printf("CompressorEffect::update_gui %d %d %d\n", __LINE__, reconfigured, total_frames);
         if(reconfigured || total_frames)
         {
-			thread->window->lock_window("CompressorEffect::update_gui 1");
 		    if(reconfigured)
 		    {
 			    ((CompressorWindow*)thread->window)->update();
@@ -332,8 +333,8 @@ void CompressorEffect::update_gui()
 		    {
 			    ((CompressorWindow*)thread->window)->update_eqcanvas();
 		    }
-			thread->window->unlock_window();
         }
+		thread->window->unlock_window();
 	}
 }
 
