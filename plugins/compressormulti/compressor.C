@@ -222,36 +222,12 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 				config.q = input.tag.get_property("Q", config.q);
 				config.window_size = input.tag.get_property("WINDOW_SIZE", config.window_size);
 
-                for(int i = 0; i < TOTAL_BANDS; i++)
-                {
-                    sprintf(string,"FREQ%d", i);
-	                config.bands[i].freq = input.tag.get_property(string, config.bands[i].freq);
-                    sprintf(string,"BYPASS%d", i);
-	                config.bands[i].bypass = input.tag.get_property(string, config.bands[i].bypass);
-                    sprintf(string,"SOLO%d", i);
-	                config.bands[i].solo = input.tag.get_property(string, config.bands[i].solo);
-				    sprintf(string,"ATTACK_LEN%d", i);
-                    config.bands[i].attack_len = input.tag.get_property(string, config.bands[i].attack_len);
-				    sprintf(string,"RELEASE_LEN%d", i);
-                    config.bands[i].release_len = input.tag.get_property(string, config.bands[i].release_len);
-                }
-
 			}
 			else
+            if(input.tag.title_is("COMPRESSORBAND"))
             {
-                for(int i = 0; i < TOTAL_BANDS; i++)
-                {
-                    sprintf(string, "LEVEL%d", i);
-                    if(input.tag.title_is(string))
-			        {
-				        double x = input.tag.get_property("X", (double)0);
-				        double y = input.tag.get_property("Y", (double)0);
-				        compressor_point_t point = { x, y };
-
-				        config.bands[i].levels.append(point);
-                        break;
-			        }
-                }
+                int number = input.tag.get_property("NUMBER", 0);
+                config.bands[number].read_data(&input, 1);
             }
 		}
 	}
@@ -270,44 +246,20 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	output.tag.set_property("INPUT", config.input);
 	output.tag.set_property("Q", config.q);
 	output.tag.set_property("WINDOW_SIZE", config.window_size);
+    output.append_tag();
+	output.append_newline();
 
     char string[BCTEXTLEN];
     for(int band = 0; band < TOTAL_BANDS; band++)
     {
         BandConfig *band_config = &config.bands[band];
-
-        sprintf(string, "FREQ%d", band);
-	    output.tag.set_property(string, band_config->freq);
-        sprintf(string, "BYPASS%d", band);
-	    output.tag.set_property(string, band_config->bypass);
-        sprintf(string, "SOLO%d", band);
-	    output.tag.set_property(string, band_config->solo);
-	    sprintf(string, "ATTACK_LEN%d", band);
-        output.tag.set_property(string, band_config->attack_len);
-	    sprintf(string, "RELEASE_LEN%d", band);
-        output.tag.set_property(string, band_config->release_len);
+        band_config->save_data(&output, band, 1);
 	}
+
+
+	output.tag.set_title("/COMPRESSOR_MULTI");
     output.append_tag();
 	output.append_newline();
-
-
-    for(int band = 0; band < TOTAL_BANDS; band++)
-    {
-        BandConfig *band_config = &config.bands[band];
-
-//printf("CompressorEffect::save_data %d %d\n", __LINE__, band_config->levels.total);
-	    for(int i = 0; i < band_config->levels.total; i++)
-	    {
-            sprintf(string, "LEVEL%d", band);
-		    output.tag.set_title(string);
-		    output.tag.set_property("X", band_config->levels.values[i].x);
-		    output.tag.set_property("Y", band_config->levels.values[i].y);
-
-		    output.append_tag();
-		    output.append_newline();
-	    }
-    }
-
 	output.terminate_string();
 }
 

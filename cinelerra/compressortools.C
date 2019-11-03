@@ -23,10 +23,12 @@
 #include "clip.h"
 #include "compressortools.h"
 #include "cursors.h"
+#include "filexml.h"
 #include "language.h"
 #include "pluginclient.h"
 #include "samples.h"
 #include "theme.h"
+#include <string.h>
 
 
 BandConfig::BandConfig()
@@ -42,6 +44,72 @@ BandConfig::BandConfig()
 BandConfig::~BandConfig()
 {
     
+}
+
+void BandConfig::save_data(FileXML *xml, int number, int do_multiband)
+{
+    char string[BCTEXTLEN];
+
+	xml->tag.set_title("COMPRESSORBAND");
+    if(do_multiband)
+    {
+	    xml->tag.set_property("NUMBER", number);
+	    xml->tag.set_property("FREQ", freq);
+	    xml->tag.set_property("BYPASS", bypass);
+	    xml->tag.set_property("SOLO", solo);
+        xml->tag.set_property("ATTACK_LEN", attack_len);
+        xml->tag.set_property("RELEASE_LEN", release_len);
+    }
+	xml->append_tag();
+	xml->append_newline();
+
+	for(int i = 0; i < levels.total; i++)
+	{
+        xml->tag.set_title("LEVEL");
+		xml->tag.set_property("X", levels.values[i].x);
+		xml->tag.set_property("Y", levels.values[i].y);
+		xml->append_tag();
+		xml->append_newline();
+	}
+
+	xml->tag.set_title("/COMPRESSORBAND");
+	xml->append_tag();
+	xml->append_newline();
+}
+
+void BandConfig::read_data(FileXML *xml, int do_multiband)
+{
+    if(do_multiband)
+    {
+	    freq = xml->tag.get_property("FREQ", freq);
+	    bypass = xml->tag.get_property("BYPASS", bypass);
+	    solo = xml->tag.get_property("SOLO", solo);
+        attack_len = xml->tag.get_property("ATTACK_LEN", attack_len);
+        release_len = xml->tag.get_property("RELEASE_LEN", release_len);
+    }
+
+	levels.remove_all();
+	int result = 0;
+	while(!result)
+	{
+		result = xml->read_tag();
+        if(!result)
+		{
+            if(xml->tag.title_is("LEVEL"))
+			{
+				double x = xml->tag.get_property("X", (double)0);
+				double y = xml->tag.get_property("Y", (double)0);
+				compressor_point_t point = { x, y };
+
+				levels.append(point);
+			}
+            else
+            if(xml->tag.title_is("/COMPRESSORBAND"))
+			{
+                break;
+            }
+        }
+    }
 }
 
 void BandConfig::copy_from(BandConfig *src)
@@ -400,8 +468,16 @@ CompressorCanvasBase::CompressorCanvasBase(CompressorConfigBase *config,
     divisions = (int)(config->max_db - config->min_db) / subdivisions;
 }
 
+CompressorCanvasBase::~CompressorCanvasBase()
+{
+}
+
+
 void CompressorCanvasBase::create_objects()
 {
+    add_subwindow(menu = new CompressorPopup(this));
+	menu->create_objects();
+
 	set_cursor(CROSS_CURSOR, 0, 0);
     draw_scales();
     update();
@@ -709,39 +785,47 @@ int CompressorCanvasBase::button_press_event()
 	if(is_event_win() && 
         cursor_inside())
 	{
-		for(int i = 0; i < band_config->levels.total; i++)
+        if(get_buttonpress() == 3)
 		{
-			double x_db = config->get_x(config->current_band, i);
-			double y_db = config->get_y(config->current_band, i);
-
-			int x = db_to_x(x_db);
-			int y = db_to_y(y_db);
-
-			if(get_cursor_x() <= x + POINT_W / 2 && get_cursor_x() >= x - POINT_W / 2 &&
-				get_cursor_y() <= y + POINT_W / 2 && get_cursor_y() >= y - POINT_W / 2)
-			{
-				current_operation = DRAG;
-				current_point = i;
-				return 1;
-			}
+			menu->activate_menu();
+			return 1;
 		}
-
-
-
-        if(get_cursor_x() >= graph_x &&
-            get_cursor_x() < graph_x + graph_w &&
-            get_cursor_y() >= graph_y &&
-            get_cursor_y() < graph_y + graph_h)
+        else
         {
-// Create new point
-		    double x_db = x_to_db(get_cursor_x());
-		    double y_db = y_to_db(get_cursor_y());
+		    for(int i = 0; i < band_config->levels.total; i++)
+		    {
+			    double x_db = config->get_x(config->current_band, i);
+			    double y_db = config->get_y(config->current_band, i);
 
-		    current_point = config->set_point(config->current_band, x_db, y_db);
-		    current_operation = DRAG;
-		    update_window();
-		    plugin->send_configure_change();
-		    return 1;
+			    int x = db_to_x(x_db);
+			    int y = db_to_y(y_db);
+
+			    if(get_cursor_x() <= x + POINT_W / 2 && get_cursor_x() >= x - POINT_W / 2 &&
+				    get_cursor_y() <= y + POINT_W / 2 && get_cursor_y() >= y - POINT_W / 2)
+			    {
+				    current_operation = DRAG;
+				    current_point = i;
+				    return 1;
+			    }
+		    }
+
+
+
+            if(get_cursor_x() >= graph_x &&
+                get_cursor_x() < graph_x + graph_w &&
+                get_cursor_y() >= graph_y &&
+                get_cursor_y() < graph_y + graph_h)
+            {
+    // Create new point
+		        double x_db = x_to_db(get_cursor_x());
+		        double y_db = y_to_db(get_cursor_y());
+
+		        current_point = config->set_point(config->current_band, x_db, y_db);
+		        current_operation = DRAG;
+		        update_window();
+		        plugin->send_configure_change();
+		        return 1;
+            }
         }
 	}
 	return 0;
@@ -1149,7 +1233,136 @@ bug = 1;
 
 
 
+CompressorPopup::CompressorPopup(CompressorCanvasBase *canvas)
+ : BC_PopupMenu(0, 
+	0, 
+	0, 
+	"", 
+	0)
+{
+    this->canvas = canvas;
+}
 
+CompressorPopup::~CompressorPopup()
+{
+}
+
+    
+void CompressorPopup::create_objects()
+{
+	add_item(new CompressorCopy(this));
+	add_item(new CompressorPaste(this));
+	add_item(new CompressorClearGraph(this));
+}
+
+
+
+
+
+CompressorCopy::CompressorCopy(CompressorPopup *popup)
+ : BC_MenuItem(_("Copy graph"))
+{
+    this->popup = popup;
+}
+
+
+CompressorCopy::~CompressorCopy()
+{
+}
+
+int CompressorCopy::handle_event()
+{
+    FileXML output;
+    CompressorConfigBase *config = popup->canvas->config;
+    config->bands[config->current_band].save_data(
+        &output,
+        0,
+        0);
+    output.terminate_string();
+    popup->get_clipboard()->to_clipboard(output.string, 
+		strlen(output.string), 
+		SECONDARY_SELECTION);
+    return 1;
+}
+
+
+
+CompressorPaste::CompressorPaste(CompressorPopup *popup)
+ : BC_MenuItem(_("Paste graph"))
+{
+    this->popup = popup;
+}
+
+
+CompressorPaste::~CompressorPaste()
+{
+}
+
+int CompressorPaste::handle_event()
+{
+    int len = popup->get_clipboard()->clipboard_len(SECONDARY_SELECTION);
+    if(len)
+    {
+        CompressorConfigBase *config = popup->canvas->config;
+        char *string = new char[len + 1];
+        popup->get_clipboard()->from_clipboard(string, 
+			len, 
+			SECONDARY_SELECTION);
+        
+        FileXML xml;
+		xml.read_from_string(string);
+        delete [] string;
+        int result = 0;
+        int got_it = 0;
+	    while(!result)
+	    {
+		    result = xml.read_tag();
+            if(!result)
+		    {
+                if(xml.tag.title_is("COMPRESSORBAND"))
+			    {
+                    config->bands[config->current_band].read_data(
+                        &xml,
+                        0);
+                    got_it = 1;
+                    break;
+                }
+            }
+        }
+        
+        if(got_it)
+        {
+            popup->canvas->update();
+            PluginClient *plugin = popup->canvas->plugin;
+            plugin->send_configure_change();
+        }
+    }
+    return 1;
+}
+
+
+
+
+CompressorClearGraph::CompressorClearGraph(CompressorPopup *popup)
+ : BC_MenuItem(_("Clear graph"))
+{
+    this->popup = popup;
+}
+
+
+CompressorClearGraph::~CompressorClearGraph()
+{
+}
+
+int CompressorClearGraph::handle_event()
+{
+    CompressorConfigBase *config = popup->canvas->config;
+    config->bands[config->current_band].levels.remove_all();
+    popup->canvas->update();
+    PluginClient *plugin = popup->canvas->plugin;
+    plugin->send_configure_change();
+    return 1;
+}
 
 
 

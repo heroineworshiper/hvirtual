@@ -141,9 +141,20 @@ void BC_Clipboard::run()
 			{
 				XEvent reply;
 				XSelectionRequestEvent *request = (XSelectionRequestEvent*)&event;
-				char *data_ptr = (request->selection == primary ? data[0] : data[1]);
+				char *data_ptr = (request->selection == primary ? 
+                    data[0] : 
+                    data[1]);
 
-//printf("BC_Clipboard::run %d selection=%p primary=%p\n", __LINE__, request->selection, primary);
+// printf("BC_Clipboard::run %d selection=%ld primary=%ld secondary=%ld\n", 
+// __LINE__, 
+// request->selection, 
+// primary,
+// secondary);
+// printf("BC_Clipboard::run %d this=%p data_ptr=%p %s\n", 
+// __LINE__, 
+// this, 
+// data_ptr, 
+// data_ptr);
         		XChangeProperty(out_display,
         			request->requestor,
         			request->property,
@@ -203,7 +214,6 @@ void BC_Clipboard::run()
 
 int BC_Clipboard::to_clipboard(const char *data, long len, int clipboard_num)
 {
-//printf("BC_Clipboard::to_clipboard %d clipboard_num=%d\n", __LINE__, clipboard_num);
 	if(clipboard_num == BC_PRIMARY_SELECTION)
 	{
 		XStoreBuffer(out_display, data, len, clipboard_num);
@@ -230,6 +240,12 @@ int BC_Clipboard::to_clipboard(const char *data, long len, int clipboard_num)
 		memcpy(this->data[clipboard_num], data, len);
 		this->data[clipboard_num][len] = 0;
 	}
+// printf("BC_Clipboard::to_clipboard %d this=%p clipboard_num=%d len=%ld data=%p\n", 
+// __LINE__, 
+// this,
+// clipboard_num,
+// len,
+// this->data[clipboard_num]);
 
 	if(clipboard_num == PRIMARY_SELECTION)
 	{
@@ -262,11 +278,11 @@ int BC_Clipboard::to_clipboard(const char *data, long len, int clipboard_num)
 int BC_Clipboard::from_clipboard(char *data, long maxlen, int clipboard_num)
 {
 
+//printf("BC_Clipboard::from_clipboard %d clipboard_num=%d\n", __LINE__, clipboard_num);
 
 
 	if(clipboard_num == BC_PRIMARY_SELECTION)
 	{
-//printf("BC_Clipboard::from_clipboard %d\n", __LINE__);
 		char *data2;
 		int len, i;
 		data2 = XFetchBuffer(in_display, &len, clipboard_num);
@@ -316,7 +332,7 @@ int BC_Clipboard::from_clipboard(char *data, long maxlen, int clipboard_num)
 	if(event.type != None)
 	{
 // Get size
-   	XGetWindowProperty(in_display,
+   	    XGetWindowProperty(in_display,
         	in_win,
         	pty,
         	0,
@@ -329,11 +345,11 @@ int BC_Clipboard::from_clipboard(char *data, long maxlen, int clipboard_num)
         	&size,
         	(unsigned char**)&temp_data);
 
-	if(temp_data) XFree(temp_data);
-	temp_data = 0;
+	    if(temp_data) XFree(temp_data);
+	    temp_data = 0;
 
 // Get data
-   	XGetWindowProperty(in_display,
+   	    XGetWindowProperty(in_display,
         	in_win,
         	pty,
         	0,

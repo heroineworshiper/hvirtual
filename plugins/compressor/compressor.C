@@ -150,7 +150,6 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
 
 	int result = 0;
-	band_config->levels.remove_all();
 	while(!result)
 	{
 		result = input.read_tag();
@@ -167,13 +166,9 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 				config.input = input.tag.get_property("INPUT", config.input);
 			}
 			else
-			if(input.tag.title_is("LEVEL2"))
+			if(input.tag.title_is("COMPRESSORBAND"))
 			{
-				double x = input.tag.get_property("X", (double)0);
-				double y = input.tag.get_property("Y", (double)0);
-				compressor_point_t point = { x, y };
-
-				band_config->levels.append(point);
+				band_config->read_data(&input, 0);
 			}
 		}
 	}
@@ -190,23 +185,15 @@ void CompressorEffect::save_data(KeyFrame *keyframe)
 	output.tag.set_property("TRIGGER", config.trigger);
 	output.tag.set_property("SMOOTHING_ONLY", config.smoothing_only);
 	output.tag.set_property("INPUT", config.input);
-//	output.tag.set_property("READAHEAD_LEN", band_config->readahead_len);
 	output.tag.set_property("ATTACK_LEN", band_config->attack_len);
 	output.tag.set_property("RELEASE_LEN", band_config->release_len);
 	output.append_tag();
 	output.append_newline();
 
-
-	for(int i = 0; i < band_config->levels.total; i++)
-	{
-		output.tag.set_title("LEVEL2");
-		output.tag.set_property("X", band_config->levels.values[i].x);
-		output.tag.set_property("Y", band_config->levels.values[i].y);
-
-		output.append_tag();
-		output.append_newline();
-	}
-
+    band_config->save_data(&output, 0, 0);
+	output.tag.set_title("/COMPRESSOR");
+    output.append_tag();
+	output.append_newline();
 	output.terminate_string();
 }
 

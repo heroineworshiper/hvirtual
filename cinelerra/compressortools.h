@@ -42,7 +42,7 @@
 
 
 class CompressorConfigBase;
-
+class CompressorPopup;
 
 
 // get sample from trigger buffer
@@ -98,6 +98,8 @@ public:
     void copy_from(BandConfig *src);
     int equiv(BandConfig *src);
     void boundaries(CompressorConfigBase *base);
+    void save_data(FileXML *xml, int number, int do_multiband);
+    void read_data(FileXML *xml, int do_multiband);
 
 	ArrayList<compressor_point_t> levels;
     int solo;
@@ -165,6 +167,7 @@ public:
         int y, 
         int w, 
         int h);
+    virtual ~CompressorCanvasBase();
     int is_dragging();
 	int button_press_event();
 	int button_release_event();
@@ -196,6 +199,7 @@ public:
     int divisions;
     int subdivisions;
 	CompressorConfigBase *config;
+    CompressorPopup *menu;
     PluginClient *plugin;
     PluginClientWindow *window;
 };
@@ -263,6 +267,48 @@ public:
     double gui_max_gain;
     double gui_max_level;
 };
+
+
+class CompressorCopy : public BC_MenuItem
+{
+public:
+	CompressorCopy(CompressorPopup *popup);
+	~CompressorCopy();
+	int handle_event();
+	CompressorPopup *popup;
+};
+
+class CompressorPaste : public BC_MenuItem
+{
+public:
+	CompressorPaste(CompressorPopup *popup);
+	~CompressorPaste();
+	int handle_event();
+	CompressorPopup *popup;
+};
+
+class CompressorClearGraph : public BC_MenuItem
+{
+public:
+	CompressorClearGraph(CompressorPopup *popup);
+	~CompressorClearGraph();
+	int handle_event();
+	CompressorPopup *popup;
+};
+
+class CompressorPopup : public BC_PopupMenu
+{
+public:
+	CompressorPopup(CompressorCanvasBase *canvas);
+	~CompressorPopup();
+    
+    void create_objects();
+    
+    
+    CompressorCanvasBase *canvas;
+};
+
+
 
 
 
