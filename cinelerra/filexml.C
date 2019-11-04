@@ -110,6 +110,16 @@ int FileXML::append_text(const char *text, long len)
 	return 0;
 }
 
+void FileXML::encode_text(const char *text)
+{
+    int in_len = strlen(text);
+    char temp_string[32];       // for converting numbers
+    for(int i = 0; i < in_len; i++)
+    {
+        const char *encoded = XMLTag::encode_char(temp_string, text + i);
+        append_text(encoded, strlen(encoded));
+    }
+}
 
 
 int FileXML::reallocate_string(long new_available)
@@ -130,7 +140,7 @@ char* FileXML::get_ptr()
 	return string + position;
 }
 
-char* FileXML::read_text()
+char* FileXML::read_text(int decode)
 {
 	long text_position = position;
 	int i;
@@ -157,7 +167,7 @@ char* FileXML::read_text()
 // check if we have to decode special characters
 // but try to be most backward compatible possible
 			int character = string[text_position];
-			if (string[text_position] == '&')
+			if (string[text_position] == '&' && decode)
 			{
 				if (text_position + 3 < length)
 				{
@@ -449,7 +459,7 @@ int XMLTag::write_tag()
 // write the value
 		for(j = 0; current_value[j] != 0 && len < MAX_LENGTH; j++)
 		{
-            const char *encoded = encode_char(current_value + j);
+            const char *encoded = encode_char(temp_string, current_value + j);
             int len2 = strlen(encoded);
             if(len + len2 < MAX_LENGTH)
             {
@@ -798,7 +808,7 @@ int XMLTag::set_property(const char *text, const char *value)
 
 
 
-const char* XMLTag::encode_char(const char *text)
+const char* XMLTag::encode_char(char *temp_string, const char *text)
 {
 	const char leftb[] = "&lt;";
 	const char rightb[] = "&gt;";

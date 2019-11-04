@@ -3509,11 +3509,11 @@ void TitleMain::save_data(KeyFrame *keyframe)
 	output.append_newline();
 	
 	output.encode_text(config.text.c_str());
-
 	output.tag.set_title("/TITLE");
 	output.append_tag();
 	output.append_newline();
 	output.terminate_string();
+//printf("TitleMain::save_data %d %s\n", __LINE__, output.string);
 }
 
 void TitleMain::read_data(KeyFrame *keyframe)

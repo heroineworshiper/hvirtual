@@ -68,7 +68,9 @@ public:
 	int write_tag();
 
 // encode the special character at the head of the string
- 	const char* encode_char(const char *text);
+// TODO: move to FileXML
+ 	static const char* encode_char(char *temp_string, const char *text);
+
 // convert all the encodings to special characters
     void decode_text(char *text);
 
@@ -99,9 +101,13 @@ public:
 	int append_text(const char *text);
 // add generic text to the string
 	int append_text(const char *text, long len);        
+// append text with special characters
+    void encode_text(const char *text);
 
+// read text, put it in *output, and return it
+// decode - decode special characters.
 // Text array is dynamically allocated and deleted when FileXML is deleted
-	char* read_text();         // read text, put it in *output, and return it
+	char* read_text(int decode = 1);         
 	int read_text_until(const char *tag_end, char *output, int max_len);     // store text in output until the tag is reached
 	int read_tag();          // read next tag from file, ignoring any text, and put it in tag
 	// return 1 on failure
