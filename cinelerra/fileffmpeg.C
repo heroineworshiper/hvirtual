@@ -1943,9 +1943,19 @@ got_picture,
 ((AVFrame*)ffmpeg_frame)->data[0]);
 // check multiple ways it could glitch
 				if(input_frame->data[0] && 
-                    got_picture &&
-                    (last_pts < 0 || input_frame->pts > last_pts)) 
+                    got_picture /* &&
+                    (last_pts < 0 || input_frame->pts > last_pts) */) 
                 {
+// After seeking, the decoder sometimes rewinds which is shown by a 
+// rewinding PTS, but sometimes it rewinds the PTS without rewinding 
+// the decoder
+                    if(last_pts > 0 && input_frame->pts <= last_pts)
+                    {
+                        printf("FileFFMPEG::read_frame %d current pts=%ld last_pts=%ld\n",
+                            __LINE__,
+                            input_frame->pts, 
+                            last_pts);
+                    }
                     got_frame = 1;
                     last_pts = input_frame->pts;
                 }
