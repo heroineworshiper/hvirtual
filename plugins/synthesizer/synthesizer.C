@@ -587,6 +587,7 @@ void SynthWindow::create_objects()
 	phasemenu->add_item(new SynthPhaseSine(synth));
 	phasemenu->add_item(new SynthPhaseZero(synth));
 
+	harmonicmenu->add_item(new SynthFreqMin(synth));
 	harmonicmenu->add_item(new SynthFreqEnum(synth));
 	harmonicmenu->add_item(new SynthFreqEven(synth));
 	harmonicmenu->add_item(new SynthFreqFibonacci(synth));
@@ -1972,6 +1973,26 @@ int SynthFreqPow2::handle_event()
 
 
 
+
+SynthFreqMin::SynthFreqMin(Synth *synth)
+ : BC_MenuItem(_("Minimum"))
+{
+	this->synth = synth;
+}
+SynthFreqMin::~SynthFreqMin()
+{
+}
+
+int SynthFreqMin::handle_event()
+{
+	for(int i = 0; i < synth->config.oscillator_config.total; i++)
+	{
+		synth->config.oscillator_config.values[i]->freq_factor = 1;
+	}
+
+	((SynthWindow*)synth->thread->window)->update_gui();
+	synth->send_configure_change();
+}
 
 
 SynthFreqEnum::SynthFreqEnum(Synth *synth)

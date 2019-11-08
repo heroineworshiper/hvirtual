@@ -537,6 +537,15 @@ public:
 	Synth *synth;
 };
 
+class SynthFreqMin : public BC_MenuItem
+{
+public:
+	SynthFreqMin(Synth *synth);
+	~SynthFreqMin();
+	int handle_event();
+	Synth *synth;
+};
+
 class SynthFreqEven : public BC_MenuItem
 {
 public:
