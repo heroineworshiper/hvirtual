@@ -8,6 +8,7 @@
 # Update PLUGIN_FILE_VERSION to detect new plugins
 # 4) Add new libraries to make_packages
 # 5) New languages
+# 6) Clean
 #
 # Did you:
 # 1) Compile for targets
@@ -29,7 +30,7 @@ ARCH=`uname -m`
 
 
 
-CI_VERSION=7.1
+CI_VERSION=7.2
 
 
 MIX_VERSION=1.2

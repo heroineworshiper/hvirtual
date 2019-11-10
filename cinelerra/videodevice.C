@@ -50,6 +50,7 @@
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 
 KeepaliveThread::KeepaliveThread(VideoDevice *device)
  : Thread()

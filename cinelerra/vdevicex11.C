@@ -222,6 +222,7 @@ int VDeviceX11::close_all()
 			output->get_canvas()->lock_window("VDeviceX11::close_all 2");
 		}
 		else
+        if(output_frame->get_rows())
 		{
 // printf("VDeviceX11::close_all %d refresh_frame cmodel=%d refresh_frame=%dx%d output_frame cmodel=%d output_frame=%dx%d\n", 
 // __LINE__,
@@ -235,6 +236,10 @@ int VDeviceX11::close_all()
 				output->refresh_frame->get_h() != output_frame->get_h())
 			{
 // need to scale it
+// printf("VDeviceX11::close_all %d output_frame=%p rows=%p\n", 
+// __LINE__,
+// output_frame,
+// output_frame->get_rows());
 				cmodel_transfer(output->refresh_frame->get_rows(), 
 					output_frame->get_rows(),
 					0,
@@ -339,7 +344,7 @@ int VDeviceX11::close_all()
 		}
 		device->mwindow->gui->unlock_window();
 	}
-	
+
 	reset_parameters();
 
 	return 0;
@@ -584,13 +589,14 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 // Update the ring buffer
 			if(bitmap_type == BITMAP_PRIMARY)
 			{
-
 				output_frame->set_memory(0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */,
 					bitmap->get_shmid(),
 					bitmap->get_y_offset(),
 					bitmap->get_u_offset(),
 					bitmap->get_v_offset());
-//printf("VDeviceX11::new_output_buffer %d rows=%p\n", __LINE__, output_frame->get_rows()[0]);
+// printf("VDeviceX11::new_output_buffer %d rows=%p\n", 
+// __LINE__, 
+// output_frame->get_rows());
 			}
 		}
 
@@ -633,7 +639,11 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 							display_colormodel,
 							-1);
 
-//printf("VDeviceX11::new_output_buffer %d shmid=%d rows=%p\n", __LINE__, bitmap->get_shmid(), output_frame->get_rows()[0]);
+// printf("VDeviceX11::new_output_buffer %d shmid=%d output_frame=%p rows=%p\n", 
+// __LINE__, 
+// bitmap->get_shmid(), 
+// output_frame, 
+// output_frame->get_rows());
 						bitmap_type = BITMAP_PRIMARY;
 					}
 					break;

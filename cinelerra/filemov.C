@@ -36,6 +36,7 @@
 #include "videodevice.inc"
 
 #include <unistd.h>
+#include <string.h>
 
 #if 0
 N_("MPEG-4")

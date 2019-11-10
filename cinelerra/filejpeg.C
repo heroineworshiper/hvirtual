@@ -34,6 +34,7 @@
 
 
 #include <errno.h>
+#include <string.h>
 
 
 FileJPEG::FileJPEG(Asset *asset, File *file)

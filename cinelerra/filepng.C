@@ -30,6 +30,7 @@
 #include "videodevice.inc"
 
 #include <png.h>
+#include <string.h>
 
 FilePNG::FilePNG(Asset *asset, File *file)
  : FileList(asset, file, "PNGLIST", ".png", FILE_PNG, FILE_PNG_LIST)

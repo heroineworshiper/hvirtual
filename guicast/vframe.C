@@ -395,9 +395,13 @@ void VFrame::create_row_pointers()
 				this->u_offset = w * h;
 				this->v_offset = w * h + w * h / 4;
 			}
-			y = this->data + this->y_offset;
-			u = this->data + this->u_offset;
-			v = this->data + this->v_offset;
+            
+            if(this->data)
+            {
+			    y = this->data + this->y_offset;
+			    u = this->data + this->u_offset;
+			    v = this->data + this->v_offset;
+            }
 			break;
 
 		case BC_YUV422P:
@@ -407,17 +411,23 @@ void VFrame::create_row_pointers()
 				this->u_offset = w * h;
 				this->v_offset = w * h + w * h / 2;
 			}
-			y = this->data + this->y_offset;
-			u = this->data + this->u_offset;
-			v = this->data + this->v_offset;
+            if(this->data)
+            {
+			    y = this->data + this->y_offset;
+			    u = this->data + this->u_offset;
+			    v = this->data + this->v_offset;
+            }
 			break;
 
 		default:
-			rows = new unsigned char*[h];
-			for(int i = 0; i < h; i++)
-			{
-				rows[i] = &this->data[i * this->bytes_per_line];
-			}
+            if(this->data)
+            {
+			    rows = new unsigned char*[h];
+			    for(int i = 0; i < h; i++)
+			    {
+				    rows[i] = &this->data[i * this->bytes_per_line];
+			    }
+            }
 			break;
 	}
 }
@@ -545,11 +555,14 @@ void VFrame::set_memory(unsigned char *data,
 		this->shmid = shmid;
 	}
 	
-	y = this->data + this->y_offset;
-	u = this->data + this->u_offset;
-	v = this->data + this->v_offset;
+    if(this->data)
+    {
+	    y = this->data + this->y_offset;
+	    u = this->data + this->u_offset;
+	    v = this->data + this->v_offset;
 
-	create_row_pointers();
+	    create_row_pointers();
+    }
 }
 
 void VFrame::set_compressed_memory(unsigned char *data,

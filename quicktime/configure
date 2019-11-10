@@ -96,7 +96,7 @@ echo "CONFIGURING X264"
 # Currently using the last version which works with mplayer.
 # To get the latest version to work, comment out the exit after No suitable assembler found.
 # add asm=no and AS= in place of exit
-cd thirdparty/x264* && ./configure --enable-pthread && cd ../..
+cd thirdparty/x264* && ./configure --enable-pthread --disable-cli --enable-shared --enable-static && cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
