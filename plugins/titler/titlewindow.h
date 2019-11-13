@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ class TitleSubsText;
 class TitleSubs;
 class TitleFontTumble;
 class TitleSizeTumble;
+class LineSpace;
 class TitleItalic;
 class TitleBold;
 class TitleSize;
@@ -64,6 +65,7 @@ class TitleSpeed;
 class TitleTimecode;
 class TitleTimecodeFormat;
 class TitleOutline;
+class TitleBlur;
 
 class TitleWindow : public PluginClientWindow
 {
@@ -89,10 +91,12 @@ public:
 	TitleX *title_x;
 	BC_Title *y_title;
 	TitleY *title_y;
+    LineSpace *line_spacing;
 	BC_Title *dropshadow_title;
 	TitleDropShadow *dropshadow;
 	BC_Title *outline_title;
 	TitleOutline *outline;
+    TitleBlur *blur;
 	BC_Title *style_title;
 	TitleItalic *italic;
 	TitleBold *bold;
@@ -158,6 +162,15 @@ class TitleSubs : public BC_CheckBox
 {
 public:
 	TitleSubs(TitleWindow *window, int x, int y);
+	int handle_event();
+	TitleWindow *window;
+};
+
+
+class TitleBlur : public BC_CheckBox
+{
+public:
+	TitleBlur(TitleWindow *window, int x, int y);
 	int handle_event();
 	TitleWindow *window;
 };
@@ -331,6 +344,18 @@ public:
 	TitleMain *client;
 	TitleWindow *window;
 };
+
+
+
+class LineSpace : public BC_TumbleTextBox
+{
+public:
+	LineSpace(TitleMain *client, TitleWindow *window, int x, int y);
+	int handle_event();
+	TitleMain *client;
+	TitleWindow *window;
+};
+
 
 class TitleDropShadow : public BC_TumbleTextBox
 {

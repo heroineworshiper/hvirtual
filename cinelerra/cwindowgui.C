@@ -1630,7 +1630,7 @@ int CWindowCanvas::do_mask(int &redraw,
 				if(j > 0)
 				{
 // Draw joining line
-					if(draw)
+					if(draw /* && i < points.size() - 1 */)
 					{
 						x_points.append((int)x);
 						y_points.append((int)y);

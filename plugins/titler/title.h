@@ -107,6 +107,8 @@ public:
 	char font[BCTEXTLEN];
 	long style;
 	int size;
+    float line_spacing;
+    int blur;
 	int color;
 	int outline_color;
 	int alpha;
@@ -421,7 +423,7 @@ public:
 		int size);
 	FontEntry* get_font();
 	int get_char_advance(int current, int next);
-	int get_char_height();
+	int get_line_spacing();
 	int get_char_width(FT_ULong c);
 	void get_total_extents();
 	void clear_glyphs();

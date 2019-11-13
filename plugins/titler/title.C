@@ -74,6 +74,8 @@ TitleConfig::TitleConfig()
 	x = 0.0;
 	y = 0.0;
 	dropshadow = 10;
+    blur = 0;
+    line_spacing = 1.2;
 	sprintf(font, "fixed");
 
 	text.assign("");
@@ -107,7 +109,9 @@ TitleConfig::~TitleConfig()
 // Does not test equivalency but determines if redrawing text is necessary.
 int TitleConfig::equivalent(TitleConfig &that)
 {
-	return dropshadow == that.dropshadow &&
+	return blur == that.blur &&
+        EQUIV(line_spacing, that.line_spacing) &&
+        dropshadow == that.dropshadow &&
 		style == that.style &&
 		size == that.size &&
 		color == that.color &&
@@ -145,6 +149,8 @@ void TitleConfig::copy_from(TitleConfig &that)
 	fade_out = that.fade_out;
 	x = that.x;
 	y = that.y;
+    blur = that.blur;
+    line_spacing = that.line_spacing;
 	dropshadow = that.dropshadow;
 	timecode = that.timecode;
 	timecode_format = that.timecode_format;
@@ -197,6 +203,8 @@ void TitleConfig::interpolate(TitleConfig &prev,
 	timecode_format = prev.timecode_format;
 //	this->dropshadow = (int)(prev.dropshadow * prev_scale + next.dropshadow * next_scale);
 	this->dropshadow = prev.dropshadow;
+    this->blur = prev.blur;
+    this->line_spacing = prev.line_spacing;
 	
 	this->window_w = prev.window_w;
 	this->window_h = prev.window_h;
@@ -621,9 +629,19 @@ void GlyphUnit::process_package(LoadPackage *package)
 		else
 		{
 			glyph->width = freetype_face->glyph->bitmap.width;
-//			glyph->height = freetype_face->glyph->bitmap.rows;
-			glyph->height = freetype_face->glyph->bitmap_top +
-				freetype_face->glyph->bitmap.rows;
+// too short
+			glyph->height = freetype_face->glyph->bitmap.rows;
+// too tall
+//			glyph->height = freetype_face->glyph->bitmap_top +
+//				freetype_face->glyph->bitmap.rows;
+
+// printf("GlyphUnit::process_package %d c=%c top=%d rows=%d height=%d\n", 
+// __LINE__,
+// glyph->char_code,
+// freetype_face->glyph->bitmap_top,
+// freetype_face->glyph->bitmap.rows,
+// glyph->height);
+
 			glyph->pitch = freetype_face->glyph->bitmap.pitch;
 			glyph->left = freetype_face->glyph->bitmap_left;
 			glyph->top = freetype_face->glyph->bitmap_top;
@@ -814,7 +832,7 @@ TitleEngine::TitleEngine(TitleMain *plugin, int cpus)
 
 void TitleEngine::init_packages()
 {
-	int visible_y1 = plugin->visible_row1 * plugin->get_char_height();
+	int visible_y1 = plugin->visible_row1 * plugin->get_line_spacing();
 	int current_package = 0;
 	for(int i = plugin->visible_char1; i < plugin->visible_char2; i++)
 	{
@@ -869,6 +887,8 @@ void TitleOutlineUnit::process_package(LoadPackage *package)
 	TitleOutlinePackage *pkg = (TitleOutlinePackage*)package;
 	int r, g, b, outline_a;
 	int title_r, title_g, title_b, title_a;
+    int do_blur = plugin->config.blur;
+    int outline_size = plugin->config.outline_size;
 	plugin->get_color_components(&r, &g, &b, &outline_a, 1);
 	plugin->get_color_components(&title_r, &title_g, &title_b, &title_a, 0);
 
@@ -882,17 +902,14 @@ void TitleOutlineUnit::process_package(LoadPackage *package)
 			unsigned char *out_row = plugin->outline_mask->get_rows()[i];
 			for(int j = 0; j < plugin->text_mask->get_w(); j++)
 			{
-				int x1 = j - plugin->config.outline_size;
-				int x2 = j + plugin->config.outline_size;
-				int y1 = i - plugin->config.outline_size;
-				int y2 = i + plugin->config.outline_size;
+				int x1 = j - outline_size;
+				int x2 = j + outline_size;
+				int y1 = i - outline_size;
+				int y2 = i + outline_size;
 				CLAMP(x1, 0, plugin->text_mask->get_w() - 1);
 				CLAMP(x2, 0, plugin->text_mask->get_w() - 1);
 				CLAMP(y1, 0, plugin->text_mask->get_h() - 1);
 				CLAMP(y2, 0, plugin->text_mask->get_h() - 1);
-				int max_r = 0;
-				int max_g = 0;
-				int max_b = 0;
 				int max_a = 0;
 
 				for(int k = y1; k <= y2; k++)
@@ -901,12 +918,23 @@ void TitleOutlineUnit::process_package(LoadPackage *package)
 					for(int l = x1; l <= x2; l++)
 					{
 						unsigned char *pixel = text_row + l * 4;
-						if(pixel[3] > max_a)
+                        unsigned char value = pixel[3];
+                        
+                        if(do_blur)
+                        {
+                            float fraction = (float)1.0 - 
+                                hypot(k - i, l - j) / outline_size;
+//                                MAX(abs(k - i), abs(l - j)));
+                            if(fraction < 0)
+                            {
+                                fraction = 0;
+                            }
+                            value = (int)(value * fraction);
+                        }
+                        
+						if(value > max_a)
 						{
-							max_r = pixel[0];
-							max_g = pixel[1];
-							max_b = pixel[2];
-							max_a = pixel[3];
+							max_a = value;
 						}
 					}
 				}
@@ -2340,10 +2368,14 @@ int TitleMain::get_char_width(FT_ULong c)
 	return 0;
 }
 
-int TitleMain::get_char_height()
+int TitleMain::get_line_spacing()
 {
+// user value.  Too short.
 //	return config.size;
-	return height;
+// derived from glyphs.  Too tall.
+//	return height;
+// THE FINAL HACK
+	return (int)(config.size * config.line_spacing);
 }
 
 int TitleMain::get_char_advance(int current, int next)
@@ -2411,9 +2443,9 @@ void TitleMain::draw_glyphs()
 
 
 
-		for(int j = 0; j < glyphs.total; j++)
+		for(int j = 0; j < glyphs.size(); j++)
 		{
-			if(glyphs.values[j]->char_code == char_code)
+			if(glyphs.get(j)->char_code == char_code)
 			{
 				exists = 1;
 				break;
@@ -2467,7 +2499,7 @@ void TitleMain::get_total_extents()
 	for(int i = 0; i < text_len; i++)
 	{
 		char_positions[i].x = current_w;
-		char_positions[i].y = text_rows * get_char_height();
+		char_positions[i].y = text_rows * get_line_spacing();
 		int char_advance = get_char_advance(config.ucs4text[i], 
 			config.ucs4text[i + 1]);
 		char_positions[i].w = char_advance;
@@ -2499,7 +2531,8 @@ void TitleMain::get_total_extents()
 		}
 	}
 	text_w += config.dropshadow + config.outline_size * 4 + max_char_w;
-	text_h = text_rows * get_char_height() + 
+	text_h = (text_rows - 1) * get_line_spacing() + 
+        config.size + 
 		config.dropshadow + 
 		config.outline_size * 4;
 
@@ -2649,18 +2682,18 @@ int TitleMain::draw_mask()
 
 
 // Determine y extents just of visible text
-	visible_row1 = (int)(-text_y1 / get_char_height());
+	visible_row1 = (int)(-text_y1 / get_line_spacing());
 	if(visible_row1 < 0) visible_row1 = 0;
 
-	visible_row2 = (int)((float)text_rows - (text_y2 - input->get_h()) / get_char_height() + 1);
+	visible_row2 = (int)((float)text_rows - (text_y2 - input->get_h()) / get_line_spacing() + 1);
 	if(visible_row2 > text_rows) visible_row2 = text_rows;
 
 
 	if(visible_row2 <= visible_row1) return 1;
 
 
-	mask_y1 = text_y1 + visible_row1 * get_char_height();
-	mask_y2 = text_y1 + visible_row2 * get_char_height();
+	mask_y1 = text_y1 + visible_row1 * get_line_spacing();
+	mask_y2 = text_y1 + visible_row2 * get_line_spacing();
 	text_x1 += config.x;
 
 
@@ -2670,7 +2703,7 @@ int TitleMain::draw_mask()
 	for(int i = 0; i < text_len; i++)
 	{
 		title_char_position_t *char_position = char_positions + i;
-		int char_row = char_position->y / get_char_height();
+		int char_row = char_position->y / get_line_spacing();
 		if(char_row >= visible_row1 &&
 			char_row < visible_row2)
 		
@@ -2691,7 +2724,7 @@ int TitleMain::draw_mask()
 	int need_redraw = 0;
 	if(text_mask &&
 		(text_mask->get_w() != text_w ||
-		text_mask->get_h() != visible_rows * get_char_height()))
+		text_mask->get_h() != text_h))
 	{
 		delete text_mask;
 		text_mask = 0;
@@ -2706,7 +2739,8 @@ int TitleMain::draw_mask()
 			color_model = BC_YUVA8888;
 		text_mask = new VFrame;
 		text_mask->set_use_shm(0);
-//printf("TitleMain::draw_mask %d %d\n", __LINE__, color_model);
+//printf("TitleMain::draw_mask %d text_w=%d text_h=%d\n", 
+//__LINE__, text_w, text_h);
 		text_mask->reallocate(0,
 			-1,
 			0,
@@ -3498,6 +3532,8 @@ void TitleMain::save_data(KeyFrame *keyframe)
 	output.tag.set_property("TITLE_X", config.x);
 	output.tag.set_property("TITLE_Y", config.y);
 	output.tag.set_property("DROPSHADOW", config.dropshadow);
+	output.tag.set_property("BLUR", config.blur);
+	output.tag.set_property("LINE_SPACING", config.line_spacing);
 	output.tag.set_property("OUTLINE_SIZE", config.outline_size);
 	output.tag.set_property("TIMECODE", config.timecode);
 	output.tag.set_property("TIMECODE_FORMAT", config.timecode_format);
@@ -3555,6 +3591,8 @@ void TitleMain::read_data(KeyFrame *keyframe)
 				config.x = input.tag.get_property("TITLE_X", config.x);
 				config.y = input.tag.get_property("TITLE_Y", config.y);
 				config.dropshadow = input.tag.get_property("DROPSHADOW", config.dropshadow);
+				config.blur = input.tag.get_property("BLUR", config.blur);
+				config.line_spacing = input.tag.get_property("LINE_SPACING", config.line_spacing);
 				config.outline_size = input.tag.get_property("OUTLINE_SIZE", config.outline_size);
 				config.timecode = input.tag.get_property("TIMECODE", config.timecode);
 				config.timecode_format = input.tag.get_property("TIMECODE_FORMAT", config.timecode_format);

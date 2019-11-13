@@ -22,6 +22,7 @@
 #include "bcdisplayinfo.h"
 #include "bcsignals.h"
 #include "browsebutton.h"
+#include "clip.h"
 #include "filesystem.h"
 #include "language.h"
 #include "theme.h"
@@ -286,54 +287,88 @@ void TitleWindow::create_objects()
 	add_subwindow(size_tumbler = new TitleSizeTumble(client, this, x, y + size_title->get_h()));
 	x += size_tumbler->get_w() + margin;
 
-	add_tool(style_title = new BC_Title(x, y, _("Style:")));
-	add_tool(italic = new TitleItalic(client, this, x, y + DP(20)));
-	add_tool(bold = new TitleBold(client, this, x, y + DP(50)));
-#ifdef USE_OUTLINE
-	add_tool(stroke = new TitleStroke(client, this, x, y + DP(80)));
-#endif
-	x += DP(90);
-	add_tool(justify_title = new BC_Title(x, y, _("Justify:")));
-	add_tool(left = new TitleLeft(client, this, x, y + DP(20)));
-	add_tool(center = new TitleCenter(client, this, x, y + DP(50)));
-	add_tool(right = new TitleRight(client, this, x, y + DP(80)));
 
-	x += DP(80);
-	add_tool(top = new TitleTop(client, this, x, y + DP(20)));
-	add_tool(mid = new TitleMid(client, this, x, y + DP(50)));
-	add_tool(bottom= new TitleBottom(client, this, x, y + DP(80)));
-	
+    int y1 = y;
+    int x1 = x;
+    int w = 0;
+	add_tool(style_title = new BC_Title(x, y1, _("Style:")));
+    w = MAX(w, style_title->get_w());
+    y1 += style_title->get_h() + margin;
+	add_tool(italic = new TitleItalic(client, this, x, y1));
+    w = MAX(w, italic->get_w());
+    y1 += italic->get_h() + margin;
+	add_tool(bold = new TitleBold(client, this, x, y1));
+    w = MAX(w, bold->get_w());
+
+	x += w + margin;
+    y1 = y;
+	add_tool(justify_title = new BC_Title(x, y1, _("Justify:")));
+    w = justify_title->get_w();
+    y1 += justify_title->get_h() + margin;
+	add_tool(left = new TitleLeft(client, this, x, y1));
+    w = MAX(w, left->get_w());
+    y1 += left->get_h() + margin;
+	add_tool(center = new TitleCenter(client, this, x, y1));
+    w = MAX(w, center->get_w());
+    y1 += center->get_h() + margin;
+	add_tool(right = new TitleRight(client, this, x, y1));
+    w = MAX(w, right->get_w());
+
+    x += w + margin;
+	y1 = y + justify_title->get_h() + margin;
+	add_tool(top = new TitleTop(client, this, x, y1));
+    y1 += top->get_h() + margin;
+	add_tool(mid = new TitleMid(client, this, x, y1));
+    y1 += mid->get_h() + margin;
+	add_tool(bottom = new TitleBottom(client, this, x, y1));
 
 
-	y += DP(50);
+	y = font->get_y() + font->get_h() + margin;
 	x = left_margin;
 
 	add_tool(x_title = new BC_Title(x, y, _("X:")));
-	title_x = new TitleX(client, this, x, y + DP(20));
+    w = x_title->get_w();
+	title_x = new TitleX(client, this, x, y + x_title->get_h());
 	title_x->create_objects();
-	x += DP(90);
+    w = MAX(w, title_x->get_w());
+	x += w + margin;
 
 	add_tool(y_title = new BC_Title(x, y, _("Y:")));
-	title_y = new TitleY(client, this, x, y + DP(20));
+    w = y_title->get_w();
+	title_y = new TitleY(client, this, x, y + y_title->get_h());
 	title_y->create_objects();
-	x += DP(90);
+    w = MAX(w, title_y->get_w());
+	x += w + margin;
 
+    BC_Title *title;    
+    add_tool(title = new BC_Title(x, y, _("Line spacing:")));
+    w = title->get_w();
+    line_spacing = new LineSpace(client, this, x, y + title->get_h());
+    line_spacing->create_objects();
+    w = MAX(w, line_spacing->get_w());
+
+    x = left_margin;
+    y = line_spacing->get_y() + line_spacing->get_h() + margin;
 	add_tool(motion_title = new BC_Title(x, y, _("Motion type:")));
-
-	motion = new TitleMotion(client, this, x, y + DP(20));
+    w = motion_title->get_w();
+    y1 = y + motion_title->get_h();
+	motion = new TitleMotion(client, this, x, y1);
 	motion->create_objects();
-	x += DP(150);
+    w = MAX(w, motion->get_w());
+	x += w + margin;
+
+	add_tool(speed_title = new BC_Title(x, y, _("Speed:")));
+    w = speed_title->get_w();
+	speed = new TitleSpeed(client, this, x, y1);
+	speed->create_objects();
+    w = MAX(w, speed->get_w());
+	x += w + margin;
 	
-	add_tool(loop = new TitleLoop(client, x, y + DP(20)));
-	x += DP(100);
-	
+	add_tool(loop = new TitleLoop(client, x, y1));
+	x += loop->get_w() + margin;
+
 	x = left_margin;
 	y += DP(50);
-
-	add_tool(dropshadow_title = new BC_Title(x, y, _("Drop shadow:")));
-	dropshadow = new TitleDropShadow(client, this, x, y + DP(20));
-	dropshadow->create_objects();
-	x += dropshadow_title->get_w() + margin;
 
 	add_tool(fadein_title = new BC_Title(x, y, _("Fade in (sec):")));
 	add_tool(fade_in = new TitleFade(client, this, &client->config.fade_in, x, y + DP(20)));
@@ -343,21 +378,17 @@ void TitleWindow::create_objects()
 	add_tool(fade_out = new TitleFade(client, this, &client->config.fade_out, x, y + DP(20)));
 	x += fadeout_title->get_w() + margin;
 
-	add_tool(speed_title = new BC_Title(x, y, _("Speed:")));
-	speed = new TitleSpeed(client, this, x, y + DP(20));
-	speed->create_objects();
-	x += speed->get_w() + margin;
-
-	color_x = x;
+    y = right->get_y() + right->get_h() + margin;
+	color_x = x = x1;
 	color_y = y + DP(10);
 	x += COLOR_W + margin;
 	add_tool(color_button = new TitleColorButton(client, this, x, y + DP(20), 0));
 	x += color_button->get_w();
 	color_thread = new TitleColorThread(client, this, 0);
 
-	x = color_x;
 	y += COLOR_H + margin;
 
+	x = x1;
 	outline_color_x = x;
 	outline_color_y = y + DP(10);
 	x += COLOR_W + DP(5);
@@ -366,23 +397,35 @@ void TitleWindow::create_objects()
 	outline_color_thread = new TitleColorThread(client, this, 1);
 
 	x = left_margin;
-	y = dropshadow->get_y() + dropshadow->get_h() + margin;
+    y = fade_in->get_y() + fade_in->get_h() + margin;
+	add_tool(dropshadow_title = new BC_Title(x, y, _("Drop shadow:")));
+    y1 = y + dropshadow_title->get_h();
+    w = dropshadow_title->get_w();
+	dropshadow = new TitleDropShadow(client, this, x, y1);
+	dropshadow->create_objects();
+    w = MAX(w, dropshadow->get_w());
+	x += w + margin;
 
-	
+
 	add_tool(outline_title = new BC_Title(x, y, _("Outline:")));
-	outline = new TitleOutline(client, this, x, y + outline_title->get_h() + margin);
+    w = outline_title->get_w();
+	outline = new TitleOutline(client, this, x, y1);
 	outline->create_objects();
-	x += outline->get_w() + margin;
+    w = MAX(w, outline->get_w());
+	x += w + margin;
+
+    add_tool(blur = new TitleBlur(this, x, y1));
+    x += blur->get_w() + margin;
+    y = y1 + MAX(blur->get_h(), outline->get_h()) + margin;
 
 #ifndef X_HAVE_UTF8_STRING
-	add_tool(encoding_title = new BC_Title(x, y + DP(3), _("Encoding:")));
-	encoding = new TitleEncoding(client, this, x, y + encoding_title->get_h() + margin);
+	add_tool(encoding_title = new BC_Title(x, y, _("Encoding:")));
+	encoding = new TitleEncoding(client, this, x, y + encoding_title->get_h());
 	encoding->create_objects();
 	x += DP(100);
 #endif
 
 	x = left_margin;
-	y += outline_title->get_h() + margin + outline->get_h() + margin;
 	add_tool(timecode = new TitleTimecode(client, x, y));
 	x += timecode->get_w() + margin;
 	add_tool(timecode_format = new TitleTimecodeFormat(
@@ -669,6 +712,22 @@ int TitleSubs::handle_event()
 
 
 
+TitleBlur::TitleBlur(TitleWindow *window, int x, int y)
+ : BC_CheckBox(x, y, window->client->config.blur, _("Blur outline"))
+{
+	this->window = window;
+}
+
+int TitleBlur::handle_event()
+{
+	window->client->config.blur = get_value();
+	window->client->send_configure_change();
+	return 1;
+}
+
+
+
+
 
 
 TitleFontTumble::TitleFontTumble(TitleMain *client, TitleWindow *window, int x, int y)
@@ -783,7 +842,7 @@ TitleSize::TitleSize(TitleMain *client, TitleWindow *window, int x, int y, char 
 		text,
 		x, 
 		y, 
-		DP(100),
+		DP(50),
 		DP(300))
 {
 	this->client = client;
@@ -939,7 +998,7 @@ TitleFont::TitleFont(TitleMain *client, TitleWindow *window, int x, int y)
 		client->config.font,
 		x, 
 		y, 
-		DP(200),
+		DP(300),
 		DP(500),
 		LISTBOX_ICON_LIST)
 {
@@ -1057,6 +1116,29 @@ int TitleY::handle_event()
 	client->send_configure_change();
 	return 1;
 }
+
+LineSpace::LineSpace(TitleMain *client, TitleWindow *window, int x, int y)
+ : BC_TumbleTextBox(window,
+ 	(float)client->config.line_spacing, 
+	(float)0.1,
+	(float)2.0,
+	x, 
+	y, 
+	DP(60))
+{
+	this->client = client;
+	this->window = window;
+    set_precision(1);
+    set_increment(0.1);
+}
+int LineSpace::handle_event()
+{
+	client->config.line_spacing = atof(get_text());
+	client->send_configure_change();
+	return 1;
+}
+
+
 
 TitleSpeed::TitleSpeed(TitleMain *client, TitleWindow *window, int x, int y)
  : BC_TumbleTextBox(window,
