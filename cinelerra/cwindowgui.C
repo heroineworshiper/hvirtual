@@ -1644,19 +1644,24 @@ int CWindowCanvas::do_mask(int &redraw,
 
 						if(draw)
 						{
+//printf("CWindowCanvas::do_mask %d gui->affected_point=%d\n", __LINE__, gui->affected_point);
 // Draw second anchor
 							if(i < points.size() - 1)
 							{
 								if(i == gui->affected_point - 1)
-									get_canvas()->draw_disc((int)x - CONTROL_W / 2, 
+								{
+                                	get_canvas()->draw_disc((int)x - CONTROL_W / 2, 
 										(int)y - CONTROL_W / 2, 
 										CONTROL_W, 
 										CONTROL_W);
-								else
-									get_canvas()->draw_circle((int)x - CONTROL_W / 2, 
+								}
+                                else
+								{
+                                	get_canvas()->draw_circle((int)x - CONTROL_W / 2, 
 										(int)y - CONTROL_W / 2, 
 										CONTROL_W, 
 										CONTROL_W);
+                                }
 // char string[BCTEXTLEN];
 // sprintf(string, "%d", (i < points.size() - 1 ? i + 1 : 0));
 // canvas->draw_text((int)x + CONTROL_W, (int)y + CONTROL_W, string);
@@ -1681,10 +1686,20 @@ int CWindowCanvas::do_mask(int &redraw,
 // Draw first anchor
 					if(i == 0 && draw)
 					{
-						get_canvas()->draw_disc((int)x - FIRST_CONTROL_W / 2, 
-							(int)y - FIRST_CONTROL_H / 2, 
-							FIRST_CONTROL_W, 
-							FIRST_CONTROL_H);
+                    	if(gui->affected_point == 0)
+						{
+                            get_canvas()->draw_disc((int)x - FIRST_CONTROL_W / 2, 
+							    (int)y - FIRST_CONTROL_H / 2, 
+							    FIRST_CONTROL_W, 
+							    FIRST_CONTROL_H);
+                        }
+                        else
+						{
+                            get_canvas()->draw_circle((int)x - FIRST_CONTROL_W / 2, 
+							    (int)y - FIRST_CONTROL_H / 2, 
+							    FIRST_CONTROL_W, 
+							    FIRST_CONTROL_H);
+                        }
 					}
 
 // Draw first control point.  Discard x1 and y1 after this.

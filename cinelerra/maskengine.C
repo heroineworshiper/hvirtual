@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,12 +52,14 @@ MaskUnit::MaskUnit(MaskEngine *engine)
 {
 	this->engine = engine;
 	this->temp = 0;
+    this->temp2 = 0;
 }
 
 
 MaskUnit::~MaskUnit()
 {
 	if(temp) delete temp;
+    if(temp2) delete temp2;
 }
 
 
@@ -89,7 +91,9 @@ void MaskUnit::draw_line_clamped(VFrame *frame,
 	int draw_y1;
 	int draw_x2;
 	int draw_y2;
-	unsigned char value;
+    int radius = (int)(engine->radius * OVERSAMPLE);
+    int need_radius = (engine->mode == MASK_MULTIPLY_PATH ||
+        engine->mode == MASK_SUBTRACT_PATH);
 
 	if(y2 < y1)
 	{
@@ -107,28 +111,79 @@ void MaskUnit::draw_line_clamped(VFrame *frame,
 	}
 
 	unsigned char **rows = (unsigned char**)frame->get_rows();
+	int w = frame->get_w() - 1;
+	int h = frame->get_h();
 
 	if(draw_y2 != draw_y1)
 	{
 		float slope = ((float)draw_x2 - draw_x1) / ((float)draw_y2 - draw_y1);
-		int w = frame->get_w() - 1;
-		int h = frame->get_h();
+//printf("MaskUnit::draw_line_clamped %d slope=%f\n", __LINE__, slope);
 
 		for(float y = draw_y1; y < draw_y2; y++)
 		{
-			if(y >= 0 && y < h)
-			{
-				int x = (int)((y - draw_y1) * slope + draw_x1);
-				int y_i = (int)y;
-				int x_i = CLIP(x, 0, w);
+			int x_i = (int)((y - draw_y1) * slope + draw_x1);
+			int y_i = (int)y;
 
-				if(rows[y_i][x_i] == k)
-					rows[y_i][x_i] = 0;
-				else
+            if(need_radius)
+            {
+			    int x2_i = (int)(((y + 1) - draw_y1) * slope + draw_x1);
+                if(x2_i < x_i)
+                {
+                    int temp = x2_i;
+                    x2_i = x_i;
+                    x_i = temp;
+                }
+                
+                for(int y3 = y_i - radius; y3 < y_i + radius; y3++)
+                {
+                    if(y3 >= 0 && y3 < h)
+                    {
+                        for(int x3 = x_i - radius; x3 < x2_i + radius; x3++)
+                        {
+                            if(x3 >= 0 && x3 < w)
+                            {
+                                rows[y3][x3] = k;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            if(y_i >= 0 && y_i < h)
+            {
+                CLAMP(x_i, 0, w - 1);
+ 				if(rows[y_i][x_i] == k)
+ 					rows[y_i][x_i] = 0;
+ 				else
 					rows[y_i][x_i] = k;
-			}
+            }
 		}
 	}
+    else
+    if(need_radius)
+    {
+// horizontal line
+        for(int y3 = y1 - radius; y3 < y1 + radius; y3++)
+        {
+//printf("MaskUnit::draw_line_clamped %d y3=%d\n", __LINE__, y3);
+            if(y3 >= 0 && y3 < h)
+            {
+                if(draw_x2 < draw_x1)
+                {
+                    draw_x2 = x1;
+                    draw_x1 = x2;
+                }
+
+                for(int x3 = draw_x1 - radius; x3 < draw_x2 + radius; x3++)
+                {
+                    if(x3 >= 0 && x3 < w)
+                    {
+                        rows[y3][x3] = k;
+                    }
+                }
+            }
+        }
+    }
 }
 
 void MaskUnit::blur_strip(double *val_p, 
@@ -386,11 +441,14 @@ void MaskUnit::process_package(LoadPackage *package)
 	{
 		VFrame *mask;
 		if(engine->feather > 0) 
-			mask = engine->temp_mask;
-		else
-			mask = engine->mask;
+		{
+        	mask = engine->temp_mask;
+		}
+        else
+		{
+        	mask = engine->mask;
+        }
 
-SET_TRACE
 // Generated oversampling frame
 		int mask_w = mask->get_w();
 		int mask_h = mask->get_h();
@@ -398,7 +456,6 @@ SET_TRACE
 		int oversampled_package_h = (ptr->end_y - ptr->start_y) * OVERSAMPLE;
 //printf("MaskUnit::process_package 1\n");
 
-SET_TRACE
 		if(temp && 
 			(temp->get_w() != oversampled_package_w ||
 			temp->get_h() != oversampled_package_h))
@@ -408,7 +465,6 @@ SET_TRACE
 		}
 //printf("MaskUnit::process_package 1\n");
 
-SET_TRACE
 		if(!temp)
 		{
 			temp = new VFrame(0, 
@@ -419,35 +475,79 @@ SET_TRACE
 				-1);
 		}
 
-SET_TRACE
 		temp->clear_frame();
-//printf("MaskUnit::process_package 1 %d\n", engine->point_sets.total);
 
-SET_TRACE
+
+
+// printf("MaskUnit::process_package %d point_sets=%d\n", 
+// __LINE__, 
+// engine->point_sets.size());
+
 
 // Draw oversampled region of polygons on temp
-		for(int k = 0; k < engine->point_sets.total; k++)
+		for(int k = 0; k < engine->point_sets.size(); k++)
 		{
 			int old_x, old_y;
+// value to assign to pixels in this point set.
+// Each point set gets a different value.
 			unsigned char max = k + 1;
 			ArrayList<MaskPoint*> *points = engine->point_sets.values[k];
+            int total_points = points->size();
+//printf("MaskUnit::process_package %d k=%d total_points=%d\n", __LINE__, k, total_points);
 
-			if(points->total < 3) continue;
-//printf("MaskUnit::process_package 2 %d %d\n", k, points->total);
-			for(int i = 0; i < points->total; i++)
+// need enough points to make a closed polygon
+			if(total_points < 3 && 
+                (engine->mode == MASK_MULTIPLY_ALPHA ||
+                    engine->mode == MASK_SUBTRACT_ALPHA))
+            {
+// next point set
+                continue;
+            }
+            else
+// make an open polygon
+            if((engine->mode == MASK_MULTIPLY_PATH ||
+                    engine->mode == MASK_SUBTRACT_PATH))
+            {
+// need enough points to make a line
+                if(total_points < 2)
+                {
+// next point set
+                    continue;
+                }
+
+                total_points--;
+            }
+
+//printf("MaskUnit::process_package %d k=%d total_points=%d\n", __LINE__, k, total_points);
+			for(int i = 0; i < total_points; i++)
 			{
-				MaskPoint *point1 = points->values[i];
-				MaskPoint *point2 = (i >= points->total - 1) ? 
-					points->values[0] : 
-					points->values[i + 1];
+				MaskPoint *point1 = points->get(i);
+				MaskPoint *point2 = 0;
+                
+                if((engine->mode == MASK_MULTIPLY_PATH ||
+                    engine->mode == MASK_SUBTRACT_PATH))
+                {
+                    point2 = points->get(i + 1);
+                }
+                else
+                {
+                    point2 = (i >= total_points - 1) ? 
+					    points->get(0) : 
+					    points->get(i + 1);
+                }
 
 				float x, y;
-				int segments = (int)(sqrt(SQR(point1->x - point2->x) + SQR(point1->y - point2->y)));
+				int segments = (int)(sqrt(SQR(point1->x - point2->x) + 
+                    SQR(point1->y - point2->y)));
 				if(point1->control_x2 == 0 &&
 					point1->control_y2 == 0 &&
 					point2->control_x1 == 0 &&
 					point2->control_y1 == 0)
-					segments = 1;
+				{
+                	segments = 1;
+                }
+                
+//printf("MaskUnit::process_package %d segments=%d\n", __LINE__, segments);
 				float x0 = point1->x;
 				float y0 = point1->y;
 				float x1 = point1->x + point1->control_x2;
@@ -481,7 +581,12 @@ SET_TRACE
 
 					if(j > 0)
 					{
-						draw_line_clamped(temp, old_x, old_y, (int)x, (int)y, max);
+						draw_line_clamped(temp, 
+                            old_x, 
+                            old_y, 
+                            (int)x, 
+                            (int)y, 
+                            max);
 					}
 
 					old_x = (int)x;
@@ -495,45 +600,47 @@ SET_TRACE
 
 
 
-
+            if(engine->mode == MASK_MULTIPLY_ALPHA ||
+                engine->mode == MASK_SUBTRACT_ALPHA)
+            {
 // Fill in the polygon in the horizontal direction
-			for(int i = 0; i < oversampled_package_h; i++)
-			{
-				unsigned char *row = (unsigned char*)temp->get_rows()[i];
-				int value = 0x0;
-				int total = 0;
+			    for(int i = 0; i < oversampled_package_h; i++)
+			    {
+				    unsigned char *row = (unsigned char*)temp->get_rows()[i];
+				    int value = 0x0;
+				    int total = 0;
 
- 				for(int j = 0; j < oversampled_package_w; j++)
-					if(row[j] == max) total++;
+ 				    for(int j = 0; j < oversampled_package_w; j++)
+					    if(row[j] == max) total++;
 
- 				if(total > 1)
-				{
-					if(total & 0x1) total--;
-					for(int j = 0; j < oversampled_package_w; j++)
-					{
-						if(row[j] == max && total > 0)
-						{
-							if(value)
-								value = 0x0;
-							else
-								value = max;
-							total--;
-						}
-						else
-						{
-							if(value) row[j] = value;
-						}
-					}
-				}
-			}
+ 				    if(total > 1)
+				    {
+					    if(total & 0x1) total--;
+					    for(int j = 0; j < oversampled_package_w; j++)
+					    {
+						    if(row[j] == max && total > 0)
+						    {
+							    if(value)
+								    value = 0x0;
+							    else
+								    value = max;
+							    total--;
+						    }
+						    else
+						    {
+							    if(value) row[j] = value;
+						    }
+					    }
+				    }
+			    }
+            }
 		}
 
 
-SET_TRACE
 
 
 
-
+// downsample temp back to mask
 
 #define DOWNSAMPLE(type, temp_type, value) \
 for(int i = 0; i < ptr->end_y - ptr->start_y; i++) \
@@ -594,9 +701,6 @@ SET_TRACE
 		}
 	}
 
-SET_TRACE
-
-SET_TRACE
 
 	if(engine->step == DO_X_FEATHER)
 	{
@@ -701,6 +805,7 @@ SET_TRACE
 			switch(engine->mode)
 			{
 				case MASK_MULTIPLY_ALPHA:
+				case MASK_MULTIPLY_PATH:
 					switch(engine->output->get_color_model())
 					{
 						case BC_RGB888:
@@ -737,6 +842,7 @@ SET_TRACE
 					break;
 
 				case MASK_SUBTRACT_ALPHA:
+				case MASK_SUBTRACT_PATH:
 					switch(engine->output->get_color_model())
 					{
 						case BC_RGB888:
@@ -781,7 +887,7 @@ SET_TRACE
 
 
 MaskEngine::MaskEngine(int cpus)
- : LoadServer(cpus, cpus * OVERSAMPLE * 2)
+ : LoadServer(cpus, cpus)
 // : LoadServer(1, OVERSAMPLE * 2)
 {
 	mask = 0;
@@ -887,13 +993,18 @@ SET_TRACE
 		}
 	}
 
+    int new_mode = default_auto->mode;
 	int new_value = keyframe_set->get_value(start_position_project, 
 		PLAY_FORWARD);
 	float new_feather = keyframe_set->get_feather(start_position_project, 
 		PLAY_FORWARD);
+	float new_radius = keyframe_set->get_radius(start_position_project, 
+		PLAY_FORWARD);
 
 	if(recalculate ||
+        mode != new_mode ||
 		!EQUIV(new_feather, feather) ||
+		!EQUIV(new_radius, radius) ||
 		!EQUIV(new_value, value))
 	{
 		recalculate = 1;
@@ -912,14 +1023,19 @@ SET_TRACE
 					new_color_model,
 					-1);
 		}
+        
 		if(new_feather > 0)
-			temp_mask->clear_frame();
-		else
-			mask->clear_frame();
-
-		for(int i = 0; i < point_sets.total; i++)
 		{
-			ArrayList<MaskPoint*> *points = point_sets.values[i];
+        	temp_mask->clear_frame();
+		}
+        else
+		{
+        	mask->clear_frame();
+        }
+
+		for(int i = 0; i < point_sets.size(); i++)
+		{
+			ArrayList<MaskPoint*> *points = point_sets.get(i);
 			points->remove_all_objects();
 		}
 		point_sets.remove_all_objects();
@@ -941,15 +1057,20 @@ SET_TRACE
 
 
 	this->output = output;
-	this->mode = default_auto->mode;
+	this->mode = new_mode;
 	this->feather = new_feather;
+    this->radius = new_radius;
 	this->value = new_value;
 
 
 // Run units
 SET_TRACE
+//    int temp_packages = get_total_packages();
+//    set_package_count(1);
 	step = DO_MASK;
 	process_packages();
+//    set_package_count(temp_packages);
+    
 	step = DO_Y_FEATHER;
 	process_packages();
 	step = DO_X_FEATHER;
@@ -963,12 +1084,10 @@ SET_TRACE
 
 void MaskEngine::init_packages()
 {
-SET_TRACE
-//printf("MaskEngine::init_packages 1\n");
+//printf("MaskEngine::init_packages %d total_packages=%d\n", __LINE__, get_total_packages());
 	int division = (int)((float)output->get_h() / (get_total_packages() / 2) + 0.5);
 	if(division < 1) division = 1;
 
-SET_TRACE
 	for(int i = 0; i < get_total_packages(); i++)
 	{
 		MaskPackage *ptr = (MaskPackage*)get_package(i);
@@ -979,7 +1098,6 @@ SET_TRACE
 		ptr->start_x = output->get_w() * i / get_total_packages();
 		ptr->end_x = output->get_w() * (i + 1) / get_total_packages();
 	}
-SET_TRACE
 //printf("MaskEngine::init_packages 2\n");
 }
 

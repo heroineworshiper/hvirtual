@@ -82,7 +82,10 @@ public:
     double d_p[5], d_m[5];
     double bd_p[5], bd_m[5];
 	MaskEngine *engine;
+// oversampled destination of mask
 	VFrame *temp;
+// oversampled destination of outline
+	VFrame *temp2;
 };
 
 
@@ -110,12 +113,13 @@ public:
 	VFrame *output;
 // State of last mask
 	VFrame *mask;
-// Temporary for feathering
+// Temporary for feather & outline
 	VFrame *temp_mask;
 	ArrayList<ArrayList<MaskPoint*>*> point_sets;
 	int mode;
 	int step;
 	double feather;
+    double radius;
 	int recalculate;
 	int value;
 };

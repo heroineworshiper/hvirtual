@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1561,6 +1561,8 @@ void CWindowMaskMode::create_objects()
 {
 	add_item(new BC_MenuItem(mode_to_text(MASK_MULTIPLY_ALPHA)));
 	add_item(new BC_MenuItem(mode_to_text(MASK_SUBTRACT_ALPHA)));
+	add_item(new BC_MenuItem(mode_to_text(MASK_MULTIPLY_PATH)));
+	add_item(new BC_MenuItem(mode_to_text(MASK_SUBTRACT_PATH)));
 }
 
 char* CWindowMaskMode::mode_to_text(int mode)
@@ -1570,9 +1572,17 @@ char* CWindowMaskMode::mode_to_text(int mode)
 		case MASK_MULTIPLY_ALPHA:
 			return _("Multiply alpha");
 			break;
-		
+
 		case MASK_SUBTRACT_ALPHA:
 			return _("Subtract alpha");
+			break;
+
+		case MASK_MULTIPLY_PATH:
+			return _("Multiply path");
+			break;
+
+		case MASK_SUBTRACT_PATH:
+			return _("Subtract path");
 			break;
 	}
 
@@ -1586,6 +1596,12 @@ int CWindowMaskMode::text_to_mode(char *text)
 	else
 	if(!strcasecmp(text, _("Subtract alpha")))
 		return MASK_SUBTRACT_ALPHA;
+	else
+    if(!strcasecmp(text, _("Multiply path")))
+		return MASK_MULTIPLY_PATH;
+	else
+	if(!strcasecmp(text, _("Subtract path")))
+		return MASK_SUBTRACT_PATH;
 
 	return MASK_SUBTRACT_ALPHA;
 }
@@ -1904,6 +1920,80 @@ int CWindowMaskFeather::handle_event()
 	return 1;
 }
 
+
+
+
+
+
+
+
+CWindowMaskRadius::CWindowMaskRadius(MWindow *mwindow, CWindowToolGUI *gui, int x, int y)
+ : BC_TumbleTextBox(gui, 
+		(int64_t)0,
+		(int64_t)0,
+		(int64_t)0xff,
+		x, 
+		y, 
+		DP(100))
+{
+	this->mwindow = mwindow;
+	this->gui = gui;
+}
+CWindowMaskRadius::~CWindowMaskRadius()
+{
+}
+int CWindowMaskRadius::handle_event()
+{
+	MaskAutos *autos;
+	MaskAuto *keyframe;
+	Track *track;
+	MaskPoint *point;
+	SubMask *mask;
+
+	mwindow->undo->update_undo_before(_("path radius"), this);
+
+// Get existing keyframe
+	((CWindowMaskGUI*)gui)->get_keyframe(track, 
+		autos,
+		keyframe,
+		mask, 
+		point,
+#ifdef USE_KEYFRAME_SPANNING
+		0);
+#else
+		1);
+#endif
+
+	if(track)
+	{	
+#ifdef USE_KEYFRAME_SPANNING
+// Create temp keyframe
+		MaskAuto temp_keyframe(mwindow->edl, autos);
+		temp_keyframe.copy_data(keyframe);
+// Update parameter
+		temp_keyframe.radius = atof(get_text());
+// Commit change to span of keyframes
+		autos->update_parameter(&temp_keyframe);
+#else
+		keyframe->radius = atof(get_text());
+#endif
+
+		gui->update_preview();
+	}
+
+	mwindow->undo->update_undo_after(_("path radius"), LOAD_AUTOMATION);
+	return 1;
+}
+
+
+
+
+
+
+
+
+
+
 CWindowMaskValue::CWindowMaskValue(MWindow *mwindow, CWindowToolGUI *gui, int x, int y)
  : BC_ISlider(x, 
 			y,
@@ -1977,7 +2067,7 @@ CWindowMaskGUI::CWindowMaskGUI(MWindow *mwindow, CWindowTool *thread)
  	thread,
 	PROGRAM_NAME ": Mask",
 	DP(330),
-	DP(280))
+	DP(400))
 {
 	this->mwindow = mwindow;
 	this->thread = thread;
@@ -1987,6 +2077,7 @@ CWindowMaskGUI::~CWindowMaskGUI()
 	lock_window("CWindowMaskGUI::~CWindowMaskGUI");
 	delete number;
 	delete feather;
+    delete radius;
 	unlock_window();
 }
 
@@ -2020,6 +2111,8 @@ void CWindowMaskGUI::create_objects()
 		y);
 	number->create_objects();
 	y += number->get_h() + margin;
+
+
 	add_subwindow(title = new BC_Title(x, y, _("Feather:")));
 	feather = new CWindowMaskFeather(mwindow,
 		this,
@@ -2027,6 +2120,19 @@ void CWindowMaskGUI::create_objects()
 		y);
 	feather->create_objects();
 	y += feather->get_h() + margin;
+    
+
+
+	add_subwindow(title = new BC_Title(x, y, _("Radius:")));
+	radius = new CWindowMaskRadius(mwindow,
+		this,
+		x + title->get_w() + margin,
+		y);
+	radius->create_objects();
+	y += radius->get_h() + margin;
+    
+    
+    
 	add_subwindow(title = new BC_Title(x, y, _("X:")));
 	x += title->get_w() + margin;
 	this->x = new CWindowCoord(this, 
@@ -2120,6 +2226,7 @@ void CWindowMaskGUI::update()
 		if(mask)
 		{
 			feather->update((int64_t)autos->get_feather(position_i, PLAY_FORWARD));
+			radius->update((int64_t)autos->get_radius(position_i, PLAY_FORWARD));
 			value->update((int64_t)autos->get_value(position_i, PLAY_FORWARD));
 		}
 	}

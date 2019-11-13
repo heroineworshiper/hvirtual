@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -395,14 +395,25 @@ void VirtualVNode::render_mask(VFrame *output_temp,
 
 //printf("VirtualVNode::render_mask 1 %d %d\n", total_points, keyframe->value);
 // Ignore certain masks
-	if(total_points <= 2 || 
-		(keyframe->value == 0 && keyframe->mode == MASK_SUBTRACT_ALPHA))
+    int min_points = 3;
+    if(keyframe->mode == MASK_MULTIPLY_ALPHA ||
+        keyframe->mode == MASK_MULTIPLY_PATH)
+    {
+        min_points--;
+    }
+
+	if(total_points < min_points || 
+		(keyframe->value == 0 && 
+            (keyframe->mode == MASK_SUBTRACT_ALPHA ||
+            keyframe->mode == MASK_SUBTRACT_PATH)))
 	{
 		return;
 	}
 
 // Fake certain masks
-	if(keyframe->value == 0 && keyframe->mode == MASK_MULTIPLY_ALPHA)
+	if(keyframe->value == 0 && 
+        (keyframe->mode == MASK_MULTIPLY_ALPHA ||
+            keyframe->mode == MASK_MULTIPLY_PATH))
 	{
 		output_temp->clear_frame();
 		return;

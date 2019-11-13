@@ -187,6 +187,16 @@ public:
 	CWindowToolGUI *gui;
 };
 
+class CWindowMaskRadius : public BC_TumbleTextBox
+{
+public:
+	CWindowMaskRadius(MWindow *mwindow, CWindowToolGUI *gui, int x, int y);
+	~CWindowMaskRadius();
+	int handle_event();
+	MWindow *mwindow;
+	CWindowToolGUI *gui;
+};
+
 class CWindowMaskValue : public BC_ISlider
 {
 public:
@@ -217,6 +227,7 @@ public:
 	CWindowCoord *x, *y;
 	CWindowMaskMode *mode;
 	CWindowMaskFeather *feather;
+	CWindowMaskRadius *radius;
 	CWindowMaskDelete *delete_point;
 // Not necessary if all keyframes have same points
 //	CWindowMaskCycleNext *next_point;

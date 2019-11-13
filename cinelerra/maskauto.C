@@ -224,6 +224,7 @@ MaskAuto::MaskAuto(EDL *edl, MaskAutos *autos)
 	mode = MASK_SUBTRACT_ALPHA;
 	feather = 0;
 	value = 100;
+    radius = 1;
 
 // We define a fixed number of submasks so that interpolation for each
 // submask matches.
@@ -254,7 +255,8 @@ int MaskAuto::identical(MaskAuto *src)
 {
 	if(value != src->value ||
 		mode != src->mode ||
-		feather != src->feather ||
+		!EQUIV(feather, src->feather) ||
+		!EQUIV(radius, src->radius) ||
 		masks.size() != src->masks.size()) return 0;
 
 	for(int i = 0; i < masks.size(); i++)
@@ -280,6 +282,11 @@ void MaskAuto::update_parameter(MaskAuto *ref, MaskAuto *src)
 		this->feather = src->feather;
 	}
 
+	if(!EQUIV(src->radius, ref->radius))
+	{
+		this->radius = src->radius;
+	}
+
 	for(int i = 0; i < masks.size(); i++)
 	{
 		if(!src->get_submask(i)->equivalent(*ref->get_submask(i)))
@@ -303,6 +310,7 @@ void MaskAuto::copy_data(MaskAuto *src)
 	mode = src->mode;
 	feather = src->feather;
 	value = src->value;
+    radius = src->radius;
 
 	masks.remove_all_objects();
 	for(int i = 0; i < src->masks.size(); i++)
@@ -350,6 +358,7 @@ void MaskAuto::load(FileXML *file)
 {
 	mode = file->tag.get_property("MODE", mode);
 	feather = file->tag.get_property("FEATHER", feather);
+	radius = file->tag.get_property("RADIUS", radius);
 	value = file->tag.get_property("VALUE", value);
 	for(int i = 0; i < masks.size(); i++)
 	{
@@ -383,6 +392,7 @@ void MaskAuto::copy(int64_t start, int64_t end, FileXML *file, int default_auto)
 	file->tag.set_property("MODE", mode);
 	file->tag.set_property("VALUE", value);
 	file->tag.set_property("FEATHER", feather);
+	file->tag.set_property("RADIUS", radius);
 	if(default_auto)
 		file->tag.set_property("POSITION", 0);
 	else

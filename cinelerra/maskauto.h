@@ -100,6 +100,7 @@ public:
 	float feather;
 // 0 - 100
 	int value;
+    float radius;
 };
 
 

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -177,6 +177,22 @@ float MaskAutos::get_feather(int64_t position, int direction)
 		weight = (double)(position - begin->position) / (end->position - begin->position);
 
 	return ((MaskAuto*)begin)->feather * (1.0 - weight) + ((MaskAuto*)end)->feather * weight;
+}
+
+float MaskAutos::get_radius(int64_t position, int direction)
+{
+	Auto *begin = 0, *end = 0;
+	position = (direction == PLAY_FORWARD) ? position : (position - 1);
+
+	get_prev_auto(position, PLAY_FORWARD, begin, 1);
+	get_next_auto(position, PLAY_FORWARD, end, 1);
+
+	double weight = 0.0;
+	if(end->position != begin->position) 
+		weight = (double)(position - begin->position) / (end->position - begin->position);
+
+	return ((MaskAuto*)begin)->radius * (1.0 - weight) + 
+        ((MaskAuto*)end)->radius * weight;
 }
 
 int MaskAutos::get_value(int64_t position, int direction)
