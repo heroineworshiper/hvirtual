@@ -2840,6 +2840,7 @@ int TitleMain::draw_mask()
 					text_mask->get_color_model(),
 					-1);
 			}
+            outline_mask->clear_frame();
 
 			if(!outline_engine) outline_engine = 
 				new TitleOutlineEngine(this, PluginClient::smp + 1);
