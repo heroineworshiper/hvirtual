@@ -895,7 +895,28 @@ void TitleOutlineUnit::process_package(LoadPackage *package)
 
 	if(engine->pass == 0)
 	{
-
+// precompute distance of each pixel from center of kernel
+        float *blur_kernel = 0;
+        int kernel_w = outline_size * 2 + 1;
+        int kernel_h = outline_size * 2 + 1;
+        if(do_blur)
+        {
+            blur_kernel = new float[
+                ((outline_size + 1) * 2) * ((outline_size + 1) * 2)];
+            for(int k = 0; k < kernel_h; k++)
+            {
+                for(int l = 0; l < kernel_w; l++)
+                {
+                    float fraction = (float)1.0 - 
+                        hypot(k - outline_size, l - outline_size) / outline_size;
+                    if(fraction < 0)
+                    {
+                        fraction = 0;
+                    }
+                    blur_kernel[l + k * kernel_w] = fraction;
+                }
+            }
+        }
 
 		for(int i = pkg->y1; i < pkg->y2; i++)
 		{
@@ -910,28 +931,24 @@ void TitleOutlineUnit::process_package(LoadPackage *package)
 				CLAMP(x2, 0, plugin->text_mask->get_w() - 1);
 				CLAMP(y1, 0, plugin->text_mask->get_h() - 1);
 				CLAMP(y2, 0, plugin->text_mask->get_h() - 1);
-				int max_a = 0;
+				unsigned char *out_pixel = out_row + j * 4;
+				int max_a = out_pixel[3];
 
 				for(int k = y1; k <= y2; k++)
 				{
 					unsigned char *text_row = plugin->text_mask->get_rows()[k];
 					for(int l = x1; l <= x2; l++)
 					{
-						unsigned char *pixel = text_row + l * 4;
-                        unsigned char value = pixel[3];
-                        
+						unsigned char value = text_row[l * 4 + 3];
+
                         if(do_blur)
                         {
-                            float fraction = (float)1.0 - 
-                                hypot(k - i, l - j) / outline_size;
-//                                MAX(abs(k - i), abs(l - j)));
-                            if(fraction < 0)
-                            {
-                                fraction = 0;
-                            }
+// distance of j,i from l,k is the amount of value to keep
+                            float fraction = blur_kernel[l - j + outline_size +
+                                (k - i + outline_size) * kernel_w];
                             value = (int)(value * fraction);
                         }
-                        
+
 						if(value > max_a)
 						{
 							max_a = value;
@@ -939,13 +956,14 @@ void TitleOutlineUnit::process_package(LoadPackage *package)
 					}
 				}
 
-				unsigned char *out_pixel = out_row + j * 4;
 				out_pixel[0] = r;
 				out_pixel[1] = g;
 				out_pixel[2] = b;
 				out_pixel[3] = (max_a * outline_a) / 0xff;
 			}
 		}
+        
+        delete [] blur_kernel;
 	}
 	else
 	{
@@ -990,6 +1008,10 @@ void TitleOutlineEngine::init_packages()
 
 void TitleOutlineEngine::do_outline()
 {
+// printf("TitleOutlineEngine::do_outline %d clients=%d packages=%d\n", 
+// __LINE__,
+// get_total_clients(),
+// get_total_packages());
 	pass = 0;
 	process_packages();
 	pass = 1;

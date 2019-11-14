@@ -368,7 +368,7 @@ void TitleWindow::create_objects()
 	x += loop->get_w() + margin;
 
 	x = left_margin;
-	y += DP(50);
+	y = y1 + speed->get_h() + margin;
 
 	add_tool(fadein_title = new BC_Title(x, y, _("Fade in (sec):")));
 	add_tool(fade_in = new TitleFade(client, this, &client->config.fade_in, x, y + DP(20)));
