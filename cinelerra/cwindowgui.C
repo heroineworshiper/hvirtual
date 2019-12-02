@@ -1542,9 +1542,15 @@ int CWindowCanvas::do_mask(int &redraw,
 
 #define TEST_BOX(cursor_x, cursor_y, target_x, target_y) \
 	(cursor_x >= target_x - CONTROL_W / 2 && \
-	cursor_x < target_x + CONTROL_W / 2 && \
+	cursor_x <= target_x + CONTROL_W / 2 && \
 	cursor_y >= target_y - CONTROL_H / 2 && \
-	cursor_y < target_y + CONTROL_H / 2)
+	cursor_y <= target_y + CONTROL_H / 2)
+
+#define TEST_BOX2(cursor_x, cursor_y, target_x, target_y) \
+	(cursor_x >= target_x - FIRST_CONTROL_W / 2 && \
+	cursor_x <= target_x + FIRST_CONTROL_W / 2 && \
+	cursor_y >= target_y - FIRST_CONTROL_H / 2 && \
+	cursor_y <= target_y + FIRST_CONTROL_H / 2)
 
 // Test existing point selection
 				if(button_press)
@@ -1554,7 +1560,7 @@ int CWindowCanvas::do_mask(int &redraw,
 					int cursor_x = get_cursor_x();
 					int cursor_y = get_cursor_y();
 
-// Test first point
+// Test first bezier point
 					if(gui->shift_down())
 					{
 						float control_x = (x1 - half_track_w) * projector_z + projector_x;
@@ -1572,11 +1578,19 @@ int CWindowCanvas::do_mask(int &redraw,
 						}
 					}
 					else
+// test mane point
 					{
 						output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
 						if(!gui->ctrl_down())
 						{
-							if(TEST_BOX(cursor_x, cursor_y, canvas_x, canvas_y))
+							if((i == 0 && TEST_BOX2(cursor_x, 
+                                        cursor_y, 
+                                        canvas_x, 
+                                        canvas_y)) ||
+                                (i > 0 && TEST_BOX(cursor_x, 
+                                        cursor_y, 
+                                        canvas_x, 
+                                        canvas_y)))
 							{
 								selected_point = i;
 							}
@@ -1587,7 +1601,7 @@ int CWindowCanvas::do_mask(int &redraw,
 						}
 					}
 
-// Test second point
+// Test second bezier point
 					canvas_x = (x3 - half_track_w) * projector_z + projector_x;
 					canvas_y = (y3 - half_track_h) * projector_z + projector_y;
 					if(gui->shift_down())
@@ -1607,22 +1621,25 @@ int CWindowCanvas::do_mask(int &redraw,
 							selected_control_point_distance = distance;
 						}
 					}
-					else
-					if(i < points.size() - 1)
-					{
-						output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
-						if(!gui->ctrl_down())
-						{
-							if(TEST_BOX(cursor_x, cursor_y, canvas_x, canvas_y))
-							{
-								selected_point = (i < points.size() - 1 ? i + 1 : 0);
-							}
-						}
-						else
-						{
-							selected_point = shortest_point;
-						}
-					}
+// 					else
+// 					if(i < points.size() - 1)
+// 					{
+// 						output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
+// 						if(!gui->ctrl_down())
+// 						{
+// 							if(TEST_BOX(cursor_x, 
+//                                 cursor_y, 
+//                                 canvas_x, 
+//                                 canvas_y))
+// 							{
+// 								selected_point = i + 1;
+// 							}
+// 						}
+// 						else
+// 						{
+// 							selected_point = shortest_point;
+// 						}
+// 					}
 				}
 
 
@@ -2120,12 +2137,16 @@ int CWindowCanvas::do_mask(int &redraw,
 				int cursor_y = get_cursor_y();
 				
 				output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
-				if(TEST_BOX(cursor_x, cursor_y, canvas_x, canvas_y))
+// test mane point
+				if((i == 0 && TEST_BOX2(cursor_x, cursor_y, canvas_x, canvas_y)) ||
+                    (i > 0 && TEST_BOX(cursor_x, cursor_y, canvas_x, canvas_y)))
 				{
 					over_point = 1;
 				}
 				
-				
+
+
+// test bezier points
 				if(!over_point && gui->shift_down())
 				{
 					canvas_x = (x1 - half_track_w) * projector_z + projector_x;

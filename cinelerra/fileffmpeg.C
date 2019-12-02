@@ -794,7 +794,7 @@ decoder_context->codec_id);
             		break;
 
         		default:
-//printf("FileFFMPEG::open_ffmpeg %d i=%d codec_type=%d\n", __LINE__, i, decoder_context->codec_type);
+printf("FileFFMPEG::open_ffmpeg %d i=%d codec_type=%d\n", __LINE__, i, decoder_context->codec_type);
             		break;
         	}
 		}
