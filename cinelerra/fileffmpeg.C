@@ -54,7 +54,7 @@ using std::string;
 #define QUICKTIME_VP9 "VP9"
 #define QUICKTIME_VP8 "VP8"
 
-#define FFMPEG_TOC_SIG "FFMPEGTOC01"
+#define FFMPEG_TOC_SIG "FFMPEGTOC02"
 
 // MKV/WEBM doesn't have the required information for frame accurate
 // seeking. It stores only a table of offsets where a packet is guaranteed
@@ -926,9 +926,9 @@ int FileFFMPEG::create_toc(void *ptr)
         }
 
 // test creation date
+        int64_t toc_creation_date = READ_INT64(fd);
         FileSystem fs;
-        if(result || 
-            fs.get_date(index_filename.c_str()) < creation_date)
+        if(result || toc_creation_date < creation_date)
         {
             result = 1;
         }
@@ -1312,6 +1312,7 @@ int FileFFMPEG::create_toc(void *ptr)
 			0, 
 			AVSEEK_FLAG_ANY);
 
+//printf("FileFFMPEG::create_toc %d result=%d %s\n", __LINE__, result, index_filename.c_str());
 
 // write the last incomplete high/low pairs to the indexes
         if(!result)
@@ -1339,6 +1340,10 @@ int FileFFMPEG::create_toc(void *ptr)
         if(!result)
         {
             fwrite(FFMPEG_TOC_SIG, strlen(FFMPEG_TOC_SIG), 1, fd);
+
+// store the date of the source file
+            PUT_INT64(creation_date);
+
 
 // store the size of the source file to handle removable media
             PUT_INT64(total_bytes);
@@ -1437,8 +1442,9 @@ int FileFFMPEG::create_toc(void *ptr)
         if(fd)
         {
             fclose(fd);
-// set the creation date to the file's creation date to handle future times
-            FileSystem::set_date(index_filename.c_str(), creation_date);
+// set the creation date to the file's creation date to handle future times.
+// breaks index file deletion
+//            FileSystem::set_date(index_filename.c_str(), creation_date);
         }
     }
     
@@ -1474,6 +1480,9 @@ int FileFFMPEG::read_index_state(FILE *fd, Indexable *dst)
 //        printf("FileFFMPEG::read_index_state %d: failed to read the TOC\n", __LINE__);
         return 1;
     }
+    
+// the source date
+    READ_INT64(fd);
 
     index_state->index_bytes = READ_INT64(fd);
 

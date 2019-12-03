@@ -227,6 +227,7 @@ int BC_PopupMenu::draw_title(int flush)
 	if(!use_title) return 0;
 	BC_Resources *resources = get_resources();
 
+//printf("BC_PopupMenu::draw_title %d w=%d\n", __LINE__, w);
 // Background
 	draw_top_background(parent_window, 0, 0, w, h);
 	draw_3segmenth(0, 0, w, images[status]);

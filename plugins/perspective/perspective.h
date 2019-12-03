@@ -69,6 +69,7 @@ public:
 		int y, 
 		int w,
 		int h);
+    void draw_half_line(int x1, int y1, int x2, int y2);
 	int button_press_event();
 	int button_release_event();
 	int cursor_motion_event();
@@ -114,17 +115,20 @@ public:
 	PerspectiveMain *plugin;
 };
 
-class PerspectiveMode : public BC_Radial
+class PerspectiveMode : public BC_PopupMenu
 {
 public:
 	PerspectiveMode(PerspectiveMain *plugin, 
-		int x, 
-		int y,
-		int value,
-		char *text);
+        PerspectiveWindow *gui,
+	    int x, 
+	    int y,
+        int w);
+	void create_objects();
 	int handle_event();
+	static const char* value_to_text(int value);
+	static int text_to_value(char *text);
 	PerspectiveMain *plugin;
-	int value;
+    PerspectiveWindow *gui;
 };
 
 class PerspectiveDirection : public BC_Radial
@@ -140,6 +144,19 @@ public:
 	int value;
 };
 
+class PerspectivePoint : public BC_Radial
+{
+public:
+    PerspectivePoint(PerspectiveMain *plugin,
+        int x,
+        int y,
+        int value,
+        char *text);
+    int handle_event();
+	PerspectiveMain *plugin;
+	int value;
+};
+
 class PerspectiveWindow : public PluginClientWindow
 {
 public:
@@ -151,6 +168,7 @@ public:
 	void update_canvas();
 	void update_mode();
 	void update_coord();
+    void update_point();
 	void calculate_canvas_coords(int &x1, 
 		int &y1, 
 		int &x2, 
@@ -163,9 +181,10 @@ public:
 	PerspectiveCanvas *canvas;
 	PerspectiveCoord *x, *y;
 	PerspectiveReset *reset;
-	PerspectiveMode *mode_perspective, *mode_sheer, *mode_stretch;
+	PerspectiveMode *mode;
 	PerspectiveMain *plugin;
 	PerspectiveDirection *forward, *reverse;
+	PerspectivePoint *point1, *point2, *point3, *point4;
 };
 
 

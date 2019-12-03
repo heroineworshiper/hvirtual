@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include "cursors.h"
 #include "language.h"
 #include "perspective.h"
-
+#include "theme.h"
 
 
 
@@ -133,7 +133,10 @@ PerspectiveWindow::~PerspectiveWindow()
 
 void PerspectiveWindow::create_objects()
 {
-	int x = DP(10), y = DP(10);
+    PerspectiveReset *reset;
+    BC_Title *title;
+    int margin = client->get_theme()->widget_border;
+	int x = margin, y = margin;
 
 	add_subwindow(canvas = new PerspectiveCanvas(plugin, 
 		x, 
@@ -141,9 +144,40 @@ void PerspectiveWindow::create_objects()
 		get_w() - DP(20), 
 		get_h() - DP(140)));
 	canvas->set_cursor(CROSS_CURSOR, 0, 0);
-	y += canvas->get_h() + DP(10);
-	add_subwindow(new BC_Title(x, y, _("Current X:")));
-	x += DP(80);
+	y += canvas->get_h() + margin;
+
+	add_subwindow(title = new BC_Title(x, y, _("Point:")));
+	x += title->get_w() + margin;
+
+    add_subwindow(point1 = new PerspectivePoint(plugin, 
+		x, 
+		y, 
+		0,
+		_("1")));
+    x += point1->get_w() + margin;
+    add_subwindow(point2 = new PerspectivePoint(plugin, 
+		x, 
+		y, 
+		1,
+		_("2")));
+    x += point2->get_w() + margin;
+    add_subwindow(point3 = new PerspectivePoint(plugin, 
+		x, 
+		y, 
+		2,
+		_("3")));
+    x += point3->get_w() + margin;
+    add_subwindow(point4 = new PerspectivePoint(plugin, 
+		x, 
+		y, 
+		3,
+		_("4")));
+    y += point4->get_h() + margin;
+    x = margin;
+    
+    
+	add_subwindow(title = new BC_Title(x, y, _("X:")));
+	x += title->get_w() + margin;
 	this->x = new PerspectiveCoord(this, 
 		plugin, 
 		x, 
@@ -151,9 +185,9 @@ void PerspectiveWindow::create_objects()
 		plugin->get_current_x(),
 		1);
 	this->x->create_objects();
-	x += DP(140);
-	add_subwindow(new BC_Title(x, y, _("Y:")));
-	x += DP(20);
+	x += this->x->get_w() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Y:")));
+    x += title->get_w() + margin;
 	this->y = new PerspectiveCoord(this, 
 		plugin, 
 		x, 
@@ -161,39 +195,30 @@ void PerspectiveWindow::create_objects()
 		plugin->get_current_y(),
 		0);
 	this->y->create_objects();
-	y += DP(30);
-	x = DP(10);
-	add_subwindow(new PerspectiveReset(plugin, x, y));
-	x += DP(100);
-	add_subwindow(mode_perspective = new PerspectiveMode(plugin, 
+	y += this->y->get_h() + margin;
+	x = margin;
+	add_subwindow(reset = new PerspectiveReset(plugin, x, y));
+//	x += reset->get_w() + margin;
+    y += reset->get_h() + margin;
+    add_subwindow(title = new BC_Title(x, y, _("Mode:")));
+    x += title->get_w() + margin;
+	add_subwindow(mode = new PerspectiveMode(plugin, 
+        this,
 		x, 
 		y, 
-		AffineEngine::PERSPECTIVE,
-		_("Perspective")));
-	x += DP(120);
-	add_subwindow(mode_sheer = new PerspectiveMode(plugin, 
-		x, 
-		y, 
-		AffineEngine::SHEER,
-		_("Sheer")));
-	x = DP(110);
-	y += DP(30);
-	add_subwindow(mode_stretch = new PerspectiveMode(plugin, 
-		x, 
-		y, 
-		AffineEngine::STRETCH,
-		_("Stretch")));
+        get_w() - x - margin - BC_PopupMenu::calculate_w(0)));
+    mode->create_objects();
 	update_canvas();
-	y += DP(30);
-	x = DP(10);
-	add_subwindow(new BC_Title(x, y, _("Perspective direction:")));
-	x += DP(170);
+	y += mode->get_h() + margin;
+	x = margin;
+	add_subwindow(title = new BC_Title(x, y, _("Perspective direction:")));
+	x += title->get_w() + margin;
 	add_subwindow(forward = new PerspectiveDirection(plugin, 
 		x, 
 		y, 
 		1,
 		_("Forward")));
-	x += DP(100);
+	x += forward->get_w() + margin;
 	add_subwindow(reverse = new PerspectiveDirection(plugin, 
 		x, 
 		y, 
@@ -237,6 +262,7 @@ void PerspectiveWindow::update_canvas()
 			y1 + (y4 - y1) * i / DIVISIONS,
 			x2 + (x3 - x2) * i / DIVISIONS,
 			y2 + (y3 - y2) * i / DIVISIONS);
+
 // longitude
 		canvas->draw_line(
 			x1 + (x2 - x1) * i / DIVISIONS,
@@ -246,41 +272,128 @@ void PerspectiveWindow::update_canvas()
 	}
 
 // Corners
-#define RADIUS 5
+#define RADIUS DP(5)
 	if(plugin->config.current_point == 0)
-		canvas->draw_disc(x1 - RADIUS, y1 - RADIUS, RADIUS * 2, RADIUS * 2);
-	else
-		canvas->draw_circle(x1 - RADIUS, y1 - RADIUS, RADIUS * 2, RADIUS * 2);
+	{
+        for(int i = 0; i <= DIVISIONS / 2; i++)
+        {
+// latitude
+            canvas->draw_half_line(
+                x1 + (x4 - x1) * i / DIVISIONS,
+			    y1 + (y4 - y1) * i / DIVISIONS,
+			    x2 + (x3 - x2) * i / DIVISIONS,
+			    y2 + (y3 - y2) * i / DIVISIONS);
+// longitude
+		    canvas->draw_half_line(
+			    x1 + (x2 - x1) * i / DIVISIONS,
+			    y1 + (y2 - y1) * i / DIVISIONS,
+			    x4 + (x3 - x4) * i / DIVISIONS,
+			    y4 + (y3 - y4) * i / DIVISIONS);
+        }
+
+    	canvas->draw_disc(x1 - RADIUS, y1 - RADIUS, RADIUS * 2, RADIUS * 2);
+	}
+    else
+	{
+    	canvas->draw_circle(x1 - RADIUS, y1 - RADIUS, RADIUS * 2, RADIUS * 2);
+    }
 
 	if(plugin->config.current_point == 1)
-		canvas->draw_disc(x2 - RADIUS, y2 - RADIUS, RADIUS * 2, RADIUS * 2);
-	else
-		canvas->draw_circle(x2 - RADIUS, y2 - RADIUS, RADIUS * 2, RADIUS * 2);
+	{
+        for(int i = 0; i <= DIVISIONS / 2; i++)
+        {
+// latitude
+            canvas->draw_half_line(
+			    x2 + (x3 - x2) * i / DIVISIONS,
+			    y2 + (y3 - y2) * i / DIVISIONS,
+                x1 + (x4 - x1) * i / DIVISIONS,
+			    y1 + (y4 - y1) * i / DIVISIONS);
+// longitude
+		    canvas->draw_half_line(
+			    x1 + (x2 - x1) * (i + DIVISIONS / 2) / DIVISIONS,
+			    y1 + (y2 - y1) * (i + DIVISIONS / 2) / DIVISIONS,
+			    x4 + (x3 - x4) * (i + DIVISIONS / 2) / DIVISIONS,
+			    y4 + (y3 - y4) * (i + DIVISIONS / 2) / DIVISIONS);
+        }
+
+    	canvas->draw_disc(x2 - RADIUS, y2 - RADIUS, RADIUS * 2, RADIUS * 2);
+	}
+    else
+	{
+    	canvas->draw_circle(x2 - RADIUS, y2 - RADIUS, RADIUS * 2, RADIUS * 2);
+    }
 
 	if(plugin->config.current_point == 2)
-		canvas->draw_disc(x3 - RADIUS, y3 - RADIUS, RADIUS * 2, RADIUS * 2);
-	else
-		canvas->draw_circle(x3 - RADIUS, y3 - RADIUS, RADIUS * 2, RADIUS * 2);
+	{
+        for(int i = DIVISIONS / 2; i <= DIVISIONS; i++)
+        {
+// latitude
+            canvas->draw_half_line(
+			    x2 + (x3 - x2) * i / DIVISIONS,
+			    y2 + (y3 - y2) * i / DIVISIONS,
+                x1 + (x4 - x1) * i / DIVISIONS,
+			    y1 + (y4 - y1) * i / DIVISIONS);
+// longitude
+		    canvas->draw_half_line(
+			    x4 + (x3 - x4) * i / DIVISIONS,
+			    y4 + (y3 - y4) * i / DIVISIONS,
+                x1 + (x2 - x1) * i / DIVISIONS,
+			    y1 + (y2 - y1) * i / DIVISIONS);
+        }
+    	canvas->draw_disc(x3 - RADIUS, y3 - RADIUS, RADIUS * 2, RADIUS * 2);
+	}
+    else
+	{
+    	canvas->draw_circle(x3 - RADIUS, y3 - RADIUS, RADIUS * 2, RADIUS * 2);
+    }
 
 	if(plugin->config.current_point == 3)
-		canvas->draw_disc(x4 - RADIUS, y4 - RADIUS, RADIUS * 2, RADIUS * 2);
-	else
-		canvas->draw_circle(x4 - RADIUS, y4 - RADIUS, RADIUS * 2, RADIUS * 2);
+	{
+        for(int i = DIVISIONS / 2; i <= DIVISIONS; i++)
+        {
+// latitude
+            canvas->draw_half_line(
+                x1 + (x4 - x1) * i / DIVISIONS,
+			    y1 + (y4 - y1) * i / DIVISIONS,
+			    x2 + (x3 - x2) * i / DIVISIONS,
+			    y2 + (y3 - y2) * i / DIVISIONS);
+// longitude
+		    canvas->draw_half_line(
+			    x4 + (x3 - x4) * (i - DIVISIONS / 2) / DIVISIONS,
+			    y4 + (y3 - y4) * (i - DIVISIONS / 2) / DIVISIONS,
+                x1 + (x2 - x1) * (i - DIVISIONS / 2) / DIVISIONS,
+			    y1 + (y2 - y1) * (i - DIVISIONS / 2) / DIVISIONS);
+        }
+    	canvas->draw_disc(x4 - RADIUS, y4 - RADIUS, RADIUS * 2, RADIUS * 2);
+	}
+    else
+	{
+    	canvas->draw_circle(x4 - RADIUS, y4 - RADIUS, RADIUS * 2, RADIUS * 2);
+    }
 
 	canvas->flash();
 }
 
 void PerspectiveWindow::update_mode()
 {
-	mode_perspective->update(plugin->config.mode == AffineEngine::PERSPECTIVE);
-	mode_sheer->update(plugin->config.mode == AffineEngine::SHEER);
-	mode_stretch->update(plugin->config.mode == AffineEngine::STRETCH);
+	mode->set_text(PerspectiveMode::value_to_text(plugin->config.mode));
 	forward->update(plugin->config.forward);
 	reverse->update(!plugin->config.forward);
 }
 
+
+void PerspectiveWindow::update_point()
+{
+	point1->update(plugin->config.current_point == 0);
+	point2->update(plugin->config.current_point == 1);
+	point3->update(plugin->config.current_point == 2);
+	point4->update(plugin->config.current_point == 3);
+}
+
+
 void PerspectiveWindow::update_coord()
 {
+    
 	x->update(plugin->get_current_x());
 	y->update(plugin->get_current_y());
 }
@@ -336,7 +449,19 @@ PerspectiveCanvas::PerspectiveCanvas(PerspectiveMain *plugin,
 }
 
 
-
+void PerspectiveCanvas::draw_half_line(int x1, int y1, int x2, int y2)
+{
+    int half_x = (x1 + x2) / 2;
+    int half_y = (y1 + y2) / 2;
+// Always double line width
+    set_line_width(2);
+    draw_line(
+        x1,
+		y1,
+		half_x,
+		half_y);
+    set_line_width(1);
+}
 
 int PerspectiveCanvas::button_press_event()
 {
@@ -412,6 +537,7 @@ int PerspectiveCanvas::button_press_event()
 			start_x1 = plugin->get_current_x();
 			start_y1 = plugin->get_current_y();
 		}
+        ((PerspectiveWindow*)plugin->thread->window)->update_point();
 		((PerspectiveWindow*)plugin->thread->window)->update_coord();
 		((PerspectiveWindow*)plugin->thread->window)->update_canvas();
 		return 1;
@@ -550,26 +676,62 @@ int PerspectiveReset::handle_event()
 
 
 
-
+#define MENU_OPTIONS 3
 PerspectiveMode::PerspectiveMode(PerspectiveMain *plugin, 
+    PerspectiveWindow *gui,
 	int x, 
 	int y,
-	int value,
-	char *text)
- : BC_Radial(x, y, plugin->config.mode == value, text)
+    int w)
+ : BC_PopupMenu(x,
+    y, 
+    w, 
+    PerspectiveMode::value_to_text(plugin->config.mode), 
+    1)
 {
+//printf("PerspectiveMode::PerspectiveMode %d w=%d\n", __LINE__, w);
 	this->plugin = plugin;
-	this->value = value;
+	this->gui = gui;
 }
+
+
 int PerspectiveMode::handle_event()
 {
-	plugin->config.mode = value;
-	((PerspectiveWindow*)plugin->thread->window)->update_mode();
-	((PerspectiveWindow*)plugin->thread->window)->update_canvas();
+	plugin->config.mode = text_to_value(get_text());
+	gui->update_canvas();
 	plugin->send_configure_change();
 	return 1;
 }
 
+void PerspectiveMode::create_objects()
+{
+	for(int i = 0; i < MENU_OPTIONS; i++)
+	{
+		add_item(new BC_MenuItem(value_to_text(i)));
+	}
+}
+
+
+const char* PerspectiveMode::value_to_text(int value)
+{
+	switch(value)
+	{
+		case AffineEngine::PERSPECTIVE: return _("Perspective");
+		case AffineEngine::SHEER: return _("Sheer");
+		case AffineEngine::STRETCH: return _("Stretch");
+	}
+
+	return _("Perspective");
+}
+
+int PerspectiveMode::text_to_value(char *text)
+{
+	for(int i = 0; i < MENU_OPTIONS; i++)
+	{
+		if(!strcmp(value_to_text(i), text)) return i;
+	}
+
+	return AffineEngine::PERSPECTIVE;
+}
 
 
 
@@ -592,6 +754,27 @@ int PerspectiveDirection::handle_event()
 }
 
 
+
+
+PerspectivePoint::PerspectivePoint(PerspectiveMain *plugin, 
+	int x, 
+	int y,
+	int value,
+	char *text)
+ : BC_Radial(x, y, plugin->config.current_point == value, text)
+{
+	this->plugin = plugin;
+	this->value = value;
+}
+int PerspectivePoint::handle_event()
+{
+	plugin->config.current_point = value;
+	((PerspectiveWindow*)plugin->thread->window)->update_point();
+	((PerspectiveWindow*)plugin->thread->window)->update_coord();
+    ((PerspectiveWindow*)plugin->thread->window)->update_canvas();
+	plugin->send_configure_change();
+	return 1;
+}
 
 
 
@@ -637,6 +820,7 @@ void PerspectiveMain::update_gui()
 		thread->window->lock_window();
 //printf("PerspectiveMain::update_gui 2\n");
 		load_configuration();
+        ((PerspectiveWindow*)thread->window)->update_point();
 		((PerspectiveWindow*)thread->window)->update_coord();
 		((PerspectiveWindow*)thread->window)->update_mode();
 		((PerspectiveWindow*)thread->window)->update_canvas();

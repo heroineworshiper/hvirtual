@@ -79,8 +79,10 @@ float DB::todb(float power)
 {
 	float db;
 	if(power == 0) 
-		db = -100;
-	else 
+	{
+    	db = -100;
+	}
+    else 
 	{
 		db = (float)(20 * log10(power));
 		if(db < -100) db = -100;
