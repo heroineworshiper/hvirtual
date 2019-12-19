@@ -103,9 +103,9 @@ public:
 	BC_Pixmap *inactive;
 //	MainClock *clock;
 
-
+#ifdef USE_METERS
 	CWindowMeters *meters;
-
+#endif
 
 	CWindowTool *tool_panel;
 

@@ -217,12 +217,12 @@ int PreferencesThread::apply_settings()
 
 	if(redraw_meters)
 	{
+#ifdef USE_METERS
 		mwindow->cwindow->gui->lock_window("PreferencesThread::apply_settings");
 		mwindow->cwindow->gui->meters->change_format(edl->session->meter_format,
 			edl->session->min_meter_db,
 			edl->session->max_meter_db);
 		mwindow->cwindow->gui->unlock_window();
-
 
 
 		for(int i = 0; i < mwindow->vwindows.size(); i++)
@@ -235,6 +235,7 @@ int PreferencesThread::apply_settings()
 			vwindow->gui->unlock_window();
 
 		}
+#endif
 
 
 		mwindow->gui->lock_window("PreferencesThread::apply_settings 1");

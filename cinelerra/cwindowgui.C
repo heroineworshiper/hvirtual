@@ -114,7 +114,9 @@ CWindowGUI::CWindowGUI(MWindow *mwindow, CWindow *cwindow)
 CWindowGUI::~CWindowGUI()
 {
 	if(tool_panel) delete tool_panel;
+#ifdef USE_METERS
  	delete meters;
+#endif
  	delete composite_panel;
  	delete canvas;
  	delete transport;
@@ -136,6 +138,7 @@ void CWindowGUI::create_objects()
 	mwindow->theme->draw_cwindow_bg(this);
 	flash();
 
+#ifdef USE_METERS
 // Meters required by composite panel
 	meters = new CWindowMeters(mwindow, 
 		this,
@@ -143,6 +146,8 @@ void CWindowGUI::create_objects()
 		mwindow->theme->cmeter_y,
 		mwindow->theme->cmeter_h);
 	meters->create_objects();
+#endif
+
 
 
 	composite_panel = new CPanel(mwindow, 
@@ -185,7 +190,10 @@ void CWindowGUI::create_objects()
 #endif
 
 	edit_panel = new CWindowEditing(mwindow, cwindow);
+#ifdef USE_METERS
 	edit_panel->set_meters(meters);
+#endif
+
 	edit_panel->create_objects();
 
 // 	add_subwindow(clock = new MainClock(mwindow, 
@@ -275,10 +283,12 @@ int CWindowGUI::resize_event(int w, int h)
 // 	destination->reposition_window(mwindow->theme->cdest_x,
 // 		mwindow->theme->cdest_y);
 
+#ifdef USE_METERS
 	meters->reposition_window(mwindow->theme->cmeter_x,
 		mwindow->theme->cmeter_y,
 		-1,
 		mwindow->theme->cmeter_h);
+#endif
 
 	draw_status(0);
 
@@ -682,12 +692,14 @@ int CWindowGUI::drag_stop()
 
 void CWindowGUI::update_meters()
 {
+#ifdef USE_METERS
 	if(mwindow->edl->session->cwindow_meter != meters->visible)
 	{
 		meters->set_meters(meters->meter_count, mwindow->edl->session->cwindow_meter);
 		mwindow->theme->get_cwindow_sizes(this, mwindow->session->cwindow_controls);
 		resize_event(get_w(), get_h());
 	}
+#endif
 }
 
 
@@ -730,7 +742,7 @@ void CWindowEditing::set_outpoint()
 
 
 
-
+#ifdef USE_METERS
 CWindowMeters::CWindowMeters(MWindow *mwindow, 
 	CWindowGUI *gui, 
 	int x, 
@@ -761,6 +773,7 @@ int CWindowMeters::change_status_event(int new_status)
 	gui->update_meters();
 	return 1;
 }
+#endif
 
 
 

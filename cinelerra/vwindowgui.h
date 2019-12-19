@@ -89,7 +89,7 @@ public:
 	VWindowTransport *transport;
 	VWindowEditing *edit_panel;
 //	VWindowSource *source;
-	VWindowMeters *meters;
+//	VWindowMeters *meters;
 	ArrayList<BC_ListBoxItem*> sources;
 	ArrayList<LabelGUI*> labels;
 	VWindowInPoint *in_point;

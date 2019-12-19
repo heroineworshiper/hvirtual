@@ -144,33 +144,43 @@ void Tracking::update_meters(int64_t position)
 		module_levels.remove_all();
 		get_playback_engine()->get_module_levels(&module_levels, position);
 
+#ifdef USE_METERS
 		mwindow->cwindow->gui->lock_window("Tracking::update_meters 1");
 		mwindow->cwindow->gui->meters->update(output_levels);
 		mwindow->cwindow->gui->unlock_window();
+#endif
 
 		mwindow->lwindow->gui->lock_window("Tracking::update_meters 2");
 		mwindow->lwindow->gui->panel->update(output_levels);
 		mwindow->lwindow->gui->unlock_window();
 
+#ifdef USE_METERS
 		mwindow->gui->lock_window("Tracking::update_meters 3");
 		mwindow->gui->update_meters(&module_levels);
 		mwindow->gui->unlock_window();
+#endif
+
 	}
 }
 
 void Tracking::stop_meters()
 {
+#ifdef USE_METERS
 	mwindow->cwindow->gui->lock_window("Tracking::stop_meters 1");
 	mwindow->cwindow->gui->meters->stop_meters();
 	mwindow->cwindow->gui->unlock_window();
+#endif
+
 
 	mwindow->gui->lock_window("Tracking::stop_meters 2");
 	mwindow->gui->stop_meters();
 	mwindow->gui->unlock_window();
 
+#ifdef USE_METERS
 	mwindow->lwindow->gui->lock_window("Tracking::stop_meters 3");
 	mwindow->lwindow->gui->panel->stop_meters();
 	mwindow->lwindow->gui->unlock_window();
+#endif
 }
 
 

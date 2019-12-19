@@ -165,7 +165,9 @@ void SetFormatThread::apply_changes()
 	mwindow->cwindow->gui->lock_window("SetFormatThread::apply_changes");
 	mwindow->cwindow->gui->resize_event(mwindow->cwindow->gui->get_w(), 
 		mwindow->cwindow->gui->get_h());
+#ifdef USE_METERS
 	mwindow->cwindow->gui->meters->set_meters(new_channels, 1);
+#endif
 #ifdef USE_SLIDER
 	mwindow->cwindow->gui->slider->set_position();
 #endif
@@ -178,7 +180,9 @@ void SetFormatThread::apply_changes()
 		vwindow->gui->lock_window("SetFormatThread::apply_changes");
 		vwindow->gui->resize_event(vwindow->gui->get_w(), 
 			vwindow->gui->get_h());
+#ifdef USE_METERS
 		vwindow->gui->meters->set_meters(new_channels, 1);
+#endif
 		vwindow->gui->flush();
 		vwindow->gui->unlock_window();
 	}

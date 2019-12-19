@@ -3147,6 +3147,7 @@ int MWindow::set_loop_boundaries()
 
 int MWindow::reset_meters()
 {
+#ifdef USE_METERS
 	cwindow->gui->lock_window("MWindow::reset_meters 1");
 	cwindow->gui->meters->reset_meters();
 	cwindow->gui->unlock_window();
@@ -3161,6 +3162,8 @@ int MWindow::reset_meters()
 			vwindow->gui->unlock_window();
 		}
 	}
+#endif
+
 
 	lwindow->gui->lock_window("MWindow::reset_meters 3");
 	lwindow->gui->panel->reset_meters();

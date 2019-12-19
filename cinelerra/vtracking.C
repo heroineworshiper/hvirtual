@@ -73,6 +73,7 @@ void VTracking::update_meters(int64_t position)
 {
 	double output_levels[MAXCHANNELS];
 
+#ifdef USE_METERS
 	int do_audio = get_playback_engine()->get_output_levels(output_levels, 
 		position);
 	if(do_audio)
@@ -81,13 +82,17 @@ void VTracking::update_meters(int64_t position)
 		vwindow->gui->meters->update(output_levels);
 		vwindow->gui->unlock_window();
 	}
+#endif
+
 }
 
 void VTracking::stop_meters()
 {
+#ifdef USE_METERS
 	vwindow->gui->lock_window("VTracking::stop_meters");
 	vwindow->gui->meters->stop_meters();
 	vwindow->gui->unlock_window();
+#endif
 }
 
 void VTracking::draw()

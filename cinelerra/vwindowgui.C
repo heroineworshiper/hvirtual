@@ -175,17 +175,21 @@ void VWindowGUI::create_objects()
 	mwindow->theme->draw_vwindow_bg(this);
 	flash(0);
 
+#ifdef USE_METERS
 	meters = new VWindowMeters(mwindow, 
 		this,
 		mwindow->theme->vmeter_x,
 		mwindow->theme->vmeter_y,
 		mwindow->theme->vmeter_h);
 	meters->create_objects();
+#endif
 
 //printf("VWindowGUI::create_objects 1\n");
 // Requires meters to build
 	edit_panel = new VWindowEditing(mwindow, vwindow);
+#ifdef USE_METERS
 	edit_panel->set_meters(meters);
+#endif
 	edit_panel->create_objects();
 
 //printf("VWindowGUI::create_objects 1\n");
@@ -288,10 +292,13 @@ int VWindowGUI::resize_event(int w, int h)
 //printf("VWindowGUI::resize_event %d %d\n", __LINE__, mwindow->theme->vcanvas_x);
 // 	source->reposition_window(mwindow->theme->vsource_x,
 // 		mwindow->theme->vsource_y);
+#ifdef USE_METERS
 	meters->reposition_window(mwindow->theme->vmeter_x,
 		mwindow->theme->vmeter_y,
 		-1,
 		mwindow->theme->vmeter_h);
+#endif
+
 
 	BC_WindowBase::resize_event(w, h);
 	return 1;
@@ -462,6 +469,7 @@ int VWindowGUI::drag_stop()
 
 void VWindowGUI::update_meters()
 {
+#ifdef USE_METERS
 	if(mwindow->edl->session->vwindow_meter != meters->visible)
 	{
 		meters->set_meters(meters->meter_count, 
@@ -469,10 +477,12 @@ void VWindowGUI::update_meters()
 		mwindow->theme->get_vwindow_sizes(this);
 		resize_event(get_w(), get_h());
 	}
+#endif
 }
 
 
 
+#ifdef USE_METERS
 VWindowMeters::VWindowMeters(MWindow *mwindow, 
 	VWindowGUI *gui, 
 	int x, 
@@ -503,6 +513,7 @@ int VWindowMeters::change_status_event(int new_status)
 	gui->update_meters();
 	return 1;
 }
+#endif
 
 
 
