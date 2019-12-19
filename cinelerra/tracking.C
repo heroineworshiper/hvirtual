@@ -154,11 +154,9 @@ void Tracking::update_meters(int64_t position)
 		mwindow->lwindow->gui->panel->update(output_levels);
 		mwindow->lwindow->gui->unlock_window();
 
-#ifdef USE_METERS
 		mwindow->gui->lock_window("Tracking::update_meters 3");
 		mwindow->gui->update_meters(&module_levels);
 		mwindow->gui->unlock_window();
-#endif
 
 	}
 }
