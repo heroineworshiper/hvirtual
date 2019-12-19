@@ -579,7 +579,7 @@ void Theme::get_cwindow_sizes(CWindowGUI *gui, int cwindow_controls)
 
 	if(cwindow_controls)
 	{
-SET_TRACE
+#ifdef USE_METERS
 		if(mwindow->edl->session->cwindow_meter)
 		{
 			cmeter_x = mwindow->session->cwindow_w - 
@@ -588,6 +588,7 @@ SET_TRACE
 					mwindow->edl->session->cwindow_meter);
 		}
 		else
+#endif
 		{
 			cmeter_x = mwindow->session->cwindow_w + widget_border;
 		}
@@ -816,6 +817,7 @@ void Theme::get_vwindow_sizes(VWindowGUI *gui)
 	vmeter_h = mwindow->session->vwindow_h - cmeter_y - widget_border;
 
 	int buttons_h;
+#ifdef USE_METERS
 	if(mwindow->edl->session->vwindow_meter)
 	{
 		vmeter_x = mwindow->session->vwindow_w - 
@@ -824,6 +826,7 @@ void Theme::get_vwindow_sizes(VWindowGUI *gui)
 				mwindow->edl->session->vwindow_meter);
 	}
 	else
+#endif
 	{
 		vmeter_x = mwindow->session->vwindow_w + widget_border;
 	}

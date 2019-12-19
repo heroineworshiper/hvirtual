@@ -897,6 +897,7 @@ void BrightTheme::draw_cwindow_bg(CWindowGUI *gui)
 		resources->hscroll_data[0]->get_h());
 	gui->draw_3segmentv(0, 0, ccomposite_h, get_image("cpanel_bg"));
 	gui->draw_3segmenth(0, ccomposite_h, cstatus_x, get_image("cbuttons_left"));
+#ifdef USE_METERS
 	if(mwindow->edl->session->cwindow_meter)
 	{
 		gui->draw_3segmenth(cstatus_x, 
@@ -910,6 +911,7 @@ void BrightTheme::draw_cwindow_bg(CWindowGUI *gui)
 			get_image("cmeter_bg"));
 	}
 	else
+#endif
 	{
 		gui->draw_3segmenth(cstatus_x, 
 			ccomposite_h, 
@@ -926,6 +928,7 @@ void BrightTheme::draw_vwindow_bg(VWindowGUI *gui)
 		get_image("vbuttons_left"));
 
 
+#ifdef USE_METERS
 	if(mwindow->edl->session->vwindow_meter)
 	{
 		gui->draw_3segmenth(vdivision_x, 
@@ -939,6 +942,7 @@ void BrightTheme::draw_vwindow_bg(VWindowGUI *gui)
 			get_image("cmeter_bg"));
 	}
 	else
+#endif
 	{
 		gui->draw_3segmenth(vdivision_x, 
 			vcanvas_h, 
