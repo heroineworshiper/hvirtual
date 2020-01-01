@@ -116,21 +116,35 @@ int NormalizeMain::process_loop(Samples **buffer, int64_t &write_length)
 	int result = 0;
 	int64_t fragment_len;
 
-//printf("NormalizeMain::process_loop 1\n");
+// printf("NormalizeMain::process_loop %d writing=%d current_position=%ld\n", 
+// __LINE__, 
+// writing,
+// current_position);
 	if(writing)
 	{
 		fragment_len = PluginClient::in_buffer_size;
 		if(current_position + fragment_len > PluginClient::end) fragment_len = PluginClient::end - current_position;
-//printf("NormalizeMain::process_loop 2 %d %f\n", current_position, scale[0]);
+// printf("NormalizeMain::process_loop %d current_position=%ld scale=%f\n", 
+// __LINE__, 
+// current_position, 
+// scale[0]);
 
 		for(int i = 0; i < PluginClient::total_in_buffers; i++)
 		{
+// printf("NormalizeMain::process_loop %d fragment_len=%ld i=%d scale=%f\n", 
+// __LINE__, 
+// fragment_len,
+// i, 
+// scale[i]);
 			read_samples(buffer[i], i, current_position, fragment_len);
 			for(int j = 0; j < fragment_len; j++)
 				buffer[i]->get_data()[j] *= scale[i];
 		}
 
-//printf("NormalizeMain::process_loop 1 %d %f\n", current_position, scale[0]);
+// printf("NormalizeMain::process_loop %d %ld %f\n", 
+// __LINE__,
+// current_position, 
+// scale[0]);
 		current_position += fragment_len;
 		write_length = fragment_len;
 		result = progress->update(PluginClient::end - 
@@ -186,7 +200,6 @@ int NormalizeMain::process_loop(Samples **buffer, int64_t &write_length)
 		{
 			scale[i] = DB::fromdb(db_over) / peak[i];
 		}
-//printf("NormalizeMain::process_loop 10\n");
 
 		char string[BCTEXTLEN];
 		sprintf(string, "%s %.0f%%...", plugin_title(), (DB::fromdb(db_over) / max) * 100);
@@ -194,6 +207,7 @@ int NormalizeMain::process_loop(Samples **buffer, int64_t &write_length)
 // Start writing on next iteration
 		writing = 1;
 	}
+//printf("NormalizeMain::process_loop %d\n", __LINE__);
 
 	return result;
 }

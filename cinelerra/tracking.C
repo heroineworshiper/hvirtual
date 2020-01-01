@@ -174,11 +174,9 @@ void Tracking::stop_meters()
 	mwindow->gui->stop_meters();
 	mwindow->gui->unlock_window();
 
-#ifdef USE_METERS
 	mwindow->lwindow->gui->lock_window("Tracking::stop_meters 3");
 	mwindow->lwindow->gui->panel->stop_meters();
 	mwindow->lwindow->gui->unlock_window();
-#endif
 }
 
 

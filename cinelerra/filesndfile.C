@@ -276,13 +276,21 @@ int FileSndFile::read_samples(double *buffer, int64_t len)
 {
 	int result = 0;
 
-//printf("FileSndFile::read_samples %d %d %lld %lld\n", __LINE__, file->current_channel, file->current_sample, len);
+// printf("FileSndFile::read_samples %d current_channel=%d current_sample=%ld len=%ld\n", 
+// __LINE__, 
+// file->current_channel, 
+// file->current_sample, 
+// len);
+
 // Get temp buffer for interleaved channels
 	if(len <= 0 || len > 1000000)
 		printf("FileSndFile::read_samples len=%d\n", (int)len);
 
 	if(!buffer)
 		printf("FileSndFile::read_samples buffer=%p\n", buffer);
+
+// printf("FileSndFile::read_samples %d\n", 
+// __LINE__);
 
 	if(temp_allocated && temp_allocated < len)
 	{
@@ -291,13 +299,22 @@ int FileSndFile::read_samples(double *buffer, int64_t len)
 		temp_allocated = 0;
 	}
 
+// printf("FileSndFile::read_samples %d\n", 
+// __LINE__);
+
 	if(!temp_allocated)
 	{
 		temp_allocated = len;
 		temp_double = new double[len * asset->channels];
 	}
 
+//printf("FileSndFile::read_samples %d\n", 
+//__LINE__);
+
 	result = !sf_read_double(fd, temp_double, len * asset->channels);
+
+//printf("FileSndFile::read_samples %d\n", 
+//__LINE__);
 
 	if(result)
 		printf("FileSndFile::read_samples fd=%p temp_double=%p len=%d asset=%p asset->channels=%d\n",
@@ -311,6 +328,9 @@ int FileSndFile::read_samples(double *buffer, int64_t len)
 		buffer[i] = temp_double[j];
 	}
 
+// printf("FileSndFile::read_samples %d\n", 
+// __LINE__);
+
 	return result;
 }
 
@@ -319,7 +339,7 @@ int FileSndFile::write_samples(double **buffer, int64_t len)
 	int result = 0;
 
 // Get temp buffer for interleaved channels
-//printf("FileSndFile::read_samples 1\n");
+//printf("FileSndFile::write_samples %d\n", __LINE__);
 	if(temp_allocated && temp_allocated < len)
 	{
 		temp_allocated = 0;
@@ -349,6 +369,7 @@ int FileSndFile::write_samples(double **buffer, int64_t len)
 	}
 
 	result = !sf_writef_double(fd, temp_double, len);
+//printf("FileSndFile::write_samples %d\n", __LINE__);
 
 	return result;
 }
