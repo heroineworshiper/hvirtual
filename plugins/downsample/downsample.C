@@ -93,6 +93,15 @@ public:
 	int *output;
 };
 
+class DownSampleText : public BC_TextBox
+{
+public:
+    DownSampleText(DownSampleMain *plugin, int x, int y, int *output);
+    int handle_event();
+	DownSampleMain *plugin;
+	int *output;
+};
+
 class DownSampleWindow : public PluginClientWindow
 {
 public:
@@ -103,6 +112,7 @@ public:
 
 	DownSampleToggle *r, *g, *b, *a;
 	DownSampleSize *h, *v, *h_x, *v_y;
+    DownSampleText *h_text, *v_text, *h_x_text, *v_y_text;
 	DownSampleMain *plugin;
 };
 
