@@ -40,7 +40,10 @@ class DownSampleMain;
 class DownSampleServer;
 class DownSampleWindow;
 
-
+#define MIN_SIZE 1
+#define MAX_SIZE 100
+#define MIN_OFFSET 0
+#define MAX_OFFSET 100
 
 
 class DownSampleConfig
@@ -55,6 +58,7 @@ public:
 		int64_t prev_frame, 
 		int64_t next_frame, 
 		int64_t current_frame);
+    void boundaries();
 
 	int horizontal_x;
 	int vertical_y;
@@ -223,10 +227,16 @@ void DownSampleConfig::interpolate(DownSampleConfig &prev,
 	g = prev.g;
 	b = prev.b;
 	a = prev.a;
+    boundaries();
 }
 
-
-
+void DownSampleConfig::boundaries()
+{
+    CLAMP(horizontal, MIN_SIZE, MAX_SIZE);
+    CLAMP(vertical, MIN_SIZE, MAX_SIZE);
+    CLAMP(horizontal_x, MIN_OFFSET, MAX_OFFSET);
+    CLAMP(vertical_y, MIN_OFFSET, MAX_OFFSET);
+}
 
 
 
@@ -266,8 +276,8 @@ void DownSampleWindow::create_objects()
 		y, 
         slider_w,
 		&plugin->config.horizontal,
-		1,
-		100));
+		MIN_SIZE,
+		MAX_SIZE));
     int text_x = x + h->get_w() + margin;
     add_tool(h_text = new DownSampleText(plugin, 
         this,
@@ -285,8 +295,8 @@ void DownSampleWindow::create_objects()
 		y, 
         slider_w,
 		&plugin->config.horizontal_x,
-		0,
-		100));
+		MIN_OFFSET,
+		MAX_OFFSET));
     add_tool(h_x_text = new DownSampleText(plugin, 
         this,
         text_x, 
@@ -302,8 +312,8 @@ void DownSampleWindow::create_objects()
 		y, 
         slider_w,
 		&plugin->config.vertical,
-		1,
-		100));
+		MIN_SIZE,
+		MAX_SIZE));
     add_tool(v_text = new DownSampleText(plugin, 
         this,
         text_x, 
@@ -319,8 +329,8 @@ void DownSampleWindow::create_objects()
 		y, 
         slider_w,
 		&plugin->config.vertical_y,
-		0,
-		100));
+		MIN_OFFSET,
+		MAX_OFFSET));
     add_tool(v_y_text = new DownSampleText(plugin, 
         this,
         text_x, 
@@ -598,6 +608,7 @@ void DownSampleMain::read_data(KeyFrame *keyframe)
 			}
 		}
 	}
+	config.boundaries();
 }
 
 

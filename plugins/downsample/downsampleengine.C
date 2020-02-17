@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2020 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -180,6 +180,10 @@ void DownSampleServer::init_packages()
 		package->y2 = y1 + strips_per_package * vertical;
 		package->y1 = MIN(output->get_h(), package->y1);
 		package->y2 = MIN(output->get_h(), package->y2);
+// printf("DownSampleServer::init_packages %d y1=%d y2=%d\n", 
+// __LINE__,
+// package->y1,
+// package->y2);
 		y1 = package->y2;
 	}
 }

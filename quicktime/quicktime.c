@@ -1100,16 +1100,18 @@ void quicktime_init_maps(quicktime_t *file)
 
         
 /* Read some audio to fix broken headers */
-        const int temp_count = 4096;
-        float *temp_buffer = malloc(sizeof(float) * temp_count);
-        ((quicktime_codec_t*)file->atracks[i].codec)->decode_audio(file, 
-			0, 
-			temp_buffer, 
-			temp_count, 
-			i, 
-			0);
-        free(temp_buffer);
-
+        if(file->atracks[i].codec)
+        {
+            const int temp_count = 4096;
+            float *temp_buffer = malloc(sizeof(float) * temp_count);
+            ((quicktime_codec_t*)file->atracks[i].codec)->decode_audio(file, 
+			    0, 
+			    temp_buffer, 
+			    temp_count, 
+			    i, 
+			    0);
+            free(temp_buffer);
+        }
 
 	}
 

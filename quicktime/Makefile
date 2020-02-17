@@ -84,7 +84,7 @@ endif
 
 
 ifeq ($(OBJDIR), x86_64)
-  CFLAGS := -O -funroll-all-loops -fomit-frame-pointer  -I/usr/local/include
+  CFLAGS := -O3 -funroll-all-loops -fomit-frame-pointer  -I/usr/local/include
 endif
 
 

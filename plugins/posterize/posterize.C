@@ -65,7 +65,7 @@ void PosterizeConfig::interpolate(PosterizeConfig &prev,
 	double next_scale = (double)(current_frame - prev_frame) / (next_frame - prev_frame);
 	double prev_scale = (double)(next_frame - current_frame) / (next_frame - prev_frame);
 	this->steps = (int)(prev.steps * prev_scale + next.steps * next_scale);
-	
+	boundaries();
 }
 
 PosterizeMain::PosterizeMain(PluginServer *server)
