@@ -3,6 +3,7 @@
 # Release checklist
 #
 # 1) Disable memory debugging.
+# 2) Increment PLUGIN_FILE_VERSION
 # 2) Update versions
 # 3) Update credits
 # Update PLUGIN_FILE_VERSION to detect new plugins
