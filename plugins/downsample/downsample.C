@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2020 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,12 +32,13 @@
 #include "language.h"
 #include "picon_png.h"
 #include "pluginvclient.h"
+#include "theme.h"
 #include "vframe.h"
 
 
 class DownSampleMain;
 class DownSampleServer;
-
+class DownSampleWindow;
 
 
 
@@ -83,22 +84,31 @@ class DownSampleSize : public BC_ISlider
 {
 public:
 	DownSampleSize(DownSampleMain *plugin, 
+        DownSampleWindow *gui,
 		int x, 
 		int y, 
+        int w,
 		int *output,
 		int min,
 		int max);
 	int handle_event();
 	DownSampleMain *plugin;
+    DownSampleWindow *gui;
 	int *output;
 };
 
 class DownSampleText : public BC_TextBox
 {
 public:
-    DownSampleText(DownSampleMain *plugin, int x, int y, int *output);
+    DownSampleText(DownSampleMain *plugin, 
+        DownSampleWindow *gui, 
+        int x, 
+        int y, 
+        int w,
+        int *output);
     int handle_event();
 	DownSampleMain *plugin;
+    DownSampleWindow *gui;
 	int *output;
 };
 
@@ -109,6 +119,7 @@ public:
 	~DownSampleWindow();
 	
 	void create_objects();
+    void update(int do_sliders, int do_texts, int do_toggles);
 
 	DownSampleToggle *r, *g, *b, *a;
 	DownSampleSize *h, *v, *h_x, *v_y;
@@ -242,43 +253,80 @@ DownSampleWindow::~DownSampleWindow()
 
 void DownSampleWindow::create_objects()
 {
-	int x = DP(10), y = DP(10);
+    int text_w = DP(50);
+	int margin = client->get_theme()->widget_border;
+	int x = margin, y = margin;
+    int slider_w = get_w() - text_w - margin - margin - margin;
 
 	add_subwindow(new BC_Title(x, y, _("Horizontal")));
 	y += DP(30);
 	add_subwindow(h = new DownSampleSize(plugin, 
+        this,
 		x, 
 		y, 
+        slider_w,
 		&plugin->config.horizontal,
 		1,
 		100));
+    int text_x = x + h->get_w() + margin;
+    add_tool(h_text = new DownSampleText(plugin, 
+        this,
+        text_x, 
+        y, 
+        text_w, 
+        &plugin->config.horizontal));
+
 	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Horizontal offset")));
 	y += DP(30);
 	add_subwindow(h_x = new DownSampleSize(plugin, 
+        this,
 		x, 
 		y, 
+        slider_w,
 		&plugin->config.horizontal_x,
 		0,
 		100));
+    add_tool(h_x_text = new DownSampleText(plugin, 
+        this,
+        text_x, 
+        y, 
+        text_w, 
+        &plugin->config.horizontal_x));
 	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Vertical")));
 	y += DP(30);
 	add_subwindow(v = new DownSampleSize(plugin, 
+        this,
 		x, 
 		y, 
+        slider_w,
 		&plugin->config.vertical,
 		1,
 		100));
+    add_tool(v_text = new DownSampleText(plugin, 
+        this,
+        text_x, 
+        y, 
+        text_w, 
+        &plugin->config.vertical));
 	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Vertical offset")));
 	y += DP(30);
 	add_subwindow(v_y = new DownSampleSize(plugin, 
+        this,
 		x, 
 		y, 
+        slider_w,
 		&plugin->config.vertical_y,
 		0,
 		100));
+    add_tool(v_y_text = new DownSampleText(plugin, 
+        this,
+        text_x, 
+        y, 
+        text_w, 
+        &plugin->config.vertical_y));
 	y += DP(30);
 	add_subwindow(r = new DownSampleToggle(plugin, 
 		x, 
@@ -306,6 +354,33 @@ void DownSampleWindow::create_objects()
 	y += DP(30);
 
 	show_window();
+}
+
+void DownSampleWindow::update(int do_sliders, int do_texts, int do_toggles)
+{
+    if(do_texts)
+    {
+        h_text->update((int64_t)plugin->config.horizontal);
+        v_text->update((int64_t)plugin->config.vertical);
+        h_x_text->update((int64_t)plugin->config.horizontal_x);
+        v_y_text->update((int64_t)plugin->config.vertical_y);
+    }
+    
+    if(do_sliders)
+    {
+        h->update(plugin->config.horizontal);
+        v->update(plugin->config.vertical);
+        h_x->update(plugin->config.horizontal_x);
+        v_y->update(plugin->config.vertical_y);
+    }
+    
+    if(do_toggles)
+    {
+		r->update(plugin->config.r);
+		g->update(plugin->config.g);
+		b->update(plugin->config.b);
+		a->update(plugin->config.a);
+    }
 }
 
 
@@ -343,23 +418,48 @@ int DownSampleToggle::handle_event()
 
 
 DownSampleSize::DownSampleSize(DownSampleMain *plugin, 
+    DownSampleWindow *gui,
 	int x, 
 	int y, 
+    int w,
 	int *output,
 	int min,
 	int max)
- : BC_ISlider(x, y, 0, DP(210), DP(210), min, max, *output)
+ : BC_ISlider(x, y, 0, w, w, min, max, *output)
 {
 	this->plugin = plugin;
+    this->gui = gui;
 	this->output = output;
 }
 int DownSampleSize::handle_event()
 {
 	*output = get_value();
+    gui->update(0, 1, 0);
 	plugin->send_configure_change();
 	return 1;
 }
 
+DownSampleText::DownSampleText(DownSampleMain *plugin, 
+    DownSampleWindow *gui, 
+    int x, 
+    int y, 
+    int w,
+    int *output)
+ : BC_TextBox(x, y, w, 1, (int64_t)*output, 1, MEDIUMFONT)
+{
+    this->plugin = plugin;
+    this->gui = gui;
+    this->output = output;
+}
+
+
+int DownSampleText::handle_event()
+{
+    *output = atoi(get_text());
+    gui->update(1, 0, 0);
+    plugin->send_configure_change();
+    return 1;
+}
 
 
 
@@ -442,14 +542,7 @@ void DownSampleMain::update_gui()
 	{
 		load_configuration();
 		((DownSampleWindow*)thread->window)->lock_window();
-		((DownSampleWindow*)thread->window)->h->update(config.horizontal);
-		((DownSampleWindow*)thread->window)->v->update(config.vertical);
-		((DownSampleWindow*)thread->window)->h_x->update(config.horizontal_x);
-		((DownSampleWindow*)thread->window)->v_y->update(config.vertical_y);
-		((DownSampleWindow*)thread->window)->r->update(config.r);
-		((DownSampleWindow*)thread->window)->g->update(config.g);
-		((DownSampleWindow*)thread->window)->b->update(config.b);
-		((DownSampleWindow*)thread->window)->a->update(config.a);
+        ((DownSampleWindow*)thread->window)->update(1, 1, 1);
 		((DownSampleWindow*)thread->window)->unlock_window();
 	}
 }

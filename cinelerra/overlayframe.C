@@ -182,7 +182,7 @@ int OverlayFrame::overlay(VFrame *output,
 	float w_scale = (out_x2 - out_x1) / (in_x2 - in_x1);
 	float h_scale = (out_y2 - out_y1) / (in_y2 - in_y1);
 
-//printf("OverlayFrame::overlay 1 %d %f\n", mode, alpha);
+//printf("OverlayFrame::overlay 1 mode=%d alpha=%f interpolation_type=%d\n", mode, alpha, interpolation_type);
 // Limit values
 	if(in_x1 < 0)
 	{

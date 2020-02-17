@@ -81,6 +81,7 @@ DIRS = \
 	photoscale \
 	pitch \
 	polar \
+        posterize \
 	radialblur \
 	reframe \
 	reframert \
