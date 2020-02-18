@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2020 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ public:
 // Convert input to smoothed output by looking up in smooth table.
 	float calculate_curve(float input);
 // Calculate automatic settings
-	void calculate_automatic(VFrame *data);
+	void calculate_automatic(VFrame *data, int do_value);
 // Calculate histogram.
 // Value is only calculated for preview.
 	void calculate_histogram(VFrame *data, int do_value);

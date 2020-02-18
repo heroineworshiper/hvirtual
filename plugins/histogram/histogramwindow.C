@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2020 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ void HistogramWindow::create_objects()
 
 	y += canvas_title2->get_h() + margin;
 	x = x1;
-	canvas_h = get_h() - y - DP(210);
+	canvas_h = get_h() - y - DP(250);
 
 
 	add_subwindow(low_input_carrot = new HistogramCarrot(plugin,
@@ -252,8 +252,18 @@ void HistogramWindow::create_objects()
 	y += bar->get_h() + margin;
 
 	add_subwindow(automatic = new HistogramAuto(plugin, 
+        this,
 		x, 
-		y));
+		y, 
+        _("Automatic Color"),
+        &plugin->config.automatic));
+    y += automatic->get_h() + margin;
+	add_subwindow(automatic_v = new HistogramAuto(plugin, 
+        this,
+		x, 
+		y, 
+        _("Automatic Luma"),
+        &plugin->config.automatic_v));
 
 	int y1 = y;
 	x = DP(200);
@@ -365,6 +375,8 @@ int HistogramWindow::resize_event(int w, int h)
 	
 	automatic->reposition_window(automatic->get_x(),
 		automatic->get_y() + ydiff);
+	automatic_v->reposition_window(automatic_v->get_x(),
+		automatic_v->get_y() + ydiff);
 	threshold_title->reposition_window(threshold_title->get_x(),
 		threshold_title->get_y() + ydiff);
 	threshold->reposition_window(threshold->get_x(),
@@ -430,6 +442,7 @@ void HistogramWindow::update(int do_canvases,
 	if(do_toggles)
 	{
 		automatic->update(plugin->config.automatic);
+		automatic_v->update(plugin->config.automatic_v);
 		mode_v->update(plugin->mode == HISTOGRAM_VALUE ? 1 : 0);
 		mode_r->update(plugin->mode == HISTOGRAM_RED ? 1 : 0);
 		mode_g->update(plugin->mode == HISTOGRAM_GREEN ? 1 : 0);
@@ -933,16 +946,31 @@ void HistogramSlider::update()
 
 
 HistogramAuto::HistogramAuto(HistogramMain *plugin, 
+    HistogramWindow *gui,
 	int x, 
-	int y)
- : BC_CheckBox(x, y, plugin->config.automatic, _("Automatic"))
+	int y,
+    char *text,
+    int *output)
+ : BC_CheckBox(x, y, *output, text)
 {
 	this->plugin = plugin;
+    this->gui = gui;
+    this->output = output;
 }
 
 int HistogramAuto::handle_event()
 {
-	plugin->config.automatic = get_value();
+	*output = get_value();
+// cancel the opposite mode
+    if(output == &plugin->config.automatic)
+    {
+        plugin->config.automatic_v = 0;
+    }
+    else
+    {
+        plugin->config.automatic = 0;
+    }
+    gui->update(0, 0, 0, 1);
 	plugin->send_configure_change();
 	return 1;
 }

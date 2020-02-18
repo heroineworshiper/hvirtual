@@ -115,7 +115,7 @@ void HistogramMain::render_gui(void *data, int size)
 // all the points if manual
 		if(!config.automatic)
 		{
-// Generate curves for value histogram
+// Generate curves for RGB channels from the control points
 // Lock out changes to curves
 			((HistogramWindow*)thread->window)->lock_window("HistogramMain::render_gui 1");
 			tabulate_curve(HISTOGRAM_RED, 0);
@@ -124,12 +124,15 @@ void HistogramMain::render_gui(void *data, int size)
 			((HistogramWindow*)thread->window)->unlock_window();
 		}
 
+// calculate histograms for the RGB channels & 
+// the VALUE channel only if not automatic RGB
 		calculate_histogram((VFrame*)data, !config.automatic);
 
 
+// calculate automatic curves for the RGB channels
 		if(config.automatic)
 		{
-			calculate_automatic((VFrame*)data);
+			calculate_automatic((VFrame*)data, 0);
 
 // Generate curves for value histogram
 // Lock out changes to curves
@@ -140,15 +143,23 @@ void HistogramMain::render_gui(void *data, int size)
 			((HistogramWindow*)thread->window)->unlock_window();
 
 
-// Need a second pass to get the luminance values.
+// calculate histogram for the LUMA channel
 			calculate_histogram((VFrame*)data, 1);
 		}
 
+// calculate automatic curve for the LUMA channel
+        if(config.automatic_v)
+        {
+            calculate_automatic((VFrame*)data, 1);
+        }
+
 		((HistogramWindow*)thread->window)->lock_window("HistogramMain::render_gui 2");
 // Always draw the histogram but don't update widgets if automatic
-		((HistogramWindow*)thread->window)->update(1,
-			config.automatic && mode != HISTOGRAM_VALUE,
-			config.automatic && mode != HISTOGRAM_VALUE,
+		int skip_widgets = (config.automatic && mode != HISTOGRAM_VALUE) ||
+            (config.automatic_v && mode == HISTOGRAM_VALUE);
+        ((HistogramWindow*)thread->window)->update(1,
+			!skip_widgets,
+			!skip_widgets,
 			0);
 
 		((HistogramWindow*)thread->window)->unlock_window();
@@ -186,6 +197,7 @@ void HistogramMain::save_data(KeyFrame *keyframe)
 	char string[BCTEXTLEN];
 
 	output.tag.set_property("AUTOMATIC", config.automatic);
+	output.tag.set_property("AUTOMATIC_V", config.automatic_v);
 	output.tag.set_property("THRESHOLD", config.threshold);
 	output.tag.set_property("PLOT", config.plot);
 	output.tag.set_property("SPLIT", config.split);
@@ -239,6 +251,7 @@ void HistogramMain::read_data(KeyFrame *keyframe)
 			if(input.tag.title_is("HISTOGRAM"))
 			{
 				config.automatic = input.tag.get_property("AUTOMATIC", config.automatic);
+				config.automatic_v = input.tag.get_property("AUTOMATIC_V", config.automatic_v);
 				config.threshold = input.tag.get_property("THRESHOLD", config.threshold);
 				config.plot = input.tag.get_property("PLOT", config.plot);
 				config.split = input.tag.get_property("SPLIT", config.split);
@@ -261,7 +274,8 @@ void HistogramMain::read_data(KeyFrame *keyframe)
 					sprintf(string, "GAMMA_%d", i);
 					config.gamma[i] = input.tag.get_property(string, config.gamma[i]);
 
-					if(i == HISTOGRAM_VALUE || !config.automatic)
+					if(!(config.automatic && i != HISTOGRAM_VALUE) &&
+                        !(config.automatic_v && i == HISTOGRAM_VALUE))
 					{
 						sprintf(string, "LOW_INPUT_%d", i);
 						config.low_input[i] = input.tag.get_property(string, config.low_input[i]);
@@ -379,48 +393,61 @@ void HistogramMain::calculate_histogram(VFrame *data, int do_value)
 }
 
 
-void HistogramMain::calculate_automatic(VFrame *data)
+void HistogramMain::calculate_automatic(VFrame *data, int do_value)
 {
-	calculate_histogram(data, 0);
-	config.reset_points(1);
+// must calculate RGB curves before generating the automatic histogram
+    if(do_value)
+    {
+        for(int i = 0; i < 3; i++)
+        {
+            tabulate_curve(i, 0);
+        }
+    }
+
+	calculate_histogram(data, do_value);
+	config.reset_points(!do_value, do_value);
 
 // Do each channel
-	for(int i = 0; i < 3; i++)
+	for(int i = 0; i < HISTOGRAM_MODES; i++)
 	{
-		int *accum = this->accum[i];
-		int pixels = data->get_w() * data->get_h();
-		float white_fraction = 1.0 - (1.0 - config.threshold) / 2;
-		int threshold = (int)(white_fraction * pixels);
-		int total = 0;
-		float max_level = 1.0;
-		float min_level = 0.0;
+        if((!do_value && i < 3) || 
+            (do_value && i == 3))
+        {
+		    int *accum = this->accum[i];
+		    int pixels = data->get_w() * data->get_h();
+		    float white_fraction = 1.0 - (1.0 - config.threshold) / 2;
+		    int threshold = (int)(white_fraction * pixels);
+		    int total = 0;
+		    float max_level = 1.0;
+		    float min_level = 0.0;
 
-// Get histogram slot above threshold of pixels
-		for(int j = 0; j < HISTOGRAM_SLOTS; j++)
-		{
-			total += accum[j];
-			if(total >= threshold)
-			{
-				max_level = (float)j / HISTOGRAM_SLOTS * FLOAT_RANGE + MIN_INPUT;
-				break;
-			}
-		}
+    // Get histogram slot above threshold % of pixels
+		    for(int j = 0; j < HISTOGRAM_SLOTS; j++)
+		    {
+			    total += accum[j];
+			    if(total >= threshold)
+			    {
+				    max_level = (float)j / HISTOGRAM_SLOTS * FLOAT_RANGE + MIN_INPUT;
+				    break;
+			    }
+		    }
 
-// Get slot below 99% of pixels
-		total = 0;
-		for(int j = HISTOGRAM_SLOTS - 1; j >= 0; j--)
-		{
-			total += accum[j];
-			if(total >= threshold)
-			{
-				min_level = (float)j / HISTOGRAM_SLOTS * FLOAT_RANGE + MIN_INPUT;
-				break;
-			}
-		}
+    // Get slot below threshold % of pixels
+		    total = 0;
+		    for(int j = HISTOGRAM_SLOTS - 1; j >= 0; j--)
+		    {
+			    total += accum[j];
+			    if(total >= threshold)
+			    {
+				    min_level = (float)j / HISTOGRAM_SLOTS * FLOAT_RANGE + MIN_INPUT;
+				    break;
+			    }
+		    }
 
 
-		config.low_input[i] = min_level;
-		config.high_input[i] = max_level;
+		    config.low_input[i] = min_level;
+		    config.high_input[i] = max_level;
+        }
 	}
 }
 
@@ -473,18 +500,21 @@ int HistogramMain::process_buffer(VFrame *frame,
 
 	if(need_reconfigure || 
 		!lookup[0] || 
-		config.automatic)
+		config.automatic ||
+        config.automatic_v)
 	{
 // Calculate new curves
-		if(config.automatic)
+		if(config.automatic || config.automatic_v)
 		{
-			calculate_automatic(input);
+			calculate_automatic(input, config.automatic_v);
 		}
 
 
-// Generate transfer tables with value function for integer colormodels.
+// Generate RGB transfer tables with baked value curve
 		for(int i = 0; i < 3; i++)
-			tabulate_curve(i, 1);
+		{
+        	tabulate_curve(i, 1);
+        }
 	}
 
 // printf("HistogramMain::process_buffer %d %f %f %f  %f %f %f  %f %f %f\n", 
@@ -873,7 +903,9 @@ HistogramUnit::HistogramUnit(HistogramEngine *server,
 	this->plugin = plugin;
 	this->server = server;
 	for(int i = 0; i < HISTOGRAM_MODES; i++)
-		accum[i] = new int[HISTOGRAM_SLOTS];
+	{
+    	accum[i] = new int[HISTOGRAM_SLOTS];
+    }
 }
 
 HistogramUnit::~HistogramUnit()
@@ -1177,7 +1209,8 @@ void HistogramUnit::process_package(LoadPackage *package)
 HistogramEngine::HistogramEngine(HistogramMain *plugin, 
 	int total_clients, 
 	int total_packages)
- : LoadServer(total_clients, total_packages)
+// : LoadServer(total_clients, total_packages)
+ : LoadServer(1, 1)
 {
 	this->plugin = plugin;
 }
@@ -1198,6 +1231,11 @@ void HistogramEngine::init_packages()
 	int package_size = (int)((float)total_size / 
 			get_total_packages() + 1);
 	int start = 0;
+
+// printf("HistogramEngine::HistogramEngine %d %d %d\n", 
+// __LINE__,
+// get_total_packages(),
+// get_total_clients());
 
 	for(int i = 0; i < get_total_packages(); i++)
 	{
