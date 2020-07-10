@@ -32,6 +32,7 @@ all: $(OBJDIR)/soundtest
 	$(MAKE) -f build/Makefile.tiff
 	$(MAKE) -f build/Makefile.toolame
 	$(MAKE) -f build/Makefile.uuid
+	$(MAKE) -f build/Makefile.libraw
 ifeq ($(HAVE_FIREWIRE), y)
 	$(MAKE) -C thirdparty/libraw1394*
 	$(MAKE) -C thirdparty/libiec61883*
@@ -77,6 +78,7 @@ clean:
 	$(MAKE) -f build/Makefile.uuid clean
 	rm -rf bin/*
 	make -C doc clean
+	$(MAKE) -f build/Makefile.libraw clean
 	$(MAKE) -i -C thirdparty/libraw1394* clean
 	$(MAKE) -i -C thirdparty/libiec61883* clean
 	$(MAKE) -i -C thirdparty/libavc1394* clean

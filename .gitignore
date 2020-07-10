@@ -4,3 +4,10 @@
 *.plugin
 *.so
 *.a
+*.lo
+*.plo
+*.la
+*.bak
+*.bak2
+*.bak3
+*.orig
