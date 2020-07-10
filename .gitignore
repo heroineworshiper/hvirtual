@@ -1,0 +1,6 @@
+*.o
+*.d
+.libs
+*.plugin
+*.so
+*.a
