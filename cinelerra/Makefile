@@ -9,7 +9,8 @@ FFMPEG_DIR := $(shell expr ../quicktime/thirdparty/ffmpeg* )
 JPEG_DIR := $(shell expr ../quicktime/thirdparty/jpeg-mmx* )
 LAME_DIR := ../quicktime/thirdparty/lame-3.93.1/include
 LIBIEC_DIR := $(shell expr ../thirdparty/libiec61883* )
-LIBRAW_DIR := $(shell expr ../thirdparty/libraw1394* )
+LIBRAW1394_DIR := $(shell expr ../thirdparty/libraw1394* )
+LIBRAW_DIR := $(shell expr ../thirdparty/LibRaw* )
 OGG_DIR := $(shell expr ../quicktime/thirdparty/libogg* )
 SNDFILE_DIR := $(shell expr ../thirdparty/libsndfile* )
 THEORA_DIR := $(shell expr ../thirdparty/libtheora* )
@@ -21,13 +22,14 @@ VORBIS_DIR := $(shell expr ../quicktime/thirdparty/libvorbis* )
 PULSE_DIR := $(shell expr ../thirdparty/pulseaudio-* )
 
 AVC_LIB := $(AVC_DIR)/libavc1394/.libs/libavc1394.a $(AVC_DIR)/librom1394/.libs/librom1394.a
-RAW_LIB := $(LIBRAW_DIR)/src/.libs/libraw1394.a
+RAW1394_LIB := $(LIBRAW1394_DIR)/src/.libs/libraw1394.a
 IEC_LIB := $(LIBIEC_DIR)/src/.libs/libiec61883.a
 THEORA_LIB := $(THEORA_DIR)/lib/.libs/libtheora.a
 #PULSE_LIB := -L$(PULSE_DIR)/src/.libs/ -lpulse -lpulse-simple
 PULSE_LIB := $(PULSE_DIR)/src/.libs/libpulse-simple.a \
 	$(PULSE_DIR)/src/.libs/libpulse.a \
 	$(PULSE_DIR)/src/.libs/libpulsecommon*.a 
+RAW_LIB := $(LIBRAW_DIR)/libraw.a
 
 EXR_INCLUDES := \
 	-I$(ILMDIR)/Iex/ \
@@ -349,6 +351,7 @@ FILEEXR := $(OBJDIR)/fileexr.o
 FILEFLAC := $(OBJDIR)/fileflac.o
 FFMPEG_OBJS := $(OBJDIR)/fileffmpeg.o \
 	$(OBJDIR)/fileac3.o
+FILECR3 := $(OBJDIR)/filecr3.o
 DCRAW := $(OBJDIR)/dcraw.o
 AUDIOPULSE := $(OBJDIR)/audiopulse.o
 
@@ -367,6 +370,7 @@ AVIFILE_DIR := $(shell expr ../avifile* )
 STATICLIBS = \
 	$(AVC_LIB) \
 	$(RAW_LIB) \
+        $(RAW1394_LIB) \
 	$(IEC_LIB) \
 	../quicktime/$(OBJDIR)/libquicktime.a \
         $(ESOUNDLIBS) \
@@ -439,7 +443,7 @@ CFLAGS += \
 	-I$(DV_DIR) \
 	-I$(OGG_DIR)/include \
 	-I$(VORBIS_DIR)/include \
-	-I$(LIBRAW_DIR)/ \
+	-I$(LIBRAW1394_DIR)/ \
 	-I$(AVC_DIR) \
 	-I$(LIBIEC_DIR)/src/ \
 	-I$(GIF_DIR)/lib \
@@ -514,7 +518,7 @@ FFMPEG_CFLAGS := \
 
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
 $(shell echo $(CFLAGS) $(FFMPEG_CFLAGS) -D__STDC_CONSTANT_MACROS > $(OBJDIR)/ffmpeg_cflags)
-$(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(AVIOBJS) $(CXXREPOSITORY) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
+$(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(FILECR3) $(AVIOBJS) $(CXXREPOSITORY) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
 
 
 
@@ -523,7 +527,7 @@ $(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $
 # Static linking is not possible because the plugins depend on symbols
 # in the main executable.
 # Also VFS only overrides the C library when dynamic linking is used.
-$(OUTPUT): $(OBJS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
+$(OUTPUT): $(OBJS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILECR3) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
 	$(LINKER) `cat $(OBJDIR)/objs`
 #	strip $(OUTPUT)
 
@@ -569,6 +573,9 @@ $(FILEEXR): fileexr.C
 
 $(FILEFLAC): fileflac.C
 	$(CC) `cat $(OBJDIR)/c_flags` -I$(FLAC_DIR)/include $(subst $(OBJDIR)/,, $*.C) -o $*.o
+
+$(FILECR3): filecr3.C
+	$(CC) `cat $(OBJDIR)/c_flags` -I$(LIBRAW_DIR) $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 $(FFMPEG_OBJS):
 	$(CC) `cat $(OBJDIR)/ffmpeg_cflags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
@@ -683,6 +690,7 @@ $(OBJDIR)/filebaseima4.o: 			  filebaseima4.C
 $(OBJDIR)/filebaseulaw.o: 			  filebaseulaw.C
 $(OBJDIR)/filebasevideo.o: 			  filebasevideo.C
 $(OBJDIR)/filecr2.o:                              filecr2.C
+$(OBJDIR)/filecr3.o:                              filecr3.C
 $(OBJDIR)/fileffmpeg.o:                           fileffmpeg.C
 $(OBJDIR)/filefork.o:	 			  filefork.C
 $(OBJDIR)/filescene.o:                            filescene.C

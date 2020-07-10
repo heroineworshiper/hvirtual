@@ -30,6 +30,7 @@
 #include "fileavi.h"
 #include "filebase.h"
 #include "filecr2.h"
+#include "filecr3.h"
 #include "fileexr.h"
 #include "fileffmpeg.h"
 #include "fileflac.h"
@@ -625,7 +626,7 @@ int File::open_file(Preferences *preferences,
 
 			if(FileScene::check_sig(this->asset, test))
 			{
-// libsndfile
+// script
 				fclose(stream);
 				file = new FileScene(this->asset, this);
 			}
@@ -677,6 +678,13 @@ int File::open_file(Preferences *preferences,
 // CR2 file
 				fclose(stream);
 				file = new FileCR2(this->asset, this);
+			}
+			else
+			if(FileCR3::check_sig(this->asset))
+			{
+// CR3 file
+				fclose(stream);
+				file = new FileCR3(this->asset, this);
 			}
 			else
 			if(FileTGA::check_sig(this->asset))
@@ -801,6 +809,11 @@ int File::open_file(Preferences *preferences,
 		case FILE_CR2:
 		case FILE_CR2_LIST:
 			file = new FileCR2(this->asset, this);
+			break;
+
+		case FILE_CR3:
+		case FILE_CR3_LIST:
+			file = new FileCR3(this->asset, this);
 			break;
 
 		case FILE_TGA_LIST:
@@ -1287,28 +1300,28 @@ int File::start_video_thread(int buffer_size,
 	return 0;
 }
 
-int File::start_video_decode_thread()
-{
-#ifdef USE_FILEFORK
-	if(!is_fork && file_fork)
-	{
-		file_fork->send_command(FileFork::START_VIDEO_DECODE_THREAD, 0, 0);
-		file_fork->read_result();
-		return 0;
-	}
-#endif
-
-
-// Currently, CR2 is the only one which won't work asynchronously, so
-// we're not using a virtual function yet.
-	if(!video_thread /* && asset->format != FILE_CR2 */)
-	{
-		video_thread = new FileThread(this, 0, 1);
-		video_thread->start_reading();
-		use_cache = 0;
-	}
-	return 0;
-}
+// int File::start_video_decode_thread()
+// {
+// #ifdef USE_FILEFORK
+// 	if(!is_fork && file_fork)
+// 	{
+// 		file_fork->send_command(FileFork::START_VIDEO_DECODE_THREAD, 0, 0);
+// 		file_fork->read_result();
+// 		return 0;
+// 	}
+// #endif
+// 
+// 
+// // Currently, CR2 is the only one which won't work asynchronously, so
+// // we're not using a virtual function yet.
+// 	if(!video_thread /* && asset->format != FILE_CR2 */)
+// 	{
+// 		video_thread = new FileThread(this, 0, 1);
+// 		video_thread->start_reading();
+// 		use_cache = 0;
+// 	}
+// 	return 0;
+// }
 
 int File::stop_audio_thread()
 {

@@ -70,6 +70,8 @@
 #define FILE_EXR_LIST           27
 #define FILE_CR2                28
 #define FILE_CR2_LIST           35
+#define FILE_CR3                38
+#define FILE_CR3_LIST           39
 #define FILE_VORBIS             31
 #define FILE_FFMPEG             33
 #define FILE_SCENE              34

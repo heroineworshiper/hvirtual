@@ -78,12 +78,12 @@ int EditPopup::update(Track *track, Edit *edit)
     {
     	remove_item(resize_option);
     }
-    
+
     if(matchsize_option)
     {
     	remove_item(matchsize_option);
     }
-    
+
     if(info)
     {
         remove_item(info);

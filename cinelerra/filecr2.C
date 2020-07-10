@@ -61,9 +61,16 @@ void FileCR2::reset()
 
 int FileCR2::check_sig(Asset *asset)
 {
-	char *ptr = strstr(asset->path, ".pcm");
-	if(ptr) return 0;
-//printf("FileCR2::check_sig %d\n", __LINE__);
+    int len = strlen(asset->path);
+    if(len > 4)
+    {
+        if(!strcasecmp(asset->path + len - 4, ".cr2"))
+        {
+            return 1;
+        }
+    }
+
+// check for file list
 	FILE *stream = fopen(asset->path, "rb");
 
 	if(stream)
@@ -82,7 +89,7 @@ int FileCR2::check_sig(Asset *asset)
 
 //printf("FileCR2::check_sig %d\n", __LINE__);
 
-
+//  use library
 	char string[BCTEXTLEN];
 	int argc = 3;
 

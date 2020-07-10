@@ -28,6 +28,7 @@
 #include "bcbitmap.h"
 #include "bcbutton.h"
 #include "bcclipboard.h"
+#include "bcdisplayinfo.h"
 #include "bcdragwindow.h"
 #include "bclistboxitem.h"
 #include "bcpan.h"

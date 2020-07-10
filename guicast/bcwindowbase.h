@@ -487,6 +487,7 @@ public:
 // Change the window title.  The title is translated internally.
 	void set_title(const char *text);
 	char* get_title();
+// draw bitmaps to the foreground/win instead of the back buffer/pixmap
 	void start_video();
 	void stop_video();
 	int get_id();

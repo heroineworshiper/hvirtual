@@ -260,6 +260,13 @@ void FileFFMPEGStream::append_index(void *ptr,
                     value = input[j];
                 }
                 break;
+            
+                case AV_SAMPLE_FMT_S32P:
+                {
+                    int32_t *input = (int32_t*)frame->data[i];
+                    value = (float)input[j] / 0x7fffffff;
+                }
+                break;
 
                 default:
 				    printf("FileFFMPEGStream::append_index %d: unsupported audio format %d\n", 
@@ -1158,7 +1165,7 @@ int FileFFMPEG::create_toc(void *ptr)
 			}
 
 // update the progress bar            
-            if(new_time.get_difference() >= 1000 && offset > 0)
+            if(new_time.get_difference() >= 50 && offset > 0)
             {
                 new_time.update();
                 

@@ -38,47 +38,58 @@
 
 
 ResizeTrackThread::ResizeTrackThread(MWindow *mwindow, int track_number)
- : Thread()
+ : BC_DialogThread()
 {
 	this->mwindow = mwindow;
 	this->track_number = track_number;
-	window = 0;
 }
 
 ResizeTrackThread::~ResizeTrackThread()
 {
-	if(window)
-	{
-		window->lock_window();
-		window->set_done(1);
-		window->unlock_window();
-	}
-
-	Thread::join();
+// PRINT_TRACE
+// 	if(window)
+// 	{
+// 		window->lock_window();
+// 		window->set_done(1);
+// 		window->unlock_window();
+// 	}
+// PRINT_TRACE
+// 
+// 	Thread::join();
+// PRINT_TRACE
 }
 
 void ResizeTrackThread::start_window(Track *track, int track_number)
 {
-	this->track_number = track_number;
-	w1 = w = track->track_w;
-	h1 = h = track->track_h;
-	w_scale = h_scale = 1;
-	start();
+	if(!BC_DialogThread::is_running())
+    {
+	    this->track_number = track_number;
+	    w1 = w = track->track_w;
+	    h1 = h = track->track_h;
+	    w_scale = h_scale = 1;
+        mwindow->gui->unlock_window();
+	    BC_DialogThread::start();
+        mwindow->gui->lock_window("ResizeTrackThread::start_window");
+    }
 }
 
-
-void ResizeTrackThread::run()
+BC_Window* ResizeTrackThread::new_gui()
 {
-	ResizeTrackWindow *window = this->window = 
+	ResizeTrackWindow *window = 
 		new ResizeTrackWindow(mwindow, 
 			this,
 			mwindow->gui->get_abs_cursor_x(1),
 			mwindow->gui->get_abs_cursor_y(1));
 	window->create_objects();
-	int result = window->run_window();
-	this->window = 0;
-	delete window;
+    return window;
+}
 
+void ResizeTrackThread::handle_done_event(int result)
+{
+}
+
+void ResizeTrackThread::handle_close_event(int result)
+{
 
 	if(!result)
 	{
@@ -99,6 +110,40 @@ void ResizeTrackThread::run()
 			"it can't be rendered by OpenGL."));
 	}
 }
+
+
+// void ResizeTrackThread::run()
+// {
+// 	ResizeTrackWindow *window = this->window = 
+// 		new ResizeTrackWindow(mwindow, 
+// 			this,
+// 			mwindow->gui->get_abs_cursor_x(1),
+// 			mwindow->gui->get_abs_cursor_y(1));
+// 	window->create_objects();
+// 	int result = window->run_window();
+// 	this->window = 0;
+// 	delete window;
+// 
+// 
+// 	if(!result)
+// 	{
+// 		Track *track = mwindow->edl->tracks->get_item_number(track_number);
+// 
+// 		if(track)
+// 		{
+// 			mwindow->resize_track(track, w, h);
+// 		}
+// 	}
+// 
+// 	if(((w % 4) || 
+// 		(h % 4)) && 
+// 		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
+// 	{
+// 		MainError::show_error(
+// 			_("This track's dimensions are not multiples of 4 so\n"
+// 			"it can't be rendered by OpenGL."));
+// 	}
+// }
 
 
 #define WINDOW_W DP(350)

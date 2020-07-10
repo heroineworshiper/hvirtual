@@ -413,6 +413,14 @@ int OverlayFrame::overlay(VFrame *output,
 
     if(!sample_engine) sample_engine = new SampleEngine(cpus);
 
+// printf("OverlayFrame::overlay %d in_x1=%f in_x2=%f temp_y1=%f temp_y2=%f temp_w=%d\n", 
+//     __LINE__,
+//     in_x1,
+//     in_x2,
+//     temp_y1,
+//     temp_y2,
+//     temp_w);
+// input -> temp
     sample_engine->output = temp_frame;
     sample_engine->input = input;
     sample_engine->kernel = kernel[xtype];
@@ -428,6 +436,7 @@ int OverlayFrame::overlay(VFrame *output,
     sample_engine->mode = TRANSFER_REPLACE;
     sample_engine->process_packages();
 
+// temp -> output
     sample_engine->output = output;
     sample_engine->input = temp_frame;
     sample_engine->kernel = kernel[ytype];
@@ -1458,7 +1467,7 @@ LoadPackage* NNEngine::new_package(){
 
 #define SAMPLE_3(max, temp_type, type, chroma_offset, round)            \
   {                                                                     \
-    float temp[oh*3];                                                   \
+    float temp[out_h*3];                                                   \
     type **output_rows = (type**)voutput->get_rows()+o1i;               \
     type **input_rows = (type**)vinput->get_rows();                     \
     temp_type opacity = (alpha * max + round);                          \
@@ -1473,31 +1482,41 @@ LoadPackage* NNEngine::new_package(){
         temp_type input2 = chroma_offset;                               \
         temp_type input3 = chroma_offset;                               \
         temp_type input4 = 0;                                           \
-        for(int j = 0; j < oh; j++){                                    \
+        for(int j = 0; j < out_h; j++){                                    \
           type *output = output_rows[j]+i*4;                            \
           BLEND_4(max, temp_type, type, chroma_offset);                 \
         }                                                               \
                                                                         \
-      }else{                                                            \
-                                                                        \
-        type *input = input_rows[i-engine->col_out1+engine->row_in];    \
+      } \
+      else \
+      {                                                            \
+        int input_index = i - engine->col_out1 + engine->row_in; \
+ \
+        if(input_index < 0 || input_index >= vinput->get_h()) \
+        { \
+            printf("SAMPLE_3 1 input_index=%d\n", input_index); \
+            continue; \
+        } \
+ \
+        type *input = input_rows[input_index];    \
         float *tempp = temp;                                            \
                                                                         \
         if(!k){                                                         \
           /* direct copy case */                                        \
           type *ip = input+i1i*3;                                       \
-          for(int j = 0; j < oh; j++){                                  \
+          for(int j = 0; j < out_h; j++){                                  \
             *tempp++ = *ip++;                                           \
             *tempp++ = (*ip++) - chroma_offset;                         \
             *tempp++ = (*ip++) - chroma_offset;                         \
           }                                                             \
         }else{                                                          \
           /* resample */                                                \
-          for(int j = 0; j < oh; j++) {                                 \
-            float racc=0.f,gacc=0.f,bacc=0.f;                           \
+          for(int j = 0; j < out_h; j++) \
+          {                                 \
+            float racc = 0.f, gacc = 0.f, bacc = 0.f;                           \
             int ki = lookup_sk[j];                                      \
             int x = lookup_sx0[j];                                      \
-            type *ip = input+x*3;                                       \
+            type *ip = input + x * 3;                                       \
             float wacc = 0;                                             \
             while(x++<lookup_sx1[j]){                                   \
               float kv = k[abs(ki>>INDEX_FRACTION)];                    \
@@ -1523,13 +1542,13 @@ LoadPackage* NNEngine::new_package(){
         temp[0] *= o1f;                                                 \
         temp[1] *= o1f;                                                 \
         temp[2] *= o1f;                                                 \
-        temp[oh*3-3] *= o2f;                                            \
-        temp[oh*3-2] *= o2f;                                            \
-        temp[oh*3-1] *= o2f;                                            \
+        temp[out_h*3-3] *= o2f;                                            \
+        temp[out_h*3-2] *= o2f;                                            \
+        temp[out_h*3-1] *= o2f;                                            \
         tempp=temp;                                                     \
                                                                         \
         /* blend output */                                              \
-        for(int j = 0; j < oh; j++){                                    \
+        for(int j = 0; j < out_h; j++){                                    \
           type *output = output_rows[j]+i*3;                            \
           temp_type input1 = *tempp++ + round;                          \
           temp_type input2 = (*tempp++) + chroma_offset + round;        \
@@ -1542,35 +1561,46 @@ LoadPackage* NNEngine::new_package(){
 
 #define SAMPLE_4(max, temp_type, type, chroma_offset, round)            \
   {                                                                     \
-    float temp[oh*4];                                                   \
-    type **output_rows = (type**)voutput->get_rows()+o1i;               \
+    float temp[out_h * 4];                                                   \
+    type **output_rows = (type**)voutput->get_rows() + o1i;               \
     type **input_rows = (type**)vinput->get_rows();                     \
     temp_type opacity = (alpha * max + round);                          \
     temp_type transparency = max - opacity;                             \
                                                                         \
-    for(int i = pkg->out_col1; i < pkg->out_col2; i++){                 \
+    for(int i = pkg->out_col1; i < pkg->out_col2; i++) \
+    {                 \
                                                                         \
-      if(opacity==0){                                                   \
+      if(opacity==0) \
+      {                                                   \
                                                                         \
         /* don't bother resampling if the frame is invisible */         \
         temp_type input1 = 0;                                           \
         temp_type input2 = chroma_offset;                               \
         temp_type input3 = chroma_offset;                               \
         temp_type input4 = 0;                                           \
-        for(int j = 0; j < oh; j++){                                    \
+        for(int j = 0; j < out_h; j++){                                    \
           type *output = output_rows[j]+i*4;                            \
           BLEND_4(max, temp_type, type, chroma_offset);                 \
         }                                                               \
                                                                         \
-      }else{                                                            \
-                                                                        \
-        type *input = input_rows[i-engine->col_out1+engine->row_in];    \
+      } \
+      else \
+      {                                                            \
+        int input_index = i - engine->col_out1 + engine->row_in; \
+ \
+        if(input_index < 0 || input_index >= vinput->get_h()) \
+        { \
+            printf("SAMPLE_4 1 input_index=%d\n", input_index); \
+            continue; \
+        } \
+ \
+        type *input = input_rows[input_index ];    \
         float *tempp = temp;                                            \
                                                                         \
         if(!k){                                                         \
           /* direct copy case */                                        \
           type *ip = input+i1i*4;                                       \
-          for(int j = 0; j < oh; j++){                                  \
+          for(int j = 0; j < out_h; j++){                                  \
             *tempp++ = *ip++;                                           \
             *tempp++ = (*ip++) - chroma_offset;                         \
             *tempp++ = (*ip++) - chroma_offset;                         \
@@ -1578,15 +1608,17 @@ LoadPackage* NNEngine::new_package(){
           }                                                             \
         }else{                                                          \
           /* resample */                                                \
-          for(int j = 0; j < oh; j++) {                                 \
-            float racc=0.f,gacc=0.f,bacc=0.f,aacc=0.f;                  \
+          for(int j = 0; j < out_h; j++) \
+          {                                 \
+            float racc = 0.f, gacc = 0.f, bacc = 0.f, aacc = 0.f;                  \
             int ki = lookup_sk[j];                                      \
             int x = lookup_sx0[j];                                      \
-            type *ip = input+x*4;                                       \
+            type *ip = input + x * 4;                                       \
             float wacc = 0;                                             \
             float awacc = 0;                                            \
-            while(x++<lookup_sx1[j]){                                   \
-              float kv = k[abs(ki>>INDEX_FRACTION)];                    \
+            while(x++ < lookup_sx1[j]) \
+            {                                   \
+              float kv = k[abs(ki >> INDEX_FRACTION)];                    \
                                                                         \
               /* handle fractional pixels on edges of input */          \
               if (x==i1i) kv*=i1f;                                      \
@@ -1618,14 +1650,14 @@ LoadPackage* NNEngine::new_package(){
         temp[1] *= o1f;                                                 \
         temp[2] *= o1f;                                                 \
         temp[3] *= o1f;                                                 \
-        temp[oh*4-4] *= o2f;                                            \
-        temp[oh*4-3] *= o2f;                                            \
-        temp[oh*4-2] *= o2f;                                            \
-        temp[oh*4-1] *= o2f;                                            \
+        temp[out_h*4-4] *= o2f;                                            \
+        temp[out_h*4-3] *= o2f;                                            \
+        temp[out_h*4-2] *= o2f;                                            \
+        temp[out_h*4-1] *= o2f;                                            \
         tempp=temp;                                                     \
                                                                         \
         /* blend output */                                              \
-        for(int j = 0; j < oh; j++){                                    \
+        for(int j = 0; j < out_h; j++){                                    \
           type *output = output_rows[j]+i*4;                            \
           temp_type input1 = *tempp++ + round;                          \
           temp_type input2 = (*tempp++) + chroma_offset + round;        \
@@ -1672,7 +1704,7 @@ void SampleUnit::process_package(LoadPackage *package){
   float  opacity = alpha;
   float  transparency = 1.0 - alpha;
 
-  int   iw  = vinput->get_w();
+  int   in_w  = vinput->get_w();
   int   i1i = floor(i1);
   int   i2i = ceil(i2);
   float i1f = 1.f-i1+i1i;
@@ -1682,7 +1714,7 @@ void SampleUnit::process_package(LoadPackage *package){
   int   o2i = ceil(o2);
   float o1f = 1.f-o1+o1i;
   float o2f = 1.f-o2i+o2;
-  int   oh  = o2i - o1i;
+  int   out_h  = o2i - o1i;
 
   float *k  = engine->kernel->lookup;
   float kw  = engine->kernel->width;
@@ -1717,8 +1749,8 @@ void SampleUnit::process_package(LoadPackage *package){
   }
 }
 
-SampleEngine::SampleEngine(int cpus) : LoadServer(cpus, cpus){
-//SampleEngine::SampleEngine(int cpus) : LoadServer(1, 1){
+//SampleEngine::SampleEngine(int cpus) : LoadServer(cpus, cpus){
+SampleEngine::SampleEngine(int cpus) : LoadServer(1, 1){
   lookup_sx0 = 0;
   lookup_sx1 = 0;
   lookup_sk = 0;
@@ -1738,15 +1770,15 @@ void SampleEngine::init_packages(){
      output columns (it makes for more economical memory addressing
      during convolution) */
 
-  int   iw  = input->get_w();
+  int   in_w  = input->get_w();
   int   i1i = floor(in1);
   int   i2i = ceil(in2);
   float i1f = 1.f-in1+i1i;
   float i2f = 1.f-i2i+in2;
 
-  int   oy  = floor(out1);
-  float oyf = out1-oy;
-  int   oh  = ceil(out2) - oy;
+  int   out_y  = floor(out1);
+  float out_y_f = out1 - out_y;
+  int   out_h  = ceil(out2) - out_y;
 
   float *k  = kernel->lookup;
   float kw  = kernel->width;
@@ -1767,17 +1799,17 @@ void SampleEngine::init_packages(){
   if(lookup_sk)delete[]lookup_sk;
   if(lookup_wacc)delete[]lookup_wacc;
 
-  lookup_sx0 = new int[oh];
-  lookup_sx1 = new int[oh];
-  lookup_sk = new int[oh];
-  lookup_wacc = new float[oh];
+  lookup_sx0 = new int[out_h];
+  lookup_sx1 = new int[out_h];
+  lookup_sk = new int[out_h];
+  lookup_wacc = new float[out_h];
 
   kd = (double)coeff*(1<<INDEX_FRACTION)+.5;
 
   /* precompute kernel values and weight sums */
-  for(int i=0;i<oh;i++){
+  for(int i=0;i<out_h;i++){
     /* map destination back to source */
-    double sx = (i-oyf+.5)*iscale+in1-.5;
+    double sx = (i-out_y_f+.5)*iscale+in1-.5;
 
     /* clip iteration to source area but not source plane. Points
        outside the source plane count as transparent. Points outside
@@ -1807,7 +1839,7 @@ void SampleEngine::init_packages(){
           wacc += k[abs(kv)];
 
         /* this is where we clip the kernel convolution to the source plane */
-        if(j>=0 && j<iw){
+        if(j>=0 && j<in_w){
           if(lookup_sx0[i]==-1){
             lookup_sx0[i] = j;
             lookup_sk[i] = ki;

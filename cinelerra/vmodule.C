@@ -552,11 +552,11 @@ int VModule::import_frame(VFrame *output,
 					}
 
 
-					if(debug) printf("VModule::import_frame %d this=%p nested_edl=%s input2=%p\n", 
+					if(debug) printf("VModule::import_frame %d this=%p nested_edl=%s nested_position=%d\n", 
 						__LINE__,
 						this,
 						nested_edl->path,
-						input2);
+						(int)nested_position);
 
 					result = nested_renderengine->vrender->process_buffer(
 						input2, 
@@ -729,6 +729,7 @@ output->get_opengl_state(),
 						1,
 						mode,
 						get_edl()->session->interpolation_type);
+					if(debug) printf("VModule::import_frame %d temp -> output\n", __LINE__);
 				}
 				result = 1;
 				

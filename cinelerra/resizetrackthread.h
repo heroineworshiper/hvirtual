@@ -26,6 +26,7 @@
 
 
 
+#include "bcdialog.h"
 #include "guicast.h"
 #include "mutex.inc"
 #include "mwindow.inc"
@@ -35,16 +36,17 @@
 
 class ResizeTrackWindow;
 
-class ResizeTrackThread : public Thread
+class ResizeTrackThread : public BC_DialogThread
 {
 public:
 	ResizeTrackThread(MWindow *mwindow, int track_number);
 	~ResizeTrackThread();
 
 	void start_window(Track *track, int track_number);
-	void run();
+    BC_Window* new_gui();
+	void handle_done_event(int result);
+	void handle_close_event(int result);
 
-	ResizeTrackWindow *window;
 	MWindow *mwindow;
 	int track_number;
 	int w, h;

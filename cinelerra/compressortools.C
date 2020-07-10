@@ -413,6 +413,11 @@ double CompressorConfigBase::calculate_gain(int band, double input_linear)
 {
 	double output_linear = calculate_output(band, input_linear);
 	double gain;
+// printf("CompressorConfigBase::calculate_gain %d %f %f %f\n", 
+// __LINE__, 
+// input_linear, 
+// output_linear,
+// min_value);
 
 // output is below minimum.  Mute it
     if(output_linear < min_value)
@@ -420,15 +425,15 @@ double CompressorConfigBase::calculate_gain(int band, double input_linear)
         gain = 0.0;
     }
     else
-// input is below minimum.  Don't change it.
-    if(fabs(input_linear - 0.0) < min_value)
-    {
-        gain = 1.0;
-    }
-    else
 	{
     	gain = output_linear / input_linear;
 	}
+
+// test for division by zero
+    if(isinf(gain) ||  isnan(gain) || gain > 1000000)
+    {
+        gain = 1.0;
+    }
 
 	return gain;
 }

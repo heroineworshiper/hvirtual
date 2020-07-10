@@ -183,9 +183,9 @@ __LINE__,
 (long long)input_position,
 (long long)source_position);
 
-		if(use_asynchronous)
-			file->start_video_decode_thread();
-		else
+// 		if(use_asynchronous)
+// 			file->start_video_decode_thread();
+// 		else
 			file->stop_video_thread();
 if(debug) printf("VEdit::read_frame %d\n", __LINE__);
 
