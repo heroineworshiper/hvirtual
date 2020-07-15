@@ -460,7 +460,7 @@ int Overlay::process_buffer(VFrame **frame,
 	load_configuration();
 
 
-printf("Overlay::process_buffer mode=%d\n", config.mode);
+//printf("Overlay::process_buffer mode=%d\n", config.mode);
 	if(!temp) temp = new VFrame(0,
 		-1,
 		frame[0]->get_w(),

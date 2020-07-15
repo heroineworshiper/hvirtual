@@ -895,6 +895,7 @@ __LINE__, title, event);
 			event_win = event->xany.window;
 			if (button_number < 6)
 	  		{
+                int prev_button_pressed = button_pressed;
 				if(button_number < 4)
 					button_down = 1;
 				button_pressed = event->xbutton.button;
@@ -909,12 +910,14 @@ __LINE__, title, event);
 				drag_y1 = cursor_y - get_resources()->drag_radius;
 				drag_y2 = cursor_y + get_resources()->drag_radius;
 
-				if(button_time3 - button_time1 < resources.double_click * 2)
+				if(prev_button_pressed == button_pressed &&
+                    button_time3 - button_time1 < resources.double_click * 2)
 				{
 					triple_click = 1;
 					button_time3 = button_time2 = button_time1 = 0;
 				}
-				if(button_time3 - button_time2 < resources.double_click)
+				if(prev_button_pressed == button_pressed &&
+                    button_time3 - button_time2 < resources.double_click)
 				{
 					double_click = 1; 
 	//				button_time3 = button_time2 = button_time1 = 0;

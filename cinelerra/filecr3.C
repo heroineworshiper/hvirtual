@@ -60,7 +60,8 @@ int FileCR3::check_sig(Asset *asset)
     int len = strlen(asset->path);
     if(len > 4)
     {
-        if(!strcasecmp(asset->path + len - 4, ".cr3"))
+        if(!strcasecmp(asset->path + len - 4, ".cr3") ||
+            !strcasecmp(asset->path + len - 4, ".cr2"))
         {
             return 1;
         }
@@ -76,8 +77,10 @@ int FileCR3::check_sig(Asset *asset)
 		int temp = fread(test, 10, 1, stream);
 		fclose(stream);
 
-		if(test[0] == 'C' && test[1] == 'R' && test[2] == '3' && 
-			test[3] == 'L' && test[4] == 'I' && test[5] == 'S' && test[6] == 'T')
+		if((test[0] == 'C' && test[1] == 'R' && test[2] == '3' && 
+			test[3] == 'L' && test[4] == 'I' && test[5] == 'S' && test[6] == 'T') ||
+            (test[0] == 'C' && test[1] == 'R' && test[2] == '2' && 
+			test[3] == 'L' && test[4] == 'I' && test[5] == 'S' && test[6] == 'T'))
 		{
 			return 1;
 		}
@@ -92,6 +95,11 @@ int FileCR3::read_frame_header(char *path)
     int err = 0;
     LibRaw* libraw = new LibRaw;
     err = libraw->open_file(path);
+//     printf("FileCR3::read_frame_header %d path=%s err=%d\n",
+//         __LINE__,
+//         path,
+//         err);
+
     if(err)
     {
         return 1;
@@ -121,17 +129,25 @@ int FileCR3::read_frame(VFrame *frame, char *path)
 {
     int err = 0;
     LibRaw* libraw = new LibRaw;
-    err = libraw->open_file(asset->path);
+    err = libraw->open_file(path);
     if(err)
     {
+        printf("FileCR3::read_frame %d path=%s err=%d\n",
+            __LINE__,
+            path,
+            err);
         return 1;
     }
 
 
-//     printf("FileCR3::read_frame %d\n",
-//         __LINE__);
 
     libraw->unpack();
+
+// printf("FileCR3::read_frame %d use_camera_wb=%d\n",
+// __LINE__,
+// libraw->imgdata.params.use_camera_wb,
+// err);
+    libraw->imgdata.params.use_camera_wb = 1;
     libraw->dcraw_process();
 
     int width;

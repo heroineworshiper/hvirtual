@@ -105,10 +105,10 @@ int FileList::open_file(int rd, int wr)
 				int temp = fread(string, strlen(list_prefix), 1, stream);
 				fclose(stream);
 
+//printf("FileList::open_file %d string=%s list_prefix=%s\n", __LINE__, string, list_prefix);
 				if(!strncasecmp(string, list_prefix, strlen(list_prefix)))
 				{
 
-//printf("FileList::open_file %d\n", __LINE__);
 					asset->format = list_type;
 
 // Open index here or get frame size from file.
@@ -118,7 +118,6 @@ int FileList::open_file(int rd, int wr)
 				}
 				else
 				{
-//printf("FileList::open_file 2\n", asset->use_header);
 //printf("FileList::open_file %d\n", __LINE__);
 					asset->format = frame_type;
 					result = read_frame_header(asset->path);
@@ -128,6 +127,10 @@ int FileList::open_file(int rd, int wr)
 					asset->video_length = -1;
 				}
 			}
+            else
+            {
+                printf("FileList::open_file %d asset->path=%s\n", __LINE__, asset->path);
+            }
 		}
 		else
 		{
@@ -262,10 +265,9 @@ int FileList::read_frame(VFrame *frame)
 {
 	int result = 0;
 
-//	PRINT_TRACE
-// printf("FileList::read_frame %d %d use_header=%d current_frame=%d total=%d\n", 
+// printf("FileList::read_frame %d format=%d use_header=%d current_frame=%d total=%d\n", 
 // __LINE__, 
-// result,
+// asset->format,
 // asset->use_header,
 // file->current_frame,
 // path_list.total);
