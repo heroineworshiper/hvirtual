@@ -290,7 +290,7 @@ void VFrame::create_pbuffer()
     }
     if((fixed_h % 4))
     {
-        fixed_h = fixed_h + (16 - (fixed_h % 4));
+        fixed_h = fixed_h + (4 - (fixed_h % 4));
     }
 
 // 	if((get_w() % 4) || (get_h() % 4))
