@@ -60,6 +60,8 @@ private:
 #endif
 	int w;
 	int h;
+    int gl_w;
+    int gl_h;
 	int window_id;
 };
 

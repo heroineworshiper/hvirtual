@@ -87,6 +87,8 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
 // Calculate dimensions of texture
 	int new_w = calculate_texture_size(w, &max_texture_size);
 	int new_h = calculate_texture_size(h, &max_texture_size);
+//	int new_w = w;
+//	int new_h = h;
 	int new_components = BC_CModels::components(colormodel);
 
 
@@ -142,7 +144,8 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
 		glBindTexture(GL_TEXTURE_2D, (GLuint)texture_id);
 		glEnable(GL_TEXTURE_2D);
 		if(texture_components == 4)
-			glTexImage2D(GL_TEXTURE_2D, 
+		{
+        	glTexImage2D(GL_TEXTURE_2D, 
 				0, 
 				4, 
 				texture_w, 
@@ -151,8 +154,10 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
 				GL_RGBA, 
 				GL_UNSIGNED_BYTE,
     			0);
-		else
-			glTexImage2D(GL_TEXTURE_2D, 
+		}
+        else
+		{
+        	glTexImage2D(GL_TEXTURE_2D, 
 				0, 
 				3, 
 				texture_w, 
@@ -161,6 +166,7 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
 				GL_RGB, 
 				GL_UNSIGNED_BYTE,
     			0);
+        }
 
 		window_id = BC_WindowBase::get_synchronous()->current_window->get_id();
 		BC_WindowBase::get_synchronous()->put_texture(texture_id,
@@ -183,17 +189,26 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
 
 int BC_Texture::calculate_texture_size(int w, int *max)
 {
-	int i;
-	for(i = 2; (max && i <= *max) || (!max && i < w); i *= 2)
-	{
-		if(i >= w) 
-		{
-			return i;
-			break;
-		}
-	}
-	if(max && i > *max) return 16;
-	return i;
+    if((w % 4))
+    {
+        return w + (4 - (w % 4));
+    }
+    else
+    {
+        return w;
+    }
+
+// 	int i;
+// 	for(i = 2; (max && i <= *max) || (!max && i < w); i *= 2)
+// 	{
+// 		if(i >= w) 
+// 		{
+// 			return i;
+// 			break;
+// 		}
+// 	}
+// 	if(max && i > *max) return 16;
+//	return i;
 }
 
 int BC_Texture::get_texture_id()

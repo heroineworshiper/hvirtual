@@ -32,8 +32,10 @@ class Samples
 public:
 // Allocate 0 samples
 	Samples();
-// Allocate number of samples
+// Allocate number of samples in shared memory
 	Samples(int samples);
+// Allocate number of samples
+	Samples(int samples, int use_shm);
 // Share memory with another buffer
 	Samples(Samples *src);
 	virtual ~Samples();

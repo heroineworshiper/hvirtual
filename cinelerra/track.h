@@ -161,6 +161,10 @@ public:
 		int direction,
         int depth = 0);
 
+// used by PlayableTracks::is_playable to determine if the track is shared
+    int is_shared(int64_t position, int direction);
+
+
 // Used by PlayableTracks::is_playable
 // Returns 1 if the track is in the output boundaries.
 	virtual int is_playable(int64_t position, 

@@ -81,8 +81,9 @@ public:
 
 	void do_fade(VFrame *output_temp, float fade);
 
-// Hardware version of MaskEngine
+// Apply mask from MaskEngine
 	void do_mask(VFrame *output_temp, 
+        VFrame *mask,
 		int64_t start_position_project,
 		MaskAutos *keyframe_set, 
 		MaskAuto *keyframe,

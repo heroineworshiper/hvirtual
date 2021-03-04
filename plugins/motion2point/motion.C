@@ -2247,7 +2247,7 @@ MotionScanCache::MotionScanCache(int x, int y, int64_t difference)
 
 
 
-#endif
+#endif // 0
 
 
 

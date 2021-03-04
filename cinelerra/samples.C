@@ -25,6 +25,7 @@
 
 
 
+#include "clip.h"
 #include "samples.h"
 #include <stdio.h>
 #include <sys/shm.h>
@@ -41,6 +42,13 @@ Samples::Samples(int samples)
 {
 	reset();
 	allocate(samples, 1);
+}
+
+// Allocate number of samples
+Samples::Samples(int samples, int use_shm)
+{
+	reset();
+	allocate(samples, use_shm);
 }
 
 Samples::Samples(Samples *src)
@@ -109,13 +117,13 @@ void Samples::allocate(int samples, int use_shm)
 		else
 			delete [] data;
 	}
-	
-	this->use_shm = use_shm;
 
+	this->use_shm = use_shm;
+    
 	if(use_shm)
 	{
 		shmid = shmget(IPC_PRIVATE, 
-			(samples + 1) * sizeof(double), 
+			MAX(samples, 4096 / 8) * sizeof(double), 
 			IPC_CREAT | 0777);
 		data = (double*)shmat(shmid, NULL, 0);
 	// This causes it to automatically delete when the program exits.

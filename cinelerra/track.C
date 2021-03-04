@@ -161,6 +161,24 @@ void Track::equivalent_output(Track *track, double *result)
 		*result = from_units(result2);
 }
 
+int Track::is_shared(int64_t position, int direction)
+{
+	for(int i = 0; i < plugin_set.total; i++)
+	{
+		Plugin *plugin = get_current_plugin(position,
+			i,
+			direction,
+			0,
+			0);
+		if(plugin)
+		{
+			if(plugin->plugin_type == PLUGIN_SHAREDMODULE ||
+                plugin->plugin_type == PLUGIN_SHAREDPLUGIN) 
+				return 1;
+		}
+	}
+    return 0;
+}
 
 int Track::is_synthesis(int64_t position, 
 	int direction,

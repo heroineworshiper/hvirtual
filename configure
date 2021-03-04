@@ -11,7 +11,6 @@
 # libz-dev
 # texinfo
 # libpng-dev
-# libglut-dev
 # libxv-dev
 # libasound2-dev
 # libbz2-dev 
@@ -119,15 +118,15 @@ rm -f a.out
 cat > conftest.c << EOF
 #include <GL/gl.h>
 #include <GL/glext.h>
-#include <GL/glu.h>
 int main()
 {
-	glUseProgram(0);
+    glUseProgram(0);
+	glBegin(GL_QUADS);
 	return 0;
 }
 EOF
 
-gcc conftest.c -lGL -lGLU > /dev/null 2>&1
+gcc conftest.c -lGL > /dev/null 2>&1
 
 if [ -x a.out ]; then HAVE_GL=y; else HAVE_GL=n; fi
 
@@ -184,7 +183,7 @@ if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 echo CONFIGURING PULSEAUDIO
 cd thirdparty/pulseaudio* && \
 SNDFILE_PATH=`expr $TOPDIR/thirdparty/libsndfile*` && \
-./configure  --without-caps LIBSNDFILE_LIBS="-L$SNDFILE_PATH/src/.libs/ -lsndfile" LIBSNDFILE_CFLAGS="-I$SNDFILE_PATH/src" --enable-static && \
+./configure --disable-dbus --disable-x11 --without-caps LIBSNDFILE_LIBS="-L$SNDFILE_PATH/src/.libs/ -lsndfile" LIBSNDFILE_CFLAGS="-I$SNDFILE_PATH/src" --enable-static && \
 cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi

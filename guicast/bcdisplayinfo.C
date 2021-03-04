@@ -39,6 +39,7 @@ int BC_DisplayInfo::bottom_border = -1;
 int BC_DisplayInfo::right_border = -1;
 int BC_DisplayInfo::auto_reposition_x = -1;
 int BC_DisplayInfo::auto_reposition_y = -1;
+int BC_DisplayInfo::dpi = 100;
 
 
 BC_DisplayInfo::BC_DisplayInfo(const char *display_name, int show_error)

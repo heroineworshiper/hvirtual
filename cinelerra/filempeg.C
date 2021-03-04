@@ -832,9 +832,9 @@ int FileMPEG::read_index_state(string *index_path, Indexable *dst)
 
 
     mpeg3_t *fd = mpeg3_open((char*)index_path->c_str(), &error);
-    if(error) return 1;
+    if(error || !fd) return 1;
 
-//printf("FileMPEG::read_index_state %d %s %d\n", __LINE__, index_path->c_str(), mpeg3_index_tracks(fd));
+printf("FileMPEG::read_index_state %d %s fd=%p\n", __LINE__, index_path->c_str(), fd);
 // do we have audio indexes?
     if(mpeg3_index_tracks(fd))
     {

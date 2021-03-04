@@ -358,6 +358,21 @@ void FileFFMPEGStream::append_history(void *frame2, int len)
 				break;
 			}
 			
+			case AV_SAMPLE_FMT_S32P:
+			{
+				int32_t *input = (int32_t*)frame->data[i];
+				for(int j = 0; j < len; j++)
+				{
+					*output++ = (double)*input / 0x7fffffff;
+                    if(output >= output_end)
+                    {
+                        output = pcm_history[i];
+                    }
+					input++;
+				}
+				break;
+			}
+			
 			case AV_SAMPLE_FMT_FLTP:
 			{
 				float *input = (float*)frame->data[i];
@@ -1084,7 +1099,8 @@ int FileFFMPEG::create_toc(void *ptr)
         result = 0;
 
         Timer prev_time;
-        Timer new_time;
+        Timer fast_progress_time;
+        Timer slow_progress_time;
         Timer current_time;
         int64_t total_bytes = FileSystem::get_size(asset->path);
 
@@ -1142,6 +1158,7 @@ int FileFFMPEG::create_toc(void *ptr)
         string progress_title;
         progress_title.assign("Creating ");
         progress_title.append(index_filename);
+        progress_title.append("\n");
         if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
         file->start_progress(progress_title.c_str(), total_bytes);
         if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
@@ -1165,27 +1182,31 @@ int FileFFMPEG::create_toc(void *ptr)
 			}
 
 // update the progress bar            
-            if(new_time.get_difference() >= 50 && offset > 0)
+            if(fast_progress_time.get_difference() >= 50 && offset > 0)
             {
-                new_time.update();
-                
-                
-                int64_t elapsed_s = current_time.get_difference() / 1000;
-                int64_t total_s = elapsed_s * total_bytes / offset;
-                int64_t eta = total_s - elapsed_s;
-                if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
+                fast_progress_time.update();
                 file->update_progress(offset);
-                if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
-                string2.assign(progress_title);
-                sprintf(string3, 
-					"\nETA: %ldm%lds",
-					(int64_t)eta / 60,
-					(int64_t)eta % 60);
-                string2.append(string3);
-                if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
-				file->update_progress_title(string2.c_str());
-                if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
             }
+
+//             if(slow_progress_time.get_difference() >= 1000 && offset > 0)
+//             {
+//                 slow_progress_time.update();
+//                 
+//                 int64_t elapsed_s = current_time.get_difference() / 1000;
+//                 int64_t total_s = elapsed_s * total_bytes / offset;
+//                 int64_t eta = total_s - elapsed_s;
+//                 if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
+//                 if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
+//                 string2.assign(progress_title);
+//                 sprintf(string3, 
+// 					"\nETA: %ldm%lds",
+// 					(int64_t)eta / 60,
+// 					(int64_t)eta % 60);
+//                 string2.append(string3);
+//                 if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
+// 				file->update_progress_title(string2.c_str());
+//                 if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
+//             }
 
             if(packet->size > 0)
             {

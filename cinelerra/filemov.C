@@ -1068,7 +1068,7 @@ frame->get_rows()[0]);
 	}
 
 
-if(debug) printf("FileMOV::read_frame %d\n", __LINE__);
+if(debug) printf("FileMOV::read_frame %d result=%d\n", __LINE__, result);
 
 
 	return result;

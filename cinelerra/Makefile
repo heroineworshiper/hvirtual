@@ -401,7 +401,7 @@ LIBS += -L/usr/X11R6/lib
 endif
 
 ifeq ($(HAVE_GL), y)
-LIBS += -lGL -lGLU
+LIBS += -lGL
 endif
 
 

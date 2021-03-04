@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -899,11 +899,8 @@ int VDeviceX11::write_buffer(VFrame *output_frame, EDL *edl)
 
 
 
-// printf("VDeviceX11::write_buffer %d bitmap_type=%d output color_model=%d bitmap color_model=%d\n", 
-// __LINE__, 
-// bitmap_type,
-// output_frame->get_color_model(),
-// bitmap->get_color_model());
+// printf("VDeviceX11::write_buffer %d\n", 
+// __LINE__);
 
 
 
@@ -979,7 +976,6 @@ int VDeviceX11::write_buffer(VFrame *output_frame, EDL *edl)
 				canvas_h);
 
 
-//printf("VDeviceX11::write_buffer %d\n", __LINE__);
 // Draw output frame directly.  Not used for compositing.
 			output->get_canvas()->unlock_window();
 			output->unlock_canvas();
@@ -1097,6 +1093,7 @@ void VDeviceX11::do_fade(VFrame *output_temp, float fade)
 }
 
 void VDeviceX11::do_mask(VFrame *output_temp, 
+        VFrame *mask,
 		int64_t start_position_project,
 		MaskAutos *keyframe_set, 
 		MaskAuto *keyframe,
@@ -1104,6 +1101,7 @@ void VDeviceX11::do_mask(VFrame *output_temp,
 {
 	this->output->mwindow->playback_3d->do_mask(output,
 		output_temp,
+        mask,
 		start_position_project,
 		keyframe_set,
 		keyframe,

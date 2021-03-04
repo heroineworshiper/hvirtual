@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 #ifdef HAVE_GL
 #include <GL/gl.h>
 #include <GL/glext.h>
-#include <GL/glu.h>
+//#include <GL/glu.h>
 #endif
 
 #include <string.h>
@@ -330,6 +330,7 @@ void Playback3DCommand::copy_from(BC_SynchronousCommand *command)
 
 	this->input = ptr->input;
 	this->start_position_project = ptr->start_position_project;
+    this->mask = ptr->mask;
 	this->keyframe_set = ptr->keyframe_set;
 	this->keyframe = ptr->keyframe;
 	this->default_auto = ptr->default_auto;
@@ -457,11 +458,11 @@ void Playback3D::copy_from_sync(Playback3DCommand *command)
 			int w = command->input->get_w();
 			int h = command->input->get_h();
 // With NVidia at least,
-			if(command->input->get_w() % 4)
-			{
-				printf("Playback3D::copy_from_sync: w=%d not supported because it is not divisible by 4.\n", w);
-			}
-			else
+// 			if(command->input->get_w() % 4)
+// 			{
+// 				printf("Playback3D::copy_from_sync: w=%d not supported because it is not divisible by 4.\n", w);
+// 			}
+// 			else
 // Copy to texture
 			if(command->want_texture)
 			{
@@ -474,16 +475,36 @@ void Playback3D::copy_from_sync(Playback3DCommand *command)
 			else
 // Copy to RAM
 			{
+// printf("Playback3D::copy_from_sync %d dst=%dx%d\n", 
+// __LINE__, 
+// command->frame->get_w(),
+// command->frame->get_h());
 				command->input->enable_opengl();
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-				glReadPixels(0,
-					0,
-					w,
-					command->input->get_h(),
-					GL_RGB,
-					GL_UNSIGNED_BYTE,
-					command->frame->get_rows()[0]);
-				command->frame->flip_vert();
+                if((w % 4))
+                {
+                    for(int i = 0; i < h; i++)
+                    {
+                        glReadPixels(0,
+					        i,
+					        w,
+					        1,
+					        GL_RGB,
+					        GL_UNSIGNED_BYTE,
+					        command->frame->get_rows()[i]);
+                    }
+                }
+                else
+                {
+				    glReadPixels(0,
+					    0,
+					    w,
+					    h,
+					    GL_RGB,
+					    GL_UNSIGNED_BYTE,
+					    command->frame->get_rows()[0]);
+				}
+                command->frame->flip_vert();
 				command->frame->set_opengl_state(VFrame::RAM);
 			}
 		}
@@ -619,7 +640,7 @@ void Playback3D::write_buffer_sync(Playback3DCommand *command)
 		window->enable_opengl();
 
 
-//printf("Playback3D::write_buffer_sync 1 %d\n", window->get_id());
+//printf("Playback3D::write_buffer_sync %d opengl_state=%d\n", __LINE__, command->frame->get_opengl_state());
 		switch(command->frame->get_opengl_state())
 		{
 // Upload texture and composite to screen
@@ -943,7 +964,6 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 
 		glColor4f(1, 1, 1, 1);
 
-//printf("Playback3D::overlay_sync 1 %d\n", command->input->get_opengl_state());
 		switch(command->input->get_opengl_state())
 		{
 // Upload texture and composite to screen
@@ -1063,22 +1083,15 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 					(float)temp_texture->get_texture_h());
 		}
 		else
+        {
 			glUseProgram(0);
+        }
 
 
 
 
 
 
-// printf("Playback3D::overlay_sync %f %f %f %f %f %f %f %f\n",
-// command->in_x1,
-// command->in_y1,
-// command->in_x2,
-// command->in_y2,
-// command->out_x1,
-// command->out_y1,
-// command->out_x2,
-// command->out_y2);
 
 
 
@@ -1144,6 +1157,7 @@ void Playback3D::enable_overlay_texture(Playback3DCommand *command)
 
 void Playback3D::do_mask(Canvas *canvas,
 	VFrame *output, 
+    VFrame *mask,
 	int64_t start_position_project,
 	MaskAutos *keyframe_set, 
 	MaskAuto *keyframe,
@@ -1153,6 +1167,7 @@ void Playback3D::do_mask(Canvas *canvas,
 	command.command = Playback3DCommand::DO_MASK;
 	command.canvas = canvas;
 	command.frame = output;
+    command.mask = mask;
 	command.start_position_project = start_position_project;
 	command.keyframe_set = keyframe_set;
 	command.keyframe = keyframe;
@@ -1198,7 +1213,7 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 		BC_WindowBase *window = command->canvas->get_canvas();
 		window->lock_window("Playback3D::do_mask_sync");
 		window->enable_opengl();
-		
+
 		switch(command->frame->get_opengl_state())
 		{
 			case VFrame::RAM:
@@ -1248,7 +1263,10 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		
+
+
+// tesselate with GLU.  No path support.
+#if 0
 // Draw mask with scaling to simulate feathering
 		GLUtesselator *tesselator = gluNewTess();
 		gluTessProperty(tesselator, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_ODD);
@@ -1346,13 +1364,18 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 			delete points;
 			coords.remove_all_objects();
 		}
+        gluDeleteTess(tesselator);
+
+
 		glEndList();
  		glCallList(display_list);
  		glDeleteLists(display_list, 1);
+#endif // 0
 
 		glColor4f(1, 1, 1, 1);
 
 
+#if 0
 // Read mask into temporary texture.
 // For feathering, just read the part of the screen after the downscaling.
 
@@ -1379,15 +1402,27 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 			0,
 			(int)MIN(w_scaled + 2, w),
 			(int)MIN(h_scaled + 2, h));
+#endif // 0
+//printf("Playback3D::do_mask_sync %d opengl_state=%d\n", __LINE__, command->mask->get_opengl_state());
 
+// mask goes into texture unit 1
+        if(command->mask->get_opengl_state() == VFrame::RAM)
+        {
+//printf("Playback3D::do_mask_sync %d to_texture\n", __LINE__);
+            command->mask->to_texture();
+        }
+		command->mask->bind_texture(1);
+// dest goes into texture unit 0
 		command->frame->bind_texture(0);
 
+//printf("Playback3D::do_mask_sync %d\n", __LINE__);
 
 // For feathered masks, use a shader to multiply.
 // For unfeathered masks, we could use a stencil buffer 
 // for further optimization but we also need a YUV algorithm.
 		unsigned int frag_shader = 0;
-		switch(temp_texture->get_texture_components())
+//		switch(temp_texture->get_texture_components())
+		switch(BC_CModels::components(command->frame->get_color_model()))
 		{
 			case 3: 
 				if(command->frame->get_color_model() == BC_YUV888)
@@ -1414,9 +1449,12 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 				glUniform1i(variable, 0);
 			if((variable = glGetUniformLocation(frag_shader, "tex1")) >= 0)
 				glUniform1i(variable, 1);
+//			if((variable = glGetUniformLocation(frag_shader, "scale")) >= 0)
+//				glUniform1f(variable, scale);
 			if((variable = glGetUniformLocation(frag_shader, "scale")) >= 0)
-				glUniform1f(variable, scale);
+				glUniform1f(variable, 1.0);
 		}
+//printf("Playback3D::do_mask_sync %d\n", __LINE__);
 
 
 
@@ -1426,14 +1464,16 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 		command->frame->draw_texture(0, 0, w, h, 0, 0, w, h);
 		command->frame->set_opengl_state(VFrame::SCREEN);
 
+//printf("Playback3D::do_mask_sync %d\n", __LINE__);
 
 // Disable temp texture
 		glUseProgram(0);
 
-		glActiveTexture(GL_TEXTURE1);
-		glDisable(GL_TEXTURE_2D);
-		delete temp_texture;
-		temp_texture = 0;
+//printf("Playback3D::do_mask_sync %d\n", __LINE__);
+ 		glActiveTexture(GL_TEXTURE1);
+ 		glDisable(GL_TEXTURE_2D);
+// 		delete temp_texture;
+// 		temp_texture = 0;
 
 		glActiveTexture(GL_TEXTURE0);
 		glDisable(GL_TEXTURE_2D);
@@ -1443,7 +1483,7 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 		window->unlock_window();
 	}
 	command->canvas->unlock_canvas();
-#endif
+#endif // HAVE_GL
 }
 
 

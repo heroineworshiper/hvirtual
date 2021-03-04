@@ -2134,6 +2134,10 @@ int BC_WindowBase::init_fonts()
 	
 
 #ifdef HAVE_XFT
+// printf("BC_WindowBase::init_fonts %d hardware_dpi=%d user_dpi=%d\n", 
+// __LINE__, 
+// BC_DisplayInfo::dpi,
+// resources.dpi);
 	largefont_xft = query_xft_font(resources.large_font_xft, resources.large_font_xftsize);
 	mediumfont_xft = query_xft_font(resources.medium_font_xft, resources.medium_font_xftsize);
 	clockfont_xft = query_xft_font(resources.clock_font_xft, resources.clock_font_xftsize);

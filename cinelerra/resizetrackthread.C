@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,14 +101,14 @@ void ResizeTrackThread::handle_close_event(int result)
 		}
 	}
 
-	if(((w % 4) || 
-		(h % 4)) && 
-		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
-	{
-		MainError::show_error(
-			_("This track's dimensions are not multiples of 4 so\n"
-			"it can't be rendered by OpenGL."));
-	}
+// 	if(((w % 4) || 
+// 		(h % 4)) && 
+// 		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
+// 	{
+// 		MainError::show_error(
+// 			_("This track's dimensions are not multiples of 4 so\n"
+// 			"it can't be rendered by OpenGL."));
+// 	}
 }
 
 

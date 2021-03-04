@@ -88,11 +88,12 @@ public:
 
 // scale DP units to pixels
 	static int dp_to_px(int dp);
+    static double dp_to_px(double dp);
 
 
 	static int initialized;
 
-// the DPI of the monitor
+// the DPI of the monitor after user override
 	static int dpi;
 // don't probe for DPI
 	static int override_dpi;

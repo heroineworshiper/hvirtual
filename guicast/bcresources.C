@@ -859,10 +859,13 @@ void BC_Resources::init_fonts()
 	medium_font_xft = N_("Sans");
 	large_font_xft = N_("Sans");
 	clock_font_xft = N_("Sans");
-	large_font_xftsize = DP(17);
-	medium_font_xftsize = DP(11);
-	small_font_xftsize = DP(9);
-	clock_font_xftsize = DP(16);
+
+// font point sizes are scaled in the X server by the hardware DPI, so 
+// we unscale the hardware DPI before scaling by the user DPI
+	large_font_xftsize = DP(17.0 * 100 / BC_DisplayInfo::dpi);
+	medium_font_xftsize = DP(11.0 * 100 / BC_DisplayInfo::dpi);
+	small_font_xftsize = DP(9.0 * 100 / BC_DisplayInfo::dpi);
+	clock_font_xftsize = DP(16.0 * 100 / BC_DisplayInfo::dpi);
 }
 
 int BC_Resources::initialize_display(BC_WindowBase *window)
@@ -963,6 +966,16 @@ int BC_Resources::get_bg_light2() { return bg_light2; }
 
 
 int BC_Resources::dp_to_px(int dp)
+{
+	if(dpi < MIN_DPI)
+	{
+		return dp;
+	}
+	
+	return dp * dpi / BASE_DPI;
+}
+
+double BC_Resources::dp_to_px(double dp)
 {
 	if(dpi < MIN_DPI)
 	{

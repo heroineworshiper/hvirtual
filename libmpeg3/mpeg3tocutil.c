@@ -271,6 +271,10 @@ const int debug = 0;
 					index->index_size = read_int32(buffer, &position);
 					index->index_zoom = read_int32(buffer, &position);
 //printf("mpeg3_read_toc %d %d %d\n", i, index->index_size, index->index_zoom);
+printf("mpeg3_read_toc %d ATRACK_COUNT track=%d total_samples=%ld\n", 
+__LINE__, 
+i, 
+file->total_samples[i]);
 					int channels = index->index_channels = file->channel_counts[i];
 					if(channels)
 					{
@@ -510,7 +514,7 @@ mpeg3_t* mpeg3_start_toc(char *path, char *toc_path, int64_t *total_bytes)
 {
 	*total_bytes = 0;
 	mpeg3_t *file = mpeg3_new(path);
-
+//printf("mpeg3_start_toc %d\n", __LINE__);
 
 	file->toc_fd = fopen(toc_path, "w");
 	if(!file->toc_fd)
@@ -523,6 +527,7 @@ mpeg3_t* mpeg3_start_toc(char *path, char *toc_path, int64_t *total_bytes)
 	}
 	
 	
+//printf("mpeg3_start_toc %d\n", __LINE__);
 	file->source_date = mpeg3_calculate_source_date(path);
 	file->seekable = 0;
 
@@ -532,6 +537,7 @@ mpeg3_t* mpeg3_start_toc(char *path, char *toc_path, int64_t *total_bytes)
 		mpeg3_delete(file);
 		return 0;
 	}
+//printf("mpeg3_start_toc %d\n", __LINE__);
 
 // Determine file type
 	int toc_atracks = 0, toc_vtracks = 0;
@@ -541,6 +547,7 @@ mpeg3_t* mpeg3_start_toc(char *path, char *toc_path, int64_t *total_bytes)
 		return 0;
 	}
 
+//printf("mpeg3_start_toc %d\n", __LINE__);
 
 
 // Create title without scanning for tracks
@@ -560,12 +567,14 @@ mpeg3_t* mpeg3_start_toc(char *path, char *toc_path, int64_t *total_bytes)
 			title->end_byte,
 			0);
 	}
+//printf("mpeg3_start_toc %d\n", __LINE__);
 
 //	mpeg3demux_seek_byte(file->demuxer, 0x1734e4800LL);
 	mpeg3demux_seek_byte(file->demuxer, 0);
 	file->demuxer->read_all = 1;
 	*total_bytes = mpeg3demux_movie_size(file->demuxer);
 
+//printf("mpeg3_start_toc %d file=%p\n", __LINE__, file);
 //*total_bytes = 500000000;
 	return file;
 }
@@ -620,11 +629,11 @@ int mpeg3_update_index(mpeg3_t *file,
 	mpeg3_atrack_t *atrack = file->atrack[track_number];
 	mpeg3_index_t *index = file->indexes[track_number];
 
-/*
- * printf("mpeg3_update_index %d atrack->audio->output_size=%d\n", 
- * __LINE__, 
- * atrack->audio->output_size);
- */
+
+printf("mpeg3_update_index %d atrack->audio->output_size=%d\n", 
+__LINE__, 
+atrack->audio->output_size);
+
 
 	while((flush && atrack->audio->output_size) ||
 		(!flush && atrack->audio->output_size > MPEG3_AUDIO_CHUNKSIZE))
@@ -734,9 +743,13 @@ int mpeg3_update_index(mpeg3_t *file,
 
 // Create new toc entry
 		mpeg3_append_samples(atrack, atrack->prev_offset);
-		
+
 
 		atrack->current_position += fragment;
+printf("mpeg3_update_index %d fragment=%d samples=%ld\n", 
+__LINE__, 
+fragment,
+atrack->current_position);
 	}
 
 // Divide index by 2 and increase zoom
@@ -1456,6 +1469,12 @@ void mpeg3_stop_toc(mpeg3_t *file)
 
 int mpeg3_index_tracks(mpeg3_t *file)
 {
+    if(!file)
+    {
+        return 0;
+    }
+
+printf("mpeg3_index_tracks %d file=%p\n", __LINE__, file);
 	return file->total_indexes;
 }
 

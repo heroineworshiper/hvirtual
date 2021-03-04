@@ -454,10 +454,10 @@ void EDLSession::boundaries()
 	Workarounds::clamp(output_h, 16, (int)BC_INFINITY);
 	Workarounds::clamp(video_write_length, 1, 1000);
 //printf("EDLSession::boundaries 1\n");
-	output_w /= 2;
-	output_w *= 2;
-	output_h /= 2;
-	output_h *= 2;
+// 	output_w /= 2;
+// 	output_w *= 2;
+// 	output_h /= 2;
+// 	output_h *= 2;
 
 	Workarounds::clamp(eyedrop_radius, 0, 255);
 	Workarounds::clamp(crop_x1, 0, output_w);

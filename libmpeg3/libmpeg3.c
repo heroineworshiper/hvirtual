@@ -414,7 +414,7 @@ mpeg3_t* mpeg3_open_copy(char *path, mpeg3_t *old_file, int *error_return)
 /* This limits the track count */
 	int toc_atracks = 0x7fffffff;
 	int toc_vtracks = 0x7fffffff;
-	const int debug = 0;
+	const int debug = 1;
 
 if(debug) printf("mpeg3_open_copy %d\n", __LINE__);
 	if(!error_return) error_return = &error_temp;

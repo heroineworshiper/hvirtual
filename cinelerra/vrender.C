@@ -219,7 +219,6 @@ int VRender::process_buffer(int64_t input_position,
 		}
 
 
-
 		video_out->set_opengl_state(VFrame::RAM);
 	}
 	else

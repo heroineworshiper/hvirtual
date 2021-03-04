@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -205,14 +205,14 @@ int PreferencesThread::apply_settings()
 //mwindow->edl->session->recording_format->dump();
 
 
-	if(((mwindow->edl->session->output_w % 4) || 
-		(mwindow->edl->session->output_h % 4)) && 
-		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
-	{
-		MainError::show_error(
-			_("This project's dimensions are not multiples of 4 so\n"
-			"it can't be rendered by OpenGL."));
-	}
+// 	if(((mwindow->edl->session->output_w % 4) || 
+// 		(mwindow->edl->session->output_h % 4)) && 
+// 		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
+// 	{
+// 		MainError::show_error(
+// 			_("This project's dimensions are not multiples of 4 so\n"
+// 			"it can't be rendered by OpenGL."));
+// 	}
 
 
 	if(redraw_meters)

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1138,17 +1138,17 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 // Convert media file to EDL
 			case FILE_OK:
 // Warn about odd image dimensions
-				if(new_asset->video_data &&
-					((new_asset->width % 2) ||
-					(new_asset->height % 2)))
-				{
-					char string[BCTEXTLEN];
-					sprintf(string, "%s's resolution is %dx%d.\nImages with odd dimensions may not decode properly.",
-						new_asset->path,
-						new_asset->width,
-						new_asset->height);
-					MainError::show_error(string);
-				}
+// 				if(new_asset->video_data &&
+// 					((new_asset->width % 2) ||
+// 					(new_asset->height % 2)))
+// 				{
+// 					char string[BCTEXTLEN];
+// 					sprintf(string, "%s's resolution is %dx%d.\nImages with odd dimensions may not decode properly.",
+// 						new_asset->path,
+// 						new_asset->width,
+// 						new_asset->height);
+// 					MainError::show_error(string);
+// 				}
 
 
 				if(load_mode != LOADMODE_RESOURCESONLY)

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -206,14 +206,14 @@ void MWindow::asset_to_all()
 			}
 
 
-			if(((edl->session->output_w % 4) || 
-				(edl->session->output_h % 4)) && 
-				edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
-			{
-				MainError::show_error(
-					_("This project's dimensions are not multiples of 4 so\n"
-					"it can't be rendered by OpenGL."));
-			}
+// 			if(((edl->session->output_w % 4) || 
+// 				(edl->session->output_h % 4)) && 
+// 				edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
+// 			{
+// 				MainError::show_error(
+// 					_("This project's dimensions are not multiples of 4 so\n"
+// 					"it can't be rendered by OpenGL."));
+// 			}
 
 
 // Get aspect ratio
@@ -272,14 +272,14 @@ void MWindow::asset_to_size()
 		edl->session->output_w = w;
 		edl->session->output_h = h;
 
-		if(((edl->session->output_w % 4) || 
-			(edl->session->output_h % 4)) && 
-			edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
-		{
-			MainError::show_error(
-				_("This project's dimensions are not multiples of 4 so\n"
-				"it can't be rendered by OpenGL."));
-		}
+// 		if(((edl->session->output_w % 4) || 
+// 			(edl->session->output_h % 4)) && 
+// 			edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
+// 		{
+// 			MainError::show_error(
+// 				_("This project's dimensions are not multiples of 4 so\n"
+// 				"it can't be rendered by OpenGL."));
+// 		}
 
 
 // Get aspect ratio

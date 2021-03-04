@@ -89,7 +89,7 @@ void BC_PBuffer::new_pbuffer(int w, int h)
 // You're supposed to try different configurations of decreasing overhead 
 // until one works.
 // In reality, only a very specific configuration works at all.
-		static int framebuffer_attributes[] = 
+		int framebuffer_attributes[] = 
 		{
         	GLX_RENDER_TYPE, GLX_RGBA_BIT,
 			GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT | GLX_WINDOW_BIT,
@@ -106,7 +106,7 @@ void BC_PBuffer::new_pbuffer(int w, int h)
 			None
 		};
 
-		static int pbuffer_attributes[] = 
+		int pbuffer_attributes[] = 
 		{
 			GLX_PBUFFER_WIDTH, 0,
 			GLX_PBUFFER_HEIGHT, 0,
@@ -115,10 +115,13 @@ void BC_PBuffer::new_pbuffer(int w, int h)
     		None
 		};
 
-		pbuffer_attributes[1] = w;
-		pbuffer_attributes[3] = h;
-		if(w % 4) pbuffer_attributes[1] += 4 - (w % 4);
-		if(h % 4) pbuffer_attributes[3] += 4 - (h % 4);
+        gl_w = w;
+        gl_h = h;
+		if(w % 4) gl_w += 4 - (w % 4);
+		if(h % 4) gl_h += 4 - (h % 4);
+        
+		pbuffer_attributes[1] = gl_w;
+		pbuffer_attributes[3] = gl_h;
 
 		GLXFBConfig *config_result = 0;
 		XVisualInfo *visinfo = 0;
@@ -137,12 +140,6 @@ void BC_PBuffer::new_pbuffer(int w, int h)
 				&config_result_count);
 		}
 		
-// printf("BC_PBuffer::new_pbuffer %d display=%p screen=%d config_result=%p config_result_count=%d\n", 
-// __LINE__,
-// current_window->get_display(),
-// current_window->get_screen(),
-// config_result, 
-// config_result_count);
 
 		if(!config_result || !config_result_count)
 		{

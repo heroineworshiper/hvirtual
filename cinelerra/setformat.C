@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -150,6 +150,8 @@ void SetFormatThread::apply_changes()
 	mwindow->save_backup();
 	mwindow->undo->update_undo_after(_("set format"), LOAD_ALL);
 
+printf("SetFormatThread::apply_changes %d %d\n", __LINE__, mwindow->edl->session->output_w);
+
 // Update GUIs
 	mwindow->restart_brender();
 	mwindow->gui->lock_window("SetFormatThread::apply_changes");
@@ -193,14 +195,14 @@ void SetFormatThread::apply_changes()
 	mwindow->lwindow->gui->unlock_window();
 
 // Warn user
-	if(((mwindow->edl->session->output_w % 4) ||
-		(mwindow->edl->session->output_h % 4)) &&
-		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
-	{
-		MainError::show_error(
-			_("This project's dimensions are not multiples of 4 so\n"
-			"it can't be rendered by OpenGL."));
-	}
+// 	if(((mwindow->edl->session->output_w % 4) ||
+// 		(mwindow->edl->session->output_h % 4)) &&
+// 		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
+// 	{
+// 		MainError::show_error(
+// 			_("This project's dimensions are not multiples of 4 so\n"
+// 			"it can't be rendered by OpenGL."));
+// 	}
 
 
 // Flash frame
@@ -843,10 +845,10 @@ ScaleSizeText::~ScaleSizeText()
 int ScaleSizeText::handle_event()
 {
 	*output = atol(get_text());
-	*output /= 2;
-	*output *= 2;
+//	*output /= 2;
+//	*output *= 2;
 	if(*output <= 0) *output = 2;
-	if(*output > 10000) *output = 10000;
+	if(*output > 32768) *output = 32768;
 	*output *= -1;
 	thread->update_window();
 }

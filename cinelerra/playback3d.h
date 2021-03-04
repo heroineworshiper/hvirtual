@@ -209,6 +209,7 @@ public:
 
 	int dst_cmodel;
 	int64_t start_position_project;
+    VFrame *mask;
 	MaskAutos *keyframe_set;
 	MaskAuto *keyframe;
 	MaskAuto *default_auto;
@@ -255,6 +256,7 @@ public:
 
 	void do_mask(Canvas *canvas,
 		VFrame *output, 
+        VFrame *mask,
 		int64_t start_position_project,
 		MaskAutos *keyframe_set, 
 		MaskAuto *keyframe,

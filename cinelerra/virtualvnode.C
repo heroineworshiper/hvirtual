@@ -419,23 +419,38 @@ void VirtualVNode::render_mask(VFrame *output_temp,
 		return;
 	}
 
+// Always create the mask in software
+	masker->do_mask(output_temp, 
+		start_position_project,
+		keyframe_set, 
+		keyframe,
+		keyframe);
+
+
 	if(use_opengl)
 	{
-		((VDeviceX11*)((VirtualVConsole*)vconsole)->get_vdriver())->do_mask(
-			output_temp, 
-			start_position_project,
-			keyframe_set, 
-			keyframe,
-			keyframe);
+// apply the mask in hardware if it wasn't already applied in masker
+//printf("VirtualVNode::render_mask %d\n", __LINE__);
+        if(output_temp->get_opengl_state() != VFrame::RAM)
+        {
+//printf("VirtualVNode::render_mask %d opengl_state=%d\n", __LINE__, output_temp->get_opengl_state());
+		    ((VDeviceX11*)((VirtualVConsole*)vconsole)->get_vdriver())->do_mask(
+			    output_temp, 
+                masker->mask,
+			    start_position_project,
+			    keyframe_set, 
+			    keyframe,
+			    keyframe);
+        }
 	}
 	else
 	{
 // Revert to software
-		masker->do_mask(output_temp, 
-			start_position_project,
-			keyframe_set, 
-			keyframe,
-			keyframe);
+// 		masker->do_mask(output_temp, 
+// 			start_position_project,
+// 			keyframe_set, 
+// 			keyframe,
+// 			keyframe);
 	}
 }
 

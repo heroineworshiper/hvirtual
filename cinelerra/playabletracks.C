@@ -112,6 +112,30 @@ int PlayableTracks::is_playable(Track *current_track,
 		}
 	}
 
+
+// test mute.  Doesn't work because a plugin like motion needs constant updating.
+// TODO: need a change_duration function for audio support
+//     if(result && data_type == TRACK_VIDEO)
+//     {
+//         current = 0;
+//         IntAuto *mute_keyframe = (IntAuto*)current_track->automation->autos[AUTOMATION_MUTE]->get_prev_auto(
+// 		    position, 
+// 		    direction,
+// 		    current);
+//         if(mute_keyframe && mute_keyframe->value)
+//         {
+//     // muted. Test for shared plugin
+//             if(!current_track->is_shared(position, direction))
+//             {
+//                 result = 0;
+//             }
+//         }
+//     }
+// printf("PlayableTracks::is_playable %d track=%s result=%d\n", 
+// __LINE__, 
+// current_track->title, 
+// result);
+
 	return result;
 }
 

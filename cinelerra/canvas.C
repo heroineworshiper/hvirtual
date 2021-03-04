@@ -583,7 +583,8 @@ void Canvas::draw_refresh(int flush)
 
         }
         else
-        {   
+        {
+//printf("Canvas::draw_refresh %d %d\n", __LINE__, refresh_frame->get_opengl_state());
 			get_canvas()->draw_vframe(refresh_frame,
                 dest_x,
                 dest_y,
@@ -722,7 +723,6 @@ void Canvas::get_scrollbars(EDL *edl,
 		if(xscroll) delete xscroll;
 		xscroll = 0;
 	}
-//printf("Canvas::get_scrollbars 4 %d %d\n", get_xscroll(), get_yscroll());
 
 	if(need_yscroll)
 	{

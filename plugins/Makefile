@@ -108,6 +108,7 @@ DIRS = \
 	threshold \
 	timeavg \
 	timefront \
+        timelapsehelper \
 	timestretch \
 	timestretchrt \
 	titler \
