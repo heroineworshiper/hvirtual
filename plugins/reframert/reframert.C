@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,16 +46,29 @@ public:
 		int64_t prev_frame, 
 		int64_t next_frame, 
 		int64_t current_frame);
-	double scale;
+// was scale
+	double num;
+	double denom;
 	int stretch;
 	int optic_flow;
 };
 
 
-class ReframeRTScale : public BC_TumbleTextBox
+class ReframeRTNum : public BC_TumbleTextBox
 {
 public:
-	ReframeRTScale(ReframeRT *plugin,
+	ReframeRTNum(ReframeRT *plugin,
+		ReframeRTWindow *gui,
+		int x,
+		int y);
+	int handle_event();
+	ReframeRT *plugin;
+};
+
+class ReframeRTDenom : public BC_TumbleTextBox
+{
+public:
+	ReframeRTDenom(ReframeRT *plugin,
 		ReframeRTWindow *gui,
 		int x,
 		int y);
@@ -94,7 +107,8 @@ public:
 	~ReframeRTWindow();
 	void create_objects();
 	ReframeRT *plugin;
-	ReframeRTScale *scale;
+	ReframeRTNum *num;
+	ReframeRTDenom *denom;
 	ReframeRTStretch *stretch;
 	ReframeRTDownsample *downsample;
 };
@@ -130,20 +144,23 @@ REGISTER_PLUGIN(ReframeRT);
 
 ReframeRTConfig::ReframeRTConfig()
 {
-	scale = 1.0;
+	num = 1.0;
+	denom = 1.0;
 	stretch = 0;
 	optic_flow = 1;
 }
 
 int ReframeRTConfig::equivalent(ReframeRTConfig &src)
 {
-	return fabs(scale - src.scale) < 0.0001 &&
+	return fabs(num - src.num) < 0.0001 &&
+		fabs(denom - src.denom) < 0.0001 &&
 		stretch == src.stretch;
 }
 
 void ReframeRTConfig::copy_from(ReframeRTConfig &src)
 {
-	this->scale = src.scale;
+	this->num = src.num;
+	this->denom = src.denom;
 	this->stretch = src.stretch;
 }
 
@@ -157,13 +174,15 @@ void ReframeRTConfig::interpolate(ReframeRTConfig &prev,
 //	double prev_scale = (double)(next_frame - current_frame) / (next_frame - prev_frame);
 
 //	this->scale = prev.scale * prev_scale + next.scale * next_scale;
-	this->scale = prev.scale;
+	this->num = prev.num;
+	this->denom = prev.denom;
 	this->stretch = prev.stretch;
 }
 
 void ReframeRTConfig::boundaries()
 {
-	if(fabs(scale) < 0.0001) scale = 0.0001;
+	if(num < 0.0001) num = 0.0001;
+	if(denom < 0.0001) denom = 0.0001;
 }
 
 
@@ -175,10 +194,10 @@ void ReframeRTConfig::boundaries()
 
 ReframeRTWindow::ReframeRTWindow(ReframeRT *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	160, 
-	200, 
-	160, 
+	DP(210), 
+	DP(160), 
+	DP(200), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -190,28 +209,40 @@ ReframeRTWindow::~ReframeRTWindow()
 
 void ReframeRTWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = plugin->get_theme()->window_border;
+	int y = plugin->get_theme()->window_border;
 	BC_Title *title;
-	add_subwindow(title = new BC_Title(x, y, _("Scale by amount:")));
+	add_subwindow(title = new BC_Title(x, y, _("Input frames:")));
 	y += title->get_h() + plugin->get_theme()->widget_border;
-	scale = new ReframeRTScale(plugin, 
+	num = new ReframeRTNum(plugin, 
 		this,
 		x, 
 		y);
-	scale->create_objects();
-	scale->set_increment(0.1);
-	y += 30;
+	num->create_objects();
+	num->set_increment(1.0);
+
+	y += num->get_h() + plugin->get_theme()->widget_border;
+	add_subwindow(title = new BC_Title(x, y, _("Output frames:")));
+	y += title->get_h() + plugin->get_theme()->widget_border;
+	denom = new ReframeRTDenom(plugin, 
+		this,
+		x, 
+		y);
+	denom->create_objects();
+	denom->set_increment(1.0);
+	
+	
+	y += denom->get_h() + plugin->get_theme()->widget_border;
 	add_subwindow(stretch = new ReframeRTStretch(plugin, 
 		this,
 		x, 
 		y));
-	y += 30;
+	y += stretch->get_h() + plugin->get_theme()->widget_border;
 	add_subwindow(downsample = new ReframeRTDownsample(plugin, 
 		this,
 		x, 
 		y));
 	show_window();
-	flush();
 }
 
 
@@ -221,28 +252,63 @@ void ReframeRTWindow::create_objects()
 
 
 
-ReframeRTScale::ReframeRTScale(ReframeRT *plugin, 
+ReframeRTNum::ReframeRTNum(ReframeRT *plugin, 
 	ReframeRTWindow *gui,
 	int x, 
 	int y)
  : BC_TumbleTextBox(gui,
- 	(float)plugin->config.scale,
-	(float)-1000,
+ 	(float)plugin->config.num,
+	(float)0.0001,
 	(float)1000,
  	x, 
 	y, 
-	100)
+	gui->get_w() - plugin->get_theme()->window_border * 3)
 {
 	this->plugin = plugin;
 }
 
-int ReframeRTScale::handle_event()
+int ReframeRTNum::handle_event()
 {
-	plugin->config.scale = atof(get_text());
+	plugin->config.num = atof(get_text());
 	plugin->config.boundaries();
 	plugin->send_configure_change();
 	return 1;
 }
+
+
+
+
+
+
+
+ReframeRTDenom::ReframeRTDenom(ReframeRT *plugin, 
+	ReframeRTWindow *gui,
+	int x, 
+	int y)
+ : BC_TumbleTextBox(gui,
+ 	(float)plugin->config.denom,
+	(float)-1000,
+	(float)1000,
+ 	x, 
+	y, 
+	gui->get_w() - plugin->get_theme()->window_border * 3)
+{
+	this->plugin = plugin;
+}
+
+int ReframeRTDenom::handle_event()
+{
+	plugin->config.denom = atof(get_text());
+	plugin->config.boundaries();
+	plugin->send_configure_change();
+	return 1;
+}
+
+
+
+
+
+
 
 ReframeRTStretch::ReframeRTStretch(ReframeRT *plugin,
 	ReframeRTWindow *gui,
@@ -349,13 +415,16 @@ int ReframeRT::process_buffer(VFrame *frame,
 
 		segment_len = next_position - tmp_position;
 
-		input_frame += (int64_t)(segment_len * config.scale);
+		input_frame += (int64_t)(segment_len * config.num / config.denom);
 	} while (!is_current_keyframe);
 
 // Change rate
 // Don't think this is what you want for downsampling.
 	if (!config.stretch)
-		input_rate *= config.scale;
+	{
+		input_rate *= config.num / config.denom;
+
+	}
 
 // printf("ReframeRT::process_buffer %d %lld %f %lld %f\n", 
 // __LINE__, 
@@ -367,7 +436,8 @@ int ReframeRT::process_buffer(VFrame *frame,
 	read_frame(frame,
 		0,
 		input_frame,
-		input_rate);
+		input_rate,
+		0);
 
 	delete fake_keyframe;
 
@@ -385,7 +455,9 @@ void ReframeRT::save_data(KeyFrame *keyframe)
 // cause data to be stored directly in text
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 	output.tag.set_title("REFRAMERT");
-	output.tag.set_property("SCALE", config.scale);
+// for backwards compatability, we call num scale
+	output.tag.set_property("SCALE", config.num);
+	output.tag.set_property("DENOM", config.denom);
 	output.tag.set_property("STRETCH", config.stretch);
 	output.append_tag();
 	output.terminate_string();
@@ -403,7 +475,9 @@ void ReframeRT::read_data(KeyFrame *keyframe)
 	{
 		if(input.tag.title_is("REFRAMERT"))
 		{
-			config.scale = input.tag.get_property("SCALE", config.scale);
+// for backwards compatability, we call num scale
+			config.num = input.tag.get_property("SCALE", config.num);
+			config.denom = input.tag.get_property("DENOM", config.denom);
 			config.stretch = input.tag.get_property("STRETCH", config.stretch);
 		}
 	}
@@ -418,7 +492,8 @@ void ReframeRT::update_gui()
 		if(changed)
 		{
 			thread->window->lock_window("ReframeRT::update_gui");
-			((ReframeRTWindow*)thread->window)->scale->update((float)config.scale);
+			((ReframeRTWindow*)thread->window)->num->update((float)config.num);
+			((ReframeRTWindow*)thread->window)->denom->update((float)config.denom);
 			((ReframeRTWindow*)thread->window)->stretch->update(config.stretch);
 			((ReframeRTWindow*)thread->window)->downsample->update(!config.stretch);
 			thread->window->unlock_window();

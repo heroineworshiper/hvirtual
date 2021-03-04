@@ -111,7 +111,7 @@ void BC_NewFolderThread::run()
 		filebox->fs->join_names(new_folder, filebox->fs->get_current_dir(), window->get_text());
 		mkdir(new_folder, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 		filebox->lock_window("BC_NewFolderThread::run");
-		filebox->refresh();
+		filebox->refresh(0, 1);
 		filebox->unlock_window();
 	}
 

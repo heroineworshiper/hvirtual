@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,8 +38,8 @@ HistogramWindow::HistogramWindow(HistogramMain *plugin)
  : PluginClientWindow(plugin, 
 	plugin->w, 
 	plugin->h, 
-	440, 
-	500, 
+	DP(440), 
+	DP(500), 
 	1)
 {
 	this->plugin = plugin; 
@@ -106,7 +106,7 @@ void HistogramWindow::create_objects()
 
 	y += canvas_title2->get_h() + margin;
 	x = x1;
-	canvas_h = get_h() - y - 210;
+	canvas_h = get_h() - y - DP(210);
 
 
 	add_subwindow(low_input_carrot = new HistogramCarrot(plugin,
@@ -199,7 +199,7 @@ void HistogramWindow::create_objects()
 		canvas->get_x(), 
 		y, 
 		canvas->get_w(),
-		20,
+		DP(20),
 		0));
 	output->update();
 
@@ -256,7 +256,7 @@ void HistogramWindow::create_objects()
 		y));
 
 	int y1 = y;
-	x = 200;
+	x = DP(200);
 	add_subwindow(threshold_title = new BC_Title(x, y, _("Threshold:")));
 	x += threshold_title->get_w() + margin;
 	threshold = new HistogramText(plugin,
@@ -276,7 +276,7 @@ void HistogramWindow::create_objects()
 		x, 
 		y));
 
-	y += plot->get_h() + 5;
+	y += plot->get_h() + DP(5);
 	add_subwindow(split = new HistogramSplit(plugin, 
 		x, 
 		y));
@@ -331,7 +331,7 @@ int HistogramWindow::resize_event(int w, int h)
 	gamma->reposition_window(w / 2 - gamma->get_w() / 2,
 		gamma->get_y() + ydiff);
 	high_input->reposition_window(high_input->get_x() + xdiff,
-		low_input->get_y() + ydiff);
+		high_input->get_y() + ydiff);
 
 	output->reposition_window(output->get_x(),
 		output->get_y() + ydiff,
@@ -1030,7 +1030,7 @@ HistogramText::HistogramText(HistogramMain *plugin,
 		(float)MAX_INPUT,
 		x, 
 		y, 
-		70)
+		DP(70))
 {
 	this->plugin = plugin;
 	this->gui = gui;

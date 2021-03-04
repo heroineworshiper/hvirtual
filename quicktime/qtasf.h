@@ -94,6 +94,7 @@ int quicktime_read_asf_header(quicktime_t *file);
 void quicktime_delete_asf(quicktime_asf_t *asf);
 void quicktime_dump_asf(quicktime_asf_t *asf);
 int quicktime_read_guid(quicktime_t *file, quicktime_guid_t *guid);
+int quicktime_read_asf(quicktime_t *file);
 
 
 

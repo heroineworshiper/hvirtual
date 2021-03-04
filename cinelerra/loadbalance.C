@@ -111,8 +111,8 @@ void LoadClient::run()
 			}
 			else
 			{
-				completion_lock->unlock();
 				server->client_lock->unlock();
+				completion_lock->unlock();
 			}
 		}
 	}

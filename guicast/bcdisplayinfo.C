@@ -234,6 +234,7 @@ int BC_DisplayInfo::get_bottom_border()
 void BC_DisplayInfo::init_window(const char *display_name, int show_error)
 {
 	if(display_name && display_name[0] == 0) display_name = NULL;
+//printf("BC_DisplayInfo::init_window %d %s\n", __LINE__, display_name);
 
 #ifdef SINGLE_THREAD
 	display = BC_Display::get_display(display_name);
@@ -259,10 +260,20 @@ void BC_DisplayInfo::init_window(const char *display_name, int show_error)
 #ifdef SINGLE_THREAD
 	BC_Display::lock_display("BC_DisplayInfo::init_window");
 #endif
+
 	screen = DefaultScreen(display);
 	rootwin = RootWindow(display, screen);
 	vis = DefaultVisual(display, screen);
 	default_depth = DefaultDepth(display, screen);
+
+	dpi = (int)(XDisplayWidth(display, screen) * 25.4 /
+		XDisplayWidthMM(display, screen));
+
+
+//	XDisplayHeight(display, screen);
+//	XDisplayHeightMM(display, screen);
+	
+	
 #ifdef SINGLE_THREAD
 	BC_Display::unlock_display();
 #endif // SINGLE_THREAD

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,9 @@
 #include "colormodels.h"
 #include "edl.h"
 #include "edlsession.h"
+#include "file.h"
 #include "mwindow.h"
+#include "mwindowgui.h"
 #include "playback3d.h"
 #include "playbackconfig.h"
 #include "preferences.h"
@@ -72,6 +74,11 @@ int VDeviceX11::reset_parameters()
 	capture_bitmap = 0;
 	color_model_selected = 0;
 	is_cleared = 0;
+
+	for(int i = 0; i < SCREENCAP_BORDERS; i++)
+	{
+		screencap_border[i] = 0;
+	}
 	return 0;
 }
 
@@ -81,8 +88,40 @@ int VDeviceX11::open_input()
 	capture_bitmap = new BC_Capture(device->in_config->w, 
 		device->in_config->h,
 		device->in_config->screencapture_display);
-//printf("VDeviceX11::open_input 2\n");
-	
+//printf("VDeviceX11::open_input %d %p\n", __LINE__, device->mwindow);
+
+	if(device->mwindow)
+	{
+// create overlay
+		device->mwindow->gui->lock_window("VDeviceX11::close_all");
+
+		screencap_border[0] = new BC_Popup(device->mwindow->gui, 
+				device->input_x - SCREENCAP_PIXELS,
+				device->input_y - SCREENCAP_PIXELS,
+				device->in_config->w + SCREENCAP_PIXELS * 2,
+				SCREENCAP_PIXELS,
+				SCREENCAP_COLOR);
+		screencap_border[1] = new BC_Popup(device->mwindow->gui, 
+				device->input_x - SCREENCAP_PIXELS,
+				device->input_y,
+				SCREENCAP_PIXELS,
+				device->in_config->h,
+				SCREENCAP_COLOR);
+		screencap_border[2] = new BC_Popup(device->mwindow->gui, 
+				device->input_x - SCREENCAP_PIXELS,
+				device->input_y + device->in_config->h,
+				device->in_config->w + SCREENCAP_PIXELS * 2,
+				SCREENCAP_PIXELS,
+				SCREENCAP_COLOR);
+		screencap_border[3] = new BC_Popup(device->mwindow->gui, 
+				device->input_x + device->in_config->w,
+				device->input_y,
+				SCREENCAP_PIXELS,
+				device->in_config->h,
+				SCREENCAP_COLOR);
+		device->mwindow->gui->unlock_window();
+	}
+
 	return 0;
 }
 
@@ -99,7 +138,6 @@ int VDeviceX11::open_output()
 		output->get_canvas()->unlock_window();
 
 // Enable opengl in the first routine that needs it, to reduce the complexity.
-
 		output->unlock_canvas();
 	}
 	return 0;
@@ -154,10 +192,12 @@ int VDeviceX11::close_all()
 		{
 			delete output->refresh_frame;
 			output->refresh_frame = 0;
+//printf("VDeviceX11::close_all %d deleting refresh_frame\n", __LINE__);
 		}
 
 		if(!output->refresh_frame)
 		{
+//printf("VDeviceX11::close_all %d creating refresh_frame\n", __LINE__);
 			output->refresh_frame = new VFrame(0,
 				-1,
 				device->out_w,
@@ -180,8 +220,46 @@ int VDeviceX11::close_all()
 			output->get_canvas()->lock_window("VDeviceX11::close_all 2");
 		}
 		else
-			output->refresh_frame->copy_from(output_frame);
-
+		{
+// printf("VDeviceX11::close_all %d refresh_frame cmodel=%d refresh_frame=%dx%d output_frame cmodel=%d output_frame=%dx%d\n", 
+// __LINE__,
+// output->refresh_frame->get_color_model(),
+// output->refresh_frame->get_w(),
+// output->refresh_frame->get_h(),
+// output_frame->get_color_model(),
+// output_frame->get_w(),
+// output_frame->get_h());
+			if(output->refresh_frame->get_w() != output_frame->get_w() ||
+				output->refresh_frame->get_h() != output_frame->get_h())
+			{
+// need to scale it
+				cmodel_transfer(output->refresh_frame->get_rows(), 
+					output_frame->get_rows(),
+					0,
+					0,
+					0,
+					output_frame->get_y(),
+					output_frame->get_u(),
+					output_frame->get_v(),
+					0, 
+					0, 
+					output_frame->get_w(), 
+					output_frame->get_h(),
+					0, 
+					0, 
+					output->refresh_frame->get_w(), 
+					output->refresh_frame->get_h(),
+					output_frame->get_color_model(), 
+					output->refresh_frame->get_color_model(),
+					0,
+					output_frame->get_bytes_per_line(),
+					output->refresh_frame->get_bytes_per_line());
+			}
+			else
+			{
+				output->refresh_frame->copy_from(output_frame);
+			}
+		}
 
 
 
@@ -204,8 +282,9 @@ int VDeviceX11::close_all()
 // every stop.
 		if(/* device->out_config->driver != PLAYBACK_X11_GL || 
 			*/ device->single_frame)
+		{
 			output->draw_refresh();
-
+		}
 	}
 
 
@@ -213,21 +292,27 @@ int VDeviceX11::close_all()
 
 	if(bitmap)
 	{
+//printf("VDeviceX11::close_all %d deleting bitmap\n", __LINE__);
 		delete bitmap;
 		bitmap = 0;
 	}
 
 	if(output_frame)
 	{
+//printf("VDeviceX11::close_all %d deleting output_frame\n", __LINE__);
 		delete output_frame;
 		output_frame = 0;
 	}
 
-	if(capture_bitmap) delete capture_bitmap;
+	if(capture_bitmap)
+	{
+//printf("VDeviceX11::close_all %d\n", __LINE__);
+		delete capture_bitmap;
+	}
 
 	if(output)
 	{
-	
+
 // Update the status bug
 		if(!device->single_frame)
 		{
@@ -242,50 +327,84 @@ int VDeviceX11::close_all()
 		output->unlock_canvas();
 	}
 
-
+	if(device->mwindow)
+	{
+		device->mwindow->gui->lock_window("VDeviceX11::close_all");
+		for(int i = 0; i < SCREENCAP_BORDERS; i++)
+		{
+			delete screencap_border[i];
+			screencap_border[i] = 0;
+		}
+		device->mwindow->gui->unlock_window();
+	}
+	
 	reset_parameters();
+
 	return 0;
 }
 
 int VDeviceX11::read_buffer(VFrame *frame)
 {
-	capture_bitmap->capture_frame(frame, device->input_x, device->input_y);
+//printf("VDeviceX11::read_buffer %d colormodel=%d\n", __LINE__, frame->get_color_model());
+	if(device->mwindow)
+	{
+		device->mwindow->gui->lock_window("VDeviceX11::close_all");
+
+		screencap_border[0]->reposition_window(device->input_x - SCREENCAP_PIXELS,
+				device->input_y - SCREENCAP_PIXELS);
+		screencap_border[1]->reposition_window(device->input_x - SCREENCAP_PIXELS,
+				device->input_y);
+		screencap_border[2]->reposition_window(device->input_x - SCREENCAP_PIXELS,
+				device->input_y + device->in_config->h);
+		screencap_border[3]->reposition_window(device->input_x + device->in_config->w,
+				device->input_y);
+		device->mwindow->gui->flush();
+		device->mwindow->gui->unlock_window();
+	}
+
+	capture_bitmap->capture_frame(frame, 
+		device->input_x, 
+		device->input_y,
+		device->do_cursor);
 	return 0;
 }
 
 
 int VDeviceX11::get_best_colormodel(Asset *asset)
 {
-	return BC_RGB888;
+	return File::get_best_colormodel(asset, SCREENCAPTURE);
+
+//	return BC_RGB888;
 }
 
 
-int VDeviceX11::get_best_colormodel(int colormodel)
+int VDeviceX11::get_display_colormodel(int file_colormodel)
 {
 	int result = -1;
 
 	if(device->out_config->driver == PLAYBACK_X11_GL)
 	{
-		if(colormodel == BC_RGB888 ||
-			colormodel == BC_RGBA8888 ||
-			colormodel == BC_YUV888 ||
-			colormodel == BC_YUVA8888 ||
-			colormodel == BC_RGB_FLOAT ||
-			colormodel == BC_RGBA_FLOAT)
+		if(file_colormodel == BC_RGB888 ||
+			file_colormodel == BC_RGBA8888 ||
+			file_colormodel == BC_YUV888 ||
+			file_colormodel == BC_YUVA8888 ||
+			file_colormodel == BC_RGB_FLOAT ||
+			file_colormodel == BC_RGBA_FLOAT)
 		{
-			return colormodel;
+			return file_colormodel;
 		}
+		
 		return BC_RGB888;
 	}
 
 	if(!device->single_frame)
 	{
-		switch(colormodel)
+		switch(file_colormodel)
 		{
 			case BC_YUV420P:
 			case BC_YUV422P:
 			case BC_YUV422:
-				result = colormodel;
+				result = file_colormodel;
 				break;
 		}
 	}
@@ -293,24 +412,26 @@ int VDeviceX11::get_best_colormodel(int colormodel)
 // 2 more colormodels are supported by OpenGL
 	if(device->out_config->driver == PLAYBACK_X11_GL)
 	{
-		if(colormodel == BC_RGB_FLOAT ||
-			colormodel == BC_RGBA_FLOAT)
-			result = colormodel;
+		if(file_colormodel == BC_RGB_FLOAT ||
+			file_colormodel == BC_RGBA_FLOAT)
+			result = file_colormodel;
 	}
 
 	if(result < 0)
 	{
-		switch(colormodel)
+		switch(file_colormodel)
 		{
 			case BC_RGB888:
 			case BC_RGBA8888:
 			case BC_YUV888:
 			case BC_YUVA8888:
-				result = colormodel;
+			case BC_RGB_FLOAT:
+			case BC_RGBA_FLOAT:
+				result = file_colormodel;
 				break;
 
 			default:
-				output->lock_canvas("VDeviceX11::get_best_colormodel");
+				output->lock_canvas("VDeviceX11::get_display_colormodel");
 				result = output->get_canvas()->get_color_model();
 				output->unlock_canvas();
 				break;
@@ -321,15 +442,20 @@ int VDeviceX11::get_best_colormodel(int colormodel)
 }
 
 
-void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
+void VDeviceX11::new_output_buffer(VFrame **result, 
+	int file_colormodel, 
+	EDL *edl)
 {
-//printf("VDeviceX11::new_output_buffer 1\n");
+// printf("VDeviceX11::new_output_buffer %d hardware_scaling=%d\n",
+// __LINE__,
+// bitmap ? bitmap->hardware_scaling() : 0);
 	output->lock_canvas("VDeviceX11::new_output_buffer");
 	output->get_canvas()->lock_window("VDeviceX11::new_output_buffer 1");
 
 // Get the best colormodel the display can handle.
-	int best_colormodel = get_best_colormodel(colormodel);
+	int display_colormodel = get_display_colormodel(file_colormodel);
 
+//printf("VDeviceX11::new_output_buffer %d file_colormodel=%d display_colormodel=%d\n", __LINE__, file_colormodel, display_colormodel);
 // Only create OpenGL Pbuffer and texture.
 	if(device->out_config->driver == PLAYBACK_X11_GL)
 	{
@@ -341,7 +467,7 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 				-1,
 				device->out_w, 
 				device->out_h, 
-				colormodel,
+				file_colormodel,
 				-1);
 //BUFFER2(output_frame->get_rows()[0], "VDeviceX11::new_output_buffer 1");
 		}
@@ -351,31 +477,105 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 	}
 	else
 	{
+		output->get_transfers(edl, 
+			output_x1, 
+			output_y1, 
+			output_x2, 
+			output_y2, 
+			canvas_x1, 
+			canvas_y1, 
+			canvas_x2, 
+			canvas_y2,
+// Canvas may be a different size than the temporary bitmap for pure software
+			-1,
+			-1);
+		canvas_w = canvas_x2 - canvas_x1;
+		canvas_h = canvas_y2 - canvas_y1;
+
+
+// can the direct frame be used?
+		int direct_supported = (output_x1 == 0 && 
+			output_y1 == 0 &&
+			output_x2 == device->out_w &&
+			output_y2 == device->out_h &&
+			!output->xscroll &&
+			!output->yscroll);
+
+// file wants direct frame but we need a temp
+		if(file_colormodel == BC_BGR8888 && !direct_supported)
+		{
+			file_colormodel = BC_RGB888;
+		}
+
 // Conform existing bitmap to new colormodel and output size
 		if(bitmap)
 		{
+// printf("VDeviceX11::new_output_buffer %d bitmap=%dx%d canvas=%dx%d canvas=%dx%d\n",
+// __LINE__,
+// bitmap->get_w(),
+// bitmap->get_h(),
+// canvas_w,
+// canvas_h,);
+
+			int size_change = (bitmap->get_w() != canvas_w ||
+				bitmap->get_h() != canvas_h);
+//			int size_change = (bitmap->get_w() != output->get_canvas()->get_w() ||
+//				bitmap->get_h() != output->get_canvas()->get_h());
+
 // Restart if output size changed or output colormodel changed.
 // May have to recreate if transferring between windowed and fullscreen.
 			if(!color_model_selected ||
-				(!bitmap->hardware_scaling() && 
-					(bitmap->get_w() != output->get_canvas()->get_w() ||
-					bitmap->get_h() != output->get_canvas()->get_h())) ||
-				colormodel != output_frame->get_color_model())
+				file_colormodel != output_frame->get_color_model() ||
+				(!bitmap->hardware_scaling() && size_change))
 			{
-				int size_change = (bitmap->get_w() != output->get_canvas()->get_w() ||
-					bitmap->get_h() != output->get_canvas()->get_h());
-//printf("VDeviceX11::new_output_buffer %d\n", __LINE__);
+// printf("VDeviceX11::new_output_buffer %d file_colormodel=%d prev file_colormodel=%d bitmap=%p output_frame=%p\n",
+// __LINE__,
+// file_colormodel,
+// output_frame->get_color_model(),
+// bitmap,
+// output_frame);
+
 				delete bitmap;
 				delete output_frame;
 				bitmap = 0;
 				output_frame = 0;
 
-// Blank only if size changed
+// Clear borders if size changed
 				if(size_change)
 				{
+// printf("VDeviceX11::new_output_buffer %d w=%d h=%d canvas_x1=%d canvas_y1=%d canvas_x2=%d canvas_y2=%d\n", 
+// __LINE__,
+// (int)output->w,
+// (int)output->h,
+// (int)canvas_x1,
+// (int)canvas_y1,
+// (int)canvas_x2,
+// (int)canvas_y2);
 					output->get_canvas()->set_color(BLACK);
-					output->get_canvas()->draw_box(0, 0, output->w, output->h);
-					output->get_canvas()->flash();
+
+					if(canvas_y1 > 0)
+					{
+						output->get_canvas()->draw_box(0, 0, output->w, canvas_y1);
+						output->get_canvas()->flash(0, 0, output->w, canvas_y1);
+					}
+
+					if(canvas_y2 < output->h)
+					{
+						output->get_canvas()->draw_box(0, canvas_y2, output->w, output->h - canvas_y2);
+						output->get_canvas()->flash(0, canvas_y2, output->w, output->h - canvas_y2);
+					}
+
+					if(canvas_x1 > 0)
+					{
+						output->get_canvas()->draw_box(0, canvas_y1, canvas_x1, canvas_y2 - canvas_y1);
+						output->get_canvas()->flash(0, canvas_y1, canvas_x1, canvas_y2 - canvas_y1);
+					}
+
+					if(canvas_x2 < output->w)
+					{
+						output->get_canvas()->draw_box(canvas_x2, canvas_y1, output->w - canvas_x2, canvas_y2 - canvas_y1);
+						output->get_canvas()->flash(canvas_x2, canvas_y1, output->w - canvas_x2, canvas_y2 - canvas_y1);
+					}
 				}
 			}
 			else
@@ -384,7 +584,7 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 			{
 //printf("VDeviceX11::new_output_buffer %d\n", __LINE__);
 
-				output_frame->set_memory(0 /* (unsigned char*)bitmap->get_data() */,
+				output_frame->set_memory(0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */,
 					bitmap->get_shmid(),
 					bitmap->get_y_offset(),
 					bitmap->get_u_offset(),
@@ -395,18 +595,58 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 // Create new bitmap
 		if(!bitmap)
 		{
+
+// printf("VDeviceX11::new_output_buffer %d file_colormodel=%d display_colormodel=%d\n", 
+// __LINE__, 
+// file_colormodel,
+// display_colormodel);
+
 // Try hardware accelerated
-			switch(best_colormodel)
+			switch(display_colormodel)
 			{
+// blit from the codec directly to the window, using the standard X11 color model.
+// Must scale in the codec.  No cropping
+				case BC_BGR8888:
+				{
+					if(direct_supported)
+					{
+// printf("VDeviceX11::new_output_buffer %d creating direct bitmap w=%d h=%d\n", 
+// __LINE__, 
+// canvas_w,
+// canvas_h);
+
+						bitmap = new BC_Bitmap(output->get_canvas(), 
+								canvas_w,
+								canvas_h,
+								display_colormodel,
+								1);
+						output_frame = new VFrame(
+							0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */, 
+							bitmap->get_shmid(),
+							0,
+							0,
+							0,
+							canvas_w,
+							canvas_h,
+							display_colormodel,
+							-1);
+						bitmap_type = BITMAP_PRIMARY;
+					}
+					break;
+				}
+
 				case BC_YUV420P:
 					if(device->out_config->driver == PLAYBACK_X11_XV &&
-						output->get_canvas()->accel_available(best_colormodel, 0) &&
+						output->get_canvas()->accel_available(display_colormodel, 0) &&
 						!output->use_scrollbars)
 					{
+//printf("VDeviceX11::new_output_buffer %d\n", 
+//__LINE__);
+
 						bitmap = new BC_Bitmap(output->get_canvas(), 
 							device->out_w,
 							device->out_h,
-							best_colormodel,
+							display_colormodel,
 							1);
 						output_frame = new VFrame(
 							0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */, 
@@ -416,7 +656,7 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 							bitmap->get_v_offset(),
 							device->out_w,
 							device->out_h,
-							best_colormodel,
+							display_colormodel,
 							-1);
 						bitmap_type = BITMAP_PRIMARY;
 					}
@@ -424,13 +664,13 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 
 				case BC_YUV422P:
 					if(device->out_config->driver == PLAYBACK_X11_XV &&
-						output->get_canvas()->accel_available(best_colormodel, 0) &&
+						output->get_canvas()->accel_available(display_colormodel, 0) &&
 						!output->use_scrollbars)
 					{
 						bitmap = new BC_Bitmap(output->get_canvas(), 
 							device->out_w,
 							device->out_h,
-							best_colormodel,
+							display_colormodel,
 							1);
 						output_frame = new VFrame(
 							0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */, 
@@ -440,7 +680,7 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 							bitmap->get_v_offset(),
 							device->out_w,
 							device->out_h,
-							best_colormodel,
+							display_colormodel,
 							-1);
 						bitmap_type = BITMAP_PRIMARY;
 					}
@@ -459,13 +699,13 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 
 				case BC_YUV422:
 					if(device->out_config->driver == PLAYBACK_X11_XV &&
-						output->get_canvas()->accel_available(best_colormodel, 0) &&
+						output->get_canvas()->accel_available(display_colormodel, 0) &&
 						!output->use_scrollbars)
 					{
 						bitmap = new BC_Bitmap(output->get_canvas(), 
 							device->out_w,
 							device->out_h,
-							best_colormodel,
+							display_colormodel,
 							1);
 						output_frame = new VFrame(
 							0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */, 
@@ -475,7 +715,7 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 							bitmap->get_v_offset(),
 							device->out_w,
 							device->out_h,
-							best_colormodel,
+							display_colormodel,
 							-1);
 						bitmap_type = BITMAP_PRIMARY;
 					}
@@ -493,14 +733,25 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 					break;
 			}
 
-// Try default colormodel
+// Make an intermediate frame
 			if(!bitmap)
 			{
-				best_colormodel = output->get_canvas()->get_color_model();
+				display_colormodel = output->get_canvas()->get_color_model();
+// printf("VDeviceX11::new_output_buffer %d creating temp display_colormodel=%d file_colormodel=%d %dx%d %dx%d %dx%d\n",
+// __LINE__,
+// display_colormodel,
+// file_colormodel,
+// device->out_w,
+// device->out_h,
+// output->get_canvas()->get_w(),
+// output->get_canvas()->get_h(),
+// canvas_w,
+// canvas_h);
+//printf("VDeviceX11::new_output_buffer %d creating bitmap\n", __LINE__);
 				bitmap = new BC_Bitmap(output->get_canvas(), 
-					output->get_canvas()->get_w(),
-					output->get_canvas()->get_h(),
-					best_colormodel,
+					canvas_w,
+					canvas_h,
+					display_colormodel,
 					1);
 				bitmap_type = BITMAP_TEMP;
 			}
@@ -508,14 +759,14 @@ void VDeviceX11::new_output_buffer(VFrame **result, int colormodel)
 			if(bitmap_type == BITMAP_TEMP)
 			{
 // Intermediate frame
+//printf("VDeviceX11::new_output_buffer %d creating output_frame\n", __LINE__);
 				output_frame = new VFrame(0, 
 					-1,
 					device->out_w,
 					device->out_h,
-					colormodel,
+					file_colormodel,
 					-1);
 //BUFFER2(output_frame->get_rows()[0], "VDeviceX11::new_output_buffer 2");
-				bitmap_type = BITMAP_TEMP;
 			}
 			color_model_selected = 1;
 		}
@@ -554,19 +805,33 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 
 
 
-//printf("VDeviceX11::write_buffer %d %d\n", __LINE__, output->get_canvas()->get_video_on());
-	output->get_transfers(edl, 
-		output_x1, 
-		output_y1, 
-		output_x2, 
-		output_y2, 
-		canvas_x1, 
-		canvas_y1, 
-		canvas_x2, 
-		canvas_y2,
-// Canvas may be a different size than the temporary bitmap for pure software
-		(bitmap_type == BITMAP_TEMP && !bitmap->hardware_scaling()) ? bitmap->get_w() : -1,
-		(bitmap_type == BITMAP_TEMP && !bitmap->hardware_scaling()) ? bitmap->get_h() : -1);
+// printf("VDeviceX11::write_buffer %d %d bitmap_type=%d\n", 
+// __LINE__, 
+// output->get_canvas()->get_video_on(),
+// bitmap_type);
+
+// 	int use_bitmap_extents = 0;
+// 	canvas_w = -1;
+// 	canvas_h = -1;
+// // Canvas may be a different size than the temporary bitmap for pure software
+// 	if(bitmap_type == BITMAP_TEMP && 
+// 		!bitmap->hardware_scaling())
+// 	{
+// 		canvas_w = bitmap->get_w();
+// 		canvas_h = bitmap->get_h();
+// 	}
+// 
+// 	output->get_transfers(edl, 
+// 		output_x1, 
+// 		output_y1, 
+// 		output_x2, 
+// 		output_y2, 
+// 		canvas_x1, 
+// 		canvas_y1, 
+// 		canvas_x2, 
+// 		canvas_y2,
+// 		canvas_w,
+// 		canvas_h);
 
 
 // Convert colormodel
@@ -590,6 +855,11 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 // printf("VDeviceX11::write_buffer %d output_channels=%p\n", 
 // __LINE__, 
 // output_channels);
+
+// printf("VDeviceX11::write_buffer %d input color_model=%d output color_model=%d\n", 
+// __LINE__, 
+// output_channels->get_color_model(),
+// bitmap->get_color_model());
 
 
 
@@ -648,7 +918,9 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 //printf("VDeviceX11::write_buffer 2 %d %d %d\n", bitmap_type, 
 //	bitmap->get_color_model(), 
 //	output->get_color_model());fflush(stdout);
-// printf("VDeviceX11::write_buffer 2 %d %d, %f %f %f %f -> %f %f %f %f\n",
+
+// printf("VDeviceX11::write_buffer %d %dx%d %f %f %f %f -> %f %f %f %f\n",
+// __LINE__,
 // output->w,
 // output->h,
 // output_x1, 
@@ -668,6 +940,31 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 // Output is drawn in close_all if no video.
 		if(output->get_canvas()->get_video_on())
 		{
+			int use_bitmap_extents = 0;
+			canvas_w = -1;
+			canvas_h = -1;
+// Canvas may be a different size than the temporary bitmap for pure software
+			if(bitmap_type == BITMAP_TEMP && 
+				!bitmap->hardware_scaling())
+			{
+				canvas_w = bitmap->get_w();
+				canvas_h = bitmap->get_h();
+			}
+
+			output->get_transfers(edl, 
+				output_x1, 
+				output_y1, 
+				output_x2, 
+				output_y2, 
+				canvas_x1, 
+				canvas_y1, 
+				canvas_x2, 
+				canvas_y2,
+				canvas_w,
+				canvas_h);
+
+
+//printf("VDeviceX11::write_buffer %d\n", __LINE__);
 // Draw output frame directly.  Not used for compositing.
 			output->get_canvas()->unlock_window();
 			output->unlock_canvas();
@@ -704,8 +1001,13 @@ int VDeviceX11::write_buffer(VFrame *output_channels, EDL *edl)
 	}
 	else
 	{
-//printf("VDeviceX11::write_buffer %d bitmap=%p\n", __LINE__, bitmap);
-//for(int i = 0; i < 100000; i++) bitmap->get_row_pointers()[0][i] = 255;
+// printf("VDeviceX11::write_buffer %d x=%d y=%d w=%d h=%d\n", 
+// __LINE__, 
+// (int)canvas_x1,
+// (int)canvas_y1,
+// output->get_canvas()->get_w(),
+// output->get_canvas()->get_h());
+
 		output->get_canvas()->draw_bitmap(bitmap,
 			!device->single_frame,
 			(int)canvas_x1,

@@ -59,7 +59,10 @@ public:
 
 	friend class BC_WindowBase;
 
+// can't initialize until DPI is known
+	void init();
 	int initialize_display(BC_WindowBase *window);
+	static void init_fonts();
 
 // Get unique ID
 	int get_id();
@@ -83,6 +86,16 @@ public:
 	static void set_signals(BC_Signals *signal_handler);
 	static BC_Signals* get_signals();
 
+// scale DP units to pixels
+	static int dp_to_px(int dp);
+
+
+	static int initialized;
+
+// the DPI of the monitor
+	static int dpi;
+// don't probe for DPI
+	static int override_dpi;
 
 // These values should be changed before the first window is created.
 // colors
@@ -200,6 +213,8 @@ public:
 	VFrame **checkbox_images;
 	VFrame **radial_images;
 	VFrame **label_images;
+// menu check
+	VFrame *check;
 
 	VFrame **tumble_data;
 	int tumble_duration;
@@ -250,7 +265,7 @@ public:
 
 // Pots
 	VFrame **pot_images;
-	int pot_x1, pot_y1, pot_r;
+//	int pot_x1, pot_y1, pot_r;
 // Amount of deflection of pot when down
 	int pot_offset;
 	int pot_needle_color;
@@ -301,28 +316,30 @@ public:
 	static const char *large_font;
 	static const char *medium_font;
 	static const char *small_font;
-// Backup of fonts in case the first choices don't exist
-	static const char *large_font2;
-	static const char *medium_font2;
-	static const char *small_font2;
+	static const char *clock_font;
+	static int large_fontsize;
+	static int medium_fontsize;
+	static int small_fontsize;
+	static int clock_fontsize;
 
-	static const char *large_fontset;
-	static const char *medium_fontset;
-	static const char *small_fontset;
+// 	static const char *large_fontset;
+// 	static const char *medium_fontset;
+// 	static const char *small_fontset;
+// 	static const char *clock_fontset;
 
 	static const char *large_font_xft;
 	static const char *medium_font_xft;
 	static const char *small_font_xft;
-
-// Backup of fonts in case the first choices don't exist
-	static const char *large_font_xft2;
-	static const char *medium_font_xft2;
-	static const char *small_font_xft2;
+	static const char *clock_font_xft;
+	static int large_font_xftsize;
+	static int medium_font_xftsize;
+	static int small_font_xftsize;
+	static int clock_font_xftsize;
 
 	VFrame **medium_7segment;
 
 
-	int use_fontset;
+//	int use_fontset;
 // This must be constitutive since applications access the private members here.
 	int use_xft;
 
@@ -338,6 +355,8 @@ public:
 	int use_xvideo;
 // Seems to help if only 1 window is created at a time.
 	Mutex *create_window_lock;
+// try to fix xft crashes
+	static Mutex *xft_lock;
 
 private:
 // Test for availability of shared memory pixmaps

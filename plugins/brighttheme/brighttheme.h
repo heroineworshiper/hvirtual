@@ -47,6 +47,9 @@ public:
 	void draw_new_bg(NewWindow *gui);
 	void draw_setformat_bg(SetFormatWindow *gui);
 
+	void get_mwindow_sizes(MWindowGUI *gui, int w, int h);
+	void get_vwindow_sizes(VWindowGUI *gui);
+
 private:
 	void build_bg_data();
 	void build_patches();

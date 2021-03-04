@@ -157,10 +157,13 @@ int cmodel_is_planar(int colormodel)
 {
 	switch(colormodel)
 	{
-		case BC_YUV420P:      return 1; break;
-		case BC_YUV422P:      return 1; break;
-		case BC_YUV444P:      return 1; break;
-		case BC_YUV411P:      return 1; break;
+		case BC_YUV420P10LE:
+		case BC_YUV420P:
+		case BC_YUV422P:
+		case BC_YUV444P:
+		case BC_YUV411P:
+			return 1;
+			break;
 	}
 	return 0;
 }
@@ -183,6 +186,7 @@ int cmodel_components(int colormodel)
 		case BC_YUV101010:    return 3; break;
 		case BC_RGB_FLOAT:    return 3; break;
 		case BC_RGBA_FLOAT:   return 4; break;
+		case BC_YUV420P10LE:  return 3; break;
 	}
 }
 
@@ -223,6 +227,7 @@ int cmodel_calculate_pixelsize(int colormodel)
 		case BC_YUV422:       return 2; break;
 		case BC_YUV411P:      return 1; break;
 		case BC_YUV9P:        return 1; break;
+		case BC_YUV420P10LE:  return 2; break;
 	}
 	return 0;
 }
@@ -427,6 +432,10 @@ void cmodel_transfer(unsigned char **output_rows,
 
 		case BC_YUV422:
 			cmodel_yuv422(PERMUTATION_VALUES);
+			break;
+
+		case BC_YUV420P10LE:
+			cmodel_yuv420p10le(PERMUTATION_VALUES);
 			break;
 
 		default:

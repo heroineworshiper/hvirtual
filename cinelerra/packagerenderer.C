@@ -164,7 +164,6 @@ void PackageRenderer::create_output()
 	file->set_processors(preferences->processors);
 	file->set_cache(preferences->cache_size);
 
-//printf("PackageRenderer::create_output %d\n", __LINE__);
 	result = file->open_file(preferences, 
 					asset, 
 					0, 
@@ -249,7 +248,12 @@ void PackageRenderer::create_engine()
 		direct_frame_copying = 0;
 
 
-//printf("PackageRenderer::create_engine %d\n", __LINE__);
+//printf("PackageRenderer::create_engine %d video_write_length=%d\n", __LINE__, video_write_length);
+// starting frames are corrupted if video_write_length > 2.  Work around it, for now.
+		if(video_write_length > 2)
+		{
+			video_write_length = 2;
+		}
 		file->start_video_thread(video_write_length,
 			command->get_edl()->session->color_model,
 			preferences->processors > 1 ? 2 : 1,
@@ -404,7 +408,7 @@ void PackageRenderer::do_video()
 						0);
 
 
-				if(debug) printf("PackageRenderer::do_video %d %d\n", __LINE__, result);
+if(debug) printf("PackageRenderer::do_video %d %d\n", __LINE__, result);
 
  				if(!result && 
 					mwindow && 
@@ -414,7 +418,8 @@ void PackageRenderer::do_video()
 					VFrame *preview_output;
 
 					video_device->new_output_buffer(&preview_output,
-						command->get_edl()->session->color_model);
+						command->get_edl()->session->color_model,
+						command->get_edl());
 
 					preview_output->copy_from(video_output_ptr);
 					video_device->write_buffer(preview_output, 
@@ -460,7 +465,13 @@ void PackageRenderer::do_video()
 						video_write_position = 0;
 					}
 				}
-				if(debug) printf("PackageRenderer::do_video %d %lld\n", __LINE__, (long long)video_position);
+				if(debug) printf("PackageRenderer::do_video %d video_position=%ld video_end=%ld result=%d get_result=%d canceled=%d\n", 
+					__LINE__, 
+					video_position,
+					video_end,
+					result,
+					get_result(),
+					progress_cancelled());
 
 
 			}
@@ -539,12 +550,12 @@ int PackageRenderer::render_package(RenderPackage *package)
 	result = 0;
 	this->package = package;
 
-// printf(
-// "PackageRenderer::render_package: audio s=%lld l=%lld video s=%lld l=%lld\n",
-// 	package->audio_start, 
-// 	package->audio_end - package->audio_start, 
-// 	package->video_start, 
-// 	package->video_end - package->video_start);
+printf(
+	"PackageRenderer::render_package: audio s=%ld l=%ld video s=%ld l=%ld\n",
+	package->audio_start, 
+ 	package->audio_end - package->audio_start, 
+ 	package->video_start, 
+ 	package->video_end - package->video_start);
 
 	if(debug) PRINT_TRACE
 
@@ -730,6 +741,7 @@ int PackageRenderer::direct_frame_copy(EDL *edl,
 //printf("Render::direct_frame_copy 2\n");
 
 		if(!package->use_brender)
+		{
 			error |= ((VEdit*)playable_edit)->read_frame(compressed_output, 
 				video_position,
 				PLAY_FORWARD,
@@ -737,7 +749,9 @@ int PackageRenderer::direct_frame_copy(EDL *edl,
 				1,
 				0,
 				0);
-
+//printf("Render::direct_frame_copy %d %d\n", __LINE__, compressed_output->get_compressed_size());
+		}
+		
 
 		if(!error && video_preroll > 0)
 		{

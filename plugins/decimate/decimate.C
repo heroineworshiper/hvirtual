@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -211,10 +211,10 @@ int DecimateConfig::equivalent(DecimateConfig *config)
 
 DecimateWindow::DecimateWindow(Decimate *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	160, 
-	200, 
-	160, 
+	DP(230), 
+	DP(160), 
+	DP(230), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -227,7 +227,7 @@ DecimateWindow::~DecimateWindow()
 
 void DecimateWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	frame_rates.append(new BC_ListBoxItem("1"));
 	frame_rates.append(new BC_ListBoxItem("5"));
@@ -245,18 +245,18 @@ void DecimateWindow::create_objects()
 
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Input frames per second:")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(rate = new DecimateRate(plugin, 
 		this, 
 		x, 
 		y));
 	add_subwindow(rate_menu = new DecimateRateMenu(plugin, 
 		this, 
-		x + rate->get_w() + 5, 
+		x + rate->get_w() + DP(5), 
 		y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(title = new BC_Title(x, y, _("Last frame dropped: ")));
-	add_subwindow(last_dropped = new BC_Title(x + title->get_w() + 5, y, ""));
+	add_subwindow(last_dropped = new BC_Title(x + title->get_w() + DP(5), y, ""));
 
 // 	y += 30;
 // 	add_subwindow(difference = new DecimateDifference(plugin,
@@ -267,7 +267,6 @@ void DecimateWindow::create_objects()
 // 		x, 
 // 		y));
 	show_window();
-	flush();
 }
 
 
@@ -288,7 +287,7 @@ DecimateRate::DecimateRate(Decimate *plugin,
 	int y)
  : BC_TextBox(x, 
 	y, 
-	90,
+	DP(90),
 	1,
 	(float)plugin->config.input_rate)
 {
@@ -346,8 +345,8 @@ DecimateRateMenu::DecimateRateMenu(Decimate *plugin,
 	int y)
  : BC_ListBox(x,
  	y,
-	100,
-	200,
+	DP(100),
+	DP(200),
 	LISTBOX_TEXT,
 	&gui->frame_rates,
 	0,
@@ -674,7 +673,8 @@ void Decimate::fill_lookahead(double frame_rate,
 		read_frame(frames[lookahead_size], 
 			0, 
 			lookahead_end, 
-			config.input_rate);
+			config.input_rate,
+			0);
 // Fill difference buffer
 		if(lookahead_size > 0)
 			differences[lookahead_size] = 

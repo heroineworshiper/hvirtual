@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,8 +131,8 @@ EditLengthDialog::EditLengthDialog(MWindow *mwindow,
  : BC_Window(PROGRAM_NAME ": Edit length", 
 	x,
 	y,
-	300, 
-	100, 
+	DP(300), 
+	DP(100), 
 	-1, 
 	-1, 
 	0,
@@ -151,8 +151,8 @@ EditLengthDialog::~EditLengthDialog()
 void EditLengthDialog::create_objects()
 {
 	lock_window("EditLengthDialog::create_objects");
-	add_subwindow(new BC_Title(10, 10, _("Seconds:")));
-	text = new EditLengthText(mwindow, this, 100, 10);
+	add_subwindow(new BC_Title(DP(10), DP(10), _("Seconds:")));
+	text = new EditLengthText(mwindow, this, DP(100), DP(10));
 	text->create_objects();
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
@@ -181,7 +181,7 @@ EditLengthText::EditLengthText(MWindow *mwindow,
 	(float)100, 
 	x,
 	y,
-	100)
+	DP(100))
 {
 	this->mwindow = mwindow;
 	this->gui = gui;

@@ -563,7 +563,9 @@ void BRenderThread::start()
 		if(last_good < 0) last_good = last_contiguous;
 		int start_frame = MIN(last_contiguous, last_good);
 		start_frame = MAX(start_frame, brender_start);
-		int64_t end_frame = Units::round(command->edl->tracks->total_video_length() * 
+//		int64_t end_frame = Units::round(command->edl->tracks->total_video_length() * 
+//			command->edl->session->frame_rate);
+		int64_t end_frame = Units::round(command->edl->session->brender_end *
 			command->edl->session->frame_rate);
 		if(end_frame < start_frame) end_frame = start_frame;
 

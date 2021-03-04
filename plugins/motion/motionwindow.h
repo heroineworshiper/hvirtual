@@ -215,29 +215,29 @@ public:
 	MotionMain *plugin;
 };
 
-class GlobalSearchPositions : public BC_PopupMenu
-{
-public:
-	GlobalSearchPositions(MotionMain *plugin, 
-		int x, 
-		int y,
-		int w);
-	void create_objects();
-	int handle_event();
-	MotionMain *plugin;
-};
-
-class RotationSearchPositions : public BC_PopupMenu
-{
-public:
-	RotationSearchPositions(MotionMain *plugin, 
-		int x, 
-		int y,
-		int w);
-	void create_objects();
-	int handle_event();
-	MotionMain *plugin;
-};
+// class GlobalSearchPositions : public BC_PopupMenu
+// {
+// public:
+// 	GlobalSearchPositions(MotionMain *plugin, 
+// 		int x, 
+// 		int y,
+// 		int w);
+// 	void create_objects();
+// 	int handle_event();
+// 	MotionMain *plugin;
+// };
+// 
+// class RotationSearchPositions : public BC_PopupMenu
+// {
+// public:
+// 	RotationSearchPositions(MotionMain *plugin, 
+// 		int x, 
+// 		int y,
+// 		int w);
+// 	void create_objects();
+// 	int handle_event();
+// 	MotionMain *plugin;
+// };
 
 class MotionMagnitude : public BC_IPot
 {
@@ -294,17 +294,17 @@ public:
 };
 
 
-class MotionGlobal : public BC_CheckBox
-{
-public:
-	MotionGlobal(MotionMain *plugin, 
-		MotionWindow *gui,
-		int x, 
-		int y);
-	int handle_event();
-	MotionWindow *gui;
-	MotionMain *plugin;
-};
+// class MotionGlobal : public BC_CheckBox
+// {
+// public:
+// 	MotionGlobal(MotionMain *plugin, 
+// 		MotionWindow *gui,
+// 		int x, 
+// 		int y);
+// 	int handle_event();
+// 	MotionWindow *gui;
+// 	MotionMain *plugin;
+// };
 
 class MotionRotate : public BC_CheckBox
 {
@@ -342,15 +342,15 @@ public:
 	MotionBlockY *block_y;
 	MotionBlockXText *block_x_text;
 	MotionBlockYText *block_y_text;
-	GlobalSearchPositions *global_search_positions;
-	RotationSearchPositions *rotation_search_positions;
+//	GlobalSearchPositions *global_search_positions;
+//	RotationSearchPositions *rotation_search_positions;
 	MotionMagnitude *magnitude;
 	MotionRMagnitude *rotate_magnitude;
 	MotionReturnSpeed *return_speed;
 	MotionRReturnSpeed *rotate_return_speed;
 	ActionType *action_type;
 	MotionDrawVectors *vectors;
-	MotionGlobal *global;
+//	MotionGlobal *global;
 	MotionRotate *rotate;
 	TrackSingleFrame *track_single;
 	TrackFrameNumber *track_frame_number;

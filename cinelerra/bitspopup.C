@@ -84,8 +84,8 @@ int BitsPopup::get_h()
 BitsPopupMenu::BitsPopupMenu(BitsPopup *popup, int x, int y)
  : BC_ListBox(x,
  	y,
-	120,
-	100,
+	DP(120),
+	DP(100),
 	LISTBOX_TEXT,
 	&popup->bits_items,
 	0,
@@ -105,7 +105,7 @@ int BitsPopupMenu::handle_event()
 }
 
 BitsPopupText::BitsPopupText(BitsPopup *popup, int x, int y)
- : BC_TextBox(x, y, 120, 1, File::bitstostr(*popup->output))
+ : BC_TextBox(x, y, DP(120), 1, File::bitstostr(*popup->output))
 {
 	this->popup = popup;
 }

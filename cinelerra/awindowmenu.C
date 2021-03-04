@@ -48,14 +48,14 @@ AssetListMenu::~AssetListMenu()
 
 void AssetListMenu::create_objects()
 {
-	add_item(format = new AssetListFormat(mwindow));
+//	add_item(format = new AssetListFormat(mwindow));
 	add_item(new AssetListSort(mwindow));
 	update_titles();
 }
 
 void AssetListMenu::update_titles()
 {
-	format->update();
+//	format->update();
 }
 
 
@@ -65,41 +65,41 @@ void AssetListMenu::update_titles()
 
 
 
-AssetListFormat::AssetListFormat(MWindow *mwindow)
- : BC_MenuItem("")
-{
-	this->mwindow = mwindow;
-}
-
-void AssetListFormat::update()
-{
-	set_text(mwindow->edl->session->assetlist_format == ASSETS_TEXT ?
-		(char*)_("Display icons") : (char*)_("Display text"));
-}
-
-int AssetListFormat::handle_event()
-{
-	switch(mwindow->edl->session->assetlist_format)
-	{
-		case ASSETS_TEXT:
-			mwindow->edl->session->assetlist_format = ASSETS_ICONS;
-			mwindow->edl->session->folderlist_format = ASSETS_ICONS;
-			break;
-		case ASSETS_ICONS:
-			mwindow->edl->session->assetlist_format = ASSETS_TEXT;
-			mwindow->edl->session->folderlist_format = ASSETS_TEXT;
-			break;
-	}
-
-	mwindow->awindow->gui->asset_list->update_format(
-		mwindow->edl->session->assetlist_format, 
-		1);
-	mwindow->awindow->gui->folder_list->update_format(
-		mwindow->edl->session->assetlist_format, 
-		1);
-
-	return 1;
-}
+// AssetListFormat::AssetListFormat(MWindow *mwindow)
+//  : BC_MenuItem("")
+// {
+// 	this->mwindow = mwindow;
+// }
+// 
+// void AssetListFormat::update()
+// {
+// 	set_text(mwindow->edl->session->assetlist_format == ASSETS_TEXT ?
+// 		(char*)_("Display icons") : (char*)_("Display text"));
+// }
+// 
+// int AssetListFormat::handle_event()
+// {
+// 	switch(mwindow->edl->session->assetlist_format)
+// 	{
+// 		case ASSETS_TEXT:
+// 			mwindow->edl->session->assetlist_format = ASSETS_ICONS;
+// 			mwindow->edl->session->folderlist_format = ASSETS_ICONS;
+// 			break;
+// 		case ASSETS_ICONS:
+// 			mwindow->edl->session->assetlist_format = ASSETS_TEXT;
+// 			mwindow->edl->session->folderlist_format = ASSETS_TEXT;
+// 			break;
+// 	}
+// 
+// 	mwindow->awindow->gui->asset_list->update_format(
+// 		mwindow->edl->session->assetlist_format, 
+// 		1);
+// 	mwindow->awindow->gui->folder_list->update_format(
+// 		mwindow->edl->session->assetlist_format, 
+// 		1);
+// 
+// 	return 1;
+// }
 
 
 
@@ -136,7 +136,7 @@ FolderListMenu::~FolderListMenu()
 	
 void FolderListMenu::create_objects()
 {
-	add_item(format = new FolderListFormat(mwindow, this));
+//	add_item(format = new FolderListFormat(mwindow, this));
 	update_titles();
 }
 
@@ -144,8 +144,8 @@ void FolderListMenu::create_objects()
 
 void FolderListMenu::update_titles()
 {
-	format->set_text(mwindow->edl->session->folderlist_format == FOLDERS_TEXT ?
-		(char*)_("Display icons") : (char*)_("Display text"));
+//	format->set_text(mwindow->edl->session->folderlist_format == FOLDERS_TEXT ?
+//		(char*)_("Display icons") : (char*)_("Display text"));
 }
 
 
@@ -154,34 +154,34 @@ void FolderListMenu::update_titles()
 
 
 
-FolderListFormat::FolderListFormat(MWindow *mwindow, FolderListMenu *menu)
- : BC_MenuItem("")
-{
-	this->mwindow = mwindow;
-	this->menu = menu;
-}
-int FolderListFormat::handle_event()
-{
-	switch(mwindow->edl->session->folderlist_format)
-	{
-		case ASSETS_TEXT:
-			mwindow->edl->session->assetlist_format = ASSETS_ICONS;
-			mwindow->edl->session->folderlist_format = ASSETS_ICONS;
-			break;
-		case ASSETS_ICONS:
-			mwindow->edl->session->assetlist_format = ASSETS_TEXT;
-			mwindow->edl->session->folderlist_format = ASSETS_TEXT;
-			break;
-	}
-
-	mwindow->awindow->gui->asset_list->update_format(
-		mwindow->edl->session->folderlist_format, 1);
-	mwindow->awindow->gui->folder_list->update_format(
-		mwindow->edl->session->folderlist_format, 1);
-	menu->update_titles();
-
-	return 1;
-}
+// FolderListFormat::FolderListFormat(MWindow *mwindow, FolderListMenu *menu)
+//  : BC_MenuItem("")
+// {
+// 	this->mwindow = mwindow;
+// 	this->menu = menu;
+// }
+// int FolderListFormat::handle_event()
+// {
+// 	switch(mwindow->edl->session->folderlist_format)
+// 	{
+// 		case ASSETS_TEXT:
+// 			mwindow->edl->session->assetlist_format = ASSETS_ICONS;
+// 			mwindow->edl->session->folderlist_format = ASSETS_ICONS;
+// 			break;
+// 		case ASSETS_ICONS:
+// 			mwindow->edl->session->assetlist_format = ASSETS_TEXT;
+// 			mwindow->edl->session->folderlist_format = ASSETS_TEXT;
+// 			break;
+// 	}
+// 
+// 	mwindow->awindow->gui->asset_list->update_format(
+// 		mwindow->edl->session->folderlist_format, 1);
+// 	mwindow->awindow->gui->folder_list->update_format(
+// 		mwindow->edl->session->folderlist_format, 1);
+// 	menu->update_titles();
+// 
+// 	return 1;
+// }
 
 
 

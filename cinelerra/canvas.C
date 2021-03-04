@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -321,8 +321,11 @@ void Canvas::get_transfers(EDL *edl,
 	int canvas_w,
 	int canvas_h)
 {
-// printf("Canvas::get_transfers %d %d\n", canvas_w, 
-// 		canvas_h);
+// printf("Canvas::get_transfers %d canvas_w=%d canvas_h=%d\n", 
+// __LINE__,  
+// canvas_w, 
+// canvas_h);
+
 // automatic canvas size detection
 	if(canvas_w < 0) canvas_w = get_canvas()->get_w();
 	if(canvas_h < 0) canvas_h = get_canvas()->get_h();
@@ -419,6 +422,11 @@ void Canvas::get_transfers(EDL *edl,
 			{
 				out_h = (int)(out_w / edl->get_aspect_ratio() + 0.5);
 				canvas_y1 = canvas_h / 2 - out_h / 2;
+// printf("Canvas::get_transfers %d canvas_h=%d out_h=%f canvas_y1=%f\n",
+// __LINE__,
+// canvas_h,
+// out_h,
+// canvas_y1);
 			}
 			canvas_x2 = canvas_x1 + out_w;
 			canvas_y2 = canvas_y1 + out_h;
@@ -448,7 +456,8 @@ void Canvas::get_transfers(EDL *edl,
 	canvas_y1 = MAX(0, canvas_y1);
 	canvas_x2 = MAX(canvas_x1, canvas_x2);
 	canvas_y2 = MAX(canvas_y1, canvas_y2);
-// printf("Canvas::get_transfers 2 %f,%f %f,%f -> %f,%f %f,%f\n",
+// printf("Canvas::get_transfers %d %f,%f %f,%f -> %f,%f %f,%f\n",
+// __LINE__,
 // output_x1,
 // output_y1,
 // output_x2,
@@ -797,7 +806,8 @@ void Canvas::create_canvas()
 		{
 			canvas_fullscreen->reposition_window(subwindow->get_root_x(0), 
 				subwindow->get_root_y(0));
-			canvas_fullscreen->show_window();
+			canvas_fullscreen->show_window(0);
+			canvas_fullscreen->raise_window(1);
 		}
 
 	}

@@ -151,11 +151,16 @@ void VDeviceV4L2Put::run()
 			arg.memory = V4L2_MEMORY_MMAP;
 
 			Thread::enable_cancel();
-			thread->ioctl_lock->lock("VDeviceV4L2Put::run");
+// For some reason, it used ioctl_lock, but it can't DQBUF until QBUF is called.
+//printf("VDeviceV4L2Put::run %d\n", __LINE__);
+//			thread->ioctl_lock->lock("VDeviceV4L2Put::run");
+//printf("VDeviceV4L2Put::run %d\n", __LINE__);
 // This locks up if there's no signal.
 			if(ioctl(thread->input_fd, VIDIOC_QBUF, &arg) < 0)
 				perror("VDeviceV4L2Put::run 1 VIDIOC_QBUF");
-			thread->ioctl_lock->unlock();
+//printf("VDeviceV4L2Put::run %d\n", __LINE__);
+//			thread->ioctl_lock->unlock();
+
 // Delay to keep mutexes from getting stuck
 			usleep(1000000 * 1001 / 60000);
 			Thread::disable_cancel();
@@ -471,7 +476,7 @@ void VDeviceV4L2Thread::run()
 		};
 
 // Show formats
-#if 1
+#if 0
    		for(int i = 0; i < sizeof(pixel_formats) / sizeof(int); i++)
    		{
    			v4l2_params.fmt.pix.pixelformat = pixel_formats[i];
@@ -814,13 +819,16 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 		buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 		buffer.memory = V4L2_MEMORY_MMAP;
 
-
 // The driver returns the first buffer not queued, so only one buffer
 // can be unqueued at a time.
 		Thread::enable_cancel();
-		ioctl_lock->lock("VDeviceV4L2Thread::run");
+// For some reason, it used ioctl_lock, but it can't DQBUF until QBUF is called.
+//printf("VDeviceV4L2Thread::run %d\n", __LINE__);
+//		ioctl_lock->lock("VDeviceV4L2Thread::run");
+//printf("VDeviceV4L2Thread::run %d\n", __LINE__);
 		int result = ioctl(input_fd, VIDIOC_DQBUF, &buffer);
-		ioctl_lock->unlock();
+//printf("VDeviceV4L2Thread::run %d\n", __LINE__);
+//		ioctl_lock->unlock();
 
 // Delay so the mutexes don't get stuck
 		usleep(1000000 * 1001 / 60000);
@@ -843,6 +851,7 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 		}
 		else
 		{
+//printf("VDeviceV4L2Thread::run %d\n", __LINE__);
 			buffer_lock->lock("VDeviceV4L2Thread::run");
 
 // Set output frame as valid and set data size

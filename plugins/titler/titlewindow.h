@@ -28,6 +28,7 @@ class TitleThread;
 class TitleWindow;
 class TitleInterlace;
 
+#include "browsebutton.inc"
 #include "colorpicker.h"
 #include "filexml.h"
 #include "mutex.h"
@@ -36,7 +37,8 @@ class TitleInterlace;
 
 
 
-
+class TitleSubsText;
+class TitleSubs;
 class TitleFontTumble;
 class TitleSizeTumble;
 class TitleItalic;
@@ -127,11 +129,37 @@ public:
 	TitleTimecode *timecode;
 	TitleTimecodeFormat *timecode_format;
 
+	TitleSubs *subtitles;
+	BrowseButton *subtitle_browse;
+	TitleSubsText *subtitle_text;
+
 // Color preview
 	ArrayList<BC_ListBoxItem*> sizes;
 	ArrayList<BC_ListBoxItem*> encodings;
 	ArrayList<BC_ListBoxItem*> paths;
 	ArrayList<BC_ListBoxItem*> fonts;
+
+// Suggestions for the textbox
+	ArrayList<BC_ListBoxItem*> *file_entries;
+};
+
+
+class TitleSubsText : public BC_TextBox
+{
+public:
+	TitleSubsText(TitleWindow *window, int x, int y);
+	~TitleSubsText();
+	int handle_event();
+	TitleWindow *window;
+};
+
+
+class TitleSubs : public BC_CheckBox
+{
+public:
+	TitleSubs(TitleWindow *window, int x, int y);
+	int handle_event();
+	TitleWindow *window;
 };
 
 

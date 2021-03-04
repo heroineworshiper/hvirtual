@@ -55,6 +55,7 @@ public:
 //	int get_property(const char *property, int default_);
 	float get_property(const char *property, float default_);
 	double get_property(const char *property, double default_);
+	const char* get_property_text(const char *property);
 
 	int set_title(const char *text);       // set the title field
 	int set_property(const char *text, const char *value);

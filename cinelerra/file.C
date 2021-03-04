@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include "file.h"
 #include "filegif.h"
 #include "filejpeg.h"
+#include "filemkv.h"
 #include "filemov.h"
 #include "filempeg.h"
 #include "fileogg.h"
@@ -59,7 +60,7 @@
 #include "stringfile.h"
 #include "vframe.h"
 
-
+//static int temp_debug = 0;
 
 
 File::File()
@@ -81,7 +82,12 @@ File::~File()
 		format_completion->unlock();
 	}
 
-	if(temp_frame) delete temp_frame;
+	if(temp_frame) 
+	{
+//temp_debug--;
+//printf("File::~File %d temp_debug=%d\n", __LINE__, temp_debug);
+		delete temp_frame;
+	}
 
 
 	close_file(0);
@@ -380,18 +386,18 @@ void File::set_interpolate_raw(int value)
 	this->interpolate_raw = value;
 }
 
-void File::set_white_balance_raw(int value)
-{
-#ifdef USE_FILEFORK
-	if(file_fork)
-	{
-		file_fork->send_command(FileFork::SET_WHITE_BALANCE_RAW, (unsigned char*)&value, sizeof(value));
-		file_fork->read_result();
-	}
-#endif
-
-	this->white_balance_raw = value;
-}
+// void File::set_white_balance_raw(int value)
+// {
+// #ifdef USE_FILEFORK
+// 	if(file_fork)
+// 	{
+// 		file_fork->send_command(FileFork::SET_WHITE_BALANCE_RAW, (unsigned char*)&value, sizeof(value));
+// 		file_fork->read_result();
+// 	}
+// #endif
+// 
+// 	this->white_balance_raw = value;
+// }
 
 void File::set_cache_frames(int value)
 {
@@ -418,6 +424,8 @@ int File::purge_cache()
 //printf("File::purge_cache %d\n", __LINE__);
 		int result = file_fork->read_result();
 
+// update the precalculated memory usage
+		memory_usage -= result;
 // sleeping causes CICache::check_out to lock up without polling
 //sleep(1);
 //printf("File::purge_cache %d\n", __LINE__);
@@ -425,7 +433,11 @@ int File::purge_cache()
 	}
 #endif
 
-	return frame_cache->delete_oldest();
+
+//printf("File::purge_cache %d memory_usage=%d\n", __LINE__, get_memory_usage());
+	int result = frame_cache->delete_oldest();
+// return the number of bytes freed
+	return result;
 }
 
 
@@ -484,7 +496,8 @@ int File::open_file(Preferences *preferences,
 		offset += sizeof(int);
 		*(int*)(buffer + offset) = cache_size;
 		offset += sizeof(int);
-		*(int*)(buffer + offset) = white_balance_raw;
+//		*(int*)(buffer + offset) = white_balance_raw;
+		*(int*)(buffer + offset) = 0;
 		offset += sizeof(int);
 		*(int*)(buffer + offset) = interpolate_raw;
 		offset += sizeof(int);
@@ -655,6 +668,12 @@ int File::open_file(Preferences *preferences,
 				file = new FileMOV(this->asset, this);
 			}
 			else
+// 			if(FileMKV::check_sig(this->asset))
+// 			{
+// 				fclose(stream);
+// 				file = new FileMKV(this->asset, this);
+// 			}
+// 			else
 // FFMPEG last because it sux
 			if(FileFFMPEG::check_sig(this->asset))
 			{
@@ -731,7 +750,17 @@ int File::open_file(Preferences *preferences,
 			break;
 
 		case FILE_MOV:
-			file = new FileMOV(this->asset, this);
+#ifdef USE_FFMPEG_OUTPUT
+// use ffmpeg if a MOV & writing to it
+            if(wr)
+            {
+                file = new FileFFMPEG(this->asset, this);
+            }
+            else
+#endif // USE_FFMPEG_OUTPUT
+            {
+			    file = new FileMOV(this->asset, this);
+            }
 			break;
 
 		case FILE_MPEG:
@@ -920,23 +949,23 @@ int File::close_file(int ignore_thread)
 
 
 
-int File::get_index(char *index_path)
-{
-#ifdef USE_FILEFORK
-	if(file_fork)
-	{
-		file_fork->send_command(FileFork::GET_INDEX, (unsigned char*)index_path, strlen(index_path) + 1);
-		int result = file_fork->read_result();
-		return result;
-	}
-#endif
-
-	if(file)
-	{
-		return file->get_index(index_path);
-	}
-	return 1;
-}
+// int File::get_index(char *index_path)
+// {
+// #ifdef USE_FILEFORK
+// 	if(file_fork)
+// 	{
+// 		file_fork->send_command(FileFork::GET_INDEX, (unsigned char*)index_path, strlen(index_path) + 1);
+// 		int result = file_fork->read_result();
+// 		return result;
+// 	}
+// #endif
+// 
+// 	if(file)
+// 	{
+// 		return file->get_index(index_path);
+// 	}
+// 	return 1;
+// }
 
 
 
@@ -1021,7 +1050,10 @@ int File::start_video_thread(int buffer_size,
 
 
 // Create server copy of buffer
-//printf("File::start_video_thread %d %d\n", __LINE__, video_ring_buffers);
+// printf("File::start_video_thread %d video_ring_buffers=%d color_model=%d\n", 
+// __LINE__, 
+// video_ring_buffers,
+// color_model);
 		temp_frame_buffer = new VFrame***[video_ring_buffers];
 		for(int i = 0; i < video_ring_buffers; i++)
 		{
@@ -1900,12 +1932,28 @@ int File::read_frame(VFrame *frame, int is_thread)
 //printf("File::read_frame %d %d\n", __LINE__, *(int*)(file_fork->result_data + sizeof(int)));
 			}
 		}
+		else
+		if(!result)
+		{
+// get the params if not compressed
+			if(file_fork->result_bytes > sizeof(int) * 2)
+			{
+				StringFile params((long)0);
+				params.read_from_string((char*)(file_fork->result_data + sizeof(int) * 2));
+//printf("File::read_frame %d result_data=%s\n", __LINE__, file_fork->result_data + sizeof(int) * 2);
+				frame->get_params()->load_stringfile(&params, 1);
+			}
+		}
 
 		file_fork->send_command(FileFork::GET_MEMORY_USAGE, 
 			0, 
 			0);
 		memory_usage = file_fork->read_result();
+		
 		if(debug) PRINT_TRACE
+
+//printf("File::read_frame %d frame=%p\n", __LINE__, frame);
+//frame->dump_params();
 
 		return result;
 	}
@@ -1938,25 +1986,30 @@ int File::read_frame(VFrame *frame, int is_thread)
 		else
 // Need temp
 		if(frame->get_color_model() != BC_COMPRESSED &&
-			(supported_colormodel != frame->get_color_model() ||
-			frame->get_w() != asset->width ||
-			frame->get_h() != asset->height))
+			(supported_colormodel != frame->get_color_model() 
+			 ||
+				(frame->get_color_model() != BC_BGR8888 && 
+					(frame->get_w() != asset->width ||
+					frame->get_h() != asset->height))))
 		{
 
-//			printf("File::read_frame %d\n", __LINE__);
+//printf("File::read_frame %d using temp\n", __LINE__);
 // Can't advance position here because it needs to be added to cache
 			if(temp_frame)
 			{
 				if(!temp_frame->params_match(asset->width, asset->height, supported_colormodel))
 				{
+//temp_debug--;
+//printf("File::read_frame %d temp_debug=%d\n", __LINE__, temp_debug);
 					delete temp_frame;
 					temp_frame = 0;
 				}
 			}
 
-//			printf("File::read_frame %d\n", __LINE__);
 			if(!temp_frame)
 			{
+//temp_debug++;
+//printf("File::read_frame %d temp_debug=%d\n", __LINE__, temp_debug);
 				temp_frame = new VFrame(0,
 					-1,
 					asset->width,
@@ -1997,13 +2050,19 @@ int File::read_frame(VFrame *frame, int is_thread)
 				0,
 				temp_frame->get_w(),
 				frame->get_w());
-//			printf("File::read_frame %d\n", __LINE__);
+//printf("File::read_frame %d file -> temp -> frame\n", __LINE__);
 		}
 		else
 		{
 // Can't advance position here because it needs to be added to cache
-//printf("File::read_frame %d\n", __LINE__);
 			file->read_frame(frame);
+
+// printf("File::read_frame %d reading directly frame=%p colormodel=%d w=%d h=%d\n", 
+// __LINE__, 
+// frame,
+// frame->get_color_model(), 
+// frame->get_w(), 
+// frame->get_h());
 //for(int i = 0; i < 100 * 1000; i++) ((float*)frame->get_rows()[0])[i] = 1.0;
 		}
 
@@ -2370,6 +2429,10 @@ int File::get_best_colormodel(Asset *asset, int driver)
 
 		case FILE_MPEG:
 			return FileMPEG::get_best_colormodel(asset, driver);
+			break;
+
+		case FILE_FFMPEG:
+			return FileFFMPEG::get_best_colormodel(asset, driver);
 			break;
 		
 		case FILE_JPEG:

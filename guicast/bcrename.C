@@ -123,7 +123,7 @@ new_name);
 		
 
 		filebox->lock_window("BC_RenameThread::run");
-		filebox->refresh();
+		filebox->refresh(0, 0);
 		filebox->unlock_window();
 	}
 

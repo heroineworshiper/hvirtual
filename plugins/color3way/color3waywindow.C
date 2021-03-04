@@ -40,8 +40,8 @@ Color3WayWindow::Color3WayWindow(Color3WayMain *plugin)
  : PluginClientWindow(plugin,
 	plugin->w, 
 	plugin->h, 
-	500, 
-	370, 
+	DP(500), 
+	DP(370), 
 	1)
 { 
 	this->plugin = plugin; 

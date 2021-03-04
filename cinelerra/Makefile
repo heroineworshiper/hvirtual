@@ -2,6 +2,8 @@ include ../global_config
 
 AVC_DIR := $(shell expr ../thirdparty/libavc1394* )
 DV_DIR := $(shell expr ../quicktime/thirdparty/libdv-*/ )
+EXRDIR := $(shell expr ../thirdparty/openexr* )
+ILMDIR := $(shell expr ../thirdparty/ilmbase* )
 FLAC_DIR := $(shell expr ../thirdparty/flac*/ )
 FFMPEG_DIR := $(shell expr ../quicktime/thirdparty/ffmpeg* )
 JPEG_DIR := $(shell expr ../quicktime/thirdparty/jpeg-mmx* )
@@ -20,15 +22,17 @@ VORBIS_DIR := $(shell expr ../quicktime/thirdparty/libvorbis* )
 AVC_LIB := $(AVC_DIR)/libavc1394/.libs/libavc1394.a $(AVC_DIR)/librom1394/.libs/librom1394.a
 RAW_LIB := $(LIBRAW_DIR)/src/.libs/libraw1394.a
 IEC_LIB := $(LIBIEC_DIR)/src/.libs/libiec61883.a
-SNDFILE_LIB := $(SNDFILE_DIR)/src/.libs/libsndfile.a
 THEORA_LIB := $(THEORA_DIR)/lib/.libs/libtheora.a
-EXR_LIBS :=  \
-	../thirdparty/lib/libIlmImf.a \
-	../thirdparty/lib/libIlmThread.a \
-	../thirdparty/lib/libImath.a \
-	../thirdparty/lib/libHalf.a \
-	../thirdparty/lib/libIex.a
-EXR_INCLUDES := -I../thirdparty/include/OpenEXR
+EXR_INCLUDES := \
+	-I$(ILMDIR)/Iex/ \
+	-I$(ILMDIR)/Half/ \
+	-I$(ILMDIR)/Imath/ \
+	-I$(ILMDIR)/Imath/ \
+	-I$(ILMDIR)/config/ \
+	-I$(ILMDIR)/IlmThread \
+	-I$(EXRDIR)/IlmImf/ \
+	-I$(EXRDIR)/config/
+
 OBJS = \
 	$(OBJDIR)/aattachmentpoint.o \
 	$(OBJDIR)/aautomation.o \
@@ -233,6 +237,7 @@ OBJS = \
 	$(OBJDIR)/preferencesthread.o \
 	$(OBJDIR)/presets.o \
 	$(OBJDIR)/presetsgui.o \
+	$(OBJDIR)/proxy.o \
 	$(OBJDIR)/question.o \
 	$(OBJDIR)/quit.o \
 	$(OBJDIR)/recconfirmdelete.o \
@@ -356,13 +361,13 @@ STATICLIBS = \
 	$(IEC_LIB) \
 	../quicktime/$(OBJDIR)/libquicktime.a \
         $(ESOUNDLIBS) \
-	$(EXR_LIBS) \
+	$(EXRDIR)/$(OBJDIR)/libexr.a \
 	$(FLAC_DIR)/src/libFLAC/.libs/libFLAC.a \
-	$(GIF_DIR)/lib/.libs/libgif.a \
+	$(GIF_DIR)/$(OBJDIR)/libgif.a \
 	$(TIFF_DIR)/$(OBJDIR)/libtiff.a \
 	../guicast/$(OBJDIR)/libguicast.a \
 	../libmpeg3/$(OBJDIR)/libmpeg3.a \
-	$(SNDFILE_LIB) \
+	$(SNDFILE_DIR)/$(OBJDIR)/libsndfile.a \
 	$(UUID_DIR)/$(OBJDIR)/libuuid.a \
 	../mpeg2enc/$(OBJDIR)/mpeg2enc.a \
 	$(TOOLAME_DIR)/$(OBJDIR)/toolame.a \
@@ -393,25 +398,29 @@ endif
 
 
 LIBS += \
-	-lfontconfig \
 	-lX11 \
 	-lXext \
+	-lXfixes \
 	-lXv \
 	-lpthread \
 	-lm \
 	-lpng \
 	-lz \
 	-ldl \
-	-lbz2
+	-lbz2 \
+	-llzma \
+	-lrt
 
+#	-lfontconfig \
 #	-lXxf86vm \
 
 ifeq ($(HAVE_XFT), y)
 LIBS += -lXft
 endif
 
+
+
 CFLAGS += \
-	-g \
 	-c \
 	-I../guicast \
 	-I../quicktime \
@@ -465,7 +474,7 @@ else
 
 LDFLAGS1 = -export-dynamic
 LDFLAGS2 = 
-LINKER = g++ -g -o $(OUTPUT)
+LINKER = g++ -o $(OUTPUT)
 
 
 endif
@@ -493,7 +502,7 @@ FFMPEG_CFLAGS := \
 
 
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
-$(shell echo $(CFLAGS) $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
+$(shell echo $(CFLAGS) $(FFMPEG_CFLAGS) -D__STDC_CONSTANT_MACROS > $(OBJDIR)/ffmpeg_cflags)
 $(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(FFMPEG_OBJS) $(AVIOBJS) $(CXXREPOSITORY) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
 
 
@@ -503,7 +512,7 @@ $(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(FFMPEG_OBJS) 
 # Static linking is not possible because the plugins depend on symbols
 # in the main executable.
 # Also VFS only overrides the C library when dynamic linking is used.
-$(OUTPUT): $(OBJS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILEFLAC) $(THEME_DATA) $(SNDFILE_LIB) ../guicast/$(OBJDIR)/libguicast.a
+$(OUTPUT): $(OBJS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILEFLAC) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
 	$(LINKER) `cat $(OBJDIR)/objs`
 #	strip $(OUTPUT)
 
@@ -517,10 +526,10 @@ $(OBJDIR)/test:
 		$(OBJDIR)/test.so \
 		$(LIBS)
 
-$(SNDFILE_LIB):
-	mkdir -p $(SNDFILE_LIB) && \
-	cd $(SNDFILE_LIB) && \
-	ar x ../../$(SNDFILE_DIR)/src/.libs/libsndfile.a
+#$(SNDFILE_LIB):
+#	mkdir -p $(SNDFILE_LIB) && \
+#	cd $(SNDFILE_LIB) && \
+#	ar x ../../$(SNDFILE_DIR)/src/.libs/libsndfile.a
 
 clean:
 	rm -rf $(OBJDIR)
@@ -776,6 +785,7 @@ $(OBJDIR)/presets.o:                              presets.C
 $(OBJDIR)/presetsgui.o:                           presetsgui.C
 $(OBJDIR)/previewaudio.o: 			  previewaudio.C
 $(OBJDIR)/previewvideo.o: 			  previewvideo.C
+$(OBJDIR)/proxy.o: 			  	  proxy.C
 $(OBJDIR)/question.o: 				  question.C
 $(OBJDIR)/quit.o: 				  quit.C
 $(OBJDIR)/recconfirmdelete.o: 			  recconfirmdelete.C

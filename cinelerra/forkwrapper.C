@@ -190,6 +190,12 @@ int ForkWrapper::send_result(int64_t value, unsigned char *data, int data_size)
 	unsigned char buffer[sizeof(int64_t) + sizeof(int)];
 	*(int64_t*)(buffer + 0) = value;
 	*(int*)(buffer + sizeof(int64_t)) = data_size;
+
+//printf("ForkWrapper::send_result %d: value=%ld data_size=%d\n", 
+//__LINE__, 
+//value, 
+//data_size);
+
 	int temp = write(child_fd, buffer, sizeof(buffer));
 	if(data && data_size) temp = write(child_fd, data, data_size);
 	return 0;
@@ -241,14 +247,19 @@ int64_t ForkWrapper::read_result()
 		result_data = new unsigned char[result_bytes];
 		result_allocated = result_bytes;
 	}
-//printf("ForkWrapper::read_result %d  parent_fd=%d result=%lld result_bytes=%d\n", 
+//printf("ForkWrapper::read_result %d  parent_fd=%d result=%ld result_bytes=%d\n", 
 //__LINE__, 
 //parent_fd,
 //result,
 //result_bytes);
 
 	if(result_bytes) 
-		if(read_timeout(result_data, result_bytes)) return 1;
+	{
+		if(read_timeout(result_data, result_bytes)) 
+		{
+			return 1;
+		}
+	}
 //printf("ForkWrapper::read_result %d  parent_fd=%d\n", __LINE__, parent_fd);
 
 	return result;

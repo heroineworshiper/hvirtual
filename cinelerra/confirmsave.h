@@ -40,6 +40,7 @@ public:
 // 0 replace or doesn't exist yet
 	static int test_file(MWindow *mwindow, char *path);
 	static int test_files(MWindow *mwindow, ArrayList<char*> *paths);
+	static int test_files(MWindow *mwindow, ArrayList<string*> *paths);
 
 };
 

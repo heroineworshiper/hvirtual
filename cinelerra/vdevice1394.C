@@ -234,7 +234,8 @@ int VDevice1394::read_buffer(VFrame *frame)
 
 
 void VDevice1394::new_output_buffer(VFrame **output,
-	int colormodel)
+	int colormodel,
+	EDL *edl)
 {
 	if(user_frame)
 	{

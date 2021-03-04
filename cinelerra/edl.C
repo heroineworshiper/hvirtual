@@ -778,6 +778,32 @@ void EDL::set_outpoint(double position)
 	}
 }
 
+int EDL::deglitch(double position)
+{
+
+	if(session->cursor_on_frames)
+	{
+		Track *current_track;
+
+
+
+		for(current_track = tracks->first; 
+			current_track; 
+			current_track = current_track->next)
+		{
+			if(current_track->record &&
+				current_track->data_type == TRACK_AUDIO) 
+			{
+				ATrack *atrack = (ATrack*)current_track;
+				atrack->deglitch(position, 
+					session->labels_follow_edits, 
+					session->plugins_follow_edits, 
+					session->autos_follow_edits);
+			}
+		}
+	}
+}
+
 
 int EDL::clear(double start, 
 	double end, 
@@ -1020,7 +1046,7 @@ int EDL::dump()
 		local_session->loop_end);
 	for(int i = 0; i < TOTAL_PANES; i++)
 	{
-		printf("  pane %d view_start=%lld track_start=%lld\n", 
+		printf("  pane %d view_start=%ld track_start=%ld\n", 
 			i,
 			local_session->view_start[i],
 			local_session->track_start[i]);
@@ -1041,8 +1067,9 @@ int EDL::dump()
     		"  output_w: %d\n"
     		"  output_h: %d\n"
     		"  aspect_w: %f\n"
-    		"  aspect_h %f\n"
-			"  color_model %d\n",
+    		"  aspect_h: %f\n"
+			"  color_model: %d\n"
+			"  proxy_scale: %d\n", 
 				session->video_channels,
 				session->video_tracks,
 				session->frame_rate,
@@ -1051,7 +1078,8 @@ int EDL::dump()
     			session->output_h,
     			session->aspect_w,
     			session->aspect_h,
-				session->color_model);
+				session->color_model,
+				session->proxy_scale);
 
 		printf(" CLIPS\n");
 		printf("  total: %d\n", clips.total);
@@ -1531,6 +1559,7 @@ void EDL::remove_vwindow_edl(EDL *edl)
 	if(vwindow_edls.number_of(edl) >= 0)
 	{
 		edl->Garbage::remove_user();
+
 		vwindow_edls.remove(edl);
 	}
 }

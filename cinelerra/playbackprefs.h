@@ -25,6 +25,7 @@
 class PlaybackBicubicBicubic;
 class PlaybackBicubicBilinear;
 class PlaybackBilinearBilinear;
+class PlaybackLanczos;
 class PlaybackBufferBytes;
 class PlaybackBufferSize;
 class PlaybackDeblock;
@@ -44,7 +45,7 @@ class PlaybackRealTime;
 class PlaybackSoftwareTimer;
 class PlaybackViewFollows;
 class PlaybackWhiteBalanceRaw;
-class VideoAsynchronous;
+//class VideoAsynchronous;
 
 #include "adeviceprefs.h"
 #include "guicast.h"
@@ -76,12 +77,13 @@ public:
 	BC_Title *framerate_title;
 	PlaybackNearest *nearest_neighbor;
 	PlaybackBicubicBicubic *cubic_cubic;
-	PlaybackBicubicBilinear *cubic_linear;
-	PlaybackBilinearBilinear *linear_linear;
+//	PlaybackBicubicBilinear *cubic_linear;
+//	PlaybackBilinearBilinear *linear_linear;
+//	PlaybackLanczos *lanczos;
 	PlaybackDeblock *mpeg4_deblock;
 	PlaybackInterpolateRaw *interpolate_raw;
-	PlaybackWhiteBalanceRaw *white_balance_raw;
-	VideoAsynchronous *asynchronous;
+//	PlaybackWhiteBalanceRaw *white_balance_raw;
+//	VideoAsynchronous *asynchronous;
 
 	BC_Title *vdevice_title;
 };
@@ -136,13 +138,15 @@ public:
 	PreferencesWindow *pwindow;
 };
 
-class VideoAsynchronous : public BC_CheckBox
-{
-public:
-	VideoAsynchronous(PreferencesWindow *pwindow, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-};
+/*
+ * class VideoAsynchronous : public BC_CheckBox
+ * {
+ * public:
+ * 	VideoAsynchronous(PreferencesWindow *pwindow, int x, int y);
+ * 	int handle_event();
+ * 	PreferencesWindow *pwindow;
+ * };
+ */
 
 class VideoEveryFrame : public BC_CheckBox
 {
@@ -190,6 +194,21 @@ class PlaybackBicubicBilinear : public BC_Radial
 {
 public:
 	PlaybackBicubicBilinear(PreferencesWindow *pwindow, 
+		PlaybackPrefs *prefs, 
+		int value, 
+		int x, 
+		int y);
+
+	int handle_event();
+
+	PreferencesWindow *pwindow;
+	PlaybackPrefs *prefs;
+};
+
+class PlaybackLanczos : public BC_Radial
+{
+public:
+	PlaybackLanczos(PreferencesWindow *pwindow, 
 		PlaybackPrefs *prefs, 
 		int value, 
 		int x, 

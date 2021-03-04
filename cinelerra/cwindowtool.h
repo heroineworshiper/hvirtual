@@ -226,7 +226,7 @@ public:
 };
 
 
-
+class CWindowEyedropCheckBox;
 class CWindowEyedropGUI : public CWindowToolGUI
 {
 public:
@@ -238,8 +238,23 @@ public:
 	void update();
 
 	CWindowCoord *radius;
-	BC_Title *red, *green, *blue;
+	CWindowEyedropCheckBox *use_max;
+	BC_Title *red, *green, *blue, *y, *u, *v;
 	BC_SubWindow *sample;
+};
+
+
+class CWindowEyedropCheckBox : public BC_CheckBox
+{
+public:
+	CWindowEyedropCheckBox(MWindow *mwindow, 
+		CWindowEyedropGUI *gui,
+		int x, 
+		int y);
+
+	int handle_event();
+	MWindow *mwindow;
+	CWindowEyedropGUI *gui;
 };
 
 
@@ -382,6 +397,19 @@ public:
 
 
 
+class CWindowRulerGUI;
+class AlwaysDrawRuler : public BC_CheckBox
+{
+public:
+	AlwaysDrawRuler(MWindow *mwindow, 
+		CWindowRulerGUI *gui,
+		int x, 
+		int y);
+
+	int handle_event();
+	MWindow *mwindow;
+	CWindowRulerGUI *gui;
+};
 
 class CWindowRulerGUI : public CWindowToolGUI
 {
@@ -398,6 +426,7 @@ public:
 	BC_Title *point2;
 	BC_Title *distance;
 	BC_Title *angle;
+	AlwaysDrawRuler *always_draw_ruler;
 };
 
 

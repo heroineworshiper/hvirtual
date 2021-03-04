@@ -1,4 +1,5 @@
 #include "avcodec.h"
+#include "colormodels.h"
 #include "funcprotos.h"
 #include "quicktime.h"
 #include <string.h>
@@ -10,7 +11,7 @@
 typedef struct
 {
 // Sample output
-	char *work_buffer;
+	float *work_buffer;
 // Number of first sample in output relative to file
 	int64_t output_position;
 // Number of samples in output buffer
@@ -53,6 +54,7 @@ static int delete_codec(quicktime_audio_map_t *atrack)
 	if(codec->packet_buffer)
 		free(codec->packet_buffer);
 	free(codec);
+	return 0;
 }
 
 
@@ -67,7 +69,7 @@ static int init_decode(quicktime_audio_map_t *track_map,
 		if(!ffmpeg_initialized)
 		{
 			ffmpeg_initialized = 1;
-			avcodec_init();
+//			avcodec_init();
 			avcodec_register_all();
 		}
 
@@ -77,17 +79,19 @@ static int init_decode(quicktime_audio_map_t *track_map,
 			printf("init_decode: avcodec_find_decoder returned NULL.\n");
 			return 1;
 		}
-		codec->decoder_context = avcodec_alloc_context();
+		codec->decoder_context = avcodec_alloc_context3(codec->decoder);
 		codec->decoder_context->sample_rate = trak->mdia.minf.stbl.stsd.table[0].sample_rate;
 		codec->decoder_context->channels = track_map->channels;
-		if(avcodec_open(codec->decoder_context, codec->decoder) < 0)
+		if(avcodec_open2(codec->decoder_context, codec->decoder, 0) < 0)
 		{
 			printf("init_decode: avcodec_open failed.\n");
 			return 1;
 		}
 		pthread_mutex_unlock(&ffmpeg_lock);
 
-		codec->work_buffer = malloc(2 * track_map->channels * OUTPUT_ALLOCATION);
+		codec->work_buffer = malloc(sizeof(float) * 
+			track_map->channels * 
+			OUTPUT_ALLOCATION);
 		codec->output_allocated = OUTPUT_ALLOCATION;
 	}
 	return 0;
@@ -108,7 +112,7 @@ static int decode(quicktime_t *file,
 	int try = 0;
 	int result = 0;
 	int i, j;
-	int sample_size = 2 * track_map->channels;
+	int sample_size = sizeof(float) * track_map->channels;
 
 	if(output_i) bzero(output_i, sizeof(int16_t) * samples);
 	if(output_f) bzero(output_f, sizeof(float) * samples);
@@ -152,7 +156,7 @@ static int decode(quicktime_t *file,
 		int max_samples = 32768;
 		int max_bytes = max_samples * sample_size;
 		int bytes_decoded = 0;
-printf("decode 2 %x %llx %llx\n", chunk_size, chunk_offset, chunk_offset + chunk_size);
+//printf("decode 2 %x %llx %llx\n", chunk_size, chunk_offset, chunk_offset + chunk_size);
 
 // Allocate packet buffer
 		if(codec->packet_allocated < chunk_size && 
@@ -171,7 +175,7 @@ printf("decode 2 %x %llx %llx\n", chunk_size, chunk_offset, chunk_offset + chunk
 // Allocate work buffer
 		if(max_bytes + codec->output_size * sample_size > codec->output_allocated * sample_size)
 		{
-			char *new_output = calloc(1, max_bytes + codec->output_size * sample_size);
+			float *new_output = calloc(1, max_bytes + codec->output_size * sample_size);
 			if(codec->work_buffer)
 			{
 				memcpy(new_output, codec->work_buffer, codec->output_size * sample_size);
@@ -187,12 +191,38 @@ printf("decode 2 %x %llx %llx\n", chunk_size, chunk_offset, chunk_offset + chunk
 
 // Decode chunk into work buffer.
 		pthread_mutex_lock(&ffmpeg_lock);
-		result = avcodec_decode_audio2(codec->decoder_context, 
-			(int16_t*)(codec->work_buffer + codec->output_size * sample_size), 
-            &bytes_decoded,
-            codec->packet_buffer, 
-			chunk_size);
+		AVFrame *frame = av_frame_alloc();
+		AVPacket *packet = av_packet_alloc();
+		packet->data = codec->packet_buffer;
+		packet->size = chunk_size;
+		int got_frame = 0;
+		result = avcodec_decode_audio4(codec->decoder_context, 
+			frame, 
+            &got_frame,
+            packet);
+		av_packet_free(&packet);
+
+		if(got_frame)
+		{
+			bytes_decoded = frame->nb_samples * sample_size;
+		}
+		else
+		{
+			bytes_decoded = 0;
+		}
+		
+// transfer from frame to work buffer
+		quicktime_ffmpeg_get_audio(frame, 
+			codec->work_buffer + 
+				(current_position - codec->output_position) * track_map->channels);
+
+		
+		
+		av_frame_free(&frame);
 		pthread_mutex_unlock(&ffmpeg_lock);
+		
+		
+		
 		if(bytes_decoded <= 0)
 		{
 			try++;
@@ -200,9 +230,11 @@ printf("decode 2 %x %llx %llx\n", chunk_size, chunk_offset, chunk_offset + chunk
 		else
 		{
 			if(codec->output_size * sample_size + bytes_decoded > codec->output_allocated * sample_size)
-				printf("decode: FYI: bytes_decoded=%d is greater than output_allocated=%d\n",
+			{
+				printf("decode: FYI: bytes_decoded=%ld is greater than output_allocated=%ld\n",
 					codec->output_size * sample_size + bytes_decoded,
 					codec->output_allocated);
+			}
 			codec->output_size += bytes_decoded / sample_size;
 			try = 0;
 		}
@@ -213,7 +245,23 @@ printf("decode 2 %x %llx %llx\n", chunk_size, chunk_offset, chunk_offset + chunk
 // Transfer to output
 	if(output_i)
 	{
-		int16_t *pcm_ptr = (int16_t*)codec->work_buffer + 
+		float *pcm_ptr = codec->work_buffer + 
+			(current_position - codec->output_position) * track_map->channels +
+			channel;
+		for(i = current_position - codec->output_position, j = 0;
+			j < samples && i < codec->output_size;
+			j++, i++)
+		{
+			float value = *pcm_ptr;
+			CLAMP(value, -1.0f, 1.0f);
+			output_i[j] = (int16_t)(value * 32767);
+			pcm_ptr += track_map->channels;
+		}
+	}
+	else
+	if(output_f)
+	{
+		float *pcm_ptr = codec->work_buffer + 
 			(current_position - codec->output_position) * track_map->channels +
 			channel;
 		for(i = current_position - codec->output_position, j = 0;
@@ -221,20 +269,6 @@ printf("decode 2 %x %llx %llx\n", chunk_size, chunk_offset, chunk_offset + chunk
 			j++, i++)
 		{
 			output_i[j] = *pcm_ptr;
-			pcm_ptr += track_map->channels;
-		}
-	}
-	else
-	if(output_f)
-	{
-		int16_t *pcm_ptr = (int16_t*)codec->work_buffer + 
-			(current_position - codec->output_position) * track_map->channels +
-			channel;
-		for(i = current_position - codec->output_position, j = 0;
-			j < samples && i < codec->output_size;
-			j++, i++)
-		{
-			output_i[j] = (float)*pcm_ptr / (float)32767;
 			pcm_ptr += track_map->channels;
 		}
 	}
@@ -286,7 +320,7 @@ void quicktime_init_codec_wmav1(quicktime_audio_map_t *atrack)
 	codec_base->title = "Win Media Audio 1";
 	codec_base->desc = "Win Media Audio 1";
 	codec_base->wav_id = 0x160;
-	codec->ffmpeg_id = CODEC_ID_WMAV1;
+	codec->ffmpeg_id = AV_CODEC_ID_WMAV1;
 }
 
 
@@ -301,5 +335,5 @@ void quicktime_init_codec_wmav2(quicktime_audio_map_t *atrack)
 	codec_base->title = "Win Media Audio 2";
 	codec_base->desc = "Win Media Audio 2";
 	codec_base->wav_id = 0x161;
-	codec->ffmpeg_id = CODEC_ID_WMAV2;
+	codec->ffmpeg_id = AV_CODEC_ID_WMAV2;
 }

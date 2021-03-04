@@ -23,7 +23,7 @@
 
 #define MPEG3_TOC_PREFIX                 0x544f4320
 // This decreases with every new version
-#define MPEG3_TOC_VERSION                0x000000fa
+#define MPEG3_TOC_VERSION                0x000000f9
 #define MPEG3_ID3_PREFIX                 0x494433
 #define MPEG3_IFO_PREFIX                 0x44564456
 // First byte to read when opening a file
@@ -699,6 +699,8 @@ typedef struct
 
 typedef struct
 {
+/* byte offset of each channel in the .toc file */
+    int64_t *offsets;
 /* Buffer of frames for index.  A frame is a high/low pair. */
 	float **index_data;
 /* Number of frames allocated in each index channel. */
@@ -953,6 +955,7 @@ typedef struct
 /* Pointers to frame buffers. */
 	unsigned char *newframe[3];
 	int horizontal_size, vertical_size, mb_width, mb_height;
+    int block_w, block_h;
 	int coded_picture_width,  coded_picture_height;
 	int chroma_format, chrom_width, chrom_height, blk_cnt;
 	int pict_type;
@@ -1108,6 +1111,8 @@ typedef struct
 /* Indexes for audio tracks */
 	mpeg3_index_t **indexes;
 	int total_indexes;
+/* size of source file during index creation */
+    int64_t source_length;
 
 
 /* Number of bytes to devote to the index of a single track in the index */

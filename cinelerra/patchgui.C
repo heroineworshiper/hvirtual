@@ -131,7 +131,7 @@ TRACE("PatchGUI::reposition 8\n");
 			if(expand)
 			{
 TRACE("PatchGUI::reposition 9\n");
-				VFrame **expandpatch_data = mwindow->theme->get_image_set("expandpatch_data");
+//				VFrame **expandpatch_data = mwindow->theme->get_image_set("expandpatch_data");
 				expand->reposition_window(
 					expand->get_x(), 
 					y1 + y);
@@ -211,7 +211,7 @@ int PatchGUI::update(int x, int y)
 	if(h - y1 >= mwindow->theme->play_h)
 	{
 		patchbay->add_subwindow(play = new PlayPatch(mwindow, this, x1 + x, y1 + y));
-//printf("PatchGUI::update 1 %p %p\n", play, &play->status);
+//printf("PatchGUI::update %d %d\n", __LINE__, play->get_h());
 		x1 += play->get_w();
 		patchbay->add_subwindow(record = new RecordPatch(mwindow, this, x1 + x, y1 + y));
 		x1 += record->get_w();
@@ -225,7 +225,7 @@ int PatchGUI::update(int x, int y)
 		VFrame **expandpatch_data = mwindow->theme->get_image_set("expandpatch_data");
 		patchbay->add_subwindow(expand = new ExpandPatch(mwindow, 
 			this, 
-			patchbay->get_w() - 10 - expandpatch_data[0]->get_w(), 
+			patchbay->get_w() - DP(10) - expandpatch_data[0]->get_w(), 
 			y1 + y));
 		x1 += expand->get_w();
 	}

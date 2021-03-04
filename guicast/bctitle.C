@@ -122,7 +122,9 @@ int BC_Title::draw(int flush)
  		draw_box(0, 0, w, h);
  	}
 	else
+	{
  		draw_top_background(parent_window, 0, 0, w, h);
+	}
 
 	set_font(font);
 	BC_WindowBase::set_color(color);

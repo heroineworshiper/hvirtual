@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -140,7 +140,8 @@ void InterpolateVideo::fill_border(double frame_rate, int64_t start_position)
 			read_frame(frames[0], 
 				0, 
 				range_start + (get_direction() == PLAY_REVERSE ? 1 : 0), 
-				active_input_rate);
+				active_input_rate,
+				0);
 		}
 	}
 
@@ -152,7 +153,8 @@ void InterpolateVideo::fill_border(double frame_rate, int64_t start_position)
 		read_frame(frames[1], 
 			0, 
 			range_end + (get_direction() == PLAY_REVERSE ? 1 : 0), 
-			active_input_rate);
+			active_input_rate,
+			0);
 	}
 
 //printf("InterpolateVideo::fill_border %d\n", __LINE__);
@@ -338,6 +340,11 @@ void InterpolateVideo::create_macroblocks()
 // Get macroblock size
 	x_macroblocks = frames[0]->get_w() / config.macroblock_size;
 	y_macroblocks = frames[0]->get_h() / config.macroblock_size;
+// printf("InterpolateVideo::create_macroblocks %d %d %d %d\n", 
+// __LINE__, 
+// config.macroblock_size,
+// x_macroblocks,
+// y_macroblocks);
 
 	if(config.macroblock_size * x_macroblocks < frames[0]->get_w())
 	{
@@ -671,6 +678,7 @@ void InterpolateVideo::optic_flow()
 			}
 		}
 
+//printf("InterpolateVideo::optic_flow %d %d\n", __LINE__, invalid_blocks.size());
 		if(invalid_blocks.size())
 		{
 			if(!blend_engine)
@@ -798,7 +806,8 @@ int InterpolateVideo::process_buffer(VFrame *frame,
 		read_frame(frame, 
 			0, 
 			range_start, 
-			active_input_rate);
+			active_input_rate,
+			0);
 		return 0;
 	}
 	else

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,8 +45,8 @@ PerspectiveConfig::PerspectiveConfig()
 	x4 = 0;
 	y4 = 100;
 	mode = AffineEngine::PERSPECTIVE;
-	window_w = 400;
-	window_h = 450;
+	window_w = DP(400);
+	window_h = DP(450);
 	current_point = 0;
 	forward = 1;
 }
@@ -117,10 +117,10 @@ void PerspectiveConfig::interpolate(PerspectiveConfig &prev,
 
 PerspectiveWindow::PerspectiveWindow(PerspectiveMain *plugin)
  : PluginClientWindow(plugin,
-	plugin->config.window_w, 
-	plugin->config.window_h, 
-	plugin->config.window_w,
-	plugin->config.window_h,
+	DP(400), 
+	DP(450), 
+	DP(400), 
+	DP(450), 
 	0)
 {
 //printf("PerspectiveWindow::PerspectiveWindow 1 %d %d\n", plugin->config.window_w, plugin->config.window_h);
@@ -133,17 +133,17 @@ PerspectiveWindow::~PerspectiveWindow()
 
 void PerspectiveWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_subwindow(canvas = new PerspectiveCanvas(plugin, 
 		x, 
 		y, 
-		get_w() - 20, 
-		get_h() - 140));
+		get_w() - DP(20), 
+		get_h() - DP(140)));
 	canvas->set_cursor(CROSS_CURSOR, 0, 0);
-	y += canvas->get_h() + 10;
+	y += canvas->get_h() + DP(10);
 	add_subwindow(new BC_Title(x, y, _("Current X:")));
-	x += 80;
+	x += DP(80);
 	this->x = new PerspectiveCoord(this, 
 		plugin, 
 		x, 
@@ -151,9 +151,9 @@ void PerspectiveWindow::create_objects()
 		plugin->get_current_x(),
 		1);
 	this->x->create_objects();
-	x += 140;
+	x += DP(140);
 	add_subwindow(new BC_Title(x, y, _("Y:")));
-	x += 20;
+	x += DP(20);
 	this->y = new PerspectiveCoord(this, 
 		plugin, 
 		x, 
@@ -161,39 +161,39 @@ void PerspectiveWindow::create_objects()
 		plugin->get_current_y(),
 		0);
 	this->y->create_objects();
-	y += 30;
-	x = 10;
+	y += DP(30);
+	x = DP(10);
 	add_subwindow(new PerspectiveReset(plugin, x, y));
-	x += 100;
+	x += DP(100);
 	add_subwindow(mode_perspective = new PerspectiveMode(plugin, 
 		x, 
 		y, 
 		AffineEngine::PERSPECTIVE,
 		_("Perspective")));
-	x += 120;
+	x += DP(120);
 	add_subwindow(mode_sheer = new PerspectiveMode(plugin, 
 		x, 
 		y, 
 		AffineEngine::SHEER,
 		_("Sheer")));
-	x = 110;
-	y += 30;
+	x = DP(110);
+	y += DP(30);
 	add_subwindow(mode_stretch = new PerspectiveMode(plugin, 
 		x, 
 		y, 
 		AffineEngine::STRETCH,
 		_("Stretch")));
 	update_canvas();
-	y += 30;
-	x = 10;
+	y += DP(30);
+	x = DP(10);
 	add_subwindow(new BC_Title(x, y, _("Perspective direction:")));
-	x += 170;
+	x += DP(170);
 	add_subwindow(forward = new PerspectiveDirection(plugin, 
 		x, 
 		y, 
 		1,
 		_("Forward")));
-	x += 100;
+	x += DP(100);
 	add_subwindow(reverse = new PerspectiveDirection(plugin, 
 		x, 
 		y, 
@@ -494,7 +494,7 @@ PerspectiveCoord::PerspectiveCoord(PerspectiveWindow *gui,
 	int y,
 	float value,
 	int is_x)
- : BC_TumbleTextBox(gui, value, (float)-100, (float)200, x, y, 100)
+ : BC_TumbleTextBox(gui, value, (float)-100, (float)200, x, y, DP(100))
 {
 	this->plugin = plugin;
 	this->is_x = is_x;

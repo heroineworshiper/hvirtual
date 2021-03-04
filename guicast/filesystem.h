@@ -25,6 +25,11 @@
 #include "arraylist.h"
 #include "bcwindowbase.inc"
 #include "sizes.h"
+#include <string>
+using std::string;
+
+
+
 
 class FileItem
 {
@@ -88,20 +93,28 @@ public:
 	int set_sort_field(int field);
 	int create_dir(const char *new_dir_);    // create a new directory
 	int complete_path(char *filename);   // use the filename and the current_dir to create a complete filename
+	int complete_path(string *filename);   // use the filename and the current_dir to create a complete filename
 // return 1 if the text is a directory
 	int is_dir(const char *new_dir_);	  
 	int extract_dir(char *out, const char *in);    // extract the directory from the path
 	int extract_name(char *out, const char *in, int test_dir = 1);	// extract the name from the path
 	int join_names(char *out, const char *dir_in, const char *name_in);    // combine a directory and filename
-	static int64_t get_date(char *filename);        // get the date of the filename modification
+	int join_names(std::string *out, const std::string *dir_in, const std::string *name_in);    // combine a directory and filename
+	static int64_t get_date(const char *path);        // get the date of the filename modification
+	static void set_date(const char *path, int64_t value); // set the date of the file
 	static int64_t get_size(char *filename);        // Get the number of bytes in the file.
 	int add_end_slash(char *new_dir);
+	int add_end_slash(string *new_dir);
 	int total_files();
 	FileItem* get_entry(int entry);
 
 	int parse_tildas(char *new_dir);     // expand tildas
 	int parse_directories(char *new_dir);  // add directories
 	int parse_dots(char *new_dir);         // move up directory tree after expanding tildas
+
+	int parse_tildas(string *new_dir);     // expand tildas
+	int parse_directories(string *new_dir);  // add directories
+	int parse_dots(string *new_dir);         // move up directory tree after expanding tildas
 
 // Alphabetize all the directories and files.  By default
 // directories come first.
@@ -143,7 +156,6 @@ private:
 	int want_directory;
 	int show_all_files;       // shows . files
 	char current_dir[BCTEXTLEN];
-	char string[BCTEXTLEN], string2[BCTEXTLEN];
 	int sort_order;
 	int sort_field;
 };

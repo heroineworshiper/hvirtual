@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2018 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,84 +70,35 @@ IndexThread::IndexThread(MWindow *mwindow,
 // This is deleted in the index_state's destructor
 	index_state->index_offsets = new int64_t[index_state->channels];
 	index_state->index_sizes = new int64_t[index_state->channels];
+	index_state->index_end = 0;      // samples in source completed
+	index_state->old_index_end = 0;
+	index_state->index_status = INDEX_BUILDING;
 	bzero(index_state->index_buffer, index_size * sizeof(float));
 
 // initialization is completed in run
-	for(int i = 0; i < TOTAL_BUFFERS; i++)
-	{
 // Must allocate MAX_CHANNELS for a nested EDL
-		int min_channels = MAX(MAX_CHANNELS, index_file->source_channels);
-		buffer_in[i] = new Samples*[min_channels];
-		bzero(buffer_in[i], sizeof(Samples*) * min_channels);
-
-		output_lock[i] = new Condition(0, "IndexThread::output_lock");
-		input_lock[i] = new Condition(1, "IndexThread::input_lock");
+	int min_channels = MAX(MAX_CHANNELS, index_file->source_channels);
+	buffer_in = new Samples*[min_channels];
+	bzero(buffer_in, sizeof(Samples*) * min_channels);
 
 
-		for(int j = 0; j < index_file->source_channels; j++)
-		{
-			buffer_in[i][j] = new Samples(buffer_size);
-		}
+	for(int j = 0; j < index_file->source_channels; j++)
+	{
+		buffer_in[j] = new Samples(buffer_size);
 	}
 
 //printf("IndexThread::IndexThread %d\n", __LINE__);
 //index_state->dump();
 
-	interrupt_flag = 0;
-}
-
-IndexThread::~IndexThread()
-{
-	IndexState *index_state = index_file->get_state();
-
-	for(int i = 0; i < TOTAL_BUFFERS; i++)
-	{
-		for(int j = 0; j < index_file->source_channels; j++)
-		{
-			delete buffer_in[i][j];
-		}
-		delete [] buffer_in[i];
-		delete output_lock[i];
-		delete input_lock[i];
-	}
-	
-	delete [] index_state->index_buffer;
-	index_state->index_buffer = 0;
-}
-
-int IndexThread::start_build()
-{
-	set_synchronous(1);
-	interrupt_flag = 0;
-	current_buffer = 0;
-	for(int i = 0; i <  TOTAL_BUFFERS; i++) last_buffer[i] = 0;
-	start();
-}
-
-int IndexThread::stop_build()
-{
-	join();
-}
-
-void IndexThread::run()
-{
-	int done = 0;
-
-// current high samples in index
-	int64_t *highpoint;            
-// current low samples in the index
-	int64_t *lowpoint;             
-// position in current indexframe
-	int64_t *frame_position;
-	int first_point = 1;
-	IndexState *index_state = index_file->get_state();
-
+	first_point = 1;
 	highpoint = new int64_t[index_file->source_channels];
 	lowpoint = new int64_t[index_file->source_channels];
 	frame_position = new int64_t[index_file->source_channels];
 
+
+
 // predict first highpoint for each channel plus padding and initialize it
-	for(int64_t channel = 0; channel < index_file->source_channels; channel++)
+	for(int channel = 0; channel < index_file->source_channels; channel++)
 	{
 		highpoint[channel] = 
 			index_state->index_offsets[channel] = 
@@ -157,94 +108,12 @@ void IndexThread::run()
 		index_state->index_sizes[channel] = 0;
 		frame_position[channel] = 0;
 	}
+}
 
-	int64_t index_start = 0;    // end of index during last edit update
-	index_state->index_end = 0;      // samples in source completed
-	index_state->old_index_end = 0;
-	index_state->index_status = INDEX_BUILDING;
-	int64_t zoomx = index_state->index_zoom;
-	float *index_buffer = index_state->index_buffer;    // output of index build
-	int64_t *index_sizes = index_state->index_sizes;
-	int64_t *index_offsets = index_state->index_offsets;
-//printf("IndexThread::run %d\n", __LINE__);
-//index_state->dump();
-//printf("IndexThread::run %d\n", __LINE__);
+IndexThread::~IndexThread()
+{
+	IndexState *index_state = index_file->get_state();
 
-	while(!interrupt_flag && !done)
-	{
-		output_lock[current_buffer]->lock("IndexThread::run");
-
-		if(last_buffer[current_buffer]) done = 1;
-		if(!interrupt_flag && !done)
-		{
-// process buffer
-			int64_t fragment_size = input_len[current_buffer];
-
-// printf("IndexThread::run %d index_state->channels=%d index_file->source_channels=%d index_state->index_buffer=%p buffer_in=%p\n", 
-// __LINE__,
-// index_state->channels,
-// index_file->source_channels,
-// index_state->index_buffer,
-// buffer_in);
-			for(int channel = 0; channel < index_file->source_channels; channel++)
-			{
-SET_TRACE
-				int64_t *highpoint_channel = &highpoint[channel];
-				int64_t *lowpoint_channel = &lowpoint[channel];
-				int64_t *frame_position_channel = &frame_position[channel];
-				double *buffer_source = buffer_in[current_buffer][channel]->get_data();
-
-SET_TRACE
-				for(int64_t i = 0; i < fragment_size; i++)
-				{
-					if(*frame_position_channel == zoomx)
-					{
-						*highpoint_channel += 2;
-						*lowpoint_channel += 2;
-						*frame_position_channel = 0;
-// store and reset output values
-						index_buffer[*highpoint_channel] = 
-							index_buffer[*lowpoint_channel] = 
-							buffer_source[i];
-						index_sizes[channel] = 
-							*lowpoint_channel - 
-							index_offsets[channel] + 
-							1;
-					}
-					else
-					{
-// get high and low points
-						if(first_point)
-						{
-							index_buffer[*highpoint_channel] = 
-								index_buffer[*lowpoint_channel] = buffer_source[i];
-							first_point = 0;
-						}
-						else
-						{
-							if(buffer_source[i] > index_buffer[*highpoint_channel]) 
-								index_buffer[*highpoint_channel] = buffer_source[i];
-							else 
-							if(buffer_source[i] < index_buffer[*lowpoint_channel]) 
-								index_buffer[*lowpoint_channel] = buffer_source[i];
-						}
-					}
-					(*frame_position_channel)++;
-				} // end index one buffer
-SET_TRACE
-			}
-
-			index_state->index_end += fragment_size;
-
-// draw simultaneously with build
-			index_file->redraw_edits(0);
-			index_start = index_state->index_end;
-		}
-
-		input_lock[current_buffer]->unlock();
-		current_buffer++;
-		if(current_buffer >= TOTAL_BUFFERS) current_buffer = 0;
-	}
 
 	index_file->redraw_edits(1);
 
@@ -254,10 +123,100 @@ SET_TRACE
 		index_file->indexable->is_asset ? (Asset*)index_file->indexable : 0,
 		index_file->source_length);
 
+	for(int j = 0; j < index_file->source_channels; j++)
+	{
+		delete buffer_in[j];
+	}
+	delete [] buffer_in;
+	
+	delete [] index_state->index_buffer;
+	index_state->index_buffer = 0;
 
 	delete [] highpoint;
 	delete [] lowpoint;
 	delete [] frame_position;
+}
+
+// formerly ran in a thread under the IndexFile thread
+void IndexThread::process(int fragment_size)
+{
+	int done = 0;
+	IndexState *index_state = index_file->get_state();
+	int64_t zoomx = index_state->index_zoom;
+	float *index_buffer = index_state->index_buffer;    // output of index build
+	int64_t *index_sizes = index_state->index_sizes;
+	int64_t *index_offsets = index_state->index_offsets;
+
+
+//printf("IndexThread::run %d\n", __LINE__);
+//index_state->dump();
+//printf("IndexThread::run %d\n", __LINE__);
+
+
+// printf("IndexThread::run %d index_state->channels=%d index_file->source_channels=%d index_state->index_buffer=%p buffer_in=%p\n", 
+// __LINE__,
+// index_state->channels,
+// index_file->source_channels,
+// index_state->index_buffer,
+// buffer_in);
+	for(int channel = 0; channel < index_file->source_channels; channel++)
+	{
+SET_TRACE
+		int64_t *highpoint_channel = &highpoint[channel];
+		int64_t *lowpoint_channel = &lowpoint[channel];
+		int64_t *frame_position_channel = &frame_position[channel];
+		double *buffer_source = buffer_in[channel]->get_data();
+
+SET_TRACE
+		for(int i = 0; i < fragment_size; i++)
+		{
+			if(*frame_position_channel == zoomx)
+			{
+				*highpoint_channel += 2;
+				*lowpoint_channel += 2;
+				*frame_position_channel = 0;
+// store and reset output values
+				index_buffer[*highpoint_channel] = 
+					index_buffer[*lowpoint_channel] = 
+					buffer_source[i];
+				index_sizes[channel] = 
+					*lowpoint_channel - 
+					index_offsets[channel] + 
+					1;
+			}
+			else
+			{
+// get high and low points
+				if(first_point)
+				{
+					index_buffer[*highpoint_channel] = 
+						index_buffer[*lowpoint_channel] = 
+						buffer_source[i];
+					first_point = 0;
+				}
+				else
+				{
+					if(buffer_source[i] > index_buffer[*highpoint_channel]) 
+					{
+						index_buffer[*highpoint_channel] = buffer_source[i];
+					}
+					else 
+					if(buffer_source[i] < index_buffer[*lowpoint_channel]) 
+					{
+						index_buffer[*lowpoint_channel] = buffer_source[i];
+					}
+				}
+			}
+			(*frame_position_channel)++;
+		} // end index one buffer
+SET_TRACE
+	}
+
+	index_state->index_end += fragment_size;
+
+// draw simultaneously with build
+	index_file->redraw_edits(0);
+
 }
 
 

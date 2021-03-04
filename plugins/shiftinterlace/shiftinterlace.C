@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -168,10 +168,10 @@ void ShiftInterlaceConfig::interpolate(ShiftInterlaceConfig &prev,
 
 ShiftInterlaceWindow::ShiftInterlaceWindow(ShiftInterlaceMain *plugin)
  : PluginClientWindow(plugin,
-	310, 
-	100, 
-	310, 
-	100, 
+	DP(310), 
+	DP(100), 
+	DP(310), 
+	DP(100), 
 	0)
 {
 	this->plugin = plugin;
@@ -180,14 +180,14 @@ ShiftInterlaceWindow::ShiftInterlaceWindow(ShiftInterlaceMain *plugin)
 	
 void ShiftInterlaceWindow::create_objects()
 {
-	int x = 10, y = 10;
-	int margin = 30;
+	int x = DP(10), y = DP(10);
+	int margin = DP(30);
 
 	add_subwindow(new BC_Title(x, y, _("Odd offset:")));
-	add_subwindow(odd_offset = new ShiftInterlaceOdd(plugin, x + 90, y));
+	add_subwindow(odd_offset = new ShiftInterlaceOdd(plugin, x + DP(90), y));
 	y += margin;
 	add_subwindow(new BC_Title(x, y, _("Even offset:")));
-	add_subwindow(even_offset = new ShiftInterlaceEven(plugin, x + 90, y));
+	add_subwindow(even_offset = new ShiftInterlaceEven(plugin, x + DP(90), y));
 
 	show_window();
 	flush();
@@ -199,8 +199,8 @@ ShiftInterlaceOdd::ShiftInterlaceOdd(ShiftInterlaceMain *plugin, int x, int y)
  : BC_ISlider(x,
  	y,
 	0,
-	200,
-	200,
+	DP(200),
+	DP(200),
 	-100,
 	100,
 	plugin->config.odd_offset)
@@ -221,8 +221,8 @@ ShiftInterlaceEven::ShiftInterlaceEven(ShiftInterlaceMain *plugin, int x, int y)
  : BC_ISlider(x,
  	y,
 	0,
-	200,
-	200,
+	DP(200),
+	DP(200),
 	-100,
 	100,
 	plugin->config.even_offset)

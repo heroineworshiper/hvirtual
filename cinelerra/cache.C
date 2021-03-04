@@ -66,6 +66,9 @@ File* CICache::check_out(Asset *asset, EDL *edl, int block)
 {
 	CICacheItem *current, *new_item = 0;
 
+//	printf("CICache::check_out %d asset=%p path=%s\n", __LINE__, asset, asset->path);
+
+
 	while(1)
 	{
 // Scan directory for item
@@ -139,7 +142,9 @@ File* CICache::check_out(Asset *asset, EDL *edl, int block)
 //			printf("CICache::check_out %d\n", __LINE__);
 		}
 		else
+		{
 			return 0;
+		}
 	}
 
 	return 0;
@@ -151,30 +156,45 @@ int CICache::check_in(Asset *asset)
 	int got_it = 0;
 	const int debug = 0;
 	
-	if(debug) printf("CICache::check_in %d asset=%p\n", __LINE__, asset);
+//	printf("CICache::check_in %d asset=%p path=%s\n", __LINE__, asset, asset->path);
+
 	total_lock->lock("CICache::check_in");
+	
 	if(debug) printf("CICache::check_in %d\n", __LINE__);
+
+
+
+	int total = 0;
 	for(current = first; current; current = NEXT)
 	{
+		total++;
 // Need to compare paths because
 // asset pointers are different
 		if(!strcmp(current->asset->path, asset->path))
 		{
 			current->checked_out = 0;
-//printf("CICache::check_in %d %p %d\n", __LINE__, current, current->Garbage::users);
+// printf("CICache::check_in %d current=%p current->users=%d path=%s\n", 
+// __LINE__, 
+// current, 
+// current->Garbage::users,
+// current->asset->path);
 			current->Garbage::remove_user();
 // Pointer no longer valid here
 			break;
 		}
 	}
 	total_lock->unlock();
-	if(debug) printf("CICache::check_in %d %p\n", __LINE__, this);
+
+
 
 // Release for blocking check_out operations
 	check_out_lock->unlock();
 
 	age();
-	if(debug) printf("CICache::check_in %d %p\n", __LINE__, this);
+	
+//	printf("CICache::check_in %d %p\n", __LINE__, this);
+//	dump();
+
 	return 0;
 }
 
@@ -259,25 +279,36 @@ int CICache::age()
 	int64_t prev_memory_usage = 0;
 	int64_t memory_usage = 0;
 	int result = 0;
+
+// printf("CICache::age %d this=%p memory_usage=%d\n", 
+// __LINE__, 
+// this, 
+// get_memory_usage(1));
+
 	do
 	{
-//printf("CICache::age %d %p %lld %lld\n", __LINE__, this, memory_usage, preferences->cache_size);
-		memory_usage = get_memory_usage(1);
-//printf("CICache::age %d %p %lld %lld\n", __LINE__, this, memory_usage, preferences->cache_size);
-		
-		if(memory_usage > preferences->cache_size)
+		prev_memory_usage = get_memory_usage(1);
+
+		if(prev_memory_usage > preferences->cache_size)
 		{
 			result = delete_oldest();
 		}
-		prev_memory_usage = memory_usage;
-//printf("CICache::age %d %p %lld %lld\n", __LINE__, this, memory_usage, preferences->cache_size);
 		memory_usage = get_memory_usage(1);
 
-//printf("CICache::age %d\n", __LINE__);
+
+// printf("CICache::age %d prev_memory_usage=%d memory_usage=%d\n", 
+// __LINE__,
+// prev_memory_usage,
+// memory_usage);
+
+
 
 	}while(prev_memory_usage != memory_usage &&
 		memory_usage > preferences->cache_size && 
 		!result);
+
+//printf("CICache::age %d this=%p %ld\n", __LINE__, this, get_memory_usage(1));
+
 
 }
 
@@ -336,8 +367,13 @@ int CICache::delete_oldest()
 
 	if(oldest && !oldest->checked_out)
 	{
+
 // Got the oldest file.  Try requesting cache purge from it.
-//printf("CICache::delete_oldest %d %d\n", __LINE__, oldest->Garbage::users);
+// printf("CICache::delete_oldest %d users=%d file=%p\n", 
+// __LINE__, 
+// oldest->Garbage::users,
+// oldest->file);
+
 		int purge_result = 0;
 		if(oldest->file)
 		{
@@ -352,10 +388,15 @@ int CICache::delete_oldest()
 			oldest->checked_out = 0;
 //printf("CICache::delete_oldest %d %d\n", __LINE__, oldest->Garbage::users);
 		}
-//printf("CICache::delete_oldest %d %p\n", __LINE__, oldest->file);
+
+// printf("CICache::delete_oldest %d users=%d file=%p purge_result=%d\n", 
+// __LINE__, 
+// oldest->Garbage::users,
+// oldest->file,
+// purge_result);
 
 
-		if(!oldest->file || (purge_result && total() > 1))
+		if(!oldest->file || (!purge_result && total() > 1))
 		{
 //printf("CICache::delete_oldest %d\n", __LINE__);
 
@@ -395,12 +436,15 @@ int CICache::dump()
 {
 	CICacheItem *current;
 	total_lock->lock("CICache::dump");
-	printf("CICache::dump total size %lld\n", (long long)get_memory_usage(0));
+	printf("CICache::dump total total=%d memory=%lld\n", 
+		total(),
+		(long long)get_memory_usage(0));
 	for(current = first; current; current = NEXT)
 	{
-		printf("cache item %p asset %p %s age=%d\n", 
+		printf("cache item %p users=%d checked_out=%d path=%s age=%d\n", 
 			current, 
-			current->asset,
+			current->Garbage::users,
+			current->checked_out,
 			current->asset->path, 
 			(int)current->age);
 	}
@@ -450,7 +494,7 @@ CICacheItem::CICacheItem(CICache *cache, EDL *edl, Asset *asset)
 	file->set_subtitle(edl->session->decode_subtitles ? 
 		edl->session->subtitle_number : -1);
 	file->set_interpolate_raw(edl->session->interpolate_raw);
-	file->set_white_balance_raw(edl->session->white_balance_raw);
+//	file->set_white_balance_raw(edl->session->white_balance_raw);
 
 
 // Copy decoding parameters from session to asset so file can see them.

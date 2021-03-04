@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,19 +42,26 @@ REGISTER_PLUGIN(TimeStretchRT);
 
 TimeStretchRTConfig::TimeStretchRTConfig()
 {
-	scale = 1;
+//	scale = 1;
+	num = 1;
+	denom = 1;
 	size = 40;
 }
 
 
 int TimeStretchRTConfig::equivalent(TimeStretchRTConfig &src)
 {
-	return fabs(scale - src.scale) < 0.0001 && size == src.size;
+//	return fabs(scale - src.scale) < 0.0001 && size == src.size;
+	return fabs(num - src.num) < 0.0001 &&
+		fabs(denom - src.denom) < 0.0001 && 
+		size == src.size;
 }
 
 void TimeStretchRTConfig::copy_from(TimeStretchRTConfig &src)
 {
-	this->scale = src.scale;
+	this->num = src.num;
+	this->denom = src.denom;
+//	this->scale = src.scale;
 	this->size = src.size;
 }
 
@@ -64,15 +71,19 @@ void TimeStretchRTConfig::interpolate(TimeStretchRTConfig &prev,
 	int64_t next_frame, 
 	int64_t current_frame)
 {
-	this->scale = prev.scale;
+	this->num = prev.num;
+	this->denom = prev.denom;
+//	this->scale = prev.scale;
 	this->size = prev.size;
 	boundaries();
 }
 
 void TimeStretchRTConfig::boundaries()
 {
-	if(fabs(scale) < 0.01) scale = 0.01;
-	if(fabs(scale) > 100) scale = 100;
+	if(num < 0.0001) num = 0.0001;
+	if(denom < 0.0001) denom = 0.0001;
+//	if(fabs(scale) < 0.01) scale = 0.01;
+//	if(fabs(scale) > 100) scale = 100;
 	if(size < 10) size = 10;
 	if(size > 1000) size = 1000;
 }
@@ -82,10 +93,10 @@ void TimeStretchRTConfig::boundaries()
 
 TimeStretchRTWindow::TimeStretchRTWindow(TimeStretchRT *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	160, 
-	200, 
-	160, 
+	DP(210), 
+	DP(200), 
+	DP(200), 
+	DP(200), 
 	0)
 {
 	this->plugin = plugin;
@@ -97,20 +108,32 @@ TimeStretchRTWindow::~TimeStretchRTWindow()
 
 void TimeStretchRTWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
+	int margin = plugin->get_theme()->widget_border;
 
 	BC_Title *title = 0;
-	add_subwindow(title = new BC_Title(x, y, _("Fraction of original speed:")));
+	add_subwindow(title = new BC_Title(x, y, _("Input samples:")));
 	y += title->get_h() + plugin->get_theme()->widget_border;
-	scale = new TimeStretchRTScale(this,
+	num = new TimeStretchRTScale(this,
 		plugin, 
 		x, 
-		y);
-	scale->create_objects();
-	
-	y += scale->get_h() + plugin->get_theme()->widget_border;
-	add_subwindow(title = new BC_Title(x, y, _("Window size (ms):")));
+		y,
+		&plugin->config.num);
+	num->create_objects();
+	y += num->get_h() + margin;
+
+	add_subwindow(title = new BC_Title(x, y, _("Output samples:")));
 	y += title->get_h() + plugin->get_theme()->widget_border;
+	denom = new TimeStretchRTScale(this,
+		plugin, 
+		x, 
+		y,
+		&plugin->config.denom);
+	denom->create_objects();
+
+	y += denom->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Window size (ms):")));
+	y += title->get_h() + margin;
 	size = new TimeStretchRTSize(this,
 		plugin, 
 		x, 
@@ -128,22 +151,25 @@ void TimeStretchRTWindow::create_objects()
 TimeStretchRTScale::TimeStretchRTScale(TimeStretchRTWindow *window,
 	TimeStretchRT *plugin, 
 	int x, 
-	int y)
+	int y,
+	double *value)
  : BC_TumbleTextBox(window,
- 	(float)(1.0 / plugin->config.scale),
+ 	(float)*value,
 	(float)0.0001,
 	(float)1000,
  	x, 
 	y, 
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
+	this->value = value;
 	set_increment(0.01);
 }
 
 int TimeStretchRTScale::handle_event()
 {
-	plugin->config.scale = 1.0 / atof(get_text());
+	*value = atof(get_text());
+	plugin->config.boundaries();
 	plugin->send_configure_change();
 	return 1;
 }
@@ -161,7 +187,7 @@ TimeStretchRTSize::TimeStretchRTSize(TimeStretchRTWindow *window,
 	1000,
  	x, 
 	y, 
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
 	set_increment(10);
@@ -215,7 +241,7 @@ int TimeStretchRT::process_buffer(int64_t size,
 {
 	need_reconfigure = load_configuration();
 
-	if(!engine) engine = new TimeStretchEngine(config.scale, 
+	if(!engine) engine = new TimeStretchEngine(config.denom / config.num, 
 		sample_rate,
 		config.size);
 
@@ -224,7 +250,6 @@ int TimeStretchRT::process_buffer(int64_t size,
 
 // Get start position of the input.
 // Sample 0 is the keyframe position
-//printf("TimeStretchRT::process_buffer %d %f\n", __LINE__, config.scale);
 	if(need_reconfigure)
 	{
 		int64_t prev_position = edl_to_local(
@@ -236,18 +261,18 @@ int TimeStretchRT::process_buffer(int64_t size,
 			prev_position = get_source_start();
 		}
 
-		source_start = (int64_t)((start_position - prev_position) / 
-			config.scale) + prev_position;
+		source_start = (int64_t)((start_position - prev_position) * 
+			config.num / config.denom) + prev_position;
 
 		engine->reset();
-		engine->update(config.scale, sample_rate, config.size);
+		engine->update(config.denom / config.num, sample_rate, config.size);
 		need_reconfigure = 0;
-printf("TimeStretchRT::process_buffer %d start_position=%lld prev_position=%lld scale=%f source_start=%lld\n", 
-__LINE__, 
-start_position,
-prev_position,
-config.scale,
-source_start);
+// printf("TimeStretchRT::process_buffer %d start_position=%lld prev_position=%lld scale=%f source_start=%lld\n", 
+// __LINE__, 
+// start_position,
+// prev_position,
+// config.scale,
+// source_start);
 	}
 
 // process buffers until output length is reached
@@ -302,7 +327,8 @@ void TimeStretchRT::save_data(KeyFrame *keyframe)
 // cause data to be stored directly in text
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 	output.tag.set_title("TIMESTRETCHRT");
-	output.tag.set_property("SCALE", config.scale);
+	output.tag.set_property("NUM", config.num);
+	output.tag.set_property("DENOM", config.denom);
 	output.tag.set_property("SIZE", config.size);
 	output.append_tag();
 	output.terminate_string();
@@ -320,7 +346,8 @@ void TimeStretchRT::read_data(KeyFrame *keyframe)
 	{
 		if(input.tag.title_is("TIMESTRETCHRT"))
 		{
-			config.scale = input.tag.get_property("SCALE", config.scale);
+			config.num = input.tag.get_property("NUM", config.num);
+			config.denom = input.tag.get_property("DENOM", config.denom);
 			config.size = input.tag.get_property("SIZE", config.size);
 		}
 	}
@@ -334,7 +361,8 @@ void TimeStretchRT::update_gui()
 		{
 		
 			thread->window->lock_window("TimeStretchRT::update_gui");
-			((TimeStretchRTWindow*)thread->window)->scale->update((float)(1.0 / config.scale));
+			((TimeStretchRTWindow*)thread->window)->num->update((float)config.num);
+			((TimeStretchRTWindow*)thread->window)->denom->update((float)config.denom);
 			((TimeStretchRTWindow*)thread->window)->size->update((int64_t)config.size);
 			thread->window->unlock_window();
 		}

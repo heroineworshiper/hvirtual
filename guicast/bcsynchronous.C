@@ -119,6 +119,7 @@ BC_Synchronous::BC_Synchronous()
 	is_running = 0;
 	current_window = 0;
 	process_group = setpgid(getpid(), 0);
+	BC_WindowBase::get_resources()->init();
 	BC_WindowBase::get_resources()->set_synchronous(this);
 }
 

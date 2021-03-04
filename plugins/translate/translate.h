@@ -55,7 +55,7 @@ public:
 	~TranslateMain();
 
 // required for all realtime plugins
-	PLUGIN_CLASS_MEMBERS(TranslateConfig)
+	PLUGIN_CLASS_MEMBERS2(TranslateConfig)
 	int process_realtime(VFrame *input_ptr, VFrame *output_ptr);
 	int is_realtime();
 	void update_gui();

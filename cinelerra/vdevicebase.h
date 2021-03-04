@@ -41,7 +41,7 @@ public:
 	virtual int has_signal() { return 0; };
 	virtual int read_buffer(VFrame *frame) { return 1; };
 	virtual int write_buffer(VFrame *output, EDL *edl) { return 1; };
-	virtual void new_output_buffer(VFrame **output, int colormodel) {};
+	virtual void new_output_buffer(VFrame **output, int colormodel, EDL *edl) {};
 	virtual ArrayList<int>* get_render_strategies() { return 0; };
 	virtual int get_shared_data(unsigned char *data, long size) { return 0; };
 	virtual int stop_sharing() { return 0; };

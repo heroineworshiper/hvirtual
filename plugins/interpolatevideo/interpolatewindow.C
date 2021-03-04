@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,10 +34,10 @@
 
 InterpolateVideoWindow::InterpolateVideoWindow(InterpolateVideo *plugin)
  : PluginClientWindow(plugin, 
-	250, 
-	250, 
-	250, 
-	250, 
+	DP(250), 
+	DP(250), 
+	DP(250), 
+	DP(250), 
 	0)
 {
 	this->plugin = plugin;
@@ -49,7 +49,7 @@ InterpolateVideoWindow::~InterpolateVideoWindow()
 
 void InterpolateVideoWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	BC_Title *title;
 	
@@ -62,7 +62,7 @@ void InterpolateVideoWindow::create_objects()
 		y));
 	add_subwindow(rate_menu = new InterpolateVideoRateMenu(plugin, 
 		this, 
-		x + rate->get_w() + 5, 
+		x + rate->get_w() + DP(5), 
 		y));
 	y += rate->get_h() + plugin->get_theme()->widget_border;
 	add_subwindow(keyframes = new InterpolateVideoKeyframes(plugin,
@@ -147,7 +147,7 @@ InterpolateVideoRate::InterpolateVideoRate(InterpolateVideo *plugin,
 	int y)
  : BC_TextBox(x, 
 	y, 
-	90,
+	DP(90),
 	1,
 	(float)plugin->config.input_rate)
 {
@@ -171,8 +171,8 @@ InterpolateVideoRateMenu::InterpolateVideoRateMenu(InterpolateVideo *plugin,
 	int y)
  : BC_ListBox(x,
  	y,
-	100,
-	200,
+	DP(100),
+	DP(200),
 	LISTBOX_TEXT,
 	&plugin->get_theme()->frame_rates,
 	0,

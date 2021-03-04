@@ -22,7 +22,6 @@
 #include "clip.h"
 #include "filexml.h"
 #include "language.h"
-#include "picon_png.h"
 #include "translate.h"
 #include "translatewin.h"
 
@@ -116,7 +115,6 @@ TranslateMain::~TranslateMain()
 const char* TranslateMain::plugin_title() { return N_("Translate"); }
 int TranslateMain::is_realtime() { return 1; }
 
-NEW_PICON_MACRO(TranslateMain)
 
 
 LOAD_CONFIGURATION_MACRO(TranslateMain, TranslateConfig)

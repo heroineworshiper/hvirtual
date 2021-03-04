@@ -259,9 +259,10 @@ public:
 // they can run.
 	int plugin_gui_open(Plugin *plugin);
 
-	void show_keyframe_gui(Plugin *plugin);
+	void show_keyframe_gui(Plugin *plugin, PluginServer *plugin_server);
 	void hide_keyframe_guis();
 	void hide_keyframe_gui(Plugin *plugin);
+	void hide_keyframe_gui(PluginServer *plugin_server);
 	void update_keyframe_guis();
 
 
@@ -288,7 +289,7 @@ public:
 // Clears active region in EDL.
 // If clear_handle, edit boundaries are cleared if the range is 0.
 // Called by paste, record, menueffects, render, and CWindow drop.
-	void clear(int clear_handle);
+	void clear(int clear_handle, int deglitch);
 	void clear_labels();
 	int clear_labels(double start, double end);
 	void concatenate_tracks();
@@ -398,6 +399,7 @@ public:
 	void paste_audio_transition();
 	void paste_video_transition();
 	void shuffle_edits();
+	void reverse_edits();
 	void align_edits();
 	void set_edit_length(double length);
 // Set length of single transition
@@ -409,7 +411,10 @@ public:
 // Asset removal from caches
 	void reset_caches();
 	void remove_asset_from_caches(Asset *asset);
-	void remove_assets_from_project(int push_undo = 0);
+	void remove_assets_from_project(int push_undo /* = 0 */, 
+		int redraw /* 1 */,
+		ArrayList<Indexable*> *drag_assets /* mwindow->session->drag_assets */,
+		ArrayList<EDL*> *drag_clips /* mwindow->session->drag_clips */);
 	void remove_assets_from_disk();
 	void resize_track(Track *track, int w, int h);
 	
@@ -449,7 +454,9 @@ public:
 	void finish_modify_handles();
 
 	
-	
+	void set_proxy(int new_scale, 
+		ArrayList<Indexable*> *orig_assets,
+		ArrayList<Indexable*> *proxy_assets);	
 	
 	
 	
@@ -563,7 +570,7 @@ public:
 // This one happens asynchronously of the others.  Used by playback to
 // see what frame is background rendered.
 	int brender_available(int position);
-	void set_brender_start();
+	void set_brender_range();
 
 	void init_error();
 	static void init_defaults(BC_Hash* &defaults, 

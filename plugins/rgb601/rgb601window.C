@@ -35,10 +35,10 @@
 
 RGB601Window::RGB601Window(RGB601Main *client)
  : PluginClientWindow(client,
-	210, 
-	200, 
-	210, 
-	200, 
+	DP(250), 
+	DP(200), 
+	DP(250), 
+	DP(200), 
 	0)
 { 
 	this->client = client; 
@@ -50,7 +50,7 @@ RGB601Window::~RGB601Window()
 
 void RGB601Window::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	
 	add_tool(forward = new RGB601Direction(this, 
 		x, 
@@ -58,7 +58,7 @@ void RGB601Window::create_objects()
 		&client->config.direction, 
 		1, 
 		_("RGB -> 601 compression")));
-	y += 30;
+	y += DP(30);
 	add_tool(reverse = new RGB601Direction(this, 
 		x, 
 		y, 

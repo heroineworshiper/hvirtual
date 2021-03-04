@@ -38,22 +38,22 @@ public:
 	void create_objects();
 	void update_titles();
 
-	AssetListFormat *format;
+//	AssetListFormat *format;
 	
 	MWindow *mwindow;
 	AWindowGUI *gui;
 };
 
 
-class AssetListFormat : public BC_MenuItem
-{
-public:
-	AssetListFormat(MWindow *mwindow);
-
-	void update();
-	int handle_event();
-	MWindow *mwindow;
-};
+// class AssetListFormat : public BC_MenuItem
+// {
+// public:
+// 	AssetListFormat(MWindow *mwindow);
+// 
+// 	void update();
+// 	int handle_event();
+// 	MWindow *mwindow;
+// };
 
 
 class AssetListSort : public BC_MenuItem
@@ -83,22 +83,22 @@ public:
 	void create_objects();
 	void update_titles();
 
-	FolderListFormat *format;
+//	FolderListFormat *format;
 	
 	MWindow *mwindow;
 	AWindowGUI *gui;
 };
 
 
-class FolderListFormat : public BC_MenuItem
-{
-public:
-	FolderListFormat(MWindow *mwindow, FolderListMenu *menu);
-
-	int handle_event();
-	MWindow *mwindow;
-	FolderListMenu *menu;
-};
+// class FolderListFormat : public BC_MenuItem
+// {
+// public:
+// 	FolderListFormat(MWindow *mwindow, FolderListMenu *menu);
+// 
+// 	int handle_event();
+// 	MWindow *mwindow;
+// 	FolderListMenu *menu;
+// };
 
 
 

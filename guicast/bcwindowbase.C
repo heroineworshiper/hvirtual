@@ -80,6 +80,7 @@ Window XGroupLeader = 0;
 
 BC_WindowBase::BC_WindowBase()
 {
+	resources.init();
 //printf("BC_WindowBase::BC_WindowBase 1\n");
 	BC_WindowBase::initialize();
 }
@@ -168,6 +169,8 @@ BC_WindowBase::~BC_WindowBase()
 			XFreeFont(display, mediumfont);
 		if (largefont)
 			XFreeFont(display, largefont);
+		if (clockfont)
+			XFreeFont(display, clockfont);
 
 
 		flush();
@@ -288,6 +291,7 @@ int BC_WindowBase::initialize()
 	largefont_xft = 0;
 	mediumfont_xft = 0;
 	smallfont_xft = 0;
+	clockfont_xft = 0;
 #ifdef SINGLE_THREAD
 	completion_lock = new Condition(0, "BC_WindowBase::completion_lock");
 #else
@@ -1089,11 +1093,15 @@ __LINE__, title, event);
 
 
 #ifdef X_HAVE_UTF8_STRING
-			//It's Ascii or UTF8?
+//It's Ascii or UTF8?
 // 			if (keysym != 0xffff &&
 //				(keys_return[0] & 0xff) >= 0x7f ) 
-			if ( ((keys_return[1] & 0xff) > 0x80) && ((keys_return[0] & 0xff) > 0xC0) )
+//printf("BC_WindowBase::dispatch_event %d %02x%02x\n", __LINE__, keys_return[0], keys_return[1]);
+
+			if ( ((keys_return[1] & 0xff) > 0x80) && 
+				((keys_return[0] & 0xff) > 0xC0) )
 			{
+//printf("BC_WindowBase::dispatch_event %d\n", __LINE__);
  				key_pressed_utf8 = keys_return;
  				key_pressed = keysym & 0xff;
  	 		} 
@@ -1167,6 +1175,7 @@ __LINE__, title, event);
 #ifdef X_HAVE_UTF8_STRING
 
  	 				keys_return[1] = 0;
+//printf("BC_WindowBase::dispatch_event %d\n", __LINE__);
  	 				key_pressed_utf8 = keys_return;	
  	 				key_pressed = keysym & 0xff;	
 #else					
@@ -1175,6 +1184,9 @@ __LINE__, title, event);
 					break;
 			}
 #ifdef X_HAVE_UTF8_STRING
+// not set if keysym was trapped in the switch
+// Don't even know why key_pressed_utf8 is necessary
+				key_pressed_utf8 = keys_return;
 			}
 #endif
 
@@ -2044,125 +2056,84 @@ int BC_WindowBase::init_gc()
 	return 0;
 }
 
-int BC_WindowBase::init_fonts()
+XFontStruct* BC_WindowBase::query_font(const char *font_string, int size)
 {
-	if((largefont = XLoadQueryFont(display, _(resources.large_font))) == NULL)
-		if((largefont = XLoadQueryFont(display, _(resources.large_font2))) == NULL)
-			largefont = XLoadQueryFont(display, "fixed"); 
-
-	if((mediumfont = XLoadQueryFont(display, _(resources.medium_font))) == NULL)
-		if((mediumfont = XLoadQueryFont(display, _(resources.medium_font2))) == NULL)
-			mediumfont = XLoadQueryFont(display, "fixed"); 
-
-	if((smallfont = XLoadQueryFont(display, _(resources.small_font))) == NULL)
-		if((smallfont = XLoadQueryFont(display, _(resources.small_font2))) == NULL)
-			smallfont = XLoadQueryFont(display, "fixed");
-
-	init_xft();
-	if(get_resources()->use_fontset)
+	char string[BCTEXTLEN];
+	sprintf(string, "%s-*-%d-*", font_string, size);
+	XFontStruct *result = XLoadQueryFont(display, string);
+	if(!result)
 	{
-		char **m, *d;
-		int n;
+		result = XLoadQueryFont(display, "fixed");
+	}
+	
+	return result;
+}
+
+XFontSet BC_WindowBase::query_fontset(const char *font_string, int size)
+{
+	char string[BCTEXTLEN];
+	sprintf(string, "%s-*-%d-*", font_string, size);
+	char **m, *d;
+	int n;
 
 // FIXME: should check the m,d,n values
-		if((largefontset = XCreateFontSet(display, 
-			resources.large_fontset,
-            &m, 
-			&n, 
-			&d)) == 0)
-            largefontset = XCreateFontSet(display, "fixed,*", &m, &n, &d);
-		if((mediumfontset = XCreateFontSet(display, 
-			resources.medium_fontset,
-            &m, 
-			&n, 
-			&d)) == 0)
-            mediumfontset = XCreateFontSet(display, "fixed,*", &m, &n, &d);
-		if((smallfontset = XCreateFontSet(display, 
-			resources.small_fontset,
-            &m, 
-			&n, 
-			&d)) == 0)
-            smallfontset = XCreateFontSet(display, "fixed,*", &m, &n, &d);
-
-		if(largefontset && mediumfontset && smallfontset)
-		{
-			curr_fontset = mediumfontset;
-			get_resources()->use_fontset = 1;
-		}
-		else
-		{
-			curr_fontset = 0;
-			get_resources()->use_fontset = 0;
-		}
+	XFontSet result = XCreateFontSet(display, 
+		string,
+        &m, 
+		&n, 
+		&d);
+	if(result == 0)
+	{
+        result = XCreateFontSet(display, "fixed,*", &m, &n, &d);
 	}
-
-	return 0;
+	
+	return result;
 }
 
 
-void BC_WindowBase::init_xft()
+void* BC_WindowBase::query_xft_font(const char *font_string, int size)
 {
+	void *result = 0;
+	BC_Resources::xft_lock->lock("BC_WindowBase::query_xft_font");
+	if(font_string[0] == '-')
+	{
+		result = XftFontOpenXlfd(display,
+			screen,
+			font_string);
+	}
+	else
+	{
+		char string[BCTEXTLEN];
+		sprintf(string, "%s-%d", font_string, size);
+		result = XftFontOpenName(display,
+			screen,
+			string);
+	}
+	BC_Resources::xft_lock->unlock();
+	return result;
+}
+
+
+int BC_WindowBase::init_fonts()
+{
+	largefont = query_font(resources.large_font, resources.large_fontsize);
+	mediumfont = query_font(resources.medium_font, resources.medium_fontsize);
+	smallfont = query_font(resources.small_font, resources.small_fontsize);
+	clockfont = query_font(resources.clock_font, resources.clock_fontsize);
+	
+	
+
 #ifdef HAVE_XFT
-//	if(!(largefont_xft = XftFontOpenXlfd(display,
-//		screen,
-//		resources.large_font_xft)))
-//		if(!(largefont_xft = XftFontOpenXlfd(display,
-//			screen,
-//			resources.large_font_xft2)))
-// Rewrite to be fonts chooser ready //akirad
-		if(resources.large_font_xft[0] == '-')
-		{
-			largefont_xft = XftFontOpenXlfd(display,
-							screen,
-							resources.large_font_xft);
-		} 
-		else 
-		{ 
-			largefont_xft = XftFontOpenName(display,
-							screen,
-							resources.large_font_xft);
-		}
-
-
-//	if(!(mediumfont_xft = XftFontOpenXlfd(display,
-//		  screen,
-//		  resources.medium_font_xft)))
-//		if(!(mediumfont_xft = XftFontOpenXlfd(display,
-//			  screen,
-//			  resources.medium_font_xft2)))
-		if(resources.medium_font_xft[0] == '-')
-		{
-			mediumfont_xft = XftFontOpenXlfd(display,
-							screen,
-							resources.medium_font_xft);
-		} else 
-		{
-			mediumfont_xft = XftFontOpenName(display,
-							screen,
-							resources.medium_font_xft);
-		}
-
-
-//	if(!(smallfont_xft = XftFontOpenXlfd(display,
-//	      screen,
-//	      resources.small_font_xft)))
-//		if(!(smallfont_xft = XftFontOpenXlfd(display,
-//	    	  screen,
-//	    	  resources.small_font_xft2)))
-		if(resources.small_font_xft[0] == '-')
-		{
-			smallfont_xft = XftFontOpenXlfd(display,
-							screen,
-							resources.small_font_xft);
-		} else 
-		{ 
-			smallfont_xft = XftFontOpenName(display,
-							screen,
-							resources.small_font_xft);
-		}
+	largefont_xft = query_xft_font(resources.large_font_xft, resources.large_font_xftsize);
+	mediumfont_xft = query_xft_font(resources.medium_font_xft, resources.medium_font_xftsize);
+	clockfont_xft = query_xft_font(resources.clock_font_xft, resources.clock_font_xftsize);
+	smallfont_xft = query_xft_font(resources.small_font_xft, resources.small_font_xftsize);
 
 // Extension failed to locate fonts
-	if(!largefont_xft || !mediumfont_xft || !smallfont_xft)
+	if(!largefont_xft || 
+		!mediumfont_xft || 
+		!smallfont_xft || 
+		!clockfont_xft)
 	{
 		printf("BC_WindowBase::init_fonts: no xft fonts found %s=%p %s=%p %s=%p\n",
 			resources.large_font_xft,
@@ -2174,7 +2145,55 @@ void BC_WindowBase::init_xft()
 		get_resources()->use_xft = 0;
 	}
 #endif // HAVE_XFT
+
+// 	if(get_resources()->use_fontset)
+// 	{
+// 		char **m, *d;
+// 		int n;
+// 
+// // FIXME: should check the m,d,n values
+// 		if((largefontset = XCreateFontSet(display, 
+// 			resources.large_fontset,
+//             &m, 
+// 			&n, 
+// 			&d)) == 0)
+//             largefontset = XCreateFontSet(display, "fixed,*", &m, &n, &d);
+// 		if((mediumfontset = XCreateFontSet(display, 
+// 			resources.medium_fontset,
+//             &m, 
+// 			&n, 
+// 			&d)) == 0)
+//             mediumfontset = XCreateFontSet(display, "fixed,*", &m, &n, &d);
+// 		if((smallfontset = XCreateFontSet(display, 
+// 			resources.small_fontset,
+//             &m, 
+// 			&n, 
+// 			&d)) == 0)
+//             smallfontset = XCreateFontSet(display, "fixed,*", &m, &n, &d);
+// 		if((clockfontset = XCreateFontSet(display, 
+// 			resources.clock_fontset,
+//             &m, 
+// 			&n, 
+// 			&d)) == 0)
+//             clockfontset = XCreateFontSet(display, "fixed,*", &m, &n, &d);
+// 
+// 		if(largefontset && mediumfontset && smallfontset && clockfontset)
+// 		{
+// 			curr_fontset = mediumfontset;
+// 			get_resources()->use_fontset = 1;
+// 		}
+// 		else
+// 		{
+// 			curr_fontset = 0;
+// 			get_resources()->use_fontset = 0;
+// 		}
+// 	}
+
+	return 0;
 }
+
+
+
 
 
 int BC_WindowBase::get_color(int64_t color) 
@@ -2479,26 +2498,28 @@ XFontStruct* BC_WindowBase::get_font_struct(int font)
 		case MEDIUMFONT: return top_level->mediumfont; break;
 		case SMALLFONT:  return top_level->smallfont;  break;
 		case LARGEFONT:  return top_level->largefont;  break;
+		case CLOCKFONT:  return top_level->clockfont;  break;
 	}
 	return 0;
 }
 
-XFontSet BC_WindowBase::get_fontset(int font)
-{
-	XFontSet fs = 0;
-
-	if(get_resources()->use_fontset)
-	{
-		switch(font)
-		{
-			case SMALLFONT:  fs = top_level->smallfontset; break;
-			case LARGEFONT:  fs = top_level->largefontset; break;
-			case MEDIUMFONT: fs = top_level->mediumfontset; break;
-		}
-	}
-
-	return fs;
-}
+// XFontSet BC_WindowBase::get_fontset(int font)
+// {
+// 	XFontSet fs = 0;
+// 
+// 	if(get_resources()->use_fontset)
+// 	{
+// 		switch(font)
+// 		{
+// 			case SMALLFONT:  fs = top_level->smallfontset; break;
+// 			case LARGEFONT:  fs = top_level->largefontset; break;
+// 			case MEDIUMFONT: fs = top_level->mediumfontset; break;
+// 			case CLOCKFONT: fs = top_level->clockfontset; break;
+// 		}
+// 	}
+// 
+// 	return fs;
+// }
 
 #ifdef HAVE_XFT
 XftFont* BC_WindowBase::get_xft_struct(int font)
@@ -2511,6 +2532,7 @@ XftFont* BC_WindowBase::get_xft_struct(int font)
 		case MEDIUMFONT:   return (XftFont*)top_level->mediumfont_xft; break;
 		case SMALLFONT:    return (XftFont*)top_level->smallfont_xft;  break;
 		case LARGEFONT:    return (XftFont*)top_level->largefont_xft;  break;
+		case CLOCKFONT:    return (XftFont*)top_level->clockfont_xft;  break;
 	}
 
 	return 0;
@@ -2537,12 +2559,12 @@ void BC_WindowBase::set_font(int font)
 	{
 		;
 	}
-	else
+//	else
 #endif
-	if(get_resources()->use_fontset)
-	{
-		set_fontset(font);
-	}
+// 	if(get_resources()->use_fontset)
+// 	{
+// 		set_fontset(font);
+// 	}
 
 	if(get_font_struct(font))
 	{
@@ -2552,30 +2574,31 @@ void BC_WindowBase::set_font(int font)
 	return;
 }
 
-void BC_WindowBase::set_fontset(int font)
-{
-	XFontSet fs = 0;
-
-	if(get_resources()->use_fontset)
-	{
-		switch(font)
-		{
-			case SMALLFONT:  fs = top_level->smallfontset; break;
-			case LARGEFONT:  fs = top_level->largefontset; break;
-			case MEDIUMFONT: fs = top_level->mediumfontset; break;
-		}
-	}
-
-	curr_fontset = fs;
-}
-
-
-XFontSet BC_WindowBase::get_curr_fontset(void)
-{
-	if(get_resources()->use_fontset)
-		return curr_fontset;
-	return 0;
-}
+// void BC_WindowBase::set_fontset(int font)
+// {
+// 	XFontSet fs = 0;
+// 
+// 	if(get_resources()->use_fontset)
+// 	{
+// 		switch(font)
+// 		{
+// 			case SMALLFONT:  fs = top_level->smallfontset; break;
+// 			case LARGEFONT:  fs = top_level->largefontset; break;
+// 			case MEDIUMFONT: fs = top_level->mediumfontset; break;
+// 			case CLOCKFONT: fs = top_level->clockfontset; break;
+// 		}
+// 	}
+// 
+// 	curr_fontset = fs;
+// }
+// 
+// 
+// XFontSet BC_WindowBase::get_curr_fontset(void)
+// {
+// 	if(get_resources()->use_fontset)
+// 		return curr_fontset;
+// 	return 0;
+// }
 
 int BC_WindowBase::get_single_text_width(int font, const char *text, int length)
 {
@@ -2583,6 +2606,7 @@ int BC_WindowBase::get_single_text_width(int font, const char *text, int length)
 	if(get_resources()->use_xft && get_xft_struct(font))
 	{
 		XGlyphInfo extents;
+		BC_Resources::xft_lock->lock("BC_WindowBase::get_single_text_width");
 #ifdef X_HAVE_UTF8_STRING
 		XftTextExtentsUtf8(top_level->display,
 #else
@@ -2592,13 +2616,14 @@ int BC_WindowBase::get_single_text_width(int font, const char *text, int length)
 			(const FcChar8*)text, 
 			length,
 			&extents);
+		BC_Resources::xft_lock->unlock();
 		return extents.xOff;
 	}
 	else
 #endif
-	if(get_resources()->use_fontset && top_level->get_fontset(font))
-		return XmbTextEscapement(top_level->get_fontset(font), text, length);
-	else
+//	if(get_resources()->use_fontset && top_level->get_fontset(font))
+//		return XmbTextEscapement(top_level->get_fontset(font), text, length);
+//	else
 	if(get_font_struct(font)) 
 		return XTextWidth(get_font_struct(font), text, length);
 	else
@@ -2652,6 +2677,7 @@ int BC_WindowBase::get_text_ascent(int font)
 	if(get_resources()->use_xft && get_xft_struct(font))
 	{
 		XGlyphInfo extents;
+		BC_Resources::xft_lock->lock("BC_WindowBase::get_text_ascent");
 #ifdef X_HAVE_UTF8_STRING
 		XftTextExtentsUtf8(top_level->display,
 #else
@@ -2661,29 +2687,34 @@ int BC_WindowBase::get_text_ascent(int font)
 			(const FcChar8*)"O", 
 			1,
 			&extents);
+		BC_Resources::xft_lock->unlock();
 		return extents.y + 2;
 	}
 	else
 #endif
-	if(get_resources()->use_fontset && top_level->get_fontset(font))
+//	if(get_resources()->use_fontset && top_level->get_fontset(font))
+//	{
+//       XFontSetExtents *extents;
+//
+//        extents = XExtentsOfFontSet(top_level->get_fontset(font));
+//        return -extents->max_logical_extent.y;
+//	}
+//	else
+	if(get_font_struct(font))
 	{
-        XFontSetExtents *extents;
-
-        extents = XExtentsOfFontSet(top_level->get_fontset(font));
-        return -extents->max_logical_extent.y;
+		return top_level->get_font_struct(font)->ascent;
 	}
 	else
-	if(get_font_struct(font))
-		return top_level->get_font_struct(font)->ascent;
-	else
-	switch(font)
 	{
-		case MEDIUM_7SEGMENT:
-			return get_resources()->medium_7segment[0]->get_h();
-			break;
+		switch(font)
+		{
+			case MEDIUM_7SEGMENT:
+				return get_resources()->medium_7segment[0]->get_h();
+				break;
 
-		default:
-			return 0;
+			default:
+				return 0;
+		}
 	}
 }
 
@@ -2693,6 +2724,8 @@ int BC_WindowBase::get_text_descent(int font)
 	if(get_resources()->use_xft && get_xft_struct(font))
 	{
 		XGlyphInfo extents;
+		BC_Resources::xft_lock->lock("BC_WindowBase::get_text_descent");
+
 #ifdef X_HAVE_UTF8_STRING
 		XftTextExtentsUtf8(top_level->display,
 #else
@@ -2702,30 +2735,35 @@ int BC_WindowBase::get_text_descent(int font)
 			(const FcChar8*)"j", 
 			1,
 			&extents);
+		BC_Resources::xft_lock->unlock();
 		return extents.height - extents.y;
 	}
 	else
 #endif
-    if(get_resources()->use_fontset && top_level->get_fontset(font))
-    {
-        XFontSetExtents *extents;
-
-        extents = XExtentsOfFontSet(top_level->get_fontset(font));
-        return (extents->max_logical_extent.height
-                        + extents->max_logical_extent.y);
-    }
-    else
+//     if(get_resources()->use_fontset && top_level->get_fontset(font))
+//     {
+//         XFontSetExtents *extents;
+// 
+//         extents = XExtentsOfFontSet(top_level->get_fontset(font));
+//         return (extents->max_logical_extent.height
+//                         + extents->max_logical_extent.y);
+//     }
+//     else
 	if(get_font_struct(font))
-		return top_level->get_font_struct(font)->descent;
-	else
-	switch(font)
 	{
-		default:
-			return 0;
+		return top_level->get_font_struct(font)->descent;
+	}
+	else
+	{
+		switch(font)
+		{
+			default:
+				return 0;
+		}
 	}
 }
 
-int BC_WindowBase::get_text_height(int font, char *text)
+int BC_WindowBase::get_text_height(int font, const char *text)
 {
 	if(!text) return get_text_ascent(font) + get_text_descent(font);
 
@@ -3869,6 +3907,16 @@ int BC_WindowBase::load_defaults(BC_Hash *defaults)
 	resources->filebox_columnwidth[0] = defaults->get("FILEBOX_WIDTH0", resources->filebox_columnwidth[0]);
 	resources->filebox_columnwidth[1] = defaults->get("FILEBOX_WIDTH1", resources->filebox_columnwidth[1]);
 	resources->filebox_columnwidth[2] = defaults->get("FILEBOX_WIDTH2", resources->filebox_columnwidth[2]);
+	resources->filebox_sortcolumn = defaults->get("FILEBOX_SORTCOLUMN", resources->filebox_sortcolumn);
+	if(resources->filebox_sortcolumn < 0)
+	{
+		resources->filebox_sortcolumn = 0;
+	}
+	if(resources->filebox_sortcolumn >= FILEBOX_COLUMNS)
+	{
+		resources->filebox_sortcolumn = FILEBOX_COLUMNS - 1;
+	}
+	resources->filebox_sortorder = defaults->get("FILEBOX_SORTORDER", resources->filebox_sortorder);
 	defaults->get("FILEBOX_FILTER", resources->filebox_filter);
 	return 0;
 }
@@ -3894,6 +3942,8 @@ int BC_WindowBase::save_defaults(BC_Hash *defaults)
 	defaults->update("FILEBOX_WIDTH1", resources->filebox_columnwidth[1]);
 	defaults->update("FILEBOX_WIDTH2", resources->filebox_columnwidth[2]);
 	defaults->update("FILEBOX_FILTER", resources->filebox_filter);
+	defaults->update("FILEBOX_SORTCOLUMN", resources->filebox_sortcolumn);
+	defaults->update("FILEBOX_SORTORDER", resources->filebox_sortorder);
 	return 0;
 }
 

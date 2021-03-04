@@ -140,10 +140,10 @@ TipWindowGUI::TipWindowGUI(MWindow *mwindow,
  : BC_Window(PROGRAM_NAME ": Tip of the day",
  	x,
 	y,
- 	640,
-	100,
-	640,
-	100,
+ 	DP(640),
+	DP(100),
+	DP(640),
+	DP(100),
 	0,
 	0,
 	1)
@@ -154,26 +154,26 @@ TipWindowGUI::TipWindowGUI(MWindow *mwindow,
 
 void TipWindowGUI::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 SET_TRACE
 	add_subwindow(tip_text = new BC_Title(x, y, thread->get_current_tip()));
-	y = get_h() - 30;
+	y = get_h() - DP(30);
 SET_TRACE
 	BC_CheckBox *checkbox; 
 	add_subwindow(checkbox = new TipDisable(mwindow, this, x, y));
 SET_TRACE
 	BC_Button *button;
-	y = get_h() - TipClose::calculate_h(mwindow) - 10;
-	x = get_w() - TipClose::calculate_w(mwindow) - 10;
+	y = get_h() - TipClose::calculate_h(mwindow) - DP(10);
+	x = get_w() - TipClose::calculate_w(mwindow) - DP(10);
 	add_subwindow(button = new TipClose(mwindow, this, x, y));
 SET_TRACE
-	x -= TipNext::calculate_w(mwindow) + 10;
+	x -= TipNext::calculate_w(mwindow) + DP(10);
 	add_subwindow(button = new TipNext(mwindow, this, x, y));
 SET_TRACE
-	x -= TipPrev::calculate_w(mwindow) + 10;
+	x -= TipPrev::calculate_w(mwindow) + DP(10);
 	add_subwindow(button = new TipPrev(mwindow, this, x, y));
 SET_TRACE
-	x += button->get_w() + 10;
+	x += button->get_w() + DP(10);
 
 	show_window();
 	raise_window();

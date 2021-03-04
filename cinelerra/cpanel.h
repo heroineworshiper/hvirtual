@@ -155,15 +155,15 @@ public:
 	CPanel *gui;
 };
 
-class CPanelToolWindow : public BC_Toggle
-{
-public:
-	CPanelToolWindow(MWindow *mwindow, CPanel *gui, int x, int y);
-	~CPanelToolWindow();
-	int handle_event();
-	MWindow *mwindow;
-	CPanel *gui;
-};
+// class CPanelToolWindow : public BC_Toggle
+// {
+// public:
+// 	CPanelToolWindow(MWindow *mwindow, CPanel *gui, int x, int y);
+// 	~CPanelToolWindow();
+// 	int handle_event();
+// 	MWindow *mwindow;
+// 	CPanel *gui;
+// };
 
 
 

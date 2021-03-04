@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,10 +40,10 @@
 
 PhotoScaleWindow::PhotoScaleWindow(PhotoScaleMain *plugin)
  : PluginClientWindow(plugin, 
-	250, 
-	200, 
-	250, 
-	200, 
+	DP(250), 
+	DP(200), 
+	DP(250), 
+	DP(200), 
 	0)
 { 
 	this->plugin = plugin; 
@@ -55,7 +55,7 @@ PhotoScaleWindow::~PhotoScaleWindow()
 
 void PhotoScaleWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	BC_Title *title;
 
 	int x2 = x + BC_Title::calculate_w(this, _("Height:")) + plugin->get_theme()->widget_border;
@@ -70,7 +70,7 @@ void PhotoScaleWindow::create_objects()
 		this,
 		x2, 
 		y, 
-		100,
+		DP(100),
 		&(plugin->config.width)));
 
 	y += output_size[0]->get_h() + plugin->get_theme()->widget_border;
@@ -80,7 +80,7 @@ void PhotoScaleWindow::create_objects()
 		this,
 		x2, 
 		y, 
-		100,
+		DP(100),
 		&(plugin->config.height)));
 
 	FrameSizePulldown *pulldown;
@@ -109,7 +109,6 @@ void PhotoScaleWindow::create_objects()
 		y));
 
 	show_window();
-	flush();
 }
 
 

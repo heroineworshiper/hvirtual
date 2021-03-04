@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2014 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,7 +107,8 @@ public:
 // This removes some of the extremely faint artifacts in the trig rotation.
 	void rotate(VFrame *output,
 		VFrame *input, 
-		float angle);
+		float angle); // in degrees
+	void set_matrix(AffineMatrix *matrix);
 // Set the viewport to transform.  The transform is based on the input viewport.  
 // The output viewport clips the transformed output.
 	void set_in_viewport(int x, int y, int w, int h);
@@ -126,6 +127,8 @@ public:
 	void init_packages();
 	LoadClient* new_client();
 	LoadPackage* new_package();
+
+
 	VFrame *input, *output, *temp;
 	int mode;
 	enum
@@ -133,9 +136,13 @@ public:
 		PERSPECTIVE,
 		SHEER,
 		STRETCH,
-		ROTATE
+		ROTATE,
+// multiply directly by a matrix. 
+		TRANSFORM
 	};
 
+// arbitrary matrix
+	AffineMatrix matrix;
 // Transformation coordinates
 	float x1, y1, x2, y2, x3, y3, x4, y4;
 // Viewport coordinates

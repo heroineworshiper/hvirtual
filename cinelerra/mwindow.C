@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -747,8 +747,8 @@ void MWindow::clean_indexes()
 
 // Delete extra indexes
 	fs.set_filter("*.idx");
-	fs.complete_path(preferences->index_directory);
-	fs.update(preferences->index_directory);
+	fs.complete_path(&preferences->index_directory);
+	fs.update(preferences->index_directory.c_str());
 //printf("MWindow::clean_indexes 1 %d\n", fs.dir_list.total);
 
 // Eliminate directories
@@ -758,7 +758,9 @@ void MWindow::clean_indexes()
 		result = 0;
 		for(int i = 0; i < fs.dir_list.total && !result; i++)
 		{
-			fs.join_names(string, preferences->index_directory, fs.dir_list.values[i]->name);
+			fs.join_names(string, 
+                preferences->index_directory.c_str(), 
+                fs.dir_list.values[i]->name);
 			if(fs.is_dir(string))
 			{
 				delete fs.dir_list.values[i];
@@ -775,7 +777,9 @@ void MWindow::clean_indexes()
 // Get oldest
 		for(int i = 0; i < fs.dir_list.total; i++)
 		{
-			fs.join_names(string, preferences->index_directory, fs.dir_list.values[i]->name);
+			fs.join_names(string, 
+                preferences->index_directory.c_str(), 
+                fs.dir_list.values[i]->name);
 
 			if(i == 0 || fs.get_date(string) <= oldest)
 			{
@@ -788,7 +792,7 @@ void MWindow::clean_indexes()
 		{
 // Remove index file
 			fs.join_names(string, 
-				preferences->index_directory, 
+				preferences->index_directory.c_str(), 
 				fs.dir_list.values[oldest_item]->name);
 //printf("MWindow::clean_indexes 1 %s\n", string);
 			if(remove(string))
@@ -1033,9 +1037,16 @@ int MWindow::brender_available(int position)
 	return result;
 }
 
-void MWindow::set_brender_start()
+void MWindow::set_brender_range()
 {
 	edl->session->brender_start = edl->local_session->get_selectionstart(1);
+	edl->session->brender_end = edl->local_session->get_selectionend(1);
+
+	if(EQUIV(edl->session->brender_end, edl->session->brender_start))
+	{
+		edl->session->brender_end = edl->tracks->total_video_length();
+	}
+
 	restart_brender();
 	gui->draw_overlays(1);
 }
@@ -1077,6 +1088,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 		}
 	}
 
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	undo->update_undo_before();
 
 
@@ -1084,11 +1096,11 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 // Define new_edls and new_assets to load
 	int result = 0;
-	for(int i = 0; i < filenames->total; i++)
+	for(int i = 0; i < filenames->size(); i++)
 	{
 // Get type of file
 		File *new_file = new File;
-		Asset *new_asset = new Asset(filenames->values[i]);
+		Asset *new_asset = new Asset(filenames->get(i));
 		EDL *new_edl = new EDL;
 		char string[BCTEXTLEN];
 
@@ -1435,10 +1447,10 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 		track = track->next;
 	}
 
-
-	update_project(load_mode);
-
+// need to update undo before project, since mwindow is unlocked & a new load
+// can begin here.  Should really prevent loading until we're done.
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+	undo->update_undo_after(_("load"), LOAD_ALL);
 
 	for(int i = 0; i < new_edls.size(); i++)
 	{
@@ -1456,8 +1468,8 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	new_assets.remove_all();
 	new_files.remove_all_objects();
 
-	undo->update_undo_after(_("load"), LOAD_ALL);
 
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	if(load_mode == LOADMODE_REPLACE ||
 		load_mode == LOADMODE_REPLACE_CONCATENATE)
 	{
@@ -1472,6 +1484,10 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+	update_project(load_mode);
+
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+
 	return 0;
 }
 
@@ -1618,6 +1634,13 @@ void MWindow::create_objects(int want_gui,
 
 	if(debug) PRINT_TRACE
 
+// need DPI before initializing graphics
+	init_defaults(defaults, config_path);
+	init_preferences();
+	
+	BC_Resources::override_dpi = preferences->override_dpi;
+	BC_Resources::dpi = preferences->dpi;
+	if(debug) PRINT_TRACE
 
 	init_3d();
 
@@ -1645,9 +1668,6 @@ void MWindow::create_objects(int want_gui,
 	init_error();
 	if(debug) PRINT_TRACE
 
-	init_defaults(defaults, config_path);
-	init_preferences();
-	if(debug) PRINT_TRACE
 
 	init_plugins(preferences, splash_window);
 	if(debug) PRINT_TRACE
@@ -1846,6 +1866,7 @@ void MWindow::show_vwindow()
 	int total_running = 0;
 	session->show_vwindow = 1;
 
+//printf("MWindow::show_vwindow %d %d\n", __LINE__, vwindows.size());
 
 // Raise all windows which are visible
 	for(int j = 0; j < vwindows.size(); j++)
@@ -1862,7 +1883,6 @@ void MWindow::show_vwindow()
 		}
 	}
 
-//printf("MWindow::show_vwindow %d %d\n", __LINE__, vwindows.size());
 // If no windows visible but thread exists, start it
 	if(!total_running)
 	{
@@ -1875,7 +1895,7 @@ void MWindow::show_vwindow()
 // No visible windows & no existing thread
 	if(!vwindows.size())
 	{
-		vwindows.append(new_viewer(1));
+		new_viewer(1);
 	}
 
 	gui->mainmenu->show_vwindow->set_checked(1);
@@ -2033,14 +2053,11 @@ void MWindow::age_caches()
 
 	do
 	{
-//printf("MWindow::age_caches %d %lld %lld\n", __LINE__, memory_usage, preferences->cache_size);
 		memory_usage = audio_cache->get_memory_usage(1);
-//printf("MWindow::age_caches %d %lld %lld\n", __LINE__, memory_usage, preferences->cache_size);
 		memory_usage += video_cache->get_memory_usage(1);
-//printf("MWindow::age_caches %d %lld %lld\n", __LINE__, memory_usage, preferences->cache_size);
 		memory_usage += frame_cache->get_memory_usage();
 		memory_usage += wave_cache->get_memory_usage();
-// printf("MWindow::age_caches %d %lld %lld %lld %lld\n", 
+// printf("MWindow::age_caches %d preferences->cache_size=%ld audio_cache=%ld video_cache=%ld frame_cache=%ld wave_cache=%ld memory_usage=%ld\n", 
 // __LINE__, 
 // preferences->cache_size,
 // audio_cache->get_memory_usage(1),
@@ -2049,6 +2066,7 @@ void MWindow::age_caches()
 // wave_cache->get_memory_usage(),
 // memory_usage);
 
+//printf("MWindow::age_caches %d memory_usage=%ld preferences->cache_size=%ld\n", __LINE__, memory_usage, preferences->cache_size);
 		if(memory_usage > preferences->cache_size)
 		{
 			int target = 1;
@@ -2060,7 +2078,13 @@ void MWindow::age_caches()
 			int oldest4 = wave_cache->get_oldest();
 			if(oldest4 < oldest3 && oldest4 < oldest2 && oldest4 < oldest1) target = 4;
 
-//printf("MWindow::age_caches %d %d\n", __LINE__, target);
+// printf("MWindow::age_caches %d oldest1=%d oldest2=%d oldest3=%d oldest4=%d target=%d\n", 
+// __LINE__, 
+// oldest1,
+// oldest2,
+// oldest3,
+// oldest4,
+// target);
 
 			switch(target)
 			{
@@ -2081,15 +2105,16 @@ void MWindow::age_caches()
 }
 
 
-void MWindow::show_keyframe_gui(Plugin *plugin)
+void MWindow::show_keyframe_gui(Plugin *plugin, PluginServer *plugin_server)
 {
 	keyframe_gui_lock->lock("MWindow::show_keyframe_gui");
 // Find existing thread
 	for(int i = 0; i < keyframe_threads->size(); i++)
 	{
-		if(keyframe_threads->get(i)->plugin == plugin)
+		if(plugin && keyframe_threads->get(i)->plugin == plugin ||
+			plugin_server && keyframe_threads->get(i)->plugin_server == plugin_server)
 		{
-			keyframe_threads->get(i)->start_window(plugin, 0);
+			keyframe_threads->get(i)->start_window(plugin, plugin_server, 0);
 			keyframe_gui_lock->unlock();
 			return;
 		}
@@ -2098,9 +2123,10 @@ void MWindow::show_keyframe_gui(Plugin *plugin)
 // Find unused thread
 	for(int i = 0; i < keyframe_threads->size(); i++)
 	{
-		if(!keyframe_threads->get(i)->plugin)
+		if(!keyframe_threads->get(i)->plugin &&
+			!keyframe_threads->get(i)->plugin_server)
 		{
-			keyframe_threads->get(i)->start_window(plugin, 0);
+			keyframe_threads->get(i)->start_window(plugin, plugin_server, 0);
 			keyframe_gui_lock->unlock();
 			return;
 		}
@@ -2109,7 +2135,7 @@ void MWindow::show_keyframe_gui(Plugin *plugin)
 // Create new thread
 	KeyFrameThread *thread = new KeyFrameThread(this);
 	keyframe_threads->append(thread);
-	thread->start_window(plugin, 0);
+	thread->start_window(plugin, plugin_server, 0);
 
 	keyframe_gui_lock->unlock();
 }
@@ -2254,6 +2280,20 @@ void MWindow::hide_keyframe_gui(Plugin *plugin)
 	keyframe_gui_lock->unlock();
 }
 
+void MWindow::hide_keyframe_gui(PluginServer *plugin_server)
+{
+	keyframe_gui_lock->lock("MWindow::hide_keyframe_gui");
+	for(int i = 0; i < keyframe_threads->size(); i++)
+	{
+		if(keyframe_threads->get(i)->plugin_server = plugin_server)
+		{
+			keyframe_threads->get(i)->close_window();
+			break;
+		}
+	}
+	keyframe_gui_lock->unlock();
+}
+
 void MWindow::update_keyframe_guis()
 {
 // Send new configuration to keyframe GUI's
@@ -2262,7 +2302,9 @@ void MWindow::update_keyframe_guis()
 	{
 		KeyFrameThread *ptr = keyframe_threads->get(i);
 		if(edl->tracks->plugin_exists(ptr->plugin))
-			ptr->update_gui(1);
+		{
+//			ptr->update_gui(1);
+		}
 		else
 		{
 			ptr->close_window();
@@ -2280,7 +2322,9 @@ void MWindow::update_plugin_guis(int do_keyframe_guis)
 	{
 		PluginServer *ptr = plugin_guis->get(i);
 		if(edl->tracks->plugin_exists(ptr->plugin))
+		{
 			ptr->update_gui();
+		}
 		else
 		{
 // Schedule for deletion if no plugin
@@ -2610,16 +2654,18 @@ void MWindow::update_project(int load_mode)
 
 void MWindow::rebuild_indices()
 {
-	char source_filename[BCTEXTLEN], index_filename[BCTEXTLEN];
 	for(int i = 0; i < session->drag_assets->total; i++)
 	{
+	    string source_filename;
+        string index_filename;
+        string path(session->drag_assets->values[i]->path);
 //printf("MWindow::rebuild_indices 1 %s\n", session->drag_assets->values[i]->path);
 // Erase file
-		IndexFile::get_index_filename(source_filename, 
-			preferences->index_directory,
-			index_filename, 
-			session->drag_assets->values[i]->path);
-		remove(index_filename);
+		IndexFile::get_index_filename(&source_filename, 
+			&preferences->index_directory,
+			&index_filename, 
+			&path);
+		remove(index_filename.c_str());
 // Schedule index build
 		IndexState *index_state = session->drag_assets->values[i]->index_state;
 		index_state->index_status = INDEX_NOTTESTED;
@@ -2659,7 +2705,7 @@ int MWindow::create_aspect_ratio(float &w, float &h, int width, int height)
 	float fraction = (float)width / height;
 
 	for(denominator = 1; 
-		denominator < 100 && 
+		denominator < 10000 && 
 			fabs(fraction * denominator - (int)(fraction * denominator)) > .001; 
 		denominator++)
 		;
@@ -2718,73 +2764,88 @@ void MWindow::remove_asset_from_caches(Asset *asset)
 
 
 
-void MWindow::remove_assets_from_project(int push_undo)
+void MWindow::remove_assets_from_project(int push_undo /* = 0 */, 
+		int redraw /* 1 */,
+		ArrayList<Indexable*> *drag_assets /* mwindow->session->drag_assets */,
+		ArrayList<EDL*> *drag_clips /* mwindow->session->drag_clips */)
 {
-	for(int i = 0; i < session->drag_assets->total; i++)
+	if(drag_assets)
 	{
-		Indexable *indexable = session->drag_assets->values[i];
-		if(indexable->is_asset) remove_asset_from_caches((Asset*)indexable);
+		for(int i = 0; i < drag_assets->size(); i++)
+		{
+			Indexable *indexable = drag_assets->get(i);
+			if(indexable->is_asset) remove_asset_from_caches((Asset*)indexable);
+		}
 	}
 
 // Remove from VWindow.
-	for(int i = 0; i < session->drag_clips->total; i++)
+	if(drag_clips)
 	{
-		for(int j = 0; j < vwindows.size(); j++)
+		for(int i = 0; i < drag_clips->size(); i++)
 		{
-			VWindow *vwindow = vwindows.get(j);
-			if(vwindow->is_running())
+			for(int j = 0; j < vwindows.size(); j++)
 			{
-				if(session->drag_clips->values[i] == vwindow->get_edl())
+				VWindow *vwindow = vwindows.get(j);
+				if(vwindow->is_running())
 				{
-					vwindow->gui->lock_window("MWindow::remove_assets_from_project 1");
-					vwindow->delete_source(1, 1);
-					vwindow->gui->unlock_window();
+					if(drag_clips->get(i) == vwindow->get_edl())
+					{
+						vwindow->gui->lock_window("MWindow::remove_assets_from_project 1");
+						vwindow->delete_source(1, 1);
+						vwindow->gui->unlock_window();
+					}
 				}
 			}
 		}
 	}
 	
-	for(int i = 0; i < session->drag_assets->size(); i++)
+	if(drag_assets)
 	{
-		for(int j = 0; j < vwindows.size(); j++)
+		for(int i = 0; i < drag_assets->size(); i++)
 		{
-			VWindow *vwindow = vwindows.get(j);
-			if(vwindow->is_running())
+			for(int j = 0; j < vwindows.size(); j++)
 			{
-				if(session->drag_assets->get(i) == vwindow->get_source())
+				VWindow *vwindow = vwindows.get(j);
+				if(vwindow->is_running())
 				{
-					vwindow->gui->lock_window("MWindow::remove_assets_from_project 2");
-					vwindow->delete_source(1, 1);
-					vwindow->gui->unlock_window();
+					if(drag_assets->get(i) == vwindow->get_source())
+					{
+						vwindow->gui->lock_window("MWindow::remove_assets_from_project 2");
+						vwindow->delete_source(1, 1);
+						vwindow->gui->unlock_window();
+					}
 				}
 			}
 		}
 	}
 	
 	if(push_undo) undo->update_undo_before();
-	edl->remove_from_project(session->drag_assets);
-	edl->remove_from_project(session->drag_clips);
-	save_backup();
+	if(drag_assets) edl->remove_from_project(drag_assets);
+	if(drag_clips) edl->remove_from_project(session->drag_clips);
+	if(redraw) save_backup();
 	if(push_undo) undo->update_undo_after(_("remove assets"), LOAD_ALL);
-	restart_brender();
+	if(redraw) 
+	{
+		restart_brender();
 
-	gui->lock_window("MWindow::remove_assets_from_project 3");
-	gui->update(1,
-		1,
-		1,
-		1,
-		0, 
-		1,
-		0);
-	gui->unlock_window();
+		gui->lock_window("MWindow::remove_assets_from_project 3");
+		gui->update(1,
+			1,
+			1,
+			1,
+			0, 
+			1,
+			0);
+		gui->unlock_window();
 
-	awindow->gui->lock_window("MWindow::remove_assets_from_project 4");
-	awindow->gui->update_assets();
-	awindow->gui->flush();
-	awindow->gui->unlock_window();
+		awindow->gui->lock_window("MWindow::remove_assets_from_project 4");
+		awindow->gui->update_assets();
+		awindow->gui->flush();
+		awindow->gui->unlock_window();
 
-// Removes from playback here
-	sync_parameters(CHANGE_ALL);
+	// Removes from playback here
+		sync_parameters(CHANGE_ALL);
+	}
 }
 
 void MWindow::remove_assets_from_disk()
@@ -2795,7 +2856,10 @@ void MWindow::remove_assets_from_disk()
 		remove(session->drag_assets->values[i]->path);
 	}
 
-	remove_assets_from_project(1);
+	remove_assets_from_project(1, 
+		1, 
+		session->drag_assets,
+		session->drag_clips);
 }
 
 void MWindow::dump_plugins()
@@ -2840,6 +2904,7 @@ void MWindow::dump_plugins()
 
 int MWindow::save_defaults()
 {
+
 	gui->save_defaults(defaults);
 	edl->save_defaults(defaults);
 	session->save_defaults(defaults);

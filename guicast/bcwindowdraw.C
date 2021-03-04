@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2018 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "colors.h"
 #include "cursors.h"
 #include "fonts.h"
+#include "mutex.h"
 #include "vframe.h"
 #include <string.h>
 
@@ -261,18 +262,18 @@ void BC_WindowBase::draw_text(int x,
 						}
 						else
 #endif
-						if(get_resources()->use_fontset && top_level->get_curr_fontset())
-						{
-        					XmbDrawString(top_level->display, 
-                				pixmap ? pixmap->opaque_pixmap : this->pixmap->opaque_pixmap, 
-                				top_level->get_curr_fontset(),
-                				top_level->gc, 
-                				x2 + k, 
-                				y2 + k, 
-                				&text[j], 
-                				i - j);
-						}
-						else
+// 						if(get_resources()->use_fontset && top_level->get_curr_fontset())
+// 						{
+//         					XmbDrawString(top_level->display, 
+//                 				pixmap ? pixmap->opaque_pixmap : this->pixmap->opaque_pixmap, 
+//                 				top_level->get_curr_fontset(),
+//                 				top_level->gc, 
+//                 				x2 + k, 
+//                 				y2 + k, 
+//                 				&text[j], 
+//                 				i - j);
+// 						}
+// 						else
 						{
 //printf("BC_WindowBase::draw_text 3\n");
 							XDrawString(top_level->display, 
@@ -322,6 +323,8 @@ void BC_WindowBase::draw_xft_text(int x,
 	color.blue |= color.blue << 8;
 	color.alpha = 0xffff;
 
+	BC_Resources::xft_lock->lock("BC_WindowBase::draw_xft_text");
+
 	XftColorAllocValue(top_level->display,
 		top_level->vis,
 		top_level->cmap,
@@ -353,6 +356,9 @@ void BC_WindowBase::draw_xft_text(int x,
 	    top_level->vis,
 	    top_level->cmap,
 	    &xft_color);
+	
+	BC_Resources::xft_lock->unlock();
+
 #endif // HAVE_XFT
 }
 
@@ -912,7 +918,7 @@ void BC_WindowBase::draw_bitmap(BC_Bitmap *bitmap,
 // Hide cursor if video enabled
 	update_video_cursor();
 
-//printf("BC_WindowBase::draw_bitmap 1\n");
+//printf("BC_WindowBase::draw_bitmap %d dest_y=%d\n", __LINE__, dest_y);
 	if(dest_w <= 0 || dest_h <= 0)
 	{
 // Use hardware scaling to canvas dimensions if proper color model.

@@ -85,7 +85,8 @@ public:
 // Called by MWindow::age_caches.
 	int get_oldest();
 
-// Delete oldest item.  Return 0 if successful.  Return 1 if nothing to delete.
+// Delete oldest item.  
+// Return number of bytes freed if successful.  Return 0 if nothing to delete.
 	int delete_oldest();
 
 // Calculate current size of cache in bytes

@@ -370,6 +370,7 @@ int AudioALSA::close_input()
 		snd_pcm_drop(dsp_in);
 		snd_pcm_drain(dsp_in);
 		snd_pcm_close(dsp_in);
+		dsp_in = 0;
 	}
 	return 0;
 }
@@ -443,6 +444,15 @@ int AudioALSA::write_buffer(char *buffer, int size)
 	int attempts = 0;
 	int done = 0;
 	int samples = size / (device->out_bits / 8) / device->get_ochannels();
+
+// static FILE *debug_fd = 0;
+// if(!debug_fd)
+// {
+// 	debug_fd = fopen("/tmp/debug.pcm", "w");
+// }
+// fwrite(buffer, size, 1, debug_fd);
+// fflush(debug_fd);
+
 
 	if(!get_output()) return 0;
 

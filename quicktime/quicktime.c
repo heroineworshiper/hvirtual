@@ -1,12 +1,13 @@
 #include "colormodels.h"
 #include "funcprotos.h"
+#include "qtasf.h"
 #include "qtasf_codes.h"
 #include "quicktime.h"
 #include <string.h>
 #include <sys/stat.h>
 #include "workarounds.h"
 
-int quicktime_make_streamable(char *in_path, char *out_path)
+int quicktime_make_streamable(char *in_path, char *out_path, int do_360)
 {
 	quicktime_t file, *old_file, new_file;
 	int moov_exists = 0, mdat_exists = 0, result, atoms = 1;
@@ -18,6 +19,7 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 	unsigned char *ftyp_data = 0;
 	
 	quicktime_init(&file);
+	quicktime_init(&new_file);
 
 /* find the moov atom in the old file */
 	
@@ -84,7 +86,10 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 /* copy the old file to the new file */
 	if(moov_exists && mdat_exists)
 	{
+
+
 /* moov wasn't the first atom */
+// TODO: write it anyway, to add a spherical tag
 		if(moov_exists > 1)
 		{
 			char *buffer;
@@ -99,6 +104,12 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 				return 1;
 			}
 
+//printf("quicktime_make_streamable %d do_360=%d\n", __LINE__, do_360);
+// set the spherical tag
+			if(do_360)
+			{
+				quicktime_set_sphere(&new_file, 1);
+			}
 
 /* open the output file */
 			if(!(new_file.stream = fopen(out_path, "wb")))
@@ -124,7 +135,7 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 				quicktime_write_moov(&new_file, &(old_file->moov), 0);
 				moov_end = quicktime_position(&new_file);
 
-printf("make_streamable 0x%llx 0x%llx\n", (long long)moov_end - moov_start, (long long)mdat_start);
+//printf("make_streamable 0x%llx 0x%llx\n", (long long)moov_end - moov_start, (long long)mdat_start);
 				quicktime_shift_offsets(&(old_file->moov), 
 					moov_end - moov_start - mdat_start + ftyp_size);
 
@@ -132,6 +143,7 @@ printf("make_streamable 0x%llx 0x%llx\n", (long long)moov_end - moov_start, (lon
 				quicktime_set_position(&new_file, moov_start);
 				quicktime_write_moov(&new_file, &(old_file->moov), 0);
 				quicktime_set_position(old_file, mdat_start);
+
 
 				if(!(buffer = calloc(1, buf_size)))
 				{
@@ -184,6 +196,11 @@ void quicktime_set_name(quicktime_t *file, const char *string)
 void quicktime_set_info(quicktime_t *file, const char *string)
 {
 	quicktime_set_udta_string(&(file->moov.udta.info), &(file->moov.udta.info_len), string);
+}
+
+void quicktime_set_sphere(quicktime_t *file, int value)
+{
+	file->is_sphere = value;
 }
 
 char* quicktime_get_copyright(quicktime_t *file)
@@ -538,6 +555,7 @@ int quicktime_set_video_position(quicktime_t *file, int64_t frame, int track)
 		file->vtracks[track].current_chunk = chunk;
 		offset = quicktime_sample_to_offset(file, trak, frame);
 		quicktime_set_position(file, offset);
+//printf("quicktime_set_video_position %d offset=%ld\n", __LINE__, offset);
 	}
 	return 0;
 }
@@ -678,6 +696,7 @@ double quicktime_frame_rate(quicktime_t *file, int track)
 		quicktime_trak_t *trak = file->vtracks[track].track;
 		int time_scale = file->vtracks[track].track->mdia.mdhd.time_scale;
 		int sample_duration = quicktime_sample_duration(trak);
+//printf("quicktime_frame_rate %d %d %d\n", __LINE__, time_scale, sample_duration);
 		return (double)time_scale / sample_duration;
 //		return (float)file->vtracks[track].track->mdia.mdhd.time_scale / 
 //			file->vtracks[track].track->mdia.minf.stbl.stts.table[0].sample_duration;
@@ -1379,12 +1398,29 @@ quicktime_t* quicktime_open(char *filename, int rd, int wr)
 
 
 
-// android requires the ftyp header
+// android/IOS requires the ftyp header
+// this works for H265, H264, & AAC audio
 			const unsigned char ftyp_data[] = 
 			{
-				0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32, 0x00, 0x00, 0x00, 0x01, 0x6d, 0x70, 0x34, 0x32, 0x61, 0x76, 0x63, 0x31
+				0x00, 0x00, 0x00, 0x18,  'f',  't',  'y', 'p', 
+                 'm',  'p',  '4',  '2', 0x00, 0x00, 0x00, 0x01, 
+                 'm',  'p',  '4',  '2', 0x61, 0x76, 0x63, 0x31
 			};
-			quicktime_write_data(new_file, (unsigned char*)ftyp_data, sizeof(ftyp_data));
+
+// this works for H265 but not H264 or AAC audio
+			const unsigned char ftyp_data2[] = 
+			{
+				0x00, 0x00, 0x00, 0x14,  'f',  't',  'y', 'p', 
+                 'q',  't',  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 
+                 'q',  't',  ' ',  ' '
+			};
+            
+			quicktime_write_data(new_file, 
+                (unsigned char*)ftyp_data, 
+                sizeof(ftyp_data));
+// 			quicktime_write_data(new_file, 
+//                 (unsigned char*)ftyp_data2, 
+//                 sizeof(ftyp_data2));
 			
 
 

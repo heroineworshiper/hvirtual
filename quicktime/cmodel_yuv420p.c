@@ -384,7 +384,98 @@ static inline void transfer_YUV_PLANAR_to_YUV422(unsigned char *(*output),
 
 
 
+// YUV planar 10 bits per channel
+static inline void transfer_YUV10P_PLANAR_to_BGR8888(unsigned char *(*output), 
+	unsigned char *input_y,
+	unsigned char *input_u,
+	unsigned char *input_v)
+{
+	int y, u, v;
+	y = (input_y[1] << 22) | (input_y[0] << 14) | (input_y[0] << 6);
+	u = (input_u[1] << 6) | (input_u[0] >> 2);
+	v = (input_v[1] << 6) | (input_v[0] >> 2);
+	
+	int r, g, b;
+	YUV_TO_RGB(y, u, v, r, g, b)
 
+	(*output)[0] = b;
+	(*output)[1] = g;
+	(*output)[2] = r;
+	(*output) += 4;
+}
+
+
+static inline void transfer_YUV10P_PLANAR_to_RGB888(unsigned char *(*output), 
+	unsigned char *input_y,
+	unsigned char *input_u,
+	unsigned char *input_v)
+{
+	int y, u, v;
+	y = (input_y[1] << 22) | (input_y[0] << 14) | (input_y[0] << 6);
+	u = (input_u[1] << 6) | (input_u[0] >> 2);
+	v = (input_v[1] << 6) | (input_v[0] >> 2);
+	
+	int r, g, b;
+	YUV_TO_RGB(y, u, v, r, g, b)
+
+	(*output)[0] = r;
+	(*output)[1] = g;
+	(*output)[2] = b;
+	(*output) += 3;
+}
+
+static inline void transfer_YUV10P_PLANAR_to_YUV888(unsigned char *(*output), 
+	unsigned char *input_y,
+	unsigned char *input_u,
+	unsigned char *input_v)
+{
+	int y, u, v;
+	y = (input_y[1] << 6) | (input_y[0] >> 2);
+	u = (input_u[1] << 6) | (input_u[0] >> 2);
+	v = (input_v[1] << 6) | (input_v[0] >> 2);
+
+	(*output)[0] = y;
+	(*output)[1] = u;
+	(*output)[2] = v;
+	(*output) += 3;
+}
+
+static inline void transfer_YUV10P_PLANAR_to_YUVA8888(unsigned char *(*output), 
+	unsigned char *input_y,
+	unsigned char *input_u,
+	unsigned char *input_v)
+{
+	int y, u, v;
+	y = (input_y[1] << 6) | (input_y[0] >> 2);
+	u = (input_u[1] << 6) | (input_u[0] >> 2);
+	v = (input_v[1] << 6) | (input_v[0] >> 2);
+
+	(*output)[0] = y;
+	(*output)[1] = u;
+	(*output)[2] = v;
+	(*output)[3] = 0xff;
+	(*output) += 4;
+}
+
+static inline void transfer_YUV10P_PLANAR_to_RGBA8888(unsigned char *(*output), 
+	unsigned char *input_y,
+	unsigned char *input_u,
+	unsigned char *input_v)
+{
+	int y, u, v;
+	y = (input_y[1] << 22) | (input_y[0] << 14) | (input_y[0] << 6);
+	u = (input_u[1] << 6) | (input_u[0] >> 2);
+	v = (input_v[1] << 6) | (input_v[0] >> 2);
+	
+	int r, g, b;
+	YUV_TO_RGB(y, u, v, r, g, b)
+
+	(*output)[0] = r;
+	(*output)[1] = g;
+	(*output)[2] = b;
+	(*output)[3] = 0xff;
+	(*output) += 4;
+}
 
 
 
@@ -625,6 +716,52 @@ static inline void transfer_YUV444P_to_YUV444P(unsigned char *input_y,
 				case BC_YUVA16161616: \
 					TRANSFER_YUV420P_IN_HEAD \
 					transfer_YUV_PLANAR_to_YUVA16161616((uint16_t**)(output), \
+						input_y + (y_in_offset), \
+						input_u + (u_in_offset), \
+						input_v + (v_in_offset)); \
+					TRANSFER_FRAME_TAIL \
+					break; \
+			} \
+			break; \
+ \
+		case BC_YUV420P10LE: \
+			switch(out_colormodel) \
+			{ \
+				case BC_YUV888: \
+					TRANSFER_YUV420P_IN_HEAD \
+					transfer_YUV10P_PLANAR_to_YUV888((output), \
+						input_y + (y_in_offset), \
+						input_u + (u_in_offset), \
+						input_v + (v_in_offset)); \
+					TRANSFER_FRAME_TAIL \
+					break; \
+				case BC_YUVA8888: \
+					TRANSFER_YUV420P_IN_HEAD \
+					transfer_YUV10P_PLANAR_to_YUVA8888((output), \
+						input_y + (y_in_offset), \
+						input_u + (u_in_offset), \
+						input_v + (v_in_offset)); \
+					TRANSFER_FRAME_TAIL \
+					break; \
+				case BC_RGB888: \
+					TRANSFER_YUV420P_IN_HEAD \
+					transfer_YUV10P_PLANAR_to_RGB888((output), \
+						input_y + (y_in_offset), \
+						input_u + (u_in_offset), \
+						input_v + (v_in_offset)); \
+					TRANSFER_FRAME_TAIL \
+					break; \
+				case BC_RGBA8888: \
+					TRANSFER_YUV420P_IN_HEAD \
+					transfer_YUV10P_PLANAR_to_RGBA8888((output), \
+						input_y + (y_in_offset), \
+						input_u + (u_in_offset), \
+						input_v + (v_in_offset)); \
+					TRANSFER_FRAME_TAIL \
+					break; \
+				case BC_BGR8888: \
+					TRANSFER_YUV420P_IN_HEAD \
+					transfer_YUV10P_PLANAR_to_BGR8888((output), \
 						input_y + (y_in_offset), \
 						input_u + (u_in_offset), \
 						input_v + (v_in_offset)); \
@@ -1343,3 +1480,28 @@ void cmodel_yuv444p(PERMUTATION_ARGS)
 			0);
 	}
 }
+
+
+
+void cmodel_yuv420p10le(PERMUTATION_ARGS)
+{
+	if(scale)
+	{
+		TRANSFER_FRAME_DEFAULT(&output_row, 
+			0,
+			column_table[j] * 2,
+			column_table[j] & ~0x1,
+			column_table[j] & ~0x1,
+			0);
+	}
+	else
+	{
+		TRANSFER_FRAME_DEFAULT(&output_row, 
+			0,
+			j * 2,
+			j & ~0x1,
+			j & ~0x1,
+			0);
+	}
+}
+

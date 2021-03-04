@@ -21,6 +21,7 @@
 
 
 #include "asset.h"
+#include "filesystem.h"
 #include "filexml.h"
 #include "indexstate.h"
 #include "indexstate.inc"
@@ -171,7 +172,7 @@ void IndexState::read_xml(FileXML *file, int channels)
 				if(current_offset < channels)
 				{
 					index_offsets[current_offset++] = file->tag.get_property("FLOAT", 0);
-//printf("Asset::read_index %d %d\n", current_offset - 1, index_offsets[current_offset - 1]);
+//printf("Asset::read_xml %d %d\n", current_offset - 1, index_offsets[current_offset - 1]);
 				}
 			}
 			else
@@ -234,6 +235,18 @@ int IndexState::write_index(const char *path,
 			1, 
 			file);
 		fclose(file);
+
+// if the source is newer than the index, fake the index date
+		if(asset)
+		{
+			FileSystem fs;
+			int64_t source_date = fs.get_date(asset->path);
+
+			if(fs.get_date(path) < source_date)
+			{
+				fs.set_date(path, source_date + 1);
+			}
+		}
 	}
 
 // Force reread of header

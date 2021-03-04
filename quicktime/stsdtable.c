@@ -82,10 +82,21 @@ void quicktime_read_stsd_audio(quicktime_t *file,
 	table->packet_size = quicktime_read_int16(file);
 	table->sample_rate = quicktime_read_fixed32(file);
 
-// Kluge for fixed32 limitation
-if(table->sample_rate + 65536 == 96000 ||
-	table->sample_rate + 65536 == 88200) table->sample_rate += 65536;
+//printf("quicktime_read_stsd_audio %d %f\n", __LINE__, table->sample_rate);
 
+	if(table->sample_rate == 0)
+	{
+		table->sample_rate = 44100;
+	}
+	else
+	// Kluge for fixed32 limitation
+	if(table->sample_rate + 65536 == 96000 ||
+		table->sample_rate + 65536 == 88200)
+	{
+		table->sample_rate += 65536;
+	}
+
+//printf("quicktime_read_stsd_audio %d version=%d\n", __LINE__, table->version);
 
 // Version 1 fields
 	if(table->version > 0)
@@ -111,6 +122,9 @@ if(table->sample_rate + 65536 == 96000 ||
 			}
 			else
 			{
+//printf("quicktime_read_stsd_audio %d %s\n", 
+//__LINE__, 
+//leaf_atom.type);
 				quicktime_atom_skip(file, &leaf_atom);
 			}
 		}
@@ -189,11 +203,13 @@ void quicktime_read_stsd_video(quicktime_t *file,
 	while(quicktime_position(file) < parent_atom->end)
 	{
 		quicktime_atom_read_header(file, &leaf_atom);
+
 /*
- * printf("quicktime_read_stsd_video 1 %llx %llx %llx %s\n", 
+ * printf("quicktime_read_stsd_video 1 %lx %lx %lx %s\n", 
  * leaf_atom.start, leaf_atom.end, quicktime_position(file),
  * leaf_atom.type);
  */
+
 
 
 		if(quicktime_atom_is(&leaf_atom, "esds"))
@@ -201,9 +217,21 @@ void quicktime_read_stsd_video(quicktime_t *file,
 			quicktime_read_esds(file, &leaf_atom, &table->esds);
 		}
 		else
+// TODO: consolidate these into a common mpeg4 header
 		if(quicktime_atom_is(&leaf_atom, "avcC"))
 		{
-			quicktime_read_avcc(file, &leaf_atom, &table->avcc);
+			quicktime_read_avcc(file, &leaf_atom, &table->avcc, 0);
+		}
+		else
+		if(quicktime_atom_is(&leaf_atom, "hvcC"))
+		{
+			quicktime_read_avcc(file, &leaf_atom, &table->avcc, 1);
+		}
+		else
+		if(quicktime_atom_is(&leaf_atom, "colr"))
+		{
+//printf("quicktime_read_stsd_video %d\n", __LINE__);
+			quicktime_atom_skip(file, &leaf_atom);
 		}
 		else
 		if(quicktime_atom_is(&leaf_atom, "ctab"))
@@ -222,7 +250,9 @@ void quicktime_read_stsd_video(quicktime_t *file,
 			table->field_dominance = quicktime_read_char(file);
 		}
 		else
+        {
 			quicktime_atom_skip(file, &leaf_atom);
+        }
 
 
 /* 		if(quicktime_atom_is(&leaf_atom, "mjqt")) */
@@ -279,6 +309,7 @@ void quicktime_write_stsd_video(quicktime_t *file, quicktime_stsd_table_t *table
 	{
 		quicktime_write_avcc(file, &table->avcc);
 	}
+    
 
 // Write another 32 bits
 	if(table->version == 1)
@@ -297,6 +328,29 @@ void quicktime_read_stsd_table(quicktime_t *file, quicktime_minf_t *minf, quickt
 	table->format[3] = leaf_atom.type[3];
 	quicktime_read_data(file, table->reserved, 6);
 	table->data_reference = quicktime_read_int16(file);
+
+// printf("quicktime_read_stsd_table %d %d %d %c%c%c%c\n", 
+// __LINE__, 
+// minf->is_audio, 
+// minf->is_video,
+// table->format[0],
+// table->format[1],
+// table->format[2],
+// table->format[3]);
+
+// if minf comes after stsd, we're screwed.  Just base it on certain codecs for now.
+	if(!minf->is_audio && !minf->is_video)
+	{
+		if(quicktime_match_32(table->format, QUICKTIME_H264))
+		{
+			minf->is_video = 1;
+		}
+		else
+		if(quicktime_match_32(table->format, QUICKTIME_MP4A))
+		{
+			minf->is_audio = 1;
+		}
+	}
 
 	if(minf->is_audio) quicktime_read_stsd_audio(file, table, &leaf_atom);
 	if(minf->is_video) quicktime_read_stsd_video(file, table, &leaf_atom);

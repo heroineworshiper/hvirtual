@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,10 +41,10 @@
 // Canvas parameters
 #define MAJOR_DIVISIONS 7
 #define MINOR_DIVISIONS 5
-#define LINE_W4 12
-#define LINE_W3 10
-#define LINE_W2 5
-#define LINE_W1 2
+#define LINE_W4 DP(12)
+#define LINE_W3 DP(10)
+#define LINE_W2 DP(5)
+#define LINE_W1 DP(2)
 
 
 
@@ -228,7 +228,7 @@ int GraphicCanvas::button_release_event()
 	return 0;
 }
 
-#define BOX_SIZE 10
+#define BOX_SIZE DP(10)
 
 int GraphicCanvas::freq_to_y(int freq,
 	ArrayList<GraphicPoint*> *points,
@@ -700,7 +700,7 @@ int GraphicReset::handle_event()
 
 
 GraphicSize::GraphicSize(GraphicGUI *window, GraphicEQ *plugin, int x, int y)
- : BC_PopupMenu(x, y, 100, "4096", 1)
+ : BC_PopupMenu(x, y, DP(100), "4096", 1)
 {
 	this->plugin = plugin;
 	this->window = window;
@@ -767,8 +767,8 @@ GraphicGUI::GraphicGUI(GraphicEQ *plugin)
  : PluginClientWindow(plugin, 
 	plugin->w, 
 	plugin->h, 
-	320, 
-	200,
+	DP(320), 
+	DP(200),
 	1)
 {
 	this->plugin = plugin;
@@ -803,12 +803,12 @@ void GraphicGUI::create_objects()
 	int y1 = y;
 	add_subwindow(freq_title = new BC_Title(x, y, "Frequency:"));
 	x += freq_title->get_w() + margin;
-	add_subwindow(freq_text = new FreqTextBox(plugin, this, x, y, 100));
+	add_subwindow(freq_text = new FreqTextBox(plugin, this, x, y, DP(100)));
 	x += freq_text->get_w() + margin;
 
 	add_subwindow(level_title = new BC_Title(x, y, "Level:"));
 	x += level_title->get_w() + margin;
-	add_subwindow(value_text = new ValueTextBox(plugin, this, x, y, 100));
+	add_subwindow(value_text = new ValueTextBox(plugin, this, x, y, DP(100)));
 	x += value_text->get_w() + margin;
 
 	add_subwindow(reset = new GraphicReset(plugin, this, x, y));
@@ -909,7 +909,7 @@ int GraphicGUI::keypress_event()
 
 void GraphicGUI::draw_ticks()
 {
-	int x = canvas->get_x() - 5 - get_text_width(SMALLFONT, "-00");
+	int x = canvas->get_x() - DP(5) - get_text_width(SMALLFONT, "-00");
 	int y = canvas->get_y() - 1;
 	int x1 = canvas->get_x() - LINE_W3;
 	int x2 = canvas->get_x() - LINE_W2;
@@ -1032,8 +1032,8 @@ GraphicEQ::GraphicEQ(PluginServer *server)
 	fft = 0;
 	need_reconfigure = 1;
 	active_point = -1;
-	w = 640;
-	h = 480;
+	w = DP(640);
+	h = DP(480);
 }
 
 GraphicEQ::~GraphicEQ()

@@ -133,6 +133,10 @@ public:
 	int timecode;
 	int timecode_format;
 
+
+	string subs_path;
+	int use_subs;
+
 // temp utf8 text for non utf8 system
 	string textutf8;
 // Text to display
@@ -327,6 +331,16 @@ public:
 	TitleMain *plugin;
 };
 
+
+typedef struct
+{
+	int in_x1;
+	float in_fraction1;
+	int in_x2;       // Might be same as in_x1 for boundary
+	float in_fraction2;
+	float output_fraction;
+} transfer_table_f;
+
 class TitleTranslate : public LoadServer
 {
 public:
@@ -371,7 +385,14 @@ typedef struct
 	int x, y, w;
 } title_char_position_t;
 
-
+class Subtitle
+{
+public:
+// in seconds
+	double start_time;
+	double end_time;
+	string text;
+};
 
 class TitleMain : public PluginVClient
 {
@@ -413,8 +434,8 @@ public:
 		char *path);
 	void get_color_components(int *r, int *g, int *b, int *a, int is_outline);
 
-
-
+// load subtitles from the file
+	void load_subtitle_db();
 
 // backward compatibility
 	void convert_encoding();
@@ -433,6 +454,12 @@ public:
 	TitleEngine *title_engine;
 	TitleTranslate *translate;
 	TitleOutlineEngine *outline_engine;
+
+// subtitle DB
+	string prev_subs_path;
+// index of last subtitle
+	int current_subtitle;
+	ArrayList<Subtitle*> subtitle_db;
 
 // Necessary to get character width
 	FT_Library freetype_library;      	// Freetype library

@@ -205,7 +205,9 @@ void LoadFileWindow::create_objects()
 
 int LoadFileWindow::resize_event(int w, int h)
 {
-	int x = w / 2 - 200;
+//	int x = w / 2 - DP(200);
+	int x = w / 2 - 
+		LoadMode::calculate_w(this, mwindow->theme, 0, 1) / 2;
 	int y = get_cancel_button()->get_y() - 
 		LoadMode::calculate_h(this, mwindow->theme);
 	draw_background(0, 0, w, h);

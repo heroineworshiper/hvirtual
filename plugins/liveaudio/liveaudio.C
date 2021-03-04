@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,10 +126,10 @@ LiveAudioConfig::LiveAudioConfig()
 
 LiveAudioWindow::LiveAudioWindow(LiveAudio *plugin)
  : PluginClientWindow(plugin, 
-	300, 
-	160, 
-	300, 
-	160, 
+	DP(300), 
+	DP(160), 
+	DP(300), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -141,7 +141,7 @@ LiveAudioWindow::~LiveAudioWindow()
 
 void LiveAudioWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, "Live audio"));

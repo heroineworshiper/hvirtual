@@ -84,6 +84,8 @@ public:
 
 class ReverseInterlace;
 class RecordMonitorCanvas;
+class DoCursor;
+class DoBigCursor;
 
 class RecordMonitorGUI : public BC_Window
 {
@@ -107,6 +109,8 @@ public:
 	AVC1394TransportThread *avc1394transport_thread;
 	RecordChannelPicker *channel_picker;
 	ScopeEnable *scope_toggle;
+	DoCursor *cursor_toggle;
+	DoBigCursor *big_cursor_toggle;
 	ReverseInterlace *reverse_interlace;
 	int cursor_x_origin, cursor_y_origin;
 	int translate_x_origin, translate_y_origin;
@@ -240,6 +244,24 @@ public:
 
 	RecordMonitorGUI *window;
 	MWindow *mwindow;
+	Record *record;
+};
+
+class DoCursor : public BC_CheckBox
+{
+public:
+	DoCursor(Record *record, int x, int y);
+	~DoCursor();
+	int handle_event();
+	Record *record;
+};
+
+class DoBigCursor : public BC_CheckBox
+{
+public:
+	DoBigCursor(Record *record, int x, int y);
+	~DoBigCursor();
+	int handle_event();
 	Record *record;
 };
 

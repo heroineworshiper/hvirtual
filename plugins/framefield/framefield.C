@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -188,10 +188,10 @@ int FrameFieldConfig::equivalent(FrameFieldConfig &src)
 
 FrameFieldWindow::FrameFieldWindow(FrameField *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	160, 
-	200, 
-	160, 
+	DP(210), 
+	DP(160), 
+	DP(200), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -199,13 +199,12 @@ FrameFieldWindow::FrameFieldWindow(FrameField *plugin)
 
 void FrameFieldWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_subwindow(top = new FrameFieldTop(plugin, this, x, y));
-	y += top->get_h() + 5;
+	y += top->get_h() + DP(5);
 	add_subwindow(bottom = new FrameFieldBottom(plugin, this, x, y));
-	y += bottom->get_h() + 5;
+	y += bottom->get_h() + DP(5);
 	show_window();
-	flush();
 }
 
 

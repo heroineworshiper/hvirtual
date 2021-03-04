@@ -188,172 +188,172 @@ void ResourcePixmap::draw_data(TrackCanvas *canvas,
 		refresh_x = 0;
 		refresh_w = pixmap_w;
 	}
-	else
-	{
-// Start translated right
-		if(pixmap_w == this->pixmap_w && edit_x < this->edit_x && edit_w != pixmap_w)
-		{
-			refresh_w = this->edit_x - edit_x;
-			refresh_x = this->pixmap_w - refresh_w;
-
-// Moved completely off the pixmap
-			if(refresh_w > this->pixmap_w)
-			{
-				refresh_w = this->pixmap_w;
-				refresh_x = 0;
-			}
-			else
-			{
-				copy_area(refresh_w, 
-					y, 
-					refresh_x, 
-					mwindow->edl->local_session->zoom_track, 
-					0, 
-					y);
-			}
-		}
- 		else
-// Start translated left
- 		if(pixmap_w == this->pixmap_w && edit_x > this->edit_x && edit_w != pixmap_w)
- 		{
-			refresh_x = 0;
-			refresh_w = edit_x - this->edit_x;
-
-// Moved completely off the pixmap
-			if(refresh_w > this->pixmap_w)
-			{
-				refresh_w = this->pixmap_w;
-			}
-			else
-			{
-				copy_area(0, 
-					y, 
-					this->pixmap_w - refresh_w, 
-					mwindow->edl->local_session->zoom_track, 
-					refresh_w, 
-					y);
-			}
- 		}
-		else
-// Start translated right and pixmap came off of right side
-		if(pixmap_w < this->pixmap_w && edit_x < this->edit_x && 
-			this->edit_x + edit_w > this->pixmap_x + this->pixmap_w)
-		{
-			refresh_w = (this->edit_x + edit_w) - (this->pixmap_x + this->pixmap_w);
-			refresh_x = pixmap_w - refresh_w;
-			
-			if(refresh_w >= pixmap_w)
-			{
-				refresh_x = 0;
-				refresh_w = pixmap_w;
-			}
-			else
-			{
-				copy_area(this->edit_x - edit_x, 
-					y, 
-					pixmap_w - refresh_w, 
-					mwindow->edl->local_session->zoom_track, 
-					0, 
-					y);
-			}
-		}
-		else
-// Start translated right and reduced in size on the right.
-		if(pixmap_w < this->pixmap_w && edit_x < this->edit_x)
-		{
-			refresh_x = 0;
-			refresh_w = 0;
-
-			copy_area(this->pixmap_w - pixmap_w, 
-				y, 
-				pixmap_w, 
-				mwindow->edl->local_session->zoom_track, 
-				0, 
-				y);
-		}
-		else
-// Start translated left and pixmap came off left side
-		if(edit_x >= 0 && this->edit_x < 0)
-		{
-			refresh_x = 0;
-			refresh_w = -this->edit_x;
-
-			if(refresh_w > pixmap_w)
-			{
-				refresh_w = pixmap_w;
-			}
-			else
-			{
-				copy_area(0, 
-						y, 
-						this->pixmap_w, 
-						mwindow->edl->local_session->zoom_track, 
-						refresh_w, 
-						y);
-			}
-		}
-		else
-// Start translated left and reduced in size on the right
-		if(pixmap_w < this->pixmap_w && edit_x > this->edit_x)
-		{
-			refresh_x = 0;
-			refresh_w = 0;
-		}
-		else
-// Start translated right and left went into left side.
-		if(pixmap_w > this->pixmap_w && edit_x < 0 && this->edit_x > 0)
-		{
-			refresh_w = pixmap_w - (edit_x + this->pixmap_w);
-			refresh_x = pixmap_w - refresh_w;
-
-// Moved completely off new pixmap
-			if(refresh_w > pixmap_w)
-			{
-				refresh_w = pixmap_w;
-				refresh_x = 0;
-			}
-			else
-			{
-				copy_area(-edit_x, 
-					y,
-					refresh_x,
-					mwindow->edl->local_session->zoom_track,
-					0,
-					y);
-			}
-		}
-		else
-// Start translated right and increased in size on the right
-		if(pixmap_w > this->pixmap_w && edit_x <= this->edit_x)
-		{
-			refresh_w = pixmap_w - this->pixmap_w;
-			refresh_x = pixmap_w - refresh_w;
-		}
-		else
-// Start translated left and increased in size on the right
-		if(pixmap_w > this->pixmap_w && edit_x > this->edit_x)
-		{
-			refresh_x = 0;
-			refresh_w = edit_x - this->edit_x;
-
-// Moved completely off new pixmap
-			if(refresh_w > this->pixmap_w)
-			{
-				refresh_w = pixmap_w;
-				refresh_x = 0;
-			}
-// Shift and insert
-			else
-			{
-				copy_area(0, 
-					y,
-					this->pixmap_w,
-					mwindow->edl->local_session->zoom_track,
-					refresh_w,
-					y);
-			}
-		}
-	}
+// 	else
+// 	{
+// // Start translated right
+// 		if(pixmap_w == this->pixmap_w && edit_x < this->edit_x && edit_w != pixmap_w)
+// 		{
+// 			refresh_w = this->edit_x - edit_x;
+// 			refresh_x = this->pixmap_w - refresh_w;
+// 
+// // Moved completely off the pixmap
+// 			if(refresh_w > this->pixmap_w)
+// 			{
+// 				refresh_w = this->pixmap_w;
+// 				refresh_x = 0;
+// 			}
+// 			else
+// 			{
+// 				copy_area(refresh_w, 
+// 					y, 
+// 					refresh_x, 
+// 					mwindow->edl->local_session->zoom_track, 
+// 					0, 
+// 					y);
+// 			}
+// 		}
+//  		else
+// // Start translated left
+//  		if(pixmap_w == this->pixmap_w && edit_x > this->edit_x && edit_w != pixmap_w)
+//  		{
+// 			refresh_x = 0;
+// 			refresh_w = edit_x - this->edit_x;
+// 
+// // Moved completely off the pixmap
+// 			if(refresh_w > this->pixmap_w)
+// 			{
+// 				refresh_w = this->pixmap_w;
+// 			}
+// 			else
+// 			{
+// 				copy_area(0, 
+// 					y, 
+// 					this->pixmap_w - refresh_w, 
+// 					mwindow->edl->local_session->zoom_track, 
+// 					refresh_w, 
+// 					y);
+// 			}
+//  		}
+// 		else
+// // Start translated right and pixmap came off of right side
+// 		if(pixmap_w < this->pixmap_w && edit_x < this->edit_x && 
+// 			this->edit_x + edit_w > this->pixmap_x + this->pixmap_w)
+// 		{
+// 			refresh_w = (this->edit_x + edit_w) - (this->pixmap_x + this->pixmap_w);
+// 			refresh_x = pixmap_w - refresh_w;
+// 			
+// 			if(refresh_w >= pixmap_w)
+// 			{
+// 				refresh_x = 0;
+// 				refresh_w = pixmap_w;
+// 			}
+// 			else
+// 			{
+// 				copy_area(this->edit_x - edit_x, 
+// 					y, 
+// 					pixmap_w - refresh_w, 
+// 					mwindow->edl->local_session->zoom_track, 
+// 					0, 
+// 					y);
+// 			}
+// 		}
+// 		else
+// // Start translated right and reduced in size on the right.
+// 		if(pixmap_w < this->pixmap_w && edit_x < this->edit_x)
+// 		{
+// 			refresh_x = 0;
+// 			refresh_w = 0;
+// 
+// 			copy_area(this->pixmap_w - pixmap_w, 
+// 				y, 
+// 				pixmap_w, 
+// 				mwindow->edl->local_session->zoom_track, 
+// 				0, 
+// 				y);
+// 		}
+// 		else
+// // Start translated left and pixmap came off left side
+// 		if(edit_x >= 0 && this->edit_x < 0)
+// 		{
+// 			refresh_x = 0;
+// 			refresh_w = -this->edit_x;
+// 
+// 			if(refresh_w > pixmap_w)
+// 			{
+// 				refresh_w = pixmap_w;
+// 			}
+// 			else
+// 			{
+// 				copy_area(0, 
+// 						y, 
+// 						this->pixmap_w, 
+// 						mwindow->edl->local_session->zoom_track, 
+// 						refresh_w, 
+// 						y);
+// 			}
+// 		}
+// 		else
+// // Start translated left and reduced in size on the right
+// 		if(pixmap_w < this->pixmap_w && edit_x > this->edit_x)
+// 		{
+// 			refresh_x = 0;
+// 			refresh_w = 0;
+// 		}
+// 		else
+// // Start translated right and left went into left side.
+// 		if(pixmap_w > this->pixmap_w && edit_x < 0 && this->edit_x > 0)
+// 		{
+// 			refresh_w = pixmap_w - (edit_x + this->pixmap_w);
+// 			refresh_x = pixmap_w - refresh_w;
+// 
+// // Moved completely off new pixmap
+// 			if(refresh_w > pixmap_w)
+// 			{
+// 				refresh_w = pixmap_w;
+// 				refresh_x = 0;
+// 			}
+// 			else
+// 			{
+// 				copy_area(-edit_x, 
+// 					y,
+// 					refresh_x,
+// 					mwindow->edl->local_session->zoom_track,
+// 					0,
+// 					y);
+// 			}
+// 		}
+// 		else
+// // Start translated right and increased in size on the right
+// 		if(pixmap_w > this->pixmap_w && edit_x <= this->edit_x)
+// 		{
+// 			refresh_w = pixmap_w - this->pixmap_w;
+// 			refresh_x = pixmap_w - refresh_w;
+// 		}
+// 		else
+// // Start translated left and increased in size on the right
+// 		if(pixmap_w > this->pixmap_w && edit_x > this->edit_x)
+// 		{
+// 			refresh_x = 0;
+// 			refresh_w = edit_x - this->edit_x;
+// 
+// // Moved completely off new pixmap
+// 			if(refresh_w > this->pixmap_w)
+// 			{
+// 				refresh_w = pixmap_w;
+// 				refresh_x = 0;
+// 			}
+// // Shift and insert
+// 			else
+// 			{
+// 				copy_area(0, 
+// 					y,
+// 					this->pixmap_w,
+// 					mwindow->edl->local_session->zoom_track,
+// 					refresh_w,
+// 					y);
+// 			}
+// 		}
+// 	}
 
 // Update pixmap settings
 	this->edit_id = edit->id;
@@ -532,7 +532,7 @@ SET_TRACE
 		mwindow->edl->session->sample_rate;
 
 // Develop strategy for drawing
-// printf("ResourcePixmap::draw_audio_resource %d %p %d\n", 
+// printf("ResourcePixmap::draw_audio_resource %d index_state=%p index_status=%d\n", 
 // __LINE__, 
 // index_state,
 // index_state->index_status);
@@ -924,6 +924,10 @@ void ResourcePixmap::draw_video_resource(TrackCanvas *canvas,
 				picon_h,
 				id);
 		}
+// printf("ResourcePixmap::draw_video_resource %d source_frame=%ld picon_frame=%p\n", 
+// __LINE__, 
+// source_frame,
+// picon_frame);
 
 		if(picon_frame != 0)
 		{
@@ -952,6 +956,7 @@ void ResourcePixmap::draw_video_resource(TrackCanvas *canvas,
 		}
 
 		if(picon_frame)
+        {
 			draw_vframe(picon_frame, 
 				x, 
 				y, 
@@ -959,12 +964,16 @@ void ResourcePixmap::draw_video_resource(TrackCanvas *canvas,
 				picon_h, 
 				0, 
 				0);
+        }
 
 
 // Unlock the get_frame_ptr command
 		if(use_cache)
+        {
 			mwindow->frame_cache->unlock();
-		
+		}
+        
+        
 		if(frames_per_picon > 1)
 		{
 			x += Units::round(picon_w);

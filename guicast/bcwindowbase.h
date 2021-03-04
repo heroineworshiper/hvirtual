@@ -292,7 +292,7 @@ public:
 	BC_Pixmap* get_bg_pixmap();
 	int get_text_ascent(int font);
 	int get_text_descent(int font);
-	int get_text_height(int font, char *text = 0);
+	int get_text_height(int font, const char *text = 0);
 	int get_text_width(int font, const char *text, int length = -1);
 	BC_Clipboard* get_clipboard();
 	void set_dragging(int value);
@@ -610,6 +610,16 @@ private:
 	void init_cursors();
 	int init_colors();
 	int init_window_shape();
+
+
+
+	XFontStruct* query_font(const char *font_string, int size);
+	XFontSet query_fontset(const char *font_string, int size);
+	void* query_xft_font(const char *font_string, int size);
+	int init_fonts();
+
+
+
 	static int evaluate_color_model(int client_byte_order, int server_byte_order, int depth);
 	int create_private_colors();
 	int create_color(int color);
@@ -618,8 +628,8 @@ private:
 	int get_single_text_width(int font, const char *text, int length);
 	int allocate_color_table();
 	int init_gc();
-	int init_fonts();
-	void init_xft();
+
+
 	int get_color_rgb8(int color);
 	int64_t get_color_rgb16(int color);
 	int64_t get_color_bgr16(int color);
@@ -779,14 +789,14 @@ private:
 
 
 // Font sets
-    XFontSet largefontset, mediumfontset, smallfontset, curr_fontset;
+    XFontSet largefontset, mediumfontset, smallfontset, curr_fontset, clockfontset;
 
 // Fonts
 	int current_font;
-	XFontStruct *largefont, *mediumfont, *smallfont;
+	XFontStruct *largefont, *mediumfont, *smallfont, *clockfont;
 
 // Must be void so users don't need to include the wrong libpng version.
-	void *largefont_xft, *mediumfont_xft, *smallfont_xft;
+	void *largefont_xft, *mediumfont_xft, *smallfont_xft, *clockfont_xft;
 
 
 	int line_width;

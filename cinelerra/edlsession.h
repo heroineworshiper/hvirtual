@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2015 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,6 +65,8 @@ public:
 	void equivalent_output(EDLSession *session, double *result);
 	void dump();
 
+// current settings are scaled this much from the original settings
+	int proxy_scale;
 // Audio
 	int achannel_positions[MAXCHANNELS];
 	AudioOutConfig *aconfig_duplex;
@@ -82,8 +84,9 @@ public:
  	int autos_follow_edits;
 // Generate keyframes for every tweek
 	int auto_keyframes;
-// Where to start background rendering
+// Where to do background rendering
 	double brender_start;
+	double brender_end;
 // Length of clipboard if pasting
 	double clipboard_length;
 // Colormodel for intermediate frames
@@ -94,6 +97,7 @@ public:
 	int eyedrop_radius;
 	float ruler_x1, ruler_y1;
 	float ruler_x2, ruler_y2;
+	int always_draw_ruler;
 // Ruler points relative to the output frame.
 // Current folder in resource window
 	char current_folder[BCTEXTLEN];
@@ -137,7 +141,7 @@ public:
 // Whether to interpolate CR2 images
 	int interpolate_raw;
 // Whether to white balance CR2 images
-	int white_balance_raw;
+//	int white_balance_raw;
 // labels follow edits during editing
 	int labels_follow_edits;
 	int mpeg4_deblock;
@@ -185,7 +189,7 @@ public:
 // Format to display nudge in, either seconds or track units.
 	int nudge_seconds;
 // Show tool window in CWindow
-	int tool_window;
+//	int tool_window;
 // Location of video outs
 	int vchannel_x[MAXCHANNELS];
 	int vchannel_y[MAXCHANNELS];
@@ -197,7 +201,7 @@ public:
 // play every frame
 	int video_every_frame;  
 // decode video asynchronously
-	int video_asynchronous;
+//	int video_asynchronous;
 	int video_tracks;
 // number of frames to write to disk at a time during video recording.
 	int video_write_length;

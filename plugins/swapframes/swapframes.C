@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -158,10 +158,10 @@ int SwapFramesOdd::handle_event()
 
 SwapFramesWindow::SwapFramesWindow(SwapFrames *plugin)
  : PluginClientWindow(plugin, 
-	260, 
-	130, 
-	260, 
-	130, 
+	DP(260), 
+	DP(130), 
+	DP(260), 
+	DP(130), 
 	0)
 {
 	this->plugin = plugin;
@@ -169,17 +169,17 @@ SwapFramesWindow::SwapFramesWindow(SwapFrames *plugin)
 
 void SwapFramesWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_subwindow(on = new SwapFramesOn(plugin, x, y));
-	y += on->get_h() + 5;
+	y += on->get_h() + DP(5);
 	BC_Bar *bar;
 	add_subwindow(bar = new BC_Bar(x, y, get_w() - x * 2));
-	y += bar->get_h() + 5;
+	y += bar->get_h() + DP(5);
 	add_subwindow(swap_even = new SwapFramesEven(plugin, 
 		this, 
 		x, 
 		y));
-	y += swap_even->get_h() + 5;
+	y += swap_even->get_h() + DP(5);
 	add_subwindow(swap_odd = new SwapFramesOdd(plugin, 
 		this, 
 		x, 

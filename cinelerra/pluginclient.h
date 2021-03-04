@@ -103,6 +103,14 @@ PluginClientWindow* plugin_class::new_window() \
 	return new window_class(this); \
 }
 
+// 
+// #define NEW_PICON_MACRO(plugin_class) \
+// VFrame* plugin_class::new_picon() \
+// { \
+// 	VFrame *result = new VFrame; \
+// 	result->read_png(picon_png, BC_Resources::dpi); \
+// 	return result; \
+// }
 
 #define NEW_PICON_MACRO(plugin_class) \
 VFrame* plugin_class::new_picon() \

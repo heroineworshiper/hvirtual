@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -217,7 +217,7 @@ void DiffKeyConfig::interpolate(DiffKeyConfig &prev,
 
 
 DiffKeyThreshold::DiffKeyThreshold(DiffKey *plugin, int x, int y)
- : BC_FSlider(x, y, 0, 200, 200, 0, 100, plugin->config.threshold)
+ : BC_FSlider(x, y, 0, DP(200), DP(200), 0, 100, plugin->config.threshold)
 {
 	this->plugin = plugin;
 }
@@ -237,7 +237,7 @@ int DiffKeyThreshold::handle_event()
 
 
 DiffKeySlope::DiffKeySlope(DiffKey *plugin, int x, int y)
- : BC_FSlider(x, y, 0, 200, 200, 0, 100, plugin->config.slope)
+ : BC_FSlider(x, y, 0, DP(200), DP(200), 0, 100, plugin->config.slope)
 {
 	this->plugin = plugin;
 }
@@ -272,10 +272,10 @@ int DiffKeyDoValue::handle_event()
 
 DiffKeyGUI::DiffKeyGUI(DiffKey *plugin)
  : PluginClientWindow(plugin,
-	320,
-	100,
-	320,
-	100,
+	DP(320),
+	DP(100),
+	DP(320),
+	DP(100),
 	0)
 {
 	this->plugin = plugin;
@@ -288,18 +288,18 @@ DiffKeyGUI::~DiffKeyGUI()
 
 void DiffKeyGUI::create_objects()
 {
-	int x = 10, y = 10, x2;
+	int x = DP(10), y = DP(10), x2;
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Threshold:")));
-	x += title->get_w() + 10;
+	x += title->get_w() + DP(10);
 	add_subwindow(threshold = new DiffKeyThreshold(plugin, x, y));
-	x = 10;
-	y += threshold->get_h() + 10;
+	x = DP(10);
+	y += threshold->get_h() + DP(10);
 	add_subwindow(title = new BC_Title(x, y, _("Slope:")));
-	x += title->get_w() + 10;
+	x += title->get_w() + DP(10);
 	add_subwindow(slope = new DiffKeySlope(plugin, x, y));
-	x = 10;
-	y += slope->get_h() + 10;
+	x = DP(10);
+	y += slope->get_h() + DP(10);
 	add_subwindow(do_value = new DiffKeyDoValue(plugin, x, y));
 
 

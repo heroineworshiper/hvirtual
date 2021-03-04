@@ -24,28 +24,6 @@
 
 
 
-// Compression coefficients straight out of jpeglib
-#define R_TO_Y    0.29900
-#define G_TO_Y    0.58700
-#define B_TO_Y    0.11400
-
-#define R_TO_U    -0.16874
-#define G_TO_U    -0.33126
-#define B_TO_U    0.50000
-
-#define R_TO_V    0.50000
-#define G_TO_V    -0.41869
-#define B_TO_V    -0.08131
-
-// Decompression coefficients straight out of jpeglib
-#define V_TO_R    1.40200
-#define V_TO_G    -0.71414
-
-#define U_TO_G    -0.34414
-#define U_TO_B    1.77200
-
-
-
 
 
 
@@ -67,33 +45,33 @@ void BC_CModels::init_yuv()
 /* compression */
 	for(i = 0; i < 0x100; i++)
 	{
-		yuv_table.rtoy_tab[i] = (int)(R_TO_Y * 0x10000 * i);
-		yuv_table.rtou_tab[i] = (int)(R_TO_U * 0x10000 * i);
-		yuv_table.rtov_tab[i] = (int)(R_TO_V * 0x10000 * i);
+		yuv_table.rtoy_tab[i] = (int)(CMODEL_R_TO_Y * 0x10000 * i);
+		yuv_table.rtou_tab[i] = (int)(CMODEL_R_TO_U * 0x10000 * i);
+		yuv_table.rtov_tab[i] = (int)(CMODEL_R_TO_V * 0x10000 * i);
 
-		yuv_table.gtoy_tab[i] = (int)(G_TO_Y * 0x10000 * i);
-		yuv_table.gtou_tab[i] = (int)(G_TO_U * 0x10000 * i);
-		yuv_table.gtov_tab[i] = (int)(G_TO_V * 0x10000 * i);
+		yuv_table.gtoy_tab[i] = (int)(CMODEL_G_TO_Y * 0x10000 * i);
+		yuv_table.gtou_tab[i] = (int)(CMODEL_G_TO_U * 0x10000 * i);
+		yuv_table.gtov_tab[i] = (int)(CMODEL_G_TO_V * 0x10000 * i);
 
-		yuv_table.btoy_tab[i] = (int)(B_TO_Y * 0x10000 * i);
-		yuv_table.btou_tab[i] = (int)(B_TO_U * 0x10000 * i) + 0x800000;
-		yuv_table.btov_tab[i] = (int)(B_TO_V * 0x10000 * i) + 0x800000;
+		yuv_table.btoy_tab[i] = (int)(CMODEL_B_TO_Y * 0x10000 * i);
+		yuv_table.btou_tab[i] = (int)(CMODEL_B_TO_U * 0x10000 * i) + 0x800000;
+		yuv_table.btov_tab[i] = (int)(CMODEL_B_TO_V * 0x10000 * i) + 0x800000;
 	}
 
 /* compression */
 	for(i = 0; i < 0x10000; i++)
 	{
-		yuv_table.rtoy_tab16[i] = (int)(R_TO_Y * 0x100 * i);
-		yuv_table.rtou_tab16[i] = (int)(R_TO_U * 0x100 * i);
-		yuv_table.rtov_tab16[i] = (int)(R_TO_V * 0x100 * i);
+		yuv_table.rtoy_tab16[i] = (int)(CMODEL_R_TO_Y * 0x100 * i);
+		yuv_table.rtou_tab16[i] = (int)(CMODEL_R_TO_U * 0x100 * i);
+		yuv_table.rtov_tab16[i] = (int)(CMODEL_R_TO_V * 0x100 * i);
 
-		yuv_table.gtoy_tab16[i] = (int)(G_TO_Y * 0x100 * i);
-		yuv_table.gtou_tab16[i] = (int)(G_TO_U * 0x100 * i);
-		yuv_table.gtov_tab16[i] = (int)(G_TO_V * 0x100 * i);
+		yuv_table.gtoy_tab16[i] = (int)(CMODEL_G_TO_Y * 0x100 * i);
+		yuv_table.gtou_tab16[i] = (int)(CMODEL_G_TO_U * 0x100 * i);
+		yuv_table.gtov_tab16[i] = (int)(CMODEL_G_TO_V * 0x100 * i);
 
-		yuv_table.btoy_tab16[i] = (int)(B_TO_Y * 0x100 * i);
-		yuv_table.btou_tab16[i] = (int)(B_TO_U * 0x100 * i) + 0x800000;
-		yuv_table.btov_tab16[i] = (int)(B_TO_V * 0x100 * i) + 0x800000;
+		yuv_table.btoy_tab16[i] = (int)(CMODEL_B_TO_Y * 0x100 * i);
+		yuv_table.btou_tab16[i] = (int)(CMODEL_B_TO_U * 0x100 * i) + 0x800000;
+		yuv_table.btov_tab16[i] = (int)(CMODEL_B_TO_V * 0x100 * i) + 0x800000;
 	}
 
 
@@ -106,11 +84,11 @@ void BC_CModels::init_yuv()
 	yuv_table.utob = &(yuv_table.utob_tab[0x80]);
 	for(i = -0x80; i < 0x80; i++)
 	{
-		yuv_table.vtor[i] = (int)(V_TO_R * 0x10000 * i);
-		yuv_table.vtog[i] = (int)(V_TO_G * 0x10000 * i);
+		yuv_table.vtor[i] = (int)(CMODEL_V_TO_R * 0x10000 * i);
+		yuv_table.vtog[i] = (int)(CMODEL_V_TO_G * 0x10000 * i);
 
-		yuv_table.utog[i] = (int)(U_TO_G * 0x10000 * i);
-		yuv_table.utob[i] = (int)(U_TO_B * 0x10000 * i);
+		yuv_table.utog[i] = (int)(CMODEL_U_TO_G * 0x10000 * i);
+		yuv_table.utob[i] = (int)(CMODEL_U_TO_B * 0x10000 * i);
 	}
 
 
@@ -121,11 +99,11 @@ void BC_CModels::init_yuv()
 	yuv_table.utob_float = &(yuv_table.utob_float_tab[0x80]);
 	for(i = -0x80; i < 0x80; i++)
 	{
-		yuv_table.vtor_float[i] = V_TO_R * i / 0xff;
-		yuv_table.vtog_float[i] = V_TO_G * i / 0xff;
+		yuv_table.vtor_float[i] = CMODEL_V_TO_R * i / 0xff;
+		yuv_table.vtog_float[i] = CMODEL_V_TO_G * i / 0xff;
 
-		yuv_table.utog_float[i] = U_TO_G * i / 0xff;
-		yuv_table.utob_float[i] = U_TO_B * i / 0xff;
+		yuv_table.utog_float[i] = CMODEL_U_TO_G * i / 0xff;
+		yuv_table.utob_float[i] = CMODEL_U_TO_B * i / 0xff;
 	}
 
 
@@ -136,11 +114,11 @@ void BC_CModels::init_yuv()
 	yuv_table.utob16 = &(yuv_table.utob_tab16[0x8000]);
 	for(i = -0x8000; i < 0x8000; i++)
 	{
-		yuv_table.vtor16[i] = (int)(V_TO_R * 0x100 * i);
-		yuv_table.vtog16[i] = (int)(V_TO_G * 0x100 * i);
+		yuv_table.vtor16[i] = (int)(CMODEL_V_TO_R * 0x100 * i);
+		yuv_table.vtog16[i] = (int)(CMODEL_V_TO_G * 0x100 * i);
 
-		yuv_table.utog16[i] = (int)(U_TO_G * 0x100 * i);
-		yuv_table.utob16[i] = (int)(U_TO_B * 0x100 * i);
+		yuv_table.utog16[i] = (int)(CMODEL_U_TO_G * 0x100 * i);
+		yuv_table.utob16[i] = (int)(CMODEL_U_TO_B * 0x100 * i);
 	}
 
 
@@ -151,11 +129,11 @@ void BC_CModels::init_yuv()
 	yuv_table.u16tob_float = &(yuv_table.u16tob_float_tab[0x8000]);
 	for(i = -0x8000; i < 0x8000; i++)
 	{
-		yuv_table.v16tor_float[i] = V_TO_R * i / 0xffff;
-		yuv_table.v16tog_float[i] = V_TO_G * i / 0xffff;
+		yuv_table.v16tor_float[i] = CMODEL_V_TO_R * i / 0xffff;
+		yuv_table.v16tog_float[i] = CMODEL_V_TO_G * i / 0xffff;
 
-		yuv_table.u16tog_float[i] = U_TO_G * i / 0xffff;
-		yuv_table.u16tob_float[i] = U_TO_B * i / 0xffff;
+		yuv_table.u16tog_float[i] = CMODEL_U_TO_G * i / 0xffff;
+		yuv_table.u16tob_float[i] = CMODEL_U_TO_B * i / 0xffff;
 	}
 }
 
@@ -166,10 +144,13 @@ int BC_CModels::is_planar(int colormodel)
 {
 	switch(colormodel)
 	{
-		case BC_YUV420P:      return 1; break;
-		case BC_YUV422P:      return 1; break;
-		case BC_YUV444P:      return 1; break;
-		case BC_YUV411P:      return 1; break;
+		case BC_YUV420P10LE:
+		case BC_YUV420P:
+		case BC_YUV422P:
+		case BC_YUV444P:
+		case BC_YUV411P:
+			return 1;
+			break;
 	}
 	return 0;
 }
@@ -192,6 +173,7 @@ int BC_CModels::components(int colormodel)
 		case BC_YUV101010:    return 3; break;
 		case BC_RGB_FLOAT:    return 3; break;
 		case BC_RGBA_FLOAT:   return 4; break;
+		case BC_YUV420P10LE: return 3; break;
 	}
 }
 
@@ -232,6 +214,7 @@ int BC_CModels::calculate_pixelsize(int colormodel)
 		case BC_YUV422:       return 2; break;
 		case BC_YUV411P:      return 1; break;
 		case BC_YUV9P:        return 1; break;
+		case BC_YUV420P10LE:  return 2; break;
 	}
 	return 0;
 }
@@ -430,6 +413,7 @@ void BC_CModels::transfer(unsigned char **output_rows,
 		case BC_YUV422:
 			yuv422(PERMUTATION_VALUES);
 			break;
+		
 
 		default:
 			cmodel_default(PERMUTATION_VALUES);

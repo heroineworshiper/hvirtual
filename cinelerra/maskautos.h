@@ -55,6 +55,7 @@ public:
 // Translates all mask points
 	void translate_masks(float translate_x, float translate_y);
 
+	void set_proxy(int orig_scale, int new_scale);
 
 private:
 	void avg_points(MaskPoint *output, 

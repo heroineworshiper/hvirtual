@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 struct gr_info_s 
 {
@@ -243,8 +244,9 @@ static int dequantize_sample(mpeg3_layer_t *audio,
 	int part2remain = gr_info->part2_3_length - part2bits;
 	int *me;
 	int num = mpeg3bits_getbitoffset(audio->stream);
+//printf("dequantize_sample %d num=%d\n", __LINE__, num);
+
 	int32_t mask = mpeg3bits_getbits(audio->stream, num);
-//printf("III_dequantize_sample 1 %08x %d\n", mask, num);
 	mask = mask << (BITSHIFT + 8 - num);
 	part2remain -= num;
 
@@ -666,13 +668,29 @@ static int dequantize_sample(mpeg3_layer_t *audio,
     	gr_info->maxb = mpeg3_longLimit[sfreq][gr_info->maxbandl];
 	}
 
+// if(-part2remain != num)
+// {
+//	printf("dequantize_sample %d: part2remain=%d num=%d\n", __LINE__, part2remain, num);
+// }
 	part2remain += num;
 
-//
-	mpeg3bits_start_reverse(audio->stream);
-	mpeg3bits_getbits_reverse(audio->stream, num);
-	mpeg3bits_start_forward(audio->stream);
-//printf("III_dequantize_sample 3 %d %04x\n", audio->stream->bit_number, mpeg3bits_showbits(audio->stream, 16));
+
+//printf("dequantize_sample %d num=%d\n", __LINE__, num);
+
+	if(part2remain >= 0)
+	{
+		mpeg3bits_start_reverse(audio->stream);
+		mpeg3bits_getbits_reverse(audio->stream, num);
+		mpeg3bits_start_forward(audio->stream);
+	}
+	else
+	{
+// defeat "can't rewind stream" errors
+		mpeg3bits_start_reverse(audio->stream);
+		mpeg3bits_getbits_reverse(audio->stream, num - part2remain);
+		mpeg3bits_start_forward(audio->stream);
+		part2remain = 0;
+	}
 	num = 0;
 
 	while(xrpnt < &xr[SBLIMIT][0]) 
@@ -1094,14 +1112,7 @@ int mpeg3audio_dolayer3(mpeg3_layer_t *audio,
 /* Copy frame into history buffer */
 	memcpy(audio->bsbuf, frame, frame_size);
 
-/*
- * printf(__FUNCTION__ " %d %02x%02x%02x%02x\n", 
- * audio->first_frame, 
- * (unsigned char)audio->bsbuf[0],
- * (unsigned char)audio->bsbuf[1],
- * (unsigned char)audio->bsbuf[2],
- * (unsigned char)audio->bsbuf[3]);
- */
+//printf("mpeg3audio_dolayer3 %d %d\n", __LINE__, audio->first_frame);
 
 
 	if(!audio->first_frame)
@@ -1343,15 +1354,15 @@ int mpeg3audio_dolayer3(mpeg3_layer_t *audio,
 
 
 
-void mpeg3_layer_reset(mpeg3_layer_t *audio)
+void mpeg3_layer_reset(mpeg3_layer_t *layer_decoder)
 {
 //printf("mpeg3_layer_reset 1\n");
-	audio->first_frame = 1;
-//	audio->prev_framesize = 0;
-//	bzero(audio->bsspace, sizeof(audio->bsspace));
-	bzero(audio->mp3_block, sizeof(audio->mp3_block));
-	bzero(audio->mp3_blc, sizeof(audio->mp3_blc));
-	mpeg3audio_reset_synths(audio);
+	layer_decoder->first_frame = 1;
+//	layer_decoder->prev_framesize = 0;
+//	bzero(layer_decoder->bsspace, sizeof(layer_decoder->bsspace));
+	bzero(layer_decoder->mp3_block, sizeof(layer_decoder->mp3_block));
+	bzero(layer_decoder->mp3_blc, sizeof(layer_decoder->mp3_blc));
+	mpeg3audio_reset_synths(layer_decoder);
 }
 
 
@@ -1615,6 +1626,8 @@ mpeg3_layer_t* mpeg3_new_layer()
 	result->bo = 1;
 	result->channels = -1;
 	result->stream = mpeg3bits_new_stream(0, 0);
+	result->first_frame = 1;
+
 	mpeg3_new_decode_tables(result);
 	return result;
 }

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,7 +132,7 @@ AudioScopeWindowSize::AudioScopeWindowSize(AudioScope *plugin,
 	char *text)
  : BC_PopupMenu(x, 
 	y, 
-	80, 
+	DP(80), 
 	text)
 {
 	this->plugin = plugin;
@@ -270,7 +270,7 @@ AudioScopeMode::AudioScopeMode(AudioScope *plugin,
 	int y)
  : BC_PopupMenu(x, 
 	y, 
-	180, 
+	DP(180), 
 	mode_to_text(plugin->config.mode))
 {
 	this->plugin = plugin;
@@ -338,8 +338,8 @@ AudioScopeWindow::AudioScopeWindow(AudioScope *plugin)
  : PluginClientWindow(plugin, 
 	plugin->w, 
 	plugin->h, 
-	320, 
-	320,
+	DP(320), 
+	DP(320),
 	1)
 {
 	this->plugin = plugin;
@@ -629,8 +629,8 @@ AudioScope::AudioScope(PluginServer *server)
 {
 	reset();
 	timer = new Timer;
-	w = 640;
-	h = 480;
+	w = DP(640);
+	h = DP(480);
 }
 
 AudioScope::~AudioScope()

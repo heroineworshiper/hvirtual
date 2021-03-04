@@ -21,6 +21,7 @@
 
 #include "bcdisplayinfo.h"
 #include "bchash.h"
+#include "bcsignals.h"
 #include "filexml.h"
 #include "guicast.h"
 #include "language.h"
@@ -101,10 +102,10 @@ ReverseVideoConfig::ReverseVideoConfig()
 
 ReverseVideoWindow::ReverseVideoWindow(ReverseVideo *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	160, 
-	200, 
-	160, 
+	DP(210), 
+	DP(160), 
+	DP(200), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -116,7 +117,7 @@ ReverseVideoWindow::~ReverseVideoWindow()
 
 void ReverseVideoWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_subwindow(enabled = new ReverseVideoEnabled(plugin, 
 		x, 
@@ -193,12 +194,14 @@ int ReverseVideo::process_buffer(VFrame *frame,
 		read_frame(frame,
 			0,
 			input_position,
-			frame_rate);
+			frame_rate,
+			0);
 	else
 		read_frame(frame,
 			0,
 			start_position,
-			frame_rate);
+			frame_rate,
+			0);
 	return 0;
 }
 
@@ -252,6 +255,13 @@ int ReverseVideo::load_configuration()
 // Convert start position to new direction
 	if(get_direction() == PLAY_FORWARD)
 	{
+//printf("ReverseVideo::load_configuration %d %ld %ld %ld %ld %ld\n",
+//	__LINE__,
+//	get_source_position(),
+//	get_source_start(),
+//	get_total_len(),
+//	range_start,
+//	range_end);
 		input_position = get_source_position() - range_start;
 		input_position = range_end - input_position - 1;
 	}

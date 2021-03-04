@@ -24,6 +24,7 @@
 
 #include "interpolatevideo.inc"
 #include "loadbalance.h"
+#include "motioncache.inc"
 #include "motionscan.inc"
 #include "opticflow.inc"
 
@@ -73,6 +74,7 @@ public:
 	LoadClient* new_client();
 	LoadPackage* new_package();
 	InterpolateVideo *plugin;
+	MotionCache *downsample_cache;
 };
 
 

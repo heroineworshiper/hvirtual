@@ -72,7 +72,7 @@ public:
 		int color_model,  /* = BC_RGBA8888 */
 		long bytes_per_line /* = -1 */);
 // Create a frame with the png image
-	VFrame(unsigned char *png_data);
+	VFrame(const unsigned char *png_data);
 	VFrame(VFrame &vframe);
 // Create new frame for compressed data.
 	VFrame();
@@ -107,10 +107,13 @@ public:
 		int data_size,
 		int data_allocated);
 
+// scale based on the dpi for the GUI
+	void read_png(const unsigned char *data, int dpi);
+
 // Read a PNG into the frame with alpha
 	int read_png(const unsigned char *data);
 // Write a PNG for debugging
-	int write_png(const char *path);
+	int write_png(const char *path, int compression);
 
 // if frame points to the same data as this return 1
 	int equals(VFrame *frame);
@@ -238,8 +241,6 @@ public:
 
 
 
-
-
 // ================================ OpenGL functions ===========================
 // Defined in vframe3d.C
 // Location of working image if OpenGL playback
@@ -336,6 +337,11 @@ public:
 // This clears the stacks and the param table
 	void clear_stacks();
 
+	void draw_rect(int x1, int y1, int x2, int y2);
+	void draw_line(int x1, int y1, int x2, int y2);
+	void draw_pixel(int x, int y);
+	void draw_arrow(int x1, int y1, int x2, int y2);
+	void draw_oval(int x1, int y1, int x2, int y2);
 
 
 

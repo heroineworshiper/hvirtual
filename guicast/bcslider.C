@@ -177,7 +177,7 @@ void BC_Slider::show_value_tooltip()
 //printf("BC_Slider::show_value_tooltip %s\n", get_caption());
 	set_tooltip(get_caption());
 	keypress_tooltip_timer = 2000;
-	show_tooltip(50);
+	show_tooltip(DP(50));
 }
 
 
@@ -203,7 +203,7 @@ int BC_Slider::repeat_event(int64_t duration)
 			if(!tooltip_text[0] || isdigit(tooltip_text[0]))
 			{
 				set_tooltip(get_caption());
-				show_tooltip(50);
+				show_tooltip(DP(50));
 			}
 			else
 			{

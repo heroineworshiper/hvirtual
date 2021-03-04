@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include "leveleffect.h"
 #include "picon_png.h"
 #include "samples.h"
+#include "theme.h"
 #include "units.h"
 #include "vframe.h"
 
@@ -94,7 +95,7 @@ void SoundLevelConfig::interpolate(SoundLevelConfig &prev,
 
 
 SoundLevelDuration::SoundLevelDuration(SoundLevelEffect *plugin, int x, int y)
- : BC_FSlider(x, y, 0, 180, 180, 0.0, 10.0, plugin->config.duration)
+ : BC_FSlider(x, y, 0, DP(180), DP(180), 0.0, 10.0, plugin->config.duration)
 {
 	this->plugin = plugin;
 	set_precision(0.1);
@@ -111,10 +112,10 @@ int SoundLevelDuration::handle_event()
 
 SoundLevelWindow::SoundLevelWindow(SoundLevelEffect *plugin)
  : PluginClientWindow(plugin, 
-	350, 
-	120, 
-	350, 
-	120,
+	DP(370), 
+	DP(120), 
+	DP(370), 
+	DP(120),
 	0)
 {
 	this->plugin = plugin;
@@ -123,20 +124,21 @@ SoundLevelWindow::SoundLevelWindow(SoundLevelEffect *plugin)
 void SoundLevelWindow::create_objects()
 {
 //printf("SoundLevelWindow::create_objects 1\n");
-	int x = 10, y = 10;
+	int margin = plugin->get_theme()->widget_border;
+	int x = margin, y = margin;
 
 
-	add_subwindow(new BC_Title(x, y, _("Duration (seconds):")));
-	add_subwindow(duration = new SoundLevelDuration(plugin, x + 150, y));
-	y += 35;
-	add_subwindow(new BC_Title(x, y, _("Max soundlevel (dB):")));
-	add_subwindow(soundlevel_max = new BC_Title(x + 150, y, "0.0"));
-	y += 35;
-	add_subwindow(new BC_Title(x, y, _("RMS soundlevel (dB):")));
-	add_subwindow(soundlevel_rms = new BC_Title(x + 150, y, "0.0"));
+	BC_Title *title;
+	add_subwindow(title = new BC_Title(x, y, _("Duration (seconds):")));
+	add_subwindow(duration = new SoundLevelDuration(plugin, x + title->get_w() + margin, y));
+	y += DP(35);
+	add_subwindow(title = new BC_Title(x, y, _("Max soundlevel (dB):")));
+	add_subwindow(soundlevel_max = new BC_Title(x + title->get_w() + margin, y, "0.0"));
+	y += DP(35);
+	add_subwindow(title = new BC_Title(x, y, _("RMS soundlevel (dB):")));
+	add_subwindow(soundlevel_rms = new BC_Title(x + title->get_w() + margin, y, "0.0"));
 
 	show_window();
-	flush();
 //printf("SoundLevelWindow::create_objects 2\n");
 }
 

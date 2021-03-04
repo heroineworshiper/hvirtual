@@ -21,7 +21,7 @@
 
 #include "testobject.h"
 
-TestObject::TestObject(char *text)
+TestObject::TestObject(const char *text)
 {
 	printf("TestObject() %s\n", text);
 }

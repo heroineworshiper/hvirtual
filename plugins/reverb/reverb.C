@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -353,87 +353,91 @@ void Reverb::update_gui()
 {
 	if(thread)
 	{
-		thread->window->lock_window();
-		((ReverbWindow*)thread->window)->level_init->update(config.level_init);
-		((ReverbWindow*)thread->window)->delay_init->update(config.delay_init);
-		((ReverbWindow*)thread->window)->ref_level1->update(config.ref_level1);
-		((ReverbWindow*)thread->window)->ref_level2->update(config.ref_level2);
-		((ReverbWindow*)thread->window)->ref_total->update(config.ref_total);
-		((ReverbWindow*)thread->window)->ref_length->update(config.ref_length);
-		((ReverbWindow*)thread->window)->lowpass1->update(config.lowpass1);
-		((ReverbWindow*)thread->window)->lowpass2->update(config.lowpass2);
-		thread->window->unlock_window();
-	}
-}
-
-
-
-
-int Reverb::load_from_file(char *path)
-{
-	FILE *in;
-	int result = 0;
-	int length;
-	char string[1024];
-	
-	if(in = fopen(path, "rb"))
-	{
-		fseek(in, 0, SEEK_END);
-		length = ftell(in);
-		fseek(in, 0, SEEK_SET);
-		int temp = fread(string, length, 1, in);
-		fclose(in);
-//		read_data(string);
-	}
-	else
-	{
-		perror("fopen:");
-// failed
-		ErrorBox errorbox("");
-		char string[1024];
-		sprintf(string, _("Couldn't open %s."), path);
-		errorbox.create_objects(string);
-		errorbox.run_window();
-		result = 1;
-	}
-	
-	return result;
-}
-
-int Reverb::save_to_file(char *path)
-{
-	FILE *out;
-	int result = 0;
-	char string[1024];
-	
-	{
-// 		ConfirmSave confirm;
-// 		result = confirm.test_file("", path);
-	}
-	
-	if(!result)
-	{
-		if(out = fopen(path, "wb"))
+		if(load_configuration())
 		{
-//			save_data(string);
-			fwrite(string, strlen(string), 1, out);
-			fclose(out);
-		}
-		else
-		{
-			result = 1;
-// failed
-			ErrorBox errorbox("");
-			char string[1024];
-			sprintf(string, _("Couldn't save %s."), path);
-			errorbox.create_objects(string);
-			errorbox.run_window();
-			result = 1;
+//printf("Reverb::update_gui %d %d\n", __LINE__, config.ref_length);
+			thread->window->lock_window("Reverb::update_gui");
+			((ReverbWindow*)thread->window)->level_init->update(config.level_init);
+			((ReverbWindow*)thread->window)->delay_init->update(config.delay_init);
+			((ReverbWindow*)thread->window)->ref_level1->update(config.ref_level1);
+			((ReverbWindow*)thread->window)->ref_level2->update(config.ref_level2);
+			((ReverbWindow*)thread->window)->ref_total->update(config.ref_total);
+			((ReverbWindow*)thread->window)->ref_length->update(config.ref_length);
+			((ReverbWindow*)thread->window)->lowpass1->update(config.lowpass1);
+			((ReverbWindow*)thread->window)->lowpass2->update(config.lowpass2);
+			thread->window->unlock_window();
 		}
 	}
-	
-	return result;
 }
+
+
+
+
+// int Reverb::load_from_file(char *path)
+// {
+// 	FILE *in;
+// 	int result = 0;
+// 	int length;
+// 	char string[1024];
+// 	
+// 	if(in = fopen(path, "rb"))
+// 	{
+// 		fseek(in, 0, SEEK_END);
+// 		length = ftell(in);
+// 		fseek(in, 0, SEEK_SET);
+// 		int temp = fread(string, length, 1, in);
+// 		fclose(in);
+// //		read_data(string);
+// 	}
+// 	else
+// 	{
+// 		perror("fopen:");
+// // failed
+// 		ErrorBox errorbox("");
+// 		char string[1024];
+// 		sprintf(string, _("Couldn't open %s."), path);
+// 		errorbox.create_objects(string);
+// 		errorbox.run_window();
+// 		result = 1;
+// 	}
+// 	
+// 	return result;
+// }
+// 
+// int Reverb::save_to_file(char *path)
+// {
+// 	FILE *out;
+// 	int result = 0;
+// 	char string[1024];
+// 	
+// 	{
+// // 		ConfirmSave confirm;
+// // 		result = confirm.test_file("", path);
+// 	}
+// 	
+// 	if(!result)
+// 	{
+// 		if(out = fopen(path, "wb"))
+// 		{
+// //			save_data(string);
+// 			fwrite(string, strlen(string), 1, out);
+// 			fclose(out);
+// 		}
+// 		else
+// 		{
+// 			result = 1;
+// // failed
+// 			ErrorBox errorbox("");
+// 			char string[1024];
+// 			sprintf(string, _("Couldn't save %s."), path);
+// 			errorbox.create_objects(string);
+// 			errorbox.run_window();
+// 			result = 1;
+// 		}
+// 	}
+// 	
+// 	return result;
+// }
 
 ReverbEngine::ReverbEngine(Reverb *plugin)
  : Thread(1, 0, 0)

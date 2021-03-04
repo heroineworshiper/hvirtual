@@ -34,10 +34,10 @@
 
 SharpenWindow::SharpenWindow(SharpenMain *client)
  : PluginClientWindow(client,
-	210, 
-	120, 
-	210, 
-	120, 
+	DP(220), 
+	DP(120), 
+	DP(220), 
+	DP(120), 
 	0)
 { 
 	this->client = client; 
@@ -49,15 +49,15 @@ SharpenWindow::~SharpenWindow()
 
 void SharpenWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_tool(new BC_Title(x, y, _("Sharpness")));
-	y += 20;
+	y += DP(20);
 	add_tool(sharpen_slider = new SharpenSlider(client, &(client->config.sharpness), x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(sharpen_interlace = new SharpenInterlace(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(sharpen_horizontal = new SharpenHorizontal(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(sharpen_luminance = new SharpenLuminance(client, x, y));
 	show_window();
 	flush();
@@ -72,8 +72,8 @@ SharpenSlider::SharpenSlider(SharpenMain *client, float *output, int x, int y)
  : BC_ISlider(x, 
  	y, 
 	0,
-	200, 
-	200,
+	DP(200), 
+	DP(200),
 	0, 
 	MAXSHARPNESS, 
 	(int)*output, 

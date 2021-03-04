@@ -833,10 +833,10 @@ void CompressorConfig::optimize()
 
 CompressorWindow::CompressorWindow(CompressorEffect *plugin)
  : PluginClientWindow(plugin,
-	650, 
-	480, 
-	650, 
-	480,
+	DP(650), 
+	DP(480), 
+	DP(650), 
+	DP(480),
 	0)
 {
 	this->plugin = plugin;
@@ -844,45 +844,45 @@ CompressorWindow::CompressorWindow(CompressorEffect *plugin)
 
 void CompressorWindow::create_objects()
 {
-	int x = 35, y = 10;
-	int control_margin = 130;
+	int x = DP(35), y = DP(10);
+	int control_margin = DP(130);
 
 	add_subwindow(canvas = new CompressorCanvas(plugin, 
 		x, 
 		y, 
-		get_w() - x - control_margin - 10, 
-		get_h() - y - 70));
+		get_w() - x - control_margin - DP(10), 
+		get_h() - y - DP(70)));
 	canvas->set_cursor(CROSS_CURSOR, 0, 0);
 	x = get_w() - control_margin;
 	add_subwindow(new BC_Title(x, y, _("Reaction secs:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(reaction = new CompressorReaction(plugin, x, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Decay secs:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(decay = new CompressorDecay(plugin, x, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Trigger Type:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(input = new CompressorInput(plugin, x, y));
 	input->create_objects();
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Trigger:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(trigger = new CompressorTrigger(plugin, x, y));
 	if(plugin->config.input != CompressorConfig::TRIGGER) trigger->disable();
-	y += 30;
+	y += DP(30);
 	add_subwindow(smooth = new CompressorSmooth(plugin, x, y));
-	y += 60;
+	y += DP(60);
 	add_subwindow(clear = new CompressorClear(plugin, x, y));
-	x = 10;
-	y = get_h() - 40;
+	x = DP(10);
+	y = get_h() - DP(40);
 	add_subwindow(new BC_Title(x, y, _("Point:")));
-	x += 50;
+	x += DP(50);
 	add_subwindow(x_text = new CompressorX(plugin, x, y));
-	x += 110;
+	x += DP(110);
 	add_subwindow(new BC_Title(x, y, _("x")));
-	x += 20;
+	x += DP(20);
 	add_subwindow(y_text = new CompressorY(plugin, x, y));
 	draw_scales();
 
@@ -908,8 +908,8 @@ void CompressorWindow::draw_scales()
 #define DIVISIONS 8
 	for(int i = 0; i <= DIVISIONS; i++)
 	{
-		int y = canvas->get_y() + 10 + canvas->get_h() / DIVISIONS * i;
-		int x = canvas->get_x() - 30;
+		int y = canvas->get_y() + DP(10) + canvas->get_h() / DIVISIONS * i;
+		int x = canvas->get_x() - DP(30);
 		char string[BCTEXTLEN];
 		
 		sprintf(string, "%.0f", (float)i / DIVISIONS * plugin->config.min_db);
@@ -922,12 +922,12 @@ void CompressorWindow::draw_scales()
 			y = y1 + (y2 - y1) * j / 10;
 			if(j == 0)
 			{
-				draw_line(canvas->get_x() - 10, y, canvas->get_x(), y);
+				draw_line(canvas->get_x() - DP(10), y, canvas->get_x(), y);
 			}
 			else
 			if(i < DIVISIONS)
 			{
-				draw_line(canvas->get_x() - 5, y, canvas->get_x(), y);
+				draw_line(canvas->get_x() - DP(5), y, canvas->get_x(), y);
 			}
 		}
 	}
@@ -935,7 +935,7 @@ void CompressorWindow::draw_scales()
 
 	for(int i = 0; i <= DIVISIONS; i++)
 	{
-		int y = canvas->get_h() + 30;
+		int y = canvas->get_h() + DP(30);
 		int x = canvas->get_x() + (canvas->get_w() - 10) / DIVISIONS * i;
 		char string[BCTEXTLEN];
 
@@ -949,12 +949,12 @@ void CompressorWindow::draw_scales()
 			x = x1 + (x2 - x1) * j / 10;
 			if(j == 0)
 			{
-				draw_line(x, canvas->get_y() + canvas->get_h(), x, canvas->get_y() + canvas->get_h() + 10);
+				draw_line(x, canvas->get_y() + canvas->get_h(), x, canvas->get_y() + canvas->get_h() + DP(10));
 			}
 			else
 			if(i < DIVISIONS)
 			{
-				draw_line(x, canvas->get_y() + canvas->get_h(), x, canvas->get_y() + canvas->get_h() + 5);
+				draw_line(x, canvas->get_y() + canvas->get_h(), x, canvas->get_y() + canvas->get_h() + DP(5));
 			}
 		}
 	}
@@ -995,7 +995,7 @@ void CompressorWindow::update_textboxes()
 	}
 }
 
-#define POINT_W 10
+#define POINT_W DP(10)
 void CompressorWindow::update_canvas()
 {
 	int y1, y2;
@@ -1194,7 +1194,7 @@ int CompressorCanvas::cursor_motion_event()
 
 
 CompressorReaction::CompressorReaction(CompressorEffect *plugin, int x, int y) 
- : BC_TextBox(x, y, 100, 1, (float)plugin->config.reaction_len)
+ : BC_TextBox(x, y, DP(100), 1, (float)plugin->config.reaction_len)
 {
 	this->plugin = plugin;
 }
@@ -1228,7 +1228,7 @@ int CompressorReaction::button_press_event()
 }
 
 CompressorDecay::CompressorDecay(CompressorEffect *plugin, int x, int y) 
- : BC_TextBox(x, y, 100, 1, (float)plugin->config.decay_len)
+ : BC_TextBox(x, y, DP(100), 1, (float)plugin->config.decay_len)
 {
 	this->plugin = plugin;
 }
@@ -1263,7 +1263,7 @@ int CompressorDecay::button_press_event()
 
 
 CompressorX::CompressorX(CompressorEffect *plugin, int x, int y) 
- : BC_TextBox(x, y, 100, 1, "")
+ : BC_TextBox(x, y, DP(100), 1, "")
 {
 	this->plugin = plugin;
 }
@@ -1282,7 +1282,7 @@ int CompressorX::handle_event()
 
 
 CompressorY::CompressorY(CompressorEffect *plugin, int x, int y) 
- : BC_TextBox(x, y, 100, 1, "")
+ : BC_TextBox(x, y, DP(100), 1, "")
 {
 	this->plugin = plugin;
 }
@@ -1303,7 +1303,7 @@ int CompressorY::handle_event()
 
 
 CompressorTrigger::CompressorTrigger(CompressorEffect *plugin, int x, int y) 
- : BC_TextBox(x, y, (int64_t)100, (int64_t)1, (int64_t)plugin->config.trigger)
+ : BC_TextBox(x, y, DP(100), 1, (int64_t)plugin->config.trigger)
 {
 	this->plugin = plugin;
 }
@@ -1342,7 +1342,7 @@ int CompressorTrigger::button_press_event()
 CompressorInput::CompressorInput(CompressorEffect *plugin, int x, int y) 
  : BC_PopupMenu(x, 
 	y, 
-	100, 
+	DP(100), 
 	CompressorInput::value_to_text(plugin->config.input), 
 	1)
 {

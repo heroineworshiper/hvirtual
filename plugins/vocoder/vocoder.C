@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -228,7 +228,7 @@ VocoderCarrier::VocoderCarrier(Vocoder *plugin,
 	256,
 	x, 
 	y,
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
 }
@@ -252,7 +252,7 @@ VocoderBands::VocoderBands(Vocoder *plugin,
 	MAX_BANDS,
 	x, 
 	y,
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
 }
@@ -270,10 +270,10 @@ int VocoderBands::handle_event()
 
 VocoderWindow::VocoderWindow(Vocoder *plugin)
  : PluginClientWindow(plugin, 
-	320, 
-	150, 
-	320, 
-	150,
+	DP(320), 
+	DP(150), 
+	DP(320), 
+	DP(150),
 	0)
 {
 	this->plugin = plugin;

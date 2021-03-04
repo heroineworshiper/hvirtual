@@ -758,7 +758,8 @@ int VDeviceBUZ::write_buffer(VFrame *frame, EDL *edl)
 }
 
 void VDeviceBUZ::new_output_buffer(VFrame *output,
-	int colormodel)
+	int colormodel, 
+	EDL *edl)
 {
 //printf("VDeviceBUZ::new_output_buffer 1 %d\n", colormodel);
 	if(user_frame)

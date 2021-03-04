@@ -53,7 +53,7 @@ FormatTools::FormatTools(MWindow *mwindow,
 	channels_tumbler = 0;
 	path_textbox = 0;
 	path_button = 0;
-	w = window->get_w();
+	w = window->get_w() - mwindow->theme->widget_border;
 	file_entries = 0;
 }
 
@@ -99,6 +99,8 @@ void FormatTools::create_objects(int &init_x,
 {
 	int x = init_x;
 	int y = init_y;
+	int margin = mwindow->theme->widget_border;
+//printf("FormatTools::create_objects %d y=%d\n", __LINE__, y);
 
 	this->locked_compressor = locked_compressor;
 	this->recording = recording;
@@ -150,9 +152,9 @@ void FormatTools::create_objects(int &init_x,
 	if(!recording)
 	{
 		window->add_subwindow(path_textbox = new FormatPathText(x, y, this));
-		x += path_textbox->get_w() + 5;
+		x += path_textbox->get_w() + margin;
 		window->add_subwindow(path_button = new BrowseButton(
-			mwindow,
+			mwindow->theme,
 			window,
 			path_textbox, 
 			x, 
@@ -163,25 +165,25 @@ void FormatTools::create_objects(int &init_x,
 			0));
 
 // Set w for user.
-		w = MAX(w, 305);
-//		w = x + path_button->get_w() + 5;
-		x -= path_textbox->get_w() + 5;
-		y += 35;
+		w = MAX(w, DP(305));
+//		w = x + path_button->get_w() + margin;
+		x -= path_textbox->get_w() + margin;
+		y += DP(35);
 	}
 	else
 	{
-//		w = x + 305;
-		w = 305;
+//		w = x + DP(305);
+		w = DP(305);
 	}
 
 	window->add_subwindow(format_title = new BC_Title(x, y, _("File Format:")));
-	x += 90;
+	x += format_title->get_w() + margin;
 	window->add_subwindow(format_text = new BC_TextBox(x, 
 		y, 
-		200, 
+		DP(200), 
 		1, 
 		File::formattostr(asset->format)));
-	x += format_text->get_w();
+	x += format_text->get_w() + margin;
 
 //printf("FormatTools::create_objects %d %p\n", __LINE__, window);
 	window->add_subwindow(format_button = new FormatFormat(x, 
@@ -190,19 +192,19 @@ void FormatTools::create_objects(int &init_x,
 	format_button->create_objects();
 
 	x = init_x;
-	y += format_button->get_h() + 10;
+	y += format_button->get_h() + DP(10);
 	if(do_audio)
 	{
 		window->add_subwindow(audio_title = new BC_Title(x, y, _("Audio:"), LARGEFONT, RED));
-		x += 80;
+		x += audio_title->get_w() + margin;
 		window->add_subwindow(aparams_button = new FormatAParams(mwindow, this, x, y));
-		x += aparams_button->get_w() + 10;
+		x += aparams_button->get_w() + margin;
 		if(prompt_audio) 
 		{
 			window->add_subwindow(audio_switch = new FormatAudio(x, y, this, asset->audio_data));
 		}
 		x = init_x;
-		y += aparams_button->get_h() + 20;
+		y += aparams_button->get_h() + DP(20);
 
 // Audio channels only used for recording.
 // 		if(prompt_audio_channels)
@@ -226,11 +228,11 @@ void FormatTools::create_objects(int &init_x,
 
 //printf("FormatTools::create_objects 8\n");
 		window->add_subwindow(video_title = new BC_Title(x, y, _("Video:"), LARGEFONT, RED));
-		x += 80;
+		x += video_title->get_w() + margin;
 		if(prompt_video_compression)
 		{
 			window->add_subwindow(vparams_button = new FormatVParams(mwindow, this, x, y));
-			x += vparams_button->get_w() + 10;
+			x += vparams_button->get_w() + margin;
 		}
 
 //printf("FormatTools::create_objects 9\n");
@@ -245,7 +247,7 @@ void FormatTools::create_objects(int &init_x,
 		}
 
 //printf("FormatTools::create_objects 10\n");
-		y += 10;
+		y += DP(10);
 		vparams_thread = new FormatVThread(this);
 	}
 
@@ -255,10 +257,10 @@ void FormatTools::create_objects(int &init_x,
 	if(strategy)
 	{
 		window->add_subwindow(multiple_files = new FormatMultiple(mwindow, x, y, strategy));
-		y += multiple_files->get_h() + 10;
+		y += multiple_files->get_h() + DP(10);
 	}
 
-//printf("FormatTools::create_objects 12\n");
+//printf("FormatTools::create_objects %d y=%d\n", __LINE__, y);
 
 	init_y = y;
 }
@@ -469,43 +471,47 @@ void FormatTools::reposition_window(int &init_x, int &init_y)
 {
 	int x = init_x;
 	int y = init_y;
+	int margin = mwindow->theme->widget_border;
 
 	if(path_textbox) 
 	{
-		path_textbox->reposition_window(x, y);
-		x += path_textbox->get_w() + 5;
+//printf("FormatTools::reposition_window %d %d\n", __LINE__, w);
+		path_textbox->reposition_window(x, 
+			y, 
+			w - mwindow->theme->get_image_set("wrench")[0]->get_w() - DP(10));
+		x += path_textbox->get_w() + margin;
 		path_button->reposition_window(x, y);
-		x -= path_textbox->get_w() + 5;
-		y += 35;
+		x -= path_textbox->get_w() + margin;
+		y += DP(35);
 	}
 
 	format_title->reposition_window(x, y);
-	x += 90;
+	x += format_title->get_w() + margin;
 	format_text->reposition_window(x, y);
-	x += format_text->get_w();
+	x += format_text->get_w() + margin;
 	format_button->reposition_window(x, y);
 
 	x = init_x;
-	y += format_button->get_h() + 10;
+	y += format_button->get_h() + DP(10);
 
 	if(do_audio)
 	{
 		audio_title->reposition_window(x, y);
-		x += 80;
+		x += audio_title->get_w() + margin;
 		aparams_button->reposition_window(x, y);
-		x += aparams_button->get_w() + 10;
+		x += aparams_button->get_w() + margin;
 		if(prompt_audio) audio_switch->reposition_window(x, y);
 
 		x = init_x;
-		y += aparams_button->get_h() + 20;
+		y += aparams_button->get_h() + DP(20);
 		if(prompt_audio_channels)
 		{
 			channels_title->reposition_window(x, y);
-			x += 260;
+			x += DP(260);
 			channels_button->reposition_window(x, y);
-			x += channels_button->get_w() + 5;
+			x += channels_button->get_w() + margin;
 			channels_tumbler->reposition_window(x, y);
-			y += channels_button->get_h() + 20;
+			y += channels_button->get_h() + DP(20);
 			x = init_x;
 		}
 	}
@@ -514,11 +520,11 @@ void FormatTools::reposition_window(int &init_x, int &init_y)
 	if(do_video)
 	{
 		video_title->reposition_window(x, y);
-		x += 80;
+		x += video_title->get_w() + margin;
 		if(prompt_video_compression)
 		{
 			vparams_button->reposition_window(x, y);
-			x += vparams_button->get_w() + 10;
+			x += vparams_button->get_w() + margin;
 		}
 
 		if(prompt_video)
@@ -531,14 +537,14 @@ void FormatTools::reposition_window(int &init_x, int &init_y)
 			y += vparams_button->get_h();
 		}
 
-		y += 10;
+		y += DP(10);
 		x = init_x;
 	}
 
 	if(strategy)
 	{
 		multiple_files->reposition_window(x, y);
-		y += multiple_files->get_h() + 10;
+		y += multiple_files->get_h() + DP(10);
 	}
 
 	init_y = y;
@@ -726,7 +732,7 @@ FormatPathText::FormatPathText(int x, int y, FormatTools *format)
  	y, 
 	format->w - 
 		format->mwindow->theme->get_image_set("wrench")[0]->get_w() - 
-		x - 10, 
+		DP(10), 
 	1, 
 	format->asset->path) 
 {
@@ -816,7 +822,7 @@ int FormatFormat::handle_event()
 
 
 FormatChannels::FormatChannels(int x, int y, FormatTools *format)
- : BC_TextBox(x, y, 100, 1, format->asset->channels) 
+ : BC_TextBox(x, y, DP(100), 1, format->asset->channels) 
 { 
  	this->format = format; 
 }

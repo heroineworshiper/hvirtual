@@ -2,7 +2,7 @@
 
 #include "funcprotos.h"
 #include "quicktime.h"
-
+#include <string.h>
 
 
 // Maximum samples to store in output buffer
@@ -12,10 +12,20 @@
 
 void quicktime_init_vbr(quicktime_vbr_t *ptr, int channels)
 {
+	int i;
+	if(ptr->output_buffer && ptr->channels != channels)
+	{
+		for(i = 0; i < ptr->channels; i++)
+		{
+			free(ptr->output_buffer[i]);
+		}
+		free(ptr->output_buffer);
+		ptr->output_buffer = 0;
+	}
+	
 	ptr->channels = channels;
 	if(!ptr->output_buffer)
 	{
-		int i;
 		ptr->output_buffer = calloc(channels, sizeof(double*));
 		for(i = 0; i < channels; i++)
 			ptr->output_buffer[i] = calloc(MAX_VBR_BUFFER, sizeof(double));
@@ -64,7 +74,7 @@ static int limit_samples(int samples)
 	if(samples > MAX_VBR_BUFFER)
 	{
 		fprintf(stderr, 
-			"quicktime_align_vbr: can't decode more than %p samples at a time.\n",
+			"quicktime_align_vbr: can't decode more than %d samples at a time.\n",
 			MAX_VBR_BUFFER);
 		return 1;
 	}
@@ -102,6 +112,7 @@ int quicktime_read_vbr(quicktime_t *file,
 	int64_t offset = quicktime_sample_to_offset(file, 
 		trak, 
 		vbr->sample);
+
 	int size = quicktime_sample_size(trak, vbr->sample);
 	int new_allocation = vbr->input_size + size;
 	int result = 0;
@@ -112,11 +123,12 @@ int quicktime_read_vbr(quicktime_t *file,
 		vbr->input_allocation = new_allocation;
 	}
 
-
+//printf("quicktime_read_vbr %d offset=%d\n", __LINE__, offset);
 	quicktime_set_position(file, offset);
 	result = !quicktime_read_data(file, vbr->input_buffer + vbr->input_size, size);
 	vbr->input_size += size;
 	vbr->sample++;
+//printf("quicktime_read_vbr %d sample=%d offset=%d result=%d\n", __LINE__, vbr->sample, offset, result);
 	return result;
 }
 
@@ -155,6 +167,8 @@ void quicktime_store_vbr_float(quicktime_audio_map_t *atrack,
 	}
 	vbr->buffer_end += sample_count;
 	vbr->buffer_size += sample_count;
+
+//printf("quicktime_store_vbr_float %d buffer_size=%d\n", __LINE__, vbr->buffer_size);
 	if(vbr->buffer_size > MAX_VBR_BUFFER) vbr->buffer_size = MAX_VBR_BUFFER;
 }
 
@@ -187,15 +201,43 @@ void quicktime_copy_vbr_float(quicktime_vbr_t *vbr,
 	int channel)
 {
 	int i, j;
+	if(channel >= vbr->channels)
+	{
+		channel = vbr->channels - 1;
+	}
 	int input_ptr = vbr->buffer_ptr - 
 		(vbr->buffer_end - start_position);
 	while(input_ptr < 0) input_ptr += MAX_VBR_BUFFER;
 
-	for(i = 0; i < samples; i++)
+// printf("quicktime_copy_vbr_float %d available=%d samples=%d\n", 
+// __LINE__, 
+// vbr->buffer_end - start_position,
+// samples);
+
+// truncate to available samples
+	int samples_copied = samples;
+	if(samples_copied > vbr->buffer_end - start_position)
+	{
+		samples_copied = vbr->buffer_end - start_position;
+	}
+
+	for(i = 0; i < samples_copied; i++)
 	{
 		output[i] = vbr->output_buffer[channel][input_ptr++];
 		if(input_ptr >= MAX_VBR_BUFFER)
 			input_ptr = 0;
+	}
+
+
+// printf("quicktime_copy_vbr_float %d samples=%d buffer_size=%d\n", 
+// __LINE__, 
+// samples, 
+// vbr->buffer_size);
+
+	if(samples_copied < samples)
+	{
+		if(samples_copied < 0) samples_copied = 0;
+		bzero(output + samples_copied, (samples - samples_copied) * sizeof(float));
 	}
 }
 
@@ -207,14 +249,33 @@ void quicktime_copy_vbr_int16(quicktime_vbr_t *vbr,
 	int channel)
 {
 	int i, j;
+	if(channel >= vbr->channels)
+	{
+		channel = vbr->channels - 1;
+	}
 	int input_ptr = vbr->buffer_ptr - 
 		(vbr->buffer_end - start_position);
 	while(input_ptr < 0) input_ptr += MAX_VBR_BUFFER;
-	for(i = 0; i < samples; i++)
+
+// truncate to available samples
+	int samples_copied = samples;
+	if(samples_copied > vbr->buffer_end - start_position)
+	{
+		samples_copied = vbr->buffer_end - start_position;
+	}
+
+	for(i = 0; i < samples_copied; i++)
 	{
 		output[i] = (int)(vbr->output_buffer[channel][input_ptr++] * 32767);
+		
 		if(input_ptr >= MAX_VBR_BUFFER)
 			input_ptr = 0;
+	}
+
+	if(samples_copied < samples)
+	{
+		if(samples_copied < 0) samples_copied = 0;
+		bzero(output + samples_copied, (samples - samples_copied) * sizeof(int16_t));
 	}
 }
 

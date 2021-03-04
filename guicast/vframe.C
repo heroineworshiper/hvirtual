@@ -79,7 +79,7 @@ VFrameScene::~VFrameScene()
 //static BCCounter counter;
 
 
-VFrame::VFrame(unsigned char *png_data)
+VFrame::VFrame(const unsigned char *png_data)
 {
 	reset_parameters(1);
 	params = new BC_Hash;
@@ -518,6 +518,8 @@ int VFrame::allocate_data(unsigned char *data,
 	return 0;
 }
 
+
+
 void VFrame::set_memory(unsigned char *data, 
 	int shmid,
 	long y_offset,
@@ -670,6 +672,94 @@ UNBUFFER(data);
 	return 0;
 }
 
+// scale based on the dpi for the GUI
+void VFrame::read_png(const unsigned char *data, int dpi)
+{
+// test if scaling is needed based on BC_Resources::dp_to_px rules
+	if(dpi < MIN_DPI)
+	{
+		read_png(data);
+		return;
+	}
+
+// Load it in a temporary VFrame
+	VFrame *src = new VFrame(data);
+	int src_w = src->get_w();
+	int src_h = src->get_h();
+	int dst_w = src->get_w() * dpi / BASE_DPI;
+	int dst_h = src->get_h() * dpi / BASE_DPI;
+
+
+	reallocate(NULL, 
+		-1,
+		0, 
+		0, 
+		0, 
+		dst_w, 
+		dst_h, 
+		src->get_color_model(),
+		-1);
+
+	int components = BC_CModels::components(get_color_model());
+
+	int src_x1[dst_w];
+	int src_x2[dst_w];
+	int src_x1_a[dst_w];
+	int src_x2_a[dst_w];
+	for(int dst_x = 0; dst_x < dst_w; dst_x++)
+	{
+		float src_x = (float)dst_x * BASE_DPI / dpi;
+		src_x1[dst_x] = (int)src_x;
+		src_x2_a[dst_x] = (int)(255 * (src_x - src_x1[dst_x]));
+		src_x2[dst_x] = src_x1[dst_x] + 1;
+		if(src_x2[dst_x] >= src_w)
+		{
+			src_x2[dst_x] = src_w - 1;
+		}
+		src_x1_a[dst_x] = 255 - src_x2_a[dst_x];
+	}
+
+	for(int dst_y = 0; dst_y < dst_h; dst_y++)
+	{
+		float src_y = (float)dst_y * BASE_DPI / dpi;
+		int src_y1 = (int)src_y;
+		int src_y2_a = (int)(255 * (src_y - src_y1));
+		int src_y2 = src_y1 + 1;
+		if(src_y2 >= src_h)
+		{
+			src_y2 = src_h - 1;
+		}
+		int src_y1_a = 255 - src_y2_a;
+		unsigned char *src_row1 = src->get_rows()[src_y1];
+		unsigned char *src_row2 = src->get_rows()[src_y2];
+		unsigned char *dst_row = get_rows()[dst_y];
+//printf("VFrame::read_png %d %d %d %d %d\n", __LINE__, src_w, src_h, src_y1, src_y2);
+
+		for(int dst_x = 0; dst_x < dst_w; dst_x++)
+		{
+			int x1 = src_x1[dst_x];
+			int x2 = src_x2[dst_x];
+			int x1_a = src_x1_a[dst_x];
+			int x2_a = src_x2_a[dst_x];
+			for(int i = 0; i < components; i++)
+			{
+				int accum = 
+					(int)src_row1[x1 * components + i] * x1_a * src_y1_a +
+					(int)src_row1[x2 * components + i] * x2_a * src_y1_a +
+					(int)src_row2[x1 * components + i] * x1_a * src_y2_a +
+					(int)src_row2[x2 * components + i] * x2_a * src_y2_a;
+				accum /= 255 * 255;
+				*dst_row++ = accum;
+			}
+		}
+	}
+
+
+	delete src;
+
+}
+
+
 int VFrame::read_png(const unsigned char *data)
 {
 
@@ -679,6 +769,8 @@ int VFrame::read_png(const unsigned char *data)
 		data[6] == 'W' &&
 		data[7] == ' ')
 	{
+printf("VFrame::read_png %d", __LINE__);
+
 		int new_color_model;
 		w = (data[8]) |
 			(data[9] << 8) |
@@ -814,7 +906,7 @@ int VFrame::read_png(const unsigned char *data)
 	return 0;
 }
 
-int VFrame::write_png(const char *path)
+int VFrame::write_png(const char *path, int compression)
 {
 	png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
 	png_infop info_ptr = png_create_info_struct(png_ptr);
@@ -839,7 +931,7 @@ int VFrame::write_png(const char *path)
 	}
 
 	png_init_io(png_ptr, out_fd);
-	png_set_compression_level(png_ptr, 9);
+	png_set_compression_level(png_ptr, compression);
 	png_set_IHDR(png_ptr, 
 		info_ptr, 
 		get_w(), 
@@ -1048,6 +1140,18 @@ void VFrame::flip_horiz()
 
 int VFrame::copy_from(VFrame *frame)
 {
+	if(this->w != frame->get_w() ||
+		this->h != frame->get_h())
+	{
+		printf("VFrame::copy_from %d sizes differ src %dx%d != dst %dx%d\n",
+			__LINE__,
+			frame->get_w(),
+			frame->get_h(),
+			get_w(),
+			get_h());
+		return 1;
+	}
+
 	int w = MIN(this->w, frame->get_w());
 	int h = MIN(this->h, frame->get_h());
 	
@@ -1425,6 +1529,227 @@ int VFrame::get_memory_usage()
 	if(get_compressed_allocated()) return get_compressed_allocated();
 	return get_h() * get_bytes_per_line();
 }
+
+void VFrame::draw_pixel(int x, int y)
+{
+	if(!(x >= 0 && y >= 0 && x < get_w() && y < get_h())) return;
+
+#define DRAW_PIXEL(x, y, components, do_yuv, max, type) \
+{ \
+	type **rows = (type**)get_rows(); \
+	rows[y][x * components] = max - rows[y][x * components]; \
+	if(!do_yuv) \
+	{ \
+		rows[y][x * components + 1] = max - rows[y][x * components + 1]; \
+		rows[y][x * components + 2] = max - rows[y][x * components + 2]; \
+	} \
+	else \
+	{ \
+		rows[y][x * components + 1] = (max / 2 + 1) - rows[y][x * components + 1]; \
+		rows[y][x * components + 2] = (max / 2 + 1) - rows[y][x * components + 2]; \
+	} \
+	if(components == 4) \
+		rows[y][x * components + 3] = max; \
+}
+
+
+	switch(get_color_model())
+	{
+		case BC_RGB888:
+			DRAW_PIXEL(x, y, 3, 0, 0xff, unsigned char);
+			break;
+		case BC_RGBA8888:
+			DRAW_PIXEL(x, y, 4, 0, 0xff, unsigned char);
+			break;
+		case BC_RGB_FLOAT:
+			DRAW_PIXEL(x, y, 3, 0, 1.0, float);
+			break;
+		case BC_RGBA_FLOAT:
+			DRAW_PIXEL(x, y, 4, 0, 1.0, float);
+			break;
+		case BC_YUV888:
+			DRAW_PIXEL(x, y, 3, 1, 0xff, unsigned char);
+			break;
+		case BC_YUVA8888:
+			DRAW_PIXEL(x, y, 4, 1, 0xff, unsigned char);
+			break;
+		case BC_RGB161616:
+			DRAW_PIXEL(x, y, 3, 0, 0xffff, uint16_t);
+			break;
+		case BC_YUV161616:
+			DRAW_PIXEL(x, y, 3, 1, 0xffff, uint16_t);
+			break;
+		case BC_RGBA16161616:
+			DRAW_PIXEL(x, y, 4, 0, 0xffff, uint16_t);
+			break;
+		case BC_YUVA16161616:
+			DRAW_PIXEL(x, y, 4, 1, 0xffff, uint16_t);
+			break;
+	}
+}
+
+
+
+
+void VFrame::draw_line(int x1, int y1, int x2, int y2)
+{
+	int w = labs(x2 - x1);
+	int h = labs(y2 - y1);
+//printf("FindObjectMain::draw_line 1 %d %d %d %d\n", x1, y1, x2, y2);
+
+	if(!w && !h)
+	{
+		draw_pixel(x1, y1);
+	}
+	else
+	if(w > h)
+	{
+// Flip coordinates so x1 < x2
+		if(x2 < x1)
+		{
+			y2 ^= y1;
+			y1 ^= y2;
+			y2 ^= y1;
+			x1 ^= x2;
+			x2 ^= x1;
+			x1 ^= x2;
+		}
+		int numerator = y2 - y1;
+		int denominator = x2 - x1;
+		for(int i = x1; i <= x2; i++)
+		{
+			int y = y1 + (int64_t)(i - x1) * (int64_t)numerator / (int64_t)denominator;
+			draw_pixel(i, y);
+		}
+	}
+	else
+	{
+// Flip coordinates so y1 < y2
+		if(y2 < y1)
+		{
+			y2 ^= y1;
+			y1 ^= y2;
+			y2 ^= y1;
+			x1 ^= x2;
+			x2 ^= x1;
+			x1 ^= x2;
+		}
+		int numerator = x2 - x1;
+		int denominator = y2 - y1;
+		for(int i = y1; i <= y2; i++)
+		{
+			int x = x1 + (int64_t)(i - y1) * (int64_t)numerator / (int64_t)denominator;
+			draw_pixel(x, i);
+		}
+	}
+//printf("FindObjectMain::draw_line 2\n");
+}
+
+
+
+void VFrame::draw_rect(int x1, int y1, int x2, int y2)
+{
+	draw_line(x1, y1, x2, y1);
+	draw_line(x2, y1 + 1, x2, y2);
+	draw_line(x2 - 1, y2, x1, y2);
+	draw_line(x1, y2 - 1, x1, y1 + 1);
+}
+
+
+
+void VFrame::draw_oval(int x1, int y1, int x2, int y2)
+{
+	int w = x2 - x1;
+	int h = y2 - y1;
+	int center_x = (x2 + x1) / 2;
+	int center_y = (y2 + y1) / 2;
+	int x_table[h / 2];
+
+//printf("VFrame::draw_oval %d %d %d %d %d\n", __LINE__, x1, y1, x2, y2);
+
+	for(int i = 0; i < h / 2; i++)
+	{
+// A^2 = -(B^2) + C^2
+		x_table[i] = (int)(sqrt(-SQR(h / 2 - i) + SQR(h / 2)) * w / h);
+//printf("VFrame::draw_oval %d i=%d x=%d\n", __LINE__, i, x_table[i]);
+	}
+
+	for(int i = 0; i < h / 2 - 1; i++)
+	{
+		int x3 = x_table[i];
+		int x4 = x_table[i + 1];
+
+		if(x4 > x3 + 1)
+		{
+			for(int j = x3; j < x4; j++)
+			{
+				draw_pixel(center_x + j, y1 + i);
+				draw_pixel(center_x - j, y1 + i);
+				draw_pixel(center_x + j, y2 - i - 1);
+				draw_pixel(center_x - j, y2 - i - 1);
+			}
+		}
+		else
+		{
+			draw_pixel(center_x + x3, y1 + i);
+			draw_pixel(center_x - x3, y1 + i);
+			draw_pixel(center_x + x3, y2 - i - 1);
+			draw_pixel(center_x - x3, y2 - i - 1);
+		}
+	}
+	
+	draw_pixel(center_x, y1);
+	draw_pixel(center_x, y2 - 1);
+ 	draw_pixel(x1, center_y);
+ 	draw_pixel(x2 - 1, center_y);
+ 	draw_pixel(x1, center_y - 1);
+ 	draw_pixel(x2 - 1, center_y - 1);
+
+	
+}
+
+
+
+#define ARROW_SIZE 10
+void VFrame::draw_arrow(int x1, int y1, int x2, int y2)
+{
+	double angle = atan((float)(y2 - y1) / (float)(x2 - x1));
+	double angle1 = angle + (float)145 / 360 * 2 * 3.14159265;
+	double angle2 = angle - (float)145 / 360 * 2 * 3.14159265;
+	int x3;
+	int y3;
+	int x4;
+	int y4;
+	if(x2 < x1)
+	{
+		x3 = x2 - (int)(ARROW_SIZE * cos(angle1));
+		y3 = y2 - (int)(ARROW_SIZE * sin(angle1));
+		x4 = x2 - (int)(ARROW_SIZE * cos(angle2));
+		y4 = y2 - (int)(ARROW_SIZE * sin(angle2));
+	}
+	else
+	{
+		x3 = x2 + (int)(ARROW_SIZE * cos(angle1));
+		y3 = y2 + (int)(ARROW_SIZE * sin(angle1));
+		x4 = x2 + (int)(ARROW_SIZE * cos(angle2));
+		y4 = y2 + (int)(ARROW_SIZE * sin(angle2));
+	}
+
+// Main vector
+	draw_line(x1, y1, x2, y2);
+//	draw_line(x1, y1 + 1, x2, y2 + 1);
+
+// Arrow line
+	if(abs(y2 - y1) || abs(x2 - x1)) draw_line(x2, y2, x3, y3);
+// Arrow line
+	if(abs(y2 - y1) || abs(x2 - x1)) draw_line(x2, y2, x4, y4);
+}
+
+
+
+
+
+
 
 
 

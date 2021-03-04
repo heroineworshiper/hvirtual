@@ -1,7 +1,10 @@
 #include "funcprotos.h"
 #include "quicktime.h"
+#include <string.h>
 
 
+static uint8_t *spherical_uuid = "\xff\xcc\x82\x63\xf8\x55\x4a\x93\x88\x14\x58\x7a\x02\x52\x1f\xdd";
+#define UUID_SIZE 16
 
 
 int quicktime_trak_init(quicktime_trak_t *trak)
@@ -133,7 +136,22 @@ int quicktime_read_trak(quicktime_t *file, quicktime_trak_t *trak, quicktime_ato
 		if(quicktime_atom_is(&leaf_atom, "udta"))
 			{ quicktime_atom_skip(file, &leaf_atom); }
 		else
+		if(quicktime_atom_is(&leaf_atom, "uuid"))
+		{
+			uint8_t the_uuid[UUID_SIZE];
+			quicktime_read_data(file, 
+					the_uuid, 
+					UUID_SIZE);
+			if(!memcmp(the_uuid, spherical_uuid, UUID_SIZE))
+			{
+				file->is_sphere = 1;
+			}
 			quicktime_atom_skip(file, &leaf_atom);
+		}
+		else
+		{
+			quicktime_atom_skip(file, &leaf_atom);
+		}
 //printf("quicktime_read_trak %llx %llx\n", quicktime_position(file), leaf_atom.end);
 	}while(quicktime_position(file) < trak_atom->end);
 
@@ -159,6 +177,28 @@ int quicktime_write_trak(quicktime_t *file,
 	quicktime_write_tkhd(file, &(trak->tkhd));
 	quicktime_write_edts(file, &(trak->edts), trak->tkhd.duration);
 	quicktime_write_mdia(file, &(trak->mdia));
+
+
+/* write sphere data */
+	if(file->is_sphere && trak->mdia.minf.is_video)
+	{
+		quicktime_atom_t atom;
+		quicktime_atom_write_header(file, &atom, "uuid");
+		
+		quicktime_write_data(file, spherical_uuid, UUID_SIZE);
+		char *text = 
+			"<?xml version=\"1.0\"?><rdf:SphericalVideo\n"
+			"xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"
+			"xmlns:GSpherical=\"http://ns.google.com/videos/1.0/spherical/\">"
+			"<GSpherical:Spherical>true</GSpherical:Spherical>"
+			"<GSpherical:Stitched>true</GSpherical:Stitched>"
+			"<GSpherical:StitchingSoftware>Cinelerra</GSpherical:StitchingSoftware>"
+			"<GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>"
+			"</rdf:SphericalVideo>";
+		quicktime_write_data(file, text, strlen(text));
+		quicktime_atom_write_footer(file, &atom);
+	}
+
 
 	quicktime_atom_write_footer(file, &atom);
 

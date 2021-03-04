@@ -35,10 +35,10 @@
 
 UnsharpWindow::UnsharpWindow(UnsharpMain *plugin)
  : PluginClientWindow(plugin,
-	200, 
-	160, 
-	200, 
-	160, 
+	DP(200), 
+	DP(160), 
+	DP(200), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin; 
@@ -50,24 +50,24 @@ UnsharpWindow::~UnsharpWindow()
 
 void UnsharpWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	BC_Title *title;
 
-	add_subwindow(title = new BC_Title(x, y + 10, _("Radius:")));
+	add_subwindow(title = new BC_Title(x, y + DP(10), _("Radius:")));
 	add_subwindow(radius = new UnsharpRadius(plugin, 
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 
-	y += 40;
-	add_subwindow(title = new BC_Title(x, y + 10, _("Amount:")));
+	y += DP(40);
+	add_subwindow(title = new BC_Title(x, y + DP(10), _("Amount:")));
 	add_subwindow(amount = new UnsharpAmount(plugin, 
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 
-	y += 40;
-	add_subwindow(title = new BC_Title(x, y + 10, _("Threshold:")));
+	y += DP(40);
+	add_subwindow(title = new BC_Title(x, y + DP(10), _("Threshold:")));
 	add_subwindow(threshold = new UnsharpThreshold(plugin, 
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 
 	show_window();

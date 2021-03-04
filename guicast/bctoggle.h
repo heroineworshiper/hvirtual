@@ -142,6 +142,7 @@ public:
 		int font = MEDIUMFONT,
 		int color = -1);
 	virtual int handle_event();
+	static int calculate_h(BC_WindowBase *gui);
 
 
 	int *value;

@@ -44,14 +44,27 @@ public:
 		int64_t prev_frame, 
 		int64_t next_frame, 
 		int64_t current_frame);
-	double scale;
+// was scale
+	double num;
+	double denom;
 };
 
 
-class ResampleRTScale : public BC_TumbleTextBox
+class ResampleRTNum : public BC_TumbleTextBox
 {
 public:
-	ResampleRTScale(ResampleRTWindow *window,
+	ResampleRTNum(ResampleRTWindow *window,
+		ResampleRT *plugin,
+		int x,
+		int y);
+	int handle_event();
+	ResampleRT *plugin;
+};
+
+class ResampleRTDenom : public BC_TumbleTextBox
+{
+public:
+	ResampleRTDenom(ResampleRTWindow *window,
 		ResampleRT *plugin,
 		int x,
 		int y);
@@ -67,7 +80,8 @@ public:
 	void create_objects();
 
 	ResampleRT *plugin;
-	ResampleRTScale *scale;
+	ResampleRTNum *num;
+	ResampleRTDenom *denom;
 };
 
 

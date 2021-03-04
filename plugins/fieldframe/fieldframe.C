@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -166,10 +166,10 @@ int FieldFrameConfig::equivalent(FieldFrameConfig &src)
 
 FieldFrameWindow::FieldFrameWindow(FieldFrame *plugin)
  : PluginClientWindow(plugin, 
-	230, 
-	100, 
-	230, 
-	100, 
+	DP(230), 
+	DP(100), 
+	DP(230), 
+	DP(100), 
 	0)
 {
 	this->plugin = plugin;
@@ -177,9 +177,9 @@ FieldFrameWindow::FieldFrameWindow(FieldFrame *plugin)
 
 void FieldFrameWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_subwindow(top = new FieldFrameTop(plugin, this, x, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(bottom = new FieldFrameBottom(plugin, this, x, y));
 // 	y += 30;
 // 	add_subwindow(first = new FieldFrameFirst(plugin, this, x, y));
@@ -187,7 +187,6 @@ void FieldFrameWindow::create_objects()
 // 	add_subwindow(second = new FieldFrameSecond(plugin, this, x, y));
 
 	show_window();
-	flush();
 }
 
 
@@ -443,14 +442,16 @@ int FieldFrame::process_buffer(VFrame *frame,
 	read_frame(input, 
 		0, 
 		field1_position,
-		frame_rate * 2);
+		frame_rate * 2,
+		0);
 	apply_field(frame, 
 		input, 
 		config.field_dominance == TOP_FIELD_FIRST ? 0 : 1);
 	read_frame(input, 
 		0, 
 		field2_position,
-		frame_rate * 2);
+		frame_rate * 2,
+		0);
 	apply_field(frame, 
 		input, 
 		config.field_dominance == TOP_FIELD_FIRST ? 1 : 0);

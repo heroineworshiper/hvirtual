@@ -45,6 +45,7 @@ BC_MenuPopup::BC_MenuPopup()
 	item_bg[0] = 0;
 	item_bg[1] = 0;
 	item_bg[2] = 0;
+	check = 0;
 }
 
 BC_MenuPopup::~BC_MenuPopup()
@@ -59,6 +60,7 @@ BC_MenuPopup::~BC_MenuPopup()
 	delete item_bg[0];
 	delete item_bg[1];
 	delete item_bg[2];
+	delete check;
 }
 
 int BC_MenuPopup::initialize(BC_WindowBase *top_level, 
@@ -86,11 +88,17 @@ int BC_MenuPopup::initialize(BC_WindowBase *top_level,
 	{
 		window_bg = new BC_Pixmap(top_level, resources->menu_popup_bg);
 	}
+	
 	if(resources->menu_item_bg)
 	{
 		item_bg[0] = new BC_Pixmap(top_level, resources->menu_item_bg[0], PIXMAP_ALPHA);
 		item_bg[1] = new BC_Pixmap(top_level, resources->menu_item_bg[1], PIXMAP_ALPHA);
 		item_bg[2] = new BC_Pixmap(top_level, resources->menu_item_bg[2], PIXMAP_ALPHA);
+	}
+
+	if(resources->check)
+	{
+		check = new BC_Pixmap(top_level, resources->check, PIXMAP_ALPHA);
 	}
 
 	return 0;
@@ -371,7 +379,7 @@ int BC_MenuPopup::get_dimensions()
 	for(i = 0; i < menu_items.total; i++)
 	{
 		text_w = 10 + top_level->get_text_width(MEDIUMFONT, menu_items.values[i]->text);
-		if(menu_items.values[i]->checked) text_w += 20;
+		if(menu_items.values[i]->checked) text_w += check->get_w() + 1;
 
 		key_w = 10 + top_level->get_text_width(MEDIUMFONT, menu_items.values[i]->hotkey_text);
 		if(text_w > widest_text) widest_text = text_w;
@@ -380,7 +388,10 @@ int BC_MenuPopup::get_dimensions()
 		if(!strcmp(menu_items.values[i]->text, "-")) 
 			menu_items.values[i]->h = 5;
 		else
-			menu_items.values[i]->h = top_level->get_text_height(MEDIUMFONT) + 4;
+		{
+//			menu_items.values[i]->h = top_level->get_text_height(MEDIUMFONT) + 4;
+			menu_items.values[i]->h = item_bg[0]->get_h();
+		}
 
 		menu_items.values[i]->y = h;
 		menu_items.values[i]->highlighted = 0;

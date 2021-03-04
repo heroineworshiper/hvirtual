@@ -579,13 +579,18 @@ void PluginServer::process_buffer(VFrame **frame,
 		vclient->input[i] = frame[i];
 		vclient->output[i] = frame[i];
 	}
-	vclient->source_start = (int64_t)(plugin ? 
-		plugin->startproject * 
-		frame_rate /
-		vclient->project_frame_rate :
-		0);
+	
+	if(plugin)
+	{
+		vclient->source_start = (int64_t)plugin->startproject * 
+			frame_rate /
+			vclient->project_frame_rate;
+	}
 	vclient->direction = direction;
 
+
+//PRINT_TRACE
+//printf("plugin=%p source_start=%ld\n", plugin, vclient->source_start);
 
 	vclient->begin_process_buffer();
 	if(multichannel)
@@ -709,6 +714,10 @@ int PluginServer::get_parameters(int64_t start, int64_t end, int channels)
 	client->source_start = start;
 	client->total_len = end - start;
 	client->total_in_buffers = channels;
+
+//PRINT_TRACE
+//printf(" source_start=%ld total_len=%ld\n", client->source_start, client->total_len);
+
 	return client->plugin_get_parameters();
 }
 
@@ -850,6 +859,7 @@ int PluginServer::read_frame(VFrame *buffer,
 // If we're a VirtualNode, read_data in the virtual plugin node handles
 //     backward propogation and produces the data.
 // If we're a Module, render in the module produces the data.
+//PRINT_TRACE
 
 	int result = -1;
 	if(!multichannel) channel = 0;
@@ -959,23 +969,34 @@ void PluginServer::hide_gui()
 
 void PluginServer::update_gui()
 {
-	if(!plugin_open || !plugin) return;
 
-	client->total_len = plugin->length;
-	client->source_start = plugin->startproject;
+	if(!plugin_open) return;
 
-	if(video)
+
+	if(plugin)
 	{
-		client->source_position = Units::to_int64(
-			mwindow->edl->local_session->get_selectionstart(1) * 
-				mwindow->edl->session->frame_rate);
+		client->total_len = plugin->length;
+		client->source_start = plugin->startproject;
+
+		if(video)
+		{
+			client->source_position = Units::to_int64(
+				mwindow->edl->local_session->get_selectionstart(1) * 
+					mwindow->edl->session->frame_rate);
+		}
+		else
+		if(audio)
+		{
+			client->source_position = Units::to_int64(
+				mwindow->edl->local_session->get_selectionstart(1) * 
+					mwindow->edl->session->sample_rate);
+		}
 	}
 	else
-	if(audio)
 	{
-		client->source_position = Units::to_int64(
-			mwindow->edl->local_session->get_selectionstart(1) * 
-				mwindow->edl->session->sample_rate);
+		client->total_len = 1;
+		client->source_start = 0;
+		client->source_position = 0;
 	}
 
 	client->plugin_update_gui();

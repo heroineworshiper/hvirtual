@@ -23,13 +23,12 @@
 #include "browsebutton.h"
 #include "language.h"
 #include "mutex.h"
-#include "mwindow.h"
 #include "theme.h"
 
 
 
 
-BrowseButton::BrowseButton(MWindow *mwindow, 
+BrowseButton::BrowseButton(Theme *theme, 
 	BC_WindowBase *parent_window, 
 	BC_TextBox *textbox, 
 	int x, 
@@ -38,7 +37,7 @@ BrowseButton::BrowseButton(MWindow *mwindow,
 	const char *title, 
 	const char *caption, 
 	int want_directory)
- : BC_Button(x, y, mwindow->theme->get_image_set("magnify_button")), 
+ : BC_Button(x, y, theme->get_image_set("magnify_button")), 
    Thread(1, 0, 0)
 {
 	this->parent_window = parent_window;
@@ -47,7 +46,7 @@ BrowseButton::BrowseButton(MWindow *mwindow,
 	this->caption = caption;
 	this->init_directory = init_directory;
 	this->textbox = textbox;
-	this->mwindow = mwindow;
+	this->theme = theme;
 	set_tooltip(_("Look for file"));
 	gui = 0;
 	startup_lock = new Mutex("BrowseButton::startup_lock");
@@ -92,7 +91,7 @@ int BrowseButton::handle_event()
 
 void BrowseButton::run()
 {
-	BrowseButtonWindow browsewindow(mwindow,
+	BrowseButtonWindow browsewindow(theme,
 		this,
 		parent_window, 
 		textbox->get_text(), 
@@ -135,7 +134,7 @@ void BrowseButton::run()
 
 
 
-BrowseButtonWindow::BrowseButtonWindow(MWindow *mwindow, 
+BrowseButtonWindow::BrowseButtonWindow(Theme *theme, 
 	BrowseButton *button,
 	BC_WindowBase *parent_window, 
 	const char *init_directory, 
@@ -154,7 +153,7 @@ BrowseButtonWindow::BrowseButtonWindow(MWindow *mwindow,
 // Want only directories
 	want_directory,
 	0,
-	mwindow->theme->browse_pad)
+	theme->browse_pad)
 {
 }
 

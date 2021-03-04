@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
  * 
  */
 
+#include "clip.h"
 #include "deleteallindexes.h"
 #include "edl.h"
 #include "edlsession.h"
@@ -61,7 +62,7 @@ void InterfacePrefs::create_objects()
 		LARGEFONT, 
 		resources->text_default));
 
-	y += get_text_height(LARGEFONT) + 5;
+	y += get_text_height(LARGEFONT) + margin;
 
 
 	add_subwindow(hms = new TimeFormatHMS(pwindow, 
@@ -69,31 +70,31 @@ void InterfacePrefs::create_objects()
 		pwindow->thread->edl->session->time_format == TIME_HMS, 
 		x, 
 		y));
-	y += 20;
+	y += DP(20);
 	add_subwindow(hmsf = new TimeFormatHMSF(pwindow, 
 		this, 
 		pwindow->thread->edl->session->time_format == TIME_HMSF, 
 		x, 
 		y));
-	y += 20;
+	y += DP(20);
 	add_subwindow(samples = new TimeFormatSamples(pwindow, 
 		this, 
 		pwindow->thread->edl->session->time_format == TIME_SAMPLES, 
 		x, 
 		y));
-	y += 20;
+	y += DP(20);
 	add_subwindow(hex = new TimeFormatHex(pwindow, 
 		this, 
 		pwindow->thread->edl->session->time_format == TIME_SAMPLES_HEX, 
 		x, 
 		y));
-	y += 20;
+	y += DP(20);
 	add_subwindow(frames = new TimeFormatFrames(pwindow, 
 		this, 
 		pwindow->thread->edl->session->time_format == TIME_FRAMES, 
 		x, 
 		y));
-	y += 20;
+	y += DP(20);
 	int x1 = x;
 	add_subwindow(feet = new TimeFormatFeet(pwindow, 
 		this, 
@@ -107,9 +108,9 @@ void InterfacePrefs::create_objects()
 	sprintf(string, "%0.2f", pwindow->thread->edl->session->frames_per_foot);
 	add_subwindow(new TimeFormatFeetSetting(pwindow, 
 		x1, 
-		y - 5, 
+		y - DP(5), 
 		string));
-	y += 20;
+	y += DP(20);
 	add_subwindow(seconds = new TimeFormatSeconds(pwindow, 
 		this, 
 		pwindow->thread->edl->session->time_format == TIME_SECONDS, 
@@ -117,111 +118,123 @@ void InterfacePrefs::create_objects()
 		y));
 
 
-	y += 35;
+	y += DP(35);
 	add_subwindow(new UseTipWindow(pwindow, x, y));
 
-	y += 35;
-	add_subwindow(new BC_Bar(5, y, 	get_w() - 10));
-	y += 5;
+	y += DP(35);
+	add_subwindow(new BC_Bar(margin, y, get_w() - margin * 2));
+	y += margin;
 
 	add_subwindow(new BC_Title(x, y, _("Index files"), LARGEFONT, resources->text_default));
 
 
-	y += 35;
+	y += DP(35);
+	int x2 = x + DP(250);
 	add_subwindow(new BC_Title(x, 
-		y + 5, 
+		y + DP(5), 
 		_("Index files go here:"), MEDIUMFONT, resources->text_default));
-	add_subwindow(ipathtext = new IndexPathText(x + 230, 
+	add_subwindow(ipathtext = new IndexPathText(x2, 
 		y, 
 		pwindow, 
-		pwindow->thread->preferences->index_directory));
-	add_subwindow(ipath = new BrowseButton(mwindow,
+		&pwindow->thread->preferences->index_directory));
+	add_subwindow(ipath = new BrowseButton(mwindow->theme,
 		this,
 		ipathtext, 
-		x + 230 + ipathtext->get_w(), 
+		x2 + ipathtext->get_w(), 
 		y, 
-		pwindow->thread->preferences->index_directory,
+		pwindow->thread->preferences->index_directory.c_str(),
 		_("Index Path"), 
 		_("Select the directory for index files"),
 		1));
 
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, 
-		y + 5, 
+		y + DP(5), 
 		_("Size of index file:"), 
 		MEDIUMFONT, 
 		resources->text_default));
 	sprintf(string, "%ld", pwindow->thread->preferences->index_size);
-	add_subwindow(isize = new IndexSize(x + 230, y, pwindow, string));
-	y += 30;
-	add_subwindow(new BC_Title(x, y + 5, _("Number of index files to keep:"), MEDIUMFONT, resources->text_default));
+	add_subwindow(isize = new IndexSize(x2, y, pwindow, string));
+	y += DP(30);
+	add_subwindow(new BC_Title(x, y + DP(5), _("Number of index files to keep:"), MEDIUMFONT, resources->text_default));
 	sprintf(string, "%ld", (long)pwindow->thread->preferences->index_count);
-	add_subwindow(icount = new IndexCount(x + 230, y, pwindow, string));
-	add_subwindow(deleteall = new DeleteAllIndexes(mwindow, pwindow, 350, y));
+	add_subwindow(icount = new IndexCount(x2, y, pwindow, string));
+	
+	add_subwindow(deleteall = new DeleteAllIndexes(mwindow, pwindow, x2 + icount->get_w() + margin, y));
 
 
 
 
 
-	y += 35;
-	add_subwindow(new BC_Bar(5, y, 	get_w() - 10));
-	y += 5;
+	y += DP(35);
+	add_subwindow(new BC_Bar(margin, y, 	get_w() - margin * 2));
+	y += margin;
 
 	add_subwindow(new BC_Title(x, y, _("Editing"), LARGEFONT, resources->text_default));
 
 
-	y += 35;
-	add_subwindow(thumbnails = new ViewThumbnails(x, y, pwindow));
+//	y += 35;
+//	add_subwindow(thumbnails = new ViewThumbnails(x, y, pwindow));
 
-	y += 35;
-	add_subwindow(new BC_Title(x, y, _("Clicking on edit boundaries does what:")));
-	y += 25;
-	add_subwindow(new BC_Title(x, y, _("Button 1:")));
-	
-	ViewBehaviourText *text;
-	add_subwindow(text = new ViewBehaviourText(80, 
-		y - 5, 
-		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[0]), 
-			pwindow, 
-			&(pwindow->thread->edl->session->edit_handle_mode[0])));
-	text->create_objects();
-	y += 30;
-	add_subwindow(new BC_Title(x, y, _("Button 2:")));
-	add_subwindow(text = new ViewBehaviourText(80, 
-		y - 5, 
-		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[1]), 
-			pwindow, 
-			&(pwindow->thread->edl->session->edit_handle_mode[1])));
-	text->create_objects();
-	y += 30;
-	add_subwindow(new BC_Title(x, y, _("Button 3:")));
-	add_subwindow(text = new ViewBehaviourText(80, 
-		y - 5, 
-		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[2]), 
-			pwindow, 
-			&(pwindow->thread->edl->session->edit_handle_mode[2])));
-	text->create_objects();
+//	y += DP(35);
+// 	add_subwindow(new BC_Title(x, y, _("Clicking on edit boundaries does what:")));
+// 	y += DP(25);
+// 	add_subwindow(new BC_Title(x, y, _("Button 1:")));
+// 	
+// 	ViewBehaviourText *text;
+// 	add_subwindow(text = new ViewBehaviourText(DP(80), 
+// 		y - DP(5), 
+// 		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[0]), 
+// 			pwindow, 
+// 			&(pwindow->thread->edl->session->edit_handle_mode[0])));
+// 	text->create_objects();
+// 	y += DP(30);
+// 	add_subwindow(new BC_Title(x, y, _("Button 2:")));
+// 	add_subwindow(text = new ViewBehaviourText(DP(80), 
+// 		y - DP(5), 
+// 		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[1]), 
+// 			pwindow, 
+// 			&(pwindow->thread->edl->session->edit_handle_mode[1])));
+// 	text->create_objects();
+// 	y += DP(30);
+// 	add_subwindow(new BC_Title(x, y, _("Button 3:")));
+// 	add_subwindow(text = new ViewBehaviourText(DP(80), 
+// 		y - DP(5), 
+// 		behavior_to_text(pwindow->thread->edl->session->edit_handle_mode[2]), 
+// 			pwindow, 
+// 			&(pwindow->thread->edl->session->edit_handle_mode[2])));
+// 	text->create_objects();
 
-	y += 40;
+	y += DP(40);
 	x1 = x;
-	add_subwindow(title = new BC_Title(x, y + 5, _("Min DB for meter:")));
-	x += title->get_w() + 10;
+	add_subwindow(title = new BC_Title(x, y + DP(5), _("Min DB for meter:")));
+	x += title->get_w() + margin * 2;
 	sprintf(string, "%d", pwindow->thread->edl->session->min_meter_db);
 	add_subwindow(min_db = new MeterMinDB(pwindow, string, x, y));
 
-	x += min_db->get_w() + 10;
-	add_subwindow(title = new BC_Title(x, y + 5, _("Max DB:")));
-	x += title->get_w() + 10;
+	x += min_db->get_w() + margin * 2;
+	add_subwindow(title = new BC_Title(x, y + DP(5), _("Max DB:")));
+	x += title->get_w() + margin * 2;
 	sprintf(string, "%d", pwindow->thread->edl->session->max_meter_db);
 	add_subwindow(max_db = new MeterMaxDB(pwindow, string, x, y));
 
 	x = x1;
-	y += 30;
+	y += DP(30);
 	ViewTheme *theme;
 	add_subwindow(new BC_Title(x, y, _("Theme:")));
-	x += 60;
+	x += DP(60);
 	add_subwindow(theme = new ViewTheme(x, y, pwindow));
 	theme->create_objects();
+
+
+	x = x1;
+	y += theme->get_h() + margin;
+	BC_CheckBox *checkbox;
+	add_subwindow(checkbox = new OverrideDPI(pwindow, x, y));
+	y += checkbox->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("DPI:")));
+	x += title->get_w() + margin;
+	add_subwindow(new DPIText(pwindow, x, y, DP(100)));
 
 }
 
@@ -272,7 +285,7 @@ InterfacePrefs::~InterfacePrefs()
 	delete max_db;
 //	delete vu_db;
 //	delete vu_int;
-	delete thumbnails;
+//	delete thumbnails;
 }
 
 
@@ -293,8 +306,8 @@ InterfacePrefs::~InterfacePrefs()
 IndexPathText::IndexPathText(int x, 
 	int y, 
 	PreferencesWindow *pwindow, 
-	char *text)
- : BC_TextBox(x, y, 240, 1, text)
+	string *text)
+ : BC_TextBox(x, y, DP(240), 1, text)
 {
 	this->pwindow = pwindow; 
 }
@@ -303,7 +316,7 @@ IndexPathText::~IndexPathText() {}
 
 int IndexPathText::handle_event()
 {
-	strcpy(pwindow->thread->preferences->index_directory, get_text());
+	pwindow->thread->preferences->index_directory.assign(get_text());
 }
 
 
@@ -313,7 +326,7 @@ IndexSize::IndexSize(int x,
 	int y, 
 	PreferencesWindow *pwindow, 
 	char *text)
- : BC_TextBox(x, y, 100, 1, text)
+ : BC_TextBox(x, y, DP(100), 1, text)
 { 
 	this->pwindow = pwindow; 
 }
@@ -335,7 +348,7 @@ IndexCount::IndexCount(int x,
 	int y, 
 	PreferencesWindow *pwindow, 
 	char *text)
- : BC_TextBox(x, y, 100, 1, text)
+ : BC_TextBox(x, y, DP(100), 1, text)
 { 
 	this->pwindow = pwindow; 
 }
@@ -432,7 +445,7 @@ int TimeFormatFeet::handle_event()
 }
 
 TimeFormatFeetSetting::TimeFormatFeetSetting(PreferencesWindow *pwindow, int x, int y, char *string)
- : BC_TextBox(x, y, 90, 1, string)
+ : BC_TextBox(x, y, DP(90), 1, string)
 { this->pwindow = pwindow; }
 
 int TimeFormatFeetSetting::handle_event()
@@ -450,7 +463,7 @@ ViewBehaviourText::ViewBehaviourText(int x,
 	const char *text, 
 	PreferencesWindow *pwindow, 
 	int *output)
- : BC_PopupMenu(x, y, 200, text)
+ : BC_PopupMenu(x, y, DP(200), text)
 {
 	this->output = output;
 }
@@ -494,7 +507,7 @@ int ViewBehaviourItem::handle_event()
 
 
 MeterMinDB::MeterMinDB(PreferencesWindow *pwindow, char *text, int x, int y)
- : BC_TextBox(x, y, 50, 1, text)
+ : BC_TextBox(x, y, DP(50), 1, text)
 { 
 	this->pwindow = pwindow; 
 }
@@ -510,7 +523,7 @@ int MeterMinDB::handle_event()
 
 
 MeterMaxDB::MeterMaxDB(PreferencesWindow *pwindow, char *text, int x, int y)
- : BC_TextBox(x, y, 50, 1, text)
+ : BC_TextBox(x, y, DP(50), 1, text)
 { 
 	this->pwindow = pwindow; 
 }
@@ -527,7 +540,7 @@ int MeterMaxDB::handle_event()
 
 
 MeterVUDB::MeterVUDB(PreferencesWindow *pwindow, char *text, int y)
- : BC_Radial(145, y, pwindow->thread->edl->session->meter_format == METER_DB, text)
+ : BC_Radial(DP(145), y, pwindow->thread->edl->session->meter_format == METER_DB, text)
 { 
 	this->pwindow = pwindow; 
 }
@@ -541,7 +554,7 @@ int MeterVUDB::handle_event()
 }
 
 MeterVUInt::MeterVUInt(PreferencesWindow *pwindow, char *text, int y)
- : BC_Radial(205, y, pwindow->thread->edl->session->meter_format == METER_INT, text)
+ : BC_Radial(DP(205), y, pwindow->thread->edl->session->meter_format == METER_INT, text)
 { 
 	this->pwindow = pwindow; 
 }
@@ -558,7 +571,7 @@ int MeterVUInt::handle_event()
 
 
 ViewTheme::ViewTheme(int x, int y, PreferencesWindow *pwindow)
- : BC_PopupMenu(x, y, 200, pwindow->thread->preferences->theme, 1)
+ : BC_PopupMenu(x, y, DP(200), pwindow->thread->preferences->theme, 1)
 {
 	this->pwindow = pwindow;
 }
@@ -605,21 +618,21 @@ int ViewThemeItem::handle_event()
 	return 1;
 }
 
-ViewThumbnails::ViewThumbnails(int x, 
-	int y, 
-	PreferencesWindow *pwindow)
- : BC_CheckBox(x, 
- 	y, 
-	pwindow->thread->preferences->use_thumbnails, _("Use thumbnails in resource window"))
-{
-	this->pwindow = pwindow;
-}
-
-int ViewThumbnails::handle_event()
-{
-	pwindow->thread->preferences->use_thumbnails = get_value();
-	return 1;
-}
+// ViewThumbnails::ViewThumbnails(int x, 
+// 	int y, 
+// 	PreferencesWindow *pwindow)
+//  : BC_CheckBox(x, 
+//  	y, 
+// 	pwindow->thread->preferences->use_thumbnails, _("Use thumbnails in resource window"))
+// {
+// 	this->pwindow = pwindow;
+// }
+// 
+// int ViewThumbnails::handle_event()
+// {
+// 	pwindow->thread->preferences->use_thumbnails = get_value();
+// 	return 1;
+// }
 
 
 
@@ -636,6 +649,48 @@ int UseTipWindow::handle_event()
 	pwindow->thread->preferences->use_tipwindow = get_value();
 	return 1;
 }
+
+
+
+
+
+
+OverrideDPI::OverrideDPI(PreferencesWindow *pwindow, int x, int y)
+ : BC_CheckBox(x, y, pwindow->thread->preferences->override_dpi, _("Override DPI"))
+{
+	this->pwindow = pwindow;
+}
+
+int OverrideDPI::handle_event()
+{
+	pwindow->thread->preferences->override_dpi = get_value();
+	return 1;
+}
+
+
+
+
+
+
+DPIText::DPIText(PreferencesWindow *pwindow, int x, int y, int w)
+ : BC_TextBox(x, y, w, 1, pwindow->thread->preferences->dpi)
+{
+	this->pwindow = pwindow;
+}
+
+int DPIText::handle_event()
+{
+	pwindow->thread->preferences->dpi = atoi(get_text());
+	CLAMP(pwindow->thread->preferences->dpi, 72, 500);
+	return 1;
+}
+
+
+
+
+
+
+
 
 
 

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +33,10 @@
 
 DespikeWindow::DespikeWindow(Despike *despike)
  : PluginClientWindow(despike, 
-	230, 
-	110, 
-	230, 
-	110, 
+	DP(230), 
+	DP(110), 
+	DP(230), 
+	DP(110), 
 	0)
 { 
 	this->despike = despike; 
@@ -48,16 +48,15 @@ DespikeWindow::~DespikeWindow()
 
 void DespikeWindow::create_objects()
 {
-	int x = 10, y = 10;
-	add_tool(new BC_Title(5, y, _("Maximum level:")));
-	y += 20;
+	int x = DP(10), y = DP(10);
+	add_tool(new BC_Title(DP(5), y, _("Maximum level:")));
+	y += DP(20);
 	add_tool(level = new DespikeLevel(despike, x, y));
-	y += 30;
-	add_tool(new BC_Title(5, y, _("Maximum rate of change:")));
-	y += 20;
+	y += DP(30);
+	add_tool(new BC_Title(DP(5), y, _("Maximum rate of change:")));
+	y += DP(20);
 	add_tool(slope = new DespikeSlope(despike, x, y));
 	show_window();
-	flush();
 }
 
 
@@ -68,8 +67,8 @@ DespikeLevel::DespikeLevel(Despike *despike, int x, int y)
  : BC_FSlider(x, 
  	y, 
 	0,
-	200,
-	200,
+	DP(200),
+	DP(200),
 	INFINITYGAIN, 
 	0,
 	despike->config.level)
@@ -87,8 +86,8 @@ DespikeSlope::DespikeSlope(Despike *despike, int x, int y)
  : BC_FSlider(x, 
  	y, 
 	0,
-	200,
-	200,
+	DP(200),
+	DP(200),
 	INFINITYGAIN, 
 	0,
 	despike->config.slope)

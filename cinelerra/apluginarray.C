@@ -85,7 +85,7 @@ void APluginArray::process_realtime(int module, int64_t input_position, int64_t 
 			input_position, 
 			len,
 			edl->session->sample_rate,
-			0,
+			end - start,
 			PLAY_FORWARD);
 }
 

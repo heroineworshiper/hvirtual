@@ -107,16 +107,17 @@ SET_TRACE
 
 
 SET_TRACE
-		char index_filename[BCTEXTLEN];
-		char source_filename[BCTEXTLEN];
+		string index_filename;
+		string source_filename;
+        string path(indexable->path);
 SET_TRACE
-		IndexFile::get_index_filename(source_filename, 
-			mwindow->preferences->index_directory, 
-			index_filename, 
-			indexable->path);
+		IndexFile::get_index_filename(&source_filename, 
+			&mwindow->preferences->index_directory, 
+			&index_filename, 
+			&path);
 
 SET_TRACE
-		if(this_file && !this_file->get_index(index_filename))
+		if(this_file /* && !this_file->get_index((char*)index_filename.c_str()) */)
 		{
 SET_TRACE
 			if(!indexfile.open_index())

@@ -24,6 +24,7 @@
 
 #include "clip.h"
 #include "interpolatevideo.h"
+#include "motioncache.h"
 #include "motionscan.h"
 #include "opticflow.h"
 
@@ -95,6 +96,8 @@ void OpticFlowUnit::process_package(LoadPackage *package)
 	if(!motion) motion = new MotionScan(1, 1);
 
 	motion->set_test_match(0);
+	motion->set_cache(server->downsample_cache);
+	
 // printf("OpticFlowUnit::process_package %d %d %d\n",
 // __LINE__,
 // pkg->macroblock0,
@@ -103,15 +106,16 @@ void OpticFlowUnit::process_package(LoadPackage *package)
 	for(int i = pkg->macroblock0; i < pkg->macroblock1; i++)
 	{
 		OpticFlowMacroblock *mb = plugin->macroblocks.get(i);
+//printf("OpticFlowUnit::process_package %d i=%d x=%d y=%d\n", __LINE__, i, mb->x, mb->y);
 		motion->scan_frame(plugin->frames[0],
 // Frame after motion
 			plugin->frames[1],
-			100 * plugin->config.search_radius / w,
-			100 * plugin->config.search_radius / h,
-			100 * plugin->config.macroblock_size / w,
-			100 * plugin->config.macroblock_size / h,
-			100 * mb->x / w,
-			100 * mb->y / h,
+			plugin->config.search_radius,
+			plugin->config.search_radius,
+			plugin->config.macroblock_size,
+			plugin->config.macroblock_size,
+			mb->x,
+			mb->y,
 			MotionScan::TRACK_PREVIOUS,
 			MotionScan::CALCULATE,
 // Get it to do the subpixel step
@@ -119,18 +123,15 @@ void OpticFlowUnit::process_package(LoadPackage *package)
 			0,
 			0,
 			0,
-			MIN(MAX_SEARCH_STEPS, plugin->config.search_radius * plugin->config.search_radius),
 			0,
+			0,
+			0,
+			0,
+			1,
 			0,
 			0,
 			0);
-// Degrees from center to maximum angle
-//			0, 
-// Accumulated angle from previous frames
-//			0,
-// Total number of angles to test in each pass
-//			0,
-//			0);
+//printf("OpticFlowUnit::process_package 2\n", __LINE__);
 
 
 		mb->dx = motion->dx_result;
@@ -161,21 +162,39 @@ OpticFlow::OpticFlow(InterpolateVideo *plugin,
 	total_packages)
 {
 	this->plugin = plugin;
+	downsample_cache = 0;
 }
 
 
 OpticFlow::~OpticFlow()
 {
+	if(downsample_cache)
+	{
+//printf("OpticFlow::~OpticFlow %d %p\n", __LINE__, downsample_cache);
+		delete downsample_cache;
+	}
 }
 
 void OpticFlow::init_packages()
 {
-//printf("OpticFlow::init_packages %d %d\n", __LINE__, get_total_packages());
+	if(!downsample_cache)
+	{
+		downsample_cache = new MotionCache();
+	}
+	
+	downsample_cache->clear();
+
 	for(int i = 0; i < get_total_packages(); i++)
 	{
 		OpticFlowPackage *pkg = (OpticFlowPackage*)get_package(i);
 		pkg->macroblock0 = plugin->total_macroblocks * i / get_total_packages();
 		pkg->macroblock1 = plugin->total_macroblocks * (i + 1) / get_total_packages();
+// printf("OpticFlow::init_packages %d %d %d %d %d\n", 
+// __LINE__, 
+// plugin->total_macroblocks,
+// get_total_packages(),
+// pkg->macroblock0,
+// pkg->macroblock1);
 	}
 }
 
