@@ -71,6 +71,7 @@ HistogramMain::HistogramMain(PluginServer *server)
 	for(int i = 0; i < HISTOGRAM_MODES; i++)
 	{
 		lookup[i] = 0;
+		lookup16[i] = 0;
 		accum[i] = 0;
 		preview_lookup[i] = 0;
 	}
@@ -90,6 +91,7 @@ HistogramMain::~HistogramMain()
 	for(int i = 0; i < HISTOGRAM_MODES;i++)
 	{
 		delete [] lookup[i];
+		delete [] lookup16[i];
 		delete [] accum[i];
 		delete [] preview_lookup[i];
 	}
@@ -460,6 +462,7 @@ int HistogramMain::calculate_use_opengl()
 // glHistogram doesn't work.
 	int result = get_use_opengl() &&
 		!config.automatic && 
+        !config.automatic_v && 
 		(!config.plot || !gui_open());
 	return result;
 }
@@ -475,24 +478,12 @@ int HistogramMain::process_buffer(VFrame *frame,
 
 	int use_opengl = calculate_use_opengl();
 
-//printf("%d\n", use_opengl);
+//printf("HistogramMain::process_buffer %d: %d\n", __LINE__, use_opengl);
 	read_frame(frame, 
 		0, 
 		start_position, 
 		frame_rate,
 		use_opengl);
-
-// Apply histogram in hardware
-	if(use_opengl) return run_opengl();
-
-	if(!engine) engine = new HistogramEngine(this,
-		get_project_smp() + 1,
-		get_project_smp() + 1);
-	this->input = frame;
-	this->output = frame;
-// Always plot to set the curves if automatic
-	if(config.plot || config.automatic) send_render_gui(frame, 1);
-
 // Generate tables here.  The same table is used by many packages to render
 // each horizontal stripe.  Need to cover the entire output range in  each
 // table to avoid green borders
@@ -500,6 +491,7 @@ int HistogramMain::process_buffer(VFrame *frame,
 
 	if(need_reconfigure || 
 		!lookup[0] || 
+		!lookup16[0] || 
 		config.automatic ||
         config.automatic_v)
 	{
@@ -516,6 +508,18 @@ int HistogramMain::process_buffer(VFrame *frame,
         	tabulate_curve(i, 1);
         }
 	}
+
+// Apply histogram in hardware
+	if(use_opengl) return run_opengl();
+
+	if(!engine) engine = new HistogramEngine(this,
+		get_project_smp() + 1,
+		get_project_smp() + 1);
+	this->input = frame;
+	this->output = frame;
+// Always plot to set the curves if automatic
+	if(config.plot || config.automatic) send_render_gui(frame, 1);
+
 
 // printf("HistogramMain::process_buffer %d %f %f %f  %f %f %f  %f %f %f\n", 
 // __LINE__, 
@@ -543,6 +547,8 @@ void HistogramMain::tabulate_curve(int subscript, int use_value)
 	int i;
 	if(!lookup[subscript])
 		lookup[subscript] = new int[HISTOGRAM_SLOTS];
+	if(!lookup16[subscript])
+		lookup16[subscript] = new int[HISTOGRAM_SLOTS];
 	if(!preview_lookup[subscript])
 		preview_lookup[subscript] = new int[HISTOGRAM_SLOTS];
 
@@ -550,38 +556,26 @@ void HistogramMain::tabulate_curve(int subscript, int use_value)
 
 
 // Generate lookup tables for integer colormodels
-	if(input)
+	for(i = 0; i < 256; i++)
 	{
-		switch(input->get_color_model())
-		{
-			case BC_RGB888:
-			case BC_RGBA8888:
-				for(i = 0; i < 0x100; i++)
-				{
-					lookup[subscript][i] = 
-						(int)(calculate_level((float)i / 0xff, subscript, use_value) * 
-						0xff);
-					CLAMP(lookup[subscript][i], 0, 0xff);
-				}
-				break;
-// All other integer colormodels are converted to 16 bit RGB
-			default:
-				for(i = 0; i < 0x10000; i++)
-				{
-					lookup[subscript][i] = 
-						(int)(calculate_level((float)i / 0xffff, subscript, use_value) * 
-						0xffff);
-					CLAMP(lookup[subscript][i], 0, 0xffff);
-				}
+		lookup[subscript][i] = 
+			(int)(calculate_level((float)i / 0xff, subscript, use_value) * 
+			0xff);
+		CLAMP(lookup[subscript][i], 0, 0xff);
+	}
+
+	for(i = 0; i < 65536; i++)
+	{
+		lookup16[subscript][i] = 
+			(int)(calculate_level((float)i / 0xffff, subscript, use_value) * 
+			0xffff);
+		CLAMP(lookup16[subscript][i], 0, 0xffff);
+	}
 // for(i = 0; i < 0x100; i++)
 // {
 // if(subscript == HISTOGRAM_BLUE) printf("%d ", lookup[subscript][i * 0x100]);
 // }
 // if(subscript == HISTOGRAM_BLUE) printf("\n");
-
-				break;
-		}
-	}
 
 // Lookup table for preview only used for GUI
 	if(!use_value)
@@ -619,6 +613,9 @@ int HistogramMain::handle_opengl()
 		"uniform vec4 gamma;\n"
 		"uniform vec4 low_output;\n"
 		"uniform vec4 output_scale;\n"
+		"uniform int lookup_r[256];\n"
+		"uniform int lookup_g[256];\n"
+		"uniform int lookup_b[256];\n"
 		"void main()\n"
 		"{\n"
 		"	float temp = 0.0;\n";
@@ -639,7 +636,12 @@ int HistogramMain::handle_opengl()
 
 
 
-	static const char *apply_histogram_frag = 
+	static const char *apply_lut_frag = 
+        "   pixel.r = float(lookup_r[int(pixel.r * 255.0)]) / 255.0;\n"
+        "   pixel.g = float(lookup_g[int(pixel.g * 255.0)]) / 255.0;\n"
+        "   pixel.b = float(lookup_b[int(pixel.b * 255.0)]) / 255.0;\n";
+
+	static const char *apply_float_frag = 
 		APPLY_INPUT_CURVE("pixel.r", "low_input.r", "high_input.r", "gamma.r")
 		APPLY_INPUT_CURVE("pixel.g", "low_input.g", "high_input.g", "gamma.g")
 		APPLY_INPUT_CURVE("pixel.b", "low_input.b", "high_input.b", "gamma.b")
@@ -738,19 +740,35 @@ int HistogramMain::handle_opengl()
 	unsigned int shader = 0;
 	switch(get_output()->get_color_model())
 	{
+        case BC_RGB888:
+        case BC_RGBA8888:
+			shader_stack[current_shader++] = head_frag;
+			shader_stack[current_shader++] = get_rgb_frag;
+			shader_stack[current_shader++] = apply_lut_frag;
+			shader_stack[current_shader++] = put_rgb_frag;
+            break;
+    
+    
 		case BC_YUV888:
 		case BC_YUVA8888:
 			shader_stack[current_shader++] = head_frag;
 			shader_stack[current_shader++] = get_yuv_frag;
-			shader_stack[current_shader++] = apply_histogram_frag;
+			shader_stack[current_shader++] = apply_lut_frag;
 			shader_stack[current_shader++] = put_yuv_frag;
 			break;
-		default:
+        
+		case BC_RGB_FLOAT:
+        case BC_RGBA_FLOAT:
 			shader_stack[current_shader++] = head_frag;
 			shader_stack[current_shader++] = get_rgb_frag;
-			shader_stack[current_shader++] = apply_histogram_frag;
+			shader_stack[current_shader++] = apply_float_frag;
 			shader_stack[current_shader++] = put_rgb_frag;
 			break;
+        
+        default:
+            printf("HistogramMain::handle_opengl %d unsupported color model\n", 
+                __LINE__);
+            break;
 	}
 
 	shader = VFrame::make_shader(0,
@@ -813,6 +831,9 @@ int HistogramMain::handle_opengl()
 		glUniform4fv(glGetUniformLocation(shader, "gamma"), 1, gamma);
 		glUniform4fv(glGetUniformLocation(shader, "low_output"), 1, low_output);
 		glUniform4fv(glGetUniformLocation(shader, "output_scale"), 1, output_scale);
+        glUniform1iv(glGetUniformLocation(shader, "lookup_r"), 256, lookup[0]);
+        glUniform1iv(glGetUniformLocation(shader, "lookup_g"), 256, lookup[1]);
+        glUniform1iv(glGetUniformLocation(shader, "lookup_b"), 256, lookup[2]);
 	}
 
 	get_output()->init_screen();
@@ -1025,36 +1046,6 @@ void HistogramUnit::process_package(LoadPackage *package)
 				plugin->yuv.yuv_to_rgb_16(r, g, b, y, u, v);
 				HISTOGRAM_TAIL(4)
 				break;
-			case BC_RGB161616:
-				HISTOGRAM_HEAD(uint16_t)
-				r = row[0];
-				g = row[1];
-				b = row[2];
-				HISTOGRAM_TAIL(3)
-				break;
-			case BC_YUV161616:
-				HISTOGRAM_HEAD(uint16_t)
-				y = row[0];
-				u = row[1];
-				v = row[2];
-				plugin->yuv.yuv_to_rgb_16(r, g, b, y, u, v);
-				HISTOGRAM_TAIL(3)
-				break;
-			case BC_RGBA16161616:
-				HISTOGRAM_HEAD(uint16_t)
-				r = row[0];
-				g = row[1];
-				b = row[2];
-				HISTOGRAM_TAIL(3)
-				break;
-			case BC_YUVA16161616:
-				HISTOGRAM_HEAD(uint16_t)
-				y = row[0];
-				u = row[1];
-				v = row[2];
-				plugin->yuv.yuv_to_rgb_16(r, g, b, y, u, v);
-				HISTOGRAM_TAIL(4)
-				break;
 		}
 	}
 	else
@@ -1164,6 +1155,13 @@ void HistogramUnit::process_package(LoadPackage *package)
 		int *lookup_r = plugin->lookup[0];
 		int *lookup_g = plugin->lookup[1];
 		int *lookup_b = plugin->lookup[2];
+        if(input->get_color_model() == BC_YUV888 ||
+            input->get_color_model() == BC_YUVA8888)
+        {
+		    lookup_r = plugin->lookup16[0];
+		    lookup_g = plugin->lookup16[1];
+		    lookup_b = plugin->lookup16[2];
+        }
 		int r, g, b, y, u, v, a;
 		switch(input->get_color_model())
 		{
@@ -1179,23 +1177,11 @@ void HistogramUnit::process_package(LoadPackage *package)
 			case BC_RGBA_FLOAT:
 				PROCESS_FLOAT(4);
 				break;
-			case BC_RGB161616:
-				PROCESS(uint16_t, 3)
-				break;
-			case BC_RGBA16161616:
-				PROCESS(uint16_t, 4)
-				break;
 			case BC_YUV888:
 				PROCESS_YUV(unsigned char, 3, 0xff)
 				break;
 			case BC_YUVA8888:
 				PROCESS_YUV(unsigned char, 4, 0xff)
-				break;
-			case BC_YUV161616:
-				PROCESS_YUV(uint16_t, 3, 0xffff)
-				break;
-			case BC_YUVA16161616:
-				PROCESS_YUV(uint16_t, 4, 0xffff)
 				break;
 		}
 	}

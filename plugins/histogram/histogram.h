@@ -69,6 +69,8 @@ public:
 	VFrame *input, *output;
 	HistogramEngine *engine;
 	int *lookup[HISTOGRAM_MODES];
+// software YUV uses a 16 bit intermediate
+	int *lookup16[HISTOGRAM_MODES];
 // No value applied to this
 	int *preview_lookup[HISTOGRAM_MODES];
 	int *accum[HISTOGRAM_MODES];
