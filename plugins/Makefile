@@ -27,6 +27,7 @@ DIRS = \
 	compressor \
         compressormulti \
 	crossfade \
+        cubemap \
 	dcoffset \
 	decimate \
 	deinterlace \

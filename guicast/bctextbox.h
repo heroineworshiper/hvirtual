@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,46 @@ class BC_TextMenu;
 
 using std::string;
 
+
+class BC_TextBoxUndo : public ListItem<BC_TextBoxUndo>
+{
+public:
+    BC_TextBoxUndo();
+    ~BC_TextBoxUndo();
+    
+// transfer the state
+    void to_textbox(BC_TextBox *textbox);
+    void from_textbox(BC_TextBox *textbox);
+    
+    int highlight_letter1;
+    int highlight_letter2;
+    int ibeam_letter;
+    int text_x;
+    int text_y;
+    string text;
+};
+
+class BC_TextBoxUndos : public List<BC_TextBoxUndo>
+{
+public:
+    BC_TextBoxUndos();
+    ~BC_TextBoxUndos();
+    
+// Create a new undo entry and put on the stack.
+// The current pointer points to the new entry.
+// delete future undos if in the middle
+// delete undos older than UNDOLEVELS if last
+ 	BC_TextBoxUndo* push();
+// move to the previous undo entry
+	void pull();
+// move to the next undo entry for a redo
+	BC_TextBoxUndo* pull_next();
+   
+    void dump();
+
+    
+	BC_TextBoxUndo* current;
+};
 
 class BC_TextBox : public BC_SubWindow
 {
@@ -87,6 +127,9 @@ public:
 
 
 	friend class BC_TextBoxSuggestions;
+    friend class BC_TextBoxUndo;
+    friend class BC_TextBoxUndos;
+    friend class BC_TextMenu;
 
 
 // Whenever the contents of the text change
@@ -100,6 +143,8 @@ public:
 	void disable();
 	void enable();
     void set_read_only(int value);
+// has to be called in the constructor
+    void enable_undo();
 	int get_enabled();
 	int get_rows();
 
@@ -151,6 +196,12 @@ public:
 // If entries is null, just search absolute paths
 	int calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries);
 
+// push the current state
+   void update_undo();
+// erase all levels & push the current state
+   void reset_undo();
+   void undo();
+   void redo();
 
 // User computes suggestions after handle_event.
 // The array is copied to a local variable.
@@ -202,6 +253,7 @@ private:
 	int highlighted;
 	int high_color, back_color;
 	int background_color;
+// the text    
 	string text;
 	char temp_string[KEYPRESSLEN];
 	int active;
@@ -218,6 +270,8 @@ private:
 	ArrayList<BC_ListBoxItem*> *suggestions;
 	BC_TextBoxSuggestions *suggestions_popup;
 	int suggestion_column;
+    int undo_enabled;
+    BC_TextBoxUndos undos;
 };
 
 
@@ -262,6 +316,7 @@ public:
 	int get_w();
 // Visible rows for resizing
 	int get_rows();
+    void enable_undo();
 
 	friend class BC_ScrollTextBoxText;
 	friend class BC_ScrollTextBoxYScroll;
@@ -272,6 +327,7 @@ private:
 	BC_WindowBase *parent_window;
 	const char *default_text;
 	int x, y, w, rows;
+    int undo_enabled;
 };
 
 class BC_ScrollTextBoxText : public BC_TextBox
@@ -443,6 +499,9 @@ public:
 
 class BC_TextMenuCut;
 class BC_TextMenuPaste;
+class BC_TextMenuUndo;
+class BC_TextMenuRedo;
+
 class BC_TextMenu : public BC_PopupMenu
 {
 public:
@@ -452,8 +511,26 @@ public:
 	void create_objects();
 	
 	BC_TextBox *textbox;
+    BC_TextMenuUndo *undo;
+    BC_TextMenuRedo *redo;
     BC_TextMenuCut *cut;
     BC_TextMenuPaste *paste;
+};
+
+class BC_TextMenuUndo : public BC_MenuItem
+{
+public:
+	BC_TextMenuUndo(BC_TextMenu *menu);
+	int handle_event();
+	BC_TextMenu *menu;
+};
+
+class BC_TextMenuRedo : public BC_MenuItem
+{
+public:
+	BC_TextMenuRedo(BC_TextMenu *menu);
+	int handle_event();
+	BC_TextMenu *menu;
 };
 
 class BC_TextMenuCut : public BC_MenuItem

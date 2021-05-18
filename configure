@@ -247,19 +247,17 @@ if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
 
 
-echo CONFIGURING SPEECH TOOLS
-cd thirdparty/speech_tools && \
-./configure && \
-cd ../..
+#echo CONFIGURING SPEECH TOOLS
+#cd thirdparty/speech_tools && \
+#./configure && \
+#cd ../..
+#if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
-if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
-
-echo CONFIGURING FESTIVAL
-cd thirdparty/festival && \
-./configure && \
-cd ../..
-
-if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+#echo CONFIGURING FESTIVAL
+#cd thirdparty/festival && \
+#./configure && \
+#cd ../..
+#if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
 
 # write configuration header

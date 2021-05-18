@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -759,51 +759,74 @@ TitleSizeTumble::TitleSizeTumble(TitleMain *client, TitleWindow *window, int x, 
 
 int TitleSizeTumble::handle_up_event()
 {
-	int current_index = -1;
-	int current_difference = -1;
-	for(int i = 0; i < window->sizes.size(); i++)
-	{
-		int size = atoi(window->sizes.get(i)->get_text());
-		if(current_index < 0 ||
-			abs(size - client->config.size) < current_difference)
-		{
-			current_index = i;
-			current_difference = abs(size - client->config.size);
-		}
-	}
+// increment size by 1
+    int max_size = atoi(window->sizes.get(window->sizes.size() - 1)->get_text());
+    if(client->config.size < max_size)
+    {
+        client->config.size++;
+	    window->size->update(client->config.size);
+	    client->send_configure_change();
+    }
 
-	current_index++;
-	if(current_index >= window->sizes.size()) current_index = 0;
-	
-	
-	client->config.size = atoi(window->sizes.get(current_index)->get_text());
-	window->size->update(client->config.size);
-	client->send_configure_change();
+// look up next size
+// 	int current_index = -1;
+// 	int current_difference = -1;
+// 	for(int i = 0; i < window->sizes.size(); i++)
+// 	{
+// 		int size = atoi(window->sizes.get(i)->get_text());
+// 		if(current_index < 0 ||
+// 			abs(size - client->config.size) < current_difference)
+// 		{
+// 			current_index = i;
+// 			current_difference = abs(size - client->config.size);
+// 		}
+// 	}
+// 
+// 	current_index++;
+// 	if(current_index >= window->sizes.size()) current_index = 0;
+// 	
+// 	
+// 	client->config.size = atoi(window->sizes.get(current_index)->get_text());
+
+//	window->size->update(client->config.size);
+//	client->send_configure_change();
 	return 1;
 }
 
 int TitleSizeTumble::handle_down_event()
 {
-	int current_index = -1;
-	int current_difference = -1;
-	for(int i = 0; i < window->sizes.size(); i++)
-	{
-		int size = atoi(window->sizes.get(i)->get_text());
-		if(current_index < 0 ||
-			abs(size - client->config.size) < current_difference)
-		{
-			current_index = i;
-			current_difference = abs(size - client->config.size);
-		}
-	}
+// increment size by 1
+    int min_size = atoi(window->sizes.get(0)->get_text());
+    if(client->config.size > min_size)
+    {
+        client->config.size--;
+	    window->size->update(client->config.size);
+	    client->send_configure_change();
+    }
 
-	current_index--;
-	if(current_index < 0) current_index = window->sizes.size() - 1;
-	
-	
-	client->config.size = atoi(window->sizes.get(current_index)->get_text());
-	window->size->update(client->config.size);
-	client->send_configure_change();
+
+// 	int current_index = -1;
+// 	int current_difference = -1;
+// 	for(int i = 0; i < window->sizes.size(); i++)
+// 	{
+// 		int size = atoi(window->sizes.get(i)->get_text());
+// 		if(current_index < 0 ||
+// 			abs(size - client->config.size) < current_difference)
+// 		{
+// 			current_index = i;
+// 			current_difference = abs(size - client->config.size);
+// 		}
+// 	}
+// 
+// 	current_index--;
+// 	if(current_index < 0) current_index = window->sizes.size() - 1;
+// 	
+// 	
+// 	client->config.size = atoi(window->sizes.get(current_index)->get_text());
+
+
+//	window->size->update(client->config.size);
+//	client->send_configure_change();
 	return 1;
 }
 
@@ -1028,7 +1051,8 @@ TitleText::TitleText(TitleMain *client,
 {
 	this->client = client;
 	this->window = window;
-//printf("TitleText::TitleText %s\n", client->config.text);
+    enable_undo();
+//printf("TitleText::TitleText %d\n", __LINE__);
 }
 
 int TitleText::handle_event()

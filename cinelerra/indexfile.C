@@ -119,11 +119,11 @@ IndexState* IndexFile::get_state()
 }
 
 
-
+// returns a FILE_ error
 int IndexFile::open_index()
 {
 	IndexState *index_state = 0;
-	int result = 0;
+	int result = FILE_OK;
 
 // use buffer if being built
 	index_state = get_state();
@@ -131,7 +131,7 @@ int IndexFile::open_index()
 	if(index_state->index_status == INDEX_BUILDING)
 	{
 // use buffer
-		result = 0;
+		result = FILE_OK;
         is_index = 1;
 	}
 	else
@@ -142,7 +142,7 @@ int IndexFile::open_index()
 		if(read_info(indexable))
 		{
 //printf("IndexFile::open_index %d indexable=%p is_toc=%d\n", __LINE__, indexable, is_toc);
-			result = 1;
+			result = FILE_NOT_FOUND;
 			close_index();
 		}
 		else
@@ -153,7 +153,7 @@ int IndexFile::open_index()
 	else
 	{
 //printf("IndexFile::open_index %d is_toc=%d\n", __LINE__, is_toc);
-		result = 1;
+		result = FILE_NOT_FOUND;
 	}
 
 	return result;

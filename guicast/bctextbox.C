@@ -41,6 +41,7 @@
 #define VERTICAL_MARGIN_NOBORDER 0
 #define HORIZONTAL_MARGIN 4
 #define HORIZONTAL_MARGIN_NOBORDER 2
+#define UNDOLEVELS 500
 
 BC_TextBox::BC_TextBox(int x, 
 	int y, 
@@ -120,6 +121,7 @@ BC_TextBox::BC_TextBox(int x,
 	char temp[BCTEXTLEN];
 	sprintf(temp, "%d", text);
 	this->text.assign(temp);
+    
 }
 
 BC_TextBox::~BC_TextBox()
@@ -161,12 +163,12 @@ int BC_TextBox::reset_parameters(int rows, int has_border, int font)
 	separators = 0;
 	yscroll = 0;
 	menu = 0;
+    undo_enabled = 0;
 	return 0;
 }
 
 int BC_TextBox::initialize()
 {
-
 	if (!skip_cursor)
 		skip_cursor = new Timer;
 	skip_cursor->update();
@@ -211,6 +213,7 @@ int BC_TextBox::initialize()
 
 	add_subwindow(menu = new BC_TextMenu(this));
 	menu->create_objects();
+    update_undo();
 
 	return 0;
 }
@@ -223,6 +226,11 @@ int BC_TextBox::calculate_h(BC_WindowBase *gui,
 	return rows * (gui->get_text_ascent(font) + 1 + 
 		gui->get_text_descent(font) + 1) +
 		2 * (has_border ? VERTICAL_MARGIN : VERTICAL_MARGIN_NOBORDER);
+}
+
+void BC_TextBox::enable_undo()
+{
+    undo_enabled = 1;
 }
 
 void BC_TextBox::set_precision(int precision)
@@ -764,7 +772,7 @@ int BC_TextBox::button_press_event()
 // 		get_buttonpress() != LEFT_BUTTON &&
 // 		get_buttonpress() != MIDDLE_BUTTON) return 0;
 
-	
+
 
 	if(debug) printf("BC_TextBox::button_press_event %d\n", __LINE__);
 
@@ -841,6 +849,8 @@ int BC_TextBox::button_press_event()
 					ibeam_letter = highlight_letter1 = 
 					highlight_letter2 = cursor_letter;
 				paste_selection(PRIMARY_SELECTION);
+                text_len = text.length();
+                update_undo();
 			}
 			else
 			{
@@ -1179,6 +1189,7 @@ void BC_TextBox::default_keypress(int &dispatch_event, int &result)
 		
 		insert_text((char*)temp_string);
 		find_ibeam(1);
+        update_undo();
 		draw(1);
 		dispatch_event = 1;
 		result = 1;
@@ -1745,11 +1756,23 @@ int BC_TextBox::keypress_event()
 
 					dispatch_event = 1;
 				}
-				
-				break;
+                else
+                if(!read_only && (get_keypress() == 'z'))
+                {
+                    undo();
+                    result = 1;
+                }
+                else
+                if(!read_only && (get_keypress() == 'Z'))
+                {
+                    redo();
+                    result = 1;
+                }
 			}
-
-			default_keypress(dispatch_event, result);
+            else
+            {
+    			default_keypress(dispatch_event, result);
+            }
 			break;
 	}
 
@@ -1770,6 +1793,7 @@ int BC_TextBox::cut(int do_housekeeping)
 
 	find_ibeam(1);
 	if(keypress_draw) draw(1);
+    update_undo();
 	
 	if(do_housekeeping)
 	{
@@ -1799,6 +1823,7 @@ int BC_TextBox::paste(int do_housekeeping)
 	paste_selection(SECONDARY_SELECTION);
 	find_ibeam(1);
 	if(keypress_draw) draw(1);
+    update_undo();
 	if(do_housekeeping)
 	{
 		skip_cursor->update();
@@ -2077,6 +2102,10 @@ void BC_TextBox::find_ibeam(int dispatch_event,
 	}
 
 	if(dispatch_event && (old_x != text_x || old_y != text_y)) motion_event();
+// printf("BC_TextBox::find_ibeam %d text_x=%d text_y=%d\n",
+// __LINE__,
+// text_x,
+// text_y);
 }
 
 // New algorithm
@@ -2379,6 +2408,47 @@ int BC_TextBox::get_rows()
 	return rows;
 }
 
+void BC_TextBox::update_undo()
+{
+    if(undo_enabled)
+    {
+        BC_TextBoxUndo *item = undos.push();
+        item->from_textbox(this);
+    }
+}
+
+void BC_TextBox::reset_undo()
+{
+    undos.clear();
+    update_undo();
+}
+
+void BC_TextBox::undo()
+{
+    undos.pull();
+    BC_TextBoxUndo *item = undos.current;
+
+
+    if(item)
+    {
+        item->to_textbox(this);
+        draw(1);
+        handle_event();
+    }
+}
+
+void BC_TextBox::redo()
+{
+    BC_TextBoxUndo *item = undos.pull_next();
+    if(item)
+    {
+        item->to_textbox(this);
+        draw(1);
+        handle_event();
+    }
+}
+
+
 
 
 
@@ -2486,6 +2556,7 @@ BC_ScrollTextBox::BC_ScrollTextBox(BC_WindowBase *parent_window,
 	this->w = w;
 	this->rows = rows;
 	this->default_text = default_text;
+    undo_enabled = 0;
 }
 
 BC_ScrollTextBox::~BC_ScrollTextBox()
@@ -2498,6 +2569,11 @@ BC_ScrollTextBox::~BC_ScrollTextBox()
 	}
 }
 
+void BC_ScrollTextBox::enable_undo()
+{
+    undo_enabled = 1;
+}
+
 void BC_ScrollTextBox::create_objects()
 {
 // Must be created first
@@ -2505,7 +2581,6 @@ void BC_ScrollTextBox::create_objects()
 	parent_window->add_subwindow(yscroll = new BC_ScrollTextBoxYScroll(this));
 	text->yscroll = yscroll;
 	yscroll->bound_to = text;
-
 }
 
 int BC_ScrollTextBox::handle_event()
@@ -2584,6 +2659,11 @@ BC_ScrollTextBoxText::BC_ScrollTextBoxText(BC_ScrollTextBox *gui)
 	gui->default_text)
 {
 	this->gui = gui;
+//printf("BC_ScrollTextBoxText::BC_ScrollTextBoxText %d\n", __LINE__);
+    if(gui->undo_enabled)
+    {
+        enable_undo();
+    }
 }
 
 BC_ScrollTextBoxText::~BC_ScrollTextBoxText()
@@ -3170,15 +3250,46 @@ BC_TextMenu::~BC_TextMenu()
 
 void BC_TextMenu::create_objects()
 {
+    if(textbox->undo_enabled)
+    {
+        add_item(undo = new BC_TextMenuUndo(this));
+        add_item(redo = new BC_TextMenuRedo(this));
+    }
 	add_item(cut = new BC_TextMenuCut(this));
 	add_item(new BC_TextMenuCopy(this));
 	add_item(paste = new BC_TextMenuPaste(this));
 }
 
 
+BC_TextMenuUndo::BC_TextMenuUndo(BC_TextMenu *menu) 
+ : BC_MenuItem(_("Undo"), "Ctrl+Z")
+{
+	this->menu = menu;
+}
+
+int BC_TextMenuUndo::handle_event()
+{
+	menu->textbox->undo();
+    menu->textbox->activate();
+	return 0;
+}
+
+BC_TextMenuRedo::BC_TextMenuRedo(BC_TextMenu *menu) 
+ : BC_MenuItem(_("Redo"), "Ctrl+Shift+Z")
+{
+	this->menu = menu;
+}
+
+int BC_TextMenuRedo::handle_event()
+{
+	menu->textbox->redo();
+    menu->textbox->activate();
+	return 0;
+}
+
 
 BC_TextMenuCut::BC_TextMenuCut(BC_TextMenu *menu) 
- : BC_MenuItem(_("Cut"))
+ : BC_MenuItem(_("Cut"), "Ctrl+X")
 {
 	this->menu = menu;
 }
@@ -3186,13 +3297,13 @@ BC_TextMenuCut::BC_TextMenuCut(BC_TextMenu *menu)
 int BC_TextMenuCut::handle_event()
 {
 	menu->textbox->cut(1);
-	
+    menu->textbox->activate();
 	return 0;
 }
 
 
 BC_TextMenuCopy::BC_TextMenuCopy(BC_TextMenu *menu) 
- : BC_MenuItem(_("Copy"))
+ : BC_MenuItem(_("Copy"), "Ctrl+C")
 {
 	this->menu = menu;
 }
@@ -3200,13 +3311,14 @@ BC_TextMenuCopy::BC_TextMenuCopy(BC_TextMenu *menu)
 int BC_TextMenuCopy::handle_event()
 {
 	menu->textbox->copy(1);
+    menu->textbox->activate();
 	return 0;
 }
 
 
 
 BC_TextMenuPaste::BC_TextMenuPaste(BC_TextMenu *menu) 
- : BC_MenuItem(_("Paste"))
+ : BC_MenuItem(_("Paste"), "Ctrl+V")
 {
 	this->menu = menu;
 }
@@ -3214,7 +3326,124 @@ BC_TextMenuPaste::BC_TextMenuPaste(BC_TextMenu *menu)
 int BC_TextMenuPaste::handle_event()
 {
 	menu->textbox->paste(1);
+    menu->textbox->activate();
 	return 0;
+}
+
+
+
+
+BC_TextBoxUndo::BC_TextBoxUndo()
+ : ListItem<BC_TextBoxUndo>()
+{
+    highlight_letter1 = 0;
+    highlight_letter2 = 0;
+    ibeam_letter = 0;
+    text_x = 0;
+    text_y = 0;
+}
+
+BC_TextBoxUndo::~BC_TextBoxUndo()
+{
+}
+
+    
+void BC_TextBoxUndo::to_textbox(BC_TextBox *textbox)
+{
+    textbox->highlight_letter1 = highlight_letter1;
+    textbox->highlight_letter2 = highlight_letter2;
+    textbox->ibeam_letter = ibeam_letter;
+    textbox->text_x = text_x;
+    textbox->text_y = text_y;
+    textbox->text = text;
+}
+
+void BC_TextBoxUndo::from_textbox(BC_TextBox *textbox)
+{
+    highlight_letter1 = textbox->highlight_letter1;
+    highlight_letter2 = textbox->highlight_letter2;
+    ibeam_letter = textbox->ibeam_letter;
+    text_x = textbox->text_x;
+    text_y = textbox->text_y;
+    text = textbox->text;
+// printf("BC_TextBoxUndo::from_textbox %d text_x=%d text_y=%d\n",
+// __LINE__,
+// text_x,
+// text_y);
+}
+
+
+BC_TextBoxUndos::BC_TextBoxUndos()
+ : List<BC_TextBoxUndo>()
+{
+    current = 0;
+}
+
+BC_TextBoxUndos::~BC_TextBoxUndos()
+{
+}
+
+BC_TextBoxUndo* BC_TextBoxUndos::push()
+{
+// current is only 0 if before first undo
+	if(current)
+	{
+    	current = insert_after(current);
+	}
+    else
+	{
+    	current = insert_before(first);
+    }
+
+// delete future undos if necessary
+	if(current && current->next)
+	{
+		while(current->next) remove(last);
+	}
+
+
+// delete oldest if necessary
+	if(total() > UNDOLEVELS)
+	{
+		remove(first);
+	}
+	
+	return current;
+}
+
+
+void BC_TextBoxUndos::pull()
+{
+    if(current)
+    {
+        current = PREVIOUS;
+    }
+}
+
+BC_TextBoxUndo* BC_TextBoxUndos::pull_next()
+{
+// use first entry if none
+	if(!current)
+	{
+    	current = first;
+	}
+    else
+// use next entry if there is a next entry
+	if(current->next)
+	{
+    	current = NEXT;
+    }
+// don't change current if there is no next entry
+	else
+	{
+    	return 0;
+    }
+		
+	return current;
+}
+
+void BC_TextBoxUndos::dump()
+{
 }
 
 

@@ -313,11 +313,12 @@ public:
 	int file_color;
 
 
-// fonts
+// fixed fonts
 	static const char *large_font;
 	static const char *medium_font;
 	static const char *small_font;
 	static const char *clock_font;
+// fixed fonts use point sizes, not pixel sizes
 	static int large_fontsize;
 	static int medium_fontsize;
 	static int small_fontsize;
@@ -328,14 +329,16 @@ public:
 // 	static const char *small_fontset;
 // 	static const char *clock_fontset;
 
+// trutype fonts
 	static const char *large_font_xft;
 	static const char *medium_font_xft;
 	static const char *small_font_xft;
 	static const char *clock_font_xft;
-	static int large_font_xftsize;
-	static int medium_font_xftsize;
-	static int small_font_xftsize;
-	static int clock_font_xftsize;
+// XFT uses pixel sizes
+	static double large_font_xftsize;
+	static double medium_font_xftsize;
+	static double small_font_xftsize;
+	static double clock_font_xftsize;
 
 //	VFrame **medium_7segment;
 

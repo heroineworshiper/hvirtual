@@ -381,6 +381,9 @@ int ParametricSize::handle_event()
 
 void ParametricSize::create_objects()
 {
+//	add_item(new BC_MenuItem("256"));
+//	add_item(new BC_MenuItem("512"));
+//	add_item(new BC_MenuItem("1024"));
 	add_item(new BC_MenuItem("2048"));
 	add_item(new BC_MenuItem("4096"));
 	add_item(new BC_MenuItem("8192"));

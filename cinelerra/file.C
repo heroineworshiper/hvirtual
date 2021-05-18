@@ -515,7 +515,6 @@ int File::open_file(Preferences *preferences,
 //printf("File::open_file %d\n", __LINE__);
 		delete [] buffer;
 		delete [] string;
-//printf("File::open_file %d\n", __LINE__);
 
 
 
@@ -530,9 +529,11 @@ int File::open_file(Preferences *preferences,
 // done loading
 		        case FILE_OK:
                 case FILE_NOT_FOUND:
-                case FILE_IS_XML:
                 case FILE_UNRECOGNIZED_CODEC:
+                case FILE_IS_XML:
+                case FILE_USER_CANCELED:
 		        {
+//printf("File::open_file %d result=%d\n", __LINE__, result);
 // Get the updated asset from the fork
 			        table.load_string((char*)file_fork->result_data);
 
@@ -583,7 +584,7 @@ int File::open_file(Preferences *preferences,
                 }
             }
         }
-//printf("File::open_file %d\n", __LINE__);
+//printf("File::open_file %d result=%d\n", __LINE__, result);
 
 
 
@@ -624,6 +625,7 @@ int File::open_file(Preferences *preferences,
 			char test[16];
 			result = fread(test, 16, 1, stream);
 
+#ifdef USE_SCENE
 			if(FileScene::check_sig(this->asset, test))
 			{
 // script
@@ -631,6 +633,7 @@ int File::open_file(Preferences *preferences,
 				file = new FileScene(this->asset, this);
 			}
 			else
+#endif // USE_SCENE
 			if(FileSndFile::check_sig(this->asset))
 			{
 // libsndfile
@@ -765,9 +768,11 @@ int File::open_file(Preferences *preferences,
 			file = new FileAC3(this->asset, this);
 			break;
 
+#ifdef USE_SCENE
 		case FILE_SCENE:
 			file = new FileScene(this->asset, this);
 			break;
+#endif // USE_SCENE
 
 		case FILE_FFMPEG:
 			file = new FileFFMPEG(this->asset, this);
@@ -874,13 +879,14 @@ int File::open_file(Preferences *preferences,
 
 
 // Reopen file with correct parser and get header.
-	if(file->open_file(rd, wr))
+    result = file->open_file(rd, wr);
+	if(result != FILE_OK)
 	{
 		delete file;
 		file = 0;
 	}
 
-    if(debug) printf("File::open_file %d\n", __LINE__);
+    if(debug) printf("File::open_file %d result=%d\n", __LINE__, result);
 
 
 // Set extra writing parameters to mandatory settings.
@@ -902,9 +908,15 @@ int File::open_file(Preferences *preferences,
 // sleep(1);
 
 	if(file)
-		return FILE_OK;
-	else
-		return FILE_NOT_FOUND;
+	{
+    	return FILE_OK;
+	}
+    else
+    {
+//		return FILE_NOT_FOUND;
+//        printf("File::open_file %d result=%d\n", __LINE__, result);
+        return result;
+    }
 }
 
 

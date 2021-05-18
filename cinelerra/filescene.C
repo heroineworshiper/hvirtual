@@ -41,6 +41,7 @@ extern "C"
 #include <uuid.h>
 }
 
+#ifdef USE_SCENE
 
 extern void get_exe_path(char *result);
 
@@ -1924,6 +1925,6 @@ void SceneTokens::dump()
 	}
 }
 
-
+#endif // USE_SCENE
 
 

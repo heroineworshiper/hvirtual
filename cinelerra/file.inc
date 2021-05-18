@@ -27,12 +27,16 @@
 #define USE_FILEFORK
 // use ffmpeg to encode video output.  Not as easy as it looks.
 //#define USE_FFMPEG_OUTPUT
+// support text to movie
+//#define USE_SCENE
 
 // Return values for open_file
 #define FILE_OK 0
 #define FILE_NOT_FOUND 1
 #define FILE_UNRECOGNIZED_CODEC 2
 #define FILE_IS_XML 3
+// user canceled a TOC progress box during the opening of the file
+#define FILE_USER_CANCELED 4
 
 // Numeric codes for each file format
 // They're stored in XML files, so they have to be fixed.

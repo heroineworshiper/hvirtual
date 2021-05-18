@@ -32,6 +32,7 @@ extern "C"
 #include "clip.h"
 #include "file.h"
 #include "fileffmpeg.h"
+#include "filefork.h"
 #include "indexfile.h"
 #include "mpegaudio.h"
 #include "mutex.h"
@@ -575,9 +576,11 @@ int FileFFMPEG::open_file(int rd, int wr)
 
 	if(rd)
 	{
-        if(open_ffmpeg())
+        result = open_ffmpeg();
+//printf("FileFFMPEG::open_file %d result=%d\n", __LINE__, result);
+        if(result != FILE_OK)
         {
-            return 1;
+            return result;
         }
 	}
 
@@ -863,7 +866,7 @@ printf("FileFFMPEG::open_ffmpeg %d i=%d codec_type=%d\n", __LINE__, i, decoder_c
 		avformat_close_input((AVFormatContext**)&ffmpeg_file_context);
 	}
 	ffmpeg_lock->unlock();
-    if(debug) printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
+    if(debug) printf("FileFFMPEG::open_ffmpeg %d result=%d\n", __LINE__, result);
 
     return result;
 }
@@ -1177,7 +1180,8 @@ int FileFFMPEG::create_toc(void *ptr)
             }
             if(file->progress_canceled()) 
 			{
-				result = 1;
+				result = FILE_USER_CANCELED;
+//                printf("FileFFMPEG::create_toc %d result=%d\n", __LINE__, result);
 				break;
 			}
 
@@ -1915,7 +1919,7 @@ avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
 
             if(error)
             {
-                printf("FileFFMPEG::read_frame %d error=%d stream->current_frame=%ld file->current_frame=%ld\n",
+                printf("FileFFMPEG::read_frame %d error=0x%x stream->current_frame=%ld file->current_frame=%ld\n",
     		        __LINE__,
                     error,
                     stream->current_frame,

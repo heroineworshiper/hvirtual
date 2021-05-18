@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -10,7 +10,8 @@
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PAR
+ * You should have recTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
@@ -26,6 +27,10 @@
 #include "bcwindowbase.inc"
 #include <string.h>
 #include <unistd.h>
+
+
+// clipboard notes came from 
+// https://www.uninformativ.de/blog/postings/2017-04-02/0/POSTING-en.html
 
 BC_Clipboard::BC_Clipboard(const char *display_name) : Thread()
 {
@@ -46,6 +51,10 @@ BC_Clipboard::BC_Clipboard(const char *display_name) : Thread()
 	completion_atom = XInternAtom(out_display, "BC_CLOSE_EVENT", False);
 	primary = XA_PRIMARY;
 	secondary = XInternAtom(out_display, "CLIPBOARD", False);
+    utf8_target = XInternAtom(out_display, "UTF8_STRING", False);
+    targets = XInternAtom(out_display, "TARGETS", False);
+    string_target = XInternAtom(in_display, "STRING", False);
+
 	in_win = XCreateSimpleWindow(in_display, 
 				DefaultRootWindow(in_display), 
 				0, 
@@ -140,42 +149,61 @@ void BC_Clipboard::run()
 			case SelectionRequest:
 			{
 				XEvent reply;
+                bzero(&reply, sizeof(reply));
+
 				XSelectionRequestEvent *request = (XSelectionRequestEvent*)&event;
 				char *data_ptr = (request->selection == primary ? 
                     data[0] : 
                     data[1]);
 
-// printf("BC_Clipboard::run %d selection=%ld primary=%ld secondary=%ld\n", 
+// printf("BC_Clipboard::run %d selection=%ld property=%ld target=%s primary=%ld secondary=%ld\n", 
 // __LINE__, 
 // request->selection, 
+// request->property, 
+// XGetAtomName(out_display, request->target), 
 // primary,
 // secondary);
-// printf("BC_Clipboard::run %d this=%p data_ptr=%p %s\n", 
+// deny requests for wrong target or property
+                if(request->target == targets)
+                {
+// printf("BC_Clipboard::run %d denying request for %s\n", 
 // __LINE__, 
-// this, 
+// XGetAtomName(out_display, request->target));
+                    reply.xselection.type      = SelectionNotify;
+                    reply.xselection.requestor = request->requestor;
+                    reply.xselection.selection = request->selection;
+                    reply.xselection.target = request->target;
+                    reply.xselection.property = None;
+                    reply.xselection.time = request->time;
+                }
+                else
+                {
+        		    XChangeProperty(out_display,
+        			    request->requestor,
+        			    request->property,
+        			    utf8_target,
+        			    8,
+        			    PropModeReplace,
+        			    (unsigned char*)data_ptr,
+        			    strlen(data_ptr));
+
+        		    reply.xselection.property  = request->property;
+        		    reply.xselection.type      = SelectionNotify;
+        		    reply.xselection.display   = request->display;
+        		    reply.xselection.requestor = request->requestor;
+        		    reply.xselection.selection = request->selection;
+        		    reply.xselection.target    = request->target;
+        		    reply.xselection.time      = request->time;
+                }
+
+				XSendEvent(out_display, request->requestor, True, NoEventMask, &reply);
+			    XFlush(out_display);
+// printf("BC_Clipboard::run %d requestor=%ld property=%ld text=%s len=%ld\n", 
+// __LINE__, 
+// request->requestor, 
+// request->property,
 // data_ptr, 
-// data_ptr);
-        		XChangeProperty(out_display,
-        			request->requestor,
-        			request->property,
-        			XA_STRING,
-        			8,
-        			PropModeReplace,
-        			(unsigned char*)data_ptr,
-        			strlen(data_ptr));
-
-        		reply.xselection.property  = request->property;
-        		reply.xselection.type      = SelectionNotify;
-        		reply.xselection.display   = request->display;
-        		reply.xselection.requestor = request->requestor;
-        		reply.xselection.selection = request->selection;
-        		reply.xselection.target    = request->target;
-        		reply.xselection.time      = request->time;
-
-
-				XSendEvent(out_display, request->requestor, 0, 0, &reply);
-				XFlush(out_display);
-//printf("SelectionRequest\n");
+// strlen(data_ptr));
 				break;
 			}
 			
@@ -212,7 +240,7 @@ void BC_Clipboard::run()
 
 }
 
-int BC_Clipboard::to_clipboard(const char *data, long len, int clipboard_num)
+int BC_Clipboard::to_clipboard(const char *data, int len, int clipboard_num)
 {
 	if(clipboard_num == BC_PRIMARY_SELECTION)
 	{
@@ -275,25 +303,35 @@ int BC_Clipboard::to_clipboard(const char *data, long len, int clipboard_num)
 	return 0;
 }
 
-int BC_Clipboard::from_clipboard(char *data, long maxlen, int clipboard_num)
+
+int BC_Clipboard::from_clipboard(char *data, 
+    int maxlen, 
+    int *len_return, 
+    int clipboard_num)
 {
-
-//printf("BC_Clipboard::from_clipboard %d clipboard_num=%d\n", __LINE__, clipboard_num);
-
 
 	if(clipboard_num == BC_PRIMARY_SELECTION)
 	{
 		char *data2;
 		int len, i;
 		data2 = XFetchBuffer(in_display, &len, clipboard_num);
-		for(i = 0; i < len && i < maxlen; i++)
-			data[i] = data2[i];
+        
+        if(data != 0)
+        {
+		    for(i = 0; i < len && i < maxlen - 1; i++)
+		    {
+        	    data[i] = data2[i];
+            }
 
-		data[i] = 0;
+		    data[i] = 0;
+        }
+        
+        if(len_return != 0)
+        {
+            *len_return = len + 1;
+        }
 
 		XFree(data2);
-		
-		
 		return 0;
 	}
 
@@ -306,24 +344,26 @@ int BC_Clipboard::from_clipboard(char *data, long maxlen, int clipboard_num)
 #endif
 
 	XEvent event;
-    Atom type_return, pty;
+    Atom type_return, selection, property;
     int format;
     unsigned long nitems, size, new_size, total;
 	char *temp_data = 0;
 
-    pty = (clipboard_num == PRIMARY_SELECTION) ? primary : secondary; 
-						/* a property of our window
-						   for apps to put their
-						   selection into */
+    property = XInternAtom(in_display, "FOOBAR", False);
+    selection = (clipboard_num == PRIMARY_SELECTION) ? primary : secondary; 
 
 	XConvertSelection(in_display, 
-		clipboard_num == PRIMARY_SELECTION ? primary : secondary, 
-		XA_STRING, 
-		pty,
+		selection, 
+		string_target, 
+		property,
        	in_win, 
 		CurrentTime);
 
-	data[0] = 0;
+    if(data != 0)
+    {
+    	data[0] = 0;
+    }
+
 	do
 	{
 		XNextEvent(in_display, &event);
@@ -331,10 +371,10 @@ int BC_Clipboard::from_clipboard(char *data, long maxlen, int clipboard_num)
 
 	if(event.type != None)
 	{
-// Get size
+// Get the size
    	    XGetWindowProperty(in_display,
         	in_win,
-        	pty,
+        	property,
         	0,
         	0,
         	False,
@@ -344,14 +384,13 @@ int BC_Clipboard::from_clipboard(char *data, long maxlen, int clipboard_num)
         	&nitems,
         	&size,
         	(unsigned char**)&temp_data);
-
 	    if(temp_data) XFree(temp_data);
 	    temp_data = 0;
 
-// Get data
+// Get the text
    	    XGetWindowProperty(in_display,
         	in_win,
-        	pty,
+        	property,
         	0,
         	size,
         	False,
@@ -363,15 +402,28 @@ int BC_Clipboard::from_clipboard(char *data, long maxlen, int clipboard_num)
         	(unsigned char**)&temp_data);
 
 
-		if(type_return && temp_data)
-		{
-			strncpy(data, temp_data, maxlen);
-			data[size] = 0;
-		}
-		else
-			data[0] = 0;
 
-		if(temp_data) XFree(temp_data);
+// printf("BC_Clipboard::from_clipboard %d data=%p size=%ld temp_data=%s\n", 
+// __LINE__, 
+// data,
+// size,
+// temp_data);
+
+
+        if(data != 0 && temp_data != 0)
+        {
+            strncpy(data, temp_data, maxlen);
+        }
+
+
+        if(len_return != 0)
+        {
+            *len_return = size + 1;
+        }
+
+
+	    if(temp_data) XFree(temp_data);
+	    temp_data = 0;
 	}
 
 
@@ -381,91 +433,21 @@ int BC_Clipboard::from_clipboard(char *data, long maxlen, int clipboard_num)
 	XUnlockDisplay(in_display);
 #endif
 
-	return 0;
+
+    return 0;
 }
 
-long BC_Clipboard::clipboard_len(int clipboard_num)
+
+
+int BC_Clipboard::from_clipboard(char *data, int maxlen, int clipboard_num)
 {
+//printf("BC_Clipboard::from_clipboard %d clipboard_num=%d\n", __LINE__, clipboard_num);
+    return from_clipboard(data, maxlen, 0, clipboard_num);
+}
 
-	if(clipboard_num == BC_PRIMARY_SELECTION)
-	{
-		char *data2;
-		int len;
-
-		data2 = XFetchBuffer(in_display, &len, clipboard_num);
-		XFree(data2);
-//printf("BC_Clipboard::clipboard_len %d len=%d\n", __LINE__, len);
-		return len;
-	}
-
-
-
-
-#ifdef SINGLE_THREAD
-	BC_Display::lock_display("BC_Clipboard::clipboard_len");
-#else
-	XLockDisplay(in_display);
-#endif
-
-	XEvent event;
-    Atom type_return, pty;
-    int format;
-    unsigned long nitems, pty_size, total;
-	char *temp_data = 0;
-	int result = 0;
-
-    pty = (clipboard_num == PRIMARY_SELECTION) ? primary : secondary; 
-						/* a property of our window
-						   for apps to put their
-						   selection into */
-	XConvertSelection(in_display, 
-		(clipboard_num == PRIMARY_SELECTION) ? primary : secondary, 
-		XA_STRING, 
-		pty,
-       	in_win, 
-		CurrentTime);
-
-	do
-	{
-		XNextEvent(in_display, &event);
-	}while(event.type != SelectionNotify && event.type != None);
-
-	if(event.type != None)
-	{
-// Get size
-    	XGetWindowProperty(in_display,
-        	in_win,
-        	pty,
-        	0,
-        	0,
-        	False,
-        	AnyPropertyType,
-        	&type_return,
-        	&format,
-        	&nitems,
-        	&pty_size,
-        	(unsigned char**)&temp_data);
-
-		if(type_return)
-		{
-			result = pty_size + 1;
-		}
-		else
-			result = 0;
-
-
-
-		if(temp_data)
-			XFree(temp_data);
-
-	}
-
-
-#ifdef SINGLE_THREAD
-	BC_Display::unlock_display();
-#else
-	XUnlockDisplay(in_display);
-#endif
-
-	return result;
+int BC_Clipboard::clipboard_len(int clipboard_num)
+{
+    int len;
+    from_clipboard(0, 0, &len, clipboard_num);
+	return len;
 }

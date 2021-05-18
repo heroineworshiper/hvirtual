@@ -1410,10 +1410,12 @@ if(debug) printf("MWindow::load_assets %d\n", __LINE__);
 		{
 if(debug) printf("MWindow::load_assets %d\n", __LINE__);
 if(debug) ((Asset*)indexable)->dump();
-			asset_to_edl(new_edl, (Asset*)indexable);
+			asset_to_edl(new_edl, (Asset*)indexable, 0, 0);
 		}
 		else
+        {
 			edl_to_nested(new_edl, (EDL*)indexable);
+        }
 if(debug) printf("MWindow::load_assets %d\n", __LINE__);
 
 
@@ -1518,6 +1520,7 @@ int MWindow::paste_default_keyframe()
 
 
 // Insert edls with project deletion and index file generation.
+// returns 1 if the user canceled
 int MWindow::paste_edls(ArrayList<EDL*> *new_edls, 
 	int load_mode, 
 	Track *first_track,
@@ -1530,14 +1533,12 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 	ArrayList<Track*> destination_tracks;
 	int need_new_tracks = 0;
 
-//PRINT_TRACE
 	if(!new_edls->total) return 0;
 
-//PRINT_TRACE
 	double original_length = edl->tracks->total_playable_length();
 //	double original_preview_end = edl->local_session->preview_end;
-//PRINT_TRACE
 
+//PRINT_TRACE
 // Delete current project
 	if(load_mode == LOADMODE_REPLACE ||
 		load_mode == LOADMODE_REPLACE_CONCATENATE)
@@ -1554,6 +1555,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 
 		edl->create_objects();
 
+// the new project dimensions are applied here
 		edl->copy_session(new_edls->values[0]);
 
 		gui->mainmenu->update_toggles(0);
@@ -1683,15 +1685,23 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 
 
 // Add assets and prepare index files
+        int result = FILE_OK;
 		for(Asset *new_asset = new_edl->assets->first;
-			new_asset;
+			new_asset && result != FILE_USER_CANCELED;
 			new_asset = new_asset->next)
 		{
-			mainindexes->add_next_asset(0, new_asset);
+			result = mainindexes->add_next_asset(0, new_asset);
 		}
+        
+// user canceled the load operation
+        if(result == FILE_USER_CANCELED)
+        {
+            return result;
+        }
+PRINT_TRACE
 // Capture index file status from mainindex test
 		edl->update_assets(new_edl);
-//PRINT_TRACE
+PRINT_TRACE
 
 
 
@@ -1733,7 +1743,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 
 
 
-//PRINT_TRACE
+PRINT_TRACE
 
 
 // Insert edl
@@ -1865,6 +1875,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 //	}
 
 
+PRINT_TRACE
 // Start examining next batch of index files
 	mainindexes->start_build();
 
@@ -1872,7 +1883,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 // Don't save a backup after loading since the loaded file is on disk already.
 
 
-//PRINT_TRACE
+PRINT_TRACE
 	return 0;
 }
 

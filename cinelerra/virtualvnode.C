@@ -420,6 +420,7 @@ void VirtualVNode::render_mask(VFrame *output_temp,
 	}
 
 // Always create the mask in software
+// this also applies it if output_temp is in RAM
 	masker->do_mask(output_temp, 
 		start_position_project,
 		keyframe_set, 
@@ -442,15 +443,6 @@ void VirtualVNode::render_mask(VFrame *output_temp,
 			    keyframe,
 			    keyframe);
         }
-	}
-	else
-	{
-// Revert to software
-// 		masker->do_mask(output_temp, 
-// 			start_position_project,
-// 			keyframe_set, 
-// 			keyframe,
-// 			keyframe);
 	}
 }
 

@@ -1069,18 +1069,13 @@ void MWindow::stop_file_progress()
 
 int MWindow::load_filenames(ArrayList<char*> *filenames, 
 	int load_mode,
-	int update_filename)
+	int update_filename,
+    int conform)
 {
 	ArrayList<EDL*> new_edls;
 	ArrayList<Asset*> new_assets;
 	ArrayList<File*> new_files;
 	const int debug = 0;
-
-//	save_defaults();
-	gui->start_hourglass();
-// make progress box for file loading persistent
-	MWindow::is_loading = 1;
-//printf("MWindow::load_filenames %d\n", __LINE__);
 
 // Need to stop playback since tracking depends on the EDL not getting
 // deleted.
@@ -1104,6 +1099,27 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 		}
 	}
 
+
+// lock all the windows
+    gui->lock_window("MWindow::load_filenames 1");
+    cwindow->gui->lock_window("MWindow::load_filenames 2");
+    awindow->gui->lock_window("MWindow::load_filenames 3");
+    lwindow->gui->lock_window("MWindow::load_filenames 4");
+    gwindow->gui->lock_window("MWindow::load_filenames 5");
+	for(int j = 0; j < vwindows.size(); j++)
+	{
+		VWindow *vwindow = vwindows.get(j);
+		if(vwindow->is_running())
+		{
+			vwindow->gui->lock_window("MWindow::load_filenames 6");
+        }
+    }
+
+	gui->start_hourglass();
+// make progress box for file loading persistent
+	MWindow::is_loading = 1;
+if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	undo->update_undo_before();
 
@@ -1119,14 +1135,19 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 		Asset *new_asset = new Asset(filenames->get(i));
 		EDL *new_edl = new EDL;
 		char string[BCTEXTLEN];
+// copy project dimensions from the 1st file
+        int conform_this = conform;
+        if(i > 0)
+        {
+            conform_this = 0;
+        }
 
 		new_edl->create_objects();
+// project dimensions are copied from the current EDL here
 		new_edl->copy_session(edl);
 
 		sprintf(string, "Loading %s", new_asset->path);
-        gui->lock_window("MWindow::load_filenames 1");
 		gui->show_message(string);
-        gui->unlock_window();
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 		result = new_file->open_file(preferences, new_asset, 1, 0);
@@ -1154,7 +1175,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 				if(load_mode != LOADMODE_RESOURCESONLY)
 				{
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
-					asset_to_edl(new_edl, new_asset);
+					asset_to_edl(new_edl, new_asset, 0, conform_this);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 					new_edls.append(new_edl);
 					new_asset->Garbage::remove_user();
@@ -1172,9 +1193,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
                     if(gui)
                     {
-                        gui->lock_window("MWindow::load_filenames 2");
 					    set_filename("");
-                        gui->unlock_window();
                     }
                     
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
@@ -1192,9 +1211,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 // File not found
 			case FILE_NOT_FOUND:
 				sprintf(string, _("Failed to open %s"), new_asset->path);
-				gui->lock_window("MWindow::load_filenames 3");
                 gui->show_message(string, theme->message_error);
-                gui->unlock_window();
 				result = 1;
 				break;
 
@@ -1275,7 +1292,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 					if(load_mode != LOADMODE_RESOURCESONLY)
 					{
-						asset_to_edl(new_edl, new_asset);
+						asset_to_edl(new_edl, new_asset, 0, conform_this);
 						new_edls.append(new_edl);
 						new_asset->Garbage::remove_user();
 						new_asset = 0;
@@ -1352,18 +1369,13 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 	if(!result) 
     {
-        gui->lock_window("MWindow::load_filenames 4");
         gui->statusbar->default_message();
-        gui->unlock_window();
     }
 
 
 
 
-
-
-
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d new_edls=%d\n", __LINE__, new_edls.size());
 
 // Paste them.
 // Don't back up here.
@@ -1383,7 +1395,17 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 					edl->session->autos_follow_edits);
 		}
 
-		paste_edls(&new_edls, 
+// conform the project for load modes which don't replace
+//         if(conform)
+//         {
+// // copy the project dimensions from the 1st EDL.  
+// // Loading an EDL in some modes would have replaced the project dimensions anyway
+//             EDL *src = new_edls.get(0);
+//             
+//         }
+
+
+		result = paste_edls(&new_edls, 
 			load_mode,
 			0,
 			-1,
@@ -1393,9 +1415,9 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	}
 
 
+    
 
-
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d result=%d\n", __LINE__, result);
 
 // Add new assets to EDL and schedule assets for index building.
 	int got_indexes = 0;
@@ -1516,14 +1538,29 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	stop_file_progress();
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
-    gui->lock_window("MWindow::load_filenames 5");
 	gui->stop_hourglass();
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	update_project(load_mode);
-    gui->unlock_window();
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+
+
+// unlock all the windows
+	for(int j = 0; j < vwindows.size(); j++)
+	{
+		VWindow *vwindow = vwindows.get(j);
+		if(vwindow->is_running())
+		{
+			vwindow->gui->unlock_window();
+        }
+    }
+    gwindow->gui->unlock_window();
+    lwindow->gui->unlock_window();
+    awindow->gui->unlock_window();
+    cwindow->gui->unlock_window();
+    gui->unlock_window();
+//printf("MWindow::load_filenames %d\n", __LINE__);
 
 	return 0;
 }
@@ -1676,7 +1713,7 @@ void MWindow::create_objects(int want_gui,
 	if(debug) PRINT_TRACE
 	init_preferences();
 	if(debug) PRINT_TRACE
-	
+
 	BC_Resources::override_dpi = preferences->override_dpi;
 	BC_Resources::dpi = preferences->dpi;
 	if(debug) PRINT_TRACE
@@ -2538,21 +2575,39 @@ void MWindow::update_plugin_titles()
 
 int MWindow::asset_to_edl(EDL *new_edl, 
 	Asset *new_asset, 
-	RecordLabels *labels)
+	RecordLabels *labels,
+    int conform)
 {
 const int debug = 0;
 if(debug) printf("MWindow::asset_to_edl %d new_asset->layers=%d\n", 
 __LINE__,
 new_asset->layers);
-// Keep frame rate, sample rate, and output size unchanged.
 // These parameters would revert the project if VWindow displayed an asset
 // of different size than the project.
 	if(new_asset->video_data)
 	{
 		new_edl->session->video_tracks = new_asset->layers;
+        
+// Change frame rate, sample rate, and output size if desired.
+        if(conform)
+        {
+            int auto_aspect = defaults->get("AUTOASPECT", 0);
+            new_edl->session->frame_rate = new_asset->frame_rate;
+            new_edl->session->output_w = new_asset->width;
+            new_edl->session->output_h = new_asset->height;
+            if(auto_aspect)
+            {
+                create_aspect_ratio(new_edl->session->aspect_w, 
+			        new_edl->session->aspect_h, 
+			        new_asset->width, 
+			        new_asset->height);
+            }
+        }
 	}
 	else
+    {
 		new_edl->session->video_tracks = 0;
+    }
 
 if(debug) printf("MWindow::asset_to_edl %d\n", __LINE__);
 
@@ -2563,6 +2618,11 @@ if(debug) printf("MWindow::asset_to_edl %d\n", __LINE__);
 	if(new_asset->audio_data)
 	{
 		new_edl->session->audio_tracks = new_asset->channels;
+// Change frame rate, sample rate, and output size if desired.
+        if(conform)
+        {
+            new_edl->session->sample_rate = new_asset->sample_rate;
+        }
 	}
 	else
 		new_edl->session->audio_tracks = 0;

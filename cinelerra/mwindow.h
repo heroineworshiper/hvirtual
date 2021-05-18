@@ -128,7 +128,8 @@ public:
 //	void set_titles(int value);
 	int asset_to_edl(EDL *new_edl, 
 		Asset *new_asset, 
-		RecordLabels *labels = 0);
+		RecordLabels *labels /* = 0 */,
+        int conform);
 // Convert nested_edl to a nested EDL in new_edl 
 // suitable for pasting in paste_edls
 	int edl_to_nested(EDL *new_edl, 
@@ -190,7 +191,9 @@ public:
 		int load_mode = LOADMODE_REPLACE,
 // Cause the project filename on the top of the window to be updated.
 // Not wanted for loading backups.
-		int update_filename = 1);
+		int update_filename = 1,
+// conform the project for certain file types
+        int conform = 0);
 
 // Print out plugins which are referenced in the EDL but not loaded.
 	void test_plugins(EDL *new_edl, char *path);

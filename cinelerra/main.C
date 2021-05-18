@@ -20,6 +20,7 @@
 
 #include "arraylist.h"
 #include "batchrender.h"
+#include "bchash.h"
 #include "bcsignals.h"
 #include "edl.h"
 #include "filexml.h"
@@ -76,12 +77,18 @@ public:
 //PRINT_TRACE
 		mwindow->gui->lock_window("main");
 //PRINT_TRACE
-		mwindow->load_filenames(filenames, LOADMODE_REPLACE);
+		mwindow->load_filenames(filenames, 
+            LOADMODE_REPLACE,
+            1,
+            mwindow->defaults->get("CONFORM_PROJECT", 0));
 //PRINT_TRACE
 		if(filenames->size() == 1)
-			mwindow->gui->mainmenu->add_load(filenames->get(0));
+		{
+        	mwindow->gui->mainmenu->add_load(filenames->get(0));
 //PRINT_TRACE
-		mwindow->gui->unlock_window();
+		}
+        
+        mwindow->gui->unlock_window();
 //PRINT_TRACE
 	}
 	

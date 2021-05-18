@@ -52,8 +52,8 @@ endif
 #	$(MAKE) -C thirdparty/openexr*
 #	$(MAKE) -C thirdparty/openexr* install
 #	$(MAKE) -C thirdparty/fftw*
-	MAKE='make -j1' make -j1 -C thirdparty/speech_tools
-	MAKE='make -j1' make -j1 -C thirdparty/festival
+#	MAKE='make -j1' make -j1 -C thirdparty/speech_tools
+#	MAKE='make -j1' make -j1 -C thirdparty/festival
 	@ for i in $(DIRS) ; \
 	do \
 		 $(MAKE) -C $$i ; \
@@ -86,8 +86,8 @@ clean:
 	MAKE='make -j1' make -j1 -i -C thirdparty/mjpegtools* clean
 	$(MAKE) -i -C quicktime clean
 	$(MAKE) -i -C thirdparty/libtheora* clean
-	MAKE='make -j1' make -C thirdparty/speech_tools clean
-	MAKE='make -j1' make -C thirdparty/festival clean
+#	MAKE='make -j1' make -C thirdparty/speech_tools clean
+#	MAKE='make -j1' make -C thirdparty/festival clean
 	find \( -name '*.lo' \
 		-o -name '*.o' \
 		-o -name '*.la' \
@@ -116,9 +116,9 @@ install:
 	$(MAKE) -C po install
 	$(MAKE) -C doc install
 	cp COPYING README bin
-	cp thirdparty/festival/src/main/festival bin
-	cp -a thirdparty/festival/lib bin/
-	cp -a models bin
+#	cp thirdparty/festival/src/main/festival bin
+#	cp -a thirdparty/festival/lib bin/
+#	cp -a models bin
 	cd bin && find -name '.svn' -exec rm -r {} \; -prune
 	cp cinelerra/Cinelerra_factory bin
 

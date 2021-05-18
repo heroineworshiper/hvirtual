@@ -44,9 +44,9 @@
 #define YUV_TO_RGB_FRAG(PIXEL) \
 	PIXEL ".gb -= vec2(0.5, 0.5);\n" \
  	PIXEL ".rgb = mat3(\n" \
- 	"	 1, 	  1,		1, \n" \
- 	"	 0, 	  -0.34414, 1.77200, \n" \
- 	"	 1.40200, -0.71414, 0) * " PIXEL ".rgb;\n"
+ 	"	 1.0, 	  1.0,		1.0, \n" \
+ 	"	 0.0, 	  -0.34414, 1.77200, \n" \
+ 	"	 1.40200, -0.71414, 0.0) * " PIXEL ".rgb;\n"
 
 #define RGB_TO_YUV_FRAG(PIXEL) \
  	PIXEL ".rgb = mat3(\n" \

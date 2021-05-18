@@ -58,9 +58,18 @@ public:
 	MWindow *mwindow;
 	Load *load;
 	int load_mode;
+    int conform;
 	LoadFileWindow *window;
 };
 
+
+class ConformProject : public BC_CheckBox
+{
+public:
+    ConformProject(int x, int y, int *output);
+    int handle_event();
+    int *output;
+};
 
 class LoadFileWindow : public BC_FileBox
 {
@@ -75,9 +84,9 @@ public:
 
 	LoadFileThread *thread;
 	LoadMode *loadmode;
+    ConformProject *conform;
 	MWindow *mwindow;
 };
-
 
 
 class LocateFileWindow : public BC_FileBox

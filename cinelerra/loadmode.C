@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,6 +67,7 @@ LoadMode::LoadMode(MWindow *mwindow,
 	this->output = output;
 	this->use_nothing = use_nothing;
 	this->use_nested = use_nested;
+    conform = 0;
 	for(int i = 0; i < TOTAL_LOADMODES; i++)
 		mode[i] = 0;
 }
@@ -111,7 +112,7 @@ int LoadMode::calculate_w(BC_WindowBase *gui,
 	int use_nested)
 {
 	int margin = theme->widget_border;
-	int total = gui->get_text_width(MEDIUMFONT, _("Insertion strategy:")) + margin;
+	int total = gui->get_text_width(MEDIUMFONT, _("Load mode:")) + margin;
 	for(int i = 0; i < TOTAL_LOADMODES; i++)
 	{
 		if((i != LOADMODE_NOTHING || use_none) &&
@@ -158,7 +159,7 @@ void LoadMode::create_objects()
 	int x = this->x, y = this->y;
 	int margin = mwindow->theme->widget_border;
 
-	window->add_subwindow(title = new BC_Title(x, y, _("Insertion strategy:")));
+	window->add_subwindow(title = new BC_Title(x, y, _("Load Mode:")));
 	x += title->get_w() + margin;
 	int x1 = x;
 	for(int i = 0; i < TOTAL_LOADMODES; i++)
@@ -183,6 +184,29 @@ void LoadMode::create_objects()
 	}
 
 
+}
+
+void LoadMode::set_conform(BC_CheckBox *conform)
+{
+    this->conform = conform;
+    update_conform();
+}
+
+// update a conform checkbox based on the load mode
+void LoadMode::update_conform()
+{
+    if(conform)
+    {
+        if(*output == LOADMODE_REPLACE ||
+            *output == LOADMODE_REPLACE_CONCATENATE)
+        {
+            conform->enable();
+        }
+        else
+        {
+            conform->disable();
+        }
+    }
 }
 
 int LoadMode::get_x()
@@ -230,6 +254,8 @@ void LoadMode::update()
 			mode[i]->set_value(*output == i);
 		}
 	}
+    
+    update_conform();
 }
 
 

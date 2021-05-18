@@ -43,14 +43,14 @@ void thread_fork()
 {
 	int filedes[2];
 	int pid;
-	char *command_line = "ls -l -s -S -r";
+	const char *command_line = "ls -l -s -S -r";
 	char *arguments[MAX_ARGS];
 	char path[BCTEXTLEN];
 	int total_arguments;
 	FILE *stdin_fd;
 	int pipe_stdin = 0;
 	char *path_ptr;
-	char *ptr = command_line;
+	const char *ptr = command_line;
 	char *argument_ptr;
 	char argument[BCTEXTLEN];
 
@@ -183,6 +183,35 @@ int main(int argc, char *argv[])
 	window.add_tool(title = new BC_Title(10, 210, _("Hello world")));
 	title->update("xyz");
 	window.show_window();
+
+printf("main %d: hardware DPI: %d\n", __LINE__, BC_DisplayInfo::dpi);
+printf("main %d: large font: %d\n", __LINE__, window.get_text_height(LARGEFONT, "X"));
+printf("main %d: medium font: %d\n", __LINE__, window.get_text_height(MEDIUMFONT, "X"));
+printf("main %d: small font: %d\n", __LINE__, window.get_text_height(SMALLFONT, "X"));
+printf("main %d: clock font: %d\n", __LINE__, window.get_text_height(CLOCKFONT, "X"));
+
+// original fixed font pixel heights with broken & working scaling:
+// main 187: hardware DPI: 138
+// main 188: large font: 27
+// main 189: medium font: 18
+// main 190: small font: 12
+// main 190: clock font: 27
+
+// XFT fonts with broken scaling:
+// main 187: hardware DPI: 138
+// main 188: large font: 24
+// main 189: medium font: 19
+// main 190: small font: 14
+// main 190: clock font: 24
+
+// XFT fonts with working scaling:
+// main 187: hardware DPI: 138
+// main 188: large font: 33
+// main 189: medium font: 24
+// main 190: small font: 20
+// main 191: clock font: 31
+
+
 
 sleep(2);
 	title->update("abc");

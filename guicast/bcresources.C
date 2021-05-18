@@ -87,10 +87,10 @@ const char* BC_Resources::small_font_xft;
 const char* BC_Resources::medium_font_xft;
 const char* BC_Resources::large_font_xft;
 const char* BC_Resources::clock_font_xft;
-int BC_Resources::large_font_xftsize;
-int BC_Resources::medium_font_xftsize;
-int BC_Resources::small_font_xftsize;
-int BC_Resources::clock_font_xftsize;
+double BC_Resources::large_font_xftsize;
+double BC_Resources::medium_font_xftsize;
+double BC_Resources::small_font_xftsize;
+double BC_Resources::clock_font_xftsize;
 
 
 
@@ -147,14 +147,14 @@ void BC_Resources::init()
 		xft_lock = new Mutex("BC_Resources::xft_lock", 1);
 		id = 0;
 		filebox_id = 0;
-		init_fonts();
 
 		for(int i = 0; i < FILEBOX_HISTORY_SIZE; i++)
 			filebox_history[i].path[0] = 0;
 
-	#ifdef HAVE_XFT
+#ifdef HAVE_XFT
 		XftInitFtLibrary();
-	#endif
+#endif
+		init_fonts();
 
 		use_xvideo = 1;
 
@@ -842,13 +842,14 @@ static int nearest_size(const int *supported, int size)
 
 void BC_Resources::init_fonts()
 {
-// supported helvetica sizes
+// supported helvetica sizes in points
 	int supported[] = { 11, 14, 17, 20, 25, 34, 0 };
 //printf("BC_Resources::BC_Resources %d dpi=%d\n", __LINE__, dpi);
 	small_font = N_("-*-helvetica-medium-r-normal");
 	medium_font = N_("-*-helvetica-bold-r-normal");
 	large_font = N_("-*-helvetica-bold-r-normal");
 	clock_font = N_("-*-helvetica-bold-r-normal");
+// fixed fonts use point sizes, not pixel sizes
 	large_fontsize = nearest_size(supported, DP(24));
 	medium_fontsize = nearest_size(supported, DP(14));
 	small_fontsize = nearest_size(supported, DP(10));
@@ -860,12 +861,11 @@ void BC_Resources::init_fonts()
 	large_font_xft = N_("Sans");
 	clock_font_xft = N_("Sans");
 
-// font point sizes are scaled in the X server by the hardware DPI, so 
-// we unscale the hardware DPI before scaling by the user DPI
-	large_font_xftsize = DP(17.0 * 100 / BC_DisplayInfo::dpi);
-	medium_font_xftsize = DP(11.0 * 100 / BC_DisplayInfo::dpi);
-	small_font_xftsize = DP(9.0 * 100 / BC_DisplayInfo::dpi);
-	clock_font_xftsize = DP(16.0 * 100 / BC_DisplayInfo::dpi);
+// XFT uses pixel sizes
+	large_font_xftsize = DP(24);
+	medium_font_xftsize = DP(16);
+	small_font_xftsize = DP(12);
+	clock_font_xftsize = DP(21);
 }
 
 int BC_Resources::initialize_display(BC_WindowBase *window)

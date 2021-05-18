@@ -238,9 +238,15 @@ void VWindow::change_source(Indexable *indexable)
 
 //printf("VWindow::change_source 1 %d %p %p\n", __LINE__, asset, nested_edl);
 	if(asset)
-		mwindow->asset_to_edl(this->edl, asset);
-	else
-		mwindow->edl_to_nested(this->edl, nested_edl);
+    {
+// Can't conform the VWindow EDL to the asset because pasting from the VWindow
+// copies the VWindow dimensions to the mane EDL.
+		mwindow->asset_to_edl(this->edl, asset, 0, 0);
+	}
+    else
+	{
+    	mwindow->edl_to_nested(this->edl, nested_edl);
+    }
 
 // Update GUI
 	gui->change_source(this->edl, title);

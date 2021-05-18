@@ -2101,9 +2101,10 @@ XFontSet BC_WindowBase::query_fontset(const char *font_string, int size)
 }
 
 
-void* BC_WindowBase::query_xft_font(const char *font_string, int size)
+void* BC_WindowBase::query_xft_font(const char *font_string, double size)
 {
 	void *result = 0;
+#ifdef HAVE_XFT
 	BC_Resources::xft_lock->lock("BC_WindowBase::query_xft_font");
 	if(font_string[0] == '-')
 	{
@@ -2113,13 +2114,21 @@ void* BC_WindowBase::query_xft_font(const char *font_string, int size)
 	}
 	else
 	{
-		char string[BCTEXTLEN];
-		sprintf(string, "%s-%d", font_string, size);
-		result = XftFontOpenName(display,
-			screen,
-			string);
+        result = XftFontOpen(display,
+             screen,
+             XFT_FAMILY, XftTypeString, font_string,
+             XFT_PIXEL_SIZE, XftTypeDouble, size,
+             NULL);
+
+        
+// 		char string[BCTEXTLEN];
+// 		sprintf(string, "%s-%d", font_string, size);
+// 		result = XftFontOpenName(display,
+// 			screen,
+// 			string);
 	}
 	BC_Resources::xft_lock->unlock();
+#endif // HAVE_XFT
 	return result;
 }
 

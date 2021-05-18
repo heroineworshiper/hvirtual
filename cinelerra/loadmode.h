@@ -66,6 +66,7 @@ public:
 	
 	void create_objects();
 	int reposition_window(int x, int y);
+    void set_conform(BC_CheckBox *conform);
 	static int calculate_h(BC_WindowBase *gui, Theme *theme);
 	static int calculate_w(BC_WindowBase *gui, 
 		Theme *theme, 
@@ -77,6 +78,8 @@ public:
 
 	char* mode_to_text();
 	void update();
+// update a conform checkbox based on the load mode
+    void update_conform();
 
 	BC_Title *title;
 	MWindow *mwindow;
@@ -87,6 +90,8 @@ public:
 	int use_nothing;
 	int use_nested;
 	LoadModeToggle *mode[TOTAL_LOADMODES];
+// Disable a conform widget for certain modes if it exists
+    BC_CheckBox *conform;
 //	BC_TextBox *textbox;
 //	ArrayList<LoadModeItem*> load_modes;
 //	LoadModeListBox *listbox;

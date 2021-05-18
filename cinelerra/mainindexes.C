@@ -66,76 +66,68 @@ MainIndexes::~MainIndexes()
 	delete index_lock;
 }
 
-void MainIndexes::add_next_asset(File *file, Indexable *indexable)
+int MainIndexes::add_next_asset(File *file, Indexable *indexable)
 {
 	next_lock->lock("MainIndexes::add_next_asset");
 
-SET_TRACE
 // Test current asset
+//printf("MainIndexes::add_next_asset %d\n", __LINE__);
 	IndexFile indexfile(mwindow, indexable);
 	IndexState *index_state = 0;
 	index_state = indexable->index_state;
 
-SET_TRACE
 	int got_it = 0;
+    int result = indexfile.open_index();
 
-SET_TRACE
-	if(!indexfile.open_index())
+//printf("MainIndexes::add_next_asset %d result=%d\n", __LINE__, result);
+	if(result == FILE_OK)
 	{
 		index_state->index_status = INDEX_READY;
 		indexfile.close_index();
 		got_it = 1;
 	}
 
-//printf("MainIndexes::add_next_asset %d %f\n", __LINE__, indexable->get_frame_rate());
+//printf("MainIndexes::add_next_asset %d frame_rate=%f\n", __LINE__, indexable->get_frame_rate());
 
-SET_TRACE
 // No index
 	if(!got_it)
 	{
 		File *this_file = file;
 
-SET_TRACE
+        result = FILE_OK;
 		if(!file && indexable->is_asset)
 		{
 			this_file = new File;
-			this_file->open_file(mwindow->preferences,
+			result = this_file->open_file(mwindow->preferences,
 				(Asset*)indexable,
 				1,
 				0);
 		}
+//printf("MainIndexes::add_next_asset %d result=%d\n", __LINE__, result);
 
+        if(result == FILE_OK)
+        {
+		    string index_filename;
+		    string source_filename;
+            string path(indexable->path);
+		    IndexFile::get_index_filename(&source_filename, 
+			    &mwindow->preferences->index_directory, 
+			    &index_filename, 
+			    &path);
 
-SET_TRACE
-		string index_filename;
-		string source_filename;
-        string path(indexable->path);
-SET_TRACE
-		IndexFile::get_index_filename(&source_filename, 
-			&mwindow->preferences->index_directory, 
-			&index_filename, 
-			&path);
+		    if(this_file /* && !this_file->get_index((char*)index_filename.c_str()) */)
+		    {
+			    if(!indexfile.open_index())
+			    {
+				    indexfile.close_index();
+				    index_state->index_status = INDEX_READY;
+				    got_it = 1;
+			    }
+		    }
+        }
 
-SET_TRACE
-		if(this_file /* && !this_file->get_index((char*)index_filename.c_str()) */)
-		{
-SET_TRACE
-			if(!indexfile.open_index())
-			{
-SET_TRACE
-				indexfile.close_index();
-SET_TRACE
-				index_state->index_status = INDEX_READY;
-				got_it = 1;
-			}
-SET_TRACE
-		}
-
-SET_TRACE
 		if(this_file && !file) delete this_file;
-SET_TRACE
 	}
-SET_TRACE
 
 //printf("MainIndexes::add_next_asset %d %f\n", __LINE__, indexable->get_frame_rate());
 
@@ -147,6 +139,9 @@ SET_TRACE
 		indexable->add_user();
 	}
 	next_lock->unlock();
+    
+//printf("MainIndexes::add_next_asset %d result=%d\n", __LINE__, result);
+    return result;
 }
 
 void MainIndexes::delete_current_sources()

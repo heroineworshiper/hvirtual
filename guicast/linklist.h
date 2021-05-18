@@ -34,7 +34,9 @@ public:
 // delete the item and the pointers to it
 	void remove(TYPE *item);   
 // remove the pointers to the item only
-	void remove_pointer(ListItem<TYPE> *item);  
+	void remove_pointer(ListItem<TYPE> *item); 
+// remove all the items
+    void clear(); 
 
 // these must be used to add an item to a list
 	TYPE *append();  // create new node and return pointer of it
@@ -81,6 +83,15 @@ List<TYPE>::List()
 
 template<class TYPE>
 List<TYPE>::~List()     // delete nodes
+{
+	while(last)
+	{
+		delete last;
+	}
+}
+
+template<class TYPE>
+void List<TYPE>::clear()
 {
 	while(last)
 	{

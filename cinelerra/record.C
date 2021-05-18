@@ -563,9 +563,11 @@ void Record::run()
 					mwindow->remove_asset_from_caches(new_asset);
 					new_edl->create_objects();
 					new_edl->copy_session(mwindow->edl);
+// TODO: allow the user to conform the project in the record window
 					mwindow->asset_to_edl(new_edl, 
 						new_asset, 
-						batch->labels);
+						batch->labels,
+                        0); // conform
 					new_edls.append(new_edl);
 				}
 			}

@@ -111,6 +111,7 @@ void SUV::initialize()
 	resources->border_light2 = resources->bg_color;
 	resources->border_shadow2 = resources->bg_color;
 	resources->default_text_color = 0xbfbfbf;
+    resources->disabled_text_color = 0x5f5f5f;
 	resources->menu_title_text = 0xbfbfbf;
 	resources->popup_title_text = 0xbfbfbf;
 	resources->menu_item_text = 0xbfbfbf;

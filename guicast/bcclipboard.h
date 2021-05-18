@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,15 +53,16 @@ public:
 	int start_clipboard();
 	void run();
 	int stop_clipboard();
-	long clipboard_len(int clipboard_num);
-	int to_clipboard(const char *data, long len, int clipboard_num);
-	int from_clipboard(char *data, long maxlen, int clipboard_num);
+	int clipboard_len(int clipboard_num);
+	int to_clipboard(const char *data, int len, int clipboard_num);
+	int from_clipboard(char *data, int maxlen, int clipboard_num);
+	int from_clipboard(char *data, int maxlen, int *len_return, int clipboard_num);
 
 	Display *in_display, *out_display;
-	Atom completion_atom, primary, secondary;
+	Atom completion_atom, primary, secondary, utf8_target, targets, string_target;
 	Window in_win, out_win;
 	char *data[2];
-	long length[2];
+	int length[2];
 	char display_name[BCTEXTLEN];
 };
 

@@ -609,7 +609,7 @@ private:
 
 	XFontStruct* query_font(const char *font_string, int size);
 	XFontSet query_fontset(const char *font_string, int size);
-	void* query_xft_font(const char *font_string, int size);
+	void* query_xft_font(const char *font_string, double size);
 	int init_fonts();
 
 
