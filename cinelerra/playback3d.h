@@ -208,6 +208,7 @@ public:
 	int is_nested;
 
 	int dst_cmodel;
+    int video_on;
 	int64_t start_position_project;
     VFrame *mask;
 	MaskAutos *keyframe_set;
@@ -248,7 +249,7 @@ public:
 
 // Clear framebuffer before composing virtual console
 // output - passed when rendering refresh frame.  If 0, the canvas is cleared.
-	void clear_output(Canvas *canvas, VFrame *output);
+	void clear_output(Canvas *canvas, VFrame *output, int video_on);
 
 	void convert_cmodel(Canvas *canvas, VFrame *output, int dst_cmodel);
 
@@ -277,7 +278,7 @@ public:
 		float alpha,        // 0 - 1
 		int mode,
 		int interpolation_type,
-// supplied if rendering single frame to PBuffer.
+// supplied if video is off & rendering single frame to PBuffer.
 		VFrame *output = 0,
 		int is_nested = 0);
 

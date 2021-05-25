@@ -111,7 +111,6 @@ int VirtualVConsole::process_buffer(int64_t input_position,
 
 // que OpenGL driver that everything is overlaid in the framebuffer
 		vrender->video_out->set_opengl_state(VFrame::SCREEN);
-
 	}
 	else
 	{
@@ -167,8 +166,10 @@ int VirtualVConsole::process_buffer(int64_t input_position,
 
 // Reset OpenGL state
 		if(use_opengl)
-			output_temp->set_opengl_state(VFrame::RAM);
-
+		{
+        	output_temp->set_opengl_state(VFrame::RAM);
+        }
+        
 
 // Assume openGL is used for the final stage and let console
 // disable.

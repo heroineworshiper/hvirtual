@@ -500,6 +500,10 @@ void BC_CModels::transfer_alpha(unsigned char **output_rows, /* Leave NULL if no
     switch(in_colormodel)
     {
         case BC_RGBA8888:
+// printf("BC_CModels::transfer_alpha %d %d -> %d\n",
+// __LINE__,
+// in_colormodel,
+// out_colormodel);
             HEAD(unsigned char, unsigned int, 0xff)
 	        int r = ((int)input[0] * a + bg_r * anti_a) / 255;
 	        int g = ((int)input[1] * a + bg_g * anti_a) / 255;
@@ -529,6 +533,13 @@ void BC_CModels::transfer_alpha(unsigned char **output_rows, /* Leave NULL if no
 	        g = ((unsigned int)g * a + bg_g * anti_a) / 255;
 	        b = ((unsigned int)b * a + bg_b * anti_a) / 255;
             TAIL
+            break;
+
+        default:
+            printf("BC_CModels::transfer_alpha %d unsupported transfer %d -> %d\n",
+                __LINE__,
+                in_colormodel,
+                out_colormodel);
             break;
     }
 }

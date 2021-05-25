@@ -537,11 +537,11 @@ void Canvas::draw_refresh(int flush)
                 get_canvas()->get_color_model());
             int checker_w = CHECKER_W;
             int checker_h = CHECKER_H;
-// printf("CWindowCanvas::draw_refresh %d %p %d %d %d %d %d %d %d %d %d %d\n", 
+// printf("Canvas::draw_refresh %d temp_bitmap=%d refresh_frame=%d rows=%p src=%d,%d %dx%d dst=%d,%d %dx%d\n", 
 // __LINE__,
-// temp_bitmap->get_row_pointers(),
+// temp_bitmap->get_color_model(),
 // refresh_frame->get_color_model(),
-// get_canvas()->get_color_model(),
+// refresh_frame->get_rows()[0],
 // src_x, 
 // src_y, 
 // src_w, 
@@ -584,7 +584,7 @@ void Canvas::draw_refresh(int flush)
         }
         else
         {
-//printf("Canvas::draw_refresh %d %d\n", __LINE__, refresh_frame->get_opengl_state());
+printf("Canvas::draw_refresh %d %d\n", __LINE__, refresh_frame->get_opengl_state());
 			get_canvas()->draw_vframe(refresh_frame,
                 dest_x,
                 dest_y,

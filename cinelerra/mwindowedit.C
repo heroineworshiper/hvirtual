@@ -1698,10 +1698,8 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
         {
             return result;
         }
-PRINT_TRACE
 // Capture index file status from mainindex test
 		edl->update_assets(new_edl);
-PRINT_TRACE
 
 
 
@@ -1743,7 +1741,6 @@ PRINT_TRACE
 
 
 
-PRINT_TRACE
 
 
 // Insert edl
@@ -1875,7 +1872,6 @@ PRINT_TRACE
 //	}
 
 
-PRINT_TRACE
 // Start examining next batch of index files
 	mainindexes->start_build();
 
@@ -1883,7 +1879,6 @@ PRINT_TRACE
 // Don't save a backup after loading since the loaded file is on disk already.
 
 
-PRINT_TRACE
 	return 0;
 }
 

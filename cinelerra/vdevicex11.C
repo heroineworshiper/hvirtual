@@ -134,10 +134,14 @@ int VDeviceX11::open_output()
 		output->lock_canvas("VDeviceX11::open_output");
 		output->get_canvas()->lock_window("VDeviceX11::open_output");
 		if(!device->single_frame)
-			output->start_video();
-		else
-			output->start_single();
-		output->get_canvas()->unlock_window();
+		{
+        	output->start_video();
+		}
+        else
+		{
+        	output->start_single();
+		}
+        output->get_canvas()->unlock_window();
 
 // Enable opengl in the first routine that needs it, to reduce the complexity.
 		output->unlock_canvas();
@@ -185,7 +189,16 @@ int VDeviceX11::close_all()
 
 // OpenGL does YUV->RGB in the compositing step
 		if(use_opengl)
-			best_color_model = BC_RGB888;
+		{
+            if(BC_CModels::components(output_frame->get_color_model()) == 3)
+            {
+            	best_color_model = BC_RGB888;
+            }
+            else
+            {
+                best_color_model = BC_RGBA8888;
+            }
+        }
 
 		if(output->refresh_frame &&
 			(output->refresh_frame->get_w() != device->out_w ||
@@ -199,7 +212,10 @@ int VDeviceX11::close_all()
 
 		if(!output->refresh_frame)
 		{
-//printf("VDeviceX11::close_all %d creating refresh_frame\n", __LINE__);
+// printf("VDeviceX11::close_all %d output_frame=%d creating refresh_frame cmodel=%d\n", 
+// __LINE__, 
+// output_frame->get_color_model(), 
+// best_color_model);
 			output->refresh_frame = new VFrame(0,
 				-1,
 				device->out_w,
@@ -214,6 +230,7 @@ int VDeviceX11::close_all()
 			output->get_canvas()->unlock_window();
 			output->unlock_canvas();
 
+//printf("VDeviceX11::close_all %d color_model=%d\n", __LINE__, output_frame->get_color_model());
 			output->mwindow->playback_3d->copy_from(output, 
 				output->refresh_frame,
 				output_frame,
@@ -283,7 +300,7 @@ int VDeviceX11::close_all()
 // 		}
 
 // Draw the first refresh with new frame.
-// Doesn't work if video and openGL because OpenGL doesn't have 
+// Doesn't work if openGL video because OpenGL doesn't have 
 // the output buffer for video.
 // Not necessary for any case if we mandate a frame advance after
 // every stop.
@@ -462,7 +479,11 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 // Get the best colormodel the display can handle.
 	int display_colormodel = get_display_colormodel(file_colormodel);
 
-//printf("VDeviceX11::new_output_buffer %d file_colormodel=%d display_colormodel=%d\n", __LINE__, file_colormodel, display_colormodel);
+// printf("VDeviceX11::new_output_buffer %d output_frame=%p file_colormodel=%d display_colormodel=%d\n", 
+// __LINE__, 
+// output_frame, 
+// file_colormodel, 
+// display_colormodel);
 // Only create OpenGL Pbuffer and texture.
 	if(device->out_config->driver == PLAYBACK_X11_GL)
 	{
@@ -899,26 +920,14 @@ int VDeviceX11::write_buffer(VFrame *output_frame, EDL *edl)
 
 
 
-// printf("VDeviceX11::write_buffer %d\n", 
-// __LINE__);
+//printf("VDeviceX11::write_buffer %d\n", __LINE__);
 
 
 
 // Convert colormodel
 	if(bitmap_type == BITMAP_TEMP)
 	{
-// printf("VDeviceX11::write_buffer 1 %d %d, %d %d %d %d -> %d %d %d %d\n",
-// 			output->w,
-// 			output->h,
-// 			in_x, 
-// 			in_y, 
-// 			in_w, 
-// 			in_h,
-// 			out_x, 
-// 			out_y, 
-// 			out_w, 
-// 			out_h );
-// fflush(stdout);
+//printf("VDeviceX11::write_buffer %d\n", __LINE__);
 
 
         output_to_bitmap(output_frame);
@@ -1044,8 +1053,10 @@ void VDeviceX11::clear_output()
 {
 	is_cleared = 1;
 
+//printf("VDeviceX11::clear_output %d %p %d\n", __LINE__, output_frame, output->get_canvas()->get_video_on());
 	output->mwindow->playback_3d->clear_output(output,
-		output->get_canvas()->get_video_on() ? 0 : output_frame);
+		 output_frame,
+         output->get_canvas()->get_video_on());
 
 }
 

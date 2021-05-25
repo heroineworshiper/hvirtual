@@ -507,16 +507,21 @@ int VirtualVNode::render_projector(VFrame *input,
 // can do dissolves, although a blend equation is still required for 3 component
 // colormodels since fractional translation requires blending.
 
-// If this is the first playable video track and the mode_keyframe is "normal"
+// If this is the first playable video track,
+// the mode_keyframe is "normal"
+// & the color model has no alpha,
 // the mode may be overridden with "replace".  Replace is faster.
 			if(mode == TRANSFER_NORMAL &&
-				vconsole->current_exit_node == vconsole->total_exit_nodes - 1)
-				mode = TRANSFER_REPLACE;
+				vconsole->current_exit_node == vconsole->total_exit_nodes - 1 &&
+                BC_CModels::components(output->get_color_model()) == 3)
+			{
+            	mode = TRANSFER_REPLACE;
+            }
 
 			if(use_opengl)
 			{
 // Nested EDL's overlay on a PBuffer instead of a screen
-				
+//printf("VirtualVNode::render_projector %d\n", __LINE__);
 				((VDeviceX11*)((VirtualVConsole*)vconsole)->get_vdriver())->overlay(
 					output,
 					input,
