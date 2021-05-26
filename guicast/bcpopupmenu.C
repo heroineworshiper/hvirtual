@@ -53,9 +53,13 @@ BC_PopupMenu::BC_PopupMenu(int x,
 	menu_popup = 0;
 	icon = 0;
 	if(margin >= 0)
-		this->margin = margin;
-	else
-		this->margin = BC_WindowBase::get_resources()->popupmenu_margin;
+	{
+    	this->margin = margin;
+	}
+    else
+	{
+    	this->margin = BC_WindowBase::get_resources()->popupmenu_margin;
+    }
 
 	this->use_title = use_title;
 	strcpy(this->text, text);

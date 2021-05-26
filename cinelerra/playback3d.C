@@ -692,10 +692,10 @@ void Playback3D::draw_output(Playback3DCommand *command)
 	int texture_id = command->frame->get_texture_id();
 	BC_WindowBase *window = command->canvas->get_canvas();
 
-printf("Playback3D::draw_output %d texture_id=%d window=%p\n", 
-__LINE__,
-texture_id,
-command->canvas->get_canvas());
+// printf("Playback3D::draw_output %d texture_id=%d window=%p\n", 
+// __LINE__,
+// texture_id,
+// command->canvas->get_canvas());
 
 
 

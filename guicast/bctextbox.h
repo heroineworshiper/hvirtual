@@ -40,6 +40,7 @@
 class BC_TextBoxSuggestions;
 class BC_ScrollTextBoxYScroll;
 class BC_TextMenu;
+class BC_TextMenuSelect;
 
 using std::string;
 
@@ -129,6 +130,7 @@ public:
 	friend class BC_TextBoxSuggestions;
     friend class BC_TextBoxUndo;
     friend class BC_TextBoxUndos;
+    friend class BC_TextMenuSelect;
     friend class BC_TextMenu;
 
 
@@ -228,6 +230,7 @@ private:
 	void find_ibeam(int dispatch_event, int init = 0);
 	void select_word(int &letter1, int &letter2, int ibeam_letter);
 	void select_line(int &letter1, int &letter2, int ibeam_letter);
+    void select_all();
 	int get_cursor_letter(int cursor_x, int cursor_y);
 	int get_cursor_letter2(int cursor_x, int cursor_y);
 	int get_row_h(int rows);
@@ -515,6 +518,14 @@ public:
     BC_TextMenuRedo *redo;
     BC_TextMenuCut *cut;
     BC_TextMenuPaste *paste;
+};
+
+class BC_TextMenuSelect : public BC_MenuItem
+{
+public:
+	BC_TextMenuSelect(BC_TextMenu *menu);
+	int handle_event();
+	BC_TextMenu *menu;
 };
 
 class BC_TextMenuUndo : public BC_MenuItem

@@ -584,7 +584,7 @@ void Canvas::draw_refresh(int flush)
         }
         else
         {
-printf("Canvas::draw_refresh %d %d\n", __LINE__, refresh_frame->get_opengl_state());
+//printf("Canvas::draw_refresh %d %d\n", __LINE__, refresh_frame->get_opengl_state());
 			get_canvas()->draw_vframe(refresh_frame,
                 dest_x,
                 dest_y,

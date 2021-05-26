@@ -1737,6 +1737,12 @@ int BC_TextBox::keypress_event()
 		default:
 			if(ctrl_down())
 			{
+                if(get_keypress() == 'a' || get_keypress() == 'A')
+                {
+                    select_all();
+                    result = 1;
+                }
+                else
 				if(get_keypress() == 'c' || get_keypress() == 'C')
 				{
 					result = copy(0);
@@ -2295,24 +2301,78 @@ int BC_TextBox::get_cursor_letter2(int cursor_x, int cursor_y)
 	return result;
 }
 
+// character types
+#define ALNUM 0
+#define WHITESPACE 1
+#define SPECIAL 2
+#define REJECT 3
+static int char_type(int c)
+{
+// must be tested in the right order since isalnum is dumb
+    if(c == ' ' ||
+        c == '\t')
+    {
+        return WHITESPACE;
+    }
+    else
+    if(isalnum(c))
+    {
+        return ALNUM;
+    }
+    else
+    if(c != '\n' &&
+        c != '\r')
+    {
+        return SPECIAL;
+    }
+    else
+    {
+        return REJECT;
+    }
+}
+
 void BC_TextBox::select_word(int &letter1, int &letter2, int ibeam_letter)
 {
 	int text_len = text.length();
 	if(!text_len) return;
 
-	letter1 = letter2 = ibeam_letter;
-	do
-	{
-		if(isalnum(text[letter1])) letter1--;
-	}while(letter1 > 0 && isalnum(text[letter1]));
-	if(!isalnum(text[letter1])) letter1++;
+// determine the type of character under the ibeam
+    int type;
+    type = char_type(text[ibeam_letter]);
 
-	do
-	{
-		if(isalnum(text[letter2])) letter2++;
-	}while(letter2 < text_len && isalnum(text[letter2]));
-	if(letter2 < text_len && text[letter2] == ' ') letter2++;
+// don't select anything besides the ibeam
+    if(type == REJECT)
+    {
+        letter1 = ibeam_letter;
+        letter2 = ibeam_letter + 1;
+    }
+    else
+    {
+// select characters like the ibeam
+//printf("BC_TextBox::select_word %d ibeam_letter=%d\n", __LINE__, ibeam_letter);
+    // start of word
+	    letter1 = letter2 = ibeam_letter;
+	    do
+	    {
+		    if(char_type(text[letter1]) == type)
+            {
+                letter1--;
+            }
+	    }while(letter1 > 0 && char_type(text[letter1]) == type);
+	    if(char_type(text[letter1]) != type) letter1++;
 
+    // end of word
+	    do
+	    {
+		    if(char_type(text[letter2]) == type)
+            {
+                letter2++;
+            }
+	    }while(letter2 < text_len && char_type(text[letter2]) == type);
+//	if(letter2 < text_len && char_type(text[letter2]) == type) letter2++;
+    }
+
+// clamp it
 	if(letter1 < 0) letter1 = 0;
 	if(letter2 < 0) letter2 = 0;
 	if(letter1 > text_len) letter1 = text_len;
@@ -2344,6 +2404,14 @@ void BC_TextBox::select_line(int &letter1, int &letter2, int ibeam_letter)
 	if(letter2 < 0) letter2 = 0;
 	if(letter1 > text_len) letter1 = text_len;
 	if(letter2 > text_len) letter2 = text_len;
+}
+
+void BC_TextBox::select_all()
+{
+    highlight_letter1 = highlight_letter3 = 0;
+    highlight_letter2 = highlight_letter4 = text.length();
+    copy_selection(PRIMARY_SELECTION);
+    draw(1);
 }
 
 void BC_TextBox::copy_selection(int clipboard_num)
@@ -3258,6 +3326,7 @@ void BC_TextMenu::create_objects()
 	add_item(cut = new BC_TextMenuCut(this));
 	add_item(new BC_TextMenuCopy(this));
 	add_item(paste = new BC_TextMenuPaste(this));
+	add_item(new BC_TextMenuSelect(this));
 }
 
 
@@ -3283,6 +3352,20 @@ BC_TextMenuRedo::BC_TextMenuRedo(BC_TextMenu *menu)
 int BC_TextMenuRedo::handle_event()
 {
 	menu->textbox->redo();
+    menu->textbox->activate();
+	return 0;
+}
+
+
+BC_TextMenuSelect::BC_TextMenuSelect(BC_TextMenu *menu) 
+ : BC_MenuItem(_("Select All"), "Ctrl+A")
+{
+	this->menu = menu;
+}
+
+int BC_TextMenuSelect::handle_event()
+{
+	menu->textbox->select_all();
     menu->textbox->activate();
 	return 0;
 }
