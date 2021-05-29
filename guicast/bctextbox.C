@@ -147,6 +147,7 @@ int BC_TextBox::reset_parameters(int rows, int has_border, int font)
 	highlight_letter1 = highlight_letter2 = 0;
 	highlight_letter3 = highlight_letter4 = 0;
 	ibeam_letter = 0;
+    popup_menu_active = 0;
 	active = 0;
     read_only = 0;
 	text_selected = 0;
@@ -559,17 +560,21 @@ void BC_TextBox::draw_border()
 	if(has_border)
 	{
 		if(highlighted)
-			draw_3d_border(0, 0, w, h,
+		{
+        	draw_3d_border(0, 0, w, h,
 				resources->text_border1, 
 				resources->text_border2_hi, 
 				resources->text_border3_hi,
 				resources->text_border4);
-		else
-			draw_3d_border(0, 0, w, h, 
+		}
+        else
+		{
+        	draw_3d_border(0, 0, w, h, 
 				resources->text_border1, 
 				resources->text_border2,
 				resources->text_border3,
 				resources->text_border4);
+        }
 	}
 }
 
@@ -648,10 +653,15 @@ void BC_TextBox::draw(int flush)
 				highlight_letter2 > row_begin && 
 				highlight_letter1 <= row_end)
 			{
-				if(active && enabled && get_has_focus())
-					set_color(resources->text_highlight);
-				else
-					set_color(resources->text_inactive_highlight);
+				if(enabled &&
+                    ((active && get_has_focus()) || popup_menu_active))
+				{
+                	set_color(resources->text_highlight);
+				}
+                else
+				{
+                	set_color(resources->text_inactive_highlight);
+                }
 
 				if(highlight_letter1 >= row_begin && 
 					highlight_letter1 <= row_end)
@@ -812,6 +822,7 @@ int BC_TextBox::button_press_event()
 		else
 		if(get_buttonpress() == RIGHT_BUTTON)
 		{
+            popup_menu_active = 1;
 			menu->activate_menu();
 		}
 		else
@@ -984,14 +995,17 @@ int BC_TextBox::activate()
 {
 	top_level->active_subwindow = this;
 	active = 1;
+    popup_menu_active = 0;
 	draw(1);
 	top_level->set_repeat(top_level->get_resources()->blink_rate);
 	return 0;
 }
 
+// This is sometimes called from BC_TextBox::button_press_event to activate the
+// popup menu.
 int BC_TextBox::deactivate()
 {
-//printf("BC_TextBox::deactivate %d suggestions_popup=%p\n", __LINE__, suggestions_popup);
+//printf("BC_TextBox::deactivate %d\n", __LINE__);
 	active = 0;
 	top_level->unset_repeat(top_level->get_resources()->blink_rate);
 	if(suggestions_popup)
@@ -3328,6 +3342,19 @@ void BC_TextMenu::create_objects()
 	add_item(paste = new BC_TextMenuPaste(this));
 	add_item(new BC_TextMenuSelect(this));
 }
+
+int BC_TextMenu::deactivate()
+{
+    int result = BC_PopupMenu::deactivate();
+// transfer control back to the parent textbox
+    if(textbox->popup_menu_active)
+    {
+        textbox->popup_menu_active = 0;
+        textbox->activate();
+    }
+    return result;
+}
+
 
 
 BC_TextMenuUndo::BC_TextMenuUndo(BC_TextMenu *menu) 

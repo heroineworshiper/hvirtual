@@ -259,6 +259,8 @@ private:
 // the text    
 	string text;
 	char temp_string[KEYPRESSLEN];
+// don't grey out the highlight when activating the popup menu
+    int popup_menu_active;
 	int active;
 	int enabled;
     int read_only;
@@ -512,6 +514,7 @@ public:
 	~BC_TextMenu();
 	
 	void create_objects();
+    int deactivate();
 	
 	BC_TextBox *textbox;
     BC_TextMenuUndo *undo;

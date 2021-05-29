@@ -70,7 +70,7 @@ public:
 // Draw title of menu
 	int draw_title(int flush);
 	int reposition_window(int x, int y);
-	int deactivate();
+	virtual int deactivate();
 	int activate_menu();
 	int deactivate_menu();
 	int focus_out_event();

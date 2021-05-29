@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -637,9 +637,12 @@ int HistogramMain::handle_opengl()
 
 
 	static const char *apply_lut_frag = 
-        "   pixel.r = float(lookup_r[int(pixel.r * 255.0)]) / 255.0;\n"
-        "   pixel.g = float(lookup_g[int(pixel.g * 255.0)]) / 255.0;\n"
-        "   pixel.b = float(lookup_b[int(pixel.b * 255.0)]) / 255.0;\n";
+        "   int r = int(clamp(pixel.r * 255.0, 0, 255));\n"
+        "   int g = int(clamp(pixel.g * 255.0, 0, 255));\n"
+        "   int b = int(clamp(pixel.b * 255.0, 0, 255));\n"
+        "   pixel.r = float(lookup_r[r]) / 255.0;\n"
+        "   pixel.g = float(lookup_g[g]) / 255.0;\n"
+        "   pixel.b = float(lookup_b[b]) / 255.0;\n";
 
 	static const char *apply_float_frag = 
 		APPLY_INPUT_CURVE("pixel.r", "low_input.r", "high_input.r", "gamma.r")
@@ -1079,7 +1082,10 @@ void HistogramUnit::process_package(LoadPackage *package)
 		for(int j = 0; j < w; j++) \
 		{ \
 			if ( plugin->config.split && ((j + i * w / h) < w) ) \
-		    	continue; \
+		    { \
+            	continue; \
+            } \
+ \
 /* Convert to 16 bit RGB */ \
 			if(max == 0xff) \
 			{ \
