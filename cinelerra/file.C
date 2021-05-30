@@ -2295,7 +2295,7 @@ int File::read_frame(VFrame *frame, int is_thread)
 			current_frame,
 			current_layer,
 			asset->frame_rate,
-			1,
+			1, // use_copy
 			0);
 //printf("File::read_frame %d\n", __LINE__);
 

@@ -457,7 +457,9 @@ int VFrame::allocate_data(unsigned char *data,
 		this->bytes_per_line = bytes_per_line;
 	}
 	else
-		this->bytes_per_line = this->bytes_per_pixel * w;
+	{
+    	this->bytes_per_line = this->bytes_per_pixel * w;
+    }
 
 // Allocate data + padding for MMX
 	if(data)

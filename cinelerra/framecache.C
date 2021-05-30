@@ -204,7 +204,21 @@ void FrameCache::put_frame(VFrame *frame,
 
 	if(use_copy)
 	{
-		item->data = new VFrame(*frame);
+// can't use shm because this creates large numbers of frames
+//		item->data = new VFrame(*frame);
+        item->data = new VFrame;
+        item->data->set_use_shm(0);
+        item->data->reallocate(0, 
+	        -1,
+	        0,
+	        0,
+	        0,
+	        frame->get_w(), 
+	        frame->get_h(), 
+	        frame->get_color_model(), 
+	        -1);
+        item->data->copy_from(frame);
+        item->data->copy_stacks(frame);
 	}
 	else
 	{

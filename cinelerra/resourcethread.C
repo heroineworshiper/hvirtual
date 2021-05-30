@@ -395,6 +395,7 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 		source_cmodel = nested_edl->session->color_model;
 	}
 
+// this frame is what the file is loaded into & must use shm
 	if(temp_picon &&
 		(temp_picon->get_w() != source_w ||
 		temp_picon->get_h() != source_h ||
@@ -414,7 +415,7 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 			-1);
 	}
 
-// Get temporary to copy cached frame to
+// Temporary to copy cached frame to.  This doesn't need shm.
 	if(temp_picon2 &&
 		(temp_picon2->get_w() != item->picon_w ||
 		temp_picon2->get_h() != item->picon_h))
@@ -425,12 +426,23 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 
 	if(!temp_picon2)
 	{
-		temp_picon2 = new VFrame(0, 
-			-1,
-			item->picon_w, 
-			item->picon_h, 
-			BC_RGB888,
-			-1);
+// 		temp_picon2 = new VFrame(0, 
+// 			-1,
+// 			item->picon_w, 
+// 			item->picon_h, 
+// 			BC_RGB888,
+// 			-1);
+        temp_picon2 = new VFrame;
+        temp_picon2->set_use_shm(0);
+        temp_picon2->reallocate(0, 
+	        -1,
+	        0,
+	        0,
+	        0,
+	        item->picon_w, 
+	        item->picon_h, 
+	        BC_RGB888, 
+	        -1);
 	}
 
 
@@ -499,12 +511,25 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 
 	if(need_conversion)
 	{
-		picon_frame = new VFrame(0, 
-			-1,
-			item->picon_w, 
-			item->picon_h, 
-			BC_RGB888,
-			-1);
+// 		picon_frame = new VFrame(0, 
+// 			-1,
+// 			item->picon_w, 
+// 			item->picon_h, 
+// 			BC_RGB888,
+// 			-1);
+// number of shm segments is finite, so must use malloc
+        picon_frame = new VFrame;
+        picon_frame->set_use_shm(0);
+        picon_frame->reallocate(0, 
+	        -1,
+	        0,
+	        0,
+	        0,
+	        item->picon_w, 
+	        item->picon_h, 
+	        BC_RGB888, 
+	        -1);
+        
 		BC_CModels::transfer(picon_frame->get_rows(),
 			temp_picon->get_rows(),
 			0,
