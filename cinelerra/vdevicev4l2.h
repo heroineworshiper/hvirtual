@@ -38,8 +38,9 @@
 
 // Long delay is necessary to avoid losing synchronization due to spurrious
 // resets.
-#define BUFFER_TIMEOUT 10000000
+//#define BUFFER_TIMEOUT 10000000
 
+#define BUFFER_TIMEOUT 1000000
 
 // Isolate the application from the grabbing operation.
 // Used by VDeviceV4L2 and VDeviceV4L2JPEG
