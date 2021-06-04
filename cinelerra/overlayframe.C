@@ -402,12 +402,23 @@ int OverlayFrame::overlay(VFrame *output,
       temp_frame = 0;
     }
     if(!temp_frame){
-      temp_frame = new VFrame(0,
-	  	-1,
-	  	temp_w,
-		temp_h,
-        input->get_color_model(),
-        -1);
+//       temp_frame = new VFrame(0,
+// 	  	-1,
+// 	  	temp_w,
+// 		temp_h,
+//         input->get_color_model(),
+//         -1);
+      temp_frame = new VFrame;
+      temp_frame->set_use_shm(0);
+      temp_frame->reallocate(0, // data
+	  	-1, // shmid
+        0, // Y
+        0, // U
+        0, // V
+	  	temp_w, // w
+		temp_h, // h
+        input->get_color_model(), // color_model
+        -1); // bytes_per_line
     }
     temp_frame->clear_frame();
 
