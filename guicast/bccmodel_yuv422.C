@@ -20,6 +20,8 @@
 #include "bccmodels.h"
 
 
+#ifdef VIDEO_CMODELS
+
 
 static inline void transfer_YUV422_to_RGB8(unsigned char *(*output), 
 	unsigned char *input, 
@@ -549,3 +551,9 @@ void BC_CModels::yuv422(PERMUTATION_ARGS)
 			j);
 	}
 }
+
+
+
+
+#endif // VIDEO_CMODELS
+

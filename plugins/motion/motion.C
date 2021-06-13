@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2016 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include "clip.h"
 #include "bchash.h"
 #include "bcsignals.h"
+//#include "edgeengine.h"
 #include "filexml.h"
 #include "keyframe.h"
 #include "language.h"
@@ -215,6 +216,7 @@ void MotionConfig::interpolate(MotionConfig &prev,
 MotionMain::MotionMain(PluginServer *server)
  : PluginVClient(server)
 {
+//    edge = 0;
 	engine = 0;
 	rotate_engine = 0;
 //	motion_rotate = 0;
@@ -243,6 +245,7 @@ MotionMain::~MotionMain()
 {
 	delete sphere;
 
+//    delete edge;
 	delete engine;
 	delete overlayer;
 	delete [] search_area;
@@ -458,6 +461,7 @@ void MotionMain::process_global()
 // __LINE__,
 // config.block_y * h / 100,
 // total_dy);
+
 	engine->scan_frame(current_global_ref, 
 		prev_global_ref,
 		config.global_range_w * w / 100,
@@ -926,6 +930,13 @@ printf("MotionMain::process_buffer %d start_position=%lld\n", __LINE__, start_po
 			global_target_dst = new VFrame(w, h, color_model);
 
 
+//         if(!edge)
+//         {
+//             edge = new EdgeEngine(
+// 			    PluginClient::get_project_smp() + 1,
+// 			    PluginClient::get_project_smp() + 1);
+//         }
+
 // Load the global frames
 		if(need_reload)
 		{
@@ -934,6 +945,8 @@ printf("MotionMain::process_buffer %d start_position=%lld\n", __LINE__, start_po
 				previous_frame_number, 
 				frame_rate,
 				0);
+// edge detect the reference frames
+//            edge->process(prev_global_ref, prev_global_ref, 1);
 		}
 
 		read_frame(current_global_ref, 
@@ -946,6 +959,14 @@ printf("MotionMain::process_buffer %d start_position=%lld\n", __LINE__, start_po
 			start_position,
 			frame_rate,
 			0);
+// edge detect the reference frames
+//        edge->process(current_global_ref, current_global_ref, 1);
+
+// char temp[BCTEXTLEN];
+// sprintf(temp, "/tmp/ref%06ld.png", start_position);
+// current_global_ref->write_png(temp, 9);
+// sprintf(temp, "/tmp/target%06ld.png", start_position);
+// global_target_src->write_png(temp, 9);
 
 
 
@@ -1059,6 +1080,7 @@ printf("MotionMain::process_buffer %d start_position=%lld\n", __LINE__, start_po
 		}
 	}
 	else
+// skip the current frame
 // Read the target destination directly
 	{
 		read_frame(frame[target_layer],
@@ -1067,6 +1089,12 @@ printf("MotionMain::process_buffer %d start_position=%lld\n", __LINE__, start_po
 			frame_rate,
 			0);
 	}
+
+// draw the reference frame if it's a different track
+    if(target_layer != reference_layer)
+    {
+        frame[reference_layer]->copy_from(current_global_ref);
+    }
 
 	if(config.draw_vectors)
 	{

@@ -1,9 +1,20 @@
-include ../global_config
+# use whichever global_config exists
+ifneq ("","$(wildcard ../global_config)")
+	include ../global_config
+else
+	include global_config
+endif
+
 
 # must only define here so applications using libpng don't see any of the XFT
 # includes at all.  They use a conflicting setjmp.
 ifeq ($(HAVE_XFT), y)
 CFLAGS += -DHAVE_XFT
+endif
+
+
+ifneq ($(VIDEO_CMODELS), n)
+CFLAGS += -DVIDEO_CMODELS
 endif
 
 DEST := /usr/bin
@@ -18,6 +29,17 @@ ifeq ($(OBJDIR), x86_64)
 BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B i386 -I binary -O elf64-x86-64\""
 LFLAGS += -L/usr/X11R6/lib64
 endif
+
+ifeq ($(OBJDIR), armv6l)
+BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B arm -I binary -O elf32-littlearm\""
+LFLAGS += -L/usr/X11R6/lib64
+endif
+
+ifeq ($(OBJDIR), armv7l)
+BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B arm -I binary -O elf32-littlearm\""
+LFLAGS += -L/usr/X11R6/lib64
+endif
+
 
 
 $(shell mkdir -p $(OBJDIR) )

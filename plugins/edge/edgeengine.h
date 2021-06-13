@@ -20,54 +20,52 @@
 
 
 
-#ifndef EDGE_H
-#define EDGE_H
+#ifndef EDGEENGINE_H
+#define EDGEENGINE_H
 
-#include "pluginvclient.h"
 
-class EdgeEngine;
-class Edge;
+#include "loadbalance.h"
+#include "vframe.h"
 
-class EdgeConfig
+
+
+class EdgeEngine : public LoadServer
 {
 public:
-	EdgeConfig();
+	EdgeEngine(int total_clients, 
+		int total_packages);
+	~EdgeEngine();
 
-	int equivalent(EdgeConfig &that);
-	void copy_from(EdgeConfig &that);
-	void interpolate(EdgeConfig &prev, 
-		EdgeConfig &next, 
-		long prev_frame, 
-		long next_frame, 
-		long current_frame);
-	void limits();
+	void init_packages();
+	void process(VFrame *dst, VFrame *src, int amount);
 
-
-	int amount;
+	LoadClient* new_client();
+	LoadPackage* new_package();
+	VFrame *src, *dst;
+    VFrame *tmp;
+    int amount;
 };
 
-class Edge : public PluginVClient
+
+class EdgePackage : public LoadPackage
 {
 public:
-	Edge(PluginServer *server);
-	~Edge();
-// required for all realtime plugins
-	PLUGIN_CLASS_MEMBERS2(EdgeConfig)
-	int is_realtime();
-	void update_gui();
-	void save_data(KeyFrame *keyframe);
-	void read_data(KeyFrame *keyframe);
-	int process_buffer(VFrame *frame,
-		int64_t start_position,
-		double frame_rate);
+	EdgePackage();
+	int y1;
+	int y2;
+};
 
-	EdgeEngine *engine;
-	VFrame *temp;
+class EdgeUnit : public LoadClient
+{
+public:
+	EdgeUnit(EdgeEngine *server);
+	~EdgeUnit();
+	float edge_detect(float *data, float max, int do_max);
+	void process_package(LoadPackage *package);
+	EdgeEngine *server;
 };
 
 
 
 #endif
-
-
 

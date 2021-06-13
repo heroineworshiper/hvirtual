@@ -505,6 +505,7 @@ BC_FileBox::BC_FileBox(int x,
 	filter_text = 0;
 	filter_popup = 0;
 	usethis_button = 0;
+    hidden = 0;
 
 	strcpy(this->caption, caption);
 	strcpy(this->current_path, init_path);
@@ -522,6 +523,18 @@ BC_FileBox::BC_FileBox(int x,
 // this->submitted_path,
 // directory,
 // filename);
+
+// Create some default filters
+// Directories aren't filtered in FileSystem
+	if(!want_directory)
+	{
+		filter_list.append(new BC_ListBoxItem("*"));
+		filter_list.append(new BC_ListBoxItem("[*.ifo][*.vob]"));
+		filter_list.append(new BC_ListBoxItem("[*.mp2][*.mp3][*.wav]"));
+		filter_list.append(new BC_ListBoxItem("[*.avi][*.mpg][*.m2v][*.m1v][*.mov]"));
+		filter_list.append(new BC_ListBoxItem("heroine*"));
+		filter_list.append(new BC_ListBoxItem("*.xml"));
+    }
 
 // 	if(want_directory)
 // 	{
@@ -610,12 +623,6 @@ void BC_FileBox::create_objects()
 // Directories aren't filtered in FileSystem so skip this
 	if(!want_directory)
 	{
-		filter_list.append(new BC_ListBoxItem("*"));
-		filter_list.append(new BC_ListBoxItem("[*.ifo][*.vob]"));
-		filter_list.append(new BC_ListBoxItem("[*.mp2][*.mp3][*.wav]"));
-		filter_list.append(new BC_ListBoxItem("[*.avi][*.mpg][*.m2v][*.m1v][*.mov]"));
-		filter_list.append(new BC_ListBoxItem("heroine*"));
-		filter_list.append(new BC_ListBoxItem("*.xml"));
 		fs->set_filter(get_resources()->filebox_filter);
 	}
 
@@ -694,7 +701,21 @@ void BC_FileBox::create_objects()
 	rename_thread = new BC_RenameThread(this);
 
 
-	show_window();
+	if(!hidden)
+    {
+        show_window();
+    }
+}
+
+
+void BC_FileBox::set_hidden(int value)
+{
+    this->hidden = value;
+}
+
+ArrayList<BC_ListBoxItem*>* BC_FileBox::get_filters()
+{
+    return &filter_list;
 }
 
 int BC_FileBox::get_listbox_w()

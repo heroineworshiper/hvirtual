@@ -195,6 +195,7 @@ int main(int argc, char *argv[])
 
 // Run system command on it
 	sprintf(system_command, "%s %s %s", BOOTSTRAP, temp_path, out_path);
+    printf("%s\n", system_command);
 	int temp = system(system_command);
 }
 

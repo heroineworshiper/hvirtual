@@ -5,6 +5,7 @@
 
 // ********************************** RGB FLOAT -> *******************************
 
+#ifdef VIDEO_CMODELS
 
 
 static inline void transfer_RGB_FLOAT_to_RGB8(unsigned char *(*output), float *input)
@@ -743,4 +744,9 @@ void BC_CModels::cmodel_float(PERMUTATION_ARGS)
 			0);
 	}
 }
+
+
+
+
+#endif // VIDEO_CMODELS
 

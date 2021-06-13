@@ -501,8 +501,8 @@ static int print_error(char *source, unsigned int object, int is_program)
 		glGetShaderInfoLog(object, BCTEXTLEN, &len, string);
 	if(len > 0) printf("Playback3D::print_error:\n%s\n%s\n", source, string);
 	if(len > 0) return 1;
-	return 0;
 #endif
+	return 0;
 }
 
 

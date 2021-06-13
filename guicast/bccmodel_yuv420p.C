@@ -21,7 +21,7 @@
 #include "bccmodels.h"
 #include <stdio.h>
 
-
+#ifdef VIDEO_CMODELS
 
 
 #define TRANSFER_YUV420P_IN_HEAD \
@@ -1393,3 +1393,9 @@ void BC_CModels::yuv444p(PERMUTATION_ARGS)
 			0);
 	}
 }
+
+
+
+
+#endif // VIDEO_CMODELS
+

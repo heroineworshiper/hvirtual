@@ -153,11 +153,13 @@ int FileSystem::delete_directory()
 int FileSystem::set_sort_order(int value)
 {
 	this->sort_order = value;
+    return value;
 }
 
 int FileSystem::set_sort_field(int field)
 {
 	this->sort_field = field;
+    return field;
 }
 
 int FileSystem::compare_items(ArrayList<FileItem*> *dir_list, 

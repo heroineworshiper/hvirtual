@@ -269,6 +269,9 @@ public:
 	void delete_files();
 	BC_Button* get_ok_button();
 	BC_Button* get_cancel_button();
+// set the initial hidden state before create_objects
+    void set_hidden(int value);
+    ArrayList<BC_ListBoxItem*>* get_filters();
 
 private:
 	int create_icons();
@@ -311,6 +314,7 @@ private:
 	char string[BCTEXTLEN];
 	int want_directory;
 	int select_multiple;
+    int hidden;
 
 	int sort_column;
 	int sort_order;

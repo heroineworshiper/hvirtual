@@ -456,17 +456,35 @@ int RotateEngine::coords_to_pixel(int &input_y, int &input_x)
 
 int RotateEngine::coords_to_pixel(SourceCoord &float_pixel, float &input_y, float &input_x)
 {
-	if(input_y < 0) float_pixel.y = -1;
+	if(input_y < 0)
+    {
+        float_pixel.y = -1;
+    }
 	else
-	if(input_y >= plugin->input->get_h()) float_pixel.y = -1;
+	if(input_y >= plugin->input->get_h()) 
+    {
+        float_pixel.y = -1;
+    }
 	else
-	float_pixel.y = input_y;
+	{
+        float_pixel.y = input_y;
+    }
 
-	if(input_x < 0) float_pixel.x = -1;
+	if(input_x < 0) 
+    {
+        float_pixel.x = -1;
+    }
 	else
-	if(input_x >= plugin->input->get_w()) float_pixel.x = -1;
+	if(input_x >= plugin->input->get_w()) 
+    {
+        float_pixel.x = -1;
+    }
 	else
-	float_pixel.x = input_x;
+	{
+        float_pixel.x = input_x;
+    }
+    return 0;
+    
 }
 
 

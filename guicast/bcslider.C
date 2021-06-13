@@ -288,6 +288,7 @@ int BC_Slider::activate()
 {
 	top_level->active_subwindow = this;
 	active = 1;
+    return 0;
 }
 
 void BC_Slider::enable()

@@ -950,6 +950,7 @@ void BC_WindowBase::draw_bitmap(BC_Bitmap *bitmap,
 
 	if(video_on)
 	{
+//printf("BC_WindowBase::draw_bitmap %d win=%p\n", __LINE__, win);
 		bitmap->write_drawable(win, 
 			top_level->gc, 
 			src_x, 

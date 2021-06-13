@@ -560,6 +560,8 @@ public:
 	int show_tooltip(int w = -1, int h = -1);
 	int hide_tooltip();
 	int set_icon(VFrame *data);
+// use the window manager border
+    void set_border(int value);
 	int load_defaults(BC_Hash *defaults);
 	int save_defaults(BC_Hash *defaults);
 
@@ -866,6 +868,8 @@ private:
 	BC_Popup *icon_window;
 	BC_Pixmap *icon_pixmap;
 	BC_Pixmap **_7segment_pixmaps;
+// has a window manager border
+    int has_border;
 // Temporary
 	BC_Bitmap *temp_bitmap;
 // Clipboard

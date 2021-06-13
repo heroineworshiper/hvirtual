@@ -41,7 +41,7 @@
 
 class MotionMain;
 class MotionWindow;
-
+//class EdgeEngine;
 
 
 
@@ -183,6 +183,7 @@ public:
 	OverlayFrame *overlayer;
 	SphereTranslateEngine *sphere;
 	AffineEngine *rotate_engine;
+//    EdgeEngine *edge;
 
 // Accumulation of all global tracks since the plugin start.
 // Multiplied by OVERSAMPLE.

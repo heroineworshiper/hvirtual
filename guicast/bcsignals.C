@@ -114,6 +114,7 @@ static void* overwrite_table(bc_table_t *table, void *ptr)
 	free(table->values[table->current_value]);
 	table->values[table->current_value++] = ptr;
 	if(table->current_value >= table->size) table->current_value = 0;
+    return ptr;
 }
 
 static void clear_table(bc_table_t *table, int delete_objects)

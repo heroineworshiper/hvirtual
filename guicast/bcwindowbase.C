@@ -153,7 +153,7 @@ BC_WindowBase::~BC_WindowBase()
 		XFreeGC(display, gc);
 #ifdef HAVE_XFT
 // If I understand libXft sources correctly, Xft cares itself about
-// font closing durig XCloseDisplay. Removing XftFontClose fixes
+// font closing during XCloseDisplay. Removing XftFontClose fixes
 // a race between XftFontClose, XCloseDisplay and XftFontOpenXlfd.
 // 		if(largefont_xft) 
 // 			XftFontClose (display, (XftFont*)largefont_xft);
@@ -233,6 +233,7 @@ int BC_WindowBase::initialize()
 	y = 0; 
 	w = 0; 
 	h = 0;
+    has_border = 1;
 	bg_color = -1;
 	line_width = 1;
 	line_dashes = 0;
@@ -461,6 +462,12 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 		attr.colormap = cmap;
 		attr.cursor = get_cursor_struct(ARROW_CURSOR);
 
+        if(!has_border)
+        {
+            mask |= CWOverrideRedirect;
+            attr.override_redirect = True;
+        }
+
 		win = XCreateWindow(display, 
 			rootwin, 
 			this->x, 
@@ -558,14 +565,23 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 			KeyReleaseMask;
 
 		if(this->bg_color == -1)
-			this->bg_color = resources.get_bg_color();
-		attr.background_pixel = top_level->get_color(bg_color);
+		{
+        	this->bg_color = resources.get_bg_color();
+		}
+
+        attr.background_pixel = top_level->get_color(bg_color);
 		attr.colormap = top_level->cmap;
+
 		if(top_level->is_hourglass)
-			attr.cursor = top_level->get_cursor_struct(HOURGLASS_CURSOR);
-		else
-			attr.cursor = top_level->get_cursor_struct(ARROW_CURSOR);
-		attr.override_redirect = True;
+		{
+        	attr.cursor = top_level->get_cursor_struct(HOURGLASS_CURSOR);
+		}
+        else
+		{
+        	attr.cursor = top_level->get_cursor_struct(ARROW_CURSOR);
+		}
+
+        attr.override_redirect = True;
 		attr.save_under = True;
 
 		win = XCreateWindow(top_level->display, 
@@ -3133,6 +3149,7 @@ int BC_WindowBase::flash(int x, int y, int w, int h, int flush)
 int BC_WindowBase::flash(int flush)
 {
 	flash(-1, -1, -1, -1, flush);
+    return 0;
 }
 
 void BC_WindowBase::flush()
@@ -3709,9 +3726,14 @@ int BC_WindowBase::dump_windows()
 {
 	printf("\tBC_WindowBase::dump_windows window=%p win=%p\n", this, (void*)this->win);
 	for(int i = 0; i < subwindows->size(); i++)
-		subwindows->get(i)->dump_windows();
-	for(int i = 0; i < popups.size(); i++)
-		printf("\tBC_WindowBase::dump_windows popup=%p win=%p\n", popups.get(i), (void*)popups.get(i)->win);
+	{
+    	subwindows->get(i)->dump_windows();
+	}
+    for(int i = 0; i < popups.size(); i++)
+	{
+    	printf("\tBC_WindowBase::dump_windows popup=%p win=%p\n", popups.get(i), (void*)popups.get(i)->win);
+    }
+    return 0;
 }
 
 int BC_WindowBase::is_event_win()
@@ -3856,7 +3878,7 @@ int BC_WindowBase::reposition_window(int x, int y, int w, int h)
 		this->h = h;
 	}
 
-//printf("BC_WindowBase::reposition_window %d %d %d\n", translation_count, x_correction, y_correction);
+//printf("BC_WindowBase::reposition_window %d %d %d %d\n", __LINE__, translation_count, x_correction, y_correction);
 
 	if(this->w <= 0)
 		printf("BC_WindowBase::reposition_window this->w == %d\n", this->w);
@@ -3867,6 +3889,7 @@ int BC_WindowBase::reposition_window(int x, int y, int w, int h)
 	{
 // KDE shifts window right and down.
 // FVWM leaves window alone and adds border around it.
+// This still doesn't work if the window is hidden
 		XMoveResizeWindow(top_level->display, 
 			win, 
 			x + BC_DisplayInfo::left_border - BC_DisplayInfo::auto_reposition_x, 
@@ -3977,6 +4000,11 @@ int BC_WindowBase::set_icon(VFrame *data)
 	XSetWMHints(top_level->display, top_level->win, &wm_hints);
 	XSync(top_level->display, 0);
 	return 0;
+}
+
+void BC_WindowBase::set_border(int value)
+{
+    this->has_border = value;
 }
 
 int BC_WindowBase::set_w(int w)
@@ -4219,15 +4247,16 @@ int BC_WindowBase::get_id()
 
 BC_Bitmap* BC_WindowBase::get_temp_bitmap(int w, int h, int color_model)
 {
+    int use_shm = 1;
     if(!temp_bitmap) temp_bitmap = new BC_Bitmap(top_level, 
 		w, 
 		h, 
 		color_model, 
-		1);
+		use_shm);
     temp_bitmap->match_params(w, 
 		h, 
 		color_model, 
-		1);
+		use_shm);
     return temp_bitmap;
 }
 

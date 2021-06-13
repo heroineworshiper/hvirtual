@@ -176,6 +176,7 @@ int BC_CModels::components(int colormodel)
 		case BC_RGBA_FLOAT:   return 4; break;
 		case BC_YUV420P10LE: return 3; break;
 	}
+    return 3;
 }
 
 int BC_CModels::calculate_pixelsize(int colormodel)
@@ -393,6 +394,7 @@ void BC_CModels::transfer(unsigned char **output_rows,
 // Handle planar cmodels separately
 	switch(in_colormodel)
 	{
+#ifdef VIDEO_CMODELS
 		case BC_RGB_FLOAT:
 		case BC_RGBA_FLOAT:
 			cmodel_float(PERMUTATION_VALUES);
@@ -414,7 +416,7 @@ void BC_CModels::transfer(unsigned char **output_rows,
 		case BC_YUV422:
 			yuv422(PERMUTATION_VALUES);
 			break;
-		
+#endif // VIDEO_CMODELS
 
 		default:
 			cmodel_default(PERMUTATION_VALUES);

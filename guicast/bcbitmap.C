@@ -520,8 +520,10 @@ int BC_Bitmap::write_drawable(Drawable &pixmap,
 		}
 		else
 		{
-// printf("BC_Bitmap::write_drawable %d src=%d %d %d %d -> dst=%d %d %d %d\n", 
+// printf("BC_Bitmap::write_drawable %d pixmap=%p current_ringbuffer=%d src=%d %d %d %d -> dst=%d %d %d %d\n", 
 // 	__LINE__,
+//     pixmap,
+//     current_ringbuffer,
 // 	source_x, 
 // 	source_y, 
 // 	source_w, 

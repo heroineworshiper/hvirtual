@@ -290,6 +290,11 @@ static inline void transfer_RGB888_to_BGR8888(unsigned char *(*output), unsigned
 	(*output)++;
 }
 
+
+
+
+#ifdef VIDEO_CMODELS
+
 static inline void transfer_RGB888_to_YUV888(unsigned char *(*output), unsigned char *input)
 {
 	int y, u, v;
@@ -451,7 +456,7 @@ static inline void transfer_RGB888_to_YUV422(unsigned char *(*output),
 
 }
 
-
+#endif // VIDEO_CMODELS
 
 
 
@@ -706,6 +711,13 @@ static inline void transfer_RGBA8888_to_BGR8888(unsigned char *(*output), unsign
 	(*output)++;
 }
 
+
+
+
+
+#ifdef VIDEO_CMODELS
+
+
 static inline void transfer_RGBA8888_to_YUV888(unsigned char *(*output), unsigned char *input)
 {
 	int y, u, v, a, r, g, b;
@@ -876,7 +888,7 @@ static inline void transfer_RGBA888_to_YUV422(unsigned char *(*output),
 
 
 
-
+#endif // VIDEO_CMODELS
 
 
 
@@ -952,6 +964,12 @@ static inline void transfer_RGB161616_to_BGR8888(unsigned char *(*output), uint1
 	(*output)[2] = input[0] >> 8;
 	(*output) += 4;
 }
+
+
+
+
+#ifdef VIDEO_CMODELS
+
 
 static inline void transfer_RGB161616_to_YUV888(unsigned char *(*output), uint16_t *input)
 {
@@ -1068,6 +1086,8 @@ static inline void transfer_RGB161616_to_YUV444P(unsigned char *output_y,
 }
 
 
+#endif // VIDEO_CMODELS
+
 // ****************************** RGBA16161616 -> *****************************
 
 static inline void transfer_RGBA16161616_to_RGB8(unsigned char *(*output), uint16_t *input)
@@ -1167,6 +1187,9 @@ static inline void transfer_RGBA16161616_to_BGR8888(unsigned char *(*output), ui
 	(*output) += 4;
 }
 
+
+#ifdef VIDEO_CMODELS
+
 static inline void transfer_RGBA16161616_to_YUV101010(unsigned char *(*output), uint16_t *input)
 {
 	uint32_t r, g, b, a, y, u, v;
@@ -1221,7 +1244,7 @@ static inline void transfer_RGBA16161616_to_YUV444P(unsigned char *output_y,
 
 
 
-
+#endif // VIDEO_CMODELS
 
 
 
@@ -1271,7 +1294,7 @@ static inline void transfer_BGR888_to_RGB888(unsigned char *(*output), unsigned 
 
 
 // ******************************** YUV888 -> *********************************
-
+#ifdef VIDEO_CMODELS
 
 static inline void transfer_YUV888_to_RGB8(unsigned char *(*output), unsigned char *input)
 {
@@ -2402,7 +2425,7 @@ static inline void transfer_YUVA16161616_to_YUV422(unsigned char *(*output),
 
 
 
-
+#endif // VIDEO_CMODELS
 
 
 

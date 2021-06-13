@@ -620,7 +620,7 @@ void BC_Resources::init()
 		use_shm = -1;
 
 // Initialize
-		bg_color = MEGREY;
+		bg_color = WHITE;
 		bg_shadow1 = DKGREY;
 		bg_shadow2 = BLACK;
 		bg_light1 = WHITE;
@@ -715,7 +715,7 @@ void BC_Resources::init()
 		text_border3 = MEGREY;
 		text_border3_hi = LTPINK;
 		text_border4 = WHITE;
-		text_highlight = BLUE;
+		text_highlight = LTGREY;
 		text_inactive_highlight = MEGREY;
 
 		toggle_highlight_bg = 0;

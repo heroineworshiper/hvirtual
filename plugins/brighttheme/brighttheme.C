@@ -109,8 +109,8 @@ void BrightTheme::initialize()
 	resources->text_border2_hi = 0x000000;
 	resources->text_border3_hi = 0x000000;
 	resources->text_border4 = 0x000000;
-	resources->text_inactive_highlight = 0xe0e0e0;
-	resources->text_highlight = 0xe0e0e0;
+	resources->text_inactive_highlight = LTGREY;
+	resources->text_highlight = LTGREY;
 
 	resources->bg_color = 0xffffff;
 	resources->default_text_color = 0x000000;
@@ -134,22 +134,22 @@ void BrightTheme::initialize()
 	resources->popupmenu_margin = DP(5);
 	resources->popupmenu_triangle_margin = DP(15);
 
-	resources->listbox_title_color = 0x000000;
+	resources->listbox_title_color = BLACK;
 
 	resources->listbox_title_overlap = DP(20);
 	resources->listbox_title_margin = DP(20);
 	resources->listbox_title_hotspot = DP(20);
-	resources->listbox_border1 = 0x000000;
-	resources->listbox_border2 = 0xffffff;
-	resources->listbox_border3 = 0xffffff;
-	resources->listbox_border2_hi = 0x000000;
-	resources->listbox_border3_hi = 0x000000;
-	resources->listbox_border4 = 0x000000;
+	resources->listbox_border1 = BLACK;
+	resources->listbox_border2 = WHITE;
+	resources->listbox_border3 = WHITE;
+	resources->listbox_border2_hi = BLACK;
+	resources->listbox_border3_hi = BLACK;
+	resources->listbox_border4 = BLACK;
 	resources->listbox_highlighted = 0xfefefe;
-	resources->listbox_inactive = 0xffffff;
+	resources->listbox_inactive = WHITE;
 	resources->listbox_selected = 0xe0e0e0;
 	resources->listbox_bg = 0;
-	resources->listbox_text = 0x000000;
+	resources->listbox_text = BLACK;
 
 	resources->filebox_margin = DP(130);
 	resources->file_color = 0x000000;
@@ -216,15 +216,15 @@ void BrightTheme::initialize()
 
 
 
-	resources->filebox_icons_images = new_button("icons.png",
-		"fileboxbutton_up.png",
-		"fileboxbutton_hi.png",
-		"fileboxbutton_dn.png");
-
-	resources->filebox_text_images = new_button("text.png",
-		"fileboxbutton_up.png",
-		"fileboxbutton_hi.png",
-		"fileboxbutton_dn.png");
+// 	resources->filebox_icons_images = new_button("icons.png",
+// 		"fileboxbutton_up.png",
+// 		"fileboxbutton_hi.png",
+// 		"fileboxbutton_dn.png");
+// 
+// 	resources->filebox_text_images = new_button("text.png",
+// 		"fileboxbutton_up.png",
+// 		"fileboxbutton_hi.png",
+// 		"fileboxbutton_dn.png");
 
 	resources->filebox_newfolder_images = new_button("folder.png",
 		"fileboxbutton_up.png",
