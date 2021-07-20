@@ -1049,13 +1049,14 @@ int VDeviceX11::write_buffer(VFrame *output_frame, EDL *edl)
 }
 
 
-void VDeviceX11::clear_output()
+void VDeviceX11::clear_output(VFrame *frame)
 {
 	is_cleared = 1;
 
-//printf("VDeviceX11::clear_output %d %p %d\n", __LINE__, output_frame, output->get_canvas()->get_video_on());
+//printf("VDeviceX11::clear_output %d %p %p\n", __LINE__, output_frame, frame);
 	output->mwindow->playback_3d->clear_output(output,
-		 output_frame,
+		 frame,
+//       output_frame,
          output->get_canvas()->get_video_on());
 
 }

@@ -64,6 +64,7 @@ public:
 // Call this if the TYPE is a pointer to an array which must be
 // deleted by delete [].
 	void set_array_delete();
+	int get_array_delete();
 	int size();
 	TYPE get(int number);
 	TYPE set(int number, TYPE value);
@@ -100,6 +101,12 @@ template<class TYPE>
 void ArrayList<TYPE>::set_array_delete()
 {
     array_delete = 1;
+}
+
+template<class TYPE>
+int ArrayList<TYPE>::get_array_delete()
+{
+    return array_delete;
 }
 
 
@@ -252,13 +259,16 @@ void ArrayList<TYPE>::remove_number(int number)
 template<class TYPE>
 void ArrayList<TYPE>::remove_all_objects()
 {
-//printf("ArrayList<TYPE>::remove_all_objects 1 %d\n", total);
 	for(int i = 0; i < total; i++)
 	{
 		if(array_delete)
-			delete [] values[i];
-		else
-			delete values[i];
+		{
+        	delete [] values[i];
+		}
+        else
+		{
+        	delete values[i];
+        }
 	}
 	
 	total = 0;

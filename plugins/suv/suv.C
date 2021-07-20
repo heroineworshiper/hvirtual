@@ -105,6 +105,7 @@ void SUV::initialize()
 	resources->text_border2 = 0x373737;
 	resources->text_border3 = 0x373737;
 	resources->text_border4 = 0x969696;
+    resources->text_highlight = BLUE;
 	resources->text_inactive_highlight = 0x707070;
 
 	resources->bg_color = 0x484848;

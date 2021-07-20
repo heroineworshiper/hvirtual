@@ -156,6 +156,8 @@ int VRender::process_buffer(int64_t input_position,
 	if(renderengine->command->realtime &&
 		!renderengine->is_nested)
 	{
+//        printf("VRender::process_buffer %d\n", __LINE__);
+
 		renderengine->video->new_output_buffer(&video_out, 
 			colormodel, 
 			renderengine->get_edl());
@@ -224,11 +226,18 @@ int VRender::process_buffer(int64_t input_position,
 	else
 // Read into virtual console
 	{
+//        printf("VRender::process_buffer %d\n", __LINE__);
+
+
+
 
 // process this buffer now in the virtual console
 		result = ((VirtualVConsole*)vconsole)->process_buffer(input_position,
 			use_opengl);
+//        printf("VRender::process_buffer %d\n", __LINE__);
 	}
+
+//    printf("VRender::process_buffer %d\n", __LINE__);
 
 	return result;
 }

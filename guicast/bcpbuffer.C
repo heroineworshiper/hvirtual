@@ -70,6 +70,12 @@ void BC_PBuffer::new_pbuffer(int w, int h)
 	if(!pbuffer)
 	{
 		BC_WindowBase *current_window = BC_WindowBase::get_synchronous()->current_window;
+        if(!current_window)
+        {
+            printf("BC_PBuffer::new_pbuffer %d no current window\n", __LINE__);
+            return;
+        }
+
 // Try previously created PBuffers
 		pbuffer = BC_WindowBase::get_synchronous()->get_pbuffer(w, 
 			h, 

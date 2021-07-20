@@ -36,6 +36,7 @@
 #include "mutex.h"
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 
 
@@ -598,8 +599,10 @@ BC_FileBox::~BC_FileBox()
 	delete fs;
 	delete_tables();
 	for(int i = 0; i < TOTAL_ICONS; i++)
-		delete icons[i];
-	filter_list.remove_all_objects();
+	{
+    	delete icons[i];
+	}
+    filter_list.remove_all_objects();
 	delete [] list_column;
 	delete [] column_type;
 	delete [] column_width;

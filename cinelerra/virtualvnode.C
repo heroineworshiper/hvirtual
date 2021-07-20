@@ -179,6 +179,8 @@ int VirtualVNode::render(VFrame *output_temp,
 	double frame_rate,
 	int use_opengl)
 {
+//printf("VirtualVNode::render %d output_temp=%p\n", __LINE__, output_temp);
+
 	VRender *vrender = ((VirtualVConsole*)vconsole)->vrender;
 	if(real_module)
 	{
@@ -196,6 +198,8 @@ int VirtualVNode::render(VFrame *output_temp,
 			frame_rate,
 			use_opengl);
 	}
+//printf("VirtualVNode::render %d output_temp=%p\n", __LINE__, output_temp);
+
 	return 0;
 }
 

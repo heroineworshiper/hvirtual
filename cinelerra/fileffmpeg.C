@@ -57,6 +57,14 @@ using std::string;
 
 #define FFMPEG_TOC_SIG "FFMPEGTOC02"
 
+// hacks for seeking which depend on the codec
+#define AUDIO_REWIND_SECS 1
+//#define AUDIO_REWIND_SECS 10
+#define VIDEO_REWIND_KEYFRAMES 2
+//#define VIDEO_REWIND_KEYFRAMES 4
+
+
+
 // MKV/WEBM doesn't have the required information for frame accurate
 // seeking. It stores only a table of offsets where a packet is guaranteed
 // to start, every few seconds, while each packet contains a more accurate
@@ -1791,7 +1799,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
                 stream->video_offsets.size());
             
 // rewind this many keyframes
-            int rewind_count = 2;
+            int rewind_count = VIDEO_REWIND_KEYFRAMES;
 // Some codecs only require rewinding 1 keyframe
             if(decoder_context->codec_id == AV_CODEC_ID_VP9)
             {
@@ -2232,6 +2240,13 @@ stream->history_start + stream->history_size);
             int chunk = 0;
             int64_t sample_counter = 0;
             int got_it = 0;
+// rewind a certain amount before the desired sample for the decoder to warm up
+            int64_t start_sample = file->current_sample - 
+                asset->sample_rate * AUDIO_REWIND_SECS;
+            if(start_sample < 0)
+            {
+                start_sample = 0;
+            }
             while(chunk < chunks)
             {
                 sample_counter += stream->audio_samples.get(chunk);
@@ -2241,8 +2256,8 @@ stream->history_start + stream->history_size);
 // sample_counter);
 
 
-// start a certain amount before the desired sample for the decoder to warm up
-                if(sample_counter > file->current_sample - asset->sample_rate)
+
+                if(sample_counter > start_sample)
                 {
                     sample_counter -= stream->audio_samples.get(chunk);
                     got_it = 1;
@@ -2266,7 +2281,7 @@ stream->audio_offsets.get(chunk));
             avio_seek(((AVFormatContext*)stream->ffmpeg_file_context)->pb, 
                     stream->audio_offsets.get(chunk), 
                     SEEK_SET);
-// get the true sample we're on
+// set the true sample we're on
             stream->update_pcm_history(sample_counter);
         }
 

@@ -24,7 +24,6 @@
 #include "datatype.h"
 #include "edl.h"
 #include "edlsession.h"
-#include "mwindow.h"
 #include "playabletracks.h"
 #include "preferences.h"
 #include "renderengine.h"
@@ -56,7 +55,14 @@ VirtualVConsole::~VirtualVConsole()
 
 VDeviceBase* VirtualVConsole::get_vdriver()
 {
-	return renderengine->video->get_output_base();
+    if(renderengine && renderengine->video)
+    {
+    	return renderengine->video->get_output_base();
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 void VirtualVConsole::get_playable_tracks()
@@ -92,30 +98,35 @@ int VirtualVConsole::process_buffer(int64_t input_position,
 
 
 // The use of single frame is determined in RenderEngine::arm_command
-// printf("VirtualVConsole::process_buffer %d this=%p %d\n", 
+
+// printf("VirtualVConsole::process_buffer %d this=%p use_opengl=%d vdriver=%p\n", 
 // __LINE__,
 // this,
-// use_opengl);
+// use_opengl,
+// get_vdriver());
 
 	if(debug_tree) 
 		printf("VirtualVConsole::process_buffer %d exit_nodes=%d\n", 
 			__LINE__,
 			exit_nodes.total);
 
-
+// printf("VirtualVConsole::process_buffer %d vrender=%p video_out=%p\n", 
+// __LINE__, 
+// vrender,
+// vrender->video_out);
+// clear the output
 	if(use_opengl)
 	{
-// clear hardware framebuffer
+// output pbuffer is different from the vdriver if we're nested
+		((VDeviceX11*)get_vdriver())->clear_output(vrender->video_out);
 
-		((VDeviceX11*)get_vdriver())->clear_output();
+
 
 // que OpenGL driver that everything is overlaid in the framebuffer
 		vrender->video_out->set_opengl_state(VFrame::SCREEN);
 	}
 	else
 	{
-// clear device buffer
-//printf("VirtualVConsole::process_buffer %d %p\n", __LINE__, vrender->video_out);
 //vrender->video_out->dump();
 		vrender->video_out->clear_frame();
 //printf("VirtualVConsole::process_buffer %d\n", __LINE__);
@@ -169,7 +180,7 @@ int VirtualVConsole::process_buffer(int64_t input_position,
 		{
         	output_temp->set_opengl_state(VFrame::RAM);
         }
-        
+
 
 // Assume openGL is used for the final stage and let console
 // disable.

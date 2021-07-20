@@ -874,14 +874,15 @@ void Playback3D::clear_output_sync(Playback3DCommand *command)
 	if(command->canvas->get_canvas())
 	{
 		command->canvas->get_canvas()->lock_window("Playback3D::clear_output_sync");
-// If we get here, the virtual console is being used.
+// must always enable OpenGL in the canvas for pbuffers to access the OpenGL context
 		command->canvas->get_canvas()->enable_opengl();
 
-// Using pbuffer for refresh frame.
-		if(/* command->frame */ !command->video_on)
+// This makes the OpenGL context draw on a nested EDL frame buffer
+//		if(/* command->frame */ !command->video_on)
+        if(1)
 		{
 			command->frame->enable_opengl();
-		}	
+		}
 
 
 		init_frame(command);

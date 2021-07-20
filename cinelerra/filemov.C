@@ -1005,9 +1005,9 @@ int FileMOV::read_frame(VFrame *frame)
 	int result = 0;
 	const int debug = 0;
 
-if(debug) printf("FileMOV::read_frame %d frame=%lld color_model=%d %d %d rows=%p\n", 
+if(debug) printf("FileMOV::read_frame %d frame=%ld color_model=%d %d %d rows=%p\n", 
 __LINE__, 
-(long long)file->current_frame,
+file->current_frame,
 frame->get_color_model(),
 frame->get_w(),
 frame->get_h(),

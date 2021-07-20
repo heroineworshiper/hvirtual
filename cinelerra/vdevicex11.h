@@ -60,9 +60,9 @@ public:
 
 
 //=========================== compositing stages ===============================
-// For compositing with OpenGL, must clear the frame buffer
+// For compositing with OpenGL, must clear the pbuffer
 // before overlaying tracks.
-	void clear_output();
+	void clear_output(VFrame *frame);
 
 // Called by VModule::import_frame
 	void do_camera(VFrame *output,

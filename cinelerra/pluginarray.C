@@ -136,6 +136,7 @@ int PluginArray::start_plugins(MWindow *mwindow,
 	}
 	else
 	{
+// realtime
 		PluginServer *plugin;
 		int i;
 

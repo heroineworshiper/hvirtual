@@ -410,7 +410,13 @@ int PatchBay::cursor_motion_event()
 	if(update_gui)
 	{
 		gui->update_patchbay();
+// redraw visible assets
+        if(drag_operation == Tracks::DRAW)
+        {
+            gui->update(0, 1, 0, 0, 0, 0, 0);
+        }
 	}
+
 	return 0;
 }
 
