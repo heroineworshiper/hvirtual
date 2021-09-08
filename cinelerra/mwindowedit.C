@@ -1538,7 +1538,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 	double original_length = edl->tracks->total_playable_length();
 //	double original_preview_end = edl->local_session->preview_end;
 
-//PRINT_TRACE
+PRINT_TRACE
 // Delete current project
 	if(load_mode == LOADMODE_REPLACE ||
 		load_mode == LOADMODE_REPLACE_CONCATENATE)
@@ -1628,10 +1628,12 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 		if((load_mode == LOADMODE_PASTE ||
 			load_mode == LOADMODE_NESTED) && 
 			edl->session->labels_follow_edits)
+        {
 			edl->labels->clear(edl->local_session->get_selectionstart(),
 						edl->local_session->get_selectionend(),
 						1);
-	
+        }
+
 		Track *current = first_track ? first_track : edl->tracks->first;
 		for( ; current; current = NEXT)
 		{
@@ -1672,24 +1674,33 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 
 //PRINT_TRACE
 
-// Convert EDL to master rates
+// Convert EDL to master rates.  TODO: Maybe not for nested EDLs.
+// printf("MWindow::paste_edls %d resampling EDL %s is_asset=%d %ld->%ld %f->%f\n", 
+// __LINE__, 
+// new_edl->local_session->clip_title,
+// new_edl->is_asset,
+// new_edl->session->sample_rate,
+// edl->session->sample_rate,
+// new_edl->session->frame_rate,
+// edl->session->frame_rate);
+// new_edl->dump();
 		new_edl->resample(new_edl->session->sample_rate, 
 			edl->session->sample_rate, 
 			TRACK_AUDIO);
 		new_edl->resample(new_edl->session->frame_rate, 
 			edl->session->frame_rate, 
 			TRACK_VIDEO);
-//PRINT_TRACE
 
 
 
 
-// Add assets and prepare index files
+// Add assets and prepare index files.  Nested EDLs have no assets.
         int result = FILE_OK;
 		for(Asset *new_asset = new_edl->assets->first;
 			new_asset && result != FILE_USER_CANCELED;
 			new_asset = new_asset->next)
 		{
+printf("MWindow::paste_edls %d indexing asset %s\n", __LINE__, new_asset->path);
 			result = mainindexes->add_next_asset(0, new_asset);
 		}
         
@@ -1735,6 +1746,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 				break;
 
 			case LOADMODE_RESOURCESONLY:
+//printf("MWindow::paste_edls %d\n", __LINE__);
 				edl->add_clip(new_edl);
 				break;
 		}

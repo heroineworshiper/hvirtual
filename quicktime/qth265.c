@@ -593,6 +593,14 @@ void quicktime_init_codec_h265(quicktime_video_map_t *vtrack)
         "H.265");
 }
 
+void quicktime_init_codec_hev1(quicktime_video_map_t *vtrack)
+{
+    quicktime_h265_codec_t *result = init_common(vtrack,
+        QUICKTIME_HEV1,
+        "H.265",
+        "H.265");
+}
+
 
 
 

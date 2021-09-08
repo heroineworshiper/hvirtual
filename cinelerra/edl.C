@@ -1101,6 +1101,8 @@ int EDL::dump()
 	
 		printf(" ASSETS\n");
 		assets->dump();
+		printf(" NESTED EDLS\n");
+		nested_edls->dump();
 	}
 	printf(" LABELS\n");
 	labels->dump();
@@ -1117,6 +1119,7 @@ EDL* EDL::add_clip(EDL *edl)
 	new_edl->create_objects();
 	new_edl->copy_all(edl);
 	clips.append(new_edl);
+printf("EDL::add_clip %d %d\n", __LINE__, clips.size());
 	return new_edl;
 }
 
@@ -1154,13 +1157,19 @@ void EDL::insert_asset(Asset *asset,
 	{
 // Insert 1 frame for undefined length
 		if(new_asset->video_length < 0) 
-			length = 1.0 / session->frame_rate; 
-		else
+		{
+        	length = 1.0 / session->frame_rate; 
+		}
+        else
 		if(new_asset->frame_rate > 0)
-			length = ((double)new_asset->video_length / new_asset->frame_rate);
-		else
-			length = 1.0 / session->frame_rate;
-		layers = new_asset->layers;
+		{
+        	length = ((double)new_asset->video_length / new_asset->frame_rate);
+		}
+        else
+		{
+        	length = 1.0 / session->frame_rate;
+		}
+        layers = new_asset->layers;
 		channels = new_asset->channels;
 	}
 
@@ -1170,7 +1179,9 @@ void EDL::insert_asset(Asset *asset,
 	{
 		if(!current->record || 
 			current->data_type != TRACK_VIDEO)
+        {
 			continue;
+        }
 
 		current->insert_asset(new_asset, 
 			new_nested_edl,
@@ -1188,14 +1199,20 @@ void EDL::insert_asset(Asset *asset,
 		{
 // Insert 1 frame for undefined length & video
 			if(new_asset->video_data)
-				length = (double)1.0 / new_asset->frame_rate;
-			else
+			{
+            	length = (double)1.0 / new_asset->frame_rate;
+			}
+            else
+            {
 // Insert 1 second for undefined length & no video
 				length = 1.0;
+            }
 		}
 		else
+        {
 			length = (double)new_asset->audio_length / 
 					new_asset->sample_rate;
+        }
 	}
 
 	for(current = tracks->first;
@@ -1204,7 +1221,9 @@ void EDL::insert_asset(Asset *asset,
 	{
 		if(!current->record ||
 			current->data_type != TRACK_AUDIO)
-			continue;
+		{
+        	continue;
+        }
 
 		current->insert_asset(new_asset, 
 			new_nested_edl,
@@ -1231,9 +1250,13 @@ void EDL::insert_asset(Asset *asset,
 void EDL::set_index_file(Indexable *indexable)
 {
 	if(indexable->is_asset) 
-		assets->update_index((Asset*)indexable);
+	{
+    	assets->update_index((Asset*)indexable);
+    }
 	else
+    {
 		nested_edls->update_index((EDL*)indexable);
+    }
 }
 
 void EDL::optimize()

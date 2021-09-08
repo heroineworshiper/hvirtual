@@ -128,18 +128,26 @@ void Edits::insert_asset(Asset *asset,
 	if(nested_edl)
 	{
 		if(track->data_type == TRACK_AUDIO)
-			new_edit->channel = track_number % nested_edl->session->audio_channels;
-		else
-			new_edit->channel = 0;
+		{
+        	new_edit->channel = track_number % nested_edl->session->audio_channels;
+		}
+        else
+		{
+        	new_edit->channel = 0;
+        }
 	}
 
 	if(asset && !nested_edl)
 	{
 		if(asset->audio_data)
-			new_edit->channel = track_number % asset->channels;
+		{
+        	new_edit->channel = track_number % asset->channels;
+        }
 		else
 		if(asset->video_data)
-			new_edit->channel = track_number % asset->layers;
+		{
+        	new_edit->channel = track_number % asset->layers;
+        }
 	}
 
 //printf("Edits::insert_asset %d %d\n", new_edit->channel, new_edit->length);
@@ -172,7 +180,9 @@ void Edits::insert_edits(Edits *source_edits,
 	{
 		EDL *dest_nested_edl = 0;
 		if(source_edit->nested_edl)
-			dest_nested_edl = edl->nested_edls->get_copy(source_edit->nested_edl);
+		{
+        	dest_nested_edl = edl->nested_edls->get_copy(source_edit->nested_edl);
+        }
 
 // Update Assets
 		Asset *dest_asset = 0;

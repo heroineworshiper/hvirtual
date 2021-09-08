@@ -473,10 +473,9 @@ int HistogramMain::process_buffer(VFrame *frame,
 	double frame_rate)
 {
 	int need_reconfigure = load_configuration();
-
-
-
 	int use_opengl = calculate_use_opengl();
+	this->input = frame;
+	this->output = frame;
 
 //printf("HistogramMain::process_buffer %d: %d\n", __LINE__, use_opengl);
 	read_frame(frame, 
@@ -515,8 +514,6 @@ int HistogramMain::process_buffer(VFrame *frame,
 	if(!engine) engine = new HistogramEngine(this,
 		get_project_smp() + 1,
 		get_project_smp() + 1);
-	this->input = frame;
-	this->output = frame;
 // Always plot to set the curves if automatic
 	if(config.plot || config.automatic) send_render_gui(frame, 1);
 

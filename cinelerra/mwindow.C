@@ -1075,6 +1075,7 @@ int MWindow::load_filenames(ArrayList<char*> *filenames,
 	ArrayList<EDL*> new_edls;
 	ArrayList<Asset*> new_assets;
 	ArrayList<File*> new_files;
+	int got_indexes = 0;
 	const int debug = 0;
 
 // Need to stop playback since tracking depends on the EDL not getting
@@ -1316,9 +1317,9 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 				xml_file.read_from_file(filenames->values[i]);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
-				if(load_mode == LOADMODE_NESTED)
+// Load temporary EDL for nesting
+                if(load_mode == LOADMODE_NESTED)
 				{
-// Load temporary EDL for nesting.
 					EDL *nested_edl = new EDL;
 					nested_edl->create_objects();
 					nested_edl->set_path(filenames->values[i]);
@@ -1326,8 +1327,35 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 //printf("MWindow::load_filenames %p %s\n", nested_edl, nested_edl->project_path);
 					edl_to_nested(new_edl, nested_edl);
 					nested_edl->Garbage::remove_user();
+                    
 				}
-				else
+                else
+                if(load_mode == LOADMODE_RESOURCESONLY)
+                {
+                    EDL *nested_edl = new EDL;
+					nested_edl->create_objects();
+					nested_edl->set_path(filenames->values[i]);
+					nested_edl->load_xml(&xml_file, LOAD_ALL);
+// this creates a nested EDL resource only & returns it
+                    EDL *nested_edl2 = edl->nested_edls->get_copy(nested_edl);
+// printf("MWindow::load_filenames %d nested_edl2 %p users=%d nested_edl %p users=%d new_edl %p users=%d\n", 
+// __LINE__, 
+// nested_edl2,
+// nested_edl2->users, 
+// nested_edl,
+// nested_edl->users, 
+// new_edl,
+// new_edl->users);
+                    nested_edl->Garbage::remove_user();
+                    new_edl->Garbage::remove_user();
+                    new_edl = 0;
+
+// build index
+			        mainindexes->add_next_asset(0, nested_edl2);
+			        got_indexes = 1;
+			        edl->nested_edls->update_index(nested_edl2);
+                }
+                else
 				{
 // Load EDL for pasting
 					new_edl->load_xml(&xml_file, LOAD_ALL);
@@ -1346,7 +1374,10 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 					}
 				}		
 
-				new_edls.append(new_edl);
+                if(new_edl)
+                {
+    				new_edls.append(new_edl);
+                }
 				result = 0;
 				break;
 			}
@@ -1395,15 +1426,6 @@ if(debug) printf("MWindow::load_filenames %d new_edls=%d\n", __LINE__, new_edls.
 					edl->session->autos_follow_edits);
 		}
 
-// conform the project for load modes which don't replace
-//         if(conform)
-//         {
-// // copy the project dimensions from the 1st EDL.  
-// // Loading an EDL in some modes would have replaced the project dimensions anyway
-//             EDL *src = new_edls.get(0);
-//             
-//         }
-
 
 		result = paste_edls(&new_edls, 
 			load_mode,
@@ -1420,7 +1442,6 @@ if(debug) printf("MWindow::load_filenames %d new_edls=%d\n", __LINE__, new_edls.
 if(debug) printf("MWindow::load_filenames %d result=%d\n", __LINE__, result);
 
 // Add new assets to EDL and schedule assets for index building.
-	int got_indexes = 0;
 	for(int i = 0; i < new_edls.size(); i++)
 	{
 		EDL *new_edl = new_edls.get(i);
@@ -1434,7 +1455,8 @@ if(debug) printf("MWindow::load_filenames %d result=%d\n", __LINE__, result);
 
 	}
 
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+//printf("MWindow::load_filenames %d new_assets=%d\n", __LINE__, new_assets.size());
+// Add new assets to the current EDL
 	if(new_assets.size())
 	{
 		for(int i = 0; i < new_assets.size(); i++)

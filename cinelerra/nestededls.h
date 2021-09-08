@@ -11,6 +11,9 @@ public:
 	NestedEDLs();
 	~NestedEDLs();
 
+
+    void dump();
+    
 // Return copy of the src EDL which belongs to the current object.
 	EDL* get_copy(EDL *src);
 // Return new EDL loaded from path

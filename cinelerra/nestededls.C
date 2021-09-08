@@ -12,8 +12,18 @@ NestedEDLs::NestedEDLs()
 NestedEDLs::~NestedEDLs()
 {
 	for(int i = 0; i < nested_edls.size(); i++)
-		nested_edls.get(i)->Garbage::remove_user();
-	nested_edls.remove_all();
+	{
+    	nested_edls.get(i)->Garbage::remove_user();
+	}
+    nested_edls.remove_all();
+}
+
+void NestedEDLs::dump()
+{
+	for(int i = 0; i < nested_edls.size(); i++)
+    {
+        printf("  %s\n", nested_edls.get(i)->path);
+    }
 }
 
 int NestedEDLs::size()
@@ -33,7 +43,9 @@ EDL* NestedEDLs::get_copy(EDL *src)
 	{
 		EDL *dst = nested_edls.get(i);
 		if(!strcmp(dst->path, src->path))
-			return dst;
+		{
+        	return dst;
+        }
 	}
 
 	EDL *dst = new EDL;

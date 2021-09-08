@@ -90,6 +90,7 @@ static void register_vcodecs()
 	register_vcodec(quicktime_init_codec_h264);
 	register_vcodec(quicktime_init_codec_hv64);
 	register_vcodec(quicktime_init_codec_h265);
+	register_vcodec(quicktime_init_codec_hev1);
 	register_vcodec(quicktime_init_codec_divx);
 	register_vcodec(quicktime_init_codec_hv60);
 	register_vcodec(quicktime_init_codec_div5);
