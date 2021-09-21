@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "guicast.h"
 #include "mwindow.inc"
 #include "plugindialog.inc"
+#include "swapasset.inc"
 #include "transitionpopup.inc"
 
 class MenuEditLength : public BC_MenuItem
@@ -74,6 +75,15 @@ public:
 	int handle_event();
 
 	MWindow *mwindow;
+};
+
+class MenuSwapAsset : public BC_MenuItem
+{
+public:
+	MenuSwapAsset(MWindow *mwindow);
+	int handle_event();
+	MWindow *mwindow;
+	SwapAssetThread *thread;
 };
 
 

@@ -240,6 +240,12 @@ public:
 	void reverse_edits(double start, double end);
 	void align_edits(double start, double end);
 	void set_edit_length(double start, double end, double length);
+    void swap_assets(double start, 
+        double end, 
+        string *old_path, 
+        string *new_path, 
+        int old_is_silence,
+        int new_is_silence);
 	void set_transition_length(double start, double end, double length);
 	void set_transition_length(Transition *transition, double length);
 	void paste_transitions(double start, double end, int track_type, char* title);

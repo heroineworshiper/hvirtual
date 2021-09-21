@@ -118,6 +118,7 @@ OBJS = \
 	$(OBJDIR)/dvbtune.o \
 	$(OBJDIR)/drivesync.o \
 	$(OBJDIR)/edit.o \
+        $(OBJDIR)/editinfo.o \
 	$(OBJDIR)/edithandles.o \
 	$(OBJDIR)/editlength.o \
 	$(OBJDIR)/editpanel.o \
@@ -285,6 +286,7 @@ OBJS = \
 	$(OBJDIR)/sighandler.o \
 	$(OBJDIR)/splashgui.o \
 	$(OBJDIR)/statusbar.o \
+	$(OBJDIR)/swapasset.o \
 	$(OBJDIR)/theme.o \
 	$(OBJDIR)/threadexec.o \
 	$(OBJDIR)/threadloader.o \
@@ -672,6 +674,7 @@ $(OBJDIR)/device1394output.o:                     device1394output.C
 $(OBJDIR)/drivesync.o:  			  drivesync.C
 $(OBJDIR)/dvbtune.o:  			  	  dvbtune.C
 $(OBJDIR)/edit.o: 				  edit.C
+$(OBJDIR)/editinfo.o: 				  editinfo.C
 $(OBJDIR)/edithandles.o: 			  edithandles.C
 $(OBJDIR)/editlength.o:                           editlength.C
 $(OBJDIR)/editpanel.o:  			  editpanel.C
@@ -851,6 +854,7 @@ $(OBJDIR)/shmemory.o: 				  shmemory.C
 $(OBJDIR)/sighandler.o:                           sighandler.C
 $(OBJDIR)/splashgui.o: 				  splashgui.C
 $(OBJDIR)/statusbar.o:  			  statusbar.C
+$(OBJDIR)/swapasset.o:  			  swapasset.C
 $(OBJDIR)/theme.o: 				  theme.C
 $(OBJDIR)/threadexec.o:                           threadexec.C
 $(OBJDIR)/threadfork.o:                           threadfork.C

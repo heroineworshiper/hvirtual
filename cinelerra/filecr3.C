@@ -95,13 +95,13 @@ int FileCR3::read_frame_header(char *path)
     int err = 0;
     LibRaw* libraw = new LibRaw;
     err = libraw->open_file(path);
-//     printf("FileCR3::read_frame_header %d path=%s err=%d\n",
-//         __LINE__,
-//         path,
-//         err);
 
     if(err)
     {
+        printf("FileCR3::read_frame_header %d path=%s err=%d\n",
+            __LINE__,
+            path,
+            err);
         return 1;
     }
 
@@ -143,10 +143,9 @@ int FileCR3::read_frame(VFrame *frame, char *path)
 
     libraw->unpack();
 
-// printf("FileCR3::read_frame %d use_camera_wb=%d\n",
-// __LINE__,
-// libraw->imgdata.params.use_camera_wb,
-// err);
+printf("FileCR3::read_frame %d %s\n",
+__LINE__,
+path);
     libraw->imgdata.params.use_camera_wb = 1;
     libraw->dcraw_process();
 

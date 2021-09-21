@@ -34,6 +34,7 @@
 
 #include <stdint.h>
 
+#define SILENCE_TEXT "SILENCE"
 
 
 class Asset : public ListItem<Asset>, public Indexable

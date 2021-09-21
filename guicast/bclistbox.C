@@ -4020,8 +4020,18 @@ int BC_ListBox::reposition_window(int x, int y, int w, int h, int flush)
 	}
 
 
-	BC_WindowBase::reposition_window(x, y, w, h);
-	draw_button(0);
+	if(!is_popup)
+    {
+// resize the list
+    	BC_WindowBase::reposition_window(x, y, w, h);
+    }
+    else
+    {
+// only reposition the button
+    	BC_WindowBase::reposition_window(x, y);
+	}
+
+    draw_button(0);
 	draw_items(flush);
 	return 0;
 }

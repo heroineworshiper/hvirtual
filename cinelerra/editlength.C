@@ -30,6 +30,7 @@
 #include "localsession.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
+#include "theme.h"
 #include "track.h"
 #include "tracks.h"
 
@@ -132,7 +133,7 @@ EditLengthDialog::EditLengthDialog(MWindow *mwindow,
 	x,
 	y,
 	DP(300), 
-	DP(100), 
+	DP(300), 
 	-1, 
 	-1, 
 	0,
@@ -151,8 +152,22 @@ EditLengthDialog::~EditLengthDialog()
 void EditLengthDialog::create_objects()
 {
 	lock_window("EditLengthDialog::create_objects");
-	add_subwindow(new BC_Title(DP(10), DP(10), _("Seconds:")));
-	text = new EditLengthText(mwindow, this, DP(100), DP(10));
+    int margin = mwindow->theme->widget_border;
+    int x = margin;
+    int y = margin;
+    BC_Title *title;
+    add_subwindow(title = new BC_Title(x, 
+        y, 
+        _("Change length of all edits in the recordable tracks, in the highlighted range."),
+        MEDIUMFONT,
+        -1, // color
+        0, // centered
+        get_w() - x - margin, // fixed_w
+        1)); // do_wrap
+    y += title->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Seconds:")));
+    x += title->get_w() + margin;
+	text = new EditLengthText(mwindow, this, x, y);
 	text->create_objects();
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));

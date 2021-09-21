@@ -22,6 +22,7 @@
 #include "bcdisplayinfo.h"
 #include "clip.h"
 #include "bchash.h"
+#include "editinfo.inc"
 #include "editpopup.inc"
 #include "edl.h"
 #include "edlsession.h"
@@ -97,6 +98,10 @@ void MainSession::boundaries()
 	rwindow_y = MAX(0, rwindow_y);
 	rmonitor_x = MAX(0, rmonitor_x);
 	rmonitor_y = MAX(0, rmonitor_y);
+    edit_info_w = MAX(0, edit_info_w);
+    edit_info_h = MAX(0, edit_info_h);
+    swap_asset_w = MAX(0, swap_asset_w);
+    swap_asset_h = MAX(0, swap_asset_h);
 	cwindow_controls = CLIP(cwindow_controls, 0, 1);
 }
 
@@ -206,6 +211,10 @@ void MainSession::default_window_positions()
 	batchrender_h = DP(340);
 	batchrender_x = root_w / 2 - batchrender_w / 2;
 	batchrender_y = root_h / 2 - batchrender_h / 2;
+    edit_info_w = DP(500);
+    edit_info_h = DP(400);
+    swap_asset_w = DP(500);
+    swap_asset_h = DP(400);
 }
 
 int MainSession::load_defaults(BC_Hash *defaults)
@@ -247,6 +256,11 @@ int MainSession::load_defaults(BC_Hash *defaults)
 
 	ewindow_w = defaults->get("EWINDOW_W", ewindow_w);
 	ewindow_h = defaults->get("EWINDOW_H", ewindow_h);
+
+	edit_info_w = defaults->get("EDIT_INFO_W", edit_info_w);
+	edit_info_h = defaults->get("EDIT_INFO_H", edit_info_h);
+	swap_asset_w = defaults->get("SWAP_ASSET_W", swap_asset_w);
+	swap_asset_h = defaults->get("SWAP_ASSET_H", swap_asset_h);
 
 	channels_x = defaults->get("CHANNELS_X", channels_x);
 	channels_y = defaults->get("CHANNELS_Y", channels_y);
@@ -353,6 +367,11 @@ int MainSession::save_defaults(BC_Hash *defaults)
 
 	defaults->update("EWINDOW_W", ewindow_w);
 	defaults->update("EWINDOW_H", ewindow_h);
+
+	defaults->update("EDIT_INFO_W", edit_info_w);
+	defaults->update("EDIT_INFO_H", edit_info_h);
+	defaults->update("SWAP_ASSET_W", swap_asset_w);
+	defaults->update("SWAP_ASSET_H", swap_asset_h);
 
 	defaults->update("CHANNELS_X", channels_x);
 	defaults->update("CHANNELS_Y", channels_y);

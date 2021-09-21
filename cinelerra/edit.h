@@ -142,7 +142,7 @@ public:
 // Asset is 0 if silence, otherwise points an object in edl->assets
 	Asset *asset;
 
-// points to an object in edl->clips if a nested clip
+// points to an object in edl->nested_edls if a nested EDL
 	EDL *nested_edl;
 
 // Parent EDL of this edit

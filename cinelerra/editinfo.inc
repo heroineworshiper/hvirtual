@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +18,14 @@
  * 
  */
 
-#ifndef EDITPOPUP_INC
-#define EDITPOPUP_INC
 
-class EditPopup;
+#ifndef EDITINFO_INC
+#define EDITINFO_INC
 
+class EditInfoThread;
+class EditInfoGUI;
+
+#define EDIT_INFO_FRAMES 0
+#define EDIT_INFO_HHMMSS 1
 
 #endif

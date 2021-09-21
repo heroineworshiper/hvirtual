@@ -54,6 +54,7 @@
 #include "mtimebar.h"
 #include "mwindowgui.h"
 #include "mwindow.h"
+#include "nestededls.h"
 #include "panauto.h"
 #include "patchbay.h"
 #include "playbackengine.h"
@@ -1538,7 +1539,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 	double original_length = edl->tracks->total_playable_length();
 //	double original_preview_end = edl->local_session->preview_end;
 
-PRINT_TRACE
+//PRINT_TRACE
 // Delete current project
 	if(load_mode == LOADMODE_REPLACE ||
 		load_mode == LOADMODE_REPLACE_CONCATENATE)
@@ -1700,7 +1701,7 @@ PRINT_TRACE
 			new_asset && result != FILE_USER_CANCELED;
 			new_asset = new_asset->next)
 		{
-printf("MWindow::paste_edls %d indexing asset %s\n", __LINE__, new_asset->path);
+//printf("MWindow::paste_edls %d indexing asset %s\n", __LINE__, new_asset->path);
 			result = mainindexes->add_next_asset(0, new_asset);
 		}
         
@@ -2108,7 +2109,7 @@ void MWindow::align_edits()
 
 void MWindow::set_edit_length(double length)
 {
-	gui->lock_window("MWindow::detach_transitions 1");
+	gui->lock_window("MWindow::set_edit_length 1");
 
 	undo->update_undo_before();
 	double start = edl->local_session->get_selectionstart();
@@ -2124,6 +2125,90 @@ void MWindow::set_edit_length(double length)
 	gui->update(0, 1, 1, 0, 0, 0, 0);
 	gui->unlock_window();
 }
+
+void MWindow::update_edit(int edit_id,
+    string path,
+    int64_t startsource,
+    int64_t startproject,
+    int64_t length,
+    int channel,
+    int is_silence)
+{
+	gui->lock_window("MWindow::update_edit 1");
+	undo->update_undo_before();
+
+// search for the edit
+    int done = 0;
+	for(Track *current_track = edl->tracks->first; 
+		current_track && !done; 
+		current_track = current_track->next)
+    {
+        for(Edit *current_edit = current_track->edits->first;
+			current_edit && !done;
+			current_edit = current_edit->next)
+        {
+            if(current_edit->id == edit_id)
+            {
+                if(is_silence)
+                {
+                    current_edit->asset = 0;
+                    current_edit->nested_edl = 0;
+                }
+                else
+                {
+                    Asset *asset = edl->assets->get_asset(path.c_str());
+                    EDL *nested_edl = 0;
+                    if(!asset)
+                    {
+                        nested_edl = edl->nested_edls->search(path.c_str());
+                    }
+                    current_edit->asset = asset;
+                    current_edit->nested_edl = nested_edl;
+                }
+                
+                current_edit->startsource = startsource;
+                current_edit->startproject = startproject;
+                current_edit->length = length;
+                current_edit->channel = channel;
+                
+                done = 1;
+            }
+        }
+    }
+
+	save_backup();
+	undo->update_undo_after(_("edit info"), LOAD_EDITS);
+	sync_parameters(CHANGE_EDL);
+	restart_brender();
+	gui->update(0, 1, 1, 0, 0, 0, 0);
+	gui->unlock_window();
+}
+
+void MWindow::swap_asset(string *old_path, 
+    string *new_path, 
+    int old_is_silence,
+    int new_is_silence)
+{
+	gui->lock_window("MWindow::update_edit 1");
+	undo->update_undo_before();
+
+
+    edl->tracks->swap_assets(edl->local_session->get_selectionstart(), 
+        edl->local_session->get_selectionend(), 
+        old_path, 
+        new_path, 
+        old_is_silence,
+        new_is_silence);
+
+
+	save_backup();
+	undo->update_undo_after(_("swap assets"), LOAD_EDITS);
+	sync_parameters(CHANGE_EDL);
+	restart_brender();
+	gui->update(0, 1, 1, 0, 0, 0, 0);
+	gui->unlock_window();
+}
+
 
 
 void MWindow::set_transition_length(Transition *transition, double length)

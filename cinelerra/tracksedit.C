@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  * 
  */
 
+#include "asset.h"
 #include "assets.h"
 #include "atrack.h"
 #include "automation.h"
@@ -35,6 +36,7 @@
 #include "mainundo.h"
 #include "module.h"
 #include "mainsession.h"
+#include "nestededls.h"
 #include "pluginserver.h"
 #include "pluginset.h"
 #include "plugin.h"
@@ -347,6 +349,64 @@ printf("Tracks::set_edit_length %d %f %f\n", __LINE__, end_time, current_track->
 		}
 	}
 }
+
+void Tracks::swap_assets(double start, 
+    double end, 
+    string *old_path, 
+    string *new_path, 
+    int old_is_silence,
+    int new_is_silence)
+{
+printf("Tracks::swap_assets %d\n", __LINE__);
+	for(Track *current_track = first; 
+		current_track; 
+		current_track = current_track->next)
+	{
+		if(current_track->record)
+		{
+			int64_t start_units = current_track->to_units(start, 0);
+			int64_t end_units = current_track->to_units(end, 0);
+    
+			for(Edit *current_edit = current_track->edits->last;
+				current_edit;
+				current_edit = current_edit->previous)
+			{
+				if(current_edit->startproject >= start_units &&
+					current_edit->startproject + current_edit->length <= end_units)
+				{
+                    if((old_is_silence && 
+                            !current_edit->asset &&
+                            !current_edit->nested_edl) ||
+                        (!old_is_silence &&
+                            current_edit->asset &&
+                            !old_path->compare(current_edit->asset->path)) ||
+                        (!old_is_silence &&
+                            current_edit->nested_edl &&
+                            !old_path->compare(current_edit->nested_edl->path)))
+                    {
+                        if(new_is_silence)
+                        {
+                            current_edit->asset = 0;
+                            current_edit->nested_edl = 0;
+                        }
+                        else
+                        {
+                            Asset *asset = edl->assets->get_asset(new_path->c_str());
+                            EDL *nested_edl = 0;
+                            if(!asset)
+                            {
+                                nested_edl = edl->nested_edls->search(new_path->c_str());
+                            }
+                            current_edit->asset = asset;
+                            current_edit->nested_edl = nested_edl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 void Tracks::set_transition_length(double start, double end, double length)
 {

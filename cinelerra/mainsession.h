@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -138,6 +138,10 @@ public:
 	int rwindow_x, rwindow_y, rwindow_w, rwindow_h;
 // error window
 	int ewindow_w, ewindow_h;
+// edit info window
+    int edit_info_w, edit_info_h;
+// swap asset window
+    int swap_asset_w, swap_asset_h;
 // Channel edit window
 	int channels_x, channels_y;
 // Picture edit window

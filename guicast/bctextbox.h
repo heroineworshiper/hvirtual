@@ -196,7 +196,9 @@ public:
 
 // Compute suggestions for a path
 // If entries is null, just search absolute paths
-	int calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries);
+// ignore_fs - don't calculate paths
+	int calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries,
+        int ignore_fs = 0);
 
 // push the current state
    void update_undo();
@@ -375,15 +377,21 @@ public:
 	int create_objects();
 	virtual int handle_event();
 	const char* get_text();
+    BC_PopupTextBoxText* get_textbox();
 	int get_number();
 	int get_x();
 	int get_y();
 	int get_w();
 	int get_h();
+
+// get extents of the toggle
+    static int calculate_h();
+    static int calculate_w();
+
     void set_list_w(int value);
 	void update(const char *text);
 	void update_list(ArrayList<BC_ListBoxItem*> *data);
-	void reposition_window(int x, int y);
+	void reposition_window(int x, int y, int w = -1);
 
 	friend class BC_PopupTextBoxText;
 	friend class BC_PopupTextBoxList;
@@ -456,7 +464,7 @@ public:
 	int get_y();
 	int get_w();
 	int get_h();
-	void reposition_window(int x, int y);
+	void reposition_window(int x, int y, int w = -1);
 	void set_boundaries(int64_t min, int64_t max);
 	void set_boundaries(float min, float max);
 	void set_precision(int precision);
@@ -464,6 +472,10 @@ public:
     void disable();
     void enable();
     int get_enabled();
+
+// get extents of the toggle
+    static int calculate_h();
+    static int calculate_w();
 
 	friend class BC_TumbleTextBoxText;
 	friend class BC_TumbleTextBoxTumble;

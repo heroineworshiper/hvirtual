@@ -334,9 +334,13 @@ int BC_PopupMenu::deactivate_menu()
 }
 
 
-int BC_PopupMenu::reposition_window(int x, int y)
+int BC_PopupMenu::reposition_window(int x, int y, int w)
 {
-	BC_WindowBase::reposition_window(x, y);
+    if(w < 0)
+    {
+        w = get_w();
+    }
+	BC_WindowBase::reposition_window(x, y, w, get_h());
 	draw_title(0);
 	return 0;
 }

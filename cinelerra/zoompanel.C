@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,6 +83,7 @@ ZoomPanel::ZoomPanel(MWindow *mwindow,
 	this->tumbler_images = 0;
 	this->user_table = 0;
 	this->user_size = 0;
+    this->tooltip[0] = 0;
 }
 
 ZoomPanel::ZoomPanel(MWindow *mwindow, 
@@ -108,6 +109,7 @@ ZoomPanel::ZoomPanel(MWindow *mwindow,
 	this->tumbler_images = 0;
 	this->user_table = user_table;
 	this->user_size = user_size;
+    this->tooltip[0] = 0;
 }
 
 ZoomPanel::~ZoomPanel()
@@ -175,6 +177,11 @@ void ZoomPanel::create_objects()
 		x, 
 		y));
 	calculate_menu();
+    if(tooltip[0])
+    {
+        zoom_text->set_tooltip(tooltip);
+        zoom_tumbler->set_tooltip(tooltip);
+    }
 }
 
 void ZoomPanel::reposition_window(int x, int y)
@@ -310,8 +317,10 @@ double ZoomPanel::text_to_zoom(char *text, int use_table)
 	}
 }
 
-
-
+void ZoomPanel::set_tooltip(const char *text)
+{
+    strcpy(this->tooltip, text);
+}
 
 
 

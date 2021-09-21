@@ -87,6 +87,8 @@
 #include "wavecache.inc"
 
 #include <stdint.h>
+#include <string>
+using std::string;
 
 // All entry points for commands except for window locking should be here.
 // This allows scriptability.
@@ -410,6 +412,20 @@ public:
 	void reverse_edits();
 	void align_edits();
 	void set_edit_length(double length);
+// set user defined values in an edit
+    void update_edit(int edit_id,
+        string path,
+        int64_t startsource,
+        int64_t startproject,
+        int64_t length,
+        int channel,
+        int is_silence);
+// swap all occurrances of an asset with another one
+    void swap_asset(string *old_path, 
+        string *new_path, 
+        int old_is_silence,
+        int new_is_silence);
+
 // Set length of single transition
 	void set_transition_length(Transition *transition, double length);
 // Set length in seconds of all transitions in active range

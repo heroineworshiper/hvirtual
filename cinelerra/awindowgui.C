@@ -961,18 +961,18 @@ void AWindowGUI::sort_picons(ArrayList<BC_ListBoxItem*> *src,
 	while(!done)
 	{
 		done = 1;
-		for(int i = 0; i < src->total - 1; i++)
+		for(int i = 0; i < src->size() - 1; i++)
 		{
-			BC_ListBoxItem *item1 = src->values[i];
-			BC_ListBoxItem *item2 = src->values[i + 1];
+			BC_ListBoxItem *item1 = src->get(i);
+			BC_ListBoxItem *item2 = src->get(i + 1);
 			item1->set_autoplace_icon(1);
 			item2->set_autoplace_icon(1);
 			item1->set_autoplace_text(1);
 			item2->set_autoplace_text(1);
 			if(strcmp(item1->get_text(), item2->get_text()) > 0)
 			{
-				src->values[i + 1] = item1;
-				src->values[i] = item2;
+				src->set(i + 1, item1);
+				src->set(i, item2);
 				done = 0;
 			}
 		}

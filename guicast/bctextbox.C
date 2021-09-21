@@ -240,7 +240,8 @@ void BC_TextBox::set_precision(int precision)
 }
 
 // Compute suggestions for a path
-int BC_TextBox::calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries)
+int BC_TextBox::calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries, 
+    int ignore_fs)
 {
 // Let user delete suggestion
 	if(get_last_keypress() != BACKSPACE)
@@ -252,8 +253,9 @@ int BC_TextBox::calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries)
 		const char *current_text = get_text();
 
 // If directory, tabulate it
-		if(current_text[0] == '/' ||
-			current_text[0] == '~')
+		if(!ignore_fs && 
+            (current_text[0] == '/' ||
+			current_text[0] == '~'))
 		{
 //printf("BC_TextBox::calculate_suggestions %d\n", __LINE__);
 			char string[BCTEXTLEN];
@@ -2927,6 +2929,11 @@ const char* BC_PopupTextBox::get_text()
 	return textbox->get_text();
 }
 
+BC_PopupTextBoxText* BC_PopupTextBox::get_textbox()
+{
+    return textbox;
+}
+
 int BC_PopupTextBox::get_number()
 {
 	return listbox->get_selection_number(0, 0);
@@ -2957,24 +2964,39 @@ int BC_PopupTextBox::handle_event()
 	return 1;
 }
 
-void BC_PopupTextBox::reposition_window(int x, int y)
+void BC_PopupTextBox::reposition_window(int x, int y, int w)
 {
 	this->x = x;
 	this->y = y;
 	int x1 = x, y1 = y;
+    if(w < 0)
+    {
+        w = textbox->get_w();
+    }
+
 	textbox->reposition_window(x1, 
 		y1, 
-		textbox->get_w(), 
+		w, 
 		textbox->get_rows());
 	x1 += textbox->get_w();
+    this->list_w = w + BC_WindowBase::get_resources()->listbox_button[0]->get_w();
 	listbox->reposition_window(x1, 
 		y1, 
-		listbox->get_w(), 
-		listbox->get_h(), 
+		this->list_w, 
+		this->list_h, 
 		0);
 //	if(flush) parent_window->flush();
 }
 
+int BC_PopupTextBox::calculate_h()
+{
+	return BC_WindowBase::get_resources()->listbox_button[0]->get_h();
+}
+
+int BC_PopupTextBox::calculate_w()
+{
+	return BC_WindowBase::get_resources()->listbox_button[0]->get_w();
+}
 
 
 
@@ -3285,10 +3307,18 @@ int BC_TumbleTextBox::handle_event()
 	return 1;
 }
 
-void BC_TumbleTextBox::reposition_window(int x, int y)
+void BC_TumbleTextBox::reposition_window(int x, int y, int w)
 {
 	this->x = x;
 	this->y = y;
+    if(w < 0)
+    {
+        w = text_w;
+    }
+    else
+    {
+        text_w = w;
+    }
 	
 	textbox->reposition_window(x, 
  		y, 
@@ -3310,6 +3340,16 @@ void BC_TumbleTextBox::set_boundaries(float min, float max)
 	tumbler->set_boundaries(min, max);
 }
 
+
+int BC_TumbleTextBox::calculate_h()
+{
+	return BC_WindowBase::get_resources()->tumble_data[0]->get_h();
+}
+
+int BC_TumbleTextBox::calculate_w()
+{
+	return BC_WindowBase::get_resources()->tumble_data[0]->get_w();
+}
 
 
 

@@ -77,6 +77,17 @@ EDL* NestedEDLs::get(char *path)
 	return dst;
 }
 
+EDL* NestedEDLs::search(const char *path)
+{
+	for(int i = 0; i < nested_edls.size(); i++)
+	{
+		EDL *dst = nested_edls.get(i);
+		if(!strcmp(dst->path, path))
+			return dst;
+	}
+    return 0;
+}
+
 void NestedEDLs::clear()
 {
 	for(int i = 0; i < nested_edls.size(); i++)

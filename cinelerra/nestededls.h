@@ -18,6 +18,8 @@ public:
 	EDL* get_copy(EDL *src);
 // Return new EDL loaded from path
 	EDL* get(char *path);
+// search for an EDL based on path
+    EDL* search(const char *path);
 	int size();
 	EDL* get(int number);
 	void clear();
