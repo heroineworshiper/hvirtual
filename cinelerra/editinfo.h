@@ -113,7 +113,25 @@ public:
         int64_t *output);
     
     int handle_event();
+// handle scrollwheel
+	int button_press_event();
+    void increase();
+    void decrease();
     int64_t *output;
+    EditInfoGUI *gui;
+};
+
+class EditInfoTumbler : public BC_Tumbler
+{
+public:
+    EditInfoTumbler(EditInfoGUI *gui, 
+        int x, 
+        int y, 
+        EditInfoNumber *text);
+    
+    int handle_up_event();
+    int handle_down_event();
+    EditInfoNumber *text;
     EditInfoGUI *gui;
 };
 
@@ -149,8 +167,11 @@ public:
     EditInfoThread *thread;
     EditInfoPath *path;
     EditInfoNumber *startsource;
+    EditInfoTumbler *startsource2;
     EditInfoNumber *startproject;
+    EditInfoTumbler *startproject2;
     EditInfoNumber *length;
+    EditInfoTumbler *length2;
     EditInfoChannel *channel;
     EditInfoFormat *format;
     int x1;

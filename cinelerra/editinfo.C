@@ -118,24 +118,33 @@ void EditInfoGUI::create_objects()
     add_subwindow(startsource = new EditInfoNumber(this,
         x1, 
         y,
-        get_w() - margin - x1,
+        get_w() - margin - x1 - BC_Tumbler::calculate_w(),
         &thread->startsource));
-//    startsource->set_read_only(1);
-    y += text_h;
+    add_subwindow(startsource2 = new EditInfoTumbler(this, 
+        x1 + startsource->get_w(), 
+        y, 
+        startsource));
+    y += MAX(text_h, startsource2->get_h());
     add_subwindow(startproject = new EditInfoNumber(this,
         x1, 
         y,
-        get_w() - margin - x1,
+        get_w() - margin - x1 - BC_Tumbler::calculate_w(),
         &thread->startproject));
-//    startproject->set_read_only(1);
-    y += text_h;
+    add_subwindow(startproject2 = new EditInfoTumbler(this, 
+        x1 + startproject->get_w(), 
+        y, 
+        startproject));
+    y += MAX(text_h, startproject2->get_h());
     add_subwindow(length = new EditInfoNumber(this,
         x1, 
         y,
-        get_w() - margin - x1,
+        get_w() - margin - x1 - BC_Tumbler::calculate_w(),
         &thread->length));
-//    length->set_read_only(1);
-    y += text_h;
+    add_subwindow(length2 = new EditInfoTumbler(this, 
+        x1 + length->get_w(), 
+        y, 
+        length));
+    y += MAX(text_h, length2->get_h());
     channel = new EditInfoChannel(this,
         x1, 
         y,
@@ -176,16 +185,26 @@ int EditInfoGUI::resize_event(int w, int h)
         w - margin - x1 - BC_PopupTextBox::calculate_w());
     startsource->reposition_window(startsource->get_x(),
         startsource->get_y(),
-        w - margin - x1,
+        w - margin - x1 - BC_Tumbler::calculate_w(),
         1);
+    startsource2->reposition_window(startsource->get_x() + startsource->get_w(),
+        startsource2->get_y());
+        
     startproject->reposition_window(startproject->get_x(),
         startproject->get_y(),
-        w - margin - x1,
+        w - margin - x1 - BC_Tumbler::calculate_w(),
         1);
+    startproject2->reposition_window(startproject->get_x() + startproject->get_w(),
+        startproject2->get_y());
+
+
     length->reposition_window(length->get_x(),
         length->get_y(),
-        w - margin - x1,
+        w - margin - x1 - BC_Tumbler::calculate_w(),
         1);
+    length2->reposition_window(length->get_x() + length->get_w(),
+        length2->get_y());
+
     channel->reposition_window(channel->get_x(),
         channel->get_y(),
         w - margin - x1 - BC_TumbleTextBox::calculate_w());
@@ -298,6 +317,104 @@ int EditInfoNumber::handle_event()
     }
     return 0;
 }
+
+int EditInfoNumber::button_press_event()
+{
+	if(is_event_win())
+	{
+		if(get_buttonpress() < 4)
+        {
+            return BC_TextBox::button_press_event();
+        }
+
+		if(get_buttonpress() == 4)
+		{
+			increase();
+		}
+		else
+		if(get_buttonpress() == 5)
+		{
+			decrease();
+		}
+		return 1;
+	}
+	return 0;
+}
+
+
+void EditInfoNumber::increase()
+{
+    switch(gui->thread->mwindow->session->edit_info_format)
+    {
+        case EDIT_INFO_FRAMES:
+            (*output)++;
+            update(*output);
+            break;
+        default:
+            (*output) += gui->thread->rate;
+            char string[BCTEXTLEN];
+            Units::totext(string, 
+				gui->thread->from_units(*output), 
+				TIME_HMS);
+            update(string);
+            break;
+    }
+}
+
+void EditInfoNumber::decrease()
+{
+    switch(gui->thread->mwindow->session->edit_info_format)
+    {
+        case EDIT_INFO_FRAMES:
+            if(*output > 0)
+            {
+                (*output)--;
+                update(*output);
+            }
+            break;
+        default:
+            (*output) -= gui->thread->rate;
+            if(*output < 0)
+            {
+                *output = 0;
+            }
+            char string[BCTEXTLEN];
+            Units::totext(string, 
+				gui->thread->from_units(*output), 
+				TIME_HMS);
+            update(string);
+            break;
+    }
+}
+
+
+
+
+EditInfoTumbler::EditInfoTumbler(EditInfoGUI *gui, 
+    int x, 
+    int y, 
+    EditInfoNumber *text)
+ : BC_Tumbler(x, y)
+{
+    this->gui = gui;
+    this->text = text;
+}
+
+int EditInfoTumbler::handle_up_event()
+{
+    text->increase();
+    return 1;
+}
+
+
+int EditInfoTumbler::handle_down_event()
+{
+    text->decrease();
+    return 1;
+}
+
+
+
 
 EditInfoChannel::EditInfoChannel(EditInfoGUI *gui,
     int x, 
