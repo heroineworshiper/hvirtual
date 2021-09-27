@@ -82,7 +82,7 @@ if(debug) printf("VEdit::get_nested_asset %d\n",
 __LINE__);
 		if(direction == PLAY_REVERSE) (*source_position)--;
 		*source_position = Units::to_int64(*source_position *
-			nested_edl->session->frame_rate /
+			nested_edl->session->get_nested_frame_rate() /
 			edl->session->frame_rate);
 		if(direction == PLAY_REVERSE) (*source_position)++;
 		PlayableTracks *playable_tracks = new PlayableTracks(
@@ -228,6 +228,8 @@ int64_t VEdit::get_source_end(int64_t default_)
 	if(nested_edl)
 	{
 		return (int64_t)(nested_edl->tracks->total_playable_length() *
+            nested_edl->session->frame_rate / 
+            nested_edl->session->get_nested_frame_rate() *
 			edl->session->frame_rate + 0.5);
 	}
 

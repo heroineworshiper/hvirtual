@@ -51,6 +51,7 @@ public:
 	void handle_close_event(int result);
 	BC_Window* new_gui();
 
+// not deleted until handle_close_event
 	Indexable *indexable;
 	MWindow *mwindow;
 	AssetEditWindow *window;
@@ -58,6 +59,11 @@ public:
 
 // Changed parameters
 	Asset *changed_params;
+// changed parameters not included in an asset
+    double new_nested_frame_rate;
+    double nested_frame_rate;
+    int64_t new_nested_sample_rate;
+    int64_t nested_sample_rate;
 };
 
 
@@ -142,10 +148,30 @@ public:
 	AssetEditWindow *fwindow;
 };
 
+class AssetEditNestedRate : public BC_TextBox
+{
+public:
+	AssetEditNestedRate(AssetEditWindow *fwindow, char *text, int x, int y);
+	
+	int handle_event();
+	
+	AssetEditWindow *fwindow;
+};
+
 class AssetEditFRate : public BC_TextBox
 {
 public:
 	AssetEditFRate(AssetEditWindow *fwindow, char *text, int x, int y);
+	
+	int handle_event();
+	
+	AssetEditWindow *fwindow;
+};
+
+class AssetEditNestedFRate : public BC_TextBox
+{
+public:
+	AssetEditNestedFRate(AssetEditWindow *fwindow, char *text, int x, int y);
 	
 	int handle_event();
 	

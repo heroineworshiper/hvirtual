@@ -22,6 +22,7 @@ public:
     EDL* search(const char *path);
 	int size();
 	EDL* get(int number);
+    int load(FileXML *file, uint32_t load_flags);
 	void clear();
 	void update_index(EDL *nested_edl);
 	void remove_edl(EDL *nested_edl);

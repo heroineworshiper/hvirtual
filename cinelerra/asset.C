@@ -592,9 +592,13 @@ int Asset::write(FileXML *file,
 // Make path relative
 	fs.extract_dir(asset_directory, path);
 	if(output_path && output_path[0]) 
-		fs.extract_dir(output_directory, output_path);
-	else
-		output_directory[0] = 0;
+	{
+    	fs.extract_dir(output_directory, output_path);
+	}
+    else
+	{
+    	output_directory[0] = 0;
+    }
 
 // Asset and EDL are in same directory.  Extract just the name.
 	if(!strcmp(asset_directory, output_directory))
@@ -636,7 +640,9 @@ int Asset::write(FileXML *file,
 	write_video(file);
 // index goes after source
 	if(index_state->index_status == INDEX_READY && include_index) 
-		write_index(file);  
+	{
+    	write_index(file);
+    }
 
 	file->tag.set_title("/ASSET");
 	file->append_tag();

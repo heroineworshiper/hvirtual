@@ -54,6 +54,10 @@ public:
 	char* get_cwindow_display();
 	void boundaries();
 
+// get the nested values, substituting when -1
+    double get_nested_frame_rate();
+    int64_t get_nested_sample_rate();
+
 //	PlaybackConfig* get_playback_config(int strategy, int head);
 //	ArrayList<PlaybackConfig*>* get_playback_config(int strategy);
 //	int get_playback_heads(int strategy);
@@ -132,7 +136,11 @@ public:
 	int enable_duplex;
 // AWindow format
 	int folderlist_format;
+// frames per second
 	double frame_rate;
+// frame rate if nested.  Only accessed by the owning EDL.
+// -1 if the same as the project frame rate.
+    double nested_frame_rate;
 	float frames_per_foot;
 // Number of highlighted track
 	int highlighted_track;
@@ -177,6 +185,9 @@ public:
 // Show title and action safe regions in CWindow
 	int safe_regions;
     int64_t sample_rate;
+// sample rate if nested.  Only accessed by the owning EDL.
+// -1 if the same as the project sample rate.
+	int64_t nested_sample_rate;
 	float scrub_speed;
 // Show assets in track canvas
 	int show_assets;

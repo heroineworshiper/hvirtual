@@ -812,7 +812,7 @@ void AWindowGUI::update_asset_list()
 
 
 
-//printf("AWindowGUI::update_asset_list %d\n", __LINE__);
+printf("AWindowGUI::update_asset_list %d nested edls=%d\n", __LINE__, mwindow->edl->nested_edls->size());
 
 
 // Synchronize nested EDLs

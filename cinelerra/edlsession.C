@@ -33,6 +33,7 @@
 #include "recordconfig.h"
 #include "tracks.h"
 #include "workarounds.h"
+#include <inttypes.h>
 
 int EDLSession::current_id = 0;
 
@@ -62,6 +63,7 @@ EDLSession::EDLSession(EDL *edl)
 	assetlist_format = ASSETS_TEXT;
 	folderlist_format = FOLDERS_TEXT;
 	frame_rate = 25; // just has to be something by default
+    nested_frame_rate = -1;
 	edit_handle_mode[0] = MOVE_ALL_EDITS;
 	edit_handle_mode[1] = MOVE_ONE_EDIT;
 	edit_handle_mode[2] = MOVE_NO_EDITS;
@@ -74,6 +76,7 @@ EDLSession::EDLSession(EDL *edl)
 	video_tracks = -10;
 	video_channels = -10;
 	sample_rate = -10;
+    nested_sample_rate = -1;
 	frame_rate = -10;
 	frames_per_foot = -10;
 	min_meter_db = -1000;
@@ -98,6 +101,29 @@ EDLSession::~EDLSession()
 	recording_format->Garbage::remove_user();
 }
 
+double EDLSession::get_nested_frame_rate()
+{
+    if(nested_frame_rate < 0)
+    {
+        return frame_rate;
+    }
+    else
+    {
+        return nested_frame_rate;
+    }
+}
+
+int64_t EDLSession::get_nested_sample_rate()
+{
+    if(nested_sample_rate < 0)
+    {
+        return sample_rate;
+    }
+    else
+    {
+        return nested_sample_rate;
+    }
+}
 
 char* EDLSession::get_cwindow_display()
 {
@@ -444,9 +470,11 @@ void EDLSession::boundaries()
 	Workarounds::clamp(audio_tracks, 0, (int)BC_INFINITY);
 	Workarounds::clamp(audio_channels, 1, MAXCHANNELS - 1);
 	Workarounds::clamp(sample_rate, 1, 1000000);
+	Workarounds::clamp(nested_sample_rate, -1, 1000000);
 	Workarounds::clamp(video_tracks, 0, (int)BC_INFINITY);
 	Workarounds::clamp(video_channels, 1, MAXCHANNELS - 1);
 	Workarounds::clamp(frame_rate, 1.0, (double)BC_INFINITY);
+	Workarounds::clamp(nested_frame_rate, -1.0, (double)BC_INFINITY);
 	Workarounds::clamp(min_meter_db, -80, -20);
 	Workarounds::clamp(max_meter_db, 0, 10);
 	Workarounds::clamp(frames_per_foot, 1, 32);
@@ -780,6 +808,7 @@ int EDLSession::copy(EDLSession *session)
 	enable_duplex = session->enable_duplex;
 	folderlist_format = session->folderlist_format;
 	frame_rate = session->frame_rate;
+	nested_frame_rate = session->nested_frame_rate;
 	frames_per_foot = session->frames_per_foot;
 	highlighted_track = session->highlighted_track;
 	interpolation_type = session->interpolation_type;
@@ -813,6 +842,7 @@ int EDLSession::copy(EDLSession *session)
 	recording_format->copy_from(session->recording_format, 0);
 	safe_regions = session->safe_regions;
 	sample_rate = session->sample_rate;
+    nested_sample_rate = session->nested_sample_rate;
 	scrub_speed = session->scrub_speed;
 	show_assets = session->show_assets;
 	show_titles = session->show_titles;
@@ -846,15 +876,27 @@ int EDLSession::copy(EDLSession *session)
 void EDLSession::dump()
 {
 	printf("EDLSession::dump\n");
-	printf("    audio_tracks=%d audio_channels=%d sample_rate=%lld\n"
-			"video_tracks=%d frame_rate=%f output_w=%d output_h=%d\n"
-			"aspect_w=%f aspect_h=%f decode subtitles=%d subtitle_number=%d\n"
-			"proxy_scale=%d\n", 
+	printf("    audio_tracks=%d\n"
+            "    audio_channels=%d\n"
+            "    sample_rate=%" PRId64 "\n"
+            "    nested_sample_rate=%" PRId64 "\n"
+			"    video_tracks=%d\n"
+            "    frame_rate=%f\n"
+            "    nested_frame_rate=%f\n"
+            "    output_w=%d\n"
+            "    output_h=%d\n"
+			"    aspect_w=%f\n"
+            "    aspect_h=%f\n"
+            "    decode subtitles=%d\n"
+            "    subtitle_number=%d\n"
+			"    proxy_scale=%d\n", 
 		audio_tracks, 
 		audio_channels, 
-		(long long)sample_rate, 
+		sample_rate, 
+        nested_sample_rate,
 		video_tracks, 
 		frame_rate, 
+        nested_frame_rate,
 		output_w, 
 		output_h, 
 		aspect_w, 

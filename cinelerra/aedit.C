@@ -71,6 +71,8 @@ int64_t AEdit::get_source_end(int64_t default_)
 	if(nested_edl)
 	{
 		return (int64_t)(nested_edl->tracks->total_playable_length() *
+            nested_edl->session->sample_rate / 
+            nested_edl->session->get_nested_sample_rate() *
 			edl->session->sample_rate + 0.5);
 	}
 

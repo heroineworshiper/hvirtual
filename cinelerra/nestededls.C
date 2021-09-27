@@ -1,9 +1,11 @@
 #include "bcsignals.h"
 #include "edl.h"
+#include "edlsession.h"
 #include "filexml.h"
 #include "indexstate.h"
 #include "nestededls.h"
 
+#include <inttypes.h>
 
 NestedEDLs::NestedEDLs()
 {
@@ -23,6 +25,8 @@ void NestedEDLs::dump()
 	for(int i = 0; i < nested_edls.size(); i++)
     {
         printf("  %s\n", nested_edls.get(i)->path);
+        printf("    nested_sample_rate=%" PRId64 "\n", nested_edls.get(i)->session->nested_sample_rate);
+        printf("    nested_frame_rate=%f\n", nested_edls.get(i)->session->nested_frame_rate);
     }
 }
 
@@ -117,6 +121,49 @@ void NestedEDLs::remove_edl(EDL *nested_edl)
 	nested_edls.remove(nested_edl);
 	nested_edl->Garbage::remove_user();
 }
+
+int NestedEDLs::load(FileXML *file, uint32_t load_flags)
+{
+	int result = 0;
+
+	while(!result)
+	{
+		result = file->read_tag();
+		if(!result)
+		{
+			if(file->tag.title_is("/NESTED_EDLS"))
+			{
+				result = 1;
+			}
+			else
+			if(file->tag.title_is("NESTED_EDL"))
+			{
+				char *path = file->tag.get_property("SRC");
+//printf("NestedEDLs::load %d %s\n", __LINE__, path);
+                EDL *edl = 0;
+				if(path && path[0] != 0)
+				{
+					edl = get(path);
+				}
+
+                if(edl)
+                {
+                    edl->session->nested_sample_rate = 
+                        file->tag.get_property("SAMPLE_RATE", (int64_t)-1);
+                    edl->session->nested_frame_rate = 
+                        file->tag.get_property("FRAME_RATE", (double)-1);
+// printf("NestedEDLs::load %d %s %f %" PRId64 "\n", 
+//     __LINE__, 
+//     path, 
+//     edl->session->nested_frame_rate, 
+//     edl->session->nested_sample_rate);
+                }
+			}
+		}
+	}
+	return 0;
+}
+
 
 
 

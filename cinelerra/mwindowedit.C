@@ -1713,7 +1713,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 // Capture index file status from mainindex test
 		edl->update_assets(new_edl);
 
-
+        edl->update_nested(new_edl);
 
 // Get starting point of insertion.  Need this to paste labels.
 		switch(load_mode)
@@ -1763,15 +1763,20 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 //printf("MWindow::paste_edls %f %f\n", current_position, edl_length);
 			if(load_mode == LOADMODE_PASTE ||
 				load_mode == LOADMODE_NESTED)
-				edl->labels->insert_labels(new_edl->labels, 
+			{
+            	edl->labels->insert_labels(new_edl->labels, 
 					destination_tracks.total ? paste_position[0] : 0.0,
 					edl_length,
 					edit_labels);
-			else
-				edl->labels->insert_labels(new_edl->labels, 
+			}
+            else
+			{
+            	edl->labels->insert_labels(new_edl->labels, 
 					current_position,
 					edl_length,
 					edit_labels);
+            }
+
 //PRINT_TRACE
 
 			for(Track *new_track = new_edl->tracks->first; 
@@ -1836,7 +1841,9 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 
 		if(load_mode == LOADMODE_PASTE ||
 			load_mode == LOADMODE_NESTED)
-			current_position += edl_length;
+		{
+        	current_position += edl_length;
+        }
 	}
 
 
@@ -1844,9 +1851,9 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 // strange issue, for index not being shown
 // Assume any paste operation from the same EDL won't contain any clips.
 // If it did it would duplicate every clip here.
-	for(int i = 0; i < new_edls->total; i++)
+	for(int i = 0; i < new_edls->size(); i++)
 	{
-		EDL *new_edl = new_edls->values[i];
+		EDL *new_edl = new_edls->get(i);
 
 		for(int j = 0; j < new_edl->clips.total; j++)
 		{

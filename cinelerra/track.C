@@ -1173,7 +1173,8 @@ int Track::copy(double start,
 
 int Track::copy_assets(double start, 
 	double end, 
-	ArrayList<Asset*> *asset_list)
+	ArrayList<Asset*> *asset_list, 
+	ArrayList<EDL*> *nested_list)
 {
 	int i, result = 0;
 
@@ -1188,13 +1189,31 @@ int Track::copy_assets(double start,
 // Check for duplicate assets
 		if(current->asset)
 		{
-			for(i = 0, result = 0; i < asset_list->total; i++)
+			for(i = 0, result = 0; i < asset_list->size(); i++)
 			{
-				if(asset_list->values[i] == current->asset) result = 1;
+				if(asset_list->get(i) == current->asset)
+                {
+                    result = 1;
+                }
 			}
 // append pointer to new asset
 			if(!result) asset_list->append(current->asset);
 		}
+
+        if(current->nested_edl)
+        {
+            for(i = 0, result = 0; i < nested_list->size(); i++)
+            {
+                if(nested_list->get(i) == current->nested_edl)
+                {
+                    result = 1;
+                }
+            }
+            if(!result)
+            {
+                nested_list->append(current->nested_edl);
+            }
+        }
 
 		current = NEXT;
 	}

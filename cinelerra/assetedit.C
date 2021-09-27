@@ -38,6 +38,7 @@
 #include "indexable.h"
 #include "indexfile.h"
 #include "indexstate.h"
+#include "inttypes.h"
 #include "language.h"
 #include "mainindexes.h"
 #include "mwindow.h"
@@ -47,6 +48,7 @@
 #include "theme.h"
 #include "transportque.h"
 
+#include <inttypes.h>
 #include <string.h>
 
 
@@ -95,6 +97,19 @@ void AssetEdit::edit_asset(Indexable *indexable)
 		changed_params->frame_rate = nested_edl->session->frame_rate;
         changed_params->width = nested_edl->session->output_w;
         changed_params->height = nested_edl->session->output_h;
+        nested_frame_rate = nested_edl->session->nested_frame_rate;
+        if(nested_frame_rate < 0)
+        {
+            nested_frame_rate = nested_edl->session->frame_rate;
+        }
+        new_nested_frame_rate = nested_frame_rate;
+        
+        nested_sample_rate = nested_edl->session->nested_sample_rate;
+        if(nested_sample_rate < 0)
+        {
+            nested_sample_rate = nested_edl->session->sample_rate;
+        }
+        new_nested_sample_rate = nested_sample_rate;
 	}
 
 	BC_DialogThread::start();
@@ -117,11 +132,10 @@ void AssetEdit::handle_close_event(int result)
 		else
 		{
 			nested_edl = (EDL*)indexable;
-			if(strcmp(changed_params->path, nested_edl->path) 
-//                ||
-//                changed_params->sample_rate != nested_edl->session->sample_rate ||
-//				!EQUIV(changed_params->frame_rate, nested_edl->session->frame_rate)
-                )
+            
+			if(strcmp(changed_params->path, nested_edl->path) ||
+                !EQUIV(new_nested_frame_rate, nested_frame_rate) ||
+                new_nested_sample_rate != nested_sample_rate)
 				changed = 1;
 		}
 //printf("AssetEdit::handle_close_event %d\n", __LINE__);
@@ -143,9 +157,24 @@ void AssetEdit::handle_close_event(int result)
 			else
 			{
 				strcpy(nested_edl->path, changed_params->path);
-// Other parameters can't be changed because they're defined in the other EDL
-//                nested_edl->session->frame_rate = changed_params->frame_rate;
-//                nested_edl->session->sample_rate = changed_params->sample_rate;
+                
+                if(EQUIV(new_nested_frame_rate, nested_edl->session->frame_rate))
+                {
+                    nested_edl->session->nested_frame_rate = -1;
+                }
+                else
+                {
+                    nested_edl->session->nested_frame_rate = new_nested_frame_rate;
+                }
+
+                if(new_nested_sample_rate == nested_edl->session->sample_rate)
+                {
+                    nested_edl->session->nested_sample_rate = -1;
+                }
+                else
+                {
+                    nested_edl->session->nested_sample_rate = new_nested_sample_rate;
+                }
 			}
 //printf("AssetEdit::handle_close_event %d\n", __LINE__);
 
@@ -379,18 +408,24 @@ void AssetEditWindow::create_objects()
 
 		x = x1;
 		add_subwindow(new BC_Title(x, y, _("Sample rate:")));
-		sprintf(string, "%d", asset_edit->changed_params->sample_rate);
 
 		x = x2;
 		if(asset)
 		{
 			BC_TextBox *textbox;
+		    sprintf(string, "%d", asset_edit->changed_params->sample_rate);
 			add_subwindow(textbox = new AssetEditRate(this, string, x, y));
 			x += textbox->get_w();
 			add_subwindow(new SampleRatePulldown(mwindow, textbox, x, y));
 		}
 		else
 		{
+// sample rate conversion from a nested EDL is unsupported
+//		    sprintf(string, "%" PRId64, asset_edit->new_nested_sample_rate);
+//			BC_TextBox *textbox;
+//			add_subwindow(textbox = new AssetEditNestedRate(this, string, x, y));
+//			x += textbox->get_w();
+//			add_subwindow(new SampleRatePulldown(mwindow, textbox, x, y));
 			add_subwindow(new BC_Title(x, y, string, MEDIUMFONT, mwindow->theme->assetedit_color));
 		}
 
@@ -504,19 +539,24 @@ void AssetEditWindow::create_objects()
 
 		add_subwindow(new BC_Title(x, y, _("Frame rate:")));
 		x = x2;
-		sprintf(string, "%.2f", asset_edit->changed_params->frame_rate);
 
 //printf("AssetEditWindow::create_objects %d %f\n", __LINE__, asset_edit->changed_params->frame_rate);
 		if(asset)
 		{
 			BC_TextBox *framerate;
+		    sprintf(string, "%.2f", asset_edit->changed_params->frame_rate);
 			add_subwindow(framerate = new AssetEditFRate(this, string, x, y));
 			x += DP(105);
 			add_subwindow(new FrameRatePulldown(mwindow, framerate, x, y));
 		}
 		else
 		{
-			add_subwindow(new BC_Title(x, y, string, MEDIUMFONT, mwindow->theme->assetedit_color));
+			BC_TextBox *framerate;
+		    sprintf(string, "%.2f", asset_edit->new_nested_frame_rate);
+			add_subwindow(framerate = new AssetEditNestedFRate(this, string, x, y));
+			x += DP(105);
+			add_subwindow(new FrameRatePulldown(mwindow, framerate, x, y));
+//			add_subwindow(new BC_Title(x, y, string, MEDIUMFONT, mwindow->theme->assetedit_color));
 		}
 
 		y += DP(30);
@@ -586,6 +626,18 @@ int AssetEditRate::handle_event()
 	return 1;
 }
 
+AssetEditNestedRate::AssetEditNestedRate(AssetEditWindow *fwindow, char *text, int x, int y)
+ : BC_TextBox(x, y, DP(100), 1, text)
+{
+	this->fwindow = fwindow;
+}
+
+int AssetEditNestedRate::handle_event()
+{
+	fwindow->asset_edit->new_nested_sample_rate = atol(get_text());
+	return 1;
+}
+
 AssetEditFRate::AssetEditFRate(AssetEditWindow *fwindow, char *text, int x, int y)
  : BC_TextBox(x, y, DP(100), 1, text)
 {
@@ -596,6 +648,18 @@ int AssetEditFRate::handle_event()
 {
 	Asset *asset = (Asset*)fwindow->asset_edit->changed_params;
 	asset->frame_rate = atof(get_text());
+	return 1;
+}
+
+AssetEditNestedFRate::AssetEditNestedFRate(AssetEditWindow *fwindow, char *text, int x, int y)
+ : BC_TextBox(x, y, DP(100), 1, text)
+{
+	this->fwindow = fwindow;
+}
+
+int AssetEditNestedFRate::handle_event()
+{
+	fwindow->asset_edit->new_nested_frame_rate = atof(get_text());
 	return 1;
 }
 

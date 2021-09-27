@@ -138,6 +138,8 @@ public:
 	void set_index_file(Indexable *indexable);
 // Add assets from the src to the destination
 	void update_assets(EDL *src);
+// Add nested EDLs from the src to the destination
+    void update_nested(EDL *src);
 	void optimize();
 // Debug
 	int dump();
@@ -181,6 +183,8 @@ public:
 		FileXML *file, 
 		const char *output_path,
 		int rewind_it);     // Rewind EDL for easy pasting
+    void copy_nested(FileXML *file, 
+		const char *output_path);
 	void paste_silence(double start, 
 		double end, 
 		int edit_labels /* = 1 */, 

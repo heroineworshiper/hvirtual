@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009-2013 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -380,7 +380,7 @@ int VModule::import_frame(VFrame *output,
 				asset_h = nested_edl->session->output_h;
 // Get source position in nested frame rate in direction of playback.
 				nested_position = Units::to_int64(position * 
-					nested_edl->session->frame_rate / 
+					nested_edl->session->get_nested_frame_rate() / 
 					frame_rate);
 				if(direction == PLAY_REVERSE)
 					nested_position++;

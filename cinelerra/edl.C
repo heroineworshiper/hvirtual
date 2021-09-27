@@ -33,6 +33,7 @@
 #include "edl.h"
 #include "edlsession.h"
 #include "filexml.h"
+#include "filesystem.h"
 #include "guicast.h"
 #include "indexstate.h"
 #include "labels.h"
@@ -295,7 +296,17 @@ int EDL::load_xml(FileXML *file,
 				if(file->tag.title_is("ASSETS"))
 				{
 					if(load_flags & LOAD_ASSETS)
-						assets->load(file, load_flags);
+					{
+                    	assets->load(file, load_flags);
+                    }
+				}
+				else
+				if(file->tag.title_is("NESTED_EDLS"))
+				{
+					if(load_flags & LOAD_ASSETS)
+					{
+                    	nested_edls->load(file, load_flags);
+                    }
 				}
 				else
 				if(file->tag.title_is(labels->xml_tag))
@@ -478,6 +489,7 @@ int EDL::copy_assets(double start,
 	const char *output_path)
 {
 	ArrayList<Asset*> asset_list;
+	ArrayList<EDL*> nested_list;
 	Track* current;
 
 	file->tag.set_title("ASSETS");
@@ -493,9 +505,14 @@ int EDL::copy_assets(double start,
 		{
 			asset_list.append(asset);
 		}
+
+        for(int i = 0; i < nested_edls->size(); i++)
+        {
+            nested_list.append(nested_edls->get(i));
+        }
 	}
 	else
-// Copy just the ones being used.
+// Copy just the ones in the selection for a clipboard
 	{
 		for(current = tracks->first; 
 			current; 
@@ -505,7 +522,8 @@ int EDL::copy_assets(double start,
 			{
 				current->copy_assets(start, 
 					end, 
-					&asset_list);
+					&asset_list,
+                    &nested_list);
 			}
 		}
 	}
@@ -521,8 +539,64 @@ int EDL::copy_assets(double start,
 	file->tag.set_title("/ASSETS");
 	file->append_tag();
 	file->append_newline();
+
+
+    if(nested_list.size())
+    {
+	    file->tag.set_title("NESTED_EDLS");
+	    file->append_tag();
+	    file->append_newline();
+
+	    for(int i = 0; i < nested_list.total; i++)
+	    {
+		    nested_list.values[i]->copy_nested(file, 
+			    output_path);
+	    }
+
+	    file->tag.set_title("/NESTED_EDLS");
+	    file->append_tag();
+	    file->append_newline();
+    }
 	file->append_newline();
 	return 0;
+}
+
+void EDL::copy_nested(FileXML *file, 
+		const char *output_path)
+{
+// 	char new_path[BCTEXTLEN];
+// 	char asset_directory[BCTEXTLEN];
+// 	char output_directory[BCTEXTLEN];
+// 	FileSystem fs;
+//     
+// // Make path relative
+// 	fs.extract_dir(asset_directory, path);
+// 	if(output_path && output_path[0]) 
+// 	{
+//     	fs.extract_dir(output_directory, output_path);
+// 	}
+//     else
+// 	{
+//     	output_directory[0] = 0;
+//     }
+// 
+// // Asset and EDL are in same directory.  Extract just the name.
+// 	if(!strcmp(asset_directory, output_directory))
+// 	{
+// 		fs.extract_name(new_path, path);
+// 	}
+// 	else
+// 	{
+// 		strcpy(new_path, path);
+// 	}
+
+	file->tag.set_title("NESTED_EDL");
+//	file->tag.set_property("SRC", new_path);
+	file->tag.set_property("SRC", path);
+	file->tag.set_property("SAMPLE_RATE", session->nested_sample_rate);
+	file->tag.set_property("FRAME_RATE", session->nested_frame_rate);
+	file->append_tag();
+	file->append_newline();
 }
 
 int EDL::copy(double start, 
@@ -595,11 +669,13 @@ int EDL::copy(double start,
 // Don't replicate all assets for every clip.
 // The assets for the clips are probably in the mane EDL.
 		if(!is_clip)
+        {
 			copy_assets(start, 
 				end, 
 				file, 
 				all, 
 				output_path);
+        }
 
 // Clips
 // Don't want this if using clipboard
@@ -958,6 +1034,20 @@ void EDL::update_assets(EDL *src)
 	}
 }
 
+void EDL::update_nested(EDL *src)
+{
+	for(int i = 0; i < src->nested_edls->size(); i++)
+	{
+        EDL *nested_src = src->nested_edls->get(i);
+        EDL *nested_dst = nested_edls->get(nested_src->path);
+		if(nested_dst)
+        {
+            nested_dst->session->nested_sample_rate = nested_src->session->nested_sample_rate;
+            nested_dst->session->nested_frame_rate = nested_src->session->nested_frame_rate;
+        }
+	}
+}
+
 int EDL::get_tracks_height(Theme *theme)
 {
 	int total_pixels = 0;
@@ -1148,7 +1238,9 @@ void EDL::insert_asset(Asset *asset,
 
 	if(new_nested_edl)
 	{
-		length = new_nested_edl->tracks->total_playable_length();
+		length = new_nested_edl->tracks->total_playable_length() *
+            new_nested_edl->session->frame_rate /
+            new_nested_edl->session->get_nested_frame_rate();
 		layers = 1;
 		channels = new_nested_edl->session->audio_channels;
 	}
