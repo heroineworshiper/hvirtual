@@ -148,7 +148,7 @@ int TimeStretchEngine::process(Samples *in_buffer, int in_size)
 
 			if(current_in_sample - input_sample < input_size)
 			{
-				memcpy(input,
+				memmove(input,
 					input + current_in_sample - input_sample,
 					(input_size - (current_in_sample - input_sample)) * sizeof(double));
 				input_size -= current_in_sample - input_sample;
@@ -201,7 +201,7 @@ int TimeStretchEngine::process(Samples *in_buffer, int in_size)
 void TimeStretchEngine::read_output(Samples *buffer, int size)
 {
 	memcpy(buffer->get_data(), output, size * sizeof(double));
-	memcpy(output, output + size, (output_size + window_skirt - size) * sizeof(double));
+	memmove(output, output + size, (output_size + window_skirt - size) * sizeof(double));
 	output_size -= size;
 	output_sample += size;
 }

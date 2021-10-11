@@ -373,7 +373,7 @@ int Chorus::process_buffer(int64_t size,
 // history is bigger than input buffer.  Copy entire input buffer.
         if(history_size > size)
         {
-            memcpy(history_buffer[i], 
+            memmove(history_buffer[i], 
                 history_buffer[i] + size,
                 (history_size - size) * sizeof(double));
             memcpy(history_buffer[i] + (history_size - size),

@@ -296,7 +296,7 @@ int Reverb::process_buffer(int64_t size,
     int remane = dsp_in_allocated - size;
     for(int i = 0; i < PluginClient::total_in_buffers; i++)
     {
-        memcpy(dsp_in[i], dsp_in[i] + size, remane * sizeof(double));
+        memmove(dsp_in[i], dsp_in[i] + size, remane * sizeof(double));
         bzero(dsp_in[i] + remane, size * sizeof(double));
     }
 //printf("Reverb::process_buffer %d size=%d dsp_in_allocated=%d\n", __LINE__, size, dsp_in_allocated);

@@ -257,7 +257,7 @@ int Flanger::process_buffer(int64_t size,
 // history is bigger than input buffer.  Copy entire input buffer.
     if(history_size > size)
     {
-        memcpy(history_buffer, 
+        memmove(history_buffer, 
             history_buffer + size,
             (history_size - size) * sizeof(double));
         memcpy(history_buffer + (history_size - size),

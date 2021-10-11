@@ -784,7 +784,7 @@ int AudioScope::process_buffer(int64_t size,
 			for(int j = 0; j < CHANNELS; j++)
 			{
 				double *sample_input = audio_buffer[j]->get_data();
-				memcpy(sample_input, 
+				memmove(sample_input, 
 					sample_input + buffer_size - window_size,
 					sizeof(double) * window_size);
 			}
@@ -821,7 +821,7 @@ int AudioScope::process_buffer(int64_t size,
 
 // Shift accumulation buffer
 //printf("AudioScope::process_buffer %d\n", __LINE__);
-				memcpy(sample_input, 
+				memmove(sample_input, 
 					sample_input + trigger_sample + window_size, 
 					sizeof(double) * (buffer_size - trigger_sample - window_size));
 //printf("AudioScope::process_buffer %d\n", __LINE__);

@@ -449,7 +449,7 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 		output_size += HALF_WINDOW;
 
 // Shift input buffer half a window forward
-        memcpy(input_buffer->get_data(),
+        memmove(input_buffer->get_data(),
             input_buffer->get_data() + HALF_WINDOW,
             (input_size - HALF_WINDOW) * sizeof(double));
 // 		for(int i = HALF_WINDOW, j = 0;
@@ -476,7 +476,7 @@ int CrossfadeFFT::process_buffer(int64_t output_sample,
 // shift output buffers forward
     for(int band = 0; band < bands; band++)
     {
-        memcpy(output_buffer[band], 
+        memmove(output_buffer[band], 
             output_buffer[band] + size, 
             sizeof(double) * (output_size + HALF_WINDOW - size));
     }

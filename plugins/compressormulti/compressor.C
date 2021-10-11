@@ -562,7 +562,7 @@ int CompressorEffect::process_buffer(int64_t size,
 
         for(int i = 0; i < channels; i++)
         {
-            memcpy(band_states[band]->filtered_buffer[i]->get_data(),
+            memmove(band_states[band]->filtered_buffer[i]->get_data(),
                 band_states[band]->filtered_buffer[i]->get_data() + size,
                 (filtered_size - size) * sizeof(double));
                 
@@ -572,7 +572,7 @@ int CompressorEffect::process_buffer(int64_t size,
 #ifndef DRAW_AFTER_BANDPASS
     for(int i = 0; i < channels; i++)
     {
-        memcpy(input_buffer[i]->get_data(),
+        memmove(input_buffer[i]->get_data(),
             input_buffer[i]->get_data() + size,
             (input_size - size) * sizeof(double));
     }

@@ -770,7 +770,6 @@ int Spectrogram::process_buffer(int64_t size,
 		sizeof(double) * size);
 	buffer_size += size;
 
-
 //printf("Spectrogram::process_buffer %d %d\n", __LINE__, buffer_size);
 
 // Append a windows to end of GUI buffer
@@ -822,7 +821,7 @@ int Spectrogram::process_buffer(int64_t size,
 
 
 // Shift audio buffer out
-		memcpy(data, 
+		memmove(data, 
 			data + window_size,
 			(buffer_size - window_size) * sizeof(double));
 

@@ -299,7 +299,7 @@ int VDeviceLML::write_fake_marker()
 int VDeviceLML::refill_input()
 {
 // Shift remaining data up.
-	memcpy(input_buffer, input_buffer + input_position, INPUT_BUFFER_SIZE - input_position);
+	memmove(input_buffer, input_buffer + input_position, INPUT_BUFFER_SIZE - input_position);
 
 // Append new data
 	input_error = !fread(input_buffer + INPUT_BUFFER_SIZE - input_position, 

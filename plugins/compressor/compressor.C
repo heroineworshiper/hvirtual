@@ -367,7 +367,7 @@ int CompressorEffect::process_buffer(int64_t size,
             
 			for(int i = 0; i < channels; i++)
 			{
-				memcpy(input_buffer[i]->get_data(),
+				memmove(input_buffer[i]->get_data(),
 					input_buffer[i]->get_data() + offset,
 					len * sizeof(double));
 			}

@@ -359,7 +359,7 @@ int Device1394Input::read_audio(char *data, int samples)
 	if(audio_samples >= samples)
 	{
 		memcpy(data, audio_buffer, samples * bits * channels / 8);
-		memcpy(audio_buffer, 
+		memmove(audio_buffer, 
 			audio_buffer + samples * bits * channels / 8,
 			(audio_samples - samples) * bits * channels / 8);
 		audio_samples -= samples;
