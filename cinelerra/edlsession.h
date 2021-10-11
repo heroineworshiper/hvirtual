@@ -76,8 +76,6 @@ public:
 	AudioOutConfig *aconfig_duplex;
 // AWindow format
 	int assetlist_format;
-// AWindow column widths
-	int asset_columns[ASSET_COLUMNS];
 	AutoConf *auto_conf;
 // Aspect ratio for video
     float aspect_w;

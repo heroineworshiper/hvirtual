@@ -201,11 +201,6 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 //	assetlist_format = defaults->get("ASSETLIST_FORMAT", ASSETS_TEXT);
 	aspect_w = defaults->get("ASPECTW", (float)4);
 	aspect_h = defaults->get("ASPECTH", (float)3);
-	for(int i = 0; i < ASSET_COLUMNS; i++)
-	{
-		sprintf(string, "ASSET_COLUMN%d", i);
-		asset_columns[i] = defaults->get(string, 100);
-	}
 	audio_channels = defaults->get("ACHANNELS", 2);
 	audio_tracks = defaults->get("ATRACKS", 2);
 	auto_conf->load_defaults(defaults);
@@ -346,11 +341,6 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("ACHANNELS", audio_channels);
 	aconfig_duplex->save_defaults(defaults);
 	aconfig_in->save_defaults(defaults);
-	for(int i = 0; i < ASSET_COLUMNS; i++)
-	{
-		sprintf(string, "ASSET_COLUMN%d", i);
-		defaults->update(string, asset_columns[i]);
-	}
 	auto_conf->save_defaults(defaults);
 //    defaults->update("ASSETLIST_FORMAT", assetlist_format);
     defaults->update("ASPECTW", aspect_w);
@@ -579,11 +569,11 @@ int EDLSession::load_xml(FileXML *file,
 	else
 	{
 //		assetlist_format = file->tag.get_property("ASSETLIST_FORMAT", assetlist_format);
-		for(int i = 0; i < ASSET_COLUMNS; i++)
-		{
-			sprintf(string, "ASSET_COLUMN%d", i);
-			asset_columns[i] = file->tag.get_property(string, asset_columns[i]);
-		}
+// 		for(int i = 0; i < ASSET_COLUMNS; i++)
+// 		{
+// 			sprintf(string, "ASSET_COLUMN%d", i);
+// 			asset_columns[i] = file->tag.get_property(string, asset_columns[i]);
+// 		}
 		auto_conf->load_xml(file);
 		auto_keyframes = file->tag.get_property("AUTO_KEYFRAMES", auto_keyframes);
 		autos_follow_edits = file->tag.get_property("AUTOS_FOLLOW_EDITS", autos_follow_edits);
@@ -642,11 +632,11 @@ int EDLSession::save_xml(FileXML *file)
 	char string[BCTEXTLEN];
 	file->tag.set_title("SESSION");
 //	file->tag.set_property("ASSETLIST_FORMAT", assetlist_format);
-	for(int i = 0; i < ASSET_COLUMNS; i++)
-	{
-		sprintf(string, "ASSET_COLUMN%d", i);
-		file->tag.set_property(string, asset_columns[i]);
-	}
+// 	for(int i = 0; i < ASSET_COLUMNS; i++)
+// 	{
+// 		sprintf(string, "ASSET_COLUMN%d", i);
+// 		file->tag.set_property(string, asset_columns[i]);
+// 	}
 	auto_conf->save_xml(file);
 	file->tag.set_property("AUTO_KEYFRAMES", auto_keyframes);
 	file->tag.set_property("AUTOS_FOLLOW_EDITS", autos_follow_edits);
@@ -763,10 +753,10 @@ int EDLSession::copy(EDLSession *session)
 	}
 	aconfig_duplex->copy_from(session->aconfig_duplex);
 	aconfig_in->copy_from(session->aconfig_in);
-	for(int i = 0; i < ASSET_COLUMNS; i++)
-	{
-		asset_columns[i] = session->asset_columns[i];
-	}
+// 	for(int i = 0; i < ASSET_COLUMNS; i++)
+// 	{
+// 		asset_columns[i] = session->asset_columns[i];
+// 	}
 	assetlist_format = session->assetlist_format;
 	auto_conf->copy_from(session->auto_conf);
 	aspect_w = session->aspect_w;

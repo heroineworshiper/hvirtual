@@ -165,6 +165,8 @@ void MainSession::default_window_positions()
 	awindow_y = mwindow_y;
 	awindow_w = root_x + root_w - awindow_x - border_left - border_right;
 	awindow_h = mwindow_h;
+    asset_columns[0] = DP(100);
+    asset_columns[1] = DP(100);
 
 	ewindow_w = DP(640);
 	ewindow_h = DP(240);
@@ -219,6 +221,7 @@ void MainSession::default_window_positions()
 
 int MainSession::load_defaults(BC_Hash *defaults)
 {
+	char string[BCTEXTLEN];
 // Setup main windows
 	reset();
 	vwindow_x = defaults->get("VWINDOW_X", vwindow_x);
@@ -253,6 +256,11 @@ int MainSession::load_defaults(BC_Hash *defaults)
 	awindow_y = defaults->get("AWINDOW_Y", awindow_y);
 	awindow_w = defaults->get("AWINDOW_W", awindow_w);
 	awindow_h = defaults->get("AWINDOW_H", awindow_h);
+	for(int i = 0; i < ASSET_COLUMNS; i++)
+	{
+		sprintf(string, "ASSET_COLUMN%d", i);
+		asset_columns[i] = defaults->get(string, DP(100));
+	}
 
 	ewindow_w = defaults->get("EWINDOW_W", ewindow_w);
 	ewindow_h = defaults->get("EWINDOW_H", ewindow_h);
@@ -332,6 +340,7 @@ int MainSession::load_defaults(BC_Hash *defaults)
 
 int MainSession::save_defaults(BC_Hash *defaults)
 {
+	char string[BCTEXTLEN];
 
 // Window positions
 	defaults->update("MWINDOW_X", mwindow_x);
@@ -364,6 +373,11 @@ int MainSession::save_defaults(BC_Hash *defaults)
 	defaults->update("AWINDOW_Y", awindow_y);
 	defaults->update("AWINDOW_W", awindow_w);
 	defaults->update("AWINDOW_H", awindow_h);
+	for(int i = 0; i < ASSET_COLUMNS; i++)
+	{
+		sprintf(string, "ASSET_COLUMN%d", i);
+		defaults->update(string, asset_columns[i]);
+	}
 
 	defaults->update("EWINDOW_W", ewindow_w);
 	defaults->update("EWINDOW_H", ewindow_h);

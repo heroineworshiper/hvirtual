@@ -131,6 +131,8 @@ public:
 	int ctool_x, ctool_y;
 // asset window
 	int awindow_x, awindow_y, awindow_w, awindow_h;
+// AWindow column widths
+	int asset_columns[ASSET_COLUMNS];
 	int gwindow_x, gwindow_y;
 // record monitor
 	int rmonitor_x, rmonitor_y, rmonitor_w, rmonitor_h;

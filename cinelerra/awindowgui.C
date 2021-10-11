@@ -1040,7 +1040,7 @@ void AWindowGUI::update_assets()
 
 	asset_list->update(displayed_assets,
 		asset_titles,
-		mwindow->edl->session->asset_columns,
+		mwindow->session->asset_columns,
 		ASSET_COLUMNS, 
 		asset_list->get_xposition(),
 		asset_list->get_yposition(),
@@ -1233,7 +1233,7 @@ AWindowAssets::AWindowAssets(MWindow *mwindow, AWindowGUI *gui, int x, int y, in
 			LISTBOX_ICONS : LISTBOX_TEXT,
 		&gui->assets,  	  // Each column has an ArrayList of BC_ListBoxItems.
 		gui->asset_titles,             // Titles for columns.  Set to 0 for no titles
-		mwindow->edl->session->asset_columns,                // width of each column
+		mwindow->session->asset_columns,                // width of each column
 		1,                      // Total columns.
 		0,                    // Pixel of top of window.
 		0,                        // If this listbox is a popup window
@@ -1483,8 +1483,8 @@ int AWindowAssets::drag_stop_event()
 
 int AWindowAssets::column_resize_event()
 {
-	mwindow->edl->session->asset_columns[0] = get_column_width(0);
-	mwindow->edl->session->asset_columns[1] = get_column_width(1);
+	mwindow->session->asset_columns[0] = get_column_width(0);
+	mwindow->session->asset_columns[1] = get_column_width(1);
 	return 1;
 }
 
