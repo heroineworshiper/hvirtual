@@ -243,8 +243,13 @@ int ARender::process_buffer(Samples **buffer_out,
 
 int ARender::process_buffer(int64_t input_len, int64_t input_position)
 {
+// printf("ARender::process_buffer %d %p edl->nested_depth=%d\n", 
+// __LINE__, 
+// this, 
+// renderengine->get_edl()->nested_depth);
 	int result = ((VirtualAConsole*)vconsole)->process_buffer(input_len,
 		input_position);
+//printf("ARender::process_buffer %d %p\n", __LINE__, this);
 	return result;
 }
 

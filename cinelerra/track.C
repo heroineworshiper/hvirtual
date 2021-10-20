@@ -346,7 +346,7 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 	int result = 0;
 	int current_channel = 0;
 	int current_plugin = 0;
-
+    int error = 0;
 
 	record = file->tag.get_property("RECORD", record);
 	play = file->tag.get_property("PLAY", play);
@@ -383,7 +383,9 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 			if(file->tag.title_is("EDITS"))
 			{
 				if(load_flags & LOAD_EDITS)
-					edits->load(file, track_offset);
+				{
+                	error |= edits->load(file, track_offset);
+                }
 			}
 			else
 			if(file->tag.title_is("PLUGINSET"))
@@ -406,13 +408,15 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 				}
 			}
 			else
+            {
 				load_derived(file, load_flags);
+            }
 		}
 	}while(!result);
 
 
 
-	return 0;
+	return error;
 }
 
 void Track::insert_asset(Asset *asset, 

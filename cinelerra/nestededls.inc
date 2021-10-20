@@ -4,6 +4,8 @@
 
 class NestedEDLs;
 
+// nested EDL depth to prevent infinite recursion
+#define NESTED_DEPTH 8
 
 #endif
 

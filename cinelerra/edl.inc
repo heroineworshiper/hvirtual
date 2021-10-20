@@ -36,6 +36,11 @@ class EDL;
 #define LOAD_ASSETS 	0x00000080
 #define LOAD_SESSION	0x00000100
 
+// Load errors.  
+// This has to be a bitmask so multiple errors can happen without stopping.
+#define LOAD_OK 0
+// nested EDL's are recursive
+#define IS_RECURSIVE 1
 
 #define EDITING_MODES 2
 

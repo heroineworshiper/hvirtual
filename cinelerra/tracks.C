@@ -189,6 +189,7 @@ int Tracks::load(FileXML *xml,
 	char string[BCTEXTLEN];
 	Track *track = 0;
 	string[0] = 0;
+    int error = 0;
 	
 	xml->tag.get_property("TYPE", string);
 
@@ -212,9 +213,12 @@ int Tracks::load(FileXML *xml,
 	}
 
 // load it
-	if(track) track->load(xml, track_offset, load_flags);
+	if(track) 
+    {
+        error |= track->load(xml, track_offset, load_flags);
+    }
 
-	return 0;
+	return error;
 }
 
 Track* Tracks::add_audio_track(int above, Track *dst_track)

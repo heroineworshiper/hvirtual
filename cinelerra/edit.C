@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -227,9 +227,13 @@ void Edit::detach_transition()
 int Edit::silence()
 {
 	if(asset || nested_edl)
-		return 0;
-	else
-		return 1;
+	{
+    	return 0;
+	}
+    else
+	{
+    	return 1;
+    }
 }
 
 

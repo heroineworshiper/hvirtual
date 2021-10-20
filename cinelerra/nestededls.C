@@ -7,8 +7,9 @@
 
 #include <inttypes.h>
 
-NestedEDLs::NestedEDLs()
+NestedEDLs::NestedEDLs(EDL *edl)
 {
+    this->edl = edl;
 }
 
 NestedEDLs::~NestedEDLs()
@@ -43,6 +44,17 @@ EDL* NestedEDLs::get(int number)
 EDL* NestedEDLs::get_copy(EDL *src)
 {
 	if(!src) return 0;
+// can go no further
+    if(edl->nested_depth >= NESTED_DEPTH)
+    {
+        printf("NestedEDLs::get_copy %d: %s -> %s hit recursive dependency\n", 
+            __LINE__, 
+            edl->path,
+            src->path);
+        return 0;
+    }
+
+// return an existing one 
 	for(int i = 0; i < nested_edls.size(); i++)
 	{
 		EDL *dst = nested_edls.get(i);
@@ -55,12 +67,24 @@ EDL* NestedEDLs::get_copy(EDL *src)
 	EDL *dst = new EDL;
 	dst->create_objects();
 	dst->copy_all(src);
+// overwrite src nested_depth
+    dst->nested_depth = edl->nested_depth + 1;
 	nested_edls.append(dst);
 	return dst;
 }
 
 EDL* NestedEDLs::get(char *path)
 {
+// can go no further
+    if(edl->nested_depth >= NESTED_DEPTH)
+    {
+        printf("NestedEDLs::get %d: %s -> %s hit recursive dependency\n", 
+            __LINE__, 
+            edl->path,
+            path);
+        return 0;
+    }
+
 	for(int i = 0; i < nested_edls.size(); i++)
 	{
 		EDL *dst = nested_edls.get(i);
@@ -69,6 +93,7 @@ EDL* NestedEDLs::get(char *path)
 	}
 
 	EDL *dst = new EDL;
+    dst->nested_depth = edl->nested_depth + 1;
 	dst->create_objects();
 	FileXML xml_file;
 	xml_file.read_from_file(path);

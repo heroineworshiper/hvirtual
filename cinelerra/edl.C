@@ -66,6 +66,7 @@ EDL::EDL(EDL *parent_edl)
  : Indexable(0)
 {
 	this->parent_edl = parent_edl;
+    nested_depth = 0;
 	tracks = 0;
 	labels = 0;
 	local_session = 0;
@@ -138,7 +139,7 @@ void EDL::create_objects()
 	
 	local_session = new LocalSession(this);
 	labels = new Labels(this, "LABELS");
-	nested_edls = new NestedEDLs;
+	nested_edls = new NestedEDLs(this);
 //	last_playback_position = 0;
 }
 
@@ -152,7 +153,9 @@ printf("EDL::operator= 1\n");
 int EDL::load_defaults(BC_Hash *defaults)
 {
 	if(!parent_edl)
+    {
 		session->load_defaults(defaults);
+    }
 
 	local_session->load_defaults(defaults);
 	return 0;
@@ -161,7 +164,9 @@ int EDL::load_defaults(BC_Hash *defaults)
 int EDL::save_defaults(BC_Hash *defaults)
 {
 	if(!parent_edl)
+    {
 		session->save_defaults(defaults);
+    }
 	
 	local_session->save_defaults(defaults);
 	return 0;
@@ -193,6 +198,7 @@ int EDL::load_xml(FileXML *file,
 	int result = 0;
 // Track numbering offset for replacing undo data.
 	int track_offset = 0;
+    int error = 0;
 
 // Clear objects
 	folders.remove_all_objects();
@@ -312,26 +318,32 @@ int EDL::load_xml(FileXML *file,
 				if(file->tag.title_is(labels->xml_tag))
 				{
 					if(load_flags & LOAD_TIMEBAR)
-						labels->load(file, load_flags);
+					{
+                    	labels->load(file, load_flags);
+                    }
 				}
 				else
 				if(file->tag.title_is("LOCALSESSION"))
 				{
 					if((load_flags & LOAD_SESSION) ||
 						(load_flags & LOAD_TIMEBAR))
+                    {
 						local_session->load_xml(file, load_flags);
+                    }
 				}
 				else
 				if(file->tag.title_is("SESSION"))
 				{
 					if((load_flags & LOAD_SESSION) &&
 						!parent_edl)
+                    {
 						session->load_xml(file, 0, load_flags);
+                    }
 				}
 				else
 				if(file->tag.title_is("TRACK"))
 				{
-					tracks->load(file, track_offset, load_flags);
+					error |= tracks->load(file, track_offset, load_flags);
 				}
 				else
 // Sub EDL.
@@ -343,9 +355,13 @@ int EDL::load_xml(FileXML *file,
 					new_edl->load_xml(file, LOAD_ALL);
 
 					if((load_flags & LOAD_ALL) == LOAD_ALL)
-						clips.append(new_edl);
-					else
-						new_edl->Garbage::remove_user();
+					{
+                    	clips.append(new_edl);
+					}
+                    else
+					{
+                    	new_edl->Garbage::remove_user();
+                    }
 				}
 				else
 				if(file->tag.title_is("VWINDOW_EDL") && !parent_edl)
@@ -378,7 +394,7 @@ int EDL::load_xml(FileXML *file,
 	boundaries();
 //dump();
 
-	return 0;
+	return error;
 }
 
 // Output path is the path of the output file if name truncation is desired.
@@ -405,8 +421,10 @@ int EDL::copy_all(EDL *edl)
 {
 	if(this == edl) return 0;
 
+    nested_depth = edl->nested_depth;
 	index_state->copy_from(edl->index_state);
 	nested_edls->clear();
+// nested EDLs are copied in the tracks
 	copy_session(edl);
 	copy_assets(edl);
 	copy_clips(edl);
@@ -994,10 +1012,12 @@ void EDL::remove_from_project(ArrayList<Indexable*> *assets)
 {
 // Remove from clips
 	if(!parent_edl)
+    {
 		for(int j = 0; j < clips.total; j++)
 		{
 			clips.values[j]->remove_from_project(assets);
 		}
+    }
 
 // Remove from VWindow EDLs
 	for(int i = 0; i < total_vwindow_edls(); i++)
@@ -1124,10 +1144,14 @@ float EDL::get_aspect_ratio()
 int EDL::dump()
 {
 	if(parent_edl)
-		printf("CLIP\n");
-	else
-		printf("EDL\n");
-	printf("  clip_title: %s\n"
+	{
+    	printf("CLIP\n");
+	}
+    else
+	{
+    	printf("EDL\n");
+	}
+    printf("  clip_title: %s\n"
 		"  parent_edl: %p\n", local_session->clip_title, parent_edl);
 	printf("  selectionstart %f\n  selectionend %f\n  loop_start %f\n  loop_end %f\n", 
 		local_session->get_selectionstart(1), 

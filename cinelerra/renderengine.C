@@ -70,9 +70,13 @@ RenderEngine::RenderEngine(PlaybackEngine *playback_engine,
 	audio_cache = 0;
 	video_cache = 0;
 	if(playback_engine && playback_engine->mwindow)
-		mwindow = playback_engine->mwindow;
-	else
-		mwindow = 0;
+	{
+    	mwindow = playback_engine->mwindow;
+	}
+    else
+	{
+    	mwindow = 0;
+    }
 
 	input_lock = new Condition(1, "RenderEngine::input_lock");
 	start_lock = new Condition(1, "RenderEngine::start_lock");

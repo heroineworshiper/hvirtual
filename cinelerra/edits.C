@@ -187,7 +187,9 @@ void Edits::insert_edits(Edits *source_edits,
 // Update Assets
 		Asset *dest_asset = 0;
 		if(source_edit->asset)
-			dest_asset = edl->assets->update(source_edit->asset);
+		{
+        	dest_asset = edl->assets->update(source_edit->asset);
+        }
 // Open destination area
 		Edit *dest_edit = insert_new_edit(position + source_edit->startproject);
 
@@ -478,6 +480,7 @@ int Edits::load(FileXML *file, int track_offset)
 {
 	int result = 0;
 	int64_t startproject = 0;
+    int error = 0;
 
 	do{
 		result = file->read_tag();
@@ -487,7 +490,7 @@ int Edits::load(FileXML *file, int track_offset)
 		{
 			if(!strcmp(file->tag.get_title(), "EDIT"))
 			{
-				load_edit(file, startproject, track_offset);
+				error |= load_edit(file, startproject, track_offset);
 			}
 			else
 			if(!strcmp(file->tag.get_title(), "/EDITS"))
@@ -499,11 +502,14 @@ int Edits::load(FileXML *file, int track_offset)
 
 //track->dump();
 	optimize();
+
+    return error;
 }
 
 int Edits::load_edit(FileXML *file, int64_t &startproject, int track_offset)
 {
 	Edit* current;
+    int error = 0;
 
 	current = append_new_edit();
 
@@ -528,11 +534,16 @@ int Edits::load_edit(FileXML *file, int64_t &startproject, int track_offset)
 
 				if(path[0] != 0)
 				{
-					current->nested_edl = edl->nested_edls->get(path);
+                    if(edl->nested_depth >= NESTED_DEPTH)
+                    {
+                        error = IS_RECURSIVE;
+                    }
+                    current->nested_edl = edl->nested_edls->get(path);
 				}
-// printf("Edits::load_edit %d nested_edl->path=%s\n", 
+// printf("Edits::load_edit %d path=%s nested_edl=%p\n", 
 // __LINE__, 
-// current->nested_edl->path);
+// path,
+// current->nested_edl);
 			}
 			else
 			if(file->tag.title_is("FILE"))
@@ -581,7 +592,7 @@ int Edits::load_edit(FileXML *file, int64_t &startproject, int track_offset)
 //printf("Edits::load_edit %d\n", __LINE__);
 //track->dump();
 //printf("Edits::load_edit %d\n", __LINE__);
-	return 0;
+	return error;
 }
 
 // ============================================= accounting

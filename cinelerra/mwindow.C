@@ -1313,6 +1313,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 			case FILE_IS_XML:
 			{
 				FileXML xml_file;
+                int error = 0;
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 				xml_file.read_from_file(filenames->values[i]);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
@@ -1323,7 +1324,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 					EDL *nested_edl = new EDL;
 					nested_edl->create_objects();
 					nested_edl->set_path(filenames->values[i]);
-					nested_edl->load_xml(&xml_file, LOAD_ALL);
+					error = nested_edl->load_xml(&xml_file, LOAD_ALL);
 //printf("MWindow::load_filenames %p %s\n", nested_edl, nested_edl->project_path);
 					edl_to_nested(new_edl, nested_edl);
 					nested_edl->Garbage::remove_user();
@@ -1335,7 +1336,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
                     EDL *nested_edl = new EDL;
 					nested_edl->create_objects();
 					nested_edl->set_path(filenames->values[i]);
-					nested_edl->load_xml(&xml_file, LOAD_ALL);
+					error = nested_edl->load_xml(&xml_file, LOAD_ALL);
 // this creates a nested EDL resource only & returns it
                     EDL *nested_edl2 = edl->nested_edls->get_copy(nested_edl);
 // printf("MWindow::load_filenames %d nested_edl2 %p users=%d nested_edl %p users=%d new_edl %p users=%d\n", 
@@ -1358,7 +1359,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
                 else
 				{
 // Load EDL for pasting
-					new_edl->load_xml(&xml_file, LOAD_ALL);
+					error = new_edl->load_xml(&xml_file, LOAD_ALL);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 					test_plugins(new_edl, filenames->values[i]);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
@@ -1378,6 +1379,18 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
                 {
     				new_edls.append(new_edl);
                 }
+                
+// Notify of errors
+                if((error | IS_RECURSIVE) != 0)
+                {
+                    char string[BCTEXTLEN];
+                    sprintf(string, 
+                        "%s has a recursively nested EDL & won't render properly.\n",
+                        filenames->values[i]);
+                    MainError::show_error(string);
+                }
+                
+                
 				result = 0;
 				break;
 			}

@@ -254,6 +254,8 @@ public:
 	ArrayList<EDL*> clips;
 // Nested EDLs
 	NestedEDLs *nested_edls;
+// number of nested EDLs down
+    int nested_depth;
 // EDLs being shown in VWindows
 	ArrayList<EDL*> vwindow_edls;
 // is the vwindow_edl shared and therefore should not be deleted in destructor
@@ -277,7 +279,8 @@ public:
 
 
 
-// Use parent Assets if nonzero
+// Used by clips
+// Use parent Assets if nonzero.
 	EDL *parent_edl;
 
 

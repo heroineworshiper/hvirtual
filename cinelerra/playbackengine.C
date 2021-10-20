@@ -145,12 +145,17 @@ void PlaybackEngine::delete_render_engine()
 void PlaybackEngine::arm_render_engine()
 {
 	if(render_engine)
-		render_engine->arm_command(command);
+	{
+    	render_engine->arm_command(command);
+    }
 }
 
 void PlaybackEngine::start_render_engine()
 {
-	if(render_engine) render_engine->start_command();
+	if(render_engine)
+    {
+        render_engine->start_command();
+    }
 }
 
 void PlaybackEngine::wait_render_engine()

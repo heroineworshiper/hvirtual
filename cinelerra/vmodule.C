@@ -175,7 +175,8 @@ int VModule::import_frame(VFrame *output,
 
 // Create objects for nested EDL
 	if(current_edit &&
-		current_edit->nested_edl)
+		current_edit->nested_edl && 
+        current_edit->edl->nested_depth < NESTED_DEPTH)
 	{
 		int command;
 		if(debug) printf("VModule::import_frame %d nested_edl=%p current_edit->nested_edl=%p\n", 
@@ -192,16 +193,24 @@ int VModule::import_frame(VFrame *output,
 		if(direction == PLAY_REVERSE)
 		{
 			if(renderengine->command->single_frame())
-				command = SINGLE_FRAME_REWIND;
-			else
-				command = NORMAL_REWIND;
+			{
+            	command = SINGLE_FRAME_REWIND;
+			}
+            else
+			{
+            	command = NORMAL_REWIND;
+            }
 		}
 		else
 		{
 			if(renderengine->command->single_frame())
-				command = SINGLE_FRAME_FWD;
-			else
-				command = NORMAL_FWD;
+			{
+            	command = SINGLE_FRAME_FWD;
+			}
+            else
+			{
+            	command = NORMAL_FWD;
+            }
 		}
 
 		if(!nested_edl || nested_edl->id != current_edit->nested_edl->id)
@@ -223,6 +232,7 @@ int VModule::import_frame(VFrame *output,
 			{
 				nested_command->command = command;
 				nested_command->get_edl()->copy_all(nested_edl);
+                nested_command->get_edl()->nested_depth++;
 				nested_command->change_type = CHANGE_ALL;
 				nested_command->realtime = renderengine->command->realtime;
 				nested_renderengine = new RenderEngine(0,
@@ -249,13 +259,14 @@ int VModule::import_frame(VFrame *output,
 	{
 		nested_edl = 0;
 	}
+
 	if(debug) printf("VModule::import_frame %d\n", __LINE__);
 
 	if(!output) printf("VModule::import_frame %d output=%p\n", __LINE__, output);
 
 	if(current_edit &&
 		(current_edit->asset ||
-		(current_edit->nested_edl && nested_renderengine->vrender)))
+		(nested_edl && nested_renderengine->vrender)))
 	{
 		File *file = 0;
 

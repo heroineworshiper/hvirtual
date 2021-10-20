@@ -573,10 +573,15 @@ SET_TRACE
 SET_TRACE
 			if(render_engine->arender)
 			{
+// printf("IndexFile::create_index %d position=%ld arender=%p\n", 
+// __LINE__, 
+// position,
+// render_engine->arender);
 				result = render_engine->arender->process_buffer(
 					index_thread->buffer_in, 
 					fragment_size,
 					position);
+//printf("IndexFile::create_index %d\n", __LINE__);
 			}
 			else
 			{

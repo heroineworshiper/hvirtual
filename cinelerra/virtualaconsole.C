@@ -130,7 +130,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 	reset_attachments();
 //printf("VirtualAConsole::process_buffer 1 %p\n", output_temp);
 
-if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
+//printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 
 
 // Render exit nodes
@@ -146,7 +146,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 			renderengine->get_edl()->session->sample_rate,
             (double)renderengine->arender->current_position / sample_rate);
 	}
-if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
+//printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 
 
 
@@ -163,12 +163,19 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 				int meter_render_end;
 // Get length to test for meter and limit
 				if(renderengine->command->realtime)
-					meter_render_end = j + arender->meter_render_fragment;
-				else
-					meter_render_end = len;
+				{
+                	meter_render_end = j + arender->meter_render_fragment;
+				}
+                else
+				{
+                	meter_render_end = len;
+                }
 
 				if(meter_render_end > len) 
-					meter_render_end =  len;
+				{
+                	meter_render_end =  len;
+                }
+
 
 				double peak = 0;
 

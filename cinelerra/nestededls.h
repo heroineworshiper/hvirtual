@@ -8,7 +8,7 @@
 class NestedEDLs
 {
 public:
-	NestedEDLs();
+	NestedEDLs(EDL *edl);
 	~NestedEDLs();
 
 
@@ -28,6 +28,8 @@ public:
 	void remove_edl(EDL *nested_edl);
 
 	ArrayList<EDL*> nested_edls;
+// owner of this
+    EDL *edl;
 };
 
 
