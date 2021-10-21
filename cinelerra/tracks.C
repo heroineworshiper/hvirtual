@@ -217,7 +217,6 @@ int Tracks::load(FileXML *xml,
     {
         error |= track->load(xml, track_offset, load_flags);
     }
-
 	return error;
 }
 

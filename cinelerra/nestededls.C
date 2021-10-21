@@ -73,7 +73,7 @@ EDL* NestedEDLs::get_copy(EDL *src)
 	return dst;
 }
 
-EDL* NestedEDLs::get(char *path)
+EDL* NestedEDLs::get(char *path, int *error)
 {
 // can go no further
     if(edl->nested_depth >= NESTED_DEPTH)
@@ -82,6 +82,7 @@ EDL* NestedEDLs::get(char *path)
             __LINE__, 
             edl->path,
             path);
+        *error |= IS_RECURSIVE;
         return 0;
     }
 
@@ -89,7 +90,9 @@ EDL* NestedEDLs::get(char *path)
 	{
 		EDL *dst = nested_edls.get(i);
 		if(!strcmp(dst->path, path))
-			return dst;
+		{
+        	return dst;
+        }
 	}
 
 	EDL *dst = new EDL;
@@ -97,8 +100,8 @@ EDL* NestedEDLs::get(char *path)
 	dst->create_objects();
 	FileXML xml_file;
 	xml_file.read_from_file(path);
-//printf("NestedEDLs::get %d %s\n", __LINE__, path);
-	dst->load_xml(&xml_file, LOAD_ALL);
+	*error |= dst->load_xml(&xml_file, LOAD_ALL);
+//if(*error) BC_Signals::dump_stack();
 
 // Override path EDL was saved to with the path it was loaded from.
 	dst->set_path(path);
@@ -150,6 +153,7 @@ void NestedEDLs::remove_edl(EDL *nested_edl)
 int NestedEDLs::load(FileXML *file, uint32_t load_flags)
 {
 	int result = 0;
+    int error = 0;
 
 	while(!result)
 	{
@@ -168,7 +172,7 @@ int NestedEDLs::load(FileXML *file, uint32_t load_flags)
                 EDL *edl = 0;
 				if(path && path[0] != 0)
 				{
-					edl = get(path);
+					edl = get(path, &error);
 				}
 
                 if(edl)
@@ -186,7 +190,7 @@ int NestedEDLs::load(FileXML *file, uint32_t load_flags)
 			}
 		}
 	}
-	return 0;
+	return error;
 }
 
 

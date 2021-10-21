@@ -485,7 +485,6 @@ int Edits::load(FileXML *file, int track_offset)
 	do{
 		result = file->read_tag();
 
-//printf("Edits::load 1 %s\n", file->tag.get_title());
 		if(!result)
 		{
 			if(!strcmp(file->tag.get_title(), "EDIT"))
@@ -530,15 +529,10 @@ int Edits::load_edit(FileXML *file, int64_t &startproject, int track_offset)
 				path[0] = 0;
 				file->tag.get_property("SRC", path);
 
-//printf("Edits::load_edit %d path=%s\n", __LINE__, path);
 
 				if(path[0] != 0)
 				{
-                    if(edl->nested_depth >= NESTED_DEPTH)
-                    {
-                        error = IS_RECURSIVE;
-                    }
-                    current->nested_edl = edl->nested_edls->get(path);
+                    current->nested_edl = edl->nested_edls->get(path, &error);
 				}
 // printf("Edits::load_edit %d path=%s nested_edl=%p\n", 
 // __LINE__, 

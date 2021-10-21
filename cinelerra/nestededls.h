@@ -17,11 +17,12 @@ public:
 // Return copy of the src EDL which belongs to the current object.
 	EDL* get_copy(EDL *src);
 // Return new EDL loaded from path
-	EDL* get(char *path);
+	EDL* get(char *path, int *error);
 // search for an EDL based on path
     EDL* search(const char *path);
 	int size();
 	EDL* get(int number);
+// returns a flag if an EDL is recursive
     int load(FileXML *file, uint32_t load_flags);
 	void clear();
 	void update_index(EDL *nested_edl);

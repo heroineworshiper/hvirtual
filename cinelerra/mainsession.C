@@ -103,6 +103,8 @@ void MainSession::boundaries()
     swap_asset_w = MAX(0, swap_asset_w);
     swap_asset_h = MAX(0, swap_asset_h);
 	cwindow_controls = CLIP(cwindow_controls, 0, 1);
+    transitiondialog_w = MAX(100, transitiondialog_w);
+    transitiondialog_h = MAX(100, transitiondialog_h);
 }
 
 void MainSession::reset()

@@ -415,7 +415,6 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 	}while(!result);
 
 
-
 	return error;
 }
 

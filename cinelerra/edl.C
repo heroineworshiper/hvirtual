@@ -311,7 +311,7 @@ int EDL::load_xml(FileXML *file,
 				{
 					if(load_flags & LOAD_ASSETS)
 					{
-                    	nested_edls->load(file, load_flags);
+                    	error |= nested_edls->load(file, load_flags);
                     }
 				}
 				else
@@ -509,6 +509,7 @@ int EDL::copy_assets(double start,
 	ArrayList<Asset*> asset_list;
 	ArrayList<EDL*> nested_list;
 	Track* current;
+    int error = 0;
 
 	file->tag.set_title("ASSETS");
 	file->append_tag();
@@ -576,7 +577,7 @@ int EDL::copy_assets(double start,
 	    file->append_newline();
     }
 	file->append_newline();
-	return 0;
+	return error;
 }
 
 void EDL::copy_nested(FileXML *file, 
@@ -1056,10 +1057,11 @@ void EDL::update_assets(EDL *src)
 
 void EDL::update_nested(EDL *src)
 {
+    int error = 0;
 	for(int i = 0; i < src->nested_edls->size(); i++)
 	{
         EDL *nested_src = src->nested_edls->get(i);
-        EDL *nested_dst = nested_edls->get(nested_src->path);
+        EDL *nested_dst = nested_edls->get(nested_src->path, &error);
 		if(nested_dst)
         {
             nested_dst->session->nested_sample_rate = nested_src->session->nested_sample_rate;

@@ -127,6 +127,12 @@ TransitionDialog::TransitionDialog(MWindow *mwindow,
 	0,
 	1)
 {
+// printf("TransitionDialog::TransitionDialog %d %d %d %d %d\n", 
+// __LINE__,
+// x,
+// y,
+// mwindow->session->transitiondialog_w,
+// mwindow->session->transitiondialog_h);
 	this->mwindow = mwindow;
 	this->thread = thread;
 }
