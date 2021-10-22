@@ -23,6 +23,7 @@
 
 #include "arraylist.h"
 #include "asset.inc"
+#include "assetremove.inc"
 #include "assets.inc"
 #include "audiodevice.inc"
 #include "awindow.inc"
@@ -291,7 +292,7 @@ public:
 	void add_video_track_entry(Track *dst = 0);
 	int add_video_track(int above, Track *dst);
 
-	void asset_to_all();
+	void asset_to_all(Indexable *indexable);
 	void asset_to_size();
 	void asset_to_rate();
 // Entry point for clear operations.
@@ -439,7 +440,7 @@ public:
 		int redraw /* 1 */,
 		ArrayList<Indexable*> *drag_assets /* mwindow->session->drag_assets */,
 		ArrayList<EDL*> *drag_clips /* mwindow->session->drag_clips */);
-	void remove_assets_from_disk();
+	void remove_assets_from_disk(ArrayList<Indexable*> *assets);
 	void resize_track(Track *track, int w, int h);
 	
 	void set_automation_mode(int mode);
@@ -496,6 +497,8 @@ public:
 
 	Playback3D *playback_3d;
 	RemoveThread *remove_thread;
+    AssetRemoveThread *asset_remove;
+
 	
 	SplashGUI *splash_window;
 // Main undo stack

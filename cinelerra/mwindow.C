@@ -19,6 +19,7 @@
  */
 
 #include "asset.h"
+#include "assetremove.h"
 #include "assets.h"
 #include "audioalsa.h"
 #include "awindowgui.h"
@@ -1774,6 +1775,7 @@ void MWindow::create_objects(int want_gui,
 	remove_thread->create_objects();
 //	show_splash();
 
+	asset_remove = new AssetRemoveThread(this);
 
 
 	init_error();
@@ -2911,11 +2913,18 @@ void MWindow::remove_asset_from_caches(Asset *asset)
 	wave_cache->remove_asset(asset);
 	audio_cache->delete_entry(asset);
 	video_cache->delete_entry(asset);
+
 	if(cwindow->playback_engine && cwindow->playback_engine->audio_cache)
-		cwindow->playback_engine->audio_cache->delete_entry(asset);
-	if(cwindow->playback_engine && cwindow->playback_engine->video_cache)
-		cwindow->playback_engine->video_cache->delete_entry(asset);
-	for(int i = 0; i < vwindows.size(); i++)
+	{
+    	cwindow->playback_engine->audio_cache->delete_entry(asset);
+	}
+
+    if(cwindow->playback_engine && cwindow->playback_engine->video_cache)
+	{
+    	cwindow->playback_engine->video_cache->delete_entry(asset);
+	}
+    
+    for(int i = 0; i < vwindows.size(); i++)
 	{
 		VWindow *vwindow = vwindows.get(i);
 		if(vwindow->is_running())
@@ -2935,6 +2944,7 @@ void MWindow::remove_assets_from_project(int push_undo /* = 0 */,
 		ArrayList<Indexable*> *drag_assets /* mwindow->session->drag_assets */,
 		ArrayList<EDL*> *drag_clips /* mwindow->session->drag_clips */)
 {
+// TODO: lock mwindow GUI
 	if(drag_assets)
 	{
 		for(int i = 0; i < drag_assets->size(); i++)
@@ -3014,18 +3024,19 @@ void MWindow::remove_assets_from_project(int push_undo /* = 0 */,
 	}
 }
 
-void MWindow::remove_assets_from_disk()
+void MWindow::remove_assets_from_disk(ArrayList<Indexable*> *assets)
 {
 // Remove from disk
-	for(int i = 0; i < session->drag_assets->total; i++)
+	for(int i = 0; i < assets->size(); i++)
 	{
-		remove(session->drag_assets->values[i]->path);
+		remove(assets->get(i)->path);
 	}
 
+// remove from project
 	remove_assets_from_project(1, 
 		1, 
-		session->drag_assets,
-		session->drag_clips);
+		assets,
+		0);
 }
 
 void MWindow::dump_plugins()

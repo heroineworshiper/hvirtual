@@ -37,6 +37,9 @@ class EditPopupTitleText;
 class EditPopupTitleWindow;
 class EditPopupTitleButton;
 class EditPopupTitleButtonRes;
+class EditPopupConformProject;
+class EditPopupProjectRemove;
+class EditPopupDiskRemove;
 class EditInfo;
 
 class EditPopup : public BC_PopupMenu
@@ -54,9 +57,11 @@ public:
 	Edit *edit;
 	Track *track;
 	EditPopupResize *resize_option;
-	EditPopupMatchSize *matchsize_option;
     EditInfo *info;
-    
+	EditPopupMatchSize *matchsize_option;
+    EditPopupConformProject *conform_project;
+    EditPopupProjectRemove *project_remove;
+    EditPopupDiskRemove *disk_remove;
     ArrayList<EditInfoThread*> edit_editors;
     
 };
@@ -70,6 +75,36 @@ public:
 	MWindow *mwindow;
 	EditPopup *popup;
 };
+
+class EditPopupConformProject : public BC_MenuItem
+{
+public:
+    EditPopupConformProject(MWindow *mwindow, EditPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+	EditPopup *popup;
+};
+
+
+class EditPopupProjectRemove : public BC_MenuItem
+{
+public:
+    EditPopupProjectRemove(MWindow *mwindow, EditPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+	EditPopup *popup;
+};
+
+
+class EditPopupDiskRemove : public BC_MenuItem
+{
+public:
+    EditPopupDiskRemove(MWindow *mwindow, EditPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+	EditPopup *popup;
+};
+
 
 class EditPopupResize : public BC_MenuItem
 {

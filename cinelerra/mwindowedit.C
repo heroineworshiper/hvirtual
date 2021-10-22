@@ -160,10 +160,10 @@ int MWindow::add_video_track(int above, Track *dst)
 
 
 
-void MWindow::asset_to_all()
+void MWindow::asset_to_all(Indexable *indexable)
 {
-	if(!session->drag_assets->size()) return;
-	Indexable *indexable = session->drag_assets->get(0);
+//	if(!session->drag_assets->size()) return;
+//	Indexable *indexable = session->drag_assets->get(0);
 
 //	if(indexable->have_video())
 	{
@@ -174,10 +174,10 @@ void MWindow::asset_to_all()
 // Get w and h
 		w = indexable->get_w();
 		h = indexable->get_h();
-		double new_framerate = session->drag_assets->get(0)->get_frame_rate();
+		double new_framerate = indexable->get_frame_rate();
 		double old_framerate = edl->session->frame_rate;
 		int old_samplerate = edl->session->sample_rate;
-		int new_samplerate = session->drag_assets->get(0)->get_sample_rate();
+		int new_samplerate = indexable->get_sample_rate();
 
 
 		if(indexable->have_video())

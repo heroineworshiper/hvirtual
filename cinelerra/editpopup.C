@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
  */
 
 #include "asset.h"
+#include "assetremove.h"
 #include "clip.h"
 #include "edit.h"
 #include "editinfo.h"
@@ -67,6 +68,9 @@ void EditPopup::create_objects()
 	resize_option = 0;
 	matchsize_option = 0;
     info = 0;
+    conform_project = 0;
+    project_remove = 0;
+    disk_remove = 0;
 }
 
 int EditPopup::update(Track *track, Edit *edit)
@@ -89,10 +93,28 @@ int EditPopup::update(Track *track, Edit *edit)
     {
         remove_item(info);
     }
+    
+    if(conform_project)
+    {
+        remove_item(conform_project);
+    }
+
+    if(project_remove)
+    {
+        remove_item(project_remove);
+    }
+
+    if(disk_remove)
+    {
+        remove_item(disk_remove);
+    }
 
 	resize_option = 0;
 	matchsize_option = 0;
     info = 0;
+    conform_project = 0;
+    project_remove = 0;
+    disk_remove = 0;
 
 
     if(edit && !info)
@@ -107,6 +129,17 @@ int EditPopup::update(Track *track, Edit *edit)
 		add_item(resize_option = new EditPopupResize(mwindow, this));
 		add_item(matchsize_option = new EditPopupMatchSize(mwindow, this));
 	}
+
+    if(edit && track->data_type == TRACK_VIDEO)
+    {
+        add_item(conform_project = new EditPopupConformProject(mwindow, this));
+    }
+
+    if(edit)
+    {
+        add_item(project_remove = new EditPopupProjectRemove(mwindow, this));
+        add_item(disk_remove = new EditPopupDiskRemove(mwindow, this));
+    }
 	return 0;
 }
 
@@ -283,7 +316,7 @@ int EditPopupResize::handle_event()
 
 
 EditPopupMatchSize::EditPopupMatchSize(MWindow *mwindow, EditPopup *popup)
- : BC_MenuItem(_("Match output size"))
+ : BC_MenuItem(_("Set track size to output size"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
@@ -295,6 +328,105 @@ EditPopupMatchSize::~EditPopupMatchSize()
 int EditPopupMatchSize::handle_event()
 {
 	mwindow->match_output_size(popup->track);
+	return 1;
+}
+
+
+
+
+EditPopupConformProject::EditPopupConformProject(MWindow *mwindow, EditPopup *popup)
+ : BC_MenuItem(_("Conform project to source"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int EditPopupConformProject::handle_event()
+{
+    Indexable *edit_source = 0;
+    if(!popup->edit)
+    {
+        return 0;
+    }
+    if(popup->edit->asset)
+    {
+        edit_source = popup->edit->asset;
+    }
+    else
+    {
+        edit_source = popup->edit->nested_edl;
+    }
+    if(edit_source)
+    {
+	    mwindow->gui->lock_window("EditPopupConformProject::handle_event");
+    	mwindow->asset_to_all(edit_source);
+	    mwindow->gui->unlock_window();
+    }
+	return 1;
+}
+
+
+
+
+EditPopupProjectRemove::EditPopupProjectRemove(MWindow *mwindow, EditPopup *popup)
+ : BC_MenuItem(_("Remove source from project"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int EditPopupProjectRemove::handle_event()
+{
+    ArrayList<Indexable*> assets;
+    if(!popup->edit)
+    {
+        return 0;
+    }
+    if(popup->edit->asset)
+    {
+        assets.append(popup->edit->asset);
+    }
+    else
+    {
+        assets.append(popup->edit->nested_edl);
+    }
+
+    if(assets.size())
+    {
+	    mwindow->remove_assets_from_project(1, // push_undo
+		    1, // redraw
+		    &assets,
+		    0);
+    }
+	return 1;
+}
+
+
+
+
+EditPopupDiskRemove::EditPopupDiskRemove(MWindow *mwindow, EditPopup *popup)
+ : BC_MenuItem(_("Remove source from disk"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int EditPopupDiskRemove::handle_event()
+{
+    ArrayList<Indexable*> assets;
+    if(!popup->edit)
+    {
+        return 0;
+    }
+    if(popup->edit->asset)
+    {
+        assets.append(popup->edit->asset);
+    }
+    else
+    {
+        assets.append(popup->edit->nested_edl);
+    }
+	mwindow->asset_remove->start(&assets);
 	return 1;
 }
 

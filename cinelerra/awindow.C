@@ -45,7 +45,7 @@ void AWindow::create_objects()
 	gui->lock_window("AWindow::create_objects");
 	gui->update_assets();
 	gui->unlock_window();
-	asset_remove = new AssetRemoveThread(mwindow);
+//	asset_remove = new AssetRemoveThread(mwindow);
 //	asset_edit = new AssetEdit(mwindow);
 	clip_edit = new ClipEdit(mwindow, this, 0);
 }

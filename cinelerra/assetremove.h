@@ -23,19 +23,23 @@
 #define ASSETREMOVE_H
 
 #include "guicast.h"
+#include "indexable.inc"
 #include "mwindow.inc"
 #include "thread.h"
 
+// prompt to delete assets from disk
+class AssetRemoveThread;
 
 class AssetRemoveWindow : public BC_Window
 {
 public:
-	AssetRemoveWindow(MWindow *mwindow);
+	AssetRemoveWindow(MWindow *mwindow, AssetRemoveThread *thread);
 	~AssetRemoveWindow();
 	void create_objects();
 	
 	ArrayList<BC_ListBoxItem*> *data;
 	MWindow *mwindow;
+    AssetRemoveThread *thread;
 };
 
 
@@ -43,7 +47,10 @@ class AssetRemoveThread : public Thread
 {
 public:
 	AssetRemoveThread(MWindow *mwindow);
+    void start(ArrayList<Indexable*> *assets);
 	void run();
+// local copy of the asset pointers to remove
+    ArrayList<Indexable*> *assets;
 	MWindow *mwindow;
 };
 

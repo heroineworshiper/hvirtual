@@ -111,9 +111,12 @@ void AssetPopup::match_all()
 {
 // Collect items into the drag vectors for temporary storage
 	gui->collect_assets();
-	mwindow->gui->lock_window("AssetPopup::match_rate");
-	mwindow->asset_to_all();
-	mwindow->gui->unlock_window();
+    if(mwindow->session->drag_assets->size() > 0)
+    {
+	    mwindow->gui->lock_window("AssetPopup::match_rate");
+	    mwindow->asset_to_all(mwindow->session->drag_assets->get(0));
+	    mwindow->gui->unlock_window();
+    }
 }
 
 int AssetPopup::update()
@@ -366,7 +369,7 @@ int AssetPopupPaste::handle_event()
 
 
 AssetMatchSize::AssetMatchSize(MWindow *mwindow, AssetPopup *popup)
- : BC_MenuItem(_("Match project size"))
+ : BC_MenuItem(_("To project size"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
@@ -386,7 +389,7 @@ int AssetMatchSize::handle_event()
 
 
 AssetMatchRate::AssetMatchRate(MWindow *mwindow, AssetPopup *popup)
- : BC_MenuItem(_("Match frame rate"))
+ : BC_MenuItem(_("To project frame rate"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
@@ -406,7 +409,7 @@ int AssetMatchRate::handle_event()
 
 
 AssetMatchAll::AssetMatchAll(MWindow *mwindow, AssetPopup *popup)
- : BC_MenuItem(_("Match all"))
+ : BC_MenuItem(_("Conform project"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
@@ -471,7 +474,7 @@ AssetPopupDiskRemove::~AssetPopupDiskRemove()
 
 int AssetPopupDiskRemove::handle_event()
 {
-	mwindow->awindow->asset_remove->start();
+	mwindow->asset_remove->start(mwindow->session->drag_assets);
 	return 1;
 }
 
