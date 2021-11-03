@@ -629,13 +629,22 @@ void TrackCanvas::draw_resources(int mode,
 			if(!edit->asset && !edit->nested_edl) continue;
 			if(indexes_only)
 			{
-				if(edit->track->data_type != TRACK_AUDIO) continue;
+				if(edit->track->data_type != TRACK_AUDIO)
+                {
+                    continue;
+                }
 
 				if(edit->nested_edl && 
-					strcmp(indexable->path, edit->nested_edl->path)) continue;
+					strcmp(indexable->path, edit->nested_edl->path))
+                {
+                    continue;
+                }
 					
 				if(edit->asset &&
-					strcmp(indexable->path, edit->asset->path)) continue;
+					strcmp(indexable->path, edit->asset->path))
+                {
+                    continue;
+                }
 			}
 
 			if(debug) PRINT_TRACE

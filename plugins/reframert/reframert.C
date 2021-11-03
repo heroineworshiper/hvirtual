@@ -258,8 +258,8 @@ ReframeRTNum::ReframeRTNum(ReframeRT *plugin,
 	int y)
  : BC_TumbleTextBox(gui,
  	(float)plugin->config.num,
-	(float)0.0001,
-	(float)1000,
+	(float)1,
+	(float)1000000,
  	x, 
 	y, 
 	gui->get_w() - plugin->get_theme()->window_border * 3)
@@ -287,8 +287,8 @@ ReframeRTDenom::ReframeRTDenom(ReframeRT *plugin,
 	int y)
  : BC_TumbleTextBox(gui,
  	(float)plugin->config.denom,
-	(float)-1000,
-	(float)1000,
+	(float)1,
+	(float)1000000,
  	x, 
 	y, 
 	gui->get_w() - plugin->get_theme()->window_border * 3)

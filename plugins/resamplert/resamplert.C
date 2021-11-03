@@ -131,8 +131,8 @@ ResampleRTNum::ResampleRTNum(ResampleRTWindow *window,
 	int y)
  : BC_TumbleTextBox(window,
  	plugin->config.num,
-	(float)0.0001,
-	(float)1000,
+	(float)1,
+	(float)1000000000,
  	x, 
 	y, 
 	DP(100))
@@ -158,8 +158,8 @@ ResampleRTDenom::ResampleRTDenom(ResampleRTWindow *window,
 	int y)
  : BC_TumbleTextBox(window,
  	plugin->config.denom,
-	(float)0.0001,
-	(float)1000,
+	(float)1,
+	(float)1000000000,
  	x, 
 	y, 
 	DP(100))

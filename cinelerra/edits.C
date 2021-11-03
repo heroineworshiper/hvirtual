@@ -764,53 +764,67 @@ int Edits::clear_handle(double start,
 	double &distance)
 {
 	Edit *current_edit;
+    Edit *next_edit;
+    
 
 	distance = 0.0; // if nothing is found, distance is 0!
 	for(current_edit = first; 
 		current_edit && current_edit->next; 
 		current_edit = current_edit->next)
 	{
+// test if the files are the same
+        int equiv_file = 0;
+        next_edit = current_edit->next;
+        
+        if(current_edit->asset && 
+			next_edit->asset &&
+            current_edit->asset->equivalent(*next_edit->asset, 0, 0))
+        {
+            equiv_file = 1;
+        }
+        else
+        if(current_edit->nested_edl &&
+            next_edit->nested_edl &&
+            current_edit->nested_edl == next_edit->nested_edl)
+        {
+            equiv_file = 1;
+        }
 
-
-
-		if(current_edit->asset && 
-			current_edit->next->asset)
+		if(equiv_file)
 		{
 
-			if(current_edit->asset->equivalent(*current_edit->next->asset,
-				0,
-				0))
-			{
-
 // Got two consecutive edits in same source
-				if(edl->equivalent(track->from_units(current_edit->next->startproject), 
-					start))
-				{
+			if(edl->equivalent(track->from_units(next_edit->startproject), 
+				start))
+			{
 // handle selected
-					int length = -current_edit->length;
-					current_edit->length = current_edit->next->startsource - current_edit->startsource;
-					length += current_edit->length;
+				int length = -current_edit->length;
+				current_edit->length = next_edit->startsource - current_edit->startsource;
+				length += current_edit->length;
 
 // Lengthen automation
-					if(edit_autos)
-						track->automation->paste_silence(current_edit->next->startproject, 
-							current_edit->next->startproject + length);
+				if(edit_autos)
+				{
+                	track->automation->paste_silence(next_edit->startproject, 
+						next_edit->startproject + length);
+                }
 
 // Lengthen effects
-					if(edit_plugins)
-						track->shift_effects(current_edit->next->startproject, 
-							length,
-							edit_autos);
+				if(edit_plugins)
+				{
+                	track->shift_effects(next_edit->startproject, 
+						length,
+						edit_autos);
+                }
 
-					for(current_edit = current_edit->next; current_edit; current_edit = current_edit->next)
-					{
-						current_edit->startproject += length;
-					}
-
-					distance = track->from_units(length);
-					optimize();
-					break;
+				for(current_edit = next_edit; current_edit; current_edit = current_edit->next)
+				{
+					current_edit->startproject += length;
 				}
+
+				distance = track->from_units(length);
+				optimize();
+				break;
 			}
 		}
 	}

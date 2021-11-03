@@ -353,6 +353,7 @@ void MWindow::clear(int clear_handle, int deglitch)
 {
 	double start = edl->local_session->get_selectionstart();
 	double end = edl->local_session->get_selectionend();
+// start & end must be different or we must be clearing a handle
 	if(clear_handle || !EQUIV(start, end))
 	{
 		edl->clear(start, 
