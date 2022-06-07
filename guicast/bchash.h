@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +61,7 @@ public:
 	int32_t get(const char *name, int32_t default_);   // retrieve a value if it exists
 	int64_t get(const char *name, int64_t default_);   // retrieve a value if it exists
 	char* get(const char *name, char *default_);
+// returns the default_ argument with the new value
 	string* get(const char *name, string *default_);
 
 // Update values with values from another table.
@@ -72,6 +72,7 @@ public:
 
 	void dump();
 
+    void clear();
 	int size();
 	char* get_key(int number);
 	char* get_value(int number);

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -113,9 +112,18 @@ public:
 	FileFFMPEG(Asset *asset, File *file);
 	~FileFFMPEG();
 
+
+
+// table functions
+    FileFFMPEG();
+	int check_sig(File *file, const uint8_t *test_data);
+    FileBase* create(File *file);
+	int get_best_colormodel(Asset *asset, int driver);
+    const char* formattostr(int format);
+
+
 // Get format string for ffmpeg
 	static char* get_format_string(Asset *asset);
-	static int check_sig(Asset *asset);
 	void reset();
 	int open_file(int rd, int wr);
 	int close_file();
@@ -125,7 +133,6 @@ public:
 
 	int64_t get_memory_usage();
 	int colormodel_supported(int colormodel);
-	static int get_best_colormodel(Asset *asset, int driver);
 	int read_frame(VFrame *frame);
 	int read_samples(double *buffer, int64_t len);
 

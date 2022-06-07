@@ -1,7 +1,6 @@
- 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,14 +81,173 @@ static double aspect_ratio_codes[] =
 
 
 
+static int get_best_colormodel_(Asset *asset, int driver)
+{
+	switch(driver)
+	{
+		case PLAYBACK_X11:
+			return BC_RGB888;
+			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
+			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
+			break;
+		case PLAYBACK_X11_XV:
+		case PLAYBACK_ASYNCHRONOUS:
+			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
+			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
+			break;
+		case PLAYBACK_X11_GL:
+			return BC_YUV888;
+			break;
+		case PLAYBACK_LML:
+		case PLAYBACK_BUZ:
+			return BC_YUV422P;
+			break;
+		case PLAYBACK_DV1394:
+		case PLAYBACK_FIREWIRE:
+			return BC_YUV422P;
+			break;
+		case VIDEO4LINUX:
+		case VIDEO4LINUX2:
+			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
+			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
+			break;
+		case CAPTURE_BUZ:
+		case CAPTURE_LML:
+			return BC_YUV422;
+			break;
+		case CAPTURE_FIREWIRE:
+		case CAPTURE_IEC61883:
+			return BC_YUV422P;
+			break;
+	}
+}
+
+
+// table entries
+FileAMPEG::FileAMPEG()
+ : FileBase()
+{
+    ids.append(FILE_AMPEG);
+    has_audio = 1;
+    has_wr = 1;
+}
+
+// This instantiates a FileMPEG to do the encoding
+FileBase* FileAMPEG::create(File *file)
+{
+    return new FileMPEG(file->asset, file);
+}
+
+void FileAMPEG::get_parameters(BC_WindowBase *parent_window, 
+	Asset *asset, 
+	BC_WindowBase* &format_window,
+	int option_type,
+	const char *locked_compressor)
+{
+	MPEGConfigAudio *window = new MPEGConfigAudio(parent_window, asset);
+	format_window = window;
+	window->create_objects();
+	window->run_window();
+	delete window;
+}
+
+// wraps FileMPEG::get_best_colormodel
+int FileAMPEG::get_best_colormodel(Asset *asset, int driver)
+{
+    return get_best_colormodel_(asset, driver);
+}
+
+const char* FileAMPEG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_AMPEG:
+			return AMPEG_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileAMPEG::get_tag(int format)
+{
+    if(format == FILE_AMPEG)
+    {
+        return "mp3/mp2";
+    }
+    return 0;
+}
 
 
 
 
+
+
+
+
+FileVMPEG::FileVMPEG()
+ : FileBase()
+{
+    ids.append(FILE_VMPEG);
+    has_video = 1;
+    has_wr = 1;
+}
+
+// This instantiates a FileMPEG to do the encoding
+FileBase* FileVMPEG::create(File *file)
+{
+    return new FileMPEG(file->asset, file);
+}
+
+void FileVMPEG::get_parameters(BC_WindowBase *parent_window, 
+	Asset *asset, 
+	BC_WindowBase* &format_window,
+	int option_type,
+	const char *locked_compressor)
+{
+	MPEGConfigVideo *window = new MPEGConfigVideo(parent_window, asset);
+	format_window = window;
+	window->create_objects();
+	window->run_window();
+	delete window;
+}
+
+// wraps FileMPEG::get_best_colormodel
+int FileVMPEG::get_best_colormodel(Asset *asset, int driver)
+{
+    return get_best_colormodel_(asset, driver);
+}
+
+const char* FileVMPEG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_VMPEG:
+			return VMPEG_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileVMPEG::get_tag(int format)
+{
+    if(format == FILE_VMPEG)
+    {
+        return "m2v/m1v";
+    }
+    return 0;
+}
+
+
+
+
+
+
+
+// the file handler
 FileMPEG::FileMPEG(Asset *asset, File *file)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 // May also be VMPEG or AMPEG if write status.
 	if(asset->format == FILE_UNKNOWN) asset->format = FILE_MPEG;
 	asset->byte_order = 0;
@@ -104,33 +262,47 @@ FileMPEG::~FileMPEG()
 	delete next_frame_done;
 }
 
-void FileMPEG::get_parameters(BC_WindowBase *parent_window, 
-	Asset *asset, 
-	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+
+FileMPEG::FileMPEG()
+ : FileBase()
 {
-	if(audio_options && asset->format == FILE_AMPEG)
-	{
-		MPEGConfigAudio *window = new MPEGConfigAudio(parent_window, asset);
-		format_window = window;
-		window->create_objects();
-		window->run_window();
-		delete window;
-	}
-	else
-	if(video_options && asset->format == FILE_VMPEG)
-	{
-		MPEGConfigVideo *window = new MPEGConfigVideo(parent_window, asset);
-		format_window = window;
-		window->create_objects();
-		window->run_window();
-		delete window;
-	}
+    reset_parameters_derived();
+    ids.append(FILE_MPEG);
+    has_audio = 1;
+    has_video = 1;
+    has_rd = 1;
 }
 
-int FileMPEG::check_sig(Asset *asset)
+FileBase* FileMPEG::create(File *file)
 {
+    return new FileMPEG(file->asset, file);
+}
+
+
+const char* FileMPEG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_MPEG:
+			return MPEG_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileMPEG::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_MPEG: return "mpg/vob";
+    }
+    return 0;
+}
+
+
+int FileMPEG::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
 	return mpeg3_check_sig(asset->path);
 }
 
@@ -766,7 +938,6 @@ int FileMPEG::close_file()
 	if(dvb_out)
 		fclose(dvb_out);
 
-	reset_parameters();
 
 	FileBase::close_file();
 	return 0;
@@ -774,45 +945,7 @@ int FileMPEG::close_file()
 
 int FileMPEG::get_best_colormodel(Asset *asset, int driver)
 {
-//printf("FileMPEG::get_best_colormodel 1\n");
-	switch(driver)
-	{
-		case PLAYBACK_X11:
-			return BC_RGB888;
-			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
-			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
-			break;
-		case PLAYBACK_X11_XV:
-		case PLAYBACK_ASYNCHRONOUS:
-			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
-			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
-			break;
-		case PLAYBACK_X11_GL:
-			return BC_YUV888;
-			break;
-		case PLAYBACK_LML:
-		case PLAYBACK_BUZ:
-			return BC_YUV422P;
-			break;
-		case PLAYBACK_DV1394:
-		case PLAYBACK_FIREWIRE:
-			return BC_YUV422P;
-			break;
-		case VIDEO4LINUX:
-		case VIDEO4LINUX2:
-			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
-			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
-			break;
-		case CAPTURE_BUZ:
-		case CAPTURE_LML:
-			return BC_YUV422;
-			break;
-		case CAPTURE_FIREWIRE:
-		case CAPTURE_IEC61883:
-			return BC_YUV422P;
-			break;
-	}
-//printf("FileMPEG::get_best_colormodel 100\n");
+    return get_best_colormodel_(asset, driver);
 }
 
 int FileMPEG::colormodel_supported(int colormodel)

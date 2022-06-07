@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,9 +41,49 @@ FilePNG::~FilePNG()
 }
 
 
-
-int FilePNG::check_sig(Asset *asset)
+FilePNG::FilePNG()
+ : FileList()
 {
+    ids.append(FILE_PNG);
+    ids.append(FILE_PNG_LIST);
+    has_video = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FilePNG::create(File *file)
+{
+    return new FilePNG(file->asset, file);
+}
+
+const char* FilePNG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_PNG:
+			return PNG_NAME;
+			break;
+		case FILE_PNG_LIST:
+			return PNG_LIST_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FilePNG::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_PNG:
+		case FILE_PNG_LIST:
+            return "png";
+    }
+    return 0;
+}
+
+int FilePNG::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
 	FILE *stream = fopen(asset->path, "rb");
 
 	if(stream)
@@ -77,10 +116,10 @@ int FilePNG::check_sig(Asset *asset)
 void FilePNG::get_parameters(BC_WindowBase *parent_window, 
 	Asset *asset, 
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+	int option_type,
+	const char *locked_compressor)
 {
-	if(video_options)
+	if(option_type == VIDEO_PARAMS)
 	{
 		PNGConfigVideo *window = new PNGConfigVideo(parent_window, asset);
 		format_window = window;

@@ -262,7 +262,6 @@ Channel* RenderEngine::get_current_channel()
 				}
 				break;
 			case VIDEO4LINUX2JPEG:
-				
 				break;
 		}
 	}

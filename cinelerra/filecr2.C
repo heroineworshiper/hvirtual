@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,12 +54,43 @@ FileCR2::~FileCR2()
 }
 
 
+FileCR2::FileCR2()
+ : FileList()
+{
+    ids.append(FILE_CR2);
+    ids.append(FILE_CR2_LIST);
+    has_video = 1;
+    has_rd = 1;
+}
+
+FileBase* FileCR2::create(File *file)
+{
+    return new FileCR2(file->asset, file);
+}
+
+
+const char* FileCR2::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_CR2:
+			return CR2_NAME;
+			break;
+		case FILE_CR2_LIST:
+			return CR2_LIST_NAME;
+			break;
+    }
+    return 0;
+}
+
+
 void FileCR2::reset()
 {
 }
 
-int FileCR2::check_sig(Asset *asset)
+int FileCR2::check_sig(File *file, const uint8_t *test_data)
 {
+    Asset *asset = file->asset;
     int len = strlen(asset->path);
     if(len > 4)
     {

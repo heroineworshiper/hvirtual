@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2010-2013 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,10 +45,22 @@ FormatTools::FormatTools(MWindow *mwindow,
 	this->asset = asset;
 	this->plugindb = mwindow->plugindb;
 
+    audio_title = 0;
+    video_title = 0;
+    mplex_title = 0;
+
+    audio_switch = 0;
+    video_switch = 0;
+    mplex_switch = 0;
+
 	aparams_button = 0;
 	vparams_button = 0;
+    mplexparams_button = 0;
+
 	aparams_thread = 0;
 	vparams_thread = 0;
+    mplexparams_thread = 0;
+
 	channels_tumbler = 0;
 	path_textbox = 0;
 	path_button = 0;
@@ -59,24 +70,28 @@ FormatTools::FormatTools(MWindow *mwindow,
 
 FormatTools::~FormatTools()
 {
-SET_TRACE
 	delete path_button;
-SET_TRACE
 	delete path_textbox;
-SET_TRACE
 	delete format_button;
-SET_TRACE
+
+    if(audio_title) delete audio_title;
+    if(video_title) delete video_title;
+    if(mplex_title) delete mplex_title;
+
+    if(audio_switch) delete audio_switch;
+    if(video_switch) delete video_switch;
+    if(mplex_switch) delete mplex_switch;
+
 
 	if(aparams_button) delete aparams_button;
-SET_TRACE
 	if(vparams_button) delete vparams_button;
-SET_TRACE
+	if(mplexparams_button) delete mplexparams_button;
+
 	if(aparams_thread) delete aparams_thread;
-SET_TRACE
 	if(vparams_thread) delete vparams_thread;
-SET_TRACE
+    if(mplexparams_thread) delete mplexparams_thread;
+
 	if(channels_tumbler) delete channels_tumbler;
-SET_TRACE
 	if(file_entries)
 	{
 		file_entries->remove_all_objects();
@@ -90,7 +105,7 @@ void FormatTools::create_objects(int &init_x,
 						int do_video,   // Include support for video
 						int prompt_audio,  // Include checkbox for audio
 						int prompt_video,
-						int prompt_audio_channels,
+//						int prompt_audio_channels,
 						int prompt_video_compression,
 						char *locked_compressor,
 						int recording,
@@ -108,11 +123,14 @@ void FormatTools::create_objects(int &init_x,
 	this->do_audio = do_audio;
 	this->do_video = do_video;
 	this->prompt_audio = prompt_audio;
-	this->prompt_audio_channels = prompt_audio_channels;
+//	this->prompt_audio_channels = prompt_audio_channels;
 	this->prompt_video = prompt_video;
 	this->prompt_video_compression = prompt_video_compression;
 	this->strategy = strategy;
 
+    audio_checked = asset->audio_data;
+    video_checked = asset->video_data;
+    mplex_checked = asset->do_wrapper;
 
 	file_entries = new ArrayList<BC_ListBoxItem*>;
 	FileSystem fs;
@@ -165,15 +183,17 @@ void FormatTools::create_objects(int &init_x,
 			0));
 
 // Set w for user.
-		w = MAX(w, DP(305));
+        w = window->get_w() - init_x;
+//		w = MAX(w, DP(305));
 //		w = x + path_button->get_w() + margin;
 		x -= path_textbox->get_w() + margin;
 		y += DP(35);
 	}
 	else
 	{
+        w = window->get_w() - init_x;
 //		w = x + DP(305);
-		w = DP(305);
+//		w = DP(305);
 	}
 
 	window->add_subwindow(format_title = new BC_Title(x, y, _("File Format:")));
@@ -183,6 +203,7 @@ void FormatTools::create_objects(int &init_x,
 		DP(200), 
 		1, 
 		File::formattostr(asset->format)));
+    format_text->set_read_only(1);
 	x += format_text->get_w() + margin;
 
 //printf("FormatTools::create_objects %d %p\n", __LINE__, window);
@@ -192,19 +213,24 @@ void FormatTools::create_objects(int &init_x,
 	format_button->create_objects();
 
 	x = init_x;
-	y += format_button->get_h() + DP(10);
+	y += format_button->get_h() + margin;
 	if(do_audio)
 	{
-		window->add_subwindow(audio_title = new BC_Title(x, y, _("Audio:"), LARGEFONT, RED));
-		x += audio_title->get_w() + margin;
+//printf("FormatTools::create_objects %d\n", __LINE__);
+//		window->add_subwindow(audio_title = new BC_Title(x, y, _("Audio:"), LARGEFONT, RED));
+//		x += audio_title->get_w() + margin;
 		window->add_subwindow(aparams_button = new FormatAParams(mwindow, this, x, y));
 		x += aparams_button->get_w() + margin;
 		if(prompt_audio) 
 		{
 			window->add_subwindow(audio_switch = new FormatAudio(x, y, this, asset->audio_data));
 		}
+        else
+        {
+            window->add_subwindow(audio_title = new BC_Title(x, y, _("Configure encoding")));
+        }
 		x = init_x;
-		y += aparams_button->get_h() + DP(20);
+		y += aparams_button->get_h() + margin;
 
 // Audio channels only used for recording.
 // 		if(prompt_audio_channels)
@@ -212,13 +238,12 @@ void FormatTools::create_objects(int &init_x,
 // 			window->add_subwindow(channels_title = new BC_Title(x, y, _("Number of audio channels to record:")));
 // 			x += 260;
 // 			window->add_subwindow(channels_button = new FormatChannels(x, y, this));
-// 			x += channels_button->get_w() + 5;
+// 			x += channels_button->get_w() + margin;
 // 			window->add_subwindow(channels_tumbler = new BC_ITumbler(channels_button, 1, MAXCHANNELS, x, y));
-// 			y += channels_button->get_h() + 20;
+// 			y += channels_button->get_h() + margin;
 // 			x = init_x;
 // 		}
 
-//printf("FormatTools::create_objects 6\n");
 		aparams_thread = new FormatAThread(this);
 	}
 
@@ -226,9 +251,8 @@ void FormatTools::create_objects(int &init_x,
 	if(do_video)
 	{
 
-//printf("FormatTools::create_objects 8\n");
-		window->add_subwindow(video_title = new BC_Title(x, y, _("Video:"), LARGEFONT, RED));
-		x += video_title->get_w() + margin;
+//		window->add_subwindow(video_title = new BC_Title(x, y, _("Video:"), LARGEFONT, RED));
+//		x += video_title->get_w() + margin;
 		if(prompt_video_compression)
 		{
 			window->add_subwindow(vparams_button = new FormatVParams(mwindow, this, x, y));
@@ -242,27 +266,46 @@ void FormatTools::create_objects(int &init_x,
 			y += video_switch->get_h();
 		}
 		else
+		if(prompt_video_compression)
 		{
+            window->add_subwindow(video_title = new BC_Title(x, y, _("Configure encoding")));
 			y += vparams_button->get_h();
 		}
 
 //printf("FormatTools::create_objects 10\n");
-		y += DP(10);
+		y += margin;
 		vparams_thread = new FormatVThread(this);
 	}
 
+    if(do_audio && do_video)
+    {
+// wrapper
+ 	    x = init_x;
+    //    window->add_subwindow(mplex_title = new BC_Title(x, y, _("Wrapper:"), LARGEFONT, RED));
+    //	x += mplex_title->get_w() + margin;
+	    window->add_subwindow(mplexparams_button = new FormatMplexParams(mwindow, this, x, y));
+	    x += mplexparams_button->get_w() + margin;
+	    window->add_subwindow(mplex_switch = new FormatMplex(x, y, this, asset->do_wrapper));
+	    y += mplex_switch->get_h() + margin;
+	    mplexparams_thread = new FormatMplexThread(this);
+    }
+    
+
 //printf("FormatTools::create_objects 11\n");
 
-	x = init_x;
 	if(strategy)
 	{
+        x = init_x;
+        window->add_subwindow(bar = new BC_Bar(x, y, w - margin));
+        y += margin;
 		window->add_subwindow(multiple_files = new FormatMultiple(mwindow, x, y, strategy));
-		y += multiple_files->get_h() + DP(10);
+		y += multiple_files->get_h() + margin;
 	}
 
 //printf("FormatTools::create_objects %d y=%d\n", __LINE__, y);
 
 	init_y = y;
+    update_prompts();
 }
 
 void FormatTools::update_driver(int driver)
@@ -290,6 +333,7 @@ void FormatTools::update_driver(int driver)
 		case CAPTURE_FIREWIRE:
 		case CAPTURE_BUZ:
 		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 		case CAPTURE_JPEG_WEBCAM:
 			if(asset->format != FILE_AVI &&
 				asset->format != FILE_MOV)
@@ -298,7 +342,9 @@ void FormatTools::update_driver(int driver)
 				asset->format = FILE_MOV;
 			}
 			else
+            {
 				format_text->update(File::formattostr(asset->format));
+            }
 
 			switch(driver)
 			{
@@ -309,9 +355,14 @@ void FormatTools::update_driver(int driver)
 					break;
 
 				case CAPTURE_BUZ:
-				case VIDEO4LINUX2JPEG:
+				case VIDEO4LINUX2MJPG:
 					locked_compressor = (char*)QUICKTIME_MJPA;
 					strcpy(asset->vcodec, QUICKTIME_MJPA);
+					break;
+
+				case VIDEO4LINUX2JPEG:
+					locked_compressor = (char*)QUICKTIME_JPEG;
+					strcpy(asset->vcodec, QUICKTIME_JPEG);
 					break;
 
 				case CAPTURE_JPEG_WEBCAM:
@@ -353,6 +404,13 @@ Asset* FormatTools::get_asset()
 void FormatTools::update_extension()
 {
 	const char *extension = File::get_tag(asset->format);
+    
+    if(!extension)
+    {
+        return;
+    }
+    
+    
 // split multiple extensions
 	ArrayList<const char*> extensions;
 	int len = strlen(extension);
@@ -425,14 +483,68 @@ void FormatTools::update_extension()
 	}
 }
 
+void FormatTools::update_prompts()
+{
+    if(video_switch)
+    {
+        if(File::supports_video(asset->format))
+        {
+            asset->video_data = video_checked;
+            video_switch->enable();
+            video_switch->update(asset->video_data);
+        }
+        else
+        {
+            asset->video_data = 0;
+            video_switch->disable();
+            video_switch->update(0);
+        }
+    }
+
+    if(audio_switch)
+    {
+        if(File::supports_audio(asset->format))
+        {
+            asset->audio_data = audio_checked;
+            audio_switch->enable();
+            audio_switch->update(asset->audio_data);
+        }
+        else
+        {
+            asset->audio_data = 0;
+            audio_switch->disable();
+            audio_switch->update(0);
+        }
+    }
+
+
+    if(mplex_switch)
+    {
+        if(File::supports_wrapper(asset->format))
+        {
+            asset->do_wrapper = mplex_checked;
+            mplex_switch->enable();
+            mplex_switch->update(asset->do_wrapper);
+        }
+        else
+        {
+            asset->do_wrapper = 0;
+            mplex_switch->disable();
+            mplex_switch->update(0);
+        }
+    }
+}
+
 void FormatTools::update(Asset *asset, int *strategy)
 {
 	this->asset = asset;
 	this->strategy = strategy;
 
 	if(path_textbox) 
-		path_textbox->update(asset->path);
-	format_text->update(File::formattostr(plugindb, asset->format));
+	{
+    	path_textbox->update(asset->path);
+	}
+    format_text->update(File::formattostr(asset->format));
 	if(do_audio && audio_switch) audio_switch->update(asset->audio_data);
 	if(do_video && video_switch) video_switch->update(asset->video_data);
 	if(strategy)
@@ -455,6 +567,11 @@ void FormatTools::close_format_windows()
 		vparams_thread->file->close_window();
 		vparams_thread->join();
 	}
+    if(mplexparams_thread && mplexparams_thread->running())
+    {
+        mplexparams_thread->file->close_window();
+        mplexparams_thread->join();
+    }
 }
 
 int FormatTools::get_w()
@@ -492,59 +609,83 @@ void FormatTools::reposition_window(int &init_x, int &init_y)
 	format_button->reposition_window(x, y);
 
 	x = init_x;
-	y += format_button->get_h() + DP(10);
+	y += format_button->get_h() + margin;
 
 	if(do_audio)
 	{
-		audio_title->reposition_window(x, y);
-		x += audio_title->get_w() + margin;
+//		audio_title->reposition_window(x, y);
+//		x += audio_title->get_w() + margin;
 		aparams_button->reposition_window(x, y);
 		x += aparams_button->get_w() + margin;
-		if(prompt_audio) audio_switch->reposition_window(x, y);
+		if(audio_switch) 
+        {
+            audio_switch->reposition_window(x, y);
+        }
+
+        if(audio_title)
+        {
+            audio_title->reposition_window(x, y);
+        }
 
 		x = init_x;
-		y += aparams_button->get_h() + DP(20);
-		if(prompt_audio_channels)
-		{
-			channels_title->reposition_window(x, y);
-			x += DP(260);
-			channels_button->reposition_window(x, y);
-			x += channels_button->get_w() + margin;
-			channels_tumbler->reposition_window(x, y);
-			y += channels_button->get_h() + DP(20);
-			x = init_x;
-		}
+		y += aparams_button->get_h() + margin;
+// 		if(prompt_audio_channels)
+// 		{
+// 			channels_title->reposition_window(x, y);
+// 			x += DP(260);
+// 			channels_button->reposition_window(x, y);
+// 			x += channels_button->get_w() + margin;
+// 			channels_tumbler->reposition_window(x, y);
+// 			y += channels_button->get_h() + margin;
+// 			x = init_x;
+// 		}
 	}
 
 
 	if(do_video)
 	{
-		video_title->reposition_window(x, y);
-		x += video_title->get_w() + margin;
+//		video_title->reposition_window(x, y);
+//		x += video_title->get_w() + margin;
 		if(prompt_video_compression)
 		{
 			vparams_button->reposition_window(x, y);
 			x += vparams_button->get_w() + margin;
 		}
 
-		if(prompt_video)
+		if(video_switch)
 		{
 			video_switch->reposition_window(x, y);
 			y += video_switch->get_h();
 		}
 		else
+        if(prompt_video_compression)
 		{
+            if(video_title)
+            {
+                video_title->reposition_window(x, y);
+            }
 			y += vparams_button->get_h();
 		}
 
-		y += DP(10);
+		y += margin;
 		x = init_x;
 	}
+    
+    if(mplexparams_button)
+    {
+        mplexparams_button->reposition_window(x, y);
+        x += mplexparams_button->get_w() + margin;
+        mplex_switch->reposition_window(x, y);
+        y += mplex_switch->get_h() + margin;
+        x = init_x;
+    }
 
 	if(strategy)
 	{
+        bar->reposition_window(x, y, get_w() - margin);
+        y += margin;
 		multiple_files->reposition_window(x, y);
-		y += multiple_files->get_h() + DP(10);
+		y += multiple_files->get_h() + margin;
 	}
 
 	init_y = y;
@@ -590,6 +731,21 @@ int FormatTools::set_video_options()
 
 
 
+int FormatTools::set_mplex_options()
+{
+	if(!mplexparams_thread->running())
+	{
+		mplexparams_thread->start();
+	}
+	else
+	{
+		mplexparams_thread->file->raise_window();
+	}
+
+	return 0;
+}
+
+
 
 
 FormatAParams::FormatAParams(MWindow *mwindow, FormatTools *format, int x, int y)
@@ -597,9 +753,6 @@ FormatAParams::FormatAParams(MWindow *mwindow, FormatTools *format, int x, int y
 {
 	this->format = format;
 	set_tooltip(_("Configure audio compression"));
-}
-FormatAParams::~FormatAParams() 
-{
 }
 int FormatAParams::handle_event() 
 {
@@ -616,12 +769,21 @@ FormatVParams::FormatVParams(MWindow *mwindow, FormatTools *format, int x, int y
 	this->format = format; 
 	set_tooltip(_("Configure video compression"));
 }
-FormatVParams::~FormatVParams() 
-{
-}
 int FormatVParams::handle_event() 
 { 
 	format->set_video_options(); 
+}
+
+
+FormatMplexParams::FormatMplexParams(MWindow *mwindow, FormatTools *format, int x, int y)
+ : BC_Button(x, y, mwindow->theme->get_image_set("wrench"))
+{ 
+	this->format = format; 
+	set_tooltip(_("Configure wrapper"));
+}
+int FormatMplexParams::handle_event() 
+{ 
+	format->set_mplex_options(); 
 }
 
 
@@ -664,11 +826,10 @@ void FormatAThread::start()
 
 void FormatAThread::run()
 {
-	file->get_options(format->window, 
+	file->get_parameters(format->window, 
 		format->plugindb, 
 		format->asset, 
-		1, 
-		0,
+		AUDIO_PARAMS,
 		0);
 }
 
@@ -688,17 +849,12 @@ FormatVThread::~FormatVThread()
 	if(!joined)
 	{
 		file->close_window();
-SET_TRACE
 		join();
-SET_TRACE
 		delete file;
-SET_TRACE
 	}
 	else
 	{
-SET_TRACE
 		delete file;
-SET_TRACE
 	}
 }
 
@@ -715,12 +871,59 @@ void FormatVThread::start()
 
 void FormatVThread::run()
 {
-	file->get_options(format->window, 
+	file->get_parameters(format->window, 
 		format->plugindb, 
 		format->asset, 
-		0, 
-		1, 
+		VIDEO_PARAMS, 
 		format->locked_compressor);
+}
+
+
+
+
+
+
+
+FormatMplexThread::FormatMplexThread(FormatTools *format)
+ : Thread(1, 0, 0)
+{
+	this->format = format;
+	file = new File;
+	joined = 1;
+}
+
+FormatMplexThread::~FormatMplexThread() 
+{
+	if(!joined)
+	{
+		file->close_window();
+		join();
+		delete file;
+	}
+	else
+	{
+		delete file;
+	}
+}
+
+void FormatMplexThread::start()
+{
+	if(!joined)
+	{
+		join();
+	}
+
+	joined = 0;
+	Thread::start();
+}
+
+void FormatMplexThread::run()
+{
+	file->get_parameters(format->window, 
+		format->plugindb, 
+		format->asset, 
+		MPLEX_PARAMS, 
+		0);
 }
 
 
@@ -769,7 +972,7 @@ FormatAudio::FormatAudio(int x, int y, FormatTools *format, int default_)
 FormatAudio::~FormatAudio() {}
 int FormatAudio::handle_event()
 {
-	format->asset->audio_data = get_value();
+	format->asset->audio_data = format->audio_checked = get_value();
 }
 
 
@@ -779,14 +982,29 @@ FormatVideo::FormatVideo(int x, int y, FormatTools *format, int default_)
 	default_, 
 	(char*)(format->recording ? _("Record video tracks") : _("Render video tracks")))
 {
-this->format = format; 
+    this->format = format; 
 }
 FormatVideo::~FormatVideo() {}
 int FormatVideo::handle_event()
 {
-	format->asset->video_data = get_value();
+	format->asset->video_data = format->video_checked = get_value();
 }
 
+
+
+FormatMplex::FormatMplex(int x, int y, FormatTools *format, int default_)
+ : BC_CheckBox(x, 
+ 	y, 
+	default_, 
+	(char*)(_("Create wrapper")))
+{
+    this->format = format; 
+}
+int FormatMplex::handle_event()
+{
+    format->asset->do_wrapper = format->mplex_checked = get_value();
+    return 0;
+}
 
 
 
@@ -807,12 +1025,20 @@ int FormatFormat::handle_event()
 {
 	if(get_selection(0, 0) >= 0)
 	{
-		int new_format = File::strtoformat(format->plugindb, get_selection(0, 0)->get_text());
+        const char *text = get_selection(0, 0)->get_text();
+		int new_format = File::strtoformat(text);
+
+// printf("FormatFormat::handle_event %d name='%s' new_format=%d\n", 
+// __LINE__,
+// text,
+// new_format);
+
 //		if(new_format != format->asset->format)
 		{
 			format->asset->format = new_format;
 			format->format_text->update(get_selection(0, 0)->get_text());
 			format->update_extension();
+            format->update_prompts();
 			format->close_format_windows();
 		}
 	}

@@ -134,7 +134,7 @@ Asset* Assets::update(Asset *asset)
 	for(Asset* current = first; current; current = NEXT)
 	{
 // Asset already exists.
-		if(current->test_path(asset->path)) 
+		if(current->test_path(asset->path))
 		{
 			return current;
 		}

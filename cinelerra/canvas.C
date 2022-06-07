@@ -30,6 +30,7 @@
 #include "mainsession.h"
 #include "mutex.h"
 #include "mwindow.h"
+#include "recordmonitor.inc"
 #include "vframe.h"
 
 
@@ -1265,7 +1266,11 @@ void CanvasPopup::create_objects()
 	}
 	if(canvas->use_rwindow)
 	{
-		add_item(new CanvasPopupResetTranslation(canvas));
+//		add_item(new CanvasPopupResetTranslation(canvas));
+		add_item(new CanvasPresetTranslation(canvas, TOP_LEFT, "Top left"));
+		add_item(new CanvasPresetTranslation(canvas, TOP_RIGHT, "Top right"));
+		add_item(new CanvasPresetTranslation(canvas, BOTTOM_LEFT, "Bottom left"));
+		add_item(new CanvasPresetTranslation(canvas, BOTTOM_RIGHT, "Bottom right"));
 	}
 	if(canvas->use_vwindow)
 	{
@@ -1340,6 +1345,20 @@ CanvasPopupResetTranslation::CanvasPopupResetTranslation(Canvas *canvas)
 int CanvasPopupResetTranslation::handle_event()
 {
 	canvas->reset_translation();
+	return 1;
+}
+
+CanvasPresetTranslation::CanvasPresetTranslation(Canvas *canvas, 
+    int position, 
+    const char *text)
+ : BC_MenuItem(_(text))
+{
+	this->canvas = canvas;
+    this->position = position;
+}
+int CanvasPresetTranslation::handle_event()
+{
+	canvas->preset_translation(position);
 	return 1;
 }
 

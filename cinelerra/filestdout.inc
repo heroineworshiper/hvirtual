@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,38 +18,9 @@
  * 
  */
 
-#ifndef FILEGIF_H
-#define FILEGIF_H
+#ifndef FILESTDOUT_INC
+#define FILESTDOUT_INC
 
-#include "file.inc"
-#include "filelist.h"
-#include "vframe.inc"
-
-// This header file is representative of any single frame file format.
-
-class FileGIF : public FileList
-{
-public:
-	FileGIF(Asset *asset, File *file);
-	~FileGIF();
-
-
-// table functions
-    FileGIF();
-	int check_sig(File *file, const uint8_t *test_data);
-    FileBase* create(File *file);
-	int get_best_colormodel(Asset *asset, int driver);
-
-
-	int colormodel_supported(int colormodel);
-
-	int read_frame_header(char *path);
-	int read_frame(VFrame *output, VFrame *input);
-	
-	unsigned char *data;
-	int offset;
-	int size;
-};
-
+class FileSTDOUT;
 
 #endif

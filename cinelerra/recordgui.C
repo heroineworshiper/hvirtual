@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -280,8 +279,7 @@ void RecordGUI::create_objects()
 
 	add_subwindow(new BC_Title(x, 
 		y, 
-		File::formattostr(mwindow->plugindb, 
-			record->default_asset->format), 
+		File::formattostr(record->default_asset->format), 
 		MEDIUMFONT, 
 		mwindow->theme->recordgui_fixed_color));
 	y += pad;

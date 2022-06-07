@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,12 +33,20 @@
 
 FileBase::FileBase(Asset *asset, File *file)
 {
+//printf("FileBase::FileBase %d this=%p\n", __LINE__, this);
+// reset_parameters_derived is not available until after the constructor
+	reset_parameters();
 	this->file = file;
 	this->asset = asset;
 	internal_byte_order = get_byte_order();
 	init_ima4();
-	reset_parameters();
 	overlayer = new OverlayFrame;
+}
+
+FileBase::FileBase()
+{
+	reset_parameters();
+    overlayer = 0;
 }
 
 FileBase::~FileBase()
@@ -48,9 +55,46 @@ FileBase::~FileBase()
 	if(row_pointers_in) delete [] row_pointers_in;
 	if(row_pointers_out) delete [] row_pointers_out;
 	if(float_buffer) delete [] float_buffer;
-	delete overlayer;
+	if(overlayer) delete overlayer;
 	delete_ima4();
 }
+
+int FileBase::check_sig(File *file, const uint8_t *test_data)
+{
+    printf("FileBase::check_sig %d virtual function called\n", __LINE__);
+    return 0;
+}
+
+FileBase* FileBase::create(File *file)
+{
+    printf("FileBase::create %d virtual function called\n", __LINE__);
+    return 0;
+}
+
+int FileBase::get_best_colormodel(Asset *asset, int driver)
+{
+    return BC_RGB888;
+}
+
+void FileBase::get_parameters(BC_WindowBase *parent_window, 
+	Asset *asset, 
+	BC_WindowBase* &format_window,
+	int option_type,
+	const char *locked_compressor)
+{
+}
+
+const char* FileBase::formattostr(int format)
+{
+    return 0;
+}
+
+const char* FileBase::get_tag(int format)
+{
+    return 0;
+}
+
+
 
 int FileBase::close_file()
 {
@@ -211,6 +255,13 @@ int FileBase::set_dither()
 
 int FileBase::reset_parameters()
 {
+    asset = 0;
+    has_audio = 0;
+    has_video = 0;
+    has_wrapper = 0;
+    has_wr = 0;
+    has_rd = 0;
+
 	dither = 0;
 	float_buffer = 0;
 	row_pointers_in = 0;
@@ -231,8 +282,15 @@ int FileBase::reset_parameters()
 	decode_end = 0;
 
 	delete_ulaw_tables();
+// reset_parameters_derived is not available until after the constructor
 	reset_parameters_derived();
 }
+
+int FileBase::reset_parameters_derived()
+{
+//    printf("FileBase::reset_parameters_derived %d\n", __LINE__);
+}
+
 
 int FileBase::get_mode(char *mode, int rd, int wr)
 {
@@ -308,15 +366,6 @@ int FileBase::match4(const char *in, const char *out)
 		return 1;
 	else
 		return 0;
-}
-
-int FileBase::search_render_strategies(ArrayList<int>* render_strategies, int render_strategy)
-{
-	int i;
-	for(i = 0; i < render_strategies->total; i++)
-		if(render_strategies->values[i] == render_strategy) return 1;
-
-	return 0;
 }
 
 

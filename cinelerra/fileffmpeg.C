@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2016-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -477,6 +476,35 @@ FileFFMPEG::~FileFFMPEG()
 	close_file();
 }
 
+FileFFMPEG::FileFFMPEG()
+ : FileBase()
+{
+    ids.append(FILE_FFMPEG);
+    has_audio = 1;
+    has_video = 1;
+    has_rd = 1;
+}
+
+FileBase* FileFFMPEG::create(File *file)
+{
+    return new FileFFMPEG(file->asset, file);
+}
+
+const char* FileFFMPEG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_FFMPEG:
+			return FFMPEG_NAME;
+			break;
+    }
+    return 0;
+}
+
+
+
+
+
 void FileFFMPEG::reset()
 {
     has_toc = 0;
@@ -528,8 +556,9 @@ if(debug) printf("FileFFMPEG::get_format_string %d\n", __LINE__);
 	return 0;
 }
 
-int FileFFMPEG::check_sig(Asset *asset)
+int FileFFMPEG::check_sig(File *file, const uint8_t *test_data)
 {
+    Asset *asset = file->asset;
 	char *ptr = strstr(asset->path, ".pcm");
 	if(ptr) return 0;
 
@@ -538,6 +567,7 @@ int FileFFMPEG::check_sig(Asset *asset)
     avcodec_register_all();
     av_register_all();
 
+//printf("FileFFMPEG::check_sig %d\n", __LINE__);
 	AVFormatContext *ffmpeg_file_context = 0;
 	int result = avformat_open_input(
 		&ffmpeg_file_context, 
@@ -576,11 +606,13 @@ int FileFFMPEG::open_file(int rd, int wr)
 	int result = 0;
 //    AVFormatParameters params;
 //	bzero(&params, sizeof(params));
+if(debug) printf("FileFFMPEG::open_file %d result=%d\n", __LINE__, result);
 
 	ffmpeg_lock->lock("FileFFMPEG::open_file");
     avcodec_register_all();
     av_register_all();
 	ffmpeg_lock->unlock();
+if(debug) printf("FileFFMPEG::open_file %d result=%d\n", __LINE__, result);
 
 	if(rd)
 	{
@@ -592,6 +624,7 @@ int FileFFMPEG::open_file(int rd, int wr)
         }
 	}
 
+if(debug) printf("FileFFMPEG::open_file %d result=%d\n", __LINE__, result);
 
 
 
@@ -648,7 +681,7 @@ int FileFFMPEG::open_ffmpeg()
     need_restart = 0;
     ffmpeg_lock->lock("FileFFMPEG::open_file");
 
-    if(debug) printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
+    if(debug) printf("FileFFMPEG::open_ffmpeg %d asset=%p\n", __LINE__, asset);
 	result = avformat_open_input(
 		&ffmpeg_file_context, 
 		asset->path, 

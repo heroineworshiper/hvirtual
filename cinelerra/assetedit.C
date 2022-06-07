@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2010-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -157,7 +156,7 @@ void AssetEdit::handle_close_event(int result)
 			else
 			{
 				strcpy(nested_edl->path, changed_params->path);
-                
+
                 if(EQUIV(new_nested_frame_rate, nested_edl->session->frame_rate))
                 {
                     nested_edl->session->nested_frame_rate = -1;
@@ -315,8 +314,7 @@ void AssetEditWindow::create_objects()
 	{
 		add_subwindow(new BC_Title(x, y, _("File format:")));
 		x = x2;
-		add_subwindow(new BC_Title(x, y, File::formattostr(mwindow->plugindb, 
-				asset->format), 
+		add_subwindow(new BC_Title(x, y, File::formattostr(asset->format), 
 			MEDIUMFONT, 
 			mwindow->theme->assetedit_color));
 		x = x1;
@@ -735,7 +733,11 @@ int AssetEditSigned::handle_event()
 
 
 AssetEditPathText::AssetEditPathText(AssetEditWindow *fwindow, int y)
- : BC_TextBox(DP(5), y, DP(350), 1, fwindow->asset_edit->changed_params->path) 
+ : BC_TextBox(DP(5), 
+    y, 
+    DP(350), 
+    1, 
+    fwindow->asset_edit->changed_params->path) 
 {
 	this->fwindow = fwindow; 
 }
@@ -785,8 +787,7 @@ AssetEditFormat::~AssetEditFormat()
 int AssetEditFormat::handle_event()
 {
 	Asset *asset = (Asset*)fwindow->asset_edit->changed_params;
-	asset->format = File::strtoformat(fwindow->mwindow->plugindb, 
-		get_selection(0, 0)->get_text());
+	asset->format = File::strtoformat(get_selection(0, 0)->get_text());
 	return 1;
 }
 

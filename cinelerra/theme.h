@@ -284,6 +284,9 @@ public:
 
 	int batchrender_x1, batchrender_x2, batchrender_x3;
 
+// FileStdout
+    int command_h, command_w;
+
 	int setformat_x1, setformat_x2, setformat_x3, setformat_x4;
 	int setformat_y1, setformat_y2, setformat_y3;
 	int setformat_w, setformat_h, setformat_margin;

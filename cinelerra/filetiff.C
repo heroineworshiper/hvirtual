@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,13 +42,54 @@ FileTIFF::~FileTIFF()
 }
 
 
+FileTIFF::FileTIFF()
+ : FileList()
+{
+    ids.append(FILE_TIFF);
+    ids.append(FILE_TIFF_LIST);
+    has_video = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileTIFF::create(File *file)
+{
+    return new FileTIFF(file->asset, file);
+}
+
+
+const char* FileTIFF::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_TIFF:
+			return TIFF_NAME;
+			break;
+		case FILE_TIFF_LIST:
+			return TIFF_LIST_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileTIFF::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_TIFF:
+		case FILE_TIFF_LIST:
+            return "tif";
+    }
+    return 0;
+}
+
 void FileTIFF::get_parameters(BC_WindowBase *parent_window, 
 	Asset *asset, 
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+	int option_type,
+	const char *locked_compressor)
 {
-	if(video_options)
+	if(option_type == VIDEO_PARAMS)
 	{
 		TIFFConfigVideo *window = new TIFFConfigVideo(parent_window, asset);
 		format_window = window;
@@ -60,8 +100,9 @@ void FileTIFF::get_parameters(BC_WindowBase *parent_window,
 }
 
 
-int FileTIFF::check_sig(Asset *asset)
+int FileTIFF::check_sig(File *file, const uint8_t *test_data)
 {
+    Asset *asset = file->asset;
 	FILE *stream = fopen(asset->path, "rb");
 
 	if(stream)

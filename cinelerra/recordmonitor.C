@@ -286,6 +286,7 @@ void RecordMonitorGUI::create_objects()
 	int do_channel = (driver == VIDEO4LINUX ||
 			driver == CAPTURE_BUZ ||
 			driver == VIDEO4LINUX2 ||
+			driver == VIDEO4LINUX2MJPG ||
 			driver == VIDEO4LINUX2JPEG ||
 			driver == CAPTURE_JPEG_WEBCAM ||
 			driver == CAPTURE_YUYV_WEBCAM ||
@@ -293,7 +294,7 @@ void RecordMonitorGUI::create_objects()
 	int do_scopes = do_channel || (driver == SCREENCAPTURE);
 	int do_cursor = (driver == SCREENCAPTURE);
 	int do_interlace = (driver == CAPTURE_BUZ ||
-		driver == VIDEO4LINUX2JPEG);
+		driver == VIDEO4LINUX2MJPG);
 	int background_done = 0;
 	int x = mwindow->theme->widget_border;
 	int y = mwindow->theme->widget_border;
@@ -582,13 +583,14 @@ int RecordMonitorGUI::resize_event(int w, int h)
 	int do_channel = (driver == VIDEO4LINUX ||
 			driver == CAPTURE_BUZ ||
 			driver == VIDEO4LINUX2 ||
+			driver == VIDEO4LINUX2MJPG ||
 			driver == VIDEO4LINUX2JPEG ||
 			driver == CAPTURE_JPEG_WEBCAM ||
 			driver == CAPTURE_YUYV_WEBCAM ||
 			driver == CAPTURE_MPEG);
 	int do_scopes = do_channel || driver == SCREENCAPTURE;
 	int do_interlace = (driver == CAPTURE_BUZ ||
-		driver == VIDEO4LINUX2JPEG);
+		driver == VIDEO4LINUX2MJPG);
 	int do_avc = avc1394_transport ? 1 : 0;
 
 	mwindow->session->rmonitor_x = get_x();
@@ -877,6 +879,28 @@ void RecordMonitorCanvas::reset_translation()
 	record->set_translation(0, 0);
 }
 
+void RecordMonitorCanvas::preset_translation(int position)
+{
+    switch(position)
+    {
+        case TOP_LEFT:
+	        record->set_translation(0, 0);
+            break;
+        case TOP_RIGHT:
+	        record->set_translation(window->get_root_w() - record->default_asset->width, 
+                0);
+            break;
+        case BOTTOM_LEFT:
+	        record->set_translation(0, 
+                window->get_root_h(0) - record->default_asset->height);
+            break;
+        case BOTTOM_RIGHT:
+	        record->set_translation(window->get_root_w() - record->default_asset->width, 
+                window->get_root_h(0) - record->default_asset->height);
+            break;
+    }
+}
+
 int RecordMonitorCanvas::keypress_event()
 {
 	int result = 0;
@@ -969,7 +993,7 @@ void RecordMonitorThread::init_output_format()
 
 
 		case CAPTURE_BUZ:
-		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 			jpeg_engine = new RecVideoMJPGThread(record, this, 2);
 			jpeg_engine->start_rendering();
 			output_colormodel = BC_YUV422P;
@@ -983,6 +1007,7 @@ void RecordMonitorThread::init_output_format()
 			break;
 
 		case CAPTURE_JPEG_WEBCAM:
+		case VIDEO4LINUX2JPEG:
 			jpeg_engine = new RecVideoMJPGThread(record, this, 1);
 			jpeg_engine->start_rendering();
 			output_colormodel = BC_YUV420P;
@@ -1020,6 +1045,7 @@ int RecordMonitorThread::stop_playback()
 	{
 		case CAPTURE_BUZ:
 		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 			if(jpeg_engine) 
 			{
 				jpeg_engine->stop_rendering();
@@ -1089,6 +1115,14 @@ int RecordMonitorThread::render_dv()
 
 void RecordMonitorThread::render_uncompressed()
 {
+// printf("RecordMonitorThread::render_uncompressed %d %d %p %p %p\n", 
+// __LINE__, 
+// input_frame->get_data_size(),
+// input_frame->get_y(),
+// input_frame->get_u(),
+// input_frame->get_v());
+// output_frame->dump();
+// input_frame->dump();
 	output_frame->copy_from(input_frame);
 }
 
@@ -1108,6 +1142,7 @@ int RecordMonitorThread::render_frame()
 	switch(mwindow->edl->session->vconfig_in->driver)
 	{
 		case CAPTURE_BUZ:
+		case VIDEO4LINUX2MJPG:
 		case VIDEO4LINUX2JPEG:
 		case CAPTURE_JPEG_WEBCAM:
 			render_jpeg();
@@ -1201,6 +1236,14 @@ int RecVideoMJPGThread::stop_rendering()
 
 int RecVideoMJPGThread::render_frame(VFrame *frame, long size)
 {
+//printf("RecVideoMJPGThread::render_frame %d\n", 
+//frame->get_field2_offset());
+// printf("RecVideoMJPGThread::render_frame %d %02x%02x%02x%02x\n", 
+// __LINE__, 
+// frame->get_data()[0], 
+// frame->get_data()[1], 
+// frame->get_data()[2], 
+// frame->get_data()[3]);
 // printf("RecVideoMJPGThread::render_frame %d %02x%02x %02x%02x\n", 
 // frame->get_field2_offset(), 
 // frame->get_data()[0], 

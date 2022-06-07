@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * Copyright (C) 2012 Monty <monty@xiph.org>
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -974,6 +974,8 @@ void DirectUnit::process_package(LoadPackage *package){
 
         float** output_rows = (float**)output->get_rows();
         float** input_rows = (float**)input->get_rows();
+        ix *= 3;                                                            \
+        ox *= 3;                                                            \
 
         for(int i = pkg->out_row1; i < pkg->out_row2; i++){
           float* in_row = input_rows[i+iy]+ix;
@@ -994,6 +996,8 @@ void DirectUnit::process_package(LoadPackage *package){
 
         float** output_rows = (float**)output->get_rows();
         float** input_rows = (float**)input->get_rows();
+        ix *= 4;                                                            \
+        ox *= 4;                                                            \
 
         for(int i = pkg->out_row1; i < pkg->out_row2; i++){
           float* in_row = input_rows[i+iy]+ix;

@@ -33,6 +33,7 @@
 
 
 #include <stdint.h>
+#include <string>
 
 #define SILENCE_TEXT "SILENCE"
 
@@ -132,26 +133,21 @@ public:
 
 // contains audio data
 	int audio_data;
+// parameters for PCM files
 	int channels;
 	int sample_rate;
 	int bits;
 	int byte_order;
 	int signed_;
-	int header;
+// 8,16 bit only
 	int dither;
+	int header;
+
 // String or FourCC describing compression
 	char acodec[BCTEXTLEN];
 
 
 	int64_t audio_length;
-
-
-
-
-
-
-
-
 
 
 
@@ -170,6 +166,23 @@ public:
 
 
 
+// command line encoder options
+    std::string video_command;
+// colorspace for encoding video
+    int command_cmodel;
+// command line for encoding audio
+    std::string audio_command;
+// format of the command input
+	int command_bits;
+	int command_byte_order;
+	int command_signed_;
+// 8,16 bit only
+	int command_dither;
+// create a wrapper after encoding
+    int do_wrapper;
+// command line
+    std::string wrapper_command;
+    int command_delete_temps;
 
 
 // mpeg audio information

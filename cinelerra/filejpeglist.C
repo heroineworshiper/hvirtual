@@ -58,10 +58,9 @@ char* FileJPEGList::extension()
 void FileJPEGList::get_parameters(BC_WindowBase *parent_window, 
 	Asset *asset, 
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+	int option_type)
 {
-	if(video_options)
+	if(option_type == VIDEO_PARAMS)
 	{
 		JPEGConfigVideo *window = new JPEGConfigVideo(parent_window, asset);
 		format_window = window;

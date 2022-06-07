@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,9 +114,13 @@ public:
 	BC_OKButton(BC_WindowBase *parent_window, VFrame **images);
 	static int calculate_h();
 	static int calculate_w();
+// kludge to trap the escape key
+    void set_esc(int value);
 	virtual int resize_event(int w, int h);
 	virtual int handle_event();
 	virtual int keypress_event();
+    
+    int do_esc;
 };
 
 class BC_CancelButton : public BC_Button

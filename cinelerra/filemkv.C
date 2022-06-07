@@ -2213,7 +2213,7 @@ int FileMKVPriv::read_header()
 FileMKV::FileMKV(Asset *asset, File *file)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 	if(asset->format == FILE_UNKNOWN)
 		asset->format = FILE_MKV;
 }
@@ -2232,7 +2232,6 @@ int FileMKV::close_file()
     }
 
 
-	reset_parameters();
 	FileBase::close_file();
     return 0;
 }

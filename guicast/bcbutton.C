@@ -259,6 +259,7 @@ BC_OKButton::BC_OKButton(int x, int y)
  : BC_Button(x, y, 
  	BC_WindowBase::get_resources()->ok_images)
 {
+    do_esc = 0;
 }
 
 BC_OKButton::BC_OKButton(BC_WindowBase *parent_window, VFrame **images)
@@ -267,6 +268,7 @@ BC_OKButton::BC_OKButton(BC_WindowBase *parent_window, VFrame **images)
  	images)
 {
 	set_tooltip("OK");
+    do_esc = 0;
 }
 
 BC_OKButton::BC_OKButton(BC_WindowBase *parent_window)
@@ -275,6 +277,12 @@ BC_OKButton::BC_OKButton(BC_WindowBase *parent_window)
  	BC_WindowBase::get_resources()->ok_images)
 {
 	set_tooltip("OK");
+    do_esc = 0;
+}
+
+void BC_OKButton::set_esc(int value)
+{
+    this->do_esc = value;
 }
 
 int BC_OKButton::handle_event()
@@ -292,8 +300,12 @@ int BC_OKButton::resize_event(int w, int h)
 
 int BC_OKButton::keypress_event()
 {
-	if(get_keypress() == RETURN) return handle_event();
-	return 0;
+	if(get_keypress() == RETURN ||
+        (get_keypress() == ESC && do_esc)) 
+    {
+        return handle_event();
+	}
+    return 0;
 }
 
 int BC_OKButton::calculate_h()

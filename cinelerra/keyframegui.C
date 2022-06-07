@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2017 Adam Williams <broadcast at earthling dot net>
@@ -230,48 +229,51 @@ void KeyFrameThread::calculate_preset_list()
 void KeyFrameThread::save_preset(const char *title, int is_factory)
 {
 	get_gui()->unlock_window();
-	
-	
-	if(plugin)
-	{
-		mwindow->gui->lock_window("KeyFrameThread::save_preset");
-	
-// Test EDL for plugin existence
-		if(!mwindow->edl->tracks->plugin_exists(plugin))
-		{
-			mwindow->gui->unlock_window();
-			get_gui()->lock_window("KeyFrameThread::save_preset 2");
-			return;
-		}
+
+// ignore if no title
+	if(title[0] != 0)
+    {
+	    if(plugin)
+	    {
+		    mwindow->gui->lock_window("KeyFrameThread::save_preset");
+
+    // Test EDL for plugin existence
+		    if(!mwindow->edl->tracks->plugin_exists(plugin))
+		    {
+			    mwindow->gui->unlock_window();
+			    get_gui()->lock_window("KeyFrameThread::save_preset 2");
+			    return;
+		    }
 
 
-// Get current plugin keyframe
-		EDL *edl = mwindow->edl;
-		Track *track = plugin->track;
-		keyframe = plugin->get_prev_keyframe(
-			track->to_units(edl->local_session->get_selectionstart(1), 0), 
-			PLAY_FORWARD);
-//printf("KeyFrameThread::save_preset %d %p %p\n", __LINE__, keyframe, keyframe->get_data());
-	}
-	else
-	{
-		keyframe = plugin_server->keyframe;
-//printf("KeyFrameThread::save_preset %d\n", __LINE__);
-	}
+    // Get current plugin keyframe
+		    EDL *edl = mwindow->edl;
+		    Track *track = plugin->track;
+		    keyframe = plugin->get_prev_keyframe(
+			    track->to_units(edl->local_session->get_selectionstart(1), 0), 
+			    PLAY_FORWARD);
+    //printf("KeyFrameThread::save_preset %d %p %p\n", __LINE__, keyframe, keyframe->get_data());
+	    }
+	    else
+	    {
+		    keyframe = plugin_server->keyframe;
+    //printf("KeyFrameThread::save_preset %d\n", __LINE__);
+	    }
 
-//printf("KeyFrameThread::save_preset %d %p %p\n", __LINE__, keyframe, keyframe->get_data());
-//plugin->dump();
+    //printf("KeyFrameThread::save_preset %d %p %p\n", __LINE__, keyframe, keyframe->get_data());
+    //plugin->dump();
 
 
-// Send to database
-	presets_db->save_preset(plugin_title, 
-		title, 
-		keyframe->get_data());
+    // Send to database
+	    presets_db->save_preset(plugin_title, 
+		    title, 
+		    keyframe->get_data());
 
-	if(plugin)
-	{
-		mwindow->gui->unlock_window();
-	}
+	    if(plugin)
+	    {
+		    mwindow->gui->unlock_window();
+	    }
+    }
 	
 	get_gui()->lock_window("KeyFrameThread::save_preset 2");
 
@@ -609,6 +611,7 @@ KeyFramePresetsDelete::KeyFramePresetsDelete(KeyFrameThread *thread,
 {
 	this->thread = thread;
 	this->window = window;
+    set_tooltip("Delete the preset.");
 }
 
 int KeyFramePresetsDelete::handle_event()
@@ -634,6 +637,7 @@ KeyFramePresetsSave::KeyFramePresetsSave(KeyFrameThread *thread,
 {
 	this->thread = thread;
 	this->window = window;
+    set_tooltip("Save timeline settings to the preset.");
 }
 
 int KeyFramePresetsSave::handle_event()
@@ -656,10 +660,11 @@ KeyFramePresetsApply::KeyFramePresetsApply(KeyFrameThread *thread,
 	KeyFrameWindow *window,
 	int x,
 	int y)
- : BC_GenericButton(x, y, _("Apply"))
+ : BC_GenericButton(x, y, _("Load"))
 {
 	this->thread = thread;
 	this->window = window;
+    set_tooltip("Apply the preset to the timeline.");
 }
 
 int KeyFramePresetsApply::handle_event()

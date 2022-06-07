@@ -103,6 +103,10 @@ Theme::Theme()
 
 	loadmode_w = DP(350);
 
+
+    command_w = DP(640);
+    command_h = DP(480);
+
 #include "data/about_png.h"
 	about_bg = new VFrame;
 	about_bg->read_png(about_png, BC_Resources::dpi);

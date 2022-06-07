@@ -371,8 +371,9 @@ int DeInterlaceMain::process_buffer(VFrame *frame,
 		0, 
 		start_position, 
 		frame_rate,
-		get_use_opengl());
-	if(get_use_opengl()) return run_opengl();
+		0 /* get_use_opengl() */ );
+// disable since interlaced video is rare & OpenGL couldn't address single lines
+//	if(get_use_opengl()) return run_opengl();
 
 // Temp was used for adaptive deinterlacing where it took deinterlacing
 // an entire frame to decide if the deinterlaced output should be used.

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,7 +108,7 @@ N_("MPEG-4 Audio")
 FileMOV::FileMOV(Asset *asset, File *file)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 	if(asset->format == FILE_UNKNOWN)
 		asset->format = FILE_MOV;
 	asset->byte_order = 0;
@@ -123,15 +122,58 @@ FileMOV::~FileMOV()
 	delete threadframe_lock;
 }
 
+
+FileMOV::FileMOV()
+ : FileBase()
+{
+    reset_parameters_derived();
+    ids.append(FILE_MOV);
+    ids.append(FILE_AVI);
+    has_audio = 1;
+    has_video = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileMOV::create(File *file)
+{
+    return new FileMOV(file->asset, file);
+}
+
+
+const char* FileMOV::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_AVI:
+			return AVI_NAME;
+			break;
+		case FILE_MOV:
+			return MOV_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileMOV::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_MOV:
+            return "mov/mp4";
+    }
+    return 0;
+}
+
+
 void FileMOV::get_parameters(BC_WindowBase *parent_window, 
 	Asset *asset, 
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options,
-	char *locked_compressor)
+	int option_type,
+	const char *locked_compressor)
 {
 	fix_codecs(asset);
-	if(audio_options)
+	if(option_type == AUDIO_PARAMS)
 	{
 		MOVConfigAudio *window = new MOVConfigAudio(parent_window, asset);
 		format_window = window;
@@ -140,7 +182,7 @@ void FileMOV::get_parameters(BC_WindowBase *parent_window,
 		delete window;
 	}
 	else
-	if(video_options)
+	if(option_type == VIDEO_PARAMS)
 	{
 		MOVConfigVideo *window = new MOVConfigVideo(parent_window, 
 			asset, 
@@ -150,6 +192,16 @@ void FileMOV::get_parameters(BC_WindowBase *parent_window,
 		window->run_window();
 		delete window;
 	}
+}
+
+int FileMOV::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
+	int result = quicktime_check_sig(asset->path);
+//printf("FileMOV::check_sig %d %d\n", __LINE__, result);
+// Reject AVI
+	if(result == 2) result = 0;
+	return result;
 }
 
 void FileMOV::fix_codecs(Asset *asset)
@@ -166,15 +218,6 @@ void FileMOV::fix_codecs(Asset *asset)
         else if (asset->format == FILE_MOV && asset->height == 480)
                 strcpy (asset->vcodec, QUICKTIME_DV);
 	}
-}
-
-int FileMOV::check_sig(Asset *asset)
-{
-	int result = quicktime_check_sig(asset->path);
-//printf("FileMOV::check_sig %d %d\n", __LINE__, result);
-// Reject AVI
-	if(result == 2) result = 0;
-	return result;
 }
 
 
@@ -256,7 +299,6 @@ int FileMOV::close_file()
 	}
 
 //printf("FileMOV::close_file 1\n");
-	reset_parameters();
 	FileBase::close_file();
 //printf("FileMOV::close_file 2\n");
 	return 0;
@@ -518,7 +560,9 @@ int FileMOV::get_best_colormodel(Asset *asset, int driver)
 		case CAPTURE_BUZ:
 		case CAPTURE_LML:
 		case VIDEO4LINUX2JPEG:
-			if(!strncasecmp(asset->vcodec, QUICKTIME_MJPA, 4)) 
+		case VIDEO4LINUX2MJPG:
+			if(!strncasecmp(asset->vcodec, QUICKTIME_MJPA, 4) ||
+                !strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4)) 
 				return BC_COMPRESSED;
 			else
 				return BC_YUV422;
@@ -1704,7 +1748,7 @@ int MOVConfigAudioPopup::handle_event()
 
 MOVConfigVideo::MOVConfigVideo(BC_WindowBase *parent_window, 
 	Asset *asset, 
-	char *locked_compressor)
+	const char *locked_compressor)
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
@@ -1874,7 +1918,7 @@ void MOVConfigVideo::update_parameters()
 
 	reset();
 
-	char *vcodec = asset->vcodec;
+	const char *vcodec = asset->vcodec;
 	if(locked_compressor) vcodec = locked_compressor;
 
 

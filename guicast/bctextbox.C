@@ -2901,6 +2901,16 @@ void BC_PopupTextBox::set_list_w(int value)
     this->list_w = value;
 }
 
+
+void BC_PopupTextBox::set_read_only(int value)
+{
+    if(textbox)
+    {
+        textbox->set_read_only(value);
+    }
+}
+
+
 int BC_PopupTextBox::create_objects()
 {
 	int x = this->x, y = this->y;
@@ -3178,6 +3188,14 @@ void BC_TumbleTextBox::set_increment(float value)
 {
 	this->increment = value;
 	if(tumbler) tumbler->set_increment(value);
+}
+
+void BC_TumbleTextBox::set_read_only(int value)
+{
+    if(textbox)
+    {
+        textbox->set_read_only(value);
+    }
 }
 
 int BC_TumbleTextBox::create_objects()

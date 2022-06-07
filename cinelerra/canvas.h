@@ -131,6 +131,7 @@ public:
 		int canvas_h = -1);
 	void reposition_window(EDL *edl, int x, int y, int w, int h);
 	virtual void reset_translation() {};
+	virtual void preset_translation(int position) {};
 	virtual void close_source() {};
 // Updates the stores
 	virtual void update_zoom(int x, int y, float zoom) {};
@@ -392,6 +393,15 @@ public:
 	CanvasPopupResetTranslation(Canvas *canvas);
 	int handle_event();
 	Canvas *canvas;
+};
+
+class CanvasPresetTranslation : public BC_MenuItem
+{
+public:
+	CanvasPresetTranslation(Canvas *canvas, int position, const char *text);
+	int handle_event();
+	Canvas *canvas;
+    int position;
 };
 
 

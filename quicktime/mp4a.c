@@ -75,7 +75,7 @@ static int delete_codec(quicktime_audio_map_t *atrack)
 	free(codec);
 }
 
-static int decode(quicktime_t *file, 
+static int mp4a_decode(quicktime_t *file, 
 					int16_t *output_i, 
 					float *output_f, 
 					long samples, 
@@ -112,7 +112,7 @@ static int decode(quicktime_t *file,
 		int total_read = 0;
 		while(!done && total_read < 65536)
 		{
-//printf("decode %d vbr->sample=%ld\n", __LINE__, vbr->sample);
+//printf("mp4a_decode %d vbr->sample=%ld\n", __LINE__, vbr->sample);
 			if(quicktime_read_vbr(file, track_map))
 			{
 				break;
@@ -135,12 +135,12 @@ static int decode(quicktime_t *file,
             	quicktime_vbr_input(vbr), 
 				quicktime_vbr_input_size(vbr));
 			
-//printf("decode %d size=%d\n", __LINE__, quicktime_vbr_input_size(vbr));
+//printf("mp4a_decode %d size=%d\n", __LINE__, quicktime_vbr_input_size(vbr));
 //quicktime_print_buffer("", quicktime_vbr_input(vbr), quicktime_vbr_input_size(vbr));
 
 			if(codec->frame_info.error > 0)
 			{
-            	printf("decode %d: %s\n",
+            	printf("mp4a_decode %d: %s\n",
 					__LINE__,
                 	faacDecGetErrorMessage(codec->frame_info.error));
 			}
@@ -152,7 +152,7 @@ static int decode(quicktime_t *file,
 // reinitialize with encoded channel count
 				if(codec->frame_info.channels != track_map->channels)
 				{
-printf("decode %d: mp4a channel count=%d Quicktime channel count=%d\n", 
+printf("mp4a_decode %d: mp4a channel count=%d Quicktime channel count=%d\n", 
 __LINE__, 
 codec->frame_info.channels,
 track_map->channels);
@@ -163,7 +163,7 @@ track_map->channels);
 				
 				if(codec->frame_info.samplerate != quicktime_sample_rate(file, track))
 				{
-printf("decode %d: mp4a samplerate=%d Quicktime samplerate=%ld\n", 
+printf("mp4a_decode %d: mp4a samplerate=%d Quicktime samplerate=%ld\n", 
 __LINE__, 
 codec->frame_info.samplerate,
 quicktime_sample_rate(file, track));
@@ -184,7 +184,7 @@ quicktime_sample_rate(file, track));
 	else
 	{
 // Decode until buffer is full
-//printf("decode %d vbr=%p end=%d end_position=%d\n", __LINE__, vbr, quicktime_vbr_end(vbr), end_position);
+//printf("mp4a_decode %d vbr=%p end=%d end_position=%d\n", __LINE__, vbr, quicktime_vbr_end(vbr), end_position);
 		while(quicktime_vbr_end(vbr) < end_position)
 		{
 // Fill until min buffer size reached or EOF
@@ -206,11 +206,11 @@ quicktime_sample_rate(file, track));
 
         	if (codec->frame_info.error > 0)
         	{
-//            	printf("decode mp4a: %s\n",
+//            	printf("mp4a_decode mp4a: %s\n",
 //                	faacDecGetErrorMessage(codec->frame_info.error));
         	}
 
-// printf("decode %d channels=%d samplerate=%d samples=%d\n",
+// printf("mp4a_decode %d channels=%d samplerate=%d samples=%d\n",
 // __LINE__,
 // codec->frame_info.channels,
 // codec->frame_info.samplerate,
@@ -497,7 +497,7 @@ void quicktime_init_codec_mp4a(quicktime_audio_map_t *atrack)
 	quicktime_mp4a_codec_t *codec;
 	codec_base->priv = calloc(1, sizeof(quicktime_mp4a_codec_t));
 	codec_base->delete_acodec = delete_codec;
-	codec_base->decode_audio = decode;
+	codec_base->decode_audio = mp4a_decode;
 	codec_base->encode_audio = encode;
 	codec_base->set_parameter = set_parameter;
 	codec_base->flush = flush;

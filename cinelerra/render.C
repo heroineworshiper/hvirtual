@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
@@ -1189,7 +1188,6 @@ void RenderWindow::create_objects()
 		1, 
 		1, 
 		1, 
-		0,
 		1,
 		0,
 		0,

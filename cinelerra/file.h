@@ -58,13 +58,15 @@ public:
 
 	friend class FileFork;
 
+// called during startup to init the file_table
+    static void init_table();
+
 // Get attributes for various file formats.
 // The dither parameter is carried over from recording, where dither is done at the device.
-	int get_options(BC_WindowBase *parent_window, 
+	int get_parameters(BC_WindowBase *parent_window, 
 		ArrayList<PluginServer*> *plugindb, 
 		Asset *asset,
-		int audio_options,
-		int video_options,
+		int option_type,
 		char *locked_compressor);
 
 	int raise_window();
@@ -230,16 +232,17 @@ public:
 // Set the amount of caching to use inside the file handler
 	void set_cache(int bytes);
 
-	static int supports_video(ArrayList<PluginServer*> *plugindb, char *format);   // returns 1 if the format supports video or audio
-	static int supports_audio(ArrayList<PluginServer*> *plugindb, char *format);
-// Get the extension for the filename
+// Get the extension for the filename for writing
 	static const char* get_tag(int format);
-	static int supports_video(int format);   // returns 1 if the format supports video or audio
+// returns the has_ field in the file handler.  Used only for writing.
+	static int supports_video(int format);   
 	static int supports_audio(int format);
-	static int strtoformat(char *format);
+	static int supports_wrapper(int format);
+
+// must not translate languages here, since the string is written to the EDL
+	static int strtoformat(const char *format);
 	static const char* formattostr(int format);
-	static int strtoformat(ArrayList<PluginServer*> *plugindb, char *format);
-	static const char* formattostr(ArrayList<PluginServer*> *plugindb, int format);
+
 	static int strtobits(const char *bits);
 	static const char* bitstostr(int bits);
 	static int str_to_byteorder(const char *string);
@@ -314,6 +317,9 @@ private:
 
 // Copy read frames to the cache
 	int use_cache;
+
+// Ideally, a static instantiation of every file format
+    static ArrayList<FileBase*> *file_table;
 };
 
 #endif

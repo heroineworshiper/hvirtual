@@ -234,6 +234,7 @@ public:
 	int cursor_motion_event();
 	int cursor_enter_event();
 	void reset_translation();
+	void preset_translation(int position);
 	int keypress_event();
 	int get_output_w();
 	int get_output_h();

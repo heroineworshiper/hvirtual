@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2015 Adam Williams <broadcast at earthling dot net>
@@ -577,7 +576,6 @@ void ProxyWindow::create_objects()
 		1, 
 		0, 
 		0, 
-		0,
 		1,
 		0,
 		1, // skip the path

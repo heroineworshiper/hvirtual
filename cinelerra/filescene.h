@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@
 
 #include "filebase.h"
 #include "scenegraph.inc"
+
+#ifdef USE_SCENE
 
 // Simple text to movie converter.
 // Initially we're trying to render the entire movie in the file handler.
@@ -222,7 +224,7 @@ private:
 
 
 
-
+#endif // USE_SCENE
 
 
 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2020 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2020-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,12 +48,43 @@ FileCR3::~FileCR3()
 }
 
 
+FileCR3::FileCR3()
+ : FileList()
+{
+    ids.append(FILE_CR3);
+    ids.append(FILE_CR3_LIST);
+    has_video = 1;
+    has_rd = 1;
+}
+
+
+FileBase* FileCR3::create(File *file)
+{
+    return new FileCR3(file->asset, file);
+}
+
+
+const char* FileCR3::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_CR3:
+			return CR2_NAME;
+			break;
+		case FILE_CR3_LIST:
+			return CR2_LIST_NAME;
+			break;
+    }
+    return 0;
+}
+
 void FileCR3::reset()
 {
 }
 
-int FileCR3::check_sig(Asset *asset)
+int FileCR3::check_sig(File *file, const uint8_t *test_data)
 {
+    Asset *asset = file->asset;
 //printf("FileCR3::check_sig %d %s\n", __LINE__, asset->path);
 // check suffix
     int len = strlen(asset->path);

@@ -112,7 +112,7 @@ void EditInfoGUI::create_objects()
         thread,
         this);
     path->create_objects();
-//    text->set_read_only(1);
+    path->set_read_only(1);
 
     y += text_h;
     add_subwindow(startsource = new EditInfoNumber(this,
@@ -151,7 +151,7 @@ void EditInfoGUI::create_objects()
         get_w() - margin - x1 - BC_TumbleTextBox::calculate_w(),
         &thread->channel);
     channel->create_objects();
-//    text->set_read_only(1);
+//    channel->set_read_only(1);
     y += text_h;
     int w_argument = get_w() - x1 - margin;
 // this adds a button to its w argument

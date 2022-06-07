@@ -270,9 +270,9 @@ int VModule::import_frame(VFrame *output,
 	{
 		File *file = 0;
 
-// 		printf("VModule::import_frame %d cache=%p\n", 
-// 			__LINE__,
-// 			get_cache());
+// printf("VModule::import_frame %d cache=%p\n", 
+// __LINE__,
+// get_cache());
 		if(current_edit->asset)
 		{
 			get_cache()->age();
@@ -532,6 +532,10 @@ int VModule::import_frame(VFrame *output,
 					int output_h = output->get_h();
 					VFrame *input2 = (*input);
 
+// printf("VModule::import_frame %d nested_cmodel=%d current_cmodel=%d\n", 
+// __LINE__,
+// nested_cmodel,
+// current_cmodel);
 					if(nested_cmodel != current_cmodel)
 					{
 // If opengl, input -> input -> output
@@ -549,7 +553,7 @@ int VModule::import_frame(VFrame *output,
 							__LINE__,
 							this,
 							nested_cmodel);
-						input2->dump();
+//						input2->dump();
 						input2->reallocate(0, 
 							-1,
 							0,
@@ -559,7 +563,7 @@ int VModule::import_frame(VFrame *output,
 							(*input)->get_h(), 
 							nested_cmodel, 
 							-1);
-						input2->dump();
+//						input2->dump();
 					}
 
 

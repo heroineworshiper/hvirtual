@@ -27,6 +27,7 @@ extern "C"
 }
 
 #include "clip.h"
+#include "file.h"
 #include "fileac3.h"
 #include "language.h"
 #include "mwindow.inc"
@@ -39,13 +40,51 @@ extern "C"
 FileAC3::FileAC3(Asset *asset, File *file)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 }
 
 FileAC3::~FileAC3()
 {
 	close_file();
 }
+
+
+FileAC3::FileAC3()
+ : FileBase()
+{
+    reset_parameters_derived();
+    ids.append(FILE_AC3);
+    has_audio = 1;
+    has_wr = 1;
+}
+
+FileBase* FileAC3::create(File *file)
+{
+    return new FileAC3(file->asset, file);
+}
+
+const char* FileAC3::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_AC3:
+			return AC3_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileAC3::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_AC3:
+            return "ac3";
+    }
+    return 0;
+}
+
+
 
 int FileAC3::reset_parameters_derived()
 {
@@ -62,10 +101,10 @@ int FileAC3::reset_parameters_derived()
 void FileAC3::get_parameters(BC_WindowBase *parent_window, 
 		Asset *asset, 
 		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options)
+		int option_type,
+	    const char *locked_compressor)
 {
-	if(audio_options)
+	if(option_type == AUDIO_PARAMS)
 	{
 
 		AC3ConfigAudio *window = new AC3ConfigAudio(parent_window, asset);
@@ -74,12 +113,6 @@ void FileAC3::get_parameters(BC_WindowBase *parent_window,
 		window->run_window();
 		delete window;
 	}
-}
-
-int FileAC3::check_sig()
-{
-// Libmpeg3 does this in FileMPEG.
-	return 0;
 }
 
 int FileAC3::open_file(int rd, int wr)
@@ -153,7 +186,6 @@ int FileAC3::close_file()
 		delete [] temp_compressed;
 		temp_compressed = 0;
 	}
-	reset_parameters();
 	FileBase::close_file();
 }
 

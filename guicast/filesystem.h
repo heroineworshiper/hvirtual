@@ -103,6 +103,7 @@ public:
 	static int64_t get_date(const char *path);        // get the date of the filename modification
 	static void set_date(const char *path, int64_t value); // set the date of the file
 	static int64_t get_size(char *filename);        // Get the number of bytes in the file.
+	static int64_t get_size(std::string *filename);        // Get the number of bytes in the file.
 	int add_end_slash(char *new_dir);
 	int add_end_slash(string *new_dir);
 	int total_files();

@@ -56,7 +56,7 @@ VORBIS_DIR := $(shell expr thirdparty/libvorbis* )
 VORBIS_LIB := $(OBJDIR)/vorbis
 
 ifeq ($(OBJDIR), i686)
-
+# this won't work because JPEG headers have to match library versions
   JPEG_DIR := $(shell expr thirdparty/jpeg-mmx* )
   JPEG_LIB := $(OBJDIR)/$(JPEG_DIR)
   JPEG_LIB2 := $(JPEG_DIR)/libjpeg-mmx.a
@@ -64,7 +64,7 @@ ifeq ($(OBJDIR), i686)
 
 else
 
-  JPEG_DIR := thirdparty/jpeg
+  JPEG_DIR := thirdparty/jpeg9d
   JPEG_LIB := $(OBJDIR)/$(JPEG_DIR)
   JPEG_LIB2 := $(JPEG_DIR)/libjpeg.a
   JPEG_INCLUDE := $(JPEG_DIR)
@@ -385,7 +385,6 @@ util:  $(UTILS)
 	
 
 clean:
-	rm -rf  $(X265_DIR)/build
 	make -i -C $(FFMPEG_DIR) clean
 	make -i -C $(FAAD_DIR) clean
 	make -i -C $(FAAC_DIR) clean

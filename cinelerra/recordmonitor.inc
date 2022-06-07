@@ -32,4 +32,11 @@ class RecordMonitor;
 #define MONITOR_NONE 0
 #define MONITOR_TRANSLATE 1
 
+// preset translations
+#define TOP_LEFT 0
+#define TOP_RIGHT 1
+#define BOTTOM_LEFT 2
+#define BOTTOM_RIGHT 3
+
+
 #endif

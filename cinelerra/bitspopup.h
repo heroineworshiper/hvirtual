@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -44,13 +43,19 @@ public:
 	void create_objects();
 	int get_w();
 	int get_h();
+    void update(const char *text);
 	
 	BitsPopupMenu *menu;
 	ArrayList<BC_ListBoxItem*> bits_items;
 	BitsPopupText *textbox;
-	int x, y, use_ima4, use_ulaw, use_float, use_adpcm, *output;
+	int x, y;
+    int use_ima4;
+    int use_ulaw;
+    int use_float;
+    int use_adpcm;
 	int use_32linear;
 	int use_8linear;
+    int *output;
 	BC_WindowBase *parent_window;
 };
 

@@ -107,6 +107,7 @@ ChannelDB* PlaybackEngine::get_channeldb()
 	switch(config->vconfig->driver)
 	{
 		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 			return mwindow->channeldb_v4l2jpeg;
 			break;
 		case PLAYBACK_BUZ:

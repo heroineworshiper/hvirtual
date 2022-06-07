@@ -307,7 +307,7 @@ void VDeviceV4L2Thread::run()
 	int error = 0;
 	Thread::enable_cancel();
 
-//printf("VDeviceV4L2Thread::run %d\n", __LINE__);
+printf("VDeviceV4L2Thread::run %d\n", __LINE__);
 
 
 	if((input_fd = open(device->in_config->v4l2_in_device, 
@@ -363,7 +363,9 @@ void VDeviceV4L2Thread::run()
 				device->frame_rate * 
 				10000000);
 			if(ioctl(input_fd, VIDIOC_S_PARM, &v4l2_parm) < 0)
-				perror("VDeviceV4L2Thread::run VIDIOC_S_PARM");
+			{
+            	perror("VDeviceV4L2Thread::run VIDIOC_S_PARM");
+            }
 
 			if(ioctl(input_fd, VIDIOC_G_PARM, &v4l2_parm) < 0)
 				perror("VDeviceV4L2Thread::run VIDIOC_G_PARM");
@@ -476,7 +478,8 @@ void VDeviceV4L2Thread::run()
 		};
 
 // Show formats
-#if 0
+#if 1
+printf("VDeviceV4L2Thread::run %d testing formats\n", __LINE__);
    		for(int i = 0; i < sizeof(pixel_formats) / sizeof(int); i++)
    		{
    			v4l2_params.fmt.pix.pixelformat = pixel_formats[i];
@@ -497,10 +500,18 @@ void VDeviceV4L2Thread::run()
 //printf("VDeviceV4L2Thread::run %d\n", __LINE__);
 
 
-		if(device->in_config->driver == VIDEO4LINUX2JPEG)
-			v4l2_params.fmt.pix.pixelformat = 
+		if(device->in_config->driver == VIDEO4LINUX2MJPG)
+		{
+        	v4l2_params.fmt.pix.pixelformat = 
 				V4L2_PIX_FMT_MJPEG;
-		else
+		}
+        else
+		if(device->in_config->driver == VIDEO4LINUX2JPEG)
+		{
+        	v4l2_params.fmt.pix.pixelformat = 
+				V4L2_PIX_FMT_JPEG;
+		}
+        else
 		if(device->in_config->driver == CAPTURE_JPEG_WEBCAM)
 			v4l2_params.fmt.pix.pixelformat = 
 				V4L2_PIX_FMT_MJPEG;
@@ -679,6 +690,7 @@ void VDeviceV4L2Thread::run()
 
 // Set compression
 		if(device->in_config->driver == VIDEO4LINUX2JPEG ||
+			device->in_config->driver == VIDEO4LINUX2MJPG ||
 			device->in_config->driver == CAPTURE_JPEG_WEBCAM)
 		{
 			struct v4l2_jpegcompression jpeg_arg;
@@ -736,6 +748,7 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 
 				VFrame *frame = device_buffers[i];
 				if(device->in_config->driver == VIDEO4LINUX2JPEG ||
+					device->in_config->driver == VIDEO4LINUX2MJPG ||
 					device->in_config->driver == CAPTURE_JPEG_WEBCAM ||
 					device->in_config->driver == CAPTURE_MPEG)
 				{
@@ -860,7 +873,7 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 			{
 				device_buffers[current_inbuffer]->set_compressed_size(
 					buffer.bytesused);
-//printf("VDeviceV4L2Thread::run %d %d %d\n", __LINE__, current_inbuffer, buffer.bytesused);
+//printf("VDeviceV4L2Thread::run %d bytes=%d\n", __LINE__, buffer.bytesused);
 			}
 
 			if(!buffer_valid[current_inbuffer])
@@ -889,7 +902,6 @@ VFrame* VDeviceV4L2Thread::get_buffer(int *timed_out)
 
 // Acquire buffer table
 	buffer_lock->lock("VDeviceV4L2Thread::get_buffer 1");
-
 
 // Test for buffer availability
 	while(total_valid < 2 && !*timed_out && !first_frame)
@@ -987,7 +999,8 @@ int VDeviceV4L2::get_sources(VideoDevice *device,
 
 	device->channel->use_norm = 1;
 	device->channel->use_input = 1;
-	if(device->in_config->driver != VIDEO4LINUX2JPEG) 
+	if(device->in_config->driver != VIDEO4LINUX2JPEG &&
+        device->in_config->driver != VIDEO4LINUX2MJPG) 
 		device->channel->has_scanning = 1;
 	else
 		device->channel->has_scanning = 0;
@@ -1106,6 +1119,7 @@ int VDeviceV4L2::has_signal()
 int VDeviceV4L2::read_buffer(VFrame *frame)
 {
 	int result = 0;
+//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
 
 	if((device->channel_changed || device->picture_changed) && thread)
 	{
@@ -1120,7 +1134,6 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 		thread = new VDeviceV4L2Thread(device, frame->get_color_model());
 		thread->start();
 
-//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
 
 // Have to make sure the 1st frame is valid for the single frame capture mode.
 // Wait for device to start
@@ -1147,9 +1160,17 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 	VFrame *buffer = thread->get_buffer(&timed_out);
 	if(buffer)
 	{
+//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
 // translate webcam data into JPEG
 		if(device->in_config->driver == CAPTURE_JPEG_WEBCAM)
 		{
+//     		frame->allocate_compressed_data(
+//  				buffer->get_compressed_size());
+//             memcpy(frame->get_data(), 
+// 				buffer->get_data(), 
+//                 buffer->get_compressed_size());
+//             frame->set_compressed_size(buffer->get_compressed_size());
+        
 			frame->allocate_compressed_data(
 				buffer->get_compressed_size() + DHT_SIZE);
     		memcpy (frame->get_data(), 
@@ -1170,8 +1191,8 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 
 		thread->put_buffer();
 
-// printf("VDeviceV4L2::read_buffer %d\n", 
-// __LINE__);
+//printf("VDeviceV4L2::read_buffer %d\n", 
+//__LINE__);
 
 	}
 	else
@@ -1189,4 +1210,4 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 	return result;
 }
 
-#endif
+#endif // HAVE_VIDEO4LINUX2

@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
@@ -387,6 +386,7 @@ public:
 // get extents of the toggle
     static int calculate_h();
     static int calculate_w();
+    void set_read_only(int value);
 
     void set_list_w(int value);
 	void update(const char *text);
@@ -472,6 +472,7 @@ public:
     void disable();
     void enable();
     int get_enabled();
+    void set_read_only(int value);
 
 // get extents of the toggle
     static int calculate_h();

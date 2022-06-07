@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -69,7 +68,6 @@ void RecordWindow::create_objects()
 //printf("RecordWindow::create_objects 1\n");
 	format_tools->create_objects(x, 
 					y, 
-					1, 
 					1, 
 					1, 
 					1, 

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,6 +131,7 @@ int VDevicePrefs::initialize(int creation)
 		case CAPTURE_JPEG_WEBCAM:
 		case CAPTURE_YUYV_WEBCAM:
 		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 		case CAPTURE_MPEG:
 			create_v4l2_objs();
 			break;
@@ -459,7 +460,7 @@ VDriverMenu::~VDriverMenu()
 {
 }
 
-char* VDriverMenu::driver_to_string(int driver)
+const char* VDriverMenu::driver_to_string(int driver)
 {
 	switch(driver)
 	{
@@ -468,6 +469,12 @@ char* VDriverMenu::driver_to_string(int driver)
 			break;
 		case VIDEO4LINUX2:
 			sprintf(string, VIDEO4LINUX2_TITLE);
+			break;
+		case VIDEO4LINUX2JPEG:
+			return VIDEO4LINUX2JPEG_TITLE;
+			break;
+		case VIDEO4LINUX2MJPG:
+			return VIDEO4LINUX2MJPG_TITLE;
 			break;
 		case CAPTURE_JPEG_WEBCAM:
 			sprintf(string, CAPTURE_JPEG_WEBCAM_TITLE);
@@ -539,6 +546,7 @@ void VDriverMenu::create_objects()
 		add_item(new VDriverItem(this, CAPTURE_JPEG_WEBCAM_TITLE, CAPTURE_JPEG_WEBCAM));
 		add_item(new VDriverItem(this, CAPTURE_YUYV_WEBCAM_TITLE, CAPTURE_YUYV_WEBCAM));
 		add_item(new VDriverItem(this, VIDEO4LINUX2JPEG_TITLE, VIDEO4LINUX2JPEG));
+		add_item(new VDriverItem(this, VIDEO4LINUX2MJPG_TITLE, VIDEO4LINUX2MJPG));
 		add_item(new VDriverItem(this, CAPTURE_MPEG_TITLE, CAPTURE_MPEG));
 #endif
 

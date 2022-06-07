@@ -33,13 +33,22 @@ public:
 	FileAC3(Asset *asset, File *file);
 	~FileAC3();
 
+
+// table functions
+    FileAC3();
+    FileBase* create(File *file);
+	void get_parameters(BC_WindowBase *parent_window, 
+		Asset *asset, 
+		BC_WindowBase* &format_window,
+		int option_type,
+	    const char *locked_compressor);
+    const char* formattostr(int format);
+    const char* get_tag(int format);
+
+
+
+
 	int reset_parameters_derived();
-	static void get_parameters(BC_WindowBase *parent_window, 
-			Asset *asset, 
-			BC_WindowBase* &format_window,
-			int audio_options,
-			int video_options);
-	static int check_sig();
 	int open_file(int rd, int wr);
 	int close_file();
 	int write_samples(double **buffer, int64_t len);

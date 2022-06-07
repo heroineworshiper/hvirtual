@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2010-2017 Adam Williams <broadcast at earthling dot net>
@@ -674,7 +673,6 @@ void MenuEffectWindow::create_objects()
 					asset->video_data, 
 					0, 
 					0, 
-					0,
 					1,
 					0,
 					0,

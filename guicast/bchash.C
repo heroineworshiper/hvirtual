@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,13 +50,19 @@ BC_Hash::BC_Hash(const char *filename)
 
 BC_Hash::~BC_Hash()
 {
+	clear();
+	delete [] names;
+	delete [] values;
+}
+
+void BC_Hash::clear()
+{
 	for(int i = 0; i < total; i++)
 	{
 		delete [] names[i];
 		delete [] values[i];
 	}
-	delete [] names;
-	delete [] values;
+    total = 0;
 }
 
 void BC_Hash::reallocate_table(int new_total)

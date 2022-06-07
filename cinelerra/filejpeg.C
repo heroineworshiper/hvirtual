@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,8 +48,50 @@ FileJPEG::~FileJPEG()
 }
 
 
-int FileJPEG::check_sig(Asset *asset)
+
+FileJPEG::FileJPEG()
+ : FileList()
 {
+    ids.append(FILE_JPEG);
+    ids.append(FILE_JPEG_LIST);
+    has_video = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileJPEG::create(File *file)
+{
+    return new FileJPEG(file->asset, file);
+}
+
+const char* FileJPEG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_JPEG:
+			return JPEG_NAME;
+			break;
+		case FILE_JPEG_LIST:
+			return JPEG_LIST_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileJPEG::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_JPEG:
+		case FILE_JPEG_LIST:
+            return "jpg";
+    }
+    return 0;
+}
+
+int FileJPEG::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
 	FILE *stream = fopen(asset->path, "rb");
 
 	if(stream)
@@ -84,10 +125,10 @@ int FileJPEG::check_sig(Asset *asset)
 void FileJPEG::get_parameters(BC_WindowBase *parent_window, 
 	Asset *asset, 
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+	int option_type,
+	const char *locked_compressor)
 {
-	if(video_options)
+	if(option_type == VIDEO_PARAMS)
 	{
 		JPEGConfigVideo *window = new JPEGConfigVideo(parent_window, asset);
 		format_window = window;
@@ -145,8 +186,11 @@ int FileJPEG::get_best_colormodel(Asset *asset, int driver)
 			break;
 		case CAPTURE_BUZ:
 		case CAPTURE_LML:
-		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 			return BC_YUV422;
+			break;
+		case VIDEO4LINUX2JPEG:
+			return BC_YUV420P;
 			break;
 		case CAPTURE_FIREWIRE:
 		case CAPTURE_IEC61883:
@@ -168,7 +212,7 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 			1);
 
 	mjpeg_set_quality((mjpeg_t*)jpeg_unit->compressor, asset->jpeg_quality);
-
+//PRINT_TRACE
 
 	mjpeg_compress((mjpeg_t*)jpeg_unit->compressor, 
 		frame->get_rows(), 
@@ -177,6 +221,7 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 		frame->get_v(),
 		frame->get_color_model(),
 		1);
+//PRINT_TRACE
 
 
 // insert spherical tag
@@ -194,6 +239,7 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 			"</rdf:RDF>\n"
 			"</x:xmpmeta>\n"
 			"<?xpacket end='w'?>";
+//PRINT_TRACE
 
 // calculate length by skipping the \x00 byte
 		int skip = 32;
@@ -226,13 +272,18 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 	}
 	else
 	{
+//PRINT_TRACE
 		data->allocate_compressed_data(mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor));
+//PRINT_TRACE
 		data->set_compressed_size(mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor));
+//PRINT_TRACE
 		memcpy(data->get_data(), 
 			mjpeg_output_buffer((mjpeg_t*)jpeg_unit->compressor), 
 			mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor));
+//PRINT_TRACE
 	}
 
+//PRINT_TRACE
 	return result;
 }
 
@@ -257,7 +308,7 @@ int FileJPEG::read_frame_header(char *path)
 		printf("FileJPEG::read_frame_header %d %s: %s\n", __LINE__, path, strerror(errno));
 		return 1;
 	}
-	
+//printf("FileJPEG::read_frame_header %d\n", __LINE__);
 
 	unsigned char test[2];
 	int temp = fread(test, 2, 1, stream);
@@ -281,6 +332,7 @@ int FileJPEG::read_frame_header(char *path)
 
 	jpeg_destroy((j_common_ptr)&jpeg_decompress);
 	fclose(stream);
+//printf("FileJPEG::read_frame_header %d\n", __LINE__);
 
 	return result;
 }

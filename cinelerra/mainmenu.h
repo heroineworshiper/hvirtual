@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -408,6 +408,14 @@ class MapAudio2 : public BC_MenuItem
 {
 public:
 	MapAudio2(MWindow *mwindow);
+	int handle_event();
+	MWindow *mwindow;
+};
+
+class MapAudio3 : public BC_MenuItem
+{
+public:
+	MapAudio3(MWindow *mwindow);
 	int handle_event();
 	MWindow *mwindow;
 };

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -164,6 +164,7 @@ void MainMenu::create_objects()
 	audiomenu->add_item(new DefaultATransition(mwindow));
 	audiomenu->add_item(new MapAudio1(mwindow));
 	audiomenu->add_item(new MapAudio2(mwindow));
+	audiomenu->add_item(new MapAudio3(mwindow));
 	audiomenu->add_item(new MenuAttachTransition(mwindow, TRACK_AUDIO));
 	audiomenu->add_item(new MenuAttachEffect(mwindow, TRACK_AUDIO));
 	audiomenu->add_item(aeffects = new MenuAEffects(mwindow));
@@ -968,7 +969,7 @@ int DefaultATransition::handle_event()
 
 
 MapAudio1::MapAudio1(MWindow *mwindow)
- : BC_MenuItem(_("Map 1:1"))
+ : BC_MenuItem(_("Map LR"))
 {
 	this->mwindow = mwindow;
 }
@@ -980,7 +981,7 @@ int MapAudio1::handle_event()
 }
 
 MapAudio2::MapAudio2(MWindow *mwindow)
- : BC_MenuItem(_("Map 5.1:2"))
+ : BC_MenuItem(_("Map CLRLRC channels"))
 {
 	this->mwindow = mwindow;
 }
@@ -988,6 +989,19 @@ MapAudio2::MapAudio2(MWindow *mwindow)
 int MapAudio2::handle_event()
 {
 	mwindow->map_audio(MWindow::AUDIO_5_1_TO_2);
+	return 1;
+}
+
+
+MapAudio3::MapAudio3(MWindow *mwindow)
+ : BC_MenuItem(_("Map LRCCLR channels"))
+{
+	this->mwindow = mwindow;
+}
+
+int MapAudio3::handle_event()
+{
+	mwindow->map_audio(MWindow::AUDIO_5_1_TO_2B);
 	return 1;
 }
 

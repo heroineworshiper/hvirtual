@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +29,7 @@
 #include "mwindow.inc"
 
 
+
 FileSndFile::FileSndFile(Asset *asset, File *file)
  : FileBase(asset, file)
 {
@@ -46,8 +46,64 @@ FileSndFile::~FileSndFile()
 	if(temp_double) delete [] temp_double;
 }
 
-int FileSndFile::check_sig(Asset *asset)
+
+FileSndFile::FileSndFile()
+ : FileBase()
 {
+    ids.append(FILE_PCM);
+    ids.append(FILE_WAV);
+    ids.append(FILE_AU);
+    ids.append(FILE_AIFF);
+    ids.append(FILE_SND);
+    has_audio = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileSndFile::create(File *file)
+{
+    return new FileSndFile(file->asset, file);
+}
+
+const char* FileSndFile::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_WAV:
+			return WAV_NAME;
+			break;
+		case FILE_PCM:
+			return PCM_NAME;
+			break;
+		case FILE_AU:
+			return AU_NAME;
+			break;
+		case FILE_AIFF:
+			return AIFF_NAME;
+			break;
+		case FILE_SND:
+			return SND_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileSndFile::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_AC3:  return "ac3";
+		case FILE_AIFF: return "aif";
+		case FILE_AU:   return "au";
+		case FILE_PCM:  return "pcm";
+		case FILE_WAV:  return "wav";
+    }
+    return 0;
+}
+
+int FileSndFile::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
 	int result = 0;
 	SF_INFO fd_config;
 	fd_config.format = 0;
@@ -377,10 +433,10 @@ int FileSndFile::write_samples(double **buffer, int64_t len)
 void FileSndFile::get_parameters(BC_WindowBase *parent_window, 
 		Asset *asset, 
 		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options)
+		int option_type,
+	    const char *locked_compressor)
 {
-	if(audio_options)
+	if(option_type == AUDIO_PARAMS)
 	{
 		SndFileConfig *window = new SndFileConfig(parent_window, asset);
 		format_window = window;
@@ -463,13 +519,13 @@ int SndFileConfig::close_event()
 
 
 SndFileHILO::SndFileHILO(SndFileConfig *gui, int x, int y)
- : BC_Radial(x, y, gui->asset->byte_order == 0, _("Hi Lo"))
+ : BC_Radial(x, y, gui->asset->byte_order == BYTE_ORDER_HILO, _("Hi Lo"))
 {
 	this->gui = gui;
 }
 int SndFileHILO::handle_event()
 {
-	gui->asset->byte_order = 0;
+	gui->asset->byte_order = BYTE_ORDER_HILO;
 	gui->lohi->update(0);
 	return 1;
 }
@@ -478,13 +534,13 @@ int SndFileHILO::handle_event()
 
 
 SndFileLOHI::SndFileLOHI(SndFileConfig *gui, int x, int y)
- : BC_Radial(x, y, gui->asset->byte_order == 1, _("Lo Hi"))
+ : BC_Radial(x, y, gui->asset->byte_order == BYTE_ORDER_LOHI, _("Lo Hi"))
 {
 	this->gui = gui;
 }
 int SndFileLOHI::handle_event()
 {
-	gui->asset->byte_order = 1;
+	gui->asset->byte_order = BYTE_ORDER_LOHI;
 	gui->hilo->update(0);
 	return 1;
 }

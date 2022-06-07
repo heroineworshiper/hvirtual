@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -25,161 +24,209 @@
 #include "filebase.h"
 
 
-int64_t FileBase::samples_to_raw(char *out_buffer, 
-							float **in_buffer,
-							int64_t input_len, 
+int64_t FileBase::samples_to_raw(uint8_t *out_buffer, 
+							double **in_buffer,
+							int in_samples, 
 							int bits, 
 							int channels,
 							int byte_order,
 							int signed_)
 {
-	int output_advance;       // number of bytes in a sample
-	float *buffer_channel;    // channel in input buffer
-	float *buffer_channel_end;
+// number of bytes in a sample
+	int output_advance; 
+// channel in input buffer
+	double *in_channel; 
+	double *in_channel_end;
 	int channel;
-	int64_t int_sample, int_sample2;
-	float float_sample;
-	int64_t dither_value, dither_scale = 255;
-	int64_t bytes = input_len * channels * (file->bytes_per_sample(bits));
+	double in_sample;
+	int out_sample;
+	int dither_value;
+    const int dither_scale = 255;
+	int bytes = in_samples * channels * (file->bytes_per_sample(bits));
 	int machine_byte_order = get_byte_order();
 
 	switch(bits)
 	{
 		case BITSLINEAR8:
+		{
+			uint8_t *output_ptr, *output_end;
+			output_advance = channels;
+			for(channel = 0; channel < channels; channel++)
 			{
-				char *output_ptr, *output_end;
-				output_advance = channels;
-				for(channel = 0; channel < channels; channel++)
-				{
-					output_ptr = out_buffer + channel;
-					buffer_channel = in_buffer[channel];
-					buffer_channel_end = buffer_channel + input_len;
+				output_ptr = out_buffer + channel;
+				in_channel = in_buffer[channel];
+				in_channel_end = in_channel + in_samples;
 
-					if(dither)
+				if(dither)
+				{
+					for( ; in_channel < in_channel_end; in_channel++)
 					{
-						for( ; buffer_channel < buffer_channel_end; buffer_channel++)
-						{
-							float_sample = *buffer_channel * 0x7fff;
-							int_sample = (int64_t)float_sample;
-							if(int_sample > -0x7f00) { dither_value = rand() % dither_scale; int_sample -= dither_value; }
-							int_sample /= 0x100;  // rotating bits screws up the signs
-							*output_ptr = int_sample;
-							output_ptr += output_advance;
-						}
-					}
-					else
-					{
-						for( ; buffer_channel < buffer_channel_end; buffer_channel++)
-						{
-							float_sample = *buffer_channel * 0x7f;
-							*output_ptr = (char)float_sample;
-							output_ptr += output_advance;
-						}
+						in_sample = *in_channel * 0x7fff;
+                        CLAMP(in_sample, -0x8000, 0x7fff);
+						out_sample = (int)in_sample;
+						if(out_sample > -0x7f00) 
+                        { 
+                            dither_value = rand() % dither_scale; 
+                            out_sample -= dither_value; 
+                        }
+// shifting bits screws up the signs
+						out_sample /= 0x100;  
+						*output_ptr = out_sample;
+						output_ptr += output_advance;
 					}
 				}
+				else
+				{
+					for( ; in_channel < in_channel_end; in_channel++)
+					{
+						in_sample = *in_channel * 0x7f;
+                        CLAMP(in_sample, -0x80, 0x7f);
+						*output_ptr = (uint8_t)in_sample;
+						output_ptr += output_advance;
+					}
+				}
+			}
 
 // fix signed
-				if(!signed_)
-				{
-					output_ptr = out_buffer;
-					output_end = out_buffer + bytes;
+			if(!signed_)
+			{
+				output_ptr = out_buffer;
+				output_end = out_buffer + in_samples * channels;
 
-					for( ; output_ptr < output_end; output_ptr++)
-						*output_ptr ^= 0x80;
-				}
+				for( ; output_ptr < output_end; output_ptr++)
+					*output_ptr ^= 0x80;
 			}
 			break;
+		}
 
 		case BITSLINEAR16:
+		{
+			uint16_t *output_ptr, *output_end;
+			output_advance = channels;
+			for(channel = 0; channel < channels; channel++)
 			{
-				int16_t *output_ptr, *output_end;
-				output_advance = channels;
-				for(channel = 0; channel < channels; channel++)
-				{
-					output_ptr = (int16_t*)out_buffer + channel;
-					buffer_channel = in_buffer[channel];
-					buffer_channel_end = buffer_channel + input_len;
+				output_ptr = (uint16_t*)out_buffer + channel;
+				in_channel = in_buffer[channel];
+				in_channel_end = in_channel + in_samples;
 
-					if(dither)
+				if(dither)
+				{
+					for( ; in_channel < in_channel_end; in_channel++)
 					{
-						for( ; buffer_channel < buffer_channel_end; buffer_channel++)
-						{
-							float_sample = *buffer_channel * 0x7fffff;
-							int_sample = (int64_t)float_sample;
-							if(int_sample > -0x7fff00) { dither_value = rand() % dither_scale; int_sample -= dither_value; }
-							int_sample /= 0x100;
-							*output_ptr = int_sample;
-							output_ptr += output_advance;
-						}
+						in_sample = *in_channel * 0x7fffff;
+                        CLAMP(in_sample, -0x800000, 0x7fffff);
+						out_sample = (int)in_sample;
+						if(out_sample > -0x7fff00) 
+                        { 
+                            dither_value = rand() % dither_scale; 
+                            out_sample -= dither_value; 
+                        }
+						out_sample /= 0x100;
+						*output_ptr = out_sample;
+						output_ptr += output_advance;
 					}
-					else
+				}
+				else
+				{
+					for( ; in_channel < in_channel_end; in_channel++)
 					{
-						for( ; buffer_channel < buffer_channel_end; buffer_channel++)
-						{
-							float_sample = *buffer_channel * 0x7fff;
-							*output_ptr = (int16_t)float_sample;
-							output_ptr += output_advance;
-						}
+						in_sample = *in_channel * 0x7fff;
+                        CLAMP(in_sample, -0x8000, 0x7fff);
+						*output_ptr = (int16_t)in_sample;
+						output_ptr += output_advance;
 					}
 				}
 			}
+
+// fix signed
+			if(!signed_)
+			{
+				output_ptr = (uint16_t*)out_buffer;
+				output_end = (uint16_t*)out_buffer + in_samples * channels;
+
+				for( ; output_ptr < output_end; output_ptr++)
+					*output_ptr ^= 0x8000;
+			}
 			break;
+		}
 
 		case BITSLINEAR24:
+		{
+			uint8_t *output_ptr;
+			output_advance = asset->channels * 3 - 2;
+			for(channel = 0; channel < channels; channel++)
 			{
-				char *output_ptr, *output_end;
-				output_advance = asset->channels * 3 - 2;
-				for(channel = 0; channel < channels; channel++)
-				{
-					output_ptr = out_buffer + channel * 3;
-					buffer_channel = in_buffer[channel];
-					buffer_channel_end = buffer_channel + input_len;
+				output_ptr = out_buffer + channel * 3;
+				in_channel = in_buffer[channel];
+				in_channel_end = in_channel + in_samples;
 
-// don't bother dithering 24 bits
-					for( ; buffer_channel < buffer_channel_end; buffer_channel++)
-					{
-						float_sample = *buffer_channel * 0x7fffff;
-						int_sample = (int64_t)float_sample;
-						int_sample2 = int_sample & 0xff0000;
-						*output_ptr++ = (int_sample & 0xff);
-						int_sample &= 0xff00;
-						*output_ptr++ = (int_sample >> 8);
-						*output_ptr = (int_sample2 >> 16);
-						output_ptr += output_advance;
-					}
+// don't dither 24 bits
+				for( ; in_channel < in_channel_end; in_channel++)
+				{
+					in_sample = *in_channel * 0x7fffff;
+                    CLAMP(in_sample, -0x800000, 0x7fffff);
+					out_sample = (int)in_sample;
+// store as little endian
+					*output_ptr++ = out_sample & 0xff;
+					*output_ptr++ = (out_sample >> 8) & 0xff;
+					*output_ptr = (out_sample >> 16) & 0xff;
+					output_ptr += output_advance;
 				}
 			}
 			break;
-		
-		case BITSULAW:
+		}
+
+        case BITSFLOAT:
+        {
+            float *output_ptr;
+            output_advance = channels;
+            for(channel = 0; channel < channels; channel++)
 			{
-				char *output_ptr;
-				output_advance = asset->channels;
+                output_ptr = (float*)out_buffer + channel;
+                in_channel = in_buffer[channel];
+                in_channel_end = in_channel + in_samples;
+                
+                for( ; in_channel < in_channel_end; in_channel++)
+                {
+                    in_sample = *in_channel;
+                    *output_ptr = in_sample;
+                    output_ptr += output_advance;
+                }
+            }
+            break;
+        }
+
+		case BITSULAW:
+		{
+			uint8_t *output_ptr;
+			output_advance = asset->channels;
 //printf("FileBase::samples_to_raw 1\n");
-				generate_ulaw_tables();
+			generate_ulaw_tables();
 //printf("FileBase::samples_to_raw 2\n");
 
-				for(channel = 0; channel < channels; channel++)
+			for(channel = 0; channel < channels; channel++)
+			{
+				output_ptr = out_buffer + channel;
+				in_channel = in_buffer[channel];
+				in_channel_end = in_channel + in_samples;
+				for( ; in_channel < in_channel_end; in_channel++)
 				{
-					output_ptr = out_buffer + channel;
-					buffer_channel = in_buffer[channel];
-					buffer_channel_end = buffer_channel + input_len;
-					for( ; buffer_channel < buffer_channel_end; buffer_channel++)
-					{
-						*output_ptr = floattoulaw(*buffer_channel);
-						output_ptr += output_advance;
-					}
+					*output_ptr = floattoulaw(*in_channel);
+					output_ptr += output_advance;
 				}
-//printf("FileBase::samples_to_raw 3\n");
 			}
+//printf("FileBase::samples_to_raw 3\n");
 			break;
+		}
 	}
 
 // swap bytes
 	if((bits == BITSLINEAR16 && byte_order != machine_byte_order) ||
-		(bits == BITSLINEAR24 && !byte_order))
+		(bits == BITSLINEAR24 && byte_order == BYTE_ORDER_HILO))
 	{
-		swap_bytes(file->bytes_per_sample(bits), (unsigned char*)out_buffer, bytes);
+		swap_bytes(file->bytes_per_sample(bits), 
+            (unsigned char*)out_buffer, 
+            bytes);
 	}
 
 	return bytes;

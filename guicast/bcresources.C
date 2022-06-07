@@ -794,7 +794,7 @@ void BC_Resources::init()
 		meter_font = SMALLFONT;
 		meter_font_color = RED;
 		meter_title_w = DP(20);
-		meter_3d = 1;
+		meter_3d = 0;
 //		medium_7segment = default_medium_7segment;
 
 

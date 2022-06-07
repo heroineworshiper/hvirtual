@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -163,7 +162,6 @@ void PerformancePrefs::create_objects()
 		1,  // Include tools for video
 		0,  // Include checkbox for audio
 		0,  // Include checkbox for video
-		0,
 		1,
 		0,  // Select compressors to be offered
 		0,  // Prompt for recording options

@@ -396,6 +396,8 @@ SET_TRACE
 
 void RecordVideo::read_buffer()
 {
+// printf("RecordVideo::read_buffer %d\n", 
+// __LINE__);
 	grab_result = record->vdevice->read_buffer(capture_frame);
 
 // printf("RecordVideo::read_buffer %d %d %p %d\n", 

@@ -2739,7 +2739,36 @@ void MWindow::map_audio(int pattern)
 						break;
 				}
 			}
-			
+			else
+			if(pattern == MWindow::AUDIO_5_1_TO_2B)
+			{
+				switch(current_track)
+				{
+					case 0:
+						pan_auto->values[0] = 1;
+						break;
+					case 1:
+						pan_auto->values[1] = 1;
+						break;
+					case 2:
+					case 3:
+						pan_auto->values[0] = 0.5;
+						pan_auto->values[1] = 0.5;
+						break;
+					case 4:
+						pan_auto->values[0] = 1;
+						break;
+					case 5:
+						pan_auto->values[1] = 1;
+						break;
+				}
+			}
+
+
+
+
+
+
 			BC_Pan::calculate_stick_position(edl->session->audio_channels, 
 				edl->session->achannel_positions, 
 				pan_auto->values, 

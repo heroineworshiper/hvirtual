@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +43,7 @@
 FileFLAC::FileFLAC(Asset *asset, File *file)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 	if(asset->format == FILE_UNKNOWN) asset->format = FILE_FLAC;
 	asset->byte_order = 0;
 }
@@ -54,13 +53,50 @@ FileFLAC::~FileFLAC()
 	close_file();
 }
 
+FileFLAC::FileFLAC()
+ : FileBase()
+{
+    reset_parameters_derived();
+    ids.append(FILE_FLAC);
+    has_audio = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileFLAC::create(File *file)
+{
+    return new FileFLAC(file->asset, file);
+}
+
+
+const char* FileFLAC::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_FLAC:
+			return _(FLAC_NAME);
+			break;
+    }
+    return 0;
+}
+
+const char* FileFLAC::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_FLAC:
+            return "flac";
+    }
+    return 0;
+}
+
 void FileFLAC::get_parameters(BC_WindowBase *parent_window, 
 	Asset *asset, 
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+	int option_type,
+	const char *locked_compressor)
 {
-	if(audio_options)
+	if(option_type == AUDIO_PARAMS)
 	{
 		FLACConfigAudio *window = new FLACConfigAudio(parent_window, asset);
 		format_window = window;
@@ -72,12 +108,12 @@ void FileFLAC::get_parameters(BC_WindowBase *parent_window,
 
 
 
-int FileFLAC::check_sig(Asset *asset, char *test)
+int FileFLAC::check_sig(File *file, const uint8_t *test_data)
 {
-	if(test[0] == 'f' &&
-		test[1] == 'L' &&
-		test[2] == 'a' &&
-		test[3] == 'C')
+	if(test_data[0] == 'f' &&
+		test_data[1] == 'L' &&
+		test_data[2] == 'a' &&
+		test_data[3] == 'C')
 	{
 		return 1;
 	}

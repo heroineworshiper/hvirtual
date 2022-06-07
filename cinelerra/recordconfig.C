@@ -215,6 +215,7 @@ char* VideoInConfig::get_path()
 			break;
 		case VIDEO4LINUX2:
 		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 		case CAPTURE_JPEG_WEBCAM:
 		case CAPTURE_YUYV_WEBCAM:
 			return v4l2_in_device;

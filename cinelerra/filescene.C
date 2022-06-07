@@ -199,7 +199,7 @@ static int read_parameter(char *string,
 FileScene::FileScene(Asset *asset, File *file)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 	get_exe_path(exe_path);
 }
 

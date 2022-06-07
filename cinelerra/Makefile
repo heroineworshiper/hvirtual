@@ -6,7 +6,13 @@ EXRDIR := $(shell expr ../thirdparty/openexr* )
 ILMDIR := $(shell expr ../thirdparty/ilmbase* )
 FLAC_DIR := $(shell expr ../thirdparty/flac*/ )
 FFMPEG_DIR := $(shell expr ../quicktime/thirdparty/ffmpeg* )
+
+ifeq ($(OBJDIR), i686)
 JPEG_DIR := $(shell expr ../quicktime/thirdparty/jpeg-mmx* )
+else
+JPEG_DIR := $(shell expr ../quicktime/thirdparty/jpeg9d )
+endif
+
 LAME_DIR := ../quicktime/thirdparty/lame-3.93.1/include
 LIBIEC_DIR := $(shell expr ../thirdparty/libiec61883* )
 LIBRAW1394_DIR := $(shell expr ../thirdparty/libraw1394* )
@@ -147,6 +153,7 @@ OBJS = \
 	$(OBJDIR)/filescene.o \
 	$(OBJDIR)/fileserver.o \
 	$(OBJDIR)/filesndfile.o \
+	$(OBJDIR)/filestdout.o \
 	$(OBJDIR)/filetga.o \
 	$(OBJDIR)/filethread.o \
 	$(OBJDIR)/filetiff.o \
@@ -707,6 +714,7 @@ $(OBJDIR)/filempeg.o:                             filempeg.C
 $(OBJDIR)/fileogg.o:                              fileogg.C
 $(OBJDIR)/filepng.o: 				  filepng.C
 $(OBJDIR)/filesndfile.o: 			  filesndfile.C
+$(OBJDIR)/filestdout.o: 			  filestdout.C
 $(OBJDIR)/filetga.o: 			  	  filetga.C
 $(OBJDIR)/filethread.o: 			  filethread.C
 $(OBJDIR)/filetiff.o: 				  filetiff.C

@@ -935,26 +935,18 @@ void MWindow::init_channeldb()
 void MWindow::init_menus()
 {
 	char string[BCTEXTLEN];
-	cmodel_to_text(string, BC_RGB888);
+	BC_CModels::to_text(string, BC_RGB888);
 	colormodels.append(new ColormodelItem(string, BC_RGB888));
-	cmodel_to_text(string, BC_RGBA8888);
+	BC_CModels::to_text(string, BC_RGBA8888);
 	colormodels.append(new ColormodelItem(string, BC_RGBA8888));
-//	cmodel_to_text(string, BC_RGB161616);
-//	colormodels.append(new ColormodelItem(string, BC_RGB161616));
-//	cmodel_to_text(string, BC_RGBA16161616);
-//	colormodels.append(new ColormodelItem(string, BC_RGBA16161616));
-	cmodel_to_text(string, BC_RGB_FLOAT);
+	BC_CModels::to_text(string, BC_RGB_FLOAT);
 	colormodels.append(new ColormodelItem(string, BC_RGB_FLOAT));
-	cmodel_to_text(string, BC_RGBA_FLOAT);
+	BC_CModels::to_text(string, BC_RGBA_FLOAT);
 	colormodels.append(new ColormodelItem(string, BC_RGBA_FLOAT));
-	cmodel_to_text(string, BC_YUV888);
+	BC_CModels::to_text(string, BC_YUV888);
 	colormodels.append(new ColormodelItem(string, BC_YUV888));
-	cmodel_to_text(string, BC_YUVA8888);
+	BC_CModels::to_text(string, BC_YUVA8888);
 	colormodels.append(new ColormodelItem(string, BC_YUVA8888));
-//	cmodel_to_text(string, BC_YUV161616);
-//	colormodels.append(new ColormodelItem(string, BC_YUV161616));
-//	cmodel_to_text(string, BC_YUVA16161616);
-//	colormodels.append(new ColormodelItem(string, BC_YUVA16161616));
 }
 
 void MWindow::init_indexes()

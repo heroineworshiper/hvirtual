@@ -335,11 +335,12 @@ int FrameField::process_buffer(VFrame *frame,
 	current_frame_number = start_position / 2;
 
 	VFrame *ptr = frame;
-	if(get_use_opengl())
-	{
-// Read new frames directly into output frame for hardware
-	}
-	else
+// disable since interlaced video is rare & OpenGL couldn't address single lines
+// 	if(get_use_opengl())
+// 	{
+// // Read new frames directly into output frame for hardware
+// 	}
+// 	else
 	{
 // Read into temporary for software
 		if(src_frame &&
@@ -371,17 +372,17 @@ int FrameField::process_buffer(VFrame *frame,
 			0, 
 			current_frame_number, 
 			frame_rate / 2,
-			get_use_opengl());
+			0 /* get_use_opengl() */ );
 		src_frame_number = current_frame_number;
 		new_frame = 1;
 	}
 
 
-	if(get_use_opengl())
-	{
-		run_opengl();
-		return 0;
-	}
+// 	if(get_use_opengl())
+// 	{
+// 		run_opengl();
+// 		return 0;
+// 	}
 
 	int row_size = VFrame::calculate_bytes_per_pixel(frame->get_color_model()) * 
 		frame->get_w();

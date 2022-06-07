@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +55,42 @@ int toolame_send_buffer(char *data, int bytes);
 class FileMPEGVideo;
 class FileMPEGAudio;
 
+// empty table entries for the encoders
+class FileAMPEG : public FileBase
+{
+public:
+    FileAMPEG();
+// This instantiates a FileMPEG to do the encoding
+    FileBase* create(File *file);
+	void get_parameters(BC_WindowBase *parent_window, 
+		Asset *asset, 
+		BC_WindowBase* &format_window,
+		int option_type,
+	    const char *locked_compressor);
+// wraps FileMPEG::get_best_colormodel
+	int get_best_colormodel(Asset *asset, int driver);
+    const char* formattostr(int format);
+    const char* get_tag(int format);
+};
+
+class FileVMPEG : public FileBase
+{
+public:
+    FileVMPEG();
+// This instantiates a FileMPEG to do the encoding
+    FileBase* create(File *file);
+	void get_parameters(BC_WindowBase *parent_window, 
+		Asset *asset, 
+		BC_WindowBase* &format_window,
+		int option_type,
+	    const char *locked_compressor);
+// wraps FileMPEG::get_best_colormodel
+	int get_best_colormodel(Asset *asset, int driver);
+    const char* formattostr(int format);
+    const char* get_tag(int format);
+};
+
+// The encoding & decoding
 class FileMPEG : public FileBase
 {
 public:
@@ -65,13 +100,16 @@ public:
 	friend class FileMPEGVideo;
 	friend class FileMPEGAudio;
 
-	static void get_parameters(BC_WindowBase *parent_window, 
-		Asset *asset, 
-		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options);
 
-	static int check_sig(Asset *asset);
+// table functions
+    FileMPEG();
+	int check_sig(File *file, const uint8_t *test_data);
+    FileBase* create(File *file);
+	int get_best_colormodel(Asset *asset, int driver);
+    const char* formattostr(int format);
+    const char* get_tag(int format);
+
+
 
 // Get extra info for info dialog.
 	static void get_info(Asset *asset, int64_t *bytes, int *stracks);
@@ -95,7 +133,6 @@ public:
 	int64_t get_memory_usage();
 
 // Direct copy routines
-	static int get_best_colormodel(Asset *asset, int driver);
 	int colormodel_supported(int colormodel);
 // This file can copy frames directly from the asset
 	int can_copy_from(Asset *asset, int64_t position); 

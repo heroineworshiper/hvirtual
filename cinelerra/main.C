@@ -23,6 +23,7 @@
 #include "bchash.h"
 #include "bcsignals.h"
 #include "edl.h"
+#include "file.h"
 #include "filexml.h"
 #include "fileserver.h"
 #include "filesystem.h"
@@ -135,7 +136,7 @@ int main(int argc, char *argv[])
 	batch_path[0] = 0;
 	deamon_path[0] = 0;
 	EDL::id_lock = new Mutex("EDL::id_lock");
-
+    File::init_table();
 
 	get_exe_path(exe_path);
 	sprintf(locale_path, "%s%s", exe_path, LOCALEDIR);

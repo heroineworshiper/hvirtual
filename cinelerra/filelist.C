@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
@@ -46,13 +45,20 @@ FileList::FileList(Asset *asset,
 	int list_type)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 	asset->video_data = 1;
 	this->list_prefix = (char*)list_prefix;
 	this->file_extension = (char*)file_extension;
 	this->frame_type = frame_type;
 	this->list_type = list_type;
 	table_lock = new Mutex("FileList::table_lock");
+}
+
+FileList::FileList()
+ : FileBase()
+{
+    reset_parameters_derived();
+    table_lock = 0;
 }
 
 FileList::~FileList()
@@ -153,15 +159,14 @@ int FileList::open_file(int rd, int wr)
 int FileList::close_file()
 {
 //	path_list.total, asset->format, list_type, wr);
-	if(asset->format == list_type && path_list.total)
+	if(asset && asset->format == list_type && path_list.total)
 	{
-		if(file->wr && asset->use_header) write_list_header();
+		if(file && file->wr && asset->use_header) write_list_header();
 		path_list.remove_all_objects();
 	}
 	if(data) delete data;
 	if(writer) delete writer;
 	if(temp) delete temp;
-	reset_parameters();
 
 	FileBase::close_file();
 	return 0;

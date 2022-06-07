@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@
 #include "filescene.h"
 #include "fileserver.h"
 #include "filesndfile.h"
+#include "filestdout.h"
 #include "filetga.h"
 #include "filethread.h"
 #include "filetiff.h"
@@ -64,6 +65,8 @@
 #include "vframe.h"
 
 //static int temp_debug = 0;
+
+ArrayList<FileBase*>* File::file_table;
 
 
 File::File()
@@ -139,6 +142,36 @@ void File::reset_parameters()
 	memory_usage = 0;
 }
 
+void File::init_table()
+{
+    file_table = new ArrayList<FileBase*>;
+
+// Must be in the order of the check_sig calls
+#ifdef USE_SCENE
+    file_table->append(new FileScene);
+#endif
+    file_table->append(new FileAC3);
+    file_table->append(new FileSndFile);
+    file_table->append(new FilePNG);
+    file_table->append(new FileJPEG);
+    file_table->append(new FileGIF);
+    file_table->append(new FileEXR);
+    file_table->append(new FileFLAC);
+    file_table->append(new FileCR2);
+    file_table->append(new FileCR3);
+    file_table->append(new FileTGA);
+    file_table->append(new FileTIFF);
+    file_table->append(new FileMOV);
+    file_table->append(new FileMPEG);
+    file_table->append(new FileAMPEG);
+    file_table->append(new FileVMPEG);
+    file_table->append(new FileOGG);
+    file_table->append(new FileVorbis);
+    file_table->append(new FileAVI);
+    file_table->append(new FileFFMPEG);
+    file_table->append(new FileStdout);
+}
+
 int File::raise_window()
 {
 	if(getting_options && format_window)
@@ -160,127 +193,46 @@ void File::close_window()
 	}
 }
 
-int File::get_options(BC_WindowBase *parent_window, 
+int File::get_parameters(BC_WindowBase *parent_window, 
 	ArrayList<PluginServer*> *plugindb, 
 	Asset *asset, 
-	int audio_options, 
-	int video_options,
+	int option_type,
 	char *locked_compressor)
 {
 	getting_options = 1;
 	format_completion->lock("File::get_options");
-	switch(asset->format)
-	{
-		case FILE_AC3:
-			FileAC3::get_parameters(parent_window,
-				asset,
-				format_window,
-				audio_options,
-				video_options);
-			break;
-		case FILE_PCM:
-		case FILE_WAV:
-		case FILE_AU:
-		case FILE_AIFF:
-		case FILE_SND:
-			FileSndFile::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options);
-			break;
-		case FILE_MOV:
-			FileMOV::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options,
-				locked_compressor);
-			break;
-		case FILE_AMPEG:
-		case FILE_VMPEG:
-			FileMPEG::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options);
-			break;
-		case FILE_AVI:
-			FileMOV::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options,
-				locked_compressor);
-			break;
-		case FILE_AVI_LAVTOOLS:
-		case FILE_AVI_ARNE2:
-		case FILE_AVI_ARNE1:
-		case FILE_AVI_AVIFILE:
-			FileAVI::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options,
-				locked_compressor);
-			break;
-		case FILE_JPEG:
-		case FILE_JPEG_LIST:
-			FileJPEG::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options);
-			break;
-		case FILE_EXR:
-		case FILE_EXR_LIST:
-			FileEXR::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options);
-			break;
-		case FILE_FLAC:
-			FileFLAC::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options);
-			break;
-		case FILE_PNG:
-		case FILE_PNG_LIST:
-			FilePNG::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options);
-			break;
-		case FILE_TGA:
-		case FILE_TGA_LIST:
-			FileTGA::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options);
-			break;
-		case FILE_TIFF:
-		case FILE_TIFF_LIST:
-			FileTIFF::get_parameters(parent_window, 
-				asset, 
-				format_window, 
-				audio_options, 
-				video_options);
-			break;
-		case FILE_OGG:
-			FileOGG::get_parameters(parent_window,
-				asset,
-				format_window,
-				audio_options,
-				video_options);
-			break;
-		default:
-			break;
-	}
+    for(int i = 0; i < file_table->size() && !file; i++)
+    {
+        FileBase *table_entry = file_table->get(i);
+        if(table_entry->has_wr)
+        {
+            for(int j = 0; j < table_entry->ids.size(); j++)
+            {
+// printf("File::get_parameters %d i=%d j=%d id=%d has_audio=%d has_video=%d has_wrapper=%d\n",
+// __LINE__,
+// i,
+// j,
+// table_entry->ids.get(j),
+// table_entry->has_audio,
+// table_entry->has_video,
+// table_entry->has_wrapper);
+                if(asset->format == table_entry->ids.get(j) &&
+                    ((option_type == AUDIO_PARAMS && table_entry->has_audio) ||
+                    (option_type == VIDEO_PARAMS && table_entry->has_video) ||
+                    (option_type == MPLEX_PARAMS && table_entry->has_wrapper)))
+                {
+                    table_entry->get_parameters(parent_window,
+				        asset,
+				        format_window,
+				        option_type,
+                        locked_compressor);
+                    i = file_table->size();
+                    break;
+                }
+            }
+        }
+    }
+
 
 	if(!format_window)
 	{
@@ -289,12 +241,16 @@ int File::get_options(BC_WindowBase *parent_window,
 			parent_window->get_abs_cursor_y(1));
 		format_window = errorbox;
 		getting_options = 1;
-		if(audio_options)
-			errorbox->create_objects(_("This format doesn't support audio."));
+		if(option_type == AUDIO_PARAMS)
+			errorbox->create_objects(_("This format has no audio options."));
 		else
-		if(video_options)
-			errorbox->create_objects(_("This format doesn't support video."));
-		errorbox->run_window();
+		if(option_type == VIDEO_PARAMS)
+			errorbox->create_objects(_("This format has no video options."));
+		else
+        if(option_type == MPLEX_PARAMS)
+			errorbox->create_objects(_("This format has no wrapper options."));
+		
+        errorbox->run_window();
 		delete errorbox;
 	}
 
@@ -466,7 +422,10 @@ int File::open_file(Preferences *preferences,
 	this->wr = wr;
 	file = 0;
 
-	if(debug) printf("File::open_file %d path=%s\n", __LINE__, asset->path);
+	if(debug) printf("File::open_file %d is_fork=%d path=%s\n", 
+        __LINE__, 
+        is_fork,
+        asset->path);
 
 #ifdef USE_FILEFORK
 	if(!is_fork)
@@ -533,12 +492,17 @@ int File::open_file(Preferences *preferences,
                 case FILE_IS_XML:
                 case FILE_USER_CANCELED:
 		        {
-//printf("File::open_file %d result=%d\n", __LINE__, result);
+// printf("File::open_file %d result_data=%s\n", 
+//     __LINE__, 
+//     file_fork->result_data);
 // Get the updated asset from the fork
 			        table.load_string((char*)file_fork->result_data);
+//printf("File::open_file %d\n", __LINE__);
 
 			        asset->load_defaults(&table, "", 1, 1, 1, 1, 1);
+//printf("File::open_file %d\n", __LINE__);
 			        this->asset->load_defaults(&table, "", 1, 1, 1, 1, 1);
+//printf("File::open_file %d\n", __LINE__);
                     done = 1;
 //this->asset->dump();
                     break;
@@ -600,282 +564,95 @@ int File::open_file(Preferences *preferences,
 // 			is_fork = 1;
 // 		}
 // 		else
-		{
+//		{
 			return result;
-		}
+//		}
 	}
 #endif // USE_FILEFORK
 
 
-    if(debug) printf("File::open_file %d format=%d\n", __LINE__, this->asset->format);
+    if(debug) printf("File::open_file %d is_fork=%d format=%d\n", 
+        __LINE__, 
+        is_fork,
+        this->asset->format);
 
-	switch(this->asset->format)
+	if(this->asset->format == FILE_UNKNOWN)
 	{
-// get the format now
-// If you add another format to case 0, you also need to add another case for the
-// file format #define.
-		case FILE_UNKNOWN:
-			FILE *stream;
-			if(!(stream = fopen(this->asset->path, "rb")))
-			{
+// try to discover the format
+		FILE *stream;
+		if(!(stream = fopen(this->asset->path, "rb")))
+		{
 // file not found
-				return 1;
-			}
+			return 1;
+		}
 
-			char test[16];
-			result = fread(test, 16, 1, stream);
+		uint8_t test[16];
+		result = fread(test, 16, 1, stream);
 
-#ifdef USE_SCENE
-			if(FileScene::check_sig(this->asset, test))
-			{
-// script
-				fclose(stream);
-				file = new FileScene(this->asset, this);
-			}
-			else
-#endif // USE_SCENE
-			if(FileSndFile::check_sig(this->asset))
-			{
-// libsndfile
-				fclose(stream);
-				file = new FileSndFile(this->asset, this);
-			}
-			else
-			if(FilePNG::check_sig(this->asset))
-			{
-// PNG file
-				fclose(stream);
-				file = new FilePNG(this->asset, this);
-			}
-			else
-			if(FileJPEG::check_sig(this->asset))
-			{
-// JPEG file
-				fclose(stream);
-				file = new FileJPEG(this->asset, this);
-			}
-			else
-			if(FileGIF::check_sig(this->asset))
-			{
-// GIF file
-				fclose(stream);
-				file = new FileGIF(this->asset, this);
-			}
-			else
-			if(FileEXR::check_sig(this->asset, test))
-			{
-// EXR file
-				fclose(stream);
-				file = new FileEXR(this->asset, this);
-			}
-			else
-			if(FileFLAC::check_sig(this->asset, test))
-			{
-// FLAC file
-				fclose(stream);
-				file = new FileFLAC(this->asset, this);
-			}
-			else
-			if(FileCR2::check_sig(this->asset))
-			{
-// CR2 file
-				fclose(stream);
-				file = new FileCR2(this->asset, this);
-			}
-			else
-			if(FileCR3::check_sig(this->asset))
-			{
-// CR3 file
-				fclose(stream);
-				file = new FileCR3(this->asset, this);
-			}
-			else
-			if(FileTGA::check_sig(this->asset))
-			{
-// TGA file
-				fclose(stream);
-				file = new FileTGA(this->asset, this);
-			}
-			else
-			if(FileTIFF::check_sig(this->asset))
-			{
-// TIFF file
-				fclose(stream);
-				file = new FileTIFF(this->asset, this);
-			}
-			else
-			if(FileVorbis::check_sig(this->asset))
-			{
-// VorbisFile file
-				fclose(stream);
-				file = new FileVorbis(this->asset, this);
-			}
-			else
-			if(FileOGG::check_sig(this->asset))
-			{
-// OGG file.  Doesn't always work with pure audio files.
-				fclose(stream);
-				file = new FileOGG(this->asset, this);
-			}
-			else
-			if(FileMPEG::check_sig(this->asset))
-			{
-// MPEG file
-				fclose(stream);
-				file = new FileMPEG(this->asset, this);
-			}
-			else
-			if(test[0] == '<' && test[1] == 'E' && test[2] == 'D' && test[3] == 'L' && test[4] == '>' ||
-				test[0] == '<' && test[1] == 'H' && test[2] == 'T' && test[3] == 'A' && test[4] == 'L' && test[5] == '>' ||
-				test[0] == '<' && test[1] == '?' && test[2] == 'x' && test[3] == 'm' && test[4] == 'l')
-			{
-//printf("File::open_file %d\n", __LINE__);
-// XML file
-				fclose(stream);
-				return FILE_IS_XML;
-			}    // can't load project file
-			else
-			if(FileMOV::check_sig(this->asset))
-			{
-// MOV file
-// should be last because quicktime lacks a magic number
-				fclose(stream);
-				file = new FileMOV(this->asset, this);
-			}
-			else
-// 			if(FileMKV::check_sig(this->asset))
-// 			{
-// 				fclose(stream);
-// 				file = new FileMKV(this->asset, this);
-// 			}
-// 			else
-// FFMPEG last because it sux
-			if(FileFFMPEG::check_sig(this->asset))
-			{
-				fclose(stream);
-				file = new FileFFMPEG(this->asset, this);
-			}
-			else
-			{
-// PCM file
-				fclose(stream);
-				return FILE_UNRECOGNIZED_CODEC;
-			}   // need more info
-			break;
-
-// format already determined
-		case FILE_AC3:
-			file = new FileAC3(this->asset, this);
-			break;
-
-#ifdef USE_SCENE
-		case FILE_SCENE:
-			file = new FileScene(this->asset, this);
-			break;
-#endif // USE_SCENE
-
-		case FILE_FFMPEG:
-			file = new FileFFMPEG(this->asset, this);
-			break;
-
-		case FILE_PCM:
-		case FILE_WAV:
-		case FILE_AU:
-		case FILE_AIFF:
-		case FILE_SND:
-//printf("File::open_file 1\n");
-			file = new FileSndFile(this->asset, this);
-			break;
-
-		case FILE_PNG:
-		case FILE_PNG_LIST:
-			file = new FilePNG(this->asset, this);
-			break;
-
-		case FILE_JPEG:
-		case FILE_JPEG_LIST:
-			file = new FileJPEG(this->asset, this);
-			break;
-
-		case FILE_GIF:
-		case FILE_GIF_LIST:
-			file = new FileGIF(this->asset, this);
-			break;
-
-		case FILE_EXR:
-		case FILE_EXR_LIST:
-			file = new FileEXR(this->asset, this);
-			break;
-
-		case FILE_FLAC:
-			file = new FileFLAC(this->asset, this);
-			break;
-
-		case FILE_CR2:
-		case FILE_CR2_LIST:
-			file = new FileCR2(this->asset, this);
-			break;
-
-		case FILE_CR3:
-		case FILE_CR3_LIST:
-			file = new FileCR3(this->asset, this);
-			break;
-
-		case FILE_TGA_LIST:
-		case FILE_TGA:
-			file = new FileTGA(this->asset, this);
-			break;
-
-		case FILE_TIFF:
-		case FILE_TIFF_LIST:
-			file = new FileTIFF(this->asset, this);
-			break;
-
-		case FILE_MOV:
-#ifdef USE_FFMPEG_OUTPUT
-// use ffmpeg if a MOV & writing to it
-            if(wr)
+		if(test[0] == '<' && test[1] == 'E' && test[2] == 'D' && test[3] == 'L' && test[4] == '>' ||
+			test[0] == '<' && test[1] == 'H' && test[2] == 'T' && test[3] == 'A' && test[4] == 'L' && test[5] == '>' ||
+			test[0] == '<' && test[1] == '?' && test[2] == 'x' && test[3] == 'm' && test[4] == 'l')
+		{
+// EDL
+			fclose(stream);
+			return FILE_IS_XML;
+		}    // can't load project file
+		else
+        {
+            for(int i = 0; i < file_table->size(); i++)
             {
-                file = new FileFFMPEG(this->asset, this);
+                FileBase *table_entry = file_table->get(i);
+                if(table_entry->has_rd &&
+                    table_entry->check_sig(this, test))
+                {
+                    fclose(stream);
+                    file = file_table->get(i)->create(this);
+                    if(debug) printf("File::open_file %d format=%d asset=%p\n", 
+                        __LINE__, 
+                        this->asset->format,
+                        file->asset);
+                    break;
+                }
             }
-            else
-#endif // USE_FFMPEG_OUTPUT
+        }
+
+        if(!file)
+        {
+			fclose(stream);
+// Prompt for a PCM file
+			return FILE_UNRECOGNIZED_CODEC;
+        }
+    }
+    else
+    {
+// format already known
+        for(int i = 0; i < file_table->size() && !file; i++)
+        {
+            FileBase *table_entry = file_table->get(i);
+            if((wr && table_entry->has_wr) ||
+                (rd && table_entry->has_rd))
             {
-			    file = new FileMOV(this->asset, this);
+                for(int j = 0; j < table_entry->ids.size(); j++)
+                {
+                    if(this->asset->format == table_entry->ids.get(j))
+                    {
+                        file = table_entry->create(this);
+                        i = file_table->size();
+                        break;
+                    }
+                }
             }
-			break;
+        }
 
-		case FILE_MPEG:
-		case FILE_AMPEG:
-		case FILE_VMPEG:
-			file = new FileMPEG(this->asset, this);
-			break;
-
-		case FILE_OGG:
-			file = new FileOGG(this->asset, this);
-			break;
-
-		case FILE_VORBIS:
-			file = new FileVorbis(this->asset, this);
-			break;
-
-		case FILE_AVI:
-			file = new FileMOV(this->asset, this);
-			break;
-
-		case FILE_AVI_LAVTOOLS:
-		case FILE_AVI_ARNE2:
-		case FILE_AVI_ARNE1:
-		case FILE_AVI_AVIFILE:
-			file = new FileAVI(this->asset, this);
-			break;
-
-// try plugins
-		default:
-			return FILE_NOT_FOUND;
-			break;
+        if(!file)
+        {
+      		return FILE_NOT_FOUND;
+        }
 	}
-    if(debug) printf("File::open_file %d\n", __LINE__);
+    if(debug) printf("File::open_file %d format=%d asset=%p\n", 
+        __LINE__, 
+        this->asset->format,
+        file->asset);
 
 
 // Reopen file with correct parser and get header.
@@ -904,7 +681,10 @@ int File::open_file(Preferences *preferences,
 		asset->copy_from(this->asset, 1);
 	}
 
-    if(debug) printf("File::open_file %d file=%p\n", __LINE__, file);
+    if(debug) printf("File::open_file %d is_fork=%d file=%p\n", 
+        __LINE__, 
+        is_fork,
+        file);
 // sleep(1);
 
 	if(file)
@@ -2172,7 +1952,7 @@ int File::read_frame(VFrame *frame, int is_thread)
 			0, 
 			0);
 		memory_usage = file_fork->read_result();
-		
+
 		if(debug) PRINT_TRACE
 
 //printf("File::read_frame %d frame=%p\n", __LINE__, frame);
@@ -2183,7 +1963,7 @@ int File::read_frame(VFrame *frame, int is_thread)
 #endif
 
 
-//printf("File::read_frame %d\n", __LINE__);
+//printf("File::read_frame %d color_model=%d\n", __LINE__, frame->get_color_model());
 
 	if(video_thread && !is_thread) return video_thread->read_frame(frame);
 
@@ -2244,13 +2024,13 @@ int File::read_frame(VFrame *frame, int is_thread)
 			temp_frame->copy_stacks(frame);
 			file->read_frame(temp_frame);
 //for(int i = 0; i < 1000 * 1000; i++) ((float*)temp_frame->get_rows()[0])[i] = 1.0;
-// printf("File::read_frame %d %d %d %d %d %d\n", 
-// temp_frame->get_color_model(), 
-// temp_frame->get_w(),
-// temp_frame->get_h(),
-// frame->get_color_model(),
-// frame->get_w(),
-// frame->get_h());
+printf("File::read_frame %d %d %d %d %d %d\n", 
+temp_frame->get_color_model(), 
+temp_frame->get_w(),
+temp_frame->get_h(),
+frame->get_color_model(),
+frame->get_w(),
+frame->get_h());
 			cmodel_transfer(frame->get_rows(), 
 				temp_frame->get_rows(),
 				frame->get_y(),
@@ -2354,195 +2134,57 @@ int File::can_copy_from(Asset *asset,
 		return 0;
 }
 
-// Fill in queries about formats when adding formats here.
 
 
-int File::strtoformat(char *format)
+int File::strtoformat(const char *format)
 {
-	return strtoformat(0, format);
-}
-
-int File::strtoformat(ArrayList<PluginServer*> *plugindb, char *format)
-{
-	if(!strcasecmp(format, _(AC3_NAME))) return FILE_AC3;
-	else
-	if(!strcasecmp(format, _(SCENE_NAME))) return FILE_SCENE;
-	else
-	if(!strcasecmp(format, _(WAV_NAME))) return FILE_WAV;
-	else
-	if(!strcasecmp(format, _(PCM_NAME))) return FILE_PCM;
-	else
-	if(!strcasecmp(format, _(AU_NAME))) return FILE_AU;
-	else
-	if(!strcasecmp(format, _(AIFF_NAME))) return FILE_AIFF;
-	else
-	if(!strcasecmp(format, _(SND_NAME))) return FILE_SND;
-	else
-	if(!strcasecmp(format, _(PNG_NAME))) return FILE_PNG;
-	else
-	if(!strcasecmp(format, _(PNG_LIST_NAME))) return FILE_PNG_LIST;
-	else
-	if(!strcasecmp(format, _(TIFF_NAME))) return FILE_TIFF;
-	else
-	if(!strcasecmp(format, _(TIFF_LIST_NAME))) return FILE_TIFF_LIST;
-	else
-	if(!strcasecmp(format, _(JPEG_NAME))) return FILE_JPEG;
-	else
-	if(!strcasecmp(format, _(JPEG_LIST_NAME))) return FILE_JPEG_LIST;
-	else
-	if(!strcasecmp(format, _(EXR_NAME))) return FILE_EXR;
-	else
-	if(!strcasecmp(format, _(EXR_LIST_NAME))) return FILE_EXR_LIST;
-	else
-	if(!strcasecmp(format, _(FLAC_NAME))) return FILE_FLAC;
-	else
-	if(!strcasecmp(format, _(CR2_NAME))) return FILE_CR2;
-	else
-	if(!strcasecmp(format, _(CR2_LIST_NAME))) return FILE_CR2_LIST;
-	else
-	if(!strcasecmp(format, _(MPEG_NAME))) return FILE_MPEG;
-	else
-	if(!strcasecmp(format, _(AMPEG_NAME))) return FILE_AMPEG;
-	else
-	if(!strcasecmp(format, _(VMPEG_NAME))) return FILE_VMPEG;
-	else
-	if(!strcasecmp(format, _(TGA_NAME))) return FILE_TGA;
-	else
-	if(!strcasecmp(format, _(TGA_LIST_NAME))) return FILE_TGA_LIST;
-	else
-	if(!strcasecmp(format, _(MOV_NAME))) return FILE_MOV;
-	else
-	if(!strcasecmp(format, _(AVI_NAME))) return FILE_AVI;
-	else
-	if(!strcasecmp(format, _(AVI_LAVTOOLS_NAME))) return FILE_AVI_LAVTOOLS;
-	else
-	if(!strcasecmp(format, _(AVI_ARNE2_NAME))) return FILE_AVI_ARNE2;
-	else
-	if(!strcasecmp(format, _(AVI_ARNE1_NAME))) return FILE_AVI_ARNE1;
-	else
-	if(!strcasecmp(format, _(AVI_AVIFILE_NAME))) return FILE_AVI_AVIFILE;
-	else
-	if(!strcasecmp(format, _(OGG_NAME))) return FILE_OGG;
-	else
-	if(!strcasecmp(format, _(VORBIS_NAME))) return FILE_VORBIS;
-	else
-	if(!strcasecmp(format, _(FFMPEG_NAME))) return FILE_FFMPEG;
-
+    for(int i = 0; i < file_table->size(); i++)
+    {
+        FileBase *table_entry = file_table->get(i);
+// test every ID in the file handler for handlers with multiple format strings
+        for(int j = 0; j < table_entry->ids.size(); j++)
+        {
+            int id = table_entry->ids.get(j);
+            const char *result = table_entry->formattostr(id);
+//printf("File::strtoformat %d id=%d result=%s\n", __LINE__, id, result);
+            if(result && !strcasecmp(result, format))
+            {
+                return id;
+            }
+        }
+    }
 	return 0;
 }
 
 const char* File::formattostr(int format)
 {
-	return formattostr(0, format);
-}
-
-const char* File::formattostr(ArrayList<PluginServer*> *plugindb, int format)
-{
-	switch(format)
-	{
-		case FILE_SCENE:
-			return _(SCENE_NAME);
-			break;
-		case FILE_AC3:
-			return _(AC3_NAME);
-			break;
-		case FILE_WAV:
-			return _(WAV_NAME);
-			break;
-		case FILE_PCM:
-			return _(PCM_NAME);
-			break;
-		case FILE_AU:
-			return _(AU_NAME);
-			break;
-		case FILE_AIFF:
-			return _(AIFF_NAME);
-			break;
-		case FILE_SND:
-			return _(SND_NAME);
-			break;
-		case FILE_PNG:
-			return _(PNG_NAME);
-			break;
-		case FILE_PNG_LIST:
-			return _(PNG_LIST_NAME);
-			break;
-		case FILE_JPEG:
-			return _(JPEG_NAME);
-			break;
-		case FILE_JPEG_LIST:
-			return _(JPEG_LIST_NAME);
-			break;
-		case FILE_CR2:
-			return _(CR2_NAME);
-			break;
-		case FILE_CR2_LIST:
-			return _(CR2_LIST_NAME);
-			break;
-		case FILE_EXR:
-			return _(EXR_NAME);
-			break;
-		case FILE_FLAC:
-			return _(FLAC_NAME);
-			break;
-		case FILE_EXR_LIST:
-			return _(EXR_LIST_NAME);
-			break;
-		case FILE_MPEG:
-			return _(MPEG_NAME);
-			break;
-		case FILE_AMPEG:
-			return _(AMPEG_NAME);
-			break;
-		case FILE_VMPEG:
-			return _(VMPEG_NAME);
-			break;
-		case FILE_TGA:
-			return _(TGA_NAME);
-			break;
-		case FILE_TGA_LIST:
-			return _(TGA_LIST_NAME);
-			break;
-		case FILE_TIFF:
-			return _(TIFF_NAME);
-			break;
-		case FILE_TIFF_LIST:
-			return _(TIFF_LIST_NAME);
-			break;
-		case FILE_MOV:
-			return _(MOV_NAME);
-			break;
-		case FILE_AVI_LAVTOOLS:
-			return _(AVI_LAVTOOLS_NAME);
-			break;
-		case FILE_AVI:
-			return _(AVI_NAME);
-			break;
-		case FILE_AVI_ARNE2:
-			return _(AVI_ARNE2_NAME);
-			break;
-		case FILE_AVI_ARNE1:
-			return _(AVI_ARNE1_NAME);
-			break;
-		case FILE_AVI_AVIFILE:
-			return _(AVI_AVIFILE_NAME);
-			break;
-		case FILE_OGG:
-			return _(OGG_NAME);
-			break;
-		case FILE_VORBIS:
-			return _(VORBIS_NAME);
-			break;
-		case FILE_FFMPEG:
-			return _(FFMPEG_NAME);
-			break;
-
-		default:
-			return _("Unknown");
-			break;
-	}
+    for(int i = 0; i < file_table->size(); i++)
+    {
+        FileBase *table_entry = file_table->get(i);
+        const char *result = table_entry->formattostr(format);
+        if(result)
+        {
+            return result;
+        }
+    }
 	return "Unknown";
 }
+
+const char* File::get_tag(int format)
+{
+    for(int i = 0; i < file_table->size(); i++)
+    {
+        FileBase *table_entry = file_table->get(i);
+        const char *result = table_entry->get_tag(format);
+//printf("File::get_tag %d format=%d result=%s\n", __LINE__, format, result);
+        if(result)
+        {
+            return result;
+        }
+    }
+	return 0;
+}
+
 
 int File::strtobits(const char *bits)
 {
@@ -2617,6 +2259,7 @@ int File::bytes_per_sample(int bits)
 		case BITSLINEAR24:
 			return 3;
 			break;
+        case BITSFLOAT:
 		case BITSLINEAR32:
 			return 4;
 			break;
@@ -2641,49 +2284,17 @@ int File::get_best_colormodel(int driver)
 
 int File::get_best_colormodel(Asset *asset, int driver)
 {
-	switch(asset->format)
-	{
-		case FILE_MOV:
-			return FileMOV::get_best_colormodel(asset, driver);
-			break;
-		
-        case FILE_AVI:
-			return FileMOV::get_best_colormodel(asset, driver);
-			break;
-
-		case FILE_MPEG:
-			return FileMPEG::get_best_colormodel(asset, driver);
-			break;
-
-		case FILE_FFMPEG:
-			return FileFFMPEG::get_best_colormodel(asset, driver);
-			break;
-		
-		case FILE_JPEG:
-		case FILE_JPEG_LIST:
-			return FileJPEG::get_best_colormodel(asset, driver);
-			break;
-
-		case FILE_EXR:
-		case FILE_EXR_LIST:
-			return FileEXR::get_best_colormodel(asset, driver);
-			break;
-		
-		case FILE_PNG:
-		case FILE_PNG_LIST:
-			return FilePNG::get_best_colormodel(asset, driver);
-			break;
-		
-		case FILE_TGA:
-		case FILE_TGA_LIST:
-			return FileTGA::get_best_colormodel(asset, driver);
-			break;
-		
-		case FILE_CR2:
-		case FILE_CR2_LIST:
-			return FileCR2::get_best_colormodel(asset, driver);
-			break;
-	}
+    for(int i = 0; i < file_table->size(); i++)
+    {
+        FileBase *table_entry = file_table->get(i);
+        for(int j = 0; j < table_entry->ids.size(); j++)
+        {
+            if(asset->format == table_entry->ids.get(j))
+            {
+                return table_entry->get_best_colormodel(asset, driver);
+            }
+        }
+    }
 
 	return BC_RGB888;
 }
@@ -2748,116 +2359,56 @@ FrameCache* File::get_frame_cache()
 	return frame_cache;
 }
 
-int File::supports_video(ArrayList<PluginServer*> *plugindb, char *format)
-{
-	int i, format_i = strtoformat(plugindb, format);
-	
-	return supports_video(format_i);
-	return 0;
-}
-
-int File::supports_audio(ArrayList<PluginServer*> *plugindb, char *format)
-{
-	int i, format_i = strtoformat(plugindb, format);
-
-	return supports_audio(format_i);
-	return 0;
-}
-
 
 int File::supports_video(int format)
 {
-//printf("File::supports_video %d\n", format);
-	switch(format)
-	{
-		case FILE_OGG:
-		case FILE_MOV:
-		case FILE_JPEG:
-		case FILE_JPEG_LIST:
-		case FILE_CR2:
-		case FILE_CR2_LIST:
-		case FILE_EXR:
-		case FILE_EXR_LIST:
-		case FILE_PNG:
-		case FILE_PNG_LIST:
-		case FILE_TGA:
-		case FILE_TGA_LIST:
-		case FILE_TIFF:
-		case FILE_TIFF_LIST:
-		case FILE_VMPEG:
-		case FILE_AVI_LAVTOOLS:
-		case FILE_AVI_ARNE2:
-		case FILE_AVI:
-		case FILE_AVI_ARNE1:
-		case FILE_AVI_AVIFILE:
-			return 1;
-			break;
-
-		default:
-			return 0;
-			break;
-	}
+    for(int i = 0; i < file_table->size(); i++)
+    {
+        FileBase *table_entry = file_table->get(i);
+        for(int j = 0; j < table_entry->ids.size(); j++)
+        {
+            if(format == table_entry->ids.get(j))
+            {
+                return table_entry->has_video;
+            }
+        }
+    }
+    return 0;
 }
 
 int File::supports_audio(int format)
 {
-	switch(format)
-	{
-		case FILE_AC3:
-		case FILE_FLAC:
-		case FILE_PCM:
-		case FILE_WAV:
-		case FILE_MOV:
-		case FILE_OGG:
-		case FILE_VORBIS:
-		case FILE_AMPEG:
-		case FILE_AU:
-		case FILE_AIFF:
-		case FILE_SND:
-		case FILE_AVI:
-		case FILE_AVI_LAVTOOLS:
-		case FILE_AVI_ARNE2:
-		case FILE_AVI_ARNE1:
-		case FILE_AVI_AVIFILE:
-			return 1;
-		
-		default:
-			return 0;
-			break;
-	}
+//printf("File::supports_audio %d format=%d\n", __LINE__, format);
+    for(int i = 0; i < file_table->size(); i++)
+    {
+        FileBase *table_entry = file_table->get(i);
+        for(int j = 0; j < table_entry->ids.size(); j++)
+        {
+            if(format == table_entry->ids.get(j))
+            {
+//printf("File::supports_audio %d has_audio=%d\n", __LINE__, table_entry->has_audio);
+                return table_entry->has_audio;
+            }
+        }
+    }
+    return 0;
 }
 
-const char* File::get_tag(int format)
+int File::supports_wrapper(int format)
 {
-	switch(format)
-	{
-		case FILE_AC3:          return "ac3";
-		case FILE_AIFF:         return "aif";
-		case FILE_AMPEG:        return "mp3";
-		case FILE_AU:           return "au";
-		case FILE_AVI:          return "avi";
-		case FILE_EXR:          return "exr";
-		case FILE_EXR_LIST:     return "exr";
-		case FILE_FLAC:         return "flac";
-		case FILE_JPEG:         return "jpg";
-		case FILE_JPEG_LIST:    return "jpg";
-		case FILE_MOV:          return "mov/mp4";
-		case FILE_OGG:          return "ogg";
-		case FILE_PCM:          return "pcm";
-		case FILE_PNG:          return "png";
-		case FILE_PNG_LIST:     return "png";
-		case FILE_TGA:          return "tga";
-		case FILE_TGA_LIST:     return "tga";
-		case FILE_TIFF:         return "tif";
-		case FILE_TIFF_LIST:    return "tif";
-		case FILE_VMPEG:        return "m2v";
-		case FILE_VORBIS:       return "ogg";
-		case FILE_WAV:          return "wav";
-	}
-	return 0;
+    for(int i = 0; i < file_table->size(); i++)
+    {
+        FileBase *table_entry = file_table->get(i);
+        for(int j = 0; j < table_entry->ids.size(); j++)
+        {
+            if(format == table_entry->ids.get(j))
+            {
+                return table_entry->has_wrapper;
+            }
+        }
+    }
+    return 0;
 }
-
-
 
 
 

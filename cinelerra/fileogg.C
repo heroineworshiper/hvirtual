@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,10 +50,10 @@
 FileOGG::FileOGG(Asset *asset, File *file)
  : FileBase(asset, file)
 {
+    reset_parameters_derived();
 	if(asset->format == FILE_UNKNOWN)
 		asset->format = FILE_OGG;
 	asset->byte_order = 0;
-	reset_parameters();
 }
 
 FileOGG::~FileOGG()
@@ -90,13 +89,85 @@ FileOGG::~FileOGG()
 	if (flush_lock) delete flush_lock;
 }
 
+
+
+
+
+FileOGG::FileOGG()
+ : FileBase()
+{
+    reset_parameters_derived();
+    ids.append(FILE_OGG);
+    has_audio = 1;
+    has_video = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileOGG::create(File *file)
+{
+    return new FileOGG(file->asset, file);
+}
+
+const char* FileOGG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_OGG:
+			return OGG_NAME;
+    }
+    return 0;
+}
+
+const char* FileOGG::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_OGG:
+            return "ogg";
+    }
+    return 0;
+}
+
+
+
+
+int FileOGG::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
+	FILE *fd = fopen(asset->path, "rb");
+
+// Test for "OggS"
+	fseek(fd, 0, SEEK_SET);
+	char data[4];
+
+	int temp = fread(data, 4, 1, fd);
+
+	if(data[0] == 'O' &&
+		data[1] == 'g' &&
+		data[2] == 'g' &&
+		data[3] == 'S')
+	{
+
+		fclose(fd);
+		printf("Yay, we have an ogg file\n");
+
+		return 1;
+	}
+
+	fclose(fd);
+
+	return 0;
+	
+}
+
 void FileOGG::get_parameters(BC_WindowBase *parent_window,
 	Asset *asset,
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+	int option_type,
+	const char *locked_compressor)
 {
-	if(audio_options)
+	if(option_type == AUDIO_PARAMS)
 	{
 		OGGConfigAudio *window = new OGGConfigAudio(parent_window, asset);
 		format_window = window;
@@ -105,7 +176,7 @@ void FileOGG::get_parameters(BC_WindowBase *parent_window,
 		delete window;
 	}
 	else
-	if(video_options)
+	if(option_type == VIDEO_PARAMS)
 	{
 		OGGConfigVideo *window = new OGGConfigVideo(parent_window, asset);
 		format_window = window;
@@ -1276,36 +1347,6 @@ int FileOGG::ogg_seek_to_keyframe(sync_window_t *sw, long serialno, int64_t fram
 	}
 	*keyframe_number = iframe;
 	return 1;
-}
-
-
-int FileOGG::check_sig(Asset *asset)
-{
-
-	FILE *fd = fopen(asset->path, "rb");
-
-// Test for "OggS"
-	fseek(fd, 0, SEEK_SET);
-	char data[4];
-
-	int temp = fread(data, 4, 1, fd);
-
-	if(data[0] == 'O' &&
-		data[1] == 'g' &&
-		data[2] == 'g' &&
-		data[3] == 'S')
-	{
-
-		fclose(fd);
-		printf("Yay, we have an ogg file\n");
-
-		return 1;
-	}
-
-	fclose(fd);
-
-	return 0;
-	
 }
 
 int FileOGG::close_file()

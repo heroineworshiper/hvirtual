@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
@@ -53,6 +52,7 @@ class VFrame
 public:
 // Create new frame with shared data if *data is nonzero.
 // Pass 0 to *data & -1 to shmid if private data is desired.
+// set_use_shm must be called to use malloc instead of shmget
 	VFrame(int w, 
 		int h, 
 		int color_model);
@@ -86,9 +86,9 @@ public:
 
 // Reallocate a frame without deleting the class
 	int reallocate(
-		unsigned char *data,   // Data if shared
-		int shmid,             // shmid if IPC  -1 if not
-		long y_offset,         // plane offsets if shared YUV
+		unsigned char *data,   // Data if shared.  0 if not
+		int shmid,             // shmid if IPC.  -1 if not
+		long y_offset,         // plane offsets if shared YUV.  0 if not
 		long u_offset,
 		long v_offset,
 		int w, 

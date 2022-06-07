@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -81,10 +80,16 @@ int BitsPopup::get_h()
 	return MAX(menu->get_h(), textbox->get_h());
 }
 
+void BitsPopup::update(const char *text)
+{
+    textbox->update(text);
+}
+
+
 BitsPopupMenu::BitsPopupMenu(BitsPopup *popup, int x, int y)
  : BC_ListBox(x,
  	y,
-	DP(120),
+	DP(200),
 	DP(100),
 	LISTBOX_TEXT,
 	&popup->bits_items,
@@ -105,7 +110,7 @@ int BitsPopupMenu::handle_event()
 }
 
 BitsPopupText::BitsPopupText(BitsPopup *popup, int x, int y)
- : BC_TextBox(x, y, DP(120), 1, File::bitstostr(*popup->output))
+ : BC_TextBox(x, y, DP(200), 1, File::bitstostr(*popup->output))
 {
 	this->popup = popup;
 }

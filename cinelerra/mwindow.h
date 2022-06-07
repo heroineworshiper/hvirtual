@@ -284,6 +284,7 @@ public:
 	enum
 	{
 		AUDIO_5_1_TO_2,
+		AUDIO_5_1_TO_2B,
 		AUDIO_1_TO_1
 	};
 	void add_audio_track_entry(int above, Track *dst);

@@ -210,6 +210,7 @@ int VideoDevice::open_input(VideoInConfig *config,
 		case CAPTURE_JPEG_WEBCAM:
 		case CAPTURE_YUYV_WEBCAM:
 		case CAPTURE_MPEG:
+		case VIDEO4LINUX2MJPG:
 		case VIDEO4LINUX2JPEG:
 			new_device_base();
 			result = input_base->open_input();
@@ -264,6 +265,7 @@ VDeviceBase* VideoDevice::new_device_base()
 		case CAPTURE_MPEG:
 			return input_base = new VDeviceV4L2(this);
 
+		case VIDEO4LINUX2MJPG:
 		case VIDEO4LINUX2JPEG:
 			return input_base = new VDeviceV4L2JPEG(this);
 #endif
@@ -304,6 +306,7 @@ static char* get_channeldb_path(VideoInConfig *vconfig_in)
 		case CAPTURE_MPEG:
 			path = (char*)"channels_mpeg";
 			break;
+		case VIDEO4LINUX2MJPG:
 		case VIDEO4LINUX2JPEG:
 			path = (char*)"channels_v4l2jpeg";
 			break;
@@ -337,6 +340,7 @@ int VideoDevice::is_compressed(int driver, int use_file, int use_fixed)
 {
 // FileMOV needs to have write_frames called so the start codes get scanned.
 	return ((driver == CAPTURE_BUZ && use_fixed) ||
+		(driver == VIDEO4LINUX2MJPG && use_fixed) || 
 		(driver == VIDEO4LINUX2JPEG && use_fixed) || 
 		(driver == CAPTURE_JPEG_WEBCAM && use_fixed) || 
 		(driver == CAPTURE_MPEG && use_fixed) || 
@@ -365,13 +369,20 @@ void VideoDevice::fix_asset(Asset *asset, int driver)
 	
 		case CAPTURE_BUZ:
 		case CAPTURE_LML:
-		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 			if(asset->format != FILE_AVI &&
 				asset->format != FILE_MOV)
 				asset->format = FILE_MOV;
 			strcpy(asset->vcodec, QUICKTIME_MJPA);
 			return;
-		
+
+        case VIDEO4LINUX2JPEG:
+            if(asset->format != FILE_AVI &&
+				asset->format != FILE_MOV)
+				asset->format = FILE_MOV;
+			strcpy(asset->vcodec, QUICKTIME_JPEG);
+			return;
+
 		case CAPTURE_FIREWIRE:
 		case CAPTURE_IEC61883:
 			if(asset->format != FILE_AVI &&
@@ -394,6 +405,45 @@ const char* VideoDevice::drivertostr(int driver)
 {
 	switch(driver)
 	{
+		case VIDEO4LINUX:
+			return VIDEO4LINUX_TITLE;
+			break;
+		case VIDEO4LINUX2:
+			return VIDEO4LINUX2_TITLE;
+			break;
+		case VIDEO4LINUX2MJPG:
+			return VIDEO4LINUX2MJPG_TITLE;
+			break;
+		case VIDEO4LINUX2JPEG:
+			return VIDEO4LINUX2JPEG_TITLE;
+			break;
+		case CAPTURE_JPEG_WEBCAM:
+			return CAPTURE_JPEG_WEBCAM_TITLE;
+			break;
+		case CAPTURE_YUYV_WEBCAM:
+            return CAPTURE_YUYV_WEBCAM_TITLE;
+			break;
+		case SCREENCAPTURE:
+			return SCREENCAPTURE_TITLE;
+			break;
+		case CAPTURE_BUZ:
+			return CAPTURE_BUZ_TITLE;
+			break;
+		case CAPTURE_LML:
+			return CAPTURE_LML_TITLE;
+			break;
+		case CAPTURE_FIREWIRE:
+			return CAPTURE_FIREWIRE_TITLE;
+			break;
+		case CAPTURE_IEC61883:
+			return CAPTURE_IEC61883_TITLE;
+			break;
+		case CAPTURE_DVB:
+			return CAPTURE_DVB_TITLE;
+			break;
+		case CAPTURE_MPEG:
+			return CAPTURE_MPEG_TITLE;
+			break;
 		case PLAYBACK_X11:
 			return PLAYBACK_X11_TITLE;
 			break;
@@ -405,36 +455,6 @@ const char* VideoDevice::drivertostr(int driver)
 			break;
 		case PLAYBACK_BUZ:
 			return PLAYBACK_BUZ_TITLE;
-			break;
-		case VIDEO4LINUX:
-			return VIDEO4LINUX_TITLE;
-			break;
-		case VIDEO4LINUX2:
-			return VIDEO4LINUX2_TITLE;
-			break;
-		case VIDEO4LINUX2JPEG:
-			return VIDEO4LINUX2JPEG_TITLE;
-			break;
-		case CAPTURE_JPEG_WEBCAM:
-			return CAPTURE_JPEG_WEBCAM_TITLE;
-			break;
-		case CAPTURE_MPEG:
-			return CAPTURE_MPEG_TITLE;
-			break;
-		case CAPTURE_YUYV_WEBCAM:
-			return CAPTURE_YUYV_WEBCAM_TITLE;
-			break;
-		case SCREENCAPTURE:
-			return SCREENCAPTURE_TITLE;
-			break;
-		case CAPTURE_BUZ:
-			return CAPTURE_BUZ_TITLE;
-			break;
-		case CAPTURE_FIREWIRE:
-			return CAPTURE_FIREWIRE_TITLE;
-			break;
-		case CAPTURE_IEC61883:
-			return CAPTURE_IEC61883_TITLE;
 			break;
 	}
 	return "";
@@ -668,11 +688,12 @@ int VideoDevice::read_buffer(VFrame *frame)
 	int result = 0;
 	if(!capturing) return 0;
 
-//printf("VideoDevice::read_buffer %p %p\n", frame, input_base);
+//printf("VideoDevice::read_buffer %d %p %p\n", __LINE__, frame, input_base);
 	if(input_base)
 	{
 // Reset the keepalive thread
 		if(keepalive) keepalive->capturing = 1;
+//printf("VideoDevice::read_buffer %d %p %p\n", __LINE__, frame, input_base);
 		result = input_base->read_buffer(frame);
 		if(keepalive)
 		{

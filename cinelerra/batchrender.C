@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2011-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -729,7 +728,6 @@ void BatchRenderGUI::create_objects()
 						1, 
 						1, 
 						1, 
-						0, 
 						1, 
 						0, 
 						0, 

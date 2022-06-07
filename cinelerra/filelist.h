@@ -46,6 +46,8 @@ public:
 		const char *file_extension, 
 		int frame_type,
 		int list_type);
+// constructor for the file table entry
+	FileList();
 	virtual ~FileList();
 
 // basic commands for every file interpreter

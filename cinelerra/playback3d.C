@@ -233,7 +233,7 @@ static const char *multiply_alpha_frag =
 	"}\n";
 
 // static const char *checker_alpha_frag = 
-// 	"void main()\n"
+ // 	"void main()\n"
 //     "{\n"
 //     "    gl_FragColor.rgb = vec3(gl_TexCoord[0].st.x, gl_TexCoord[0].st.x, gl_TexCoord[0].st.x);\n"
 //     "    gl_FragColor.a = 1.0;\n"
@@ -1615,21 +1615,26 @@ void Playback3D::convert_cmodel(Canvas *canvas,
 	VFrame *output, 
 	int dst_cmodel)
 {
-// Do nothing if colormodels are equivalent in OpenGL & the image is in hardware.
+
+// Do nothing if colormodels are equivalent & the image is in hardware.
 	int src_cmodel = output->get_color_model();
 	if(
 		(output->get_opengl_state() == VFrame::TEXTURE ||
 		output->get_opengl_state() == VFrame::SCREEN) &&
 // OpenGL has no floating point.
-		(src_cmodel == BC_RGB888 && dst_cmodel == BC_RGB_FLOAT) ||
+		((src_cmodel == BC_RGB888 && dst_cmodel == BC_RGB_FLOAT) ||
 		(src_cmodel == BC_RGBA8888 && dst_cmodel == BC_RGBA_FLOAT) ||
 		(src_cmodel == BC_RGB_FLOAT && dst_cmodel == BC_RGB888) ||
 		(src_cmodel == BC_RGBA_FLOAT && dst_cmodel == BC_RGBA8888) ||
 // OpenGL sets alpha to 1 on import
 		(src_cmodel == BC_RGB888 && dst_cmodel == BC_RGBA8888) ||
 		(src_cmodel == BC_YUV888 && dst_cmodel == BC_YUVA8888) ||
-		(src_cmodel == BC_RGB_FLOAT && dst_cmodel == BC_RGBA_FLOAT)
-		) return;
+		(src_cmodel == BC_RGB_FLOAT && dst_cmodel == BC_RGBA_FLOAT))
+		)
+    {
+        return;
+    }
+
 
 
 
@@ -1692,7 +1697,9 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 			{ BC_YUVA8888, BC_YUV888, yuva_to_yuv_frag },
 		};
 
-		for(int i = 0; i < sizeof(cmodel_shader_table) / sizeof(cmodel_shader_table_t); i++)
+		for(int i = 0; 
+            i < sizeof(cmodel_shader_table) / sizeof(cmodel_shader_table_t); 
+            i++)
 		{
 			if(cmodel_shader_table[i].src == src_cmodel &&
 				cmodel_shader_table[i].dst == dst_cmodel)
@@ -1710,7 +1717,6 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 
 		if(shader)
 		{
-//printf("Playback3D::convert_cmodel_sync %d\n", __LINE__);
 			command->frame->bind_texture(0);
 			unsigned int shader_id = -1;
 			if(shader)

@@ -185,9 +185,16 @@ int Record::load_defaults()
 // These are locked by a specific driver.
 	if(mwindow->edl->session->vconfig_in->driver == CAPTURE_LML ||
 		mwindow->edl->session->vconfig_in->driver == CAPTURE_BUZ ||
-		mwindow->edl->session->vconfig_in->driver == VIDEO4LINUX2JPEG)
-		strncpy(default_asset->vcodec, QUICKTIME_MJPA, 4);
-	else
+		mwindow->edl->session->vconfig_in->driver == VIDEO4LINUX2MJPG)
+	{
+    	strncpy(default_asset->vcodec, QUICKTIME_MJPA, 4);
+    }
+    else
+	if(mwindow->edl->session->vconfig_in->driver == VIDEO4LINUX2JPEG)
+	{
+    	strncpy(default_asset->vcodec, QUICKTIME_JPEG, 4);
+	}
+    else
 	if(mwindow->edl->session->vconfig_in->driver == CAPTURE_FIREWIRE ||
 		mwindow->edl->session->vconfig_in->driver == CAPTURE_IEC61883)
 	{
@@ -353,6 +360,7 @@ void Record::source_to_text(char *string, Batch *batch)
 		case VIDEO4LINUX:
 		case VIDEO4LINUX2:
 		case CAPTURE_BUZ:
+		case VIDEO4LINUX2MJPG:
 		case VIDEO4LINUX2JPEG:
 		case CAPTURE_JPEG_WEBCAM:
 		case CAPTURE_YUYV_WEBCAM:

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +24,7 @@
 #include "language.h"
 
 #define USE_FILEFORK
-// use ffmpeg to encode video output.  Not as easy as it looks.
-//#define USE_FFMPEG_OUTPUT
-// support text to movie
+// support useless text to movie feature
 //#define USE_SCENE
 
 // Return values for open_file
@@ -80,6 +77,7 @@
 #define FILE_FFMPEG             33
 #define FILE_SCENE              34
 #define FILE_MKV                37
+#define FILE_STDOUT             40
 
 
 
@@ -89,6 +87,7 @@
 
 #if 0
 N_("AC3")
+N_("Command Line")
 N_("Apple/SGI AIFF")
 N_("MPEG Audio")    // For encoding only
 N_("Sun/NeXT AU")
@@ -107,6 +106,8 @@ N_("MPEG")          // For decoding only
 N_("Raw PCM")
 N_("PNG Sequence")
 N_("PNG")
+N_("Raw Sequence")
+N_("Raw Camera")
 N_("Unknown sound")
 N_("TGA Sequence")
 N_("TGA")
@@ -131,7 +132,7 @@ N_("EXR Sequence")
 #define AVI_AVIFILE_NAME "AVI Avifile"
 #define AVI_LAVTOOLS_NAME "AVI Lavtools"
 #define JPEG_LIST_NAME "JPEG Sequence"
-#define CR2_LIST_NAME "CR2 Sequence"
+#define COMMAND_NAME "Command Line"
 #define JPEG_NAME "JPEG"
 #define MOV_NAME "Quicktime for Linux"
 #define MPEG_NAME "MPEG"           // For decoding only
@@ -140,18 +141,20 @@ N_("EXR Sequence")
 #define PCM_NAME "Raw PCM"
 #define PNG_LIST_NAME "PNG Sequence"
 #define PNG_NAME "PNG"
+#define CR2_NAME "Raw Camera"
+#define CR2_LIST_NAME "Raw Sequence"
 #define SND_NAME "Unknown sound"
 #define TGA_LIST_NAME "TGA Sequence"
 #define TGA_NAME "TGA"
 #define TIFF_NAME "TIFF"
 #define TIFF_LIST_NAME "TIFF Sequence"
 #define VMPEG_NAME "MPEG Video"    // For encoding only
-#define CR2_NAME "Raw Camera"
 #define EXR_NAME "EXR"
 #define EXR_LIST_NAME "EXR Sequence"
 #define FLAC_NAME "FLAC"
 #define FFMPEG_NAME "FFMPEG"
 
+// bits
 #define BITSLINEAR8    8
 #define BITSLINEAR16   16
 #define BITSLINEAR24   24
@@ -160,6 +163,15 @@ N_("EXR Sequence")
 #define BITSFLOAT      253
 #define BITSULAW       254
 #define BITSIMA4       255
+
+// byte order
+#define BYTE_ORDER_HILO 0
+#define BYTE_ORDER_LOHI 1
+
+// option types for get_parameters
+#define AUDIO_PARAMS 0
+#define VIDEO_PARAMS 1
+#define MPLEX_PARAMS 2
 
 #if 0
 N_("8 Bit Linear")
