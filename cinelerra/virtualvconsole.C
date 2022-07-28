@@ -55,9 +55,9 @@ VirtualVConsole::~VirtualVConsole()
 
 VDeviceBase* VirtualVConsole::get_vdriver()
 {
-    if(renderengine && renderengine->video)
+    if(renderengine && renderengine->vdevice)
     {
-    	return renderengine->video->get_output_base();
+    	return renderengine->vdevice->get_output_base();
     }
     else
     {
@@ -121,7 +121,6 @@ int VirtualVConsole::process_buffer(int64_t input_position,
 		((VDeviceX11*)get_vdriver())->clear_output(vrender->video_out);
 
 
-
 // que OpenGL driver that everything is overlaid in the framebuffer
 		vrender->video_out->set_opengl_state(VFrame::SCREEN);
 	}
@@ -181,6 +180,7 @@ int VirtualVConsole::process_buffer(int64_t input_position,
         	output_temp->set_opengl_state(VFrame::RAM);
         }
 
+printf("VirtualVConsole::process_buffer %d output_temp=%p\n", __LINE__, output_temp);
 
 // Assume openGL is used for the final stage and let console
 // disable.

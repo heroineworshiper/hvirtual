@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,6 +75,8 @@ Preferences::Preferences()
 	index_count = 100;
 //	use_thumbnails = 1;
 	theme[0] = 0;
+    
+    use_gl_rendering = 0;
 	use_renderfarm = 0;
 	force_uniprocessor = 0;
 	renderfarm_port = DEAMON_PORT;
@@ -186,6 +188,8 @@ void Preferences::copy_from(Preferences *that)
 			that->renderfarm_enabled.get(i),
 			that->renderfarm_rate.get(i));
 	}
+
+    use_gl_rendering = that->use_gl_rendering;
 	use_renderfarm = that->use_renderfarm;
 	renderfarm_port = that->renderfarm_port;
 	render_preroll = that->render_preroll;
@@ -330,6 +334,7 @@ int Preferences::load_defaults(BC_Hash *defaults)
 	brender_fragment = defaults->get("BRENDER_FRAGMENT", brender_fragment);
 	cache_size = defaults->get("CACHE_SIZE", cache_size);
 	local_rate = defaults->get("LOCAL_RATE", local_rate);
+    use_gl_rendering = defaults->get("USE_GL_RENDERING", use_gl_rendering);
 	use_renderfarm = defaults->get("USE_RENDERFARM", use_renderfarm);
 	renderfarm_port = defaults->get("RENDERFARM_PORT", renderfarm_port);
 	render_preroll = defaults->get("RENDERFARM_PREROLL", render_preroll);
@@ -410,6 +415,7 @@ int Preferences::save_defaults(BC_Hash *defaults)
 		0);
 	defaults->update("USE_BRENDER", use_brender);
 	defaults->update("BRENDER_FRAGMENT", brender_fragment);
+	defaults->update("USE_GL_RENDERING", use_gl_rendering);
 	defaults->update("USE_RENDERFARM", use_renderfarm);
 	defaults->update("LOCAL_RATE", local_rate);
 	defaults->update("RENDERFARM_PORT", renderfarm_port);

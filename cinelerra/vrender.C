@@ -97,7 +97,7 @@ Module* VRender::new_module(Track *track)
 int VRender::flash_output()
 {
 	if(video_out)
-		return renderengine->video->write_buffer(video_out, renderengine->get_edl());
+		return renderengine->vdevice->write_buffer(video_out, renderengine->get_edl());
 	else
 		return 0;
 }
@@ -110,7 +110,7 @@ int VRender::process_buffer(VFrame *video_out,
 	int i, j;
 	int64_t render_len = 1;
 	int reconfigure = 0;
-
+//printf("VRender::process_buffer %d use_opengl=%d\n", __LINE__, use_opengl);
 
 	this->video_out = video_out;
 
@@ -158,7 +158,7 @@ int VRender::process_buffer(int64_t input_position,
 	{
 //        printf("VRender::process_buffer %d\n", __LINE__);
 
-		renderengine->video->new_output_buffer(&video_out, 
+		renderengine->vdevice->new_output_buffer(&video_out, 
 			colormodel, 
 			renderengine->get_edl());
 	}
@@ -329,8 +329,8 @@ void VRender::run()
 	int64_t current_input_length;
 // Number of frames to skip.
 	int64_t frame_step = 1;
-	int use_opengl = (renderengine->video && 
-		renderengine->video->out_config->driver == PLAYBACK_X11_GL);
+	int use_opengl = (renderengine->vdevice && 
+		renderengine->vdevice->out_config->driver == PLAYBACK_X11_GL);
 
 	first_frame = 1;
 
@@ -344,7 +344,7 @@ void VRender::run()
 
 
 	while(!done && 
-		!renderengine->video->interrupt)
+		!renderengine->vdevice->interrupt)
 	{
 // Perform the most time consuming part of frame decompression now.
 // Want the condition before, since only 1 frame is rendered 

@@ -129,8 +129,7 @@ int PlaybackEngine::create_render_engine()
 	render_engine = new RenderEngine(this,
 		preferences, 
 		output,
-		get_channeldb(),
-		0);
+		get_channeldb());
 //printf("PlaybackEngine::create_render_engine %d\n", __LINE__);
 	return 0;
 }

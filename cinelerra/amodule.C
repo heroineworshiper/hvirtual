@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -410,8 +410,8 @@ if(debug) printf("AModule::import_samples %d\n", __LINE__);
 				nested_renderengine = new RenderEngine(0,
 					get_preferences(), 
 					0,
-					renderengine ? renderengine->channeldb : 0,
-					1);
+					renderengine ? renderengine->channeldb : 0);
+                nested_renderengine->set_nested(1);
 				nested_renderengine->set_acache(get_cache());
 // Must use a private cache for the audio
 // 				if(!cache) 

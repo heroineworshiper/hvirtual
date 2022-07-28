@@ -214,6 +214,7 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 	mjpeg_set_quality((mjpeg_t*)jpeg_unit->compressor, asset->jpeg_quality);
 //PRINT_TRACE
 
+//printf("FileJPEG::write_frame %d color_model=%d\n", __LINE__, frame->get_color_model());
 	mjpeg_compress((mjpeg_t*)jpeg_unit->compressor, 
 		frame->get_rows(), 
 		frame->get_y(), 

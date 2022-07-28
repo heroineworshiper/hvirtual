@@ -286,14 +286,18 @@ int VirtualVNode::render_as_module(VFrame *video_out,
 
 	output_temp->pop_next_effect();
 
+printf("VirtualVNode::render_as_module %d state=%d\n", __LINE__, output_temp->get_opengl_state());
 	render_fade(output_temp,
 				start_position,
 				frame_rate,
 				track->automation->autos[AUTOMATION_FADE],
 				direction,
 				use_opengl);
+printf("VirtualVNode::render_as_module %d output_temp=%p state=%d\n", 
+__LINE__, output_temp, output_temp->get_opengl_state());
 
 	render_mask(output_temp, start_position_project, use_opengl);
+printf("VirtualVNode::render_as_module %d state=%d\n", __LINE__, output_temp->get_opengl_state());
 
 
 // overlay on the final output
@@ -322,7 +326,7 @@ int VirtualVNode::render_as_module(VFrame *video_out,
 	}
 
 	output_temp->push_prev_effect("VirtualVNode::render_as_module");
-//printf("VirtualVNode::render_as_module\n");
+//printf("VirtualVNode::render_as_module %d\n", __LINE__);
 //output_temp->dump_stacks();
 
 	return 0;
@@ -515,9 +519,11 @@ int VirtualVNode::render_projector(VFrame *input,
 // the mode_keyframe is "normal"
 // & the color model has no alpha,
 // the mode may be overridden with "replace".  Replace is faster.
-			if(mode == TRANSFER_NORMAL &&
-				vconsole->current_exit_node == vconsole->total_exit_nodes - 1 &&
-                BC_CModels::components(output->get_color_model()) == 3)
+
+// Make the bottom track always replace if rendering
+			if(/*mode == TRANSFER_NORMAL &&
+                BC_CModels::components(output->get_color_model()) == 3 && */
+				vconsole->current_exit_node == vconsole->total_exit_nodes - 1)
 			{
             	mode = TRANSFER_REPLACE;
             }
@@ -525,7 +531,15 @@ int VirtualVNode::render_projector(VFrame *input,
 			if(use_opengl)
 			{
 // Nested EDL's overlay on a PBuffer instead of a screen
-//printf("VirtualVNode::render_projector %d\n", __LINE__);
+printf("VirtualVNode::render_projector %d input=%p output=%p\n", 
+__LINE__, 
+input, 
+output);
+// printf("VirtualVNode::render_projector %d\n", __LINE__);
+// for(int i = 0; i < 1024; i++)
+// {
+// input->get_rows()[input->get_h() / 2][i] = 0xff;
+// }
 				((VDeviceX11*)((VirtualVConsole*)vconsole)->get_vdriver())->overlay(
 					output,
 					input,
@@ -540,10 +554,29 @@ int VirtualVNode::render_projector(VFrame *input,
 					1,
 					mode, 
 					renderengine->get_edl(),
-					renderengine->is_nested);
+					renderengine->is_nested ||
+                        renderengine->is_rendering);
 			}
 			else
 			{
+printf("VirtualVNode::render_projector %d input=%02x%02x%02x%02x%02x%02x%02x%02x output=%02x%02x%02x%02x%02x%02x%02x%02x\n",
+__LINE__,
+input->get_rows()[0][0],
+input->get_rows()[0][1],
+input->get_rows()[0][2],
+input->get_rows()[0][3],
+input->get_rows()[0][4],
+input->get_rows()[0][5],
+input->get_rows()[0][6],
+input->get_rows()[0][7],
+output->get_rows()[0][0],
+output->get_rows()[0][1],
+output->get_rows()[0][2],
+output->get_rows()[0][3],
+output->get_rows()[0][4],
+output->get_rows()[0][5],
+output->get_rows()[0][6],
+output->get_rows()[0][7]);
 				vrender->overlayer->overlay(output, 
 					input,
 					in_x1, 
@@ -557,6 +590,16 @@ int VirtualVNode::render_projector(VFrame *input,
 					1,
 					mode, 
 					renderengine->get_edl()->session->interpolation_type);
+printf("VirtualVNode::render_projector %d output=%02x%02x%02x%02x%02x%02x%02x%02x\n",
+__LINE__,
+output->get_rows()[0][0],
+output->get_rows()[0][1],
+output->get_rows()[0][2],
+output->get_rows()[0][3],
+output->get_rows()[0][4],
+output->get_rows()[0][5],
+output->get_rows()[0][6],
+output->get_rows()[0][7]);
 			}
 		}
 	}

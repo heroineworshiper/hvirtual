@@ -149,7 +149,7 @@ void SetFormatThread::apply_changes()
 	mwindow->save_backup();
 	mwindow->undo->update_undo_after(_("set format"), LOAD_ALL);
 
-printf("SetFormatThread::apply_changes %d %d\n", __LINE__, mwindow->edl->session->output_w);
+//printf("SetFormatThread::apply_changes %d %d\n", __LINE__, mwindow->edl->session->output_w);
 
 // Update GUIs
 	mwindow->restart_brender();

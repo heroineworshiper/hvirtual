@@ -286,15 +286,15 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 			renderengine->first_frame_lock->lock("VirtualAConsole::process_buffer");
 			arender->first_buffer = 0;
 		}
-		if(!renderengine->audio->get_interrupted())
+		if(!renderengine->adevice->get_interrupted())
 		{
 if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
-			renderengine->audio->write_buffer(audio_out_packed, 
+			renderengine->adevice->write_buffer(audio_out_packed, 
 				real_output_len);
 if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 		}
 
-		if(renderengine->audio->get_interrupted()) interrupt = 1;
+		if(renderengine->adevice->get_interrupted()) interrupt = 1;
 	}
 
 if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
@@ -338,7 +338,7 @@ int VirtualAConsole::init_rendering(int duplicate)
 
 int VirtualAConsole::send_last_output_buffer()
 {
-	renderengine->audio->set_last_buffer();
+	renderengine->adevice->set_last_buffer();
 	return 0;
 }
 

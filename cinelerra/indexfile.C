@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2018 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -349,7 +349,6 @@ int IndexFile::open_source()
 		cache = new CICache(mwindow->preferences);
 		render_engine = new RenderEngine(0,
 			mwindow->preferences,
-			0,
 			0,
 			0);
 		render_engine->set_acache(cache);

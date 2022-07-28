@@ -52,10 +52,10 @@
 
 
 static const char *yuv_to_rgb_frag = 
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"void main()\n"
 	"{\n"
-	"	vec4 yuva = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	vec4 yuva = texture2D(src_tex, gl_TexCoord[0].st);\n"
 	"	yuva.rgb -= vec3(0, 0.5, 0.5);\n"
  	"	const mat3 yuv_to_rgb_matrix = mat3(\n"
  	"		1,       1,        1, \n"
@@ -65,10 +65,10 @@ static const char *yuv_to_rgb_frag =
 	"}\n";
 
 static const char *yuva_to_yuv_frag = 
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"void main()\n"
 	"{\n"
-	"	vec4 yuva = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	vec4 yuva = texture2D(src_tex, gl_TexCoord[0].st);\n"
 	"   float a = yuva.a;\n"
 	"   float anti_a = 1.0 - a;\n"
 	"	yuva.r *= a;\n"
@@ -79,10 +79,10 @@ static const char *yuva_to_yuv_frag =
 	"}\n";
 
 static const char *yuva_to_rgb_frag = 
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"void main()\n"
 	"{\n"
-	"	vec4 yuva = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	vec4 yuva = texture2D(src_tex, gl_TexCoord[0].st);\n"
 	"	yuva.rgb -= vec3(0, 0.5, 0.5);\n"
  	"	const mat3 yuv_to_rgb_matrix = mat3(\n"
  	"		1,       1,        1, \n"
@@ -95,10 +95,10 @@ static const char *yuva_to_rgb_frag =
 	"}\n";
 
 static const char *rgb_to_yuv_frag = 
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"void main()\n"
 	"{\n"
-	"	vec4 rgba = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	vec4 rgba = texture2D(src_tex, gl_TexCoord[0].st);\n"
  	"	const mat3 rgb_to_yuv_matrix = mat3(\n"
  	"		0.29900, -0.16874, 0.50000, \n"
  	"		0.58700, -0.33126, -0.41869, \n"
@@ -110,20 +110,20 @@ static const char *rgb_to_yuv_frag =
 
 
 static const char *rgba_to_rgb_frag = 
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"void main()\n"
 	"{\n"
-	"	vec4 rgba = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	vec4 rgba = texture2D(src_tex, gl_TexCoord[0].st);\n"
 	"	rgba.rgb *= rgba.a;\n"
 	"   rgba.a = 1.0;\n"
 	"	gl_FragColor = rgba;\n"
 	"}\n";
 
 static const char *rgba_to_yuv_frag = 
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"void main()\n"
 	"{\n"
-	"	vec4 rgba = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	vec4 rgba = texture2D(src_tex, gl_TexCoord[0].st);\n"
  	"	const mat3 rgb_to_yuv_matrix = mat3(\n"
  	"		0.29900, -0.16874, 0.50000, \n"
  	"		0.58700, -0.33126, -0.41869, \n"
@@ -135,146 +135,115 @@ static const char *rgba_to_yuv_frag =
 	"	gl_FragColor = rgba;\n"
 	"}\n";
 
-static const char *blend_add_frag = 
-	"uniform sampler2D tex2;\n"
-	"uniform vec2 tex2_dimensions;\n"
+static const char *get_pixels_frag = 
+	"uniform sampler2D dst_tex;\n"  // tex2
+	"uniform vec2 dst_tex_dimensions;\n" // tex2_dimensions
+	"uniform vec3 chroma_offset;\n"
 	"void main()\n"
 	"{\n"
-	"	vec4 canvas = texture2D(tex2, gl_FragCoord.xy / tex2_dimensions);\n"
-	"	vec3 opacity = vec3(gl_FragColor.a, gl_FragColor.a, gl_FragColor.a);\n"
-	"	vec3 transparency = vec3(1.0, 1.0, 1.0) - opacity;\n"
-	"	gl_FragColor.rgb += canvas.rgb;\n"
-	"	gl_FragColor.rgb *= opacity;\n"
-	"	gl_FragColor.rgb += canvas.rgb * transparency;\n"
-	"	gl_FragColor.a = max(gl_FragColor.a, canvas.a);\n"
+	"	vec4 result_color;\n"
+	"	vec4 dst_color = texture2D(dst_tex, gl_FragCoord.xy / dst_tex_dimensions);\n" // canvas
+	"	vec4 src_color = gl_FragColor;\n" // read back from YUV -> RGB conversion
+	"	src_color.rgb -= chroma_offset;\n"
+	"	dst_color.rgb -= chroma_offset;\n";
+
+static const char *put_pixels_frag = 
+	"	result_color.rgb = mix(dst_color.rgb, result_color.rgb, src_color.a);\n"
+	"	result_color.rgb += chroma_offset;\n"
+	"	result_color.a = src_color.a + (1.0 - src_color.a) * dst_color.a;\n"
+//	"	result_color.a = max(src_color.a, dst_color.a);\n"
+	"	gl_FragColor = result_color;\n"
 	"}\n";
+
+static const char *blend_normal_frag = 
+	"	result_color.rgb = src_color.rgb;\n";
+
+static const char *blend_add_frag = 
+	"	result_color.rgb = dst_color.rgb + src_color.rgb;\n";
 
 static const char *blend_max_frag = 
-	"uniform sampler2D tex2;\n"
-	"uniform vec2 tex2_dimensions;\n"
-	"void main()\n"
-	"{\n"
-	"	vec4 canvas = texture2D(tex2, gl_FragCoord.xy / tex2_dimensions);\n"
-	"	vec3 opacity = vec3(gl_FragColor.a, gl_FragColor.a, gl_FragColor.a);\n"
-	"	vec3 transparency = vec3(1.0, 1.0, 1.0) - opacity;\n"
-	"	gl_FragColor.r = max(canvas.r, gl_FragColor.r);\n"
-	"	gl_FragColor.g = max(canvas.g, gl_FragColor.g);\n"
-	"	gl_FragColor.b = max(canvas.b, gl_FragColor.b);\n"
-	"	gl_FragColor.rgb *= opacity;\n"
-	"	gl_FragColor.rgb += canvas.rgb * transparency;\n"
-	"	gl_FragColor.a = max(gl_FragColor.a, canvas.a);\n"
-	"}\n";
+	"	result_color.r = max(abs(dst_color.r, src_color.r);\n"
+	"	result_color.g = max(abs(dst_color.g, src_color.g);\n"
+	"	result_color.b = max(abs(dst_color.b, src_color.b);\n";
 
 static const char *blend_min_frag = 
-	"uniform sampler2D tex2;\n"
-	"uniform vec2 tex2_dimensions;\n"
-	"void main()\n"
-	"{\n"
-	"	vec4 canvas = texture2D(tex2, gl_FragCoord.xy / tex2_dimensions);\n"
-	"	vec3 opacity = vec3(gl_FragColor.a, gl_FragColor.a, gl_FragColor.a);\n"
-	"	vec3 transparency = vec3(1.0, 1.0, 1.0) - opacity;\n"
-	"	gl_FragColor.r = min(canvas.r, gl_FragColor.r);\n"
-	"	gl_FragColor.g = min(canvas.g, gl_FragColor.g);\n"
-	"	gl_FragColor.b = min(canvas.b, gl_FragColor.b);\n"
-	"	gl_FragColor.rgb *= opacity;\n"
-	"	gl_FragColor.rgb += canvas.rgb * transparency;\n"
-	"	gl_FragColor.a = min(gl_FragColor.a, canvas.a);\n"
-	"}\n";
+	"	result_color.r = min(abs(dst_color.r, src_color.r);\n"
+	"	result_color.g = min(abs(dst_color.g, src_color.g);\n"
+	"	result_color.b = min(abs(dst_color.b, src_color.b);\n";
 
 static const char *blend_subtract_frag = 
-	"uniform sampler2D tex2;\n"
-	"uniform vec2 tex2_dimensions;\n"
-	"void main()\n"
-	"{\n"
-	"	vec4 canvas = texture2D(tex2, gl_FragCoord.xy / tex2_dimensions);\n"
-	"	vec3 opacity = vec3(gl_FragColor.a, gl_FragColor.a, gl_FragColor.a);\n"
-	"	vec3 transparency = vec3(1.0, 1.0, 1.0) - opacity;\n"
-	"	gl_FragColor.rgb = canvas.rgb - gl_FragColor.rgb;\n"
-	"	gl_FragColor.rgb *= opacity;\n"
-	"	gl_FragColor.rgb += canvas.rgb * transparency;\n"
-	"	gl_FragColor.a = max(gl_FragColor.a, canvas.a);\n"
-	"}\n";
+	"	result_color.rgb = dst_color.rgb - src_color.rgb;\n";
 
 static const char *blend_multiply_frag = 
-	"uniform sampler2D tex2;\n"
-	"uniform vec2 tex2_dimensions;\n"
-	"void main()\n"
-	"{\n"
-	"	vec4 canvas = texture2D(tex2, gl_FragCoord.xy / tex2_dimensions);\n"
-	"	vec3 opacity = vec3(gl_FragColor.a, gl_FragColor.a, gl_FragColor.a);\n"
-	"	vec3 transparency = vec3(1.0, 1.0, 1.0) - opacity;\n"
-	"	gl_FragColor.rgb *= canvas.rgb;\n"
-	"	gl_FragColor.rgb *= opacity;\n"
-	"	gl_FragColor.rgb += canvas.rgb * transparency;\n"
-	"	gl_FragColor.a = max(gl_FragColor.a, canvas.a);\n"
-	"}\n";
+	"	result_color.rgb = dst_color.rgb * src_color.rgb;\n";
 
 static const char *blend_divide_frag = 
-	"uniform sampler2D tex2;\n"
-	"uniform vec2 tex2_dimensions;\n"
+	"	result_color.rgb = dst_color.rgb / src_color.rgb;\n"
+	"	if(src_color.r == 0.0) result_color.r = 1.0;\n"
+	"	if(src_color.g == 0.0) result_color.g = 1.0;\n"
+	"	if(src_color.b == 0.0) result_color.b = 1.0;\n";
+
+static const char *replace_frag = 
+	"uniform vec3 chroma_offset;\n"
 	"void main()\n"
 	"{\n"
-	"	vec4 canvas = texture2D(tex2, gl_FragCoord.xy / tex2_dimensions);\n"
-	"	vec3 opacity = vec3(gl_FragColor.a, gl_FragColor.a, gl_FragColor.a);\n"
-	"	vec3 transparency = vec3(1.0, 1.0, 1.0) - opacity;\n"
-	"	vec3 result = canvas.rgb / gl_FragColor.rgb;\n"
-	"	if(!gl_FragColor.r) result.r = 1.0;\n"
-	"	if(!gl_FragColor.g) result.g = 1.0;\n"
-	"	if(!gl_FragColor.b) result.b = 1.0;\n"
-	"	result *= opacity;\n"
-	"	result += canvas.rgb * transparency;\n"
-	"	gl_FragColor = vec4(result, max(gl_FragColor.a, canvas.a));\n"
+    "    vec3 src_color = gl_FragColor;\n"
+	"    gl_FragColor = vec3(src_color.r, src_color.g, src_color.b, src_color.a);\n"
 	"}\n";
 
 static const char *multiply_alpha_frag = 
+	"uniform vec3 chroma_offset;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_FragColor.rgb *= vec3(gl_FragColor.a, gl_FragColor.a, gl_FragColor.a);\n"
+	"	vec4 src_color = gl_FragColor;\n" // read back from YUV -> RGB conversion
+	"	src_color.rgb -= chroma_offset;\n"
+	"	src_color.rgb *= vec3(src_color.a, src_color.a, src_color.a);\n"
+	"	gl_FragColor.rgb = src_color.rgb + chroma_offset;\n"
 	"}\n";
 
 // static const char *checker_alpha_frag = 
- // 	"void main()\n"
+// 	"void main()\n"
 //     "{\n"
 //     "    gl_FragColor.rgb = vec3(gl_TexCoord[0].st.x, gl_TexCoord[0].st.x, gl_TexCoord[0].st.x);\n"
 //     "    gl_FragColor.a = 1.0;\n"
 //     "}\n";
 
 static const char *read_texture_frag = 
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	gl_FragColor = texture2D(src_tex, gl_TexCoord[0].st);\n"
 	"}\n";
 
 static const char *multiply_mask4_frag = 
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"uniform sampler2D tex1;\n"
 	"uniform float scale;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	gl_FragColor = texture2D(src_tex, gl_TexCoord[0].st);\n"
 	"	gl_FragColor.a *= texture2D(tex1, gl_TexCoord[0].st / vec2(scale, scale)).r;\n"
 	"}\n";
 
 static const char *multiply_mask3_frag = 
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"uniform sampler2D tex1;\n"
 	"uniform float scale;\n"
 	"uniform bool is_yuv;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	gl_FragColor = texture2D(src_tex, gl_TexCoord[0].st);\n"
 	"   float a = texture2D(tex1, gl_TexCoord[0].st / vec2(scale, scale)).r;\n"
 	"	gl_FragColor.rgb *= vec3(a, a, a);\n"
 	"}\n";
 
 static const char *multiply_yuvmask3_frag = 
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"uniform sampler2D tex1;\n"
 	"uniform float scale;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	gl_FragColor = texture2D(src_tex, gl_TexCoord[0].st);\n"
 	"   float a = texture2D(tex1, gl_TexCoord[0].st / vec2(scale, scale)).r;\n"
 	"	gl_FragColor.gb -= vec2(0.5, 0.5);\n"
 	"	gl_FragColor.rgb *= vec3(a, a, a);\n"
@@ -282,20 +251,20 @@ static const char *multiply_yuvmask3_frag =
 	"}\n";
 
 static const char *fade_rgba_frag =
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"uniform float alpha;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	gl_FragColor = texture2D(src_tex, gl_TexCoord[0].st);\n"
 	"	gl_FragColor.a *= alpha;\n"
 	"}\n";
 
 static const char *fade_yuv_frag =
-	"uniform sampler2D tex;\n"
+	"uniform sampler2D src_tex;\n"
 	"uniform float alpha;\n"
 	"void main()\n"
 	"{\n"
-	"	gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n"
+	"	gl_FragColor = texture2D(src_tex, gl_TexCoord[0].st);\n"
 	"	gl_FragColor.r *= alpha;\n"
 	"	gl_FragColor.gb -= vec2(0.5, 0.5);\n"
 	"	gl_FragColor.g *= alpha;\n"
@@ -484,9 +453,10 @@ void Playback3D::copy_from_sync(Playback3DCommand *command)
 			else
 // Copy from pbuffer to RAM
 			{
-// printf("Playback3D::copy_from_sync %d rows=%p dst=%dx%d\n", 
+// printf("Playback3D::copy_from_sync %d src=%dx%d dst=%dx%d\n", 
 // __LINE__, 
-// command->frame->get_rows()[0],
+// command->input->get_w(),
+// command->input->get_h(),
 // command->frame->get_w(),
 // command->frame->get_h());
 				command->input->enable_opengl();
@@ -520,7 +490,9 @@ void Playback3D::copy_from_sync(Playback3DCommand *command)
 					    GL_UNSIGNED_BYTE,
 					    command->frame->get_rows()[0]);
 				}
-                command->frame->flip_vert();
+
+// do the software flip in the caller
+//                command->frame->flip_vert();
 				command->frame->set_opengl_state(VFrame::RAM);
 // printf("Playback3D::copy_from_sync %d\n", 
 // __LINE__);
@@ -672,6 +644,7 @@ void Playback3D::write_buffer_sync(Playback3DCommand *command)
 				break;
 			case VFrame::SCREEN:
 // swap buffers only
+//printf("Playback3D::write_buffer_sync %d swap buffers only\n", __LINE__);
 				window->flip_opengl();
 				break;
 			default:
@@ -751,7 +724,7 @@ void Playback3D::draw_output(Playback3DCommand *command)
 		if(frag_shader > 0) 
 		{
 			glUseProgram(frag_shader);
-			int variable = glGetUniformLocation(frag_shader, "tex");
+			int variable = glGetUniformLocation(frag_shader, "src_tex");
 // Set texture unit of the texture
 			glUniform1i(variable, 0);
 		}
@@ -797,13 +770,15 @@ void Playback3D::draw_output(Playback3DCommand *command)
 void Playback3D::init_frame(Playback3DCommand *command)
 {
 #ifdef HAVE_GL
-	canvas_w = command->canvas->get_canvas()->get_w();
-	canvas_h = command->canvas->get_canvas()->get_h();
+    BC_WindowBase *canvas = command->canvas->get_canvas();
+	canvas_w = canvas->get_w();
+	canvas_h = canvas->get_h();
 
-// printf("Playback3D::init_frame %d canvas_w=%d canvas_h=%d video_on=%d cmodel=%d\n", 
+// printf("Playback3D::init_frame %d canvas_w=%d canvas_h=%d video_on=%d,%d cmodel=%d\n", 
 // __LINE__,
 // canvas_w,
 // canvas_h,
+// canvas->get_video_on(),
 // command->video_on,
 // command->frame->get_color_model());
 
@@ -814,42 +789,48 @@ void Playback3D::init_frame(Playback3DCommand *command)
     }
 
 // video mode with alpha needs the checker pattern
-    if(command->video_on &&
-        BC_CModels::has_alpha(command->frame->get_color_model()))
+//     if(command->video_on &&
+//         BC_CModels::has_alpha(command->frame->get_color_model()))
+//     {
+// printf("Playback3D::init_frame %d checker frame=%p state=%d\n", 
+// __LINE__,
+// command->frame,
+// command->frame->get_opengl_state());
+// 
+// 
+// // draw checker background
+//     	glClearColor(0.6, 0.6, 0.6, 1.0);
+// 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+// 
+//         glColor4f(0.4, 0.4, 0.4, 1.0);
+// 	    glDisable(GL_BLEND);
+// 		glBegin(GL_QUADS);
+// 		glNormal3f(0, 0, 1.0);
+// 
+//         for(int i = 0; i < canvas_h; i += CHECKER_H)
+//         {
+//             for(int j = ((i / CHECKER_H) % 2) * CHECKER_W; 
+//                 j < canvas_w; 
+//                 j += CHECKER_W * 2)
+//             {
+//                 glVertex3f((float)j, -(float)i, 0.0);
+//                 glVertex3f((float)(j + CHECKER_W), -(float)i, 0.0);
+//                 glVertex3f((float)(j + CHECKER_W), -(float)(i + CHECKER_H), 0.0);
+//                 glVertex3f((float)j, -(float)(i + CHECKER_H), 0.0);
+//             }
+//         }
+// 
+// 		glEnd();
+// 	    glColor4f(1.0, 1.0, 1.0, 1.0);
+//     }
+//     else
+// single frame & rendering
     {
-//printf("Playback3D::init_frame %d\n", 
-//__LINE__);
 
-
-// draw checker background
-    	glClearColor(0.6, 0.6, 0.6, 1.0);
-	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glColor4f(0.4, 0.4, 0.4, 1.0);
-	    glDisable(GL_BLEND);
-		glBegin(GL_QUADS);
-		glNormal3f(0, 0, 1.0);
-
-        for(int i = 0; i < canvas_h; i += CHECKER_H)
-        {
-            for(int j = ((i / CHECKER_H) % 2) * CHECKER_W; 
-                j < canvas_w; 
-                j += CHECKER_W * 2)
-            {
-                glVertex3f((float)j, -(float)i, 0.0);
-                glVertex3f((float)(j + CHECKER_W), -(float)i, 0.0);
-                glVertex3f((float)(j + CHECKER_W), -(float)(i + CHECKER_H), 0.0);
-                glVertex3f((float)j, -(float)(i + CHECKER_H), 0.0);
-            }
-        }
-
-		glEnd();
-	    glColor4f(1.0, 1.0, 1.0, 1.0);
-    }
-    else
-// single frame
-    {
-    	glClearColor(0.0, 0.0, 0.0, 0.0);
+        if(BC_CModels::is_yuv(command->frame->get_color_model()))
+        	glClearColor(0.0, 0.5, 0.5, 0.0);
+        else
+        	glClearColor(0.0, 0.0, 0.0, 0.0);
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 // DEBUG
@@ -871,15 +852,18 @@ void Playback3D::clear_output(Canvas *canvas, VFrame *output, int video_on)
 void Playback3D::clear_output_sync(Playback3DCommand *command)
 {
 	command->canvas->lock_canvas("Playback3D::clear_output_sync");
-	if(command->canvas->get_canvas())
+	BC_WindowBase *canvas = command->canvas->get_canvas();
+	if(canvas)
 	{
-		command->canvas->get_canvas()->lock_window("Playback3D::clear_output_sync");
+		canvas->lock_window("Playback3D::clear_output_sync");
 // must always enable OpenGL in the canvas for pbuffers to access the OpenGL context
-		command->canvas->get_canvas()->enable_opengl();
+		canvas->enable_opengl();
 
-// This makes the OpenGL context draw on a nested EDL frame buffer
-//		if(/* command->frame */ !command->video_on)
-        if(1)
+//printf("Playback3D::clear_output_sync %d frame=%p video_on=%d\n", 
+//__LINE__, command->frame, command->video_on);
+// This makes nested EDL's & rendering draw on a pbuffer 
+// instead of the canvas
+		if(!command->video_on)
 		{
 			command->frame->enable_opengl();
 		}
@@ -960,6 +944,10 @@ void Playback3D::do_camera_sync(Playback3DCommand *command)
 		command->input->bind_texture(0);
 // Must call draw_texture in input frame to get the texture coordinates right.
 
+printf("Playback3D::do_camera_sync %d input=%p frame=%p\n", 
+__LINE__, 
+command->input,
+command->frame);
 // printf("Playback3D::do_camera_sync 1 %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n", 
 // command->in_x1, 
 // command->in_y2, 
@@ -1036,15 +1024,15 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 	command->canvas->lock_canvas("Playback3D::overlay_sync");
 	if(command->canvas->get_canvas())
 	{
-		BC_WindowBase *window = command->canvas->get_canvas();
-	    window->lock_window("Playback3D::overlay_sync");
-// Make sure OpenGL is enabled first.
-		window->enable_opengl();
+		BC_WindowBase *canvas = command->canvas->get_canvas();
+	    canvas->lock_window("Playback3D::overlay_sync");
+// Make sure OpenGL context is current.
+		canvas->enable_opengl();
 
-		window->update_video_cursor();
+		canvas->update_video_cursor();
 
 
-// Render to PBuffer
+// Render to PBuffer with alpha channel
 		if(!command->video_on)
 		{
 			command->frame->enable_opengl();
@@ -1053,13 +1041,21 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 			canvas_h = command->frame->get_h();
 		}
 		else
-// Render to canvas
+// Render to canvas with no alpha channel
 		{
-			canvas_w = window->get_w();
-			canvas_h = window->get_h();
+			canvas_w = canvas->get_w();
+			canvas_h = canvas->get_h();
 		}
 
 		glColor4f(1, 1, 1, 1);
+printf("Playback3D::overlay_sync %d video_on=%d input=%p frame=%p input_state=%d canvas_w=%d canvas_h=%d\n", 
+__LINE__, 
+command->video_on,
+command->input,
+command->frame,
+command->input->get_opengl_state(), 
+canvas_w, 
+canvas_h);
 
 		switch(command->input->get_opengl_state())
 		{
@@ -1080,7 +1076,7 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 				}
                 else
 				{
-                	window->enable_opengl();
+                	canvas->enable_opengl();
 				}
                 break;
 			default:
@@ -1091,41 +1087,51 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 
 		const char *shader_stack[8] = { 0 };
 		int total_shaders = 0;
+        int is_yuv = BC_CModels::is_yuv(command->input->get_color_model());
 
 		VFrame::init_screen(canvas_w, canvas_h);
 
 // Enable texture
 		command->input->bind_texture(0);
 
-// Convert colormodel to RGB if not nested.
-// The color model setting in the output frame is ignored.
-		if(!command->is_nested)
+// Cheat by converting to RGB here if not nested.
+// The color model setting in the output frame is ignored & we save on a texture to
+// screen blit.
+//printf("Playback3D::overlay_sync %d %d %d\n", __LINE__, command->is_nested, command->input->get_color_model());
+		if(!command->is_nested && is_yuv)
 		{
-			switch(command->input->get_color_model())
-			{
-				case BC_YUV888:
-				case BC_YUVA8888:
-					shader_stack[total_shaders++] = yuv_to_rgb_frag;
-					break;
-			}
+printf("Playback3D::overlay_sync %d yuv_to_rgb_frag\n", __LINE__);
+			shader_stack[total_shaders++] = yuv_to_rgb_frag;
+            is_yuv = 0;
 		}
 
-//printf("Playback3D::overlay_sync %d %d %d\n", __LINE__, canvas_w, canvas_h);
 // Change blend operation
 		switch(command->mode)
 		{
 			case TRANSFER_NORMAL:
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+// GL_ONE_MINUS_SRC_ALPHA doesn't work 
+//				glEnable(GL_BLEND);
+//				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+printf("Playback3D::overlay_sync %d TRANSFER_NORMAL\n", __LINE__);
+				enable_overlay_texture(command);
+				if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
+                shader_stack[total_shaders++] = get_pixels_frag;
+				shader_stack[total_shaders++] = blend_normal_frag;
+                shader_stack[total_shaders++] = put_pixels_frag;
 				break;
 
+// bottom track is always a replace
 			case TRANSFER_REPLACE:
-// This requires overlaying an alpha multiplied image on a black screen.
 				glDisable(GL_BLEND);
+printf("Playback3D::overlay_sync %d TRANSFER_REPLACE %d\n", __LINE__, command->input->get_texture_components());
+        		if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
 				if(command->input->get_texture_components() == 4)
 				{
-					if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
-					shader_stack[total_shaders++] = multiply_alpha_frag;
+                    if(command->video_on)
+                    {
+// Screen has no alpha.
+    					shader_stack[total_shaders++] = multiply_alpha_frag;
+                    }
 				}
 				break;
 
@@ -1134,32 +1140,44 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 			case TRANSFER_ADDITION:
 				enable_overlay_texture(command);
 				if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
+                shader_stack[total_shaders++] = get_pixels_frag;
 				shader_stack[total_shaders++] = blend_add_frag;
+                shader_stack[total_shaders++] = put_pixels_frag;
 				break;
 			case TRANSFER_SUBTRACT:
 				enable_overlay_texture(command);
 				if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
+                shader_stack[total_shaders++] = get_pixels_frag;
 				shader_stack[total_shaders++] = blend_subtract_frag;
+                shader_stack[total_shaders++] = put_pixels_frag;
 				break;
 			case TRANSFER_MULTIPLY:
 				enable_overlay_texture(command);
 				if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
+                shader_stack[total_shaders++] = get_pixels_frag;
 				shader_stack[total_shaders++] = blend_multiply_frag;
+                shader_stack[total_shaders++] = put_pixels_frag;
 				break;
 			case TRANSFER_MAX:
 				enable_overlay_texture(command);
 				if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
+                shader_stack[total_shaders++] = get_pixels_frag;
 				shader_stack[total_shaders++] = blend_max_frag;
+                shader_stack[total_shaders++] = put_pixels_frag;
 				break;
 			case TRANSFER_MIN:
 				enable_overlay_texture(command);
 				if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
+                shader_stack[total_shaders++] = get_pixels_frag;
 				shader_stack[total_shaders++] = blend_min_frag;
+                shader_stack[total_shaders++] = put_pixels_frag;
 				break;
 			case TRANSFER_DIVIDE:
 				enable_overlay_texture(command);
 				if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
+                shader_stack[total_shaders++] = get_pixels_frag;
 				shader_stack[total_shaders++] = blend_divide_frag;
+                shader_stack[total_shaders++] = put_pixels_frag;
 				break;
 		}
 
@@ -1170,25 +1188,34 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 //         }
 
 		unsigned int frag_shader = 0;
-//printf("Playback3D::overlay_sync %d total_shaders=%d\n", __LINE__, total_shaders);
 		if(total_shaders > 0)
 		{
 			frag_shader = VFrame::make_shader(0,
 				shader_stack[0],
 				shader_stack[1],
 				shader_stack[2],
+				shader_stack[3],
+				shader_stack[4],
 				0);
 
 			glUseProgram(frag_shader);
+printf("Playback3D::overlay_sync %d is_yuv=%d total_shaders=%d\n", 
+__LINE__, 
+is_yuv,
+total_shaders);
 
+		    if(is_yuv)
+			    glUniform3f(glGetUniformLocation(frag_shader, "chroma_offset"), 0.0, 0.5, 0.5);
+		    else
+			    glUniform3f(glGetUniformLocation(frag_shader, "chroma_offset"), 0.0, 0.0, 0.0);
 
 // Set texture unit of the texture
-			glUniform1i(glGetUniformLocation(frag_shader, "tex"), 0);
-// Set texture unit of the temp texture
-			glUniform1i(glGetUniformLocation(frag_shader, "tex2"), 1);
+			glUniform1i(glGetUniformLocation(frag_shader, "src_tex"), 0); // tex
+// Set texture unit of temp_texture
+			glUniform1i(glGetUniformLocation(frag_shader, "dst_tex"), 1); // tex2
 // Set dimensions of the temp texture
 			if(temp_texture)
-				glUniform2f(glGetUniformLocation(frag_shader, "tex2_dimensions"), 
+				glUniform2f(glGetUniformLocation(frag_shader, "dst_tex_dimensions"), // tex2_dimensions 
 					(float)temp_texture->get_texture_w(), 
 					(float)temp_texture->get_texture_h());
 		}
@@ -1219,7 +1246,11 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 			command->out_y1,
 			command->out_x2,
 			command->out_y2,
-// Don't flip vertical if nested
+// Don't flip vertical if nested or rendering
+// In the nested case, the output is possibly flipped 
+// upon injestion into the parent EDL.
+// In the rendering case, the output is now right side up & 
+// we must skip the final flip for the file writer.
 			!command->is_nested);
 
 		glUseProgram(0);
@@ -1238,13 +1269,13 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 
 
 
-		window->unlock_window();
+		canvas->unlock_window();
 	}
 	command->canvas->unlock_canvas();
-#endif
+#endif // HAVE_GL
 }
 
-
+// copy the canvas or pbuffer to a texture before blending
 void Playback3D::enable_overlay_texture(Playback3DCommand *command)
 {
 #ifdef HAVE_GL
@@ -1267,7 +1298,7 @@ void Playback3D::enable_overlay_texture(Playback3DCommand *command)
 		0,
 		canvas_w,
 		canvas_h);
-#endif
+#endif // HAVE_GL
 }
 
 
@@ -1561,7 +1592,7 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 		{
 			int variable;
 			glUseProgram(frag_shader);
-			if((variable = glGetUniformLocation(frag_shader, "tex")) >= 0)
+			if((variable = glGetUniformLocation(frag_shader, "src_tex")) >= 0)
 				glUniform1i(variable, 0);
 			if((variable = glGetUniformLocation(frag_shader, "tex1")) >= 0)
 				glUniform1i(variable, 1);
@@ -1725,7 +1756,7 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 					shader,
 					0);
 				glUseProgram(shader_id);
-				glUniform1i(glGetUniformLocation(shader_id, "tex"), 0);
+				glUniform1i(glGetUniformLocation(shader_id, "src_tex"), 0);
 			}
 
 			command->frame->draw_texture();
@@ -1755,7 +1786,7 @@ void Playback3D::do_fade(Canvas *canvas, VFrame *frame, float fade)
 void Playback3D::do_fade_sync(Playback3DCommand *command)
 {
 #ifdef HAVE_GL
-	command->canvas->lock_canvas("Playback3D::do_mask_sync");
+	command->canvas->lock_canvas("Playback3D::do_fade_sync");
 	if(command->canvas->get_canvas())
 	{
 		BC_WindowBase *window = command->canvas->get_canvas();
@@ -1792,12 +1823,15 @@ void Playback3D::do_fade_sync(Playback3DCommand *command)
 			case BC_RGBA8888:
 			case BC_RGBA_FLOAT:
 			case BC_YUVA8888:
+printf("Playback3D::do_fade_sync %d frame=%p alpha=%f\n", 
+__LINE__, command->frame, command->alpha);
 				frag_shader = VFrame::make_shader(0,
 					fade_rgba_frag,
 					0);
 				break;
 
 			case BC_RGB888:
+			case BC_RGB_FLOAT:
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
 				glColor4f(command->alpha, command->alpha, command->alpha, 1);
@@ -1816,7 +1850,7 @@ void Playback3D::do_fade_sync(Playback3DCommand *command)
 		{
 			glUseProgram(frag_shader);
 			int variable;
-			if((variable = glGetUniformLocation(frag_shader, "tex")) >= 0)
+			if((variable = glGetUniformLocation(frag_shader, "src_tex")) >= 0)
 				glUniform1i(variable, 0);
 			if((variable = glGetUniformLocation(frag_shader, "alpha")) >= 0)
 				glUniform1f(variable, command->alpha);

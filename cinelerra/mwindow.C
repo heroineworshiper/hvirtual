@@ -152,6 +152,7 @@ int atexit(void (*function)(void))
 
 
 ArrayList<PluginServer*>* MWindow::plugindb = 0;
+Playback3D* MWindow::playback_3d = 0;
 FileServer* MWindow::file_server = 0;
 //BC_ProgressBox* MWindow::file_progress = 0;
 MainProgressBar* MWindow::file_progress = 0;
@@ -885,7 +886,6 @@ void MWindow::init_3d()
 	playback_3d = new Playback3D(this);
 	playback_3d->create_objects();
 }
-
 void MWindow::init_edl()
 {
 	edl = new EDL;

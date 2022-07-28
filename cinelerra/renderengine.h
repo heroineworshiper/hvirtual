@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,8 +48,7 @@ public:
 	RenderEngine(PlaybackEngine *playback_engine,
 		Preferences *preferences, 
 		Canvas *output,
-		ChannelDB *channeldb,
-		int is_nested);
+		ChannelDB *channeldb);
 	~RenderEngine();
 
 	void get_duty();
@@ -66,8 +65,11 @@ public:
 	double get_tracking_position();
 	CICache* get_acache();
 	CICache* get_vcache();
+    void set_nested(int value);
+    void set_rendering(int value);
 	void set_acache(CICache *cache);
 	void set_vcache(CICache *cache);
+    void set_vdevice(VideoDevice *vdevice);
 // Get levels for tracking
 	void get_output_levels(double *levels, int64_t position);
 	void get_module_levels(ArrayList<double> *module_levels, int64_t position);
@@ -117,9 +119,10 @@ public:
 
 	int done;
 	int is_nested;
-// If nested, the devices are owned by someone else
-	AudioDevice *audio;
-	VideoDevice *video;
+    int is_rendering;
+// If nested or rendering, the devices are owned by someone else
+	AudioDevice *adevice;
+	VideoDevice *vdevice;
 	ARender *arender;
 	VRender *vrender;
 	int do_audio;

@@ -1457,11 +1457,12 @@ void VFrame::dump_params()
 void VFrame::dump()
 {
 	printf("VFrame::dump %d this=%p\n", __LINE__, this);
-	printf("    w=%d h=%d colormodel=%d rows=%p use_shm=%d shmid=%d\n", 
+	printf("    w=%d h=%d colormodel=%d rows=%p opengl_state=%d use_shm=%d shmid=%d\n", 
 		w, 
 		h,
 		color_model,
 		rows,
+        opengl_state,
 		use_shm,
 		shmid);
 }

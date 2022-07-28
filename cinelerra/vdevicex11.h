@@ -1,7 +1,8 @@
 
+
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +53,8 @@ public:
 	int open_output();
 	int start_playback();
 	int stop_playback();
+// use this device as an opengl context for rendering
+    void start_rendering();
 	int output_visible();
 // After loading the bitmap with a picture, write it
 	int write_buffer(VFrame *output_frame, EDL *edl);
@@ -121,10 +124,11 @@ public:
 // pluginclient function.
 	void run_plugin(PluginClient *client);
 
-// For multichannel plugins, copy from the temporary pbuffer to 
+// For multichannel plugins, copy from the pbuffer to 
 // the plugin output texture.
-// Set the output OpenGL state to TEXTURE.
-	void copy_frame(VFrame *dst, VFrame *src);
+// For rendering, copy the pbuffer to RAM for writing.
+// Set the output OpenGL state to RAM or TEXTURE.
+	void copy_frame(VFrame *dst, VFrame *src, int want_texture);
 
 private:
     void output_to_bitmap(VFrame *output_frame);
@@ -152,7 +156,7 @@ private:
 	int bitmap_w, bitmap_h;   
 	ArrayList<int> render_strategies;
 // Canvas for output
-	Canvas *output;
+	Canvas *canvas;
 // Parameters the output texture conforms to, for OpenGL
 // window_id is probably not going to be used
 	int window_id;
@@ -172,6 +176,8 @@ private:
 	BC_Capture *capture_bitmap;
 // Set when OpenGL rendering has cleared the frame buffer before write_buffer
 	int is_cleared;
+// use this device as an opengl context for rendering
+    int is_rendering;
 };
 
 #endif

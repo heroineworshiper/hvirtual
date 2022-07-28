@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,6 +108,8 @@ public:
 // Several caches of cache_size exist so multiply by 4.
 // rendering, playback, timeline, preview
 	int64_t cache_size;
+
+    int use_gl_rendering;
 
 	int use_renderfarm;
 	int renderfarm_port;

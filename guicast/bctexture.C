@@ -51,8 +51,14 @@ void BC_Texture::clear_objects()
 {
 	if(get_texture_id() >= 0)
 	{
-// printf("VFrame::clear_objects %p window_id=%d texture_id=%d w=%d h=%d\n", 
-// this, window_id, texture_id, texture_w, texture_h);
+// printf("BC_Texture::clear_objects %d %p window_id=%d texture_id=%d w=%d h=%d\n", 
+// __LINE__, 
+// this, 
+// window_id, 
+// texture_id, 
+// texture_w, 
+// texture_h);
+
 		BC_WindowBase::get_synchronous()->release_texture(
 			window_id,
 			texture_id);
@@ -173,7 +179,8 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
 			texture_w,
 			texture_h,
 			texture_components);
-// printf("BC_Texture::new_texture created texture_id=%d window_id=%d w=%d h=%d\n", 
+// printf("BC_Texture::new_texture %d created texture_id=%d window_id=%d w=%d h=%d\n", 
+// __LINE__,
 // texture_id,
 // window_id,
 // texture_w,

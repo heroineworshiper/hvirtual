@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,10 +107,14 @@ void PerformancePrefs::create_objects()
 		y);
 	preroll->create_objects();
 	y += DP(30);
-	add_subwindow(new PrefsForceUniprocessor(pwindow, x, y));
+    PrefsForceUniprocessor *toggle;
+	add_subwindow(toggle = new PrefsForceUniprocessor(pwindow, x, y));
 
-	y += DP(35);
+	y += toggle->get_h() + margin;
 
+
+	add_subwindow(gl_rendering = new PrefsGLRendering(pwindow, this, x, y));
+    y += gl_rendering->get_h() + margin;
 
 
 
@@ -174,6 +178,9 @@ void PerformancePrefs::create_objects()
 		y = y2;
 	}
 
+
+
+
 // Renderfarm
 	add_subwindow(new BC_Bar(margin, y, get_w() - margin * 2));
 	y += margin;
@@ -182,7 +189,7 @@ void PerformancePrefs::create_objects()
 	add_subwindow(new BC_Title(x, y, _("Render Farm"), LARGEFONT, resources->text_default));
 	y += DP(25);
 
-	add_subwindow(new PrefsRenderFarm(pwindow, x, y));
+	add_subwindow(use_renderfarm = new PrefsRenderFarm(pwindow, this, x, y));
 	add_subwindow(new BC_Title(x + xmargin4, y, _("Nodes:")));
 	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Hostname:")));
@@ -237,7 +244,7 @@ void PerformancePrefs::create_objects()
 		_("Total jobs to create:")));
 	add_subwindow(new BC_Title(x, 
 		y + DP(30), 
-		_("(overridden if new file at each label is checked)")));
+		_("(overridden if creating a\nnew file at each label)")));
 	jobs = new PrefsRenderFarmJobs(pwindow, 
 		this, 
 		x + xmargin3, 
@@ -256,7 +263,21 @@ void PerformancePrefs::create_objects()
 // 		x + xmargin3, 
 // 		y));
 // 	y += 30;
+    update_enabled();
+}
 
+void PerformancePrefs::update_enabled()
+{
+    if(pwindow->thread->preferences->use_gl_rendering)
+    {
+        use_renderfarm->update(0);
+        use_renderfarm->disable();
+    }
+    else
+    {
+        use_renderfarm->update(pwindow->thread->preferences->use_renderfarm);
+        use_renderfarm->enable();
+    }
 }
 
 void PerformancePrefs::generate_node_list()
@@ -466,19 +487,41 @@ int PrefsBRenderPreroll::handle_event()
 
 
 
+PrefsGLRendering::PrefsGLRendering(PreferencesWindow *pwindow, 
+    PerformancePrefs *subwindow, 
+    int x, 
+    int y)
+ : BC_CheckBox(x, 
+ 	y, 
+	pwindow->thread->preferences->use_gl_rendering,
+	_("Use hardware for rendering"))
+{
+	this->pwindow = pwindow;
+    this->subwindow = subwindow;
+}
+int PrefsGLRendering::handle_event()
+{
+	pwindow->thread->preferences->use_gl_rendering = get_value();
+    subwindow->update_enabled();
+	return 1;
+}
 
 
 
-PrefsRenderFarm::PrefsRenderFarm(PreferencesWindow *pwindow, int x, int y)
+
+
+
+PrefsRenderFarm::PrefsRenderFarm(PreferencesWindow *pwindow, 
+    PerformancePrefs *subwindow, 
+    int x, 
+    int y)
  : BC_CheckBox(x, 
  	y, 
 	pwindow->thread->preferences->use_renderfarm,
 	_("Use render farm"))
 {
 	this->pwindow = pwindow;
-}
-PrefsRenderFarm::~PrefsRenderFarm()
-{
+    this->subwindow = subwindow;
 }
 int PrefsRenderFarm::handle_event()
 {

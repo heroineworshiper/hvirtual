@@ -362,7 +362,6 @@ void ResourceThread::open_render_engine(EDL *nested_edl,
 		render_engine = new RenderEngine(0,
 			mwindow->preferences,
 			0,
-			0,
 			0);
 		render_engine_id == nested_edl->id;
 		render_engine->set_vcache(mwindow->video_cache);

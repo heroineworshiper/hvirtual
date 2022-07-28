@@ -814,7 +814,7 @@ void Canvas::create_objects(EDL *edl)
 	view_y = y;
 	view_w = w;
 	view_h = h;
-	get_scrollbars(edl, view_x, view_y, view_w, view_h);
+	if(edl) get_scrollbars(edl, view_x, view_y, view_w, view_h);
 
 	subwindow->unlock_window();
 	create_canvas(0);

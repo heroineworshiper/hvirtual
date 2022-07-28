@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,6 +132,7 @@ public:
 	File *file;
 // This is 1 if an error is encountered.
 	int result;
+    int use_opengl;
 	VFrame ***video_output;
 // A nonzero mwindow signals master render engine to the engine.
 // A zero mwindow signals client or non interactive.
@@ -147,7 +148,13 @@ public:
 	RenderEngine *render_engine;
 	RenderPackage *package;
 	TransportCommand *command;
-	int direct_frame_copying;
+//	int direct_frame_copying;
+// Dummy GUI to get an OpenGL context. A lot more complicated than sharing
+// the CWindowGUI with playback & rendering.
+//    BCWindowBase *opengl_gui;
+///    Canvas *opengl_canvas;
+
+// video device for preview frames & rendering
 	VideoDevice *video_device;
 	VFrame *video_output_ptr;
 	int64_t video_preroll;

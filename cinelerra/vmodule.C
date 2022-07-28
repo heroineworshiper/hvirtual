@@ -151,9 +151,9 @@ int VModule::import_frame(VFrame *output,
 	VDeviceX11 *x11_device = 0;
 	if(use_opengl)
 	{
-		if(renderengine && renderengine->video)
+		if(renderengine && renderengine->vdevice)
 		{
-			x11_device = (VDeviceX11*)renderengine->video->get_output_base();
+			x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
 			output->set_opengl_state(VFrame::RAM);
 			if(!x11_device) use_opengl = 0;
 		}
@@ -238,8 +238,8 @@ int VModule::import_frame(VFrame *output,
 				nested_renderengine = new RenderEngine(0,
 					get_preferences(), 
 					0,
-					renderengine ? renderengine->channeldb : 0,
-					1);
+					renderengine ? renderengine->channeldb : 0);
+                nested_renderengine->set_nested(1);
 				nested_renderengine->set_vcache(get_cache());
 				nested_renderengine->arm_command(nested_command);
 			}
@@ -253,7 +253,7 @@ int VModule::import_frame(VFrame *output,
 		}
 
 // Update nested video driver for opengl
-		nested_renderengine->video = renderengine->video;
+		nested_renderengine->vdevice = renderengine->vdevice;
 	}
 	else
 	{
@@ -443,11 +443,12 @@ int VModule::import_frame(VFrame *output,
 					out_h);
 			}
 
-// printf("VModule::import_frame %d %f %d %f %d\n", 
+// printf("VModule::import_frame %d output=%p in=%fx%f asset=%dx%d\n", 
 // __LINE__,
+// output,
 // in_w, 
-// asset_w,
 // in_h,
+// asset_w,
 // asset_h);
 
 // file -> temp -> output
@@ -639,15 +640,15 @@ output);
 //printf("VModule::import_frame %d\n", __LINE__);
 
 // input2 was the output buffer, so it must be restored
-						input2->reallocate(0, 
-							-1,
-							0,
-							0,
-							0,
-							output_w, 
-							output_h, 
-							current_cmodel, 
-							-1);
+						    input2->reallocate(0, 
+							    -1,
+							    0,
+							    0,
+							    0,
+							    output_w, 
+							    output_h, 
+							    current_cmodel, 
+							    -1);
 //printf("VModule::import_frame %d\n", __LINE__);
 						}
 					}
@@ -707,10 +708,10 @@ output);
 						out_y,
 						out_x + out_w,
 						out_y + out_h);
-if(debug) printf("VModule::import_frame %d %d %d\n", 
-__LINE__, 
-output->get_opengl_state(),
-(*input)->get_opengl_state());
+// printf("VModule::import_frame %d %d %d\n", 
+// __LINE__, 
+// output->get_opengl_state(),
+// (*input)->get_opengl_state());
 				}
 				else
 				{
@@ -882,6 +883,7 @@ current_cmodel);
 // Cache single frames
 //memset(output->get_rows()[0], 0xff, 1024);
 					if(use_cache) file->set_cache_frames(1);
+//printf("VModule::import_frame %d output=%p state=%d\n", __LINE__, output, output->get_opengl_state());
 					result = file->read_frame(output);
 					if(use_cache) file->set_cache_frames(0);
 					output->set_opengl_state(VFrame::RAM);
@@ -1053,7 +1055,7 @@ int VModule::render(VFrame *output,
 
 // Execute plugin with transition_input and output here
 		if(renderengine) 
-			transition_server->set_use_opengl(use_opengl, renderengine->video);
+			transition_server->set_use_opengl(use_opengl, renderengine->vdevice);
 		transition_server->process_transition((*transition_input), 
 			output,
 			(direction == PLAY_FORWARD) ? 

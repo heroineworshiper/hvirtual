@@ -496,7 +496,7 @@ public:
 	int set_loop_boundaries();         // toggle loop playback and set boundaries for loop playback
 
 
-	Playback3D *playback_3d;
+	static Playback3D *playback_3d;
 	RemoveThread *remove_thread;
     AssetRemoveThread *asset_remove;
 

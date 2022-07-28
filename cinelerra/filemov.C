@@ -414,6 +414,8 @@ void FileMOV::format_to_asset()
 
 	if(quicktime_is_avi(fd)) asset->format = FILE_AVI;
 	asset->audio_data = quicktime_has_audio(fd);
+//printf("FileMOV::format_to_asset %d audio_data=%d\n", 
+//__LINE__, asset->audio_data);
 	if(asset->audio_data)
 	{
 		asset->channels = 0;
@@ -439,6 +441,8 @@ void FileMOV::format_to_asset()
 	if(quicktime_has_video(fd) && quicktime_supported_video(fd, 0))
 			asset->video_data = 1;
 
+//printf("FileMOV::format_to_asset %d video_data=%d\n", 
+//__LINE__, asset->video_data);
 	if(asset->video_data)
 	{
 		depth = quicktime_video_depth(fd, 0);
@@ -1523,7 +1527,9 @@ void MOVConfigAudio::create_objects()
 
 	update_parameters();
 
-	add_subwindow(new BC_OKButton(this));
+    BC_OKButton *ok;
+	add_subwindow(ok = new BC_OKButton(this));
+    ok->set_esc(1);
 	show_window(1);
 	unlock_window();
 }
@@ -1836,7 +1842,9 @@ void MOVConfigVideo::create_objects()
 	param_y = y;
 	update_parameters();
 
-	add_subwindow(new BC_OKButton(this));
+    BC_OKButton *ok;
+	add_subwindow(ok = new BC_OKButton(this));
+    ok->set_esc(1);
 	show_window(1);
 	unlock_window();
 }

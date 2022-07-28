@@ -275,13 +275,13 @@ int ARender::get_history_number(int64_t *table, int64_t position)
 
 void ARender::send_last_buffer()
 {
-	renderengine->audio->set_last_buffer();
+	renderengine->adevice->set_last_buffer();
 }
 
 int ARender::wait_device_completion()
 {
 // audio device should be entirely cleaned up by vconsole
-	renderengine->audio->wait_for_completion();
+	renderengine->adevice->wait_for_completion();
 	return 0;
 }
 
@@ -318,7 +318,7 @@ if(debug) printf("ARender::run %d %lld %lld\n", __LINE__, (long long)current_pos
 			renderengine->playback_engine &&
 			!renderengine->do_video)
 		{
-			double position = (double)renderengine->audio->current_position() / 
+			double position = (double)renderengine->adevice->current_position() / 
 				renderengine->get_edl()->session->sample_rate * 
 				renderengine->command->get_speed();
 

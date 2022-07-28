@@ -241,7 +241,7 @@ public:
 		int is_cleared);
 
 // Reads from pbuffer to either RAM or texture and updates the dst state
-// want_texture - causes read into texture if 1
+// want_texture - the destination is a texture instead of RAM if 1
 	void copy_from(Canvas *canvas, 
 		VFrame *dst,
 		VFrame *src,

@@ -2024,13 +2024,14 @@ int File::read_frame(VFrame *frame, int is_thread)
 			temp_frame->copy_stacks(frame);
 			file->read_frame(temp_frame);
 //for(int i = 0; i < 1000 * 1000; i++) ((float*)temp_frame->get_rows()[0])[i] = 1.0;
-printf("File::read_frame %d %d %d %d %d %d\n", 
-temp_frame->get_color_model(), 
-temp_frame->get_w(),
-temp_frame->get_h(),
-frame->get_color_model(),
-frame->get_w(),
-frame->get_h());
+// printf("File::read_frame %d: %d %d %d %d %d %d\n", 
+// __LINE__,
+// temp_frame->get_color_model(), 
+// temp_frame->get_w(),
+// temp_frame->get_h(),
+// frame->get_color_model(),
+// frame->get_w(),
+// frame->get_h());
 			cmodel_transfer(frame->get_rows(), 
 				temp_frame->get_rows(),
 				frame->get_y(),
