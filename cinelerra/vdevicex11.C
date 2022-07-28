@@ -246,7 +246,7 @@ int VDeviceX11::close_all()
 				0);
 			canvas->lock_canvas("VDeviceX11::close_all 2");
 			canvas->get_canvas()->lock_window("VDeviceX11::close_all 2");
-            canvas->refresh_frame->flip_vert();
+//            canvas->refresh_frame->flip_vert();
 		}
 		else
         if(output_frame->get_rows())

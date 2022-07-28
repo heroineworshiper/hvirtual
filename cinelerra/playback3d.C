@@ -1259,12 +1259,9 @@ printf("Playback3D::overlay_sync %d TRANSFER_NORMAL\n", __LINE__);
 
 
 
-// printf("Playback3D::overlay_sync %d out=%f,%f-%f,%f\n", 
+// printf("Playback3D::overlay_sync %d is_nested=%d\n", 
 // __LINE__,
-// command->out_x1,
-// command->out_y1,
-// command->out_x2,
-// command->out_y2);
+// command->is_nested);
 		command->input->draw_texture(command->in_x1, 
 			command->in_y1,
 			command->in_x2,
@@ -1278,7 +1275,7 @@ printf("Playback3D::overlay_sync %d TRANSFER_NORMAL\n", __LINE__);
 // upon injestion into the parent EDL.
 // In the rendering case, the output is now right side up & 
 // we must skip the final flip for the file writer.
-			!command->is_nested);
+			0 /* command->is_nested */);
 
 		glUseProgram(0);
 

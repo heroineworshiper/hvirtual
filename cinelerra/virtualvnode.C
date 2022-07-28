@@ -554,8 +554,8 @@ int VirtualVNode::render_projector(VFrame *input,
 					1,
 					mode, 
 					renderengine->get_edl(),
-					renderengine->is_nested ||
-                        renderengine->is_rendering);
+					renderengine->is_nested /* ||
+                        renderengine->is_rendering */);
 			}
 			else
 			{

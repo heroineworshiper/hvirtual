@@ -143,6 +143,9 @@ int VRender::process_buffer(int64_t input_position,
 	use_vconsole = get_use_vconsole(&playable_edit, 
 		input_position,
 		use_brender);
+
+// TODO: opengl is faster in virtual console than direct
+    if(use_opengl) use_vconsole = 1;
 	if(debug) printf("VRender::process_buffer %d use_vconsole=%d\n", __LINE__, use_vconsole);
 
 // Negotiate color model
