@@ -117,11 +117,8 @@ int VirtualVConsole::process_buffer(int64_t input_position,
 // clear the output
 	if(use_opengl)
 	{
-// output pbuffer is different from the vdriver if we're nested
 		((VDeviceX11*)get_vdriver())->clear_output(vrender->video_out);
 
-
-// que OpenGL driver that everything is overlaid in the framebuffer
 		vrender->video_out->set_opengl_state(VFrame::SCREEN);
 	}
 	else
@@ -180,7 +177,7 @@ int VirtualVConsole::process_buffer(int64_t input_position,
         	output_temp->set_opengl_state(VFrame::RAM);
         }
 
-printf("VirtualVConsole::process_buffer %d output_temp=%p\n", __LINE__, output_temp);
+//printf("VirtualVConsole::process_buffer %d output_temp=%p\n", __LINE__, output_temp);
 
 // Assume openGL is used for the final stage and let console
 // disable.

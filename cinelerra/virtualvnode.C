@@ -286,18 +286,18 @@ int VirtualVNode::render_as_module(VFrame *video_out,
 
 	output_temp->pop_next_effect();
 
-printf("VirtualVNode::render_as_module %d state=%d\n", __LINE__, output_temp->get_opengl_state());
+//printf("VirtualVNode::render_as_module %d state=%d\n", __LINE__, output_temp->get_opengl_state());
 	render_fade(output_temp,
 				start_position,
 				frame_rate,
 				track->automation->autos[AUTOMATION_FADE],
 				direction,
 				use_opengl);
-printf("VirtualVNode::render_as_module %d output_temp=%p state=%d\n", 
-__LINE__, output_temp, output_temp->get_opengl_state());
+//printf("VirtualVNode::render_as_module %d output_temp=%p state=%d\n", 
+//__LINE__, output_temp, output_temp->get_opengl_state());
 
 	render_mask(output_temp, start_position_project, use_opengl);
-printf("VirtualVNode::render_as_module %d state=%d\n", __LINE__, output_temp->get_opengl_state());
+//printf("VirtualVNode::render_as_module %d state=%d\n", __LINE__, output_temp->get_opengl_state());
 
 
 // overlay on the final output
@@ -531,10 +531,10 @@ int VirtualVNode::render_projector(VFrame *input,
 			if(use_opengl)
 			{
 // Nested EDL's overlay on a PBuffer instead of a screen
-printf("VirtualVNode::render_projector %d input=%p output=%p\n", 
-__LINE__, 
-input, 
-output);
+// printf("VirtualVNode::render_projector %d input=%p output=%p\n", 
+// __LINE__, 
+// input, 
+// output);
 // printf("VirtualVNode::render_projector %d\n", __LINE__);
 // for(int i = 0; i < 1024; i++)
 // {

@@ -191,14 +191,22 @@ static const char *replace_frag =
 	"    gl_FragColor = vec3(src_color.r, src_color.g, src_color.b, src_color.a);\n"
 	"}\n";
 
+// static const char *multiply_alpha_frag = 
+// 	"uniform vec3 chroma_offset;\n"
+// 	"void main()\n"
+// 	"{\n"
+// 	"	vec4 src_color = gl_FragColor;\n" // read back from YUV -> RGB conversion
+// 	"	src_color.rgb -= chroma_offset;\n"
+// 	"	src_color.rgb *= vec3(src_color.a, src_color.a, src_color.a);\n"
+// 	"	gl_FragColor.rgb = src_color.rgb + chroma_offset;\n"
+// 	"}\n";
+
 static const char *multiply_alpha_frag = 
-	"uniform vec3 chroma_offset;\n"
 	"void main()\n"
 	"{\n"
 	"	vec4 src_color = gl_FragColor;\n" // read back from YUV -> RGB conversion
-	"	src_color.rgb -= chroma_offset;\n"
 	"	src_color.rgb *= vec3(src_color.a, src_color.a, src_color.a);\n"
-	"	gl_FragColor.rgb = src_color.rgb + chroma_offset;\n"
+	"	gl_FragColor.rgb = src_color.rgb;\n"
 	"}\n";
 
 // static const char *checker_alpha_frag = 
@@ -622,12 +630,12 @@ void Playback3D::write_buffer_sync(Playback3DCommand *command)
 	command->canvas->lock_canvas("Playback3D::write_buffer_sync");
 	if(command->canvas->get_canvas())
 	{
-		BC_WindowBase *window = command->canvas->get_canvas();
-		window->lock_window("Playback3D::write_buffer_sync");
+		BC_WindowBase *canvas = command->canvas->get_canvas();
+		canvas->lock_window("Playback3D::write_buffer_sync");
 // Update hidden cursor
-		window->update_video_cursor();
-// Make sure OpenGL is enabled first.
-		window->enable_opengl();
+		canvas->update_video_cursor();
+// Make sure the OpenGL context is enabled first.
+		canvas->enable_opengl();
 
 
 //printf("Playback3D::write_buffer_sync %d opengl_state=%d\n", __LINE__, command->frame->get_opengl_state());
@@ -643,15 +651,19 @@ void Playback3D::write_buffer_sync(Playback3DCommand *command)
 				draw_output(command);
 				break;
 			case VFrame::SCREEN:
+// copy to texture & draw to screen with alpha multiply
+                command->frame->enable_opengl();
+                command->frame->screen_to_texture();
+                draw_output(command);
 // swap buffers only
 //printf("Playback3D::write_buffer_sync %d swap buffers only\n", __LINE__);
-				window->flip_opengl();
+//				canvas->flip_opengl();
 				break;
 			default:
 				printf("Playback3D::write_buffer_sync unknown state\n");
 				break;
 		}
-		window->unlock_window();
+		canvas->unlock_window();
 	}
 
 	command->canvas->unlock_canvas();
@@ -663,9 +675,9 @@ void Playback3D::draw_output(Playback3DCommand *command)
 {
 #ifdef HAVE_GL
 	int texture_id = command->frame->get_texture_id();
-	BC_WindowBase *window = command->canvas->get_canvas();
+	BC_WindowBase *canvas = command->canvas->get_canvas();
 
-// printf("Playback3D::draw_output %d texture_id=%d window=%p\n", 
+// printf("Playback3D::draw_output %d texture_id=%d canvas=%p\n", 
 // __LINE__,
 // texture_id,
 // command->canvas->get_canvas());
@@ -677,15 +689,20 @@ void Playback3D::draw_output(Playback3DCommand *command)
 // already been done except the page flip.
 	if(texture_id >= 0)
 	{
-		canvas_w = window->get_w();
-		canvas_h = window->get_h();
+// draw on the screen
+   		canvas->enable_opengl();
+		canvas_w = canvas->get_w();
+		canvas_h = canvas->get_h();
 // set up frustum
 		VFrame::init_screen(canvas_w, canvas_h);
 
 		if(!command->is_cleared)
 		{
 // If we get here, the virtual console was not used.
-			init_frame(command);
+//			init_frame(command);
+// clear the canvas
+        	glClearColor(0.0, 0.0, 0.0, 0.0);
+	        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
 
 // Texture
@@ -705,13 +722,18 @@ void Playback3D::draw_output(Playback3DCommand *command)
 			case BC_YUVA8888:
                 shaders[current_shader++] = yuv_to_rgb_frag;
 				break;
+            default:
+                shaders[current_shader++] = read_texture_frag;
+                break;
 		}
 
 
-//         if(BC_CModels::has_alpha(command->frame->get_color_model()))
-//         {
-//             shaders[current_shader++] = checker_alpha_frag;
-//         }
+        if(BC_CModels::has_alpha(command->frame->get_color_model()))
+        {
+//            shaders[current_shader++] = checker_alpha_frag;
+            shaders[current_shader++] = multiply_alpha_frag;
+//printf("Playback3D::draw_output %d current_shader=%d\n", __LINE__, current_shader);
+        }
 
         if(current_shader > 0)
         {
@@ -727,6 +749,8 @@ void Playback3D::draw_output(Playback3DCommand *command)
 			int variable = glGetUniformLocation(frag_shader, "src_tex");
 // Set texture unit of the texture
 			glUniform1i(variable, 0);
+// Disable YUV for alpha multiply
+//            glUniform3f(glGetUniformLocation(frag_shader, "chroma_offset"), 0.0, 0.0, 0.0);
 		}
 
 // multiply alpha
@@ -767,76 +791,76 @@ void Playback3D::draw_output(Playback3DCommand *command)
 }
 
 
-void Playback3D::init_frame(Playback3DCommand *command)
-{
-#ifdef HAVE_GL
-    BC_WindowBase *canvas = command->canvas->get_canvas();
-	canvas_w = canvas->get_w();
-	canvas_h = canvas->get_h();
-
-// printf("Playback3D::init_frame %d canvas_w=%d canvas_h=%d video_on=%d,%d cmodel=%d\n", 
-// __LINE__,
-// canvas_w,
-// canvas_h,
-// canvas->get_video_on(),
-// command->video_on,
-// command->frame->get_color_model());
-
-    if(!command->frame)
-    {
-        printf("Playback3D::init_frame %d output_frame not set\n", __LINE__);
-        return;
-    }
-
-// video mode with alpha needs the checker pattern
-//     if(command->video_on &&
-//         BC_CModels::has_alpha(command->frame->get_color_model()))
+// void Playback3D::init_frame(Playback3DCommand *command)
+// {
+// #ifdef HAVE_GL
+//     BC_WindowBase *canvas = command->canvas->get_canvas();
+// 	canvas_w = canvas->get_w();
+// 	canvas_h = canvas->get_h();
+// 
+// // printf("Playback3D::init_frame %d canvas_w=%d canvas_h=%d video_on=%d,%d cmodel=%d\n", 
+// // __LINE__,
+// // canvas_w,
+// // canvas_h,
+// // canvas->get_video_on(),
+// // command->video_on,
+// // command->frame->get_color_model());
+// 
+//     if(!command->frame)
 //     {
-// printf("Playback3D::init_frame %d checker frame=%p state=%d\n", 
-// __LINE__,
-// command->frame,
-// command->frame->get_opengl_state());
-// 
-// 
-// // draw checker background
-//     	glClearColor(0.6, 0.6, 0.6, 1.0);
-// 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-// 
-//         glColor4f(0.4, 0.4, 0.4, 1.0);
-// 	    glDisable(GL_BLEND);
-// 		glBegin(GL_QUADS);
-// 		glNormal3f(0, 0, 1.0);
-// 
-//         for(int i = 0; i < canvas_h; i += CHECKER_H)
-//         {
-//             for(int j = ((i / CHECKER_H) % 2) * CHECKER_W; 
-//                 j < canvas_w; 
-//                 j += CHECKER_W * 2)
-//             {
-//                 glVertex3f((float)j, -(float)i, 0.0);
-//                 glVertex3f((float)(j + CHECKER_W), -(float)i, 0.0);
-//                 glVertex3f((float)(j + CHECKER_W), -(float)(i + CHECKER_H), 0.0);
-//                 glVertex3f((float)j, -(float)(i + CHECKER_H), 0.0);
-//             }
-//         }
-// 
-// 		glEnd();
-// 	    glColor4f(1.0, 1.0, 1.0, 1.0);
+//         printf("Playback3D::init_frame %d output_frame not set\n", __LINE__);
+//         return;
 //     }
-//     else
-// single frame & rendering
-    {
-
-        if(BC_CModels::is_yuv(command->frame->get_color_model()))
-        	glClearColor(0.0, 0.5, 0.5, 0.0);
-        else
-        	glClearColor(0.0, 0.0, 0.0, 0.0);
-	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-// DEBUG
-//glClearColor(1.0, 1.0, 1.0, 1.0);
-#endif
-}
+// 
+// // video mode with alpha needs the checker pattern
+// //     if(command->video_on &&
+// //         BC_CModels::has_alpha(command->frame->get_color_model()))
+// //     {
+// // printf("Playback3D::init_frame %d checker frame=%p state=%d\n", 
+// // __LINE__,
+// // command->frame,
+// // command->frame->get_opengl_state());
+// // 
+// // 
+// // // draw checker background
+// //     	glClearColor(0.6, 0.6, 0.6, 1.0);
+// // 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+// // 
+// //         glColor4f(0.4, 0.4, 0.4, 1.0);
+// // 	    glDisable(GL_BLEND);
+// // 		glBegin(GL_QUADS);
+// // 		glNormal3f(0, 0, 1.0);
+// // 
+// //         for(int i = 0; i < canvas_h; i += CHECKER_H)
+// //         {
+// //             for(int j = ((i / CHECKER_H) % 2) * CHECKER_W; 
+// //                 j < canvas_w; 
+// //                 j += CHECKER_W * 2)
+// //             {
+// //                 glVertex3f((float)j, -(float)i, 0.0);
+// //                 glVertex3f((float)(j + CHECKER_W), -(float)i, 0.0);
+// //                 glVertex3f((float)(j + CHECKER_W), -(float)(i + CHECKER_H), 0.0);
+// //                 glVertex3f((float)j, -(float)(i + CHECKER_H), 0.0);
+// //             }
+// //         }
+// // 
+// // 		glEnd();
+// // 	    glColor4f(1.0, 1.0, 1.0, 1.0);
+// //     }
+// //     else
+// // all modes draw to a pbuffer with alpha
+//     {
+// 
+//         if(BC_CModels::is_yuv(command->frame->get_color_model()))
+//         	glClearColor(0.0, 0.5, 0.5, 0.0);
+//         else
+//         	glClearColor(0.0, 0.0, 0.0, 0.0);
+// 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//     }
+// // DEBUG
+// //glClearColor(1.0, 1.0, 1.0, 1.0);
+// #endif
+// }
 
 
 void Playback3D::clear_output(Canvas *canvas, VFrame *output, int video_on)
@@ -856,20 +880,24 @@ void Playback3D::clear_output_sync(Playback3DCommand *command)
 	if(canvas)
 	{
 		canvas->lock_window("Playback3D::clear_output_sync");
-// must always enable OpenGL in the canvas for pbuffers to access the OpenGL context
+// must always enable OpenGL in the canvas to access the OpenGL context
 		canvas->enable_opengl();
 
 //printf("Playback3D::clear_output_sync %d frame=%p video_on=%d\n", 
 //__LINE__, command->frame, command->video_on);
-// This makes nested EDL's & rendering draw on a pbuffer 
-// instead of the canvas
-		if(!command->video_on)
-		{
+// Always blend on a pbuffer
+//		if(!command->video_on)
+//		{
 			command->frame->enable_opengl();
-		}
+//		}
 
 
-		init_frame(command);
+//		init_frame(command);
+        if(BC_CModels::is_yuv(command->frame->get_color_model()))
+        	glClearColor(0.0, 0.5, 0.5, 0.0);
+        else
+        	glClearColor(0.0, 0.0, 0.0, 0.0);
+	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		command->canvas->get_canvas()->unlock_window();
 	}
 	command->canvas->unlock_canvas();
@@ -1031,31 +1059,31 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 
 		canvas->update_video_cursor();
 
-
-// Render to PBuffer with alpha channel
-		if(!command->video_on)
-		{
+//printf("Playback3D::overlay_sync %d frame=%p\n", __LINE__, command->frame);
+// Always render to PBuffer with alpha channel
+//		if(!command->video_on)
+//		{
 			command->frame->enable_opengl();
 			command->frame->set_opengl_state(VFrame::SCREEN);
 			canvas_w = command->frame->get_w();
 			canvas_h = command->frame->get_h();
-		}
-		else
+//		}
+//		else
 // Render to canvas with no alpha channel
-		{
-			canvas_w = canvas->get_w();
-			canvas_h = canvas->get_h();
-		}
+//		{
+//			canvas_w = canvas->get_w();
+//			canvas_h = canvas->get_h();
+//		}
 
 		glColor4f(1, 1, 1, 1);
-printf("Playback3D::overlay_sync %d video_on=%d input=%p frame=%p input_state=%d canvas_w=%d canvas_h=%d\n", 
-__LINE__, 
-command->video_on,
-command->input,
-command->frame,
-command->input->get_opengl_state(), 
-canvas_w, 
-canvas_h);
+// printf("Playback3D::overlay_sync %d video_on=%d input=%p frame=%p input_state=%d canvas_w=%d canvas_h=%d\n", 
+// __LINE__, 
+// command->video_on,
+// command->input,
+// command->frame,
+// command->input->get_opengl_state(), 
+// canvas_w, 
+// canvas_h);
 
 		switch(command->input->get_opengl_state())
 		{
@@ -1094,16 +1122,15 @@ canvas_h);
 // Enable texture
 		command->input->bind_texture(0);
 
-// Cheat by converting to RGB here if not nested.
-// The color model setting in the output frame is ignored & we save on a texture to
-// screen blit.
+// Cheat by converting to RGB here if it's for playback.
+// This avoids a software YUV -> RGB conversion in VDeviceX11:close_all.
 //printf("Playback3D::overlay_sync %d %d %d\n", __LINE__, command->is_nested, command->input->get_color_model());
-		if(!command->is_nested && is_yuv)
-		{
-printf("Playback3D::overlay_sync %d yuv_to_rgb_frag\n", __LINE__);
-			shader_stack[total_shaders++] = yuv_to_rgb_frag;
-            is_yuv = 0;
-		}
+// 		if(!command->is_nested && is_yuv)
+// 		{
+// //printf("Playback3D::overlay_sync %d yuv_to_rgb_frag\n", __LINE__);
+// 			shader_stack[total_shaders++] = yuv_to_rgb_frag;
+//             is_yuv = 0;
+// 		}
 
 // Change blend operation
 		switch(command->mode)
@@ -1123,16 +1150,16 @@ printf("Playback3D::overlay_sync %d TRANSFER_NORMAL\n", __LINE__);
 // bottom track is always a replace
 			case TRANSFER_REPLACE:
 				glDisable(GL_BLEND);
-printf("Playback3D::overlay_sync %d TRANSFER_REPLACE %d\n", __LINE__, command->input->get_texture_components());
+//printf("Playback3D::overlay_sync %d TRANSFER_REPLACE %d\n", __LINE__, command->input->get_texture_components());
         		if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
-				if(command->input->get_texture_components() == 4)
-				{
-                    if(command->video_on)
-                    {
-// Screen has no alpha.
-    					shader_stack[total_shaders++] = multiply_alpha_frag;
-                    }
-				}
+// 				if(command->input->get_texture_components() == 4)
+// 				{
+//                     if(command->video_on)
+//                     {
+// // Screen has no alpha.
+//     					shader_stack[total_shaders++] = multiply_alpha_frag;
+//                     }
+// 				}
 				break;
 
 // To do these operations, we need to copy the input buffer to a texture
@@ -1199,10 +1226,10 @@ printf("Playback3D::overlay_sync %d TRANSFER_REPLACE %d\n", __LINE__, command->i
 				0);
 
 			glUseProgram(frag_shader);
-printf("Playback3D::overlay_sync %d is_yuv=%d total_shaders=%d\n", 
-__LINE__, 
-is_yuv,
-total_shaders);
+// printf("Playback3D::overlay_sync %d is_yuv=%d total_shaders=%d\n", 
+// __LINE__, 
+// is_yuv,
+// total_shaders);
 
 		    if(is_yuv)
 			    glUniform3f(glGetUniformLocation(frag_shader, "chroma_offset"), 0.0, 0.5, 0.5);
@@ -1823,8 +1850,8 @@ void Playback3D::do_fade_sync(Playback3DCommand *command)
 			case BC_RGBA8888:
 			case BC_RGBA_FLOAT:
 			case BC_YUVA8888:
-printf("Playback3D::do_fade_sync %d frame=%p alpha=%f\n", 
-__LINE__, command->frame, command->alpha);
+//printf("Playback3D::do_fade_sync %d frame=%p alpha=%f\n", 
+//__LINE__, command->frame, command->alpha);
 				frag_shader = VFrame::make_shader(0,
 					fade_rgba_frag,
 					0);

@@ -137,7 +137,7 @@ int VDeviceX11::open_output()
 		canvas->get_canvas()->lock_window("VDeviceX11::open_output");
 		if(!device->single_frame)
 		{
-printf("VDeviceX11::open_output %d canvas=%p\n", __LINE__, canvas);
+//printf("VDeviceX11::open_output %d canvas=%p\n", __LINE__, canvas);
         	canvas->start_video();
 		}
         else
@@ -195,11 +195,17 @@ int VDeviceX11::close_all()
 		{
             if(BC_CModels::components(output_frame->get_color_model()) == 3)
             {
-            	best_color_model = BC_RGB888;
+                if(BC_CModels::is_yuv(output_frame->get_color_model()))
+                	best_color_model = BC_YUV888;
+                else
+                	best_color_model = BC_RGB888;
             }
             else
             {
-                best_color_model = BC_RGBA8888;
+                if(BC_CModels::is_yuv(output_frame->get_color_model()))
+                	best_color_model = BC_YUVA8888;
+                else
+                    best_color_model = BC_RGBA8888;
             }
         }
 
@@ -1061,7 +1067,7 @@ void VDeviceX11::clear_output(VFrame *frame)
 {
 	is_cleared = 1;
 
-//printf("VDeviceX11::clear_output %d %p %p\n", __LINE__, output_frame, frame);
+//printf("VDeviceX11::clear_output %d %p frame=%p\n", __LINE__, output_frame, frame);
 	MWindow::playback_3d->clear_output(canvas,
 		 frame,
          !is_rendering && canvas->get_canvas()->get_video_on());
@@ -1159,7 +1165,9 @@ void VDeviceX11::overlay(VFrame *output_frame,
 // Convert node coords to canvas coords in here
 
 // If single frame playback or nested EDL, use full sized PBuffer as output.
-	if(device->single_frame || is_nested)
+//	if(device->single_frame || is_nested)
+// always use pbuffer
+	if(1)
 	{
 		MWindow::playback_3d->overlay(canvas, 
 			input,
