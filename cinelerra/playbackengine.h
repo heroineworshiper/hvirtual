@@ -49,7 +49,7 @@ public:
 	void create_objects();
 	virtual int create_render_engine();
 	void delete_render_engine();
-	void arm_render_engine();
+	int arm_render_engine();
 	void start_render_engine();
 	void wait_render_engine();
 	void create_cache();

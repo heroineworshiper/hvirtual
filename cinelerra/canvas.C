@@ -858,6 +858,7 @@ void Canvas::stop_single()
 
 void Canvas::start_video()
 {
+	is_processing = 1;
 	if(get_canvas())
 	{
 		get_canvas()->start_video();
@@ -867,6 +868,7 @@ void Canvas::start_video()
 
 void Canvas::stop_video()
 {
+	is_processing = 0;
 	if(get_canvas())
 	{
 		get_canvas()->stop_video();

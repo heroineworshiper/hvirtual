@@ -178,6 +178,8 @@ private:
 	int is_cleared;
 // use this device as an opengl context for rendering
     int is_rendering;
+// if we accessed the canvas successfully
+    int is_open;
 };
 
 #endif

@@ -195,8 +195,9 @@ void PackageRenderer::create_output()
 //printf("PackageRenderer::create_output %d %d\n", __LINE__, result);
 }
 
-void PackageRenderer::create_engine()
+int PackageRenderer::create_engine()
 {
+    int result = 0;
 	int current_achannel = 0, current_vchannel = 0;
 // Fix audio buffers to 1 second
 	audio_read_length = command->get_edl()->session->sample_rate;
@@ -240,43 +241,15 @@ void PackageRenderer::create_engine()
 
 		if(mwindow)
 		{
-//             opengl_gui = new BC_Window(PROGRAM_NAME ": Dummy",
-//  	            0, 
-//                 0, 
-//                 128, 
-//                 128,
-//                 128,
-//                 128,
-//                 0,
-//                 0,
-//                 1,
-// 	            BLACK,
-// 	            "");
-//             opengl_gui->lock_window("PackageRenderer::create_engine");
-//             opengl_canvas = new Canvas(mwindow, 
-//                 opengl_gui,
-//                 0,
-//                 0,
-//                 128,
-//                 128,
-//                 128,
-//                 128,
-//                 0,
-//                 0,
-//                 0,
-//                 0);
-//             opengl_canvas->create_objects(0);
-//             opengl_gui->unlock_window();
-
 			video_device = new VideoDevice;
             canvas = mwindow->cwindow->gui->canvas;
- 			video_device->open_output(vconfig, 
+ 			result = video_device->open_output(vconfig, 
  				command->get_edl()->session->frame_rate, 
 				command->get_edl()->session->output_w, 
 				command->get_edl()->session->output_h, 
  				canvas,
 				0);
-            if(preferences->use_gl_rendering)
+            if(!result && preferences->use_gl_rendering)
             {
                 VDeviceX11 *x11_device = (VDeviceX11*)video_device->get_output_base();
                 x11_device->start_rendering();
@@ -293,46 +266,51 @@ void PackageRenderer::create_engine()
         }
 	}
 
-	render_engine = new RenderEngine(0,
-		preferences,
-		canvas,
-		0);
-	render_engine->set_acache(audio_cache);
-	render_engine->set_vcache(video_cache);
-    if(use_opengl)
+
+    if(!result)
     {
-        render_engine->set_rendering(1);
-        render_engine->set_vdevice(video_device);
+	    render_engine = new RenderEngine(0,
+		    preferences,
+		    canvas,
+		    0);
+	    render_engine->set_acache(audio_cache);
+	    render_engine->set_vcache(video_cache);
+        if(use_opengl)
+        {
+            render_engine->set_rendering(1);
+            render_engine->set_vdevice(video_device);
+        }
+	    render_engine->arm_command(command);
+
+	    if(package->use_brender)
+	    {
+		    audio_preroll = Units::to_int64((double)preferences->brender_preroll /
+			    default_asset->frame_rate *
+			    default_asset->sample_rate);
+		    video_preroll = preferences->brender_preroll;
+	    }
+	    else
+	    {
+		    audio_preroll = Units::to_int64(preferences->render_preroll * 
+			    default_asset->sample_rate);
+		    video_preroll = Units::to_int64(preferences->render_preroll * 
+			    default_asset->frame_rate);
+	    }
+	    audio_position = package->audio_start - audio_preroll;
+	    video_position = package->video_start - video_preroll;
+
+
+    //	PRINT_TRACE
+
+
+	    playable_tracks = new PlayableTracks(render_engine->get_edl(), 
+		    video_position, 
+		    PLAY_FORWARD,
+		    TRACK_VIDEO,
+		    1);
     }
-	render_engine->arm_command(command);
-
-	if(package->use_brender)
-	{
-		audio_preroll = Units::to_int64((double)preferences->brender_preroll /
-			default_asset->frame_rate *
-			default_asset->sample_rate);
-		video_preroll = preferences->brender_preroll;
-	}
-	else
-	{
-		audio_preroll = Units::to_int64(preferences->render_preroll * 
-			default_asset->sample_rate);
-		video_preroll = Units::to_int64(preferences->render_preroll * 
-			default_asset->frame_rate);
-	}
-	audio_position = package->audio_start - audio_preroll;
-	video_position = package->video_start - video_preroll;
-
-
-//	PRINT_TRACE
-
-
-	playable_tracks = new PlayableTracks(render_engine->get_edl(), 
-		video_position, 
-		PLAY_FORWARD,
-		TRACK_VIDEO,
-		1);
-
+    
+    return result;
 }
 
 
@@ -560,7 +538,9 @@ void PackageRenderer::do_video()
 void PackageRenderer::stop_engine()
 {
 	delete render_engine;
+    render_engine = 0;
 	delete playable_tracks;
+    playable_tracks = 0;
 }
 
 
@@ -593,6 +573,7 @@ void PackageRenderer::stop_output()
 //			video_device->stop_playback();
 			video_device->close_all();
 			delete video_device;
+            video_device = 0;
 		}
 	}
 }
@@ -638,7 +619,7 @@ printf(
 	if(!result)
 	{
 if(debug) PRINT_TRACE
-		create_engine();
+		result = create_engine();
 if(debug) PRINT_TRACE
 
 

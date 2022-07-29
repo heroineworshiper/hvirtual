@@ -109,6 +109,7 @@ EDL* RenderEngine::get_edl()
 
 int RenderEngine::arm_command(TransportCommand *command)
 {
+    int result = 0;
 	const int debug = 0;
 // Prevent this renderengine from accepting another command until finished.
 // Since the renderengine is often deleted after the input_lock command it must
@@ -154,6 +155,7 @@ int RenderEngine::arm_command(TransportCommand *command)
 		vconfig->driver = PLAYBACK_X11;
 	}
 
+	if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
 
 
 	get_duty();
@@ -181,13 +183,23 @@ int RenderEngine::arm_command(TransportCommand *command)
 		while(first_frame_lock->get_value() <= 0)
 			first_frame_lock->unlock();
 	}
-
-	open_output();
-	create_render_threads();
-	arm_render_threads();
 	if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
 
-	return 0;
+	result = open_output();
+	if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
+
+    if(!result)
+    {
+	    create_render_threads();
+	    arm_render_threads();
+    }
+    else
+    {
+    	input_lock->unlock();
+    }
+	if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
+
+	return result;
 }
 
 void RenderEngine::get_duty()
@@ -320,6 +332,7 @@ double RenderEngine::get_tracking_position()
 
 int RenderEngine::open_output()
 {
+    int result = 0;
 	if(command->realtime && !is_nested && !is_rendering)
 	{
 // Allocate devices
@@ -364,20 +377,28 @@ int RenderEngine::open_output()
 
 		if(do_video)
 		{
-			vdevice->open_output(config->vconfig, 
+			result = vdevice->open_output(config->vconfig, 
 				get_edl()->session->frame_rate,
 				get_output_w(),
 				get_output_h(),
 				output,
 				command->single_frame());
-			Channel *channel = get_current_channel();
-			if(channel) vdevice->set_channel(channel);
-			vdevice->set_quality(80);
-			vdevice->set_cpus(preferences->processors);
+            if(!result)
+            {
+			    Channel *channel = get_current_channel();
+			    if(channel) vdevice->set_channel(channel);
+			    vdevice->set_quality(80);
+			    vdevice->set_cpus(preferences->processors);
+            }
+            else
+            {
+                delete vdevice;
+                vdevice = 0;
+            }
 		}
 	}
 
-	return 0;
+	return result;
 }
 
 void RenderEngine::reset_sync_position()

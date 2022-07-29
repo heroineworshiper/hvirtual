@@ -59,6 +59,7 @@ VDeviceX11::~VDeviceX11()
 
 int VDeviceX11::reset_parameters()
 {
+    is_open = 0;
     canvas = 0;
 	output_frame = 0;
 	window_id = 0;
@@ -131,8 +132,16 @@ int VDeviceX11::open_input()
 
 int VDeviceX11::open_output()
 {
+//printf("VDeviceX11::open_output %d canvas=%p\n", __LINE__, canvas);
 	if(canvas)
 	{
+        if(canvas->is_processing)
+        {
+            printf("VDeviceX11::open_output %d device in use\n", __LINE__);
+            return 1;
+        }
+
+
 		canvas->lock_canvas("VDeviceX11::open_output");
 		canvas->get_canvas()->lock_window("VDeviceX11::open_output");
 		if(!device->single_frame)
@@ -148,6 +157,7 @@ int VDeviceX11::open_output()
 
 // Enable opengl in the first routine that needs it, to reduce the complexity.
 		canvas->unlock_canvas();
+        is_open = 1;
 	}
 	return 0;
 }
@@ -173,13 +183,13 @@ int VDeviceX11::output_visible()
 
 int VDeviceX11::close_all()
 {
-	if(canvas)
+	if(is_open && canvas)
 	{
 		canvas->lock_canvas("VDeviceX11::close_all 1");
 		canvas->get_canvas()->lock_window("VDeviceX11::close_all 1");
 	}
 
-	if(canvas && output_frame)
+	if(is_open && canvas && output_frame)
 	{
 // Copy our output frame buffer to the canvas's permanent frame buffer.
 // They must be different buffers because the output frame is being written
@@ -344,7 +354,7 @@ int VDeviceX11::close_all()
 		delete capture_bitmap;
 	}
 
-	if(canvas)
+	if(is_open && canvas)
 	{
 
 // Update the status bug

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -159,6 +159,7 @@ public:
 	int set_cloexec_flag(int desc, int value);
 
 // ================================== Playback
+// returns 1 if it failed to open
 	int open_output(VideoOutConfig *config, 
 					float rate, 
 					int out_w, 

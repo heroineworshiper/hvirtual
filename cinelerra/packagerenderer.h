@@ -106,7 +106,7 @@ public:
 	virtual int progress_cancelled();
 
 	void create_output();
-	void create_engine();
+	int create_engine();
 	void do_audio();
 	void do_video();
 	void stop_engine();

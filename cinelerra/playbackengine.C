@@ -142,12 +142,13 @@ void PlaybackEngine::delete_render_engine()
 	renderengine_lock->unlock();
 }
 
-void PlaybackEngine::arm_render_engine()
+int PlaybackEngine::arm_render_engine()
 {
 	if(render_engine)
 	{
-    	render_engine->arm_command(command);
+    	return render_engine->arm_command(command);
     }
+    return 0;
 }
 
 void PlaybackEngine::start_render_engine()
@@ -415,9 +416,11 @@ void PlaybackEngine::run()
 			case CURRENT_FRAME:
 				last_command = command->command;
 				perform_change();
-				arm_render_engine();
+				if(!arm_render_engine())
+                {
 // Dispatch the command
-				start_render_engine();
+    				start_render_engine();
+                }
 				break;
 
 			default:
@@ -430,14 +433,15 @@ void PlaybackEngine::run()
 				}
 
 				perform_change();
-				arm_render_engine();
-
+				if(!arm_render_engine())
+                {
 // Start tracking after arming so the tracking position doesn't change.
 // The tracking for a single frame command occurs during PAUSE
-				init_tracking();
+	    			init_tracking();
 
 // Dispatch the command
-				start_render_engine();
+    				start_render_engine();
+                }
 				break;
 		}
 
