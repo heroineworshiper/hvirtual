@@ -144,11 +144,11 @@ int VRender::process_buffer(int64_t input_position,
 		input_position,
 		use_brender);
 
-// TODO: opengl is faster in virtual console than direct
-    if(use_opengl) use_vconsole = 1;
 	if(debug) printf("VRender::process_buffer %d use_vconsole=%d\n", __LINE__, use_vconsole);
 
 // Negotiate color model
+// If the virtual console is faster than direct, make sure the colorspace 
+// of video_out is optimized for the codec.
 	colormodel = get_colormodel(playable_edit, use_vconsole, use_brender);
 	if(debug) printf("VRender::process_buffer %d\n", __LINE__);
 
@@ -211,7 +211,11 @@ int VRender::process_buffer(int64_t input_position,
 		else
 		if(playable_edit)
 		{
-			if(debug) printf("VRender::process_buffer %d\n", __LINE__);
+		    if(debug) printf("VRender::process_buffer %d color_model=%d w=%d h=%d\n", 
+                __LINE__,
+                video_out->get_color_model(),
+                video_out->get_w(),
+                video_out->get_h());
 			result = ((VEdit*)playable_edit)->read_frame(video_out, 
 				current_position, 
 				renderengine->command->get_direction(),

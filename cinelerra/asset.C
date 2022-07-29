@@ -569,6 +569,8 @@ int Asset::read_audio(FileXML *file)
 	signed_ = file->tag.get_property("SIGNED", 1);
 	header = file->tag.get_property("HEADER", 0);
 
+ 	acodec[0] = 0;
+ 	file->tag.get_property("ACODEC", acodec);
 
 
 
@@ -576,9 +578,7 @@ int Asset::read_audio(FileXML *file)
 
 // TODO: Encoding values go in the defaults functions
 // 	dither = file->tag.get_property("DITHER", 0);
-// 	acodec[0] = 0;
-// 	file->tag.get_property("ACODEC", acodec);
-	
+
 
 
 
@@ -596,11 +596,12 @@ int Asset::read_video(FileXML *file)
 	if(EQUIV(frame_rate, 0)) frame_rate = file->tag.get_property("FRAMERATE", frame_rate);
 
 	video_length = file->tag.get_property("VIDEO_LENGTH", (int64_t)0);
-
+// need the vcodec to select a colormodel
+	vcodec[0] = 0;
+ 	file->tag.get_property("VCODEC", vcodec);
+//printf("Asset::read_video %d %s\n", __LINE__, vcodec);
 
 // TODO: Encoding values go in the defaults functions
-//	vcodec[0] = 0;
-// 	file->tag.get_property("VCODEC", vcodec);
 // 	mov_sphere = file->tag.get_property("MOV_SPHERE", 0);
 // 	jpeg_sphere = file->tag.get_property("JPEG_SPHERE", 0);
 
@@ -708,11 +709,11 @@ int Asset::write_audio(FileXML *file)
 	file->tag.set_property("HEADER", header);
 	
 	file->tag.set_property("AUDIO_LENGTH", audio_length);
+ 	if(acodec[0])
+ 		file->tag.set_property("ACODEC", acodec);
 
 // TODO: Encoding values go in the defaults functions
 // 	file->tag.set_property("DITHER", dither);
-// 	if(acodec[0])
-// 		file->tag.set_property("ACODEC", acodec);
 
 
 	file->append_tag();
@@ -732,11 +733,12 @@ int Asset::write_video(FileXML *file)
 // user overwritable parameter
 	file->tag.set_property("FRAMERATE", frame_rate);
 	file->tag.set_property("VIDEO_LENGTH", video_length);
+// need the vcodec to select a colormodel
+ 	if(vcodec[0])
+ 		file->tag.set_property("VCODEC", vcodec);
 
 
 // TODO: Encoding values go in the defaults functions
-// 	if(vcodec[0])
-// 		file->tag.set_property("VCODEC", vcodec);
 // 	file->tag.set_property("MOV_SPHERE", mov_sphere);
 // 	file->tag.set_property("JPEG_SPHERE", jpeg_sphere);
 

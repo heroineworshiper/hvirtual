@@ -972,10 +972,10 @@ void Playback3D::do_camera_sync(Playback3DCommand *command)
 		command->input->bind_texture(0);
 // Must call draw_texture in input frame to get the texture coordinates right.
 
-printf("Playback3D::do_camera_sync %d input=%p frame=%p\n", 
-__LINE__, 
-command->input,
-command->frame);
+// printf("Playback3D::do_camera_sync %d input=%p frame=%p\n", 
+// __LINE__, 
+// command->input,
+// command->frame);
 // printf("Playback3D::do_camera_sync 1 %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n", 
 // command->in_x1, 
 // command->in_y2, 
@@ -1139,7 +1139,7 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 // GL_ONE_MINUS_SRC_ALPHA doesn't work 
 //				glEnable(GL_BLEND);
 //				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-printf("Playback3D::overlay_sync %d TRANSFER_NORMAL\n", __LINE__);
+//printf("Playback3D::overlay_sync %d TRANSFER_NORMAL\n", __LINE__);
 				enable_overlay_texture(command);
 				if(!total_shaders) shader_stack[total_shaders++] = read_texture_frag;
                 shader_stack[total_shaders++] = get_pixels_frag;

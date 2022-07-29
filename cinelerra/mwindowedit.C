@@ -1540,7 +1540,6 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 	double original_length = edl->tracks->total_playable_length();
 //	double original_preview_end = edl->local_session->preview_end;
 
-//PRINT_TRACE
 // Delete current project
 	if(load_mode == LOADMODE_REPLACE ||
 		load_mode == LOADMODE_REPLACE_CONCATENATE)
@@ -1647,7 +1646,6 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 //PRINT_TRACE
 
 	}
-//PRINT_TRACE
 
 
 
@@ -1674,7 +1672,6 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 
 
 
-//PRINT_TRACE
 
 // Convert EDL to master rates.  TODO: Maybe not for nested EDLs.
 // printf("MWindow::paste_edls %d resampling EDL %s is_asset=%d %ld->%ld %f->%f\n", 
@@ -1705,7 +1702,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 //printf("MWindow::paste_edls %d indexing asset %s\n", __LINE__, new_asset->path);
 			result = mainindexes->add_next_asset(0, new_asset);
 		}
-        
+
 // user canceled the load operation
         if(result == FILE_USER_CANCELED)
         {

@@ -454,7 +454,7 @@ void FileMOV::format_to_asset()
 		if(EQUIV(asset->frame_rate, 0))
 			asset->frame_rate = quicktime_frame_rate(fd, 0);
 
-        //printf("FileMOV::format_to_asset %d %s\n", __LINE__, quicktime_video_compressor(fd, 0));
+//printf("FileMOV::format_to_asset %d %s\n", __LINE__, quicktime_video_compressor(fd, 0));
 		strncpy(asset->vcodec, quicktime_video_compressor(fd, 0), 4);
 	}
 }
@@ -502,10 +502,12 @@ int FileMOV::get_best_colormodel(Asset *asset, int driver)
 			if(match4(asset->vcodec, QUICKTIME_MP4V)) return BC_YUV420P;
 			if(match4(asset->vcodec, QUICKTIME_H263)) return BC_YUV420P;
 			if(match4(asset->vcodec, QUICKTIME_H264)) return BC_YUV420P;
+			if(match4(asset->vcodec, QUICKTIME_H265)) return BC_YUV420P;
 			if(match4(asset->vcodec, QUICKTIME_HV64)) return BC_YUV420P;
 			if(match4(asset->vcodec, QUICKTIME_DIV3) ||
 				match4(asset->vcodec, QUICKTIME_SVQ3)) return BC_YUV420P;
 			break;
+
 		case PLAYBACK_X11_GL:
 			if(match4(asset->vcodec, QUICKTIME_YUV420) ||
 				match4(asset->vcodec, QUICKTIME_YUV422) ||
@@ -522,6 +524,7 @@ int FileMOV::get_best_colormodel(Asset *asset, int driver)
 				match4(asset->vcodec, QUICKTIME_MP4V) ||
 				match4(asset->vcodec, QUICKTIME_H263) ||
 				match4(asset->vcodec, QUICKTIME_H264) ||
+				match4(asset->vcodec, QUICKTIME_H265) ||
 				match4(asset->vcodec, QUICKTIME_HV64) ||
 				match4(asset->vcodec, QUICKTIME_DIV3) || 
 				match4(asset->vcodec, QUICKTIME_DVSD)) return BC_YUV888;

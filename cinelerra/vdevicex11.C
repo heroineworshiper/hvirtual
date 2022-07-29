@@ -934,7 +934,7 @@ int VDeviceX11::write_buffer(VFrame *output_frame, EDL *edl)
 
 
 
-//printf("VDeviceX11::write_buffer %d\n", __LINE__);
+//printf("VDeviceX11::write_buffer %d bitmap_type=%d\n", __LINE__, bitmap_type);
 
 
 
@@ -999,7 +999,7 @@ int VDeviceX11::write_buffer(VFrame *output_frame, EDL *edl)
 				canvas_h);
 
 
-// Draw output frame directly.  Not used for compositing.
+// Draw output frame directly.
 			canvas->get_canvas()->unlock_window();
 			canvas->unlock_canvas();
 			MWindow::playback_3d->write_buffer(canvas, 

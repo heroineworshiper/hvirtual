@@ -554,6 +554,7 @@ int VirtualVNode::render_projector(VFrame *input,
 					1,
 					mode, 
 					renderengine->get_edl(),
+// this isn't used
 					renderengine->is_nested /* ||
                         renderengine->is_rendering */);
 			}

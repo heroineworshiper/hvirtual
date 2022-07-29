@@ -200,6 +200,7 @@ int EDL::load_xml(FileXML *file,
 	int track_offset = 0;
     int error = 0;
 
+
 // Clear objects
 	folders.remove_all_objects();
 
