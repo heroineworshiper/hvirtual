@@ -575,7 +575,7 @@ int Overlay::handle_opengl()
 		"}\n";
 
     static const char *blend_normal_frag = 
-	    "	result_color.rgb = src_color.rgb;\n"
+	    "	result_color.rgb = src_color.rgb;\n";
 
 	static const char *blend_add_frag = 
 		"	result_color.rgb = dst_color.rgb + src_color.rgb;\n";

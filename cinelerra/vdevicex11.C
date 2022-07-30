@@ -508,7 +508,13 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 	if(device->out_config->driver == PLAYBACK_X11_GL)
 	{
 // Create bitmap for initial load into texture.
-// Not necessary to do through Playback3D.....yet
+        if(output_frame && 
+            file_colormodel != output_frame->get_color_model())
+        {
+            delete output_frame;
+            output_frame = 0;
+        }
+
 		if(!output_frame)
 		{
 			output_frame = new VFrame(0, 
