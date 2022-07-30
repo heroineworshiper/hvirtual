@@ -1259,17 +1259,29 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 
 
 
-// printf("Playback3D::overlay_sync %d is_nested=%d\n", 
+// printf("Playback3D::overlay_sync %d %.0f %.0f %.0f %.0f -> %.0f %.0f %.0f %.0f\n", 
 // __LINE__,
-// command->is_nested);
+// command->in_x1, 
+// command->in_y1,
+// command->in_x2,
+// command->in_y2,
+// command->out_x1,
+// command->out_y1,
+// command->out_x2,
+// command->out_y2);
+
+// dest Y has to be flipped
+        float out_y1 = command->frame->get_h() - command->out_y1;
+        float out_y2 = command->frame->get_h() - command->out_y2;
+
 		command->input->draw_texture(command->in_x1, 
 			command->in_y1,
 			command->in_x2,
 			command->in_y2,
 			command->out_x1,
-			command->out_y1,
+			out_y2,
 			command->out_x2,
-			command->out_y2,
+			out_y1,
 // Don't flip vertical if nested or rendering
 // In the nested case, the output is possibly flipped 
 // upon injestion into the parent EDL.
