@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,12 +112,13 @@ int VirtualVNode::read_data(VFrame *output_temp,
 	if(!output_temp) 
 		printf("VirtualVNode::read_data output_temp=%p\n", output_temp);
 
-	if(vconsole->debug_tree) 
-		printf("  VirtualVNode::read_data position=%lld rate=%f title=%s opengl=%d\n", 
-			(long long)start_position,
-			frame_rate,
-			track->title, 
-			use_opengl);
+//     if(MWindow::preferences->dump_playback)
+// 		printf("  VirtualVNode::read_data %d position=%lld rate=%f title='%s' use_gl=%d\n", 
+// 			__LINE__,
+//             (long long)start_position,
+// 			frame_rate,
+// 			track->title, 
+// 			use_opengl);
 
 // If there is a parent module but the parent module has no data source,
 // use our own data source.
@@ -213,11 +214,6 @@ void VirtualVNode::render_as_plugin(VFrame *output_temp,
 		!real_plugin->on) return;
 
 
-	if(vconsole->debug_tree) 
-		printf("  VirtualVNode::render_as_plugin title=%s use_opengl=%d\n", 
-			track->title,
-			use_opengl);
-
 	((VAttachmentPoint*)attachment)->render(
 		output_temp,
 		plugin_buffer_number,
@@ -225,6 +221,14 @@ void VirtualVNode::render_as_plugin(VFrame *output_temp,
 		frame_rate,
 		vconsole->debug_tree,
 		use_opengl);
+
+	if(MWindow::preferences->dump_playback) 
+		printf("%sVirtualVNode::render_as_plugin %d track='%s' plugin='%s' use_gl=%d\n", 
+			MWindow::print_indent(),
+            __LINE__,
+            track->title,
+            real_plugin->title,
+			use_opengl);
 }
 
 
@@ -255,13 +259,6 @@ int VirtualVNode::render_as_module(VFrame *video_out,
 // integrate position from start of track.  1/speed is duration of each frame
 		
 	}
-
-	if(vconsole->debug_tree) 
-		printf("  VirtualVNode::render_as_module title=%s use_opengl=%d video_out=%p output_temp=%p\n", 
-			track->title,
-			use_opengl,
-			video_out,
-			output_temp);
 
 	output_temp->push_next_effect("VirtualVNode::render_as_module");
 
@@ -329,6 +326,13 @@ int VirtualVNode::render_as_module(VFrame *video_out,
 //printf("VirtualVNode::render_as_module %d\n", __LINE__);
 //output_temp->dump_stacks();
 
+// 	if(MWindow::preferences->dump_playback) 
+// 		printf("  VirtualVNode::render_as_module %d track='%s' use_gl=%d\n", 
+// 			__LINE__,
+//             track->title,
+// 			use_opengl);
+// 
+
 	return 0;
 }
 
@@ -350,9 +354,6 @@ int VirtualVNode::render_fade(VFrame *output,
 		edl_rate /
 		frame_rate);
 
-	if(vconsole->debug_tree) 
-		printf("  VirtualVNode::render_fade title=%s\n", track->title);
-
 	intercept = ((FloatAutos*)autos)->get_value(start_position_project, 
 		direction,
 		previous,
@@ -361,6 +362,14 @@ int VirtualVNode::render_fade(VFrame *output,
 
 //	CLAMP(intercept, 0, 100);
 
+
+	if(MWindow::preferences->dump_playback) 
+		printf("%sVirtualVNode::render_fade %d track='%s' fade=%f use_gl=%d\n", 
+            MWindow::print_indent(),
+            __LINE__,
+            track->title, 
+            intercept,
+            use_opengl);
 
 // Can't use overlay here because overlayer blends the frame with itself.
 // The fade engine can compensate for lack of alpha channels by multiplying the 
@@ -473,6 +482,13 @@ int VirtualVNode::render_projector(VFrame *input,
 	if(vconsole->debug_tree) 
 		printf("  VirtualVNode::render_projector input=%p output=%p cmodel=%d title=%s\n", 
 			input, output, output->get_color_model(), track->title);
+    if(MWindow::preferences->dump_playback)
+        printf("%sVirtualVNode::render_projector %d track='%s' use_gl=%d\n", 
+            MWindow::print_indent(),
+            __LINE__,
+			track->title,
+            use_opengl);
+
 
 	if(output)
 	{

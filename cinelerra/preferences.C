@@ -76,6 +76,7 @@ Preferences::Preferences()
 //	use_thumbnails = 1;
 	theme[0] = 0;
     
+    dump_playback = 0;
     use_gl_rendering = 0;
 	use_renderfarm = 0;
 	force_uniprocessor = 0;
@@ -189,6 +190,7 @@ void Preferences::copy_from(Preferences *that)
 			that->renderfarm_rate.get(i));
 	}
 
+    dump_playback = that->dump_playback;
     use_gl_rendering = that->use_gl_rendering;
 	use_renderfarm = that->use_renderfarm;
 	renderfarm_port = that->renderfarm_port;
@@ -334,6 +336,7 @@ int Preferences::load_defaults(BC_Hash *defaults)
 	brender_fragment = defaults->get("BRENDER_FRAGMENT", brender_fragment);
 	cache_size = defaults->get("CACHE_SIZE", cache_size);
 	local_rate = defaults->get("LOCAL_RATE", local_rate);
+    dump_playback = defaults->get("DUMP_PLAYBACK", dump_playback);
     use_gl_rendering = defaults->get("USE_GL_RENDERING", use_gl_rendering);
 	use_renderfarm = defaults->get("USE_RENDERFARM", use_renderfarm);
 	renderfarm_port = defaults->get("RENDERFARM_PORT", renderfarm_port);
@@ -415,6 +418,7 @@ int Preferences::save_defaults(BC_Hash *defaults)
 		0);
 	defaults->update("USE_BRENDER", use_brender);
 	defaults->update("BRENDER_FRAGMENT", brender_fragment);
+	defaults->update("DUMP_PLAYBACK", dump_playback);
 	defaults->update("USE_GL_RENDERING", use_gl_rendering);
 	defaults->update("USE_RENDERFARM", use_renderfarm);
 	defaults->update("LOCAL_RATE", local_rate);

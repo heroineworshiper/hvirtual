@@ -158,8 +158,10 @@ FileServer* MWindow::file_server = 0;
 MainProgressBar* MWindow::file_progress = 0;
 MainProgress* MWindow::mainprogress = 0;
 Theme* MWindow::theme = 0;
+Preferences* MWindow::preferences = 0;
 
 int MWindow::is_loading = 0;
+int MWindow::indent = 0;
 
 
 
@@ -3273,3 +3275,14 @@ int MWindow::reset_meters()
 	return 0; 
 }
 
+
+char* MWindow::print_indent()
+{
+    static char string[BCTEXTLEN];
+    for(int i = 0; i < indent; i++)
+    {
+        string[i] = ' ';
+    }
+    string[indent] = 0;
+    return string;
+}

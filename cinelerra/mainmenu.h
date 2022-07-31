@@ -29,6 +29,7 @@ class KeyframesFollowEdits;
 class CursorOnFrames;
 class TypelessKeyframes;
 class LoopPlayback;
+class DumpPlayback;
 
 class Redo;
 class ShowVWindow;
@@ -121,6 +122,7 @@ public:
 	CursorOnFrames *cursor_on_frames;
 	TypelessKeyframes *typeless_keyframes;
 	LoopPlayback *loop_playback;
+	DumpPlayback *dump_playback;
 	ShowAssets *show_assets;
 	ShowTitles *show_titles;
 	ShowTransitions *show_transitions;
@@ -503,6 +505,15 @@ class LoopPlayback : public BC_MenuItem
 {
 public:
 	LoopPlayback(MWindow *mwindow);
+
+	int handle_event();
+	MWindow *mwindow;
+};
+
+class DumpPlayback : public BC_MenuItem
+{
+public:
+	DumpPlayback(MWindow *mwindow);
 
 	int handle_event();
 	MWindow *mwindow;

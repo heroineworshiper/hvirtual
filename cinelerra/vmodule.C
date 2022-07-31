@@ -949,6 +949,8 @@ int VModule::render(VFrame *output,
 	double edl_rate = get_edl()->session->frame_rate;
 
 //printf("VModule::render %d %ld\n", __LINE__, start_position);
+    if(MWindow::preferences->dump_playback)
+        MWindow::indent += 2;
 
 	if(use_nudge) start_position += Units::to_int64(track->nudge * 
 		frame_rate / 
@@ -991,6 +993,8 @@ int VModule::render(VFrame *output,
 // Process transition
 	if(transition && transition->on)
 	{
+        if(MWindow::preferences->dump_playback)
+            MWindow::indent += 2;
 
 // Get temporary buffer
 		VFrame **transition_input = 0;
@@ -1052,6 +1056,8 @@ int VModule::render(VFrame *output,
 // output,
 // output->get_pbuffer());
 
+        if(MWindow::preferences->dump_playback)
+            MWindow::indent -= 2;
 
 // Execute plugin with transition_input and output here
 		if(renderengine) 
@@ -1062,6 +1068,7 @@ int VModule::render(VFrame *output,
 				(start_position_project - current_edit->startproject) :
 				(start_position_project - current_edit->startproject - 1),
 			transition->length);
+
 	}
 	else
 	{
@@ -1074,6 +1081,16 @@ int VModule::render(VFrame *output,
 			use_opengl);
 	}
 
+    if(MWindow::preferences->dump_playback)
+    {
+        MWindow::indent -= 2;
+        printf("%sVModule::render %d position=%ld title='%s' use_gl=%d\n", 
+            MWindow::print_indent(),
+			__LINE__, 
+			(long)start_position_project,
+			track->title,
+			use_opengl);
+    }
 
 	return result;
 }

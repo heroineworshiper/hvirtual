@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -139,12 +139,13 @@ int VRender::process_buffer(int64_t input_position,
 // 		renderengine->get_edl()->session->video_asynchronous;
 	const int debug = 0;
 
+	if(MWindow::preferences->dump_playback) 
+        MWindow::indent += 2;
+
 // Determine the rendering strategy for this frame.
 	use_vconsole = get_use_vconsole(&playable_edit, 
 		input_position,
 		use_brender);
-
-	if(debug) printf("VRender::process_buffer %d use_vconsole=%d\n", __LINE__, use_vconsole);
 
 // Negotiate color model
 // If the virtual console is faster than direct, make sure the colorspace 
@@ -244,7 +245,21 @@ int VRender::process_buffer(int64_t input_position,
 //        printf("VRender::process_buffer %d\n", __LINE__);
 	}
 
-//    printf("VRender::process_buffer %d\n", __LINE__);
+
+	if(MWindow::preferences->dump_playback) 
+    {
+        char string[BCTEXTLEN];
+        MWindow::indent -= 2;
+        BC_CModels::to_text(string, colormodel);
+        printf("%sVRender::process_buffer %d EDL='%s' position=%ld use_vconsole=%d colormodel='%s' use_gl=%d\n", 
+            MWindow::print_indent(),
+            __LINE__, 
+            renderengine->get_edl()->path,
+            (long)input_position,
+            use_vconsole,
+            string,
+            use_opengl);
+    }
 
 	return result;
 }

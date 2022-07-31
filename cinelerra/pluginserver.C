@@ -543,6 +543,14 @@ void PluginServer::process_transition(VFrame *input,
 	vclient->age_temp();
 	delete [] vclient->input;
 	delete [] vclient->output;
+    if(MWindow::preferences->dump_playback)
+    {
+        printf("%sPluginServer::process_transition %d title='%s' use_gl=%d\n",
+            MWindow::print_indent(),
+            __LINE__,
+            title,
+            use_opengl);
+    }
 	use_opengl = 0;
 }
 

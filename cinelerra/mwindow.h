@@ -185,6 +185,7 @@ public:
 	static PluginServer* scan_plugindb(char *title,
 		int data_type);
 	void dump_plugins();
+    static char* print_indent();
 
 
 
@@ -512,7 +513,7 @@ public:
 // Cache drawing doesn't wait for file decoding.
 	FrameCache *frame_cache;
 	WaveCache *wave_cache;
-	Preferences *preferences;
+	static Preferences *preferences;
 	PreferencesThread *preferences_thread;
 	MainSession *session;
 	static Theme *theme;
@@ -534,6 +535,8 @@ public:
     static MainProgressBar *file_progress;
 // if we shouldn't delete the file_progress after each file
 	static int is_loading;
+// debugging
+    static int indent;
 
 // ====================================== plugins ==============================
 

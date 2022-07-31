@@ -198,6 +198,7 @@ void MainMenu::create_objects()
 	settingsmenu->add_item(typeless_keyframes = new TypelessKeyframes(mwindow));
 	settingsmenu->add_item(new BC_MenuItem("-"));
 	settingsmenu->add_item(new SaveSettingsNow(mwindow));
+	settingsmenu->add_item(dump_playback = new DumpPlayback(mwindow));
 	settingsmenu->add_item(loop_playback = new LoopPlayback(mwindow));
 	settingsmenu->add_item(new SetBRenderRange(mwindow));
 // set scrubbing speed
@@ -260,6 +261,7 @@ void MainMenu::update_toggles(int use_lock)
 	keyframes_follow_edits->set_checked(mwindow->edl->session->autos_follow_edits);
 	typeless_keyframes->set_checked(mwindow->edl->session->typeless_keyframes);
 	cursor_on_frames->set_checked(mwindow->edl->session->cursor_on_frames);
+	dump_playback->set_checked(MWindow::preferences->dump_playback);
 	loop_playback->set_checked(mwindow->edl->local_session->loop_playback);
 
 	show_assets->set_checked(mwindow->edl->session->show_assets);
@@ -1163,6 +1165,21 @@ int LoopPlayback::handle_event()
 }
 
 
+DumpPlayback::DumpPlayback(MWindow *mwindow)
+ : BC_MenuItem(_("Dump Playback"))
+{
+	this->mwindow = mwindow;
+	set_checked(MWindow::preferences->dump_playback);
+}
+
+int DumpPlayback::handle_event()
+{
+	MWindow::preferences->dump_playback = !MWindow::preferences->dump_playback;
+	set_checked(MWindow::preferences->dump_playback);
+	return 1;
+}
+
+
 
 
 
@@ -1245,7 +1262,7 @@ int CursorOnFrames::handle_event()
 
 
 TypelessKeyframes::TypelessKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Typeless keyframes")) 
+ : BC_MenuItem(_("Interchangeable audio & video keyframes")) 
 { 
 	this->mwindow = mwindow; 
 	set_checked(mwindow->edl->session->typeless_keyframes);

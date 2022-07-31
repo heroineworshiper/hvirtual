@@ -109,6 +109,9 @@ public:
 // rendering, playback, timeline, preview
 	int64_t cache_size;
 
+// dump playback steps to the console
+    int dump_playback;
+
     int use_gl_rendering;
 
 	int use_renderfarm;
