@@ -1,17 +1,37 @@
+/*
+ * Quicktime 4 Linux
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ */
+
 #include "colormodels.h"
 #include "funcprotos.h"
 #include "quicktime.h"
 #include "qtffmpeg.h"
 #include "qtprivate.h"
+
 #include <pthread.h>
 #include <string.h>
-// FFMPEG front end for quicktime.
+
+
+// FFMPEG decoding functions for quicktime.
 
 
 
-
-// Different ffmpeg versions
-#define FFMPEG_2010
 
 
 
@@ -81,6 +101,7 @@ static void dump_context(void *ptr)
 }
 
 quicktime_ffmpeg_t* quicktime_new_ffmpeg(int cpus,
+    int use_hw,
 	int fields,
 	int ffmpeg_id,
 	int w,
@@ -115,7 +136,7 @@ quicktime_ffmpeg_t* quicktime_new_ffmpeg(int cpus,
 	{
 		ffmpeg_initialized = 1;
 //  		avcodec_init();
-		avcodec_register_all();
+//		avcodec_register_all();
 	}
 
 	for(i = 0; i < fields; i++)
@@ -127,6 +148,19 @@ quicktime_ffmpeg_t* quicktime_new_ffmpeg(int cpus,
 			quicktime_delete_ffmpeg(ptr);
 			return 0;
 		}
+        
+// try hardware decoding
+// Append _cuvid to the name to use hardware decoding
+        if(use_hw)
+        {
+            char string[1024];
+            sprintf(string, "%s_cuvid", ptr->decoder[i]->name);
+            const AVCodec *hw_codec = avcodec_find_decoder_by_name(string);
+            if(hw_codec)
+            {
+                ptr->decoder[i] = hw_codec;
+            }
+        }
 
 		AVCodecContext *context = 
 			ptr->decoder_context[i] = 
@@ -162,7 +196,14 @@ quicktime_ffmpeg_t* quicktime_new_ffmpeg(int cpus,
 //			avcodec_thread_init(context, cpus);
 // Not exactly user friendly.
 			context->thread_count = cpus;
+            context->thread_type = FF_THREAD_SLICE;
 		}
+
+        printf("quicktime_new_ffmpeg %d cpus=%d codec=%s id=%d\n", 
+            __LINE__,
+            cpus,
+            ptr->decoder[i]->name,
+            context->codec_id);
 
 		if(avcodec_open2(context, ptr->decoder[i], 0) < 0)
 		{
@@ -172,6 +213,7 @@ quicktime_ffmpeg_t* quicktime_new_ffmpeg(int cpus,
 			{
 //				avcodec_thread_init(context, 1);
 				context->thread_count = 1;
+                context->thread_type = FF_THREAD_SLICE;
 				if(avcodec_open2(context, ptr->decoder[i], 0) >= 0)
 				{
 					error = 0;
@@ -385,11 +427,18 @@ static int decode_wrapper(quicktime_t *file,
  */
 
 
-		result = avcodec_decode_video2(ffmpeg->decoder_context[current_field], 
-			ffmpeg->picture[current_field], 
-			&got_picture, 
-			packet);
+//		result = avcodec_decode_video2(ffmpeg->decoder_context[current_field], 
+//			ffmpeg->picture[current_field], 
+//			&got_picture, 
+//			packet);
+
+        result = avcodec_send_packet(ffmpeg->decoder_context[current_field], 
+            packet);
 		av_packet_free(&packet);
+
+
+        result = avcodec_receive_frame(ffmpeg->decoder_context[current_field], 
+            ffmpeg->picture[current_field]);
 
 
 // printf("decode_wrapper %d got_picture=%d ptr=%p\n", 
@@ -407,7 +456,7 @@ static int decode_wrapper(quicktime_t *file,
 // printf("\n");
 // }
 
-		if(ffmpeg->picture[current_field]->data[0])
+		if(!result && ffmpeg->picture[current_field]->data[0])
 		{
 			result = 0;
 // advance the position
@@ -442,17 +491,19 @@ static int get_chroma_factor(quicktime_ffmpeg_t *ffmpeg, int current_field)
 	switch(ffmpeg->decoder_context[current_field]->pix_fmt)
 	{
 		case AV_PIX_FMT_YUV420P:
+// assume the UV planes are contiguous so goofy NV formats have the same amount of space
+// in the U plane as 2 distinct UV planes
+		case AV_PIX_FMT_NV12:
+		case AV_PIX_FMT_NV21:
 			return 4;
 			break;
 		case AV_PIX_FMT_YUVJ420P:
 			return 4;
 			break;
 
-#ifndef FFMPEG_2010
-		case AV_PIX_FMT_YUV422:
-			return 2;
-			break;
-#endif
+// 		case AV_PIX_FMT_YUV422:
+// 			return 2;
+// 			break;
 
 		case AV_PIX_FMT_YUV422P:
 			return 2;
@@ -884,11 +935,9 @@ ffmpeg->last_frame[current_field]);
 			input_cmodel = BC_YUV420P;
 			break;
 
-#ifndef FFMPEG_2010
-		case AV_PIX_FMT_YUV422:
-			input_cmodel = BC_YUV422;
-			break;
-#endif
+// 		case AV_PIX_FMT_YUV422:
+// 			input_cmodel = BC_YUV422;
+// 			break;
 
 		case AV_PIX_FMT_YUV422P:
 			input_cmodel = BC_YUV422P;
@@ -898,6 +947,9 @@ ffmpeg->last_frame[current_field]);
 			break;
         case AV_PIX_FMT_YUV420P10LE:
             input_cmodel = BC_YUV420P;
+            break;
+        case AV_PIX_FMT_NV12:
+			input_cmodel = BC_NV12;
             break;
 		default:
 			fprintf(stderr, 
@@ -962,7 +1014,8 @@ ffmpeg->last_frame[current_field]);
 }
 
 // convert ffmpeg audio to interleaved float output buffer
-void quicktime_ffmpeg_get_audio(AVFrame *frame, float *dst)
+// return the number of samples converted
+int quicktime_ffmpeg_get_audio(AVFrame *frame, float *dst)
 {
 	int channels = frame->channels;
 	int samples = frame->nb_samples;
@@ -1004,6 +1057,7 @@ void quicktime_ffmpeg_get_audio(AVFrame *frame, float *dst)
 				break;
 		}
 	}
+    return samples;
 }
 
 

@@ -45,11 +45,16 @@ public:
 		int channel,
 		int64_t len);
 
-    void append_index(void *ptr, Asset *asset, Preferences *preferences);
+    void append_index(float *data, 
+        int samples_decoded,
+        int channels2, 
+        Asset *asset, 
+        Preferences *preferences);
     void flush_index();
     void delete_index();
 
 	void *ffmpeg_file_context;
+    void *decoder_context;
 
 // Video
 // The last frame to come out of the decoder

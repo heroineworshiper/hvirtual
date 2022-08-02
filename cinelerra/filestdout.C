@@ -24,6 +24,7 @@
 #include "asset.h"
 #include "bitspopup.h"
 #include "clip.h"
+#include "errorbox.h"
 #include "file.h"
 #include "filestdout.h"
 #include "filesystem.h"
@@ -751,6 +752,45 @@ StdoutPreset* StdoutPreset::createMplex(const char *title,
 }
 
 
+ConfirmPreset::ConfirmPreset(StdoutBaseConfig *gui)
+ : BC_Window(PROGRAM_NAME ": Preset Exists", 
+ 		gui->get_abs_cursor_x(1) - DP(160), 
+		gui->get_abs_cursor_y(1) - DP(120), 
+		DP(320), 
+		DP(150))
+{
+}
+
+void ConfirmPreset::create_objects(const char *text)
+{
+    int margin = MWindow::theme->widget_border;
+	int x = margin, y = margin;
+	lock_window("ConfirmPreset::create_objects");
+    
+    int text_w = get_text_width(MEDIUMFONT, text);
+    int new_w = x + text_w + margin;
+
+// limit to a certain size
+	if(new_w > get_root_w() / 2) 
+    {
+        new_w = get_root_w() / 2;
+    }
+
+	if(new_w > get_w())
+	{
+		resize_window(new_w, get_h());
+	}
+
+	add_subwindow(new BC_Title(x, 
+		y, 
+		text));
+
+	add_subwindow(new BC_OKButton(this));
+	add_subwindow(new BC_CancelButton(this));
+	show_window(1);
+	unlock_window();
+}
+
 
 StdoutBaseConfig::StdoutBaseConfig(BC_WindowBase *parent_window, 
     Asset *asset, 
@@ -1050,6 +1090,17 @@ void StdoutBaseConfig::save_preset()
             }
         }
 
+// confirm replace
+        int result = 0;
+        if(got_it)
+        {
+            char string[BCTEXTLEN];
+            sprintf(string, "Overwrite '%s'?", command_title->get_text());
+            ConfirmPreset confirm(this);
+            confirm.create_objects(string);
+            result = confirm.run_window();
+        }
+
 // create a new preset
         if(!got_it)
         {
@@ -1058,19 +1109,32 @@ void StdoutBaseConfig::save_preset()
             preset_data->append(dst);
         }
 
-        dst->command.assign(command->get_text());
-        dst->color_model = asset->command_cmodel;
-        dst->bits = asset->command_bits;
-        dst->byte_order = asset->command_byte_order;
-        dst->signed_ = asset->command_signed_;
-        dst->dither = asset->command_dither;
-        save_defaults();
+        if(!result)
+        {
+            dst->command.assign(command->get_text());
+            dst->color_model = asset->command_cmodel;
+            dst->bits = asset->command_bits;
+            dst->byte_order = asset->command_byte_order;
+            dst->signed_ = asset->command_signed_;
+            dst->dither = asset->command_dither;
+            save_defaults();
+
+            list->update(preset_names,
+		        0,
+		        0,
+		        1);
+        }
+    }
+    else
+    {
+		ErrorBox error(PROGRAM_NAME ": Error",
+			get_abs_cursor_x(1),
+			get_abs_cursor_y(1));
+		error.create_objects("Need a title to save the preset");
+		error.raise_window();
+		error.run_window();
     }
 
-    list->update(preset_names,
-		0,
-		0,
-		1);
 }
 
 void StdoutBaseConfig::delete_preset()

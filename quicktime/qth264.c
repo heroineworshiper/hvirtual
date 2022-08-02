@@ -534,6 +534,7 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 
 	if(!codec->decoder) codec->decoder = quicktime_new_ffmpeg(
 		file->cpus,
+        file->use_hw,
 		codec->total_fields,
 		AV_CODEC_ID_H264,
 		width,

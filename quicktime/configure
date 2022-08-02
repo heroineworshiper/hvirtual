@@ -80,7 +80,7 @@ cd thirdparty/faac* && ./configure && cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
-echo "CONFIGURING FFMPEG"
+#echo "CONFIGURING FFMPEG"
 # Currently using the last version which works.  The latest version doesn't.
 # For the latest version,
 # delete faad tests in configure so it passes before faad is compiled.
@@ -88,9 +88,9 @@ echo "CONFIGURING FFMPEG"
 # 030209
 #cd thirdparty/ffmpeg* && ./configure --enable-pthreads --enable-libfaad --enable-gpl --disable-ffplay --extra-cflags=-I$TOPDIR/$LIBFAAD_PATH/include --extra-libs=-L$TOPDIR/$LIBFAAD_PATH/libfaad/.libs/ --disable-ffmpeg --disable-ffserver --disable-ffplay  && cd ../..
 # 052906
-cd thirdparty/ffmpeg* && ./configure --enable-pthreads --enable-gpl --disable-ffplay --extra-cflags=-I$TOPDIR/$LIBFAAD_PATH/include --extra-libs=-L$TOPDIR/$LIBFAAD_PATH/libfaad/.libs/ --disable-ffserver --disable-ffplay  && cd ../..
+#cd thirdparty/ffmpeg* && ./configure --enable-pthreads --enable-gpl --disable-ffplay --extra-cflags=-I$TOPDIR/$LIBFAAD_PATH/include --extra-libs=-L$TOPDIR/$LIBFAAD_PATH/libfaad/.libs/ --disable-ffserver --disable-ffplay  && cd ../..
 
-if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+#if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
 echo "CONFIGURING X264"
 # Currently using the last version which works with mplayer.

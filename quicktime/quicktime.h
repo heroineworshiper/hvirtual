@@ -1,3 +1,23 @@
+/*
+ * Quicktime 4 Linux
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ */
+
 #ifndef QUICKTIME_H
 #define QUICKTIME_H
 
@@ -416,6 +436,9 @@ int quicktime_dump(quicktime_t *file);
 
 /* Specify the number of cpus to utilize. */
 int quicktime_set_cpus(quicktime_t *file, int cpus);
+
+// use hardware when possible if 1
+void quicktime_set_hw(quicktime_t *file, int use_hw);
 
 /* Specify whether to read contiguously or not. */
 /* preload is the number of bytes to read ahead. */

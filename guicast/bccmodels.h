@@ -61,6 +61,8 @@
 #define BC_YUV411P      18
 #define BC_YUV9P        28     // Disasterous cmodel from Sorenson
 #define BC_YUV420P10LE  32
+#define BC_NV12         33     // Y plane, interleaved UV plane
+#define BC_NV21         34     // Y plane, interleaved VU plane
 
 // Colormodels purely used by Quicktime are done in Quicktime.
 

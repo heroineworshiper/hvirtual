@@ -411,6 +411,11 @@ int quicktime_set_cpus(quicktime_t *file, int cpus)
 	return 0;
 }
 
+void quicktime_set_hw(quicktime_t *file, int use_hw)
+{
+    file->use_hw = use_hw;
+}
+
 void quicktime_set_preload(quicktime_t *file, int64_t preload)
 {
 	file->preload_size = preload;

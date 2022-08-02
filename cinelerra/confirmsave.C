@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #include "language.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
-
+#include "theme.h"
 
 
 
@@ -132,7 +132,8 @@ ConfirmSaveWindow::~ConfirmSaveWindow()
 
 void ConfirmSaveWindow::create_objects()
 {
-	int x = DP(10), y = DP(10);
+    int margin = MWindow::theme->widget_border;
+	int x = margin, y = margin;
 	lock_window("ConfirmSaveWindow::create_objects");
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
@@ -143,8 +144,8 @@ void ConfirmSaveWindow::create_objects()
 	y += DP(30);
 	add_subwindow(listbox = new BC_ListBox(x, 
 		y, 
-		get_w() - x - DP(10),
-		get_h() - y - BC_OKButton::calculate_h() - DP(10),
+		get_w() - x - margin,
+		get_h() - y - BC_OKButton::calculate_h() - margin,
 		LISTBOX_TEXT,
 		list));
 	y = get_h() - DP(40);

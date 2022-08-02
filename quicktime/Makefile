@@ -1,3 +1,6 @@
+include ../hvirtual_config
+
+
 OBJDIR := $(shell uname --machine)
 USE_MMX = 0
 CC = gcc
@@ -22,12 +25,14 @@ OBJS :=
 # bug fixes for ffmpeg are required
 # Add test to ffmpeg/libavcodec/svq3.c to make sure extradata is
 # nonzero before memcmping it.
-FFMPEG_DIR := $(shell expr thirdparty/ffmpeg*)
-FFMPEG_LIB := $(OBJDIR)/ffmpeg/
-FFMPEG_INCLUDE := -I$(FFMPEG_DIR) \
--I$(FFMPEG_DIR)/libavcodec \
--I$(FFMPEG_DIR)/libavformat \
--I$(FFMPEG_DIR)/libavutil
+#FFMPEG_DIR := $(shell expr thirdparty/ffmpeg*)
+#FFMPEG_LIB := $(OBJDIR)/ffmpeg/
+#FFMPEG_INCLUDE := -I$(FFMPEG_DIR) \
+#-I$(FFMPEG_DIR)/libavcodec \
+#-I$(FFMPEG_DIR)/libavformat \
+#-I$(FFMPEG_DIR)/libavutil
+
+FFMPEG_LIBS := -lavformat -lavcodec -lavutil -lswresample
 
 FAAD_DIR := $(shell expr thirdparty/faad*)
 FAAD_LIB := $(OBJDIR)/faad/
@@ -240,8 +245,8 @@ CFLAGS += \
 	-ffast-math \
 	-mno-ieee-fp
 
-FFMPEG_CFLAGS := $(CFLAGS) \
-	$(FFMPEG_INCLUDE) \
+#FFMPEG_CFLAGS := $(CFLAGS) \
+#	$(FFMPEG_INCLUDE)
 
 #DIRS += \
 #	$(OBJDIR)/$(DECORE_DIR)/intel_mmx/postprocess
@@ -260,38 +265,38 @@ DIRS += \
 	$(OBJDIR)/$(ENCORE_DIR)/mbtransquant/intel_mmx
 
 
-LIBS := $(OUTPUT) $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a -lpng -lz -lpthread -ldl -lm -llzma -lrt
+LIBS := $(OUTPUT) $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) -lpng -lz -lpthread -ldl -lm -llzma -lrt
 
 
 $(shell mkdir -p $(DIRS) )
 $(shell echo  $(CFLAGS) > $(OBJDIR)/c_flags)
 $(shell echo  $(LAME_CFLAGS) > $(OBJDIR)/lame_flags)
 $(shell echo  $(OBJS) $(FFMPEG_OBJS) $(JPEG_LIB)/*.o $(DV_LIB)/*.o $(FAAD_LIB)/*.o $(FAAC_LIB)/*.o $(X264_LIB)/*.o $(X265_LIB)/*.o $(OGG_LIB)/*.o $(VORBIS_LIB)/*.o $(LAME_OBJS) > $(OBJDIR)/objs)
-$(shell echo  $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
+$(shell echo  $(CFLAGS) $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
 
 all: $(OBJDIR) $(OUTPUT) $(UTILS)
 
-$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(FFMPEG_LIB) $(X264_LIB) $(X265_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
-	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
-	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
-	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
-	find $(FFMPEG_DIR)/libswresample/ -name *.o >> $(OBJDIR)/objs
+$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(X264_LIB) $(X265_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
+#	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libswresample/ -name *.o >> $(OBJDIR)/objs
 	ar rcs $(OUTPUT) `cat $(OBJDIR)/objs`
 
 # this is the only way we figured out to merge .a files
-$(FFMPEG_LIB):
-	$(MAKE) -C $(FFMPEG_DIR)
-	mkdir -p $(FFMPEG_LIB)/avcodec \
-		$(FFMPEG_LIB)/avformat \
-		$(FFMPEG_LIB)/avutil
-	cd $(FFMPEG_LIB)/avcodec && \
-	ar x ../../../$(FFMPEG_DIR)/libavcodec/libavcodec.a &&  \
-	cd ../avformat && \
-	ar x ../../../$(FFMPEG_DIR)/libavformat/libavformat.a &&  \
-	cd ../avutil && \
-	ar x ../../../$(FFMPEG_DIR)/libavutil/libavutil.a \
-	cd ../avutil && \
-	ar x ../../../$(FFMPEG_DIR)/libswresample/libswresample.a
+#$(FFMPEG_LIB):
+#	$(MAKE) -C $(FFMPEG_DIR)
+#	mkdir -p $(FFMPEG_LIB)/avcodec \
+#		$(FFMPEG_LIB)/avformat \
+#		$(FFMPEG_LIB)/avutil
+#	cd $(FFMPEG_LIB)/avcodec && \
+#	ar x ../../../$(FFMPEG_DIR)/libavcodec/libavcodec.a &&  \
+#	cd ../avformat && \
+#	ar x ../../../$(FFMPEG_DIR)/libavformat/libavformat.a &&  \
+#	cd ../avutil && \
+#	ar x ../../../$(FFMPEG_DIR)/libavutil/libavutil.a \
+#	cd ../avutil && \
+#	ar x ../../../$(FFMPEG_DIR)/libswresample/libswresample.a
 
 $(FAAD_LIB):
 	$(MAKE) -C $(FAAD_DIR) && \
@@ -385,7 +390,7 @@ util:  $(UTILS)
 	
 
 clean:
-	make -i -C $(FFMPEG_DIR) clean
+#	make -i -C $(FFMPEG_DIR) clean
 	make -i -C $(FAAD_DIR) clean
 	make -i -C $(FAAC_DIR) clean
 	make -i -C $(FAAD_DIR) clean

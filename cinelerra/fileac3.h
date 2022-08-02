@@ -56,7 +56,7 @@ public:
 private:
 //	AVCodec *codec;
 //	AVCodecContext *codec_context;
-	void *codec;
+    const void *codec;
 	void *codec_context;
 	FILE *fd;
 	int16_t *temp_raw;

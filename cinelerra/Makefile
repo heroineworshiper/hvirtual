@@ -1,3 +1,4 @@
+include ../hvirtual_config
 include ../global_config
 
 AVC_DIR := $(shell expr ../thirdparty/libavc1394* )
@@ -519,15 +520,13 @@ endif
 
 FFMPEG_CFLAGS := \
 	$(CFLAGS) \
-	-I$(FFMPEG_DIR)/libavcodec \
-	-I$(FFMPEG_DIR)/libavformat \
-	-I$(FFMPEG_DIR)/libavutil \
-	-I$(FFMPEG_DIR)
+        $(FFMPEG_CFLAGS)
 
+FFMPEG_LIBS := -lavformat -lavcodec -lavutil -lswresample
 
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
-$(shell echo $(CFLAGS) $(FFMPEG_CFLAGS) -D__STDC_CONSTANT_MACROS > $(OBJDIR)/ffmpeg_cflags)
-$(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(FILECR3) $(AVIOBJS) $(CXXREPOSITORY) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
+$(shell echo $(FFMPEG_CFLAGS) -D__STDC_CONSTANT_MACROS > $(OBJDIR)/ffmpeg_cflags)
+$(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(FILECR3) $(AVIOBJS) $(CXXREPOSITORY) $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
 
 
 

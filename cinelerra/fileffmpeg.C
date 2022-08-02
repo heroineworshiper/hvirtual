@@ -33,15 +33,16 @@ extern "C"
 #include "fileffmpeg.h"
 #include "filefork.h"
 #include "indexfile.h"
-#include "mpegaudio.h"
+//#include "mpegaudio.h"
 #include "mutex.h"
+#include "mwindow.h"
 #include "preferences.h"
 #include "quicktime.h"
-#include <unistd.h>
 #include "videodevice.inc"
 
 #include <string.h>
 #include <string>
+#include <unistd.h>
 
 using std::string;
 
@@ -54,7 +55,7 @@ using std::string;
 #define QUICKTIME_VP9 "VP9"
 #define QUICKTIME_VP8 "VP8"
 
-#define FFMPEG_TOC_SIG "FFMPEGTOC02"
+#define FFMPEG_TOC_SIG "FFMPEGTOC03"
 
 // hacks for seeking which depend on the codec
 #define AUDIO_REWIND_SECS 1
@@ -103,6 +104,7 @@ Mutex* FileFFMPEG::ffmpeg_lock = new Mutex("FileFFMPEG::ffmpeg_lock");
 FileFFMPEGStream::FileFFMPEGStream()
 {
 	ffmpeg_file_context = 0;
+    decoder_context = 0;
 
 	current_frame = -1;
     is_video = 0;
@@ -134,6 +136,12 @@ FileFFMPEGStream::~FileFFMPEGStream()
 			delete [] pcm_history[i];
 	}
 	delete [] pcm_history;
+
+    if(decoder_context)
+    {
+        avcodec_free_context((AVCodecContext**)&decoder_context);
+        decoder_context = 0;
+    }
 
 	if(ffmpeg_file_context)
 	{
@@ -193,12 +201,12 @@ void FileFFMPEGStream::update_pcm_history(int64_t current_sample)
 }
 
 
-void FileFFMPEGStream::append_index(void *ptr, 
+void FileFFMPEGStream::append_index(float *data, 
+    int samples_decoded,
+    int channels2,
     Asset *asset, 
     Preferences *preferences)
 {
-    AVFrame *frame = (AVFrame*)ptr;
-    int len = frame->nb_samples;
     int i, j, k;
     
 // Allocate new index buffer
@@ -241,47 +249,18 @@ void FileFFMPEGStream::append_index(void *ptr,
 
 // in case the number of channels in the source changed
     int current_channels = channels;
-    if(frame->channels < current_channels)
+    if(channels2 < current_channels)
     {
-        current_channels = frame->channels;
+        current_channels = channels2;
     }
 
-    for(int j = 0; j < len; j++)
+    for(int j = 0; j < samples_decoded; j++)
 	{
 
 // add a sample to the next frame
 	    for(i = 0; i < current_channels; i++)
 	    {
-            float value = 0;
-            switch(frame->format)
-            {
-                case AV_SAMPLE_FMT_S16P:
-			    {
-                    int16_t *input = (int16_t*)frame->data[i];
-                    value = (float)input[j] / 32767;
-                }
-                break;
-
-                case AV_SAMPLE_FMT_FLTP:
-			    {
-                    float *input = (float*)frame->data[i];
-                    value = input[j];
-                }
-                break;
-            
-                case AV_SAMPLE_FMT_S32P:
-                {
-                    int32_t *input = (int32_t*)frame->data[i];
-                    value = (float)input[j] / 0x7fffffff;
-                }
-                break;
-
-                default:
-				    printf("FileFFMPEGStream::append_index %d: unsupported audio format %d\n", 
-					    __LINE__,
-					    frame->format);
-				    break;
-            }
+            float value = data[j * channels2 + i];
             
             if(value > next_index_max[i] || next_index_size == 0)
             {
@@ -564,8 +543,8 @@ int FileFFMPEG::check_sig(File *file, const uint8_t *test_data)
 
 
 	ffmpeg_lock->lock("FileFFMPEG::check_sig");
-    avcodec_register_all();
-    av_register_all();
+//    avcodec_register_all();
+//    av_register_all();
 
 //printf("FileFFMPEG::check_sig %d\n", __LINE__);
 	AVFormatContext *ffmpeg_file_context = 0;
@@ -609,8 +588,8 @@ int FileFFMPEG::open_file(int rd, int wr)
 if(debug) printf("FileFFMPEG::open_file %d result=%d\n", __LINE__, result);
 
 	ffmpeg_lock->lock("FileFFMPEG::open_file");
-    avcodec_register_all();
-    av_register_all();
+//    avcodec_register_all();
+//    av_register_all();
 	ffmpeg_lock->unlock();
 if(debug) printf("FileFFMPEG::open_file %d result=%d\n", __LINE__, result);
 
@@ -719,17 +698,24 @@ int FileFFMPEG::open_ffmpeg()
 		for(int i = 0; i < ((AVFormatContext*)ffmpeg_file_context)->nb_streams; i++)
 		{
 			AVStream *ffmpeg_stream = ((AVFormatContext*)ffmpeg_file_context)->streams[i];
-       		AVCodecContext *decoder_context = ffmpeg_stream->codec;
-        	switch(decoder_context->codec_type) 
+//      		AVCodecContext *decoder_context = ffmpeg_stream->codec;
+        	enum AVMediaType type = ffmpeg_stream->codecpar->codec_type;
+//            switch(decoder_context->codec_type) 
+            switch(type) 
 			{
         		case AVMEDIA_TYPE_AUDIO:
 				{
 //printf("FileFFMPEG::open_ffmpeg %d i=%d CODEC_TYPE_AUDIO\n", __LINE__, i);
-if(debug) printf("FileFFMPEG::open_ffmpeg %d decoder_context->codec_id=%d\n", __LINE__, decoder_context->codec_id);
-					AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
+//if(debug) printf("FileFFMPEG::open_ffmpeg %d decoder_context->codec_id=%d\n", __LINE__, decoder_context->codec_id);
+					AVCodecContext *decoder_context = avcodec_alloc_context3(NULL);
+                    avcodec_parameters_to_context(decoder_context, ffmpeg_stream->codecpar);
+                    decoder_context->pkt_timebase = ffmpeg_stream->time_base;
+                    const AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
 					if(!codec)
 					{
-						printf("FileFFMPEG::open_ffmpeg: audio codec 0x%x not found.\n", 
+                        avcodec_free_context(&decoder_context);
+						printf("FileFFMPEG::open_ffmpeg %d: audio codec 0x%x not found.\n", 
+                            __LINE__,
 							decoder_context->codec_id);
 					}
 					else
@@ -738,6 +724,7 @@ if(debug) printf("FileFFMPEG::open_ffmpeg %d decoder_context->codec_id=%d\n", __
 						audio_streams.append(new_stream);
                         new_stream->is_audio = 1;
 						new_stream->ffmpeg_id = i;
+                        new_stream->decoder_context = decoder_context;
 						new_stream->channels = decoder_context->channels;
 
 
@@ -749,11 +736,13 @@ if(debug) printf("FileFFMPEG::open_ffmpeg %d decoder_context->codec_id=%d\n", __
 							0);
 						avformat_find_stream_info((AVFormatContext*)new_stream->ffmpeg_file_context, 0);
 						ffmpeg_stream = ((AVFormatContext*)new_stream->ffmpeg_file_context)->streams[i];
-						decoder_context = ffmpeg_stream->codec;
-						codec = avcodec_find_decoder(decoder_context->codec_id);
+//						decoder_context = ffmpeg_stream->codec;
+//						codec = avcodec_find_decoder(decoder_context->codec_id);
 
 						//avcodec_thread_init(decoder_context, file->cpus);
-						decoder_context->thread_count = file->cpus;
+                        decoder_context->codec_id = codec->id;
+                        decoder_context->thread_count = file->cpus;
+                        decoder_context->thread_type = FF_THREAD_SLICE;
 						avcodec_open2(decoder_context, codec, 0);
 
                         switch(decoder_context->codec_id)
@@ -773,7 +762,7 @@ if(debug) printf("FileFFMPEG::open_ffmpeg %d decoder_context->codec_id=%d\n", __
                         }
 
 						asset->channels += new_stream->channels;
-						asset->bits = 16;
+						asset->bits = BITSFLOAT;
 						asset->audio_data = 1;
 						asset->sample_rate = decoder_context->sample_rate;
 
@@ -784,83 +773,111 @@ if(debug) printf("FileFFMPEG::open_ffmpeg %d decoder_context->codec_id=%d\n", __
 							AV_TIME_BASE);
 if(debug) printf("FileFFMPEG::open_ffmpeg %d audio_length=%lld\n", __LINE__, (long long)audio_length);
 						asset->audio_length = MAX(asset->audio_length, audio_length);
-					}
+                    }
             		break;
 				}
 
         		case AVMEDIA_TYPE_VIDEO:
 //printf("FileFFMPEG::open_ffmpeg %d i=%d CODEC_TYPE_VIDEO\n", __LINE__, i);
-// only 1 video track supported
+// only 1 video track supported for ffmpeg
             		if(video_streams.size() == 0)
 					{
-						FileFFMPEGStream *new_stream = new FileFFMPEGStream;
-						video_streams.append(new_stream);
-						new_stream->ffmpeg_id = i;
-                        new_stream->is_video = 1;
+                        AVCodecContext *decoder_context = avcodec_alloc_context3(NULL);
+                        avcodec_parameters_to_context(decoder_context, ffmpeg_stream->codecpar);
+                        decoder_context->pkt_timebase = ffmpeg_stream->time_base;
+                        const AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
+// Append _cuvid to the name to use hardware decoding
+                        if(codec && MWindow::preferences->use_hardware_decoding)
+                        {
+                            char string[BCTEXTLEN];
+                            sprintf(string, "%s_cuvid", codec->name);
+                            const AVCodec *hw_codec = avcodec_find_decoder_by_name(string);
+                            if(hw_codec)
+                            {
+                                codec = hw_codec;
+                            }
+                        }
+
+					    if(!codec)
+					    {
+                            avcodec_free_context(&decoder_context);
+						    printf("FileFFMPEG::open_ffmpeg %d: video codec 0x%x not found.\n", 
+                                __LINE__,
+							    decoder_context->codec_id);
+					    }
+					    else
+					    {
+
+    						FileFFMPEGStream *new_stream = new FileFFMPEGStream;
+						    video_streams.append(new_stream);
+						    new_stream->ffmpeg_id = i;
+                            new_stream->is_video = 1;
+                            new_stream->decoder_context = decoder_context;
 
 
-						asset->video_data = 1;
-						asset->layers = 1;
+						    asset->video_data = 1;
+						    asset->layers = 1;
 
 // Open a new FFMPEG file for the stream
-						result = avformat_open_input(
-							(AVFormatContext**)&new_stream->ffmpeg_file_context, 
-							asset->path, 
-							0,
-							0);
+						    result = avformat_open_input(
+							    (AVFormatContext**)&new_stream->ffmpeg_file_context, 
+							    asset->path, 
+							    0,
+							    0);
 
 // initialize the codec
-						avformat_find_stream_info((AVFormatContext*)new_stream->ffmpeg_file_context, 0);
-						ffmpeg_stream = ((AVFormatContext*)new_stream->ffmpeg_file_context)->streams[i];
-						decoder_context = ffmpeg_stream->codec;
-						AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
+						    avformat_find_stream_info((AVFormatContext*)new_stream->ffmpeg_file_context, 0);
+						    ffmpeg_stream = ((AVFormatContext*)new_stream->ffmpeg_file_context)->streams[i];
+//						    decoder_context = ffmpeg_stream->codec;
 //							avcodec_thread_init(decoder_context, file->cpus);
-						decoder_context->thread_count = file->cpus;
-						avcodec_open2(decoder_context, codec, 0);
+    						decoder_context->thread_count = file->cpus;
+                            decoder_context->thread_type = FF_THREAD_SLICE;
+//                            decoder_context->flags2 = AV_CODEC_FLAG2_FAST;
+						    result = avcodec_open2(decoder_context, codec, 0);
 
-//printf("FileFFMPEG::open_ffmpeg %d codec_id=%d %d\n", 
-//__LINE__, decoder_context->codec_id, AV_CODEC_ID_VP8);
-                        switch(decoder_context->codec_id)
-                        {
-                            case AV_CODEC_ID_H264:
-                                strcpy (asset->vcodec, QUICKTIME_H264);
-                                break;
-                            case AV_CODEC_ID_H265:
-                                strcpy (asset->vcodec, QUICKTIME_H265);
-                                break;
-                            case AV_CODEC_ID_VP9:
-                                strcpy (asset->vcodec, QUICKTIME_VP9);
-                                break;
-							case AV_CODEC_ID_VP8:
-								strcpy (asset->vcodec, QUICKTIME_VP8);
-								break;
-                            default:
-                                asset->vcodec[0] = 0;
-                                break;
-                        }
-						asset->width = decoder_context->width;
-						asset->height = decoder_context->height;
-						if(EQUIV(asset->frame_rate, 0))
-							asset->frame_rate = 
-								(double)ffmpeg_stream->r_frame_rate.num /
-								(double)ffmpeg_stream->r_frame_rate.den;
-// 								(double)decoder_context->time_base.den / 
-// 								decoder_context->time_base.num;
-						asset->video_length = (int64_t)(((AVFormatContext*)new_stream->ffmpeg_file_context)->duration *
-							asset->frame_rate / 
-							AV_TIME_BASE);
-						asset->aspect_ratio = 
-							(double)decoder_context->sample_aspect_ratio.num / 
-							decoder_context->sample_aspect_ratio.den;
+printf("FileFFMPEG::open_ffmpeg %d cpus=%d result=%d codec=%s id=%d\n", 
+__LINE__, file->cpus, result, codec->name, decoder_context->codec_id);
+                            switch(decoder_context->codec_id)
+                            {
+                                case AV_CODEC_ID_H264:
+                                    strcpy (asset->vcodec, QUICKTIME_H264);
+                                    break;
+                                case AV_CODEC_ID_H265:
+                                    strcpy (asset->vcodec, QUICKTIME_H265);
+                                    break;
+                                case AV_CODEC_ID_VP9:
+                                    strcpy (asset->vcodec, QUICKTIME_VP9);
+                                    break;
+							    case AV_CODEC_ID_VP8:
+								    strcpy (asset->vcodec, QUICKTIME_VP8);
+								    break;
+                                default:
+                                    asset->vcodec[0] = 0;
+                                    break;
+                            }
+						    asset->width = decoder_context->width;
+						    asset->height = decoder_context->height;
+						    if(EQUIV(asset->frame_rate, 0))
+							    asset->frame_rate = 
+								    (double)ffmpeg_stream->r_frame_rate.num /
+								    (double)ffmpeg_stream->r_frame_rate.den;
+    // 								(double)decoder_context->time_base.den / 
+    // 								decoder_context->time_base.num;
+						    asset->video_length = (int64_t)(((AVFormatContext*)new_stream->ffmpeg_file_context)->duration *
+							    asset->frame_rate / 
+							    AV_TIME_BASE);
+						    asset->aspect_ratio = 
+							    (double)decoder_context->sample_aspect_ratio.num / 
+							    decoder_context->sample_aspect_ratio.den;
 if(debug) printf("FileFFMPEG::open_ffmpeg %d decoder_context->codec_id=%d\n", 
 __LINE__, 
 decoder_context->codec_id);
-
+                        }
 					}
             		break;
 
         		default:
-printf("FileFFMPEG::open_ffmpeg %d i=%d codec_type=%d\n", __LINE__, i, decoder_context->codec_type);
+printf("FileFFMPEG::open_ffmpeg %d i=%d codec_type=%d\n", __LINE__, i, type);
             		break;
         	}
 		}
@@ -1051,7 +1068,10 @@ int FileFFMPEG::create_toc(void *ptr)
                     max_samples = stream->total_samples;
                 }
                 int64_t chunks = READ_INT64(fd);
-                if(debug) printf("FileFFMPEG::create_toc %d reading total_samples=%ld chunks=%d\n", __LINE__, stream->total_samples, chunks);
+                if(debug) printf("FileFFMPEG::create_toc %d reading total_samples=%ld chunks=%d\n", 
+                    __LINE__, 
+                    (long)stream->total_samples, 
+                    (int)chunks);
                 stream->audio_offsets.allocate(chunks);
                 stream->audio_offsets.total = chunks;
                 if(fread(stream->audio_offsets.values, sizeof(int64_t), chunks, fd) < chunks)
@@ -1157,9 +1177,10 @@ int FileFFMPEG::create_toc(void *ptr)
         for(i = 0; i < ffmpeg->nb_streams; i++)
         {
             AVStream *ffmpeg_stream = ffmpeg->streams[i];
-            AVCodecContext *decoder_context = ffmpeg_stream->codec;
+//            AVCodecContext *decoder_context = ffmpeg_stream->codec;
+            enum AVMediaType type = ffmpeg_stream->codecpar->codec_type;
 
-            if(decoder_context->codec_type == AVMEDIA_TYPE_AUDIO)
+            if(type == AVMEDIA_TYPE_AUDIO)
             {
 //printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_AUDIO\n", __LINE__, i);
                 FileFFMPEGStream *dst = audio_streams.get(current_astream++);
@@ -1171,7 +1192,7 @@ int FileFFMPEG::create_toc(void *ptr)
                 stream_map.append(dst);
             }
             else
-            if(decoder_context->codec_type == AVMEDIA_TYPE_VIDEO)
+            if(type == AVMEDIA_TYPE_VIDEO)
             {
 //printf("FileFFMPEG::create_toc %d i=%i AVMEDIA_TYPE_VIDEO\n", __LINE__, i);
 // only 1 video track supported
@@ -1212,6 +1233,7 @@ int FileFFMPEG::create_toc(void *ptr)
         {
             AVPacket *packet = av_packet_alloc();
 // starting offset of the packet
+// offsets are aligned to whatever packet structure it is
             int64_t offset = avio_tell(ffmpeg->pb);
             int error = av_read_frame(ffmpeg, 
 				packet);
@@ -1282,18 +1304,79 @@ int FileFFMPEG::create_toc(void *ptr)
 // the FileFFMPEGStream instance of AVFormatContext
                         AVStream *ffmpeg_stream = 
                             ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
-                        AVCodecContext *decoder_context = ffmpeg_stream->codec;
+//                        AVCodecContext *decoder_context = ffmpeg_stream->codec;
 
-                        int got_frame = 0;
-                        int bytes_decoded = avcodec_decode_audio4(decoder_context, 
-					        ffmpeg_samples, 
-					        &got_frame,
-                            packet);
+//                        int got_frame = 0;
+//                        int bytes_decoded = avcodec_decode_audio4(decoder_context, 
+//					        ffmpeg_samples, 
+//					        &got_frame,
+//                            packet);
 
+                        AVCodecContext *decoder_context = (AVCodecContext*)stream->decoder_context;
+//printf("FileFFMPEG::create_toc %d decoder_context=%p\n", __LINE__, decoder_context);
+                        int result = avcodec_send_packet(decoder_context, packet);
+// store interleaved audio samples in a temporary
+                        const int MAX_SAMPLES = 4096;
+                        float temp_audio[MAX_SAMPLES * MAX_CHANNELS];
+                        int samples_decoded = 0;
+                        int channels = 0;
 
-                        if(got_frame)
+                        while(result >= 0)
                         {
-                            int samples_decoded = ffmpeg_samples->nb_samples;
+                            result = avcodec_receive_frame(decoder_context, 
+                                ffmpeg_samples);
+                            if(result >= 0)
+                            {
+// Store in temp buffer.  
+// Assume number of channels doesn't change in a single send_packet
+                                channels = ffmpeg_samples->channels;
+                                for(j = 0; j < ffmpeg_samples->nb_samples; j++)
+                                {
+                                    for(i = 0; i < channels; i++)
+                                    {
+                                        float value = 0;
+                                        switch(ffmpeg_samples->format)
+                                        {
+                                            case AV_SAMPLE_FMT_S16P:
+			                                {
+                                                int16_t *input = (int16_t*)ffmpeg_samples->data[i];
+                                                value = (float)input[j] / 32767;
+                                            }
+                                            break;
+
+                                            case AV_SAMPLE_FMT_FLTP:
+			                                {
+                                                float *input = (float*)ffmpeg_samples->data[i];
+                                                value = input[j];
+                                            }
+                                            break;
+
+                                            case AV_SAMPLE_FMT_S32P:
+                                            {
+                                                int32_t *input = (int32_t*)ffmpeg_samples->data[i];
+                                                value = (float)input[j] / 0x7fffffff;
+                                            }
+                                            break;
+
+                                            default:
+				                                printf("FileFFMPEGStream::append_index %d: unsupported audio format %d\n", 
+					                                __LINE__,
+					                                ffmpeg_samples->format);
+				                                break;
+                                        }
+
+                                        temp_audio[(samples_decoded + j) * channels + 
+                                            i] = value;
+                                    }
+                                }
+
+                                samples_decoded += ffmpeg_samples->nb_samples;
+                            }
+                        }
+
+                        if(samples_decoded > 0)
+                        {
+//                            int samples_decoded = ffmpeg_samples->nb_samples;
 //                             printf("FileFFMPEG::create_toc %d: audio offset=0x%lx size=%d samples=%d\n", 
 //                                 __LINE__,
 //                                 offset,
@@ -1306,8 +1389,10 @@ int FileFFMPEG::create_toc(void *ptr)
                             stream->next_frame_offset = -1;
 
 
-//printf("FileFFMPEG::create_toc %d\n", __LINE__);
-                            stream->append_index(ffmpeg_samples, 
+//printf("FileFFMPEG::create_toc %d samples_decoded=%d\n", __LINE__, samples_decoded);
+                            stream->append_index(temp_audio, 
+                                samples_decoded,
+                                channels,
                                 asset, 
                                 file->preferences);
 //printf("FileFFMPEG::create_toc %d\n", __LINE__);
@@ -1339,16 +1424,16 @@ int FileFFMPEG::create_toc(void *ptr)
                         
 // fudge for different codecs
                         int got_frame = 1;
-                        if(!strcmp(asset->vcodec, QUICKTIME_VP9))
-                        {
-// VP9 skips some.  0x84 doesn't denote this is a skipped frame, 
-// but a frame somewhere else is skipped for every 0x84 code & no more than 1
-// 0x84 occurs for every skipped frame.
-                            if(packet->data[0] == 0x84)
-                            {
-                                got_frame = 0;
-                            }
-                        }
+//                         if(!strcmp(asset->vcodec, QUICKTIME_VP9))
+//                         {
+// // VP9 skips some.  0x84 doesn't denote this is a skipped frame, 
+// // but a frame somewhere else is skipped for every 0x84 code & no more than 1
+// // 0x84 occurs for every skipped frame.
+//                             if(packet->data[0] == 0x84)
+//                             {
+//                                 got_frame = 0;
+//                             }
+//                         }
 // store a frame
                         if(got_frame)
                         {
@@ -1575,9 +1660,9 @@ int FileFFMPEG::read_index_state(FILE *fd, Indexable *dst)
         int channels = READ_INT32(fd);
         if(debug) printf("FileFFMPEG::read_index_state %d: index_zoom=%d index_size=%d channels=%d\n",
             __LINE__,
-            index_state->index_zoom,
-            index_size,
-            channels);
+            (int)index_state->index_zoom,
+            (int)index_size,
+            (int)channels);
 // store the offsets & sizes of the index tables
         for(j = 0; j < channels ; j++)
         {
@@ -1761,7 +1846,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 		stream,
 		stream->ffmpeg_file_context);
 	AVStream *ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
-	AVCodecContext *decoder_context = ffmpeg_stream->codec;
+	AVCodecContext *decoder_context = (AVCodecContext*)stream->decoder_context;
 
 
     if(debug) printf("FileFFMPEG::read_frame %d file->current_frame=%ld\n", __LINE__, file->current_frame);
@@ -1792,7 +1877,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 	        stream = video_streams.get(0);
 	        ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
-	        decoder_context = ffmpeg_stream->codec;
+	        decoder_context = (AVCodecContext*)stream->decoder_context;
         }
 
         AVStream *seek_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[get_seek_stream()];
@@ -1870,31 +1955,24 @@ int FileFFMPEG::read_frame(VFrame *frame)
             }
 
             int keyframe = stream->video_keyframes.get(i);
-//            avformat_close_input((AVFormatContext**)&stream->ffmpeg_file_context);
-// Open a new FFMPEG file for the stream
-//            avformat_open_input((AVFormatContext**)&stream->ffmpeg_file_context, 
-//                asset->path, 
-//                0,
-//                0);
+// kludge for ffmpeg 052022.  Read a frame before the keyframe.
+            if(keyframe > 0) keyframe--;
 
-// reinitialize the codec
-//			avformat_find_stream_info((AVFormatContext*)stream->ffmpeg_file_context, 0);
-//			ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
-//			decoder_context = ffmpeg_stream->codec;
-//			AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
-//			decoder_context->thread_count = file->cpus;
-//			avcodec_open2(decoder_context, codec, 0);
-
-
+// this doesn't do anything
+            avcodec_flush_buffers(decoder_context);
+// kludge for ffmpeg 052022.  trick it into resetting the countermeasures in matroska_resync
+            av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
+                stream->ffmpeg_id, 
+                0,
+                SEEK_SET);
             avio_seek(((AVFormatContext*)stream->ffmpeg_file_context)->pb, 
                 stream->video_offsets.get(keyframe), 
                 SEEK_SET);
 
-// this doesn't work
-            avcodec_flush_buffers(decoder_context);
-            if(debug) printf("FileFFMPEG::read_frame %d offset=0x%x keyframe=%d file->current_frame=%ld\n", 
+            if(debug) printf("FileFFMPEG::read_frame %d context=%p offset=%ld keyframe=%d file->current_frame=%ld\n", 
                 __LINE__, 
-                stream->video_offsets.get(keyframe),
+                stream->ffmpeg_file_context,
+                (long)stream->video_offsets.get(keyframe),
                 keyframe,
                 file->current_frame);
 
@@ -1935,39 +2013,52 @@ error);
 // 	}
 
 
-
-	while(stream->current_frame < file->current_frame && !error)
+    int total_keyframes = 0;
+	while(total_keyframes <= VIDEO_REWIND_KEYFRAMES &&
+        stream->current_frame < file->current_frame && 
+        !error)
 	{
 		got_frame = 0;
-if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%lld file->current_frame=%lld\n", 
-__LINE__,
-(long long)stream->current_frame,
-(long long)file->current_frame);
+        if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%ld file->current_frame=%ld\n", 
+            __LINE__,
+            (long)stream->current_frame,
+            (long)file->current_frame);
 
-		while(!got_frame && !error)
+		while(total_keyframes <= VIDEO_REWIND_KEYFRAMES &&
+            !got_frame && 
+            !error)
 		{
 			AVPacket *packet = av_packet_alloc();
 
 
 
-if(debug) printf("FileFFMPEG::read_frame %d ffmpeg_file_context=%p pb=%p ftell=%ld\n", 
-__LINE__, 
-stream->ffmpeg_file_context,
-((AVFormatContext*)stream->ffmpeg_file_context)->pb,
-avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
+            if(debug) printf("FileFFMPEG::read_frame %d ftell=%ld\n", 
+                __LINE__, 
+                avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
 		    error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
 			    packet);
 
+
+            if(debug) printf("FileFFMPEG::read_frame %d ftell=%ld error=%d\n", 
+                __LINE__, 
+                avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb),
+                error);
+
             if(error)
             {
-                printf("FileFFMPEG::read_frame %d error=0x%x stream->current_frame=%ld file->current_frame=%ld\n",
+                printf("FileFFMPEG::read_frame %d error=%c%c%c%c offset=%ld stream->current_frame=%ld file->current_frame=%ld\n",
     		        __LINE__,
-                    error,
+                    (-error) & 0xff,
+                    ((-error) >> 8) & 0xff,
+                    ((-error) >> 16) & 0xff,
+                    ((-error) >> 24) & 0xff,
+                    (long)avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb),
                     stream->current_frame,
                     file->current_frame);
 // give up & reopen the ffmpeg objects.
 // Still have frames buffered in the decoder, so reopen in the next seek.
-                need_restart = 1;
+// For ffmpeg 052022 this no longer works & it only recovers if it doesn't restart.
+//                need_restart = 1;
 
 //                 av_packet_free(&packet);
 //                 ffmpeg_lock->unlock();
@@ -1978,8 +2069,7 @@ avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
             }
             else
             {
-
-                av_packet_merge_side_data(packet);
+//                av_packet_merge_side_data(packet);
             }
 
 
@@ -2005,24 +2095,36 @@ avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
 // fclose(out);
 // }
 
-if(debug) printf("FileFFMPEG::read_frame %d decoder_context=%p ffmpeg_frame=%p\n", 
-__LINE__,
-decoder_context,
-ffmpeg_frame);
+// printf("FileFFMPEG::read_frame %d flags=%x\n", 
+// __LINE__,
+// packet->flags);
+                if((packet->flags & AV_PKT_FLAG_KEY))
+                    total_keyframes++;
 
-		        int result = avcodec_decode_video2(
-					decoder_context,
-                    input_frame, 
-					&got_picture,
-                    packet);
+                int result = avcodec_send_packet(decoder_context, packet);
+                if(result >= 0)
+                {
+                    result = avcodec_receive_frame(decoder_context, input_frame);
+                    if(result >= 0)
+                        got_picture = 1;
+                }
 
+// 		        int result = avcodec_decode_video2(
+// 					decoder_context,
+//                     input_frame, 
+// 					&got_picture,
+//                     packet);
 
-if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%ld result=%d got_picture=%d ptr=%p\n", 
-__LINE__, 
-stream->current_frame,
-result,
-got_picture,
-((AVFrame*)ffmpeg_frame)->data[0]);
+//                 if(result < 0)
+//                     printf("FileFFMPEG::read_frame %d result=%c%c%c%c stream->current_frame=%ld got_picture=%d ptr=%p\n", 
+//                         __LINE__, 
+//                         (-result) & 0xff,
+//                         ((-result) >> 8) & 0xff,
+//                         ((-result) >> 16) & 0xff,
+//                         ((-result) >> 24) & 0xff,
+//                         stream->current_frame,
+//                         got_picture,
+//                         ((AVFrame*)ffmpeg_frame)->data[0]);
 // check multiple ways it could glitch
 				if(input_frame->data[0] && 
                     got_picture /* &&
@@ -2031,13 +2133,13 @@ got_picture,
 // After seeking, the decoder sometimes rewinds which is shown by a 
 // rewinding PTS, but sometimes it rewinds the PTS without rewinding 
 // the decoder
-                    if(last_pts > 0 && input_frame->pts <= last_pts)
-                    {
-                        printf("FileFFMPEG::read_frame %d current pts=%ld last_pts=%ld\n",
-                            __LINE__,
-                            input_frame->pts, 
-                            last_pts);
-                    }
+//                     if(last_pts > 0 && input_frame->pts <= last_pts)
+//                     {
+//                         printf("FileFFMPEG::read_frame %d current pts=%ld last_pts=%ld\n",
+//                             __LINE__,
+//                             input_frame->pts, 
+//                             last_pts);
+//                     }
                     got_frame = 1;
                     last_pts = input_frame->pts;
                 }
@@ -2059,13 +2161,22 @@ got_picture,
             if(error)
             {
 // at the end of the file, we still have frames buffered in the decoder
+                AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
                 int got_picture = 0;
-                int result = avcodec_decode_video2(
-					decoder_context,
-                    (AVFrame*)ffmpeg_frame, 
-					&got_picture,
-                    packet);
-				if(((AVFrame*)ffmpeg_frame)->data[0] && got_picture) 
+                int result = avcodec_send_packet(decoder_context, packet);
+                if(result >= 0)
+                {
+                    result = avcodec_receive_frame(decoder_context, input_frame);
+                    if(result >= 0)
+                        got_picture = 1;
+                }
+
+//                 int result = avcodec_decode_video2(
+// 					decoder_context,
+//                     input_frame, 
+// 					&got_picture,
+//                     packet);
+				if(input_frame->data[0] && got_picture) 
                 {
                     got_frame = 1;
                     error = 0;
@@ -2144,9 +2255,22 @@ got_picture,
 			case AV_PIX_FMT_YUV410P:
 				input_cmodel = BC_YUV9P;
 				break;
+            
+            case AV_PIX_FMT_NV12:
+				input_cmodel = BC_NV12;
+//                 printf("FileFFMPEG::read_frame %d: AV_PIX_FMT_NV12 -> %d\n", 
+//                     __LINE__,
+//                     frame->get_color_model());
+                break;
+
+//             case AV_PIX_FMT_NV21:
+// 				input_cmodel = BC_NV21;
+//                 printf("FileFFMPEG::read_frame %d: AV_PIX_FMT_NV21\n", __LINE__);
+//                 break;
+
 			default:
 				fprintf(stderr, 
-					"quicktime_ffmpeg_decode: unrecognized color model %d\n", 
+					"FileFFMPEG::read_frame: unrecognized color model %d\n", 
 					decoder_context->pix_fmt);
 				input_cmodel = BC_YUV420P;
 				break;
@@ -2167,7 +2291,8 @@ got_picture,
 				cmodel_calculate_pixelsize(input_cmodel);
 		}
 
-
+// use the quicktime cmodel function to share the nvidia 
+// conversions with qtffmpeg
 		cmodel_transfer(frame->get_rows(), /* Leave NULL if non existent */
 			input_rows,
 			frame->get_y(), /* Leave NULL if non existent */
@@ -2224,7 +2349,7 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 //	if(debug) printf("FileFFMPEG::read_samples %d\n", __LINE__);
 
 	AVStream *ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
-	AVCodecContext *decoder_context = ffmpeg_stream->codec;
+	AVCodecContext *decoder_context = (AVCodecContext*)stream->decoder_context;
 
 //	stream->update_pcm_history(file->current_sample);
 	if(debug) printf("FileFFMPEG::read_samples %d len=%d\n", __LINE__, (int)len);
@@ -2305,15 +2430,20 @@ stream->history_start + stream->history_size);
                 sample_counter = stream->total_samples;
             }
 
-if(debug) printf("FileFFMPEG::read_samples %d: chunk=%d sample=%ld offset=%p\n",
+if(debug) printf("FileFFMPEG::read_samples %d: chunk=%d sample=%ld offset=0x%lx\n",
 __LINE__,
 chunk,
 file->current_sample,
-stream->audio_offsets.get(chunk));
+(long)stream->audio_offsets.get(chunk));
 
+// trick it into resetting the countermeasures in matroska_resync
+            av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
+                stream->ffmpeg_id, 
+                0,
+                SEEK_SET);
             avio_seek(((AVFormatContext*)stream->ffmpeg_file_context)->pb, 
-                    stream->audio_offsets.get(chunk), 
-                    SEEK_SET);
+                stream->audio_offsets.get(chunk), 
+                SEEK_SET);
 // set the true sample we're on
             stream->update_pcm_history(sample_counter);
         }
@@ -2376,26 +2506,33 @@ stream->audio_offsets.get(chunk));
 
 		if(packet->stream_index == stream->ffmpeg_id)
 		{
-			while(packet_len > 0 && !error)
-			{
+//			while(packet_len > 0 && !error)
+//			{
 //				int data_size = MPA_MAX_CODED_FRAME_SIZE;
-				int got_frame;
+				int got_frame = 0;
                 AVFrame *ffmpeg_samples = av_frame_alloc();
 
-
-				int bytes_decoded = avcodec_decode_audio4(decoder_context, 
-					ffmpeg_samples, 
-					&got_frame,
-                    packet);
+                int result = avcodec_send_packet(decoder_context, packet);
+				if(!result)
+                {
+                    result = avcodec_receive_frame(decoder_context, ffmpeg_samples);
+                    if(!result)
+                        got_frame = 1;
+                }
+//                 int bytes_decoded = avcodec_decode_audio4(decoder_context, 
+// 					ffmpeg_samples, 
+// 					&got_frame,
+//                     packet);
 // printf("FileFFMPEG::read_samples %d bytes_decoded=%d\n", 
 // __LINE__, 
 // bytes_decoded);
 
 
 //				if(bytes_decoded < 0) error = 1;
-				if(bytes_decoded == -1) error = 1;
-				packet_ptr += bytes_decoded;
-				packet_len -= bytes_decoded;
+//				if(bytes_decoded == -1) error = 1;
+				if(result != 0) error = 1;
+//				packet_ptr += bytes_decoded;
+//				packet_len -= bytes_decoded;
 				if(!got_frame)
                 {
                     av_frame_free(&ffmpeg_samples);
@@ -2423,7 +2560,7 @@ stream->audio_offsets.get(chunk));
 // fwrite(ffmpeg_samples, data_size, 1, fd);
 
 				av_frame_free(&ffmpeg_samples);
-			}
+//			}
 		}
 		if(debug) PRINT_TRACE
 		

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ class PlaybackHead;
 class PlaybackHeadCount;
 class PlaybackHost;
 class PlaybackInterpolateRaw;
+class PlaybackHWDecode;
 class PlaybackModuleFragment;
 class PlaybackNearest;
 class PlaybackOutBits;
@@ -82,6 +83,7 @@ public:
 //	PlaybackLanczos *lanczos;
 	PlaybackDeblock *mpeg4_deblock;
 	PlaybackInterpolateRaw *interpolate_raw;
+	PlaybackHWDecode *hw_decode;
 //	PlaybackWhiteBalanceRaw *white_balance_raw;
 //	VideoAsynchronous *asynchronous;
 
@@ -252,6 +254,18 @@ class PlaybackInterpolateRaw : public BC_CheckBox
 {
 public:
 	PlaybackInterpolateRaw(int x, 
+		int y, 
+		PreferencesWindow *pwindow, 
+		PlaybackPrefs *playback);
+	int handle_event();
+	PreferencesWindow *pwindow;
+	PlaybackPrefs *playback;
+};
+
+class PlaybackHWDecode : public BC_CheckBox
+{
+public:
+	PlaybackHWDecode(int x, 
 		int y, 
 		PreferencesWindow *pwindow, 
 		PlaybackPrefs *playback);

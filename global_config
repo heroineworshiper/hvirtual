@@ -9,22 +9,6 @@ OBJDIR := $(shell uname --machine)
 
 PLUGIN_DIR := ../../bin/
 
-HVIRTUAL_CONFIG := $(shell sh -c '\
-if [ -e ../hvirtual_config.h ] ; then \
-cat ../hvirtual_config.h; else \
-if [ -e ../../hvirtual_config.h ] ; then \
-cat ../../hvirtual_config.h; \
-fi; \
-fi')
-
-ifneq (,$(findstring HAVE_GL,$(HVIRTUAL_CONFIG)))
-HAVE_GL := y
-else
-HAVE_GL := n
-endif
-
-
-
 
 ifeq ($(origin CFLAGS), environment)
 HAVE_CFLAGS := y

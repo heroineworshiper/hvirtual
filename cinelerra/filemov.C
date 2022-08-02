@@ -30,7 +30,8 @@
 #include "guicast.h"
 #include "language.h"
 #include "mutex.h"
-#include "mwindow.inc"
+#include "mwindow.h"
+#include "preferences.h"
 #include "vframe.h"
 #include "videodevice.inc"
 
@@ -250,6 +251,7 @@ int FileMOV::open_file(int rd, int wr)
 	}
 
 	quicktime_set_cpus(fd, file->cpus);
+    quicktime_set_hw(fd, MWindow::preferences->use_hardware_decoding);
 	quicktime_set_cache_max(fd, file->cache_size);
 //printf("FileMOV::open_file %d %d\n", __LINE__, file->cache_size);
 

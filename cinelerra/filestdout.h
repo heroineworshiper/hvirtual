@@ -180,6 +180,14 @@ public:
     int dither;
 };
 
+
+class ConfirmPreset : public BC_Window
+{
+public:
+	ConfirmPreset(StdoutBaseConfig *gui);
+	void create_objects(const char *text);
+};
+
 class StdoutBaseConfig : public BC_Window
 {
 public:

@@ -1,16 +1,39 @@
+/*
+ * Quicktime 4 Linux
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ */
+
 #include "avcodec.h"
 #include "colormodels.h"
 #include "funcprotos.h"
+
 #include "quicktime.h"
-#include <string.h>
 #include "wma.h"
+#include "qtffmpeg.h"
+#include <pthread.h>
+#include <string.h>
 
 /* McRowesoft media player audio */
 /* WMA derivatives */
 
 typedef struct
 {
-// Sample output
+// Interleaved sample output
 	float *work_buffer;
 // Number of first sample in output relative to file
 	int64_t output_position;
@@ -26,7 +49,7 @@ typedef struct
 
 
 	int ffmpeg_id;
-    AVCodec *decoder;
+    const AVCodec *decoder;
 	AVCodecContext *decoder_context;
 	int decode_initialized;
 } quicktime_wma_codec_t;
@@ -70,7 +93,7 @@ static int init_decode(quicktime_audio_map_t *track_map,
 		{
 			ffmpeg_initialized = 1;
 //			avcodec_init();
-			avcodec_register_all();
+//			avcodec_register_all();
 		}
 
 		codec->decoder = avcodec_find_decoder(codec->ffmpeg_id);
@@ -196,49 +219,63 @@ static int decode(quicktime_t *file,
 		packet->data = codec->packet_buffer;
 		packet->size = chunk_size;
 		int got_frame = 0;
-		result = avcodec_decode_audio4(codec->decoder_context, 
-			frame, 
-            &got_frame,
-            packet);
+// 		result = avcodec_decode_audio4(codec->decoder_context, 
+// 			frame, 
+//             &got_frame,
+//             packet);
+        result = avcodec_send_packet(codec->decoder_context, packet);
 		av_packet_free(&packet);
 
-		if(got_frame)
-		{
-			bytes_decoded = frame->nb_samples * sample_size;
-		}
-		else
-		{
-			bytes_decoded = 0;
-		}
-		
-// transfer from frame to work buffer
-		quicktime_ffmpeg_get_audio(frame, 
-			codec->work_buffer + 
-				(current_position - codec->output_position) * track_map->channels);
 
-		
-		
-		av_frame_free(&frame);
-		pthread_mutex_unlock(&ffmpeg_lock);
-		
-		
-		
-		if(bytes_decoded <= 0)
-		{
-			try++;
-		}
-		else
-		{
-			if(codec->output_size * sample_size + bytes_decoded > codec->output_allocated * sample_size)
-			{
-				printf("decode: FYI: bytes_decoded=%ld is greater than output_allocated=%ld\n",
-					codec->output_size * sample_size + bytes_decoded,
-					codec->output_allocated);
-			}
-			codec->output_size += bytes_decoded / sample_size;
-			try = 0;
-		}
-		codec->chunk++;
+        while(result >= 0)
+        {
+            result = avcodec_receive_frame(codec->decoder_context, frame);
+
+// 		    if(got_frame)
+// 		    {
+// 			    bytes_decoded = frame->nb_samples * sample_size;
+// 		    }
+// 		    else
+// 		    {
+// 			    bytes_decoded = 0;
+// 		    }
+
+            if(result == 0)
+            {
+// transfer from frame to work buffer
+		        int samples = quicktime_ffmpeg_get_audio(frame, 
+    			    codec->work_buffer + 
+	    			    (current_position - codec->output_position) * track_map->channels);
+
+
+
+		        av_frame_free(&frame);
+		        pthread_mutex_unlock(&ffmpeg_lock);
+
+
+
+		        if(samples <= 0)
+		        {
+			        try++;
+		        }
+		        else
+		        {
+			        if(codec->output_size * sample_size + samples * sample_size > codec->output_allocated * sample_size)
+			        {
+				        printf("decode: FYI: bytes_decoded=%ld is greater than output_allocated=%ld\n",
+					        codec->output_size * sample_size + bytes_decoded,
+					        codec->output_allocated);
+			        }
+			        codec->output_size += samples;
+			        try = 0;
+		        }
+            }
+            else
+            {
+		        try++;
+            }
+        }
+	    codec->chunk++;
 	}
 
 //printf("decode 15 %d %lld %d\n", try, codec->output_position, codec->output_size);
@@ -278,7 +315,7 @@ static int decode(quicktime_t *file,
 	{
 		int sample_diff = codec->output_size - OUTPUT_ALLOCATION;
 		int byte_diff = sample_diff * sample_size;
-		memcpy(codec->work_buffer,
+		memmove(codec->work_buffer,
 			codec->work_buffer + byte_diff,
 			OUTPUT_ALLOCATION * sample_size);
 		codec->output_size -= sample_diff;

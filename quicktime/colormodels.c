@@ -417,6 +417,7 @@ void cmodel_transfer(unsigned char **output_rows,
 			cmodel_float(PERMUTATION_VALUES);
 			break;
 
+        case BC_NV12:
 		case BC_YUV420P:
 		case BC_YUV422P:
 			cmodel_yuv420p(PERMUTATION_VALUES);
@@ -425,6 +426,9 @@ void cmodel_transfer(unsigned char **output_rows,
 		case BC_YUV9P:
 			cmodel_yuv9p(PERMUTATION_VALUES);
 			break;
+        
+            cmodel_nv12(PERMUTATION_VALUES);
+            break;
 
 		case BC_YUV444P:
 			cmodel_yuv444p(PERMUTATION_VALUES);

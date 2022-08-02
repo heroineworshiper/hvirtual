@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -122,7 +122,7 @@ int FileAC3::open_file(int rd, int wr)
 	if(wr)
 	{
 //  		avcodec_init();
-		avcodec_register_all();
+//		avcodec_register_all();
 		codec = avcodec_find_encoder(AV_CODEC_ID_AC3);
 		if(!codec)
 		{
@@ -250,10 +250,6 @@ int FileAC3::write_samples(double **buffer, int64_t len)
 		current_sample + frame_size <= temp_raw_size; 
 		current_sample += frame_size)
 	{
-		AVPacket packet;
-		packet.data = temp_compressed + output_size;
-		packet.size = compressed_allocated - output_size;
-		int got_packet = 0;
 		AVFrame *frame = av_frame_alloc();
 		frame->format = AV_SAMPLE_FMT_S16;
 		frame->nb_samples = frame_size;
@@ -267,11 +263,14 @@ int FileAC3::write_samples(double **buffer, int64_t len)
 			}
 		}
 		
-		avcodec_encode_audio2(((AVCodecContext*)codec_context), 
-			&packet,
-        	frame, 
-			&got_packet);
-		
+        
+        int result = avcodec_send_frame((AVCodecContext*)codec_context, frame);
+        
+// 		avcodec_encode_audio2(((AVCodecContext*)codec_context), 
+// 			&packet,
+//         	frame, 
+// 			&got_packet);
+
 
 // 		avcodec_encode_audio(
 // 			((AVCodecContext*)codec_context), 
@@ -279,12 +278,30 @@ int FileAC3::write_samples(double **buffer, int64_t len)
 // 			compressed_allocated - output_size, 
 //             temp_raw + current_sample * asset->channels);
 
+
 		for(int i = 0; i < asset->channels; i++)
 		{
 			delete [] frame->data[i];
 		}
 		av_frame_free(&frame);
-		output_size += packet.size;
+
+
+		AVPacket *packet = av_packet_alloc();
+        while(result >= 0)
+        {
+            result = avcodec_receive_packet((AVCodecContext*)codec_context, packet);
+            if(result >= 0)
+            {
+                memcpy(temp_compressed + output_size, packet->data, packet->size);
+                output_size += packet->size;
+                av_packet_unref(packet);
+            }
+//		packet.data = temp_compressed + output_size;
+//		packet.size = compressed_allocated - output_size;
+//		int got_packet = 0;
+//		output_size += packet.size;
+        }
+        av_packet_free(&packet);
 	}
 
 // Shift buffer back

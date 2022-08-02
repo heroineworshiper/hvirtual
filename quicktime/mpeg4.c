@@ -1,7 +1,28 @@
+/*
+ * Quicktime 4 Linux
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ */
+
+
 /* General codec for all MPEG-4 derived encoding. */
 /* Uses ffmpeg and encore50. */
 /* Encore50 still seemed to provide better results than ffmpeg for encoding */
-/* so it does all the generic MPEG-4 encoding. */
+/* so it does all the legacy MPEG-4 encoding. */
 
 
 
@@ -16,6 +37,7 @@
 #include ENCORE_INCLUDE
 //#include DECORE_INCLUDE
 
+#include <pthread.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -48,7 +70,7 @@ typedef struct
 	int use_encore;
 
 // FFMpeg internals
-    AVCodec *encoder[FIELDS];
+    const AVCodec *encoder[FIELDS];
 	AVCodecContext *encoder_context[FIELDS];
     AVFrame picture[FIELDS];
 	
@@ -545,6 +567,7 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 
 	if(!codec->decoder) codec->decoder = quicktime_new_ffmpeg(
 		file->cpus,
+        file->use_hw,
 		codec->total_fields,
 		codec->ffmpeg_id,
 		width,
@@ -562,28 +585,58 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 }
 
 
-static int encode_video2(AVCodecContext *avctx, uint8_t *buf, int buf_size,
-                                             const AVFrame *pict)
+static int encode_video2(AVCodecContext *avctx, 
+    uint8_t *buf, 
+    int buf_size,
+    const AVFrame *pict,
+    int *is_keyframe)
 {       
 	AVPacket *pkt = av_packet_alloc();
-	pkt->data = buf;
-	pkt->size = buf_size;
+    int size = 0;
+    *is_keyframe = 0;
+//	pkt->data = buf;
+//	pkt->size = buf_size;
 
-	int got_packet = 0;
-	int ret = avcodec_encode_video2(avctx, pkt, pict, &got_packet);
-	if (!ret && got_packet && avctx->coded_frame) {
-		avctx->coded_frame->pts = pkt->pts;
-		avctx->coded_frame->key_frame = !!(pkt->flags & AV_PKT_FLAG_KEY);
-	}
+//	int got_packet = 0;
+//	int ret = avcodec_encode_video2(avctx, pkt, pict, &got_packet);
+    int ret = avcodec_send_frame(avctx, pict);
+    
+    while(ret >= 0)
+    {
+        ret = avcodec_receive_packet(avctx, pkt);
+        if(ret < 0 || ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+        {
+            ret = 0;
+            break;
+        }
 
-	if( pkt->side_data_elems > 0 ) {
-		int i = pkt->side_data_elems;
-		while( --i >= 0 ) av_free(pkt->side_data[i].data);
-		av_freep(&pkt->side_data);
-		pkt->side_data_elems = 0;
-	}
-	
-	int size = pkt->size;
+// or the keyframe flag from every packet
+        if((pkt->flags & AV_PKT_FLAG_KEY))
+            *is_keyframe = 1;
+        int fragment = pkt->size;
+        if(size + fragment > buf_size)
+        {
+            fragment = buf_size - size;
+        }
+        memcpy(buf + size, pkt->data, fragment);
+        size += fragment;
+        av_packet_unref(pkt);
+    }
+
+//	if (!ret && got_packet && avctx->coded_frame) {
+//		avctx->coded_frame->pts = pkt->pts;
+//		avctx->coded_frame->key_frame = !!(pkt->flags & AV_PKT_FLAG_KEY);
+//	}
+
+//	if( pkt->side_data_elems > 0 ) {
+//		int i = pkt->side_data_elems;
+//		while( --i >= 0 ) av_free(pkt->side_data[i].data);
+//		av_freep(&pkt->side_data);
+//		pkt->side_data_elems = 0;
+//	}
+
+//	int size = pkt->size;
+
 	av_packet_free(&pkt);
 
 	return ret ? ret : size;
@@ -658,10 +711,10 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 			if(!ffmpeg_initialized)
 			{
 				ffmpeg_initialized = 1;
-				avcodec_register_all();
+//				avcodec_register_all();
 			}
 
-			AVCodec *av_codec = avcodec_find_encoder(codec->ffmpeg_id);
+			const AVCodec *av_codec = avcodec_find_encoder(codec->ffmpeg_id);
 			codec->encoder[current_field] = av_codec;
 
 			if(!codec->encoder[current_field])
@@ -735,34 +788,35 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 //			context->rc_buffer_aggressivity = 1.0;
         	context->level= FF_LEVEL_UNKNOWN;
 //			context->flags |= CODEC_FLAG_H263P_UMV;
-			context->flags |= CODEC_FLAG_AC_PRED;
-			context->flags |= CODEC_FLAG_4MV;
+//			context->flags |= CODEC_FLAG_AC_PRED;
+//			context->flags |= CODEC_FLAG_4MV;
 // Not compatible with Win
 //			context->flags |= CODEC_FLAG_QPEL;
 
-			if( codec->ffmpeg_id == AV_CODEC_ID_MPEG4 ||
-			    codec->ffmpeg_id == AV_CODEC_ID_H263 ||
-			    codec->ffmpeg_id == AV_CODEC_ID_H263P ||
-			    codec->ffmpeg_id == AV_CODEC_ID_FLV1 )
-				context->flags |= CODEC_FLAG_4MV;
+//			if( codec->ffmpeg_id == AV_CODEC_ID_MPEG4 ||
+//			    codec->ffmpeg_id == AV_CODEC_ID_H263 ||
+//			    codec->ffmpeg_id == AV_CODEC_ID_H263P ||
+//			    codec->ffmpeg_id == AV_CODEC_ID_FLV1 )
+//				context->flags |= CODEC_FLAG_4MV;
 
-			if( codec->ffmpeg_id == AV_CODEC_ID_MPEG4)
-				context->flags |= CODEC_FLAG_QPEL;
+//			if( codec->ffmpeg_id == AV_CODEC_ID_MPEG4)
+//				context->flags |= CODEC_FLAG_QPEL;
 
 			if(file->cpus > 1)
 			{
 //				avcodec_thread_init(context, file->cpus);
 				context->thread_count = file->cpus;
+                context->thread_type = FF_THREAD_SLICE;
 			}
 
-			if(!codec->fix_bitrate)
-				context->flags |= CODEC_FLAG_QSCALE;
+//			if(!codec->fix_bitrate)
+//				context->flags |= CODEC_FLAG_QSCALE;
 
-			if(codec->interlaced)
-			{
-				context->flags |= CODEC_FLAG_INTERLACED_DCT;
-				context->flags |= CODEC_FLAG_INTERLACED_ME;
-			}
+//			if(codec->interlaced)
+//			{
+//				context->flags |= CODEC_FLAG_INTERLACED_DCT;
+//				context->flags |= CODEC_FLAG_INTERLACED_ME;
+//			}
 
 
 /*
@@ -923,8 +977,12 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 		picture->quality = 0;
 		picture->pts = vtrack->current_position * quicktime_frame_rate_d(file, track);
 		picture->key_frame = 0;
-		bytes = encode_video2(context, codec->work_buffer, codec->buffer_size, picture);
-		is_keyframe = context->coded_frame && context->coded_frame->key_frame;
+		bytes = encode_video2(context, 
+            codec->work_buffer, 
+            codec->buffer_size, 
+            picture,
+            &is_keyframe);
+//		is_keyframe = context->coded_frame && context->coded_frame->key_frame;
 /*
  * printf("encode current_position=%d is_keyframe=%d\n", 
  * vtrack->current_position,

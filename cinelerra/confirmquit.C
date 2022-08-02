@@ -45,7 +45,8 @@ ConfirmQuitWindow::~ConfirmQuitWindow()
 
 void ConfirmQuitWindow::create_objects(char *string)
 {
-	int x = DP(10), y = DP(10);
+    int margin = MWindow::theme->widget_border;
+	int x = margin, y = margin;
 	BC_Title *title;
 
 	lock_window("ConfirmQuitWindow::create_objects");

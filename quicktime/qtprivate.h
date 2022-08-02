@@ -782,6 +782,9 @@ typedef struct
 /* Number of processors at our disposal */
 	int cpus;
 
+/* Use hardware when possible */
+    int use_hw;
+
 /* Parameters for frame currently being decoded */
 	int do_scaling;
 	int in_x, in_y, in_w, in_h, out_w, out_h;

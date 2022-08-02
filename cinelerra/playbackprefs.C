@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -219,6 +219,13 @@ SET_TRACE
 		pwindow,
 		this));
 	y += interpolate_raw->get_h() + margin;
+
+	add_subwindow(hw_decode = new PlaybackHWDecode(
+		x, 
+		y,
+		pwindow,
+		this));
+	y += hw_decode->get_h() + margin;
 
 // 	add_subwindow(white_balance_raw = new PlaybackWhiteBalanceRaw(
 // 		x, 
@@ -480,7 +487,7 @@ PlaybackInterpolateRaw::PlaybackInterpolateRaw(
  : BC_CheckBox(x, 
  	y, 
 	pwindow->thread->edl->session->interpolate_raw, 
-	_("Interpolate CR2 images"))
+	_("Interpolate CR2 images (restart required)"))
 {
 	this->pwindow = pwindow;
 	this->playback = playback;
@@ -502,6 +509,28 @@ int PlaybackInterpolateRaw::handle_event()
 	return 1;
 }
 
+
+
+
+PlaybackHWDecode::PlaybackHWDecode(
+	int x, 
+	int y, 
+	PreferencesWindow *pwindow, 
+	PlaybackPrefs *playback)
+ : BC_CheckBox(x, 
+ 	y, 
+	pwindow->thread->preferences->use_hardware_decoding, 
+	_("Decode in hardware (restart required)"))
+{
+	this->pwindow = pwindow;
+	this->playback = playback;
+}
+
+int PlaybackHWDecode::handle_event()
+{
+	pwindow->thread->preferences->use_hardware_decoding = get_value();
+	return 1;
+}
 
 
 

@@ -2543,6 +2543,14 @@ static inline void transfer_YUVA16161616_to_YUV422(unsigned char *(*output),
 		for(j = 0; j < out_w; j++) \
 		{
 
+#define TRANSFER_NV12_IN_HEAD \
+    for(i = 0; i < out_h; i++) \
+    { \
+        unsigned char *output_row = output_rows[i + out_y] + out_x * out_pixelsize; \
+        unsigned char *input_y = in_y_plane + row_table[i] * total_in_w; \
+        unsigned char *input_uv = in_u_plane + (row_table[i] / 2) * total_in_w; \
+        for(j = 0; j < out_w; j++) \
+        {
 
 
 

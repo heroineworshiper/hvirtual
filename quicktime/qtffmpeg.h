@@ -1,3 +1,24 @@
+/*
+ * Quicktime 4 Linux
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ */
+
+
 #ifndef QTFFMPEG_H
 #define QTFFMPEG_H
 
@@ -31,7 +52,7 @@ typedef struct
 
 
 // Decoding
-    AVCodec *decoder[FIELDS];
+    const AVCodec *decoder[FIELDS];
 	AVCodecContext *decoder_context[FIELDS];
     AVFrame *picture[FIELDS];
 
@@ -64,7 +85,11 @@ extern pthread_mutex_t ffmpeg_lock;
 
 
 quicktime_ffmpeg_t *quicktime_new_ffmpeg(int cpus,
-	int fields,int ffmpeg_id, int w,int h,
+    int use_hw,
+	int fields,
+    int ffmpeg_id, 
+    int w,
+    int h,
 	quicktime_stsd_table_t *stsd_table); // FFmpeg needs this for the header
 void quicktime_delete_ffmpeg(quicktime_ffmpeg_t *ptr);
 int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
@@ -73,6 +98,7 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 int quicktime_decode_audio3(
 		AVCodecContext *avctx, int16_t *samples,
 		int *frame_size_ptr, AVPacket *avpkt);
+int quicktime_ffmpeg_get_audio(AVFrame *frame, float *dst);
 
 
 #endif
