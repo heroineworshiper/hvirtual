@@ -1,4 +1,4 @@
-# use whichever global_config exists
+# use whichever global_config exists so this can be compiled standalone
 ifneq ("","$(wildcard ../global_config)")
 	include ../global_config
 else

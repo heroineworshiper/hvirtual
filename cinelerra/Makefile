@@ -1,4 +1,3 @@
-include ../hvirtual_config
 include ../global_config
 
 AVC_DIR := $(shell expr ../thirdparty/libavc1394* )

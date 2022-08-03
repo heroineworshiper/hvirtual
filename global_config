@@ -1,3 +1,16 @@
+ifneq ("","$(wildcard hvirtual_config)")
+include hvirtual_config
+else
+    ifneq ("","$(wildcard ../hvirtual_config)")
+    include ../hvirtual_config
+    else
+        ifneq ("","$(wildcard ../../hvirtual_config)")
+        include ../../hvirtual_config
+        endif
+    endif
+endif
+
+
 HAVE_ALSA := y
 HAVE_XFT := y
 HAVE_ESOUND := y

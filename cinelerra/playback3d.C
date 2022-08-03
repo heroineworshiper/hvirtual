@@ -1059,7 +1059,7 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 
 		canvas->update_video_cursor();
 
-//printf("Playback3D::overlay_sync %d frame=%p\n", __LINE__, command->frame);
+//printf("Playback3D::overlay_sync %d canvas=%p frame=%p\n", __LINE__, canvas, command->frame);
 // Always render to PBuffer with alpha channel
 //		if(!command->video_on)
 //		{

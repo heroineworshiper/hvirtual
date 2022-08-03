@@ -572,12 +572,9 @@ void BC_CModels::to_text(char *string, int cmodel)
         case BC_YUV444P: strcpy(string, "YUV444 Planar");   break;
 		case BC_RGB888:       strcpy(string, "RGB-8 Bit");   break;
 		case BC_RGBA8888:     strcpy(string, "RGBA-8 Bit");  break;
-		case BC_RGB161616:    strcpy(string, "RGB-16 Bit");  break;
-		case BC_RGBA16161616: strcpy(string, "RGBA-16 Bit"); break;
+		case BC_BGR8888:       strcpy(string, "BGRX-8 Bit");   break;
 		case BC_YUV888:       strcpy(string, "YUV-8 Bit");   break;
 		case BC_YUVA8888:     strcpy(string, "YUVA-8 Bit");  break;
-		case BC_YUV161616:    strcpy(string, "YUV-16 Bit");  break;
-		case BC_YUVA16161616: strcpy(string, "YUVA-16 Bit"); break;
 		case BC_RGB_FLOAT:    strcpy(string, "RGB-FLOAT");   break;
 		case BC_RGBA_FLOAT:   strcpy(string, "RGBA-FLOAT");  break;
 		default: strcpy(string, "RGB-8 Bit"); break;

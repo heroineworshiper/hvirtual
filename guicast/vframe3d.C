@@ -274,6 +274,7 @@ printf("VFrame::to_ram %d %d %d\n", __LINE__, get_w(), get_h());
 
 void VFrame::create_pbuffer()
 {
+#ifdef HAVE_GL
 	if(pbuffer && 
 		pbuffer->window_id != BC_WindowBase::get_synchronous()->current_window->get_id())
 	{
@@ -303,6 +304,7 @@ void VFrame::create_pbuffer()
 	{
 		pbuffer = new BC_PBuffer(fixed_w, fixed_h);
 	}
+#endif // HAVE_GL
 }
 
 void VFrame::enable_opengl()

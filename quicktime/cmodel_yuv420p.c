@@ -1249,6 +1249,14 @@ static inline void transfer_YUV444P_to_YUV444P(unsigned char *input_y,
 					    input_uv + (v_in_offset) * 2 + 1); \
                     TRANSFER_FRAME_TAIL \
                     break; \
+				case BC_BGR8888: \
+                    TRANSFER_NV12_IN_HEAD \
+                    transfer_YUV_PLANAR_to_BGR8888((output), \
+					    input_y + (y_in_offset), \
+					    input_uv + (u_in_offset) * 2, \
+					    input_uv + (v_in_offset) * 2 + 1); \
+                    TRANSFER_FRAME_TAIL \
+                    break; \
 				case BC_RGBA8888: \
                     TRANSFER_NV12_IN_HEAD \
                     transfer_YUV_PLANAR_to_RGBA8888((output), \
