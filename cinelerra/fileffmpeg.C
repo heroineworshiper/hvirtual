@@ -543,8 +543,10 @@ int FileFFMPEG::check_sig(File *file, const uint8_t *test_data)
 
 
 	ffmpeg_lock->lock("FileFFMPEG::check_sig");
-//    avcodec_register_all();
-//    av_register_all();
+#if LIBAVCODEC_VERSION_MAJOR < 59
+    avcodec_register_all();
+    av_register_all();
+#endif
 
 //printf("FileFFMPEG::check_sig %d\n", __LINE__);
 	AVFormatContext *ffmpeg_file_context = 0;
@@ -587,10 +589,12 @@ int FileFFMPEG::open_file(int rd, int wr)
 //	bzero(&params, sizeof(params));
 if(debug) printf("FileFFMPEG::open_file %d result=%d\n", __LINE__, result);
 
+#if LIBAVCODEC_VERSION_MAJOR < 59
 	ffmpeg_lock->lock("FileFFMPEG::open_file");
-//    avcodec_register_all();
-//    av_register_all();
+    avcodec_register_all();
+    av_register_all();
 	ffmpeg_lock->unlock();
+#endif
 if(debug) printf("FileFFMPEG::open_file %d result=%d\n", __LINE__, result);
 
 	if(rd)
@@ -1424,16 +1428,22 @@ int FileFFMPEG::create_toc(void *ptr)
                         
 // fudge for different codecs
                         int got_frame = 1;
-//                         if(!strcmp(asset->vcodec, QUICKTIME_VP9))
-//                         {
-// // VP9 skips some.  0x84 doesn't denote this is a skipped frame, 
-// // but a frame somewhere else is skipped for every 0x84 code & no more than 1
-// // 0x84 occurs for every skipped frame.
-//                             if(packet->data[0] == 0x84)
-//                             {
-//                                 got_frame = 0;
-//                             }
-//                         }
+
+
+#if LIBAVCODEC_VERSION_MAJOR < 59
+                        if(!strcmp(asset->vcodec, QUICKTIME_VP9))
+                        {
+// VP9 skips some.  0x84 doesn't denote this is a skipped frame, 
+// but a frame somewhere else is skipped for every 0x84 code & no more than 1
+// 0x84 occurs for every skipped frame.
+                            if(packet->data[0] == 0x84)
+                            {
+                                got_frame = 0;
+                            }
+                        }
+#endif
+
+
 // store a frame
                         if(got_frame)
                         {
@@ -2057,8 +2067,11 @@ error);
                     file->current_frame);
 // give up & reopen the ffmpeg objects.
 // Still have frames buffered in the decoder, so reopen in the next seek.
-// For ffmpeg 052022 this no longer works & it only recovers if it doesn't restart.
-//                need_restart = 1;
+// For ffmpeg 5.1 this no longer works & it only recovers if it doesn't restart.
+
+#if LIBAVCODEC_VERSION_MAJOR < 59
+                need_restart = 1;
+#endif
 
 //                 av_packet_free(&packet);
 //                 ffmpeg_lock->unlock();
@@ -2069,7 +2082,9 @@ error);
             }
             else
             {
-//                av_packet_merge_side_data(packet);
+#if LIBAVCODEC_VERSION_MAJOR < 59
+                av_packet_merge_side_data(packet);
+#endif
             }
 
 
@@ -2101,6 +2116,10 @@ error);
                 if((packet->flags & AV_PKT_FLAG_KEY))
                     total_keyframes++;
 
+                Timer profile;
+
+#if LIBAVCODEC_VERSION_MAJOR >= 59
+
                 int result = avcodec_send_packet(decoder_context, packet);
                 if(result >= 0)
                 {
@@ -2108,13 +2127,15 @@ error);
                     if(result >= 0)
                         got_picture = 1;
                 }
+#else
+		        int result = avcodec_decode_video2(
+					decoder_context,
+                    input_frame, 
+					&got_picture,
+                    packet);
+#endif
 
-// 		        int result = avcodec_decode_video2(
-// 					decoder_context,
-//                     input_frame, 
-// 					&got_picture,
-//                     packet);
-
+                printf("FileFFMPEG::read_frame %d time=%d\n", __LINE__, (int)profile.get_difference());
 //                 if(result < 0)
 //                     printf("FileFFMPEG::read_frame %d result=%c%c%c%c stream->current_frame=%ld got_picture=%d ptr=%p\n", 
 //                         __LINE__, 
@@ -2163,6 +2184,9 @@ error);
 // at the end of the file, we still have frames buffered in the decoder
                 AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
                 int got_picture = 0;
+
+#if LIBAVCODEC_VERSION_MAJOR >= 59
+
                 int result = avcodec_send_packet(decoder_context, packet);
                 if(result >= 0)
                 {
@@ -2170,12 +2194,13 @@ error);
                     if(result >= 0)
                         got_picture = 1;
                 }
-
-//                 int result = avcodec_decode_video2(
-// 					decoder_context,
-//                     input_frame, 
-// 					&got_picture,
-//                     packet);
+#else
+                int result = avcodec_decode_video2(
+					decoder_context,
+                    input_frame, 
+					&got_picture,
+                    packet);
+#endif
 				if(input_frame->data[0] && got_picture) 
                 {
                     got_frame = 1;

@@ -15,7 +15,7 @@
 # liblzma-dev
 # FFMPEG_DIR must be set to the ffmpeg build directory
 # example:
-# FFMPEG_DIR=/root/ffmpeg.052022/ ./configure
+# FFMPEG_DIR=/root/ffmpeg-5.1 ./configure
 
 echo "Configuring Cinelerra with the following options:"
 
