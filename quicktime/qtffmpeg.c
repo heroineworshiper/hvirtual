@@ -194,9 +194,8 @@ quicktime_ffmpeg_t* quicktime_new_ffmpeg(int cpus,
 		if(cpus > 1)
 		{
 //			avcodec_thread_init(context, cpus);
-// Not exactly user friendly.
 			context->thread_count = cpus;
-            context->thread_type = FF_THREAD_SLICE;
+            context->thread_type = FF_THREAD_SLICE | FF_THREAD_FRAME;
 		}
 
         printf("quicktime_new_ffmpeg %d cpus=%d codec=%s id=%d\n", 
@@ -213,7 +212,7 @@ quicktime_ffmpeg_t* quicktime_new_ffmpeg(int cpus,
 			{
 //				avcodec_thread_init(context, 1);
 				context->thread_count = 1;
-                context->thread_type = FF_THREAD_SLICE;
+                context->thread_type = FF_THREAD_SLICE | FF_THREAD_FRAME;
 				if(avcodec_open2(context, ptr->decoder[i], 0) >= 0)
 				{
 					error = 0;
@@ -291,6 +290,8 @@ static int decode_wrapper(quicktime_t *file,
 {
 	int got_picture = 0; 
 	int result = 0; 
+    int read_failed = 0;
+    int decode_failed = 0;
 	int bytes = 0;
 	int header_bytes = 0;
  	char *compressor = vtrack->track->mdia.minf.stbl.stsd.table[0].format;
@@ -299,6 +300,19 @@ static int decode_wrapper(quicktime_t *file,
 // swap positions to get it to read the right frame
 	int64_t position_temp = vtrack->current_position;
 
+// try popping a frame without reading a packet
+	if(!ffmpeg->picture[current_field])
+	{
+		ffmpeg->picture[current_field] = av_frame_alloc();
+	}
+
+    result = avcodec_receive_frame(ffmpeg->decoder_context[current_field], 
+        ffmpeg->picture[current_field]);
+
+// read packets
+    if(result < 0 || !ffmpeg->picture[current_field]->data[0])
+	{
+        result = 0;
 // printf("decode_wrapper %d read_position=%ld current_position=%ld current_field=%d drop_it=%d\n", 
 // __LINE__,
 // frame_number,
@@ -306,60 +320,55 @@ static int decode_wrapper(quicktime_t *file,
 // current_field,
 // drop_it);
 
-	quicktime_set_video_position(file, ffmpeg->read_position[current_field], track);
+    	quicktime_set_video_position(file, ffmpeg->read_position[current_field], track);
 
-	bytes = quicktime_frame_size(file, ffmpeg->read_position[current_field], track); 
-	if(ffmpeg->read_position[current_field] == 0)
-	{
-		header_bytes = stsd_table->esds.mpeg4_header_size;
-	}
+	    bytes = quicktime_frame_size(file, ffmpeg->read_position[current_field], track); 
+	    if(ffmpeg->read_position[current_field] == 0)
+	    {
+		    header_bytes = stsd_table->esds.mpeg4_header_size;
+	    }
 
-	if(!ffmpeg->work_buffer || ffmpeg->buffer_size < bytes + header_bytes)
-	{
-		if(ffmpeg->work_buffer) free(ffmpeg->work_buffer); 
-		ffmpeg->buffer_size = bytes + header_bytes; 
-		ffmpeg->work_buffer = calloc(1, ffmpeg->buffer_size + 100); 
-	}
+	    if(!ffmpeg->work_buffer || ffmpeg->buffer_size < bytes + header_bytes)
+	    {
+		    if(ffmpeg->work_buffer) free(ffmpeg->work_buffer); 
+		    ffmpeg->buffer_size = bytes + header_bytes; 
+		    ffmpeg->work_buffer = calloc(1, ffmpeg->buffer_size + 100); 
+	    }
 
-	if(header_bytes)
-	{
-		memcpy(ffmpeg->work_buffer, stsd_table->esds.mpeg4_header, header_bytes);
-	}
+	    if(header_bytes)
+	    {
+		    memcpy(ffmpeg->work_buffer, stsd_table->esds.mpeg4_header, header_bytes);
+	    }
 
 // printf("decode_wrapper %d  field=%d offset=0x%lx bytes=%d header_bytes=%d\n", 
 // __LINE__, current_field, quicktime_ftell(file), bytes, header_bytes);
 // usleep(100000);
 
-	if(!quicktime_read_data(file, 
-		ffmpeg->work_buffer + header_bytes, 
-		bytes))
-	{
-		result = -1;
-	}
+	    if(!quicktime_read_data(file, 
+		    ffmpeg->work_buffer + header_bytes, 
+		    bytes))
+	    {
+            read_failed = 1;
+		    result = -1;
+	    }
+        
 
-// int i;
-// for(i = 0; i < 16; i++)
-// {
-// printf("%02x ", ffmpeg->work_buffer[i]);
-// }
-// printf("\n");
-
-// static FILE *out = 0;
-// if(!out) out = fopen("/tmp/debug.mp4", "w");
-// fwrite(ffmpeg->work_buffer, bytes + header_bytes, 1, out);
-//printf("decode_wrapper %d frame_number=%d result=%d\n", __LINE__, frame_number, result);
+// printf("decode_wrapper %d offset=%ld result=%d\n", 
+// __LINE__, 
+// ffmpeg->read_position[current_field],
+// result);
 
 
-	if(!result)
-	{
+	    if(!result)
+	    {
 
 
 // No way to determine if there was an error based on nonzero status.
 // Need to test row pointers to determine if an error occurred.
-		if(drop_it)
-			ffmpeg->decoder_context[current_field]->skip_frame = AVDISCARD_NONREF /* AVDISCARD_BIDIR */;
-		else
-			ffmpeg->decoder_context[current_field]->skip_frame = AVDISCARD_DEFAULT;
+		    if(drop_it)
+			    ffmpeg->decoder_context[current_field]->skip_frame = AVDISCARD_NONREF /* AVDISCARD_BIDIR */;
+		    else
+			    ffmpeg->decoder_context[current_field]->skip_frame = AVDISCARD_DEFAULT;
 //		avcodec_get_frame_defaults(&ffmpeg->picture[current_field]);
 
 /*
@@ -392,7 +401,7 @@ static int decode_wrapper(quicktime_t *file,
  * ffmpeg->decoder_context[current_field]->codec_tag = 1482049860;
  */
 
-		ffmpeg->decoder_context[current_field]->workaround_bugs =  FF_BUG_NO_PADDING;
+    		ffmpeg->decoder_context[current_field]->workaround_bugs =  FF_BUG_NO_PADDING;
 
 // For ffmpeg.080508 you must add
 // s->workaround_bugs =  FF_BUG_NO_PADDING;
@@ -400,14 +409,9 @@ static int decode_wrapper(quicktime_t *file,
 // Also must compile using -O2 instead of -O3 on gcc 4.1
 
 
-		if(!ffmpeg->picture[current_field])
-		{
-			ffmpeg->picture[current_field] = av_frame_alloc();
-		}
-
-		AVPacket *packet = av_packet_alloc();
-		packet->data = ffmpeg->work_buffer;
-		packet->size = bytes + header_bytes;
+		    AVPacket *packet = av_packet_alloc();
+		    packet->data = ffmpeg->work_buffer;
+		    packet->size = bytes + header_bytes;
 
 //printf("decode_wrapper %d size=%d\n", __LINE__, packet->size);
 /*
@@ -432,19 +436,22 @@ static int decode_wrapper(quicktime_t *file,
 //			&got_picture, 
 //			packet);
 
-        result = avcodec_send_packet(ffmpeg->decoder_context[current_field], 
-            packet);
-		av_packet_free(&packet);
+            result = avcodec_send_packet(ffmpeg->decoder_context[current_field], 
+                packet);
+		    av_packet_free(&packet);
 
 
-        result = avcodec_receive_frame(ffmpeg->decoder_context[current_field], 
-            ffmpeg->picture[current_field]);
+            result = avcodec_receive_frame(ffmpeg->decoder_context[current_field], 
+                ffmpeg->picture[current_field]);
 
+            if(result < 0)
+            {
+                decode_failed = 1;
+            }
 
-// printf("decode_wrapper %d got_picture=%d ptr=%p\n", 
+// printf("decode_wrapper %d result=%d\n", 
 // __LINE__, 
-// got_picture,
-// ffmpeg->picture[current_field]->data[0]);
+// result);
 
 // if(ffmpeg->picture[current_field]->data[0])
 // {
@@ -455,28 +462,31 @@ static int decode_wrapper(quicktime_t *file,
 // }
 // printf("\n");
 // }
+    // advance the position
+		    ffmpeg->read_position[current_field] += ffmpeg->fields;
+    //printf("decode_wrapper %d read_position=%d\n", __LINE__, ffmpeg->read_position[current_field]);
+	    }
+    }
 
-		if(!result && ffmpeg->picture[current_field]->data[0])
-		{
-			result = 0;
+
+	if(result >= 0 && ffmpeg->picture[current_field]->data[0])
+	{
+		result = 0;
 // advance the position
-			ffmpeg->last_frame[current_field] += ffmpeg->fields;
-		}
-		else
-		{
-// ffmpeg can't recover if the first frame errored out, like in a direct copy
-// sequence.
-			result = 1;
-		}
+		ffmpeg->last_frame[current_field] += ffmpeg->fields;
+	}
+    else
+    {
+        if(read_failed)
+            result = -1;
+        if(decode_failed)
+            result = 1;
+    }
 
 #ifdef ARCH_X86
-		asm("emms");
+	asm("emms");
 #endif
 
-// advance the position
-		ffmpeg->read_position[current_field] += ffmpeg->fields;
-//printf("decode_wrapper %d read_position=%d\n", __LINE__, ffmpeg->read_position[current_field]);
-	}
 
 // reset official position to what it was before the read_position
 	vtrack->current_position = position_temp;

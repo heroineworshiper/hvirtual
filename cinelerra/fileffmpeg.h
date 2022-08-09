@@ -82,6 +82,7 @@ public:
     ArrayList<int64_t> audio_offsets;
 // samples in each chunk.  Uses less space than absolute sample numbers.
     ArrayList<int32_t> audio_samples;
+
 // next offset to be stored when something is decoded
     int64_t next_frame_offset;
 // next frame to be stored is a keyframe
@@ -90,6 +91,7 @@ public:
     ArrayList<int64_t> video_offsets;
 // keyframe numbers
     ArrayList<int32_t> video_keyframes;
+
 /* Buffer of frames for index.  A frame is a high/low pair of audio samples. */
 	float **index_data;
 /* Number of high/low pairs allocated in each index channel. */
@@ -140,6 +142,11 @@ public:
 	int colormodel_supported(int colormodel);
 	int read_frame(VFrame *frame);
 	int read_samples(double *buffer, int64_t len);
+    int seek_5(void *ptr, 
+        ArrayList<int64_t> *offsets, 
+        int chunk, 
+        int64_t timestamp,
+        int is_video);
 
 // open ffmpeg objects for reading
     int open_ffmpeg();
