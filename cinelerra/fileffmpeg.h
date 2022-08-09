@@ -92,6 +92,13 @@ public:
 // keyframe numbers
     ArrayList<int32_t> video_keyframes;
 
+
+// match decoded frames with sent packets by DTS
+// every packet sent since the last seek goes in here
+    ArrayList<int64_t> dts_history;
+// starting frame in the DTS history
+    int dts_frame0;
+
 /* Buffer of frames for index.  A frame is a high/low pair of audio samples. */
 	float **index_data;
 /* Number of high/low pairs allocated in each index channel. */
@@ -152,6 +159,7 @@ public:
     int open_ffmpeg();
 // close ffmpeg objects
     void close_ffmpeg();
+    int open_codec(FileFFMPEGStream *stream, void *ptr, int id);
 
 // get the stream for seeking
     int get_seek_stream();

@@ -802,77 +802,17 @@ if(debug) printf("FileFFMPEG::open_ffmpeg %d audio_length=%lld\n", __LINE__, (lo
 // only 1 video track supported for ffmpeg
             		if(video_streams.size() == 0)
 					{
-#if LIBAVCODEC_VERSION_MAJOR >= 58
-                        AVCodecContext *decoder_context = avcodec_alloc_context3(NULL);
-                        avcodec_parameters_to_context(decoder_context, ffmpeg_stream->codecpar);
-#endif
-                        const AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
-// Append _cuvid to the name to use hardware decoding
-                        if(codec && MWindow::preferences->use_hardware_decoding)
+   						FileFFMPEGStream *new_stream = new FileFFMPEGStream;
+                        if(!open_codec(new_stream, ffmpeg_file_context, i))
                         {
-                            char string[BCTEXTLEN];
-                            sprintf(string, "%s_cuvid", codec->name);
-                            const AVCodec *hw_codec = avcodec_find_decoder_by_name(string);
-                            if(hw_codec)
-                            {
-                                codec = hw_codec;
-                            }
-                        }
-
-					    if(!codec)
-					    {
-						    printf("FileFFMPEG::open_ffmpeg %d: video codec 0x%x not found.\n", 
-                                __LINE__,
-							    decoder_context->codec_id);
-#if LIBAVCODEC_VERSION_MAJOR >= 58
-                            avcodec_free_context(&decoder_context);
-#endif
-					    }
-					    else
-					    {
-
-    						FileFFMPEGStream *new_stream = new FileFFMPEGStream;
 						    video_streams.append(new_stream);
+                            AVCodecContext *decoder_context = (AVCodecContext*)new_stream->decoder_context;
 						    new_stream->ffmpeg_id = i;
                             new_stream->is_video = 1;
 
 
 						    asset->video_data = 1;
 						    asset->layers = 1;
-
-// Open a new FFMPEG file for the stream
-						    result = avformat_open_input(
-							    (AVFormatContext**)&new_stream->ffmpeg_file_context, 
-							    asset->path, 
-							    0,
-							    0);
-
-// initialize the codec
-						    avformat_find_stream_info((AVFormatContext*)new_stream->ffmpeg_file_context, 0);
-						    ffmpeg_stream = ((AVFormatContext*)new_stream->ffmpeg_file_context)->streams[i];
-#if LIBAVCODEC_VERSION_MAJOR < 58
-						    decoder_context = ffmpeg_stream->codec;
-#endif
-//                            ((AVFormatContext*)new_stream->ffmpeg_file_context)->seek2any = 1;
-
-                            new_stream->decoder_context = decoder_context;
-//							avcodec_thread_init(decoder_context, file->cpus);
-                            decoder_context->pkt_timebase = ffmpeg_stream->time_base;
-    						decoder_context->thread_count = file->cpus;
-
-#if LIBAVCODEC_VERSION_MAJOR >= 58
-                            decoder_context->thread_type = FF_THREAD_SLICE | FF_THREAD_FRAME;
-//                            decoder_context->thread_type = FF_THREAD_SLICE;
-#endif
-
-//printf("FileFFMPEG::open_ffmpeg %d thread_type=%d\n", 
-//__LINE__, decoder_context->thread_type);
-
-//                            decoder_context->flags2 = AV_CODEC_FLAG2_FAST;
-						    result = avcodec_open2(decoder_context, codec, 0);
-
-printf("FileFFMPEG::open_ffmpeg %d cpus=%d result=%d codec=%s id=%d\n", 
-__LINE__, file->cpus, result, codec->name, decoder_context->codec_id);
                             switch(decoder_context->codec_id)
                             {
                                 case AV_CODEC_ID_H264:
@@ -908,6 +848,10 @@ __LINE__, file->cpus, result, codec->name, decoder_context->codec_id);
 if(debug) printf("FileFFMPEG::open_ffmpeg %d decoder_context->codec_id=%d\n", 
 __LINE__, 
 decoder_context->codec_id);
+                        }
+                        else
+                        {
+                            delete new_stream;
                         }
 					}
             		break;
@@ -963,6 +907,81 @@ printf("FileFFMPEG::open_ffmpeg %d i=%d codec_type=%d\n", __LINE__, i, type);
     if(debug) printf("FileFFMPEG::open_ffmpeg %d result=%d\n", __LINE__, result);
 
     return result;
+}
+
+int FileFFMPEG::open_codec(FileFFMPEGStream *stream, void *ptr, int id)
+{
+    AVFormatContext *ffmpeg_file_context = (AVFormatContext*)ptr;
+    AVStream *ffmpeg_stream = (AVStream*)((AVFormatContext*)ffmpeg_file_context)->streams[id];
+
+#if LIBAVCODEC_VERSION_MAJOR >= 58
+    AVCodecContext *decoder_context = avcodec_alloc_context3(NULL);
+    avcodec_parameters_to_context(decoder_context, ffmpeg_stream->codecpar);
+#else
+    AVCodecContext *decoder_context = ffmpeg_stream->codec;
+#endif
+
+    const AVCodec *codec = avcodec_find_decoder(decoder_context->codec_id);
+// Append _cuvid to the name to use hardware decoding
+    if(codec && MWindow::preferences->use_hardware_decoding)
+    {
+        char string[BCTEXTLEN];
+        sprintf(string, "%s_cuvid", codec->name);
+        const AVCodec *hw_codec = avcodec_find_decoder_by_name(string);
+        if(hw_codec)
+        {
+            codec = hw_codec;
+        }
+    }
+
+	if(!codec)
+	{
+		printf("FileFFMPEG::open_codec %d: video codec 0x%x not found.\n", 
+            __LINE__,
+			decoder_context->codec_id);
+#if LIBAVCODEC_VERSION_MAJOR >= 58
+        avcodec_free_context(&decoder_context);
+#endif
+        return 1;
+	}
+
+
+// Open a new FFMPEG file for the stream if we're opening the codec for the 1st time
+    if(!stream->ffmpeg_file_context)
+    {
+		int result = avformat_open_input(
+			(AVFormatContext**)&stream->ffmpeg_file_context, 
+			asset->path, 
+			0,
+			0);
+	    avformat_find_stream_info((AVFormatContext*)stream->ffmpeg_file_context, 0);
+    }
+
+// initialize the codec
+// replace the ffmpeg_stream with the newly created one
+	ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[id];
+#if LIBAVCODEC_VERSION_MAJOR < 58
+    decoder_context = ffmpeg_stream->codec;
+#endif
+//  ((AVFormatContext*)new_stream->ffmpeg_file_context)->seek2any = 1;
+
+    stream->decoder_context = decoder_context;
+    decoder_context->pkt_timebase = ffmpeg_stream->time_base;
+    decoder_context->thread_count = file->cpus;
+
+#if LIBAVCODEC_VERSION_MAJOR >= 58
+    decoder_context->thread_type = FF_THREAD_SLICE | FF_THREAD_FRAME;
+#endif
+
+
+//  decoder_context->flags2 = AV_CODEC_FLAG2_FAST;
+	int result = avcodec_open2(decoder_context, codec, 0);
+
+printf("FileFFMPEG::open_codec %d cpus=%d codec=%s id=%d\n", 
+__LINE__, file->cpus, codec->name, decoder_context->codec_id);
+
+
+    return 0;
 }
 
 void FileFFMPEG::close_ffmpeg()
@@ -1953,6 +1972,11 @@ int FileFFMPEG::read_frame(VFrame *frame)
 // __LINE__, 
 // current_frame,
 // file->current_frame);
+	if(!ffmpeg_frame)
+    {
+        ffmpeg_frame = av_frame_alloc();
+    }
+
 	if(stream->current_frame != file->current_frame &&
 		(file->current_frame < stream->current_frame ||
 		file->current_frame > stream->current_frame + SEEK_THRESHOLD))
@@ -2055,6 +2079,15 @@ int FileFFMPEG::read_frame(VFrame *frame)
 			    ffmpeg_stream->time_base.num /
 			    asset->frame_rate);
             keyframe = seek_5(stream, &stream->video_offsets, keyframe, timestamp, 1);
+// restart decoder for this case.  Might be easier to close_ffmpeg
+            if(keyframe == 0)
+            {
+                avcodec_free_context(&decoder_context);
+                open_codec(stream, stream->ffmpeg_file_context, stream->ffmpeg_id);
+    	        decoder_context = (AVCodecContext*)stream->decoder_context;
+            }
+            stream->dts_history.remove_all();
+            stream->dts_frame0 = keyframe;
 #else
             int offset = stream->video_offsets.get(keyframe);
             avio_seek(((AVFormatContext*)stream->ffmpeg_file_context)->pb, 
@@ -2083,17 +2116,13 @@ int FileFFMPEG::read_frame(VFrame *frame)
         got_frame = 0;
         last_pts = -1;
 	}
-if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%ld file->current_frame=%ld error=%d\n", 
-__LINE__,
-stream->current_frame,
-file->current_frame,
-error);
+// if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%ld file->current_frame=%ld error=%d\n", 
+// __LINE__,
+// stream->current_frame,
+// file->current_frame,
+// error);
 
 
-	if(!ffmpeg_frame)
-    {
-        ffmpeg_frame = av_frame_alloc();
-    }
 
 
 // Read frames until we catch up to the current position.
@@ -2109,10 +2138,6 @@ error);
 
     int keyframes_sent = 0;
     int packets_sent = 0;
-// match decoded frames with sent packets by DTS
-    ArrayList<int64_t> dts_history;
-// starting frame in the DTS history
-    int dts_frame0 = stream->current_frame;
 // Don't want to decode to the end of the file but might have to 
 // drop this many keyframes to reach current_frame
 	while(/* keyframes_sent <= VIDEO_REWIND_KEYFRAMES && */
@@ -2141,19 +2166,8 @@ error);
 // no frame decoded.  Read in a new packet
         if(!got_frame)
         {
-//            printf("FileFFMPEG::read_frame %d ftell=%ld\n", 
-//                __LINE__, 
-//                avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
-
 		    error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
 			    packet);
-
-//             printf("FileFFMPEG::read_frame %d ftell=%ld id=%d size=%d packet dts=%ld\n", 
-//                 __LINE__, 
-//                 avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb),
-//                 packet->stream_index,
-//                 packet->size,
-//                 packet->dts);
 
             if(error)
             {
@@ -2201,7 +2215,7 @@ error);
                 if((packet->flags & AV_PKT_FLAG_KEY))
                     keyframes_sent++;
                 packets_sent++;
-                dts_history.append(packet->dts);
+                stream->dts_history.append(packet->dts);
 
 
 #if LIBAVCODEC_VERSION_MAJOR >= 58
@@ -2271,32 +2285,34 @@ error);
 		av_packet_free(&packet);
 
 
-//printf("FileFFMPEG::read_frame %d 0x%lx\n", __LINE__, input_frame->pkt_dts);
 		if(got_frame)
         {
-// determine the current frame by comparing DTS codes
+// determine the current frame by looking up DTS code in packet history
             int got_it = 0;
-            for(int i = 0; i < dts_history.size(); i++)
+            int i = -1;
+// hardware decoders don't generate a DTS so we're screwed
+            if(input_frame->pkt_dts == AV_NOPTS_VALUE)
             {
-                if(input_frame->pkt_dts != AV_NOPTS_VALUE &&
-                    input_frame->pkt_dts == dts_history.get(i))
+                got_it = 1;
+                stream->current_frame++;
+            }
+            else
+            for(i = 0; i < stream->dts_history.size(); i++)
+            {
+                if(input_frame->pkt_dts == stream->dts_history.get(i))
                 {
-// the number of frames skipped in dts_history is the number of frames the decoder
-// skipped
-                    stream->current_frame = dts_frame0 + i;
+                    stream->current_frame = stream->dts_frame0 + i;
                     got_it = 1;
                     break;
                 }
             }
 
-            if(!got_it) stream->current_frame++;
-// printf("FileFFMPEG::read_frame %d got_frame=%d got_it=%d dts=%ld stream->current_frame=%ld file->current_frame=%ld\n", 
-// __LINE__,
-// got_frame,
-// got_it,
-// (long)input_frame->pkt_dts,
-// (long)stream->current_frame,
-// (long)file->current_frame);
+// printf("FileFFMPEG::read_frame %d got_it=%d i=%d current_frame=%ld dts=0x%ld\n", 
+// __LINE__, 
+// got_it, 
+// i,
+// stream->current_frame,
+// input_frame->pkt_dts);
         }
 	}
 
