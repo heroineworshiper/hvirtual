@@ -1886,17 +1886,14 @@ int FileFFMPEG::seek_5(void *ptr,
         timestamp,
         SEEK_SET | AVSEEK_FLAG_BACKWARD);
 
-// the 1st av_read_frame jumps a certain amount after av_seek_frame 
-// before the real offset is discoverable
-//     if(chunk > 0 && !is_video)
-//     {
-//         AVPacket *packet = av_packet_alloc();
-//     	av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, packet);
-//         av_packet_free(&packet);
-//     }
+    if(chunk == 0)
+    {
+        return 0;
+    }
 
 // read up to the desired position so we don't spend all day decoding
-// hundreds of frames
+// hundreds of frames.
+// The 1st read always skips many chunks
     while(avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb) < offsets->get(chunk))
     {
         AVPacket *packet = av_packet_alloc();
@@ -2217,9 +2214,10 @@ error);
                 if(result >= 0)
                 {
                     result = avcodec_receive_frame(decoder_context, input_frame);
-                    if(debug) printf("FileFFMPEG::read_frame %d result=%d\n", 
-                        __LINE__,
-                        result);
+//                     printf("FileFFMPEG::read_frame %d result=%d picture=%p\n", 
+//                         __LINE__,
+//                         result,
+//                         input_frame->data[0]);
                     if(result >= 0)
                         got_picture = 1;
                 }
@@ -2235,19 +2233,6 @@ error);
                 {
                     got_frame = 1;
                 }
-// printf("FileFFMPEG::read_frame %d result=%d %02x %02x %02x %02x %02x %02x %02x %02x packet->flags=0x%x got_frame=%d\n", 
-// __LINE__, 
-// result, 
-// packet->data[0],
-// packet->data[1],
-// packet->data[2],
-// packet->data[3],
-// packet->data[4],
-// packet->data[5],
-// packet->data[6],
-// packet->data[7],
-// packet->flags,
-// got_frame);
 			}
             else
             if(error)
@@ -2285,20 +2270,16 @@ error);
 
 		av_packet_free(&packet);
 
-// printf("FileFFMPEG::read_frame %d got_frame=%d stream->current_frame=%ld file->current_frame=%ld pts=%ld\n", 
-// __LINE__,
-// got_frame,
-// stream->current_frame,
-// file->current_frame,
-// ((AVFrame*)ffmpeg_frame)->pts);
 
+//printf("FileFFMPEG::read_frame %d 0x%lx\n", __LINE__, input_frame->pkt_dts);
 		if(got_frame)
         {
 // determine the current frame by comparing DTS codes
             int got_it = 0;
             for(int i = 0; i < dts_history.size(); i++)
             {
-                if(input_frame->pkt_dts == dts_history.get(i))
+                if(input_frame->pkt_dts != AV_NOPTS_VALUE &&
+                    input_frame->pkt_dts == dts_history.get(i))
                 {
 // the number of frames skipped in dts_history is the number of frames the decoder
 // skipped
@@ -2309,6 +2290,13 @@ error);
             }
 
             if(!got_it) stream->current_frame++;
+// printf("FileFFMPEG::read_frame %d got_frame=%d got_it=%d dts=%ld stream->current_frame=%ld file->current_frame=%ld\n", 
+// __LINE__,
+// got_frame,
+// got_it,
+// (long)input_frame->pkt_dts,
+// (long)stream->current_frame,
+// (long)file->current_frame);
         }
 	}
 
