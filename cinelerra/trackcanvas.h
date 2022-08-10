@@ -43,7 +43,8 @@
 #include "timelinepane.inc"
 #include "track.inc"
 #include "tracks.inc"
-#include "transitionhandles.inc"
+#include "transition.inc"
+//#include "transitionhandles.inc"
 
 // draw mode:
 // NORMAL_DRAW causes incremental drawing of pixmaps.  Used for navigation and index refresh.
@@ -76,7 +77,12 @@ public:
 	void draw_overlays();
 	void update_handles();
 // Convert edit coords to transition coords
-	void get_transition_coords(int64_t &x, int64_t &y, int64_t &w, int64_t &h);
+	void get_transition_coords(Transition *transition,
+        const char *title,
+        int64_t &x, 
+        int64_t &y, 
+        int64_t &w, 
+        int64_t &h);
 	void get_handle_coords(Edit *edit, 
 		int64_t &x, 
 		int64_t &y, 

@@ -23,6 +23,7 @@
 #include "bcpixmap.h"
 #include "bcresources.h"
 #include "bcsignals.h"
+#include "bctheme.h"
 #include "colors.h"
 #include "fonts.h"
 #include "keys.h"
@@ -263,8 +264,10 @@ BC_OKButton::BC_OKButton(int x, int y)
 }
 
 BC_OKButton::BC_OKButton(BC_WindowBase *parent_window, VFrame **images)
- : BC_Button(DP(10), 
- 	parent_window->get_h() - images[0]->get_h() - DP(10), 
+ : BC_Button(BC_Resources::theme->widget_border, 
+ 	parent_window->get_h() - 
+        images[0]->get_h() - 
+        BC_Resources::theme->widget_border, 
  	images)
 {
 	set_tooltip("OK");
@@ -272,8 +275,10 @@ BC_OKButton::BC_OKButton(BC_WindowBase *parent_window, VFrame **images)
 }
 
 BC_OKButton::BC_OKButton(BC_WindowBase *parent_window)
- : BC_Button(DP(10), 
- 	parent_window->get_h() - BC_WindowBase::get_resources()->ok_images[0]->get_h() - DP(10), 
+ : BC_Button(BC_Resources::theme->widget_border, 
+ 	parent_window->get_h() - 
+        BC_WindowBase::get_resources()->ok_images[0]->get_h() - 
+        BC_Resources::theme->widget_border, 
  	BC_WindowBase::get_resources()->ok_images)
 {
 	set_tooltip("OK");
@@ -338,16 +343,24 @@ BC_CancelButton::BC_CancelButton(int x, int y)
 }
 
 BC_CancelButton::BC_CancelButton(BC_WindowBase *parent_window)
- : BC_Button(parent_window->get_w() - BC_WindowBase::get_resources()->cancel_images[0]->get_w() - DP(10), 
- 	parent_window->get_h() - BC_WindowBase::get_resources()->cancel_images[0]->get_h() - DP(10), 
+ : BC_Button(parent_window->get_w() - 
+        BC_WindowBase::get_resources()->cancel_images[0]->get_w() - 
+        BC_Resources::theme->widget_border, 
+ 	parent_window->get_h() - 
+        BC_WindowBase::get_resources()->cancel_images[0]->get_h() - 
+        BC_Resources::theme->widget_border, 
  	BC_WindowBase::get_resources()->cancel_images)
 {
 	set_tooltip("Cancel");
 }
 
 BC_CancelButton::BC_CancelButton(BC_WindowBase *parent_window, VFrame **images)
- : BC_Button(parent_window->get_w() - images[0]->get_w() - DP(10), 
- 	parent_window->get_h() - images[0]->get_h() - DP(10), 
+ : BC_Button(parent_window->get_w() - 
+        images[0]->get_w() - 
+        BC_Resources::theme->widget_border, 
+ 	parent_window->get_h() - 
+        images[0]->get_h() - 
+        BC_Resources::theme->widget_border, 
  	images)
 {
 	set_tooltip("Cancel");
@@ -498,8 +511,10 @@ int BC_GenericButton::draw_face(int flush)
 
 
 BC_OKTextButton::BC_OKTextButton(BC_WindowBase *parent_window)
- : BC_GenericButton(DP(10),
- 	parent_window->get_h() - BC_GenericButton::calculate_h() - DP(10),
+ : BC_GenericButton(BC_Resources::theme->widget_border,
+ 	parent_window->get_h() - 
+        BC_GenericButton::calculate_h() - 
+        BC_Resources::theme->widget_border,
 	_("OK"))
 {
 	this->parent_window = parent_window;
@@ -527,8 +542,12 @@ int BC_OKTextButton::keypress_event()
 
 
 BC_CancelTextButton::BC_CancelTextButton(BC_WindowBase *parent_window)
- : BC_GenericButton(parent_window->get_w() - BC_GenericButton::calculate_w(parent_window, _("Cancel")) - DP(10),
- 	parent_window->get_h() - BC_GenericButton::calculate_h() - DP(10),
+ : BC_GenericButton(parent_window->get_w() - 
+        BC_GenericButton::calculate_w(parent_window, _("Cancel")) - 
+        BC_Resources::theme->widget_border,
+ 	parent_window->get_h() - 
+        BC_GenericButton::calculate_h() - 
+        BC_Resources::theme->widget_border,
 	_("Cancel"))
 {
 	this->parent_window = parent_window;

@@ -65,6 +65,7 @@ FormatTools::FormatTools(MWindow *mwindow,
 	path_textbox = 0;
 	path_button = 0;
 	w = window->get_w() - mwindow->theme->widget_border;
+    user_w = -1;
 	file_entries = 0;
 }
 
@@ -170,7 +171,7 @@ void FormatTools::create_objects(int &init_x,
 	if(!recording)
 	{
 		window->add_subwindow(path_textbox = new FormatPathText(x, y, this));
-		x += path_textbox->get_w() + margin;
+		x += path_textbox->get_w() /* + margin */;
 		window->add_subwindow(path_button = new BrowseButton(
 			mwindow->theme,
 			window,
@@ -183,7 +184,10 @@ void FormatTools::create_objects(int &init_x,
 			0));
 
 // Set w for user.
-        w = window->get_w() - init_x;
+        if(user_w > 0)
+            w = user_w;
+        else
+            w = window->get_w() - init_x;
 //		w = MAX(w, DP(305));
 //		w = x + path_button->get_w() + margin;
 		x -= path_textbox->get_w() + margin;
@@ -191,7 +195,10 @@ void FormatTools::create_objects(int &init_x,
 	}
 	else
 	{
-        w = window->get_w() - init_x;
+        if(user_w > 0)
+            w = user_w;
+        else
+            w = window->get_w() - init_x;
 //		w = x + DP(305);
 //		w = DP(305);
 	}
@@ -581,7 +588,7 @@ int FormatTools::get_w()
 
 void FormatTools::set_w(int w)
 {
-	this->w = w;
+	this->user_w = this->w = w;
 }
 
 void FormatTools::reposition_window(int &init_x, int &init_y)
@@ -595,8 +602,8 @@ void FormatTools::reposition_window(int &init_x, int &init_y)
 //printf("FormatTools::reposition_window %d %d\n", __LINE__, w);
 		path_textbox->reposition_window(x, 
 			y, 
-			w - mwindow->theme->get_image_set("wrench")[0]->get_w() - DP(10));
-		x += path_textbox->get_w() + margin;
+			w - mwindow->theme->get_image_set("wrench")[0]->get_w() - margin);
+		x += path_textbox->get_w() /* + margin */;
 		path_button->reposition_window(x, y);
 		x -= path_textbox->get_w() + margin;
 		y += DP(35);
@@ -935,7 +942,7 @@ FormatPathText::FormatPathText(int x, int y, FormatTools *format)
  	y, 
 	format->w - 
 		format->mwindow->theme->get_image_set("wrench")[0]->get_w() - 
-		DP(10), 
+		MWindow::theme->widget_border, 
 	1, 
 	format->asset->path) 
 {

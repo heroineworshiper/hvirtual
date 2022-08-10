@@ -717,10 +717,11 @@ void BatchRenderGUI::create_objects()
 
 // output file
 	add_subwindow(output_path_title = new BC_Title(x1, y, _("Output path:")));
-	y += DP(20);
+	y += output_path_title->get_h() + margin;
 	format_tools = new BatchFormat(mwindow,
 					this, 
 					thread->get_current_asset());
+//printf("BatchRenderGUI::create_objects %d %d\n", __LINE__, HALF_W - margin);
 	format_tools->set_w(HALF_W - margin);
 	format_tools->create_objects(x, 
 						y, 
@@ -744,12 +745,12 @@ void BatchRenderGUI::create_objects()
 // input EDL
 	x = HALF_W;
 	add_subwindow(edl_path_title = new BC_Title(x, y, _("EDL Path:")));
-	y += DP(20);
+	y += edl_path_title->get_h() + margin;
 	add_subwindow(edl_path_text = new BatchRenderEDLPath(
 		thread, 
 		x, 
 		y, 
-		get_w() - x - DP(30), 
+		get_w() - x - mwindow->theme->get_image_set("wrench")[0]->get_w(), 
 		thread->get_current_edl()));
 
 	x += edl_path_text->get_w();
@@ -834,7 +835,7 @@ int BatchRenderGUI::resize_event(int w, int h)
 	int y2;
 
 	output_path_title->reposition_window(x1, y);
-	y += DP(20);
+	y += output_path_title->get_h() + margin;;
 	format_tools->reposition_window(x, y);
 	x2 = x;
 	y2 = y + DP(10);
@@ -845,8 +846,10 @@ int BatchRenderGUI::resize_event(int w, int h)
 
 	x = HALF_W;
 	edl_path_title->reposition_window(x, y);
-	y += DP(20);
-	edl_path_text->reposition_window(x, y, w - x - DP(30));
+	y += edl_path_title->get_h() + margin;;
+	edl_path_text->reposition_window(x, 
+        y, 
+        w - x - mwindow->theme->get_image_set("wrench")[0]->get_w());
 	x += edl_path_text->get_w();
 	edl_path_browse->reposition_window(x, y);
 

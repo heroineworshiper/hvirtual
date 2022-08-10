@@ -93,11 +93,6 @@ public:
     ArrayList<int32_t> video_keyframes;
 
 
-// match decoded frames with sent packets by DTS
-// every packet sent since the last seek goes in here
-    ArrayList<int64_t> dts_history;
-// starting frame in the DTS history
-    int dts_frame0;
 
 /* Buffer of frames for index.  A frame is a high/low pair of audio samples. */
 	float **index_data;

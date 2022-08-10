@@ -1144,14 +1144,6 @@ int FileFFMPEG::create_toc(void *ptr)
                     break;
                 }
 
-//                 stream->dts.allocate(chunks);
-//                 stream->dts.total = chunks;
-//                 if(fread(stream->dts.values, sizeof(int64_t), chunks, fd) < chunks)
-//                 {
-//                     result = 1;
-//                     break;
-//                 }
-
 // for(j = 0; j < chunks; j++)
 // {
 // printf("FileFFMPEG::create_toc %d offset=%p samples=%d\n",
@@ -1197,14 +1189,6 @@ int FileFFMPEG::create_toc(void *ptr)
                     break;
                 }
 
-
-//                 stream->dts.allocate(total_frames);
-//                 stream->dts.total = total_frames;
-//                 if(fread(stream->dts.values, sizeof(int64_t), total_frames, fd) < total_frames)
-//                 {
-//                     result = 1;
-//                     break;
-//                 }
 
                 if(debug) printf("FileFFMPEG::create_toc %d reading stream=%p total_frames=%d total_keyframes=%d\n", __LINE__, stream, total_frames, total_keyframes);
             }
@@ -2086,8 +2070,6 @@ int FileFFMPEG::read_frame(VFrame *frame)
                 open_codec(stream, stream->ffmpeg_file_context, stream->ffmpeg_id);
     	        decoder_context = (AVCodecContext*)stream->decoder_context;
             }
-            stream->dts_history.remove_all();
-            stream->dts_frame0 = keyframe;
 #else
             int offset = stream->video_offsets.get(keyframe);
             avio_seek(((AVFormatContext*)stream->ffmpeg_file_context)->pb, 
@@ -2104,7 +2086,6 @@ int FileFFMPEG::read_frame(VFrame *frame)
                 file->current_frame);
 
 		    stream->current_frame = keyframe;
-
 // want 1st frame in the stream
             if(stream->current_frame == 0 &&
                 file->current_frame == 0)
@@ -2138,6 +2119,11 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
     int keyframes_sent = 0;
     int packets_sent = 0;
+// match decoded frames with sent packets by DTS
+// DTS codes are discontiguous so we can't buffer the entire file
+    ArrayList<int64_t> dts_history;
+// starting frame in the DTS history
+    int dts_frame0 = stream->current_frame;
 // Don't want to decode to the end of the file but might have to 
 // drop this many keyframes to reach current_frame
 	while(/* keyframes_sent <= VIDEO_REWIND_KEYFRAMES && */
@@ -2215,7 +2201,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
                 if((packet->flags & AV_PKT_FLAG_KEY))
                     keyframes_sent++;
                 packets_sent++;
-                stream->dts_history.append(packet->dts);
+                dts_history.append(packet->dts);
 
 
 #if LIBAVCODEC_VERSION_MAJOR >= 58
@@ -2291,22 +2277,23 @@ int FileFFMPEG::read_frame(VFrame *frame)
             int got_it = 0;
             int i = -1;
 // hardware decoders don't generate a DTS so we're screwed
-            if(input_frame->pkt_dts == AV_NOPTS_VALUE)
+            if(input_frame->pkt_dts != AV_NOPTS_VALUE)
             {
-                got_it = 1;
-                stream->current_frame++;
-            }
-            else
-            for(i = 0; i < stream->dts_history.size(); i++)
-            {
-                if(input_frame->pkt_dts == stream->dts_history.get(i))
+                for(i = 0; i < dts_history.size(); i++)
                 {
-                    stream->current_frame = stream->dts_frame0 + i;
-                    got_it = 1;
-                    break;
+                    if(input_frame->pkt_dts == dts_history.get(i))
+                    {
+                        stream->current_frame = dts_frame0 + i;
+                        got_it = 1;
+                        break;
+                    }
                 }
             }
 
+            if(!got_it)
+            {
+                stream->current_frame++;
+            }
 // printf("FileFFMPEG::read_frame %d got_it=%d i=%d current_frame=%ld dts=0x%ld\n", 
 // __LINE__, 
 // got_it, 

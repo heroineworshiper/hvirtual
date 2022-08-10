@@ -25,6 +25,7 @@
 #include "bcresources.h"
 #include "bcsignals.h"
 #include "bcsynchronous.h"
+#include "bctheme.h"
 #include "bcwindowbase.h"
 #include "colors.h"
 #include "bccmodels.h"
@@ -46,7 +47,7 @@ int BC_Resources::error = 0;
 
 VFrame* BC_Resources::bg_image = 0;
 VFrame* BC_Resources::menu_bg = 0;
-
+BC_Theme* BC_Resources::theme = 0;
 
 
 int BC_Resources::override_dpi = 0;
@@ -147,6 +148,9 @@ void BC_Resources::init()
 		xft_lock = new Mutex("BC_Resources::xft_lock", 1);
 		id = 0;
 		filebox_id = 0;
+
+// create a default theme
+        theme = new BC_Theme;
 
 		for(int i = 0; i < FILEBOX_HISTORY_SIZE; i++)
 			filebox_history[i].path[0] = 0;

@@ -1324,6 +1324,7 @@ void CanvasPopup::create_objects()
 	if(canvas->use_cwindow)
 	{
 		add_item(new CanvasPopupAuto(canvas));
+        add_item(new BC_MenuItem("-"));
 		add_item(new CanvasPopupResetCamera(canvas));
 		add_item(new CanvasPopupResetProjector(canvas));
 		add_item(toggle_controls = new CanvasToggleControls(canvas));
@@ -1331,6 +1332,7 @@ void CanvasPopup::create_objects()
 	}
 	if(canvas->use_rwindow)
 	{
+        add_item(new BC_MenuItem("-"));
 //		add_item(new CanvasPopupResetTranslation(canvas));
 		add_item(new CanvasPresetTranslation(canvas, TOP_LEFT, "Top left"));
 		add_item(new CanvasPresetTranslation(canvas, TOP_RIGHT, "Top right"));
@@ -1339,6 +1341,7 @@ void CanvasPopup::create_objects()
 	}
 	if(canvas->use_vwindow)
 	{
+        add_item(new BC_MenuItem("-"));
 		add_item(new CanvasPopupRemoveSource(canvas));
 	}
 	add_item(new CanvasFullScreenItem(canvas));

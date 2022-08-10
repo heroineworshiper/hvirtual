@@ -105,6 +105,7 @@ public:
 
 	void dump();
 	BC_Resources* get_resources();
+	int widget_border;
 
 private:
 	void overlay(VFrame *dst, VFrame *src, int in_x1 = -1, int in_x2 = -1, int shift = 0);

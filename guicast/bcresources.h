@@ -34,6 +34,7 @@
 #include "bcresources.inc"
 #include "bcsignals.inc"
 #include "bcsynchronous.inc"
+#include "bctheme.inc"
 #include "bcwindowbase.inc"
 #include "vframe.inc"
 
@@ -92,6 +93,9 @@ public:
 
 
 	static int initialized;
+// TODO: all the bits should come from the theme object
+// & should only be allocated if there's no user theme.
+    static BC_Theme *theme;
 
 // the DPI of the monitor after user override
 	static int dpi;

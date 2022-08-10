@@ -142,6 +142,8 @@ public:
 	int *strategy;
 // width of the format tools region, not the parent window
 	int w;
+// user defined width
+    int user_w;
 // Determines what the configuration buttons do.
 	int video_driver;
 };

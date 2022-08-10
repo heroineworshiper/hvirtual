@@ -119,7 +119,7 @@ ConfirmSaveWindow::ConfirmSaveWindow(MWindow *mwindow,
  : BC_Window(PROGRAM_NAME ": File Exists", 
  		mwindow->gui->get_abs_cursor_x(1) - DP(160), 
 		mwindow->gui->get_abs_cursor_y(1) - DP(120), 
-		DP(320), 
+		DP(480), 
 		DP(320))
 {
 	this->list = list;
@@ -141,16 +141,14 @@ void ConfirmSaveWindow::create_objects()
 	add_subwindow(title = new BC_Title(x, 
 		y, 
 		_("The following files exist.  Overwrite them?")));
-	y += DP(30);
+	y += title->get_h() + margin;
 	add_subwindow(listbox = new BC_ListBox(x, 
 		y, 
 		get_w() - x - margin,
-		get_h() - y - BC_OKButton::calculate_h() - margin,
+		get_h() - y - BC_OKButton::calculate_h() - margin * 2,
 		LISTBOX_TEXT,
 		list));
-	y = get_h() - DP(40);
 	add_subwindow(new BC_OKButton(this));
-	x = get_w() - DP(100);
 	add_subwindow(new BC_CancelButton(this));
 	show_window(1);
 	unlock_window();

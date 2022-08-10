@@ -753,7 +753,8 @@ void SUV::initialize()
 
 	flush_images();
 
-	title_font = MEDIUMFONT_3D;
+//	title_font = MEDIUMFONT_3D;
+	title_font = MEDIUMFONT;
 	title_color = 0xbfbfbf;
 	recordgui_fixed_color = YELLOW;
 	recordgui_variable_color = RED;

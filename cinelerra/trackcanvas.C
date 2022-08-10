@@ -1167,21 +1167,49 @@ void TrackCanvas::get_handle_coords(Edit *edit, int64_t &x, int64_t &y, int64_t 
 	w = handle_w;
 }
 
-void TrackCanvas::get_transition_coords(int64_t &x, int64_t &y, int64_t &w, int64_t &h)
+void TrackCanvas::get_transition_coords(Transition *transition,
+    const char *title,
+    int64_t &x, 
+    int64_t &y, 
+    int64_t &w, 
+    int64_t &h)
 {
+    int y1 = y;
+    int top_margin = 2;
+    int left_margin = 5;
+	int right_margin = 5;
+    VFrame *plugin_bg = mwindow->theme->get_image("plugin_bg_data");
+    VFrame *title_bg = mwindow->theme->get_image("title_bg_data");
+    
 //printf("TrackCanvas::get_transition_coords 1\n");
 // 	int transition_w = mwindow->theme->transitionhandle_data[0]->get_w();
 // 	int transition_h = mwindow->theme->transitionhandle_data[0]->get_h();
-	int transition_w = DP(30);
-	int transition_h = DP(30);
+//	int transition_w = DP(30);
+//	int transition_h = DP(30);
+    int transition_w = get_text_width(mwindow->theme->title_font, title) + left_margin + right_margin;
+    int transition_h = title_bg->get_h();
 //printf("TrackCanvas::get_transition_coords 1\n");
 
+// use the length if we have an EDL object
+    if(transition)
+    {
+        int transition_w2 = Units::round(
+            transition->edit->track->from_units(transition->length) * 
+            mwindow->edl->session->sample_rate /
+			mwindow->edl->local_session->zoom_sample);
+        if(transition_w2 > transition_w)
+        {
+            transition_w = transition_w2;
+        }
+    }
+
 	if(mwindow->edl->session->show_titles)
-		y += mwindow->theme->get_image("title_bg_data")->get_h();
+		y += title_bg->get_h();
 //printf("TrackCanvas::get_transition_coords 2\n");
 
-	y += (h - mwindow->theme->get_image("title_bg_data")->get_h()) / 2 - transition_h / 2;
-	x -= transition_w / 2;
+	y += (h - title_bg->get_h()) / 2 - transition_h / 2;
+    if(y < y1) y = y1;
+//	x -= transition_w / 2;
 
 	h = transition_h;
 	w = transition_w;
@@ -1191,32 +1219,39 @@ void TrackCanvas::draw_highlighting()
 {
 	int64_t x, y, w, h;
 	int draw_box = 0;
+    MainSession *session = mwindow->session;
 
 
 
-	switch(mwindow->session->current_operation)
+	switch(session->current_operation)
 	{
 		case DRAG_ATRANSITION:
 		case DRAG_VTRANSITION:
 //printf("TrackCanvas::draw_highlighting 1 %p %p\n", 
-//	mwindow->session->track_highlighted, mwindow->session->edit_highlighted);
-			if(mwindow->session->edit_highlighted)
+//	session->track_highlighted, session->edit_highlighted);
+			if(session->edit_highlighted)
 			{
 //printf("TrackCanvas::draw_highlighting 2\n");
-				if((mwindow->session->current_operation == DRAG_ATRANSITION && 
-					mwindow->session->track_highlighted->data_type == TRACK_AUDIO) ||
-					(mwindow->session->current_operation == DRAG_VTRANSITION && 
-					mwindow->session->track_highlighted->data_type == TRACK_VIDEO))
+				if((session->current_operation == DRAG_ATRANSITION && 
+					session->track_highlighted->data_type == TRACK_AUDIO) ||
+					(session->current_operation == DRAG_VTRANSITION && 
+					session->track_highlighted->data_type == TRACK_VIDEO))
 				{
 //printf("TrackCanvas::draw_highlighting 2\n");
-					edit_dimensions(mwindow->session->edit_highlighted, x, y, w, h);
+					edit_dimensions(session->edit_highlighted, x, y, w, h);
 //printf("TrackCanvas::draw_highlighting 2\n");
 
 					if(MWindowGUI::visible(x, x + w, 0, get_w()) &&
 						MWindowGUI::visible(y, y + h, 0, get_h()))
 					{
 						draw_box = 1;
-						get_transition_coords(x, y, w, h);
+						get_transition_coords(
+                            0,
+                            session->drag_pluginservers->values[0]->title,
+                            x, 
+                            y, 
+                            w, 
+                            h);
 					}
 //printf("TrackCanvas::draw_highlighting 3\n");
 				}
@@ -1228,14 +1263,14 @@ void TrackCanvas::draw_highlighting()
 // Dragging a new effect from the Resource window
 		case DRAG_AEFFECT:
 		case DRAG_VEFFECT:
-			if(mwindow->session->track_highlighted &&
-				((mwindow->session->current_operation == DRAG_AEFFECT && mwindow->session->track_highlighted->data_type == TRACK_AUDIO) ||
-					(mwindow->session->current_operation == DRAG_VEFFECT && mwindow->session->track_highlighted->data_type == TRACK_VIDEO)))
+			if(session->track_highlighted &&
+				((session->current_operation == DRAG_AEFFECT && session->track_highlighted->data_type == TRACK_AUDIO) ||
+					(session->current_operation == DRAG_VEFFECT && session->track_highlighted->data_type == TRACK_VIDEO)))
 			{
 // Put it before another plugin
-				if(mwindow->session->plugin_highlighted)
+				if(session->plugin_highlighted)
 				{
-					plugin_dimensions(mwindow->session->plugin_highlighted, 
+					plugin_dimensions(session->plugin_highlighted, 
 						x, 
 						y, 
 						w, 
@@ -1244,17 +1279,17 @@ void TrackCanvas::draw_highlighting()
 				}
 				else
 // Put it after a plugin set
-				if(mwindow->session->pluginset_highlighted &&
-					mwindow->session->pluginset_highlighted->last)
+				if(session->pluginset_highlighted &&
+					session->pluginset_highlighted->last)
 				{
-					plugin_dimensions((Plugin*)mwindow->session->pluginset_highlighted->last, 
+					plugin_dimensions((Plugin*)session->pluginset_highlighted->last, 
 						x, 
 						y, 
 						w, 
 						h);
 //printf("TrackCanvas::draw_highlighting 1 %d %d\n", x, w);
 					int64_t track_x, track_y, track_w, track_h;
-					track_dimensions(mwindow->session->track_highlighted, 
+					track_dimensions(session->track_highlighted, 
 						track_x, 
 						track_y, 
 						track_w, 
@@ -1262,7 +1297,7 @@ void TrackCanvas::draw_highlighting()
 
 					x += w;
 					w = Units::round(
-							mwindow->session->track_highlighted->get_length() *
+							session->track_highlighted->get_length() *
 							mwindow->edl->session->sample_rate / 
 							mwindow->edl->local_session->zoom_sample - 
 							mwindow->edl->local_session->view_start[pane->number]) -
@@ -1272,7 +1307,7 @@ void TrackCanvas::draw_highlighting()
 				}
 				else
 				{
-					track_dimensions(mwindow->session->track_highlighted, 
+					track_dimensions(session->track_highlighted, 
 						x, 
 						y, 
 						w, 
@@ -1294,10 +1329,10 @@ void TrackCanvas::draw_highlighting()
 					}
 // Put it in a new plugin set determined by an edit boundary
 //					else
-// 					if(mwindow->session->edit_highlighted)
+// 					if(session->edit_highlighted)
 // 					{
 // 						int64_t temp_y, temp_h;
-// 						edit_dimensions(mwindow->session->edit_highlighted, 
+// 						edit_dimensions(session->edit_highlighted, 
 // 							x, 
 // 							temp_y, 
 // 							w, 
@@ -1316,9 +1351,9 @@ void TrackCanvas::draw_highlighting()
 			break;
 		
 		case DRAG_ASSET:
-			if(mwindow->session->track_highlighted)
+			if(session->track_highlighted)
 			{
-//				track_dimensions(mwindow->session->track_highlighted, x, y, w, h);
+//				track_dimensions(session->track_highlighted, x, y, w, h);
 
 //				if(MWindowGUI::visible(y, y + h, 0, get_h()))
 //				{
@@ -1328,9 +1363,9 @@ void TrackCanvas::draw_highlighting()
 			break;
 
 		case DRAG_EDIT:
-			if(mwindow->session->track_highlighted)
+			if(session->track_highlighted)
 			{
-//				track_dimensions(mwindow->session->track_highlighted, x, y, w, h);
+//				track_dimensions(session->track_highlighted, x, y, w, h);
 //
 //				if(MWindowGUI::visible(y, y + h, 0, get_h()))
 //				{
@@ -1342,31 +1377,31 @@ void TrackCanvas::draw_highlighting()
 // Dragging an effect from the timeline
 		case DRAG_AEFFECT_COPY:
 		case DRAG_VEFFECT_COPY:
-			if((mwindow->session->plugin_highlighted || mwindow->session->track_highlighted) &&
-				((mwindow->session->current_operation == DRAG_AEFFECT_COPY && mwindow->session->track_highlighted->data_type == TRACK_AUDIO) ||
-				(mwindow->session->current_operation == DRAG_VEFFECT_COPY && mwindow->session->track_highlighted->data_type == TRACK_VIDEO)))
+			if((session->plugin_highlighted || session->track_highlighted) &&
+				((session->current_operation == DRAG_AEFFECT_COPY && session->track_highlighted->data_type == TRACK_AUDIO) ||
+				(session->current_operation == DRAG_VEFFECT_COPY && session->track_highlighted->data_type == TRACK_VIDEO)))
 			{
 // Put it before another plugin
-				if(mwindow->session->plugin_highlighted)
-					plugin_dimensions(mwindow->session->plugin_highlighted, x, y, w, h);
+				if(session->plugin_highlighted)
+					plugin_dimensions(session->plugin_highlighted, x, y, w, h);
 				else
 // Put it after a plugin set
-				if(mwindow->session->pluginset_highlighted &&
-					mwindow->session->pluginset_highlighted->last)
+				if(session->pluginset_highlighted &&
+					session->pluginset_highlighted->last)
 				{
-					plugin_dimensions((Plugin*)mwindow->session->pluginset_highlighted->last, x, y, w, h);
+					plugin_dimensions((Plugin*)session->pluginset_highlighted->last, x, y, w, h);
 					x += w;
 				}
 				else
-				if(mwindow->session->track_highlighted)
+				if(session->track_highlighted)
 				{
-					track_dimensions(mwindow->session->track_highlighted, x, y, w, h);
+					track_dimensions(session->track_highlighted, x, y, w, h);
 
 // Put it in a new plugin set determined by an edit boundary
-					if(mwindow->session->edit_highlighted)
+					if(session->edit_highlighted)
 					{
 						int64_t temp_y, temp_h;
-						edit_dimensions(mwindow->session->edit_highlighted, 
+						edit_dimensions(session->edit_highlighted, 
 							x, 
 							temp_y, 
 							w, 
@@ -1376,16 +1411,16 @@ void TrackCanvas::draw_highlighting()
 				}
 
 // Calculate length of plugin based on data type of track and units
-				if(mwindow->session->track_highlighted->data_type == TRACK_VIDEO)
+				if(session->track_highlighted->data_type == TRACK_VIDEO)
 				{
-					w = (int64_t)((double)mwindow->session->drag_plugin->length / 
+					w = (int64_t)((double)session->drag_plugin->length / 
 						mwindow->edl->session->frame_rate *
 						mwindow->edl->session->sample_rate /
 						mwindow->edl->local_session->zoom_sample);
 				}
 				else
 				{
-					w = (int64_t)mwindow->session->drag_plugin->length /
+					w = (int64_t)session->drag_plugin->length /
 						mwindow->edl->local_session->zoom_sample;
 				}
 
@@ -1398,11 +1433,11 @@ void TrackCanvas::draw_highlighting()
 			break;
 
 		case DRAG_PLUGINKEY:
-			if(mwindow->session->plugin_highlighted && 
-			   mwindow->session->current_operation == DRAG_PLUGINKEY)
+			if(session->plugin_highlighted && 
+			   session->current_operation == DRAG_PLUGINKEY)
 			{
 // Just highlight the plugin
-				plugin_dimensions(mwindow->session->plugin_highlighted, x, y, w, h);
+				plugin_dimensions(session->plugin_highlighted, x, y, w, h);
 
 				if(MWindowGUI::visible(x, x + w, 0, get_w()) &&
 					MWindowGUI::visible(y, y + h, 0, get_h()))
@@ -1450,12 +1485,14 @@ void TrackCanvas::draw_plugins()
 				{
 					int64_t total_x, y, total_w, h;
 					plugin_dimensions(plugin, total_x, y, total_w, h);
-					
+
 					if(MWindowGUI::visible(total_x, total_x + total_w, 0, get_w()) &&
 						MWindowGUI::visible(y, y + h, 0, get_h()) &&
 						plugin->plugin_type != PLUGIN_NONE)
 					{
-						int x = total_x, w = total_w, left_margin = 5;
+						int x = total_x, w = total_w;
+                        int top_margin = 2;
+                        int left_margin = 5;
 						int right_margin = 5;
 						if(x < 0)
 						{
@@ -1493,7 +1530,7 @@ void TrackCanvas::draw_plugins()
 						int64_t text_w = get_text_width(mwindow->theme->title_font, string, strlen(string));
 						text_x = MAX(left_margin, text_x);
 						draw_text(text_x, 
-							y + get_text_ascent(mwindow->theme->title_font) + 2, 
+							y + get_text_ascent(mwindow->theme->title_font) + top_margin, 
 							string,
 							strlen(string),
 							0);
@@ -1622,31 +1659,50 @@ void TrackCanvas::draw_transitions()
 			if(edit->transition)
 			{
 				edit_dimensions(edit, x, y, w, h);
-				get_transition_coords(x, y, w, h);
+				get_transition_coords(edit->transition, 
+                    edit->transition->title, 
+                    x, 
+                    y, 
+                    w, 
+                    h);
 
 				if(MWindowGUI::visible(x, x + w, 0, get_w()) &&
 					MWindowGUI::visible(y, y + h, 0, get_h()))
 				{
-					PluginServer *server = mwindow->scan_plugindb(edit->transition->title,
-						track->data_type);
-					if(!server->picon)
-					{
-						server->open_plugin(1, mwindow->preferences, 0, 0, -1);
-						server->close_plugin();
-					}
-
-					if(server->picon)
-					{
-						draw_vframe(server->picon, 
-							x, 
-							y, 
-							w, 
-							h, 
-							0, 
-							0, 
-							server->picon->get_w(), 
-							server->picon->get_h());
-					}
+                    int top_margin = 2;
+                    int left_margin = 5;
+                    draw_3segmenth(x, 
+					    y, 
+					    w, 
+					    x,
+					    w,
+					    mwindow->theme->get_image("plugin_bg_data"),
+					    0);
+                    set_color(mwindow->theme->title_color);
+					set_font(mwindow->theme->title_font);
+                    draw_text(x + left_margin, 
+					    y + get_text_ascent(mwindow->theme->title_font) + top_margin, 
+					    edit->transition->title);
+// 					PluginServer *server = mwindow->scan_plugindb(edit->transition->title,
+// 						track->data_type);
+// 					if(!server->picon)
+// 					{
+// 						server->open_plugin(1, mwindow->preferences, 0, 0, -1);
+// 						server->close_plugin();
+// 					}
+// 
+// 					if(server->picon)
+// 					{
+// 						draw_vframe(server->picon, 
+// 							x, 
+// 							y, 
+// 							w, 
+// 							h, 
+// 							0, 
+// 							0, 
+// 							server->picon->get_w(), 
+// 							server->picon->get_h());
+// 					}
 				}
 			}
 		}
@@ -4954,7 +5010,12 @@ int TrackCanvas::do_transitions(int cursor_x,
 			if(edit->transition)
 			{
 				edit_dimensions(edit, x, y, w, h);
-				get_transition_coords(x, y, w, h);
+				get_transition_coords(edit->transition,
+                    edit->transition->title, 
+                    x, 
+                    y, 
+                    w, 
+                    h);
 
 				if(MWindowGUI::visible(x, x + w, 0, get_w()) &&
 					MWindowGUI::visible(y, y + h, 0, get_h()))

@@ -303,7 +303,6 @@ public:
 	int vdivision_x;
 	int vtransport_x, vtransport_y;
 	int window_border;
-	int widget_border;
 	int clock_bg_color;
 	int clock_fg_color;
 

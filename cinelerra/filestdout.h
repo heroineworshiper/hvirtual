@@ -67,8 +67,8 @@ public:
 	int close_file_derived();
 
 // default values
-    static StdoutPreset* default_audio_presets[1];
-    static StdoutPreset* default_video_presets[2];
+    static StdoutPreset* default_audio_presets[2];
+    static StdoutPreset* default_video_presets[3];
     static StdoutPreset* default_mplex_presets[1];
 
 

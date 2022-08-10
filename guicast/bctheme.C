@@ -32,12 +32,13 @@
 
 BC_Theme::BC_Theme()
 {
+    BC_Resources::theme = this;
 	data_ptr = 0;
 	contents_ptr = 0;
 	last_image = 0;
 	last_pointer = 0;
 
-
+    widget_border = DP(5);
 }
 
 BC_Theme::~BC_Theme()

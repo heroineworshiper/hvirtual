@@ -309,7 +309,6 @@ OBJS = \
 	$(OBJDIR)/trackscroll.o \
 	$(OBJDIR)/tracksedit.o \
 	$(OBJDIR)/transition.o \
-	$(OBJDIR)/transitionhandles.o \
 	$(OBJDIR)/transitionpopup.o \
 	$(OBJDIR)/transportque.o \
 	$(OBJDIR)/tunerserver.o \
@@ -352,6 +351,7 @@ OBJS = \
 	$(OBJDIR)/zoompanel.o
 
 
+#	$(OBJDIR)/transitionhandles.o \
 #	$(OBJDIR)/renderfarmfsclient.o \
 #	$(OBJDIR)/renderfarmfsserver.o \
 

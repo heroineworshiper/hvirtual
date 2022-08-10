@@ -41,23 +41,32 @@ extern "C"
 
 
 
-StdoutPreset* FileStdout::default_audio_presets[1] = 
+StdoutPreset* FileStdout::default_audio_presets[2] = 
 {
     new StdoutPreset("ffmpeg AAC",
         "ffmpeg -y -f f32le -ar %r -ac %c -i - -f mp4 -c:a aac -b:a 192k %1",
         BITSFLOAT,
         BYTE_ORDER_LOHI,
         1,
-        0)
+        0),
+    new StdoutPreset("null",
+        "cat > /dev/null",
+        BITSFLOAT,
+        BYTE_ORDER_LOHI,
+        1,
+        0),
 };
 
-StdoutPreset* FileStdout::default_video_presets[2] =
+StdoutPreset* FileStdout::default_video_presets[3] =
 {
     new StdoutPreset("ffmpeg HEVC CBR",
         "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -b:v 5M %1",
         BC_YUV420P),
     new StdoutPreset("ffmpeg HEVC VBR",
         "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -qp:v 40 %1",
+        BC_YUV420P),
+    new StdoutPreset("null",
+        "cat > /dev/null",
         BC_YUV420P),
 };
 
