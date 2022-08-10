@@ -78,6 +78,7 @@ Theme::Theme()
 	BC_WindowBase::get_resources()->button_up = 0xffc000;
 	BC_WindowBase::get_resources()->button_highlighted = 0xffe000;
 	BC_WindowBase::get_resources()->recursive_resizing = 0;
+    fps_color = GREEN;
 	audio_color = BLACK;
     zero_crossing_color = BLACK;
     graph_active_color = WHITE;

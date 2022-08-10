@@ -164,6 +164,7 @@ public:
 	int adivider_x, adivider_y, adivider_w, adivider_h;
 	int afolders_x, afolders_y, afolders_w, afolders_h;
 	int alist_x, alist_y, alist_w, alist_h;
+    int fps_color;
 // audio waveform color
 	int audio_color;
 // audio zero crossing

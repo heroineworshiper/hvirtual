@@ -425,6 +425,7 @@ void BrightTheme::initialize()
 
 // MWindow
 	message_normal = resources->text_default;
+    fps_color = WHITE;
 	audio_color = 0x000000;
     zero_crossing_color = BLACK;
     graph_active_color = BLACK;

@@ -220,8 +220,8 @@ void InterfacePrefs::create_objects()
 	x = x1;
 	y += DP(30);
 	ViewTheme *theme;
-	add_subwindow(new BC_Title(x, y, _("Theme:")));
-	x += DP(60);
+	add_subwindow(title = new BC_Title(x, y, _("Theme:")));
+	x += title->get_w() + margin;
 	add_subwindow(theme = new ViewTheme(x, y, pwindow));
 	theme->create_objects();
 

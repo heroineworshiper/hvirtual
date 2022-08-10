@@ -1083,7 +1083,7 @@ int VDeviceX11::write_buffer(VFrame *output_frame, EDL *edl)
      	sprintf(string, "%.4f", device->mwindow->session->actual_frame_rate);
 
         canvas->get_fps()->clear_box(0, 0, canvas->get_fps()->get_w(), canvas->get_fps()->get_h());
-        canvas->get_fps()->set_color(GREEN);
+        canvas->get_fps()->set_color(MWindow::theme->fps_color);
         canvas->get_fps()->set_font(MEDIUMFONT);
         canvas->get_fps()->draw_text(margin, canvas->get_fps()->get_h() - margin, string);
         canvas->get_fps()->flash();

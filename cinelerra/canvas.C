@@ -940,7 +940,7 @@ void Canvas::create_canvas(int flush)
                     FPS_X,
                     FPS_Y,
                     canvas_subwindow->get_text_width(MEDIUMFONT, "000.0000") + margin * 2,
-                    canvas_subwindow->get_text_height(MEDIUMFONT, "X") + margin * 2));
+                    canvas_subwindow->get_text_ascent(MEDIUMFONT) + margin * 2));
             }
 		}
 
@@ -967,7 +967,7 @@ void Canvas::create_canvas(int flush)
                     FPS_X,
                     FPS_Y,
                     canvas_fullscreen->get_text_width(MEDIUMFONT, "000.0000") + margin * 2,
-                    canvas_fullscreen->get_text_height(MEDIUMFONT, "X") + margin * 2));
+                    canvas_fullscreen->get_text_ascent(MEDIUMFONT) + margin * 2));
                 fps_fullscreen->show_window(1);
             } 
 		}
