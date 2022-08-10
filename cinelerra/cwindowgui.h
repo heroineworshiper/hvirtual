@@ -290,6 +290,7 @@ public:
 	void draw_crop();
 	void calculate_origin();
 	void toggle_controls();
+    void toggle_fps();
 	int get_cwindow_controls();
 
 	MWindow *mwindow;

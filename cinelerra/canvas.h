@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -35,6 +34,7 @@ class CanvasYScroll;
 class CanvasPopup;
 class CanvasFullScreenPopup;
 class CanvasToggleControls;
+class CanvasFPS;
 
 // The EDL arguments can be set to 0 if the canvas_w and canvas_h are used
 class Canvas
@@ -80,6 +80,7 @@ public:
 
 	void start_fullscreen();
 	void stop_fullscreen();
+	void toggle_fps();
 
 // Don't call from inside the canvas
 	void create_canvas(int flush);
@@ -182,6 +183,8 @@ public:
 	int get_buttonpress();
 // Gets whatever video surface is enabled
 	BC_WindowBase* get_canvas();
+// get subwindow for drawing FPS
+    BC_WindowBase* get_fps();
 
 // The owner of the canvas
 	BC_WindowBase *subwindow;
@@ -189,6 +192,8 @@ public:
 	CanvasOutput *canvas_subwindow;
 // Video surface if fullscreen
 	CanvasFullScreen *canvas_fullscreen;
+	BC_WindowBase *fps_subwindow;
+    BC_WindowBase *fps_fullscreen;
 	CanvasXScroll *xscroll;
 	CanvasYScroll *yscroll;
 	CanvasPopup *canvas_menu;
@@ -334,6 +339,7 @@ public:
 
 	Canvas *canvas;
 	CanvasToggleControls *toggle_controls;
+	CanvasFPS *show_fps;
 };
 
 class CanvasPopupSize : public BC_MenuItem
@@ -376,6 +382,15 @@ public:
 	CanvasToggleControls(Canvas *canvas);
 	int handle_event();
 	static char* calculate_text(int cwindow_controls);
+	Canvas *canvas;
+};
+
+class CanvasFPS : public BC_MenuItem
+{
+public:
+	CanvasFPS(Canvas *canvas);
+	int handle_event();
+	static char* calculate_text(int show_fps);
 	Canvas *canvas;
 };
 

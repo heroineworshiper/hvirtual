@@ -68,14 +68,14 @@ public:
 	void delete_strategy();
 
 	void update(int interpolation);
-	int draw_framerate(int flush /* = 1 */);
+//	int draw_framerate(int flush /* = 1 */);
 
 	ADevicePrefs *audio_device;
 	VDevicePrefs *video_device;
 	ArrayList<BC_ListBoxItem*> strategies;
 
 	PlaybackConfig *playback_config;
-	BC_Title *framerate_title;
+//	BC_Title *framerate_title;
 	PlaybackNearest *nearest_neighbor;
 	PlaybackBicubicBicubic *cubic_cubic;
 //	PlaybackBicubicBilinear *cubic_linear;

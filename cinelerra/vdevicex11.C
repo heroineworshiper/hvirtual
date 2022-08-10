@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
@@ -29,6 +28,7 @@
 #include "edl.h"
 #include "edlsession.h"
 #include "file.h"
+#include "mainsession.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "playback3d.h"
@@ -36,6 +36,7 @@
 #include "preferences.h"
 #include "recordconfig.h"
 #include "strategies.inc"
+#include "theme.h"
 #include "vdevicex11.h"
 #include "vframe.h"
 #include "videodevice.h"
@@ -1072,6 +1073,21 @@ int VDeviceX11::write_buffer(VFrame *output_frame, EDL *edl)
 //printf("VDeviceX11::write_buffer %d bitmap=%p\n", __LINE__, bitmap);
 	}
 
+
+// draw the FPS
+//printf("VDeviceX11::write_buffer %d %p %d\n", __LINE__, device->mwindow, MWindow::preferences->show_fps);
+    if(device->mwindow && canvas->get_fps() && MWindow::preferences->show_fps)
+    {
+        int margin = MWindow::theme->widget_border;
+     	char string[BCTEXTLEN];
+     	sprintf(string, "%.4f", device->mwindow->session->actual_frame_rate);
+
+        canvas->get_fps()->clear_box(0, 0, canvas->get_fps()->get_w(), canvas->get_fps()->get_h());
+        canvas->get_fps()->set_color(GREEN);
+        canvas->get_fps()->set_font(MEDIUMFONT);
+        canvas->get_fps()->draw_text(margin, canvas->get_fps()->get_h() - margin, string);
+        canvas->get_fps()->flash();
+    }
 
 	canvas->get_canvas()->unlock_window();
 	canvas->unlock_canvas();

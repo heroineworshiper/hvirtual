@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,10 +29,13 @@
 #include "mainsession.h"
 #include "mutex.h"
 #include "mwindow.h"
+#include "preferences.h"
 #include "recordmonitor.inc"
+#include "theme.h"
 #include "vframe.h"
 
-
+#define FPS_X 0
+#define FPS_Y 0
 
 Canvas::Canvas(MWindow *mwindow,
 	BC_WindowBase *subwindow, 
@@ -75,6 +77,8 @@ Canvas::~Canvas()
 	delete canvas_menu;
  	if(yscroll) delete yscroll;
  	if(xscroll) delete xscroll;
+    delete fps_subwindow;
+    delete fps_fullscreen;
 	delete canvas_subwindow;
 	delete canvas_fullscreen;
 	delete canvas_lock;
@@ -90,6 +94,8 @@ void Canvas::reset()
 	refresh_frame = 0;
 	canvas_subwindow = 0;
 	canvas_fullscreen = 0;
+    fps_subwindow = 0;
+    fps_fullscreen = 0;
 	is_processing = 0;
 	cursor_inside = 0;
 }
@@ -116,6 +122,14 @@ BC_WindowBase* Canvas::get_canvas()
 		return canvas_fullscreen;
 	else
 		return canvas_subwindow;
+}
+
+BC_WindowBase* Canvas::get_fps()
+{
+    if(get_fullscreen() && canvas_fullscreen)
+        return fps_fullscreen;
+    else
+	    return fps_subwindow;
 }
 
 
@@ -894,11 +908,10 @@ void Canvas::create_canvas(int flush)
 	int video_on = 0;
 	lock_canvas("Canvas::create_canvas");
 
-
+    int margin = mwindow->theme->widget_border;
 	if(!get_fullscreen())
 // Enter windowed
 	{
-
 		if(canvas_fullscreen)
 		{
 			video_on = canvas_fullscreen->get_video_on();
@@ -921,6 +934,14 @@ void Canvas::create_canvas(int flush)
 				view_y, 
 				view_w, 
 				view_h));
+	        if(use_cwindow)
+            {
+                canvas_subwindow->add_subwindow(fps_subwindow = new BC_SubWindow(
+                    FPS_X,
+                    FPS_Y,
+                    canvas_subwindow->get_text_width(MEDIUMFONT, "000.0000") + margin * 2,
+                    canvas_subwindow->get_text_height(MEDIUMFONT, "X") + margin * 2));
+            }
 		}
 
 	}
@@ -940,6 +961,15 @@ void Canvas::create_canvas(int flush)
 			canvas_fullscreen = new CanvasFullScreen(this,
         		root_w,
         		root_h);
+	        if(use_cwindow)
+            {
+                canvas_fullscreen->add_subwindow(fps_fullscreen = new BC_SubWindow(
+                    FPS_X,
+                    FPS_Y,
+                    canvas_fullscreen->get_text_width(MEDIUMFONT, "000.0000") + margin * 2,
+                    canvas_fullscreen->get_text_height(MEDIUMFONT, "X") + margin * 2));
+                fps_fullscreen->show_window(1);
+            } 
 		}
 		else
 		{
@@ -951,7 +981,6 @@ void Canvas::create_canvas(int flush)
 
 	}
 
-
 	if(!video_on)
 	{
 		get_canvas()->lock_window("Canvas::create_canvas 1");
@@ -961,10 +990,39 @@ void Canvas::create_canvas(int flush)
 
 	if(video_on) get_canvas()->start_video();
 
+    if(use_cwindow)
+    {
+        if(!MWindow::preferences->show_fps)
+        {
+            get_fps()->reposition_window(get_fps()->get_x(), -get_fps()->get_h());
+        }
+        else
+        {
+            get_fps()->reposition_window(get_fps()->get_x(), FPS_Y);
+        }
+    }
+
 	unlock_canvas();
 }
 
-
+void Canvas::toggle_fps()
+{
+    if(use_cwindow)
+    {
+        MWindow::preferences->show_fps = !MWindow::preferences->show_fps;
+        if(get_fps())
+        {
+            if(!MWindow::preferences->show_fps)
+            {
+                get_fps()->reposition_window(get_fps()->get_x(), -get_fps()->get_h());
+            }
+            else
+            {
+                get_fps()->reposition_window(get_fps()->get_x(), FPS_Y);
+            }
+        }
+    }
+}
 
 int Canvas::cursor_leave_event_base(BC_WindowBase *caller)
 {
@@ -1206,7 +1264,11 @@ CanvasFullScreenPopup::CanvasFullScreenPopup(Canvas *canvas)
 
 void CanvasFullScreenPopup::create_objects()
 {
-	if(canvas->use_cwindow) add_item(new CanvasPopupAuto(canvas));
+	if(canvas->use_cwindow)
+    {
+        add_item(new CanvasPopupAuto(canvas));
+        add_item(new CanvasFPS(canvas));
+    }
 	add_item(new CanvasSubWindowItem(canvas));
 }
 
@@ -1265,6 +1327,7 @@ void CanvasPopup::create_objects()
 		add_item(new CanvasPopupResetCamera(canvas));
 		add_item(new CanvasPopupResetProjector(canvas));
 		add_item(toggle_controls = new CanvasToggleControls(canvas));
+        add_item(show_fps = new CanvasFPS(canvas));
 	}
 	if(canvas->use_rwindow)
 	{
@@ -1403,6 +1466,26 @@ int CanvasFullScreenItem::handle_event()
 	canvas->start_fullscreen();
 	canvas->subwindow->lock_window("CanvasFullScreenItem::handle_event");
 	return 1;
+}
+
+
+CanvasFPS::CanvasFPS(Canvas *canvas)
+ : BC_MenuItem(calculate_text(MWindow::preferences->show_fps))
+{
+	this->canvas = canvas;
+}
+int CanvasFPS::handle_event()
+{
+	canvas->toggle_fps();
+	set_text(calculate_text(MWindow::preferences->show_fps));
+	return 1;
+}
+char* CanvasFPS::calculate_text(int value)
+{
+	if(!value) 
+		return _("Show FPS");
+	else
+		return _("Hide FPS");
 }
 
 

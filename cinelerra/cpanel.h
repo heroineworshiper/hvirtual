@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,45 +64,25 @@ public:
 	CPanel *gui;
 };
 
-class CPanelTitleSafe : public BC_Toggle
-{
-public:
-	CPanelTitleSafe(MWindow *mwindow, CPanel *gui, int x, int y);
-	~CPanelTitleSafe();
-	int handle_event();
-	MWindow *mwindow;
-	CPanel *gui;
-};
-
-class CPanelErase : public BC_Toggle
-{
-public:
-	CPanelErase(MWindow *mwindow, CPanel *gui, int x, int y);
-	~CPanelErase();
-	int handle_event();
-	MWindow *mwindow;
-	CPanel *gui;
-};
-
-class CPanelAntierase : public BC_Toggle
-{
-public:
-	CPanelAntierase(MWindow *mwindow, CPanel *gui, int x, int y);
-	~CPanelAntierase();
-	int handle_event();
-	MWindow *mwindow;
-	CPanel *gui;
-};
-
-class CPanelProtect : public BC_Toggle
-{
-public:
-	CPanelProtect(MWindow *mwindow, CPanel *gui, int x, int y);
-	~CPanelProtect();
-	int handle_event();
-	MWindow *mwindow;
-	CPanel *gui;
-};
+// class CPanelTitleSafe : public BC_Toggle
+// {
+// public:
+// 	CPanelTitleSafe(MWindow *mwindow, CPanel *gui, int x, int y);
+// 	~CPanelTitleSafe();
+// 	int handle_event();
+// 	MWindow *mwindow;
+// 	CPanel *gui;
+// };
+// 
+// class CPanelProtect : public BC_Toggle
+// {
+// public:
+// 	CPanelProtect(MWindow *mwindow, CPanel *gui, int x, int y);
+// 	~CPanelProtect();
+// 	int handle_event();
+// 	MWindow *mwindow;
+// 	CPanel *gui;
+// };
 
 class CPanelMagnify : public BC_Toggle
 {

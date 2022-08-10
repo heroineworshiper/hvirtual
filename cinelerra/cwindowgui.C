@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@
 #include "mwindow.h"
 #include "playback3d.h"
 #include "playtransport.h"
+#include "preferences.h"
 #include "theme.h"
 #include "trackcanvas.h"
 #include "tracks.h"
@@ -2434,10 +2435,10 @@ printf("CWindowCanvas::do_eyedrop %d x=%d y=%d\n", __LINE__, gui->eyedrop_x, gui
 
 void CWindowCanvas::draw_overlays()
 {
-	if(mwindow->edl->session->safe_regions)
-	{
-		draw_safe_regions();
-	}
+// 	if(mwindow->edl->session->safe_regions)
+// 	{
+// 		draw_safe_regions();
+// 	}
 
 	if(mwindow->edl->session->cwindow_scrollbars)
 	{
@@ -3278,15 +3279,18 @@ int CWindowCanvas::cursor_enter_event()
 		case CWINDOW_CROP:
 			test_crop(0, redraw);
 			break;
-		case CWINDOW_PROTECT:
-			set_cursor(ARROW_CURSOR);
-			break;
+// 		case CWINDOW_PROTECT:
+// 			set_cursor(ARROW_CURSOR);
+// 			break;
 		case CWINDOW_MASK:
 		case CWINDOW_RULER:
 			set_cursor(CROSS_CURSOR);
 			break;
 		case CWINDOW_EYEDROP:
 			set_cursor(CROSS_CURSOR);
+			break;
+		default:
+			set_cursor(ARROW_CURSOR);
 			break;
 	}
 	return 1;
@@ -3604,5 +3608,9 @@ int CWindowCanvas::get_cwindow_controls()
 	return mwindow->session->cwindow_controls;
 }
 
+void CWindowCanvas::toggle_fps()
+{
+    MWindow::preferences->show_fps = !MWindow::preferences->show_fps;
+}
 
 

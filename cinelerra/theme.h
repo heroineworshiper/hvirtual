@@ -307,7 +307,7 @@ public:
 	int clock_fg_color;
 
 // Bitmaps
-	VFrame *about_bg;
+//	VFrame *about_bg;
 	VFrame **appendasset_data;
 	VFrame **append_data;
 	VFrame **asset_append_data;

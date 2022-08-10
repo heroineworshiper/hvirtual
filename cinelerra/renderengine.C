@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
@@ -343,7 +342,7 @@ int RenderEngine::open_output()
 
 		if(do_video)
 		{
-			vdevice = new VideoDevice;
+			vdevice = new VideoDevice(mwindow);
 		}
 
 // Initialize sharing
@@ -471,7 +470,7 @@ void RenderEngine::start_render_threads()
 void RenderEngine::update_framerate(float framerate)
 {
 	playback_engine->mwindow->session->actual_frame_rate = framerate;
-	playback_engine->mwindow->preferences_thread->update_framerate();
+//	playback_engine->mwindow->preferences_thread->update_framerate();
 }
 
 void RenderEngine::wait_render_threads()

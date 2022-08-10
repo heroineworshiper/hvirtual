@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
@@ -115,6 +114,8 @@ public:
     int use_gl_rendering;
 // sometimes it's faster.  Sometimes it's slower depending on the hardware.
     int use_hardware_decoding;
+// Show FPS in compositor
+    int show_fps;
 
 	int use_renderfarm;
 	int renderfarm_port;

@@ -145,11 +145,11 @@ SET_TRACE
 	add_subwindow(window = new VideoEveryFrame(pwindow, this, x, y));
 	y += window->get_h() + margin;
 	
-	add_subwindow(title1 = new BC_Title(x, y, _("Framerate achieved:")));
-	x1 = title1->get_x() + title1->get_w() + margin;
-	add_subwindow(framerate_title = new BC_Title(x1, y, _("--"), MEDIUMFONT, RED));
-	draw_framerate(0);
-	y += framerate_title->get_h() + margin;
+//	add_subwindow(title1 = new BC_Title(x, y, _("Framerate achieved:")));
+//  x1 = title1->get_x() + title1->get_w() + margin;
+//	add_subwindow(framerate_title = new BC_Title(x1, y, _("--"), MEDIUMFONT, RED));
+//	draw_framerate(0);
+//	y += framerate_title->get_h() + margin;
 
 //	add_subwindow(asynchronous = new VideoAsynchronous(pwindow, x, y));
 //	y += asynchronous->get_h() + 10;
@@ -274,14 +274,14 @@ int PlaybackPrefs::get_buffer_bytes()
 //	return pwindow->thread->edl->aconfig->oss_out_bits / 8 * pwindow->thread->preferences->aconfig->oss_out_channels * pwindow->thread->preferences->playback_buffer;
 }
 
-int PlaybackPrefs::draw_framerate(int flush)
-{
-//printf("PlaybackPrefs::draw_framerate 1 %f\n", mwindow->session->actual_frame_rate);
-	char string[BCTEXTLEN];
-	sprintf(string, "%.4f", mwindow->session->actual_frame_rate);
-	framerate_title->update(string, flush);
-	return 0;
-}
+// int PlaybackPrefs::draw_framerate(int flush)
+// {
+// //printf("PlaybackPrefs::draw_framerate 1 %f\n", mwindow->session->actual_frame_rate);
+// 	char string[BCTEXTLEN];
+// 	sprintf(string, "%.4f", mwindow->session->actual_frame_rate);
+// 	framerate_title->update(string, flush);
+// 	return 0;
+// }
 
 
 

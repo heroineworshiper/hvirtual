@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ void AboutPrefs::create_objects()
 
 
 
-	y += get_text_height(MEDIUMFONT) * 3;
+	y += get_text_height(MEDIUMFONT) * 2 + get_text_height(LARGEFONT);
 
 // 	char versions[BCTEXTLEN];
 // 	sprintf(versions, 
@@ -90,7 +90,7 @@ void AboutPrefs::create_objects()
 
 
 
-	y += get_text_height(MEDIUMFONT) * 3;
+//	y += get_text_height(MEDIUMFONT) * 3;
 	set_font(LARGEFONT);
 	draw_text(x, y, "Contributors:");
 	y += get_text_height(LARGEFONT);
@@ -159,20 +159,20 @@ void AboutPrefs::create_objects()
 "\n"));
 	draw_text(x, y, license3);
 
-	x = get_w() - mwindow->theme->about_bg->get_w() - DP(10);
-	y = mwindow->theme->preferencesoptions_y;
-	BC_Pixmap *temp_pixmap = new BC_Pixmap(this, 
-		mwindow->theme->about_bg,
-		PIXMAP_ALPHA);
-	draw_pixmap(temp_pixmap, 
-		x, 
-		y);
+//	x = get_w() - mwindow->theme->about_bg->get_w() - DP(10);
+//	y = mwindow->theme->preferencesoptions_y;
+// 	BC_Pixmap *temp_pixmap = new BC_Pixmap(this, 
+// 		mwindow->theme->about_bg,
+// 		PIXMAP_ALPHA);
+// 	draw_pixmap(temp_pixmap, 
+// 		x, 
+// 		y);
+// 
+// 	delete temp_pixmap;
 
-	delete temp_pixmap;
 
-
-	x += mwindow->theme->about_bg->get_w() + DP(10);
-	y += get_text_height(LARGEFONT) * 2;
+//	x += mwindow->theme->about_bg->get_w() + DP(10);
+//	y += get_text_height(LARGEFONT) * 2;
 
 
 	flash(1);

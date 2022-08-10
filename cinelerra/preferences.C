@@ -79,6 +79,7 @@ Preferences::Preferences()
     dump_playback = 0;
     use_gl_rendering = 0;
     use_hardware_decoding = 0;
+    show_fps = 0;
 	use_renderfarm = 0;
 	force_uniprocessor = 0;
 	renderfarm_port = DEAMON_PORT;
@@ -194,6 +195,7 @@ void Preferences::copy_from(Preferences *that)
     dump_playback = that->dump_playback;
     use_gl_rendering = that->use_gl_rendering;
     use_hardware_decoding = that->use_hardware_decoding;
+    show_fps = that->show_fps;
 	use_renderfarm = that->use_renderfarm;
 	renderfarm_port = that->renderfarm_port;
 	render_preroll = that->render_preroll;
@@ -341,6 +343,7 @@ int Preferences::load_defaults(BC_Hash *defaults)
     dump_playback = defaults->get("DUMP_PLAYBACK", dump_playback);
     use_gl_rendering = defaults->get("USE_GL_RENDERING", use_gl_rendering);
     use_hardware_decoding = defaults->get("USE_HARDWARE_DECODING", use_hardware_decoding);
+    show_fps = defaults->get("SHOW_FPS", show_fps);
 	use_renderfarm = defaults->get("USE_RENDERFARM", use_renderfarm);
 	renderfarm_port = defaults->get("RENDERFARM_PORT", renderfarm_port);
 	render_preroll = defaults->get("RENDERFARM_PREROLL", render_preroll);
@@ -424,6 +427,7 @@ int Preferences::save_defaults(BC_Hash *defaults)
 	defaults->update("DUMP_PLAYBACK", dump_playback);
 	defaults->update("USE_GL_RENDERING", use_gl_rendering);
 	defaults->update("USE_HARDWARE_DECODING", use_hardware_decoding);
+	defaults->update("SHOW_FPS", show_fps);
 	defaults->update("USE_RENDERFARM", use_renderfarm);
 	defaults->update("LOCAL_RATE", local_rate);
 	defaults->update("RENDERFARM_PORT", renderfarm_port);

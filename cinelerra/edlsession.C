@@ -290,7 +290,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 		1,
 		1);
 
-	safe_regions = defaults->get("SAFE_REGIONS", 0);
+//	safe_regions = defaults->get("SAFE_REGIONS", 0);
 	sample_rate = defaults->get("SAMPLERATE", 48000);
 	scrub_speed = defaults->get("SCRUB_SPEED", (float)2);
 	show_assets = defaults->get("SHOW_ASSETS", 1);
@@ -415,7 +415,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 		1,
 		1,
 		1);
-	defaults->update("SAFE_REGIONS", safe_regions);
+//	defaults->update("SAFE_REGIONS", safe_regions);
 	defaults->update("SAMPLERATE", sample_rate);
     defaults->update("SCRUB_SPEED", scrub_speed);
 	defaults->update("SHOW_ASSETS", show_assets);
@@ -608,7 +608,7 @@ int EDLSession::load_xml(FileXML *file,
 		plugins_follow_edits = file->tag.get_property("PLUGINS_FOLLOW_EDITS", plugins_follow_edits);
 		single_standalone = file->tag.get_property("SINGLE_STANDALONE", single_standalone);
 		playback_preload = file->tag.get_property("PLAYBACK_PRELOAD", playback_preload);
-		safe_regions = file->tag.get_property("SAFE_REGIONS", safe_regions);
+//		safe_regions = file->tag.get_property("SAFE_REGIONS", safe_regions);
 		show_assets = file->tag.get_property("SHOW_ASSETS", 1);
 		show_titles = file->tag.get_property("SHOW_TITLES", 1);
 //		test_playback_edits = file->tag.get_property("TEST_PLAYBACK_EDITS", test_playback_edits);
@@ -671,7 +671,7 @@ int EDLSession::save_xml(FileXML *file)
 	file->tag.set_property("PLUGINS_FOLLOW_EDITS", plugins_follow_edits);
 	file->tag.set_property("SINGLE_STANDALONE", single_standalone);
 	file->tag.set_property("PLAYBACK_PRELOAD", playback_preload);
-	file->tag.set_property("SAFE_REGIONS", safe_regions);
+//	file->tag.set_property("SAFE_REGIONS", safe_regions);
 	file->tag.set_property("SHOW_ASSETS", show_assets);
 	file->tag.set_property("SHOW_TITLES", show_titles);
 	file->tag.set_property("TEST_PLAYBACK_EDITS", test_playback_edits);
@@ -830,7 +830,7 @@ int EDLSession::copy(EDLSession *session)
 	record_fragment_size = session->record_fragment_size;
 	record_write_length = session->record_write_length;
 	recording_format->copy_from(session->recording_format, 0);
-	safe_regions = session->safe_regions;
+//	safe_regions = session->safe_regions;
 	sample_rate = session->sample_rate;
     nested_sample_rate = session->nested_sample_rate;
 	scrub_speed = session->scrub_speed;

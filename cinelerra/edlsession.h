@@ -181,7 +181,7 @@ public:
 // Samples to write to disk at a time
 	int64_t record_write_length;
 // Show title and action safe regions in CWindow
-	int safe_regions;
+//	int safe_regions;
     int64_t sample_rate;
 // sample rate if nested.  Only accessed by the owning EDL.
 // -1 if the same as the project sample rate.
