@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2009-2021 Adam Williams <broadcast at earthling dot net>
@@ -331,10 +330,9 @@ void Playback3DCommand::copy_from(BC_SynchronousCommand *command)
 
 
 
-Playback3D::Playback3D(MWindow *mwindow)
+Playback3D::Playback3D()
  : BC_Synchronous()
 {
-	this->mwindow = mwindow;
 	temp_texture = 0;
 }
 

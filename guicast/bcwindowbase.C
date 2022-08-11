@@ -84,21 +84,26 @@ BC_WindowBase::BC_WindowBase()
 	BC_WindowBase::initialize();
 }
 
+// have to unlock before deleting the top window
 BC_WindowBase::~BC_WindowBase()
 {
+
+    if(top_level->display)
+    {
 #ifdef SINGLE_THREAD
-	BC_Display::lock_display("BC_WindowBase::~BC_WindowBase");
+    	BC_Display::lock_display("BC_WindowBase::~BC_WindowBase");
 #else
-	if(window_type == MAIN_WINDOW) 
-		lock_window("BC_WindowBase::~BC_WindowBase");
+	    if(window_type == MAIN_WINDOW) 
+		    lock_window("BC_WindowBase::~BC_WindowBase");
 #endif
 
 #ifdef HAVE_LIBXXF86VM
-   if(window_type == VIDMODE_SCALED_WINDOW && vm_switched)
-   {
-	   restore_vm();   
-   }
+        if(window_type == VIDMODE_SCALED_WINDOW && vm_switched)
+        {
+	        restore_vm();   
+        }
 #endif
+    }
 
 	hide_tooltip();
 	if(window_type != MAIN_WINDOW)
@@ -128,7 +133,8 @@ BC_WindowBase::~BC_WindowBase()
 
 // Destroyed in synchronous thread if gl context exists.
 #ifdef HAVE_GL
-	if(!gl_win_context || !get_resources()->get_synchronous())
+	if(top_level->display && 
+        (!gl_win_context || !get_resources()->get_synchronous()))
 #endif
 	{
 		XDestroyWindow(top_level->display, win);
@@ -148,7 +154,7 @@ BC_WindowBase::~BC_WindowBase()
 
 
 
-	if(window_type == MAIN_WINDOW) 
+	if(display && window_type == MAIN_WINDOW) 
 	{
 		XFreeGC(display, gc);
 #ifdef HAVE_XFT
@@ -174,6 +180,7 @@ BC_WindowBase::~BC_WindowBase()
 
 		flush();
 
+//printf("BC_WindowBase::~BC_WindowBase %d %p %p\n", __LINE__, gl_win_context, get_resources()->get_synchronous());
 
 // Can't close display if another thread is waiting for events.
 // Synchronous thread must delete display if gl_context exists.
@@ -190,7 +197,7 @@ BC_WindowBase::~BC_WindowBase()
 // clipboard uses a different display connection
 		clipboard->stop_clipboard();
 		delete clipboard;
-#endif // SINGLE_THREAD
+#endif // !SINGLE_THREAD
 	}
 	else
 	{
@@ -203,8 +210,8 @@ BC_WindowBase::~BC_WindowBase()
 #ifdef HAVE_GL
 	if(gl_win_context && get_resources()->get_synchronous())
 	{
-		printf("BC_WindowBase::~BC_WindowBase window deleted but opengl deletion is not\n"
-			"implemented for BC_Pixmap.\n");
+//		printf("BC_WindowBase::~BC_WindowBase %d window deleted but opengl deletion is not\n"
+//			"implemented for BC_Pixmap.\n", __LINE__);
 		get_resources()->get_synchronous()->delete_window(this);
 	}
 #endif
@@ -403,6 +410,13 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 		XInitThreads();
 		display = init_display(display_name);
 #endif
+
+// fail gracefully
+        if(!display)
+        {
+            return 1;
+        }
+        
 
 
 // window placement boundaries
@@ -686,7 +700,7 @@ Display* BC_WindowBase::init_display(const char *display_name)
   		if(getenv("DISPLAY") == NULL)
     	{
 			printf("'DISPLAY' environment variable not set.\n");
-  			exit(1);
+  			return 0;
 		}
 		else
 // Try again with default display.
@@ -694,7 +708,7 @@ Display* BC_WindowBase::init_display(const char *display_name)
 			if((display = XOpenDisplay(0)) == NULL)
 			{
 				printf("BC_WindowBase::init_display: cannot connect to default X server.\n");
-				exit(1);
+				return 0;
 			}
 		}
  	}
@@ -3144,6 +3158,14 @@ int BC_WindowBase::flash(int x, int y, int w, int h, int flush)
 	if(flush)
 		this->flush();
 	return 0;
+}
+
+int BC_WindowBase::exists()
+{
+    if(display)
+        return 1;
+    else
+        return 0;
 }
 
 int BC_WindowBase::flash(int flush)

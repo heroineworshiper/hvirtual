@@ -576,7 +576,7 @@ int VirtualVNode::render_projector(VFrame *input,
 			}
 			else
 			{
-// printf("VirtualVNode::render_projector %d input=%02x%02x%02x%02x%02x%02x%02x%02x output=%02x%02x%02x%02x%02x%02x%02x%02x\n",
+// printf("VirtualVNode::render_projector %d input=%02x%02x%02x%02x%02x%02x%02x%02x\n",
 // __LINE__,
 // input->get_rows()[0][0],
 // input->get_rows()[0][1],
@@ -585,15 +585,7 @@ int VirtualVNode::render_projector(VFrame *input,
 // input->get_rows()[0][4],
 // input->get_rows()[0][5],
 // input->get_rows()[0][6],
-// input->get_rows()[0][7],
-// output->get_rows()[0][0],
-// output->get_rows()[0][1],
-// output->get_rows()[0][2],
-// output->get_rows()[0][3],
-// output->get_rows()[0][4],
-// output->get_rows()[0][5],
-// output->get_rows()[0][6],
-// output->get_rows()[0][7]);
+// input->get_rows()[0][7]);
 				vrender->overlayer->overlay(output, 
 					input,
 					in_x1, 

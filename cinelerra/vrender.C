@@ -133,11 +133,8 @@ int VRender::process_buffer(int64_t input_position,
 	int use_brender = 0;
 	int result = 0;
 	int use_cache = renderengine->command->single_frame();
-// 	int use_asynchronous = 
-// 		renderengine->command->realtime && 
-// 		renderengine->get_edl()->session->video_every_frame &&
-// 		renderengine->get_edl()->session->video_asynchronous;
 	const int debug = 0;
+
 
 	if(MWindow::preferences->dump_playback) 
         MWindow::indent += 2;
@@ -155,19 +152,18 @@ int VRender::process_buffer(int64_t input_position,
 
 
 
-
+//printf("VRender::process_buffer %d\n", __LINE__);
 // Get output buffer from device
 	if(renderengine->command->realtime &&
 		!renderengine->is_nested)
 	{
-//        printf("VRender::process_buffer %d\n", __LINE__);
 
 		renderengine->vdevice->new_output_buffer(&video_out, 
 			colormodel, 
 			renderengine->get_edl());
 	}
 
-	if(debug) printf("VRender::process_buffer %d video_out=%p\n", __LINE__, video_out);
+//printf("VRender::process_buffer %d video_out=%p\n", __LINE__, video_out);
 
 // printf("VRender::process_buffer use_vconsole=%d colormodel=%d video_out=%p\n", 
 // use_vconsole, 
@@ -189,11 +185,7 @@ int VRender::process_buffer(int64_t input_position,
 				if(renderengine->command->get_direction() == PLAY_REVERSE)
 					corrected_position--;
 
-// Cache single frames only
-//				if(use_asynchronous)
-//					file->start_video_decode_thread();
-//				else
-					file->stop_video_thread();
+				file->stop_video_thread();
 				if(use_cache) file->set_cache_frames(1);
 				int64_t normalized_position = (int64_t)(corrected_position *
 					asset->frame_rate /
@@ -224,7 +216,6 @@ int VRender::process_buffer(int64_t input_position,
 				1,
 				use_cache,
 				0);
-//				use_asynchronous);
 			if(debug) printf("VRender::process_buffer %d\n", __LINE__);
 		}
 
@@ -234,7 +225,7 @@ int VRender::process_buffer(int64_t input_position,
 	else
 // Read into virtual console
 	{
-//        printf("VRender::process_buffer %d\n", __LINE__);
+//printf("VRender::process_buffer %d\n", __LINE__);
 
 
 
@@ -242,7 +233,7 @@ int VRender::process_buffer(int64_t input_position,
 // process this buffer now in the virtual console
 		result = ((VirtualVConsole*)vconsole)->process_buffer(input_position,
 			use_opengl);
-//        printf("VRender::process_buffer %d\n", __LINE__);
+//printf("VRender::process_buffer %d\n", __LINE__);
 	}
 
 
@@ -271,6 +262,7 @@ int VRender::get_use_vconsole(VEdit* *playable_edit,
 {
 	Track *playable_track = 0;
 	*playable_edit = 0;
+//printf("VRender::get_use_vconsole %d %p\n", __LINE__, renderengine);
 
 
 // Background rendering completed

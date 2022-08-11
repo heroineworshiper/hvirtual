@@ -885,9 +885,10 @@ void MWindow::init_theme()
 
 void MWindow::init_3d()
 {
-	playback_3d = new Playback3D(this);
+	playback_3d = new Playback3D;
 	playback_3d->create_objects();
 }
+
 void MWindow::init_edl()
 {
 	edl = new EDL;

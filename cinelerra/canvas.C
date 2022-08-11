@@ -73,10 +73,10 @@ Canvas::Canvas(MWindow *mwindow,
 
 Canvas::~Canvas()
 {
-	if(refresh_frame) delete refresh_frame;
+	delete refresh_frame;
 	delete canvas_menu;
- 	if(yscroll) delete yscroll;
- 	if(xscroll) delete xscroll;
+ 	delete yscroll;
+ 	delete xscroll;
     delete fps_subwindow;
     delete fps_fullscreen;
 	delete canvas_subwindow;
@@ -92,6 +92,7 @@ void Canvas::reset()
     xscroll = 0;
     yscroll = 0;
 	refresh_frame = 0;
+    canvas_menu = 0;
 	canvas_subwindow = 0;
 	canvas_fullscreen = 0;
     fps_subwindow = 0;
@@ -491,7 +492,7 @@ void Canvas::draw_refresh(int flush)
     float in_x1, in_y1, in_x2, in_y2;
     float out_x1, out_y1, out_x2, out_y2;
     
-    if(!refresh_frame)
+    if(!refresh_frame || !mwindow)
     {
         return;
     }
@@ -828,18 +829,21 @@ void Canvas::create_objects(EDL *edl)
 	view_y = y;
 	view_w = w;
 	view_h = h;
-	if(edl) get_scrollbars(edl, view_x, view_y, view_w, view_h);
+	if(mwindow && edl) 
+        get_scrollbars(edl, view_x, view_y, view_w, view_h);
 
 	subwindow->unlock_window();
 	create_canvas(0);
 	subwindow->lock_window("Canvas::create_objects");
 
-	subwindow->add_subwindow(canvas_menu = new CanvasPopup(this));
-	canvas_menu->create_objects();
+    if(mwindow)
+    {
+    	subwindow->add_subwindow(canvas_menu = new CanvasPopup(this));
+	    canvas_menu->create_objects();
 
-	subwindow->add_subwindow(fullscreen_menu = new CanvasFullScreenPopup(this));
-	fullscreen_menu->create_objects();
-
+    	subwindow->add_subwindow(fullscreen_menu = new CanvasFullScreenPopup(this));
+	    fullscreen_menu->create_objects();
+    }
 }
 
 int Canvas::button_press_event()
@@ -908,7 +912,8 @@ void Canvas::create_canvas(int flush)
 	int video_on = 0;
 	lock_canvas("Canvas::create_canvas");
 
-    int margin = mwindow->theme->widget_border;
+    int margin = BC_Resources::theme->widget_border;
+
 	if(!get_fullscreen())
 // Enter windowed
 	{
@@ -916,11 +921,6 @@ void Canvas::create_canvas(int flush)
 		{
 			video_on = canvas_fullscreen->get_video_on();
 			canvas_fullscreen->stop_video();
-		}
-
-
-		if(canvas_fullscreen)
-		{
 			canvas_fullscreen->lock_window("Canvas::create_canvas 2");
 			canvas_fullscreen->hide_window();
 			canvas_fullscreen->unlock_window();

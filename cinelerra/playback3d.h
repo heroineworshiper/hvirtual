@@ -31,7 +31,6 @@
 #include "maskauto.inc"
 #include "maskautos.inc"
 #include "mutex.inc"
-#include "mwindow.inc"
 #include "pluginclient.inc"
 #include "thread.h"
 #include "vframe.inc"
@@ -221,7 +220,7 @@ public:
 class Playback3D : public BC_Synchronous
 {
 public:
-	Playback3D(MWindow *mwindow);
+	Playback3D();
 	~Playback3D();
 
 	BC_SynchronousCommand* new_command();
@@ -319,8 +318,6 @@ private:
 // Print errors from shader compilation
 	void print_error(unsigned int object, int is_program);
 
-// This quits the program when it's 1.
-	MWindow *mwindow;
 // Temporaries for render to texture
 	BC_Texture *temp_texture;
 // This is set by clear_output and used in compositing directly

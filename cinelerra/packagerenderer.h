@@ -25,11 +25,12 @@
 
 #include "assets.inc"
 #include "bctimer.inc"
-#include "bcwindowbase.inc"
 #include "cache.inc"
+#include "canvas.inc"
 #include "edit.inc"
 #include "edl.inc"
 #include "file.inc"
+#include "guicast.h"
 #include "maxchannels.h"
 #include "mwindow.inc"
 #include "playabletracks.inc"
@@ -148,11 +149,10 @@ public:
 	RenderEngine *render_engine;
 	RenderPackage *package;
 	TransportCommand *command;
-//	int direct_frame_copying;
-// Dummy GUI to get an OpenGL context. A lot more complicated than sharing
-// the CWindowGUI with playback & rendering.
-//    BCWindowBase *opengl_gui;
-///    Canvas *opengl_canvas;
+
+// Dummy GUI to get an OpenGL context in command line mode
+    BC_Window *dummy_window;
+    Canvas *dummy_canvas;
 
 // video device for preview frames & rendering
 	VideoDevice *video_device;

@@ -46,7 +46,6 @@
 #include "packagedispatcher.inc"
 #include "packagerenderer.h"
 #include "playabletracks.inc"
-#include "preferences.inc"
 #include "bcprogressbox.inc"
 #include "render.inc"
 #include "track.inc"
@@ -106,12 +105,8 @@ public:
 // Start dialogue box and render interactively.
 	void start_interactive();
 // Start batch rendering jobs.
-// A new thread is created and the rendering is interactive.
-	void start_batches(ArrayList<BatchRenderJob*> *jobs);
-// The batches are processed in the foreground in non interactive mode.
-	void start_batches(ArrayList<BatchRenderJob*> *jobs,
-		BC_Hash *boot_defaults,
-		Preferences *preferences);
+// A new thread is created and the rendering is done asynchronously.
+	void start_batches(ArrayList<BatchRenderJob*> *jobs, int is_console);
 // Called by BatchRender to stop the operation.
 	void stop_operation();
 	BC_Window* new_gui();
@@ -158,13 +153,14 @@ public:
 // When batch rendering is cancelled from the batch dialog
 	int batch_cancelled;
 
+// running from the command line
+    int is_console;
+
 	int load_mode;
 	int in_progress;
 // Background compression must be disabled when direct frame copying and reenabled afterwards
 	int direct_frame_copying;
 
-// Copy of mwindow preferences or pointer to another preferences object
-	Preferences *preferences;
 	VFrame *compressed_output;
 	MainProgressBar *progress;
 	RenderProgress *render_progress;

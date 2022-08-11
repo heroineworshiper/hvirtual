@@ -41,6 +41,7 @@
 #include "mwindowgui.h"
 #include "packagerenderer.h"
 #include "playabletracks.h"
+#include "playback3d.h"
 #include "playbackconfig.h"
 #include "pluginserver.h"
 #include "preferences.h"
@@ -97,8 +98,8 @@ PackageRenderer::PackageRenderer()
 	timer = new Timer;
 	frames_per_second = 0;
     use_opengl = 0;
-//    opengl_gui = 0;
-//    opengl_canvas = 0;
+    dummy_window = 0;
+    dummy_canvas = 0;
 }
 
 PackageRenderer::~PackageRenderer()
@@ -215,7 +216,7 @@ int PackageRenderer::create_engine()
 
 //	PRINT_TRACE
 
-// required canvas for using OpenGL
+// required canvas for using OpenGL & preview
     Canvas *canvas = 0;
 	if(asset->video_data)
 	{
@@ -224,7 +225,6 @@ int PackageRenderer::create_engine()
 // it is passed to the file handler which usually processes frames simultaneously.
 		video_write_length = preferences->processors;
 		video_write_position = 0;
-//		direct_frame_copying = 0;
 
 
 //printf("PackageRenderer::create_engine %d video_write_length=%d\n", __LINE__, video_write_length);
@@ -237,12 +237,61 @@ int PackageRenderer::create_engine()
 			command->get_edl()->session->color_model,
 			preferences->processors > 1 ? 2 : 1,
 			0);
-//printf("PackageRenderer::create_engine %d\n", __LINE__);
+//printf("PackageRenderer::create_engine %d %p %d\n", __LINE__, BC_WindowBase::get_resources(), BC_WindowBase::get_resources()->vframe_shm);
 
+// create the device for the preview & GL context
+    	video_device = new VideoDevice;
+// preview output goes to the compositor
 		if(mwindow)
 		{
-			video_device = new VideoDevice;
             canvas = mwindow->cwindow->gui->canvas;
+        }
+        else
+// try to create a dummy canvas for openGL
+        if(preferences->use_gl_rendering && 
+// Exclude modes which haven't been ported to a background thread with
+// playback_3d in the foreground thread.
+            MWindow::playback_3d)
+        {
+            int dummy_w = 16;
+            int dummy_h = 16;
+            dummy_window = new BC_Window(PROGRAM_NAME ": Rendering", 
+				0,
+				0,
+				dummy_w, 
+				dummy_h, 
+				-1, 
+				-1, 
+				0,
+				0, 
+				1); // hide
+            if(!dummy_window->exists())
+            {
+                delete dummy_window;
+                dummy_window = 0;
+            }
+            else
+            {
+                dummy_canvas = canvas = new Canvas(
+                    0, 
+                    dummy_window,
+                    0, // x
+                    0, // y
+                    dummy_w, // w
+                    dummy_h, // h
+                    dummy_w, // output_w
+                    dummy_h, // output_h
+                    0, // use_scrollbars
+                    0,
+                    0,
+                    0);
+                canvas->create_objects(0);
+            	dummy_window->unlock_window();
+            }
+        }
+
+        if(canvas)
+        {
  			result = video_device->open_output(vconfig, 
  				command->get_edl()->session->frame_rate, 
 				command->get_edl()->session->output_w, 
@@ -259,13 +308,16 @@ int PackageRenderer::create_engine()
         else
         if(preferences->use_gl_rendering)
         {
+            if(package->use_brender)
+                printf("PackageRenderer::create_engine %d: Hardware rendering is not supported in background rendering.\n", __LINE__);
+            else
+                printf("PackageRenderer::create_engine %d: Hardware rendering is not available.\n", __LINE__);
+            printf("Switching to software mode.\n");
             use_opengl = 0;
-            printf("PackageRenderer::create_engine %d: OpenGL rendering is not supported in command line, background rendering, or render farm mode. "
-                "Switching to software mode.\n",
-                __LINE__);
         }
 	}
 
+//printf("PackageRenderer::create_engine %d\n", __LINE__);
 
     if(!result)
     {
@@ -309,6 +361,7 @@ int PackageRenderer::create_engine()
 		    TRACK_VIDEO,
 		    1);
     }
+//printf("PackageRenderer::create_engine %d\n", __LINE__);
     
     return result;
 }
@@ -379,6 +432,7 @@ void PackageRenderer::do_audio()
 void PackageRenderer::do_video()
 {
 	const int debug = 0;
+
 // Do video data
 	if(asset->video_data)
 	{
@@ -390,34 +444,12 @@ void PackageRenderer::do_video()
 
 		while(video_position < video_end && !result)
 		{
-// Try to copy the compressed frame directly from the input to output files
-//printf("PackageRenderer::do_video 2 video_position=%ld\n", video_position);
-// 			if(direct_frame_copy(command->get_edl(), 
-// 				video_position, 
-// 				file, 
-// 				result))
-// 			{
-// Direct frame copy failed.
-// Switch back to background compression
-// 				if(direct_frame_copying)
-// 				{
-// 
-// 					file->start_video_thread(video_write_length, 
-// 						command->get_edl()->session->color_model,
-// 						preferences->processors > 1 ? 2 : 1,
-// 						0);
-// //printf("PackageRenderer::do_video %d %d\n", __LINE__, preferences->processors);
-// 					direct_frame_copying = 0;
-// 				}
 
 // Try to use the rendering engine to write the frame.
 // Get a buffer for background writing.
 
 				if(video_write_position == 0)
 					video_output = file->get_video_buffer();
-
-				if(debug) printf("PackageRenderer::do_video %d %p\n", __LINE__, video_output);
-				if(debug) printf("PackageRenderer::do_video %d %p\n", __LINE__, video_output[0]);
 
 
 
@@ -437,10 +469,6 @@ void PackageRenderer::do_video()
 						video_output_ptr, 
 						video_position,
 						use_opengl);
-// printf("PackageRenderer::do_video %d state=%d\n", 
-// __LINE__, 
-// video_output_ptr->get_opengl_state());
-// video_output_ptr->dump();
 // need to move it into RAM to write it or display it
                     if(use_opengl && 
                         video_output_ptr->get_opengl_state() != VFrame::RAM)
@@ -456,6 +484,7 @@ void PackageRenderer::do_video()
                     }
                 }
 
+//printf("PackageRenderer::do_video %d\n", __LINE__);
 
  				if(!result && 
 					mwindow && 
@@ -473,6 +502,7 @@ void PackageRenderer::do_video()
 						command->get_edl());
 				}
 
+//printf("PackageRenderer::do_video %d\n", __LINE__);
 				if(debug) printf("PackageRenderer::do_video %d %d\n", __LINE__, result);
 
 
@@ -520,8 +550,8 @@ void PackageRenderer::do_video()
 					get_result(),
 					progress_cancelled());
 
+//printf("PackageRenderer::do_video %d\n", __LINE__);
 
-//			}
 
 			video_position++;
 			if(!result && get_result()) result = 1;
@@ -568,13 +598,23 @@ void PackageRenderer::stop_output()
 		}
 		video_write_position = 0;	
 		if(!error) file->stop_video_thread();
-		if(mwindow)
+		if(video_device)
 		{
-//			video_device->stop_playback();
 			video_device->close_all();
 			delete video_device;
             video_device = 0;
 		}
+
+        if(dummy_window)
+        {
+            dummy_window->lock_window("PackageRenderer::stop_output");
+            delete dummy_canvas;
+// have to unlock before deleting the top window
+            dummy_window->unlock_window();
+            delete dummy_window;
+            dummy_window = 0;
+            dummy_canvas = 0;
+        }
 	}
 }
 
@@ -727,25 +767,19 @@ if(debug) PRINT_TRACE
 			((double)timer->get_difference() / 1000);
 
 
-//PRINT_TRACE
 		stop_engine();
-//PRINT_TRACE
 
 		stop_output();
-//PRINT_TRACE
 
 
 	}
 
 
-//PRINT_TRACE
 
 	close_output();
 
-//PRINT_TRACE
 
 	set_result(result);
-//PRINT_TRACE
 
 
 

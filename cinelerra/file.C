@@ -1943,9 +1943,18 @@ int File::read_frame(VFrame *frame, int is_thread)
 			{
 				StringFile params((long)0);
 				params.read_from_string((char*)(file_fork->result_data + sizeof(int) * 2));
-//printf("File::read_frame %d result_data=%s\n", __LINE__, file_fork->result_data + sizeof(int) * 2);
 				frame->get_params()->load_stringfile(&params, 1);
+// printf("File::read_frame %d result_data=%s\n", __LINE__, file_fork->result_data + sizeof(int) * 2);
+// memset(frame->get_rows()[1024], 0xff, 4096);
+// frame->dump();
 			}
+
+            if(frame->get_shmid() < 0)
+            {
+                printf("File::read_frame %d frame not using shared memory.  vframe_shm=%d\n", 
+                    __LINE__,
+                    BC_WindowBase::get_resources()->vframe_shm);
+            }
 		}
 
 		file_fork->send_command(FileFork::GET_MEMORY_USAGE, 
@@ -2054,21 +2063,19 @@ int File::read_frame(VFrame *frame, int is_thread)
 				temp_frame->get_w(),
 				frame->get_w());
 //printf("File::read_frame %d file -> temp -> frame\n", __LINE__);
+
 		}
 		else
 		{
 // Can't advance position here because it needs to be added to cache
 //printf("File::read_frame %d file=%p\n", __LINE__, file);
 			file->read_frame(frame);
-//printf("File::read_frame %d\n", __LINE__);
 
-// printf("File::read_frame %d reading directly frame=%p colormodel=%d w=%d h=%d\n", 
+// printf("File::read_frame %d reading directly frame=%p\n", 
 // __LINE__, 
-// frame,
-// frame->get_color_model(), 
-// frame->get_w(), 
-// frame->get_h());
-//for(int i = 0; i < 100 * 1000; i++) ((float*)frame->get_rows()[0])[i] = 1.0;
+// frame);
+// frame->dump();
+//memset(frame->get_rows()[1024], 0xff, 4096);
 		}
 
 //printf("File::read_frame %d use_cache=%d\n", __LINE__, use_cache);

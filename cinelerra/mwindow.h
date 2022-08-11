@@ -635,7 +635,7 @@ public:
 	void init_menus();
 	void init_indexes();
 	void init_gui();
-	void init_3d();
+	static void init_3d();
 	void init_playbackcursor();
 	void delete_plugins();
 // 

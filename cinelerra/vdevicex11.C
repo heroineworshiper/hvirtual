@@ -476,9 +476,16 @@ int VDeviceX11::get_display_colormodel(int file_colormodel)
 				break;
 
 			default:
-				canvas->lock_canvas("VDeviceX11::get_display_colormodel");
-				result = canvas->get_canvas()->get_color_model();
-				canvas->unlock_canvas();
+                if(canvas)
+                {
+    				canvas->lock_canvas("VDeviceX11::get_display_colormodel");
+	    			result = canvas->get_canvas()->get_color_model();
+		    		canvas->unlock_canvas();
+                }
+                else
+                {
+                    result = file_colormodel;
+                }
 				break;
 		}
 	}
@@ -849,14 +856,14 @@ void VDeviceX11::start_rendering()
 int VDeviceX11::start_playback()
 {
 // Record window is initialized when its monitor starts.
-	if(!device->single_frame)
+	if(!device->single_frame && canvas)
 		canvas->start_video();
 	return 0;
 }
 
 int VDeviceX11::stop_playback()
 {
-	if(!device->single_frame)
+	if(!device->single_frame && canvas)
 		canvas->stop_video();
 // Record window goes back to monitoring
 // get the last frame played and store it in the video_out

@@ -165,6 +165,7 @@ public:
 	void create_objects();
 	void start();
 	void run();
+    int running();
 
 	virtual BC_SynchronousCommand* new_command();
 // Handle extra commands not part of the base class.

@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
@@ -110,10 +109,6 @@ int VirtualVConsole::process_buffer(int64_t input_position,
 			__LINE__,
 			exit_nodes.total);
 
-// printf("VirtualVConsole::process_buffer %d vrender=%p video_out=%p\n", 
-// __LINE__, 
-// vrender,
-// vrender->video_out);
 // clear the output
 	if(use_opengl)
 	{
@@ -125,7 +120,6 @@ int VirtualVConsole::process_buffer(int64_t input_position,
 	{
 //vrender->video_out->dump();
 		vrender->video_out->clear_frame();
-//printf("VirtualVConsole::process_buffer %d\n", __LINE__);
 	}
 
 

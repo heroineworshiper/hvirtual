@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,7 @@
 #include "packagerenderer.h"
 #include "patchbay.h"
 #include "playabletracks.h"
+#include "playback3d.h"
 #include "preferences.h"
 #include "preferencesthread.h"
 #include "quicktime.h"
@@ -187,7 +188,7 @@ void MainPackageRenderer::set_progress(int64_t value)
 	render->total_rendered += value;
 
 // Update frames per second for master node
-	render->preferences->set_rate(frames_per_second, -1);
+	MWindow::preferences->set_rate(frames_per_second, -1);
 
 //printf("MainPackageRenderer::set_progress %d %ld %f\n", __LINE__, (long)value, frames_per_second);
 
@@ -227,7 +228,7 @@ void MainPackageRenderer::set_progress(int64_t value)
 	render->counter_lock->unlock();
 
 // This locks the preferences
-	if(mwindow) mwindow->preferences->copy_rates_from(preferences);
+	MWindow::preferences->copy_rates_from(preferences);
 }
 
 int MainPackageRenderer::progress_cancelled()
@@ -258,8 +259,9 @@ Render::Render(MWindow *mwindow)
 {
 	this->mwindow = mwindow;
 	in_progress = 0;
+    is_console = 0;
+    mode = Render::INTERACTIVE;
 	progress = 0;
-	preferences = 0;
 	elapsed_time = 0.0;
 	package_lock = new Mutex("Render::package_lock");
 	counter_lock = new Mutex("Render::counter_lock");
@@ -275,9 +277,6 @@ Render::~Render()
 	delete package_lock;
 	delete counter_lock;
 	delete completion;
-// May be owned by someone else.  This is owned by mwindow, so we don't care
-// about deletion.
-//	delete preferences;
 	delete progress_timer;
 	asset->Garbage::remove_user();
 	delete thread;
@@ -288,6 +287,7 @@ void Render::start_interactive()
 	if(!thread->running())
 	{
 		mode = Render::INTERACTIVE;
+        is_console = 0;
 		BC_DialogThread::start();
 	}
 	else
@@ -301,8 +301,7 @@ void Render::start_interactive()
 	}
 }
 
-// when rendering from the GUI
-void Render::start_batches(ArrayList<BatchRenderJob*> *jobs)
+void Render::start_batches(ArrayList<BatchRenderJob*> *jobs, int is_console)
 {
 //printf("Render::start_batches %d running=%d\n", __LINE__, thread->running());
 	if(!thread->running())
@@ -312,27 +311,10 @@ void Render::start_batches(ArrayList<BatchRenderJob*> *jobs)
 		in_progress = 1;
 		result = 0;
 		this->jobs = jobs;
+        this->is_console = is_console;
 		completion->reset();
 		start_render();
 	}
-}
-
-// when rendering from the command line
-void Render::start_batches(ArrayList<BatchRenderJob*> *jobs,
-	BC_Hash *boot_defaults,
-	Preferences *preferences)
-{
-	mode = Render::BATCH;
-	batch_cancelled = 0;
-	in_progress = 1;
-	this->jobs = jobs;
-	this->preferences = preferences;
-
-	completion->reset();
-PRINT_TRACE
-	thread->run();
-PRINT_TRACE
-	this->preferences = 0;
 }
 
 
@@ -393,7 +375,10 @@ void Render::handle_close_event(int result)
 	{
 		if(debug) printf("Render::handle_close_event %d\n", __LINE__);
 
-		if(!result) start_render();
+		if(!result) 
+        {
+            start_render();
+        }
 		if(debug) printf("Render::handle_close_event %d\n", __LINE__);
 
 	}
@@ -485,7 +470,7 @@ void Render::start_progress()
 
 	progress_max = Units::to_int64(default_asset->sample_rate * 
 			(total_end - total_start)) +
-		Units::to_int64(preferences->render_preroll * 
+		Units::to_int64(MWindow::preferences->render_preroll * 
 			packages->total_allocated * 
 			default_asset->sample_rate);
 	progress_timer->update();
@@ -702,14 +687,6 @@ void RenderThread::render_single(int test_overwrite,
 	render->progress = 0;
 	render->result = 0;
 
-	if(mwindow)
-	{
-		if(!render->preferences)
-			render->preferences = new Preferences;
-
-		render->preferences->copy_from(mwindow->preferences);
-	}
-
 
 // Create rendering command
 	TransportCommand *command = new TransportCommand;
@@ -728,8 +705,8 @@ void RenderThread::render_single(int test_overwrite,
 	PlaybackConfig *playback_config = new PlaybackConfig;
 
 // Create caches
-	CICache *audio_cache = new CICache(render->preferences);
-	CICache *video_cache = new CICache(render->preferences);
+	CICache *audio_cache = new CICache(MWindow::preferences);
+	CICache *video_cache = new CICache(MWindow::preferences);
 
 	render->default_asset->frame_rate = command->get_edl()->session->frame_rate;
 	render->default_asset->sample_rate = command->get_edl()->session->sample_rate;
@@ -765,11 +742,11 @@ void RenderThread::render_single(int test_overwrite,
 		if(mwindow) mwindow->stop_brender();
 
 		fs.complete_path(render->default_asset->path);
-		strategy = Render::fix_strategy(strategy, render->preferences->use_renderfarm);
+		strategy = Render::fix_strategy(strategy, MWindow::preferences->use_renderfarm);
 
 		render->result = render->packages->create_packages(mwindow,
 			command->get_edl(),
-			render->preferences,
+			MWindow::preferences,
 			strategy, 
 			render->default_asset, 
 			render->total_start, 
@@ -808,7 +785,7 @@ void RenderThread::render_single(int test_overwrite,
 		{
 			farm_server = new RenderFarmServer(mwindow,
 				render->packages,
-				render->preferences, 
+				MWindow::preferences, 
 				1,
 				&render->result,
 				&render->total_rendered,
@@ -852,7 +829,7 @@ void RenderThread::render_single(int test_overwrite,
 		MainPackageRenderer package_renderer(render);
 		render->result = package_renderer.initialize(mwindow,
 				command->get_edl(),   // Copy of master EDL
-				render->preferences, 
+				MWindow::preferences, 
 				render->default_asset);
 
 
@@ -1020,7 +997,6 @@ if(debug) printf("Render::render %d\n", __LINE__);
 		mwindow->gui->unlock_window();
 	}
 
-//printf("Render::render 110\n");
 // Need to restart because brender always stops before render.
 	if(mwindow)
 		mwindow->restart_brender();
@@ -1035,7 +1011,6 @@ if(debug) printf("Render::render %d\n", __LINE__);
 	render->packages = 0;
 	render->in_progress = 0;
 	render->completion->unlock();
-if(debug) printf("Render::render %d\n", __LINE__);
 }
 
 void RenderThread::run()
@@ -1115,6 +1090,14 @@ void RenderThread::run()
 			mwindow->batch_render->update_active(-1);
 			mwindow->batch_render->update_done(-1, 0, 0);
 		}
+
+// exit from the foreground thread to the command line
+        if(MWindow::playback_3d && render->is_console)
+        {
+//printf("RenderThread::run %d\n", __LINE__);
+            MWindow::playback_3d->quit();
+//printf("RenderThread::run %d\n", __LINE__);
+        }
 	}
 }
 

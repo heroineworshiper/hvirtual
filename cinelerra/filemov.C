@@ -253,7 +253,7 @@ int FileMOV::open_file(int rd, int wr)
 	quicktime_set_cpus(fd, file->cpus);
     quicktime_set_hw(fd, MWindow::preferences->use_hardware_decoding);
 	quicktime_set_cache_max(fd, file->cache_size);
-//printf("FileMOV::open_file %d %d\n", __LINE__, file->cache_size);
+//printf("FileMOV::open_file %d %s\n", __LINE__, asset->path);
 
 	if(rd) format_to_asset();
 
@@ -1058,13 +1058,13 @@ int FileMOV::read_frame(VFrame *frame)
 	int result = 0;
 	const int debug = 0;
 
-if(debug) printf("FileMOV::read_frame %d frame=%ld color_model=%d %d %d rows=%p\n", 
-__LINE__, 
-file->current_frame,
-frame->get_color_model(),
-frame->get_w(),
-frame->get_h(),
-frame->get_rows()[0]);
+// printf("FileMOV::read_frame %d frame=%ld color_model=%d %d %d rows=%p\n", 
+// __LINE__, 
+// file->current_frame,
+// frame->get_color_model(),
+// frame->get_w(),
+// frame->get_h(),
+// frame->get_rows()[0]);
 
 	switch(frame->get_color_model())
 	{
@@ -1121,8 +1121,8 @@ frame->get_rows()[0]);
 	}
 
 
-if(debug) printf("FileMOV::read_frame %d result=%d\n", __LINE__, result);
-
+//printf("FileMOV::read_frame %d result=%d\n", __LINE__, result);
+//memset(frame->get_rows()[1024], 0xff, 4096);
 
 	return result;
 }

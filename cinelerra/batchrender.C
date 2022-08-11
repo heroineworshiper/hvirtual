@@ -35,6 +35,7 @@
 #include "mwindowgui.h"
 #include "packagedispatcher.h"
 #include "packagerenderer.h"
+#include "playback3d.h"
 #include "preferences.h"
 #include "render.h"
 #include "theme.h"
@@ -513,57 +514,54 @@ void BatchRenderThread::calculate_dest_paths(ArrayList<char*> *paths,
 	}
 }
 
-
+// Start rendering from the command line
 void BatchRenderThread::start_rendering(char *config_path,
 	char *batch_path)
 {
 	BC_Hash *boot_defaults;
-	Preferences *preferences;
 	Render *render;
 	BC_Signals *signals = new BC_Signals;
 
-//PRINT_TRACE
 // Initialize stuff which MWindow does.
 	signals->initialize();
 	MWindow::init_defaults(boot_defaults, config_path);
 	load_defaults(boot_defaults);
-	preferences = new Preferences;
-	preferences->load_defaults(boot_defaults);
-	MWindow::init_plugins(preferences, 0);
+	MWindow::preferences = new Preferences;
+	MWindow::preferences->load_defaults(boot_defaults);
+	MWindow::init_plugins(MWindow::preferences, 0);
+	MWindow::init_fileserver(MWindow::preferences);
+    MWindow::init_3d();
 	BC_WindowBase::get_resources()->vframe_shm = 1;
-	MWindow::init_fileserver(preferences);
 
 
-//PRINT_TRACE
-	load_jobs(batch_path, preferences);
+	load_jobs(batch_path, MWindow::preferences);
 	save_jobs(batch_path);
 	save_defaults(boot_defaults);
 
-//PRINT_TRACE
 // Test EDL files for existence
 	if(test_edl_files()) return;
 
-//PRINT_TRACE
 
 // Predict all destination paths
 	ArrayList<char*> paths;
-	calculate_dest_paths(&paths,
-		preferences);
+	calculate_dest_paths(&paths, MWindow::preferences);
 
-//PRINT_TRACE
 	int result = ConfirmSave::test_files(0, &paths);
 // Abort on any existing file because it's so hard to set this up.
 	if(result) return;
 
-//PRINT_TRACE
 	render = new Render(0);
-//PRINT_TRACE
-	render->start_batches(&jobs, 
-		boot_defaults,
-		preferences);
-//PRINT_TRACE
+//printf("BatchRenderThread::start_rendering %d %p %d\n", __LINE__, BC_WindowBase::get_resources(), BC_WindowBase::get_resources()->vframe_shm);
+// this starts a thread & returns immediately
+	render->start_batches(&jobs, 1);
+// run this in the foreground.  Exit to the command line after this.
+//printf("BatchRenderThread::start_rendering %d\n", __LINE__);
+    MWindow::playback_3d->start();
+//printf("BatchRenderThread::start_rendering %d\n", __LINE__);
 }
 
+
+// Start rendering from the GUI
 void BatchRenderThread::start_rendering()
 {
 	if(is_rendering) return;
@@ -597,7 +595,7 @@ void BatchRenderThread::start_rendering()
 	}
 	else
 	{
-		mwindow->render->start_batches(&jobs);
+		mwindow->render->start_batches(&jobs, 0);
 	}
 }
 

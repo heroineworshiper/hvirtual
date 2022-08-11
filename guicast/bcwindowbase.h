@@ -154,10 +154,6 @@ public:
 	friend class BC_Tumbler;
 	friend class BC_Window;
 	friend class BC_WindowEvents;
-#ifdef X_HAVE_UTF8_STRING
-	XIM im;		/* Used to communicate with the input method (IM) server */
-	XIC ic;		/* Used for retaining the state, properties, and semantics of communication with the input method (IM) server */
-#endif
 
 // Main loop
 	int run_window();
@@ -222,6 +218,8 @@ public:
 	void put_shader(unsigned int handle, char *title);
 
 
+// return 1 if initialization worked
+    int exists();
 	int flash(int x, int y, int w, int h, int flush = 1);
 	int flash(int flush = 1);
 	void flush();
@@ -882,6 +880,10 @@ private:
    XF86VidModeModeInfo orig_modeline;
 #endif
 
+#ifdef X_HAVE_UTF8_STRING
+	XIM im;		/* Used to communicate with the input method (IM) server */
+	XIC ic;		/* Used for retaining the state, properties, and semantics of communication with the input method (IM) server */
+#endif
 
 
 

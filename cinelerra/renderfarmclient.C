@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -70,10 +69,10 @@ RenderFarmClient::RenderFarmClient(int port,
 
 
 	MWindow::init_defaults(boot_defaults, config_path);
-	boot_preferences = new Preferences;
-	boot_preferences->load_defaults(boot_defaults);
-	MWindow::init_plugins(boot_preferences, 0);
-	MWindow::init_fileserver(boot_preferences);
+    MWindow::preferences = new Preferences;
+	MWindow::preferences->load_defaults(boot_defaults);
+	MWindow::init_plugins(MWindow::preferences, 0);
+	MWindow::init_fileserver(MWindow::preferences);
 }
 
 

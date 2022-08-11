@@ -463,7 +463,7 @@ int VModule::import_frame(VFrame *output,
 				!EQUIV(in_w, asset_w) ||
 				!EQUIV(in_h, asset_h))
 			{
-//printf("VModule::import_frame %d file -> temp -> output\n", __LINE__);
+//                printf("VModule::import_frame %d file -> temp -> output\n", __LINE__);
 
 
 
@@ -504,6 +504,9 @@ int VModule::import_frame(VFrame *output,
 						asset_h,
 						get_edl()->session->color_model,
 						-1);
+// printf("VModule::import_frame %d\n", __LINE__);
+// (*input)->dump();
+
 				}
 
 
@@ -731,7 +734,19 @@ output);
 						BC_CModels::is_yuv(output->get_color_model()))
 						mode = TRANSFER_NORMAL;
 
-					if(debug) printf("VModule::import_frame %d temp -> output\n", __LINE__);
+//					printf("VModule::import_frame %d temp -> output\n", 
+//                        __LINE__);
+// printf("VModule::import_frame %d input=%p %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n", 
+// __LINE__,
+// (*input),
+// in_x, 
+// in_y, 
+// in_w, 
+// in_h, 
+// out_x, 
+// out_y, 
+// out_w, 
+// out_h);
 					overlayer->overlay(output,
 						(*input), 
 						in_x,
@@ -745,7 +760,7 @@ output);
 						1,
 						mode,
 						get_edl()->session->interpolation_type);
-					if(debug) printf("VModule::import_frame %d temp -> output\n", __LINE__);
+//					printf("VModule::import_frame %d temp -> output\n", __LINE__);
 				}
 				result = 1;
 				
@@ -759,10 +774,10 @@ output);
 			else
 // file -> output
 			{
-				if(debug) printf("VModule::import_frame %d file -> output nested_edl=%p file=%p\n", 
-					__LINE__,
-					nested_edl,
-					file);
+// 				printf("VModule::import_frame %d file -> output nested_edl=%p file=%p\n", 
+// 					__LINE__,
+// 					nested_edl,
+// 					file);
 				if(nested_edl)
 				{
 					VFrame **input = &output;
@@ -930,7 +945,7 @@ current_cmodel);
 		}
 	}
 
-	if(debug) printf("VModule::import_frame %d done\n", __LINE__);
+//printf("VModule::import_frame %d done\n", __LINE__);
 
 	return result;
 }

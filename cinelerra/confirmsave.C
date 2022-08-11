@@ -86,13 +86,22 @@ int ConfirmSave::test_files(MWindow *mwindow,
 		}
 		else
 		{
+// prompt the user
 			printf("The following files exist:\n");
 			for(int i = 0; i < list.total; i++)
 			{
 				printf("    %s\n", list.values[i]->get_text());
 			}
-			printf("Won't overwrite existing files.\n");
-			result = 1;
+//			printf("Won't overwrite existing files.\n");
+            printf("Overwrite? (y/n)\n");
+            char c = fgetc(stdin);
+            if(c != 'y')
+            {
+                printf("Giving up & going to a movie.\n");
+                result = 1;
+            }
+            else
+    			result = 0;
 		}
 		list.remove_all_objects();
 		return result;

@@ -348,7 +348,9 @@ COPYRIGHT_DATE);
 			BatchRenderThread *thread = new BatchRenderThread;
 			thread->start_rendering(config_path, 
 				batch_path);
+printf("main %d\n", __LINE__);
 			delete MWindow::file_server;
+printf("main %d\n", __LINE__);
 			break;
 		}
 

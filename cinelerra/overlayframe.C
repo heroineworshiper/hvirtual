@@ -343,6 +343,7 @@ int OverlayFrame::overlay(VFrame *output,
     nn_engine->alpha = alpha;
     nn_engine->mode = mode;
     nn_engine->process_packages();
+//printf("OverlayFrame::overlay %d\n", __LINE__);
   }else{
 
     int xtype = BILINEAR;
@@ -462,6 +463,7 @@ int OverlayFrame::overlay(VFrame *output,
     sample_engine->alpha = alpha;
     sample_engine->mode = mode;
     sample_engine->process_packages();
+//printf("OverlayFrame::overlay %d\n", __LINE__);
   }
   return 0;
 }

@@ -118,7 +118,7 @@ int BC_Resources::x_error_handler(Display *display, XErrorEvent *event)
 
 BC_Resources::BC_Resources()
 {
-
+    vframe_shm = 0;
 }
 
 BC_Resources::~BC_Resources()
@@ -129,12 +129,10 @@ void BC_Resources::init()
 {
 	if(!initialized)
 	{
-//printf("BC_Resources::init\n");
 		initialized = 1;
 		
 
 		synchronous = 0;
-		vframe_shm = 0;
 		display_info = new BC_DisplayInfo((char*)"", 0);
 
 // get DPI from BC_DisplayInfo
