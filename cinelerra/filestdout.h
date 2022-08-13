@@ -68,7 +68,7 @@ public:
 
 // default values
     static StdoutPreset* default_audio_presets[2];
-    static StdoutPreset* default_video_presets[3];
+    static StdoutPreset* default_video_presets[4];
     static StdoutPreset* default_mplex_presets[3];
 
 

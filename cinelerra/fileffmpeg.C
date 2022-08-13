@@ -2054,7 +2054,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
             int keyframe = 0;
             if(stream->video_keyframes.size())
-                int keyframe = stream->video_keyframes.get(i);
+                keyframe = stream->video_keyframes.get(i);
 
 
 

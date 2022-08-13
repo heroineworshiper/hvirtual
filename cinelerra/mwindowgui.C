@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
@@ -218,14 +217,14 @@ void MWindowGUI::get_scrollbars(int flush)
 void MWindowGUI::create_objects()
 {
 	const int debug = 0;
-	
+
 	resource_thread = new ResourceThread(mwindow, this);
 	resource_thread->create_objects();
 
-	
+
 	if(debug) printf("MWindowGUI::create_objects %d\n", __LINE__);
 	set_icon(mwindow->theme->get_image("mwindow_icon"));
-	
+
 	if(debug) printf("MWindowGUI::create_objects %d\n", __LINE__);
 
 	add_subwindow(mainmenu = new MainMenu(mwindow, this));

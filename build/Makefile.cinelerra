@@ -23,6 +23,7 @@ MJPEGDIR := $(shell expr thirdparty/mjpegtools* )
 
 all: $(OBJDIR)/soundtest
 #	$(MAKE) -f build/Makefile.sndfile
+	$(MAKE) -C $(FFMPEG_DIR)
 	$(MAKE) -C thirdparty/libsndfile*
 	$(MAKE) -C thirdparty/pulseaudio*
 	$(MAKE) -f build/Makefile.gif

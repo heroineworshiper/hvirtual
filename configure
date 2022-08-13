@@ -13,21 +13,19 @@
 # libasound2-dev
 # libbz2-dev 
 # liblzma-dev
-# FFMPEG_DIR must be set to the ffmpeg build directory
-# example:
-# FFMPEG_DIR=/root/ffmpeg-5.1 ./configure
+
+OBJDIR=`uname -m`
+TOPDIR=`pwd`
+CUDA_DIR=/usr/local/cuda/
+FFMPEG_DIR=$TOPDIR/thirdparty/ffmpeg-5.1
+
 
 echo "Configuring Cinelerra with the following options:"
-
-if test -n "$FFMPEG_DIR"; then
-echo FFMPEG_DIR=$FFMPEG_DIR
-fi
+echo CUDA_DIR=$CUDA_DIR
 
 ERROR=0
 
 # test for nasm
-OBJDIR=`uname -m`
-TOPDIR=`pwd`
 
 if [ $OBJDIR = i686 ];
 then
@@ -138,34 +136,52 @@ if [ -x a.out ]; then HAVE_GL=y; else HAVE_GL=n; fi
 
 rm -f a.out conftest.c
 
+# A mechanism for using a user supplied ffmpeg.  This doesn't work.
+# FFMPEG_DIR must be set to the ffmpeg build directory
+# example:
+# FFMPEG_DIR=/root/ffmpeg-5.1 ./configure
+#if test -n "$FFMPEG_DIR"; then
+#echo FFMPEG_DIR=$FFMPEG_DIR
+#fi
 
-# test for ffmpeg
-echo "TESTING FOR FFMPEG"
-rm -f a.out
-cat > conftest.c << EOF
-#include "avcodec.h"
-#include "avformat.h"
-
-int main()
-{
-    AVFormatContext *ic = avformat_alloc_context();
-    return 0;
-}
-EOF
+# set up a local ffmpeg build
+echo CONFIGURING FFMPEG
 
 FFMPEG_CFLAGS="-I$FFMPEG_DIR -I$FFMPEG_DIR/libavformat -I$FFMPEG_DIR/libavcodec"
 FFMPEG_LFLAGS="-L$FFMPEG_DIR/libavformat -L$FFMPEG_DIR/libavcodec -L$FFMPEG_DIR/libavutil -L$FFMPEG_DIR/libswresample"
 FFMPEG_LIBS="-lavformat -lavcodec -lavutil -lswresample -ldl -lm -lpthread -lz -lbz2 -llzma"
-echo gcc conftest.c $FFMPEG_CFLAGS $FFMPEG_LFLAGS $FFMPEG_LIBS
-gcc conftest.c $FFMPEG_CFLAGS $FFMPEG_LFLAGS $FFMPEG_LIBS
-if [ -x a.out ]; 
-then 
-HAVE_FFMPEG=y; 
-else 
-HAVE_FFMPEG=n; 
-echo " *** FFMPEG is required."; 
+
+cd $FFMPEG_DIR
+./configure --enable-pthreads --disable-ffplay --enable-nonfree --enable-gpl --enable-cuda-nvcc --enable-libnpp --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64
+if [ $? -ne 0 ]; then 
 ERROR=1
 fi
+cd $TOPDIR
+
+# test for ffmpeg
+#echo "TESTING FOR FFMPEG"
+#rm -f a.out
+#cat > conftest.c << EOF
+##include "avcodec.h"
+##include "avformat.h"
+#
+#int main()
+#{
+#    AVFormatContext *ic = avformat_alloc_context();
+#    return 0;
+#}
+#EOF
+
+#echo gcc conftest.c $FFMPEG_CFLAGS $FFMPEG_LFLAGS $FFMPEG_LIBS
+#gcc conftest.c $FFMPEG_CFLAGS $FFMPEG_LFLAGS $FFMPEG_LIBS
+#if [ -x a.out ]; 
+#then 
+#HAVE_FFMPEG=y; 
+#else 
+#HAVE_FFMPEG=n; 
+#echo " *** FFMPEG is required."; 
+#ERROR=1
+#fi
 
 
 
@@ -299,6 +315,7 @@ cat > hvirtual_config << EOF
 HAVE_GL := $HAVE_GL
 FFMPEG_CFLAGS := $FFMPEG_CFLAGS
 FFMPEG_LFLAGS := $FFMPEG_LFLAGS
+FFMPEG_DIR := $FFMPEG_DIR
 EOF
 
 

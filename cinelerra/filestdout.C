@@ -57,13 +57,16 @@ StdoutPreset* FileStdout::default_audio_presets[2] =
         0),
 };
 
-StdoutPreset* FileStdout::default_video_presets[3] =
+StdoutPreset* FileStdout::default_video_presets[4] =
 {
     new StdoutPreset("ffmpeg HEVC CBR",
         "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -b:v 5M %1",
         BC_YUV420P),
     new StdoutPreset("ffmpeg HEVC VBR",
-        "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -qp:v 40 %1",
+        "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -qp:v 30 %1",
+        BC_YUV420P),
+    new StdoutPreset("ffmpeg H.264 VBR",
+        "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v h264 -qp:v 30 %1",
         BC_YUV420P),
     new StdoutPreset("null",
         "cat > /dev/null",
@@ -1166,17 +1169,28 @@ void StdoutBaseConfig::delete_preset()
         number < preset_names->size() && 
         number < preset_data->size())
     {
-        preset_names->remove_object_number(number);
-        preset_data->remove_object_number(number);
-        list->update(preset_names,
-		    0, // column_titles
-		    0, // column_widths
-		    1, // columns
-            0, // xposition
-            0, // yposition
-            -1, // highlighted_number
-            1); // recalc_positions
-        save_defaults();
+        int result = 0;
+        char string[BCTEXTLEN];
+        sprintf(string, "Delete '%s'?", preset_names->get(number)->get_text());
+        ConfirmPreset confirm(this);
+        confirm.create_objects(string);
+        result = confirm.run_window();
+
+
+        if(!result)
+        {
+            preset_names->remove_object_number(number);
+            preset_data->remove_object_number(number);
+            list->update(preset_names,
+		        0, // column_titles
+		        0, // column_widths
+		        1, // columns
+                0, // xposition
+                0, // yposition
+                -1, // highlighted_number
+                1); // recalc_positions
+            save_defaults();
+        }
     }
 }
 
