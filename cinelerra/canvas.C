@@ -536,7 +536,7 @@ void Canvas::draw_refresh(int flush)
 		int src_y = (int)in_y1;
 		int src_w = (int)(in_x2 - in_x1);
 		int src_h = (int)(in_y2 - in_y1);
-        if(BC_CModels::has_alpha(refresh_frame->get_color_model()))
+        if(cmodel_has_alpha(refresh_frame->get_color_model()))
         {
 	        if(dest_w <= 0) dest_w = refresh_frame->get_w() - src_x;
 	        if(dest_h <= 0) dest_h = refresh_frame->get_h() - src_y;
@@ -568,7 +568,7 @@ void Canvas::draw_refresh(int flush)
 // dest_h);
 // fflush(stdout);
 
-            BC_CModels::transfer_alpha(temp_bitmap->get_row_pointers(), 
+            cmodel_transfer_alpha(temp_bitmap->get_row_pointers(), 
 			    refresh_frame->get_rows(),
 			    src_x, 
 			    src_y, 

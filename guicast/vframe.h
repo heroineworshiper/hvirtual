@@ -26,7 +26,8 @@
 #include "bcpbuffer.inc"
 #include "bctexture.inc"
 #include "bcwindowbase.inc"
-#include "bccmodels.h"
+//#include "bccmodels.h"
+#include "colormodels.h"
 #include "vframe.inc"
 
 class PngReadFunction;

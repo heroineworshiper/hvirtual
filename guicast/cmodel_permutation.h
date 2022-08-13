@@ -1,88 +1,26 @@
 /*
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or
+ * CINELERRA
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 
- * USA
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
  */
+
+
 #include "colormodels.h"
 #include <stdint.h>
-
-// All variables are unsigned
-// y -> 24 bits u, v, -> 8 bits r, g, b -> 8 bits
-#define YUV_TO_RGB(y, u, v, r, g, b) \
-{ \
-	(r) = ((y + yuv_table->vtor_tab[v]) >> 16); \
-	(g) = ((y + yuv_table->utog_tab[u] + yuv_table->vtog_tab[v]) >> 16); \
-	(b) = ((y + yuv_table->utob_tab[u]) >> 16); \
-	CLAMP(r, 0, 0xff); \
-	CLAMP(g, 0, 0xff); \
-	CLAMP(b, 0, 0xff); \
-}
-
-// y -> 0 - 1 float
-// u, v, -> 8 bits
-// r, g, b -> float
-#define YUV_TO_FLOAT(y, u, v, r, g, b) \
-{ \
-	(r) = y + yuv_table->vtor_float_tab[v]; \
-	(g) = y + yuv_table->utog_float_tab[u] + yuv_table->vtog_float_tab[v]; \
-	(b) = y + yuv_table->utob_float_tab[u]; \
-}
-
-// y -> 0 - 1 float
-// u, v, -> 16 bits
-// r, g, b -> float
-#define YUV16_TO_RGB_FLOAT(y, u, v, r, g, b) \
-{ \
-	(r) = y + yuv_table->v16tor_float_tab[v]; \
-	(g) = y + yuv_table->u16tog_float_tab[u] + yuv_table->v16tog_float_tab[v]; \
-	(b) = y + yuv_table->u16tob_float_tab[u]; \
-}
-
-// y -> 24 bits   u, v-> 16 bits
-#define YUV_TO_RGB16(y, u, v, r, g, b) \
-{ \
-	(r) = ((y + yuv_table->vtor_tab16[v]) >> 8); \
-	(g) = ((y + yuv_table->utog_tab16[u] + yuv_table->vtog_tab16[v]) >> 8); \
-	(b) = ((y + yuv_table->utob_tab16[u]) >> 8); \
-	CLAMP(r, 0, 0xffff); \
-	CLAMP(g, 0, 0xffff); \
-	CLAMP(b, 0, 0xffff); \
-}
-
-
-
-
-#define RGB_TO_YUV(y, u, v, r, g, b) \
-{ \
-	y = ((yuv_table->rtoy_tab[r] + yuv_table->gtoy_tab[g] + yuv_table->btoy_tab[b]) >> 16); \
-	u = ((yuv_table->rtou_tab[r] + yuv_table->gtou_tab[g] + yuv_table->btou_tab[b]) >> 16); \
-	v = ((yuv_table->rtov_tab[r] + yuv_table->gtov_tab[g] + yuv_table->btov_tab[b]) >> 16); \
-	CLAMP(y, 0, 0xff); \
-	CLAMP(u, 0, 0xff); \
-	CLAMP(v, 0, 0xff); \
-}
-
-// r, g, b -> 16 bits
-#define RGB_TO_YUV16(y, u, v, r, g, b) \
-{ \
-	y = ((yuv_table->rtoy_tab16[r] + yuv_table->gtoy_tab16[g] + yuv_table->btoy_tab16[b]) >> 8); \
-	u = ((yuv_table->rtou_tab16[r] + yuv_table->gtou_tab16[g] + yuv_table->btou_tab16[b]) >> 8); \
-	v = ((yuv_table->rtov_tab16[r] + yuv_table->gtov_tab16[g] + yuv_table->btov_tab16[b]) >> 8); \
-	CLAMP(y, 0, 0xffff); \
-	CLAMP(u, 0, 0xffff); \
-	CLAMP(v, 0, 0xffff); \
-}
 
 #define WRITE_YUV101010(y, u, v) \
 { \
@@ -2559,37 +2497,6 @@ static inline void transfer_YUVA16161616_to_YUV422(unsigned char *(*output),
 // ******************************** Permutation *******************************
 
 
-
-#define PERMUTATION_ARGS \
-	unsigned char **output_rows,  \
-	unsigned char **input_rows, \
-	unsigned char *out_y_plane, \
-	unsigned char *out_u_plane, \
-	unsigned char *out_v_plane, \
-	unsigned char *in_y_plane, \
-	unsigned char *in_u_plane, \
-	unsigned char *in_v_plane, \
-	int in_x,  \
-	int in_y,  \
-	int in_w,  \
-	int in_h, \
-	int out_x,  \
-	int out_y,  \
-	int out_w,  \
-	int out_h, \
-	int in_colormodel,  \
-	int out_colormodel, \
-	int bg_color, \
-	int total_in_w, \
-	int total_out_w, \
-	int scale, \
-	int out_pixelsize, \
-	int in_pixelsize, \
-	int *row_table, \
-	int *column_table, \
-	int bg_r, \
-	int bg_g, \
-	int bg_b
 
 
 

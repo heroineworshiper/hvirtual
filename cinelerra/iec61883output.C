@@ -385,7 +385,7 @@ void IEC61883Output::write_frame(VFrame *input)
 			temp_frame->set_compressed_size(data_size);
 
 
-			BC_CModels::transfer(temp_frame2->get_rows(), /* Leave NULL if non existent */
+			cmodel_transfer(temp_frame2->get_rows(), /* Leave NULL if non existent */
 				input->get_rows(),
 				temp_frame2->get_y(), /* Leave NULL if non existent */
 				temp_frame2->get_u(),

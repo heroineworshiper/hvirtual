@@ -170,7 +170,7 @@ int TimeAvgMain::process_buffer(VFrame *frame,
 	{
 		if(!accumulation) accumulation = new unsigned char[w * 
 			h * 
-			BC_CModels::components(color_model) *
+			cmodel_components(color_model) *
 			MAX(sizeof(float), sizeof(int))];
 		reset_accum(w, h, color_model);
 	}

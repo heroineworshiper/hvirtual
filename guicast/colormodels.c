@@ -1,28 +1,31 @@
 /*
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or
+ * CINELERRA
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 
- * USA
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
  */
 
 
-
 #include "colormodels.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
-cmodel_yuv_t *yuv_table = 0;
+cmodel_yuv_t *cmodel_yuv_table = 0;
 
 // Compression coefficients straight out of jpeglib
 #define R_TO_Y    0.29900
@@ -46,7 +49,14 @@ cmodel_yuv_t *yuv_table = 0;
 
 
 
-
+void cmodel_init()
+{
+	if(cmodel_yuv_table == 0)
+	{
+		cmodel_yuv_table = calloc(1, sizeof(cmodel_yuv_t));
+		cmodel_init_yuv(cmodel_yuv_table);
+	}
+}
 
 
 void cmodel_init_yuv(cmodel_yuv_t *yuv_table)
@@ -356,11 +366,7 @@ void cmodel_transfer(unsigned char **output_rows,
 	bg_b = (bg_color & 0xff);
 
 // Initialize tables
-	if(yuv_table == 0)
-	{
-		yuv_table = calloc(1, sizeof(cmodel_yuv_t));
-		cmodel_init_yuv(yuv_table);
-	}
+    cmodel_init();
 
 // Get scaling
 	scale = (out_w != in_w) || (in_x != 0);
@@ -415,6 +421,16 @@ void cmodel_transfer(unsigned char **output_rows,
 	bg_g, \
 	bg_b
 
+
+void cmodel_float(PERMUTATION_ARGS);
+void cmodel_yuv420p(PERMUTATION_ARGS);
+void cmodel_yuv9p(PERMUTATION_ARGS);
+void cmodel_yuv444p(PERMUTATION_ARGS);
+void cmodel_yuv422(PERMUTATION_ARGS);
+void cmodel_yuv420p10le(PERMUTATION_ARGS);
+void cmodel_default(PERMUTATION_ARGS);
+
+
 // Handle planar cmodels separately
 	switch(in_colormodel)
 	{
@@ -432,9 +448,6 @@ void cmodel_transfer(unsigned char **output_rows,
 		case BC_YUV9P:
 			cmodel_yuv9p(PERMUTATION_VALUES);
 			break;
-        
-            cmodel_nv12(PERMUTATION_VALUES);
-            break;
 
 		case BC_YUV444P:
 			cmodel_yuv444p(PERMUTATION_VALUES);
@@ -552,6 +565,121 @@ int cmodel_is_yuv(int colormodel)
 			return 0;
 			break;
 	}
+}
+
+
+
+void cmodel_transfer_alpha(unsigned char **output_rows, /* Leave NULL if non existent */
+		unsigned char **input_rows,
+        int in_x,        /* Dimensions to capture from input frame */
+		int in_y, 
+		int in_w, 
+		int in_h,
+		int out_x,       /* Dimensions to project on output frame */
+		int out_y, 
+		int out_w, 
+		int out_h,
+        int in_colormodel, 
+		int out_colormodel,
+        int in_rowspan,    // bytes per line
+		int out_rowspan,
+        int checker_w,
+        int checker_h)
+{
+	int *column_table;
+	int *row_table;
+	get_scale_tables(&column_table, 
+        &row_table, 
+		in_x, 
+        in_y, 
+        in_x + in_w, 
+        in_y + in_h,
+		out_x, 
+        out_y, 
+        out_x + out_w, 
+        out_y + out_h);
+
+
+#define HEAD(type, temp, max) \
+    for(int i = 0; i < out_h; i++) \
+	{ \
+		unsigned char *output_row = (unsigned char*)output_rows[i + out_y] + out_x * 4; \
+		type *input_row = (type*)input_rows[row_table[i]]; \
+        int color1 = (i / checker_h) % 2; \
+ \
+        for(int j = 0; j < out_w; j++) \
+		{ \
+            type *input = input_row + column_table[j] * 4; \
+            int color2 = (color1 + j / checker_w) % 2; \
+            temp bg_r, bg_g, bg_b; \
+	        temp a, anti_a; \
+	        a = input[3]; \
+	        anti_a = max - a; \
+ \
+            if(color2) \
+            { \
+                bg_r = bg_g = bg_b = (temp)(0.6 * max); \
+            } \
+            else \
+            { \
+                bg_r = bg_g = bg_b = (temp)(0.4 * max); \
+            }
+
+#define TAIL \
+	        *output_row++ = (unsigned char)b; \
+	        *output_row++ = (unsigned char)g; \
+	        *output_row++ = (unsigned char)r; \
+	        output_row++; \
+        } \
+    }
+
+
+
+    switch(in_colormodel)
+    {
+        case BC_RGBA8888:
+// printf("cmodel_transfer_alpha %d %d -> %d\n",
+// __LINE__,
+// in_colormodel,
+// out_colormodel);
+            HEAD(unsigned char, unsigned int, 0xff)
+	        int r = ((int)input[0] * a + bg_r * anti_a) / 255;
+	        int g = ((int)input[1] * a + bg_g * anti_a) / 255;
+	        int b = ((int)input[2] * a + bg_b * anti_a) / 255;
+            TAIL
+            break;
+        
+        case BC_RGBA_FLOAT:
+            HEAD(float, float, 1.0)
+            float r = 255 * (input[0] * a + bg_r * anti_a);
+            float g = 255 * (input[1] * a + bg_g * anti_a);
+            float b = 255 * (input[2] * a + bg_b * anti_a);
+            CLAMP(r, 0, 255);
+            CLAMP(g, 0, 255);
+            CLAMP(b, 0, 255);
+            TAIL
+            break;
+        
+        case BC_YUVA8888:
+            HEAD(unsigned char, unsigned int, 0xff)
+            int y = (input[0] << 16) | (input[0] << 8) | input[0];
+            int u = input[1];
+            int v = input[2];
+            int r, g, b;
+            YUV_TO_RGB(y, u, v, r, g, b)
+	        r = ((unsigned int)r * a + bg_r * anti_a) / 255;
+	        g = ((unsigned int)g * a + bg_g * anti_a) / 255;
+	        b = ((unsigned int)b * a + bg_b * anti_a) / 255;
+            TAIL
+            break;
+
+        default:
+            printf("cmodel_transfer_alpha %d unsupported transfer %d -> %d\n",
+                __LINE__,
+                in_colormodel,
+                out_colormodel);
+            break;
+    }
 }
 
 

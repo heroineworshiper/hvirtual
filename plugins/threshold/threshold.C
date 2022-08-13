@@ -254,7 +254,7 @@ int ThresholdMain::handle_opengl()
 	get_output()->enable_opengl();
 
 	unsigned int shader = 0;
-	if(BC_CModels::is_yuv(get_output()->get_color_model()))
+	if(cmodel_is_yuv(get_output()->get_color_model()))
 		shader = VFrame::make_shader(0, yuv_shader, 0);
 	else
 		shader = VFrame::make_shader(0, rgb_shader, 0);

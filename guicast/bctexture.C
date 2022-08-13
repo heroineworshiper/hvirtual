@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +23,8 @@
 #include "bcsynchronous.h"
 #include "bctexture.h"
 #include "bcwindowbase.h"
-#include "bccmodels.h"
-
+//#include "bccmodels.h"
+#include "colormodels.h"
 
 BC_Texture::BC_Texture(int w, int h, int colormodel)
 {
@@ -95,7 +94,7 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
 	int new_h = calculate_texture_size(h, &max_texture_size);
 //	int new_w = w;
 //	int new_h = h;
-	int new_components = BC_CModels::components(colormodel);
+	int new_components = cmodel_components(colormodel);
 
 
 	if(new_w < w || new_h < h)

@@ -381,6 +381,7 @@ STATICLIBS = \
 	$(RAW_LIB) \
         $(RAW1394_LIB) \
 	$(IEC_LIB) \
+        ../guicast/$(OBJDIR)/libcmodel.a \
 	../quicktime/$(OBJDIR)/libquicktime.a \
         $(ESOUNDLIBS) \
 	$(EXRDIR)/$(OBJDIR)/libexr.a \

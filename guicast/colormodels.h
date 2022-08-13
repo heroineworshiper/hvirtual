@@ -70,6 +70,73 @@
 #undef CLIP
 #define CLIP(x, y, z) ((x) < (y) ? (y) : ((x) > (z) ? (z) : (x)))
 
+// All variables are unsigned
+// y -> 24 bits u, v, -> 8 bits r, g, b -> 8 bits
+#define YUV_TO_RGB(y, u, v, r, g, b) \
+{ \
+	(r) = ((y + cmodel_yuv_table->vtor_tab[v]) >> 16); \
+	(g) = ((y + cmodel_yuv_table->utog_tab[u] + cmodel_yuv_table->vtog_tab[v]) >> 16); \
+	(b) = ((y + cmodel_yuv_table->utob_tab[u]) >> 16); \
+	CLAMP(r, 0, 0xff); \
+	CLAMP(g, 0, 0xff); \
+	CLAMP(b, 0, 0xff); \
+}
+
+// y -> 0 - 1 float
+// u, v, -> 8 bits
+// r, g, b -> float
+#define YUV_TO_FLOAT(y, u, v, r, g, b) \
+{ \
+	(r) = y + cmodel_yuv_table->vtor_float_tab[v]; \
+	(g) = y + cmodel_yuv_table->utog_float_tab[u] + cmodel_yuv_table->vtog_float_tab[v]; \
+	(b) = y + cmodel_yuv_table->utob_float_tab[u]; \
+}
+
+// y -> 0 - 1 float
+// u, v, -> 16 bits
+// r, g, b -> float
+#define YUV16_TO_RGB_FLOAT(y, u, v, r, g, b) \
+{ \
+	(r) = y + cmodel_yuv_table->v16tor_float_tab[v]; \
+	(g) = y + cmodel_yuv_table->u16tog_float_tab[u] + cmodel_yuv_table->v16tog_float_tab[v]; \
+	(b) = y + cmodel_yuv_table->u16tob_float_tab[u]; \
+}
+
+// y -> 24 bits   u, v-> 16 bits
+#define YUV_TO_RGB16(y, u, v, r, g, b) \
+{ \
+	(r) = ((y + cmodel_yuv_table->vtor_tab16[v]) >> 8); \
+	(g) = ((y + cmodel_yuv_table->utog_tab16[u] + cmodel_yuv_table->vtog_tab16[v]) >> 8); \
+	(b) = ((y + cmodel_yuv_table->utob_tab16[u]) >> 8); \
+	CLAMP(r, 0, 0xffff); \
+	CLAMP(g, 0, 0xffff); \
+	CLAMP(b, 0, 0xffff); \
+}
+
+
+
+
+#define RGB_TO_YUV(y, u, v, r, g, b) \
+{ \
+	y = ((cmodel_yuv_table->rtoy_tab[r] + cmodel_yuv_table->gtoy_tab[g] + cmodel_yuv_table->btoy_tab[b]) >> 16); \
+	u = ((cmodel_yuv_table->rtou_tab[r] + cmodel_yuv_table->gtou_tab[g] + cmodel_yuv_table->btou_tab[b]) >> 16); \
+	v = ((cmodel_yuv_table->rtov_tab[r] + cmodel_yuv_table->gtov_tab[g] + cmodel_yuv_table->btov_tab[b]) >> 16); \
+	CLAMP(y, 0, 0xff); \
+	CLAMP(u, 0, 0xff); \
+	CLAMP(v, 0, 0xff); \
+}
+
+// r, g, b -> 16 bits
+#define RGB_TO_YUV16(y, u, v, r, g, b) \
+{ \
+	y = ((cmodel_yuv_table->rtoy_tab16[r] + cmodel_yuv_table->gtoy_tab16[g] + cmodel_yuv_table->btoy_tab16[b]) >> 8); \
+	u = ((cmodel_yuv_table->rtou_tab16[r] + cmodel_yuv_table->gtou_tab16[g] + cmodel_yuv_table->btou_tab16[b]) >> 8); \
+	v = ((cmodel_yuv_table->rtov_tab16[r] + cmodel_yuv_table->gtov_tab16[g] + cmodel_yuv_table->btov_tab16[b]) >> 8); \
+	CLAMP(y, 0, 0xffff); \
+	CLAMP(u, 0, 0xffff); \
+	CLAMP(v, 0, 0xffff); \
+}
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -103,7 +170,7 @@ typedef struct
 	float *v16tor_float, *v16tog_float, *u16tog_float, *u16tob_float;
 } cmodel_yuv_t;
 
-extern cmodel_yuv_t *yuv_table;
+extern cmodel_yuv_t *cmodel_yuv_table;
 
 int cmodel_calculate_pixelsize(int colormodel);
 int cmodel_calculate_datasize(int w, int h, int bytes_per_line, int color_model);
@@ -117,6 +184,37 @@ int cmodel_is_float(int colormodel);
 int cmodel_is_planar(int color_model);
 void cmodel_to_text(char *string, int cmodel);
 int cmodel_from_text(const char *text);
+
+#define PERMUTATION_ARGS \
+	unsigned char **output_rows,  \
+	unsigned char **input_rows, \
+	unsigned char *out_y_plane, \
+	unsigned char *out_u_plane, \
+	unsigned char *out_v_plane, \
+	unsigned char *in_y_plane, \
+	unsigned char *in_u_plane, \
+	unsigned char *in_v_plane, \
+	int in_x,  \
+	int in_y,  \
+	int in_w,  \
+	int in_h, \
+	int out_x,  \
+	int out_y,  \
+	int out_w,  \
+	int out_h, \
+	int in_colormodel,  \
+	int out_colormodel, \
+	int bg_color, \
+	int total_in_w, \
+	int total_out_w, \
+	int scale, \
+	int out_pixelsize, \
+	int in_pixelsize, \
+	int *row_table, \
+	int *column_table, \
+	int bg_r, \
+	int bg_g, \
+	int bg_b
 
 
 
@@ -145,6 +243,25 @@ void cmodel_transfer(unsigned char **output_rows, /* Leave NULL if non existent 
 void cmodel_init_yuv(cmodel_yuv_t *yuv_table);
 void cmodel_delete_yuv(cmodel_yuv_t *yuv_table);
 int cmodel_bc_to_x(int color_model);
+
+// transfer limited colormodels with alpha checkerboard to BC_BGR8888
+void cmodel_transfer_alpha(unsigned char **output_rows, /* Leave NULL if non existent */
+	unsigned char **input_rows,
+    int in_x,        /* Dimensions to capture from input frame */
+	int in_y, 
+	int in_w, 
+	int in_h,
+	int out_x,       /* Dimensions to project on output frame */
+	int out_y, 
+	int out_w, 
+	int out_h,
+    int in_colormodel, 
+	int out_colormodel,
+    int in_rowspan,    // bytes per line
+	int out_rowspan,
+    int checker_w,
+    int checker_h);
+
 
 #ifdef __cplusplus
 }

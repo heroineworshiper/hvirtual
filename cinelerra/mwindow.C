@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -938,17 +938,17 @@ void MWindow::init_channeldb()
 void MWindow::init_menus()
 {
 	char string[BCTEXTLEN];
-	BC_CModels::to_text(string, BC_RGB888);
+	cmodel_to_text(string, BC_RGB888);
 	colormodels.append(new ColormodelItem(string, BC_RGB888));
-	BC_CModels::to_text(string, BC_RGBA8888);
+	cmodel_to_text(string, BC_RGBA8888);
 	colormodels.append(new ColormodelItem(string, BC_RGBA8888));
-	BC_CModels::to_text(string, BC_RGB_FLOAT);
+	cmodel_to_text(string, BC_RGB_FLOAT);
 	colormodels.append(new ColormodelItem(string, BC_RGB_FLOAT));
-	BC_CModels::to_text(string, BC_RGBA_FLOAT);
+	cmodel_to_text(string, BC_RGBA_FLOAT);
 	colormodels.append(new ColormodelItem(string, BC_RGBA_FLOAT));
-	BC_CModels::to_text(string, BC_YUV888);
+	cmodel_to_text(string, BC_YUV888);
 	colormodels.append(new ColormodelItem(string, BC_YUV888));
-	BC_CModels::to_text(string, BC_YUVA8888);
+	cmodel_to_text(string, BC_YUVA8888);
 	colormodels.append(new ColormodelItem(string, BC_YUVA8888));
 }
 

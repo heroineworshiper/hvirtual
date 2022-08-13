@@ -1378,7 +1378,7 @@ void StdoutVideoConfig::create_objects2(int x, int y)
     
     for(int i = 0; i < sizeof(supported_cmodels) / sizeof(int); i++)
     {
-        BC_CModels::to_text(string, supported_cmodels[i]);
+        cmodel_to_text(string, supported_cmodels[i]);
         cmodels.append(new BC_ListBoxItem(string));
     }
     
@@ -1387,7 +1387,7 @@ void StdoutVideoConfig::create_objects2(int x, int y)
 
     add_subwindow(title = new BC_Title(x, y, _("Color Model to write to stdin:")));
     y += title->get_h() + margin;
-    BC_CModels::to_text(string, asset->command_cmodel);
+    cmodel_to_text(string, asset->command_cmodel);
     cmodel = new StdoutColormodel(this,
         &asset->command_cmodel,
         string,
@@ -1403,7 +1403,7 @@ void StdoutVideoConfig::create_objects2(int x, int y)
 void StdoutVideoConfig::update()
 {
     char string[BCTEXTLEN];
-    BC_CModels::to_text(string, asset->command_cmodel);
+    cmodel_to_text(string, asset->command_cmodel);
     cmodel->update(string);
 }
 

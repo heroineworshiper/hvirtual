@@ -20,7 +20,7 @@
 
 #include "assets.h"
 #include "bccapture.h"
-#include "bccmodels.h"
+//#include "bccmodels.h"
 #include "bcsignals.h"
 #include "canvas.h"
 #include "colormodels.h"
@@ -204,16 +204,16 @@ int VDeviceX11::close_all()
 // OpenGL does YUV->RGB in the compositing step
 		if(use_opengl)
 		{
-            if(BC_CModels::components(output_frame->get_color_model()) == 3)
+            if(cmodel_components(output_frame->get_color_model()) == 3)
             {
-                if(BC_CModels::is_yuv(output_frame->get_color_model()))
+                if(cmodel_is_yuv(output_frame->get_color_model()))
                 	best_color_model = BC_YUV888;
                 else
                 	best_color_model = BC_RGB888;
             }
             else
             {
-                if(BC_CModels::is_yuv(output_frame->get_color_model()))
+                if(cmodel_is_yuv(output_frame->get_color_model()))
                 	best_color_model = BC_YUVA8888;
                 else
                     best_color_model = BC_RGBA8888;
@@ -899,11 +899,11 @@ void VDeviceX11::output_to_bitmap(VFrame *output_frame)
 	else
 	{
 // multiply alpha with checkerboard in single frame mode only
-        if(device->single_frame && BC_CModels::has_alpha(output_frame->get_color_model()))
+        if(device->single_frame && cmodel_has_alpha(output_frame->get_color_model()))
         {
             int checker_w = CHECKER_W;
             int checker_h = CHECKER_H;
-            BC_CModels::transfer_alpha(bitmap->get_row_pointers(), 
+            cmodel_transfer_alpha(bitmap->get_row_pointers(), 
 			    output_frame->get_rows(),
 			    (int)output_x1, 
 			    (int)output_y1, 

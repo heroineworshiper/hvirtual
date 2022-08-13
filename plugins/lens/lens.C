@@ -1172,7 +1172,7 @@ int LensMain::handle_opengl()
 	if(frag_shader > 0)
 	{
 		float border_color[] = { 0, 0, 0, 0 };
-		if(BC_CModels::is_yuv(get_output()->get_color_model()))
+		if(cmodel_is_yuv(get_output()->get_color_model()))
 		{
 			border_color[1] = 0.5;
 			border_color[2] = 0.5;

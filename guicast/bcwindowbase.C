@@ -34,7 +34,7 @@
 #include "bctimer.h"
 #include "bcwindowbase.h"
 #include "bcwindowevents.h"
-#include "bccmodels.h"
+//#include "bccmodels.h"
 #include "colors.h"
 #include "condition.h"
 #include "cursors.h"
@@ -73,7 +73,7 @@ BC_ResizeCall::BC_ResizeCall(int w, int h)
 
 
 BC_Resources BC_WindowBase::resources;
-BC_CModels BC_WindowBase::cmodels;
+//BC_CModels BC_WindowBase::cmodels;
 
 Window XGroupLeader = 0;
 
@@ -2994,7 +2994,7 @@ int BC_WindowBase::grab_port_id(BC_WindowBase *window, int color_model)
 	if(!get_resources()->use_xvideo) return -1;
 
 // Translate from color_model to X color model
-	x_color_model = cmodels.bc_to_x(color_model);
+	x_color_model = cmodel_bc_to_x(color_model);
 
 // Only local server is fast enough.
 	if(!resources.use_shm) return -1;
@@ -3408,10 +3408,10 @@ BC_Resources* BC_WindowBase::get_resources()
 	return &BC_WindowBase::resources;
 }
 
-BC_CModels* BC_WindowBase::get_cmodels()
-{
-	return &BC_WindowBase::cmodels;
-}
+// BC_CModels* BC_WindowBase::get_cmodels()
+// {
+// 	return &BC_WindowBase::cmodels;
+// }
 
 BC_Synchronous* BC_WindowBase::get_synchronous()
 {

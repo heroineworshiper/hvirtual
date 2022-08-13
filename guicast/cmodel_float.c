@@ -1,6 +1,25 @@
+/*
+ * CINELERRA
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ */
+
 #include "cmodel_permutation.h"
 #include "colormodels.h"
-#include "workarounds.h"
 
 // ********************************** RGB FLOAT -> *******************************
 
@@ -142,38 +161,6 @@ static inline void transfer_RGB_FLOAT_to_YUVA8888(unsigned char *(*output),
 	*(*output)++ = u >> 8;
 	*(*output)++ = v >> 8;
 	*(*output)++ = 255;
-}
-
-static inline void transfer_RGB_FLOAT_to_YUV161616(uint16_t *(*output), 
-	float *input)
-{
-	int y, u, v, r, g, b;
-	r = (int)(CLIP(input[0], 0, 1) * 0xffff);
-	g = (int)(CLIP(input[1], 0, 1) * 0xffff);
-	b = (int)(CLIP(input[2], 0, 1) * 0xffff);
-
-	RGB_TO_YUV16(y, u, v, r, g, b);
-
-	*(*output)++ = quicktime_copy(y);
-	*(*output)++ = quicktime_copy(u);
-	*(*output)++ = quicktime_copy(v);
-}
-
-static inline void transfer_RGB_FLOAT_to_YUVA16161616(uint16_t *(*output), 
-	float *input)
-{
-	int y, u, v, r, g, b;
-
-	r = (int)(CLIP(input[0], 0, 1) * 0xffff);
-	g = (int)(CLIP(input[1], 0, 1) * 0xffff);
-	b = (int)(CLIP(input[2], 0, 1) * 0xffff);
-
-	RGB_TO_YUV16(y, u, v, r, g, b);
-
-	*(*output)++ = quicktime_copy(y);
-	*(*output)++ = quicktime_copy(u);
-	*(*output)++ = quicktime_copy(v);
-	*(*output)++ = 0xffff;
 }
 
 
@@ -446,42 +433,6 @@ static inline void transfer_RGBA_FLOAT_to_YUVA8888(unsigned char *(*output),
 	*(*output)++ = a;
 }
 
-static inline void transfer_RGBA_FLOAT_to_YUV161616(uint16_t *(*output), 
-	float *input)
-{
-	int y, u, v, r, g, b, a;
-
-	a = (int)(CLIP(input[3], 0, 1) * 0x101);
-	r = (int)(CLIP(input[0], 0, 1) * 0xff * a);
-	g = (int)(CLIP(input[1], 0, 1) * 0xff * a);
-	b = (int)(CLIP(input[2], 0, 1) * 0xff * a);
-
-	RGB_TO_YUV16(y, u, v, r, g, b);
-
-// GCC 3.3 optimization error
-	*(*output)++ = quicktime_copy(y);
-	*(*output)++ = quicktime_copy(u);
-	*(*output)++ = quicktime_copy(v);
-}
-
-static inline void transfer_RGBA_FLOAT_to_YUVA16161616(uint16_t *(*output), 
-	float *input)
-{
-	int y, u, v, r, g, b, a;
-
-	r = (int)(CLIP(input[0], 0, 1) * 0xffff);
-	g = (int)(CLIP(input[1], 0, 1) * 0xffff);
-	b = (int)(CLIP(input[2], 0, 1) * 0xffff);
-	a = (int)(CLIP(input[3], 0, 1) * 0xffff);
-
-	RGB_TO_YUV16(y, u, v, r, g, b);
-
-// GCC 3.3 optimization error
-	*(*output)++ = quicktime_copy(y);
-	*(*output)++ = quicktime_copy(u);
-	*(*output)++ = quicktime_copy(v);
-	*(*output)++ = quicktime_copy(a);
-}
 
 static inline void transfer_RGBA_FLOAT_to_YUV101010(unsigned char *(*output), 
 	float *input)
@@ -644,16 +595,6 @@ static inline void transfer_RGBA_FLOAT_to_YUV444P(unsigned char *output_y,
 					transfer_RGB_FLOAT_to_YUVA8888((output), (float*)(input));   \
 					TRANSFER_FRAME_TAIL \
 					break; \
-				case BC_YUV161616: \
-					TRANSFER_FRAME_HEAD \
-					transfer_RGB_FLOAT_to_YUV161616((uint16_t**)(output), (float*)(input));   \
-					TRANSFER_FRAME_TAIL \
-					break; \
-				case BC_YUVA16161616: \
-					TRANSFER_FRAME_HEAD \
-					transfer_RGB_FLOAT_to_YUVA16161616((uint16_t**)(output), (float*)(input));   \
-					TRANSFER_FRAME_TAIL \
-					break; \
 				case BC_YUV101010: \
 					TRANSFER_FRAME_HEAD \
 					transfer_RGB_FLOAT_to_YUV101010((output), (float*)(input));   \
@@ -752,16 +693,6 @@ static inline void transfer_RGBA_FLOAT_to_YUV444P(unsigned char *output_y,
 				case BC_YUVA8888: \
 					TRANSFER_FRAME_HEAD \
 					transfer_RGBA_FLOAT_to_YUVA8888((output), (float*)(input));   \
-					TRANSFER_FRAME_TAIL \
-					break; \
-				case BC_YUV161616: \
-					TRANSFER_FRAME_HEAD \
-					transfer_RGBA_FLOAT_to_YUV161616((uint16_t**)(output), (float*)(input));   \
-					TRANSFER_FRAME_TAIL \
-					break; \
-				case BC_YUVA16161616: \
-					TRANSFER_FRAME_HEAD \
-					transfer_RGBA_FLOAT_to_YUVA16161616((uint16_t**)(output), (float*)(input));  \
 					TRANSFER_FRAME_TAIL \
 					break; \
 				case BC_YUV101010: \

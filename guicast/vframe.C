@@ -33,7 +33,7 @@
 #include "bctexture.h"
 #include "bcwindowbase.h"
 #include "clip.h"
-#include "bccmodels.h"
+//#include "bccmodels.h"
 #include "vframe.h"
 
 class PngReadFunction
@@ -362,7 +362,7 @@ VFrameScene* VFrame::get_scene()
 
 int VFrame::calculate_bytes_per_pixel(int color_model)
 {
-	return BC_WindowBase::get_cmodels()->calculate_pixelsize(color_model);
+	return cmodel_calculate_pixelsize(color_model);
 }
 
 long VFrame::get_bytes_per_line()
@@ -378,7 +378,7 @@ long VFrame::get_data_size()
 
 long VFrame::calculate_data_size(int w, int h, int bytes_per_line, int color_model)
 {
-	return BC_WindowBase::get_cmodels()->calculate_datasize(w, h, bytes_per_line, color_model);
+	return cmodel_calculate_datasize(w, h, bytes_per_line, color_model);
 	return 0;
 }
 
@@ -718,7 +718,7 @@ void VFrame::read_png(const unsigned char *data, int dpi)
 		src->get_color_model(),
 		-1);
 
-	int components = BC_CModels::components(get_color_model());
+	int components = cmodel_components(get_color_model());
 
 	int src_x1[dst_w];
 	int src_x2[dst_w];

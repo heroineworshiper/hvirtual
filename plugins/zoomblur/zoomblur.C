@@ -560,7 +560,7 @@ SET_TRACE
 		get_project_smp() + 1);
 	if(!accum) accum = new unsigned char[frame->get_w() * 
 		frame->get_h() *
-		BC_CModels::components(frame->get_color_model()) *
+		cmodel_components(frame->get_color_model()) *
 		MAX(sizeof(int), sizeof(float))];
 
 	this->input = frame;
@@ -579,7 +579,7 @@ SET_TRACE
 	bzero(accum, 
 		frame->get_w() * 
 		frame->get_h() *
-		BC_CModels::components(frame->get_color_model()) *
+		cmodel_components(frame->get_color_model()) *
 		MAX(sizeof(int), sizeof(float)));
 	engine->process_packages();
 	return 0;
@@ -677,7 +677,7 @@ int ZoomBlurMain::handle_opengl()
 	get_output()->init_screen();
 	get_output()->bind_texture(0);
 
-	int is_yuv = BC_CModels::is_yuv(get_output()->get_color_model());
+	int is_yuv = cmodel_is_yuv(get_output()->get_color_model());
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -718,7 +718,7 @@ int ZoomBlurMain::handle_opengl()
 
 // Fill YUV black
 		glDisable(GL_TEXTURE_2D);
-		if(BC_CModels::is_yuv(get_output()->get_color_model()))
+		if(cmodel_is_yuv(get_output()->get_color_model()))
 		{
 			glColor4f(config.r ? 0.0 : 0, 
 				config.g ? 0.5 : 0, 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -613,7 +612,7 @@ int FileThread::read_frame(VFrame *frame)
 // frame->get_w(),
 // local_frame->frame->get_color_model(),
 // local_frame->frame->get_w());
-			BC_CModels::transfer(frame->get_rows(), 
+			cmodel_transfer(frame->get_rows(), 
 				local_frame->frame->get_rows(),
 				frame->get_y(),
 				frame->get_u(),

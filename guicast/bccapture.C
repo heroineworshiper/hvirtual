@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +21,7 @@
 #include "bccapture.h"
 #include "bcresources.h"
 #include "bcwindowbase.h"
-#include "bccmodels.h"
+//#include "bccmodels.h"
 #include "clip.h"
 #include "language.h"
 #include "vframe.h"
@@ -193,9 +192,9 @@ int BC_Capture::get_h() { return h; }
 
 #define RGB_TO_YUV(y, u, v, r, g, b) \
 { \
-	y = ((BC_CModels::yuv_table.rtoy_tab[r] + BC_CModels::yuv_table.gtoy_tab[g] + BC_CModels::yuv_table.btoy_tab[b]) >> 16); \
-	u = ((BC_CModels::yuv_table.rtou_tab[r] + BC_CModels::yuv_table.gtou_tab[g] + BC_CModels::yuv_table.btou_tab[b]) >> 16); \
-	v = ((BC_CModels::yuv_table.rtov_tab[r] + BC_CModels::yuv_table.gtov_tab[g] + BC_CModels::yuv_table.btov_tab[b]) >> 16); \
+	y = ((cmodel_yuv_table->rtoy_tab[r] + cmodel_yuv_table->gtoy_tab[g] + cmodel_yuv_table->btoy_tab[b]) >> 16); \
+	u = ((cmodel_yuv_table->rtou_tab[r] + cmodel_yuv_table->gtou_tab[g] + cmodel_yuv_table->btou_tab[b]) >> 16); \
+	v = ((cmodel_yuv_table->rtov_tab[r] + cmodel_yuv_table->gtov_tab[g] + cmodel_yuv_table->btov_tab[b]) >> 16); \
 	CLAMP(y, 0, 0xff); \
 	CLAMP(u, 0, 0xff); \
 	CLAMP(v, 0, 0xff); \
@@ -225,7 +224,7 @@ int BC_Capture::capture_frame(VFrame *frame,
 // __LINE__, 
 // frame->get_color_model(), 
 // bitmap_color_model);
-	BC_WindowBase::get_cmodels()->transfer(frame->get_rows(), 
+	cmodel_transfer(frame->get_rows(), 
 		row_data,
 		frame->get_y(),
 		frame->get_u(),

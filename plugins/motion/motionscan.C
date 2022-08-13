@@ -72,7 +72,7 @@ void MotionScanUnit::single_pixel(MotionScanPackage *pkg)
 	int w = server->current_frame->get_w();
 	int h = server->current_frame->get_h();
 	int color_model = server->current_frame->get_color_model();
-	int pixel_size = BC_CModels::calculate_pixelsize(color_model);
+	int pixel_size = cmodel_calculate_pixelsize(color_model);
 	int row_bytes = server->current_frame->get_bytes_per_line();
 
 // printf("MotionScanUnit::process_package %d search_x=%d search_y=%d scan_x1=%d scan_y1=%d scan_x2=%d scan_y2=%d x_steps=%d y_steps=%d\n", 
@@ -127,7 +127,7 @@ void MotionScanUnit::subpixel(MotionScanPackage *pkg)
 	int w = server->current_frame->get_w();
 	int h = server->current_frame->get_h();
 	int color_model = server->current_frame->get_color_model();
-	int pixel_size = BC_CModels::calculate_pixelsize(color_model);
+	int pixel_size = cmodel_calculate_pixelsize(color_model);
 	int row_bytes = server->current_frame->get_bytes_per_line();
 	unsigned char *prev_ptr = server->previous_frame->get_rows()[
 		pkg->search_y] +
@@ -518,7 +518,7 @@ void MotionScan::pixel_search(int &x_result, int &y_result, double &r_result)
 
 // test variance of constant macroblock
 	int color_model = current_frame->get_color_model();
-	int pixel_size = BC_CModels::calculate_pixelsize(color_model);
+	int pixel_size = cmodel_calculate_pixelsize(color_model);
 	int row_bytes = current_frame->get_bytes_per_line();
 	int block_w = block_x2 - block_x1;
 	int block_h = block_y2 - block_y1;

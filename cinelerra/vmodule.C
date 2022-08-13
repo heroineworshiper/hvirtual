@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -618,7 +618,7 @@ current_cmodel,
 input2, 
 (*input),
 output);
-							BC_CModels::transfer((*input)->get_rows(),
+							cmodel_transfer((*input)->get_rows(),
 								input2->get_rows(),
 								0,
 								0,
@@ -730,7 +730,7 @@ output);
 // of producing green borders in floating point translation of YUV
 					int mode = TRANSFER_REPLACE;
 					if(get_edl()->session->interpolation_type != NEAREST_NEIGHBOR &&
-						BC_CModels::is_yuv(output->get_color_model()))
+						cmodel_is_yuv(output->get_color_model()))
 						mode = TRANSFER_NORMAL;
 
 //					printf("VModule::import_frame %d temp -> output\n", 
@@ -865,7 +865,7 @@ output->get_w(),
 output->get_h(),
 nested_cmodel,
 current_cmodel);
-							BC_CModels::transfer(output->get_rows(),
+							cmodel_transfer(output->get_rows(),
 								(*input)->get_rows(),
 								0,
 								0,

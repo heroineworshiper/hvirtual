@@ -139,7 +139,7 @@ int SelTempAvgMain::process_buffer(VFrame *frame,
 	{
 		accumulation = new unsigned char[w * 
 						 h * 
-						 BC_CModels::components(color_model) *
+						 cmodel_components(color_model) *
 						 sizeof(float)];
 
 		accumulation_sq = new unsigned char[w * 

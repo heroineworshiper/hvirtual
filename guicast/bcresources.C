@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009-2015 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +27,7 @@
 #include "bctheme.h"
 #include "bcwindowbase.h"
 #include "colors.h"
-#include "bccmodels.h"
+//#include "bccmodels.h"
 #include "fonts.h"
 #include "language.h"
 #include "vframe.h"

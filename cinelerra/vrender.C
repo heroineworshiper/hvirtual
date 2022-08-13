@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
@@ -241,7 +240,7 @@ int VRender::process_buffer(int64_t input_position,
     {
         char string[BCTEXTLEN];
         MWindow::indent -= 2;
-        BC_CModels::to_text(string, colormodel);
+        cmodel_to_text(string, colormodel);
         printf("%sVRender::process_buffer %d EDL='%s' position=%ld use_vconsole=%d colormodel='%s' use_gl=%d\n", 
             MWindow::print_indent(),
             __LINE__, 

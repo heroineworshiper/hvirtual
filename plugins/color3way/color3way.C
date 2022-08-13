@@ -674,7 +674,7 @@ int Color3WayMain::handle_opengl()
 
 
 
-    int is_yuv = BC_CModels::is_yuv(get_output()->get_color_model());
+    int is_yuv = cmodel_is_yuv(get_output()->get_color_model());
 	shader = VFrame::make_shader(0, 
 		uniforms, 
 		is_yuv ? YUV_TO_RGB_FRAG("gl_FragColor") : "", 

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -469,7 +469,7 @@ void Playback3D::copy_from_sync(Playback3DCommand *command)
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
                 
                 int gl_cmodel = GL_RGB;
-                if(BC_CModels::has_alpha(command->frame->get_color_model()))
+                if(cmodel_has_alpha(command->frame->get_color_model()))
                 {
                     gl_cmodel = GL_RGBA;
                 }
@@ -726,7 +726,7 @@ void Playback3D::draw_output(Playback3DCommand *command)
 		}
 
 
-        if(BC_CModels::has_alpha(command->frame->get_color_model()))
+        if(cmodel_has_alpha(command->frame->get_color_model()))
         {
 //            shaders[current_shader++] = checker_alpha_frag;
             shaders[current_shader++] = multiply_alpha_frag;
@@ -752,7 +752,7 @@ void Playback3D::draw_output(Playback3DCommand *command)
 		}
 
 // multiply alpha
-// 		if(BC_CModels::has_alpha(command->frame->get_color_model()))
+// 		if(cmodel_has_alpha(command->frame->get_color_model()))
 // 		{
 // 			glEnable(GL_BLEND);
 // 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -812,7 +812,7 @@ void Playback3D::draw_output(Playback3DCommand *command)
 // 
 // // video mode with alpha needs the checker pattern
 // //     if(command->video_on &&
-// //         BC_CModels::has_alpha(command->frame->get_color_model()))
+// //         cmodel_has_alpha(command->frame->get_color_model()))
 // //     {
 // // printf("Playback3D::init_frame %d checker frame=%p state=%d\n", 
 // // __LINE__,
@@ -849,7 +849,7 @@ void Playback3D::draw_output(Playback3DCommand *command)
 // // all modes draw to a pbuffer with alpha
 //     {
 // 
-//         if(BC_CModels::is_yuv(command->frame->get_color_model()))
+//         if(cmodel_is_yuv(command->frame->get_color_model()))
 //         	glClearColor(0.0, 0.5, 0.5, 0.0);
 //         else
 //         	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -891,7 +891,7 @@ void Playback3D::clear_output_sync(Playback3DCommand *command)
 
 
 //		init_frame(command);
-        if(BC_CModels::is_yuv(command->frame->get_color_model()))
+        if(cmodel_is_yuv(command->frame->get_color_model()))
         	glClearColor(0.0, 0.5, 0.5, 0.0);
         else
         	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -1113,7 +1113,7 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 
 		const char *shader_stack[8] = { 0 };
 		int total_shaders = 0;
-        int is_yuv = BC_CModels::is_yuv(command->input->get_color_model());
+        int is_yuv = cmodel_is_yuv(command->input->get_color_model());
 
 		VFrame::init_screen(canvas_w, canvas_h);
 
@@ -1207,7 +1207,7 @@ void Playback3D::overlay_sync(Playback3DCommand *command)
 		}
 
 // create checker pattern
-//         if(BC_CModels::components(command->frame->get_color_model()) == 4)
+//         if(cmodel_components(command->frame->get_color_model()) == 4)
 //         {
 //             shader_stack[total_shaders++] = checker_alpha_frag;
 //         }
@@ -1603,7 +1603,7 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 // for further optimization but we also need a YUV algorithm.
 		unsigned int frag_shader = 0;
 //		switch(temp_texture->get_texture_components())
-		switch(BC_CModels::components(command->frame->get_color_model()))
+		switch(cmodel_components(command->frame->get_color_model()))
 		{
 			case 3: 
 				if(command->frame->get_color_model() == BC_YUV888)

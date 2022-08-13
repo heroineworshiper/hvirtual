@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2011-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -642,7 +641,7 @@ void VFrame::dump_shader(int shader_id)
 void VFrame::clear_pbuffer()
 {
 #ifdef HAVE_GL
-	if(BC_CModels::is_yuv(get_color_model()))
+	if(cmodel_is_yuv(get_color_model()))
 		glClearColor(0.0, 0.5, 0.5, 0.0);
 	else
 		glClearColor(0.0, 0.0, 0.0, 0.0);

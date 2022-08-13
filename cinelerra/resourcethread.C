@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
@@ -529,7 +528,7 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 	        BC_RGB888, 
 	        -1);
         
-		BC_CModels::transfer(picon_frame->get_rows(),
+		cmodel_transfer(picon_frame->get_rows(),
 			temp_picon->get_rows(),
 			0,
 			0,

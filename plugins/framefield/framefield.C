@@ -755,7 +755,7 @@ int FrameField::handle_opengl()
 	{
 		if(rgb601_direction == 1)
 		{
-			if(BC_CModels::is_yuv(get_output()->get_color_model()))
+			if(cmodel_is_yuv(get_output()->get_color_model()))
 				shaders[1] = yuv_to_601_frag;
 			else
 				shaders[1] = rgb_to_601_frag;
@@ -763,7 +763,7 @@ int FrameField::handle_opengl()
 		else
 		if(rgb601_direction == 2)
 		{
-			if(BC_CModels::is_yuv(get_output()->get_color_model()))
+			if(cmodel_is_yuv(get_output()->get_color_model()))
 				shaders[1] = _601_to_yuv_frag;
 			else
 				shaders[1] = _601_to_rgb_frag;

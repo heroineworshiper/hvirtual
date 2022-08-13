@@ -363,7 +363,7 @@ int MotionBlurMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 		get_project_smp() + 1);
 	if(!accum) accum = new unsigned char[input_ptr->get_w() * 
 		input_ptr->get_h() *
-		BC_CModels::components(input_ptr->get_color_model()) *
+		cmodel_components(input_ptr->get_color_model()) *
 		MAX(sizeof(int), sizeof(float))];
 
 	this->input = input_ptr;
@@ -459,7 +459,7 @@ int MotionBlurMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 	bzero(accum, 
 		input_ptr->get_w() * 
 		input_ptr->get_h() * 
-		BC_CModels::components(input_ptr->get_color_model()) * 
+		cmodel_components(input_ptr->get_color_model()) * 
 		MAX(sizeof(int), sizeof(float)));
 	engine->process_packages();
 	return 0;

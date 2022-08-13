@@ -661,7 +661,7 @@ int GradientMain::process_buffer(VFrame *frame,
 	if(get_use_opengl()) return run_opengl();
 
 	int gradient_cmodel = input->get_color_model();
-	if(need_alpha && BC_CModels::components(gradient_cmodel) == 3)
+	if(need_alpha && cmodel_components(gradient_cmodel) == 3)
 	{
 		switch(gradient_cmodel)
 		{

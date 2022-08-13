@@ -134,12 +134,7 @@ OBJS += \
 	$(OBJDIR)/avi_odml.o \
 	$(OBJDIR)/avi_riff.o \
 	$(OBJDIR)/avi_strl.o \
-	$(OBJDIR)/cmodel_default.o \
-	$(OBJDIR)/cmodel_float.o \
-	$(OBJDIR)/cmodel_yuv420p.o \
-	$(OBJDIR)/cmodel_yuv422.o \
 	$(OBJDIR)/codecs.o \
-	$(OBJDIR)/colormodels.o \
 	$(OBJDIR)/ctab.o \
 	$(OBJDIR)/dinf.o \
 	$(OBJDIR)/dref.o \
@@ -198,6 +193,13 @@ OBJS += \
 	$(OBJDIR)/yuv4.o \
 	$(OBJDIR)/yv12.o
 
+#	$(OBJDIR)/cmodel_default.o \
+#	$(OBJDIR)/cmodel_float.o \
+#	$(OBJDIR)/cmodel_yuv420p.o \
+#	$(OBJDIR)/cmodel_yuv422.o \
+#	$(OBJDIR)/colormodels.o \
+
+
 FFMPEG_OBJS := \
 	$(OBJDIR)/mpeg4.o \
 	$(OBJDIR)/qdm2.o \
@@ -242,6 +244,7 @@ CFLAGS += \
 	-I$(LAME_DIR)/include \
 	-I$(OGG_DIR)/include \
 	-I$(VORBIS_DIR)/include \
+        -I../guicast \
 	-ffast-math \
 	-mno-ieee-fp
 
@@ -265,7 +268,7 @@ DIRS += \
 	$(OBJDIR)/$(ENCORE_DIR)/mbtransquant/intel_mmx
 
 
-LIBS := $(OUTPUT) $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) -lpng -lz -lpthread -ldl -lm -llzma -lrt
+LIBS := $(OUTPUT) ../guicast/$(OBJDIR)/libcmodel.a $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) -lpng -lz -lpthread -ldl -lm -llzma -lrt
 
 
 $(shell mkdir -p $(DIRS) )

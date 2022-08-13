@@ -49,11 +49,6 @@ OBJS = \
 	$(OBJDIR)/bcbitmap.o \
 	$(OBJDIR)/bcbutton.o \
 	$(OBJDIR)/bccapture.o \
-	$(OBJDIR)/bccmodel_default.o \
-	$(OBJDIR)/bccmodel_float.o \
-	$(OBJDIR)/bccmodels.o \
-	$(OBJDIR)/bccmodel_yuv420p.o \
-	$(OBJDIR)/bccmodel_yuv422.o \
 	$(OBJDIR)/bccounter.o \
 	$(OBJDIR)/bcclipboard.o \
 	$(OBJDIR)/bcdelete.o \
@@ -116,6 +111,16 @@ OBJS = \
 OUTPUT = $(OBJDIR)/libguicast.so
 STATICOUTPUT = $(OBJDIR)/libguicast.a
 
+
+CMODEL_OBJS := \
+	$(OBJDIR)/cmodel_default.o \
+	$(OBJDIR)/cmodel_float.o \
+	$(OBJDIR)/cmodel_yuv420p.o \
+	$(OBJDIR)/cmodel_yuv422.o \
+	$(OBJDIR)/colormodels.o
+
+LIBCMODEL = $(OBJDIR)/libcmodel.a
+
 TESTLIBS := \
 		$(STATICOUTPUT) \
 		$(LFLAGS) \
@@ -144,8 +149,10 @@ $(shell echo $(OBJS) $(CXXREPOSITORY) > $(OBJDIR)/objs)
 
 
 # PTHREAD DOESN'T WORK WHEN LINKED HERE
-all: $(STATICOUTPUT) $(UTILS)
+all: $(LIBCMODEL) $(STATICOUTPUT) $(UTILS)
 
+$(LIBCMODEL): $(CMODEL_OBJS)
+	ar rcs $(LIBCMODEL) $(CMODEL_OBJS)
 
 $(STATICOUTPUT): $(OBJS)
 	ar rcs $(STATICOUTPUT) `cat $(OBJDIR)/objs`
@@ -204,6 +211,9 @@ install:
 
 $(OBJS) $(OBJDIR)/test.o $(OBJDIR)/test2.o $(OBJDIR)/test3.o $(OBJDIR)/replace.o:
 	$(CC) -c `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
+
+$(CMODEL_OBJS):
+	gcc -c `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
 
 $(OBJDIR)/bootstrap: bootstrap.c
 $(OBJDIR)/pngtoh: pngtoh.c
@@ -282,6 +292,11 @@ $(OBJDIR)/vframe3d.o: 	   				      vframe3d.C
 $(OBJDIR)/workarounds.o:   				      workarounds.C
 
 
+$(OBJDIR)/cmodel_default.o: cmodel_default.c
+$(OBJDIR)/cmodel_float.o: cmodel_float.c
+$(OBJDIR)/cmodel_yuv420p.o: cmodel_yuv420p.c
+$(OBJDIR)/cmodel_yuv422.o: cmodel_yuv422.c
+$(OBJDIR)/colormodels.o: colormodels.c
 
 
 

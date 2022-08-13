@@ -489,12 +489,12 @@ int CubeMap::handle_opengl()
 #ifdef HAVE_GL
     VFrame *output = get_output();
 	float border_color[] = { 0, 0, 0, 0 };
-	if(BC_CModels::is_yuv(output->get_color_model()))
+	if(cmodel_is_yuv(output->get_color_model()))
 	{
 		border_color[1] = 0.5;
 		border_color[2] = 0.5;
 	}
-	if(!BC_CModels::has_alpha(output->get_color_model()))
+	if(!cmodel_has_alpha(output->get_color_model()))
 	{
 		border_color[3] = 1.0;
 	}
