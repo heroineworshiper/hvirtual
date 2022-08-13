@@ -1048,6 +1048,18 @@ int quicktime_ffmpeg_get_audio(AVFrame *frame, float *dst)
 				break;
 			}
 			
+            case AV_SAMPLE_FMT_S16:
+            {
+				int16_t *in = (int16_t*)frame->data[0] + j;
+				for(i = 0; i < samples; i++)
+				{
+					*out = (float)*in / 32767;
+					in += channels;
+					out += channels;
+				}
+                break;
+            }
+
 			case AV_SAMPLE_FMT_S16P:
 			{
 				int16_t *in = (int16_t*)frame->data[j];
