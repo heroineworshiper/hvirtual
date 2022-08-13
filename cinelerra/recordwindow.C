@@ -68,15 +68,16 @@ void RecordWindow::create_objects()
 //printf("RecordWindow::create_objects 1\n");
 	format_tools->create_objects(x, 
 					y, 
-					1, 
-					1, 
-					1, 
-					1, 
-					1,
-					/* record->fixed_compression */ 0,
-					1,
-					0,
-					0);
+					1, // Include tools for audio
+					1, // Include tools for video
+					1, // Include checkbox for audio
+					1, // Include checkbox for video
+					1, // prompt_video_compression
+                    1, // include checkbox for multiplexing
+					0, // Select compressors to be offered
+					1, // Change captions for recording
+					0, // If nonzero, prompt for insertion strategy
+					0); // Supply file formats for background rendering
 //printf("RecordWindow::create_objects 1\n");
 
 // Not the same as creating a new file at each label.

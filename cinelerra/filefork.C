@@ -473,7 +473,9 @@ int FileFork::handle_command()
 // 			}
 
 			send_result(file->video_thread->current_buffer, 0, 0);
-//printf("FileFork::handle_command %d\n", __LINE__);
+// printf("FileFork::handle_command %d GET_VIDEO_BUFFER %d\n", 
+// __LINE__,
+// file->video_thread->current_buffer);
 			break;
 		}
 

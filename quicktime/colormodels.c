@@ -262,8 +262,14 @@ int cmodel_calculate_datasize(int w, int h, int bytes_per_line, int color_model)
 	{
 		case BC_YUV420P:
 		case BC_YUV411P:
-			return w * h + w * h / 2 + 4;
+        {
+            int pad = 0;
+// ffmpeg expects 1 more row for odd numbered heights
+            if((h % 2) > 0)
+                pad = w / 2;
+			return w * h + 2 * (w / 2) * (h / 2) + 2 * pad + 4;
 			break;
+        }
 
 		case BC_YUV422P:
 			return w * h * 2 + 4;
@@ -362,20 +368,20 @@ void cmodel_transfer(unsigned char **output_rows,
 		in_x, in_y, in_x + in_w, in_y + in_h,
 		out_x, out_y, out_x + out_w, out_y + out_h);
 
-/*
- * printf("cmodel_transfer %d %d %d %d,%d %d,%d %d,%d %d,%d\n", 
- * __LINE__,
- * in_colormodel, 
- * out_colormodel, 
- * out_x, 
- * out_y, 
- * out_w, 
- * out_h, 
- * in_x, 
- * in_y, 
- * in_w, 
- * in_h);
- */
+// printf("cmodel_transfer %d %p %p\n", __LINE__, column_table, row_table);
+// printf("cmodel_transfer %d %d %d %d,%d %d,%d %d,%d %d,%d\n", 
+// __LINE__,
+// in_colormodel, 
+// out_colormodel, 
+// out_x, 
+// out_y, 
+// out_w, 
+// out_h, 
+// in_x, 
+// in_y, 
+// in_w, 
+// in_h);
+
 
 
 #define PERMUTATION_VALUES \
@@ -447,12 +453,10 @@ void cmodel_transfer(unsigned char **output_rows,
 			break;
 	}
 
-/*
- * printf("cmodel_transfer 100 %d %d\n", 
- * in_colormodel, 
- * out_colormodel);
- */
 
+
+
+//printf("cmodel_transfer %d %p %p\n", __LINE__, column_table, row_table);
 	free(column_table);
 	free(row_table);
 }

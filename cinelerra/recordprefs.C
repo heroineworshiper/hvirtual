@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2013 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,14 +76,15 @@ void RecordPrefs::create_objects()
 			pwindow->thread->edl->session->recording_format);
 	recording_format->create_objects(x, 
 		y, 
-		1,  // Include tools for audio
-		1,  // Include tools for video
-		1,  // Include checkbox for audio
-		1,  // Include checkbox for video
-		1,
-		0,  // Select compressors to be offered
-		1,  // Prompt for recording options
-		0,  // If nonzero, prompt for insertion strategy
+		1, // Include tools for audio
+		1, // Include tools for video
+		1, // Include checkbox for audio
+		1, // Include checkbox for video
+        1, // prompt_video_compression
+		1, // include checkbox for multiplexing
+		0, // locked_compressor
+		1, // Prompt for recording options
+		0, // If nonzero, prompt for insertion strategy
 		0); // Supply file formats for background rendering
 
 

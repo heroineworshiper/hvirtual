@@ -135,7 +135,7 @@ void MenuEffectThread::run()
 	int result = 0;
 // Default configuration
 	Asset *default_asset = new Asset;
-// Output
+// Output assets
 	ArrayList<Indexable*> assets;
 
 
@@ -525,6 +525,12 @@ void MenuEffectThread::run()
 		if(load_mode == LOADMODE_PASTE)
 			mwindow->clear(0, 1);
 
+// force the format to be probed in case the encoder was different than the decoder
+        for(int i = 0; i < assets.size(); i++)
+        {
+            Asset *asset = (Asset*)assets.get(i);
+            asset->format = FILE_UNKNOWN;
+        }
 
 		mwindow->load_assets(&assets,
 			-1,
@@ -669,13 +675,14 @@ void MenuEffectWindow::create_objects()
 	format_tools->set_w(get_w() - x);
 	format_tools->create_objects(x, 
 					y, 
-					asset->audio_data, 
-					asset->video_data, 
-					0, 
-					0, 
-					1,
-					0,
-					0,
+					asset->audio_data, // do_audio
+					asset->video_data, // do_video
+					0, // prompt_audio
+					0, // prompt_video
+					1, // prompt_video_compression
+                    1, // prompt_wrapper
+					0, // locked_compressor
+					0, // recording
 					&menueffects->strategy,
 					0);
 

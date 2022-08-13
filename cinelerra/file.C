@@ -1062,7 +1062,6 @@ int File::start_video_thread(int buffer_size,
 			for(int j = 0; j < asset->layers; j++)
 			{
 				temp_frame_buffer[i][j] = new VFrame*[video_buffer_size];
-//printf("File::start_video_thread %d %p\n", __LINE__, temp_frame_buffer[i][j]);
 				for(int k = 0; k < video_buffer_size; k++)
 				{
 					temp_frame_buffer[i][j][k] = new VFrame;
@@ -1070,6 +1069,13 @@ int File::start_video_thread(int buffer_size,
 						i * asset->layers * video_buffer_size * VFrame::filefork_size() + 
 						j * video_buffer_size * VFrame::filefork_size() +
 						k * VFrame::filefork_size());
+printf("File::start_video_thread %d i=%d j=%d k=%d %p %p\n", 
+__LINE__, 
+i, 
+j,
+k,
+temp_frame_buffer[i],
+temp_frame_buffer[i][j][k]);
 				}
 			}
 		}
@@ -1726,7 +1732,14 @@ VFrame*** File::get_video_buffer()
 // 		}
 // 
 
-		current_frame_buffer = temp_frame_buffer[result];
+        if(result >= 0)
+        	current_frame_buffer = temp_frame_buffer[result];
+        else
+            current_frame_buffer = temp_frame_buffer[0];
+// printf("File::get_video_buffer %d result=%d current_frame_buffer=%p\n",
+// __LINE__,
+// result,
+// current_frame_buffer);
 
 		return current_frame_buffer;
 	}

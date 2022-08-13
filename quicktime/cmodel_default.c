@@ -841,6 +841,7 @@ static inline void transfer_UYVA8888_to_YUVA16161616(uint16_t *(*output), unsign
 					TRANSFER_FRAME_TAIL \
 					break; \
 				case BC_YUV420P: \
+/* printf("TRANSFER_FRAME_DEFAULT BC_YUV888 -> BC_YUV420P\n"); */ \
 					TRANSFER_YUV420P_OUT_HEAD \
 					transfer_YUV888_to_YUV420P_YUV422P(output_y, \
 						output_u, \

@@ -237,7 +237,11 @@ int64_t ForkWrapper::read_result()
 	unsigned char buffer[sizeof(int64_t) + sizeof(int)];
 //printf("ForkWrapper::read_result %d  parent_fd=%d\n", __LINE__, parent_fd);
 
-	if(read_timeout(buffer, sizeof(buffer))) return 1;
+	if(read_timeout(buffer, sizeof(buffer)))
+    {
+        printf("ForkWrapper::read_result %d timed out\n", __LINE__);
+        return -1;
+    }
 //printf("ForkWrapper::read_result %d  parent_fd=%d\n", __LINE__, parent_fd);
 
 	int64_t result = *(int64_t*)(buffer + 0);
@@ -259,7 +263,8 @@ int64_t ForkWrapper::read_result()
 	{
 		if(read_timeout(result_data, result_bytes)) 
 		{
-			return 1;
+            printf("ForkWrapper::read_result %d timed out\n", __LINE__);
+			return -1;
 		}
 	}
 //printf("ForkWrapper::read_result %d  parent_fd=%d\n", __LINE__, parent_fd);

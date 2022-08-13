@@ -1094,9 +1094,7 @@ void RenderThread::run()
 // exit from the foreground thread to the command line
         if(MWindow::playback_3d && render->is_console)
         {
-//printf("RenderThread::run %d\n", __LINE__);
             MWindow::playback_3d->quit();
-//printf("RenderThread::run %d\n", __LINE__);
         }
 	}
 }
@@ -1167,15 +1165,16 @@ void RenderWindow::create_objects()
 					asset);
 	format_tools->create_objects(x, 
 		y, 
-		1, 
-		1, 
-		1, 
-		1, 
-		1,
-		0,
-		0,
+		1, // Include tools for audio
+		1, // Include tools for video
+		1, // Include checkbox for audio
+		1, // Include checkbox for video
+		1, // prompt_video_compression
+		1, // include checkbox for multiplexing
+		0, // locked_compressor
+        0, // Change captions for recording
 		&render->strategy,
-		0);
+		0); // Supply file formats for background rendering
 
 	loadmode = new LoadMode(mwindow, 
 		this, 

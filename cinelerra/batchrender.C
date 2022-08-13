@@ -125,12 +125,12 @@ void BatchRenderJob::load(FileXML *file)
 			BC_Hash defaults;
 			defaults.load_string(file->read_text());
 			asset->load_defaults(&defaults,
-				"",
-				0,
-				1,
-				0,
-				0,
-				0);
+				"", // prefix
+				1, // do_format
+				1, // do_compression
+				0, // do_path
+				1, // do_data_types
+				1); // do_bits
 		}
 	}
 }
@@ -152,12 +152,12 @@ void BatchRenderJob::save(FileXML *file)
 // unique storage.
 	BC_Hash defaults;
 	asset->save_defaults(&defaults, 
-		"",
-		0,
-		1,
-		0,
-		0,
-		0);
+		"", // prefix
+		1, // do_format
+		1, // do_compression
+		0, // do_path
+		1, // do_data_types
+		1); // do_bits
 	char *string;
 	defaults.save_string(string);
 	file->append_text(string);
@@ -723,15 +723,16 @@ void BatchRenderGUI::create_objects()
 	format_tools->set_w(HALF_W - margin);
 	format_tools->create_objects(x, 
 						y, 
-						1, 
-						1, 
-						1, 
-						1, 
-						1, 
-						0, 
-						0, 
+						1, // do_audio
+						1, // do_video
+						1, // prompt_audio
+						1, // prompt_video
+						1, // prompt_video_compression
+                        1, // prompt_wrapper
+						0, // locked_compressor
+						0, // recording
 						&thread->get_current_job()->strategy, 
-						0);
+						0); // brender
 
 	x2 = x;
 	y2 = y + DP(10);

@@ -251,11 +251,17 @@ int BC_CModels::calculate_datasize(int w, int h, int bytes_per_line, int color_m
 	{
 		case BC_YUV420P:
 		case BC_YUV411P:
-			return w * h + w * h / 2 + 4;
+        {
+            int pad = 0;
+// ffmpeg expects 1 more row for odd numbered heights
+            if((h % 2) > 0)
+                pad = w / 2;
+			return w * h + 2 * (w / 2) * (h / 2) + 2 * pad + 4;
 			break;
+        }
 
 		case BC_YUV422P:
-			return w * h * 2 + 4;
+			return (w * 2) * h + 4;
 			break;
 
 		case BC_YUV444P:

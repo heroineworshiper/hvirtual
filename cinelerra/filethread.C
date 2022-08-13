@@ -210,7 +210,6 @@ void FileThread::run()
 					local_frame->frame = 0;
 				}
 
-//printf("FileThread::run %d\n", __LINE__);
 				if(!local_frame->frame)
 				{
 					local_frame->frame = new VFrame(0,
@@ -718,6 +717,11 @@ VFrame*** FileThread::get_video_buffer()
 	swap_buffer();
 
 	input_lock[current_buffer]->lock("FileThread::get_video_buffer");
+
+// printf("FileThread::get_video_buffer %d ring_buffers=%d video_buffer[current_buffer]=%p\n", 
+// __LINE__, 
+// ring_buffers, 
+// video_buffer[current_buffer]);
 	return video_buffer[current_buffer];
 }
 

@@ -73,6 +73,7 @@ RenderFarmClient::RenderFarmClient(int port,
 	MWindow::preferences->load_defaults(boot_defaults);
 	MWindow::init_plugins(MWindow::preferences, 0);
 	MWindow::init_fileserver(MWindow::preferences);
+	BC_WindowBase::get_resources()->vframe_shm = 1;
 }
 
 
@@ -625,7 +626,6 @@ void RenderFarmClientThread::do_packages(int socket_fd)
 	EDL *edl;
 	RenderPackage *package;
 	Asset *default_asset;
-	Preferences *preferences;
 
 
 
@@ -636,7 +636,6 @@ void RenderFarmClientThread::do_packages(int socket_fd)
 
 //printf("RenderFarmClientThread::run 2\n");
 // Read settings
-	preferences = new Preferences;
 	default_asset = new Asset;
 	package = new RenderPackage;
 	edl = new EDL;
@@ -648,11 +647,13 @@ void RenderFarmClientThread::do_packages(int socket_fd)
 
 
 //printf("RenderFarmClientThread::run 3\n");
-	read_preferences(socket_fd, preferences);
+// we're in a different memory space, so different clients don't share the same
+// preferences
+	read_preferences(socket_fd, MWindow::preferences);
 //printf("RenderFarmClientThread::run 4\n");
 	read_asset(socket_fd, default_asset);
 //printf("RenderFarmClientThread::run 5\n");
-	read_edl(socket_fd, edl, preferences);
+	read_edl(socket_fd, edl, MWindow::preferences);
 //edl->dump();
 //printf("RenderFarmClientThread::run 6\n");
 
@@ -665,7 +666,7 @@ void RenderFarmClientThread::do_packages(int socket_fd)
 
 	package_renderer.initialize(0,
 			edl, 
-			preferences, 
+			MWindow::preferences, 
 			default_asset);
 
 // Read packages
@@ -712,8 +713,6 @@ void RenderFarmClientThread::do_packages(int socket_fd)
 	default_asset->Garbage::remove_user();
 //printf("RenderFarmClientThread::run 10\n");
 	edl->Garbage::remove_user();
-//printf("RenderFarmClientThread::run 11\n");
-	delete preferences;
 printf(_("RenderFarmClientThread::run: Session finished.\n"));
 }
 

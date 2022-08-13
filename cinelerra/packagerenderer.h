@@ -151,8 +151,9 @@ public:
 	TransportCommand *command;
 
 // Dummy GUI to get an OpenGL context in command line mode
-    BC_Window *dummy_window;
-    Canvas *dummy_canvas;
+// HACK: Deleting it causes a segmentation fault in XConnectionNumber
+    static BC_Window *dummy_window;
+    static Canvas *dummy_canvas;
 
 // video device for preview frames & rendering
 	VideoDevice *video_device;

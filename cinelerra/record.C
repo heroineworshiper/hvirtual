@@ -571,7 +571,8 @@ void Record::run()
 					mwindow->remove_asset_from_caches(new_asset);
 					new_edl->create_objects();
 					new_edl->copy_session(mwindow->edl);
-// TODO: allow the user to conform the project in the record window
+// force the format to be probed in case the encoder was different than the decoder
+                    new_asset->format = FILE_UNKNOWN;
 					mwindow->asset_to_edl(new_edl, 
 						new_asset, 
 						batch->labels,

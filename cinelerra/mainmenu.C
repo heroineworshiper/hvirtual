@@ -187,9 +187,11 @@ void MainMenu::create_objects()
 
 	settingsmenu->add_item(new SetFormat(mwindow));
 	settingsmenu->add_item(preferences = new PreferencesMenuitem(mwindow));
+
 	ProxyMenuItem *proxy;
 	settingsmenu->add_item(proxy = new ProxyMenuItem(mwindow));
 	proxy->create_objects();
+
 	settingsmenu->add_item(new BC_MenuItem("-"));
 	settingsmenu->add_item(labels_follow_edits = new LabelsFollowEdits(mwindow));
 	settingsmenu->add_item(plugins_follow_edits = new PluginsFollowEdits(mwindow));

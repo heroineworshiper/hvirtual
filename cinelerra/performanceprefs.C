@@ -162,15 +162,16 @@ void PerformancePrefs::create_objects()
 	brender_tools->set_w(get_w() - x);
 	brender_tools->create_objects(x, 
 		y2, 
-		0,  // Include tools for audio
-		1,  // Include tools for video
-		0,  // Include checkbox for audio
-		0,  // Include checkbox for video
-		1,
-		0,  // Select compressors to be offered
-		0,  // Prompt for recording options
-		0,  // If nonzero, prompt for insertion strategy
-		1); // Supply file formats for background rendering
+		0, // Include tools for audio
+		1, // Include tools for video
+		0, // Include checkbox for audio
+		0, // Include checkbox for video
+		1, // prompt_video_compression
+        0, // prompt_wrapper
+		0, // Select compressors to be offered
+		0, // Prompt for recording options
+		0, // If nonzero, prompt for insertion strategy
+		1); // Supply only file formats for background rendering
 	x = xmargin1;
 	
 	if(y2 > y)

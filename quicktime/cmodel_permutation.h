@@ -2462,12 +2462,13 @@ static inline void transfer_YUVA16161616_to_YUV422(unsigned char *(*output),
 	}
 
 #define TRANSFER_YUV420P_OUT_HEAD \
-	for(i = 0; i < out_h; i++) \
+	for(i = 0; i < 2 * (out_h / 2); i++) /* round down odd numbers of rows */ \
 	{ \
 		unsigned char *input_row = input_rows[row_table[i]]; \
 		unsigned char *output_y = out_y_plane + i * total_out_w + out_x; \
-		unsigned char *output_u = out_u_plane + i / 2 * total_out_w / 2 + out_x / 2; \
-		unsigned char *output_v = out_v_plane + i / 2 * total_out_w / 2 + out_x / 2; \
+		unsigned char *output_u = out_u_plane + (i / 2) * (total_out_w / 2) + (out_x / 2); \
+		unsigned char *output_v = out_v_plane + (i / 2) * (total_out_w / 2) + (out_x / 2); \
+/* printf("i=%d offset=%d\n", i, (i / 2) * (total_out_w / 2) + (out_x / 2)); */ \
 		for(j = 0; j < out_w; j++) \
 		{
 
@@ -2476,8 +2477,8 @@ static inline void transfer_YUVA16161616_to_YUV422(unsigned char *(*output),
 	{ \
 		unsigned char *input_row = input_rows[row_table[i]]; \
 		unsigned char *output_y = out_y_plane + i * total_out_w + out_x; \
-		unsigned char *output_u = out_u_plane + i * total_out_w / 2 + out_x / 2; \
-		unsigned char *output_v = out_v_plane + i * total_out_w / 2 + out_x / 2; \
+		unsigned char *output_u = out_u_plane + i * (total_out_w / 2) + out_x / 2; \
+		unsigned char *output_v = out_v_plane + i * (total_out_w / 2) + out_x / 2; \
 		for(j = 0; j < out_w; j++) \
 		{
 

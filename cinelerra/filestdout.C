@@ -70,9 +70,11 @@ StdoutPreset* FileStdout::default_video_presets[3] =
         BC_YUV420P),
 };
 
-StdoutPreset* FileStdout::default_mplex_presets[1] = 
+StdoutPreset* FileStdout::default_mplex_presets[3] = 
 {
-    StdoutPreset::createMplex("ffmpeg MP4", "ffmpeg -y -i %3 -i %2 -c:v copy -c:a copy %1", 0)
+    StdoutPreset::createMplex("ffmpeg MP4", "ffmpeg -y -i %3 -i %2 -c:v copy -c:a copy %1", 0),
+    StdoutPreset::createMplex("ffmpeg MP4 video", "ffmpeg -y -i %2 -c:v copy %1", 0),
+    StdoutPreset::createMplex("ffmpeg MP4 audio", "ffmpeg -y -i %3 -c:a copy %1", 0)
 };
 
 // Need planer colormodels not in MWindow::colormodels
@@ -483,6 +485,7 @@ void FileStdout::fix_command(std::string *dst,
 
 int FileStdout::write_frames(VFrame ***frames, int len)
 {
+
 	int result = 0;
     for(int i = 0; i < asset->layers && !result; i++)
 	{
@@ -514,8 +517,16 @@ int FileStdout::write_frames(VFrame ***frames, int len)
 					    asset->command_cmodel,
 					    -1); // bytes per line
                 }
+// printf("FileStdout::write_frames %d %d %d %p %p %p %p\n", 
+// __LINE__, 
+// asset->layers, 
+// len,
+// file->temp_frame,
+// file->temp_frame->get_y(),
+// file->temp_frame->get_u(),
+// file->temp_frame->get_v());
 
-                BC_CModels::transfer(file->temp_frame->get_rows(),
+                cmodel_transfer(file->temp_frame->get_rows(),
                     src->get_rows(),
                     file->temp_frame->get_y(),
                     file->temp_frame->get_u(),
@@ -536,12 +547,12 @@ int FileStdout::write_frames(VFrame ***frames, int len)
                     0,
                     asset->width,
                     asset->width);
+//PRINT_TRACE
 
                 src = file->temp_frame;
             }
-            
-            
-            
+//printf("FileStdout::write_frames %d\n", __LINE__);
+
             int bytes_written = fwrite(src->get_data(),
                 1,
                 src->get_data_size(),
@@ -554,6 +565,7 @@ int FileStdout::write_frames(VFrame ***frames, int len)
             }
         }
     }
+//PRINT_TRACE
 	return result;
 }
 

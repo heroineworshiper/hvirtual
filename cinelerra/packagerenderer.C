@@ -63,7 +63,6 @@
 
 
 
-
 RenderPackage::RenderPackage()
 {
 	audio_start = 0;
@@ -85,6 +84,9 @@ RenderPackage::~RenderPackage()
 
 
 
+BC_Window *PackageRenderer::dummy_window = 0;
+Canvas *PackageRenderer::dummy_canvas = 0;
+
 
 // Used by RenderFarm and in the future, Render, to do packages.
 PackageRenderer::PackageRenderer()
@@ -98,8 +100,6 @@ PackageRenderer::PackageRenderer()
 	timer = new Timer;
 	frames_per_second = 0;
     use_opengl = 0;
-    dummy_window = 0;
-    dummy_canvas = 0;
 }
 
 PackageRenderer::~PackageRenderer()
@@ -255,38 +255,46 @@ int PackageRenderer::create_engine()
         {
             int dummy_w = 16;
             int dummy_h = 16;
-            dummy_window = new BC_Window(PROGRAM_NAME ": Rendering", 
-				0,
-				0,
-				dummy_w, 
-				dummy_h, 
-				-1, 
-				-1, 
-				0,
-				0, 
-				1); // hide
-            if(!dummy_window->exists())
+            
+            if(!dummy_window)
             {
-                delete dummy_window;
-                dummy_window = 0;
+                dummy_window = new BC_Window(PROGRAM_NAME ": Rendering", 
+				    0,
+				    0,
+				    dummy_w, 
+				    dummy_h, 
+				    -1, 
+				    -1, 
+				    0,
+				    0, 
+				    1); // hide
+                if(!dummy_window->exists())
+                {
+                    delete dummy_window;
+                    dummy_window = 0;
+                }
+                else
+                {
+                    dummy_canvas = canvas = new Canvas(
+                        0, 
+                        dummy_window,
+                        0, // x
+                        0, // y
+                        dummy_w, // w
+                        dummy_h, // h
+                        dummy_w, // output_w
+                        dummy_h, // output_h
+                        0, // use_scrollbars
+                        0,
+                        0,
+                        0);
+                    canvas->create_objects(0);
+            	    dummy_window->unlock_window();
+                }
             }
             else
             {
-                dummy_canvas = canvas = new Canvas(
-                    0, 
-                    dummy_window,
-                    0, // x
-                    0, // y
-                    dummy_w, // w
-                    dummy_h, // h
-                    dummy_w, // output_w
-                    dummy_h, // output_h
-                    0, // use_scrollbars
-                    0,
-                    0,
-                    0);
-                canvas->create_objects(0);
-            	dummy_window->unlock_window();
+                canvas = dummy_canvas;
             }
         }
 
@@ -317,7 +325,8 @@ int PackageRenderer::create_engine()
         }
 	}
 
-//printf("PackageRenderer::create_engine %d\n", __LINE__);
+    if(preferences->use_gl_rendering)
+        printf("PackageRenderer::create_engine %d using hardware rendering\n", __LINE__);
 
     if(!result)
     {
@@ -605,16 +614,17 @@ void PackageRenderer::stop_output()
             video_device = 0;
 		}
 
-        if(dummy_window)
-        {
-            dummy_window->lock_window("PackageRenderer::stop_output");
-            delete dummy_canvas;
-// have to unlock before deleting the top window
-            dummy_window->unlock_window();
-            delete dummy_window;
-            dummy_window = 0;
-            dummy_canvas = 0;
-        }
+// HACK: can't delete the dummy window without causing a segmentation fault in XConnectionNumber
+//         if(dummy_window)
+//         {
+//             dummy_window->lock_window("PackageRenderer::stop_output");
+//             delete dummy_canvas;
+// // have to unlock before deleting the top window
+//             dummy_window->unlock_window();
+//             delete dummy_window;
+//             dummy_window = 0;
+//             dummy_canvas = 0;
+//         }
 	}
 }
 

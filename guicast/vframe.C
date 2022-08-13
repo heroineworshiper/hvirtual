@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -390,9 +390,13 @@ void VFrame::create_row_pointers()
 		case BC_YUV411P:
 			if(!this->v_offset)
 			{
+                int pad = 0;
+// ffmpeg expects 1 more row for odd numbered heights
+                if((h % 2) > 0)
+                    pad = w / 2;
 				this->y_offset = 0;
 				this->u_offset = w * h;
-				this->v_offset = w * h + w * h / 4;
+				this->v_offset = w * h + (w / 2) * (h / 2) + pad;
 			}
             
             if(this->data)
@@ -408,7 +412,7 @@ void VFrame::create_row_pointers()
 			{
 				this->y_offset = 0;
 				this->u_offset = w * h;
-				this->v_offset = w * h + w * h / 2;
+				this->v_offset = w * h + (w / 2) * h;
 			}
             if(this->data)
             {

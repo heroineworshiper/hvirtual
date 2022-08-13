@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2015 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2015-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,12 +91,12 @@ BC_Window* ProxyThread::new_gui()
 	strcpy(asset->vcodec, QUICKTIME_JPEG);
 	asset->jpeg_quality = 75;
 	asset->load_defaults(mwindow->defaults, 
-		"PROXY_", 
-		1,
-		1,
-		0,
-		0,
-		0);
+		"PROXY_", // prefix
+		1, // do_format
+		1, // do_compression
+		0, // do_path
+		1, // do_data_types
+		0); // do_bits
 
 
 
@@ -164,13 +164,13 @@ void ProxyThread::calculate_sizes()
 void ProxyThread::handle_close_event(int result)
 {
 	asset->save_defaults(mwindow->defaults, 
-		"PROXY_",
-		1,
-		1,
-		0,
-		0,
-		0);
-
+		"PROXY_", // prefix
+		1, // do_format
+		1, // do_compression
+		0, // do_path
+		1, // do_data_types
+		0); // do_bits
+    mwindow->save_defaults();
 
 	if(!result)
 	{
@@ -289,6 +289,7 @@ void ProxyThread::to_proxy()
 // new compression parameters
 					proxy_asset->copy_format(asset, 0);
 					proxy_asset->update_path(new_path.c_str());
+// force these settings
 					proxy_asset->audio_data = 0;
 					proxy_asset->video_data = 1;
 					proxy_asset->layers = 1;
@@ -355,7 +356,7 @@ void ProxyThread::to_proxy()
 			int canceled = 0;
 			failed = 0;
 
-	// create proxy assets which don't already exist
+// create proxy assets which don't already exist
 			if(needed_orig_assets.size() > 0)
 			{
 				int64_t total_len = 0;
@@ -398,6 +399,13 @@ printf("failed=%d canceled=%d\n", failed, progress->is_cancelled());
 // resize project
 			if(!failed && !canceled) 
 			{
+// force the format to be probed in case the encoder was different than the decoder
+                for(int i = 0; i < proxy_assets.size(); i++)
+                {
+                    proxy_asset = (Asset*)proxy_assets.get(i);
+                    proxy_asset->format = FILE_UNKNOWN;
+                }
+
 				mwindow->set_proxy(new_scale, &orig_assets, &proxy_assets);
 			}
 		}
@@ -438,6 +446,16 @@ printf("failed=%d canceled=%d\n", failed, progress->is_cancelled());
 void ProxyThread::to_proxy_path(string *new_path, Asset *asset, int scale)
 {
 	new_path->assign(asset->path);
+
+// replace spaces with _
+    for(int i = 0; i < new_path->length(); i++)
+    {
+        if(new_path->at(i) == ' ')
+        {
+            new_path->replace(i, 1, "_");
+        }
+    }
+
 	char code[BCTEXTLEN];
 	sprintf(code, ".proxy%d", scale);
 	int code_len = strlen(code);
@@ -572,15 +590,16 @@ void ProxyWindow::create_objects()
 					thread->asset);
 	format_tools->create_objects(x, 
 		y, 
-		0, 
-		1, 
-		0, 
-		0, 
-		1,
-		0,
-		1, // skip the path
-		0,
-		0);
+		0, // do_audio
+		1, // do_video
+		0, // prompt_audio
+		0, // prompt_video
+		1, // prompt_video_compression
+		1, // prompt_wrapper
+        0, // locked_compressor
+		1, // skip the path.  Recording option
+		0, // strategy
+		0); // brender
 
 	update();
 		
@@ -742,7 +761,8 @@ void ProxyClient::process_package(LoadPackage *ptr)
 	File dst_file;
 	EDL *edl = mwindow->edl;
 	Preferences *preferences = mwindow->preferences;
-	int processors = 1;
+//	int processors = 1;
+    int processors = MWindow::preferences->processors;
 
 	int result;
 	src_file.set_processors(processors);
@@ -752,7 +772,7 @@ void ProxyClient::process_package(LoadPackage *ptr)
 		edl->session->subtitle_number : -1);
 	src_file.set_interpolate_raw(edl->session->interpolate_raw);
 //	src_file.set_white_balance_raw(edl->session->white_balance_raw);
-	// Copy decoding parameters from session to asset so file can see them.
+// Copy decoding parameters from session to asset so file can see them.
 	package->orig_asset->divx_use_deblocking = edl->session->mpeg4_deblock;
 
 //printf("ProxyClient::process_package %d %s %s\n", __LINE__, package->orig_asset->path, package->proxy_asset->path);
@@ -780,7 +800,9 @@ void ProxyClient::process_package(LoadPackage *ptr)
 	
 	dst_file.start_video_thread(1,
 			edl->session->color_model,
-			processors > 1 ? 2 : 1,
+//			processors > 1 ? 2 : 1,
+//            2,
+            1,
 			0);
 	
 	VFrame src_frame(0, 
@@ -820,6 +842,10 @@ void ProxyClient::process_package(LoadPackage *ptr)
 // have to write after getting the video buffer or it locks up
 		VFrame ***dst_frames = dst_file.get_video_buffer();
 		VFrame *dst_frame = dst_frames[0][0];
+// printf("ProxyClient::process_package %d dst_frames=%p %p\n", 
+// __LINE__, 
+// dst_frames, 
+// dst_frame);
 		scaler.overlay(dst_frame,
               &src_frame,
               0,

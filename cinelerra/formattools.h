@@ -55,12 +55,12 @@ public:
 
 	void create_objects(int &init_x, 
 						int &init_y, 
-						int do_audio,    // Include tools for audio
-						int do_video,   // Include tools for video
+						int do_audio, // Include tools for audio
+						int do_video, // Include tools for video
 						int prompt_audio,  // Include checkbox for audio
 						int prompt_video,  // Include checkbox for video
-//						int prompt_audio_channels,
-						int prompt_video_compression,
+						int prompt_video_compression, // prompt_video_compression
+                        int prompt_wrapper, // include checkbox for multiplexing
 						char *locked_compressor,  // Select compressors to be offered
 						int recording, // Change captions for recording
 						int *strategy,  // If nonzero, prompt for insertion strategy
@@ -139,6 +139,7 @@ public:
 //	int prompt_audio_channels;
 	int prompt_video;
 	int prompt_video_compression;
+    int prompt_wrapper;
 	int *strategy;
 // width of the format tools region, not the parent window
 	int w;

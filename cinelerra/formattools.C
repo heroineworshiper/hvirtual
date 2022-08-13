@@ -106,8 +106,8 @@ void FormatTools::create_objects(int &init_x,
 						int do_video,   // Include support for video
 						int prompt_audio,  // Include checkbox for audio
 						int prompt_video,
-//						int prompt_audio_channels,
 						int prompt_video_compression,
+                        int prompt_wrapper,
 						char *locked_compressor,
 						int recording,
 						int *strategy,
@@ -127,6 +127,7 @@ void FormatTools::create_objects(int &init_x,
 //	this->prompt_audio_channels = prompt_audio_channels;
 	this->prompt_video = prompt_video;
 	this->prompt_video_compression = prompt_video_compression;
+    this->prompt_wrapper = prompt_wrapper;
 	this->strategy = strategy;
 
     audio_checked = asset->audio_data;
@@ -284,7 +285,7 @@ void FormatTools::create_objects(int &init_x,
 		vparams_thread = new FormatVThread(this);
 	}
 
-    if(do_audio && do_video)
+    if((do_audio && do_video) || prompt_wrapper)
     {
 // wrapper
  	    x = init_x;
@@ -554,6 +555,7 @@ void FormatTools::update(Asset *asset, int *strategy)
     format_text->update(File::formattostr(asset->format));
 	if(do_audio && audio_switch) audio_switch->update(asset->audio_data);
 	if(do_video && video_switch) video_switch->update(asset->video_data);
+    if(mplex_switch) mplex_switch->update(asset->do_wrapper);
 	if(strategy)
 	{
 		multiple_files->update(strategy);
