@@ -804,7 +804,7 @@ void File::stop_progress(const char *title)
             strlen(title) + 1);
         return;
     }
-    
+
     if(MWindow::file_progress)
     {
 		if(!MWindow::is_loading)

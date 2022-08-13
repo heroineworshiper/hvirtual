@@ -116,7 +116,6 @@ OBJS = \
 	$(OBJDIR)/cwindow.o \
 	$(OBJDIR)/cwindowgui.o \
 	$(OBJDIR)/cwindowtool.o \
-	$(OBJDIR)/dcoffset.o \
 	$(OBJDIR)/device1394input.o \
 	$(OBJDIR)/devicedvbinput.o \
 	$(OBJDIR)/device1394output.o \
@@ -351,6 +350,7 @@ OBJS = \
 	$(OBJDIR)/zoompanel.o
 
 
+#	$(OBJDIR)/dcoffset.o \
 #	$(OBJDIR)/transitionhandles.o \
 #	$(OBJDIR)/renderfarmfsclient.o \
 #	$(OBJDIR)/renderfarmfsserver.o \

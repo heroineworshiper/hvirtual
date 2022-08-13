@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +55,7 @@ void DC_Offset::run()
 		(int)BC_INFINITY, 
 		_("DC Offset"), 
 		256000);
-	progress->start();
+	progress->start_progress();
 
 	dc_offset_lock->lock();
 	dc_offset_count = 0;

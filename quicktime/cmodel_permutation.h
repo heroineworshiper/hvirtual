@@ -2462,7 +2462,7 @@ static inline void transfer_YUVA16161616_to_YUV422(unsigned char *(*output),
 	}
 
 #define TRANSFER_YUV420P_OUT_HEAD \
-	for(i = 0; i < 2 * (out_h / 2); i++) /* round down odd numbers of rows */ \
+	for(i = 0; i < out_h; i++) \
 	{ \
 		unsigned char *input_row = input_rows[row_table[i]]; \
 		unsigned char *output_y = out_y_plane + i * total_out_w + out_x; \

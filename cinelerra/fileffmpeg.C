@@ -2052,7 +2052,10 @@ int FileFFMPEG::read_frame(VFrame *frame)
                 }
             }
 
-            int keyframe = stream->video_keyframes.get(i);
+            int keyframe = 0;
+            if(stream->video_keyframes.size())
+                int keyframe = stream->video_keyframes.get(i);
+
 
 
 #if LIBAVCODEC_VERSION_MAJOR >= 58

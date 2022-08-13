@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -28,6 +27,7 @@
 #include "bctimer.h"
 
 #include <string.h>
+#include <unistd.h>
 
 MainProgressBar::MainProgressBar(MWindow *mwindow, MainProgress *mainprogress)
 {
@@ -57,7 +57,7 @@ void MainProgressBar::start()
 {
 	if(progress_box)
 	{
-		progress_box->start();
+		progress_box->start_progress();
 	}
 	eta_timer->update();
 	last_eta = 0;

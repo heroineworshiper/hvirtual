@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +27,7 @@
 #include "bcwindow.h"
 #include "thread.h"
 
-class BC_ProgressBox : public Thread
+class BC_ProgressBox : private Thread
 {
 public:
 	BC_ProgressBox(int x, int y, const char *text, int64_t length);
@@ -41,6 +40,8 @@ public:
 	int update_title(const char *title, int lock_it);
 	int update_length(int64_t length, int lock_it);
 	int is_cancelled();      // return 1 if cancelled
+// start the thread & wait for run_window to start
+    void start_progress();
 	int stop_progress();
 	void lock_window();
 	void unlock_window();
