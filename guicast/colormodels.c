@@ -492,15 +492,14 @@ void cmodel_to_text(char *string, int cmodel)
 {
 	switch(cmodel)
 	{
+        case BC_YUV420P: strcpy(string, "YUV420 Planar");   break;
+        case BC_YUV422P: strcpy(string, "YUV422 Planar");   break;
+        case BC_YUV444P: strcpy(string, "YUV444 Planar");   break;
 		case BC_RGB888:       strcpy(string, "RGB-8 Bit");   break;
 		case BC_BGR8888:       strcpy(string, "BGRX-8 Bit");   break;
 		case BC_RGBA8888:     strcpy(string, "RGBA-8 Bit");  break;
-		case BC_RGB161616:    strcpy(string, "RGB-16 Bit");  break;
-		case BC_RGBA16161616: strcpy(string, "RGBA-16 Bit"); break;
 		case BC_YUV888:       strcpy(string, "YUV-8 Bit");   break;
 		case BC_YUVA8888:     strcpy(string, "YUVA-8 Bit");  break;
-		case BC_YUV161616:    strcpy(string, "YUV-16 Bit");  break;
-		case BC_YUVA16161616: strcpy(string, "YUVA-16 Bit"); break;
 		case BC_RGB_FLOAT:    strcpy(string, "RGB-FLOAT");   break;
 		case BC_RGBA_FLOAT:   strcpy(string, "RGBA-FLOAT");  break;
 		default: strcpy(string, "RGB-8 Bit"); break;
@@ -509,16 +508,15 @@ void cmodel_to_text(char *string, int cmodel)
 
 int cmodel_from_text(const char *text)
 {
+	if(!strcasecmp(text, "YUV420 Planar")) return BC_YUV420P;
+	if(!strcasecmp(text, "YUV422 Planar")) return BC_YUV422P;
+	if(!strcasecmp(text, "YUV444 Planar")) return BC_YUV444P;
 	if(!strcasecmp(text, "RGB-8 Bit"))   return BC_RGB888;
 	if(!strcasecmp(text, "RGBA-8 Bit"))  return BC_RGBA8888;
-	if(!strcasecmp(text, "RGB-16 Bit"))  return BC_RGB161616;
-	if(!strcasecmp(text, "RGBA-16 Bit")) return BC_RGBA16161616;
 	if(!strcasecmp(text, "RGB-FLOAT"))   return BC_RGB_FLOAT;
 	if(!strcasecmp(text, "RGBA-FLOAT"))  return BC_RGBA_FLOAT;
 	if(!strcasecmp(text, "YUV-8 Bit"))   return BC_YUV888;
 	if(!strcasecmp(text, "YUVA-8 Bit"))  return BC_YUVA8888;
-	if(!strcasecmp(text, "YUV-16 Bit"))  return BC_YUV161616;
-	if(!strcasecmp(text, "YUVA-16 Bit")) return BC_YUVA16161616;
 	return BC_RGB888;
 }
 
