@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -32,7 +31,7 @@
 
 #include <stdio.h>
 #include <string.h>
-
+#include <unistd.h>
 
 REGISTER_PLUGIN(NormalizeMain)
 
@@ -120,6 +119,7 @@ int NormalizeMain::process_loop(Samples **buffer, int64_t &write_length)
 // __LINE__, 
 // writing,
 // current_position);
+
 	if(writing)
 	{
 		fragment_len = PluginClient::in_buffer_size;
@@ -129,13 +129,15 @@ int NormalizeMain::process_loop(Samples **buffer, int64_t &write_length)
 // current_position, 
 // scale[0]);
 
+
 		for(int i = 0; i < PluginClient::total_in_buffers; i++)
 		{
-// printf("NormalizeMain::process_loop %d fragment_len=%ld i=%d scale=%f\n", 
+// printf("NormalizeMain::process_loop %d fragment_len=%ld i=%d scale=%f buffer=%p\n", 
 // __LINE__, 
 // fragment_len,
 // i, 
-// scale[i]);
+// scale[i],
+// buffer[i]);
 			read_samples(buffer[i], i, current_position, fragment_len);
 			for(int j = 0; j < fragment_len; j++)
 				buffer[i]->get_data()[j] *= scale[i];
@@ -156,20 +158,17 @@ int NormalizeMain::process_loop(Samples **buffer, int64_t &write_length)
 	else
 	{
 // Get peak
-//printf("NormalizeMain::process_loop 4\n");
+//printf("NormalizeMain::process_loop %d\n", __LINE__);
 		for(int i = PluginClient::start; 
 			i < PluginClient::end && !result; 
 			i += fragment_len)
 		{
 			fragment_len = PluginClient::in_buffer_size;
 			if(i + fragment_len > PluginClient::end) fragment_len = PluginClient::end - i;
-//printf("NormalizeMain::process_loop 5\n");
 
 			for(int j = 0; j < PluginClient::total_in_buffers; j++)
 			{
-//printf("NormalizeMain::process_loop 6 %p\n", buffer);
 				read_samples(buffer[j], j, i, fragment_len);
-//printf("NormalizeMain::process_loop 7\n");
 				
 				for(int k = 0; k < fragment_len; k++)
 				{
@@ -177,9 +176,7 @@ int NormalizeMain::process_loop(Samples **buffer, int64_t &write_length)
 						peak[j] = fabs(buffer[j]->get_data()[k]);
 				}
 			}
-//printf("NormalizeMain::process_loop 8\n");
 			result = progress->update(i - PluginClient::start);
-//printf("NormalizeMain::process_loop 9\n");
 		}
 
 // Normalize all tracks
@@ -207,8 +204,7 @@ int NormalizeMain::process_loop(Samples **buffer, int64_t &write_length)
 // Start writing on next iteration
 		writing = 1;
 	}
-//printf("NormalizeMain::process_loop %d\n", __LINE__);
-
+//printf("NormalizeMain::process_loop %d write_length=%d\n", __LINE__, (int)write_length);
 	return result;
 }
 

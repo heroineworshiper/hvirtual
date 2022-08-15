@@ -1154,7 +1154,7 @@ int File::stop_video_thread()
 
 	if(video_thread)
 	{
-		video_thread->stop_reading();
+//		video_thread->stop_reading();
 		video_thread->stop_writing();
 		delete video_thread;
 		video_thread = 0;

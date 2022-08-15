@@ -231,18 +231,22 @@ int FileFLAC::open_file(int rd, int wr)
 	{
 		file_bytes = FileSystem::get_size(asset->path);
 		flac_decode = FLAC__stream_decoder_new();
-		FLAC__stream_decoder_init_file(flac_decode,
+		result = FLAC__stream_decoder_init_file(flac_decode,
 			asset->path,
 			write_callback,
 			metadata_callback,
 			error_callback,
 			this);
+//        printf("FileFLAC::open_file %d result=%d\n", __LINE__, result);
 
 		initialized = 0;
-		while(!initialized)
-		{
-			if(!FLAC__stream_decoder_process_single(flac_decode)) break;
-		}
+        if(!result)
+        {
+		    while(!initialized)
+		    {
+			    if(!FLAC__stream_decoder_process_single(flac_decode)) break;
+		    }
+        }
 
 		if(!initialized) 
 			result = 1;
@@ -258,10 +262,11 @@ int FileFLAC::open_file(int rd, int wr)
 		FLAC__stream_encoder_set_channels(flac_encode, asset->channels);
 		FLAC__stream_encoder_set_bits_per_sample(flac_encode, asset->bits);
 		FLAC__stream_encoder_set_sample_rate(flac_encode, asset->sample_rate);
-		FLAC__stream_encoder_init_file(flac_encode, 
+		result = FLAC__stream_encoder_init_file(flac_encode, 
 			asset->path, 
 			0, 
 			0);
+//        printf("FileFLAC::open_file %d result=%d\n", __LINE__, result);
 	}
 
 	return result;
@@ -335,7 +340,7 @@ int FileFLAC::write_samples(double **buffer, int64_t len)
 			*dst++ = (int32_t)sample;
 		}
 	}
-	
+
 	int result = FLAC__stream_encoder_process(flac_encode, 
 		temp_buffer, 
 		len);
