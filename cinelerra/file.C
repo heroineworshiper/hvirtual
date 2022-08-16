@@ -60,6 +60,7 @@
 #include "mutex.h"
 #include "mwindow.h"
 #include "pluginserver.h"
+#include "preferences.h"
 #include "samples.h"
 #include "stringfile.h"
 #include "vframe.h"
@@ -1907,7 +1908,13 @@ int File::read_frame(VFrame *frame, int is_thread)
 	if(!is_fork && !is_thread)
 	{
 		unsigned char fork_buffer[VFrame::filefork_size()];
-		if(debug) PRINT_TRACE
+        char string[BCTEXTLEN];
+	    if(MWindow::preferences->dump_playback) 
+		    printf("%sFile::read_frame %d path='%s' colormodel=%s\n", 
+			    MWindow::print_indent(),
+                __LINE__,
+                asset->path,
+                cmodel_to_text(string, frame->get_color_model()));
 
 		frame->to_filefork(fork_buffer);
 		file_fork->send_command(FileFork::READ_FRAME, 

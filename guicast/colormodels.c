@@ -488,7 +488,7 @@ int cmodel_bc_to_x(int color_model)
 	return -1;
 }
 
-void cmodel_to_text(char *string, int cmodel)
+const char* cmodel_to_text(char *string, int cmodel)
 {
 	switch(cmodel)
 	{
@@ -502,8 +502,9 @@ void cmodel_to_text(char *string, int cmodel)
 		case BC_YUVA8888:     strcpy(string, "YUVA-8 Bit");  break;
 		case BC_RGB_FLOAT:    strcpy(string, "RGB-FLOAT");   break;
 		case BC_RGBA_FLOAT:   strcpy(string, "RGBA-FLOAT");  break;
-		default: strcpy(string, "RGB-8 Bit"); break;
+		default: strcpy(string, "Unknown"); break;
 	}
+    return string;
 }
 
 int cmodel_from_text(const char *text)

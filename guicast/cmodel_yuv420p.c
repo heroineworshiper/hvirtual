@@ -348,7 +348,7 @@ static inline void transfer_YUV10P_PLANAR_to_RGB888(unsigned char *(*output),
 	unsigned char *input_v)
 {
 	int y, u, v;
-	y = (input_y[1] << 22) | (input_y[0] << 14) | (input_y[0] << 6);
+	y = (input_y[1] << 22) | (input_y[0] << 14);
 	u = (input_u[1] << 6) | (input_u[0] >> 2);
 	v = (input_v[1] << 6) | (input_v[0] >> 2);
 	
@@ -361,12 +361,70 @@ static inline void transfer_YUV10P_PLANAR_to_RGB888(unsigned char *(*output),
 	(*output) += 3;
 }
 
+static inline void transfer_YUV10P_PLANAR_to_RGB_FLOAT(float *(*output), 
+	unsigned char *input_y,
+	unsigned char *input_u,
+	unsigned char *input_v)
+{
+	float y;
+    int y_i;
+    int u, v;
+	y_i = (input_y[1] << 22) | (input_y[0] << 14);
+	u = (input_u[1] << 14) | (input_u[0] << 6);
+	v = (input_v[1] << 14) | (input_v[0] << 6);
+
+// fill missing bits
+    y_i |= y_i >> 10;
+    y_i |= y_i >> 20;
+    y = (float)y_i / 0xffffff;
+    u |= u >> 10;
+    v |= v >> 10;
+
+	float r, g, b;
+	YUV16_TO_RGB_FLOAT(y, u, v, r, g, b)
+
+	(*output)[0] = r;
+	(*output)[1] = g;
+	(*output)[2] = b;
+	(*output) += 3;
+}
+
+static inline void transfer_YUV10P_PLANAR_to_RGBA_FLOAT(float *(*output), 
+	unsigned char *input_y,
+	unsigned char *input_u,
+	unsigned char *input_v)
+{
+	float y;
+    int y_i;
+    int u, v;
+	y_i = (input_y[1] << 22) | (input_y[0] << 14);
+	u = (input_u[1] << 14) | (input_u[0] << 6);
+	v = (input_v[1] << 14) | (input_v[0] << 6);
+
+// fill missing bits
+    y_i |= y_i >> 10;
+    y_i |= y_i >> 20;
+    y = (float)y_i / 0xffffff;
+    u |= u >> 10;
+    v |= v >> 10;
+
+	float r, g, b;
+	YUV16_TO_RGB_FLOAT(y, u, v, r, g, b)
+
+	(*output)[0] = r;
+	(*output)[1] = g;
+	(*output)[2] = b;
+	(*output)[3] = 1;
+	(*output) += 4;
+}
+
 static inline void transfer_YUV10P_PLANAR_to_YUV888(unsigned char *(*output), 
 	unsigned char *input_y,
 	unsigned char *input_u,
 	unsigned char *input_v)
 {
 	int y, u, v;
+// throw away 2 bits
 	y = (input_y[1] << 6) | (input_y[0] >> 2);
 	u = (input_u[1] << 6) | (input_u[0] >> 2);
 	v = (input_v[1] << 6) | (input_v[0] >> 2);
@@ -383,6 +441,7 @@ static inline void transfer_YUV10P_PLANAR_to_YUVA8888(unsigned char *(*output),
 	unsigned char *input_v)
 {
 	int y, u, v;
+// throw away 2 bits
 	y = (input_y[1] << 6) | (input_y[0] >> 2);
 	u = (input_u[1] << 6) | (input_u[0] >> 2);
 	v = (input_v[1] << 6) | (input_v[0] >> 2);
@@ -400,6 +459,7 @@ static inline void transfer_YUV10P_PLANAR_to_RGBA8888(unsigned char *(*output),
 	unsigned char *input_v)
 {
 	int y, u, v;
+// throw away 2 bits
 	y = (input_y[1] << 22) | (input_y[0] << 14) | (input_y[0] << 6);
 	u = (input_u[1] << 6) | (input_u[0] >> 2);
 	v = (input_v[1] << 6) | (input_v[0] >> 2);
@@ -659,6 +719,22 @@ static inline void transfer_YUV444P_to_YUV444P(unsigned char *input_y,
 				case BC_RGBA8888: \
 					TRANSFER_YUV420P_IN_HEAD \
 					transfer_YUV10P_PLANAR_to_RGBA8888((output), \
+						input_y + (y_in_offset), \
+						input_u + (u_in_offset), \
+						input_v + (v_in_offset)); \
+					TRANSFER_FRAME_TAIL \
+					break; \
+				case BC_RGB_FLOAT: \
+					TRANSFER_YUV420P_IN_HEAD \
+					transfer_YUV10P_PLANAR_to_RGB_FLOAT((float**)(output), \
+						input_y + (y_in_offset), \
+						input_u + (u_in_offset), \
+						input_v + (v_in_offset)); \
+					TRANSFER_FRAME_TAIL \
+					break; \
+				case BC_RGBA_FLOAT: \
+					TRANSFER_YUV420P_IN_HEAD \
+					transfer_YUV10P_PLANAR_to_RGBA_FLOAT((float**)(output), \
 						input_y + (y_in_offset), \
 						input_u + (u_in_offset), \
 						input_v + (v_in_offset)); \

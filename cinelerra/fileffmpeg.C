@@ -2318,9 +2318,9 @@ int FileFFMPEG::read_frame(VFrame *frame)
 		int input_cmodel;
 		AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
 
-//         printf("FileFFMPEG::read_frame %d frame dts=%ld\n", 
+//         printf("FileFFMPEG::read_frame %d pix_fmt=%d\n", 
 //             __LINE__, 
-//             input_frame->pkt_dts);
+//             decoder_context->pix_fmt);
 
 
 		switch(decoder_context->pix_fmt)
@@ -2359,8 +2359,10 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 			default:
 				fprintf(stderr, 
-					"FileFFMPEG::read_frame: unrecognized color model %d\n", 
+					"FileFFMPEG::read_frame %d: unrecognized color model %d\n", 
+                    __LINE__,
 					decoder_context->pix_fmt);
+//printf("AV_PIX_FMT_P010LE=%d\n", AV_PIX_FMT_P010LE);
 				input_cmodel = BC_YUV420P;
 				break;
 		}
