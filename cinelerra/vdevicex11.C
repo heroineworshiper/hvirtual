@@ -433,6 +433,7 @@ int VDeviceX11::get_display_colormodel(int file_colormodel)
 			file_colormodel == BC_RGBA8888 ||
 			file_colormodel == BC_YUV888 ||
 			file_colormodel == BC_YUVA8888 ||
+			file_colormodel == BC_YUV_FLOAT ||
 			file_colormodel == BC_RGB_FLOAT ||
 			file_colormodel == BC_RGBA_FLOAT)
 		{
@@ -457,7 +458,8 @@ int VDeviceX11::get_display_colormodel(int file_colormodel)
 // 2 more colormodels are supported by OpenGL
 	if(device->out_config->driver == PLAYBACK_X11_GL)
 	{
-		if(file_colormodel == BC_RGB_FLOAT ||
+		if(file_colormodel == BC_YUV_FLOAT ||
+			file_colormodel == BC_RGB_FLOAT ||
 			file_colormodel == BC_RGBA_FLOAT)
 			result = file_colormodel;
 	}
@@ -470,6 +472,7 @@ int VDeviceX11::get_display_colormodel(int file_colormodel)
 			case BC_RGBA8888:
 			case BC_YUV888:
 			case BC_YUVA8888:
+			case BC_YUV_FLOAT:
 			case BC_RGB_FLOAT:
 			case BC_RGBA_FLOAT:
 				result = file_colormodel;

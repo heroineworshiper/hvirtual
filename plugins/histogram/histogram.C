@@ -755,7 +755,7 @@ int HistogramMain::handle_opengl()
 			shader_stack[current_shader++] = apply_lut_frag;
 			shader_stack[current_shader++] = put_yuv_frag;
 			break;
-        
+
 		case BC_RGB_FLOAT:
         case BC_RGBA_FLOAT:
 			shader_stack[current_shader++] = head_frag;
@@ -763,7 +763,15 @@ int HistogramMain::handle_opengl()
 			shader_stack[current_shader++] = apply_float_frag;
 			shader_stack[current_shader++] = put_rgb_frag;
 			break;
-        
+
+        case BC_YUV_FLOAT:
+            shader_stack[current_shader++] = head_frag;
+            shader_stack[current_shader++] = get_yuv_frag;
+			shader_stack[current_shader++] = apply_float_frag;
+			shader_stack[current_shader++] = put_yuv_frag;
+            break;
+
+
         default:
             printf("HistogramMain::handle_opengl %d unsupported color model\n", 
                 __LINE__);

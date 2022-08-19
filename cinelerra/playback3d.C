@@ -650,6 +650,7 @@ void Playback3D::write_buffer_sync(Playback3DCommand *command)
 				break;
 			case VFrame::SCREEN:
 // copy to texture & draw to screen with alpha multiply
+// can't draw directly from screen to screen
                 command->frame->enable_opengl();
                 command->frame->screen_to_texture();
                 draw_output(command);
@@ -718,6 +719,7 @@ void Playback3D::draw_output(Playback3DCommand *command)
 		{
 			case BC_YUV888:
 			case BC_YUVA8888:
+			case BC_YUV_FLOAT:
                 shaders[current_shader++] = yuv_to_rgb_frag;
 				break;
             default:
@@ -1687,8 +1689,10 @@ void Playback3D::convert_cmodel(Canvas *canvas,
 		(output->get_opengl_state() == VFrame::TEXTURE ||
 		output->get_opengl_state() == VFrame::SCREEN) &&
 // OpenGL has no floating point.
-		((src_cmodel == BC_RGB888 && dst_cmodel == BC_RGB_FLOAT) ||
+		((src_cmodel == BC_YUV888 && dst_cmodel == BC_YUV_FLOAT) ||
+        (src_cmodel == BC_RGB888 && dst_cmodel == BC_RGB_FLOAT) ||
 		(src_cmodel == BC_RGBA8888 && dst_cmodel == BC_RGBA_FLOAT) ||
+		(src_cmodel == BC_YUV_FLOAT && dst_cmodel == BC_YUV888) ||
 		(src_cmodel == BC_RGB_FLOAT && dst_cmodel == BC_RGB888) ||
 		(src_cmodel == BC_RGBA_FLOAT && dst_cmodel == BC_RGBA8888) ||
 // OpenGL sets alpha to 1 on import
@@ -1799,6 +1803,13 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 
 			command->frame->set_opengl_state(VFrame::SCREEN);
 		}
+        else
+        {
+            printf("Playback3D::convert_cmodel_sync %d: unsupported conversion %d->%d\n",
+                __LINE__,
+                src_cmodel,
+                dst_cmodel);
+        }
 
 		window->unlock_window();
 	}
@@ -1877,6 +1888,12 @@ void Playback3D::do_fade_sync(Playback3DCommand *command)
 					fade_yuv_frag,
 					0);
 				break;
+            
+            default:
+                printf("Playback3D::do_fade_sync %d: unsupported colormodel %d\n",
+                    __LINE__,
+                    command->frame->get_color_model());
+                break;
 		}
 
 

@@ -112,12 +112,18 @@ OUTPUT = $(OBJDIR)/libguicast.so
 STATICOUTPUT = $(OBJDIR)/libguicast.a
 
 
+#CMODEL_OBJS := \
+#	$(OBJDIR)/cmodel_default.o \
+#	$(OBJDIR)/cmodel_float.o \
+#	$(OBJDIR)/cmodel_yuv420p.o \
+#	$(OBJDIR)/cmodel_yuv422.o \
+#	$(OBJDIR)/colormodels.o
+
 CMODEL_OBJS := \
-	$(OBJDIR)/cmodel_default.o \
-	$(OBJDIR)/cmodel_float.o \
-	$(OBJDIR)/cmodel_yuv420p.o \
-	$(OBJDIR)/cmodel_yuv422.o \
-	$(OBJDIR)/colormodels.o
+	$(OBJDIR)/cmodel_default2.o \
+	$(OBJDIR)/cmodel_float2.o \
+	$(OBJDIR)/cmodel_planar2.o \
+	$(OBJDIR)/colormodels2.o
 
 LIBCMODEL = $(OBJDIR)/libcmodel.a
 
@@ -297,6 +303,11 @@ $(OBJDIR)/cmodel_float.o: cmodel_float.c
 $(OBJDIR)/cmodel_yuv420p.o: cmodel_yuv420p.c
 $(OBJDIR)/cmodel_yuv422.o: cmodel_yuv422.c
 $(OBJDIR)/colormodels.o: colormodels.c
+
+$(OBJDIR)/colormodels2.o: colormodels2.c
+$(OBJDIR)/cmodel_default2.o: cmodel_default2.c
+$(OBJDIR)/cmodel_float2.o: cmodel_float2.c
+$(OBJDIR)/cmodel_planar2.o: cmodel_planar2.c
 
 
 

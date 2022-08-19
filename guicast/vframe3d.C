@@ -165,6 +165,7 @@ void VFrame::to_texture()
 			break;
 
 		case BC_RGB_FLOAT:
+		case BC_YUV_FLOAT:
 			glTexSubImage2D(GL_TEXTURE_2D,
 				0,
 				0,

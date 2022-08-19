@@ -18,14 +18,10 @@
  * 
  */
 
-#include "colormodels2.h"
 
 
-
-
-#if 0
-#ifndef COLORMODELS_H
-#define COLORMODELS_H
+#ifndef COLORMODELS2_H
+#define COLORMODELS2_H
 
 // Colormodels
 #define BC_TRANSPARENCY 0
@@ -55,6 +51,7 @@
 #define BC_UYVA8888     26
 #define BC_RGB_FLOAT    29
 #define BC_RGBA_FLOAT   30
+#define BC_YUV_FLOAT    35 // test.  YUV to RGB float conversion is negligible
 // Planar
 #define BC_YUV420P      7
 #define BC_YUV422P      17
@@ -180,6 +177,8 @@ typedef struct
 
 extern cmodel_yuv_t *cmodel_yuv_table;
 
+void cmodel_init();
+
 int cmodel_calculate_pixelsize(int colormodel);
 int cmodel_calculate_datasize(int w, int h, int bytes_per_line, int color_model);
 int cmodel_calculate_max(int colormodel);
@@ -192,37 +191,6 @@ int cmodel_is_float(int colormodel);
 int cmodel_is_planar(int color_model);
 const char* cmodel_to_text(char *string, int cmodel);
 int cmodel_from_text(const char *text);
-
-#define PERMUTATION_ARGS \
-	unsigned char **output_rows,  \
-	unsigned char **input_rows, \
-	unsigned char *out_y_plane, \
-	unsigned char *out_u_plane, \
-	unsigned char *out_v_plane, \
-	unsigned char *in_y_plane, \
-	unsigned char *in_u_plane, \
-	unsigned char *in_v_plane, \
-	int in_x,  \
-	int in_y,  \
-	int in_w,  \
-	int in_h, \
-	int out_x,  \
-	int out_y,  \
-	int out_w,  \
-	int out_h, \
-	int in_colormodel,  \
-	int out_colormodel, \
-	int bg_color, \
-	int total_in_w, \
-	int total_out_w, \
-	int scale, \
-	int out_pixelsize, \
-	int in_pixelsize, \
-	int *row_table, \
-	int *column_table, \
-	int bg_r, \
-	int bg_g, \
-	int bg_b
 
 
 
@@ -248,8 +216,6 @@ void cmodel_transfer(unsigned char **output_rows, /* Leave NULL if non existent 
 	int in_rowspan,       /* For planar use the luma rowspan */
 	int out_rowspan);     /* For planar use the luma rowspan */
 
-void cmodel_init_yuv(cmodel_yuv_t *yuv_table);
-void cmodel_delete_yuv(cmodel_yuv_t *yuv_table);
 int cmodel_bc_to_x(int color_model);
 
 // transfer limited colormodels with alpha checkerboard to BC_BGR8888
@@ -275,7 +241,4 @@ void cmodel_transfer_alpha(unsigned char **output_rows, /* Leave NULL if non exi
 }
 #endif
 
-#endif // COLORMODELS_H
-#endif // 0
-
-
+#endif

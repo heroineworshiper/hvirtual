@@ -950,6 +950,9 @@ void MWindow::init_menus()
 	colormodels.append(new ColormodelItem(string, BC_YUV888));
 	cmodel_to_text(string, BC_YUVA8888);
 	colormodels.append(new ColormodelItem(string, BC_YUVA8888));
+// test mode
+// 	cmodel_to_text(string, BC_YUV_FLOAT);
+// 	colormodels.append(new ColormodelItem(string, BC_YUV_FLOAT));
 }
 
 void MWindow::init_indexes()
