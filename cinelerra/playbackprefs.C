@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2010-2022 Adam Williams <broadcast at earthling dot net>
@@ -226,6 +225,13 @@ SET_TRACE
 		pwindow,
 		this));
 	y += hw_decode->get_h() + margin;
+
+	add_subwindow(ffmpeg_mov = new PlaybackFFmpegMov(
+		x, 
+		y,
+		pwindow,
+		this));
+	y += ffmpeg_mov->get_h() + margin;
 
 // 	add_subwindow(white_balance_raw = new PlaybackWhiteBalanceRaw(
 // 		x, 
@@ -529,6 +535,27 @@ PlaybackHWDecode::PlaybackHWDecode(
 int PlaybackHWDecode::handle_event()
 {
 	pwindow->thread->preferences->use_hardware_decoding = get_value();
+	return 1;
+}
+
+
+PlaybackFFmpegMov::PlaybackFFmpegMov(
+	int x, 
+	int y, 
+	PreferencesWindow *pwindow, 
+	PlaybackPrefs *playback)
+ : BC_CheckBox(x, 
+ 	y, 
+	pwindow->thread->preferences->use_ffmpeg_mov, 
+	_("Use ffmpeg to decode quicktime/mp4 (restart required)"))
+{
+	this->pwindow = pwindow;
+	this->playback = playback;
+}
+
+int PlaybackFFmpegMov::handle_event()
+{
+	pwindow->thread->preferences->use_ffmpeg_mov = get_value();
 	return 1;
 }
 

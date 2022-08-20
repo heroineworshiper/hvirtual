@@ -197,12 +197,17 @@ void FileMOV::get_parameters(BC_WindowBase *parent_window,
 
 int FileMOV::check_sig(File *file, const uint8_t *test_data)
 {
-    Asset *asset = file->asset;
-	int result = quicktime_check_sig(asset->path);
+    if(!MWindow::preferences->use_ffmpeg_mov)
+    {
+        Asset *asset = file->asset;
+	    int result = quicktime_check_sig(asset->path);
 //printf("FileMOV::check_sig %d %d\n", __LINE__, result);
 // Reject AVI
-	if(result == 2) result = 0;
-	return result;
+	    if(result == 2) result = 0;
+	    return result;
+    }
+    else
+        return 0;
 }
 
 void FileMOV::fix_codecs(Asset *asset)

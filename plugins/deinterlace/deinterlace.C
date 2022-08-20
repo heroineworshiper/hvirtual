@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -259,14 +259,6 @@ void DeInterlaceMain::deinterlace_even(VFrame *input, VFrame *output, int domina
 		case BC_RGBA_FLOAT:
 			DEINTERLACE_EVEN_MACRO(float, 4, dominance);
 			break;
-		case BC_RGB161616:
-		case BC_YUV161616:
-			DEINTERLACE_EVEN_MACRO(uint16_t, 3, dominance);
-			break;
-		case BC_RGBA16161616:
-		case BC_YUVA16161616:
-			DEINTERLACE_EVEN_MACRO(uint16_t, 4, dominance);
-			break;
 	}
 }
 
@@ -287,14 +279,6 @@ void DeInterlaceMain::deinterlace_avg_even(VFrame *input, VFrame *output, int do
 			break;
 		case BC_RGBA_FLOAT:
 			DEINTERLACE_AVG_EVEN_MACRO(float, double, 4, dominance);
-			break;
-		case BC_RGB161616:
-		case BC_YUV161616:
-			DEINTERLACE_AVG_EVEN_MACRO(uint16_t, int64_t, 3, dominance);
-			break;
-		case BC_RGBA16161616:
-		case BC_YUVA16161616:
-			DEINTERLACE_AVG_EVEN_MACRO(uint16_t, int64_t, 4, dominance);
 			break;
 	}
 }
@@ -317,14 +301,6 @@ void DeInterlaceMain::deinterlace_avg(VFrame *input, VFrame *output)
 		case BC_RGBA_FLOAT:
 			DEINTERLACE_AVG_MACRO(float, double, 4);
 			break;
-		case BC_RGB161616:
-		case BC_YUV161616:
-			DEINTERLACE_AVG_MACRO(uint16_t, uint64_t, 3);
-			break;
-		case BC_RGBA16161616:
-		case BC_YUVA16161616:
-			DEINTERLACE_AVG_MACRO(uint16_t, uint64_t, 4);
-			break;
 	}
 }
 
@@ -346,14 +322,6 @@ void DeInterlaceMain::deinterlace_swap(VFrame *input, VFrame *output, int domina
 		case BC_RGBA_FLOAT:
 			DEINTERLACE_SWAP_MACRO(float, 4, dominance);
 			break;
-		case BC_RGB161616:
-		case BC_YUV161616:
-			DEINTERLACE_SWAP_MACRO(uint16_t, 3, dominance);
-			break;
-		case BC_RGBA16161616:
-		case BC_YUVA16161616:
-			DEINTERLACE_SWAP_MACRO(uint16_t, 4, dominance);
-			break;
 	}
 }
 
@@ -370,9 +338,8 @@ int DeInterlaceMain::process_buffer(VFrame *frame,
 		0, 
 		start_position, 
 		frame_rate,
-		0 /* get_use_opengl() */ );
-// disable since interlaced video is rare & OpenGL couldn't address single lines
-//	if(get_use_opengl()) return run_opengl();
+		get_use_opengl());
+	if(get_use_opengl()) return run_opengl();
 
 // Temp was used for adaptive deinterlacing where it took deinterlacing
 // an entire frame to decide if the deinterlaced output should be used.
@@ -418,52 +385,54 @@ int DeInterlaceMain::process_buffer(VFrame *frame,
 int DeInterlaceMain::handle_opengl()
 {
 #ifdef HAVE_GL
-	static char *head_frag = 
+	static const char *head_frag = 
 		"uniform sampler2D tex;\n"
 		"uniform float double_line_h;\n"
 		"uniform float line_h;\n"
+		"uniform float half_line;\n"
 		"uniform float y_offset;\n"
 		"void main()\n"
 		"{\n"
 		"	vec2 coord = gl_TexCoord[0].st;\n";
 
-	static char *line_double_frag = 
-		"	float line1 = floor((coord.y - y_offset) / double_line_h) * double_line_h + y_offset;\n"
+	static const char *line_double_frag = 
+		"	float line1 = floor((coord.y - y_offset) / double_line_h) * double_line_h + y_offset + half_line;\n"
 		"	gl_FragColor =  texture2D(tex, vec2(coord.x, line1));\n";
 
-	static char *line_avg_frag = 
-		"	float line1 = floor((coord.y - 0.0) / double_line_h) * double_line_h + 0.0;\n"
+	static const char *line_avg_frag = 
+		"	float line1 = floor((coord.y - 0.0) / double_line_h) * double_line_h + half_line;\n"
 		"	float line2 = line1 + line_h;\n"
 		"	gl_FragColor = (texture2D(tex, vec2(coord.x, line1)) + \n"
 		"		texture2D(tex, vec2(coord.x, line2))) / 2.0;\n";
 
-	static char *field_avg_frag = 
-		"	float line1 = floor((coord.y - y_offset) / double_line_h) * double_line_h + y_offset;\n"
+	static const char *field_avg_frag = 
+		"	float line1 = floor((coord.y - y_offset) / double_line_h) * double_line_h + y_offset + half_line;\n"
 		"	float line2 = line1 + double_line_h;\n"
 		"	float frac = (line2 - coord.y) / double_line_h;\n"
 		"	gl_FragColor = mix(texture2D(tex, vec2(coord.x, line2)),\n"
 		"		texture2D(tex, vec2(coord.x, line1)),frac);\n";
 
-	static char *line_swap_frag = 
-		"	float line1 = floor((coord.y - y_offset) / double_line_h) * double_line_h + y_offset;\n"
+	static const char *line_swap_frag = 
+		"	float line1 = floor((coord.y - y_offset) / double_line_h) * double_line_h + y_offset + half_line;\n"
 // This is the input line for line2, not the denominator of the fraction
 		"	float line2 = line1 + line_h;\n"
 		"	float frac = (coord.y - line1) / double_line_h;\n"
 		"	gl_FragColor = mix(texture2D(tex, vec2(coord.x, line2)),\n"
 		"		texture2D(tex, vec2(coord.x, line1)), frac);\n";
 
-	static char *tail_frag = 
+	static const char *tail_frag = 
 		"}\n";
 
 	get_output()->to_texture();
 	get_output()->enable_opengl();
 	get_output()->init_screen();
 
-	char *shader_stack[] = { 0, 0, 0 };
+	const char *shader_stack[] = { 0, 0, 0 };
 	shader_stack[0] = head_frag;
 
 	float double_line_h = 2.0 / get_output()->get_texture_h();
 	float line_h = 1.0 / get_output()->get_texture_h();
+	float half_line = 0.5 / get_output()->get_texture_h();
 	float y_offset = 0.0;
 	switch(config.mode)
 	{
@@ -515,6 +484,7 @@ int DeInterlaceMain::handle_opengl()
 			glUniform1i(glGetUniformLocation(frag, "tex"), 0);
 			glUniform1f(glGetUniformLocation(frag, "line_h"), line_h);
 			glUniform1f(glGetUniformLocation(frag, "double_line_h"), double_line_h);
+			glUniform1f(glGetUniformLocation(frag, "half_line"), half_line);
 			glUniform1f(glGetUniformLocation(frag, "y_offset"), y_offset);
 		}
 	}

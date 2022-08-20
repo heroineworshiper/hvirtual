@@ -114,6 +114,8 @@ public:
     int use_gl_rendering;
 // sometimes it's faster.  Sometimes it's slower depending on the hardware.
     int use_hardware_decoding;
+// use ffmpeg to read quicktime/mp4
+    int use_ffmpeg_mov;
 // Show FPS in compositor
     int show_fps;
 

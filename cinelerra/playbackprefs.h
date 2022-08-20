@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
@@ -35,6 +34,7 @@ class PlaybackHeadCount;
 class PlaybackHost;
 class PlaybackInterpolateRaw;
 class PlaybackHWDecode;
+class PlaybackFFmpegMov;
 class PlaybackModuleFragment;
 class PlaybackNearest;
 class PlaybackOutBits;
@@ -84,6 +84,7 @@ public:
 	PlaybackDeblock *mpeg4_deblock;
 	PlaybackInterpolateRaw *interpolate_raw;
 	PlaybackHWDecode *hw_decode;
+    PlaybackFFmpegMov *ffmpeg_mov;
 //	PlaybackWhiteBalanceRaw *white_balance_raw;
 //	VideoAsynchronous *asynchronous;
 
@@ -266,6 +267,18 @@ class PlaybackHWDecode : public BC_CheckBox
 {
 public:
 	PlaybackHWDecode(int x, 
+		int y, 
+		PreferencesWindow *pwindow, 
+		PlaybackPrefs *playback);
+	int handle_event();
+	PreferencesWindow *pwindow;
+	PlaybackPrefs *playback;
+};
+
+class PlaybackFFmpegMov : public BC_CheckBox
+{
+public:
+	PlaybackFFmpegMov(int x, 
 		int y, 
 		PreferencesWindow *pwindow, 
 		PlaybackPrefs *playback);
