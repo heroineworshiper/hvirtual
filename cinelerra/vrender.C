@@ -40,6 +40,7 @@
 #include "tracks.h"
 #include "transportque.h"
 #include "units.h"
+#include "vdevicex11.inc"
 #include "vedit.h"
 #include "vframe.h"
 #include "videoconfig.h"
@@ -192,8 +193,9 @@ int VRender::process_buffer(int64_t input_position,
 
 				file->set_video_position(normalized_position,
 					0);
-				file->read_frame(video_out);
+				file->read_frame(video_out, 0, 0, 0);
 
+		        video_out->set_opengl_state(VFrame::RAM);
 
 				if(use_cache) file->set_cache_frames(0);
 				renderengine->get_vcache()->check_in(asset);
@@ -208,18 +210,27 @@ int VRender::process_buffer(int64_t input_position,
                 video_out->get_color_model(),
                 video_out->get_w(),
                 video_out->get_h());
+            VDeviceX11 *x11_device = 0;
+            if(use_opengl && renderengine && renderengine->vdevice)
+            {    x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
+    			if(!x11_device) use_opengl = 0;
+            }
 			result = ((VEdit*)playable_edit)->read_frame(video_out, 
 				current_position, 
 				renderengine->command->get_direction(),
 				renderengine->get_vcache(),
 				1,
 				use_cache,
-				0);
-			if(debug) printf("VRender::process_buffer %d\n", __LINE__);
+				0,
+                use_opengl,
+                x11_device);
+            printf("VRender::process_buffer %d state=%d color_model=%d\n", 
+                __LINE__, 
+                video_out->get_opengl_state(),
+                video_out->get_color_model());
 		}
 
 
-		video_out->set_opengl_state(VFrame::RAM);
 	}
 	else
 // Read into virtual console
@@ -379,7 +390,7 @@ void VRender::run()
 
 		if(renderengine->command->single_frame())
 		{
-			if(debug) printf("VRender::run %d\n", __LINE__);
+//			printf("VRender::run %d\n", __LINE__);
 			flash_output();
 			frame_step = 1;
 			done = 1;

@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
@@ -97,7 +96,10 @@ public:
         UPDATE_PROGRESS, 
         UPDATE_PROGRESS_TITLE,
         PROGRESS_CANCELED,
-        STOP_PROGRESS
+        STOP_PROGRESS,
+
+// read_frame commands that are packed into send_result
+        FILE_READ_TEMP // the read_frame requested a temporary
 	};
 };
 

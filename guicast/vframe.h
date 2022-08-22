@@ -65,9 +65,9 @@ public:
 		long bytes_per_line /* = -1 */);
 	VFrame(unsigned char *data,  // 0
 		int shmid, // -1
-		long y_offset,
-		long u_offset,
-		long v_offset,
+		unsigned char *y_ptr,
+		unsigned char *u_ptr,
+		unsigned char *v_ptr,
 		int w, 
 		int h, 
 		int color_model,  /* = BC_RGBA8888 */
@@ -89,9 +89,9 @@ public:
 	int reallocate(
 		unsigned char *data,   // Data if shared.  0 if not
 		int shmid,             // shmid if IPC.  -1 if not
-		long y_offset,         // plane offsets if shared YUV.  0 if not
-		long u_offset,
-		long v_offset,
+		unsigned char *y_ptr,  // planes if shared YUV.  0 if not
+		unsigned char *u_ptr,
+		unsigned char *v_ptr,
 		int w, 
 		int h, 
 		int color_model, 
@@ -99,9 +99,10 @@ public:
 
 	void set_memory(unsigned char *data, 
 		int shmid,
-		long y_offset,
-		long u_offset,
-		long v_offset);
+		unsigned char *y_ptr,
+		unsigned char *u_ptr,
+		unsigned char *v_ptr,
+        int rowspan);
 
 	void set_compressed_memory(unsigned char *data,
 		int shmid,
@@ -168,12 +169,13 @@ public:
 
 
 	static int calculate_bytes_per_pixel(int colormodel);
-// Get size + 4 for assembly language
+// Get size + padding
 	static long calculate_data_size(int w, 
 		int h, 
 		int bytes_per_line = -1, 
-		int color_model = BC_RGB888);
-// Get size of uncompressed frame buffer without extra 4 bytes
+		int color_model = BC_RGB888,
+        int with_pad = 1);
+// Get size of uncompressed frame buffer without padding
 	long get_data_size();
 
 	void rotate270();
@@ -300,8 +302,7 @@ public:
 // At least one shader argument must have a main() function.  make_shader
 // replaces all the main() functions with unique functions and calls them in
 // sequence, so multiple independant shaders can be linked.
-// x is a placeholder for va_arg and should be 0.
-	static unsigned int make_shader(int x, ...);
+	static unsigned int make_shader(int dump, ...);
 	static void dump_shader(int shader_id);
 
 // Because OpenGL is faster if multiple effects are combined, we need
@@ -402,9 +403,9 @@ private:
 	void create_row_pointers();
 	int allocate_data(unsigned char *data, 
 		int shmid,
-		long y_offset,
-		long u_offset,
-		long v_offset,
+		unsigned char *y_ptr,
+		unsigned char *u_ptr,
+		unsigned char *v_ptr,
 		int w, 
 		int h, 
 		int color_model, 
@@ -440,11 +441,11 @@ private:
 	long compressed_allocated;
 // Size of stored compressed image
 	long compressed_size;   
-// Pointers to yuv planes
+// Pointers to yuv planes either in the data pointer or to a shared buffer
 	unsigned char *y, *u, *v;
-	long y_offset;
-	long u_offset;
-	long v_offset;
+// 	long y_offset;
+// 	long u_offset;
+// 	long v_offset;
 // Dimensions of frame
 	int w, h;
 // Info for reading png images

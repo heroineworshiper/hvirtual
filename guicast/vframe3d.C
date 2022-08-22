@@ -233,6 +233,50 @@ void VFrame::to_texture()
 				get_rows()[0]);
 			break;
 
+// inputs for colorspace conversion are just sent as 8 bit RGBA rounded
+// up a row
+        case BC_YUV420P:
+        {
+            int bytes = get_data_size();
+// rows required to transfer planer data to contiguous texture memory
+            int rows = bytes / texture->get_texture_w() / 4;
+            if(rows * w * 4 < bytes) rows++;
+			glTexSubImage2D(GL_TEXTURE_2D,
+				0,
+				0,
+				0,
+				texture->get_texture_w(),
+				rows,
+				GL_RGBA,
+				GL_UNSIGNED_BYTE,
+				get_data());
+            break;
+        }
+
+//         case BC_YUV422P:
+//             break;
+// 
+//         case BC_NV12:
+//             break;
+
+        case BC_YUV420P10LE:
+        {
+            int bytes = get_data_size();
+// rows required to transfer planer data to contiguous texture memory
+            int rows = bytes / texture->get_texture_w() / 4;
+            if(rows * w * 4 < bytes) rows++;
+			glTexSubImage2D(GL_TEXTURE_2D,
+				0,
+				0,
+				0,
+				texture->get_texture_w(),
+				rows,
+				GL_RGBA,
+				GL_UNSIGNED_BYTE,
+				get_data());
+            break;
+        }
+
 		default:
 			fprintf(stderr, 
 				"VFrame::to_texture: unsupported color model %d.\n", 
@@ -511,7 +555,7 @@ static int print_error(char *source, unsigned int object, int is_program)
 
 
 
-unsigned int VFrame::make_shader(int x, ...)
+unsigned int VFrame::make_shader(int dump, ...)
 {
 	unsigned int result = 0;
 #ifdef HAVE_GL
@@ -521,7 +565,7 @@ unsigned int VFrame::make_shader(int x, ...)
 	int current_shader = 0;
 
 	va_list list;
-	va_start(list, x);
+	va_start(list, dump);
 
 	while(1)
 	{
@@ -568,8 +612,8 @@ unsigned int VFrame::make_shader(int x, ...)
 	va_end(list);
 
 // Add main() function which calls all the unique main replacements in order
-	char main_function[BCTEXTLEN];
-	sprintf(main_function, 
+	string main_function;
+	main_function.assign(
 		"\n"
 		"void main()\n"
 		"{\n");
@@ -578,25 +622,49 @@ unsigned int VFrame::make_shader(int x, ...)
 	{
 		char main_replacement[BCTEXTLEN];
 		sprintf(main_replacement, "\tmain%03d();\n", i);
-		strcat(main_function, main_replacement);
+		main_function.append(main_replacement);
 	}
 
-	strcat(main_function, "}\n");
+	main_function.append("}\n");
 	if(!complete_program)
 	{
-		complete_size = strlen(main_function) + 1;
+		complete_size = main_function.length() + 1;
 		complete_program = (char*)malloc(complete_size);
-		strcpy(complete_program, main_function);
+		strcpy(complete_program, main_function.c_str());
 	}
 	else
 	{
-		complete_size += strlen(main_function);
+		complete_size += main_function.length() + 1;
 		complete_program = (char*)realloc(complete_program, complete_size);
-		strcat(complete_program, main_function);
+		strcat(complete_program, main_function.c_str());
 	}
 
 
-
+    if(dump)
+    {
+        printf("VFrame::make_shader %d\n", __LINE__);
+        int line = 1;
+        int line_start = 1;
+        for(int i = 0; i < complete_size; i++)
+        {
+            if(line_start)
+            {
+                char string[BCTEXTLEN];
+                sprintf(string, "%d", line);
+                printf("%s", string);
+                for(int j = 0; j < 6 - strlen(string); j++)
+                    printf(" ");
+                line_start = 0;
+            }
+            printf("%c", complete_program[i]);
+            if(complete_program[i] == '\n')
+            {
+                line++;
+                line_start = 1;
+            }
+        }
+        printf("\n");
+    }
 
 
 	int got_it = 0;

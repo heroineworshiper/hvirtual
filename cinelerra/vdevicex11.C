@@ -201,7 +201,6 @@ int VDeviceX11::close_all()
 			output_frame->get_opengl_state() == VFrame::SCREEN;
 		int best_color_model = output_frame->get_color_model();
 
-// OpenGL does YUV->RGB in the compositing step
 		if(use_opengl)
 		{
             if(cmodel_components(output_frame->get_color_model()) == 3)
@@ -244,6 +243,7 @@ int VDeviceX11::close_all()
 				-1);
 		}
 
+//printf("VDeviceX11::close_all %d %d %d\n", __LINE__, use_opengl, best_color_model);
 
 		if(use_opengl)
 		{
@@ -649,9 +649,10 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 			{
 				output_frame->set_memory(0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */,
 					bitmap->get_shmid(),
-					bitmap->get_y_offset(),
-					bitmap->get_u_offset(),
-					bitmap->get_v_offset());
+					bitmap->get_y_plane(),
+					bitmap->get_u_plane(),
+					bitmap->get_v_plane(),
+                    bitmap->get_bytes_per_line());
 // printf("VDeviceX11::new_output_buffer %d rows=%p\n", 
 // __LINE__, 
 // output_frame->get_rows());
@@ -723,9 +724,9 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 						output_frame = new VFrame(
 							0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */, 
 							bitmap->get_shmid(),
-							bitmap->get_y_offset(),
-							bitmap->get_u_offset(),
-							bitmap->get_v_offset(),
+							bitmap->get_y_plane(),
+							bitmap->get_u_plane(),
+							bitmap->get_v_plane(),
 							device->out_w,
 							device->out_h,
 							display_colormodel,
@@ -747,9 +748,9 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 						output_frame = new VFrame(
 							0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */, 
 							bitmap->get_shmid(),
-							bitmap->get_y_offset(),
-							bitmap->get_u_offset(),
-							bitmap->get_v_offset(),
+							bitmap->get_y_plane(),
+							bitmap->get_u_plane(),
+							bitmap->get_v_plane(),
 							device->out_w,
 							device->out_h,
 							display_colormodel,
@@ -782,9 +783,9 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 						output_frame = new VFrame(
 							0 /* (unsigned char*)bitmap->get_data() + bitmap->get_shm_offset() */, 
 							bitmap->get_shmid(),
-							bitmap->get_y_offset(),
-							bitmap->get_u_offset(),
-							bitmap->get_v_offset(),
+							bitmap->get_y_plane(),
+							bitmap->get_u_plane(),
+							bitmap->get_v_plane(),
 							device->out_w,
 							device->out_h,
 							display_colormodel,
@@ -1127,6 +1128,13 @@ void VDeviceX11::convert_cmodel(VFrame *output, int dst_cmodel)
 	MWindow::playback_3d->convert_cmodel(this->canvas,
 		output, 
 		dst_cmodel);
+}
+
+void VDeviceX11::convert_cmodel(VFrame *input, VFrame *output)
+{
+	MWindow::playback_3d->convert_cmodel(this->canvas,
+        input,
+		output);
 }
 
 void VDeviceX11::do_camera(VFrame *output,

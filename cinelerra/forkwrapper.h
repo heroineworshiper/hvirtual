@@ -46,8 +46,8 @@ public:
 	virtual int handle_command();
 // return 1 if the child is running
 	int child_running();
-// Return 1 if the child is dead
-	int read_timeout(unsigned char *data, int size);
+// Return -1 if the fd is dead or 0 on success
+	int read_timeout(int fd, unsigned char *data, int size);
 
 	int done;
 
@@ -56,9 +56,11 @@ public:
 		unsigned char *data,
 		int bytes);
 // Called by child to get commands
-	int read_command();
-// Called by parent to read result
+	int read_command(int use_timeout);
+// Called by parent to read a result code
 	int64_t read_result();
+#define READ_RESULT_FAILED -1
+
 // Called by child to send result
 	int send_result(int64_t value, unsigned char *data, int data_size);
 // Called by child to send a file descriptor

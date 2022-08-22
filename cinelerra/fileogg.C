@@ -1530,9 +1530,9 @@ int FileOGG::read_frame(VFrame *frame)
 		yuv.uv_stride = - yuv.uv_stride;*/
 		VFrame *temp_frame = new VFrame(yuv.y, 
 						-1,
-						0,
-						yuv.u - yuv.y,
-						yuv.v - yuv.y,
+						yuv.y,
+						yuv.u,
+						yuv.v,
 						- yuv.y_stride,
 						yuv.y_height,
 						BC_YUV420P,

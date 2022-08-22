@@ -92,6 +92,7 @@ public:
 		MaskAuto *keyframe,
 		MaskAuto *default_auto);
 	void convert_cmodel(VFrame *output, int dst_cmodel);
+	void convert_cmodel(VFrame *input, VFrame *output);
 
 // The idea is to composite directly in the frame buffer if OpenGL.
 // OpenGL can do all the blending using the frame buffer.

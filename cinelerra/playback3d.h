@@ -251,6 +251,10 @@ public:
 	void clear_output(Canvas *canvas, VFrame *output, int video_on);
 
 	void convert_cmodel(Canvas *canvas, VFrame *output, int dst_cmodel);
+	void convert_cmodel(Canvas *canvas, VFrame *input, VFrame *output);
+    int skip_convert_cmodel(int state,
+        int src_cmodel,
+        int dst_cmodel);
 
 	void do_fade(Canvas *canvas, VFrame *frame, float fade);
 

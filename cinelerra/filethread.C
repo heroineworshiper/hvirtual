@@ -430,7 +430,8 @@ int FileThread::start_writing(long buffer_size,
 		bytes_per_frame = VFrame::calculate_data_size(file->asset->width,
 			file->asset->height,
 			-1,
-			color_model);
+			color_model,
+            1);
 
 		video_buffer = new VFrame***[ring_buffers];
 // printf("FileThread::start_writing 1 %d %d %d %p\n", 
@@ -682,7 +683,7 @@ int FileThread::read_frame(VFrame *frame)
 		file->set_video_position(read_position, 1);
 		file->set_layer(layer, 1);
 		read_position++;
-		int result = file->read_frame(frame, 1);
+		int result = file->read_frame(frame, 1, 0, 0);
 //printf("FileThread::read_frame %d this=%p\n", __LINE__, this);
 		return result;
 	}

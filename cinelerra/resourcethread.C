@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -498,7 +498,7 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 		source->set_video_position(normalized_position, 
 			0);
 
-		source->read_frame(temp_picon);
+		source->read_frame(temp_picon, 0, 0, 0);
 		mwindow->video_cache->check_in(asset);
 
 // don't delete assets after every picon	

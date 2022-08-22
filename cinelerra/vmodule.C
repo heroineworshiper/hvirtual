@@ -148,14 +148,11 @@ int VModule::import_frame(VFrame *output,
 	if(!output) printf("VModule::import_frame %d output=%p\n", __LINE__, output);
 
 	VDeviceX11 *x11_device = 0;
-	if(use_opengl)
+	if(use_opengl && renderengine && renderengine->vdevice)
 	{
-		if(renderengine && renderengine->vdevice)
-		{
 			x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
-			output->set_opengl_state(VFrame::RAM);
 			if(!x11_device) use_opengl = 0;
-		}
+			output->set_opengl_state(VFrame::RAM);
 	}
 
 	if(!output) printf("VModule::import_frame %d output=%p x11_device=%p nested_edl=%p\n", 
@@ -367,7 +364,7 @@ int VModule::import_frame(VFrame *output,
 //				if(use_asynchronous)
 //					file->start_video_decode_thread();
 //				else
-					file->stop_video_thread();
+//					file->stop_video_thread();
 
 				int64_t normalized_position = Units::to_int64(position *
 					current_edit->asset->frame_rate /
@@ -450,7 +447,6 @@ int VModule::import_frame(VFrame *output,
 // asset_w,
 // asset_h);
 
-// file -> temp -> output
 			if( !EQUIV(in_x, 0) || 
 				!EQUIV(in_y, 0) || 
 				!EQUIV(in_w, track->track_w) || 
@@ -462,6 +458,7 @@ int VModule::import_frame(VFrame *output,
 				!EQUIV(in_w, asset_w) ||
 				!EQUIV(in_h, asset_h))
 			{
+// file -> temp -> output
 //                printf("VModule::import_frame %d file -> temp -> output\n", __LINE__);
 
 
@@ -521,9 +518,9 @@ int VModule::import_frame(VFrame *output,
 						this,
 						current_edit->asset->path);
 					if(use_cache) file->set_cache_frames(1);
-					result = file->read_frame((*input));
-					if(use_cache) file->set_cache_frames(0);
 					(*input)->set_opengl_state(VFrame::RAM);
+					result = file->read_frame((*input), 0, use_opengl, x11_device);
+					if(use_cache) file->set_cache_frames(0);
 				}
 				else
 				if(nested_edl)
@@ -897,10 +894,10 @@ current_cmodel);
 // Cache single frames
 //memset(output->get_rows()[0], 0xff, 1024);
 					if(use_cache) file->set_cache_frames(1);
-//printf("VModule::import_frame %d output=%p state=%d\n", __LINE__, output, output->get_opengl_state());
-					result = file->read_frame(output);
-					if(use_cache) file->set_cache_frames(0);
 					output->set_opengl_state(VFrame::RAM);
+					result = file->read_frame(output, 0, use_opengl, x11_device);
+//printf("VModule::import_frame %d output=%p state=%d\n", __LINE__, output, output->get_opengl_state());
+					if(use_cache) file->set_cache_frames(0);
 				}
 			}
 

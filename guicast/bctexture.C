@@ -89,13 +89,17 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
  	int max_texture_size = 0;
  	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
 
-// Calculate dimensions of texture
+// Calculate aligned dimensions of texture
 	int new_w = calculate_texture_size(w, &max_texture_size);
 	int new_h = calculate_texture_size(h, &max_texture_size);
 //	int new_w = w;
 //	int new_h = h;
 	int new_components = cmodel_components(colormodel);
-
+// For planar colormodels, we store anonymous data in A.
+    if(cmodel_is_planar(colormodel))
+    {
+        new_components = 4;
+    }
 
 	if(new_w < w || new_h < h)
 	{

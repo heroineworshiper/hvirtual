@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -315,9 +314,9 @@ int FrameCache::frame_exists(int64_t position,
 
 		if(EQUIV(item->frame_rate, frame_rate) &&
 			layer == item->layer &&
-			color_model == item->data->get_color_model() &&
-			w == item->data->get_w() &&
-			h == item->data->get_h() &&
+			(color_model < 0 || color_model == item->data->get_color_model()) &&
+			(w < 0 || w == item->data->get_w()) &&
+			(h < 0 || h == item->data->get_h()) &&
 			(source_id == -1 || item->source_id == -1 || source_id == item->source_id))
 		{
 			*item_return = item;

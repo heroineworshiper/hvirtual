@@ -63,6 +63,7 @@
 #include "preferences.h"
 #include "samples.h"
 #include "stringfile.h"
+#include "vdevicex11.h"
 #include "vframe.h"
 
 //static int temp_debug = 0;
@@ -96,6 +97,10 @@ File::~File()
 		delete temp_frame;
 	}
 
+    if(read_pointer)
+    {
+        delete read_pointer;
+    }
 
 	close_file(0);
 
@@ -121,6 +126,9 @@ void File::reset_parameters()
 	getting_options = 0;
 	format_window = 0;
 	temp_frame = 0;
+    use_temp_frame = 0;
+    read_pointer = 0;
+    use_read_pointer = 0;
 	current_sample = 0;
 	current_frame = 0;
 	current_channel = 0;
@@ -132,7 +140,7 @@ void File::reset_parameters()
 	playback_subtitle = -1;
 	interpolate_raw = 1;
 
-
+// threaded encoding
 	temp_samples_buffer = 0;
 	temp_frame_buffer = 0;
 	current_frame_buffer = 0;
@@ -486,6 +494,11 @@ int File::open_file(Preferences *preferences,
 
             switch(result)
             {
+// file fork crashed
+                case READ_RESULT_FAILED:
+                    done = 1;
+                    break;
+
 // done loading
 		        case FILE_OK:
                 case FILE_NOT_FOUND:
@@ -784,7 +797,7 @@ int File::progress_canceled()
     if(is_fork)
 	{
 		file_fork->send_result(FileFork::PROGRESS_CANCELED, 0, 0);
-		file_fork->read_command();
+		file_fork->read_command(1);
         return file_fork->command_token;
     }
     
@@ -1070,13 +1083,13 @@ int File::start_video_thread(int buffer_size,
 						i * asset->layers * video_buffer_size * VFrame::filefork_size() + 
 						j * video_buffer_size * VFrame::filefork_size() +
 						k * VFrame::filefork_size());
-printf("File::start_video_thread %d i=%d j=%d k=%d %p %p\n", 
-__LINE__, 
-i, 
-j,
-k,
-temp_frame_buffer[i],
-temp_frame_buffer[i][j][k]);
+// printf("File::start_video_thread %d i=%d j=%d k=%d %p %p\n", 
+// __LINE__, 
+// i, 
+// j,
+// k,
+// temp_frame_buffer[i],
+// temp_frame_buffer[i][j][k]);
 				}
 			}
 		}
@@ -1897,9 +1910,18 @@ int File::read_samples(Samples *samples, int64_t len)
 
 
 
-int File::read_frame(VFrame *frame, int is_thread)
+int File::read_frame(VFrame *frame, 
+    int is_thread, 
+    int use_opengl,
+    VDeviceX11 *device)
 {
 	const int debug = 0;
+    int result = 0;
+
+// reset the location of the output
+    use_temp_frame = 0;
+    use_read_pointer = 0;
+    read_frame_dst = frame;
 
 	if(debug) PRINT_TRACE
 
@@ -1907,7 +1929,8 @@ int File::read_frame(VFrame *frame, int is_thread)
 // is_thread is only true in the fork
 	if(!is_fork && !is_thread)
 	{
-		unsigned char fork_buffer[VFrame::filefork_size()];
+        int frame_data_size = VFrame::filefork_size() + sizeof(int);
+		unsigned char frame_data[frame_data_size];
         char string[BCTEXTLEN];
 	    if(MWindow::preferences->dump_playback) 
 		    printf("%sFile::read_frame %d path='%s' colormodel=%s\n", 
@@ -1916,71 +1939,133 @@ int File::read_frame(VFrame *frame, int is_thread)
                 asset->path,
                 cmodel_to_text(string, frame->get_color_model()));
 
-		frame->to_filefork(fork_buffer);
+        frame_data[0] = use_opengl;
+		frame->to_filefork(frame_data + sizeof(int));
 		file_fork->send_command(FileFork::READ_FRAME, 
-			fork_buffer, 
-			VFrame::filefork_size());
+			frame_data, 
+			frame_data_size);
 
-		int result = file_fork->read_result();
 
+        int done = 0;
+// process requests from the read_frame command
+        while(!done)
+        {
+    		result = file_fork->read_result();
 
 // Crashed
-		if(result && !file_fork->child_running())
-		{
-			delete file_fork;
-			result = open_file(preferences, asset, rd, wr);
-		}
-		else
-		if(!result && 
-			frame->get_color_model() == BC_COMPRESSED)
-		{
+            switch(result)
+            {
+		        case READ_RESULT_FAILED:
+                    done = 1;
+                    if(!file_fork->child_running())
+                    {
+// reopen the file
+        		        delete file_fork;
+                        file_fork = 0;
+		    	        result = open_file(preferences, asset, rd, wr);
+                    }
+		            break;
+
+// provide a temporary for the output.
+// Output will be converted from the temporary.
+                case FileFork::FILE_READ_TEMP:
+                {
+                    int *params = (int*)file_fork->result_data;
+                    int want_colormodel = params[0];
+                    int want_w = params[1];
+                    int want_h = params[2];
+                    
+			        if(temp_frame)
+			        {
+				        if(!temp_frame->params_match(want_w, want_h, want_colormodel))
+				        {
+					        delete temp_frame;
+					        temp_frame = 0;
+				        }
+			        }
+
+			        if(!temp_frame)
+			        {
+				        temp_frame = new VFrame(0,
+					        -1,
+					        want_w,
+					        want_h,
+					        want_colormodel,
+					        -1);
+			        }
+                    
+		            temp_frame->to_filefork(frame_data);
+                    file_fork->send_command(FILE_OK,
+                        frame_data,
+                        frame_data_size);
+                    use_temp_frame = 1;
+                    break;
+                }
+
+// Done decoding
+		        case FILE_OK:
+                    done = 1;
+			        if(frame->get_color_model() == BC_COMPRESSED)
+		            {
 // Get compressed data from socket
-//printf("File::read_frame %d %d\n", __LINE__, file_fork->result_bytes);
-			if(file_fork->result_bytes > sizeof(int) * 2)
-			{
-//printf("File::read_frame %d %d\n", __LINE__, file_fork->result_bytes);
-				int header_size = sizeof(int) * 2;
-				frame->allocate_compressed_data(file_fork->result_bytes - header_size);
-				frame->set_compressed_size(file_fork->result_bytes - header_size);
-				frame->set_keyframe(*(int*)(file_fork->result_data + sizeof(int)));
-				memcpy(frame->get_data(), 
-					file_fork->result_data + header_size,
-					file_fork->result_bytes - header_size);
-			}
-			else
-// Get compressed data size
-			{
-				frame->set_compressed_size(*(int*)file_fork->result_data);
-				frame->set_keyframe(*(int*)(file_fork->result_data + sizeof(int)));
-//printf("File::read_frame %d %d\n", __LINE__, *(int*)(file_fork->result_data + sizeof(int)));
-			}
-		}
-		else
-		if(!result)
-		{
+            //printf("File::read_frame %d %d\n", __LINE__, file_fork->result_bytes);
+			            if(file_fork->result_bytes > sizeof(int) * 2)
+			            {
+            //printf("File::read_frame %d %d\n", __LINE__, file_fork->result_bytes);
+				            int header_size = sizeof(int) * 2;
+				            frame->allocate_compressed_data(file_fork->result_bytes - header_size);
+				            frame->set_compressed_size(file_fork->result_bytes - header_size);
+				            frame->set_keyframe(*(int*)(file_fork->result_data + sizeof(int)));
+				            memcpy(frame->get_data(), 
+					            file_fork->result_data + header_size,
+					            file_fork->result_bytes - header_size);
+			            }
+			            else
+            // Get compressed data size
+			            {
+				            frame->set_compressed_size(*(int*)file_fork->result_data);
+				            frame->set_keyframe(*(int*)(file_fork->result_data + sizeof(int)));
+            //printf("File::read_frame %d %d\n", __LINE__, *(int*)(file_fork->result_data + sizeof(int)));
+			            }
+		            }
+		            else
+		            {
 // get the params if not compressed
-			if(file_fork->result_bytes > sizeof(int) * 2)
-			{
-				StringFile params((long)0);
-				params.read_from_string((char*)(file_fork->result_data + sizeof(int) * 2));
-				frame->get_params()->load_stringfile(&params, 1);
+			            if(file_fork->result_bytes > sizeof(int) * 2)
+			            {
+				            StringFile params((long)0);
+				            params.read_from_string((char*)(file_fork->result_data + sizeof(int) * 2));
+				            frame->get_params()->load_stringfile(&params, 1);
 // printf("File::read_frame %d result_data=%s\n", __LINE__, file_fork->result_data + sizeof(int) * 2);
 // memset(frame->get_rows()[1024], 0xff, 4096);
 // frame->dump();
-			}
+			            }
 
-            if(frame->get_shmid() < 0)
-            {
-                printf("File::read_frame %d frame not using shared memory.  vframe_shm=%d\n", 
-                    __LINE__,
-                    BC_WindowBase::get_resources()->vframe_shm);
-            }
-		}
+                        if(frame->get_shmid() < 0)
+                        {
+                            printf("File::read_frame %d frame not using shared memory.  vframe_shm=%d\n", 
+                                __LINE__,
+                                BC_WindowBase::get_resources()->vframe_shm);
+                        }
 
-		file_fork->send_command(FileFork::GET_MEMORY_USAGE, 
-			0, 
-			0);
-		memory_usage = file_fork->read_result();
+// Convert from the temp to the function argument in the file server
+                        if(use_temp_frame)
+                        {
+                            convert_cmodel(use_opengl, device);
+                        }
+		            }
+                    break;
+            } // switch
+        } // while
+
+// update memory usage
+        if(result != READ_RESULT_FAILED)
+        {
+	        file_fork->send_command(FileFork::GET_MEMORY_USAGE, 
+		        0, 
+		        0);
+	        memory_usage = file_fork->read_result();
+        }
 
 		if(debug) PRINT_TRACE
 
@@ -1992,120 +2077,87 @@ int File::read_frame(VFrame *frame, int is_thread)
 #endif
 
 
-//printf("File::read_frame %d color_model=%d\n", __LINE__, frame->get_color_model());
-
-	if(video_thread && !is_thread) return video_thread->read_frame(frame);
+// printf("File::read_frame %d use_opengl=%d color_model=%d opengl_state=%d\n", 
+// __LINE__, 
+// use_opengl,
+// frame->get_color_model(),
+// frame->get_opengl_state());
 
 	if(debug) PRINT_TRACE
 	if(file)
 	{
-		if(debug) printf("File::read_frame %d\n", __LINE__);
 		int supported_colormodel = colormodel_supported(frame->get_color_model());
+// Can't advance position if cache used.
 		int advance_position = 1;
 
-// Test cache
-		if(use_cache &&
-			frame_cache->get_frame(frame,
-				current_frame,
-				current_layer,
-				asset->frame_rate))
+// Test the cache on the client
+        VFrame *cached_frame = 0;
+        if(use_cache)
+            cached_frame = frame_cache->get_frame_ptr(
+			    current_frame,
+			    current_layer,
+			    asset->frame_rate,
+                -1,
+                -1,
+                -1,
+                -1);
+		if(use_cache && cached_frame)
 		{
-// Can't advance position if cache used.
-//printf("File::read_frame %d\n", __LINE__);
 			advance_position = 0;
-		}
-		else
-// Need temp
-		if(frame->get_color_model() != BC_COMPRESSED &&
-			(supported_colormodel != frame->get_color_model() 
-			 ||
-				(frame->get_color_model() != BC_BGR8888 && 
-					(frame->get_w() != asset->width ||
-					frame->get_h() != asset->height))))
-		{
-
-//printf("File::read_frame %d using temp\n", __LINE__);
-// Can't advance position here because it needs to be added to cache
-			if(temp_frame)
-			{
-				if(!temp_frame->params_match(asset->width, asset->height, supported_colormodel))
-				{
-//temp_debug--;
-//printf("File::read_frame %d temp_debug=%d\n", __LINE__, temp_debug);
-					delete temp_frame;
-					temp_frame = 0;
-				}
-			}
-
-			if(!temp_frame)
-			{
-//temp_debug++;
-//printf("File::read_frame %d temp_debug=%d\n", __LINE__, temp_debug);
-				temp_frame = new VFrame(0,
-					-1,
-					asset->width,
-					asset->height,
-					supported_colormodel,
-					-1);
-			}
-
-//			printf("File::read_frame %d\n", __LINE__);
-			temp_frame->copy_stacks(frame);
-			file->read_frame(temp_frame);
-//for(int i = 0; i < 1000 * 1000; i++) ((float*)temp_frame->get_rows()[0])[i] = 1.0;
-// printf("File::read_frame %d: %d %d %d %d %d %d\n", 
-// __LINE__,
-// temp_frame->get_color_model(), 
-// temp_frame->get_w(),
-// temp_frame->get_h(),
-// frame->get_color_model(),
-// frame->get_w(),
-// frame->get_h());
-			cmodel_transfer(frame->get_rows(), 
-				temp_frame->get_rows(),
-				frame->get_y(),
-				frame->get_u(),
-				frame->get_v(),
-				temp_frame->get_y(),
-				temp_frame->get_u(),
-				temp_frame->get_v(),
-				0, 
-				0, 
-				temp_frame->get_w(), 
-				temp_frame->get_h(),
-				0, 
-				0, 
-				frame->get_w(), 
-				frame->get_h(),
-				temp_frame->get_color_model(), 
-				frame->get_color_model(),
-				0,
-				temp_frame->get_w(),
-				frame->get_w());
-//printf("File::read_frame %d file -> temp -> frame\n", __LINE__);
-
+// Set the destination for the cached frame
+            set_read_pointer(cached_frame->get_color_model(), 
+                cached_frame->get_data(), 
+                cached_frame->get_y(), 
+                cached_frame->get_u(), 
+                cached_frame->get_v(),
+                cached_frame->get_bytes_per_line(),
+                cached_frame->get_w(),
+                cached_frame->get_h());
 		}
 		else
 		{
-// Can't advance position here because it needs to be added to cache
-//printf("File::read_frame %d file=%p\n", __LINE__, file);
+// Can't advance position here because it needs to be added to the cache
 			file->read_frame(frame);
 
-// printf("File::read_frame %d reading directly frame=%p\n", 
-// __LINE__, 
-// frame);
-// frame->dump();
-//memset(frame->get_rows()[1024], 0xff, 4096);
+		    if(use_cache) 
+            {
+// store the frame in the cache
+                VFrame *src = frame;
+                if(use_temp_frame)
+                    src = temp_frame;
+                else
+                if(use_read_pointer)
+                    src = read_pointer;
+                frame_cache->put_frame(src,
+		            current_frame,
+		            current_layer,
+		            asset->frame_rate,
+		            1, // use_copy
+		            0);
+            }
 		}
 
+        convert_cmodel(use_opengl, device);
+		if(use_cache && cached_frame)
+		{
+            frame_cache->unlock();
+        }
+
 //printf("File::read_frame %d use_cache=%d\n", __LINE__, use_cache);
-		if(use_cache) frame_cache->put_frame(frame,
-			current_frame,
-			current_layer,
-			asset->frame_rate,
-			1, // use_copy
-			0);
+
 //printf("File::read_frame %d\n", __LINE__);
+	    if(MWindow::preferences->dump_playback) 
+        {
+            char string[BCTEXTLEN];
+            MWindow::indent -= 2;
+            cmodel_to_text(string, frame->get_color_model());
+            printf("%sFile::read_frame %d position=%ld colormodel='%s' use_gl=%d\n", 
+                MWindow::print_indent(),
+                __LINE__, 
+                current_frame,
+                string,
+                use_opengl);
+        }
 
 		if(advance_position) current_frame++;
 		if(debug) PRINT_TRACE
@@ -2114,6 +2166,155 @@ int File::read_frame(VFrame *frame, int is_thread)
 	else
 		return 1;
 }
+
+
+
+// get a shm temporary to store read_frame output in
+VFrame* File::get_read_temp(int colormodel, int w, int h)
+{
+// no conversion needed
+    if(read_frame_dst->params_match(w, h, colormodel))
+    {
+        return read_frame_dst;
+    }
+
+    int params[3];
+    params[0] = colormodel;
+    params[1] = w;
+    params[2] = h;
+	file_fork->send_result(FileFork::FILE_READ_TEMP, 
+        (unsigned char*)&params, 
+        sizeof(int) * 3);
+    int result = file_fork->read_command(1);
+    if(result >= 0)
+    {
+// extract the frame buffer
+        if(temp_frame) delete temp_frame;
+        temp_frame = new VFrame;
+        temp_frame->from_filefork(file_fork->command_data);
+// store the temp frame in the cache
+        use_temp_frame = 1;
+        return temp_frame;
+    }
+
+// failed
+    return 0;
+}
+
+// set pointers to where read_frame output is stored
+void File::set_read_pointer(int colormodel, 
+    unsigned char *data, 
+    unsigned char *y, 
+    unsigned char *u, 
+    unsigned char *v,
+    int rowspan,
+    int w,
+    int h)
+{
+    if(this->read_pointer)
+    {
+        delete this->read_pointer;
+        this->read_pointer = 0;
+    }
+
+    this->read_pointer = new VFrame;
+    this->read_pointer->reallocate(data, 
+	    -1,
+	    y,
+	    u,
+	    v,
+	    w, 
+	    h, 
+	    colormodel, 
+	    rowspan);
+    this->use_read_pointer = 1;
+}
+
+
+// convert from the read_temp to the read_frame_dst in the server
+// or from the read pointers to the read_frame_dst in the client
+void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
+{
+// only in the client.  No opengl in the client.
+    if(use_read_pointer)
+    {
+// not using hardware in the server.  Convert in the client using no temp.
+        if(!use_opengl)
+        {
+	        cmodel_transfer(read_frame_dst->get_rows(), 
+		        read_pointer->get_rows(),
+		        read_frame_dst->get_y(),
+		        read_frame_dst->get_u(),
+		        read_frame_dst->get_v(),
+		        read_pointer->get_y(),
+		        read_pointer->get_u(),
+		        read_pointer->get_v(),
+		        0, 
+		        0, 
+		        read_pointer->get_w(), 
+		        read_pointer->get_h(),
+		        0, 
+		        0, 
+		        read_frame_dst->get_w(), 
+		        read_frame_dst->get_h(),
+		        read_pointer->get_color_model(), 
+		        read_frame_dst->get_color_model(),
+		        0,
+		        read_pointer->get_bytes_per_line(),
+		        read_frame_dst->get_w());
+        }
+        else
+        {
+// using hardware in the server but private memory in the codec.
+// Copy to the shared temp frame for conversion in the server.
+//printf("File::convert_cmodel %d\n", __LINE__);
+            VFrame *dst = get_read_temp(read_pointer->get_color_model(), 
+                read_pointer->get_w(), 
+                read_pointer->get_h());
+//printf("File::convert_cmodel %d\n", __LINE__);
+            dst->copy_from(read_pointer);
+        }
+    }
+
+// only convert from the temp_frame in the server
+    if(use_temp_frame && !is_fork)
+    {
+        if(!use_opengl)
+        {
+// software in the server
+	        cmodel_transfer(read_frame_dst->get_rows(), 
+		        temp_frame->get_rows(),
+		        read_frame_dst->get_y(),
+		        read_frame_dst->get_u(),
+		        read_frame_dst->get_v(),
+		        temp_frame->get_y(),
+		        temp_frame->get_u(),
+		        temp_frame->get_v(),
+		        0, 
+		        0, 
+		        temp_frame->get_w(), 
+		        temp_frame->get_h(),
+		        0, 
+		        0, 
+		        read_frame_dst->get_w(), 
+		        read_frame_dst->get_h(),
+		        temp_frame->get_color_model(), 
+		        read_frame_dst->get_color_model(),
+		        0,
+		        temp_frame->get_w(),
+		        read_frame_dst->get_w());
+        }
+        else
+        if(device)
+        {
+// hardware in the server
+//printf("File::convert_cmodel %d src=%p dst=%p\n", __LINE__, temp_frame, read_frame_dst);
+            temp_frame->set_opengl_state(VFrame::RAM);
+            device->convert_cmodel(temp_frame, read_frame_dst);
+        }
+    }
+}
+
 
 int File::can_copy_from(Asset *asset, 
 	int64_t position, 

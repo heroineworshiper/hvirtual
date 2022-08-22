@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +42,7 @@
 #include "pluginserver.inc"
 #include "preferences.inc"
 #include "samples.inc"
+#include "vdevicex11.inc"
 #include "vframe.inc"
 
 // ======================================= include file types here
@@ -200,7 +200,10 @@ public:
 
 // Read frame of video into the argument
 // is_thread is used by FileThread::run to prevent recursive lockup.
-	int read_frame(VFrame *frame, int is_thread = 0);
+	int read_frame(VFrame *frame, 
+        int is_thread /* = 0 */, 
+        int use_opengl /* = 0 */,
+        VDeviceX11 *device /* = 0 */);
 
 
 // The following involve no extra copies.
@@ -249,13 +252,37 @@ public:
 	static const char* byteorder_to_str(int byte_order);
 	int bytes_per_sample(int bits); // Convert the bit descriptor into a byte count.
 
+// get a shm temporary to store read_frame output in
+    VFrame* get_read_temp(int colormodel, int w, int h);
+// set pointers to where read_frame output is stored
+    void set_read_pointer(int colormodel, 
+        unsigned char *data, 
+        unsigned char *y, 
+        unsigned char *u, 
+        unsigned char *v,
+        int rowspan,
+        int w,
+        int h);
+    void convert_cmodel(int use_opengl, VDeviceX11 *device);
+
 	Asset *asset;    // Copy of asset since File outlives EDL
 	FileBase *file; // virtual class for file type
 // Threads for writing data in the background.
 	FileThread *audio_thread, *video_thread; 
 
-// Temporary storage for color conversions
+// The argument passed to read_frame
+    VFrame *read_frame_dst;
+
+// Temporary storage for the read_frame output
 	VFrame *temp_frame;
+// shared temp_frame contains the output of read_frame
+    int use_temp_frame;
+
+// pointer to the codec's private buffer
+    VFrame *read_pointer;
+/// read_pointer contains the output of read_frame.  Not shared with the server.
+    int use_read_pointer;
+
 // Temporary storage for get_audio_buffer.
 // [ring buffers][channels][Samples]
 	Samples ***temp_samples_buffer;

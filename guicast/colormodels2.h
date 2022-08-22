@@ -180,7 +180,11 @@ extern cmodel_yuv_t *cmodel_yuv_table;
 void cmodel_init();
 
 int cmodel_calculate_pixelsize(int colormodel);
-int cmodel_calculate_datasize(int w, int h, int bytes_per_line, int color_model);
+int cmodel_calculate_datasize(int w, 
+    int h, 
+    int bytes_per_line, 
+    int color_model,
+    int with_pad);
 int cmodel_calculate_max(int colormodel);
 int cmodel_components(int colormodel);
 int cmodel_is_yuv(int colormodel);

@@ -829,7 +829,7 @@ void ProxyClient::process_package(LoadPackage *ptr)
 		i++)
 	{
 		src_file.set_video_position(i, 0);
-		result = src_file.read_frame(&src_frame);
+		result = src_file.read_frame(&src_frame, 0, 0, 0);
 //printf("ProxyClient::process_package %d i=%ld result=%d\n", __LINE__, i, result);
 
 		if(result) 

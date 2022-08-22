@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -140,7 +139,9 @@ int VEdit::read_frame(VFrame *video_out,
 	CICache *cache,
 	int use_nudge,
 	int use_cache,
-	int use_asynchronous)
+	int use_asynchronous,
+    int use_opengl,
+    VDeviceX11 *device)
 {
 	int64_t source_position = 0;
 	const int debug = 0;
@@ -194,7 +195,7 @@ if(debug) printf("VEdit::read_frame %d\n", __LINE__);
 		file->set_video_position(source_position, 0);
 
 		if(use_cache) file->set_cache_frames(use_cache);
-		result = file->read_frame(video_out);
+		result = file->read_frame(video_out, 0, use_opengl, device);
 
 if(debug) printf("VEdit::read_frame %d\n", __LINE__);
 		if(use_cache) file->set_cache_frames(0);

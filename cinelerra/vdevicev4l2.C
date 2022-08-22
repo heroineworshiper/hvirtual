@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -780,9 +779,9 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 //printf("VDeviceV4L2Thread::run color_model=%d\n", color_model);
 					frame->reallocate(data,
 						0,
-						y_offset,
-						u_offset,
-						v_offset,
+						0,
+						0,
+						0,
 						device->in_config->w,
 						device->in_config->h,
 						color_model,

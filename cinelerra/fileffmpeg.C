@@ -2368,45 +2368,55 @@ int FileFFMPEG::read_frame(VFrame *frame)
 		}
 
 
+// File class will convert from ffmpeg to the function argument
+        file->set_read_pointer(input_cmodel, 
+            input_frame->data[0], 
+            input_frame->data[0], 
+            input_frame->data[1], 
+            input_frame->data[2],
+            input_frame->linesize[0],
+            decoder_context->width,
+            decoder_context->height);
 
-		unsigned char **input_rows = 
-			(unsigned char**)malloc(sizeof(unsigned char*) * 
-			decoder_context->height);
-
-
-		for(int i = 0; i < decoder_context->height; i++)
-		{
-			input_rows[i] = input_frame->data[0] + 
-				i * 
-				decoder_context->width * 
-				cmodel_calculate_pixelsize(input_cmodel);
-		}
-
-// use the quicktime cmodel function to share the nvidia 
-// conversions with qtffmpeg
-		cmodel_transfer(frame->get_rows(), /* Leave NULL if non existent */
-			input_rows,
-			frame->get_y(), /* Leave NULL if non existent */
-			frame->get_u(),
-			frame->get_v(),
-			input_frame->data[0], /* Leave NULL if non existent */
-			input_frame->data[1],
-			input_frame->data[2],
-			0,        /* Dimensions to capture from input frame */
-			0, 
-			decoder_context->width, 
-			decoder_context->height,
-			0,       /* Dimensions to project on output frame */
-			0, 
-			frame->get_w(), 
-			frame->get_h(),
-			input_cmodel, 
-			frame->get_color_model(),
-			0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
-			input_frame->linesize[0],       /* For planar use the luma rowspan */
-			frame->get_w());
-		free(input_rows);
-	}
+// 
+// 		unsigned char **input_rows = 
+// 			(unsigned char**)malloc(sizeof(unsigned char*) * 
+// 			decoder_context->height);
+// 
+// 
+// 		for(int i = 0; i < decoder_context->height; i++)
+// 		{
+// 			input_rows[i] = input_frame->data[0] + 
+// 				i * 
+// 				decoder_context->width * 
+// 				cmodel_calculate_pixelsize(input_cmodel);
+// 		}
+// 
+// // use the quicktime cmodel function to share the nvidia 
+// // conversions with qtffmpeg
+// 		cmodel_transfer(frame->get_rows(), /* Leave NULL if non existent */
+// 			input_rows,
+// 			frame->get_y(), /* Leave NULL if non existent */
+// 			frame->get_u(),
+// 			frame->get_v(),
+// 			input_frame->data[0], /* Leave NULL if non existent */
+// 			input_frame->data[1],
+// 			input_frame->data[2],
+// 			0,        /* Dimensions to capture from input frame */
+// 			0, 
+// 			decoder_context->width, 
+// 			decoder_context->height,
+// 			0,       /* Dimensions to project on output frame */
+// 			0, 
+// 			frame->get_w(), 
+// 			frame->get_h(),
+// 			input_cmodel, 
+// 			frame->get_color_model(),
+// 			0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
+// 			input_frame->linesize[0],       /* For planar use the luma rowspan */
+// 			frame->get_w());
+// 		free(input_rows);
+ 	}
 //PRINT_TRACE
 
 

@@ -168,6 +168,7 @@ int CacheBase::delete_oldest()
 int64_t CacheBase::get_memory_usage()
 {
 	int64_t result = 0;
+//printf("CacheBase::get_memory_usage %d\n", __LINE__);
 	lock->lock("CacheBase::get_memory_usage");
 	for(CacheItemBase *current = first; current; current = NEXT)
 	{

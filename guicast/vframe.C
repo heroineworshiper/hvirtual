@@ -141,9 +141,9 @@ VFrame::VFrame(unsigned char *data,
 
 VFrame::VFrame(unsigned char *data, 
 		int shmid,
-		long y_offset,
-		long u_offset,
-		long v_offset, 
+		unsigned char *y_ptr,
+		unsigned char *u_ptr,
+		unsigned char *v_ptr, 
 		int w, 
 		int h, 
 		int color_model, 
@@ -153,9 +153,9 @@ VFrame::VFrame(unsigned char *data,
 	params = new BC_Hash;
 	allocate_data(data, 
 		shmid,
-		y_offset, 
-		u_offset, 
-		v_offset, 
+		y_ptr, 
+		u_ptr, 
+		v_ptr, 
 		w, 
 		h, 
 		color_model, 
@@ -257,9 +257,6 @@ int VFrame::reset_parameters(int do_opengl)
 	w = 0;
 	h = 0;
 	y = u = v = 0;
-	y_offset = 0;
-	u_offset = 0;
-	v_offset = 0;
 	sequence_number = -1;
 	is_keyframe = 0;
 
@@ -372,53 +369,86 @@ long VFrame::get_bytes_per_line()
 
 long VFrame::get_data_size()
 {
-	return calculate_data_size(w, h, bytes_per_line, color_model) - 4;
-//	return h * bytes_per_line;
+	return calculate_data_size(w, h, bytes_per_line, color_model, 0);
 }
 
-long VFrame::calculate_data_size(int w, int h, int bytes_per_line, int color_model)
+long VFrame::calculate_data_size(int w, 
+    int h, 
+    int bytes_per_line, 
+    int color_model,
+    int with_pad)
 {
-	return cmodel_calculate_datasize(w, h, bytes_per_line, color_model);
-	return 0;
+	return cmodel_calculate_datasize(w, 
+        h, 
+        bytes_per_line, 
+        color_model,
+        with_pad);
 }
 
 void VFrame::create_row_pointers()
 {
 	switch(color_model)
 	{
-		case BC_YUV420P:
-		case BC_YUV411P:
-			if(!this->v_offset)
-			{
-                int pad = 0;
+        case BC_YUV420P10LE:
+        {
+            int pad = 0;
 // ffmpeg expects 1 more row for odd numbered heights
-                if((h % 2) > 0)
-                    pad = w / 2;
-				this->y_offset = 0;
-				this->u_offset = w * h;
-				this->v_offset = w * h + (w / 2) * (h / 2) + pad;
-			}
-            
-            if(this->data)
+            if((h % 2) > 0)
+                pad = w / 2 * 2;
+// only create plane pointers if none are provided
+            if(!this->y && this->data)
             {
-			    y = this->data + this->y_offset;
-			    u = this->data + this->u_offset;
-			    v = this->data + this->v_offset;
+			    y = this->data;
+			    u = this->data + w * 2 * h;
+			    v = this->data + w * 2 * h + (w / 2) * 2 * (h / 2) + pad;
             }
 			break;
+        }
+    
+		case BC_YUV420P:
+		case BC_YUV411P:
+        {
+            int pad = 0;
+// ffmpeg expects 1 more row for odd numbered heights
+            if((h % 2) > 0)
+                pad = w / 2;
+// 			if(!this->v_offset)
+// 			{
+// 				this->y_offset = 0;
+// 				this->u_offset = w * h;
+// 				this->v_offset = w * h + (w / 2) * (h / 2) + pad;
+// 			}
+
+// only create plane pointers if none are provided
+            if(!this->y && this->data)
+            {
+// 			    y = this->data + this->y_offset;
+// 			    u = this->data + this->u_offset;
+// 			    v = this->data + this->v_offset;
+			    y = this->data;
+			    u = this->data + w * h;
+			    v = this->data + w * h + (w / 2) * (h / 2) + pad;
+            }
+			break;
+        }
 
 		case BC_YUV422P:
-			if(!this->v_offset)
-			{
-				this->y_offset = 0;
-				this->u_offset = w * h;
-				this->v_offset = w * h + (w / 2) * h;
-			}
-            if(this->data)
+// 			if(!this->v_offset)
+// 			{
+// 				this->y_offset = 0;
+// 				this->u_offset = w * h;
+// 				this->v_offset = w * h + (w / 2) * h;
+// 			}
+
+// only create plane pointers if none are provided
+            if(!this->y && this->data)
             {
-			    y = this->data + this->y_offset;
-			    u = this->data + this->u_offset;
-			    v = this->data + this->v_offset;
+// 			    y = this->data + this->y_offset;
+// 			    u = this->data + this->u_offset;
+// 			    v = this->data + this->v_offset;
+			    y = this->data;
+			    u = this->data + w * h;
+			    v = this->data + w * h + (w / 2) * h;
             }
 			break;
 
@@ -437,9 +467,9 @@ void VFrame::create_row_pointers()
 
 int VFrame::allocate_data(unsigned char *data, 
 	int shmid,
-	long y_offset,
-	long u_offset,
-	long v_offset,
+	unsigned char *y_ptr,
+	unsigned char *u_ptr,
+	unsigned char *v_ptr,
 	int w, 
 	int h, 
 	int color_model, 
@@ -449,7 +479,10 @@ int VFrame::allocate_data(unsigned char *data,
 	this->h = h;
 	this->color_model = color_model;
 	this->bytes_per_pixel = calculate_bytes_per_pixel(color_model);
-	this->y_offset = this->u_offset = this->v_offset = 0;
+//	this->y_offset = this->u_offset = this->v_offset = 0;
+    this->y = y_ptr;
+    this->u = u_ptr;
+    this->v = v_ptr;
 	if(shmid == 0)
 	{
 //		printf("VFrame::allocate_data %d shmid == 0\n", __LINE__, shmid);
@@ -471,9 +504,9 @@ int VFrame::allocate_data(unsigned char *data,
 		memory_type = VFrame::SHARED;
 		this->data = data;
 		this->shmid = -1;
-		this->y_offset = y_offset;
-		this->u_offset = u_offset;
-		this->v_offset = v_offset;
+// 		this->y_offset = y_offset;
+// 		this->u_offset = u_offset;
+// 		this->v_offset = v_offset;
 	}
 	else
 	if(shmid >= 0)
@@ -482,9 +515,9 @@ int VFrame::allocate_data(unsigned char *data,
 		this->data = (unsigned char*)shmat(shmid, NULL, 0);
 //printf("VFrame::allocate_data %d shmid=%d data=%p\n", __LINE__, shmid, this->data);
 		this->shmid = shmid;
-		this->y_offset = y_offset;
-		this->u_offset = u_offset;
-		this->v_offset = v_offset;
+// 		this->y_offset = y_offset;
+// 		this->u_offset = u_offset;
+// 		this->v_offset = v_offset;
 	}
 	else
 	{
@@ -492,7 +525,8 @@ int VFrame::allocate_data(unsigned char *data,
 		int size = calculate_data_size(this->w, 
 			this->h, 
 			this->bytes_per_line, 
-			this->color_model);
+			this->color_model,
+            1);
 		if(BC_WindowBase::get_resources()->vframe_shm && use_shm)
 		{
 			this->shmid = shmget(IPC_PRIVATE, 
@@ -537,20 +571,22 @@ int VFrame::allocate_data(unsigned char *data,
 
 void VFrame::set_memory(unsigned char *data, 
 	int shmid,
-	long y_offset,
-	long u_offset,
-	long v_offset)
+	unsigned char *y_ptr,
+	unsigned char *u_ptr,
+	unsigned char *v_ptr,
+    int bytes_per_line)
 {
 	clear_objects(0);
 
+    this->bytes_per_line = bytes_per_line;
 	if(data)
 	{
 		memory_type = VFrame::SHARED;
 		this->data = data;
 		this->shmid = -1;
-		this->y_offset = y_offset;
-		this->u_offset = u_offset;
-		this->v_offset = v_offset;
+		this->y = y_ptr;
+		this->u = u_ptr;
+		this->v = v_ptr;
 	}
 	else
 	if(shmid >= 0)
@@ -562,9 +598,9 @@ void VFrame::set_memory(unsigned char *data,
 	
     if(this->data)
     {
-	    y = this->data + this->y_offset;
-	    u = this->data + this->u_offset;
-	    v = this->data + this->v_offset;
+		this->y = y_ptr;
+		this->u = u_ptr;
+		this->v = v_ptr;
 
 	    create_row_pointers();
     }
@@ -600,9 +636,9 @@ void VFrame::set_compressed_memory(unsigned char *data,
 int VFrame::reallocate(
 	unsigned char *data, 
 	int shmid,
-	long y_offset,
-	long u_offset,
-	long v_offset,
+	unsigned char *y_ptr,  // planes if shared YUV.  0 if not
+	unsigned char *u_ptr,
+	unsigned char *v_ptr,
 	int w, 
 	int h, 
 	int color_model, 
@@ -613,9 +649,9 @@ int VFrame::reallocate(
 //	reset_parameters(0);
 	allocate_data(data, 
 		shmid,
-		y_offset, 
-		u_offset, 
-		v_offset, 
+		y_ptr, 
+		u_ptr, 
+		v_ptr, 
 		w, 
 		h, 
 		color_model, 
@@ -1059,7 +1095,7 @@ int VFrame::clear_frame()
 			break;
 		
 		default:
-			bzero(data, calculate_data_size(w, h, bytes_per_line, color_model));
+			bzero(data, calculate_data_size(w, h, bytes_per_line, color_model, 0));
 			break;
 	}
 	return 0;
@@ -1069,7 +1105,7 @@ void VFrame::rotate90()
 {
 // Allocate new frame
 	int new_w = h, new_h = w, new_bytes_per_line = bytes_per_pixel * new_w;
-	unsigned char *new_data = new unsigned char[calculate_data_size(new_w, new_h, new_bytes_per_line, color_model)];
+	unsigned char *new_data = new unsigned char[calculate_data_size(new_w, new_h, new_bytes_per_line, color_model, 1)];
 	unsigned char **new_rows = new unsigned char*[new_h];
 	for(int i = 0; i < new_h; i++)
 		new_rows[i] = &new_data[new_bytes_per_line * i];
@@ -1100,7 +1136,12 @@ void VFrame::rotate270()
 {
 // Allocate new frame
 	int new_w = h, new_h = w, new_bytes_per_line = bytes_per_pixel * new_w;
-	unsigned char *new_data = new unsigned char[calculate_data_size(new_w, new_h, new_bytes_per_line, color_model)];
+	unsigned char *new_data = new unsigned char[
+        calculate_data_size(new_w,
+            new_h, 
+            new_bytes_per_line, 
+            color_model, 
+            1)];
 	unsigned char **new_rows = new unsigned char*[new_h];
 	for(int i = 0; i < new_h; i++)
 		new_rows[i] = &new_data[new_bytes_per_line * i];
@@ -1195,6 +1236,17 @@ int VFrame::copy_from(VFrame *frame)
 			memcpy(get_u(), frame->get_u(), w * h / 2);
 			memcpy(get_v(), frame->get_v(), w * h / 2);
 			break;
+
+        case BC_NV12:
+            memcpy(get_y(), frame->get_y(), w * h);
+            memcpy(get_u(), frame->get_u(), (w / 2) * (h / 2) * 2);
+            break;
+
+        case BC_YUV420P10LE:
+            memcpy(get_y(), frame->get_y(), w * 2 * h);
+            memcpy(get_u(), frame->get_u(), (w / 2) * 2 * (h / 2));
+            memcpy(get_v(), frame->get_v(), (w / 2) * 2 * (h / 2));
+            break;
 
 		default:
 // printf("VFrame::copy_from %d\n", calculate_data_size(w, 
@@ -1481,9 +1533,9 @@ void VFrame::to_filefork(unsigned char *buffer)
 {
 //printf("VFrame::to_filefork %d shmid=%d w=%d h=%d\n", __LINE__, shmid, w, h);
 	*(int*)(buffer + 0) = shmid;
-	*(int*)(buffer + 4) = y_offset;
-	*(int*)(buffer + 8) = u_offset;
-	*(int*)(buffer + 12) = v_offset;
+	*(int*)(buffer + 4) = 0; // y_offset
+	*(int*)(buffer + 8) = 0; // u_offset
+	*(int*)(buffer + 12) = 0; // v_offset
 	*(int*)(buffer + 16) = w;
 	*(int*)(buffer + 20) = h;
 	*(int*)(buffer + 24) = color_model;
@@ -1529,9 +1581,9 @@ void VFrame::from_filefork(unsigned char *buffer)
 // printf("\n");
 		reallocate(0,
 			*(int*)(buffer + 0), // shmid
-			*(int*)(buffer + 4), // y_offset
-			*(int*)(buffer + 8), // u_offset
-			*(int*)(buffer + 12), // v_offset
+			0, // y_offset.  Must calculate based on colormodel
+			0, // u_offset.  Must calculate based on colormodel
+			0, // v_offset.  Must calculate based on colormodel
 			*(int*)(buffer + 16), // w
 			*(int*)(buffer + 20), // h
 			*(int*)(buffer + 24), // colormodel

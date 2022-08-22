@@ -27,13 +27,18 @@
 // support useless text to movie feature
 //#define USE_SCENE
 
-// Return values for open_file
+// Return values for open_file & read_frame
+#define FILE_RESULT_FAILED -1 // the read_result call failed
 #define FILE_OK 0
+#define FILE_ERROR 1 // the operation failed
 #define FILE_NOT_FOUND 1
 #define FILE_UNRECOGNIZED_CODEC 2
 #define FILE_IS_XML 3
 // user canceled a TOC progress box during the opening of the file
 #define FILE_USER_CANCELED 4
+
+
+
 
 // Numeric codes for each file format
 // They're stored in XML files, so they have to be fixed.

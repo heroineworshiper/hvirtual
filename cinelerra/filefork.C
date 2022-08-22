@@ -501,7 +501,8 @@ int FileFork::handle_command()
 		case READ_FRAME:
 		{
 			VFrame *frame = new VFrame;
-			frame->from_filefork(command_data);
+            int use_opengl = command_data[0];
+			frame->from_filefork(command_data + sizeof(int));
 			int allocated_data = frame->get_compressed_allocated();
 			
 			
@@ -509,7 +510,7 @@ int FileFork::handle_command()
 // __LINE__, 
 // file);
 // frame->dump();
-			result = file->read_frame(frame, 0);
+			result = file->read_frame(frame, 0, use_opengl, 0);
 
 
 // printf("FileFork::handle_command %d size=%d\n", 
@@ -558,7 +559,7 @@ int FileFork::handle_command()
 			}
 
 
-//printf("FileFork::handle_command %d size=%d frame=%p\n", 
+//printf("FileFork::handle_command %d size=%d read_frame_dst=%p\n", 
 //__LINE__, 
 //frame->get_compressed_size(),
 //frame);
