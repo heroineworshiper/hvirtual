@@ -233,33 +233,13 @@ void VFrame::to_texture()
 				get_rows()[0]);
 			break;
 
-// inputs for colorspace conversion are just sent as 8 bit RGBA rounded
-// up a row
-        case BC_YUV420P:
-        {
-            int bytes = get_data_size();
-// rows required to transfer planer data to contiguous texture memory
-            int rows = bytes / texture->get_texture_w() / 4;
-            if(rows * w * 4 < bytes) rows++;
-			glTexSubImage2D(GL_TEXTURE_2D,
-				0,
-				0,
-				0,
-				texture->get_texture_w(),
-				rows,
-				GL_RGBA,
-				GL_UNSIGNED_BYTE,
-				get_data());
-            break;
-        }
 
-//         case BC_YUV422P:
-//             break;
-// 
-//         case BC_NV12:
-//             break;
-
+// planar images are just sent as 8 bit RGBA rounded up a row
         case BC_YUV420P10LE:
+        case BC_YUV420P:
+        case BC_YUV9P:
+        case BC_YUV422P:
+        case BC_NV12:
         {
             int bytes = get_data_size();
 // rows required to transfer planer data to contiguous texture memory

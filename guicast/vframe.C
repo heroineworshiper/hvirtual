@@ -453,6 +453,19 @@ void VFrame::create_row_pointers()
             }
 			break;
 
+        case BC_YUV9P:
+            if(!this->y && this->data)
+            {
+                int pad = 0;
+// ffmpeg expects 1 more row for odd numbered heights
+                if((h % 2) > 0)
+                    pad = w / 4;
+			    y = this->data;
+			    u = this->data + bytes_per_line * h;
+			    v = this->data + bytes_per_line * h + (bytes_per_line / 4) * (h / 4) + pad;
+            }
+            break;
+
 		default:
             if(this->data)
             {
@@ -1203,7 +1216,7 @@ int VFrame::copy_from(VFrame *frame)
 	if(this->w != frame->get_w() ||
 		this->h != frame->get_h())
 	{
-		printf("VFrame::copy_from %d sizes differ src %dx%d != dst %dx%d\n",
+		printf("VFrame::copy_from %d sizes differ. src %dx%d != dst %dx%d\n",
 			__LINE__,
 			frame->get_w(),
 			frame->get_h(),
@@ -1211,6 +1224,25 @@ int VFrame::copy_from(VFrame *frame)
 			get_h());
 		return 1;
 	}
+    
+    if(frame->color_model != color_model)
+    {
+		printf("VFrame::copy_from %d color models differ. src %d != dst %d\n",
+			__LINE__,
+			frame->color_model,
+			color_model);
+		return 1;
+    }
+
+    if(cmodel_is_planar(frame->color_model) &&
+        (!get_y() || !frame->get_y() ||
+         !get_u() || !frame->get_u() ||
+         !get_v() || !frame->get_v()))
+    {
+        printf("VFrame::copy_from %d: planes not defined.\n", __LINE__);
+		return 1;
+    }
+
 
 	int w = MIN(this->w, frame->get_w());
 	int h = MIN(this->h, frame->get_h());
@@ -1248,6 +1280,13 @@ int VFrame::copy_from(VFrame *frame)
             memcpy(get_u(), frame->get_u(), (bytes_per_line / 2) * (h / 2));
             memcpy(get_v(), frame->get_v(), (bytes_per_line / 2) * (h / 2));
             break;
+
+		case BC_YUV9P:
+//printf("%d %d %p %p %p %p %p %p %d\n", w, h, get_y(), get_u(), get_v(), frame->get_y(), frame->get_u(), frame->get_v(), bytes_per_line);
+			memcpy(get_y(), frame->get_y(), bytes_per_line * h);
+			memcpy(get_u(), frame->get_u(), bytes_per_line / 4 * h / 4);
+			memcpy(get_v(), frame->get_v(), bytes_per_line / 4 * h / 4);
+			break;
 
 		default:
 // printf("VFrame::copy_from %d\n", calculate_data_size(w, 

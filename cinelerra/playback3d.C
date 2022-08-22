@@ -119,6 +119,27 @@ static const char *YUV420P_to_rgb_frag =
     "    gl_FragColor = vec4(yuv_to_rgb_matrix * yuv, 1.0);\n"
 	"}\n";
 
+static const char *YUV9P_to_yuv_frag = 
+    "    float offset = rowspan * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
+    "    float r = get_value8(offset);\n"
+    "    offset = rowspan * image_h + (rowspan / 4.0) * floor((coord.y / 4.0) / pixel_h) + floor((coord.x / 4.0) / pixel_w);\n"
+    "    float g = get_value8(offset);\n"
+    "    offset = rowspan * image_h + (rowspan / 4.0) * (image_h / 4.0) + (rowspan / 4.0) * floor((coord.y / 4.0) / pixel_h) + floor((coord.x / 4.0) / pixel_w);\n"
+    "    float b = get_value8(offset);\n"
+    "    gl_FragColor = vec4(r, g, b, 1.0);\n"
+	"}\n";
+
+static const char *YUV9P_to_rgb_frag = 
+    "    float offset = rowspan * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
+    "    vec3 yuv = vec3(0.0, -0.5, -0.5);\n"
+    "    yuv.r = get_value8(offset);\n"
+    "    offset = rowspan * image_h + (rowspan / 4.0) * floor((coord.y / 4.0) / pixel_h) + floor((coord.x / 4.0) / pixel_w);\n"
+    "    yuv.g += get_value8(offset);\n"
+    "    offset = rowspan * image_h + (rowspan / 4.0) * (image_h / 4.0) + (rowspan / 4.0) * floor((coord.y / 4.0) / pixel_h) + floor((coord.x / 4.0) / pixel_w);\n"
+    "    yuv.b += get_value8(offset);\n"
+    "    gl_FragColor = vec4(yuv_to_rgb_matrix * yuv, 1.0);\n"
+	"}\n";
+
 static const char *YUV422P_to_yuv_frag = 
     "    float offset = rowspan * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
     "    float r = get_value8(offset);\n"
@@ -1902,6 +1923,12 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
             { BC_YUV422P, BC_RGBA8888,   YUV422P_to_rgb_frag },
             { BC_YUV422P, BC_RGB_FLOAT,  YUV422P_to_rgb_frag },
             { BC_YUV422P, BC_RGBA_FLOAT, YUV422P_to_rgb_frag },
+            { BC_YUV9P, BC_YUV888,     YUV9P_to_yuv_frag },
+            { BC_YUV9P, BC_YUVA8888,   YUV9P_to_yuv_frag },
+            { BC_YUV9P, BC_RGB888,     YUV9P_to_rgb_frag },
+            { BC_YUV9P, BC_RGBA8888,   YUV9P_to_rgb_frag },
+            { BC_YUV9P, BC_RGB_FLOAT,  YUV9P_to_rgb_frag },
+            { BC_YUV9P, BC_RGBA_FLOAT, YUV9P_to_rgb_frag },
 		};
 
 	    const char *shader_stack[] = { 0, 0, 0 };

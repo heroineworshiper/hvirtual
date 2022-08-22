@@ -95,7 +95,7 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
 //	int new_w = w;
 //	int new_h = h;
 	int new_components = cmodel_components(colormodel);
-// For planar colormodels, we store anonymous data in A.
+// For planar colormodels, we pack anonymous data in all RGBA channels.
     if(cmodel_is_planar(colormodel))
     {
         new_components = 4;
