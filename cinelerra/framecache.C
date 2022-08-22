@@ -215,7 +215,7 @@ void FrameCache::put_frame(VFrame *frame,
 	        frame->get_w(), 
 	        frame->get_h(), 
 	        frame->get_color_model(), 
-	        -1);
+	        frame->get_bytes_per_line());
         item->data->copy_from(frame);
         item->data->copy_stacks(frame);
 	}

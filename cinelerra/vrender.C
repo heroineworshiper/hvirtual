@@ -224,10 +224,10 @@ int VRender::process_buffer(int64_t input_position,
 				0,
                 use_opengl,
                 x11_device);
-            printf("VRender::process_buffer %d state=%d color_model=%d\n", 
-                __LINE__, 
-                video_out->get_opengl_state(),
-                video_out->get_color_model());
+//             printf("VRender::process_buffer %d state=%d color_model=%d\n", 
+//                 __LINE__, 
+//                 video_out->get_opengl_state(),
+//                 video_out->get_color_model());
 		}
 
 

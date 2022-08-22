@@ -1972,12 +1972,16 @@ int File::read_frame(VFrame *frame,
                 {
                     int *params = (int*)file_fork->result_data;
                     int want_colormodel = params[0];
-                    int want_w = params[1];
-                    int want_h = params[2];
+                    int want_rowspan = params[1];
+                    int want_w = params[2];
+                    int want_h = params[3];
                     
 			        if(temp_frame)
 			        {
-				        if(!temp_frame->params_match(want_w, want_h, want_colormodel))
+				        if(!temp_frame->params_match(want_w, 
+                            want_h, 
+                            want_rowspan,
+                            want_colormodel))
 				        {
 					        delete temp_frame;
 					        temp_frame = 0;
@@ -1991,7 +1995,7 @@ int File::read_frame(VFrame *frame,
 					        want_w,
 					        want_h,
 					        want_colormodel,
-					        -1);
+					        want_rowspan);
 			        }
                     
 		            temp_frame->to_filefork(frame_data);
@@ -2170,21 +2174,22 @@ int File::read_frame(VFrame *frame,
 
 
 // get a shm temporary to store read_frame output in
-VFrame* File::get_read_temp(int colormodel, int w, int h)
+VFrame* File::get_read_temp(int colormodel, int rowspan, int w, int h)
 {
 // no conversion needed
-    if(read_frame_dst->params_match(w, h, colormodel))
+    if(read_frame_dst->params_match(w, h, rowspan,colormodel))
     {
         return read_frame_dst;
     }
 
-    int params[3];
+    int params[4];
     params[0] = colormodel;
-    params[1] = w;
-    params[2] = h;
+    params[1] = rowspan;
+    params[2] = w;
+    params[3] = h;
 	file_fork->send_result(FileFork::FILE_READ_TEMP, 
         (unsigned char*)&params, 
-        sizeof(int) * 3);
+        sizeof(params));
     int result = file_fork->read_command(1);
     if(result >= 0)
     {
@@ -2269,6 +2274,7 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
 // Copy to the shared temp frame for conversion in the server.
 //printf("File::convert_cmodel %d\n", __LINE__);
             VFrame *dst = get_read_temp(read_pointer->get_color_model(), 
+                read_pointer->get_bytes_per_line(),
                 read_pointer->get_w(), 
                 read_pointer->get_h());
 //printf("File::convert_cmodel %d\n", __LINE__);

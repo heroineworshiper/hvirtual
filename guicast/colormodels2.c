@@ -314,26 +314,26 @@ int cmodel_calculate_datasize(int w,
         case BC_NV12:
 // ffmpeg expects 1 more row for odd numbered heights
             pad = w * 4 * 2;
-			result = w * h + 2 * (w / 2) * (h / 2);
+			result = bytes_per_line * h + 2 * (bytes_per_line / 2) * (h / 2);
 			break;
 
 		case BC_YUV422P:
             pad = w * 4 * 2;
-			result = w * h * 2;
+			result = bytes_per_line * h * 2;
 			break;
 
 		case BC_YUV444P:
             pad = w * 4 * 2;
-			result = w * h * 3 + pad;
+			result = bytes_per_line * h * 3 + pad;
 			break;
 
         case BC_YUV420P10LE:
             pad = w * 4 * 2;
-            result = h * w * 2  + (w / 2) * (h / 2) * 2 * 2 + pad;
+            result = h * bytes_per_line  + (bytes_per_line / 2) * (h / 2) * 2 + pad;
             break;
 
 		default:
-            pad = bytes_per_line * 2;
+            pad = w * 4 * 2;
 			result = h * bytes_per_line + pad;
 			break;
 	}

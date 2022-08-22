@@ -51,6 +51,7 @@
 
 static const char *cmodel_head = 
 	"uniform sampler2D src_tex;\n"
+	"uniform float rowspan; // bytes per Y line\n"
 	"uniform float image_w; // number of pixels\n"
 	"uniform float image_h; // number of pixels\n"
 	"uniform float texture_w; // number of pixels\n"
@@ -98,44 +99,65 @@ static const char *cmodel_head =
 
 
 static const char *YUV420P_to_yuv_frag = 
-    "    float offset = image_w * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
+    "    float offset = rowspan * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
     "    float r = get_value8(offset);\n"
-    "    offset = image_w * image_h + (image_w / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    offset = rowspan * image_h + (rowspan / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
     "    float g = get_value8(offset);\n"
-    "    offset = image_w * image_h + (image_w / 2.0) * (image_h / 2.0) + (image_w / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    offset = rowspan * image_h + (rowspan / 2.0) * (image_h / 2.0) + (rowspan / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
     "    float b = get_value8(offset);\n"
     "    gl_FragColor = vec4(r, g, b, 1.0);\n"
 	"}\n";
 
 static const char *YUV420P_to_rgb_frag = 
-    "    float offset = image_w * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
+    "    float offset = rowspan * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
     "    vec3 yuv = vec3(0.0, -0.5, -0.5);\n"
     "    yuv.r = get_value8(offset);\n"
-    "    offset = image_w * image_h + (image_w / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    offset = rowspan * image_h + (rowspan / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
     "    yuv.g += get_value8(offset);\n"
-    "    offset = image_w * image_h + (image_w / 2.0) * (image_h / 2.0) + (image_w / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    offset = rowspan * image_h + (rowspan / 2.0) * (image_h / 2.0) + (rowspan / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    yuv.b += get_value8(offset);\n"
+    "    gl_FragColor = vec4(yuv_to_rgb_matrix * yuv, 1.0);\n"
+	"}\n";
+
+static const char *YUV422P_to_yuv_frag = 
+    "    float offset = rowspan * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
+    "    float r = get_value8(offset);\n"
+    "    offset = rowspan * image_h + (rowspan / 2.0) * floor(coord.y / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    float g = get_value8(offset);\n"
+    "    offset = rowspan * image_h + (rowspan / 2.0) * image_h + (rowspan / 2.0) * floor(coord.y / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    float b = get_value8(offset);\n"
+    "    gl_FragColor = vec4(r, g, b, 1.0);\n"
+	"}\n";
+
+static const char *YUV422P_to_rgb_frag = 
+    "    float offset = rowspan * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
+    "    vec3 yuv = vec3(0.0, -0.5, -0.5);\n"
+    "    yuv.r = get_value8(offset);\n"
+    "    offset = rowspan * image_h + (rowspan / 2.0) * floor(coord.y / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    yuv.g += get_value8(offset);\n"
+    "    offset = rowspan * image_h + (rowspan / 2.0) * image_h + (rowspan / 2.0) * floor(coord.y / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
     "    yuv.b += get_value8(offset);\n"
     "    gl_FragColor = vec4(yuv_to_rgb_matrix * yuv, 1.0);\n"
 	"}\n";
 
 static const char *YUV420P10LE_to_yuv_frag = 
-    "    float offset = image_w * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
+    "    float offset = rowspan / 2.0 * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
     "    vec3 yuv;\n"
     "    yuv.r = get_value10(offset);\n"
-    "    offset = image_w * image_h + (image_w / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    offset = rowspan / 2.0 * image_h + (rowspan / 4.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
     "    yuv.g = get_value10(offset);\n"
-    "    offset = image_w * image_h + (image_w / 2.0) * (image_h / 2.0) + (image_w / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    offset = rowspan / 2.0 * image_h + (rowspan / 4.0) * (image_h / 2.0) + (rowspan / 4.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
     "    yuv.b = get_value10(offset);\n"
     "    gl_FragColor = vec4(yuv, 1.0);\n"
 	"}\n";
 
 static const char *YUV420P10LE_to_rgb_frag = 
-    "    float offset = image_w * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
+    "    float offset = rowspan / 2.0 * floor(coord.y / pixel_h) + floor(coord.x / pixel_w);\n"
     "    vec3 yuv = vec3(0.0, -0.5, -0.5);\n"
     "    yuv.r = get_value10(offset);\n"
-    "    offset = image_w * image_h + (image_w / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    offset = rowspan / 2.0 * image_h + (rowspan / 4.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
     "    yuv.g += get_value10(offset);\n"
-    "    offset = image_w * image_h + (image_w / 2.0) * (image_h / 2.0) + (image_w / 2.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
+    "    offset = rowspan / 2.0 * image_h + (rowspan / 4.0) * (image_h / 2.0) + (rowspan / 4.0) * floor((coord.y / 2.0) / pixel_h) + floor((coord.x / 2.0) / pixel_w);\n"
     "    yuv.b += get_value10(offset);\n"
     "    gl_FragColor = vec4(yuv_to_rgb_matrix * yuv, 1.0);\n"
 	"}\n";
@@ -1862,18 +1884,24 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 			{ BC_YUVA8888, BC_RGB_FLOAT, yuva_to_rgb_frag },
 			{ BC_YUVA8888, BC_RGBA_FLOAT, yuv_to_rgb_frag },
 			{ BC_YUVA8888, BC_YUV888, yuva_to_yuv_frag },
-            { BC_YUV420P10LE, BC_YUV888, YUV420P10LE_to_yuv_frag },
-            { BC_YUV420P10LE, BC_YUVA8888, YUV420P10LE_to_yuv_frag },
-            { BC_YUV420P10LE, BC_RGB888, YUV420P10LE_to_rgb_frag },
-            { BC_YUV420P10LE, BC_RGBA8888, YUV420P10LE_to_rgb_frag },
-            { BC_YUV420P10LE, BC_RGB_FLOAT, YUV420P10LE_to_rgb_frag },
+            { BC_YUV420P10LE, BC_YUV888,     YUV420P10LE_to_yuv_frag },
+            { BC_YUV420P10LE, BC_YUVA8888,   YUV420P10LE_to_yuv_frag },
+            { BC_YUV420P10LE, BC_RGB888,     YUV420P10LE_to_rgb_frag },
+            { BC_YUV420P10LE, BC_RGBA8888,   YUV420P10LE_to_rgb_frag },
+            { BC_YUV420P10LE, BC_RGB_FLOAT,  YUV420P10LE_to_rgb_frag },
             { BC_YUV420P10LE, BC_RGBA_FLOAT, YUV420P10LE_to_rgb_frag },
-            { BC_YUV420P, BC_YUV888, YUV420P_to_yuv_frag },
-            { BC_YUV420P, BC_YUVA8888, YUV420P_to_yuv_frag },
-            { BC_YUV420P, BC_RGB888, YUV420P_to_rgb_frag },
-            { BC_YUV420P, BC_RGBA8888, YUV420P_to_rgb_frag },
-            { BC_YUV420P, BC_RGB_FLOAT, YUV420P_to_rgb_frag },
+            { BC_YUV420P, BC_YUV888,     YUV420P_to_yuv_frag },
+            { BC_YUV420P, BC_YUVA8888,   YUV420P_to_yuv_frag },
+            { BC_YUV420P, BC_RGB888,     YUV420P_to_rgb_frag },
+            { BC_YUV420P, BC_RGBA8888,   YUV420P_to_rgb_frag },
+            { BC_YUV420P, BC_RGB_FLOAT,  YUV420P_to_rgb_frag },
             { BC_YUV420P, BC_RGBA_FLOAT, YUV420P_to_rgb_frag },
+            { BC_YUV422P, BC_YUV888,     YUV422P_to_yuv_frag },
+            { BC_YUV422P, BC_YUVA8888,   YUV422P_to_yuv_frag },
+            { BC_YUV422P, BC_RGB888,     YUV422P_to_rgb_frag },
+            { BC_YUV422P, BC_RGBA8888,   YUV422P_to_rgb_frag },
+            { BC_YUV422P, BC_RGB_FLOAT,  YUV422P_to_rgb_frag },
+            { BC_YUV422P, BC_RGBA_FLOAT, YUV422P_to_rgb_frag },
 		};
 
 	    const char *shader_stack[] = { 0, 0, 0 };
@@ -1890,10 +1918,9 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 			}
 		}
 
-// printf("Playback3D::convert_cmodel_sync %d src_cmodel=%d dst_cmodel=%d\n", 
+// printf("Playback3D::convert_cmodel_sync %d rowspan=%ld\n", 
 // __LINE__, 
-// src_cmodel, 
-// dst_cmodel);
+// command->input->get_bytes_per_line());
 
 		if(shader_stack[1])
 		{
@@ -1914,6 +1941,14 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 	        float texture_w = command->input->get_texture_w();
 	        float pixel_h = 1.0 / command->input->get_texture_h();
 	        float pixel_w = 1.0 / command->input->get_texture_w();
+// printf("FileMOV::read_frame %d rowspan=%d w=%d h=%d colormodel=%d\n",
+// __LINE__,
+// rowspan,
+// w,
+// h,
+// colormodel);
+
+			glUniform1f(glGetUniformLocation(shader_id, "rowspan"), command->input->get_bytes_per_line());
 			glUniform1f(glGetUniformLocation(shader_id, "pixel_w"), pixel_w);
 			glUniform1f(glGetUniformLocation(shader_id, "pixel_h"), pixel_h);
 			glUniform1f(glGetUniformLocation(shader_id, "half_w"), pixel_w / 2);

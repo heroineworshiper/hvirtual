@@ -790,6 +790,17 @@ typedef struct
 	int in_x, in_y, in_w, in_h, out_w, out_h;
 	int color_model, row_span;
 
+
+// buffer containing the last frame, for ffmpeg decoding
+    int src_colormodel;
+    unsigned char *src_data;
+    unsigned char *src_y;
+    unsigned char *src_u;
+    unsigned char *src_v;
+    int src_rowspan;
+    int src_w;
+    int src_h;
+
 } quicktime_t;
 
 

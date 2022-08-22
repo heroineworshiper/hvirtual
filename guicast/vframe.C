@@ -201,7 +201,7 @@ int VFrame::equivalent(VFrame *src, int test_stacks)
 int VFrame::data_matches(VFrame *frame)
 {
 	if(data && frame->get_data() &&
-		frame->params_match(get_w(), get_h(), get_color_model()) &&
+		frame->params_match(get_w(), get_h(), get_bytes_per_line(), get_color_model()) &&
 		get_data_size() == frame->get_data_size())
 	{
 		int data_size = get_data_size();
@@ -232,11 +232,12 @@ int VFrame::get_memory_type()
 	return memory_type;
 }
 
-int VFrame::params_match(int w, int h, int color_model)
+int VFrame::params_match(int w, int h, int rowspan, int color_model)
 {
 	return (this->w == w &&
 		this->h == h &&
-		this->color_model == color_model);
+		this->color_model == color_model &&
+        (rowspan == -1 || this->bytes_per_line == rowspan));
 }
 
 
@@ -426,8 +427,8 @@ void VFrame::create_row_pointers()
 // 			    u = this->data + this->u_offset;
 // 			    v = this->data + this->v_offset;
 			    y = this->data;
-			    u = this->data + w * h;
-			    v = this->data + w * h + (w / 2) * (h / 2) + pad;
+			    u = this->data + bytes_per_line * h;
+			    v = this->data + bytes_per_line * h + (bytes_per_line / 2) * (h / 2) + pad;
             }
 			break;
         }
@@ -447,8 +448,8 @@ void VFrame::create_row_pointers()
 // 			    u = this->data + this->u_offset;
 // 			    v = this->data + this->v_offset;
 			    y = this->data;
-			    u = this->data + w * h;
-			    v = this->data + w * h + (w / 2) * h;
+			    u = this->data + bytes_per_line * h;
+			    v = this->data + bytes_per_line * h + (bytes_per_line / 2) * h;
             }
 			break;
 
@@ -1225,27 +1226,27 @@ int VFrame::copy_from(VFrame *frame)
 
 		case BC_YUV420P:
 //printf("%d %d %p %p %p %p %p %p\n", w, h, get_y(), get_u(), get_v(), frame->get_y(), frame->get_u(), frame->get_v());
-			memcpy(get_y(), frame->get_y(), w * h);
-			memcpy(get_u(), frame->get_u(), w * h / 4);
-			memcpy(get_v(), frame->get_v(), w * h / 4);
+			memcpy(get_y(), frame->get_y(), bytes_per_line * h);
+			memcpy(get_u(), frame->get_u(), bytes_per_line / 2 * h / 2);
+			memcpy(get_v(), frame->get_v(), bytes_per_line / 2 * h / 2);
 			break;
 
 		case BC_YUV422P:
 //printf("%d %d %p %p %p %p %p %p\n", w, h, get_y(), get_u(), get_v(), frame->get_y(), frame->get_u(), frame->get_v());
-			memcpy(get_y(), frame->get_y(), w * h);
-			memcpy(get_u(), frame->get_u(), w * h / 2);
-			memcpy(get_v(), frame->get_v(), w * h / 2);
+			memcpy(get_y(), frame->get_y(), bytes_per_line * h);
+			memcpy(get_u(), frame->get_u(), bytes_per_line / 2 * h);
+			memcpy(get_v(), frame->get_v(), bytes_per_line / 2 * h);
 			break;
 
         case BC_NV12:
-            memcpy(get_y(), frame->get_y(), w * h);
-            memcpy(get_u(), frame->get_u(), (w / 2) * (h / 2) * 2);
+            memcpy(get_y(), frame->get_y(), bytes_per_line * h);
+            memcpy(get_u(), frame->get_u(), (bytes_per_line / 2) * (h / 2) * 2);
             break;
 
         case BC_YUV420P10LE:
-            memcpy(get_y(), frame->get_y(), w * 2 * h);
-            memcpy(get_u(), frame->get_u(), (w / 2) * 2 * (h / 2));
-            memcpy(get_v(), frame->get_v(), (w / 2) * 2 * (h / 2));
+            memcpy(get_y(), frame->get_y(), bytes_per_line * h);
+            memcpy(get_u(), frame->get_u(), (bytes_per_line / 2) * (h / 2));
+            memcpy(get_v(), frame->get_v(), (bytes_per_line / 2) * (h / 2));
             break;
 
 		default:

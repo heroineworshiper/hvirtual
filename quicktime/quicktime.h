@@ -381,32 +381,48 @@ int quicktime_h264_is_key(unsigned char *data, long size, char *codec_id);
 
 
 
-/* These should be called right before a decode or encode function */
-/* Set the colormodel for the encoder and decoder interface */
+// /* These should be called right before a decode or encode function */
+// /* Set the colormodel for the encoder and decoder interface */
 void quicktime_set_cmodel(quicktime_t *file, int colormodel);
 
 /* Set row span in bytes for the encoder and decoder interface */
 void quicktime_set_row_span(quicktime_t *file, int row_span);
 
-/* Set the decoding window for the decoder interface.  If the dimensions are */
-/* all -1, no scaling is used.  The default is no scaling. */
-void quicktime_set_window(quicktime_t *file,
-	int in_x,                    /* Location of input frame to take picture */
-	int in_y,
-	int in_w,
-	int in_h,
-	int out_w,                   /* Dimensions of output frame */
-	int out_h);
+// /* Set the decoding window for the decoder interface.  If the dimensions are */
+// /* all -1, no scaling is used.  The default is no scaling. */
+// void quicktime_set_window(quicktime_t *file,
+// 	int in_x,                    /* Location of input frame to take picture */
+// 	int in_y,
+// 	int in_w,
+// 	int in_h,
+// 	int out_w,                   /* Dimensions of output frame */
+// 	int out_h);
+
+// Some codecs have a known output format & write to user allocated buffers.
+// Some don't & allocate their own buffers.
+// This is hard coded into FileMOV so it can use the GPU.
 
 /* Encode the frame into a frame buffer. */
 int quicktime_encode_video(quicktime_t *file, 
 	unsigned char **row_pointers, 
 	int track);
 
-/* Decode a frame */
+// Decode a frame
+// pass 0 for row_pointers when using qucktime_get_dest
 long quicktime_decode_video(quicktime_t *file, 
 	unsigned char **row_pointers, 
 	int track);
+
+// get the output buffer after the decode, when using ffmpeg
+void quicktime_get_dest(quicktime_t *file, 
+    int *colormodel,
+    unsigned char **data,
+    unsigned char **y,
+    unsigned char **u,
+    unsigned char **v,
+    int *rowspan,
+    int *w,
+    int *h);
 
 /* Get memory used by video decoders.  Only counts frame caches. */
 int64_t quicktime_memory_usage(quicktime_t *file);

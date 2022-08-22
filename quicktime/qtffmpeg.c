@@ -487,7 +487,6 @@ static int decode_wrapper(quicktime_t *file,
 	asm("emms");
 #endif
 
-
 // reset official position to what it was before the read_position
 	vtrack->current_position = position_temp;
 
@@ -638,12 +637,12 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // vtrack->current_position,
 // ffmpeg->last_frame[current_field]);
 
-// Try frame cache
-	result = quicktime_get_frame(vtrack->frame_cache,
-		vtrack->current_position,
-		&picture_y,
-		&picture_u,
-		&picture_v);
+// Try frame cache.  Handled by FileMOV
+// 	result = quicktime_get_frame(vtrack->frame_cache,
+// 		vtrack->current_position,
+// 		&picture_y,
+// 		&picture_u,
+// 		&picture_v);
 
 
 
@@ -723,8 +722,8 @@ ffmpeg->last_frame[current_field]);
 
 // If an interleaved codec, the opposite field would have been decoded in the previous
 // seek.
-			if(!quicktime_has_frame(vtrack->frame_cache, vtrack->current_position + 1))
-				quicktime_reset_cache(vtrack->frame_cache);
+//			if(!quicktime_has_frame(vtrack->frame_cache, vtrack->current_position + 1))
+//				quicktime_reset_cache(vtrack->frame_cache);
 
 
 
@@ -818,30 +817,30 @@ picture_y);
 
 
 // cache the frame
-				if(result == 0)
-				{
-
-
-// downsample the pixels
-                    downsample(ffmpeg, 
-                        file, 
-                        &picture_y, 
-                        &picture_u, 
-                        &picture_v, 
-                        &rowspan);
-
-					int y_size = rowspan * ffmpeg->height_i;
-					int u_size = y_size / get_chroma_factor(ffmpeg, current_field);
-					int v_size = y_size / get_chroma_factor(ffmpeg, current_field);
-					quicktime_put_frame(vtrack->frame_cache,
-						ffmpeg->last_frame[current_field],
-						picture_y,
-						picture_u,
-						picture_v,
-						y_size,
-						u_size,
-						v_size);
-				}
+// 				if(result == 0)
+// 				{
+// 
+// 
+// // downsample the pixels
+//                     downsample(ffmpeg, 
+//                         file, 
+//                         &picture_y, 
+//                         &picture_u, 
+//                         &picture_v, 
+//                         &rowspan);
+// 
+// 					int y_size = rowspan * ffmpeg->height_i;
+// 					int u_size = y_size / get_chroma_factor(ffmpeg, current_field);
+// 					int v_size = y_size / get_chroma_factor(ffmpeg, current_field);
+// 					quicktime_put_frame(vtrack->frame_cache,
+// 						ffmpeg->last_frame[current_field],
+// 						picture_y,
+// 						picture_u,
+// 						picture_v,
+// 						y_size,
+// 						u_size,
+// 						v_size);
+// 				}
 			}
 
 //printf("quicktime_ffmpeg_decode %d\n", __LINE__);
@@ -889,12 +888,12 @@ ffmpeg->last_frame[current_field]);
 				ffmpeg->read_position[current_field] < track_length);
 
 
-            downsample(ffmpeg, 
-                file, 
-                &picture_y, 
-                &picture_u, 
-                &picture_v, 
-                &rowspan);
+//             downsample(ffmpeg, 
+//                 file, 
+//                 &picture_y, 
+//                 &picture_u, 
+//                 &picture_v, 
+//                 &rowspan);
 		}
 		else
 // same frame requested
@@ -906,12 +905,12 @@ ffmpeg->last_frame[current_field]);
 			picture_u = ffmpeg->picture[current_field]->data[1];
 			picture_v = ffmpeg->picture[current_field]->data[2];
 
-            downsample(ffmpeg, 
-                file, 
-                &picture_y, 
-                &picture_u, 
-                &picture_v, 
-                &rowspan);
+//             downsample(ffmpeg, 
+//                 file, 
+//                 &picture_y, 
+//                 &picture_u, 
+//                 &picture_v, 
+//                 &rowspan);
 		}
 //printf("quicktime_ffmpeg_decode %d current_position=%ld\n", __LINE__, vtrack->current_position);
 
@@ -920,19 +919,19 @@ ffmpeg->last_frame[current_field]);
 
 //		ffmpeg->last_frame[current_field] = vtrack->current_position;
 	}
-	else
-	{
-// handle the case of colorspaces that were downsampled before caching    
-        if(ffmpeg->decoder_context[current_field]->pix_fmt == AV_PIX_FMT_YUV420P10LE)
-        {
-            rowspan = ffmpeg->width_i;
-        }
-        else
-        {
-    		rowspan = ffmpeg->picture[current_field]->linesize[0];
-        }
-    
-	}
+// 	else
+// 	{
+// // handle the case of colorspaces that were downsampled before caching    
+//         if(ffmpeg->decoder_context[current_field]->pix_fmt == AV_PIX_FMT_YUV420P10LE)
+//         {
+//             rowspan = ffmpeg->width_i;
+//         }
+//         else
+//         {
+//     		rowspan = ffmpeg->picture[current_field]->linesize[0];
+//         }
+//     
+// 	}
 
 // Hopefully this setting will be left over if the cache was used.
 	switch(ffmpeg->decoder_context[current_field]->pix_fmt)
@@ -956,7 +955,7 @@ ffmpeg->last_frame[current_field]);
 			input_cmodel = BC_YUV9P;
 			break;
         case AV_PIX_FMT_YUV420P10LE:
-            input_cmodel = BC_YUV420P;
+            input_cmodel = BC_YUV420P10LE;
             break;
         case AV_PIX_FMT_NV12:
 			input_cmodel = BC_NV12;
@@ -980,45 +979,64 @@ ffmpeg->last_frame[current_field]);
 
 	if(picture_y)
 	{
-		unsigned char **input_rows;
+//         if(row_pointers)
+//         {
+// 		    unsigned char **input_rows;
+// 
+// 		    input_rows = 
+// 			    malloc(sizeof(unsigned char*) * 
+// 			    ffmpeg->decoder_context[current_field]->height);
+// 
+// 
+// 		    for(i = 0; i < ffmpeg->decoder_context[current_field]->height; i++)
+// 			    input_rows[i] = picture_y + 
+// 				    i * 
+// 				    ffmpeg->decoder_context[current_field]->width * 
+// 				    cmodel_calculate_pixelsize(input_cmodel);
+// 
+// 
+// 		    cmodel_transfer(row_pointers, /* output */
+// 			    input_rows,
+// 			    row_pointers[0], /* output */
+// 			    row_pointers[1],
+// 			    row_pointers[2],
+// 			    picture_y, /* input */
+// 			    picture_u,
+// 			    picture_v,
+// 			    file->in_x,        /* Dimensions to capture from input frame */
+// 			    file->in_y, 
+// 			    file->in_w, 
+// 			    file->in_h,
+// 			    0,       /* Dimensions to project on output frame */
+// 			    0, 
+// 			    file->out_w, 
+// 			    file->out_h,
+// 			    input_cmodel, 
+// 			    file->color_model,
+// 			    0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
+// 			    rowspan,       /* For planar use the luma rowspan */
+// 			    ffmpeg->width);
+// 
+// 		    free(input_rows);
+//         }
 
-		input_rows = 
-			malloc(sizeof(unsigned char*) * 
-			ffmpeg->decoder_context[current_field]->height);
+// provide the last frame to the user
+        AVFrame *picture = ffmpeg->picture[current_field];
+        file->src_colormodel = input_cmodel;
+        file->src_data = picture_y;
+        file->src_y = picture_y;
+        file->src_u = picture_u;
+        file->src_v = picture_v;
+        file->src_rowspan = picture->linesize[0];
+        file->src_w = ffmpeg->decoder_context[current_field]->width;
+        file->src_h = ffmpeg->decoder_context[current_field]->height;
 
-
-		for(i = 0; i < ffmpeg->decoder_context[current_field]->height; i++)
-			input_rows[i] = picture_y + 
-				i * 
-				ffmpeg->decoder_context[current_field]->width * 
-				cmodel_calculate_pixelsize(input_cmodel);
-
-
-		cmodel_transfer(row_pointers, /* output */
-			input_rows,
-			row_pointers[0], /* output */
-			row_pointers[1],
-			row_pointers[2],
-			picture_y, /* input */
-			picture_u,
-			picture_v,
-			file->in_x,        /* Dimensions to capture from input frame */
-			file->in_y, 
-			file->in_w, 
-			file->in_h,
-			0,       /* Dimensions to project on output frame */
-			0, 
-			file->out_w, 
-			file->out_h,
-			input_cmodel, 
-			file->color_model,
-			0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
-			rowspan,       /* For planar use the luma rowspan */
-			ffmpeg->width);
-
-		free(input_rows);
+// printf("quicktime_ffmpeg_decode %d rowspan=%d %d %d\n", 
+// __LINE__,
+// picture->linesize[0],
+// picture->linesize[1],
+// picture->linesize[2]);
 	}
-
 
 	return result;
 }

@@ -259,6 +259,15 @@ long quicktime_decode_video(quicktime_t *file,
 		file->out_h = track_height;
 	}
 
+    file->src_colormodel = -1;
+    file->src_data = 0;
+    file->src_y = 0;
+    file->src_u = 0;
+    file->src_v = 0;
+    file->src_rowspan = 0;
+    file->src_w = 0;
+    file->src_h = 0;
+
 //printf("quicktime_decode_video %d\n", __LINE__);
 	result = ((quicktime_codec_t*)file->vtracks[track].codec)->decode_video(file, 
 		row_pointers, 

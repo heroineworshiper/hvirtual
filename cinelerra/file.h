@@ -253,7 +253,7 @@ public:
 	int bytes_per_sample(int bits); // Convert the bit descriptor into a byte count.
 
 // get a shm temporary to store read_frame output in
-    VFrame* get_read_temp(int colormodel, int w, int h);
+    VFrame* get_read_temp(int colormodel, int rowspan, int w, int h);
 // set pointers to where read_frame output is stored
     void set_read_pointer(int colormodel, 
         unsigned char *data, 

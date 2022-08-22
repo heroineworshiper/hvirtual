@@ -120,7 +120,7 @@ public:
 // if frame points to the same data as this return 1
 	int equals(VFrame *frame);
 // Test if frame already matches parameters
-	int params_match(int w, int h, int color_model);
+	int params_match(int w, int h, int rowspan, int color_model);
 // Test if data values in the frame match
 	int data_matches(VFrame *frame);
 

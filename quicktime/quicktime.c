@@ -659,32 +659,58 @@ void quicktime_set_row_span(quicktime_t *file, int row_span)
 {
 	file->row_span = row_span;
 }
+// 
+// void quicktime_set_window(quicktime_t *file,
+// 	int in_x,                    /* Location of input frame to take picture */
+// 	int in_y,
+// 	int in_w,
+// 	int in_h,
+// 	int out_w,                   /* Dimensions of output frame */
+// 	int out_h)
+// {
+// 	if(in_x >= 0 && in_y >= 0 && in_w > 0 && in_h > 0 && out_w > 0 && out_h > 0)
+// 	{
+// 		file->do_scaling = 1;
+// 		file->in_x = in_x;
+// 		file->in_y = in_y;
+// 		file->in_w = in_w;
+// 		file->in_h = in_h;
+// 		file->out_w = out_w;
+// 		file->out_h = out_h;
+// 	}
+// 	else
+// 	{
+// 		file->do_scaling = 0;
+// /* quicktime_decode_video now sets the window for every frame based on the */
+// /* track dimensions */
+// 	}
+// }
 
-void quicktime_set_window(quicktime_t *file,
-	int in_x,                    /* Location of input frame to take picture */
-	int in_y,
-	int in_w,
-	int in_h,
-	int out_w,                   /* Dimensions of output frame */
-	int out_h)
+
+
+
+void quicktime_get_dest(quicktime_t *file, 
+    int *colormodel,
+    unsigned char **data,
+    unsigned char **y,
+    unsigned char **u,
+    unsigned char **v,
+    int *rowspan,
+    int *w,
+    int *h)
 {
-	if(in_x >= 0 && in_y >= 0 && in_w > 0 && in_h > 0 && out_w > 0 && out_h > 0)
-	{
-		file->do_scaling = 1;
-		file->in_x = in_x;
-		file->in_y = in_y;
-		file->in_w = in_w;
-		file->in_h = in_h;
-		file->out_w = out_w;
-		file->out_h = out_h;
-	}
-	else
-	{
-		file->do_scaling = 0;
-/* quicktime_decode_video now sets the window for every frame based on the */
-/* track dimensions */
-	}
+    *colormodel = file->src_colormodel;
+    *data = file->src_data;
+    *y = file->src_y;
+    *u = file->src_u;
+    *v = file->src_v;
+    *rowspan = file->src_rowspan;
+    *w = file->src_w;
+    *h = file->src_h;
 }
+
+
+
 
 void quicktime_set_depth(quicktime_t *file, int depth, int track)
 {

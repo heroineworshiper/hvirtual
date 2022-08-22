@@ -500,6 +500,7 @@ int FileStdout::write_frames(VFrame ***frames, int len)
                 if(file->temp_frame &&
                     !file->temp_frame->params_match(asset->width, 
                     asset->height, 
+                    asset->width,
                     asset->command_cmodel))
                 {
                     delete file->temp_frame;

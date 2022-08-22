@@ -107,13 +107,6 @@ public:
 
 private:
 	void new_audio_temp(int64_t len);
-// read raw audio data
-	int read_raw(char *buffer, int64_t samples, int track);  
-// overlay raw frame from the current layer and position
-	int read_raw(VFrame *frame, 
-		float in_x1, float in_y1, float in_x2, float in_y2,
-		float out_x1, float out_y1, float out_x2, float out_y2, 
-		int use_float, int interpolate);
 	int reset_parameters_derived();
 	int quicktime_atracks;
 	int quicktime_vtracks;

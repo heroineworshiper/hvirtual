@@ -1,6 +1,6 @@
 include ../global_config
 CC = gcc
-CFLAGS += -I../libmpeg3 -I../quicktime
+CFLAGS += -I../libmpeg3 -I../quicktime -I../guicast
 
 
 ifeq ($(OBJDIR), i686)

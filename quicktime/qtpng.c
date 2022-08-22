@@ -109,7 +109,8 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 			codec->temp_frame = malloc(cmodel_calculate_datasize(width, 
 					height, 
 					-1, 
-					cmodel));
+					cmodel,
+                    1));
 		}
 		for(i = 0; i < height; i++)
 			temp_rows[i] = codec->temp_frame + 

@@ -214,6 +214,9 @@ void quicktime_set_mpeg4_header(quicktime_stsd_table_t *table,
 	unsigned char *data, 
 	int size);
 void quicktime_esds_dump(quicktime_esds_t *esds);
+int quicktime_set_udta_string(char **string, int *size, const char *new_string);
+int quicktime_read_udta_string(quicktime_t *file, char **string, int *size);
+int quicktime_write_udta_string(quicktime_t *file, char *string, int size);
 
 
 void quicktime_delete_avcc(quicktime_avcc_t *avcc);

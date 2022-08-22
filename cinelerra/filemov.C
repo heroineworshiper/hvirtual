@@ -1074,58 +1074,121 @@ int FileMOV::read_frame(VFrame *frame)
 // frame->get_h(),
 // frame->get_rows()[0]);
 
-	switch(frame->get_color_model())
+	if(frame->get_color_model() == BC_COMPRESSED)
 	{
-		case BC_COMPRESSED:
-			frame->allocate_compressed_data(quicktime_frame_size(fd, file->current_frame, file->current_layer));
-			frame->set_compressed_size(quicktime_frame_size(fd, file->current_frame, file->current_layer));
-			frame->set_keyframe((quicktime_get_keyframe_before(fd, 
-				file->current_frame, 
-				file->current_layer) == file->current_frame));
+		frame->allocate_compressed_data(quicktime_frame_size(fd, file->current_frame, file->current_layer));
+		frame->set_compressed_size(quicktime_frame_size(fd, file->current_frame, file->current_layer));
+		frame->set_keyframe((quicktime_get_keyframe_before(fd, 
+			file->current_frame, 
+			file->current_layer) == file->current_frame));
 // printf("FileMOV::read_frame %d %lld %d %p %d\n", 
 // __LINE__, 
 // file->current_frame, 
 // frame->get_keyframe(),
 // frame->get_data(),
 // frame->get_compressed_size());
-			result = quicktime_read_frame(fd, 
-				frame->get_data(), 
-				file->current_layer);
-			break;
-
-// Progressive
-		case BC_YUV420P:
-		case BC_YUV422P:
-		{
-			unsigned char *row_pointers[3];
-			row_pointers[0] = frame->get_y();
-			row_pointers[1] = frame->get_u();
-			row_pointers[2] = frame->get_v();
-
-			quicktime_set_cmodel(fd, frame->get_color_model());
-			quicktime_decode_video(fd, 
-				row_pointers,
-				file->current_layer);
-		}
-			break;
-
-// Packed
-		default:
-			quicktime_set_cmodel(fd, frame->get_color_model());
-
-
-			quicktime_set_window(fd,
-				0,                    /* Location of input frame to take picture */
-				0,
-				asset->width,
-				asset->height,
-				frame->get_w(),                   /* Dimensions of output frame */
-				frame->get_h());
-
+		result = quicktime_read_frame(fd, 
+			frame->get_data(), 
+			file->current_layer);
+    }
+    else
+    {
+// Select the frame buffer from the codec
+        const char *vcodec = asset->vcodec;
+        if(match4(asset->vcodec, QUICKTIME_H265) ||
+            match4(asset->vcodec, QUICKTIME_H264) ||
+            match4(asset->vcodec, QUICKTIME_HEV1) ||
+            match4(asset->vcodec, QUICKTIME_HV64) ||
+            match4(asset->vcodec, QUICKTIME_HV60) ||
+            match4(asset->vcodec, QUICKTIME_DIV3) ||
+            match4(asset->vcodec, QUICKTIME_DX50) ||
+            match4(asset->vcodec, QUICKTIME_DIV3_LOWER) ||
+            match4(asset->vcodec, QUICKTIME_MP42) ||
+            match4(asset->vcodec, QUICKTIME_DIVX) ||
+            match4(asset->vcodec, QUICKTIME_MPG4) ||
+            match4(asset->vcodec, QUICKTIME_DX50) ||
+            match4(asset->vcodec, QUICKTIME_MP4V) ||
+            match4(asset->vcodec, QUICKTIME_SVQ1) ||
+            match4(asset->vcodec, QUICKTIME_SVQ3) ||
+            match4(asset->vcodec, QUICKTIME_H263) ||
+            match4(asset->vcodec, QUICKTIME_XVID))
+        {
 			result = quicktime_decode_video(fd, 
-				frame->get_rows(),
+				0,
 				file->current_layer);
-			break;
+            if(!result)
+            {
+                int colormodel;
+                unsigned char *data;
+                unsigned char *y;
+                unsigned char *u;
+                unsigned char *v;
+                int rowspan;
+                int w;
+                int h;
+                quicktime_get_dest(fd, 
+                    &colormodel,
+                    &data,
+                    &y,
+                    &u,
+                    &v,
+                    &rowspan,
+                    &w,
+                    &h);
+                file->set_read_pointer(colormodel,
+                    data,
+                    y,
+                    u,
+                    v,
+                    rowspan,
+                    w,
+                    h);
+// printf("FileMOV::read_frame %d rowspan=%d w=%d h=%d colormodel=%d\n",
+// __LINE__,
+// rowspan,
+// w,
+// h,
+// colormodel);
+            }
+        }
+        else
+        {
+            switch(frame->get_color_model())
+            {
+		        case BC_YUV420P:
+		        case BC_YUV422P:
+		        {
+			        unsigned char *row_pointers[3];
+			        row_pointers[0] = frame->get_y();
+			        row_pointers[1] = frame->get_u();
+			        row_pointers[2] = frame->get_v();
+
+			        quicktime_set_cmodel(fd, frame->get_color_model());
+			        quicktime_decode_video(fd, 
+				        row_pointers,
+				        file->current_layer);
+		        }
+			        break;
+
+        // Packed
+		        default:
+			        quicktime_set_cmodel(fd, frame->get_color_model());
+
+
+    // 			    quicktime_set_window(fd,
+    // 				    0,                    /* Location of input frame to take picture */
+    // 				    0,
+    // 				    asset->width,
+    // 				    asset->height,
+    // 				    frame->get_w(),                   /* Dimensions of output frame */
+    // 				    frame->get_h());
+
+			        result = quicktime_decode_video(fd, 
+				        frame->get_rows(),
+				        file->current_layer);
+			        break;
+            }
+        }
 	}
 
 
@@ -1170,41 +1233,6 @@ int FileMOV::write_compressed_frame(VFrame *buffer)
 }
 
 
-
-int FileMOV::read_raw(VFrame *frame, 
-		float in_x1, float in_y1, float in_x2, float in_y2,
-		float out_x1, float out_y1, float out_x2, float out_y2, 
-		int use_float, int interpolate)
-{
-	int64_t i, color_channels, result = 0;
-	if(!fd) return 0;
-
-	quicktime_set_video_position(fd, file->current_frame, file->current_layer);
-// Develop importing strategy
-	switch(frame->get_color_model())
-	{
-		case BC_RGB888:
-			result = quicktime_decode_video(fd, frame->get_rows(), file->current_layer);
-			break;
-		case BC_RGBA8888:
-			break;
-		case BC_RGB161616:
-			break;
-		case BC_RGBA16161616:
-			break;
-		case BC_YUV888:
-			break;
-		case BC_YUVA8888:
-			break;
-		case BC_YUV161616:
-			break;
-		case BC_YUVA16161616:
-			break;
-		case BC_YUV420P:
-			break;
-	}
-	return result;
-}
 
 // Overlay samples
 int FileMOV::read_samples(double *buffer, int64_t len)
