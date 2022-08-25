@@ -37,6 +37,7 @@
 #include "pluginset.inc"
 #include "pluginserver.inc"
 #include "track.inc"
+#include "transition.inc"
 
 // Options not in EDL but not changed in preferences
 class MainSession
@@ -84,6 +85,8 @@ public:
 
 // Edit whose handle is being dragged
 	Edit *drag_edit;
+// Transition whose handle is being dragged
+    Transition *drag_transition;
 // Edits who are being dragged
 	ArrayList<Edit*> *drag_edits;
 // Button pressed during drag

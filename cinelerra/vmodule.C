@@ -1040,13 +1040,13 @@ int VModule::render(VFrame *output,
 		
 		(*transition_input)->copy_stacks(output);
 
-//printf("VModule::render %d\n", __LINE__);
+// transitions don't support opengl
 		result = import_frame((*transition_input), 
 			current_edit, 
 			start_position,
 			frame_rate,
 			direction,
-			use_opengl);
+			0 /* use_opengl */ );
 
 
 // Load transition buffer
@@ -1057,7 +1057,7 @@ int VModule::render(VFrame *output,
 			start_position,
 			frame_rate,
 			direction,
-			use_opengl);
+			0 /* use_opengl */);
 //printf("VModule::render %d\n", __LINE__);
 
 // printf("VModule::render %d %p %p %p %p\n", 

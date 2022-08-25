@@ -1346,6 +1346,9 @@ int File::set_audio_position(int64_t position)
 #ifdef USE_FILEFORK
 	if(!is_fork && file_fork)
 	{
+// store it locally for debugging
+// Resampling is now done in AModule
+		normalized_sample = current_sample = position;
 		file_fork->send_command(FileFork::SET_AUDIO_POSITION, 
 			(unsigned char*)&position, 
 			sizeof(position));
@@ -1435,6 +1438,8 @@ int File::set_video_position(int64_t position,
 	if(!is_fork && !is_thread)
 	{
 //printf("File::set_video_position %d %lld\n", __LINE__, position);
+// store it for debugging
+        current_frame = position;
 		file_fork->send_command(FileFork::SET_VIDEO_POSITION, (unsigned char*)&position, sizeof(position));
 		int result = file_fork->read_result();
 		return result;
@@ -1937,11 +1942,13 @@ int File::read_frame(VFrame *frame,
 		unsigned char frame_data[frame_data_size];
         char string[BCTEXTLEN];
 	    if(MWindow::preferences->dump_playback) 
-		    printf("%sFile::read_frame %d path='%s' colormodel=%s\n", 
+		    printf("%sFile::read_frame %d path='%s' current_frame=%ld colormodel=%s use_gl=%d\n", 
 			    MWindow::print_indent(),
                 __LINE__,
                 asset->path,
-                cmodel_to_text(string, frame->get_color_model()));
+                current_frame,
+                cmodel_to_text(string, frame->get_color_model()),
+                use_opengl);
 
         frame_data[0] = use_opengl;
 		frame->to_filefork(frame_data + sizeof(int));
@@ -2155,18 +2162,18 @@ int File::read_frame(VFrame *frame,
 
 //printf("File::read_frame %d use_cache=%d\n", __LINE__, use_cache);
 
-	    if(MWindow::preferences->dump_playback) 
-        {
-            char string[BCTEXTLEN];
-            MWindow::indent -= 2;
-            cmodel_to_text(string, frame->get_color_model());
-            printf("%sFile::read_frame %d position=%ld colormodel='%s' use_gl=%d\n", 
-                MWindow::print_indent(),
-                __LINE__, 
-                current_frame,
-                string,
-                use_opengl);
-        }
+// 	    if(MWindow::preferences->dump_playback) 
+//         {
+//             char string[BCTEXTLEN];
+//             MWindow::indent -= 2;
+//             cmodel_to_text(string, frame->get_color_model());
+//             printf("%sFile::read_frame %d position=%ld colormodel='%s' use_gl=%d\n", 
+//                 MWindow::print_indent(),
+//                 __LINE__, 
+//                 current_frame,
+//                 string,
+//                 use_opengl);
+//         }
 
 		if(advance_position) current_frame++;
 		if(debug) PRINT_TRACE

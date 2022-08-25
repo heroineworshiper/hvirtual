@@ -917,6 +917,29 @@ void MWindow::insert_effect(char *title,
 	}
 }
 
+int MWindow::modify_transitionhandles()
+{
+	undo->update_undo_before();
+	
+    edl->modify_transitionhandles(
+        session->drag_edit,
+        session->drag_transition,
+        session->drag_start, 
+		session->drag_position, 
+		session->drag_handle);
+    
+	undo->update_undo_after(_("drag handle"), LOAD_EDITS | LOAD_TIMEBAR);
+
+	save_backup();
+	restart_brender();
+	sync_parameters(CHANGE_EDL);
+	update_plugin_guis();
+	gui->update(1, 2, 1, 1, 1, 1, 0);
+	cwindow->update(1, 0, 0, 0, 1);
+	return 0;
+}
+
+
 int MWindow::modify_edithandles()
 {
 	undo->update_undo_before();

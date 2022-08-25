@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +37,7 @@
 #include "indexstate.h"
 #include "labels.h"
 #include "localsession.h"
+#include "mainsession.inc"
 #include "mutex.h"
 #include "nestededls.h"
 #include "panauto.h"
@@ -51,6 +51,7 @@
 #include "sharedlocation.h"
 #include "theme.h"
 #include "tracks.h"
+#include "transition.h"
 #include "transportque.inc"
 #include "vedit.h"
 #include "vtrack.h"
@@ -939,6 +940,41 @@ int EDL::clear(double start,
 	local_session->set_selectionstart(position);
 	return 0;
 }
+
+void EDL::modify_transitionhandles(
+    Edit *edit,
+    Transition *transition,
+    double oldposition, 
+	double newposition, 
+	int currentend)
+{
+    Track *track = edit->track;
+    int64_t new_position = track->to_units(newposition, 0);
+    
+    if(currentend == LEFT_HANDLE)
+    {
+        if(new_position >= edit->startproject + transition->length)
+// delete the transition
+            edit->detach_transition();
+        else
+// change the length
+        if(new_position < edit->startproject)
+        {
+            transition->length = transition->length + edit->startproject - new_position;
+        }
+        else
+            transition->length = edit->startproject + transition->length - new_position;
+    }
+    else
+    {
+        if(new_position <= edit->startproject)
+// delete the transition
+            edit->detach_transition();
+        else
+            transition->length = new_position - edit->startproject;
+    }
+}
+
 
 void EDL::modify_edithandles(double oldposition, 
 	double newposition, 

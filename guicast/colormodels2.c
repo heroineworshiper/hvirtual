@@ -21,6 +21,7 @@
 
 #include "colormodels2.h"
 #include "cmodel_priv.h"
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,6 +30,7 @@
 cmodel_yuv_t *cmodel_yuv_table = 0;
 cmodel_function_t *cmodel_functions = 0;
 int total_cmodel_functions = 0;
+static pthread_mutex_t cmodel_lock = PTHREAD_MUTEX_INITIALIZER;
 
 // Compression coefficients straight out of jpeglib
 #define R_TO_Y    0.29900
@@ -172,6 +174,7 @@ void register_cmodel_function(int in_colormodel,
 
 void cmodel_init()
 {
+    pthread_mutex_lock(&cmodel_lock);
 	if(cmodel_yuv_table == 0)
 	{
 		cmodel_yuv_table = calloc(1, sizeof(cmodel_yuv_t));
@@ -185,6 +188,7 @@ void cmodel_init()
         cmodel_init_planar();
         cmodel_init_float();
     }
+    pthread_mutex_unlock(&cmodel_lock);
 }
 
 

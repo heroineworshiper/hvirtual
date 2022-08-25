@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +33,7 @@
 #include "filexml.h"
 #include "filesystem.h"
 #include "localsession.h"
+#include "mainsession.inc"
 #include "nestededls.h"
 #include "plugin.h"
 #include "strategies.inc"
@@ -846,7 +846,7 @@ int Edits::modify_handles(double oldposition,
 	Edit *current_edit;
 
 //printf("Edits::modify_handles %d: %d %f %f\n", __LINE__, currentend, newposition, oldposition);
-	if(currentend == 0)
+	if(currentend == LEFT_HANDLE)
 	{
 // left handle
 		for(current_edit = first; current_edit && !result;)

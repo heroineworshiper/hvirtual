@@ -56,6 +56,7 @@ MainSession::MainSession(MWindow *mwindow)
 	drag_clips = new ArrayList<EDL*>;
 	drag_edits = new ArrayList<Edit*>;
 	drag_edit = 0;
+    drag_transition = 0;
 	clip_number = 1;
 	brender_end = 0;
 	cwindow_controls = 1;

@@ -124,7 +124,6 @@ OBJS = \
 	$(OBJDIR)/drivesync.o \
 	$(OBJDIR)/edit.o \
         $(OBJDIR)/editinfo.o \
-	$(OBJDIR)/edithandles.o \
 	$(OBJDIR)/editlength.o \
 	$(OBJDIR)/editpanel.o \
 	$(OBJDIR)/editpopup.o \
@@ -350,6 +349,7 @@ OBJS = \
 	$(OBJDIR)/zoompanel.o
 
 
+#	$(OBJDIR)/edithandles.o \
 #	$(OBJDIR)/dcoffset.o \
 #	$(OBJDIR)/transitionhandles.o \
 #	$(OBJDIR)/renderfarmfsclient.o \

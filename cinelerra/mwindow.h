@@ -478,6 +478,7 @@ public:
 
 	int modify_edithandles();
 	int modify_pluginhandles();
+    int modify_transitionhandles();
 	void finish_modify_handles();
 
 	

@@ -46,6 +46,7 @@
 #include "sharedlocation.inc"
 #include "theme.inc"
 #include "tracks.inc"
+#include "transition.inc"
 #include "vedit.inc"
 
 
@@ -162,6 +163,14 @@ public:
 		int edit_labels,
 		int edit_autos,
 		Edits *trim_edits);
+
+    void modify_transitionhandles(
+        Edit *edit,
+        Transition *transition,
+        double oldposition, 
+	    double newposition, 
+	    int currentend);
+
 
 	int trim_selection(double start, 
 		double end,

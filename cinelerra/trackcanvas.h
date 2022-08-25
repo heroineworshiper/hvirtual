@@ -27,7 +27,7 @@
 #include "autos.inc"
 #include "bctimer.inc"
 #include "edit.inc"
-#include "edithandles.inc"
+//#include "edithandles.inc"
 #include "edl.inc"
 #include "floatauto.inc"
 #include "floatautos.inc"
@@ -81,14 +81,15 @@ public:
         const char *title,
         int64_t &x, 
         int64_t &y, 
-        int64_t &w, 
-        int64_t &h);
-	void get_handle_coords(Edit *edit, 
-		int64_t &x, 
-		int64_t &y, 
-		int64_t &w, 
-		int64_t &h, 
-		int side);
+        int64_t &w, // Width from the number of frames.  Only set if transition is nonzero.
+        int64_t &h,
+        int64_t &text_w);  // width of the text
+// 	void get_handle_coords(Edit *edit, 
+// 		int64_t &x, 
+// 		int64_t &y, 
+// 		int64_t &w, 
+// 		int64_t &h, 
+// 		int side);
 	int get_drag_values(float *percentage, 
 		int64_t *position,
 		int do_clamp,
@@ -307,7 +308,8 @@ public:
 		int cursor_y, 
 		int button_press,
 		int &new_cursor,
-		int &update_cursor);
+		int &update_cursor,
+        int &rerender);
 	void draw_cropped_line(int x1, 
 		int y1, 
 		int x2, 
@@ -330,8 +332,6 @@ public:
 		PluginSet **over_pluginset,
 		Plugin **over_plugin);
 	int drag_stop(int *redraw);
-	void end_edithandle_selection();
-	void end_pluginhandle_selection();
 // Number of seconds spanned by the trackcanvas
 	double time_visible();
 	void update_drag_handle();
@@ -358,7 +358,7 @@ public:
 // Allows overlays to get redrawn without redrawing the resources
 	BC_Pixmap *background_pixmap;
 	BC_Pixmap *transition_pixmap;
-	EditHandles *edit_handles;
+//	EditHandles *edit_handles;
 //	TransitionHandles *transition_handles;
 	BC_Pixmap *keyframe_pixmap;
 	BC_Pixmap *camerakeyframe_pixmap;
