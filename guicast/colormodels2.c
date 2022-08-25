@@ -177,11 +177,14 @@ void cmodel_init()
 		cmodel_yuv_table = calloc(1, sizeof(cmodel_yuv_t));
 		cmodel_init_yuv(cmodel_yuv_table);
 	}
-    
+
+    if(!cmodel_functions)
+    {    
 // init function tables
-    cmodel_init_default();
-    cmodel_init_planar();
-    cmodel_init_float();
+        cmodel_init_default();
+        cmodel_init_planar();
+        cmodel_init_float();
+    }
 }
 
 

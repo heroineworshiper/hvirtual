@@ -24,6 +24,9 @@ extern "C"
 {
 #include "avcodec.h"
 #include "avformat.h"
+
+void quicktime_print_buffer(char *desc, uint8_t *input, int len);
+
 }
 
 #include "filesystem.h"
@@ -32,6 +35,7 @@ extern "C"
 #include "file.h"
 #include "fileffmpeg.h"
 #include "filefork.h"
+#include "framecache.h"
 #include "indexfile.h"
 //#include "mpegaudio.h"
 #include "mutex.h"
@@ -786,7 +790,10 @@ int FileFFMPEG::open_ffmpeg()
 						asset->audio_data = 1;
 						asset->sample_rate = decoder_context->sample_rate;
 
-//printf("FileFFMPEG::open_ffmpeg %d codec_id=%d\n", __LINE__, decoder_context->codec_id);
+printf("FileFFMPEG::open_ffmpeg %d audio codec_id=%d profile=%d\n", 
+__LINE__, 
+decoder_context->codec_id,
+decoder_context->profile);
 
 						int64_t audio_length = (int64_t)(((AVFormatContext*)new_stream->ffmpeg_file_context)->duration * 
 							asset->sample_rate / 
@@ -1929,6 +1936,55 @@ int FileFFMPEG::seek_5(void *ptr,
     return real_chunk;
 }
 
+static int ffmpeg_to_cmodel(int pix_fmt)
+{
+	switch(pix_fmt)
+	{
+		case AV_PIX_FMT_YUV420P10LE:
+			return BC_YUV420P10LE;
+			break;
+
+		case AV_PIX_FMT_YUV420P:
+			return BC_YUV420P;
+			break;
+#ifndef FFMPEG_2010
+		case AV_PIX_FMT_YUV422:
+			return BC_YUV422;
+			break;
+#endif
+
+		case AV_PIX_FMT_YUV422P:
+			return BC_YUV422P;
+			break;
+		case AV_PIX_FMT_YUV410P:
+			return BC_YUV9P;
+			break;
+
+        case AV_PIX_FMT_NV12:
+			return BC_NV12;
+//                 printf("FileFFMPEG::read_frame %d: AV_PIX_FMT_NV12 -> %d\n", 
+//                     __LINE__,
+//                     frame->get_color_model());
+            break;
+
+//             case AV_PIX_FMT_NV21:
+// 				return BC_NV21;
+//                 printf("FileFFMPEG::read_frame %d: AV_PIX_FMT_NV21\n", __LINE__);
+//                 break;
+
+		default:
+			fprintf(stderr, 
+				"FileFFMPEG::read_frame %d: unrecognized color model %d\n", 
+                __LINE__,
+				pix_fmt);
+//printf("AV_PIX_FMT_P010LE=%d\n", AV_PIX_FMT_P010LE);
+			return BC_YUV420P;
+			break;
+	}
+
+}
+
+
 int FileFFMPEG::read_frame(VFrame *frame)
 {
 	int error = 0;
@@ -2120,24 +2176,17 @@ int FileFFMPEG::read_frame(VFrame *frame)
 // 	}
 
 
-    int keyframes_sent = 0;
-    int packets_sent = 0;
 // match decoded frames with sent packets by DTS
 // DTS codes are discontiguous so we can't buffer the entire file
     ArrayList<int64_t> dts_history;
 // starting frame in the DTS history
     int dts_frame0 = stream->current_frame;
-// Don't want to decode to the end of the file but might have to 
-// drop this many keyframes to reach current_frame
-	while(/* keyframes_sent <= VIDEO_REWIND_KEYFRAMES && */
-        stream->current_frame < file->current_frame && 
+	while(stream->current_frame < file->current_frame && 
         !error)
 	{
 		got_frame = 0;
-//         printf("FileFFMPEG::read_frame %d keyframes_sent=%d packets_sent=%d current_frame=%ld want_frame=%ld\n", 
+//         printf("FileFFMPEG::read_frame %d current_frame=%ld want_frame=%ld\n", 
 //             __LINE__,
-//             keyframes_sent,
-//             packets_sent,
 //             (long)stream->current_frame,
 //             (long)file->current_frame);
 
@@ -2169,6 +2218,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
                     (long)avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb),
                     stream->current_frame,
                     file->current_frame);
+
 // give up & reopen the ffmpeg objects.
 // Still have frames buffered in the decoder, so reopen in the next seek.
 // For ffmpeg 5.1 this no longer works & it only recovers if it doesn't restart.
@@ -2197,13 +2247,11 @@ int FileFFMPEG::read_frame(VFrame *frame)
 			{
 				int got_picture = 0;
 
-//                 printf("FileFFMPEG::read_frame %d packet dts=%ld flags=0x%x\n", 
+//                 printf("FileFFMPEG::read_frame %d size=%d dts=%ld flags=0x%x\n", 
 //                     __LINE__,
+//                     packet->size,
 //                     packet->dts,
 //                     packet->flags);
-                if((packet->flags & AV_PKT_FLAG_KEY))
-                    keyframes_sent++;
-                packets_sent++;
                 dts_history.append(packet->dts);
 
 
@@ -2217,10 +2265,9 @@ int FileFFMPEG::read_frame(VFrame *frame)
                 if(result >= 0)
                 {
                     result = avcodec_receive_frame(decoder_context, input_frame);
-//                     printf("FileFFMPEG::read_frame %d result=%d picture=%p\n", 
+//                     printf("FileFFMPEG::read_frame %d result=%d\n", 
 //                         __LINE__,
-//                         result,
-//                         input_frame->data[0]);
+//                         result);
                     if(result >= 0)
                         got_picture = 1;
                 }
@@ -2241,19 +2288,21 @@ int FileFFMPEG::read_frame(VFrame *frame)
             if(error)
             {
 // at the end of the file, we still have frames buffered in the decoder
-// This should now be taken care of by "check for a decoded frame from previous packets"
-//                AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
                 int got_picture = 0;
 
 
 #if LIBAVCODEC_VERSION_MAJOR >= 58
-// send an empty packet
-                int result = avcodec_send_packet(decoder_context, packet);
+// send an empty packet to flush the decoder
+                int result = avcodec_send_packet(decoder_context, 0);
                 if(result >= 0)
                 {
                     result = avcodec_receive_frame(decoder_context, input_frame);
+//                     printf("FileFFMPEG::read_frame %d result=%d\n", 
+//                         __LINE__);
                     if(result >= 0)
+                    {
                         got_picture = 1;
+                    }
                 }
 #else
                 int result = avcodec_decode_video2(
@@ -2286,23 +2335,56 @@ int FileFFMPEG::read_frame(VFrame *frame)
                 {
                     if(input_frame->pkt_dts == dts_history.get(i))
                     {
-                        stream->current_frame = dts_frame0 + i;
+                        stream->current_frame = dts_frame0 + i + 1;
                         got_it = 1;
                         break;
                     }
                 }
             }
 
+// didn't find a DTS so increment 1
             if(!got_it)
             {
                 stream->current_frame++;
             }
-// printf("FileFFMPEG::read_frame %d got_it=%d i=%d current_frame=%ld dts=0x%ld\n", 
-// __LINE__, 
-// got_it, 
-// i,
-// stream->current_frame,
-// input_frame->pkt_dts);
+//             printf("FileFFMPEG::read_frame %d got_it=%d dts_frame0=%d i=%d current_frame=%ld dts=0x%ld\n", 
+//                 __LINE__, 
+//                 got_it, 
+//                 dts_frame0,
+//                 i,
+//                 stream->current_frame,
+//                 input_frame->pkt_dts);
+
+// store it in the cache if not returning it
+            if(stream->current_frame < file->current_frame)
+            {
+                if(file->use_cache)
+                {
+		            AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
+		            int input_cmodel = ffmpeg_to_cmodel(decoder_context->pix_fmt);
+                    VFrame *src = new VFrame;
+// store it in a wrapper
+                    src->reallocate(input_frame->data[0], 
+	                    -1, // shmid
+	                    input_frame->data[0],
+	                    input_frame->data[1],
+	                    input_frame->data[2],
+	                    decoder_context->width, 
+	                    decoder_context->height, 
+	                    input_cmodel, 
+	                    input_frame->linesize[0]);
+                    file->get_frame_cache()->put_frame(
+                        src,
+		                stream->current_frame,
+		                file->current_layer,
+		                asset->frame_rate,
+		                1, // use_copy
+		                0);
+                    delete src;
+//printf("FileFFMPEG::read_frame %d %p %ld\n", 
+//__LINE__, file->get_frame_cache(), file->get_frame_cache()->get_memory_usage());
+                }
+            }
         }
 	}
 
@@ -2315,57 +2397,13 @@ int FileFFMPEG::read_frame(VFrame *frame)
 // Convert colormodel
 	if(got_frame)
 	{
-		int input_cmodel;
 		AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
+		int input_cmodel = ffmpeg_to_cmodel(decoder_context->pix_fmt);
 
 //         printf("FileFFMPEG::read_frame %d pix_fmt=%d\n", 
 //             __LINE__, 
 //             decoder_context->pix_fmt);
 
-
-		switch(decoder_context->pix_fmt)
-		{
-			case AV_PIX_FMT_YUV420P10LE:
-				input_cmodel = BC_YUV420P10LE;
-				break;
-		
-			case AV_PIX_FMT_YUV420P:
-				input_cmodel = BC_YUV420P;
-				break;
-#ifndef FFMPEG_2010
-			case AV_PIX_FMT_YUV422:
-				input_cmodel = BC_YUV422;
-				break;
-#endif
-
-			case AV_PIX_FMT_YUV422P:
-				input_cmodel = BC_YUV422P;
-				break;
-			case AV_PIX_FMT_YUV410P:
-				input_cmodel = BC_YUV9P;
-				break;
-            
-            case AV_PIX_FMT_NV12:
-				input_cmodel = BC_NV12;
-//                 printf("FileFFMPEG::read_frame %d: AV_PIX_FMT_NV12 -> %d\n", 
-//                     __LINE__,
-//                     frame->get_color_model());
-                break;
-
-//             case AV_PIX_FMT_NV21:
-// 				input_cmodel = BC_NV21;
-//                 printf("FileFFMPEG::read_frame %d: AV_PIX_FMT_NV21\n", __LINE__);
-//                 break;
-
-			default:
-				fprintf(stderr, 
-					"FileFFMPEG::read_frame %d: unrecognized color model %d\n", 
-                    __LINE__,
-					decoder_context->pix_fmt);
-//printf("AV_PIX_FMT_P010LE=%d\n", AV_PIX_FMT_P010LE);
-				input_cmodel = BC_YUV420P;
-				break;
-		}
 
 
 // File class will convert from ffmpeg to the function argument
@@ -2377,45 +2415,6 @@ int FileFFMPEG::read_frame(VFrame *frame)
             input_frame->linesize[0],
             decoder_context->width,
             decoder_context->height);
-
-// 
-// 		unsigned char **input_rows = 
-// 			(unsigned char**)malloc(sizeof(unsigned char*) * 
-// 			decoder_context->height);
-// 
-// 
-// 		for(int i = 0; i < decoder_context->height; i++)
-// 		{
-// 			input_rows[i] = input_frame->data[0] + 
-// 				i * 
-// 				decoder_context->width * 
-// 				cmodel_calculate_pixelsize(input_cmodel);
-// 		}
-// 
-// // use the quicktime cmodel function to share the nvidia 
-// // conversions with qtffmpeg
-// 		cmodel_transfer(frame->get_rows(), /* Leave NULL if non existent */
-// 			input_rows,
-// 			frame->get_y(), /* Leave NULL if non existent */
-// 			frame->get_u(),
-// 			frame->get_v(),
-// 			input_frame->data[0], /* Leave NULL if non existent */
-// 			input_frame->data[1],
-// 			input_frame->data[2],
-// 			0,        /* Dimensions to capture from input frame */
-// 			0, 
-// 			decoder_context->width, 
-// 			decoder_context->height,
-// 			0,       /* Dimensions to project on output frame */
-// 			0, 
-// 			frame->get_w(), 
-// 			frame->get_h(),
-// 			input_cmodel, 
-// 			frame->get_color_model(),
-// 			0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
-// 			input_frame->linesize[0],       /* For planar use the luma rowspan */
-// 			frame->get_w());
-// 		free(input_rows);
  	}
 //PRINT_TRACE
 
@@ -2424,7 +2423,6 @@ int FileFFMPEG::read_frame(VFrame *frame)
 	if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
 	return error;
 }
-
 
 int FileFFMPEG::read_samples(double *buffer, int64_t len)
 {
@@ -2628,11 +2626,18 @@ stream->history_start + stream->history_size);
 			int got_frame = 0;
             AVFrame *ffmpeg_samples = av_frame_alloc();
 
-// 		    printf("FileFFMPEG::read_samples %d packet pts=%ld\n", 
-// 		        __LINE__, 
-// 		        packet->pts);
+
 
             int result = avcodec_send_packet(decoder_context, packet);
+
+// 		    printf("FileFFMPEG::read_samples %d result=%c%c%c%c\n", 
+// 		        __LINE__, 
+// 		        (-result) & 0xff,
+//                 ((-result) >> 8) & 0xff,
+//                 ((-result) >> 16) & 0xff,
+//                 ((-result) >> 24) & 0xff);
+//             quicktime_print_buffer("", packet->data, packet->size);
+
 //             dts_history.append(packet->dts);
 // // compute the number of samples in the packet
 //             int got_it = 0;

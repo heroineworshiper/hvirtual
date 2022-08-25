@@ -172,7 +172,6 @@ static int decode(quicktime_t *file,
 			track_map->channels * OUTPUT_ALLOCATION);
 		codec->input_allocated = OUTPUT_ALLOCATION;
 
-			
 		codec->decoder_initialized = 1;
 	}
 

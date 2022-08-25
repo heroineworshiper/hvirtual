@@ -617,23 +617,20 @@ quicktime_cache_t* quicktime_new_cache();
 void quicktime_cache_max(quicktime_cache_t *ptr, int bytes);
 void quicktime_delete_cache(quicktime_cache_t *ptr);
 void quicktime_reset_cache(quicktime_cache_t *ptr);
-void quicktime_put_frame(quicktime_cache_t *ptr,
-	int64_t frame_number,
-	unsigned char *y,
-	unsigned char *u,
-	unsigned char *v,
-	int y_size,
-	int u_size,
-	int v_size);
+void quicktime_put_cache(quicktime_cache_t *ptr);
 // Return 1 if the frame was found.
-int quicktime_get_frame(quicktime_cache_t *ptr,
+int quicktime_get_cache(quicktime_cache_t *ptr,
 	int64_t frame_number,
+    int track,
 	unsigned char **y,
 	unsigned char **u,
 	unsigned char **v);
-int quicktime_has_frame(quicktime_cache_t *ptr,
-	int64_t frame_number);
+int quicktime_has_cache(quicktime_cache_t *ptr,
+	int64_t frame_number,
+    int track);
 int64_t quicktime_cache_usage(quicktime_cache_t *ptr);
+// delete the oldest frame.  Return the amount freed.
+int64_t quicktime_purge_cache2(quicktime_cache_t *ptr);
 
 
 

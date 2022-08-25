@@ -42,7 +42,7 @@
 #include "qtprivate.h"
 
 
-
+// video decoding
 typedef struct
 {
 #define FIELDS 2
@@ -80,6 +80,18 @@ typedef struct
 	int ffmpeg_id;
 } quicktime_ffmpeg_t;
 
+
+// audio decoding
+// allocate with calloc
+typedef struct
+{
+    int decoder_initialized;
+    int codec_id;
+    const AVCodec *decoder;
+	AVCodecContext *decoder_context;
+	float *temp_buffer;
+} quicktime_ffaudio_t;
+
 extern int ffmpeg_initialized;
 extern pthread_mutex_t ffmpeg_lock;
 
@@ -95,9 +107,14 @@ void quicktime_delete_ffmpeg(quicktime_ffmpeg_t *ptr);
 int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 	quicktime_t *file, unsigned char **row_pointers, int track);
 
-int quicktime_decode_audio3(
-		AVCodecContext *avctx, int16_t *samples,
-		int *frame_size_ptr, AVPacket *avpkt);
+void quicktime_ffaudio_init(quicktime_ffaudio_t *ffaudio, int codec_id);
+void quicktime_ffaudio_delete(quicktime_ffaudio_t *ffaudio);
+int quicktime_ffaudio_decode(quicktime_t *file,
+    quicktime_audio_map_t *track_map,
+    quicktime_ffaudio_t *ffaudio,
+	float *output,
+	int64_t samples, 
+	int channel);
 int quicktime_ffmpeg_get_audio(AVFrame *frame, float *dst);
 
 

@@ -322,6 +322,8 @@ public:
 //	int64_t normalized_sample_rate;
 	Preferences *preferences;
 	int wr, rd;
+// Copy read frames to the cache
+	int use_cache;
 	int cache_size;
 // Precalculated value for FILEFORK
 	int64_t memory_usage;
@@ -342,8 +344,6 @@ private:
 	int is_fork;
 #endif
 
-// Copy read frames to the cache
-	int use_cache;
 
 // Ideally, a static instantiation of every file format
     static ArrayList<FileBase*> *file_table;

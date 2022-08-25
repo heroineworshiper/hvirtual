@@ -206,15 +206,19 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 	int result = 0;
 	JPEGUnit *jpeg_unit = (JPEGUnit*)unit;
 
+//PRINT_TRACE
 	if(!jpeg_unit->compressor)
 		jpeg_unit->compressor = mjpeg_new(asset->width, 
 			asset->height, 
 			1);
 
 	mjpeg_set_quality((mjpeg_t*)jpeg_unit->compressor, asset->jpeg_quality);
-//PRINT_TRACE
 
-//printf("FileJPEG::write_frame %d color_model=%d\n", __LINE__, frame->get_color_model());
+// printf("FileJPEG::write_frame %d color_model=%d %dx%d rows=%p\n", 
+// __LINE__, frame->get_color_model(),
+// asset->width, asset->height, frame->get_rows()[0]);
+//for(int i = 0; i < asset->width * asset->height * 3; i++)
+//((float*)frame->get_rows()[0])[i] = 1;
 	mjpeg_compress((mjpeg_t*)jpeg_unit->compressor, 
 		frame->get_rows(), 
 		frame->get_y(), 
@@ -284,7 +288,7 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 //PRINT_TRACE
 	}
 
-//PRINT_TRACE
+PRINT_TRACE
 	return result;
 }
 

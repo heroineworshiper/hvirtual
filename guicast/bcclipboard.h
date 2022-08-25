@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +33,7 @@
 #define PRIMARY_SELECTION 0
 // The secondary selection is filled by copying
 #define SECONDARY_SELECTION 1
-
+#define TOTAL_SELECTIONS 2
 
 // Storage for guicast only
 // The secondary selection has never been reliable either in Cinelerra
@@ -61,8 +60,9 @@ public:
 	Display *in_display, *out_display;
 	Atom completion_atom, primary, secondary, utf8_target, targets, string_target;
 	Window in_win, out_win;
-	char *data[2];
-	int length[2];
+	static char *g_data[TOTAL_SELECTIONS];
+	static int g_length[TOTAL_SELECTIONS];
+    static Mutex *g_lock;
 	char display_name[BCTEXTLEN];
 };
 

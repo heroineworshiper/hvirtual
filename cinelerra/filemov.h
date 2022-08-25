@@ -95,8 +95,9 @@ public:
 	int read_frame(VFrame *frame);
 	int read_samples(double *buffer, int64_t len);
 
-// Direct copy routines
 	int64_t get_memory_usage();
+//    int64_t purge_cache();
+
 	int colormodel_supported(int colormodel);
 	int can_copy_from(Asset *asset, int64_t position); // This file can copy frames directly from the asset
 	static const char *strtocompression(const char *string);
@@ -106,6 +107,7 @@ public:
 	static void fix_codecs(Asset *asset);
 
 private:
+    static void put_cache(void *ptr);
 	void new_audio_temp(int64_t len);
 	int reset_parameters_derived();
 	int quicktime_atracks;

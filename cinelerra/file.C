@@ -400,9 +400,13 @@ int File::purge_cache()
 	}
 #endif
 
-
+    int64_t result = file->purge_cache();
+    if(!result)
+    {
 //printf("File::purge_cache %d memory_usage=%d\n", __LINE__, get_memory_usage());
-	int result = frame_cache->delete_oldest();
+	    result = frame_cache->delete_oldest();
+    }
+
 // return the number of bytes freed
 	return result;
 }
@@ -2138,6 +2142,8 @@ int File::read_frame(VFrame *frame,
 		            asset->frame_rate,
 		            1, // use_copy
 		            0);
+//printf("File::read_frame %d caching %ld\n", 
+//__LINE__, current_frame);
             }
 		}
 
@@ -2149,7 +2155,6 @@ int File::read_frame(VFrame *frame,
 
 //printf("File::read_frame %d use_cache=%d\n", __LINE__, use_cache);
 
-//printf("File::read_frame %d\n", __LINE__);
 	    if(MWindow::preferences->dump_playback) 
         {
             char string[BCTEXTLEN];
@@ -2271,13 +2276,14 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
         else
         {
 // using hardware in the server but private memory in the codec.
+// The codec also doesn't use contiguous YUV buffers.
 // Copy to the shared temp frame for conversion in the server.
 //printf("File::convert_cmodel %d\n", __LINE__);
             VFrame *dst = get_read_temp(read_pointer->get_color_model(), 
                 read_pointer->get_bytes_per_line(),
                 read_pointer->get_w(), 
                 read_pointer->get_h());
-//printf("File::convert_cmodel %d\n", __LINE__);
+
             dst->copy_from(read_pointer);
         }
     }

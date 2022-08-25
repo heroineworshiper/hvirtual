@@ -379,4 +379,10 @@ int64_t FileBase::get_memory_usage()
 	return 0;
 }
 
+int64_t FileBase::purge_cache()
+{
+    return 0;
+}
+
+
 

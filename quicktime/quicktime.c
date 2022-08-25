@@ -355,6 +355,7 @@ int quicktime_init(quicktime_t *file)
 	quicktime_moov_init(&(file->moov));
 	file->cpus = 1;
 	file->color_model = BC_RGB888;
+	file->frame_cache = quicktime_new_cache();
 	return 0;
 }
 
@@ -400,6 +401,7 @@ int quicktime_delete(quicktime_t *file)
 	quicktime_moov_delete(&(file->moov));
 	quicktime_mdat_delete(&(file->mdat));
 	quicktime_delete_asf(file->asf);
+	quicktime_delete_cache(file->frame_cache);
 	return 0;
 }
 
@@ -689,7 +691,8 @@ void quicktime_set_row_span(quicktime_t *file, int row_span)
 
 
 
-void quicktime_get_dest(quicktime_t *file, 
+void quicktime_get_output(quicktime_t *file, 
+    int64_t *frame_number,
     int *colormodel,
     unsigned char **data,
     unsigned char **y,
@@ -699,6 +702,7 @@ void quicktime_get_dest(quicktime_t *file,
     int *w,
     int *h)
 {
+    *frame_number = file->frame_number;
     *colormodel = file->src_colormodel;
     *data = file->src_data;
     *y = file->src_y;
@@ -1052,7 +1056,6 @@ int quicktime_init_video_map(quicktime_video_map_t *vtrack, quicktime_trak_t *tr
 	vtrack->current_position = 0;
 	vtrack->current_chunk = 1;
 	quicktime_init_vcodec(vtrack);
-	vtrack->frame_cache = quicktime_new_cache();
 	return 0;
 }
 
@@ -1060,21 +1063,12 @@ int quicktime_delete_video_map(quicktime_video_map_t *vtrack)
 {
 	int i;
 	quicktime_delete_vcodec(vtrack);
-	if(vtrack->frame_cache) quicktime_delete_cache(vtrack->frame_cache);
-	vtrack->frame_cache = 0;
 	return 0;
 }
 
 int64_t quicktime_memory_usage(quicktime_t *file)
 {
-	int i;
-	int64_t result = 0;
-//printf("quicktime_memory_usage %d\n", file->total_vtracks);
-	for(i = 0; i < file->total_vtracks; i++)
-	{
-		result += quicktime_cache_usage(file->vtracks[i].frame_cache);
-	}
-	return result;
+	return quicktime_cache_usage(file->frame_cache);
 }
 
 void quicktime_set_cache_max(quicktime_t *file, int bytes)
@@ -1084,12 +1078,21 @@ void quicktime_set_cache_max(quicktime_t *file, int bytes)
 
 
 //printf("quicktime_set_cache_max %d %d %d\n", __LINE__, bytes, file->total_vtracks);
-	for(i = 0; i < file->total_vtracks; i++)
-	{
-		quicktime_cache_max(file->vtracks[i].frame_cache, bytes);
-	}
+	quicktime_cache_max(file->frame_cache, bytes);
 }
 
+int64_t quicktime_purge_cache(quicktime_t *file)
+{
+    return quicktime_purge_cache2(file->frame_cache);
+}
+
+void quicktime_cache_function(quicktime_t *file, 
+    void (*put_cache)(void *ptr),
+    void *ptr)
+{
+    file->frame_cache->put_cache = put_cache;
+    file->frame_cache->put_cache_ptr = ptr;
+}
 
 
 

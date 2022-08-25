@@ -478,6 +478,7 @@ void PackageRenderer::do_video()
 						video_output_ptr, 
 						video_position,
 						use_opengl);
+
 // need to move it into RAM to write it or display it
                     if(use_opengl && 
                         video_output_ptr->get_opengl_state() != VFrame::RAM)

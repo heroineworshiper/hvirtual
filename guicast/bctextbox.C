@@ -164,7 +164,7 @@ int BC_TextBox::reset_parameters(int rows, int has_border, int font)
 	separators = 0;
 	yscroll = 0;
 	menu = 0;
-    undo_enabled = 0;
+    undo_enabled = 1;
 	return 0;
 }
 
@@ -2447,8 +2447,8 @@ void BC_TextBox::copy_selection(int clipboard_num)
 
 void BC_TextBox::paste_selection(int clipboard_num)
 {
-//printf("BC_TextBox::paste_selection %d\n", __LINE__);
 	int len = get_clipboard()->clipboard_len(clipboard_num);
+//printf("BC_TextBox::paste_selection %d len=%d\n", __LINE__, len);
 	if(len)
 	{
 		char *string = new char[len + 1];

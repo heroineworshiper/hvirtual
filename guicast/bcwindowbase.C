@@ -74,6 +74,7 @@ BC_ResizeCall::BC_ResizeCall(int w, int h)
 
 BC_Resources BC_WindowBase::resources;
 //BC_CModels BC_WindowBase::cmodels;
+BC_Clipboard* BC_WindowBase::clipboard = 0;
 
 Window XGroupLeader = 0;
 
@@ -194,8 +195,8 @@ BC_WindowBase::~BC_WindowBase()
 		}
 
 // clipboard uses a different display connection
-		clipboard->stop_clipboard();
-		delete clipboard;
+//		clipboard->stop_clipboard();
+//		delete clipboard;
 #endif // !SINGLE_THREAD
 	}
 	else
@@ -521,8 +522,11 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 		get_atoms();
 
 #ifndef SINGLE_THREAD		
-		clipboard = new BC_Clipboard(display_name);
-		clipboard->start_clipboard();
+        if(!clipboard)
+        {
+    		clipboard = new BC_Clipboard(display_name);
+	    	clipboard->start_clipboard();
+        }
 #endif
 
 

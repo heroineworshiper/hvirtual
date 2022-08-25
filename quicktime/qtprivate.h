@@ -57,7 +57,7 @@ typedef struct
 // Position in output buffer of buffer_end
 	int buffer_ptr;
 // Output buffer, linear for each channel.
-	double **output_buffer;
+	float **output_buffer;
 // Copy of channel count for deletion
 	int channels;
 // Input buffer for temporary compressed data
@@ -653,6 +653,7 @@ typedef struct
 	int u_size;
 	int v_size;
 	int64_t frame_number;
+    int track;
 } quicktime_cacheframe_t;
 
 typedef struct
@@ -661,6 +662,11 @@ typedef struct
 	int total;
 	int allocation;
 	int max;
+    
+// function to use for caching frames instead of the frame_cache
+    void (*put_cache)(void *ptr);
+    void *put_cache_ptr;
+
 } quicktime_cache_t;
 
 /* table of pointers to every track */
@@ -680,8 +686,6 @@ typedef struct
 	quicktime_trak_t *track;
 	int64_t current_position;   /* current frame in output file */
 	int64_t current_chunk;      /* current chunk in output file */
-// Cache for the current GOP after a seek.
-	quicktime_cache_t *frame_cache;
 
 	void *codec;
 } quicktime_video_map_t;
@@ -779,6 +783,9 @@ typedef struct
 	int total_vtracks;
 	quicktime_video_map_t *vtracks;
 
+// Cache for the current GOP after a seek.
+	quicktime_cache_t *frame_cache;
+
 /* Number of processors at our disposal */
 	int cpus;
 
@@ -791,7 +798,7 @@ typedef struct
 	int color_model, row_span;
 
 
-// buffer containing the last frame, for ffmpeg decoding
+// pointers to the last frame, for ffmpeg decoding & caching
     int src_colormodel;
     unsigned char *src_data;
     unsigned char *src_y;
@@ -800,6 +807,8 @@ typedef struct
     int src_rowspan;
     int src_w;
     int src_h;
+    int64_t frame_number;
+    int64_t frame_layer;
 
 } quicktime_t;
 

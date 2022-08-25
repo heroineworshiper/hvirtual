@@ -163,6 +163,6 @@ int quicktime_sample_size(quicktime_trak_t *trak, int sample)
 	if(stsz->sample_size) return stsz->sample_size;
 	if(sample < stsz->total_entries && sample >= 0)
 		return stsz->table[sample].size;
-	return 0;
+	return -1;
 	
 }

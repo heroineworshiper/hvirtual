@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +59,7 @@ CacheBase::CacheBase()
 {
 	lock = new Mutex("CacheBase::lock");
 	current_item = 0;
+    max_size = -1;
 }
 
 CacheBase::~CacheBase()
@@ -179,6 +179,11 @@ int64_t CacheBase::get_memory_usage()
 	return result;
 }
 
+void CacheBase::set_max_size(int64_t size)
+{
+    this->max_size = size;
+}
+
 void CacheBase::put_item(CacheItemBase *item)
 {
 // Get first position >= item
@@ -200,6 +205,17 @@ void CacheBase::put_item(CacheItemBase *item)
 	}
 	else
 		insert_before(current_item, item);
+
+
+    if(max_size > 0)
+    {
+        lock->unlock();
+        while(get_memory_usage() > max_size)
+        {
+            delete_oldest();
+        }
+        lock->lock("CacheBase::put_item");
+    }
 }
 
 // Get first item from list with matching position or 0 if none found.

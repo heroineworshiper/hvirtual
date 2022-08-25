@@ -26,9 +26,9 @@ void quicktime_init_vbr(quicktime_vbr_t *ptr, int channels)
 	ptr->channels = channels;
 	if(!ptr->output_buffer)
 	{
-		ptr->output_buffer = calloc(channels, sizeof(double*));
+		ptr->output_buffer = calloc(channels, sizeof(float*));
 		for(i = 0; i < channels; i++)
-			ptr->output_buffer[i] = calloc(MAX_VBR_BUFFER, sizeof(double));
+			ptr->output_buffer[i] = calloc(MAX_VBR_BUFFER, sizeof(float));
 	}
 }
 
@@ -114,6 +114,8 @@ int quicktime_read_vbr(quicktime_t *file,
 		vbr->sample);
 
 	int size = quicktime_sample_size(trak, vbr->sample);
+    if(size < 0) return -1;
+    
 	int new_allocation = vbr->input_size + size;
 	int result = 0;
 
@@ -123,7 +125,7 @@ int quicktime_read_vbr(quicktime_t *file,
 		vbr->input_allocation = new_allocation;
 	}
 
-//printf("quicktime_read_vbr %d offset=%d\n", __LINE__, offset);
+//printf("quicktime_read_vbr %d sample offset=%ld sample size=%d\n", __LINE__, offset, size);
 	quicktime_set_position(file, offset);
 	result = !quicktime_read_data(file, vbr->input_buffer + vbr->input_size, size);
 	vbr->input_size += size;

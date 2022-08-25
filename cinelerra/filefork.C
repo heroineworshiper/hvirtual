@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "filesystem.h"
 #include "filethread.h"
 #include "filexml.h"
+#include "framecache.h"
 #include "mutex.h"
 #include "mwindow.h"
 #include "samples.h"
@@ -97,6 +98,7 @@ int FileFork::handle_command()
 			file->interpolate_raw = *(int*)(command_data + offset);
 			offset += sizeof(int);
 
+            file->get_frame_cache()->set_max_size(file->cache_size);
 // Read asset from socket
 			BC_Hash table;
 			table.load_string((char*)command_data + offset);
@@ -371,10 +373,6 @@ int FileFork::handle_command()
 						sizeof(int) + 
 						entry_size * len * i +
 						entry_size * j);
-// printf("FileFork::handle_command %d color_model=%d\n", 
-// __LINE__, 
-// frames[i][j]->get_color_model(),
-// frames[i][j]->get_compressed_size());
 
 //PRINT_TRACE
 				}
@@ -418,7 +416,6 @@ int FileFork::handle_command()
 						sizeof(int64_t) +
 						VFrame::filefork_size() * (len * i + j));
 //printf("FileFork::handle_command %d %p %lld\n", __LINE__, video_buffer[i][j]->get_shmid(), video_buffer[i][j]->get_number());
-
 				}
 			}
 		

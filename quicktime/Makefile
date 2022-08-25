@@ -154,7 +154,6 @@ OBJS += \
 	$(OBJDIR)/mdia.o \
 	$(OBJDIR)/minf.o \
 	$(OBJDIR)/moov.o \
-	$(OBJDIR)/mp4a.o \
 	$(OBJDIR)/mvhd.o \
 	$(OBJDIR)/plugin.o \
 	$(OBJDIR)/qtasf.o \
@@ -201,6 +200,7 @@ OBJS += \
 
 
 FFMPEG_OBJS := \
+	$(OBJDIR)/mp4a.o \
 	$(OBJDIR)/mpeg4.o \
 	$(OBJDIR)/qdm2.o \
 	$(OBJDIR)/qtffmpeg.o \

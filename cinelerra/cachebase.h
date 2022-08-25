@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,10 +90,12 @@ public:
 
 // Calculate current size of cache in bytes
 	int64_t get_memory_usage();
+    void set_max_size(int64_t size);
 
 	Mutex *lock;
 // Current position of search
 	CacheItemBase *current_item;
+    int64_t max_size;
 };
 
 

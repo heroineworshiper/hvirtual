@@ -21,6 +21,7 @@
 #include "colormodels2.h"
 #include "cmodel_priv.h"
 #include <stdint.h>
+#include <stdio.h>
 
 
 
@@ -297,9 +298,14 @@ static inline void RGB_FLOAT_to_YUV420P_YUV422P(unsigned char *output_y,
 
 	RGB_TO_YUV16(y, u, v, r, g, b);
 
-	output_y[output_column] = y >> 8;
-	output_u[output_column / 2] = u >> 8;
-	output_v[output_column / 2] = v >> 8;
+// printf("RGB_FLOAT_to_YUV420P_YUV422P %d output_y=%p output_u=%p output_v=%p\n", 
+// output_column,
+// output_y,
+// output_u,
+// output_v);
+ 	output_y[output_column] = y >> 8;
+ 	output_u[output_column / 2] = u >> 8;
+ 	output_v[output_column / 2] = v >> 8;
 }
 
 static inline void RGB_FLOAT_to_YUV422(unsigned char *(*output),

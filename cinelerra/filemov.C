@@ -27,6 +27,7 @@
 #include "edit.h"
 #include "file.h"
 #include "filemov.h"
+#include "framecache.h"
 #include "guicast.h"
 #include "language.h"
 #include "mutex.h"
@@ -242,6 +243,50 @@ int FileMOV::reset_parameters_derived()
 }
 
 
+void FileMOV::put_cache(void *ptr)
+{
+    FileMOV *file = (FileMOV*)ptr;
+    int colormodel;
+    unsigned char *data;
+    unsigned char *y;
+    unsigned char *u;
+    unsigned char *v;
+    int rowspan;
+    int w;
+    int h;
+    int64_t frame_number;
+    quicktime_get_output(file->fd, 
+        &frame_number,
+        &colormodel,
+        &data,
+        &y,
+        &u,
+        &v,
+        &rowspan,
+        &w,
+        &h);
+//    printf("FileMOV::put_cache %d caching %ld\n", __LINE__, frame_number);
+
+    VFrame *wrapper = new VFrame;
+    wrapper->reallocate(data, 
+	    -1, // shmid
+	    y,
+	    u,
+	    v,
+	    w, 
+	    h, 
+	    colormodel, 
+	    rowspan);
+    file->file->get_frame_cache()->put_frame(
+        wrapper,
+		frame_number,
+		file->file->current_layer,
+		file->asset->frame_rate,
+		1, // use_copy
+		0);
+    delete wrapper;
+}
+
 // Just create the Quicktime objects since this routine is also called
 // for reopening.
 int FileMOV::open_file(int rd, int wr)
@@ -257,8 +302,9 @@ int FileMOV::open_file(int rd, int wr)
 
 	quicktime_set_cpus(fd, file->cpus);
     quicktime_set_hw(fd, MWindow::preferences->use_hardware_decoding);
-	quicktime_set_cache_max(fd, file->cache_size);
+//	quicktime_set_cache_max(fd, file->cache_size);
 //printf("FileMOV::open_file %d %s\n", __LINE__, asset->path);
+    quicktime_cache_function(fd, put_cache, this);
 
 	if(rd) format_to_asset();
 
@@ -476,6 +522,17 @@ int64_t FileMOV::get_memory_usage()
 	}
 	return 0;
 }
+
+// int64_t FileMOV::purge_cache()
+// {
+// 	if(file->rd && fd)
+// 	{
+// 		int64_t result = quicktime_purge_cache(fd);
+// //printf("FileMOV::get_memory_usage 1 %d\n", result);
+// 		return result;
+// 	}
+// 	return 0;
+// }
 
 int FileMOV::colormodel_supported(int colormodel)
 {
@@ -1113,6 +1170,7 @@ int FileMOV::read_frame(VFrame *frame)
             match4(asset->vcodec, QUICKTIME_H263) ||
             match4(asset->vcodec, QUICKTIME_XVID))
         {
+// the ffmpeg decoder doesn't do colorspace conversion
 			result = quicktime_decode_video(fd, 
 				0,
 				file->current_layer);
@@ -1126,7 +1184,9 @@ int FileMOV::read_frame(VFrame *frame)
                 int rowspan;
                 int w;
                 int h;
-                quicktime_get_dest(fd, 
+                int64_t frame_number;
+                quicktime_get_output(fd, 
+                    &frame_number,
                     &colormodel,
                     &data,
                     &y,
@@ -1143,16 +1203,17 @@ int FileMOV::read_frame(VFrame *frame)
                     rowspan,
                     w,
                     h);
-// printf("FileMOV::read_frame %d rowspan=%d w=%d h=%d colormodel=%d\n",
-// __LINE__,
-// rowspan,
-// w,
-// h,
-// colormodel);
+printf("FileMOV::read_frame %d rowspan=%d w=%d h=%d colormodel=%d\n",
+__LINE__,
+rowspan,
+w,
+h,
+colormodel);
             }
         }
         else
         {
+// non ffmpeg decoders do colorspace conversion
             switch(frame->get_color_model())
             {
 		        case BC_YUV420P:

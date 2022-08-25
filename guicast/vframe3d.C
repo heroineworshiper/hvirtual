@@ -245,6 +245,13 @@ void VFrame::to_texture()
 // rows required to transfer planer data to contiguous texture memory
             int rows = bytes / texture->get_texture_w() / 4;
             if(rows * w * 4 < bytes) rows++;
+            if(rows > texture->get_texture_h())
+            {
+                printf("VFrame::to_texture %d: data too big to fit in texture rows=%d texture_h=%d.\n", 
+                    __LINE__,
+                    rows,
+                    texture->get_texture_h());
+            }
 			glTexSubImage2D(GL_TEXTURE_2D,
 				0,
 				0,
@@ -259,7 +266,8 @@ void VFrame::to_texture()
 
 		default:
 			fprintf(stderr, 
-				"VFrame::to_texture: unsupported color model %d.\n", 
+				"VFrame::to_texture %d: unsupported color model %d.\n", 
+                __LINE__,
 				color_model);
 			break;
 	}
@@ -268,33 +276,33 @@ void VFrame::to_texture()
 #endif
 }
 
-void VFrame::to_ram()
-{
-#ifdef HAVE_GL
-printf("VFrame::to_ram %d %d %d\n", __LINE__, get_w(), get_h());
-	switch(opengl_state)
-	{
-// Only pbuffer is supported since this is only called after the 
-// overlay operation onto the pbuffer.
-		case VFrame::SCREEN:
-			if(pbuffer)
-			{
-// TODO: support for odd dimensions
-				enable_opengl();
-				glReadPixels(0, 
-					0, 
-					get_w(), 
-					get_h(), 
-					GL_RGB,
-					GL_UNSIGNED_BYTE,
-					get_rows()[0]);
-				flip_vert();
-			}
-			opengl_state = VFrame::RAM;
-			return;
-	}
-#endif
-}
+// void VFrame::to_ram()
+// {
+// #ifdef HAVE_GL
+// printf("VFrame::to_ram %d %d %d\n", __LINE__, get_w(), get_h());
+// 	switch(opengl_state)
+// 	{
+// // Only pbuffer is supported since this is only called after the 
+// // overlay operation onto the pbuffer.
+// 		case VFrame::SCREEN:
+// 			if(pbuffer)
+// 			{
+// // TODO: support for odd dimensions
+// 				enable_opengl();
+// 				glReadPixels(0, 
+// 					0, 
+// 					get_w(), 
+// 					get_h(), 
+// 					GL_RGB,
+// 					GL_UNSIGNED_BYTE,
+// 					get_rows()[0]);
+// 				flip_vert();
+// 			}
+// 			opengl_state = VFrame::RAM;
+// 			return;
+// 	}
+// #endif
+// }
 
 void VFrame::create_pbuffer()
 {

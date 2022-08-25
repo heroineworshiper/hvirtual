@@ -86,6 +86,8 @@ public:
 // Subclass should call this to add the base class allocation.
 // Only used in read mode.
 	virtual int64_t get_memory_usage();
+// delete the oldest frame & return the bytes freed
+    virtual int64_t purge_cache();
 
 	virtual int write_samples(double **buffer, 
 		int64_t len) { return 0; };

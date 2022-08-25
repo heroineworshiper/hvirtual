@@ -70,8 +70,8 @@ int quicktime_decode_jpeg(quicktime_t *file, unsigned char **row_pointers, int t
 
 	if(file->vtracks[track].frames_cached)
 	{
-		chunk = file->vtracks[track].frame_cache[file->vtracks[track].current_position];
-		chunk_size = quicktime_frame_size(file, file->vtracks[track].current_position, track);
+ 		chunk = file->vtracks[track].frame_cache[file->vtracks[track].current_position];
+ 		chunk_size = quicktime_frame_size(file, file->vtracks[track].current_position, track);
 	}
 	else
 	{

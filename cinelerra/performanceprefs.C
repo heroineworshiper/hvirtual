@@ -495,7 +495,7 @@ PrefsGLRendering::PrefsGLRendering(PreferencesWindow *pwindow,
  : BC_CheckBox(x, 
  	y, 
 	pwindow->thread->preferences->use_gl_rendering,
-	_("Use hardware for rendering"))
+	_("Use OpenGL for rendering"))
 {
 	this->pwindow = pwindow;
     this->subwindow = subwindow;

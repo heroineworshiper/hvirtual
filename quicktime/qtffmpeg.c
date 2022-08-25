@@ -472,6 +472,61 @@ static int decode_wrapper(quicktime_t *file,
 	if(result >= 0 && ffmpeg->picture[current_field]->data[0])
 	{
 		result = 0;
+// got a frame
+// set the pointers for the user to read it
+        AVFrame *picture = ffmpeg->picture[current_field];
+	    switch(ffmpeg->decoder_context[current_field]->pix_fmt)
+	    {
+		    case AV_PIX_FMT_YUV420P:
+			    file->src_colormodel = BC_YUV420P;
+			    break;
+    // It's not much of a decoder library
+		    case AV_PIX_FMT_YUVJ420P:
+			    file->src_colormodel = BC_YUV420P;
+			    break;
+
+    // 		case AV_PIX_FMT_YUV422:
+    // 			file->src_colormodel = BC_YUV422;
+    // 			break;
+
+		    case AV_PIX_FMT_YUV422P:
+			    file->src_colormodel = BC_YUV422P;
+			    break;
+		    case AV_PIX_FMT_YUV410P:
+			    file->src_colormodel = BC_YUV9P;
+			    break;
+            case AV_PIX_FMT_YUV420P10LE:
+                file->src_colormodel = BC_YUV420P10LE;
+                break;
+            case AV_PIX_FMT_NV12:
+			    file->src_colormodel = BC_NV12;
+                break;
+		    default:
+			    fprintf(stderr, 
+				    "decode_wrapper %d: unrecognized color model %d\n", 
+                    __LINE__,
+				    ffmpeg->decoder_context[current_field]->pix_fmt);
+			    file->src_colormodel = 0;
+			    break;
+	    }
+
+        file->src_data = picture->data[0];
+        file->src_y = picture->data[0];
+        file->src_u = picture->data[1];
+        file->src_v = picture->data[2];
+        file->src_rowspan = picture->linesize[0];
+        file->src_w = ffmpeg->decoder_context[current_field]->width;
+        file->src_h = ffmpeg->decoder_context[current_field]->height;
+        file->frame_number = ffmpeg->last_frame[current_field];
+        file->frame_layer = track;
+// printf("decode_wrapper %d y=%p u=%p v=%p rowspan=%d %d %d\n", 
+// __LINE__,
+// file->src_y,
+// file->src_u,
+// file->src_v,
+// picture->linesize[0],
+// picture->linesize[1],
+// picture->linesize[2]);
 // advance the position
 		ffmpeg->last_frame[current_field] += ffmpeg->fields;
 	}
@@ -621,15 +676,14 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 	quicktime_video_map_t *vtrack = &(file->vtracks[track]);
 	quicktime_trak_t *trak = vtrack->track;
 	int current_field = vtrack->current_position % ffmpeg->fields;
-	int input_cmodel;
 	int result = 0;
 	int seeking_done = 0;
 	int i;
 	int debug = 0;
-	unsigned char *picture_y = 0;
-	unsigned char *picture_u = 0;
-	unsigned char *picture_v = 0;
-	int rowspan = 0;
+// 	unsigned char *picture_y = 0;
+// 	unsigned char *picture_u = 0;
+// 	unsigned char *picture_v = 0;
+// 	int rowspan = 0;
 	int64_t track_length = quicktime_track_samples(file, trak);
 
 // printf("quicktime_ffmpeg_decode %d current_position=%ld last_frame=%ld\n", 
@@ -637,24 +691,35 @@ int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
 // vtrack->current_position,
 // ffmpeg->last_frame[current_field]);
 
-// Try frame cache.  Handled by FileMOV
-// 	result = quicktime_get_frame(vtrack->frame_cache,
+// Try frame cache if it was decoded while seeking
+// 	int got_cached = quicktime_get_cache(file->frame_cache,
 // 		vtrack->current_position,
+//         track,
 // 		&picture_y,
 // 		&picture_u,
 // 		&picture_v);
 
 
 
-if(debug) printf("quicktime_ffmpeg_decode %d current_position=%ld result=%d\n", 
-__LINE__, 
-vtrack->current_position,
-result);
+// printf("quicktime_ffmpeg_decode %d current_position=%ld result=%d\n", 
+// __LINE__, 
+// vtrack->current_position,
+// result);
+// if(picture_y)
+// printf("%02x%02x%02x%02x%02x%02x%02x%02x\n", 
+// picture_y[0],
+// picture_y[1],
+// picture_y[2],
+// picture_y[3],
+// picture_y[4],
+// picture_y[5],
+// picture_y[6],
+// picture_y[7]);
 
 
 // Didn't get frame from cache
-	if(!result)
-	{
+// 	if(!got_cached)
+// 	{
 // Codecs which work without locking:
 // H264
 // MPEG-4
@@ -685,10 +750,6 @@ result);
 // vtrack->current_position,
 // result,
 // ffmpeg->picture[current_field]);
-			rowspan = ffmpeg->picture[current_field]->linesize[0];
-			picture_y = ffmpeg->picture[current_field]->data[0];
-			picture_u = ffmpeg->picture[current_field]->data[1];
-			picture_v = ffmpeg->picture[current_field]->data[2];
 // Reset position because decode wrapper set it
 			quicktime_set_video_position(file, current_frame, track);
 
@@ -722,8 +783,10 @@ ffmpeg->last_frame[current_field]);
 
 // If an interleaved codec, the opposite field would have been decoded in the previous
 // seek.
-//			if(!quicktime_has_frame(vtrack->frame_cache, vtrack->current_position + 1))
-//				quicktime_reset_cache(vtrack->frame_cache);
+// 			if(!quicktime_has_cache(file->frame_cache, 
+//                 vtrack->current_position + 1, 
+//                 track))
+// 				quicktime_reset_cache(file->frame_cache);
 
 
 
@@ -795,12 +858,11 @@ frame1);
 					track,
 // Don't drop if we want to cache it
 					0);
-if(debug) printf("quicktime_ffmpeg_decode %d last_frame=%ld read_position=%ld result=%d picture_y=%p\n", 
+if(debug) printf("quicktime_ffmpeg_decode %d last_frame=%ld read_position=%ld result=%d\n", 
 __LINE__, 
 ffmpeg->last_frame[current_field], 
 ffmpeg->read_position[current_field],
-result,
-picture_y);
+result);
 
 // read error
 				if(result < 0)
@@ -808,47 +870,26 @@ picture_y);
 					break;
 				}
 
-				
-				rowspan = ffmpeg->picture[current_field]->linesize[0];
-				picture_y = ffmpeg->picture[current_field]->data[0];
-				picture_u = ffmpeg->picture[current_field]->data[1];
-				picture_v = ffmpeg->picture[current_field]->data[2];
 
 
 
-// cache the frame
-// 				if(result == 0)
-// 				{
-// 
-// 
-// // downsample the pixels
-//                     downsample(ffmpeg, 
-//                         file, 
-//                         &picture_y, 
-//                         &picture_u, 
-//                         &picture_v, 
-//                         &rowspan);
-// 
-// 					int y_size = rowspan * ffmpeg->height_i;
-// 					int u_size = y_size / get_chroma_factor(ffmpeg, current_field);
-// 					int v_size = y_size / get_chroma_factor(ffmpeg, current_field);
-// 					quicktime_put_frame(vtrack->frame_cache,
-// 						ffmpeg->last_frame[current_field],
-// 						picture_y,
-// 						picture_u,
-// 						picture_v,
-// 						y_size,
-// 						u_size,
-// 						v_size);
-// 				}
+// cache the frame if it is not being returned
+ 				if(result == 0 &&
+                    ffmpeg->last_frame[current_field] < vtrack->current_position)
+ 				{
+					quicktime_put_cache(file->frame_cache);
+// printf("quicktime_ffmpeg_decode %d caching last_frame=%ld current_position=%ld\n", 
+// __LINE__, 
+// ffmpeg->last_frame[current_field],
+// vtrack->current_position);
+				}
 			}
 
-//printf("quicktime_ffmpeg_decode %d\n", __LINE__);
 
 			seeking_done = 1;
 		}
 
-// Not decoded in seeking process.  Decode until a valid frame appears.
+// Not decoded in the seeking process.  Decode until a valid frame appears.
 		if(!seeking_done &&
 // Same frame not requested
 			vtrack->current_position != ffmpeg->last_frame[current_field])
@@ -870,15 +911,9 @@ picture_y);
 					track,
 					0);
 
-				rowspan = ffmpeg->picture[current_field]->linesize[0];
-				picture_y = ffmpeg->picture[current_field]->data[0];
-				picture_u = ffmpeg->picture[current_field]->data[1];
-				picture_v = ffmpeg->picture[current_field]->data[2];
-
-if(debug) printf("quicktime_ffmpeg_decode %d result=%d picture_y=%p current_position=%ld read_position=%ld last_frame=%ld\n", 
+if(debug) printf("quicktime_ffmpeg_decode %d result=%d current_position=%ld read_position=%ld last_frame=%ld\n", 
 __LINE__, 
 result, 
-picture_y,
 vtrack->current_position,
 ffmpeg->read_position[current_field],
 ffmpeg->last_frame[current_field]);
@@ -886,31 +921,14 @@ ffmpeg->last_frame[current_field]);
 			} while(result > 0 && 
 				ffmpeg->last_frame[current_field] < track_length - 1 &&
 				ffmpeg->read_position[current_field] < track_length);
-
-
-//             downsample(ffmpeg, 
-//                 file, 
-//                 &picture_y, 
-//                 &picture_u, 
-//                 &picture_v, 
-//                 &rowspan);
 		}
 		else
-// same frame requested
+// same frame requested & not in cache.  
+// Assume a single layer is being decoded & the last 
+// frame is still in file->src_
 		if(!seeking_done &&
 			vtrack->current_position == ffmpeg->last_frame[current_field])
 		{
-			rowspan = ffmpeg->picture[current_field]->linesize[0];
-			picture_y = ffmpeg->picture[current_field]->data[0];
-			picture_u = ffmpeg->picture[current_field]->data[1];
-			picture_v = ffmpeg->picture[current_field]->data[2];
-
-//             downsample(ffmpeg, 
-//                 file, 
-//                 &picture_y, 
-//                 &picture_u, 
-//                 &picture_v, 
-//                 &rowspan);
 		}
 //printf("quicktime_ffmpeg_decode %d current_position=%ld\n", __LINE__, vtrack->current_position);
 
@@ -918,55 +936,9 @@ ffmpeg->last_frame[current_field]);
 
 
 //		ffmpeg->last_frame[current_field] = vtrack->current_position;
-	}
-// 	else
-// 	{
-// // handle the case of colorspaces that were downsampled before caching    
-//         if(ffmpeg->decoder_context[current_field]->pix_fmt == AV_PIX_FMT_YUV420P10LE)
-//         {
-//             rowspan = ffmpeg->width_i;
-//         }
-//         else
-//         {
-//     		rowspan = ffmpeg->picture[current_field]->linesize[0];
-//         }
-//     
-// 	}
+//	}
 
-// Hopefully this setting will be left over if the cache was used.
-	switch(ffmpeg->decoder_context[current_field]->pix_fmt)
-	{
-		case AV_PIX_FMT_YUV420P:
-			input_cmodel = BC_YUV420P;
-			break;
-// It's not much of a decoder library
-		case AV_PIX_FMT_YUVJ420P:
-			input_cmodel = BC_YUV420P;
-			break;
 
-// 		case AV_PIX_FMT_YUV422:
-// 			input_cmodel = BC_YUV422;
-// 			break;
-
-		case AV_PIX_FMT_YUV422P:
-			input_cmodel = BC_YUV422P;
-			break;
-		case AV_PIX_FMT_YUV410P:
-			input_cmodel = BC_YUV9P;
-			break;
-        case AV_PIX_FMT_YUV420P10LE:
-            input_cmodel = BC_YUV420P10LE;
-            break;
-        case AV_PIX_FMT_NV12:
-			input_cmodel = BC_NV12;
-            break;
-		default:
-			fprintf(stderr, 
-				"quicktime_ffmpeg_decode: unrecognized color model %d\n", 
-				ffmpeg->decoder_context[current_field]->pix_fmt);
-			input_cmodel = 0;
-			break;
-	}
 
 // printf("quicktime_ffmpeg_decode %d result=%d vtrack->current_position=%ld rowspan=%d picture_y=%p input_cmodel=%d output_cmodel=%d\n", 
 // __LINE__, 
@@ -976,70 +948,155 @@ ffmpeg->last_frame[current_field]);
 // picture_y,
 // input_cmodel,
 // file->color_model);
-
-	if(picture_y)
-	{
-//         if(row_pointers)
-//         {
-// 		    unsigned char **input_rows;
-// 
-// 		    input_rows = 
-// 			    malloc(sizeof(unsigned char*) * 
-// 			    ffmpeg->decoder_context[current_field]->height);
-// 
-// 
-// 		    for(i = 0; i < ffmpeg->decoder_context[current_field]->height; i++)
-// 			    input_rows[i] = picture_y + 
-// 				    i * 
-// 				    ffmpeg->decoder_context[current_field]->width * 
-// 				    cmodel_calculate_pixelsize(input_cmodel);
-// 
-// 
-// 		    cmodel_transfer(row_pointers, /* output */
-// 			    input_rows,
-// 			    row_pointers[0], /* output */
-// 			    row_pointers[1],
-// 			    row_pointers[2],
-// 			    picture_y, /* input */
-// 			    picture_u,
-// 			    picture_v,
-// 			    file->in_x,        /* Dimensions to capture from input frame */
-// 			    file->in_y, 
-// 			    file->in_w, 
-// 			    file->in_h,
-// 			    0,       /* Dimensions to project on output frame */
-// 			    0, 
-// 			    file->out_w, 
-// 			    file->out_h,
-// 			    input_cmodel, 
-// 			    file->color_model,
-// 			    0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
-// 			    rowspan,       /* For planar use the luma rowspan */
-// 			    ffmpeg->width);
-// 
-// 		    free(input_rows);
-//         }
-
-// provide the last frame to the user
-        AVFrame *picture = ffmpeg->picture[current_field];
-        file->src_colormodel = input_cmodel;
-        file->src_data = picture_y;
-        file->src_y = picture_y;
-        file->src_u = picture_u;
-        file->src_v = picture_v;
-        file->src_rowspan = picture->linesize[0];
-        file->src_w = ffmpeg->decoder_context[current_field]->width;
-        file->src_h = ffmpeg->decoder_context[current_field]->height;
-
-// printf("quicktime_ffmpeg_decode %d rowspan=%d %d %d\n", 
-// __LINE__,
-// picture->linesize[0],
-// picture->linesize[1],
-// picture->linesize[2]);
-	}
+// printf("quicktime_ffmpeg_decode %d\n", 
+// __LINE__);
 
 	return result;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Attempts to read more samples than this will crash
+#define TEMP_ALLOCATION 0x100000
+
+void quicktime_ffaudio_init(quicktime_ffaudio_t *ffaudio, int codec_id)
+{
+    ffaudio->codec_id = codec_id;
+}
+
+void quicktime_ffaudio_delete(quicktime_ffaudio_t *ffaudio)
+{
+    if(ffaudio->decoder_context)
+    {
+    	avcodec_close(ffaudio->decoder_context);
+    	free(ffaudio->decoder_context);
+    }
+
+    bzero(ffaudio, sizeof(quicktime_ffaudio_t));
+}
+
+int quicktime_ffaudio_decode(quicktime_t *file,
+    quicktime_audio_map_t *track_map,
+    quicktime_ffaudio_t *ffaudio,
+	float *output,
+	int64_t samples, 
+	int channel)
+{
+	quicktime_trak_t *trak = track_map->track;
+	int64_t current_position = track_map->current_position;
+	int64_t end_position = current_position + samples;
+	quicktime_vbr_t *vbr = &track_map->vbr;
+    int i;
+
+    if(!ffaudio->decoder_initialized)
+    {
+        ffaudio->decoder_initialized = 1;
+		pthread_mutex_lock(&ffmpeg_lock);
+        ffaudio->decoder = avcodec_find_decoder(ffaudio->codec_id);
+		if(!ffaudio->decoder)
+		{
+			printf("quicktime_ffaudio_decode %d: no ffmpeg decoder found.\n", __LINE__);
+		    pthread_mutex_unlock(&ffmpeg_lock);
+			return 1;
+		}
+
+		ffaudio->decoder_context = 
+			avcodec_alloc_context3(ffaudio->decoder);
+		ffaudio->decoder_context->sample_rate = trak->mdia.minf.stbl.stsd.table[0].sample_rate;
+		ffaudio->decoder_context->channels = track_map->channels;
+//        ffaudio->decoder_context->profile = FF_PROFILE_AAC_HE;
+
+		if(avcodec_open2(ffaudio->decoder_context, ffaudio->decoder, 0) < 0)
+		{
+			printf("quicktime_ffaudio_decode %d: avcodec_open failed.\n", __LINE__);
+		    pthread_mutex_unlock(&ffmpeg_lock);
+			return 1;
+		}
+
+		pthread_mutex_unlock(&ffmpeg_lock);
+		
+        quicktime_init_vbr(vbr, track_map->channels);
+		if(!ffaudio->temp_buffer)
+			ffaudio->temp_buffer = calloc(sizeof(float), TEMP_ALLOCATION);
+    }
+
+	if(quicktime_align_vbr(track_map, samples))
+	{
+		return 1;
+	}
+
+// Decode until buffer is full
+	while(quicktime_vbr_end(vbr) < end_position)
+	{
+		if(quicktime_read_vbr(file, track_map)) break;
+
+		AVPacket *packet = av_packet_alloc();
+        packet->data = quicktime_vbr_input(vbr);
+        packet->size = quicktime_vbr_input_size(vbr);
+// printf("quicktime_ffaudio_decode %d ", __LINE__);
+// quicktime_print_buffer("", packet->data, packet->size);
+// printf("\n");
+        int result = avcodec_send_packet(ffaudio->decoder_context, packet);
+		av_packet_free(&packet);
+
+
+        if(result < 0)
+        {
+            printf("quicktime_ffaudio_decode %d avcodec_send_packet failed %c%c%c%c\n", 
+                __LINE__,
+                (-result) & 0xff,
+                ((-result) >> 8) & 0xff,
+                ((-result) >> 16) & 0xff,
+                ((-result) >> 24) & 0xff);
+        }
+        quicktime_shift_vbr(track_map, quicktime_vbr_input_size(vbr));
+        
+		AVFrame *frame = av_frame_alloc();
+        result = 0;
+        while(result >= 0)
+        {
+            result = avcodec_receive_frame(ffaudio->decoder_context, frame);
+// convert to floating point
+            if(result >= 0)
+            {
+// transfer from frame to temp buffer
+                int samples = quicktime_ffmpeg_get_audio(frame, 
+	    			ffaudio->temp_buffer);
+                quicktime_store_vbr_float(track_map,
+				    ffaudio->temp_buffer,
+				    samples);
+            }
+            else
+            {
+                printf("quicktime_ffaudio_decode %d avcodec_receive_frame failed %d\n", 
+                    __LINE__,
+                    result);
+            }
+        }
+		av_frame_free(&frame);
+
+    }
+
+// Transfer from VBR buffer to output
+	quicktime_copy_vbr_float(vbr, 
+		current_position, 
+		samples,
+		output, 
+		channel);
+    return 0;
+}
+
 
 // convert ffmpeg audio to interleaved float output buffer
 // return the number of samples converted

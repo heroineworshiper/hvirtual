@@ -871,7 +871,7 @@ private:
 	BC_Bitmap *temp_bitmap;
 // Clipboard
 #ifndef SINGLE_THREAD
-	BC_Clipboard *clipboard;
+	static BC_Clipboard *clipboard;
 #endif
 
 #ifdef HAVE_LIBXXF86VM
