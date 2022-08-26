@@ -1025,7 +1025,7 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 		}
 
 		pthread_mutex_unlock(&ffmpeg_lock);
-		
+
         quicktime_init_vbr(vbr, track_map->channels);
 		if(!ffaudio->temp_buffer)
 			ffaudio->temp_buffer = calloc(sizeof(float), TEMP_ALLOCATION);
@@ -1061,7 +1061,7 @@ int quicktime_ffaudio_decode(quicktime_t *file,
                 ((-result) >> 24) & 0xff);
         }
         quicktime_shift_vbr(track_map, quicktime_vbr_input_size(vbr));
-        
+
 		AVFrame *frame = av_frame_alloc();
         result = 0;
         while(result >= 0)
@@ -1079,9 +1079,9 @@ int quicktime_ffaudio_decode(quicktime_t *file,
             }
             else
             {
-                printf("quicktime_ffaudio_decode %d avcodec_receive_frame failed %d\n", 
-                    __LINE__,
-                    result);
+//                 printf("quicktime_ffaudio_decode %d avcodec_receive_frame failed %d\n", 
+//                     __LINE__,
+//                     result);
             }
         }
 		av_frame_free(&frame);

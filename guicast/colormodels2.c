@@ -310,43 +310,38 @@ int cmodel_calculate_datasize(int w,
 {
 	if(bytes_per_line < 0) bytes_per_line = w * 
 		cmodel_calculate_pixelsize(color_model);
-// Pad the planar models with an extra row of texture width
-// for glTexSubImage2D.  Since the texture width is aligned, 
-// add 2 rows of frame width.
-    int pad = 0;
+// Pad the planar models with an extra row of RGBA 8 bit texture width
+// for glTexSubImage2D to get all the rows.  
+// Since the texture width is aligned, add 2 rows.
+    int pad = w * 4 * 2;
+// Ffmpeg expects 1 more row of bytes_per_line for odd numbered heights
+    if(bytes_per_line > pad) pad = bytes_per_line;
     int result = 0;
 	switch(color_model)
 	{
 		case BC_YUV420P:
 		case BC_YUV411P:
         case BC_NV12:
-// ffmpeg expects 1 more row for odd numbered heights
-            pad = w * 4 * 2;
 			result = bytes_per_line * h + 2 * (bytes_per_line / 2) * (h / 2);
 			break;
 
 		case BC_YUV422P:
-            pad = w * 4 * 2;
 			result = bytes_per_line * h * 2;
 			break;
 
 		case BC_YUV444P:
-            pad = w * 4 * 2;
 			result = bytes_per_line * h * 3;
 			break;
 
         case BC_YUV420P10LE:
-            pad = w * 4 * 2;
             result = h * bytes_per_line  + (bytes_per_line / 2) * (h / 2) * 2;
             break;
 
         case BC_YUV9P:
-            pad = w * 4 * 2;
             result = h * bytes_per_line + (bytes_per_line / 4) * (h / 4) * 2;
             break;
 
 		default:
-            pad = w * 4 * 2;
 			result = h * bytes_per_line;
 			break;
 	}

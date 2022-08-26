@@ -56,7 +56,7 @@ void quicktime_read_esds(quicktime_t *file,
 // flags
 	quicktime_read_int24(file);
 // elementary stream descriptor tag
-printf("quicktime_read_esds %d\n", __LINE__);
+//printf("quicktime_read_esds %d\n", __LINE__);
 
 	if(quicktime_read_char(file) == 0x3)
 	{
@@ -80,11 +80,11 @@ printf("quicktime_read_esds %d\n", __LINE__);
 // average bitrate
 			quicktime_read_int32(file);
 
-printf("quicktime_read_esds %d\n", __LINE__);
+//printf("quicktime_read_esds %d\n", __LINE__);
 // decoder specific description tag
 			if(quicktime_read_char(file) == 0x5)
 			{
-printf("quicktime_read_esds %d\n", __LINE__);
+//printf("quicktime_read_esds %d\n", __LINE__);
 				esds->mpeg4_header_size = decode_length(file);
 				if(!esds->mpeg4_header_size) return;
 

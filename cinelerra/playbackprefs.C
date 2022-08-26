@@ -219,19 +219,19 @@ SET_TRACE
 		this));
 	y += interpolate_raw->get_h() + margin;
 
-	add_subwindow(hw_decode = new PlaybackHWDecode(
-		x, 
-		y,
-		pwindow,
-		this));
-	y += hw_decode->get_h() + margin;
-
-	add_subwindow(ffmpeg_mov = new PlaybackFFmpegMov(
-		x, 
-		y,
-		pwindow,
-		this));
-	y += ffmpeg_mov->get_h() + margin;
+// 	add_subwindow(hw_decode = new PlaybackHWDecode(
+// 		x, 
+// 		y,
+// 		pwindow,
+// 		this));
+// 	y += hw_decode->get_h() + margin;
+// 
+// 	add_subwindow(ffmpeg_mov = new PlaybackFFmpegMov(
+// 		x, 
+// 		y,
+// 		pwindow,
+// 		this));
+// 	y += ffmpeg_mov->get_h() + margin;
 
 // 	add_subwindow(white_balance_raw = new PlaybackWhiteBalanceRaw(
 // 		x, 

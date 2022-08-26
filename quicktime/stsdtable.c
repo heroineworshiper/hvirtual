@@ -82,7 +82,10 @@ void quicktime_read_stsd_audio(quicktime_t *file,
 	table->packet_size = quicktime_read_int16(file);
 	table->sample_rate = quicktime_read_fixed32(file);
 
-//printf("quicktime_read_stsd_audio %d %f\n", __LINE__, table->sample_rate);
+// printf("quicktime_read_stsd_audio %d sample_rate=%f version=%d\n", 
+// __LINE__, 
+// table->sample_rate,
+// table->version);
 
 	if(table->sample_rate == 0)
 	{
@@ -96,7 +99,6 @@ void quicktime_read_stsd_audio(quicktime_t *file,
 		table->sample_rate += 65536;
 	}
 
-//printf("quicktime_read_stsd_audio %d version=%d\n", __LINE__, table->version);
 
 // Version 1 fields
 	if(table->version > 0)
@@ -122,13 +124,32 @@ void quicktime_read_stsd_audio(quicktime_t *file,
 			}
 			else
 			{
-//printf("quicktime_read_stsd_audio %d %s\n", 
-//__LINE__, 
-//leaf_atom.type);
+// printf("quicktime_read_stsd_audio %d %s\n", 
+// __LINE__, 
+// leaf_atom.type);
 				quicktime_atom_skip(file, &leaf_atom);
 			}
 		}
 	}
+    else
+    {
+		while(quicktime_position(file) < parent_atom->end)
+		{
+			quicktime_atom_read_header(file, &leaf_atom);
+
+			if(quicktime_atom_is(&leaf_atom, "esds"))
+			{
+				quicktime_read_esds(file, &leaf_atom, &table->esds);
+			}
+			else
+			{
+// printf("quicktime_read_stsd_audio %d %s\n", 
+// __LINE__, 
+// leaf_atom.type);
+				quicktime_atom_skip(file, &leaf_atom);
+			}
+		}
+    }
 
 // FFMPEG says the esds sometimes contains a sample rate that overrides
 // the sample table.
@@ -350,6 +371,10 @@ void quicktime_read_stsd_table(quicktime_t *file, quicktime_minf_t *minf, quickt
 		{
 			minf->is_audio = 1;
 		}
+        else
+        {
+            
+        }
 	}
 
 	if(minf->is_audio) quicktime_read_stsd_audio(file, table, &leaf_atom);

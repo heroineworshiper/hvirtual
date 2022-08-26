@@ -344,8 +344,10 @@ int Preferences::load_defaults(BC_Hash *defaults)
 	local_rate = defaults->get("LOCAL_RATE", local_rate);
     dump_playback = defaults->get("DUMP_PLAYBACK", dump_playback);
     use_gl_rendering = defaults->get("USE_GL_RENDERING", use_gl_rendering);
-    use_hardware_decoding = defaults->get("USE_HARDWARE_DECODING", use_hardware_decoding);
-    use_ffmpeg_mov = defaults->get("USE_FFMPEG_MOV", use_ffmpeg_mov);
+//    use_hardware_decoding = defaults->get("USE_HARDWARE_DECODING", use_hardware_decoding);
+//    use_ffmpeg_mov = defaults->get("USE_FFMPEG_MOV", use_ffmpeg_mov);
+// DEBUG
+//use_ffmpeg_mov = 1;
     show_fps = defaults->get("SHOW_FPS", show_fps);
 	use_renderfarm = defaults->get("USE_RENDERFARM", use_renderfarm);
 	renderfarm_port = defaults->get("RENDERFARM_PORT", renderfarm_port);
