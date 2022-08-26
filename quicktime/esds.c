@@ -39,9 +39,10 @@ void quicktime_esds_samplerate(quicktime_stsd_table_t *table,
 
 		unsigned char *ptr = esds->mpeg4_header;
 		int samplerate_index = ((ptr[0] & 7) << 1) + ((ptr[1] >> 7) & 1);
-		table->channels = (ptr[1] >> 3) & 0xf;
-		table->sample_rate = 
+		esds->channels = (ptr[1] >> 3) & 0xf;
+		esds->sample_rate = 
 			samplerate_table[samplerate_index];
+        esds->got_esds_rate = 1;
 // Faad decodes 1/2 the requested samplerate if the samplerate is <= 22050.
 	}
 }

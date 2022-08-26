@@ -1013,8 +1013,19 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 
 		ffaudio->decoder_context = 
 			avcodec_alloc_context3(ffaudio->decoder);
-		ffaudio->decoder_context->sample_rate = trak->mdia.minf.stbl.stsd.table[0].sample_rate;
-		ffaudio->decoder_context->channels = track_map->channels;
+        quicktime_stsd_table_t *stsd = &trak->mdia.minf.stbl.stsd.table[0];
+        quicktime_esds_t *esds = &stsd->esds;
+        if(esds->got_esds_rate)
+        {
+    		ffaudio->decoder_context->sample_rate = esds->sample_rate;
+	    	ffaudio->decoder_context->channels = esds->channels;
+		}
+        else
+        {
+            ffaudio->decoder_context->sample_rate = stsd->sample_rate;
+    		ffaudio->decoder_context->channels = stsd->channels;
+        }
+
 //        ffaudio->decoder_context->profile = FF_PROFILE_AAC_HE;
 
 		if(avcodec_open2(ffaudio->decoder_context, ffaudio->decoder, 0) < 0)

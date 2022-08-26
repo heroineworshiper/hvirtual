@@ -150,6 +150,9 @@ typedef struct
 {
 	char *mpeg4_header;
 	int mpeg4_header_size;
+    int sample_rate;
+    int channels;
+    int got_esds_rate;
 } quicktime_esds_t;
 
 typedef struct
