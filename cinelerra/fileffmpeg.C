@@ -1923,6 +1923,8 @@ int FileFFMPEG::seek_5(FileFFMPEGStream *stream,
             {
                 keyframe = vstream->video_keyframes.get(i);
                 offset = vstream->video_offsets.get(keyframe);
+
+// take the video keyframe before the desired byte offset
                 if(offset <= want_offset)
                 {
                     got_it = 1;
@@ -2006,6 +2008,9 @@ int FileFFMPEG::seek_5(FileFFMPEGStream *stream,
 //             break;
 //         }
 //     }
+
+// Must read forward since multiple chunks seem to have the same offset.  It might
+// be multiple output frames coming from a single input packet.
     for(int i = 0; i < offsets->size(); i++)
     {
         if(offsets->get(i) >= real_offset)
