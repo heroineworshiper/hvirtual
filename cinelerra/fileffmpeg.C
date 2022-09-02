@@ -790,10 +790,10 @@ int FileFFMPEG::open_ffmpeg()
 						asset->audio_data = 1;
 						asset->sample_rate = decoder_context->sample_rate;
 
-printf("FileFFMPEG::open_ffmpeg %d audio codec_id=%d profile=%d\n", 
-__LINE__, 
-decoder_context->codec_id,
-decoder_context->profile);
+// printf("FileFFMPEG::open_ffmpeg %d audio codec_id=%d profile=%d\n", 
+// __LINE__, 
+// decoder_context->codec_id,
+// decoder_context->profile);
 
 						int64_t audio_length = (int64_t)(((AVFormatContext*)new_stream->ffmpeg_file_context)->duration * 
 							asset->sample_rate / 
@@ -1880,27 +1880,106 @@ int FileFFMPEG::get_seek_stream()
 }
 
 // seeking in ffmpeg-5.1 requires reading backwards with av_seek_frame
-// then reading forwards with av_read_frame
-int FileFFMPEG::seek_5(void *ptr, 
-    ArrayList<int64_t> *offsets, 
+// then reading forwards with av_read_frame to the desired byte offset
+int FileFFMPEG::seek_5(FileFFMPEGStream *stream, 
     int chunk, 
-    int64_t timestamp,
-    int is_video)
+    double seconds)
 {
-    FileFFMPEGStream *stream = (FileFFMPEGStream*)ptr;
+    AVStream *ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
 	AVCodecContext *decoder_context = (AVCodecContext*)stream->decoder_context;
+    ArrayList<int64_t> *offsets;
+    int64_t timestamp = (int64_t)(seconds * 
+        ffmpeg_stream->time_base.den /
+        ffmpeg_stream->time_base.num);
+    int need_seek = 1;
 
-// this seeks to a certain point before the desired timestamp but not after it
-    av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
-        stream->ffmpeg_id, 
-        timestamp,
-        SEEK_SET | AVSEEK_FLAG_BACKWARD);
-
+// don't do anything if rewinding
     if(chunk == 0)
     {
+        av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
+            stream->ffmpeg_id, 
+            0,
+            SEEK_SET | AVSEEK_FLAG_BACKWARD);
         return 0;
     }
 
+    if(stream->is_audio)
+    {
+        offsets = &stream->audio_offsets;
+        int64_t want_offset = offsets->get(chunk);
+        
+        if(video_streams.size() > 0)
+        {
+// if it's an audio track, seek to the nearest keyframe in
+// the video track to work around a bug
+// It seems to lock up if the timestamp isn't on a video keyframe.
+            FileFFMPEGStream *vstream = video_streams.get(0);
+            AVStream *ffmpeg_vstream = ((AVFormatContext*)vstream->ffmpeg_file_context)->streams[vstream->ffmpeg_id];
+            int keyframe = -1;
+            int64_t offset = -1;
+            int got_it = 0;
+            for(int i = vstream->video_keyframes.size() - 1; 
+                i >= 0; i--)
+            {
+                keyframe = vstream->video_keyframes.get(i);
+                offset = vstream->video_offsets.get(keyframe);
+                if(offset <= want_offset)
+                {
+                    got_it = 1;
+                    break;
+                }
+            }
+
+// default to the start of the file if no video keyframe comes before 
+// the audio position
+            if(!got_it)
+            {
+                keyframe = 0;
+                got_it = 1;
+            }
+
+            if(got_it)
+            {
+                int64_t timestamp2 = (int64_t)keyframe * 
+                    ffmpeg_vstream->time_base.den /
+                    ffmpeg_vstream->time_base.num /
+                    asset->frame_rate;
+//printf("FileFFMPEG::seek_5 %d\n", __LINE__);
+
+// Seek the audio stream's file context using the video stream ID so the
+// video timestamp can be found.
+                av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
+                    vstream->ffmpeg_id, 
+                    timestamp2,
+                    SEEK_SET | AVSEEK_FLAG_BACKWARD);
+//printf("FileFFMPEG::seek_5 %d\n", __LINE__);
+                need_seek = 0;
+            }
+        }
+    }
+    else
+    if(stream->is_video)
+    {
+        offsets = &stream->video_offsets;
+        
+        
+    }
+
+
+//printf("FileFFMPEG::seek_5 %d\n", __LINE__);
+    if(need_seek)
+    {
+// this seeks to a certain point before the desired timestamp but not after it
+        av_seek_frame((AVFormatContext*)stream->ffmpeg_file_context, 
+            stream->ffmpeg_id, 
+            timestamp,
+            SEEK_SET | AVSEEK_FLAG_BACKWARD);
+    }
+
+// printf("FileFFMPEG::seek_5 %d got=%ld want=%ld\n", 
+// __LINE__,
+// avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb),
+// offsets->get(chunk));
 // read up to the desired position so we don't spend all day decoding
 // hundreds of frames.
 // The 1st read always skips many chunks
@@ -1911,6 +1990,7 @@ int FileFFMPEG::seek_5(void *ptr,
         av_packet_free(&packet);
     }
 
+//printf("FileFFMPEG::seek_5 %d\n", __LINE__);
 
     int64_t real_offset = avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb);
     int real_chunk = 0;
@@ -1918,21 +1998,29 @@ int FileFFMPEG::seek_5(void *ptr,
     avcodec_flush_buffers(decoder_context);
 
 // Find the true chunk we're on
-    for(int i = offsets->size() - 1; i >= 0; i--)
+//     for(int i = offsets->size() - 1; i >= 0; i--)
+//     {
+//         if(offsets->get(i) <= real_offset)
+//         {
+//             real_chunk = i;
+//             break;
+//         }
+//     }
+    for(int i = 0; i < offsets->size(); i++)
     {
-        if(offsets->get(i) <= real_offset)
+        if(offsets->get(i) >= real_offset)
         {
             real_chunk = i;
             break;
         }
     }
 
-    printf("FileFFMPEG::seek_5 %d want offset=%ld got offset=%ld want chunk=%d got chunk=%d\n",
-        __LINE__,
-        offsets->get(chunk),
-        real_offset,
-        chunk,
-        real_chunk);
+//     printf("FileFFMPEG::seek_5 %d want offset=%ld got offset=%ld want chunk=%d got chunk=%d\n",
+//         __LINE__,
+//         offsets->get(chunk),
+//         real_offset,
+//         chunk,
+//         real_chunk);
     return real_chunk;
 }
 
@@ -2116,12 +2204,9 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 #if LIBAVCODEC_VERSION_MAJOR >= 58
             if(keyframe > 0) keyframe--;
-        	AVStream *ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
-		    int64_t timestamp = (int64_t)((double)keyframe * 
-			    ffmpeg_stream->time_base.den /
-			    ffmpeg_stream->time_base.num /
-			    asset->frame_rate);
-            keyframe = seek_5(stream, &stream->video_offsets, keyframe, timestamp, 1);
+            keyframe = seek_5(stream, 
+                keyframe, 
+                (double)keyframe / asset->frame_rate);
 // restart decoder for this case.  Might be easier to close_ffmpeg
             if(keyframe == 0)
             {
@@ -2130,7 +2215,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
     	        decoder_context = (AVCodecContext*)stream->decoder_context;
             }
 #else
-            int offset = stream->video_offsets.get(keyframe);
+            int64_t offset = stream->video_offsets.get(keyframe);
             avio_seek(((AVFormatContext*)stream->ffmpeg_file_context)->pb, 
                 offset, 
                 SEEK_SET);
@@ -2453,12 +2538,12 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 
 
 
-if(debug) printf("FileFFMPEG::read_samples %d: want=%ld - %ld history=%ld - %ld\n", 
-__LINE__, 
-file->current_sample,
-file->current_sample + len,
-stream->history_start,
-stream->history_start + stream->history_size);
+// printf("FileFFMPEG::read_samples %d: want=%ld-%ld history=%ld-%ld\n", 
+// __LINE__, 
+// file->current_sample,
+// file->current_sample + len,
+// stream->history_start,
+// stream->history_start + stream->history_size);
 
 // Seek occurred
 	if(file->current_sample < stream->history_start ||
@@ -2502,6 +2587,9 @@ stream->history_start + stream->history_size);
             {
                 start_sample = 0;
             }
+
+
+
             while(chunk < chunks)
             {
 // add the current chunk
@@ -2533,12 +2621,9 @@ stream->history_start + stream->history_size);
             int64_t audio_offset = stream->audio_offsets.get(chunk);
 
 #if LIBAVCODEC_VERSION_MAJOR >= 58
-        	AVStream *ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
-		    int64_t timestamp = (int64_t)((double)aligned_sample * 
-			    ffmpeg_stream->time_base.den /
-			    ffmpeg_stream->time_base.num /
-			    asset->sample_rate);
-            chunk = seek_5(stream, &stream->audio_offsets, chunk, timestamp, 0);
+            chunk = seek_5(stream, 
+                chunk, 
+                (double)aligned_sample / asset->sample_rate);
 // recompute the true sample position
             aligned_sample = 0;
             for(int i = 0; i < chunk; i++)
@@ -2687,6 +2772,8 @@ stream->history_start + stream->history_size);
 		file->current_sample, 
 		audio_channel,
 		len);
+// printf("FileFFMPEG::read_samples %d\n", 
+// __LINE__);
 
 	ffmpeg_lock->unlock();
 	return error;

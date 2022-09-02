@@ -144,11 +144,9 @@ public:
 	int colormodel_supported(int colormodel);
 	int read_frame(VFrame *frame);
 	int read_samples(double *buffer, int64_t len);
-    int seek_5(void *ptr, 
-        ArrayList<int64_t> *offsets, 
+    int seek_5(FileFFMPEGStream *stream, 
         int chunk, 
-        int64_t timestamp,
-        int is_video);
+        double seconds);
 
 // open ffmpeg objects for reading
     int open_ffmpeg();
