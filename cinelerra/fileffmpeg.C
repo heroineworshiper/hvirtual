@@ -2060,6 +2060,11 @@ static int ffmpeg_to_cmodel(int pix_fmt)
 //                     frame->get_color_model());
             break;
 
+// webp requires convert_unsupported()
+        case AV_PIX_FMT_ARGB:
+            return BC_RGBA8888;
+            break;
+
 //             case AV_PIX_FMT_NV21:
 // 				return BC_NV21;
 //                 printf("FileFFMPEG::read_frame %d: AV_PIX_FMT_NV21\n", __LINE__);
@@ -2077,6 +2082,38 @@ static int ffmpeg_to_cmodel(int pix_fmt)
 
 }
 
+
+// convert unsupported colormodels to result of ffmpeg_to_cmodel
+static void convert_unsupported(AVFrame *ffmpeg_frame, 
+    int dst_cmodel, 
+    int ffmpeg_cmodel,
+    int w,
+    int h)
+{
+    switch(ffmpeg_cmodel)
+    {
+        case AV_PIX_FMT_ARGB:
+// convert to RGBA8888
+            for(int i = 0; i < h; i++)
+            {
+                uint8_t *row = ffmpeg_frame->data[0] + i * ffmpeg_frame->linesize[0];
+                for(int j = 0; j < w; j++)
+                {
+                    uint8_t r = row[1];
+                    uint8_t g = row[2];
+                    uint8_t b = row[3];
+                    uint8_t a = row[0];
+                    row[0] = r;
+                    row[1] = g;
+                    row[2] = b;
+                    row[3] = a;
+                    row += 4;
+                }
+            }
+            break;
+    }
+    
+}
 
 int FileFFMPEG::read_frame(VFrame *frame)
 {
@@ -2463,6 +2500,12 @@ int FileFFMPEG::read_frame(VFrame *frame)
 	                    decoder_context->height, 
 	                    input_cmodel, 
 	                    input_frame->linesize[0]);
+// convert unsupported colormodels
+                    convert_unsupported(input_frame, 
+                        input_cmodel, 
+                        decoder_context->pix_fmt,
+                        decoder_context->width,
+                        decoder_context->height);
                     file->get_frame_cache()->put_frame(
                         src,
 		                stream->current_frame,
@@ -2484,7 +2527,8 @@ int FileFFMPEG::read_frame(VFrame *frame)
 // file->current_frame,
 // got_frame);
 
-// Convert colormodel
+
+// point the file class to the output
 	if(got_frame)
 	{
 		AVFrame *input_frame = (AVFrame*)ffmpeg_frame;
@@ -2496,7 +2540,13 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 
 
-// File class will convert from ffmpeg to the function argument
+// File class will copy from the read pointer to the argument frame
+// convert unsupported colormodels
+        convert_unsupported(input_frame, 
+            input_cmodel, 
+            decoder_context->pix_fmt,
+            decoder_context->width,
+            decoder_context->height);
         file->set_read_pointer(input_cmodel, 
             input_frame->data[0], 
             input_frame->data[0], 
