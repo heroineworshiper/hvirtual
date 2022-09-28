@@ -1961,6 +1961,7 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 // __LINE__, 
 // command->input->get_bytes_per_line());
 
+// got a colormodel converter
 		if(shader_stack[1])
 		{
 	        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -1982,9 +1983,13 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 	        float pixel_w = 1.0 / command->input->get_texture_w();
             float u_offset = (float)(command->input->get_u() - command->input->get_y());
             float v_offset = (float)(command->input->get_v() - command->input->get_y());
-// printf("Playback3D::convert_cmodel_sync %d rowspan=%d\n",
+// printf("Playback3D::convert_cmodel_sync %d rowspan=%d image_w=%d image_h=%d texture_w=%d texture_h=%d\n",
 // __LINE__,
-// command->input->get_bytes_per_line());
+// (int)command->input->get_bytes_per_line(),
+// (int)image_w,
+// (int)image_h,
+// (int)texture_w,
+// (int)texture_h);
 
 			glUniform1f(glGetUniformLocation(shader_id, "rowspan"), command->input->get_bytes_per_line());
 			glUniform1f(glGetUniformLocation(shader_id, "pixel_w"), pixel_w);
@@ -1999,7 +2004,19 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 			glUniform1f(glGetUniformLocation(shader_id, "v_offset"), v_offset);
 
 
-			command->input->draw_texture();
+// draw smallest of encoded & presented frame size
+// since the encoded frame isn't always the size of the asset frame
+            float min_w = MIN(image_w, texture_w);
+            float min_h = MIN(image_h, texture_h);
+    		command->input->draw_texture(0,
+                0,
+                min_w,
+                min_h,
+                0,
+                0,
+                min_w, 
+                min_h,
+                0);
 
 			glUseProgram(0);
 

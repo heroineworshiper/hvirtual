@@ -2258,6 +2258,9 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
 // not using hardware in the server.  Convert in the client using no temp.
         if(!use_opengl)
         {
+// take the smallest of the encoded & asset frame sizes as the source size
+            int src_w = MIN(read_pointer->get_w(), asset->width);
+            int src_h = MIN(read_pointer->get_h(), asset->height);
 	        cmodel_transfer(read_frame_dst->get_rows(), 
 		        read_pointer->get_rows(),
 		        read_frame_dst->get_y(),
@@ -2268,8 +2271,8 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
 		        read_pointer->get_v(),
 		        0, 
 		        0, 
-		        read_pointer->get_w(), 
-		        read_pointer->get_h(),
+		        src_w, 
+		        src_h,
 		        0, 
 		        0, 
 		        read_frame_dst->get_w(), 
@@ -2301,6 +2304,9 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
         if(!use_opengl)
         {
 // software in the server
+// take the smallest of the encoded & asset frame sizes as the source size
+            int src_w = MIN(read_pointer->get_w(), asset->width);
+            int src_h = MIN(read_pointer->get_h(), asset->height);
 	        cmodel_transfer(read_frame_dst->get_rows(), 
 		        temp_frame->get_rows(),
 		        read_frame_dst->get_y(),
@@ -2311,8 +2317,8 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
 		        temp_frame->get_v(),
 		        0, 
 		        0, 
-		        temp_frame->get_w(), 
-		        temp_frame->get_h(),
+		        src_w, 
+		        src_h,
 		        0, 
 		        0, 
 		        read_frame_dst->get_w(), 

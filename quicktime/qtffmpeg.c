@@ -18,7 +18,7 @@
  * 
  */
 
-#include "colormodels.h"
+#include "colormodels2.h"
 #include "funcprotos.h"
 #include "quicktime.h"
 #include "qtffmpeg.h"
@@ -519,8 +519,11 @@ static int decode_wrapper(quicktime_t *file,
         file->src_h = ffmpeg->decoder_context[current_field]->height;
         file->frame_number = ffmpeg->last_frame[current_field];
         file->frame_layer = track;
-// printf("decode_wrapper %d y=%p u=%p v=%p rowspan=%d %d %d\n", 
+// printf("decode_wrapper %d src_colormodel=%d src_w=%d src_h=%d y=%p u=%p v=%p rowspan=%d %d %d\n", 
 // __LINE__,
+// file->src_colormodel,
+// file->src_w,
+// file->src_h,
 // file->src_y,
 // file->src_u,
 // file->src_v,
@@ -590,82 +593,82 @@ static int get_chroma_factor(quicktime_ffmpeg_t *ffmpeg, int current_field)
 
 
 // reduce bits per pixel
-static void downsample(quicktime_ffmpeg_t *ffmpeg, 
-    quicktime_t *file, 
-    unsigned char **picture_y,
-    unsigned char **picture_u,
-    unsigned char **picture_v,
-    int *rowspan)
-{
-//printf("downsample %d\n", __LINE__);
-    if(ffmpeg->decoder_context[0]->pix_fmt ==
-        AV_PIX_FMT_YUV420P10LE)
-    {
-        int i, j;
-        if(!ffmpeg->temp_frame)
-        {
-            ffmpeg->temp_frame = malloc(ffmpeg->width_i * ffmpeg->height_i * 3 / 2);
-        }
-
-
-// printf("downsample %d %d %d\n", 
-// __LINE__, 
-// rowspan,
-// file->in_w);
-
-// for(i = 0; i < 16; i++)
+// static void downsample(quicktime_ffmpeg_t *ffmpeg, 
+//     quicktime_t *file, 
+//     unsigned char **picture_y,
+//     unsigned char **picture_u,
+//     unsigned char **picture_v,
+//     int *rowspan)
 // {
-//     printf("%02x ", (*picture_y)[i]);
+// //printf("downsample %d\n", __LINE__);
+//     if(ffmpeg->decoder_context[0]->pix_fmt ==
+//         AV_PIX_FMT_YUV420P10LE)
+//     {
+//         int i, j;
+//         if(!ffmpeg->temp_frame)
+//         {
+//             ffmpeg->temp_frame = malloc(ffmpeg->width_i * ffmpeg->height_i * 3 / 2);
+//         }
+// 
+// 
+// // printf("downsample %d %d %d\n", 
+// // __LINE__, 
+// // rowspan,
+// // file->in_w);
+// 
+// // for(i = 0; i < 16; i++)
+// // {
+// //     printf("%02x ", (*picture_y)[i]);
+// // }
+// // printf("\n");
+// 
+// 
+// 
+// 
+// 
+//         for(i = file->in_y; i < file->in_y + file->in_h; i++)
+//         {
+//             unsigned char *in_y = (*picture_y) + i * *rowspan;
+//             unsigned char *out_y = ffmpeg->temp_frame + i * ffmpeg->width_i;
+// 
+// 
+//             for(j = 0; j < ffmpeg->width_i; j++)
+//             {
+//                 *out_y++ = (in_y[1] << 6) | (in_y[0] >> 2);
+//                 in_y += 2;
+//             }
+// 
+//             if(!(i % 2))
+//             {
+//                 unsigned char *in_u = (*picture_u) + (i / 2) * *rowspan / 2 + file->in_x;
+//                 unsigned char *in_v = (*picture_v) + (i / 2) * *rowspan / 2 + file->in_x;
+//                 unsigned char *out_u = ffmpeg->temp_frame + 
+//                    ffmpeg->width_i * ffmpeg->height_i +
+//                    (i / 2) * ffmpeg->width_i / 2;
+//                 unsigned char *out_v = ffmpeg->temp_frame + 
+//                    ffmpeg->width_i * ffmpeg->height_i +
+//                    ffmpeg->width_i / 2 * ffmpeg->height_i / 2 +
+//                    (i / 2) * ffmpeg->width_i / 2;
+// 
+// 
+//                 for(j = 0; j < ffmpeg->width_i / 2; j++)
+//                 {
+//                       *out_u++ = (in_u[1] << 6) | (in_u[0] >> 2);
+//                       in_u += 2;
+//                       *out_v++ = (in_v[1] << 6) | (in_v[0] >> 2);
+//                       in_v += 2;
+//                 }
+//             }
+//         }
+// 
+//         *picture_y = ffmpeg->temp_frame;
+//         *picture_u = ffmpeg->temp_frame + ffmpeg->width_i * ffmpeg->height_i;
+//         *picture_v = *picture_u + ffmpeg->width_i / 2 * ffmpeg->height_i / 2;
+//         *rowspan = ffmpeg->width_i;
+//     }
+// //printf("downsample %d\n", __LINE__);
+// 
 // }
-// printf("\n");
-
-
-
-
-
-        for(i = file->in_y; i < file->in_y + file->in_h; i++)
-        {
-            unsigned char *in_y = (*picture_y) + i * *rowspan;
-            unsigned char *out_y = ffmpeg->temp_frame + i * ffmpeg->width_i;
-
-
-            for(j = 0; j < ffmpeg->width_i; j++)
-            {
-                *out_y++ = (in_y[1] << 6) | (in_y[0] >> 2);
-                in_y += 2;
-            }
-
-            if(!(i % 2))
-            {
-                unsigned char *in_u = (*picture_u) + (i / 2) * *rowspan / 2 + file->in_x;
-                unsigned char *in_v = (*picture_v) + (i / 2) * *rowspan / 2 + file->in_x;
-                unsigned char *out_u = ffmpeg->temp_frame + 
-                   ffmpeg->width_i * ffmpeg->height_i +
-                   (i / 2) * ffmpeg->width_i / 2;
-                unsigned char *out_v = ffmpeg->temp_frame + 
-                   ffmpeg->width_i * ffmpeg->height_i +
-                   ffmpeg->width_i / 2 * ffmpeg->height_i / 2 +
-                   (i / 2) * ffmpeg->width_i / 2;
-
-
-                for(j = 0; j < ffmpeg->width_i / 2; j++)
-                {
-                      *out_u++ = (in_u[1] << 6) | (in_u[0] >> 2);
-                      in_u += 2;
-                      *out_v++ = (in_v[1] << 6) | (in_v[0] >> 2);
-                      in_v += 2;
-                }
-            }
-        }
-
-        *picture_y = ffmpeg->temp_frame;
-        *picture_u = ffmpeg->temp_frame + ffmpeg->width_i * ffmpeg->height_i;
-        *picture_v = *picture_u + ffmpeg->width_i / 2 * ffmpeg->height_i / 2;
-        *rowspan = ffmpeg->width_i;
-    }
-//printf("downsample %d\n", __LINE__);
-
-}
 
 
 int quicktime_ffmpeg_decode(quicktime_ffmpeg_t *ffmpeg,
@@ -1015,12 +1018,13 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 			avcodec_alloc_context3(ffaudio->decoder);
         quicktime_stsd_table_t *stsd = &trak->mdia.minf.stbl.stsd.table[0];
         quicktime_esds_t *esds = &stsd->esds;
-        if(esds->got_esds_rate)
-        {
-    		ffaudio->decoder_context->sample_rate = esds->sample_rate;
-	    	ffaudio->decoder_context->channels = esds->channels;
-		}
-        else
+// DEBUG
+//         if(esds->got_esds_rate)
+//         {
+//     		ffaudio->decoder_context->sample_rate = esds->sample_rate;
+// 	    	ffaudio->decoder_context->channels = esds->channels;
+// 		}
+//         else
         {
             ffaudio->decoder_context->sample_rate = stsd->sample_rate;
     		ffaudio->decoder_context->channels = stsd->channels;
