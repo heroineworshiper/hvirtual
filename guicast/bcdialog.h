@@ -69,8 +69,12 @@ public:
 // Called by user to close the GUI from outside the thread
 	void close_window();
 
+// Don't delete the gui between runs
+    void set_keep_gui(int value);
+
 private:
 	BC_Window *gui;
+    int keep_gui;
 	Condition *startup_lock;
 	Mutex *window_lock;
 };

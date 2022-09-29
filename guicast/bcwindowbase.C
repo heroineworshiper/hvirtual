@@ -762,7 +762,7 @@ int BC_WindowBase::run_window()
 #else // SINGLE_THREAD
 
 
-
+//printf("BC_WindowBase::run_window %d\n", __LINE__);
 // Start tooltips
 	set_repeat(get_resources()->tooltip_delay);
 
@@ -772,15 +772,19 @@ int BC_WindowBase::run_window()
 
 // Release wait lock
 	init_lock->unlock();
+//printf("BC_WindowBase::run_window %d done=%d\n", __LINE__, done);
 
 // Handle common events
 	while(!done)
 	{
 		dispatch_event(0);
 	}
+//printf("BC_WindowBase::run_window %d done=%d\n", __LINE__, done);
 
 	unset_all_repeaters();
 	hide_tooltip();
+
+
 	delete event_thread;
 	event_thread = 0;
 	event_condition->reset();
@@ -896,6 +900,11 @@ __LINE__, title, event);
 			else
 			if(ptr->message_type == SetDoneXAtom)
 			{
+// printf("BC_WindowBase::dispatch_event %d SetDoneXAtom %d %d %d\n", 
+// __LINE__,
+// SetDoneXAtom,
+// event->xany.window,
+// win);
 				done = 1;
 			}
 			break;
@@ -3280,6 +3289,8 @@ void BC_WindowBase::set_done(int return_value)
 		ptr->format = 32;
 		this->return_value = return_value;
 
+//printf("BC_WindowBase::set_done %d\n", __LINE__);
+
 // May lock up here because XSendEvent doesn't work too well 
 // asynchronous with XNextEvent.
 // This causes BC_WindowEvents to forward a copy of the event to run_window where 
@@ -3292,6 +3303,7 @@ void BC_WindowBase::set_done(int return_value)
 			event);
 		XFlush(display);
 		XCloseDisplay(display);
+// this still needs the XSendEvent to wake up the window for some reason
 		put_event(event);
 	}
 #endif
@@ -4231,7 +4243,7 @@ void BC_WindowBase::restore_vm()
 int BC_WindowBase::get_event_count()
 {
 	event_lock->lock("BC_WindowBase::get_event_count");
-	int result = common_events.total;
+	int result = common_events.size();
 	event_lock->unlock();
 	return result;
 }
@@ -4244,9 +4256,9 @@ XEvent* BC_WindowBase::get_event()
 		event_condition->lock("BC_WindowBase::get_event");
 		event_lock->lock("BC_WindowBase::get_event");
 
-		if(common_events.total && !done)
+		if(common_events.size() && !done)
 		{
-			result = common_events.values[0];
+			result = common_events.get(0);
 			common_events.remove_number(0);
 		}
 

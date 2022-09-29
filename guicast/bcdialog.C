@@ -32,6 +32,7 @@ BC_DialogThread::BC_DialogThread()
  : Thread(1, 0, 0)
 {
 	gui = 0;
+    keep_gui = 0;
 	startup_lock = new Condition(1, "BC_DialogThread::startup_lock");
 	window_lock = new Mutex("BC_DialogThread::window_lock");
 }
@@ -60,6 +61,11 @@ void BC_DialogThread::lock_window(const char *location)
 void BC_DialogThread::unlock_window()
 {
 	window_lock->unlock();
+}
+
+void BC_DialogThread::set_keep_gui(int value)
+{
+    keep_gui = value;
 }
 
 int BC_DialogThread::is_running()
@@ -93,15 +99,31 @@ void BC_DialogThread::start()
 
 void BC_DialogThread::run()
 {
-	gui = new_gui();
+    if(!gui)
+    {
+    	gui = new_gui();
+    }
+    else
+    {
+        gui->show_window(1);
+    }
+
 	startup_lock->unlock();
 	int result = gui->run_window();
 
 	handle_done_event(result);
 
 	window_lock->lock("BC_DialogThread::run");
-	delete gui;
-	gui = 0;
+
+    if(!keep_gui)
+    {
+    	delete gui;
+	    gui = 0;
+    }
+    else
+    {
+        gui->hide_window(1);
+    }
 	window_lock->unlock();
 
 	handle_close_event(result);
