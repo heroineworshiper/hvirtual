@@ -1018,7 +1018,7 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 			avcodec_alloc_context3(ffaudio->decoder);
         quicktime_stsd_table_t *stsd = &trak->mdia.minf.stbl.stsd.table[0];
         quicktime_esds_t *esds = &stsd->esds;
-// DEBUG
+// Always use container parameters
 //         if(esds->got_esds_rate)
 //         {
 //     		ffaudio->decoder_context->sample_rate = esds->sample_rate;
@@ -1031,6 +1031,14 @@ int quicktime_ffaudio_decode(quicktime_t *file,
         }
 
 //        ffaudio->decoder_context->profile = FF_PROFILE_AAC_HE;
+
+		if(esds->mpeg4_header && esds->mpeg4_header_size) 
+		{
+//printf("quicktime_new_ffmpeg %d\n", __LINE__);
+			ffaudio->decoder_context->extradata = (unsigned char *)esds->mpeg4_header;
+			ffaudio->decoder_context->extradata_size = esds->mpeg4_header_size;
+		}
+
 
 		if(avcodec_open2(ffaudio->decoder_context, ffaudio->decoder, 0) < 0)
 		{
