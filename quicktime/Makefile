@@ -269,9 +269,9 @@ DIRS += \
 
 
 LIBS := $(OUTPUT) ../guicast/$(OBJDIR)/libcmodel.a $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) -lpng -lz -lpthread -ldl -lm -llzma -lrt
-LIBS += `pkg-config --libs libva-x11`
-LIBS += `pkg-config --libs x11`
-LIBS += `pkg-config --libs libva-drm`
+#LIBS += `pkg-config --libs libva-x11`
+#LIBS += `pkg-config --libs x11`
+#LIBS += `pkg-config --libs libva-drm`
  
 
 $(shell mkdir -p $(DIRS) )

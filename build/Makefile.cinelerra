@@ -7,7 +7,6 @@ DIRS := \
 	doc \
 	mpeg2enc \
 	mplexlo \
-	guicast \
 	cinelerra \
 	plugins \
 	po
@@ -42,6 +41,7 @@ endif
 	$(MAKE) -C thirdparty/audiofile*
 	$(MAKE) -C thirdparty/flac*
 	$(MAKE) -C libmpeg3
+	$(MAKE) -C guicast
 	$(MAKE) -C quicktime
 	$(MAKE) -C $(MJPEGDIR)/utils 
 	$(MAKE) -C $(MJPEGDIR)/mpeg2enc 
