@@ -200,7 +200,7 @@
 	static const  __int64 const_0x2xx8		= 0x0000010000000100LL;
 	static const  __int64 const_0x0808		= 0x0808080808080808LL;
 
-__inline void domidct8x8llmW(short *inptr, short *quantptr, int *wsptr,
+static inline void domidct8x8llmW(short *inptr, short *quantptr, int *wsptr,
 				   JSAMPARRAY outptr, int output_col);
 
 GLOBAL(void)

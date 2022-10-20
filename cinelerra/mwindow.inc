@@ -23,8 +23,8 @@
 #define MWINDOW_INC
 
 #define PROGRAM_NAME "Cinelerra"
-#define CINELERRA_VERSION "7.4"
-#define COPYRIGHT_DATE 2021
+#define CINELERRA_VERSION "8"
+#define COPYRIGHT_DATE 2022
 #define DEFAULT_THEME "S.U.V."
 #define CONFIG_FILE "Cinelerra_rc"
 // user presets
@@ -33,7 +33,7 @@
 #define FACTORY_FILE "Cinelerra_factory"
 #define PICTURE_FILE "Cinelerra_picture"
 #define PLUGIN_FILE "Cinelerra_plugins"
-#define PLUGIN_FILE_VERSION 5
+#define PLUGIN_FILE_VERSION 6
 
 // Behavior of region selections
 #define SELECTION_SAMPLES 0

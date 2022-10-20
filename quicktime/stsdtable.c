@@ -82,6 +82,7 @@ void quicktime_read_stsd_audio(quicktime_t *file,
 	table->packet_size = quicktime_read_int16(file);
 	table->sample_rate = quicktime_read_fixed32(file);
 
+
 // printf("quicktime_read_stsd_audio %d sample_rate=%f version=%d\n", 
 // __LINE__, 
 // table->sample_rate,

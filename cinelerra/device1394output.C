@@ -292,7 +292,7 @@ int Device1394Output::open(char *path,
 					0);
 			}
 
-        	if(output_buffer <= 0)
+        	if(output_buffer != 0)
 			{
             	perror("Device1394Output::open mmap");
         	}

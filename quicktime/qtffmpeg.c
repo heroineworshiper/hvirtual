@@ -1032,9 +1032,12 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 
 //        ffaudio->decoder_context->profile = FF_PROFILE_AAC_HE;
 
+
+//printf("quicktime_new_ffmpeg %d %d %d %d %d\n", 
+//__LINE__, esds->got_esds_rate, esds->channels, stsd->channels, esds->mpeg4_header_size);
+
 		if(esds->mpeg4_header && esds->mpeg4_header_size) 
 		{
-//printf("quicktime_new_ffmpeg %d\n", __LINE__);
 			ffaudio->decoder_context->extradata = (unsigned char *)esds->mpeg4_header;
 			ffaudio->decoder_context->extradata_size = esds->mpeg4_header_size;
 		}

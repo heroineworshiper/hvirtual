@@ -120,7 +120,8 @@ CFLAGS += -DHAVE_CONFIG_H \
 	-DHAVE_UNISTD_H=1 \
 	-DHAVE_STRERROR=1 \
 	-DHAVE_IOS_BASE=1 \
-	-DHAVE_STL_LIMITS=1
+	-DHAVE_STL_LIMITS=1 \
+    -ansi
 
 $(shell mkdir -p $(DIRS) )
 $(shell echo $(CFLAGS) > $(EXRDIR)/$(OBJDIR)/c_flags)

@@ -152,7 +152,7 @@ FFMPEG_LFLAGS="-L$FFMPEG_DIR/libavformat -L$FFMPEG_DIR/libavcodec -L$FFMPEG_DIR/
 FFMPEG_LIBS="-lavformat -lavcodec -lavutil -lswresample -ldl -lm -lpthread -lz -lbz2 -llzma"
 
 cd $FFMPEG_DIR
-./configure --enable-pthreads --disable-ffplay --enable-nonfree --enable-gpl --enable-cuda-nvcc --enable-libnpp --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64
+./configure --enable-pthreads --disable-ffplay --enable-nonfree --disable-doc --enable-gpl --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64
 if [ $? -ne 0 ]; then 
 ERROR=1
 fi
@@ -223,7 +223,9 @@ if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
 
 echo CONFIGURING SNDFILE
-cd thirdparty/libsndfile* && chmod a+x ./configure && ./configure && \
+#cd thirdparty/libsndfile* && chmod a+x ./configure && ./configure && \
+cd thirdparty/libsndfile* && \
+autoconf && autoreconf && ./configure && \
 cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
@@ -231,6 +233,7 @@ if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 echo CONFIGURING PULSEAUDIO
 cd thirdparty/pulseaudio* && \
 SNDFILE_PATH=`expr $TOPDIR/thirdparty/libsndfile*` && \
+#./bootstrap.sh && \
 ./configure --disable-dbus --disable-x11 --without-caps LIBSNDFILE_LIBS="-L$SNDFILE_PATH/src/.libs/ -lsndfile" LIBSNDFILE_CFLAGS="-I$SNDFILE_PATH/src" --enable-static && \
 cd ../..
 

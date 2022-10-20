@@ -308,18 +308,18 @@ char *strchr(), *strrchr();
         return i;
     }
   #elif (defined(__i386__) && defined(__GNUC__))
-    #define HAS_LRINTF
-    // from http://www.stereopsis.com/FPU.html
-    static INLINE int lrintf(float f)
-    {
-        int i;
-        __asm__ __volatile__ (
-            "flds %1        \n\t"
-            "fistpl %0      \n\t"
-            : "=m" (i)
-            : "m" (f));
-        return i;
-    }
+//     #define HAS_LRINTF
+//     // from http://www.stereopsis.com/FPU.html
+//     static INLINE int lrintf(float f)
+//     {
+//         int i;
+//         __asm__ __volatile__ (
+//             "flds %1        \n\t"
+//             "fistpl %0      \n\t"
+//             : "=m" (i)
+//             : "m" (f));
+//         return i;
+//     }
   #endif
 
 

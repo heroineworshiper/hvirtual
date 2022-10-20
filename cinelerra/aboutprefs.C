@@ -116,6 +116,7 @@ void AboutPrefs::create_objects()
 	credits.append(new BC_ListBoxItem("Einar R\374nkaru"));
 #endif
 	credits.append(new BC_ListBoxItem("Paolo Rampino"));
+	credits.append(new BC_ListBoxItem("Andrew Randrianasulu"));
 	credits.append(new BC_ListBoxItem("Petter Reinholdtsen"));
 	credits.append(new BC_ListBoxItem("Eric Seigne"));
 	credits.append(new BC_ListBoxItem("Johannes Sixt"));

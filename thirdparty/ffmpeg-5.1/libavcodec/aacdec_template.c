@@ -1295,6 +1295,27 @@ static av_cold int aac_decode_init(AVCodecContext *avctx)
     avctx->sample_fmt = AV_SAMPLE_FMT_FLTP;
 #endif /* USE_FIXED */
 
+// char string[1024] = { 0 };
+// int i;
+// for(i = 0; i < avctx->extradata_size; i++)
+// {
+// static char hex_table[] = { 
+// '0', '1', '2', '3', '4', '5', '6', '7', '8', 
+// '9', 'a', 'b', 'c', 'd', 'e', 'f',
+// };
+// string[i * 3] = hex_table[(avctx->extradata[i] >> 4) & 0xf];
+// string[i * 3 + 1] = hex_table[avctx->extradata[i] & 0xf];
+// string[i * 3 + 2] = ' ';
+// string[i * 3 + 3] = 0;
+// }
+// av_log(ac->avctx, 
+// AV_LOG_ERROR, 
+// "aac_decode_frame %d: %d %s\n",
+// __LINE__,
+// avctx->extradata_size,
+// string);
+
+
     if (avctx->extradata_size > 0) {
         if ((ret = decode_audio_specific_config(ac, ac->avctx, &ac->oc[1].m4ac,
                                                 avctx->extradata,
@@ -3469,6 +3490,15 @@ static int aac_decode_frame(AVCodecContext *avctx, AVFrame *frame,
     const uint8_t *jp_dualmono   = av_packet_get_side_data(avpkt,
                                        AV_PKT_DATA_JP_DUALMONO,
                                        &jp_dualmono_size);
+
+
+// av_log(ac->avctx, 
+// AV_LOG_ERROR, 
+// "aac_decode_frame %d: %d %d %d\n",
+// __LINE__,
+// avpkt->size,
+// new_extradata_size,
+// ac->oc[1].m4ac.object_type);
 
     if (new_extradata) {
         /* discard previous configuration */

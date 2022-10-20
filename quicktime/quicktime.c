@@ -1101,8 +1101,15 @@ int quicktime_init_audio_map(quicktime_t *file,
     quicktime_audio_map_t *atrack, 
     quicktime_trak_t *trak)
 {
+    quicktime_stsd_table_t *stsd = &trak->mdia.minf.stbl.stsd.table[0];
+    quicktime_esds_t *esds = &stsd->esds;
 	atrack->track = trak;
-	atrack->channels = trak->mdia.minf.stbl.stsd.table[0].channels;
+	atrack->channels = stsd->channels;
+// STSD & ESDS have different values
+    if(esds->got_esds_rate)
+    {
+        atrack->channels = esds->channels;
+    }
 	atrack->current_position = 0;
 	atrack->current_chunk = 1;
 	quicktime_init_acodec(atrack);
