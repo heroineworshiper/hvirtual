@@ -176,6 +176,7 @@ int FileStdout::reset_parameters_derived()
     temp_samples = 0;
     temp_allocated = 0;
     failed = 0;
+    return 0;
 }
 
 int FileStdout::open_file(int rd, int wr)
@@ -774,6 +775,7 @@ StdoutPreset* StdoutPreset::createMplex(const char *title,
     result->title.assign(title);
     result->command.assign(command);
     result->delete_temps = delete_temps;
+    return result;
 }
 
 

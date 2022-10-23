@@ -455,5 +455,6 @@ int RecordVideo::unhang_thread()
 {
 printf("RecordVideo::unhang_thread\n");
 	Thread::end();
+    return 0;
 }
 

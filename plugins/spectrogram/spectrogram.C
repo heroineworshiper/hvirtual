@@ -229,6 +229,7 @@ int SpectrogramWindowSizeTumbler::handle_up_event()
 	sprintf(string, "%d", plugin->config.window_size);
 	((SpectrogramWindow*)plugin->get_thread()->get_window())->window_size->set_text(string);
 	plugin->send_configure_change();
+    return 0;
 }
 
 int SpectrogramWindowSizeTumbler::handle_down_event()
@@ -335,6 +336,7 @@ int SpectrogramCanvas::cursor_motion_event()
 	{
 		calculate_point();
 	}
+    return 0;
 }
 
 

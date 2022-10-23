@@ -225,6 +225,7 @@ TransitionPopupAttach::~TransitionPopupAttach()
 int TransitionPopupAttach::handle_event()
 {
 //	popup->dialog_thread->start();
+    return 0;
 }
 
 

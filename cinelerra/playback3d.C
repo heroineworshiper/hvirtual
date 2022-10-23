@@ -990,6 +990,7 @@ void Playback3D::clear_output(Canvas *canvas, VFrame *output, int video_on)
 
 void Playback3D::clear_output_sync(Playback3DCommand *command)
 {
+#ifdef HAVE_GL
 	command->canvas->lock_canvas("Playback3D::clear_output_sync");
 	BC_WindowBase *canvas = command->canvas->get_canvas();
 	if(canvas)
@@ -1016,6 +1017,7 @@ void Playback3D::clear_output_sync(Playback3DCommand *command)
 		command->canvas->get_canvas()->unlock_window();
 	}
 	command->canvas->unlock_canvas();
+#endif
 }
 
 

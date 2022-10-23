@@ -1179,5 +1179,6 @@ int ChromaKeyHSV::handle_opengl()
 
 
 #endif
+    return 0;
 }
 

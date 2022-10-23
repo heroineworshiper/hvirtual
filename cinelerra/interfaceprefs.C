@@ -270,6 +270,7 @@ int InterfacePrefs::update(int new_value)
 	frames->update(new_value == TIME_FRAMES);
 	feet->update(new_value == TIME_FEET_FRAMES);
 	seconds->update(new_value == TIME_SECONDS);
+    return 0;
 }
 
 InterfacePrefs::~InterfacePrefs()
@@ -316,6 +317,7 @@ IndexPathText::~IndexPathText() {}
 int IndexPathText::handle_event()
 {
 	pwindow->thread->preferences->index_directory.assign(get_text());
+    return 0;
 }
 
 
@@ -393,6 +395,7 @@ TimeFormatHMSF::TimeFormatHMSF(PreferencesWindow *pwindow, InterfacePrefs *tfwin
 int TimeFormatHMSF::handle_event()
 {
 	tfwindow->update(TIME_HMSF);
+    return 0;
 }
 
 TimeFormatSamples::TimeFormatSamples(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
@@ -402,6 +405,7 @@ TimeFormatSamples::TimeFormatSamples(PreferencesWindow *pwindow, InterfacePrefs 
 int TimeFormatSamples::handle_event()
 {
 	tfwindow->update(TIME_SAMPLES);
+    return 0;
 }
 
 TimeFormatFrames::TimeFormatFrames(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
@@ -411,6 +415,7 @@ TimeFormatFrames::TimeFormatFrames(PreferencesWindow *pwindow, InterfacePrefs *t
 int TimeFormatFrames::handle_event()
 {
 	tfwindow->update(TIME_FRAMES);
+    return 0;
 }
 
 TimeFormatHex::TimeFormatHex(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
@@ -420,6 +425,7 @@ TimeFormatHex::TimeFormatHex(PreferencesWindow *pwindow, InterfacePrefs *tfwindo
 int TimeFormatHex::handle_event()
 {
 	tfwindow->update(TIME_SAMPLES_HEX);
+    return 0;
 }
 
 TimeFormatSeconds::TimeFormatSeconds(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
@@ -432,6 +438,7 @@ TimeFormatSeconds::TimeFormatSeconds(PreferencesWindow *pwindow, InterfacePrefs 
 int TimeFormatSeconds::handle_event()
 {
 	tfwindow->update(TIME_SECONDS);
+    return 0;
 }
 
 TimeFormatFeet::TimeFormatFeet(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
@@ -441,6 +448,7 @@ TimeFormatFeet::TimeFormatFeet(PreferencesWindow *pwindow, InterfacePrefs *tfwin
 int TimeFormatFeet::handle_event()
 {
 	tfwindow->update(TIME_FEET_FRAMES);
+    return 0;
 }
 
 TimeFormatFeetSetting::TimeFormatFeetSetting(PreferencesWindow *pwindow, int x, int y, char *string)
@@ -473,6 +481,7 @@ ViewBehaviourText::~ViewBehaviourText()
 
 int ViewBehaviourText::handle_event()
 {
+    return 0;
 }
 
 void ViewBehaviourText::create_objects()
@@ -500,6 +509,7 @@ int ViewBehaviourItem::handle_event()
 {
 	popup->set_text(get_text());
 	*(popup->output) = behaviour;
+    return 0;
 }
 
 

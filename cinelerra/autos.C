@@ -625,6 +625,7 @@ int Autos::clear_auto(int64_t position)
 	Auto *current;
 	current = autoof(position);
 	if(current->position == position) remove(current);
+    return 0;
 }
 
 

@@ -133,6 +133,7 @@ int FileFLAC::reset_parameters_derived()
 	temp_channels = 0;
 	initialized = 0;
 	is_reading = 0;
+    return 0;
 }
 
 

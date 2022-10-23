@@ -68,6 +68,7 @@ QuestionYesButton::QuestionYesButton(MWindow *mwindow, QuestionWindow *window, i
 int QuestionYesButton::handle_event()
 {
 	set_done(2);
+    return 0;
 }
 
 int QuestionYesButton::keypress_event()
@@ -86,6 +87,7 @@ QuestionNoButton::QuestionNoButton(MWindow *mwindow, QuestionWindow *window, int
 int QuestionNoButton::handle_event()
 {
 	set_done(0);
+    return 0;
 }
 
 int QuestionNoButton::keypress_event()

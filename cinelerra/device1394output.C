@@ -184,6 +184,7 @@ int Device1394Output::get_dv1394()
 {
 	if(adevice) return adevice->out_config->driver == AUDIO_DV1394;
 	if(vdevice) return vdevice->out_config->driver == PLAYBACK_DV1394;
+    return 0;
 }
 
 int Device1394Output::open(char *path,
@@ -214,12 +215,12 @@ int Device1394Output::open(char *path,
     struct dv1394_init setup = 
 	{
        api_version: DV1394_API_VERSION,
-       channel:     channel,
-  	   n_frames:    length,
+       channel:     (unsigned int)channel,
+  	   n_frames:    (unsigned int)length,
        format:      is_pal ? DV1394_PAL : DV1394_NTSC,
        cip_n:       0,
        cip_d:       0,
-       syt_offset:  syt
+       syt_offset:  (unsigned int)syt
     };
 
 	

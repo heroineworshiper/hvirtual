@@ -154,6 +154,7 @@ void RecordMonitor::run()
 int RecordMonitor::close_threads()
 {
 	if(window->channel_picker) window->channel_picker->close_threads();
+    return 0;
 }
 
 int RecordMonitor::update(VFrame *vframe)
@@ -176,6 +177,7 @@ int RecordMonitor::fix_size(int &w, int &h, int width_given, float aspect_ratio)
 {
 	w = width_given;
 	h = (int)((float)width_given / aspect_ratio);
+    return 0;
 }
 
 float RecordMonitor::get_scale(int w)

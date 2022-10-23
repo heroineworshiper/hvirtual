@@ -86,6 +86,7 @@ int RecordAudio::arm_recording()
 	timer.update();
 	trigger_lock->lock("RecordAudio::arm_recording");
 	Thread::start();
+    return 0;
 }
 
 void RecordAudio::start_recording()

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009-2013 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1381,7 +1381,7 @@ int Record::get_vu_format() { return mwindow->edl->session->meter_format; }
 float Record::get_min_db() { return mwindow->edl->session->min_meter_db; }
 
 int Record::get_rec_mode() { return record_mode; }
-int Record::set_rec_mode(int value) { record_mode = value; }
+int Record::set_rec_mode(int value) { record_mode = value; return 0; }
 
 int Record::get_video_buffersize() { return mwindow->edl->session->video_write_length; }
 int Record::get_everyframe() { return mwindow->edl->session->video_every_frame; }

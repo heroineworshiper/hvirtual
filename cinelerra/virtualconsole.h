@@ -116,16 +116,16 @@ public:
 
 
 
-	virtual int init_rendering(int duplicate) {};
+	virtual int init_rendering(int duplicate) { return 0; };
 // Replaced by pull system
 //	int sort_virtual_console();
 	int delete_virtual_console();
 
 // Signal effects to deallocate any resources which must be deallocated
 // after playback.
-	virtual int stop_rendering(int duplicate) {};
+	virtual int stop_rendering(int duplicate) { return 0; };
 
-	virtual int send_last_output_buffer() {};
+	virtual int send_last_output_buffer() { return 0; };
 
 
 	PlayableTracks *playable_tracks;

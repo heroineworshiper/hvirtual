@@ -73,9 +73,9 @@ public:
 //	virtual int get_index(char *index_path) { return 1; };
 // reset_parameters_derived is not available until after the constructor
 	virtual int reset_parameters_derived();
-	virtual int open_file(int rd, int wr) {};
+	virtual int open_file(int rd, int wr) { return 0; };
 	virtual int close_file();
-	virtual int close_file_derived() {};
+	virtual int close_file_derived() { return 0; };
 	int set_dither();
 	virtual int seek_end() { return 0; };
 	virtual int64_t get_video_position() { return 0; };

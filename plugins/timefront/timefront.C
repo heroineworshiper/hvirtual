@@ -392,6 +392,7 @@ int TimeFrontShape::handle_event()
 	plugin->config.shape = from_text(get_text());
 	gui->update_shape();
 	plugin->send_configure_change();
+    return 0;
 }
 
 
@@ -435,6 +436,7 @@ int TimeFrontTrackUsage::handle_event()
 	plugin->config.track_usage = from_text(get_text());
 	gui->update_shape();
 	plugin->send_configure_change();
+    return 0;
 }
 
 

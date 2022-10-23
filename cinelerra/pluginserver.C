@@ -159,6 +159,7 @@ int PluginServer::reset_parameters()
 	is_lad = 0;
 	lad_descriptor_function = 0;
 	lad_descriptor = 0;
+    return 0;
 }
 
 
@@ -175,6 +176,7 @@ int PluginServer::cleanup_plugin()
 	gui_on = 0;
 	plugin = 0;
 	plugin_open = 0;
+    return 0;
 }
 
 void PluginServer::set_mwindow(MWindow *mwindow)
@@ -203,6 +205,7 @@ int PluginServer::set_path(char *path)
 	if(this->path) delete [] this->path;
 	this->path = new char[strlen(path) + 1];
 	strcpy(this->path, path);
+    return 0;
 }
 
 char* PluginServer::get_path()
@@ -516,6 +519,7 @@ int PluginServer::init_realtime(int realtime_sched,
 		total_in_buffers, 
 		buffer_size);
 
+    return 0;
 }
 
 
@@ -1205,6 +1209,7 @@ int PluginServer::arm_buffer(int buffer_number,
 	offset_out_render.values[buffer_number] = offset_out;
 	double_buffer_in_render.values[buffer_number] = double_buffer_in;
 	double_buffer_out_render.values[buffer_number] = double_buffer_out;
+    return 0;
 }
 
 
@@ -1214,6 +1219,7 @@ int PluginServer::set_automation(FloatAutos *autos, FloatAuto **start_auto, Floa
 	this->start_auto = start_auto;
 	this->end_auto = end_auto;
 	this->reverse = reverse;
+    return 0;
 }
 
 

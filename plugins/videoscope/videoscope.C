@@ -186,6 +186,7 @@ int VideoScopeWindow::resize_event(int w, int h)
 	plugin->h = h;
 // Make it reprocess
 	plugin->send_configure_change();
+    return 0;
 }
 
 

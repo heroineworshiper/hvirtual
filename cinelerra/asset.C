@@ -208,6 +208,7 @@ void Asset::boundaries()
 int Asset::reset_index()
 {
 	index_state->reset();
+    return 0;
 }
 
 void Asset::copy_from(Asset *asset, int do_index)
@@ -465,6 +466,7 @@ int Asset::test_path(const char *path)
 
 int Asset::test_plugin_title(const char *path)
 {
+    return 0;
 }
 
 int Asset::read(FileXML *file, 
@@ -617,6 +619,7 @@ int Asset::read_index(FileXML *file)
 int Asset::write_index(const char *path, int data_bytes)
 {
 	index_state->write_index(path, data_bytes, this, audio_length);
+    return 0;
 }
 
 // Output path is the path of the output file if name truncation is desired.

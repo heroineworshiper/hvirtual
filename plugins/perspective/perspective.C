@@ -909,6 +909,7 @@ float PerspectiveMain::get_current_x()
 			return config.x4;
 			break;
 	}
+    return 0;
 }
 
 float PerspectiveMain::get_current_y()
@@ -928,6 +929,7 @@ float PerspectiveMain::get_current_y()
 			return config.y4;
 			break;
 	}
+    return 0;
 }
 
 void PerspectiveMain::set_current_x(float value)
@@ -1201,6 +1203,7 @@ int PerspectiveMain::handle_opengl()
 	engine->set_opengl(0);
 	return 0;
 #endif
+    return 0;
 }
 
 

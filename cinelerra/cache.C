@@ -317,6 +317,7 @@ int CICache::age()
 //printf("CICache::age %d this=%p %ld\n", __LINE__, this, get_memory_usage(1));
 
 
+    return 0;
 }
 
 int64_t CICache::get_memory_usage(int use_lock)
@@ -456,6 +457,7 @@ int CICache::dump()
 			(int)current->age);
 	}
 	total_lock->unlock();
+    return 0;
 }
 
 

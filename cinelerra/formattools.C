@@ -766,6 +766,7 @@ FormatAParams::FormatAParams(MWindow *mwindow, FormatTools *format, int x, int y
 int FormatAParams::handle_event() 
 {
 	format->set_audio_options(); 
+    return 0;
 }
 
 
@@ -781,6 +782,7 @@ FormatVParams::FormatVParams(MWindow *mwindow, FormatTools *format, int x, int y
 int FormatVParams::handle_event() 
 { 
 	format->set_video_options(); 
+    return 0;
 }
 
 
@@ -793,6 +795,7 @@ FormatMplexParams::FormatMplexParams(MWindow *mwindow, FormatTools *format, int 
 int FormatMplexParams::handle_event() 
 { 
 	format->set_mplex_options(); 
+    return 0;
 }
 
 
@@ -982,6 +985,7 @@ FormatAudio::~FormatAudio() {}
 int FormatAudio::handle_event()
 {
 	format->asset->audio_data = format->audio_checked = get_value();
+    return 0;
 }
 
 
@@ -997,6 +1001,7 @@ FormatVideo::~FormatVideo() {}
 int FormatVideo::handle_event()
 {
 	format->asset->video_data = format->video_checked = get_value();
+    return 0;
 }
 
 
@@ -1032,7 +1037,7 @@ FormatFormat::~FormatFormat()
 }
 int FormatFormat::handle_event()
 {
-	if(get_selection(0, 0) >= 0)
+	if(get_selection(0, 0) != 0)
 	{
         const char *text = get_selection(0, 0)->get_text();
 		int new_format = File::strtoformat(text);

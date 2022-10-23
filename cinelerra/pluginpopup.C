@@ -109,6 +109,7 @@ int PluginPopupChange::handle_event()
 		PROGRAM_NAME ": Change Effect",
 		0,
 		popup->plugin->track->data_type);
+    return 0;
 }
 
 

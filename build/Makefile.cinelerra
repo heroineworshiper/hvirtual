@@ -67,6 +67,7 @@ $(OBJDIR)/soundtest: $(OBJDIR)/soundtest.o
 	$(CC) -o $(OBJDIR)/soundtest $(OBJDIR)/soundtest.o -lm
 
 clean:
+	$(MAKE) -C $(FFMPEG_DIR) clean
 	$(MAKE) -C thirdparty/libsndfile* clean
 #	$(MAKE) -f build/Makefile.sndfile clean
 	$(MAKE) -C thirdparty/pulseaudio* clean
@@ -117,11 +118,13 @@ install:
 	$(MAKE) -C po install
 	$(MAKE) -C doc install
 	cp COPYING README bin
+	cp $(FFMPEG_DIR)/ffmpeg bin
 #	cp thirdparty/festival/src/main/festival bin
 #	cp -a thirdparty/festival/lib bin/
 #	cp -a models bin
 	cd bin && find -name '.svn' -exec rm -r {} \; -prune
 	cp cinelerra/Cinelerra_factory bin
+	cp -a cinelerra/cinelerra.sh bin
 
 
 

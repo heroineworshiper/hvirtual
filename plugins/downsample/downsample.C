@@ -716,6 +716,7 @@ int DownSampleMain::handle_opengl()
 		"uniform float x_offset;\n"
 		"uniform float y_offset;\n";
 #endif
+    return 0;
 }
 
 

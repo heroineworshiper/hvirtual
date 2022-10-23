@@ -81,6 +81,7 @@ int FloatAutos::draw_joining_line(BC_SubWindow *canvas, int vertical, int center
 		canvas->draw_line(center_pixel - y1, x1, center_pixel - y2, x2);
 	else
 		canvas->draw_line(x1, center_pixel + y1, x2, center_pixel + y2);
+    return 0;
 }
 
 

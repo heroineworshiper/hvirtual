@@ -497,6 +497,7 @@ int PluginClient::reset()
 	direction = PLAY_FORWARD;
 	thread = 0;
 	using_defaults = 0;
+    return 0;
 }
 
 

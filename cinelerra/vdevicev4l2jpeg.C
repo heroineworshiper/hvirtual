@@ -70,6 +70,7 @@ VDeviceV4L2JPEG::~VDeviceV4L2JPEG()
 int VDeviceV4L2JPEG::initialize()
 {
 	thread = 0;
+    return 0;
 }
 
 

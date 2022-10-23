@@ -191,6 +191,7 @@ snd_pcm_format_t AudioALSA::translate_format(int format)
 			return SND_PCM_FORMAT_S32_LE;
 			break;
 	}
+    return SND_PCM_FORMAT_S16_LE;
 }
 
 void AudioALSA::set_params(snd_pcm_t *dsp, 
@@ -386,6 +387,7 @@ int AudioALSA::close_all()
 	samples_written = 0;
 	delay = 0;
 	interrupted = 0;
+    return 0;
 }
 
 // Undocumented

@@ -155,6 +155,7 @@ int AudioPulse::close_all()
     dsp_in = 0;
     samples_written = 0;
     delay = 0;
+    return 0;
 }
 
 int64_t AudioPulse::device_position()

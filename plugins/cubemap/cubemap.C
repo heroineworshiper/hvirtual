@@ -552,6 +552,7 @@ int CubeMap::handle_opengl()
 	glEnd();
     output->set_opengl_state(VFrame::SCREEN);
 #endif
+    return 0;
 }
 
 

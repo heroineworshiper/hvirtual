@@ -847,6 +847,7 @@ int RotateEffect::handle_opengl()
 		glEnd();
 	}
 #endif
+    return 0;
 }
 
 

@@ -240,6 +240,7 @@ int TranslateMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 			TRANSFER_REPLACE,
 			get_interpolation_type());
 
+    return 0;
 }
 
 

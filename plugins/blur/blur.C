@@ -593,6 +593,7 @@ int BlurEngine::reconfigure(BlurConstants *constants, double radius)
 	double std_dev = sqrt(-(double)(radius * radius) / 
 		(2 * log (1.0 / 255.0)));
 	get_constants(constants, std_dev);
+    return 0;
 }
 
 int BlurEngine::get_constants(BlurConstants *ptr, double std_dev)
@@ -730,8 +731,8 @@ int BlurEngine::transfer_pixels(pixel_f *src1,
 
 int BlurEngine::multiply_alpha(pixel_f *row, int size)
 {
-	register int i;
-	register double alpha;
+	int i;
+	double alpha;
 
 // 	for(i = 0; i < size; i++)
 // 	{
@@ -745,9 +746,9 @@ int BlurEngine::multiply_alpha(pixel_f *row, int size)
 
 int BlurEngine::separate_alpha(pixel_f *row, int size)
 {
-	register int i;
-	register double alpha;
-	register double result;
+	int i;
+	double alpha;
+	double result;
 	
 // 	for(i = 0; i < size; i++)
 // 	{

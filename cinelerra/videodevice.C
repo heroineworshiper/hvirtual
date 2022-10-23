@@ -75,6 +75,7 @@ int KeepaliveThread::start_keepalive()
 	start();
 	startup_lock->lock("KeepaliveThread::start_keepalive 2");
 	startup_lock->unlock();
+    return 0;
 }
 
 void KeepaliveThread::run()
@@ -101,6 +102,7 @@ void KeepaliveThread::run()
 int KeepaliveThread::reset_keepalive()
 {
 	still_alive = 1;
+    return 0;
 }
 
 int KeepaliveThread::get_failed()
@@ -115,6 +117,7 @@ int KeepaliveThread::stop()
 // Force an immediate exit even if capture_frame worked.
 	Thread::end();
 	Thread::join();
+    return 0;
 }
 
 
@@ -177,6 +180,7 @@ int VideoDevice::initialize()
 	picture_changed = 0;
 	odd_field_first = 0;
 	do_cursor = 0;
+    return 0;
 }
 
 int VideoDevice::open_input(VideoInConfig *config, 
@@ -196,12 +200,21 @@ int VideoDevice::open_input(VideoInConfig *config,
 
 	switch(in_config->driver)
 	{
+#ifdef HAVE_VIDEO4LINUX
 		case VIDEO4LINUX:
 			keepalive = new KeepaliveThread(this);
 			keepalive->start_keepalive();
 			new_device_base();
 			result = input_base->open_input();
 			break;
+		case CAPTURE_BUZ:
+//printf("VideoDevice 1\n");
+			keepalive = new KeepaliveThread(this);
+			keepalive->start_keepalive();
+			new_device_base();
+			result = input_base->open_input();
+			break;
+#endif
 
 
 #ifdef HAVE_VIDEO4LINUX2
@@ -221,13 +234,6 @@ int VideoDevice::open_input(VideoInConfig *config,
 		case SCREENCAPTURE:
 			this->input_x = input_x;
 			this->input_y = input_y;
-			new_device_base();
-			result = input_base->open_input();
-			break;
-		case CAPTURE_BUZ:
-//printf("VideoDevice 1\n");
-			keepalive = new KeepaliveThread(this);
-			keepalive->start_keepalive();
 			new_device_base();
 			result = input_base->open_input();
 			break;
@@ -256,6 +262,8 @@ VDeviceBase* VideoDevice::new_device_base()
 #ifdef HAVE_VIDEO4LINUX
 		case VIDEO4LINUX:
 			return input_base = new VDeviceV4L(this);
+		case CAPTURE_BUZ:
+			return input_base = new VDeviceBUZ(this);
 #endif
 
 #ifdef HAVE_VIDEO4LINUX2
@@ -272,11 +280,6 @@ VDeviceBase* VideoDevice::new_device_base()
 
 		case SCREENCAPTURE:
 			return input_base = new VDeviceX11(this, 0);
-
-#ifdef HAVE_VIDEO4LINUX
-		case CAPTURE_BUZ:
-			return input_base = new VDeviceBUZ(this);
-#endif
 
 #ifdef HAVE_FIREWIRE
 		case CAPTURE_FIREWIRE:
@@ -587,6 +590,7 @@ int VideoDevice::set_channel(Channel *channel)
 		if(input_base) return input_base->set_channel(channel);
 		if(output_base) return output_base->set_channel(channel);
 	}
+    return 0;
 }
 
 void VideoDevice::set_quality(int quality)
@@ -610,6 +614,7 @@ int VideoDevice::set_picture(PictureConfig *picture)
 
 		if(input_base) return input_base->set_picture(picture);
 	}
+    return 0;
 }
 
 int VideoDevice::update_translation()
@@ -809,11 +814,13 @@ int VideoDevice::write_buffer(VFrame *output, EDL *edl)
 int VideoDevice::output_visible()
 {
 	if(output_base) return output_base->output_visible();
+    return 0;
 }
 
 BC_Bitmap* VideoDevice::get_bitmap()
 {
 	if(output_base) return output_base->get_bitmap();
+    return 0;
 }
 
 

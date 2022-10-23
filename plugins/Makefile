@@ -136,7 +136,8 @@ endif
 all: $(DIRS)
 
 # force parallel compilation of all directories
-$(DIRS): /proc/uptime
+.PHONY: FORCE
+$(DIRS): FORCE
 	$(MAKE) -C $@
 
 clean:

@@ -52,7 +52,9 @@ void MaskPoint::copy_from(MaskPoint &ptr)
 
 MaskPoint& MaskPoint::operator=(MaskPoint& ptr)
 {
+    printf("MaskPoint::operator= %d: called\n", __LINE__);
 	copy_from(ptr);
+    return *this;
 }
 
 int MaskPoint::operator==(MaskPoint& ptr)

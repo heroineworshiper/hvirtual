@@ -337,6 +337,7 @@ int AudioDevice::get_irate()
 	if(r) return in_samplerate;
 	else
 	if(d) return duplex_samplerate;
+    return 0;
 }
 
 int AudioDevice::get_orealtime()

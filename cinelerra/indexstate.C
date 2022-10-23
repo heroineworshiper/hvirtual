@@ -254,6 +254,7 @@ int IndexState::write_index(const char *path,
 	index_end = length_source;
 	old_index_end = 0;
 	index_start = 0;
+    return 0;
 }
 
 int64_t IndexState::get_index_offset(int channel)

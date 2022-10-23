@@ -515,6 +515,7 @@ TimelinePane* MWindowGUI::get_focused_pane()
 	{
 		if(pane[i]) return pane[i];
 	}
+    return 0;
 }
 
 void MWindowGUI::activate_timeline()
@@ -1102,6 +1103,7 @@ int MWindowGUI::save_defaults(BC_Hash *defaults)
 	defaults->update("MWINDOWHEIGHT", get_h());
 	mainmenu->save_defaults(defaults);
 	BC_WindowBase::save_defaults(defaults);
+    return 0;
 }
 
 int MWindowGUI::keypress_event()
@@ -1325,6 +1327,7 @@ int MWindowGUI::keypress_event()
 int MWindowGUI::close_event() 
 { 
 	mainmenu->quit(); 
+    return 0;
 }
 
 int MWindowGUI::menu_h()

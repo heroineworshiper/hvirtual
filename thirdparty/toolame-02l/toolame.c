@@ -27,6 +27,7 @@ FILE *musicin;
 Bit_stream_struc bs;
 char *programName;
 char toolameversion[10] = "0.2l";
+options toolame_glopts;
 
 // Input buffer management.  This is not reentrant but neither is toolame.
 
@@ -139,17 +140,17 @@ int toolame_buffer_read(char *dst, int size, int n)
 
 void global_init (void)
 {
-  glopts.usepsy = TRUE;
-  glopts.usepadbit = TRUE;
-  glopts.quickmode = FALSE;
-  glopts.quickcount = 10;
-  glopts.downmix = FALSE;
-  glopts.byteswap = FALSE;
-  glopts.channelswap = FALSE;
-  glopts.vbr = FALSE;
-  glopts.vbrlevel = 0;
-  glopts.athlevel = 0;
-  glopts.verbosity = 2;
+  toolame_glopts.usepsy = TRUE;
+  toolame_glopts.usepadbit = TRUE;
+  toolame_glopts.quickmode = FALSE;
+  toolame_glopts.quickcount = 10;
+  toolame_glopts.downmix = FALSE;
+  toolame_glopts.byteswap = FALSE;
+  toolame_glopts.channelswap = FALSE;
+  toolame_glopts.vbr = FALSE;
+  toolame_glopts.vbrlevel = 0;
+  toolame_glopts.athlevel = 0;
+  toolame_glopts.verbosity = 2;
 }
 
 /************************************************************************
@@ -277,14 +278,14 @@ int toolame (int argc, char **argv)
 
 
   while (get_audio (musicin, buffer, num_samples, nch, &header) > 0) {
-    if (glopts.verbosity > 1)
+    if (toolame_glopts.verbosity > 1)
       if (++frameNum % 10 == 0)
 	fprintf (stderr, "[%4u]\r", frameNum);
     fflush (stderr);
     win_buf[0] = &buffer[0][0];
     win_buf[1] = &buffer[1][0];
 
-    adb = available_bits (&header, &glopts);
+    adb = available_bits (&header, &toolame_glopts);
     lg_frame = adb / 8;
     if (header.dab_extension) {
       /* in 24 kHz we always have 4 bytes */
@@ -345,7 +346,7 @@ int toolame (int argc, char **argv)
 
 
 
-    if ((glopts.quickmode == TRUE) && (++psycount % glopts.quickcount != 0)) {
+    if ((toolame_glopts.quickmode == TRUE) && (++psycount % toolame_glopts.quickcount != 0)) {
       /* We're using quick mode, so we're only calculating the model every
          'quickcount' frames. Otherwise, just copy the old ones across */
       for (ch = 0; ch < nch; ch++) {
@@ -368,19 +369,19 @@ int toolame (int argc, char **argv)
 	for (ch = 0; ch < nch; ch++) {
 	  psycho_2 (&buffer[ch][0], &sam[ch][0], ch, &smr[ch][0], //snr32,
 		     (FLOAT) s_freq[header.version][header.sampling_frequency] *
-		     1000, &glopts);
+		     1000, &toolame_glopts);
 	}
 	break;
       case 3:
 	/* Modified psy model 1 */
-	psycho_3 (buffer, max_sc, smr, &frame, &glopts);
+	psycho_3 (buffer, max_sc, smr, &frame, &toolame_glopts);
 	break;
       case 4:
 	/* Modified Psycho Model 2 */
 	for (ch = 0; ch < nch; ch++) {
 	  psycho_4 (&buffer[ch][0], &sam[ch][0], ch, &smr[ch][0], // snr32,
 		     (FLOAT) s_freq[header.version][header.sampling_frequency] *
-		     1000, &glopts);
+		     1000, &toolame_glopts);
 	}
 	break;	
       case 5:
@@ -388,7 +389,7 @@ int toolame (int argc, char **argv)
 	psycho_1 (buffer, max_sc, smr, &frame);
 	fprintf(stdout,"1 ");
 	smr_dump(smr,nch);
-	psycho_3 (buffer, max_sc, smr, &frame, &glopts);
+	psycho_3 (buffer, max_sc, smr, &frame, &toolame_glopts);
 	fprintf(stdout,"3 ");
 	smr_dump(smr,nch);
 	break;
@@ -397,13 +398,13 @@ int toolame (int argc, char **argv)
 	for (ch = 0; ch < nch; ch++) 
 	  psycho_2 (&buffer[ch][0], &sam[ch][0], ch, &smr[ch][0], //snr32,
 		    (FLOAT) s_freq[header.version][header.sampling_frequency] *
-		    1000, &glopts);
+		    1000, &toolame_glopts);
 	fprintf(stdout,"2 ");
 	smr_dump(smr,nch);
 	for (ch = 0; ch < nch; ch++) 
 	  psycho_4 (&buffer[ch][0], &sam[ch][0], ch, &smr[ch][0], // snr32,
 		     (FLOAT) s_freq[header.version][header.sampling_frequency] *
-		     1000, &glopts);
+		     1000, &toolame_glopts);
 	fprintf(stdout,"4 ");
 	smr_dump(smr,nch);
 	break;
@@ -413,19 +414,19 @@ int toolame (int argc, char **argv)
 	psycho_1 (buffer, max_sc, smr, &frame);
 	fprintf(stdout,"1");
 	smr_dump(smr, nch);
-	psycho_3 (buffer, max_sc, smr, &frame, &glopts);
+	psycho_3 (buffer, max_sc, smr, &frame, &toolame_glopts);
 	fprintf(stdout,"3");
 	smr_dump(smr,nch);
 	for (ch = 0; ch < nch; ch++) 
 	  psycho_2 (&buffer[ch][0], &sam[ch][0], ch, &smr[ch][0], //snr32,
 		    (FLOAT) s_freq[header.version][header.sampling_frequency] *
-		    1000, &glopts);
+		    1000, &toolame_glopts);
 	fprintf(stdout,"2");
 	smr_dump(smr,nch);
 	for (ch = 0; ch < nch; ch++) 
 	  psycho_4 (&buffer[ch][0], &sam[ch][0], ch, &smr[ch][0], // snr32,
 		     (FLOAT) s_freq[header.version][header.sampling_frequency] *
-		     1000, &glopts);
+		     1000, &toolame_glopts);
 	fprintf(stdout,"4");
 	smr_dump(smr,nch);
 	break;
@@ -438,7 +439,7 @@ int toolame (int argc, char **argv)
 	for (ch = 0; ch < nch; ch++) 
 	  psycho_4 (&buffer[ch][0], &sam[ch][0], ch, &smr[ch][0], // snr32,
 		     (FLOAT) s_freq[header.version][header.sampling_frequency] *
-		     1000, &glopts);
+		     1000, &toolame_glopts);
 	fprintf(stdout,"4");
 	smr_dump(smr,nch);
 	break;
@@ -450,14 +451,14 @@ return 1;
 	exit (0);
       }
 
-      if (glopts.quickmode == TRUE)
+      if (toolame_glopts.quickmode == TRUE)
 	/* copy the smr values and reuse them later */
 	for (ch = 0; ch < nch; ch++) {
 	  for (sb = 0; sb < SBLIMIT; sb++)
 	    smrdef[ch][sb] = smr[ch][sb];
 	}
 
-      if (glopts.verbosity > 4) 
+      if (toolame_glopts.verbosity > 4) 
 	smr_dump(smr, nch);
      
       
@@ -467,8 +468,8 @@ return 1;
 
 #ifdef NEWENCODE
     sf_transmission_pattern (scalar, scfsi, &frame);
-    main_bit_allocation_new (smr, scfsi, bit_alloc, &adb, &frame, &glopts);
-    //main_bit_allocation (smr, scfsi, bit_alloc, &adb, &frame, &glopts);
+    main_bit_allocation_new (smr, scfsi, bit_alloc, &adb, &frame, &toolame_glopts);
+    //main_bit_allocation (smr, scfsi, bit_alloc, &adb, &frame, &toolame_glopts);
 
     if (error_protection)
       CRC_calc (&frame, bit_alloc, scfsi, &crc);
@@ -489,7 +490,7 @@ return 1;
     //sample_encoding (*subband, bit_alloc, &frame, &bs);
 #else
     transmission_pattern (scalar, scfsi, &frame);
-    main_bit_allocation (smr, scfsi, bit_alloc, &adb, &frame, &glopts);
+    main_bit_allocation (smr, scfsi, bit_alloc, &adb, &frame, &toolame_glopts);
     if (error_protection)
       CRC_calc (&frame, bit_alloc, scfsi, &crc);
     encode_info (&frame, &bs);
@@ -540,7 +541,7 @@ return 1;
 
   close_bit_stream_w (&bs);
 
-  if ((glopts.verbosity > 1) && (glopts.vbr == TRUE)) {
+  if ((toolame_glopts.verbosity > 1) && (toolame_glopts.vbr == TRUE)) {
     int i;
 #ifdef NEWENCODE
     extern int vbrstats_new[15];
@@ -592,7 +593,7 @@ void print_config (frame_info * frame, int *psy, char *inPath,
 {
   frame_header *header = frame->header;
 
-  if (glopts.verbosity == 0)
+  if (toolame_glopts.verbosity == 0)
     return;
 
   fprintf (stderr, "--------------------------------------------\n");
@@ -617,14 +618,14 @@ void print_config (frame_info * frame, int *psy, char *inPath,
 	   ((header->error_protection) ? "On" : "Off"));
 
   fprintf (stderr, "[Padding:%s\tByte-swap:%s\tChanswap:%s\tDAB:%s]\n",
-	   ((glopts.usepadbit) ? "Normal" : "Off"),
-	   ((glopts.byteswap) ? "On" : "Off"),
-	   ((glopts.channelswap) ? "On" : "Off"),
-	   ((glopts.dab) ? "On" : "Off"));
+	   ((toolame_glopts.usepadbit) ? "Normal" : "Off"),
+	   ((toolame_glopts.byteswap) ? "On" : "Off"),
+	   ((toolame_glopts.channelswap) ? "On" : "Off"),
+	   ((toolame_glopts.dab) ? "On" : "Off"));
 
-  if (glopts.vbr == TRUE)
-    fprintf (stderr, "VBR Enabled. Using MNR boost of %f\n", glopts.vbrlevel);
-  fprintf(stderr,"ATH adjustment %f\n",glopts.athlevel);
+  if (toolame_glopts.vbr == TRUE)
+    fprintf (stderr, "VBR Enabled. Using MNR boost of %f\n", toolame_glopts.vbrlevel);
+  fprintf(stderr,"ATH adjustment %f\n",toolame_glopts.athlevel);
 
   fprintf (stderr, "--------------------------------------------\n");
 }
@@ -897,7 +898,7 @@ void parse_args (int argc, char **argv, frame_info * frame, int *psy,
 	  header->dab_length = atoi (arg);
 	  header->error_protection = TRUE;
 	  header->dab_extension = 2;
-	  glopts.dab = TRUE;
+	  toolame_glopts.dab = TRUE;
 	  break;
 	case 'c':
 	  header->copyright = 1;
@@ -910,38 +911,38 @@ void parse_args (int argc, char **argv, frame_info * frame, int *psy,
 	  break;
 	case 'f':
 	  *psy = 0;
-	  /* this switch is deprecated? FIXME get rid of glopts.usepsy
+	  /* this switch is deprecated? FIXME get rid of toolame_glopts.usepsy
 	     instead us psymodel 0, i.e. "-p 0" */
-	  glopts.usepsy = FALSE;
+	  toolame_glopts.usepsy = FALSE;
 	  break;
 	case 'r':
-	  glopts.usepadbit = FALSE;
+	  toolame_glopts.usepadbit = FALSE;
 	  header->padding = 0;
 	  break;
 	case 'q':
 	  argUsed = 1;
-	  glopts.quickmode = TRUE;
-	  glopts.usepsy = TRUE;
-	  glopts.quickcount = atoi (arg);
-	  if (glopts.quickcount == 0) {
+	  toolame_glopts.quickmode = TRUE;
+	  toolame_glopts.usepsy = TRUE;
+	  toolame_glopts.quickcount = atoi (arg);
+	  if (toolame_glopts.quickcount == 0) {
 	    /* just don't use psy model */
-	    glopts.usepsy = FALSE;
-	    glopts.quickcount = FALSE;
+	    toolame_glopts.usepsy = FALSE;
+	    toolame_glopts.quickcount = FALSE;
 	  }
 	  break;
 	case 'a':
-	  glopts.downmix = TRUE;
+	  toolame_glopts.downmix = TRUE;
 	  header->mode = MPG_MD_MONO;
 	  header->mode_ext = 0;
 	  break;
 	case 'x':
-	  glopts.byteswap = TRUE;
+	  toolame_glopts.byteswap = TRUE;
 	  break;
 	case 'v':
 	  argUsed = 1;
-	  glopts.vbr = TRUE;
-	  glopts.vbrlevel = atof (arg);
-	  glopts.usepadbit = FALSE;	/* don't use padding for VBR */
+	  toolame_glopts.vbr = TRUE;
+	  toolame_glopts.vbrlevel = atof (arg);
+	  toolame_glopts.usepadbit = FALSE;	/* don't use padding for VBR */
 	  header->padding = 0;
 	  /* MFC Feb 2003: in VBR mode, joint stereo doesn't make
 	     any sense at the moment, as there are no noisy subbands 
@@ -951,17 +952,17 @@ void parse_args (int argc, char **argv, frame_info * frame, int *psy,
 	  break;
 	case 'l':
 	  argUsed = 1;
-	  glopts.athlevel = atof(arg);
+	  toolame_glopts.athlevel = atof(arg);
 	  break;
 	case 'h':
 	  usage ();
 	  break;
 	case 'g':
-	  glopts.channelswap = TRUE;
+	  toolame_glopts.channelswap = TRUE;
 	  break;
 	case 't':
 	  argUsed = 1;
-	  glopts.verbosity = atoi (arg);
+	  toolame_glopts.verbosity = atoi (arg);
 	  break;
 	default:
 	  fprintf (stderr, "%s: unrec option %c\n", programName, c);

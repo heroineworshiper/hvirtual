@@ -146,6 +146,7 @@ int FileVorbis::reset_parameters_derived()
 {
 	fd = 0;
 	bzero(&vf, sizeof(vf));
+    return 0;
 }
 
 

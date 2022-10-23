@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -344,11 +343,11 @@ int ForkWrapper::child_running()
 }
 
 
-// From libancillary
+// From libancillary/ancillary.h
 #define ANCIL_FD_BUFFER(n) \
 struct { \
 	struct cmsghdr h; \
-	int fd[n]; \
+/* 	int fd[n]; */ \
 }
 
 void ForkWrapper::send_fd(int fd)

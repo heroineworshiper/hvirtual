@@ -106,5 +106,6 @@ RecordToTracks::~RecordToTracks()
 int RecordToTracks::handle_event()
 {
 	record->to_tracks = get_value();
+    return 0;
 }
 

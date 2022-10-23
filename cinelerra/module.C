@@ -110,6 +110,7 @@ Preferences* Module::get_preferences()
 	else
 	if(plugin_array)
 		return plugin_array->mwindow->preferences;
+    return 0;
 }
 
 

@@ -141,8 +141,8 @@ int Device1394Input::open(int port,
 			struct dv1394_init init = 
 			{
 				api_version: DV1394_API_VERSION,
-				channel: channel,
-				n_frames: length,
+				channel: (unsigned int)channel,
+				n_frames: (unsigned int)length,
 				format: is_pal ? DV1394_PAL: DV1394_NTSC,
 				cip_n: 0,
 				cip_d: 0,

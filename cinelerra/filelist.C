@@ -73,6 +73,7 @@ int FileList::reset_parameters_derived()
 	writer = 0;
 	temp = 0;
 	first_number = 0;
+    return 0;
 }
 
 int FileList::open_file(int rd, int wr)
@@ -614,6 +615,7 @@ int FileList::get_units()
 FrameWriterUnit* FileList::get_unit(int number)
 {
 	if(writer) return (FrameWriterUnit*)writer->get_client(number);
+    return 0;
 }
 
 int FileList::use_path()

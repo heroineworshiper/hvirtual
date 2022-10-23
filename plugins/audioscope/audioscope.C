@@ -162,6 +162,7 @@ int AudioScopeWindowSizeTumbler::handle_up_event()
 	sprintf(string, "%d", plugin->config.window_size);
 	((AudioScopeWindow*)plugin->get_thread()->get_window())->window_size->set_text(string);
 	plugin->send_configure_change();
+    return 0;
 }
 
 int AudioScopeWindowSizeTumbler::handle_down_event()
@@ -219,6 +220,7 @@ int AudioScopeCanvas::cursor_motion_event()
 	{
 		calculate_point();
 	}
+    return 0;
 }
 
 

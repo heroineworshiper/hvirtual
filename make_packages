@@ -30,7 +30,7 @@ ARCH=`uname -m`
 
 
 
-CI_VERSION=7.4
+CI_VERSION=8
 
 
 MIX_VERSION=1.2
@@ -128,9 +128,9 @@ cp -a \
 
 
 
-
 echo "Compressing Cinelerra"
 cd $DEST/
+rm -r thirdparty/festival thirdparty/speech_tools thirdparty/OpenCV-2.3.1
 find $CI_NAME -name .svn -exec rm -rf {} \; -prune
 find $CI_NAME -name .git -exec rm -rf {} \; -prune
 # dependancies are created in some clean rules

@@ -462,6 +462,7 @@ int WhirlEffect::process_realtime(VFrame *input, VFrame *output)
 
 		engine->process_packages();
 	}
+    return 0;
 }
 
 

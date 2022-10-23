@@ -174,7 +174,8 @@ int AudioInConfig::save_defaults(BC_Hash *defaults)
 
 VideoInConfig::VideoInConfig()
 {
-	driver = VIDEO4LINUX;
+//	driver = VIDEO4LINUX;
+	driver = SCREENCAPTURE;
 	sprintf(v4l_in_device, "/dev/video0");
 	sprintf(v4l2_in_device, "/dev/video0");
 	sprintf(lml_in_device, "/dev/mvideo/stream");
@@ -269,6 +270,28 @@ VideoInConfig& VideoInConfig::operator=(VideoInConfig &that)
 int VideoInConfig::load_defaults(BC_Hash *defaults)
 {
 	driver = defaults->get("VIDEO_IN_DRIVER", driver);
+
+// disable unsupported drivers
+#ifndef HAVE_VIDEO4LINUX
+    if(driver == VIDEO4LINUX || 
+        driver == CAPTURE_BUZ)
+    {
+        driver = SCREENCAPTURE;
+    }
+#endif
+
+#ifndef HAVE_VIDEO4LINUX2
+    if(driver == VIDEO4LINUX2 || 
+        driver == CAPTURE_JPEG_WEBCAM || 
+        driver == CAPTURE_YUYV_WEBCAM || 
+        driver == VIDEO4LINUX2JPEG || 
+        driver == VIDEO4LINUX2MJPG || 
+        driver == CAPTURE_MPEG)
+    {
+        driver = SCREENCAPTURE;
+    }
+#endif
+
 	defaults->get("V4L_IN_DEVICE", v4l_in_device);
 	defaults->get("V4L2_IN_DEVICE", v4l2_in_device);
 	defaults->get("LML_IN_DEVICE", lml_in_device);

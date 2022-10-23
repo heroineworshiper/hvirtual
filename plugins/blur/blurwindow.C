@@ -136,6 +136,7 @@ int BlurVertical::handle_event()
 {
 	client->config.vertical = get_value();
 	client->send_configure_change();
+    return 0;
 }
 
 BlurHorizontal::BlurHorizontal(BlurMain *client, BlurWindow *window, int x, int y)
@@ -154,6 +155,7 @@ int BlurHorizontal::handle_event()
 {
 	client->config.horizontal = get_value();
 	client->send_configure_change();
+    return 0;
 }
 
 

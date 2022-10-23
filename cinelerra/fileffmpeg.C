@@ -1766,6 +1766,7 @@ int FileFFMPEG::close_file()
 
 
 	reset();
+    return 0;
 }
 
 

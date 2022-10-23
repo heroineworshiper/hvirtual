@@ -263,6 +263,7 @@ int AudioDevice::start_playback()
 
 	Thread::set_realtime(get_orealtime());
 	Thread::start();                  // synchronize threads by starting playback here and blocking
+    return 0;
 }
 
 int AudioDevice::interrupt_playback()

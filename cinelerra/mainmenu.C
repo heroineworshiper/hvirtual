@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,10 +105,10 @@ void MainMenu::create_objects()
 	filemenu->add_item(saveas = new SaveAs(mwindow));
 	save->create_objects(saveas);
 	saveas->set_mainmenu(this);
-	filemenu->add_item(record = new RecordMenuItem(mwindow));
 
 	filemenu->add_item(render = new RenderItem(mwindow));
 	filemenu->add_item(new BatchRenderMenuItem(mwindow));
+	filemenu->add_item(record = new RecordMenuItem(mwindow));
 	filemenu->add_item(new BC_MenuItem("-"));
 	filemenu->add_item(quit_program = new Quit(mwindow));
 	quit_program->create_objects(save);
@@ -567,6 +566,7 @@ DumpCICache::DumpCICache(MWindow *mwindow)
 int DumpCICache::handle_event()
 {
 //	mwindow->cache->dump();
+    return 0;
 }
 
 DumpEDL::DumpEDL(MWindow *mwindow)
@@ -605,6 +605,7 @@ DumpAssets::DumpAssets(MWindow *mwindow)
 int DumpAssets::handle_event()
 {
 	mwindow->assets->dump();
+    return 0;
 }
 
 // ================================================= edit
@@ -623,6 +624,7 @@ int Undo::update_caption(const char *new_caption)
 	char string[BCTEXTLEN];
 	sprintf(string, _("Undo %s"), new_caption);
 	set_text(string);
+    return 0;
 }
 
 
@@ -643,6 +645,7 @@ int Redo::update_caption(const char *new_caption)
 	char string[BCTEXTLEN];
 	sprintf(string, _("Redo %s"), new_caption);
 	set_text(string);
+    return 0;
 }
 
 CutKeyframes::CutKeyframes(MWindow *mwindow)
@@ -655,6 +658,7 @@ CutKeyframes::CutKeyframes(MWindow *mwindow)
 int CutKeyframes::handle_event()
 {
 	mwindow->cut_automation(); 
+    return 0;
 }
 
 CopyKeyframes::CopyKeyframes(MWindow *mwindow)
@@ -680,6 +684,7 @@ PasteKeyframes::PasteKeyframes(MWindow *mwindow)
 int PasteKeyframes::handle_event()
 {
 	mwindow->paste_automation(); 
+    return 0;
 }
 
 ClearKeyframes::ClearKeyframes(MWindow *mwindow)
@@ -1214,6 +1219,7 @@ int LabelsFollowEdits::handle_event()
 {
 	set_checked(get_checked() ^ 1);
 	mwindow->edl->session->labels_follow_edits = get_checked(); 
+    return 0;
 }
 
 
@@ -1230,6 +1236,7 @@ int PluginsFollowEdits::handle_event()
 {
 	set_checked(get_checked() ^ 1);
 	mwindow->edl->session->plugins_follow_edits = get_checked(); 
+    return 0;
 }
 
 
@@ -1246,6 +1253,7 @@ int KeyframesFollowEdits::handle_event()
 { 
 	mwindow->edl->session->autos_follow_edits ^= 1; 
 	set_checked(!get_checked());
+    return 0;
 }
 
 
@@ -1260,6 +1268,7 @@ int CursorOnFrames::handle_event()
 {
 	mwindow->edl->session->cursor_on_frames = !mwindow->edl->session->cursor_on_frames; 
 	set_checked(mwindow->edl->session->cursor_on_frames);
+    return 0;
 }
 
 
@@ -1274,6 +1283,7 @@ int TypelessKeyframes::handle_event()
 {
 	mwindow->edl->session->typeless_keyframes = !mwindow->edl->session->typeless_keyframes; 
 	set_checked(mwindow->edl->session->typeless_keyframes);
+    return 0;
 }
 
 
@@ -1294,6 +1304,7 @@ int ScrubSpeed::handle_event()
 		mwindow->edl->session->scrub_speed = .5;
 		set_text(_("Fast Shuttle"));
 	}
+    return 0;
 }
 
 SaveSettingsNow::SaveSettingsNow(MWindow *mwindow) : BC_MenuItem(_("Save settings now")) 

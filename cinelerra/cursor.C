@@ -97,4 +97,5 @@ return 0;
 
 int Cursor_::resize(int w, int h)
 {
+    return 0;
 }

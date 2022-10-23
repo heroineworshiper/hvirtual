@@ -637,6 +637,7 @@ int CWindowEyedropCheckBox::handle_event()
 	mwindow->edl->local_session->use_max = get_value();
 	
 	gui->update();
+    return 0;
 }
 
 
@@ -2445,6 +2446,7 @@ int AlwaysDrawRuler::handle_event()
 	mwindow->edl->session->always_draw_ruler = get_value();
 	
 	gui->update();
+    return 0;
 }
 
 

@@ -896,6 +896,7 @@ int IndexFile::close_index()
 		fclose(fd);
 		fd = 0;
 	}
+    return 0;
 }
 
 int IndexFile::remove_index()
@@ -907,6 +908,7 @@ int IndexFile::remove_index()
 		close_index();
 		remove(index_path.c_str());
 	}
+    return 0;
 }
 
 int IndexFile::read_info(Indexable *dst)

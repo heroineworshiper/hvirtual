@@ -120,6 +120,7 @@ static int get_best_colormodel_(Asset *asset, int driver)
 			return BC_YUV422P;
 			break;
 	}
+    return BC_RGB888;
 }
 
 
@@ -347,6 +348,7 @@ int FileMPEG::reset_parameters_derived()
 	lame_output_allocation = 0;
 	lame_fd = 0;
 	lame_started = 0;
+    return 0;
 }
 
 
@@ -1113,6 +1115,7 @@ int FileMPEG::set_video_position(int64_t x)
 	}
 	else
 		return 1;
+    return 0;
 }
 
 int64_t FileMPEG::get_memory_usage()

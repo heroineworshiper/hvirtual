@@ -361,26 +361,31 @@ int PrefsChannelPicker::has_signal()
 int PrefsChannelPicker::set_brightness(int value)
 {
 	prefs->out_config->brightness = value;
+    return 0;
 }
 
 int PrefsChannelPicker::set_hue(int value)
 {
 	prefs->out_config->hue = value;
+    return 0;
 }
 
 int PrefsChannelPicker::set_color(int value)
 {
 	prefs->out_config->color = value;
+    return 0;
 }
 
 int PrefsChannelPicker::set_contrast(int value)
 {
 	prefs->out_config->contrast = value;
+    return 0;
 }
 
 int PrefsChannelPicker::set_whiteness(int value)
 {
 	prefs->out_config->whiteness = value;
+    return 0;
 }
 
 int PrefsChannelPicker::get_brightness()

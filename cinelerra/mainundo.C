@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
@@ -70,7 +69,9 @@ void MainUndo::update_undo_entry(const char *description,
 	current->set_description((char*)description);
 	current->set_creator(creator);
 	current->set_filename(mwindow->session->filename);
-//printf("MainUndo::update_undo_entry %d %p %s\n", __LINE__, current, current->get_filename());
+// printf("MainUndo::update_undo_entry %d %s\n", 
+// __LINE__, 
+// file.string);
 
 // Can't undo only 1 record.
 	if(undo_stack->total() > 1)
@@ -198,9 +199,9 @@ int MainUndo::undo()
 		char *current_data = current->get_data();
 		if(current_data)
 		{
+//printf("MainUndo::undo %d\n%s\n", __LINE__, current_data);
 			file.read_from_string(current_data);
 			load_from_undo(&file, current->get_flags());
-//printf("MainUndo::undo %d %s\n", __LINE__, current->get_filename());
 			mwindow->set_filename(current->get_filename());
 			delete [] current_data;
 
@@ -285,7 +286,7 @@ int MainUndo::redo()
 }
 
 
-// Here the master EDL loads 
+// Here the master EDL loads
 int MainUndo::load_from_undo(FileXML *file, uint32_t load_flags)
 {
 	mwindow->edl->load_xml(file, load_flags);

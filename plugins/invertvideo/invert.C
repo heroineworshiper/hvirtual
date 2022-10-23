@@ -365,6 +365,7 @@ int InvertVideoEffect::handle_opengl()
 	glUseProgram(0);
 	get_output()->set_opengl_state(VFrame::SCREEN);
 #endif
+    return 0;
 }
 
 

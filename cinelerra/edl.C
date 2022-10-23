@@ -409,7 +409,7 @@ int EDL::save_xml(FileXML *file,
 	int is_vwindow)
 {
 	copy(0, 
-		tracks->total_length(), 
+		MAX(tracks->total_length(), labels->total_length()), 
 		1, 
 		is_clip,
 		is_vwindow,
@@ -899,6 +899,7 @@ int EDL::deglitch(double position)
 			}
 		}
 	}
+    return 0;
 }
 
 

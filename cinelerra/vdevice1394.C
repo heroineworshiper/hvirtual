@@ -63,6 +63,7 @@ int VDevice1394::initialize()
 	input_iec = 0;
 	output_iec = 0;
 	user_frame = 0;
+    return 0;
 }
 
 int VDevice1394::open_input()

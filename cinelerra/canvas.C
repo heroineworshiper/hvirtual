@@ -643,6 +643,7 @@ int Canvas::get_output_h(EDL *edl)
 		else
 			return edl->session->output_h;
 	}
+    return 0;
 }
 
 

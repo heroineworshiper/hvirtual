@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -117,7 +116,7 @@ int CTracking::update_scroll(double position)
 
 			if(position < right_boundary &&
 				position > left_boundary && 
-				mwindow->edl->local_session->view_start > 0)
+				mwindow->edl->local_session->view_start[pane->number] > 0)
 			{
 				int pixels = Units::to_int64((right_boundary - position) * 
 						mwindow->edl->session->sample_rate /

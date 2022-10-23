@@ -315,6 +315,7 @@ double ZoomPanel::text_to_zoom(char *text, int use_table)
 			break;
 		}
 	}
+    return 0;
 }
 
 void ZoomPanel::set_tooltip(const char *text)

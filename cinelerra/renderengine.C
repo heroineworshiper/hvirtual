@@ -421,6 +421,7 @@ int64_t RenderEngine::sync_position()
 			get_edl()->session->sample_rate);
 		return result;
 	}
+    return 0;
 }
 
 

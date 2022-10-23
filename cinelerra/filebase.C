@@ -114,12 +114,15 @@ int FileBase::close_file()
 	close_file_derived();
 	reset_parameters();
 	delete_ima4();
+    return 0;
 }
 
 void FileBase::update_pcm_history(int64_t len)
 {
 	decode_start = 0;
 	decode_len = 0;
+
+    if(!asset) return;
 
 	if(!pcm_history)
 	{
@@ -284,11 +287,13 @@ int FileBase::reset_parameters()
 	delete_ulaw_tables();
 // reset_parameters_derived is not available until after the constructor
 	reset_parameters_derived();
+    return 0;
 }
 
 int FileBase::reset_parameters_derived()
 {
 //    printf("FileBase::reset_parameters_derived %d\n", __LINE__);
+    return 0;
 }
 
 
@@ -313,6 +318,7 @@ int FileBase::get_mode(char *mode, int rd, int wr)
 		else
 		sprintf(mode, "wb+");
 	}
+    return 0;
 }
 
 
@@ -355,6 +361,7 @@ int FileBase::get_row_pointers(unsigned char *buffer, unsigned char ***pointers,
 			(*pointers)[i] = &buffer[i * asset->width * depth / 8];
 		}
 	}
+    return 0;
 }
 
 int FileBase::match4(const char *in, const char *out)

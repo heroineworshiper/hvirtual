@@ -329,6 +329,7 @@ RecordRealTime::RecordRealTime(MWindow *mwindow,
 int RecordRealTime::handle_event()
 {
 	pwindow->thread->edl->session->real_time_record = get_value();
+    return 0;
 }
 
 

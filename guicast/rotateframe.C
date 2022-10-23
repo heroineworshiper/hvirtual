@@ -491,9 +491,9 @@ int RotateEngine::coords_to_pixel(SourceCoord &float_pixel, float &input_y, floa
 int RotateEngine::create_matrix()
 {
 // Polar coords of pixel
-	register double k, l, magnitude, angle, offset_angle, offset_angle2;
-	register double x_offset, y_offset;
-	register int i, j;
+	double k, l, magnitude, angle, offset_angle, offset_angle2;
+	double x_offset, y_offset;
+	int i, j;
 	int *int_row;
 	SourceCoord *float_row;
 	int input_x_i, input_y_i;

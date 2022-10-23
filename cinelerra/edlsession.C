@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -226,7 +225,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	cwindow_dest = defaults->get("CWINDOW_DEST", 0);
 	cwindow_mask = defaults->get("CWINDOW_MASK", 0);
 	cwindow_meter = defaults->get("CWINDOW_METER", 0);
-	cwindow_operation = defaults->get("CWINDOW_OPERATION", 0);
+	cwindow_operation = defaults->get("CWINDOW_OPERATION", CWINDOW_NONE);
 	cwindow_scrollbars = defaults->get("CWINDOW_SCROLLBARS", 0);
 	cwindow_xscroll = defaults->get("CWINDOW_XSCROLL", 0);
 	cwindow_yscroll = defaults->get("CWINDOW_YSCROLL", 0);

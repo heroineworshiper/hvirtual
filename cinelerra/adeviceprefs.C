@@ -578,6 +578,7 @@ int ADevicePrefs::create_cine_objs()
 {
 	BC_Resources *resources = BC_WindowBase::get_resources();
 	int x1 = x + menu->get_w() + 5;
+    return 0;
 	
 }
 

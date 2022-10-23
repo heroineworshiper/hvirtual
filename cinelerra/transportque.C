@@ -148,6 +148,7 @@ float TransportCommand::get_speed()
 			return 2;
 			break;
 	}
+    return 0;
 }
 
 // Assume starting without pause

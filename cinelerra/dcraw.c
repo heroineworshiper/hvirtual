@@ -137,7 +137,7 @@ unsigned black, maximum, mix_green, raw_color, zero_is_bad;
 unsigned zero_after_ff, is_raw, dng_version, is_foveon, data_error;
 unsigned tile_width, tile_length, gpsdata[32], load_flags;
 unsigned flip, tiff_flip, filters, colors;
-ushort raw_height, raw_width, height, width, top_margin, left_margin;
+static ushort raw_height, raw_width, height, width, top_margin, left_margin;
 ushort shrink, iheight, iwidth, fuji_width, thumb_width, thumb_height;
 ushort *raw_image, (*image)[4], cblack[4102];
 ushort white[8][8], curve[0x10000], cr2_slice[3], sraw_mul[4];
@@ -146,7 +146,7 @@ float bright=1, user_mul[4]={0,0,0,0}, threshold=0;
 // CINELERRA
 int mask_[8][4];
 int half_size=0, four_color_rgb=0, document_mode=0, highlight=0;
-int verbose=0, use_auto_wb=0, use_camera_wb=0, use_camera_matrix=1;
+static int verbose=0, use_auto_wb=0, use_camera_wb=0, use_camera_matrix=1;
 int output_color=1, output_bps=8, output_tiff=0, med_passes=0;
 int no_auto_bright=0;
 unsigned greybox[4] = { 0, 0, UINT_MAX, UINT_MAX };

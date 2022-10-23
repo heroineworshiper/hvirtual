@@ -226,6 +226,7 @@ int SphereTranslateMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 		output_ptr->draw_line(0, pivot_y, w, pivot_y);
 		output_ptr->draw_line(pivot_x, 0, pivot_x, h);
 	}
+    return 0;
 }
 
 

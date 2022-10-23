@@ -446,6 +446,7 @@ double Units::text_to_seconds(const char *text,
 			return ((double)feet * frames_per_foot + frames) / frame_rate;
 			break;
 	}
+    return 0;
 }
 
 

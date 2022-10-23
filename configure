@@ -2,17 +2,6 @@
 
 
 
-# For Ubuntbunt, you need:
-# libc6-dev
-# g++
-# build-essential
-# libz-dev
-# texinfo
-# libpng-dev
-# libxv-dev
-# libasound2-dev
-# libbz2-dev 
-# liblzma-dev
 
 OBJDIR=`uname -m`
 TOPDIR=`pwd`

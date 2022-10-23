@@ -744,6 +744,7 @@ int FileThread::swap_buffer()
 {
 	current_buffer++;
 	if(current_buffer >= ring_buffers) current_buffer = 0;
+    return 0;
 }
 
 

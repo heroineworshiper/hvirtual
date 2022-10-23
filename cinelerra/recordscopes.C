@@ -128,6 +128,7 @@ int RecordScopeGUI::translation_event()
 	ScopeGUI::translation_event();
 	mwindow->session->scope_x = get_x();
 	mwindow->session->scope_y = get_y();
+    return 0;
 }
 
 int RecordScopeGUI::resize_event(int w, int h)
@@ -135,6 +136,7 @@ int RecordScopeGUI::resize_event(int w, int h)
 	ScopeGUI::resize_event(w, h);
 	mwindow->session->scope_w = w;
 	mwindow->session->scope_h = h;
+    return 0;
 }
 
 

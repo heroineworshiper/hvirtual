@@ -379,6 +379,7 @@ int* GWindowToggle::get_main_value(MWindow *mwindow, int subscript, int other)
 				break;
 		}
 	}
+    return 0;
 }
 
 void GWindowToggle::update()

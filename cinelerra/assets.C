@@ -194,6 +194,7 @@ Asset* Assets::remove_asset(Asset *asset)
 {
 	remove_pointer(asset);
 	asset->Garbage::remove_user();
+    return 0; 
 }
 
 

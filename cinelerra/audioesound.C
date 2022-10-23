@@ -56,6 +56,7 @@ int AudioESound::get_bit_flag(int bits)
 			return ESD_BITS16;
 			break;
 	}
+    return 0;
 }
 
 // No more than 2 channels in ESD
@@ -172,6 +173,7 @@ int AudioESound::close_all()
  	   	close(esd_out_fd);
 		esd_close(esd_out);     
 	}
+    return 0;
 }
 
 // No position on ESD

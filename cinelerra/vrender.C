@@ -553,6 +553,7 @@ int VRender::start_playback()
 	{
 		start();
 	}
+    return 0;
 }
 
 int64_t VRender::tounits(double position, int round)

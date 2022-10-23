@@ -917,6 +917,7 @@ int ActionType::from_text(char *text)
 	if(!strcmp(text, _("Stabilize Pixel"))) return MotionScan::STABILIZE_PIXEL;
 	if(!strcmp(text, _("Stabilize Sphere"))) return MotionScan::STABILIZE_SPHERE;
 	if(!strcmp(text, _("Do Nothing"))) return MotionScan::NOTHING;
+    return 0;
 }
 
 char* ActionType::to_text(int mode)
@@ -942,6 +943,7 @@ char* ActionType::to_text(int mode)
 			return _("Do Nothing");
 			break;
 	}
+    return 0;
 }
 
 int ActionType::calculate_w(MotionWindow *gui)
@@ -991,6 +993,7 @@ int TrackingType::from_text(char *text)
 	if(!strcmp(text, _("Recalculate"))) return MotionScan::CALCULATE;
 	if(!strcmp(text, _("Save coords to /tmp"))) return MotionScan::SAVE;
 	if(!strcmp(text, _("Load coords from /tmp"))) return MotionScan::LOAD;
+    return 0;
 }
 
 char* TrackingType::to_text(int mode)
@@ -1010,6 +1013,7 @@ char* TrackingType::to_text(int mode)
 			return _("Load coords from /tmp");
 			break;
 	}
+    return 0;
 }
 
 int TrackingType::calculate_w(MotionWindow *gui)

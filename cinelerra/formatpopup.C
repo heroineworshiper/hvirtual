@@ -105,4 +105,5 @@ FormatPopup::~FormatPopup()
 
 int FormatPopup::handle_event()
 {
+    return 0;
 }

@@ -309,6 +309,7 @@ double Synth::solve_eqn(double *output,
 			}
 			break;
 	}
+    return 0;
 }
 
 double Synth::get_point(float x, double normalize_constant)
@@ -350,6 +351,7 @@ double Synth::get_oscillator_point(float x,
 			return function_noise() * power;
 			break;
 	}
+    return 0;
 }
 
 double Synth::function_square(double x)
@@ -1670,6 +1672,7 @@ int SynthLevelZero::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelMax::SynthLevelMax(Synth *synth)
@@ -1690,6 +1693,7 @@ int SynthLevelMax::handle_event()
 	}
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelNormalize::SynthLevelNormalize(Synth *synth)
@@ -1726,6 +1730,7 @@ int SynthLevelNormalize::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelSlope::SynthLevelSlope(Synth *synth)
@@ -1749,6 +1754,7 @@ int SynthLevelSlope::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelRandom::SynthLevelRandom(Synth *synth)
@@ -1770,6 +1776,7 @@ int SynthLevelRandom::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelInvert::SynthLevelInvert(Synth *synth)
@@ -1791,6 +1798,7 @@ int SynthLevelInvert::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelSine::SynthLevelSine(Synth *synth)
@@ -1815,6 +1823,7 @@ int SynthLevelSine::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 // ============================ phase calculations
@@ -1838,6 +1847,7 @@ int SynthPhaseInvert::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthPhaseZero::SynthPhaseZero(Synth *synth)
@@ -1858,6 +1868,7 @@ int SynthPhaseZero::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthPhaseSine::SynthPhaseSine(Synth *synth)
@@ -1881,6 +1892,7 @@ int SynthPhaseSine::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthPhaseRandom::SynthPhaseRandom(Synth *synth)
@@ -1903,6 +1915,7 @@ int SynthPhaseRandom::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 
@@ -1927,6 +1940,7 @@ int SynthFreqRandom::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthFreqPow1::SynthFreqPow1(Synth *synth)
@@ -1947,6 +1961,7 @@ int SynthFreqPow1::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 
@@ -1968,6 +1983,7 @@ int SynthFreqPow2::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 
@@ -1991,6 +2007,7 @@ int SynthFreqMin::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 
@@ -2012,6 +2029,7 @@ int SynthFreqEnum::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthFreqEven::SynthFreqEven(Synth *synth)
@@ -2035,6 +2053,7 @@ int SynthFreqEven::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthFreqOdd::SynthFreqOdd(Synth *synth)
@@ -2053,6 +2072,7 @@ int SynthFreqOdd::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthFreqFibonacci::SynthFreqFibonacci(Synth *synth)
@@ -2077,6 +2097,7 @@ int SynthFreqFibonacci::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthFreqPrime::SynthFreqPrime(Synth *synth)
@@ -2099,6 +2120,7 @@ int SynthFreqPrime::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 float SynthFreqPrime::get_next_prime(float number)

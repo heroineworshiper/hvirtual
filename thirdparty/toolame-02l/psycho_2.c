@@ -404,7 +404,7 @@ void psycho_2_init (double sfreq)
     }
   }
 
-  if (glopts.verbosity > 10){
+  if (toolame_glopts.verbosity > 10){
     /* Dump All the Values to STDOUT and exit */
     int wlow, whigh=0;
     fprintf(stdout,"psy model 2 init\n");

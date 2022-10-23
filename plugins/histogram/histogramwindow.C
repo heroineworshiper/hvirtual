@@ -745,6 +745,7 @@ float* HistogramCarrot::get_value()
 	{
 		return &plugin->config.high_output[plugin->mode];
 	}
+    return 0;
 }
 
 void HistogramCarrot::update()

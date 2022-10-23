@@ -54,6 +54,11 @@
 #pragma warning(disable:4290)
 #endif
 
+#if __cplusplus >= 201703L
+    #define throw(...)
+#endif
+
+
 
 namespace Imath {
 

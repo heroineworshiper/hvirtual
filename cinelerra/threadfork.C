@@ -72,6 +72,7 @@ void* ThreadFork::entrypoint(void *ptr)
 {
 	ThreadFork *threadfork = (ThreadFork*)ptr;
 	threadfork->run();
+    return 0;
 }
 
 void ThreadFork::start_command(const char *command_line, int pipe_stdin)

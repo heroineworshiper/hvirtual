@@ -800,6 +800,7 @@ int FrameField::handle_opengl()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 #endif
+    return 0;
 }
 
 
