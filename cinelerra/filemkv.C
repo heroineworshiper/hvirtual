@@ -1236,6 +1236,7 @@ int FileMKVPriv::open(Asset *asset)
     {
         return 1;
     }
+    return 0;
 }
 
 

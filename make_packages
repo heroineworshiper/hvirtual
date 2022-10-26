@@ -130,7 +130,8 @@ cp -a \
 
 echo "Compressing Cinelerra"
 cd $DEST/
-rm -r thirdparty/festival thirdparty/speech_tools thirdparty/OpenCV-2.3.1
+rm -r $CI_NAME/thirdparty/festival $CI_NAME/thirdparty/speech_tools $CI_NAME/thirdparty/OpenCV-2.3.1
+find $CI_NAME/ -name CMakeCache.txt -exec rm {} \;
 find $CI_NAME -name .svn -exec rm -rf {} \; -prune
 find $CI_NAME -name .git -exec rm -rf {} \; -prune
 # dependancies are created in some clean rules
