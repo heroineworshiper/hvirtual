@@ -82,7 +82,8 @@ public:
 
 // Temp storage for compressed data
 	VFrame *data;
-// Storage for single frame
+// Single frame files are always stored in a temp & reused.
+// This means no hardware colormodel conversion
 	VFrame *temp;
 
 private:

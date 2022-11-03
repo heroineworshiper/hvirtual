@@ -34,10 +34,12 @@
 FilePNG::FilePNG(Asset *asset, File *file)
  : FileList(asset, file, "PNGLIST", ".png", FILE_PNG, FILE_PNG_LIST)
 {
+    temp = 0;
 }
 
 FilePNG::~FilePNG()
 {
+    delete temp;
 }
 
 
@@ -149,20 +151,7 @@ int FilePNG::can_copy_from(Asset *asset, int64_t position)
 
 int FilePNG::colormodel_supported(int colormodel)
 {
-	if (((colormodel == BC_RGBA8888) && (native_cmodel == BC_RGBA16161616))
-	    || ((colormodel == BC_RGB161616) && (native_cmodel == BC_RGBA16161616))
-	    || (colormodel == BC_RGB888))
-	{
-	    return colormodel;
-	}
-	else if ((colormodel == BC_RGB161616) && (native_cmodel == BC_RGBA8888))
-	{
-	    return BC_RGB888;
-	}
-	else
-	{
-	    return native_cmodel;
-	}
+	return colormodel;
 }
 
 
@@ -204,34 +193,6 @@ int FilePNG::read_frame_header(char *path)
 
 	asset->width = png_get_image_width(png_ptr, info_ptr);
 	asset->height = png_get_image_height(png_ptr, info_ptr);
-	color_type = png_get_color_type(png_ptr, info_ptr);
-	color_depth = png_get_bit_depth(png_ptr,info_ptr);
-	
-	png_get_tRNS(png_ptr, info_ptr, NULL, &num_trans, NULL);
-	
-	if (color_depth == 16)
-	{
-	    if (color_type & PNG_COLOR_MASK_ALPHA)
-	    {
-	        native_cmodel = BC_RGBA16161616;
-	    }
-	    else
-	    {
-	        native_cmodel = BC_RGB161616;
-	    }
-	}
-	else 
-	if ((color_type & PNG_COLOR_MASK_ALPHA)
-	    || (num_trans > 0))
-	{
-	    native_cmodel = BC_RGBA8888;
-	}
-	else
-	{
-	    native_cmodel = BC_RGB888;
-	}
-
-
 	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 	fclose(stream);
 	
@@ -303,14 +264,14 @@ int FilePNG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 	png_write_info(png_ptr, info_ptr);
 
 //printf("FilePNG::write_frame 1\n");
-	native_cmodel = asset->png_use_alpha ? BC_RGBA8888 : BC_RGB888;
-	if(frame->get_color_model() != native_cmodel)
+	int png_cmodel = asset->png_use_alpha ? BC_RGBA8888 : BC_RGB888;
+	if(frame->get_color_model() != png_cmodel)
 	{
 		if(!png_unit->temp_frame) png_unit->temp_frame = new VFrame(0, 
 			-1,
 			asset->width, 
 			asset->height, 
-			native_cmodel,
+			png_cmodel,
 			-1);
 
 		cmodel_transfer(png_unit->temp_frame->get_rows(), /* Leave NULL if non existent */
@@ -356,84 +317,116 @@ int FilePNG::read_frame(VFrame *output, VFrame *input)
 	png_infop info_ptr;
 	png_infop end_info = 0;	
 	int result = 0;
-	int color_type;
-	int color_depth;
-	int colormodel;
 	int size = input->get_compressed_size();
 	input->set_compressed_size(0);
 	
 	
-	//printf("FilePNG::read_frame 1 %d %d\n", native_cmodel, output->get_color_model());
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
 	info_ptr = png_create_info_struct(png_ptr);
 	png_set_read_fn(png_ptr, input, (png_rw_ptr)read_function);
 	png_read_info(png_ptr, info_ptr);
 
  	int png_color_type = png_get_color_type(png_ptr, info_ptr);
+	int png_color_depth = png_get_bit_depth(png_ptr,info_ptr);
+
+// convert greyscale to RGB in libpng
  	if (png_color_type == PNG_COLOR_TYPE_GRAY ||
          	png_color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
  	{
  		png_set_gray_to_rgb(png_ptr);
  	}
 
-	colormodel = output->get_color_model();
-	color_type = png_get_color_type(png_ptr, info_ptr);
-	color_depth = png_get_bit_depth(png_ptr,info_ptr);
-	
-	if (((native_cmodel == BC_RGBA16161616)||(native_cmodel == BC_RGB161616))
-	    && ((colormodel == BC_RGBA8888)||(colormodel == BC_RGB888)))
-	{
-	    png_set_strip_16(png_ptr);
-	}
-
-	/* If we're dropping the alpha channel, use the background color of the image
-	   otherwise, use black */
-	if (((native_cmodel == BC_RGBA16161616)||(native_cmodel == BC_RGBA8888))
-	    && ((colormodel == BC_RGB161616)||(colormodel == BC_RGB888)))
-	{
-	    png_color_16 my_background;
-	    png_color_16p image_background;
-	    
-	    memset(&my_background,0,sizeof(png_color_16));
-	    
-	    if (png_get_bKGD(png_ptr, info_ptr, &image_background))
-	    {
-	        png_set_background(png_ptr, image_background, PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
-	    }
-	    else
-	    {
-	        png_set_background(png_ptr, &my_background, PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
-	    }
-	}
-	
-	/* Little endian */
-	if ((color_depth == 16)
-	    &&((colormodel == BC_RGBA16161616)||(colormodel == BC_RGB161616)))
-	{
-	    png_set_swap(png_ptr);
-	}
-	
-	if (!(color_type & PNG_COLOR_MASK_COLOR))
-	{
-	    png_set_gray_to_rgb(png_ptr);
-	}
-	
-	if (color_type & PNG_COLOR_MASK_PALETTE)
+// convert palette to RGB in libpng
+	if (png_color_type == PNG_COLOR_TYPE_PALETTE)
 	{
 	    png_set_palette_to_rgb(png_ptr);
 	}
-	
-	if (color_depth <= 8)
+
+// convert bits per channel
+	if (png_color_depth <= 8)
 	{
 	    png_set_expand(png_ptr);
 	}
 
-/* read the image */
-	png_read_image(png_ptr, output->get_rows());
-//printf("FilePNG::read_frame 3\n");
+// compute the input color model after libpng conversion
+    int input_cmodel = BC_RGB888;
+    switch(png_color_type)
+    {
+        case PNG_COLOR_TYPE_GRAY:
+        case PNG_COLOR_TYPE_PALETTE:
+        case PNG_COLOR_TYPE_RGB:
+            input_cmodel = BC_RGB888;
+            break;
+        case PNG_COLOR_TYPE_GRAY_ALPHA:
+        case PNG_COLOR_TYPE_RGB_ALPHA:
+            input_cmodel = BC_RGBA8888;
+            break;
+    }
+
+// can't use the file class since FileList uses a temporary
+    VFrame *output2 = output;
+    if(output->get_color_model() != input_cmodel)
+    {
+        if(!temp)
+        {
+            temp = new VFrame;
+            temp->set_use_shm(0);
+            temp->reallocate(0, // data
+	  	        -1, // shmid
+                0, // Y
+                0, // U
+                0, // V
+	  	        asset->width, // w
+		        asset->height, // h
+                input_cmodel, // color_model
+                -1); // bytes_per_line
+        }
+        output2 = temp;
+    }
+
+// read the image
+	png_read_image(png_ptr, output2->get_rows());
+
+// printf("FilePNG::read_frame %d input_cmodel=%d temp=%p %02x %02x %02x %02x %02x %02x %02x %02x\n",
+// __LINE__,
+// input_cmodel,
+// temp,
+// temp->get_rows()[0][0],
+// temp->get_rows()[0][1],
+// temp->get_rows()[0][2],
+// temp->get_rows()[0][3],
+// temp->get_rows()[0][4],
+// temp->get_rows()[0][5],
+// temp->get_rows()[0][6],
+// temp->get_rows()[0][7]);
+
 	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 
-	input->set_compressed_size(size);
+// convert to the file temporary
+    if(output != output2)
+    {
+		cmodel_transfer(output->get_rows(), 
+			output2->get_rows(),
+			output->get_y(),
+			output->get_u(),
+			output->get_v(),
+			output2->get_y(),
+			output2->get_u(),
+			output2->get_v(),
+			0, 
+			0, 
+			asset->width, 
+			asset->height,
+			0, 
+			0, 
+			asset->width, 
+			asset->height,
+			output2->get_color_model(), 
+			output->get_color_model(),
+			0,
+			asset->width,
+			asset->width);
+    }
 
 //printf("FilePNG::read_frame 4\n");
 	return result;

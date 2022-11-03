@@ -56,8 +56,7 @@ public:
 
 
 
-	int native_cmodel;
-// For decoding only
+// For decoding
 	VFrame *temp;
 };
 

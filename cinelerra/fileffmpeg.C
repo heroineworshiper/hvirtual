@@ -2056,7 +2056,7 @@ static int ffmpeg_to_cmodel(int pix_fmt)
 
         case AV_PIX_FMT_NV12:
 			return BC_NV12;
-//                 printf("FileFFMPEG::read_frame %d: AV_PIX_FMT_NV12 -> %d\n", 
+//                 printf("FileFFMPEG::ffmpeg_to_cmodel %d: AV_PIX_FMT_NV12 -> %d\n", 
 //                     __LINE__,
 //                     frame->get_color_model());
             break;
@@ -2068,12 +2068,12 @@ static int ffmpeg_to_cmodel(int pix_fmt)
 
 //             case AV_PIX_FMT_NV21:
 // 				return BC_NV21;
-//                 printf("FileFFMPEG::read_frame %d: AV_PIX_FMT_NV21\n", __LINE__);
+//                 printf("FileFFMPEG::ffmpeg_to_cmodel %d: AV_PIX_FMT_NV21\n", __LINE__);
 //                 break;
 
 		default:
 			fprintf(stderr, 
-				"FileFFMPEG::read_frame %d: unrecognized color model %d\n", 
+				"FileFFMPEG::ffmpeg_to_cmodel %d: unrecognized color model %d\n", 
                 __LINE__,
 				pix_fmt);
 //printf("AV_PIX_FMT_P010LE=%d\n", AV_PIX_FMT_P010LE);

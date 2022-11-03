@@ -2063,6 +2063,19 @@ int File::read_frame(VFrame *frame,
                                 BC_WindowBase::get_resources()->vframe_shm);
                         }
 
+// printf("File::read_frame %d use_temp_frame=%d frame=%p %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+// __LINE__, 
+// use_temp_frame,
+// frame,
+// frame->get_rows()[0][0],
+// frame->get_rows()[0][1],
+// frame->get_rows()[0][2],
+// frame->get_rows()[0][3],
+// frame->get_rows()[0][4],
+// frame->get_rows()[0][5],
+// frame->get_rows()[0][6],
+// frame->get_rows()[0][7]);
+
 // Convert from the temp to the function argument in the file server
                         if(use_temp_frame)
                         {
@@ -2160,7 +2173,18 @@ int File::read_frame(VFrame *frame,
             frame_cache->unlock();
         }
 
-//printf("File::read_frame %d use_cache=%d\n", __LINE__, use_cache);
+// printf("File::read_frame %d use_cache=%d frame=%p %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+// __LINE__, 
+// use_cache, 
+// frame,
+// frame->get_rows()[0][0],
+// frame->get_rows()[0][1],
+// frame->get_rows()[0][2],
+// frame->get_rows()[0][3],
+// frame->get_rows()[0][4],
+// frame->get_rows()[0][5],
+// frame->get_rows()[0][6],
+// frame->get_rows()[0][7]);
 
 // 	    if(MWindow::preferences->dump_playback) 
 //         {
@@ -2305,6 +2329,11 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
         {
 // software in the server
 // take the smallest of the encoded & asset frame sizes as the source size
+printf("File::convert_cmodel %d read_pointer=%p src=%p dst=%p\n", 
+__LINE__, 
+read_pointer,
+temp_frame, 
+read_frame_dst);
             int src_w = MIN(read_pointer->get_w(), asset->width);
             int src_h = MIN(read_pointer->get_h(), asset->height);
 	        cmodel_transfer(read_frame_dst->get_rows(), 
@@ -2333,7 +2362,7 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
         if(device)
         {
 // hardware in the server
-//printf("File::convert_cmodel %d src=%p dst=%p\n", __LINE__, temp_frame, read_frame_dst);
+printf("File::convert_cmodel %d src=%p dst=%p\n", __LINE__, temp_frame, read_frame_dst);
             temp_frame->set_opengl_state(VFrame::RAM);
             device->convert_cmodel(temp_frame, read_frame_dst);
         }
