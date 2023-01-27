@@ -2606,7 +2606,14 @@ int CWindowCanvas::test_crop(int button_press, int &redraw)
 	output_to_canvas(mwindow->edl, 0, canvas_x1, canvas_y1);
 	output_to_canvas(mwindow->edl, 0, canvas_x2, canvas_y2);
 
-
+// zoom
+    int is_zoom = 0;
+    if(button_press && (get_buttonpress() == 4 || get_buttonpress() == 5))
+    {
+        is_zoom = 1;
+        test_zoom(redraw);
+    }
+    else
 	if(gui->current_operation == CWINDOW_CROP)
 	{
 		handle_selected = gui->crop_handle;
@@ -2654,6 +2661,10 @@ int CWindowCanvas::test_crop(int button_press, int &redraw)
 // 	gui->current_operation,
 // 	handle_selected);
 
+    if(is_zoom)
+    {
+    }
+    else
 // Start dragging.
 	if(button_press)
 	{

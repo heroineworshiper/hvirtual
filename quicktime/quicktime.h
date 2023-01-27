@@ -48,7 +48,8 @@ extern "C" {
 #define QUICKTIME_H264 "avc1"
 #define QUICKTIME_H265 "hvc1"
 #define QUICKTIME_HEV1 "hev1"
-
+#define QUICKTIME_VP09 "vp09"
+#define QUICKTIME_VP08 "vp08"
 
 /* Basterdization of MPEG-4 which encodes alternating fields in series */
 /* NOT STANDARD */

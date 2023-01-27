@@ -2362,7 +2362,7 @@ read_frame_dst);
         if(device)
         {
 // hardware in the server
-printf("File::convert_cmodel %d src=%p dst=%p\n", __LINE__, temp_frame, read_frame_dst);
+//printf("File::convert_cmodel %d src=%p dst=%p\n", __LINE__, temp_frame, read_frame_dst);
             temp_frame->set_opengl_state(VFrame::RAM);
             device->convert_cmodel(temp_frame, read_frame_dst);
         }

@@ -104,7 +104,7 @@ void AboutPrefs::create_objects()
 	credits.append(new BC_ListBoxItem("Nicola Ferralis"));
 	credits.append(new BC_ListBoxItem("Alex Ferrer"));
 	credits.append(new BC_ListBoxItem("Gustavo Iñiguez"));
-	credits.append(new BC_ListBoxItem("Tefan de Konink"));
+	credits.append(new BC_ListBoxItem("Stefan de Konink"));
 	credits.append(new BC_ListBoxItem("Nathan Kurz"));
 	credits.append(new BC_ListBoxItem("Greg Mekkes"));
 	credits.append(new BC_ListBoxItem("Jean-Michel Poure"));

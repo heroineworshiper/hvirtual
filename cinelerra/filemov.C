@@ -1156,6 +1156,8 @@ int FileMOV::read_frame(VFrame *frame)
         if(match4(asset->vcodec, QUICKTIME_H265) ||
             match4(asset->vcodec, QUICKTIME_H264) ||
             match4(asset->vcodec, QUICKTIME_HEV1) ||
+            match4(asset->vcodec, QUICKTIME_VP09) ||
+            match4(asset->vcodec, QUICKTIME_VP08) ||
             match4(asset->vcodec, QUICKTIME_HV64) ||
             match4(asset->vcodec, QUICKTIME_HV60) ||
             match4(asset->vcodec, QUICKTIME_DIV3) ||

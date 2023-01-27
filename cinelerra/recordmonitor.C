@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
@@ -1012,7 +1011,8 @@ void RecordMonitorThread::init_output_format()
 		case VIDEO4LINUX2JPEG:
 			jpeg_engine = new RecVideoMJPGThread(record, this, 1);
 			jpeg_engine->start_rendering();
-			output_colormodel = BC_YUV420P;
+//			output_colormodel = BC_YUV420P;
+			output_colormodel = BC_YUV422P;
 			break;
 
 		case CAPTURE_YUYV_WEBCAM:

@@ -56,9 +56,6 @@ using std::string;
 
 
 // stuff
-#define QUICKTIME_VP9 "VP9"
-#define QUICKTIME_VP8 "VP8"
-
 #define FFMPEG_TOC_SIG "FFMPEGTOC03"
 
 // hacks for seeking which depend on the codec
@@ -829,10 +826,10 @@ if(debug) printf("FileFFMPEG::open_ffmpeg %d audio_length=%lld\n", __LINE__, (lo
                                     strcpy (asset->vcodec, QUICKTIME_H265);
                                     break;
                                 case AV_CODEC_ID_VP9:
-                                    strcpy (asset->vcodec, QUICKTIME_VP9);
+                                    strcpy (asset->vcodec, QUICKTIME_VP09);
                                     break;
 							    case AV_CODEC_ID_VP8:
-								    strcpy (asset->vcodec, QUICKTIME_VP8);
+								    strcpy (asset->vcodec, QUICKTIME_VP08);
 								    break;
                                 default:
                                     asset->vcodec[0] = 0;
@@ -877,7 +874,7 @@ printf("FileFFMPEG::open_ffmpeg %d i=%d codec_type=%d\n", __LINE__, i, type);
         if(asset->video_data &&
             (!strcmp(asset->vcodec, QUICKTIME_H264) ||
             !strcmp(asset->vcodec, QUICKTIME_H265) ||
-            !strcmp(asset->vcodec, QUICKTIME_VP9)))
+            !strcmp(asset->vcodec, QUICKTIME_VP09)))
         {
             if(debug) printf("FileFFMPEG::open_ffmpeg %d vcodec=%s\n", __LINE__, asset->vcodec);
             result = create_toc(ffmpeg_file_context);
@@ -1469,7 +1466,7 @@ int FileFFMPEG::create_toc(void *ptr)
 
 
 #if LIBAVCODEC_VERSION_MAJOR < 58
-                        if(!strcmp(asset->vcodec, QUICKTIME_VP9))
+                        if(!strcmp(asset->vcodec, QUICKTIME_VP09))
                         {
 // VP9 skips some.  0x84 doesn't denote this is a skipped frame, 
 // but a frame somewhere else is skipped for every 0x84 code & no more than 1
@@ -2137,7 +2134,9 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 
 // seek if reading ahead this many frames
-#define SEEK_THRESHOLD 16
+//#define SEEK_THRESHOLD 16
+// Faster for HD
+#define SEEK_THRESHOLD 300
 
 // printf("FileFFMPEG::read_frame %d current_frame=%lld file->current_frame=%lld\n", 
 // __LINE__, 

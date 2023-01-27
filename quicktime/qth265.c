@@ -1,3 +1,29 @@
+/*
+ * Quicktime 4 Linux
+ * Copyright (C) 1997-2023 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ */
+
+
+
+
+
+
+
 #include "avcodec.h"
 #include "colormodels.h"
 #include "funcprotos.h"
@@ -488,19 +514,24 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 {
 	quicktime_video_map_t *vtrack = &(file->vtracks[track]);
 	quicktime_trak_t *trak = vtrack->track;
-	quicktime_h265_codec_t *codec = ((quicktime_codec_t*)vtrack->codec)->priv;
+	quicktime_codec_t *codec_base = (quicktime_codec_t*)vtrack->codec;
+	quicktime_h265_codec_t *codec = codec_base->priv;
 	quicktime_stsd_table_t *stsd_table = &trak->mdia.minf.stbl.stsd.table[0];
 	int width = trak->tkhd.track_width;
 	int height = trak->tkhd.track_height;
 	int w_16 = quicktime_quantize16(width);
 	int h_16 = quicktime_quantize16(height);
 
+// translate fourcc to ffmpeg
+    int codec_id = AV_CODEC_ID_H265;
+    if(quicktime_match_32(codec_base->fourcc, QUICKTIME_VP09))
+        codec_id = AV_CODEC_ID_VP9;
 
 	if(!codec->decoder) codec->decoder = quicktime_new_ffmpeg(
 		file->cpus,
         file->use_hw,
 		1,
-		AV_CODEC_ID_H265,
+		codec_id,
 		width,
 		height,
 		stsd_table);
@@ -600,6 +631,14 @@ void quicktime_init_codec_hev1(quicktime_video_map_t *vtrack)
         QUICKTIME_HEV1,
         "H.265",
         "H.265");
+}
+
+void quicktime_init_codec_vp09(quicktime_video_map_t *vtrack)
+{
+    quicktime_h265_codec_t *result = init_common(vtrack,
+        QUICKTIME_VP09,
+        "VP9",
+        "VP9");
 }
 
 

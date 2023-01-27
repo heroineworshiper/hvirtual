@@ -1,6 +1,6 @@
 /*
  * Quicktime 4 Linux
- * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2023 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -313,12 +313,6 @@ static int decode_wrapper(quicktime_t *file,
     if(result < 0 || !ffmpeg->picture[current_field]->data[0])
 	{
         result = 0;
-// printf("decode_wrapper %d read_position=%ld current_position=%ld current_field=%d drop_it=%d\n", 
-// __LINE__,
-// frame_number,
-// current_position,
-// current_field,
-// drop_it);
 
     	quicktime_set_video_position(file, ffmpeg->read_position[current_field], track);
 
@@ -452,7 +446,7 @@ static int decode_wrapper(quicktime_t *file,
 // printf("decode_wrapper %d result=%d\n", 
 // __LINE__, 
 // result);
-
+// 
 // if(ffmpeg->picture[current_field]->data[0])
 // {
 // int i;
@@ -530,6 +524,12 @@ static int decode_wrapper(quicktime_t *file,
 // picture->linesize[0],
 // picture->linesize[1],
 // picture->linesize[2]);
+// int i;
+// for(i = 0; i < 16; i++)
+// {
+// printf("%02x ", file->src_y[i]);
+// }
+// printf("\n");
 // advance the position
 		ffmpeg->last_frame[current_field] += ffmpeg->fields;
 	}
