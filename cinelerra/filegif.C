@@ -164,6 +164,7 @@ int FileGIF::read_frame(VFrame *output, VFrame *input)
 		{
 			case IMAGE_DESC_RECORD_TYPE:
 			{
+printf("FileGIF::read_frame %d: IMAGE_DESC_RECORD_TYPE\n", __LINE__);
 				if(DGifGetImageDesc(gif_file) == GIF_ERROR)
 				{
 					printf("FileGIF::read_frame %d: %s\n", __LINE__, GifErrorString());

@@ -109,7 +109,8 @@ int quicktime_atom_read_header(quicktime_t *file, quicktime_atom_t *atom)
 		atom->size = read_size(header);
 		atom->end = atom->start + atom->size;
 		if(debug)
-			printf("quicktime_atom_read_header 1 %c%c%c%c start=0x%llx size=0x%llx end=0x%llx ftell %llx %llx\n", 
+			printf("quicktime_atom_read_header %d %c%c%c%c start=0x%lx size=0x%lx end=0x%lx ftell %lx %lx\n", 
+                __LINE__,
 				atom->type[0], atom->type[1], atom->type[2], atom->type[3],
 				atom->start, atom->size, atom->end,
 				file->file_position,

@@ -40,6 +40,11 @@ BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B arm -I binary -O elf32-littlearm\""
 LFLAGS += -L/usr/X11R6/lib64
 endif
 
+ifeq ($(OBJDIR), aarch64)
+BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B arm -I binary -O elf32-littlearm\""
+LFLAGS += -L/usr/X11R6/lib64
+endif
+
 
 
 $(shell mkdir -p $(OBJDIR) )

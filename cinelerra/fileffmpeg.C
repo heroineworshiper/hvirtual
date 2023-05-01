@@ -802,7 +802,11 @@ if(debug) printf("FileFFMPEG::open_ffmpeg %d audio_length=%lld\n", __LINE__, (lo
 				}
 
         		case AVMEDIA_TYPE_VIDEO:
-//printf("FileFFMPEG::open_ffmpeg %d i=%d CODEC_TYPE_VIDEO decoder_context=%p\n", __LINE__, i, decoder_context);
+// printf("FileFFMPEG::open_ffmpeg %d i=%d CODEC_TYPE_VIDEO decoder_context=%p codec_id=0x%x\n", 
+// __LINE__, 
+// i, 
+// decoder_context, 
+// decoder_context->codec_id);
 // only 1 video track supported for ffmpeg
             		if(video_streams.size() == 0)
 					{
@@ -2134,9 +2138,9 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 
 // seek if reading ahead this many frames
-//#define SEEK_THRESHOLD 16
-// Faster for HD
-#define SEEK_THRESHOLD 300
+#define SEEK_THRESHOLD 16
+// Faster for HD timelapse
+//#define SEEK_THRESHOLD 300
 
 // printf("FileFFMPEG::read_frame %d current_frame=%lld file->current_frame=%lld\n", 
 // __LINE__, 
