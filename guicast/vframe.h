@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
@@ -27,7 +26,8 @@
 #include "bcpbuffer.inc"
 #include "bctexture.inc"
 #include "bcwindowbase.inc"
-#include "bccmodels.h"
+//#include "bccmodels.h"
+#include "colormodels.h"
 #include "vframe.inc"
 
 class PngReadFunction;
@@ -53,6 +53,7 @@ class VFrame
 public:
 // Create new frame with shared data if *data is nonzero.
 // Pass 0 to *data & -1 to shmid if private data is desired.
+// set_use_shm must be called to use malloc instead of shmget
 	VFrame(int w, 
 		int h, 
 		int color_model);
@@ -64,15 +65,15 @@ public:
 		long bytes_per_line /* = -1 */);
 	VFrame(unsigned char *data,  // 0
 		int shmid, // -1
-		long y_offset,
-		long u_offset,
-		long v_offset,
+		unsigned char *y_ptr,
+		unsigned char *u_ptr,
+		unsigned char *v_ptr,
 		int w, 
 		int h, 
 		int color_model,  /* = BC_RGBA8888 */
 		long bytes_per_line /* = -1 */);
 // Create a frame with the png image
-	VFrame(unsigned char *png_data);
+	VFrame(const unsigned char *png_data);
 	VFrame(VFrame &vframe);
 // Create new frame for compressed data.
 	VFrame();
@@ -86,11 +87,11 @@ public:
 
 // Reallocate a frame without deleting the class
 	int reallocate(
-		unsigned char *data,   // Data if shared
-		int shmid,             // shmid if IPC  -1 if not
-		long y_offset,         // plane offsets if shared YUV
-		long u_offset,
-		long v_offset,
+		unsigned char *data,   // Data if shared.  0 if not
+		int shmid,             // shmid if IPC.  -1 if not
+		unsigned char *y_ptr,  // planes if shared YUV.  0 if not
+		unsigned char *u_ptr,
+		unsigned char *v_ptr,
 		int w, 
 		int h, 
 		int color_model, 
@@ -98,24 +99,28 @@ public:
 
 	void set_memory(unsigned char *data, 
 		int shmid,
-		long y_offset,
-		long u_offset,
-		long v_offset);
+		unsigned char *y_ptr,
+		unsigned char *u_ptr,
+		unsigned char *v_ptr,
+        int rowspan);
 
 	void set_compressed_memory(unsigned char *data,
 		int shmid,
 		int data_size,
 		int data_allocated);
 
+// scale based on the dpi for the GUI
+	void read_png(const unsigned char *data, int dpi);
+
 // Read a PNG into the frame with alpha
 	int read_png(const unsigned char *data);
 // Write a PNG for debugging
-	int write_png(const char *path);
+	int write_png(const char *path, int compression);
 
 // if frame points to the same data as this return 1
 	int equals(VFrame *frame);
 // Test if frame already matches parameters
-	int params_match(int w, int h, int color_model);
+	int params_match(int w, int h, int rowspan, int color_model);
 // Test if data values in the frame match
 	int data_matches(VFrame *frame);
 
@@ -164,12 +169,13 @@ public:
 
 
 	static int calculate_bytes_per_pixel(int colormodel);
-// Get size + 4 for assembly language
+// Get size + padding
 	static long calculate_data_size(int w, 
 		int h, 
 		int bytes_per_line = -1, 
-		int color_model = BC_RGB888);
-// Get size of uncompressed frame buffer without extra 4 bytes
+		int color_model = BC_RGB888,
+        int with_pad = 1);
+// Get size of uncompressed frame buffer without padding
 	long get_data_size();
 
 	void rotate270();
@@ -238,8 +244,6 @@ public:
 
 
 
-
-
 // ================================ OpenGL functions ===========================
 // Defined in vframe3d.C
 // Location of working image if OpenGL playback
@@ -298,8 +302,7 @@ public:
 // At least one shader argument must have a main() function.  make_shader
 // replaces all the main() functions with unique functions and calls them in
 // sequence, so multiple independant shaders can be linked.
-// x is a placeholder for va_arg and should be 0.
-	static unsigned int make_shader(int x, ...);
+	static unsigned int make_shader(int dump, ...);
 	static void dump_shader(int shader_id);
 
 // Because OpenGL is faster if multiple effects are combined, we need
@@ -336,6 +339,11 @@ public:
 // This clears the stacks and the param table
 	void clear_stacks();
 
+	void draw_rect(int x1, int y1, int x2, int y2);
+	void draw_line(int x1, int y1, int x2, int y2);
+	void draw_pixel(int x, int y);
+	void draw_arrow(int x1, int y1, int x2, int y2);
+	void draw_oval(int x1, int y1, int x2, int y2);
 
 
 
@@ -395,9 +403,9 @@ private:
 	void create_row_pointers();
 	int allocate_data(unsigned char *data, 
 		int shmid,
-		long y_offset,
-		long u_offset,
-		long v_offset,
+		unsigned char *y_ptr,
+		unsigned char *u_ptr,
+		unsigned char *v_ptr,
 		int w, 
 		int h, 
 		int color_model, 
@@ -433,11 +441,11 @@ private:
 	long compressed_allocated;
 // Size of stored compressed image
 	long compressed_size;   
-// Pointers to yuv planes
+// Pointers to yuv planes either in the data pointer or to a shared buffer
 	unsigned char *y, *u, *v;
-	long y_offset;
-	long u_offset;
-	long v_offset;
+// 	long y_offset;
+// 	long u_offset;
+// 	long v_offset;
 // Dimensions of frame
 	int w, h;
 // Info for reading png images

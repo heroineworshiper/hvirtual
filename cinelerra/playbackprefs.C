@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +53,7 @@ PlaybackPrefs::~PlaybackPrefs()
 
 void PlaybackPrefs::create_objects()
 {
-	int x, y, x2;
+	int x, y, x1, x2;
 	char string[BCTEXTLEN];
 	BC_PopupTextBox *popup;
 	BC_WindowBase *window;
@@ -68,18 +67,18 @@ void PlaybackPrefs::create_objects()
 	int margin = mwindow->theme->widget_border;
 
 // Audio
-	add_subwindow(new BC_Title(x, 
+	BC_Title *title1, *title2;
+	add_subwindow(title1 = new BC_Title(x, 
 		y, 
 		_("Audio Out"), 
 		LARGEFONT));
 
 
-	y += get_text_height(LARGEFONT) + 5;
+	y += title1->get_h() + margin;
 
 
-	BC_Title *title1, *title2;
 	add_subwindow(title2 = new BC_Title(x, y, _("Playback buffer samples:"), MEDIUMFONT));
-	x2 = MAX(title2->get_w(), title2->get_w()) + 10;
+	x2 = title2->get_x() + title2->get_w() + margin;
 
 SET_TRACE
 	sprintf(string, "%d", playback_config->aconfig->fragment_size);
@@ -99,26 +98,25 @@ SET_TRACE
 	menu->add_item(new BC_MenuItem("131072"));
 	menu->add_item(new BC_MenuItem("262144"));
 
-	y += menu->get_h() + 5;
-	x2 = x;
-	add_subwindow(title1 = new BC_Title(x2, y, _("Audio offset (sec):")));
-	x2 += title1->get_w() + 5;
+	y += menu->get_h() + margin;
+	add_subwindow(title1 = new BC_Title(x, y, _("Audio offset (sec):")));
+	x1 = x + title1->get_w() + margin;
 	PlaybackAudioOffset *audio_offset = new PlaybackAudioOffset(pwindow,
 		this,
-		x2,
+		x1,
 		y);
 	audio_offset->create_objects();
-	y += audio_offset->get_h() + 5;
+	y += audio_offset->get_h() + margin;
 
 SET_TRACE
 	add_subwindow(new PlaybackViewFollows(pwindow, pwindow->thread->edl->session->view_follows_playback, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new PlaybackSoftwareTimer(pwindow, pwindow->thread->edl->session->playback_software_position, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new PlaybackRealTime(pwindow, pwindow->thread->edl->session->real_time_playback, y));
-	y += 40;
-	add_subwindow(new BC_Title(x, y, _("Audio Driver:")));
-	audio_device = new ADevicePrefs(x + 100, 
+	y += DP(40);
+	add_subwindow(title1 = new BC_Title(x, y, _("Audio Driver:")));
+	audio_device = new ADevicePrefs(title1->get_x() + title1->get_w() + margin, 
 		y, 
 		pwindow, 
 		this, 
@@ -132,26 +130,28 @@ SET_TRACE
 
 
 // Video
- 	y += audio_device->get_h();
+ 	y += audio_device->get_h(0) + margin;
 
 SET_TRACE
-	add_subwindow(new BC_Bar(5, y, 	get_w() - 10));
-	y += 5;
+	add_subwindow(new BC_Bar(x, y, 	get_w() - x * 2));
+	y += margin;
 
 SET_TRACE
-	add_subwindow(new BC_Title(x, y, _("Video Out"), LARGEFONT));
-	y += 30;
+	add_subwindow(title1 = new BC_Title(x, y, _("Video Out"), LARGEFONT));
+	y += title1->get_h() + margin;
 
 SET_TRACE
 	add_subwindow(window = new VideoEveryFrame(pwindow, this, x, y));
+	y += window->get_h() + margin;
+	
+//	add_subwindow(title1 = new BC_Title(x, y, _("Framerate achieved:")));
+//  x1 = title1->get_x() + title1->get_w() + margin;
+//	add_subwindow(framerate_title = new BC_Title(x1, y, _("--"), MEDIUMFONT, RED));
+//	draw_framerate(0);
+//	y += framerate_title->get_h() + margin;
 
-	add_subwindow(new BC_Title(x + 200, y + 5, _("Framerate achieved:")));
-	add_subwindow(framerate_title = new BC_Title(x + 350, y + 5, _("--"), MEDIUMFONT, RED));
-	draw_framerate(0);
-	y += window->get_h() + 5;
-
-	add_subwindow(asynchronous = new VideoAsynchronous(pwindow, x, y));
-	y += asynchronous->get_h() + 10;
+//	add_subwindow(asynchronous = new VideoAsynchronous(pwindow, x, y));
+//	y += asynchronous->get_h() + 10;
 
 SET_TRACE
 	BC_Title *title;
@@ -160,40 +160,52 @@ SET_TRACE
 	add_subwindow(nearest_neighbor = new PlaybackNearest(pwindow, 
 		this, 
 		pwindow->thread->edl->session->interpolation_type == NEAREST_NEIGHBOR, 
-		10, 
+		DP(10), 
 		y));
 	y += nearest_neighbor->get_h();
-	add_subwindow(cubic_linear = new PlaybackBicubicBilinear(pwindow, 
+	add_subwindow(cubic_cubic = new PlaybackBicubicBicubic(pwindow, 
 		this, 
-		pwindow->thread->edl->session->interpolation_type == CUBIC_LINEAR, 
-		10, 
+		pwindow->thread->edl->session->interpolation_type == CUBIC_CUBIC ||
+			pwindow->thread->edl->session->interpolation_type == CUBIC_LINEAR ||
+			pwindow->thread->edl->session->interpolation_type == LINEAR_LINEAR ||
+			pwindow->thread->edl->session->interpolation_type == LANCZOS_LANCZOS, 
+		DP(10), 
 		y));
-	y += nearest_neighbor->get_h();
-	add_subwindow(linear_linear = new PlaybackBilinearBilinear(pwindow, 
-		this, 
-		pwindow->thread->edl->session->interpolation_type == LINEAR_LINEAR, 
-		10, 
-		y));
+	y += cubic_cubic->get_h() + margin;
+// 	add_subwindow(cubic_linear = new PlaybackBicubicBilinear(pwindow, 
+// 		this, 
+// 		pwindow->thread->edl->session->interpolation_type == CUBIC_LINEAR, 
+// 		10, 
+// 		y));
+// 	y += nearest_neighbor->get_h();
+// 	add_subwindow(linear_linear = new PlaybackBilinearBilinear(pwindow, 
+// 		this, 
+// 		pwindow->thread->edl->session->interpolation_type == LINEAR_LINEAR, 
+// 		10, 
+// 		y));
 
 SET_TRACE
-	y += nearest_neighbor->get_h() + margin;
-	add_subwindow(new BC_Title(x, y, _("Preload buffer for Quicktime:"), MEDIUMFONT));
+//	y += nearest_neighbor->get_h() + margin;
+	add_subwindow(title1 = new BC_Title(x, y, _("Preload buffer for Quicktime:"), MEDIUMFONT));
 	sprintf(string, "%d", (int)pwindow->thread->edl->session->playback_preload);
 	PlaybackPreload *preload;
-	add_subwindow(preload = new PlaybackPreload(x + 210, y, pwindow, this, string));
+	x1 = title1->get_x() + title1->get_w() + margin;
+	add_subwindow(preload = new PlaybackPreload(x1, y, pwindow, this, string));
 
-	y += preload->get_h() + 5;
+	y += preload->get_h() + margin;
 	add_subwindow(title1 = new BC_Title(x, y, _("DVD Subtitle to display:")));
 	PlaybackSubtitleNumber *subtitle_number;
-	subtitle_number = new PlaybackSubtitleNumber(x + title1->get_w() + 10, 
+	x1 = x + title1->get_w() + margin;
+	subtitle_number = new PlaybackSubtitleNumber(x1, 
 		y, 
 		pwindow, 
 		this);
 	subtitle_number->create_objects();
 
 	PlaybackSubtitle *subtitle_toggle;
+	x1 += subtitle_number->get_w() + margin;
 	add_subwindow(subtitle_toggle = new PlaybackSubtitle(
-		x + title1->get_w() + 10 + subtitle_number->get_w() + 10, 
+		x1, 
 		y, 
 		pwindow, 
 		this));
@@ -205,16 +217,30 @@ SET_TRACE
 		y,
 		pwindow,
 		this));
-	y += interpolate_raw->get_h();
+	y += interpolate_raw->get_h() + margin;
 
-	add_subwindow(white_balance_raw = new PlaybackWhiteBalanceRaw(
-		x, 
-		y,
-		pwindow,
-		this));
-	y += white_balance_raw->get_h() + 10;
-	if(!pwindow->thread->edl->session->interpolate_raw) 
-		white_balance_raw->disable();
+// 	add_subwindow(hw_decode = new PlaybackHWDecode(
+// 		x, 
+// 		y,
+// 		pwindow,
+// 		this));
+// 	y += hw_decode->get_h() + margin;
+// 
+// 	add_subwindow(ffmpeg_mov = new PlaybackFFmpegMov(
+// 		x, 
+// 		y,
+// 		pwindow,
+// 		this));
+// 	y += ffmpeg_mov->get_h() + margin;
+
+// 	add_subwindow(white_balance_raw = new PlaybackWhiteBalanceRaw(
+// 		x, 
+// 		y,
+// 		pwindow,
+// 		this));
+// 	y += white_balance_raw->get_h() + margin;
+// 	if(!pwindow->thread->edl->session->interpolate_raw) 
+// 		white_balance_raw->disable();
 
 
 SET_TRACE
@@ -222,7 +248,7 @@ SET_TRACE
 //	add_subwindow(new PlaybackDeblock(pwindow, 10, y));
 
 	add_subwindow(vdevice_title = new BC_Title(x, y, _("Video Driver:")));
-	video_device = new VDevicePrefs(x + vdevice_title->get_w() + 10, 
+	video_device = new VDevicePrefs(x + vdevice_title->get_w() + margin, 
 		y, 
 		pwindow, 
 		this, 
@@ -240,25 +266,29 @@ void PlaybackPrefs::update(int interpolation)
 {
 	pwindow->thread->edl->session->interpolation_type = interpolation;
 	nearest_neighbor->update(interpolation == NEAREST_NEIGHBOR);
-//	cubic_cubic->update(interpolation == CUBIC_CUBIC);
-	cubic_linear->update(interpolation == CUBIC_LINEAR);
-	linear_linear->update(interpolation == LINEAR_LINEAR);
+	cubic_cubic->update(interpolation == CUBIC_CUBIC ||
+		interpolation == CUBIC_LINEAR ||
+		interpolation == LINEAR_LINEAR ||
+		interpolation == LANCZOS_LANCZOS);
+//	cubic_linear->update(interpolation == CUBIC_LINEAR);
+//	linear_linear->update(interpolation == LINEAR_LINEAR);
 }
 
 
 int PlaybackPrefs::get_buffer_bytes()
 {
 //	return pwindow->thread->edl->aconfig->oss_out_bits / 8 * pwindow->thread->preferences->aconfig->oss_out_channels * pwindow->thread->preferences->playback_buffer;
+    return 0;
 }
 
-int PlaybackPrefs::draw_framerate(int flush)
-{
-//printf("PlaybackPrefs::draw_framerate 1 %f\n", mwindow->session->actual_frame_rate);
-	char string[BCTEXTLEN];
-	sprintf(string, "%.4f", mwindow->session->actual_frame_rate);
-	framerate_title->update(string, flush);
-	return 0;
-}
+// int PlaybackPrefs::draw_framerate(int flush)
+// {
+// //printf("PlaybackPrefs::draw_framerate 1 %f\n", mwindow->session->actual_frame_rate);
+// 	char string[BCTEXTLEN];
+// 	sprintf(string, "%.4f", mwindow->session->actual_frame_rate);
+// 	framerate_title->update(string, flush);
+// 	return 0;
+// }
 
 
 
@@ -272,7 +302,7 @@ PlaybackAudioOffset::PlaybackAudioOffset(PreferencesWindow *pwindow,
 	10.0,
 	x,
 	y,
-	100)
+	DP(100))
 {
 	this->pwindow = pwindow;
 	this->playback = playback;
@@ -296,7 +326,7 @@ PlaybackModuleFragment::PlaybackModuleFragment(int x,
 	char *text)
  : BC_PopupMenu(x, 
  	y, 
-	100, 
+	DP(100), 
 	text,
 	1)
 { 
@@ -362,7 +392,7 @@ int PlaybackRealTime::handle_event()
 
 
 PlaybackNearest::PlaybackNearest(PreferencesWindow *pwindow, PlaybackPrefs *prefs, int value, int x, int y)
- : BC_Radial(x, y, value, _("Nearest neighbor enlarge and reduce"))
+ : BC_Radial(x, y, value, _("Low quality"))
 {
 	this->pwindow = pwindow;
 	this->prefs = prefs;
@@ -378,7 +408,7 @@ int PlaybackNearest::handle_event()
 
 
 PlaybackBicubicBicubic::PlaybackBicubicBicubic(PreferencesWindow *pwindow, PlaybackPrefs *prefs, int value, int x, int y)
- : BC_Radial(x, y, value, _("Bicubic enlarge and reduce"))
+ : BC_Radial(x, y, value, _("High quality"))
 {
 	this->pwindow = pwindow;
 	this->prefs = prefs;
@@ -421,13 +451,29 @@ int PlaybackBilinearBilinear::handle_event()
 	return 1;
 }
 
+PlaybackLanczos::PlaybackLanczos(PreferencesWindow *pwindow, 
+	PlaybackPrefs *prefs, 
+	int value, 
+	int x, 
+	int y)
+ : BC_Radial(x, y, value, _("Lanczos"))
+{
+	this->pwindow = pwindow;
+	this->prefs = prefs;
+}
+int PlaybackLanczos::handle_event()
+{
+	prefs->update(LANCZOS_LANCZOS);
+	return 1;
+}
+
 
 PlaybackPreload::PlaybackPreload(int x, 
 	int y, 
 	PreferencesWindow *pwindow, 
 	PlaybackPrefs *playback, 
 	char *text)
- : BC_TextBox(x, y, 100, 1, text)
+ : BC_TextBox(x, y, DP(100), 1, text)
 { 
 	this->pwindow = pwindow; 
 	this->playback = playback; 
@@ -448,7 +494,7 @@ PlaybackInterpolateRaw::PlaybackInterpolateRaw(
  : BC_CheckBox(x, 
  	y, 
 	pwindow->thread->edl->session->interpolate_raw, 
-	_("Interpolate CR2 images"))
+	_("Interpolate CR2 images (restart required)"))
 {
 	this->pwindow = pwindow;
 	this->playback = playback;
@@ -457,66 +503,109 @@ PlaybackInterpolateRaw::PlaybackInterpolateRaw(
 int PlaybackInterpolateRaw::handle_event()
 {
 	pwindow->thread->edl->session->interpolate_raw = get_value();
-	if(!pwindow->thread->edl->session->interpolate_raw)
-	{
-		playback->white_balance_raw->update(0, 0);
-		playback->white_balance_raw->disable();
-	}
-	else
-	{
-		playback->white_balance_raw->update(pwindow->thread->edl->session->white_balance_raw, 0);
-		playback->white_balance_raw->enable();
-	}
+// 	if(!pwindow->thread->edl->session->interpolate_raw)
+// 	{
+// 		playback->white_balance_raw->update(0, 0);
+// 		playback->white_balance_raw->disable();
+// 	}
+// 	else
+// 	{
+// 		playback->white_balance_raw->update(pwindow->thread->edl->session->white_balance_raw, 0);
+// 		playback->white_balance_raw->enable();
+// 	}
 	return 1;
 }
 
 
 
 
-PlaybackWhiteBalanceRaw::PlaybackWhiteBalanceRaw(
+PlaybackHWDecode::PlaybackHWDecode(
 	int x, 
 	int y, 
 	PreferencesWindow *pwindow, 
 	PlaybackPrefs *playback)
  : BC_CheckBox(x, 
  	y, 
-	pwindow->thread->edl->session->interpolate_raw &&
-		pwindow->thread->edl->session->white_balance_raw, 
-	_("White balance CR2 images"))
+	pwindow->thread->preferences->use_hardware_decoding, 
+	_("Decode in hardware (restart required)"))
 {
 	this->pwindow = pwindow;
 	this->playback = playback;
-	if(!pwindow->thread->edl->session->interpolate_raw) disable();
 }
 
-int PlaybackWhiteBalanceRaw::handle_event()
+int PlaybackHWDecode::handle_event()
 {
-	pwindow->thread->edl->session->white_balance_raw = get_value();
+	pwindow->thread->preferences->use_hardware_decoding = get_value();
 	return 1;
 }
 
 
-
-
-
-
-VideoAsynchronous::VideoAsynchronous(PreferencesWindow *pwindow, int x, int y)
+PlaybackFFmpegMov::PlaybackFFmpegMov(
+	int x, 
+	int y, 
+	PreferencesWindow *pwindow, 
+	PlaybackPrefs *playback)
  : BC_CheckBox(x, 
  	y, 
-	pwindow->thread->edl->session->video_every_frame &&
-		pwindow->thread->edl->session->video_asynchronous, 
-	_("Decode frames asynchronously"))
+	pwindow->thread->preferences->use_ffmpeg_mov, 
+	_("Use ffmpeg to decode quicktime/mp4 (restart required)"))
 {
 	this->pwindow = pwindow;
-	if(!pwindow->thread->edl->session->video_every_frame)
-		disable();
+	this->playback = playback;
 }
 
-int VideoAsynchronous::handle_event()
+int PlaybackFFmpegMov::handle_event()
 {
-	pwindow->thread->edl->session->video_asynchronous = get_value();
+	pwindow->thread->preferences->use_ffmpeg_mov = get_value();
 	return 1;
 }
+
+
+
+// PlaybackWhiteBalanceRaw::PlaybackWhiteBalanceRaw(
+// 	int x, 
+// 	int y, 
+// 	PreferencesWindow *pwindow, 
+// 	PlaybackPrefs *playback)
+//  : BC_CheckBox(x, 
+//  	y, 
+// 	pwindow->thread->edl->session->interpolate_raw &&
+// 		pwindow->thread->edl->session->white_balance_raw, 
+// 	_("White balance CR2 images"))
+// {
+// 	this->pwindow = pwindow;
+// 	this->playback = playback;
+// 	if(!pwindow->thread->edl->session->interpolate_raw) disable();
+// }
+// 
+// int PlaybackWhiteBalanceRaw::handle_event()
+// {
+// 	pwindow->thread->edl->session->white_balance_raw = get_value();
+// 	return 1;
+// }
+
+
+
+
+
+
+// VideoAsynchronous::VideoAsynchronous(PreferencesWindow *pwindow, int x, int y)
+//  : BC_CheckBox(x, 
+//  	y, 
+// 	pwindow->thread->edl->session->video_every_frame &&
+// 		pwindow->thread->edl->session->video_asynchronous, 
+// 	_("Decode frames asynchronously"))
+// {
+// 	this->pwindow = pwindow;
+// 	if(!pwindow->thread->edl->session->video_every_frame)
+// 		disable();
+// }
+// 
+// int VideoAsynchronous::handle_event()
+// {
+// 	pwindow->thread->edl->session->video_asynchronous = get_value();
+// 	return 1;
+// }
 
 
 
@@ -534,16 +623,16 @@ VideoEveryFrame::VideoEveryFrame(PreferencesWindow *pwindow,
 int VideoEveryFrame::handle_event()
 {
 	pwindow->thread->edl->session->video_every_frame = get_value();
-	if(!pwindow->thread->edl->session->video_every_frame)
-	{
-		playback_prefs->asynchronous->update(0, 0);
-		playback_prefs->asynchronous->disable();
-	}
-	else
-	{
-		playback_prefs->asynchronous->update(pwindow->thread->edl->session->video_asynchronous, 0);
-		playback_prefs->asynchronous->enable();
-	}
+// 	if(!pwindow->thread->edl->session->video_every_frame)
+// 	{
+// 		playback_prefs->asynchronous->update(0, 0);
+// 		playback_prefs->asynchronous->disable();
+// 	}
+// 	else
+// 	{
+// 		playback_prefs->asynchronous->update(pwindow->thread->edl->session->video_asynchronous, 0);
+// 		playback_prefs->asynchronous->enable();
+// 	}
 	return 1;
 }
 
@@ -591,7 +680,7 @@ PlaybackSubtitleNumber::PlaybackSubtitleNumber(int x,
 	31,
 	x, 
  	y, 
-	50)
+	DP(50))
 {
 	this->pwindow = pwindow;
 	this->playback = playback;

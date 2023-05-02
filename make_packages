@@ -3,10 +3,12 @@
 # Release checklist
 #
 # 1) Disable memory debugging.
+# 2) Increment PLUGIN_FILE_VERSION to detect new plugins
 # 2) Update versions
 # 3) Update credits
 # 4) Add new libraries to make_packages
 # 5) New languages
+# 6) Clean
 #
 # Did you:
 # 1) Compile for targets
@@ -16,19 +18,21 @@
 # 5) Freshmeat
 
 
-DEST=/usr/src/redhat
+DEST=/usr/src
 SRC=`pwd`
 ARCH=`uname -m`
 
-if [ $ARCH == x86_64 ]; then 
-PLUGINDIR=/usr/lib64/cinelerra;
-else
-PLUGINDIR=/usr/lib/cinelerra;
-fi
+#if [ $ARCH == x86_64 ]; then 
+#PLUGINDIR=/usr/lib64/cinelerra;
+#else
+#PLUGINDIR=/usr/lib/cinelerra;
+#fi
 
 
 
-CI_VERSION=4.3
+CI_VERSION=8
+
+
 MIX_VERSION=1.2
 XMOVIE_VERSION=1.9.13
 LIBMPEG3_VERSION=1.8
@@ -60,24 +64,24 @@ DEST_FIREHOSE=$DEST/$FIREHOSE_NAME
 
 
 # CLEAN SOURCE DIRECTORIES
+# this doesn't work
 
 
 
 
 
 
-
-echo "Cleaning"
-make clean
-find \( -name *.d \
-	-o -name *.exr \
-	-o -name .xvpics \
-	-o -name core \) -exec rm -rf {} \; -prune
-rm -r bin/*
+#echo "Cleaning"
+#make clean
+#find \( -name *.d \
+#	-o -name .xvpics \
+#	-o -name core \) -exec rm -rf {} \; -prune
+#rm -r bin/*
 
 # CREATE DIRECTORIES
 rm -rf $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
-mkdir $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
+#mkdir $DEST_CI $DEST_XMOVIE $DEST_LIBMPEG3 $DEST_QUICKTIME $DEST_MIX $DEST_FIREHOSE
+mkdir $DEST_CI
 
 
 
@@ -106,7 +110,6 @@ cp -a \
 	libmpeg3 \
 	Makefile \
 	mpeg2enc \
-	models \
 	mplexlo \
 	plugin_config \
 	plugins \
@@ -117,18 +120,31 @@ cp -a \
 	$DEST_CI
 
 
+#	models
 
-
-
+# remove unused thirdparty packages as needed: 
+# thirdparty/festival thirdparty/speech_tools thirdparty/OpenCV-2.3.1
+# remove debug output
 
 
 
 echo "Compressing Cinelerra"
 cd $DEST/
+rm -r $CI_NAME/thirdparty/festival $CI_NAME/thirdparty/speech_tools $CI_NAME/thirdparty/OpenCV-2.3.1
+find $CI_NAME/ -name CMakeCache.txt -exec rm {} \;
 find $CI_NAME -name .svn -exec rm -rf {} \; -prune
+find $CI_NAME -name .git -exec rm -rf {} \; -prune
 # dependancies are created in some clean rules
 find $CI_NAME -name '*.d' -exec rm {} \;
-tar jcf SOURCES/$CI_NAME-src.tar.bz2 $CI_NAME
+tar Jcf $CI_NAME-src.tar.xz $CI_NAME
+
+
+
+
+
+exit
+
+
 
 
 echo "Making spec file"

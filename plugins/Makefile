@@ -9,21 +9,25 @@ DIRS = \
 	1080to540 \
 	720to480 \
 	audioscope \
-	burn \
+        background \
 	bandslide \
 	bandwipe \
 	blur \
 	brightness \
 	brighttheme \
+	burn \
 	parametric \
 	aging \
 	cdripper \
+	chorus \
 	chromakey \
 	chromakeyhsv \
 	colorbalance \
 	color3way \
 	compressor \
+        compressormulti \
 	crossfade \
+        cubemap \
 	dcoffset \
 	decimate \
 	deinterlace \
@@ -38,7 +42,9 @@ DIRS = \
 	dissolve \
 	dot \
 	downsample \
+	edge \
 	fieldframe \
+	flanger \
 	flash \
 	flip \
 	framefield \
@@ -76,6 +82,7 @@ DIRS = \
 	photoscale \
 	pitch \
 	polar \
+        posterize \
 	radialblur \
 	reframe \
 	reframert \
@@ -93,6 +100,8 @@ DIRS = \
 	shiftinterlace \
 	slide \
 	spectrogram \
+	spherecam \
+	spheretranslate \
 	suv \
 	swapchannels \
 	swapframes \
@@ -100,10 +109,12 @@ DIRS = \
 	threshold \
 	timeavg \
 	timefront \
+        timelapsehelper \
 	timestretch \
 	timestretchrt \
 	titler \
 	translate \
+        tremolo \
 	unsharp \
 	videoscope \
 	vocoder \
@@ -125,7 +136,8 @@ endif
 all: $(DIRS)
 
 # force parallel compilation of all directories
-$(DIRS): /proc/uptime
+.PHONY: FORCE
+$(DIRS): FORCE
 	$(MAKE) -C $@
 
 clean:

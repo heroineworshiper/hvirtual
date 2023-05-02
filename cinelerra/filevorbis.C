@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +36,7 @@
 FileVorbis::FileVorbis(Asset *asset, File *file)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 	if(asset->format == FILE_UNKNOWN) asset->format = FILE_VORBIS;
 	asset->byte_order = 0;
 }
@@ -47,13 +46,53 @@ FileVorbis::~FileVorbis()
 	close_file();
 }
 
+
+FileVorbis::FileVorbis()
+ : FileBase()
+{
+    reset_parameters_derived();
+    ids.append(FILE_VORBIS);
+    has_audio = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileVorbis::create(File *file)
+{
+    return new FileVorbis(file->asset, file);
+}
+
+const char* FileVorbis::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_VORBIS:
+			return VORBIS_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileVorbis::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_VORBIS:
+            return "ogg";
+    }
+    return 0;
+}
+
+
+
+
 void FileVorbis::get_parameters(BC_WindowBase *parent_window, 
 	Asset *asset, 
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+	int option_type,
+	const char *locked_compressor)
 {
-	if(audio_options)
+	if(option_type == AUDIO_PARAMS)
 	{
 		VorbisConfigAudio *window = new VorbisConfigAudio(parent_window, asset);
 		format_window = window;
@@ -63,9 +102,10 @@ void FileVorbis::get_parameters(BC_WindowBase *parent_window,
 	}
 }
 
-int FileVorbis::check_sig(Asset *asset)
+int FileVorbis::check_sig(File *file, const uint8_t *test_data)
 {
-	FILE *fd = fopen(asset->path, "rb");
+	Asset *asset = file->asset;
+    FILE *fd = fopen(asset->path, "rb");
 	OggVorbis_File vf;
 
 // Test for Quicktime since OGG misinterprets it
@@ -106,6 +146,7 @@ int FileVorbis::reset_parameters_derived()
 {
 	fd = 0;
 	bzero(&vf, sizeof(vf));
+    return 0;
 }
 
 

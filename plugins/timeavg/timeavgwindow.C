@@ -30,10 +30,10 @@
 
 TimeAvgWindow::TimeAvgWindow(TimeAvgMain *client)
  : PluginClientWindow(client, 
-	250, 
-	400, 
-	250, 
-	400, 
+	DP(250), 
+	DP(400), 
+	DP(250), 
+	DP(400), 
 	0)
 { 
 	this->client = client; 
@@ -45,53 +45,53 @@ TimeAvgWindow::~TimeAvgWindow()
 
 void TimeAvgWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	BC_Bar *bar;
 	BC_Title *title;
 	
 	add_tool(title = new BC_Title(x, y, _("Frame count:")));
-	y += title->get_h() + 5;
+	y += title->get_h() + DP(5);
 	add_tool(total_frames = new TimeAvgSlider(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(paranoid = new TimeAvgParanoid(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(no_subtract = new TimeAvgNoSubtract(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(bar = new BC_Bar(x, y, get_w() - x * 2));
-	y += bar->get_h() + 5;
+	y += bar->get_h() + DP(5);
 
 
 	
 	add_tool(avg = new TimeAvgAvg(client, this, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(accum = new TimeAvgAccum(client, this, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(bar = new BC_Bar(x, y, get_w() - x * 2));
-	y += bar->get_h() + 5;
+	y += bar->get_h() + DP(5);
 
 
 
 	add_tool(replace = new TimeAvgReplace(client, this, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(new BC_Title(x, y, _("Threshold:")));
-	y += title->get_h() + 5;
+	y += title->get_h() + DP(5);
 	add_tool(threshold = new TimeThresholdSlider(client, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(new BC_Title(x, y, _("Border:")));
-	y += title->get_h() + 5;
+	y += title->get_h() + DP(5);
 	add_tool(border = new TimeBorderSlider(client, x, y));
-	y += 30;
+	y += DP(30);
 
 
 
 	add_tool(bar = new BC_Bar(x, y, get_w() - x * 2));
-	y += bar->get_h() + 5;
+	y += bar->get_h() + DP(5);
 
 
 	add_tool(greater = new TimeAvgGreater(client, this, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(less = new TimeAvgLess(client, this, x, y));
-	y += 30;
+	y += DP(30);
 
 	update_toggles();
 	show_window();
@@ -133,8 +133,8 @@ TimeAvgSlider::TimeAvgSlider(TimeAvgMain *client, int x, int y)
  : BC_ISlider(x, 
  	y, 
 	0,
-	190, 
-	200, 
+	DP(230), 
+	DP(230), 
 	1, 
 	MAX_FRAMES, 
 	client->config.frames)
@@ -159,8 +159,8 @@ TimeThresholdSlider::TimeThresholdSlider(TimeAvgMain *client, int x, int y)
  : BC_ISlider(x, 
  	y, 
 	0,
-	190, 
-	200, 
+	DP(230), 
+	DP(230), 
 	1, 
 	255, 
 	client->config.threshold)
@@ -184,8 +184,8 @@ TimeBorderSlider::TimeBorderSlider(TimeAvgMain *client, int x, int y)
  : BC_ISlider(x, 
  	y, 
 	0,
-	190, 
-	200, 
+	DP(230), 
+	DP(230), 
 	0, 
 	8, 
 	client->config.border)

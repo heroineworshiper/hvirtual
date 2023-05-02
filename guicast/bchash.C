@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,13 +50,19 @@ BC_Hash::BC_Hash(const char *filename)
 
 BC_Hash::~BC_Hash()
 {
+	clear();
+	delete [] names;
+	delete [] values;
+}
+
+void BC_Hash::clear()
+{
 	for(int i = 0; i < total; i++)
 	{
 		delete [] names[i];
 		delete [] values[i];
 	}
-	delete [] names;
-	delete [] values;
+    total = 0;
 }
 
 void BC_Hash::reallocate_table(int new_total)
@@ -90,19 +95,31 @@ int BC_Hash::load()
 	return 0;
 }
 
-void BC_Hash::load_stringfile(StringFile *file)
+void BC_Hash::load_stringfile(StringFile *file, int keep)
 {
 	char arg1[BCTEXTLEN], arg2[BCTEXTLEN];
-	total = 0;
-	while(file->get_pointer() < file->get_length())
+	
+	if(keep)
 	{
-		file->readline(arg1, arg2);
-		reallocate_table(total + 1);
-		names[total] = new char[strlen(arg1) + 1];
-		values[total] = new char[strlen(arg2) + 1];
-		strcpy(names[total], arg1);
-		strcpy(values[total], arg2);
-		total++;
+		while(file->get_pointer() < file->get_length())
+		{
+			file->readline(arg1, arg2);
+			update(arg1, arg2);
+		}
+	}
+	else
+	{
+		total = 0;
+		while(file->get_pointer() < file->get_length())
+		{
+			file->readline(arg1, arg2);
+			reallocate_table(total + 1);
+			names[total] = new char[strlen(arg1) + 1];
+			values[total] = new char[strlen(arg2) + 1];
+			strcpy(names[total], arg1);
+			strcpy(values[total], arg2);
+			total++;
+		}
 	}
 }
 
@@ -110,6 +127,7 @@ void BC_Hash::save_stringfile(StringFile *file)
 {
 	for(int i = 0; i < total; i++)
 	{
+//printf("BC_Hash::save_stringfile %d %s %s\n", __LINE__, names[i], values[i]);
 		file->writeline(names[i], values[i], 0);
 	}
 }
@@ -206,6 +224,19 @@ char* BC_Hash::get(const char *name, char *default_)
 	return default_;  // failed
 }
 
+string* BC_Hash::get(const char *name, string *default_)
+{
+	for(int i = 0; i < total; i++)
+	{
+		if(!strcmp(names[i], name))
+		{
+			default_->assign(values[i]);
+			return default_;
+		}
+	}
+	return default_;
+}
+
 int BC_Hash::update(const char *name, double value) // update a value if it exists
 {
 	char string[BCTEXTLEN];
@@ -253,6 +284,29 @@ int BC_Hash::update(const char *name, const char *value)
 	strcpy(names[total], name);
 	values[total] = new char[strlen(value) + 1];
 	strcpy(values[total], value);
+	total++;
+	return 1;
+}
+
+int BC_Hash::update(const char *name, string *value)
+{
+	for(int i = 0; i < total; i++)
+	{
+		if(!strcmp(names[i], name))
+		{
+			delete [] values[i];
+			values[i] = new char[value->length() + 1];
+			strcpy(values[i], value->c_str());
+			return 0;
+		}
+	}
+
+// didn't find so create new entry
+	reallocate_table(total + 1);
+	names[total] = new char[strlen(name) + 1];
+	strcpy(names[total], name);
+	values[total] = new char[value->length() + 1];
+	strcpy(values[total], value->c_str());
 	total++;
 	return 1;
 }

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +32,8 @@ BC_ProgressBox::BC_ProgressBox(int x, int y, const char *text, int64_t length)
 {
 	set_synchronous(1);
 
+
+
 // Calculate default x, y
 	if(x < 0 || y < 0)
 	{
@@ -40,6 +41,10 @@ BC_ProgressBox::BC_ProgressBox(int x, int y, const char *text, int64_t length)
 		x = display_info.get_abs_cursor_x();
 		y = display_info.get_abs_cursor_y();
 	}
+// printf("BC_ProgressBox::BC_ProgressBox %d %d\n", 
+// __LINE__, 
+// BC_WindowBase::get_resources()->initialized);
+
 
 	pwindow = new BC_ProgressWindow(x, y);
 	pwindow->create_objects(text, length);
@@ -90,6 +95,13 @@ int BC_ProgressBox::is_cancelled()
 	return cancelled;
 }
 
+void BC_ProgressBox::start_progress()
+{
+    Thread::start();
+    pwindow->init_wait();
+}
+
+
 int BC_ProgressBox::stop_progress()
 {
 	pwindow->lock_window("BC_ProgressBox::stop_progress");
@@ -115,8 +127,8 @@ BC_ProgressWindow::BC_ProgressWindow(int x, int y)
  : BC_Window("Progress", 
  	x, 
 	y, 
-	340, 
-	100 + get_resources()->ok_images[0]->get_h(), 
+	DP(340), 
+	DP(100) + get_resources()->ok_images[0]->get_h(), 
 	0, 
 	0, 
 	0)
@@ -129,16 +141,22 @@ BC_ProgressWindow::~BC_ProgressWindow()
 
 int BC_ProgressWindow::create_objects(const char *text, int64_t length)
 {
-	int x = 10, y = 10;
+    int border = DP(10);
+	int x = border, y = border;
 
 	lock_window("BC_ProgressWindow::create_objects");
 // Recalculate width based on text
 	if(text)
 	{
 		int text_w = get_text_width(MEDIUMFONT, text);
-		int new_w = text_w + x + 10;
+		int new_w = text_w + x + DP(10);
 
-		if(new_w > get_root_w()) new_w = get_root_w();
+// limit to a certain size
+		if(new_w > get_root_w() / 2) 
+        {
+            new_w = get_root_w() / 2;
+        }
+        
 		if(new_w > get_w())
 		{
 			resize_window(new_w, get_h());
@@ -146,9 +164,18 @@ int BC_ProgressWindow::create_objects(const char *text, int64_t length)
 	}
 
 	this->text = text;
-	add_tool(caption = new BC_Title(x, y, text));
-	y += caption->get_h() + 20;
-	add_tool(bar = new BC_ProgressBar(x, y, get_w() - 20, length));
+	add_tool(caption = new BC_Title(x, 
+        y, 
+        text, 
+        MEDIUMFONT, 
+        -1, 
+        0, 
+        get_w() - border * 2));
+	y += caption->get_h() + border * 2;
+	add_tool(bar = new BC_ProgressBar(x, 
+        y, 
+        get_w() - border * 2, 
+        length));
 	add_tool(new BC_CancelButton(this));
 	show_window(1);
 	unlock_window();

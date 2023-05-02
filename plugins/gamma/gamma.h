@@ -105,7 +105,7 @@ public:
 	void update_gui();
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
-	void render_gui(void *data);
+	void render_gui(void *data, int size);
 	int handle_opengl();
 
 	GammaEngine *engine;

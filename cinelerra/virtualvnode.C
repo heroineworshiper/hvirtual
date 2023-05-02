@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -112,12 +111,13 @@ int VirtualVNode::read_data(VFrame *output_temp,
 	if(!output_temp) 
 		printf("VirtualVNode::read_data output_temp=%p\n", output_temp);
 
-	if(vconsole->debug_tree) 
-		printf("  VirtualVNode::read_data position=%lld rate=%f title=%s opengl=%d\n", 
-			(long long)start_position,
-			frame_rate,
-			track->title, 
-			use_opengl);
+//     if(MWindow::preferences->dump_playback)
+// 		printf("  VirtualVNode::read_data %d position=%lld rate=%f title='%s' use_gl=%d\n", 
+// 			__LINE__,
+//             (long long)start_position,
+// 			frame_rate,
+// 			track->title, 
+// 			use_opengl);
 
 // If there is a parent module but the parent module has no data source,
 // use our own data source.
@@ -179,6 +179,8 @@ int VirtualVNode::render(VFrame *output_temp,
 	double frame_rate,
 	int use_opengl)
 {
+//printf("VirtualVNode::render %d output_temp=%p\n", __LINE__, output_temp);
+
 	VRender *vrender = ((VirtualVConsole*)vconsole)->vrender;
 	if(real_module)
 	{
@@ -196,6 +198,8 @@ int VirtualVNode::render(VFrame *output_temp,
 			frame_rate,
 			use_opengl);
 	}
+//printf("VirtualVNode::render %d output_temp=%p\n", __LINE__, output_temp);
+
 	return 0;
 }
 
@@ -209,11 +213,6 @@ void VirtualVNode::render_as_plugin(VFrame *output_temp,
 		!real_plugin->on) return;
 
 
-	if(vconsole->debug_tree) 
-		printf("  VirtualVNode::render_as_plugin title=%s use_opengl=%d\n", 
-			track->title,
-			use_opengl);
-
 	((VAttachmentPoint*)attachment)->render(
 		output_temp,
 		plugin_buffer_number,
@@ -221,6 +220,14 @@ void VirtualVNode::render_as_plugin(VFrame *output_temp,
 		frame_rate,
 		vconsole->debug_tree,
 		use_opengl);
+
+	if(MWindow::preferences->dump_playback) 
+		printf("%sVirtualVNode::render_as_plugin %d track='%s' plugin='%s' use_gl=%d\n", 
+			MWindow::print_indent(),
+            __LINE__,
+            track->title,
+            real_plugin->title,
+			use_opengl);
 }
 
 
@@ -252,13 +259,6 @@ int VirtualVNode::render_as_module(VFrame *video_out,
 		
 	}
 
-	if(vconsole->debug_tree) 
-		printf("  VirtualVNode::render_as_module title=%s use_opengl=%d video_out=%p output_temp=%p\n", 
-			track->title,
-			use_opengl,
-			video_out,
-			output_temp);
-
 	output_temp->push_next_effect("VirtualVNode::render_as_module");
 
 // Process last subnode.  This propogates up the chain of subnodes and finishes
@@ -282,14 +282,18 @@ int VirtualVNode::render_as_module(VFrame *video_out,
 
 	output_temp->pop_next_effect();
 
+//printf("VirtualVNode::render_as_module %d state=%d\n", __LINE__, output_temp->get_opengl_state());
 	render_fade(output_temp,
 				start_position,
 				frame_rate,
 				track->automation->autos[AUTOMATION_FADE],
 				direction,
 				use_opengl);
+//printf("VirtualVNode::render_as_module %d output_temp=%p state=%d\n", 
+//__LINE__, output_temp, output_temp->get_opengl_state());
 
 	render_mask(output_temp, start_position_project, use_opengl);
+//printf("VirtualVNode::render_as_module %d state=%d\n", __LINE__, output_temp->get_opengl_state());
 
 
 // overlay on the final output
@@ -318,8 +322,15 @@ int VirtualVNode::render_as_module(VFrame *video_out,
 	}
 
 	output_temp->push_prev_effect("VirtualVNode::render_as_module");
-//printf("VirtualVNode::render_as_module\n");
+//printf("VirtualVNode::render_as_module %d\n", __LINE__);
 //output_temp->dump_stacks();
+
+// 	if(MWindow::preferences->dump_playback) 
+// 		printf("  VirtualVNode::render_as_module %d track='%s' use_gl=%d\n", 
+// 			__LINE__,
+//             track->title,
+// 			use_opengl);
+// 
 
 	return 0;
 }
@@ -342,9 +353,6 @@ int VirtualVNode::render_fade(VFrame *output,
 		edl_rate /
 		frame_rate);
 
-	if(vconsole->debug_tree) 
-		printf("  VirtualVNode::render_fade title=%s\n", track->title);
-
 	intercept = ((FloatAutos*)autos)->get_value(start_position_project, 
 		direction,
 		previous,
@@ -353,6 +361,14 @@ int VirtualVNode::render_fade(VFrame *output,
 
 //	CLAMP(intercept, 0, 100);
 
+
+	if(MWindow::preferences->dump_playback) 
+		printf("%sVirtualVNode::render_fade %d track='%s' fade=%f use_gl=%d\n", 
+            MWindow::print_indent(),
+            __LINE__,
+            track->title, 
+            intercept,
+            use_opengl);
 
 // Can't use overlay here because overlayer blends the frame with itself.
 // The fade engine can compensate for lack of alpha channels by multiplying the 
@@ -395,36 +411,54 @@ void VirtualVNode::render_mask(VFrame *output_temp,
 
 //printf("VirtualVNode::render_mask 1 %d %d\n", total_points, keyframe->value);
 // Ignore certain masks
-	if(total_points <= 2 || 
-		(keyframe->value == 0 && keyframe->mode == MASK_SUBTRACT_ALPHA))
+    int min_points = 3;
+    if(keyframe->mode == MASK_MULTIPLY_ALPHA ||
+        keyframe->mode == MASK_MULTIPLY_PATH)
+    {
+        min_points--;
+    }
+
+	if(total_points < min_points || 
+		(keyframe->value == 0 && 
+            (keyframe->mode == MASK_SUBTRACT_ALPHA ||
+            keyframe->mode == MASK_SUBTRACT_PATH)))
 	{
 		return;
 	}
 
 // Fake certain masks
-	if(keyframe->value == 0 && keyframe->mode == MASK_MULTIPLY_ALPHA)
+	if(keyframe->value == 0 && 
+        (keyframe->mode == MASK_MULTIPLY_ALPHA ||
+            keyframe->mode == MASK_MULTIPLY_PATH))
 	{
 		output_temp->clear_frame();
 		return;
 	}
 
+// Always create the mask in software
+// this also applies it if output_temp is in RAM
+	masker->do_mask(output_temp, 
+		start_position_project,
+		keyframe_set, 
+		keyframe,
+		keyframe);
+
+
 	if(use_opengl)
 	{
-		((VDeviceX11*)((VirtualVConsole*)vconsole)->get_vdriver())->do_mask(
-			output_temp, 
-			start_position_project,
-			keyframe_set, 
-			keyframe,
-			keyframe);
-	}
-	else
-	{
-// Revert to software
-		masker->do_mask(output_temp, 
-			start_position_project,
-			keyframe_set, 
-			keyframe,
-			keyframe);
+// apply the mask in hardware if it wasn't already applied in masker
+//printf("VirtualVNode::render_mask %d\n", __LINE__);
+        if(output_temp->get_opengl_state() != VFrame::RAM)
+        {
+//printf("VirtualVNode::render_mask %d opengl_state=%d\n", __LINE__, output_temp->get_opengl_state());
+		    ((VDeviceX11*)((VirtualVConsole*)vconsole)->get_vdriver())->do_mask(
+			    output_temp, 
+                masker->mask,
+			    start_position_project,
+			    keyframe_set, 
+			    keyframe,
+			    keyframe);
+        }
 	}
 }
 
@@ -447,6 +481,13 @@ int VirtualVNode::render_projector(VFrame *input,
 	if(vconsole->debug_tree) 
 		printf("  VirtualVNode::render_projector input=%p output=%p cmodel=%d title=%s\n", 
 			input, output, output->get_color_model(), track->title);
+    if(MWindow::preferences->dump_playback)
+        printf("%sVirtualVNode::render_projector %d track='%s' use_gl=%d\n", 
+            MWindow::print_indent(),
+            __LINE__,
+			track->title,
+            use_opengl);
+
 
 	if(output)
 	{
@@ -489,16 +530,31 @@ int VirtualVNode::render_projector(VFrame *input,
 // can do dissolves, although a blend equation is still required for 3 component
 // colormodels since fractional translation requires blending.
 
-// If this is the first playable video track and the mode_keyframe is "normal"
+// If this is the first playable video track,
+// the mode_keyframe is "normal"
+// & the color model has no alpha,
 // the mode may be overridden with "replace".  Replace is faster.
-			if(mode == TRANSFER_NORMAL &&
+
+// Make the bottom track always replace if rendering
+			if(/*mode == TRANSFER_NORMAL &&
+                BC_CModels::components(output->get_color_model()) == 3 && */
 				vconsole->current_exit_node == vconsole->total_exit_nodes - 1)
-				mode = TRANSFER_REPLACE;
+			{
+            	mode = TRANSFER_REPLACE;
+            }
 
 			if(use_opengl)
 			{
 // Nested EDL's overlay on a PBuffer instead of a screen
-				
+// printf("VirtualVNode::render_projector %d input=%p output=%p\n", 
+// __LINE__, 
+// input, 
+// output);
+// printf("VirtualVNode::render_projector %d\n", __LINE__);
+// for(int i = 0; i < 1024; i++)
+// {
+// input->get_rows()[input->get_h() / 2][i] = 0xff;
+// }
 				((VDeviceX11*)((VirtualVConsole*)vconsole)->get_vdriver())->overlay(
 					output,
 					input,
@@ -513,10 +569,22 @@ int VirtualVNode::render_projector(VFrame *input,
 					1,
 					mode, 
 					renderengine->get_edl(),
-					renderengine->is_nested);
+// this isn't used
+					renderengine->is_nested /* ||
+                        renderengine->is_rendering */);
 			}
 			else
 			{
+// printf("VirtualVNode::render_projector %d input=%02x%02x%02x%02x%02x%02x%02x%02x\n",
+// __LINE__,
+// input->get_rows()[0][0],
+// input->get_rows()[0][1],
+// input->get_rows()[0][2],
+// input->get_rows()[0][3],
+// input->get_rows()[0][4],
+// input->get_rows()[0][5],
+// input->get_rows()[0][6],
+// input->get_rows()[0][7]);
 				vrender->overlayer->overlay(output, 
 					input,
 					in_x1, 
@@ -530,6 +598,16 @@ int VirtualVNode::render_projector(VFrame *input,
 					1,
 					mode, 
 					renderengine->get_edl()->session->interpolation_type);
+// printf("VirtualVNode::render_projector %d output=%02x%02x%02x%02x%02x%02x%02x%02x\n",
+// __LINE__,
+// output->get_rows()[0][0],
+// output->get_rows()[0][1],
+// output->get_rows()[0][2],
+// output->get_rows()[0][3],
+// output->get_rows()[0][4],
+// output->get_rows()[0][5],
+// output->get_rows()[0][6],
+// output->get_rows()[0][7]);
 			}
 		}
 	}

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,7 +97,7 @@ SUV::~SUV()
 void SUV::initialize()
 {
 	BC_Resources *resources = BC_WindowBase::get_resources();
-
+//printf("SUV::initialize\n");
 
 	resources->text_default = 0xbfbfbf;
 	resources->text_background = 0x373737;
@@ -106,16 +105,18 @@ void SUV::initialize()
 	resources->text_border2 = 0x373737;
 	resources->text_border3 = 0x373737;
 	resources->text_border4 = 0x969696;
+    resources->text_highlight = BLUE;
 	resources->text_inactive_highlight = 0x707070;
 
 	resources->bg_color = 0x484848;
 	resources->border_light2 = resources->bg_color;
 	resources->border_shadow2 = resources->bg_color;
 	resources->default_text_color = 0xbfbfbf;
+    resources->disabled_text_color = 0x5f5f5f;
 	resources->menu_title_text = 0xbfbfbf;
 	resources->popup_title_text = 0xbfbfbf;
 	resources->menu_item_text = 0xbfbfbf;
-	resources->generic_button_margin = 30;
+	resources->generic_button_margin = DP(30);
 	resources->pot_needle_color = resources->text_default;
 	resources->pot_offset = 1;
 	resources->progress_text = resources->text_default;
@@ -126,13 +127,13 @@ void SUV::initialize()
 	resources->menu_down = 0x4b4b4b;
 	resources->menu_up = 0x4b4b4b;
 	resources->menu_shadow = 0x202020;
-	resources->popupmenu_margin = 15;
-	resources->popupmenu_triangle_margin = 15;
+	resources->popupmenu_margin = DP(15);
+	resources->popupmenu_triangle_margin = DP(15);
 
 	resources->listbox_title_color = 0xbfbfbf;
 
-	resources->listbox_title_margin = 20;
-	resources->listbox_title_hotspot = 20;
+	resources->listbox_title_margin = DP(20);
+	resources->listbox_title_hotspot = DP(20);
 	resources->listbox_border1 = 0x1a1a1a;
 	resources->listbox_border2 = 0x373737;
 	resources->listbox_border3 = 0x373737;
@@ -142,7 +143,7 @@ void SUV::initialize()
 	resources->listbox_bg = 0;
 	resources->listbox_text = 0xbfbfbf;
 
-	resources->filebox_margin = 130;
+	resources->filebox_margin = DP(130);
 	resources->file_color = 0xbfbfbf;
 	resources->directory_color = 0xa0a0ff;
 
@@ -270,32 +271,32 @@ void SUV::initialize()
 		"new_bigbutton_dn.png",
 		"new_cancel_images");
 
-	resources->medium_7segment = new_image_set(TOTAL_7SEGMENT,
-		"0.png",
-		"1.png",
-		"2.png",
-		"3.png",
-		"4.png",
-		"5.png",
-		"6.png",
-		"7.png",
-		"8.png",
-		"9.png",
-		"colon.png",
-		"period.png",
-		"a.png",
-		"b.png",
-		"c.png",
-		"d.png",
-		"e.png",
-		"f.png",
-		"space.png",
-		"dash.png");
-
+// 	resources->medium_7segment = new_image_set(TOTAL_7SEGMENT,
+// 		"0.png",
+// 		"1.png",
+// 		"2.png",
+// 		"3.png",
+// 		"4.png",
+// 		"5.png",
+// 		"6.png",
+// 		"7.png",
+// 		"8.png",
+// 		"9.png",
+// 		"colon.png",
+// 		"period.png",
+// 		"a.png",
+// 		"b.png",
+// 		"c.png",
+// 		"d.png",
+// 		"e.png",
+// 		"f.png",
+// 		"space.png",
+// 		"dash.png");
+// 
 	resources->bar_data = new_image("bar", "bar.png");
+	resources->check = new_image("check", "check.png");
 
-
-	resources->min_menu_w = 96;
+	resources->min_menu_w = DP(96);
 	resources->menu_popup_bg = new_image("menu_popup_bg.png");
 	resources->menu_item_bg = new_image_set(3,
 		"menuitem_up.png",
@@ -413,7 +414,7 @@ void SUV::initialize()
 			"vscroll_right_up.png",
 			"vscroll_right_hi.png",
 			"vscroll_right_dn.png");
-	resources->scroll_minhandle = 20;
+	resources->scroll_minhandle = DP(20);
 
 
 	new_button("prevtip.png", "tipbutton_up.png", "tipbutton_hi.png", "tipbutton_dn.png", "prev_tip");
@@ -429,19 +430,19 @@ void SUV::initialize()
 // Record windows
 
 
-	preferences_category_overlap = 0;
-	preferencescategory_x = 0;
-	preferencescategory_y = 5;
-	preferencestitle_x = 5;
-	preferencestitle_y = 10;
-	preferencesoptions_x = 5;
-	preferencesoptions_y = 0;
+	preferences_category_overlap = DP(0);
+	preferencescategory_x = DP(0);
+	preferencescategory_y = DP(5);
+	preferencestitle_x = DP(5);
+	preferencestitle_y = DP(10);
+	preferencesoptions_x = DP(5);
+	preferencesoptions_y = DP(0);
 
 // MWindow
 	message_normal = resources->text_default;
 	audio_color = GREEN;
-	mtransport_margin = 20;
-	toggle_margin = 20;
+	mtransport_margin = DP(20);
+	toggle_margin = DP(20);
 
 	new_button("pane.png", "pane_up.png", "pane_hi.png", "pane_dn.png", "pane");
 	new_image_set("xpane", 3, "xpane_up.png", "xpane_hi.png", "xpane_dn.png");
@@ -492,22 +493,22 @@ void SUV::initialize()
 
 	setformat_w = get_image("setformat_bg")->get_w();
 	setformat_h = get_image("setformat_bg")->get_h();
-	setformat_x1 = 15;
-	setformat_x2 = 100;
+	setformat_x1 = DP(15);
+	setformat_x2 = DP(120);
 
-	setformat_x3 = 315;
-	setformat_x4 = 415;
-	setformat_y1 = 20;
-	setformat_y2 = 85;
-	setformat_y3 = 125;
-	setformat_margin = 30;
-	setformat_channels_x = 25;
-	setformat_channels_y = 242;
-	setformat_channels_w = 250;
-	setformat_channels_h = 250;
+	setformat_x3 = DP(315);
+	setformat_x4 = DP(430);
+	setformat_y1 = DP(20);
+	setformat_y2 = DP(85);
+	setformat_y3 = DP(125);
+	setformat_margin = DP(30);
+	setformat_channels_x = DP(25);
+	setformat_channels_y = DP(242);
+	setformat_channels_w = DP(250);
+	setformat_channels_h = DP(250);
 
 	loadfile_pad = get_image_set("loadmode_new")[0]->get_h() + 10;
-	browse_pad = 20;
+	browse_pad = DP(20);
 
 
 	new_toggle("playpatch.png", 
@@ -726,7 +727,7 @@ void SUV::initialize()
 		"color3way_dn.png");
 
 	new_toggle("arrow.png", editpanel_up, editpanel_hi, editpanel_checked, editpanel_dn, editpanel_checkedhi, "arrow");
-	new_toggle("autokeyframe.png", transport_up, editpanel_hi, editpanel_checked, editpanel_dn, editpanel_checkedhi, "autokeyframe");
+	new_toggle("autokeyframe.png", editpanel_up, editpanel_hi, editpanel_checked, editpanel_dn, editpanel_checkedhi, "autokeyframe");
 	new_toggle("ibeam.png", editpanel_up, editpanel_hi, editpanel_checked, editpanel_dn, editpanel_checkedhi, "ibeam");
 	new_toggle("show_meters.png", editpanel_up, editpanel_hi, editpanel_checked, editpanel_dn, editpanel_checkedhi, "meters");
 
@@ -752,16 +753,17 @@ void SUV::initialize()
 
 	flush_images();
 
-	title_font = MEDIUMFONT_3D;
+//	title_font = MEDIUMFONT_3D;
+	title_font = MEDIUMFONT;
 	title_color = 0xbfbfbf;
 	recordgui_fixed_color = YELLOW;
 	recordgui_variable_color = RED;
 
 	channel_position_color = MEYELLOW;
-	resources->meter_title_w = 25;
+	resources->meter_title_w = DP(30);
 }
 
-#define VWINDOW_METER_MARGIN 5
+#define VWINDOW_METER_MARGIN DP(5)
 
 
 
@@ -776,7 +778,8 @@ void SUV::initialize()
 void SUV::build_bg_data()
 {
 // Audio settings
-	channel_position_data = new VFrame(get_image_data("channel_position.png"));
+	channel_position_data = new VFrame();
+	channel_position_data->read_png(get_image_data("channel_position.png"), BC_Resources::dpi);
 
 // Track bitmaps
 	new_image("resource1024", "resource1024.png");
@@ -926,6 +929,7 @@ void SUV::draw_cwindow_bg(CWindowGUI *gui)
 
 	gui->draw_3segmenth(0, ccomposite_h, cstatus_x, get_image("cbuttons_left"));
 
+#ifdef USE_METERS
 	if(mwindow->edl->session->cwindow_meter)
 	{
 		gui->draw_3segmenth(cstatus_x, 
@@ -939,10 +943,11 @@ void SUV::draw_cwindow_bg(CWindowGUI *gui)
 			get_image("cmeter_bg"));
 	}
 	else
+#endif
 	{
 		gui->draw_3segmenth(cstatus_x, 
 			ccomposite_h, 
-			cmeter_x - widget_border - cstatus_x + 100, 
+			cmeter_x - widget_border - cstatus_x + DP(100), 
 			get_image("cbuttons_right"));
 	}
 }
@@ -953,6 +958,7 @@ void SUV::draw_vwindow_bg(VWindowGUI *gui)
 		vcanvas_h, 
 		vdivision_x, 
 		get_image("vbuttons_left"));
+#ifdef USE_METERS
 	if(mwindow->edl->session->vwindow_meter)
 	{
 		gui->draw_3segmenth(vdivision_x, 
@@ -966,17 +972,18 @@ void SUV::draw_vwindow_bg(VWindowGUI *gui)
 			get_image("cmeter_bg"));
 	}
 	else
+#endif
 	{
 		gui->draw_3segmenth(vdivision_x, 
 			vcanvas_h, 
-			vmeter_x - widget_border - vdivision_x + 100, 
+			vmeter_x - widget_border - vdivision_x + DP(100), 
 			get_image("cbuttons_right"));
 	}
 
 // Clock border
-	gui->draw_3segmenth(vtime_x - 20, 
-		vtime_y - 1, 
-		vtime_w + 40,
+	gui->draw_3segmenth(vtime_x - DP(20), 
+		vtime_y + 1, 
+		vtime_w + DP(40),
 		get_image("vclock"));
 }
 

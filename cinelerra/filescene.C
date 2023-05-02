@@ -41,6 +41,7 @@ extern "C"
 #include <uuid.h>
 }
 
+#ifdef USE_SCENE
 
 extern void get_exe_path(char *result);
 
@@ -198,7 +199,7 @@ static int read_parameter(char *string,
 FileScene::FileScene(Asset *asset, File *file)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 	get_exe_path(exe_path);
 }
 
@@ -1924,6 +1925,6 @@ void SceneTokens::dump()
 	}
 }
 
-
+#endif // USE_SCENE
 
 

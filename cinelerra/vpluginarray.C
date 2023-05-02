@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -19,6 +18,7 @@
  * 
  */
 
+#include "bcsignals.h"
 #include "cache.h"
 #include "edl.h"
 #include "edlsession.h"
@@ -99,7 +99,7 @@ void VPluginArray::process_realtime(int module,
 	values[module]->process_buffer(realtime_buffers[module], 
 			input_position, 
 			edl->session->frame_rate,
-			0,
+			end - start,
 			PLAY_FORWARD);
 }
 

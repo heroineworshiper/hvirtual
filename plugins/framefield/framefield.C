@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -188,10 +187,10 @@ int FrameFieldConfig::equivalent(FrameFieldConfig &src)
 
 FrameFieldWindow::FrameFieldWindow(FrameField *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	160, 
-	200, 
-	160, 
+	DP(210), 
+	DP(160), 
+	DP(200), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -199,13 +198,12 @@ FrameFieldWindow::FrameFieldWindow(FrameField *plugin)
 
 void FrameFieldWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_subwindow(top = new FrameFieldTop(plugin, this, x, y));
-	y += top->get_h() + 5;
+	y += top->get_h() + DP(5);
 	add_subwindow(bottom = new FrameFieldBottom(plugin, this, x, y));
-	y += bottom->get_h() + 5;
+	y += bottom->get_h() + DP(5);
 	show_window();
-	flush();
 }
 
 
@@ -629,9 +627,10 @@ void FrameField::update_gui()
 int FrameField::handle_opengl()
 {
 #ifdef HAVE_GL
-	static char *field_frag = 
+	static const char *field_frag = 
 		"uniform sampler2D tex;\n"
 		"uniform float double_line_h;\n"
+		"uniform float half_line;\n"
 		"uniform float y_offset;\n"
 		"void main()\n"
 		"{\n"
@@ -639,7 +638,7 @@ int FrameField::handle_opengl()
 /* Number of double lines + fraction of current double line */
 		"	float half_y = (coord.y - y_offset) / double_line_h;\n"
 /* Lines comprising current double line */
-		"	float line1 = floor(half_y) * double_line_h + y_offset;\n"
+		"	float line1 = floor(half_y) * double_line_h + y_offset + half_line;\n"
 		"	float line2 = line1 + double_line_h;\n"
 /* Distance from line1 to line2 */
 		"	float frac = fract(half_y);\n"
@@ -649,25 +648,25 @@ int FrameField::handle_opengl()
 		"		frac);\n"
 		"}\n";
 
-	static char *_601_to_rgb_frag = 
+	static const char *_601_to_rgb_frag = 
 		"void main()\n"
 		"{\n"
 		"	gl_FragColor.rgb = gl_FragColor.rgb * vec3(1.1644, 1.1644, 1.1644) - vec3(0.0627, 0.0627, 0.0627);\n"
 		"}\n";
 
-	static char *_601_to_yuv_frag = 
+	static const char *_601_to_yuv_frag = 
 		"void main()\n"
 		"{\n"
 		"	gl_FragColor.r = gl_FragColor.r * 1.1644 - 0.0627;\n"
 		"}\n";
 
-	static char *rgb_to_601_frag = 
+	static const char *rgb_to_601_frag = 
 		"void main()\n"
 		"{\n"
 		"	gl_FragColor.rgb = gl_FragColor.rgb * vec3(0.8588, 0.8588, 0.8588) + vec3(0.0627, 0.0627, 0.0627);\n"
 		"}\n";
 
-	static char *yuv_to_601_frag = 
+	static const char *yuv_to_601_frag = 
 		"void main()\n"
 		"{\n"
 		"	gl_FragColor.r = gl_FragColor.r * 0.8588 + 0.0627;\n"
@@ -745,7 +744,7 @@ int FrameField::handle_opengl()
 		get_output()->get_color_model());
 
 
-	char *shaders[3] = { 0, 0, 0 };
+	const char *shaders[3] = { 0, 0, 0 };
 	shaders[0] = field_frag;
 
 
@@ -755,7 +754,7 @@ int FrameField::handle_opengl()
 	{
 		if(rgb601_direction == 1)
 		{
-			if(BC_CModels::is_yuv(get_output()->get_color_model()))
+			if(cmodel_is_yuv(get_output()->get_color_model()))
 				shaders[1] = yuv_to_601_frag;
 			else
 				shaders[1] = rgb_to_601_frag;
@@ -763,7 +762,7 @@ int FrameField::handle_opengl()
 		else
 		if(rgb601_direction == 2)
 		{
-			if(BC_CModels::is_yuv(get_output()->get_color_model()))
+			if(cmodel_is_yuv(get_output()->get_color_model()))
 				shaders[1] = _601_to_yuv_frag;
 			else
 				shaders[1] = _601_to_rgb_frag;
@@ -779,6 +778,8 @@ int FrameField::handle_opengl()
 	{
 		glUseProgram(frag);
 		glUniform1i(glGetUniformLocation(frag, "tex"), 0);
+		glUniform1f(glGetUniformLocation(frag, "half_line"), 
+			0.5 / src_texture->get_texture_h());
 		glUniform1f(glGetUniformLocation(frag, "double_line_h"), 
 			2.0 / src_texture->get_texture_h());
 		glUniform1f(glGetUniformLocation(frag, "y_offset"), 
@@ -799,6 +800,7 @@ int FrameField::handle_opengl()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
 #endif
+    return 0;
 }
 
 

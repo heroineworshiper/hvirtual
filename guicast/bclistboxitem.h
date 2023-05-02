@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -26,7 +25,6 @@
 #include "bcpixmap.inc"
 #include "colors.h"
 #include "vframe.h"
-
 
 
 // Every item in a list inherits this

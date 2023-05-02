@@ -19,6 +19,7 @@
  * 
  */
 
+#include "bcsignals.h"
 #include "edl.h"
 #include "edlsession.h"
 #include "pluginserver.h"
@@ -164,8 +165,9 @@ int PluginVClient::process_buffer(VFrame **frame,
 	int64_t start_position,
 	double frame_rate)
 {
+//PRINT_TRACE
 	for(int i = 0; i < PluginClient::total_in_buffers; i++)
-		read_frame(frame[i], i, start_position, frame_rate);
+		read_frame(frame[i], i, start_position, frame_rate, 0);
 	if(is_multichannel())
 		process_realtime(frame, frame);
 	return 0;
@@ -175,26 +177,11 @@ int PluginVClient::process_buffer(VFrame *frame,
 	int64_t start_position,
 	double frame_rate)
 {
-	read_frame(frame, 0, start_position, frame_rate);
+	read_frame(frame, 0, start_position, frame_rate, 0);
 	process_realtime(frame, frame);
 	return 0;
 }
 
-
-// Replaced by pull method
-// void PluginVClient::plugin_process_realtime(VFrame **input, 
-// 		VFrame **output, 
-// 		int64_t current_position,
-// 		int64_t total_len)
-// {
-// 	this->source_position = current_position;
-// 	this->total_len = total_len;
-// 
-// 	if(is_multichannel())
-// 		process_realtime(input, output);
-// 	else
-// 		process_realtime(input[0], output[0]);
-// }
 
 int PluginVClient::plugin_start_loop(int64_t start, 
 	int64_t end, 
@@ -213,6 +200,30 @@ int PluginVClient::plugin_get_parameters()
 	frame_rate = get_project_framerate();
 	return PluginClient::plugin_get_parameters();
 }
+
+
+
+
+
+void PluginVClient::send_render_gui(void *data, int size)
+{
+	server->send_render_gui(data, size);
+}
+
+void PluginVClient::plugin_render_gui(void *data, int size)
+{
+	render_gui(data, size);
+}
+
+// used by video plugins
+void PluginVClient::render_gui(void *data, int size)
+{
+	printf("PluginClient::render_gui %d\n", __LINE__);
+}
+
+
+
+
 
 int64_t PluginVClient::local_to_edl(int64_t position)
 {

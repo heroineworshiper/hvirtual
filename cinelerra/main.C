@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,10 @@
 
 #include "arraylist.h"
 #include "batchrender.h"
+#include "bchash.h"
 #include "bcsignals.h"
 #include "edl.h"
+#include "file.h"
 #include "filexml.h"
 #include "fileserver.h"
 #include "filesystem.h"
@@ -76,12 +78,18 @@ public:
 //PRINT_TRACE
 		mwindow->gui->lock_window("main");
 //PRINT_TRACE
-		mwindow->load_filenames(filenames, LOADMODE_REPLACE);
+		mwindow->load_filenames(filenames, 
+            LOADMODE_REPLACE,
+            1,
+            mwindow->defaults->get("CONFORM_PROJECT", 0));
 //PRINT_TRACE
 		if(filenames->size() == 1)
-			mwindow->gui->mainmenu->add_load(filenames->get(0));
+		{
+        	mwindow->gui->mainmenu->add_load(filenames->get(0));
 //PRINT_TRACE
-		mwindow->gui->unlock_window();
+		}
+        
+        mwindow->gui->unlock_window();
 //PRINT_TRACE
 	}
 	
@@ -128,7 +136,7 @@ int main(int argc, char *argv[])
 	batch_path[0] = 0;
 	deamon_path[0] = 0;
 	EDL::id_lock = new Mutex("EDL::id_lock");
-
+    File::init_table();
 
 	get_exe_path(exe_path);
 	sprintf(locale_path, "%s%s", exe_path, LOCALEDIR);
@@ -174,6 +182,19 @@ int main(int argc, char *argv[])
 			operation = DO_USAGE;
 		}
 		else
+// 		if(!strcmp(argv[i], "-dpi"))
+// 		{
+// 			if(argc > i + 1)
+// 			{
+// 				BC_Resources::dpi = atoi(argv[i + 1]);
+// 				i++;
+// 			}
+// 			else
+// 			{
+// 				fprintf(stderr, "%s: -dpi needs a DPI.\n", argv[0]);
+// 			}
+// 		}
+// 		else
 		if(!strcmp(argv[i], "-r"))
 		{
 			operation = DO_BATCHRENDER;
@@ -278,6 +299,7 @@ COPYRIGHT_DATE);
 			printf(_("-d = Run in the background as renderfarm client.  The port (400) is optional.\n"));
 			printf(_("-f = Run in the foreground as renderfarm client.  Substitute for -d.\n"));
 			printf(_("-n = Nice value if running as renderfarm client. (20)\n"));
+//			printf(_("-dpi = DPI of the screen. (%d)\n"), BC_Resources::dpi);
 			printf(_("-c = Configuration file to use instead of %s%s.\n"), 
 				BCASTDIR, 
 				CONFIG_FILE);
@@ -326,7 +348,9 @@ COPYRIGHT_DATE);
 			BatchRenderThread *thread = new BatchRenderThread;
 			thread->start_rendering(config_path, 
 				batch_path);
+printf("main %d\n", __LINE__);
 			delete MWindow::file_server;
+printf("main %d\n", __LINE__);
 			break;
 		}
 

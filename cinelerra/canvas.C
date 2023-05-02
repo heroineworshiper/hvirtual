@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +21,7 @@
 #include "bcsignals.h"
 #include "canvas.h"
 #include "clip.h"
+#include "cwindowgui.inc"
 #include "edl.h"
 #include "edlsession.h"
 #include "keys.h"
@@ -29,9 +29,13 @@
 #include "mainsession.h"
 #include "mutex.h"
 #include "mwindow.h"
+#include "preferences.h"
+#include "recordmonitor.inc"
+#include "theme.h"
 #include "vframe.h"
 
-
+#define FPS_X 0
+#define FPS_Y 0
 
 Canvas::Canvas(MWindow *mwindow,
 	BC_WindowBase *subwindow, 
@@ -69,10 +73,12 @@ Canvas::Canvas(MWindow *mwindow,
 
 Canvas::~Canvas()
 {
-	if(refresh_frame) delete refresh_frame;
+	delete refresh_frame;
 	delete canvas_menu;
- 	if(yscroll) delete yscroll;
- 	if(xscroll) delete xscroll;
+ 	delete yscroll;
+ 	delete xscroll;
+    delete fps_subwindow;
+    delete fps_fullscreen;
 	delete canvas_subwindow;
 	delete canvas_fullscreen;
 	delete canvas_lock;
@@ -86,8 +92,11 @@ void Canvas::reset()
     xscroll = 0;
     yscroll = 0;
 	refresh_frame = 0;
+    canvas_menu = 0;
 	canvas_subwindow = 0;
 	canvas_fullscreen = 0;
+    fps_subwindow = 0;
+    fps_fullscreen = 0;
 	is_processing = 0;
 	cursor_inside = 0;
 }
@@ -114,6 +123,14 @@ BC_WindowBase* Canvas::get_canvas()
 		return canvas_fullscreen;
 	else
 		return canvas_subwindow;
+}
+
+BC_WindowBase* Canvas::get_fps()
+{
+    if(get_fullscreen() && canvas_fullscreen)
+        return fps_fullscreen;
+    else
+	    return fps_subwindow;
 }
 
 
@@ -321,8 +338,11 @@ void Canvas::get_transfers(EDL *edl,
 	int canvas_w,
 	int canvas_h)
 {
-// printf("Canvas::get_transfers %d %d\n", canvas_w, 
-// 		canvas_h);
+// printf("Canvas::get_transfers %d canvas_w=%d canvas_h=%d\n", 
+// __LINE__,  
+// canvas_w, 
+// canvas_h);
+
 // automatic canvas size detection
 	if(canvas_w < 0) canvas_w = get_canvas()->get_w();
 	if(canvas_h < 0) canvas_h = get_canvas()->get_h();
@@ -419,6 +439,11 @@ void Canvas::get_transfers(EDL *edl,
 			{
 				out_h = (int)(out_w / edl->get_aspect_ratio() + 0.5);
 				canvas_y1 = canvas_h / 2 - out_h / 2;
+// printf("Canvas::get_transfers %d canvas_h=%d out_h=%f canvas_y1=%f\n",
+// __LINE__,
+// canvas_h,
+// out_h,
+// canvas_y1);
 			}
 			canvas_x2 = canvas_x1 + out_w;
 			canvas_y2 = canvas_y1 + out_h;
@@ -448,7 +473,8 @@ void Canvas::get_transfers(EDL *edl,
 	canvas_y1 = MAX(0, canvas_y1);
 	canvas_x2 = MAX(canvas_x1, canvas_x2);
 	canvas_y2 = MAX(canvas_y1, canvas_y2);
-// printf("Canvas::get_transfers 2 %f,%f %f,%f -> %f,%f %f,%f\n",
+// printf("Canvas::get_transfers %d %f,%f %f,%f -> %f,%f %f,%f\n",
+// __LINE__,
 // output_x1,
 // output_y1,
 // output_x2,
@@ -458,6 +484,142 @@ void Canvas::get_transfers(EDL *edl,
 // canvas_x2,
 // canvas_y2);
 }
+
+
+void Canvas::draw_refresh(int flush)
+{
+//printf("Canvas::draw_refresh %d refresh_frame=%p\n", __LINE__, refresh_frame);
+    float in_x1, in_y1, in_x2, in_y2;
+    float out_x1, out_y1, out_x2, out_y2;
+    
+    if(!refresh_frame || !mwindow)
+    {
+        return;
+    }
+    
+    
+    get_transfers(mwindow->edl, 
+	    in_x1, 
+	    in_y1, 
+	    in_x2, 
+	    in_y2, 
+	    out_x1, 
+	    out_y1, 
+	    out_x2, 
+	    out_y2);
+
+
+	if(!EQUIV(out_x1, 0) ||
+		!EQUIV(out_y1, 0) ||
+		!EQUIV(out_x2, get_canvas()->get_w()) ||
+		!EQUIV(out_y2, get_canvas()->get_h()))
+	{
+		get_canvas()->clear_box(0, 
+			0, 
+			get_canvas()->get_w(), 
+			get_canvas()->get_h());
+	}
+    
+    
+	if(out_x2 > out_x1 && 
+		out_y2 > out_y1 && 
+		in_x2 > in_x1 && 
+		in_y2 > in_y1)
+	{
+// Can't use OpenGL here because it is called asynchronously of the
+// playback operation.
+		int dest_x = (int)out_x1; 
+		int dest_y = (int)out_y1;
+		int dest_w = (int)(out_x2 - out_x1);
+		int dest_h = (int)(out_y2 - out_y1);
+		int src_x = (int)in_x1;
+		int src_y = (int)in_y1;
+		int src_w = (int)(in_x2 - in_x1);
+		int src_h = (int)(in_y2 - in_y1);
+        if(cmodel_has_alpha(refresh_frame->get_color_model()))
+        {
+	        if(dest_w <= 0) dest_w = refresh_frame->get_w() - src_x;
+	        if(dest_h <= 0) dest_h = refresh_frame->get_h() - src_y;
+	        if(src_w <= 0) src_w = refresh_frame->get_w() - src_x;
+	        if(src_h <= 0) src_h = refresh_frame->get_h() - src_y;
+	        CLAMP(src_x, 0, refresh_frame->get_w() - 1);
+	        CLAMP(src_y, 0, refresh_frame->get_h() - 1);
+	        if(src_x + src_w > refresh_frame->get_w()) src_w = refresh_frame->get_w() - src_x;
+	        if(src_y + src_h > refresh_frame->get_h()) src_h = refresh_frame->get_h() - src_y;
+
+            BC_Bitmap *temp_bitmap = get_canvas()->get_temp_bitmap(
+                dest_w,
+                dest_h,
+                get_canvas()->get_color_model());
+            int checker_w = CHECKER_W;
+            int checker_h = CHECKER_H;
+// printf("Canvas::draw_refresh %d temp_bitmap=%d refresh_frame=%d rows=%p src=%d,%d %dx%d dst=%d,%d %dx%d\n", 
+// __LINE__,
+// temp_bitmap->get_color_model(),
+// refresh_frame->get_color_model(),
+// refresh_frame->get_rows()[0],
+// src_x, 
+// src_y, 
+// src_w, 
+// src_h,
+// dest_x,
+// dest_y,
+// dest_w,
+// dest_h);
+// fflush(stdout);
+
+            cmodel_transfer_alpha(temp_bitmap->get_row_pointers(), 
+			    refresh_frame->get_rows(),
+			    src_x, 
+			    src_y, 
+			    src_w, 
+			    src_h,
+			    0, 
+			    0, 
+			    dest_w, 
+			    dest_h,
+			    refresh_frame->get_color_model(), 
+			    temp_bitmap->get_color_model(),
+                refresh_frame->get_bytes_per_line(),
+			    temp_bitmap->get_bytes_per_line(),
+                checker_w,
+                checker_h);
+
+            get_canvas()->draw_bitmap(temp_bitmap, 
+		        0, 
+		        dest_x, 
+		        dest_y,
+		        dest_w,
+		        dest_h,
+		        0,
+		        0,
+		        -1,
+		        -1,
+		        0);
+
+        }
+        else
+        {
+//printf("Canvas::draw_refresh %d %d\n", __LINE__, refresh_frame->get_opengl_state());
+			get_canvas()->draw_vframe(refresh_frame,
+                dest_x,
+                dest_y,
+                dest_w,
+                dest_h,
+                src_x,
+                src_y,
+                src_w,
+                src_h,
+				0);
+        }
+	}
+}
+
+
+
+
+
+
 
 int Canvas::scrollbars_exist()
 {
@@ -481,6 +643,7 @@ int Canvas::get_output_h(EDL *edl)
 		else
 			return edl->session->output_h;
 	}
+    return 0;
 }
 
 
@@ -577,7 +740,6 @@ void Canvas::get_scrollbars(EDL *edl,
 		if(xscroll) delete xscroll;
 		xscroll = 0;
 	}
-//printf("Canvas::get_scrollbars 4 %d %d\n", get_xscroll(), get_yscroll());
 
 	if(need_yscroll)
 	{
@@ -668,18 +830,21 @@ void Canvas::create_objects(EDL *edl)
 	view_y = y;
 	view_w = w;
 	view_h = h;
-	get_scrollbars(edl, view_x, view_y, view_w, view_h);
+	if(mwindow && edl) 
+        get_scrollbars(edl, view_x, view_y, view_w, view_h);
 
 	subwindow->unlock_window();
-	create_canvas();
+	create_canvas(0);
 	subwindow->lock_window("Canvas::create_objects");
 
-	subwindow->add_subwindow(canvas_menu = new CanvasPopup(this));
-	canvas_menu->create_objects();
+    if(mwindow)
+    {
+    	subwindow->add_subwindow(canvas_menu = new CanvasPopup(this));
+	    canvas_menu->create_objects();
 
-	subwindow->add_subwindow(fullscreen_menu = new CanvasFullScreenPopup(this));
-	fullscreen_menu->create_objects();
-
+    	subwindow->add_subwindow(fullscreen_menu = new CanvasFullScreenPopup(this));
+	    fullscreen_menu->create_objects();
+    }
 }
 
 int Canvas::button_press_event()
@@ -712,6 +877,7 @@ void Canvas::stop_single()
 
 void Canvas::start_video()
 {
+	is_processing = 1;
 	if(get_canvas())
 	{
 		get_canvas()->start_video();
@@ -721,6 +887,7 @@ void Canvas::start_video()
 
 void Canvas::stop_video()
 {
+	is_processing = 0;
 	if(get_canvas())
 	{
 		get_canvas()->stop_video();
@@ -732,34 +899,29 @@ void Canvas::stop_video()
 void Canvas::start_fullscreen()
 {
 	set_fullscreen(1);
-	create_canvas();
+	create_canvas(1);
 }
 
 void Canvas::stop_fullscreen()
 {
 	set_fullscreen(0);
-	create_canvas();
+	create_canvas(1);
 }
 
-void Canvas::create_canvas()
+void Canvas::create_canvas(int flush)
 {
 	int video_on = 0;
 	lock_canvas("Canvas::create_canvas");
 
+    int margin = BC_Resources::theme->widget_border;
 
 	if(!get_fullscreen())
 // Enter windowed
 	{
-
 		if(canvas_fullscreen)
 		{
 			video_on = canvas_fullscreen->get_video_on();
 			canvas_fullscreen->stop_video();
-		}
-
-
-		if(canvas_fullscreen)
-		{
 			canvas_fullscreen->lock_window("Canvas::create_canvas 2");
 			canvas_fullscreen->hide_window();
 			canvas_fullscreen->unlock_window();
@@ -773,6 +935,14 @@ void Canvas::create_canvas()
 				view_y, 
 				view_w, 
 				view_h));
+	        if(use_cwindow)
+            {
+                canvas_subwindow->add_subwindow(fps_subwindow = new BC_SubWindow(
+                    FPS_X,
+                    FPS_Y,
+                    canvas_subwindow->get_text_width(MEDIUMFONT, "000.0000") + margin * 2,
+                    canvas_subwindow->get_text_ascent(MEDIUMFONT) + margin * 2));
+            }
 		}
 
 	}
@@ -792,30 +962,68 @@ void Canvas::create_canvas()
 			canvas_fullscreen = new CanvasFullScreen(this,
         		root_w,
         		root_h);
+	        if(use_cwindow)
+            {
+                canvas_fullscreen->add_subwindow(fps_fullscreen = new BC_SubWindow(
+                    FPS_X,
+                    FPS_Y,
+                    canvas_fullscreen->get_text_width(MEDIUMFONT, "000.0000") + margin * 2,
+                    canvas_fullscreen->get_text_ascent(MEDIUMFONT) + margin * 2));
+                fps_fullscreen->show_window(1);
+            } 
 		}
 		else
 		{
 			canvas_fullscreen->reposition_window(subwindow->get_root_x(0), 
 				subwindow->get_root_y(0));
-			canvas_fullscreen->show_window();
+			canvas_fullscreen->show_window(0);
+			canvas_fullscreen->raise_window(1);
 		}
 
 	}
 
-
 	if(!video_on)
 	{
 		get_canvas()->lock_window("Canvas::create_canvas 1");
-		draw_refresh();
+		draw_refresh(flush);
 		get_canvas()->unlock_window();
 	}
 
 	if(video_on) get_canvas()->start_video();
 
+    if(use_cwindow)
+    {
+        if(!MWindow::preferences->show_fps)
+        {
+            get_fps()->reposition_window(get_fps()->get_x(), -get_fps()->get_h());
+        }
+        else
+        {
+            get_fps()->reposition_window(get_fps()->get_x(), FPS_Y);
+        }
+    }
+
 	unlock_canvas();
 }
 
-
+void Canvas::toggle_fps()
+{
+    if(use_cwindow)
+    {
+        MWindow::preferences->show_fps = !MWindow::preferences->show_fps;
+        if(get_fps())
+        {
+            if(!MWindow::preferences->show_fps)
+            {
+                get_fps()->reposition_window(get_fps()->get_x(), -get_fps()->get_h());
+            }
+            else
+            {
+                get_fps()->reposition_window(get_fps()->get_x(), FPS_Y);
+            }
+        }
+    }
+}
 
 int Canvas::cursor_leave_event_base(BC_WindowBase *caller)
 {
@@ -999,7 +1207,7 @@ int CanvasXScroll::handle_event()
 {
 //printf("CanvasXScroll::handle_event %d %d %d\n", get_length(), get_value(), get_handlelength());
 	canvas->update_zoom(get_value(), canvas->get_yscroll(), canvas->get_zoom());
-	canvas->draw_refresh();
+	canvas->draw_refresh(1);
 	return 1;
 }
 
@@ -1035,7 +1243,7 @@ int CanvasYScroll::handle_event()
 {
 //printf("CanvasYScroll::handle_event %d %d\n", get_value(), get_length());
 	canvas->update_zoom(canvas->get_xscroll(), get_value(), canvas->get_zoom());
-	canvas->draw_refresh();
+	canvas->draw_refresh(1);
 	return 1;
 }
 
@@ -1057,7 +1265,11 @@ CanvasFullScreenPopup::CanvasFullScreenPopup(Canvas *canvas)
 
 void CanvasFullScreenPopup::create_objects()
 {
-	if(canvas->use_cwindow) add_item(new CanvasPopupAuto(canvas));
+	if(canvas->use_cwindow)
+    {
+        add_item(new CanvasPopupAuto(canvas));
+        add_item(new CanvasFPS(canvas));
+    }
 	add_item(new CanvasSubWindowItem(canvas));
 }
 
@@ -1113,16 +1325,24 @@ void CanvasPopup::create_objects()
 	if(canvas->use_cwindow)
 	{
 		add_item(new CanvasPopupAuto(canvas));
+        add_item(new BC_MenuItem("-"));
 		add_item(new CanvasPopupResetCamera(canvas));
 		add_item(new CanvasPopupResetProjector(canvas));
 		add_item(toggle_controls = new CanvasToggleControls(canvas));
+        add_item(show_fps = new CanvasFPS(canvas));
 	}
 	if(canvas->use_rwindow)
 	{
-		add_item(new CanvasPopupResetTranslation(canvas));
+        add_item(new BC_MenuItem("-"));
+//		add_item(new CanvasPopupResetTranslation(canvas));
+		add_item(new CanvasPresetTranslation(canvas, TOP_LEFT, "Top left"));
+		add_item(new CanvasPresetTranslation(canvas, TOP_RIGHT, "Top right"));
+		add_item(new CanvasPresetTranslation(canvas, BOTTOM_LEFT, "Bottom left"));
+		add_item(new CanvasPresetTranslation(canvas, BOTTOM_RIGHT, "Bottom right"));
 	}
 	if(canvas->use_vwindow)
 	{
+        add_item(new BC_MenuItem("-"));
 		add_item(new CanvasPopupRemoveSource(canvas));
 	}
 	add_item(new CanvasFullScreenItem(canvas));
@@ -1197,6 +1417,20 @@ int CanvasPopupResetTranslation::handle_event()
 	return 1;
 }
 
+CanvasPresetTranslation::CanvasPresetTranslation(Canvas *canvas, 
+    int position, 
+    const char *text)
+ : BC_MenuItem(_(text))
+{
+	this->canvas = canvas;
+    this->position = position;
+}
+int CanvasPresetTranslation::handle_event()
+{
+	canvas->preset_translation(position);
+	return 1;
+}
+
 
 
 CanvasToggleControls::CanvasToggleControls(Canvas *canvas)
@@ -1236,6 +1470,26 @@ int CanvasFullScreenItem::handle_event()
 	canvas->start_fullscreen();
 	canvas->subwindow->lock_window("CanvasFullScreenItem::handle_event");
 	return 1;
+}
+
+
+CanvasFPS::CanvasFPS(Canvas *canvas)
+ : BC_MenuItem(calculate_text(MWindow::preferences->show_fps))
+{
+	this->canvas = canvas;
+}
+int CanvasFPS::handle_event()
+{
+	canvas->toggle_fps();
+	set_text(calculate_text(MWindow::preferences->show_fps));
+	return 1;
+}
+char* CanvasFPS::calculate_text(int value)
+{
+	if(!value) 
+		return _("Show FPS");
+	else
+		return _("Hide FPS");
 }
 
 

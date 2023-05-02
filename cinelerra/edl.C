@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +32,12 @@
 #include "edl.h"
 #include "edlsession.h"
 #include "filexml.h"
+#include "filesystem.h"
 #include "guicast.h"
 #include "indexstate.h"
 #include "labels.h"
 #include "localsession.h"
+#include "mainsession.inc"
 #include "mutex.h"
 #include "nestededls.h"
 #include "panauto.h"
@@ -50,6 +51,7 @@
 #include "sharedlocation.h"
 #include "theme.h"
 #include "tracks.h"
+#include "transition.h"
 #include "transportque.inc"
 #include "vedit.h"
 #include "vtrack.h"
@@ -65,6 +67,7 @@ EDL::EDL(EDL *parent_edl)
  : Indexable(0)
 {
 	this->parent_edl = parent_edl;
+    nested_depth = 0;
 	tracks = 0;
 	labels = 0;
 	local_session = 0;
@@ -137,7 +140,7 @@ void EDL::create_objects()
 	
 	local_session = new LocalSession(this);
 	labels = new Labels(this, "LABELS");
-	nested_edls = new NestedEDLs;
+	nested_edls = new NestedEDLs(this);
 //	last_playback_position = 0;
 }
 
@@ -151,7 +154,9 @@ printf("EDL::operator= 1\n");
 int EDL::load_defaults(BC_Hash *defaults)
 {
 	if(!parent_edl)
+    {
 		session->load_defaults(defaults);
+    }
 
 	local_session->load_defaults(defaults);
 	return 0;
@@ -160,7 +165,9 @@ int EDL::load_defaults(BC_Hash *defaults)
 int EDL::save_defaults(BC_Hash *defaults)
 {
 	if(!parent_edl)
+    {
 		session->save_defaults(defaults);
+    }
 	
 	local_session->save_defaults(defaults);
 	return 0;
@@ -192,6 +199,8 @@ int EDL::load_xml(FileXML *file,
 	int result = 0;
 // Track numbering offset for replacing undo data.
 	int track_offset = 0;
+    int error = 0;
+
 
 // Clear objects
 	folders.remove_all_objects();
@@ -295,32 +304,48 @@ int EDL::load_xml(FileXML *file,
 				if(file->tag.title_is("ASSETS"))
 				{
 					if(load_flags & LOAD_ASSETS)
-						assets->load(file, load_flags);
+					{
+                    	assets->load(file, load_flags);
+                    }
+				}
+				else
+				if(file->tag.title_is("NESTED_EDLS"))
+				{
+					if(load_flags & LOAD_ASSETS)
+					{
+                    	error |= nested_edls->load(file, load_flags);
+                    }
 				}
 				else
 				if(file->tag.title_is(labels->xml_tag))
 				{
 					if(load_flags & LOAD_TIMEBAR)
-						labels->load(file, load_flags);
+					{
+                    	labels->load(file, load_flags);
+                    }
 				}
 				else
 				if(file->tag.title_is("LOCALSESSION"))
 				{
 					if((load_flags & LOAD_SESSION) ||
 						(load_flags & LOAD_TIMEBAR))
+                    {
 						local_session->load_xml(file, load_flags);
+                    }
 				}
 				else
 				if(file->tag.title_is("SESSION"))
 				{
 					if((load_flags & LOAD_SESSION) &&
 						!parent_edl)
+                    {
 						session->load_xml(file, 0, load_flags);
+                    }
 				}
 				else
 				if(file->tag.title_is("TRACK"))
 				{
-					tracks->load(file, track_offset, load_flags);
+					error |= tracks->load(file, track_offset, load_flags);
 				}
 				else
 // Sub EDL.
@@ -332,9 +357,13 @@ int EDL::load_xml(FileXML *file,
 					new_edl->load_xml(file, LOAD_ALL);
 
 					if((load_flags & LOAD_ALL) == LOAD_ALL)
-						clips.append(new_edl);
-					else
-						new_edl->Garbage::remove_user();
+					{
+                    	clips.append(new_edl);
+					}
+                    else
+					{
+                    	new_edl->Garbage::remove_user();
+                    }
 				}
 				else
 				if(file->tag.title_is("VWINDOW_EDL") && !parent_edl)
@@ -367,7 +396,7 @@ int EDL::load_xml(FileXML *file,
 	boundaries();
 //dump();
 
-	return 0;
+	return error;
 }
 
 // Output path is the path of the output file if name truncation is desired.
@@ -380,7 +409,7 @@ int EDL::save_xml(FileXML *file,
 	int is_vwindow)
 {
 	copy(0, 
-		tracks->total_length(), 
+		MAX(tracks->total_length(), labels->total_length()), 
 		1, 
 		is_clip,
 		is_vwindow,
@@ -394,8 +423,10 @@ int EDL::copy_all(EDL *edl)
 {
 	if(this == edl) return 0;
 
+    nested_depth = edl->nested_depth;
 	index_state->copy_from(edl->index_state);
 	nested_edls->clear();
+// nested EDLs are copied in the tracks
 	copy_session(edl);
 	copy_assets(edl);
 	copy_clips(edl);
@@ -478,7 +509,9 @@ int EDL::copy_assets(double start,
 	const char *output_path)
 {
 	ArrayList<Asset*> asset_list;
+	ArrayList<EDL*> nested_list;
 	Track* current;
+    int error = 0;
 
 	file->tag.set_title("ASSETS");
 	file->append_tag();
@@ -493,9 +526,14 @@ int EDL::copy_assets(double start,
 		{
 			asset_list.append(asset);
 		}
+
+        for(int i = 0; i < nested_edls->size(); i++)
+        {
+            nested_list.append(nested_edls->get(i));
+        }
 	}
 	else
-// Copy just the ones being used.
+// Copy just the ones in the selection for a clipboard
 	{
 		for(current = tracks->first; 
 			current; 
@@ -505,7 +543,8 @@ int EDL::copy_assets(double start,
 			{
 				current->copy_assets(start, 
 					end, 
-					&asset_list);
+					&asset_list,
+                    &nested_list);
 			}
 		}
 	}
@@ -521,8 +560,64 @@ int EDL::copy_assets(double start,
 	file->tag.set_title("/ASSETS");
 	file->append_tag();
 	file->append_newline();
+
+
+    if(nested_list.size())
+    {
+	    file->tag.set_title("NESTED_EDLS");
+	    file->append_tag();
+	    file->append_newline();
+
+	    for(int i = 0; i < nested_list.total; i++)
+	    {
+		    nested_list.values[i]->copy_nested(file, 
+			    output_path);
+	    }
+
+	    file->tag.set_title("/NESTED_EDLS");
+	    file->append_tag();
+	    file->append_newline();
+    }
 	file->append_newline();
-	return 0;
+	return error;
+}
+
+void EDL::copy_nested(FileXML *file, 
+		const char *output_path)
+{
+// 	char new_path[BCTEXTLEN];
+// 	char asset_directory[BCTEXTLEN];
+// 	char output_directory[BCTEXTLEN];
+// 	FileSystem fs;
+//     
+// // Make path relative
+// 	fs.extract_dir(asset_directory, path);
+// 	if(output_path && output_path[0]) 
+// 	{
+//     	fs.extract_dir(output_directory, output_path);
+// 	}
+//     else
+// 	{
+//     	output_directory[0] = 0;
+//     }
+// 
+// // Asset and EDL are in same directory.  Extract just the name.
+// 	if(!strcmp(asset_directory, output_directory))
+// 	{
+// 		fs.extract_name(new_path, path);
+// 	}
+// 	else
+// 	{
+// 		strcpy(new_path, path);
+// 	}
+
+	file->tag.set_title("NESTED_EDL");
+//	file->tag.set_property("SRC", new_path);
+	file->tag.set_property("SRC", path);
+	file->tag.set_property("SAMPLE_RATE", session->nested_sample_rate);
+	file->tag.set_property("FRAME_RATE", session->nested_frame_rate);
+	file->append_tag();
+	file->append_newline();
 }
 
 int EDL::copy(double start, 
@@ -595,11 +690,13 @@ int EDL::copy(double start,
 // Don't replicate all assets for every clip.
 // The assets for the clips are probably in the mane EDL.
 		if(!is_clip)
+        {
 			copy_assets(start, 
 				end, 
 				file, 
 				all, 
 				output_path);
+        }
 
 // Clips
 // Don't want this if using clipboard
@@ -778,6 +875,33 @@ void EDL::set_outpoint(double position)
 	}
 }
 
+int EDL::deglitch(double position)
+{
+
+	if(session->cursor_on_frames)
+	{
+		Track *current_track;
+
+
+
+		for(current_track = tracks->first; 
+			current_track; 
+			current_track = current_track->next)
+		{
+			if(current_track->record &&
+				current_track->data_type == TRACK_AUDIO) 
+			{
+				ATrack *atrack = (ATrack*)current_track;
+				atrack->deglitch(position, 
+					session->labels_follow_edits, 
+					session->plugins_follow_edits, 
+					session->autos_follow_edits);
+			}
+		}
+	}
+    return 0;
+}
+
 
 int EDL::clear(double start, 
 	double end, 
@@ -817,6 +941,41 @@ int EDL::clear(double start,
 	local_session->set_selectionstart(position);
 	return 0;
 }
+
+void EDL::modify_transitionhandles(
+    Edit *edit,
+    Transition *transition,
+    double oldposition, 
+	double newposition, 
+	int currentend)
+{
+    Track *track = edit->track;
+    int64_t new_position = track->to_units(newposition, 0);
+    
+    if(currentend == LEFT_HANDLE)
+    {
+        if(new_position >= edit->startproject + transition->length)
+// delete the transition
+            edit->detach_transition();
+        else
+// change the length
+        if(new_position < edit->startproject)
+        {
+            transition->length = transition->length + edit->startproject - new_position;
+        }
+        else
+            transition->length = edit->startproject + transition->length - new_position;
+    }
+    else
+    {
+        if(new_position <= edit->startproject)
+// delete the transition
+            edit->detach_transition();
+        else
+            transition->length = new_position - edit->startproject;
+    }
+}
+
 
 void EDL::modify_edithandles(double oldposition, 
 	double newposition, 
@@ -892,10 +1051,12 @@ void EDL::remove_from_project(ArrayList<Indexable*> *assets)
 {
 // Remove from clips
 	if(!parent_edl)
+    {
 		for(int j = 0; j < clips.total; j++)
 		{
 			clips.values[j]->remove_from_project(assets);
 		}
+    }
 
 // Remove from VWindow EDLs
 	for(int i = 0; i < total_vwindow_edls(); i++)
@@ -929,6 +1090,21 @@ void EDL::update_assets(EDL *src)
 		current = NEXT)
 	{
 		assets->update(current);
+	}
+}
+
+void EDL::update_nested(EDL *src)
+{
+    int error = 0;
+	for(int i = 0; i < src->nested_edls->size(); i++)
+	{
+        EDL *nested_src = src->nested_edls->get(i);
+        EDL *nested_dst = nested_edls->get(nested_src->path, &error);
+		if(nested_dst)
+        {
+            nested_dst->session->nested_sample_rate = nested_src->session->nested_sample_rate;
+            nested_dst->session->nested_frame_rate = nested_src->session->nested_frame_rate;
+        }
 	}
 }
 
@@ -1008,10 +1184,14 @@ float EDL::get_aspect_ratio()
 int EDL::dump()
 {
 	if(parent_edl)
-		printf("CLIP\n");
-	else
-		printf("EDL\n");
-	printf("  clip_title: %s\n"
+	{
+    	printf("CLIP\n");
+	}
+    else
+	{
+    	printf("EDL\n");
+	}
+    printf("  clip_title: %s\n"
 		"  parent_edl: %p\n", local_session->clip_title, parent_edl);
 	printf("  selectionstart %f\n  selectionend %f\n  loop_start %f\n  loop_end %f\n", 
 		local_session->get_selectionstart(1), 
@@ -1020,7 +1200,7 @@ int EDL::dump()
 		local_session->loop_end);
 	for(int i = 0; i < TOTAL_PANES; i++)
 	{
-		printf("  pane %d view_start=%lld track_start=%lld\n", 
+		printf("  pane %d view_start=%ld track_start=%ld\n", 
 			i,
 			local_session->view_start[i],
 			local_session->track_start[i]);
@@ -1041,8 +1221,9 @@ int EDL::dump()
     		"  output_w: %d\n"
     		"  output_h: %d\n"
     		"  aspect_w: %f\n"
-    		"  aspect_h %f\n"
-			"  color_model %d\n",
+    		"  aspect_h: %f\n"
+			"  color_model: %d\n"
+			"  proxy_scale: %d\n", 
 				session->video_channels,
 				session->video_tracks,
 				session->frame_rate,
@@ -1051,7 +1232,8 @@ int EDL::dump()
     			session->output_h,
     			session->aspect_w,
     			session->aspect_h,
-				session->color_model);
+				session->color_model,
+				session->proxy_scale);
 
 		printf(" CLIPS\n");
 		printf("  total: %d\n", clips.total);
@@ -1073,6 +1255,8 @@ int EDL::dump()
 	
 		printf(" ASSETS\n");
 		assets->dump();
+		printf(" NESTED EDLS\n");
+		nested_edls->dump();
 	}
 	printf(" LABELS\n");
 	labels->dump();
@@ -1089,6 +1273,7 @@ EDL* EDL::add_clip(EDL *edl)
 	new_edl->create_objects();
 	new_edl->copy_all(edl);
 	clips.append(new_edl);
+printf("EDL::add_clip %d %d\n", __LINE__, clips.size());
 	return new_edl;
 }
 
@@ -1117,7 +1302,9 @@ void EDL::insert_asset(Asset *asset,
 
 	if(new_nested_edl)
 	{
-		length = new_nested_edl->tracks->total_playable_length();
+		length = new_nested_edl->tracks->total_playable_length() *
+            new_nested_edl->session->frame_rate /
+            new_nested_edl->session->get_nested_frame_rate();
 		layers = 1;
 		channels = new_nested_edl->session->audio_channels;
 	}
@@ -1126,13 +1313,19 @@ void EDL::insert_asset(Asset *asset,
 	{
 // Insert 1 frame for undefined length
 		if(new_asset->video_length < 0) 
-			length = 1.0 / session->frame_rate; 
-		else
+		{
+        	length = 1.0 / session->frame_rate; 
+		}
+        else
 		if(new_asset->frame_rate > 0)
-			length = ((double)new_asset->video_length / new_asset->frame_rate);
-		else
-			length = 1.0 / session->frame_rate;
-		layers = new_asset->layers;
+		{
+        	length = ((double)new_asset->video_length / new_asset->frame_rate);
+		}
+        else
+		{
+        	length = 1.0 / session->frame_rate;
+		}
+        layers = new_asset->layers;
 		channels = new_asset->channels;
 	}
 
@@ -1142,7 +1335,9 @@ void EDL::insert_asset(Asset *asset,
 	{
 		if(!current->record || 
 			current->data_type != TRACK_VIDEO)
+        {
 			continue;
+        }
 
 		current->insert_asset(new_asset, 
 			new_nested_edl,
@@ -1160,14 +1355,20 @@ void EDL::insert_asset(Asset *asset,
 		{
 // Insert 1 frame for undefined length & video
 			if(new_asset->video_data)
-				length = (double)1.0 / new_asset->frame_rate;
-			else
+			{
+            	length = (double)1.0 / new_asset->frame_rate;
+			}
+            else
+            {
 // Insert 1 second for undefined length & no video
 				length = 1.0;
+            }
 		}
 		else
+        {
 			length = (double)new_asset->audio_length / 
 					new_asset->sample_rate;
+        }
 	}
 
 	for(current = tracks->first;
@@ -1176,7 +1377,9 @@ void EDL::insert_asset(Asset *asset,
 	{
 		if(!current->record ||
 			current->data_type != TRACK_AUDIO)
-			continue;
+		{
+        	continue;
+        }
 
 		current->insert_asset(new_asset, 
 			new_nested_edl,
@@ -1203,9 +1406,13 @@ void EDL::insert_asset(Asset *asset,
 void EDL::set_index_file(Indexable *indexable)
 {
 	if(indexable->is_asset) 
-		assets->update_index((Asset*)indexable);
+	{
+    	assets->update_index((Asset*)indexable);
+    }
 	else
+    {
 		nested_edls->update_index((EDL*)indexable);
+    }
 }
 
 void EDL::optimize()
@@ -1531,6 +1738,7 @@ void EDL::remove_vwindow_edl(EDL *edl)
 	if(vwindow_edls.number_of(edl) >= 0)
 	{
 		edl->Garbage::remove_user();
+
 		vwindow_edls.remove(edl);
 	}
 }
@@ -1538,7 +1746,14 @@ void EDL::remove_vwindow_edl(EDL *edl)
 
 EDL* EDL::get_vwindow_edl(int number)
 {
-	return vwindow_edls.get(number);
+    if(vwindow_edls.size())
+    {
+    	return vwindow_edls.get(number);
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 int EDL::total_vwindow_edls()

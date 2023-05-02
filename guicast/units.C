@@ -79,8 +79,10 @@ float DB::todb(float power)
 {
 	float db;
 	if(power == 0) 
-		db = -100;
-	else 
+	{
+    	db = -100;
+	}
+    else 
 	{
 		db = (float)(20 * log10(power));
 		if(db < -100) db = -100;
@@ -105,22 +107,11 @@ void Freq::init_table()
 	if(!freqtable)
 	{
 		freqtable = new int[TOTALFREQS + 1];
-// starting frequency
-  		double freq1 = 27.5, freq2 = 55;  
-// Some number divisable by three.  This depends on the value of TOTALFREQS
-  		int scale = 105;   
 
-  		freqtable[0] = 0;
-  		for(int i = 1, j = 0; i <= TOTALFREQS; i++, j++)
+  		for(int i = 0; i <= TOTALFREQS; i++)
   		{
-    		freqtable[i] = (int)(freq1 + (freq2 - freq1) / scale * j + 0.5);
+    		freqtable[i] = tofreq_f(i);
 //printf("Freq::init_table %d\n", freqtable[i]);
-    		if(j >= scale)
-			{
-				freq1 = freq2;
-				freq2 *= 2;
-				j = 0;
-			}
   		}
 	}
 }
@@ -151,6 +142,42 @@ int Freq::tofreq(int index)
 	int freq = freqtable[index]; 
 	return freq; 
 }
+
+// frequency doubles for every OCTAVE slots.  OCTAVE must be divisible by 3
+// 27.5 is at i=1
+// 55 is at i=106
+// 110 is at i=211
+// 220 is at i=316
+// 440 is at i=421
+// 880 is at i=526
+double Freq::tofreq_f(double index)
+{
+    if(index < 0.5)
+    {
+        return 0;
+    }
+
+    return 440.0 * pow(2, (double)(index - 421) / OCTAVE);
+}
+
+double Freq::fromfreq_f(double f)
+{
+    if(f < 0.5)
+    {
+        return 0;
+    }
+
+    double result = log(f / 440) / log(2.0) * OCTAVE + 421;
+    if(result < 0) 
+    {
+        return 0;
+    }
+    else
+    {
+        return result;
+    }
+}
+
 
 Freq& Freq::operator++() 
 {
@@ -297,6 +324,19 @@ int64_t Units::fromtext(const char *text,
 			float frame_rate,
 			float frames_per_foot)
 {
+    return (int64_t)(text_to_seconds(text, 
+		samplerate, 
+		time_format, 
+		frame_rate, 
+		frames_per_foot) * samplerate);
+}
+
+double Units::text_to_seconds(const char *text, 
+	int samplerate, 
+	int time_format, 
+	float frame_rate, 
+	float frames_per_foot)
+{
 	int64_t hours, minutes, frames, total_samples, i, j;
 	int64_t feet;
 	double seconds;
@@ -305,8 +345,7 @@ int64_t Units::fromtext(const char *text,
 	switch(time_format)
 	{
 		case TIME_SECONDS:
-			seconds = atof(text);
-			return (int64_t)(seconds * samplerate);
+			return atof(text);
 			break;
 
 		case TIME_HMS:
@@ -334,8 +373,7 @@ int64_t Units::fromtext(const char *text,
 			string[j] = 0;
 			seconds = atof(string);
 
-			total_samples = (uint64_t)(((double)seconds + minutes * 60 + hours * 3600) * samplerate);
-			return total_samples;
+			return (double)seconds + minutes * 60 + hours * 3600;
 			break;
 
 		case TIME_HMSF:
@@ -370,12 +408,11 @@ int64_t Units::fromtext(const char *text,
 			string[j] = 0;
 			frames = atol(string);
 			
-			total_samples = (int64_t)(((float)frames / frame_rate + seconds + minutes*60 + hours*3600) * samplerate);
-			return total_samples;
+			return (double)frames / frame_rate + seconds + minutes * 60 + hours * 3600;
 			break;
 
 		case TIME_SAMPLES:
-			return atol(text);
+			return (double)atol(text) / samplerate;
 			break;
 		
 		case TIME_SAMPLES_HEX:
@@ -383,11 +420,11 @@ int64_t Units::fromtext(const char *text,
 			int temp;
 			sscanf(text, "%x", &temp);
 			total_samples = temp;
-			return total_samples;
+			return (double)total_samples / samplerate;
 		}
 		
 		case TIME_FRAMES:
-			return (int64_t)(atof(text) / frame_rate * samplerate);
+			return atof(text) / frame_rate;
 			break;
 		
 		case TIME_FEET_FRAMES:
@@ -406,23 +443,10 @@ int64_t Units::fromtext(const char *text,
 			while(text[i] >=48 && text[i] <= 57 && text[i] != 0 && j < 10) string[j++] = text[i++];
 			string[j] = 0;
 			frames = atol(string);
-			return (int64_t)(((float)feet * frames_per_foot + frames) / frame_rate * samplerate);
+			return ((double)feet * frames_per_foot + frames) / frame_rate;
 			break;
 	}
-	return 0;
-}
-
-double Units::text_to_seconds(const char *text, 
-				int samplerate, 
-				int time_format, 
-				float frame_rate, 
-				float frames_per_foot)
-{
-	return (double)fromtext(text, 
-		samplerate, 
-		time_format, 
-		frame_rate, 
-		frames_per_foot) / samplerate;
+    return 0;
 }
 
 

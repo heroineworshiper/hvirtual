@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2014-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +36,24 @@ FileGIF::~FileGIF()
 {
 }
 
-int FileGIF::check_sig(Asset *asset)
+
+FileGIF::FileGIF()
+ : FileList()
 {
+    ids.append(FILE_GIF);
+    ids.append(FILE_GIF_LIST);
+    has_video = 1;
+    has_rd = 1;
+}
+
+FileBase* FileGIF::create(File *file)
+{
+    return new FileGIF(file->asset, file);
+}
+
+int FileGIF::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
 	FILE *stream = fopen(asset->path, "rb");
 
 	if(stream)
@@ -149,6 +164,7 @@ int FileGIF::read_frame(VFrame *output, VFrame *input)
 		{
 			case IMAGE_DESC_RECORD_TYPE:
 			{
+printf("FileGIF::read_frame %d: IMAGE_DESC_RECORD_TYPE\n", __LINE__);
 				if(DGifGetImageDesc(gif_file) == GIF_ERROR)
 				{
 					printf("FileGIF::read_frame %d: %s\n", __LINE__, GifErrorString());

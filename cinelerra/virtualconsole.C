@@ -301,6 +301,7 @@ int VirtualConsole::delete_virtual_console()
 	if(entry_nodes) delete [] entry_nodes;
 	entry_nodes = 0;
 	exit_nodes.remove_all();
+    return 0;
 }
 
 

@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -119,6 +118,7 @@ BC_Synchronous::BC_Synchronous()
 	is_running = 0;
 	current_window = 0;
 	process_group = setpgid(getpid(), 0);
+	BC_WindowBase::get_resources()->init();
 	BC_WindowBase::get_resources()->set_synchronous(this);
 }
 
@@ -138,18 +138,29 @@ void BC_Synchronous::create_objects()
 
 void BC_Synchronous::start()
 {
+	is_running = 1;
 	run();
+}
+
+
+int BC_Synchronous::running()
+{
+    return is_running;
 }
 
 void BC_Synchronous::quit()
 {
-	command_lock->lock("BC_Synchronous::quit");
-	BC_SynchronousCommand *command = new_command();
-	commands.append(command);
-	command->command = BC_SynchronousCommand::QUIT;
-	command_lock->unlock();
+// skip the command loop.  The result is the same.
+	killpg(process_group, SIGUSR1);
 
-	next_command->unlock();
+
+// 	command_lock->lock("BC_Synchronous::quit");
+// 	BC_SynchronousCommand *command = new_command();
+// 	commands.append(command);
+// 	command->command = BC_SynchronousCommand::QUIT;
+// 	command_lock->unlock();
+// 
+// 	next_command->unlock();
 }
 
 int BC_Synchronous::send_command(BC_SynchronousCommand *command)
@@ -172,7 +183,6 @@ int BC_Synchronous::send_command(BC_SynchronousCommand *command)
 
 void BC_Synchronous::run()
 {
-	is_running = 1;
 	while(!done)
 	{
 		next_command->lock("BC_Synchronous::run");
@@ -190,10 +200,10 @@ void BC_Synchronous::run()
 //printf("BC_Synchronous::run %d\n", command->command);
 
 		handle_command_base(command);
-//		delete command;
 	}
 	is_running = 0;
 
+// we get zombie processes if this isn't called
 	killpg(process_group, SIGUSR1);
 }
 
@@ -446,10 +456,10 @@ window_id);
 		{
 			glXDestroyPbuffer(display, pbuffer_ids.values[i]->pbuffer);
 			glXDestroyContext(display, pbuffer_ids.values[i]->gl_context);
-if(debug)
-printf("BC_Synchronous::delete_window_sync pbuffer_id=%p window_id=%d\n", 
-pbuffer_ids.values[i]->pbuffer,
-window_id);
+// if(debug)
+// printf("BC_Synchronous::delete_window_sync pbuffer_id=%p window_id=%d\n", 
+// pbuffer_ids.values[i]->pbuffer,
+// window_id);
 			pbuffer_ids.remove_object_number(i);
 			i--;
 		}

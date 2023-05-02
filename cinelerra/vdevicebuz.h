@@ -92,7 +92,7 @@ public:
 	int set_picture(PictureConfig *picture);
 	int get_best_colormodel(int colormodel);
 	void create_channeldb(ArrayList<Channel*> *channeldb);
-	void new_output_buffer(VFrame *output, int colormodel);
+	void new_output_buffer(VFrame *output, int colormodel, EDL *edl);
 
 
 private:

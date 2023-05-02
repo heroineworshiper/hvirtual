@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,15 +43,19 @@ public:
 	FileAVI(Asset *asset, File *file);
 	~FileAVI();
 
-	static int check_sig(Asset *asset);
-	static void get_parameters(BC_WindowBase *parent_window, 
+// table functions
+    FileAVI();
+	int check_sig(File *file, const uint8_t *test_data);
+    FileBase* create(File *file);
+	void get_parameters(BC_WindowBase *parent_window, 
 		Asset *asset, 
 		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options,
-		char *locked_compressor);
+		int option_type,
+	    const char *locked_compressor);
+	int get_best_colormodel(Asset *asset, int driver);
+    const char* formattostr(int format);
+    const char* get_tag(int format);
 
-	int get_best_colormodel(int driver, int colormodel);
 	int open_file(int rd, int wr);
 	int close_file();
 	void reset();
@@ -187,7 +190,7 @@ class AVIConfigVideo : public BC_Window
 public:
 	AVIConfigVideo(BC_WindowBase *parent_window, 
 		Asset *asset, 
-		char *locked_compressor);
+		const char *locked_compressor);
 	~AVIConfigVideo();
 
 	static int calculate_w(int format);
@@ -210,7 +213,7 @@ public:
 	ArrayList<BC_ListBoxItem*> attribute_items[2];
 	BC_WindowBase *parent_window;
 	Asset *asset;
-	char *locked_compressor;
+	const char *locked_compressor;
 	char string[BCTEXTLEN];
 };
 

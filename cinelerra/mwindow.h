@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,12 @@
 
 #include "arraylist.h"
 #include "asset.inc"
+#include "assetremove.inc"
 #include "assets.inc"
 #include "audiodevice.inc"
 #include "awindow.inc"
 #include "batchrender.inc"
+#include "bcprogressbox.inc"
 #include "bcwindowbase.inc"
 #include "brender.inc"
 #include "cache.inc"
@@ -86,6 +88,8 @@
 #include "wavecache.inc"
 
 #include <stdint.h>
+#include <string>
+using std::string;
 
 // All entry points for commands except for window locking should be here.
 // This allows scriptability.
@@ -127,7 +131,8 @@ public:
 //	void set_titles(int value);
 	int asset_to_edl(EDL *new_edl, 
 		Asset *new_asset, 
-		RecordLabels *labels = 0);
+		RecordLabels *labels /* = 0 */,
+        int conform);
 // Convert nested_edl to a nested EDL in new_edl 
 // suitable for pasting in paste_edls
 	int edl_to_nested(EDL *new_edl, 
@@ -180,15 +185,19 @@ public:
 	static PluginServer* scan_plugindb(char *title,
 		int data_type);
 	void dump_plugins();
+    static char* print_indent();
 
 
 
-	
+	static void stop_file_progress();
+
 	int load_filenames(ArrayList<char*> *filenames, 
 		int load_mode = LOADMODE_REPLACE,
 // Cause the project filename on the top of the window to be updated.
 // Not wanted for loading backups.
-		int update_filename = 1);
+		int update_filename = 1,
+// conform the project for certain file types
+        int conform = 0);
 
 // Print out plugins which are referenced in the EDL but not loaded.
 	void test_plugins(EDL *new_edl, char *path);
@@ -206,7 +215,7 @@ public:
 	int reposition_timebar(int new_pixel, int new_height);
 	int expand_sample();
 	int zoom_in_sample();
-	int zoom_sample(int64_t zoom_sample);
+	int zoom_sample(int64_t prev_zoom_sample, int64_t zoom_sample);
 	void zoom_amp(int64_t zoom_amp);
 	void zoom_track(int64_t zoom_track);
 	int fit_sample();
@@ -245,23 +254,27 @@ public:
 	void hide_plugins();
 	void delete_plugin(PluginServer *plugin);
 // Update plugins with configuration changes.
-// Called by TrackCanvas::cursor_motion_event.
+// Called by TrackCanvas::cursor_motion_event, CTracking::update_tracker.
 	void update_plugin_guis(int do_keyframe_guis = 1);
+// update the plugins when playback stops
+    void stop_plugin_guis();
 	void update_plugin_states();
 	void update_plugin_titles();
 // Called by Attachmentpoint during playback.
 // Searches for matching plugin and renders data in it.
 	void render_plugin_gui(void *data, Plugin *plugin);
 	void render_plugin_gui(void *data, int size, Plugin *plugin);
+    void reset_plugin_gui_frames(Plugin *plugin);
 
 // Called from PluginVClient::process_buffer
 // Returns 1 if a GUI for the plugin is open so OpenGL routines can determine if
 // they can run.
 	int plugin_gui_open(Plugin *plugin);
 
-	void show_keyframe_gui(Plugin *plugin);
+	void show_keyframe_gui(Plugin *plugin, PluginServer *plugin_server);
 	void hide_keyframe_guis();
 	void hide_keyframe_gui(Plugin *plugin);
+	void hide_keyframe_gui(PluginServer *plugin_server);
 	void update_keyframe_guis();
 
 
@@ -272,6 +285,7 @@ public:
 	enum
 	{
 		AUDIO_5_1_TO_2,
+		AUDIO_5_1_TO_2B,
 		AUDIO_1_TO_1
 	};
 	void add_audio_track_entry(int above, Track *dst);
@@ -280,7 +294,7 @@ public:
 	void add_video_track_entry(Track *dst = 0);
 	int add_video_track(int above, Track *dst);
 
-	void asset_to_all();
+	void asset_to_all(Indexable *indexable);
 	void asset_to_size();
 	void asset_to_rate();
 // Entry point for clear operations.
@@ -288,7 +302,7 @@ public:
 // Clears active region in EDL.
 // If clear_handle, edit boundaries are cleared if the range is 0.
 // Called by paste, record, menueffects, render, and CWindow drop.
-	void clear(int clear_handle);
+	void clear(int clear_handle, int deglitch);
 	void clear_labels();
 	int clear_labels(double start, double end);
 	void concatenate_tracks();
@@ -398,8 +412,23 @@ public:
 	void paste_audio_transition();
 	void paste_video_transition();
 	void shuffle_edits();
+	void reverse_edits();
 	void align_edits();
 	void set_edit_length(double length);
+// set user defined values in an edit
+    void update_edit(int edit_id,
+        string path,
+        int64_t startsource,
+        int64_t startproject,
+        int64_t length,
+        int channel,
+        int is_silence);
+// swap all occurrances of an asset with another one
+    void swap_asset(string *old_path, 
+        string *new_path, 
+        int old_is_silence,
+        int new_is_silence);
+
 // Set length of single transition
 	void set_transition_length(Transition *transition, double length);
 // Set length in seconds of all transitions in active range
@@ -409,8 +438,11 @@ public:
 // Asset removal from caches
 	void reset_caches();
 	void remove_asset_from_caches(Asset *asset);
-	void remove_assets_from_project(int push_undo = 0);
-	void remove_assets_from_disk();
+	void remove_assets_from_project(int push_undo /* = 0 */, 
+		int redraw /* 1 */,
+		ArrayList<Indexable*> *drag_assets /* mwindow->session->drag_assets */,
+		ArrayList<EDL*> *drag_clips /* mwindow->session->drag_clips */);
+	void remove_assets_from_disk(ArrayList<Indexable*> *assets);
 	void resize_track(Track *track, int w, int h);
 	
 	void set_automation_mode(int mode);
@@ -446,10 +478,13 @@ public:
 
 	int modify_edithandles();
 	int modify_pluginhandles();
+    int modify_transitionhandles();
 	void finish_modify_handles();
 
 	
-	
+	void set_proxy(int new_scale, 
+		ArrayList<Indexable*> *orig_assets,
+		ArrayList<Indexable*> *proxy_assets);	
 	
 	
 	
@@ -463,8 +498,10 @@ public:
 	int set_loop_boundaries();         // toggle loop playback and set boundaries for loop playback
 
 
-	Playback3D *playback_3d;
+	static Playback3D *playback_3d;
 	RemoveThread *remove_thread;
+    AssetRemoveThread *asset_remove;
+
 	
 	SplashGUI *splash_window;
 // Main undo stack
@@ -477,12 +514,12 @@ public:
 // Cache drawing doesn't wait for file decoding.
 	FrameCache *frame_cache;
 	WaveCache *wave_cache;
-	Preferences *preferences;
+	static Preferences *preferences;
 	PreferencesThread *preferences_thread;
 	MainSession *session;
-	Theme *theme;
+	static Theme *theme;
 	MainIndexes *mainindexes;
-	MainProgress *mainprogress;
+	static MainProgress *mainprogress;
 	BRender *brender;
 
 // Menu items
@@ -495,6 +532,12 @@ public:
 	ChannelDB *channeldb_v4l2jpeg;
 
 	static FileServer *file_server;
+// progress bar for building tables of contents
+    static MainProgressBar *file_progress;
+// if we shouldn't delete the file_progress after each file
+	static int is_loading;
+// debugging
+    static int indent;
 
 // ====================================== plugins ==============================
 
@@ -563,7 +606,7 @@ public:
 // This one happens asynchronously of the others.  Used by playback to
 // see what frame is background rendered.
 	int brender_available(int position);
-	void set_brender_start();
+	void set_brender_range();
 
 	void init_error();
 	static void init_defaults(BC_Hash* &defaults, 
@@ -593,7 +636,7 @@ public:
 	void init_menus();
 	void init_indexes();
 	void init_gui();
-	void init_3d();
+	static void init_3d();
 	void init_playbackcursor();
 	void delete_plugins();
 // 

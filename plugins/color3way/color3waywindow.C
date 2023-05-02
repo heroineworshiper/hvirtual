@@ -40,8 +40,8 @@ Color3WayWindow::Color3WayWindow(Color3WayMain *plugin)
  : PluginClientWindow(plugin,
 	plugin->w, 
 	plugin->h, 
-	500, 
-	370, 
+	DP(500), 
+	DP(370), 
 	1)
 { 
 	this->plugin = plugin; 
@@ -301,6 +301,7 @@ int Color3WayPoint::reposition_window(int x, int y, int radius)
 	delete bg_image;
 	bg_image = 0;
 	draw_face(1, 0);
+    return 0;
 }
 
 void Color3WayPoint::draw_face(int flash, int flush)

@@ -124,13 +124,13 @@ long number;
 
 //printf("readframe 1 %d %d\n", width, height);
 	quicktime_set_row_span(qt_file, width);
-	quicktime_set_window(qt_file,
-		0, 
-		0,
-		horizontal_size,
-		vertical_size,
-		horizontal_size,
-		vertical_size);
+// 	quicktime_set_window(qt_file,
+// 		0, 
+// 		0,
+// 		horizontal_size,
+// 		vertical_size,
+// 		horizontal_size,
+// 		vertical_size);
 	quicktime_set_cmodel(qt_file, (chroma_format == 1) ? BC_YUV420P : BC_YUV422P);
 	
 	quicktime_decode_video(qt_file, 

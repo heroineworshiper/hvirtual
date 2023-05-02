@@ -58,6 +58,14 @@ fi
 # configure them all
 # Requires some 
 
+echo "CONFIGURING X265"
+X265_DIR=$(cd thirdparty/x265*/; pwd)
+mkdir -p $X265_DIR/build
+cd $X265_DIR/build && cmake ../source && cd ../../..
+
+if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+
+
 # version 2.0 of faad2 produced defective Makefile
 LIBFAAD_PATH=`expr thirdparty/faad2*/`
 
@@ -72,7 +80,7 @@ cd thirdparty/faac* && ./configure && cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
-echo "CONFIGURING FFMPEG"
+#echo "CONFIGURING FFMPEG"
 # Currently using the last version which works.  The latest version doesn't.
 # For the latest version,
 # delete faad tests in configure so it passes before faad is compiled.
@@ -80,17 +88,20 @@ echo "CONFIGURING FFMPEG"
 # 030209
 #cd thirdparty/ffmpeg* && ./configure --enable-pthreads --enable-libfaad --enable-gpl --disable-ffplay --extra-cflags=-I$TOPDIR/$LIBFAAD_PATH/include --extra-libs=-L$TOPDIR/$LIBFAAD_PATH/libfaad/.libs/ --disable-ffmpeg --disable-ffserver --disable-ffplay  && cd ../..
 # 052906
-cd thirdparty/ffmpeg* && ./configure --enable-pthreads --enable-gpl --disable-ffplay --extra-cflags=-I$TOPDIR/$LIBFAAD_PATH/include --extra-libs=-L$TOPDIR/$LIBFAAD_PATH/libfaad/.libs/ --disable-ffserver --disable-ffplay  && cd ../..
+#cd thirdparty/ffmpeg* && ./configure --enable-pthreads --enable-gpl --disable-ffplay --extra-cflags=-I$TOPDIR/$LIBFAAD_PATH/include --extra-libs=-L$TOPDIR/$LIBFAAD_PATH/libfaad/.libs/ --disable-ffserver --disable-ffplay  && cd ../..
 
-if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+#if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
 echo "CONFIGURING X264"
 # Currently using the last version which works with mplayer.
 # To get the latest version to work, comment out the exit after No suitable assembler found.
 # add asm=no and AS= in place of exit
-cd thirdparty/x264* && ./configure --enable-pthread && cd ../..
+cd thirdparty/x264* && ./configure --enable-pthread --disable-cli --enable-shared --enable-static && cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+
+
+
 
 echo "CONFIGURING LIBDV"
 cd thirdparty/libdv* && ./configure --disable-gtk --enable-shared=no && cd ../..

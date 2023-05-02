@@ -70,6 +70,7 @@ public:
 	virtual int button_release_event();
 	int cursor_motion_event();
 	int keypress_event();
+    void set_pointer_range(int x);
 
 private:
 	int set_data(VFrame **data);
@@ -91,6 +92,9 @@ private:
 	float prev_angle, angle_correction;
 	int use_caption;
 	int enabled;
+    int pointer_range;
+    int start_cursor_x;
+    float start_percent;
 };
 
 class BC_FPot : public BC_Pot
@@ -148,7 +152,7 @@ class BC_QPot : public BC_Pot
 public:
 	BC_QPot(int x, 
 		int y, 
-		int64_t value,      // Units of frequencies
+		int64_t value,      // Units of hz
 		VFrame **data = 0);
 	~BC_QPot();
 
@@ -157,9 +161,9 @@ public:
 	int decrease_value();
 	float get_percentage();
 	int percentage_to_value(float percentage);
-// Units of frequencies
+// Units of hz
 	int64_t get_value();
-// Units of frequencies
+// Units of hz
 	void update(int64_t value);
 
 private:

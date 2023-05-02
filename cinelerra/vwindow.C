@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +20,7 @@
 
 #include "asset.h"
 #include "assets.h"
+#include "bcsignals.h"
 #include "clip.h"
 #include "clipedit.h"
 #include "bchash.h"
@@ -49,6 +49,8 @@
 VWindow::VWindow(MWindow *mwindow) : BC_DialogThread()
 {
 	this->mwindow = mwindow;
+// can't close the opengl objects
+    set_keep_gui(1);
 	indexable = 0;
 	edl = 0;
 }
@@ -67,12 +69,15 @@ VWindow::~VWindow()
 
 void VWindow::delete_source(int do_main_edl, int update_gui)
 {
+// printf("VWindow::delete_source %d %d %p %p\n", 
+// __LINE__, 
+// gui->get_window_lock(), 
+// edl, 
+// indexable);
 	if(do_main_edl) mwindow->edl->remove_vwindow_edl(get_edl());
-
 
 	if(edl)
 	{
-//printf("VWindow::delete_source %d %p\n", __LINE__, edl);
 		edl->Garbage::remove_user();
 //printf("VWindow::delete_source %d\n", __LINE__);
 		edl = 0;
@@ -87,10 +92,10 @@ void VWindow::delete_source(int do_main_edl, int update_gui)
 
 //printf("VWindow::delete_source %d\n", __LINE__);
 	if(indexable) indexable->Garbage::remove_user();
-//printf("VWindow::delete_source %d\n", __LINE__);
 	indexable = 0;
 
 	if(update_gui) gui->change_source(0, _("Viewer"));
+//printf("VWindow::delete_source %d\n", __LINE__);
 }
 
 
@@ -103,21 +108,22 @@ void VWindow::create_objects()
 }
 
 
-void VWindow::handle_close_event(int result)
+void VWindow::handle_done_event(int result)
 {
+//	delete playback_engine;
+//	delete playback_cursor;
+//	delete clip_edit;
+//	playback_engine = 0;
+//	playback_cursor = 0;
+//	clip_edit = 0;
+
 	delete_source(1, 0);
-	delete playback_engine;
-	delete playback_cursor;
-	delete clip_edit;
-	playback_engine = 0;
-	playback_cursor = 0;
-	clip_edit = 0;
 
 	int total = 0;
 	for(int i = 0; i < mwindow->vwindows.size(); i++)
 	{
 
-//printf("VWindow::handle_close_event %d %d\n", __LINE__, mwindow->vwindows.get(i)->is_running());
+//printf("VWindow::handle_done_event %d %d\n", __LINE__, mwindow->vwindows.get(i)->is_running());
 		if(mwindow->vwindows.get(i)->is_running()) total++;
 	}
 // subtract ourselves
@@ -139,24 +145,19 @@ void VWindow::handle_close_event(int result)
 
 BC_Window* VWindow::new_gui()
 {
-//printf("VWindow::create_objects 1\n");
 	gui = new VWindowGUI(mwindow, this);
-//printf("VWindow::create_objects 1\n");
 	gui->create_objects();
-//printf("VWindow::create_objects 1\n");
+
+
+
 
 	playback_engine = new VPlayback(mwindow, this, gui->canvas);
-//printf("VWindow::create_objects 1\n");
 
 // Start command loop
 	playback_engine->create_objects();
-//printf("VWindow::create_objects 1\n");
 	gui->transport->set_engine(playback_engine);
-//printf("VWindow::create_objects 1\n");
 	playback_cursor = new VTracking(mwindow, this);
-//printf("VWindow::create_objects 1\n");
 	playback_cursor->create_objects();
-//printf("VWindow::create_objects 2\n");
 
 	clip_edit = new ClipEdit(mwindow, 0, this);
 	return gui;
@@ -178,7 +179,6 @@ void VWindow::change_source(int edl_number)
 {
 	if(!running()) return;
 
-//printf("VWindow::change_source %d %p\n", __LINE__, mwindow->edl->get_vwindow_edl(edl_number));
 	if(mwindow->edl->get_vwindow_edl(edl_number))
 	{
 		this->edl = mwindow->edl->get_vwindow_edl(edl_number);
@@ -239,9 +239,15 @@ void VWindow::change_source(Indexable *indexable)
 
 //printf("VWindow::change_source 1 %d %p %p\n", __LINE__, asset, nested_edl);
 	if(asset)
-		mwindow->asset_to_edl(this->edl, asset);
-	else
-		mwindow->edl_to_nested(this->edl, nested_edl);
+    {
+// Can't conform the VWindow EDL to the asset because pasting from the VWindow
+// copies the VWindow dimensions to the mane EDL.
+		mwindow->asset_to_edl(this->edl, asset, 0, 0);
+	}
+    else
+	{
+    	mwindow->edl_to_nested(this->edl, nested_edl);
+    }
 
 // Update GUI
 	gui->change_source(this->edl, title);
@@ -358,9 +364,12 @@ void VWindow::update_position(int change_type,
 	int update_slider,
 	int lock_window)
 {
+//printf("VWindow::update_position %d\n", __LINE__);
 	EDL *edl = get_edl();
+//printf("VWindow::update_position %d\n", __LINE__);
 	if(edl)
 	{
+//printf("VWindow::update_position %d\n", __LINE__);
 
 #ifdef USE_SLIDER
 
@@ -378,16 +387,18 @@ void VWindow::update_position(int change_type,
 #endif
 
 
-//printf("VWindow::update_position %d\n", __LINE__);
+//printf("VWindow::update_position %d %p\n", __LINE__, playback_engine);
 //edl->dump();
 		playback_engine->que->send_command(CURRENT_FRAME, 
 			change_type,
 			edl,
 			1);
 
+//printf("VWindow::update_position %d\n", __LINE__);
 		if(lock_window) gui->lock_window("VWindow::update_position");
 		gui->clock->update(edl->local_session->get_selectionstart(1));
 		if(lock_window) gui->unlock_window();
+//printf("VWindow::update_position %d\n", __LINE__);
 	}
 }
 

@@ -61,8 +61,14 @@ enum
 	DRAG_PLUGINKEY,    
 	DRAG_PLUGINHANDLE1,        // Waiting to move out of drag threshold
 	DRAG_PLUGINHANDLE2,         // Dragging outside drag threshold
-	DRAG_SPEED
+	DRAG_SPEED,
+	DRAG_TRANSITIONHANDLE1,    	// Waiting to move out of drag threshold
+	DRAG_TRANSITIONHANDLE2,    	// Dragging outside drag threshold
 };
 
+// the handle being dragged
+#define NO_HANDLE -1
+#define LEFT_HANDLE 0
+#define RIGHT_HANDLE 1
 
 #endif

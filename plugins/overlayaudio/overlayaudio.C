@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -185,10 +185,10 @@ const char* OverlayAudioConfig::mode_to_text(int mode)
 
 OverlayAudioWindow::OverlayAudioWindow(OverlayAudio *plugin)
  : PluginClientWindow(plugin, 
-	400, 
-	100, 
-	400, 
-	100, 
+	DP(400), 
+	DP(100), 
+	DP(400), 
+	DP(100), 
 	0)
 {
 	this->plugin = plugin;
@@ -196,7 +196,7 @@ OverlayAudioWindow::OverlayAudioWindow(OverlayAudio *plugin)
 
 void OverlayAudioWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	int x1 = x;
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, "Output track:"));
@@ -223,7 +223,7 @@ void OverlayAudioWindow::create_objects()
 OutputTrack::OutputTrack(OverlayAudio *plugin, int x , int y)
  : BC_PopupMenu(x, 
  	y, 
-	100,
+	DP(100),
 	OverlayAudioConfig::output_to_text(plugin->config.output_track),
 	1)
 {
@@ -274,7 +274,7 @@ OverlayMode::OverlayMode(OverlayAudio *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	150,
+	DP(150),
 	OverlayAudioConfig::mode_to_text(plugin->config.mode),
 	1)
 {

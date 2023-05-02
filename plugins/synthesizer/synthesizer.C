@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,8 +44,8 @@ Synth::Synth(PluginServer *server)
  : PluginAClient(server)
 {
 	reset();
-	window_w = 640;
-	window_h = 480;
+	window_w = DP(640);
+	window_h = DP(480);
 }
 
 
@@ -192,7 +191,7 @@ void Synth::update_gui()
 
 void Synth::add_oscillator()
 {
-	if(config.oscillator_config.total > 20) return;
+	if(config.oscillator_config.total > MAX_OSCILLATORS) return;
 
 	config.oscillator_config.append(new SynthOscillatorConfig(config.oscillator_config.total - 1));
 }
@@ -310,6 +309,7 @@ double Synth::solve_eqn(double *output,
 			}
 			break;
 	}
+    return 0;
 }
 
 double Synth::get_point(float x, double normalize_constant)
@@ -351,6 +351,7 @@ double Synth::get_oscillator_point(float x,
 			return function_noise() * power;
 			break;
 	}
+    return 0;
 }
 
 double Synth::function_square(double x)
@@ -532,8 +533,8 @@ SynthWindow::SynthWindow(Synth *synth)
  : PluginClientWindow(synth, 
 	synth->window_w, 
 	synth->window_h, 
-	400, 
-	350, 
+	DP(400), 
+	DP(350), 
 	1)
 {
 	this->synth = synth; 
@@ -565,6 +566,8 @@ static const char *keyboard_map[] =
 
 void SynthWindow::create_objects()
 {
+	int margin = client->get_theme()->widget_border;
+
 	BC_MenuBar *menu;
 	add_subwindow(menu = new BC_MenuBar(0, 0, get_w()));
 
@@ -585,72 +588,79 @@ void SynthWindow::create_objects()
 	phasemenu->add_item(new SynthPhaseSine(synth));
 	phasemenu->add_item(new SynthPhaseZero(synth));
 
+	harmonicmenu->add_item(new SynthFreqMin(synth));
 	harmonicmenu->add_item(new SynthFreqEnum(synth));
 	harmonicmenu->add_item(new SynthFreqEven(synth));
 	harmonicmenu->add_item(new SynthFreqFibonacci(synth));
 	harmonicmenu->add_item(new SynthFreqOdd(synth));
 	harmonicmenu->add_item(new SynthFreqPrime(synth));
+	harmonicmenu->add_item(new SynthFreqPow1(synth));
+	harmonicmenu->add_item(new SynthFreqPow2(synth));
 
-	int x = 10, y = 30, i;
+	int x = DP(10), y = DP(30), i;
 	
-	add_subwindow(new BC_Title(x, y, _("Waveform")));
-	x += 240;
-	add_subwindow(new BC_Title(x, y, _("Wave Function")));
-	y += 20;
-	x = 10;
-	add_subwindow(canvas = new SynthCanvas(synth, this, x, y, 230, 160));
+	add_subwindow(new BC_Title(x, y, _("Waveform:")));
+	x += DP(240);
+	add_subwindow(new BC_Title(x, y, _("Wave Function:")));
+	y += DP(20);
+	x = DP(10);
+	add_subwindow(canvas = new SynthCanvas(synth, this, x, y, DP(230), DP(160)));
 	canvas->update();
 
-	x += 240;
+	x += DP(240);
 	char string[BCTEXTLEN];
 	waveform_to_text(string, synth->config.wavefunction);
 
 	add_subwindow(waveform = new SynthWaveForm(synth, x, y, string));
 	waveform->create_objects();
-	y += 30;
-	int x1 = x + waveform->get_w() + 10;
+	y += DP(30);
+	int x1 = x + waveform->get_w() + DP(10);
 
 
 	add_subwindow(new BC_Title(x, y, _("Base Frequency:")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(base_freq = new SynthBaseFreq(synth, this, x, y));
 	base_freq->update((float)synth->config.base_freq[0]);
 	x += base_freq->get_w() + synth->get_theme()->widget_border;
-	add_subwindow(freqpot = new SynthFreqPot(synth, this, x, y - 10));
+
+	add_subwindow(freqpot = new SynthFreqPot(synth, this, x, y - DP(10)));
 	base_freq->freq_pot = freqpot;
 	freqpot->freq_text = base_freq;
 	x -= base_freq->get_w() + synth->get_theme()->widget_border;
-	y += 40;
-	add_subwindow(new BC_Title(x, y, _("Wetness:")));
-	add_subwindow(wetness = new SynthWetness(synth, x + 70, y - 10));
+	y += DP(40);
 
-	y += 40;
+	BC_Title *title;
+	add_subwindow(title = new BC_Title(x, y, _("Wetness:")));
+	add_subwindow(wetness = new SynthWetness(synth, x + title->get_w() + margin, y - DP(10)));
+
+	y += DP(40);
 	add_subwindow(new SynthClear(synth, x, y));
 
 
-	x = 50;  
-	y = 220;
+	x = DP(50);  
+	y = DP(220);
 	add_subwindow(new BC_Title(x, y, _("Level"))); 
-	x += 75;
+	x += DP(75);
 	add_subwindow(new BC_Title(x, y, _("Phase"))); 
-	x += 75;
+	x += DP(75);
 	add_subwindow(new BC_Title(x, y, _("Harmonic")));
 
 
 
-	y += 20; x = 10;
-	add_subwindow(osc_subwindow = new BC_SubWindow(x, y, 265, get_h() - y));
-	x += 265;
+	y += DP(20); 
+	x = DP(10);
+	add_subwindow(osc_subwindow = new BC_SubWindow(x, y, DP(265), get_h() - y));
+	x += DP(265);
 	add_subwindow(osc_scroll = new OscScroll(synth, this, x, y, get_h() - y));
 
 
-	x += 20;
+	x += DP(20);
 	add_subwindow(new SynthAddOsc(synth, this, x, y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new SynthDelOsc(synth, this, x, y));
 
 // Create keyboard
-	y = 30;
+	y = DP(30);
 
 #include "white_up_png.h"
 #include "white_hi_png.h"
@@ -995,7 +1005,7 @@ void SynthWindow::update_oscillators()
 			gui->phase->update((int64_t)(config->phase * 360));
 
 			gui->freq->reposition_window(gui->freq->get_x(), y);
-			gui->freq->update((int64_t)(config->freq_factor));
+			gui->freq->update(config->freq_factor);
 		}
 		y += OSCILLATORHEIGHT;
 	}
@@ -1259,7 +1269,7 @@ void SynthOscGUI::create_objects(int y)
 {
 	char text[BCTEXTLEN];
 	sprintf(text, "%d:", number + 1);
-	window->osc_subwindow->add_subwindow(title = new BC_Title(10, y + 15, text));
+	window->osc_subwindow->add_subwindow(title = new BC_Title(DP(10), y + DP(15), text));
 
 	window->osc_subwindow->add_subwindow(level = new SynthOscGUILevel(window->synth, this, y));
 	window->osc_subwindow->add_subwindow(phase = new SynthOscGUIPhase(window->synth, this, y));
@@ -1270,7 +1280,7 @@ void SynthOscGUI::create_objects(int y)
 
 
 SynthOscGUILevel::SynthOscGUILevel(Synth *synth, SynthOscGUI *gui, int y)
- : BC_FPot(50, 
+ : BC_FPot(DP(50), 
  	y, 
 	synth->config.oscillator_config.values[gui->number]->level, 
 	INFINITYGAIN, 
@@ -1296,7 +1306,7 @@ int SynthOscGUILevel::handle_event()
 
 
 SynthOscGUIPhase::SynthOscGUIPhase(Synth *synth, SynthOscGUI *gui, int y)
- : BC_IPot(125, 
+ : BC_IPot(DP(125), 
  	y, 
 	(int64_t)(synth->config.oscillator_config.values[gui->number]->phase * 360), 
 	0, 
@@ -1322,9 +1332,9 @@ int SynthOscGUIPhase::handle_event()
 
 
 SynthOscGUIFreq::SynthOscGUIFreq(Synth *synth, SynthOscGUI *gui, int y)
- : BC_IPot(200, 
+ : BC_FPot(DP(200), 
  	y, 
-	(int64_t)(synth->config.oscillator_config.values[gui->number]->freq_factor), 
+	synth->config.oscillator_config.values[gui->number]->freq_factor, 
 	1, 
 	100)
 {
@@ -1483,7 +1493,7 @@ int SynthClear::handle_event()
 
 
 SynthWaveForm::SynthWaveForm(Synth *synth, int x, int y, char *text)
- : BC_PopupMenu(x, y, 120, text)
+ : BC_PopupMenu(x, y, DP(120), text)
 {
 	this->synth = synth;
 }
@@ -1554,20 +1564,17 @@ SynthFreqPot::~SynthFreqPot()
 }
 int SynthFreqPot::handle_event()
 {
-	if(get_value() > 0 && get_value() < 30000)
-	{
-		synth->config.base_freq[0] = get_value();
-		freq_text->update(get_value());
-		synth->send_configure_change();
-		window->update_note_selection();
-	}
+	synth->config.base_freq[0] = get_value();
+	freq_text->update(get_value());
+	synth->send_configure_change();
+	window->update_note_selection();
 	return 1;
 }
 
 
 
 SynthBaseFreq::SynthBaseFreq(Synth *synth, SynthWindow *window, int x, int y)
- : BC_TextBox(x, y, 100, 1, (float)0)
+ : BC_TextBox(x, y, DP(100), 1, (float)0)
 {
 	this->synth = synth;
 	this->window = window;
@@ -1665,6 +1672,7 @@ int SynthLevelZero::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelMax::SynthLevelMax(Synth *synth)
@@ -1685,6 +1693,7 @@ int SynthLevelMax::handle_event()
 	}
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelNormalize::SynthLevelNormalize(Synth *synth)
@@ -1721,6 +1730,7 @@ int SynthLevelNormalize::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelSlope::SynthLevelSlope(Synth *synth)
@@ -1744,6 +1754,7 @@ int SynthLevelSlope::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelRandom::SynthLevelRandom(Synth *synth)
@@ -1765,6 +1776,7 @@ int SynthLevelRandom::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelInvert::SynthLevelInvert(Synth *synth)
@@ -1786,6 +1798,7 @@ int SynthLevelInvert::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthLevelSine::SynthLevelSine(Synth *synth)
@@ -1810,6 +1823,7 @@ int SynthLevelSine::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 // ============================ phase calculations
@@ -1833,6 +1847,7 @@ int SynthPhaseInvert::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthPhaseZero::SynthPhaseZero(Synth *synth)
@@ -1853,6 +1868,7 @@ int SynthPhaseZero::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthPhaseSine::SynthPhaseSine(Synth *synth)
@@ -1876,6 +1892,7 @@ int SynthPhaseSine::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthPhaseRandom::SynthPhaseRandom(Synth *synth)
@@ -1898,6 +1915,7 @@ int SynthPhaseRandom::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 
@@ -1922,7 +1940,76 @@ int SynthFreqRandom::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
+
+SynthFreqPow1::SynthFreqPow1(Synth *synth)
+ : BC_MenuItem(_("Powers of 1.4"))
+{
+	this->synth = synth;
+}
+SynthFreqPow1::~SynthFreqPow1()
+{
+}
+
+int SynthFreqPow1::handle_event()
+{
+	for(int i = 0; i < synth->config.oscillator_config.total; i++)
+	{
+		synth->config.oscillator_config.values[i]->freq_factor = pow(sqrt(2), i);
+	}
+
+	((SynthWindow*)synth->thread->window)->update_gui();
+	synth->send_configure_change();
+    return 0;
+}
+
+
+SynthFreqPow2::SynthFreqPow2(Synth *synth)
+ : BC_MenuItem(_("Powers of 2"))
+{
+	this->synth = synth;
+}
+SynthFreqPow2::~SynthFreqPow2()
+{
+}
+
+int SynthFreqPow2::handle_event()
+{
+	for(int i = 0; i < synth->config.oscillator_config.total; i++)
+	{
+		synth->config.oscillator_config.values[i]->freq_factor = pow(2, i);
+	}
+
+	((SynthWindow*)synth->thread->window)->update_gui();
+	synth->send_configure_change();
+    return 0;
+}
+
+
+
+
+SynthFreqMin::SynthFreqMin(Synth *synth)
+ : BC_MenuItem(_("Minimum"))
+{
+	this->synth = synth;
+}
+SynthFreqMin::~SynthFreqMin()
+{
+}
+
+int SynthFreqMin::handle_event()
+{
+	for(int i = 0; i < synth->config.oscillator_config.total; i++)
+	{
+		synth->config.oscillator_config.values[i]->freq_factor = 1;
+	}
+
+	((SynthWindow*)synth->thread->window)->update_gui();
+	synth->send_configure_change();
+    return 0;
+}
+
 
 SynthFreqEnum::SynthFreqEnum(Synth *synth)
  : BC_MenuItem(_("Enumerate"))
@@ -1942,6 +2029,7 @@ int SynthFreqEnum::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthFreqEven::SynthFreqEven(Synth *synth)
@@ -1965,6 +2053,7 @@ int SynthFreqEven::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthFreqOdd::SynthFreqOdd(Synth *synth)
@@ -1983,6 +2072,7 @@ int SynthFreqOdd::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthFreqFibonacci::SynthFreqFibonacci(Synth *synth)
@@ -2007,6 +2097,7 @@ int SynthFreqFibonacci::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 SynthFreqPrime::SynthFreqPrime(Synth *synth)
@@ -2029,6 +2120,7 @@ int SynthFreqPrime::handle_event()
 
 	((SynthWindow*)synth->thread->window)->update_gui();
 	synth->send_configure_change();
+    return 0;
 }
 
 float SynthFreqPrime::get_next_prime(float number)

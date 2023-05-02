@@ -57,23 +57,27 @@ int64_t mpeg3io_path_total_bytes(char *path)
 
 int mpeg3io_open_file(mpeg3_fs_t *fs)
 {
+    int debug = 0;
 /* Need to perform authentication before reading a single byte. */
 	mpeg3_get_keys(fs->css, fs->path);
 
-//printf("mpeg3io_open_file 1 %s\n", fs->path);
+if(debug) printf("mpeg3io_open_file %d %s\n", __LINE__, fs->path);
 	if(!(fs->fd = fopen64(fs->path, "rb")))
 	{
 		perror("mpeg3io_open_file");
 		return 1;
 	}
 
+if(debug) printf("mpeg3io_open_file %d\n", __LINE__);
 	fs->total_bytes = mpeg3io_get_total_bytes(fs);
+if(debug) printf("mpeg3io_open_file %d\n", __LINE__);
 
 	if(!fs->total_bytes)
 	{
 		fclose(fs->fd);
 		return 1;
 	}
+if(debug) printf("mpeg3io_open_file %d\n", __LINE__);
 
 	fs->current_byte = 0;
 	fs->buffer_position = -0xffff;

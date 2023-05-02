@@ -70,6 +70,7 @@ VDeviceV4L2JPEG::~VDeviceV4L2JPEG()
 int VDeviceV4L2JPEG::initialize()
 {
 	thread = 0;
+    return 0;
 }
 
 
@@ -122,7 +123,8 @@ int VDeviceV4L2JPEG::read_buffer(VFrame *frame)
 		frame->set_compressed_size(buffer->get_compressed_size());
 
 // Transfer fields to frame
-		if(device->odd_field_first)
+		if(device->odd_field_first && 
+            device->in_config->driver == VIDEO4LINUX2MJPG)
 		{
 			int field2_offset = mjpeg_get_field2((unsigned char*)buffer->get_data(), 
 				buffer->get_compressed_size());
@@ -139,6 +141,16 @@ int VDeviceV4L2JPEG::read_buffer(VFrame *frame)
 		}
 		else
 		{
+// printf("VDeviceV4L2JPEG::read_buffer %d %02x%02x%02x%02x%02x%02x%02x%02x\n",
+// __LINE__,
+// buffer->get_data()[0],
+// buffer->get_data()[1],
+// buffer->get_data()[2],
+// buffer->get_data()[3],
+// buffer->get_data()[4],
+// buffer->get_data()[5],
+// buffer->get_data()[6],
+// buffer->get_data()[7]);
 			bcopy(buffer->get_data(), 
 				frame->get_data(), 
 				buffer->get_compressed_size());

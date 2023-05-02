@@ -103,9 +103,9 @@ public:
 	BC_Pixmap *inactive;
 //	MainClock *clock;
 
-
+#ifdef USE_METERS
 	CWindowMeters *meters;
-
+#endif
 
 	CWindowTool *tool_panel;
 
@@ -290,6 +290,7 @@ public:
 	void draw_crop();
 	void calculate_origin();
 	void toggle_controls();
+    void toggle_fps();
 	int get_cwindow_controls();
 
 	MWindow *mwindow;

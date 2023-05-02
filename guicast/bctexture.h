@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -55,9 +54,10 @@ public:
 // The texture unit initialization requires the texture to be bound.
 	void bind(int texture_unit = -1);
 
-// Calculate the power of 2 size for allocating textures
+// Calculate the aligned size of the texture
 	static int calculate_texture_size(int w, int *max = 0);
 	int get_texture_id();
+// the aligned size
 	int get_texture_w();
 	int get_texture_h();
 	int get_texture_components();

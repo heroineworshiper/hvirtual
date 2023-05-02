@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +22,8 @@
 #define BCTEXTBOX_H
 
 #include "bclistbox.h"
+#include "bcmenuitem.h"
+#include "bcpopupmenu.h"
 #include "bcsubwindow.h"
 #include "bctumble.h"
 #include "fonts.h"
@@ -37,9 +38,51 @@
 
 class BC_TextBoxSuggestions;
 class BC_ScrollTextBoxYScroll;
+class BC_TextMenu;
+class BC_TextMenuSelect;
 
 using std::string;
 
+
+class BC_TextBoxUndo : public ListItem<BC_TextBoxUndo>
+{
+public:
+    BC_TextBoxUndo();
+    ~BC_TextBoxUndo();
+    
+// transfer the state
+    void to_textbox(BC_TextBox *textbox);
+    void from_textbox(BC_TextBox *textbox);
+    
+    int highlight_letter1;
+    int highlight_letter2;
+    int ibeam_letter;
+    int text_x;
+    int text_y;
+    string text;
+};
+
+class BC_TextBoxUndos : public List<BC_TextBoxUndo>
+{
+public:
+    BC_TextBoxUndos();
+    ~BC_TextBoxUndos();
+    
+// Create a new undo entry and put on the stack.
+// The current pointer points to the new entry.
+// delete future undos if in the middle
+// delete undos older than UNDOLEVELS if last
+ 	BC_TextBoxUndo* push();
+// move to the previous undo entry
+	void pull();
+// move to the next undo entry for a redo
+	BC_TextBoxUndo* pull_next();
+   
+    void dump();
+
+    
+	BC_TextBoxUndo* current;
+};
 
 class BC_TextBox : public BC_SubWindow
 {
@@ -49,6 +92,13 @@ public:
 		int w, 
 		int rows, 
 		const char *text, 
+		int has_border = 1, 
+		int font = MEDIUMFONT);
+	BC_TextBox(int x, 
+		int y, 
+		int w, 
+		int rows, 
+		string *text, 
 		int has_border = 1, 
 		int font = MEDIUMFONT);
 	BC_TextBox(int x, 
@@ -77,6 +127,10 @@ public:
 
 
 	friend class BC_TextBoxSuggestions;
+    friend class BC_TextBoxUndo;
+    friend class BC_TextBoxUndos;
+    friend class BC_TextMenuSelect;
+    friend class BC_TextMenu;
 
 
 // Whenever the contents of the text change
@@ -89,6 +143,9 @@ public:
 	int update(float value);
 	void disable();
 	void enable();
+    void set_read_only(int value);
+// has to be called in the constructor
+    void enable_undo();
 	int get_enabled();
 	int get_rows();
 
@@ -112,6 +169,10 @@ public:
 	int get_text_row();
 	int reposition_window(int x, int y, int w = -1, int rows = -1);
 	int uses_text();
+	int cut(int do_housekeeping);
+	int copy(int do_housekeeping);
+	int paste(int do_housekeeping);
+	
 #ifdef X_HAVE_UTF8_STRING
 	int utf8seek(int &seekpoint, int reverse);
 #endif
@@ -134,8 +195,16 @@ public:
 
 // Compute suggestions for a path
 // If entries is null, just search absolute paths
-	int calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries);
+// ignore_fs - don't calculate paths
+	int calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries,
+        int ignore_fs = 0);
 
+// push the current state
+   void update_undo();
+// erase all levels & push the current state
+   void reset_undo();
+   void undo();
+   void redo();
 
 // User computes suggestions after handle_event.
 // The array is copied to a local variable.
@@ -144,6 +213,7 @@ public:
 // column - starting column to replace
 	void set_suggestions(ArrayList<char*> *suggestions, int column);
 	BC_ScrollTextBoxYScroll *yscroll;
+	BC_TextMenu *menu;
 
 private:
 	int reset_parameters(int rows, int has_border, int font);
@@ -158,21 +228,16 @@ private:
 // ibeam_left causes the ibeam to move left.
 	void do_separators(int ibeam_left);
 	void get_ibeam_position(int &x, int &y);
-	void find_ibeam(int dispatch_event);
+	void find_ibeam(int dispatch_event, int init = 0);
 	void select_word(int &letter1, int &letter2, int ibeam_letter);
 	void select_line(int &letter1, int &letter2, int ibeam_letter);
+    void select_all();
 	int get_cursor_letter(int cursor_x, int cursor_y);
 	int get_cursor_letter2(int cursor_x, int cursor_y);
 	int get_row_h(int rows);
 	void default_keypress(int &dispatch_event, int &result);
 
 
-
-	int repeat_state;
-	enum
-	{
-		
-	};
 
 // Top left of text relative to window
 	int text_x, text_y;
@@ -192,10 +257,14 @@ private:
 	int highlighted;
 	int high_color, back_color;
 	int background_color;
+// the text    
 	string text;
 	char temp_string[KEYPRESSLEN];
+// don't grey out the highlight when activating the popup menu
+    int popup_menu_active;
 	int active;
 	int enabled;
+    int read_only;
 	int precision;
 	int keypress_draw;
 // Cause the repeater to skip a cursor refresh if a certain event happened
@@ -207,6 +276,8 @@ private:
 	ArrayList<BC_ListBoxItem*> *suggestions;
 	BC_TextBoxSuggestions *suggestions_popup;
 	int suggestion_column;
+    int undo_enabled;
+    BC_TextBoxUndos undos;
 };
 
 
@@ -251,6 +322,7 @@ public:
 	int get_w();
 // Visible rows for resizing
 	int get_rows();
+    void enable_undo();
 
 	friend class BC_ScrollTextBoxText;
 	friend class BC_ScrollTextBoxYScroll;
@@ -261,6 +333,7 @@ private:
 	BC_WindowBase *parent_window;
 	const char *default_text;
 	int x, y, w, rows;
+    int undo_enabled;
 };
 
 class BC_ScrollTextBoxText : public BC_TextBox
@@ -303,20 +376,28 @@ public:
 	int create_objects();
 	virtual int handle_event();
 	const char* get_text();
+    BC_PopupTextBoxText* get_textbox();
 	int get_number();
 	int get_x();
 	int get_y();
 	int get_w();
 	int get_h();
+
+// get extents of the toggle
+    static int calculate_h();
+    static int calculate_w();
+    void set_read_only(int value);
+
+    void set_list_w(int value);
 	void update(const char *text);
 	void update_list(ArrayList<BC_ListBoxItem*> *data);
-	void reposition_window(int x, int y);
+	void reposition_window(int x, int y, int w = -1);
 
 	friend class BC_PopupTextBoxText;
 	friend class BC_PopupTextBoxList;
 
 private:
-	int x, y, text_w, list_h;
+	int x, y, text_w, list_w, list_h;
 	int list_format;
 	char *default_text;
 	ArrayList<BC_ListBoxItem*> *list_items;
@@ -383,11 +464,19 @@ public:
 	int get_y();
 	int get_w();
 	int get_h();
-	void reposition_window(int x, int y);
+	void reposition_window(int x, int y, int w = -1);
 	void set_boundaries(int64_t min, int64_t max);
 	void set_boundaries(float min, float max);
 	void set_precision(int precision);
 	void set_increment(float value);
+    void disable();
+    void enable();
+    int get_enabled();
+    void set_read_only(int value);
+
+// get extents of the toggle
+    static int calculate_h();
+    static int calculate_w();
 
 	friend class BC_TumbleTextBoxText;
 	friend class BC_TumbleTextBoxTumble;
@@ -424,6 +513,75 @@ public:
 	int handle_event();
 	int button_press_event();
 	BC_TumbleTextBox *popup;
+};
+
+class BC_TextMenuCut;
+class BC_TextMenuPaste;
+class BC_TextMenuUndo;
+class BC_TextMenuRedo;
+
+class BC_TextMenu : public BC_PopupMenu
+{
+public:
+	BC_TextMenu(BC_TextBox *textbox);
+	~BC_TextMenu();
+	
+	void create_objects();
+    int deactivate();
+	
+	BC_TextBox *textbox;
+    BC_TextMenuUndo *undo;
+    BC_TextMenuRedo *redo;
+    BC_TextMenuCut *cut;
+    BC_TextMenuPaste *paste;
+};
+
+class BC_TextMenuSelect : public BC_MenuItem
+{
+public:
+	BC_TextMenuSelect(BC_TextMenu *menu);
+	int handle_event();
+	BC_TextMenu *menu;
+};
+
+class BC_TextMenuUndo : public BC_MenuItem
+{
+public:
+	BC_TextMenuUndo(BC_TextMenu *menu);
+	int handle_event();
+	BC_TextMenu *menu;
+};
+
+class BC_TextMenuRedo : public BC_MenuItem
+{
+public:
+	BC_TextMenuRedo(BC_TextMenu *menu);
+	int handle_event();
+	BC_TextMenu *menu;
+};
+
+class BC_TextMenuCut : public BC_MenuItem
+{
+public:
+	BC_TextMenuCut(BC_TextMenu *menu);
+	int handle_event();
+	BC_TextMenu *menu;
+};
+
+class BC_TextMenuCopy : public BC_MenuItem
+{
+public:
+	BC_TextMenuCopy(BC_TextMenu *menu);
+	int handle_event();
+	BC_TextMenu *menu;
+};
+
+class BC_TextMenuPaste : public BC_MenuItem
+{
+public:
+	BC_TextMenuPaste(BC_TextMenu *menu);
+	int handle_event();
+	BC_TextMenu *menu;
 };
 
 

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -370,7 +370,7 @@ RotateText::RotateText(RotateWindow *window,
 	int y)
  : BC_TextBox(x, 
  	y, 
-	100,
+	DP(100),
 	1,
 	(float)plugin->config.angle)
 {
@@ -439,27 +439,27 @@ int RotateY::handle_event()
 
 RotateWindow::RotateWindow(RotateEffect *plugin)
  : PluginClientWindow(plugin,
-	250, 
-	230, 
-	250, 
-	230, 
+	DP(260), 
+	DP(230), 
+	DP(260), 
+	DP(230), 
 	0)
 {
 	this->plugin = plugin;
 }
 
-#define RADIUS 30
+#define RADIUS DP(30)
 
 void RotateWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	BC_Title *title;
 
 
 
 	add_tool(new BC_Title(x, y, _("Rotate")));
-	x += 50;
-	y += 20;
+	x += DP(50);
+	y += DP(20);
 	add_tool(toggle0 = new RotateToggle(this, 
 		plugin, 
 		plugin->config.angle == 0, 
@@ -494,28 +494,27 @@ void RotateWindow::create_objects()
 		y, 
 		270, 
 		"270"));
-//	add_subwindow(bilinear = new RotateInterpolate(plugin, 10, y + 60));
-	x += 120;
-	y -= 50;
+	x += DP(120);
+	y -= DP(50);
 	add_tool(fine = new RotateFine(this, plugin, x, y));
-	y += fine->get_h() + 10;
+	y += fine->get_h() + DP(10);
 	add_tool(text = new RotateText(this, plugin, x, y));
-	y += 30;
+	y += DP(30);
 	add_tool(new BC_Title(x, y, _("Degrees")));
 	
 
 
 
 
-	y += text->get_h() + 10;
+	y += text->get_h() + DP(10);
 	add_subwindow(title = new BC_Title(x, y, _("Pivot (x,y):")));
-	y += title->get_h() + 10;
+	y += title->get_h() + DP(10);
 	add_subwindow(this->x = new RotateX(this, plugin, x, y));
-	x += this->x->get_w() + 10;
+	x += this->x->get_w() + DP(10);
 	add_subwindow(this->y = new RotateY(this, plugin, x, y));
 
-	x = 10;
-	y += this->y->get_h() + 10;
+	x = DP(10);
+	y += this->y->get_h() + DP(10);
 	add_subwindow(draw_pivot = new RotateDrawPivot(this, plugin, x, y));
 
 	show_window();
@@ -740,7 +739,7 @@ int RotateEffect::process_buffer(VFrame *frame,
 		temp_frame, 
 		config.angle);
 
-//printf("RotateEffect::process_buffer %d\n", __LINE__);
+//printf("RotateEffect::process_buffer %d draw_pivot=%d\n", __LINE__, config.draw_pivot);
 
 // Draw center
 #define CENTER_H 20
@@ -751,27 +750,21 @@ int RotateEffect::process_buffer(VFrame *frame,
 	if(center_x >= 0 && center_x < w || \
 		center_y >= 0 && center_y < h) \
 	{ \
-		type *hrow = rows[center_y] + components * (center_x - CENTER_W / 2); \
-		for(int i = center_x - CENTER_W / 2; i <= center_x + CENTER_W / 2; i++) \
+		type *hrow = rows[center_y]; \
+		for(int i = 0; i < w; i++) \
 		{ \
-			if(i >= 0 && i < w) \
-			{ \
-				hrow[0] = max - hrow[0]; \
-				hrow[1] = max - hrow[1]; \
-				hrow[2] = max - hrow[2]; \
-				hrow += components; \
-			} \
+			hrow[0] = max - hrow[0]; \
+			hrow[1] = max - hrow[1]; \
+			hrow[2] = max - hrow[2]; \
+			hrow += components; \
 		} \
  \
-		for(int i = center_y - CENTER_W / 2; i <= center_y + CENTER_W / 2; i++) \
+		for(int i = 0; i < h; i++) \
 		{ \
-			if(i >= 0 && i < h) \
-			{ \
-				type *vrow = rows[i] + center_x * components; \
-				vrow[0] = max - vrow[0]; \
-				vrow[1] = max - vrow[1]; \
-				vrow[2] = max - vrow[2]; \
-			} \
+			type *vrow = rows[i] + center_x * components; \
+			vrow[0] = max - vrow[0]; \
+			vrow[1] = max - vrow[1]; \
+			vrow[2] = max - vrow[2]; \
 		} \
 	} \
 }
@@ -854,6 +847,7 @@ int RotateEffect::handle_opengl()
 		glEnd();
 	}
 #endif
+    return 0;
 }
 
 

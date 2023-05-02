@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009-2013 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -185,9 +185,16 @@ int Record::load_defaults()
 // These are locked by a specific driver.
 	if(mwindow->edl->session->vconfig_in->driver == CAPTURE_LML ||
 		mwindow->edl->session->vconfig_in->driver == CAPTURE_BUZ ||
-		mwindow->edl->session->vconfig_in->driver == VIDEO4LINUX2JPEG)
-		strncpy(default_asset->vcodec, QUICKTIME_MJPA, 4);
-	else
+		mwindow->edl->session->vconfig_in->driver == VIDEO4LINUX2MJPG)
+	{
+    	strncpy(default_asset->vcodec, QUICKTIME_MJPA, 4);
+    }
+    else
+	if(mwindow->edl->session->vconfig_in->driver == VIDEO4LINUX2JPEG)
+	{
+    	strncpy(default_asset->vcodec, QUICKTIME_JPEG, 4);
+	}
+    else
 	if(mwindow->edl->session->vconfig_in->driver == CAPTURE_FIREWIRE ||
 		mwindow->edl->session->vconfig_in->driver == CAPTURE_IEC61883)
 	{
@@ -236,6 +243,8 @@ int Record::load_defaults()
 	picture->load_defaults();
 
 	reverse_interlace = defaults->get("REVERSE_INTERLACE", 0);
+	do_cursor = defaults->get("RECORD_CURSOR", 0);
+	do_big_cursor = defaults->get("RECORD_BIG_CURSOR", 0);
 	for(int i = 0; i < MAXCHANNELS; i++) 
 	{
 		sprintf(string, "RECORD_DCOFFSET_%d", i);
@@ -314,6 +323,8 @@ int Record::save_defaults()
 	
 	picture->save_defaults();
 	defaults->update("REVERSE_INTERLACE", reverse_interlace);
+	defaults->update("RECORD_CURSOR", do_cursor);
+	defaults->update("RECORD_BIG_CURSOR", do_big_cursor);
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
 		sprintf(string, "RECORD_DCOFFSET_%d", i);
@@ -349,6 +360,7 @@ void Record::source_to_text(char *string, Batch *batch)
 		case VIDEO4LINUX:
 		case VIDEO4LINUX2:
 		case CAPTURE_BUZ:
+		case VIDEO4LINUX2MJPG:
 		case VIDEO4LINUX2JPEG:
 		case CAPTURE_JPEG_WEBCAM:
 		case CAPTURE_YUYV_WEBCAM:
@@ -559,9 +571,12 @@ void Record::run()
 					mwindow->remove_asset_from_caches(new_asset);
 					new_edl->create_objects();
 					new_edl->copy_session(mwindow->edl);
+// force the format to be probed in case the encoder was different than the decoder
+                    new_asset->format = FILE_UNKNOWN;
 					mwindow->asset_to_edl(new_edl, 
 						new_asset, 
-						batch->labels);
+						batch->labels,
+                        0); // conform
 					new_edls.append(new_edl);
 				}
 			}
@@ -574,7 +589,7 @@ void Record::run()
 // For pasting, clear the active region
 			if(load_mode == LOADMODE_PASTE)
 			{
-				mwindow->clear(0);
+				mwindow->clear(0, 1);
 			}
 
 			mwindow->paste_edls(&new_edls, 
@@ -1119,6 +1134,8 @@ int Record::open_input_devices(int duplex, int context)
 		master_channel->copy_usage(vdevice->channel);
 		picture->copy_usage(vdevice->picture);
 		vdevice->set_field_order(reverse_interlace);
+		
+		vdevice->set_do_cursor(do_cursor, do_big_cursor);
 
 // Set the device configuration
 		set_channel(get_current_channel());
@@ -1364,7 +1381,7 @@ int Record::get_vu_format() { return mwindow->edl->session->meter_format; }
 float Record::get_min_db() { return mwindow->edl->session->min_meter_db; }
 
 int Record::get_rec_mode() { return record_mode; }
-int Record::set_rec_mode(int value) { record_mode = value; }
+int Record::set_rec_mode(int value) { record_mode = value; return 0; }
 
 int Record::get_video_buffersize() { return mwindow->edl->session->video_write_length; }
 int Record::get_everyframe() { return mwindow->edl->session->video_every_frame; }

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +41,19 @@ public:
 	FileSndFile(Asset *asset, File *file);
 	~FileSndFile();
 
-	static int check_sig(Asset *asset);
+// table functions
+    FileSndFile();
+	int check_sig(File *file, const uint8_t *test_data);
+    FileBase* create(File *file);
+	void get_parameters(BC_WindowBase *parent_window, 
+		Asset *asset, 
+		BC_WindowBase* &format_window,
+		int option_type,
+	    const char *locked_compressor);
+    const char* formattostr(int format);
+    const char* get_tag(int format);
+
+
 	int open_file(int rd, int wr);
 	int close_file();
 	int set_audio_position(int64_t sample);
@@ -51,11 +62,6 @@ public:
 	void format_to_asset();
 	void asset_to_format();
 
-	static void get_parameters(BC_WindowBase *parent_window, 
-		Asset *asset, 
-		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options);
 
 	SNDFILE *fd;
 	SF_INFO fd_config;

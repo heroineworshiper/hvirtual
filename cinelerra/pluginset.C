@@ -346,6 +346,8 @@ void PluginSet::shift_effects(int64_t start, int64_t length, int edit_autos)
 
 		if(edit_autos) current->keyframes->paste_silence(start, start + length);
 	}
+    
+    optimize();
 }
 
 void PluginSet::copy(int64_t start, int64_t end, FileXML *file)

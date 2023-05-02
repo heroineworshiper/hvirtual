@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
@@ -46,13 +45,20 @@ FileList::FileList(Asset *asset,
 	int list_type)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 	asset->video_data = 1;
 	this->list_prefix = (char*)list_prefix;
 	this->file_extension = (char*)file_extension;
 	this->frame_type = frame_type;
 	this->list_type = list_type;
 	table_lock = new Mutex("FileList::table_lock");
+}
+
+FileList::FileList()
+ : FileBase()
+{
+    reset_parameters_derived();
+    table_lock = 0;
 }
 
 FileList::~FileList()
@@ -67,6 +73,7 @@ int FileList::reset_parameters_derived()
 	writer = 0;
 	temp = 0;
 	first_number = 0;
+    return 0;
 }
 
 int FileList::open_file(int rd, int wr)
@@ -105,10 +112,10 @@ int FileList::open_file(int rd, int wr)
 				int temp = fread(string, strlen(list_prefix), 1, stream);
 				fclose(stream);
 
+//printf("FileList::open_file %d string=%s list_prefix=%s\n", __LINE__, string, list_prefix);
 				if(!strncasecmp(string, list_prefix, strlen(list_prefix)))
 				{
 
-//printf("FileList::open_file %d\n", __LINE__);
 					asset->format = list_type;
 
 // Open index here or get frame size from file.
@@ -118,7 +125,6 @@ int FileList::open_file(int rd, int wr)
 				}
 				else
 				{
-//printf("FileList::open_file 2\n", asset->use_header);
 //printf("FileList::open_file %d\n", __LINE__);
 					asset->format = frame_type;
 					result = read_frame_header(asset->path);
@@ -128,6 +134,10 @@ int FileList::open_file(int rd, int wr)
 					asset->video_length = -1;
 				}
 			}
+            else
+            {
+                printf("FileList::open_file %d asset->path=%s\n", __LINE__, asset->path);
+            }
 		}
 		else
 		{
@@ -150,15 +160,14 @@ int FileList::open_file(int rd, int wr)
 int FileList::close_file()
 {
 //	path_list.total, asset->format, list_type, wr);
-	if(asset->format == list_type && path_list.total)
+	if(asset && asset->format == list_type && path_list.total)
 	{
-		if(file->wr && asset->use_header) write_list_header();
+		if(file && file->wr && asset->use_header) write_list_header();
 		path_list.remove_all_objects();
 	}
 	if(data) delete data;
 	if(writer) delete writer;
 	if(temp) delete temp;
-	reset_parameters();
 
 	FileBase::close_file();
 	return 0;
@@ -262,10 +271,9 @@ int FileList::read_frame(VFrame *frame)
 {
 	int result = 0;
 
-//	PRINT_TRACE
-// printf("FileList::read_frame %d %d use_header=%d current_frame=%d total=%d\n", 
+// printf("FileList::read_frame %d format=%d use_header=%d current_frame=%d total=%d\n", 
 // __LINE__, 
-// result,
+// asset->format,
 // asset->use_header,
 // file->current_frame,
 // path_list.total);
@@ -290,7 +298,7 @@ int FileList::read_frame(VFrame *frame)
 
 		FILE *in;
 
-// Fix path for VFS
+// Fix path for VFS.  Not used anymore.
 		if(!strncmp(asset->path, RENDERFARM_FS_PREFIX, strlen(RENDERFARM_FS_PREFIX)))
 			sprintf(string, "%s%s", RENDERFARM_FS_PREFIX, path);
 		else
@@ -402,6 +410,7 @@ int FileList::read_frame(VFrame *frame)
 		if(frame->get_color_model() == temp->get_color_model())
 		{
 			frame->copy_from(temp);
+			frame->copy_stacks(temp);
 		}
 		else
 		{
@@ -606,6 +615,7 @@ int FileList::get_units()
 FrameWriterUnit* FileList::get_unit(int number)
 {
 	if(writer) return (FrameWriterUnit*)writer->get_client(number);
+    return 0;
 }
 
 int FileList::use_path()

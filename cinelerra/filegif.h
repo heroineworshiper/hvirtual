@@ -34,8 +34,14 @@ public:
 	FileGIF(Asset *asset, File *file);
 	~FileGIF();
 
-	static int get_best_colormodel(Asset *asset, int driver);
-	static int check_sig(Asset *asset);
+
+// table functions
+    FileGIF();
+	int check_sig(File *file, const uint8_t *test_data);
+    FileBase* create(File *file);
+	int get_best_colormodel(Asset *asset, int driver);
+
+
 	int colormodel_supported(int colormodel);
 
 	int read_frame_header(char *path);

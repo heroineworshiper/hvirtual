@@ -64,6 +64,7 @@ int BC_ProgressBar::reposition_window(int x, int y, int w, int h)
 	if(h < 0) h = get_h();
 	BC_WindowBase::reposition_window(x, y, w, h);
 	draw(1, 0);
+    return 0;
 }
 
 void BC_ProgressBar::set_do_text(int value)

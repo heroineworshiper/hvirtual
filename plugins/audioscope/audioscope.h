@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -220,19 +220,19 @@ public:
 };
 
 // Header for data buffer
-typedef struct
-{
-	int window_size;
-// Total fragments in this buffer
-	int total_windows;
-// Samplerate
-	int sample_rate;
-	int channels;
-// Nothing goes after this
-	float samples[1];
-} data_header_t;
+// typedef struct
+// {
+// 	int window_size;
+// // Total fragments in this buffer
+// 	int total_windows;
+// // Samplerate
+// 	int sample_rate;
+// 	int channels;
+// // Nothing goes after this
+// 	float samples[1];
+// } data_header_t;
 
-class AudioScopeFrame
+class AudioScopeFrame : public PluginClientFrame
 {
 public:
 	AudioScopeFrame(int data_size, int channels);
@@ -240,9 +240,9 @@ public:
 
 	int size;
 	int channels;
+    int window_size;
+    int sample_rate;
 	float *data[CHANNELS];
-// Draw immediately
-	int force;
 };
 
 class AudioScope : public PluginAClient
@@ -261,36 +261,36 @@ public:
 	void read_data(KeyFrame *keyframe);
 	void save_data(KeyFrame *keyframe);
 	void update_gui();
-	void render_gui(void *data, int size);	
 	void render_stop();
 	
 	void reset();
 
 	int need_reconfigure;
+    int64_t last_position;
 // Data buffer for frequency & magnitude
-	unsigned char *data;
+//	unsigned char *data;
 // Accumulate data for windowing
 	Samples *audio_buffer[CHANNELS];
-// Total samples in the buffer
+// Total samples in the audio_buffer
 	int buffer_size;
 // Last window size rendered
 	int window_size;
 // Total windows sent to current GUI
-	int total_windows;
+//	int total_windows;
 // Starting sample in audio_buffer.
 	int64_t audio_buffer_start;
 // Total floats allocated in data buffer
-	int allocated_data;
+//	int allocated_data;
 // Accumulates canvas pixels until the next update_gui
-	ArrayList<AudioScopeFrame*> frame_buffer;
+//	ArrayList<AudioScopeFrame*> frame_buffer;
 // Past frames for the shadow effect
 	ArrayList<AudioScopeFrame*> frame_history;
 // Data for probe
 	AudioScopeFrame *current_frame;
 // Header from last data buffer
-	data_header_t header;
+//	data_header_t header;
 // Time of last GUI update
-	Timer *timer;
+//	Timer *timer;
 
 	int w;
 	int h;

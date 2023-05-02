@@ -1,3 +1,16 @@
+ifneq ("","$(wildcard hvirtual_config)")
+include hvirtual_config
+else
+    ifneq ("","$(wildcard ../hvirtual_config)")
+    include ../hvirtual_config
+    else
+        ifneq ("","$(wildcard ../../hvirtual_config)")
+        include ../../hvirtual_config
+        endif
+    endif
+endif
+
+
 HAVE_ALSA := y
 HAVE_XFT := y
 HAVE_ESOUND := y
@@ -8,22 +21,6 @@ HAVE_OSS := y
 OBJDIR := $(shell uname --machine)
 
 PLUGIN_DIR := ../../bin/
-
-HVIRTUAL_CONFIG := $(shell sh -c '\
-if [ -e ../hvirtual_config.h ] ; then \
-cat ../hvirtual_config.h; else \
-if [ -e ../../hvirtual_config.h ] ; then \
-cat ../../hvirtual_config.h; \
-fi; \
-fi')
-
-ifneq (,$(findstring HAVE_GL,$(HVIRTUAL_CONFIG)))
-HAVE_GL := y
-else
-HAVE_GL := n
-endif
-
-
 
 
 ifeq ($(origin CFLAGS), environment)
@@ -78,8 +75,9 @@ CFLAGS += -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64
 #CFLAGS += -I.      # Caused fileavi.C to fail
 
 # the directory for plugin includes
-FREETYPE_DIR := $(shell expr ../../thirdparty/freetype-* )
-CFLAGS += -I$(FREETYPE_DIR)/include -I../../
+#FREETYPE_DIR := $(shell expr ../../thirdparty/freetype-* )
+FREETYPE_DIR := $(shell pkg-config --cflags freetype2 )
+CFLAGS += $(FREETYPE_DIR) -I../../
 
 ifeq ($(HAVE_OSS), y)
 CFLAGS += -DHAVE_OSS

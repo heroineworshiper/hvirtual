@@ -182,30 +182,30 @@ int AttachmentPoint::attach_virtual_plugin(VirtualNode *virtual_plugin)
 	return buffer_number;
 }
 
-int AttachmentPoint::multichannel_shared(int search_new)
-{
-	if(!this) printf("AttachmentPoint::multichannel_shared NULL\n");
-	if(search_new)
-	{
-		if(new_virtual_plugins.total && 
-			plugin_server && 
-			plugin_server->multichannel) return 1;
-	}
-	else
-	{
-		if(virtual_plugins.total && 
-			plugin_server && 
-			plugin_server->multichannel) return 1;
-	}
-	return 0;
-}
-
-int AttachmentPoint::singlechannel()
-{
-	if(!this) printf("AttachmentPoint::singlechannel NULL\n");
-	if(plugin_server && !plugin_server->multichannel) return 1;
-	return 0;
-}
+// int AttachmentPoint::multichannel_shared(int search_new)
+// {
+// 	if(!this) printf("AttachmentPoint::multichannel_shared NULL\n");
+// 	if(search_new)
+// 	{
+// 		if(new_virtual_plugins.total && 
+// 			plugin_server && 
+// 			plugin_server->multichannel) return 1;
+// 	}
+// 	else
+// 	{
+// 		if(virtual_plugins.total && 
+// 			plugin_server && 
+// 			plugin_server->multichannel) return 1;
+// 	}
+// 	return 0;
+// }
+// 
+// int AttachmentPoint::singlechannel()
+// {
+// 	if(!this) printf("AttachmentPoint::singlechannel NULL\n");
+// 	if(plugin_server && !plugin_server->multichannel) return 1;
+// 	return 0;
+// }
 
 
 void AttachmentPoint::render_gui(void *data, PluginServer *server)
@@ -218,6 +218,22 @@ void AttachmentPoint::render_gui(void *data, PluginServer *server)
 
 	if(renderengine && renderengine->mwindow)
 		renderengine->mwindow->render_plugin_gui(data, plugin);
+}
+
+void AttachmentPoint::reset_gui_frames(PluginServer *server)
+{
+    if(server != plugin_servers.get(0))
+    {
+        return;
+    }
+    
+//     printf("AttachmentPoint::reset_gui_frames %d renderengine=%p\n", 
+//         __LINE__, 
+//         renderengine);
+    if(renderengine && renderengine->mwindow)
+    {
+        renderengine->mwindow->reset_plugin_gui_frames(plugin);
+    }
 }
 
 void AttachmentPoint::render_gui(void *data, int size, PluginServer *server)
@@ -259,6 +275,7 @@ int AttachmentPoint::dump()
 	{
 		printf("    No Plugin\n");
 	}
+    return 0;
 }
 
 

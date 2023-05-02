@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -28,6 +27,7 @@
 #include "bctimer.h"
 
 #include <string.h>
+#include <unistd.h>
 
 MainProgressBar::MainProgressBar(MWindow *mwindow, MainProgress *mainprogress)
 {
@@ -57,7 +57,7 @@ void MainProgressBar::start()
 {
 	if(progress_box)
 	{
-		progress_box->start();
+		progress_box->start_progress();
 	}
 	eta_timer->update();
 	last_eta = 0;
@@ -83,7 +83,6 @@ int MainProgressBar::is_cancelled()
 {
 	if(progress_box)
 	{
-//printf("MainProgressBar::is_cancelled 1 %d\n", progress_box->is_cancelled());
 		return progress_box->is_cancelled();
 	}
 	else
@@ -95,21 +94,28 @@ int MainProgressBar::is_cancelled()
 	return 0;
 }
 
-void MainProgressBar::update_title(char *string, int default_)
+void MainProgressBar::update_title(const char *text, int default_)
 {
-	if(default_) strcpy(default_title, string);
-//printf("MainProgressBar::update_title %p %p %s\n", progress_bar, progress_box, string);
+	if(default_) strcpy(default_title, text);
+
+// printf("MainProgressBar::update_title %d %p %p %s\n", 
+// __LINE__,
+// progress_bar, 
+// progress_box, 
+// text);
 
 	if(progress_box)
 	{
-		progress_box->update_title(string, 1);
+		progress_box->update_title(text, 1);
 	}
 	else
 	if(progress_bar)
 	{
+        string *text2 = MainProgress::format_newlines(text);
 		mwindow->gui->lock_window("MainProgressBar::update_title");
-		mwindow->gui->show_message(string);
+		mwindow->gui->show_message(text2->c_str());
 		mwindow->gui->unlock_window();
+        delete text2;
 	}
 }
 
@@ -143,14 +149,18 @@ int MainProgressBar::update(int64_t value)
 		double eta;
 
 		if(value > 0.001)
+		{
 			eta = (double)current_eta / 
 				1000 * 
 				length / 
 				value - 
 				current_eta / 
 				1000;
+		}
 		else
+		{
 			eta = 0;
+		}
 
 //printf("MainProgressBar::update %f %d %d %f\n", current_eta, length, value, eta);
  		Units::totext(time_string, 
@@ -222,7 +232,26 @@ MainProgress::~MainProgress()
 {
 }
 
-MainProgressBar* MainProgress::start_progress(char *text, 
+string* MainProgress::format_newlines(const char *text)
+{
+// strip the \n from the title if drawing on a single line
+    string *text2 = new string;
+    for(const char *ptr = text; *ptr; ptr++)
+    {
+        if(*ptr == '\n')
+        {
+            *text2 += ' ';
+        }
+        else
+        {
+            *text2 += *ptr;
+        }  
+    }
+
+    return text2;
+}
+
+MainProgressBar* MainProgress::start_progress(const char *text, 
 	int64_t total_length,
 	int use_window)
 {
@@ -231,12 +260,15 @@ MainProgressBar* MainProgress::start_progress(char *text,
 // Default to main window
 	if(!mwindow_progress && !use_window)
 	{
+        string *text2 = format_newlines(text);
+
 		mwindow_progress = new MainProgressBar(mwindow, this);
 		mwindow_progress->progress_bar = gui->statusbar->main_progress;
 		mwindow_progress->progress_bar->update_length(total_length);
-		mwindow_progress->update_title(text);
+		mwindow_progress->update_title(text2->c_str());
 		result = mwindow_progress;
 		cancelled = 0;
+        delete text2;
 	}
 
 	if(!result)

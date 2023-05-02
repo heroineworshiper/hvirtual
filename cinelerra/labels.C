@@ -56,6 +56,18 @@ void Labels::dump()
 	}
 }
 
+double Labels::total_length()
+{
+    double max_position = -1;
+	for(Label *current = first; current; current = NEXT)
+	{
+		if(current->position > max_position) max_position = current->position;
+	}
+    return max_position;
+}
+
+
+
 void Labels::insert_labels(Labels *labels, double start, double length, int paste_silence)
 {
 	Label *new_label;

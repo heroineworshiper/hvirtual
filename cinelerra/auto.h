@@ -75,7 +75,7 @@ public:
 	}; 
 
 private:
-	virtual int value_to_str(char *string, float value) {};
+	virtual int value_to_str(char *string, float value) { return 0; };
 };
 
 

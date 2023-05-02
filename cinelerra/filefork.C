@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,10 +29,12 @@
 #include "filesystem.h"
 #include "filethread.h"
 #include "filexml.h"
+#include "framecache.h"
 #include "mutex.h"
 #include "mwindow.h"
 #include "samples.h"
 #include "string.h"
+#include "stringfile.h"
 #include "vframe.h"
 
 
@@ -78,6 +80,7 @@ int FileFork::handle_command()
 		{
 			file = new File;
 			file->is_fork = 1;
+            file->file_fork = this;
 
 
 // Read file modes
@@ -90,11 +93,12 @@ int FileFork::handle_command()
 			offset += sizeof(int);
 			file->cache_size = *(int*)(command_data + offset);
 			offset += sizeof(int);
-			file->white_balance_raw = *(int*)(command_data + offset);
+//			file->white_balance_raw = *(int*)(command_data + offset);
 			offset += sizeof(int);
 			file->interpolate_raw = *(int*)(command_data + offset);
 			offset += sizeof(int);
 
+            file->get_frame_cache()->set_max_size(file->cache_size);
 // Read asset from socket
 			BC_Hash table;
 			table.load_string((char*)command_data + offset);
@@ -119,9 +123,9 @@ int FileFork::handle_command()
 				rd, 
 				wr);
 			new_asset->Garbage::remove_user();
-			if(debug) printf("FileFork::handle_command %d result=%d\n", 
-				__LINE__, 
-				(int)result);
+// 			printf("FileFork::handle_command %d result=%d\n", 
+// 				__LINE__, 
+// 				(int)result);
 
 
 
@@ -132,6 +136,7 @@ int FileFork::handle_command()
 			int buffer_size = strlen(string) + 1;
 			send_result(result, (unsigned char*)string, buffer_size);
 			delete [] string;
+// 			printf("FileFork::handle_command %d\n", __LINE__);
 			break;
 		}
 
@@ -161,10 +166,10 @@ int FileFork::handle_command()
 			send_result(0, 0, 0);
 			break;
 
-		case SET_WHITE_BALANCE_RAW:
-			file->set_white_balance_raw(*(int*)command_data);
-			send_result(0, 0, 0);
-			break;
+//		case SET_WHITE_BALANCE_RAW:
+//			file->set_white_balance_raw(*(int*)command_data);
+//			send_result(0, 0, 0);
+//			break;
 
 		case SET_CACHE_FRAMES:
 			file->set_cache_frames(*(int*)command_data);
@@ -193,10 +198,10 @@ int FileFork::handle_command()
 			break;
 		}
 
-		case GET_INDEX:
-			result = file->get_index((char*)command_data);
-			send_result(result, 0, 0);
-			break;
+// 		case GET_INDEX:
+// 			result = file->get_index((char*)command_data);
+// 			send_result(result, 0, 0);
+// 			break;
 
 
 		case START_AUDIO_THREAD:
@@ -267,10 +272,10 @@ int FileFork::handle_command()
 		}
 
 
-		case START_VIDEO_DECODE_THREAD:
-			result = file->start_video_decode_thread();
-			send_result(result, 0, 0);
-			break;
+// 		case START_VIDEO_DECODE_THREAD:
+// 			result = file->start_video_decode_thread();
+// 			send_result(result, 0, 0);
+// 			break;
 
 
 		case STOP_AUDIO_THREAD:
@@ -368,10 +373,6 @@ int FileFork::handle_command()
 						sizeof(int) + 
 						entry_size * len * i +
 						entry_size * j);
-// printf("FileFork::handle_command %d color_model=%d\n", 
-// __LINE__, 
-// frames[i][j]->get_color_model(),
-// frames[i][j]->get_compressed_size());
 
 //PRINT_TRACE
 				}
@@ -415,7 +416,6 @@ int FileFork::handle_command()
 						sizeof(int64_t) +
 						VFrame::filefork_size() * (len * i + j));
 //printf("FileFork::handle_command %d %p %lld\n", __LINE__, video_buffer[i][j]->get_shmid(), video_buffer[i][j]->get_number());
-
 				}
 			}
 		
@@ -470,7 +470,9 @@ int FileFork::handle_command()
 // 			}
 
 			send_result(file->video_thread->current_buffer, 0, 0);
-//printf("FileFork::handle_command %d\n", __LINE__);
+// printf("FileFork::handle_command %d GET_VIDEO_BUFFER %d\n", 
+// __LINE__,
+// file->video_thread->current_buffer);
 			break;
 		}
 
@@ -496,7 +498,8 @@ int FileFork::handle_command()
 		case READ_FRAME:
 		{
 			VFrame *frame = new VFrame;
-			frame->from_filefork(command_data);
+            int use_opengl = command_data[0];
+			frame->from_filefork(command_data + sizeof(int));
 			int allocated_data = frame->get_compressed_allocated();
 			
 			
@@ -504,7 +507,7 @@ int FileFork::handle_command()
 // __LINE__, 
 // file);
 // frame->dump();
-			result = file->read_frame(frame, 0);
+			result = file->read_frame(frame, 0, use_opengl, 0);
 
 
 // printf("FileFork::handle_command %d size=%d\n", 
@@ -530,18 +533,35 @@ int FileFork::handle_command()
 			}
 			else
 			{
-				int result_size = sizeof(int) * 2;
+
+// Serialize the params
+				StringFile params((long)0);
+				frame->get_params()->save_stringfile(&params);
+				
+				int result_size = sizeof(int) * 2 + params.get_length() + 1;
 				unsigned char *result_data = new unsigned char[result_size];
 				*(int*)result_data = frame->get_compressed_size();
 				*(int*)(result_data + sizeof(int)) = frame->get_keyframe();
+// send the params
+				memcpy(result_data + sizeof(int) * 2, 
+					params.string, 
+					params.get_length() + 1);
+
+//printf("FileFork::handle_command %d params=\n", __LINE__);
+//frame->get_params()->dump();
+//printf("FileFork::handle_command %d result_data=%s\n", __LINE__, params.string);
+
 				send_result(result, result_data, result_size);
 				delete [] result_data;
 			}
 
 
-// printf("FileFork::handle_command %d size=%d\n", 
-// __LINE__, 
-// frame->get_compressed_size());
+//printf("FileFork::handle_command %d size=%d read_frame_dst=%p\n", 
+//__LINE__, 
+//frame->get_compressed_size(),
+//frame);
+//frame->dump_params();
+
 			delete frame;
 
 // printf("FileFork::handle_command %d size=%d\n", 

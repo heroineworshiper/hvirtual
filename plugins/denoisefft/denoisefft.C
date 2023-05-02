@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -212,7 +212,7 @@ DenoiseFFTSamples::DenoiseFFTSamples(DenoiseFFTEffect *plugin,
 	int x, 
 	int y, 
 	char *text)
- : BC_PopupMenu(x, y, 100, text, 1)
+ : BC_PopupMenu(x, y, DP(100), text, 1)
 {
 	this->plugin = plugin;
 }
@@ -228,10 +228,10 @@ int DenoiseFFTSamples::handle_event()
 
 DenoiseFFTWindow::DenoiseFFTWindow(DenoiseFFTEffect *plugin)
  : PluginClientWindow(plugin,
- 	300, 
-	130, 
-	300, 
-	130,
+ 	DP(400), 
+	DP(130), 
+	DP(400), 
+	DP(130),
 	0)
 {
 	this->plugin = plugin;
@@ -239,15 +239,15 @@ DenoiseFFTWindow::DenoiseFFTWindow(DenoiseFFTEffect *plugin)
 
 void DenoiseFFTWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_subwindow(new BC_Title(x, y, _("Denoise power:")));
-	add_subwindow(level = new DenoiseFFTLevel(plugin, x + 130, y));
-	y += level->get_h() + 10;
+	add_subwindow(level = new DenoiseFFTLevel(plugin, x + DP(130), y));
+	y += level->get_h() + DP(10);
 	add_subwindow(new BC_Title(x, y, _("Number of samples for reference:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(new BC_Title(x, y, _("The keyframe is the start of the reference")));
-	y += 20;
+	y += DP(20);
 
 	char string[BCTEXTLEN];
 	sprintf(string, "%d\n", plugin->config.samples);
@@ -259,7 +259,6 @@ void DenoiseFFTWindow::create_objects()
 		i *= 2;
 	}
 	show_window();
-	flush();
 }
 
 
@@ -434,7 +433,7 @@ void DenoiseFFTEffect::collect_noise()
 	{
 		collect_engine->process_buffer(collection_start,
 			WINDOW_SIZE,
-			0,
+			(Samples*)0,
 			get_direction());
 
 		collection_start += step * WINDOW_SIZE;

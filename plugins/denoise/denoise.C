@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -255,7 +255,7 @@ int DenoiseEffect::tree_copy(double **output,
 	int length, 
 	int levels)
 {
-	register int i, j, k, l, m;
+	int i, j, k, l, m;
 
 	for(i = 0, k = 1; k < levels; i++, k++)
 	{
@@ -316,6 +316,7 @@ int DenoiseEffect::threshold(int window_size, double gammas, int levels)
 			}
 		}
 	}
+    return 0;
 }
 
 
@@ -349,7 +350,7 @@ int DenoiseEffect::convolve_int_2(double *input_sequence,
 // insert zeros between each element of the input sequence and
 // convolve with the filter to interpolate the data
 {
-	register int i, j;
+	int i, j;
 	int endpoint = length + filtlen - 2;
 
 	if (sum_output)
@@ -755,10 +756,10 @@ void DenoiseConfig::interpolate(DenoiseConfig &prev,
 
 DenoiseWindow::DenoiseWindow(DenoiseEffect *plugin)
  : PluginClientWindow(plugin, 
-	150, 
-	50, 
-	150, 
-	50,
+	DP(150), 
+	DP(70), 
+	DP(150), 
+	DP(70),
 	0)
 {
 	this->plugin = plugin;
@@ -766,13 +767,12 @@ DenoiseWindow::DenoiseWindow(DenoiseEffect *plugin)
 
 void DenoiseWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	
 	add_subwindow(new BC_Title(x, y, _("Level:")));
-	x += 70;
+	x += DP(70);
 	add_subwindow(scale = new DenoiseLevel(plugin, x, y));
 	show_window();
-	flush();
 }
 
 

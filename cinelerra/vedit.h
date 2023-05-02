@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +25,7 @@
 #include "cache.inc"
 #include "edit.h"
 #include "vedits.inc"
+#include "vdevicex11.inc"
 #include "vframe.inc"
 
 // UNITS ARE FRAMES
@@ -49,7 +49,9 @@ public:
 			CICache *cache,
 			int use_nudge,
 			int use_cache,
-			int use_asynchronous);
+			int use_asynchronous,
+            int use_opengl,
+            VDeviceX11 *device);
 	
 	
 	

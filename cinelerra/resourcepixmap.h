@@ -52,6 +52,7 @@ public:
 		int64_t pixmap_h,
 		int mode,
 		int indexes_only);
+    int calculate_center_pixel();
 	void draw_audio_resource(TrackCanvas *canvas,
 		Edit *edit, 
 		int x, 

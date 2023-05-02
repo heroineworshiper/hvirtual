@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +65,7 @@ Asset* VEdit::get_nested_asset(int64_t *source_position,
 // Make position relative to edit
 	*source_position = position - startproject + startsource;
 
-if(debug) printf("VEdit::get_nested_asset %d %lld %lld %lld\n", 
+if(debug) printf("VEdit::get_nested_asset %d %ld %ld %ld %ld\n", 
 __LINE__, 
 *source_position, 
 position,
@@ -82,7 +81,7 @@ if(debug) printf("VEdit::get_nested_asset %d\n",
 __LINE__);
 		if(direction == PLAY_REVERSE) (*source_position)--;
 		*source_position = Units::to_int64(*source_position *
-			nested_edl->session->frame_rate /
+			nested_edl->session->get_nested_frame_rate() /
 			edl->session->frame_rate);
 		if(direction == PLAY_REVERSE) (*source_position)++;
 		PlayableTracks *playable_tracks = new PlayableTracks(
@@ -115,7 +114,7 @@ __LINE__);
 	else
 	{
 // Convert position to asset rate
-if(debug) printf("VEdit::get_nested_asset %d %lld %f %f\n", 
+if(debug) printf("VEdit::get_nested_asset %d %ld %f %f\n", 
 __LINE__, 
 *source_position, 
 asset->frame_rate,
@@ -140,16 +139,20 @@ int VEdit::read_frame(VFrame *video_out,
 	CICache *cache,
 	int use_nudge,
 	int use_cache,
-	int use_asynchronous)
+	int use_asynchronous,
+    int use_opengl,
+    VDeviceX11 *device)
 {
 	int64_t source_position = 0;
 	const int debug = 0;
 
 	if(use_nudge) input_position += track->nudge;
-if(debug) printf("VEdit::read_frame %d source_position=%lld input_position=%lld\n", 
-__LINE__, 
-(long long)source_position,
-(long long)input_position);
+// printf("VEdit::read_frame %d source_position=%lld input_position=%lld cmodel=%d rows=%p\n", 
+// __LINE__, 
+// (long long)source_position,
+// (long long)input_position,
+// video_out->get_color_model(),
+// video_out->get_rows()[0]);
 
 	Asset *asset = get_nested_asset(&source_position,
 		input_position,
@@ -181,9 +184,9 @@ __LINE__,
 (long long)input_position,
 (long long)source_position);
 
-		if(use_asynchronous)
-			file->start_video_decode_thread();
-		else
+// 		if(use_asynchronous)
+// 			file->start_video_decode_thread();
+// 		else
 			file->stop_video_thread();
 if(debug) printf("VEdit::read_frame %d\n", __LINE__);
 
@@ -192,7 +195,7 @@ if(debug) printf("VEdit::read_frame %d\n", __LINE__);
 		file->set_video_position(source_position, 0);
 
 		if(use_cache) file->set_cache_frames(use_cache);
-		result = file->read_frame(video_out);
+		result = file->read_frame(video_out, 0, use_opengl, device);
 
 if(debug) printf("VEdit::read_frame %d\n", __LINE__);
 		if(use_cache) file->set_cache_frames(0);
@@ -217,6 +220,7 @@ int VEdit::dump_derived()
 	printf("	VEdit::dump_derived\n");
 	printf("		startproject %ld\n", startproject);
 	printf("		length %ld\n", length);
+    return 0;
 }
 
 int64_t VEdit::get_source_end(int64_t default_)
@@ -226,6 +230,8 @@ int64_t VEdit::get_source_end(int64_t default_)
 	if(nested_edl)
 	{
 		return (int64_t)(nested_edl->tracks->total_playable_length() *
+            nested_edl->session->frame_rate / 
+            nested_edl->session->get_nested_frame_rate() *
 			edl->session->frame_rate + 0.5);
 	}
 

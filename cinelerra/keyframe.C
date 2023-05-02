@@ -126,7 +126,7 @@ void KeyFrame::get_contents(BC_Hash *ptr, char **text, char **extra)
 			}
 
 // Read any text after tag
-			this_text = input.read_text();
+			this_text = input.read_text(0);
 			(*text) = strdup(this_text);
 
 // Read remaining data

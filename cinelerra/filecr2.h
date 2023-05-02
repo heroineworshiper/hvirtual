@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,8 +42,14 @@ public:
 	FileCR2(Asset *asset, File *file);
 	~FileCR2();
 
+// table functions
+    FileCR2();
+	int check_sig(File *file, const uint8_t *test_data);
+    FileBase* create(File *file);
+	int get_best_colormodel(Asset *asset, int driver);
+    const char* formattostr(int format);
+
 	void reset();
-	static int check_sig(Asset *asset);
 	int use_path();
 
 
@@ -55,7 +60,6 @@ public:
 	int read_frame(VFrame *frame, char *path);
 // Get best colormodel for decoding.
 	int colormodel_supported(int colormodel);
-	static int get_best_colormodel(Asset *asset, int driver);
 //	int64_t get_memory_usage();
 	int read_frame_header(char *path);
 

@@ -277,9 +277,13 @@ SET_TRACE
 		if(!meter_panel)
 		{
 			printf("EditPanel::create_objects: meter_panel == 0\n");
+            use_meters = 0;
 		}
-		subwindow->add_subwindow(meters = new MeterShow(mwindow, meter_panel, x1, y1));
-		x1 += meters->get_w();
+        else
+        {
+		    subwindow->add_subwindow(meters = new MeterShow(mwindow, meter_panel, x1, y1));
+		    x1 += meters->get_w();
+        }
 	}
 
 	if(use_labels)

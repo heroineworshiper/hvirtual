@@ -28,6 +28,36 @@
 #include "pluginclient.h"
 #include "samples.inc"
 
+
+// Base class for GUI data.
+class PluginClientFrame
+{
+public:
+	PluginClientFrame();
+// Period_d is 1 second
+//	PluginClientFrame(int data_size, int period_n, int period_d);
+	virtual ~PluginClientFrame();
+    
+    void reset();
+    
+// offset in EDL seconds for synchronizing with GUI
+    double edl_position;
+
+
+// some commonly used data
+// a user allocated buffer
+    double *data;
+// Maximum of FFT window in frequency domain
+	double freq_max;
+// Maximum of FFT window in time domain
+	double time_max;
+// the window size of a FFT / 2
+	int data_size;
+//	int period_n;
+//	int period_d;
+    int nyquist;
+};
+
 class PluginAClient : public PluginClient
 {
 public:
@@ -88,36 +118,77 @@ public:
 		int64_t start_position, 
 		int64_t len);
 
-// Called by realtime plugin to read audio from previous entity
-// sample_rate - scale of start_position.  Provided so the client can get data
-//     at a higher fidelity than provided by the EDL.
+// Called by realtime plugin to read audio from previous entity.
+// Only 1 read works per channel per process_buffer.
+// TODO: should read all channels instead of 1.
+// sample_rate - new sample rate of the data
 	int read_samples(Samples *buffer,
 		int channel,
 		int sample_rate,
 		int64_t start_position,
 		int64_t len);
 
+
+// audio has to be sent to the GUI asynchronously
+// server calls to send rendered data to the GUI instance
+	void plugin_render_gui(void *data);
+// user calls after seeking
+    void send_reset_gui_frames();
+// server calls in the GUI instance
+    void reset_gui_frames();
+// User calls to send data to the GUI instance
+	void add_gui_frame(PluginClientFrame *frame);
+
+// Get the position for showing GUI data in seconds
+    double get_playhead_position();
+
+// Override the GUI position for next read_samples in seconds
+    void set_playhead_position(double position);
+
+// Called by the GUI instance to get the number of GUI frames to show
+	int pending_gui_frames();
+// Called by processor instance to get the total number of frames sent in process_buffer
+    int get_gui_frames();
+// Get next GUI frame from frame_buffer.  Client must delete it.
+// returns 0 when client has caught up
+	PluginClientFrame* get_gui_frame();
+// manage GUI data in the process_buffer routine
+	void begin_process_buffer();
+	void end_process_buffer();
+
+
+
+
+
+
 // Get the sample rate of the EDL
 	int get_project_samplerate();
-// Get the requested sample rate
+// Get the requested sample rate in process_buffer
 	int get_samplerate();
+
+// get the buffer argument to process_buffer
+    Samples* get_output(int channel);
 
 	int64_t local_to_edl(int64_t position);
 	int64_t edl_to_local(int64_t position);
 
+// the buffers passed to process_buffer
+	Samples **output_buffers;
 
-// point to the start of the buffers
-	ArrayList<float**> input_ptr_master;
-	ArrayList<float**> output_ptr_master;
-// point to the regions for a single render
-	float **input_ptr_render;
-	float **output_ptr_render;
+// Frames for updating GUI
+	ArrayList<PluginClientFrame*> frame_buffer;
+
+// // point to the start of the buffers
+// 	ArrayList<float**> input_ptr_master;
+// 	ArrayList<float**> output_ptr_master;
+// // point to the regions for a single render
+// 	float **input_ptr_render;
+// 	float **output_ptr_render;
 // sample rate of EDL.  Used for normalizing keyframes
 	int project_sample_rate;
 // Local parameters set by non realtime plugin about the file to be generated.
 // Retrieved by server to set output file format.
-// In realtime plugins, these are set before every process_buffer as the
-// requested rates.
+// In realtime plugins, these are the requested rates for process_buffer.
 	int sample_rate;
 };
 

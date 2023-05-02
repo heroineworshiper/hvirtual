@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,10 +35,10 @@
 
 GainWindow::GainWindow(Gain *gain)
  : PluginClientWindow(gain, 
-	230, 
-	60, 
-	230, 
-	60, 
+	DP(230), 
+	DP(60), 
+	DP(230), 
+	DP(60), 
 	0)
 {
 	this->gain = gain;
@@ -50,12 +50,11 @@ GainWindow::~GainWindow()
 
 void GainWindow::create_objects()
 {
-	int x = 10, y = 10;
-	add_tool(new BC_Title(5, y, _("Level:")));
-	y += 20;
+	int x = DP(10), y = DP(10);
+	add_tool(new BC_Title(DP(5), y, _("Level:")));
+	y += DP(20);
 	add_tool(level = new GainLevel(gain, x, y));
 	show_window();
-	flush();
 }
 
 
@@ -69,8 +68,8 @@ GainLevel::GainLevel(Gain *gain, int x, int y)
  : BC_FSlider(x, 
  	y, 
 	0,
-	200,
-	200,
+	DP(200),
+	DP(200),
 	INFINITYGAIN, 
 	40,
 	gain->config.level)

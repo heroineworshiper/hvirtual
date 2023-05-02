@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
@@ -175,17 +174,21 @@ void VWindowGUI::create_objects()
 	mwindow->theme->draw_vwindow_bg(this);
 	flash(0);
 
+#ifdef USE_METERS
 	meters = new VWindowMeters(mwindow, 
 		this,
 		mwindow->theme->vmeter_x,
 		mwindow->theme->vmeter_y,
 		mwindow->theme->vmeter_h);
 	meters->create_objects();
+#endif
 
 //printf("VWindowGUI::create_objects 1\n");
 // Requires meters to build
 	edit_panel = new VWindowEditing(mwindow, vwindow);
+#ifdef USE_METERS
 	edit_panel->set_meters(meters);
+#endif
 	edit_panel->create_objects();
 
 //printf("VWindowGUI::create_objects 1\n");
@@ -288,10 +291,13 @@ int VWindowGUI::resize_event(int w, int h)
 //printf("VWindowGUI::resize_event %d %d\n", __LINE__, mwindow->theme->vcanvas_x);
 // 	source->reposition_window(mwindow->theme->vsource_x,
 // 		mwindow->theme->vsource_y);
+#ifdef USE_METERS
 	meters->reposition_window(mwindow->theme->vmeter_x,
 		mwindow->theme->vmeter_y,
 		-1,
 		mwindow->theme->vmeter_h);
+#endif
+
 
 	BC_WindowBase::resize_event(w, h);
 	return 1;
@@ -419,12 +425,12 @@ void VWindowGUI::drag_motion()
 		cursor_y < canvas->y + canvas->h);
 
 
-printf("VWindowGUI::drag_motion 1 %d %d %d %d %d\n", 
-__LINE__, 
-mwindow->session->vcanvas_highlighted,
-get_cursor_over_window(),
-cursor_x,
-cursor_y);
+// printf("VWindowGUI::drag_motion 1 %d %d %d %d %d\n", 
+// __LINE__, 
+// mwindow->session->vcanvas_highlighted,
+// get_cursor_over_window(),
+// cursor_x,
+// cursor_y);
 
 
 	if(old_status != mwindow->session->vcanvas_highlighted)
@@ -462,6 +468,7 @@ int VWindowGUI::drag_stop()
 
 void VWindowGUI::update_meters()
 {
+#ifdef USE_METERS
 	if(mwindow->edl->session->vwindow_meter != meters->visible)
 	{
 		meters->set_meters(meters->meter_count, 
@@ -469,10 +476,12 @@ void VWindowGUI::update_meters()
 		mwindow->theme->get_vwindow_sizes(this);
 		resize_event(get_w(), get_h());
 	}
+#endif
 }
 
 
 
+#ifdef USE_METERS
 VWindowMeters::VWindowMeters(MWindow *mwindow, 
 	VWindowGUI *gui, 
 	int x, 
@@ -503,6 +512,7 @@ int VWindowMeters::change_status_event(int new_status)
 	gui->update_meters();
 	return 1;
 }
+#endif
 
 
 
@@ -908,34 +918,21 @@ void VWindowCanvas::draw_refresh(int flush)
 {
 	EDL *edl = gui->vwindow->get_edl();
 
-	if(!get_canvas()->get_video_on()) get_canvas()->clear_box(0, 0, get_canvas()->get_w(), get_canvas()->get_h());
-	if(!get_canvas()->get_video_on() && refresh_frame && edl)
-	{
-		float in_x1, in_y1, in_x2, in_y2;
-		float out_x1, out_y1, out_x2, out_y2;
-		get_transfers(edl, 
-			in_x1, 
-			in_y1, 
-			in_x2, 
-			in_y2, 
-			out_x1, 
-			out_y1, 
-			out_x2, 
-			out_y2);
-		get_canvas()->draw_vframe(refresh_frame,
-				(int)out_x1, 
-				(int)out_y1, 
-				(int)(out_x2 - out_x1), 
-				(int)(out_y2 - out_y1),
-				(int)in_x1, 
-				(int)in_y1, 
-				(int)(in_x2 - in_x1), 
-				(int)(in_y2 - in_y1),
-				0);
-	}
-
+//	if(!get_canvas()->get_video_on()) get_canvas()->clear_box(0, 0, get_canvas()->get_w(), get_canvas()->get_h());
 	if(!get_canvas()->get_video_on())
 	{
+		if(refresh_frame && edl)
+		{
+            Canvas::draw_refresh(flush);
+        }
+        else
+        {
+            get_canvas()->clear_box(0, 
+				0, 
+				get_canvas()->get_w(), 
+				get_canvas()->get_h());
+        }
+
 		draw_overlays();
 		get_canvas()->flash(flush);
 	}

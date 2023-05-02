@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -35,6 +34,7 @@ class CanvasYScroll;
 class CanvasPopup;
 class CanvasFullScreenPopup;
 class CanvasToggleControls;
+class CanvasFPS;
 
 // The EDL arguments can be set to 0 if the canvas_w and canvas_h are used
 class Canvas
@@ -80,9 +80,10 @@ public:
 
 	void start_fullscreen();
 	void stop_fullscreen();
+	void toggle_fps();
 
 // Don't call from inside the canvas
-	void create_canvas();
+	void create_canvas(int flush);
 
 
 
@@ -131,6 +132,7 @@ public:
 		int canvas_h = -1);
 	void reposition_window(EDL *edl, int x, int y, int w, int h);
 	virtual void reset_translation() {};
+	virtual void preset_translation(int position) {};
 	virtual void close_source() {};
 // Updates the stores
 	virtual void update_zoom(int x, int y, float zoom) {};
@@ -142,7 +144,7 @@ public:
 	virtual int get_yscroll() { return 0; };
 	virtual float get_zoom() { return 0; };
 // Redraws the image
-	virtual void draw_refresh(int flush = 1) {};
+	virtual void draw_refresh(int flush);
 
 // Get top left offset of canvas relative to output.
 // Normally negative.  Can be positive if output is smaller than canvas.
@@ -181,6 +183,8 @@ public:
 	int get_buttonpress();
 // Gets whatever video surface is enabled
 	BC_WindowBase* get_canvas();
+// get subwindow for drawing FPS
+    BC_WindowBase* get_fps();
 
 // The owner of the canvas
 	BC_WindowBase *subwindow;
@@ -188,6 +192,8 @@ public:
 	CanvasOutput *canvas_subwindow;
 // Video surface if fullscreen
 	CanvasFullScreen *canvas_fullscreen;
+	BC_WindowBase *fps_subwindow;
+    BC_WindowBase *fps_fullscreen;
 	CanvasXScroll *xscroll;
 	CanvasYScroll *yscroll;
 	CanvasPopup *canvas_menu;
@@ -333,6 +339,7 @@ public:
 
 	Canvas *canvas;
 	CanvasToggleControls *toggle_controls;
+	CanvasFPS *show_fps;
 };
 
 class CanvasPopupSize : public BC_MenuItem
@@ -378,6 +385,15 @@ public:
 	Canvas *canvas;
 };
 
+class CanvasFPS : public BC_MenuItem
+{
+public:
+	CanvasFPS(Canvas *canvas);
+	int handle_event();
+	static char* calculate_text(int show_fps);
+	Canvas *canvas;
+};
+
 class CanvasFullScreenItem : public BC_MenuItem
 {
 public:
@@ -392,6 +408,15 @@ public:
 	CanvasPopupResetTranslation(Canvas *canvas);
 	int handle_event();
 	Canvas *canvas;
+};
+
+class CanvasPresetTranslation : public BC_MenuItem
+{
+public:
+	CanvasPresetTranslation(Canvas *canvas, int position, const char *text);
+	int handle_event();
+	Canvas *canvas;
+    int position;
 };
 
 

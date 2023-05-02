@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,14 +81,174 @@ static double aspect_ratio_codes[] =
 
 
 
+static int get_best_colormodel_(Asset *asset, int driver)
+{
+	switch(driver)
+	{
+		case PLAYBACK_X11:
+			return BC_RGB888;
+			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
+			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
+			break;
+		case PLAYBACK_X11_XV:
+		case PLAYBACK_ASYNCHRONOUS:
+			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
+			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
+			break;
+		case PLAYBACK_X11_GL:
+			return BC_YUV888;
+			break;
+		case PLAYBACK_LML:
+		case PLAYBACK_BUZ:
+			return BC_YUV422P;
+			break;
+		case PLAYBACK_DV1394:
+		case PLAYBACK_FIREWIRE:
+			return BC_YUV422P;
+			break;
+		case VIDEO4LINUX:
+		case VIDEO4LINUX2:
+			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
+			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
+			break;
+		case CAPTURE_BUZ:
+		case CAPTURE_LML:
+			return BC_YUV422;
+			break;
+		case CAPTURE_FIREWIRE:
+		case CAPTURE_IEC61883:
+			return BC_YUV422P;
+			break;
+	}
+    return BC_RGB888;
+}
+
+
+// table entries
+FileAMPEG::FileAMPEG()
+ : FileBase()
+{
+    ids.append(FILE_AMPEG);
+    has_audio = 1;
+    has_wr = 1;
+}
+
+// This instantiates a FileMPEG to do the encoding
+FileBase* FileAMPEG::create(File *file)
+{
+    return new FileMPEG(file->asset, file);
+}
+
+void FileAMPEG::get_parameters(BC_WindowBase *parent_window, 
+	Asset *asset, 
+	BC_WindowBase* &format_window,
+	int option_type,
+	const char *locked_compressor)
+{
+	MPEGConfigAudio *window = new MPEGConfigAudio(parent_window, asset);
+	format_window = window;
+	window->create_objects();
+	window->run_window();
+	delete window;
+}
+
+// wraps FileMPEG::get_best_colormodel
+int FileAMPEG::get_best_colormodel(Asset *asset, int driver)
+{
+    return get_best_colormodel_(asset, driver);
+}
+
+const char* FileAMPEG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_AMPEG:
+			return AMPEG_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileAMPEG::get_tag(int format)
+{
+    if(format == FILE_AMPEG)
+    {
+        return "mp3/mp2";
+    }
+    return 0;
+}
 
 
 
 
+
+
+
+
+FileVMPEG::FileVMPEG()
+ : FileBase()
+{
+    ids.append(FILE_VMPEG);
+    has_video = 1;
+    has_wr = 1;
+}
+
+// This instantiates a FileMPEG to do the encoding
+FileBase* FileVMPEG::create(File *file)
+{
+    return new FileMPEG(file->asset, file);
+}
+
+void FileVMPEG::get_parameters(BC_WindowBase *parent_window, 
+	Asset *asset, 
+	BC_WindowBase* &format_window,
+	int option_type,
+	const char *locked_compressor)
+{
+	MPEGConfigVideo *window = new MPEGConfigVideo(parent_window, asset);
+	format_window = window;
+	window->create_objects();
+	window->run_window();
+	delete window;
+}
+
+// wraps FileMPEG::get_best_colormodel
+int FileVMPEG::get_best_colormodel(Asset *asset, int driver)
+{
+    return get_best_colormodel_(asset, driver);
+}
+
+const char* FileVMPEG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_VMPEG:
+			return VMPEG_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileVMPEG::get_tag(int format)
+{
+    if(format == FILE_VMPEG)
+    {
+        return "m2v/m1v";
+    }
+    return 0;
+}
+
+
+
+
+
+
+
+// the file handler
 FileMPEG::FileMPEG(Asset *asset, File *file)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 // May also be VMPEG or AMPEG if write status.
 	if(asset->format == FILE_UNKNOWN) asset->format = FILE_MPEG;
 	asset->byte_order = 0;
@@ -104,33 +263,47 @@ FileMPEG::~FileMPEG()
 	delete next_frame_done;
 }
 
-void FileMPEG::get_parameters(BC_WindowBase *parent_window, 
-	Asset *asset, 
-	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+
+FileMPEG::FileMPEG()
+ : FileBase()
 {
-	if(audio_options && asset->format == FILE_AMPEG)
-	{
-		MPEGConfigAudio *window = new MPEGConfigAudio(parent_window, asset);
-		format_window = window;
-		window->create_objects();
-		window->run_window();
-		delete window;
-	}
-	else
-	if(video_options && asset->format == FILE_VMPEG)
-	{
-		MPEGConfigVideo *window = new MPEGConfigVideo(parent_window, asset);
-		format_window = window;
-		window->create_objects();
-		window->run_window();
-		delete window;
-	}
+    reset_parameters_derived();
+    ids.append(FILE_MPEG);
+    has_audio = 1;
+    has_video = 1;
+    has_rd = 1;
 }
 
-int FileMPEG::check_sig(Asset *asset)
+FileBase* FileMPEG::create(File *file)
 {
+    return new FileMPEG(file->asset, file);
+}
+
+
+const char* FileMPEG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_MPEG:
+			return MPEG_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileMPEG::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_MPEG: return "mpg/vob";
+    }
+    return 0;
+}
+
+
+int FileMPEG::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
 	return mpeg3_check_sig(asset->path);
 }
 
@@ -175,6 +348,7 @@ int FileMPEG::reset_parameters_derived()
 	lame_output_allocation = 0;
 	lame_fd = 0;
 	lame_started = 0;
+    return 0;
 }
 
 
@@ -576,47 +750,41 @@ if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 int FileMPEG::create_index()
 {
 // Calculate TOC path
-	char index_filename[BCTEXTLEN];
-	char source_filename[BCTEXTLEN];
+	string index_filename;
+	string source_filename;
+    string path(asset->path);
 	const int debug = 0;
 
-	if(debug) printf("FileMPEG::create_index %d %p\n", __LINE__, file->preferences);
-	IndexFile::get_index_filename(source_filename, 
-		file->preferences->index_directory, 
-		index_filename, 
-		asset->path);
-	if(debug) printf("FileMPEG::create_index %d\n", __LINE__);
-	char *ptr = strrchr(index_filename, '.');
+	IndexFile::get_toc_filename(&source_filename, 
+		&file->preferences->index_directory, 
+		&index_filename, 
+		&path);
 	int error = 0;
 
-	if(!ptr) return 1;
 
-	if(debug) printf("FileMPEG::create_index %d\n", __LINE__);
 // File is a table of contents.
 	if(fd && mpeg3_has_toc(fd)) return 0;
-	if(debug) printf("FileMPEG::create_index %d\n", __LINE__);
-
-	sprintf(ptr, ".toc");
 
 	int need_toc = 1;
 
 	if(fd) mpeg3_close(fd);
 	fd = 0;
-	if(debug) printf("FileMPEG::create_index %d\n", __LINE__);
 
 // Test existing copy of TOC
-	if((fd = mpeg3_open(index_filename, &error)))
+	if((fd = mpeg3_open((char*)index_filename.c_str(), &error)))
 		need_toc = 0;
 
 	if(need_toc)
 	{
 // Create progress window.
 // This gets around the fact that MWindowGUI is locked.
-		char progress_title[BCTEXTLEN];
-		char string[BCTEXTLEN];
-		sprintf(progress_title, "Creating %s\n", index_filename);
+		string progress_title("Creating ");
+        progress_title.append(index_filename);
+        progress_title.append(" ");
 		int64_t total_bytes;
-		mpeg3_t *index_file = mpeg3_start_toc(asset->path, index_filename, &total_bytes);
+		mpeg3_t *index_file = mpeg3_start_toc(asset->path, 
+            (char*)index_filename.c_str(), 
+            &total_bytes);
 		struct timeval new_time;
 		struct timeval prev_time;
 		struct timeval start_time;
@@ -624,11 +792,8 @@ int FileMPEG::create_index()
 		gettimeofday(&prev_time, 0);
 		gettimeofday(&start_time, 0);
 
-		BC_ProgressBox *progress = new BC_ProgressBox(-1, 
-			-1, 
-			progress_title, 
-			total_bytes);
-		progress->start();
+        file->start_progress(progress_title.c_str(), total_bytes);
+
 		int result = 0;
 		while(1)
 		{
@@ -636,19 +801,23 @@ int FileMPEG::create_index()
 			mpeg3_do_toc(index_file, &bytes_processed);
 			gettimeofday(&new_time, 0);
 
-			if(new_time.tv_sec - prev_time.tv_sec >= 1)
+			if(new_time.tv_sec - prev_time.tv_sec >= 1 && 
+                bytes_processed > 0)
 			{
 				gettimeofday(&current_time, 0);
 				int64_t elapsed_seconds = current_time.tv_sec - start_time.tv_sec;
 				int64_t total_seconds = elapsed_seconds * total_bytes / bytes_processed;
 				int64_t eta = total_seconds - elapsed_seconds;
-				progress->update(bytes_processed, 1);
-				sprintf(string, 
-					"%sETA: %lldm%llds",
-					progress_title,
-					(long long)eta / 60,
-					(long long)eta % 60);
-				progress->update_title(string, 1);
+                file->update_progress(bytes_processed);
+                string string2(progress_title);
+                string2.append("\nETA: ");
+                char string3[BCTEXTLEN];
+				sprintf(string3, 
+					"%ldm%lds",
+					(int64_t)eta / 60,
+					(int64_t)eta % 60);
+                string2.append(string3);
+				file->update_progress_title(string2.c_str());
 // 				fprintf(stderr, "ETA: %dm%ds        \r", 
 // 					bytes_processed * 100 / total_bytes,
 // 					eta / 60,
@@ -657,7 +826,7 @@ int FileMPEG::create_index()
 				prev_time = new_time;
 			}
 			if(bytes_processed >= total_bytes) break;
-			if(progress->is_cancelled()) 
+			if(file->progress_canceled()) 
 			{
 				result = 1;
 				break;
@@ -666,13 +835,12 @@ int FileMPEG::create_index()
 
 		mpeg3_stop_toc(index_file);
 
-		progress->stop_progress();
-		delete progress;
-
+		file->stop_progress("done creating table of contents");
+        
 // Remove if error
 		if(result)
 		{
-			remove(index_filename);
+			remove(index_filename.c_str());
 			return 1;
 		}
 		else
@@ -689,7 +857,7 @@ int FileMPEG::create_index()
 // Reopen file from index path instead of asset path.
 	if(!fd)
 	{
-		if(!(fd = mpeg3_open(index_filename, &error)))
+		if(!(fd = mpeg3_open((char*)index_filename.c_str(), &error)))
 		{
 			return 1;
 		}
@@ -772,7 +940,6 @@ int FileMPEG::close_file()
 	if(dvb_out)
 		fclose(dvb_out);
 
-	reset_parameters();
 
 	FileBase::close_file();
 	return 0;
@@ -780,45 +947,7 @@ int FileMPEG::close_file()
 
 int FileMPEG::get_best_colormodel(Asset *asset, int driver)
 {
-//printf("FileMPEG::get_best_colormodel 1\n");
-	switch(driver)
-	{
-		case PLAYBACK_X11:
-			return BC_RGB888;
-			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
-			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
-			break;
-		case PLAYBACK_X11_XV:
-		case PLAYBACK_ASYNCHRONOUS:
-			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
-			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
-			break;
-		case PLAYBACK_X11_GL:
-			return BC_YUV888;
-			break;
-		case PLAYBACK_LML:
-		case PLAYBACK_BUZ:
-			return BC_YUV422P;
-			break;
-		case PLAYBACK_DV1394:
-		case PLAYBACK_FIREWIRE:
-			return BC_YUV422P;
-			break;
-		case VIDEO4LINUX:
-		case VIDEO4LINUX2:
-			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
-			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
-			break;
-		case CAPTURE_BUZ:
-		case CAPTURE_LML:
-			return BC_YUV422;
-			break;
-		case CAPTURE_FIREWIRE:
-		case CAPTURE_IEC61883:
-			return BC_YUV422P;
-			break;
-	}
-//printf("FileMPEG::get_best_colormodel 100\n");
+    return get_best_colormodel_(asset, driver);
 }
 
 int FileMPEG::colormodel_supported(int colormodel)
@@ -826,63 +955,124 @@ int FileMPEG::colormodel_supported(int colormodel)
 	return colormodel;
 }
 
-int FileMPEG::get_index(char *index_path)
+
+
+
+int FileMPEG::read_index_state(string *index_path, Indexable *dst)
 {
-	if(!fd) return 1;
+// reopen the file with our parser
+    int error = 0;
+    int i, j;
+    IndexState *index_state = dst->index_state;
 
 
-// Convert the index tables from tracks to channels.
-	if(mpeg3_index_tracks(fd))
-	{
-// Calculate size of buffer needed for all channels
-		int buffer_size = 0;
-		for(int i = 0; i < mpeg3_index_tracks(fd); i++)
-		{
-			buffer_size += mpeg3_index_size(fd, i) *
-				mpeg3_index_channels(fd, i) *
-				2;
-		}
+    mpeg3_t *fd = mpeg3_open((char*)index_path->c_str(), &error);
+    if(error || !fd) return 1;
 
-		IndexState *index_state = asset->index_state;
-		index_state->index_buffer = new float[buffer_size];
+printf("FileMPEG::read_index_state %d %s fd=%p\n", __LINE__, index_path->c_str(), fd);
+// do we have audio indexes?
+    if(mpeg3_index_tracks(fd))
+    {
+//printf("FileMPEG::read_index_state %d\n", __LINE__);
+        int channels = 0;
+        for(i = 0; i < mpeg3_index_tracks(fd); i++)
+        {
+            channels += mpeg3_index_channels(fd, i);
+        }
+        
 
-// Size of index buffer in floats
-		int current_offset = 0;
-// Current asset channel
-		int current_channel = 0;
-		index_state->channels = asset->channels;
-		index_state->index_zoom = mpeg3_index_zoom(fd);
-		index_state->index_offsets = new int64_t[index_state->channels];
-		index_state->index_sizes = new int64_t[index_state->channels];
-		for(int i = 0; i < mpeg3_index_tracks(fd); i++)
-		{
-			for(int j = 0; j < mpeg3_index_channels(fd, i); j++)
+        index_state->channels = channels;
+        index_state->index_zoom = mpeg3_index_zoom(fd);
+        index_state->index_offsets = new int64_t[index_state->channels];
+        index_state->index_sizes = new int64_t[index_state->channels];
+        index_state->index_bytes = mpeg3_index_source_size(fd);
+        
+        int current_channel = 0;
+        for(i = 0; i < mpeg3_index_tracks(fd); i++)
+        {
+            for(int j = 0; j < mpeg3_index_channels(fd, i); j++)
 			{
-				index_state->index_offsets[current_channel] = current_offset;
-				index_state->index_sizes[current_channel] = mpeg3_index_size(fd, i) * 2;
-				memcpy(index_state->index_buffer + current_offset,
-					mpeg3_index_data(fd, i, j),
-					mpeg3_index_size(fd, i) * sizeof(float) * 2);
+                index_state->index_offsets[current_channel] = mpeg3_index_offset(fd, i, j);
+                index_state->index_sizes[current_channel] = mpeg3_index_size(fd, i) * 2;
+                current_channel++;
+            }
+        }
+                
+        mpeg3_close(fd);
+        return 0;
+    }
 
-				current_offset += mpeg3_index_size(fd, i) * 2;
-				current_channel++;
-			}
-		}
-
-		FileSystem fs;
-		index_state->index_bytes = fs.get_size(asset->path);
-
-		index_state->write_index(index_path, 
-			buffer_size * sizeof(float),
-			asset,
-			asset->audio_length);
-		delete [] index_state->index_buffer;
-
-		return 0;
-	}
-
+    mpeg3_close(fd);
 	return 1;
+    
 }
+
+
+
+
+
+
+
+
+
+// int FileMPEG::get_index(char *index_path)
+// {
+// 	if(!fd) return 1;
+// 
+// 
+// // Convert the index tables from tracks to channels.
+// 	if(mpeg3_index_tracks(fd))
+// 	{
+// // Calculate size of buffer needed for all channels
+// 		int buffer_size = 0;
+// 		for(int i = 0; i < mpeg3_index_tracks(fd); i++)
+// 		{
+// 			buffer_size += mpeg3_index_size(fd, i) *
+// 				mpeg3_index_channels(fd, i) *
+// 				2;
+// 		}
+// 
+// 		IndexState *index_state = asset->index_state;
+// 		index_state->index_buffer = new float[buffer_size];
+// 
+// // Size of index buffer in floats
+// 		int current_offset = 0;
+// // Current asset channel
+// 		int current_channel = 0;
+// 		index_state->channels = asset->channels;
+// 		index_state->index_zoom = mpeg3_index_zoom(fd);
+// 		index_state->index_offsets = new int64_t[index_state->channels];
+// 		index_state->index_sizes = new int64_t[index_state->channels];
+// 		for(int i = 0; i < mpeg3_index_tracks(fd); i++)
+// 		{
+// 			for(int j = 0; j < mpeg3_index_channels(fd, i); j++)
+// 			{
+// 				index_state->index_offsets[current_channel] = current_offset;
+// 				index_state->index_sizes[current_channel] = mpeg3_index_size(fd, i) * 2;
+// 				memcpy(index_state->index_buffer + current_offset,
+// 					mpeg3_index_data(fd, i, j),
+// 					mpeg3_index_size(fd, i) * sizeof(float) * 2);
+// 
+// 				current_offset += mpeg3_index_size(fd, i) * 2;
+// 				current_channel++;
+// 			}
+// 		}
+// 
+// 		FileSystem fs;
+// 		index_state->index_bytes = fs.get_size(asset->path);
+// 
+// 		index_state->write_index(index_path, 
+// 			buffer_size * sizeof(float),
+// 			asset,
+// 			asset->audio_length);
+// 		delete [] index_state->index_buffer;
+//         index_state->index_buffer = 0;
+//         
+// 		return 0;
+// 	}
+// 
+// 	return 1;
+// }
 
 
 int FileMPEG::can_copy_from(Asset *asset, int64_t position)
@@ -925,6 +1115,7 @@ int FileMPEG::set_video_position(int64_t x)
 	}
 	else
 		return 1;
+    return 0;
 }
 
 int64_t FileMPEG::get_memory_usage()
@@ -1304,7 +1495,7 @@ if(debug) printf("FileMPEG::read_frame %d\n", __LINE__);
 						asset->width,
 						frame->get_w());
 				}
-if(debug) printf("FileMPEG::read_frame %d\n", __LINE__);
+if(debug) printf("FileMPEG::read_frame %d %d %d\n", __LINE__, asset->width, frame->get_w());
 			}
 			break;
 	}
@@ -1519,8 +1710,8 @@ MPEGConfigAudio::MPEGConfigAudio(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Audio Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	310,
-	120,
+	DP(310),
+	DP(120),
 	-1,
 	-1,
 	0,
@@ -1537,8 +1728,8 @@ MPEGConfigAudio::~MPEGConfigAudio()
 
 void MPEGConfigAudio::create_objects()
 {
-	int x = 10, y = 10;
-	int x1 = 150;
+	int x = DP(10), y = DP(10);
+	int x1 = DP(150);
 	MPEGLayer *layer;
 
 	lock_window("MPEGConfigAudio::create_objects");
@@ -1554,7 +1745,7 @@ void MPEGConfigAudio::create_objects()
 	add_tool(layer = new MPEGLayer(x1, y, this));
 	layer->create_objects();
 
-	y += 30;
+	y += DP(30);
 	add_tool(new BC_Title(x, y, _("Kbits per second:")));
 	add_tool(bitrate = new MPEGABitrate(x1, y, this));
 	bitrate->create_objects();
@@ -1578,7 +1769,7 @@ int MPEGConfigAudio::close_event()
 
 
 MPEGLayer::MPEGLayer(int x, int y, MPEGConfigAudio *gui)
- : BC_PopupMenu(x, y, 100, layer_to_string(gui->asset->ampeg_derivative))
+ : BC_PopupMenu(x, y, DP(100), layer_to_string(gui->asset->ampeg_derivative))
 {
 	this->gui = gui;
 }
@@ -1633,7 +1824,7 @@ char* MPEGLayer::layer_to_string(int layer)
 MPEGABitrate::MPEGABitrate(int x, int y, MPEGConfigAudio *gui)
  : BC_PopupMenu(x, 
  	y, 
-	100, 
+	DP(100), 
  	bitrate_to_string(gui->string, gui->asset->ampeg_bitrate))
 {
 	this->gui = gui;
@@ -1714,8 +1905,8 @@ MPEGConfigVideo::MPEGConfigVideo(BC_WindowBase *parent_window,
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	500,
-	400,
+	DP(500),
+	DP(400),
 	-1,
 	-1,
 	0,
@@ -1733,9 +1924,9 @@ MPEGConfigVideo::~MPEGConfigVideo()
 
 void MPEGConfigVideo::create_objects()
 {
-	int x = 10, y = 10;
-	int x1 = x + 150;
-	int x2 = x + 300;
+	int x = DP(10), y = DP(10);
+	int x1 = x + DP(150);
+	int x2 = x + DP(300);
 
 	lock_window("MPEGConfigVideo::create_objects");
 	if(asset->format == FILE_MPEG)
@@ -1748,7 +1939,7 @@ void MPEGConfigVideo::create_objects()
 	add_subwindow(new BC_Title(x, y, _("Color model:")));
 	add_subwindow(cmodel = new MPEGColorModel(x1, y, this));
 	cmodel->create_objects();
-	y += 30;
+	y += DP(30);
 
 	update_cmodel_objs();
 
@@ -1801,46 +1992,46 @@ void MPEGConfigVideo::reset_cmodel()
 void MPEGConfigVideo::update_cmodel_objs()
 {
 	BC_Title *title;
-	int x = 10;
-	int y = 40;
-	int x1 = x + 150;
-	int x2 = x + 280;
+	int x = DP(10);
+	int y = DP(40);
+	int x1 = x + DP(150);
+	int x2 = x + DP(280);
 
 	delete_cmodel_objs();
 
 	if(asset->vmpeg_cmodel == MPEG_YUV420)
 	{
-		add_subwindow(title = new BC_Title(x, y + 5, _("Format Preset:")));
+		add_subwindow(title = new BC_Title(x, y + DP(5), _("Format Preset:")));
 		titles.append(title);
 		add_subwindow(preset = new MPEGPreset(x1, y, this));
 		preset->create_objects();
-		y += 30;
+		y += DP(30);
 	}
 
-	add_subwindow(title = new BC_Title(x, y + 5, _("Derivative:")));
+	add_subwindow(title = new BC_Title(x, y + DP(5), _("Derivative:")));
 	titles.append(title);
 	add_subwindow(derivative = new MPEGDerivative(x1, y, this));
 	derivative->create_objects();
-	y += 30;
+	y += DP(30);
 
-	add_subwindow(title = new BC_Title(x, y + 5, _("Bitrate:")));
+	add_subwindow(title = new BC_Title(x, y + DP(5), _("Bitrate:")));
 	titles.append(title);
 	add_subwindow(bitrate = new MPEGBitrate(x1, y, this));
 	add_subwindow(fixed_bitrate = new MPEGFixedBitrate(x2, y, this));
-	y += 30;
+	y += DP(30);
 
 	add_subwindow(title = new BC_Title(x, y, _("Quantization:")));
 	titles.append(title);
 	quant = new MPEGQuant(x1, y, this);
 	quant->create_objects();
 	add_subwindow(fixed_quant = new MPEGFixedQuant(x2, y, this));
-	y += 30;
+	y += DP(30);
 
 	add_subwindow(title = new BC_Title(x, y, _("I frame distance:")));
 	titles.append(title);
 	iframe_distance = new MPEGIFrameDistance(x1, y, this);
 	iframe_distance->create_objects();
-	y += 30;
+	y += DP(30);
 
 	if(asset->vmpeg_cmodel == MPEG_YUV420)
 	{
@@ -1848,16 +2039,16 @@ void MPEGConfigVideo::update_cmodel_objs()
 		titles.append(title);
 		pframe_distance = new MPEGPFrameDistance(x1, y, this);
 		pframe_distance->create_objects();
-  		y += 30;
+  		y += DP(30);
 
 		add_subwindow(top_field_first = new BC_CheckBox(x, y, &asset->vmpeg_field_order, _("Bottom field first")));
-  		y += 30;
+  		y += DP(30);
 	}
 
 	add_subwindow(progressive = new BC_CheckBox(x, y, &asset->vmpeg_progressive, _("Progressive frames")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(denoise = new BC_CheckBox(x, y, &asset->vmpeg_denoise, _("Denoise")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(seq_codes = new BC_CheckBox(x, y, &asset->vmpeg_seq_codes, _("Sequence start codes in every GOP")));
 
 }
@@ -1875,7 +2066,7 @@ void MPEGConfigVideo::update_cmodel_objs()
 
 
 MPEGDerivative::MPEGDerivative(int x, int y, MPEGConfigVideo *gui)
- : BC_PopupMenu(x, y, 150, derivative_to_string(gui->asset->vmpeg_derivative))
+ : BC_PopupMenu(x, y, DP(150), derivative_to_string(gui->asset->vmpeg_derivative))
 {
 	this->gui = gui;
 }
@@ -1931,7 +2122,7 @@ char* MPEGDerivative::derivative_to_string(int derivative)
 
 
 MPEGPreset::MPEGPreset(int x, int y, MPEGConfigVideo *gui)
- : BC_PopupMenu(x, y, 200, value_to_string(gui->asset->vmpeg_preset))
+ : BC_PopupMenu(x, y, DP(200), value_to_string(gui->asset->vmpeg_preset))
 {
 	this->gui = gui;
 }
@@ -1989,7 +2180,7 @@ char* MPEGPreset::value_to_string(int derivative)
 
 
 MPEGBitrate::MPEGBitrate(int x, int y, MPEGConfigVideo *gui)
- : BC_TextBox(x, y, 100, 1, gui->asset->vmpeg_bitrate)
+ : BC_TextBox(x, y, DP(100), 1, gui->asset->vmpeg_bitrate)
 {
 	this->gui = gui;
 }
@@ -2012,7 +2203,7 @@ MPEGQuant::MPEGQuant(int x, int y, MPEGConfigVideo *gui)
 	(int64_t)100,
 	x, 
 	y,
-	100)
+	DP(100))
 {
 	this->gui = gui;
 }
@@ -2066,7 +2257,7 @@ MPEGIFrameDistance::MPEGIFrameDistance(int x, int y, MPEGConfigVideo *gui)
 	(int64_t)100,
 	x, 
 	y,
-	50)
+	DP(50))
 {
 	this->gui = gui;
 }
@@ -2090,7 +2281,7 @@ MPEGPFrameDistance::MPEGPFrameDistance(int x, int y, MPEGConfigVideo *gui)
 	(int64_t)2,
 	x, 
 	y,
-	50)
+	DP(50))
 {
 	this->gui = gui;
 }
@@ -2109,7 +2300,7 @@ int MPEGPFrameDistance::handle_event()
 
 
 MPEGColorModel::MPEGColorModel(int x, int y, MPEGConfigVideo *gui)
- : BC_PopupMenu(x, y, 150, cmodel_to_string(gui->asset->vmpeg_cmodel))
+ : BC_PopupMenu(x, y, DP(150), cmodel_to_string(gui->asset->vmpeg_cmodel))
 {
 	this->gui = gui;
 }

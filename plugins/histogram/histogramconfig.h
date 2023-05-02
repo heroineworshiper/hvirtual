@@ -43,7 +43,7 @@ public:
 		int64_t current_frame);
 // Used by constructor and reset button
 	void reset(int do_mode);
-	void reset_points(int colors_only);
+	void reset_points(int colors_only, int value_only);
 	void boundaries();
 	void dump();
 

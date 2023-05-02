@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include "filexml.h"
 #include "language.h"
 #include "lens.h"
+#include "theme.h"
 
 
 #include <string.h>
@@ -116,7 +117,7 @@ LensSlider::LensSlider(LensMain *client,
 	int y, 
 	float min,
 	float max)
- : BC_FSlider(x, y, 0, 200, 200, min, max, *output)
+ : BC_FSlider(x, y, 0, DP(200), DP(200), min, max, *output)
 {
 	this->gui = gui;
 	this->client = client;
@@ -172,7 +173,7 @@ LensText::LensText(LensMain *client,
 	float *output, 
 	int x, 
 	int y)
- : BC_TextBox(x, y, 100, 1, *output)
+ : BC_TextBox(x, y, DP(100), 1, *output)
 {
 	this->gui = gui;
 	this->client = client;
@@ -465,24 +466,37 @@ const char* LensMode::to_text(int mode)
 
 LensGUI::LensGUI(LensMain *client)
  : PluginClientWindow(client,
-	350, 
-	510, 
-	350, 
-	510, 
+	DP(350), 
+	DP(510), 
+	DP(350), 
+	DP(510), 
 	0)
 {
 	this->client = client;
+
+	char string[BCTEXTLEN];
+// set the default directory
+	sprintf(string, "%slens.rc", BCASTDIR);
+    defaults = new BC_Hash(string);
+	defaults->load();
+    client->lock = defaults->get("LOCK", client->lock);
+
 }
 
 LensGUI::~LensGUI()
 {
+	defaults->update("LOCK", client->lock);
+	defaults->save();
+    delete defaults;
+    
 }
 
 
 void LensGUI::create_objects()
 {
-	int x = 10;
-	int y = 10;
+	int margin = client->get_theme()->widget_border;
+	int x = margin;
+	int y = margin;
 	int x1;
 	BC_Title *title;
 	LensToggle *toggle;
@@ -497,7 +511,7 @@ void LensGUI::create_objects()
 			case 3: add_tool(title = new BC_Title(x, y, _("A Field of View:"))); break;
 		}
 
-		y += title->get_h() + 5;
+		y += title->get_h() + margin;
 		add_tool(fov_slider[i] = new LensSlider(client, 
 			this,
 			0,
@@ -506,7 +520,7 @@ void LensGUI::create_objects()
 			y, 
 			0.0001,
 			1.0));
-		x1 = x + fov_slider[i]->get_w() + 5;
+		x1 = x + fov_slider[i]->get_w() + margin;
 		add_tool(fov_text[i] = new LensText(client, 
 			this,
 			fov_slider[i],
@@ -514,7 +528,7 @@ void LensGUI::create_objects()
 			x1, 
 			y));
 		fov_slider[i]->text = fov_text[i];
-		y += fov_text[i]->get_h() + 5;
+		y += fov_slider[i]->get_h() + margin;
 	}
 
 	add_tool(toggle = new LensToggle(client, 
@@ -522,14 +536,14 @@ void LensGUI::create_objects()
 		x, 
 		y,
 		"Lock"));
-	y += toggle->get_h() + 10;
+	y += toggle->get_h() + margin;
 	
 	BC_Bar *bar;
 	add_tool(bar = new BC_Bar(x, y, get_w() - x * 2));
-	y += bar->get_h() + 5;
+	y += bar->get_h() + margin;
 
 	add_tool(title = new BC_Title(x, y, _("Aspect Ratio:")));
-	y += title->get_h() + 5;
+	y += title->get_h() + margin;
 	add_tool(aspect_slider = new LensSlider(client, 
 		this,
 		0,
@@ -538,7 +552,7 @@ void LensGUI::create_objects()
 		y, 
 		0.333,
 		3.0));
-	x1 = x + aspect_slider->get_w() + 5;
+	x1 = x + aspect_slider->get_w() + margin;
 	add_tool(aspect_text = new LensText(client, 
 		this,
 		aspect_slider,
@@ -546,11 +560,11 @@ void LensGUI::create_objects()
 		x1, 
 		y));
 	aspect_slider->text = aspect_text;
-	y += aspect_text->get_h() + 5;
+	y += aspect_slider->get_h() + margin;
 
 
 	add_tool(title = new BC_Title(x, y, _("Radius:")));
-	y += title->get_h() + 5;
+	y += title->get_h() + margin;
 	add_tool(radius_slider = new LensSlider(client, 
 		this,
 		0,
@@ -559,7 +573,7 @@ void LensGUI::create_objects()
 		y, 
 		0.333,
 		3.0));
-	x1 = x + radius_slider->get_w() + 5;
+	x1 = x + radius_slider->get_w() + margin;
 	add_tool(radius_text = new LensText(client, 
 		this,
 		radius_slider,
@@ -567,11 +581,11 @@ void LensGUI::create_objects()
 		x1, 
 		y));
 	radius_slider->text = radius_text;
-	y += radius_text->get_h() + 5;
+	y += radius_slider->get_h() + margin;
 
 
 	add_tool(title = new BC_Title(x, y, _("Center X:")));
-	y += title->get_h() + 5;
+	y += title->get_h() + margin;
 	add_tool(centerx_slider = new LensSlider(client, 
 		this,
 		0,
@@ -580,7 +594,7 @@ void LensGUI::create_objects()
 		y, 
 		0.0,
 		99.0));
-	x1 = x + centerx_slider->get_w() + 5;
+	x1 = x + centerx_slider->get_w() + margin;
 	add_tool(centerx_text = new LensText(client, 
 		this,
 		centerx_slider,
@@ -589,11 +603,11 @@ void LensGUI::create_objects()
 		y));
 	centerx_slider->text = centerx_text;
 	centerx_slider->set_precision(1.0);
-	y += centerx_text->get_h() + 5;
+	y += centerx_slider->get_h() + margin;
 
 
 	add_tool(title = new BC_Title(x, y, _("Center Y:")));
-	y += title->get_h() + 5;
+	y += title->get_h() + margin;
 	add_tool(centery_slider = new LensSlider(client, 
 		this,
 		0,
@@ -602,7 +616,7 @@ void LensGUI::create_objects()
 		y, 
 		0.0,
 		99.0));
-	x1 = x + centery_slider->get_w() + 5;
+	x1 = x + centery_slider->get_w() + margin;
 	add_tool(centery_text = new LensText(client, 
 		this,
 		centery_slider,
@@ -611,10 +625,10 @@ void LensGUI::create_objects()
 		y));
 	centery_slider->text = centery_text;
 	centery_slider->set_precision(1.0);
-	y += centery_text->get_h() + 10;
+	y += centery_slider->get_h() + DP(10);
 
 	add_tool(bar = new BC_Bar(x, y, get_w() - x * 2));
-	y += bar->get_h() + 5;
+	y += bar->get_h() + margin;
 
 
 // 	add_tool(reverse = new LensToggle(client, 
@@ -629,16 +643,16 @@ void LensGUI::create_objects()
 		x, 
 		y,
 		_("Draw center")));
-	y += draw_guides->get_h() + 5;
+	y += draw_guides->get_h() + margin;
 
 	
 	add_tool(title = new BC_Title(x, y, _("Mode:")));
 	add_tool(mode = new LensMode(client, 
 		this, 
-		x + title->get_w() + 5, 
+		x + title->get_w() + margin, 
 		y));
 	mode->create_objects();
-	y += mode->get_h() + 5;
+	y += mode->get_h() + margin;
 
 
 // 	add_tool(title = new BC_Title(x, y, _("Preset:")));
@@ -666,7 +680,6 @@ void LensGUI::create_objects()
 // 		y));
 
 	show_window();
-	flush();
 }
 
 
@@ -680,7 +693,7 @@ LensMain::LensMain(PluginServer *server)
 {
 	
 	engine = 0;
-	lock = 0;
+	lock = 1;
 	current_preset = -1;
 }
 
@@ -725,37 +738,37 @@ void LensMain::update_gui()
 	}
 }
 
-void LensMain::save_presets()
-{
-	char path[BCTEXTLEN], string[BCTEXTLEN];
-	sprintf(path, "%slenspresets.rc", BCASTDIR);
-	BC_Hash *defaults = new BC_Hash(path);
-
-// Save presets
-	defaults->update("TOTAL_PRESETS", presets.total);
-	for(int i = 0; i < presets.total; i++)
-	{
-		LensPreset *preset = presets.values[i];
-		sprintf(string, "TITLE_%d", i);
-		defaults->update(string, preset->title);
-
-		for(int j = 0; j < FOV_CHANNELS; j++)
-		{
-			sprintf(string, "FOCAL_LENGTH_%d_%d", i, j);
-			defaults->update(string, preset->fov[j]);
-		}
-
-		sprintf(string, "ASPECT_%d", i);
-		defaults->update(string, preset->aspect);
-		sprintf(string, "RADIUS_%d", i);
-		defaults->update(string, preset->radius);
-		sprintf(string, "MODE_%d", i);
-		defaults->update(string, preset->mode);
-	}
-	
-	defaults->save();
-	delete defaults;
-}
+// void LensMain::save_presets()
+// {
+// 	char path[BCTEXTLEN], string[BCTEXTLEN];
+// 	sprintf(path, "%slenspresets.rc", BCASTDIR);
+// 	BC_Hash *defaults = new BC_Hash(path);
+// 
+// // Save presets
+// 	defaults->update("TOTAL_PRESETS", presets.total);
+// 	for(int i = 0; i < presets.total; i++)
+// 	{
+// 		LensPreset *preset = presets.values[i];
+// 		sprintf(string, "TITLE_%d", i);
+// 		defaults->update(string, preset->title);
+// 
+// 		for(int j = 0; j < FOV_CHANNELS; j++)
+// 		{
+// 			sprintf(string, "FOCAL_LENGTH_%d_%d", i, j);
+// 			defaults->update(string, preset->fov[j]);
+// 		}
+// 
+// 		sprintf(string, "ASPECT_%d", i);
+// 		defaults->update(string, preset->aspect);
+// 		sprintf(string, "RADIUS_%d", i);
+// 		defaults->update(string, preset->radius);
+// 		sprintf(string, "MODE_%d", i);
+// 		defaults->update(string, preset->mode);
+// 	}
+// 	
+// 	defaults->save();
+// 	delete defaults;
+// }
 
 
 void LensMain::save_data(KeyFrame *keyframe)
@@ -865,7 +878,7 @@ int LensMain::process_buffer(VFrame *frame,
 		center_y >= 0 && center_y < h) \
 	{ \
 		type *hrow = rows[center_y] + components * (center_x - CENTER_W / 2); \
-		for(int i = center_x - CENTER_W / 2; i <= center_x + CENTER_W / 2; i++) \
+		for(int i = 0; i <= w; i++) \
 		{ \
 			if(i >= 0 && i < w) \
 			{ \
@@ -876,7 +889,7 @@ int LensMain::process_buffer(VFrame *frame,
 			} \
 		} \
  \
-		for(int i = center_y - CENTER_W / 2; i <= center_y + CENTER_W / 2; i++) \
+		for(int i = 0; i <= h; i++) \
 		{ \
 			if(i >= 0 && i < h) \
 			{ \
@@ -984,37 +997,41 @@ int LensMain::handle_opengl()
 		"{\n"
 		"	vec2 outcoord = gl_TexCoord[0].st * texture_extents;\n"
 		"	vec2 coord_diff = outcoord - center_coord;\n"
+        "   float PI = 3.14159;\n"
 		"	float z = sqrt(coord_diff.x * coord_diff.x +\n"
 		"					coord_diff.y * coord_diff.y);\n"
-		"	vec4 a1 = (vec4(z, z, z, z) / (3.14159 * r / 2.0)) * (3.14159 / 2.0);\n"
-		"	vec4 z_in = r * sin(a1);\n"
-		"	float a2;\n"
-		"	if(coord_diff.x == 0.0)\n"
-		"	{\n"
-		"		if(coord_diff.y < 0.0)\n"
-		"			a2 = 3.0 * 3.14159 / 2.0;\n"
-		"		else\n"
-		"			a2 = 3.14159 / 2.0;\n"
-		"	}\n"
-		"	else\n"
-		"		a2 = atan(coord_diff.y, coord_diff.x);\n"
+		"	vec4 a1 = (vec4(z, z, z, z) / (PI * r / 2.0)) * (PI / 2.0);\n"
+	    "   vec4 z_in = r * sin(a1);\n"
+	    "   float a2;\n"
+	    "   if(coord_diff.x == 0.0)\n"
+	    "   {\n"
+	    "       if(coord_diff.y < 0.0)\n"
+	    "           a2 = 3.0 * PI / 2.0;\n"
+	    "       else\n"
+	    "           a2 = PI / 2.0;\n"
+	    "   }\n"
+	    "   else\n"
+        "   {\n"
+	    "       a2 = atan(coord_diff.y, coord_diff.x);\n"
+        "   }\n"
+        "\n"
 		"	vec4 in_x;\n"
 		"	vec4 in_y;\n"
 		"	in_x = z_in * cos(a2) * aspect.x + center_coord.x;\n"
 		"	in_y = z_in * sin(a2) * aspect.y + center_coord.y;\n"
-		"	if(in_x.r < 0.0 || in_x.r >= image_extents.x || in_y.r < 0.0 || in_y.r >= image_extents.y)\n"
+		"	if(a1.r > PI / 2 || in_x.r < 0.0 || in_x.r >= image_extents.x || in_y.r < 0.0 || in_y.r >= image_extents.y)\n"
 		"		gl_FragColor.r = border_color.r;\n"
 		"	else\n"
 		"		gl_FragColor.r = texture2D(tex, vec2(in_x.r, in_y.r) / texture_extents).r;\n"
-		"	if(in_x.g < 0.0 || in_x.g >= image_extents.x || in_y.g < 0.0 || in_y.g >= image_extents.y)\n"
+		"	if(a1.g > PI / 2 || in_x.g < 0.0 || in_x.g >= image_extents.x || in_y.g < 0.0 || in_y.g >= image_extents.y)\n"
 		"		gl_FragColor.g = border_color.g;\n"
 		"	else\n"
 		"		gl_FragColor.g = texture2D(tex, vec2(in_x.g, in_y.g) / texture_extents).g;\n"
-		"	if(in_x.b < 0.0 || in_x.b >= image_extents.x || in_y.b < 0.0 || in_y.b >= image_extents.y)\n"
+		"	if(a1.b > PI / 2 || in_x.b < 0.0 || in_x.b >= image_extents.x || in_y.b < 0.0 || in_y.b >= image_extents.y)\n"
 		"		gl_FragColor.b = border_color.b;\n"
 		"	else\n"
 		"		gl_FragColor.b = texture2D(tex, vec2(in_x.b, in_y.b) / texture_extents).b;\n"
-		"	if(in_x.a < 0.0 || in_x.a >= image_extents.x || in_y.a < 0.0 || in_y.a >= image_extents.y)\n"
+		"	if(a1.a > PI / 2 || in_x.a < 0.0 || in_x.a >= image_extents.x || in_y.a < 0.0 || in_y.a >= image_extents.y)\n"
 		"		gl_FragColor.a = border_color.a;\n"
 		"	else\n"
 		"		gl_FragColor.a = texture2D(tex, vec2(in_x.a, in_y.a) / texture_extents).a;\n"
@@ -1155,7 +1172,7 @@ int LensMain::handle_opengl()
 	if(frag_shader > 0)
 	{
 		float border_color[] = { 0, 0, 0, 0 };
-		if(BC_CModels::is_yuv(get_output()->get_color_model()))
+		if(cmodel_is_yuv(get_output()->get_color_model()))
 		{
 			border_color[1] = 0.5;
 			border_color[2] = 0.5;
@@ -1209,6 +1226,9 @@ int LensMain::handle_opengl()
 			case LensConfig::STRETCH:
 				dim = MAX(width, height) * config.radius;
 				max_z = dim * sqrt(2.0) / 2;
+				glUniform4fv(glGetUniformLocation(frag_shader, "border_color"), 
+						1,
+						(GLfloat*)border_color);
 				glUniform4f(glGetUniformLocation(frag_shader, "r"), 
 					max_z / M_PI / (fov[0] / 2.0),
 					max_z / M_PI / (fov[1] / 2.0),
@@ -1494,29 +1514,37 @@ void LensUnit::process_stretch(LensPackage *pkg)
 			for(int i = 0; i < components; i++) \
 			{ \
 				double a1 = (z / (M_PI * r[i] / 2)) * (M_PI / 2); \
-				double z_in = r[i] * sin(a1); \
- \
-				double x_in = z_in * cos(a2) * x_factor + center_x; \
-				double y_in = z_in * sin(a2) * y_factor + center_y; \
- \
- 				if(x_in < 0.0 || x_in >= width - 1 || \
-					y_in < 0.0 || y_in >= height - 1) \
-				{ \
+/* Wrapped around the edge */ \
+                if(a1 > M_PI / 2) \
+                { \
 					*out_row++ = black[i]; \
-				} \
-				else \
-				{ \
-					float y1_fraction = y_in - floor(y_in); \
-					float y2_fraction = 1.0 - y1_fraction; \
-					float x1_fraction = x_in - floor(x_in); \
-					float x2_fraction = 1.0 - x1_fraction; \
-					type *in_pixel1 = in_rows[(int)y_in] + (int)x_in * components; \
-					type *in_pixel2 = in_rows[(int)y_in + 1] + (int)x_in * components; \
-					*out_row++ = (type)(in_pixel1[i] * x2_fraction * y2_fraction + \
-								in_pixel2[i] * x2_fraction * y1_fraction + \
-								in_pixel1[i + components] * x1_fraction * y2_fraction + \
-								in_pixel2[i + components] * x1_fraction * y1_fraction); \
-				} \
+                } \
+                else \
+                { \
+				    double z_in = r[i] * sin(a1); \
+ \
+				    double x_in = z_in * cos(a2) * x_factor + center_x; \
+				    double y_in = z_in * sin(a2) * y_factor + center_y; \
+ \
+ 				    if(x_in < 0.0 || x_in >= width - 1 || \
+				        y_in < 0.0 || y_in >= height - 1) \
+				    { \
+					    *out_row++ = black[i]; \
+				    } \
+				    else \
+				    { \
+					    float y1_fraction = y_in - floor(y_in); \
+					    float y2_fraction = 1.0 - y1_fraction; \
+					    float x1_fraction = x_in - floor(x_in); \
+					    float x2_fraction = 1.0 - x1_fraction; \
+					    type *in_pixel1 = in_rows[(int)y_in] + (int)x_in * components; \
+					    type *in_pixel2 = in_rows[(int)y_in + 1] + (int)x_in * components; \
+					    *out_row++ = (type)(in_pixel1[i] * x2_fraction * y2_fraction + \
+								    in_pixel2[i] * x2_fraction * y1_fraction + \
+								    in_pixel1[i + components] * x1_fraction * y2_fraction + \
+								    in_pixel2[i + components] * x1_fraction * y1_fraction); \
+				    } \
+                } \
 			} \
 		} \
 	} \
@@ -1576,6 +1604,8 @@ void LensUnit::process_rectilinear_stretch(LensPackage *pkg)
 	r[1] = max_z / M_PI / (fov[1] / 2.0);
 	r[2] = max_z / M_PI / (fov[2] / 2.0);
 	r[3] = max_z / M_PI / (fov[3] / 2.0);
+
+//printf("LensUnit::process_rectilinear_stretch %d r=%f\n", __LINE__, r[0]);
 
 #define DO_LENS_RECTILINEAR_STRETCH(type, components, chroma) \
 { \

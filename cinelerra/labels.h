@@ -71,6 +71,7 @@ public:
 	Labels& operator=(Labels &that);
 	void copy_from(Labels *labels);
 	int toggle_label(double start, double end);
+    double total_length();
 	int delete_all();
 	int save(FileXML *xml);
 	int load(FileXML *xml, uint32_t load_flags);

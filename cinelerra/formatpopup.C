@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,8 +32,8 @@ FormatPopup::FormatPopup(ArrayList<PluginServer*> *plugindb,
 	int use_brender)
  : BC_ListBox(x, 
  	y, 
-	200, 
-	200,
+	DP(200), 
+	DP(200),
 	LISTBOX_TEXT,
 	0,
 	0,
@@ -48,48 +47,51 @@ FormatPopup::FormatPopup(ArrayList<PluginServer*> *plugindb,
 	set_tooltip(_("Change file format"));
 }
 
+
+// Can't use language translations since these are the names which go into the EDL.
 void FormatPopup::create_objects()
 {
 	if(!use_brender)
 	{
-		format_items.append(new BC_ListBoxItem(_(AC3_NAME)));
-		format_items.append(new BC_ListBoxItem(_(AIFF_NAME)));
-		format_items.append(new BC_ListBoxItem(_(AU_NAME)));
-		format_items.append(new BC_ListBoxItem(_(FLAC_NAME)));
-		format_items.append(new BC_ListBoxItem(_(JPEG_NAME)));
+        format_items.append(new BC_ListBoxItem(COMMAND_NAME));
+		format_items.append(new BC_ListBoxItem(AC3_NAME));
+		format_items.append(new BC_ListBoxItem(AIFF_NAME));
+		format_items.append(new BC_ListBoxItem(AU_NAME));
+		format_items.append(new BC_ListBoxItem(FLAC_NAME));
+		format_items.append(new BC_ListBoxItem(JPEG_NAME));
 	}
 
-	format_items.append(new BC_ListBoxItem(_(JPEG_LIST_NAME)));
+	format_items.append(new BC_ListBoxItem(JPEG_LIST_NAME));
 
 	if(!use_brender)
 	{
-		format_items.append(new BC_ListBoxItem(_(AVI_NAME)));
-		format_items.append(new BC_ListBoxItem(_(EXR_NAME)));
-		format_items.append(new BC_ListBoxItem(_(EXR_LIST_NAME)));
-		format_items.append(new BC_ListBoxItem(_(WAV_NAME)));
-		format_items.append(new BC_ListBoxItem(_(MOV_NAME)));
-		format_items.append(new BC_ListBoxItem(_(AMPEG_NAME)));
-		format_items.append(new BC_ListBoxItem(_(VMPEG_NAME)));
-		format_items.append(new BC_ListBoxItem(_(OGG_NAME)));
-		format_items.append(new BC_ListBoxItem(_(PCM_NAME)));
-		format_items.append(new BC_ListBoxItem(_(PNG_NAME)));
+		format_items.append(new BC_ListBoxItem(AVI_NAME));
+		format_items.append(new BC_ListBoxItem(EXR_NAME));
+		format_items.append(new BC_ListBoxItem(EXR_LIST_NAME));
+		format_items.append(new BC_ListBoxItem(WAV_NAME));
+		format_items.append(new BC_ListBoxItem(MOV_NAME));
+		format_items.append(new BC_ListBoxItem(AMPEG_NAME));
+		format_items.append(new BC_ListBoxItem(VMPEG_NAME));
+		format_items.append(new BC_ListBoxItem(OGG_NAME));
+		format_items.append(new BC_ListBoxItem(PCM_NAME));
+		format_items.append(new BC_ListBoxItem(PNG_NAME));
 	}
 
-	format_items.append(new BC_ListBoxItem(_(PNG_LIST_NAME)));
+	format_items.append(new BC_ListBoxItem(PNG_LIST_NAME));
 
 	if(!use_brender)
 	{
-		format_items.append(new BC_ListBoxItem(_(TGA_NAME)));
+		format_items.append(new BC_ListBoxItem(TGA_NAME));
 	}
 
-	format_items.append(new BC_ListBoxItem(_(TGA_LIST_NAME)));
+	format_items.append(new BC_ListBoxItem(TGA_LIST_NAME));
 
 	if(!use_brender)
 	{
-		format_items.append(new BC_ListBoxItem(_(TIFF_NAME)));
+		format_items.append(new BC_ListBoxItem(TIFF_NAME));
 	}
 
-	format_items.append(new BC_ListBoxItem(_(TIFF_LIST_NAME)));
+	format_items.append(new BC_ListBoxItem(TIFF_LIST_NAME));
 	update(&format_items,
 		0,
 		0,
@@ -103,4 +105,5 @@ FormatPopup::~FormatPopup()
 
 int FormatPopup::handle_event()
 {
+    return 0;
 }

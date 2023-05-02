@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +40,7 @@
 #include "tracks.h"
 #include "transportque.h"
 #include "units.h"
+#include "vdevicex11.inc"
 #include "vedit.h"
 #include "vframe.h"
 #include "videoconfig.h"
@@ -97,7 +97,7 @@ Module* VRender::new_module(Track *track)
 int VRender::flash_output()
 {
 	if(video_out)
-		return renderengine->video->write_buffer(video_out, renderengine->get_edl());
+		return renderengine->vdevice->write_buffer(video_out, renderengine->get_edl());
 	else
 		return 0;
 }
@@ -110,7 +110,7 @@ int VRender::process_buffer(VFrame *video_out,
 	int i, j;
 	int64_t render_len = 1;
 	int reconfigure = 0;
-
+//printf("VRender::process_buffer %d use_opengl=%d\n", __LINE__, use_opengl);
 
 	this->video_out = video_out;
 
@@ -133,33 +133,37 @@ int VRender::process_buffer(int64_t input_position,
 	int use_brender = 0;
 	int result = 0;
 	int use_cache = renderengine->command->single_frame();
-	int use_asynchronous = 
-		renderengine->command->realtime && 
-		renderengine->get_edl()->session->video_every_frame &&
-		renderengine->get_edl()->session->video_asynchronous;
 	const int debug = 0;
+
+
+	if(MWindow::preferences->dump_playback) 
+        MWindow::indent += 2;
 
 // Determine the rendering strategy for this frame.
 	use_vconsole = get_use_vconsole(&playable_edit, 
 		input_position,
 		use_brender);
-	if(debug) printf("VRender::process_buffer %d use_vconsole=%d\n", __LINE__, use_vconsole);
 
 // Negotiate color model
+// If the virtual console is faster than direct, make sure the colorspace 
+// of video_out is optimized for the codec.
 	colormodel = get_colormodel(playable_edit, use_vconsole, use_brender);
 	if(debug) printf("VRender::process_buffer %d\n", __LINE__);
 
 
 
-
+//printf("VRender::process_buffer %d\n", __LINE__);
 // Get output buffer from device
 	if(renderengine->command->realtime &&
 		!renderengine->is_nested)
 	{
-		renderengine->video->new_output_buffer(&video_out, colormodel);
+
+		renderengine->vdevice->new_output_buffer(&video_out, 
+			colormodel, 
+			renderengine->get_edl());
 	}
 
-	if(debug) printf("VRender::process_buffer %d video_out=%p\n", __LINE__, video_out);
+//printf("VRender::process_buffer %d video_out=%p\n", __LINE__, video_out);
 
 // printf("VRender::process_buffer use_vconsole=%d colormodel=%d video_out=%p\n", 
 // use_vconsole, 
@@ -181,11 +185,7 @@ int VRender::process_buffer(int64_t input_position,
 				if(renderengine->command->get_direction() == PLAY_REVERSE)
 					corrected_position--;
 
-// Cache single frames only
-				if(use_asynchronous)
-					file->start_video_decode_thread();
-				else
-					file->stop_video_thread();
+				file->stop_video_thread();
 				if(use_cache) file->set_cache_frames(1);
 				int64_t normalized_position = (int64_t)(corrected_position *
 					asset->frame_rate /
@@ -193,8 +193,9 @@ int VRender::process_buffer(int64_t input_position,
 
 				file->set_video_position(normalized_position,
 					0);
-				file->read_frame(video_out);
+				file->read_frame(video_out, 0, 0, 0);
 
+		        video_out->set_opengl_state(VFrame::RAM);
 
 				if(use_cache) file->set_cache_frames(0);
 				renderengine->get_vcache()->check_in(asset);
@@ -204,29 +205,62 @@ int VRender::process_buffer(int64_t input_position,
 		else
 		if(playable_edit)
 		{
-			if(debug) printf("VRender::process_buffer %d\n", __LINE__);
+		    if(debug) printf("VRender::process_buffer %d color_model=%d w=%d h=%d\n", 
+                __LINE__,
+                video_out->get_color_model(),
+                video_out->get_w(),
+                video_out->get_h());
+            VDeviceX11 *x11_device = 0;
+            if(use_opengl && renderengine && renderengine->vdevice)
+            {    x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
+    			if(!x11_device) use_opengl = 0;
+            }
 			result = ((VEdit*)playable_edit)->read_frame(video_out, 
 				current_position, 
 				renderengine->command->get_direction(),
 				renderengine->get_vcache(),
 				1,
 				use_cache,
-				use_asynchronous);
-			if(debug) printf("VRender::process_buffer %d\n", __LINE__);
+				0,
+                use_opengl,
+                x11_device);
+//             printf("VRender::process_buffer %d state=%d color_model=%d\n", 
+//                 __LINE__, 
+//                 video_out->get_opengl_state(),
+//                 video_out->get_color_model());
 		}
 
 
-
-		video_out->set_opengl_state(VFrame::RAM);
 	}
 	else
 // Read into virtual console
 	{
+//printf("VRender::process_buffer %d\n", __LINE__);
+
+
+
 
 // process this buffer now in the virtual console
 		result = ((VirtualVConsole*)vconsole)->process_buffer(input_position,
 			use_opengl);
+//printf("VRender::process_buffer %d\n", __LINE__);
 	}
+
+
+	if(MWindow::preferences->dump_playback) 
+    {
+        char string[BCTEXTLEN];
+        MWindow::indent -= 2;
+        cmodel_to_text(string, colormodel);
+        printf("%sVRender::process_buffer %d EDL='%s' position=%ld use_vconsole=%d colormodel='%s' use_gl=%d\n", 
+            MWindow::print_indent(),
+            __LINE__, 
+            renderengine->get_edl()->path,
+            (long)input_position,
+            use_vconsole,
+            string,
+            use_opengl);
+    }
 
 	return result;
 }
@@ -238,6 +272,7 @@ int VRender::get_use_vconsole(VEdit* *playable_edit,
 {
 	Track *playable_track = 0;
 	*playable_edit = 0;
+//printf("VRender::get_use_vconsole %d %p\n", __LINE__, renderengine);
 
 
 // Background rendering completed
@@ -285,6 +320,7 @@ int VRender::get_colormodel(VEdit *playable_edit,
 			if(file)
 			{
 				colormodel = file->get_best_colormodel(driver);
+//printf("VRender::get_colormodel %d driver=%d colormodel=%d\n", __LINE__, driver, colormodel);
 				renderengine->get_vcache()->check_in(asset);
 			}
 		}
@@ -317,8 +353,8 @@ void VRender::run()
 	int64_t current_input_length;
 // Number of frames to skip.
 	int64_t frame_step = 1;
-	int use_opengl = (renderengine->video && 
-		renderengine->video->out_config->driver == PLAYBACK_X11_GL);
+	int use_opengl = (renderengine->vdevice && 
+		renderengine->vdevice->out_config->driver == PLAYBACK_X11_GL);
 
 	first_frame = 1;
 
@@ -332,7 +368,7 @@ void VRender::run()
 
 
 	while(!done && 
-		!renderengine->video->interrupt)
+		!renderengine->vdevice->interrupt)
 	{
 // Perform the most time consuming part of frame decompression now.
 // Want the condition before, since only 1 frame is rendered 
@@ -354,7 +390,7 @@ void VRender::run()
 
 		if(renderengine->command->single_frame())
 		{
-			if(debug) printf("VRender::run %d\n", __LINE__);
+//			printf("VRender::run %d\n", __LINE__);
 			flash_output();
 			frame_step = 1;
 			done = 1;
@@ -517,6 +553,7 @@ int VRender::start_playback()
 	{
 		start();
 	}
+    return 0;
 }
 
 int64_t VRender::tounits(double position, int round)

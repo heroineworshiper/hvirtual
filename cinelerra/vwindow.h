@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
@@ -40,7 +39,7 @@ public:
 	VWindow(MWindow *mwindow);
 	~VWindow();
 
-	void handle_close_event(int result);
+	void handle_done_event(int result);
 	BC_Window* new_gui();
 
 	void load_defaults();

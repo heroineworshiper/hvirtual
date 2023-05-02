@@ -65,6 +65,7 @@ FadeUnit::~FadeUnit()
 		{ \
 			if(components == 3) \
 			{ \
+/* multiply RGB */ \
 				out_row[0] =  \
 					(type)((temp_type)in_row[0] * opacity / max); \
 				out_row[1] =  \
@@ -76,6 +77,7 @@ FadeUnit::~FadeUnit()
 			} \
 			else \
 			{ \
+/* don't change RGB */ \
 				if(!equivalent) \
 				{ \
 					out_row[0] = in_row[0]; \
@@ -83,11 +85,12 @@ FadeUnit::~FadeUnit()
 					out_row[2] = in_row[2]; \
 				} \
  \
+/* scale alpha */ \
 				if(in_row[3] == max) \
 					out_row[3] = opacity; \
 				else \
-				out_row[3] =  \
-					(type)((temp_type)in_row[3] * opacity / max); \
+				    out_row[3] = \
+					    (type)((temp_type)in_row[3] * opacity / max); \
 			} \
 		} \
 	} \

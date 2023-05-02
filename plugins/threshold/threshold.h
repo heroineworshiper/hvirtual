@@ -66,7 +66,7 @@ public:
 	void save_data(KeyFrame *keyframe);
 	void read_data(KeyFrame *keyframe);
 	void update_gui();
-	void render_gui(void *data);
+	void render_gui(void *data, int size);
 	void calculate_histogram(VFrame *frame);
 	int handle_opengl();
 

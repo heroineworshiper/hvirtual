@@ -161,6 +161,7 @@ int esd_send_auth( int sock )
     int namelen, retval;
     void (*phandler)(int);
   
+//printf("esd_send_auth %d\n", __LINE__);
 /* this is unavoidable - incase ESD "dissapears" (ie the socket conn dies) */
 /* we need to catch SIGPIPE to avoid the default handler form giving us */
 /* a bad day - ignore the SIGPIPE, then make sure to cathc all errors */
@@ -173,6 +174,7 @@ int esd_send_auth( int sock )
         signal( SIGPIPE, phandler ); 
 	return -1;
     }
+//printf("esd_send_auth %d\n", __LINE__);
 
     namelen = strlen(home) + sizeof("/.esd_auth");
     if ((auth_filename = malloc(namelen + 1)) == 0) {
@@ -180,6 +182,7 @@ int esd_send_auth( int sock )
         signal( SIGPIPE, phandler ); 
 	return -1;
     }
+//printf("esd_send_auth %d\n", __LINE__);
 
     strcpy( auth_filename, home );
     strcat( auth_filename, "/.esd_auth" );
@@ -198,6 +201,7 @@ int esd_send_auth( int sock )
 	    perror( auth_filename );
 	    goto exit_fn;
 	}
+//printf("esd_send_auth %d\n", __LINE__);
 
 	esound_genrand(auth_key, ESD_KEY_LEN);
 	write( auth_fd, randbuf, ESD_KEY_LEN);
@@ -205,16 +209,19 @@ int esd_send_auth( int sock )
       /* read the key from the authorization file */
       if ( ESD_KEY_LEN != read( auth_fd, auth_key, ESD_KEY_LEN ) )
 	goto exit_fd;
+//printf("esd_send_auth %d\n", __LINE__);
 
     /* send the key to the server */
     if ( ESD_KEY_LEN != write( sock, auth_key, ESD_KEY_LEN ) )
 	/* send key failed */
 	goto exit_fd;
+//printf("esd_send_auth %d\n", __LINE__);
 
     /* send the key to the server */
     if ( sizeof(endian) != write( sock, &endian, sizeof(endian) ) )
 	/* send key failed */
 	goto exit_fd;
+//printf("esd_send_auth %d\n", __LINE__);
 
     /* read auth reply. esd will reply 1 as an int for yes and 0 for no */
     /* then close the connection */
@@ -223,6 +230,7 @@ int esd_send_auth( int sock )
 	retval = 0;
 	goto exit_fd;
     }
+//printf("esd_send_auth %d\n", __LINE__);
     /* we got a reply and it's no - so esd will close the socket now */
     /* on us anyway... time to return invalid auth... */
     if (reply == 0) {
@@ -231,14 +239,17 @@ int esd_send_auth( int sock )
 	goto exit_fd;
     }
   
-  
+//printf("esd_send_auth %d\n", __LINE__);
+
     /* we've run the gauntlet, everything's ok, proceed as usual */
     /* fsync( sock ); */
     retval = 1;
+//printf("esd_send_auth %d OK\n", __LINE__);
 
  exit_fd:
     close( auth_fd );
  exit_fn:
+//printf("esd_send_auth %d\n", __LINE__);
     free( auth_filename );
     signal( SIGPIPE, phandler ); 
     return retval;
@@ -439,7 +450,8 @@ esd_connect_tcpip(const char *host)
 		strcpy( connect_host, default_host );
 
 	connect_host[sizeof(connect_host) - 1] = '\0';
-    
+//printf("esd_connect_tcpip %d host=%s port=%d\n", __LINE__, host, port);
+
 	/* Resolving the host name */
 	if ( ( he = gethostbyname( connect_host ) ) == NULL ) {
 	    fprintf( stderr, "Can\'t resolve host name \"%s\"!\n", 
@@ -448,7 +460,8 @@ esd_connect_tcpip(const char *host)
 	}
 	memcpy( (struct in_addr *) &socket_addr.sin_addr, he->h_addr,
 		sizeof( struct in_addr ) );
-    
+//printf("esd_connect_tcpip %d host=%s port=%d\n", __LINE__, host, port);
+
 	/* get port */
 	if ( host_div < strlen( espeaker ) )
 	    port = atoi( espeaker + host_div + 1 );
@@ -460,7 +473,8 @@ esd_connect_tcpip(const char *host)
 		 default_host );
 	return -1;
     }
-  
+//printf("esd_connect_tcpip %d host=%s port=%d\n", __LINE__, host, port);
+
     /* create the socket, and set for non-blocking */
     socket_out = socket( AF_INET, SOCK_STREAM, 0 );
     if ( socket_out < 0 ) 
@@ -468,13 +482,15 @@ esd_connect_tcpip(const char *host)
 	fprintf(stderr,"Unable to create TCP socket\n");
 	goto error_out;
     }
-  
+//printf("esd_connect_tcpip %d host=%s port=%d socket_out=%d\n", __LINE__, host, port, socket_out);
+
     /* this was borrowed blindly from the Tcl socket stuff */
     if ( fcntl( socket_out, F_SETFD, FD_CLOEXEC ) < 0 )
     {
 	fprintf(stderr,"Unable to set socket to non-blocking\n");
 	goto error_out;
     }
+//printf("esd_connect_tcpip %d host=%s port=%d\n", __LINE__, host, port);
 
     if ( setsockopt( socket_out, SOL_SOCKET, SO_REUSEADDR,
 		     &curstate, sizeof(curstate) ) < 0 ) 
@@ -482,15 +498,21 @@ esd_connect_tcpip(const char *host)
 	fprintf(stderr,"Unable to set for a fresh socket\n");
 	goto error_out;
     }
-  
+//printf("esd_connect_tcpip %d host=%s port=%d socket_out=%d\n", __LINE__, host, port, socket_out);
+
     /* set the connect information */
     socket_addr.sin_family = AF_INET;
     socket_addr.sin_port = htons( port );
-  
+    
     if ( connect( socket_out,
 		  (struct sockaddr *) &socket_addr,
 		  sizeof(struct sockaddr_in) ) < 0 )
-	goto error_out;
+	{
+        printf("esd_connect_tcpip %d host=%s port=%d socket_out=%d connect failed\n", __LINE__, host, port, socket_out);
+
+        goto error_out;
+    }
+//printf("esd_connect_tcpip %d host=%s port=%d socket_out=%d SUCCESS\n", __LINE__, host, port, socket_out);
 
     return socket_out;
 
@@ -604,6 +626,7 @@ int esd_open_sound( const char *host )
     char *display;
 
     if ( !host ) host = getenv("ESPEAKER");
+//printf("esd_open_sound %d\n", __LINE__);
 
     display = getenv( "DISPLAY" );
     if ( !(host && *host) && display ) {
@@ -625,6 +648,7 @@ int esd_open_sound( const char *host )
 	else
 	    use_unix = 1;
     }
+
     if ( use_unix )
 	socket_out = esd_connect_unix( NULL );
     if ( socket_out >= 0 ) goto finish_connect;
@@ -636,10 +660,12 @@ int esd_open_sound( const char *host )
        to use, let's try spawning one. */
     /* ebm - I think this is an Inherently Bad Idea, but will leave it
        alone until I can get a good look at it */
+
     if(! (host && *host)) {
 	int childpid, mypid;
 	struct sigaction sa, sa_orig;
 	struct sigaction sa_alarm, sa_orig_alarm;
+
 
 	esd_config_read();
 
@@ -649,6 +675,7 @@ int esd_open_sound( const char *host )
 	/* there's something inherently flaky about this, and if
 	   there's no audio device, Bad Things Happen */
 
+
 	mypid = getpid();
 	memset(&sa, '\0', sizeof(sa));
 	memset(&sa_alarm, '\0', sizeof(sa));
@@ -657,6 +684,7 @@ int esd_open_sound( const char *host )
 	sigaction(SIGUSR1, &sa, &sa_orig);
 	alarm(0);
 	sigaction(SIGALRM, &sa_alarm, &sa_orig_alarm);
+
 
 	childpid = fork();
 	if(!childpid) {
@@ -683,6 +711,7 @@ int esd_open_sound( const char *host )
 	    waitpid(childpid, &estat, 0);
 	}
 
+
 	/* Wait for for spawning to happen.  Time taken is system and load
 	 * dependent, so read from config file.
 	 */
@@ -703,12 +732,14 @@ int esd_open_sound( const char *host )
 	sigaction(SIGUSR1, &sa_orig, NULL);
 	sigaction(SIGALRM, &sa_orig_alarm, NULL);
     }
+//printf("esd_open_sound %d socket_out=%d\n", __LINE__, socket_out);
 
  finish_connect:
     if (socket_out >= 0
 	&& !esd_send_auth (socket_out)) {
 	close(socket_out); socket_out = -1;
     }
+//printf("esd_open_sound %d socket_out=%d\n", __LINE__, socket_out);
 
     return socket_out;
 }

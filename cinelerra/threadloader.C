@@ -37,6 +37,7 @@ ThreadLoader::~ThreadLoader()
 int ThreadLoader::set_paths(ArrayList<char *> *paths)
 {
 	this->paths = paths;
+    return 0;
 }
 
 void ThreadLoader::run()

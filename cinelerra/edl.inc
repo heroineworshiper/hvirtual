@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +35,11 @@ class EDL;
 #define LOAD_ASSETS 	0x00000080
 #define LOAD_SESSION	0x00000100
 
+// Load errors.  
+// This has to be a bitmask so multiple errors can happen without stopping.
+#define LOAD_OK 0
+// nested EDL's are recursive
+#define IS_RECURSIVE 1
 
 #define EDITING_MODES 2
 
@@ -48,9 +52,9 @@ class EDL;
 #define EDIT_HANDLE_MODES 3
 
 // Behavior for the edit handles based on mouse button
-#define MOVE_ALL_EDITS 0
-#define MOVE_ONE_EDIT 1
-#define MOVE_NO_EDITS 2
+#define MOVE_ALL_EDITS 0 // default for left button
+#define MOVE_ONE_EDIT 1 // default for middle button
+#define MOVE_NO_EDITS 2 // default for right button
 #define MOVE_EDITS_DISABLED 3
 
 
@@ -78,20 +82,20 @@ class EDL;
 // Active tool in CWindow corresponds to a member of the CPanel array
 // and the current drag operation
 
-#define CPANEL_OPERATIONS 10
+#define CPANEL_OPERATIONS 7
 
 
 #define CWINDOW_NONE -1
-#define CWINDOW_PROTECT     0
-#define CWINDOW_ZOOM        1
-#define CWINDOW_MASK        2
-#define CWINDOW_RULER       3
-#define CWINDOW_CAMERA      4
-#define CWINDOW_PROJECTOR   5
-#define CWINDOW_CROP        6
-#define CWINDOW_EYEDROP     7
-#define CWINDOW_TOOL_WINDOW 8
-#define CWINDOW_TITLESAFE   9
+//#define CWINDOW_PROTECT     0
+#define CWINDOW_ZOOM        0
+#define CWINDOW_MASK        1
+#define CWINDOW_RULER       2
+#define CWINDOW_CAMERA      3
+#define CWINDOW_PROJECTOR   4
+#define CWINDOW_CROP        5
+#define CWINDOW_EYEDROP     6
+//#define CWINDOW_TOOL_WINDOW 8
+//#define CWINDOW_TITLESAFE   8
 
 // Current dragging operations not available in the CPanel
 #define CWINDOW_SCROLL 0x10

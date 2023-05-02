@@ -36,34 +36,42 @@ AudioCine::~AudioCine()
 
 int AudioCine::open_input()
 {
+    return 0;
 }
 
 int AudioCine::open_output()
 {
+    return 0;
 }
 
 int AudioCine::write_buffer(char *buffer, int size)
 {
+    return 0;
 }
 
 int AudioCine::read_buffer(char *buffer, int size)
 {
+    return 0;
 }
 
 int AudioCine::close_all()
 {
+    return 0;
 }
 
 int64_t AudioCine::device_position()
 {
+    return 0;
 }
 
 int AudioCine::flush_device()
 {
+    return 0;
 }
 
 int AudioCine::interrupt_playback()
 {
+    return 0;
 }
 
 

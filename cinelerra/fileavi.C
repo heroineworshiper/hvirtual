@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,53 +76,108 @@ FileAVI::~FileAVI()
 	close_file();
 }
 
-int FileAVI::check_sig(Asset *asset)
+
+FileAVI::FileAVI()
+ : FileBase()
 {
-// Pick whoever gets the most tracks
-	int score_lavtools = 0;
-	int score_arne2 = 0;
-	int score_arne1 = 0;
-	int score_avifile = 0;
-	int final = 0;
-	int result = 0;
+    ids.append(FILE_AVI_LAVTOOLS);
+    ids.append(FILE_AVI_ARNE2);
+    ids.append(FILE_AVI_ARNE1);
+    ids.append(FILE_AVI_AVIFILE);
+    has_audio = 1;
+    has_video = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileAVI::create(File *file)
+{
+    return new FileAVI(file->asset, file);
+}
 
 
+const char* FileAVI::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_AVI_ARNE2:
+			return AVI_ARNE2_NAME;
+			break;
+		case FILE_AVI_ARNE1:
+			return AVI_ARNE1_NAME;
+			break;
+		case FILE_AVI_AVIFILE:
+			return AVI_AVIFILE_NAME;
+			break;
+		case FILE_AVI_LAVTOOLS:
+			return AVI_LAVTOOLS_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileAVI::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_AVI:
+            return "avi";
+    }
+    return 0;
+}
 
 
-
-	check_sig_lavtools(asset, score_lavtools);
-	check_sig_arne2(asset, score_arne2);
-	check_sig_arne1(asset, score_arne1);
-	check_sig_avifile(asset, score_avifile);
-
-	if(score_lavtools > final) 
-	{
-		final = score_lavtools;
-		result = FILE_AVI_LAVTOOLS;
-	}
-	if(score_arne2 > final)
-	{
-		final = score_arne2;
-		result = FILE_AVI_ARNE2;
-	}
-	if(score_arne1 > final)
-	{
-		final = score_arne1;
-		result = FILE_AVI_ARNE1;
-	}
-	if(score_avifile > final)
-	{
-		final = score_avifile;
-		result = FILE_AVI_AVIFILE;
-	}
-
-
-
-
-
-
-
-	return result;
+int FileAVI::check_sig(File *file, const uint8_t *test_data)
+{
+// Using FFMPEG for AVI
+    return 0;
+//     Asset *asset = file->asset;
+// 
+// // Pick whoever gets the most tracks
+// 	int score_lavtools = 0;
+// 	int score_arne2 = 0;
+// 	int score_arne1 = 0;
+// 	int score_avifile = 0;
+// 	int final = 0;
+// 	int result = 0;
+// 
+// 
+// 
+// 
+// 
+// 	check_sig_lavtools(asset, score_lavtools);
+// 	check_sig_arne2(asset, score_arne2);
+// 	check_sig_arne1(asset, score_arne1);
+// 	check_sig_avifile(asset, score_avifile);
+// 
+// 	if(score_lavtools > final) 
+// 	{
+// 		final = score_lavtools;
+// 		result = FILE_AVI_LAVTOOLS;
+// 	}
+// 	if(score_arne2 > final)
+// 	{
+// 		final = score_arne2;
+// 		result = FILE_AVI_ARNE2;
+// 	}
+// 	if(score_arne1 > final)
+// 	{
+// 		final = score_arne1;
+// 		result = FILE_AVI_ARNE1;
+// 	}
+// 	if(score_avifile > final)
+// 	{
+// 		final = score_avifile;
+// 		result = FILE_AVI_AVIFILE;
+// 	}
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 	return result;
 }
 
 int FileAVI::check_sig_arne2(Asset *asset, int &score)
@@ -318,7 +372,8 @@ int FileAVI::open_file(int rd, int wr)
 	else
 	if(rd)
 	{
-		asset->format = check_sig(asset);
+        const uint8_t test[] = { 0 };
+		asset->format = check_sig(file, test);
 
 
 		switch(asset->format)
@@ -533,6 +588,7 @@ int FileAVI::close_file()
 #endif
 	if(temp_audio) delete [] temp_audio;
 	reset();
+    return 0;
 }
 
 int FileAVI::cmodel_bc_to_avi(int input)
@@ -563,28 +619,27 @@ void FileAVI::reset()
 	temp_allocated = 0;
 }
 
-int FileAVI::get_best_colormodel(int driver, int colormodel)
+int FileAVI::get_best_colormodel(Asset *asset, int driver)
 {
-	if(colormodel > -1)
-	{
-		return colormodel;
-	}
-	else
-	{
+// 	if(colormodel > -1)
+// 	{
+// 		return colormodel;
+// 	}
+// 	else
+// 	{
 		
 		return BC_RGB888;
-	}
+//	}
 }
 
 
 void FileAVI::get_parameters(BC_WindowBase *parent_window, 
 		Asset *asset, 
 		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options,
-		char *locked_compressor)
+		int option_type,
+		const char *locked_compressor)
 {
-	if(audio_options)
+	if(option_type == AUDIO_PARAMS)
 	{
 		AVIConfigAudio *window = new AVIConfigAudio(parent_window, asset);
 		format_window = window;
@@ -593,7 +648,7 @@ void FileAVI::get_parameters(BC_WindowBase *parent_window,
 		delete window;
 	}
 	else
-	if(video_options)
+	if(option_type == VIDEO_PARAMS)
 	{
 //printf("FileAVI::get_parameters 1\n");
 		AVIConfigVideo *window = new AVIConfigVideo(parent_window,
@@ -615,6 +670,7 @@ int FileAVI::set_audio_position(int64_t x)
 	else
 		return 1;
 #endif
+    return 0;
 }
 
 int FileAVI::set_video_position(int64_t x)
@@ -625,6 +681,7 @@ int FileAVI::set_video_position(int64_t x)
 	else
 		return 1;
 #endif
+    return 0;
 }
 
 int FileAVI::read_samples(double *buffer, int64_t len)
@@ -753,6 +810,7 @@ int AVIConfigAudio::calculate_w(int format)
 		case FILE_AVI_AVIFILE: return 400; break;
 		case FILE_AVI_ARNE2: return 250; break;
 	}
+    return 0;
 }
 
 int AVIConfigAudio::calculate_h(int format)
@@ -762,6 +820,7 @@ int AVIConfigAudio::calculate_h(int format)
 		case FILE_AVI_AVIFILE: return 200; break;
 		case FILE_AVI_ARNE2: return 100; break;
 	}
+    return 0;
 }
 
 void AVIConfigAudio::create_objects()
@@ -863,7 +922,7 @@ int AVIACodecList::handle_event()
 
 AVIConfigVideo::AVIConfigVideo(BC_WindowBase *parent_window, 
 		Asset *asset, 
-		char *locked_compressor)
+		const char *locked_compressor)
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
@@ -896,6 +955,7 @@ int AVIConfigVideo::calculate_w(int format)
 		case FILE_AVI_AVIFILE: return 400; break;
 		case FILE_AVI_ARNE2: return 250; break;
 	}
+    return 0;
 }
 
 int AVIConfigVideo::calculate_h(int format)
@@ -905,6 +965,7 @@ int AVIConfigVideo::calculate_h(int format)
 		case FILE_AVI_AVIFILE: return 320; break;
 		case FILE_AVI_ARNE2: return 100; break;
 	}
+    return 0;
 }
 
 void AVIConfigVideo::create_objects()

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,10 +70,10 @@ public:
 	VFrame* get_frame_ptr(int64_t position,
 		int layer,
 		double frame_rate,
-		int color_model,
-		int w,
-		int h,
-		int source_id = -1);
+		int color_model, // ignore if -1
+		int w, // ignore if -1
+		int h, // ignore if -1
+		int source_id = -1); // ignore if -1
 // Puts the frame in cache.
 // use_copy - if 1 a copy of the frame is made.  if 0 the argument is stored.
 // The copy of the frame is deleted by FrameCache in a future delete_oldest.

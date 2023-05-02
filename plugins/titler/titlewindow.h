@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ class TitleThread;
 class TitleWindow;
 class TitleInterlace;
 
+#include "browsebutton.inc"
 #include "colorpicker.h"
 #include "filexml.h"
 #include "mutex.h"
@@ -36,9 +37,11 @@ class TitleInterlace;
 
 
 
-
+class TitleSubsText;
+class TitleSubs;
 class TitleFontTumble;
 class TitleSizeTumble;
+class LineSpace;
 class TitleItalic;
 class TitleBold;
 class TitleSize;
@@ -62,6 +65,7 @@ class TitleSpeed;
 class TitleTimecode;
 class TitleTimecodeFormat;
 class TitleOutline;
+class TitleBlur;
 
 class TitleWindow : public PluginClientWindow
 {
@@ -87,10 +91,12 @@ public:
 	TitleX *title_x;
 	BC_Title *y_title;
 	TitleY *title_y;
+    LineSpace *line_spacing;
 	BC_Title *dropshadow_title;
 	TitleDropShadow *dropshadow;
 	BC_Title *outline_title;
 	TitleOutline *outline;
+    TitleBlur *blur;
 	BC_Title *style_title;
 	TitleItalic *italic;
 	TitleBold *bold;
@@ -127,11 +133,46 @@ public:
 	TitleTimecode *timecode;
 	TitleTimecodeFormat *timecode_format;
 
+	TitleSubs *subtitles;
+	BrowseButton *subtitle_browse;
+	TitleSubsText *subtitle_text;
+
 // Color preview
 	ArrayList<BC_ListBoxItem*> sizes;
 	ArrayList<BC_ListBoxItem*> encodings;
 	ArrayList<BC_ListBoxItem*> paths;
 	ArrayList<BC_ListBoxItem*> fonts;
+
+// Suggestions for the textbox
+	ArrayList<BC_ListBoxItem*> *file_entries;
+};
+
+
+class TitleSubsText : public BC_TextBox
+{
+public:
+	TitleSubsText(TitleWindow *window, int x, int y);
+	~TitleSubsText();
+	int handle_event();
+	TitleWindow *window;
+};
+
+
+class TitleSubs : public BC_CheckBox
+{
+public:
+	TitleSubs(TitleWindow *window, int x, int y);
+	int handle_event();
+	TitleWindow *window;
+};
+
+
+class TitleBlur : public BC_CheckBox
+{
+public:
+	TitleBlur(TitleWindow *window, int x, int y);
+	int handle_event();
+	TitleWindow *window;
 };
 
 
@@ -303,6 +344,18 @@ public:
 	TitleMain *client;
 	TitleWindow *window;
 };
+
+
+
+class LineSpace : public BC_TumbleTextBox
+{
+public:
+	LineSpace(TitleMain *client, TitleWindow *window, int x, int y);
+	int handle_event();
+	TitleMain *client;
+	TitleWindow *window;
+};
+
 
 class TitleDropShadow : public BC_TumbleTextBox
 {

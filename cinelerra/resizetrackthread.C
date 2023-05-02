@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,47 +38,58 @@
 
 
 ResizeTrackThread::ResizeTrackThread(MWindow *mwindow, int track_number)
- : Thread()
+ : BC_DialogThread()
 {
 	this->mwindow = mwindow;
 	this->track_number = track_number;
-	window = 0;
 }
 
 ResizeTrackThread::~ResizeTrackThread()
 {
-	if(window)
-	{
-		window->lock_window();
-		window->set_done(1);
-		window->unlock_window();
-	}
-
-	Thread::join();
+// PRINT_TRACE
+// 	if(window)
+// 	{
+// 		window->lock_window();
+// 		window->set_done(1);
+// 		window->unlock_window();
+// 	}
+// PRINT_TRACE
+// 
+// 	Thread::join();
+// PRINT_TRACE
 }
 
 void ResizeTrackThread::start_window(Track *track, int track_number)
 {
-	this->track_number = track_number;
-	w1 = w = track->track_w;
-	h1 = h = track->track_h;
-	w_scale = h_scale = 1;
-	start();
+	if(!BC_DialogThread::is_running())
+    {
+	    this->track_number = track_number;
+	    w1 = w = track->track_w;
+	    h1 = h = track->track_h;
+	    w_scale = h_scale = 1;
+        mwindow->gui->unlock_window();
+	    BC_DialogThread::start();
+        mwindow->gui->lock_window("ResizeTrackThread::start_window");
+    }
 }
 
-
-void ResizeTrackThread::run()
+BC_Window* ResizeTrackThread::new_gui()
 {
-	ResizeTrackWindow *window = this->window = 
+	ResizeTrackWindow *window = 
 		new ResizeTrackWindow(mwindow, 
 			this,
 			mwindow->gui->get_abs_cursor_x(1),
 			mwindow->gui->get_abs_cursor_y(1));
 	window->create_objects();
-	int result = window->run_window();
-	this->window = 0;
-	delete window;
+    return window;
+}
 
+void ResizeTrackThread::handle_done_event(int result)
+{
+}
+
+void ResizeTrackThread::handle_close_event(int result)
+{
 
 	if(!result)
 	{
@@ -90,30 +101,66 @@ void ResizeTrackThread::run()
 		}
 	}
 
-	if(((w % 4) || 
-		(h % 4)) && 
-		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
-	{
-		MainError::show_error(
-			_("This track's dimensions are not multiples of 4 so\n"
-			"it can't be rendered by OpenGL."));
-	}
+// 	if(((w % 4) || 
+// 		(h % 4)) && 
+// 		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
+// 	{
+// 		MainError::show_error(
+// 			_("This track's dimensions are not multiples of 4 so\n"
+// 			"it can't be rendered by OpenGL."));
+// 	}
 }
 
 
+// void ResizeTrackThread::run()
+// {
+// 	ResizeTrackWindow *window = this->window = 
+// 		new ResizeTrackWindow(mwindow, 
+// 			this,
+// 			mwindow->gui->get_abs_cursor_x(1),
+// 			mwindow->gui->get_abs_cursor_y(1));
+// 	window->create_objects();
+// 	int result = window->run_window();
+// 	this->window = 0;
+// 	delete window;
+// 
+// 
+// 	if(!result)
+// 	{
+// 		Track *track = mwindow->edl->tracks->get_item_number(track_number);
+// 
+// 		if(track)
+// 		{
+// 			mwindow->resize_track(track, w, h);
+// 		}
+// 	}
+// 
+// 	if(((w % 4) || 
+// 		(h % 4)) && 
+// 		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
+// 	{
+// 		MainError::show_error(
+// 			_("This track's dimensions are not multiples of 4 so\n"
+// 			"it can't be rendered by OpenGL."));
+// 	}
+// }
 
+
+#define WINDOW_W DP(350)
+#define WINDOW_H DP(100)
+#define TEXT_W DP(90)
 
 ResizeTrackWindow::ResizeTrackWindow(MWindow *mwindow, 
 	ResizeTrackThread *thread,
 	int x,
 	int y)
  : BC_Window(PROGRAM_NAME ": Resize Track", 
-				x - 320 / 2,
-				y - get_resources()->ok_images[0]->get_h() + 100 / 2,
-				340, 
-				get_resources()->ok_images[0]->get_h() + 100, 
-				340, 
-				get_resources()->ok_images[0]->get_h() + 100, 
+				x - WINDOW_W / 2,
+				y - get_resources()->ok_images[0]->get_h() + WINDOW_H / 2,
+				WINDOW_W, 
+				get_resources()->ok_images[0]->get_h() + WINDOW_H, 
+				WINDOW_W, 
+				get_resources()->ok_images[0]->get_h() + WINDOW_H, 
 				0,
 				0, 
 				1)
@@ -128,44 +175,46 @@ ResizeTrackWindow::~ResizeTrackWindow()
 
 void ResizeTrackWindow::create_objects()
 {
-	int x = 10, y = 10;
+    int margin = mwindow->theme->widget_border;
+	int x = margin, y = margin;
+    BC_Title *text;
 
 	lock_window("ResizeTrackWindow::create_objects");
-	add_subwindow(new BC_Title(x, y, _("Size:")));
-	x += 50;
+	add_subwindow(text = new BC_Title(x, y, _("Size:")));
+	x += text->get_w() + margin;
 	add_subwindow(w = new ResizeTrackWidth(this, 
 		thread,
 		x,
 		y));
-	x += w->get_w() + 10;
-	add_subwindow(new BC_Title(x, y, _("x")));
-	x += 15;
+	x += w->get_w() + margin;
+	add_subwindow(text = new BC_Title(x, y, _("x")));
+	x += text->get_w() + margin;
 	add_subwindow(h = new ResizeTrackHeight(this, 
 		thread,
 		x,
 		y));
-	x += h->get_w() + 5;
+	x += h->get_w() + margin;
 	FrameSizePulldown *pulldown;
 	add_subwindow(pulldown = new FrameSizePulldown(mwindow->theme, 
 		w, 
 		h, 
 		x, 
 		y));
-	x += pulldown->get_w() + 5;
+	x += pulldown->get_w() + margin;
 	add_subwindow(new ResizeTrackSwap(this, thread, x, y));
 
 
-	y += 30;
-	x = 10;
-	add_subwindow(new BC_Title(x, y, _("Scale:")));
-	x += 50;
+	y += pulldown->get_h() + margin;
+	x = margin;
+	add_subwindow(text = new BC_Title(x, y, _("Scale:")));
+	x += text->get_w() + margin;
 	add_subwindow(w_scale = new ResizeTrackScaleW(this, 
 		thread,
 		x,
 		y));
-	x += 100;
-	add_subwindow(new BC_Title(x, y, _("x")));
-	x += 15;
+	x += w_scale->get_w() + margin;
+	add_subwindow(text = new BC_Title(x, y, _("x")));
+	x += text->get_w() + margin;
 	add_subwindow(h_scale = new ResizeTrackScaleH(this, 
 		thread,
 		x,
@@ -238,7 +287,7 @@ ResizeTrackWidth::ResizeTrackWidth(ResizeTrackWindow *gui,
 	ResizeTrackThread *thread,
 	int x,
 	int y)
- : BC_TextBox(x, y, 90, 1, thread->w)
+ : BC_TextBox(x, y, TEXT_W, 1, thread->w)
 {
 	this->gui = gui;
 	this->thread = thread;
@@ -254,7 +303,7 @@ ResizeTrackHeight::ResizeTrackHeight(ResizeTrackWindow *gui,
 	ResizeTrackThread *thread,
 	int x,
 	int y)
- : BC_TextBox(x, y, 90, 1, thread->h)
+ : BC_TextBox(x, y, TEXT_W, 1, thread->h)
 {
 	this->gui = gui;
 	this->thread = thread;
@@ -271,7 +320,7 @@ ResizeTrackScaleW::ResizeTrackScaleW(ResizeTrackWindow *gui,
 	ResizeTrackThread *thread,
 	int x,
 	int y)
- : BC_TextBox(x, y, 90, 1, (float)thread->w_scale)
+ : BC_TextBox(x, y, TEXT_W, 1, (float)thread->w_scale)
 {
 	this->gui = gui;
 	this->thread = thread;
@@ -287,7 +336,7 @@ ResizeTrackScaleH::ResizeTrackScaleH(ResizeTrackWindow *gui,
 	ResizeTrackThread *thread,
 	int x,
 	int y)
- : BC_TextBox(x, y, 90, 1, (float)thread->h_scale)
+ : BC_TextBox(x, y, TEXT_W, 1, (float)thread->h_scale)
 {
 	this->gui = gui;
 	this->thread = thread;

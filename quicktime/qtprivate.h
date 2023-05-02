@@ -57,7 +57,7 @@ typedef struct
 // Position in output buffer of buffer_end
 	int buffer_ptr;
 // Output buffer, linear for each channel.
-	double **output_buffer;
+	float **output_buffer;
 // Copy of channel count for deletion
 	int channels;
 // Input buffer for temporary compressed data
@@ -150,12 +150,17 @@ typedef struct
 {
 	char *mpeg4_header;
 	int mpeg4_header_size;
+    int sample_rate;
+    int channels;
+    int got_esds_rate;
 } quicktime_esds_t;
 
 typedef struct
 {
 	char *data;
 	int data_size;
+// same struct is used for avcC & hvcC blocks
+    int is_hvcc;
 } quicktime_avcc_t;
 
 typedef struct
@@ -651,6 +656,7 @@ typedef struct
 	int u_size;
 	int v_size;
 	int64_t frame_number;
+    int track;
 } quicktime_cacheframe_t;
 
 typedef struct
@@ -659,6 +665,11 @@ typedef struct
 	int total;
 	int allocation;
 	int max;
+    
+// function to use for caching frames instead of the frame_cache
+    void (*put_cache)(void *ptr);
+    void *put_cache_ptr;
+
 } quicktime_cache_t;
 
 /* table of pointers to every track */
@@ -678,8 +689,6 @@ typedef struct
 	quicktime_trak_t *track;
 	int64_t current_position;   /* current frame in output file */
 	int64_t current_chunk;      /* current chunk in output file */
-// Cache for the current GOP after a seek.
-	quicktime_cache_t *frame_cache;
 
 	void *codec;
 } quicktime_video_map_t;
@@ -729,7 +738,8 @@ typedef struct
 	int is_odml;
 
 
-
+/* tag the file for spherical playback */
+	int is_sphere;
 
 
 
@@ -776,13 +786,32 @@ typedef struct
 	int total_vtracks;
 	quicktime_video_map_t *vtracks;
 
+// Cache for the current GOP after a seek.
+	quicktime_cache_t *frame_cache;
+
 /* Number of processors at our disposal */
 	int cpus;
+
+/* Use hardware when possible */
+    int use_hw;
 
 /* Parameters for frame currently being decoded */
 	int do_scaling;
 	int in_x, in_y, in_w, in_h, out_w, out_h;
 	int color_model, row_span;
+
+
+// pointers to the last frame, for ffmpeg decoding & caching
+    int src_colormodel;
+    unsigned char *src_data;
+    unsigned char *src_y;
+    unsigned char *src_u;
+    unsigned char *src_v;
+    int src_rowspan;
+    int src_w;
+    int src_h;
+    int64_t frame_number;
+    int64_t frame_layer;
 
 } quicktime_t;
 

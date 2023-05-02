@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,52 +109,53 @@ void BrightTheme::initialize()
 	resources->text_border2_hi = 0x000000;
 	resources->text_border3_hi = 0x000000;
 	resources->text_border4 = 0x000000;
-	resources->text_inactive_highlight = 0xe0e0e0;
-	resources->text_highlight = 0xe0e0e0;
+	resources->text_inactive_highlight = LTGREY;
+	resources->text_highlight = LTGREY;
 
 	resources->bg_color = 0xffffff;
 	resources->default_text_color = 0x000000;
 	resources->menu_title_text = 0x000000;
 	resources->popup_title_text = 0x000000;
 	resources->menu_item_text = 0x000000;
-	resources->generic_button_margin = 20;
+	resources->generic_button_margin = DP(5);
 	resources->pot_needle_color = resources->text_default;
 	resources->pot_offset = 1;
 	resources->progress_text = resources->text_default;
 	resources->meter_font_color = resources->default_text_color;
 	resources->tooltip_bg_color = WHITE;
 	clock_bg_color = WHITE;
+	clock_fg_color = BLACK;
 
 	resources->menu_light = 0x000000;
 	resources->menu_highlighted = 0xe0e0e0;
 	resources->menu_down = 0xc0c0c0;
 	resources->menu_up = 0xffffff;
 	resources->menu_shadow = 0x000000;
-	resources->popupmenu_margin = 10;
-	resources->popupmenu_triangle_margin = 15;
+	resources->popupmenu_margin = DP(5);
+	resources->popupmenu_triangle_margin = DP(15);
 
-	resources->listbox_title_color = 0x000000;
+	resources->listbox_title_color = BLACK;
 
-	resources->listbox_title_overlap = 20;
-	resources->listbox_title_margin = 20;
-	resources->listbox_title_hotspot = 20;
-	resources->listbox_border1 = 0x000000;
-	resources->listbox_border2 = 0xffffff;
-	resources->listbox_border3 = 0xffffff;
-	resources->listbox_border2_hi = 0x000000;
-	resources->listbox_border3_hi = 0x000000;
-	resources->listbox_border4 = 0x000000;
+	resources->listbox_title_overlap = DP(20);
+	resources->listbox_title_margin = DP(20);
+	resources->listbox_title_hotspot = DP(20);
+	resources->listbox_border1 = BLACK;
+	resources->listbox_border2 = WHITE;
+	resources->listbox_border3 = WHITE;
+	resources->listbox_border2_hi = BLACK;
+	resources->listbox_border3_hi = BLACK;
+	resources->listbox_border4 = BLACK;
 	resources->listbox_highlighted = 0xfefefe;
-	resources->listbox_inactive = 0xffffff;
+	resources->listbox_inactive = WHITE;
 	resources->listbox_selected = 0xe0e0e0;
 	resources->listbox_bg = 0;
-	resources->listbox_text = 0x000000;
+	resources->listbox_text = BLACK;
 
-	resources->filebox_margin = 130;
+	resources->filebox_margin = DP(130);
 	resources->file_color = 0x000000;
 	resources->directory_color = 0x0000ff;
 
-	resources->scroll_minhandle = 24;
+	resources->scroll_minhandle = DP(24);
 
 	new_toggle("loadmode_new.png", 
 		"loadmode_up.png",
@@ -215,15 +216,15 @@ void BrightTheme::initialize()
 
 
 
-	resources->filebox_icons_images = new_button("icons.png",
-		"fileboxbutton_up.png",
-		"fileboxbutton_hi.png",
-		"fileboxbutton_dn.png");
-
-	resources->filebox_text_images = new_button("text.png",
-		"fileboxbutton_up.png",
-		"fileboxbutton_hi.png",
-		"fileboxbutton_dn.png");
+// 	resources->filebox_icons_images = new_button("icons.png",
+// 		"fileboxbutton_up.png",
+// 		"fileboxbutton_hi.png",
+// 		"fileboxbutton_dn.png");
+// 
+// 	resources->filebox_text_images = new_button("text.png",
+// 		"fileboxbutton_up.png",
+// 		"fileboxbutton_hi.png",
+// 		"fileboxbutton_dn.png");
 
 	resources->filebox_newfolder_images = new_button("folder.png",
 		"fileboxbutton_up.png",
@@ -282,7 +283,7 @@ void BrightTheme::initialize()
 	resources->bar_data = new_image("bar", "bar.png");
 
 
-	resources->min_menu_w = 96;
+	resources->min_menu_w = DP(96);
 	resources->menu_popup_bg = new_image("menu_popup_bg.png");
 	resources->menu_item_bg = new_image_set(3,
 		"menuitem_up.png",
@@ -359,6 +360,24 @@ void BrightTheme::initialize()
 		"radial_checkedhi.png");
 
 
+
+	resources->ymeter_images = new_image_set(6, 
+		"ymeter_normal.png",
+		"ymeter_green.png",
+		"ymeter_red.png",
+		"ymeter_yellow.png",
+		"ymeter_white.png",
+		"ymeter_over.png");
+
+	resources->xmeter_images = new_image_set(6, 
+		"xmeter_normal.png",
+		"xmeter_green.png",
+		"xmeter_red.png",
+		"xmeter_yellow.png",
+		"xmeter_white.png",
+		"xmeter_over.png");
+
+
 	resources->hscroll_data = new_image_set(10,
 			"bright_hscroll_handle_up.png",
 			"bright_hscroll_handle_hi.png",
@@ -396,20 +415,29 @@ void BrightTheme::initialize()
 
 
 
-	preferences_category_overlap = 0;
-	preferencescategory_x = 0;
-	preferencescategory_y = 5;
-	preferencestitle_x = 5;
-	preferencestitle_y = 10;
-	preferencesoptions_x = 5;
-	preferencesoptions_y = 0;
+	preferences_category_overlap = DP(0);
+	preferencescategory_x = DP(0);
+	preferencescategory_y = DP(5);
+	preferencestitle_x = DP(5);
+	preferencestitle_y = DP(10);
+	preferencesoptions_x = DP(5);
+	preferencesoptions_y = DP(5);
 
 // MWindow
 	message_normal = resources->text_default;
-	audio_color = 0x00ff00;
+    fps_color = WHITE;
+	audio_color = 0x000000;
+    zero_crossing_color = BLACK;
+    graph_active_color = BLACK;
+    graph_inactive_color = MEGREY;
+    graph_grid_color = BLACK;
+    graph_bg_color = WHITE;
+    graph_border1_color = BLACK;
+    graph_border2_color = BLACK;
+    
 	assetedit_color = BLACK;
-	mtransport_margin = 20;
-	toggle_margin = 20;
+	mtransport_margin = DP(20);
+	toggle_margin = DP(20);
 	timebar_cursor_color = BLACK;
 
 	new_image("mbutton_bg", "mbutton_bg.png");
@@ -463,22 +491,22 @@ void BrightTheme::initialize()
 
 	setformat_w = get_image("setformat_bg")->get_w();
 	setformat_h = get_image("setformat_bg")->get_h();
-	setformat_x1 = 15;
-	setformat_x2 = 100;
+	setformat_x1 = DP(15);
+	setformat_x2 = DP(120);
 
-	setformat_x3 = 315;
-	setformat_x4 = 415;
-	setformat_y1 = 20;
-	setformat_y2 = 85;
-	setformat_y3 = 125;
-	setformat_margin = 30;
-	setformat_channels_x = 25;
-	setformat_channels_y = 242;
-	setformat_channels_w = 250;
-	setformat_channels_h = 250;
+	setformat_x3 = DP(315);
+	setformat_x4 = DP(430);
+	setformat_y1 = DP(20);
+	setformat_y2 = DP(85);
+	setformat_y3 = DP(125);
+	setformat_margin = DP(30);
+	setformat_channels_x = DP(25);
+	setformat_channels_y = DP(242);
+	setformat_channels_w = DP(250);
+	setformat_channels_h = DP(250);
 
 	loadfile_pad = get_image_set("loadmode_new")[0]->get_h() + 10;
-	browse_pad = 20;
+	browse_pad = DP(20);
 
 
 	new_toggle("playpatch.png", 
@@ -729,7 +757,7 @@ void BrightTheme::initialize()
 	recordgui_variable_color = BLACK;
 
 	channel_position_color = BLACK;
-	resources->meter_title_w = 25;
+	resources->meter_title_w = DP(30);
 }
 
 
@@ -737,7 +765,8 @@ void BrightTheme::initialize()
 void BrightTheme::build_bg_data()
 {
 // Audio settings
-	channel_position_data = new VFrame(get_image_data("channel_position.png"));
+	channel_position_data = new VFrame();
+	channel_position_data->read_png(get_image_data("channel_position.png"), BC_Resources::dpi);
 
 // Track bitmaps
 	new_image("resource1024", "resource1024.png");
@@ -767,48 +796,28 @@ void BrightTheme::build_overlays()
 
 
 
+void BrightTheme::get_mwindow_sizes(MWindowGUI *gui, int w, int h)
+{
+	Theme::get_mwindow_sizes(gui, w, h);
+	mclock_y += 2;
+	
+	
+}
+
+void BrightTheme::get_vwindow_sizes(VWindowGUI *gui)
+{
+	Theme::get_vwindow_sizes(gui);
+}
 
 
 
 
 void BrightTheme::draw_rwindow_bg(RecordGUI *gui)
 {
-// 	int y;
-// 	int margin = 50;
-// 	int margin2 = 80;
-// 	gui->draw_9segment(recordgui_batch_x - margin,
-// 		0,
-// 		mwindow->session->rwindow_w - recordgui_status_x + margin,
-// 		recordgui_buttons_y,
-// 		rgui_batch);
-// 	gui->draw_3segmenth(recordgui_options_x - margin2,
-// 		recordgui_buttons_y - 5,
-// 		mwindow->session->rwindow_w - recordgui_options_x + margin2,
-// 		rgui_controls);
-// 	y = recordgui_buttons_y - 5 + rgui_controls->get_h();
-// 	gui->draw_9segment(0,
-// 		y,
-// 		mwindow->session->rwindow_w,
-// 		mwindow->session->rwindow_h - y,
-// 		rgui_list);
 }
 
 void BrightTheme::draw_rmonitor_bg(RecordMonitorGUI *gui)
 {
-// 	int margin = 45;
-// 	int panel_w = 300;
-// 	int x = rmonitor_meter_x - margin;
-// 	int w = mwindow->session->rmonitor_w - x;
-// 	if(w < rmonitor_meters->get_w()) w = rmonitor_meters->get_w();
-// 	gui->clear_box(0, 
-// 		0, 
-// 		mwindow->session->rmonitor_w, 
-// 		mwindow->session->rmonitor_h);
-// 	gui->draw_9segment(x,
-// 		0,
-// 		w,
-// 		mwindow->session->rmonitor_h,
-// 		rmonitor_meters);
 }
 
 
@@ -825,11 +834,11 @@ void BrightTheme::draw_mwindow_bg(MWindowGUI *gui)
 		get_image("mbutton_bg"));
 
 	gui->draw_vframe(get_image("panel_divider"),
-		mbuttons_x + 228,
+		mbuttons_x + DP(228),
 		mbuttons_y - 1);
 
 	gui->draw_vframe(get_image("panel_divider"),
-		mbuttons_x + 320,
+		mbuttons_x + DP(320),
 		mbuttons_y - 1);
 
 // Clock
@@ -889,6 +898,7 @@ void BrightTheme::draw_cwindow_bg(CWindowGUI *gui)
 		resources->hscroll_data[0]->get_h());
 	gui->draw_3segmentv(0, 0, ccomposite_h, get_image("cpanel_bg"));
 	gui->draw_3segmenth(0, ccomposite_h, cstatus_x, get_image("cbuttons_left"));
+#ifdef USE_METERS
 	if(mwindow->edl->session->cwindow_meter)
 	{
 		gui->draw_3segmenth(cstatus_x, 
@@ -902,10 +912,11 @@ void BrightTheme::draw_cwindow_bg(CWindowGUI *gui)
 			get_image("cmeter_bg"));
 	}
 	else
+#endif
 	{
 		gui->draw_3segmenth(cstatus_x, 
 			ccomposite_h, 
-			cmeter_x - widget_border - cstatus_x + 100, 
+			cmeter_x - widget_border - cstatus_x + DP(100), 
 			get_image("cbuttons_right"));
 	}
 }
@@ -918,6 +929,7 @@ void BrightTheme::draw_vwindow_bg(VWindowGUI *gui)
 		get_image("vbuttons_left"));
 
 
+#ifdef USE_METERS
 	if(mwindow->edl->session->vwindow_meter)
 	{
 		gui->draw_3segmenth(vdivision_x, 
@@ -931,17 +943,18 @@ void BrightTheme::draw_vwindow_bg(VWindowGUI *gui)
 			get_image("cmeter_bg"));
 	}
 	else
+#endif
 	{
 		gui->draw_3segmenth(vdivision_x, 
 			vcanvas_h, 
-			vmeter_x - widget_border - vdivision_x + 100, 
+			vmeter_x - widget_border - vdivision_x + DP(100), 
 			get_image("cbuttons_right"));
 	}
 
 // Clock border
-	gui->draw_3segmenth(vtime_x - 20, 
-		vtime_y - 1, 
-		vtime_w + 40,
+	gui->draw_3segmenth(vtime_x - DP(20), 
+		vtime_y + 1, 
+		vtime_w + DP(40),
 		get_image("vclock"));
 }
 

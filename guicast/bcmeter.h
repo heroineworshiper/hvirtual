@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +34,10 @@
 
 // Distance from subwindow border to top and bottom tick mark
 #define METER_MARGIN 0
+// tick width
+#define TICK_W1 DP(10)
+#define TICK_W2 DP(5)
+
 
 class BC_Meter : public BC_SubWindow
 {
@@ -47,7 +50,8 @@ public:
 		int max,
 		int mode, /* = METER_DB, */
 		int use_titles, /* = 0, */
-		int span /* = -1 width for vertical mode only */);
+		int span /* = -1 width for vertical mode only */,
+        int is_gain_change = 0);
 	virtual ~BC_Meter();
 
 	int initialize();
@@ -90,13 +94,15 @@ private:
 	int use_titles;
 // Tick mark positions
 	ArrayList<int> tick_pixels;
+// Tick widths
+	ArrayList<int> tick_w;
 // Title positions
 	ArrayList<int> title_pixels;
 	ArrayList<char*> db_titles;
 	float level, peak;
 	int mode;
-	DB db;
 	int peak_timer;
+    int is_gain_change;
 
 
 

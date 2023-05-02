@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
@@ -90,7 +89,17 @@ public:
 		CAN_COPY_FROM,
 		COLORMODEL_SUPPORTED,
 		GET_MEMORY_USAGE,
-		SET_CACHE
+		SET_CACHE,
+        
+// progress bar commands that are packed into send_result by the file fork
+        START_PROGRESS = 0x100,
+        UPDATE_PROGRESS, 
+        UPDATE_PROGRESS_TITLE,
+        PROGRESS_CANCELED,
+        STOP_PROGRESS,
+
+// read_frame commands that are packed into send_result
+        FILE_READ_TEMP // the read_frame requested a temporary
 	};
 };
 

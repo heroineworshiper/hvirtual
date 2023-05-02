@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -170,7 +170,7 @@ Color3WayUnit::Color3WayUnit(Color3WayMain *plugin,
 	(value)
 
 #define MIDTONE_CURVE(value, factor) \
-	((factor) <= 0 ? \
+	((factor) <= 0.0 ? \
 	(1.0 - SHADOW_LINEAR(value) - HIGHLIGHT_CURVE(value)) : \
 	(1.0 - SHADOW_CURVE(value) - HIGHLIGHT_LINEAR(value)))
 
@@ -248,9 +248,24 @@ Color3WayUnit::Color3WayUnit(Color3WayMain *plugin,
 	} \
 }
 
-#define CALCULATE_FACTORS(s_out, v_out, s_in, v_in) \
-	s_out = s_in; \
-	v_out = v_in;
+
+
+
+#define COLOR3WAY_VARS(plugin) \
+	float r_factor[SECTIONS]; \
+	float g_factor[SECTIONS]; \
+	float b_factor[SECTIONS]; \
+	float s_factor[SECTIONS]; \
+	float v_factor[SECTIONS]; \
+ \
+ \
+	for(int i = 0; i < SECTIONS; i++) \
+	{ \
+		(plugin)->calculate_factors(&r_factor[i], &g_factor[i], &b_factor[i], i); \
+		s_factor[i] = (plugin)->config.saturation[i]; \
+		v_factor[i] = (plugin)->config.value[i]; \
+	}
+
 
 
 
@@ -259,31 +274,7 @@ void Color3WayUnit::process_package(LoadPackage *package)
 	Color3WayPackage *pkg = (Color3WayPackage*)package;
 	int w = plugin->get_input()->get_w();
 
-	float r_factor[SECTIONS];
-	float g_factor[SECTIONS];
-	float b_factor[SECTIONS];
-	float s_factor[SECTIONS];
-	float v_factor[SECTIONS];
-
-
-	for(int i = 0; i < SECTIONS; i++)
-	{
-		plugin->calculate_factors(&r_factor[i], &g_factor[i], &b_factor[i], i);
-		CALCULATE_FACTORS(s_factor[i], 
-			v_factor[i], 
-			plugin->config.saturation[i], 
-			plugin->config.value[i])
-// printf("Color3WayUnit::process_package %d %f %f %f %f %f\n", 
-// __LINE__, 
-// r_factor[i], 
-// g_factor[i], 
-// b_factor[i], 
-// s_factor[i], 
-// v_factor[i]);
-	}
-
-
-
+    COLOR3WAY_VARS(plugin)
 	for(int i = pkg->row1; i < pkg->row2; i++)
 	{
 		switch(plugin->get_input()->get_color_model())
@@ -393,6 +384,7 @@ int Color3WayMain::reconfigure()
 	return 0;
 }
 
+// used for drawing the GUI
 void Color3WayMain::process_pixel(float *r,
 	float *g,
 	float *b,
@@ -414,7 +406,8 @@ void Color3WayMain::process_pixel(float *r,
 			b_factor + i, 
 			x, 
 			y);
-		CALCULATE_FACTORS(s_factor[i], v_factor[i], 0, 0)
+		s_factor[i] = 0;
+        v_factor[i] = 0;
 	}
 	
 	PROCESS_PIXEL(r_in, g_in, b_in);
@@ -491,11 +484,10 @@ int Color3WayMain::process_buffer(VFrame *frame,
 		get_framerate(),
 		get_use_opengl());
 
-	int aggregate_interpolate = 0;
-	int aggregate_gamma = 0;
-	get_aggregation(&aggregate_interpolate,
-		&aggregate_gamma);
-
+    if(get_use_opengl())
+    {
+        return run_opengl();
+    }
 
 
 	engine->process_packages();
@@ -599,75 +591,107 @@ void Color3WayMain::read_data(KeyFrame *keyframe)
 	}
 }
 
-void Color3WayMain::get_aggregation(int *aggregate_interpolate,
-	int *aggregate_gamma)
-{
-	if(!strcmp(get_output()->get_prev_effect(1), "Interpolate Pixels") &&
-		!strcmp(get_output()->get_prev_effect(0), "Gamma"))
-	{
-		*aggregate_interpolate = 1;
-		*aggregate_gamma = 1;
-	}
-	else
-	if(!strcmp(get_output()->get_prev_effect(0), "Interpolate Pixels"))
-	{
-		*aggregate_interpolate = 1;
-	}
-	else
-	if(!strcmp(get_output()->get_prev_effect(0), "Gamma"))
-	{
-		*aggregate_gamma = 1;
-	}
-}
 
 int Color3WayMain::handle_opengl()
 {
 #ifdef HAVE_GL
+    COLOR3WAY_VARS(this)
 
 	get_output()->to_texture();
 	get_output()->enable_opengl();
 
 	unsigned int shader = 0;
-	const char *shader_stack[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	int current_shader = 0;
-	int aggregate_interpolate = 0;
-	int aggregate_gamma = 0;
 
-	get_aggregation(&aggregate_interpolate,
-		&aggregate_gamma);
+// copied from above
+    static const char *uniforms = 
+        "#define SHADOWS 0\n"
+        "#define MIDTONES 1\n"
+        "#define HIGHLIGHTS 2\n"
+        "#define SECTIONS 3\n"
+        "\n"
+        "// Lower = sharper curve\n"
+        "#define SHADOW_GAMMA 32.0\n"
+        "#define HIGHLIGHT_GAMMA 32.0\n"
+        "// Keep value == 0 from blowing up\n"
+        "#define FUDGE (1.0 / 256.0)\n"
+        "// Scale curve from 0 - 1\n"
+        "#define SHADOW_BORDER (1.0 / ((1.0 / SHADOW_GAMMA + FUDGE) / FUDGE))\n"
+        "#define HIGHLIGHT_BORDER (1.0 / ((1.0 / HIGHLIGHT_GAMMA + FUDGE) / FUDGE))\n"
+        "\n"
+        "#define SHADOW_CURVE(value) \\\n"
+	    "    (((1.0 / (((value) / SHADOW_GAMMA + FUDGE) / FUDGE)) - SHADOW_BORDER) / (1.0 - SHADOW_BORDER))\n"
+        "\n"
+        "#define SHADOW_LINEAR(value) (1.0 - (value))\n"
+        "\n"
+        "#define HIGHLIGHT_CURVE(value) \\\n"
+	    "    (((1.0 / (((1.0 - value) / HIGHLIGHT_GAMMA + FUDGE) / FUDGE)) - HIGHLIGHT_BORDER) / (1.0 - HIGHLIGHT_BORDER))\n"
+        "\n"
+        "#define HIGHLIGHT_LINEAR(value) \\\n"
+	    "    (value)\n"
+        "\n"
+        "#define MIDTONE_CURVE(value, factor) \\\n"
+	    "    ((factor) <= 0.0 ? \\\n"
+	    "    (1.0 - SHADOW_LINEAR(value) - HIGHLIGHT_CURVE(value)) : \\\n"
+	    "    (1.0 - SHADOW_CURVE(value) - HIGHLIGHT_LINEAR(value)))\n"
+        "\n"
+	    "uniform sampler2D tex;\n"
+        "uniform float r_factor[SECTIONS];\n"
+        "uniform float g_factor[SECTIONS];\n"
+        "uniform float b_factor[SECTIONS];\n"
+        "uniform float s_factor[SECTIONS];\n"
+        "uniform float v_factor[SECTIONS];\n"
+        "\n"
+        "float total_transfer(float value, float factor[SECTIONS])\n"
+        "{\n"
+        "    return factor[SHADOWS] * SHADOW_LINEAR(value) + \n"
+        "        factor[MIDTONES] * MIDTONE_CURVE(value, factor[MIDTONES]) + \n"
+        "        factor[HIGHLIGHTS] * HIGHLIGHT_LINEAR(value);\n"
+        "}\n"
+        "\n"
+        "void main()\n"
+	    "{\n"
+	    "    gl_FragColor = texture2D(tex, gl_TexCoord[0].st);\n";
 
-printf("Color3WayMain::handle_opengl %d %d\n", aggregate_interpolate, aggregate_gamma);
-	if(aggregate_interpolate)
-		INTERPOLATE_COMPILE(shader_stack, current_shader)
 
-	if(aggregate_gamma)
-		GAMMA_COMPILE(shader_stack, current_shader, aggregate_interpolate)
 
-	COLORBALANCE_COMPILE(shader_stack, 
-		current_shader, 
-		aggregate_gamma || aggregate_interpolate)
 
+
+    static const char *color3way_shader = 
+        "/* Apply hue */\n"
+        "    gl_FragColor.r += total_transfer(gl_FragColor.r, r_factor);\n"
+        "    gl_FragColor.g += total_transfer(gl_FragColor.g, g_factor);\n"
+        "    gl_FragColor.b += total_transfer(gl_FragColor.b, b_factor);\n"
+        "\n"
+        "/* Apply saturation/value */\n"
+        RGB_TO_HSV_FRAG("gl_FragColor")
+        "    gl_FragColor.b += total_transfer(gl_FragColor.b, v_factor);\n"
+        "    gl_FragColor.g += total_transfer(gl_FragColor.g, s_factor);\n"
+        "    if(gl_FragColor.g < 0.0) gl_FragColor.g = 0.0;\n"
+        HSV_TO_RGB_FRAG("gl_FragColor");
+
+
+
+
+
+
+    int is_yuv = cmodel_is_yuv(get_output()->get_color_model());
 	shader = VFrame::make_shader(0, 
-		shader_stack[0], 
-		shader_stack[1], 
-		shader_stack[2], 
-		shader_stack[3], 
-		shader_stack[4], 
-		shader_stack[5], 
-		shader_stack[6], 
-		shader_stack[7], 
+		uniforms, 
+		is_yuv ? YUV_TO_RGB_FRAG("gl_FragColor") : "", 
+		color3way_shader, 
+		is_yuv ? RGB_TO_YUV_FRAG("gl_FragColor") : "", 
+        "}\n",
 		0);
 
 	if(shader > 0)
 	{
 		glUseProgram(shader);
 		glUniform1i(glGetUniformLocation(shader, "tex"), 0);
-
-		if(aggregate_interpolate) INTERPOLATE_UNIFORMS(shader);
-		if(aggregate_gamma) GAMMA_UNIFORMS(shader);
-
-		COLORBALANCE_UNIFORMS(shader);
-
+        glUniform1fv(glGetUniformLocation(shader, "r_factor"), SECTIONS, r_factor);
+        glUniform1fv(glGetUniformLocation(shader, "g_factor"), SECTIONS, g_factor);
+        glUniform1fv(glGetUniformLocation(shader, "b_factor"), SECTIONS, b_factor);
+        glUniform1fv(glGetUniformLocation(shader, "s_factor"), SECTIONS, s_factor);
+        glUniform1fv(glGetUniformLocation(shader, "v_factor"), SECTIONS, v_factor);
 	}
 
 	get_output()->init_screen();
@@ -676,6 +700,7 @@ printf("Color3WayMain::handle_opengl %d %d\n", aggregate_interpolate, aggregate_
 	glUseProgram(0);
 	get_output()->set_opengl_state(VFrame::SCREEN);
 #endif
+    return 0;
 }
 
 

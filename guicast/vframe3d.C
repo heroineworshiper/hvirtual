@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,11 +102,11 @@ void VFrame::to_texture()
 			return;
 
 		case VFrame::SCREEN:
-			if((get_w() % 4) || (get_h() % 4)) 
-			{
-				printf("VFrame::to_texture w=%d h=%d\n", get_w(), get_h());
-				return;
-			}
+// 			if((get_w() % 4) || (get_h() % 4)) 
+// 			{
+// 				printf("VFrame::to_texture w=%d h=%d\n", get_w(), get_h());
+// 				return;
+// 			}
 			if(pbuffer)
 			{
 				enable_opengl();
@@ -117,21 +116,39 @@ void VFrame::to_texture()
 			return;
 	}
 
-//printf("VFrame::to_texture %d\n", texture_id);
+// BC_Signals::dump_stack();
 
 	switch(color_model)
 	{
 		case BC_RGB888:
 		case BC_YUV888:
-			glTexSubImage2D(GL_TEXTURE_2D,
-				0,
-				0,
-				0,
-				get_w(),
-				get_h(),
-				GL_RGB,
-				GL_UNSIGNED_BYTE,
-				get_rows()[0]);
+            if((get_w() % 4))
+            {
+                for(int i = 0; i < get_h(); i++)
+                {
+                    glTexSubImage2D(GL_TEXTURE_2D,
+				        0,
+				        0,
+				        i,
+				        get_w(),
+				        1,
+				        GL_RGB,
+				        GL_UNSIGNED_BYTE,
+				        get_rows()[i]);
+                }
+            }
+            else
+            {
+			    glTexSubImage2D(GL_TEXTURE_2D,
+				    0,
+				    0,
+				    0,
+				    get_w(),
+				    get_h(),
+				    GL_RGB,
+				    GL_UNSIGNED_BYTE,
+				    get_rows()[0]);
+            }
 			break;
 
 		case BC_RGBA8888:
@@ -148,6 +165,7 @@ void VFrame::to_texture()
 			break;
 
 		case BC_RGB_FLOAT:
+		case BC_YUV_FLOAT:
 			glTexSubImage2D(GL_TEXTURE_2D,
 				0,
 				0,
@@ -171,9 +189,85 @@ void VFrame::to_texture()
 				get_rows()[0]);
 			break;
 
+		case BC_A8:
+//printf("VFrame::to_texture %d\n", __LINE__);
+            if((get_w() % 4))
+            {
+                for(int i = 0; i < get_h(); i++)
+                {
+			        glTexSubImage2D(GL_TEXTURE_2D,
+				        0,
+				        0,
+				        i,
+				        get_w(),
+				        1,
+				        GL_RED,
+				        GL_UNSIGNED_BYTE,
+				        get_rows()[i]);
+                }
+            }
+            else
+            {
+			    glTexSubImage2D(GL_TEXTURE_2D,
+				    0,
+				    0,
+				    0,
+				    get_w(),
+				    get_h(),
+				    GL_RED,
+				    GL_UNSIGNED_BYTE,
+				    get_rows()[0]);
+            }
+//printf("VFrame::to_texture %d\n", __LINE__);
+            break;
+
+		case BC_A_FLOAT:
+			glTexSubImage2D(GL_TEXTURE_2D,
+				0,
+				0,
+				0,
+				get_w(),
+				get_h(),
+				GL_RED,
+				GL_FLOAT,
+				get_rows()[0]);
+			break;
+
+
+// planar images are just sent as 8 bit RGBA rounded up a row
+        case BC_YUV420P10LE:
+        case BC_YUV420P:
+        case BC_YUV9P:
+        case BC_YUV422P:
+        case BC_NV12:
+        {
+            int bytes = get_data_size();
+// rows required to transfer planer data to contiguous texture memory
+            int rows = bytes / texture->get_texture_w() / 4;
+            if(rows * w * 4 < bytes) rows++;
+            if(rows > texture->get_texture_h())
+            {
+                printf("VFrame::to_texture %d: data too big to fit in texture rows=%d texture_h=%d.\n", 
+                    __LINE__,
+                    rows,
+                    texture->get_texture_h());
+            }
+			glTexSubImage2D(GL_TEXTURE_2D,
+				0,
+				0,
+				0,
+				texture->get_texture_w(),
+				rows,
+				GL_RGBA,
+				GL_UNSIGNED_BYTE,
+				get_data());
+            break;
+        }
+
 		default:
 			fprintf(stderr, 
-				"VFrame::to_texture: unsupported color model %d.\n", 
+				"VFrame::to_texture %d: unsupported color model %d.\n", 
+                __LINE__,
 				color_model);
 			break;
 	}
@@ -182,35 +276,37 @@ void VFrame::to_texture()
 #endif
 }
 
-void VFrame::to_ram()
-{
-#ifdef HAVE_GL
-	switch(opengl_state)
-	{
-// Only pbuffer is supported since this is only called after the 
-// overlay operation onto the pbuffer.
-		case VFrame::SCREEN:
-			if(pbuffer)
-			{
-				enable_opengl();
-printf("VFrame::to_ram %d %d\n", get_w(), get_h());
-				glReadPixels(0, 
-					0, 
-					get_w(), 
-					get_h(), 
-					GL_RGB,
-					GL_UNSIGNED_BYTE,
-					get_rows()[0]);
-				flip_vert();
-			}
-			opengl_state = VFrame::RAM;
-			return;
-	}
-#endif
-}
+// void VFrame::to_ram()
+// {
+// #ifdef HAVE_GL
+// printf("VFrame::to_ram %d %d %d\n", __LINE__, get_w(), get_h());
+// 	switch(opengl_state)
+// 	{
+// // Only pbuffer is supported since this is only called after the 
+// // overlay operation onto the pbuffer.
+// 		case VFrame::SCREEN:
+// 			if(pbuffer)
+// 			{
+// // TODO: support for odd dimensions
+// 				enable_opengl();
+// 				glReadPixels(0, 
+// 					0, 
+// 					get_w(), 
+// 					get_h(), 
+// 					GL_RGB,
+// 					GL_UNSIGNED_BYTE,
+// 					get_rows()[0]);
+// 				flip_vert();
+// 			}
+// 			opengl_state = VFrame::RAM;
+// 			return;
+// 	}
+// #endif
+// }
 
 void VFrame::create_pbuffer()
 {
+#ifdef HAVE_GL
 	if(pbuffer && 
 		pbuffer->window_id != BC_WindowBase::get_synchronous()->current_window->get_id())
 	{
@@ -218,16 +314,29 @@ void VFrame::create_pbuffer()
 		pbuffer = 0;
 	}
 
-	if((get_w() % 4) || (get_h() % 4))
-	{
-		printf("VFrame::create_pbuffer w=%d h=%d\n", get_w(), get_h());
-		return;
-	}
+    int fixed_w = get_w();
+    int fixed_h = get_h();
+    
+    if((fixed_w % 4))
+    {
+        fixed_w = fixed_w + (4 - (fixed_w % 4));
+    }
+    if((fixed_h % 4))
+    {
+        fixed_h = fixed_h + (4 - (fixed_h % 4));
+    }
+
+// 	if((get_w() % 4) || (get_h() % 4))
+// 	{
+// 		printf("VFrame::create_pbuffer w=%d h=%d\n", get_w(), get_h());
+// 		return;
+// 	}
 
 	if(!pbuffer)
 	{
-		pbuffer = new BC_PBuffer(get_w(), get_h());
+		pbuffer = new BC_PBuffer(fixed_w, fixed_h);
 	}
+#endif // HAVE_GL
 }
 
 void VFrame::enable_opengl()
@@ -275,7 +384,7 @@ void VFrame::screen_to_texture(int x, int y, int w, int h)
 			w >= 0 ? w : get_w(),
 			h >= 0 ? h : get_h());
 	}
-#endif
+#endif // HAVE_GL
 }
 
 void VFrame::draw_texture(float in_x1, 
@@ -289,6 +398,8 @@ void VFrame::draw_texture(float in_x1,
 		int flip_y)
 {
 #ifdef HAVE_GL
+
+
 	glBegin(GL_QUADS);
 	glNormal3f(0, 0, 1.0);
 
@@ -341,15 +452,28 @@ void VFrame::bind_texture(int texture_unit)
 void VFrame::init_screen(int w, int h)
 {
 #ifdef HAVE_GL
-	glViewport(0, 0, w, h);
+    int gl_w = w;
+    int gl_h = h;
+//     if(gl_w % 4)
+//     {
+//         gl_w += 4 - (gl_w % 4);
+//     }
+//     if(gl_h % 4)
+//     {
+//         gl_h += 4 - (gl_h % 4);
+//     }
+//printf("VFrame::init_screen %d w=%d h=%d gl_w=%d gl_h=%d\n", 
+//__LINE__, w, h, gl_w, gl_h);
+
+	glViewport(0, 0, gl_w, gl_h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	float near = 1;
 	float far = 100;
 	float frustum_ratio = near / ((near + far) / 2);
- 	float near_h = (float)h * 
+ 	float near_h = (float)gl_h * 
 		frustum_ratio;
-	float near_w = (float)w * 
+	float near_w = (float)gl_w * 
 		frustum_ratio;
 	glFrustum(-near_w / 2, 
 		near_w / 2, 
@@ -360,7 +484,7 @@ void VFrame::init_screen(int w, int h)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 // Shift down and right so 0,0 is the top left corner
-	glTranslatef(-w / 2, h / 2, 0.0);
+	glTranslatef(-(float)gl_w / 2, (float)gl_h / 2, 0.0);
 	glTranslatef(0.0, 0.0, -(far + near) / 2);
 
 	glDisable(GL_DEPTH_TEST);
@@ -411,15 +535,15 @@ static int print_error(char *source, unsigned int object, int is_program)
 		glGetShaderInfoLog(object, BCTEXTLEN, &len, string);
 	if(len > 0) printf("Playback3D::print_error:\n%s\n%s\n", source, string);
 	if(len > 0) return 1;
-	return 0;
 #endif
+	return 0;
 }
 
 
 
 
 
-unsigned int VFrame::make_shader(int x, ...)
+unsigned int VFrame::make_shader(int dump, ...)
 {
 	unsigned int result = 0;
 #ifdef HAVE_GL
@@ -429,7 +553,7 @@ unsigned int VFrame::make_shader(int x, ...)
 	int current_shader = 0;
 
 	va_list list;
-	va_start(list, x);
+	va_start(list, dump);
 
 	while(1)
 	{
@@ -476,8 +600,8 @@ unsigned int VFrame::make_shader(int x, ...)
 	va_end(list);
 
 // Add main() function which calls all the unique main replacements in order
-	char main_function[BCTEXTLEN];
-	sprintf(main_function, 
+	string main_function;
+	main_function.assign(
 		"\n"
 		"void main()\n"
 		"{\n");
@@ -486,25 +610,49 @@ unsigned int VFrame::make_shader(int x, ...)
 	{
 		char main_replacement[BCTEXTLEN];
 		sprintf(main_replacement, "\tmain%03d();\n", i);
-		strcat(main_function, main_replacement);
+		main_function.append(main_replacement);
 	}
 
-	strcat(main_function, "}\n");
+	main_function.append("}\n");
 	if(!complete_program)
 	{
-		complete_size = strlen(main_function) + 1;
+		complete_size = main_function.length() + 1;
 		complete_program = (char*)malloc(complete_size);
-		strcpy(complete_program, main_function);
+		strcpy(complete_program, main_function.c_str());
 	}
 	else
 	{
-		complete_size += strlen(main_function);
+		complete_size += main_function.length() + 1;
 		complete_program = (char*)realloc(complete_program, complete_size);
-		strcat(complete_program, main_function);
+		strcat(complete_program, main_function.c_str());
 	}
 
 
-
+    if(dump)
+    {
+        printf("VFrame::make_shader %d\n", __LINE__);
+        int line = 1;
+        int line_start = 1;
+        for(int i = 0; i < complete_size; i++)
+        {
+            if(line_start)
+            {
+                char string[BCTEXTLEN];
+                sprintf(string, "%d", line);
+                printf("%s", string);
+                for(int j = 0; j < 6 - strlen(string); j++)
+                    printf(" ");
+                line_start = 0;
+            }
+            printf("%c", complete_program[i]);
+            if(complete_program[i] == '\n')
+            {
+                line++;
+                line_start = 1;
+            }
+        }
+        printf("\n");
+    }
 
 
 	int got_it = 0;
@@ -550,7 +698,7 @@ void VFrame::dump_shader(int shader_id)
 void VFrame::clear_pbuffer()
 {
 #ifdef HAVE_GL
-	if(BC_CModels::is_yuv(get_color_model()))
+	if(cmodel_is_yuv(get_color_model()))
 		glClearColor(0.0, 0.5, 0.5, 0.0);
 	else
 		glClearColor(0.0, 0.0, 0.0, 0.0);

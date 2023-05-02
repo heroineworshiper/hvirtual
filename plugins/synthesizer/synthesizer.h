@@ -108,13 +108,13 @@ float keyboard_freqs[] =
 };
 
 #define MAX_FREQS 16
-#define TOTALOSCILLATORS 1
-#define OSCILLATORHEIGHT 40
+#define MAX_OSCILLATORS 256
+#define OSCILLATORHEIGHT DP(40)
 #define TOTALNOTES (sizeof(keyboard_freqs) / sizeof(float))
 #define MIDDLE_C 24
 #define FIRST_TITLE (MIDDLE_C - 12)
 #define LAST_TITLE (MIDDLE_C + 12)
-#define MARGIN 10
+#define MARGIN DP(10)
 
 #define SINE 0
 #define SAWTOOTH 1
@@ -254,7 +254,7 @@ public:
 	SynthOscGUI *gui;
 };
 
-class SynthOscGUIFreq : public BC_IPot
+class SynthOscGUIFreq : public BC_FPot
 {
 public:
 	SynthOscGUIFreq(Synth *synth, SynthOscGUI *gui, int y);
@@ -510,11 +510,38 @@ public:
 	Synth *synth;
 };
 
+class SynthFreqPow1 : public BC_MenuItem
+{
+public:
+	SynthFreqPow1(Synth *synth);
+	~SynthFreqPow1();
+	int handle_event();
+	Synth *synth;
+};
+
+class SynthFreqPow2 : public BC_MenuItem
+{
+public:
+	SynthFreqPow2(Synth *synth);
+	~SynthFreqPow2();
+	int handle_event();
+	Synth *synth;
+};
+
 class SynthFreqEnum : public BC_MenuItem
 {
 public:
 	SynthFreqEnum(Synth *synth);
 	~SynthFreqEnum();
+	int handle_event();
+	Synth *synth;
+};
+
+class SynthFreqMin : public BC_MenuItem
+{
+public:
+	SynthFreqMin(Synth *synth);
+	~SynthFreqMin();
 	int handle_event();
 	Synth *synth;
 };

@@ -1,7 +1,8 @@
 
+
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,22 +48,24 @@ public:
 	int read_buffer(VFrame *frame);
 	int reset_parameters();
 // User always gets the colormodel requested
-	void new_output_buffer(VFrame **output, int colormodel);
+	void new_output_buffer(VFrame **output_frame, int colormodel, EDL *edl);
 
 	int open_output();
 	int start_playback();
 	int stop_playback();
+// use this device as an opengl context for rendering
+    void start_rendering();
 	int output_visible();
 // After loading the bitmap with a picture, write it
-	int write_buffer(VFrame *result, EDL *edl);
+	int write_buffer(VFrame *output_frame, EDL *edl);
 // Get best colormodel for recording
 	int get_best_colormodel(Asset *asset);
 
 
 //=========================== compositing stages ===============================
-// For compositing with OpenGL, must clear the frame buffer
+// For compositing with OpenGL, must clear the pbuffer
 // before overlaying tracks.
-	void clear_output();
+	void clear_output(VFrame *frame);
 
 // Called by VModule::import_frame
 	void do_camera(VFrame *output,
@@ -81,13 +84,15 @@ public:
 
 	void do_fade(VFrame *output_temp, float fade);
 
-// Hardware version of MaskEngine
+// Apply mask from MaskEngine
 	void do_mask(VFrame *output_temp, 
+        VFrame *mask,
 		int64_t start_position_project,
 		MaskAutos *keyframe_set, 
 		MaskAuto *keyframe,
 		MaskAuto *default_auto);
 	void convert_cmodel(VFrame *output, int dst_cmodel);
+	void convert_cmodel(VFrame *input, VFrame *output);
 
 // The idea is to composite directly in the frame buffer if OpenGL.
 // OpenGL can do all the blending using the frame buffer.
@@ -120,18 +125,27 @@ public:
 // pluginclient function.
 	void run_plugin(PluginClient *client);
 
-// For multichannel plugins, copy from the temporary pbuffer to 
+// For multichannel plugins, copy from the pbuffer to 
 // the plugin output texture.
-// Set the output OpenGL state to TEXTURE.
-	void copy_frame(VFrame *dst, VFrame *src);
+// For rendering, copy the pbuffer to RAM for writing.
+// Set the output OpenGL state to RAM or TEXTURE.
+	void copy_frame(VFrame *dst, VFrame *src, int want_texture);
 
 private:
+    void output_to_bitmap(VFrame *output_frame);
+
 // Closest colormodel the hardware can do for playback.
 // Only used by VDeviceX11::new_output_buffer.  The value from File::get_best_colormodel
 // is passed to this to create the VFrame to which the output is rendered.
 // For OpenGL, it creates the array of row pointers used to upload the video
 // frame to the texture, the texture, and the PBuffer.
-	int get_best_colormodel(int colormodel);
+	int get_display_colormodel(int file_colormodel);
+
+// windows which overlay the screencap area
+#define SCREENCAP_BORDERS 4
+#define SCREENCAP_PIXELS 5
+#define SCREENCAP_COLOR BLACK
+	BC_Popup *screencap_border[SCREENCAP_BORDERS];
 
 // Bitmap to be written to device
 	BC_Bitmap *bitmap;        
@@ -143,7 +157,7 @@ private:
 	int bitmap_w, bitmap_h;   
 	ArrayList<int> render_strategies;
 // Canvas for output
-	Canvas *output;
+	Canvas *canvas;
 // Parameters the output texture conforms to, for OpenGL
 // window_id is probably not going to be used
 	int window_id;
@@ -151,16 +165,22 @@ private:
 	int texture_h;
 	int color_model;
 	int color_model_selected;
-// Transfer coordinates from the output frame to the canvas 
-// for last frame rendered.
+// Transfer coordinates from the output frame to the canvas.
+// Calculated in new_output_buffer & retained for write_buffer
 // These stick the last frame to the display.
 // Must be floats to support OpenGL
 	float output_x1, output_y1, output_x2, output_y2;
 	float canvas_x1, canvas_y1, canvas_x2, canvas_y2;
+// rounded integer dimensions
+	int canvas_w, canvas_h;
 // Screen capture
 	BC_Capture *capture_bitmap;
 // Set when OpenGL rendering has cleared the frame buffer before write_buffer
 	int is_cleared;
+// use this device as an opengl context for rendering
+    int is_rendering;
+// if we accessed the canvas successfully
+    int is_open;
 };
 
 #endif

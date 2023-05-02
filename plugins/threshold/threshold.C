@@ -145,7 +145,7 @@ int ThresholdMain::process_buffer(VFrame *frame,
 
 	if(use_opengl) return run_opengl();
 
-	send_render_gui(frame);
+	send_render_gui(frame, 1);
 
 	if(!threshold_engine)
 		threshold_engine = new ThresholdEngine(this);
@@ -200,7 +200,7 @@ void ThresholdMain::update_gui()
 	}
 }
 
-void ThresholdMain::render_gui(void *data)
+void ThresholdMain::render_gui(void *data, int size)
 {
 	if(thread)
 	{
@@ -254,7 +254,7 @@ int ThresholdMain::handle_opengl()
 	get_output()->enable_opengl();
 
 	unsigned int shader = 0;
-	if(BC_CModels::is_yuv(get_output()->get_color_model()))
+	if(cmodel_is_yuv(get_output()->get_color_model()))
 		shader = VFrame::make_shader(0, yuv_shader, 0);
 	else
 		shader = VFrame::make_shader(0, rgb_shader, 0);
@@ -273,6 +273,7 @@ int ThresholdMain::handle_opengl()
 	glUseProgram(0);
 	get_output()->set_opengl_state(VFrame::SCREEN);
 #endif
+    return 0;
 }
 
 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +33,7 @@
 #include "filexml.h"
 #include "filesystem.h"
 #include "localsession.h"
+#include "mainsession.inc"
 #include "nestededls.h"
 #include "plugin.h"
 #include "strategies.inc"
@@ -128,18 +128,26 @@ void Edits::insert_asset(Asset *asset,
 	if(nested_edl)
 	{
 		if(track->data_type == TRACK_AUDIO)
-			new_edit->channel = track_number % nested_edl->session->audio_channels;
-		else
-			new_edit->channel = 0;
+		{
+        	new_edit->channel = track_number % nested_edl->session->audio_channels;
+		}
+        else
+		{
+        	new_edit->channel = 0;
+        }
 	}
 
 	if(asset && !nested_edl)
 	{
 		if(asset->audio_data)
-			new_edit->channel = track_number % asset->channels;
+		{
+        	new_edit->channel = track_number % asset->channels;
+        }
 		else
 		if(asset->video_data)
-			new_edit->channel = track_number % asset->layers;
+		{
+        	new_edit->channel = track_number % asset->layers;
+        }
 	}
 
 //printf("Edits::insert_asset %d %d\n", new_edit->channel, new_edit->length);
@@ -172,12 +180,16 @@ void Edits::insert_edits(Edits *source_edits,
 	{
 		EDL *dest_nested_edl = 0;
 		if(source_edit->nested_edl)
-			dest_nested_edl = edl->nested_edls->get_copy(source_edit->nested_edl);
+		{
+        	dest_nested_edl = edl->nested_edls->get_copy(source_edit->nested_edl);
+        }
 
 // Update Assets
 		Asset *dest_asset = 0;
 		if(source_edit->asset)
-			dest_asset = edl->assets->update(source_edit->asset);
+		{
+        	dest_asset = edl->assets->update(source_edit->asset);
+        }
 // Open destination area
 		Edit *dest_edit = insert_new_edit(position + source_edit->startproject);
 
@@ -468,16 +480,16 @@ int Edits::load(FileXML *file, int track_offset)
 {
 	int result = 0;
 	int64_t startproject = 0;
+    int error = 0;
 
 	do{
 		result = file->read_tag();
 
-//printf("Edits::load 1 %s\n", file->tag.get_title());
 		if(!result)
 		{
 			if(!strcmp(file->tag.get_title(), "EDIT"))
 			{
-				load_edit(file, startproject, track_offset);
+				error |= load_edit(file, startproject, track_offset);
 			}
 			else
 			if(!strcmp(file->tag.get_title(), "/EDITS"))
@@ -489,11 +501,14 @@ int Edits::load(FileXML *file, int track_offset)
 
 //track->dump();
 	optimize();
+
+    return error;
 }
 
 int Edits::load_edit(FileXML *file, int64_t &startproject, int track_offset)
 {
 	Edit* current;
+    int error = 0;
 
 	current = append_new_edit();
 
@@ -514,15 +529,15 @@ int Edits::load_edit(FileXML *file, int64_t &startproject, int track_offset)
 				path[0] = 0;
 				file->tag.get_property("SRC", path);
 
-//printf("Edits::load_edit %d path=%s\n", __LINE__, path);
 
 				if(path[0] != 0)
 				{
-					current->nested_edl = edl->nested_edls->get(path);
+                    current->nested_edl = edl->nested_edls->get(path, &error);
 				}
-// printf("Edits::load_edit %d nested_edl->path=%s\n", 
+// printf("Edits::load_edit %d path=%s nested_edl=%p\n", 
 // __LINE__, 
-// current->nested_edl->path);
+// path,
+// current->nested_edl);
 			}
 			else
 			if(file->tag.title_is("FILE"))
@@ -571,7 +586,7 @@ int Edits::load_edit(FileXML *file, int64_t &startproject, int track_offset)
 //printf("Edits::load_edit %d\n", __LINE__);
 //track->dump();
 //printf("Edits::load_edit %d\n", __LINE__);
-	return 0;
+	return error;
 }
 
 // ============================================= accounting
@@ -656,6 +671,7 @@ int Edits::copy(int64_t start, int64_t end, FileXML *file, const char *output_pa
 	file->tag.set_title("/EDITS");
 	file->append_tag();
 	file->append_newline();
+    return 0; 
 }
 
 
@@ -689,7 +705,7 @@ void Edits::clear(int64_t start, int64_t end)
 // delete
 		for(current_edit = edit1->next; current_edit && current_edit != edit2;)
 		{
-			Edit* next = current_edit->next;
+			Edit *next = current_edit->next;
 			remove(current_edit);
 			current_edit = next;
 		}
@@ -749,53 +765,67 @@ int Edits::clear_handle(double start,
 	double &distance)
 {
 	Edit *current_edit;
+    Edit *next_edit;
+    
 
 	distance = 0.0; // if nothing is found, distance is 0!
 	for(current_edit = first; 
 		current_edit && current_edit->next; 
 		current_edit = current_edit->next)
 	{
+// test if the files are the same
+        int equiv_file = 0;
+        next_edit = current_edit->next;
+        
+        if(current_edit->asset && 
+			next_edit->asset &&
+            current_edit->asset->equivalent(*next_edit->asset, 0, 0))
+        {
+            equiv_file = 1;
+        }
+        else
+        if(current_edit->nested_edl &&
+            next_edit->nested_edl &&
+            current_edit->nested_edl == next_edit->nested_edl)
+        {
+            equiv_file = 1;
+        }
 
-
-
-		if(current_edit->asset && 
-			current_edit->next->asset)
+		if(equiv_file)
 		{
 
-			if(current_edit->asset->equivalent(*current_edit->next->asset,
-				0,
-				0))
-			{
-
 // Got two consecutive edits in same source
-				if(edl->equivalent(track->from_units(current_edit->next->startproject), 
-					start))
-				{
+			if(edl->equivalent(track->from_units(next_edit->startproject), 
+				start))
+			{
 // handle selected
-					int length = -current_edit->length;
-					current_edit->length = current_edit->next->startsource - current_edit->startsource;
-					length += current_edit->length;
+				int length = -current_edit->length;
+				current_edit->length = next_edit->startsource - current_edit->startsource;
+				length += current_edit->length;
 
 // Lengthen automation
-					if(edit_autos)
-						track->automation->paste_silence(current_edit->next->startproject, 
-							current_edit->next->startproject + length);
+				if(edit_autos)
+				{
+                	track->automation->paste_silence(next_edit->startproject, 
+						next_edit->startproject + length);
+                }
 
 // Lengthen effects
-					if(edit_plugins)
-						track->shift_effects(current_edit->next->startproject, 
-							length,
-							edit_autos);
+				if(edit_plugins)
+				{
+                	track->shift_effects(next_edit->startproject, 
+						length,
+						edit_autos);
+                }
 
-					for(current_edit = current_edit->next; current_edit; current_edit = current_edit->next)
-					{
-						current_edit->startproject += length;
-					}
-
-					distance = track->from_units(length);
-					optimize();
-					break;
+				for(current_edit = next_edit; current_edit; current_edit = current_edit->next)
+				{
+					current_edit->startproject += length;
 				}
+
+				distance = track->from_units(length);
+				optimize();
+				break;
 			}
 		}
 	}
@@ -816,8 +846,8 @@ int Edits::modify_handles(double oldposition,
 	int result = 0;
 	Edit *current_edit;
 
-//printf("Edits::modify_handles 1 %d %f %f\n", currentend, newposition, oldposition);
-	if(currentend == 0)
+//printf("Edits::modify_handles %d: %d %f %f\n", __LINE__, currentend, newposition, oldposition);
+	if(currentend == LEFT_HANDLE)
 	{
 // left handle
 		for(current_edit = first; current_edit && !result;)
@@ -826,13 +856,13 @@ int Edits::modify_handles(double oldposition,
 				oldposition))
 			{
 // edit matches selection
-//printf("Edits::modify_handles 3 %f %f\n", newposition, oldposition);
+//printf("Edits::modify_handles %d: %f %f\n", __LINE__, newposition, oldposition);
 				oldposition = track->from_units(current_edit->startproject);
 				result = 1;
 
 				if(newposition >= oldposition)
 				{
-//printf("Edits::modify_handle 1 %s %f %f\n", track->title, oldposition, newposition);
+//printf("Edits::modify_handle %d: %s %f %f\n", __LINE__, track->title, oldposition, newposition);
 // shift start of edit in
 					current_edit->shift_start_in(edit_mode, 
 						track->to_units(newposition, 0), 
@@ -845,7 +875,7 @@ int Edits::modify_handles(double oldposition,
 				}
 				else
 				{
-//printf("Edits::modify_handle 2 %s\n", track->title);
+//printf("Edits::modify_handle %d: %s\n", __LINE__, track->title);
 // move start of edit out
 					current_edit->shift_start_out(edit_mode, 
 						track->to_units(newposition, 0), 
@@ -891,7 +921,7 @@ int Edits::modify_handles(double oldposition,
 				else
 				{     
 // move end of edit out
-//printf("Edits::modify_handle 6\n");
+//printf("Edits::modify_handle %d edit_mode=%d\n", __LINE__, edit_mode);
 					current_edit->shift_end_out(edit_mode, 
 						track->to_units(newposition, 0), 
 						track->to_units(oldposition, 0),
@@ -952,4 +982,125 @@ void Edits::shift_effects_recursive(int64_t position, int64_t length, int edit_a
 {
 	track->shift_effects(position, length, edit_autos);
 }
+
+// only used for audio but also used for plugins which inherit from Edits
+void Edits::deglitch(int64_t position)
+{
+// range from the splice junk appears
+	int64_t threshold = (int64_t)((double)edl->session->sample_rate / 
+		edl->session->frame_rate) / 2;
+	Edit *current = 0;
+
+// the last edit before the splice
+	Edit *edit1 = 0;
+	if(first)
+	{
+		for(current = first; current; current = NEXT)
+		{
+			if(current->startproject + current->length >= position - threshold)
+			{
+				edit1 = current;
+				break;
+			}
+		}
+
+// ignore if it ends after the splice
+		if(current && current->startproject + current->length >= position)
+		{
+			edit1 = 0;
+		}
+	}
+
+// the first edit after the splice
+	Edit *edit2 = 0;
+	if(last)
+	{
+		for(current = last; current; current = PREVIOUS)
+		{
+			if(current->startproject < position + threshold)
+			{
+				edit2 = current;
+				break;
+			}
+		}
+
+	// ignore if it starts before the splice
+		if(current && current->startproject < position)
+		{
+			edit2 = 0;
+		}
+	}
+
+
+
+
+// printf("Edits::deglitch %d position=%ld edit1=%p edit2=%p\n", __LINE__,
+// position, 
+// edit1, 
+// edit2);
+// delete junk between the edits
+	if(edit1 != edit2)
+	{
+		if(edit1 != 0)
+		{
+// end the starting edit later
+			current = edit1->next;
+			while(current != 0 &&
+				current != edit2 &&
+				current->startproject < position)
+			{
+				Edit* next = NEXT;
+
+				edit1->length += current->length;
+				remove(current);
+
+				current = next;
+			}
+		}
+		
+		if(edit2 != 0)
+		{
+// start the ending edit earlier
+			current = edit2->previous;
+			while(current != 0 && 
+				current != edit1 &&
+				current->startproject >= position)
+			{
+				Edit *previous = PREVIOUS;
+
+				int64_t length = current->length;
+//printf("Edits::deglitch %d length=%ld\n", __LINE__, length);
+				if(!edit2->silence() && 
+					length > edit2->startsource)
+				{
+					length = edit2->startsource;
+				}
+
+				// shift edit2 by using material from its source
+				edit2->startproject -= length;
+				edit2->startsource -= length;
+				// assume enough is at the end
+				edit2->length += length;
+
+				// shift edit2 & its source earlier by remainder
+				if(length < current->length)
+				{
+					int64_t remainder = current->length - length;
+					edit2->startproject -= remainder;
+					// assume enough is at the end
+					edit2->length += remainder;
+				}
+
+				remove(current);
+
+
+				current = previous;
+			}
+		}
+	}
+	
+}
+
+
+
 

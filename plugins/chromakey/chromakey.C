@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,10 +106,10 @@ int ChromaKeyConfig::get_color()
 
 ChromaKeyWindow::ChromaKeyWindow(ChromaKey *plugin)
  : PluginClientWindow(plugin, 
-	320, 
-	220, 
-	320, 
-	220, 
+	DP(320), 
+	DP(220), 
+	DP(320), 
+	DP(220), 
 	0)
 {
 	this->plugin = plugin;
@@ -123,36 +123,35 @@ ChromaKeyWindow::~ChromaKeyWindow()
 
 void ChromaKeyWindow::create_objects()
 {
-	int x = 10, y = 10, x1 = 100;
+	int x = DP(10), y = DP(10), x1 = DP(100);
 
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Color:")));
-	x += title->get_w() + 10;
+	x += title->get_w() + DP(10);
 	add_subwindow(color = new ChromaKeyColor(plugin, this, x, y));
-	x += color->get_w() + 10;
-	add_subwindow(sample = new BC_SubWindow(x, y, 100, 50));
-	y += sample->get_h() + 10;
-	x = 10;
+	x += color->get_w() + DP(10);
+	add_subwindow(sample = new BC_SubWindow(x, y, DP(100), DP(50)));
+	y += sample->get_h() + DP(10);
+	x = DP(10);
 
 	add_subwindow(new BC_Title(x, y, _("Slope:")));
 	add_subwindow(slope = new ChromaKeySlope(plugin, x1, y));
 
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Threshold:")));
 	add_subwindow(threshold = new ChromaKeyThreshold(plugin, x1, y));
 
 
-	y += 30;
+	y += DP(30);
 	add_subwindow(use_value = new ChromaKeyUseValue(plugin, x1, y));
 
-	y += 30;
+	y += DP(30);
 	add_subwindow(use_colorpicker = new ChromaKeyUseColorPicker(plugin, this, x1, y));
 
 	color_thread = new ChromaKeyColorThread(plugin, this);
 
 	update_sample();
 	show_window();
-	flush();
 }
 
 void ChromaKeyWindow::update_sample()
@@ -204,8 +203,8 @@ ChromaKeyThreshold::ChromaKeyThreshold(ChromaKey *plugin, int x, int y)
  : BC_FSlider(x, 
 			y,
 			0,
-			200, 
-			200, 
+			DP(200), 
+			DP(200), 
 			(float)0, 
 			(float)100, 
 			plugin->config.threshold)
@@ -225,8 +224,8 @@ ChromaKeySlope::ChromaKeySlope(ChromaKey *plugin, int x, int y)
  : BC_FSlider(x, 
 			y,
 			0,
-			200, 
-			200, 
+			DP(200), 
+			DP(200), 
 			(float)0, 
 			(float)100, 
 			plugin->config.slope)
@@ -766,7 +765,7 @@ SET_TRACE
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	if(BC_CModels::components(get_output()->get_color_model()) == 3)
+	if(cmodel_components(get_output()->get_color_model()) == 3)
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -783,6 +782,7 @@ SET_TRACE
 	glDisable(GL_BLEND);
 SET_TRACE
 #endif
+    return 0;
 }
 
 

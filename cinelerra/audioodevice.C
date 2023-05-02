@@ -20,6 +20,7 @@
  */
 
 #include "audiodevice.h"
+#include "bcsignals.h"
 #include "bctimer.h"
 #include "clip.h"
 #include "condition.h"
@@ -76,11 +77,13 @@ int AudioDevice::arm_buffer(int buffer_num,
 
 	bits = get_obits();
 
+
 	frame = device_channels * (bits / 8);
 
 	new_size = frame * samples;
 
 	if(interrupt) return 1;
+
 
 // wait for buffer to become available for writing
 	arm_lock[buffer_num]->lock("AudioDevice::arm_buffer");
@@ -93,6 +96,7 @@ int AudioDevice::arm_buffer(int buffer_num,
 		buffer_size[buffer_num] = new_size;
 	}
 
+
 	buffer_size[buffer_num] = new_size;
 
 	buffer_num_buffer = output_buffer[buffer_num];
@@ -101,6 +105,7 @@ int AudioDevice::arm_buffer(int buffer_num,
 	last_input_channel = device_channels - 1;
 // copy data
 // intel byte order only to correspond with bits_to_fmt
+//printf("AudioDevice::arm_buffer %d device_channels=%d\n", __LINE__, device_channels);
 
 	for(channel = 0; channel < device_channels; channel++)
 	{
@@ -258,6 +263,7 @@ int AudioDevice::start_playback()
 
 	Thread::set_realtime(get_orealtime());
 	Thread::start();                  // synchronize threads by starting playback here and blocking
+    return 0;
 }
 
 int AudioDevice::interrupt_playback()
@@ -306,6 +312,10 @@ int64_t AudioDevice::current_position()
 
 	if(w)
 	{
+        if(get_obits() == 0)
+        {
+            printf("AudioDevice::current_position %d bits not set\n", __LINE__);
+        }
 		frame = get_obits() / 8;
 
 // get hardware position
@@ -317,6 +327,12 @@ int64_t AudioDevice::current_position()
 // get software position
 		if(hardware_result < 0 || software_position_info)
 		{
+// printf("AudioDevice::current_position %d total_samples=%d last_buffer_size=%d device_buffer=%d\n", 
+// __LINE__,
+// total_samples,
+// last_buffer_size,
+// device_buffer);
+
 			timer_lock->lock("AudioDevice::current_position");
 			software_result = total_samples - last_buffer_size - 
 				device_buffer / frame / get_ochannels();
@@ -360,7 +376,7 @@ void AudioDevice::run_output()
 	while(is_playing_back && !interrupt && !last_buffer[thread_buffer_num])
 	{
 // wait for buffer to become available
-		play_lock[thread_buffer_num]->lock("AudioDevice::run 1");
+		play_lock[thread_buffer_num]->lock("AudioDevice::run_output 1");
 
 		if(is_playing_back && !last_buffer[thread_buffer_num])
 		{
@@ -369,7 +385,7 @@ void AudioDevice::run_output()
 				if(record_before_play)
 				{
 // block until recording starts
-					duplex_lock->lock("AudioDevice::run 2");
+					duplex_lock->lock("AudioDevice::run_output 2");
 				}
 				else
 				{
@@ -380,7 +396,7 @@ void AudioDevice::run_output()
 			}
 
 // get size for position information
-			timer_lock->lock("AudioDevice::run 3");
+			timer_lock->lock("AudioDevice::run_output 3");
 			last_buffer_size = buffer_size[thread_buffer_num] / (get_obits() / 8) / get_ochannels();
 			total_samples += last_buffer_size;
 			playback_timer->update();
@@ -398,7 +414,7 @@ void AudioDevice::run_output()
 // inform user if the buffer write failed
 			if(thread_result < 0)
 			{
-				perror("AudioDevice::write_buffer");
+				perror("AudioDevice::run_output");
 				sleep(1);
 			}
 
@@ -407,7 +423,7 @@ void AudioDevice::run_output()
 		}
 
 
-//printf("AudioDevice::run 1 %d %d\n", interrupt, last_buffer[thread_buffer_num]);
+//printf("AudioDevice::run_output 1 %d %d\n", interrupt, last_buffer[thread_buffer_num]);
 // test for last buffer
 		if(!interrupt && last_buffer[thread_buffer_num])
 		{

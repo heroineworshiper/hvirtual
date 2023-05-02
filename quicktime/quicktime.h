@@ -1,3 +1,23 @@
+/*
+ * Quicktime 4 Linux
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ */
+
 #ifndef QUICKTIME_H
 #define QUICKTIME_H
 
@@ -26,7 +46,10 @@ extern "C" {
 #define QUICKTIME_MP4V "mp4v"
 
 #define QUICKTIME_H264 "avc1"
-
+#define QUICKTIME_H265 "hvc1"
+#define QUICKTIME_HEV1 "hev1"
+#define QUICKTIME_VP09 "vp09"
+#define QUICKTIME_VP08 "vp08"
 
 /* Basterdization of MPEG-4 which encodes alternating fields in series */
 /* NOT STANDARD */
@@ -162,12 +185,14 @@ void quicktime_set_asf(quicktime_t *file, int value);
 
 
 /* make the quicktime file streamable */
-int quicktime_make_streamable(char *in_path, char *out_path);
+int quicktime_make_streamable(char *in_path, char *out_path, int do_360);
 
 /* Set various options in the file. */
 void quicktime_set_copyright(quicktime_t *file, const char *string);
 void quicktime_set_name(quicktime_t *file, const char *string);
 void quicktime_set_info(quicktime_t *file, const char *string);
+/* tag the file for spherical playback */
+void quicktime_set_sphere(quicktime_t *file, int value);
 char* quicktime_get_copyright(quicktime_t *file);
 char* quicktime_get_name(quicktime_t *file);
 char* quicktime_get_info(quicktime_t *file);
@@ -357,36 +382,58 @@ int quicktime_h264_is_key(unsigned char *data, long size, char *codec_id);
 
 
 
-/* These should be called right before a decode or encode function */
-/* Set the colormodel for the encoder and decoder interface */
+// /* These should be called right before a decode or encode function */
+// /* Set the colormodel for the encoder and decoder interface */
 void quicktime_set_cmodel(quicktime_t *file, int colormodel);
 
 /* Set row span in bytes for the encoder and decoder interface */
 void quicktime_set_row_span(quicktime_t *file, int row_span);
 
-/* Set the decoding window for the decoder interface.  If the dimensions are */
-/* all -1, no scaling is used.  The default is no scaling. */
-void quicktime_set_window(quicktime_t *file,
-	int in_x,                    /* Location of input frame to take picture */
-	int in_y,
-	int in_w,
-	int in_h,
-	int out_w,                   /* Dimensions of output frame */
-	int out_h);
+// /* Set the decoding window for the decoder interface.  If the dimensions are */
+// /* all -1, no scaling is used.  The default is no scaling. */
+// void quicktime_set_window(quicktime_t *file,
+// 	int in_x,                    /* Location of input frame to take picture */
+// 	int in_y,
+// 	int in_w,
+// 	int in_h,
+// 	int out_w,                   /* Dimensions of output frame */
+// 	int out_h);
+
+// Some codecs have a known output format & write to user allocated buffers.
+// Some don't & allocate their own buffers.
+// This is hard coded into FileMOV so it can use the GPU.
 
 /* Encode the frame into a frame buffer. */
 int quicktime_encode_video(quicktime_t *file, 
 	unsigned char **row_pointers, 
 	int track);
 
-/* Decode a frame */
+// Decode a frame
+// pass 0 for row_pointers when using qucktime_get_dest
 long quicktime_decode_video(quicktime_t *file, 
 	unsigned char **row_pointers, 
 	int track);
 
+// get the output buffer after the decode, when using ffmpeg
+void quicktime_get_output(quicktime_t *file,
+    int64_t *frame_number, 
+    int *colormodel,
+    unsigned char **data,
+    unsigned char **y,
+    unsigned char **u,
+    unsigned char **v,
+    int *rowspan,
+    int *w,
+    int *h);
+
 /* Get memory used by video decoders.  Only counts frame caches. */
 int64_t quicktime_memory_usage(quicktime_t *file);
 void quicktime_set_cache_max(quicktime_t *file, int bytes);
+int64_t quicktime_purge_cache(quicktime_t *file);
+// outsource quicktime_put_frame to the user
+void quicktime_cache_function(quicktime_t *file, 
+    void (*put_cache)(void *ptr),
+    void *ptr);
 
 /* Decode or encode audio for a single channel into the buffer. */
 /* Pass a buffer for the _i or the _f argument if you want int16 or float data. */
@@ -412,6 +459,9 @@ int quicktime_dump(quicktime_t *file);
 
 /* Specify the number of cpus to utilize. */
 int quicktime_set_cpus(quicktime_t *file, int cpus);
+
+// use hardware when possible if 1
+void quicktime_set_hw(quicktime_t *file, int use_hw);
 
 /* Specify whether to read contiguously or not. */
 /* preload is the number of bytes to read ahead. */

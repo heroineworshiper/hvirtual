@@ -46,6 +46,8 @@ public:
 		const char *file_extension, 
 		int frame_type,
 		int list_type);
+// constructor for the file table entry
+	FileList();
 	virtual ~FileList();
 
 // basic commands for every file interpreter
@@ -80,7 +82,8 @@ public:
 
 // Temp storage for compressed data
 	VFrame *data;
-// Storage for single frame
+// Single frame files are always stored in a temp & reused.
+// This means no hardware colormodel conversion
 	VFrame *temp;
 
 private:

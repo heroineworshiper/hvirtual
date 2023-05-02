@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +59,7 @@ CacheBase::CacheBase()
 {
 	lock = new Mutex("CacheBase::lock");
 	current_item = 0;
+    max_size = -1;
 }
 
 CacheBase::~CacheBase()
@@ -151,29 +151,37 @@ int CacheBase::delete_oldest()
 	if(oldest_item)
 	{
 // Too much data to debug if audio.
-//printf("CacheBase::delete_oldest: deleted position=%lld %d bytes\n", 
-//oldest_item->position, oldest_item->get_size());
+// printf("CacheBase::delete_oldest: deleted position=%lld %d bytes\n", 
+// oldest_item->position, oldest_item->get_size());
+		int result = oldest_item->get_size();
 		delete oldest_item;
 		if(current_item == oldest_item) current_item = 0;
 		lock->unlock();
-		return 0;
+		return result;
 	}
 
 	lock->unlock();
-	return 1;
+	return 0;
 }
 
 
 int64_t CacheBase::get_memory_usage()
 {
 	int64_t result = 0;
+//printf("CacheBase::get_memory_usage %d\n", __LINE__);
 	lock->lock("CacheBase::get_memory_usage");
 	for(CacheItemBase *current = first; current; current = NEXT)
 	{
 		result += current->get_size();
 	}
 	lock->unlock();
+//printf("CacheBase::get_memory_usage %d result=%ld\n", __LINE__, result);
 	return result;
+}
+
+void CacheBase::set_max_size(int64_t size)
+{
+    this->max_size = size;
 }
 
 void CacheBase::put_item(CacheItemBase *item)
@@ -197,6 +205,17 @@ void CacheBase::put_item(CacheItemBase *item)
 	}
 	else
 		insert_before(current_item, item);
+
+
+    if(max_size > 0)
+    {
+        lock->unlock();
+        while(get_memory_usage() > max_size)
+        {
+            delete_oldest();
+        }
+        lock->lock("CacheBase::put_item");
+    }
 }
 
 // Get first item from list with matching position or 0 if none found.

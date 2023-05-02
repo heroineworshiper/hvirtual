@@ -30,8 +30,8 @@ public:
 	ErrorBox(const char *title, 
 		int x = (int)BC_INFINITY, 
 		int y = (int)BC_INFINITY, 
-		int w = 400, 
-		int h = 120);
+		int w = DP(400), 
+		int h = DP(120));
 	virtual ~ErrorBox();
 
 	int create_objects(const char *text);

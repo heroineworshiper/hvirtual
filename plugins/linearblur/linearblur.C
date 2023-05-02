@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -265,10 +265,10 @@ void LinearBlurConfig::interpolate(LinearBlurConfig &prev,
 
 LinearBlurWindow::LinearBlurWindow(LinearBlurMain *plugin)
  : PluginClientWindow(plugin,
-	230, 
-	290, 
-	230, 
-	290, 
+	DP(230), 
+	DP(290), 
+	DP(230), 
+	DP(290), 
 	0)
 {
 	this->plugin = plugin; 
@@ -280,28 +280,28 @@ LinearBlurWindow::~LinearBlurWindow()
 
 void LinearBlurWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_subwindow(new BC_Title(x, y, _("Length:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(radius = new LinearBlurSize(plugin, x, y, &plugin->config.radius, 0, 100));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Angle:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(angle = new LinearBlurSize(plugin, x, y, &plugin->config.angle, -180, 180));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Steps:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(steps = new LinearBlurSize(plugin, x, y, &plugin->config.steps, 1, 200));
-	y += 30;
+	y += DP(30);
 	add_subwindow(r = new LinearBlurToggle(plugin, x, y, &plugin->config.r, _("Red")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(g = new LinearBlurToggle(plugin, x, y, &plugin->config.g, _("Green")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(b = new LinearBlurToggle(plugin, x, y, &plugin->config.b, _("Blue")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(a = new LinearBlurToggle(plugin, x, y, &plugin->config.a, _("Alpha")));
-	y += 30;
+	y += DP(30);
 
 	show_window();
 	flush();
@@ -347,7 +347,7 @@ LinearBlurSize::LinearBlurSize(LinearBlurMain *plugin,
 	int *output,
 	int min,
 	int max)
- : BC_ISlider(x, y, 0, 200, 200, min, max, *output)
+ : BC_ISlider(x, y, 0, DP(200), DP(200), min, max, *output)
 {
 	this->plugin = plugin;
 	this->output = output;
@@ -515,7 +515,7 @@ int LinearBlurMain::process_buffer(VFrame *frame,
 		get_project_smp() + 1);
 	if(!accum) accum = new unsigned char[frame->get_w() * 
 		frame->get_h() *
-		BC_CModels::components(frame->get_color_model()) *
+		cmodel_components(frame->get_color_model()) *
 		MAX(sizeof(int), sizeof(float))];
 
 	this->input = frame;
@@ -535,7 +535,7 @@ int LinearBlurMain::process_buffer(VFrame *frame,
 	bzero(accum, 
 		frame->get_w() * 
 		frame->get_h() * 
-		BC_CModels::components(frame->get_color_model()) * 
+		cmodel_components(frame->get_color_model()) * 
 		MAX(sizeof(int), sizeof(float)));
 	engine->process_packages();
 	return 0;
@@ -663,7 +663,7 @@ int LinearBlurMain::handle_opengl()
 	get_output()->init_screen();
 	get_output()->bind_texture(0);
 
-	int is_yuv = BC_CModels::is_yuv(get_output()->get_color_model());
+	int is_yuv = cmodel_is_yuv(get_output()->get_color_model());
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -763,6 +763,7 @@ int LinearBlurMain::handle_opengl()
 	glColor4f(1, 1, 1, 1);
 	get_output()->set_opengl_state(VFrame::SCREEN);
 #endif
+    return 0;
 }
 
 

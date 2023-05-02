@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@
 
 
 New::New(MWindow *mwindow)
- : BC_MenuItem(_("New..."), "n", 'n')
+ : BC_MenuItem(_("New"), "n", 'n')
 {
 	this->mwindow = mwindow;
 	script = 0;
@@ -68,7 +68,10 @@ void New::create_objects()
 int New::handle_event() 
 {
 	mwindow->gui->unlock_window();
-	thread->start();
+	mwindow->edl->save_defaults(mwindow->defaults);
+	create_new_edl();
+	create_new_project();
+//	thread->start();
 	mwindow->gui->lock_window("New::handle_event");
 
 	return 1;
@@ -137,6 +140,7 @@ NewThread::NewThread(MWindow *mwindow, New *new_project)
 {
 	this->mwindow = mwindow;
 	this->new_project = new_project;
+	nwindow = 0;
 }
 
 NewThread::~NewThread()
@@ -521,8 +525,8 @@ int NewSampleRate::handle_event()
 SampleRatePulldown::SampleRatePulldown(MWindow *mwindow, BC_TextBox *output, int x, int y)
  : BC_ListBox(x,
  	y,
-	100,
-	200,
+	DP(100),
+	DP(200),
 	LISTBOX_TEXT,
 	&mwindow->theme->sample_rates,
 	0,
@@ -638,8 +642,8 @@ FrameRatePulldown::FrameRatePulldown(MWindow *mwindow,
 	int y)
  : BC_ListBox(x,
  	y,
-	100,
-	200,
+	DP(150),
+	DP(250),
 	LISTBOX_TEXT,
 	&mwindow->theme->frame_rates,
 	0,
@@ -666,8 +670,8 @@ FrameSizePulldown::FrameSizePulldown(Theme *theme,
 		int y)
  : BC_ListBox(x,
  	y,
-	100,
-	250,
+	DP(150),
+	DP(250),
 	LISTBOX_TEXT,
 	&theme->frame_sizes,
 	0,
@@ -759,8 +763,8 @@ AspectPulldown::AspectPulldown(MWindow *mwindow,
 		int y)
  : BC_ListBox(x,
  	y,
-	100,
-	200,
+	DP(100),
+	DP(200),
 	LISTBOX_TEXT,
 	&mwindow->theme->aspect_ratios,
 	0,
@@ -810,8 +814,8 @@ ColormodelPulldown::ColormodelPulldown(MWindow *mwindow,
 		int y)
  : BC_ListBox(x,
  	y,
-	200,
-	150,
+	DP(200),
+	DP(150),
 	LISTBOX_TEXT,
 	(ArrayList<BC_ListBoxItem*>*)&mwindow->colormodels,
 	0,

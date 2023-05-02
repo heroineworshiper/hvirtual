@@ -223,13 +223,15 @@ public:
 	ParametricBandGUI* bands[BANDS];
 	ParametricWetness *wetness;
 	ParametricSize *size;
+    int db_divisions;
+    int freq_divisions;
 };
 
 
 class ParametricGUIFrame : public PluginClientFrame
 {
 public:
-	ParametricGUIFrame(int window_size, int sample_rate);
+	ParametricGUIFrame(int window_size);
 	virtual ~ParametricGUIFrame();
 	double *data;
 // Maximum of window in frequency domain
@@ -285,6 +287,7 @@ public:
 	ParametricFFT *fft;
 // For refreshing the canvas
 	ParametricGUIFrame *last_frame;
+    int64_t last_position;
 };
 
 

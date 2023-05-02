@@ -49,9 +49,10 @@ mpeg3_index_t* mpeg3_new_index()
 void mpeg3_delete_index(mpeg3_index_t *index)
 {
 	int i;
-	for(i = 0;i < index->index_channels; i++)
+	for(i = 0; i < index->index_channels; i++)
 		free(index->index_data[i]);
 	free(index->index_data);
+    free(index->offsets);
 	free(index);
 }
 

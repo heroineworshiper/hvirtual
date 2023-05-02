@@ -31,7 +31,6 @@
 #include "maskauto.inc"
 #include "maskautos.inc"
 #include "mutex.inc"
-#include "mwindow.inc"
 #include "pluginclient.inc"
 #include "thread.h"
 #include "vframe.inc"
@@ -44,9 +43,9 @@
 #define YUV_TO_RGB_FRAG(PIXEL) \
 	PIXEL ".gb -= vec2(0.5, 0.5);\n" \
  	PIXEL ".rgb = mat3(\n" \
- 	"	 1, 	  1,		1, \n" \
- 	"	 0, 	  -0.34414, 1.77200, \n" \
- 	"	 1.40200, -0.71414, 0) * " PIXEL ".rgb;\n"
+ 	"	 1.0, 	  1.0,		1.0, \n" \
+ 	"	 0.0, 	  -0.34414, 1.77200, \n" \
+ 	"	 1.40200, -0.71414, 0.0) * " PIXEL ".rgb;\n"
 
 #define RGB_TO_YUV_FRAG(PIXEL) \
  	PIXEL ".rgb = mat3(\n" \
@@ -208,7 +207,9 @@ public:
 	int is_nested;
 
 	int dst_cmodel;
+    int video_on;
 	int64_t start_position_project;
+    VFrame *mask;
 	MaskAutos *keyframe_set;
 	MaskAuto *keyframe;
 	MaskAuto *default_auto;
@@ -219,7 +220,7 @@ public:
 class Playback3D : public BC_Synchronous
 {
 public:
-	Playback3D(MWindow *mwindow);
+	Playback3D();
 	~Playback3D();
 
 	BC_SynchronousCommand* new_command();
@@ -239,7 +240,7 @@ public:
 		int is_cleared);
 
 // Reads from pbuffer to either RAM or texture and updates the dst state
-// want_texture - causes read into texture if 1
+// want_texture - the destination is a texture instead of RAM if 1
 	void copy_from(Canvas *canvas, 
 		VFrame *dst,
 		VFrame *src,
@@ -247,14 +248,19 @@ public:
 
 // Clear framebuffer before composing virtual console
 // output - passed when rendering refresh frame.  If 0, the canvas is cleared.
-	void clear_output(Canvas *canvas, VFrame *output);
+	void clear_output(Canvas *canvas, VFrame *output, int video_on);
 
 	void convert_cmodel(Canvas *canvas, VFrame *output, int dst_cmodel);
+	void convert_cmodel(Canvas *canvas, VFrame *input, VFrame *output);
+    int skip_convert_cmodel(int state,
+        int src_cmodel,
+        int dst_cmodel);
 
 	void do_fade(Canvas *canvas, VFrame *frame, float fade);
 
 	void do_mask(Canvas *canvas,
 		VFrame *output, 
+        VFrame *mask,
 		int64_t start_position_project,
 		MaskAutos *keyframe_set, 
 		MaskAuto *keyframe,
@@ -275,7 +281,7 @@ public:
 		float alpha,        // 0 - 1
 		int mode,
 		int interpolation_type,
-// supplied if rendering single frame to PBuffer.
+// supplied if video is off & rendering single frame to PBuffer.
 		VFrame *output = 0,
 		int is_nested = 0);
 
@@ -297,7 +303,7 @@ public:
 
 private:
 // Called by write_buffer and clear_frame to initialize OpenGL flags
-	void init_frame(Playback3DCommand *command);
+//	void init_frame(Playback3DCommand *command);
 	void write_buffer_sync(Playback3DCommand *command);
 	void draw_output(Playback3DCommand *command);
 	void clear_output_sync(Playback3DCommand *command);
@@ -316,8 +322,6 @@ private:
 // Print errors from shader compilation
 	void print_error(unsigned int object, int is_program);
 
-// This quits the program when it's 1.
-	MWindow *mwindow;
 // Temporaries for render to texture
 	BC_Texture *temp_texture;
 // This is set by clear_output and used in compositing directly

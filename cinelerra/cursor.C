@@ -93,8 +93,10 @@ return 0;
 		canvas->set_opaque();
 	}
 	if(flash) canvas->flash();
+    return 0;
 }
 
 int Cursor_::resize(int w, int h)
 {
+    return 0;
 }

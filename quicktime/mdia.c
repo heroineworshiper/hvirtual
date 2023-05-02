@@ -64,12 +64,15 @@ int quicktime_read_mdia(quicktime_t *file, quicktime_mdia_t *mdia, quicktime_ato
 
 	do
 	{
+//printf("quicktime_read_mdia %d %lx\n", __LINE__, quicktime_position(file));
 		quicktime_atom_read_header(file, &leaf_atom);
-//printf("quicktime_read_mdia %llx\n", quicktime_position(file));
 
 /* mandatory */
 		if(quicktime_atom_is(&leaf_atom, "mdhd"))
-			{ quicktime_read_mdhd(file, &(mdia->mdhd)); }
+        { 
+            quicktime_read_mdhd(file, &(mdia->mdhd));
+            quicktime_atom_skip(file, &leaf_atom);
+        }
 		else
 		if(quicktime_atom_is(&leaf_atom, "hdlr"))
 		{
@@ -79,9 +82,12 @@ int quicktime_read_mdia(quicktime_t *file, quicktime_mdia_t *mdia, quicktime_ato
 		}
 		else
 		if(quicktime_atom_is(&leaf_atom, "minf"))
-			{ quicktime_read_minf(file, &(mdia->minf), &leaf_atom); }
-		else
-			quicktime_atom_skip(file, &leaf_atom);
+		{ 
+            quicktime_read_minf(file, &(mdia->minf), &leaf_atom); 
+        }
+
+// handle an invalid size by always skipping
+		quicktime_atom_skip(file, &leaf_atom);
 	}while(quicktime_position(file) < trak_atom->end);
 
 	return 0;

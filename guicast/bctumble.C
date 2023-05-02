@@ -40,6 +40,7 @@ BC_Tumbler::BC_Tumbler(int x, int y, VFrame **data)
 	status = TUMBLE_UP;
 	repeat_count = 0;
 	this->data = data;
+    enabled = 1;
 }
 
 
@@ -120,6 +121,16 @@ int BC_Tumbler::draw_face(int flush)
 	return 0;
 }
 
+void BC_Tumbler::enable()
+{
+    enabled = 1;
+}
+
+void BC_Tumbler::disable()
+{
+    enabled = 0;
+}
+
 int BC_Tumbler::repeat_event(int64_t duration)
 {
 //printf("BC_Tumbler::repeat_event 1 %d\n", duration);
@@ -139,7 +150,8 @@ int BC_Tumbler::repeat_event(int64_t duration)
 	{
 //printf("BC_Tumbler::repeat_event 2\n");
 		repeat_count++;
-		if(repeat_count == 2) return 0;
+// delay the 1st repeat
+		if(repeat_count > 1 && repeat_count < 5) return 0;
 		if(status == TUMBLETOP_DN)
 		{
 			handle_up_event();
@@ -157,10 +169,10 @@ int BC_Tumbler::repeat_event(int64_t duration)
 
 int BC_Tumbler::cursor_enter_event()
 {
-	if(top_level->event_win == win)
+	if(top_level->event_win == win && enabled)
 	{
 		tooltip_done = 0;
-		if(! top_level->button_down && status == TUMBLE_UP) 
+		if(!top_level->button_down && status == TUMBLE_UP) 
 		{
 			status = TUMBLE_UPHI;
 			draw_face(1);
@@ -183,7 +195,7 @@ int BC_Tumbler::cursor_leave_event()
 int BC_Tumbler::button_press_event()
 {
 	hide_tooltip();
-	if(top_level->event_win == win)
+	if(top_level->event_win == win && enabled)
 	{
 //printf("BC_Tumbler::button_press_event 1 %d\n", get_buttonpress());
 		if(get_buttonpress() == 4)

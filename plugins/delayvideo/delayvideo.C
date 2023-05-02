@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,10 +72,10 @@ void DelayVideoConfig::interpolate(DelayVideoConfig &prev,
 
 DelayVideoWindow::DelayVideoWindow(DelayVideo *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	120, 
-	210, 
-	120, 
+	DP(210), 
+	DP(120), 
+	DP(210), 
+	DP(120), 
 	0)
 {
 	this->plugin = plugin;
@@ -88,10 +88,10 @@ DelayVideoWindow::~DelayVideoWindow()
 	
 void DelayVideoWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	
 	add_subwindow(new BC_Title(x, y, _("Delay seconds:")));
-	y += 20;
+	y += DP(20);
 	slider = new DelayVideoSlider(this, plugin, x, y);
 	slider->create_objects();
 	show_window();
@@ -126,7 +126,7 @@ DelayVideoSlider::DelayVideoSlider(DelayVideoWindow *window,
 	(float)10,
 	x, 
 	y, 
-	150)
+	DP(150))
 {
 	this->plugin = plugin;
 	set_increment(0.1);

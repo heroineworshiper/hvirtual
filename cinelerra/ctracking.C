@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,8 +64,11 @@ int CTracking::stop_playback()
 {
 	mwindow->gui->set_playing_back(0);
 
-
+// 1 more GUI update in here
 	Tracking::stop_playback();
+
+// stop the plugin GUIs
+    mwindow->stop_plugin_guis();
 	return 0;
 }
 
@@ -114,7 +116,7 @@ int CTracking::update_scroll(double position)
 
 			if(position < right_boundary &&
 				position > left_boundary && 
-				mwindow->edl->local_session->view_start > 0)
+				mwindow->edl->local_session->view_start[pane->number] > 0)
 			{
 				int pixels = Units::to_int64((right_boundary - position) * 
 						mwindow->edl->session->sample_rate /
@@ -134,6 +136,7 @@ int CTracking::update_scroll(double position)
 void CTracking::update_tracker(double position)
 {
 	int updated_scroll = 0;
+
 // Update cwindow slider
 	cwindow->gui->lock_window("CTracking::update_tracker 1");
 

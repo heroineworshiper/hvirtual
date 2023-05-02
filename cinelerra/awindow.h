@@ -22,6 +22,7 @@
 #ifndef AWINDOW_H
 #define AWINDOW_H
 
+#include "arraylist.h"
 #include "assetedit.inc"
 #include "assetremove.inc"
 #include "awindowgui.inc"
@@ -43,8 +44,8 @@ public:
 
 	AWindowGUI *gui;
 	MWindow *mwindow;
-	AssetEdit *asset_edit;
-	AssetRemoveThread *asset_remove;
+	ArrayList<AssetEdit*> asset_editors;
+//	AssetRemoveThread *asset_remove;
 	ClipEdit *clip_edit;
 };
 

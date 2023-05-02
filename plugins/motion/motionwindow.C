@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2012-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
  */
 
 #include "bcdisplayinfo.h"
+#include "bcsignals.h"
 #include "clip.h"
 #include "language.h"
 #include "motion.h"
@@ -37,10 +38,10 @@
 
 MotionWindow::MotionWindow(MotionMain *plugin)
  : PluginClientWindow(plugin,
- 	600, 
-	650, 
-	600,
-	650,
+ 	DP(600), 
+	DP(650), 
+	DP(600),
+	DP(650),
 	0)
 {
 	this->plugin = plugin; 
@@ -52,32 +53,32 @@ MotionWindow::~MotionWindow()
 
 void MotionWindow::create_objects()
 {
-	int x1 = 10, x = 10, y = 10;
-	int x2 = 310;
+	int x1 = DP(10), x = DP(10), y = DP(10);
+	int x2 = DP(310);
 	BC_Title *title;
 
 
 
-	add_subwindow(global = new MotionGlobal(plugin,
-		this,
-		x1,
-		y));
+// 	add_subwindow(global = new MotionGlobal(plugin,
+// 		this,
+// 		x1,
+// 		y));
 
 	add_subwindow(rotate = new MotionRotate(plugin,
 		this,
 		x2,
 		y));
-	y += 50;
+	y += DP(50);
 
 	add_subwindow(title = new BC_Title(x1, 
 		y, 
 		_("Translation search radius:\n(W/H Percent of image)")));
 	add_subwindow(global_range_w = new GlobalRange(plugin, 
-		x1 + title->get_w() + 10, 
+		x1 + title->get_w() + DP(10), 
 		y,
 		&plugin->config.global_range_w));
 	add_subwindow(global_range_h = new GlobalRange(plugin, 
-		x1 + title->get_w() + 10 + global_range_w->get_w(), 
+		x1 + title->get_w() + DP(10) + global_range_w->get_w(), 
 		y,
 		&plugin->config.global_range_h));
 
@@ -85,166 +86,140 @@ void MotionWindow::create_objects()
 		y, 
 		_("Rotation search radius:\n(Degrees)")));
 	add_subwindow(rotation_range = new RotationRange(plugin, 
-		x2 + title->get_w() + 10, 
+		x2 + title->get_w() + DP(10), 
 		y));
 
-	y += 50;
+	y += DP(50);
 	add_subwindow(title = new BC_Title(x1, 
 		y, 
 		_("Translation block size:\n(W/H Percent of image)")));
 	add_subwindow(global_block_w = new BlockSize(plugin, 
-		x1 + title->get_w() + 10, 
+		x1 + title->get_w() + DP(10), 
 		y,
 		&plugin->config.global_block_w));
 	add_subwindow(global_block_h = new BlockSize(plugin, 
-		x1 + title->get_w() + 10 + global_block_w->get_w(), 
+		x1 + title->get_w() + DP(10) + global_block_w->get_w(), 
 		y,
 		&plugin->config.global_block_h));
 
-// 	add_subwindow(title = new BC_Title(x2, 
-// 		y, 
-// 		_("Rotation block size:\n(W/H Percent of image)")));
-// 	add_subwindow(rotation_block_w = new BlockSize(plugin, 
-// 		x2 + title->get_w() + 10, 
-// 		y,
-// 		&plugin->config.rotation_block_w));
-// 	add_subwindow(rotation_block_h = new BlockSize(plugin, 
-// 		x2 + title->get_w() + 10 + rotation_block_w->get_w(), 
-// 		y,
-// 		&plugin->config.rotation_block_h));
 
-	y += 50;
-	add_subwindow(title = new BC_Title(x1, y, _("Translation search steps:")));
-	add_subwindow(global_search_positions = new GlobalSearchPositions(plugin, 
-		x1 + title->get_w() + 10, 
-		y, 
-		80));
-	global_search_positions->create_objects();
-
-	add_subwindow(title = new BC_Title(x2, y, _("Rotation search steps:")));
-	add_subwindow(rotation_search_positions = new RotationSearchPositions(plugin, 
-		x2 + title->get_w() + 10, 
-		y, 
-		80));
-	rotation_search_positions->create_objects();
-
-	y += 50;
+	y += DP(50);
 	add_subwindow(title = new BC_Title(x, y, _("Translation direction:")));
 	add_subwindow(track_direction = new TrackDirection(plugin, 
 		this, 
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 	track_direction->create_objects();
 
-	y += 40;
+	y += DP(40);
 	add_subwindow(title = new BC_Title(x, y + 10, _("Block X:")));
 	add_subwindow(block_x = new MotionBlockX(plugin, 
 		this, 
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 	add_subwindow(block_x_text = new MotionBlockXText(plugin, 
 		this, 
-		x + title->get_w() + 10 + block_x->get_w() + 10, 
+		x + title->get_w() + DP(10) + block_x->get_w() + DP(10), 
 		y + 10));
 
 	add_subwindow(title = new BC_Title(x2, y, _("Rotation center:")));
 	add_subwindow(rotation_center = new RotationCenter(plugin,
-		x2 + title->get_w() + 10,
+		x2 + title->get_w() + DP(10),
 		y));
 
 
 
 	int y1 = y;
-	y += 50;
-	add_subwindow(title = new BC_Title(x2, y + 10, _("Maximum angle offset:")));
+	y += DP(50);
+	add_subwindow(title = new BC_Title(x2, y + DP(10), _("Maximum angle offset:")));
 	add_subwindow(rotate_magnitude = new MotionRMagnitude(plugin, 
-		x2 + title->get_w() + 10, 
+		x2 + title->get_w() + DP(10), 
 		y));
 
-	y += 40;
-	add_subwindow(title = new BC_Title(x2, y + 10, _("Rotation settling speed:")));
+	y += DP(40);
+	add_subwindow(title = new BC_Title(x2, y + DP(10), _("Rotation settling speed:")));
 	add_subwindow(rotate_return_speed = new MotionRReturnSpeed(plugin,
-		x2 + title->get_w() + 10, 
+		x2 + title->get_w() + DP(10), 
 		y));
 
 
 
 	y = y1;
-	y += 40;
-	add_subwindow(title = new BC_Title(x, y + 10, _("Block Y:")));
+	y += DP(40);
+	add_subwindow(title = new BC_Title(x, y + DP(10), _("Block Y:")));
 	add_subwindow(block_y = new MotionBlockY(plugin, 
 		this, 
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 	add_subwindow(block_y_text = new MotionBlockYText(plugin, 
 		this, 
-		x + title->get_w() + 10 + block_y->get_w() + 10, 
-		y + 10));
+		x + title->get_w() + DP(10) + block_y->get_w() + DP(10), 
+		y + DP(10)));
 
-	y += 50;
-	add_subwindow(title = new BC_Title(x, y + 10, _("Maximum absolute offset:")));
+	y += DP(50);
+	add_subwindow(title = new BC_Title(x, y + DP(10), _("Maximum absolute offset:")));
 	add_subwindow(magnitude = new MotionMagnitude(plugin, 
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 
-	y += 40;
-	add_subwindow(title = new BC_Title(x, y + 10, _("Motion settling speed:")));
+	y += DP(40);
+	add_subwindow(title = new BC_Title(x, y + DP(10), _("Motion settling speed:")));
 	add_subwindow(return_speed = new MotionReturnSpeed(plugin,
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 
 
 
-	y += 40;
+	y += DP(40);
 	add_subwindow(vectors = new MotionDrawVectors(plugin,
 		this,
 		x,
 		y));
 
 
-	y += 40;
+	y += DP(40);
 	add_subwindow(track_single = new TrackSingleFrame(plugin, 
 		this,
 		x, 
 		y));
-	add_subwindow(title = new BC_Title(x + track_single->get_w() + 20, 
+	add_subwindow(title = new BC_Title(x + track_single->get_w() + DP(20), 
 		y, 
 		_("Frame number:")));
 	add_subwindow(track_frame_number = new TrackFrameNumber(plugin, 
 		this,
-		x + track_single->get_w() + title->get_w() + 20, 
+		x + track_single->get_w() + title->get_w() + DP(20), 
 		y));
 
-	y += 20;
+	y += DP(20);
 	add_subwindow(track_previous = new TrackPreviousFrame(plugin, 
 		this,
 		x, 
 		y));
 
-	y += 20;
+	y += DP(20);
 	add_subwindow(previous_same = new PreviousFrameSameBlock(plugin, 
 		this,
 		x, 
 		y));
 
-	y += 40;
+	y += DP(40);
 	y1 = y;
 	add_subwindow(title = new BC_Title(x, y, _("Master layer:")));
 	add_subwindow(master_layer = new MasterLayer(plugin, 
 		this,
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 	master_layer->create_objects();
-	y += 30;
+	y += DP(30);
 
 
 	add_subwindow(title = new BC_Title(x, y, _("Action:")));
 	add_subwindow(action_type = new ActionType(plugin, 
 		this,
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 	action_type->create_objects();
-	y += 30;
+	y += DP(30);
 
 
 
@@ -252,14 +227,13 @@ void MotionWindow::create_objects()
 	add_subwindow(title = new BC_Title(x, y, _("Calculation:")));
 	add_subwindow(tracking_type = new TrackingType(plugin, 
 		this, 
-		x + title->get_w() + 10, 
+		x + title->get_w() + DP(10), 
 		y));
 	tracking_type->create_objects();
 
 
 
-	show_window();
-	flush();
+	show_window(1);
 }
 
 void MotionWindow::update_mode()
@@ -274,7 +248,7 @@ void MotionWindow::update_mode()
 	 	MIN_ROTATION,
 	 	MAX_ROTATION);
 	vectors->update(plugin->config.draw_vectors);
-	global->update(plugin->config.global);
+//	global->update(plugin->config.global);
 	rotate->update(plugin->config.rotate);
 }
 
@@ -397,81 +371,81 @@ int BlockSize::handle_event()
 
 
 
-GlobalSearchPositions::GlobalSearchPositions(MotionMain *plugin, 
-	int x, 
-	int y,
-	int w)
- : BC_PopupMenu(x,
- 	y,
-	w,
-	"",
-	1)
-{
-	this->plugin = plugin;
-}
-void GlobalSearchPositions::create_objects()
-{
-	add_item(new BC_MenuItem("16"));
-	add_item(new BC_MenuItem("32"));
-	add_item(new BC_MenuItem("64"));
-	add_item(new BC_MenuItem("128"));
-	add_item(new BC_MenuItem("256"));
-	add_item(new BC_MenuItem("512"));
-	add_item(new BC_MenuItem("1024"));
-	add_item(new BC_MenuItem("2048"));
-	add_item(new BC_MenuItem("4096"));
-	add_item(new BC_MenuItem("8192"));
-	add_item(new BC_MenuItem("16384"));
-	add_item(new BC_MenuItem("32768"));
-	add_item(new BC_MenuItem("65536"));
-	add_item(new BC_MenuItem("131072"));
-	char string[BCTEXTLEN];
-	sprintf(string, "%d", plugin->config.global_positions);
-	set_text(string);
-}
-
-int GlobalSearchPositions::handle_event()
-{
-	plugin->config.global_positions = atoi(get_text());
-	plugin->send_configure_change();
-	return 1;
-}
-
-
-
-
-
-
-
-RotationSearchPositions::RotationSearchPositions(MotionMain *plugin, 
-	int x, 
-	int y,
-	int w)
- : BC_PopupMenu(x,
- 	y,
-	w,
-	"",
-	1)
-{
-	this->plugin = plugin;
-}
-void RotationSearchPositions::create_objects()
-{
-	add_item(new BC_MenuItem("4"));
-	add_item(new BC_MenuItem("8"));
-	add_item(new BC_MenuItem("16"));
-	add_item(new BC_MenuItem("32"));
-	char string[BCTEXTLEN];
-	sprintf(string, "%d", plugin->config.rotate_positions);
-	set_text(string);
-}
-
-int RotationSearchPositions::handle_event()
-{
-	plugin->config.rotate_positions = atoi(get_text());
-	plugin->send_configure_change();
-	return 1;
-}
+// GlobalSearchPositions::GlobalSearchPositions(MotionMain *plugin, 
+// 	int x, 
+// 	int y,
+// 	int w)
+//  : BC_PopupMenu(x,
+//  	y,
+// 	w,
+// 	"",
+// 	1)
+// {
+// 	this->plugin = plugin;
+// }
+// void GlobalSearchPositions::create_objects()
+// {
+// 	add_item(new BC_MenuItem("16"));
+// 	add_item(new BC_MenuItem("32"));
+// 	add_item(new BC_MenuItem("64"));
+// 	add_item(new BC_MenuItem("128"));
+// 	add_item(new BC_MenuItem("256"));
+// 	add_item(new BC_MenuItem("512"));
+// 	add_item(new BC_MenuItem("1024"));
+// 	add_item(new BC_MenuItem("2048"));
+// 	add_item(new BC_MenuItem("4096"));
+// 	add_item(new BC_MenuItem("8192"));
+// 	add_item(new BC_MenuItem("16384"));
+// 	add_item(new BC_MenuItem("32768"));
+// 	add_item(new BC_MenuItem("65536"));
+// 	add_item(new BC_MenuItem("131072"));
+// 	char string[BCTEXTLEN];
+// 	sprintf(string, "%d", plugin->config.global_positions);
+// 	set_text(string);
+// }
+// 
+// int GlobalSearchPositions::handle_event()
+// {
+// 	plugin->config.global_positions = atoi(get_text());
+// 	plugin->send_configure_change();
+// 	return 1;
+// }
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// RotationSearchPositions::RotationSearchPositions(MotionMain *plugin, 
+// 	int x, 
+// 	int y,
+// 	int w)
+//  : BC_PopupMenu(x,
+//  	y,
+// 	w,
+// 	"",
+// 	1)
+// {
+// 	this->plugin = plugin;
+// }
+// void RotationSearchPositions::create_objects()
+// {
+// 	add_item(new BC_MenuItem("4"));
+// 	add_item(new BC_MenuItem("8"));
+// 	add_item(new BC_MenuItem("16"));
+// 	add_item(new BC_MenuItem("32"));
+// 	char string[BCTEXTLEN];
+// 	sprintf(string, "%d", plugin->config.rotate_positions);
+// 	set_text(string);
+// }
+// 
+// int RotationSearchPositions::handle_event()
+// {
+// 	plugin->config.rotate_positions = atoi(get_text());
+// 	plugin->send_configure_change();
+// 	return 1;
+// }
 
 
 
@@ -565,25 +539,25 @@ int MotionRReturnSpeed::handle_event()
 
 
 
-MotionGlobal::MotionGlobal(MotionMain *plugin, 
-	MotionWindow *gui,
-	int x, 
-	int y)
- : BC_CheckBox(x, 
- 	y, 
-	plugin->config.global,
-	_("Track translation"))
-{
-	this->plugin = plugin;
-	this->gui = gui;
-}
-
-int MotionGlobal::handle_event()
-{
-	plugin->config.global = get_value();
-	plugin->send_configure_change();
-	return 1;
-}
+// MotionGlobal::MotionGlobal(MotionMain *plugin, 
+// 	MotionWindow *gui,
+// 	int x, 
+// 	int y)
+//  : BC_CheckBox(x, 
+//  	y, 
+// 	plugin->config.global,
+// 	_("Track translation"))
+// {
+// 	this->plugin = plugin;
+// 	this->gui = gui;
+// }
+// 
+// int MotionGlobal::handle_event()
+// {
+// 	plugin->config.global = get_value();
+// 	plugin->send_configure_change();
+// 	return 1;
+// }
 
 MotionRotate::MotionRotate(MotionMain *plugin, 
 	MotionWindow *gui,
@@ -662,7 +636,7 @@ MotionBlockXText::MotionBlockXText(MotionMain *plugin,
 	int y)
  : BC_TextBox(x,
  	y,
-	75,
+	DP(100),
 	1,
 	(float)plugin->config.block_x)
 {
@@ -688,7 +662,7 @@ MotionBlockYText::MotionBlockYText(MotionMain *plugin,
 	int y)
  : BC_TextBox(x,
  	y,
-	75,
+	DP(100),
 	1,
 	(float)plugin->config.block_y)
 {
@@ -781,7 +755,7 @@ TrackFrameNumber::TrackFrameNumber(MotionMain *plugin,
 	MotionWindow *gui,
 	int x, 
 	int y)
- : BC_TextBox(x, y, 100, 1, plugin->config.track_frame)
+ : BC_TextBox(x, y, DP(100), 1, plugin->config.track_frame)
 {
 	this->plugin = plugin;
 	this->gui = gui;
@@ -931,6 +905,7 @@ void ActionType::create_objects()
 	add_item(new BC_MenuItem(to_text(MotionScan::TRACK_PIXEL)));
 	add_item(new BC_MenuItem(to_text(MotionScan::STABILIZE)));
 	add_item(new BC_MenuItem(to_text(MotionScan::STABILIZE_PIXEL)));
+	add_item(new BC_MenuItem(to_text(MotionScan::STABILIZE_SPHERE)));
 	add_item(new BC_MenuItem(to_text(MotionScan::NOTHING)));
 }
 
@@ -940,7 +915,9 @@ int ActionType::from_text(char *text)
 	if(!strcmp(text, _("Track Pixel"))) return MotionScan::TRACK_PIXEL;
 	if(!strcmp(text, _("Stabilize Subpixel"))) return MotionScan::STABILIZE;
 	if(!strcmp(text, _("Stabilize Pixel"))) return MotionScan::STABILIZE_PIXEL;
+	if(!strcmp(text, _("Stabilize Sphere"))) return MotionScan::STABILIZE_SPHERE;
 	if(!strcmp(text, _("Do Nothing"))) return MotionScan::NOTHING;
+    return 0;
 }
 
 char* ActionType::to_text(int mode)
@@ -959,10 +936,14 @@ char* ActionType::to_text(int mode)
 		case MotionScan::STABILIZE_PIXEL:
 			return _("Stabilize Pixel");
 			break;
+		case MotionScan::STABILIZE_SPHERE:
+			return _("Stabilize Sphere");
+			break;
 		case MotionScan::NOTHING:
 			return _("Do Nothing");
 			break;
 	}
+    return 0;
 }
 
 int ActionType::calculate_w(MotionWindow *gui)
@@ -972,6 +953,7 @@ int ActionType::calculate_w(MotionWindow *gui)
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::TRACK_PIXEL)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::STABILIZE)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::STABILIZE_PIXEL)));
+	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::STABILIZE_SPHERE)));
 	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::NOTHING)));
 	return result + 50;
 }
@@ -1011,6 +993,7 @@ int TrackingType::from_text(char *text)
 	if(!strcmp(text, _("Recalculate"))) return MotionScan::CALCULATE;
 	if(!strcmp(text, _("Save coords to /tmp"))) return MotionScan::SAVE;
 	if(!strcmp(text, _("Load coords from /tmp"))) return MotionScan::LOAD;
+    return 0;
 }
 
 char* TrackingType::to_text(int mode)
@@ -1030,6 +1013,7 @@ char* TrackingType::to_text(int mode)
 			return _("Load coords from /tmp");
 			break;
 	}
+    return 0;
 }
 
 int TrackingType::calculate_w(MotionWindow *gui)

@@ -1,55 +1,109 @@
 include global_config
 
-DIR := libraw1394-0.9.0
+DIR := $(shell expr thirdparty/LibRaw*)
 
 OBJS := \
-	$(DIR)/$(OBJDIR)/src/errors.o \
-	$(DIR)/$(OBJDIR)/src/eventloop.o \
-	$(DIR)/$(OBJDIR)/src/fcp.o \
-	$(DIR)/$(OBJDIR)/src/iso.o \
-	$(DIR)/$(OBJDIR)/src/main.o \
-	$(DIR)/$(OBJDIR)/src/readwrite.o
+	$(DIR)/src/decoders/canon_600.o \
+	$(DIR)/src/decoders/crx.o \
+	$(DIR)/src/decoders/decoders_dcraw.o \
+	$(DIR)/src/decoders/decoders_libraw_dcrdefs.o \
+	$(DIR)/src/decoders/decoders_libraw.o \
+	$(DIR)/src/decoders/dng.o \
+	$(DIR)/src/decoders/fp_dng.o \
+	$(DIR)/src/decoders/fuji_compressed.o \
+	$(DIR)/src/decoders/generic.o \
+	$(DIR)/src/decoders/kodak_decoders.o \
+	$(DIR)/src/decoders/load_mfbacks.o \
+	$(DIR)/src/metadata/nikon.o \
+	$(DIR)/src/decoders/smal.o \
+	$(DIR)/src/metadata/sony.o \
+	$(DIR)/src/decoders/unpack.o \
+	$(DIR)/src/decoders/unpack_thumb.o \
+	$(DIR)/src/demosaic/aahd_demosaic.o  \
+	$(DIR)/src/demosaic/ahd_demosaic.o \
+	$(DIR)/src/demosaic/dcb_demosaic.o \
+	$(DIR)/src/demosaic/dht_demosaic.o  \
+	$(DIR)/src/demosaic/misc_demosaic.o \
+	$(DIR)/src/demosaic/xtrans_demosaic.o \
+	$(DIR)/src/integration/dngsdk_glue.o \
+	$(DIR)/src/libraw_c_api.o \
+	$(DIR)/src/libraw_datastream.o \
+	$(DIR)/src/metadata/adobepano.o \
+	$(DIR)/src/metadata/canon.o  \
+	$(DIR)/src/metadata/ciff.o \
+    $(DIR)/src/metadata/cr3_parser.o \
+	$(DIR)/src/metadata/epson.o \
+	$(DIR)/src/metadata/exif_gps.o \
+	$(DIR)/src/metadata/fuji.o \
+	$(DIR)/src/metadata/hasselblad_model.o \
+	$(DIR)/src/metadata/identify.o \
+	$(DIR)/src/metadata/identify_tools.o \
+	$(DIR)/src/metadata/kodak.o \
+	$(DIR)/src/metadata/leica.o \
+	$(DIR)/src/metadata/makernotes.o \
+	$(DIR)/src/metadata/mediumformat.o \
+	$(DIR)/src/metadata/minolta.o \
+	$(DIR)/src/metadata/misc_parsers.o \
+	$(DIR)/src/metadata/normalize_model.o \
+	$(DIR)/src/metadata/olympus.o \
+	$(DIR)/src/metadata/p1.o \
+	$(DIR)/src/metadata/pentax.o \
+	$(DIR)/src/metadata/samsung.o \
+	$(DIR)/src/metadata/tiff.o \
+	$(DIR)/src/postprocessing/aspect_ratio.o \
+	$(DIR)/src/postprocessing/dcraw_process.o \
+	$(DIR)/src/postprocessing/mem_image.o \
+	$(DIR)/src/postprocessing/postprocessing_aux.o \
+	$(DIR)/src/postprocessing/postprocessing_utils_dcrdefs.o \
+	$(DIR)/src/postprocessing/postprocessing_utils.o \
+	$(DIR)/src/preprocessing/ext_preprocess.o \
+	$(DIR)/src/preprocessing/raw2image.o \
+	$(DIR)/src/preprocessing/subtract_black.o \
+	$(DIR)/src/integration/rawspeed_glue.o \
+	$(DIR)/src/tables/cameralist.o \
+	$(DIR)/src/tables/colorconst.o \
+	$(DIR)/src/tables/colordata.o \
+	$(DIR)/src/tables/wblists.o \
+	$(DIR)/src/utils/curves.o \
+	$(DIR)/src/utils/decoder_info.o \
+	$(DIR)/src/utils/init_close_utils.o \
+	$(DIR)/src/utils/open.o \
+	$(DIR)/src/utils/phaseone_processing.o \
+	$(DIR)/src/utils/read_utils.o \
+	$(DIR)/src/utils/thumb_utils.o \
+	$(DIR)/src/utils/utils_dcraw.o \
+	$(DIR)/src/utils/utils_libraw.o \
+	$(DIR)/src/write/apply_profile.o \
+	$(DIR)/src/write/file_write.o \
+	$(DIR)/src/write/tiff_writer.o \
+	$(DIR)/src/x3f/x3f_parse_process.o \
+	$(DIR)/src/x3f/x3f_utils_patched.o
 
-HEADERS := \
-	csr.h \
-	ieee1394.h \
-	raw1394.h
-
-OUTPUT := $(DIR)/$(OBJDIR)/libraw1394.a
+OUTPUT := $(DIR)/libraw.a
 
 
-CFLAGS += -I$(DIR)/src -I$(DIR)
+CFLAGS += \
+	-I$(DIR)
 
 
-DIRS += $(OBJDIR)/libraw1394/src
 
-
-$(shell sh -c 'if ! test -d $(DIR)/$(OBJDIR)/src/\; then mkdir -p $(DIR)/$(OBJDIR)/src/\; fi' )
-$(shell sh -c 'if ! test -d $(DIR)/libraw1394\; then mkdir -p $(DIR)/libraw1394\; fi' )
-$(shell echo $(CFLAGS) > $(DIR)/$(OBJDIR)/c_flags)
+$(shell echo $(CFLAGS) > $(DIR)/c_flags)
 
 $(OUTPUT): $(OBJS) $(HEADERS)
 	ar rcs $(OUTPUT) $(OBJS)
 
-$(OBJS):
-	$(GCC) -c `cat $(DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
+%.o: %.cpp $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(HEADERS):
 	cp $(DIR)/src/$*.h $(DIR)/libraw1394
 
 clean:
-	rm -rf $(DIR)/$(OBJDIR)
+	rm -rf $(OBJS) $(OUTPUT)
 
 
 
 
-
-$(DIR)/$(OBJDIR)/src/errors.o:  	  $(DIR)/src/errors.c
-$(DIR)/$(OBJDIR)/src/eventloop.o:	  $(DIR)/src/eventloop.c
-$(DIR)/$(OBJDIR)/src/fcp.o: 		  $(DIR)/src/fcp.c
-$(DIR)/$(OBJDIR)/src/iso.o: 		  $(DIR)/src/iso.c
-$(DIR)/$(OBJDIR)/src/main.o:		  $(DIR)/src/main.c
-$(DIR)/$(OBJDIR)/src/readwrite.o:	  $(DIR)/src/readwrite.c
 
 
 

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,6 +89,7 @@ BC_Window* LoadFileThread::new_gui()
 	sprintf(default_path, "~");
 	mwindow->defaults->get("DEFAULT_LOADPATH", default_path);
 	load_mode = mwindow->defaults->get("LOAD_MODE", LOADMODE_REPLACE);
+    conform = mwindow->defaults->get("CONFORM_PROJECT", 0);
 
 	mwindow->gui->lock_window("LoadFileThread::new_gui");
 	window = new LoadFileWindow(mwindow, this, default_path);
@@ -130,8 +131,8 @@ void LoadFileThread::handle_done_event(int result)
 
 	mwindow->defaults->update("DEFAULT_LOADPATH", 
 		window->get_submitted_path());
-	mwindow->defaults->update("LOAD_MODE", 
-		load_mode);
+	mwindow->defaults->update("LOAD_MODE", load_mode);
+	mwindow->defaults->update("CONFORM_PROJECT", conform);
 
 // No file selected
 	if(path_list.total == 0 || result == 1)
@@ -140,8 +141,9 @@ void LoadFileThread::handle_done_event(int result)
 	}
 
 	mwindow->interrupt_indexes();
+// all the windows have to be locked
 	mwindow->gui->lock_window("LoadFileThread::run");
-	result = mwindow->load_filenames(&path_list, load_mode);
+	result = mwindow->load_filenames(&path_list, load_mode, 1, conform);
 	mwindow->gui->mainmenu->add_load(path_list.values[0]);
 	mwindow->gui->unlock_window();
 	path_list.remove_all_objects();
@@ -192,30 +194,52 @@ void LoadFileWindow::create_objects()
 	lock_window("LoadFileWindow::create_objects");
 	BC_FileBox::create_objects();
 
+    int margin = mwindow->theme->widget_border;
 	int x = get_w() / 2 - 
 		LoadMode::calculate_w(this, mwindow->theme, 0, 1) / 2;
 	int y = get_cancel_button()->get_y() - 
 		LoadMode::calculate_h(this, mwindow->theme);
 	loadmode = new LoadMode(mwindow, this, x, y, &thread->load_mode, 0, 1);
 	loadmode->create_objects();
+    y += loadmode->get_h() + margin;
+    add_subwindow(conform = new ConformProject(x, y, &thread->conform));
+    loadmode->set_conform(conform);
 	show_window(1);
 	unlock_window();
-
 }
 
 int LoadFileWindow::resize_event(int w, int h)
 {
-	int x = w / 2 - 200;
+//	int x = w / 2 - DP(200);
+	int x = w / 2 - 
+		LoadMode::calculate_w(this, mwindow->theme, 0, 1) / 2;
 	int y = get_cancel_button()->get_y() - 
 		LoadMode::calculate_h(this, mwindow->theme);
+    int margin = mwindow->theme->widget_border;
 	draw_background(0, 0, w, h);
 
 	loadmode->reposition_window(x, y);
+    y += loadmode->get_h() + margin;
+    conform->reposition_window(x, y);
 
 	return BC_FileBox::resize_event(w, h);
 }
 
 
+ConformProject::ConformProject(int x, int y, int *output)
+ : BC_CheckBox(x, 
+ 	y, 
+	*output, 
+	_("Conform Project"))
+{
+    this->output = output;
+}
+
+int ConformProject::handle_event()
+{
+    *output = get_value();
+    return 1;
+}
 
 
 
@@ -261,18 +285,18 @@ int LoadPrevious::handle_event()
 	ArrayList<char*> path_list;
 	path_list.set_array_delete();
 	char *out_path;
-	int load_mode = mwindow->defaults->get("LOAD_MODE", LOADMODE_REPLACE);
+    int conform = mwindow->defaults->get("CONFORM_PROJECT", 0);
 
 
 	path_list.append(out_path = new char[strlen(path) + 1]);
 	strcpy(out_path, path);
 
-	mwindow->load_filenames(&path_list, LOADMODE_REPLACE);
+	mwindow->load_filenames(&path_list, LOADMODE_REPLACE, 1, conform);
 	mwindow->gui->mainmenu->add_load(path_list.values[0]);
 	path_list.remove_all_objects();
 
 
-	mwindow->defaults->update("LOAD_MODE", load_mode);
+	mwindow->defaults->update("CONFORM_PROJECT", conform);
 	mwindow->save_backup();
 	return 1;
 }
@@ -291,6 +315,7 @@ void LoadPrevious::run()
 int LoadPrevious::set_path(char *path)
 {
 	strcpy(this->path, path);
+    return 0;
 }
 
 
@@ -319,7 +344,7 @@ int LoadBackup::handle_event()
 	path_list.append(out_path = new char[strlen(string) + 1]);
 	strcpy(out_path, string);
 	
-	mwindow->load_filenames(&path_list, LOADMODE_REPLACE, 0);
+	mwindow->load_filenames(&path_list, LOADMODE_REPLACE, 0, 0);
 	mwindow->edl->local_session->clip_title[0] = 0;
 // This is unique to backups since the path of the backup is different than the
 // path of the project.

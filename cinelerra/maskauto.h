@@ -90,6 +90,8 @@ public:
 	SubMask* get_submask(int number);
 // Translates all submasks	
 	void translate_submasks(float translate_x, float translate_y);	
+// scale all submasks
+	void scale_submasks(int orig_scale, int new_scale);	
 
 
 	ArrayList<SubMask*> masks;
@@ -98,6 +100,7 @@ public:
 	float feather;
 // 0 - 100
 	int value;
+    float radius;
 };
 
 

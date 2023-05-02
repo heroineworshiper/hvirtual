@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,6 +86,7 @@ int FrameCache::get_frame(VFrame *frame,
 	lock->lock("FrameCache::get_frame");
 	FrameCacheItem *result = 0;
 
+//printf("FrameCache::get_frame %d\n", __LINE__);
 	if(frame_exists(frame,
 		position, 
 		layer,
@@ -131,6 +131,7 @@ int FrameCache::get_frame(VFrame *frame,
 		}
 		result->age = get_age();
 	}
+//printf("FrameCache::get_frame %d\n", __LINE__);
 
 
 
@@ -202,7 +203,21 @@ void FrameCache::put_frame(VFrame *frame,
 
 	if(use_copy)
 	{
-		item->data = new VFrame(*frame);
+// can't use shm because this creates large numbers of frames
+//		item->data = new VFrame(*frame);
+        item->data = new VFrame;
+        item->data->set_use_shm(0);
+        item->data->reallocate(0, 
+	        -1,
+	        0,
+	        0,
+	        0,
+	        frame->get_w(), 
+	        frame->get_h(), 
+	        frame->get_color_model(), 
+	        frame->get_bytes_per_line());
+        item->data->copy_from(frame);
+        item->data->copy_stacks(frame);
 	}
 	else
 	{
@@ -299,9 +314,9 @@ int FrameCache::frame_exists(int64_t position,
 
 		if(EQUIV(item->frame_rate, frame_rate) &&
 			layer == item->layer &&
-			color_model == item->data->get_color_model() &&
-			w == item->data->get_w() &&
-			h == item->data->get_h() &&
+			(color_model < 0 || color_model == item->data->get_color_model()) &&
+			(w < 0 || w == item->data->get_w()) &&
+			(h < 0 || h == item->data->get_h()) &&
 			(source_id == -1 || item->source_id == -1 || source_id == item->source_id))
 		{
 			*item_return = item;

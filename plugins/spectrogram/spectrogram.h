@@ -239,33 +239,17 @@ public:
 	int history_size;
 };
 
-// Header for data buffer
-typedef struct
-{
-	int window_size;
-// Total windows in this buffer
-	int total_windows;
-// Samples per fragment
-	int window_fragment;
-// Samplerate
-	int sample_rate;
-// Linearized user level
-	float level;
-// Nothing goes after this
-// 1st sample in each window is the max
-	float samples[1];
-} data_header_t;
-
-class SpectrogramFrame
+class SpectrogramFrame : public PluginClientFrame
 {
 public:
 	SpectrogramFrame(int data_size);
 	~SpectrogramFrame();
 
-	int data_size;
 	float *data;
-// Draw immediately
-	int force;
+	int window_size;
+	int sample_rate;
+// Linearized user level
+	float level;
 };
 
 class Spectrogram : public PluginAClient
@@ -283,16 +267,17 @@ public:
 	void read_data(KeyFrame *keyframe);
 	void save_data(KeyFrame *keyframe);
 	void update_gui();
-	void render_gui(void *data, int size);	
 	void render_stop();
-	
+	void fix_gui_frame(SpectrogramFrame *frame);
+
 	void reset();
 
 	int done;
 	int need_reconfigure;
+    int64_t last_position;
 	FFT *fft;
 // Data buffer for frequency & magnitude
-	unsigned char *data;
+//	unsigned char *data;
 // Accumulate data for windowing
 	Samples *audio_buffer;
 // Total samples in the buffer
@@ -302,21 +287,19 @@ public:
 // Temporaries for the FFT
 	double *freq_real;
 	double *freq_imag;
-// Total windows sent to current GUI
-	int total_windows;
 // Starting sample in audio_buffer.
 	int64_t audio_buffer_start;
 // Total floats allocated in data buffer
 	int allocated_data;
 // Accumulates canvas pixels until the next update_gui
-	ArrayList<SpectrogramFrame*> frame_buffer;
-// History for vertical mode
+//	ArrayList<SpectrogramFrame*> frame_buffer;
+// Layers for vertical mode
 // Probing data for horizontal mode
 	ArrayList<SpectrogramFrame*> frame_history;
 // Header from last data buffer
-	data_header_t header;
+//	data_header_t header;
 // Time of last GUI update
-	Timer *timer;
+//	Timer *timer;
 // Window dimensions
 	int w, h;
 };

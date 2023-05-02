@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -295,10 +295,10 @@ int FreeverbMode::handle_event()
 
 FreeverbWindow::FreeverbWindow(FreeverbEffect *plugin)
  : PluginClientWindow(plugin, 
-	180, 
-	250, 
-	180, 
-	250,
+	DP(180), 
+	DP(250), 
+	DP(180), 
+	DP(250),
 	0)
 {
 	this->plugin = plugin;
@@ -306,7 +306,7 @@ FreeverbWindow::FreeverbWindow(FreeverbEffect *plugin)
 
 void FreeverbWindow::create_objects()
 {
-	int x1 = 10, x2 = 100, x3 = 135, y1 = 10, y2 = 20, margin = 30;
+	int x1 = DP(10), x2 = DP(100), x3 = DP(135), y1 = DP(10), y2 = DP(20), margin = DP(30);
 
 	add_subwindow(new BC_Title(x1, y2, _("Gain:")));
 	add_subwindow(gain = new FreeverbGain(plugin, x3, y1));
@@ -334,7 +334,6 @@ void FreeverbWindow::create_objects()
 	y2 += margin;
 	add_subwindow(mode = new FreeverbMode(plugin, x1, y2));
 	show_window();
-	flush();
 }
 
 

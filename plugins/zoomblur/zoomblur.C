@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -269,10 +269,10 @@ void ZoomBlurConfig::interpolate(ZoomBlurConfig &prev,
 
 ZoomBlurWindow::ZoomBlurWindow(ZoomBlurMain *plugin)
  : PluginClientWindow(plugin,
-	230, 
-	340, 
-	230, 
-	340, 
+	DP(230), 
+	DP(340), 
+	DP(230), 
+	DP(340), 
 	0)
 {
 	this->plugin = plugin; 
@@ -284,35 +284,34 @@ ZoomBlurWindow::~ZoomBlurWindow()
 
 void ZoomBlurWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_subwindow(new BC_Title(x, y, _("X:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(this->x = new ZoomBlurSize(plugin, x, y, &plugin->config.x, 0, 100));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Y:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(this->y = new ZoomBlurSize(plugin, x, y, &plugin->config.y, 0, 100));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Radius:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(radius = new ZoomBlurSize(plugin, x, y, &plugin->config.radius, -100, 100));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Steps:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(steps = new ZoomBlurSize(plugin, x, y, &plugin->config.steps, 1, 100));
-	y += 30;
+	y += DP(30);
 	add_subwindow(r = new ZoomBlurToggle(plugin, x, y, &plugin->config.r, _("Red")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(g = new ZoomBlurToggle(plugin, x, y, &plugin->config.g, _("Green")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(b = new ZoomBlurToggle(plugin, x, y, &plugin->config.b, _("Blue")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(a = new ZoomBlurToggle(plugin, x, y, &plugin->config.a, _("Alpha")));
-	y += 30;
+	y += DP(30);
 
 	show_window();
-	flush();
 }
 
 
@@ -356,7 +355,7 @@ ZoomBlurSize::ZoomBlurSize(ZoomBlurMain *plugin,
 	int *output,
 	int min,
 	int max)
- : BC_ISlider(x, y, 0, 200, 200, min, max, *output)
+ : BC_ISlider(x, y, 0, DP(200), DP(200), min, max, *output)
 {
 	this->plugin = plugin;
 	this->output = output;
@@ -561,7 +560,7 @@ SET_TRACE
 		get_project_smp() + 1);
 	if(!accum) accum = new unsigned char[frame->get_w() * 
 		frame->get_h() *
-		BC_CModels::components(frame->get_color_model()) *
+		cmodel_components(frame->get_color_model()) *
 		MAX(sizeof(int), sizeof(float))];
 
 	this->input = frame;
@@ -580,7 +579,7 @@ SET_TRACE
 	bzero(accum, 
 		frame->get_w() * 
 		frame->get_h() *
-		BC_CModels::components(frame->get_color_model()) *
+		cmodel_components(frame->get_color_model()) *
 		MAX(sizeof(int), sizeof(float)));
 	engine->process_packages();
 	return 0;
@@ -678,7 +677,7 @@ int ZoomBlurMain::handle_opengl()
 	get_output()->init_screen();
 	get_output()->bind_texture(0);
 
-	int is_yuv = BC_CModels::is_yuv(get_output()->get_color_model());
+	int is_yuv = cmodel_is_yuv(get_output()->get_color_model());
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -719,7 +718,7 @@ int ZoomBlurMain::handle_opengl()
 
 // Fill YUV black
 		glDisable(GL_TEXTURE_2D);
-		if(BC_CModels::is_yuv(get_output()->get_color_model()))
+		if(cmodel_is_yuv(get_output()->get_color_model()))
 		{
 			glColor4f(config.r ? 0.0 : 0, 
 				config.g ? 0.5 : 0, 
@@ -770,6 +769,7 @@ int ZoomBlurMain::handle_opengl()
 	glColor4f(1, 1, 1, 1);
 	get_output()->set_opengl_state(VFrame::SCREEN);
 #endif
+    return 0;
 }
 
 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +30,7 @@
 #include "picon_png.h"
 #include "samples.h"
 #include "theme.h"
+#include "transportque.inc"
 #include "units.h"
 #include "vframe.h"
 
@@ -41,10 +41,10 @@
 // Canvas parameters
 #define MAJOR_DIVISIONS 7
 #define MINOR_DIVISIONS 5
-#define LINE_W4 12
-#define LINE_W3 10
-#define LINE_W2 5
-#define LINE_W1 2
+#define LINE_W4 DP(12)
+#define LINE_W3 DP(10)
+#define LINE_W2 DP(5)
+#define LINE_W1 DP(2)
 
 
 
@@ -228,7 +228,7 @@ int GraphicCanvas::button_release_event()
 	return 0;
 }
 
-#define BOX_SIZE 10
+#define BOX_SIZE DP(10)
 
 int GraphicCanvas::freq_to_y(int freq,
 	ArrayList<GraphicPoint*> *points,
@@ -324,21 +324,27 @@ void GraphicCanvas::process(int buttonpress, int motion, int draw)
 
 
 		int niquist = plugin->PluginAClient::project_sample_rate / 2;
-		int total_frames = plugin->get_gui_update_frames();
-		GraphicGUIFrame *frame = (GraphicGUIFrame*)plugin->get_gui_frame();
+		int done = 0;
+        GraphicGUIFrame *frame = 0;
+        while(!done)
+        {
+    // pop off all obsolete frames
+	        frame = (GraphicGUIFrame*)plugin->get_gui_frame();
 
-		if(frame)
-		{
-			delete plugin->last_frame;
-			plugin->last_frame = frame;
-		}
-		else
-		{
-			frame = plugin->last_frame;
-		}
+            if(frame)
+            {
+                delete plugin->last_frame;
+                plugin->last_frame = frame;
+            }
+            else
+            {
+                frame = plugin->last_frame;
+                done = 1;
+            }
+        }
 
 // Draw most recent frame
-		if(frame)
+		if(frame && frame->freq_max > 0.001)
 		{
 			set_color(MEGREY);
 			int y1 = 0;
@@ -368,22 +374,6 @@ void GraphicCanvas::process(int buttonpress, int motion, int draw)
 				}
 			}
 //printf( "\n");
-
-			total_frames--;
-		}
-
-
-
-
-
-
-// Delete remaining frames
-		while(total_frames > 0)
-		{
-			PluginClientFrame *frame = plugin->get_gui_frame();
-
-			if(frame) delete frame;
-			total_frames--;
 		}
 	}
 
@@ -700,7 +690,7 @@ int GraphicReset::handle_event()
 
 
 GraphicSize::GraphicSize(GraphicGUI *window, GraphicEQ *plugin, int x, int y)
- : BC_PopupMenu(x, y, 100, "4096", 1)
+ : BC_PopupMenu(x, y, DP(100), "4096", 1)
 {
 	this->plugin = plugin;
 	this->window = window;
@@ -767,8 +757,8 @@ GraphicGUI::GraphicGUI(GraphicEQ *plugin)
  : PluginClientWindow(plugin, 
 	plugin->w, 
 	plugin->h, 
-	320, 
-	200,
+	DP(320), 
+	DP(200),
 	1)
 {
 	this->plugin = plugin;
@@ -799,16 +789,17 @@ void GraphicGUI::create_objects()
 			freq_h));
 	y += canvas->get_h() + freq_h + margin;
 
+    x = margin;
 	int x1 = x;
 	int y1 = y;
 	add_subwindow(freq_title = new BC_Title(x, y, "Frequency:"));
 	x += freq_title->get_w() + margin;
-	add_subwindow(freq_text = new FreqTextBox(plugin, this, x, y, 100));
+	add_subwindow(freq_text = new FreqTextBox(plugin, this, x, y, DP(100)));
 	x += freq_text->get_w() + margin;
 
 	add_subwindow(level_title = new BC_Title(x, y, "Level:"));
 	x += level_title->get_w() + margin;
-	add_subwindow(value_text = new ValueTextBox(plugin, this, x, y, 100));
+	add_subwindow(value_text = new ValueTextBox(plugin, this, x, y, DP(100)));
 	x += value_text->get_w() + margin;
 
 	add_subwindow(reset = new GraphicReset(plugin, this, x, y));
@@ -909,7 +900,7 @@ int GraphicGUI::keypress_event()
 
 void GraphicGUI::draw_ticks()
 {
-	int x = canvas->get_x() - 5 - get_text_width(SMALLFONT, "-00");
+	int x = canvas->get_x() - DP(5) - get_text_width(SMALLFONT, "-00");
 	int y = canvas->get_y() - 1;
 	int x1 = canvas->get_x() - LINE_W3;
 	int x2 = canvas->get_x() - LINE_W2;
@@ -1032,8 +1023,9 @@ GraphicEQ::GraphicEQ(PluginServer *server)
 	fft = 0;
 	need_reconfigure = 1;
 	active_point = -1;
-	w = 640;
-	h = 480;
+	w = DP(640);
+	h = DP(480);
+    last_position = 0;
 }
 
 GraphicEQ::~GraphicEQ()
@@ -1129,25 +1121,23 @@ void GraphicEQ::update_gui()
 {
 	if(thread)
 	{
+// user can't change levels when loading configuration    
+		((GraphicGUI*)thread->window)->lock_window("GraphicEQ::update_gui");
 		if(load_configuration() && 
 			((GraphicGUI*)thread->window)->canvas->state != GraphicCanvas::DRAG_POINT)
 		{
-			((GraphicGUI*)thread->window)->lock_window("GraphicEQ::update_gui");
 			((GraphicGUI*)thread->window)->update_canvas();
 			((GraphicGUI*)thread->window)->update_textboxes();
-			((GraphicGUI*)thread->window)->unlock_window();
 		}
 		else
 		{
-			int total_frames = get_gui_update_frames();
 //printf("ParametricEQ::update_gui %d %d\n", __LINE__, total_frames);
-			if(total_frames)
+			if(pending_gui_frames())
 			{
-				((GraphicGUI*)thread->window)->lock_window("GraphicEQ::update_gui");
 				((GraphicGUI*)thread->window)->update_canvas();
-				((GraphicGUI*)thread->window)->unlock_window();
 			}
 		}
+		((GraphicGUI*)thread->window)->unlock_window();
 	}
 }
 
@@ -1182,8 +1172,22 @@ int GraphicEQ::process_buffer(int64_t size,
 {
 	need_reconfigure |= load_configuration();
 	if(need_reconfigure) reconfigure();
-	
+	if(last_position != start_position)
+    {
+        send_reset_gui_frames();
+    }
+    
 	fft->process_buffer(start_position, size, buffer, get_direction());
+
+
+    if(get_direction() == PLAY_FORWARD)
+    {
+        last_position = start_position + size;
+    }
+    else
+    {
+        last_position = start_position - size;
+    }
 
 
 	return 0;
@@ -1309,8 +1313,9 @@ void GraphicEQ::calculate_envelope(ArrayList<GraphicPoint*> *points,
 
 
 GraphicGUIFrame::GraphicGUIFrame(int window_size, int sample_rate)
- : PluginClientFrame(window_size / 2, window_size / 2, sample_rate)
+ : PluginClientFrame()
 {
+    this->data_size = window_size / 2;
 	data = new double[window_size / 2];
 	freq_max = 0;
 	time_max = 0;
@@ -1343,6 +1348,16 @@ int GraphicFFT::signal_process()
 // Create new frame for updating GUI
 	frame = new GraphicGUIFrame(window_size, 
 		plugin->PluginAClient::project_sample_rate);
+    int sign = 1;
+    if(plugin->get_top_direction() == PLAY_REVERSE)
+    {
+        sign = -1;
+    }
+    frame->edl_position = plugin->get_playhead_position() + 
+        (double)plugin->get_gui_frames() *
+            (window_size / 2) * 
+            sign /
+            plugin->get_samplerate();
 	plugin->add_gui_frame(frame);
 
 	double freq_max = 0;

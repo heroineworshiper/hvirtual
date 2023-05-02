@@ -682,14 +682,14 @@ void FindObjectMain::process_surf()
 //printf("FindObjectMain::process_surf %d\n", __LINE__);
 	if(scene_keypoints->total &&
 		object_keypoints->total &&
-		locatePlanarObject(object_keypoints, 
-		object_descriptors, 
-		scene_keypoints, 
-		scene_descriptors, 
-		src_corners, 
-		dst_corners,
-		&point_pairs,
-		&total_pairs))
+			locatePlanarObject(object_keypoints, 
+			object_descriptors, 
+			scene_keypoints, 
+			scene_descriptors, 
+			src_corners, 
+			dst_corners,
+			&point_pairs,
+			&total_pairs))
 	{
 
 

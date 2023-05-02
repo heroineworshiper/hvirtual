@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
  * 
  */
 
-#include "audioconfig.h"
 #include "audiodevice.h"
 #include "audioesound.h"
 #include "playbackconfig.h"
@@ -57,6 +56,7 @@ int AudioESound::get_bit_flag(int bits)
 			return ESD_BITS16;
 			break;
 	}
+    return 0;
 }
 
 // No more than 2 channels in ESD
@@ -84,7 +84,10 @@ char* AudioESound::translate_device_string(char *server, int port)
 	if(port > 0 && strlen(server))
 		sprintf(device_string, "%s:%d", server, port);
 	else
-		sprintf(device_string, "");
+    if(strlen(server))
+        sprintf(device_string, "%s", server);
+    else
+		device_string[0] = 0;
 	return device_string;
 }
 
@@ -92,20 +95,26 @@ int AudioESound::open_input()
 {
 	esd_format_t format = ESD_STREAM | ESD_RECORD;
 	
-	device->in_channels = 2;
+	device->in_channels = device->get_ichannels();
 	device->in_bits = 16;
 
 	format |= get_channels_flag(device->in_channels);
 	format |= get_bit_flag(device->in_bits);
+//printf("AudioESound::open_input %d %s\n", __LINE__, device->in_config->esound_in_server);
 
-	if((esd_in = esd_open_sound(translate_device_string(device->in_config->esound_in_server, device->in_config->esound_in_port))) <= 0)
+	if((esd_in = esd_open_sound(translate_device_string(
+        device->in_config->esound_in_server, 
+        device->in_config->esound_in_port))) <= 0)
 	{
 		fprintf(stderr, "AudioESound::open_input: open failed\n");
 		return 1;
 	}
-	esd_in_fd = esd_record_stream_fallback(format, device->in_samplerate, 
-			    	translate_device_string(device->out_config->esound_out_server, device->out_config->esound_out_port), 
-						"Cinelerra");
+	esd_in_fd = esd_record_stream_fallback(format, 
+        device->in_samplerate, 
+		translate_device_string(device->in_config->esound_in_server, 
+            device->in_config->esound_in_port), 
+			"Cinelerra");
+
 	return 0;
 }
 
@@ -113,7 +122,7 @@ int AudioESound::open_output()
 {
 	esd_format_t format = ESD_STREAM | ESD_PLAY;
 
-	device->out_channels = 2;
+	device->out_channels = device->get_ochannels();
 	device->out_bits = 16;
 
 	format |= get_channels_flag(device->out_channels);
@@ -123,9 +132,10 @@ int AudioESound::open_output()
 		device->out_config->esound_out_server, 
 		device->out_config->esound_out_port))) <= 0)
 	{
-		fprintf(stderr, "AudioESound::open_output %s:%d: open failed\n",
-			device->out_config->esound_out_server, 
-		device->out_config->esound_out_port);
+		fprintf(stderr, "AudioESound::open_output %s: open failed\n",
+			translate_device_string(
+		        device->out_config->esound_out_server, 
+		        device->out_config->esound_out_port));
 		return 1;
 	}
 
@@ -163,6 +173,7 @@ int AudioESound::close_all()
  	   	close(esd_out_fd);
 		esd_close(esd_out);     
 	}
+    return 0;
 }
 
 // No position on ESD

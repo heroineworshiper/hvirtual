@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -117,14 +117,16 @@ void VAttachmentPoint::render(VFrame *output,
 				output->set_opengl_state(VFrame::RAM);
 			}
 			else
-			if(renderengine && renderengine->video)
+			if(renderengine && renderengine->vdevice)
 			{
 // Need to copy PBuffer to texture
 // printf("VAttachmentPoint::render temp=%p output=%p\n", 
 // buffer_vector[buffer_number],
 // output);
-				VDeviceX11 *x11_device = (VDeviceX11*)renderengine->video->get_output_base();
-				x11_device->copy_frame(output, buffer_vector[buffer_number]);
+				VDeviceX11 *x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
+				x11_device->copy_frame(output, 
+                    buffer_vector[buffer_number], 
+                    1);
 			}
 			return;
 		}
@@ -152,7 +154,7 @@ void VAttachmentPoint::render(VFrame *output,
 //printf("VAttachmentPoint::render 1 %d\n", buffer_number);
 		if(renderengine)
 			plugin_servers.values[0]->set_use_opengl(use_opengl,
-				renderengine->video);
+				renderengine->vdevice);
 		plugin_servers.values[0]->process_buffer(output_temp,
 			start_position,
 			frame_rate,
@@ -172,7 +174,7 @@ void VAttachmentPoint::render(VFrame *output,
 		output_temp[0] = output;
 		if(renderengine)
 			plugin_servers.values[buffer_number]->set_use_opengl(use_opengl,
-				renderengine->video);
+				renderengine->vdevice);
 		plugin_servers.values[buffer_number]->process_buffer(output_temp,
 			start_position,
 			frame_rate,

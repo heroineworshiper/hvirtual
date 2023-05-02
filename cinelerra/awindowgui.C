@@ -155,96 +155,96 @@ void AssetPicon::create_objects()
 		if(asset->video_data)
 		{
 			if(mwindow->preferences->use_thumbnails)
-			{
-				gui->unlock_window();
-				if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
-				File *file = mwindow->video_cache->check_out(asset, 
-					mwindow->edl,
-					1);
-				if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
-
-				if(file)
-				{
-					pixmap_w = pixmap_h * asset->width / asset->height;
-
-					file->set_layer(0);
-					file->set_video_position(0, 0);
-
-					if(gui->temp_picon && 
-						(gui->temp_picon->get_w() != asset->width ||
-						gui->temp_picon->get_h() != asset->height))
-					{
-						delete gui->temp_picon;
-						gui->temp_picon = 0;
-					}
-
-					if(!gui->temp_picon)
-					{
-						gui->temp_picon = new VFrame(0, 
-							-1,
-							asset->width, 
-							asset->height, 
-							BC_RGB888,
-							-1);
-					}
-
-					file->read_frame(gui->temp_picon);
-					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
-					mwindow->video_cache->check_in(asset);
-					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
-					gui->lock_window("AssetPicon::create_objects 1");
-					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
-
-					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
-					icon = new BC_Pixmap(gui, pixmap_w, pixmap_h);
-					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
-					icon->draw_vframe(gui->temp_picon,
-						0, 
-						0, 
-						pixmap_w, 
-						pixmap_h,
-						0,
-						0);
-//printf("%d %d\n", gui->temp_picon->get_w(), gui->temp_picon->get_h());
-					icon_vframe = new VFrame(0, 
-						-1,
-						pixmap_w, 
-						pixmap_h, 
-						BC_RGB888,
-						-1);
-					cmodel_transfer(icon_vframe->get_rows(), /* Leave NULL if non existent */
-						gui->temp_picon->get_rows(),
-						0, /* Leave NULL if non existent */
-						0,
-						0,
-						0, /* Leave NULL if non existent */
-						0,
-						0,
-						0,        /* Dimensions to capture from input frame */
-						0, 
-						gui->temp_picon->get_w(), 
-						gui->temp_picon->get_h(),
-						0,       /* Dimensions to project on output frame */
-						0, 
-						pixmap_w, 
-						pixmap_h,
-						BC_RGB888, 
-						BC_RGB888,
-						0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
-						0,       /* For planar use the luma rowspan */
-						0);     /* For planar use the luma rowspan */
-
-					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
-
-				}
-				else
-				{
-					gui->lock_window("AssetPicon::create_objects 2");
-					icon = gui->video_icon;
-					icon_vframe = BC_WindowBase::get_resources()->type_to_icon[ICON_FILM];
-				}
-			}
-			else
+// 			{
+// 				gui->unlock_window();
+// 				if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
+// 				File *file = mwindow->video_cache->check_out(asset, 
+// 					mwindow->edl,
+// 					1);
+// 				if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
+// 
+// 				if(file)
+// 				{
+// 					pixmap_w = pixmap_h * asset->width / asset->height;
+// 
+// 					file->set_layer(0);
+// 					file->set_video_position(0, 0);
+// 
+// 					if(gui->temp_picon && 
+// 						(gui->temp_picon->get_w() != asset->width ||
+// 						gui->temp_picon->get_h() != asset->height))
+// 					{
+// 						delete gui->temp_picon;
+// 						gui->temp_picon = 0;
+// 					}
+// 
+// 					if(!gui->temp_picon)
+// 					{
+// 						gui->temp_picon = new VFrame(0, 
+// 							-1,
+// 							asset->width, 
+// 							asset->height, 
+// 							BC_RGB888,
+// 							-1);
+// 					}
+// 
+// 					file->read_frame(gui->temp_picon);
+// 					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
+// 					mwindow->video_cache->check_in(asset);
+// 					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
+// 					gui->lock_window("AssetPicon::create_objects 1");
+// 					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
+// 
+// 					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
+// 					icon = new BC_Pixmap(gui, pixmap_w, pixmap_h);
+// 					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
+// 					icon->draw_vframe(gui->temp_picon,
+// 						0, 
+// 						0, 
+// 						pixmap_w, 
+// 						pixmap_h,
+// 						0,
+// 						0);
+// //printf("%d %d\n", gui->temp_picon->get_w(), gui->temp_picon->get_h());
+// 					icon_vframe = new VFrame(0, 
+// 						-1,
+// 						pixmap_w, 
+// 						pixmap_h, 
+// 						BC_RGB888,
+// 						-1);
+// 					cmodel_transfer(icon_vframe->get_rows(), /* Leave NULL if non existent */
+// 						gui->temp_picon->get_rows(),
+// 						0, /* Leave NULL if non existent */
+// 						0,
+// 						0,
+// 						0, /* Leave NULL if non existent */
+// 						0,
+// 						0,
+// 						0,        /* Dimensions to capture from input frame */
+// 						0, 
+// 						gui->temp_picon->get_w(), 
+// 						gui->temp_picon->get_h(),
+// 						0,       /* Dimensions to project on output frame */
+// 						0, 
+// 						pixmap_w, 
+// 						pixmap_h,
+// 						BC_RGB888, 
+// 						BC_RGB888,
+// 						0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
+// 						0,       /* For planar use the luma rowspan */
+// 						0);     /* For planar use the luma rowspan */
+// 
+// 					if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
+// 
+// 				}
+// 				else
+// 				{
+// 					gui->lock_window("AssetPicon::create_objects 2");
+// 					icon = gui->video_icon;
+// 					icon_vframe = BC_WindowBase::get_resources()->type_to_icon[ICON_FILM];
+// 				}
+// 			}
+//			else
 			{
 				icon = gui->video_icon;
 				icon_vframe = BC_WindowBase::get_resources()->type_to_icon[ICON_FILM];			
@@ -392,7 +392,7 @@ AWindowGUI::~AWindowGUI()
 	delete newfolder_thread;
 	delete asset_menu;
 	delete assetlist_menu;
-	delete folderlist_menu;
+//	delete folderlist_menu;
 	if(temp_picon) delete temp_picon;
 }
 
@@ -523,8 +523,8 @@ SET_TRACE
 
 SET_TRACE
 
-	add_subwindow(folderlist_menu = new FolderListMenu(mwindow, this));
-	folderlist_menu->create_objects();
+//	add_subwindow(folderlist_menu = new FolderListMenu(mwindow, this));
+//	folderlist_menu->create_objects();
 //printf("AWindowGUI::create_objects 2\n");
 
 SET_TRACE
@@ -812,7 +812,7 @@ void AWindowGUI::update_asset_list()
 
 
 
-//printf("AWindowGUI::update_asset_list %d\n", __LINE__);
+//printf("AWindowGUI::update_asset_list %d nested edls=%d\n", __LINE__, mwindow->edl->nested_edls->size());
 
 
 // Synchronize nested EDLs
@@ -961,18 +961,18 @@ void AWindowGUI::sort_picons(ArrayList<BC_ListBoxItem*> *src,
 	while(!done)
 	{
 		done = 1;
-		for(int i = 0; i < src->total - 1; i++)
+		for(int i = 0; i < src->size() - 1; i++)
 		{
-			BC_ListBoxItem *item1 = src->values[i];
-			BC_ListBoxItem *item2 = src->values[i + 1];
+			BC_ListBoxItem *item1 = src->get(i);
+			BC_ListBoxItem *item2 = src->get(i + 1);
 			item1->set_autoplace_icon(1);
 			item2->set_autoplace_icon(1);
 			item1->set_autoplace_text(1);
 			item2->set_autoplace_text(1);
 			if(strcmp(item1->get_text(), item2->get_text()) > 0)
 			{
-				src->values[i + 1] = item1;
-				src->values[i] = item2;
+				src->set(i + 1, item1);
+				src->set(i, item2);
 				done = 0;
 			}
 		}
@@ -1010,18 +1010,20 @@ void AWindowGUI::filter_displayed_assets()
 
 void AWindowGUI::update_assets()
 {
-//printf("AWindowGUI::update_assets 1\n");
+//PRINT_TRACE
 	update_folder_list();
-//printf("AWindowGUI::update_assets 2\n");
+//PRINT_TRACE
 	update_asset_list();
-//printf("AWindowGUI::update_assets 3\n");
+//PRINT_TRACE
 	filter_displayed_assets();
+//PRINT_TRACE
 
 //for(int i = 0; i < folders.total; i++)
 //printf("AWindowGUI::update_assets 4\n");
 //	printf("AWindowGUI::update_assets %s\n", folders.values[i]->get_text());
 	if(mwindow->edl->session->folderlist_format != folder_list->get_format())
 		folder_list->update_format(mwindow->edl->session->folderlist_format, 0);
+//PRINT_TRACE
 	folder_list->update(&folders,
 		0,
 		0,
@@ -1029,25 +1031,24 @@ void AWindowGUI::update_assets()
 		folder_list->get_xposition(),
 		folder_list->get_yposition(),
 		-1);
-//printf("AWindowGUI::update_assets 5\n");
+//PRINT_TRACE
 
 	if(mwindow->edl->session->assetlist_format != asset_list->get_format())
 		asset_list->update_format(mwindow->edl->session->assetlist_format, 0);
+//PRINT_TRACE
 
 
-//printf("AWindowGUI::update_assets 6 %d\n", displayed_assets[0].total);
 	asset_list->update(displayed_assets,
 		asset_titles,
-		mwindow->edl->session->asset_columns,
+		mwindow->session->asset_columns,
 		ASSET_COLUMNS, 
 		asset_list->get_xposition(),
 		asset_list->get_yposition(),
 		-1,
 		0);
-//printf("AWindowGUI::update_assets 7\n");
+//PRINT_TRACE
 
 	flush();
-//printf("AWindowGUI::update_assets 8\n");
 	return;
 }
 
@@ -1084,12 +1085,14 @@ Indexable* AWindowGUI::selected_asset()
 {
 	AssetPicon *picon = (AssetPicon*)asset_list->get_selection(0, 0);
 	if(picon) return picon->indexable;
+    return 0;
 }
 
 PluginServer* AWindowGUI::selected_plugin()
 {
 	AssetPicon *picon = (AssetPicon*)asset_list->get_selection(0, 0);
 	if(picon) return picon->plugin;
+    return 0;
 }
 
 AssetPicon* AWindowGUI::selected_folder()
@@ -1183,11 +1186,11 @@ int AWindowFolders::selection_changed()
 	AssetPicon *picon = (AssetPicon*)get_selection(0, 0);
 	if(picon)
 	{
-		if(get_button_down() && get_buttonpress() == 3)
-		{
-			gui->folderlist_menu->update_titles();
-			gui->folderlist_menu->activate_menu();
-		}
+//		if(get_button_down() && get_buttonpress() == 3)
+//		{
+//			gui->folderlist_menu->update_titles();
+//			gui->folderlist_menu->activate_menu();
+//		}
 
 		strcpy(mwindow->edl->session->current_folder, picon->get_text());
 //printf("AWindowFolders::selection_changed 1\n");
@@ -1205,12 +1208,12 @@ int AWindowFolders::button_press_event()
 
 	if(!result)
 	{
-		if(get_buttonpress() == 3 && is_event_win() && cursor_inside())
-		{
-			gui->folderlist_menu->update_titles();
-			gui->folderlist_menu->activate_menu();
-			result = 1;
-		}
+//		if(get_buttonpress() == 3 && is_event_win() && cursor_inside())
+//		{
+//			gui->folderlist_menu->update_titles();
+//			gui->folderlist_menu->activate_menu();
+//			result = 1;
+//		}
 	}
 
 
@@ -1232,7 +1235,7 @@ AWindowAssets::AWindowAssets(MWindow *mwindow, AWindowGUI *gui, int x, int y, in
 			LISTBOX_ICONS : LISTBOX_TEXT,
 		&gui->assets,  	  // Each column has an ArrayList of BC_ListBoxItems.
 		gui->asset_titles,             // Titles for columns.  Set to 0 for no titles
-		mwindow->edl->session->asset_columns,                // width of each column
+		mwindow->session->asset_columns,                // width of each column
 		1,                      // Total columns.
 		0,                    // Pixel of top of window.
 		0,                        // If this listbox is a popup window
@@ -1482,8 +1485,8 @@ int AWindowAssets::drag_stop_event()
 
 int AWindowAssets::column_resize_event()
 {
-	mwindow->edl->session->asset_columns[0] = get_column_width(0);
-	mwindow->edl->session->asset_columns[1] = get_column_width(1);
+	mwindow->session->asset_columns[0] = get_column_width(0);
+	mwindow->session->asset_columns[1] = get_column_width(1);
 	return 1;
 }
 
@@ -1569,19 +1572,19 @@ int AWindowDeleteProject::handle_event()
 	return 1;
 }
 
-AWindowInfo::AWindowInfo(MWindow *mwindow, AWindowGUI *gui, int x, int y)
- : BC_Button(x, y, mwindow->theme->infoasset_data)
-{
-	this->mwindow = mwindow;
-	this->gui = gui;
-	set_tooltip(_("Edit information on asset"));
-}
-
-int AWindowInfo::handle_event()
-{
-	gui->awindow->asset_edit->edit_asset(gui->selected_asset());
-	return 1;
-}
+// AWindowInfo::AWindowInfo(MWindow *mwindow, AWindowGUI *gui, int x, int y)
+//  : BC_Button(x, y, mwindow->theme->infoasset_data)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_tooltip(_("Edit information on asset"));
+// }
+// 
+// int AWindowInfo::handle_event()
+// {
+// 	gui->awindow->asset_edit->edit_asset(gui->selected_asset());
+// 	return 1;
+// }
 
 AWindowRedrawIndex::AWindowRedrawIndex(MWindow *mwindow, AWindowGUI *gui, int x, int y)
  : BC_Button(x, y, mwindow->theme->redrawindex_data)

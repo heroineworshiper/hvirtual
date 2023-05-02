@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,6 +89,12 @@ void MotionConfig::boundaries()
 		CLAMP(global_block_h[i], MIN_BLOCK, MAX_BLOCK);
 	}
 
+
+    if(calculation != MotionScan::NO_CALCULATE &&
+        calculation != MotionScan::CALCULATE)
+    {
+        calculation = MotionScan::NO_CALCULATE;
+    }
 }
 
 int MotionConfig::equivalent(MotionConfig &that)
@@ -444,34 +450,37 @@ void MotionMain2::allocate_temp(int w, int h, int color_model)
 
 void MotionMain2::scan_motion(int point)
 {
+	int w = current_global_ref->get_w();
+	int h = current_global_ref->get_h();
+
+
 	if(!engine) engine = new MotionScan(PluginClient::get_project_smp() + 1,
 		PluginClient::get_project_smp() + 1);
 
 // Get the current motion vector between the previous and current frame
 	engine->scan_frame(current_global_ref, 
 		prev_global_ref, 
-		config.global_range_w[point],
-		config.global_range_h[point],
-		config.global_block_w[point],
-		config.global_block_h[point],
-		config.block_x[point],
-		config.block_y[point],
+		config.global_range_w[point] * w / 100,
+		config.global_range_h[point] * h / 100,
+		config.global_block_w[point] * w / 100,
+		config.global_block_h[point] * h / 100,
+		config.block_x[point] * w / 100,
+		config.block_y[point] * h / 100,
 		config.tracking_object,
 		config.calculation,
 		config.action,
 		config.horizontal_only,
 		config.vertical_only,
 		get_source_position(),
-		config.global_positions,
 		total_dx[point],
 		total_dy[point],
-		config.global_origin_x[point],
-		config.global_origin_y[point]);
+		config.global_origin_x[point] * w / 100,
+		config.global_origin_y[point] * h / 100,
+		1,
+		0,
+		0,
+		0);
 
-//		0,
-//		0,
-//		0,
-//		0);
 	current_dx[point] = engine->dx_result;
 	current_dy[point] = engine->dy_result;
 
@@ -848,17 +857,20 @@ printf("MotionMain2::process_buffer 1 start_position=%lld\n", (long long)start_p
 			read_frame(prev_global_ref, 
 				reference_layer, 
 				previous_frame_number, 
-				frame_rate);
+				frame_rate,
+				0);
 		}
 
 		read_frame(current_global_ref, 
 			reference_layer, 
 			start_position, 
-			frame_rate);
+			frame_rate,
+			0);
 		read_frame(global_target_src,
 			target_layer,
 			start_position,
-			frame_rate);
+			frame_rate,
+			0);
 	}
 
 
@@ -896,7 +908,8 @@ printf("MotionMain2::process_buffer 1 start_position=%lld\n", (long long)start_p
 		read_frame(frame[target_layer],
 			target_layer,
 			start_position,
-			frame_rate);
+			frame_rate,
+			0);
 	}
 
 	if(config.draw_vectors)
@@ -2234,7 +2247,7 @@ MotionScanCache::MotionScanCache(int x, int y, int64_t difference)
 
 
 
-#endif
+#endif // 0
 
 
 

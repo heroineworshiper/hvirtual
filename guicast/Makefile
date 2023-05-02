@@ -1,10 +1,10 @@
-include ../global_config
+# use whichever global_config exists so this can be compiled standalone
+ifneq ("","$(wildcard ../global_config)")
+	include ../global_config
+else
+	include global_config
+endif
 
-# Need the freetype include that matches the X server for Xft rendering
-#FREETYPE_DIR := ..//usr/X11R6/include/freetype2
-FREETYPE_DIR := $(shell expr ../thirdparty/freetype*/include )
-
-CFLAGS += -I../quicktime -I$(FREETYPE_DIR)
 
 # must only define here so applications using libpng don't see any of the XFT
 # includes at all.  They use a conflicting setjmp.
@@ -12,9 +12,14 @@ ifeq ($(HAVE_XFT), y)
 CFLAGS += -DHAVE_XFT
 endif
 
+
+ifneq ($(VIDEO_CMODELS), n)
+CFLAGS += -DVIDEO_CMODELS
+endif
+
 DEST := /usr/bin
 
-CFLAGS += -g
+#CFLAGS += -g
 
 ifeq ($(OBJDIR), i686)
 BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B i386 -I binary -O elf32-i386\""
@@ -25,6 +30,22 @@ BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B i386 -I binary -O elf64-x86-64\""
 LFLAGS += -L/usr/X11R6/lib64
 endif
 
+ifeq ($(OBJDIR), armv6l)
+BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B arm -I binary -O elf32-littlearm\""
+LFLAGS += -L/usr/X11R6/lib64
+endif
+
+ifeq ($(OBJDIR), armv7l)
+BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B arm -I binary -O elf32-littlearm\""
+LFLAGS += -L/usr/X11R6/lib64
+endif
+
+ifeq ($(OBJDIR), aarch64)
+BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B arm -I binary -O elf32-littlearm\""
+LFLAGS += -L/usr/X11R6/lib64
+endif
+
+
 
 $(shell mkdir -p $(OBJDIR) )
 
@@ -33,11 +54,6 @@ OBJS = \
 	$(OBJDIR)/bcbitmap.o \
 	$(OBJDIR)/bcbutton.o \
 	$(OBJDIR)/bccapture.o \
-	$(OBJDIR)/bccmodel_default.o \
-	$(OBJDIR)/bccmodel_float.o \
-	$(OBJDIR)/bccmodels.o \
-	$(OBJDIR)/bccmodel_yuv420p.o \
-	$(OBJDIR)/bccmodel_yuv422.o \
 	$(OBJDIR)/bccounter.o \
 	$(OBJDIR)/bcclipboard.o \
 	$(OBJDIR)/bcdelete.o \
@@ -100,9 +116,24 @@ OBJS = \
 OUTPUT = $(OBJDIR)/libguicast.so
 STATICOUTPUT = $(OBJDIR)/libguicast.a
 
+
+#CMODEL_OBJS := \
+#	$(OBJDIR)/cmodel_default.o \
+#	$(OBJDIR)/cmodel_float.o \
+#	$(OBJDIR)/cmodel_yuv420p.o \
+#	$(OBJDIR)/cmodel_yuv422.o \
+#	$(OBJDIR)/colormodels.o
+
+CMODEL_OBJS := \
+	$(OBJDIR)/cmodel_default2.o \
+	$(OBJDIR)/cmodel_float2.o \
+	$(OBJDIR)/cmodel_planar2.o \
+	$(OBJDIR)/colormodels2.o
+
+LIBCMODEL = $(OBJDIR)/libcmodel.a
+
 TESTLIBS := \
 		$(STATICOUTPUT) \
-		../quicktime/$(OBJDIR)/libquicktime.a \
 		$(LFLAGS) \
 		$(GLLIBS) \
 		-lX11 \
@@ -129,8 +160,10 @@ $(shell echo $(OBJS) $(CXXREPOSITORY) > $(OBJDIR)/objs)
 
 
 # PTHREAD DOESN'T WORK WHEN LINKED HERE
-all: $(STATICOUTPUT) $(UTILS)
+all: $(LIBCMODEL) $(STATICOUTPUT) $(UTILS)
 
+$(LIBCMODEL): $(CMODEL_OBJS)
+	ar rcs $(LIBCMODEL) $(CMODEL_OBJS)
 
 $(STATICOUTPUT): $(OBJS)
 	ar rcs $(STATICOUTPUT) `cat $(OBJDIR)/objs`
@@ -189,6 +222,9 @@ install:
 
 $(OBJS) $(OBJDIR)/test.o $(OBJDIR)/test2.o $(OBJDIR)/test3.o $(OBJDIR)/replace.o:
 	$(CC) -c `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
+
+$(CMODEL_OBJS):
+	gcc -c `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
 
 $(OBJDIR)/bootstrap: bootstrap.c
 $(OBJDIR)/pngtoh: pngtoh.c
@@ -267,6 +303,16 @@ $(OBJDIR)/vframe3d.o: 	   				      vframe3d.C
 $(OBJDIR)/workarounds.o:   				      workarounds.C
 
 
+$(OBJDIR)/cmodel_default.o: cmodel_default.c
+$(OBJDIR)/cmodel_float.o: cmodel_float.c
+$(OBJDIR)/cmodel_yuv420p.o: cmodel_yuv420p.c
+$(OBJDIR)/cmodel_yuv422.o: cmodel_yuv422.c
+$(OBJDIR)/colormodels.o: colormodels.c
+
+$(OBJDIR)/colormodels2.o: colormodels2.c
+$(OBJDIR)/cmodel_default2.o: cmodel_default2.c
+$(OBJDIR)/cmodel_float2.o: cmodel_float2.c
+$(OBJDIR)/cmodel_planar2.o: cmodel_planar2.c
 
 
 

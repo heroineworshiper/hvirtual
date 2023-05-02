@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
@@ -62,39 +61,55 @@ new VFrame(0, -1, default_data.get_w(), default_data.get_h(), BC_RGBA8888, -1)
 Theme::Theme()
  : BC_Theme()
 {
-	window_border = 10;
-	widget_border = 5;
+	window_border = DP(10);
+	widget_border = DP(5);
 	this->mwindow = 0;
 	theme_title = DEFAULT_THEME;
 	data_buffer = 0;
 	contents_buffer = 0;
 	last_image = 0;
-	mtransport_margin = 0;
-	toggle_margin = 0;
-	control_pixels = 50;
+	mtransport_margin = DP(0);
+	toggle_margin = DP(0);
+	control_pixels = DP(50);
 	timebar_cursor_color = RED;
 
 	BC_WindowBase::get_resources()->bg_color = BLOND;
 	BC_WindowBase::get_resources()->button_up = 0xffc000;
 	BC_WindowBase::get_resources()->button_highlighted = 0xffe000;
 	BC_WindowBase::get_resources()->recursive_resizing = 0;
+    fps_color = GREEN;
 	audio_color = BLACK;
-	fade_h = 22;
-	meter_h = 17;
-	mode_h = 30;
-	pan_h = 32;
-	pan_x = 50;
-	play_h = 22;
-	title_h = 23;
+    zero_crossing_color = BLACK;
+    graph_active_color = WHITE;
+    graph_inactive_color = MEGREY;
+    graph_grid_color = GREEN;
+    graph_bg_color = BLACK;
+    graph_border1_color = BLACK;
+    graph_border2_color = MDGREY;
+    
+    
+	fade_h = DP(22);
+	meter_h = DP(17);
+	mode_h = DP(30);
+	pan_h = DP(32);
+	pan_x = DP(50);
+	play_h = DP(22);
+	title_h = DP(23);
 	clock_bg_color = BLACK;
+	clock_fg_color = GREEN;
 	assetedit_color = YELLOW;
 
 	preferences_category_overlap = 0;
 
-	loadmode_w = 350;
+	loadmode_w = DP(350);
 
-#include "data/about_png.h"
-	about_bg = new VFrame(about_png);
+
+    command_w = DP(640);
+    command_h = DP(480);
+
+//#include "data/about_png.h"
+//	about_bg = new VFrame;
+//	about_bg->read_png(about_png, BC_Resources::dpi);
 
 	pane_color = BLACK;
 	drag_pane_color = WHITE;
@@ -182,15 +197,11 @@ void Theme::build_menus()
 	frame_sizes.append(new BC_ListBoxItem("320x240"));
 	frame_sizes.append(new BC_ListBoxItem("360x240"));
 	frame_sizes.append(new BC_ListBoxItem("400x300"));
-	frame_sizes.append(new BC_ListBoxItem("424x318"));
-	frame_sizes.append(new BC_ListBoxItem("512x384"));
 	frame_sizes.append(new BC_ListBoxItem("640x480"));
 	frame_sizes.append(new BC_ListBoxItem("720x480"));
-	frame_sizes.append(new BC_ListBoxItem("720x576"));
 	frame_sizes.append(new BC_ListBoxItem("1280x720"));
-	frame_sizes.append(new BC_ListBoxItem("960x1080"));
 	frame_sizes.append(new BC_ListBoxItem("1920x1080"));
-	frame_sizes.append(new BC_ListBoxItem("1920x1088"));
+	frame_sizes.append(new BC_ListBoxItem("3840x2160"));
 	sample_rates.append(new BC_ListBoxItem("8000"));
 	sample_rates.append(new BC_ListBoxItem("16000"));
 	sample_rates.append(new BC_ListBoxItem("22050"));
@@ -450,38 +461,34 @@ void Theme::build_toggle(VFrame** &data,
 			&default_data);
 }
 
-#define TIMEBAR_HEIGHT 10
-#define PATCHBAY_W 145
-#define STATUS_H 20
-#define ZOOM_H 30
 
 void Theme::get_mwindow_sizes(MWindowGUI *gui, int w, int h)
 {
-	mbuttons_x = 0;
+	mbuttons_x = DP(0);
 	mbuttons_y = gui->mainmenu->get_h() + 1;
 	mbuttons_w = w;
 	mbuttons_h = get_image("mbutton_bg")->get_h();
-	mclock_x = 10;
-	mclock_y = mbuttons_y - 1 + mbuttons_h + widget_border;
-	mclock_w = get_image("clock_bg")->get_w() - 40;
+	mclock_x = window_border - DP(5);
+	mclock_y = mbuttons_y - 1 + mbuttons_h;
+	mclock_w = get_image("clock_bg")->get_w() - DP(20);
 	mclock_h = get_image("clock_bg")->get_h();
 	mtimebar_x = get_image("patchbay_bg")->get_w();
 	mtimebar_y = mbuttons_y - 1 + mbuttons_h;
 	mtimebar_w = w - mtimebar_x;
 	mtimebar_h = get_image("timebar_bg")->get_h();
-	mzoom_h = 25;
-	mzoom_x = 0;
+	mzoom_h = DP(25);
+	mzoom_x = DP(0);
 	mzoom_y = h - get_image("statusbar")->get_h();
 	mzoom_w = w;
-	mstatus_x = 0;
+	mstatus_x = DP(0);
 	mstatus_y = mzoom_y + mzoom_h;
 	mstatus_w = w;
 	mstatus_h = h - mstatus_y;
-	mstatus_message_x = 10;
-	mstatus_message_y = 5;
-	mstatus_progress_x = mstatus_w - statusbar_cancel_data[0]->get_w() - 240;
+	mstatus_message_x = DP(10);
+	mstatus_message_y = DP(5);
+	mstatus_progress_x = mstatus_w - statusbar_cancel_data[0]->get_w() - DP(240);
 	mstatus_progress_y = mstatus_h - BC_WindowBase::get_resources()->progress_images[0]->get_h() - 3;
-	mstatus_progress_w = 230;
+	mstatus_progress_w = DP(230);
 	mstatus_cancel_x = mstatus_w - statusbar_cancel_data[0]->get_w();
 	mstatus_cancel_y = mstatus_h - statusbar_cancel_data[0]->get_h();
 	mcanvas_x = 0;
@@ -492,6 +499,7 @@ void Theme::get_mwindow_sizes(MWindowGUI *gui, int w, int h)
 	patchbay_y = mcanvas_y + mclock_h;
 	patchbay_w = get_image("patchbay_bg")->get_w();
 	patchbay_h = mcanvas_h - mclock_h;
+    patch_h = DP(100);
 	pane_w = get_image_set("xpane")[0]->get_w();
 	pane_h = get_image_set("ypane")[0]->get_h();
 	pane_x = mcanvas_x + mcanvas_w;
@@ -562,20 +570,20 @@ void Theme::draw_mwindow_bg(MWindowGUI *gui)
 
 void Theme::get_cwindow_sizes(CWindowGUI *gui, int cwindow_controls)
 {
-	czoom_w = 80;
+	czoom_w = DP(80);
 
 	int edit_w = EditPanel::calculate_w(mwindow, 1, 14);
 	int transport_w = PlayTransport::get_transport_width(mwindow) + toggle_margin;
 	int zoom_w = ZoomPanel::calculate_w(czoom_w);
 	int status_w = get_image("cwindow_active")->get_w();
 // Space between buttons & status icon
-	int division_w = 40;
+	int division_w = DP(40);
 
-	ctimebar_h = 16;
+	ctimebar_h = DP(16);
 
 	if(cwindow_controls)
 	{
-SET_TRACE
+#ifdef USE_METERS
 		if(mwindow->edl->session->cwindow_meter)
 		{
 			cmeter_x = mwindow->session->cwindow_w - 
@@ -584,14 +592,15 @@ SET_TRACE
 					mwindow->edl->session->cwindow_meter);
 		}
 		else
+#endif
 		{
 			cmeter_x = mwindow->session->cwindow_w + widget_border;
 		}
 
 		int buttons_h;
 #ifdef USE_SLIDER
-		cslider_x = 5;
-		cslider_y = ccomposite_h + 20;
+		cslider_x = DP(5);
+		cslider_y = ccomposite_h + DP(20);
 		cedit_y = cslider_y + BC_Slider::get_span(0);
 #endif
 
@@ -618,9 +627,9 @@ SET_TRACE
 			czoom_x = ctransport_x + transport_w + widget_border;
 			czoom_y = ctransport_y + widget_border;
 
-			cstatus_x = 426;
+			cstatus_x = DP(440);
 			cstatus_y = mwindow->session->cwindow_h - 
-				get_image("cwindow_active")->get_h() - 30;
+				get_image("cwindow_active")->get_h() - DP(30);
 		}
 		else
 		{
@@ -646,7 +655,7 @@ SET_TRACE
 
 
 		ccomposite_x = 0;
-		ccomposite_y = 5;
+		ccomposite_y = DP(5);
 		ccomposite_w = get_image("cpanel_bg")->get_w();
 		ccomposite_h = mwindow->session->cwindow_h - buttons_h;
 
@@ -669,18 +678,18 @@ SET_TRACE
 	{
 SET_TRACE
 		ccomposite_x = -get_image("cpanel_bg")->get_w();
-		ccomposite_y = 0;
+		ccomposite_y = DP(0);
 		ccomposite_w = get_image("cpanel_bg")->get_w();
 		ccomposite_h = mwindow->session->cwindow_h - get_image("cbuttons_left")->get_h();
 
-		cslider_x = 5;
+		cslider_x = DP(5);
 		cslider_y = mwindow->session->cwindow_h;
-		cedit_x = 10;
-		cedit_y = cslider_y + 17;
-		ctransport_x = 10;
-		ctransport_y = cedit_y + 40;
-		ccanvas_x = 0;
-		ccanvas_y = 0;
+		cedit_x = DP(10);
+		cedit_y = cslider_y + DP(17);
+		ctransport_x = DP(10);
+		ctransport_y = cedit_y + DP(40);
+		ccanvas_x = DP(0);
+		ccanvas_y = DP(0);
 		ccanvas_w = mwindow->session->cwindow_w;
 		ccanvas_h = mwindow->session->cwindow_h;
 		cmeter_x = mwindow->session->cwindow_w;
@@ -702,7 +711,7 @@ SET_TRACE
 //	ctimebar_x = ccanvas_x;
 //	ctimebar_y = ccanvas_y + ccanvas_h;
 //	ctimebar_w = ccanvas_w;
-	ctimebar_x = 0;
+	ctimebar_x = DP(0);
 	ctimebar_y = ccanvas_y + ccanvas_h;
 	ctimebar_w = mwindow->session->cwindow_w;
 	if(mwindow->edl->session->cwindow_meter)
@@ -803,15 +812,16 @@ void Theme::get_vwindow_sizes(VWindowGUI *gui)
 	int edit_w = EditPanel::calculate_w(mwindow, 0, 10);
 	int transport_w = PlayTransport::get_transport_width(mwindow) + toggle_margin;
 // Space between buttons & time
-	int division_w = 30;
-	vtime_w = 150;
-	vtimebar_h = 16;
-	int vtime_border = 15;
+	int division_w = DP(30);
+	vtime_w = DP(150);
+	vtimebar_h = DP(16);
+	int vtime_border = DP(15);
 
 	vmeter_y = widget_border;
 	vmeter_h = mwindow->session->vwindow_h - cmeter_y - widget_border;
 
 	int buttons_h;
+#ifdef USE_METERS
 	if(mwindow->edl->session->vwindow_meter)
 	{
 		vmeter_x = mwindow->session->vwindow_w - 
@@ -820,17 +830,18 @@ void Theme::get_vwindow_sizes(VWindowGUI *gui)
 				mwindow->edl->session->vwindow_meter);
 	}
 	else
+#endif
 	{
 		vmeter_x = mwindow->session->vwindow_w + widget_border;
 	}
 
-	vcanvas_x = 0;
-	vcanvas_y = 0;
+	vcanvas_x = DP(0);
+	vcanvas_y = DP(0);
 	vcanvas_w = vmeter_x - vcanvas_x - widget_border;
 
 #ifdef USE_SLIDER
-	vslider_x = 10;
-	vslider_y = vtimebar_y + 20;
+	vslider_x = DP(10);
+	vslider_y = vtimebar_y + DP(20);
 	vslider_w = vtimebar_w - vslider_x;
 	vedit_y = vslider_y + BC_Slider::get_span(0);
 #endif
@@ -853,9 +864,9 @@ void Theme::get_vwindow_sizes(VWindowGUI *gui)
 			get_image_set("autokeyframe")[0]->get_h() - 
 			widget_border;
 
-		vdivision_x = 280;
+		vdivision_x = DP(280);
 		vtime_x = vdivision_x;
-		vtime_y = vedit_y + 20;
+		vtime_y = vedit_y + DP(20);
 	}
 	else
 	{
@@ -883,7 +894,7 @@ void Theme::get_vwindow_sizes(VWindowGUI *gui)
 //	vtimebar_w = vcanvas_w;
 
 	vcanvas_h = mwindow->session->vwindow_h - buttons_h;
-	vtimebar_x = 0;
+	vtimebar_x = DP(0);
 	vtimebar_y = vcanvas_y + vcanvas_h;
 	vtimebar_w = vmeter_x - widget_border;
 
@@ -901,9 +912,9 @@ void Theme::get_awindow_sizes(AWindowGUI *gui)
 	afolders_h = mwindow->session->awindow_h - afolders_y;
 	adivider_x = afolders_x + afolders_w;
 	adivider_y = 0;
-	adivider_w = 5;
+	adivider_w = DP(5);
 	adivider_h = afolders_h;
-	alist_x = afolders_x + afolders_w + 5;
+	alist_x = afolders_x + afolders_w + DP(5);
 	alist_y = afolders_y;
 	alist_w = mwindow->session->awindow_w - alist_x;
 	alist_h = afolders_h;
@@ -916,15 +927,15 @@ void Theme::get_rmonitor_sizes(int do_audio,
 	int do_avc,
 	int audio_channels)
 {
-	int x = 10;
-	int y = 3;
+	int x = DP(10);
+	int y = DP(3);
 
 
 	if(do_avc)
 	{
-		rmonitor_canvas_y = 30;
-		rmonitor_tx_x = 10;
-		rmonitor_tx_y = 0;
+		rmonitor_canvas_y = DP(30);
+		rmonitor_tx_x = DP(10);
+		rmonitor_tx_y = DP(0);
 	}
 	else
 	{
@@ -936,16 +947,16 @@ void Theme::get_rmonitor_sizes(int do_audio,
 
 	if(do_channel)
 	{
-		y = 5;
+		y = DP(5);
 		rmonitor_channel_x = x;
-		rmonitor_channel_y = 5;
-		x += 235;
-		rmonitor_canvas_y = 35;
+		rmonitor_channel_y = DP(5);
+		x += DP(235);
+		rmonitor_canvas_y = DP(35);
 	}
 
 	if(do_interlace)
 	{
-		y = 4;
+		y = DP(4);
 		rmonitor_interlace_x = x;
 		rmonitor_interlace_y = y;
 	}
@@ -965,8 +976,10 @@ void Theme::get_rmonitor_sizes(int do_audio,
 			rmonitor_meter_w = mwindow->session->rmonitor_w - widget_border * 2;
 		}
 
-		rmonitor_meter_y = 40;
-		rmonitor_meter_h = mwindow->session->rmonitor_h - 10 - rmonitor_meter_y;
+		rmonitor_meter_y = DP(40);
+		rmonitor_meter_h = mwindow->session->rmonitor_h - 
+			DP(10) - 
+			rmonitor_meter_y;
 	}
 	else
 	{
@@ -975,13 +988,13 @@ void Theme::get_rmonitor_sizes(int do_audio,
 
 	rmonitor_canvas_x = 0;
 	rmonitor_canvas_w = rmonitor_meter_x - rmonitor_canvas_x;
-	if(do_audio) rmonitor_canvas_w -= 10;
+	if(do_audio) rmonitor_canvas_w -= DP(10);
 	rmonitor_canvas_h = mwindow->session->rmonitor_h - rmonitor_canvas_y;
 
 	if(!do_video && do_audio)
 	{
-		rmonitor_meter_y -= 30;
-		rmonitor_meter_h += 30;
+		rmonitor_meter_y -= DP(30);
+		rmonitor_meter_h += DP(30);
 	}
 
 }
@@ -994,14 +1007,14 @@ void Theme::get_batchrender_sizes(BatchRenderGUI *gui,
 	int w, 
 	int h)
 {
-	batchrender_x1 = 10;
-	batchrender_x2 = 300;
-	batchrender_x3 = 400;
+	batchrender_x1 = DP(10);
+	batchrender_x2 = DP(300);
+	batchrender_x3 = DP(400);
 }
 
 void Theme::get_plugindialog_sizes()
 {
-	int x = 10, y = 30;
+	int x = DP(10), y = DP(30);
 	plugindialog_new_x = x;
 	plugindialog_new_y = y;
 	plugindialog_shared_x = mwindow->session->plugindialog_w / 3;
@@ -1009,19 +1022,19 @@ void Theme::get_plugindialog_sizes()
 	plugindialog_module_x = mwindow->session->plugindialog_w * 2 / 3;
 	plugindialog_module_y = y;
 
-	plugindialog_new_w = plugindialog_shared_x - plugindialog_new_x - 10;
-	plugindialog_new_h = mwindow->session->plugindialog_h - 100;
-	plugindialog_shared_w = plugindialog_module_x - plugindialog_shared_x - 10;
-	plugindialog_shared_h = mwindow->session->plugindialog_h - 100;
-	plugindialog_module_w = mwindow->session->plugindialog_w - plugindialog_module_x - 10;
-	plugindialog_module_h = mwindow->session->plugindialog_h - 100;
+	plugindialog_new_w = plugindialog_shared_x - plugindialog_new_x - DP(10);
+	plugindialog_new_h = mwindow->session->plugindialog_h - DP(100);
+	plugindialog_shared_w = plugindialog_module_x - plugindialog_shared_x - DP(10);
+	plugindialog_shared_h = mwindow->session->plugindialog_h - DP(100);
+	plugindialog_module_w = mwindow->session->plugindialog_w - plugindialog_module_x - DP(10);
+	plugindialog_module_h = mwindow->session->plugindialog_h - DP(100);
 
-	plugindialog_newattach_x = plugindialog_new_x + 20;
-	plugindialog_newattach_y = plugindialog_new_y + plugindialog_new_h + 10;
-	plugindialog_sharedattach_x = plugindialog_shared_x + 20;
-	plugindialog_sharedattach_y = plugindialog_shared_y + plugindialog_shared_h + 10;
-	plugindialog_moduleattach_x = plugindialog_module_x + 20;
-	plugindialog_moduleattach_y = plugindialog_module_y + plugindialog_module_h + 10;
+	plugindialog_newattach_x = plugindialog_new_x + DP(20);
+	plugindialog_newattach_y = plugindialog_new_y + plugindialog_new_h + DP(10);
+	plugindialog_sharedattach_x = plugindialog_shared_x + DP(20);
+	plugindialog_sharedattach_y = plugindialog_shared_y + plugindialog_shared_h + DP(10);
+	plugindialog_moduleattach_x = plugindialog_module_x + DP(20);
+	plugindialog_moduleattach_y = plugindialog_module_y + plugindialog_module_h + DP(10);
 }
 
 // void Theme::get_presetdialog_sizes(PresetsWindow *gui)
@@ -1167,26 +1180,26 @@ void Theme::get_menueffect_sizes(int use_list)
 {
 	if(use_list)
 	{
-		menueffect_list_x = 10;
-		menueffect_list_y = 10;
-		menueffect_list_w = mwindow->session->menueffect_w - 400;
+		menueffect_list_x = DP(10);
+		menueffect_list_y = DP(10);
+		menueffect_list_w = mwindow->session->menueffect_w - DP(420);
 		menueffect_list_h = mwindow->session->menueffect_h - 
 			menueffect_list_y -
-			BC_OKButton::calculate_h() - 10;
+			BC_OKButton::calculate_h() - DP(10);
 	}
 	else
 	{
-		menueffect_list_x = 0;
-		menueffect_list_y = 10;
-		menueffect_list_w = 0;
-		menueffect_list_h = 0;
+		menueffect_list_x = DP(0);
+		menueffect_list_y = DP(10);
+		menueffect_list_w = DP(0);
+		menueffect_list_h = DP(0);
 	}
 
-	menueffect_file_x = menueffect_list_x + menueffect_list_w + 10;
-	menueffect_file_y = 10;
+	menueffect_file_x = menueffect_list_x + menueffect_list_w + DP(10);
+	menueffect_file_y = DP(10);
 
 	menueffect_tools_x = menueffect_file_x;
-	menueffect_tools_y = menueffect_file_y + 20;
+	menueffect_tools_y = menueffect_file_y + DP(20);
 }
 
 void Theme::get_preferences_sizes()

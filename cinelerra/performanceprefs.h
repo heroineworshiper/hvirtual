@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,12 @@ class CICacheSize;
 class PrefsRenderFarmEditNode;
 class PrefsRenderFarmNodes;
 class PrefsRenderFarmPort;
+class PrefsBRenderFragment;
+class PrefsRenderPreroll;
+class PrefsBRenderPreroll;
+class PrefsRenderFarmJobs;
+class PrefsGLRendering;
+class PrefsRenderFarm;
 
 class PerformancePrefs : public PreferencesDialog
 {
@@ -44,6 +50,7 @@ public:
 	void generate_node_list();
 	void update_node_list();
 	void update_rates();
+    void update_enabled();
 
 	int hot_node;
 
@@ -58,12 +65,19 @@ public:
 		TOTAL_COLUMNS
 	};
 
+
+    PrefsGLRendering *gl_rendering;
+    PrefsRenderFarm *use_renderfarm;
 	ArrayList<BC_ListBoxItem*> nodes[4];
 	PrefsRenderFarmEditNode *edit_node;
 	PrefsRenderFarmPort *edit_port;
 	PrefsRenderFarmNodes *node_list;
 	FormatTools *brender_tools;
 	BC_Title *master_rate;
+    PrefsBRenderFragment *brender_fragment;
+    PrefsRenderPreroll *preroll;
+    PrefsBRenderPreroll *bpreroll;
+    PrefsRenderFarmJobs *jobs;
 };
 
 
@@ -128,19 +142,29 @@ public:
 	PreferencesWindow *pwindow;
 };
 
-
+class PrefsGLRendering : public BC_CheckBox
+{
+public:
+    PrefsGLRendering(PreferencesWindow *pwindow, 
+        PerformancePrefs *subwindow, 
+        int x, 
+        int y);
+	int handle_event();
+	PreferencesWindow *pwindow;
+    PerformancePrefs *subwindow;
+};
 
 
 class PrefsRenderFarm : public BC_CheckBox
 {
 public:
-	PrefsRenderFarm(PreferencesWindow *pwindow, int x, int y);
-	~PrefsRenderFarm();
-	
+	PrefsRenderFarm(PreferencesWindow *pwindow, 
+        PerformancePrefs *subwindow, 
+        int x, 
+        int y);
 	int handle_event();
-	
-	
 	PreferencesWindow *pwindow;
+    PerformancePrefs *subwindow;
 };
 
 class PrefsRenderFarmConsolidate : public BC_CheckBox

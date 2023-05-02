@@ -447,12 +447,12 @@ int GammaMain::process_buffer(VFrame *frame,
 	{
 		calculate_max(frame);
 // Always plot to set the slider
-		send_render_gui(this);
+		send_render_gui(this, 1);
 	}
 	else
 	if(config.plot) 
 	{
-		send_render_gui(this);
+		send_render_gui(this, 1);
 	}
 
 	if(!engine) engine = new GammaEngine(this);
@@ -493,7 +493,7 @@ void GammaMain::update_gui()
 	}
 }
 
-void GammaMain::render_gui(void *data)
+void GammaMain::render_gui(void *data, int size)
 {
 	GammaMain *ptr = (GammaMain*)data;
 	config.max = ptr->config.max;
@@ -614,6 +614,7 @@ int GammaMain::handle_opengl()
 	glUseProgram(0);
 	get_output()->set_opengl_state(VFrame::SCREEN);
 #endif
+    return 0;
 }
 
 

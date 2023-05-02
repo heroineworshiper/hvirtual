@@ -110,39 +110,16 @@ int FileXML::append_text(const char *text, long len)
 	return 0;
 }
 
-int FileXML::encode_text(const char *text)
+void FileXML::encode_text(const char *text)
 {
-// We have to encode at least the '<' char
-// We encode three things:
-// '<' -> '<'
-// '>' -> '>'
-// '&' -> '&'
-	char leftb[] = "<";
-	char rightb[] = ">";
-	char amp[] = "&";
-	char *replacement;
-	int len = strlen(text);
-	int lastpos = 0;
-	for (int i = 0; i < len; i++)
-	{
-		switch (text[i]) {
-			case '<': replacement = leftb; break;
-			case '>': replacement = rightb; break;
-			case '&': replacement = amp; break;
-			default: replacement = 0; break;
-		}
-		if (replacement)
-		{
-			if (i - lastpos > 0)
-				append_text(text + lastpos, i - lastpos);
-			append_text(replacement, strlen(replacement));
-			lastpos = i + 1;
-		}
-	}
-	append_text(text + lastpos, len - lastpos);
-	return 0;
+    int in_len = strlen(text);
+    char temp_string[32];       // for converting numbers
+    for(int i = 0; i < in_len; i++)
+    {
+        const char *encoded = XMLTag::encode_char(temp_string, text + i);
+        append_text(encoded, strlen(encoded));
+    }
 }
-
 
 
 int FileXML::reallocate_string(long new_available)
@@ -163,7 +140,7 @@ char* FileXML::get_ptr()
 	return string + position;
 }
 
-char* FileXML::read_text()
+char* FileXML::read_text(int decode)
 {
 	long text_position = position;
 	int i;
@@ -190,16 +167,20 @@ char* FileXML::read_text()
 // check if we have to decode special characters
 // but try to be most backward compatible possible
 			int character = string[text_position];
-			if (string[text_position] == '&')
+			if (string[text_position] == '&' && decode)
 			{
 				if (text_position + 3 < length)
 				{
-					if (string[text_position + 1] == 'l' && string[text_position + 2] == 't' && string[text_position + 3] == ';')
+					if (string[text_position + 1] == 'l' && 
+                        string[text_position + 2] == 't' && 
+                        string[text_position + 3] == ';')
 					{
 						character = '<';
 						text_position += 3;
 					}		
-					if (string[text_position + 1] == 'g' && string[text_position + 2] == 't' && string[text_position + 3] == ';')
+					if (string[text_position + 1] == 'g' && 
+                        string[text_position + 2] == 't' && 
+                        string[text_position + 3] == ';')
 					{
 						character = '>';
 						text_position += 3;
@@ -207,12 +188,27 @@ char* FileXML::read_text()
 				}
 				if (text_position + 4 < length)
 				{
-					if (string[text_position + 1] == 'a' && string[text_position + 2] == 'm' && string[text_position + 3] == 'p' && string[text_position + 4] == ';')
+					if (string[text_position + 1] == 'a' && 
+                        string[text_position + 2] == 'm' && 
+                        string[text_position + 3] == 'p' && 
+                        string[text_position + 4] == ';')
 					{
 						character = '&';
 						text_position += 4;
 					}		
 				}
+                if(text_position + 5 < length)
+                {
+                    if (string[text_position + 1] == 'q' && 
+                        string[text_position + 2] == 'u' && 
+                        string[text_position + 3] == 'o' && 
+                        string[text_position + 4] == 't' && 
+                        string[text_position + 5] == ';')
+					{
+						character = '\"';
+						text_position += 5;
+					}
+                }
 			}
 			output[i] = character;
 			i++;
@@ -461,9 +457,15 @@ int XMLTag::write_tag()
 // add a quote if space
 		if(has_space && len < MAX_LENGTH) string[len++] = '\"';
 // write the value
-		for(j = 0; current_value[j] != 0 && len < MAX_LENGTH; j++, len++)
+		for(j = 0; current_value[j] != 0 && len < MAX_LENGTH; j++)
 		{
-			string[len] = current_value[j];
+            const char *encoded = encode_char(temp_string, current_value + j);
+            int len2 = strlen(encoded);
+            if(len + len2 < MAX_LENGTH)
+            {
+    			memcpy(string + len, encoded, len2);
+                len += len2;
+            }
 		}
 // add a quote if space
 		if(has_space && len < MAX_LENGTH) string[len++] = '\"';
@@ -582,6 +584,7 @@ int XMLTag::read_tag(char *input, long &position, long length)
 		string[j] = 0;
 
 // store the value in a property array
+        decode_text(string);
 		tag_property_values[total_properties] = new char[strlen(string) + 1];
 		strcpy(tag_property_values[total_properties], string);
 		
@@ -645,6 +648,20 @@ const char* XMLTag::get_property(const char *property, char *value)
 		}
 	}
 	return value;
+}
+
+const char* XMLTag::get_property_text(const char *property)
+{
+	int i, result;
+	for(i = 0, result = 0; i < total_properties && !result; i++)
+	{
+		if(!strcasecmp(tag_properties[i], property))
+		{
+//printf("XMLTag::get_property %s %s\n", tag_properties[i], tag_property_values[i]);
+			return tag_property_values[i];
+		}
+	}
+	return "";
 }
 
 const char* XMLTag::get_property_text(int number)
@@ -787,4 +804,86 @@ int XMLTag::set_property(const char *text, const char *value)
 	strcpy(tag_property_values[total_properties], value);
 	total_properties++;
 	return 0;
+}
+
+
+
+const char* XMLTag::encode_char(char *temp_string, const char *text)
+{
+	const char leftb[] = "&lt;";
+	const char rightb[] = "&gt;";
+	const char amp[] = "&amp;";
+    const char quote[] = "&quot;";
+	const char *replacement = 0;
+
+	switch (text[0]) {
+		case '<': replacement = leftb; break;
+		case '>': replacement = rightb; break;
+		case '&': replacement = amp; break;
+		case '\"': replacement = quote; break;
+		default: replacement = 0; break;
+	}
+
+	if (replacement)
+	{
+		return replacement;
+	}
+    
+    
+    temp_string[0] = text[0];
+    temp_string[1] = 0;
+	return temp_string;
+}
+
+void XMLTag::decode_text(char *text)
+{
+    int len = strlen(text);
+    int out = 0;
+    for(int in = 0; in < len; in++, out++)
+    {
+        int c = text[in];
+        if(c == '&')
+        {
+            if(in + 3 < len && 
+                string[in + 1] == 'l' && 
+                string[in + 2] == 't' && 
+                string[in + 3] == ';')
+            {
+                c = '<';
+                in += 3;
+            }
+            else
+            if(in + 3 < len && 
+                string[in + 1] == 'g' && 
+                string[in + 2] == 't' && 
+                string[in + 3] == ';')
+            {
+                c = '>';
+                in += 3;
+            }
+            else
+            if(in + 4 < len && 
+                string[in + 1] == 'a' && 
+                string[in + 2] == 'm' && 
+                string[in + 3] == 'p' && 
+                string[in + 4] == ';')
+            {
+                c = '&';
+                in += 4;
+            }
+            else
+            if(in + 5 < len && 
+                string[in + 1] == 'q' && 
+                string[in + 2] == 'u' && 
+                string[in + 3] == 'o' && 
+                string[in + 4] == 't' && 
+                string[in + 5] == ';')
+            {
+                c = '\"';
+                in += 5;
+            }
+        }
+        text[out] = c;
+    }
+    text[out] = 0;
 }

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2017-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +21,7 @@
 #include "asset.h"
 #include "bcsignals.h"
 #include "edit.h"
+#include "file.h"
 #include "filetga.h"
 #include "language.h"
 #include "mwindow.inc"
@@ -51,8 +51,57 @@ FileTGA::~FileTGA()
 	if(temp) delete temp;
 }
 
-int FileTGA::check_sig(Asset *asset)
+
+
+
+
+FileTGA::FileTGA()
+ : FileList()
 {
+    ids.append(FILE_TGA);
+    ids.append(FILE_TGA_LIST);
+    has_video = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileTGA::create(File *file)
+{
+    return new FileTGA(file->asset, file);
+}
+
+const char* FileTGA::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_TGA:
+			return TGA_NAME;
+			break;
+		case FILE_TGA_LIST:
+			return TGA_LIST_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileTGA::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_TGA:
+		case FILE_TGA_LIST:
+            return "tga";
+    }
+    return 0;
+}
+
+
+
+
+
+int FileTGA::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
 
 
 // Test file extension
@@ -97,12 +146,12 @@ int FileTGA::check_sig(Asset *asset)
 }
 
 void FileTGA::get_parameters(BC_WindowBase *parent_window, 
-		Asset *asset, 
-		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options)
+	Asset *asset, 
+	BC_WindowBase* &format_window,
+	int option_type,
+	const char *locked_compressor)
 {
-	if(video_options)
+	if(option_type == VIDEO_PARAMS)
 	{
 		TGAConfigVideo *window = new TGAConfigVideo(parent_window, asset);
 		format_window = window;
@@ -906,8 +955,8 @@ TGAConfigVideo::TGAConfigVideo(BC_WindowBase *gui, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	gui->get_abs_cursor_x(1),
  	gui->get_abs_cursor_y(1),
-	400,
-	100)
+	DP(400),
+	DP(100))
 {
 	this->gui = gui;
 	this->asset = asset;
@@ -925,11 +974,11 @@ TGAConfigVideo::~TGAConfigVideo()
 
 void TGAConfigVideo::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("TGAConfigVideo::create_objects");
 	add_subwindow(new BC_Title(x, y, _("Compression:")));
 	TGACompression *textbox = new TGACompression(this, 
-		x + 110, 
+		x + DP(110), 
 		y, 
 		asset, 
 		&compression_items);
@@ -956,8 +1005,8 @@ TGACompression::TGACompression(TGAConfigVideo *gui,
  	FileTGA::compression_to_str(gui->asset->vcodec),
 	x, 
  	y, 
-	200,
-	200)
+	DP(200),
+	DP(200))
 {
 	this->asset = asset;
 }

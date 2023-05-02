@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009-2013 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -149,14 +148,11 @@ int VModule::import_frame(VFrame *output,
 	if(!output) printf("VModule::import_frame %d output=%p\n", __LINE__, output);
 
 	VDeviceX11 *x11_device = 0;
-	if(use_opengl)
+	if(use_opengl && renderengine && renderengine->vdevice)
 	{
-		if(renderengine && renderengine->video)
-		{
-			x11_device = (VDeviceX11*)renderengine->video->get_output_base();
-			output->set_opengl_state(VFrame::RAM);
+			x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
 			if(!x11_device) use_opengl = 0;
-		}
+			output->set_opengl_state(VFrame::RAM);
 	}
 
 	if(!output) printf("VModule::import_frame %d output=%p x11_device=%p nested_edl=%p\n", 
@@ -175,7 +171,8 @@ int VModule::import_frame(VFrame *output,
 
 // Create objects for nested EDL
 	if(current_edit &&
-		current_edit->nested_edl)
+		current_edit->nested_edl && 
+        current_edit->edl->nested_depth < NESTED_DEPTH)
 	{
 		int command;
 		if(debug) printf("VModule::import_frame %d nested_edl=%p current_edit->nested_edl=%p\n", 
@@ -192,16 +189,24 @@ int VModule::import_frame(VFrame *output,
 		if(direction == PLAY_REVERSE)
 		{
 			if(renderengine->command->single_frame())
-				command = SINGLE_FRAME_REWIND;
-			else
-				command = NORMAL_REWIND;
+			{
+            	command = SINGLE_FRAME_REWIND;
+			}
+            else
+			{
+            	command = NORMAL_REWIND;
+            }
 		}
 		else
 		{
 			if(renderengine->command->single_frame())
-				command = SINGLE_FRAME_FWD;
-			else
-				command = NORMAL_FWD;
+			{
+            	command = SINGLE_FRAME_FWD;
+			}
+            else
+			{
+            	command = NORMAL_FWD;
+            }
 		}
 
 		if(!nested_edl || nested_edl->id != current_edit->nested_edl->id)
@@ -223,13 +228,14 @@ int VModule::import_frame(VFrame *output,
 			{
 				nested_command->command = command;
 				nested_command->get_edl()->copy_all(nested_edl);
+                nested_command->get_edl()->nested_depth++;
 				nested_command->change_type = CHANGE_ALL;
 				nested_command->realtime = renderengine->command->realtime;
 				nested_renderengine = new RenderEngine(0,
 					get_preferences(), 
 					0,
-					renderengine ? renderengine->channeldb : 0,
-					1);
+					renderengine ? renderengine->channeldb : 0);
+                nested_renderengine->set_nested(1);
 				nested_renderengine->set_vcache(get_cache());
 				nested_renderengine->arm_command(nested_command);
 			}
@@ -243,25 +249,26 @@ int VModule::import_frame(VFrame *output,
 		}
 
 // Update nested video driver for opengl
-		nested_renderengine->video = renderengine->video;
+		nested_renderengine->vdevice = renderengine->vdevice;
 	}
 	else
 	{
 		nested_edl = 0;
 	}
+
 	if(debug) printf("VModule::import_frame %d\n", __LINE__);
 
 	if(!output) printf("VModule::import_frame %d output=%p\n", __LINE__, output);
 
 	if(current_edit &&
 		(current_edit->asset ||
-		(current_edit->nested_edl && nested_renderengine->vrender)))
+		(nested_edl && nested_renderengine->vrender)))
 	{
 		File *file = 0;
 
-		if(debug) printf("VModule::import_frame %d cache=%p\n", 
-			__LINE__,
-			get_cache());
+// printf("VModule::import_frame %d cache=%p\n", 
+// __LINE__,
+// get_cache());
 		if(current_edit->asset)
 		{
 			get_cache()->age();
@@ -344,20 +351,20 @@ int VModule::import_frame(VFrame *output,
 
 			int use_cache = renderengine && 
 				renderengine->command->single_frame();
-			int use_asynchronous = !use_cache && 
-				renderengine &&
+//			int use_asynchronous = !use_cache && 
+//				renderengine &&
 // Try to make rendering go faster.
 // But converts some formats to YUV420, which may degrade input format.
-//				renderengine->command->realtime &&
-				renderengine->get_edl()->session->video_asynchronous;
+////				renderengine->command->realtime &&
+//				renderengine->get_edl()->session->video_asynchronous;
 
 			if(file)
 			{
 				if(debug) printf("VModule::import_frame %d\n", __LINE__);
-				if(use_asynchronous)
-					file->start_video_decode_thread();
-				else
-					file->stop_video_thread();
+//				if(use_asynchronous)
+//					file->start_video_decode_thread();
+//				else
+//					file->stop_video_thread();
 
 				int64_t normalized_position = Units::to_int64(position *
 					current_edit->asset->frame_rate /
@@ -380,7 +387,7 @@ int VModule::import_frame(VFrame *output,
 				asset_h = nested_edl->session->output_h;
 // Get source position in nested frame rate in direction of playback.
 				nested_position = Units::to_int64(position * 
-					nested_edl->session->frame_rate / 
+					nested_edl->session->get_nested_frame_rate() / 
 					frame_rate);
 				if(direction == PLAY_REVERSE)
 					nested_position++;
@@ -432,14 +439,14 @@ int VModule::import_frame(VFrame *output,
 					out_h);
 			}
 
-// printf("VModule::import_frame %d %f %d %f %d\n", 
+// printf("VModule::import_frame %d output=%p in=%fx%f asset=%dx%d\n", 
 // __LINE__,
+// output,
 // in_w, 
-// asset_w,
 // in_h,
+// asset_w,
 // asset_h);
 
-// file -> temp -> output
 			if( !EQUIV(in_x, 0) || 
 				!EQUIV(in_y, 0) || 
 				!EQUIV(in_w, track->track_w) || 
@@ -451,7 +458,8 @@ int VModule::import_frame(VFrame *output,
 				!EQUIV(in_w, asset_w) ||
 				!EQUIV(in_h, asset_h))
 			{
-				if(debug) printf("VModule::import_frame %d file -> temp -> output\n", __LINE__);
+// file -> temp -> output
+//                printf("VModule::import_frame %d file -> temp -> output\n", __LINE__);
 
 
 
@@ -492,6 +500,9 @@ int VModule::import_frame(VFrame *output,
 						asset_h,
 						get_edl()->session->color_model,
 						-1);
+// printf("VModule::import_frame %d\n", __LINE__);
+// (*input)->dump();
+
 				}
 
 
@@ -507,9 +518,9 @@ int VModule::import_frame(VFrame *output,
 						this,
 						current_edit->asset->path);
 					if(use_cache) file->set_cache_frames(1);
-					result = file->read_frame((*input));
-					if(use_cache) file->set_cache_frames(0);
 					(*input)->set_opengl_state(VFrame::RAM);
+					result = file->read_frame((*input), 0, use_opengl, x11_device);
+					if(use_cache) file->set_cache_frames(0);
 				}
 				else
 				if(nested_edl)
@@ -521,6 +532,10 @@ int VModule::import_frame(VFrame *output,
 					int output_h = output->get_h();
 					VFrame *input2 = (*input);
 
+// printf("VModule::import_frame %d nested_cmodel=%d current_cmodel=%d\n", 
+// __LINE__,
+// nested_cmodel,
+// current_cmodel);
 					if(nested_cmodel != current_cmodel)
 					{
 // If opengl, input -> input -> output
@@ -538,7 +553,7 @@ int VModule::import_frame(VFrame *output,
 							__LINE__,
 							this,
 							nested_cmodel);
-						input2->dump();
+//						input2->dump();
 						input2->reallocate(0, 
 							-1,
 							0,
@@ -548,15 +563,15 @@ int VModule::import_frame(VFrame *output,
 							(*input)->get_h(), 
 							nested_cmodel, 
 							-1);
-						input2->dump();
+//						input2->dump();
 					}
 
 
-					if(debug) printf("VModule::import_frame %d this=%p nested_edl=%s input2=%p\n", 
+					if(debug) printf("VModule::import_frame %d this=%p nested_edl=%s nested_position=%d\n", 
 						__LINE__,
 						this,
 						nested_edl->path,
-						input2);
+						(int)nested_position);
 
 					result = nested_renderengine->vrender->process_buffer(
 						input2, 
@@ -600,7 +615,7 @@ current_cmodel,
 input2, 
 (*input),
 output);
-							BC_CModels::transfer((*input)->get_rows(),
+							cmodel_transfer((*input)->get_rows(),
 								input2->get_rows(),
 								0,
 								0,
@@ -624,15 +639,15 @@ output);
 //printf("VModule::import_frame %d\n", __LINE__);
 
 // input2 was the output buffer, so it must be restored
-						input2->reallocate(0, 
-							-1,
-							0,
-							0,
-							0,
-							output_w, 
-							output_h, 
-							current_cmodel, 
-							-1);
+						    input2->reallocate(0, 
+							    -1,
+							    0,
+							    0,
+							    0,
+							    output_w, 
+							    output_h, 
+							    current_cmodel, 
+							    -1);
 //printf("VModule::import_frame %d\n", __LINE__);
 						}
 					}
@@ -692,10 +707,10 @@ output);
 						out_y,
 						out_x + out_w,
 						out_y + out_h);
-if(debug) printf("VModule::import_frame %d %d %d\n", 
-__LINE__, 
-output->get_opengl_state(),
-(*input)->get_opengl_state());
+// printf("VModule::import_frame %d %d %d\n", 
+// __LINE__, 
+// output->get_opengl_state(),
+// (*input)->get_opengl_state());
 				}
 				else
 				{
@@ -712,10 +727,22 @@ output->get_opengl_state(),
 // of producing green borders in floating point translation of YUV
 					int mode = TRANSFER_REPLACE;
 					if(get_edl()->session->interpolation_type != NEAREST_NEIGHBOR &&
-						BC_CModels::is_yuv(output->get_color_model()))
+						cmodel_is_yuv(output->get_color_model()))
 						mode = TRANSFER_NORMAL;
 
-					if(debug) printf("VModule::import_frame %d temp -> output\n", __LINE__);
+//					printf("VModule::import_frame %d temp -> output\n", 
+//                        __LINE__);
+// printf("VModule::import_frame %d input=%p %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n", 
+// __LINE__,
+// (*input),
+// in_x, 
+// in_y, 
+// in_w, 
+// in_h, 
+// out_x, 
+// out_y, 
+// out_w, 
+// out_h);
 					overlayer->overlay(output,
 						(*input), 
 						in_x,
@@ -729,17 +756,24 @@ output->get_opengl_state(),
 						1,
 						mode,
 						get_edl()->session->interpolation_type);
+//					printf("VModule::import_frame %d temp -> output\n", __LINE__);
 				}
 				result = 1;
+				
 				output->copy_stacks((*input));
+				
+				
+//printf("VModule::import_frame %d\n", __LINE__); 
+//(*input)->dump_params();
+//output->dump_params();
 			}
 			else
 // file -> output
 			{
-				if(debug) printf("VModule::import_frame %d file -> output nested_edl=%p file=%p\n", 
-					__LINE__,
-					nested_edl,
-					file);
+// 				printf("VModule::import_frame %d file -> output nested_edl=%p file=%p\n", 
+// 					__LINE__,
+// 					nested_edl,
+// 					file);
 				if(nested_edl)
 				{
 					VFrame **input = &output;
@@ -828,7 +862,7 @@ output->get_w(),
 output->get_h(),
 nested_cmodel,
 current_cmodel);
-							BC_CModels::transfer(output->get_rows(),
+							cmodel_transfer(output->get_rows(),
 								(*input)->get_rows(),
 								0,
 								0,
@@ -860,9 +894,10 @@ current_cmodel);
 // Cache single frames
 //memset(output->get_rows()[0], 0xff, 1024);
 					if(use_cache) file->set_cache_frames(1);
-					result = file->read_frame(output);
-					if(use_cache) file->set_cache_frames(0);
 					output->set_opengl_state(VFrame::RAM);
+					result = file->read_frame(output, 0, use_opengl, x11_device);
+//printf("VModule::import_frame %d output=%p state=%d\n", __LINE__, output, output->get_opengl_state());
+					if(use_cache) file->set_cache_frames(0);
 				}
 			}
 
@@ -886,6 +921,11 @@ current_cmodel);
 			}
 			result = 1;
 		}
+
+// 		printf("VModule::import_frame %d cache=%p\n", 
+// 			__LINE__,
+// 			get_cache());
+
 	}
 	else
 // Source is silence
@@ -901,7 +941,7 @@ current_cmodel);
 		}
 	}
 
-	if(debug) printf("VModule::import_frame %d done\n", __LINE__);
+//printf("VModule::import_frame %d done\n", __LINE__);
 
 	return result;
 }
@@ -919,7 +959,9 @@ int VModule::render(VFrame *output,
 	int result = 0;
 	double edl_rate = get_edl()->session->frame_rate;
 
-//printf("VModule::render %lld\n", start_position);
+//printf("VModule::render %d %ld\n", __LINE__, start_position);
+    if(MWindow::preferences->dump_playback)
+        MWindow::indent += 2;
 
 	if(use_nudge) start_position += Units::to_int64(track->nudge * 
 		frame_rate / 
@@ -940,9 +982,10 @@ int VModule::render(VFrame *output,
 //printf("VModule::render %d %p %ld %d\n", __LINE__, current_edit, start_position_project, direction);
 
 	if(debug_render)
-		printf("    VModule::render %d %lld %s transition=%p opengl=%d current_edit=%p output=%p\n", 
+		printf("    VModule::render %d %d %ld %s transition=%p opengl=%d current_edit=%p output=%p\n", 
+			__LINE__, 
 			use_nudge, 
-			(long long)start_position_project,
+			start_position_project,
 			track->title,
 			transition,
 			use_opengl,
@@ -961,6 +1004,8 @@ int VModule::render(VFrame *output,
 // Process transition
 	if(transition && transition->on)
 	{
+        if(MWindow::preferences->dump_playback)
+            MWindow::indent += 2;
 
 // Get temporary buffer
 		VFrame **transition_input = 0;
@@ -995,13 +1040,13 @@ int VModule::render(VFrame *output,
 		
 		(*transition_input)->copy_stacks(output);
 
-//printf("VModule::render %d\n", __LINE__);
+// transitions don't support opengl
 		result = import_frame((*transition_input), 
 			current_edit, 
 			start_position,
 			frame_rate,
 			direction,
-			use_opengl);
+			0 /* use_opengl */ );
 
 
 // Load transition buffer
@@ -1012,7 +1057,7 @@ int VModule::render(VFrame *output,
 			start_position,
 			frame_rate,
 			direction,
-			use_opengl);
+			0 /* use_opengl */);
 //printf("VModule::render %d\n", __LINE__);
 
 // printf("VModule::render %d %p %p %p %p\n", 
@@ -1022,16 +1067,19 @@ int VModule::render(VFrame *output,
 // output,
 // output->get_pbuffer());
 
+        if(MWindow::preferences->dump_playback)
+            MWindow::indent -= 2;
 
 // Execute plugin with transition_input and output here
 		if(renderengine) 
-			transition_server->set_use_opengl(use_opengl, renderengine->video);
+			transition_server->set_use_opengl(use_opengl, renderengine->vdevice);
 		transition_server->process_transition((*transition_input), 
 			output,
 			(direction == PLAY_FORWARD) ? 
 				(start_position_project - current_edit->startproject) :
 				(start_position_project - current_edit->startproject - 1),
 			transition->length);
+
 	}
 	else
 	{
@@ -1044,6 +1092,16 @@ int VModule::render(VFrame *output,
 			use_opengl);
 	}
 
+    if(MWindow::preferences->dump_playback)
+    {
+        MWindow::indent -= 2;
+        printf("%sVModule::render %d position=%ld title='%s' use_gl=%d\n", 
+            MWindow::print_indent(),
+			__LINE__, 
+			(long)start_position_project,
+			track->title,
+			use_opengl);
+    }
 
 	return result;
 }

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +43,7 @@
 FileFLAC::FileFLAC(Asset *asset, File *file)
  : FileBase(asset, file)
 {
-	reset_parameters();
+    reset_parameters_derived();
 	if(asset->format == FILE_UNKNOWN) asset->format = FILE_FLAC;
 	asset->byte_order = 0;
 }
@@ -54,13 +53,50 @@ FileFLAC::~FileFLAC()
 	close_file();
 }
 
+FileFLAC::FileFLAC()
+ : FileBase()
+{
+    reset_parameters_derived();
+    ids.append(FILE_FLAC);
+    has_audio = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileFLAC::create(File *file)
+{
+    return new FileFLAC(file->asset, file);
+}
+
+
+const char* FileFLAC::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_FLAC:
+			return _(FLAC_NAME);
+			break;
+    }
+    return 0;
+}
+
+const char* FileFLAC::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_FLAC:
+            return "flac";
+    }
+    return 0;
+}
+
 void FileFLAC::get_parameters(BC_WindowBase *parent_window, 
 	Asset *asset, 
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+	int option_type,
+	const char *locked_compressor)
 {
-	if(audio_options)
+	if(option_type == AUDIO_PARAMS)
 	{
 		FLACConfigAudio *window = new FLACConfigAudio(parent_window, asset);
 		format_window = window;
@@ -72,12 +108,12 @@ void FileFLAC::get_parameters(BC_WindowBase *parent_window,
 
 
 
-int FileFLAC::check_sig(Asset *asset, char *test)
+int FileFLAC::check_sig(File *file, const uint8_t *test_data)
 {
-	if(test[0] == 'f' &&
-		test[1] == 'L' &&
-		test[2] == 'a' &&
-		test[3] == 'C')
+	if(test_data[0] == 'f' &&
+		test_data[1] == 'L' &&
+		test_data[2] == 'a' &&
+		test_data[3] == 'C')
 	{
 		return 1;
 	}
@@ -97,6 +133,7 @@ int FileFLAC::reset_parameters_derived()
 	temp_channels = 0;
 	initialized = 0;
 	is_reading = 0;
+    return 0;
 }
 
 
@@ -195,18 +232,22 @@ int FileFLAC::open_file(int rd, int wr)
 	{
 		file_bytes = FileSystem::get_size(asset->path);
 		flac_decode = FLAC__stream_decoder_new();
-		FLAC__stream_decoder_init_file(flac_decode,
+		result = FLAC__stream_decoder_init_file(flac_decode,
 			asset->path,
 			write_callback,
 			metadata_callback,
 			error_callback,
 			this);
+//        printf("FileFLAC::open_file %d result=%d\n", __LINE__, result);
 
 		initialized = 0;
-		while(!initialized)
-		{
-			if(!FLAC__stream_decoder_process_single(flac_decode)) break;
-		}
+        if(!result)
+        {
+		    while(!initialized)
+		    {
+			    if(!FLAC__stream_decoder_process_single(flac_decode)) break;
+		    }
+        }
 
 		if(!initialized) 
 			result = 1;
@@ -222,10 +263,11 @@ int FileFLAC::open_file(int rd, int wr)
 		FLAC__stream_encoder_set_channels(flac_encode, asset->channels);
 		FLAC__stream_encoder_set_bits_per_sample(flac_encode, asset->bits);
 		FLAC__stream_encoder_set_sample_rate(flac_encode, asset->sample_rate);
-		FLAC__stream_encoder_init_file(flac_encode, 
+		result = FLAC__stream_encoder_init_file(flac_encode, 
 			asset->path, 
 			0, 
 			0);
+//        printf("FileFLAC::open_file %d result=%d\n", __LINE__, result);
 	}
 
 	return result;
@@ -299,7 +341,7 @@ int FileFLAC::write_samples(double **buffer, int64_t len)
 			*dst++ = (int32_t)sample;
 		}
 	}
-	
+
 	int result = FLAC__stream_encoder_process(flac_encode, 
 		temp_buffer, 
 		len);
@@ -362,8 +404,8 @@ FLACConfigAudio::FLACConfigAudio(BC_WindowBase *parent_window,
  : BC_Window(PROGRAM_NAME ": Audio Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	350,
-	170,
+	DP(350),
+	DP(170),
 	-1,
 	-1,
 	0,
@@ -380,7 +422,7 @@ FLACConfigAudio::~FLACConfigAudio()
 
 void FLACConfigAudio::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("FLACConfigAudio::create_objects");
 	bits_popup = new BitsPopup(this, 
 		x, 

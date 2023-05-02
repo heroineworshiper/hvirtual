@@ -59,7 +59,7 @@ public:
 	AssetPopupBuildIndex *index;
 	AssetPopupView *view;
 	AssetPopupViewWindow *view_window;
-	AssetListFormat *format;
+//	AssetListFormat *format;
 };
 
 class AssetPopupInfo : public BC_MenuItem

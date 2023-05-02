@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -76,7 +75,7 @@ int BC_Bar::resize_event(int w, int h)
 
 void BC_Bar::draw(int flush)
 {
-	draw_top_background(parent_window, 0, 0,w, h);
+	draw_top_background(parent_window, 0, 0, w, h);
 	draw_3segmenth(0, 0, w, 0, w, image);
 	flash(flush);
 }

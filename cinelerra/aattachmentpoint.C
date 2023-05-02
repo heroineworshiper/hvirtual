@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #include "datatype.h"
 #include "edl.h"
 #include "edlsession.h"
+#include "keyframe.h"
 #include "playbackconfig.h"
 #include "plugin.h"
 #include "pluginserver.h"
@@ -74,28 +75,33 @@ void AAttachmentPoint::new_buffer_vector(int total, int size)
 int AAttachmentPoint::get_buffer_size()
 {
 	return renderengine->config->aconfig->fragment_size;
-// must be greater than value audio_read_length, calculated in PackageRenderer::create_engine
-// if it is not, plugin's PluginClient::in_buffer_size is below the real maximum and
-// we get a crush on rendering of audio plugins!
-// 	int audio_read_length = renderengine->command->get_edl()->session->sample_rate;
-// 	int fragment_size = renderengine->config->aconfig->fragment_size;
-// 	if(audio_read_length > fragment_size)
-// 		return audio_read_length;
-// 	else
-// 		return fragment_size;
 }
 
 void AAttachmentPoint::render(Samples *output, 
 	int buffer_number,
 	int64_t start_position, 
 	int64_t len,
-	int64_t sample_rate)
+	int64_t sample_rate,
+    double playhead_position)
 {
 	if(!plugin_server || !plugin->on) return;
+    int project_sample_rate = renderengine->get_edl()->session->sample_rate;
+    int direction = renderengine->command->get_direction();
+// the output buffers
+    Samples **output_temp = 0;
+// starting offsets for the output buffers
+    int *output_offsets = 0;
+// how many output buffers
+    int output_temps = 0;
+// Plugin server to do signal processing
+    PluginServer *edl_plugin_server = 0;
+    int sign = 1;
 
+// plugin DB
 	if(plugin_server->multichannel)
 	{
-// Test against previous parameters for reuse of previous data
+        edl_plugin_server = plugin_servers.get(0);
+// Reuse previous data if we already processed
 		if(is_processed &&
 			this->start_position == start_position && 
 			this->len == len && 
@@ -113,52 +119,161 @@ void AAttachmentPoint::render(Samples *output,
 		this->sample_rate = sample_rate;
 		is_processed = 1;
 
-// Allocate buffer vector
-		new_buffer_vector(virtual_plugins.total, len);
+// Allocate buffers for all the channels
+		new_buffer_vector(virtual_plugins.size(), len);
 
 // Create temporary buffer vector with output argument substituted in
-		Samples **output_temp = new Samples*[virtual_plugins.total];
-		for(int i = 0; i < virtual_plugins.total; i++)
+        output_temps = virtual_plugins.size();
+		output_temp = new Samples*[output_temps];
+        output_offsets = new int[output_temps];
+		for(int i = 0; i < virtual_plugins.size(); i++)
 		{
 			if(i == buffer_number)
-				output_temp[i] = output;
-			else
-				output_temp[i] = buffer_vector[i];
+			{
+            	output_temp[i] = output;
+			}
+            else
+			{
+            	output_temp[i] = buffer_vector[i];
+            }
+            output_offsets[i] = output_temp[i]->get_offset();
 		}
+    }
+    else
+    {
+        edl_plugin_server = plugin_servers.get(buffer_number);
+        output_temps = 1;
+		output_temp = new Samples*[output_temps];
+        output_offsets = new int[output_temps];
+		output_temp[0] = output;
+        output_offsets[0] = output_temp[0]->get_offset();
+    }
 
-// Process plugin
-		plugin_servers.values[0]->process_buffer(output_temp,
-			start_position,
-			len,
+
+
+// process in fragments bounded by keyframes. 
+// Plugin decides to use the content of the next or prev keyframe based on direction.
+    KeyFrame *keyframe = 0;
+    if(direction == PLAY_FORWARD)
+    {
+        sign = 1;
+        keyframe = edl_plugin_server->get_prev_keyframe(
+            start_position *
+                project_sample_rate /
+                sample_rate);
+    }
+    else
+    {
+        sign = -1;
+        keyframe = edl_plugin_server->get_next_keyframe(
+            start_position *
+                project_sample_rate /
+                sample_rate);
+    }
+
+// keyframe position in local samplerate
+    int64_t keyframe_position = keyframe->position *
+        sample_rate /
+        project_sample_rate;
+// advance in local samplerate
+    for(int64_t offset = 0, fragment = 0; offset < len; offset += fragment)
+    {
+        fragment = len - offset;
+        int limit_fragment = 1;
+//printf("AAttachmentPoint::render %d this=%p keyframe=%p\n", __LINE__, this, keyframe);
+
+// get the next keyframe
+        if(keyframe)
+        {
+            if(direction == PLAY_FORWARD)
+            {
+                keyframe = (KeyFrame*)keyframe->next;
+            }
+            else
+    // backward
+            {
+                keyframe = (KeyFrame*)keyframe->previous;
+            }
+        }
+
+// previous keyframe is before the current position
+        if(direction == PLAY_FORWARD && keyframe_position <= start_position + offset ||
+            direction == PLAY_REVERSE && keyframe_position >= start_position - offset)
+        {
+// limit to the next keyframe's position
+            if(keyframe)
+            {
+                keyframe_position = keyframe->position *
+                    sample_rate /
+                    project_sample_rate;
+            }
+            else
+            {
+                limit_fragment = 0;
+            }
+        }
+
+// truncate to next keyframe
+        if(limit_fragment &&
+            (keyframe_position - start_position) * sign - offset < fragment)
+        {
+            fragment = (keyframe_position - start_position) * sign - offset;
+        }
+
+// minimum fragment size
+        if(fragment <= 0)
+        {
+            printf("AAttachmentPoint::render %d invalid fragment length=%ld start_position=%ld offset=%ld\n",
+                __LINE__,
+                fragment,
+                start_position,
+                offset);
+            fragment = 1;
+        }
+
+// Plugins assume the buffer offset is random
+        for(int i = 0; i < output_temps; i++)
+        {
+            output_temp[i]->set_offset(output_offsets[i] + offset);
+        }
+
+// set the playhead position
+        edl_plugin_server->playhead_position = playhead_position + 
+            (double)offset * 
+                sign / 
+                sample_rate;
+
+// process the fragment
+// printf("AAttachmentPoint::render %d this=%p title=%s keyframe=%p fragment=%ld offset=%d allocated=%d\n", 
+// __LINE__, 
+// this,
+// edl_plugin_server->title,
+// keyframe,
+// fragment,
+// output_temp[0]->get_offset(),
+// output_temp[0]->get_allocated());
+		edl_plugin_server->process_buffer(output_temp,
+			start_position + offset * sign,
+			fragment,
 			sample_rate,
 			plugin->length *
 				sample_rate /
-				renderengine->get_edl()->session->sample_rate,
-			renderengine->command->get_direction());
+				project_sample_rate,
+			direction);
+
+	}
+
+// reset the buffer offsets
+	for(int i = 0; i < output_temps; i++)
+	{
+		output_temp[i]->set_offset(output_offsets[i]);
+	}
 
 // Delete temporary buffer vector
-		delete [] output_temp;
-	}
-	else
-	{
-// Process plugin
-		Samples *output_temp[1];
-		output_temp[0] = output;
-
-if(0) printf("AAttachmentPoint::render %d buffer_number=%d renderengine=%p plugin_server=%p\n", 
-__LINE__, 
-buffer_number,
-renderengine,
-plugin_servers.values[buffer_number]);
-		plugin_servers.values[buffer_number]->process_buffer(output_temp,
-			start_position,
-			len,
-			sample_rate,
-			plugin->length *
-				sample_rate /
-				renderengine->get_edl()->session->sample_rate,
-			renderengine->command->get_direction());
-	}
+	delete [] output_temp;
+    delete [] output_offsets;
 }
+
+
 
 

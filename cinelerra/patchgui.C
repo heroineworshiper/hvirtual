@@ -104,8 +104,12 @@ int PatchGUI::reposition(int x, int y)
 TRACE("PatchGUI::reposition 1\n");
 			title->reposition_window(title->get_x(), y1 + y, 0);
 TRACE("PatchGUI::reposition 2\n");
+    		y1 += title->get_h();
 		}
-		y1 += mwindow->theme->title_h;
+        else
+        {
+    		y1 += mwindow->theme->title_h;
+        }
 
 		if(play)
 		{
@@ -131,7 +135,7 @@ TRACE("PatchGUI::reposition 8\n");
 			if(expand)
 			{
 TRACE("PatchGUI::reposition 9\n");
-				VFrame **expandpatch_data = mwindow->theme->get_image_set("expandpatch_data");
+//				VFrame **expandpatch_data = mwindow->theme->get_image_set("expandpatch_data");
 				expand->reposition_window(
 					expand->get_x(), 
 					y1 + y);
@@ -144,7 +148,14 @@ TRACE("PatchGUI::reposition 11\n");
 	}
 	else
 	{
-		y1 += mwindow->theme->title_h;
+		if(title)
+		{
+    		y1 += title->get_h();
+		}
+        else
+        {
+    		y1 += mwindow->theme->title_h;
+        }
 		y1 += mwindow->theme->play_h;
 	}
 
@@ -179,7 +190,16 @@ int PatchGUI::update(int x, int y)
 	{
 		patchbay->add_subwindow(title = new TitlePatch(mwindow, this, x1 + x, y1 + y));
 	}
-	y1 += mwindow->theme->title_h;
+    
+    if(title)
+    {
+	    y1 += title->get_h();
+    }
+    else
+    {
+    	y1 += mwindow->theme->title_h;
+    }
+    
 
 	if(play)
 	{
@@ -211,7 +231,7 @@ int PatchGUI::update(int x, int y)
 	if(h - y1 >= mwindow->theme->play_h)
 	{
 		patchbay->add_subwindow(play = new PlayPatch(mwindow, this, x1 + x, y1 + y));
-//printf("PatchGUI::update 1 %p %p\n", play, &play->status);
+//printf("PatchGUI::update %d %d\n", __LINE__, play->get_h());
 		x1 += play->get_w();
 		patchbay->add_subwindow(record = new RecordPatch(mwindow, this, x1 + x, y1 + y));
 		x1 += record->get_w();
@@ -225,7 +245,7 @@ int PatchGUI::update(int x, int y)
 		VFrame **expandpatch_data = mwindow->theme->get_image_set("expandpatch_data");
 		patchbay->add_subwindow(expand = new ExpandPatch(mwindow, 
 			this, 
-			patchbay->get_w() - 10 - expandpatch_data[0]->get_w(), 
+			patchbay->get_w() - DP(10) - expandpatch_data[0]->get_w(), 
 			y1 + y));
 		x1 += expand->get_w();
 	}
@@ -711,9 +731,10 @@ int ExpandPatch::button_release_event()
 TitlePatch::TitlePatch(MWindow *mwindow, PatchGUI *patch, int x, int y)
  : BC_TextBox(x, 
  		y, 
-		patch->patchbay->get_w() - 10, 
+		patch->patchbay->get_w() - x - mwindow->theme->widget_border, 
 		1,
-		patch->track->title)
+		patch->track->title,
+        1)
 {
 	this->mwindow = mwindow;
 	this->patch = patch;

@@ -46,6 +46,8 @@ public:
 	int get_bottom_border();
 	void test_window(int &x_out, int &y_out, int &x_out2, int &y_out2, int x_in, int y_in);
 
+// dpi from the hardware
+	static int dpi;
 
 private:
 	void init_borders();

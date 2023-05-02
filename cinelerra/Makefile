@@ -2,12 +2,21 @@ include ../global_config
 
 AVC_DIR := $(shell expr ../thirdparty/libavc1394* )
 DV_DIR := $(shell expr ../quicktime/thirdparty/libdv-*/ )
+EXRDIR := $(shell expr ../thirdparty/openexr* )
+ILMDIR := $(shell expr ../thirdparty/ilmbase* )
 FLAC_DIR := $(shell expr ../thirdparty/flac*/ )
 FFMPEG_DIR := $(shell expr ../quicktime/thirdparty/ffmpeg* )
+
+ifeq ($(OBJDIR), i686)
 JPEG_DIR := $(shell expr ../quicktime/thirdparty/jpeg-mmx* )
+else
+JPEG_DIR := $(shell expr ../quicktime/thirdparty/jpeg9d )
+endif
+
 LAME_DIR := ../quicktime/thirdparty/lame-3.93.1/include
 LIBIEC_DIR := $(shell expr ../thirdparty/libiec61883* )
-LIBRAW_DIR := $(shell expr ../thirdparty/libraw1394* )
+LIBRAW1394_DIR := $(shell expr ../thirdparty/libraw1394* )
+LIBRAW_DIR := $(shell expr ../thirdparty/LibRaw* )
 OGG_DIR := $(shell expr ../quicktime/thirdparty/libogg* )
 SNDFILE_DIR := $(shell expr ../thirdparty/libsndfile* )
 THEORA_DIR := $(shell expr ../thirdparty/libtheora* )
@@ -16,19 +25,28 @@ TIFF_DIR := ../thirdparty/tiff-v3.5.7
 TOOLAME_DIR := ../thirdparty/toolame-02l
 UUID_DIR := ../thirdparty/uuid
 VORBIS_DIR := $(shell expr ../quicktime/thirdparty/libvorbis* )
+PULSE_DIR := $(shell expr ../thirdparty/pulseaudio-* )
 
 AVC_LIB := $(AVC_DIR)/libavc1394/.libs/libavc1394.a $(AVC_DIR)/librom1394/.libs/librom1394.a
-RAW_LIB := $(LIBRAW_DIR)/src/.libs/libraw1394.a
+RAW1394_LIB := $(LIBRAW1394_DIR)/src/.libs/libraw1394.a
 IEC_LIB := $(LIBIEC_DIR)/src/.libs/libiec61883.a
-SNDFILE_LIB := $(SNDFILE_DIR)/src/.libs/libsndfile.a
 THEORA_LIB := $(THEORA_DIR)/lib/.libs/libtheora.a
-EXR_LIBS :=  \
-	../thirdparty/lib/libIlmImf.a \
-	../thirdparty/lib/libIlmThread.a \
-	../thirdparty/lib/libImath.a \
-	../thirdparty/lib/libHalf.a \
-	../thirdparty/lib/libIex.a
-EXR_INCLUDES := -I../thirdparty/include/OpenEXR
+#PULSE_LIB := -L$(PULSE_DIR)/src/.libs/ -lpulse -lpulse-simple
+PULSE_LIB := $(PULSE_DIR)/src/.libs/libpulse-simple.a \
+	$(PULSE_DIR)/src/.libs/libpulse.a \
+	$(PULSE_DIR)/src/.libs/libpulsecommon*.a 
+RAW_LIB := $(LIBRAW_DIR)/libraw.a
+
+EXR_INCLUDES := \
+	-I$(ILMDIR)/Iex/ \
+	-I$(ILMDIR)/Half/ \
+	-I$(ILMDIR)/Imath/ \
+	-I$(ILMDIR)/Imath/ \
+	-I$(ILMDIR)/config/ \
+	-I$(ILMDIR)/IlmThread \
+	-I$(EXRDIR)/IlmImf/ \
+	-I$(EXRDIR)/config/
+
 OBJS = \
 	$(OBJDIR)/aattachmentpoint.o \
 	$(OBJDIR)/aautomation.o \
@@ -87,6 +105,7 @@ OBJS = \
 	$(OBJDIR)/cicolors.o \
 	$(OBJDIR)/colorpicker.o \
 	$(OBJDIR)/commonrender.o \
+        $(OBJDIR)/compressortools.o \
 	$(OBJDIR)/confirmsave.o \
 	$(OBJDIR)/confirmquit.o \
 	$(OBJDIR)/cpanel.o \
@@ -97,7 +116,6 @@ OBJS = \
 	$(OBJDIR)/cwindow.o \
 	$(OBJDIR)/cwindowgui.o \
 	$(OBJDIR)/cwindowtool.o \
-	$(OBJDIR)/dcoffset.o \
 	$(OBJDIR)/device1394input.o \
 	$(OBJDIR)/devicedvbinput.o \
 	$(OBJDIR)/device1394output.o \
@@ -105,13 +123,14 @@ OBJS = \
 	$(OBJDIR)/dvbtune.o \
 	$(OBJDIR)/drivesync.o \
 	$(OBJDIR)/edit.o \
-	$(OBJDIR)/edithandles.o \
+        $(OBJDIR)/editinfo.o \
 	$(OBJDIR)/editlength.o \
 	$(OBJDIR)/editpanel.o \
 	$(OBJDIR)/editpopup.o \
 	$(OBJDIR)/edits.o \
 	$(OBJDIR)/edl.o \
 	$(OBJDIR)/edlsession.o \
+        $(OBJDIR)/eqcanvas.o \
 	$(OBJDIR)/fadeengine.o \
 	$(OBJDIR)/file.o \
 	$(OBJDIR)/fileavi.o \
@@ -132,6 +151,7 @@ OBJS = \
 	$(OBJDIR)/filescene.o \
 	$(OBJDIR)/fileserver.o \
 	$(OBJDIR)/filesndfile.o \
+	$(OBJDIR)/filestdout.o \
 	$(OBJDIR)/filetga.o \
 	$(OBJDIR)/filethread.o \
 	$(OBJDIR)/filetiff.o \
@@ -233,6 +253,7 @@ OBJS = \
 	$(OBJDIR)/preferencesthread.o \
 	$(OBJDIR)/presets.o \
 	$(OBJDIR)/presetsgui.o \
+	$(OBJDIR)/proxy.o \
 	$(OBJDIR)/question.o \
 	$(OBJDIR)/quit.o \
 	$(OBJDIR)/recconfirmdelete.o \
@@ -270,6 +291,7 @@ OBJS = \
 	$(OBJDIR)/sighandler.o \
 	$(OBJDIR)/splashgui.o \
 	$(OBJDIR)/statusbar.o \
+	$(OBJDIR)/swapasset.o \
 	$(OBJDIR)/theme.o \
 	$(OBJDIR)/threadexec.o \
 	$(OBJDIR)/threadloader.o \
@@ -285,7 +307,6 @@ OBJS = \
 	$(OBJDIR)/trackscroll.o \
 	$(OBJDIR)/tracksedit.o \
 	$(OBJDIR)/transition.o \
-	$(OBJDIR)/transitionhandles.o \
 	$(OBJDIR)/transitionpopup.o \
 	$(OBJDIR)/transportque.o \
 	$(OBJDIR)/tunerserver.o \
@@ -328,6 +349,9 @@ OBJS = \
 	$(OBJDIR)/zoompanel.o
 
 
+#	$(OBJDIR)/edithandles.o \
+#	$(OBJDIR)/dcoffset.o \
+#	$(OBJDIR)/transitionhandles.o \
 #	$(OBJDIR)/renderfarmfsclient.o \
 #	$(OBJDIR)/renderfarmfsserver.o \
 
@@ -336,7 +360,9 @@ FILEEXR := $(OBJDIR)/fileexr.o
 FILEFLAC := $(OBJDIR)/fileflac.o
 FFMPEG_OBJS := $(OBJDIR)/fileffmpeg.o \
 	$(OBJDIR)/fileac3.o
+FILECR3 := $(OBJDIR)/filecr3.o
 DCRAW := $(OBJDIR)/dcraw.o
+AUDIOPULSE := $(OBJDIR)/audiopulse.o
 
 THEME_DATA := $(OBJDIR)/theme_data.o
 
@@ -353,25 +379,29 @@ AVIFILE_DIR := $(shell expr ../avifile* )
 STATICLIBS = \
 	$(AVC_LIB) \
 	$(RAW_LIB) \
+        $(RAW1394_LIB) \
 	$(IEC_LIB) \
+        ../guicast/$(OBJDIR)/libcmodel.a \
 	../quicktime/$(OBJDIR)/libquicktime.a \
         $(ESOUNDLIBS) \
-	$(EXR_LIBS) \
+	$(EXRDIR)/$(OBJDIR)/libexr.a \
 	$(FLAC_DIR)/src/libFLAC/.libs/libFLAC.a \
-	$(GIF_DIR)/lib/.libs/libgif.a \
+	$(GIF_DIR)/$(OBJDIR)/libgif.a \
 	$(TIFF_DIR)/$(OBJDIR)/libtiff.a \
 	../guicast/$(OBJDIR)/libguicast.a \
 	../libmpeg3/$(OBJDIR)/libmpeg3.a \
-	$(SNDFILE_LIB) \
+	$(SNDFILE_DIR)/src/.libs/libsndfile.a \
 	$(UUID_DIR)/$(OBJDIR)/libuuid.a \
 	../mpeg2enc/$(OBJDIR)/mpeg2enc.a \
 	$(TOOLAME_DIR)/$(OBJDIR)/toolame.a \
 	$(THEME_DATA) \
-	$(THEORA_LIB)
+	$(THEORA_LIB) \
+        $(PULSE_LIB)
 
 LIBS := \
 	-L./ \
 	-L../guicast
+        
 
 
 ifeq ($(OBJDIR), x86_64)
@@ -381,7 +411,7 @@ LIBS += -L/usr/X11R6/lib
 endif
 
 ifeq ($(HAVE_GL), y)
-LIBS += -lGL -lGLU
+LIBS += -lGL
 endif
 
 
@@ -393,25 +423,29 @@ endif
 
 
 LIBS += \
-	-lfontconfig \
 	-lX11 \
 	-lXext \
+	-lXfixes \
 	-lXv \
 	-lpthread \
 	-lm \
 	-lpng \
 	-lz \
 	-ldl \
-	-lbz2
+	-lbz2 \
+	-llzma \
+	-lrt
 
+#	-lfontconfig \
 #	-lXxf86vm \
 
 ifeq ($(HAVE_XFT), y)
 LIBS += -lXft
 endif
 
+
+
 CFLAGS += \
-	-g \
 	-c \
 	-I../guicast \
 	-I../quicktime \
@@ -419,7 +453,7 @@ CFLAGS += \
 	-I$(DV_DIR) \
 	-I$(OGG_DIR)/include \
 	-I$(VORBIS_DIR)/include \
-	-I$(LIBRAW_DIR)/ \
+	-I$(LIBRAW1394_DIR)/ \
 	-I$(AVC_DIR) \
 	-I$(LIBIEC_DIR)/src/ \
 	-I$(GIF_DIR)/lib \
@@ -465,7 +499,7 @@ else
 
 LDFLAGS1 = -export-dynamic
 LDFLAGS2 = 
-LINKER = g++ -g -o $(OUTPUT)
+LINKER = g++ -o $(OUTPUT)
 
 
 endif
@@ -486,15 +520,13 @@ endif
 
 FFMPEG_CFLAGS := \
 	$(CFLAGS) \
-	-I$(FFMPEG_DIR)/libavcodec \
-	-I$(FFMPEG_DIR)/libavformat \
-	-I$(FFMPEG_DIR)/libavutil \
-	-I$(FFMPEG_DIR)
+        $(FFMPEG_CFLAGS)
 
+FFMPEG_LIBS := -lavformat -lavcodec -lavutil -lswresample
 
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
-$(shell echo $(CFLAGS) $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
-$(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(FFMPEG_OBJS) $(AVIOBJS) $(CXXREPOSITORY) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
+$(shell echo $(FFMPEG_CFLAGS) -D__STDC_CONSTANT_MACROS > $(OBJDIR)/ffmpeg_cflags)
+$(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(FILECR3) $(AVIOBJS) $(CXXREPOSITORY) $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
 
 
 
@@ -503,7 +535,7 @@ $(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(FFMPEG_OBJS) 
 # Static linking is not possible because the plugins depend on symbols
 # in the main executable.
 # Also VFS only overrides the C library when dynamic linking is used.
-$(OUTPUT): $(OBJS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILEFLAC) $(THEME_DATA) $(SNDFILE_LIB) ../guicast/$(OBJDIR)/libguicast.a
+$(OUTPUT): $(OBJS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILECR3) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
 	$(LINKER) `cat $(OBJDIR)/objs`
 #	strip $(OUTPUT)
 
@@ -517,10 +549,10 @@ $(OBJDIR)/test:
 		$(OBJDIR)/test.so \
 		$(LIBS)
 
-$(SNDFILE_LIB):
-	mkdir -p $(SNDFILE_LIB) && \
-	cd $(SNDFILE_LIB) && \
-	ar x ../../$(SNDFILE_DIR)/src/.libs/libsndfile.a
+#$(SNDFILE_LIB):
+#	mkdir -p $(SNDFILE_LIB) && \
+#	cd $(SNDFILE_LIB) && \
+#	ar x ../../$(SNDFILE_DIR)/src/.libs/libsndfile.a
 
 clean:
 	rm -rf $(OBJDIR)
@@ -540,11 +572,18 @@ wc:
 $(LIBOBJS) $(OBJS):
 	$(CC) `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
+$(AUDIOPULSE): audiopulse.C
+	$(CC) `cat $(OBJDIR)/c_flags` -I$(PULSE_DIR)/src/ $(subst $(OBJDIR)/,, $*.C) -o $*.o
+
+
 $(FILEEXR): fileexr.C
 	$(CC) `cat $(OBJDIR)/c_flags` $(EXR_INCLUDES) $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 $(FILEFLAC): fileflac.C
 	$(CC) `cat $(OBJDIR)/c_flags` -I$(FLAC_DIR)/include $(subst $(OBJDIR)/,, $*.C) -o $*.o
+
+$(FILECR3): filecr3.C
+	$(CC) `cat $(OBJDIR)/c_flags` -I$(LIBRAW_DIR) $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 $(FFMPEG_OBJS):
 	$(CC) `cat $(OBJDIR)/ffmpeg_cflags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
@@ -618,6 +657,7 @@ $(OBJDIR)/clipedit.o: 			  	  clipedit.C
 $(OBJDIR)/cicolors.o:                             cicolors.C
 $(OBJDIR)/colorpicker.o:                          colorpicker.C
 $(OBJDIR)/commonrender.o: 			  commonrender.C
+$(OBJDIR)/compressortools.o:                      compressortools.C
 $(OBJDIR)/confirmsave.o: 			  confirmsave.C
 $(OBJDIR)/confirmquit.o: 			  confirmquit.C
 $(OBJDIR)/console.o: 				  console.C
@@ -640,6 +680,7 @@ $(OBJDIR)/device1394output.o:                     device1394output.C
 $(OBJDIR)/drivesync.o:  			  drivesync.C
 $(OBJDIR)/dvbtune.o:  			  	  dvbtune.C
 $(OBJDIR)/edit.o: 				  edit.C
+$(OBJDIR)/editinfo.o: 				  editinfo.C
 $(OBJDIR)/edithandles.o: 			  edithandles.C
 $(OBJDIR)/editlength.o:                           editlength.C
 $(OBJDIR)/editpanel.o:  			  editpanel.C
@@ -647,6 +688,7 @@ $(OBJDIR)/editpopup.o:  			  editpopup.C
 $(OBJDIR)/edits.o: 				  edits.C
 $(OBJDIR)/edl.o: 				  edl.C
 $(OBJDIR)/edlsession.o: 			  edlsession.C
+$(OBJDIR)/eqcanvas.o:                             eqcanvas.C
 $(OBJDIR)/fadeengine.o: 			  fadeengine.C
 $(OBJDIR)/file.o: 				  file.C
 $(OBJDIR)/fileac3.o:                              fileac3.C
@@ -657,6 +699,7 @@ $(OBJDIR)/filebaseima4.o: 			  filebaseima4.C
 $(OBJDIR)/filebaseulaw.o: 			  filebaseulaw.C
 $(OBJDIR)/filebasevideo.o: 			  filebasevideo.C
 $(OBJDIR)/filecr2.o:                              filecr2.C
+$(OBJDIR)/filecr3.o:                              filecr3.C
 $(OBJDIR)/fileffmpeg.o:                           fileffmpeg.C
 $(OBJDIR)/filefork.o:	 			  filefork.C
 $(OBJDIR)/filescene.o:                            filescene.C
@@ -670,6 +713,7 @@ $(OBJDIR)/filempeg.o:                             filempeg.C
 $(OBJDIR)/fileogg.o:                              fileogg.C
 $(OBJDIR)/filepng.o: 				  filepng.C
 $(OBJDIR)/filesndfile.o: 			  filesndfile.C
+$(OBJDIR)/filestdout.o: 			  filestdout.C
 $(OBJDIR)/filetga.o: 			  	  filetga.C
 $(OBJDIR)/filethread.o: 			  filethread.C
 $(OBJDIR)/filetiff.o: 				  filetiff.C
@@ -776,6 +820,7 @@ $(OBJDIR)/presets.o:                              presets.C
 $(OBJDIR)/presetsgui.o:                           presetsgui.C
 $(OBJDIR)/previewaudio.o: 			  previewaudio.C
 $(OBJDIR)/previewvideo.o: 			  previewvideo.C
+$(OBJDIR)/proxy.o: 			  	  proxy.C
 $(OBJDIR)/question.o: 				  question.C
 $(OBJDIR)/quit.o: 				  quit.C
 $(OBJDIR)/recconfirmdelete.o: 			  recconfirmdelete.C
@@ -816,6 +861,7 @@ $(OBJDIR)/shmemory.o: 				  shmemory.C
 $(OBJDIR)/sighandler.o:                           sighandler.C
 $(OBJDIR)/splashgui.o: 				  splashgui.C
 $(OBJDIR)/statusbar.o:  			  statusbar.C
+$(OBJDIR)/swapasset.o:  			  swapasset.C
 $(OBJDIR)/theme.o: 				  theme.C
 $(OBJDIR)/threadexec.o:                           threadexec.C
 $(OBJDIR)/threadfork.o:                           threadfork.C

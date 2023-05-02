@@ -1,19 +1,23 @@
 /*
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation; either version 2 of the License, or
+ * Quicktime 4 Linux
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
  * 
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 
- * USA
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
  */
+
  
 #include <stdio.h>
 #include <stdlib.h>
@@ -233,6 +237,7 @@ METHODDEF(void) init_source(j_decompress_ptr cinfo)
     mjpeg_src_ptr src = (mjpeg_src_ptr) cinfo->src;
 }
 
+// if this is called, we have hit the end of the buffer & the decoder wants more
 METHODDEF(boolean) fill_input_buffer(j_decompress_ptr cinfo)
 {
 	mjpeg_src_ptr src = (mjpeg_src_ptr) cinfo->src;
@@ -716,17 +721,29 @@ static void decompress_field(mjpeg_compressor *engine)
 	if(setjmp(engine->jpeg_error.setjmp_buffer))
 	{
 /* If we get here, the JPEG code has signaled an error. */
-printf("decompress_field %d\n", __LINE__);
+// can't decode Generalplus webcams
+printf("decompress_field %d aborted\n", __LINE__);
 		delete_jpeg_objects(engine);
-printf("decompress_field %d\n", __LINE__);
 		new_jpeg_objects(engine);
-printf("decompress_field %d\n", __LINE__);
 		mjpeg->error = 1;
-printf("decompress_field %d\n", __LINE__);
 		goto finish;
 	}
 
-//printf("decompress_field 2\n");
+// printf("decompress_field %d buffer_size=%d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+// __LINE__, 
+// buffer_size,
+// buffer[0],
+// buffer[1],
+// buffer[2],
+// buffer[3],
+// buffer[4],
+// buffer[5],
+// buffer[6],
+// buffer[7]);
+//FILE *fd = fopen("/tmp/x.jpg", "w");
+//fwrite(buffer, 1, buffer_size, fd);
+//fclose(fd);
+//exit(0);
 	jpeg_buffer_src(&engine->jpeg_decompress, 
 		buffer, 
 		buffer_size);
@@ -801,7 +818,6 @@ static void compress_field(mjpeg_compressor *engine)
 	int i, j;
 	mjpeg_t *mjpeg = engine->mjpeg;
 
-//printf("compress_field 1\n");
 	get_rows(engine->mjpeg, engine);
 	reset_buffer(&engine->output_buffer, &engine->output_size, &engine->output_allocated);
 	jpeg_buffer_dest(&engine->jpeg_compress, engine);
@@ -809,17 +825,24 @@ static void compress_field(mjpeg_compressor *engine)
 
 	engine->jpeg_compress.raw_data_in = TRUE;
 	jpeg_start_compress(&engine->jpeg_compress, TRUE);
+// printf("compress_field %d %d %d\n", 
+// __LINE__, 
+// engine->jpeg_compress.image_width,
+// engine->jpeg_compress.image_height);
 
 	while(engine->jpeg_compress.next_scanline < engine->jpeg_compress.image_height)
 	{
+//printf("compress_field %d %d %d\n", __LINE__, engine->jpeg_compress.next_scanline, engine->jpeg_compress.image_height);
 		get_mcu_rows(mjpeg, engine, engine->jpeg_compress.next_scanline);
+//printf("compress_field %d %p %d\n", __LINE__, engine->mcu_rows, engine->coded_field_h);
 
 		jpeg_write_raw_data(&engine->jpeg_compress, 
 			engine->mcu_rows, 
 			engine->coded_field_h);
+//printf("compress_field %d\n", __LINE__);
 	}
 	jpeg_finish_compress(&engine->jpeg_compress);
-//printf("compress_field 2\n");
+//printf("compress_field %d\n", __LINE__);
 }
 
 
@@ -1020,7 +1043,7 @@ int mjpeg_compress(mjpeg_t *mjpeg,
 	mjpeg->color_model = color_model;
 	mjpeg->cpus = cpus;
 
-//printf("mjpeg_compress 1 %d\n", color_model);
+//printf("mjpeg_compress %d %d\n", __LINE__, color_model);
 /* Reset output buffer */
 	reset_buffer(&mjpeg->output_data, 
 		&mjpeg->output_size, 
@@ -1046,10 +1069,16 @@ int mjpeg_compress(mjpeg_t *mjpeg,
 		mjpeg->output_w != mjpeg->coded_w ||
 		mjpeg->output_h != mjpeg->coded_h)
 	{
-/*
- * printf("mjpeg_compress %d %d %d %d\n", 
- * mjpeg->output_w, mjpeg->output_h, mjpeg->coded_w, mjpeg->coded_h);
- */
+
+// printf("mjpeg_compress %d color_model=%d jpeg_color_model=%d %d %d %d %d\n", 
+// __LINE__,
+// mjpeg->color_model,
+// mjpeg->jpeg_color_model,
+// mjpeg->output_w, 
+// mjpeg->output_h, 
+// mjpeg->coded_w, 
+// mjpeg->coded_h);
+
 		cmodel_transfer(0, 
 			row_pointers,
 			mjpeg->temp_rows[0][0],
@@ -1109,7 +1138,6 @@ int mjpeg_compress(mjpeg_t *mjpeg,
 			mjpeg->compressors[0]->output_buffer, 
 			mjpeg->compressors[0]->output_size);
 	}
-//printf("mjpeg_compress 2\n");
 	return 0;
 }
 

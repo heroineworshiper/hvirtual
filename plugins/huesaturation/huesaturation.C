@@ -302,25 +302,25 @@ char* ValueSlider::get_caption()
 
 HueWindow::HueWindow(HueEffect *plugin)
  : PluginClientWindow(plugin,
-			310, 
-			100, 
-			310, 
-			100, 
+			DP(310), 
+			DP(100), 
+			DP(310), 
+			DP(100), 
 			0)
 {
 	this->plugin = plugin;
 }
 void HueWindow::create_objects()
 {
-	int x = 10, y = 10, x1 = 100;
+	int x = DP(10), y = DP(10), x1 = DP(100);
 	add_subwindow(new BC_Title(x, y, _("Hue:")));
-	add_subwindow(hue = new HueSlider(plugin, x1, y, 200));
-	y += 30;
+	add_subwindow(hue = new HueSlider(plugin, x1, y, DP(200)));
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Saturation:")));
-	add_subwindow(saturation = new SaturationSlider(plugin, x1, y, 200));
-	y += 30;
+	add_subwindow(saturation = new SaturationSlider(plugin, x1, y, DP(200)));
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Value:")));
-	add_subwindow(value = new ValueSlider(plugin, x1, y, 200));
+	add_subwindow(value = new ValueSlider(plugin, x1, y, DP(200)));
 	show_window();
 	flush();
 }
@@ -484,7 +484,7 @@ void HueUnit::process_package(LoadPackage *package)
 			break;
 
 		case BC_RGB_FLOAT:
-			HUESATURATION(float, 1, 3, 0)
+			HUESATURATION(float, 1.0f, 3, 0)
 			break;
 
 		case BC_YUV888:
@@ -500,7 +500,7 @@ void HueUnit::process_package(LoadPackage *package)
 			break;
 
 		case BC_RGBA_FLOAT:
-			HUESATURATION(float, 1, 4, 0)
+			HUESATURATION(float, 1.0f, 4, 0)
 			break;
 
 		case BC_RGBA8888:
@@ -721,6 +721,7 @@ int HueEffect::handle_opengl()
 	glUseProgram(0);
 	get_output()->set_opengl_state(VFrame::SCREEN);
 #endif
+    return 0;
 }
 
 

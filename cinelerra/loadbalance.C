@@ -111,8 +111,8 @@ void LoadClient::run()
 			}
 			else
 			{
-				completion_lock->unlock();
 				server->client_lock->unlock();
+				completion_lock->unlock();
 			}
 		}
 	}
@@ -230,7 +230,14 @@ LoadPackage* LoadServer::get_package(int number)
 
 LoadClient* LoadServer::get_client(int number)
 {
-	return clients[number];
+    if(is_single)
+    {
+        return single_client;
+    }
+    else
+    {
+    	return clients[number];
+    }
 }
 
 int LoadServer::get_total_packages()

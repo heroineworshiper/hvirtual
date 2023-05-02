@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@
 #include "theme.h"
 
 
-AssetRemoveWindow::AssetRemoveWindow(MWindow *mwindow)
+AssetRemoveWindow::AssetRemoveWindow(MWindow *mwindow, AssetRemoveThread *thread)
  : BC_Window(PROGRAM_NAME ": Remove assets", 
 	mwindow->gui->get_abs_cursor_x(1),
 	mwindow->gui->get_abs_cursor_y(1),
-	320, 
-	400, 
+	DP(320), 
+	DP(400), 
 	-1, 
 	-1, 
 	0,
@@ -41,6 +41,7 @@ AssetRemoveWindow::AssetRemoveWindow(MWindow *mwindow)
 	1)
 {
 	this->mwindow = mwindow;
+    this->thread = thread;
 	data = 0;
 }
 
@@ -51,16 +52,16 @@ AssetRemoveWindow::~AssetRemoveWindow()
 
 void AssetRemoveWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	int margin = mwindow->theme->widget_border;
 
 	data = new ArrayList<BC_ListBoxItem*>;
 
 
-	for(int i = 0; i < mwindow->session->drag_assets->total; i++)
+	for(int i = 0; i < thread->assets->size(); i++)
 	{
 		data->append(new BC_ListBoxItem(
-			mwindow->session->drag_assets->values[i]->path));
+			thread->assets->get(i)->path));
 	}
 
 	lock_window("AssetRemoveWindow::create_objects");
@@ -89,18 +90,34 @@ AssetRemoveThread::AssetRemoveThread(MWindow *mwindow)
  : Thread()
 {
 	this->mwindow = mwindow;
+    assets = new ArrayList<Indexable*>;
 	Thread::set_synchronous(0);
 }
+
+void AssetRemoveThread::start(ArrayList<Indexable*> *assets)
+{
+    if(assets->size() > 0)
+    {
+        this->assets->remove_all();
+        for(int i = 0; i < assets->size(); i++)
+        {
+            this->assets->append(assets->get(i));
+        }
+        Thread::start();
+    }
+}
+
+
 void AssetRemoveThread::run()
 {
-	AssetRemoveWindow *window = new AssetRemoveWindow(mwindow);
+	AssetRemoveWindow *window = new AssetRemoveWindow(mwindow, this);
 	window->create_objects();
 	int result = window->run_window();
 	delete window;
 	
 	if(!result)
 	{
-		mwindow->remove_assets_from_disk();
+		mwindow->remove_assets_from_disk(assets);
 	}
 }
 

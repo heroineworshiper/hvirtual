@@ -73,6 +73,8 @@ public:
 // Called by plugin server to render GUI with data.
 	void render_gui(void *data, PluginServer *server);
 	void render_gui(void *data, int size, PluginServer *server);
+    void reset_gui_frames(PluginServer *server);
+
 	int gui_open();
 	virtual int get_buffer_size() { return 0; };
 
@@ -120,8 +122,8 @@ public:
 
 
 
-	int multichannel_shared(int search_new);
-	int singlechannel();
+//	int multichannel_shared(int search_new);
+//	int singlechannel();
 
 
 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +42,7 @@
 #include "pluginserver.inc"
 #include "preferences.inc"
 #include "samples.inc"
+#include "vdevicex11.inc"
 #include "vframe.inc"
 
 // ======================================= include file types here
@@ -58,13 +58,15 @@ public:
 
 	friend class FileFork;
 
+// called during startup to init the file_table
+    static void init_table();
+
 // Get attributes for various file formats.
 // The dither parameter is carried over from recording, where dither is done at the device.
-	int get_options(BC_WindowBase *parent_window, 
+	int get_parameters(BC_WindowBase *parent_window, 
 		ArrayList<PluginServer*> *plugindb, 
 		Asset *asset,
-		int audio_options,
-		int video_options,
+		int option_type,
 		char *locked_compressor);
 
 	int raise_window();
@@ -80,7 +82,7 @@ public:
 // Set whether to interpolate raw images
 	void set_interpolate_raw(int value);
 // Set whether to white balance raw images.  Always 0 if no interpolation.
-	void set_white_balance_raw(int value);
+//	void set_white_balance_raw(int value);
 // When loading, the asset is deleted and a copy created in the EDL.
 //	void set_asset(Asset *asset);
 
@@ -88,7 +90,7 @@ public:
 // to delete the file object.  Otherwise we'd delete just the cached frames
 // while the list of open files grew.
 	void set_cache_frames(int value);
-// Delete oldest frame from cache.  Return 0 if successful.  Return 1 if 
+// Delete oldest frame from cache.  Return number of bytes freed if successful.  Return 0 if 
 // nothing to delete.
 	int purge_cache();
 
@@ -98,8 +100,17 @@ public:
 		int rd, 
 		int wr);
 
+// manage a single progress bar when opening multiple files
+    void start_progress(const char *title, int64_t total);
+    void update_progress(int64_t value);
+    void update_progress_title(const char *title);
+    int progress_canceled();
+    void stop_progress(const char *title);
+
+
+
 // Get index from the file if one exists.  Returns 0 on success.
-	int get_index(char *index_path);
+//	int get_index(char *index_path);
 
 // start a thread for writing to avoid blocking during record
 	int start_audio_thread(int buffer_size, int ring_buffers);
@@ -189,7 +200,10 @@ public:
 
 // Read frame of video into the argument
 // is_thread is used by FileThread::run to prevent recursive lockup.
-	int read_frame(VFrame *frame, int is_thread = 0);
+	int read_frame(VFrame *frame, 
+        int is_thread /* = 0 */, 
+        int use_opengl /* = 0 */,
+        VDeviceX11 *device /* = 0 */);
 
 
 // The following involve no extra copies.
@@ -221,29 +235,54 @@ public:
 // Set the amount of caching to use inside the file handler
 	void set_cache(int bytes);
 
-	static int supports_video(ArrayList<PluginServer*> *plugindb, char *format);   // returns 1 if the format supports video or audio
-	static int supports_audio(ArrayList<PluginServer*> *plugindb, char *format);
-// Get the extension for the filename
+// Get the extension for the filename for writing
 	static const char* get_tag(int format);
-	static int supports_video(int format);   // returns 1 if the format supports video or audio
+// returns the has_ field in the file handler.  Used only for writing.
+	static int supports_video(int format);   
 	static int supports_audio(int format);
-	static int strtoformat(char *format);
+	static int supports_wrapper(int format);
+
+// must not translate languages here, since the string is written to the EDL
+	static int strtoformat(const char *format);
 	static const char* formattostr(int format);
-	static int strtoformat(ArrayList<PluginServer*> *plugindb, char *format);
-	static const char* formattostr(ArrayList<PluginServer*> *plugindb, int format);
+
 	static int strtobits(const char *bits);
 	static const char* bitstostr(int bits);
 	static int str_to_byteorder(const char *string);
 	static const char* byteorder_to_str(int byte_order);
 	int bytes_per_sample(int bits); // Convert the bit descriptor into a byte count.
 
+// get a shm temporary to store read_frame output in
+    VFrame* get_read_temp(int colormodel, int rowspan, int w, int h);
+// set pointers to where read_frame output is stored
+    void set_read_pointer(int colormodel, 
+        unsigned char *data, 
+        unsigned char *y, 
+        unsigned char *u, 
+        unsigned char *v,
+        int rowspan,
+        int w,
+        int h);
+    void convert_cmodel(int use_opengl, VDeviceX11 *device);
+
 	Asset *asset;    // Copy of asset since File outlives EDL
 	FileBase *file; // virtual class for file type
 // Threads for writing data in the background.
 	FileThread *audio_thread, *video_thread; 
 
-// Temporary storage for color conversions
+// The argument passed to read_frame
+    VFrame *read_frame_dst;
+
+// Temporary storage for the read_frame output
 	VFrame *temp_frame;
+// shared temp_frame contains the output of read_frame
+    int use_temp_frame;
+
+// pointer to the codec's private buffer
+    VFrame *read_pointer;
+/// read_pointer contains the output of read_frame.  Not shared with the server.
+    int use_read_pointer;
+
 // Temporary storage for get_audio_buffer.
 // [ring buffers][channels][Samples]
 	Samples ***temp_samples_buffer;
@@ -267,7 +306,7 @@ public:
 	int64_t playback_preload;
 	int playback_subtitle;
 	int interpolate_raw;
-	int white_balance_raw;
+//	int white_balance_raw;
 
 // Position information is migrated here to allow samplerate conversion.
 // Current position in file's samplerate.
@@ -283,6 +322,8 @@ public:
 //	int64_t normalized_sample_rate;
 	Preferences *preferences;
 	int wr, rd;
+// Copy read frames to the cache
+	int use_cache;
 	int cache_size;
 // Precalculated value for FILEFORK
 	int64_t memory_usage;
@@ -297,14 +338,15 @@ private:
 	FrameCache *frame_cache;
 
 #ifdef USE_FILEFORK
-// Pointer to the fork object.  0 if this instance of File is the fork.
+// Pointer to the fork object used to communicate between processes.
 	FileFork *file_fork;
 // If this instance is the fork.
 	int is_fork;
 #endif
 
-// Copy read frames to the cache
-	int use_cache;
+
+// Ideally, a static instantiation of every file format
+    static ArrayList<FileBase*> *file_table;
 };
 
 #endif

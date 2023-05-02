@@ -81,6 +81,7 @@ int FloatAutos::draw_joining_line(BC_SubWindow *canvas, int vertical, int center
 		canvas->draw_line(center_pixel - y1, x1, center_pixel - y2, x2);
 	else
 		canvas->draw_line(x1, center_pixel + y1, x2, center_pixel + y2);
+    return 0;
 }
 
 
@@ -450,6 +451,26 @@ void FloatAutos::get_extents(float *min,
 			*min = MIN(value, *min);
 			*max = MAX(value, *max);
 		}	
+	}
+}
+
+void FloatAutos::set_proxy(int orig_scale, int new_scale)
+{
+	float orig_value;
+	orig_value = ((FloatAuto*)default_auto)->value * orig_scale;
+	((FloatAuto*)default_auto)->value = orig_value / new_scale;
+
+	for(FloatAuto *current = (FloatAuto*)first; current; current = (FloatAuto*)NEXT)
+	{
+	
+		orig_value = current->value * orig_scale;
+		current->value = orig_value / new_scale;
+
+		orig_value = current->control_in_value * orig_scale;
+		current->control_in_value = orig_value / new_scale;
+
+		orig_value = current->control_out_value * orig_scale;
+		current->control_out_value = orig_value / new_scale;
 	}
 }
 

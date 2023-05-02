@@ -1,0 +1,56 @@
+include global_config
+
+DIR := libraw1394-0.9.0
+
+OBJS := \
+	$(DIR)/$(OBJDIR)/src/errors.o \
+	$(DIR)/$(OBJDIR)/src/eventloop.o \
+	$(DIR)/$(OBJDIR)/src/fcp.o \
+	$(DIR)/$(OBJDIR)/src/iso.o \
+	$(DIR)/$(OBJDIR)/src/main.o \
+	$(DIR)/$(OBJDIR)/src/readwrite.o
+
+HEADERS := \
+	csr.h \
+	ieee1394.h \
+	raw1394.h
+
+OUTPUT := $(DIR)/$(OBJDIR)/libraw1394.a
+
+
+CFLAGS += -I$(DIR)/src -I$(DIR)
+
+
+DIRS += $(OBJDIR)/libraw1394/src
+
+
+$(shell sh -c 'if ! test -d $(DIR)/$(OBJDIR)/src/\; then mkdir -p $(DIR)/$(OBJDIR)/src/\; fi' )
+$(shell sh -c 'if ! test -d $(DIR)/libraw1394\; then mkdir -p $(DIR)/libraw1394\; fi' )
+$(shell echo $(CFLAGS) > $(DIR)/$(OBJDIR)/c_flags)
+
+$(OUTPUT): $(OBJS) $(HEADERS)
+	ar rcs $(OUTPUT) $(OBJS)
+
+$(OBJS):
+	$(GCC) -c `cat $(DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o
+
+$(HEADERS):
+	cp $(DIR)/src/$*.h $(DIR)/libraw1394
+
+clean:
+	rm -rf $(DIR)/$(OBJDIR)
+
+
+
+
+
+$(DIR)/$(OBJDIR)/src/errors.o:  	  $(DIR)/src/errors.c
+$(DIR)/$(OBJDIR)/src/eventloop.o:	  $(DIR)/src/eventloop.c
+$(DIR)/$(OBJDIR)/src/fcp.o: 		  $(DIR)/src/fcp.c
+$(DIR)/$(OBJDIR)/src/iso.o: 		  $(DIR)/src/iso.c
+$(DIR)/$(OBJDIR)/src/main.o:		  $(DIR)/src/main.c
+$(DIR)/$(OBJDIR)/src/readwrite.o:	  $(DIR)/src/readwrite.c
+
+
+
+

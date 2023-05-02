@@ -1,12 +1,13 @@
 #include "colormodels.h"
 #include "funcprotos.h"
+#include "qtasf.h"
 #include "qtasf_codes.h"
 #include "quicktime.h"
 #include <string.h>
 #include <sys/stat.h>
 #include "workarounds.h"
 
-int quicktime_make_streamable(char *in_path, char *out_path)
+int quicktime_make_streamable(char *in_path, char *out_path, int do_360)
 {
 	quicktime_t file, *old_file, new_file;
 	int moov_exists = 0, mdat_exists = 0, result, atoms = 1;
@@ -18,6 +19,7 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 	unsigned char *ftyp_data = 0;
 	
 	quicktime_init(&file);
+	quicktime_init(&new_file);
 
 /* find the moov atom in the old file */
 	
@@ -84,7 +86,10 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 /* copy the old file to the new file */
 	if(moov_exists && mdat_exists)
 	{
+
+
 /* moov wasn't the first atom */
+// TODO: write it anyway, to add a spherical tag
 		if(moov_exists > 1)
 		{
 			char *buffer;
@@ -99,6 +104,12 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 				return 1;
 			}
 
+//printf("quicktime_make_streamable %d do_360=%d\n", __LINE__, do_360);
+// set the spherical tag
+			if(do_360)
+			{
+				quicktime_set_sphere(&new_file, 1);
+			}
 
 /* open the output file */
 			if(!(new_file.stream = fopen(out_path, "wb")))
@@ -124,7 +135,7 @@ int quicktime_make_streamable(char *in_path, char *out_path)
 				quicktime_write_moov(&new_file, &(old_file->moov), 0);
 				moov_end = quicktime_position(&new_file);
 
-printf("make_streamable 0x%llx 0x%llx\n", (long long)moov_end - moov_start, (long long)mdat_start);
+//printf("make_streamable 0x%llx 0x%llx\n", (long long)moov_end - moov_start, (long long)mdat_start);
 				quicktime_shift_offsets(&(old_file->moov), 
 					moov_end - moov_start - mdat_start + ftyp_size);
 
@@ -132,6 +143,7 @@ printf("make_streamable 0x%llx 0x%llx\n", (long long)moov_end - moov_start, (lon
 				quicktime_set_position(&new_file, moov_start);
 				quicktime_write_moov(&new_file, &(old_file->moov), 0);
 				quicktime_set_position(old_file, mdat_start);
+
 
 				if(!(buffer = calloc(1, buf_size)))
 				{
@@ -184,6 +196,11 @@ void quicktime_set_name(quicktime_t *file, const char *string)
 void quicktime_set_info(quicktime_t *file, const char *string)
 {
 	quicktime_set_udta_string(&(file->moov.udta.info), &(file->moov.udta.info_len), string);
+}
+
+void quicktime_set_sphere(quicktime_t *file, int value)
+{
+	file->is_sphere = value;
 }
 
 char* quicktime_get_copyright(quicktime_t *file)
@@ -248,7 +265,7 @@ int quicktime_set_audio(quicktime_t *file,
 			sample_rate, 
 			bits, 
 			compressor);
-		quicktime_init_audio_map(&(file->atracks[0]), trak);
+		quicktime_init_audio_map(file, &(file->atracks[0]), trak);
 		file->atracks[file->total_atracks].track = trak;
 		file->atracks[file->total_atracks].channels = channels;
 		file->atracks[file->total_atracks].current_position = 0;
@@ -338,6 +355,7 @@ int quicktime_init(quicktime_t *file)
 	quicktime_moov_init(&(file->moov));
 	file->cpus = 1;
 	file->color_model = BC_RGB888;
+	file->frame_cache = quicktime_new_cache();
 	return 0;
 }
 
@@ -383,6 +401,7 @@ int quicktime_delete(quicktime_t *file)
 	quicktime_moov_delete(&(file->moov));
 	quicktime_mdat_delete(&(file->mdat));
 	quicktime_delete_asf(file->asf);
+	quicktime_delete_cache(file->frame_cache);
 	return 0;
 }
 
@@ -392,6 +411,11 @@ int quicktime_set_cpus(quicktime_t *file, int cpus)
 {
 	if(cpus > 0) file->cpus = cpus;
 	return 0;
+}
+
+void quicktime_set_hw(quicktime_t *file, int use_hw)
+{
+    file->use_hw = use_hw;
 }
 
 void quicktime_set_preload(quicktime_t *file, int64_t preload)
@@ -538,6 +562,7 @@ int quicktime_set_video_position(quicktime_t *file, int64_t frame, int track)
 		file->vtracks[track].current_chunk = chunk;
 		offset = quicktime_sample_to_offset(file, trak, frame);
 		quicktime_set_position(file, offset);
+//printf("quicktime_set_video_position %d offset=%ld\n", __LINE__, offset);
 	}
 	return 0;
 }
@@ -574,7 +599,9 @@ char* quicktime_audio_compressor(quicktime_t *file, int track)
 int quicktime_track_channels(quicktime_t *file, int track)
 {
 	if(track < file->total_atracks)
+    {
 		return file->atracks[track].channels;
+    }
 
 	return 0;
 }
@@ -634,32 +661,60 @@ void quicktime_set_row_span(quicktime_t *file, int row_span)
 {
 	file->row_span = row_span;
 }
+// 
+// void quicktime_set_window(quicktime_t *file,
+// 	int in_x,                    /* Location of input frame to take picture */
+// 	int in_y,
+// 	int in_w,
+// 	int in_h,
+// 	int out_w,                   /* Dimensions of output frame */
+// 	int out_h)
+// {
+// 	if(in_x >= 0 && in_y >= 0 && in_w > 0 && in_h > 0 && out_w > 0 && out_h > 0)
+// 	{
+// 		file->do_scaling = 1;
+// 		file->in_x = in_x;
+// 		file->in_y = in_y;
+// 		file->in_w = in_w;
+// 		file->in_h = in_h;
+// 		file->out_w = out_w;
+// 		file->out_h = out_h;
+// 	}
+// 	else
+// 	{
+// 		file->do_scaling = 0;
+// /* quicktime_decode_video now sets the window for every frame based on the */
+// /* track dimensions */
+// 	}
+// }
 
-void quicktime_set_window(quicktime_t *file,
-	int in_x,                    /* Location of input frame to take picture */
-	int in_y,
-	int in_w,
-	int in_h,
-	int out_w,                   /* Dimensions of output frame */
-	int out_h)
+
+
+
+void quicktime_get_output(quicktime_t *file, 
+    int64_t *frame_number,
+    int *colormodel,
+    unsigned char **data,
+    unsigned char **y,
+    unsigned char **u,
+    unsigned char **v,
+    int *rowspan,
+    int *w,
+    int *h)
 {
-	if(in_x >= 0 && in_y >= 0 && in_w > 0 && in_h > 0 && out_w > 0 && out_h > 0)
-	{
-		file->do_scaling = 1;
-		file->in_x = in_x;
-		file->in_y = in_y;
-		file->in_w = in_w;
-		file->in_h = in_h;
-		file->out_w = out_w;
-		file->out_h = out_h;
-	}
-	else
-	{
-		file->do_scaling = 0;
-/* quicktime_decode_video now sets the window for every frame based on the */
-/* track dimensions */
-	}
+    *frame_number = file->frame_number;
+    *colormodel = file->src_colormodel;
+    *data = file->src_data;
+    *y = file->src_y;
+    *u = file->src_u;
+    *v = file->src_v;
+    *rowspan = file->src_rowspan;
+    *w = file->src_w;
+    *h = file->src_h;
 }
+
+
+
 
 void quicktime_set_depth(quicktime_t *file, int depth, int track)
 {
@@ -678,6 +733,7 @@ double quicktime_frame_rate(quicktime_t *file, int track)
 		quicktime_trak_t *trak = file->vtracks[track].track;
 		int time_scale = file->vtracks[track].track->mdia.mdhd.time_scale;
 		int sample_duration = quicktime_sample_duration(trak);
+//printf("quicktime_frame_rate %d %d %d\n", __LINE__, time_scale, sample_duration);
 		return (double)time_scale / sample_duration;
 //		return (float)file->vtracks[track].track->mdia.mdhd.time_scale / 
 //			file->vtracks[track].track->mdia.minf.stbl.stts.table[0].sample_duration;
@@ -701,7 +757,9 @@ int quicktime_frame_rate_d(quicktime_t *file, int track)
 
 char* quicktime_video_compressor(quicktime_t *file, int track)
 {
-	return file->vtracks[track].track->mdia.minf.stbl.stsd.table[0].format;
+	if(file->total_vtracks > track)
+    	return file->vtracks[track].track->mdia.minf.stbl.stsd.table[0].format;
+    return "";
 }
 
 int quicktime_write_audio(quicktime_t *file, 
@@ -998,7 +1056,6 @@ int quicktime_init_video_map(quicktime_video_map_t *vtrack, quicktime_trak_t *tr
 	vtrack->current_position = 0;
 	vtrack->current_chunk = 1;
 	quicktime_init_vcodec(vtrack);
-	vtrack->frame_cache = quicktime_new_cache();
 	return 0;
 }
 
@@ -1006,21 +1063,12 @@ int quicktime_delete_video_map(quicktime_video_map_t *vtrack)
 {
 	int i;
 	quicktime_delete_vcodec(vtrack);
-	if(vtrack->frame_cache) quicktime_delete_cache(vtrack->frame_cache);
-	vtrack->frame_cache = 0;
 	return 0;
 }
 
 int64_t quicktime_memory_usage(quicktime_t *file)
 {
-	int i;
-	int64_t result = 0;
-//printf("quicktime_memory_usage %d\n", file->total_vtracks);
-	for(i = 0; i < file->total_vtracks; i++)
-	{
-		result += quicktime_cache_usage(file->vtracks[i].frame_cache);
-	}
-	return result;
+	return quicktime_cache_usage(file->frame_cache);
 }
 
 void quicktime_set_cache_max(quicktime_t *file, int bytes)
@@ -1030,29 +1078,48 @@ void quicktime_set_cache_max(quicktime_t *file, int bytes)
 
 
 //printf("quicktime_set_cache_max %d %d %d\n", __LINE__, bytes, file->total_vtracks);
-	for(i = 0; i < file->total_vtracks; i++)
-	{
-		quicktime_cache_max(file->vtracks[i].frame_cache, bytes);
-	}
+	quicktime_cache_max(file->frame_cache, bytes);
+}
+
+int64_t quicktime_purge_cache(quicktime_t *file)
+{
+    return quicktime_purge_cache2(file->frame_cache);
+}
+
+void quicktime_cache_function(quicktime_t *file, 
+    void (*put_cache)(void *ptr),
+    void *ptr)
+{
+    file->frame_cache->put_cache = put_cache;
+    file->frame_cache->put_cache_ptr = ptr;
 }
 
 
 
 
-
-int quicktime_init_audio_map(quicktime_audio_map_t *atrack, quicktime_trak_t *trak)
+int quicktime_init_audio_map(quicktime_t *file, 
+    quicktime_audio_map_t *atrack, 
+    quicktime_trak_t *trak)
 {
+    quicktime_stsd_table_t *stsd = &trak->mdia.minf.stbl.stsd.table[0];
+    quicktime_esds_t *esds = &stsd->esds;
 	atrack->track = trak;
-	atrack->channels = trak->mdia.minf.stbl.stsd.table[0].channels;
+	atrack->channels = stsd->channels;
+// STSD & ESDS have different values
+    if(esds->got_esds_rate)
+    {
+        atrack->channels = esds->channels;
+    }
 	atrack->current_position = 0;
 	atrack->current_chunk = 1;
 	quicktime_init_acodec(atrack);
+
+
 	return 0;
 }
 
 int quicktime_delete_audio_map(quicktime_audio_map_t *atrack)
 {
-	int i;
 	quicktime_delete_acodec(atrack);
 	quicktime_clear_vbr(&atrack->vbr);
 	return 0;
@@ -1069,7 +1136,24 @@ void quicktime_init_maps(quicktime_t *file)
 	{
 		while(!file->moov.trak[track]->mdia.minf.is_audio)
 			track++;
-		quicktime_init_audio_map(&(file->atracks[i]), file->moov.trak[track]);
+		quicktime_init_audio_map(file, &(file->atracks[i]), file->moov.trak[track]);
+
+
+        
+/* Read some audio to fix broken headers */
+        if(file->atracks[i].codec)
+        {
+            const int temp_count = 4096;
+            float *temp_buffer = malloc(sizeof(float) * temp_count);
+            ((quicktime_codec_t*)file->atracks[i].codec)->decode_audio(file, 
+			    0, 
+			    temp_buffer, 
+			    temp_count, 
+			    i, 
+			    0);
+            free(temp_buffer);
+        }
+
 	}
 
 	file->total_vtracks = quicktime_video_tracks(file);
@@ -1236,7 +1320,9 @@ int quicktime_read_info(quicktime_t *file)
 	if(got_header)
 	{
 		quicktime_init_maps(file);
+
 	}
+
 
 /* Shut down preload in case of an obsurdly high temp_size */
 	quicktime_set_preload(file, 0);
@@ -1379,12 +1465,29 @@ quicktime_t* quicktime_open(char *filename, int rd, int wr)
 
 
 
-// android requires the ftyp header
+// android/IOS requires the ftyp header
+// this works for H265, H264, & AAC audio
 			const unsigned char ftyp_data[] = 
 			{
-				0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32, 0x00, 0x00, 0x00, 0x01, 0x6d, 0x70, 0x34, 0x32, 0x61, 0x76, 0x63, 0x31
+				0x00, 0x00, 0x00, 0x18,  'f',  't',  'y', 'p', 
+                 'm',  'p',  '4',  '2', 0x00, 0x00, 0x00, 0x01, 
+                 'm',  'p',  '4',  '2', 0x61, 0x76, 0x63, 0x31
 			};
-			quicktime_write_data(new_file, (unsigned char*)ftyp_data, sizeof(ftyp_data));
+
+// this works for H265 but not H264 or AAC audio
+			const unsigned char ftyp_data2[] = 
+			{
+				0x00, 0x00, 0x00, 0x14,  'f',  't',  'y', 'p', 
+                 'q',  't',  ' ',  ' ', 0x00, 0x00, 0x00, 0x00, 
+                 'q',  't',  ' ',  ' '
+			};
+            
+			quicktime_write_data(new_file, 
+                (unsigned char*)ftyp_data, 
+                sizeof(ftyp_data));
+// 			quicktime_write_data(new_file, 
+//                 (unsigned char*)ftyp_data2, 
+//                 sizeof(ftyp_data2));
 			
 
 

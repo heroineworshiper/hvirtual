@@ -254,8 +254,12 @@ int mpeg3_index_tracks(mpeg3_t *file);
 int mpeg3_index_channels(mpeg3_t *file, int track);
 /* Return zoom factor of index */
 int mpeg3_index_zoom(mpeg3_t *file);
+/* the byte offset of a single channel of index data */
+int64_t mpeg3_index_offset(mpeg3_t *file, int track, int channel);
 /* Number of high/low pairs in a channel of the track */
 int mpeg3_index_size(mpeg3_t *file, int track);
+/* size of source file */
+int64_t mpeg3_index_source_size(mpeg3_t *file);
 /* Get data for one index channel */
 float* mpeg3_index_data(mpeg3_t *file, int track, int channel);
 /* Returns 1 if the file has a table of contents */

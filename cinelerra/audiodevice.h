@@ -35,6 +35,7 @@
 #include "audiodevice.inc"
 #include "audioesound.inc"
 #include "audiooss.inc"
+#include "audiopulse.inc"
 #include "bctimer.inc"
 #include "binary.h"
 #include "condition.inc"
@@ -83,6 +84,7 @@ public:
 	friend class AudioOSS;
 	friend class AudioESound;
 	friend class Audio1394;
+    friend class AudioPulse;
 	friend class VDevice1394;
 	friend class Device1394Output;
 

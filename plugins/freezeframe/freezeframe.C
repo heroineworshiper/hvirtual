@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,10 +77,10 @@ void FreezeFrameConfig::interpolate(FreezeFrameConfig &prev,
 
 FreezeFrameWindow::FreezeFrameWindow(FreezeFrameMain *client)
  : PluginClientWindow(client,
-	200,
-	100,
-	200,
-	100,
+	DP(200),
+	DP(100),
+	DP(200),
+	DP(100),
 	0)
 {
 	this->client = client; 
@@ -92,7 +92,7 @@ FreezeFrameWindow::~FreezeFrameWindow()
 
 void FreezeFrameWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_tool(enabled = new FreezeFrameToggle(client, 
 		&client->config.enabled,
 		x, 
@@ -264,7 +264,7 @@ int FreezeFrameMain::process_buffer(VFrame *frame,
 				frame->get_h(),
 				frame->get_color_model(),
 				-1);
-//printf("FreezeFrameMain::process_buffer 1 %lld\n", first_frame_position);
+printf("FreezeFrameMain::process_buffer %d first_frame_position=%lld\n", __LINE__, first_frame_position);
 
 		read_frame(first_frame, 
 				0, 

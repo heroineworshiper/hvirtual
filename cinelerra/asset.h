@@ -33,7 +33,9 @@
 
 
 #include <stdint.h>
+#include <string>
 
+#define SILENCE_TEXT "SILENCE"
 
 
 class Asset : public ListItem<Asset>, public Indexable
@@ -122,7 +124,7 @@ public:
 	int write_audio(FileXML *xml);
 	int write_video(FileXML *xml);
 	int write_index(FileXML *xml);
-	int update_path(char *new_path);
+	int update_path(const char *new_path);
 
 
 
@@ -131,26 +133,21 @@ public:
 
 // contains audio data
 	int audio_data;
+// parameters for PCM files
 	int channels;
 	int sample_rate;
 	int bits;
 	int byte_order;
 	int signed_;
-	int header;
+// 8,16 bit only
 	int dither;
+	int header;
+
 // String or FourCC describing compression
 	char acodec[BCTEXTLEN];
 
 
 	int64_t audio_length;
-
-
-
-
-
-
-
-
 
 
 
@@ -164,10 +161,28 @@ public:
 	char vcodec[BCTEXTLEN];
 
 // Length in frames
+// -1 means a still photo
 	int64_t video_length;
 
 
 
+// command line encoder options
+    std::string video_command;
+// colorspace for encoding video
+    int command_cmodel;
+// command line for encoding audio
+    std::string audio_command;
+// format of the command input
+	int command_bits;
+	int command_byte_order;
+	int command_signed_;
+// 8,16 bit only
+	int command_dither;
+// create a wrapper after encoding
+    int do_wrapper;
+// command line
+    std::string wrapper_command;
+    int command_delete_temps;
 
 
 // mpeg audio information
@@ -249,6 +264,10 @@ public:
 	int h264_quantizer;
 	int h264_fix_bitrate;
 
+	int h265_bitrate;
+	int h265_quantizer;
+	int h265_fix_bitrate;
+
 // Divx video decompression
 	int divx_use_deblocking;
 
@@ -273,7 +292,10 @@ public:
 
 
 	int ac3_bitrate;
-
+// Insert tag for spherical playback into quicktime
+	int mov_sphere;
+// Insert tag for spherical playback into JPEG
+	int jpeg_sphere;
 
 
 // Image file sequences.  Background rendering doesn't want to write a 

@@ -43,7 +43,7 @@ public:
 
 	void stop_progress();
 	int is_cancelled();
-	void update_title(char *string, int default_ = 1);
+	void update_title(const char *string, int default_ = 1);
 	void update_length(int64_t length);
 	int update(int64_t value);
 	void get_time(char *text);
@@ -76,10 +76,12 @@ public:
 
 // Start a progress sequence and return the bar.
 // use_window - force opening of a new window if 1.
-	MainProgressBar* start_progress(char *text, 
+	MainProgressBar* start_progress(const char *text, 
 		int64_t total_length, 
 		int use_window = 0);
 	void end_progress(MainProgressBar* progress_bar);
+
+    static string* format_newlines(const char *text);
 
 	ArrayList<MainProgressBar*> progress_bars;
 	MainProgressBar *mwindow_progress;

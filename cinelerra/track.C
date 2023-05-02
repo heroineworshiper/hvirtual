@@ -33,12 +33,13 @@
 #include "keyframe.h"
 #include "labels.h"
 #include "localsession.h"
+#include "mainsession.h"
 #include "module.h"
+#include "mwindow.h"
 #include "patch.h"
 #include "patchbay.h"
 #include "plugin.h"
 #include "pluginset.h"
-#include "mainsession.h"
 #include "theme.h"
 #include "intautos.h"
 #include "track.h"
@@ -160,9 +161,28 @@ void Track::equivalent_output(Track *track, double *result)
 		*result = from_units(result2);
 }
 
+int Track::is_shared(int64_t position, int direction)
+{
+	for(int i = 0; i < plugin_set.total; i++)
+	{
+		Plugin *plugin = get_current_plugin(position,
+			i,
+			direction,
+			0,
+			0);
+		if(plugin)
+		{
+			if(plugin->plugin_type == PLUGIN_SHAREDMODULE ||
+                plugin->plugin_type == PLUGIN_SHAREDPLUGIN) 
+				return 1;
+		}
+	}
+    return 0;
+}
 
 int Track::is_synthesis(int64_t position, 
-	int direction)
+	int direction,
+    int depth)
 {
 	int is_synthesis = 0;
 	for(int i = 0; i < plugin_set.total; i++)
@@ -179,7 +199,8 @@ int Track::is_synthesis(int64_t position,
 				is_synthesis = 1;
 			else
 				is_synthesis = plugin->is_synthesis(position, 
-					direction);
+					direction,
+                    depth);
 
 //printf("Track::is_synthesis %d %d\n", __LINE__, is_synthesis);
 			if(is_synthesis) break;
@@ -217,11 +238,19 @@ int Track::vertical_span(Theme *theme)
 {
 	int result = 0;
 	if(expand_view)
-		result = edl->local_session->zoom_track + 
+	{
+    	result = edl->local_session->zoom_track + 
 			plugin_set.total * 
 			theme->get_image("plugin_bg_data")->get_h();
-	else
-		result = edl->local_session->zoom_track;
+        if(MWindow::theme->patch_h > result)
+        {
+            result = MWindow::theme->patch_h;
+        }
+	}
+    else
+	{
+    	result = edl->local_session->zoom_track;
+    }
 
 	if(edl->session->show_titles)
 		result += theme->get_image("title_bg_data")->get_h();
@@ -317,7 +346,7 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 	int result = 0;
 	int current_channel = 0;
 	int current_plugin = 0;
-
+    int error = 0;
 
 	record = file->tag.get_property("RECORD", record);
 	play = file->tag.get_property("PLAY", play);
@@ -354,7 +383,9 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 			if(file->tag.title_is("EDITS"))
 			{
 				if(load_flags & LOAD_EDITS)
-					edits->load(file, track_offset);
+				{
+                	error |= edits->load(file, track_offset);
+                }
 			}
 			else
 			if(file->tag.title_is("PLUGINSET"))
@@ -377,13 +408,14 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 				}
 			}
 			else
+            {
 				load_derived(file, load_flags);
+            }
 		}
 	}while(!result);
 
 
-
-	return 0;
+	return error;
 }
 
 void Track::insert_asset(Asset *asset, 
@@ -1009,8 +1041,10 @@ int Track::paste_automation(double selectionstart,
 		if(!result)
 		{
 			if(file->tag.title_is("/TRACK"))
-				result = 1;
-			else
+			{
+            	result = 1;
+			}
+            else
 			if(automation->paste(start, 
 					length, 
 					scale,
@@ -1142,7 +1176,8 @@ int Track::copy(double start,
 
 int Track::copy_assets(double start, 
 	double end, 
-	ArrayList<Asset*> *asset_list)
+	ArrayList<Asset*> *asset_list, 
+	ArrayList<EDL*> *nested_list)
 {
 	int i, result = 0;
 
@@ -1157,22 +1192,37 @@ int Track::copy_assets(double start,
 // Check for duplicate assets
 		if(current->asset)
 		{
-			for(i = 0, result = 0; i < asset_list->total; i++)
+			for(i = 0, result = 0; i < asset_list->size(); i++)
 			{
-				if(asset_list->values[i] == current->asset) result = 1;
+				if(asset_list->get(i) == current->asset)
+                {
+                    result = 1;
+                }
 			}
 // append pointer to new asset
 			if(!result) asset_list->append(current->asset);
 		}
+
+        if(current->nested_edl)
+        {
+            for(i = 0, result = 0; i < nested_list->size(); i++)
+            {
+                if(nested_list->get(i) == current->nested_edl)
+                {
+                    result = 1;
+                }
+            }
+            if(!result)
+            {
+                nested_list->append(current->nested_edl);
+            }
+        }
 
 		current = NEXT;
 	}
 
 	return 0;
 }
-
-
-
 
 
 int Track::clear(double start, 
@@ -1195,7 +1245,9 @@ int Track::clear(double start,
 
 
 	if(edit_autos)
+	{
 		automation->clear((int64_t)start, (int64_t)end, 0, 1);
+	}
 
 	if(edit_plugins)
 	{
@@ -1207,7 +1259,10 @@ int Track::clear(double start,
 	}
 
 	if(edit_edits)
+	{
 		edits->clear((int64_t)start, (int64_t)end);
+	}
+	
 	return 0;
 }
 
@@ -1219,6 +1274,7 @@ int Track::clear_handle(double start,
 	double &distance)
 {
 	edits->clear_handle(start, end, clear_plugins, edit_autos, distance);
+    return 0;
 }
 
 int Track::popup_transition(int cursor_x, int cursor_y)
@@ -1620,64 +1676,199 @@ void Track::shuffle_edits(double start, double end, int first_track)
 	}
 }
 
+// exactly the same as shuffle_edits except for 1 line
+void Track::reverse_edits(double start, double end, int first_track)
+{
+	ArrayList<Edit*> new_edits;
+	ArrayList<Label*> new_labels;
+	int64_t start_units = to_units(start, 0);
+	int64_t end_units = to_units(end, 0);
+// Sample range of all edits selected
+	int64_t total_start_units = 0;
+	int64_t total_end_units = 0;
+// Edit before range
+	Edit *start_edit = 0;
+	int have_start_edit = 0;
+
+// Move all edit pointers to list
+	for(Edit *current = edits->first; 
+		current; )
+	{
+		if(current->startproject >= start_units &&
+			current->startproject + current->length <= end_units)
+		{
+			if(!have_start_edit) start_edit = current->previous;
+			have_start_edit = 1;
+			total_start_units = current->startproject;
+			total_end_units = current->startproject + current->length;
+			new_edits.append(current);
+
+// Move label pointers
+			if(first_track && edl->session->labels_follow_edits)
+			{
+				double start_seconds = from_units(current->startproject);
+				double end_seconds = from_units(current->startproject +
+					current->length);
+				for(Label *label = edl->labels->first;
+					label;
+					label = label->next)
+				{
+					if(label->position >= start_seconds &&
+						label->position < end_seconds)
+					{
+						new_labels.append(label);
+						edl->labels->remove_pointer(label);
+					}
+				}
+			}
+
+// Remove edit pointer
+			Edit *previous = current;
+			current = NEXT;
+			edits->remove_pointer(previous);
+		}
+		else
+		{
+			current = NEXT;
+		}
+	}
+
+// Insert pointers in reverse order
+	while(new_edits.size())
+	{
+		int index = new_edits.size() - 1;
+		Edit *edit = new_edits.get(index);
+		new_edits.remove_number(index);
+		edits->insert_after(start_edit, edit);
+		start_edit = edit;
+
+// Recalculate start position
+// Save old position for moving labels
+		int64_t startproject1 = edit->startproject;
+		int64_t startproject2 = 0;
+		if(edit->previous)
+		{
+			edit->startproject = 
+				startproject2 =
+				edit->previous->startproject + edit->previous->length;
+		}
+		else
+		{
+			edit->startproject = startproject2 = 0;
+		}
+
+
+// Insert label pointers
+		if(first_track && edl->session->labels_follow_edits)
+		{
+			double start_seconds1 = from_units(startproject1);
+			double start_seconds2 = from_units(startproject2);
+			double end_seconds1 = from_units(edit->startproject +
+				edit->length);
+			for(int i = new_labels.size() - 1; i >= 0; i--)
+			{
+				Label *label = new_labels.get(i);
+// Was in old edit position
+				if(label->position >= start_seconds1 &&
+					label->position < start_seconds2)
+				{
+// Move to new edit position
+					double position = label->position - 
+						start_seconds1 + 
+						start_seconds2;
+					edl->labels->insert_label(position);
+					new_labels.remove_object_number(i);
+				}
+			}
+		}
+
+
+	}
+	
+	optimize();
+	
+	if(first_track && edl->session->labels_follow_edits)
+	{
+		edl->labels->optimize();
+	}
+}
+
 void Track::align_edits(double start, 
 	double end, 
-	ArrayList<double> *times)
+	Track *master_track)
 {
 	int64_t start_units = to_units(start, 0);
 	int64_t end_units = to_units(end, 0);
 
-// If 1st track with data, times is empty & we need to collect the edit times.
-	if(!times->size())
-	{
-		for(Edit *current = edits->first; current; current = NEXT)
-		{
-			if(current->startproject >= start_units &&
-				current->startproject + current->length <= end_units)
-			{
-				times->append(from_units(current->startproject));
-			}
-		}
-	}
-	else
 // All other tracks get silence or cut to align the edits on the times.
+	Edit *master = master_track->edits->first;
+	for(Edit *current = edits->first; 
+		current && master; )
 	{
-		int current_time = 0;
-		for(Edit *current = edits->first; 
-			current && current_time < times->size(); )
+// edit is in highlighted region
+		if(current->startproject >= start_units &&
+			current->startproject + current->length <= end_units)
 		{
-			if(current->startproject >= start_units &&
-				current->startproject + current->length <= end_units)
+            int64_t master_length_units = to_units(master_track->from_units(master->length), 0);
+// starting time of master edit
+            int64_t master_start_units = to_units(master_track->from_units(master->startproject), 0);
+// starting time of current edit
+			int64_t current_startunits = current->startproject;
+
+// the following occur if multiple aligns are performed
+// master edit is not silence but current edit is silence
+            if(!master->silence() &&
+                current->silence())
+            {
+// try again with next edit
+                current = NEXT;
+                continue;
+            }
+            else
+// master edit is silence but current edit is not silence
+            if(master->silence() &&
+                !current->silence())
+            {
+                master = master->next;
+                continue;
+            }
+            else
+// current edit is a glitch edit between 2 required edits
+            if(current->length < master_length_units / 2)
+            {
+                current = NEXT;
+                continue;
+            }
+
+
+			current = NEXT;
+
+// current edit starts before master edit
+			if(current_startunits < master_start_units)
 			{
-				int64_t desired_startunits = to_units(times->get(current_time), 0);
-				int64_t current_startunits = current->startproject;
-				current = NEXT;
-
-
-				if(current_startunits < desired_startunits)
-				{
 //printf("Track::align_edits %d\n", __LINE__);
-					edits->paste_silence(current_startunits,
-						desired_startunits);
-					shift_keyframes(current_startunits,
-						desired_startunits - current_startunits);
-				}
-				else
-				if(current_startunits > desired_startunits)
-				{
-					edits->clear(desired_startunits,
-						current_startunits);
-					if(edl->session->autos_follow_edits)
-						shift_keyframes(desired_startunits,
-							current_startunits - desired_startunits);
-				}
-
-				current_time++;
+				edits->paste_silence(current_startunits,
+					master_start_units);
+				shift_keyframes(current_startunits,
+					master_start_units - current_startunits);
 			}
 			else
+// current edit starts after master edit
+			if(current_startunits > master_start_units)
 			{
-				current = NEXT;
+				edits->clear(master_start_units,
+					current_startunits);
+				if(edl->session->autos_follow_edits)
+					shift_keyframes(master_start_units,
+						current_startunits - master_start_units);
 			}
+
+			master = master->next;
+		}
+		else
+		{
+			current = NEXT;
+            master = master->next;
 		}
 	}
 

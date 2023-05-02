@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "language.h"
 #include "picon_png.h"
 #include "samples.h"
+#include "theme.h"
 #include "vframe.h"
 
 #include <string.h>
@@ -127,51 +128,83 @@ void DelayAudio::reconfigure()
 {
 	input_start = (int64_t)(config.length * PluginAClient::project_sample_rate + 0.5);
 	int64_t new_allocation = input_start + PluginClient::in_buffer_size;
-	Samples *new_buffer = new Samples(new_allocation);
-	bzero(new_buffer->get_data(), sizeof(double) * new_allocation);
+    
+    
+    if(!buffer || new_allocation != buffer->get_allocated())
+    {
+	    Samples *new_buffer = new Samples(new_allocation, 0);
+	    bzero(new_buffer->get_data(), sizeof(double) * new_allocation);
 
-// printf("DelayAudio::reconfigure %f %d %d %d\n", 
-// config.length, 
-// PluginAClient::project_sample_rate, 
-// PluginClient::in_buffer_size,
-// new_allocation);
-// 
+// printf("DelayAudio::reconfigure %d new_allocation=%ld in_buffer_size=%ld\n", 
+// __LINE__,
+// new_allocation,
+// PluginClient::in_buffer_size);
 
 
-	if(buffer)
-	{
-		int size = MIN(new_allocation, allocation);
 
-		memcpy(new_buffer->get_data(), 
-			buffer->get_data(), 
-			(size - PluginClient::in_buffer_size) * sizeof(double));
-		delete buffer;
-	}
+	    if(buffer)
+	    {
+		    int size = MIN(new_allocation, allocation);
 
-	allocation = new_allocation;
-	buffer = new_buffer;
-	allocation = new_allocation;
+// printf("DelayAudio::reconfigure %d copying=%ld\n", 
+// __LINE__,
+// size - PluginClient::in_buffer_size);
+
+		    memcpy(new_buffer->get_data(), 
+			    buffer->get_data(), 
+			    size * sizeof(double));
+//			    (size - PluginClient::in_buffer_size) * sizeof(double));
+		    delete buffer;
+	    }
+
+	    buffer = new_buffer;
+	    allocation = new_allocation;
+    }
+
 	need_reconfigure = 0;
 }
 
 int DelayAudio::process_realtime(int64_t size, Samples *input_ptr, Samples *output_ptr)
 {
+	need_reconfigure |= load_configuration();
+// printf("DelayAudio::process_realtime %d this=%p need_reconfigure=%d\n",
+// __LINE__,
+// this,
+// need_reconfigure);
+	reconfigure();
 
-	load_configuration();
-	if(need_reconfigure) reconfigure();
-
-// printf("DelayAudio::process_realtime %d %d\n",
-// input_start, size);
 
 
 
-	memcpy(buffer->get_data() + input_start, input_ptr->get_data(), size * sizeof(double));
-	memcpy(output_ptr->get_data(), buffer->get_data(), size * sizeof(double));
+// printf("DelayAudio::process_realtime %d input_start=%ld size=%ld\n",
+// __LINE__,
+// input_start, 
+// size);
 
+
+    double *dst = buffer->get_data() + input_start;
+    double *src = input_ptr->get_data();
+    for(int i = 0; i < size; i++)
+    {
+        *dst++ = *src++;
+    }
+//	memcpy(buffer->get_data() + input_start, input_ptr->get_data(), size * sizeof(double));
+    dst = output_ptr->get_data();
+    src = buffer->get_data();
+    for(int i = 0; i < size; i++)
+    {
+        *dst++ = *src++;
+    }
+//	memcpy(output_ptr->get_data(), buffer->get_data(), size * sizeof(double));
+// shift back
+    dst = buffer->get_data();
+    src = buffer->get_data() + size;
 	for(int i = size, j = 0; i < allocation; i++, j++)
 	{
-		buffer->get_data()[j] = buffer->get_data()[i];
+		*dst++ = *src++;
 	}
+// printf("DelayAudio::process_realtime %d\n",
+// __LINE__);
 
 	return 0;
 }
@@ -207,10 +240,10 @@ void DelayAudio::update_gui()
 
 DelayAudioWindow::DelayAudioWindow(DelayAudio *plugin)
  : PluginClientWindow(plugin, 
-	200, 
-	80, 
-	200, 
-	80, 
+	DP(200), 
+	DP(80), 
+	DP(200), 
+	DP(80), 
 	0)
 {
 	this->plugin = plugin;
@@ -222,12 +255,17 @@ DelayAudioWindow::~DelayAudioWindow()
 
 void DelayAudioWindow::create_objects()
 {
-	add_subwindow(new BC_Title(10, 10, _("Delay seconds:")));
+	BC_Title *title;
+	int margin = client->get_theme()->widget_border;
+	int y = margin;
+
+	add_subwindow(title = new BC_Title(margin, y, _("Delay seconds:")));
+	y += title->get_h() + margin;
 	length = new DelayAudioTextBox(
 		plugin, 
 		this,
-		10, 
-		40);
+		margin, 
+		y);
 	length->create_objects();
 	update_gui();
 	show_window();
@@ -262,7 +300,7 @@ DelayAudioTextBox::DelayAudioTextBox(
 	(float)10,
  	x, 
 	y, 
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
 	set_increment(0.01);

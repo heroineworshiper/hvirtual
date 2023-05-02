@@ -1,0 +1,14 @@
+*.o
+*.d
+.libs
+*.plugin
+*.so
+*.a
+*.lo
+*.plo
+*.la
+*.bak
+*.bak2
+*.bak3
+*.orig
+*.lai

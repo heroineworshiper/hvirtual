@@ -42,6 +42,14 @@ void quicktime_read_mdhd(quicktime_t *file, quicktime_mdhd_t *mdhd)
 	mdhd->creation_time = quicktime_read_int32(file);
 	mdhd->modification_time = quicktime_read_int32(file);
 	mdhd->time_scale = quicktime_read_int32(file);
+    if(mdhd->time_scale == 0)
+    {
+        printf("quicktime_read_mdhd %d invalid time scale %d offset=0x%lx\n", 
+            __LINE__, 
+            mdhd->time_scale,
+            file->file_position - 4);
+        mdhd->time_scale = 1200000;
+    }
 	mdhd->duration = quicktime_read_int32(file);
 	mdhd->language = quicktime_read_int16(file);
 	mdhd->quality = quicktime_read_int16(file);

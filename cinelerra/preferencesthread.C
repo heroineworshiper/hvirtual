@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,8 +58,8 @@
 
 
 
-#define WIDTH 750
-#define HEIGHT 730
+#define WIDTH DP(750)
+#define HEIGHT DP(730)
 
 
 PreferencesMenuitem::PreferencesMenuitem(MWindow *mwindow)
@@ -69,6 +69,7 @@ PreferencesMenuitem::PreferencesMenuitem(MWindow *mwindow)
 
 	set_shift(1);
 	thread = new PreferencesThread(mwindow);
+	mwindow->preferences_thread = thread;
 }
 
 PreferencesMenuitem::~PreferencesMenuitem()
@@ -204,24 +205,24 @@ int PreferencesThread::apply_settings()
 //mwindow->edl->session->recording_format->dump();
 
 
-	if(((mwindow->edl->session->output_w % 4) || 
-		(mwindow->edl->session->output_h % 4)) && 
-		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
-	{
-		MainError::show_error(
-			_("This project's dimensions are not multiples of 4 so\n"
-			"it can't be rendered by OpenGL."));
-	}
+// 	if(((mwindow->edl->session->output_w % 4) || 
+// 		(mwindow->edl->session->output_h % 4)) && 
+// 		mwindow->edl->session->playback_config->vconfig->driver == PLAYBACK_X11_GL)
+// 	{
+// 		MainError::show_error(
+// 			_("This project's dimensions are not multiples of 4 so\n"
+// 			"it can't be rendered by OpenGL."));
+// 	}
 
 
 	if(redraw_meters)
 	{
+#ifdef USE_METERS
 		mwindow->cwindow->gui->lock_window("PreferencesThread::apply_settings");
 		mwindow->cwindow->gui->meters->change_format(edl->session->meter_format,
 			edl->session->min_meter_db,
 			edl->session->max_meter_db);
 		mwindow->cwindow->gui->unlock_window();
-
 
 
 		for(int i = 0; i < mwindow->vwindows.size(); i++)
@@ -234,6 +235,7 @@ int PreferencesThread::apply_settings()
 			vwindow->gui->unlock_window();
 
 		}
+#endif
 
 
 		mwindow->gui->lock_window("PreferencesThread::apply_settings 1");
@@ -553,10 +555,10 @@ int PreferencesButton::handle_event()
 
 PreferencesDialog::PreferencesDialog(MWindow *mwindow, 
 	PreferencesWindow *pwindow)
- : BC_SubWindow(10, 
- 	40, 
-	pwindow->get_w() - 20, 
- 	pwindow->get_h() - BC_GenericButton::calculate_h() - 10 - 40)
+ : BC_SubWindow(DP(10), 
+ 	DP(40), 
+	pwindow->get_w() - DP(20), 
+ 	pwindow->get_h() - BC_GenericButton::calculate_h() - DP(10) - DP(40))
 {
 	this->pwindow = pwindow;
 	this->mwindow = mwindow;
@@ -574,7 +576,7 @@ PreferencesDialog::~PreferencesDialog()
 
 PreferencesApply::PreferencesApply(MWindow *mwindow, PreferencesThread *thread)
  : BC_GenericButton(thread->window->get_w() / 2 - BC_GenericButton::calculate_w(thread->window, _("Apply")) / 2, 
- 	thread->window->get_h() - BC_GenericButton::calculate_h() - 10, 
+ 	thread->window->get_h() - BC_GenericButton::calculate_h() - DP(10), 
 	_("Apply"))
 {
 	this->mwindow = mwindow;
@@ -592,7 +594,7 @@ int PreferencesApply::handle_event()
 
 PreferencesOK::PreferencesOK(MWindow *mwindow, PreferencesThread *thread)
  : BC_GenericButton(10, 
- 	thread->window->get_h() - BC_GenericButton::calculate_h() - 10,
+ 	thread->window->get_h() - BC_GenericButton::calculate_h() - DP(10),
 	_("OK"))
 {
 	this->mwindow = mwindow;
@@ -618,7 +620,7 @@ int PreferencesOK::handle_event()
 
 PreferencesCancel::PreferencesCancel(MWindow *mwindow, PreferencesThread *thread)
  : BC_GenericButton(thread->window->get_w() - BC_GenericButton::calculate_w(thread->window, _("Cancel")) - 10,
- 	thread->window->get_h() - BC_GenericButton::calculate_h() - 10,
+ 	thread->window->get_h() - BC_GenericButton::calculate_h() - DP(10),
  	_("Cancel"))
 {
 	this->mwindow = mwindow;
@@ -655,8 +657,8 @@ PreferencesCategory::PreferencesCategory(MWindow *mwindow, PreferencesThread *th
 		thread->category_to_text(thread->current_dialog),
 		x, 
 		y, 
-		200,
-		150)
+		DP(200),
+		DP(150))
 {
 	this->mwindow = mwindow;
 	this->thread = thread;

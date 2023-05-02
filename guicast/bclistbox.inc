@@ -40,7 +40,7 @@
 // Distance from sides of window
 #define LISTBOX_BORDER   2
 #define ICON_MARGIN      1
-#define LISTBOX_INDENT   10
+#define LISTBOX_INDENT   DP(10)
 
 // Justification for popup listbox
 #define LISTBOX_LEFT     0

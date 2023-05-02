@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  * 
  */
 
+#include "asset.h"
 #include "assets.h"
 #include "atrack.h"
 #include "automation.h"
@@ -35,6 +36,7 @@
 #include "mainundo.h"
 #include "module.h"
 #include "mainsession.h"
+#include "nestededls.h"
 #include "pluginserver.h"
 #include "pluginset.h"
 #include "plugin.h"
@@ -61,10 +63,10 @@ int Tracks::clear(double start, double end, int clear_plugins, int edit_autos)
 				end, 
 				1, // edits
 				1, // labels
-				clear_plugins, 
+				clear_plugins, // edit_plugins
 				edit_autos,
-				1,
-				0); 
+				1, // convert_units
+				0); // trim_edits
 		}
 	}
 	return 0;
@@ -130,10 +132,27 @@ void Tracks::shuffle_edits(double start, double end)
 	}
 }
 
+void Tracks::reverse_edits(double start, double end)
+{
+// This doesn't affect automation or effects
+// Labels follow the first track.
+	int first_track = 1;
+	for(Track *current_track = first; 
+		current_track; 
+		current_track = current_track->next)
+	{
+		if(current_track->record)
+		{
+			current_track->reverse_edits(start, end, first_track);
+
+			first_track = 0;
+		}
+	}
+}
 void Tracks::align_edits(double start, double end)
 {
 // This doesn't affect automation or effects
-	ArrayList<double> times;
+	Track *master_track = 0;
 
 	for(Track *current_track = first; 
 		current_track; 
@@ -141,7 +160,14 @@ void Tracks::align_edits(double start, double end)
 	{
 		if(current_track->record)
 		{
-			current_track->align_edits(start, end, &times);
+            if(!master_track)
+            {
+                master_track = current_track;
+            }
+            else
+            {
+    			current_track->align_edits(start, end, master_track);
+            }
 		}
 	}
 }
@@ -323,6 +349,64 @@ printf("Tracks::set_edit_length %d %f %f\n", __LINE__, end_time, current_track->
 		}
 	}
 }
+
+void Tracks::swap_assets(double start, 
+    double end, 
+    string *old_path, 
+    string *new_path, 
+    int old_is_silence,
+    int new_is_silence)
+{
+printf("Tracks::swap_assets %d\n", __LINE__);
+	for(Track *current_track = first; 
+		current_track; 
+		current_track = current_track->next)
+	{
+		if(current_track->record)
+		{
+			int64_t start_units = current_track->to_units(start, 0);
+			int64_t end_units = current_track->to_units(end, 0);
+    
+			for(Edit *current_edit = current_track->edits->last;
+				current_edit;
+				current_edit = current_edit->previous)
+			{
+				if(current_edit->startproject >= start_units &&
+					current_edit->startproject + current_edit->length <= end_units)
+				{
+                    if((old_is_silence && 
+                            !current_edit->asset &&
+                            !current_edit->nested_edl) ||
+                        (!old_is_silence &&
+                            current_edit->asset &&
+                            !old_path->compare(current_edit->asset->path)) ||
+                        (!old_is_silence &&
+                            current_edit->nested_edl &&
+                            !old_path->compare(current_edit->nested_edl->path)))
+                    {
+                        if(new_is_silence)
+                        {
+                            current_edit->asset = 0;
+                            current_edit->nested_edl = 0;
+                        }
+                        else
+                        {
+                            Asset *asset = edl->assets->get_asset(new_path->c_str());
+                            EDL *nested_edl = 0;
+                            if(!asset)
+                            {
+                                nested_edl = edl->nested_edls->search(new_path->c_str());
+                            }
+                            current_edit->asset = asset;
+                            current_edit->nested_edl = nested_edl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 void Tracks::set_transition_length(double start, double end, double length)
 {
@@ -971,7 +1055,7 @@ void Tracks::paste_automation(double selectionstart,
 	double frame_rate = edl->session->frame_rate;
 	int64_t sample_rate = edl->session->sample_rate;
 	char string[BCTEXTLEN];
-	sprintf(string, "");
+	string[0] = 0;
 
 // Search for start
 	do{

@@ -1,9 +1,35 @@
+/*
+ * Quicktime 4 Linux
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * 
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * 
+ */
+
+
+#include "avcodec.h"
+#include "colormodels.h"
+#include "funcprotos.h"
+//#include "mpegaudio.h"
+#include "qtffmpeg.h"
+#include "quicktime.h"
+
+#include <pthread.h>
 #include <stdint.h>
 #include <string.h>
 
-#include "avcodec.h"
-#include "funcprotos.h"
-#include "quicktime.h"
 
 extern int ffmpeg_initialized;
 extern pthread_mutex_t ffmpeg_lock;
@@ -12,14 +38,14 @@ extern pthread_mutex_t ffmpeg_lock;
 typedef struct
 {
 	int decoder_initialized;
-	AVCodec *decoder;
+	const AVCodec *decoder;
 	AVCodecContext *decoder_context;
 	
 // Number of frames
 	int frame_size;
 	int max_frame_bytes;
 // Input samples interleaved
-	int16_t *input_buffer;
+	float *input_buffer;
 // Number of samples allocated
 	int input_allocated;
 // Last sample decoded in the input buffer + 1
@@ -32,7 +58,7 @@ typedef struct
 	unsigned char *compressed_buffer;
 	int compressed_size;
 	int compressed_allocated;
-	int16_t *temp_buffer;
+	float *temp_buffer;
 
 // Next chunk to decode sequentially
 	int64_t current_chunk;
@@ -40,7 +66,8 @@ typedef struct
 
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 // Default number of samples to allocate in work buffer
-#define OUTPUT_ALLOCATION MAX(0x100000, AVCODEC_MAX_AUDIO_FRAME_SIZE * 2 * 2)
+#define MPA_MAX_CODED_FRAME_SIZE 2048
+#define OUTPUT_ALLOCATION MAX(0x100000, MPA_MAX_CODED_FRAME_SIZE * 2 * 2)
 
 
 
@@ -101,11 +128,11 @@ static int decode(quicktime_t *file,
 		if(!ffmpeg_initialized)
 		{
 			ffmpeg_initialized = 1;
-  			avcodec_init();
-			avcodec_register_all();
+//  			avcodec_init();
+//			avcodec_register_all();
 		}
 
-		codec->decoder = avcodec_find_decoder(CODEC_ID_QDM2);
+		codec->decoder = avcodec_find_decoder(AV_CODEC_ID_QDM2);
 		if(!codec->decoder)
 		{
 			printf("qdm2.c: decode: no ffmpeg decoder found.\n");
@@ -115,7 +142,9 @@ static int decode(quicktime_t *file,
 		uint32_t samplerate = trak->mdia.minf.stbl.stsd.table[0].sample_rate;
 
 // allocate the codec and fill in header
-		AVCodecContext *context = codec->decoder_context = avcodec_alloc_context();
+		AVCodecContext *context = 
+			codec->decoder_context = 
+			avcodec_alloc_context3(codec->decoder);
 		codec->decoder_context->sample_rate = trak->mdia.minf.stbl.stsd.table[0].sample_rate;
 		codec->decoder_context->channels = track_map->channels;
 
@@ -127,30 +156,29 @@ static int decode(quicktime_t *file,
 
 		if(file->cpus > 1)
 		{
-			avcodec_thread_init(context, file->cpus);
+//			avcodec_thread_init(context, file->cpus);
 // Not exactly user friendly.
-//			context->thread_count = file->cpus;
+			context->thread_count = file->cpus;
 		}
 	
-		if(avcodec_open(context, codec->decoder) < 0)
+		if(avcodec_open2(context, codec->decoder, 0) < 0)
 		{
 			printf("qdm2.c: decode: avcodec_open failed.\n");
 			return 1;
 		}
 		pthread_mutex_unlock(&ffmpeg_lock);
 		
-		codec->input_buffer = calloc(sizeof(int16_t),
+		codec->input_buffer = calloc(sizeof(float),
 			track_map->channels * OUTPUT_ALLOCATION);
 		codec->input_allocated = OUTPUT_ALLOCATION;
 
-			
 		codec->decoder_initialized = 1;
 	}
 
 
 	if(samples > OUTPUT_ALLOCATION)
 	{
-		printf("qdm2: decode: can't decode more than %p samples at a time.\n",
+		printf("qdm2: decode: can't decode more than %d samples at a time.\n",
 			OUTPUT_ALLOCATION);
 		return 1;
 	}
@@ -159,7 +187,7 @@ static int decode(quicktime_t *file,
 
 	if(debug)
 	{
-		printf("qdm2 decode: current_position=%lld end_position=%lld input_size=%d input_end=%lld\n",
+		printf("qdm2 decode: current_position=%ld end_position=%ld input_size=%d input_end=%ld\n",
 			current_position,
 			end_position,
 			codec->input_size,
@@ -202,7 +230,7 @@ static int decode(quicktime_t *file,
 
 		if(debug)
 		{
-			printf("qdm2 decode: input_end=%lld chunk=%d offset=0x%llx\n", 
+			printf("qdm2 decode: input_end=%ld chunk=%ld offset=0x%lx\n", 
 				codec->input_end, 
 				codec->current_chunk, 
 				offset);
@@ -237,35 +265,49 @@ static int decode(quicktime_t *file,
 			codec->compressed_size += fragment_size;
 
 // Repeat this sequence until ffmpeg stops outputting samples
-			while(1)
-			{
-				if(!codec->temp_buffer)
-					codec->temp_buffer = calloc(sizeof(int16_t), OUTPUT_ALLOCATION);
-				int bytes_decoded = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-				int result = avcodec_decode_audio2(codec->decoder_context, 
-					codec->temp_buffer,
-					&bytes_decoded,
-            		codec->compressed_buffer, 
-					codec->compressed_size);
+			if(!codec->temp_buffer)
+				codec->temp_buffer = calloc(sizeof(float), OUTPUT_ALLOCATION);
+//				int bytes_decoded = MPA_MAX_CODED_FRAME_SIZE;
+			AVFrame *frame = av_frame_alloc();
+			AVPacket *packet = av_packet_alloc();
+			int got_frame = 0;
+			packet->data = codec->compressed_buffer;
+			packet->size = codec->compressed_size;
+//				int result = avcodec_decode_audio4(codec->decoder_context, 
+//					frame,
+//					&got_frame,
+//            		packet);
+            int result = avcodec_send_packet(codec->decoder_context, packet);
+			av_packet_free(&packet);
 
 // Shift compressed buffer
-				if(result > 0)
-				{
-					memcpy(codec->compressed_buffer,
-						codec->compressed_buffer + result,
-						codec->compressed_size - result);
-					codec->compressed_size -= result;
-				}
+// 				if(result > 0)
+// 				{
+// 					memcpy(codec->compressed_buffer,
+// 						codec->compressed_buffer + result,
+// 						codec->compressed_size - result);
+// 					codec->compressed_size -= result;
+// 				}
+            codec->compressed_size = 0;
 
 //printf("avcodec_decode_audio result=%d bytes_decoded=%d fragment_size=%d codec->compressed_size=%d\n", 
 //result, bytes_decoded, fragment_size, codec->compressed_size);
 /*
- * static FILE *test = 0;
- * if(!test) test = fopen("/tmp/debug", "w");
- * fwrite(codec->temp_buffer, 1, bytes_decoded, test);
- * fflush(test);
- */
-				for(i = 0; i < bytes_decoded / channels / sizeof(int16_t); i++)
+* static FILE *test = 0;
+* if(!test) test = fopen("/tmp/debug", "w");
+* fwrite(codec->temp_buffer, 1, bytes_decoded, test);
+* fflush(test);
+*/
+
+            while(result == 0)
+            {
+                result = avcodec_receive_frame(codec->decoder_context, frame);
+// transfer from frames to temp buffer
+				int samples = quicktime_ffmpeg_get_audio(frame, 
+					codec->temp_buffer);
+
+// transfer from temp to ring buffer
+				for(i = 0; i < samples; i++)
 				{
 					for(j = 0; j < channels; j++)
 						codec->input_buffer[codec->input_ptr * channels + j] =
@@ -274,11 +316,13 @@ static int decode(quicktime_t *file,
 					if(codec->input_ptr >= codec->input_allocated)
 						codec->input_ptr = 0;
 				}
-				codec->input_end += bytes_decoded / channels / sizeof(int16_t);
-				codec->input_size += bytes_decoded / channels / sizeof(int16_t);
 
-				if(bytes_decoded <= 0) break;
-			}
+// update position in stream
+				codec->input_end += samples;
+				codec->input_size += samples;
+            }
+
+			av_frame_free(&frame);
 		}
 
 		codec->current_chunk++;
@@ -292,7 +336,9 @@ static int decode(quicktime_t *file,
 	{
 		for(i = 0; i < samples; i++)
 		{
-			output_i[i] = codec->input_buffer[input_ptr * channels + channel];
+			float value = codec->input_buffer[input_ptr * channels + channel];
+			CLAMP(value, -1.0f, 1.0f);
+			output_i[i] = (int16_t)(value * 32767);
 			input_ptr++;
 			if(input_ptr >= codec->input_allocated) input_ptr = 0;
 		}
@@ -302,7 +348,7 @@ static int decode(quicktime_t *file,
 	{
 		for(i = 0; i < samples; i++)
 		{
-			output_f[i] = (float)codec->input_buffer[input_ptr * channels + channel] / 32768.0;
+			output_f[i] = codec->input_buffer[input_ptr * channels + channel];
 			input_ptr++;
 			if(input_ptr >= codec->input_allocated) input_ptr = 0;
 		}

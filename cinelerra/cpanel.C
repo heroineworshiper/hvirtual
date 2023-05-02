@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,8 +53,8 @@ CPanel::~CPanel()
 void CPanel::create_objects()
 {
 	int x = this->x, y = this->y;
-	subwindow->add_subwindow(operation[CWINDOW_PROTECT] = new CPanelProtect(mwindow, this, x, y));
-	y += operation[CWINDOW_PROTECT]->get_h();
+//	subwindow->add_subwindow(operation[CWINDOW_PROTECT] = new CPanelProtect(mwindow, this, x, y));
+//	y += operation[CWINDOW_PROTECT]->get_h();
 	subwindow->add_subwindow(operation[CWINDOW_ZOOM] = new CPanelMagnify(mwindow, this, x, y));
 	y += operation[CWINDOW_ZOOM]->get_h();
 	subwindow->add_subwindow(operation[CWINDOW_MASK] = new CPanelMask(mwindow, this, x, y));
@@ -70,9 +69,9 @@ void CPanel::create_objects()
 	y += operation[CWINDOW_CROP]->get_h();
 	subwindow->add_subwindow(operation[CWINDOW_EYEDROP] = new CPanelEyedrop(mwindow, this, x, y));
 	y += operation[CWINDOW_EYEDROP]->get_h();
-	subwindow->add_subwindow(operation[CWINDOW_TOOL_WINDOW] = new CPanelToolWindow(mwindow, this, x, y));
-	y += operation[CWINDOW_TOOL_WINDOW]->get_h();
-	subwindow->add_subwindow(operation[CWINDOW_TITLESAFE] = new CPanelTitleSafe(mwindow, this, x, y));
+//	subwindow->add_subwindow(operation[CWINDOW_TOOL_WINDOW] = new CPanelToolWindow(mwindow, this, x, y));
+//	y += operation[CWINDOW_TOOL_WINDOW]->get_h();
+//	subwindow->add_subwindow(operation[CWINDOW_TITLESAFE] = new CPanelTitleSafe(mwindow, this, x, y));
 }
 
 void CPanel::reposition_buttons(int x, int y)
@@ -92,16 +91,16 @@ void CPanel::set_operation(int value)
 {
 	for(int i = 0; i < CPANEL_OPERATIONS; i++)
 	{
-		if(i == CWINDOW_TOOL_WINDOW)
-		{
-			operation[i]->update(mwindow->edl->session->tool_window);
-		}
-		else
-		if(i == CWINDOW_TITLESAFE)
-		{
-			operation[i]->update(mwindow->edl->session->safe_regions);
-		}
-		else
+//		if(i == CWINDOW_TOOL_WINDOW)
+//		{
+//			operation[i]->update(mwindow->edl->session->tool_window);
+//		}
+//		else
+//		if(i == CWINDOW_TITLESAFE)
+//		{
+//			operation[i]->update(mwindow->edl->session->safe_regions);
+//		}
+//		else
 // 		if(i == CWINDOW_SHOW_METERS)
 // 		{
 // 			operation[i]->update(mwindow->edl->session->cwindow_meter);
@@ -120,25 +119,25 @@ void CPanel::set_operation(int value)
 
 
 
-CPanelProtect::CPanelProtect(MWindow *mwindow, CPanel *gui, int x, int y)
- : BC_Toggle(x, 
- 	y, 
-	mwindow->theme->get_image_set("protect"), 
-	mwindow->edl->session->cwindow_operation == CWINDOW_PROTECT)
-{
-	this->mwindow = mwindow;
-	this->gui = gui;
-	set_tooltip(_("Protect video from changes"));
-}
-CPanelProtect::~CPanelProtect()
-{
-}
-int CPanelProtect::handle_event()
-{
-	gui->subwindow->set_operation(CWINDOW_PROTECT);
-	return 1;
-}
-
+// CPanelProtect::CPanelProtect(MWindow *mwindow, CPanel *gui, int x, int y)
+//  : BC_Toggle(x, 
+//  	y, 
+// 	mwindow->theme->get_image_set("protect"), 
+// 	mwindow->edl->session->cwindow_operation == CWINDOW_PROTECT)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_tooltip(_("Protect video from changes"));
+// }
+// CPanelProtect::~CPanelProtect()
+// {
+// }
+// int CPanelProtect::handle_event()
+// {
+// 	gui->subwindow->set_operation(CWINDOW_PROTECT);
+// 	return 1;
+// }
+// 
 
 
 
@@ -159,7 +158,10 @@ CPanelMask::~CPanelMask()
 }
 int CPanelMask::handle_event()
 {
-	gui->subwindow->set_operation(CWINDOW_MASK);
+    if(!get_value())
+        gui->subwindow->set_operation(CWINDOW_NONE);
+    else
+    	gui->subwindow->set_operation(CWINDOW_MASK);
 	return 1;
 }
 
@@ -181,7 +183,10 @@ CPanelRuler::~CPanelRuler()
 }
 int CPanelRuler::handle_event()
 {
-	gui->subwindow->set_operation(CWINDOW_RULER);
+    if(!get_value())
+        gui->subwindow->set_operation(CWINDOW_NONE);
+    else
+    	gui->subwindow->set_operation(CWINDOW_RULER);
 	return 1;
 }
 
@@ -203,7 +208,10 @@ CPanelMagnify::~CPanelMagnify()
 }
 int CPanelMagnify::handle_event()
 {
-	gui->subwindow->set_operation(CWINDOW_ZOOM);
+    if(!get_value())
+        gui->subwindow->set_operation(CWINDOW_NONE);
+    else
+    	gui->subwindow->set_operation(CWINDOW_ZOOM);
 	return 1;
 }
 
@@ -223,7 +231,10 @@ CPanelCamera::~CPanelCamera()
 }
 int CPanelCamera::handle_event()
 {
-	gui->subwindow->set_operation(CWINDOW_CAMERA);
+    if(!get_value())
+        gui->subwindow->set_operation(CWINDOW_NONE);
+    else
+    	gui->subwindow->set_operation(CWINDOW_CAMERA);
 	return 1;
 }
 
@@ -243,7 +254,10 @@ CPanelProj::~CPanelProj()
 }
 int CPanelProj::handle_event()
 {
-	gui->subwindow->set_operation(CWINDOW_PROJECTOR);
+    if(!get_value())
+        gui->subwindow->set_operation(CWINDOW_NONE);
+    else
+    	gui->subwindow->set_operation(CWINDOW_PROJECTOR);
 	return 1;
 }
 
@@ -265,7 +279,10 @@ CPanelCrop::~CPanelCrop()
 
 int CPanelCrop::handle_event()
 {
-	gui->subwindow->set_operation(CWINDOW_CROP);
+    if(!get_value())
+        gui->subwindow->set_operation(CWINDOW_NONE);
+    else
+    	gui->subwindow->set_operation(CWINDOW_CROP);
 	return 1;
 }
 
@@ -289,55 +306,58 @@ CPanelEyedrop::~CPanelEyedrop()
 
 int CPanelEyedrop::handle_event()
 {
-	gui->subwindow->set_operation(CWINDOW_EYEDROP);
+    if(!get_value())
+        gui->subwindow->set_operation(CWINDOW_NONE);
+    else
+    	gui->subwindow->set_operation(CWINDOW_EYEDROP);
 	return 1;
 }
 
 
 
 
-CPanelToolWindow::CPanelToolWindow(MWindow *mwindow, CPanel *gui, int x, int y)
- : BC_Toggle(x, 
- 	y, 
-	mwindow->theme->get_image_set("tool"), 
-	mwindow->edl->session->tool_window)
-{
-	this->mwindow = mwindow;
-	this->gui = gui;
-	set_tooltip(_("Show tool info"));
-}
-
-CPanelToolWindow::~CPanelToolWindow()
-{
-}
-
-int CPanelToolWindow::handle_event()
-{
-	unlock_window();
-	mwindow->edl->session->tool_window = get_value();
-	gui->subwindow->tool_panel->update_show_window();
-	lock_window("CPanelToolWindow::handle_event");
-	return 1;
-}
-
-
-CPanelTitleSafe::CPanelTitleSafe(MWindow *mwindow, CPanel *gui, int x, int y)
- : BC_Toggle(x, 
- 	y, 
-	mwindow->theme->get_image_set("titlesafe"), 
-	mwindow->edl->session->safe_regions)
-{
-	this->mwindow = mwindow;
-	this->gui = gui;
-	set_tooltip(_("Show safe regions"));
-}
-CPanelTitleSafe::~CPanelTitleSafe()
-{
-}
-int CPanelTitleSafe::handle_event()
-{
-	mwindow->edl->session->safe_regions = get_value();
-	gui->subwindow->canvas->draw_refresh();
-	return 1;
-}
-
+// CPanelToolWindow::CPanelToolWindow(MWindow *mwindow, CPanel *gui, int x, int y)
+//  : BC_Toggle(x, 
+//  	y, 
+// 	mwindow->theme->get_image_set("tool"), 
+// 	mwindow->edl->session->tool_window)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_tooltip(_("Show tool info"));
+// }
+// 
+// CPanelToolWindow::~CPanelToolWindow()
+// {
+// }
+// 
+// int CPanelToolWindow::handle_event()
+// {
+// 	unlock_window();
+// 	mwindow->edl->session->tool_window = get_value();
+// 	gui->subwindow->tool_panel->update_show_window();
+// 	lock_window("CPanelToolWindow::handle_event");
+// 	return 1;
+// }
+// 
+// 
+// CPanelTitleSafe::CPanelTitleSafe(MWindow *mwindow, CPanel *gui, int x, int y)
+//  : BC_Toggle(x, 
+//  	y, 
+// 	mwindow->theme->get_image_set("titlesafe"), 
+// 	mwindow->edl->session->safe_regions)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_tooltip(_("Show safe regions"));
+// }
+// CPanelTitleSafe::~CPanelTitleSafe()
+// {
+// }
+// int CPanelTitleSafe::handle_event()
+// {
+// 	mwindow->edl->session->safe_regions = get_value();
+// 	gui->subwindow->canvas->draw_refresh();
+// 	return 1;
+// }
+// 

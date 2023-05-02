@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,14 +36,21 @@ public:
 	FileFLAC(Asset *asset, File *file);
 	~FileFLAC();
 
-	static void get_parameters(BC_WindowBase *parent_window, 
+
+// table functions
+    FileFLAC();
+	int check_sig(File *file, const uint8_t *test_data);
+    FileBase* create(File *file);
+	void get_parameters(BC_WindowBase *parent_window, 
 		Asset *asset, 
 		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options);
+		int option_type,
+	    const char *locked_compressor);
+    const char* formattostr(int format);
+    const char* get_tag(int format);
+
 	int reset_parameters_derived();
 
-	static int check_sig(Asset *asset, char *test);
 	int open_file(int rd, int wr);
 	int close_file_derived();
 	int write_samples(double **buffer, 

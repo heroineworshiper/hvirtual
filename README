@@ -1,7 +1,33 @@
-Run ./cinelerra from this directory.  That's it.
+Running the binary:
+
+Run ./cinelerra.sh from this directory.
+
+There is a build of ffmpeg for use with the command line output.  This
+should be put in your system path if it's desired.
 
 
 
+
+Building the source:
+
+Was last tested on Ubuntu 22 x86_64.
+
+For GPU acceleration, it needs the proprietary Nvidia X11 drivers & CUDA
+libraries.
+
+Install the dependencies:
+
+apt install libc6-dev g++ build-essential libz-dev texinfo libpng-dev \
+libxv-dev libasound2-dev libbz2-dev liblzma-dev yasm cmake autoconf \
+pkg-config libtool libxft-dev libxfixes-dev
+
+
+Edit CUDA_DIR in configure to set your CUDA location.
+
+
+
+Run ./configure.  Then run make.  Then run 'make install' to put it in the
+bin/ directory.  Run ./cinelerra.sh in the bin/ directory.
 
 
 

@@ -19,5 +19,5 @@ typedef struct
 }
 options;
 
-options glopts;
+extern options toolame_glopts;
 #endif

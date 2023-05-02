@@ -29,11 +29,11 @@
 #include "bctoggle.h"
 #include "colors.h"
 
-#define BCPOPUPLISTBOX_W 25
-#define BCPOPUPLISTBOX_H 25
+#define BCPOPUPLISTBOX_W DP(25)
+#define BCPOPUPLISTBOX_H DP(25)
 
 
-#define MIN_COLUMN_WIDTH 10
+#define MIN_COLUMN_WIDTH DP(10)
 
 
 class BC_ListBoxYScroll : public BC_ScrollBar

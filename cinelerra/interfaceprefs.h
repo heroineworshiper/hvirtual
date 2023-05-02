@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ class MeterMaxDB;
 class MeterVUDB;
 class MeterVUInt;
 class ViewBehaviourText;
-class ViewThumbnails;
+//class ViewThumbnails;
 
 #include "browsebutton.h"
 #include "deleteallindexes.inc"
@@ -75,14 +75,14 @@ public:
 	MeterVUDB *vu_db;
 //	MeterVUInt *vu_int;
 	ViewBehaviourText *button1, *button2, *button3;
-	ViewThumbnails *thumbnails;
+//	ViewThumbnails *thumbnails;
 };
 
 
 class IndexPathText : public BC_TextBox
 {
 public:
-	IndexPathText(int x, int y, PreferencesWindow *pwindow, char *text);
+	IndexPathText(int x, int y, PreferencesWindow *pwindow, string *text);
 	~IndexPathText();
 	int handle_event();
 	PreferencesWindow *pwindow;
@@ -252,13 +252,13 @@ public:
 	PreferencesWindow *pwindow;
 };
 
-class ViewThumbnails : public BC_CheckBox
-{
-public:
-	ViewThumbnails(int x, int y, PreferencesWindow *pwindow);
-	int handle_event();
-	PreferencesWindow *pwindow;
-};
+// class ViewThumbnails : public BC_CheckBox
+// {
+// public:
+// 	ViewThumbnails(int x, int y, PreferencesWindow *pwindow);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// };
 
 class ViewThemeItem : public BC_MenuItem
 {
@@ -275,5 +275,24 @@ public:
 	int handle_event();
 	PreferencesWindow *pwindow;
 };
+
+
+class OverrideDPI : public BC_CheckBox
+{
+public:
+	OverrideDPI(PreferencesWindow *pwindow, int x, int y);
+	int handle_event();
+	PreferencesWindow *pwindow;
+};
+
+class DPIText : public BC_TextBox
+{
+public:
+	DPIText(PreferencesWindow *pwindow, int x, int y, int w);
+	int handle_event();
+	PreferencesWindow *pwindow;
+};
+
+
 
 #endif

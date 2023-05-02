@@ -1,0 +1,77 @@
+Script started on Sun 23 Aug 2015 07:06:24 PM PDT
+amazon2:/root/x264% make
+cat common/opencl/x264-cl.h common/opencl/bidir.cl common/opencl/downscale.cl common/opencl/intra.cl common/opencl/motionsearch.cl common/opencl/subpel.cl common/opencl/weightp.cl | ./tools/cltostr.sh common/oclobj.h
+dependency file generation...
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o x264.o x264.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o input/input.o input/input.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o input/timecode.o input/timecode.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o input/raw.o input/raw.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o input/y4m.o input/y4m.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o output/raw.o output/raw.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o output/matroska.o output/matroska.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o output/matroska_ebml.o output/matroska_ebml.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o output/flv.o output/flv.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o output/flv_bytestream.o output/flv_bytestream.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o filters/filters.o filters/filters.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o filters/video/video.o filters/video/video.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o filters/video/source.o filters/video/source.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o filters/video/internal.o filters/video/internal.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o filters/video/resize.o filters/video/resize.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o filters/video/cache.o filters/video/cache.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o filters/video/fix_vfr_pts.o filters/video/fix_vfr_pts.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o filters/video/select_every.o filters/video/select_every.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o filters/video/crop.o filters/video/crop.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o filters/video/depth.o filters/video/depth.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o input/avs.o input/avs.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o input/thread.o input/thread.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/mc.o common/mc.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/predict.o common/predict.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/pixel.o common/pixel.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/macroblock.o common/macroblock.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/frame.o common/frame.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/dct.o common/dct.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/cpu.o common/cpu.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/cabac.o common/cabac.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/common.o common/common.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/osdep.o common/osdep.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/rectangle.o common/rectangle.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/set.o common/set.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/quant.o common/quant.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/deblock.o common/deblock.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/vlc.o common/vlc.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/mvpred.o common/mvpred.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/bitstream.o common/bitstream.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o encoder/analyse.o encoder/analyse.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o encoder/me.o encoder/me.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o encoder/ratecontrol.o encoder/ratecontrol.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o encoder/set.o encoder/set.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o encoder/macroblock.o encoder/macroblock.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o encoder/cabac.o encoder/cabac.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o encoder/cavlc.o encoder/cavlc.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o encoder/encoder.o encoder/encoder.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o encoder/lookahead.o encoder/lookahead.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/threadpool.o common/threadpool.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/x86/mc-c.o common/x86/mc-c.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/x86/predict-c.o common/x86/predict-c.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o common/opencl.o common/opencl.c
+gcc -Wno-maybe-uninitialized -Wshadow -O3 -ffast-math -m64  -Wall -I. -I. -std=gnu99 -mpreferred-stack-boundary=5 -fomit-frame-pointer -fno-tree-vectorize   -c -o encoder/slicetype-cl.o encoder/slicetype-cl.c
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/const-a.o common/x86/const-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/cabac-a.o common/x86/cabac-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/dct-a.o common/x86/dct-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/deblock-a.o common/x86/deblock-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/mc-a.o common/x86/mc-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/mc-a2.o common/x86/mc-a2.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/pixel-a.o common/x86/pixel-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/predict-a.o common/x86/predict-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/quant-a.o common/x86/quant-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/cpu-a.o common/x86/cpu-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/dct-64.o common/x86/dct-64.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/bitstream-a.o common/x86/bitstream-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/sad-a.o common/x86/sad-a.asm
+yasm -I. -I. -DARCH_X86_64=1 -I./common/x86/ -f elf64 -Worphan-labels -DSTACK_ALIGNMENT=32 -DHIGH_BIT_DEPTH=0 -DBIT_DEPTH=8 -o common/x86/trellis-64.o common/x86/trellis-64.asm
+rm -f libx264.a
+ar rc libx264.a  common/mc.o common/predict.o common/pixel.o common/macroblock.o common/frame.o common/dct.o common/cpu.o common/cabac.o common/common.o common/osdep.o common/rectangle.o common/set.o common/quant.o common/deblock.o common/vlc.o common/mvpred.o common/bitstream.o encoder/analyse.o encoder/me.o encoder/ratecontrol.o encoder/set.o encoder/macroblock.o encoder/cabac.o encoder/cavlc.o encoder/encoder.o encoder/lookahead.o common/threadpool.o common/x86/mc-c.o common/x86/predict-c.o common/opencl.o encoder/slicetype-cl.o common/x86/const-a.o common/x86/cabac-a.o common/x86/dct-a.o common/x86/deblock-a.o common/x86/mc-a.o common/x86/mc-a2.o common/x86/pixel-a.o common/x86/predict-a.o common/x86/quant-a.o common/x86/cpu-a.o common/x86/dct-64.o common/x86/bitstream-a.o common/x86/sad-a.o common/x86/trellis-64.o
+ranlib libx264.a
+gcc -o x264  x264.o input/input.o input/timecode.o input/raw.o input/y4m.o output/raw.o output/matroska.o output/matroska_ebml.o output/flv.o output/flv_bytestream.o filters/filters.o filters/video/video.o filters/video/source.o filters/video/internal.o filters/video/resize.o filters/video/cache.o filters/video/fix_vfr_pts.o filters/video/select_every.o filters/video/crop.o filters/video/depth.o input/avs.o input/thread.o libx264.a -ldl  -m64  -lm -lpthread -ldl
+amazon2:/root/x264% exit
+Script done on Sun 23 Aug 2015 07:08:11 PM PDT

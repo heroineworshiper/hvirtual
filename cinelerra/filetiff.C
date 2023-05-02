@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,13 +42,54 @@ FileTIFF::~FileTIFF()
 }
 
 
+FileTIFF::FileTIFF()
+ : FileList()
+{
+    ids.append(FILE_TIFF);
+    ids.append(FILE_TIFF_LIST);
+    has_video = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileTIFF::create(File *file)
+{
+    return new FileTIFF(file->asset, file);
+}
+
+
+const char* FileTIFF::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_TIFF:
+			return TIFF_NAME;
+			break;
+		case FILE_TIFF_LIST:
+			return TIFF_LIST_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileTIFF::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_TIFF:
+		case FILE_TIFF_LIST:
+            return "tif";
+    }
+    return 0;
+}
+
 void FileTIFF::get_parameters(BC_WindowBase *parent_window, 
 	Asset *asset, 
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+	int option_type,
+	const char *locked_compressor)
 {
-	if(video_options)
+	if(option_type == VIDEO_PARAMS)
 	{
 		TIFFConfigVideo *window = new TIFFConfigVideo(parent_window, asset);
 		format_window = window;
@@ -60,8 +100,9 @@ void FileTIFF::get_parameters(BC_WindowBase *parent_window,
 }
 
 
-int FileTIFF::check_sig(Asset *asset)
+int FileTIFF::check_sig(File *file, const uint8_t *test_data)
 {
+    Asset *asset = file->asset;
 	FILE *stream = fopen(asset->path, "rb");
 
 	if(stream)
@@ -586,8 +627,8 @@ TIFFConfigVideo::TIFFConfigVideo(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	400,
-	200)
+	DP(400),
+	DP(200))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -599,17 +640,17 @@ TIFFConfigVideo::~TIFFConfigVideo()
 
 void TIFFConfigVideo::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	lock_window("TIFFConfigVideo::create_objects");
 	add_subwindow(new BC_Title(x, y, "Colorspace:"));
 	TIFFColorspace *menu1;
-	add_subwindow(menu1 = new TIFFColorspace(this, x + 150, y, 200));
+	add_subwindow(menu1 = new TIFFColorspace(this, x + DP(150), y, DP(200)));
 	menu1->create_objects();
-	y += 40;
+	y += DP(40);
 	add_subwindow(new BC_Title(x, y, "Compression:"));
 	TIFFCompression *menu2;
-	add_subwindow(menu2 = new TIFFCompression(this, x + 150, y, 200));
+	add_subwindow(menu2 = new TIFFCompression(this, x + DP(150), y, DP(200)));
 	menu2->create_objects();
 
 	add_subwindow(new BC_OKButton(this));

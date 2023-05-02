@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2009-2013 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -261,8 +261,11 @@ if(debug) printf("AModule::import_samples %d edit=%p nested_edl=%p\n",
 __LINE__,
 edit,
 nested_edl);
+// channel not found
 	if(nested_edl && edit->channel >= nested_edl->session->audio_channels)
-		return 1;
+	{
+    	return 1;
+    }
 if(debug) printf("AModule::import_samples %d\n", __LINE__);
 
 	this->channel = edit->channel;
@@ -323,12 +326,12 @@ speed_fragment_len);
 			speed_fragment_len = (int64_t)(max_position - min_position);
 		}
 
-printf("AModule::import_samples %d %f %f %f %f\n", 
-__LINE__, 
-min_position, 
-max_position,
-speed_position1,
-speed_position2);
+// printf("AModule::import_samples %d %f %f %f %f\n", 
+// __LINE__, 
+// min_position, 
+// max_position,
+// speed_position1,
+// speed_position2);
 
 // new start of source to read from file
 		start_source = (int64_t)min_position;
@@ -354,20 +357,32 @@ speed_position2);
 
 
 	if(speed_fragment_len == 0)
-		return 1;
+	{
+    	return 1;
+    }
 
 
 
 // Source is a nested EDL
-	if(edit->nested_edl)
+	if(edit->nested_edl && edit->edl->nested_depth < NESTED_DEPTH)
 	{
 		int command;
 		asset = 0;
-		
+
+// printf("AModule::import_samples %d nested_edl->nested_depth=%d edl->nested_depth=%d\n", 
+// __LINE__, 
+// edit->nested_edl->nested_depth,
+// edit->edl->nested_depth);
+// sleep(1);
+
 		if(direction == PLAY_REVERSE)
-			command = NORMAL_REWIND;
-		else
-			command = NORMAL_FWD;
+		{
+        	command = NORMAL_REWIND;
+		}
+        else
+		{
+        	command = NORMAL_FWD;
+        }
 
 if(debug) printf("AModule::import_samples %d\n", __LINE__);
 		if(!nested_edl || nested_edl->id != edit->nested_edl->id)
@@ -389,13 +404,14 @@ if(debug) printf("AModule::import_samples %d\n", __LINE__);
 			{
 				nested_command->command = command;
 				nested_command->get_edl()->copy_all(nested_edl);
+                nested_command->get_edl()->nested_depth++;
 				nested_command->change_type = CHANGE_ALL;
 				nested_command->realtime = renderengine->command->realtime;
 				nested_renderengine = new RenderEngine(0,
 					get_preferences(), 
 					0,
-					renderengine ? renderengine->channeldb : 0,
-					1);
+					renderengine ? renderengine->channeldb : 0);
+                nested_renderengine->set_nested(1);
 				nested_renderengine->set_acache(get_cache());
 // Must use a private cache for the audio
 // 				if(!cache) 
@@ -427,6 +443,12 @@ if(debug) printf("AModule::import_samples %d\n", __LINE__);
 
 		if(nested_allocation < speed_fragment_len)
 			nested_allocation = speed_fragment_len;
+
+// printf("AModule::import_samples %d renderengine->nested_depth=%d nested_renderengine->nested_depth=%d\n", 
+// __LINE__, 
+// renderengine->nested_depth,
+// nested_renderengine->nested_depth);
+//sleep(1);
 
 // Update direction command
 		nested_renderengine->command->command == command;
@@ -461,12 +483,12 @@ if(debug) printf("AModule::import_samples %d\n", __LINE__);
 		else
 		{
 // Render without resampling
-if(debug) printf("AModule::import_samples %d\n", __LINE__);
+//printf("AModule::import_samples %d arender=%p\n", __LINE__, nested_renderengine->arender);
 			result = nested_renderengine->arender->process_buffer(
 				nested_output, 
 				speed_fragment_len,
 				start_source);
-if(debug) printf("AModule::import_samples %d\n", __LINE__);
+//printf("AModule::import_samples %d arender=%p\n", __LINE__, nested_renderengine->arender);
 			memcpy(speed_buffer->get_data(),
 				nested_output[edit->channel]->get_data(),
 				speed_fragment_len * sizeof(double));
@@ -568,6 +590,7 @@ if(debug) printf("AModule::import_samples %d\n", __LINE__);
 	}
 	else
 	{
+//printf("AModule::import_samples %d\n", __LINE__);
 		nested_edl = 0;
 		asset = 0;
 if(debug) printf("AModule::import_samples %d %p %d\n", __LINE__, speed_buffer->get_data(), (int)speed_fragment_len);
@@ -763,7 +786,10 @@ int AModule::render(Samples *buffer,
 	int64_t edl_rate = get_edl()->session->sample_rate;
 	const int debug = 0;
 
-if(debug) printf("AModule::render %d\n", __LINE__);
+if(debug) printf("AModule::render %d %p %ld\n", 
+__LINE__, 
+buffer->get_data(), 
+input_len);
 
 	if(use_nudge) 
 		start_position += track->nudge * 
@@ -786,9 +812,11 @@ if(debug) printf("AModule::render %d\n", __LINE__);
 // 		end_position -= input_len;
 // 	}
 
+if(debug) printf("AModule::render %d\n", __LINE__);
 
 // Clear buffer
 	bzero(buffer->get_data(), input_len * sizeof(double));
+if(debug) printf("AModule::render %d\n", __LINE__);
 
 // The EDL is normalized to the requested sample rate because 
 // the requested rate may be the project sample rate and a sample rate 

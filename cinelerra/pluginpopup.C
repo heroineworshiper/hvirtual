@@ -109,6 +109,7 @@ int PluginPopupChange::handle_event()
 		PROGRAM_NAME ": Change Effect",
 		0,
 		popup->plugin->track->data_type);
+    return 0;
 }
 
 
@@ -284,10 +285,7 @@ PluginPresets::PluginPresets(MWindow *mwindow, PluginPopup *popup)
 
 int PluginPresets::handle_event()
 {
-	mwindow->show_keyframe_gui(popup->plugin);
-#if 0
-	popup->thread->start_window(popup->plugin);
-#endif
+	mwindow->show_keyframe_gui(popup->plugin, 0);
 	return 1;
 }
 

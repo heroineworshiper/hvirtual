@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -121,49 +121,54 @@ TransitionDialog::TransitionDialog(MWindow *mwindow,
 	y,
 	mwindow->session->transitiondialog_w,
 	mwindow->session->transitiondialog_h, 
-	320, 
-	240,
+	DP(320), 
+	DP(240),
 	1,
 	0,
 	1)
 {
+// printf("TransitionDialog::TransitionDialog %d %d %d %d %d\n", 
+// __LINE__,
+// x,
+// y,
+// mwindow->session->transitiondialog_w,
+// mwindow->session->transitiondialog_h);
 	this->mwindow = mwindow;
 	this->thread = thread;
 }
 
 void TransitionDialog::create_objects()
 {
-	int x = 10;
-	int y = 10;
+	int x = DP(10);
+	int y = DP(10);
 	
 	lock_window("TransitionDialog::create_objects");
 	add_subwindow(name_title = new BC_Title(x, y, _("Select transition from list")));
-	y += name_title->get_h() + 5;
+	y += name_title->get_h() + DP(5);
 	add_subwindow(name_list = new TransitionDialogName(thread, 
 		&thread->transition_names, 
 		x, 
 		y,
 		get_w() - x - x,
-		get_h() - y - BC_OKButton::calculate_h() - 10));
+		get_h() - y - BC_OKButton::calculate_h() - DP(10)));
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
 	show_window();
-	flush();
 	unlock_window();
 }
 
 
 int TransitionDialog::resize_event(int w, int h)
 {
-	int x = 10;
-	int y = 10;
+	int x = DP(10);
+	int y = DP(10);
 
 	name_title->reposition_window(x, y);
-	y += name_title->get_h() + 5;
+	y += name_title->get_h() + DP(5);
 	name_list->reposition_window(x, 
 		y,
 		w - x - x,
-		h - y - BC_OKButton::calculate_h() - 10);
+		h - y - BC_OKButton::calculate_h() - DP(10));
 
 	return 1;
 }

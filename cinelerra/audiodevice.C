@@ -26,6 +26,7 @@
 #include "audiodvb.h"
 #include "audioesound.h"
 #include "audiooss.h"
+#include "audiopulse.h"
 #include "bctimer.h"
 #include "condition.h"
 #include "dcoffset.h"
@@ -175,6 +176,11 @@ int AudioDevice::create_lowlevel(AudioLowLevel* &lowlevel, int driver)
 			case AUDIO_CINE:
 				lowlevel = new AudioCine(this);
 				break;
+            
+            
+            case AUDIO_PULSE:
+                lowlevel = new AudioPulse(this);
+                break;
 		}
 	}
 	return 0;
@@ -331,6 +337,7 @@ int AudioDevice::get_irate()
 	if(r) return in_samplerate;
 	else
 	if(d) return duplex_samplerate;
+    return 0;
 }
 
 int AudioDevice::get_orealtime()

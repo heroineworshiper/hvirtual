@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +24,7 @@
 class PlaybackBicubicBicubic;
 class PlaybackBicubicBilinear;
 class PlaybackBilinearBilinear;
+class PlaybackLanczos;
 class PlaybackBufferBytes;
 class PlaybackBufferSize;
 class PlaybackDeblock;
@@ -33,6 +33,8 @@ class PlaybackHead;
 class PlaybackHeadCount;
 class PlaybackHost;
 class PlaybackInterpolateRaw;
+class PlaybackHWDecode;
+class PlaybackFFmpegMov;
 class PlaybackModuleFragment;
 class PlaybackNearest;
 class PlaybackOutBits;
@@ -44,7 +46,7 @@ class PlaybackRealTime;
 class PlaybackSoftwareTimer;
 class PlaybackViewFollows;
 class PlaybackWhiteBalanceRaw;
-class VideoAsynchronous;
+//class VideoAsynchronous;
 
 #include "adeviceprefs.h"
 #include "guicast.h"
@@ -66,22 +68,25 @@ public:
 	void delete_strategy();
 
 	void update(int interpolation);
-	int draw_framerate(int flush /* = 1 */);
+//	int draw_framerate(int flush /* = 1 */);
 
 	ADevicePrefs *audio_device;
 	VDevicePrefs *video_device;
 	ArrayList<BC_ListBoxItem*> strategies;
 
 	PlaybackConfig *playback_config;
-	BC_Title *framerate_title;
+//	BC_Title *framerate_title;
 	PlaybackNearest *nearest_neighbor;
 	PlaybackBicubicBicubic *cubic_cubic;
-	PlaybackBicubicBilinear *cubic_linear;
-	PlaybackBilinearBilinear *linear_linear;
+//	PlaybackBicubicBilinear *cubic_linear;
+//	PlaybackBilinearBilinear *linear_linear;
+//	PlaybackLanczos *lanczos;
 	PlaybackDeblock *mpeg4_deblock;
 	PlaybackInterpolateRaw *interpolate_raw;
-	PlaybackWhiteBalanceRaw *white_balance_raw;
-	VideoAsynchronous *asynchronous;
+	PlaybackHWDecode *hw_decode;
+    PlaybackFFmpegMov *ffmpeg_mov;
+//	PlaybackWhiteBalanceRaw *white_balance_raw;
+//	VideoAsynchronous *asynchronous;
 
 	BC_Title *vdevice_title;
 };
@@ -136,13 +141,15 @@ public:
 	PreferencesWindow *pwindow;
 };
 
-class VideoAsynchronous : public BC_CheckBox
-{
-public:
-	VideoAsynchronous(PreferencesWindow *pwindow, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-};
+/*
+ * class VideoAsynchronous : public BC_CheckBox
+ * {
+ * public:
+ * 	VideoAsynchronous(PreferencesWindow *pwindow, int x, int y);
+ * 	int handle_event();
+ * 	PreferencesWindow *pwindow;
+ * };
+ */
 
 class VideoEveryFrame : public BC_CheckBox
 {
@@ -201,6 +208,21 @@ public:
 	PlaybackPrefs *prefs;
 };
 
+class PlaybackLanczos : public BC_Radial
+{
+public:
+	PlaybackLanczos(PreferencesWindow *pwindow, 
+		PlaybackPrefs *prefs, 
+		int value, 
+		int x, 
+		int y);
+
+	int handle_event();
+
+	PreferencesWindow *pwindow;
+	PlaybackPrefs *prefs;
+};
+
 class PlaybackBilinearBilinear : public BC_Radial
 {
 public:
@@ -233,6 +255,30 @@ class PlaybackInterpolateRaw : public BC_CheckBox
 {
 public:
 	PlaybackInterpolateRaw(int x, 
+		int y, 
+		PreferencesWindow *pwindow, 
+		PlaybackPrefs *playback);
+	int handle_event();
+	PreferencesWindow *pwindow;
+	PlaybackPrefs *playback;
+};
+
+class PlaybackHWDecode : public BC_CheckBox
+{
+public:
+	PlaybackHWDecode(int x, 
+		int y, 
+		PreferencesWindow *pwindow, 
+		PlaybackPrefs *playback);
+	int handle_event();
+	PreferencesWindow *pwindow;
+	PlaybackPrefs *playback;
+};
+
+class PlaybackFFmpegMov : public BC_CheckBox
+{
+public:
+	PlaybackFFmpegMov(int x, 
 		int y, 
 		PreferencesWindow *pwindow, 
 		PlaybackPrefs *playback);

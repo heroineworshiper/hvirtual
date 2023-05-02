@@ -56,7 +56,7 @@ read_samples (FILE * musicin, short sample_buffer[2304],
       exit (1);
     }
   }
-  if (NativeByteOrder != order_littleEndian || (glopts.byteswap == TRUE))
+  if (NativeByteOrder != order_littleEndian || (toolame_glopts.byteswap == TRUE))
     SwapBytesInWords (sample_buffer, samples_read);
 
   if (num_samples != MAX_U_32_NUM)
@@ -92,7 +92,7 @@ get_audio (FILE * musicin, short buffer[2][1152], unsigned long num_samples,
   if (nch == 2) {		/* stereo */
     samples_read =
       read_samples (musicin, insamp, num_samples, (unsigned long) 2304);
-    if (glopts.channelswap == TRUE) {
+    if (toolame_glopts.channelswap == TRUE) {
       for (j = 0; j < 1152; j++) {
 	buffer[1][j] = insamp[2 * j];
 	buffer[0][j] = insamp[2 * j + 1];
@@ -103,7 +103,7 @@ get_audio (FILE * musicin, short buffer[2][1152], unsigned long num_samples,
 	buffer[1][j] = insamp[2 * j + 1];
       }
     }
-  } else if (glopts.downmix == TRUE) {
+  } else if (toolame_glopts.downmix == TRUE) {
     samples_read =
       read_samples (musicin, insamp, num_samples, (unsigned long) 2304);
     for (j = 0; j < 1152; j++) {

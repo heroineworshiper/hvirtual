@@ -195,6 +195,7 @@ int MeterPanel::get_title_x(int number, const char *text)
 		
 		x1 += get_meter_w(i) + border;
 	}
+    return 0;
 }
 
 int MeterPanel::get_meters_width(Theme *theme, int meter_count, int visible)

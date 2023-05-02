@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -34,13 +33,15 @@
 class PresetsDBKeyframe
 {
 public:
-	PresetsDBKeyframe(const char *title);
+	PresetsDBKeyframe(const char *title, int is_factory);
 	~PresetsDBKeyframe();
 
 	void set_data(char *data);
 
 	char *title;
 	char *data;
+// is a factory preset
+	int is_factory;
 };
 
 // Presets for a single plugin
@@ -51,17 +52,20 @@ public:
 	~PresetsDBPlugin();
 	
 	
-	void load(FileXML *file);
+	void load(FileXML *file, int is_factory);
 	void save(FileXML *file);
 
 // Get a preset by name
-	PresetsDBKeyframe* get_keyframe(const char *title);
+	PresetsDBKeyframe* get_keyframe(const char *title, int is_factory);
 // Create a new keyframe
 	PresetsDBKeyframe* new_keyframe(const char *title);
 	void delete_keyframe(const char *title);
 // Load a preset into the keyframe
-	void load_preset(const char *preset_title, KeyFrame *keyframe);
-	int preset_exists(const char *preset_title);
+	void load_preset(const char *preset_title, 
+		KeyFrame *keyframe,
+		int is_factory);
+	int preset_exists(const char *preset_title, int is_factory);
+	int get_total_presets(int user_only);
 
 	ArrayList<PresetsDBKeyframe*> keyframes;
 	char *title;
@@ -73,25 +77,40 @@ public:
 	PresetsDB();
 
 // Load the database from the file.
-	void load();
+	void load_from_file(char *path, int is_factory, int clear_it);
+// load the database from a string
+	void load_from_string(char *string, int is_factory, int clear_it);
+	void load_common(FileXML *file, int is_factory);
+	
 // Save the database to the file.
 	void save();
+	void sort(char *plugin_title);
 
 // Get the total number of presets for a plugin
-	int get_total_presets(char *plugin_title);
+	int get_total_presets(char *plugin_title, int user_only);
 // Get the title of a preset
 	char* get_preset_title(char *plugin_title, int number);
+	int get_is_factory(char *plugin_title, int number);
 // Get the data for a preset
 	char* get_preset_data(char *plugin_title, int number);
 // Get a pluginDB by name
 	PresetsDBPlugin* get_plugin(const char *plugin_title);
 // Create a pluginDB
 	PresetsDBPlugin* new_plugin(const char *plugin_title);
-	void save_preset(const char *plugin_title, const char *preset_title, char *data);
-	void delete_preset(const char *plugin_title, const char *preset_title);
+	void save_preset(const char *plugin_title, 
+		const char *preset_title, 
+		char *data);
+	void delete_preset(const char *plugin_title, 
+		const char *preset_title,
+		int is_factory);
 // Load a preset into the keyframe
-	void load_preset(const char *plugin_title, const char *preset_title, KeyFrame *keyframe);
-	int preset_exists(const char *plugin_title, const char *preset_title);
+	void load_preset(const char *plugin_title, 
+		const char *preset_title, 
+		KeyFrame *keyframe,
+		int is_factory);
+	int preset_exists(const char *plugin_title, 
+		const char *preset_title,
+		int is_factory);
 
 private:
 // Remove all plugin data

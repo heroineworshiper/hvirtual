@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "new.h"
+#include "theme.h"
+
 
 
 
@@ -36,10 +38,10 @@ FileFormat::FileFormat(MWindow *mwindow)
  : BC_Window(PROGRAM_NAME ": File Format", 
 		mwindow->gui->get_abs_cursor_x(0),
 		mwindow->gui->get_abs_cursor_y(0),
- 		375, 
-		300, 
-		375, 
-		300)
+ 		DP(500), 
+		DP(300), 
+		DP(500), 
+		DP(300))
 {
 	this->mwindow = mwindow;
 }
@@ -66,33 +68,84 @@ void FileFormat::create_objects(Asset *asset, char *string2)
 
 void FileFormat::create_objects_(char *string2)
 {
+	BC_Resources *resources = BC_WindowBase::get_resources();
+	int margin = mwindow->theme->widget_border;
 	FileSystem dir;
 	File file;
-	char string[1024];
-	int x1 = 10, x2 = 180;
-	int x = x1, y = 10;
+	char string[BCTEXTLEN];
+	int x = margin;
+    int y = margin;
+    int y1;
+	int x1 = x;
+    int x2 = 0;
+    int text_h = BC_TextBox::calculate_h(this, 
+        MEDIUMFONT, 
+        1, 
+        1);
 
 	lock_window("FileFormat::create_objects_");
-	add_subwindow(new BC_Title(x, y, string2));
-	y += 20;
-	add_subwindow(new BC_Title(x, y, _("Assuming raw PCM:")));
+    BC_Title *title;
+	add_subwindow(title = new BC_Title(x, y, string2));
+	y += title->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Assuming raw PCM:")));
+	y += title->get_h() + margin;
+    
+    y1 = y;
+	add_subwindow(title = new BC_Title(x, y, _("Channels:")));
+    if(title->get_w() > x2)
+    {
+        x2 = title->get_w();
+    }
+    y += text_h + margin;
 
-	y += 30;
-	add_subwindow(new BC_Title(x, y, _("Channels:")));
+	add_subwindow(title = new BC_Title(x, y, _("Sample rate:")));
+    if(title->get_w() > x2)
+    {
+        x2 = title->get_w();
+    }
+    y += text_h + margin;
+
+	add_subwindow(title = new BC_Title(x, y, _("Bits:")));
+    if(title->get_w() > x2)
+    {
+        x2 = title->get_w();
+    }
+    y += text_h + margin;
+
+	add_subwindow(title = new BC_Title(x, y, _("Header length:")));
+    if(title->get_w() > x2)
+    {
+        x2 = title->get_w();
+    }
+    y += text_h + margin;
+
+	add_subwindow(title = new BC_Title(x, y, _("Byte order:")));
+    if(title->get_w() > x2)
+    {
+        x2 = title->get_w();
+    }
+    y = y1;
+    x = x2 + margin;
+    
+    
+
+    
+
 	sprintf(string, "%d", asset->channels);
-	channels_button = new FileFormatChannels(x2, y, this, string);
+	channels_button = new FileFormatChannels(x, y, this, string);
 	channels_button->create_objects();
+	y += text_h + margin;
 
-	y += 30;
-	add_subwindow(new BC_Title(x, y, _("Sample rate:")));
 	sprintf(string, "%d", asset->sample_rate);
-	add_subwindow(rate_button = new FileFormatRate(x2, y, this, string));
-	add_subwindow(new SampleRatePulldown(mwindow, rate_button, x2 + 100, y));
+	add_subwindow(rate_button = new FileFormatRate(x, y, this, string));
+	add_subwindow(new SampleRatePulldown(mwindow, 
+        rate_button, 
+        x + rate_button->get_w(), 
+        y));
 	
-	y += 30;
-	add_subwindow(new BC_Title(x, y, _("Bits:")));
+	y += text_h + margin;
 	bitspopup = new BitsPopup(this, 
-		x2, 
+		x, 
 		y, 
 		&asset->bits, 
 		0, 
@@ -102,20 +155,25 @@ void FileFormat::create_objects_(char *string2)
 		1);
 	bitspopup->create_objects();
 	
-	y += 30;
-	add_subwindow(new BC_Title(x, y, _("Header length:")));
+	y += text_h + margin;
 	sprintf(string, "%d", asset->header);
-	add_subwindow(header_button = new FileFormatHeader(x2, y, this, string));
+	add_subwindow(header_button = new FileFormatHeader(x, y, this, string));
 	
-	y += 30;
+	y += text_h + margin;
 
 //printf("FileFormat::create_objects_ 1 %d\n", asset->byte_order);
-	add_subwindow(new BC_Title(x, y, _("Byte order:")));
-	add_subwindow(lohi = new FileFormatByteOrderLOHI(x2, y, this, asset->byte_order));
-	add_subwindow(hilo = new FileFormatByteOrderHILO(x2 + 70, y, this, !asset->byte_order));
+	add_subwindow(lohi = new FileFormatByteOrderLOHI(x, y, this, asset->byte_order));
+	add_subwindow(hilo = new FileFormatByteOrderHILO(x + lohi->get_w() + margin, 
+        y, 
+        this, 
+        !asset->byte_order));
 	
-	y += 30;
-	add_subwindow(signed_button = new FileFormatSigned(x, y, this, asset->signed_));
+	y += text_h + margin;
+    x = margin;
+	add_subwindow(signed_button = new FileFormatSigned(x, 
+        y, 
+        this, 
+        asset->signed_));
 	
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));

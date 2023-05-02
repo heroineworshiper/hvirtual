@@ -19,31 +19,45 @@
 #define FSEEK fseeko64
 
 
-//#define WIDTH 720
-//#define HEIGHT 480
-#define WIDTH 960
-#define HEIGHT 540
-#define FRAMERATE (double)30000/1001
-//#define FRAMERATE (double)30
-#define STARTING_OFFSET 0x28
+#define WIDTH 640
+#define HEIGHT 480
+
+//#define FRAMERATE (double)30000/1001
+#define FRAMERATE (double)30
+//#define FRAMERATE (double)30000/3000
+
+
+//#define STARTING_OFFSET 0x28
+#define STARTING_OFFSET 0x0
 
 #define CHANNELS 1
-#define SAMPLERATE 48000
+#define SAMPLERATE 32000
 #define AUDIO_CHUNK 2048
-#define BITS 24
+#define BITS 16
 #define TEMP_FILE "/tmp/temp.mov"
 
 // Output files
 #define AUDIO_FILE "/tmp/audio.pcm"
 #define VIDEO_FILE "/tmp/video.mov"
+
+
 //#define VCODEC QUICKTIME_MJPA
-//#define VCODEC QUICKTIME_JPEG
+#define VCODEC QUICKTIME_JPEG
+
+
+// Search for JFIF in JPEG header
+//#define USE_JFIF
+
+
+// Search for ffe8ffe0
+#define USE_FFE8FFE0
 
 
 // Only 1 variation of this, recorded by 1 camcorder
-#define VCODEC QUICKTIME_H264
+//#define VCODEC QUICKTIME_H264
 // H264 rendered by Cinelerra
-#define USE_X264
+//#define USE_X264
+
 
 #define ACODEC QUICKTIME_MP4A
 
@@ -173,6 +187,8 @@ int main(int argc, char *argv[])
 	int update_time = 0;
 	int state = GOT_NOTHING;
 	char *in_path;
+	char *audio_path = AUDIO_FILE;
+	char *video_path = VIDEO_FILE;
 	int audio_frame;
 	int total_samples;
 	int field;
@@ -190,29 +206,9 @@ int main(int argc, char *argv[])
 	int64_t *field_table;
 	int64_t field_size;
 	int64_t field_allocation;
+	int width = WIDTH;
+	int height = HEIGHT;
 
-// Dump codec settings
-	printf("Codec settings:\n"
-		"   WIDTH=%d HEIGHT=%d\n"
-		"   FRAMERATE=%.2f\n"
-		"   CHANNELS=%d\n"
-		"   SAMPLERATE=%d\n"
-		"   BITS=%d\n"
-		"   AUDIO CHUNK=%d\n"
-		"   VCODEC=\"%s\"\n"
-		"   ACODEC=\"%s\"\n",
-		WIDTH,
-		HEIGHT,
-		FRAMERATE,
-		CHANNELS,
-		SAMPLERATE,
-		BITS,
-		audio_chunk,
-		VCODEC,
-		ACODEC);
-#ifdef READ_ONLY
-	printf("   READ ONLY\n");
-#endif
 
 	if(argc < 2)
 	{
@@ -220,6 +216,8 @@ int main(int argc, char *argv[])
 			"Usage: recover [options] <input>\n"
 			"Options:\n"
 			" -b samples     number of samples in an audio chunk (%d)\n"
+			" -a filename    alternative audio output\n"
+			" -v filename    alternative video output\n"
 			"\n",
 			audio_chunk);
 		exit(1);
@@ -246,11 +244,38 @@ int main(int argc, char *argv[])
 			}
 		}
 		else
+		if(!strcmp(argv[i], "-v"))
+		{
+			if(i + 1 < argc)
+			{
+				video_path = argv[i + 1];
+				i++;
+			}
+			else
+			{
+				printf("-v needs a filename.\n");
+				exit(1);
+			}
+		}
+		else
+		if(!strcmp(argv[i], "-a"))
+		{
+			if(i + 1 < argc)
+			{
+				audio_path = argv[i + 1];
+				i++;
+			}
+			else
+			{
+				printf("-a needs a filename.\n");
+				exit(1);
+			}
+		}
+		else
 		{
 			in_path = argv[i];
 		}
 	}
-
 
 // Get the field count
 	if(!memcmp(VCODEC, QUICKTIME_MJPA, 4))
@@ -272,6 +297,33 @@ int main(int argc, char *argv[])
 	}
 
 
+// Dump codec settings
+	printf("Codec settings:\n"
+		"   WIDTH=%d HEIGHT=%d\n"
+		"   FRAMERATE=%.2f\n"
+		"   CHANNELS=%d\n"
+		"   SAMPLERATE=%d\n"
+		"   BITS=%d\n"
+		"   AUDIO CHUNK=%d\n"
+		"   VCODEC=\"%s\"\n"
+		"   ACODEC=\"%s\"\n"
+		"   AUDIO_FILE=\"%s\"\n"
+		"   VIDEO_FILE=\"%s\"\n",
+		WIDTH,
+		HEIGHT,
+		FRAMERATE,
+		CHANNELS,
+		SAMPLERATE,
+		BITS,
+		audio_chunk,
+		VCODEC,
+		ACODEC,
+		audio_path,
+		video_path);
+#ifdef READ_ONLY
+	printf("   READ ONLY\n");
+#endif
+
 
 	in = fopen(in_path, "rb+");
 	if(!in)
@@ -282,6 +334,60 @@ int main(int argc, char *argv[])
 	
 	fseek(in, STARTING_OFFSET, SEEK_SET);
 	
+	
+	// try to get width & height
+	if(!is_h264)
+	{
+		int bytes_read = fread(search_buffer, 1, SEARCH_FRAGMENT, in);
+		int got_it = 0;
+		for(i = 0; i < bytes_read - 0x20; i++)
+		{
+			if(
+#ifdef USE_FFE8FFE0
+			search_buffer[i] == 0xff &&
+				search_buffer[i + 1] == 0xd8 &&
+				search_buffer[i + 2] == 0xff &&
+				search_buffer[i + 3] == 0xe0
+#else
+			
+			search_buffer[i] == 0xff &&
+				search_buffer[i + 1] == 0xd8 &&
+				search_buffer[i + 2] == 0xff &&
+				search_buffer[i + 3] == 0xc0
+#endif
+#ifdef USE_JFIF					
+				&& search_buffer[i + 6] == 'J' &&
+				search_buffer[i + 7] == 'F' &&
+				search_buffer[i + 8] == 'I' &&
+				search_buffer[i + 9] == 'F'
+#endif
+			)
+			{
+				for(i += 0x14; i < bytes_read - 0x9; i++)
+				{
+					if(search_buffer[i] == 0xff &&
+						search_buffer[i + 1] == 0xc0)
+					{
+						height = (search_buffer[i + 5] << 8) |
+							search_buffer[i + 6];
+						width = (search_buffer[i + 7] << 8) |
+							search_buffer[i + 8];
+						got_it = 1;
+						break;
+					}
+				}
+				break;
+			}
+		}
+		
+		if(got_it)
+		{
+			printf("main %d: detected w=%d h=%d\n", __LINE__, width, height);
+		}
+	}
+
+
+	fseek(in, STARTING_OFFSET, SEEK_SET);
 
 
 #ifndef READ_ONLY
@@ -304,14 +410,14 @@ int main(int argc, char *argv[])
 // 		FRAMERATE, 
 // 		VCODEC);
 
-	audio_out = fopen(AUDIO_FILE, "w");
+	audio_out = fopen(audio_path, "w");
 	if(!audio_out)
 	{
 		perror("open audio output");
 		exit(1);
 	}
 
-	video_out = quicktime_open(VIDEO_FILE, 0, 1);
+	video_out = quicktime_open(video_path, 0, 1);
 		
 	if(!video_out)
 	{
@@ -321,15 +427,15 @@ int main(int argc, char *argv[])
 
 	quicktime_set_video(video_out, 
 		1, 
-		WIDTH, 
-		HEIGHT, 
+		width, 
+		height, 
 		FRAMERATE, 
 		VCODEC);
-	quicktime_set_audio(video_out, 
-		CHANNELS, 
-		SAMPLERATE, 
-		BITS, 
-		ACODEC);
+// 	quicktime_set_audio(video_out, 
+// 		CHANNELS, 
+// 		SAMPLERATE, 
+// 		BITS, 
+// 		ACODEC);
 
 
 	if(is_h264)
@@ -339,10 +445,11 @@ int main(int argc, char *argv[])
 		quicktime_avcc_t *avcc = &trak->mdia.minf.stbl.stsd.table[0].avcc;
 		quicktime_set_avcc_header(avcc,
 		  	h264_desc, 
-		  	sizeof(h264_desc));
+		  	sizeof(h264_desc),
+            1);
 	}
 	
-#endif
+#endif // !READ_ONLY
 
 	audio_start = (int64_t)0x10;
 	ftell_byte = STARTING_OFFSET;
@@ -367,10 +474,11 @@ int main(int argc, char *argv[])
 	while(ftell_byte < file_size)
 	{
 		current_byte = ftell_byte;
-		fread(search_buffer, SEARCH_FRAGMENT, 1, in);
+		int temp = fread(search_buffer, SEARCH_FRAGMENT, 1, in);
 		ftell_byte = current_byte + SEARCH_FRAGMENT - SEARCH_PAD;
 		FSEEK(in, ftell_byte, SEEK_SET);
 
+//printf("main %d\n", __LINE__);
 		for(i = 0; i < SEARCH_FRAGMENT - SEARCH_PAD; i++)
 		{
 // Search for image start
@@ -482,17 +590,30 @@ int main(int argc, char *argv[])
 					}
 				}
 				else
-				if(search_buffer[i] == 0xff &&
+				if(
+#ifdef USE_FFE8FFE0
+					search_buffer[i] == 0xff &&
 					search_buffer[i + 1] == 0xd8 &&
 					search_buffer[i + 2] == 0xff &&
-					search_buffer[i + 3] == 0xe0 &&
-					search_buffer[i + 6] == 'J' &&
+					search_buffer[i + 3] == 0xe0
+#else
+					search_buffer[i] == 0xff &&
+					search_buffer[i + 1] == 0xd8 &&
+					search_buffer[i + 2] == 0xff &&
+					search_buffer[i + 3] == 0xc0
+#endif
+
+#ifdef USE_JFIF					
+					&& search_buffer[i + 6] == 'J' &&
 					search_buffer[i + 7] == 'F' &&
 					search_buffer[i + 8] == 'I' &&
-					search_buffer[i + 9] == 'F')
+					search_buffer[i + 9] == 'F'
+#endif
+				)
 				{
 					state = GOT_IMAGE_START;
 					image_start = current_byte + i;
+//printf("main %d 0x%jx\n", __LINE__, image_start);
 				}
 			}
 			else
@@ -517,7 +638,7 @@ int main(int argc, char *argv[])
 						{
 							int frame_size = image_end - image_start;
 							FSEEK(in, image_start, SEEK_SET);
-							fread(frame_buffer, frame_size, 1, in);
+							int temp = fread(frame_buffer, frame_size, 1, in);
 							FSEEK(in, ftell_byte, SEEK_SET);
 
 							int new_frame_size = get_h264_size(frame_buffer, frame_size);
@@ -535,7 +656,7 @@ int main(int argc, char *argv[])
 						}
 						else
 						{
-							printf("%d: Possibly lost image between %llx and %llx\n", 
+							printf("%d: Possibly lost image between %lx and %lx\n", 
 								__LINE__,
 								image_start,
 								image_end);
@@ -568,7 +689,7 @@ int main(int argc, char *argv[])
 							if(audio_size > SEARCH_FRAGMENT)
 								audio_size = SEARCH_FRAGMENT;
 							FSEEK(in, prev_frame_end, SEEK_SET);
-							fread(frame_buffer, audio_size, 1, in);
+							int temp = fread(frame_buffer, audio_size, 1, in);
 							FSEEK(in, ftell_byte, SEEK_SET);
 //							fwrite(frame_buffer, audio_size, 1, audio_out);
 
@@ -585,6 +706,7 @@ int main(int argc, char *argv[])
 				if(search_buffer[i] == 0xff &&
 					search_buffer[i + 1] == 0xd9)
 				{
+//printf("main %d 0x%jx\n", __LINE__, current_byte + i);
 // ffd9 sometimes occurs inside the mjpg tag
 					if(current_byte + i - image_start > 0x2a)
 					{
@@ -596,10 +718,12 @@ int main(int argc, char *argv[])
 // because the audio may by misaligned.  Use the extract utility to get the audio.
 						if(image_end - image_start > audio_chunk * audio_frame)
 						{
-							printf("%d: Possibly lost image between %llx and %llx\n", 
-								__LINE__,
-								image_start,
-								image_end);
+/*
+ * 							printf("%d: Possibly lost image between %llx and %llx\n", 
+ * 								__LINE__,
+ * 								image_start,
+ * 								image_end);
+ */
 // Put in fake image
 /*
  * 							APPEND_TABLE(start_table, start_size, start_allocation, image_start)
@@ -614,7 +738,7 @@ int main(int argc, char *argv[])
 
 						int frame_size = image_end - image_start;
 						FSEEK(in, image_start, SEEK_SET);
-						fread(frame_buffer, frame_size, 1, in);
+						int temp = fread(frame_buffer, frame_size, 1, in);
 						FSEEK(in, ftell_byte, SEEK_SET);
 						quicktime_write_frame(video_out, 
 							frame_buffer, 
@@ -626,7 +750,7 @@ int main(int argc, char *argv[])
 
 if(!(start_size % 100))
 {
-printf("Got %d frames. %d%%\r", 
+printf("Got %d frames. %ld%%\n", 
 start_size, 
 current_byte * (int64_t)100 / file_size);
 fflush(stdout);
@@ -639,6 +763,7 @@ fflush(stdout);
 
 
 
+	printf("Got %d frames %d samples total.\n", start_size, total_samples);
 
 // With the image table complete, 
 // write chunk table from the gaps in the image table
@@ -676,7 +801,6 @@ fflush(stdout);
 // 
 // 
 // // Put image table in movie
-// printf("Got %d frames %d samples total.\n", start_size, total_samples);
 // 	for(i = 0; i < start_size - fields; i += fields)
 // 	{
 // // Got a field out of order.  Skip just 1 image instead of 2.

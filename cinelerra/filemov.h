@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,13 +60,22 @@ public:
 
 	friend class FileMOVThread;
 
-	static void get_parameters(BC_WindowBase *parent_window, 
+
+// table functions
+    FileMOV();
+	int check_sig(File *file, const uint8_t *test_data);
+    FileBase* create(File *file);
+	void get_parameters(BC_WindowBase *parent_window, 
 		Asset *asset, 
 		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options,
-		char *locked_compressor);
-	static int check_sig(Asset *asset);
+		int option_type,
+	    const char *locked_compressor);
+	int get_best_colormodel(Asset *asset, int driver);
+    const char* formattostr(int format);
+    const char* get_tag(int format);
+
+
+
 
 	int open_file(int rd, int wr);
 	int close_file();
@@ -87,9 +95,9 @@ public:
 	int read_frame(VFrame *frame);
 	int read_samples(double *buffer, int64_t len);
 
-// Direct copy routines
-	static int get_best_colormodel(Asset *asset, int driver);
 	int64_t get_memory_usage();
+//    int64_t purge_cache();
+
 	int colormodel_supported(int colormodel);
 	int can_copy_from(Asset *asset, int64_t position); // This file can copy frames directly from the asset
 	static const char *strtocompression(const char *string);
@@ -99,14 +107,8 @@ public:
 	static void fix_codecs(Asset *asset);
 
 private:
+    static void put_cache(void *ptr);
 	void new_audio_temp(int64_t len);
-// read raw audio data
-	int read_raw(char *buffer, int64_t samples, int track);  
-// overlay raw frame from the current layer and position
-	int read_raw(VFrame *frame, 
-		float in_x1, float in_y1, float in_x2, float in_y2,
-		float out_x1, float out_y1, float out_x2, float out_y2, 
-		int use_float, int interpolate);
 	int reset_parameters_derived();
 	int quicktime_atracks;
 	int quicktime_vtracks;
@@ -244,7 +246,7 @@ class MOVConfigVideo : public BC_Window
 public:
 	MOVConfigVideo(BC_WindowBase *parent_window, 
 		Asset *asset, 
-		char *locked_compressor);
+		const char *locked_compressor);
 	~MOVConfigVideo();
 
 	void create_objects();
@@ -258,7 +260,7 @@ public:
 	BC_WindowBase *parent_window;
 	Asset *asset;
 	int param_x, param_y;
-	char *locked_compressor;
+	const char *locked_compressor;
 	
 	BC_ISlider *jpeg_quality;
 	BC_Title *jpeg_quality_title;
@@ -287,6 +289,9 @@ public:
 	MOVConfigVideoNum *h264_quantizer;
 	MOVConfigVideoFixBitrate *h264_fix_bitrate;
 	MOVConfigVideoFixQuant *h264_fix_quant;
+
+
+	MOVConfigVideoCheckBox *mov_sphere;
 };
 
 class MOVConfigVideoPopup : public BC_PopupTextBox

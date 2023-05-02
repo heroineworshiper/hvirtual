@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,113 +147,112 @@ void FileThread::run()
 	int debug = 0;
 	if(debug) PRINT_TRACE
 
-	if(is_reading)
-	{
-		if(debug) PRINT_TRACE
-	
-		while(!done && !disable_read)
-		{
-			if(debug) PRINT_TRACE
-			frame_lock->lock("FileThread::run 1");
-			int local_total_frames = total_frames;
-			frame_lock->unlock();
-
-			if(local_total_frames >= MAX_READ_FRAMES)
-			{
-				read_wait_lock->lock("FileThread::run");
-				continue;
-			}
-
-			if(debug) PRINT_TRACE
-			if(done || disable_read) break;
-
-// Make local copes of the locked parameters
-			FileThreadFrame *local_frame = 0;
-			int64_t local_position = 0;
-			int local_layer;
-			if(debug) PRINT_TRACE
-
-			frame_lock->lock("FileThread::run 2");
-// Get position of next frame to read
-			if(total_frames)
-				local_position = read_frames[total_frames - 1]->position + 1;
-			else
-				local_position = start_position;
-//printf("FileThread::run 1 %d %lld\n", total_frames, local_position);
-
-// Get first available frame
-			local_total_frames = total_frames;
-			local_frame = read_frames[local_total_frames];
-			local_layer = layer;
-			local_frame->valid = 0;
-			frame_lock->unlock();
-
-// Read frame
-			if(local_frame)
-			{
-				if(debug) PRINT_TRACE
-				file->set_video_position(local_position, 1);
-				file->set_layer(local_layer, 1);
-		 		int supported_colormodel = 
-					file->get_best_colormodel(PLAYBACK_ASYNCHRONOUS);
-				if(debug) PRINT_TRACE
-
-
-// Allocate frame
-				if(local_frame->frame &&
-					!local_frame->frame->params_match(file->asset->width,
-						file->asset->height,
-						supported_colormodel))
-				{
-					delete local_frame->frame;
-					local_frame->frame = 0;
-				}
-
-//printf("FileThread::run %d\n", __LINE__);
-				if(!local_frame->frame)
-				{
-					local_frame->frame = new VFrame(0,
-						-1,
-						file->asset->width,
-						file->asset->height,
-						supported_colormodel,
-						-1);
-				}
-
-// Read it
-// printf("FileThread::run %d w=%d h=%d supported_colormodel=%d\n", 
-// __LINE__, 
-// local_frame->frame->get_w(), 
-// local_frame->frame->get_h(),
-// local_frame->frame->get_color_model());
-				if(debug)
-				{
-					PRINT_TRACE
-					printf("file=%p local_frame->frame=%p\n", file, local_frame->frame);
-				}
-				file->read_frame(local_frame->frame, 1);
-				if(debug) PRINT_TRACE
-				local_frame->position = local_position;
-				local_frame->layer = local_layer;
-
-// Put frame in last position but since the last position now may be
-// lower than it was when we got the frame, swap the current
-// last position with the previous last position.
-				frame_lock->lock("FileThread::run 3");
-				FileThreadFrame *old_frame = read_frames[total_frames];
-				read_frames[local_total_frames] = old_frame;
-				read_frames[total_frames++] = local_frame;
-				local_frame->valid = 1;
-				if(debug) PRINT_TRACE
-				frame_lock->unlock();
-
-// Que the user
-				user_wait_lock->unlock();
-				if(debug) PRINT_TRACE
-			}
-		}
-	}
-	else
+// 	if(is_reading)
+// 	{
+// 		if(debug) PRINT_TRACE
+// 	
+// 		while(!done && !disable_read)
+// 		{
+// 			if(debug) PRINT_TRACE
+// 			frame_lock->lock("FileThread::run 1");
+// 			int local_total_frames = total_frames;
+// 			frame_lock->unlock();
+// 
+// 			if(local_total_frames >= MAX_READ_FRAMES)
+// 			{
+// 				read_wait_lock->lock("FileThread::run");
+// 				continue;
+// 			}
+// 
+// 			if(debug) PRINT_TRACE
+// 			if(done || disable_read) break;
+// 
+// // Make local copes of the locked parameters
+// 			FileThreadFrame *local_frame = 0;
+// 			int64_t local_position = 0;
+// 			int local_layer;
+// 			if(debug) PRINT_TRACE
+// 
+// 			frame_lock->lock("FileThread::run 2");
+// // Get position of next frame to read
+// 			if(total_frames)
+// 				local_position = read_frames[total_frames - 1]->position + 1;
+// 			else
+// 				local_position = start_position;
+// //printf("FileThread::run 1 %d %lld\n", total_frames, local_position);
+// 
+// // Get first available frame
+// 			local_total_frames = total_frames;
+// 			local_frame = read_frames[local_total_frames];
+// 			local_layer = layer;
+// 			local_frame->valid = 0;
+// 			frame_lock->unlock();
+// 
+// // Read frame
+// 			if(local_frame)
+// 			{
+// 				if(debug) PRINT_TRACE
+// 				file->set_video_position(local_position, 1);
+// 				file->set_layer(local_layer, 1);
+// 		 		int supported_colormodel = 
+// 					file->get_best_colormodel(PLAYBACK_ASYNCHRONOUS);
+// 				if(debug) PRINT_TRACE
+// 
+// 
+// // Allocate frame
+// 				if(local_frame->frame &&
+// 					!local_frame->frame->params_match(file->asset->width,
+// 						file->asset->height,
+// 						supported_colormodel))
+// 				{
+// 					delete local_frame->frame;
+// 					local_frame->frame = 0;
+// 				}
+// 
+// 				if(!local_frame->frame)
+// 				{
+// 					local_frame->frame = new VFrame(0,
+// 						-1,
+// 						file->asset->width,
+// 						file->asset->height,
+// 						supported_colormodel,
+// 						-1);
+// 				}
+// 
+// // Read it
+// // printf("FileThread::run %d w=%d h=%d supported_colormodel=%d\n", 
+// // __LINE__, 
+// // local_frame->frame->get_w(), 
+// // local_frame->frame->get_h(),
+// // local_frame->frame->get_color_model());
+// 				if(debug)
+// 				{
+// 					PRINT_TRACE
+// 					printf("file=%p local_frame->frame=%p\n", file, local_frame->frame);
+// 				}
+// 				file->read_frame(local_frame->frame, 1);
+// 				if(debug) PRINT_TRACE
+// 				local_frame->position = local_position;
+// 				local_frame->layer = local_layer;
+// 
+// // Put frame in last position but since the last position now may be
+// // lower than it was when we got the frame, swap the current
+// // last position with the previous last position.
+// 				frame_lock->lock("FileThread::run 3");
+// 				FileThreadFrame *old_frame = read_frames[total_frames];
+// 				read_frames[local_total_frames] = old_frame;
+// 				read_frames[total_frames++] = local_frame;
+// 				local_frame->valid = 1;
+// 				if(debug) PRINT_TRACE
+// 				frame_lock->unlock();
+// 
+// // Que the user
+// 				user_wait_lock->unlock();
+// 				if(debug) PRINT_TRACE
+// 			}
+// 		}
+// 	}
+// 	else
 	{
 		while(!done)
 		{
@@ -432,7 +430,8 @@ int FileThread::start_writing(long buffer_size,
 		bytes_per_frame = VFrame::calculate_data_size(file->asset->width,
 			file->asset->height,
 			-1,
-			color_model);
+			color_model,
+            1);
 
 		video_buffer = new VFrame***[ring_buffers];
 // printf("FileThread::start_writing 1 %d %d %d %p\n", 
@@ -486,27 +485,27 @@ int FileThread::start_writing(long buffer_size,
 	return 0;
 }
 
-int FileThread::start_reading()
-{
-	if(!is_reading)
-	{
-		is_reading = 1;
-		disable_read = 1;
-		done = 0;
-	}
-	return 0;
-}
-
-int FileThread::stop_reading()
-{
-	if(is_reading && Thread::running())
-	{
-		done = 1;
-		read_wait_lock->unlock();
-		Thread::join();
-	}
-	return 0;
-}
+// int FileThread::start_reading()
+// {
+// 	if(!is_reading)
+// 	{
+// 		is_reading = 1;
+// 		disable_read = 1;
+// 		done = 0;
+// 	}
+// 	return 0;
+// }
+// 
+// int FileThread::stop_reading()
+// {
+// 	if(is_reading && Thread::running())
+// 	{
+// 		done = 1;
+// 		read_wait_lock->unlock();
+// 		Thread::join();
+// 	}
+// 	return 0;
+// }
 
 int FileThread::set_video_position(int64_t position)
 {
@@ -614,7 +613,7 @@ int FileThread::read_frame(VFrame *frame)
 // frame->get_w(),
 // local_frame->frame->get_color_model(),
 // local_frame->frame->get_w());
-			BC_CModels::transfer(frame->get_rows(), 
+			cmodel_transfer(frame->get_rows(), 
 				local_frame->frame->get_rows(),
 				frame->get_y(),
 				frame->get_u(),
@@ -684,7 +683,7 @@ int FileThread::read_frame(VFrame *frame)
 		file->set_video_position(read_position, 1);
 		file->set_layer(layer, 1);
 		read_position++;
-		int result = file->read_frame(frame, 1);
+		int result = file->read_frame(frame, 1, 0, 0);
 //printf("FileThread::read_frame %d this=%p\n", __LINE__, this);
 		return result;
 	}
@@ -718,6 +717,11 @@ VFrame*** FileThread::get_video_buffer()
 	swap_buffer();
 
 	input_lock[current_buffer]->lock("FileThread::get_video_buffer");
+
+// printf("FileThread::get_video_buffer %d ring_buffers=%d video_buffer[current_buffer]=%p\n", 
+// __LINE__, 
+// ring_buffers, 
+// video_buffer[current_buffer]);
 	return video_buffer[current_buffer];
 }
 
@@ -740,6 +744,7 @@ int FileThread::swap_buffer()
 {
 	current_buffer++;
 	if(current_buffer >= ring_buffers) current_buffer = 0;
+    return 0;
 }
 
 

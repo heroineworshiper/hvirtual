@@ -32,6 +32,9 @@
 #define MIN_ANGLE 225
 #define MAX_ANGLE -45
 
+// detect cursor movement in a straight line rather than a circle
+#define LINEAR_POINTER
+
 BC_Pot::BC_Pot(int x, int y, VFrame **data)
  : BC_SubWindow(x, y, -1, -1, -1)
 {
@@ -40,6 +43,7 @@ BC_Pot::BC_Pot(int x, int y, VFrame **data)
 		images[i] = 0;
 	use_caption = 1;
 	enabled = 1;
+    pointer_range = DP(200);
 }
 
 BC_Pot::~BC_Pot()
@@ -96,6 +100,11 @@ void BC_Pot::set_use_caption(int value)
 }
 
 
+void BC_Pot::set_pointer_range(int x)
+{
+    pointer_range = x;
+}
+
 void BC_Pot::enable()
 {
 	enabled = 1;
@@ -117,7 +126,17 @@ int BC_Pot::draw(int flush)
 	set_color(get_resources()->pot_needle_color);
 
 	angle_to_coords(x1, y1, x2, y2, percentage_to_angle(get_percentage()));
-	draw_line(x1, y1, x2, y2);
+	if(!enabled)
+    {
+        set_line_dashes(1);
+    }
+    set_line_width(2);
+    draw_line(x1, y1, x2, y2);
+    set_line_width(1);
+    if(!enabled)
+    {
+        set_line_dashes(0);
+    }
 
 	flash(flush);
 	return 0;
@@ -137,8 +156,10 @@ float BC_Pot::angle_to_percentage(float angle)
 int BC_Pot::angle_to_coords(int &x1, int &y1, int &x2, int &y2, float angle)
 {
 	BC_Resources *resources = get_resources();
-	x1 = resources->pot_x1;
-	y1 = resources->pot_y1;
+	x1 = w / 2 - resources->pot_offset;
+	y1 = h / 2 - resources->pot_offset;
+//	x1 = resources->pot_x1;
+//	y1 = resources->pot_y1;
 	if(status == POT_DN)
 	{
 		x1 += resources->pot_offset;
@@ -147,8 +168,9 @@ int BC_Pot::angle_to_coords(int &x1, int &y1, int &x2, int &y2, float angle)
 
 	while(angle < 0) angle += 360;
 
-	x2 = (int)(cos(angle / 360 * (2 * M_PI)) * resources->pot_r + x1);
-	y2 = (int)(-sin(angle / 360 * (2 * M_PI)) * resources->pot_r + y1);
+	int r = x1 - 2;
+	x2 = (int)(cos(angle / 360 * (2 * M_PI)) * r + x1);
+	y2 = (int)(-sin(angle / 360 * (2 * M_PI)) * r + y1);
 	return 0;
 }
 
@@ -156,9 +178,12 @@ float BC_Pot::coords_to_angle(int x2, int y2)
 {
 	int x1, y1, x, y;
 	float angle;
+	BC_Resources *resources = get_resources();
 
-	x1 = get_resources()->pot_x1;
-	y1 = get_resources()->pot_y1;
+	x1 = w / 2 - resources->pot_offset;
+	y1 = h / 2 - resources->pot_offset;
+//	x1 = get_resources()->pot_x1;
+//	y1 = get_resources()->pot_y1;
 	if(status == POT_DN)
 	{
 		x1 += 2;
@@ -214,7 +239,7 @@ void BC_Pot::show_value_tooltip()
 	if(use_caption)
 	{
 		set_tooltip(get_caption());
-		show_tooltip(50);
+		show_tooltip(DP(50));
 		keypress_tooltip_timer = 2000;
 	}
 }
@@ -243,7 +268,7 @@ int BC_Pot::repeat_event(int64_t duration)
 				if(!tooltip_text[0] || isdigit(tooltip_text[0]))
 				{
 					set_tooltip(get_caption());
-					show_tooltip(50);
+					show_tooltip(DP(50));
 				}
 				else
 					show_tooltip();
@@ -337,11 +362,18 @@ int BC_Pot::button_press_event()
 			else
 			{
 				status = POT_DN;
+#ifndef LINEAR_POINTER
 				start_cursor_angle = coords_to_angle(get_cursor_x(), get_cursor_y());
 				start_needle_angle = percentage_to_angle(get_percentage());
 				angle_offset = start_cursor_angle - start_needle_angle;
 				prev_angle = start_cursor_angle;
 				angle_correction = 0;
+#else
+                start_cursor_x = get_cursor_x();
+                start_percent = get_percentage();
+#endif
+
+
 				draw(1);
 				top_level->deactivate();
 				top_level->active_subwindow = this;
@@ -379,6 +411,7 @@ int BC_Pot::cursor_motion_event()
 		top_level->event_win == win && 
 		status == POT_DN)
 	{
+#ifndef LINEAR_POINTER
 		float angle = coords_to_angle(get_cursor_x(), get_cursor_y());
 
 		if(prev_angle >= 0 && prev_angle < 90 &&
@@ -402,6 +435,20 @@ int BC_Pot::cursor_motion_event()
 			draw(1);
 			handle_event();
 		}
+#else
+        float new_percent = (float)(get_cursor_x() - start_cursor_x) /
+            pointer_range +
+            start_percent;
+        if(percentage_to_value(new_percent))
+        {
+            set_tooltip(get_caption());
+			draw(1);
+			handle_event();
+        }
+#endif
+
+
+
 		return 1;
 	}
 	return 0;
@@ -655,12 +702,12 @@ int64_t BC_QPot::get_value()
 
 void BC_QPot::update(int64_t value)
 {
-	value = Freq::fromfreq(value);
-	if(this->value != value)
+	int index = Freq::fromfreq(value);
+	if(this->value != index)
 	{
-		if(value < minvalue) value = minvalue;
-		if(value > maxvalue) value = maxvalue;
-//		this->value = Freq::fromfreq(value);
+		if(index < minvalue) index = minvalue;
+		if(index > maxvalue) index = maxvalue;
+        this->value = index;
 		draw(1);
 	}
 }

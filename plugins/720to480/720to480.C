@@ -54,10 +54,10 @@ _720to480Window::_720to480Window(_720to480Main *client, int x, int y)
  : BC_Window(client->gui_string, 
  	x, 
 	y, 
-	230, 
-	150, 
-	230, 
-	150, 
+	DP(230), 
+	DP(150), 
+	DP(230), 
+	DP(150), 
 	0, 
 	0,
 	1)
@@ -72,10 +72,10 @@ _720to480Window::~_720to480Window()
 
 void _720to480Window::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_tool(odd_first = new _720to480Order(client, this, 1, x, y, _("Odd field first")));
-	y += 25;
+	y += DP(25);
 	add_tool(even_first = new _720to480Order(client, this, 0, x, y, _("Even field first")));
 
 // 	y += 25;
@@ -87,7 +87,6 @@ void _720to480Window::create_objects()
 	add_subwindow(new BC_CancelButton(this));
 
 	show_window();
-	flush();
 }
 
 int _720to480Window::close_event()

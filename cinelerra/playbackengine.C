@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,6 +106,7 @@ ChannelDB* PlaybackEngine::get_channeldb()
 	switch(config->vconfig->driver)
 	{
 		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 			return mwindow->channeldb_v4l2jpeg;
 			break;
 		case PLAYBACK_BUZ:
@@ -128,8 +128,7 @@ int PlaybackEngine::create_render_engine()
 	render_engine = new RenderEngine(this,
 		preferences, 
 		output,
-		get_channeldb(),
-		0);
+		get_channeldb());
 //printf("PlaybackEngine::create_render_engine %d\n", __LINE__);
 	return 0;
 }
@@ -142,15 +141,21 @@ void PlaybackEngine::delete_render_engine()
 	renderengine_lock->unlock();
 }
 
-void PlaybackEngine::arm_render_engine()
+int PlaybackEngine::arm_render_engine()
 {
 	if(render_engine)
-		render_engine->arm_command(command);
+	{
+    	return render_engine->arm_command(command);
+    }
+    return 0;
 }
 
 void PlaybackEngine::start_render_engine()
 {
-	if(render_engine) render_engine->start_command();
+	if(render_engine)
+    {
+        render_engine->start_command();
+    }
 }
 
 void PlaybackEngine::wait_render_engine()
@@ -410,9 +415,11 @@ void PlaybackEngine::run()
 			case CURRENT_FRAME:
 				last_command = command->command;
 				perform_change();
-				arm_render_engine();
+				if(!arm_render_engine())
+                {
 // Dispatch the command
-				start_render_engine();
+    				start_render_engine();
+                }
 				break;
 
 			default:
@@ -425,14 +432,15 @@ void PlaybackEngine::run()
 				}
 
 				perform_change();
-				arm_render_engine();
-
+				if(!arm_render_engine())
+                {
 // Start tracking after arming so the tracking position doesn't change.
 // The tracking for a single frame command occurs during PAUSE
-				init_tracking();
+	    			init_tracking();
 
 // Dispatch the command
-				start_render_engine();
+    				start_render_engine();
+                }
 				break;
 		}
 

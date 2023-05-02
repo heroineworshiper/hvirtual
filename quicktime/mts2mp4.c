@@ -600,7 +600,7 @@ int main(int argc, char *argv[])
 // Initialize ffmpeg to decode headers
   	avcodec_init();
 	avcodec_register_all();
-	decoder = avcodec_find_decoder(CODEC_ID_H264);
+	decoder = avcodec_find_decoder(AV_CODEC_ID_H264);
 //	decoder = avcodec_find_decoder(CODEC_ID_VC1);
 	decoder_context = avcodec_alloc_context();
 	error = avcodec_open(decoder_context, decoder);

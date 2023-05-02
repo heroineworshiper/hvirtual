@@ -21,6 +21,7 @@
 
 #include "deleteallindexes.h"
 #include "filesystem.h"
+#include "language.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "preferences.h"
@@ -29,10 +30,6 @@
 #include "theme.h"
 #include <string.h>
 
-#include <libintl.h>
-#define _(String) gettext(String)
-#define gettext_noop(String) String
-#define N_(String) gettext_noop (String)
 
 DeleteAllIndexes::DeleteAllIndexes(MWindow *mwindow, PreferencesWindow *pwindow, int x, int y)
  : BC_GenericButton(x, y, _("Delete existing indexes")), Thread()
@@ -48,6 +45,7 @@ DeleteAllIndexes::~DeleteAllIndexes()
 int DeleteAllIndexes::handle_event() 
 { 
 	start(); 
+    return 0;
 }
 
 static int test_filter(char *string, const char *filter)
@@ -60,9 +58,9 @@ void DeleteAllIndexes::run()
 {
 	char string[BCTEXTLEN], string1[BCTEXTLEN], string2[BCTEXTLEN];
 // prepare directory
-	strcpy(string1, pwindow->thread->preferences->index_directory);
+	strcpy(string1, pwindow->thread->preferences->index_directory.c_str());
 	FileSystem dir;
-	dir.update(pwindow->thread->preferences->index_directory);
+	dir.update(pwindow->thread->preferences->index_directory.c_str());
 	dir.complete_path(string1);
 // prepare filter
 	const char *filter1 = ".idx";

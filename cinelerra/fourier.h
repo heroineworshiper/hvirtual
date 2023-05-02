@@ -52,9 +52,10 @@ public:
 	CrossfadeFFT();
 	virtual ~CrossfadeFFT();
 
-	int reset();
-	int initialize(int window_size);
+	int initialize(int window_size, int bands = 1);
 	long get_delay();     // Number of samples fifo is delayed
+// get position relative to the last read_samples of the current _process call
+//    int get_read_offset(); 
 	int reconfigure();
 	int fix_window_size();
 	int delete_fft();
@@ -71,6 +72,11 @@ public:
 		long size, 
 		Samples *output_ptr,
 		int direction);
+// multiband processing
+	int process_buffer(int64_t output_sample,
+		long size, 
+		Samples **output_ptr,
+		int direction);
 
 // Called by process_buffer to read samples from input.
 // Returns 1 on error or 0 on success.
@@ -82,10 +88,15 @@ public:
 	virtual int signal_process();        
 // Process a window in the time domain after the frequency domain
 	virtual int post_process();
+// Multiband versions
+	virtual int signal_process(int band);        
+	virtual int post_process(int band);
 
 // Size of a window.  Automatically fixed to a power of 2
 	long window_size;   
 
+// Time domane input of complete windows
+	Samples *input_buffer;
 // Frequency domain output of FFT
 	double *freq_real;
 	double *freq_imag;
@@ -94,16 +105,21 @@ public:
 	double *output_imag;
 
 private:
+// resets the variables but doesn't delete anything
+	int reset();
+    void allocate_output(int new_allocation);
 
-// input for complete windows
-	Samples *input_buffer;
-// output for crossfaded windows with overflow
-	double *output_buffer;
+// output of crossfaded windows with overflow.  1 buffer for each band
+	double **output_buffer;
 
-// samples in input_buffer
+// backup frequency domain for multiband
+	double *freq_real2;
+	double *freq_imag2;
+
+// samples in input_buffer including the tail
 	long input_size;
-// window_size
-	long input_allocation;
+// position relative to the last read_samples of the current _process call
+//    int input_offset;
 // Samples in output buffer less window border
 	long output_size;
 // Space in output buffer including window border
@@ -114,6 +130,7 @@ private:
 	int64_t input_sample;
 // Don't crossfade the first window
 	int first_window;
+    int bands;
 };
 
 #endif

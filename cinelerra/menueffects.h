@@ -78,7 +78,7 @@ public:
 	virtual int save_derived_attributes(Asset *asset, BC_Hash *defaults) { return 0; };
 	virtual PluginArray* create_plugin_array() { return 0; };
 	virtual int64_t to_units(double position, int round) { return 0; };
-	virtual int fix_menu(char *title) {};
+	virtual int fix_menu(char *title) { return 0; };
 	int test_existence(Asset *asset);
 
 	MWindow *mwindow;
@@ -174,22 +174,35 @@ public:
 };
 
 
+class MenuEffectPrompt;
 class MenuEffectPromptOK;
 class MenuEffectPromptCancel;
 
+class MenuEffectPresets : public BC_GenericButton
+{
+public:
+	MenuEffectPresets(MWindow *mwindow, MenuEffectPrompt *gui, int x, int y);
+	int handle_event();
+	MWindow *mwindow;
+	MenuEffectPrompt *gui;
+};
 
 class MenuEffectPrompt : public BC_Window
 {
 public:
-	MenuEffectPrompt(MWindow *mwindow);
+	MenuEffectPrompt(MWindow *mwindow, PluginServer *plugin_server);
 
 	static int calculate_w(BC_WindowBase *gui);
-	static int calculate_h(BC_WindowBase *gui);	
+	static int calculate_h(MWindow *mwindow);	
 	void create_objects();
 
+	MWindow *mwindow;
+	PluginServer *plugin_server;
 	MenuEffectPromptOK *ok;
 	MenuEffectPromptCancel *cancel;
 };
+
+
 
 
 #endif

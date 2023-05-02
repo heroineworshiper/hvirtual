@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -244,10 +244,10 @@ const char* OverlayConfig::output_to_text(int output_layer)
 
 OverlayWindow::OverlayWindow(Overlay *plugin)
  : PluginClientWindow(plugin, 
-	300, 
-	160, 
-	300, 
-	160, 
+	DP(300), 
+	DP(160), 
+	DP(300), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -259,26 +259,26 @@ OverlayWindow::~OverlayWindow()
 
 void OverlayWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Mode:")));
 	add_subwindow(mode = new OverlayMode(plugin, 
-		x + title->get_w() + 5, 
+		x + title->get_w() + DP(5), 
 		y));
 	mode->create_objects();
 
-	y += 30;
+	y += DP(30);
 	add_subwindow(title = new BC_Title(x, y, _("Layer order:")));
 	add_subwindow(direction = new OverlayDirection(plugin, 
-		x + title->get_w() + 5, 
+		x + title->get_w() + DP(5), 
 		y));
 	direction->create_objects();
 
-	y += 30;
+	y += DP(30);
 	add_subwindow(title = new BC_Title(x, y, _("Output layer:")));
 	add_subwindow(output = new OverlayOutput(plugin, 
-		x + title->get_w() + 5, 
+		x + title->get_w() + DP(5), 
 		y));
 	output->create_objects();
 
@@ -297,7 +297,7 @@ OverlayMode::OverlayMode(Overlay *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	150,
+	DP(150),
 	OverlayConfig::mode_to_text(plugin->config.mode),
 	1)
 {
@@ -333,7 +333,7 @@ OverlayDirection::OverlayDirection(Overlay *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	150,
+	DP(150),
 	OverlayConfig::direction_to_text(plugin->config.direction),
 	1)
 {
@@ -374,7 +374,7 @@ OverlayOutput::OverlayOutput(Overlay *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	100,
+	DP(100),
 	OverlayConfig::output_to_text(plugin->config.output_layer),
 	1)
 {
@@ -460,7 +460,7 @@ int Overlay::process_buffer(VFrame **frame,
 	load_configuration();
 
 
-printf("Overlay::process_buffer mode=%d\n", config.mode);
+//printf("Overlay::process_buffer mode=%d\n", config.mode);
 	if(!temp) temp = new VFrame(0,
 		-1,
 		frame[0]->get_w(),
@@ -553,7 +553,7 @@ printf("Overlay::process_buffer mode=%d\n", config.mode);
 int Overlay::handle_opengl()
 {
 #ifdef HAVE_GL
-	static char *get_pixels_frag = 
+	static const char *get_pixels_frag = 
 		"uniform sampler2D src_tex;\n"
 		"uniform sampler2D dst_tex;\n"
 		"uniform vec2 dst_tex_dimensions;\n"
@@ -566,34 +566,38 @@ int Overlay::handle_opengl()
 		"	src_color.rgb -= chroma_offset;\n"
 		"	dst_color.rgb -= chroma_offset;\n";
 
-	static char *put_pixels_frag = 
-		"	result_color.rgb += chroma_offset;\n"
+	static const char *put_pixels_frag = 
 		"	result_color.rgb = mix(dst_color.rgb, result_color.rgb, src_color.a);\n"
-		"	result_color.a = max(src_color.a, dst_color.a);\n"
+		"	result_color.rgb += chroma_offset;\n"
+	    "	result_color.a = src_color.a + (1.0 - src_color.a) * dst_color.a;\n"
+//		"	result_color.a = max(src_color.a, dst_color.a);\n"
 		"	gl_FragColor = result_color;\n"
 		"}\n";
 
-	static char *blend_add_frag = 
+    static const char *blend_normal_frag = 
+	    "	result_color.rgb = src_color.rgb;\n";
+
+	static const char *blend_add_frag = 
 		"	result_color.rgb = dst_color.rgb + src_color.rgb;\n";
 
-	static char *blend_max_frag = 
+	static const char *blend_max_frag = 
 		"	result_color.r = max(abs(dst_color.r, src_color.r);\n"
 		"	result_color.g = max(abs(dst_color.g, src_color.g);\n"
 		"	result_color.b = max(abs(dst_color.b, src_color.b);\n";
 
-	static char *blend_min_frag = 
+	static const char *blend_min_frag = 
 		"	result_color.r = min(abs(dst_color.r, src_color.r);\n"
 		"	result_color.g = min(abs(dst_color.g, src_color.g);\n"
 		"	result_color.b = min(abs(dst_color.b, src_color.b);\n";
 
-	static char *blend_subtract_frag = 
+	static const char *blend_subtract_frag = 
 		"	result_color.rgb = dst_color.rgb - src_color.rgb;\n";
 
 
-	static char *blend_multiply_frag = 
+	static const char *blend_multiply_frag = 
 		"	result_color.rgb = dst_color.rgb * src_color.rgb;\n";
 
-	static char *blend_divide_frag = 
+	static const char *blend_divide_frag = 
 		"	result_color.rgb = dst_color.rgb / src_color.rgb;\n"
 		"	if(src_color.r == 0.0) result_color.r = 1.0;\n"
 		"	if(src_color.g == 0.0) result_color.g = 1.0;\n"
@@ -606,7 +610,7 @@ int Overlay::handle_opengl()
 	dst->enable_opengl();
 	dst->init_screen();
 
-	char *shader_stack[] = { 0, 0, 0 };
+	const char *shader_stack[] = { 0, 0, 0 };
 	int current_shader = 0;
 
 
@@ -625,29 +629,30 @@ int Overlay::handle_opengl()
 		src->draw_texture();
 	}
 	else
-	if(config.mode == TRANSFER_NORMAL)
-	{
-		dst->enable_opengl();
-		dst->init_screen();
-
-// Move destination to screen
-		if(dst->get_opengl_state() != VFrame::SCREEN)
-		{
-			dst->to_texture();
-			dst->bind_texture(0);
-			dst->draw_texture();
-		}
-
-		src->to_texture();
-		src->bind_texture(0);
-		dst->enable_opengl();
-		dst->init_screen();
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		src->draw_texture();
-	}
-	else
+// GL_ONE_MINUS_SRC_ALPHA doesn't work 
+// 	if(config.mode == TRANSFER_NORMAL)
+// 	{
+// 		dst->enable_opengl();
+// 		dst->init_screen();
+// 
+// // Move destination to screen
+// 		if(dst->get_opengl_state() != VFrame::SCREEN)
+// 		{
+// 			dst->to_texture();
+// 			dst->bind_texture(0);
+// 			dst->draw_texture();
+// 		}
+// 
+// 		src->to_texture();
+// 		src->bind_texture(0);
+// 		dst->enable_opengl();
+// 		dst->init_screen();
+// 
+// 		glEnable(GL_BLEND);
+// 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+// 		src->draw_texture();
+// 	}
+// 	else
 	{
 // Read destination back to texture
 		dst->to_texture();
@@ -666,6 +671,9 @@ int Overlay::handle_opengl()
 
 		switch(config.mode)
 		{
+			case TRANSFER_NORMAL:
+				shader_stack[current_shader++] = blend_normal_frag;
+				break;
 			case TRANSFER_ADDITION:
 				shader_stack[current_shader++] = blend_add_frag;
 				break;
@@ -698,7 +706,7 @@ int Overlay::handle_opengl()
 		glUseProgram(shader_id);
 		glUniform1i(glGetUniformLocation(shader_id, "src_tex"), 0);
 		glUniform1i(glGetUniformLocation(shader_id, "dst_tex"), 1);
-		if(BC_CModels::is_yuv(dst->get_color_model()))
+		if(cmodel_is_yuv(dst->get_color_model()))
 			glUniform3f(glGetUniformLocation(shader_id, "chroma_offset"), 0.0, 0.5, 0.5);
 		else
 			glUniform3f(glGetUniformLocation(shader_id, "chroma_offset"), 0.0, 0.0, 0.0);
@@ -719,6 +727,7 @@ int Overlay::handle_opengl()
 
 	dst->set_opengl_state(VFrame::SCREEN);
 #endif
+    return 0;
 }
 
 

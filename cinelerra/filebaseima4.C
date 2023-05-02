@@ -52,6 +52,7 @@ int FileBase::init_ima4()
 	ima4_block_size = (ima4_block_samples - 1) * asset->channels / 2 + 4;
 	last_ima4_samples = 0;
 	last_ima4_indexes = 0;
+    return 0;
 }
 
 int FileBase::delete_ima4()
@@ -60,11 +61,12 @@ int FileBase::delete_ima4()
 	if(last_ima4_indexes) delete last_ima4_indexes;
 	last_ima4_samples = 0;
 	last_ima4_indexes = 0;	
+    return 0;
 }
 
 int FileBase::ima4_decode_block(int16_t *output, unsigned char *input)
 {
-return 0;
+    return 0;
 // 	int predictor[asset->channels];
 // 	int index[asset->channels];
 // 	int step[asset->channels];

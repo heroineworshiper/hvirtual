@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #include "language.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
-
+#include "theme.h"
 
 
 
@@ -45,20 +45,33 @@ int ConfirmSave::test_file(MWindow *mwindow, char *path)
 	return result;
 }
 
+int ConfirmSave::test_files(MWindow *mwindow, ArrayList<char*> *paths)
+{
+	ArrayList<string*> strings;
+	for(int i = 0; i < paths->size(); i++)
+	{
+		strings.append(new string(paths->get(i)));
+	}
+	
+	int result = test_files(mwindow, &strings);
+	strings.remove_all_objects();
+	return result;
+}
+
 int ConfirmSave::test_files(MWindow *mwindow, 
-	ArrayList<char*> *paths)
+	ArrayList<string*> *paths)
 {
 	FILE *file;
 	ArrayList<BC_ListBoxItem*> list;
 	int result = 0;
 
-	for(int i = 0; i < paths->total; i++)
+	for(int i = 0; i < paths->size(); i++)
 	{
-		char *path = paths->values[i];
-		if(file = fopen(path, "r"))
+		string *path = paths->get(i);
+		if(file = fopen(path->c_str(), "r"))
 		{
 			fclose(file);
-			list.append(new BC_ListBoxItem(path));
+			list.append(new BC_ListBoxItem(path->c_str()));
 		}
 	}
 
@@ -73,13 +86,22 @@ int ConfirmSave::test_files(MWindow *mwindow,
 		}
 		else
 		{
+// prompt the user
 			printf("The following files exist:\n");
 			for(int i = 0; i < list.total; i++)
 			{
 				printf("    %s\n", list.values[i]->get_text());
 			}
-			printf("Won't overwrite existing files.\n");
-			result = 1;
+//			printf("Won't overwrite existing files.\n");
+            printf("Overwrite? (y/n)\n");
+            char c = fgetc(stdin);
+            if(c != 'y')
+            {
+                printf("Giving up & going to a movie.\n");
+                result = 1;
+            }
+            else
+    			result = 0;
 		}
 		list.remove_all_objects();
 		return result;
@@ -104,10 +126,10 @@ int ConfirmSave::test_files(MWindow *mwindow,
 ConfirmSaveWindow::ConfirmSaveWindow(MWindow *mwindow, 
 	ArrayList<BC_ListBoxItem*> *list)
  : BC_Window(PROGRAM_NAME ": File Exists", 
- 		mwindow->gui->get_abs_cursor_x(1) - 160, 
-		mwindow->gui->get_abs_cursor_y(1) - 120, 
-		320, 
-		320)
+ 		mwindow->gui->get_abs_cursor_x(1) - DP(160), 
+		mwindow->gui->get_abs_cursor_y(1) - DP(120), 
+		DP(480), 
+		DP(320))
 {
 	this->list = list;
 }
@@ -119,7 +141,8 @@ ConfirmSaveWindow::~ConfirmSaveWindow()
 
 void ConfirmSaveWindow::create_objects()
 {
-	int x = 10, y = 10;
+    int margin = MWindow::theme->widget_border;
+	int x = margin, y = margin;
 	lock_window("ConfirmSaveWindow::create_objects");
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
@@ -127,16 +150,14 @@ void ConfirmSaveWindow::create_objects()
 	add_subwindow(title = new BC_Title(x, 
 		y, 
 		_("The following files exist.  Overwrite them?")));
-	y += 30;
+	y += title->get_h() + margin;
 	add_subwindow(listbox = new BC_ListBox(x, 
 		y, 
-		get_w() - x - 10,
-		get_h() - y - BC_OKButton::calculate_h() - 10,
+		get_w() - x - margin,
+		get_h() - y - BC_OKButton::calculate_h() - margin * 2,
 		LISTBOX_TEXT,
 		list));
-	y = get_h() - 40;
 	add_subwindow(new BC_OKButton(this));
-	x = get_w() - 100;
 	add_subwindow(new BC_CancelButton(this));
 	show_window(1);
 	unlock_window();
@@ -144,13 +165,13 @@ void ConfirmSaveWindow::create_objects()
 
 int ConfirmSaveWindow::resize_event(int w, int h)
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	title->reposition_window(x, y);
-	y += 30;
+	y += DP(30);
 	listbox->reposition_window(x,
 		y,
-		w - x - 10,
-		h - y - 50);
+		w - x - DP(10),
+		h - y - DP(50));
 	return 1;
 }
 

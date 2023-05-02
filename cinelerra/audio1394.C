@@ -56,6 +56,7 @@ int Audio1394::initialize()
 	output_thread = 0;
 	input_iec = 0;
 	output_iec = 0;
+    return 0;
 }
 
 int Audio1394::open_input()

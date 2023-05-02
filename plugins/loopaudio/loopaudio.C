@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,10 +103,10 @@ LoopAudioConfig::LoopAudioConfig()
 
 LoopAudioWindow::LoopAudioWindow(LoopAudio *plugin)
  : PluginClientWindow(plugin, 
-	210, 
-	160, 
-	200, 
-	160, 
+	DP(210), 
+	DP(160), 
+	DP(200), 
+	DP(160), 
 	0)
 {
 	this->plugin = plugin;
@@ -118,15 +118,14 @@ LoopAudioWindow::~LoopAudioWindow()
 
 void LoopAudioWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	add_subwindow(new BC_Title(x, y, _("Samples to loop:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(samples = new LoopAudioSamples(plugin, 
 		x, 
 		y));
 	show_window();
-	flush();
 }
 
 
@@ -142,7 +141,7 @@ LoopAudioSamples::LoopAudioSamples(LoopAudio *plugin,
 	int y)
  : BC_TextBox(x, 
 	y, 
-	100,
+	DP(100),
 	1,
 	plugin->config.samples)
 {

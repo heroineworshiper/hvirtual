@@ -24,7 +24,6 @@
 #ifndef BCSIGNALS_H
 #define BCSIGNALS_H
 
-#include "arraylist.h"
 #include "bcsignals.inc"
 #include <pthread.h>
 #include <signal.h>
@@ -34,8 +33,11 @@
 
 // BC_Signals must be initialized at the start of every program using
 // debugging.
+
 //#define ENABLE_TRACE
+
 //#define TRACE_LOCKS
+
 //#ifdef TRACE_LOCKS
 //#undef TRACE_LOCKS
 //#endif

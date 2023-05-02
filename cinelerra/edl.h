@@ -46,6 +46,7 @@
 #include "sharedlocation.inc"
 #include "theme.inc"
 #include "tracks.inc"
+#include "transition.inc"
 #include "vedit.inc"
 
 
@@ -138,6 +139,8 @@ public:
 	void set_index_file(Indexable *indexable);
 // Add assets from the src to the destination
 	void update_assets(EDL *src);
+// Add nested EDLs from the src to the destination
+    void update_nested(EDL *src);
 	void optimize();
 // Debug
 	int dump();
@@ -161,6 +164,14 @@ public:
 		int edit_autos,
 		Edits *trim_edits);
 
+    void modify_transitionhandles(
+        Edit *edit,
+        Transition *transition,
+        double oldposition, 
+	    double newposition, 
+	    int currentend);
+
+
 	int trim_selection(double start, 
 		double end,
 		int edit_labels,
@@ -181,6 +192,8 @@ public:
 		FileXML *file, 
 		const char *output_path,
 		int rewind_it);     // Rewind EDL for easy pasting
+    void copy_nested(FileXML *file, 
+		const char *output_path);
 	void paste_silence(double start, 
 		double end, 
 		int edit_labels /* = 1 */, 
@@ -193,6 +206,7 @@ public:
 		int clear_labels,
 		int clear_plugins,
 		int edit_autos);
+	int deglitch(double position);
 // Insert the asset at a point in the EDL
 	void insert_asset(Asset *asset, 
 		EDL *nested_edl,
@@ -249,6 +263,8 @@ public:
 	ArrayList<EDL*> clips;
 // Nested EDLs
 	NestedEDLs *nested_edls;
+// number of nested EDLs down
+    int nested_depth;
 // EDLs being shown in VWindows
 	ArrayList<EDL*> vwindow_edls;
 // is the vwindow_edl shared and therefore should not be deleted in destructor
@@ -272,7 +288,8 @@ public:
 
 
 
-// Use parent Assets if nonzero
+// Used by clips
+// Use parent Assets if nonzero.
 	EDL *parent_edl;
 
 

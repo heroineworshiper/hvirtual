@@ -25,7 +25,6 @@
 // Base class inherited by all the different types of plugins.
 
 #define BCASTDIR "~/.bcast/"
-#define MAX_FRAME_BUFFER 1024
 
 class PluginClient;
 
@@ -147,7 +146,7 @@ int plugin_class::load_configuration() \
 
 
 
-
+// Base class for a GUI
 class PluginClientWindow : public BC_Window
 {
 public:
@@ -169,9 +168,98 @@ public:
 	
 	virtual int translation_event();
 	virtual int close_event();
+// A listener for PluginParam events
+    virtual void param_updated();
 	
 	PluginClient *client;
 };
+
+
+
+
+
+
+// A GUI helper
+class PluginFPot : public BC_FPot
+{
+public:
+    PluginFPot(PluginParam *param, int x, int y);
+    int handle_event();
+	PluginParam *param;
+};
+
+class PluginIPot : public BC_IPot
+{
+public:
+    PluginIPot(PluginParam *param, int x, int y);
+    int handle_event();
+	PluginParam *param;
+};
+
+class PluginQPot : public BC_QPot
+{
+public:
+    PluginQPot(PluginParam *param, int x, int y);
+    int handle_event();
+	PluginParam *param;
+};
+
+class PluginText : public BC_TextBox
+{
+public:
+    PluginText(PluginParam *param, int x, int y, int value);
+    PluginText(PluginParam *param, int x, int y, float value);
+    int handle_event();
+	PluginParam *param;
+};
+
+class PluginParam
+{
+public:
+    PluginParam(PluginClient *plugin,
+        PluginClientWindow *gui,
+        int x1, 
+        int x2,
+        int x3,
+        int y, 
+        int text_w,
+        int *output_i, 
+        float *output_f, // floating point output
+        int *output_q, // frequency output
+        const char *title,
+        float min,
+        float max);
+    ~PluginParam();
+    
+    void initialize();
+    void update(int skip_text, int skip_pot);
+// set the number of fractional digits
+    void set_precision(int digits);
+
+// 2 possible outputs
+    float *output_f;
+    PluginFPot *fpot;
+    
+    int *output_i;
+    PluginIPot *ipot;
+    
+    int *output_q;
+    PluginQPot *qpot;
+    
+    string title;
+    PluginText *text;
+    PluginClientWindow *gui;
+    PluginClient *plugin;
+    int x1;
+    int x2;
+    int x3;
+    int y;
+    int text_w;
+    float min;
+    float max;
+    int precision;
+};
+
 
 
 
@@ -180,7 +268,7 @@ class PluginClientThread : public Thread
 {
 public:
 	PluginClientThread(PluginClient *client);
-	~PluginClientThread();
+	virtual ~PluginClientThread();
 	void run();
 	
 	friend class PluginClient;
@@ -195,20 +283,6 @@ private:
 };
 
 
-
-// Client overrides for GUI update data
-class PluginClientFrame
-{
-public:
-// Period_d is 1 second
-	PluginClientFrame(int data_size, int period_n, int period_d);
-	virtual ~PluginClientFrame();
-	int data_size;
-	int period_n;
-	int period_d;
-// Draw immediately
-	int force;
-};
 
 
 
@@ -296,11 +370,8 @@ public:
 	int get_configure_change();                             // get propogated configuration change from a send_configure_change
 
 // Called by plugin server to update GUI with rendered data.
-	void plugin_render_gui(void *data);
+// Manely for video.  Audio has to render data in update_gui
 	void plugin_render_gui(void *data, int size);
-
-	void begin_process_buffer();
-	void end_process_buffer();
 
 	void plugin_update_gui();
 	virtual int plugin_process_loop(VFrame **buffers, int64_t &write_length) { return 1; };
@@ -369,6 +440,9 @@ public:
 // the requested rate.
 	int64_t get_source_position();
 
+// Get the rendering direction of the top level for annotating GUI data
+    int get_top_direction();
+
 // Get the EDL Session.  May return 0 if the server has no edl.
 	EDLSession* get_edlsession();
 
@@ -383,7 +457,7 @@ public:
 // Get total tracks to process
 	int get_total_buffers();
 
-// Get size of buffer to fill in non-realtime plugin
+// Get size of buffer to fill
 	int get_buffer_size();
 
 // Get interpolation used by EDL from overlayframe.inc
@@ -438,7 +512,7 @@ public:
 
 // Realtime operations.
 	int reset();
-	virtual int plugin_command_derived(int plugin_command) {}; // Extension of plugin_run for derived plugins
+	virtual int plugin_command_derived(int plugin_command) { return 0; }; // Extension of plugin_run for derived plugins
 	int plugin_get_range();
 	int plugin_init_realtime(int realtime_priority, 
 		int total_in_buffers,
@@ -446,24 +520,9 @@ public:
 
 
 // GUI updating wrappers for realtime plugins
-// Append frame to queue for next send_frame_buffer
-	void add_gui_frame(PluginClientFrame *frame);
 
-
-
-	virtual void render_gui(void *data);
-	virtual void render_gui(void *data, int size);
-
-// Called by client to get the total number of frames to draw in update_gui
-	int get_gui_update_frames();
-// Get GUI frame from frame_buffer.  Client must delete it.
-	PluginClientFrame* get_gui_frame();
-
-// Called by client to cause GUI to be rendered with data.
-	void send_render_gui();
-	void send_render_gui(void *data);
-	void send_render_gui(void *data, int size);
-
+// called by user to draw audio data
+//	void send_render_gui(void *data);
 
 
 
@@ -526,7 +585,8 @@ public:
 
 
 
-// Direction of most recent process_buffer
+// Direction of most recent process_buffer in the rendering instance
+// in the GUI instance, the top direction
 	int direction;
 
 // Operating system scheduling
@@ -547,10 +607,8 @@ public:
 	BC_Hash *defaults;
 	PluginClientThread *thread;
 
-// Frames for updating GUI
-	ArrayList<PluginClientFrame*> frame_buffer;
 // Time of last GUI update
-	Timer *update_timer;
+//	Timer *update_timer;
 
 
 private:

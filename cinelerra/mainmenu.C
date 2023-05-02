@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +55,7 @@
 #include "playbackengine.h"
 #include "preferences.h"
 #include "preferencesthread.h"
+#include "proxy.h"
 #include "quit.h"
 #include "record.h"
 #include "render.h"
@@ -105,10 +105,10 @@ void MainMenu::create_objects()
 	filemenu->add_item(saveas = new SaveAs(mwindow));
 	save->create_objects(saveas);
 	saveas->set_mainmenu(this);
-	filemenu->add_item(record = new RecordMenuItem(mwindow));
 
 	filemenu->add_item(render = new RenderItem(mwindow));
 	filemenu->add_item(new BatchRenderMenuItem(mwindow));
+	filemenu->add_item(record = new RecordMenuItem(mwindow));
 	filemenu->add_item(new BC_MenuItem("-"));
 	filemenu->add_item(quit_program = new Quit(mwindow));
 	quit_program->create_objects(save);
@@ -131,7 +131,9 @@ void MainMenu::create_objects()
 	editmenu->add_item(new TrimSelection(mwindow));
 	editmenu->add_item(new SelectAll(mwindow));
 	editmenu->add_item(new BC_MenuItem("-"));
+	editmenu->add_item(new MenuSwapAsset(mwindow));
 	editmenu->add_item(new MenuEditShuffle(mwindow));
+	editmenu->add_item(new MenuEditReverse(mwindow));
 	editmenu->add_item(new MenuEditLength(mwindow));
 	editmenu->add_item(new MenuEditAlign(mwindow));
 	editmenu->add_item(new MenuTransitionLength(mwindow));
@@ -161,6 +163,7 @@ void MainMenu::create_objects()
 	audiomenu->add_item(new DefaultATransition(mwindow));
 	audiomenu->add_item(new MapAudio1(mwindow));
 	audiomenu->add_item(new MapAudio2(mwindow));
+	audiomenu->add_item(new MapAudio3(mwindow));
 	audiomenu->add_item(new MenuAttachTransition(mwindow, TRACK_AUDIO));
 	audiomenu->add_item(new MenuAttachEffect(mwindow, TRACK_AUDIO));
 	audiomenu->add_item(aeffects = new MenuAEffects(mwindow));
@@ -183,15 +186,22 @@ void MainMenu::create_objects()
 
 	settingsmenu->add_item(new SetFormat(mwindow));
 	settingsmenu->add_item(preferences = new PreferencesMenuitem(mwindow));
-	mwindow->preferences_thread = preferences->thread;
+
+	ProxyMenuItem *proxy;
+	settingsmenu->add_item(proxy = new ProxyMenuItem(mwindow));
+	proxy->create_objects();
+
+	settingsmenu->add_item(new BC_MenuItem("-"));
 	settingsmenu->add_item(labels_follow_edits = new LabelsFollowEdits(mwindow));
 	settingsmenu->add_item(plugins_follow_edits = new PluginsFollowEdits(mwindow));
 	settingsmenu->add_item(keyframes_follow_edits = new KeyframesFollowEdits(mwindow));
 	settingsmenu->add_item(cursor_on_frames = new CursorOnFrames(mwindow));
 	settingsmenu->add_item(typeless_keyframes = new TypelessKeyframes(mwindow));
+	settingsmenu->add_item(new BC_MenuItem("-"));
 	settingsmenu->add_item(new SaveSettingsNow(mwindow));
+	settingsmenu->add_item(dump_playback = new DumpPlayback(mwindow));
 	settingsmenu->add_item(loop_playback = new LoopPlayback(mwindow));
-	settingsmenu->add_item(new SetBRenderStart(mwindow));
+	settingsmenu->add_item(new SetBRenderRange(mwindow));
 // set scrubbing speed
 //	ScrubSpeed *scrub_speed;
 //	settingsmenu->add_item(scrub_speed = new ScrubSpeed(mwindow));
@@ -228,6 +238,7 @@ void MainMenu::create_objects()
 	windowmenu->add_item(show_cwindow = new ShowCWindow(mwindow));
 	windowmenu->add_item(show_gwindow = new ShowGWindow(mwindow));
 	windowmenu->add_item(show_lwindow = new ShowLWindow(mwindow));
+	windowmenu->add_item(new BC_MenuItem("-"));
 	windowmenu->add_item(split_x = new SplitX(mwindow));
 	windowmenu->add_item(split_y = new SplitY(mwindow));
 //	windowmenu->add_item(new TileWindows(mwindow));
@@ -251,6 +262,7 @@ void MainMenu::update_toggles(int use_lock)
 	keyframes_follow_edits->set_checked(mwindow->edl->session->autos_follow_edits);
 	typeless_keyframes->set_checked(mwindow->edl->session->typeless_keyframes);
 	cursor_on_frames->set_checked(mwindow->edl->session->cursor_on_frames);
+	dump_playback->set_checked(MWindow::preferences->dump_playback);
 	loop_playback->set_checked(mwindow->edl->local_session->loop_playback);
 
 	show_assets->set_checked(mwindow->edl->session->show_assets);
@@ -554,6 +566,7 @@ DumpCICache::DumpCICache(MWindow *mwindow)
 int DumpCICache::handle_event()
 {
 //	mwindow->cache->dump();
+    return 0;
 }
 
 DumpEDL::DumpEDL(MWindow *mwindow)
@@ -592,6 +605,7 @@ DumpAssets::DumpAssets(MWindow *mwindow)
 int DumpAssets::handle_event()
 {
 	mwindow->assets->dump();
+    return 0;
 }
 
 // ================================================= edit
@@ -610,6 +624,7 @@ int Undo::update_caption(const char *new_caption)
 	char string[BCTEXTLEN];
 	sprintf(string, _("Undo %s"), new_caption);
 	set_text(string);
+    return 0;
 }
 
 
@@ -630,10 +645,11 @@ int Redo::update_caption(const char *new_caption)
 	char string[BCTEXTLEN];
 	sprintf(string, _("Redo %s"), new_caption);
 	set_text(string);
+    return 0;
 }
 
 CutKeyframes::CutKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Cut keyframes"), "Shift-X", 'X')
+ : BC_MenuItem(_("Cut keyframes"), "Shift+X", 'X')
 { 
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -642,10 +658,11 @@ CutKeyframes::CutKeyframes(MWindow *mwindow)
 int CutKeyframes::handle_event()
 {
 	mwindow->cut_automation(); 
+    return 0;
 }
 
 CopyKeyframes::CopyKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Copy keyframes"), "Shift-C", 'C')
+ : BC_MenuItem(_("Copy keyframes"), "Shift+C", 'C')
 { 
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -658,7 +675,7 @@ int CopyKeyframes::handle_event()
 }
 
 PasteKeyframes::PasteKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Paste keyframes"), "Shift-V", 'V')
+ : BC_MenuItem(_("Paste keyframes"), "Shift+V", 'V')
 {
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -667,10 +684,11 @@ PasteKeyframes::PasteKeyframes(MWindow *mwindow)
 int PasteKeyframes::handle_event()
 {
 	mwindow->paste_automation(); 
+    return 0;
 }
 
 ClearKeyframes::ClearKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Clear keyframes"), "Shift-Del", BACKSPACE)
+ : BC_MenuItem(_("Clear keyframes"), "Shift+Del", BACKSPACE)
 {
 	set_shift(); 
 	this->mwindow = mwindow; 
@@ -960,7 +978,7 @@ int DefaultATransition::handle_event()
 
 
 MapAudio1::MapAudio1(MWindow *mwindow)
- : BC_MenuItem(_("Map 1:1"))
+ : BC_MenuItem(_("Map LR"))
 {
 	this->mwindow = mwindow;
 }
@@ -972,7 +990,7 @@ int MapAudio1::handle_event()
 }
 
 MapAudio2::MapAudio2(MWindow *mwindow)
- : BC_MenuItem(_("Map 5.1:2"))
+ : BC_MenuItem(_("Map CLRLRC channels"))
 {
 	this->mwindow = mwindow;
 }
@@ -984,13 +1002,26 @@ int MapAudio2::handle_event()
 }
 
 
+MapAudio3::MapAudio3(MWindow *mwindow)
+ : BC_MenuItem(_("Map LRCCLR channels"))
+{
+	this->mwindow = mwindow;
+}
+
+int MapAudio3::handle_event()
+{
+	mwindow->map_audio(MWindow::AUDIO_5_1_TO_2B);
+	return 1;
+}
+
+
 
 
 // ============================================= video
 
 
 AddVideoTrack::AddVideoTrack(MWindow *mwindow)
- : BC_MenuItem(_("Add track"), "Shift-T", 'T')
+ : BC_MenuItem(_("Add track"), "Shift+T", 'T')
 {
 	set_shift();
 	this->mwindow = mwindow;
@@ -1030,7 +1061,7 @@ int ResetTranslation::handle_event()
 
 
 DefaultVTransition::DefaultVTransition(MWindow *mwindow)
- : BC_MenuItem(_("Default Transition"), "Shift-U", 'U')
+ : BC_MenuItem(_("Default Transition"), "Shift+U", 'U')
 {
 	set_shift();
 	this->mwindow = mwindow;
@@ -1141,18 +1172,33 @@ int LoopPlayback::handle_event()
 }
 
 
+DumpPlayback::DumpPlayback(MWindow *mwindow)
+ : BC_MenuItem(_("Dump Playback"))
+{
+	this->mwindow = mwindow;
+	set_checked(MWindow::preferences->dump_playback);
+}
+
+int DumpPlayback::handle_event()
+{
+	MWindow::preferences->dump_playback = !MWindow::preferences->dump_playback;
+	set_checked(MWindow::preferences->dump_playback);
+	return 1;
+}
 
 
 
-SetBRenderStart::SetBRenderStart(MWindow *mwindow)
- : BC_MenuItem(_("Set background render"))
+
+
+SetBRenderRange::SetBRenderRange(MWindow *mwindow)
+ : BC_MenuItem(_("Set background rendering"))
 {
 	this->mwindow = mwindow;
 }
 
-int SetBRenderStart::handle_event()
+int SetBRenderRange::handle_event()
 {
-	mwindow->set_brender_start();
+	mwindow->set_brender_range();
 	return 1;
 }
 
@@ -1173,6 +1219,7 @@ int LabelsFollowEdits::handle_event()
 {
 	set_checked(get_checked() ^ 1);
 	mwindow->edl->session->labels_follow_edits = get_checked(); 
+    return 0;
 }
 
 
@@ -1189,6 +1236,7 @@ int PluginsFollowEdits::handle_event()
 {
 	set_checked(get_checked() ^ 1);
 	mwindow->edl->session->plugins_follow_edits = get_checked(); 
+    return 0;
 }
 
 
@@ -1205,6 +1253,7 @@ int KeyframesFollowEdits::handle_event()
 { 
 	mwindow->edl->session->autos_follow_edits ^= 1; 
 	set_checked(!get_checked());
+    return 0;
 }
 
 
@@ -1219,11 +1268,12 @@ int CursorOnFrames::handle_event()
 {
 	mwindow->edl->session->cursor_on_frames = !mwindow->edl->session->cursor_on_frames; 
 	set_checked(mwindow->edl->session->cursor_on_frames);
+    return 0;
 }
 
 
 TypelessKeyframes::TypelessKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Typeless keyframes")) 
+ : BC_MenuItem(_("Interchangeable audio & video keyframes")) 
 { 
 	this->mwindow = mwindow; 
 	set_checked(mwindow->edl->session->typeless_keyframes);
@@ -1233,6 +1283,7 @@ int TypelessKeyframes::handle_event()
 {
 	mwindow->edl->session->typeless_keyframes = !mwindow->edl->session->typeless_keyframes; 
 	set_checked(mwindow->edl->session->typeless_keyframes);
+    return 0;
 }
 
 
@@ -1253,6 +1304,7 @@ int ScrubSpeed::handle_event()
 		mwindow->edl->session->scrub_speed = .5;
 		set_text(_("Fast Shuttle"));
 	}
+    return 0;
 }
 
 SaveSettingsNow::SaveSettingsNow(MWindow *mwindow) : BC_MenuItem(_("Save settings now")) 

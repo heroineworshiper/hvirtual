@@ -136,6 +136,7 @@ int PluginArray::start_plugins(MWindow *mwindow,
 	}
 	else
 	{
+// realtime
 		PluginServer *plugin;
 		int i;
 
@@ -194,14 +195,14 @@ int PluginArray::run_plugins()
 	error = 0;
 	if(plugin_server->realtime)
 	{
-		int64_t len;
+		int64_t len = 0;
 		MainProgressBar *progress;
 		char string[BCTEXTLEN], string2[BCTEXTLEN];
 
 		sprintf(string, _("%s..."), plugin_server->title);
 		progress = mwindow->mainprogress->start_progress(string, end - start);
 
-		for(int current_position = start; 
+		for(int64_t current_position = start; 
 			current_position < end && !done && !error;
 			current_position += len)
 		{
@@ -225,8 +226,9 @@ int PluginArray::run_plugins()
 		delete progress;
 
 		sprintf(string, _("%s took %s"), plugin_server->title, string2);
+//printf("PluginArray::run_plugins %d %s\n", __LINE__, string);
 		mwindow->gui->lock_window();
-		mwindow->gui->show_message(string2);
+		mwindow->gui->show_message(string);
 		mwindow->gui->unlock_window();
 	}
 	else

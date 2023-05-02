@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include "clip.h"
 #include "edl.h"
 #include "file.h"
+#include "filestdout.h"
 #include "filesystem.h"
 #include "filexml.h"
 #include "indexstate.h"
@@ -74,8 +75,8 @@ int Asset::init_values()
 	format = FILE_UNKNOWN;
 	channels = 0;
 	sample_rate = 0;
-	bits = 0;
-	byte_order = 0;
+	bits = BITSLINEAR16;
+	byte_order = BYTE_ORDER_LOHI;
 	signed_ = 0;
 	header = 0;
 	dither = 0;
@@ -84,14 +85,29 @@ int Asset::init_values()
 	audio_length = 0;
 	video_length = 0;
 
+
+    do_wrapper = 0;
+
 	layers = 0;
 	frame_rate = 0;
 	width = 0;
 	height = 0;
 	strcpy(vcodec, QUICKTIME_YUV2);
 	strcpy(acodec, QUICKTIME_TWOS);
-	jpeg_quality = 100;
+	jpeg_quality = 80;
 	aspect_ratio = -1;
+
+    video_command = FileStdout::default_video_presets[0]->command;
+    command_cmodel = FileStdout::default_video_presets[0]->color_model;
+
+    audio_command = FileStdout::default_audio_presets[0]->command;
+    command_bits = FileStdout::default_audio_presets[0]->bits;
+    command_byte_order = FileStdout::default_audio_presets[0]->byte_order;
+    command_signed_ = FileStdout::default_audio_presets[0]->signed_;
+    command_dither = FileStdout::default_audio_presets[0]->dither;
+
+    wrapper_command = FileStdout::default_mplex_presets[0]->command;
+    command_delete_temps = FileStdout::default_mplex_presets[0]->delete_temps;
 
 	ampeg_bitrate = 256;
 	ampeg_derivative = 3;
@@ -111,7 +127,7 @@ int Asset::init_values()
 	mp3_bitrate = 256000;
 
 
-	mp4a_bitrate = 256000;
+	mp4a_bitrate = 192000;
 	mp4a_quantqual = 100;
 
 
@@ -144,8 +160,12 @@ int Asset::init_values()
 	divx_use_deblocking = 1;
 
 	h264_bitrate = 2000000;
-	h264_quantizer = 5;
+	h264_quantizer = 28;
 	h264_fix_bitrate = 0;
+
+	h265_bitrate = 2000000;
+	h265_quantizer = 28;
+	h265_fix_bitrate = 0;
 
 	ms_bitrate = 1000000;
 	ms_bitrate_tolerance = 500000;
@@ -162,6 +182,8 @@ int Asset::init_values()
 
 	tiff_cmodel = 0;
 	tiff_compression = 0;
+	mov_sphere = 0;
+	jpeg_sphere = 0;
 
 	use_header = 1;
 
@@ -186,6 +208,7 @@ void Asset::boundaries()
 int Asset::reset_index()
 {
 	index_state->reset();
+    return 0;
 }
 
 void Asset::copy_from(Asset *asset, int do_index)
@@ -213,11 +236,18 @@ void Asset::copy_format(Asset *asset, int do_index)
 	signed_ = asset->signed_;
 	header = asset->header;
 	dither = asset->dither;
+	strcpy(acodec, asset->acodec);
+
 	mp3_bitrate = asset->mp3_bitrate;
 	mp4a_bitrate = asset->mp4a_bitrate;
 	mp4a_quantqual = asset->mp4a_quantqual;
 	use_header = asset->use_header;
 	aspect_ratio = asset->aspect_ratio;
+
+	this->audio_length = asset->audio_length;
+	this->video_length = asset->video_length;
+
+
 
 	video_data = asset->video_data;
 	layers = asset->layers;
@@ -225,10 +255,18 @@ void Asset::copy_format(Asset *asset, int do_index)
 	width = asset->width;
 	height = asset->height;
 	strcpy(vcodec, asset->vcodec);
-	strcpy(acodec, asset->acodec);
+    command_cmodel = asset->command_cmodel;
+    command_bits = asset->command_bits;
+    command_byte_order = asset->command_byte_order;
+    command_signed_ = asset->command_signed_;
+    command_dither = asset->command_dither;
+    video_command = asset->video_command;
+    audio_command = asset->audio_command;
 
-	this->audio_length = asset->audio_length;
-	this->video_length = asset->video_length;
+
+    do_wrapper = asset->do_wrapper;
+    wrapper_command = asset->wrapper_command;
+    command_delete_temps = asset->command_delete_temps;
 
 
 	ampeg_bitrate = asset->ampeg_bitrate;
@@ -282,6 +320,10 @@ void Asset::copy_format(Asset *asset, int do_index)
 	h264_quantizer = asset->h264_quantizer;
 	h264_fix_bitrate = asset->h264_fix_bitrate;
 
+	h265_bitrate = asset->h265_bitrate;
+	h265_quantizer = asset->h265_quantizer;
+	h265_fix_bitrate = asset->h265_fix_bitrate;
+
 
 	ms_bitrate = asset->ms_bitrate;
 	ms_bitrate_tolerance = asset->ms_bitrate_tolerance;
@@ -299,6 +341,10 @@ void Asset::copy_format(Asset *asset, int do_index)
 
 	tiff_cmodel = asset->tiff_cmodel;
 	tiff_compression = asset->tiff_compression;
+	
+	
+	mov_sphere = asset->mov_sphere;
+	jpeg_sphere = asset->jpeg_sphere;
 }
 
 int64_t Asset::get_index_offset(int channel)
@@ -314,12 +360,15 @@ int64_t Asset::get_index_size(int channel)
 
 char* Asset::get_compression_text(int audio, int video)
 {
+
+//printf("Asset::get_compression_text %d %s %s\n", __LINE__, acodec, vcodec);
 	if(audio)
 	{
 		switch(format)
 		{
 			case FILE_MOV:
 			case FILE_AVI:
+            case FILE_FFMPEG:
 				if(acodec[0])
 					return quicktime_acodec_title(acodec);
 				else
@@ -334,10 +383,17 @@ char* Asset::get_compression_text(int audio, int video)
 		{
 			case FILE_MOV:
 			case FILE_AVI:
+            case FILE_FFMPEG:
+			
+//printf("Asset::get_compression_text %d %s\n", __LINE__, vcodec);
 				if(vcodec[0])
+				{
 					return quicktime_vcodec_title(vcodec);
+				}
 				else
+				{
 					return 0;
+				}
 				break;
 		}
 	}
@@ -379,7 +435,9 @@ int Asset::equivalent(Asset &asset,
 			frame_rate == asset.frame_rate &&
 			width == asset.width &&
 			height == asset.height &&
-			!strcmp(vcodec, asset.vcodec));
+			!strcmp(vcodec, asset.vcodec) &&
+			mov_sphere == asset.mov_sphere &&
+			jpeg_sphere == asset.jpeg_sphere);
 	}
 
 	return result;
@@ -408,6 +466,7 @@ int Asset::test_path(const char *path)
 
 int Asset::test_plugin_title(const char *path)
 {
+    return 0;
 }
 
 int Asset::read(FileXML *file, 
@@ -465,7 +524,7 @@ int Asset::read(FileXML *file,
 			else
 			if(file->tag.title_is("FORMAT"))
 			{
-				char *string = file->tag.get_property("TYPE");
+				const char *string = file->tag.get_property("TYPE");
 				format = File::strtoformat(string);
 				use_header = 
 					file->tag.get_property("USE_HEADER", use_header);
@@ -501,20 +560,27 @@ int Asset::read(FileXML *file,
 int Asset::read_audio(FileXML *file)
 {
 	if(file->tag.title_is("AUDIO")) audio_data = 1;
+
+// required for reading raw PCM
 	channels = file->tag.get_property("CHANNELS", 2);
 // This is loaded from the index file after the EDL but this 
 // should be overridable in the EDL.
-	if(!sample_rate) sample_rate = file->tag.get_property("RATE", 44100);
+	if(!sample_rate) sample_rate = file->tag.get_property("RATE", 48000);
 	bits = file->tag.get_property("BITS", 16);
 	byte_order = file->tag.get_property("BYTE_ORDER", 1);
 	signed_ = file->tag.get_property("SIGNED", 1);
 	header = file->tag.get_property("HEADER", 0);
-	dither = file->tag.get_property("DITHER", 0);
+
+ 	acodec[0] = 0;
+ 	file->tag.get_property("ACODEC", acodec);
+
+
 
 	audio_length = file->tag.get_property("AUDIO_LENGTH", (int64_t)0);
-	acodec[0] = 0;
-	file->tag.get_property("ACODEC", acodec);
-	
+
+// TODO: Encoding values go in the defaults functions
+// 	dither = file->tag.get_property("DITHER", 0);
+
 
 
 
@@ -528,12 +594,18 @@ int Asset::read_video(FileXML *file)
 	width = file->tag.get_property("WIDTH", width);
 	layers = file->tag.get_property("LAYERS", layers);
 // This is loaded from the index file after the EDL but this 
-// should be overridable in the EDL.
+// must be overridable in the EDL.
 	if(EQUIV(frame_rate, 0)) frame_rate = file->tag.get_property("FRAMERATE", frame_rate);
-	vcodec[0] = 0;
-	file->tag.get_property("VCODEC", vcodec);
 
 	video_length = file->tag.get_property("VIDEO_LENGTH", (int64_t)0);
+// need the vcodec to select a colormodel
+	vcodec[0] = 0;
+ 	file->tag.get_property("VCODEC", vcodec);
+//printf("Asset::read_video %d %s\n", __LINE__, vcodec);
+
+// TODO: Encoding values go in the defaults functions
+// 	mov_sphere = file->tag.get_property("MOV_SPHERE", 0);
+// 	jpeg_sphere = file->tag.get_property("JPEG_SPHERE", 0);
 
 	return 0;
 }
@@ -547,6 +619,7 @@ int Asset::read_index(FileXML *file)
 int Asset::write_index(const char *path, int data_bytes)
 {
 	index_state->write_index(path, data_bytes, this, audio_length);
+    return 0;
 }
 
 // Output path is the path of the output file if name truncation is desired.
@@ -564,9 +637,13 @@ int Asset::write(FileXML *file,
 // Make path relative
 	fs.extract_dir(asset_directory, path);
 	if(output_path && output_path[0]) 
-		fs.extract_dir(output_directory, output_path);
-	else
-		output_directory[0] = 0;
+	{
+    	fs.extract_dir(output_directory, output_path);
+	}
+    else
+	{
+    	output_directory[0] = 0;
+    }
 
 // Asset and EDL are in same directory.  Extract just the name.
 	if(!strcmp(asset_directory, output_directory))
@@ -608,7 +685,9 @@ int Asset::write(FileXML *file,
 	write_video(file);
 // index goes after source
 	if(index_state->index_status == INDEX_READY && include_index) 
-		write_index(file);  
+	{
+    	write_index(file);
+    }
 
 	file->tag.set_title("/ASSET");
 	file->append_tag();
@@ -623,34 +702,21 @@ int Asset::write_audio(FileXML *file)
 		file->tag.set_title("AUDIO");
 	else
 		file->tag.set_title("AUDIO_OMIT");
-// Necessary for PCM audio
+// required for reading raw PCM
 	file->tag.set_property("CHANNELS", channels);
+// user overwritable parameter
 	file->tag.set_property("RATE", sample_rate);
 	file->tag.set_property("BITS", bits);
 	file->tag.set_property("BYTE_ORDER", byte_order);
 	file->tag.set_property("SIGNED", signed_);
 	file->tag.set_property("HEADER", header);
-	file->tag.set_property("DITHER", dither);
-	if(acodec[0])
-		file->tag.set_property("ACODEC", acodec);
 	
 	file->tag.set_property("AUDIO_LENGTH", audio_length);
+ 	if(acodec[0])
+ 		file->tag.set_property("ACODEC", acodec);
 
-
-
-// Rely on defaults operations for these.
-
-// 	file->tag.set_property("AMPEG_BITRATE", ampeg_bitrate);
-// 	file->tag.set_property("AMPEG_DERIVATIVE", ampeg_derivative);
-// 
-// 	file->tag.set_property("VORBIS_VBR", vorbis_vbr);
-// 	file->tag.set_property("VORBIS_MIN_BITRATE", vorbis_min_bitrate);
-// 	file->tag.set_property("VORBIS_BITRATE", vorbis_bitrate);
-// 	file->tag.set_property("VORBIS_MAX_BITRATE", vorbis_max_bitrate);
-// 
-// 	file->tag.set_property("MP3_BITRATE", mp3_bitrate);
-// 
-
+// TODO: Encoding values go in the defaults functions
+// 	file->tag.set_property("DITHER", dither);
 
 
 	file->append_tag();
@@ -667,12 +733,17 @@ int Asset::write_video(FileXML *file)
 	file->tag.set_property("HEIGHT", height);
 	file->tag.set_property("WIDTH", width);
 	file->tag.set_property("LAYERS", layers);
+// user overwritable parameter
 	file->tag.set_property("FRAMERATE", frame_rate);
-	if(vcodec[0])
-		file->tag.set_property("VCODEC", vcodec);
-
 	file->tag.set_property("VIDEO_LENGTH", video_length);
+// need the vcodec to select a colormodel
+ 	if(vcodec[0])
+ 		file->tag.set_property("VCODEC", vcodec);
 
+
+// TODO: Encoding values go in the defaults functions
+// 	file->tag.set_property("MOV_SPHERE", mov_sphere);
+// 	file->tag.set_property("JPEG_SPHERE", jpeg_sphere);
 
 
 
@@ -738,6 +809,7 @@ void Asset::load_defaults(BC_Hash *defaults,
 	{
 		audio_data = GET_DEFAULT("AUDIO", 1);
 		video_data = GET_DEFAULT("VIDEO", 1);
+        do_wrapper = GET_DEFAULT("WRAPPER", 1);
 	}
 
 	if(do_bits)
@@ -751,7 +823,7 @@ void Asset::load_defaults(BC_Hash *defaults,
 
 // Used by filefork
 		channels = GET_DEFAULT("CHANNELS", 2);
-		if(!sample_rate) sample_rate = GET_DEFAULT("RATE", 44100);
+		if(!sample_rate) sample_rate = GET_DEFAULT("RATE", 48000);
 		header = GET_DEFAULT("HEADER", 0);
 		audio_length = GET_DEFAULT("AUDIO_LENGTH", (int64_t)0);
 
@@ -763,6 +835,7 @@ void Asset::load_defaults(BC_Hash *defaults,
 		if(EQUIV(frame_rate, 0)) frame_rate = GET_DEFAULT("FRAMERATE", frame_rate);
 		video_length = GET_DEFAULT("VIDEO_LENGTH", (int64_t)0);
 	}
+
 
 	ampeg_bitrate = GET_DEFAULT("AMPEG_BITRATE", ampeg_bitrate);
 	ampeg_derivative = GET_DEFAULT("AMPEG_DERIVATIVE", ampeg_derivative);
@@ -785,6 +858,8 @@ void Asset::load_defaults(BC_Hash *defaults,
 	mp4a_bitrate = GET_DEFAULT("MP4A_BITRATE", mp4a_bitrate);
 	mp4a_quantqual = GET_DEFAULT("MP4A_QUANTQUAL", mp4a_quantqual);
 
+
+
 	jpeg_quality = GET_DEFAULT("JPEG_QUALITY", jpeg_quality);
 	aspect_ratio = GET_DEFAULT("ASPECT_RATIO", aspect_ratio);
 
@@ -805,6 +880,10 @@ void Asset::load_defaults(BC_Hash *defaults,
 	h264_bitrate = GET_DEFAULT("H264_BITRATE", h264_bitrate);
 	h264_quantizer = GET_DEFAULT("H264_QUANTIZER", h264_quantizer);
 	h264_fix_bitrate = GET_DEFAULT("H264_FIX_BITRATE", h264_fix_bitrate);
+
+	h265_bitrate = GET_DEFAULT("H265_BITRATE", h265_bitrate);
+	h265_quantizer = GET_DEFAULT("H265_QUANTIZER", h265_quantizer);
+	h265_fix_bitrate = GET_DEFAULT("H265_FIX_BITRATE", h265_fix_bitrate);
 
 
 	divx_bitrate = GET_DEFAULT("DIVX_BITRATE", divx_bitrate);
@@ -834,6 +913,24 @@ void Asset::load_defaults(BC_Hash *defaults,
 	tiff_cmodel = GET_DEFAULT("TIFF_CMODEL", tiff_cmodel);
 	tiff_compression = GET_DEFAULT("TIFF_COMPRESSION", tiff_compression);
 
+
+// command line encoder
+    GET_DEFAULT("VIDEO_COMMAND", &video_command);
+    command_cmodel = GET_DEFAULT("COMMAND_CMODEL", command_cmodel);
+
+    GET_DEFAULT("AUDIO_COMMAND", &audio_command);
+    command_bits = GET_DEFAULT("COMMAND_BITS", command_cmodel);
+	command_dither = GET_DEFAULT("COMMAND_DITHER", command_dither);
+	command_signed_ = GET_DEFAULT("COMMAND_SIGNED", command_signed_);
+	command_byte_order = GET_DEFAULT("COMMAND_BYTE_ORDER", command_byte_order);
+
+    GET_DEFAULT("WRAPPER_COMMAND", &wrapper_command);
+    command_delete_temps = GET_DEFAULT("COMMAND_DELETE_TEMPS", command_delete_temps);
+
+
+
+	mov_sphere = GET_DEFAULT("MOV_SPHERE", mov_sphere);
+	jpeg_sphere = GET_DEFAULT("JPEG_SPHERE", jpeg_sphere);
 	boundaries();
 }
 
@@ -862,6 +959,7 @@ void Asset::save_defaults(BC_Hash *defaults,
 	{
 		UPDATE_DEFAULT("AUDIO", audio_data);
 		UPDATE_DEFAULT("VIDEO", video_data);
+		UPDATE_DEFAULT("WRAPPER", do_wrapper);
 	}
 
 	if(do_compression)
@@ -891,7 +989,16 @@ void Asset::save_defaults(BC_Hash *defaults,
 		UPDATE_DEFAULT("MP4A_BITRATE", mp4a_bitrate);
 		UPDATE_DEFAULT("MP4A_QUANTQUAL", mp4a_quantqual);
 
-
+// Command line encoder
+        UPDATE_DEFAULT("AUDIO_COMMAND", &audio_command);
+        UPDATE_DEFAULT("COMMAND_BITS", command_bits);
+        UPDATE_DEFAULT("COMMAND_BYTE_ORDER", command_byte_order);
+        UPDATE_DEFAULT("COMMAND_SIGNED", command_signed_);
+        UPDATE_DEFAULT("COMMAND_DITHER", command_dither);
+        UPDATE_DEFAULT("WRAPPER_COMMAND", &wrapper_command);
+        UPDATE_DEFAULT("COMMAND_DELETE_TEMPS", command_delete_temps);
+        UPDATE_DEFAULT("VIDEO_COMMAND", &video_command);
+        UPDATE_DEFAULT("COMMAND_CMODEL", command_cmodel);
 
 
 
@@ -915,6 +1022,10 @@ void Asset::save_defaults(BC_Hash *defaults,
 		UPDATE_DEFAULT("H264_BITRATE", h264_bitrate);
 		UPDATE_DEFAULT("H264_QUANTIZER", h264_quantizer);
 		UPDATE_DEFAULT("H264_FIX_BITRATE", h264_fix_bitrate);
+
+		UPDATE_DEFAULT("H265_BITRATE", h265_bitrate);
+		UPDATE_DEFAULT("H265_QUANTIZER", h265_quantizer);
+		UPDATE_DEFAULT("H265_FIX_BITRATE", h265_fix_bitrate);
 
 		UPDATE_DEFAULT("DIVX_BITRATE", divx_bitrate);
 		UPDATE_DEFAULT("DIVX_RC_PERIOD", divx_rc_period);
@@ -944,7 +1055,15 @@ void Asset::save_defaults(BC_Hash *defaults,
 		UPDATE_DEFAULT("EXR_COMPRESSION", exr_compression);
 		UPDATE_DEFAULT("TIFF_CMODEL", tiff_cmodel);
 		UPDATE_DEFAULT("TIFF_COMPRESSION", tiff_compression);
+
+
+
+		UPDATE_DEFAULT("MOV_SPHERE", mov_sphere);
+		UPDATE_DEFAULT("JPEG_SPHERE", jpeg_sphere);
 	}
+
+
+
 
 	if(do_bits)
 	{
@@ -983,7 +1102,7 @@ void Asset::save_defaults(BC_Hash *defaults,
 
 
 
-int Asset::update_path(char *new_path)
+int Asset::update_path(const char *new_path)
 {
 	strcpy(path, new_path);
 	return 0;
@@ -1007,6 +1126,10 @@ int Asset::dump()
 	printf("   video_data %d layers %d framerate %f width %d height %d vcodec %c%c%c%c aspect_ratio %f\n",
 		video_data, layers, frame_rate, width, height, vcodec[0], vcodec[1], vcodec[2], vcodec[3], aspect_ratio);
 	printf("   video_length %lld \n", (long long)video_length);
+
+
+    printf("   audio_command=%s\n", audio_command.c_str());
+
 	printf("   ms_bitrate_tolerance=%d\n", ms_bitrate_tolerance);
 	printf("   ms_quantization=%d\n", ms_quantization);
 	printf("   ms_fix_bitrate=%d\n", ms_fix_bitrate);
@@ -1014,6 +1137,16 @@ int Asset::dump()
 	printf("   h264_bitrate=%d\n", h264_bitrate);
 	printf("   h264_quantizer=%d\n", h264_quantizer);
 	printf("   h264_fix_bitrate=%d\n", h264_fix_bitrate);
+	printf("   h265_bitrate=%d\n", h265_bitrate);
+	printf("   h265_quantizer=%d\n", h265_quantizer);
+	printf("   h265_fix_bitrate=%d\n", h265_fix_bitrate);
+	printf("   mov_sphere=%d\n", mov_sphere);
+	printf("   jpeg_sphere=%d\n", jpeg_sphere);
+	printf("   command_cmodel=%d\n", command_cmodel);
+	printf("   video_command=%s\n", video_command.c_str());
+    
+    printf("   do_wrapper=%d\n", do_wrapper);
+    printf("   wrapper_command=%s\n", wrapper_command.c_str());
 	return 0;
 }
 

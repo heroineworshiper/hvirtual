@@ -19,6 +19,8 @@
  * 
  */
 
+// file removal thread from back when ext2 took forever to delete a file
+
 #ifndef REMOVETHREAD_H
 #define REMOVETHREAD_H
 

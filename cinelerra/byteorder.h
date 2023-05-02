@@ -58,13 +58,13 @@ inline int get_byte_order()
 
 inline int swap_bytes(int wordsize, unsigned char *buffer, long len)
 {
-	register unsigned char byte1, byte2, byte3, byte4;
-	register unsigned char *buffer1 = buffer;
-	register unsigned char *buffer2 = buffer + 1;
-	register unsigned char *buffer3 = buffer + 2;
-	register unsigned char *buffer4 = buffer + 3;
+	unsigned char byte1, byte2, byte3, byte4;
+	unsigned char *buffer1 = buffer;
+	unsigned char *buffer2 = buffer + 1;
+	unsigned char *buffer3 = buffer + 2;
+	unsigned char *buffer4 = buffer + 3;
 
-	register long i = 0, j = 0, k = 0;
+	long i = 0, j = 0, k = 0;
 
 //printf("swap bytes\n");
 

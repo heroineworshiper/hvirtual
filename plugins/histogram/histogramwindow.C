@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2020 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,8 +38,8 @@ HistogramWindow::HistogramWindow(HistogramMain *plugin)
  : PluginClientWindow(plugin, 
 	plugin->w, 
 	plugin->h, 
-	440, 
-	500, 
+	DP(440), 
+	DP(500), 
 	1)
 {
 	this->plugin = plugin; 
@@ -106,7 +106,7 @@ void HistogramWindow::create_objects()
 
 	y += canvas_title2->get_h() + margin;
 	x = x1;
-	canvas_h = get_h() - y - 210;
+	canvas_h = get_h() - y - DP(250);
 
 
 	add_subwindow(low_input_carrot = new HistogramCarrot(plugin,
@@ -199,7 +199,7 @@ void HistogramWindow::create_objects()
 		canvas->get_x(), 
 		y, 
 		canvas->get_w(),
-		20,
+		DP(20),
 		0));
 	output->update();
 
@@ -252,11 +252,21 @@ void HistogramWindow::create_objects()
 	y += bar->get_h() + margin;
 
 	add_subwindow(automatic = new HistogramAuto(plugin, 
+        this,
 		x, 
-		y));
+		y, 
+        _("Automatic Color"),
+        &plugin->config.automatic));
+    y += automatic->get_h() + margin;
+	add_subwindow(automatic_v = new HistogramAuto(plugin, 
+        this,
+		x, 
+		y, 
+        _("Automatic Luma"),
+        &plugin->config.automatic_v));
 
 	int y1 = y;
-	x = 200;
+	x = DP(200);
 	add_subwindow(threshold_title = new BC_Title(x, y, _("Threshold:")));
 	x += threshold_title->get_w() + margin;
 	threshold = new HistogramText(plugin,
@@ -276,7 +286,7 @@ void HistogramWindow::create_objects()
 		x, 
 		y));
 
-	y += plot->get_h() + 5;
+	y += plot->get_h() + DP(5);
 	add_subwindow(split = new HistogramSplit(plugin, 
 		x, 
 		y));
@@ -331,7 +341,7 @@ int HistogramWindow::resize_event(int w, int h)
 	gamma->reposition_window(w / 2 - gamma->get_w() / 2,
 		gamma->get_y() + ydiff);
 	high_input->reposition_window(high_input->get_x() + xdiff,
-		low_input->get_y() + ydiff);
+		high_input->get_y() + ydiff);
 
 	output->reposition_window(output->get_x(),
 		output->get_y() + ydiff,
@@ -365,6 +375,8 @@ int HistogramWindow::resize_event(int w, int h)
 	
 	automatic->reposition_window(automatic->get_x(),
 		automatic->get_y() + ydiff);
+	automatic_v->reposition_window(automatic_v->get_x(),
+		automatic_v->get_y() + ydiff);
 	threshold_title->reposition_window(threshold_title->get_x(),
 		threshold_title->get_y() + ydiff);
 	threshold->reposition_window(threshold->get_x(),
@@ -430,6 +442,7 @@ void HistogramWindow::update(int do_canvases,
 	if(do_toggles)
 	{
 		automatic->update(plugin->config.automatic);
+		automatic_v->update(plugin->config.automatic_v);
 		mode_v->update(plugin->mode == HISTOGRAM_VALUE ? 1 : 0);
 		mode_r->update(plugin->mode == HISTOGRAM_RED ? 1 : 0);
 		mode_g->update(plugin->mode == HISTOGRAM_GREEN ? 1 : 0);
@@ -732,6 +745,7 @@ float* HistogramCarrot::get_value()
 	{
 		return &plugin->config.high_output[plugin->mode];
 	}
+    return 0;
 }
 
 void HistogramCarrot::update()
@@ -933,16 +947,31 @@ void HistogramSlider::update()
 
 
 HistogramAuto::HistogramAuto(HistogramMain *plugin, 
+    HistogramWindow *gui,
 	int x, 
-	int y)
- : BC_CheckBox(x, y, plugin->config.automatic, _("Automatic"))
+	int y,
+    char *text,
+    int *output)
+ : BC_CheckBox(x, y, *output, text)
 {
 	this->plugin = plugin;
+    this->gui = gui;
+    this->output = output;
 }
 
 int HistogramAuto::handle_event()
 {
-	plugin->config.automatic = get_value();
+	*output = get_value();
+// cancel the opposite mode
+    if(output == &plugin->config.automatic)
+    {
+        plugin->config.automatic_v = 0;
+    }
+    else
+    {
+        plugin->config.automatic = 0;
+    }
+    gui->update(0, 0, 0, 1);
 	plugin->send_configure_change();
 	return 1;
 }
@@ -1030,7 +1059,7 @@ HistogramText::HistogramText(HistogramMain *plugin,
 		(float)MAX_INPUT,
 		x, 
 		y, 
-		70)
+		DP(70))
 {
 	this->plugin = plugin;
 	this->gui = gui;

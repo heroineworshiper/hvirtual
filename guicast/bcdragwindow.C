@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -194,7 +193,7 @@ BC_Pixmap *BC_DragWindow::prepare_frame(VFrame *frame, BC_WindowBase *parent_win
 					BC_RGBA8888,
 					-1); 
 
-		BC_WindowBase::get_cmodels()->transfer(temp_frame->get_rows(), 
+		cmodel_transfer(temp_frame->get_rows(), 
 			frame->get_rows(),
 			0,
 			0,

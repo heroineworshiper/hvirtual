@@ -49,15 +49,21 @@ StatusBar::~StatusBar()
 void StatusBar::create_objects()
 {
 //printf("StatusBar::create_objects 1\n");
-	int x = 10, y = 5;
+	int margin = mwindow->theme->widget_border;
+	int x = margin, y = margin;
 //printf("StatusBar::create_objects 1\n");
 	draw_top_background(get_parent(), 0, 0, get_w(), get_h());
-	add_subwindow(status_text = new BC_Title(mwindow->theme->mstatus_message_x, 
+	add_subwindow(status_text = new BC_Title(
+		mwindow->theme->mstatus_message_x, 
 		mwindow->theme->mstatus_message_y, 
 		"",
 		MEDIUMFONT,
-		mwindow->theme->message_normal));
-	x = get_w() - 290;
+		mwindow->theme->message_normal,
+		0,
+		mwindow->theme->mstatus_progress_x - 
+			margin - 
+			mwindow->theme->mstatus_message_x));
+	x = mwindow->theme->mstatus_progress_x - margin;
 // printf("StatusBar::create_objects %d: 0x%08x\n", 
 // __LINE__, mwindow->theme->message_normal);
 	add_subwindow(main_progress = 
@@ -65,7 +71,7 @@ void StatusBar::create_objects()
 			mwindow->theme->mstatus_progress_y, 
 			mwindow->theme->mstatus_progress_w, 
 			mwindow->theme->mstatus_progress_w));
-	x += main_progress->get_w() + 5;
+	x += main_progress->get_w() + margin;
 //printf("StatusBar::create_objects 1\n");
 	add_subwindow(main_progress_cancel = 
 		new StatusBarCancel(mwindow, 
@@ -78,7 +84,8 @@ void StatusBar::create_objects()
 
 void StatusBar::resize_event()
 {
-	int x = 10, y = 1;
+	int margin = mwindow->theme->widget_border;
+	int x = margin, y = 1;
 
 
 	reposition_window(mwindow->theme->mstatus_x,
@@ -89,14 +96,17 @@ void StatusBar::resize_event()
 	draw_top_background(get_parent(), 0, 0, get_w(), get_h());
 
 
-	status_text->reposition_window(mwindow->theme->mstatus_message_x, 
-		mwindow->theme->mstatus_message_y);
+	status_text->reposition(mwindow->theme->mstatus_message_x, 
+		mwindow->theme->mstatus_message_y,
+		mwindow->theme->mstatus_progress_x - 
+			margin - 
+			mwindow->theme->mstatus_message_x);
 
-	x = get_w() - 290;
+	x = mwindow->theme->mstatus_progress_x - margin;
 	main_progress->reposition_window(mwindow->theme->mstatus_progress_x, 
 		mwindow->theme->mstatus_progress_y);
 
-	x += main_progress->get_w() + 5;
+	x += main_progress->get_w() + margin;
 	main_progress_cancel->reposition_window(mwindow->theme->mstatus_cancel_x, 
 		mwindow->theme->mstatus_cancel_y);
 

@@ -173,7 +173,7 @@ int quicktime_write_udta_string(quicktime_t *file, char *string, int size)
 	return !result;
 }
 
-int quicktime_set_udta_string(char **string, int *size, char *new_string)
+int quicktime_set_udta_string(char **string, int *size, const char *new_string)
 {
 	if(*size) free(*string);
 	*size = strlen(new_string) + 1;

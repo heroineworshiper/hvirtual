@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +27,7 @@
 #include "track.h"
 #include "trackcanvas.h"
 #include "tracks.h"
+#include "transition.h"
 #include "transitionhandles.h"
 
 TransitionHandle::TransitionHandle(MWindow *mwindow, 
@@ -81,8 +81,18 @@ void TransitionHandles::update()
 			if(edit->transition)
 			{
 				int64_t edit_x, edit_y, edit_w, edit_h;
-				trackcanvas->edit_dimensions(edit, edit_x, edit_y, edit_w, edit_h);
-				trackcanvas->get_transition_coords(edit_x, edit_y, edit_w, edit_h);
+				trackcanvas->edit_dimensions(edit, 
+                    edit_x, 
+                    edit_y, 
+                    edit_w, 
+                    edit_h);
+				trackcanvas->get_transition_coords(
+                    edit->transition,
+                    edit->transition->title,
+                    edit_x, 
+                    edit_y, 
+                    edit_w, 
+                    edit_h);
 				
 				if(visible(edit_x, edit_w, edit_y, edit_h))
 				{

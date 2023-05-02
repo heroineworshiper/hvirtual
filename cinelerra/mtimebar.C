@@ -693,6 +693,7 @@ int TimeBarPopupItem::handle_event()
 	mwindow->edl->session->time_format = value;
 	mwindow->gui->update(0, 0, 1, 0, 0, 1, 0);
 	mwindow->gui->redraw_time_dependancies();
+    return 0;
 }
 
 

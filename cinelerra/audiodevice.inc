@@ -40,7 +40,8 @@ enum
 	AUDIO_DV1394,
 	AUDIO_IEC61883,
 	AUDIO_DVB,
-	AUDIO_CINE
+	AUDIO_CINE,
+    AUDIO_PULSE
 };
 
 #define AUDIO_OSS_TITLE "OSS"
@@ -53,5 +54,10 @@ enum
 #define AUDIO_IEC61883_TITLE "IEC 61883"
 #define AUDIO_DVB_TITLE "DVB"
 #define AUDIO_CINE_TITLE "Render Node"
+#define AUDIO_PULSE_TITLE "Pulse Audio"
 
 #endif
+
+
+
+

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +27,7 @@
 #include "edit.inc"
 #include "guicast.h"
 #include "file.inc"
+#include "filebase.inc"
 #include "filelist.inc"
 #include "overlayframe.inc"
 #include "strategies.inc"
@@ -36,13 +36,15 @@
 #include <sys/types.h>
 
 // Number of samples saved before the current read position
-#define HISTORY_MAX 0x10000
+#define HISTORY_MAX 0x100000
 
 // inherited by every file interpreter
 class FileBase
 {
 public:
 	FileBase(Asset *asset, File *file);
+// table entry
+	FileBase();
 	virtual ~FileBase();
 
 
@@ -51,32 +53,31 @@ public:
 	friend class FrameWriter;
 
 
+// table functions for file handler
+    virtual int check_sig(File *file, const uint8_t *test_data);
+    virtual FileBase* create(File *file);
+    virtual int get_best_colormodel(Asset *asset, int driver);
+    virtual void get_parameters(BC_WindowBase *parent_window, 
+		Asset *asset, 
+		BC_WindowBase* &format_window,
+		int option_type,
+		const char *locked_compressor);
+// must not translate languages here, since it's written to the EDL
+    virtual const char* formattostr(int format);
+    virtual const char* get_tag(int format);
 
 
+// convert the read & write permissions into a stdio code
 	int get_mode(char *mode, int rd, int wr);
-	int reset_parameters();
 
-
-
-	virtual void get_parameters(BC_WindowBase *parent_window, 
-			Asset *asset, 
-			BC_WindowBase **format_window,
-			int audio_options,
-			int video_options,
-			int lock_compressor) {};
-
-
-
-	virtual int get_index(char *index_path) { return 1; };
-	virtual int check_header() { return 0; };  // Test file to see if it is of this type.
-	virtual int reset_parameters_derived() {};
-	virtual int read_header() {};     // WAV files for getting header
-	virtual int open_file(int rd, int wr) {};
+//	virtual int get_index(char *index_path) { return 1; };
+// reset_parameters_derived is not available until after the constructor
+	virtual int reset_parameters_derived();
+	virtual int open_file(int rd, int wr) { return 0; };
 	virtual int close_file();
-	virtual int close_file_derived() {};
+	virtual int close_file_derived() { return 0; };
 	int set_dither();
 	virtual int seek_end() { return 0; };
-	virtual int seek_start() { return 0; };
 	virtual int64_t get_video_position() { return 0; };
 	virtual int64_t get_audio_position() { return 0; };
 	virtual int set_video_position(int64_t x) { return 0; };
@@ -85,6 +86,8 @@ public:
 // Subclass should call this to add the base class allocation.
 // Only used in read mode.
 	virtual int64_t get_memory_usage();
+// delete the oldest frame & return the bytes freed
+    virtual int64_t purge_cache();
 
 	virtual int write_samples(double **buffer, 
 		int64_t len) { return 0; };
@@ -121,14 +124,22 @@ public:
 // For static functions to access it
 	Asset *asset;
 
-protected:
-// Return 1 if the render_strategy is present on the list.
-	static int search_render_strategies(ArrayList<int>* render_strategies, int render_strategy);
+// Table data for file handler.
+// These fields are only defined by the default constructor.
+    ArrayList<int> ids;
+// Supports for format for writing
+    int has_audio;
+    int has_video;
+    int has_wrapper;
+// supports writing or reading
+    int has_wr;
+    int has_rd;
 
+protected:
 // convert samples into file format
-	int64_t samples_to_raw(char *out_buffer, 
-							float **in_buffer, // was **buffer
-							int64_t input_len, 
+	int64_t samples_to_raw(uint8_t *out_buffer, 
+							double **in_buffer,
+							int input_len, 
 							int bits, 
 							int channels,
 							int byte_order,
@@ -195,6 +206,7 @@ protected:
 
 private:
 
+	int reset_parameters();
 
 
 

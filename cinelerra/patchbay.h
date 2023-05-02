@@ -99,6 +99,7 @@ public:
 	PatchBay *patchbay;
 	NudgePopupSeconds *seconds_item;
 	NudgePopupNative *native_item;
+    PatchGUI *gui;
 };
 
 
@@ -115,6 +116,31 @@ class NudgePopupNative : public BC_MenuItem
 {
 public:
 	NudgePopupNative(NudgePopup *popup);
+	int handle_event();
+	NudgePopup *popup;
+};
+
+
+class NudgeCut : public BC_MenuItem
+{
+public:
+	NudgeCut(NudgePopup *popup);
+	int handle_event();
+	NudgePopup *popup;
+};
+
+class NudgeCopy : public BC_MenuItem
+{
+public:
+	NudgeCopy(NudgePopup *popup);
+	int handle_event();
+	NudgePopup *popup;
+};
+
+class NudgePaste : public BC_MenuItem
+{
+public:
+	NudgePaste(NudgePopup *popup);
 	int handle_event();
 	NudgePopup *popup;
 };

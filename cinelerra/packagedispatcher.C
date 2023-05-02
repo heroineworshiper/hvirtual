@@ -464,6 +464,8 @@ if(debug) default_asset->dump();
 	{
 		Asset *asset = new Asset;
 		asset->copy_from(default_asset, 1);
+// force the format to be probed in case the encoder was different than the decoder
+        asset->format = FILE_UNKNOWN;
 		strcpy(asset->path, packages[i]->path);
 		asset->video_length = packages[i]->video_end - packages[i]->video_start;
 		asset->audio_length = packages[i]->audio_end - packages[i]->audio_start;

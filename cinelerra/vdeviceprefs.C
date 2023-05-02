@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include "preferencesthread.h"
 #include "recordconfig.h"
 #include "recordprefs.h"
+#include "theme.h"
 #include <string.h>
 
 
@@ -130,6 +131,7 @@ int VDevicePrefs::initialize(int creation)
 		case CAPTURE_JPEG_WEBCAM:
 		case CAPTURE_YUYV_WEBCAM:
 		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 		case CAPTURE_MPEG:
 			create_v4l2_objs();
 			break;
@@ -198,25 +200,40 @@ int VDevicePrefs::delete_objects()
 	return 0;
 }
 
+int VDevicePrefs::get_h()
+{
+	int margin = pwindow->mwindow->theme->widget_border;
+	return BC_Title::calculate_h(dialog, 
+			"XXX", 
+			MEDIUMFONT) + 
+		margin +
+		BC_TextBox::calculate_h(dialog, 
+			MEDIUMFONT, 
+			1, 
+			1);
+}
+
+
 int VDevicePrefs::create_dvb_objs()
 {
-	int x1 = x + menu->get_w() + 5;
+	int x1 = x + menu->get_w() + DP(5);
 	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Host:")));
 	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + 20, in_config->dvb_in_host));
-	x1 += device_text->get_w() + 10;
+	x1 += device_text->get_w() + DP(10);
 	dialog->add_subwindow(port_title = new BC_Title(x1, y, _("Port:")));
 	device_port = new VDeviceTumbleBox(this, x1, y + 20,  &in_config->dvb_in_port, 1, 65536);
 	device_port->create_objects();
-	x1 += device_port->get_w() + 10;
+	x1 += device_port->get_w() + DP(10);
 	dialog->add_subwindow(number_title = new BC_Title(x1, y, _("Adaptor:")));
 	device_number = new VDeviceTumbleBox(this, x1, y + 20,  &in_config->dvb_in_number, 0, 16);
 	device_number->create_objects();
+    return 0;
 }
 
 int VDevicePrefs::create_lml_objs()
 {
 	char *output_char;
-	int x1 = x + menu->get_w() + 5;
+	int x1 = x + menu->get_w() + DP(5);
 	BC_Resources *resources = BC_WindowBase::get_resources();
 
 	switch(mode)
@@ -229,8 +246,8 @@ int VDevicePrefs::create_lml_objs()
 			break;
 	}
 	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Device path:"), MEDIUMFONT, resources->text_default));
-	x1 += device_title->get_w() + 10;
-	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + 20, output_char));
+	x1 += device_title->get_w() + DP(10);
+	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + DP(20), output_char));
 	return 0;
 }
 
@@ -240,8 +257,8 @@ int VDevicePrefs::create_buz_objs()
 
 
 	char *output_char;
-	int x1 = x + menu->get_w() + 5;
-	int x2 = x1 + 210;
+	int x1 = x + menu->get_w() + DP(5);
+	int x2 = x1 + DP(210);
 	int y1 = y;
 	BC_Resources *resources = BC_WindowBase::get_resources();
 
@@ -256,7 +273,7 @@ int VDevicePrefs::create_buz_objs()
 	}
 	dialog->add_subwindow(device_title = new BC_Title(x1, y1, _("Device path:"), MEDIUMFONT, resources->text_default));
 
-	y1 += 20;
+	y1 += DP(20);
 	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y1, output_char));
 
 	if(driver == PLAYBACK_BUZ)
@@ -264,11 +281,11 @@ int VDevicePrefs::create_buz_objs()
 		dialog->add_subwindow(buz_swap_channels = 
 			new VDeviceCheckBox(x2, y1, &out_config->buz_swap_fields, _("Swap fields")));
 	}
-	y1 += 30;
+	y1 += DP(30);
 	if(driver == PLAYBACK_BUZ)
 	{
 		dialog->add_subwindow(output_title = new BC_Title(x1, y1, _("Output channel:")));
-		y1 += 20;
+		y1 += DP(20);
 		channel_picker = new PrefsChannelPicker(pwindow->mwindow, 
 			this, 
 			pwindow->mwindow->channeldb_buz, 
@@ -285,7 +302,7 @@ int VDevicePrefs::create_firewire_objs()
 {
 	int *output_int = 0;
 	char *output_char = 0;
-	int x1 = x + menu->get_w() + 5;
+	int x1 = x + menu->get_w() + DP(5);
 	BC_Resources *resources = BC_WindowBase::get_resources();
 
 // Firewire path
@@ -307,8 +324,8 @@ int VDevicePrefs::create_firewire_objs()
 	if(output_char)
 	{
 		dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Device Path:"), MEDIUMFONT, resources->text_default));
-		dialog->add_subwindow(firewire_path = new VDeviceTextBox(x1, y + 20, output_char));
-		x1 += firewire_path->get_w() + 5;
+		dialog->add_subwindow(firewire_path = new VDeviceTextBox(x1, y + DP(20), output_char));
+		x1 += firewire_path->get_w() + DP(5);
 	}
 
 // Firewire port
@@ -325,8 +342,8 @@ int VDevicePrefs::create_firewire_objs()
 			break;
 	}
 	dialog->add_subwindow(port_title = new BC_Title(x1, y, _("Port:"), MEDIUMFONT, resources->text_default));
-	dialog->add_subwindow(firewire_port = new VDeviceIntBox(x1, y + 20, output_int));
-	x1 += firewire_port->get_w() + 5;
+	dialog->add_subwindow(firewire_port = new VDeviceIntBox(x1, y + DP(20), output_int));
+	x1 += firewire_port->get_w() + DP(5);
 
 // Firewire channel
 	switch(mode)
@@ -343,7 +360,7 @@ int VDevicePrefs::create_firewire_objs()
 	}
 
 	dialog->add_subwindow(channel_title = new BC_Title(x1, y, _("Channel:"), MEDIUMFONT, resources->text_default));
-	dialog->add_subwindow(firewire_channel = new VDeviceIntBox(x1, y + 20, output_int));
+	dialog->add_subwindow(firewire_channel = new VDeviceIntBox(x1, y + DP(20), output_int));
 	x1 += firewire_channel->get_w() + 5;
 
 
@@ -366,7 +383,7 @@ int VDevicePrefs::create_firewire_objs()
 	if(output_int)
 	{
 		dialog->add_subwindow(syt_title = new BC_Title(x1, y, _("Syt Offset:"), MEDIUMFONT, resources->text_default));
-		dialog->add_subwindow(firewire_syt = new VDeviceIntBox(x1, y + 20, output_int));
+		dialog->add_subwindow(firewire_syt = new VDeviceIntBox(x1, y + DP(20), output_int));
 	}
 
 	return 0;
@@ -379,10 +396,10 @@ int VDevicePrefs::create_v4l_objs()
 
 	char *output_char;
 	BC_Resources *resources = BC_WindowBase::get_resources();
-	int x1 = x + menu->get_w() + 5;
+	int x1 = x + menu->get_w() + DP(5);
 	output_char = pwindow->thread->edl->session->vconfig_in->v4l_in_device;
 	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Device path:"), MEDIUMFONT, resources->text_default));
-	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + 20, output_char));
+	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + DP(20), output_char));
 
 
 #endif // HAVE_VIDEO4LINUX
@@ -393,10 +410,10 @@ int VDevicePrefs::create_v4l2_objs()
 {
 	char *output_char;
 	BC_Resources *resources = BC_WindowBase::get_resources();
-	int x1 = x + menu->get_w() + 5;
+	int x1 = x + menu->get_w() + DP(5);
 	output_char = pwindow->thread->edl->session->vconfig_in->v4l2_in_device;
 	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Device path:"), MEDIUMFONT, resources->text_default));
-	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + 20, output_char));
+	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + DP(20), output_char));
 
 	return 0;
 }
@@ -407,10 +424,10 @@ int VDevicePrefs::create_screencap_objs()
 {
 	char *output_char;
 	BC_Resources *resources = BC_WindowBase::get_resources();
-	int x1 = x + menu->get_w() + 5;
+	int x1 = x + menu->get_w() + DP(5);
 	output_char = pwindow->thread->edl->session->vconfig_in->screencapture_display;
 	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Display:"), MEDIUMFONT, resources->text_default));
-	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + 20, output_char));
+	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + DP(20), output_char));
 	return 0;
 }
 
@@ -418,10 +435,10 @@ int VDevicePrefs::create_x11_objs()
 {
 	char *output_char;
 	BC_Resources *resources = BC_WindowBase::get_resources();
-	int x1 = x + menu->get_w() + 5;
+	int x1 = x + menu->get_w() + DP(5);
 	output_char = out_config->x11_host;
 	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Display for compositor:"), MEDIUMFONT, resources->text_default));
-	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + 20, output_char));
+	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + DP(20), output_char));
 	return 0;
 }
 
@@ -433,7 +450,7 @@ VDriverMenu::VDriverMenu(int x,
 	VDevicePrefs *device_prefs, 
 	int do_input, 
 	int *output)
- : BC_PopupMenu(x, y, 200, driver_to_string(*output))
+ : BC_PopupMenu(x, y, DP(200), driver_to_string(*output))
 {
 	this->output = output;
 	this->do_input = do_input;
@@ -444,7 +461,7 @@ VDriverMenu::~VDriverMenu()
 {
 }
 
-char* VDriverMenu::driver_to_string(int driver)
+const char* VDriverMenu::driver_to_string(int driver)
 {
 	switch(driver)
 	{
@@ -453,6 +470,12 @@ char* VDriverMenu::driver_to_string(int driver)
 			break;
 		case VIDEO4LINUX2:
 			sprintf(string, VIDEO4LINUX2_TITLE);
+			break;
+		case VIDEO4LINUX2JPEG:
+			return VIDEO4LINUX2JPEG_TITLE;
+			break;
+		case VIDEO4LINUX2MJPG:
+			return VIDEO4LINUX2MJPG_TITLE;
 			break;
 		case CAPTURE_JPEG_WEBCAM:
 			sprintf(string, CAPTURE_JPEG_WEBCAM_TITLE);
@@ -506,7 +529,7 @@ char* VDriverMenu::driver_to_string(int driver)
 			sprintf(string, PLAYBACK_IEC61883_TITLE);
 			break;
 		default:
-			sprintf(string, "");
+			string[0] = 0;
 	}
 	return string;
 }
@@ -524,6 +547,7 @@ void VDriverMenu::create_objects()
 		add_item(new VDriverItem(this, CAPTURE_JPEG_WEBCAM_TITLE, CAPTURE_JPEG_WEBCAM));
 		add_item(new VDriverItem(this, CAPTURE_YUYV_WEBCAM_TITLE, CAPTURE_YUYV_WEBCAM));
 		add_item(new VDriverItem(this, VIDEO4LINUX2JPEG_TITLE, VIDEO4LINUX2JPEG));
+		add_item(new VDriverItem(this, VIDEO4LINUX2MJPG_TITLE, VIDEO4LINUX2MJPG));
 		add_item(new VDriverItem(this, CAPTURE_MPEG_TITLE, CAPTURE_MPEG));
 #endif
 
@@ -533,7 +557,7 @@ void VDriverMenu::create_objects()
 #endif
 		add_item(new VDriverItem(this, CAPTURE_FIREWIRE_TITLE, CAPTURE_FIREWIRE));
 		add_item(new VDriverItem(this, CAPTURE_IEC61883_TITLE, CAPTURE_IEC61883));
-		add_item(new VDriverItem(this, CAPTURE_DVB_TITLE, CAPTURE_DVB));
+//		add_item(new VDriverItem(this, CAPTURE_DVB_TITLE, CAPTURE_DVB));
 	}
 	else
 	{
@@ -573,7 +597,7 @@ int VDriverItem::handle_event()
 
 
 VDeviceTextBox::VDeviceTextBox(int x, int y, char *output)
- : BC_TextBox(x, y, 200, 1, output)
+ : BC_TextBox(x, y, DP(200), 1, output)
 { 
 	this->output = output; 
 }
@@ -584,6 +608,7 @@ int VDeviceTextBox::handle_event()
 	calculate_suggestions(0);
 
 	strcpy(output, get_text()); 
+    return 0;
 }
 
 VDeviceTumbleBox::VDeviceTumbleBox(VDevicePrefs *prefs, 
@@ -598,7 +623,7 @@ VDeviceTumbleBox::VDeviceTumbleBox(VDevicePrefs *prefs,
 	max,
  	x, 
 	y, 
-	60)
+	DP(60))
 { 
 	this->output = output; 
 }
@@ -615,7 +640,7 @@ int VDeviceTumbleBox::handle_event()
 
 
 VDeviceIntBox::VDeviceIntBox(int x, int y, int *output)
- : BC_TextBox(x, y, 60, 1, *output)
+ : BC_TextBox(x, y, DP(60), 1, *output)
 { 
 	this->output = output; 
 }

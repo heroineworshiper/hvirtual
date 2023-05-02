@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +35,8 @@
 N_(MASTER_NODE_FRAMERATE_TEXT)
 #endif
 
+static int *widths = 0;
+
 PerformancePrefs::PerformancePrefs(MWindow *mwindow, PreferencesWindow *pwindow)
  : PreferencesDialog(mwindow, pwindow)
 {
@@ -49,17 +50,33 @@ PerformancePrefs::~PerformancePrefs()
 	nodes[1].remove_all_objects();
 	nodes[2].remove_all_objects();
 	nodes[3].remove_all_objects();
+    
+    delete edit_port;
+    delete brender_fragment;
+    delete preroll;
+    delete bpreroll;
+    delete jobs;
 }
 
 void PerformancePrefs::create_objects()
 {
 	int x, y;
 	int xmargin1;
-	int xmargin2 = 170;
-	int xmargin3 = 250;
-	int xmargin4 = 380;
+	int xmargin2 = DP(170);
+	int xmargin3 = DP(250);
+	int xmargin4 = DP(380);
 	char string[BCTEXTLEN];
 	BC_Resources *resources = BC_WindowBase::get_resources();
+	int margin = mwindow->theme->widget_border;
+
+	if(!widths)
+	{
+		widths = new int[4];
+		widths[0] = DP(30);
+		widths[1] = DP(150);
+		widths[2] = DP(50);
+		widths[3] = DP(50);
+	}
 
 	node_list = 0;
 	generate_node_list();
@@ -73,101 +90,120 @@ void PerformancePrefs::create_objects()
 // 		LARGEFONT, 
 // 		resources->text_default));
 // 
-// 	y += get_text_height(LARGEFONT) + 5;
+// 	y += get_text_height(LARGEFONT) + margin;
 
-	add_subwindow(new BC_Title(x, y + 5, _("Cache size (MB):"), MEDIUMFONT, resources->text_default));
-	cache_size = new CICacheSize(x + 230, 
+	add_subwindow(new BC_Title(x, y + margin, _("Cache size (MB):"), MEDIUMFONT, resources->text_default));
+	cache_size = new CICacheSize(x + DP(230), 
 		y, 
 		pwindow, 
 		this);
 	cache_size->create_objects();
 
-	y += 30;
-	add_subwindow(new BC_Title(x, y + 5, _("Seconds to preroll renders:")));
-	PrefsRenderPreroll *preroll = new PrefsRenderPreroll(pwindow, 
+	y += DP(30);
+	add_subwindow(new BC_Title(x, y + margin, _("Seconds to preroll renders:")));
+	preroll = new PrefsRenderPreroll(pwindow, 
 		this, 
-		x + 230, 
+		x + DP(230), 
 		y);
 	preroll->create_objects();
-	y += 30;
-	add_subwindow(new PrefsForceUniprocessor(pwindow, x, y));
+	y += DP(30);
+    PrefsForceUniprocessor *toggle;
+	add_subwindow(toggle = new PrefsForceUniprocessor(pwindow, x, y));
 
-	y += 35;
+	y += toggle->get_h() + margin;
 
+
+	add_subwindow(gl_rendering = new PrefsGLRendering(pwindow, this, x, y));
+    y += gl_rendering->get_h() + margin;
 
 
 
 // Background rendering
-	add_subwindow(new BC_Bar(5, y, 	get_w() - 10));
-	y += 5;
+	add_subwindow(new BC_Bar(margin, y, 	get_w() - margin * 2));
+	y += margin;
 
 
 	add_subwindow(new BC_Title(x, y, _("Background Rendering (Video only)"), LARGEFONT, resources->text_default));
-	y += 30;
+	y += DP(30);
+	int y2 = y;
 
 	add_subwindow(new PrefsUseBRender(pwindow, 
 		x,
 		y));
 
-
-	add_subwindow(new BC_Title(x, y + 40, _("Frames per background rendering job:")));
-	PrefsBRenderFragment *brender_fragment = new PrefsBRenderFragment(pwindow, 
+	y += DP(40);
+	add_subwindow(new BC_Title(x, y, _("Frames per background rendering job:")));
+	y += DP(20);
+	brender_fragment = new PrefsBRenderFragment(pwindow, 
 		this, 
 		x, 
-		y + 60);
+		y);
 	brender_fragment->create_objects();
-	add_subwindow(new BC_Title(x, y + 95, _("Frames to preroll background:")));
-	PrefsBRenderPreroll *bpreroll = new PrefsBRenderPreroll(pwindow, 
+	
+	
+	y += DP(30);
+	add_subwindow(new BC_Title(x, y + DP(5), _("Frames to preroll background:")));
+	bpreroll = new PrefsBRenderPreroll(pwindow, 
 		this, 
 		x + xmargin3, 
-		y + 90);
+		y + margin);
 	bpreroll->create_objects();
-
+	y += DP(30);
 
 	x += xmargin4;
-	add_subwindow(new BC_Title(x, y, _("Output for background rendering:")));
-	y += 20;
+	add_subwindow(new BC_Title(x, y2, _("Output for background rendering:")));
+	y2 += DP(20);
+
+
 	brender_tools = 
 		new FormatTools(mwindow,
 			this, 
 			pwindow->thread->preferences->brender_asset);
+	brender_tools->set_w(get_w() - x);
 	brender_tools->create_objects(x, 
-		y, 
-		0,  // Include tools for audio
-		1,  // Include tools for video
-		0,  // Include checkbox for audio
-		0,  // Include checkbox for video
-		0,
-		1,
-		0,  // Select compressors to be offered
-		0,  // Prompt for recording options
-		0,  // If nonzero, prompt for insertion strategy
-		1); // Supply file formats for background rendering
+		y2, 
+		0, // Include tools for audio
+		1, // Include tools for video
+		0, // Include checkbox for audio
+		0, // Include checkbox for video
+		1, // prompt_video_compression
+        0, // prompt_wrapper
+		0, // Select compressors to be offered
+		0, // Prompt for recording options
+		0, // If nonzero, prompt for insertion strategy
+		1); // Supply only file formats for background rendering
 	x = xmargin1;
+	
+	if(y2 > y)
+	{
+		y = y2;
+	}
+
+
 
 
 // Renderfarm
-	add_subwindow(new BC_Bar(5, y, 	get_w() - 10));
-	y += 5;
+	add_subwindow(new BC_Bar(margin, y, get_w() - margin * 2));
+	y += margin;
 
 
 	add_subwindow(new BC_Title(x, y, _("Render Farm"), LARGEFONT, resources->text_default));
-	y += 25;
+	y += DP(25);
 
-	add_subwindow(new PrefsRenderFarm(pwindow, x, y));
+	add_subwindow(use_renderfarm = new PrefsRenderFarm(pwindow, this, x, y));
 	add_subwindow(new BC_Title(x + xmargin4, y, _("Nodes:")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new BC_Title(x, y, _("Hostname:")));
 	add_subwindow(new BC_Title(x + xmargin3, y, _("Port:")));
 	add_subwindow(node_list = new PrefsRenderFarmNodes(pwindow, 
 		this, 
 		x + xmargin4, 
-		y - 5));
+		y - margin));
 	sprintf(string, _(MASTER_NODE_FRAMERATE_TEXT), 
 		pwindow->thread->preferences->local_rate);
 	add_subwindow(master_rate = new BC_Title(x + xmargin4, y + node_list->get_h(), string));
 
-	y += 25;
+	y += DP(25);
 	add_subwindow(edit_node = new PrefsRenderFarmEditNode(pwindow, 
 		this, 
 		x, 
@@ -178,7 +214,7 @@ void PerformancePrefs::create_objects()
 		y);
 	edit_port->create_objects();
 
-	y += 30;
+	y += DP(30);
 
 
 	add_subwindow(new PrefsRenderFarmReplaceNode(pwindow, 
@@ -189,7 +225,7 @@ void PerformancePrefs::create_objects()
 		this, 
 		x + xmargin2, 
 		y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new PrefsRenderFarmDelNode(pwindow, 
 		this, 
 		x + xmargin2, 
@@ -198,24 +234,24 @@ void PerformancePrefs::create_objects()
 		this, 
 		x, 
 		y));
-	y += 30;
+	y += DP(30);
 	add_subwindow(new PrefsRenderFarmReset(pwindow, 
 		this, 
 		x, 
 		y));
-	y += 35;
+	y += DP(35);
 	add_subwindow(new BC_Title(x, 
 		y, 
 		_("Total jobs to create:")));
 	add_subwindow(new BC_Title(x, 
-		y + 30, 
-		_("(overridden if new file at each label is checked)")));
-	PrefsRenderFarmJobs *jobs = new PrefsRenderFarmJobs(pwindow, 
+		y + DP(30), 
+		_("(overridden if creating a\nnew file at each label)")));
+	jobs = new PrefsRenderFarmJobs(pwindow, 
 		this, 
 		x + xmargin3, 
 		y);
 	jobs->create_objects();
-	y += 55;
+	y += DP(55);
 // 	add_subwindow(new PrefsRenderFarmVFS(pwindow,
 // 		this,
 // 		x,
@@ -228,7 +264,21 @@ void PerformancePrefs::create_objects()
 // 		x + xmargin3, 
 // 		y));
 // 	y += 30;
+    update_enabled();
+}
 
+void PerformancePrefs::update_enabled()
+{
+    if(pwindow->thread->preferences->use_gl_rendering)
+    {
+        use_renderfarm->update(0);
+        use_renderfarm->disable();
+    }
+    else
+    {
+        use_renderfarm->update(pwindow->thread->preferences->use_renderfarm);
+        use_renderfarm->enable();
+    }
 }
 
 void PerformancePrefs::generate_node_list()
@@ -268,14 +318,6 @@ static const char *titles[] =
 	N_("Hostname"),
 	N_("Port"),
 	N_("Framerate")
-};
-
-static int widths[] = 
-{
-	30,
-	150,
-	50,
-	50
 };
 
 
@@ -348,7 +390,7 @@ PrefsBRenderFragment::PrefsBRenderFragment(PreferencesWindow *pwindow,
 	(int64_t)65535,
 	x,
 	y,
-	100)
+	DP(100))
 {
 	this->pwindow = pwindow;
 }
@@ -378,7 +420,7 @@ CICacheSize::CICacheSize(int x,
 	(int64_t)MAX_CACHE_SIZE / 0x100000,
 	x, 
 	y, 
-	100)
+	DP(100))
 { 
 	this->pwindow = pwindow;
 	set_increment(1);
@@ -404,7 +446,7 @@ PrefsRenderPreroll::PrefsRenderPreroll(PreferencesWindow *pwindow,
 	(float)100,
 	x,
 	y,
-	100)
+	DP(100))
 {
 	this->pwindow = pwindow;
 	set_increment(0.1);
@@ -429,7 +471,7 @@ PrefsBRenderPreroll::PrefsBRenderPreroll(PreferencesWindow *pwindow,
 	(int64_t)100,
 	x,
 	y,
-	100)
+	DP(100))
 {
 	this->pwindow = pwindow;
 }
@@ -446,19 +488,41 @@ int PrefsBRenderPreroll::handle_event()
 
 
 
+PrefsGLRendering::PrefsGLRendering(PreferencesWindow *pwindow, 
+    PerformancePrefs *subwindow, 
+    int x, 
+    int y)
+ : BC_CheckBox(x, 
+ 	y, 
+	pwindow->thread->preferences->use_gl_rendering,
+	_("Use OpenGL for rendering"))
+{
+	this->pwindow = pwindow;
+    this->subwindow = subwindow;
+}
+int PrefsGLRendering::handle_event()
+{
+	pwindow->thread->preferences->use_gl_rendering = get_value();
+    subwindow->update_enabled();
+	return 1;
+}
 
 
 
-PrefsRenderFarm::PrefsRenderFarm(PreferencesWindow *pwindow, int x, int y)
+
+
+
+PrefsRenderFarm::PrefsRenderFarm(PreferencesWindow *pwindow, 
+    PerformancePrefs *subwindow, 
+    int x, 
+    int y)
  : BC_CheckBox(x, 
  	y, 
 	pwindow->thread->preferences->use_renderfarm,
 	_("Use render farm"))
 {
 	this->pwindow = pwindow;
-}
-PrefsRenderFarm::~PrefsRenderFarm()
-{
+    this->subwindow = subwindow;
 }
 int PrefsRenderFarm::handle_event()
 {
@@ -523,7 +587,7 @@ PrefsRenderFarmPort::PrefsRenderFarmPort(PreferencesWindow *pwindow,
 	(int64_t)65535,
 	x,
 	y,
-	100)
+	DP(100))
 {
 	this->pwindow = pwindow;
 }
@@ -546,8 +610,8 @@ PrefsRenderFarmNodes::PrefsRenderFarmNodes(PreferencesWindow *pwindow,
 	int y)
  : BC_ListBox(x, 
 		y, 
-		340, 
-		230,
+		DP(340), 
+		DP(230),
 		LISTBOX_TEXT,                         // Display text list or icons
 		subwindow->nodes,
 		titles,
@@ -605,7 +669,7 @@ int PrefsRenderFarmNodes::selection_changed()
 
 
 PrefsRenderFarmEditNode::PrefsRenderFarmEditNode(PreferencesWindow *pwindow, PerformancePrefs *subwindow, int x, int y)
- : BC_TextBox(x, y, 240, 1, "")
+ : BC_TextBox(x, y, DP(240), 1, "")
 {
 	this->pwindow = pwindow;
 	this->subwindow = subwindow;
@@ -776,7 +840,7 @@ PrefsRenderFarmJobs::PrefsRenderFarmJobs(PreferencesWindow *pwindow,
 	(int64_t)100,
 	x,
 	y,
-	100)
+	DP(100))
 {
 	this->pwindow = pwindow;
 }
@@ -797,7 +861,7 @@ PrefsRenderFarmMountpoint::PrefsRenderFarmMountpoint(PreferencesWindow *pwindow,
 		int y)
  : BC_TextBox(x, 
  	y, 
-	100,
+	DP(100),
 	1,
 	pwindow->thread->preferences->renderfarm_mountpoint)
 {

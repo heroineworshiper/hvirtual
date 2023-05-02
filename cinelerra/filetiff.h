@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,17 +37,26 @@ public:
 	FileTIFF(Asset *asset, File *file);
 	~FileTIFF();
 
-	static void get_parameters(BC_WindowBase *parent_window, 
+
+// table functions
+    FileTIFF();
+	int check_sig(File *file, const uint8_t *test_data);
+    FileBase* create(File *file);
+	void get_parameters(BC_WindowBase *parent_window, 
 		Asset *asset, 
 		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options);
-	static int check_sig(Asset *asset);
+		int option_type,
+	    const char *locked_compressor);
+	int get_best_colormodel(Asset *asset, int driver);
+    const char* formattostr(int format);
+    const char* get_tag(int format);
+
+
+
 	static const char* compression_to_str(int value);
 	static const char* cmodel_to_str(int value);
 	int can_copy_from(Asset *asset, int64_t position);
 	int colormodel_supported(int colormodel);
-	int get_best_colormodel(Asset *asset, int driver);
 	int read_frame_header(char *path);
 	int read_frame(VFrame *output, VFrame *input);
 	int write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit);

@@ -24,7 +24,7 @@
 
 
 #include "audiodevice.h"
-#include "bccmodels.h"
+//#include "bccmodels.h"
 #include "condition.h"
 #include "device1394output.h"
 #include "mutex.h"
@@ -184,6 +184,7 @@ int Device1394Output::get_dv1394()
 {
 	if(adevice) return adevice->out_config->driver == AUDIO_DV1394;
 	if(vdevice) return vdevice->out_config->driver == PLAYBACK_DV1394;
+    return 0;
 }
 
 int Device1394Output::open(char *path,
@@ -214,12 +215,12 @@ int Device1394Output::open(char *path,
     struct dv1394_init setup = 
 	{
        api_version: DV1394_API_VERSION,
-       channel:     channel,
-  	   n_frames:    length,
+       channel:     (unsigned int)channel,
+  	   n_frames:    (unsigned int)length,
        format:      is_pal ? DV1394_PAL : DV1394_NTSC,
        cip_n:       0,
        cip_d:       0,
-       syt_offset:  syt
+       syt_offset:  (unsigned int)syt
     };
 
 	
@@ -292,7 +293,7 @@ int Device1394Output::open(char *path,
 					0);
 			}
 
-        	if(output_buffer <= 0)
+        	if(output_buffer != 0)
 			{
             	perror("Device1394Output::open mmap");
         	}
@@ -659,7 +660,7 @@ void Device1394Output::write_frame(VFrame *input)
 			temp_frame->set_compressed_size(data_size);
 
 
-			BC_CModels::transfer(temp_frame2->get_rows(), /* Leave NULL if non existent */
+			cmodel_transfer(temp_frame2->get_rows(), /* Leave NULL if non existent */
 				input->get_rows(),
 				temp_frame2->get_y(), /* Leave NULL if non existent */
 				temp_frame2->get_u(),

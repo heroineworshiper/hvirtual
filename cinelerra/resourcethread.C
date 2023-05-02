@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -316,7 +315,7 @@ void ResourceThread::run()
 			}
 			item_lock->unlock();
 
-//printf("ResourceThread::run %d %d\n", __LINE__, items.size());
+//printf("ResourceThread::run %d %d\n", __LINE__, total_items);
 			if(!total_items) break;
 
 			if(item->data_type == TRACK_VIDEO)
@@ -332,6 +331,9 @@ void ResourceThread::run()
 
 			delete item;
 		}
+
+// only delete assets when not drawing
+		mwindow->age_caches();
 	}
 }
 
@@ -358,7 +360,6 @@ void ResourceThread::open_render_engine(EDL *nested_edl,
 		command.realtime = 0;
 		render_engine = new RenderEngine(0,
 			mwindow->preferences,
-			0,
 			0,
 			0);
 		render_engine_id == nested_edl->id;
@@ -392,6 +393,7 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 		source_cmodel = nested_edl->session->color_model;
 	}
 
+// this frame is what the file is loaded into & must use shm
 	if(temp_picon &&
 		(temp_picon->get_w() != source_w ||
 		temp_picon->get_h() != source_h ||
@@ -411,7 +413,7 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 			-1);
 	}
 
-// Get temporary to copy cached frame to
+// Temporary to copy cached frame to.  This doesn't need shm.
 	if(temp_picon2 &&
 		(temp_picon2->get_w() != item->picon_w ||
 		temp_picon2->get_h() != item->picon_h))
@@ -422,12 +424,23 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 
 	if(!temp_picon2)
 	{
-		temp_picon2 = new VFrame(0, 
-			-1,
-			item->picon_w, 
-			item->picon_h, 
-			BC_RGB888,
-			-1);
+// 		temp_picon2 = new VFrame(0, 
+// 			-1,
+// 			item->picon_w, 
+// 			item->picon_h, 
+// 			BC_RGB888,
+// 			-1);
+        temp_picon2 = new VFrame;
+        temp_picon2->set_use_shm(0);
+        temp_picon2->reallocate(0, 
+	        -1,
+	        0,
+	        0,
+	        0,
+	        item->picon_w, 
+	        item->picon_h, 
+	        BC_RGB888, 
+	        -1);
 	}
 
 
@@ -485,23 +498,37 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 		source->set_video_position(normalized_position, 
 			0);
 
-		source->read_frame(temp_picon);
+		source->read_frame(temp_picon, 0, 0, 0);
 		mwindow->video_cache->check_in(asset);
-		
-		mwindow->age_caches();
+
+// don't delete assets after every picon	
+//		mwindow->age_caches();
 		
 		need_conversion = 1;
 	}
 
 	if(need_conversion)
 	{
-		picon_frame = new VFrame(0, 
-			-1,
-			item->picon_w, 
-			item->picon_h, 
-			BC_RGB888,
-			-1);
-		BC_CModels::transfer(picon_frame->get_rows(),
+// 		picon_frame = new VFrame(0, 
+// 			-1,
+// 			item->picon_w, 
+// 			item->picon_h, 
+// 			BC_RGB888,
+// 			-1);
+// number of shm segments is finite, so must use malloc
+        picon_frame = new VFrame;
+        picon_frame->set_use_shm(0);
+        picon_frame->reallocate(0, 
+	        -1,
+	        0,
+	        0,
+	        0,
+	        item->picon_w, 
+	        item->picon_h, 
+	        BC_RGB888, 
+	        -1);
+        
+		cmodel_transfer(picon_frame->get_rows(),
 			temp_picon->get_rows(),
 			0,
 			0,
@@ -626,69 +653,82 @@ void ResourceThread::do_audio(AResourceThreadItem *item)
 				if(fragment + sample > total_samples)
 					fragment = total_samples - sample;
 
-				if(!item->indexable->is_asset)
-				{
-					if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
-					open_render_engine((EDL*)item->indexable, 1, 0);
-					if(debug) printf("ResourceThread::do_audio %d %p\n", __LINE__, render_engine);
-					if(render_engine->arender)
-					{
-						if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
-						int source_channels = item->indexable->get_audio_channels();
-						if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
-						for(int i = 0; i < MAXCHANNELS; i++)
-						{
-							if(i < source_channels &&
-								!temp_buffer[i])
-							{
-								temp_buffer[i] = new Samples(BUFFERSIZE);
-							}
-							else
-							if(i >= source_channels &&
-								temp_buffer[i])
-							{
-								delete temp_buffer[i];
-								temp_buffer[i] = 0;
-							}
-						}
+                if(fragment > 0)
+                {
+				    if(!item->indexable->is_asset)
+				    {
+					    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
+					    open_render_engine((EDL*)item->indexable, 1, 0);
+					    if(debug) printf("ResourceThread::do_audio %d %p\n", __LINE__, render_engine);
+					    if(render_engine->arender)
+					    {
+						    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
+						    int source_channels = item->indexable->get_audio_channels();
+						    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
+						    for(int i = 0; i < MAXCHANNELS; i++)
+						    {
+							    if(i < source_channels &&
+								    !temp_buffer[i])
+							    {
+								    temp_buffer[i] = new Samples(BUFFERSIZE);
+							    }
+							    else
+							    if(i >= source_channels &&
+								    temp_buffer[i])
+							    {
+								    delete temp_buffer[i];
+								    temp_buffer[i] = 0;
+							    }
+						    }
 
-						
-						if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
-						render_engine->arender->process_buffer(
-							temp_buffer, 
-							fragment,
-							sample);
-						if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
-						memcpy(audio_buffer->get_data(), 
-							temp_buffer[item->channel]->get_data(),
-							fragment * sizeof(double));
-					}
-					else
-					{
-						if(debug) printf("ResourceThread::do_audio %d %d\n", __LINE__, fragment);
-						if(fragment > 0) bzero(audio_buffer->get_data(), sizeof(double) * fragment);
-						if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
 
-					}
-				}
-				else
-				{
-					File *source = mwindow->audio_cache->check_out(
-						(Asset*)item->indexable,
-						mwindow->edl);
-					if(!source)
-						return;
+						    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
+						    render_engine->arender->process_buffer(
+							    temp_buffer, 
+							    fragment,
+							    sample);
+						    if(debug) printf("ResourceThread::do_audio %d audio_buffer=%p temp_buffer=%p channel=%d total_samples=%ld sample=%ld fragment=%d\n", 
+                                __LINE__, 
+                                audio_buffer,
+                                temp_buffer,
+                                item->channel,
+                                total_samples,
+                                sample,
+                                fragment);
+						    memcpy(audio_buffer->get_data(), 
+							    temp_buffer[item->channel]->get_data(),
+							    fragment * sizeof(double));
+						    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
+					    }
+					    else
+					    {
+						    if(debug) printf("ResourceThread::do_audio %d %d\n", __LINE__, fragment);
+						    if(fragment > 0) bzero(audio_buffer->get_data(), sizeof(double) * fragment);
+						    if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
 
-					source->set_channel(item->channel);
-					source->set_audio_position(sample);
-					source->read_samples(audio_buffer, fragment);
-					mwindow->audio_cache->check_in((Asset*)item->indexable);
-				}
+					    }
+				    } // !item->indexable->is_asset
+				    else
+				    {
+					    File *source = mwindow->audio_cache->check_out(
+						    (Asset*)item->indexable,
+						    mwindow->edl);
+					    if(!source)
+						    return;
 
+					    source->set_channel(item->channel);
+					    source->set_audio_position(sample);
+					    source->read_samples(audio_buffer, fragment);
+					    mwindow->audio_cache->check_in((Asset*)item->indexable);
+				    }
+                } // fragment > 0
+
+		    	if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
 				audio_asset_id = item->indexable->id;
 				audio_channel = item->channel;
 				audio_start = sample;
 				audio_samples = fragment;
+		    	if(debug) printf("ResourceThread::do_audio %d\n", __LINE__);
 			}
 
 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +29,7 @@
 #include "mwindow.inc"
 
 
+
 FileSndFile::FileSndFile(Asset *asset, File *file)
  : FileBase(asset, file)
 {
@@ -46,8 +46,64 @@ FileSndFile::~FileSndFile()
 	if(temp_double) delete [] temp_double;
 }
 
-int FileSndFile::check_sig(Asset *asset)
+
+FileSndFile::FileSndFile()
+ : FileBase()
 {
+    ids.append(FILE_PCM);
+    ids.append(FILE_WAV);
+    ids.append(FILE_AU);
+    ids.append(FILE_AIFF);
+    ids.append(FILE_SND);
+    has_audio = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileSndFile::create(File *file)
+{
+    return new FileSndFile(file->asset, file);
+}
+
+const char* FileSndFile::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_WAV:
+			return WAV_NAME;
+			break;
+		case FILE_PCM:
+			return PCM_NAME;
+			break;
+		case FILE_AU:
+			return AU_NAME;
+			break;
+		case FILE_AIFF:
+			return AIFF_NAME;
+			break;
+		case FILE_SND:
+			return SND_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileSndFile::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_AC3:  return "ac3";
+		case FILE_AIFF: return "aif";
+		case FILE_AU:   return "au";
+		case FILE_PCM:  return "pcm";
+		case FILE_WAV:  return "wav";
+    }
+    return 0;
+}
+
+int FileSndFile::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
 	int result = 0;
 	SF_INFO fd_config;
 	fd_config.format = 0;
@@ -276,13 +332,21 @@ int FileSndFile::read_samples(double *buffer, int64_t len)
 {
 	int result = 0;
 
-//printf("FileSndFile::read_samples %d %d %lld %lld\n", __LINE__, file->current_channel, file->current_sample, len);
+// printf("FileSndFile::read_samples %d current_channel=%d current_sample=%ld len=%ld\n", 
+// __LINE__, 
+// file->current_channel, 
+// file->current_sample, 
+// len);
+
 // Get temp buffer for interleaved channels
 	if(len <= 0 || len > 1000000)
 		printf("FileSndFile::read_samples len=%d\n", (int)len);
 
 	if(!buffer)
 		printf("FileSndFile::read_samples buffer=%p\n", buffer);
+
+// printf("FileSndFile::read_samples %d\n", 
+// __LINE__);
 
 	if(temp_allocated && temp_allocated < len)
 	{
@@ -291,13 +355,22 @@ int FileSndFile::read_samples(double *buffer, int64_t len)
 		temp_allocated = 0;
 	}
 
+// printf("FileSndFile::read_samples %d\n", 
+// __LINE__);
+
 	if(!temp_allocated)
 	{
 		temp_allocated = len;
 		temp_double = new double[len * asset->channels];
 	}
 
+//printf("FileSndFile::read_samples %d\n", 
+//__LINE__);
+
 	result = !sf_read_double(fd, temp_double, len * asset->channels);
+
+//printf("FileSndFile::read_samples %d\n", 
+//__LINE__);
 
 	if(result)
 		printf("FileSndFile::read_samples fd=%p temp_double=%p len=%d asset=%p asset->channels=%d\n",
@@ -311,6 +384,9 @@ int FileSndFile::read_samples(double *buffer, int64_t len)
 		buffer[i] = temp_double[j];
 	}
 
+// printf("FileSndFile::read_samples %d\n", 
+// __LINE__);
+
 	return result;
 }
 
@@ -319,7 +395,7 @@ int FileSndFile::write_samples(double **buffer, int64_t len)
 	int result = 0;
 
 // Get temp buffer for interleaved channels
-//printf("FileSndFile::read_samples 1\n");
+//printf("FileSndFile::write_samples %d\n", __LINE__);
 	if(temp_allocated && temp_allocated < len)
 	{
 		temp_allocated = 0;
@@ -349,6 +425,7 @@ int FileSndFile::write_samples(double **buffer, int64_t len)
 	}
 
 	result = !sf_writef_double(fd, temp_double, len);
+//printf("FileSndFile::write_samples %d\n", __LINE__);
 
 	return result;
 }
@@ -356,10 +433,10 @@ int FileSndFile::write_samples(double **buffer, int64_t len)
 void FileSndFile::get_parameters(BC_WindowBase *parent_window, 
 		Asset *asset, 
 		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options)
+		int option_type,
+	    const char *locked_compressor)
 {
-	if(audio_options)
+	if(option_type == AUDIO_PARAMS)
 	{
 		SndFileConfig *window = new SndFileConfig(parent_window, asset);
 		format_window = window;
@@ -373,8 +450,8 @@ SndFileConfig::SndFileConfig(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Audio Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	250,
-	250)
+	DP(250),
+	DP(250))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -392,7 +469,7 @@ SndFileConfig::~SndFileConfig()
 
 void SndFileConfig::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 
 	lock_window("SndFileConfig::create_objects");
 	bits_popup = 0;
@@ -402,28 +479,32 @@ void SndFileConfig::create_objects()
 		case FILE_PCM:
 		case FILE_AIFF:
 			add_tool(new BC_Title(x, y, _("Compression:")));
-			y += 25;
+			y += DP(25);
 			if(asset->format == FILE_WAV)
 				bits_popup = new BitsPopup(this, x, y, &asset->bits, 0, 0, 1, 1, 0);
 			else
 				bits_popup = new BitsPopup(this, x, y, &asset->bits, 0, 0, 0, 0, 0);
-			y += 40;
+			y += DP(40);
 			bits_popup->create_objects();
 			break;
 	}
 
-	x = 10;
+	x = DP(10);
 	if(asset->format != FILE_AU)
+	{
 		add_subwindow(new BC_CheckBox(x, y, &asset->dither, _("Dither")));
-	y += 30;
+	}
+	
+	y += DP(30);
 	if(asset->format == FILE_PCM)
 	{
 		add_subwindow(new BC_CheckBox(x, y, &asset->signed_, _("Signed")));
-		y += 35;
+		y += DP(35);
 		add_subwindow(new BC_Title(x, y, _("Byte order:")));
-		add_subwindow(hilo = new SndFileHILO(this, x + 100, y));
-		add_subwindow(lohi = new SndFileLOHI(this, x + 170, y));
+		add_subwindow(hilo = new SndFileHILO(this, x + DP(100), y));
+		add_subwindow(lohi = new SndFileLOHI(this, x + DP(170), y));
 	}
+	
 	add_subwindow(new BC_OKButton(this));
 	show_window(1);
 	unlock_window();
@@ -438,13 +519,13 @@ int SndFileConfig::close_event()
 
 
 SndFileHILO::SndFileHILO(SndFileConfig *gui, int x, int y)
- : BC_Radial(x, y, gui->asset->byte_order == 0, _("Hi Lo"))
+ : BC_Radial(x, y, gui->asset->byte_order == BYTE_ORDER_HILO, _("Hi Lo"))
 {
 	this->gui = gui;
 }
 int SndFileHILO::handle_event()
 {
-	gui->asset->byte_order = 0;
+	gui->asset->byte_order = BYTE_ORDER_HILO;
 	gui->lohi->update(0);
 	return 1;
 }
@@ -453,13 +534,13 @@ int SndFileHILO::handle_event()
 
 
 SndFileLOHI::SndFileLOHI(SndFileConfig *gui, int x, int y)
- : BC_Radial(x, y, gui->asset->byte_order == 1, _("Lo Hi"))
+ : BC_Radial(x, y, gui->asset->byte_order == BYTE_ORDER_LOHI, _("Lo Hi"))
 {
 	this->gui = gui;
 }
 int SndFileLOHI::handle_event()
 {
-	gui->asset->byte_order = 1;
+	gui->asset->byte_order = BYTE_ORDER_LOHI;
 	gui->hilo->update(0);
 	return 1;
 }

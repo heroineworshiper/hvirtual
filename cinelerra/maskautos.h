@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,11 +50,13 @@ public:
 // Perform interpolation
 	void get_points(ArrayList<MaskPoint*> *points, int submask, int64_t position, int direction);
 	float get_feather(int64_t position, int direction);
+	float get_radius(int64_t position, int direction);
 	int get_value(int64_t position, int direction);
 	int total_submasks(int64_t position, int direction);
 // Translates all mask points
 	void translate_masks(float translate_x, float translate_y);
 
+	void set_proxy(int orig_scale, int new_scale);
 
 private:
 	void avg_points(MaskPoint *output, 

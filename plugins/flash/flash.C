@@ -203,7 +203,7 @@ int FlashMain::handle_opengl()
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	if(BC_CModels::is_yuv(get_output()->get_color_model())) 
+	if(cmodel_is_yuv(get_output()->get_color_model())) 
 		glColor4f(1.0, 0.5, 0.5, fraction);
 	else
 		glColor4f(1.0, 1.0, 1.0, fraction);

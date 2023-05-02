@@ -35,7 +35,7 @@ AWindow::AWindow(MWindow *mwindow) : Thread()
 
 AWindow::~AWindow()
 {
-	delete asset_edit;
+	asset_editors.remove_all_objects();
 }
 
 void AWindow::create_objects()
@@ -45,8 +45,8 @@ void AWindow::create_objects()
 	gui->lock_window("AWindow::create_objects");
 	gui->update_assets();
 	gui->unlock_window();
-	asset_remove = new AssetRemoveThread(mwindow);
-	asset_edit = new AssetEdit(mwindow);
+//	asset_remove = new AssetRemoveThread(mwindow);
+//	asset_edit = new AssetEdit(mwindow);
 	clip_edit = new ClipEdit(mwindow, this, 0);
 }
 

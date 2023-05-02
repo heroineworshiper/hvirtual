@@ -39,7 +39,8 @@ public:
 	MainIndexes(MWindow *mwindow);
 	~MainIndexes();
 
-	void add_next_asset(File *file, Indexable *indexable);
+// returns a FILE_ error code
+	int add_next_asset(File *file, Indexable *indexable);
 
 	void start_loop();
 	void stop_loop();

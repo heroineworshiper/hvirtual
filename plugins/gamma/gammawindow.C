@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,10 +34,10 @@
 
 GammaWindow::GammaWindow(GammaMain *client)
  : PluginClientWindow(client,
-	400, 
-	380, 
-	400, 
-	380, 
+	DP(400), 
+	DP(380), 
+	DP(400), 
+	DP(380), 
 	0)
 { 
 	this->client = client; 
@@ -45,56 +45,55 @@ GammaWindow::GammaWindow(GammaMain *client)
 
 void GammaWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	add_subwindow(histogram = new BC_SubWindow(x, 
 		y, 
 		get_w() - x * 2, 
-		get_h() - 180, 
+		get_h() - DP(180), 
 		WHITE));
-	y += histogram->get_h() + 10;
+	y += histogram->get_h() + DP(10);
 
 	BC_Title *title;
 	add_tool(title = new BC_Title(x, y, _("Maximum:")));
-	x += title->get_w() + 10;
+	x += title->get_w() + DP(10);
 	add_tool(max_slider = new MaxSlider(client, 
 		this, 
 		x, 
 		y, 
-		190));
-	x += max_slider->get_w() + 10;
+		DP(190)));
+	x += max_slider->get_w() + DP(10);
 	add_tool(max_text = new MaxText(client,
 		this,
 		x,
 		y,
-		100));
-	y += max_text->get_h() + 10;
-	x = 10;
+		DP(90)));
+	y += max_text->get_h() + DP(10);
+	x = DP(10);
 	add_tool(automatic = new GammaAuto(client, x, y));
 
-	y += automatic->get_h() + 10;
+	y += automatic->get_h() + DP(10);
 	add_tool(title = new BC_Title(x, y, _("Gamma:")));
-	x += title->get_w() + 10;
+	x += title->get_w() + DP(10);
 	add_tool(gamma_slider = new GammaSlider(client, 
 		this, 
 		x, 
 		y, 
-		190));
-	x += gamma_slider->get_w() + 10;
+		DP(190)));
+	x += gamma_slider->get_w() + DP(10);
 	add_tool(gamma_text = new GammaText(client,
 		this,
 		x,
 		y,
-		100));
-	y += gamma_text->get_h() + 10;
-	x = 10;
+		DP(100)));
+	y += gamma_text->get_h() + DP(10);
+	x = DP(10);
 
 	add_tool(plot = new GammaPlot(client, x, y));
-	y += plot->get_h() + 10;
+	y += plot->get_h() + DP(10);
 
 	add_tool(new GammaColorPicker(client, this, x, y));
 
 	show_window();
-	flush();
 }
 
 void GammaWindow::update()

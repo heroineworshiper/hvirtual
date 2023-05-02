@@ -32,7 +32,7 @@
 #include "vedit.inc"
 #include "vframe.inc"
 
-// CONVERTS FROM SAMPLES TO FRAMES
+
 
 
 

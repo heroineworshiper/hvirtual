@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2020 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -99,10 +99,15 @@ class HistogramAuto : public BC_CheckBox
 {
 public:
 	HistogramAuto(HistogramMain *plugin, 
+        HistogramWindow *gui,
 		int x, 
-		int y);
+		int y,
+        char *text,
+        int *output);
 	int handle_event();
 	HistogramMain *plugin;
+    HistogramWindow *gui;
+    int *output;
 };
 
 class HistogramPlot : public BC_CheckBox
@@ -206,6 +211,7 @@ public:
 
 	HistogramSlider *output;
 	HistogramAuto *automatic;
+	HistogramAuto *automatic_v;
 	HistogramMode *mode_v, *mode_r, *mode_g, *mode_b /*,  *mode_a */;
 	HistogramParade *parade_on, *parade_off;
 	HistogramText *low_output;

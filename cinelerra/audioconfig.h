@@ -38,17 +38,19 @@ public:
 
 // Input
 	int audio_in_driver;
-	char oss_in_device[1024];
+	char oss_in_device[BCTEXTLEN];
 	int oss_in_channels;
 	int oss_in_bits;
 	int afirewire_in_port, afirewire_in_channel;
-	char esound_in_server[1024];
+	char esound_in_server[BCTEXTLEN];
+    char pulse_in_server[BCTEXTLEN];
 	int esound_in_port;
 
 // Output
 	int audio_out_driver;
-	char oss_out_device[1024];
-	char esound_out_server[1024];
+	char oss_out_device[BCTEXTLEN];
+	char esound_out_server[BCTEXTLEN];
+    char pulse_out_server[BCTEXTLEN];
 	int esound_out_port;
 	int oss_out_channels;
 	int oss_out_bits;
@@ -56,8 +58,8 @@ public:
 
 // Duplex
 	int audio_duplex_driver;
-	char oss_duplex_device[1024];
-	char esound_duplex_server[1024];
+	char oss_duplex_device[BCTEXTLEN];
+	char esound_duplex_server[BCTEXTLEN];
 	int esound_duplex_port;
 	int oss_duplex_channels;
 	int oss_duplex_bits;

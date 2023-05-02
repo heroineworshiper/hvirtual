@@ -60,7 +60,8 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 			codec->temp_frame = malloc(cmodel_calculate_datasize(width, 
 					height, 
 					-1, 
-					cmodel));
+					cmodel,
+                    1));
 		}
 		for(i = 0; i < height; i++)
 			temp_rows[i] = codec->temp_frame + 
@@ -151,7 +152,8 @@ static int encode(quicktime_t *file,
 			codec->temp_frame = malloc(cmodel_calculate_datasize(width,
 				height,
 				-1,
-				dest_cmodel));
+				dest_cmodel,
+                1));
 			codec->temp_rows = malloc(sizeof(unsigned char*) * height);
 			
 			for(i = 0; i < height; i++)
@@ -190,7 +192,8 @@ static int encode(quicktime_t *file,
 			cmodel_calculate_datasize(width,
 				height,
 				-1,
-				dest_cmodel));
+				dest_cmodel,
+                1));
 		quicktime_write_chunk_footer(file, 
 			trak,
 			vtrack->current_chunk,
@@ -204,7 +207,8 @@ static int encode(quicktime_t *file,
 			cmodel_calculate_datasize(width,
 				height,
 				-1,
-				file->color_model));
+				file->color_model,
+                1));
 		quicktime_write_chunk_footer(file, 
 			trak,
 			vtrack->current_chunk,

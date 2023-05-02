@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
@@ -154,11 +153,13 @@ int PluginServer::reset_parameters()
 	modules = 0;
 	nodes = 0;
 	picon = 0;
-	
+    attachmentpoint = 0;
+	playhead_position = 0;
 
 	is_lad = 0;
 	lad_descriptor_function = 0;
 	lad_descriptor = 0;
+    return 0;
 }
 
 
@@ -175,6 +176,7 @@ int PluginServer::cleanup_plugin()
 	gui_on = 0;
 	plugin = 0;
 	plugin_open = 0;
+    return 0;
 }
 
 void PluginServer::set_mwindow(MWindow *mwindow)
@@ -203,6 +205,7 @@ int PluginServer::set_path(char *path)
 	if(this->path) delete [] this->path;
 	this->path = new char[strlen(path) + 1];
 	strcpy(this->path, path);
+    return 0;
 }
 
 char* PluginServer::get_path()
@@ -386,8 +389,11 @@ void PluginServer::client_side_close()
 
 void PluginServer::render_stop()
 {
+    reset_gui_frames();
 	if(client)
+    {
 		client->render_stop();
+    }
 }
 
 void PluginServer::write_table(FILE *fd)
@@ -513,6 +519,7 @@ int PluginServer::init_realtime(int realtime_sched,
 		total_in_buffers, 
 		buffer_size);
 
+    return 0;
 }
 
 
@@ -539,6 +546,14 @@ void PluginServer::process_transition(VFrame *input,
 	vclient->age_temp();
 	delete [] vclient->input;
 	delete [] vclient->output;
+    if(MWindow::preferences->dump_playback)
+    {
+        printf("%sPluginServer::process_transition %d title='%s' use_gl=%d\n",
+            MWindow::print_indent(),
+            __LINE__,
+            title,
+            use_opengl);
+    }
 	use_opengl = 0;
 }
 
@@ -569,6 +584,7 @@ void PluginServer::process_buffer(VFrame **frame,
 	if(!plugin_open) return;
 	PluginVClient *vclient = (PluginVClient*)client;
 
+    vclient->in_buffer_size = vclient->out_buffer_size = 1;
 	vclient->source_position = current_position;
 	vclient->total_len = total_len;
 	vclient->frame_rate = frame_rate;
@@ -579,15 +595,20 @@ void PluginServer::process_buffer(VFrame **frame,
 		vclient->input[i] = frame[i];
 		vclient->output[i] = frame[i];
 	}
-	vclient->source_start = (int64_t)(plugin ? 
-		plugin->startproject * 
-		frame_rate /
-		vclient->project_frame_rate :
-		0);
+	
+	if(plugin)
+	{
+		vclient->source_start = (int64_t)plugin->startproject * 
+			frame_rate /
+			vclient->project_frame_rate;
+	}
 	vclient->direction = direction;
 
 
-	vclient->begin_process_buffer();
+//PRINT_TRACE
+//printf("plugin=%p source_start=%ld\n", plugin, vclient->source_start);
+
+//	vclient->begin_process_buffer();
 	if(multichannel)
 	{
 		vclient->process_buffer(frame, current_position, frame_rate);
@@ -596,7 +617,7 @@ void PluginServer::process_buffer(VFrame **frame,
 	{
 		vclient->process_buffer(frame[0], current_position, frame_rate);
 	}
-	vclient->end_process_buffer();
+//	vclient->end_process_buffer();
 
 	for(int i = 0; i < total_in_buffers; i++)
 		frame[i]->push_prev_effect(title);
@@ -621,6 +642,8 @@ void PluginServer::process_buffer(Samples **buffer,
 	aclient->source_position = current_position;
 	aclient->total_len = total_len;
 	aclient->sample_rate = sample_rate;
+    aclient->in_buffer_size = aclient->out_buffer_size = fragment_size;
+    aclient->output_buffers = buffer;
 
 	if(plugin)
 		aclient->source_start = plugin->startproject * 
@@ -647,26 +670,53 @@ void PluginServer::process_buffer(Samples **buffer,
 }
 
 
+// used by audio plugins
 void PluginServer::send_render_gui(void *data)
 {
-//printf("PluginServer::send_render_gui 1 %p\n", attachmentpoint);
+//printf("PluginServer::send_render_gui %d %p\n", __LINE__, attachmentpoint);
 	if(attachmentpoint) attachmentpoint->render_gui(data, this);
 }
 
+void PluginServer::send_reset_gui_frames()
+{
+    if(attachmentpoint) attachmentpoint->reset_gui_frames(this);
+}
+
+// used by video plugins
 void PluginServer::send_render_gui(void *data, int size)
 {
 //printf("PluginServer::send_render_gui 1 %p\n", attachmentpoint);
 	if(attachmentpoint) attachmentpoint->render_gui(data, size, this);
 }
 
+// used by audio plugins
 void PluginServer::render_gui(void *data)
 {
-	if(client) client->plugin_render_gui(data);
+	if(client)
+    {
+	    PluginAClient *aclient = (PluginAClient*)client;
+        aclient->direction = mwindow->cwindow->playback_engine->command->get_direction();
+        aclient->plugin_render_gui(data);
+    }
 }
 
+void PluginServer::reset_gui_frames()
+{
+    if(client && audio)
+    {
+	    PluginAClient *aclient = (PluginAClient*)client;
+        aclient->reset_gui_frames();
+    }
+}
+
+// used by video plugins
 void PluginServer::render_gui(void *data, int size)
 {
-	if(client) client->plugin_render_gui(data, size);
+	if(client) 
+    {
+	    PluginVClient *vclient = (PluginVClient*)client;
+        vclient->plugin_render_gui(data, size);
+    }
 }
 
 MainProgressBar* PluginServer::start_progress(char *string, int64_t length)
@@ -709,6 +759,10 @@ int PluginServer::get_parameters(int64_t start, int64_t end, int channels)
 	client->source_start = start;
 	client->total_len = end - start;
 	client->total_in_buffers = channels;
+
+//PRINT_TRACE
+//printf(" source_start=%ld total_len=%ld\n", client->source_start, client->total_len);
+
 	return client->plugin_get_parameters();
 }
 
@@ -794,20 +848,21 @@ int PluginServer::read_samples(Samples *buffer,
 	int channel,
 	int64_t sample_rate,
 	int64_t start_position,
-	int64_t len)
+	int64_t size)
 {
-// len is now in buffer
+// size is now in buffer
 	if(!multichannel) channel = 0;
 
 	if(nodes->total > channel)
 		return ((VirtualANode*)nodes->values[channel])->read_data(buffer,
-			len,
+			size,
 			start_position,
-			sample_rate);
+			sample_rate,
+            playhead_position);
 	else
 	if(modules->total > channel)
 		return ((AModule*)modules->values[channel])->render(buffer,
-			len,
+			size,
 			start_position,
 			PLAY_FORWARD,
 			sample_rate,
@@ -850,6 +905,7 @@ int PluginServer::read_frame(VFrame *buffer,
 // If we're a VirtualNode, read_data in the virtual plugin node handles
 //     backward propogation and produces the data.
 // If we're a Module, render in the module produces the data.
+//PRINT_TRACE
 
 	int result = -1;
 	if(!multichannel) channel = 0;
@@ -959,23 +1015,36 @@ void PluginServer::hide_gui()
 
 void PluginServer::update_gui()
 {
-	if(!plugin_open || !plugin) return;
 
-	client->total_len = plugin->length;
-	client->source_start = plugin->startproject;
+	if(!plugin_open) return;
 
-	if(video)
+
+	if(plugin)
 	{
-		client->source_position = Units::to_int64(
-			mwindow->edl->local_session->get_selectionstart(1) * 
-				mwindow->edl->session->frame_rate);
+		client->total_len = plugin->length;
+		client->source_start = plugin->startproject;
+        client->direction = mwindow->cwindow->playback_engine->command->get_direction();
+
+		if(video)
+		{
+			client->source_position = Units::to_int64(
+				mwindow->edl->local_session->get_selectionstart(1) * 
+					mwindow->edl->session->frame_rate);
+		}
+		else
+		if(audio)
+		{
+			client->source_position = Units::to_int64(
+				mwindow->edl->local_session->get_selectionstart(1) * 
+					mwindow->edl->session->sample_rate);
+		}
 	}
 	else
-	if(audio)
 	{
-		client->source_position = Units::to_int64(
-			mwindow->edl->local_session->get_selectionstart(1) * 
-				mwindow->edl->session->sample_rate);
+		client->total_len = 1;
+		client->source_start = 0;
+		client->source_position = 0;
+        client->direction = PLAY_FORWARD;
 	}
 
 	client->plugin_update_gui();
@@ -1140,6 +1209,7 @@ int PluginServer::arm_buffer(int buffer_number,
 	offset_out_render.values[buffer_number] = offset_out;
 	double_buffer_in_render.values[buffer_number] = double_buffer_in;
 	double_buffer_out_render.values[buffer_number] = double_buffer_out;
+    return 0;
 }
 
 
@@ -1149,6 +1219,7 @@ int PluginServer::set_automation(FloatAutos *autos, FloatAuto **start_auto, Floa
 	this->start_auto = start_auto;
 	this->end_auto = end_auto;
 	this->reverse = reverse;
+    return 0;
 }
 
 

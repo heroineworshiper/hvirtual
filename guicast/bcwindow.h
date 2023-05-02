@@ -27,6 +27,7 @@
 class BC_Window : public BC_WindowBase
 {
 public:
+    BC_Window();
 	BC_Window(const char *title, 
 				int x,
 				int y,
@@ -41,6 +42,20 @@ public:
 				const char *display_name = "",
 				int group_it = 1);
 	virtual ~BC_Window();
+
+    void create_window(const char *title, 
+		int x,
+		int y,
+		int w, 
+		int h, 
+		int minw, 
+		int minh, 
+		int allow_resize,
+		int private_color, 
+		int hide,
+		int bg_color,
+		const char *display_name,
+        int group_it);
 
 private:
 };

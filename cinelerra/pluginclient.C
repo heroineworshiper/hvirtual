@@ -1,7 +1,6 @@
- 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +18,8 @@
  * 
  */
 
+#include "attachmentpoint.h"
+#include "arender.h"
 #include "bcdisplayinfo.h"
 #include "bchash.h"
 #include "bcsignals.h"
@@ -34,7 +35,8 @@
 #include "pluginclient.h"
 #include "pluginserver.h"
 #include "preferences.h"
-#include "transportque.inc"
+#include "renderengine.h"
+#include "transportque.h"
 
 
 #include <ctype.h>
@@ -116,23 +118,6 @@ PluginClient* PluginClientThread::get_client()
 
 
 
-PluginClientFrame::PluginClientFrame(int data_size, 
-	int period_n, 
-	int period_d)
-{
-	this->data_size = data_size;
-	force = 0;
-	this->period_n = period_n;
-	this->period_d = period_d;
-}
-
-PluginClientFrame::~PluginClientFrame()
-{
-	
-}
-
-
-
 
 
 PluginClientWindow::PluginClientWindow(PluginClient *client, 
@@ -200,6 +185,272 @@ int PluginClientWindow::close_event()
 	return 1;
 }
 
+void PluginClientWindow::param_updated()
+{
+    printf("PluginClientWindow::param_updated %d undefined\n", __LINE__);
+}
+
+
+
+
+
+PluginParam::PluginParam(PluginClient *plugin,
+    PluginClientWindow *gui,
+    int x1, 
+    int x2,
+    int x3,
+    int y, 
+    int text_w,
+    int *output_i, 
+    float *output_f, // floating point output
+    int *output_q,
+    const char *title,
+    float min,
+    float max)
+{
+    this->output_i = output_i;
+    this->output_f = output_f;
+    this->output_q = output_q;
+    this->title.assign(title);
+    this->plugin = plugin;
+    this->gui = gui;
+    this->x1 = x1;
+    this->x2 = x2;
+    this->x3 = x3;
+    this->text_w = text_w;
+    this->y = y;
+    this->min = min;
+    this->max = max;
+    fpot = 0;
+    ipot = 0;
+    qpot = 0;
+    text = 0;
+    precision = 2;
+}
+
+PluginParam::~PluginParam()
+{
+    if(fpot) delete fpot;
+    if(ipot) delete ipot;
+    if(qpot) delete qpot;
+    if(text) text;
+}
+
+
+void PluginParam::initialize()
+{
+    BC_Title *title_;
+    int y2 = y + 
+        (BC_Pot::calculate_h() - 
+        BC_Title::calculate_h(gui, _(title.c_str()), MEDIUMFONT)) / 2;
+    gui->add_tool(title_ = new BC_Title(x1, y2, _(title.c_str())));
+    
+    if(output_f)
+    {
+        gui->add_tool(fpot = new PluginFPot(this, x2, y));
+    }
+    
+    if(output_i)
+    {
+        gui->add_tool(ipot = new PluginIPot(this, x2, y));
+    }
+    
+    if(output_q)
+    {
+        gui->add_tool(qpot = new PluginQPot(this, x2, y));
+    }
+    
+    int y3 = y + 
+        (BC_Pot::calculate_h() - 
+        BC_TextBox::calculate_h(gui, MEDIUMFONT, 1, 1)) / 2;
+    if(output_i)
+    {
+        gui->add_tool(text = new PluginText(this, x3, y3, *output_i));
+    }
+    if(output_f)
+    {
+        gui->add_tool(text = new PluginText(this, x3, y3, *output_f));
+    }
+    if(output_q)
+    {
+        gui->add_tool(text = new PluginText(this, x3, y3, *output_q));
+    }
+    
+    set_precision(precision);
+}
+
+void PluginParam::update(int skip_text, int skip_pot)
+{
+    if(!skip_text)
+    {
+        if(output_i)
+        {
+            text->update((int64_t)*output_i);
+        }
+        if(output_q)
+        {
+            text->update((int64_t)*output_q);
+        }
+        if(output_f)
+        {
+            text->update((float)*output_f);
+        }
+    }
+    
+    if(!skip_pot)
+    {
+        if(ipot)
+        {
+            ipot->update((int64_t)*output_i);
+        }
+        if(qpot)
+        {
+            qpot->update((int64_t)*output_q);
+        }
+        if(fpot)
+        {
+            fpot->update((float)*output_f);
+        }
+    }
+}
+
+void PluginParam::set_precision(int digits)
+{
+    this->precision = digits;
+    if(fpot)
+    {
+        if(text)
+        {
+            text->set_precision(digits);
+        }
+
+        fpot->set_precision(1.0f / pow(10, digits));
+    }
+}
+
+
+PluginFPot::PluginFPot(PluginParam *param, int x, int y) 
+ : BC_FPot(x, 
+ 	y, 
+	*param->output_f, 
+	param->min, 
+	param->max)
+{
+    this->param = param;
+    set_use_caption(0);
+}
+
+int PluginFPot::handle_event()
+{
+	*param->output_f = get_value();
+    param->update(0, 1);
+	param->plugin->send_configure_change();
+    param->gui->param_updated();
+    return 1;
+}
+
+
+PluginIPot::PluginIPot(PluginParam *param, int x, int y)
+ : BC_IPot(x, 
+ 	y, 
+	*param->output_i, 
+	(int)param->min, 
+	(int)param->max)
+{
+    this->param = param;
+    set_use_caption(0);
+}
+
+int PluginIPot::handle_event()
+{
+	*param->output_i = get_value();
+    param->update(0, 1);
+	param->plugin->send_configure_change();
+    param->gui->param_updated();
+    return 1;
+}
+
+
+PluginQPot::PluginQPot(PluginParam *param, int x, int y)
+ : BC_QPot(x, 
+ 	y, 
+	*param->output_q)
+{
+    this->param = param;
+    set_use_caption(0);
+}
+
+int PluginQPot::handle_event()
+{
+	*param->output_q = get_value();
+    param->update(0, 1);
+	param->plugin->send_configure_change();
+    param->gui->param_updated();
+    return 1;
+}
+
+
+PluginText::PluginText(PluginParam *param, int x, int y, int value)
+ : BC_TextBox(x, 
+    y, 
+    param->text_w, 
+    1, 
+    (int64_t)value, 
+    1, 
+    MEDIUMFONT)
+{
+    this->param = param;
+}
+
+PluginText::PluginText(PluginParam *param, int x, int y, float value)
+ : BC_TextBox(x, 
+    y, 
+    param->text_w, 
+    1, 
+    (float)value, 
+    1, 
+    MEDIUMFONT, 
+    param->precision)
+{
+    this->param = param;
+}
+
+int PluginText::handle_event()
+{
+    if(param->output_i)
+    {
+        *param->output_i = atoi(get_text());
+    }
+
+    if(param->output_f)
+    {
+        *param->output_f = atof(get_text());
+    }
+
+    if(param->output_q)
+    {
+        *param->output_q = atoi(get_text());
+    }
+    
+    param->update(1, 0);
+    param->plugin->send_configure_change();
+    param->gui->param_updated();
+    return 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -209,7 +460,7 @@ PluginClient::PluginClient(PluginServer *server)
 	reset();
 	this->server = server;
 	defaults = 0;
-	update_timer = new Timer;
+//	update_timer = new Timer;
 // Virtual functions don't work here.
 }
 
@@ -224,8 +475,7 @@ PluginClient::~PluginClient()
 
 // Virtual functions don't work here.
 	if(defaults) delete defaults;
-	frame_buffer.remove_all_objects();
-	delete update_timer;
+//	delete update_timer;
 }
 
 int PluginClient::reset()
@@ -247,6 +497,7 @@ int PluginClient::reset()
 	direction = PLAY_FORWARD;
 	thread = 0;
 	using_defaults = 0;
+    return 0;
 }
 
 
@@ -296,6 +547,12 @@ int PluginClient::plugin_start_loop(int64_t start,
 	int64_t buffer_size, 
 	int total_buffers)
 {
+// printf("PluginClient::plugin_start_loop %d %ld %ld %ld %d\n",
+// __LINE__,
+// start,
+// end, 
+// buffer_size,
+// total_buffers);
 	this->source_start = start;
 	this->total_len = end - start;
 	this->start = start;
@@ -401,31 +658,13 @@ int PluginClient::set_string()
 
 
 
-void PluginClient::begin_process_buffer()
-{
-// Delete all unused GUI frames
-	frame_buffer.remove_all_objects();
-}
-
-
-void PluginClient::end_process_buffer()
-{
-	if(frame_buffer.size())
-	{
-		send_render_gui();
-	}
-}
-
-
-
 void PluginClient::plugin_update_gui()
 {
-	
+// printf("PluginClient::plugin_update_gui %d source_position=%ld\n",
+// __LINE__,
+// source_position);
+
 	update_gui();
-	
-// Delete unused GUI frames
-	while(frame_buffer.size() > MAX_FRAME_BUFFER)
-		frame_buffer.remove_object_number(0);
 
 }
 
@@ -433,116 +672,13 @@ void PluginClient::update_gui()
 {
 }
 
-int PluginClient::get_gui_update_frames()
-{
-	if(frame_buffer.size())
-	{
-		PluginClientFrame *frame = frame_buffer.get(0);
-		int total_frames = update_timer->get_difference() * 
-			frame->period_d / 
-			frame->period_n / 
-			1000;
-		if(total_frames) update_timer->subtract(total_frames * 
-			frame->period_n * 
-			1000 / 
-			frame->period_d);
 
-// printf("PluginClient::get_gui_update_frames %d %ld %d %d %d\n", 
-// __LINE__, 
-// update_timer->get_difference(),
-// frame->period_n * 1000 / frame->period_d,
-// total_frames,
-// frame_buffer.size());
-
-// Add forced frames
-		for(int i = 0; i < frame_buffer.size(); i++)
-			if(frame_buffer.get(i)->force) total_frames++;
-		total_frames = MIN(frame_buffer.size(), total_frames);
+// void PluginClient::send_render_gui(void *data)
+// {
+// 	server->send_render_gui(data);
+// }
 
 
-		return total_frames;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-PluginClientFrame* PluginClient::get_gui_frame()
-{
-	if(frame_buffer.size())
-	{
-		PluginClientFrame *frame = frame_buffer.get(0);
-		frame_buffer.remove_number(0);
-		return frame;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-void PluginClient::add_gui_frame(PluginClientFrame *frame)
-{
-	frame_buffer.append(frame);
-}
-
-void PluginClient::send_render_gui()
-{
-	server->send_render_gui(&frame_buffer);
-}
-
-void PluginClient::send_render_gui(void *data)
-{
-	server->send_render_gui(data);
-}
-
-void PluginClient::send_render_gui(void *data, int size)
-{
-	server->send_render_gui(data, size);
-}
-
-void PluginClient::plugin_render_gui(void *data, int size)
-{
-	render_gui(data, size);
-}
-
-
-void PluginClient::plugin_render_gui(void *data)
-{
-	render_gui(data);
-}
-
-void PluginClient::render_gui(void *data)
-{
-	if(thread)
-	{
-		thread->get_window()->lock_window("AudioScope::render_gui");
-		
-// Set all previous frames to draw immediately
-		for(int i = 0; i < frame_buffer.size(); i++)
-			frame_buffer.get(i)->force = 1;
-
-		ArrayList<PluginClientFrame*> *src = 
-			(ArrayList<PluginClientFrame*>*)data;
-
-// Shift GUI data to GUI client
-		while(src->size())
-		{
-			this->frame_buffer.append(src->get(0));
-			src->remove_number(0);
-		}
-		
-// Start the timer for the current buffer
-		update_timer->update();
-		thread->get_window()->unlock_window();
-	}
-}
-
-void PluginClient::render_gui(void *data, int size)
-{
-	printf("PluginClient::render_gui %d\n", __LINE__);
-}
 
 
 
@@ -635,13 +771,16 @@ void PluginClient::save_defaults_xml()
 	if(fd)
 	{
 		fprintf(fd, "%d\n%d\n", window_x, window_y);
-		if(!fwrite(temp_keyframe.get_data(), strlen(temp_keyframe.get_data()), 1, fd))
+		if(strlen(temp_keyframe.get_data()))
 		{
-			fprintf(stderr, "PluginClient::save_defaults_xml %d \"%s\" %d bytes: %s\n",
-				__LINE__,
-				path,
-				(int)strlen(temp_keyframe.get_data()),
-				strerror(errno));
+			if(!fwrite(temp_keyframe.get_data(), strlen(temp_keyframe.get_data()), 1, fd))
+			{
+				fprintf(stderr, "PluginClient::save_defaults_xml %d: \"%s\" %d bytes: %s\n",
+					__LINE__,
+					path,
+					(int)strlen(temp_keyframe.get_data()),
+					strerror(errno));
+			}
 		}
 
 		fclose(fd);
@@ -767,10 +906,28 @@ int PluginClient::get_interpolation_type()
 float PluginClient::get_red()
 {
 	if(server->mwindow)
-		return server->mwindow->edl->local_session->red;
+	{
+		if(server->mwindow->edl->local_session->use_max)
+		{
+			return server->mwindow->edl->local_session->red_max;
+		}
+		else
+		{
+			return server->mwindow->edl->local_session->red;
+		}
+	}
 	else
 	if(server->edl)
-		return server->edl->local_session->red;
+	{
+		if(server->edl->local_session->use_max)
+		{
+			return server->edl->local_session->red_max;
+		}
+		else
+		{
+			return server->edl->local_session->red;
+		}
+	}
 	else
 		return 0;
 }
@@ -778,10 +935,28 @@ float PluginClient::get_red()
 float PluginClient::get_green()
 {
 	if(server->mwindow)
-		return server->mwindow->edl->local_session->green;
+	{
+		if(server->mwindow->edl->local_session->use_max)
+		{
+			return server->mwindow->edl->local_session->green_max;
+		}
+		else
+		{
+			return server->mwindow->edl->local_session->green;
+		}
+	}
 	else
 	if(server->edl)
-		return server->edl->local_session->green;
+	{
+		if(server->edl->local_session->use_max)
+		{
+			return server->edl->local_session->green_max;
+		}
+		else
+		{
+			return server->edl->local_session->green;
+		}
+	}
 	else
 		return 0;
 }
@@ -789,15 +964,40 @@ float PluginClient::get_green()
 float PluginClient::get_blue()
 {
 	if(server->mwindow)
-		return server->mwindow->edl->local_session->blue;
+	{
+		if(server->mwindow->edl->local_session->use_max)
+		{
+			return server->mwindow->edl->local_session->blue_max;
+		}
+		else
+		{
+			return server->mwindow->edl->local_session->blue;
+		}
+	}
 	else
 	if(server->edl)
-		return server->edl->local_session->blue;
+	{
+		if(server->edl->local_session->use_max)
+		{
+			return server->edl->local_session->blue_max;
+		}
+		else
+		{
+			return server->edl->local_session->blue;
+		}
+	}
 	else
 		return 0;
 }
 
-
+int PluginClient::get_top_direction()
+{
+    if(server->attachmentpoint)
+    {
+        return server->attachmentpoint->renderengine->command->get_direction();
+    }
+    return PLAY_FORWARD;
+}
 
 int64_t PluginClient::get_source_position()
 {
@@ -818,6 +1018,9 @@ int PluginClient::get_direction()
 {
 	return direction;
 }
+
+
+
 
 
 int64_t PluginClient::local_to_edl(int64_t position)

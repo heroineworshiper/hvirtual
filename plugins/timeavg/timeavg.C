@@ -170,7 +170,7 @@ int TimeAvgMain::process_buffer(VFrame *frame,
 	{
 		if(!accumulation) accumulation = new unsigned char[w * 
 			h * 
-			BC_CModels::components(color_model) *
+			cmodel_components(color_model) *
 			MAX(sizeof(float), sizeof(int))];
 		reset_accum(w, h, color_model);
 	}
@@ -329,7 +329,8 @@ int TimeAvgMain::process_buffer(VFrame *frame,
 						read_frame(history[j],
 							0,
 							history_frame[j],
-							frame_rate);
+							frame_rate,
+							0);
 						if(config.mode == TimeAvgConfig::AVERAGE ||
 							config.mode == TimeAvgConfig::ACCUMULATE)
 						{
@@ -381,9 +382,10 @@ int TimeAvgMain::process_buffer(VFrame *frame,
 			read_frame(frame,
 				0,
 				i,
-				frame_rate);
+				frame_rate,
+				0);
 			add_accum(frame);
-printf("TimeAvgMain::process_buffer %d prev_frame=%lld start_position=%lld i=%lld\n", 
+printf("TimeAvgMain::process_buffer %d prev_frame=%ld start_position=%ld i=%ld\n", 
 __LINE__, 
 prev_frame, 
 start_position, 

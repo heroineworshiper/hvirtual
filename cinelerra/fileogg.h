@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,15 +99,24 @@ public:
 	FileOGG(Asset *asset, File *file);
 	~FileOGG();
 
-	static void get_parameters(BC_WindowBase *parent_window,
-		Asset *asset,
+// table functions
+    FileOGG();
+	int check_sig(File *file, const uint8_t *test_data);
+    FileBase* create(File *file);
+	void get_parameters(BC_WindowBase *parent_window, 
+		Asset *asset, 
 		BC_WindowBase* &format_window,
-		int audio_options,
-		int video_options);
-	
+		int option_type,
+	    const char *locked_compressor);
+	int get_best_colormodel(Asset *asset, int driver);
+    const char* formattostr(int format);
+    const char* get_tag(int format);
+
+
+
+
 	int reset_parameters_derived();
 	int open_file(int rd, int wr);
-	static int check_sig(Asset *asset);
 	int close_file();
 	int close_file_derived();
 	int64_t get_video_position();
@@ -116,7 +124,6 @@ public:
 	int set_video_position(int64_t x);
 	int set_audio_position(int64_t x);
 	int colormodel_supported(int colormodel);
-	int get_best_colormodel(Asset *asset, int driver);
 	int write_samples(double **buffer, int64_t len);
 	int write_frames(VFrame ***frames, int len);
 	int read_samples(double *buffer, int64_t len);

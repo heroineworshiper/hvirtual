@@ -22,6 +22,7 @@
 #ifndef FILEXML_H
 #define FILEXML_H
 
+#include "bcwindowbase.inc"
 #include "sizes.h"
 #include <stdio.h>
 
@@ -55,6 +56,7 @@ public:
 //	int get_property(const char *property, int default_);
 	float get_property(const char *property, float default_);
 	double get_property(const char *property, double default_);
+	const char* get_property_text(const char *property);
 
 	int set_title(const char *text);       // set the title field
 	int set_property(const char *text, const char *value);
@@ -64,6 +66,13 @@ public:
 	int set_property(const char *text, float value);
 	int set_property(const char *text, double value);
 	int write_tag();
+
+// encode the special character at the head of the string
+// TODO: move to FileXML
+ 	static const char* encode_char(char *temp_string, const char *text);
+
+// convert all the encodings to special characters
+    void decode_text(char *text);
 
 	char tag_title[MAX_TITLE];       // title of this tag
 
@@ -92,11 +101,13 @@ public:
 	int append_text(const char *text);
 // add generic text to the string
 	int append_text(const char *text, long len);        
-// add generic text to the string which contains <>& characters
- 	int encode_text(const char *text);      
+// append text with special characters
+    void encode_text(const char *text);
 
+// read text, put it in *output, and return it
+// decode - decode special characters.
 // Text array is dynamically allocated and deleted when FileXML is deleted
-	char* read_text();         // read text, put it in *output, and return it
+	char* read_text(int decode = 1);         
 	int read_text_until(const char *tag_end, char *output, int max_len);     // store text in output until the tag is reached
 	int read_tag();          // read next tag from file, ignoring any text, and put it in tag
 	// return 1 on failure

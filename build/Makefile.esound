@@ -31,7 +31,7 @@ $(OUTPUT): $(OBJS)
 
 
 clean:
-	rm -rf $(OBJDIR)
+	rm -rf $(DIR)/$(OBJDIR)
 
 $(OBJS):
 	$(GCC) -c `cat $(DIR)/$(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o

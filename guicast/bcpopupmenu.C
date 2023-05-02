@@ -36,8 +36,8 @@
 #define TOTAL_IMAGES 3
 
 
-#define TRIANGLE_W 10
-#define TRIANGLE_H 10
+#define TRIANGLE_W DP(10)
+#define TRIANGLE_H DP(10)
 
 
 BC_PopupMenu::BC_PopupMenu(int x, 
@@ -53,9 +53,13 @@ BC_PopupMenu::BC_PopupMenu(int x,
 	menu_popup = 0;
 	icon = 0;
 	if(margin >= 0)
-		this->margin = margin;
-	else
-		this->margin = BC_WindowBase::get_resources()->popupmenu_margin;
+	{
+    	this->margin = margin;
+	}
+    else
+	{
+    	this->margin = BC_WindowBase::get_resources()->popupmenu_margin;
+    }
 
 	this->use_title = use_title;
 	strcpy(this->text, text);
@@ -227,6 +231,7 @@ int BC_PopupMenu::draw_title(int flush)
 	if(!use_title) return 0;
 	BC_Resources *resources = get_resources();
 
+//printf("BC_PopupMenu::draw_title %d w=%d\n", __LINE__, w);
 // Background
 	draw_top_background(parent_window, 0, 0, w, h);
 	draw_3segmenth(0, 0, w, images[status]);
@@ -329,9 +334,13 @@ int BC_PopupMenu::deactivate_menu()
 }
 
 
-int BC_PopupMenu::reposition_window(int x, int y)
+int BC_PopupMenu::reposition_window(int x, int y, int w)
 {
-	BC_WindowBase::reposition_window(x, y);
+    if(w < 0)
+    {
+        w = get_w();
+    }
+	BC_WindowBase::reposition_window(x, y, w, get_h());
 	draw_title(0);
 	return 0;
 }

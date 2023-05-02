@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2015 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,10 @@ public:
 	char* get_cwindow_display();
 	void boundaries();
 
+// get the nested values, substituting when -1
+    double get_nested_frame_rate();
+    int64_t get_nested_sample_rate();
+
 //	PlaybackConfig* get_playback_config(int strategy, int head);
 //	ArrayList<PlaybackConfig*>* get_playback_config(int strategy);
 //	int get_playback_heads(int strategy);
@@ -65,13 +69,13 @@ public:
 	void equivalent_output(EDLSession *session, double *result);
 	void dump();
 
+// current settings are scaled this much from the original settings
+	int proxy_scale;
 // Audio
 	int achannel_positions[MAXCHANNELS];
 	AudioOutConfig *aconfig_duplex;
 // AWindow format
 	int assetlist_format;
-// AWindow column widths
-	int asset_columns[ASSET_COLUMNS];
 	AutoConf *auto_conf;
 // Aspect ratio for video
     float aspect_w;
@@ -82,8 +86,9 @@ public:
  	int autos_follow_edits;
 // Generate keyframes for every tweek
 	int auto_keyframes;
-// Where to start background rendering
+// Where to do background rendering
 	double brender_start;
+	double brender_end;
 // Length of clipboard if pasting
 	double clipboard_length;
 // Colormodel for intermediate frames
@@ -94,6 +99,7 @@ public:
 	int eyedrop_radius;
 	float ruler_x1, ruler_y1;
 	float ruler_x2, ruler_y2;
+	int always_draw_ruler;
 // Ruler points relative to the output frame.
 // Current folder in resource window
 	char current_folder[BCTEXTLEN];
@@ -128,7 +134,11 @@ public:
 	int enable_duplex;
 // AWindow format
 	int folderlist_format;
+// frames per second
 	double frame_rate;
+// frame rate if nested.  Only accessed by the owning EDL.
+// -1 if the same as the project frame rate.
+    double nested_frame_rate;
 	float frames_per_foot;
 // Number of highlighted track
 	int highlighted_track;
@@ -137,7 +147,7 @@ public:
 // Whether to interpolate CR2 images
 	int interpolate_raw;
 // Whether to white balance CR2 images
-	int white_balance_raw;
+//	int white_balance_raw;
 // labels follow edits during editing
 	int labels_follow_edits;
 	int mpeg4_deblock;
@@ -171,8 +181,11 @@ public:
 // Samples to write to disk at a time
 	int64_t record_write_length;
 // Show title and action safe regions in CWindow
-	int safe_regions;
+//	int safe_regions;
     int64_t sample_rate;
+// sample rate if nested.  Only accessed by the owning EDL.
+// -1 if the same as the project sample rate.
+	int64_t nested_sample_rate;
 	float scrub_speed;
 // Show assets in track canvas
 	int show_assets;
@@ -185,7 +198,7 @@ public:
 // Format to display nudge in, either seconds or track units.
 	int nudge_seconds;
 // Show tool window in CWindow
-	int tool_window;
+//	int tool_window;
 // Location of video outs
 	int vchannel_x[MAXCHANNELS];
 	int vchannel_y[MAXCHANNELS];
@@ -197,7 +210,7 @@ public:
 // play every frame
 	int video_every_frame;  
 // decode video asynchronously
-	int video_asynchronous;
+//	int video_asynchronous;
 	int video_tracks;
 // number of frames to write to disk at a time during video recording.
 	int video_write_length;

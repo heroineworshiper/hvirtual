@@ -1,7 +1,10 @@
+include ../hvirtual_config
+
+
 OBJDIR := $(shell uname --machine)
 USE_MMX = 0
 CC = gcc
-
+CXX = g++
 
 
 
@@ -10,6 +13,7 @@ HAVE_CFLAGS := y
 else
 HAVE_CFLAGS := n
 endif
+
 
 
 ENCORE_DIR := thirdparty/encore50
@@ -21,12 +25,14 @@ OBJS :=
 # bug fixes for ffmpeg are required
 # Add test to ffmpeg/libavcodec/svq3.c to make sure extradata is
 # nonzero before memcmping it.
-FFMPEG_DIR := $(shell expr thirdparty/ffmpeg*)
-FFMPEG_LIB := $(OBJDIR)/ffmpeg/
-FFMPEG_INCLUDE := -I$(FFMPEG_DIR) \
--I$(FFMPEG_DIR)/libavcodec \
--I$(FFMPEG_DIR)/libavformat \
--I$(FFMPEG_DIR)/libavutil
+#FFMPEG_DIR := $(shell expr thirdparty/ffmpeg*)
+#FFMPEG_LIB := $(OBJDIR)/ffmpeg/
+#FFMPEG_INCLUDE := -I$(FFMPEG_DIR) \
+#-I$(FFMPEG_DIR)/libavcodec \
+#-I$(FFMPEG_DIR)/libavformat \
+#-I$(FFMPEG_DIR)/libavutil
+
+FFMPEG_LIBS := -lavformat -lavcodec -lavutil -lswresample
 
 FAAD_DIR := $(shell expr thirdparty/faad*)
 FAAD_LIB := $(OBJDIR)/faad/
@@ -40,6 +46,10 @@ X264_DIR := $(shell expr thirdparty/x264*)
 X264_LIB := $(OBJDIR)/x264
 X264_INCLUDE := $(X264_DIR)
 
+X265_DIR := $(shell expr thirdparty/x265*)
+X265_LIB := $(OBJDIR)/x265
+X265_INCLUDE := -I$(X265_DIR)/source -I$(X265_DIR)/build
+
 DV_DIR := thirdparty/libdv-0.104
 DV_LIB := $(OBJDIR)/libdv
 DV_INCLUDE := $(DV_DIR)/
@@ -51,7 +61,7 @@ VORBIS_DIR := $(shell expr thirdparty/libvorbis* )
 VORBIS_LIB := $(OBJDIR)/vorbis
 
 ifeq ($(OBJDIR), i686)
-
+# this won't work because JPEG headers have to match library versions
   JPEG_DIR := $(shell expr thirdparty/jpeg-mmx* )
   JPEG_LIB := $(OBJDIR)/$(JPEG_DIR)
   JPEG_LIB2 := $(JPEG_DIR)/libjpeg-mmx.a
@@ -59,7 +69,7 @@ ifeq ($(OBJDIR), i686)
 
 else
 
-  JPEG_DIR := thirdparty/jpeg
+  JPEG_DIR := thirdparty/jpeg9d
   JPEG_LIB := $(OBJDIR)/$(JPEG_DIR)
   JPEG_LIB2 := $(JPEG_DIR)/libjpeg.a
   JPEG_INCLUDE := $(JPEG_DIR)
@@ -79,7 +89,7 @@ endif
 
 
 ifeq ($(OBJDIR), x86_64)
-  CFLAGS := -O -funroll-all-loops -fomit-frame-pointer  -I/usr/local/include
+  CFLAGS := -O3 -funroll-all-loops -fomit-frame-pointer  -I/usr/local/include
 endif
 
 
@@ -124,12 +134,7 @@ OBJS += \
 	$(OBJDIR)/avi_odml.o \
 	$(OBJDIR)/avi_riff.o \
 	$(OBJDIR)/avi_strl.o \
-	$(OBJDIR)/cmodel_default.o \
-	$(OBJDIR)/cmodel_float.o \
-	$(OBJDIR)/cmodel_yuv420p.o \
-	$(OBJDIR)/cmodel_yuv422.o \
 	$(OBJDIR)/codecs.o \
-	$(OBJDIR)/colormodels.o \
 	$(OBJDIR)/ctab.o \
 	$(OBJDIR)/dinf.o \
 	$(OBJDIR)/dref.o \
@@ -149,7 +154,6 @@ OBJS += \
 	$(OBJDIR)/mdia.o \
 	$(OBJDIR)/minf.o \
 	$(OBJDIR)/moov.o \
-	$(OBJDIR)/mp4a.o \
 	$(OBJDIR)/mvhd.o \
 	$(OBJDIR)/plugin.o \
 	$(OBJDIR)/qtasf.o \
@@ -188,11 +192,20 @@ OBJS += \
 	$(OBJDIR)/yuv4.o \
 	$(OBJDIR)/yv12.o
 
+#	$(OBJDIR)/cmodel_default.o \
+#	$(OBJDIR)/cmodel_float.o \
+#	$(OBJDIR)/cmodel_yuv420p.o \
+#	$(OBJDIR)/cmodel_yuv422.o \
+#	$(OBJDIR)/colormodels.o \
+
+
 FFMPEG_OBJS := \
+	$(OBJDIR)/mp4a.o \
 	$(OBJDIR)/mpeg4.o \
 	$(OBJDIR)/qdm2.o \
 	$(OBJDIR)/qtffmpeg.o \
 	$(OBJDIR)/qth264.o \
+	$(OBJDIR)/qth265.o \
 	$(OBJDIR)/wma.o
 
 
@@ -205,8 +218,10 @@ UTILS := \
 	$(OBJDIR)/yuv2mov \
 	$(OBJDIR)/yuv4toyuv \
 	$(OBJDIR)/recover \
-	$(OBJDIR)/rechunk \
-	$(OBJDIR)/mts2mp4
+	$(OBJDIR)/rechunk
+
+
+#	$(OBJDIR)/mts2mp4
 
 
 
@@ -222,17 +237,19 @@ CFLAGS += \
 	-I$(FAAD_INCLUDE) \
 	-DENCORE_INCLUDE=\"$(ENCORE_INCLUDE)\" \
 	-I$(X264_INCLUDE) \
+	$(X265_INCLUDE) \
 	-I$(DV_INCLUDE) \
 	-I$(JPEG_INCLUDE) \
 	-I$(MPEG3_DIR) \
 	-I$(LAME_DIR)/include \
 	-I$(OGG_DIR)/include \
 	-I$(VORBIS_DIR)/include \
+        -I../guicast \
 	-ffast-math \
 	-mno-ieee-fp
 
-FFMPEG_CFLAGS := $(CFLAGS) \
-	$(FFMPEG_INCLUDE) \
+#FFMPEG_CFLAGS := $(CFLAGS) \
+#	$(FFMPEG_INCLUDE)
 
 #DIRS += \
 #	$(OBJDIR)/$(DECORE_DIR)/intel_mmx/postprocess
@@ -251,37 +268,41 @@ DIRS += \
 	$(OBJDIR)/$(ENCORE_DIR)/mbtransquant/intel_mmx
 
 
-LIBS := $(OUTPUT) $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a -lpng -lz -lpthread -ldl -lm
-
+LIBS := $(OUTPUT) ../guicast/$(OBJDIR)/libcmodel.a $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) -lpng -lz -lpthread -ldl -lm -llzma -lrt
+#LIBS += `pkg-config --libs libva-x11`
+#LIBS += `pkg-config --libs x11`
+#LIBS += `pkg-config --libs libva-drm`
+ 
 
 $(shell mkdir -p $(DIRS) )
 $(shell echo  $(CFLAGS) > $(OBJDIR)/c_flags)
 $(shell echo  $(LAME_CFLAGS) > $(OBJDIR)/lame_flags)
-$(shell echo  $(OBJS) $(FFMPEG_OBJS) $(JPEG_LIB)/*.o $(DV_LIB)/*.o $(FAAD_LIB)/*.o $(FAAC_LIB)/*.o $(X264_LIB)/*.o $(OGG_LIB)/*.o $(VORBIS_LIB)/*.o $(LAME_OBJS) > $(OBJDIR)/objs)
-$(shell echo  $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
+$(shell echo  $(OBJS) $(FFMPEG_OBJS) $(JPEG_LIB)/*.o $(DV_LIB)/*.o $(FAAD_LIB)/*.o $(FAAC_LIB)/*.o $(X264_LIB)/*.o $(X265_LIB)/*.o $(OGG_LIB)/*.o $(VORBIS_LIB)/*.o $(LAME_OBJS) > $(OBJDIR)/objs)
+$(shell echo  $(CFLAGS) $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
 
-all: $(OBJDIR) $(OUTPUT)
+all: $(OBJDIR) $(OUTPUT) $(UTILS)
 
-$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(FFMPEG_LIB) $(X264_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
-	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
-	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
-	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
+$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(X264_LIB) $(X265_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
+#	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libswresample/ -name *.o >> $(OBJDIR)/objs
 	ar rcs $(OUTPUT) `cat $(OBJDIR)/objs`
 
 # this is the only way we figured out to merge .a files
-$(FFMPEG_LIB):
-	$(MAKE) -C $(FFMPEG_DIR)
-	mkdir -p $(FFMPEG_LIB)/avcodec \
-		$(FFMPEG_LIB)/avformat \
-		$(FFMPEG_LIB)/avutil
-	cd $(FFMPEG_LIB)/avcodec && \
-	ar x ../../../$(FFMPEG_DIR)/libavcodec/libavcodec.a &&  \
-	cd ../avformat && \
-	ar x ../../../$(FFMPEG_DIR)/libavformat/libavformat.a &&  \
-	cd ../avutil && \
-	ar x ../../../$(FFMPEG_DIR)/libavutil/libavutil.a
-#	cd ../avcore && \
-#	ar x ../../../$(FFMPEG_DIR)/libavcore/libavcore.a
+#$(FFMPEG_LIB):
+#	$(MAKE) -C $(FFMPEG_DIR)
+#	mkdir -p $(FFMPEG_LIB)/avcodec \
+#		$(FFMPEG_LIB)/avformat \
+#		$(FFMPEG_LIB)/avutil
+#	cd $(FFMPEG_LIB)/avcodec && \
+#	ar x ../../../$(FFMPEG_DIR)/libavcodec/libavcodec.a &&  \
+#	cd ../avformat && \
+#	ar x ../../../$(FFMPEG_DIR)/libavformat/libavformat.a &&  \
+#	cd ../avutil && \
+#	ar x ../../../$(FFMPEG_DIR)/libavutil/libavutil.a \
+#	cd ../avutil && \
+#	ar x ../../../$(FFMPEG_DIR)/libswresample/libswresample.a
 
 $(FAAD_LIB):
 	$(MAKE) -C $(FAAD_DIR) && \
@@ -319,6 +340,15 @@ $(X264_LIB):
 	mv set.o set2.o && \
 	ar xN 1 ../../$(X264_DIR)/libx264.a predict.o cabac.o macroblock.o set.o
 
+
+$(X265_LIB):
+	$(MAKE) -C $(X265_DIR)/build && \
+	mkdir -p $(X265_LIB) && \
+	cd $(X265_LIB) && \
+	ar x ../../$(X265_DIR)/build/libx265.a
+
+
+
 $(OGG_LIB):
 	$(MAKE) -C $(OGG_DIR) && \
 	mkdir -p $(OGG_LIB) && \
@@ -336,46 +366,37 @@ $(VORBIS_LIB):
 
 
 $(OBJDIR)/mts2mp4: $(OBJDIR)/mts2mp4.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/mts2mp4 $(OBJDIR)/mts2mp4.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/mts2mp4 $(OBJDIR)/mts2mp4.o $(LIBS)
 
 $(OBJDIR)/qtdump: $(OBJDIR)/dump.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/qtdump $(OBJDIR)/dump.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/qtdump $(OBJDIR)/dump.o $(LIBS)
 
 $(OBJDIR)/make_streamable: $(OBJDIR)/make_streamable.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/make_streamable $(OBJDIR)/make_streamable.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/make_streamable $(OBJDIR)/make_streamable.o $(LIBS)
 
 $(OBJDIR)/dechunk: $(OBJDIR)/dechunk.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/dechunk $(OBJDIR)/dechunk.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/dechunk $(OBJDIR)/dechunk.o $(LIBS)
 
 $(OBJDIR)/rechunk: $(OBJDIR)/rechunk.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/rechunk $(OBJDIR)/rechunk.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/rechunk $(OBJDIR)/rechunk.o $(LIBS)
 
 $(OBJDIR)/recover: $(OBJDIR)/recover.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/recover $(OBJDIR)/recover.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/recover $(OBJDIR)/recover.o $(LIBS)
 
 $(OBJDIR)/yuv4toyuv: $(OBJDIR)/yuv4toyuv.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/yuv4toyuv $(OBJDIR)/yuv4toyuv.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/yuv4toyuv $(OBJDIR)/yuv4toyuv.o $(LIBS)
 
 $(OBJDIR)/yuv2mov: $(OBJDIR)/yuv2mov.o $(OUTPUT)
-	$(CC) -o $(OBJDIR)/yuv2mov $(OBJDIR)/yuv2mov.o $(LIBS)
+	$(CXX) -o $(OBJDIR)/yuv2mov $(OBJDIR)/yuv2mov.o $(LIBS)
 
-$(OBJDIR)/qtinfo: $(OBJDIR)/qtinfo.o
-	$(CC) -o $(OBJDIR)/qtinfo $(OBJDIR)/qtinfo.o $(LIBS)
+$(OBJDIR)/qtinfo: $(OBJDIR)/qtinfo.o $(OUTPUT)
+	$(CXX) -o $(OBJDIR)/qtinfo $(OBJDIR)/qtinfo.o $(LIBS)
 
 util:  $(UTILS)
 	
 
 clean:
-	find \( -name 'core*' \
-		-o -name '*.lo' \
-		-o -name '*.o' \
-		-o -name '*.la' \
-		-o -name '*.a' \
-		-o -name '*.plugin' \
-		-o -name '*.so' \) -exec rm -f {} \; -prune
-	find \( -name $(OBJDIR) \) -exec rm -rf {} \; -prune
-#	find \( -name .deps \) -exec rm -rf {} \; -prune
-	make -i -C $(FFMPEG_DIR) clean
+#	make -i -C $(FFMPEG_DIR) clean
 	make -i -C $(FAAD_DIR) clean
 	make -i -C $(FAAC_DIR) clean
 	make -i -C $(FAAD_DIR) clean
@@ -384,6 +405,14 @@ clean:
 	make -i -C $(OGG_DIR) clean
 	make -i -C $(VORBIS_DIR) clean
 	make -i -C $(JPEG_DIR) clean
+	find \( -name 'core*' \
+		-o -name '*.lo' \
+		-o -name '*.o' \
+		-o -name '*.la' \
+		-o -name '*.a' \
+		-o -name '*.plugin' \
+		-o -name '*.so' \) -exec rm -f {} \; -prune
+	find \( -name $(OBJDIR) \) -exec rm -rf {} \; -prune
 
 wc:
 	cat *.c *.h | wc
@@ -502,6 +531,7 @@ $(OBJDIR)/qtcache.o:                      qtcache.c
 $(OBJDIR)/qtdv.o:			  qtdv.c
 $(OBJDIR)/qtffmpeg.o:                     qtffmpeg.c
 $(OBJDIR)/qth264.o:                       qth264.c
+$(OBJDIR)/qth265.o:                       qth265.c
 $(OBJDIR)/qtinfo.o:			  qtinfo.c
 $(OBJDIR)/qtmp3.o:                        qtmp3.c
 $(OBJDIR)/qtpng.o:			  qtpng.c

@@ -26,6 +26,7 @@
 #include "menueditlength.h"
 #include "mwindow.h"
 #include "plugindialog.inc"
+#include "swapasset.h"
 
 MenuEditLength::MenuEditLength(MWindow *mwindow)
  : BC_MenuItem(_("Edit Length..."))
@@ -59,6 +60,21 @@ int MenuEditShuffle::handle_event()
 }
 
 
+MenuEditReverse::MenuEditReverse(MWindow *mwindow)
+ : BC_MenuItem(_("Reverse Edits"))
+{
+	this->mwindow = mwindow;
+}
+
+
+
+int MenuEditReverse::handle_event()
+{
+	mwindow->reverse_edits();
+	return 1;
+}
+
+
 
 
 
@@ -73,6 +89,25 @@ MenuEditAlign::MenuEditAlign(MWindow *mwindow)
 int MenuEditAlign::handle_event()
 {
 	mwindow->align_edits();
+	return 1;
+}
+
+
+
+
+
+MenuSwapAsset::MenuSwapAsset(MWindow *mwindow)
+ : BC_MenuItem(_("Swap assets..."))
+{
+	this->mwindow = mwindow;
+	thread = new SwapAssetThread(mwindow);
+}
+
+
+
+int MenuSwapAsset::handle_event()
+{
+	thread->start();
 	return 1;
 }
 

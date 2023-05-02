@@ -88,7 +88,6 @@ public:
 	int process_realtime(int64_t size, Samples *input_ptr, Samples *output_ptr);
 	void reset();
 	void update_gui();
-	void render_gui(void *data, int size);
 
 
 
@@ -97,6 +96,7 @@ public:
 	double rms_accum;
 	double max_accum;
 	int accum_size;
+    int64_t last_position;
 };
 
 

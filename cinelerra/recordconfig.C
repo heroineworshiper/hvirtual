@@ -42,7 +42,8 @@ AudioInConfig::AudioInConfig()
 	firewire_port = 0;
 	firewire_channel = 63;
 	strcpy(firewire_path, "/dev/raw1394");
-	sprintf(esound_in_server, "");
+	esound_in_server[0] = 0;
+    pulse_in_server[0] = 0;
 	esound_in_port = 0;
 
 	sprintf(alsa_in_device, "default");
@@ -87,6 +88,7 @@ void AudioInConfig::copy_from(AudioInConfig *src)
 	strcpy(firewire_path, src->firewire_path);
 
 	strcpy(esound_in_server, src->esound_in_server);
+	strcpy(pulse_in_server, src->pulse_in_server);
 	esound_in_port = src->esound_in_port;
 
 	for(int i = 0; i < MAXDEVICES; i++)
@@ -125,6 +127,7 @@ int AudioInConfig::load_defaults(BC_Hash *defaults)
 	sprintf(string, "OSS_IN_BITS");
 	oss_in_bits = defaults->get(string, oss_in_bits);
 	defaults->get("ESOUND_IN_SERVER", esound_in_server);
+	defaults->get("PULSE_IN_SERVER", pulse_in_server);
 	esound_in_port =              defaults->get("ESOUND_IN_PORT", esound_in_port);
 
 	defaults->get("ALSA_IN_DEVICE", alsa_in_device);
@@ -153,6 +156,7 @@ int AudioInConfig::save_defaults(BC_Hash *defaults)
 	sprintf(string, "OSS_IN_BITS");
 	defaults->update(string, oss_in_bits);
 	defaults->update("ESOUND_IN_SERVER", esound_in_server);
+	defaults->update("PULSE_IN_SERVER", pulse_in_server);
 	defaults->update("ESOUND_IN_PORT", esound_in_port);
 
 	defaults->update("ALSA_IN_DEVICE", alsa_in_device);
@@ -170,12 +174,13 @@ int AudioInConfig::save_defaults(BC_Hash *defaults)
 
 VideoInConfig::VideoInConfig()
 {
-	driver = VIDEO4LINUX;
+//	driver = VIDEO4LINUX;
+	driver = SCREENCAPTURE;
 	sprintf(v4l_in_device, "/dev/video0");
 	sprintf(v4l2_in_device, "/dev/video0");
 	sprintf(lml_in_device, "/dev/mvideo/stream");
 	sprintf(buz_in_device, "/dev/video0");
-	sprintf(screencapture_display, "");
+	screencapture_display[0] = 0;
 
 
 // DVB
@@ -211,6 +216,7 @@ char* VideoInConfig::get_path()
 			break;
 		case VIDEO4LINUX2:
 		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 		case CAPTURE_JPEG_WEBCAM:
 		case CAPTURE_YUYV_WEBCAM:
 			return v4l2_in_device;
@@ -264,6 +270,28 @@ VideoInConfig& VideoInConfig::operator=(VideoInConfig &that)
 int VideoInConfig::load_defaults(BC_Hash *defaults)
 {
 	driver = defaults->get("VIDEO_IN_DRIVER", driver);
+
+// disable unsupported drivers
+#ifndef HAVE_VIDEO4LINUX
+    if(driver == VIDEO4LINUX || 
+        driver == CAPTURE_BUZ)
+    {
+        driver = SCREENCAPTURE;
+    }
+#endif
+
+#ifndef HAVE_VIDEO4LINUX2
+    if(driver == VIDEO4LINUX2 || 
+        driver == CAPTURE_JPEG_WEBCAM || 
+        driver == CAPTURE_YUYV_WEBCAM || 
+        driver == VIDEO4LINUX2JPEG || 
+        driver == VIDEO4LINUX2MJPG || 
+        driver == CAPTURE_MPEG)
+    {
+        driver = SCREENCAPTURE;
+    }
+#endif
+
 	defaults->get("V4L_IN_DEVICE", v4l_in_device);
 	defaults->get("V4L2_IN_DEVICE", v4l2_in_device);
 	defaults->get("LML_IN_DEVICE", lml_in_device);

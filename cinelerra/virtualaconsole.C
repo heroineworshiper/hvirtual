@@ -130,7 +130,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 	reset_attachments();
 //printf("VirtualAConsole::process_buffer 1 %p\n", output_temp);
 
-if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
+//printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 
 
 // Render exit nodes
@@ -138,13 +138,15 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 	{
 		VirtualANode *node = (VirtualANode*)exit_nodes.values[i];
 		Track *track = node->track;
+        int sample_rate = renderengine->get_edl()->session->sample_rate;
 
 		result |= node->render(output_temp, 
 			len,
 			start_position + track->nudge,
-			renderengine->get_edl()->session->sample_rate);
+			renderengine->get_edl()->session->sample_rate,
+            (double)renderengine->arender->current_position / sample_rate);
 	}
-if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
+//printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 
 
 
@@ -161,12 +163,19 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 				int meter_render_end;
 // Get length to test for meter and limit
 				if(renderengine->command->realtime)
-					meter_render_end = j + arender->meter_render_fragment;
-				else
-					meter_render_end = len;
+				{
+                	meter_render_end = j + arender->meter_render_fragment;
+				}
+                else
+				{
+                	meter_render_end = len;
+                }
 
 				if(meter_render_end > len) 
-					meter_render_end =  len;
+				{
+                	meter_render_end =  len;
+                }
+
 
 				double peak = 0;
 
@@ -277,13 +286,15 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 			renderengine->first_frame_lock->lock("VirtualAConsole::process_buffer");
 			arender->first_buffer = 0;
 		}
-		if(!renderengine->audio->get_interrupted())
+		if(!renderengine->adevice->get_interrupted())
 		{
-			renderengine->audio->write_buffer(audio_out_packed, 
+if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
+			renderengine->adevice->write_buffer(audio_out_packed, 
 				real_output_len);
+if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 		}
 
-		if(renderengine->audio->get_interrupted()) interrupt = 1;
+		if(renderengine->adevice->get_interrupted()) interrupt = 1;
 	}
 
 if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
@@ -327,7 +338,7 @@ int VirtualAConsole::init_rendering(int duplicate)
 
 int VirtualAConsole::send_last_output_buffer()
 {
-	renderengine->audio->set_last_buffer();
+	renderengine->adevice->set_last_buffer();
 	return 0;
 }
 

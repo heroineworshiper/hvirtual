@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include "mwindow.inc"
 #include "mwindowgui.inc"
 #include "edit.inc"
+#include "editinfo.inc"
 #include "plugindialog.inc"
 #include "resizetrackthread.inc"
 
@@ -36,6 +37,10 @@ class EditPopupTitleText;
 class EditPopupTitleWindow;
 class EditPopupTitleButton;
 class EditPopupTitleButtonRes;
+class EditPopupConformProject;
+class EditPopupProjectRemove;
+class EditPopupDiskRemove;
+class EditInfo;
 
 class EditPopup : public BC_PopupMenu
 {
@@ -52,7 +57,13 @@ public:
 	Edit *edit;
 	Track *track;
 	EditPopupResize *resize_option;
+    EditInfo *info;
 	EditPopupMatchSize *matchsize_option;
+    EditPopupConformProject *conform_project;
+    EditPopupProjectRemove *project_remove;
+    EditPopupDiskRemove *disk_remove;
+    ArrayList<EditInfoThread*> edit_editors;
+    
 };
 
 class EditPopupMatchSize : public BC_MenuItem
@@ -64,6 +75,36 @@ public:
 	MWindow *mwindow;
 	EditPopup *popup;
 };
+
+class EditPopupConformProject : public BC_MenuItem
+{
+public:
+    EditPopupConformProject(MWindow *mwindow, EditPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+	EditPopup *popup;
+};
+
+
+class EditPopupProjectRemove : public BC_MenuItem
+{
+public:
+    EditPopupProjectRemove(MWindow *mwindow, EditPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+	EditPopup *popup;
+};
+
+
+class EditPopupDiskRemove : public BC_MenuItem
+{
+public:
+    EditPopupDiskRemove(MWindow *mwindow, EditPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+	EditPopup *popup;
+};
+
 
 class EditPopupResize : public BC_MenuItem
 {
@@ -133,49 +174,61 @@ public:
 };
 
 
-class EditPopupTitle : public BC_MenuItem
+class EditInfo : public BC_MenuItem
 {
 public:
-	EditPopupTitle (MWindow *mwindow, EditPopup *popup);
-	~EditPopupTitle();
+	EditInfo(MWindow *mwindow, EditPopup *popup);
+	~EditInfo();
 
 	int handle_event();
 
 	MWindow *mwindow;
 	EditPopup *popup;
-	EditPopupTitleWindow *window;
 };
 
-class EditPopupTitleText : public BC_TextBox
-{
-public:
-	EditPopupTitleText (EditPopupTitleWindow *window,
-		MWindow *mwindow, int x, int y);
-	~EditPopupTitleText();
+// class EditPopupTitle : public BC_MenuItem
+// {
+// public:
+// 	EditPopupTitle (MWindow *mwindow, EditPopup *popup);
+// 	~EditPopupTitle();
+// 
+// 	int handle_event();
+// 
+// 	MWindow *mwindow;
+// 	EditPopup *popup;
+// 	EditPopupTitleWindow *window;
+// };
 
-	int handle_event();
-
-	EditPopupTitleWindow *window;
-	MWindow *mwindow;
-};
-
-
-class EditPopupTitleWindow : public BC_Window
-{
-public:
-	EditPopupTitleWindow (MWindow *mwindow, EditPopup *popup);
-	~EditPopupTitleWindow ();
-
-	void create_objects();
-	int close_event();
-
-	EditPopupTitleText *title_text;
-	Edit *edt;
-	MWindow *mwindow;
-	EditPopup *popup;
-	char new_text[BCTEXTLEN];
-};
-
+// class EditPopupTitleText : public BC_TextBox
+// {
+// public:
+// 	EditPopupTitleText (EditPopupTitleWindow *window,
+// 		MWindow *mwindow, int x, int y);
+// 	~EditPopupTitleText();
+// 
+// 	int handle_event();
+// 
+// 	EditPopupTitleWindow *window;
+// 	MWindow *mwindow;
+// };
+// 
+// 
+// class EditPopupTitleWindow : public BC_Window
+// {
+// public:
+// 	EditPopupTitleWindow (MWindow *mwindow, EditPopup *popup);
+// 	~EditPopupTitleWindow ();
+// 
+// 	void create_objects();
+// 	int close_event();
+// 
+// 	EditPopupTitleText *title_text;
+// 	Edit *edt;
+// 	MWindow *mwindow;
+// 	EditPopup *popup;
+// 	char new_text[BCTEXTLEN];
+// };
+// 
 
 
 #endif

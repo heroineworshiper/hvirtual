@@ -114,9 +114,10 @@ public:
 // Pad pasted sections to a minimum of this length.
 		double edl_length);
 	void shuffle_edits(double start, double end, int first_track);
+	void reverse_edits(double start, double end, int first_track);
 	void align_edits(double start, 
 		double end, 
-		ArrayList<double> *times);
+		Track *master_track);
 // Optimize editing
 	void optimize();
 	int is_muted(int64_t position, int direction);  // Test muting status
@@ -157,7 +158,12 @@ public:
 // Descends the plugin tree without creating a virtual console.
 // Used by PlayableTracks::is_playable.
 	int is_synthesis(int64_t position, 
-		int direction);
+		int direction,
+        int depth = 0);
+
+// used by PlayableTracks::is_playable to determine if the track is shared
+    int is_shared(int64_t position, int direction);
+
 
 // Used by PlayableTracks::is_playable
 // Returns 1 if the track is in the output boundaries.
@@ -243,7 +249,8 @@ public:
 		const char *output_path = "");
 	int copy_assets(double start, 
 		double end, 
-		ArrayList<Asset*> *asset_list);
+		ArrayList<Asset*> *asset_list, 
+		ArrayList<EDL*> *nested_list);
 	virtual int copy_derived(int64_t start, int64_t end, FileXML *file) { return 0; };
 	virtual int paste_derived(int64_t start, int64_t end, int64_t total_length, FileXML *file, int &current_channel) { return 0; };
 	int clear(double start, 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,16 +45,16 @@
 RenderEngine::RenderEngine(PlaybackEngine *playback_engine,
  	Preferences *preferences, 
 	Canvas *output,
-	ChannelDB *channeldb,
-	int is_nested)
+	ChannelDB *channeldb)
  : Thread(1, 0, 0)
 {
 	this->playback_engine = playback_engine;
 	this->output = output;
 	this->channeldb = channeldb;
-	this->is_nested = is_nested;
-	audio = 0;
-	video = 0;
+	is_nested = 0;
+    is_rendering = 0;
+	adevice = 0;
+	vdevice = 0;
 	config = new PlaybackConfig;
 	arender = 0;
 	vrender = 0;
@@ -70,9 +69,13 @@ RenderEngine::RenderEngine(PlaybackEngine *playback_engine,
 	audio_cache = 0;
 	video_cache = 0;
 	if(playback_engine && playback_engine->mwindow)
-		mwindow = playback_engine->mwindow;
-	else
-		mwindow = 0;
+	{
+    	mwindow = playback_engine->mwindow;
+	}
+    else
+	{
+    	mwindow = 0;
+    }
 
 	input_lock = new Condition(1, "RenderEngine::input_lock");
 	start_lock = new Condition(1, "RenderEngine::start_lock");
@@ -105,6 +108,7 @@ EDL* RenderEngine::get_edl()
 
 int RenderEngine::arm_command(TransportCommand *command)
 {
+    int result = 0;
 	const int debug = 0;
 // Prevent this renderengine from accepting another command until finished.
 // Since the renderengine is often deleted after the input_lock command it must
@@ -150,6 +154,7 @@ int RenderEngine::arm_command(TransportCommand *command)
 		vconfig->driver = PLAYBACK_X11;
 	}
 
+	if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
 
 
 	get_duty();
@@ -177,13 +182,23 @@ int RenderEngine::arm_command(TransportCommand *command)
 		while(first_frame_lock->get_value() <= 0)
 			first_frame_lock->unlock();
 	}
-
-	open_output();
-	create_render_threads();
-	arm_render_threads();
 	if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
 
-	return 0;
+	result = open_output();
+	if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
+
+    if(!result)
+    {
+	    create_render_threads();
+	    arm_render_threads();
+    }
+    else
+    {
+    	input_lock->unlock();
+    }
+	if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
+
+	return result;
 }
 
 void RenderEngine::get_duty()
@@ -258,7 +273,6 @@ Channel* RenderEngine::get_current_channel()
 				}
 				break;
 			case VIDEO4LINUX2JPEG:
-				
 				break;
 		}
 	}
@@ -281,6 +295,16 @@ CICache* RenderEngine::get_vcache()
 		return video_cache;
 }
 
+void RenderEngine::set_nested(int value)
+{
+    this->is_nested = value;
+}
+
+void RenderEngine::set_rendering(int value)
+{
+    this->is_rendering = value;
+}
+
 void RenderEngine::set_acache(CICache *cache)
 {
 	this->audio_cache = cache;
@@ -289,6 +313,11 @@ void RenderEngine::set_acache(CICache *cache)
 void RenderEngine::set_vcache(CICache *cache)
 {
 	this->video_cache = cache;
+}
+
+void RenderEngine::set_vdevice(VideoDevice *vdevice)
+{
+    this->vdevice = vdevice;
 }
 
 
@@ -302,17 +331,18 @@ double RenderEngine::get_tracking_position()
 
 int RenderEngine::open_output()
 {
-	if(command->realtime && !is_nested)
+    int result = 0;
+	if(command->realtime && !is_nested && !is_rendering)
 	{
 // Allocate devices
 		if(do_audio)
 		{
-			audio = new AudioDevice;
+			adevice = new AudioDevice;
 		}
 
 		if(do_video)
 		{
-			video = new VideoDevice;
+			vdevice = new VideoDevice(mwindow);
 		}
 
 // Initialize sharing
@@ -321,8 +351,8 @@ int RenderEngine::open_output()
 // Start playback
 		if(do_audio && do_video)
 		{
-			video->set_adevice(audio);
-			audio->set_vdevice(video);
+			vdevice->set_adevice(adevice);
+			adevice->set_vdevice(vdevice);
 		}
 
 
@@ -330,7 +360,7 @@ int RenderEngine::open_output()
 // Retool playback configuration
 		if(do_audio)
 		{
-			if(audio->open_output(config->aconfig, 
+			if(adevice->open_output(config->aconfig, 
 				get_edl()->session->sample_rate, 
 				adjusted_fragment_len,
 				get_edl()->session->audio_channels,
@@ -338,28 +368,36 @@ int RenderEngine::open_output()
 				do_audio = 0;
 			else
 			{
-				audio->set_software_positioning(
+				adevice->set_software_positioning(
 					get_edl()->session->playback_software_position);
-				audio->start_playback();
+				adevice->start_playback();
 			}
 		}
 
 		if(do_video)
 		{
-			video->open_output(config->vconfig, 
+			result = vdevice->open_output(config->vconfig, 
 				get_edl()->session->frame_rate,
 				get_output_w(),
 				get_output_h(),
 				output,
 				command->single_frame());
-			Channel *channel = get_current_channel();
-			if(channel) video->set_channel(channel);
-			video->set_quality(80);
-			video->set_cpus(preferences->processors);
+            if(!result)
+            {
+			    Channel *channel = get_current_channel();
+			    if(channel) vdevice->set_channel(channel);
+			    vdevice->set_quality(80);
+			    vdevice->set_cpus(preferences->processors);
+            }
+            else
+            {
+                delete vdevice;
+                vdevice = 0;
+            }
 		}
 	}
 
-	return 0;
+	return result;
 }
 
 void RenderEngine::reset_sync_position()
@@ -374,7 +412,7 @@ int64_t RenderEngine::sync_position()
 // threads join.
 	if(do_audio)
 	{
-		return audio->current_position();
+		return adevice->current_position();
 	}
 
 	if(do_video)
@@ -383,6 +421,7 @@ int64_t RenderEngine::sync_position()
 			get_edl()->session->sample_rate);
 		return result;
 	}
+    return 0;
 }
 
 
@@ -432,7 +471,7 @@ void RenderEngine::start_render_threads()
 void RenderEngine::update_framerate(float framerate)
 {
 	playback_engine->mwindow->session->actual_frame_rate = framerate;
-	playback_engine->mwindow->preferences_thread->update_framerate();
+//	playback_engine->mwindow->preferences_thread->update_framerate();
 }
 
 void RenderEngine::wait_render_threads()
@@ -452,13 +491,13 @@ void RenderEngine::interrupt_playback()
 {
 	interrupt_lock->lock("RenderEngine::interrupt_playback");
 	interrupted = 1;
-	if(audio)
+	if(adevice)
 	{
-		audio->interrupt_playback();
+		adevice->interrupt_playback();
 	}
-	if(video)
+	if(vdevice)
 	{
-		video->interrupt_playback();
+		vdevice->interrupt_playback();
 	}
 	interrupt_lock->unlock();
 }
@@ -466,22 +505,22 @@ void RenderEngine::interrupt_playback()
 int RenderEngine::close_output()
 {
 // Nested engines share devices
-	if(!is_nested)
+	if(!is_nested && !is_rendering)
 	{
-		if(audio)
+		if(adevice)
 		{
-			audio->close_all();
-			delete audio;
-			audio = 0;
+			adevice->close_all();
+			delete adevice;
+			adevice = 0;
 		}
 
 
 
-		if(video)
+		if(vdevice)
 		{
-			video->close_all();
-			delete video;
-			video = 0;
+			vdevice->close_all();
+			delete vdevice;
+			vdevice = 0;
 		}
 	}
 
@@ -553,10 +592,12 @@ void RenderEngine::run()
 			if(!interrupted)
 			{
 				if(do_audio)
-					playback_engine->tracking_position = 
+				{
+                	playback_engine->tracking_position = 
 						(double)arender->current_position / 
 							command->get_edl()->session->sample_rate;
-				else
+				}
+                else
 				if(do_video)
 				{
 					playback_engine->tracking_position = 

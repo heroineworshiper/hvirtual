@@ -175,8 +175,8 @@ void Theme::initialize()
 
 	resources->pot_needle_color = resources->text_default;
 	resources->pot_offset = 1;
-	resources->pot_x1 = resources->pot_images[0]->get_w() / 2 - 1;
-	resources->pot_y1 = resources->pot_images[0]->get_h() / 2 - 1;
+//	resources->pot_x1 = resources->pot_images[0]->get_w() / 2 - 1;
+//	resources->pot_y1 = resources->pot_images[0]->get_h() / 2 - 1;
 
 
 

@@ -164,7 +164,20 @@ public:
 	int adivider_x, adivider_y, adivider_w, adivider_h;
 	int afolders_x, afolders_y, afolders_w, afolders_h;
 	int alist_x, alist_y, alist_w, alist_h;
+    int fps_color;
+// audio waveform color
 	int audio_color;
+// audio zero crossing
+    int zero_crossing_color;
+// compressor graph line
+    int graph_active_color;
+    int graph_inactive_color;
+// compressor graph background
+    int graph_grid_color;
+    int graph_bg_color;
+    int graph_border1_color;
+    int graph_border2_color;
+    
 	int assetedit_color;
 	int browse_pad;
 	int cauto_x, cauto_y, cauto_w, cauto_h;
@@ -217,6 +230,8 @@ public:
 	int preferencestitle_x, preferencestitle_y;
 	int preferencesoptions_x, preferencesoptions_y;
 	int patchbay_x, patchbay_y, patchbay_w, patchbay_h;
+// height required to show a complete patch
+    int patch_h;
 // pixels between toggles and buttons in edit panel
 	int toggle_margin;
 // Distance to left and right of automation point for control points
@@ -270,6 +285,9 @@ public:
 
 	int batchrender_x1, batchrender_x2, batchrender_x3;
 
+// FileStdout
+    int command_h, command_w;
+
 	int setformat_x1, setformat_x2, setformat_x3, setformat_x4;
 	int setformat_y1, setformat_y2, setformat_y3;
 	int setformat_w, setformat_h, setformat_margin;
@@ -285,11 +303,11 @@ public:
 	int vdivision_x;
 	int vtransport_x, vtransport_y;
 	int window_border;
-	int widget_border;
 	int clock_bg_color;
+	int clock_fg_color;
 
 // Bitmaps
-	VFrame *about_bg;
+//	VFrame *about_bg;
 	VFrame **appendasset_data;
 	VFrame **append_data;
 	VFrame **asset_append_data;

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,7 @@ public:
 	int initialize(int creation /* = 0 */);
 	int delete_objects();
 	void reset_objects();
+	int get_h();
 
 	PreferencesWindow *pwindow;
 	PreferencesDialog *dialog;
@@ -155,7 +156,7 @@ public:
 		int *output);
 	~VDriverMenu();
 	
-	char* driver_to_string(int driver);
+	const char* driver_to_string(int driver);
 	void create_objects();
 	
 	VDevicePrefs *device_prefs;

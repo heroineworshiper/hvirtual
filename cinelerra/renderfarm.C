@@ -500,6 +500,7 @@ int RenderFarmServerThread::write_string(char *string)
 
 	delete [] datagram;
 	datagram = 0;
+    return 0;
 }
 
 void RenderFarmServerThread::send_preferences()

@@ -104,7 +104,18 @@ public:
 		int channel, 
 		int64_t start_position,
 		double frame_rate,
-		int use_opengl = 0);
+		int use_opengl /* = 0 */);
+
+// video has to be sent to the GUI synchronously inside process_buffer
+// called by user to draw video data
+	void send_render_gui(void *data, int size);
+
+// Called by plugin server to update GUI with rendered data.
+	void plugin_render_gui(void *data, int size);
+
+// defined by user to draw video data
+	virtual void render_gui(void *data, int size);
+
 
 
 // User calls this to request an opengl routine to be run synchronously.

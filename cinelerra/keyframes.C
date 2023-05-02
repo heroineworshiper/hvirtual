@@ -67,12 +67,14 @@ KeyFrame* KeyFrames::get_prev_keyframe(int64_t position,
 	if(!current && first)
 	{
 		current = (KeyFrame*)first;
+//printf("KeyFrames::get_prev_keyframe %d %p\n", __LINE__, current->get_data());
 	}
 	else
 // No keyframes
 	if(!current)
 	{
 		current = (KeyFrame*)default_auto;
+//printf("KeyFrames::get_prev_keyframe %d %p\n", __LINE__, current->get_data());
 	}
 
 	return current;

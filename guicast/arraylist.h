@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -24,6 +23,7 @@
 
 // designed for lists of track numbers
 
+#include "bcsignals.h"
 #include <stdio.h>
 
 
@@ -40,7 +40,7 @@ public:
 	TYPE insert(TYPE value, int number);
 
 // allocate
-	void allocate(int total);
+	void allocate(int new_available);
 // remove last pointer from end
 	void remove();          
 // remove last pointer and object from end
@@ -63,6 +63,7 @@ public:
 // Call this if the TYPE is a pointer to an array which must be
 // deleted by delete [].
 	void set_array_delete();
+	int get_array_delete();
 	int size();
 	TYPE get(int number);
 	TYPE set(int number, TYPE value);
@@ -101,14 +102,20 @@ void ArrayList<TYPE>::set_array_delete()
     array_delete = 1;
 }
 
+template<class TYPE>
+int ArrayList<TYPE>::get_array_delete()
+{
+    return array_delete;
+}
+
 
 template<class TYPE>
-void ArrayList<TYPE>::allocate(int total)
+void ArrayList<TYPE>::allocate(int new_available)
 {
-	if(total > available)
+	if(new_available > available)
 	{
-		available = total;
-		TYPE* newvalues = new TYPE[available];
+		available = new_available;
+		TYPE* newvalues = new TYPE[new_available];
 		for(int i = 0; i < total; i++) newvalues[i] = values[i];
 		delete [] values;
 		values = newvalues;
@@ -156,6 +163,7 @@ TYPE ArrayList<TYPE>::insert(TYPE value, int number)
 		values[i] = values[i - 1];
 	}
 	values[number] = value;
+    return value;
 }
 
 template<class TYPE>
@@ -250,13 +258,16 @@ void ArrayList<TYPE>::remove_number(int number)
 template<class TYPE>
 void ArrayList<TYPE>::remove_all_objects()
 {
-//printf("ArrayList<TYPE>::remove_all_objects 1 %d\n", total);
 	for(int i = 0; i < total; i++)
 	{
 		if(array_delete)
-			delete [] values[i];
-		else
-			delete values[i];
+		{
+        	delete [] values[i];
+		}
+        else
+		{
+        	delete values[i];
+        }
 	}
 	
 	total = 0;
@@ -314,6 +325,7 @@ TYPE ArrayList<TYPE>::get(int number)
 	printf("ArrayList<TYPE>::get number=%d total=%d\n",
 		number,
 		total);
+    BC_Signals::dump_stack();
 	return 0;
 }
 

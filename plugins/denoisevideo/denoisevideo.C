@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,8 +106,8 @@ DenoiseVideoFrames::DenoiseVideoFrames(DenoiseVideo *plugin, int x, int y)
  : BC_ISlider(x, 
  	y, 
 	0,
-	190, 
-	200, 
+	DP(190), 
+	DP(200), 
 	1, 
 	256, 
 	plugin->config.frames)
@@ -140,7 +140,7 @@ DenoiseVideoThreshold::DenoiseVideoThreshold(DenoiseVideo *plugin,
 	(float)1,
  	x, 
  	y, 
-	100)
+	DP(100))
 {
 	this->plugin = plugin;
 	set_precision(3);
@@ -174,6 +174,7 @@ int DenoiseVideoToggle::handle_event()
 {
 	*output = get_value();
 	plugin->send_configure_change();
+    return 0;
 }
 
 
@@ -234,10 +235,10 @@ int DenoiseVideoCountSame::handle_event()
 
 DenoiseVideoWindow::DenoiseVideoWindow(DenoiseVideo *plugin)
  : PluginClientWindow(plugin, 
-	250, 
-	300, 
-	250, 
-	300, 
+	DP(250), 
+	DP(300), 
+	DP(250), 
+	DP(300), 
 	0)
 {
 	this->plugin = plugin;
@@ -246,41 +247,40 @@ DenoiseVideoWindow::DenoiseVideoWindow(DenoiseVideo *plugin)
 
 void DenoiseVideoWindow::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	BC_Title *title;
 	BC_Bar *bar;
 	add_subwindow(new BC_Title(x, y, _("Frames to accumulate:")));
-	y += 20;
+	y += DP(20);
 	add_subwindow(frames = new DenoiseVideoFrames(plugin, x, y));
-	y += frames->get_h() + 5;
+	y += frames->get_h() + DP(5);
 	add_subwindow(title = new BC_Title(x, y, _("Threshold:")));
-	y += title->get_h() + 5;
+	y += title->get_h() + DP(5);
 	threshold = new DenoiseVideoThreshold(plugin, this, x, y);
 	threshold->create_objects();
-	y += threshold->get_h() + 5;
+	y += threshold->get_h() + DP(5);
 	add_subwindow(bar = new BC_Bar(x, y, get_w() - x * 2));
-	y += bar->get_h() + 5;
+	y += bar->get_h() + DP(5);
 	add_subwindow(count_changed = new DenoiseVideoCountChanged(plugin, 
 		this, 
 		x, 
 		y));
-	y += count_changed->get_h() + 5;
+	y += count_changed->get_h() + DP(5);
 	add_subwindow(count_same = new DenoiseVideoCountSame(plugin, 
 		this, 
 		x, 
 		y));
-	y += count_same->get_h() + 5;
+	y += count_same->get_h() + DP(5);
 	add_subwindow(bar = new BC_Bar(x, y, get_w() - x * 2));
-	y += bar->get_h() + 5;
+	y += bar->get_h() + DP(5);
 	add_subwindow(do_r = new DenoiseVideoToggle(plugin, this, x, y, &plugin->config.do_r, _("Red")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(do_g = new DenoiseVideoToggle(plugin, this, x, y, &plugin->config.do_g, _("Green")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(do_b = new DenoiseVideoToggle(plugin, this, x, y, &plugin->config.do_b, _("Blue")));
-	y += 30;
+	y += DP(30);
 	add_subwindow(do_a = new DenoiseVideoToggle(plugin, this, x, y, &plugin->config.do_a, _("Alpha")));
 	show_window();
-	flush();
 }
 
 
@@ -322,15 +322,15 @@ int DenoiseVideo::process_realtime(VFrame *input, VFrame *output)
 
 	if(!accumulation)
 	{
-		accumulation = new float[w * h * BC_CModels::components(color_model)];
-		bzero(accumulation, sizeof(float) * w * h * BC_CModels::components(color_model));
+		accumulation = new float[w * h * cmodel_components(color_model)];
+		bzero(accumulation, sizeof(float) * w * h * cmodel_components(color_model));
 	}
 
 	float *accumulation_ptr = accumulation;
 	float opacity = (float)1.0 / config.frames;
 	float transparency = 1 - opacity;
 	float threshold = (float)config.threshold * 
-		BC_CModels::calculate_max(color_model);
+		cmodel_calculate_max(color_model);
 	int do_it[4] = { config.do_r, config.do_g, config.do_b, config.do_a };
 
 #define DENOISE_MACRO(type, components, max) \
@@ -407,6 +407,7 @@ int DenoiseVideo::process_realtime(VFrame *input, VFrame *output)
 			DENOISE_MACRO(uint16_t, 4, 0xffff);
 			break;
 	}
+    return 0;
 }
 
 

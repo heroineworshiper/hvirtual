@@ -2,27 +2,19 @@
 
 
 
-# For Ubuntbunt, you need:
-# yasm
-# nasm
-# libc6-dev
-# g++
-# build-essential
-# libz-dev
-# texinfo
-# libpng-dev
-# libglut-dev
-# libxv-dev
-# libasound2-dev
-# libbz2-dev 
-# libncurses5-dev
 
+OBJDIR=`uname -m`
+TOPDIR=`pwd`
+CUDA_DIR=/usr/local/cuda/
+FFMPEG_DIR=$TOPDIR/thirdparty/ffmpeg-5.1
+
+
+echo "Configuring Cinelerra with the following options:"
+echo CUDA_DIR=$CUDA_DIR
 
 ERROR=0
 
 # test for nasm
-OBJDIR=`uname -m`
-TOPDIR=`pwd`
 
 if [ $OBJDIR = i686 ];
 then
@@ -36,13 +28,13 @@ then
 
 fi
 
-if [ -x /usr/bin/yasm -o -x /usr/local/bin/yasm ]; then HAVE_YASM=y; else HAVE_YASM=n; fi
-
-if [ $HAVE_YASM = n ]; 
-then echo " *** Yasm is required."; 
-ERROR=1
-fi
-
+#if [ -x /usr/bin/yasm -o -x /usr/local/bin/yasm ]; then HAVE_YASM=y; else HAVE_YASM=n; fi
+#
+#if [ $HAVE_YASM = n ]; 
+#then echo " *** Yasm is required."; 
+#ERROR=1
+#fi
+#
 # should test for the following packages
 # libpng, zlib, X11 development packages
 # texinfo, libasound2-dev, libbz2-dev
@@ -69,72 +61,116 @@ if [ -x a.out ]; then HAVE_VIDEO4LINUX2=y; else HAVE_VIDEO4LINUX2=n; fi
 
 # test for dvb
 
-rm -f a.out
-cat > conftest.c << EOF
-#include <linux/dvb/dmx.h>
-#include <linux/dvb/frontend.h>
-int main()
-{
-	return 0;
-}
-EOF
-
-gcc conftest.c > /dev/null 2>&1
-
-if [ -x a.out ]; then HAVE_DVB=y; else HAVE_DVB=n; fi
-
-rm -f a.out conftest.c
+#rm -f a.out
+#cat > conftest.c << EOF
+##include <linux/dvb/dmx.h>
+##include <linux/dvb/frontend.h>
+#int main()
+#{
+#	return 0;
+#}
+#EOF
+#
+#gcc conftest.c > /dev/null 2>&1
+#
+#if [ -x a.out ]; then HAVE_DVB=y; else HAVE_DVB=n; fi
+#
+#rm -f a.out conftest.c
 
 
 
 
 # test for -msse support
-
-rm -f a.out
-cat > conftest.c << EOF
-int main()
-{
-	return 0;
-}
-EOF
-
-gcc -msse conftest.c > /dev/null 2>&1
-
-if [ -x a.out ]; then HAVE_GCC=y; else HAVE_GCC=n; fi
-
-rm -f a.out conftest.c
-
-if [ $HAVE_GCC = n ]; 
-then echo " *** GCC 3.2.2 or greater is required.  Download it from gcc.gnu.org"; 
-ERROR=1
-fi
-
-
+#
+#rm -f a.out
+#cat > conftest.c << EOF
+#int main()
+#{
+#	return 0;
+#}
+#EOF
+#
+#gcc -msse conftest.c > /dev/null 2>&1
+#
+#if [ -x a.out ]; then HAVE_GCC=y; else HAVE_GCC=n; fi
+#
+#rm -f a.out conftest.c
+#
+#if [ $HAVE_GCC = n ]; 
+#then echo " *** GCC 3.2.2 or greater is required.  Download it from gcc.gnu.org"; 
+#ERROR=1
+#fi
 
 
-# test for OpenGL 2.0
+
+
+# test for OpenGL
 
 
 rm -f a.out
 cat > conftest.c << EOF
 #include <GL/gl.h>
 #include <GL/glext.h>
-#include <GL/glu.h>
 int main()
 {
-	glUseProgram(0);
+    glUseProgram(0);
+	glBegin(GL_QUADS);
 	return 0;
 }
 EOF
 
-gcc conftest.c -lGL -lGLU > /dev/null 2>&1
+gcc conftest.c -lGL > /dev/null 2>&1
 
 if [ -x a.out ]; then HAVE_GL=y; else HAVE_GL=n; fi
 
 rm -f a.out conftest.c
 
+# A mechanism for using a user supplied ffmpeg.  This doesn't work.
+# FFMPEG_DIR must be set to the ffmpeg build directory
+# example:
+# FFMPEG_DIR=/root/ffmpeg-5.1 ./configure
+#if test -n "$FFMPEG_DIR"; then
+#echo FFMPEG_DIR=$FFMPEG_DIR
+#fi
 
+# set up a local ffmpeg build
+echo CONFIGURING FFMPEG
 
+FFMPEG_CFLAGS="-I$FFMPEG_DIR -I$FFMPEG_DIR/libavformat -I$FFMPEG_DIR/libavcodec"
+FFMPEG_LFLAGS="-L$FFMPEG_DIR/libavformat -L$FFMPEG_DIR/libavcodec -L$FFMPEG_DIR/libavutil -L$FFMPEG_DIR/libswresample"
+FFMPEG_LIBS="-lavformat -lavcodec -lavutil -lswresample -ldl -lm -lpthread -lz -lbz2 -llzma"
+
+cd $FFMPEG_DIR
+./configure --enable-pthreads --disable-ffplay --enable-nonfree --disable-doc --enable-gpl --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64
+if [ $? -ne 0 ]; then 
+ERROR=1
+fi
+cd $TOPDIR
+
+# test for ffmpeg
+#echo "TESTING FOR FFMPEG"
+#rm -f a.out
+#cat > conftest.c << EOF
+##include "avcodec.h"
+##include "avformat.h"
+#
+#int main()
+#{
+#    AVFormatContext *ic = avformat_alloc_context();
+#    return 0;
+#}
+#EOF
+
+#echo gcc conftest.c $FFMPEG_CFLAGS $FFMPEG_LFLAGS $FFMPEG_LIBS
+#gcc conftest.c $FFMPEG_CFLAGS $FFMPEG_LFLAGS $FFMPEG_LIBS
+#if [ -x a.out ]; 
+#then 
+#HAVE_FFMPEG=y; 
+#else 
+#HAVE_FFMPEG=n; 
+#echo " *** FFMPEG is required."; 
+#ERROR=1
+#fi
 
 
 
@@ -176,10 +212,24 @@ if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
 
 echo CONFIGURING SNDFILE
-cd thirdparty/libsndfile* && chmod a+x ./configure && ./configure && \
+#cd thirdparty/libsndfile* && chmod a+x ./configure && ./configure && \
+cd thirdparty/libsndfile* && \
+autoconf && autoreconf && ./configure && \
 cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+
+echo CONFIGURING PULSEAUDIO
+cd thirdparty/pulseaudio* && \
+SNDFILE_PATH=`expr $TOPDIR/thirdparty/libsndfile*` && \
+#./bootstrap.sh && \
+./configure --disable-dbus --disable-x11 --without-caps LIBSNDFILE_LIBS="-L$SNDFILE_PATH/src/.libs/ -lsndfile" LIBSNDFILE_CFLAGS="-I$SNDFILE_PATH/src" --enable-static && \
+cd ../..
+
+if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+
+
+
 
 echo CONFIGURING RAW1394
 cd thirdparty/libraw1394* && \
@@ -237,25 +287,34 @@ if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
 
 
-echo CONFIGURING SPEECH TOOLS
-cd thirdparty/speech_tools && \
-./configure && \
-cd ../..
+#echo CONFIGURING SPEECH TOOLS
+#cd thirdparty/speech_tools && \
+#./configure && \
+#cd ../..
+#if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
-if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+#echo CONFIGURING FESTIVAL
+#cd thirdparty/festival && \
+#./configure && \
+#cd ../..
+#if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
-echo CONFIGURING FESTIVAL
-cd thirdparty/festival && \
-./configure && \
-cd ../..
 
-if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+# write configuration script
+echo "Writing hvirtual_config"
+cat > hvirtual_config << EOF
+# Configuration file made by configure.
+HAVE_GL := $HAVE_GL
+FFMPEG_CFLAGS := $FFMPEG_CFLAGS
+FFMPEG_LFLAGS := $FFMPEG_LFLAGS
+FFMPEG_DIR := $FFMPEG_DIR
+EOF
 
 
 # write configuration header
 echo "Writing hvirtual_config.h"
 cat > hvirtual_config.h << EOF
-// Configuration file made by configure.  Don't edit.
+// Configuration file made by configure.
 EOF
 
 if [ "$HAVE_VIDEO4LINUX2" = "y" ];
@@ -266,13 +325,13 @@ else
 	echo "Don't have Video4Linux 2"
 fi
 
-if [ "$HAVE_DVB" = "y" ];
-then 
-	echo "#define HAVE_DVB" >> hvirtual_config.h
-	echo "Have DVB"
-else
-	echo "Don't have DVB"
-fi
+#if [ "$HAVE_DVB" = "y" ];
+#then 
+#	echo "#define HAVE_DVB" >> hvirtual_config.h
+#	echo "Have DVB"
+#else
+#	echo "Don't have DVB"
+#fi
 
 
 if [ "$HAVE_GL" = "y" ];
@@ -289,11 +348,10 @@ fi
 
 
 
-
 # success
 if [ "$ERROR" = "0" ];
 then 
-	echo "Configured successfully.  Type 'make' to build me.";
+	echo "Configured successfully.  Type 'make' to build it.";
 else
 	echo "Error in configuration."
 fi

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,8 +94,8 @@ TransitionLengthDialog::TransitionLengthDialog(MWindow *mwindow,
  : BC_Window(PROGRAM_NAME ": Transition length", 
 	x,
 	y,
-	300, 
-	100, 
+	DP(300), 
+	DP(100), 
 	-1, 
 	-1, 
 	0,
@@ -115,8 +114,8 @@ TransitionLengthDialog::~TransitionLengthDialog()
 void TransitionLengthDialog::create_objects()
 {
 	lock_window("TransitionLengthDialog::create_objects");
-	add_subwindow(new BC_Title(10, 10, _("Seconds:")));
-	text = new TransitionLengthText(mwindow, this, 100, 10);
+	add_subwindow(new BC_Title(DP(10), DP(10), _("Seconds:")));
+	text = new TransitionLengthText(mwindow, this, DP(100), DP(10));
 	text->create_objects();
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
@@ -145,7 +144,7 @@ TransitionLengthText::TransitionLengthText(MWindow *mwindow,
 	(float)100, 
 	x,
 	y,
-	100)
+	DP(100))
 {
 	this->mwindow = mwindow;
 	this->gui = gui;
@@ -226,6 +225,7 @@ TransitionPopupAttach::~TransitionPopupAttach()
 int TransitionPopupAttach::handle_event()
 {
 //	popup->dialog_thread->start();
+    return 0;
 }
 
 

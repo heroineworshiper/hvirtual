@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
@@ -43,7 +42,7 @@
 #include "bcbutton.inc"
 #include "bccapture.inc"
 #include "bcclipboard.inc"
-#include "bccmodels.inc"
+//#include "bccmodels.inc"
 #include "bcdisplay.inc"
 #include "bcdragwindow.inc"
 #include "bcfilebox.inc"
@@ -81,6 +80,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <X11/Xatom.h>
 #ifdef HAVE_XFT
 #include <X11/Xft/Xft.h>
@@ -101,6 +101,8 @@
 #ifdef HAVE_GL
 //typedef void* GLXContext;
 #endif
+
+using std::string;
 
 class BC_ResizeCall
 {
@@ -152,10 +154,6 @@ public:
 	friend class BC_Tumbler;
 	friend class BC_Window;
 	friend class BC_WindowEvents;
-#ifdef X_HAVE_UTF8_STRING
-	XIM im;		/* Used to communicate with the input method (IM) server */
-	XIC ic;		/* Used for retaining the state, properties, and semantics of communication with the input method (IM) server */
-#endif
 
 // Main loop
 	int run_window();
@@ -177,6 +175,7 @@ public:
 	virtual int drag_motion_event() { return 0; };
 	virtual int drag_stop_event() { return 0; };
 	virtual int uses_text() { return 0; };
+    virtual int get_enabled() { return 0; };
 // Only if opengl is enabled
 	virtual int expose_event() { return 0; };
 	virtual void create_objects() { return; };
@@ -219,6 +218,8 @@ public:
 	void put_shader(unsigned int handle, char *title);
 
 
+// return 1 if initialization worked
+    int exists();
 	int flash(int x, int y, int w, int h, int flush = 1);
 	int flash(int flush = 1);
 	void flush();
@@ -239,7 +240,7 @@ public:
 	static BC_Resources* get_resources();
 // User must create synchronous object first
 	static BC_Synchronous* get_synchronous();
-	static BC_CModels* get_cmodels();
+//	static BC_CModels* get_cmodels();
 
 // Dimensions
 	virtual int get_w();
@@ -292,8 +293,10 @@ public:
 	BC_Pixmap* get_bg_pixmap();
 	int get_text_ascent(int font);
 	int get_text_descent(int font);
-	int get_text_height(int font, char *text = 0);
+	int get_text_height(int font, const char *text = 0);
 	int get_text_width(int font, const char *text, int length = -1);
+// truncate the text with ... & return a new string
+    string* get_truncated_text(int font, const string *text, int max_w);
 	BC_Clipboard* get_clipboard();
 	void set_dragging(int value);
 	int set_w(int w);
@@ -401,20 +404,6 @@ public:
 		int total_w,
 		BC_Pixmap *src,
 		BC_Pixmap *dst = 0);
-	void draw_3segmentv(int x, 
-		int y, 
-		int h, 
-		int total_y,
-		int total_h,
-		BC_Pixmap *src,
-		BC_Pixmap *dst = 0);
-	void draw_3segmentv(int x, 
-		int y, 
-		int h, 
-		int total_y,
-		int total_h,
-		VFrame *src,
-		BC_Pixmap *dst = 0);
 // For drawing a single level
 	void draw_3segmenth(int x, 
 		int y, 
@@ -495,6 +484,7 @@ public:
 // Change the window title.  The title is translated internally.
 	void set_title(const char *text);
 	char* get_title();
+// draw bitmaps to the foreground/win instead of the back buffer/pixmap
 	void start_video();
 	void stop_video();
 	int get_id();
@@ -567,6 +557,8 @@ public:
 	int show_tooltip(int w = -1, int h = -1);
 	int hide_tooltip();
 	int set_icon(VFrame *data);
+// use the window manager border
+    void set_border(int value);
 	int load_defaults(BC_Hash *defaults);
 	int save_defaults(BC_Hash *defaults);
 
@@ -577,6 +569,7 @@ public:
    void restore_vm();
 #endif
 
+    BC_Bitmap* get_temp_bitmap(int w, int h, int color_model);
 	
 	int test_keypress;
   	char keys_return[KEYPRESSLEN];
@@ -610,6 +603,16 @@ private:
 	void init_cursors();
 	int init_colors();
 	int init_window_shape();
+
+
+
+	XFontStruct* query_font(const char *font_string, int size);
+	XFontSet query_fontset(const char *font_string, int size);
+	void* query_xft_font(const char *font_string, double size);
+	int init_fonts();
+
+
+
 	static int evaluate_color_model(int client_byte_order, int server_byte_order, int depth);
 	int create_private_colors();
 	int create_color(int color);
@@ -618,8 +621,8 @@ private:
 	int get_single_text_width(int font, const char *text, int length);
 	int allocate_color_table();
 	int init_gc();
-	int init_fonts();
-	void init_xft();
+
+
 	int get_color_rgb8(int color);
 	int64_t get_color_rgb16(int color);
 	int64_t get_color_bgr16(int color);
@@ -757,7 +760,7 @@ private:
 	int has_focus;
 
 	static BC_Resources resources;
-	static BC_CModels cmodels;
+//	static BC_CModels cmodels;
 	
 #ifndef SINGLE_THREAD
 // Array of repeaters for multiple repeating objects.
@@ -779,14 +782,14 @@ private:
 
 
 // Font sets
-    XFontSet largefontset, mediumfontset, smallfontset, curr_fontset;
+    XFontSet largefontset, mediumfontset, smallfontset, curr_fontset, clockfontset;
 
 // Fonts
 	int current_font;
-	XFontStruct *largefont, *mediumfont, *smallfont;
+	XFontStruct *largefont, *mediumfont, *smallfont, *clockfont;
 
 // Must be void so users don't need to include the wrong libpng version.
-	void *largefont_xft, *mediumfont_xft, *smallfont_xft;
+	void *largefont_xft, *mediumfont_xft, *smallfont_xft, *clockfont_xft;
 
 
 	int line_width;
@@ -862,11 +865,13 @@ private:
 	BC_Popup *icon_window;
 	BC_Pixmap *icon_pixmap;
 	BC_Pixmap **_7segment_pixmaps;
+// has a window manager border
+    int has_border;
 // Temporary
 	BC_Bitmap *temp_bitmap;
 // Clipboard
 #ifndef SINGLE_THREAD
-	BC_Clipboard *clipboard;
+	static BC_Clipboard *clipboard;
 #endif
 
 #ifdef HAVE_LIBXXF86VM
@@ -875,6 +880,10 @@ private:
    XF86VidModeModeInfo orig_modeline;
 #endif
 
+#ifdef X_HAVE_UTF8_STRING
+	XIM im;		/* Used to communicate with the input method (IM) server */
+	XIC ic;		/* Used for retaining the state, properties, and semantics of communication with the input method (IM) server */
+#endif
 
 
 

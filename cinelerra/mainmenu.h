@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ class KeyframesFollowEdits;
 class CursorOnFrames;
 class TypelessKeyframes;
 class LoopPlayback;
+class DumpPlayback;
 
 class Redo;
 class ShowVWindow;
@@ -121,6 +122,7 @@ public:
 	CursorOnFrames *cursor_on_frames;
 	TypelessKeyframes *typeless_keyframes;
 	LoopPlayback *loop_playback;
+	DumpPlayback *dump_playback;
 	ShowAssets *show_assets;
 	ShowTitles *show_titles;
 	ShowTransitions *show_transitions;
@@ -412,6 +414,14 @@ public:
 	MWindow *mwindow;
 };
 
+class MapAudio3 : public BC_MenuItem
+{
+public:
+	MapAudio3(MWindow *mwindow);
+	int handle_event();
+	MWindow *mwindow;
+};
+
 // ========================================== video
 
 
@@ -500,10 +510,19 @@ public:
 	MWindow *mwindow;
 };
 
-class SetBRenderStart : public BC_MenuItem
+class DumpPlayback : public BC_MenuItem
 {
 public:
-	SetBRenderStart(MWindow *mwindow);
+	DumpPlayback(MWindow *mwindow);
+
+	int handle_event();
+	MWindow *mwindow;
+};
+
+class SetBRenderRange : public BC_MenuItem
+{
+public:
+	SetBRenderRange(MWindow *mwindow);
 	int handle_event();
 	MWindow *mwindow;
 };

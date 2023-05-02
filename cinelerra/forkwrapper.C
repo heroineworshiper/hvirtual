@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -121,7 +120,7 @@ void ForkWrapper::run()
 			parent_fd,
 			child_fd);
 
-		result = read_command();
+		result = read_command(0);
 
 
 
@@ -131,9 +130,17 @@ void ForkWrapper::run()
 			result, 
 			command_token);
 
+// server crashed
+        if(result < 0)
+        {
+            done = 1;
+        }
+        else
 		if(!result && command_token == EXIT_CODE) 
-			done = 1;
-		else
+		{
+        	done = 1;
+		}
+        else
 		if(!result)
 		{
 			handle_command();
@@ -162,11 +169,25 @@ int ForkWrapper::send_command(int token,
 	return 0;
 }
 
-int ForkWrapper::read_command()
+int ForkWrapper::read_command(int use_timeout)
 {
 	unsigned char buffer[sizeof(int) * 2];
+    int result = 0;
 //printf("ForkWrapper::read_command %d child_fd=%d\n", __LINE__, child_fd);
-	int temp = read(child_fd, buffer, sizeof(buffer));
+    if(!use_timeout)
+    {
+        result = read(child_fd, buffer, sizeof(buffer));
+    }
+    else
+    {
+    	result = read_timeout(child_fd, buffer, sizeof(buffer));
+    }
+
+    if(result <= 0)
+    {
+        return 1;
+    }
+
 //printf("ForkWrapper::read_command %d child_fd=%d\n", __LINE__, child_fd);
 	command_token = *(int*)(buffer + 0);
 	command_bytes = *(int*)(buffer + sizeof(int));
@@ -181,8 +202,19 @@ int ForkWrapper::read_command()
 		command_data = new unsigned char[command_bytes];
 		command_allocated = command_bytes;
 	}
-	if(command_bytes) int temp = read(child_fd, command_data, command_bytes);
-	return 0;
+	if(command_bytes) 
+    {
+        result = read_timeout(child_fd, command_data, command_bytes);
+    }
+
+    if(result <= 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 int ForkWrapper::send_result(int64_t value, unsigned char *data, int data_size)
@@ -190,13 +222,19 @@ int ForkWrapper::send_result(int64_t value, unsigned char *data, int data_size)
 	unsigned char buffer[sizeof(int64_t) + sizeof(int)];
 	*(int64_t*)(buffer + 0) = value;
 	*(int*)(buffer + sizeof(int64_t)) = data_size;
+
+//printf("ForkWrapper::send_result %d: value=%ld data_size=%d\n", 
+//__LINE__, 
+//value, 
+//data_size);
+
 	int temp = write(child_fd, buffer, sizeof(buffer));
 	if(data && data_size) temp = write(child_fd, data, data_size);
 	return 0;
 }
 
-// Return 1 if the child is dead
-int ForkWrapper::read_timeout(unsigned char *data, int size)
+// Return -1 if the sender is dead
+int ForkWrapper::read_timeout(int fd, unsigned char *data, int size)
 {
 	fd_set rfds;
 	struct timeval timeout_struct;
@@ -208,20 +246,29 @@ int ForkWrapper::read_timeout(unsigned char *data, int size)
 		timeout_struct.tv_sec = 1;
 		timeout_struct.tv_usec = 0;
 		FD_ZERO(&rfds);
-		FD_SET(parent_fd, &rfds);
-		int result = select(parent_fd + 1, &rfds, 0, 0, &timeout_struct);
+//		FD_SET(parent_fd, &rfds);
+		FD_SET(fd, &rfds);
+//		int result = select(parent_fd + 1, &rfds, 0, 0, &timeout_struct);
+		int result = select(fd + 1, &rfds, 0, 0, &timeout_struct);
 
-		if(result <= 0 && !child_running()) return 1;
+		if(result <= 0 && !child_running()) return -1;
 
 
 		if(result > 0)
 		{
-			int fragment = read(parent_fd, data + bytes_read, size - bytes_read);
-			if(fragment > 0) bytes_read += fragment;
+			result = read(fd, data + bytes_read, size - bytes_read);
+			if(result <= 0) 
+            {
+// timeout or socket closed
+                result = -1;
+                break;
+            }
+
+            bytes_read += result;
 		}
 	}
 
-	return 0;
+	return bytes_read;
 }
 
 int64_t ForkWrapper::read_result()
@@ -229,7 +276,11 @@ int64_t ForkWrapper::read_result()
 	unsigned char buffer[sizeof(int64_t) + sizeof(int)];
 //printf("ForkWrapper::read_result %d  parent_fd=%d\n", __LINE__, parent_fd);
 
-	if(read_timeout(buffer, sizeof(buffer))) return 1;
+	if(read_timeout(parent_fd, buffer, sizeof(buffer)) <= 0)
+    {
+        printf("ForkWrapper::read_result %d timed out\n", __LINE__);
+        return READ_RESULT_FAILED;
+    }
 //printf("ForkWrapper::read_result %d  parent_fd=%d\n", __LINE__, parent_fd);
 
 	int64_t result = *(int64_t*)(buffer + 0);
@@ -241,14 +292,20 @@ int64_t ForkWrapper::read_result()
 		result_data = new unsigned char[result_bytes];
 		result_allocated = result_bytes;
 	}
-//printf("ForkWrapper::read_result %d  parent_fd=%d result=%lld result_bytes=%d\n", 
+//printf("ForkWrapper::read_result %d  parent_fd=%d result=%ld result_bytes=%d\n", 
 //__LINE__, 
 //parent_fd,
 //result,
 //result_bytes);
 
 	if(result_bytes) 
-		if(read_timeout(result_data, result_bytes)) return 1;
+	{
+		if(read_timeout(parent_fd, result_data, result_bytes) <= 0) 
+		{
+            printf("ForkWrapper::read_result %d timed out\n", __LINE__);
+			return READ_RESULT_FAILED;
+		}
+	}
 //printf("ForkWrapper::read_result %d  parent_fd=%d\n", __LINE__, parent_fd);
 
 	return result;
@@ -286,11 +343,11 @@ int ForkWrapper::child_running()
 }
 
 
-// From libancillary
+// From libancillary/ancillary.h
 #define ANCIL_FD_BUFFER(n) \
 struct { \
 	struct cmsghdr h; \
-	int fd[n]; \
+/* 	int fd[n]; */ \
 }
 
 void ForkWrapper::send_fd(int fd)

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,14 +32,17 @@
 
 class FormatAParams;
 class FormatVParams;
+class FormatMplexParams;
 class FormatAThread;
 class FormatVThread;
+class FormatMplexThread;
 class FormatChannels;
 class FormatPathButton;
 class FormatPathText;
 class FormatFormat;
 class FormatAudio;
 class FormatVideo;
+class FormatMplex;
 class FormatMultiple;
 
 class FormatTools
@@ -53,12 +55,12 @@ public:
 
 	void create_objects(int &init_x, 
 						int &init_y, 
-						int do_audio,    // Include tools for audio
-						int do_video,   // Include tools for video
+						int do_audio, // Include tools for audio
+						int do_video, // Include tools for video
 						int prompt_audio,  // Include checkbox for audio
 						int prompt_video,  // Include checkbox for video
-						int prompt_audio_channels,
-						int prompt_video_compression,
+						int prompt_video_compression, // prompt_video_compression
+                        int prompt_wrapper, // include checkbox for multiplexing
 						char *locked_compressor,  // Select compressors to be offered
 						int recording, // Change captions for recording
 						int *strategy,  // If nonzero, prompt for insertion strategy
@@ -73,6 +75,7 @@ public:
 	void update(Asset *asset, int *strategy);
 // Update filename extension when format is changed.
 	void update_extension();
+    void update_prompts();
 	void close_format_windows();
 	Asset* get_asset();
 
@@ -81,6 +84,7 @@ public:
 
 	int set_audio_options();
 	int set_video_options();
+	int set_mplex_options();
 	void set_w(int w);
 	int get_w();
 
@@ -89,8 +93,12 @@ public:
 
 	FormatAParams *aparams_button;
 	FormatVParams *vparams_button;
+	FormatMplexParams *mplexparams_button;
+
 	FormatAThread *aparams_thread;
 	FormatVThread *vparams_thread;
+	FormatMplexThread *mplexparams_thread;
+
 	BrowseButton *path_button;
 	FormatPathText *path_textbox;
 	BC_Title *format_title;
@@ -106,6 +114,16 @@ public:
 	BC_Title *video_title;
 	FormatVideo *video_switch;
 
+    BC_Title *mplex_title;
+	FormatMplex *mplex_switch;
+
+// remember the last user input for when we disable the switch
+    int audio_checked;
+    int video_checked;
+    int mplex_checked;
+
+    BC_Bar *bar;
+
 	FormatMultiple *multiple_files;
 
 // Suggestions for the textbox
@@ -118,11 +136,15 @@ public:
 	int do_audio;
 	int do_video;
 	int prompt_audio;
-	int prompt_audio_channels;
+//	int prompt_audio_channels;
 	int prompt_video;
 	int prompt_video_compression;
+    int prompt_wrapper;
 	int *strategy;
+// width of the format tools region, not the parent window
 	int w;
+// user defined width
+    int user_w;
 // Determines what the configuration buttons do.
 	int video_driver;
 };
@@ -155,7 +177,6 @@ class FormatAParams : public BC_Button
 {
 public:
 	FormatAParams(MWindow *mwindow, FormatTools *format, int x, int y);
-	~FormatAParams();
 	int handle_event();
 	FormatTools *format;
 };
@@ -164,7 +185,14 @@ class FormatVParams : public BC_Button
 {
 public:
 	FormatVParams(MWindow *mwindow, FormatTools *format, int x, int y);
-	~FormatVParams();
+	int handle_event();
+	FormatTools *format;
+};
+
+class FormatMplexParams : public BC_Button
+{
+public:
+	FormatMplexParams(MWindow *mwindow, FormatTools *format, int x, int y);
 	int handle_event();
 	FormatTools *format;
 };
@@ -198,6 +226,20 @@ public:
 	int joined;
 };
 
+class FormatMplexThread : public Thread
+{
+public:
+	FormatMplexThread(FormatTools *format);
+	~FormatMplexThread();
+	
+	void run();
+	void start();
+
+	FormatTools *format;
+	File *file;
+	int joined;
+};
+
 class FormatAudio : public BC_CheckBox
 {
 public:
@@ -212,6 +254,14 @@ class FormatVideo : public BC_CheckBox
 public:
 	FormatVideo(int x, int y, FormatTools *format, int default_);
 	~FormatVideo();
+	int handle_event();
+	FormatTools *format;
+};
+
+class FormatMplex : public BC_CheckBox
+{
+public:
+	FormatMplex(int x, int y, FormatTools *format, int default_);
 	int handle_event();
 	FormatTools *format;
 };

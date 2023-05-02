@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2018 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +30,7 @@
 #include "colors.h"
 #include "cursors.h"
 #include "fonts.h"
+#include "mutex.h"
 #include "vframe.h"
 #include <string.h>
 
@@ -129,108 +129,112 @@ void BC_WindowBase::draw_text(int x,
 	int boldface = top_level->current_font & BOLDFACE;
 	int font = top_level->current_font & 0xff;
 
-	switch(font)
-	{
-		case MEDIUM_7SEGMENT:
-// Create pixmaps for font, to speed up drawing
-			if(!_7segment_pixmaps)
-			{
-				_7segment_pixmaps = new BC_Pixmap*[TOTAL_7SEGMENT];
-				for(int i = 0; i < TOTAL_7SEGMENT; i++)
-				{
-					_7segment_pixmaps[i] = new BC_Pixmap(
-						this, 
-						get_resources()->medium_7segment[i], 
-						PIXMAP_ALPHA);
-				}
-			}
-		
-		
-			for(int i = 0; i < length; i++)
-			{
-				BC_Pixmap *image;
-				switch(text[i])
-				{
-					case '0':
-						image = _7segment_pixmaps[0];
-						break;
-					case '1':
-						image = _7segment_pixmaps[1];
-						break;
-					case '2':
-						image = _7segment_pixmaps[2];
-						break;
-					case '3':
-						image = _7segment_pixmaps[3];
-						break;
-					case '4':
-						image = _7segment_pixmaps[4];
-						break;
-					case '5':
-						image = _7segment_pixmaps[5];
-						break;
-					case '6':
-						image = _7segment_pixmaps[6];
-						break;
-					case '7':
-						image = _7segment_pixmaps[7];
-						break;
-					case '8':
-						image = _7segment_pixmaps[8];
-						break;
-					case '9':
-						image = _7segment_pixmaps[9];
-						break;
-					case ':':
-						image = _7segment_pixmaps[10];
-						break;
-					case '.':
-						image = _7segment_pixmaps[11];
-						break;
-					case 'a':
-					case 'A':
-						image = _7segment_pixmaps[12];
-						break;
-					case 'b':
-					case 'B':
-						image = _7segment_pixmaps[13];
-						break;
-					case 'c':
-					case 'C':
-						image = _7segment_pixmaps[14];
-						break;
-					case 'd':
-					case 'D':
-						image = _7segment_pixmaps[15];
-						break;
-					case 'e':
-					case 'E':
-						image = _7segment_pixmaps[16];
-						break;
-					case 'f':
-					case 'F':
-						image = _7segment_pixmaps[17];
-						break;
-					case ' ':
-						image = _7segment_pixmaps[18];
-						break;
-					case '-':
-						image = _7segment_pixmaps[19];
-						break;
-					default:
-						image = _7segment_pixmaps[18];
-						break;
-				}
+// 	switch(font)
+// 	{
+// 		case MEDIUM_7SEGMENT:
+// // Create pixmaps for font, to speed up drawing
+// 			if(!_7segment_pixmaps)
+// 			{
+// 				_7segment_pixmaps = new BC_Pixmap*[TOTAL_7SEGMENT];
+// 				for(int i = 0; i < TOTAL_7SEGMENT; i++)
+// 				{
+// 					_7segment_pixmaps[i] = new BC_Pixmap(
+// 						this, 
+// 						get_resources()->medium_7segment[i], 
+// 						PIXMAP_ALPHA);
+// 				}
+// 			}
+// 		
+// 		
+// 			for(int i = 0; i < length; i++)
+// 			{
+// 				BC_Pixmap *image;
+// 				switch(text[i])
+// 				{
+// 					case '0':
+// 						image = _7segment_pixmaps[0];
+// 						break;
+// 					case '1':
+// 						image = _7segment_pixmaps[1];
+// 						break;
+// 					case '2':
+// 						image = _7segment_pixmaps[2];
+// 						break;
+// 					case '3':
+// 						image = _7segment_pixmaps[3];
+// 						break;
+// 					case '4':
+// 						image = _7segment_pixmaps[4];
+// 						break;
+// 					case '5':
+// 						image = _7segment_pixmaps[5];
+// 						break;
+// 					case '6':
+// 						image = _7segment_pixmaps[6];
+// 						break;
+// 					case '7':
+// 						image = _7segment_pixmaps[7];
+// 						break;
+// 					case '8':
+// 						image = _7segment_pixmaps[8];
+// 						break;
+// 					case '9':
+// 						image = _7segment_pixmaps[9];
+// 						break;
+// 					case ':':
+// 						image = _7segment_pixmaps[10];
+// 						break;
+// 					case '.':
+// 						image = _7segment_pixmaps[11];
+// 						break;
+// 					case 'a':
+// 					case 'A':
+// 						image = _7segment_pixmaps[12];
+// 						break;
+// 					case 'b':
+// 					case 'B':
+// 						image = _7segment_pixmaps[13];
+// 						break;
+// 					case 'c':
+// 					case 'C':
+// 						image = _7segment_pixmaps[14];
+// 						break;
+// 					case 'd':
+// 					case 'D':
+// 						image = _7segment_pixmaps[15];
+// 						break;
+// 					case 'e':
+// 					case 'E':
+// 						image = _7segment_pixmaps[16];
+// 						break;
+// 					case 'f':
+// 					case 'F':
+// 						image = _7segment_pixmaps[17];
+// 						break;
+// 					case ' ':
+// 						image = _7segment_pixmaps[18];
+// 						break;
+// 					case '-':
+// 						image = _7segment_pixmaps[19];
+// 						break;
+// 					default:
+// 						image = _7segment_pixmaps[18];
+// 						break;
+// 				}
+// 
+// 				draw_pixmap(image, 
+// 					x, 
+// 					y - image->get_h());
+// 				x += image->get_w();
+// 			}
+// 			break;
+// 
+// 		default:
+// 		{
 
-				draw_pixmap(image, 
-					x, 
-					y - image->get_h());
-				x += image->get_w();
-			}
-			break;
 
-		default:
-		{
+
+
 // Set drawing color for dropshadow
 			int color = get_color();
 			if(boldface) set_color(BLACK);
@@ -261,18 +265,18 @@ void BC_WindowBase::draw_text(int x,
 						}
 						else
 #endif
-						if(get_resources()->use_fontset && top_level->get_curr_fontset())
-						{
-        					XmbDrawString(top_level->display, 
-                				pixmap ? pixmap->opaque_pixmap : this->pixmap->opaque_pixmap, 
-                				top_level->get_curr_fontset(),
-                				top_level->gc, 
-                				x2 + k, 
-                				y2 + k, 
-                				&text[j], 
-                				i - j);
-						}
-						else
+// 						if(get_resources()->use_fontset && top_level->get_curr_fontset())
+// 						{
+//         					XmbDrawString(top_level->display, 
+//                 				pixmap ? pixmap->opaque_pixmap : this->pixmap->opaque_pixmap, 
+//                 				top_level->get_curr_fontset(),
+//                 				top_level->gc, 
+//                 				x2 + k, 
+//                 				y2 + k, 
+//                 				&text[j], 
+//                 				i - j);
+// 						}
+// 						else
 						{
 //printf("BC_WindowBase::draw_text 3\n");
 							XDrawString(top_level->display, 
@@ -292,9 +296,13 @@ void BC_WindowBase::draw_text(int x,
 				}
 				if(boldface) set_color(color);
 			}
-			break;
-		}
-	}
+            
+            
+            
+            
+// 			break;
+// 		}
+// 	}
 }
 
 void BC_WindowBase::draw_xft_text(int x, 
@@ -321,6 +329,8 @@ void BC_WindowBase::draw_xft_text(int x,
 	color.blue = (top_level->current_color & 0xff);
 	color.blue |= color.blue << 8;
 	color.alpha = 0xffff;
+
+	BC_Resources::xft_lock->lock("BC_WindowBase::draw_xft_text");
 
 	XftColorAllocValue(top_level->display,
 		top_level->vis,
@@ -353,6 +363,9 @@ void BC_WindowBase::draw_xft_text(int x,
 	    top_level->vis,
 	    top_level->cmap,
 	    &xft_color);
+	
+	BC_Resources::xft_lock->unlock();
+
 #endif // HAVE_XFT
 }
 
@@ -912,7 +925,7 @@ void BC_WindowBase::draw_bitmap(BC_Bitmap *bitmap,
 // Hide cursor if video enabled
 	update_video_cursor();
 
-//printf("BC_WindowBase::draw_bitmap 1\n");
+//printf("BC_WindowBase::draw_bitmap %d dest_y=%d\n", __LINE__, dest_y);
 	if(dest_w <= 0 || dest_h <= 0)
 	{
 // Use hardware scaling to canvas dimensions if proper color model.
@@ -936,6 +949,7 @@ void BC_WindowBase::draw_bitmap(BC_Bitmap *bitmap,
 
 	if(video_on)
 	{
+//printf("BC_WindowBase::draw_bitmap %d win=%p\n", __LINE__, win);
 		bitmap->write_drawable(win, 
 			top_level->gc, 
 			src_x, 
@@ -1013,16 +1027,9 @@ void BC_WindowBase::draw_vframe(VFrame *frame,
 	if(src_x + src_w > frame->get_w()) src_w = frame->get_w() - src_x;
 	if(src_y + src_h > frame->get_h()) src_h = frame->get_h() - src_y;
 
-	if(!temp_bitmap) temp_bitmap = new BC_Bitmap(top_level, 
-		dest_w, 
+	temp_bitmap = get_temp_bitmap(dest_w, 
 		dest_h, 
-		get_color_model(), 
-		1);
-
-	temp_bitmap->match_params(dest_w, 
-		dest_h, 
-		get_color_model(), 
-		1);
+		get_color_model());
 
 	temp_bitmap->read_frame(frame, 
 		src_x, 

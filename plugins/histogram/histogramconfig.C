@@ -54,11 +54,13 @@ void HistogramConfig::reset(int do_mode)
 	}
 }
 
-void HistogramConfig::reset_points(int colors_only)
+void HistogramConfig::reset_points(int colors_only, int value_only)
 {
 	for(int i = 0; i < HISTOGRAM_MODES; i++)
 	{
-		if(i != HISTOGRAM_VALUE || !colors_only)
+		if((colors_only && i != HISTOGRAM_VALUE) || 
+            (value_only && i == HISTOGRAM_VALUE) ||
+            (!colors_only && !value_only))
 		{
 			low_input[i] = 0.0;
 			high_input[i] = 1.0;

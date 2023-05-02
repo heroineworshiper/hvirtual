@@ -69,8 +69,8 @@ public:
 	void set_icon(BC_Pixmap *pixmap);
 // Draw title of menu
 	int draw_title(int flush);
-	int reposition_window(int x, int y);
-	int deactivate();
+	int reposition_window(int x, int y, int w = -1);
+	virtual int deactivate();
 	int activate_menu();
 	int deactivate_menu();
 	int focus_out_event();

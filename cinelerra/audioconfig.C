@@ -43,6 +43,7 @@ AudioConfig& AudioConfig::operator=(AudioConfig &that)
 	afirewire_in_port = that.afirewire_in_port;
 	afirewire_in_channel = that.afirewire_in_channel;
 	strcpy(esound_in_server, that.esound_in_server);
+	strcpy(pulse_in_server, that.pulse_in_server);
 	esound_in_port = that.esound_in_port;
 	strcpy(oss_in_device, that.oss_in_device);
 	oss_in_channels = that.oss_in_channels;
@@ -52,6 +53,7 @@ AudioConfig& AudioConfig::operator=(AudioConfig &that)
 	audio_out_driver = that.audio_out_driver;
 	strcpy(oss_out_device, that.oss_out_device);
 	strcpy(esound_out_server, that.esound_out_server);
+	strcpy(pulse_out_server, that.pulse_out_server);
 	esound_out_port = that.esound_out_port;
 	oss_out_channels = that.oss_out_channels;
 	oss_out_bits = that.oss_out_bits;
@@ -81,6 +83,8 @@ int AudioConfig::load_defaults(BC_Hash *defaults)
 	oss_in_bits =                 defaults->get("OSS_IN_BITS", 16);
 	sprintf(esound_in_server, "");
 	                              defaults->get("ESOUND_IN_SERVER", esound_in_server);
+	sprintf(pulse_in_server, "");
+	                              defaults->get("PULSE_IN_SERVER", pulse_in_server);
 	esound_in_port =              defaults->get("ESOUND_IN_PORT", 0);
 
 	audio_out_driver =  		  defaults->get("AUDIO_OUT_DRIVER", AUDIO_OSS);
@@ -91,6 +95,8 @@ int AudioConfig::load_defaults(BC_Hash *defaults)
 	oss_out_bits =                defaults->get("OUT_BITS", 16);
 	sprintf(esound_out_server, "");
 	                              defaults->get("ESOUND_OUT_SERVER", esound_out_server);
+	sprintf(pulse_out_server, "");
+	                              defaults->get("PULSE_OUT_SERVER", pulse_out_server);
 	esound_out_port =             defaults->get("ESOUND_OUT_PORT", 0);
 
 	audio_duplex_driver =         defaults->get("AUDIO_DUPLEX_DRIVER", AUDIO_OSS);
@@ -113,6 +119,7 @@ int AudioConfig::save_defaults(BC_Hash *defaults)
 	defaults->update("OSS_IN_CHANNELS", oss_in_channels);
 	defaults->update("OSS_IN_BITS", oss_in_bits);
 	defaults->update("ESOUND_IN_SERVER", esound_in_server);
+	defaults->update("PULSE_IN_SERVER", pulse_in_server);
 	defaults->update("ESOUND_IN_PORT", esound_in_port);
 
 	defaults->update("AUDIO_OUT_DRIVER", audio_out_driver);
@@ -121,6 +128,7 @@ int AudioConfig::save_defaults(BC_Hash *defaults)
 	defaults->update("OUT_CHANNELS", oss_out_channels);
 	defaults->update("OUT_BITS", oss_out_bits);
 	defaults->update("ESOUND_OUT_SERVER", esound_out_server);
+	defaults->update("PULSE_OUT_SERVER", pulse_out_server);
 	defaults->update("ESOUND_OUT_PORT", esound_out_port);
 
 	defaults->update("AUDIO_DUPLEX_DRIVER", audio_duplex_driver);

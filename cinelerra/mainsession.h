@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +37,7 @@
 #include "pluginset.inc"
 #include "pluginserver.inc"
 #include "track.inc"
+#include "transition.inc"
 
 // Options not in EDL but not changed in preferences
 class MainSession
@@ -48,6 +48,7 @@ public:
 
 	int load_defaults(BC_Hash *defaults);
 	int save_defaults(BC_Hash *defaults);
+    void reset();
 	void default_window_positions();
 	void boundaries();
 
@@ -84,6 +85,8 @@ public:
 
 // Edit whose handle is being dragged
 	Edit *drag_edit;
+// Transition whose handle is being dragged
+    Transition *drag_transition;
 // Edits who are being dragged
 	ArrayList<Edit*> *drag_edits;
 // Button pressed during drag
@@ -99,7 +102,7 @@ public:
 // Value of keyframe when button was pressed
 	float drag_start_percentage;
 	long drag_start_position;
-// Records for redrawing brender position in timebar
+// Amount of data rendered, for drawing status in timebar
 	double brender_end;
 // Position of cursor in CWindow output.  Used by ruler.
 	int cwindow_output_x, cwindow_output_y;
@@ -130,6 +133,8 @@ public:
 	int ctool_x, ctool_y;
 // asset window
 	int awindow_x, awindow_y, awindow_w, awindow_h;
+// AWindow column widths
+	int asset_columns[ASSET_COLUMNS];
 	int gwindow_x, gwindow_y;
 // record monitor
 	int rmonitor_x, rmonitor_y, rmonitor_w, rmonitor_h;
@@ -137,6 +142,10 @@ public:
 	int rwindow_x, rwindow_y, rwindow_w, rwindow_h;
 // error window
 	int ewindow_w, ewindow_h;
+// edit info window
+    int edit_info_w, edit_info_h;
+// swap asset window
+    int swap_asset_w, swap_asset_h;
 // Channel edit window
 	int channels_x, channels_y;
 // Picture edit window
@@ -153,6 +162,7 @@ public:
 	int use_vector;
 	int use_hist_parade;
 	int use_wave_parade;
+    int edit_info_format;
 
 
 	int afolders_w;

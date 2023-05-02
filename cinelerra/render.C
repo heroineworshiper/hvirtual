@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +60,7 @@
 #include "packagerenderer.h"
 #include "patchbay.h"
 #include "playabletracks.h"
+#include "playback3d.h"
 #include "preferences.h"
 #include "preferencesthread.h"
 #include "quicktime.h"
@@ -188,7 +188,7 @@ void MainPackageRenderer::set_progress(int64_t value)
 	render->total_rendered += value;
 
 // Update frames per second for master node
-	render->preferences->set_rate(frames_per_second, -1);
+	MWindow::preferences->set_rate(frames_per_second, -1);
 
 //printf("MainPackageRenderer::set_progress %d %ld %f\n", __LINE__, (long)value, frames_per_second);
 
@@ -228,11 +228,17 @@ void MainPackageRenderer::set_progress(int64_t value)
 	render->counter_lock->unlock();
 
 // This locks the preferences
-	if(mwindow) mwindow->preferences->copy_rates_from(preferences);
+	MWindow::preferences->copy_rates_from(preferences);
 }
 
 int MainPackageRenderer::progress_cancelled()
 {
+
+// printf("MainPackageRenderer::progress_cancelled %d progress canceled=%d batch canceled=%d\n", 
+// __LINE__, 
+// render->progress ? render->progress->is_cancelled() : 0,
+// render->batch_cancelled);
+
 	return (render->progress && render->progress->is_cancelled()) || 
 		render->batch_cancelled;
 }
@@ -253,8 +259,9 @@ Render::Render(MWindow *mwindow)
 {
 	this->mwindow = mwindow;
 	in_progress = 0;
+    is_console = 0;
+    mode = Render::INTERACTIVE;
 	progress = 0;
-	preferences = 0;
 	elapsed_time = 0.0;
 	package_lock = new Mutex("Render::package_lock");
 	counter_lock = new Mutex("Render::counter_lock");
@@ -270,9 +277,6 @@ Render::~Render()
 	delete package_lock;
 	delete counter_lock;
 	delete completion;
-// May be owned by someone else.  This is owned by mwindow, so we don't care
-// about deletion.
-//	delete preferences;
 	delete progress_timer;
 	asset->Garbage::remove_user();
 	delete thread;
@@ -283,6 +287,7 @@ void Render::start_interactive()
 	if(!thread->running())
 	{
 		mode = Render::INTERACTIVE;
+        is_console = 0;
 		BC_DialogThread::start();
 	}
 	else
@@ -296,32 +301,20 @@ void Render::start_interactive()
 	}
 }
 
-
-void Render::start_batches(ArrayList<BatchRenderJob*> *jobs)
+void Render::start_batches(ArrayList<BatchRenderJob*> *jobs, int is_console)
 {
+//printf("Render::start_batches %d running=%d\n", __LINE__, thread->running());
 	if(!thread->running())
 	{
 		mode = Render::BATCH;
+		batch_cancelled = 0;
+		in_progress = 1;
+		result = 0;
 		this->jobs = jobs;
+        this->is_console = is_console;
 		completion->reset();
 		start_render();
 	}
-}
-
-void Render::start_batches(ArrayList<BatchRenderJob*> *jobs,
-	BC_Hash *boot_defaults,
-	Preferences *preferences)
-{
-	mode = Render::BATCH;
-	batch_cancelled = 0;
-	this->jobs = jobs;
-	this->preferences = preferences;
-
-	completion->reset();
-PRINT_TRACE
-	thread->run();
-PRINT_TRACE
-	this->preferences = 0;
 }
 
 
@@ -329,6 +322,7 @@ BC_Window* Render::new_gui()
 {
 	this->jobs = 0;
 	batch_cancelled = 0;
+	in_progress = 0;
 	format_error = 0;
 	result = 0;
 	completion->reset();
@@ -373,30 +367,31 @@ void Render::handle_close_event(int result)
 		if(debug) printf("Render::handle_close_event %d\n", __LINE__);
 	}
 
-PRINT_TRACE
 
 	save_defaults(asset);
-PRINT_TRACE
 	mwindow->save_defaults();
-PRINT_TRACE
 
 	if(!format_error && !result)
 	{
 		if(debug) printf("Render::handle_close_event %d\n", __LINE__);
 
-		if(!result) start_render();
+		if(!result) 
+        {
+            start_render();
+        }
 		if(debug) printf("Render::handle_close_event %d\n", __LINE__);
 
 	}
-PRINT_TRACE
 }
 
 
 
 void Render::stop_operation()
 {
-	if(Thread::running())
+	if(Thread::running() ||
+		in_progress)
 	{
+printf("Render::stop_operation %d\n", __LINE__);
 		batch_cancelled = 1;
 // Wait for completion
 		completion->lock("Render::stop_operation");
@@ -475,7 +470,7 @@ void Render::start_progress()
 
 	progress_max = Units::to_int64(default_asset->sample_rate * 
 			(total_end - total_start)) +
-		Units::to_int64(preferences->render_preroll * 
+		Units::to_int64(MWindow::preferences->render_preroll * 
 			packages->total_allocated * 
 			default_asset->sample_rate);
 	progress_timer->update();
@@ -609,6 +604,12 @@ int Render::load_defaults(Asset *asset)
 	strategy = mwindow->defaults->get("RENDER_STRATEGY", SINGLE_PASS);
 	load_mode = mwindow->defaults->get("RENDER_LOADMODE", LOADMODE_NEW_TRACKS);
 
+// some defaults which work
+	asset->video_data = 1;
+	asset->audio_data = 1;
+	asset->format = FILE_MOV;
+	strcpy(asset->acodec, QUICKTIME_MP4A);
+	strcpy(asset->vcodec, QUICKTIME_H264);
 
 	asset->load_defaults(mwindow->defaults, 
 		"RENDER_", 
@@ -678,20 +679,13 @@ void RenderThread::render_single(int test_overwrite,
 	int done = 0;
 	const int debug = 0;
 
+//printf("RenderThread::render_single %d\n", __LINE__);
 	render->in_progress = 1;
 
 
 	render->default_asset = asset;
 	render->progress = 0;
 	render->result = 0;
-
-	if(mwindow)
-	{
-		if(!render->preferences)
-			render->preferences = new Preferences;
-
-		render->preferences->copy_from(mwindow->preferences);
-	}
 
 
 // Create rendering command
@@ -711,8 +705,8 @@ void RenderThread::render_single(int test_overwrite,
 	PlaybackConfig *playback_config = new PlaybackConfig;
 
 // Create caches
-	CICache *audio_cache = new CICache(render->preferences);
-	CICache *video_cache = new CICache(render->preferences);
+	CICache *audio_cache = new CICache(MWindow::preferences);
+	CICache *video_cache = new CICache(MWindow::preferences);
 
 	render->default_asset->frame_rate = command->get_edl()->session->frame_rate;
 	render->default_asset->sample_rate = command->get_edl()->session->sample_rate;
@@ -748,11 +742,11 @@ void RenderThread::render_single(int test_overwrite,
 		if(mwindow) mwindow->stop_brender();
 
 		fs.complete_path(render->default_asset->path);
-		strategy = Render::fix_strategy(strategy, render->preferences->use_renderfarm);
+		strategy = Render::fix_strategy(strategy, MWindow::preferences->use_renderfarm);
 
 		render->result = render->packages->create_packages(mwindow,
 			command->get_edl(),
-			render->preferences,
+			MWindow::preferences,
 			strategy, 
 			render->default_asset, 
 			render->total_start, 
@@ -791,7 +785,7 @@ void RenderThread::render_single(int test_overwrite,
 		{
 			farm_server = new RenderFarmServer(mwindow,
 				render->packages,
-				render->preferences, 
+				MWindow::preferences, 
 				1,
 				&render->result,
 				&render->total_rendered,
@@ -835,7 +829,7 @@ void RenderThread::render_single(int test_overwrite,
 		MainPackageRenderer package_renderer(render);
 		render->result = package_renderer.initialize(mwindow,
 				command->get_edl(),   // Copy of master EDL
-				render->preferences, 
+				MWindow::preferences, 
 				render->default_asset);
 
 
@@ -874,8 +868,9 @@ void RenderThread::render_single(int test_overwrite,
 			timer.update();
 
 			if(package_renderer.render_package(package))
+			{
 				render->result = 1;
-
+			}
 
 		} // file_number
 
@@ -948,7 +943,7 @@ if(debug) printf("Render::render %d\n", __LINE__);
 		ArrayList<Indexable*> *assets = render->packages->get_asset_list();
 if(debug) printf("Render::render %d\n", __LINE__);
 		if(render->load_mode == LOADMODE_PASTE)
-			mwindow->clear(0);
+			mwindow->clear(0, 1);
 if(debug) printf("Render::render %d\n", __LINE__);
 		mwindow->load_assets(assets, 
 			-1, 
@@ -1002,7 +997,6 @@ if(debug) printf("Render::render %d\n", __LINE__);
 		mwindow->gui->unlock_window();
 	}
 
-//printf("Render::render 110\n");
 // Need to restart because brender always stops before render.
 	if(mwindow)
 		mwindow->restart_brender();
@@ -1017,7 +1011,6 @@ if(debug) printf("Render::render %d\n", __LINE__);
 	render->packages = 0;
 	render->in_progress = 0;
 	render->completion->unlock();
-if(debug) printf("Render::render %d\n", __LINE__);
 }
 
 void RenderThread::run()
@@ -1030,7 +1023,7 @@ void RenderThread::run()
 	if(render->mode == Render::BATCH)
 	{
 // PRINT_TRACE
-// printf("RenderThread::run %d %d %d\n", 
+// printf("RenderThread::run %d total jobs=%d result=%d\n", 
 // __LINE__, 
 // render->jobs->total, 
 // render->result);
@@ -1067,7 +1060,9 @@ void RenderThread::run()
 				if(!render->result)
 				{
 					if(mwindow)
+					{
 						mwindow->batch_render->update_done(i, 1, render->elapsed_time);
+					}
 					else
 					{
 						char string[BCTEXTLEN];
@@ -1095,6 +1090,12 @@ void RenderThread::run()
 			mwindow->batch_render->update_active(-1);
 			mwindow->batch_render->update_done(-1, 0, 0);
 		}
+
+// exit from the foreground thread to the command line
+        if(MWindow::playback_3d && render->is_console)
+        {
+            MWindow::playback_3d->quit();
+        }
 	}
 }
 
@@ -1106,8 +1107,8 @@ void RenderThread::run()
 
 
 
-#define WIDTH 410
-#define HEIGHT 360
+#define WIDTH DP(410)
+#define HEIGHT DP(360)
 
 
 RenderWindow::RenderWindow(MWindow *mwindow, 
@@ -1148,7 +1149,8 @@ SET_TRACE
 
 void RenderWindow::create_objects()
 {
-	int x = 10, y = 5;
+	int margin = mwindow->theme->widget_border;
+	int x = DP(10), y = margin;
 	lock_window("RenderWindow::create_objects");
 	add_subwindow(new BC_Title(x, 
 		y, 
@@ -1156,23 +1158,23 @@ void RenderWindow::create_objects()
 				render->strategy == FILE_PER_LABEL_FARM) ? 
 			_("Select the first file to render to:") : 
 			_("Select a file to render to:"))));
-	y += 25;
+	y += DP(25);
 
 	format_tools = new FormatTools(mwindow,
 					this, 
 					asset);
 	format_tools->create_objects(x, 
 		y, 
-		1, 
-		1, 
-		1, 
-		1, 
-		0,
-		1,
-		0,
-		0,
+		1, // Include tools for audio
+		1, // Include tools for video
+		1, // Include checkbox for audio
+		1, // Include checkbox for video
+		1, // prompt_video_compression
+		1, // include checkbox for multiplexing
+		0, // locked_compressor
+        0, // Change captions for recording
 		&render->strategy,
-		0);
+		0); // Supply file formats for background rendering
 
 	loadmode = new LoadMode(mwindow, 
 		this, 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +33,7 @@
 
 
 #include <errno.h>
+#include <string.h>
 
 
 FileJPEG::FileJPEG(Asset *asset, File *file)
@@ -48,8 +48,50 @@ FileJPEG::~FileJPEG()
 }
 
 
-int FileJPEG::check_sig(Asset *asset)
+
+FileJPEG::FileJPEG()
+ : FileList()
 {
+    ids.append(FILE_JPEG);
+    ids.append(FILE_JPEG_LIST);
+    has_video = 1;
+    has_wr = 1;
+    has_rd = 1;
+}
+
+FileBase* FileJPEG::create(File *file)
+{
+    return new FileJPEG(file->asset, file);
+}
+
+const char* FileJPEG::formattostr(int format)
+{
+    switch(format)
+    {
+		case FILE_JPEG:
+			return JPEG_NAME;
+			break;
+		case FILE_JPEG_LIST:
+			return JPEG_LIST_NAME;
+			break;
+    }
+    return 0;
+}
+
+const char* FileJPEG::get_tag(int format)
+{
+    switch(format)
+    {
+		case FILE_JPEG:
+		case FILE_JPEG_LIST:
+            return "jpg";
+    }
+    return 0;
+}
+
+int FileJPEG::check_sig(File *file, const uint8_t *test_data)
+{
+    Asset *asset = file->asset;
 	FILE *stream = fopen(asset->path, "rb");
 
 	if(stream)
@@ -83,10 +125,10 @@ int FileJPEG::check_sig(Asset *asset)
 void FileJPEG::get_parameters(BC_WindowBase *parent_window, 
 	Asset *asset, 
 	BC_WindowBase* &format_window,
-	int audio_options,
-	int video_options)
+	int option_type,
+	const char *locked_compressor)
 {
-	if(video_options)
+	if(option_type == VIDEO_PARAMS)
 	{
 		JPEGConfigVideo *window = new JPEGConfigVideo(parent_window, asset);
 		format_window = window;
@@ -144,8 +186,11 @@ int FileJPEG::get_best_colormodel(Asset *asset, int driver)
 			break;
 		case CAPTURE_BUZ:
 		case CAPTURE_LML:
-		case VIDEO4LINUX2JPEG:
+		case VIDEO4LINUX2MJPG:
 			return BC_YUV422;
+			break;
+		case VIDEO4LINUX2JPEG:
+			return BC_YUV420P;
 			break;
 		case CAPTURE_FIREWIRE:
 		case CAPTURE_IEC61883:
@@ -161,6 +206,7 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 	int result = 0;
 	JPEGUnit *jpeg_unit = (JPEGUnit*)unit;
 
+//PRINT_TRACE
 	if(!jpeg_unit->compressor)
 		jpeg_unit->compressor = mjpeg_new(asset->width, 
 			asset->height, 
@@ -168,7 +214,11 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 
 	mjpeg_set_quality((mjpeg_t*)jpeg_unit->compressor, asset->jpeg_quality);
 
-
+// printf("FileJPEG::write_frame %d color_model=%d %dx%d rows=%p\n", 
+// __LINE__, frame->get_color_model(),
+// asset->width, asset->height, frame->get_rows()[0]);
+//for(int i = 0; i < asset->width * asset->height * 3; i++)
+//((float*)frame->get_rows()[0])[i] = 1;
 	mjpeg_compress((mjpeg_t*)jpeg_unit->compressor, 
 		frame->get_rows(), 
 		frame->get_y(), 
@@ -176,13 +226,69 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 		frame->get_v(),
 		frame->get_color_model(),
 		1);
+//PRINT_TRACE
 
-	data->allocate_compressed_data(mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor));
-	data->set_compressed_size(mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor));
-	memcpy(data->get_data(), 
-		mjpeg_output_buffer((mjpeg_t*)jpeg_unit->compressor), 
-		mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor));
 
+// insert spherical tag
+	if(asset->jpeg_sphere)
+	{
+		const char *sphere_tag = 
+			"http://ns.adobe.com/xap/1.0/\x00<?xpacket begin='\xef\xbb\xbf' id='W5M0MpCehiHzreSzNTczkc9d'?>\n"
+			"<x:xmpmeta xmlns:x='adobe:ns:meta/' x:xmptk='Image::Cinelerra'>\n"
+			"<rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'>\n"
+			"\n"
+			" <rdf:Description rdf:about=''\n"
+			"  xmlns:GPano='http://ns.google.com/photos/1.0/panorama/'>\n"
+			"  <GPano:ProjectionType>equirectangular</GPano:ProjectionType>\n"
+			" </rdf:Description>\n"
+			"</rdf:RDF>\n"
+			"</x:xmpmeta>\n"
+			"<?xpacket end='w'?>";
+//PRINT_TRACE
+
+// calculate length by skipping the \x00 byte
+		int skip = 32;
+		int tag_len = strlen(sphere_tag + skip) + skip;
+		int tag_len2 = tag_len + 2;
+		int tag_len3 = tag_len + 4;
+		
+		data->allocate_compressed_data(
+			mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor) + tag_len3);
+		data->set_compressed_size(
+			mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor) + tag_len3);
+			
+		int jfif_size = 0x14;
+		uint8_t *ptr = data->get_data();
+		memcpy(ptr, 
+			mjpeg_output_buffer((mjpeg_t*)jpeg_unit->compressor), 
+			jfif_size);
+		ptr += jfif_size;
+		*ptr++ = 0xff;
+		*ptr++ = 0xe1;
+		*ptr++ = (tag_len2 >> 8) & 0xff;
+		*ptr++ = tag_len2 & 0xff;
+		memcpy(ptr,
+			sphere_tag,
+			tag_len);
+		ptr += tag_len;
+		memcpy(ptr,
+			mjpeg_output_buffer((mjpeg_t*)jpeg_unit->compressor) + jfif_size,
+			mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor) - jfif_size);
+	}
+	else
+	{
+//PRINT_TRACE
+		data->allocate_compressed_data(mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor));
+//PRINT_TRACE
+		data->set_compressed_size(mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor));
+//PRINT_TRACE
+		memcpy(data->get_data(), 
+			mjpeg_output_buffer((mjpeg_t*)jpeg_unit->compressor), 
+			mjpeg_output_size((mjpeg_t*)jpeg_unit->compressor));
+//PRINT_TRACE
+	}
+
+PRINT_TRACE
 	return result;
 }
 
@@ -207,7 +313,7 @@ int FileJPEG::read_frame_header(char *path)
 		printf("FileJPEG::read_frame_header %d %s: %s\n", __LINE__, path, strerror(errno));
 		return 1;
 	}
-	
+//printf("FileJPEG::read_frame_header %d\n", __LINE__);
 
 	unsigned char test[2];
 	int temp = fread(test, 2, 1, stream);
@@ -231,6 +337,7 @@ int FileJPEG::read_frame_header(char *path)
 
 	jpeg_destroy((j_common_ptr)&jpeg_decompress);
 	fclose(stream);
+//printf("FileJPEG::read_frame_header %d\n", __LINE__);
 
 	return result;
 }
@@ -305,8 +412,8 @@ JPEGConfigVideo::JPEGConfigVideo(BC_WindowBase *parent_window, Asset *asset)
  : BC_Window(PROGRAM_NAME ": Video Compression",
  	parent_window->get_abs_cursor_x(1),
  	parent_window->get_abs_cursor_y(1),
-	400,
-	100)
+	DP(400),
+	DP(200))
 {
 	this->parent_window = parent_window;
 	this->asset = asset;
@@ -318,20 +425,26 @@ JPEGConfigVideo::~JPEGConfigVideo()
 
 void JPEGConfigVideo::create_objects()
 {
-	int x = 10, y = 10;
+	int x = DP(10), y = DP(10);
 	lock_window("JPEGConfigVideo::create_objects");
 	add_subwindow(new BC_Title(x, y, _("Quality:")));
-	add_subwindow(new BC_ISlider(x + 80, 
+	BC_ISlider *slider;
+	add_subwindow(slider = new BC_ISlider(x + DP(80), 
 		y,
 		0,
-		200,
-		200,
+		DP(200),
+		DP(200),
 		0,
 		100,
 		asset->jpeg_quality,
 		0,
 		0,
 		&asset->jpeg_quality));
+	y += slider->get_h() + DP(10);
+	add_subwindow(new BC_CheckBox(x, 
+		y, 
+		&asset->jpeg_sphere, 
+		_("Tag for spherical playback")));
 
 	add_subwindow(new BC_OKButton(this));
 	show_window(1);

@@ -557,7 +557,7 @@ void select_InterUV_quantiser ( PB_INSTANCE *pbi ){
   pbi->fquant_ZbSize = pbi->fp_ZeroBinSize_InterUV;
 }
 
-void quantize( PB_INSTANCE *pbi,
+void quantize_( PB_INSTANCE *pbi,
                ogg_int16_t * DCT_block,
                Q_LIST_ENTRY * quantized_list){
   ogg_uint32_t          i;              /*      Row index */

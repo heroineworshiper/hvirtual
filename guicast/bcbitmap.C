@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
@@ -24,7 +23,7 @@
 #include "bcresources.h"
 #include "bcsignals.h"
 #include "bcwindow.h"
-#include "bccmodels.h"
+//#include "bccmodels.h"
 #include "vframe.h"
 
 #include <string.h>
@@ -94,11 +93,15 @@ int BC_Bitmap::initialize(BC_WindowBase *parent_window,
 	this->color_model = color_model;
 	this->use_shm = use_shm ? parent_window->get_resources()->use_shm : 0;
 	this->bg_color = parent_window->bg_color;
+
+//if(w == 1920) printf("BC_Bitmap::initialize %d use_shm=%d\n", __LINE__, use_shm);
+
 	for(int i = 0; i < BITMAP_RING; i++)
 	{
 		ximage[0] = 0;
 		xv_image[0] = 0;
 		data[0] = 0;
+        shm_info[i].shmid = -1;
 	}
 	last_pixmap_used = 0;
 	last_pixmap = 0;
@@ -106,7 +109,7 @@ int BC_Bitmap::initialize(BC_WindowBase *parent_window,
 // Set ring buffers based on total memory used.
 // The program icon must use multiple buffers but larger bitmaps may not fit
 // in memory.
-	int pixelsize = BC_WindowBase::get_cmodels()->calculate_pixelsize(color_model);
+	int pixelsize = cmodel_calculate_pixelsize(color_model);
 	int buffer_size = w * h * pixelsize;
 
 	if(buffer_size < 0x40000)
@@ -166,7 +169,7 @@ int BC_Bitmap::allocate_data()
 // Create the X Image
 				xv_image[0] = XvShmCreateImage(top_level->display, 
 							xv_portid, 
-							BC_WindowBase::get_cmodels()->bc_to_x(color_model),
+							cmodel_bc_to_x(color_model),
 							0, 
 							w,
 							h,
@@ -203,7 +206,7 @@ int BC_Bitmap::allocate_data()
 
 					xv_image[i] = XvShmCreateImage(top_level->display, 
 								xv_portid, 
-								BC_WindowBase::get_cmodels()->bc_to_x(color_model),
+								cmodel_bc_to_x(color_model),
 								(char*)data[i], 
 								w,
 								h,
@@ -288,6 +291,8 @@ int BC_Bitmap::allocate_data()
 						perror("BC_Bitmap::allocate_data XShmAttach");
 					}
 				}
+                
+
 				break;
 		}
 
@@ -514,8 +519,10 @@ int BC_Bitmap::write_drawable(Drawable &pixmap,
 		}
 		else
 		{
-// printf("BC_Bitmap::write_drawable %p %d %d %d %d -> %d %d %d %d\n", 
-// 	this,
+// printf("BC_Bitmap::write_drawable %d pixmap=%p current_ringbuffer=%d src=%d %d %d %d -> dst=%d %d %d %d\n", 
+// 	__LINE__,
+//     pixmap,
+//     current_ringbuffer,
 // 	source_x, 
 // 	source_y, 
 // 	source_w, 
@@ -646,7 +653,7 @@ int BC_Bitmap::read_frame(VFrame *frame,
 // 				out_h);
 //if(color_model == 6 && frame->get_color_model() == 19)
 //printf("BC_Bitmap::read_frame 1 %d %d %d %d\n", frame->get_w(), frame->get_h(), get_w(), get_h());
-			BC_WindowBase::get_cmodels()->transfer(row_data[current_ringbuffer], 
+			cmodel_transfer(row_data[current_ringbuffer], 
 				frame->get_rows(),
 				get_y_plane(),
 				get_u_plane(),

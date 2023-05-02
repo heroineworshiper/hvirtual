@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,12 @@
 
 #include "assets.inc"
 #include "bctimer.inc"
-#include "bcwindowbase.inc"
 #include "cache.inc"
+#include "canvas.inc"
 #include "edit.inc"
 #include "edl.inc"
 #include "file.inc"
+#include "guicast.h"
 #include "maxchannels.h"
 #include "mwindow.inc"
 #include "playabletracks.inc"
@@ -106,7 +107,7 @@ public:
 	virtual int progress_cancelled();
 
 	void create_output();
-	void create_engine();
+	int create_engine();
 	void do_audio();
 	void do_video();
 	void stop_engine();
@@ -132,6 +133,7 @@ public:
 	File *file;
 // This is 1 if an error is encountered.
 	int result;
+    int use_opengl;
 	VFrame ***video_output;
 // A nonzero mwindow signals master render engine to the engine.
 // A zero mwindow signals client or non interactive.
@@ -147,7 +149,13 @@ public:
 	RenderEngine *render_engine;
 	RenderPackage *package;
 	TransportCommand *command;
-	int direct_frame_copying;
+
+// Dummy GUI to get an OpenGL context in command line mode
+// HACK: Deleting it causes a segmentation fault in XConnectionNumber
+    static BC_Window *dummy_window;
+    static Canvas *dummy_canvas;
+
+// video device for preview frames & rendering
 	VideoDevice *video_device;
 	VFrame *video_output_ptr;
 	int64_t video_preroll;

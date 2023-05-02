@@ -160,6 +160,7 @@ int Channel::save(FileXML *file)
 	file->tag.set_title("/CHANNEL");
 	file->append_tag();
 	file->append_newline();
+    return 0;
 }
 
 

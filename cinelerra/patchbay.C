@@ -69,10 +69,14 @@ void NudgePopup::create_objects()
 {
 	add_item(seconds_item = new NudgePopupSeconds(this));
 	add_item(native_item = new NudgePopupNative(this));
+	add_item(new NudgeCut(this));
+	add_item(new NudgeCopy(this));
+	add_item(new NudgePaste(this));
 }
 
 void NudgePopup::activate_menu(PatchGUI *gui)
 {
+    this->gui = gui;
 // Set checked status
 	seconds_item->set_checked(mwindow->edl->session->nudge_seconds ? 1 : 0);
 	native_item->set_checked(mwindow->edl->session->nudge_seconds ? 0 : 1);
@@ -115,6 +119,58 @@ int NudgePopupNative::handle_event()
 {
 	popup->mwindow->edl->session->nudge_seconds = 0;
 	popup->mwindow->gui->update_patchbay();
+	return 1;
+}
+
+
+
+NudgeCut::NudgeCut(NudgePopup *popup)
+ : BC_MenuItem("Cut")
+{
+	this->popup = popup;
+}
+
+int NudgeCut::handle_event()
+{
+    if(popup->gui->nudge)
+    {
+    	popup->gui->nudge->cut(1);
+    }
+	return 1;
+}
+
+
+
+NudgeCopy::NudgeCopy(NudgePopup *popup)
+ : BC_MenuItem("Copy")
+{
+	this->popup = popup;
+}
+
+int NudgeCopy::handle_event()
+{
+    if(popup->gui->nudge)
+    {
+    	popup->gui->nudge->copy(1);
+    }
+	return 1;
+}
+
+
+
+
+NudgePaste::NudgePaste(NudgePopup *popup)
+ : BC_MenuItem("Paste")
+{
+	this->popup = popup;
+}
+
+int NudgePaste::handle_event()
+{
+    if(popup->gui->nudge)
+    {
+    	popup->gui->nudge->paste(1);
+    }
 	return 1;
 }
 
@@ -354,7 +410,13 @@ int PatchBay::cursor_motion_event()
 	if(update_gui)
 	{
 		gui->update_patchbay();
+// redraw visible assets
+        if(drag_operation == Tracks::DRAW)
+        {
+            gui->update(0, 1, 0, 0, 0, 0, 0);
+        }
 	}
+
 	return 0;
 }
 
