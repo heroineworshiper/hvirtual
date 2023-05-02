@@ -287,7 +287,7 @@ void BC_WindowBase::draw_text(int x,
 
 
 						j = i + 1;
-						y2 += get_text_height(MEDIUMFONT);
+						y2 += get_text_height(font);
 					}
 				}
 				if(boldface) set_color(color);
