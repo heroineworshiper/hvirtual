@@ -104,9 +104,9 @@ int BC_Pan::initialize()
 	temp_channel->set_use_shm(0);
 	temp_channel->reallocate(0, 
 		-1,
-		0,
-		0,
-		0,
+		(unsigned char*)0,
+		(unsigned char*)0,
+		(unsigned char*)0,
 		get_resources()->pan_data[PAN_CHANNEL]->get_w(),
 		get_resources()->pan_data[PAN_CHANNEL]->get_h(),
 		get_resources()->pan_data[PAN_CHANNEL]->get_color_model(),

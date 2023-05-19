@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -28,8 +27,10 @@
 #include "bcbitmap.h"
 #include "bcbutton.h"
 #include "bcclipboard.h"
+#include "bcdialog.h"
 #include "bcdisplayinfo.h"
 #include "bcdragwindow.h"
+#include "bchash.h"
 #include "bclistboxitem.h"
 #include "bcpan.h"
 #include "bcfilebox.h"
