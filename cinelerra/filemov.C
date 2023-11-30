@@ -202,7 +202,6 @@ int FileMOV::check_sig(File *file, const uint8_t *test_data)
     {
         Asset *asset = file->asset;
 	    int result = quicktime_check_sig(asset->path);
-//printf("FileMOV::check_sig %d %d\n", __LINE__, result);
 // Reject AVI
 	    if(result == 2) result = 0;
 	    return result;

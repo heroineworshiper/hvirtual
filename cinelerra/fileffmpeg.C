@@ -875,10 +875,13 @@ printf("FileFFMPEG::open_ffmpeg %d i=%d codec_type=%d\n", __LINE__, i, type);
         if(debug) printf("FileFFMPEG::open_ffmpeg %d\n", __LINE__);
 
 // does the format need a table of contents?
+// TODO: do it for all MKV by iformat name
         if(asset->video_data &&
             (!strcmp(asset->vcodec, QUICKTIME_H264) ||
             !strcmp(asset->vcodec, QUICKTIME_H265) ||
-            !strcmp(asset->vcodec, QUICKTIME_VP09)))
+            !strcmp(asset->vcodec, QUICKTIME_VP09) ||
+// all AVI files
+            !strcmp(((AVFormatContext*)ffmpeg_file_context)->iformat->name, "avi")))
         {
             if(debug) printf("FileFFMPEG::open_ffmpeg %d vcodec=%s\n", __LINE__, asset->vcodec);
             result = create_toc(ffmpeg_file_context);

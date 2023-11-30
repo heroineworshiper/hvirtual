@@ -1209,14 +1209,20 @@ void StdoutBaseConfig::load_preset()
         preset_title.assign(preset_names->get(number)->get_text());
         command_title->update(preset_names->get(number)->get_text());
 
+// copy only the parameters for the option_type so a video preset doesn't
+// overwrite the audio settings
         std::string *command_text = get_command_text();
         command_text->assign(src->command);
-        asset->command_cmodel = src->color_model;
-        asset->command_bits = src->bits;
-        asset->command_byte_order = src->byte_order;
-        asset->command_signed_ = src->signed_;
-        asset->command_dither = src->dither;
-        
+
+        if(option_type == VIDEO_PARAMS)
+            asset->command_cmodel = src->color_model;
+        if(option_type == AUDIO_PARAMS)
+        {
+            asset->command_bits = src->bits;
+            asset->command_byte_order = src->byte_order;
+            asset->command_signed_ = src->signed_;
+            asset->command_dither = src->dither;
+        }
 
         update();
         save_defaults();

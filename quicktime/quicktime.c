@@ -1363,7 +1363,7 @@ int quicktime_check_sig(char *path)
 		if(quicktime_match_32(avi_test, "RIFF") && 
 			quicktime_match_32(avi_test + 8, "AVI "))
 		{
-			result2 = 1;
+			result2 = 2;
 		}
 
 

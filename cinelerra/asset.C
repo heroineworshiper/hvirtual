@@ -919,7 +919,7 @@ void Asset::load_defaults(BC_Hash *defaults,
     command_cmodel = GET_DEFAULT("COMMAND_CMODEL", command_cmodel);
 
     GET_DEFAULT("AUDIO_COMMAND", &audio_command);
-    command_bits = GET_DEFAULT("COMMAND_BITS", command_cmodel);
+    command_bits = GET_DEFAULT("COMMAND_BITS", command_bits);
 	command_dither = GET_DEFAULT("COMMAND_DITHER", command_dither);
 	command_signed_ = GET_DEFAULT("COMMAND_SIGNED", command_signed_);
 	command_byte_order = GET_DEFAULT("COMMAND_BYTE_ORDER", command_byte_order);

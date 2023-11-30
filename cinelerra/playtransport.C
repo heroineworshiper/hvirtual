@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -192,16 +191,16 @@ int PlayTransport::keypress_event()
 		switch(subwindow->get_keypress())
 		{
 			case END:
-				subwindow->lock_window("PlayTransport::keypress_event 1");
+//				subwindow->lock_window("PlayTransport::keypress_event 1");
 				goto_end();                                   
 				result = 1; 
-				subwindow->unlock_window();
+//				subwindow->unlock_window();
 				break;
 			case HOME:
-				subwindow->lock_window("PlayTransport::keypress_event 2");
+//				subwindow->lock_window("PlayTransport::keypress_event 2");
 		    	goto_start();                                 
 				result = 1; 
-				subwindow->unlock_window();
+//				subwindow->unlock_window();
 				break;
 		}
 		return result;

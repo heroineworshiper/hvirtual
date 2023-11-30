@@ -512,7 +512,7 @@ static float my_abs(float x)
                                                         \
     switch(mode) {                                      \
     case TRANSFER_DIVIDE:                                               \
-      r = input1 ? (((temp_type)output[0] * max) / input1) : max;       \
+      r = output[0] ? (((temp_type)input1 * max / output[0])) : max;       \
       if(chroma_offset) {                                               \
         g = my_abs((temp_type)input2 - chroma_offset) >                 \
           my_abs((temp_type)output[1] - chroma_offset)                  \
@@ -521,10 +521,10 @@ static float my_abs(float x)
           my_abs((temp_type)output[2] - chroma_offset)                  \
           ? input3 : output[2];                                         \
       } else {                                                          \
-        g = input2                                                      \
-          ? (temp_type)output[1] * max / (temp_type)input2 : max;       \
-        b = input3                                                      \
-          ? (temp_type)output[2] * max / (temp_type)input3 : max;       \
+        g = output[1]                                                      \
+          ? (temp_type)input2 * max / (temp_type)output[1] : max;       \
+        b = output[2]                                                      \
+          ? (temp_type)input3 * max / (temp_type)output[2] : max;       \
       }                                                                 \
       r = (r * opacity + (temp_type)output[0] * transparency) / max;    \
       g = (g * opacity + (temp_type)output[1] * transparency) / max;    \
@@ -662,7 +662,7 @@ static float my_abs(float x)
                                                                         \
     switch(mode) {                                                      \
     case TRANSFER_DIVIDE:                                               \
-      r = input1 ? (((temp_type)output1 * max) / input1) : max;         \
+      r = output1 ? (((temp_type)input1 * max) / output1) : max;         \
       if(chroma_offset) {                                               \
         g = my_abs((temp_type)input2 - chroma_offset) >                 \
           my_abs((temp_type)output2 - chroma_offset)                    \
@@ -671,10 +671,10 @@ static float my_abs(float x)
           my_abs((temp_type)output3 - chroma_offset)                    \
           ? input3 : output3;                                           \
       } else {                                                          \
-        g = input2                                                      \
-          ? (temp_type)output2 * max / (temp_type)input2 : max;         \
-        b = input3                                                      \
-          ? (temp_type)output3 * max / (temp_type)input3 : max;         \
+        g = output2                                                      \
+          ? (temp_type)input2 * max / (temp_type)output2 : max;         \
+        b = output3                                                      \
+          ? (temp_type)input3 * max / (temp_type)output3 : max;         \
       }                                                                 \
       r = (r * pixel_opacity + (temp_type)output1 * pixel_transparency) / max / max; \
       g = (g * pixel_opacity + (temp_type)output2 * pixel_transparency) / max / max; \
