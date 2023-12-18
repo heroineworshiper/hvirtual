@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2023 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,7 @@ VWindow::VWindow(MWindow *mwindow) : BC_DialogThread()
     set_keep_gui(1);
 	indexable = 0;
 	edl = 0;
+    is_default = 0;
 }
 
 
@@ -117,17 +118,28 @@ void VWindow::handle_done_event(int result)
 //	playback_cursor = 0;
 //	clip_edit = 0;
 
-	delete_source(1, 0);
+
+    playback_engine->interrupt_playback(1);
 
 	int total = 0;
 	for(int i = 0; i < mwindow->vwindows.size(); i++)
 	{
 
 //printf("VWindow::handle_done_event %d %d\n", __LINE__, mwindow->vwindows.get(i)->is_running());
-		if(mwindow->vwindows.get(i)->is_running()) total++;
+		if(mwindow->vwindows.get(i)->get_edl()) total++;
 	}
 // subtract ourselves
 	total--;
+
+// Want the last vwindow open to be the one opened by window->viewer 
+// & to show the source still open but want other vwindows to close their source
+    if(total)
+	{
+        delete_source(1, 0);
+printf("VWindow::handle_done_event %d\n", __LINE__);
+        gui->canvas->clear();
+printf("VWindow::handle_done_event %d\n", __LINE__);
+    }
 
 // Update the menu if no viewers visible
 	if(!total)
@@ -135,7 +147,7 @@ void VWindow::handle_done_event(int result)
  		mwindow->gui->lock_window("VWindowGUI::close_event");
  		mwindow->gui->mainmenu->show_vwindow->set_checked(0);
  		mwindow->gui->unlock_window();
-		
+
 		mwindow->session->show_vwindow = 0;
  		mwindow->save_defaults();
 	}
@@ -197,7 +209,9 @@ void VWindow::change_source(int edl_number)
 
 void VWindow::change_source(Indexable *indexable)
 {
+//printf("VWindow::change_source %d running=%d\n", __LINE__, running());
 	if(!running()) return;
+
 //printf("VWindow::change_source %d\n", __LINE__);
 // 	if(asset && this->asset &&
 // 		asset->id == this->asset->id &&

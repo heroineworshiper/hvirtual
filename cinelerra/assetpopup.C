@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
@@ -257,6 +256,9 @@ AssetPopupView::~AssetPopupView()
 {
 }
 
+// show it in the 1st viewer, replacing the existing source
+// TODO: This could be done by the user closing the source in the viewer &
+// then calling new window variant.  Should combine these 2 functions.
 int AssetPopupView::handle_event()
 {
 	VWindow *vwindow = 0;
@@ -305,9 +307,10 @@ AssetPopupViewWindow::~AssetPopupViewWindow()
 {
 }
 
+// show it in the 1st viewer with no existing source or create a new viewer
 int AssetPopupViewWindow::handle_event()
 {
-// Find window with nothing
+// Find a free window
 	VWindow *vwindow = 0;
 	for(int i = 0; i < mwindow->vwindows.size(); i++)
 	{
@@ -317,14 +320,21 @@ int AssetPopupViewWindow::handle_event()
 			break;
 		}
 	}
+printf("AssetPopupViewWindow::handle_event %d vwindow=%p\n", __LINE__, vwindow);
 
 	if(!vwindow)
 	{
 		vwindow = mwindow->new_viewer(1);
 	}
 
+
 // TODO: create new vwindow or change current vwindow
 	vwindow->gui->lock_window("AssetPopupView::handle_event");
+printf("AssetPopupViewWindow::handle_event %d vwindow=%p %d %d\n", 
+__LINE__, 
+vwindow,
+mwindow->session->drag_assets->total,
+mwindow->session->drag_clips->total);
 
 	if(mwindow->session->drag_assets->total)
 		vwindow->change_source(

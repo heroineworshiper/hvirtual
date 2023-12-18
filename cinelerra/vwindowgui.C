@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2023 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,6 +73,7 @@ VWindowGUI::VWindowGUI(MWindow *mwindow, VWindow *vwindow)
 
 VWindowGUI::~VWindowGUI()
 {
+printf("VWindowGUI::~VWindowGUI %d\n", __LINE__);
 	delete canvas;
 	delete transport;
 }
@@ -95,6 +96,7 @@ void VWindowGUI::change_source(EDL *edl, const char *title)
 #endif
 	timebar->update(0);
 	set_title(string);
+    show_window(0);
 	unlock_window();
 }
 
@@ -169,7 +171,7 @@ void VWindowGUI::create_objects()
 	lock_window("VWindowGUI::create_objects");
 	set_icon(mwindow->theme->get_image("vwindow_icon"));
 
-//printf("VWindowGUI::create_objects 1\n");
+//printf("VWindowGUI::create_objects %d\n", __LINE__);
 	mwindow->theme->get_vwindow_sizes(this);
 	mwindow->theme->draw_vwindow_bg(this);
 	flash(0);
@@ -314,23 +316,41 @@ int VWindowGUI::translation_event()
 	return 0;
 }
 
-// int VWindowGUI::close_event()
-// {
-// // TODO: destroy window if not the default VWindow
-// 
-// 	hide_window();
-// 	mwindow->session->show_vwindow = 0;
-// 	unlock_window();
-// 	
-// 	
-// 	mwindow->gui->lock_window("VWindowGUI::close_event");
-// 	mwindow->gui->mainmenu->show_vwindow->set_checked(0);
-// 	mwindow->gui->unlock_window();
-// 
-// 	lock_window("VWindowGUI::close_event");
-// 	mwindow->save_defaults();
-// 	return 1;
-// }
+// hide it but don't stop the thread
+int VWindowGUI::close_event()
+{
+	unlock_window();
+    vwindow->playback_engine->interrupt_playback(1);
+
+
+	lock_window("VWindowGUI::close_event");
+	hide_window();
+	int total = 0;
+	for(int i = 0; i < mwindow->vwindows.size(); i++)
+	{
+
+		if(mwindow->vwindows.get(i)->get_edl()) total++;
+	}
+
+// last window closed.  Keep source but cancel menu item
+    if(total <= 1)
+        mwindow->session->show_vwindow = 0;
+    else
+    {
+// other window closed.  Close the source
+        vwindow->delete_source(1, 0);
+        canvas->clear();
+    }
+	unlock_window();
+
+	mwindow->gui->lock_window("VWindowGUI::close_event");
+	mwindow->gui->mainmenu->show_vwindow->set_checked(mwindow->session->show_vwindow);
+	mwindow->gui->unlock_window();
+
+	lock_window("VWindowGUI::close_event");
+	mwindow->save_defaults();
+	return 1;
+}
 
 int VWindowGUI::keypress_event()
 {
@@ -910,7 +930,11 @@ void VWindowCanvas::zoom_resize_window(float percentage)
 
 void VWindowCanvas::close_source()
 {
+    gui->unlock_window();
+    gui->vwindow->playback_engine->interrupt_playback(1);
+    gui->lock_window("VWindowCanvas::close_source");
 	gui->vwindow->delete_source(1, 1);
+    gui->canvas->clear();
 }
 
 

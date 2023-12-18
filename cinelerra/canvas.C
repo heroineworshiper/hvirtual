@@ -485,6 +485,14 @@ void Canvas::get_transfers(EDL *edl,
 // canvas_y2);
 }
 
+void Canvas::clear()
+{
+	get_canvas()->clear_box(0, 
+		0, 
+		get_canvas()->get_w(), 
+		get_canvas()->get_h());
+    get_canvas()->flash(1);
+}
 
 void Canvas::draw_refresh(int flush)
 {

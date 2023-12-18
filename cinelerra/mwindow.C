@@ -912,8 +912,8 @@ void MWindow::init_levelwindow()
 
 VWindow* MWindow::new_viewer(int start_it)
 {
-// Default vwindow
 	VWindow *vwindow = new VWindow(this);
+    if(vwindows.size() == 0) vwindow->is_default = 1;
 	vwindows.append(vwindow);
 	vwindow->load_defaults();
 	vwindow->create_objects();
@@ -1972,37 +1972,52 @@ void MWindow::run()
 
 void MWindow::show_vwindow()
 {
-	int total_running = 0;
+    int got_it = 0;
+    VWindow *vwindow = 0;
 	session->show_vwindow = 1;
 
 //printf("MWindow::show_vwindow %d %d\n", __LINE__, vwindows.size());
 
-// Raise all windows which are visible
-	for(int j = 0; j < vwindows.size(); j++)
+// Raise 1st window with a source
+	for(int j = 0; j < vwindows.size() && !got_it; j++)
 	{
-		VWindow *vwindow = vwindows.get(j);
-		if(vwindow->is_running())
+		vwindow = vwindows.get(j);
+        if(vwindow->get_edl())
 		{
-			vwindow->gui->lock_window("MWindow::show_vwindow");
-			vwindow->gui->show_window(0);
-			vwindow->gui->raise_window();
-			vwindow->gui->flush();
-			vwindow->gui->unlock_window();
-			total_running++;
+            got_it = 1;
+            break;
 		}
 	}
 
-// If no windows visible but thread exists, start it
-	if(!total_running)
-	{
-		if(vwindows.size())
-		{
-			vwindows.get(DEFAULT_VWINDOW)->start();
-		}
-	}
+// Raise 1st window which is running
+    if(!got_it)
+    {
+	    for(int j = 0; j < vwindows.size() && !got_it; j++)
+	    {
+            vwindow = vwindows.get(j);
+		    if(vwindow->is_running())
+            {
+                got_it = 1;
+                break;
+            }
+        }
+    }
 
-// No visible windows & no existing thread
-	if(!vwindows.size())
+    if(got_it)
+    {
+		vwindow->gui->lock_window("MWindow::show_vwindow");
+		vwindow->gui->show_window(0);
+		vwindow->gui->raise_window(1);
+		vwindow->gui->unlock_window();
+    }
+    else
+// If no windows, start one
+	if(vwindows.size())
+	{
+		vwindows.get(DEFAULT_VWINDOW)->start();
+	}
+    else
+// Create a new one
 	{
 		new_viewer(1);
 	}

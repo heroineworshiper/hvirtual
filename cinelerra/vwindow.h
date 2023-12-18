@@ -89,6 +89,7 @@ public:
 	ClipEdit *clip_edit;
 // Pointer to object being played back in the main EDL.
 	EDL *edl;
+    int is_default;
 
 // Pointer to source for accounting
 	Indexable *indexable;

@@ -55,6 +55,7 @@ public:
 	virtual ~Canvas();
 
 	void reset();
+    void clear();
 // Get dimensions given a zoom
 	void calculate_sizes(float aspect_ratio, 
 		int output_w, 

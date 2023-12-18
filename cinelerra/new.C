@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2023 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +42,7 @@
 #include "videowindow.h"
 #include "vplayback.h"
 #include "vwindow.h"
+#include "vwindowgui.h"
 
 
 #include <string.h>
@@ -90,21 +90,24 @@ void New::create_new_edl()
 
 int New::create_new_project()
 {
-	mwindow->cwindow->playback_engine->que->send_command(STOP,
-		CHANGE_NONE, 
-		0,
-		0);
+// 	mwindow->cwindow->playback_engine->que->send_command(STOP,
+// 		CHANGE_NONE, 
+// 		0,
+// 		0);
 
 	for(int i = 0; i < mwindow->vwindows.size(); i++)
 	{
-		mwindow->vwindows.get(i)->playback_engine->que->send_command(STOP,
-			CHANGE_NONE, 
-			0,
-			0);
-		mwindow->vwindows.get(i)->playback_engine->interrupt_playback(0);
+// 		mwindow->vwindows.get(i)->playback_engine->que->send_command(STOP,
+// 			CHANGE_NONE, 
+// 			0,
+// 			0);
+		mwindow->vwindows.get(i)->playback_engine->interrupt_playback(1);
+        mwindow->vwindows.get(i)->gui->lock_window("New::create_new_project");
+        mwindow->vwindows.get(i)->gui->canvas->clear();
+        mwindow->vwindows.get(i)->gui->unlock_window();
 	}
 
-	mwindow->cwindow->playback_engine->interrupt_playback(0);
+	mwindow->cwindow->playback_engine->interrupt_playback(1);
 
 	mwindow->gui->lock_window();
 	mwindow->reset_caches();
