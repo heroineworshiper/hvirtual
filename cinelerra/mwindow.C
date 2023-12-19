@@ -1077,6 +1077,12 @@ int MWindow::load_filenames(ArrayList<char*> *filenames,
 	int got_indexes = 0;
 	const int debug = 0;
 
+// don't conform for certain modes.  Copy this to LoadMode::update_conform
+    if(load_mode != LOADMODE_REPLACE &&
+        load_mode != LOADMODE_REPLACE_CONCATENATE)
+        conform = 0;
+        
+
 // Need to stop playback since tracking depends on the EDL not getting
 // deleted.
 	cwindow->playback_engine->que->send_command(STOP,
@@ -1084,7 +1090,7 @@ int MWindow::load_filenames(ArrayList<char*> *filenames,
 		0,
 		0);
 	cwindow->playback_engine->interrupt_playback(0);
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+//printf("MWindow::load_filenames %d conform=%d\n", __LINE__, conform);
 
 	for(int i = 0; i < vwindows.size(); i++)
 	{
@@ -1195,7 +1201,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
                     {
 					    set_filename("");
                     }
-                    
+
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 // Reset timeline position
 					for(int i = 0; i < TOTAL_PANES; i++)

@@ -193,6 +193,7 @@ void LoadMode::set_conform(BC_CheckBox *conform)
 }
 
 // update a conform checkbox based on the load mode
+// Copy this to MWindow::load_filenames
 void LoadMode::update_conform()
 {
     if(conform)
