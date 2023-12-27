@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -71,78 +70,137 @@ int DissolveMain::process_realtime(VFrame *incoming, VFrame *outgoing)
 // Use software
 	if(!overlayer) overlayer = new OverlayFrame(get_project_smp() + 1);
 
-
 // There is a problem when dissolving from a big picture to a small picture.
 // In order to make it dissolve correctly, we have to manually decrese alpha of big picture.
-	switch (outgoing->get_color_model())
-	{
-		case BC_RGBA8888:
-		case BC_YUVA8888:
-		{
-			uint8_t** data_rows = (uint8_t **)outgoing->get_rows();
-			int w = outgoing->get_w();
-			int h = outgoing->get_h(); 
-			for(int i = 0; i < h; i++) 
-			{
-				uint8_t* alpha_chan = data_rows[i] + 3; 
-				for(int j = 0; j < w; j++) 
-				{
-					*alpha_chan = (uint8_t) (*alpha_chan * (1-fade));
-					alpha_chan+=4;
-				}
-			}
-			break;
-		}
-		case BC_YUVA16161616:
-		{
-			uint16_t** data_rows = (uint16_t **)outgoing->get_rows();
-			int w = outgoing->get_w();
-			int h = outgoing->get_h(); 
-			for(int i = 0; i < h; i++)
-			{ 
-				uint16_t* alpha_chan = data_rows[i] + 3; // 3 since this is uint16_t
-				for(int j = 0; j < w; j++) 
-				{
-					*alpha_chan = (uint16_t)(*alpha_chan * (1-fade));
-					alpha_chan += 8;
-				} 
-			}
-			break;
-		}
-		case BC_RGBA_FLOAT:
-		{
-			float** data_rows = (float **)outgoing->get_rows();
-			int w = outgoing->get_w();
-			int h = outgoing->get_h(); 
-			for(int i = 0; i < h; i++) 
-			{ 
-				float* alpha_chan = data_rows[i] + 3; // 3 since this is floats 
-				for(int j = 0; j < w; j++) 
-				{
-					*alpha_chan = *alpha_chan * (1-fade);
-					alpha_chan += sizeof(float);
-				} 
-			}
-			break;
-		}
-		default:
-			break;
-	}
+// 	switch (outgoing->get_color_model())
+// 	{
+// 		case BC_RGBA8888:
+// 		case BC_YUVA8888:
+// 		{
+// 			uint8_t** data_rows = (uint8_t **)outgoing->get_rows();
+// 			int w = outgoing->get_w();
+// 			int h = outgoing->get_h(); 
+// 			for(int i = 0; i < h; i++) 
+// 			{
+// 				uint8_t* alpha_chan = data_rows[i] + 3; 
+// 				for(int j = 0; j < w; j++) 
+// 				{
+// 					*alpha_chan = (uint8_t) (*alpha_chan * (1-fade));
+// 					alpha_chan+=4;
+// 				}
+// 			}
+// 			break;
+// 		}
+// 		case BC_RGBA_FLOAT:
+// 		{
+// 			float** data_rows = (float **)outgoing->get_rows();
+// 			int w = outgoing->get_w();
+// 			int h = outgoing->get_h(); 
+// 			for(int i = 0; i < h; i++) 
+// 			{ 
+// 				float* alpha_chan = data_rows[i] + 3; // 3 since this is floats 
+// 				for(int j = 0; j < w; j++) 
+// 				{
+// 					*alpha_chan = *alpha_chan * (1-fade);
+// 					alpha_chan += sizeof(float);
+// 				} 
+// 			}
+// 			break;
+// 		}
+// 		default:
+// 			break;
+// 	}
 
+// uint8_t *i = incoming->get_rows()[0];
+// uint8_t *o = outgoing->get_rows()[0];
+// printf("DissolveMain::process_realtime %d fade=%f i=%d %d o=%d %d\n", 
+// __LINE__, 
+// fade,
+// i[0],
+// i[3],
+// o[0],
+// o[3]);
 
-	overlayer->overlay(outgoing, 
-		incoming, 
-		0, 
-		0, 
-		incoming->get_w(),
-		incoming->get_h(),
-		0,
-		0,
-		incoming->get_w(),
-		incoming->get_h(),
-		fade,
-		TRANSFER_NORMAL,
-		NEAREST_NEIGHBOR);
+// porter duff fails us for alpha
+// copy what OPENGL does
+#define DISSOLVE(type, temp, max, chroma) \
+{ \
+    temp opacity = fade * max; \
+    temp transparency = max - opacity; \
+    type **out_rows = (type**)outgoing->get_rows(); \
+    type **in_rows = (type**)incoming->get_rows(); \
+    for(int i = 0; i < h; i++) \
+    { \
+        type *out_row = out_rows[i]; \
+        type *in_row = in_rows[i]; \
+        for(int j = 0; j < w; j++) \
+        { \
+            temp out_r = out_row[0]; \
+            temp out_g = out_row[1]; \
+            temp out_b = out_row[2]; \
+            temp out_a = out_row[3]; \
+            temp in_r = *in_row++; \
+            temp in_g = *in_row++; \
+            temp in_b = *in_row++; \
+            temp in_a = *in_row++; \
+            *out_row++ = (out_r * transparency + \
+                in_r * opacity) / max; \
+            *out_row++ = ((out_g - chroma) * transparency + \
+                (in_g - chroma) * opacity) / max + chroma; \
+            *out_row++ = ((out_b - chroma) * transparency + \
+                (in_b - chroma) * opacity) / max + chroma; \
+            *out_row++ = (out_a * transparency + \
+                (in_a * opacity)) / max; \
+        } \
+    } \
+}
+
+    if(cmodel_has_alpha(outgoing->get_color_model()))
+    {
+        int w = outgoing->get_w();
+        int h = outgoing->get_h();
+        switch (outgoing->get_color_model())
+	    {
+		    case BC_RGBA8888:
+                DISSOLVE(uint8_t, int16_t, 255, 0);
+                break;
+		    case BC_YUVA8888:
+                DISSOLVE(uint8_t, int16_t, 255, 128);
+                break;
+		    case BC_RGBA_FLOAT:
+                DISSOLVE(float, float, 1.0, 0.0);
+                break;
+        }
+    }
+    else
+    {
+
+	    overlayer->overlay(outgoing, 
+		    incoming, 
+		    0, 
+		    0, 
+		    incoming->get_w(),
+		    incoming->get_h(),
+		    0,
+		    0,
+		    incoming->get_w(),
+		    incoming->get_h(),
+		    fade,
+		    TRANSFER_NORMAL,
+ 		    NEAREST_NEIGHBOR);
+    }
+
+// printf("DissolveMain::process_realtime %d fade=%f %p %p colormodels=%d %d %d %d -> %d %d\n", 
+// __LINE__, 
+// fade,
+// incoming,
+// outgoing,
+// incoming->get_color_model(),
+// outgoing->get_color_model(),
+// i[0],
+// i[3],
+// o[0],
+// o[3]);
 
 	return 0;
 }

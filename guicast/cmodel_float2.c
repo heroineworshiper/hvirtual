@@ -438,6 +438,16 @@ static inline void RGBA_FLOAT_to_RGB_FLOAT(unsigned char *(*output),
 	*(*output2)++ = input[2] * a;
 }
 
+static inline void RGBA_FLOAT_to_RGBA_FLOAT(unsigned char *(*output), 
+	float *input)
+{
+    float *(*output2) = (float**)output;
+	*(*output2)++ = input[0];
+	*(*output2)++ = input[1];
+	*(*output2)++ = input[2];
+	*(*output2)++ = input[3];
+}
+
 
 static inline void RGBA_FLOAT_to_RGBA8888(unsigned char *(*output), 
 	float *input)
@@ -616,6 +626,7 @@ void cmodel_init_float()
     SCALE_FLOAT(BC_RGBA_FLOAT, BC_RGB888, RGBA_FLOAT_to_RGB888)
     SCALE_FLOAT(BC_RGBA_FLOAT, BC_RGB_FLOAT, RGBA_FLOAT_to_RGB_FLOAT)
     SCALE_FLOAT(BC_RGBA_FLOAT, BC_RGBA8888, RGBA_FLOAT_to_RGBA8888)
+    SCALE_FLOAT(BC_RGBA_FLOAT, BC_RGBA_FLOAT, RGBA_FLOAT_to_RGBA_FLOAT)
     SCALE_FLOAT(BC_RGBA_FLOAT, BC_ARGB8888, RGBA_FLOAT_to_ARGB8888)
     SCALE_FLOAT(BC_RGBA_FLOAT, BC_YUV888, RGBA_FLOAT_to_YUV888)
     SCALE_FLOAT(BC_RGBA_FLOAT, BC_YUVA8888, RGBA_FLOAT_to_YUVA8888)

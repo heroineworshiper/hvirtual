@@ -1566,9 +1566,6 @@ void Track::shuffle_edits(double start, double end, int first_track)
 	ArrayList<Label*> new_labels;
 	int64_t start_units = to_units(start, 0);
 	int64_t end_units = to_units(end, 0);
-// Sample range of all edits selected
-	int64_t total_start_units = 0;
-	int64_t total_end_units = 0;
 // Edit before range
 	Edit *start_edit = 0;
 	int have_start_edit = 0;
@@ -1582,8 +1579,6 @@ void Track::shuffle_edits(double start, double end, int first_track)
 		{
 			if(!have_start_edit) start_edit = current->previous;
 			have_start_edit = 1;
-			total_start_units = current->startproject;
-			total_end_units = current->startproject + current->length;
 			new_edits.append(current);
 
 // Move label pointers
@@ -1622,7 +1617,10 @@ void Track::shuffle_edits(double start, double end, int first_track)
 		int index = rand() % new_edits.size();
 		Edit *edit = new_edits.get(index);
 		new_edits.remove_number(index);
-		edits->insert_after(start_edit, edit);
+        if(!start_edit)
+            edits->insert_before(edits->first, edit);
+		else
+            edits->insert_after(start_edit, edit);
 		start_edit = edit;
 
 // Recalculate start position
@@ -1653,7 +1651,7 @@ void Track::shuffle_edits(double start, double end, int first_track)
 				Label *label = new_labels.get(i);
 // Was in old edit position
 				if(label->position >= start_seconds1 &&
-					label->position < start_seconds2)
+					label->position < end_seconds1)
 				{
 // Move to new edit position
 					double position = label->position - 
@@ -1683,9 +1681,6 @@ void Track::reverse_edits(double start, double end, int first_track)
 	ArrayList<Label*> new_labels;
 	int64_t start_units = to_units(start, 0);
 	int64_t end_units = to_units(end, 0);
-// Sample range of all edits selected
-	int64_t total_start_units = 0;
-	int64_t total_end_units = 0;
 // Edit before range
 	Edit *start_edit = 0;
 	int have_start_edit = 0;
@@ -1699,8 +1694,6 @@ void Track::reverse_edits(double start, double end, int first_track)
 		{
 			if(!have_start_edit) start_edit = current->previous;
 			have_start_edit = 1;
-			total_start_units = current->startproject;
-			total_end_units = current->startproject + current->length;
 			new_edits.append(current);
 
 // Move label pointers
@@ -1739,7 +1732,10 @@ void Track::reverse_edits(double start, double end, int first_track)
 		int index = new_edits.size() - 1;
 		Edit *edit = new_edits.get(index);
 		new_edits.remove_number(index);
-		edits->insert_after(start_edit, edit);
+		if(!start_edit)
+            edits->insert_before(edits->first, edit);
+        else
+            edits->insert_after(start_edit, edit);
 		start_edit = edit;
 
 // Recalculate start position
@@ -1770,7 +1766,7 @@ void Track::reverse_edits(double start, double end, int first_track)
 				Label *label = new_labels.get(i);
 // Was in old edit position
 				if(label->position >= start_seconds1 &&
-					label->position < start_seconds2)
+					label->position < end_seconds1)
 				{
 // Move to new edit position
 					double position = label->position - 
