@@ -282,8 +282,11 @@ static const char *blend_subtract_frag =
 static const char *blend_multiply_frag = 
 	"	result_color.rgb = dst_color.rgb * src_color.rgb;\n";
 
+// divide is another function which was never used but just uses this order
+// because gimp does.
 static const char *blend_divide_frag = 
-	"	result_color.rgb = src_color.rgb / dst_color.rgb;\n"
+	"	result_color.rgb = dst_color.rgb / src_color.rgb;\n"
+//	"	result_color.rgb = src_color.rgb / dst_color.rgb;\n"
 	"	if(src_color.r == 0.0) result_color.r = 1.0;\n"
 	"	if(src_color.g == 0.0) result_color.g = 1.0;\n"
 	"	if(src_color.b == 0.0) result_color.b = 1.0;\n";
