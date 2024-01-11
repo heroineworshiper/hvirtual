@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1480,11 +1479,12 @@ TitleMain::TitleMain(PluginServer *server)
 	need_reconfigure = 1;
 	ascent = 0;
 	height = 0;
+//printf("TitleMain::TitleMain %d %p\n", __LINE__, (PluginClient*)this);
 }
 
 TitleMain::~TitleMain()
 {
-//printf("TitleMain::~TitleMain 1\n");
+//printf("TitleMain::~TitleMain %d %p\n", __LINE__, (PluginClient*)this);
 	
 	if(text_mask) delete text_mask;
 	if(outline_mask) delete outline_mask;

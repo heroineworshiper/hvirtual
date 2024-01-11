@@ -76,6 +76,8 @@ Plugin::Plugin(EDL *edl,
 
 Plugin::~Plugin()
 {
+//printf("Plugin::~Plugin %d this=%p\n", __LINE__, this);
+
 	while(keyframes->last) delete keyframes->last;
 	delete keyframes;
 }

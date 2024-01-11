@@ -118,6 +118,7 @@ PluginServer::PluginServer(PluginServer &that)
 
 PluginServer::~PluginServer()
 {
+//printf("PluginServer::~PluginServer %d this=%p\n", __LINE__, this);
 	close_plugin();
 	if(path) delete [] path;
 	if(title) delete [] title;
@@ -155,6 +156,7 @@ int PluginServer::reset_parameters()
 	picon = 0;
     attachmentpoint = 0;
 	playhead_position = 0;
+    is_dead = 0;
 
 	is_lad = 0;
 	lad_descriptor_function = 0;
@@ -173,7 +175,7 @@ int PluginServer::cleanup_plugin()
 	shared_buffers = 0;
 	new_buffers = 0;
 	written_samples = written_frames = 0;
-	gui_on = 0;
+//	gui_on = 0;
 	plugin = 0;
 	plugin_open = 0;
     return 0;
@@ -1264,6 +1266,8 @@ KeyFrame* PluginServer::get_keyframe()
 
 void PluginServer::apply_keyframe(KeyFrame *src)
 {
+    if(is_dead) return;
+
 	if(!plugin)
 	{
 		keyframe->copy_data(src);
@@ -1271,6 +1275,7 @@ void PluginServer::apply_keyframe(KeyFrame *src)
 	else
 	{
 // Span keyframes
+printf("PluginServer::apply_keyframe %d plugin=%p\n", __LINE__, plugin);
 		plugin->keyframes->update_parameter(src);
 	}
 }

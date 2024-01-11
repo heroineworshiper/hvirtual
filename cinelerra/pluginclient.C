@@ -50,6 +50,7 @@
 PluginClientThread::PluginClientThread(PluginClient *client)
  : Thread(1, 0, 0)
 {
+//printf("PluginClientThread::PluginClientThread %d client=%p\n", __LINE__, client);
 	this->client = client;
 	window = 0;
 	init_complete = new Condition(0, "PluginClientThread::init_complete");
@@ -57,7 +58,7 @@ PluginClientThread::PluginClientThread(PluginClient *client)
 
 PluginClientThread::~PluginClientThread()
 {
-//printf("PluginClientThread::~PluginClientThread %p %d\n", this, __LINE__);
+//printf("PluginClientThread::~PluginClientThread %d client=%p\n", __LINE__, client);
 	delete window;
 //printf("PluginClientThread::~PluginClientThread %p %d\n", this, __LINE__);
 	window = 0;
@@ -1069,6 +1070,8 @@ int PluginClient::send_hide_gui()
 
 int PluginClient::send_configure_change()
 {
+    if(server->is_dead) return 0;
+
 #ifdef USE_KEYFRAME_SPANNING
 	KeyFrame keyframe;
 	if(server->mwindow)

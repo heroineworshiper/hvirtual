@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,6 +65,7 @@ TitleWindow::TitleWindow(TitleMain *client)
 	1)
 {
 //printf("TitleWindow::TitleWindow %d %d %d\n", __LINE__, client->config.window_w, client->config.window_h);
+printf("TitleWindow::TitleWindow %d client=%p\n", __LINE__, client);
 	this->client = client; 
 	font_tumbler = 0;
 	justify_title = 0;
@@ -105,6 +105,7 @@ TitleWindow::TitleWindow(TitleMain *client)
 	color_y = 0;
 	y_title = 0;
 	color_thread = 0;
+    outline_color_thread = 0;
 	mid = 0;
 	encoding_title = 0;
 	encoding = 0;
@@ -113,6 +114,7 @@ TitleWindow::TitleWindow(TitleMain *client)
 
 TitleWindow::~TitleWindow()
 {
+printf("TitleWindow::~TitleWindow %d client=%p\n", __LINE__, client);
 	for(int j = 0; j < fonts.size(); j++)
 	{
 // delete the pixmaps but not the vframes since they're static
@@ -122,6 +124,7 @@ TitleWindow::~TitleWindow()
 	sizes.remove_all_objects();
 	encodings.remove_all_objects();
 	delete color_thread;
+    delete outline_color_thread;
 #ifdef USE_OUTLINE
 	delete color_stroke_thread;
 #endif
@@ -133,6 +136,8 @@ TitleWindow::~TitleWindow()
 		delete file_entries;
 	}
 }
+
+
 
 void TitleWindow::create_objects()
 {
@@ -1288,6 +1293,7 @@ TitleColorThread::TitleColorThread(TitleMain *client, TitleWindow *window, int i
 
 int TitleColorThread::handle_new_color(int output, int alpha)
 {
+//printf("TitleColorThread::handle_new_color %d %p\n", __LINE__, client);
 	if(is_outline)
 	{
 		client->config.outline_color = output;

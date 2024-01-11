@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -364,7 +363,9 @@ public:
 	EDL *edl;
 	Preferences *preferences;
 	MenuEffectPrompt *prompt;
-	int gui_on;
+//	int gui_on;
+// don't dereference any project objects
+    int is_dead;
 
 	VFrame *temp_frame;
 

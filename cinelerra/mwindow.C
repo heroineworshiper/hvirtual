@@ -2351,6 +2351,7 @@ void MWindow::hide_plugin(Plugin *plugin, int lock)
 			if(lock) plugin_gui_lock->unlock();
 // Last command executed in client side close
 // Schedule for deletion
+// TODO: Ideally it would delete now to cause the plugin to close all its child windows
 			ptr->hide_gui();
 			delete_plugin(ptr);
 //sleep(1);
@@ -2360,10 +2361,13 @@ void MWindow::hide_plugin(Plugin *plugin, int lock)
 	if(lock) plugin_gui_lock->unlock();
 }
 
-void MWindow::delete_plugin(PluginServer *plugin)
+void MWindow::delete_plugin(PluginServer *server)
 {
 	dead_plugin_lock->lock("MWindow::delete_plugin");
-	dead_plugins->append(plugin);
+// get rid of all references back to the project
+    server->is_dead = 1;
+    server->mwindow = 0;
+	dead_plugins->append(server);
 	dead_plugin_lock->unlock();
 }
 
