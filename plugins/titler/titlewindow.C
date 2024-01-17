@@ -65,7 +65,7 @@ TitleWindow::TitleWindow(TitleMain *client)
 	1)
 {
 //printf("TitleWindow::TitleWindow %d %d %d\n", __LINE__, client->config.window_w, client->config.window_h);
-printf("TitleWindow::TitleWindow %d client=%p\n", __LINE__, client);
+//printf("TitleWindow::TitleWindow %d client=%p\n", __LINE__, client);
 	this->client = client; 
 	font_tumbler = 0;
 	justify_title = 0;
@@ -114,7 +114,7 @@ printf("TitleWindow::TitleWindow %d client=%p\n", __LINE__, client);
 
 TitleWindow::~TitleWindow()
 {
-printf("TitleWindow::~TitleWindow %d client=%p\n", __LINE__, client);
+//printf("TitleWindow::~TitleWindow %d client=%p\n", __LINE__, client);
 	for(int j = 0; j < fonts.size(); j++)
 	{
 // delete the pixmaps but not the vframes since they're static

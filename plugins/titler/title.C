@@ -223,98 +223,6 @@ void TitleConfig::limits()
 
 
 
-// this is a little routine that converts no-utf8 text to utf8 // akirad
-void TitleMain::convert_encoding()
-{
-#ifdef X_HAVE_UTF8_STRING
-	int utf8 = 1;
-#else
-	int utf8 = 0;
-#endif
-
-	if(strcmp(config.encoding,"UTF-8"))
-	{
-		iconv_t cd;
-		char *utf8text = new char[(config.text.length() + 1) * KEYPRESSLEN];
-		FcChar8 return_utf8;
-		cd = iconv_open("UTF-8",config.encoding);
-
-
-		if(cd == (iconv_t)-1)
-		{
-// Something went wrong.
-			printf("TitleMain::convert_encoding: Iconv conversion from %s to UTF-8 not available\n",
-				config.encoding);
-			config.textutf8.assign(config.text);	
-		}
-		else
-// if iconv is working ok for current encoding
-		{
-			char *temp_string = new char[config.text.length() + 1];
-			char *in_ptr = temp_string;
-			strcpy(in_ptr, config.text.c_str());
-			char *out_ptr = utf8text;
-			size_t inbytes = config.text.length() - 1;
-			size_t outbytes = config.text.length() * KEYPRESSLEN;
-			int noconv = 0;
-
-//printf("TitleMain::convert_encoding %d %p\n", __LINE__, in_ptr);
-			do 
-			{
-				if(iconv(cd, &in_ptr, &inbytes, &out_ptr, &outbytes) == (size_t)-1)
-				{
-					printf("iconv failed!\n");
-					noconv = 1;
-				}
-			} while (inbytes > 0 && outbytes > 0);
-
-			outbytes = 0;
-			if(!noconv || utf8)
-			{
-				if(utf8)
-				{
-//printf("TitleMain::convert_encoding %d\n", __LINE__);
-					config.text.assign(utf8text);
-					strcpy(config.encoding, "UTF-8");
-				}
-				else
-				{
-					if(!noconv)
-					{
-//printf("TitleMain::convert_encoding %d textutf8=%p\n", __LINE__, config.textutf8);
-						config.textutf8.assign(utf8text);
-					}
-					else
-					{
-						config.textutf8.assign(config.text);
-					}
-				}
-			}
-
-			int iconv_closed = iconv_close(cd);
-			if(iconv_closed != 0)
-			{
-				fprintf(stderr,"iconv_close failed: %s\n",strerror(errno));
-			}
-
-//printf("TitleMain::convert_encoding %d %p\n", __LINE__, in_ptr);
-			delete [] temp_string;
-		}
-
-		delete [] utf8text;
-	}
-	else 
-	if(!utf8)
-	{
-		config.textutf8.assign(config.text);	
-	}
-
-}
-
-
-
-
-
 
 
 // this is a little routine that converts 8 bit string to FT_ULong array // akirad
@@ -1509,6 +1417,98 @@ VFrame* TitleMain::new_picon()
 }
 
 NEW_WINDOW_MACRO(TitleMain, TitleWindow);
+
+
+
+// this is a little routine that converts no-utf8 text to utf8 // akirad
+void TitleMain::convert_encoding()
+{
+#ifdef X_HAVE_UTF8_STRING
+	int utf8 = 1;
+#else
+	int utf8 = 0;
+#endif
+
+	if(strcmp(config.encoding,"UTF-8"))
+	{
+		iconv_t cd;
+		char *utf8text = new char[(config.text.length() + 1) * KEYPRESSLEN];
+		FcChar8 return_utf8;
+		cd = iconv_open("UTF-8",config.encoding);
+
+
+		if(cd == (iconv_t)-1)
+		{
+// Something went wrong.
+			printf("TitleMain::convert_encoding: Iconv conversion from %s to UTF-8 not available\n",
+				config.encoding);
+			config.textutf8.assign(config.text);	
+		}
+		else
+// if iconv is working ok for current encoding
+		{
+			char *temp_string = new char[config.text.length() + 1];
+			char *in_ptr = temp_string;
+			strcpy(in_ptr, config.text.c_str());
+			char *out_ptr = utf8text;
+			size_t inbytes = config.text.length() - 1;
+			size_t outbytes = config.text.length() * KEYPRESSLEN;
+			int noconv = 0;
+
+			while (inbytes > 0 && outbytes > 0)
+			{
+				if(iconv(cd, &in_ptr, &inbytes, &out_ptr, &outbytes) == (size_t)-1)
+				{
+					printf("TitleMain::convert_encoding %d: iconv failed!\n", __LINE__);
+					noconv = 1;
+				}
+			}
+
+			outbytes = 0;
+			if(!noconv || utf8)
+			{
+				if(utf8)
+				{
+					config.text.assign(utf8text);
+					strcpy(config.encoding, "UTF-8");
+				}
+				else
+				{
+					if(!noconv)
+					{
+						config.textutf8.assign(utf8text);
+					}
+					else
+					{
+						config.textutf8.assign(config.text);
+					}
+				}
+			}
+
+			int iconv_closed = iconv_close(cd);
+			if(iconv_closed != 0)
+			{
+				fprintf(stderr,"iconv_close failed: %s\n",strerror(errno));
+			}
+
+			delete [] temp_string;
+		}
+
+		delete [] utf8text;
+	}
+	else 
+	if(!utf8)
+	{
+		config.textutf8.assign(config.text);	
+	}
+
+}
+
+
+
+
+
+
 
 void TitleMain::build_fonts()
 {

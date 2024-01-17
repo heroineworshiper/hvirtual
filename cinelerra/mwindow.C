@@ -169,7 +169,9 @@ MWindow::MWindow()
  : Thread(1, 0, 0)
 {
 	plugin_gui_lock = new Mutex("MWindow::plugin_gui_lock");
+#ifdef USE_DEAD_PLUGINS
 	dead_plugin_lock = new Mutex("MWindow::dead_plugin_lock");
+#endif
 	brender_lock = new Mutex("MWindow::brender_lock");
 	keyframe_gui_lock = new Mutex("MWindow::keyframe_gui_lock");
 	brender = 0;
@@ -1840,7 +1842,9 @@ void MWindow::create_objects(int want_gui,
 	if(debug) printf("MWindow::create_objects %d total_time=%d\n", __LINE__, (int)timer.get_difference());
 
 	plugin_guis = new ArrayList<PluginServer*>;
+#ifdef USE_DEAD_PLUGINS
 	dead_plugins = new ArrayList<PluginServer*>;
+#endif
 	keyframe_threads = new ArrayList<KeyFrameThread*>;
 
 	if(debug) printf("MWindow::create_objects %d vwindows=%d show_vwindow=%d\n", 
@@ -2280,6 +2284,7 @@ void MWindow::show_plugin(Plugin *plugin)
 
 SET_TRACE
 // Remove previously deleted plugin GUIs
+#ifdef USE_DEAD_PLUGINS
 	dead_plugin_lock->lock("MWindow::delete_plugin");
 	for(int i = 0; i < dead_plugins->size(); i++)
 	{
@@ -2287,7 +2292,7 @@ SET_TRACE
 	}
 	dead_plugins->remove_all();
 	dead_plugin_lock->unlock();
-
+#endif
 //printf("MWindow::show_plugin %d\n", __LINE__);
 SET_TRACE
 
@@ -2350,12 +2355,9 @@ void MWindow::hide_plugin(Plugin *plugin, int lock)
 			plugin_guis->remove(ptr);
 			if(lock) plugin_gui_lock->unlock();
 // Last command executed in client side close
-// Schedule for deletion
-// TODO: Ideally it would delete now to cause the plugin to close all its child windows
 			ptr->hide_gui();
 			delete_plugin(ptr);
-//sleep(1);
-//			return;
+//printf("MWindow::hide_plugin %d lock=%d\n", __LINE__, lock);
 		}
 	}
 	if(lock) plugin_gui_lock->unlock();
@@ -2363,12 +2365,18 @@ void MWindow::hide_plugin(Plugin *plugin, int lock)
 
 void MWindow::delete_plugin(PluginServer *server)
 {
+#ifdef USE_DEAD_PLUGINS
+// Schedule for deletion. Deleting now causes it to not save the default keyframe.
+// TODO: Ideally it would delete now to cause the plugin to close all its child windows
 	dead_plugin_lock->lock("MWindow::delete_plugin");
 // get rid of all references back to the project
     server->is_dead = 1;
     server->mwindow = 0;
 	dead_plugins->append(server);
 	dead_plugin_lock->unlock();
+#else
+    delete server;
+#endif
 }
 
 void MWindow::hide_plugins()

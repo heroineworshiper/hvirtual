@@ -546,7 +546,9 @@ public:
 // Currently visible plugins
 	ArrayList<PluginServer*> *plugin_guis;
 // GUI Plugins to delete
+#ifdef USE_DEAD_PLUGINS
 	ArrayList<PluginServer*> *dead_plugins;
+#endif
 // Keyframe editors
 	ArrayList<KeyFrameThread*> *keyframe_threads;
 
@@ -577,7 +579,9 @@ public:
 	LevelWindow *lwindow;
 // Lock during creation and destruction of GUI
 	Mutex *plugin_gui_lock;
+#ifdef USE_DEAD_PLUGINS
 	Mutex *dead_plugin_lock;
+#endif
 	Mutex *keyframe_gui_lock;
 // Lock during creation and destruction of brender so playback doesn't use it.
 	Mutex *brender_lock;

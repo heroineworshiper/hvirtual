@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -85,7 +85,6 @@ void PluginClientThread::run()
 
 		result = window->run_window();
 		window->lock_window("PluginClientThread::run");
-//printf("PluginClientThread::run %p %d\n", this, __LINE__);
 		window->hide_window(1);
 		window->unlock_window();
 
@@ -467,16 +466,28 @@ PluginClient::PluginClient(PluginServer *server)
 
 PluginClient::~PluginClient()
 {
-// Delete the GUI thread.  The GUI must be hidden with hide_gui first.
+// Virtual functions don't work here.
+    if(thread)
+    {
+        printf("PluginClient::~PluginClient %d: Didn't call delete_thread before deleting!\n", 
+            __LINE__);
+    }
+//printf("PluginClient::~PluginClient %d this=%p\n", __LINE__, this);
+	if(defaults) delete defaults;
+//printf("PluginClient::~PluginClient %d this=%p\n", __LINE__, this);
+}
+
+void PluginClient::delete_thread()
+{
+// Wait for the GUI thread outside the destructor so the 
+// virtual save_data fires.  
+// The GUI must be hidden with hide_gui first.
 	if(thread) 
 	{
 		thread->join();
 		delete thread;
+        thread = 0;
 	}
-
-// Virtual functions don't work here.
-	if(defaults) delete defaults;
-//	delete update_timer;
 }
 
 int PluginClient::reset()
@@ -706,6 +717,17 @@ int PluginClient::save_defaults()
 	return 0; 
 }
 
+
+void PluginClient::save_data(KeyFrame *keyframe)
+{
+    printf("PluginClient::save_data %d this=%p\n", __LINE__, this);
+}
+
+void PluginClient::read_data(KeyFrame *keyframe) 
+{
+    printf("PluginClient::read_data %d\n", __LINE__);
+}
+
 void PluginClient::load_defaults_xml() 
 {
 	char path[BCTEXTLEN];
@@ -713,8 +735,7 @@ void PluginClient::load_defaults_xml()
 	FileSystem fs;
 	fs.complete_path(path);
 	using_defaults = 1;
-//printf("PluginClient::load_defaults_xml %d %s\n", __LINE__, path);
-	
+
 	KeyFrame temp_keyframe;
 	FILE *fd = fopen(path, "r");
 	if(fd)
@@ -727,6 +748,7 @@ void PluginClient::load_defaults_xml()
 			int temp = fread(temp_keyframe.get_data(), data_size, 1, fd);
 // Get window extents
 			char *data = temp_keyframe.get_data();
+//printf("PluginClient::load_defaults_xml %d %s %s\n", __LINE__, path, data);
 			int state = 0;
 			for(int i = 0; i < data_size - 8; i++)
 			{
@@ -772,6 +794,7 @@ void PluginClient::save_defaults_xml()
 	if(fd)
 	{
 		fprintf(fd, "%d\n%d\n", window_x, window_y);
+//printf("PluginClient::save_defaults_xml %d %s data=%s\n", __LINE__, path, temp_keyframe.get_data());
 		if(strlen(temp_keyframe.get_data()))
 		{
 			if(!fwrite(temp_keyframe.get_data(), strlen(temp_keyframe.get_data()), 1, fd))

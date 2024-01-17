@@ -358,10 +358,12 @@ public:
 	void save_defaults_xml();
 // Tell the client if the load is the defaults
 	int is_defaults();
+// must call before delete to get the GUI defualts to save
+    void delete_thread();
 
 	virtual void update_gui();
-	virtual void save_data(KeyFrame *keyframe) {};    // write the plugin settings to text in text format
-	virtual void read_data(KeyFrame *keyframe) {};    // read the plugin settings from the text
+	virtual void save_data(KeyFrame *keyframe);    // write the plugin settings to text in text format
+	virtual void read_data(KeyFrame *keyframe);    // read the plugin settings from the text
 	int send_hide_gui();                                    // should be sent when the GUI recieves a close event from the user
 // Destroys the window but not the thread pointer.
 	void hide_gui();

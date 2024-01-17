@@ -361,8 +361,11 @@ int PluginServer::close_plugin()
 	int plugin_status, result;
 	if(client)
 	{
-// Defaults are saved in the thread.
-//		if(client->defaults) client->save_defaults();
+
+// Defaults are saved in the GUI thread when it exits.  
+// Have to wait for the GUI thread to finish before deleting 
+// since the virtual functions are unlinked in the destructor.
+        client->delete_thread();
 		delete client;
 	}
 
@@ -1275,7 +1278,7 @@ void PluginServer::apply_keyframe(KeyFrame *src)
 	else
 	{
 // Span keyframes
-printf("PluginServer::apply_keyframe %d plugin=%p\n", __LINE__, plugin);
+//printf("PluginServer::apply_keyframe %d plugin=%p\n", __LINE__, plugin);
 		plugin->keyframes->update_parameter(src);
 	}
 }

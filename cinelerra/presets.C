@@ -497,7 +497,6 @@ void PresetsDBPlugin::load_preset(const char *preset_title,
 		keyframe->set_data(src->data);
 // Save as the plugin's default
 // Need the path
-//printf("PresetsDBPlugin::load_preset %d %s\n", __LINE__, title);
 		PluginServer *server = MWindow::scan_plugindb(title, -1);
 		if(!server)
 		{
@@ -508,6 +507,8 @@ void PresetsDBPlugin::load_preset(const char *preset_title,
 			server->get_defaults_path(path);
 			FileSystem fs;
 			fs.complete_path(path);
+
+printf("PresetsDBPlugin::load_preset %d %s %s\n", __LINE__, title, path);
 
 			FILE *fd = fopen(path, "w");
 			if(fd)
