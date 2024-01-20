@@ -1,4 +1,4 @@
-622
+754
 courbd.ttf -monotype-Courier New-bold-r-normal--0-0-0-0-m-0-ascii-0
 courbd.ttf -monotype-Courier New-bold-r-normal--0-0-0-0-m-0-koi8-ru
 courbd.ttf -monotype-Courier New-bold-r-normal--0-0-0-0-m-0-koi8-r
@@ -51,6 +51,18 @@ Razor 1911.ttf -2Rebels-Razor 1911-medium-r-normal--0-0-0-0-p-0-iso8859-15
 Razor 1911.ttf -2Rebels-Razor 1911-medium-r-normal--0-0-0-0-p-0-iso8859-1
 Sci Fied Italic.ttf -macromedia-Sci Fied-medium-i-normal--0-0-0-0-p-0-ascii-0
 Telegraphic Bold.ttf -macromedia-Telegraphic-bold-r-normal--0-0-0-0-p-0-ascii-0
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-ascii-0
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-fcd8859-15
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-iso8859-15
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-iso8859-10
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-iso8859-9
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-iso8859-8
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-iso8859-7
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-iso8859-5
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-iso8859-4
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-iso8859-3
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-iso8859-2
+LinBiolinum_Rah.ttf -misc-Linux Biolinum-medium-r-normal--0-0-0-0-p-0-iso8859-1
 webdings.ttf -microsoft-Webdings-medium-r-normal--0-0-0-0-p-0-microsoft-symbol
 Scythe.ttf -altsys-Scythe-medium-r-normal--0-0-0-0-p-0-ascii-0
 verdanai.ttf -microsoft-Verdana-medium-i-normal--0-0-0-0-p-0-ascii-0
@@ -80,6 +92,18 @@ micross.ttf -monotype-Microsoft Sans Serif-medium-r-normal--0-0-0-0-p-0-iso8859-
 Regulators Italic.ttf -misc-Regulators Italic-medium-i-normal--0-0-0-0-p-0-ascii-0
 Telegraphic Italic.ttf -macromedia-Telegraphic-medium-i-normal--0-0-0-0-p-0-ascii-0
 bankgothic-regulardb.ttf -altsys-BankGothic DB-medium-r-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-fcd8859-15
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-iso8859-15
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-iso8859-10
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-iso8859-9
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-iso8859-8
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-iso8859-7
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-iso8859-5
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-iso8859-4
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-iso8859-3
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-iso8859-2
+LinLibertine_DRah.ttf -misc-Linux Libertine Display-medium-r-normal--0-0-0-0-p-0-iso8859-1
 Scratch my back.ttf -macromedia-Scratch my back-medium-r-normal--0-0-0-0-p-0-ascii-0
 arialbd.ttf -monotype-Arial-bold-r-normal--0-0-0-0-p-0-ascii-0
 arialbd.ttf -monotype-Arial-bold-r-normal--0-0-0-0-p-0-koi8-ru
@@ -181,6 +205,18 @@ Quatl Bold.ttf -misc-Quatl Bold-bold-r-normal--0-0-0-0-p-0-ascii-0
 Quatl Bold.ttf -misc-Quatl Bold-bold-r-normal--0-0-0-0-p-0-fcd8859-15
 Quatl Bold.ttf -misc-Quatl Bold-bold-r-normal--0-0-0-0-p-0-iso8859-15
 Quatl Bold.ttf -misc-Quatl Bold-bold-r-normal--0-0-0-0-p-0-iso8859-1
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-fcd8859-15
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-iso8859-15
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-iso8859-10
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-iso8859-9
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-iso8859-8
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-iso8859-7
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-iso8859-5
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-iso8859-4
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-iso8859-3
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-iso8859-2
+LinLibertine_RIah.ttf -misc-Linux Libertine-medium-i-normal--0-0-0-0-p-0-iso8859-1
 Telegraphic Bold Italic.ttf -macromedia-Telegraphic-bold-r-normal--0-0-0-0-p-0-ascii-0
 georgiai.ttf -microsoft-Georgia-medium-i-normal--0-0-0-0-p-0-ascii-0
 georgiai.ttf -microsoft-Georgia-medium-i-normal--0-0-0-0-p-0-fcd8859-15
@@ -194,6 +230,18 @@ georgiai.ttf -microsoft-Georgia-medium-i-normal--0-0-0-0-p-0-iso8859-3
 georgiai.ttf -microsoft-Georgia-medium-i-normal--0-0-0-0-p-0-iso8859-2
 georgiai.ttf -microsoft-Georgia-medium-i-normal--0-0-0-0-p-0-iso8859-1
 Sea-Dog.ttf -2Rebels-Sea_Dog-extra bold-r-normal--0-0-0-0-p-0-microsoft-symbol
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-fcd8859-15
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-iso8859-15
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-iso8859-10
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-iso8859-9
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-iso8859-8
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-iso8859-7
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-iso8859-5
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-iso8859-4
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-iso8859-3
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-iso8859-2
+LinLibertine_RZah.ttf -misc-Linux Libertine-semi bold-r-normal--0-0-0-0-p-0-iso8859-1
 VeraIt.ttf -Bitstream-Bitstream Vera Sans-medium-i-normal--0-0-0-0-p-0-ascii-0
 VeraIt.ttf -Bitstream-Bitstream Vera Sans-medium-i-normal--0-0-0-0-p-0-fcd8859-15
 VeraIt.ttf -Bitstream-Bitstream Vera Sans-medium-i-normal--0-0-0-0-p-0-iso8859-15
@@ -279,12 +327,30 @@ couri.ttf -monotype-Courier New-medium-i-normal--0-0-0-0-m-0-iso8859-4
 couri.ttf -monotype-Courier New-medium-i-normal--0-0-0-0-m-0-iso8859-3
 couri.ttf -monotype-Courier New-medium-i-normal--0-0-0-0-m-0-iso8859-2
 couri.ttf -monotype-Courier New-medium-i-normal--0-0-0-0-m-0-iso8859-1
+LinBiolinum_Kah.ttf -misc-Linux Biolinum Keyboard-bold-r-normal--0-0-0-0-p-0-ascii-0
+LinBiolinum_Kah.ttf -misc-Linux Biolinum Keyboard-bold-r-normal--0-0-0-0-p-0-iso8859-10
+LinBiolinum_Kah.ttf -misc-Linux Biolinum Keyboard-bold-r-normal--0-0-0-0-p-0-iso8859-4
+LinBiolinum_Kah.ttf -misc-Linux Biolinum Keyboard-bold-r-normal--0-0-0-0-p-0-iso8859-3
+LinBiolinum_Kah.ttf -misc-Linux Biolinum Keyboard-bold-r-normal--0-0-0-0-p-0-iso8859-2
 Photographs.ttf -misc-Photographs-medium-r-normal--0-0-0-0-p-0-ascii-0
 Photographs.ttf -misc-Photographs-medium-r-normal--0-0-0-0-p-0-iso8859-10
 Photographs.ttf -misc-Photographs-medium-r-normal--0-0-0-0-p-0-iso8859-4
 Photographs.ttf -misc-Photographs-medium-r-normal--0-0-0-0-p-0-iso8859-2
 lazing_on_a_sunny_afternoon.ttf -misc-Lazing on a sunny afternoon-medium-r-normal--0-0-0-0-p-0-ascii-0
 Rafika.ttf -Larabiefonts-Rafika-medium-r-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_I.ttf -misc-Linux Libertine Initials-medium-r-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-fcd8859-15
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-iso8859-15
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-iso8859-10
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-iso8859-9
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-iso8859-8
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-iso8859-7
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-iso8859-5
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-iso8859-4
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-iso8859-3
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-iso8859-2
+LinLibertine_RZIah.ttf -misc-Linux Libertine-semi bold-i-normal--0-0-0-0-p-0-iso8859-1
 Telegraphic.ttf -macromedia-Telegraphic-medium-r-normal--0-0-0-0-p-0-ascii-0
 Sci Fied Bold.ttf -macromedia-Sci Fied-bold-r-normal--0-0-0-0-p-0-ascii-0
 VeraMoBI.ttf -Bitstream-Bitstream Vera Sans Mono-bold-i-normal--0-0-0-0-m-0-ascii-0
@@ -315,6 +381,30 @@ VeraMoIt.ttf -Bitstream-Bitstream Vera Sans Mono-medium-i-normal--0-0-0-0-m-0-fc
 VeraMoIt.ttf -Bitstream-Bitstream Vera Sans Mono-medium-i-normal--0-0-0-0-m-0-iso8859-15
 VeraMoIt.ttf -Bitstream-Bitstream Vera Sans Mono-medium-i-normal--0-0-0-0-m-0-iso8859-9
 VeraMoIt.ttf -Bitstream-Bitstream Vera Sans Mono-medium-i-normal--0-0-0-0-m-0-iso8859-1
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-ascii-0
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-fcd8859-15
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-iso8859-15
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-iso8859-10
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-iso8859-9
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-iso8859-8
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-iso8859-7
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-iso8859-5
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-iso8859-4
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-iso8859-3
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-iso8859-2
+LinBiolinum_RBah.ttf -misc-Linux Biolinum-bold-r-normal--0-0-0-0-p-0-iso8859-1
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-ascii-0
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-fcd8859-15
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-iso8859-15
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-iso8859-10
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-iso8859-9
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-iso8859-8
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-iso8859-7
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-iso8859-5
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-iso8859-4
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-iso8859-3
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-iso8859-2
+LinBiolinum_RIah.ttf -misc-Linux Biolinum-medium-i-normal--0-0-0-0-p-0-iso8859-1
 comic.ttf -microsoft-Comic Sans MS-medium-r-normal--0-0-0-0-p-0-ascii-0
 comic.ttf -microsoft-Comic Sans MS-medium-r-normal--0-0-0-0-p-0-fcd8859-15
 comic.ttf -microsoft-Comic Sans MS-medium-r-normal--0-0-0-0-p-0-iso8859-15
@@ -326,6 +416,16 @@ comic.ttf -microsoft-Comic Sans MS-medium-r-normal--0-0-0-0-p-0-iso8859-4
 comic.ttf -microsoft-Comic Sans MS-medium-r-normal--0-0-0-0-p-0-iso8859-3
 comic.ttf -microsoft-Comic Sans MS-medium-r-normal--0-0-0-0-p-0-iso8859-2
 comic.ttf -microsoft-Comic Sans MS-medium-r-normal--0-0-0-0-p-0-iso8859-1
+LinLibertine_RBIah.ttf -misc-Linux Libertine-bold-i-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_RBIah.ttf -misc-Linux Libertine-bold-i-normal--0-0-0-0-p-0-fcd8859-15
+LinLibertine_RBIah.ttf -misc-Linux Libertine-bold-i-normal--0-0-0-0-p-0-iso8859-15
+LinLibertine_RBIah.ttf -misc-Linux Libertine-bold-i-normal--0-0-0-0-p-0-iso8859-10
+LinLibertine_RBIah.ttf -misc-Linux Libertine-bold-i-normal--0-0-0-0-p-0-iso8859-9
+LinLibertine_RBIah.ttf -misc-Linux Libertine-bold-i-normal--0-0-0-0-p-0-iso8859-7
+LinLibertine_RBIah.ttf -misc-Linux Libertine-bold-i-normal--0-0-0-0-p-0-iso8859-4
+LinLibertine_RBIah.ttf -misc-Linux Libertine-bold-i-normal--0-0-0-0-p-0-iso8859-3
+LinLibertine_RBIah.ttf -misc-Linux Libertine-bold-i-normal--0-0-0-0-p-0-iso8859-2
+LinLibertine_RBIah.ttf -misc-Linux Libertine-bold-i-normal--0-0-0-0-p-0-iso8859-1
 Radio Stars.ttf -Larabiefonts-Radio Stars-medium-r-normal--0-0-0-0-p-0-ascii-0
 Radio Stars.ttf -Larabiefonts-Radio Stars-medium-r-normal--0-0-0-0-p-0-fcd8859-15
 Radio Stars.ttf -Larabiefonts-Radio Stars-medium-r-normal--0-0-0-0-p-0-iso8859-15
@@ -371,6 +471,15 @@ VeraMono.ttf -Bitstream-Bitstream Vera Sans Mono-medium-r-normal--0-0-0-0-m-0-fc
 VeraMono.ttf -Bitstream-Bitstream Vera Sans Mono-medium-r-normal--0-0-0-0-m-0-iso8859-15
 VeraMono.ttf -Bitstream-Bitstream Vera Sans Mono-medium-r-normal--0-0-0-0-m-0-iso8859-9
 VeraMono.ttf -Bitstream-Bitstream Vera Sans Mono-medium-r-normal--0-0-0-0-m-0-iso8859-1
+LinLibertine_Mah.ttf -misc-Linux Libertine Mono-medium-r-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_Mah.ttf -misc-Linux Libertine Mono-medium-r-normal--0-0-0-0-p-0-fcd8859-15
+LinLibertine_Mah.ttf -misc-Linux Libertine Mono-medium-r-normal--0-0-0-0-p-0-iso8859-15
+LinLibertine_Mah.ttf -misc-Linux Libertine Mono-medium-r-normal--0-0-0-0-p-0-iso8859-10
+LinLibertine_Mah.ttf -misc-Linux Libertine Mono-medium-r-normal--0-0-0-0-p-0-iso8859-9
+LinLibertine_Mah.ttf -misc-Linux Libertine Mono-medium-r-normal--0-0-0-0-p-0-iso8859-4
+LinLibertine_Mah.ttf -misc-Linux Libertine Mono-medium-r-normal--0-0-0-0-p-0-iso8859-3
+LinLibertine_Mah.ttf -misc-Linux Libertine Mono-medium-r-normal--0-0-0-0-p-0-iso8859-2
+LinLibertine_Mah.ttf -misc-Linux Libertine Mono-medium-r-normal--0-0-0-0-p-0-iso8859-1
 courbi.ttf -monotype-Courier New-bold-i-normal--0-0-0-0-m-0-ascii-0
 courbi.ttf -monotype-Courier New-bold-i-normal--0-0-0-0-m-0-koi8-ru
 courbi.ttf -monotype-Courier New-bold-i-normal--0-0-0-0-m-0-koi8-r
@@ -390,8 +499,32 @@ VeraSeBd.ttf -Bitstream-Bitstream Vera Serif-bold-r-normal--0-0-0-0-p-0-fcd8859-
 VeraSeBd.ttf -Bitstream-Bitstream Vera Serif-bold-r-normal--0-0-0-0-p-0-iso8859-15
 VeraSeBd.ttf -Bitstream-Bitstream Vera Serif-bold-r-normal--0-0-0-0-p-0-iso8859-9
 VeraSeBd.ttf -Bitstream-Bitstream Vera Serif-bold-r-normal--0-0-0-0-p-0-iso8859-1
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-fcd8859-15
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-iso8859-15
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-iso8859-10
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-iso8859-9
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-iso8859-8
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-iso8859-7
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-iso8859-5
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-iso8859-4
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-iso8859-3
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-iso8859-2
+LinLibertine_RBah.ttf -misc-Linux Libertine-bold-r-normal--0-0-0-0-p-0-iso8859-1
 Old Republic Italic.ttf -macromedia-Old Republic-medium-i-normal--0-0-0-0-p-0-ascii-0
 O'Connor.ttf -misc-O'Connor-medium-r-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-ascii-0
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-fcd8859-15
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-iso8859-15
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-iso8859-10
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-iso8859-9
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-iso8859-8
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-iso8859-7
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-iso8859-5
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-iso8859-4
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-iso8859-3
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-iso8859-2
+LinLibertine_Rah.ttf -misc-Linux Libertine-medium-r-normal--0-0-0-0-p-0-iso8859-1
 arialbi.ttf -monotype-Arial-bold-i-normal--0-0-0-0-p-0-ascii-0
 arialbi.ttf -monotype-Arial-bold-i-normal--0-0-0-0-p-0-koi8-ru
 arialbi.ttf -monotype-Arial-bold-i-normal--0-0-0-0-p-0-koi8-r

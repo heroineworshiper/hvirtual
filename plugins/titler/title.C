@@ -536,11 +536,7 @@ void GlyphUnit::process_package(LoadPackage *package)
 		else
 		{
 			glyph->width = freetype_face->glyph->bitmap.width;
-// too short
 			glyph->height = freetype_face->glyph->bitmap.rows;
-// too tall
-//			glyph->height = freetype_face->glyph->bitmap_top +
-//				freetype_face->glyph->bitmap.rows;
 
 // printf("GlyphUnit::process_package %d c=%c top=%d rows=%d height=%d\n", 
 // __LINE__,
@@ -552,7 +548,8 @@ void GlyphUnit::process_package(LoadPackage *package)
 			glyph->pitch = freetype_face->glyph->bitmap.pitch;
 			glyph->left = freetype_face->glyph->bitmap_left;
 			glyph->top = freetype_face->glyph->bitmap_top;
-			glyph->freetype_index = FT_Get_Char_Index(freetype_face, glyph->char_code);
+			glyph->freetype_index = FT_Get_Char_Index(freetype_face, 
+                glyph->char_code);
 			glyph->advance_w = (freetype_face->glyph->advance.x >> 6);
 
 //printf("GlyphUnit::process_package 1 width=%d height=%d pitch=%d left=%d top=%d advance_w=%d freetype_index=%d\n", 
@@ -651,15 +648,19 @@ void TitleUnit::draw_glyph(VFrame *output, TitleGlyph *glyph, int x, int y)
 	int outline = plugin->config.outline_size;
 	if(outline) a = 0xff;
 
-//printf("TitleUnit::draw_glyph 1 %c %d %d\n", glyph->c, x, y);
+// DEBUG draw glyph outline
+//output->draw_rect(x, y, glyph_w, glyph_h);
+
+
+//printf("TitleUnit::draw_glyph 1 %c %d %d\n", glyph->c, x - 1, y - 1);
 	for(int in_y = 0; in_y < glyph_h; in_y++)
 	{
-		int y_out = y + plugin->ascent + in_y - glyph->top;
+		int y_out = y + in_y /* + plugin->ascent - glyph->top */;
 
 		if(y_out >= 0 && y_out < output_h)
 		{
 			unsigned char *in_row = in_rows[in_y];
-			int x1 = x + glyph->left;
+			int x1 = x /* + glyph->left */;
 			int y1 = y_out;
 
 			if(engine->do_dropshadow)
@@ -1296,12 +1297,12 @@ void TitleTranslate::init_packages()
 
 	output_w = plugin->output->get_w();
 	output_h = plugin->output->get_h();
-//printf("TitleTranslate::init_packages 1 %f %d\n", plugin->text_x1, plugin->text_w);
+//printf("TitleTranslate::init_packages %d text_x1=%f text_w=%d\n", __LINE__, plugin->text_x1, plugin->text_w);
 
 
 	translation_array_f(x_table, 
-		plugin->text_x1 - plugin->config.outline_size, 
-		plugin->text_x1 + plugin->text_w - plugin->config.outline_size,
+		plugin->text_x1, 
+		plugin->text_x1 + plugin->text_w,
 		0,
 		plugin->text_w,
 		plugin->text_w, 
@@ -1311,8 +1312,8 @@ void TitleTranslate::init_packages()
 //printf("TitleTranslate::init_packages 1 %f %f\n", plugin->mask_y1, plugin->mask_y2);
 
 	translation_array_f(y_table, 
-		plugin->mask_y1 + plugin->config.outline_size, 
-		plugin->mask_y1 + plugin->text_mask->get_h() + plugin->config.outline_size,
+		plugin->mask_y1, 
+		plugin->mask_y1 + plugin->text_mask->get_h(),
 		0,
 		plugin->text_mask->get_h(),
 		plugin->text_mask->get_h(), 
@@ -1341,7 +1342,7 @@ void TitleTranslate::init_packages()
 		if(pkg->y2 > out_y2 - out_y1)
 			pkg->y2 = out_y2 - out_y1;
 	}
-//printf("TitleTranslate::init_packages 2\n");
+//printf("TitleTranslate::init_packages %d out_x1=%d\n", __LINE__, out_x1);
 }
 
 LoadClient* TitleTranslate::new_client()
@@ -1455,7 +1456,7 @@ void TitleMain::convert_encoding()
 			size_t outbytes = config.text.length() * KEYPRESSLEN;
 			int noconv = 0;
 
-			while (inbytes > 0 && outbytes > 0)
+			while (inbytes >= 0 && outbytes > 0)
 			{
 				if(iconv(cd, &in_ptr, &inbytes, &out_ptr, &outbytes) == (size_t)-1)
 				{
@@ -2372,10 +2373,7 @@ FontEntry* TitleMain::get_font()
 		config.size);
 }
 
-
-
-
-int TitleMain::get_char_width(FT_ULong c)
+TitleGlyph* TitleMain::get_glyph(FT_ULong c)
 {
 	if(c == 0xa) return 0;
 
@@ -2383,20 +2381,35 @@ int TitleMain::get_char_width(FT_ULong c)
 	{
 		if(glyphs.get(i)->c == c)
 		{
-			return glyphs.get(i)->width;
+			return glyphs.get(i);
 		}
 	}
 	
 	return 0;
 }
 
+
+
+int TitleMain::get_char_width(FT_ULong c)
+{
+    TitleGlyph *glyph = get_glyph(c);
+    if(glyph) 
+        return glyph->width;
+    else
+        return 0;
+}
+
+int TitleMain::get_char_height(FT_ULong c)
+{
+    TitleGlyph *glyph = get_glyph(c);
+    if(glyph) 
+        return glyph->height;
+    else
+        return 0;
+}
+
 int TitleMain::get_line_spacing()
 {
-// user value.  Too short.
-//	return config.size;
-// derived from glyphs.  Too tall.
-//	return height;
-// THE FINAL HACK
 	return (int)(config.size * config.line_spacing);
 }
 
@@ -2498,14 +2511,19 @@ void TitleMain::draw_glyphs()
 void TitleMain::get_total_extents()
 {
 // Determine extents of total text
-	int current_w = 0;
+	int current_x = 0;
+    int min_x = 65536;
+    int max_x = -65536;
+    int min_y = 65536;
+    int max_y = -65536;
 	int row_start = 0;
-	int max_char_w = 0;
+    int line_spacing = get_line_spacing();
 	text_len = config.tlen;
 
 	if(!char_positions) char_positions = new title_char_position_t[text_len];
 	text_rows = 0;
 	text_w = 0;
+    text_h = 0;
 	ascent = 0;
 	height = 0;
 
@@ -2520,51 +2538,104 @@ void TitleMain::get_total_extents()
 
 	for(int i = 0; i < text_len; i++)
 	{
-		char_positions[i].x = current_w;
-		char_positions[i].y = text_rows * get_line_spacing();
+        int current_y = text_rows * line_spacing;
+        TitleGlyph *glyph = get_glyph(config.ucs4text[i]);
+        if(glyph)
+        {
+// printf("TitleMain::get_total_extents %d: %c left=%d top=%d w=%d h=%d\n", 
+// __LINE__,
+// (char)config.ucs4text[i],
+// glyph->left,
+// glyph->top,
+// glyph->width,
+// glyph->height);
+            int top = current_y - glyph->top;
+            if(top < min_y) min_y = top;
+            int bottom = top + 
+                glyph->height;
+            if(bottom > max_y) max_y = bottom;
+            int right = current_x + glyph->left + glyph->width;
+            if(right > max_x) max_x = right;
+            int left = current_x + glyph->left;
+            if(left < min_x) min_x = left;
+            char_positions[i].x = left;
+		    char_positions[i].y = top;
+		    char_positions[i].w = glyph->width;
+		    char_positions[i].h = glyph->height;
+        }
+        else
+        {
+            char_positions[i].x = current_x;
+		    char_positions[i].y = current_y;
+		    char_positions[i].w = 0;
+		    char_positions[i].h = 0;
+        }
+
 		int char_advance = get_char_advance(config.ucs4text[i], 
 			config.ucs4text[i + 1]);
-		char_positions[i].w = char_advance;
-		if(char_advance > max_char_w) max_char_w = char_advance;
+        current_x += char_advance;
 
-
-// printf("TitleMain::get_total_extents 1 %c %d %d %d\n", 
-// 	config.text[i], 
-// 	char_positions[i].x, 
-// 	char_positions[i].y, 
-// 	char_positions[i].w);
+// printf("TitleMain::get_total_extents 1 %c x=%d y=%d w=%d\n", 
+// config.text[i], 
+// char_positions[i].x, 
+// char_positions[i].y, 
+// char_positions[i].w);
 
 		if(config.ucs4text[i] == 0xa || i == text_len - 1)
 		{
+            int line_w = max_x - min_x;
+            if(line_w > text_w) text_w = line_w;
+// printf("TitleMain::get_total_extents %d min_x=%d max_x=%d line_w=%d\n", 
+// __LINE__, min_x, max_x, line_w);
+// shift line horizontally
+            for(int j = row_start; j <= i; j++)
+            {
+                char_positions[j].x -= min_x;
+            }
+            current_y += line_spacing;
 			text_rows++;
-// expand line by last character's width
-			if(i > 0)
-			{
-				current_w += get_char_width(config.ucs4text[i - 1]);
-			}
-			
-			if(current_w > text_w) text_w = current_w;
-			current_w = 0;
-		}
-		else
-		{
-// expand line by last character's advance
-			current_w += char_positions[i].w;
+			current_x = 0;
+            min_x = 65536;
+            max_x = -65536;
+            row_start = i + 1;
 		}
 	}
-	text_w += config.dropshadow + config.outline_size * 4 + max_char_w;
-	text_h = (text_rows - 1) * get_line_spacing() + 
-        config.size + 
-		config.dropshadow + 
-		config.outline_size * 4;
+    text_h = max_y - min_y;
 
-// Now that text_w is known
-// Justify rows based on configuration
-	row_start = 0;
+// shift again for vertical offset
 	for(int i = 0; i < text_len; i++)
 	{
+		char_positions[i].y += -min_y;
+//printf("TitleMain::get_total_extents %d x=%d\n", __LINE__, char_positions[i].x);
+    }
+
+	text_w += config.dropshadow + config.outline_size * 2;
+    text_h += config.dropshadow + config.outline_size * 2;
+//printf("TitleMain::get_total_extents %d text_w=%d\n", __LINE__, text_w);
+
+// Now that total text_w is known
+// Justify rows based on configuration
+	row_start = 0;
+    min_x = 65536;
+    max_x = -65536;
+	for(int i = 0; i < text_len; i++)
+	{
+// printf("TitleMain::get_total_extents %d %c x=%d y=%d w=%d h=%d\n", 
+// __LINE__, 
+// (char)config.ucs4text[i],
+// char_positions[i].x,
+// char_positions[i].y,
+// char_positions[i].w,
+// char_positions[i].h);
+        if(char_positions[i].x < min_x) min_x = char_positions[i].x;
+        if(char_positions[i].x + char_positions[i].w > max_x)
+            max_x = char_positions[i].x + char_positions[i].w;
 		if(config.ucs4text[i] == 0xa || i == text_len - 1)
 		{
+            int line_w = max_x - 
+                min_x + 
+                config.dropshadow + 
+                config.outline_size * 2;
 			for(int j = row_start; j <= i; j++)
 			{
 				switch(config.hjustification)
@@ -2573,25 +2644,24 @@ void TitleMain::get_total_extents()
 						break;
 
 					case JUSTIFY_MID:
-						char_positions[j].x += (text_w - 
-								char_positions[i].x - 
-								char_positions[i].w) /
+                        char_positions[j].x += (text_w - line_w) /
 							2;
 						break;
 
 					case JUSTIFY_RIGHT:
-						char_positions[j].x += (text_w - 
-							char_positions[i].x - 
-							char_positions[i].w);
+						char_positions[j].x += (text_w - line_w);
 						break;
 				}
 			}
 			row_start = i + 1;
+            min_x = 65536;
+            max_x = -65536;
 		}
 	}
 
 
-//printf("TitleMain::get_total_extents 2 %d %d\n", text_w, text_h);
+// printf("TitleMain::get_total_extents %d text_w=%d text_h=%d\n", 
+// __LINE__, text_w, text_h);
 }
 
 int TitleMain::draw_mask()
@@ -2697,6 +2767,7 @@ int TitleMain::draw_mask()
 	if(config.hjustification == JUSTIFY_RIGHT)
 	{
 		text_x1 = config.x + input->get_w() - text_w;
+//printf("TitleMain::draw_mask %d text_x1=%d\n", __LINE__, text_x1);
 	}
 
 
@@ -2704,18 +2775,25 @@ int TitleMain::draw_mask()
 
 
 // Determine y extents just of visible text
-	visible_row1 = (int)(-text_y1 / get_line_spacing());
-	if(visible_row1 < 0) visible_row1 = 0;
-
-	visible_row2 = (int)((float)text_rows - (text_y2 - input->get_h()) / get_line_spacing() + 1);
-	if(visible_row2 > text_rows) visible_row2 = text_rows;
-
-
-	if(visible_row2 <= visible_row1) return 1;
+// 	visible_row1 = (int)(-text_y1 / get_line_spacing());
+// 	if(visible_row1 < 0) visible_row1 = 0;
+// 
+// 	visible_row2 = (int)((float)text_rows - (text_y2 - input->get_h()) / get_line_spacing() + 1);
+// 	if(visible_row2 > text_rows) visible_row2 = text_rows;
 
 
-	mask_y1 = text_y1 + visible_row1 * get_line_spacing();
-	mask_y2 = text_y1 + visible_row2 * get_line_spacing();
+//	if(visible_row2 <= visible_row1) return 1;
+
+
+//	mask_y1 = text_y1 + visible_row1 * get_line_spacing();
+//	mask_y2 = text_y1 + visible_row2 * get_line_spacing();
+
+// Always draw it all
+    visible_row1 = 0;
+    visible_row2 = text_rows;
+    mask_y1 = text_y1;
+    mask_y2 = text_y1 + text_h;
+
 	text_x1 += config.x;
 
 
@@ -2846,6 +2924,10 @@ int TitleMain::draw_mask()
 				new TitleOutlineEngine(this, PluginClient::smp + 1);
 			outline_engine->do_outline();
 		}
+
+// DEBUG
+// draw outline of text mask
+//text_mask->draw_rect(0, 0, text_w - 1, text_h - 1);
 	}
 
 	return 0;

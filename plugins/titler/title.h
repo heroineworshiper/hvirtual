@@ -384,7 +384,7 @@ public:
 // Position of each character relative to total text extents
 typedef struct
 {
-	int x, y, w;
+	int x, y, w, h;
 } title_char_position_t;
 
 class Subtitle
@@ -423,10 +423,14 @@ public:
 		int size);
 	FontEntry* get_font();
 	int get_char_advance(int current, int next);
+// space between lines in pixels
 	int get_line_spacing();
+    
 	int get_char_width(FT_ULong c);
+	int get_char_height(FT_ULong c);
 	void get_total_extents();
 	void clear_glyphs();
+    TitleGlyph* get_glyph(FT_ULong c);
 	int check_char_code_path(FT_Library &freetype_library,
 		char *path_old, 
 		FT_ULong &char_code,
@@ -486,8 +490,8 @@ public:
 	int alpha;
 
 
-// Max dimensions for all characters.  Not equal to config.size
-// Must be calculated from rendering characters
+// Max dimensions for all characters.
+// Must be calculated by rendering characters
 	int ascent;
 	int height;
 // Relative position of mask to output is text_x1, mask_y1

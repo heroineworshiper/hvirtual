@@ -1062,6 +1062,7 @@ TitleText::TitleText(TitleMain *client,
 
 int TitleText::handle_event()
 {
+//printf("TitleText::handle_event %d %s\n", __LINE__, get_text());
 	client->config.text.assign(get_text());
 	client->send_configure_change();
 	return 1;
