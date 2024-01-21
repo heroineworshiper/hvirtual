@@ -801,7 +801,9 @@ void TitleOutlineUnit::process_package(LoadPackage *package)
     int do_blur = plugin->config.blur && (outline_size > 0);
 	plugin->get_color_components(&r, &g, &b, &outline_a, 1);
 	plugin->get_color_components(&title_r, &title_g, &title_b, &title_a, 0);
-
+    int chroma = 0;
+    if(cmodel_is_yuv(plugin->get_output()->get_color_model()))
+        chroma = 0x80;
 
 	if(engine->pass == 0)
 	{
@@ -893,8 +895,8 @@ void TitleOutlineUnit::process_package(LoadPackage *package)
 				    int in_a = in_pixel[3];
 				    int transparency = in_a * (0xff - out_a) / 0xff;
 				    out_pixel[0] = (out_pixel[0] * out_a + in_pixel[0] * transparency) / 0xff;
-				    out_pixel[1] = (out_pixel[1] * out_a + in_pixel[1] * transparency) / 0xff;
-				    out_pixel[2] = (out_pixel[2] * out_a + in_pixel[2] * transparency) / 0xff;
+				    out_pixel[1] = ((out_pixel[1] - chroma) * out_a + (in_pixel[1] - chroma) * transparency) / 0xff + chroma;
+				    out_pixel[2] = ((out_pixel[2] - chroma) * out_a + (in_pixel[2] - chroma) * transparency) / 0xff + chroma;
 				    int temp = in_a - out_a;
 				    if(temp < 0) temp = 0;
 				    out_pixel[3] = temp + out_a * title_a / 0xff;
