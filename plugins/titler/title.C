@@ -649,7 +649,7 @@ void TitleUnit::draw_glyph(VFrame *output, TitleGlyph *glyph, int x, int y)
 //	if(outline) a = 0xff;
 
 // DEBUG draw glyph outline
-//output->draw_rect(x, y, glyph_w, glyph_h);
+//output->draw_rect(x, y, x + glyph_w, y + glyph_h);
 
 
 //printf("TitleUnit::draw_glyph 1 %c %d %d\n", glyph->c, x - 1, y - 1);
@@ -2817,26 +2817,27 @@ int TitleMain::draw_mask()
 
 
 //printf("TitleMain::draw_mask %d %d\n", visible_row1, visible_row2);
-	visible_char1 = visible_char2 = 0;
-	int got_char1 = 0;
-	for(int i = 0; i < text_len; i++)
-	{
-		title_char_position_t *char_position = char_positions + i;
-		int char_row = char_position->y / get_line_spacing();
-		if(char_row >= visible_row1 &&
-			char_row < visible_row2)
-		
-		{
-			if(!got_char1)
-			{
-				visible_char1 = i;
-				got_char1 = 1;
-			}
-			visible_char2 = i;
-		}
-	}
-	visible_char2++;
-
+// 	visible_char1 = visible_char2 = 0;
+// 	int got_char1 = 0;
+// 	for(int i = 0; i < text_len; i++)
+// 	{
+// 		title_char_position_t *char_position = char_positions + i;
+// 		int char_row = char_position->y / get_line_spacing();
+// 		if(char_row >= visible_row1 &&
+// 			char_row < visible_row2)
+// 		
+// 		{
+// 			if(!got_char1)
+// 			{
+// 				visible_char1 = i;
+// 				got_char1 = 1;
+// 			}
+// 			visible_char2 = i;
+// 		}
+// 	}
+// 	visible_char2++;
+    visible_char1 = 0;
+    visible_char2 = text_len;
 
 
 	int visible_rows = visible_row2 - visible_row1;
