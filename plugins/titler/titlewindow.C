@@ -718,7 +718,7 @@ int TitleSubs::handle_event()
 
 
 TitleBlur::TitleBlur(TitleWindow *window, int x, int y)
- : BC_CheckBox(x, y, window->client->config.blur, _("Blur outline"))
+ : BC_CheckBox(x, y, window->client->config.blur, _("Blur effect"))
 {
 	this->window = window;
 }

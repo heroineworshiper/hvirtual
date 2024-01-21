@@ -645,8 +645,8 @@ void TitleUnit::draw_glyph(VFrame *output, TitleGlyph *glyph, int x, int y)
 	unsigned char **out_rows = output->get_rows();
 	int r, g, b, a;
 	plugin->get_color_components(&r, &g, &b, &a, 0);
-	int outline = plugin->config.outline_size;
-	if(outline) a = 0xff;
+//	int outline = plugin->config.outline_size;
+//	if(outline) a = 0xff;
 
 // DEBUG draw glyph outline
 //output->draw_rect(x, y, glyph_w, glyph_h);
@@ -740,15 +740,17 @@ TitleEngine::TitleEngine(TitleMain *plugin, int cpus)
 
 void TitleEngine::init_packages()
 {
-	int visible_y1 = plugin->visible_row1 * plugin->get_line_spacing();
+//	int visible_y1 = plugin->visible_row1 * plugin->get_line_spacing();
 	int current_package = 0;
 	for(int i = plugin->visible_char1; i < plugin->visible_char2; i++)
 	{
 		title_char_position_t *char_position = plugin->char_positions + i;
 		TitlePackage *pkg = (TitlePackage*)get_package(current_package);
-		pkg->x = char_position->x + plugin->config.outline_size;
-		pkg->y = char_position->y - visible_y1 + plugin->config.outline_size;
-		pkg->c = plugin->config.ucs4text[i];
+//		pkg->x = char_position->x + plugin->config.outline_size;
+//		pkg->y = char_position->y - visible_y1 + plugin->config.outline_size;
+		pkg->x = char_position->x;
+        pkg->y = char_position->y;
+        pkg->c = plugin->config.ucs4text[i];
 		current_package++;
 	}
 }
@@ -795,8 +797,8 @@ void TitleOutlineUnit::process_package(LoadPackage *package)
 	TitleOutlinePackage *pkg = (TitleOutlinePackage*)package;
 	int r, g, b, outline_a;
 	int title_r, title_g, title_b, title_a;
-    int do_blur = plugin->config.blur;
     int outline_size = plugin->config.outline_size;
+    int do_blur = plugin->config.blur && (outline_size > 0);
 	plugin->get_color_components(&r, &g, &b, &outline_a, 1);
 	plugin->get_color_components(&title_r, &title_g, &title_b, &title_a, 0);
 
@@ -875,25 +877,29 @@ void TitleOutlineUnit::process_package(LoadPackage *package)
 	}
 	else
 	{
-// Overlay text mask on top of outline mask
+// Overlay outline under the text mask
+        int dropshadow_offset = plugin->config.dropshadow;
 		for(int i = pkg->y1; i < pkg->y2; i++)
 		{
 			unsigned char *out_row = plugin->text_mask->get_rows()[i];
-			unsigned char *in_row = plugin->outline_mask->get_rows()[i];
-			for(int j = 0; j < plugin->text_mask->get_w(); j++)
+            if(i >= dropshadow_offset)
 			{
-				unsigned char *out_pixel = out_row + j * 4;
-				unsigned char *in_pixel = in_row + j * 4;
-				int out_a = out_pixel[3];
-				int in_a = in_pixel[3];
-				int transparency = in_a * (0xff - out_a) / 0xff;
-				out_pixel[0] = (out_pixel[0] * out_a + in_pixel[0] * transparency) / 0xff;
-				out_pixel[1] = (out_pixel[1] * out_a + in_pixel[1] * transparency) / 0xff;
-				out_pixel[2] = (out_pixel[2] * out_a + in_pixel[2] * transparency) / 0xff;
-				int temp = in_a - out_a;
-				if(temp < 0) temp = 0;
-				out_pixel[3] = temp + out_a * title_a / 0xff;
-			}
+                unsigned char *in_row = plugin->outline_mask->get_rows()[i - dropshadow_offset];
+			    for(int j = dropshadow_offset; j < plugin->text_mask->get_w(); j++)
+			    {
+				    unsigned char *out_pixel = out_row + j * 4;
+				    unsigned char *in_pixel = in_row + (j - dropshadow_offset) * 4;
+				    int out_a = out_pixel[3];
+				    int in_a = in_pixel[3];
+				    int transparency = in_a * (0xff - out_a) / 0xff;
+				    out_pixel[0] = (out_pixel[0] * out_a + in_pixel[0] * transparency) / 0xff;
+				    out_pixel[1] = (out_pixel[1] * out_a + in_pixel[1] * transparency) / 0xff;
+				    out_pixel[2] = (out_pixel[2] * out_a + in_pixel[2] * transparency) / 0xff;
+				    int temp = in_a - out_a;
+				    if(temp < 0) temp = 0;
+				    out_pixel[3] = temp + out_a * title_a / 0xff;
+			    }
+            }
 		}
 	}
 }
@@ -2606,9 +2612,12 @@ void TitleMain::get_total_extents()
 	for(int i = 0; i < text_len; i++)
 	{
 		char_positions[i].y += -min_y;
+        char_positions[i].x += config.outline_size;
+        char_positions[i].y += config.outline_size;
 //printf("TitleMain::get_total_extents %d x=%d\n", __LINE__, char_positions[i].x);
     }
 
+// expand the text extents based on the dropshadow & outline
 	text_w += config.dropshadow + config.outline_size * 2;
     text_h += config.dropshadow + config.outline_size * 2;
 //printf("TitleMain::get_total_extents %d text_w=%d\n", __LINE__, text_w);
@@ -2709,6 +2718,11 @@ int TitleMain::draw_mask()
 	if(config.vjustification == JUSTIFY_TOP)
 	{
 		text_y1 = config.y;
+// compensate for a drop shadow with outline by shifting the output up
+        if(config.dropshadow <= config.outline_size)
+            text_y1 -= config.dropshadow;
+        else
+            text_y1 -= config.outline_size;
 	}
 	else
 	if(config.vjustification == JUSTIFY_MID)
@@ -2757,6 +2771,11 @@ int TitleMain::draw_mask()
 	if(config.hjustification == JUSTIFY_LEFT)
 	{
 		text_x1 = config.x;
+// compensate for a drop shadow with outline by shifting the output left
+        if(config.dropshadow <= config.outline_size)
+            text_x1 -= config.dropshadow;
+        else
+            text_x1 -= config.outline_size;
 	}
 	else
 	if(config.hjustification == JUSTIFY_MID)
@@ -2878,12 +2897,12 @@ int TitleMain::draw_mask()
 
 
 // Draw dropshadow first
-		if(config.dropshadow)
-		{
-			title_engine->do_dropshadow = 1;
-			title_engine->set_package_count(visible_char2 - visible_char1);
-			title_engine->process_packages();
-		}
+// 		if(config.dropshadow)
+// 		{
+// 			title_engine->do_dropshadow = 1;
+// 			title_engine->set_package_count(visible_char2 - visible_char1);
+// 			title_engine->process_packages();
+// 		}
 
 // Then draw foreground
 		title_engine->do_dropshadow = 0;
@@ -2894,7 +2913,7 @@ int TitleMain::draw_mask()
 
 
 // Convert to text outlines
-		if(config.outline_size > 0)
+		if(config.outline_size > 0 || config.dropshadow)
 		{
 			if(outline_mask &&
 				(text_mask->get_w() != outline_mask->get_w() ||
@@ -3008,8 +3027,8 @@ void TitleMain::overlay_mask()
 			alpha = (int)((float)0x100 * fade_position / fade_len);
 		}
 	}
-//printf("TitleMain::overlay_mask 1\n");
-
+// printf("TitleMain::overlay_mask %d text_x1=%f text_y1=%f\n", 
+// __LINE__, text_x1, text_y1);
 
 	if(text_x1 < input->get_w() && text_x1 + text_w > 0 &&
 		mask_y1 < input->get_h() && mask_y2 > 0)
