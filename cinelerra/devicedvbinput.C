@@ -27,6 +27,7 @@
 #include "edlsession.h"
 #include "mutex.h"
 #include "mwindow.h"
+#include "preferences.h"
 #include "recordconfig.h"
 #include "renderfarm.h"
 
@@ -88,9 +89,7 @@ DeviceDVBInput* DeviceDVBInput::get_input_thread(MWindow *mwindow)
 // create shared input if it doesn't exist
 	{
 		input_thread = mwindow->dvb_input = 
-			new DeviceDVBInput(mwindow, mwindow->edl->session->vconfig_in);
-
-
+			new DeviceDVBInput(mwindow, MWindow::preferences->vconfig_in);
 	}
 	mwindow->dvb_input_lock->unlock();
 	return input_thread;

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,11 +25,6 @@
 #include "cwindowgui.h"
 #include "edl.h"
 #include "edlsession.h"
-#include "levelwindow.h"
-#include "levelwindowgui.h"
-#include "localsession.h"
-#include "mainclock.h"
-#include "meterpanel.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "tracking.h"
@@ -48,14 +42,14 @@
 
 
 
-Tracking::Tracking(MWindow *mwindow)
+Tracking::Tracking(PlaybackEngine *playback_engine)
  : Thread(1, 0, 0)
 {
-	this->gui = mwindow->gui;
-	this->mwindow = mwindow; 
+    this->playback_engine = playback_engine;
 	follow_loop = 0; 
 	visible = 0;
 	pixel = 0;
+    playback_engine = 0;
 	state = DONE;
 	startup_lock = new Condition(0, "Tracking::startup_lock");
 }
@@ -75,18 +69,12 @@ Tracking::~Tracking()
 	delete startup_lock;
 }
 
-void Tracking::create_objects()
-{
-//	start();
-}
-
 int Tracking::start_playback(double new_position)
 {
 	if(state != PLAYING)
 	{
 		last_position = new_position;
 		state = PLAYING;
-		draw();
 		Thread::start();
 		startup_lock->lock("Tracking::start_playback");
 	}
@@ -105,103 +93,19 @@ int Tracking::stop_playback()
 
 // Final position is updated continuously during playback
 // Get final position
-		double position = get_tracking_position();
+		double position = playback_engine->get_tracking_position();
 // Update cursor
-		update_tracker(position);
+		playback_engine->update_tracker(position);
 	
-		stop_meters();
 		state = DONE;
 	}
 	return 0;
 }
 
-PlaybackEngine* Tracking::get_playback_engine()
-{
-	return mwindow->cwindow->playback_engine;
-}
-
-double Tracking::get_tracking_position()
-{
-	return get_playback_engine()->get_tracking_position();
-}
-
-//int Tracking::get_pixel(double position)
-//{
-//	return (int64_t)((position - mwindow->edl->local_session->view_start) *
-//		mwindow->edl->session->sample_rate / 
-//		mwindow->edl->local_session->zoom_sample + 
-//		0.5);
-//}
-
-
-void Tracking::update_meters(int64_t position)
-{
-	double output_levels[MAXCHANNELS];
-	int do_audio = get_playback_engine()->get_output_levels(output_levels, position);
-
-	if(do_audio)
-	{
-		module_levels.remove_all();
-		get_playback_engine()->get_module_levels(&module_levels, position);
-
-#ifdef USE_METERS
-		mwindow->cwindow->gui->lock_window("Tracking::update_meters 1");
-		mwindow->cwindow->gui->meters->update(output_levels);
-		mwindow->cwindow->gui->unlock_window();
-#endif
-
-		mwindow->lwindow->gui->lock_window("Tracking::update_meters 2");
-		mwindow->lwindow->gui->panel->update(output_levels);
-		mwindow->lwindow->gui->unlock_window();
-
-		mwindow->gui->lock_window("Tracking::update_meters 3");
-		mwindow->gui->update_meters(&module_levels);
-		mwindow->gui->unlock_window();
-
-	}
-}
-
-void Tracking::stop_meters()
-{
-#ifdef USE_METERS
-	mwindow->cwindow->gui->lock_window("Tracking::stop_meters 1");
-	mwindow->cwindow->gui->meters->stop_meters();
-	mwindow->cwindow->gui->unlock_window();
-#endif
-
-
-	mwindow->gui->lock_window("Tracking::stop_meters 2");
-	mwindow->gui->stop_meters();
-	mwindow->gui->unlock_window();
-
-	mwindow->lwindow->gui->lock_window("Tracking::stop_meters 3");
-	mwindow->lwindow->gui->panel->stop_meters();
-	mwindow->lwindow->gui->unlock_window();
-}
 
 
 
 
-void Tracking::update_tracker(double position)
-{
-}
-
-void Tracking::draw()
-{
-// 	gui->lock_window("Tracking::draw");
-// 	if(!visible)
-// 	{
-// 		pixel = get_pixel(last_position);
-// 	}
-// 
-// 	gui->canvas->set_color(GREEN);
-// 	gui->canvas->set_inverse();
-// 	gui->canvas->draw_line(pixel, 0, pixel, gui->canvas->get_h());
-// 	gui->canvas->set_opaque();
-// 	gui->canvas->flash(pixel, 0, pixel + 1, gui->canvas->get_h());
-// 	visible ^= 1;
-// 	gui->unlock_window();
-}
 
 
 void Tracking::run()
@@ -219,13 +123,13 @@ void Tracking::run()
 		{
 
 // can be stopped during wait
-			if(get_playback_engine()->tracking_active)
+			if(playback_engine->tracking_active)
 			{
 // Get position of cursor
-				position = get_tracking_position();
+				position = playback_engine->get_tracking_position();
 
 // Update cursor
-				update_tracker(position);
+				playback_engine->update_tracker(position);
 			}
 		}
 	}

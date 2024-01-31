@@ -25,6 +25,7 @@
 #include "clipedit.h"
 #include "bchash.h"
 #include "edl.h"
+#include "edlfactory.h"
 #include "edlsession.h"
 #include "filesystem.h"
 #include "filexml.h"
@@ -41,7 +42,6 @@
 #include "transportque.h"
 #include "vplayback.h"
 #include "vtimebar.h"
-#include "vtracking.h"
 #include "vwindow.h"
 #include "vwindowgui.h"
 
@@ -62,7 +62,6 @@ VWindow::~VWindow()
 //printf("VWindow::~VWindow 1\n");
 	delete playback_engine;
 //printf("VWindow::~VWindow 1\n");
-	delete playback_cursor;
 	delete_source(1, 0);
 	delete clip_edit;
 //printf("VWindow::~VWindow 2\n");
@@ -168,8 +167,6 @@ BC_Window* VWindow::new_gui()
 // Start command loop
 	playback_engine->create_objects();
 	gui->transport->set_engine(playback_engine);
-	playback_cursor = new VTracking(mwindow, this);
-	playback_cursor->create_objects();
 
 	clip_edit = new ClipEdit(mwindow, 0, this);
 	return gui;
@@ -256,7 +253,10 @@ void VWindow::change_source(Indexable *indexable)
     {
 // Can't conform the VWindow EDL to the asset because pasting from the VWindow
 // copies the VWindow dimensions to the mane EDL.
-		mwindow->asset_to_edl(this->edl, asset, 0, 0);
+		EDLFactory::asset_to_edl(this->edl, 
+            asset, 
+            0, 
+            0); // conform
 	}
     else
 	{

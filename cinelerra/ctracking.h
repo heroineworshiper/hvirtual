@@ -39,7 +39,6 @@ public:
 	int update_scroll(double position);
 
 // Move sliders and insertion point to track playback
-	int start_playback(double new_position);
 	int stop_playback();
 	void draw();
 

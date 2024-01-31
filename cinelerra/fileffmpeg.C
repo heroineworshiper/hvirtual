@@ -1228,6 +1228,15 @@ int FileFFMPEG::create_toc(void *ptr)
 
     if(need_toc)
     {
+// use length codes if TOC creation is disabled
+        if(file->disable_toc_creation) 
+        {
+            if(asset->audio_data) asset->audio_length = NOSEEK_LENGTH;
+            if(asset->video_data) asset->video_length = NOSEEK_LENGTH;
+            return 0;
+        }
+        
+    
         result = 0;
 
         Timer prev_time;

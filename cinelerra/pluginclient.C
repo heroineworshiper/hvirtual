@@ -1151,6 +1151,11 @@ EDLSession* PluginClient::get_edlsession()
 	return 0;
 }
 
+Preferences* PluginClient::get_preferences()
+{
+    return server->preferences;
+}
+
 int PluginClient::gui_open()
 {
 	return server->gui_open();

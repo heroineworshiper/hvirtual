@@ -356,8 +356,8 @@ printf("main %d\n", __LINE__);
 
 		case DO_GUI:
 		{
-			MWindow mwindow;
-			mwindow.create_objects(1, 
+			MWindow::instance = new MWindow;
+			MWindow::instance->create_objects(1, 
 				!filenames.total,
 				config_path);
 
@@ -369,7 +369,8 @@ printf("main %d\n", __LINE__);
 			if(filenames.total)
 			{
 //PRINT_TRACE
-				CommandLineThread *thread  = new CommandLineThread(&filenames, &mwindow);
+				CommandLineThread *thread  = new CommandLineThread(&filenames, 
+                    MWindow::instance);
 //PRINT_TRACE
 				thread->start();
 //PRINT_TRACE
@@ -378,9 +379,9 @@ printf("main %d\n", __LINE__);
 
 // run the program
 //PRINT_TRACE
-			mwindow.start();
+			MWindow::instance->start();
 //PRINT_TRACE
-			mwindow.save_defaults();
+			MWindow::instance->save_defaults();
 //PRINT_TRACE
 DISABLE_BUFFER
 			break;

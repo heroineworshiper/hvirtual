@@ -60,7 +60,9 @@ class VideoDevice;
 #define PLAYBACK_LML 	  12
 #define PLAYBACK_FIREWIRE 13
 #define PLAYBACK_DV1394   15
-#define PLAYBACK_IEC61883   16
+#define PLAYBACK_IEC61883 16
+#define PLAYBACK_PREVIEW  24
+
 // This is passed to File::get_best_colormodel by FileThread so FileThread can
 // do the colorspace conversion using the shortest path.
 #define PLAYBACK_ASYNCHRONOUS 18
@@ -73,6 +75,7 @@ class VideoDevice;
 #define PLAYBACK_FIREWIRE_TITLE "RAW 1394"
 #define PLAYBACK_DV1394_TITLE   "DV 1394"
 #define PLAYBACK_IEC61883_TITLE "IEC 61883"
+#define PLAYBACK_PREVIEW_TITLE  "Preview"
 
 // Output formats required for direct frame copy
 // RGB is for either RGB or RGBA as defined in the VFrame

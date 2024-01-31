@@ -186,7 +186,7 @@ int IndexFile::open_file()
 //printf("IndexFile::open_file %d\n", __LINE__);
 
 	get_index_filename(&source_path, 
-		&mwindow->preferences->index_directory,
+		&MWindow::preferences->index_directory,
 		&index_path, 
 		&path);
 
@@ -207,7 +207,7 @@ int IndexFile::open_file()
 
 // try a table of contents file which also contains offsets for all the media
         get_toc_filename(&source_path, 
-		    &mwindow->preferences->index_directory,
+		    &MWindow::preferences->index_directory,
 		    &index_path, 
 		    &path);
 
@@ -323,7 +323,7 @@ int IndexFile::open_source()
 		if(!source) source = new File;
 
 		Asset *asset = (Asset*)indexable;
-		if(source->open_file(mwindow->preferences, 
+		if(source->open_file(MWindow::preferences, 
 			asset, 
 			1, 
 			0))
@@ -346,11 +346,9 @@ int IndexFile::open_source()
 		command.get_edl()->copy_all((EDL*)indexable);
 		command.change_type = CHANGE_ALL;
 		command.realtime = 0;
-		cache = new CICache(mwindow->preferences);
+		cache = new CICache(MWindow::preferences);
 		render_engine = new RenderEngine(0,
-			mwindow->preferences,
-			0,
-			0);
+			MWindow::preferences);
 		render_engine->set_acache(cache);
 		render_engine->arm_command(&command);
 		FileSystem fs;
@@ -379,7 +377,7 @@ int64_t IndexFile::get_required_scale()
 
 // get scale of index file
 // Total peaks which may be stored in buffer
-	int64_t peak_count = mwindow->preferences->index_size / 
+	int64_t peak_count = MWindow::preferences->index_size / 
 		(2 * sizeof(float) * source_channels);
 	for(result = 1; 
 		source_length / result > peak_count; 
@@ -483,7 +481,7 @@ SET_TRACE
 SET_TRACE
     string path(indexable->path);
 	get_index_filename(&source_path, 
-		&mwindow->preferences->index_directory, 
+		&MWindow::preferences->index_directory, 
 		&index_path, 
 		&path);
 

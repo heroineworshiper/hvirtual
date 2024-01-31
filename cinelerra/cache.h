@@ -75,6 +75,9 @@ public:
 //	void update(File* &file);
 //	void set_edl(EDL *edl);
 
+// don't create a TOC for file previews
+    void set_is_previewer(int value);
+
 // open it, lock it and add it to the cache if it isn't here already
 // If it's already checked out, the value of block causes it to wait
 // until it's checked in.
@@ -122,6 +125,7 @@ private:
 // Copy of EDL
 	EDL *edl;
 	Preferences *preferences;
+    int is_previewer;
 };
 
 

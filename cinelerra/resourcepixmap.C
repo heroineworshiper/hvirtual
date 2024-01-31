@@ -674,9 +674,7 @@ void ResourcePixmap::draw_audio_source(TrackCanvas *canvas,
 				command.change_type = CHANGE_ALL;
 				command.realtime = 0;
 				mwindow->gui->render_engine = new RenderEngine(0,
-					mwindow->preferences,
-					0,
-					0);
+					mwindow->preferences);
 				mwindow->gui->render_engine_id == edit->nested_edl->id;
 				mwindow->gui->render_engine->set_acache(mwindow->audio_cache);
 				mwindow->gui->render_engine->arm_command(&command);

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,10 +43,12 @@
 #include "devicedvbinput.inc"
 #include "editpanel.h"
 #include "edl.h"
+#include "edlfactory.h"
 #include "edlsession.h"
 #include "errorbox.h"
 #include "fileformat.h"
 #include "file.h"
+#include "filepreviewer.h"
 #include "fileserver.h"
 #include "filesystem.h"
 #include "filexml.h"
@@ -151,6 +153,7 @@ int atexit(void (*function)(void))
 
 
 
+MWindow* MWindow::instance = 0;
 ArrayList<PluginServer*>* MWindow::plugindb = 0;
 Playback3D* MWindow::playback_3d = 0;
 FileServer* MWindow::file_server = 0;
@@ -159,6 +162,7 @@ MainProgressBar* MWindow::file_progress = 0;
 MainProgress* MWindow::mainprogress = 0;
 Theme* MWindow::theme = 0;
 Preferences* MWindow::preferences = 0;
+BC_Hash* MWindow::defaults = 0;
 
 int MWindow::is_loading = 0;
 int MWindow::indent = 0;
@@ -1183,7 +1187,10 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 				if(load_mode != LOADMODE_RESOURCESONLY)
 				{
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
-					asset_to_edl(new_edl, new_asset, 0, conform_this);
+					EDLFactory::asset_to_edl(new_edl, 
+                        new_asset, 
+                        0, 
+                        conform_this);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 					new_edls.append(new_edl);
 					new_asset->Garbage::remove_user();
@@ -1300,7 +1307,10 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 					if(load_mode != LOADMODE_RESOURCESONLY)
 					{
-						asset_to_edl(new_edl, new_asset, 0, conform_this);
+						EDLFactory::asset_to_edl(new_edl, 
+                            new_asset, 
+                            0, 
+                            conform_this);
 						new_edls.append(new_edl);
 						new_asset->Garbage::remove_user();
 						new_asset = 0;
@@ -1754,7 +1764,6 @@ void MWindow::create_objects(int want_gui,
 	init_defaults(defaults, config_path);
 	if(debug) PRINT_TRACE
 	init_preferences();
-	if(debug) PRINT_TRACE
 
 	BC_Resources::override_dpi = preferences->override_dpi;
 	BC_Resources::dpi = preferences->dpi;
@@ -1797,6 +1806,8 @@ void MWindow::create_objects(int want_gui,
 // Initialize before too much else is running
 // Preferences & theme are required for building MPEG table of contents
 	init_fileserver(preferences);
+
+    FilePreviewer::instance.initialize();
 
 // Default project created here
 	init_edl();
@@ -2641,92 +2652,6 @@ void MWindow::update_plugin_titles()
 	}
 }
 
-int MWindow::asset_to_edl(EDL *new_edl, 
-	Asset *new_asset, 
-	RecordLabels *labels,
-    int conform)
-{
-const int debug = 0;
-if(debug) printf("MWindow::asset_to_edl %d new_asset->layers=%d\n", 
-__LINE__,
-new_asset->layers);
-// These parameters would revert the project if VWindow displayed an asset
-// of different size than the project.
-	if(new_asset->video_data)
-	{
-		new_edl->session->video_tracks = new_asset->layers;
-        
-// Change frame rate, sample rate, and output size if desired.
-        if(conform)
-        {
-            int auto_aspect = defaults->get("AUTOASPECT", 0);
-            new_edl->session->frame_rate = new_asset->frame_rate;
-            new_edl->session->output_w = new_asset->width;
-            new_edl->session->output_h = new_asset->height;
-            if(auto_aspect)
-            {
-                create_aspect_ratio(new_edl->session->aspect_w, 
-			        new_edl->session->aspect_h, 
-			        new_asset->width, 
-			        new_asset->height);
-            }
-        }
-	}
-	else
-    {
-		new_edl->session->video_tracks = 0;
-    }
-
-if(debug) printf("MWindow::asset_to_edl %d\n", __LINE__);
-
-
-
-
-
-	if(new_asset->audio_data)
-	{
-		new_edl->session->audio_tracks = new_asset->channels;
-// Change frame rate, sample rate, and output size if desired.
-        if(conform)
-        {
-            new_edl->session->sample_rate = new_asset->sample_rate;
-        }
-	}
-	else
-		new_edl->session->audio_tracks = 0;
-//printf("MWindow::asset_to_edl 2 %d %d\n", new_edl->session->video_tracks, new_edl->session->audio_tracks);
-
-if(debug) printf("MWindow::asset_to_edl %d\n", __LINE__);
-	new_edl->create_default_tracks();
-//printf("MWindow::asset_to_edl 2 %d %d\n", new_edl->session->video_tracks, new_edl->session->audio_tracks);
-if(debug) printf("MWindow::asset_to_edl %d\n", __LINE__);
-
-
-
-//printf("MWindow::asset_to_edl 3\n");
-	new_edl->insert_asset(new_asset,
-		0,
-		0, 
-		0, 
-		labels);
-//printf("MWindow::asset_to_edl 3\n");
-if(debug) printf("MWindow::asset_to_edl %d\n", __LINE__);
-
-
-
-
-
-	char string[BCTEXTLEN];
-	FileSystem fs;
-	fs.extract_name(string, new_asset->path);
-//printf("MWindow::asset_to_edl 3\n");
-
-	strcpy(new_edl->local_session->clip_title, string);
-//printf("MWindow::asset_to_edl 4 %s\n", string);
-if(debug) printf("MWindow::asset_to_edl %d\n", __LINE__);
-
-	return 0;
-}
 
 int MWindow::edl_to_nested(EDL *new_edl, 
 	EDL *nested_edl)

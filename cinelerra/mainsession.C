@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +18,8 @@
  * 
  */
 
+#include "asset.h"
+#include "auto.h"
 #include "bcdisplayinfo.h"
 #include "clip.h"
 #include "bchash.h"
@@ -26,13 +27,13 @@
 #include "editpopup.inc"
 #include "edl.h"
 #include "edlsession.h"
+#include "file.inc"
 #include "guicast.h"
 #include "indexable.h"
 #include "mainsession.h"
 #include "meterpanel.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
-#include "auto.h"
 
 MainSession::MainSession(MWindow *mwindow)
 {
@@ -70,6 +71,7 @@ MainSession::MainSession(MWindow *mwindow)
 	vwindow_fullscreen = 0;
 	actual_frame_rate = 0;
 	record_scope = 0;
+
 }
 
 MainSession::~MainSession()
@@ -80,6 +82,7 @@ MainSession::~MainSession()
 	delete drag_clips;
 	delete drag_edits;
 }
+
 
 void MainSession::boundaries()
 {
@@ -337,6 +340,7 @@ int MainSession::load_defaults(BC_Hash *defaults)
 	current_tip = defaults->get("CURRENT_TIP", current_tip);
 	actual_frame_rate = defaults->get("ACTUAL_FRAME_RATE", (float)-1);
 
+
 	boundaries();
 	return 0;
 }
@@ -457,3 +461,5 @@ int MainSession::save_defaults(BC_Hash *defaults)
 
 	return 0;
 }
+
+

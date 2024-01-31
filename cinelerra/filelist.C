@@ -131,7 +131,7 @@ int FileList::open_file(int rd, int wr)
 					asset->layers = 1;
 					if(!asset->frame_rate)
 						asset->frame_rate = 1;
-					asset->video_length = -1;
+					asset->video_length = STILL_PHOTO_LENGTH;
 				}
 			}
             else

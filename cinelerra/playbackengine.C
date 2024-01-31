@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,12 +41,14 @@
 #include "vrender.h"
 
 
-PlaybackEngine::PlaybackEngine(MWindow *mwindow, Canvas *output)
+PlaybackEngine::PlaybackEngine()
  : Thread(1, 0, 0)
 {
-	this->mwindow = mwindow;
-	this->output = output;
+	output = 0;
+    use_gui = 0;
+    is_previewer = 0;
 	is_playing_back = 0;
+    tracking = 0;
 	tracking_position = 0;
 	tracking_active = 0;
 	audio_cache = 0;
@@ -79,6 +81,7 @@ PlaybackEngine::~PlaybackEngine()
 	delete video_cache;
 	delete tracking_lock;
 	delete tracking_done;
+    delete tracking;
 	delete pause_lock;
 	delete start_lock;
 	delete renderengine_lock;
@@ -89,28 +92,45 @@ void PlaybackEngine::create_objects()
 	int result = 0;
 	preferences = new Preferences;
 	command = new TransportCommand;
+    tracking = new Tracking(this);
 	que = new TransportQue;
 // Set the first change to maximum
 	que->command.change_type = CHANGE_ALL;
 
-	preferences->copy_from(mwindow->preferences);
+	preferences->copy_from(MWindow::preferences);
 
 	done = 0;
 	Thread::start();
 	start_lock->lock("PlaybackEngine::create_objects");
 }
 
+void PlaybackEngine::set_canvas(Canvas *output)
+{
+    this->output = output;
+}
+
+void PlaybackEngine::set_is_previewer(int value)
+{
+    this->is_previewer = value;
+}
+
+void PlaybackEngine::set_use_gui(int value)
+{
+    this->use_gui = value;
+}
+
+// get the channel DB from the current command
 ChannelDB* PlaybackEngine::get_channeldb()
 {
-	PlaybackConfig *config = command->get_edl()->session->playback_config;
+	PlaybackConfig *config = preferences->playback_config;
 	switch(config->vconfig->driver)
 	{
 		case VIDEO4LINUX2JPEG:
 		case VIDEO4LINUX2MJPG:
-			return mwindow->channeldb_v4l2jpeg;
+			return MWindow::instance->channeldb_v4l2jpeg;
 			break;
 		case PLAYBACK_BUZ:
-			return mwindow->channeldb_buz;
+			return MWindow::instance->channeldb_buz;
 			break;
 	}
 	return 0;
@@ -124,11 +144,19 @@ int PlaybackEngine::create_render_engine()
 
 	delete_render_engine();
 
+// update the device settings for every playback command
+	preferences->copy_from(MWindow::preferences);
 
-	render_engine = new RenderEngine(this,
-		preferences, 
-		output,
-		get_channeldb());
+// hard code the output for preview mode
+    if(is_previewer)
+    {
+        preferences->playback_config->vconfig->driver = PLAYBACK_PREVIEW;
+    }
+
+	render_engine = new RenderEngine(this, preferences);
+    render_engine->set_canvas(output);
+    render_engine->set_channeldb(get_channeldb());
+    render_engine->set_use_gui(use_gui);
 //printf("PlaybackEngine::create_render_engine %d\n", __LINE__);
 	return 0;
 }
@@ -173,9 +201,11 @@ void PlaybackEngine::create_cache()
 	if(video_cache) delete video_cache;
 	video_cache = 0;
 	if(!audio_cache) 
-		audio_cache = new CICache(preferences);
+		audio_cache = new CICache(MWindow::preferences);
 	if(!video_cache) 
-		video_cache = new CICache(preferences);
+		video_cache = new CICache(MWindow::preferences);
+    audio_cache->set_is_previewer(is_previewer);
+    video_cache->set_is_previewer(is_previewer);
 }
 
 
@@ -270,15 +300,24 @@ void PlaybackEngine::init_tracking()
 
 	tracking_position = command->playbackstart;
 	tracking_done->lock("PlaybackEngine::init_tracking");
+    tracking->start_playback(tracking_position);
 	init_cursor();
 }
 
 void PlaybackEngine::stop_tracking()
 {
 	tracking_active = 0;
+    tracking->stop_playback();
 	stop_cursor();
 	tracking_done->unlock();
 }
+
+
+void PlaybackEngine::update_tracker(double position)
+{
+    printf("PlaybackEngine::update_tracker %d position=%f\n", __LINE__, position);
+}
+
 
 void PlaybackEngine::update_tracking(double position)
 {
@@ -308,7 +347,7 @@ double PlaybackEngine::get_tracking_position()
 
 
 // Don't interpolate when every frame is played.
-		if(command->get_edl()->session->video_every_frame &&
+		if(MWindow::preferences->video_every_frame &&
 			render_engine &&
 			render_engine->do_video)
 		{

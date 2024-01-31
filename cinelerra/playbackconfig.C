@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,21 +24,16 @@
 #include "videodevice.inc"
 #include <string.h>
 
-AudioOutConfig::AudioOutConfig(int duplex)
+AudioOutConfig::AudioOutConfig()
 {
-	this->duplex = duplex;
-
 	fragment_size = 16384;
 	driver = AUDIO_OSS;
 
 	audio_offset = 0.0;
 
 	oss_out_bits = 16;
-	for(int i = 0; i < MAXDEVICES; i++)
-	{
-		oss_enable[i] = (i == 0);
-		sprintf(oss_out_device[i], "/dev/dsp");
-	}
+	oss_enable = 1;
+	sprintf(oss_out_device, "/dev/dsp");
 
 	esound_out_server[0] = 0;
 	pulse_out_server[0] = 0;
@@ -80,7 +74,7 @@ int AudioOutConfig::operator==(AudioOutConfig &that)
 		EQUIV(audio_offset, that.audio_offset) &&
 
 
-		!strcmp(oss_out_device[0], that.oss_out_device[0]) && 
+		!strcmp(oss_out_device, that.oss_out_device) && 
 		(oss_out_bits == that.oss_out_bits) && 
 
 
@@ -114,6 +108,13 @@ AudioOutConfig& AudioOutConfig::operator=(AudioOutConfig &that)
 	return *this;
 }
 
+void AudioOutConfig::dump()
+{
+    printf("AudioOutConfig::dump %d: driver=%d\n", 
+        __LINE__, 
+        driver);
+}
+
 void AudioOutConfig::copy_from(AudioOutConfig *src)
 {
 	fragment_size = src->fragment_size;
@@ -123,11 +124,8 @@ void AudioOutConfig::copy_from(AudioOutConfig *src)
 	strcpy(esound_out_server, src->esound_out_server);
 	strcpy(pulse_out_server, src->pulse_out_server);
 	esound_out_port = src->esound_out_port;
-	for(int i = 0; i < MAXDEVICES; i++)
-	{
-		oss_enable[i] = src->oss_enable[i];
-		strcpy(oss_out_device[i], src->oss_out_device[i]);
-	}
+	oss_enable = src->oss_enable;
+	strcpy(oss_out_device, src->oss_out_device);
 	oss_out_bits = src->oss_out_bits;
 
 	strcpy(alsa_out_device, src->alsa_out_device);
@@ -152,29 +150,20 @@ int AudioOutConfig::load_defaults(BC_Hash *defaults)
 
 	fragment_size = defaults->get("FRAGMENT_SIZE", fragment_size);
 	audio_offset = defaults->get("AUDIO_OFFSET", audio_offset);
-	sprintf(string, "AUDIO_OUT_DRIVER_%d", duplex);
-	driver = defaults->get(string, driver);
+	driver = defaults->get("AUDIO_OUT_DRIVER", driver);
 
-	for(int i = 0; i < MAXDEVICES; i++)
-	{
-		sprintf(string, "OSS_ENABLE_%d_%d", i, duplex);
-		oss_enable[i] = defaults->get(string, oss_enable[i]);
-		sprintf(string, "OSS_OUT_DEVICE_%d_%d", i, duplex);
-		defaults->get(string, oss_out_device[i]);
-	}
-	sprintf(string, "OSS_OUT_BITS_%d", duplex);
-	oss_out_bits = defaults->get(string, oss_out_bits);
+	oss_enable = defaults->get("OSS_ENABLE", oss_enable);
+	defaults->get("OSS_OUT_DEVICE", oss_out_device);
+
+	oss_out_bits = defaults->get("OSS_OUT_BITS", oss_out_bits);
 
 	defaults->get("ALSA_OUT_DEVICE", alsa_out_device);
 	alsa_out_bits = defaults->get("ALSA_OUT_BITS", alsa_out_bits);
 	interrupt_workaround = defaults->get("ALSA_INTERRUPT_WORKAROUND", interrupt_workaround);
 
-	sprintf(string, "ESOUND_OUT_SERVER_%d", duplex);
-	defaults->get(string, esound_out_server);
-	sprintf(string, "PULSE_OUT_SERVER_%d", duplex);
-	defaults->get(string, pulse_out_server);
-	sprintf(string, "ESOUND_OUT_PORT_%d", duplex);
-	esound_out_port =             defaults->get(string, esound_out_port);
+	defaults->get("ESOUND_OUT_SERVER", esound_out_server);
+	defaults->get("PULSE_OUT_SERVER", pulse_out_server);
+	esound_out_port = defaults->get("ESOUND_OUT_PORT", esound_out_port);
 
 	sprintf(string, "AFIREWIRE_OUT_CHANNEL");
 	firewire_channel = defaults->get(string, firewire_channel);
@@ -204,30 +193,20 @@ int AudioOutConfig::save_defaults(BC_Hash *defaults)
 	defaults->update("FRAGMENT_SIZE", fragment_size);
 	defaults->update("AUDIO_OFFSET", audio_offset);
 
-	sprintf(string, "AUDIO_OUT_DRIVER_%d", duplex);
-	defaults->update(string, driver);
+	defaults->update("AUDIO_OUT_DRIVER", driver);
 
-	for(int i = 0; i < MAXDEVICES; i++)
-	{
-		sprintf(string, "OSS_ENABLE_%d_%d", i, duplex);
-		defaults->update(string, oss_enable[i]);
-		sprintf(string, "OSS_OUT_DEVICE_%d_%d", i, duplex);
-		defaults->update(string, oss_out_device[i]);
-	}
-	sprintf(string, "OSS_OUT_BITS_%d", duplex);
-	defaults->update(string, oss_out_bits);
+	defaults->update("OSS_ENABLE", oss_enable);
+	defaults->update("OSS_OUT_DEVICE", oss_out_device);
+	defaults->update("OSS_OUT_BITS", oss_out_bits);
 
 
 	defaults->update("ALSA_OUT_DEVICE", alsa_out_device);
 	defaults->update("ALSA_OUT_BITS", alsa_out_bits);
 	defaults->update("ALSA_INTERRUPT_WORKAROUND", interrupt_workaround);
 
-	sprintf(string, "ESOUND_OUT_SERVER_%d", duplex);
-	defaults->update(string, esound_out_server);
-	sprintf(string, "PULSE_OUT_SERVER_%d", duplex);
-	defaults->update(string, pulse_out_server);
-	sprintf(string, "ESOUND_OUT_PORT_%d", duplex);
-	defaults->update(string, esound_out_port);
+	defaults->update("ESOUND_OUT_SERVER", esound_out_server);
+	defaults->update("PULSE_OUT_SERVER", pulse_out_server);
+	defaults->update("ESOUND_OUT_PORT", esound_out_port);
 
 	sprintf(string, "AFIREWIRE_OUT_CHANNEL");
 	defaults->update(string, firewire_channel);
@@ -325,6 +304,12 @@ int VideoOutConfig::operator==(VideoOutConfig &that)
 
 
 
+void VideoOutConfig::dump()
+{
+    printf("VideoOutConfig::dump %d: driver=%d\n", 
+        __LINE__, 
+        driver);
+}
 
 
 
@@ -462,7 +447,7 @@ int VideoOutConfig::save_defaults(BC_Hash *defaults)
 
 PlaybackConfig::PlaybackConfig()
 {
-	aconfig = new AudioOutConfig(0);
+	aconfig = new AudioOutConfig;
 	vconfig = new VideoOutConfig;
 	sprintf(hostname, "localhost");
 	port = 23456;
@@ -510,6 +495,13 @@ int PlaybackConfig::save_defaults(BC_Hash *defaults)
 	aconfig->save_defaults(defaults);
 	vconfig->save_defaults(defaults);
 	return 0;
+}
+
+void PlaybackConfig::dump()
+{
+    printf("PlaybackConfig::dump %d: %p\n", __LINE__, this);
+    aconfig->dump();
+    vconfig->dump();
 }
 
 

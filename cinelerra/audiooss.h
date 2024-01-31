@@ -61,7 +61,7 @@ public:
 	
 	int open_input();
 	int open_output();
-	int open_duplex();
+//	int open_duplex();
 	int write_buffer(char *buffer, int bytes);
 	int read_buffer(char *buffer, int bytes);
 	int close_all();
@@ -73,14 +73,12 @@ private:
 	int get_fmt(int bits);
 	int sizetofrag(int samples, int channels, int bits);
 	int set_cloexec_flag(int desc, int value);
-	int get_output(int number);
-	int get_input(int number);
-	int dsp_in[MAXDEVICES], dsp_out[MAXDEVICES], dsp_duplex[MAXDEVICES];
-	OSSThread *thread[MAXDEVICES];
+	int dsp_in, dsp_out, dsp_duplex;
+	OSSThread *thread;
 // Temp for each device
-	unsigned char *data[MAXDEVICES];
+	unsigned char *data;
 // Bytes allocated
-	int data_allocated[MAXDEVICES];
+	int data_allocated;
 };
 
 #endif

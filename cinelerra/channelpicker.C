@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +33,7 @@
 #include "mwindow.h"
 #include "picture.h"
 #include "playbackconfig.h"
+#include "preferences.h"
 #include "preferencesthread.h"
 #include "record.h"
 #include "recordgui.h"
@@ -85,7 +85,7 @@ void RecordChannelPicker::handle_channel_edit(int result)
 		record->record_gui->unlock_window();
 		record->save_defaults();
 		VideoDevice::save_channeldb(record->channeldb,
-			mwindow->edl->session->vconfig_in);
+			MWindow::preferences->vconfig_in);
 	}
 	else
 	{

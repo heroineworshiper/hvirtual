@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -30,11 +29,10 @@ class VPlayback : public PlaybackEngine
 public:
 	VPlayback(MWindow *mwindow, VWindow *vwindow, Canvas *output);
 
-	int create_render_engine();
 	void init_cursor();
 	void stop_cursor();
-	void goto_start();
-	void goto_end();
+    void update_tracker(double position);
+    void update_meters(int64_t position);
 	VWindow *vwindow;
 };
 

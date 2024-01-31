@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -199,14 +198,15 @@ public:
 // Buttons
 	VFrame **ok_images;
 	VFrame **cancel_images;
-	VFrame **filebox_text_images;
-	VFrame **filebox_icons_images;
+//	VFrame **filebox_text_images;
+//	VFrame **filebox_icons_images;
 	VFrame **filebox_updir_images;
 	VFrame **filebox_newfolder_images;
 	VFrame **filebox_rename_images;
 	VFrame **filebox_descend_images;
 	VFrame **filebox_delete_images;
 	VFrame **filebox_reload_images;
+	VFrame **filebox_preview_images;
 
 // Generic button images
 	VFrame **generic_button_images;
@@ -288,7 +288,7 @@ public:
 // Motion required to start a drag
 	int drag_radius;
 
-// Filebox
+// Filebox settings
 	static suffix_to_type_t suffix_to_type[TOTAL_SUFFIXES];
 	VFrame **type_to_icon;
 // Display mode for fileboxes
@@ -315,6 +315,8 @@ public:
 	int dirbox_margin;
 	int directory_color;
 	int file_color;
+    int filebox_preview_w;
+    int filebox_show_preview;
 
 
 // fixed fonts

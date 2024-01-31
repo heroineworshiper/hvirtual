@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -253,15 +253,6 @@ void BC_Resources::init()
 		check = default_check_image;
 
 
-	#include "images/file_text_up_png.h"
-	#include "images/file_text_hi_png.h"
-	#include "images/file_text_dn_png.h"
-	#include "images/file_icons_up_png.h"
-	#include "images/file_icons_hi_png.h"
-	#include "images/file_icons_dn_png.h"
-	#include "images/file_newfolder_up_png.h"
-	#include "images/file_newfolder_hi_png.h"
-	#include "images/file_newfolder_dn_png.h"
 	#include "images/file_rename_up_png.h"
 	#include "images/file_rename_hi_png.h"
 	#include "images/file_rename_dn_png.h"
@@ -271,22 +262,25 @@ void BC_Resources::init()
 	#include "images/file_delete_up_png.h"
 	#include "images/file_delete_hi_png.h"
 	#include "images/file_delete_dn_png.h"
-	#include "images/file_reload_up_png.h"
-	#include "images/file_reload_hi_png.h"
-	#include "images/file_reload_dn_png.h"
-		static VFrame* default_filebox_text_images[] = 
-		{
-			new VFrame(file_text_up_png),
-			new VFrame(file_text_hi_png),
-			new VFrame(file_text_dn_png)
-		};
-
-		static VFrame* default_filebox_icons_images[] = 
-		{
-			new VFrame(file_icons_up_png),
-			new VFrame(file_icons_hi_png),
-			new VFrame(file_icons_dn_png)
-		};
+// 	#include "images/file_text_up_png.h"
+// 	#include "images/file_text_hi_png.h"
+// 	#include "images/file_text_dn_png.h"
+// 	#include "images/file_icons_up_png.h"
+// 	#include "images/file_icons_hi_png.h"
+// 	#include "images/file_icons_dn_png.h"
+// 		static VFrame* default_filebox_text_images[] = 
+// 		{
+// 			new VFrame(file_text_up_png),
+// 			new VFrame(file_text_hi_png),
+// 			new VFrame(file_text_dn_png)
+// 		};
+// 
+// 		static VFrame* default_filebox_icons_images[] = 
+// 		{
+// 			new VFrame(file_icons_up_png),
+// 			new VFrame(file_icons_hi_png),
+// 			new VFrame(file_icons_dn_png)
+// 		};
 
 		static VFrame* default_filebox_updir_images[] =  
 		{
@@ -294,13 +288,33 @@ void BC_Resources::init()
 			new VFrame(file_updir_hi_png),
 			new VFrame(file_updir_dn_png)
 		};
+		filebox_updir_images = default_filebox_updir_images;
 
+	#include "images/file_newfolder_up_png.h"
+	#include "images/file_newfolder_hi_png.h"
+	#include "images/file_newfolder_dn_png.h"
 		static VFrame* default_filebox_newfolder_images[] = 
 		{
 			new VFrame(file_newfolder_up_png),
 			new VFrame(file_newfolder_hi_png),
 			new VFrame(file_newfolder_dn_png)
 		};
+		filebox_newfolder_images = default_filebox_newfolder_images;
+
+	#include "images/file_preview_up_png.h"
+	#include "images/file_preview_hi_png.h"
+	#include "images/file_preview_dn_png.h"
+	#include "images/file_preview_checked_png.h"
+	#include "images/file_preview_checkedhi_png.h"
+		static VFrame* default_filebox_preview_images[] = 
+		{
+			new VFrame(file_preview_up_png),
+			new VFrame(file_preview_hi_png),
+            new VFrame(file_preview_checked_png),
+			new VFrame(file_preview_dn_png),
+            new VFrame(file_preview_checkedhi_png)
+		};
+		filebox_preview_images = default_filebox_preview_images;
 
 
 		static VFrame* default_filebox_rename_images[] = 
@@ -309,6 +323,7 @@ void BC_Resources::init()
 			new VFrame(file_rename_hi_png),
 			new VFrame(file_rename_dn_png)
 		};
+		filebox_rename_images = default_filebox_rename_images;
 
 		static VFrame* default_filebox_delete_images[] = 
 		{
@@ -316,13 +331,18 @@ void BC_Resources::init()
 			new VFrame(file_delete_hi_png),
 			new VFrame(file_delete_dn_png)
 		};
+		filebox_delete_images = default_filebox_delete_images;
 
+	#include "images/file_reload_up_png.h"
+	#include "images/file_reload_hi_png.h"
+	#include "images/file_reload_dn_png.h"
 		static VFrame* default_filebox_reload_images[] =
 		{
 			new VFrame(file_reload_up_png),
 			new VFrame(file_reload_hi_png),
 			new VFrame(file_reload_dn_png)
 		};
+		filebox_reload_images = default_filebox_reload_images;
 
 	#include "images/listbox_button_dn_png.h"
 	#include "images/listbox_button_hi_png.h"
@@ -736,6 +756,8 @@ void BC_Resources::init()
 		sprintf(filebox_filter, "*");
 		filebox_w = DP(640);
 		filebox_h = DP(480);
+        filebox_preview_w = DP(150);
+        filebox_show_preview = 1;
 		filebox_columntype[0] = FILEBOX_NAME;
 		filebox_columntype[1] = FILEBOX_SIZE;
 		filebox_columntype[2] = FILEBOX_DATE;
@@ -747,13 +769,8 @@ void BC_Resources::init()
 		dirbox_columnwidth[0] = DP(200);
 		dirbox_columnwidth[1] = DP(100);
 
-		filebox_text_images = default_filebox_text_images;
-		filebox_icons_images = default_filebox_icons_images;
-		filebox_updir_images = default_filebox_updir_images;
-		filebox_newfolder_images = default_filebox_newfolder_images;
-		filebox_rename_images = default_filebox_rename_images;
-		filebox_delete_images = default_filebox_delete_images;
-		filebox_reload_images = default_filebox_reload_images;
+//		filebox_text_images = default_filebox_text_images;
+//		filebox_icons_images = default_filebox_icons_images;
 		directory_color = BLUE;
 		file_color = BLACK;
 

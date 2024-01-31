@@ -82,8 +82,7 @@ void ADevicePrefs::reset()
 	oss_bits = 0;
 
 
-	for(int i = 0; i < MAXDEVICES; i++)
-		oss_path[i] = 0;
+	oss_path = 0;
 
 	cine_bits = 0;
 	cine_path = 0;
@@ -208,15 +207,7 @@ int ADevicePrefs::delete_oss_objs()
 	delete path_title;
  	delete bits_title;
  	delete oss_bits;
-
-	if(oss_path)
-	{
-		for(int i = 0; i < MAXDEVICES; i++)
-		{
-			delete oss_path[i];
-			break;
-		}
-	}
+	delete oss_path;
 	return 0;
 }
 
@@ -273,76 +264,69 @@ int ADevicePrefs::create_oss_objs()
 	int y1 = y;
 	BC_Resources *resources = BC_WindowBase::get_resources();
 
-	for(int i = 0; i < MAXDEVICES; i++)
+	int x1 = x + menu->get_w() + margin;
+	switch(mode)
 	{
-		int x1 = x + menu->get_w() + margin;
-		switch(mode)
-		{
-			case MODEPLAY: 
-//				output_int = &out_config->oss_enable[i];
-				break;
-			case MODERECORD:
-//				output_int = &in_config->oss_enable[i];
-				break;
-			case MODEDUPLEX:
-//				output_int = &out_config->oss_enable[i];
-				break;
-		}
-//		dialog->add_subwindow(oss_enable[i] = new OSSEnable(x1, y1 + 20, output_int));
-//		x1 += oss_enable[i]->get_w() + margin;
-		switch(mode)
-		{
-			case MODEPLAY: 
-				output_char = out_config->oss_out_device[i];
-				break;
-			case MODERECORD:
-				output_char = in_config->oss_in_device[i];
-				break;
-			case MODEDUPLEX:
-				output_char = out_config->oss_out_device[i];
-				break;
-		}
-		if(i == 0) dialog->add_subwindow(path_title = new BC_Title(x1, 
-			y, 
-			_("Device path:"), 
-			MEDIUMFONT, 
-			resources->text_default));
-		dialog->add_subwindow(oss_path[i] = new ADeviceTextBox(x1, 
-			y1 + path_title->get_h() + margin, 
-			output_char));
-
-		x1 += oss_path[i]->get_w() + margin;
-		if(i == 0)
-		{
-			switch(mode)
-			{
-				case MODEPLAY: 
-					output_int = &out_config->oss_out_bits;
-					break;
-				case MODERECORD:
-					output_int = &in_config->oss_in_bits;
-					break;
-				case MODEDUPLEX:
-					output_int = &out_config->oss_out_bits;
-					break;
-			}
-			if(i == 0) dialog->add_subwindow(bits_title = new BC_Title(x1, y, _("Bits:"), MEDIUMFONT, resources->text_default));
-			oss_bits = new BitsPopup(dialog, 
-				x1, 
-				y1 + bits_title->get_h() + margin, 
-				output_int, 
-				0, 
-				0, 
-				0,
-				0,
-				1);
-			oss_bits->create_objects();
-		}
-
-		x1 += oss_bits->get_w() + margin;
-//		y1 += DEVICE_H;
-		break;
+		case MODEPLAY: 
+//				output_int = &out_config->oss_enable;
+			break;
+		case MODERECORD:
+//				output_int = &in_config->oss_enable;
+			break;
+		case MODEDUPLEX:
+//				output_int = &out_config->oss_enable;
+			break;
 	}
+//		dialog->add_subwindow(oss_enable = new OSSEnable(x1, y1 + 20, output_int));
+//		x1 += oss_enable->get_w() + margin;
+	switch(mode)
+	{
+		case MODEPLAY: 
+			output_char = out_config->oss_out_device;
+			break;
+		case MODERECORD:
+			output_char = in_config->oss_in_device;
+			break;
+		case MODEDUPLEX:
+			output_char = out_config->oss_out_device;
+			break;
+	}
+	dialog->add_subwindow(path_title = new BC_Title(x1, 
+		y, 
+		_("Device path:"), 
+		MEDIUMFONT, 
+		resources->text_default));
+	dialog->add_subwindow(oss_path = new ADeviceTextBox(x1, 
+		y1 + path_title->get_h() + margin, 
+		output_char));
+
+	x1 += oss_path->get_w() + margin;
+	switch(mode)
+	{
+		case MODEPLAY: 
+			output_int = &out_config->oss_out_bits;
+			break;
+		case MODERECORD:
+			output_int = &in_config->oss_in_bits;
+			break;
+		case MODEDUPLEX:
+			output_int = &out_config->oss_out_bits;
+			break;
+	}
+	dialog->add_subwindow(bits_title = new BC_Title(x1, y, _("Bits:"), MEDIUMFONT, resources->text_default));
+	oss_bits = new BitsPopup(dialog, 
+		x1, 
+		y1 + bits_title->get_h() + margin, 
+		output_int, 
+		0, 
+		0, 
+		0,
+		0,
+		1);
+	oss_bits->create_objects();
+
+	x1 += oss_bits->get_w() + margin;
+//		y1 += DEVICE_H;
 
 	return 0;
 }

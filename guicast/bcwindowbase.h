@@ -112,6 +112,17 @@ public:
 };
 
 
+// wrapper for x events & user functions to run in the window thread
+class BC_Event
+{
+public:
+    BC_Event();
+    virtual ~BC_Event();
+    XEvent *xevent;
+    void (*user_function)(void *);
+    void *user_data;
+};
+
 // Windows, subwindows, popupwindows inherit from this
 class BC_WindowBase
 {
@@ -157,6 +168,10 @@ public:
 
 // Main loop
 	int run_window();
+// Schedule a user function to run in the run_window thread.
+// Deleted by run_window
+// Window is locked before running the function.
+    void put_event(void (*user_function)(void *), void *data);
 // Terminal event dispatchers
 	virtual int close_event();
 	virtual int resize_event(int w, int h);
@@ -635,7 +650,7 @@ private:
     XFontSet get_fontset(int font);
     XFontSet get_curr_fontset(void);
     void set_fontset(int font);
-	int dispatch_event(XEvent *event);
+	int dispatch_event(BC_Event *event);
 
 	int get_key_masks(XEvent *event);
 
@@ -647,10 +662,10 @@ private:
 	int unset_all_repeaters();
 
 // Block and get event from common events.
-	XEvent* get_event();
+	BC_Event* get_event();
 // Return number of events in table.
 	int get_event_count();
-// Put event in common events.
+// Put X event in common events.  Deleted by run_window
 	void put_event(XEvent *event);
 
 // Recursive event dispatchers
@@ -888,8 +903,9 @@ private:
 
 
 #ifndef SINGLE_THREAD
-// Common events coming from X server and repeater.
-	ArrayList<XEvent*> common_events;
+// Common events to run in the window thread
+// Sources are the X server, repeater threads, & user threads.
+	ArrayList<BC_Event*> common_events;
 // Locks for common events
 // Locking order:
 // 1) event_condition

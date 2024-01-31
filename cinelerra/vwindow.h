@@ -30,7 +30,6 @@
 #include "thread.h"
 #include "transportque.inc"
 #include "vplayback.inc"
-#include "vtracking.inc"
 #include "vwindowgui.inc"
 
 class VWindow : public BC_DialogThread
@@ -79,7 +78,6 @@ public:
 	void goto_end();
 
 
-	VTracking *playback_cursor;
 
 // Number of source in GUI list
 	MWindow *mwindow;

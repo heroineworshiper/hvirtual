@@ -19,6 +19,7 @@ endif
 
 DEST := /usr/bin
 
+CXXFLAGS += -std=c++11
 #CFLAGS += -g
 
 ifeq ($(OBJDIR), i686)
@@ -45,7 +46,7 @@ BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B arm -I binary -O elf32-littlearm\""
 LFLAGS += -L/usr/X11R6/lib64
 endif
 
-
+CXXFLAGS := $(CFLAGS) $(CXXFLAGS)
 
 $(shell mkdir -p $(OBJDIR) )
 
@@ -156,6 +157,7 @@ endif
 UTILS = $(OBJDIR)/bootstrap $(OBJDIR)/pngtoh $(OBJDIR)/pngtoraw
 
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
+$(shell echo $(CXXFLAGS) > $(OBJDIR)/cxx_flags)
 $(shell echo $(OBJS) $(CXXREPOSITORY) > $(OBJDIR)/objs)
 
 
@@ -221,7 +223,7 @@ install:
 	cp $(OBJDIR)/pngtoh $(OBJDIR)/bootstrap $(DEST)
 
 $(OBJS) $(OBJDIR)/test.o $(OBJDIR)/test2.o $(OBJDIR)/test3.o $(OBJDIR)/replace.o:
-	$(CC) -c `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
+	$(CC) -c `cat $(OBJDIR)/cxx_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 $(CMODEL_OBJS):
 	gcc -c `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.c) -o $*.o

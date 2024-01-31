@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,34 +20,78 @@
 
 #include "edl.h"
 #include "edlsession.h"
+#include "localsession.h"
+#include "mainclock.h"
+#include "mwindow.h"
 #include "playtransport.h"
 #include "transportque.h"
 #include "vplayback.h"
-#include "vtracking.h"
+#include "vtimebar.h"
 #include "vwindow.h"
 #include "vwindowgui.h"
 
 // Playback engine for viewer
 
 VPlayback::VPlayback(MWindow *mwindow, VWindow *vwindow, Canvas *output)
- : PlaybackEngine(mwindow, output)
+ : PlaybackEngine()
 {
 	this->vwindow = vwindow;
+    set_canvas(output);
 }
 
-int VPlayback::create_render_engine()
-{
-	return PlaybackEngine::create_render_engine();
-}
 
 void VPlayback::init_cursor()
 {
-	vwindow->playback_cursor->start_playback(tracking_position);
 }
 
 void VPlayback::stop_cursor()
 {
-	vwindow->playback_cursor->stop_playback();
+#ifdef USE_METERS
+	vwindow->gui->lock_window("VTracking::stop_meters");
+	vwindow->gui->meters->stop_meters();
+	vwindow->gui->unlock_window();
+#endif
 }
+
+
+void VPlayback::update_tracker(double position)
+{
+	vwindow->gui->lock_window("VTracking::update_tracker");
+	vwindow->get_edl()->local_session->set_selectionstart(position);
+	vwindow->get_edl()->local_session->set_selectionend(position);
+
+#ifdef USE_SLIDER
+	vwindow->gui->slider->update(position);
+#endif
+
+	vwindow->gui->clock->update(position);
+
+// This is going to boost the latency but we need to update the timebar
+//	vwindow->gui->timebar->draw_range();
+	vwindow->gui->timebar->update(1);
+//	vwindow->gui->timebar->flash();
+
+	vwindow->gui->unlock_window();
+
+	update_meters((int64_t)(position * MWindow::instance->edl->session->sample_rate));
+}
+
+void VPlayback::update_meters(int64_t position)
+{
+	double output_levels[MAXCHANNELS];
+
+#ifdef USE_METERS
+	int do_audio = playback_engine->get_output_levels(output_levels, 
+		position);
+	if(do_audio)
+	{
+		vwindow->gui->lock_window("VTracking::update_meters");
+		vwindow->gui->meters->update(output_levels);
+		vwindow->gui->unlock_window();
+	}
+#endif
+
+}
+
 
 

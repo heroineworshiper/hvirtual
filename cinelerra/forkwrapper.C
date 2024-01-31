@@ -22,6 +22,7 @@
 
 #include "bcsignals.h"
 #include "bcwindowbase.inc"
+#include "cfunctions.h"
 #include "forkwrapper.h"
 
 #include <stdio.h>
@@ -68,6 +69,11 @@ void ForkWrapper::start()
 	socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
 	parent_fd = sockets[0];
 	child_fd = sockets[1];
+// printf("ForkWrapper::start %d this=%p parent_fd=%d child_fd=%d\n", 
+// __LINE__, 
+// this,
+// parent_fd,
+// child_fd);
 
 	pid = fork();
 
@@ -156,8 +162,9 @@ int ForkWrapper::send_command(int token,
 	unsigned char buffer[sizeof(int) * 2];
 	this->command_token = token;
 	this->command_bytes = bytes;
-// printf("ForkWrapper::send_command %d parent_fd=%d token=%d data=%p bytes=%d\n", 
+// printf("ForkWrapper::send_command %d this=%p parent_fd=%d token=%d data=%p bytes=%d\n", 
 // __LINE__, 
+// this,
 // parent_fd, 
 // token,
 // data,
@@ -192,10 +199,10 @@ int ForkWrapper::read_command(int use_timeout)
 	command_token = *(int*)(buffer + 0);
 	command_bytes = *(int*)(buffer + sizeof(int));
 
-// 	printf("ForkWrapper::read_command %d command_token=%d command_bytes=%d\n", 
-// 		__LINE__, 
-// 		command_token, 
-// 		command_bytes);
+//printf("ForkWrapper::read_command %d command_token=%d command_bytes=%d\n", 
+//__LINE__, 
+//command_token, 
+//command_bytes);
 	if(command_bytes && command_allocated < command_bytes)
 	{
 		delete [] command_data;
@@ -352,58 +359,12 @@ struct { \
 
 void ForkWrapper::send_fd(int fd)
 {
-	ANCIL_FD_BUFFER(1) buffer;
-    struct msghdr msghdr;
-    char nothing = '!';
-    struct iovec nothing_ptr;
-    struct cmsghdr *cmsg;
-    int i;
-
-    nothing_ptr.iov_base = &nothing;
-    nothing_ptr.iov_len = 1;
-    msghdr.msg_name = NULL;
-    msghdr.msg_namelen = 0;
-    msghdr.msg_iov = &nothing_ptr;
-    msghdr.msg_iovlen = 1;
-    msghdr.msg_flags = 0;
-    msghdr.msg_control = &buffer;
-    msghdr.msg_controllen = sizeof(struct cmsghdr) + sizeof(int);
-    cmsg = CMSG_FIRSTHDR(&msghdr);
-    cmsg->cmsg_len = msghdr.msg_controllen;
-    cmsg->cmsg_level = SOL_SOCKET;
-    cmsg->cmsg_type = SCM_RIGHTS;
-	(*(int *)CMSG_DATA(cmsg)) = fd;
-    sendmsg(child_fd, &msghdr, 0);
+	libancil_send_fd(child_fd, fd);
 }
 
 int ForkWrapper::get_fd()
 {
-	ANCIL_FD_BUFFER(1) buffer;
-    struct msghdr msghdr;
-    char nothing;
-    struct iovec nothing_ptr;
-    struct cmsghdr *cmsg;
-    int i;
-
-    nothing_ptr.iov_base = &nothing;
-    nothing_ptr.iov_len = 1;
-    msghdr.msg_name = NULL;
-    msghdr.msg_namelen = 0;
-    msghdr.msg_iov = &nothing_ptr;
-    msghdr.msg_iovlen = 1;
-    msghdr.msg_flags = 0;
-    msghdr.msg_control = &buffer;
-    msghdr.msg_controllen = sizeof(struct cmsghdr) + sizeof(int);
-    cmsg = CMSG_FIRSTHDR(&msghdr);
-    cmsg->cmsg_len = msghdr.msg_controllen;
-    cmsg->cmsg_level = SOL_SOCKET;
-    cmsg->cmsg_type = SCM_RIGHTS;
-	(*(int *)CMSG_DATA(cmsg)) = -1;
-    
-    if(recvmsg(parent_fd, &msghdr, 0) < 0)
-		return(-1);
-
-	return (*(int *)CMSG_DATA(cmsg));
+	return libancil_get_fd(parent_fd);
 }
 
 

@@ -31,6 +31,7 @@
 #include "language.h"
 #include "picon_png.h"
 #include "pluginaclient.h"
+#include "preferences.h"
 #include "recordconfig.h"
 #include "samples.h"
 #include "transportque.inc"
@@ -223,19 +224,20 @@ int LiveAudio::process_buffer(int64_t size,
 
 	if(!adevice)
 	{
+        Preferences *preferences = get_preferences();
 		EDLSession *session = PluginClient::get_edlsession();
 		if(session)
 		{
 			fragment_size = session->record_fragment_size;
-			history_channels = session->aconfig_in->channels;
+			history_channels = preferences->aconfig_in->channels;
 		
 			adevice = new AudioDevice;
 // Take fragment size & channels from the recording config
-			adevice->open_input(session->aconfig_in, 
-				session->vconfig_in, 
+			adevice->open_input(preferences->aconfig_in, 
+				preferences->vconfig_in, 
 				get_project_samplerate(), 
 				fragment_size,
-				session->aconfig_in->channels,
+				preferences->aconfig_in->channels,
 				session->real_time_record);
 			adevice->start_recording();
 			first_buffer = 1;

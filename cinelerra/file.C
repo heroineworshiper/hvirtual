@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -139,6 +139,7 @@ void File::reset_parameters()
 	preferences = 0;
 	playback_subtitle = -1;
 	interpolate_raw = 1;
+    disable_toc_creation = 0;
 
 // threaded encoding
 	temp_samples_buffer = 0;
@@ -276,7 +277,10 @@ int File::get_parameters(BC_WindowBase *parent_window,
 
 
 
-
+void File::set_disable_toc_creation(int value)
+{
+    disable_toc_creation = value;
+}
 
 int File::set_processors(int cpus)   // Set the number of cpus for certain codecs
 {
@@ -443,18 +447,18 @@ int File::open_file(Preferences *preferences,
 #ifdef USE_FILEFORK
 	if(!is_fork)
 	{
-// printf("File::open_file %d %s file_server=%p rd=%d wr=%d %d\n", 
-// __LINE__, 
-// asset->path,
-// MWindow::file_server,
-// rd, 
-// wr, 
-// asset->ms_quantization);
 
 
 
 
 		file_fork = MWindow::file_server->new_filefork();
+// printf("File::open_file %d %s file_server=%p file_fork=%p rd=%d wr=%d\n", 
+// __LINE__, 
+// asset->path,
+// MWindow::file_server,
+// file_fork,
+// rd, 
+// wr);
 
 // Send the asset
 // Convert to hash table
@@ -463,7 +467,7 @@ int File::open_file(Preferences *preferences,
 // Convert to string
 		char *string = 0;
 		table.save_string(string);
-		int buffer_size = sizeof(int) * 6 + strlen(string) + 1;
+		int buffer_size = sizeof(int) * 7 + strlen(string) + 1;
 		unsigned char *buffer = new unsigned char[buffer_size];
 		int offset = 0;
 		*(int*)(buffer + offset) = rd;
@@ -479,15 +483,20 @@ int File::open_file(Preferences *preferences,
 		offset += sizeof(int);
 		*(int*)(buffer + offset) = interpolate_raw;
 		offset += sizeof(int);
+		*(int*)(buffer + offset) = disable_toc_creation;
+		offset += sizeof(int);
 		memcpy(buffer + offset, string, strlen(string) + 1);
-//printf("File::open_file %d\n", __LINE__);
+        offset += strlen(string) + 1;
+        if(offset != buffer_size)
+            printf("File::open_file %d: offset %d != buffer_size %d\n", 
+                __LINE__,
+                offset, 
+                buffer_size);
 		file_fork->send_command(FileFork::OPEN_FILE, 
 			buffer, 
 			buffer_size);
-//printf("File::open_file %d\n", __LINE__);
 		delete [] buffer;
 		delete [] string;
-
 
 
 // get progress & completion from the fork when building a table of contents
@@ -1340,8 +1349,8 @@ int64_t File::get_audio_position()
 
 // The base samplerate must be nonzero if the base samplerate in the calling
 // function is expected to change as this forces the resampler to reset.
-
-int File::set_audio_position(int64_t position) 
+// Audio still has to rewind a single buffer if length is NOSEEK_LENGTH
+int File::set_audio_position(int64_t position)
 {
 #ifdef USE_FILEFORK
 	if(!is_fork && file_fork)
@@ -1433,6 +1442,8 @@ int File::set_audio_position(int64_t position)
 int File::set_video_position(int64_t position, 
 	int is_thread) 
 {
+    if(asset->video_length == NOSEEK_LENGTH) return 0;
+
 #ifdef USE_FILEFORK
 // Thread should only call in the fork
 	if(!is_fork && !is_thread)

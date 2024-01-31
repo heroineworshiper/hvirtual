@@ -73,7 +73,7 @@ void RecordPrefs::create_objects()
 	recording_format = 
 		new FormatTools(mwindow,
 			this, 
-			pwindow->thread->edl->session->recording_format);
+			pwindow->thread->preferences->recording_format);
 	recording_format->create_objects(x, 
 		y, 
 		1, // Include tools for audio
@@ -110,7 +110,7 @@ void RecordPrefs::create_objects()
 		pwindow, 
 		this, 
 		0,
-		pwindow->thread->edl->session->aconfig_in, 
+		pwindow->thread->preferences->aconfig_in, 
 		MODERECORD);
 	audio_in_device->initialize(1);
 	y += audio_in_device->get_h(1) + margin;
@@ -197,7 +197,7 @@ void RecordPrefs::create_objects()
 		pwindow, 
 		this, 
 		0, 
-		pwindow->thread->edl->session->vconfig_in, 
+		pwindow->thread->preferences->vconfig_in, 
 		MODERECORD);
 	video_in_device->initialize(1);
 
@@ -215,7 +215,7 @@ void RecordPrefs::create_objects()
 
 	y += DP(27);
 	
-	sprintf(string, "%d", pwindow->thread->edl->session->vconfig_in->capture_length);
+	sprintf(string, "%d", pwindow->thread->preferences->vconfig_in->capture_length);
 	add_subwindow(title1 = new BC_Title(x, y, _("Frames to buffer in device:")));
 	x1 = x + title1->get_w() + margin;
 	add_subwindow(textbox = new VideoCaptureLength(pwindow, 
@@ -334,13 +334,13 @@ int RecordRealTime::handle_event()
 
 
 RecordSampleRate::RecordSampleRate(PreferencesWindow *pwindow, int x, int y)
- : BC_TextBox(x, y, DP(70), 1, pwindow->thread->edl->session->aconfig_in->in_samplerate)
+ : BC_TextBox(x, y, DP(70), 1, pwindow->thread->preferences->aconfig_in->in_samplerate)
 {
 	this->pwindow = pwindow;
 }
 int RecordSampleRate::handle_event()
 {
-	pwindow->thread->edl->session->aconfig_in->in_samplerate = atol(get_text());
+	pwindow->thread->preferences->aconfig_in->in_samplerate = atol(get_text());
 	return 1;
 }
 
@@ -357,35 +357,35 @@ int RecordSampleRate::handle_event()
 
 
 RecordW::RecordW(PreferencesWindow *pwindow, int x, int y)
- : BC_TextBox(x, y, DP(70), 1, pwindow->thread->edl->session->vconfig_in->w)
+ : BC_TextBox(x, y, DP(70), 1, pwindow->thread->preferences->vconfig_in->w)
 {
 	this->pwindow = pwindow;
 }
 int RecordW::handle_event()
 {
-	pwindow->thread->edl->session->vconfig_in->w = atol(get_text());
+	pwindow->thread->preferences->vconfig_in->w = atol(get_text());
 	return 1;
 }
 
 RecordH::RecordH(PreferencesWindow *pwindow, int x, int y)
- : BC_TextBox(x, y, DP(70), 1, pwindow->thread->edl->session->vconfig_in->h)
+ : BC_TextBox(x, y, DP(70), 1, pwindow->thread->preferences->vconfig_in->h)
 {
 	this->pwindow = pwindow;
 }
 int RecordH::handle_event()
 {
-	pwindow->thread->edl->session->vconfig_in->h = atol(get_text());
+	pwindow->thread->preferences->vconfig_in->h = atol(get_text());
 	return 1;
 }
 
 RecordFrameRate::RecordFrameRate(PreferencesWindow *pwindow, int x, int y)
- : BC_TextBox(x, y, DP(140), 1, pwindow->thread->edl->session->vconfig_in->in_framerate)
+ : BC_TextBox(x, y, DP(140), 1, pwindow->thread->preferences->vconfig_in->in_framerate)
 {
 	this->pwindow = pwindow;
 }
 int RecordFrameRate::handle_event()
 {
-	pwindow->thread->edl->session->vconfig_in->in_framerate = atof(get_text());
+	pwindow->thread->preferences->vconfig_in->in_framerate = atof(get_text());
 	return 1;
 }
 
@@ -393,7 +393,7 @@ int RecordFrameRate::handle_event()
 
 RecordChannels::RecordChannels(PreferencesWindow *pwindow, BC_SubWindow *gui, int x, int y)
  : BC_TumbleTextBox(gui, 
-		pwindow->thread->edl->session->aconfig_in->channels,
+		pwindow->thread->preferences->aconfig_in->channels,
 		1,
 		MAX_CHANNELS,
 		x, 
@@ -405,7 +405,7 @@ RecordChannels::RecordChannels(PreferencesWindow *pwindow, BC_SubWindow *gui, in
 
 int RecordChannels::handle_event()
 {
-	pwindow->thread->edl->session->aconfig_in->channels = atoi(get_text());
+	pwindow->thread->preferences->aconfig_in->channels = atoi(get_text());
 	return 1;
 }
 
@@ -432,7 +432,7 @@ VideoCaptureLength::VideoCaptureLength(PreferencesWindow *pwindow, char *text, i
 
 int VideoCaptureLength::handle_event()
 { 
-	pwindow->thread->edl->session->vconfig_in->capture_length = atol(get_text()); 
+	pwindow->thread->preferences->vconfig_in->capture_length = atol(get_text()); 
 	return 1; 
 }
 

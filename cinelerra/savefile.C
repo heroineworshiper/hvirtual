@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +25,7 @@
 #include "file.h"
 #include "filexml.h"
 #include "fileformat.h"
+#include "filepreviewer.h"
 #include "indexfile.h"
 #include "language.h"
 #include "mainmenu.h"
@@ -250,6 +250,7 @@ SaveFileWindow::SaveFileWindow(MWindow *mwindow, char *init_directory)
 	_("Enter a filename to save as"))
 { 
 	this->mwindow = mwindow; 
+    set_previewer(&FilePreviewer::instance);
 }
 
 SaveFileWindow::~SaveFileWindow() {}

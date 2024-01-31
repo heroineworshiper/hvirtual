@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +22,7 @@
 #include "bcfilebox.h"
 #include "bcnewfolder.h"
 #include "bcresources.h"
+#include "bctheme.h"
 #include "bctitle.h"
 #include "filesystem.h"
 #include "language.h"
@@ -35,7 +35,6 @@
 
 #define WINDOW_W DP(320)
 #define WINDOW_H DP(150)
-#define MARGIN DP(10)
 
 BC_NewFolder::BC_NewFolder(int x, int y, BC_FileBox *filebox)
  : BC_Window(filebox->get_newfolder_title(), 
@@ -58,15 +57,20 @@ BC_NewFolder::~BC_NewFolder()
 
 void BC_NewFolder::create_objects()
 {
-	int x = MARGIN, y = MARGIN;
+    int margin = BC_Resources::theme->widget_border;
+	int x = margin, y = margin;
 	lock_window("BC_NewFolder::create_objects");
     BC_Title *text;
 	add_tool(text = new BC_Title(x, y, _("Enter the name of the folder:")));
-	y += text->get_h() + MARGIN;
-	add_subwindow(textbox = new BC_TextBox(x, y, 300, 1, _("Untitled")));
-	y += textbox->get_h() + MARGIN;
+	y += text->get_h() + margin;
+	add_subwindow(textbox = new BC_TextBox(x, 
+        y, 
+        get_w() - margin * 2, 
+        1, 
+        _("Untitled")));
+	y += textbox->get_h() + margin;
 	add_subwindow(new BC_OKButton(x, y));
-	x = get_w() - BC_CancelButton::calculate_w() - MARGIN;
+	x = get_w() - BC_CancelButton::calculate_w() - margin;
 	add_subwindow(new BC_CancelButton(x, y));
 	show_window();
 	unlock_window();

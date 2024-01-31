@@ -129,10 +129,6 @@ public:
 	void show_gwindow();
 	void tile_windows();
 //	void set_titles(int value);
-	int asset_to_edl(EDL *new_edl, 
-		Asset *new_asset, 
-		RecordLabels *labels /* = 0 */,
-        int conform);
 // Convert nested_edl to a nested EDL in new_edl 
 // suitable for pasting in paste_edls
 	int edl_to_nested(EDL *new_edl, 
@@ -497,7 +493,8 @@ public:
 	void select_point(double position);
 	int set_loop_boundaries();         // toggle loop playback and set boundaries for loop playback
 
-
+// global mwindow object
+    static MWindow *instance;
 	static Playback3D *playback_3d;
 	RemoveThread *remove_thread;
     AssetRemoveThread *asset_remove;
@@ -506,7 +503,7 @@ public:
 	SplashGUI *splash_window;
 // Main undo stack
 	MainUndo *undo;
-	BC_Hash *defaults;
+	static BC_Hash *defaults;
 	Assets *assets;
 // CICaches for drawing timeline only
 	CICache *audio_cache, *video_cache;

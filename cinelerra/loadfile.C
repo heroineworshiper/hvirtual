@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +24,7 @@
 #include "edl.h"
 #include "errorbox.h"
 #include "file.h"
+#include "filepreviewer.h"
 #include "filesystem.h"
 #include "indexfile.h"
 #include "language.h"
@@ -179,7 +179,8 @@ LoadFileWindow::LoadFileWindow(MWindow *mwindow,
 		mwindow->theme->loadfile_pad)
 {
 	this->thread = thread;
-	this->mwindow = mwindow; 
+	this->mwindow = mwindow;
+    set_previewer(&FilePreviewer::instance);
 }
 
 LoadFileWindow::~LoadFileWindow() 

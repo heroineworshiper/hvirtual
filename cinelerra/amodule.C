@@ -408,9 +408,8 @@ if(debug) printf("AModule::import_samples %d\n", __LINE__);
 				nested_command->change_type = CHANGE_ALL;
 				nested_command->realtime = renderengine->command->realtime;
 				nested_renderengine = new RenderEngine(0,
-					get_preferences(), 
-					0,
-					renderengine ? renderengine->channeldb : 0);
+					get_preferences());
+                if(renderengine) nested_renderengine->set_channeldb(renderengine->channeldb);
                 nested_renderengine->set_nested(1);
 				nested_renderengine->set_acache(get_cache());
 // Must use a private cache for the audio

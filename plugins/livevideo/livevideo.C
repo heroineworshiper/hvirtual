@@ -26,7 +26,6 @@
 #include "channeldb.h"
 #include "clip.h"
 #include "bchash.h"
-#include "edlsession.h"
 #include "filexml.h"
 #include "guicast.h"
 #include "language.h"
@@ -36,6 +35,7 @@
 #include "picon_png.h"
 #include "picture.h"
 #include "pluginvclient.h"
+#include "preferences.h"
 #include "recordconfig.h"
 #include "transportque.inc"
 #include "vframe.h"
@@ -212,9 +212,9 @@ void LiveVideoWindow::create_objects()
 {
 	int x = DP(10), y = DP(10);
 
-	EDLSession *session = plugin->PluginClient::get_edlsession();
-	if(session)
-		VideoDevice::load_channeldb(plugin->channeldb, session->vconfig_in);
+    Preferences *preferences = plugin->get_preferences();
+	if(preferences)
+		VideoDevice::load_channeldb(plugin->channeldb, preferences->vconfig_in);
 	for(int i = 0; i < plugin->channeldb->size(); i++)
 	{
 		BC_ListBoxItem *current;
@@ -381,14 +381,14 @@ int LiveVideo::process_buffer(VFrame *frame,
 //printf("LiveVideo::process_buffer %d start_position=%lld buffer_size=%d\n", 
 //__LINE__, start_position, get_buffer_size());
 
-	EDLSession *session = PluginClient::get_edlsession();
+    Preferences *preferences = get_preferences();
 	if(!vdevice)
 	{
-		if(session)
+		if(preferences)
 		{
 			vdevice = new VideoDevice;
 //printf("LiveVideo::process_buffer %d\n", __LINE__);
-			vdevice->open_input(session->vconfig_in, 
+			vdevice->open_input(preferences->vconfig_in, 
 				0, 
 				0,
 				1.0,
@@ -399,7 +399,7 @@ int LiveVideo::process_buffer(VFrame *frame,
 // Unfortunately, get_best_colormodel returns the best colormodel for displaying
 // on the record monitor, not the colormodel supported by the device.
 // Some devices can read directly to the best colormodel and some can't.
-			switch(session->vconfig_in->driver)
+			switch(preferences->vconfig_in->driver)
 			{
 				case CAPTURE_FIREWIRE:
 				case CAPTURE_IEC61883:
@@ -409,7 +409,7 @@ int LiveVideo::process_buffer(VFrame *frame,
 					input_cmodel = BC_COMPRESSED;
 					break;
 				default:
-					input_cmodel = vdevice->get_best_colormodel(session->recording_format);
+					input_cmodel = vdevice->get_best_colormodel(preferences->recording_format);
 					break;
 			}
 
@@ -418,7 +418,7 @@ int LiveVideo::process_buffer(VFrame *frame,
 // Load the picture config from the main defaults file.
 
 // Load channel table
-			VideoDevice::load_channeldb(channeldb, session->vconfig_in);
+			VideoDevice::load_channeldb(channeldb, preferences->vconfig_in);
 
 //printf("LiveVideo::process_buffer %d\n", __LINE__);
 			if(!picture)
@@ -444,7 +444,7 @@ int LiveVideo::process_buffer(VFrame *frame,
 //printf("LiveVideo::process_buffer %d\n", __LINE__);
 
 
-	if(session && vdevice)
+	if(preferences && vdevice)
 	{
 // Update channel
 		if(prev_channel != config.channel)
@@ -457,15 +457,15 @@ int LiveVideo::process_buffer(VFrame *frame,
 	
 		VFrame *input = frame;
 		if(input_cmodel != frame->get_color_model() ||
-			session->vconfig_in->w != frame->get_w() ||
-			session->vconfig_in->h != frame->get_h())
+			preferences->vconfig_in->w != frame->get_w() ||
+			preferences->vconfig_in->h != frame->get_h())
 		{
 			if(!temp)
 			{
 				temp = new VFrame(0, 
 					-1,
-					session->vconfig_in->w,
-					session->vconfig_in->h,
+					preferences->vconfig_in->w,
+					preferences->vconfig_in->h,
 					input_cmodel,
 					-1);
 			}
@@ -478,8 +478,8 @@ int LiveVideo::process_buffer(VFrame *frame,
 		{
 			if(input->get_color_model() != BC_COMPRESSED)
 			{
-				int w = MIN(session->vconfig_in->w, frame->get_w());
-				int h = MIN(session->vconfig_in->h, frame->get_h());
+				int w = MIN(preferences->vconfig_in->w, frame->get_w());
+				int h = MIN(preferences->vconfig_in->h, frame->get_h());
 				cmodel_transfer(frame->get_rows(), /* Leave NULL if non existent */
 					input->get_rows(),
 					frame->get_y(), /* Leave NULL if non existent */
@@ -506,7 +506,7 @@ int LiveVideo::process_buffer(VFrame *frame,
 			else
 			if(input->get_compressed_size())
 			{
-				switch(session->vconfig_in->driver)
+				switch(preferences->vconfig_in->driver)
 				{
 					case CAPTURE_FIREWIRE:
 					case CAPTURE_IEC61883:

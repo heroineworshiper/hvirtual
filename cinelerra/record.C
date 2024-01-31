@@ -30,6 +30,7 @@
 #include "clip.h"
 #include "bchash.h"
 #include "edl.h"
+#include "edlfactory.h"
 #include "edlsession.h"
 #include "errorbox.h"
 #include "file.h"
@@ -171,32 +172,32 @@ int Record::load_defaults()
 // 		1,
 // 		1);
 // This reads back everything that was saved in save_defaults.
-	default_asset->copy_from(mwindow->edl->session->recording_format, 0);
-	default_asset->channels = mwindow->edl->session->aconfig_in->channels;
-	default_asset->sample_rate = mwindow->edl->session->aconfig_in->in_samplerate;
-	default_asset->frame_rate = mwindow->edl->session->vconfig_in->in_framerate;
-	default_asset->width = mwindow->edl->session->vconfig_in->w;
-	default_asset->height = mwindow->edl->session->vconfig_in->h;
+	default_asset->copy_from(MWindow::preferences->recording_format, 0);
+	default_asset->channels = MWindow::preferences->aconfig_in->channels;
+	default_asset->sample_rate = MWindow::preferences->aconfig_in->in_samplerate;
+	default_asset->frame_rate = MWindow::preferences->vconfig_in->in_framerate;
+	default_asset->width = MWindow::preferences->vconfig_in->w;
+	default_asset->height = MWindow::preferences->vconfig_in->h;
 	default_asset->layers = 1;
 
 
 
 // Fix encoding parameters depending on driver.
 // These are locked by a specific driver.
-	if(mwindow->edl->session->vconfig_in->driver == CAPTURE_LML ||
-		mwindow->edl->session->vconfig_in->driver == CAPTURE_BUZ ||
-		mwindow->edl->session->vconfig_in->driver == VIDEO4LINUX2MJPG)
+	if(MWindow::preferences->vconfig_in->driver == CAPTURE_LML ||
+		MWindow::preferences->vconfig_in->driver == CAPTURE_BUZ ||
+		MWindow::preferences->vconfig_in->driver == VIDEO4LINUX2MJPG)
 	{
     	strncpy(default_asset->vcodec, QUICKTIME_MJPA, 4);
     }
     else
-	if(mwindow->edl->session->vconfig_in->driver == VIDEO4LINUX2JPEG)
+	if(MWindow::preferences->vconfig_in->driver == VIDEO4LINUX2JPEG)
 	{
     	strncpy(default_asset->vcodec, QUICKTIME_JPEG, 4);
 	}
     else
-	if(mwindow->edl->session->vconfig_in->driver == CAPTURE_FIREWIRE ||
-		mwindow->edl->session->vconfig_in->driver == CAPTURE_IEC61883)
+	if(MWindow::preferences->vconfig_in->driver == CAPTURE_FIREWIRE ||
+		MWindow::preferences->vconfig_in->driver == CAPTURE_IEC61883)
 	{
 		strncpy(default_asset->vcodec, QUICKTIME_DVSD, 4);
 	}
@@ -355,7 +356,7 @@ void Record::source_to_text(char *string, Batch *batch)
 {
 // Update source
 	strcpy(string, "Record::source_to_text: not implemented");
-	switch(mwindow->edl->session->vconfig_in->driver)
+	switch(MWindow::preferences->vconfig_in->driver)
 	{
 		case VIDEO4LINUX:
 		case VIDEO4LINUX2:
@@ -386,9 +387,9 @@ void Record::run()
 	prompt_cancel = 0;
 
 // Determine information about the device.
-	VideoDevice::load_channeldb(channeldb, mwindow->edl->session->vconfig_in);
+	VideoDevice::load_channeldb(channeldb, MWindow::preferences->vconfig_in);
 	fixed_compression = VideoDevice::is_compressed(
-		mwindow->edl->session->vconfig_in->driver,
+		MWindow::preferences->vconfig_in->driver,
 		0,
 		1);
 	load_defaults();
@@ -397,7 +398,7 @@ void Record::run()
 	{
 		VideoDevice device;
 		device.fix_asset(default_asset, 
-			mwindow->edl->session->vconfig_in->driver);
+			MWindow::preferences->vconfig_in->driver);
 	}
 
 
@@ -430,8 +431,8 @@ void Record::run()
 // 		}
 // 	}while(format_error && !result);
 
-	default_asset->channels = mwindow->edl->session->aconfig_in->channels;
-	VideoDevice::save_channeldb(channeldb, mwindow->edl->session->vconfig_in);
+	default_asset->channels = MWindow::preferences->aconfig_in->channels;
+	VideoDevice::save_channeldb(channeldb, MWindow::preferences->vconfig_in);
 	save_defaults();
 	mwindow->save_defaults();
 
@@ -573,7 +574,7 @@ void Record::run()
 					new_edl->copy_session(mwindow->edl);
 // force the format to be probed in case the encoder was different than the decoder
                     new_asset->format = FILE_UNKNOWN;
-					mwindow->asset_to_edl(new_edl, 
+					EDLFactory::asset_to_edl(new_edl, 
 						new_asset, 
 						batch->labels,
                         0); // conform
@@ -1055,7 +1056,7 @@ int Record::open_input_devices(int duplex, int context)
 {
 	int audio_opened = 0;
 	int video_opened = 0;
-	AudioInConfig *aconfig_in = mwindow->edl->session->aconfig_in;
+	AudioInConfig *aconfig_in = MWindow::preferences->aconfig_in;
 
 //printf("Record::open_input_devices %d\n", __LINE__);
 
@@ -1097,19 +1098,19 @@ int Record::open_input_devices(int duplex, int context)
 // 			}
 // 			else
 // Case 2: two separate devices
-			{
-			  	adevice->open_output(mwindow->edl->session->aconfig_duplex,
-						default_asset->sample_rate,
-						mwindow->edl->session->playback_buffer,
-						mwindow->edl->session->audio_channels,
-						mwindow->edl->session->real_time_playback);
-			}
+// 			{
+// 			  	adevice->open_output(mwindow->edl->session->aconfig_duplex,
+// 						default_asset->sample_rate,
+// 						mwindow->edl->session->playback_buffer,
+// 						mwindow->edl->session->audio_channels,
+// 						mwindow->edl->session->real_time_playback);
+// 			}
 		}
 
 		if(!audio_opened)
 		{
-			adevice->open_input(mwindow->edl->session->aconfig_in, 
-				mwindow->edl->session->vconfig_in, 
+			adevice->open_input(MWindow::preferences->aconfig_in, 
+				MWindow::preferences->vconfig_in, 
 				default_asset->sample_rate, 
 				get_in_length(),
 				default_asset->channels,
@@ -1123,7 +1124,7 @@ int Record::open_input_devices(int duplex, int context)
 	if(vdevice)
 	{
 		vdevice->set_quality(default_asset->jpeg_quality);
-		vdevice->open_input(mwindow->edl->session->vconfig_in, 
+		vdevice->open_input(MWindow::preferences->vconfig_in, 
 			video_x, 
 			video_y, 
 			video_zoom,
@@ -1384,7 +1385,7 @@ int Record::get_rec_mode() { return record_mode; }
 int Record::set_rec_mode(int value) { record_mode = value; return 0; }
 
 int Record::get_video_buffersize() { return mwindow->edl->session->video_write_length; }
-int Record::get_everyframe() { return mwindow->edl->session->video_every_frame; }
+int Record::get_everyframe() { return MWindow::preferences->video_every_frame; }
 
 int Record::get_out_length() { return mwindow->edl->session->playback_buffer; }
 int Record::get_software_positioning() { return mwindow->edl->session->record_software_position; }

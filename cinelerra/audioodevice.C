@@ -80,6 +80,10 @@ int AudioDevice::arm_buffer(int buffer_num,
 
 	frame = device_channels * (bits / 8);
 
+// printf("AudioDevice::arm_buffer %d channels=%d bits=%d\n", 
+// __LINE__,
+// device_channels, 
+// bits);
 	new_size = frame * samples;
 
 	if(interrupt) return 1;
@@ -100,6 +104,12 @@ int AudioDevice::arm_buffer(int buffer_num,
 	buffer_size[buffer_num] = new_size;
 
 	buffer_num_buffer = output_buffer[buffer_num];
+// printf("AudioDevice::arm_buffer %d output_buffer=%p buffer_num=%d buffer_num_buffer=%p new_size=%d\n", 
+// __LINE__, 
+// output_buffer,
+// buffer_num,
+// buffer_num_buffer,
+// new_size);
 	bzero(buffer_num_buffer, new_size);
 	
 	last_input_channel = device_channels - 1;

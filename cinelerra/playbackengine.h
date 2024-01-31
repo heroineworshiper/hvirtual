@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,20 +32,24 @@
 #include "mwindow.inc"
 #include "maxchannels.h"
 #include "mutex.inc"
-#include "tracking.inc"
 #include "preferences.inc"
 #include "renderengine.inc"
 #include "thread.h"
 #include "bctimer.h"
+#include "tracking.inc"
 #include "transportque.inc"
 
 class PlaybackEngine : public Thread
 {
 public:
-	PlaybackEngine(MWindow *mwindow, Canvas *output);
+	PlaybackEngine();
 	virtual ~PlaybackEngine();
 
 	void create_objects();
+    void set_canvas(Canvas *output);
+    void set_is_previewer(int value);
+// draw plugin GUI's
+    void set_use_gui(int value);
 	virtual int create_render_engine();
 	void delete_render_engine();
 	int arm_render_engine();
@@ -67,9 +70,10 @@ public:
 	virtual void init_cursor();
 	virtual void stop_cursor();
 	virtual int brender_available(long position);
-// For normal playback tracking and the cursor are started
-	virtual void init_tracking();
-	virtual void stop_tracking();
+// User overrides this to update the position displayed
+	virtual void update_tracker(double position);
+	void init_tracking();
+	void stop_tracking();
 // The playback cursor calls this to calculate the current tracking position
 	virtual double get_tracking_position();
 // Reset the transport after completion
@@ -81,8 +85,11 @@ public:
 
 	void run();
 
+// enable hacks for FilePreviewer
+    int is_previewer;
 // Maintain caches through console changes
 	CICache *audio_cache, *video_cache;
+    Tracking *tracking;
 // Maintain playback cursor on GUI
 	int tracking_active;
 // Tracking variables updated by render engines
@@ -101,7 +108,6 @@ public:
 // Wait until thread has started
 	Condition *start_lock;
 
-	MWindow *mwindow;
 	Canvas *output;
 // Copy of main preferences
 	Preferences *preferences;
@@ -113,6 +119,7 @@ public:
 	int last_command;
 	int done;
 	int do_cwindow;
+    int use_gui;
 // Render engine
 	RenderEngine *render_engine;
 

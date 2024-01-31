@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,13 +33,15 @@
 #include "mainsession.inc"
 #include "maxchannels.h"
 #include "mwindow.inc"
+#include "playbackconfig.inc"
 #include "plugin.inc"
 #include "pluginset.inc"
 #include "pluginserver.inc"
+#include "recordconfig.inc"
 #include "track.inc"
 #include "transition.inc"
 
-// Options not in EDL but not changed in preferences
+// Options not in EDL & not changed in preferences
 class MainSession
 {
 public:

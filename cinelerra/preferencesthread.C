@@ -181,10 +181,10 @@ int PreferencesThread::apply_settings()
 // Compare sessions 											
 
 
-	AudioOutConfig *this_aconfig = edl->session->playback_config->aconfig;
-	VideoOutConfig *this_vconfig = edl->session->playback_config->vconfig;
-	AudioOutConfig *aconfig = mwindow->edl->session->playback_config->aconfig;
-	VideoOutConfig *vconfig = mwindow->edl->session->playback_config->vconfig;
+	AudioOutConfig *this_aconfig = preferences->playback_config->aconfig;
+	VideoOutConfig *this_vconfig = preferences->playback_config->vconfig;
+	AudioOutConfig *aconfig = MWindow::preferences->playback_config->aconfig;
+	VideoOutConfig *vconfig = MWindow::preferences->playback_config->vconfig;
 
 	
 	rerender = 

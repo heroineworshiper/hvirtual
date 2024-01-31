@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,6 +74,8 @@ public:
 	void close_window();
 
 // ===================================== start here
+// set this before opening
+    void set_disable_toc_creation(int value);
 	int set_processors(int cpus);   // Set the number of cpus for certain codecs.
 // Set the number of bytes to preload during reads for Quicktime.
 	int set_preload(int64_t size);
@@ -327,7 +329,8 @@ public:
 	int cache_size;
 // Precalculated value for FILEFORK
 	int64_t memory_usage;
-
+// don't create a TOC for certain formats.  Just allow previews
+    int disable_toc_creation;
 
 private:
 	void reset_parameters();

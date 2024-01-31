@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -31,6 +30,9 @@
 
 #include <pthread.h>
 
+
+// An obsolete & failed attempt to run all the windows in a single thread.
+// It was too slow.
 #ifdef SINGLE_THREAD
 
 pthread_mutex_t BC_Display::display_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -409,4 +411,4 @@ int BC_Display::get_display_locked()
 }
 
 
-#endif
+#endif // SINGLE_THREAD

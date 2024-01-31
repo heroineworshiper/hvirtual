@@ -322,7 +322,7 @@ void FileSystem::alphabetize()
 
 int FileSystem::is_root_dir(char *path)
 {
-	if(!strcmp(current_dir, "/")) return 1;
+	if(!strcmp(path, "/")) return 1;
 	return 0;
 }
 

@@ -107,7 +107,7 @@ void RecordMonitor::create_objects()
 
 
 // Override default device for X11 drivers
-		if(mwindow->edl->session->playback_config->vconfig->driver ==
+		if(MWindow::preferences->playback_config->vconfig->driver ==
 			PLAYBACK_X11_XV) config.driver = PLAYBACK_X11_XV;
 		config.x11_use_fields = 0;
 
@@ -283,7 +283,7 @@ void RecordMonitorGUI::create_objects()
 {
 // y offset for video canvas if we have the transport controls
 	lock_window("RecordMonitorGUI::create_objects");
-	int driver = mwindow->edl->session->vconfig_in->driver;
+	int driver = MWindow::preferences->vconfig_in->driver;
 	int do_channel = (driver == VIDEO4LINUX ||
 			driver == CAPTURE_BUZ ||
 			driver == VIDEO4LINUX2 ||
@@ -580,7 +580,7 @@ int RecordMonitorGUI::translation_event()
 
 int RecordMonitorGUI::resize_event(int w, int h)
 {
-	int driver = mwindow->edl->session->vconfig_in->driver;
+	int driver = MWindow::preferences->vconfig_in->driver;
 	int do_channel = (driver == VIDEO4LINUX ||
 			driver == CAPTURE_BUZ ||
 			driver == VIDEO4LINUX2 ||
@@ -808,7 +808,7 @@ int RecordMonitorCanvas::button_press_event()
 
 	if(Canvas::button_press_event()) return 1;
 	
-	if(mwindow->edl->session->vconfig_in->driver == SCREENCAPTURE)
+	if(MWindow::preferences->vconfig_in->driver == SCREENCAPTURE)
 	{
 		window->current_operation = MONITOR_TRANSLATE;
 		window->translate_x_origin = record->video_x;
@@ -870,7 +870,7 @@ int RecordMonitorCanvas::cursor_motion_event()
 
 int RecordMonitorCanvas::cursor_enter_event()
 {
-	if(mwindow->edl->session->vconfig_in->driver == SCREENCAPTURE)
+	if(MWindow::preferences->vconfig_in->driver == SCREENCAPTURE)
 		set_cursor(MOVE_CURSOR);
 	return 0;
 }
@@ -986,7 +986,7 @@ void RecordMonitorThread::init_output_format()
 {
 
 //printf("RecordMonitorThread::init_output_format 1\n");
-	switch(mwindow->edl->session->vconfig_in->driver)
+	switch(MWindow::preferences->vconfig_in->driver)
 	{
 		case SCREENCAPTURE:
 			output_colormodel = record->vdevice->get_best_colormodel(record->default_asset);
@@ -1043,7 +1043,7 @@ int RecordMonitorThread::stop_playback()
 	Thread::join();
 //printf("RecordMonitorThread::stop_playback 1\n");
 
-	switch(mwindow->edl->session->vconfig_in->driver)
+	switch(MWindow::preferences->vconfig_in->driver)
 	{
 		case CAPTURE_BUZ:
 		case VIDEO4LINUX2JPEG:
@@ -1141,7 +1141,7 @@ void RecordMonitorThread::unlock_input()
 
 int RecordMonitorThread::render_frame()
 {
-	switch(mwindow->edl->session->vconfig_in->driver)
+	switch(MWindow::preferences->vconfig_in->driver)
 	{
 		case CAPTURE_BUZ:
 		case VIDEO4LINUX2MJPG:

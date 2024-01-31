@@ -33,6 +33,7 @@
 #include "plugin.h"
 #include "pluginarray.h"
 #include "pluginserver.h"
+#include "preferences.h"
 #include "renderengine.h"
 #include "sharedlocation.h"
 #include "track.h"
@@ -325,7 +326,7 @@ void Module::update_transition(int64_t current_position,
 				transition,
 				-1);
 			transition_server->init_realtime(
-				get_edl()->session->real_time_playback &&
+				MWindow::preferences->real_time_playback &&
 				renderengine->command->realtime,
 				1,
 				get_buffer_size());

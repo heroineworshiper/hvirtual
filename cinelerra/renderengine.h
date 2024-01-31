@@ -33,7 +33,6 @@ class RenderEngine;
 #include "channeldb.inc"
 #include "condition.inc"
 #include "mutex.inc"
-#include "mwindow.inc"
 #include "playbackengine.inc"
 #include "pluginserver.inc"
 #include "preferences.inc"
@@ -45,12 +44,11 @@ class RenderEngine;
 class RenderEngine : public Thread
 {
 public:
-	RenderEngine(PlaybackEngine *playback_engine,
-		Preferences *preferences, 
-		Canvas *output,
-		ChannelDB *channeldb);
+	RenderEngine(PlaybackEngine *playback_engine, Preferences *preferences);
 	~RenderEngine();
 
+    void set_canvas(Canvas *output);
+    void set_channeldb(ChannelDB *channeldb);
 	void get_duty();
 	void create_render_threads();
 	void arm_render_threads();
@@ -65,6 +63,8 @@ public:
 	double get_tracking_position();
 	CICache* get_acache();
 	CICache* get_vcache();
+// draw plugin GUI's
+    void set_use_gui(int value);
     void set_nested(int value);
     void set_rendering(int value);
 	void set_acache(CICache *cache);
@@ -83,8 +83,8 @@ public:
 
 	int open_output();
 	int close_output();
-// return position to synchronize video against
-	int64_t sync_position();
+// return time in seconds to synchronize video against
+	double sync_position();
 // Called by VRender to reset the timers once the first frame is done.
 	void reset_sync_position();
 // return samples since start of playback
@@ -104,7 +104,6 @@ public:
 // Canvas if being used for CWindow
 	Canvas *output;
 
-
 // Lock out new commands until completion
 	Condition *input_lock;
 // Lock out interrupts until started
@@ -120,6 +119,7 @@ public:
 	int done;
 	int is_nested;
     int is_rendering;
+    int use_gui;
 // If nested or rendering, the devices are owned by someone else
 	AudioDevice *adevice;
 	VideoDevice *vdevice;
@@ -142,63 +142,7 @@ public:
 // CICaches for use if no playbackengine exists
 	CICache *audio_cache, *video_cache;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// constructing with an audio device forces output buffer allocation
-// constructing without an audio device puts in one buffer at a time mode
-	RenderEngine(MWindow *mwindow, 
-		AudioDevice *audio = 0, 
-		VideoDevice *video = 0,
-		PlaybackEngine *playbackengine = 0);
-
-// buffersize is in samples
-	int reset_parameters();
-
-	int arm_playback_audio(int64_t input_length, 
-			int64_t amodule_render_fragment, 
-			int64_t playback_buffer, 
-			int64_t output_length);
-
-	int arm_playback_video(int every_frame, 
-			int64_t read_length, 
-			int64_t output_length,
-			int track_w,
-			int track_h,
-			int output_w,
-			int output_h);
-
-	int64_t get_correction_factor(int reset);     // calling it resets the correction factor
-
-// start video since vrender is the master
-	int start_video();
-
-
-// information for playback
-	int follow_loop;       // loop if mwindow is looped
-	int infinite;          // don't stop rendering at the end of the range or loops
-
-	int64_t start_position;      // lowest numbered sample in playback range
-	int64_t end_position;        // highest numbered sample in playback range
-	int64_t current_sample;
-	int every_frame;
-// This is created in the first arm_command and not changed until deletion.
-// The EDL in the command changes & pointers in it should not be referenced.
 	EDL *edl;
-	
-	MWindow *mwindow;
 };
 
 

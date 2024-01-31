@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ using std::string;
 class BC_FileBoxListBox : public BC_ListBox
 {
 public:
-	BC_FileBoxListBox(int x, int y, BC_FileBox *filebox);
+	BC_FileBoxListBox(BC_FileBox *filebox);
 	virtual ~BC_FileBoxListBox();
 
 	int handle_event();
@@ -184,7 +184,39 @@ public:
 	BC_FileBox *filebox;
 };
 
+class BC_FileBoxPreview : public BC_Toggle
+{
+public:
+    BC_FileBoxPreview(int x, int y, BC_FileBox *filebox);
+    int handle_event();
+	BC_FileBox *filebox;
+};
 
+// user derives this to generate the previews
+// This way, only 1 previewer is needed for all the file dialogs.
+class BC_FileBoxPreviewer
+{
+public:
+    BC_FileBoxPreviewer();
+// should never delete it
+    virtual ~BC_FileBoxPreviewer();
+// filebox calls this in the run_window thread to analyze a new selection
+    virtual void submit_file(const char *path);
+// filebox calls this in the run_window thread before it's deleted 
+// or when changing selections
+// previewer has to delete its widgets here
+    virtual void clear_preview();
+    virtual void handle_resize(int w, int h);
+
+// canned status messages
+    void preview_unavailable();
+
+// protect access to the objects the previewer shares with the filebox
+// lock run_window thread outside this    
+    Mutex *previewer_lock;
+// the current filebox showing previews
+    BC_FileBox *filebox;
+};
 
 class BC_FileBoxRecent : public BC_ListBox
 {
@@ -201,7 +233,6 @@ public:
     string path;
     int y_offset;
 };
-
 
 class BC_FileBox : public BC_Window
 {
@@ -237,7 +268,10 @@ public:
 	friend class BC_FileBoxDelete;
 	friend class BC_FileBoxReload;
 	friend class BC_FileBoxRecent;
+    friend class BC_FileBoxPreview;
+    friend class BC_FileBoxPreviewer;
 
+    void set_previewer(BC_FileBoxPreviewer *previewer);
 	virtual void create_objects();
 	virtual int keypress_event();
 	virtual int close_event();
@@ -245,6 +279,7 @@ public:
 // window is deleted.
 	virtual int handle_event();
 
+    void calculate_sizes(int window_w, int window_h);
 	void create_history();
 	void update_history();
 	int refresh(int reload_y_position, int reset_y_position);
@@ -268,9 +303,18 @@ public:
 	void delete_files();
 	BC_Button* get_ok_button();
 	BC_Button* get_cancel_button();
-// set the initial hidden state before create_objects
-    void set_hidden(int value);
     ArrayList<BC_ListBoxItem*>* get_filters();
+
+// window sizes
+    int buttons_right;
+    int list_x;
+    int list_y;
+    int list_w;
+    int list_h;
+    int preview_x;
+    int preview_center_y;
+    int preview_w;
+    BC_Title *preview_status;
 
 private:
 	int create_icons();
@@ -285,9 +329,7 @@ private:
 // Called by move_column_event
 	void move_column(int src, int dst);
 	int get_display_mode();
-	int get_listbox_w();
-	int get_listbox_h(int y);
-	void create_listbox(int x, int y, int mode);
+	void create_listbox(int mode);
 // Get the icon number for a listbox
 	BC_Pixmap* get_icon(char *path, int is_dir);
 	static const char* columntype_to_text(int type);
@@ -302,8 +344,15 @@ private:
 	BC_FileBoxFilterText *filter_text;
 	BC_FileBoxFilterMenu *filter_popup;
 	BC_Title *directory_title;
-	BC_Button *icon_button, *text_button, *folder_button, *rename_button, *updir_button, *delete_button, *reload_button;
-	BC_Button *ok_button, *cancel_button;
+//	BC_Button *icon_button;
+//	BC_Button *text_button;
+	BC_Button *folder_button;
+	BC_Button *rename_button;
+	BC_Button *updir_button;
+	BC_Button *delete_button;
+	BC_Button *reload_button;
+	BC_Button *ok_button;
+	BC_Button *cancel_button;
 	BC_FileBoxUseThis *usethis_button;
 	char caption[BCTEXTLEN];
 	char current_path[BCTEXTLEN];
@@ -313,7 +362,11 @@ private:
 	char string[BCTEXTLEN];
 	int want_directory;
 	int select_multiple;
-    int hidden;
+    BC_Toggle *preview_button;
+// show preview button if this is set
+    BC_FileBoxPreviewer *previewer;
+// show the preview panel
+    int show_preview;
 
 	int sort_column;
 	int sort_order;

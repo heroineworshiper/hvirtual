@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +30,7 @@
 class AudioOutConfig
 {
 public:
-	AudioOutConfig(int duplex);
+	AudioOutConfig();
 	~AudioOutConfig();
 
 	int operator!=(AudioOutConfig &that);
@@ -40,6 +39,7 @@ public:
 	void copy_from(AudioOutConfig *src);
 	int load_defaults(BC_Hash *defaults);
 	int save_defaults(BC_Hash *defaults);
+    void dump();
 
 	int fragment_size;
 
@@ -47,11 +47,9 @@ public:
 // Offset for synchronization in seconds
 	float audio_offset;
 
-// Change default titles for duplex
-	int duplex;
 	int driver;
-	int oss_enable[MAXDEVICES];
-	char oss_out_device[MAXDEVICES][BCTEXTLEN];
+	int oss_enable;
+	char oss_out_device[BCTEXTLEN];
 	int oss_out_bits;
 
 
@@ -95,6 +93,7 @@ public:
 	int load_defaults(BC_Hash *defaults);
 	int save_defaults(BC_Hash *defaults);
 	char* get_path();
+    void dump();
 
 	int driver;
 	char lml_out_device[BCTEXTLEN];
@@ -146,6 +145,7 @@ public:
 	void copy_from(PlaybackConfig *src);
 	int load_defaults(BC_Hash *defaults);
 	int save_defaults(BC_Hash *defaults);
+    void dump();
 
 	char hostname[BCTEXTLEN];
 	int port;

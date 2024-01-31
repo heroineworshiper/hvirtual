@@ -25,7 +25,6 @@
 #include "auto.inc"
 #include "autos.inc"
 #include "cplayback.inc"
-#include "ctracking.inc"
 #include "cwindowgui.inc"
 #include "floatauto.inc"
 #include "mwindow.inc"
@@ -73,7 +72,6 @@ public:
 	MWindow *mwindow;
     CWindowGUI *gui;
 	
-	CTracking *playback_cursor;
 	CPlayback *playback_engine;
 };
 

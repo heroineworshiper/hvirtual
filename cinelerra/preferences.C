@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
@@ -35,6 +34,9 @@
 #include "theme.h"
 #include "videoconfig.h"
 #include "videodevice.inc"
+#include "playbackconfig.h"
+#include "quicktime.h"
+#include "recordconfig.h"
 
 #include <string.h>
 #include <unistd.h>
@@ -117,12 +119,35 @@ Preferences::Preferences()
 			channel_positions[i * MAXCHANNELS + j] = position;
 		}
 	}
+
+	playback_config = new PlaybackConfig;
+	aconfig_in = new AudioInConfig;
+	vconfig_in = new VideoInConfig;
+	recording_format = new Asset;
 }
 
 Preferences::~Preferences()
 {
 	brender_asset->Garbage::remove_user();
 	delete preferences_lock;
+	delete playback_config;
+	recording_format->Garbage::remove_user();
+	delete aconfig_in;
+	delete vconfig_in;
+}
+
+void Preferences::dump()
+{
+    printf("Preferences::dump %d: %p\n", __LINE__, this);
+    playback_config->dump();
+}
+
+char* Preferences::get_cwindow_display()
+{
+	if(playback_config->vconfig->x11_host[0])
+		return playback_config->vconfig->x11_host;
+	else
+		return 0;
 }
 
 void Preferences::copy_rates_from(Preferences *preferences)
@@ -192,6 +217,15 @@ void Preferences::copy_from(Preferences *that)
 			that->renderfarm_enabled.get(i),
 			that->renderfarm_rate.get(i));
 	}
+
+	aconfig_in->copy_from(that->aconfig_in);
+	*vconfig_in = *that->vconfig_in;
+	playback_config->copy_from(that->playback_config);
+	playback_software_position = that->playback_software_position;
+	video_every_frame = that->video_every_frame;
+	view_follows_playback = that->view_follows_playback;
+	real_time_playback = that->real_time_playback;
+	recording_format->copy_from(that->recording_format, 0);
 
     dump_playback = that->dump_playback;
     use_gl_rendering = that->use_gl_rendering;
@@ -291,6 +325,31 @@ void Preferences::scan_channels(char *string,
 int Preferences::load_defaults(BC_Hash *defaults)
 {
 	char string[BCTEXTLEN];
+
+	playback_config->load_defaults(defaults);
+	view_follows_playback = defaults->get("VIEW_FOLLOWS_PLAYBACK", 1);
+	video_every_frame = defaults->get("VIDEO_EVERY_FRAME", 1);
+	real_time_playback = defaults->get("PLAYBACK_REALTIME", 0);
+	playback_software_position = defaults->get("PLAYBACK_SOFTWARE_POSITION", 0);
+	aconfig_in->load_defaults(defaults);
+	vconfig_in->load_defaults(defaults);
+// set some defaults that work
+	recording_format->video_data = 1;
+	recording_format->audio_data = 1;
+	recording_format->format = FILE_MOV;
+	strcpy(recording_format->acodec, QUICKTIME_TWOS);
+	strcpy(recording_format->vcodec, QUICKTIME_JPEG);
+	recording_format->channels = 2;
+	recording_format->sample_rate = 48000;
+	recording_format->bits = 16;
+	recording_format->dither = 0;
+	recording_format->load_defaults(defaults,
+		"RECORD_", 
+		1,
+		1,
+		1,
+		1,
+		1);
 
 	use_tipwindow = defaults->get("USE_TIPWINDOW", use_tipwindow);
 	override_dpi = defaults->get("OVERRIDE_DPI", override_dpi);
@@ -455,6 +514,22 @@ int Preferences::save_defaults(BC_Hash *defaults)
 		sprintf(string, "RENDERFARM_RATE%d", i);
 		defaults->update(string, renderfarm_rate.values[i]);
 	}
+
+
+	playback_config->save_defaults(defaults);
+    defaults->update("PLAYBACK_REALTIME", real_time_playback);
+    defaults->update("VIDEO_EVERY_FRAME", video_every_frame);
+    defaults->update("VIEW_FOLLOWS_PLAYBACK", view_follows_playback);
+    defaults->update("PLAYBACK_SOFTWARE_POSITION", playback_software_position);
+	recording_format->save_defaults(defaults,
+		"RECORD_",
+		1,
+		1,
+		1,
+		1,
+		1);
+	aconfig_in->save_defaults(defaults);
+    vconfig_in->save_defaults(defaults);
 	return 0;
 }
 

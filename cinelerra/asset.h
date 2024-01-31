@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,11 @@
 #include <string>
 
 #define SILENCE_TEXT "SILENCE"
-
+// some coded values for certain file types
+// still photo
+#define STILL_PHOTO_LENGTH -1
+// reads sequentially for a preview
+#define NOSEEK_LENGTH -2
 
 class Asset : public ListItem<Asset>, public Indexable
 {
@@ -146,7 +150,7 @@ public:
 // String or FourCC describing compression
 	char acodec[BCTEXTLEN];
 
-
+// could be NOSEEK_LENGTH
 	int64_t audio_length;
 
 
@@ -161,7 +165,8 @@ public:
 	char vcodec[BCTEXTLEN];
 
 // Length in frames
-// -1 means a still photo
+// STILL_PHOTO_LENGTH means a still photo
+// NOSEEK_LENGTH means it only reads sequentially for a preview
 	int64_t video_length;
 
 

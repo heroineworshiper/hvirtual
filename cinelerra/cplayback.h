@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -28,14 +27,19 @@
 class CPlayback : public PlaybackEngine
 {
 public:
-	CPlayback(MWindow *mwindow, CWindow *cwindow, Canvas *output);
+	CPlayback(CWindow *cwindow, Canvas *output);
 
-	int create_render_engine();
 	void init_cursor();
 	void stop_cursor();
 	int brender_available(long position);
+    void update_meters(int64_t position);
+    void update_tracker(double position);
+    int update_scroll(double position);
 
 	CWindow *cwindow;
+// Values to return from playback_engine to update_meter .
+// Use ArrayList to simplify module counting
+	ArrayList<double> module_levels;
 };
 
 #endif

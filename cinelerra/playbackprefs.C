@@ -60,7 +60,7 @@ void PlaybackPrefs::create_objects()
 	BC_Resources *resources = BC_WindowBase::get_resources();
 
 
-	playback_config = pwindow->thread->edl->session->playback_config;
+	playback_config = pwindow->thread->preferences->playback_config;
 
 	x = mwindow->theme->preferencesoptions_x;
 	y = mwindow->theme->preferencesoptions_y;
@@ -109,11 +109,11 @@ SET_TRACE
 	y += audio_offset->get_h() + margin;
 
 SET_TRACE
-	add_subwindow(new PlaybackViewFollows(pwindow, pwindow->thread->edl->session->view_follows_playback, y));
+	add_subwindow(new PlaybackViewFollows(pwindow, pwindow->thread->preferences->view_follows_playback, y));
 	y += DP(30);
-	add_subwindow(new PlaybackSoftwareTimer(pwindow, pwindow->thread->edl->session->playback_software_position, y));
+	add_subwindow(new PlaybackSoftwareTimer(pwindow, pwindow->thread->preferences->playback_software_position, y));
 	y += DP(30);
-	add_subwindow(new PlaybackRealTime(pwindow, pwindow->thread->edl->session->real_time_playback, y));
+	add_subwindow(new PlaybackRealTime(pwindow, pwindow->thread->preferences->real_time_playback, y));
 	y += DP(40);
 	add_subwindow(title1 = new BC_Title(x, y, _("Audio Driver:")));
 	audio_device = new ADevicePrefs(title1->get_x() + title1->get_w() + margin, 
@@ -351,7 +351,7 @@ PlaybackViewFollows::PlaybackViewFollows(PreferencesWindow *pwindow, int value, 
 
 int PlaybackViewFollows::handle_event() 
 { 
-	pwindow->thread->edl->session->view_follows_playback = get_value(); 
+	pwindow->thread->preferences->view_follows_playback = get_value(); 
 	return 1;
 }
 
@@ -366,7 +366,7 @@ PlaybackSoftwareTimer::PlaybackSoftwareTimer(PreferencesWindow *pwindow, int val
 
 int PlaybackSoftwareTimer::handle_event() 
 { 
-	pwindow->thread->edl->session->playback_software_position = get_value(); 
+	pwindow->thread->preferences->playback_software_position = get_value(); 
 	return 1;
 }
 
@@ -381,7 +381,7 @@ PlaybackRealTime::PlaybackRealTime(PreferencesWindow *pwindow, int value, int y)
 
 int PlaybackRealTime::handle_event() 
 { 
-	pwindow->thread->edl->session->real_time_playback = get_value(); 
+	pwindow->thread->preferences->real_time_playback = get_value(); 
 	return 1;
 }
 
@@ -614,7 +614,7 @@ VideoEveryFrame::VideoEveryFrame(PreferencesWindow *pwindow,
 	PlaybackPrefs *playback_prefs,
 	int x, 
 	int y)
- : BC_CheckBox(x, y, pwindow->thread->edl->session->video_every_frame, _("Play every frame"))
+ : BC_CheckBox(x, y, pwindow->thread->preferences->video_every_frame, _("Play every frame"))
 {
 	this->pwindow = pwindow;
 	this->playback_prefs = playback_prefs;
@@ -622,7 +622,7 @@ VideoEveryFrame::VideoEveryFrame(PreferencesWindow *pwindow,
 
 int VideoEveryFrame::handle_event()
 {
-	pwindow->thread->edl->session->video_every_frame = get_value();
+	pwindow->thread->preferences->video_every_frame = get_value();
 // 	if(!pwindow->thread->edl->session->video_every_frame)
 // 	{
 // 		playback_prefs->asynchronous->update(0, 0);

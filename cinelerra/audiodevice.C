@@ -56,7 +56,7 @@ AudioDevice::AudioDevice(MWindow *mwindow)
 {
 	initialize();
 	this->mwindow = mwindow;
-	this->out_config = new AudioOutConfig(0);
+	this->out_config = new AudioOutConfig;
 	this->in_config = new AudioInConfig;
 	this->vconfig = new VideoInConfig;
 	startup_lock = new Condition(0, "AudioDevice::startup_lock");

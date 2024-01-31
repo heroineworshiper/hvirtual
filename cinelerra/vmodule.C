@@ -231,10 +231,8 @@ int VModule::import_frame(VFrame *output,
                 nested_command->get_edl()->nested_depth++;
 				nested_command->change_type = CHANGE_ALL;
 				nested_command->realtime = renderengine->command->realtime;
-				nested_renderengine = new RenderEngine(0,
-					get_preferences(), 
-					0,
-					renderengine ? renderengine->channeldb : 0);
+				nested_renderengine = new RenderEngine(0, get_preferences());
+                if(renderengine) nested_renderengine->set_channeldb(renderengine->channeldb);
                 nested_renderengine->set_nested(1);
 				nested_renderengine->set_vcache(get_cache());
 				nested_renderengine->arm_command(nested_command);

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,8 +41,8 @@ public:
 	static int is_duplex(AudioInConfig *in, AudioOutConfig *out);
 
 	int driver;
-	int oss_enable[MAXDEVICES];
-	char oss_in_device[MAXDEVICES][BCTEXTLEN];
+	int oss_enable;
+	char oss_in_device[BCTEXTLEN];
 	int oss_in_bits;
 
 	int firewire_port, firewire_channel;

@@ -61,7 +61,6 @@ CWindow::CWindow(MWindow *mwindow)
 CWindow::~CWindow()
 {
 	delete playback_engine;
-	delete playback_cursor;
 }
 
 void CWindow::create_objects()
@@ -74,17 +73,11 @@ void CWindow::create_objects()
     gui->create_objects();
 
 
-	playback_engine = new CPlayback(mwindow, this, gui->canvas);
-
-
+	playback_engine = new CPlayback(this, gui->canvas);
 // Start command loop
 	playback_engine->create_objects();
 
 	gui->transport->set_engine(playback_engine);
-
-	playback_cursor = new CTracking(mwindow, this);
-
-	playback_cursor->create_objects();
 
 }
 

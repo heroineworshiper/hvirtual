@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,7 @@
 #include "edlsession.h"
 #include "filexml.h"
 #include "overlayframe.inc"
-#include "playbackconfig.h"
 #include "quicktime.h"
-#include "recordconfig.h"
 #include "tracks.h"
 #include "workarounds.h"
 #include <inttypes.h>
@@ -41,10 +39,6 @@ EDLSession::EDLSession(EDL *edl)
 	proxy_scale = 1;
 	highlighted_track = 0;
 	playback_cursor_visible = 0;
-	aconfig_in = new AudioInConfig;
-	aconfig_duplex = new AudioOutConfig(1);
-	vconfig_in = new VideoInConfig;
-	recording_format = new Asset;
 	interpolation_type = CUBIC_CUBIC;
 	interpolate_raw = 1;
 //	white_balance_raw = 1;
@@ -53,7 +47,6 @@ EDLSession::EDLSession(EDL *edl)
 	brender_end = 0.0;
 	mpeg4_deblock = 1;
 
-	playback_config = new PlaybackConfig;
 	auto_conf = new AutoConf;
 	strcpy(current_folder, "");
 	strcpy(default_atransition, "");
@@ -92,12 +85,7 @@ EDLSession::EDLSession(EDL *edl)
 
 EDLSession::~EDLSession()
 {
-	delete aconfig_in;
-	delete aconfig_duplex;
 	delete auto_conf;
-	delete vconfig_in;
-	delete playback_config;
-	recording_format->Garbage::remove_user();
 }
 
 double EDLSession::get_nested_frame_rate()
@@ -124,22 +112,10 @@ int64_t EDLSession::get_nested_sample_rate()
     }
 }
 
-char* EDLSession::get_cwindow_display()
-{
-	if(playback_config->vconfig->x11_host[0])
-		return playback_config->vconfig->x11_host;
-	else
-		return 0;
-}
-
 int EDLSession::need_rerender(EDLSession *ptr)
 {
 	return (playback_preload != ptr->playback_preload) ||
 		(interpolation_type != ptr->interpolation_type) ||
-		(video_every_frame != ptr->video_every_frame) ||
-//		(video_asynchronous != ptr->video_asynchronous) ||
-		(real_time_playback != ptr->real_time_playback) ||
-		(playback_software_position != ptr->playback_software_position) ||
 		(test_playback_edits != ptr->test_playback_edits) ||
 		(playback_buffer != ptr->playback_buffer) ||
 		(decode_subtitles != ptr->decode_subtitles) ||
@@ -195,8 +171,6 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 
 		achannel_positions[i] = defaults->get(string, default_position);
 	}
-	aconfig_duplex->load_defaults(defaults);
-	aconfig_in->load_defaults(defaults);
 //	assetlist_format = defaults->get("ASSETLIST_FORMAT", ASSETS_TEXT);
 	aspect_w = defaults->get("ASPECTW", (float)4);
 	aspect_h = defaults->get("ASPECTH", (float)3);
@@ -258,11 +232,6 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	output_h = defaults->get("OUTPUTH", 480);
 	playback_buffer = defaults->get("PLAYBACK_BUFFER", 4096);
 	playback_preload = defaults->get("PLAYBACK_PRELOAD", 0);
-	playback_software_position = defaults->get("PLAYBACK_SOFTWARE_POSITION", 0);
-	delete playback_config;
-	playback_config = new PlaybackConfig;
-	playback_config->load_defaults(defaults);
-	real_time_playback = defaults->get("PLAYBACK_REALTIME", 0);
 	real_time_record = defaults->get("REALTIME_RECORD", 0);
 	record_software_position = defaults->get("RECORD_SOFTWARE_POSITION", 1);
 	record_sync_drives = defaults->get("RECORD_SYNC_DRIVES", 0);
@@ -271,23 +240,6 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	record_write_length = defaults->get("RECORD_WRITE_LENGTH", 131072);
 	
 	
-// set some defaults that work
-	recording_format->video_data = 1;
-	recording_format->audio_data = 1;
-	recording_format->format = FILE_MOV;
-	strcpy(recording_format->acodec, QUICKTIME_TWOS);
-	strcpy(recording_format->vcodec, QUICKTIME_JPEG);
-	recording_format->channels = 2;
-	recording_format->sample_rate = 48000;
-	recording_format->bits = 16;
-	recording_format->dither = 0;
-	recording_format->load_defaults(defaults,
-		"RECORD_", 
-		1,
-		1,
-		1,
-		1,
-		1);
 
 //	safe_regions = defaults->get("SAFE_REGIONS", 0);
 	sample_rate = defaults->get("SAMPLERATE", 48000);
@@ -298,7 +250,6 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	time_format = defaults->get("TIME_FORMAT", TIME_HMS);
 	nudge_seconds = defaults->get("NUDGE_FORMAT", 1);
 //	tool_window = defaults->get("TOOL_WINDOW", 0);
-	vconfig_in->load_defaults(defaults);
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
 		int default_position = i * output_w;
@@ -308,11 +259,9 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 		vchannel_y[i] = defaults->get(string, 0);
 	}
 	video_channels = defaults->get("VCHANNELS", 1);
-	video_every_frame = defaults->get("VIDEO_EVERY_FRAME", 1);
 //	video_asynchronous = defaults->get("VIDEO_ASYNCHRONOUS", 0);
 	video_tracks = defaults->get("VTRACKS", 1);
 	video_write_length = defaults->get("VIDEO_WRITE_LENGTH", 30);
-	view_follows_playback = defaults->get("VIEW_FOLLOWS_PLAYBACK", 1);
 	vwindow_meter = defaults->get("VWINDOW_METER", 0);
 
 
@@ -338,8 +287,6 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 		defaults->update(string, achannel_positions[i]);
 	}
 	defaults->update("ACHANNELS", audio_channels);
-	aconfig_duplex->save_defaults(defaults);
-	aconfig_in->save_defaults(defaults);
 	auto_conf->save_defaults(defaults);
 //    defaults->update("ASSETLIST_FORMAT", assetlist_format);
     defaults->update("ASPECTW", aspect_w);
@@ -398,22 +345,12 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("OUTPUTH", output_h);
     defaults->update("PLAYBACK_BUFFER", playback_buffer);
 	defaults->update("PLAYBACK_PRELOAD", playback_preload);
-    defaults->update("PLAYBACK_SOFTWARE_POSITION", playback_software_position);
-	playback_config->save_defaults(defaults);
-    defaults->update("PLAYBACK_REALTIME", real_time_playback);
 	defaults->update("REALTIME_RECORD", real_time_record);
     defaults->update("RECORD_SOFTWARE_POSITION", record_software_position);
 	defaults->update("RECORD_SYNC_DRIVES", record_sync_drives);
 //	defaults->update("RECORD_SPEED", record_speed);  
 	defaults->update("RECORD_FRAGMENT_SIZE", record_fragment_size); 
 	defaults->update("RECORD_WRITE_LENGTH", record_write_length); // Heroine kernel 2.2 scheduling sucks.
-	recording_format->save_defaults(defaults,
-		"RECORD_",
-		1,
-		1,
-		1,
-		1,
-		1);
 //	defaults->update("SAFE_REGIONS", safe_regions);
 	defaults->update("SAMPLERATE", sample_rate);
     defaults->update("SCRUB_SPEED", scrub_speed);
@@ -423,7 +360,6 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("TIME_FORMAT", time_format);
 	defaults->update("NUDGE_FORMAT", nudge_seconds);
 //	defaults->update("TOOL_WINDOW", tool_window);
-    vconfig_in->save_defaults(defaults);
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
 		sprintf(string, "VCHANNEL_X_%d", i);
@@ -432,11 +368,9 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 		defaults->update(string, vchannel_y[i]);
 	}
 	defaults->update("VCHANNELS", video_channels);
-    defaults->update("VIDEO_EVERY_FRAME", video_every_frame);
 //    defaults->update("VIDEO_ASYNCHRONOUS", video_asynchronous);
 	defaults->update("VTRACKS", video_tracks);
 	defaults->update("VIDEO_WRITE_LENGTH", video_write_length);
-    defaults->update("VIEW_FOLLOWS_PLAYBACK", view_follows_playback);
 	defaults->update("VWINDOW_METER", vwindow_meter);
 	defaults->update("VWINDOW_ZOOM", vwindow_zoom);
 
@@ -750,8 +684,6 @@ int EDLSession::copy(EDLSession *session)
 	{
 		achannel_positions[i] = session->achannel_positions[i];
 	}
-	aconfig_duplex->copy_from(session->aconfig_duplex);
-	aconfig_in->copy_from(session->aconfig_in);
 // 	for(int i = 0; i < ASSET_COLUMNS; i++)
 // 	{
 // 		asset_columns[i] = session->asset_columns[i];
@@ -815,20 +747,14 @@ int EDLSession::copy(EDLSession *session)
 	output_w = session->output_w;
 	output_h = session->output_h;
 	playback_buffer = session->playback_buffer;
-	delete playback_config;
-	playback_config = new PlaybackConfig;
-	playback_config->copy_from(session->playback_config);
 	playback_cursor_visible = session->playback_cursor_visible;
 	playback_preload = session->playback_preload;
-	playback_software_position = session->playback_software_position;
-	real_time_playback = session->real_time_playback;
 	real_time_record = session->real_time_record;
-	record_software_position = session->record_software_position;
 //	record_speed = session->record_speed;
 	record_sync_drives = session->record_sync_drives;
 	record_fragment_size = session->record_fragment_size;
 	record_write_length = session->record_write_length;
-	recording_format->copy_from(session->recording_format, 0);
+	record_software_position = session->record_software_position;
 //	safe_regions = session->safe_regions;
 	sample_rate = session->sample_rate;
     nested_sample_rate = session->nested_sample_rate;
@@ -845,12 +771,9 @@ int EDLSession::copy(EDLSession *session)
 		vchannel_y[i] = session->vchannel_y[i];
 	}
 	video_channels = session->video_channels;
-	*vconfig_in = *session->vconfig_in;
-	video_every_frame = session->video_every_frame;
 //	video_asynchronous = session->video_asynchronous;
 	video_tracks = session->video_tracks;
-	video_write_length = session->video_write_length;	
-	view_follows_playback = session->view_follows_playback;
+	video_write_length = session->video_write_length;
 	vwindow_meter = session->vwindow_meter;
 	vwindow_zoom = session->vwindow_zoom;
 	proxy_scale = session->proxy_scale;

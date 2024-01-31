@@ -42,11 +42,6 @@ VTracking::~VTracking()
 {
 }
 
-PlaybackEngine* VTracking::get_playback_engine()
-{
-	return vwindow->playback_engine;
-}
-
 void VTracking::update_tracker(double position)
 {
 	vwindow->gui->lock_window("VTracking::update_tracker");
@@ -74,7 +69,7 @@ void VTracking::update_meters(int64_t position)
 	double output_levels[MAXCHANNELS];
 
 #ifdef USE_METERS
-	int do_audio = get_playback_engine()->get_output_levels(output_levels, 
+	int do_audio = playback_engine->get_output_levels(output_levels, 
 		position);
 	if(do_audio)
 	{

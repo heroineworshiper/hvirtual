@@ -387,6 +387,10 @@ if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 		}
 		else
 		{
+			asset->audio_data = mpeg3_has_audio(fd);
+			asset->video_data = mpeg3_has_video(fd);
+
+
 // Determine if the file needs a table of contents and create one if needed.
 // If it has video it must be scanned since video has keyframes.
 if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
@@ -399,9 +403,6 @@ if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 			mpeg3_set_cpus(fd, file->cpus);
 
-if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
-			asset->audio_data = mpeg3_has_audio(fd);
-if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 			if(asset->audio_data)
 			{
 				asset->channels = 0;
@@ -416,10 +417,7 @@ if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 					!asset->sample_rate)
 					result = 1;
 			}
-if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 
-			asset->video_data = mpeg3_has_video(fd);
-if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 			if(asset->video_data)
 			{
 				asset->layers = mpeg3_total_vstreams(fd);
@@ -776,6 +774,14 @@ int FileMPEG::create_index()
 
 	if(need_toc)
 	{
+// use length codes if TOC creation is disabled
+        if(file->disable_toc_creation)
+        {
+            if(asset->video_data) asset->video_length = NOSEEK_LENGTH;
+            if(asset->audio_data) asset->audio_length = NOSEEK_LENGTH;
+            return 0;
+        }
+
 // Create progress window.
 // This gets around the fact that MWindowGUI is locked.
 		string progress_title("Creating ");

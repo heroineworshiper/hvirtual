@@ -332,18 +332,19 @@ int FileOGG::open_file(int rd, int wr)
 			tf->ti.offset_y = tf->ti.height - tf->ti.frame_height;
 			tf->ti.fps_numerator = (unsigned int)(asset->frame_rate * 1000000);
 			tf->ti.fps_denominator = 1000000;
-			
-			if (asset->aspect_ratio > 0)
-			{
-				// Cinelerra uses frame aspect ratio, theora uses pixel aspect ratio
-				float pixel_aspect = asset->aspect_ratio / asset->width * asset->height;
-				tf->ti.aspect_numerator = (unsigned int)(pixel_aspect * 1000000);
-				tf->ti.aspect_denominator = 1000000;
-			} else
-			{
+
+// don't use the aspect ratio setting like all the other formats
+// 			if (asset->aspect_ratio > 0)
+// 			{
+// 				// Cinelerra uses frame aspect ratio, theora uses pixel aspect ratio
+// 				float pixel_aspect = asset->aspect_ratio / asset->width * asset->height;
+// 				tf->ti.aspect_numerator = (unsigned int)(pixel_aspect * 1000000);
+// 				tf->ti.aspect_denominator = 1000000;
+// 			} else
+// 			{
 				tf->ti.aspect_numerator = 1000000;
 				tf->ti.aspect_denominator = 1000000;
-			}
+//			}
 			if(EQUIV(asset->frame_rate, 25) || EQUIV(asset->frame_rate, 50))
 				tf->ti.colorspace = OC_CS_ITU_REC_470BG;
 			else if((asset->frame_rate > 29 && asset->frame_rate < 31) || (asset->frame_rate > 59 && asset->frame_rate < 61) )

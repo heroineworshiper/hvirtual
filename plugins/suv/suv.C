@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -207,20 +207,27 @@ void SUV::initialize()
 
 
 
-	resources->filebox_icons_images = new_button("icons.png",
-		"fileboxbutton_up.png",
-		"fileboxbutton_hi.png",
-		"fileboxbutton_dn.png");
-
-	resources->filebox_text_images = new_button("text.png",
-		"fileboxbutton_up.png",
-		"fileboxbutton_hi.png",
-		"fileboxbutton_dn.png");
+// 	resources->filebox_icons_images = new_button("icons.png",
+// 		"fileboxbutton_up.png",
+// 		"fileboxbutton_hi.png",
+// 		"fileboxbutton_dn.png");
+// 
+// 	resources->filebox_text_images = new_button("text.png",
+// 		"fileboxbutton_up.png",
+// 		"fileboxbutton_hi.png",
+// 		"fileboxbutton_dn.png");
 
 	resources->filebox_newfolder_images = new_button("folder.png",
 		"fileboxbutton_up.png",
 		"fileboxbutton_hi.png",
 		"fileboxbutton_dn.png");
+
+	resources->filebox_preview_images = new_toggle("preview.png",
+		"fileboxbutton_up.png",
+		"fileboxbutton_hi.png",
+		"fileboxbutton_checked.png",
+		"fileboxbutton_dn.png",
+		"fileboxbutton_checkedhi.png");
 
 	resources->filebox_rename_images = new_button("rename.png",
 		"fileboxbutton_up.png",
@@ -448,6 +455,7 @@ void SUV::initialize()
 	new_image_set("xpane", 3, "xpane_up.png", "xpane_hi.png", "xpane_dn.png");
 	new_image_set("ypane", 3, "ypane_up.png", "ypane_hi.png", "ypane_dn.png");
 
+    new_image("speaker", "speaker.png");
 	new_image("mbutton_bg", "mbutton_bg.png");
 	new_image("timebar_bg", "timebar_bg_flat.png");
 	new_image("timebar_brender", "timebar_brender.png");

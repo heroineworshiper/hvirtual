@@ -22,10 +22,10 @@
 #include "attachmentpoint.h"
 #include "filexml.h"
 #include "edl.h"
-#include "edlsession.h"
 #include "mwindow.h"
 #include "plugin.h"
 #include "pluginserver.h"
+#include "preferences.h"
 #include "renderengine.h"
 #include "transportque.h"
 #include "virtualnode.h"
@@ -101,7 +101,7 @@ int AttachmentPoint::render_init()
 						plugin,
 						-1);
 					plugin_servers.values[i]->init_realtime(
-						renderengine->get_edl()->session->real_time_playback &&
+						MWindow::preferences->real_time_playback &&
 							renderengine->command->realtime,
 						plugin_server->multichannel ? new_virtual_plugins.total : 1,
 						get_buffer_size());
@@ -216,8 +216,8 @@ void AttachmentPoint::render_gui(void *data, PluginServer *server)
 // Discard if not 1st plugin server, so single channel plugins don't get double GUI updates
 	if(server != plugin_servers.get(0)) return;
 
-	if(renderengine && renderengine->mwindow)
-		renderengine->mwindow->render_plugin_gui(data, plugin);
+	if(renderengine && renderengine->use_gui)
+		MWindow::instance->render_plugin_gui(data, plugin);
 }
 
 void AttachmentPoint::reset_gui_frames(PluginServer *server)
@@ -230,9 +230,9 @@ void AttachmentPoint::reset_gui_frames(PluginServer *server)
 //     printf("AttachmentPoint::reset_gui_frames %d renderengine=%p\n", 
 //         __LINE__, 
 //         renderengine);
-    if(renderengine && renderengine->mwindow)
+    if(renderengine && renderengine->use_gui)
     {
-        renderengine->mwindow->reset_plugin_gui_frames(plugin);
+        MWindow::instance->reset_plugin_gui_frames(plugin);
     }
 }
 
@@ -243,14 +243,14 @@ void AttachmentPoint::render_gui(void *data, int size, PluginServer *server)
 // Discard if not 1st plugin server, so single channel plugins don't get double GUI updates
 	if(server != plugin_servers.get(0)) return;
 
-	if(renderengine && renderengine->mwindow)
-		renderengine->mwindow->render_plugin_gui(data, size, plugin);
+	if(renderengine && renderengine->use_gui)
+		MWindow::instance->render_plugin_gui(data, size, plugin);
 }
 
 int AttachmentPoint::gui_open()
 {
-	if(renderengine && renderengine->mwindow)
-		return renderengine->mwindow->plugin_gui_open(plugin);
+	if(renderengine && renderengine->use_gui)
+		return MWindow::instance->plugin_gui_open(plugin);
 	return 0;
 }
 

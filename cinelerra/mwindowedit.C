@@ -32,6 +32,7 @@
 #include "cwindowgui.h"
 #include "bchash.h"
 #include "edl.h"
+#include "edlfactory.h"
 #include "edlsession.h"
 #include "filexml.h"
 #include "floatauto.h"
@@ -1435,7 +1436,10 @@ if(debug) printf("MWindow::load_assets %d\n", __LINE__);
 		{
 if(debug) printf("MWindow::load_assets %d\n", __LINE__);
 if(debug) ((Asset*)indexable)->dump();
-			asset_to_edl(new_edl, (Asset*)indexable, 0, 0);
+			EDLFactory::asset_to_edl(new_edl, 
+                (Asset*)indexable, 
+                0, 
+                0);
 		}
 		else
         {

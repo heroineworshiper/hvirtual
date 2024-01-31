@@ -29,8 +29,6 @@
 #define PLAYBACK_BLONDSYMPHONY 2
 #define PLAYBACK_STRATEGIES 3
 
-// OSS can feed more than 1 device handle
-#define MAXDEVICES 8
 
 class AudioOutConfig;
 class VideoOutConfig;

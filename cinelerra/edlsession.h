@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2015 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,8 +27,6 @@
 #include "edl.inc"
 #include "filexml.inc"
 #include "maxchannels.h"
-#include "playbackconfig.inc"
-#include "recordconfig.inc"
 
 
 // Session shared between all clips
@@ -50,8 +47,6 @@ public:
     int save_video_config(FileXML *xml);
 	int load_defaults(BC_Hash *defaults);
 	int save_defaults(BC_Hash *defaults);
-// Used by CWindowGUI during initialization.
-	char* get_cwindow_display();
 	void boundaries();
 
 // get the nested values, substituting when -1
@@ -73,7 +68,6 @@ public:
 	int proxy_scale;
 // Audio
 	int achannel_positions[MAXCHANNELS];
-	AudioOutConfig *aconfig_duplex;
 // AWindow format
 	int assetlist_format;
 	AutoConf *auto_conf;
@@ -165,10 +159,7 @@ public:
 	int64_t playback_preload;
 	int decode_subtitles;
 	int subtitle_number;
-	int playback_software_position;
 //	int playback_strategy;
-// Play audio in realtime priority
-	int real_time_playback;
 	int real_time_record;
 // Use software to calculate record position
 	int record_software_position;
@@ -204,24 +195,17 @@ public:
 	int vchannel_y[MAXCHANNELS];
 // Recording
 	int video_channels;
-	VideoInConfig *vconfig_in;
-	AudioInConfig *aconfig_in;
-	Asset *recording_format;
-// play every frame
-	int video_every_frame;  
 // decode video asynchronously
 //	int video_asynchronous;
 	int video_tracks;
 // number of frames to write to disk at a time during video recording.
 	int video_write_length;
-	int view_follows_playback;
 // Use the vwindow meter or not
 	int vwindow_meter;
 	float vwindow_zoom;
 
 // Global ID counter
 	static int current_id;
-	PlaybackConfig* playback_config;
 
 private:
 // Global playback.  This is loaded from defaults but not from XML probably

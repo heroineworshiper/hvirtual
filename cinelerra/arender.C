@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -300,10 +299,10 @@ if(debug) printf("ARender::run %d %d\n", __LINE__, Thread::calculate_realtime())
 	{
 		current_input_length = renderengine->fragment_len;
 
-if(debug) printf("ARender::run %d %lld %lld\n", __LINE__, (long long)current_position, (long long)current_input_length);
+if(debug) printf("ARender::run %d %d %d\n", __LINE__, (int)current_position, (int)current_input_length);
 		get_boundaries(current_input_length);
 
-if(debug) printf("ARender::run %d %lld %lld\n", __LINE__, (long long)current_position, (long long)current_input_length);
+if(debug) printf("ARender::run %d %d %d\n", __LINE__, (int)current_position, (int)current_input_length);
 		if(current_input_length)
 		{
 			reconfigure = vconsole->test_reconfigure(current_position, 
@@ -333,7 +332,10 @@ if(debug) printf("ARender::run %d %lld %lld\n", __LINE__, (long long)current_pos
 		}
 
 
-if(debug) printf("ARender::run %d %lld\n", __LINE__, (long long)current_input_length);
+if(debug) printf("ARender::run %d current_input_length=%d current_position=%d\n", 
+__LINE__, 
+(int)current_input_length,
+(int)current_position);
 
 
 

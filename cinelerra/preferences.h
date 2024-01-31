@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  */
+
+// global options changed in the preferences window
 
 #ifndef PREFERENCES_H
 #define PREFERENCES_H
@@ -44,7 +46,10 @@ public:
 	void copy_from(Preferences *that);
 	int load_defaults(BC_Hash *defaults);
 	int save_defaults(BC_Hash *defaults);
+    void dump();
 	void boundaries();
+// Used by CWindowGUI during initialization.
+	char* get_cwindow_display();
 
 	static void print_channels(char *string, 
 		int *channel_positions, 
@@ -141,6 +146,19 @@ public:
 
 	int override_dpi;
 	int dpi;
+
+	PlaybackConfig *playback_config;
+	VideoInConfig *vconfig_in;
+	AudioInConfig *aconfig_in;
+	Asset *recording_format;
+// play every frame
+	int video_every_frame;  
+	int view_follows_playback;
+	int playback_software_position;
+// Play audio in realtime priority
+	int real_time_playback;
+
+
 
 // ====================================== Plugin Set ==============================
 	char plugin_dir[BCTEXTLEN];

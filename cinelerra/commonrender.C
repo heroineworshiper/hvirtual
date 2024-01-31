@@ -27,7 +27,6 @@
 #include "edlsession.h"
 #include "intautos.h"
 #include "localsession.h"
-#include "mainsession.h"
 #include "module.h"
 #include "mwindow.h"
 #include "patchbay.h"
@@ -177,7 +176,7 @@ void CommonRender::start_command()
 {
 	if(renderengine->command->realtime)
 	{
-		Thread::set_realtime(renderengine->get_edl()->session->real_time_playback &&
+		Thread::set_realtime(MWindow::preferences->real_time_playback &&
 			data_type == TRACK_AUDIO);
 		Thread::start();
 		start_lock->lock("CommonRender::start_command");
@@ -213,7 +212,10 @@ int CommonRender::get_boundaries(int64_t &current_render_length)
 	int64_t start_position = tounits(renderengine->command->start_position, 0);
 	int64_t end_position = tounits(renderengine->command->end_position, 1);
 
-
+// printf("CommonRender::get_boundaries %d start_position=%d end_position=%d\n",
+// __LINE__,
+// (int)start_position,
+// (int)end_position);
 // test absolute boundaries if no loop and not infinite
 	if(renderengine->command->single_frame() || 
 		(!renderengine->get_edl()->local_session->loop_playback && 

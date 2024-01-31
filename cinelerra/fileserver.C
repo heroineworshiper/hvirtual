@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
@@ -100,9 +99,11 @@ FileFork* FileServer::new_filefork()
 // Transfer fd to dummy file fork
 	dummy_fork->start_dummy(parent_fd, *(int*)(result_data + sizeof(FileFork*)));
 	dummy_fork->real_fork = *(FileFork**)result_data;
-// printf("FileServer::new_filefork %d parent_fd=%d real_fork=%p\n",
+// printf("FileServer::new_filefork %d this=%p parent_fd=%d dummy_fork=%p real_fork=%p\n",
 // __LINE__,
+// this,
 // parent_fd,
+// dummy_fork,
 // dummy_fork->real_fork);
 	lock->unlock();
 	return dummy_fork;

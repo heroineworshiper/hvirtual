@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,11 +32,8 @@
 AudioInConfig::AudioInConfig()
 {
 	driver = AUDIO_OSS;
-	for(int i = 0; i < MAXDEVICES; i++)
-	{
-		oss_enable[i] = (i == 0);
-		sprintf(oss_in_device[i], "/dev/dsp");
-	}
+	oss_enable = 1;
+	sprintf(oss_in_device, "/dev/dsp");
 	oss_in_bits = 16;
 	firewire_port = 0;
 	firewire_channel = 63;
@@ -64,7 +60,7 @@ int AudioInConfig::is_duplex(AudioInConfig *in, AudioOutConfig *out)
 		{
 			case AUDIO_OSS:
 			case AUDIO_OSS_ENVY24:
-				return (!strcmp(in->oss_in_device[0], out->oss_out_device[0]) &&
+				return (!strcmp(in->oss_in_device, out->oss_out_device) &&
 					in->oss_in_bits == out->oss_out_bits);
 				break;
 
@@ -91,12 +87,9 @@ void AudioInConfig::copy_from(AudioInConfig *src)
 	strcpy(pulse_in_server, src->pulse_in_server);
 	esound_in_port = src->esound_in_port;
 
-	for(int i = 0; i < MAXDEVICES; i++)
-	{
-		oss_enable[i] = src->oss_enable[i];
-		strcpy(oss_in_device[i], src->oss_in_device[i]);
-		oss_in_bits = src->oss_in_bits;
-	}
+	oss_enable = src->oss_enable;
+	strcpy(oss_in_device, src->oss_in_device);
+	oss_in_bits = src->oss_in_bits;
 
 	strcpy(alsa_in_device, src->alsa_in_device);
 	alsa_in_bits = src->alsa_in_bits;
@@ -117,13 +110,8 @@ int AudioInConfig::load_defaults(BC_Hash *defaults)
 	firewire_port =           defaults->get("AFIREWIRE_IN_PORT", firewire_port);
 	firewire_channel =        defaults->get("AFIREWIRE_IN_CHANNEL", firewire_channel);
 	defaults->get("AFIREWIRE_IN_PATH", firewire_path);
-	for(int i = 0; i < MAXDEVICES; i++)
-	{
-		sprintf(string, "OSS_ENABLE_%d", i);
-		oss_enable[i] = defaults->get(string, oss_enable[i]);
-		sprintf(string, "OSS_IN_DEVICE_%d", i);
-		defaults->get(string, oss_in_device[i]);
-	}
+	oss_enable = defaults->get("OSS_ENABLE", oss_enable);
+	defaults->get("OSS_IN_DEVICE", oss_in_device);
 	sprintf(string, "OSS_IN_BITS");
 	oss_in_bits = defaults->get(string, oss_in_bits);
 	defaults->get("ESOUND_IN_SERVER", esound_in_server);
@@ -145,13 +133,9 @@ int AudioInConfig::save_defaults(BC_Hash *defaults)
 	defaults->update("AFIREWIRE_IN_CHANNEL", firewire_channel);
 	defaults->update("AFIREWIRE_IN_PATH", firewire_path);
 
-	for(int i = 0; i < MAXDEVICES; i++)
-	{
-		sprintf(string, "OSS_ENABLE_%d", i);
-		defaults->update(string, oss_enable[i]);
-		sprintf(string, "OSS_IN_DEVICE_%d", i);
-		defaults->update(string, oss_in_device[i]);
-	}
+	defaults->update("OSS_ENABLE", oss_enable);
+	defaults->update("OSS_IN_DEVICE", oss_in_device);
+
 
 	sprintf(string, "OSS_IN_BITS");
 	defaults->update(string, oss_in_bits);

@@ -1309,10 +1309,17 @@ void EDL::insert_asset(Asset *asset,
 		channels = new_nested_edl->session->audio_channels;
 	}
 
+#define NOSEEK_SECONDS 3600
 	if(new_asset)
 	{
-// Insert 1 frame for undefined length
-		if(new_asset->video_length < 0) 
+// insert arbitrary time for unknown length
+        if(new_asset->video_length == NOSEEK_LENGTH)
+        {
+            length = NOSEEK_SECONDS;
+        }
+        else
+// Insert 1 frame for still photo
+		if(new_asset->video_length == STILL_PHOTO_LENGTH) 
 		{
         	length = 1.0 / session->frame_rate; 
 		}
@@ -1351,18 +1358,10 @@ void EDL::insert_asset(Asset *asset,
 	int atrack = 0;
 	if(new_asset)
 	{
-		if(new_asset->audio_length < 0)
+		if(new_asset->audio_length == NOSEEK_LENGTH)
 		{
-// Insert 1 frame for undefined length & video
-			if(new_asset->video_data)
-			{
-            	length = (double)1.0 / new_asset->frame_rate;
-			}
-            else
-            {
-// Insert 1 second for undefined length & no video
-				length = 1.0;
-            }
+// insert arbitrary time for unknown length
+			length = NOSEEK_SECONDS;
 		}
 		else
         {

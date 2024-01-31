@@ -84,8 +84,8 @@ private:
 	ADriverMenu *menu;
 	BC_Title *path_title, *bits_title;
 	BC_Title *server_title, *port_title, *channel_title, *syt_title;
-	OSSEnable *oss_enable[MAXDEVICES];
-	ADeviceTextBox *oss_path[MAXDEVICES];
+	OSSEnable *oss_enable;
+	ADeviceTextBox *oss_path;
 	BitsPopup *oss_bits;
 	ADeviceTextBox *server;
 	ADeviceIntBox *esound_port;

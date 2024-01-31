@@ -38,6 +38,7 @@ class PluginClient;
 #include "pluginclient.inc"
 #include "plugincommands.h"
 #include "pluginserver.inc"
+#include "preferences.inc"
 #include "samples.inc"
 #include "theme.inc"
 #include "vframe.h"
@@ -446,6 +447,7 @@ public:
 
 // Get the EDL Session.  May return 0 if the server has no edl.
 	EDLSession* get_edlsession();
+    Preferences* get_preferences();
 
 
 // Get the direction of the most recent process_buffer

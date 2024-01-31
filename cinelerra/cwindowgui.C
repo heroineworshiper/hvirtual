@@ -21,7 +21,6 @@
 #include "automation.h"
 #include "autos.h"
 #include "bcsignals.h"
-#include "canvas.h"
 #include "clip.h"
 #include "cpanel.h"
 #include "cplayback.h"
@@ -87,7 +86,7 @@ CWindowGUI::CWindowGUI(MWindow *mwindow, CWindow *cwindow)
     1,
     1,
 	BLACK,
-	mwindow->edl->session->get_cwindow_display())
+	MWindow::preferences->get_cwindow_display())
 {
 	this->mwindow = mwindow;
     this->cwindow = cwindow;

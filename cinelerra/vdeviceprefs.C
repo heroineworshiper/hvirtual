@@ -411,7 +411,7 @@ int VDevicePrefs::create_v4l2_objs()
 	char *output_char;
 	BC_Resources *resources = BC_WindowBase::get_resources();
 	int x1 = x + menu->get_w() + DP(5);
-	output_char = pwindow->thread->edl->session->vconfig_in->v4l2_in_device;
+	output_char = pwindow->thread->preferences->vconfig_in->v4l2_in_device;
 	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Device path:"), MEDIUMFONT, resources->text_default));
 	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + DP(20), output_char));
 
@@ -425,7 +425,7 @@ int VDevicePrefs::create_screencap_objs()
 	char *output_char;
 	BC_Resources *resources = BC_WindowBase::get_resources();
 	int x1 = x + menu->get_w() + DP(5);
-	output_char = pwindow->thread->edl->session->vconfig_in->screencapture_display;
+	output_char = pwindow->thread->preferences->vconfig_in->screencapture_display;
 	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Display:"), MEDIUMFONT, resources->text_default));
 	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + DP(20), output_char));
 	return 0;

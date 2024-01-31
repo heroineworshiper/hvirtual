@@ -38,6 +38,7 @@
 #include "vdevice1394.h"
 #include "vdevicebuz.h"
 #include "vdevicedvb.h"
+#include "vdevicepreview.h"
 #include "vdevicev4l.h"
 #include "vdevicev4l2.h"
 #include "vdevicev4l2jpeg.h"
@@ -459,6 +460,9 @@ const char* VideoDevice::drivertostr(int driver)
 		case PLAYBACK_BUZ:
 			return PLAYBACK_BUZ_TITLE;
 			break;
+		case PLAYBACK_PREVIEW:
+			return PLAYBACK_PREVIEW_TITLE;
+			break;
 	}
 	return "";
 }
@@ -750,6 +754,10 @@ int VideoDevice::open_output(VideoOutConfig *config,
 		case PLAYBACK_IEC61883:
 			output_base = new VDevice1394(this);
 			break;
+        
+        case PLAYBACK_PREVIEW:
+            output_base = new VDevicePreview(this);
+            break;
 	}
 //printf("VideoDevice::open_output 2 %d\n", out_config->driver);
 

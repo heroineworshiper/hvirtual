@@ -59,7 +59,10 @@ CICache::~CICache()
 
 
 
-
+void CICache::set_is_previewer(int value)
+{
+    this->is_previewer = value;
+}
 
 
 File* CICache::check_out(Asset *asset, EDL *edl, int block)
@@ -497,6 +500,7 @@ CICacheItem::CICacheItem(CICache *cache, EDL *edl, Asset *asset)
 // cache->preferences->processors,
 // cache->preferences->cache_size);
 
+    file->set_disable_toc_creation(cache->is_previewer);
 	file->set_processors(cache->preferences->processors);
 	file->set_cache(cache->preferences->cache_size);
 	file->set_preload(edl->session->playback_preload);

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ int FileFork::handle_command()
 			file = new File;
 			file->is_fork = 1;
             file->file_fork = this;
-
+//printf("FileFork::handle_command %d\n", __LINE__);
 
 // Read file modes
 			int offset = 0;
@@ -97,6 +97,8 @@ int FileFork::handle_command()
 			offset += sizeof(int);
 			file->interpolate_raw = *(int*)(command_data + offset);
 			offset += sizeof(int);
+			file->disable_toc_creation = *(int*)(command_data + offset);
+			offset += sizeof(int);
 
             file->get_frame_cache()->set_max_size(file->cache_size);
 // Read asset from socket
@@ -107,13 +109,16 @@ int FileFork::handle_command()
 			if(debug)
 			{
 				printf("FileFork::handle_command %d\n%s\n", 
-				__LINE__, 
-				command_data + offset);
-				new_asset->dump();
+				    __LINE__, 
+				    command_data + offset);
+				    new_asset->dump();
 			}
 
 
-// printf("FileFork::handle_command %d\n", __LINE__);
+// printf("FileFork::handle_command %d path=%s disable_toc_creation=%d\n",
+// __LINE__, 
+// command_data + offset,
+// file->disable_toc_creation);
 // table.dump();
 //printf("FileFork::handle_command %d server=%p\n", __LINE__, server);
 //printf("FileFork::handle_command %d server->preferences=%p\n", __LINE__, server->preferences);

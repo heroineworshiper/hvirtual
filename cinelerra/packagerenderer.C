@@ -140,8 +140,7 @@ int PackageRenderer::initialize(MWindow *mwindow,
 	audio_cache = new CICache(preferences);
 	video_cache = new CICache(preferences);
 
-	PlaybackConfig *config = command->get_edl()->session->playback_config;
-	aconfig = new AudioOutConfig(0);
+	aconfig = new AudioOutConfig;
 	vconfig = new VideoOutConfig;
 
 	return result;
@@ -202,7 +201,7 @@ int PackageRenderer::create_engine()
 	int current_achannel = 0, current_vchannel = 0;
 // Fix audio buffers to 1 second
 	audio_read_length = command->get_edl()->session->sample_rate;
-	command->get_edl()->session->playback_config->aconfig->fragment_size = audio_read_length;
+//	command->get_edl()->session->playback_config->aconfig->fragment_size = audio_read_length;
 
 	aconfig->fragment_size = audio_read_length;
 
@@ -330,10 +329,8 @@ int PackageRenderer::create_engine()
 
     if(!result)
     {
-	    render_engine = new RenderEngine(0,
-		    preferences,
-		    canvas,
-		    0);
+	    render_engine = new RenderEngine(0, preferences);
+        render_engine->set_canvas(canvas);
 	    render_engine->set_acache(audio_cache);
 	    render_engine->set_vcache(video_cache);
         if(use_opengl)

@@ -111,7 +111,6 @@ OBJS = \
 	$(OBJDIR)/cpanel.o \
 	$(OBJDIR)/cplayback.o \
 	$(OBJDIR)/ctimebar.o \
-	$(OBJDIR)/ctracking.o \
 	$(OBJDIR)/cursor.o \
 	$(OBJDIR)/cwindow.o \
 	$(OBJDIR)/cwindowgui.o \
@@ -129,6 +128,7 @@ OBJS = \
 	$(OBJDIR)/editpopup.o \
 	$(OBJDIR)/edits.o \
 	$(OBJDIR)/edl.o \
+	$(OBJDIR)/edlfactory.o \
 	$(OBJDIR)/edlsession.o \
         $(OBJDIR)/eqcanvas.o \
 	$(OBJDIR)/fadeengine.o \
@@ -148,6 +148,7 @@ OBJS = \
 	$(OBJDIR)/filempeg.o \
 	$(OBJDIR)/fileogg.o \
 	$(OBJDIR)/filepng.o \
+	$(OBJDIR)/filepreviewer.o \
 	$(OBJDIR)/filescene.o \
 	$(OBJDIR)/fileserver.o \
 	$(OBJDIR)/filesndfile.o \
@@ -318,6 +319,7 @@ OBJS = \
 	$(OBJDIR)/vdevicebuz.o \
 	$(OBJDIR)/vdevicedvb.o \
 	$(OBJDIR)/vdeviceprefs.o \
+	$(OBJDIR)/vdevicepreview.o \
 	$(OBJDIR)/vdevicev4l.o \
 	$(OBJDIR)/vdevicev4l2.o \
 	$(OBJDIR)/vdevicev4l2jpeg.o \
@@ -341,7 +343,6 @@ OBJS = \
 	$(OBJDIR)/vtimebar.o \
 	$(OBJDIR)/vrender.o \
 	$(OBJDIR)/vtrack.o \
-	$(OBJDIR)/vtracking.o \
 	$(OBJDIR)/vwindow.o \
 	$(OBJDIR)/vwindowgui.o \
 	$(OBJDIR)/wavecache.o \
@@ -362,6 +363,7 @@ FFMPEG_OBJS := $(OBJDIR)/fileffmpeg.o \
 	$(OBJDIR)/fileac3.o
 FILECR3 := $(OBJDIR)/filecr3.o
 DCRAW := $(OBJDIR)/dcraw.o
+CFUNCTIONS := $(OBJDIR)/cfunctions.o
 AUDIOPULSE := $(OBJDIR)/audiopulse.o
 
 THEME_DATA := $(OBJDIR)/theme_data.o
@@ -524,9 +526,13 @@ FFMPEG_CFLAGS := \
 
 FFMPEG_LIBS := -lavformat -lavcodec -lavutil -lswresample
 
+CFLAGS += -g
+CXXFLAGS = $(CFLAGS) -std=c++11
+
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
+$(shell echo $(CXXFLAGS) > $(OBJDIR)/cxx_flags)
 $(shell echo $(FFMPEG_CFLAGS) -D__STDC_CONSTANT_MACROS > $(OBJDIR)/ffmpeg_cflags)
-$(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(FILECR3) $(AVIOBJS) $(CXXREPOSITORY) $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
+$(shell echo $(LDFLAGS1) $(OBJS) $(CFUNCTIONS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(FILECR3) $(AVIOBJS) $(CXXREPOSITORY) $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
 
 
 
@@ -535,7 +541,7 @@ $(shell echo $(LDFLAGS1) $(OBJS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $
 # Static linking is not possible because the plugins depend on symbols
 # in the main executable.
 # Also VFS only overrides the C library when dynamic linking is used.
-$(OUTPUT): $(OBJS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILECR3) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
+$(OUTPUT): $(OBJS) $(CFUNCTIONS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILECR3) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
 	$(LINKER) `cat $(OBJDIR)/objs`
 #	strip $(OUTPUT)
 
@@ -570,26 +576,29 @@ wc:
 
 
 $(LIBOBJS) $(OBJS):
-	$(CC) `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
+	$(CC) `cat $(OBJDIR)/cxx_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 $(AUDIOPULSE): audiopulse.C
-	$(CC) `cat $(OBJDIR)/c_flags` -I$(PULSE_DIR)/src/ $(subst $(OBJDIR)/,, $*.C) -o $*.o
+	$(CC) `cat $(OBJDIR)/cxx_flags` -I$(PULSE_DIR)/src/ $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 
 $(FILEEXR): fileexr.C
-	$(CC) `cat $(OBJDIR)/c_flags` $(EXR_INCLUDES) $(subst $(OBJDIR)/,, $*.C) -o $*.o
+	$(CC) `cat $(OBJDIR)/cxx_flags` $(EXR_INCLUDES) $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 $(FILEFLAC): fileflac.C
-	$(CC) `cat $(OBJDIR)/c_flags` -I$(FLAC_DIR)/include $(subst $(OBJDIR)/,, $*.C) -o $*.o
+	$(CC) `cat $(OBJDIR)/cxx_flags` -I$(FLAC_DIR)/include $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 $(FILECR3): filecr3.C
-	$(CC) `cat $(OBJDIR)/c_flags` -I$(LIBRAW_DIR) $(subst $(OBJDIR)/,, $*.C) -o $*.o
+	$(CC) `cat $(OBJDIR)/cxx_flags` -I$(LIBRAW_DIR) $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 $(FFMPEG_OBJS):
 	$(CC) `cat $(OBJDIR)/ffmpeg_cflags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 $(DCRAW): dcraw.c
 	$(GCC) `cat $(OBJDIR)/c_flags` dcraw.c -o $*.o
+
+$(CFUNCTIONS): cfunctions.c
+	$(GCC) `cat $(OBJDIR)/c_flags` cfunctions.c -o $*.o
 
 $(THEME_DATA):
 	cd $(OBJDIR) && \
@@ -648,6 +657,7 @@ $(OBJDIR)/cache.o: 				  cache.C
 $(OBJDIR)/cachebase.o:                            cachebase.C
 $(OBJDIR)/canvas.o: 				  canvas.C
 $(OBJDIR)/canvastools.o: 			  canvastools.C
+$(OBJDIR)/cfunctions.o: 			  cfunctions.c
 $(OBJDIR)/channel.o: 				  channel.C
 $(OBJDIR)/channeldb.o: 				  channeldb.C
 $(OBJDIR)/channeledit.o: 			  channeledit.C
@@ -666,7 +676,6 @@ $(OBJDIR)/cpanel.o: 				  cpanel.C
 $(OBJDIR)/cplayback.o:  			  cplayback.C
 $(OBJDIR)/cropvideo.o:  			  cropvideo.C
 $(OBJDIR)/ctimebar.o:                             ctimebar.C
-$(OBJDIR)/ctracking.o:  			  ctracking.C
 $(OBJDIR)/cursor.o: 				  cursor.C
 $(OBJDIR)/cwindow.o: 				  cwindow.C
 $(OBJDIR)/cwindowgui.o: 			  cwindowgui.C
@@ -687,6 +696,7 @@ $(OBJDIR)/editpanel.o:  			  editpanel.C
 $(OBJDIR)/editpopup.o:  			  editpopup.C
 $(OBJDIR)/edits.o: 				  edits.C
 $(OBJDIR)/edl.o: 				  edl.C
+$(OBJDIR)/edlfactory.o: 			  edlfactory.C
 $(OBJDIR)/edlsession.o: 			  edlsession.C
 $(OBJDIR)/eqcanvas.o:                             eqcanvas.C
 $(OBJDIR)/fadeengine.o: 			  fadeengine.C
@@ -712,6 +722,7 @@ $(OBJDIR)/filemov.o: 				  filemov.C
 $(OBJDIR)/filempeg.o:                             filempeg.C
 $(OBJDIR)/fileogg.o:                              fileogg.C
 $(OBJDIR)/filepng.o: 				  filepng.C
+$(OBJDIR)/filepreviewer.o:                        filepreviewer.C
 $(OBJDIR)/filesndfile.o: 			  filesndfile.C
 $(OBJDIR)/filestdout.o: 			  filestdout.C
 $(OBJDIR)/filetga.o: 			  	  filetga.C
@@ -892,6 +903,7 @@ $(OBJDIR)/vdevicebase.o: 			  vdevicebase.C
 $(OBJDIR)/vdevicebuz.o: 			  vdevicebuz.C
 $(OBJDIR)/vdevicedvb.o:                           vdevicedvb.C
 $(OBJDIR)/vdeviceprefs.o: 			  vdeviceprefs.C
+$(OBJDIR)/vdevicepreview.o: 			  vdevicepreview.C
 $(OBJDIR)/vdevicev4l.o: 			  vdevicev4l.C
 $(OBJDIR)/vdevicev4l2.o:                          vdevicev4l2.C
 $(OBJDIR)/vdevicev4l2jpeg.o:                      vdevicev4l2jpeg.C
@@ -920,7 +932,6 @@ $(OBJDIR)/vpluginset.o: 			  vpluginset.C
 $(OBJDIR)/vtimebar.o:                             vtimebar.C
 $(OBJDIR)/vrender.o: 				  vrender.C
 $(OBJDIR)/vtrack.o: 				  vtrack.C
-$(OBJDIR)/vtracking.o:  			  vtracking.C
 $(OBJDIR)/vwindow.o: 				  vwindow.C
 $(OBJDIR)/vwindowgui.o: 			  vwindowgui.C
 $(OBJDIR)/wavecache.o:                            wavecache.C

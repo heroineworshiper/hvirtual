@@ -47,11 +47,6 @@ CTracking::~CTracking()
 {
 }
 
-PlaybackEngine* CTracking::get_playback_engine()
-{
-	return cwindow->playback_engine;
-}
-
 int CTracking::start_playback(double new_position)
 {
 	mwindow->gui->set_playing_back(1);
@@ -90,7 +85,7 @@ int CTracking::update_scroll(double position)
 			seconds_per_pixel +
 			half_canvas;
 
-		if(get_playback_engine()->command->get_direction() == PLAY_FORWARD)
+		if(playback_engine->command->get_direction() == PLAY_FORWARD)
 		{
 			double left_boundary = midpoint + SCROLL_THRESHOLD * half_canvas;
 			double right_boundary = midpoint + half_canvas;
@@ -181,6 +176,3 @@ void CTracking::update_tracker(double position)
 	update_meters((int64_t)(position * mwindow->edl->session->sample_rate));
 }
 
-void CTracking::draw()
-{
-}

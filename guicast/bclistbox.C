@@ -4625,11 +4625,26 @@ void BC_ListBox::draw_title(int number)
 //printf("BC_ListBox::draw_title %d %d\n", __LINE__, column_width[number]);
 	int column_offset = get_column_offset(number) - xposition + LISTBOX_BORDER;
 	int column_width = get_column_width(number, 1);
-	gui->draw_3segmenth(get_column_offset(number) - xposition + LISTBOX_BORDER,
+    int bg_w = get_column_width(number, 1) + get_resources()->listbox_title_overlap;
+    int bg_x = get_column_offset(number) - xposition + LISTBOX_BORDER;
+// no left edge of first column
+    if(number == 0)
+    {
+        int diff = column_bg[image_number]->get_w() / 3;
+        bg_x -= diff;
+        bg_w += diff;
+    }
+
+// no right edge of last column
+	if(number == columns - 1 && bg_w < column_bg[image_number]->get_w() / 3)
+        bg_w += column_bg[image_number]->get_w() / 3;
+    gui->draw_3segmenth(bg_x,
 		LISTBOX_BORDER,
-		get_column_width(number, 1) + get_resources()->listbox_title_overlap,
+		bg_w,
 		column_bg[image_number]);
 
+// printf("BC_ListBox::draw_title %d %d %d w=%d %d\n", 
+// __LINE__, number, columns, bg_w, column_bg[image_number]->get_w());
 // the text
 	int title_x = -xposition + 
 		get_column_offset(number) + 

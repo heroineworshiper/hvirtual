@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +22,7 @@
 #include "bcfilebox.h"
 #include "bcrename.h"
 #include "bcresources.h"
+#include "bctheme.h"
 #include "bctitle.h"
 #include "filesystem.h"
 #include "language.h"
@@ -37,7 +37,6 @@
 
 #define WINDOW_W DP(320)
 #define WINDOW_H DP(150)
-#define MARGIN DP(10)
 
 
 
@@ -63,15 +62,20 @@ BC_Rename::~BC_Rename()
 
 void BC_Rename::create_objects()
 {
-	int x = MARGIN, y = MARGIN;
+    int margin = BC_Resources::theme->widget_border;
+	int x = margin, y = margin;
     BC_Title *text;
 	lock_window("BC_Rename::create_objects");
 	add_tool(text = new BC_Title(x, y, _("Enter a new name for the file:")));
-	y += text->get_h() + MARGIN;
-	add_subwindow(textbox = new BC_TextBox(x, y, 300, 1, thread->orig_name));
-	y += textbox->get_h() + MARGIN;
+	y += text->get_h() + margin;
+	add_subwindow(textbox = new BC_TextBox(x, 
+        y, 
+        get_w() - margin * 2, 
+        1, 
+        thread->orig_name));
+	y += textbox->get_h() + margin;
 	add_subwindow(new BC_OKButton(x, y));
-	x = get_w() - BC_CancelButton::calculate_w() - MARGIN;
+	x = get_w() - BC_CancelButton::calculate_w() - margin;
 	add_subwindow(new BC_CancelButton(x, y));
 	show_window();
 	unlock_window();

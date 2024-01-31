@@ -43,14 +43,12 @@
 
 
 RenderEngine::RenderEngine(PlaybackEngine *playback_engine,
- 	Preferences *preferences, 
-	Canvas *output,
-	ChannelDB *channeldb)
+ 	Preferences *preferences)
  : Thread(1, 0, 0)
 {
 	this->playback_engine = playback_engine;
-	this->output = output;
-	this->channeldb = channeldb;
+	channeldb = 0;
+    output = 0;
 	is_nested = 0;
     is_rendering = 0;
 	adevice = 0;
@@ -65,17 +63,11 @@ RenderEngine::RenderEngine(PlaybackEngine *playback_engine,
  	this->command = new TransportCommand;
  	this->preferences->copy_from(preferences);
 	edl = 0;
+    use_gui = 0;
 
 	audio_cache = 0;
 	video_cache = 0;
-	if(playback_engine && playback_engine->mwindow)
-	{
-    	mwindow = playback_engine->mwindow;
-	}
-    else
-	{
-    	mwindow = 0;
-    }
+
 
 	input_lock = new Condition(1, "RenderEngine::input_lock");
 	start_lock = new Condition(1, "RenderEngine::start_lock");
@@ -100,6 +92,24 @@ RenderEngine::~RenderEngine()
 	edl->Garbage::remove_user();
 }
 
+
+void RenderEngine::set_canvas(Canvas *output)
+{
+    this->output = output;
+}
+
+
+
+void RenderEngine::set_channeldb(ChannelDB *channeldb)
+{
+	this->channeldb = channeldb;
+}
+
+void RenderEngine::set_use_gui(int value)
+{
+    this->use_gui = value;
+}
+
 EDL* RenderEngine::get_edl()
 {
 //	return command->get_edl();
@@ -118,6 +128,10 @@ int RenderEngine::arm_command(TransportCommand *command)
 
 	input_lock->lock("RenderEngine::arm_command");
 
+// printf("RenderEngine::arm_command %d edl=%p channels=%d\n", 
+// __LINE__, 
+// edl, 
+// command->get_edl()->session->audio_channels);
 	if(!edl)
 	{
 		edl = new EDL;
@@ -126,6 +140,9 @@ int RenderEngine::arm_command(TransportCommand *command)
 	}
 	this->command->copy_from(command);
 
+// printf("RenderEngine::arm_command %d channels=%d\n", 
+// __LINE__, 
+// get_edl()->session->audio_channels);
 // Fix background rendering asset to use current dimensions and ignore
 // headers.
 	preferences->brender_asset->frame_rate = command->get_edl()->session->frame_rate;
@@ -135,16 +152,19 @@ int RenderEngine::arm_command(TransportCommand *command)
 	preferences->brender_asset->layers = 1;
 	preferences->brender_asset->video_data = 1;
 
+
 	done = 0;
 	interrupted = 0;
 
 // Retool configuration for this node
-	this->config->copy_from(command->get_edl()->session->playback_config);
+	this->config->copy_from(preferences->playback_config);
 	VideoOutConfig *vconfig = this->config->vconfig;
 	AudioOutConfig *aconfig = this->config->aconfig;
 	if(command->realtime)
 	{
-		if(command->single_frame() && vconfig->driver != PLAYBACK_X11_GL)
+		if(command->single_frame() && 
+            vconfig->driver != PLAYBACK_X11_GL &&
+            vconfig->driver != PLAYBACK_PREVIEW)
 		{
 			vconfig->driver = PLAYBACK_X11;
 		}
@@ -342,7 +362,7 @@ int RenderEngine::open_output()
 
 		if(do_video)
 		{
-			vdevice = new VideoDevice(mwindow);
+			vdevice = new VideoDevice(MWindow::instance);
 		}
 
 // Initialize sharing
@@ -360,16 +380,23 @@ int RenderEngine::open_output()
 // Retool playback configuration
 		if(do_audio)
 		{
+
+printf("RenderEngine::open_output %d: sample_rate=%d channels=%d fragment=%d\n",
+__LINE__,
+(int)get_edl()->session->sample_rate, 
+(int)get_edl()->session->audio_channels,
+(int)adjusted_fragment_len);
+
 			if(adevice->open_output(config->aconfig, 
 				get_edl()->session->sample_rate, 
 				adjusted_fragment_len,
 				get_edl()->session->audio_channels,
-				get_edl()->session->real_time_playback))
+				preferences->real_time_playback))
 				do_audio = 0;
 			else
 			{
 				adevice->set_software_positioning(
-					get_edl()->session->playback_software_position);
+					preferences->playback_software_position);
 				adevice->start_playback();
 			}
 		}
@@ -405,21 +432,21 @@ void RenderEngine::reset_sync_position()
 	timer.update();
 }
 
-int64_t RenderEngine::sync_position()
+double RenderEngine::sync_position()
 {
 // Use audio device
 // No danger of race conditions because the output devices are closed after all
 // threads join.
 	if(do_audio)
 	{
-		return adevice->current_position();
+		return (double)adevice->current_position() /
+            get_edl()->session->sample_rate;
 	}
 
+// use a software timer
 	if(do_video)
 	{
-		int64_t result = timer.get_scaled_difference(
-			get_edl()->session->sample_rate);
-		return result;
+		return (double)timer.get_difference() / 1000;
 	}
     return 0;
 }
@@ -470,8 +497,7 @@ void RenderEngine::start_render_threads()
 
 void RenderEngine::update_framerate(float framerate)
 {
-	playback_engine->mwindow->session->actual_frame_rate = framerate;
-//	playback_engine->mwindow->preferences_thread->update_framerate();
+	MWindow::instance->session->actual_frame_rate = framerate;
 }
 
 void RenderEngine::wait_render_threads()
@@ -565,7 +591,9 @@ void RenderEngine::run()
 	start_lock->unlock();
 	interrupt_lock->unlock();
 
+//printf("RenderEngine::run %d\n", __LINE__);
 	wait_render_threads();
+//printf("RenderEngine::run %d\n", __LINE__);
 
 	interrupt_lock->lock("RenderEngine::run");
 
@@ -607,6 +635,7 @@ void RenderEngine::run()
 			}
 
 			if(!interrupted) playback_engine->command->command = STOP;
+
 			playback_engine->stop_tracking();
 
 		}

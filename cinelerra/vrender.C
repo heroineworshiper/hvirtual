@@ -163,7 +163,10 @@ int VRender::process_buffer(int64_t input_position,
 			renderengine->get_edl());
 	}
 
-//printf("VRender::process_buffer %d video_out=%p\n", __LINE__, video_out);
+// printf("VRender::process_buffer %d video_out=%p current_position=%d\n", 
+// __LINE__, 
+// video_out,
+// (int)current_position);
 
 // printf("VRender::process_buffer use_vconsole=%d colormodel=%d video_out=%p\n", 
 // use_vconsole, 
@@ -340,11 +343,11 @@ void VRender::run()
 	int reconfigure;
 	const int debug = 0;
 
-// Want to know how many samples rendering each frame takes.
+// Want to know how many seconds rendering each frame takes.
 // Then use this number to predict the next frame that should be rendered.
 // Be suspicious of frames that render late so have a countdown
 // before we start dropping.
-	int64_t current_sample, start_sample, end_sample; // Absolute counts.
+	double current_time, start_time, end_time; // Absolute times
 	int64_t next_frame;  // Actual position.
 	int64_t last_delay = 0;  // delay used before last frame
 	int64_t skip_countdown = VRENDER_THRESHOLD;    // frames remaining until drop
@@ -399,24 +402,20 @@ void VRender::run()
 // Perform synchronization
 		{
 // Determine the delay until the frame needs to be shown.
-			current_sample = (int64_t)(renderengine->sync_position() * 
-				renderengine->command->get_speed());
-// latest sample at which the frame can be shown.
-			end_sample = Units::tosamples(session_frame, 
-				renderengine->get_edl()->session->sample_rate, 
-				renderengine->get_edl()->session->frame_rate);
-// earliest sample by which the frame needs to be shown.
-			start_sample = Units::tosamples(session_frame - 1, 
-				renderengine->get_edl()->session->sample_rate, 
-				renderengine->get_edl()->session->frame_rate);
+			current_time = renderengine->sync_position() * 
+				renderengine->command->get_speed();
+// latest time at which the frame can be shown.
+			end_time = (double)session_frame / renderengine->get_edl()->session->frame_rate;
+// earliest time by which the frame needs to be shown.
+			start_time = (double)(session_frame - 1) / renderengine->get_edl()->session->frame_rate;
+//printf("VRender::run %d\n", __LINE__);
 
-			if(first_frame || end_sample < current_sample)
+			if(first_frame || end_time < current_time)
 			{
 // Frame rendered late or this is the first frame.  Flash it now.
-//printf("VRender::run %d\n", __LINE__);
 				flash_output();
 
-				if(renderengine->get_edl()->session->video_every_frame)
+				if(renderengine->preferences->video_every_frame)
 				{
 // User wants every frame.
 					frame_step = 1;
@@ -433,12 +432,8 @@ void VRender::run()
 // Get the frames to skip.
 					delay_countdown = VRENDER_THRESHOLD;
 					frame_step = 1;
-					frame_step += (int64_t)Units::toframes(current_sample, 
-							renderengine->get_edl()->session->sample_rate, 
-							renderengine->get_edl()->session->frame_rate);
-					frame_step -= (int64_t)Units::toframes(end_sample, 
-								renderengine->get_edl()->session->sample_rate, 
-								renderengine->get_edl()->session->frame_rate);
+					frame_step += (int64_t)(current_time * renderengine->get_edl()->session->frame_rate);
+					frame_step -= (int64_t)(end_time * renderengine->get_edl()->session->frame_rate);
 				}
 			}
 			else
@@ -454,11 +449,10 @@ void VRender::run()
 				else
 				{
 					skip_countdown = VRENDER_THRESHOLD;
-					if(start_sample > current_sample)
+					if(start_time > current_time)
 					{
-						int64_t delay_time = (int64_t)((float)(start_sample - current_sample) * 
-							1000 / 
-							renderengine->get_edl()->session->sample_rate);
+						int64_t delay_time = (int64_t)((start_time - current_time) * 
+							1000);
 						timer.delay(delay_time);
 					}
 					else
@@ -481,7 +475,7 @@ void VRender::run()
 			first_frame = 0;
 			renderengine->reset_sync_position();
 		}
-		if(debug) printf("VRender::run %d\n", __LINE__);
+		if(debug) printf("VRender::run %d frame_step=%d\n", __LINE__, (int)frame_step);
 
 		session_frame += frame_step;
 
@@ -490,11 +484,11 @@ void VRender::run()
 
 
 // Subtract frame_step in a loop to allow looped playback to drain
-// printf("VRender::run %d %d %d %d\n", 
+// printf("VRender::run %d done=%d frame_step=%d current_input_length=%d\n", 
 // __LINE__,
 // done,
-// frame_step, 
-// current_input_length);
+// (int)frame_step, 
+// (int)current_input_length);
 		while(frame_step && current_input_length)
 		{
 // trim current_input_length to range
@@ -507,8 +501,8 @@ void VRender::run()
 // printf("VRender::run %d %d %d %d\n", 
 // __LINE__,
 // done,
-// frame_step, 
-// current_input_length);
+// (int)frame_step, 
+// (int)current_input_length);
 		}
 
 		if(debug) printf("VRender::run %d current_position=%lld done=%d\n", 
