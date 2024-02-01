@@ -858,15 +858,15 @@ int PluginServer::read_samples(Samples *buffer,
 // size is now in buffer
 	if(!multichannel) channel = 0;
 
-	if(nodes->total > channel)
-		return ((VirtualANode*)nodes->values[channel])->read_data(buffer,
+	if(nodes->size() > channel)
+		return ((VirtualANode*)nodes->get(channel))->read_data(buffer,
 			size,
 			start_position,
 			sample_rate,
             playhead_position);
 	else
-	if(modules->total > channel)
-		return ((AModule*)modules->values[channel])->render(buffer,
+	if(modules->size() > channel)
+		return ((AModule*)modules->get(channel))->render(buffer,
 			size,
 			start_position,
 			PLAY_FORWARD,
@@ -914,25 +914,27 @@ int PluginServer::read_frame(VFrame *buffer,
 
 	int result = -1;
 	if(!multichannel) channel = 0;
+    if(MWindow::preferences->dump_playback)
+        MWindow::indent += 2;
 
 // Push our name on the next effect stack
 	buffer->push_next_effect(title);
 //printf("PluginServer::read_frame %p\n", buffer);
 //buffer->dump_stacks();
 
-	if(nodes->total > channel)
+	if(nodes->size() > channel)
 	{
 //printf("PluginServer::read_frame %d\n", __LINE__);
-		result = ((VirtualVNode*)nodes->values[channel])->read_data(buffer,
+		result = ((VirtualVNode*)nodes->get(channel))->read_data(buffer,
 			start_position,
 			frame_rate,
 			use_opengl);
 	}
 	else
-	if(modules->total > channel)
+	if(modules->size() > channel)
 	{
 //printf("PluginServer::read_frame %d\n", __LINE__);
-		result = ((VModule*)modules->values[channel])->render(buffer,
+		result = ((VModule*)modules->get(channel))->render(buffer,
 			start_position,
 //			PLAY_FORWARD,
 			client->direction,
@@ -946,6 +948,18 @@ int PluginServer::read_frame(VFrame *buffer,
 		printf("PluginServer::read_frame no object available for channel=%d\n",
 			channel);
 	}
+
+    if(MWindow::preferences->dump_playback)
+    {
+        printf("%sPluginServer::read_frame %d start_position=%ld channel=%d nodes=%d modules=%d\n", 
+            MWindow::print_indent(),
+			__LINE__, 
+			(long)start_position,
+            channel,
+            nodes->size(),
+            modules->size());
+        MWindow::indent -= 2;
+    }
 
 // Pop our name from the next effect stack
 	buffer->pop_next_effect();

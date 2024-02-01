@@ -213,6 +213,7 @@ void VirtualVNode::render_as_plugin(VFrame *output_temp,
 		!real_plugin->on) return;
 
 
+//printf("VirtualVNode::render_as_plugin %d\n", __LINE__);
 	((VAttachmentPoint*)attachment)->render(
 		output_temp,
 		plugin_buffer_number,

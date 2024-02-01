@@ -66,6 +66,7 @@ public:
 		int64_t input_position,
 		double frame_rate,
 		int direction,
+		int debug_render,
 		int use_opengl);
 	int render(VFrame *output,
 		int64_t start_position,

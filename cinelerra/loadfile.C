@@ -110,6 +110,9 @@ void LoadFileThread::handle_done_event(int result)
 		int i = 0;
 		window->lock_window("LoadFileThread::handle_done_event");
 		window->hide_window();
+// load_filenames builds a table of contents before the window is deleted
+// diabolical hack to stop any file preview without deleting the window
+        FilePreviewer::instance.interrupt_playback();
 		window->unlock_window();
 
 		while((in_path = window->get_path(i)))

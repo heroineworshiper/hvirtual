@@ -381,11 +381,11 @@ int RenderEngine::open_output()
 		if(do_audio)
 		{
 
-printf("RenderEngine::open_output %d: sample_rate=%d channels=%d fragment=%d\n",
-__LINE__,
-(int)get_edl()->session->sample_rate, 
-(int)get_edl()->session->audio_channels,
-(int)adjusted_fragment_len);
+// printf("RenderEngine::open_output %d: sample_rate=%d channels=%d fragment=%d\n",
+// __LINE__,
+// (int)get_edl()->session->sample_rate, 
+// (int)get_edl()->session->audio_channels,
+// (int)adjusted_fragment_len);
 
 			if(adevice->open_output(config->aconfig, 
 				get_edl()->session->sample_rate, 

@@ -101,6 +101,7 @@ int VModule::import_frame(VFrame *output,
 	int64_t input_position,
 	double frame_rate,
 	int direction,
+	int debug_render,
 	int use_opengl)
 {
 	int64_t direction_position;
@@ -518,6 +519,10 @@ int VModule::import_frame(VFrame *output,
 					if(use_cache) file->set_cache_frames(1);
 					(*input)->set_opengl_state(VFrame::RAM);
 					result = file->read_frame((*input), 0, use_opengl, x11_device);
+                    if(debug_render) printf("      VModule::import_frame %d: output=%p state=%d\n", 
+                        __LINE__,
+                        (*input), 
+                        (*input)->get_opengl_state());
 					if(use_cache) file->set_cache_frames(0);
 				}
 				else
@@ -894,7 +899,10 @@ current_cmodel);
 					if(use_cache) file->set_cache_frames(1);
 					output->set_opengl_state(VFrame::RAM);
 					result = file->read_frame(output, 0, use_opengl, x11_device);
-//printf("VModule::import_frame %d output=%p state=%d\n", __LINE__, output, output->get_opengl_state());
+                    if(debug_render) printf("      VModule::import_frame %d: output=%p state=%d\n", 
+                        __LINE__, 
+                        output, 
+                        output->get_opengl_state());
 					if(use_cache) file->set_cache_frames(0);
 				}
 			}
@@ -979,19 +987,31 @@ int VModule::render(VFrame *output,
 	VEdit* previous_edit = 0;
 //printf("VModule::render %d %p %ld %d\n", __LINE__, current_edit, start_position_project, direction);
 
-	if(debug_render)
-		printf("    VModule::render %d %d %ld %s transition=%p opengl=%d current_edit=%p output=%p\n", 
-			__LINE__, 
-			use_nudge, 
-			start_position_project,
-			track->title,
-			transition,
-			use_opengl,
-			current_edit,
-			output);
+// 	if(MWindow::preferences->dump_playback)
+// 		printf("%sVModule::render %d %d %ld %s transition=%p opengl=%d current_edit=%p output=%p\n", 
+// 			MWindow::print_indent(),
+//             __LINE__, 
+// 			use_nudge, 
+// 			start_position_project,
+// 			track->title,
+// 			transition,
+// 			use_opengl,
+// 			current_edit,
+// 			output);
 
 	if(!current_edit)
 	{
+        if(MWindow::preferences->dump_playback)
+        {
+            MWindow::indent += 2;
+            printf("%sVModule::render %d current_edit=nil position=%ld title='%s' use_gl=%d\n", 
+                MWindow::print_indent(),
+			    __LINE__, 
+			    (long)start_position_project,
+			    track->title,
+			    use_opengl);
+            MWindow::indent -= 2;
+        }
 		output->clear_frame();
 		return 0;
 	}
@@ -1044,6 +1064,7 @@ int VModule::render(VFrame *output,
 			start_position,
 			frame_rate,
 			direction,
+            debug_render,
 			0 /* use_opengl */ );
 
 
@@ -1055,6 +1076,7 @@ int VModule::render(VFrame *output,
 			start_position,
 			frame_rate,
 			direction,
+            debug_render,
 			0 /* use_opengl */);
 //printf("VModule::render %d\n", __LINE__);
 
@@ -1087,6 +1109,7 @@ int VModule::render(VFrame *output,
 			start_position,
 			frame_rate,
 			direction,
+            debug_render,
 			use_opengl);
 	}
 
