@@ -73,7 +73,7 @@ public:
 // Add a trace
 #define TRACE(text) BC_Signals::new_trace(text);
 #define SET_TRACE BC_Signals::new_trace(__FILE__, __FUNCTION__, __LINE__);
-#define PRINT_TRACE { printf("%s: %d\n", __FILE__, __LINE__); fflush(stdout); }
+#define PRINT_TRACE { printf("%s %d: %s\n", __FILE__, __LINE__, __FUNCTION__); fflush(stdout); }
 // Delete all traces
 #define UNTRACE BC_Signals::delete_traces();
 
@@ -81,7 +81,7 @@ public:
 
 #define TRACE(text) ;
 #define UNTRACE ;
-#define PRINT_TRACE { printf("%s: %d\n", __FILE__, __LINE__); fflush(stdout); }
+#define PRINT_TRACE { printf("%s %d: %s\n", __FILE__, __LINE__, __FUNCTION__); fflush(stdout); }
 //#define PRINT_TRACE ;
 #define SET_TRACE ;
 

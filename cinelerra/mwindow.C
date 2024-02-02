@@ -1593,6 +1593,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	gui->stop_hourglass();
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+//edl->dump();
 	update_project(load_mode);
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);

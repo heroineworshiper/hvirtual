@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2016-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -847,15 +847,22 @@ if(debug) printf("FileFFMPEG::open_ffmpeg %d audio_length=%lld\n", __LINE__, (lo
 								    (double)ffmpeg_stream->r_frame_rate.den;
     // 								(double)decoder_context->time_base.den / 
     // 								decoder_context->time_base.num;
-						    asset->video_length = (int64_t)(((AVFormatContext*)new_stream->ffmpeg_file_context)->duration *
-							    asset->frame_rate / 
-							    AV_TIME_BASE);
+                            int64_t ffmpeg_duration = ((AVFormatContext*)new_stream->ffmpeg_file_context)->duration;
+						    if(ffmpeg_duration == AV_NOPTS_VALUE)
+                                asset->video_length = STILL_PHOTO_LENGTH;
+                            else
+                                asset->video_length = (int64_t)(ffmpeg_duration *
+							        asset->frame_rate / 
+							        AV_TIME_BASE);
 						    asset->aspect_ratio = 
 							    (double)decoder_context->sample_aspect_ratio.num / 
 							    decoder_context->sample_aspect_ratio.den;
-if(debug) printf("FileFFMPEG::open_ffmpeg %d decoder_context->codec_id=%d\n", 
+if(debug) printf("FileFFMPEG::open_ffmpeg %d decoder_context->codec_id=%d duration=%ld video_length=%ld frame_rate=%f\n", 
 __LINE__, 
-decoder_context->codec_id);
+decoder_context->codec_id,
+(long)((AVFormatContext*)new_stream->ffmpeg_file_context)->duration,
+(long)asset->video_length,
+asset->frame_rate);
                         }
                         else
                         {
@@ -865,7 +872,7 @@ decoder_context->codec_id);
             		break;
 
         		default:
-printf("FileFFMPEG::open_ffmpeg %d i=%d codec_type=%d\n", __LINE__, i, type);
+//printf("FileFFMPEG::open_ffmpeg %d i=%d codec_type=%d\n", __LINE__, i, type);
             		break;
         	}
 		}

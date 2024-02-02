@@ -527,7 +527,7 @@ FFMPEG_CFLAGS := \
 FFMPEG_LIBS := -lavformat -lavcodec -lavutil -lswresample
 
 CFLAGS += -g
-CXXFLAGS = $(CFLAGS) -std=c++11
+CXXFLAGS := $(CFLAGS) -std=c++11
 
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
 $(shell echo $(CXXFLAGS) > $(OBJDIR)/cxx_flags)
@@ -603,6 +603,7 @@ $(CFUNCTIONS): cfunctions.c
 $(THEME_DATA):
 	cd $(OBJDIR) && \
 	../../guicast/$(OBJDIR)/bootstrap theme_data.o ../data/mode_*.png
+
 
 $(OBJDIR)/aattachmentpoint.o: 			  aattachmentpoint.C
 $(OBJDIR)/aautomation.o: 			  aautomation.C

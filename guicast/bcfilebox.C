@@ -436,6 +436,11 @@ int BC_FileBoxUpdir::handle_event()
 {
 // Need a temp so submit_file can expand it
 	sprintf(string, _(".."));
+    if(filebox->previewer && filebox->show_preview)
+    {
+        filebox->previewer->clear_preview();
+        filebox->previewer->preview_unavailable();
+    }
 	filebox->submit_file(string);
 	return 1;
 }
@@ -952,8 +957,10 @@ int BC_FileBox::resize_event(int w, int h)
     
     if(previewer)
     {
-        preview_status->reposition(preview_x,
-            preview_center_y - preview_status->get_h() / 2);
+        preview_status->reposition(preview_x + 
+                preview_w / 2 - 
+                preview_status->get_w() / 2,
+            preview_center_y);
     }
         
 	set_w(w);

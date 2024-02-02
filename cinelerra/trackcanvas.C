@@ -648,17 +648,17 @@ void TrackCanvas::draw_resources(int mode,
 
 			if(debug) PRINT_TRACE
 
-			int64_t edit_x, edit_y, edit_w, edit_h;
+			int64_t edit_x = 0, edit_y = 0, edit_w = 16, edit_h = 16;
 			edit_dimensions(edit, edit_x, edit_y, edit_w, edit_h);
 
 // Edit is visible
 			if(MWindowGUI::visible(edit_x, edit_x + edit_w, 0, get_w()) &&
 				MWindowGUI::visible(edit_y, edit_y + edit_h, 0, get_h()))
 			{
-				int64_t pixmap_x, pixmap_w, pixmap_h;
+				int64_t pixmap_x = 0, pixmap_w = 16, pixmap_h = 16;
 				if(debug) PRINT_TRACE
 
-// Search for existing pixmap containing edit
+// Search for existing pixmap containing the edit
 				for(int i = 0; i < gui->resource_pixmaps.total; i++)
 				{
 					ResourcePixmap* pixmap = gui->resource_pixmaps.values[i];
@@ -679,22 +679,27 @@ void TrackCanvas::draw_resources(int mode,
 					pixmap_x, 
 					pixmap_w, 
 					pixmap_h);
-				if(debug) PRINT_TRACE
+if(debug) printf("TrackCanvas::draw_resources %d: %d %d %d\n",
+__LINE__, (int)pixmap_w, (int)pixmap_h, (int)edit_w);
 
 // Draw new data
 				if(pixmap_w && pixmap_h)
 				{
 // Create pixmap if it doesn't exist
 //printf("TrackCanvas::draw_resources %d edit_x=%ld\n", __LINE__, edit_x);
+if(debug) PRINT_TRACE
 					ResourcePixmap* pixmap = create_pixmap(edit, 
 						edit_x, 
 						pixmap_x, 
 						pixmap_w, 
 						pixmap_h);
+if(debug) PRINT_TRACE
 // Resize it if it's bigger
 					if(pixmap_w > pixmap->pixmap_w ||
 						pixmap_h > pixmap->pixmap_h)
 						pixmap->resize(pixmap_w, pixmap_h);
+if(debug) printf("TrackCanvas::draw_resources %d: %d %d %d\n",
+__LINE__, (int)pixmap_w, (int)pixmap_h, (int)edit_w);
 					pixmap->draw_data(this,
 						edit,
 						edit_x, 
@@ -704,17 +709,20 @@ void TrackCanvas::draw_resources(int mode,
 						pixmap_h, 
 						mode,
 						indexes_only);
+if(debug) PRINT_TRACE
 // Resize it if it's smaller
 					if(pixmap_w < pixmap->pixmap_w ||
 						pixmap_h < pixmap->pixmap_h)
 						pixmap->resize(pixmap_w, pixmap_h);
 
+if(debug) PRINT_TRACE
 // Copy pixmap to background canvas
 					background_pixmap->draw_pixmap(pixmap, 
 						pixmap->pixmap_x, 
 						current->y_pixel - mwindow->edl->local_session->track_start[pane->number],
 						pixmap->pixmap_w,
 						edit_h);
+if(debug) PRINT_TRACE
 				}
 				if(debug) PRINT_TRACE
 
