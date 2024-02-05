@@ -244,6 +244,7 @@ void FilePreviewerThread::run()
                 }
                 previewer->edl = new EDL;
                 previewer->edl->create_objects();
+                previewer->edl->copy_session(MWindow::instance->edl);
                 EDLFactory::asset_to_edl(previewer->edl, 
                     new_asset, 
                     0, 

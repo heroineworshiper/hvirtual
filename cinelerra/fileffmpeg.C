@@ -336,6 +336,20 @@ void FileFFMPEGStream::append_history(void *frame2, int len)
         double *output_end = pcm_history[i] + HISTORY_MAX;
 		switch(frame->format)
 		{
+			case AV_SAMPLE_FMT_S16:
+			{
+				int16_t *input = (int16_t*)frame->data[0];
+				for(int j = 0; j < len; j++)
+				{
+					*output++ = (double)input[j * channels + i] / 32767;
+                    if(output >= output_end)
+                    {
+                        output = pcm_history[i];
+                    }
+				}
+				break;
+			}
+			
 			case AV_SAMPLE_FMT_S16P:
 			{
 				int16_t *input = (int16_t*)frame->data[i];
@@ -1399,6 +1413,13 @@ int FileFFMPEG::create_toc(void *ptr)
                                         float value = 0;
                                         switch(ffmpeg_samples->format)
                                         {
+                                            case AV_SAMPLE_FMT_S16:
+                                            {
+                                                int16_t *input = (int16_t*)ffmpeg_samples->data[0];
+                                                value = (float)input[j * channels + i] / 32767;
+                                                break;
+                                            }
+
                                             case AV_SAMPLE_FMT_S16P:
 			                                {
                                                 int16_t *input = (int16_t*)ffmpeg_samples->data[i];
@@ -2074,6 +2095,10 @@ static int ffmpeg_to_cmodel(int pix_fmt)
 			return BC_YUV9P;
 			break;
 
+        case AV_PIX_FMT_YUV411P:
+            return BC_YUV411P;
+            break;
+
         case AV_PIX_FMT_NV12:
 			return BC_NV12;
 //                 printf("FileFFMPEG::ffmpeg_to_cmodel %d: AV_PIX_FMT_NV12 -> %d\n", 
@@ -2578,6 +2603,10 @@ int FileFFMPEG::read_frame(VFrame *frame)
             input_frame->linesize[0],
             decoder_context->width,
             decoder_context->height);
+// printf("FileFFMPEG::read_frame %d u_offset=%d v_offset=%d\n", 
+// __LINE__,
+// (int)(input_frame->data[1] - input_frame->data[0]),
+// (int)(input_frame->data[2] - input_frame->data[0]));
  	}
 //PRINT_TRACE
 

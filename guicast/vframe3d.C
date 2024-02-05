@@ -238,6 +238,7 @@ void VFrame::to_texture()
         case BC_YUV420P10LE:
         case BC_YUV420P:
         case BC_YUV9P:
+        case BC_YUV411P:
         case BC_YUV422P:
         case BC_NV12:
         {

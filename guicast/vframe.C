@@ -1270,6 +1270,13 @@ int VFrame::copy_from(VFrame *frame)
 			memcpy(get_v(), frame->get_v(), bytes_per_line / 2 * h);
 			break;
 
+		case BC_YUV411P:
+//printf("%d %d %p %p %p %p %p %p\n", w, h, get_y(), get_u(), get_v(), frame->get_y(), frame->get_u(), frame->get_v());
+			memcpy(get_y(), frame->get_y(), bytes_per_line * h);
+			memcpy(get_u(), frame->get_u(), bytes_per_line / 4 * h);
+			memcpy(get_v(), frame->get_v(), bytes_per_line / 4 * h);
+			break;
+
         case BC_NV12:
             memcpy(get_y(), frame->get_y(), bytes_per_line * h);
             memcpy(get_u(), frame->get_u(), (bytes_per_line / 2) * (h / 2) * 2);

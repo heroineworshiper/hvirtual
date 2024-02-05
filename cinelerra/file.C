@@ -2320,10 +2320,10 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
         }
         else
         {
-// using hardware in the server but private memory in the codec.
+// using GPU in the server but private memory in the codec.
 // The codec also doesn't use contiguous YUV buffers.
 // Copy to the shared temp frame for conversion in the server.
-//printf("File::convert_cmodel %d\n", __LINE__);
+//printf("File::convert_cmodel %d: copying codec buffer to server\n", __LINE__);
             VFrame *dst = get_read_temp(read_pointer->get_color_model(), 
                 read_pointer->get_bytes_per_line(),
                 read_pointer->get_w(), 
@@ -2340,11 +2340,11 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
         {
 // software in the server
 // take the smallest of the encoded & asset frame sizes as the source size
-printf("File::convert_cmodel %d read_pointer=%p src=%p dst=%p\n", 
-__LINE__, 
-read_pointer,
-temp_frame, 
-read_frame_dst);
+// printf("File::convert_cmodel %d read_pointer=%p src=%p dst=%p\n", 
+// __LINE__, 
+// read_pointer,
+// temp_frame, 
+// read_frame_dst);
             int src_w = MIN(read_pointer->get_w(), asset->width);
             int src_h = MIN(read_pointer->get_h(), asset->height);
 	        cmodel_transfer(read_frame_dst->get_rows(), 

@@ -97,7 +97,9 @@ if(debug) printf("MWindow::asset_to_edl %d\n", __LINE__);
 // Change frame rate, sample rate, and output size if desired.
         if(conform)
         {
-            new_edl->session->audio_channels = new_asset->channels;
+// set the channels for a file preview
+            if(new_edl->session->audio_channels < 0)
+                new_edl->session->audio_channels = new_asset->channels;
             new_edl->session->sample_rate = new_asset->sample_rate;
         }
 	}

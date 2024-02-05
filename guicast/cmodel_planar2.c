@@ -67,6 +67,47 @@
 
 
 
+#define YUV411P_TO_PACKED_HEAD \
+	for(i = 0; i < out_h; i++) \
+	{ \
+		unsigned char *output_row = output_rows[i + out_y] + out_x * out_pixelsize; \
+		unsigned char *input_y = in_y_plane + row_table[i] * in_rowspan; \
+		unsigned char *input_u = in_u_plane + row_table[i] * (in_rowspan / 4); \
+		unsigned char *input_v = in_v_plane + row_table[i] * (in_rowspan / 4); \
+		for(j = 0; j < out_w; j++) \
+		{
+
+#define PLANAR_TAIL \
+		} \
+	}
+
+#define SCALE_YUV411P_TO_PACKED(in, out, function) \
+{ \
+    void function##_(const cmodel_args_t *args) \
+    { \
+        ARGS_TO_LOCALS \
+        if(scale) \
+        { \
+            YUV411P_TO_PACKED_HEAD \
+            function(&output_row, \
+                input_y + column_table[j], \
+                input_u + column_table[j] / 4, \
+                input_v + column_table[j] / 4); \
+            PLANAR_TAIL \
+        } \
+        else \
+        { \
+            YUV411P_TO_PACKED_HEAD \
+            function(&output_row, \
+                input_y + j, \
+                input_u + j / 4, \
+                input_v + j / 4); \
+            PLANAR_TAIL \
+        } \
+    } \
+    register_cmodel_function(in, out, 0, function##_); \
+}
+
 #define YUV422P_TO_PACKED_HEAD \
 	for(i = 0; i < out_h; i++) \
 	{ \
@@ -76,10 +117,6 @@
 		unsigned char *input_v = in_v_plane + row_table[i] * (in_rowspan / 2); \
 		for(j = 0; j < out_w; j++) \
 		{
-
-#define PLANAR_TAIL \
-		} \
-	}
 
 #define SCALE_YUV422P_TO_PACKED(in, out, function) \
 { \
@@ -982,6 +1019,21 @@ void cmodel_init_planar()
     SCALE_YUV444P_TO_PACKED(BC_YUV444P, BC_RGBA_FLOAT, YUV_PLANAR_to_RGBA_FLOAT)
     SCALE_YUV444P_TO_PACKED(BC_YUV444P, BC_YUV888, YUV_PLANAR_to_YUV888)
     SCALE_YUV444P_TO_PACKED(BC_YUV444P, BC_YUVA8888, YUV_PLANAR_to_YUVA8888)
+
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_RGB8, YUV_PLANAR_to_RGB8)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_BGR565, YUV_PLANAR_to_BGR565)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_RGB565, YUV_PLANAR_to_RGB565)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_BGR888, YUV_PLANAR_to_BGR888)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_BGR8888, YUV_PLANAR_to_BGR8888)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_RGB888, YUV_PLANAR_to_RGB888)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_RGBA8888, YUV_PLANAR_to_RGBA8888)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_ARGB8888, YUV_PLANAR_to_ARGB8888)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_ABGR8888, YUV_PLANAR_to_ABGR8888)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_RGB_FLOAT, YUV_PLANAR_to_RGB_FLOAT)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_RGBA_FLOAT, YUV_PLANAR_to_RGBA_FLOAT)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_YUV888, YUV_PLANAR_to_YUV888)
+    SCALE_YUV411P_TO_PACKED(BC_YUV411P, BC_YUVA8888, YUV_PLANAR_to_YUVA8888)
+
 
     SCALE_YUV422P_TO_PACKED(BC_YUV422P, BC_RGB8, YUV_PLANAR_to_RGB8)
     SCALE_YUV422P_TO_PACKED(BC_YUV422P, BC_BGR565, YUV_PLANAR_to_BGR565)
