@@ -26,6 +26,7 @@
 #include "condition.h"
 #include "edl.h"
 #include "edlfactory.h"
+#include "edlsession.h"
 #include "file.h"
 #include "filepreviewer.h"
 #include "indexfile.h"
@@ -244,7 +245,9 @@ void FilePreviewerThread::run()
                 }
                 previewer->edl = new EDL;
                 previewer->edl->create_objects();
-                previewer->edl->copy_session(MWindow::instance->edl);
+// copy session breaks previews, but we want certain bits 
+// from the mane project
+                previewer->edl->session->audio_channels = MWindow::instance->edl->session->audio_channels;
                 EDLFactory::asset_to_edl(previewer->edl, 
                     new_asset, 
                     0, 
