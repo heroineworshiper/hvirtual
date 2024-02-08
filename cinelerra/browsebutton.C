@@ -21,6 +21,7 @@
 
 #include "bcsignals.h"
 #include "browsebutton.h"
+#include "filepreviewer.h"
 #include "language.h"
 #include "mutex.h"
 #include "theme.h"
@@ -155,6 +156,7 @@ BrowseButtonWindow::BrowseButtonWindow(Theme *theme,
 	0,
 	theme->browse_pad)
 {
+    set_previewer(&FilePreviewer::instance);
 }
 
 BrowseButtonWindow::~BrowseButtonWindow() 

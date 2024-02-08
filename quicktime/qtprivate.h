@@ -860,13 +860,13 @@ typedef struct
 	int wav_id;
 
 /* Pointer to static character code for identifying the codec. */
-	char *fourcc;
+	const char *fourcc;
 
 /* English title of codec.  Optional. */
-	char *title;
+	const char *title;
 
 /* English description of codec.  Optional. */
-	char *desc;
+	const char *desc;
 
 /* Frame cache for seeking only. */
 	

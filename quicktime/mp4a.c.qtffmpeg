@@ -20,7 +20,7 @@
 typedef struct
 {
 // Decoder objects
-    quicktime_ffaudio_t ffmpeg;
+    quicktime_ffaudio_t decoder;
 
 
 	faacEncHandle encoder_handle;
@@ -54,7 +54,7 @@ static int delete_codec(quicktime_audio_map_t *atrack)
 	quicktime_mp4a_codec_t *codec = 
 		((quicktime_codec_t*)atrack->codec)->priv;
 
-    quicktime_ffaudio_delete(&codec->ffmpeg);
+    quicktime_ffaudio_delete(&codec->decoder);
 
 	if(codec->encoder_initialized)
 	{
@@ -66,7 +66,7 @@ static int delete_codec(quicktime_audio_map_t *atrack)
 	free(codec);
 }
 
-static int mp4a_decode(quicktime_t *file, 
+static int decode(quicktime_t *file, 
 					int16_t *output_i, 
 					float *output_f, 
 					long samples, 
@@ -83,7 +83,7 @@ static int mp4a_decode(quicktime_t *file,
     
     return quicktime_ffaudio_decode(file,
         track_map,
-        &codec->ffmpeg,
+        &codec->decoder,
         output_f,
         samples,
         channel);
@@ -318,26 +318,55 @@ static int set_parameter(quicktime_t *file,
 }
 
 
+static quicktime_mp4a_codec_t* init_common(quicktime_audio_map_t *atrack, 
+    int codec_id,
+	const char *compressor,
+	const char *title,
+	const char *description)
+{
+	quicktime_codec_t *codec_base = (quicktime_codec_t*)atrack->codec;
+	codec_base->priv = calloc(1, sizeof(quicktime_mp4a_codec_t));
+	quicktime_mp4a_codec_t *result = (quicktime_mp4a_codec_t*)codec_base->priv;
+	codec_base->delete_acodec = delete_codec;
+	codec_base->decode_audio = decode;
+	codec_base->fourcc = compressor;
+	codec_base->title = title;
+	codec_base->desc = description;
+    quicktime_ffaudio_init(&result->decoder, codec_id);
+    
+    return result;
+}
+
+
 
 void quicktime_init_codec_mp4a(quicktime_audio_map_t *atrack)
 {
 	quicktime_codec_t *codec_base = (quicktime_codec_t*)atrack->codec;
-	quicktime_mp4a_codec_t *codec;
-	codec_base->priv = calloc(1, sizeof(quicktime_mp4a_codec_t));
-	codec_base->delete_acodec = delete_codec;
-	codec_base->decode_audio = mp4a_decode;
+	quicktime_mp4a_codec_t *codec = init_common(atrack, 
+        AV_CODEC_ID_AAC,
+	    QUICKTIME_MP4A,
+	    "MPEG4 audio",
+	    "Audio section of MPEG4 standard");
+
+// encoding bits
 	codec_base->encode_audio = encode;
 	codec_base->set_parameter = set_parameter;
 	codec_base->flush = flush;
-	codec_base->fourcc = QUICKTIME_MP4A;
-	codec_base->title = "MPEG4 audio";
-	codec_base->desc = "Audio section of MPEG4 standard";
 
-	codec = (quicktime_mp4a_codec_t*)codec_base->priv;
 // Default encoding parameters here
 	codec->bitrate = 256000;
 	codec->quantizer_quality = 100;
-    quicktime_ffaudio_init(&codec->ffmpeg, AV_CODEC_ID_AAC);
+}
+
+
+void quicktime_init_codec_opus(quicktime_audio_map_t *atrack)
+{
+	quicktime_codec_t *codec_base = (quicktime_codec_t*)atrack->codec;
+    quicktime_mp4a_codec_t *codec = init_common(atrack, 
+        AV_CODEC_ID_OPUS,
+	    QUICKTIME_OPUS,
+	    "Opus",
+	    "Opus");
 }
 
 

@@ -151,6 +151,7 @@ extern "C" {
 
 #define QUICKTIME_MP4A "mp4a"
 #define QUICKTIME_QDM2 "QDM2"
+#define QUICKTIME_OPUS "Opus"
 
 /* Mike Row Soft */
 /* AVI decode only */

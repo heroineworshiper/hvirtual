@@ -3,6 +3,7 @@
 
 
 extern void quicktime_init_codec_mp4a(quicktime_audio_map_t *);
+extern void quicktime_init_codec_opus(quicktime_audio_map_t *);
 
 
 
