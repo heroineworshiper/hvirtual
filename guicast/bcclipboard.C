@@ -162,34 +162,61 @@ printf("ClientMessage %d ClientMessage\n", __LINE__);
                     g_length[SECONDARY_SELECTION]);
 
 
-// printf("BC_Clipboard::run %d SelectionRequest length=%d\n", 
-// __LINE__,
-// length);
-// printf("BC_Clipboard::run %d selection=%ld property=%ld target=%s primary=%ld secondary=%ld\n", 
+//printf("BC_Clipboard::run %d SelectionRequest length=%d\n", 
+//__LINE__,
+//length);
+// printf("BC_Clipboard::run %d selection=%s property=%s target=%s primary=%ld secondary=%ld\n", 
 // __LINE__, 
-// request->selection, 
-// request->property, 
+// XGetAtomName(out_display, request->selection), 
+// XGetAtomName(out_display, request->property), 
 // XGetAtomName(out_display, request->target), 
 // primary,
 // secondary);
-// deny requests for wrong target or property
                 if(request->target == targets)
                 {
 // printf("BC_Clipboard::run %d denying request for %s\n", 
 // __LINE__, 
 // XGetAtomName(out_display, request->target));
-                    reply.xselection.type      = SelectionNotify;
-                    reply.xselection.requestor = request->requestor;
-                    reply.xselection.selection = request->selection;
-                    reply.xselection.target = request->target;
-                    reply.xselection.property = None;
-                    reply.xselection.time = request->time;
+//                     reply.xselection.type      = SelectionNotify;
+//                     reply.xselection.requestor = request->requestor;
+//                     reply.xselection.selection = request->selection;
+//                     reply.xselection.target = request->target;
+//                     reply.xselection.property = None;
+//                     reply.xselection.time = request->time;
+
+// https://handmade.network/forums/articles/t/8544-implementing_copy_paste_in_x11
+// respond to a query for targets with utf8_string as a target
+                    XChangeProperty(out_display, 
+                        request->requestor, 
+                        request->property, 
+						XA_ATOM, 
+                        32, 
+                        PropModeReplace, 
+                        (unsigned char*)&utf8_target, // list of supported targets
+                        1);   // number of supported targets
+					XSelectionEvent sendEvent;
+					sendEvent.type = SelectionNotify;
+					sendEvent.serial = request->serial;
+					sendEvent.send_event = request->send_event;
+					sendEvent.display = request->display;
+					sendEvent.requestor = request->requestor;
+					sendEvent.selection = request->selection;
+					sendEvent.target = request->target;
+					sendEvent.property = request->property;
+					sendEvent.time = request->time;
+					XSendEvent(out_display, 
+                        request->requestor, 
+                        0, 
+                        0, 
+                        (XEvent*)&sendEvent);
+// there's supposed to be a SelectionNotify but this works with 
+// all the big programs for now
                 }
                 else
                 {
-printf("BC_Clipboard::run %d sending request length=%d\n", 
-__LINE__, 
-length);
+// printf("BC_Clipboard::run %d sending request length=%d\n", 
+// __LINE__, 
+// length);
         		    XChangeProperty(out_display,
         			    request->requestor,
         			    request->property,
@@ -206,10 +233,10 @@ length);
         		    reply.xselection.selection = request->selection;
         		    reply.xselection.target    = request->target;
         		    reply.xselection.time      = request->time;
-                }
-
 				XSendEvent(out_display, request->requestor, True, NoEventMask, &reply);
+                }
 			    XFlush(out_display);
+
 // printf("BC_Clipboard::run %d requestor=%ld property=%ld text=%s len=%ld\n", 
 // __LINE__, 
 // request->requestor, 
