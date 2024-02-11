@@ -116,8 +116,43 @@ int BC_FileBoxListBox::handle_event()
 
 int BC_FileBoxListBox::selection_changed()
 {
-	BC_ListBoxItem *item = get_selection(
-		filebox->column_of_type(FILEBOX_NAME), 0);
+    int column = filebox->column_of_type(FILEBOX_NAME);
+	BC_ListBoxItem *item = get_selection(column, 0);
+
+// want the most recent of a multiple selection for the preview
+// but the only way is to compare all current selections 
+// with all previous selections
+    ArrayList<int> current_selections;
+//     printf("BC_FileBoxListBox::selection_changed %d: ", 
+//         __LINE__);
+    int new_selection = -1;
+    for(int i = 0; ; i++)
+    {
+        int selection = get_selection_number(column, i);
+        if(selection >= 0)
+        {
+            current_selections.append(selection);
+// find it in the past
+            int got_it = 0;
+            for(int j = 0; j < prev_selections.size(); j++)
+            {
+                if(prev_selections.get(j) == selection)
+                {
+                    got_it = 1;
+                    break;
+                }
+            }
+            if(!got_it) new_selection = selection;
+//            printf("%d ", selection);
+        }
+        else
+            break;
+    }
+//    printf("\n");
+//printf("BC_FileBoxListBox::selection_changed %d: %d\n", __LINE__, new_selection);
+
+
+//printf("BC_FileBoxListBox::selection_changed %d %d\n", __LINE__, get_selection_number(0, 0));
 
 	if(item)
 	{
@@ -129,10 +164,15 @@ int BC_FileBoxListBox::selection_changed()
 		filebox->fs->complete_path(path);
 		strcpy(filebox->current_path, path);
 		strcpy(filebox->submitted_path, path);
-        if(filebox->previewer && filebox->show_preview)
+        if(filebox->previewer && filebox->show_preview && new_selection != -1)
         {
-            if(!filebox->fs->is_dir(filebox->current_path))
-                filebox->previewer->submit_file(filebox->current_path);
+            item = filebox->list_column[column].get(new_selection);
+            strcpy(path, item->get_text());
+            filebox->fs->complete_path(path);
+//printf("BC_FileBoxListBox::selection_changed %d %s\n", __LINE__, path);
+
+            if(!filebox->fs->is_dir(path))
+                filebox->previewer->submit_file(path);
             else
             {
                 filebox->previewer->clear_preview();
@@ -140,6 +180,11 @@ int BC_FileBoxListBox::selection_changed()
             }
         }
 	}
+
+// update the prev selection list
+    prev_selections.remove_all();
+    for(int i = 0; i < current_selections.size(); i++)
+        prev_selections.append(current_selections.get(i));
 	return 1;
 }
 
@@ -1259,6 +1304,7 @@ int BC_FileBox::submit_dir(char *dir)
     	textbox->update(filename);
 	}
     listbox->reset_query();
+    listbox->prev_selections.remove_all();
 	return 0;
 }
 
@@ -1301,6 +1347,7 @@ int BC_FileBox::submit_file(const char *path, int use_this)
 		else
 			textbox->update("");
 		listbox->reset_query();
+        listbox->prev_selections.remove_all();
 		return 1;
 	}
 	else

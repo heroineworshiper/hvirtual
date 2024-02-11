@@ -65,6 +65,9 @@ public:
 	int sort_order_event();
 	int move_column_event();
 	int evaluate_query(char *string);
+// need to compare the current & previous selections to preview
+// just the most recent change
+    ArrayList<int> prev_selections;
 
 	BC_FileBox *filebox;
 };
