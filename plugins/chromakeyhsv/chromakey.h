@@ -65,7 +65,7 @@ public:
 	float min_brightness;
 	float max_brightness;
 // offset applied to saturation keying but not spill compensation
-	float saturation;
+//	float saturation;
 // minimum saturation for keying
 	float min_saturation;
 	float tolerance;
@@ -144,7 +144,7 @@ public:
 	ChromaKeyUseColorPicker *use_colorpicker;
 	ChromaKeySlider *min_brightness;
 	ChromaKeySlider *max_brightness;
-	ChromaKeySlider *saturation;
+//	ChromaKeySlider *saturation;
 	ChromaKeySlider *min_saturation;
 	ChromaKeySlider *tolerance;
 	ChromaKeySlider *in_slope;

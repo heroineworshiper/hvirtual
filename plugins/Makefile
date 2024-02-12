@@ -105,6 +105,7 @@ DIRS = \
 	suv \
 	swapchannels \
 	swapframes \
+        swatch \
 	synthesizer \
 	threshold \
 	timeavg \
