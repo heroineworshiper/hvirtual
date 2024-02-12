@@ -25,8 +25,9 @@
 // https://www.mail-archive.com/cinelerra@skolelinux.no/msg00379.html
 // http://jcornet.free.fr/linux/chromakey.html
 
-// He was trying to replicate the Avid chroma keyer:
+// He was trying to replicate the Avid SpectraMatte:
 // https://resources.avid.com/SupportFiles/attach/Symphony_Effects_and_CC_Guide_v5.5.pdf
+// page 691
 // but the problem seems to be harder than he thought
 
 // A rewrite got a slightly different spill light processing 

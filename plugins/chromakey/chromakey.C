@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -290,7 +289,12 @@ int ChromaKeyColorThread::handle_new_color(int output, int alpha)
 	plugin->config.red = (float)(output & 0xff0000) / 0xff0000;
 	plugin->config.green = (float)(output & 0xff00) / 0xff00;
 	plugin->config.blue = (float)(output & 0xff) / 0xff;
-	gui->update_sample();
+	gui->put_event([](void *ptr)
+        {
+            ChromaKeyWindow *gui = (ChromaKeyWindow*)ptr;
+            gui->update_sample();
+        },
+        gui);
 	plugin->send_configure_change();
 	return 1;
 }
