@@ -113,8 +113,8 @@ public:
 	int bg_shadow2;
 	int bg_light1;
 	int bg_light2;
-	int default_text_color;
-	int disabled_text_color;
+	static int default_text_color;
+	static int disabled_text_color;
 
 
 // beveled box colors

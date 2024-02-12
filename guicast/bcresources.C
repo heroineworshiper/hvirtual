@@ -92,6 +92,8 @@ double BC_Resources::medium_font_xftsize;
 double BC_Resources::small_font_xftsize;
 double BC_Resources::clock_font_xftsize;
 
+int BC_Resources::default_text_color = BLACK;
+int BC_Resources::disabled_text_color = MEGREY;
 
 
 int BC_Resources::x_error_handler(Display *display, XErrorEvent *event)
@@ -653,8 +655,6 @@ void BC_Resources::init()
 		border_shadow1 = BLACK;
 		border_shadow2 = bg_color;
 
-		default_text_color = BLACK;
-		disabled_text_color = MEGREY;
 
 		button_light = MEGREY;           // bright corner
 		button_highlighted = LTGREY;  // face when highlighted

@@ -64,7 +64,9 @@ public:
 	// Key shade definition
 	float min_brightness;
 	float max_brightness;
+// offset applied to saturation keying but not spill compensation
 	float saturation;
+// minimum saturation for keying
 	float min_saturation;
 	float tolerance;
 	// Mask feathering
@@ -90,87 +92,15 @@ public:
 	ChromaKeyWindow *gui;
 };
 
-
-class ChromaKeyMinBrightness : public BC_FSlider
-{
-	public:
-		ChromaKeyMinBrightness(ChromaKeyHSV *plugin, int x, int y);
-		int handle_event();
-		ChromaKeyHSV *plugin;
-};
-
-class ChromaKeyMaxBrightness : public BC_FSlider
-{
-	public:
-		ChromaKeyMaxBrightness(ChromaKeyHSV *plugin, int x, int y);
-		int handle_event();
-		ChromaKeyHSV *plugin;
-};
-
-class ChromaKeySaturation : public BC_FSlider
-{
-	public:
-		ChromaKeySaturation(ChromaKeyHSV *plugin, int x, int y);
-		int handle_event();
-		ChromaKeyHSV *plugin;
-};
-
-class ChromaKeyMinSaturation : public BC_FSlider
-{
-	public:
-		ChromaKeyMinSaturation(ChromaKeyHSV *plugin, int x, int y);
-		int handle_event();
-		ChromaKeyHSV *plugin;
-};
-
-
-
-class ChromaKeyTolerance : public BC_FSlider
+class ChromaKeySlider : public BC_FSlider
 {
 public:
-	ChromaKeyTolerance(ChromaKeyHSV *plugin, int x, int y);
-	int handle_event();
-	ChromaKeyHSV *plugin;
+    ChromaKeySlider(ChromaKeyHSV *plugin, int x, int y, float min, float max, float *output);
+    int handle_event();
+    ChromaKeyHSV *plugin;
+    float *output;
 };
 
-class ChromaKeyInSlope : public BC_FSlider
-{
-	public:
-		ChromaKeyInSlope(ChromaKeyHSV *plugin, int x, int y);
-		int handle_event();
-		ChromaKeyHSV *plugin;
-};
-
-class ChromaKeyOutSlope : public BC_FSlider
-{
-	public:
-		ChromaKeyOutSlope(ChromaKeyHSV *plugin, int x, int y);
-		int handle_event();
-		ChromaKeyHSV *plugin;
-};
-
-class ChromaKeyAlphaOffset : public BC_FSlider
-{
-	public:
-		ChromaKeyAlphaOffset(ChromaKeyHSV *plugin, int x, int y);
-		int handle_event();
-		ChromaKeyHSV *plugin;
-};
-
-class ChromaKeySpillThreshold : public BC_FSlider
-{
-public:
-	ChromaKeySpillThreshold(ChromaKeyHSV *plugin, int x, int y);
-	int handle_event();
-	ChromaKeyHSV *plugin;
-};
-class ChromaKeySpillAmount : public BC_FSlider
-{
-public:
-	ChromaKeySpillAmount(ChromaKeyHSV *plugin, int x, int y);
-	int handle_event();
-	ChromaKeyHSV *plugin;
-};
 
 class ChromaKeyUseColorPicker : public BC_GenericButton
 {
@@ -212,16 +142,16 @@ public:
 
 	ChromaKeyColor *color;
 	ChromaKeyUseColorPicker *use_colorpicker;
-	ChromaKeyMinBrightness *min_brightness;
-	ChromaKeyMaxBrightness *max_brightness;
-	ChromaKeySaturation *saturation;
-	ChromaKeyMinSaturation *min_saturation;
-	ChromaKeyTolerance *tolerance;
-	ChromaKeyInSlope *in_slope;
-	ChromaKeyOutSlope *out_slope;
-	ChromaKeyAlphaOffset *alpha_offset;
-	ChromaKeySpillThreshold *spill_threshold;
-	ChromaKeySpillAmount *spill_amount;
+	ChromaKeySlider *min_brightness;
+	ChromaKeySlider *max_brightness;
+	ChromaKeySlider *saturation;
+	ChromaKeySlider *min_saturation;
+	ChromaKeySlider *tolerance;
+	ChromaKeySlider *in_slope;
+	ChromaKeySlider *out_slope;
+	ChromaKeySlider *alpha_offset;
+	ChromaKeySlider *spill_threshold;
+	ChromaKeySlider *spill_amount;
 	ChromaKeyShowMask *show_mask;
 	BC_SubWindow *sample;
 	ChromaKeyHSV *plugin;

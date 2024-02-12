@@ -119,6 +119,7 @@ void KeyFrames::update_parameter(KeyFrame *src)
 	selection_start = edl->align_to_frame(selection_start, 0);
 	selection_end = edl->align_to_frame(selection_end, 0);
 
+//printf("KeyFrames::update_parameter %d\n", __LINE__);
 	if(EQUIV(selection_start, selection_end))
 	{
 // Search for keyframe to write to
@@ -128,6 +129,9 @@ void KeyFrames::update_parameter(KeyFrame *src)
 	}
 	else
 // Replace changed parameter in all selected keyframes.
+// TODO: if the changed parameter doesn't exist in the EDL because of a 
+// software change, it'll never get saved unless the user selects a single point
+// & issues another change.
 	{
 		BC_Hash *params = 0;
 		char *text = 0;
@@ -149,11 +153,11 @@ void KeyFrames::update_parameter(KeyFrame *src)
 			&extra);
 
 
-if(debug) printf("KeyFrames::update_parameter %d params=%p position=%lld start=%lld\n", 
+if(debug) printf("KeyFrames::update_parameter %d params=%p position=%ld start=%ld\n", 
 __LINE__,  
 params,
-(long long)current->position,
-(long long)track->to_units(start, 0));
+(long)current->position,
+(long)track->to_units(start, 0));
 
 if(debug && params)
 {

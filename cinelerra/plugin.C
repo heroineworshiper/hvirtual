@@ -257,9 +257,12 @@ int Plugin::is_synthesis(int64_t position,
 
 			PluginServer *plugin_server = MWindow::scan_plugindb(title,
 				track->data_type);
-//printf("Plugin::is_synthesis %d %p %d\n", __LINE__, plugin_server, plugin_server->get_synthesis());
+//printf("Plugin::is_synthesis %d %p\n", __LINE__, plugin_server);
 //plugin_server->dump();
-			return plugin_server->get_synthesis();
+            if(plugin_server)
+    			return plugin_server->get_synthesis();
+            else
+                return 0;
 			break;
 		}
 
