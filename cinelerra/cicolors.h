@@ -56,6 +56,9 @@ public:
 	YUV();
 	~YUV();
 
+
+	static YUV instance;
+
 	inline void rgb_to_yuv_8(int &y, int &u, int &v)
 	{
 		int r = y;
@@ -220,7 +223,13 @@ public:
 // Dummies for macros
 	static int yuv_to_hsv(float y, float u, float v, float &h, float &s, float &va, float max) { return 0; };
 	static int hsv_to_yuv(float &y, float &u, float &v, float h, float s, float va, float max) { return 0; };
-	static YUV yuv_static;
+
+// value for chroma keying requires a maximum function rather than YUV mixing
+// returns 0-1
+    static float rgb_to_value(float r, float g, float b);
+// returns 0-255
+    static int rgb_to_value(int r, int g, int b);
+    static int yuv_to_value(int y, int u, int v);
 };
 
 

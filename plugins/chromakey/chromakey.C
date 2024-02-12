@@ -18,6 +18,8 @@
  * 
  */
 
+// RGB chroma key
+
 #include "bcdisplayinfo.h"
 #include "bcsignals.h"
 #include "chromakey.h"
@@ -386,7 +388,6 @@ void ChromaKeyUnit::process_package(LoadPackage *package)
 	OUTER_VARIABLES(plugin)
 
 
-
 #define CHROMAKEY(type, components, max, use_yuv) \
 { \
 	for(int i = pkg->y1; i < pkg->y2; i++) \
@@ -403,15 +404,15 @@ void ChromaKeyUnit::process_package(LoadPackage *package)
 				float current_value; \
 				if(use_yuv) \
 				{ \
-					float r = (float)row[0] / max; \
-					current_value = r; \
+					current_value = (float)HSV::yuv_to_value(row[0], \
+                        row[1], \
+                        row[2]) / max; \
 				} \
 				else \
 				{ \
-					float r = (float)row[0] / max; \
-					float g = (float)row[1] / max; \
-					float b = (float)row[2] / max; \
-					current_value = RGB_TO_VALUE(r, g, b); \
+					current_value = (float)HSV::rgb_to_value(row[0], \
+                        row[1], \
+                        row[2]) / max; \
 				} \
  \
 /* Full transparency if in range */ \
@@ -652,18 +653,22 @@ int ChromaKey::handle_opengl()
 		"uniform float threshold_run;\n"
 		"uniform vec3 key;\n";
 
-	static const char *get_yuvvalue_frag =
-		"float get_value(vec4 color)\n"
-		"{\n"
-		"	return abs(color.r);\n"
-		"}\n";
-		
 	static const char *get_rgbvalue_frag = 
 		"float get_value(vec4 color)\n"
 		"{\n"
-		"	return dot(color.rgb, vec3(0.29900, 0.58700, 0.11400));\n"
+        "   float result;\n"
+        RGB_TO_VALUE_FRAG("result", "color")
+		"	return result;\n"
 		"}\n";
 
+	static const char *get_yuvvalue_frag =
+		"float get_value(vec4 color)\n"
+		"{\n"
+        "   float result;\n"
+        YUV_TO_VALUE_FRAG("result", "color")
+		"	return result;\n"
+		"}\n";
+		
 	static const char *value_frag =
 		"void main()\n"
 		"{\n"

@@ -32,7 +32,7 @@ HSV::~HSV()
 {
 }
 
-YUV HSV::yuv_static;
+YUV YUV::instance;
 
 int HSV::rgb_to_hsv(float r, float g, float b, float &h, float &s, float &v)
 {
@@ -133,11 +133,11 @@ int HSV::yuv_to_hsv(int y, int u, int v, float &h, float &s, float &va, int max)
 
 // 	if(max == 0xffff)
 // 	{
-// 		yuv_static.yuv_to_rgb_16(r_i, g_i, b_i, y, u, v);
+// 		instance.yuv_to_rgb_16(r_i, g_i, b_i, y, u, v);
 // 	}
 // 	else
 	{
-		yuv_static.yuv_to_rgb_8(r_i, g_i, b_i, y, u, v);
+		YUV::instance.yuv_to_rgb_8(r_i, g_i, b_i, y, u, v);
 	}
 	r = (float)r_i / max;
 	g = (float)g_i / max;
@@ -166,9 +166,9 @@ int HSV::hsv_to_yuv(int &y, int &u, int &v, float h, float s, float va, int max)
 
 	int y2, u2, v2;
 // 	if(max == 0xffff)
-// 		yuv_static.rgb_to_yuv_16(r_i, g_i, b_i, y2, u2, v2);
+// 		instance.rgb_to_yuv_16(r_i, g_i, b_i, y2, u2, v2);
 // 	else
-		yuv_static.rgb_to_yuv_8(r_i, g_i, b_i, y2, u2, v2);
+		YUV::instance.rgb_to_yuv_8(r_i, g_i, b_i, y2, u2, v2);
 	y = y2;
 	u = u2;
 	v = v2;
@@ -176,6 +176,27 @@ int HSV::hsv_to_yuv(int &y, int &u, int &v, float h, float s, float va, int max)
 	return 0;
 }
 
+
+float HSV::rgb_to_value(float r, float g, float b)
+{
+	float max = ((r > g) ? r : g);
+    max = ((b > max) ? b : max);
+    return max;
+}
+
+int HSV::rgb_to_value(int r, int g, int b)
+{
+	int max = ((r > g) ? r : g);
+    max = ((b > max) ? b : max);
+    return max;
+}
+
+int HSV::yuv_to_value(int y, int u, int v)
+{   
+    int r, g, b;
+    YUV::instance.yuv_to_rgb_8(r, g, b, y, u, v);
+    return rgb_to_value(r, g, b);
+}
 
 
 

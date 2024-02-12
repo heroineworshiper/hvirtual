@@ -39,7 +39,7 @@
 
 
 
-// Macros for useful fragment shaders
+// Commonly used fragment shaders
 #define YUV_TO_RGB_FRAG(PIXEL) \
 	PIXEL ".gb -= vec2(0.5, 0.5);\n" \
  	PIXEL ".rgb = mat3(\n" \
@@ -53,6 +53,14 @@
  	"	 0.58700, -0.33126, -0.41869, \n" \
  	"	 0.11400, 0.50000,  -0.08131) * " PIXEL ".rgb;\n" \
 	PIXEL ".gb += vec2(0.5, 0.5);\n"
+
+#define RGB_TO_VALUE_FRAG(result, PIXEL) \
+    "result = max(" PIXEL ".r, " PIXEL ".g);\n" \
+    "result = max(result, " PIXEL ".b);\n"
+
+#define YUV_TO_VALUE_FRAG(result, PIXEL) \
+    YUV_TO_RGB_FRAG(PIXEL) \
+    RGB_TO_VALUE_FRAG(result, PIXEL)
 
 #define RGB_TO_HSV_FRAG(PIXEL) \
 	"{\n" \

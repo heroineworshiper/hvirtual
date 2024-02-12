@@ -52,13 +52,15 @@ SwatchConfig::SwatchConfig()
 	brightness = MAX_VALUE;
     saturation = MAX_VALUE;
     fix_brightness = 0;
+    angle = 0;
 }
 
 int SwatchConfig::equivalent(SwatchConfig &that)
 {
 	return brightness == that.brightness &&
         saturation == that.saturation &&
-        fix_brightness == that.fix_brightness;
+        fix_brightness == that.fix_brightness &&
+        angle == that.angle;
 }
 
 void SwatchConfig::copy_from(SwatchConfig &that)
@@ -66,6 +68,7 @@ void SwatchConfig::copy_from(SwatchConfig &that)
 	brightness = that.brightness;
 	saturation = that.saturation;
     fix_brightness = that.fix_brightness;
+    angle = that.angle;
 }
 
 void SwatchConfig::interpolate(SwatchConfig &prev, 
@@ -80,6 +83,7 @@ void SwatchConfig::interpolate(SwatchConfig &prev,
 
 	this->brightness = (int)(prev.brightness * prev_scale + next.brightness * next_scale);
 	this->saturation = (int)(prev.saturation * prev_scale + next.saturation * next_scale);
+	this->angle = (int)(prev.angle * prev_scale + next.angle * next_scale);
     fix_brightness = prev.fix_brightness;
 }
 
@@ -90,14 +94,16 @@ SwatchSlider::SwatchSlider(SwatchMain *plugin,
     SwatchWindow *gui,
     int x, 
     int y,
+    int min,
+    int max,
     int *output)
  : BC_ISlider(x,
 	y,
 	0, 
 	gui->get_w() - plugin->get_theme()->widget_border - x, 
     gui->get_w() - plugin->get_theme()->widget_border - x, 
-    0, 
-    MAX_VALUE, 
+    min, 
+    max, 
     *output)
 {
 	this->plugin = plugin;
@@ -141,9 +147,9 @@ int SwatchOption::handle_event()
 SwatchWindow::SwatchWindow(SwatchMain *plugin)
  : PluginClientWindow(plugin,
 	DP(350), 
-	DP(200), 
+	DP(250), 
 	DP(350), 
-	DP(200), 
+	DP(250), 
 	0)
 {
 	this->plugin = plugin;
@@ -161,12 +167,17 @@ void SwatchWindow::create_objects()
 
 	add_subwindow(brightness_title = new BC_Title(x, y, _("Brightness:")));
     y += brightness_title->get_h() + margin;
-	add_subwindow (brightness = new SwatchSlider(plugin, this, x, y, &plugin->config.brightness));
+	add_subwindow (brightness = new SwatchSlider(plugin, this, x, y, 0, MAX_VALUE, &plugin->config.brightness));
     y += brightness->get_h() + margin;
 
 	add_subwindow(saturation_title = new BC_Title(x, y, _("Saturation:")));
     y += saturation_title->get_h() + margin;
-	add_subwindow (saturation = new SwatchSlider(plugin, this, x, y, &plugin->config.saturation));
+	add_subwindow (saturation = new SwatchSlider(plugin, this, x, y, 0, MAX_VALUE, &plugin->config.saturation));
+    y += saturation->get_h() + margin;
+
+	add_subwindow(title = new BC_Title(x, y, _("Angle:")));
+    y += title->get_h() + margin;
+	add_subwindow (angle = new SwatchSlider(plugin, this, x, y, -180, 180, &plugin->config.angle));
     y += saturation->get_h() + margin;
 
     add_subwindow(fix_brightness = new SwatchOption(plugin, 
@@ -277,6 +288,7 @@ void SwatchMain::update_gui()
 			((SwatchWindow*)thread->window)->lock_window("SwatchMain::update_gui");
 			((SwatchWindow*)thread->window)->brightness->update(config.brightness);
 			((SwatchWindow*)thread->window)->saturation->update(config.saturation);
+			((SwatchWindow*)thread->window)->angle->update(config.angle);
             ((SwatchWindow*)thread->window)->update_fixed();
 			((SwatchWindow*)thread->window)->unlock_window();
 		}
@@ -297,6 +309,7 @@ void SwatchMain::save_data(KeyFrame *keyframe)
 
 	output.tag.set_property("BRIGHTNESS", config.brightness);
 	output.tag.set_property("SATURATION", config.saturation);
+	output.tag.set_property("ANGLE", config.angle);
 	output.tag.set_property("FIX_BRIGHTNESS", config.fix_brightness);
 	output.append_tag();
 	output.terminate_string();
@@ -321,6 +334,7 @@ void SwatchMain::read_data(KeyFrame *keyframe)
 			{
 				config.brightness = input.tag.get_property("BRIGHTNESS", config.brightness);
 				config.saturation = input.tag.get_property("SATURATION", config.saturation);
+				config.angle = input.tag.get_property("ANGLE", config.angle);
 				config.fix_brightness = input.tag.get_property("FIX_BRIGHTNESS", config.fix_brightness);
 			}
 		}
@@ -336,6 +350,7 @@ int SwatchMain::handle_opengl()
 		"uniform vec2 center_coord;\n"
 		"uniform float value;\n"
 		"uniform float saturation;\n"
+		"uniform float angle;\n"
 		"uniform bool fix_value;\n"
 		"\n"
 		"void main()\n"
@@ -346,7 +361,7 @@ int SwatchMain::handle_opengl()
         "   if(center_coord.y < max_s) max_s = center_coord.y;\n"
         "   vec4 pixel;\n"
         "   pixel.a = 1.0;\n"
-        "   pixel.r = atan(in_coord.x, in_coord.y) / 2.0 / 3.14159 * 360.0; // hue\n"
+        "   pixel.r = atan(in_coord.x, in_coord.y) / 2.0 / 3.14159 * 360.0 + angle; // hue\n"
         "   if(pixel.r < 0.0) pixel.r += 360.0;\n"
         "   if(fix_value)\n"
         "   {\n"
@@ -409,6 +424,7 @@ int SwatchMain::handle_opengl()
 
 		glUniform1f(glGetUniformLocation(frag, "value"), (float)config.brightness / MAX_VALUE);
 		glUniform1f(glGetUniformLocation(frag, "saturation"), (float)config.saturation / MAX_VALUE);
+		glUniform1f(glGetUniformLocation(frag, "angle"), (float)config.angle);
         glUniform1i(glGetUniformLocation(frag, "fix_value"), config.fix_brightness);
 	}
 
@@ -455,7 +471,7 @@ SwatchUnit::SwatchUnit(SwatchServer *server, SwatchMain *plugin)
 		type *out_row = (type*)plugin->temp->get_rows()[i]; \
         for(int j = 0; j < w; j++) \
         { \
-            float hue = atan2(j - center_x, i - center_y) * 360 / 2 / M_PI; \
+            float hue = atan2(j - center_x, i - center_y) * 360 / 2 / M_PI + angle; \
             if(fix_brightness) \
             { \
                 saturation = hypot(j - center_x, i - center_y) / max_s; \
@@ -505,6 +521,7 @@ void SwatchUnit::process_package(LoadPackage *package)
     int fix_brightness = plugin->config.fix_brightness;
     float saturation = (float)plugin->config.saturation / MAX_VALUE;
     float value = (float)plugin->config.brightness / MAX_VALUE;
+    float angle = plugin->config.angle;
 
 	switch(cmodel)
 	{

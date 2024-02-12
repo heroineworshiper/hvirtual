@@ -50,13 +50,20 @@ public:
     int brightness;
     int saturation;
     int fix_brightness;
+    int angle;
 };
 
 
 class SwatchSlider : public BC_ISlider
 {
 public:
-	SwatchSlider(SwatchMain *plugin, SwatchWindow *gui, int x, int y, int *output);
+	SwatchSlider(SwatchMain *plugin, 
+        SwatchWindow *gui, 
+        int x, 
+        int y, 
+        int min,
+        int max,
+        int *output);
 	int handle_event();
 	SwatchMain *plugin;
     int *output;
@@ -90,6 +97,7 @@ public:
 	SwatchMain *plugin;
     SwatchSlider *brightness;
     SwatchSlider *saturation;
+    SwatchSlider *angle;
     SwatchOption *fix_brightness;
     SwatchOption *fix_saturation;
     BC_Title *brightness_title;

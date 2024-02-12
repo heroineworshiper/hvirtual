@@ -682,6 +682,11 @@ void ChromaKeyUnit::process_chromakey(int components,
 // Spill light processing
 // desaturate a wedge around the hue key
 // hue_key/s=0 < spill_amount < spill_threshold < no spill/s=1
+
+// It's possible that the spill light control needs to factor in
+// saturation & value instead of just hue.  As written, it just created a
+// wedge of desaturation based on hue.
+
 		    if (h_diff < spill_threshold)
 		    {
                 float s_scale = 0;
