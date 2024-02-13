@@ -249,7 +249,7 @@ void VideoInConfig::copy_from(VideoInConfig *src)
 	w = src->w;
 	h = src->h;
 	in_framerate = src->in_framerate;
-printf("VideoInConfig::copy_from %d driver=%d\n", __LINE__, driver);
+//printf("VideoInConfig::copy_from %d driver=%d\n", __LINE__, driver);
 }
 
 VideoInConfig& VideoInConfig::operator=(VideoInConfig &that)

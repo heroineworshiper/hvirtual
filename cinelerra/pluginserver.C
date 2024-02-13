@@ -250,8 +250,8 @@ int PluginServer::open_plugin(int master,
 	this->plugin = plugin;
 	this->edl = edl;
 	this->lad_index = lad_index;
-printf("PluginServer::open_plugin %d\n", __LINE__);
-preferences->vconfig_in->dump();
+//printf("PluginServer::open_plugin %d\n", __LINE__);
+//preferences->vconfig_in->dump();
 
 	if(!new_plugin && !plugin_fd) plugin_fd = dlopen(path, RTLD_NOW);
 

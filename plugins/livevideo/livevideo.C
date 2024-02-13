@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -523,10 +522,15 @@ int LiveVideo::process_buffer(VFrame *frame,
 
 					case CAPTURE_BUZ:
 					case VIDEO4LINUX2JPEG:
-// printf("LiveVideo::process_buffer %d: data=%p size=%d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+                    {
+// determine the number of fields by scanning it
+                        int field2_offset = input->get_field2_offset();
+                        int fields = ((field2_offset > 0) ? 2 : 1);
+// printf("LiveVideo::process_buffer %d: data=%p size=%d field2=%d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
 // __LINE__, 
 // input->get_data(), 
-// input->get_compressed_size(),
+// (int)input->get_compressed_size(),
+// (int)input->get_field2_offset(),
 // input->get_data()[0],
 // input->get_data()[1],
 // input->get_data()[2],
@@ -535,16 +539,19 @@ int LiveVideo::process_buffer(VFrame *frame,
 // input->get_data()[5],
 // input->get_data()[6],
 // input->get_data()[7]);
-// no way to determine if it's 1 or 2 fields.
-// assuming 1 field for HDMI capture
+                        if(mjpeg && fields != mjpeg->fields)
+                        {
+                            mjpeg_delete(mjpeg);
+                            mjpeg = 0;
+                        }
 						if(!mjpeg)
 							mjpeg = mjpeg_new(frame->get_w(), 
 								frame->get_h(), 
-								1);  // fields
+								fields);  // fields
 						mjpeg_decompress(mjpeg, 
 							input->get_data(), 
 							input->get_compressed_size(), 
-							input->get_field2_offset(), 
+							field2_offset, 
 							frame->get_rows(), 
 							frame->get_y(), 
 							frame->get_u(), 
@@ -553,6 +560,7 @@ int LiveVideo::process_buffer(VFrame *frame,
 							get_project_smp() + 1);
 //printf("LiveVideo::process_buffer %d\n", __LINE__);
 						break;
+                    }
 					
 					case CAPTURE_JPEG_WEBCAM:
 						if(!mjpeg)

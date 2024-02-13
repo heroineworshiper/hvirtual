@@ -710,7 +710,7 @@ static void decompress_field(mjpeg_compressor *engine)
 	long buffer_size;
 	int i, j;
 
-//printf("decompress_field %02x%02x %d\n", buffer[0], buffer[1], engine->instance * mjpeg->input_field2);
+//printf("decompress_field %d %02x%02x %d\n", __LINE__, buffer[0], buffer[1], (int)(engine->instance * mjpeg->input_field2));
 	if(engine->instance == 0 && mjpeg->fields > 1)
 		buffer_size = mjpeg->input_field2 - buffer_offset;
 	else
@@ -722,9 +722,11 @@ static void decompress_field(mjpeg_compressor *engine)
 	{
 /* If we get here, the JPEG code has signaled an error. */
 // can't decode Generalplus webcams
-printf("decompress_field %d aborted\n", __LINE__);
+//printf("decompress_field %d: aborted\n", __LINE__);
 		delete_jpeg_objects(engine);
+//printf("decompress_field %d\n", __LINE__);
 		new_jpeg_objects(engine);
+//printf("decompress_field %d\n", __LINE__);
 		mjpeg->error = 1;
 		goto finish;
 	}
@@ -793,9 +795,9 @@ printf("decompress_field %d aborted\n", __LINE__);
 	}
 	jpeg_finish_decompress(&engine->jpeg_decompress);
 
-//printf("decompress_field 40\n");
 
 finish:
+//printf("decompress_field %d\n", __LINE__);
 	;
 }
 
@@ -1158,8 +1160,12 @@ int mjpeg_decompress(mjpeg_t *mjpeg,
 	int got_first_thread = 0;
 
 //printf("mjpeg_decompress 1 %d\n", color_model);
-	if(buffer_len == 0) return 1;
-	if(input_field2 == 0 && mjpeg->fields > 1) return 1;
+	if(buffer_len <= 0) return 1;
+	if(input_field2 <= 0 && mjpeg->fields > 1)
+    {
+        printf("mjpeg_decompress %d: field 2 not found\n", __LINE__);
+        return 1;
+    }
 
 //printf("mjpeg_decompress 2\n");
 /* Create decompression engines as needed */
@@ -1202,7 +1208,7 @@ int mjpeg_decompress(mjpeg_t *mjpeg,
 		}
 	}
 
-//printf("mjpeg_decompress 10\n");
+//printf("mjpeg_decompress %d\n", __LINE__);
 /* Wait for decompressors */
 	for(i = 0; i < mjpeg->fields && !result; i++)
 	{
@@ -1222,7 +1228,7 @@ int mjpeg_decompress(mjpeg_t *mjpeg,
  * 		mjpeg->coded_h != mjpeg->output_h))
  */
 
-//printf("mjpeg_decompress 6 %d %d %d %d\n", mjpeg->coded_w, mjpeg->coded_h, mjpeg->output_w, mjpeg->output_h);
+//printf("mjpeg_decompress %d: %d %d %d %d\n", __LINE__, mjpeg->coded_w, mjpeg->coded_h, mjpeg->output_w, mjpeg->output_h);
  	if((mjpeg->jpeg_color_model != mjpeg->color_model ||
  		mjpeg->coded_w != mjpeg->output_w ||
  		mjpeg->coded_h != mjpeg->output_h) 
