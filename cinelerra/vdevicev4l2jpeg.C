@@ -110,7 +110,6 @@ int VDeviceV4L2JPEG::read_buffer(VFrame *frame)
 		thread->start();
 	}
 
-
 // Get buffer from thread
 	int timed_out;
 	VFrame *buffer = thread->get_buffer(&timed_out);

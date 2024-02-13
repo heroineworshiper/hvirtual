@@ -219,7 +219,7 @@ void Preferences::copy_from(Preferences *that)
 	}
 
 	aconfig_in->copy_from(that->aconfig_in);
-	*vconfig_in = *that->vconfig_in;
+	vconfig_in->copy_from(that->vconfig_in);
 	playback_config->copy_from(that->playback_config);
 	playback_software_position = that->playback_software_position;
 	video_every_frame = that->video_every_frame;

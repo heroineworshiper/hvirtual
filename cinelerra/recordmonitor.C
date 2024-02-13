@@ -1253,6 +1253,7 @@ int RecVideoMJPGThread::render_frame(VFrame *frame, long size)
 // frame->get_data()[frame->get_field2_offset()], 
 // frame->get_data()[frame->get_field2_offset() + 1]);
 //frame->set_field2_offset(0);
+//printf("RecVideoMJPGThread::render_frame %d\n", __LINE__);
 	mjpeg_decompress(mjpeg, 
 		frame->get_data(), 
 		frame->get_compressed_size(), 
@@ -1263,6 +1264,7 @@ int RecVideoMJPGThread::render_frame(VFrame *frame, long size)
 		thread->output_frame->get_v(),
 		thread->output_frame->get_color_model(),
 		record->mwindow->preferences->processors);
+//printf("RecVideoMJPGThread::render_frame %d\n", __LINE__);
 	return 0;
 }
 

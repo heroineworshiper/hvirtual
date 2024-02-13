@@ -523,10 +523,24 @@ int LiveVideo::process_buffer(VFrame *frame,
 
 					case CAPTURE_BUZ:
 					case VIDEO4LINUX2JPEG:
+// printf("LiveVideo::process_buffer %d: data=%p size=%d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+// __LINE__, 
+// input->get_data(), 
+// input->get_compressed_size(),
+// input->get_data()[0],
+// input->get_data()[1],
+// input->get_data()[2],
+// input->get_data()[3],
+// input->get_data()[4],
+// input->get_data()[5],
+// input->get_data()[6],
+// input->get_data()[7]);
+// no way to determine if it's 1 or 2 fields.
+// assuming 1 field for HDMI capture
 						if(!mjpeg)
 							mjpeg = mjpeg_new(frame->get_w(), 
 								frame->get_h(), 
-								2);  // fields
+								1);  // fields
 						mjpeg_decompress(mjpeg, 
 							input->get_data(), 
 							input->get_compressed_size(), 
@@ -537,6 +551,7 @@ int LiveVideo::process_buffer(VFrame *frame,
 							frame->get_v(),
 							frame->get_color_model(),
 							get_project_smp() + 1);
+//printf("LiveVideo::process_buffer %d\n", __LINE__);
 						break;
 					
 					case CAPTURE_JPEG_WEBCAM:
@@ -544,10 +559,6 @@ int LiveVideo::process_buffer(VFrame *frame,
 							mjpeg = mjpeg_new(frame->get_w(), 
 								frame->get_h(), 
 								1);  // fields
-// printf("LiveVideo::process_buffer %d %p %d\n", 
-// __LINE__, 
-// input->get_data(), 
-// input->get_compressed_size());
 						mjpeg_decompress(mjpeg, 
 							input->get_data(), 
 							input->get_compressed_size(), 

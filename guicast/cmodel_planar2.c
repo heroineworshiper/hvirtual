@@ -373,6 +373,53 @@
     register_cmodel_function(in, out, 0, function##_); \
 }
 
+#define YUV422P_TO_YUV422P_HEAD \
+	for(i = 0; i < out_h; i++) \
+	{ \
+		unsigned char *output_y = out_y_plane + i * out_rowspan; \
+		unsigned char *output_u = out_u_plane + i * out_rowspan / 2; \
+		unsigned char *output_v = out_v_plane + i * out_rowspan / 2; \
+		unsigned char *input_y = in_y_plane + row_table[i] * in_rowspan; \
+		unsigned char *input_u = in_u_plane + row_table[i] * in_rowspan / 2; \
+		unsigned char *input_v = in_v_plane + row_table[i] * in_rowspan / 2; \
+		for(j = 0; j < out_w; j++) \
+		{
+
+#define SCALE_YUV422P_TO_YUV422P(in, out, function) \
+{ \
+    void function##_(const cmodel_args_t *args) \
+    { \
+        ARGS_TO_LOCALS \
+        if(scale) \
+        { \
+            YUV422P_TO_YUV422P_HEAD \
+            function( \
+                input_y + column_table[j], \
+                input_u + column_table[j] / 2, \
+                input_v + column_table[j] / 2, \
+                output_y, \
+                output_u, \
+                output_v, \
+                j); \
+            PLANAR_TAIL \
+        } \
+        else \
+        { \
+            YUV422P_TO_YUV422P_HEAD \
+            function( \
+                input_y + j, \
+                input_u + j / 2, \
+                input_v + j / 2, \
+                output_y, \
+                output_u, \
+                output_v, \
+                j); \
+            PLANAR_TAIL \
+        } \
+    } \
+    register_cmodel_function(in, out, 0, function##_); \
+}
+
 
 #define YUV420P_TO_YUV444P_HEAD \
 	for(i = 0; i < out_h; i++) \
@@ -984,6 +1031,7 @@ void cmodel_init_planar()
     SCALE_YUV420P_TO_YUV420P(BC_YUV420P, BC_YUV420P, YUV_PLANAR_to_YUV420P);
     SCALE_YUV420P_TO_YUV422P(BC_YUV420P, BC_YUV422P, YUV_PLANAR_to_YUV420P);
     SCALE_YUV420P_TO_YUV444P(BC_YUV420P, BC_YUV444P, YUV_PLANAR_to_YUV444P);
+    SCALE_YUV422P_TO_YUV422P(BC_YUV422P, BC_YUV422P, YUV_PLANAR_to_YUV420P);
 
 // nvidia hardware decoding
     SCALE_NV12(BC_NV12, BC_YUV888, YUV_PLANAR_to_YUV888)

@@ -509,6 +509,16 @@ void cmodel_transfer(unsigned char **output_rows,
             in_colormodel,
             out_colormodel,
             bg_color);
+        printf("cmodel_transfer %d out=%d,%d %d,%d in=%d,%d %d,%d\n", 
+            __LINE__,
+            out_x, 
+            out_y, 
+            out_w, 
+            out_h, 
+            in_x, 
+            in_y, 
+            in_w, 
+            in_h);
     }
 
 

@@ -825,7 +825,6 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 	int total_errors = 0;
 	while(!done && !error)
 	{
-
 		struct v4l2_buffer buffer;
 		bzero(&buffer, sizeof(buffer));
 		buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -872,7 +871,7 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 			{
 				device_buffers[current_inbuffer]->set_compressed_size(
 					buffer.bytesused);
-//printf("VDeviceV4L2Thread::run %d bytes=%d\n", __LINE__, buffer.bytesused);
+//printf("VDeviceV4L2Thread::run %d bytes=%d\n", __LINE__, (int)buffer.bytesused);
 			}
 
 			if(!buffer_valid[current_inbuffer])

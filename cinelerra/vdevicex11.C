@@ -878,6 +878,7 @@ void VDeviceX11::output_to_bitmap(VFrame *output_frame)
 {
 	if(bitmap->hardware_scaling())
 	{
+//printf("VDeviceX11::output_to_bitmap %d\n", __LINE__);
 		cmodel_transfer(bitmap->get_row_pointers(), 
 			output_frame->get_rows(),
 			0,
@@ -907,6 +908,7 @@ void VDeviceX11::output_to_bitmap(VFrame *output_frame)
         {
             int checker_w = CHECKER_W;
             int checker_h = CHECKER_H;
+//printf("VDeviceX11::output_to_bitmap %d\n", __LINE__);
             cmodel_transfer_alpha(bitmap->get_row_pointers(), 
 			    output_frame->get_rows(),
 			    (int)output_x1, 
@@ -929,6 +931,10 @@ void VDeviceX11::output_to_bitmap(VFrame *output_frame)
         else
         {
 // all other modes multiply alpha with black
+// printf("VDeviceX11::output_to_bitmap %d %d %d\n", 
+// __LINE__, 
+// output_frame->get_color_model(), 
+// bitmap->get_color_model());
 		    cmodel_transfer(bitmap->get_row_pointers(), 
 			    output_frame->get_rows(),
 			    0,

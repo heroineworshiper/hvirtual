@@ -71,6 +71,7 @@ public:
 	int load_defaults(BC_Hash *defaults);
 	int save_defaults(BC_Hash *defaults);
 	char* get_path();
+    void dump();
 
 	int driver;
 	char v4l_in_device[BCTEXTLEN];

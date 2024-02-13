@@ -20,6 +20,7 @@
 
 #include "audiodevice.inc"
 #include "bchash.h"
+#include "../hvirtual_config.h"
 #include "playbackconfig.h"
 #include "recordconfig.h"
 #include "videodevice.inc"
@@ -191,6 +192,11 @@ VideoInConfig::~VideoInConfig()
 {
 }
 
+void VideoInConfig::dump()
+{
+    printf("VideoInConfig::dump %d: driver=%d\n", __LINE__, driver);
+}
+
 char* VideoInConfig::get_path()
 {
 	switch(driver)
@@ -243,6 +249,7 @@ void VideoInConfig::copy_from(VideoInConfig *src)
 	w = src->w;
 	h = src->h;
 	in_framerate = src->in_framerate;
+printf("VideoInConfig::copy_from %d driver=%d\n", __LINE__, driver);
 }
 
 VideoInConfig& VideoInConfig::operator=(VideoInConfig &that)
@@ -260,6 +267,7 @@ int VideoInConfig::load_defaults(BC_Hash *defaults)
     if(driver == VIDEO4LINUX || 
         driver == CAPTURE_BUZ)
     {
+printf("VideoInConfig::load_defaults %d: reverting VIDEO4LINUX driver\n", __LINE__);
         driver = SCREENCAPTURE;
     }
 #endif
@@ -272,6 +280,7 @@ int VideoInConfig::load_defaults(BC_Hash *defaults)
         driver == VIDEO4LINUX2MJPG || 
         driver == CAPTURE_MPEG)
     {
+printf("VideoInConfig::load_defaults %d: reverting VIDEO4LINUX2 driver\n", __LINE__);
         driver = SCREENCAPTURE;
     }
 #endif
