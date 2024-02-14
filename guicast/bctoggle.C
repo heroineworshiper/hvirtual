@@ -507,11 +507,34 @@ BC_CheckBox::BC_CheckBox(int x,
 	color)
 {
 	this->value = value;
+    this->value_b = 0;
+}
+
+BC_CheckBox::BC_CheckBox(int x, 
+	int y, 
+	bool *value, 
+	const char *caption, 
+	int font,
+	int color)
+ : BC_Toggle(x, 
+ 	y, 
+	BC_WindowBase::get_resources()->checkbox_images, 
+	*value ? 1 : 0, 
+	caption, 
+	1, 
+	font,
+	color)
+{
+    this->value = 0;
+	this->value_b = value;
 }
 
 int BC_CheckBox::handle_event()
 {
-	*value = get_value();
+    if(value)
+        *value = get_value();
+    else
+        *value_b = get_value() ? true : false;
 	return 1;
 }
 

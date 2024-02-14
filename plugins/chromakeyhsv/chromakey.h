@@ -77,6 +77,7 @@ public:
 	// Spill light compensation
 	float spill_saturation;
 	float spill_angle;
+    bool desaturate_only;
 };
 
 class ChromaKeyColor : public BC_GenericButton
@@ -122,12 +123,17 @@ public:
 	ChromaKeyWindow *gui;
 };
 
-class ChromaKeyShowMask : public BC_CheckBox
+class ChromaKeyToggle : public BC_CheckBox
 {
 public:
-	ChromaKeyShowMask(ChromaKeyHSV *plugin, int x, int y);
+	ChromaKeyToggle(ChromaKeyHSV *plugin, 
+        int x, 
+        int y,
+        bool *output,
+        const char *caption);
 	int handle_event();
 	ChromaKeyHSV *plugin;
+    bool *output;
 };
 
 
@@ -151,9 +157,10 @@ public:
 	ChromaKeySlider *in_slope;
 	ChromaKeySlider *out_slope;
 	ChromaKeySlider *alpha_offset;
-	ChromaKeySlider *spill_threshold;
-	ChromaKeySlider *spill_amount;
-	ChromaKeyShowMask *show_mask;
+	ChromaKeySlider *spill_saturation;
+	ChromaKeySlider *spill_angle;
+    ChromaKeyToggle *desaturate_only;
+	ChromaKeyToggle *show_mask;
 	BC_SubWindow *sample;
 	ChromaKeyHSV *plugin;
 	ChromaKeyColorThread *color_thread;

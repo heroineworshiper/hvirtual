@@ -563,6 +563,7 @@ int LiveVideo::process_buffer(VFrame *frame,
                     }
 					
 					case CAPTURE_JPEG_WEBCAM:
+// assume 1 field
 						if(!mjpeg)
 							mjpeg = mjpeg_new(frame->get_w(), 
 								frame->get_h(), 

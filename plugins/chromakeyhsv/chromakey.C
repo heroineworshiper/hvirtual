@@ -34,6 +34,7 @@
 // but still not very useful:
 // https://github.com/vanakala/cinelerra-cve/blob/master/plugins/chromakeyhsv/chromakey.C
 
+// The current implementation is most of the Spectramatte algorithm.
 // The only way to test it is to use the color swatch plugin.  
 // Fix brightness to test the saturation wedge. 
 // Fix saturation to test the brightness wedge.
@@ -45,8 +46,8 @@
 // The general idea is if it's acting weird, switch between constant brightness 
 // & constant saturation.
 
-// TODO: integrated color swatch & alpha blur, but it takes a lot of space.
-// spill threshold creates artifacts in YUV
+// TODO: integrated color swatch & alpha blur, but it takes a lot of space in the GUI.
+
 
 
 #include "bcdisplayinfo.h"
@@ -71,7 +72,7 @@
 #include <unistd.h>
 
 #define WINDOW_W DP(400)
-#define WINDOW_H DP(450)
+#define WINDOW_H DP(500)
 #define SLIDER_W WINDOW_W - x - plugin->get_theme()->widget_border
 #define MAX_SLOPE 100.0
 #define MAX_VALUE 100.0
@@ -92,8 +93,9 @@ ChromaKeyConfig::ChromaKeyConfig ()
 	out_slope = 2;
 	alpha_offset = 0;
 
-	spill_threshold = 0.0;
-	spill_amount = 0.0;
+	spill_saturation = 0.0;
+	spill_angle = 0.0;
+    desaturate_only = 0;
 
 	show_mask = 0;
 
@@ -106,8 +108,8 @@ ChromaKeyConfig::copy_from (ChromaKeyConfig & src)
 	red = src.red;
 	green = src.green;
 	blue = src.blue;
-	spill_threshold = src.spill_threshold;
-	spill_amount = src.spill_amount;
+	spill_saturation = src.spill_saturation;
+	spill_angle = src.spill_angle;
 	min_brightness = src.min_brightness;
 	max_brightness = src.max_brightness;
 	saturation_start = src.saturation_start;
@@ -117,6 +119,7 @@ ChromaKeyConfig::copy_from (ChromaKeyConfig & src)
 	out_slope = src.out_slope;
 	alpha_offset = src.alpha_offset;
 	show_mask = src.show_mask;
+    desaturate_only = src.desaturate_only;
 }
 
 int
@@ -125,8 +128,8 @@ ChromaKeyConfig::equivalent (ChromaKeyConfig & src)
 	return (EQUIV (red, src.red) &&
 		EQUIV (green, src.green) &&
 		EQUIV (blue, src.blue) &&
-		EQUIV (spill_threshold, src.spill_threshold) &&
-		EQUIV (spill_amount, src.spill_amount) &&
+		EQUIV (spill_saturation, src.spill_saturation) &&
+		EQUIV (spill_angle, src.spill_angle) &&
 		EQUIV (min_brightness, src.min_brightness) &&
 		EQUIV (max_brightness, src.max_brightness) &&
 		EQUIV (saturation_start, src.saturation_start) &&
@@ -135,7 +138,8 @@ ChromaKeyConfig::equivalent (ChromaKeyConfig & src)
 		EQUIV (in_slope, src.in_slope) &&
 		EQUIV (out_slope, src.out_slope) &&
 		EQUIV (show_mask, src.show_mask) &&
-		EQUIV (alpha_offset, src.alpha_offset));
+		EQUIV (alpha_offset, src.alpha_offset) &&
+        desaturate_only == src.desaturate_only);
 }
 
 void
@@ -152,10 +156,10 @@ ChromaKeyConfig::interpolate (ChromaKeyConfig & prev,
 	this->red = prev.red * prev_scale + next.red * next_scale;
 	this->green = prev.green * prev_scale + next.green * next_scale;
 	this->blue = prev.blue * prev_scale + next.blue * next_scale;
-	this->spill_threshold =
-		prev.spill_threshold * prev_scale + next.spill_threshold * next_scale;
-	this->spill_amount =
-		prev.spill_amount * prev_scale + next.tolerance * next_scale;
+	this->spill_saturation =
+		prev.spill_saturation * prev_scale + next.spill_saturation * next_scale;
+	this->spill_angle =
+		prev.spill_angle * prev_scale + next.tolerance * next_scale;
 	this->min_brightness =
 		prev.min_brightness * prev_scale + next.min_brightness * next_scale;
 	this->max_brightness =
@@ -169,7 +173,8 @@ ChromaKeyConfig::interpolate (ChromaKeyConfig & prev,
 	this->out_slope = prev.out_slope * prev_scale + next.out_slope * next_scale;
 	this->alpha_offset =
 		prev.alpha_offset * prev_scale + next.alpha_offset * next_scale;
-	this->show_mask = next.show_mask;
+	this->show_mask = prev.show_mask;
+    this->desaturate_only = prev.desaturate_only;
 
 }
 
@@ -224,7 +229,11 @@ ChromaKeyWindow::create_objects ()
 	add_subwindow (use_colorpicker =
 		 new ChromaKeyUseColorPicker (plugin, this, x, y));
 	y += use_colorpicker->get_h() + margin;
-	add_subwindow (show_mask = new ChromaKeyShowMask (plugin, x2, y));
+	add_subwindow (show_mask = new ChromaKeyToggle (plugin, 
+        x2, 
+        y,
+        &plugin->config.show_mask,
+        _("Show Mask")));
 	y += show_mask->get_h() + margin;
 
 	add_subwindow(bar = new BC_Bar(x2, y, get_w() - x2 * 2));
@@ -268,11 +277,18 @@ ChromaKeyWindow::create_objects ()
 	y += bar->get_h() + margin;
 	add_subwindow (title = new BC_Title (x2, y, _("Spill light control:")));
 	y += ymargin;
-	add_subwindow (title = new BC_Title (x, y, _("Spill Threshold:")));
+	add_subwindow (title = new BC_Title (x, y, _("Spill Saturation:")));
 	if(title->get_w() > x1) x1 = title->get_w();
 	y += ymargin;
-	add_subwindow (title = new BC_Title (x, y, _("Spill Compensation:")));
+	add_subwindow (title = new BC_Title (x, y, _("Spill Angle:")));
 	if(title->get_w() > x1) x1 = title->get_w();
+	y += ymargin;
+	add_subwindow(desaturate_only = new ChromaKeyToggle(plugin,
+        x, 
+        y, 
+        &plugin->config.desaturate_only, 
+        _("Desaturate Only")));
+	if(desaturate_only->get_w() > x1) x1 = desaturate_only->get_w();
 	y += ymargin;
 
 
@@ -304,9 +320,9 @@ ChromaKeyWindow::create_objects ()
 
 	y += bar->get_h() + margin;
 	y += ymargin2;
-	add_subwindow (spill_threshold = new ChromaKeySlider (plugin, x1, y, 0, MAX_VALUE, &plugin->config.spill_threshold));
+	add_subwindow (spill_saturation = new ChromaKeySlider (plugin, x1, y, 0, MAX_VALUE, &plugin->config.spill_saturation));
 	y += ymargin;
-	add_subwindow (spill_amount = new ChromaKeySlider (plugin, x1, y, -MAX_VALUE, MAX_VALUE, &plugin->config.spill_amount));
+	add_subwindow (spill_angle = new ChromaKeySlider (plugin, x1, y, 0, MAX_VALUE, &plugin->config.spill_angle));
 
 	color_thread = new ChromaKeyColorThread (plugin, this);
 
@@ -374,18 +390,24 @@ int ChromaKeySlider::handle_event()
 
 
 
-ChromaKeyShowMask::ChromaKeyShowMask (ChromaKeyHSV * plugin, int x, int y):BC_CheckBox (x, y, plugin->config.show_mask,
-			 _
-			 ("Show Mask"))
+ChromaKeyToggle::ChromaKeyToggle (ChromaKeyHSV * plugin, 
+    int x, 
+    int y,
+    bool *output,
+    const char *caption)
+ : BC_CheckBox (x, 
+    y, 
+	output,
+    caption)
 {
 	this->plugin = plugin;
-
+    this->output = output;
 }
 
 int
-ChromaKeyShowMask::handle_event ()
+ChromaKeyToggle::handle_event ()
 {
-	plugin->config.show_mask = get_value ();
+	*output = get_value ();
 	plugin->send_configure_change ();
 	return 1;
 }
@@ -497,6 +519,8 @@ ChromaKeyUnit::ChromaKeyUnit (ChromaKeyHSV * plugin, ChromaKeyServer * server):L
 
 #define ABS(a) ((a) < 0 ? -(a) : (a))
 
+
+
 // Compute the same values in the opengl version
 #define COMMON_VARIABLES \
 	float red = plugin->config.red; \
@@ -516,7 +540,7 @@ ChromaKeyUnit::ChromaKeyUnit (ChromaKeyHSV * plugin, ChromaKeyServer * server):L
 		value_key); \
  \
 /* hue range */ \
-	float tolerance = (plugin->config.tolerance / MAX_VALUE) * 180; \
+	float tolerance = plugin->config.tolerance * 180 / MAX_VALUE; \
 	float tolerance_in = tolerance - in_slope * 180; \
     tolerance_in = MAX(tolerance_in, 0); \
 	float tolerance_out = tolerance + out_slope * 180; \
@@ -548,21 +572,46 @@ ChromaKeyUnit::ChromaKeyUnit (ChromaKeyHSV * plugin, ChromaKeyServer * server):L
     if(plugin->config.max_brightness == MAX_VALUE) \
         max_v_in = 1.0; \
  \
-/* maximum h_diff of spill gradient */ \
-	float spill_threshold = plugin->config.spill_threshold * 180 / MAX_VALUE; \
-/* minimum h_diff of spill gradient */ \
-	float spill_amount = 0; \
-/* Divide S if spill_amount < 0 && multiply S if spill_amount > 0 */ \
-    int scale_spill = 0; \
-    if(plugin->config.spill_amount >= 0) \
-        spill_amount = spill_threshold * plugin->config.spill_amount / MAX_VALUE; \
-    else \
-    { \
-        scale_spill = 1; \
-        spill_amount = (plugin->config.spill_amount - (-MAX_VALUE)) / MAX_VALUE; \
-    } \
+/* distance of spill wedge point from center */ \
+    float spill_distance = sat_distance * (1.0 - plugin->config.spill_saturation / MAX_VALUE); \
+/* XY shift of input color to get spill wedge point */ \
+    float spill_x = -cos(TO_RAD(hue_key)) * spill_distance; \
+    float spill_y = -sin(TO_RAD(hue_key)) * spill_distance; \
+/* tolerance of the spill wedge */ \
+	float spill_tolerance = tolerance + plugin->config.spill_angle * 90.0 / MAX_VALUE; \
+/* borders of the spill wedge */ \
+    float min_h = hue_key - spill_tolerance; \
+    float max_h = hue_key + spill_tolerance; \
+    int desaturate_only = plugin->config.desaturate_only; \
  \
 	float alpha_offset = plugin->config.alpha_offset / MAX_VALUE;
+
+// shortest distance between 2 hues
+static float hue_distance(float h1, float h2)
+{
+	float result = h1 - h2;
+    if(result < -180) result += 360;
+    else
+    if(result > 180) result -= 360;
+    return result;
+}
+
+// shift H & S based on an X & Y offset
+static void shift_hs(float &h_shifted, 
+    float &s_shifted, 
+    float h, 
+    float s, 
+    float x_offset,
+    float y_offset)
+{
+    float h_rad = TO_RAD(h);
+    float x = cos(h_rad) * s;
+    float y = sin(h_rad) * s;
+    x += x_offset;
+    y += y_offset;
+    h_shifted = TO_DEG(atan2(y, x));
+    s_shifted = hypot(x, y);
+}
 
 template <typename component_type> 
 void ChromaKeyUnit::process_chromakey(int components, 
@@ -574,11 +623,11 @@ void ChromaKeyUnit::process_chromakey(int components,
 
 	int w = plugin->input->get_w();
 
-// printf("ChromaKeyUnit::process_chromakey %d hue_key=%f sat_x=%f sat_y=%f\n", 
+// printf("ChromaKeyUnit::process_chromakey %d hue_key=%f min_h=%f max_h=%f\n", 
 // __LINE__, 
 // hue_key,
-// sat_x,
-// sat_y);
+// min_h,
+// max_h);
 // printf("ChromaKeyUnit::process_chromakey %d tolerance_in=%f tolerance=%f tolerance_out=%f\n", 
 // __LINE__, 
 // tolerance_in,
@@ -629,17 +678,16 @@ void ChromaKeyUnit::process_chromakey(int components,
 
 			HSV::rgb_to_hsv (r, g, b, h, s, v);
 
-// shift the color in XY to shift the wedge point
+// shift the input color in XY to get the wedge point
             float h_shifted, s_shifted;
             if(!EQUIV(plugin->config.saturation_start, 0))
             {
-                float h_rad = TO_RAD(h);
-                float x = cos(h_rad) * s;
-                float y = sin(h_rad) * s;
-                x += sat_x;
-                y += sat_y;
-                h_shifted = TO_DEG(atan2(y, x));
-                s_shifted = hypot(x, y);
+                shift_hs(h_shifted, 
+                    s_shifted, 
+                    h, 
+                    s, 
+                    sat_x,
+                    sat_y);
             }
             else
             {
@@ -649,11 +697,8 @@ void ChromaKeyUnit::process_chromakey(int components,
 
 
 
-/* Get the difference between the current hue & the hue key */
-			float h_diff = h_shifted - hue_key;
-            if(h_diff < -180) h_diff += 360;
-            else
-            if(h_diff > 180) h_diff -= 360;
+/* Get the difference between the shifted input color & the unshifted wedge */
+			float h_diff = hue_distance(h_shifted, hue_key);
             h_diff = ABS(h_diff);
 
 // alpha contribution from hue difference
@@ -689,7 +734,7 @@ void ChromaKeyUnit::process_chromakey(int components,
 // outside wedge < min_v_out < min_v_in < inside wedge < max_v_in < max_v_out < outside wedge
             if(v > min_v_out)
             {
-                if(v < min_v_in)
+                if(v < min_v_in || max_v_in >= 1.0)
                     av = (min_v_in - v) / (min_v_in - min_v_out);
                 else
                 if(v <= max_v_in)
@@ -704,61 +749,117 @@ void ChromaKeyUnit::process_chromakey(int components,
             a = MAX(a, av);
 
 // Spill light processing
-// desaturate a wedge around the hue key
-// hue_key/s=0 < spill_amount < spill_threshold < no spill/s=1
-
-// It's possible that the spill light control needs to factor in
-// saturation & value instead of just hue.  As written, it just created a
-// wedge of desaturation based on hue.
-
-		    if (h_diff < spill_threshold)
-		    {
-                float s_scale = 0;
-                if(h_diff > spill_threshold)
-                    s_scale = 1;
-                else
-                if(!scale_spill && h_diff > spill_amount)
-                    s_scale = (h_diff - spill_amount) / (spill_threshold - spill_amount);
-                else
-                if(scale_spill)
-                    s_scale = h_diff / spill_threshold;
-
-                if(scale_spill)
+            if(spill_tolerance > 0)
+            {
+// get the difference between the shifted input color to the unshifted spill wedge
+                if(!EQUIV(spill_distance, 0))
                 {
-                    float s2 = s * s_scale;
-                    s = s * (1.0 - spill_amount) + s2 * spill_amount;
+                    shift_hs(h_shifted, 
+                        s_shifted, 
+                        h, 
+                        s, 
+                        spill_x,
+                        spill_y);
                 }
                 else
-                    s *= s_scale;
+                {
+                    h_shifted = h;
+                    s_shifted = s;
+                }
 
-			    HSV::hsv_to_rgb (r, g, b, h, s, v);
+// Difference between the shifted hue & the unshifted hue key
+			    h_diff = hue_distance(h_shifted, hue_key);
 
-// store new color components
-			    if (use_yuv)
-		        {
-			        float y;
-			        float u;
-			        float v;
-			        YUV::rgb_to_yuv_f (r, g, b, y, u, v);
-                    u += 0.5;
-                    v += 0.5;
-				    CLAMP (y, 0, 1.0);
-				    CLAMP (u, 0, 1.0);
-				    CLAMP (v, 0, 1.0);
-			        row[0] = (component_type) ((float) y * max);
-			        row[1] = (component_type) ((float) u * max);
-			        row[2] = (component_type) ((float) v * max);
-		        }
-			    else
-		        {
-				    CLAMP (r, 0, 1.0);
-				    CLAMP (g, 0, 1.0);
-				    CLAMP (b, 0, 1.0);
-			        row[0] = (component_type) ((float) r * max);
-			        row[1] = (component_type) ((float) g * max);
-			        row[2] = (component_type) ((float) b * max);
-		        }
-		    }
+// inside the wedge
+                if(ABS(h_diff) < spill_tolerance)
+                {
+
+
+
+                    if(!desaturate_only)
+                    {
+// the shifted input color in the unshifted wedge
+// gives 2 unshifted border colors & the weighting
+                        float blend = 0.5 + h_diff / spill_tolerance / 2;
+// shift the 2 border colors to the output wedge
+                        float min_h_shifted;
+                        float min_s_shifted;
+                        shift_hs(min_h_shifted, 
+                            min_s_shifted, 
+                            min_h, 
+                            s_shifted, 
+                            -spill_x,
+                            -spill_y);
+                        float max_h_shifted;
+                        float max_s_shifted;
+                        shift_hs(max_h_shifted, 
+                            max_s_shifted, 
+                            max_h, 
+                            s_shifted, 
+                            -spill_x,
+                            -spill_y);
+
+
+// blend the shifted border colors using the unshifted weighting
+// the only thing which doesn't restore the key color & doesn't make an edge is
+// fading the saturation to 0 in the middle
+                        if(blend > 0.5)
+                        {
+                            h = max_h_shifted;
+                            s = max_s_shifted;
+    //                        s = max_s_shifted * (blend - 0.5) / 0.5;
+    // DEBUG
+    //h = 0;
+    //s = blend; 
+                        }
+                        else
+                        {
+                            h = min_h_shifted;
+                            s = min_s_shifted;
+    //                        s = min_s_shifted * (0.5 - blend) / 0.5;
+    // DEBUG
+    //h = 0;
+    //s = blend; 
+                        }
+                    } 
+                    else // !desaturate_only
+                    {
+
+// fade the saturation to 0 in the middle
+                        s *= ABS(h_diff) / spill_tolerance;
+                    }
+
+
+                    if(h < 0) h += 360;
+ 			        HSV::hsv_to_rgb (r, g, b, h, s, v);
+
+// store new color
+			        if (use_yuv)
+		            {
+			            float y;
+			            float u;
+			            float v;
+			            YUV::rgb_to_yuv_f (r, g, b, y, u, v);
+                        u += 0.5;
+                        v += 0.5;
+				        CLAMP (y, 0, 1.0);
+				        CLAMP (u, 0, 1.0);
+				        CLAMP (v, 0, 1.0);
+			            row[0] = (component_type) ((float) y * max);
+			            row[1] = (component_type) ((float) u * max);
+			            row[2] = (component_type) ((float) v * max);
+		            }
+			        else
+		            {
+				        CLAMP (r, 0, 1.0);
+				        CLAMP (g, 0, 1.0);
+				        CLAMP (b, 0, 1.0);
+			            row[0] = (component_type) ((float) r * max);
+			            row[1] = (component_type) ((float) g * max);
+			            row[2] = (component_type) ((float) b * max);
+		            }
+                }
+            }
 
 		    a += alpha_offset;
 		    CLAMP (a, 0.0, 1.0);
@@ -907,8 +1008,9 @@ ChromaKeyHSV::save_data (KeyFrame * keyframe)
 	output.tag.set_property ("IN_SLOPE", config.in_slope);
 	output.tag.set_property ("OUT_SLOPE", config.out_slope);
 	output.tag.set_property ("ALPHA_OFFSET", config.alpha_offset);
-	output.tag.set_property ("SPILL_THRESHOLD", config.spill_threshold);
-	output.tag.set_property ("SPILL_AMOUNT", config.spill_amount);
+	output.tag.set_property ("SPILL_SATURATION", config.spill_saturation);
+	output.tag.set_property ("SPILL_ANGLE", config.spill_angle);
+	output.tag.set_property ("DESATURATE_ONLY", config.desaturate_only);
 	output.tag.set_property ("SHOW_MASK", config.show_mask);
 	output.append_tag ();
 	output.terminate_string ();
@@ -944,11 +1046,12 @@ ChromaKeyHSV::read_data (KeyFrame * keyframe)
 			input.tag.get_property ("OUT_SLOPE", config.out_slope);
 		config.alpha_offset =
 			input.tag.get_property ("ALPHA_OFFSET", config.alpha_offset);
-		config.spill_threshold =
-			input.tag.get_property ("SPILL_THRESHOLD",
-						config.spill_threshold);
-		config.spill_amount =
-			input.tag.get_property ("SPILL_AMOUNT", config.spill_amount);
+		config.spill_saturation =
+			input.tag.get_property ("SPILL_SATURATION", config.spill_saturation);
+		config.spill_angle =
+			input.tag.get_property ("SPILL_ANGLE", config.spill_angle);
+		config.desaturate_only =
+			input.tag.get_property ("DESATURATE_ONLY", config.desaturate_only);
 		config.show_mask =
 			input.tag.get_property ("SHOW_MASK", config.show_mask);
 	}
@@ -972,8 +1075,9 @@ void ChromaKeyHSV::update_gui ()
 			((ChromaKeyWindow*)thread->window)->in_slope->update (config.in_slope);
 			((ChromaKeyWindow*)thread->window)->out_slope->update (config.out_slope);
 			((ChromaKeyWindow*)thread->window)->alpha_offset->update (config.alpha_offset);
-			((ChromaKeyWindow*)thread->window)->spill_threshold->update (config.spill_threshold);
-			((ChromaKeyWindow*)thread->window)->spill_amount->update (config.spill_amount);
+			((ChromaKeyWindow*)thread->window)->spill_saturation->update (config.spill_saturation);
+			((ChromaKeyWindow*)thread->window)->spill_angle->update (config.spill_angle);
+			((ChromaKeyWindow*)thread->window)->desaturate_only->update (config.desaturate_only);
 			((ChromaKeyWindow*)thread->window)->show_mask->update (config.show_mask);
 			((ChromaKeyWindow*)thread->window)->update_sample ();
 			thread->window->unlock_window ();
@@ -1113,9 +1217,13 @@ int ChromaKeyHSV::handle_opengl()
 		glUniform1f(glGetUniformLocation(frag, "max_v"), max_v);
 		glUniform1f(glGetUniformLocation(frag, "max_v_in"), max_v_in);
 		glUniform1f(glGetUniformLocation(frag, "max_v_out"), max_v_out);
-		glUniform1f(glGetUniformLocation(frag, "spill_threshold"), spill_threshold);
-		glUniform1f(glGetUniformLocation(frag, "spill_amount"), spill_amount);
-		glUniform1i(glGetUniformLocation(frag, "scale_spill"), scale_spill);
+		glUniform1f(glGetUniformLocation(frag, "spill_distance"), spill_distance);
+		glUniform1f(glGetUniformLocation(frag, "spill_x"), spill_x);
+		glUniform1f(glGetUniformLocation(frag, "spill_y"), spill_y);
+		glUniform1f(glGetUniformLocation(frag, "spill_tolerance"), spill_tolerance);
+		glUniform1f(glGetUniformLocation(frag, "min_h"), min_h);
+		glUniform1f(glGetUniformLocation(frag, "max_h"), max_h);
+		glUniform1i(glGetUniformLocation(frag, "desaturate_only"), desaturate_only);
 		glUniform1f(glGetUniformLocation(frag, "alpha_offset"), alpha_offset);
 		glUniform1f(glGetUniformLocation(frag, "hue_key"), hue_key);
 		glUniform1f(glGetUniformLocation(frag, "saturation_key"), saturation_key);

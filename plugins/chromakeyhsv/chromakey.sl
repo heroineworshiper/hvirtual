@@ -18,13 +18,47 @@ uniform float min_v_out;
 uniform float max_v;
 uniform float max_v_in;
 uniform float max_v_out;
-uniform float spill_threshold;
-uniform float spill_amount;
-uniform bool scale_spill;
+uniform float spill_distance;
+uniform float spill_x;
+uniform float spill_y;
+uniform float spill_tolerance;
+uniform float min_h;
+uniform float max_h;
+uniform bool desaturate_only;
 uniform float alpha_offset;
 uniform float hue_key;
 uniform float saturation_key;
 uniform float value_key;
+
+
+
+// shortest distance between 2 hues
+float hue_distance(float h1, float h2)
+{
+	float result = h1 - h2;
+    if(result < -180.0) result += 360.0;
+    else
+    if(result > 180.0) result -= 360.0;
+    return result;
+}
+
+// shift H & S based on an X & Y offset
+void shift_hs(out float h_shifted, 
+    out float s_shifted, 
+    float h, 
+    float s, 
+    float x_offset,
+    float y_offset)
+{
+    float h_rad = radians(h);
+    float x = cos(h_rad) * s;
+    float y = sin(h_rad) * s;
+    x += x_offset;
+    y += y_offset;
+    h_shifted = degrees(atan(y, x));
+    s_shifted = length(vec2(x, y));
+}
+
 
 void main()
 {
@@ -45,20 +79,15 @@ void main()
 
 // shift the color in XY to shift the wedge point
     float h_shifted, s_shifted;
-    float h_rad = radians(h);
-    float x = cos(h_rad) * s;
-    float y = sin(h_rad) * s;
-    x += sat_x;
-    y += sat_y;
-    h_shifted = degrees(atan(y, x));
-    s_shifted = length(vec2(x, y));
+    shift_hs(h_shifted, 
+        s_shifted, 
+        h, 
+        s, 
+        sat_x,
+        sat_y);
 
 /* Get the difference between the current hue & the hue key */
-	float h_diff = h_shifted - hue_key;
-    if(h_diff < -180.0) h_diff += 360.0;
-    else
-    if(h_diff > 180.0) h_diff -= 360.0;
-    h_diff = abs(h_diff);
+	float h_diff = abs(hue_distance(h_shifted, hue_key));
 
 // alpha contribution from hue difference
 // outside wedge < tolerance_out < tolerance_in < inside wedge < tolerance_in < tolerance_out < outside wedge
@@ -93,7 +122,7 @@ void main()
 // outside wedge < min_v_out < min_v_in < inside wedge < max_v_in < max_v_out < outside wedge
     if(v > min_v_out)
     {
-        if(v < min_v_in)
+        if(v < min_v_in || max_v_in >= 1.0)
             av = (min_v_in - v) / (min_v_in - min_v_out);
         else
         if(v <= max_v_in)
@@ -108,35 +137,88 @@ void main()
     a = max(a, av);
 
 // Spill light processing
-// desaturate a wedge around the hue key
-// hue_key/s=0 < spill_amount < spill_threshold < no spill/s=1
-	if (h_diff < spill_threshold)
-	{
-        float s_scale = 0.0;
-        if(h_diff > spill_threshold)
-            s_scale = 1.0;
-        else
-        if(!scale_spill && h_diff > spill_amount)
-            s_scale = (h_diff - spill_amount) / (spill_threshold - spill_amount);
-        else
-        if(scale_spill)
-            s_scale = h_diff / spill_threshold;
-
-        if(scale_spill)
+    if(spill_tolerance > 0.0)
+    {
+// get the difference between the shifted input color to the unshifted spill wedge
+        if(spill_distance != 0.0)
         {
-            float s2 = s * s_scale;
-            s = s * (1.0 - spill_amount) + s2 * spill_amount;
+            shift_hs(h_shifted, 
+                s_shifted, 
+                h, 
+                s, 
+                spill_x,
+                spill_y);
         }
         else
-            s *= s_scale;
+        {
+            h_shifted = h;
+            s_shifted = s;
+        }
 
-/* convert back to native colormodel */
-        color2.r = h;
-        color2.g = s;
-        color2.b = v;
-		color2 = hsv_to_rgb(color2);
-		color.rgb = rgb_to_yuv(color2).rgb;
+// Difference between the shifted hue & the unshifted hue key
+		h_diff = hue_distance(h_shifted, hue_key);
+
+// inside the wedge
+        if(abs(h_diff) < spill_tolerance)
+        {
+            if(!desaturate_only)
+            {
+// the shifted input color in the unshifted wedge
+// gives 2 unshifted border colors & the weighting
+                float blend = 0.5 + h_diff / spill_tolerance / 2.0;
+// shift the 2 border colors to the output wedge
+                float min_h_shifted;
+                float min_s_shifted;
+                shift_hs(min_h_shifted, 
+                    min_s_shifted, 
+                    min_h, 
+                    s_shifted, 
+                    -spill_x,
+                    -spill_y);
+                float max_h_shifted;
+                float max_s_shifted;
+                shift_hs(max_h_shifted, 
+                    max_s_shifted, 
+                    max_h, 
+                    s_shifted, 
+                    -spill_x,
+                    -spill_y);
+
+
+// blend the shifted border colors using the unshifted weighting
+// the only thing which doesn't restore the key color & doesn't make an edge is
+// fading the saturation to 0 in the middle
+                if(blend > 0.5)
+                {
+                    h = max_h_shifted;
+                    s = max_s_shifted;
+                }
+                else
+                {
+                    h = min_h_shifted;
+                    s = min_s_shifted;
+                }
+            } 
+            else // !desaturate_only
+            {
+
+// fade the saturation to 0 in the middle
+                s *= abs(h_diff) / spill_tolerance;
+            }
+
+
+            if(h < 0.0) h += 360.0;
+
+// store new color
+            color2.r = h;
+            color2.g = s;
+            color2.b = v;
+		    color2 = hsv_to_rgb(color2);
+		    color.rgb = rgb_to_yuv(color2).rgb;
+        }
     }
+
+
 
 	a += alpha_offset;
     a = min(a, 1.0);

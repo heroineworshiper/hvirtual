@@ -141,11 +141,18 @@ public:
 		const char *caption = "", 
 		int font = MEDIUMFONT,
 		int color = -1);
+	BC_CheckBox(int x, 
+		int y, 
+		bool *value, 
+		const char *caption = "", 
+		int font = MEDIUMFONT,
+		int color = -1);
 	virtual int handle_event();
 	static int calculate_h(BC_WindowBase *gui);
 
 
 	int *value;
+    bool *value_b;
 };
 
 class BC_Label : public BC_Toggle
