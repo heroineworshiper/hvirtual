@@ -64,18 +64,19 @@ public:
 	// Key shade definition
 	float min_brightness;
 	float max_brightness;
-// offset applied to saturation keying but not spill compensation
-//	float saturation;
-// minimum saturation for keying
-	float min_saturation;
+// distance of wedge point from the center
+	float saturation_start;
+// minimum saturation after wedge point
+	float saturation_line;
+// hue range
 	float tolerance;
 	// Mask feathering
 	float in_slope;
 	float out_slope;
 	float alpha_offset;
 	// Spill light compensation
-	float spill_threshold;
-	float spill_amount;
+	float spill_saturation;
+	float spill_angle;
 };
 
 class ChromaKeyColor : public BC_GenericButton
@@ -144,8 +145,8 @@ public:
 	ChromaKeyUseColorPicker *use_colorpicker;
 	ChromaKeySlider *min_brightness;
 	ChromaKeySlider *max_brightness;
-//	ChromaKeySlider *saturation;
-	ChromaKeySlider *min_saturation;
+	ChromaKeySlider *saturation_start;
+	ChromaKeySlider *saturation_line;
 	ChromaKeySlider *tolerance;
 	ChromaKeySlider *in_slope;
 	ChromaKeySlider *out_slope;

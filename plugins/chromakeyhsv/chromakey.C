@@ -71,6 +71,7 @@
 #include <unistd.h>
 
 #define WINDOW_W DP(400)
+#define WINDOW_H DP(450)
 #define SLIDER_W WINDOW_W - x - plugin->get_theme()->widget_border
 #define MAX_SLOPE 100.0
 #define MAX_VALUE 100.0
@@ -84,8 +85,8 @@ ChromaKeyConfig::ChromaKeyConfig ()
 	min_brightness = 50.0;
 	max_brightness = 100.0;
 	tolerance = 15.0;
-//	saturation = 0.0;
-	min_saturation = 50.0;
+	saturation_start = 0.0;
+	saturation_line = 50.0;
 
 	in_slope = 2;
 	out_slope = 2;
@@ -109,8 +110,8 @@ ChromaKeyConfig::copy_from (ChromaKeyConfig & src)
 	spill_amount = src.spill_amount;
 	min_brightness = src.min_brightness;
 	max_brightness = src.max_brightness;
-//	saturation = src.saturation;
-	min_saturation = src.min_saturation;
+	saturation_start = src.saturation_start;
+	saturation_line = src.saturation_line;
 	tolerance = src.tolerance;
 	in_slope = src.in_slope;
 	out_slope = src.out_slope;
@@ -128,8 +129,8 @@ ChromaKeyConfig::equivalent (ChromaKeyConfig & src)
 		EQUIV (spill_amount, src.spill_amount) &&
 		EQUIV (min_brightness, src.min_brightness) &&
 		EQUIV (max_brightness, src.max_brightness) &&
-//		EQUIV (saturation, src.saturation) &&
-		EQUIV (min_saturation, src.min_saturation) &&
+		EQUIV (saturation_start, src.saturation_start) &&
+		EQUIV (saturation_line, src.saturation_line) &&
 		EQUIV (tolerance, src.tolerance) &&
 		EQUIV (in_slope, src.in_slope) &&
 		EQUIV (out_slope, src.out_slope) &&
@@ -159,10 +160,10 @@ ChromaKeyConfig::interpolate (ChromaKeyConfig & prev,
 		prev.min_brightness * prev_scale + next.min_brightness * next_scale;
 	this->max_brightness =
 		prev.max_brightness * prev_scale + next.max_brightness * next_scale;
-//	this->saturation =
-//		prev.saturation * prev_scale + next.saturation * next_scale;
-	this->min_saturation =
-		prev.min_saturation * prev_scale + next.min_saturation * next_scale;
+	this->saturation_start =
+		prev.saturation_start * prev_scale + next.saturation_start * next_scale;
+	this->saturation_line =
+		prev.saturation_line * prev_scale + next.saturation_line * next_scale;
 	this->tolerance = prev.tolerance * prev_scale + next.tolerance * next_scale;
 	this->in_slope = prev.in_slope * prev_scale + next.in_slope * next_scale;
 	this->out_slope = prev.out_slope * prev_scale + next.out_slope * next_scale;
@@ -186,9 +187,9 @@ ChromaKeyConfig::get_color ()
 ChromaKeyWindow::ChromaKeyWindow (ChromaKeyHSV * plugin)
  : PluginClientWindow(plugin, 
 		 WINDOW_W, 
-		 DP(450), 
+		 WINDOW_H, 
 		 WINDOW_W, 
-		 DP(450), 
+		 WINDOW_H, 
 		 0)
 {
 	this->plugin = plugin;
@@ -240,10 +241,10 @@ ChromaKeyWindow::create_objects ()
 	add_subwindow (title = new BC_Title (x, y, _("Max. Brightness:")));
 	if(title->get_w() > x1) x1 = title->get_w();
 	y += ymargin;
-//	add_subwindow (title = new BC_Title (x, y, _("Saturation Offset:")));
-//	if(title->get_w() > x1) x1 = title->get_w();
-//	y += ymargin;
-	add_subwindow (title = new BC_Title (x, y, _("Min Saturation:")));
+	add_subwindow (title = new BC_Title (x, y, _("Saturation Start:")));
+	if(title->get_w() > x1) x1 = title->get_w();
+	y += ymargin;
+	add_subwindow (title = new BC_Title (x, y, _("Saturation Line:")));
 	if(title->get_w() > x1) x1 = title->get_w();
 	y += ymargin2;
 
@@ -287,9 +288,9 @@ ChromaKeyWindow::create_objects ()
 	y += ymargin;
 	add_subwindow (max_brightness = new ChromaKeySlider (plugin, x1, y, 0, MAX_VALUE, &plugin->config.max_brightness));
 	y += ymargin;
-//	add_subwindow (saturation = new ChromaKeySlider (plugin, x1, y, 0, MAX_VALUE, &plugin->config.saturation));
-//	y += ymargin;
-	add_subwindow (min_saturation = new ChromaKeySlider (plugin, x1, y, 0, MAX_VALUE, &plugin->config.min_saturation));
+	add_subwindow (saturation_start = new ChromaKeySlider (plugin, x1, y, 0, MAX_VALUE, &plugin->config.saturation_start));
+	y += ymargin;
+	add_subwindow (saturation_line = new ChromaKeySlider (plugin, x1, y, 0, MAX_VALUE, &plugin->config.saturation_line));
 	y += ymargin;
 
 	y += bar->get_h() + margin;
@@ -505,6 +506,15 @@ ChromaKeyUnit::ChromaKeyUnit (ChromaKeyHSV * plugin, ChromaKeyServer * server):L
 	float in_slope = plugin->config.in_slope / MAX_SLOPE; \
 	float out_slope = plugin->config.out_slope / MAX_SLOPE; \
  \
+/* Convert RGB key to HSV key */ \
+	float hue_key, saturation_key, value_key, hue_offset = 0; \
+	HSV::rgb_to_hsv(red,	\
+		green, \
+		blue, \
+		hue_key, \
+		saturation_key, \
+		value_key); \
+ \
 /* hue range */ \
 	float tolerance = (plugin->config.tolerance / MAX_VALUE) * 180; \
 	float tolerance_in = tolerance - in_slope * 180; \
@@ -512,10 +522,13 @@ ChromaKeyUnit::ChromaKeyUnit (ChromaKeyHSV * plugin, ChromaKeyServer * server):L
 	float tolerance_out = tolerance + out_slope * 180; \
     tolerance_out = MIN(tolerance_out, 180); \
  \
-/* saturation offset */ \
-/*	float sat = plugin->config.saturation / MAX_VALUE; */ \
-    float sat = 0; \
-	float min_s = plugin->config.min_saturation / MAX_VALUE; \
+/* distance of wedge point from center */ \
+	float sat_distance = plugin->config.saturation_start / MAX_VALUE; \
+/* XY shift of input color to get wedge point */ \
+    float sat_x = -cos(TO_RAD(hue_key)) * sat_distance; \
+    float sat_y = -sin(TO_RAD(hue_key)) * sat_distance; \
+/* minimum saturation after wedge point */ \
+	float min_s = plugin->config.saturation_line / MAX_VALUE; \
 	float min_s_in = min_s + in_slope; \
 	float min_s_out = min_s - out_slope; \
  \
@@ -549,16 +562,7 @@ ChromaKeyUnit::ChromaKeyUnit (ChromaKeyHSV * plugin, ChromaKeyServer * server):L
         spill_amount = (plugin->config.spill_amount - (-MAX_VALUE)) / MAX_VALUE; \
     } \
  \
-	float alpha_offset = plugin->config.alpha_offset / MAX_VALUE; \
- \
-/* Convert RGB key to HSV key */ \
-	float hue_key, saturation_key, value_key, hue_offset = 0; \
-	HSV::rgb_to_hsv(red,	\
-		green, \
-		blue, \
-		hue_key, \
-		saturation_key, \
-		value_key); \
+	float alpha_offset = plugin->config.alpha_offset / MAX_VALUE;
 
 template <typename component_type> 
 void ChromaKeyUnit::process_chromakey(int components, 
@@ -570,9 +574,11 @@ void ChromaKeyUnit::process_chromakey(int components,
 
 	int w = plugin->input->get_w();
 
-// printf("ChromaKeyUnit::process_chromakey %d hue_key=%f\n", 
+// printf("ChromaKeyUnit::process_chromakey %d hue_key=%f sat_x=%f sat_y=%f\n", 
 // __LINE__, 
-// hue_key);
+// hue_key,
+// sat_x,
+// sat_y);
 // printf("ChromaKeyUnit::process_chromakey %d tolerance_in=%f tolerance=%f tolerance_out=%f\n", 
 // __LINE__, 
 // tolerance_in,
@@ -623,9 +629,28 @@ void ChromaKeyUnit::process_chromakey(int components,
 
 			HSV::rgb_to_hsv (r, g, b, h, s, v);
 
+// shift the color in XY to shift the wedge point
+            float h_shifted, s_shifted;
+            if(!EQUIV(plugin->config.saturation_start, 0))
+            {
+                float h_rad = TO_RAD(h);
+                float x = cos(h_rad) * s;
+                float y = sin(h_rad) * s;
+                x += sat_x;
+                y += sat_y;
+                h_shifted = TO_DEG(atan2(y, x));
+                s_shifted = hypot(x, y);
+            }
+            else
+            {
+                h_shifted = h;
+                s_shifted = s;
+            }
+
+
 
 /* Get the difference between the current hue & the hue key */
-			float h_diff = h - hue_key;
+			float h_diff = h_shifted - hue_key;
             if(h_diff < -180) h_diff += 360;
             else
             if(h_diff > 180) h_diff -= 360;
@@ -647,16 +672,15 @@ void ChromaKeyUnit::process_chromakey(int components,
 
 // alpha contribution from saturation
 // outside wedge < min_s_out < min_s_in < inside wedge
-            float s2 = s - sat;
-            if(s2 > min_s_out)
+            if(s_shifted > min_s_out)
             {
 // saturation with offset applied
 // completely inside the wedge
-                if(s2 > min_s_in)
+                if(s_shifted > min_s_in)
                     as = 0;
 // inside the gradient
-                if(s2 >= min_s_out)
-				    as = (min_s_in - s2) / (min_s_in - min_s_out);
+                if(s_shifted >= min_s_out)
+				    as = (min_s_in - s_shifted) / (min_s_in - min_s_out);
             }
 
 
@@ -877,8 +901,8 @@ ChromaKeyHSV::save_data (KeyFrame * keyframe)
 	output.tag.set_property ("BLUE", config.blue);
 	output.tag.set_property ("MIN_BRIGHTNESS", config.min_brightness);
 	output.tag.set_property ("MAX_BRIGHTNESS", config.max_brightness);
-//	output.tag.set_property ("SATURATION", config.saturation);
-	output.tag.set_property ("MIN_SATURATION", config.min_saturation);
+	output.tag.set_property ("SATURATION_START", config.saturation_start);
+	output.tag.set_property ("SATURATION_LINE", config.saturation_line);
 	output.tag.set_property ("TOLERANCE", config.tolerance);
 	output.tag.set_property ("IN_SLOPE", config.in_slope);
 	output.tag.set_property ("OUT_SLOPE", config.out_slope);
@@ -908,10 +932,10 @@ ChromaKeyHSV::read_data (KeyFrame * keyframe)
 			input.tag.get_property ("MIN_BRIGHTNESS", config.min_brightness);
 		config.max_brightness =
 			input.tag.get_property ("MAX_BRIGHTNESS", config.max_brightness);
-//		config.saturation =
-//			input.tag.get_property ("SATURATION", config.saturation);
-		config.min_saturation =
-			input.tag.get_property ("MIN_SATURATION", config.min_saturation);
+		config.saturation_start =
+			input.tag.get_property ("SATURATION_START", config.saturation_start);
+		config.saturation_line =
+			input.tag.get_property ("SATURATION_LINE", config.saturation_line);
 		config.tolerance =
 			input.tag.get_property ("TOLERANCE", config.tolerance);
 		config.in_slope =
@@ -942,8 +966,8 @@ void ChromaKeyHSV::update_gui ()
 			thread->window->lock_window ();
 			((ChromaKeyWindow*)thread->window)->min_brightness->update (config.min_brightness);
 			((ChromaKeyWindow*)thread->window)->max_brightness->update (config.max_brightness);
-//			((ChromaKeyWindow*)thread->window)->saturation->update (config.saturation);
-			((ChromaKeyWindow*)thread->window)->min_saturation->update (config.min_saturation);
+			((ChromaKeyWindow*)thread->window)->saturation_start->update (config.saturation_start);
+			((ChromaKeyWindow*)thread->window)->saturation_line->update (config.saturation_line);
 			((ChromaKeyWindow*)thread->window)->tolerance->update (config.tolerance);
 			((ChromaKeyWindow*)thread->window)->in_slope->update (config.in_slope);
 			((ChromaKeyWindow*)thread->window)->out_slope->update (config.out_slope);
@@ -1078,7 +1102,8 @@ int ChromaKeyHSV::handle_opengl()
 		glUniform1f(glGetUniformLocation(frag, "tolerance"), tolerance);
 		glUniform1f(glGetUniformLocation(frag, "tolerance_in"), tolerance_in);
 		glUniform1f(glGetUniformLocation(frag, "tolerance_out"), tolerance_out);
-		glUniform1f(glGetUniformLocation(frag, "sat"), sat);
+		glUniform1f(glGetUniformLocation(frag, "sat_x"), sat_x);
+		glUniform1f(glGetUniformLocation(frag, "sat_y"), sat_y);
 		glUniform1f(glGetUniformLocation(frag, "min_s"), min_s);
 		glUniform1f(glGetUniformLocation(frag, "min_s_in"), min_s_in);
 		glUniform1f(glGetUniformLocation(frag, "min_s_out"), min_s_out);

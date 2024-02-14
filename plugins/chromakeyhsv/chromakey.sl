@@ -7,7 +7,8 @@ uniform float out_slope;
 uniform float tolerance;
 uniform float tolerance_in;
 uniform float tolerance_out;
-uniform float sat;
+uniform float sat_x;
+uniform float sat_y;
 uniform float min_s;
 uniform float min_s_in;
 uniform float min_s_out;
@@ -42,8 +43,18 @@ void main()
     float s = color2.g;
     float v = color2.b;
 
+// shift the color in XY to shift the wedge point
+    float h_shifted, s_shifted;
+    float h_rad = radians(h);
+    float x = cos(h_rad) * s;
+    float y = sin(h_rad) * s;
+    x += sat_x;
+    y += sat_y;
+    h_shifted = degrees(atan(y, x));
+    s_shifted = length(vec2(x, y));
+
 /* Get the difference between the current hue & the hue key */
-	float h_diff = h - hue_key;
+	float h_diff = h_shifted - hue_key;
     if(h_diff < -180.0) h_diff += 360.0;
     else
     if(h_diff > 180.0) h_diff -= 360.0;
@@ -65,16 +76,15 @@ void main()
 
 // alpha contribution from saturation
 // outside wedge < min_s_out < min_s_in < inside wedge
-    float s2 = s - sat;
-    if(s2 > min_s_out)
+    if(s_shifted > min_s_out)
     {
 // saturation with offset applied
 // completely inside the wedge
-        if(s2 > min_s_in)
+        if(s_shifted > min_s_in)
             as = 0.0;
 // inside the gradient
-        if(s2 >= min_s_out)
-			as = (min_s_in - s2) / (min_s_in - min_s_out);
+        if(s_shifted >= min_s_out)
+			as = (min_s_in - s_shifted) / (min_s_in - min_s_out);
     }
 
 
