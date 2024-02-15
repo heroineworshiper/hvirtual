@@ -230,6 +230,7 @@ for(int i = 0; i < height; i++) \
 
     switch(frame->get_color_model())
     {
+// needed for previews
         case BC_RGB888:
             CONVERT_HEAD(uint8_t)
                 *output++ = (uint8_t)((*input++) >> 8);

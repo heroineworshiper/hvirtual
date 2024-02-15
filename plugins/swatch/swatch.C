@@ -19,7 +19,8 @@
  */
 
 
-// draw a color swatch for a given brightness
+// draw a color swatch for a given brightness or saturation
+// does not visualize but draws output to be processed
 
 #include <math.h>
 #include <stdint.h>
@@ -53,6 +54,7 @@ SwatchConfig::SwatchConfig()
     saturation = MAX_VALUE;
     fix_brightness = 0;
     angle = 0;
+    draw_src = 0;
 }
 
 int SwatchConfig::equivalent(SwatchConfig &that)
@@ -60,7 +62,8 @@ int SwatchConfig::equivalent(SwatchConfig &that)
 	return brightness == that.brightness &&
         saturation == that.saturation &&
         fix_brightness == that.fix_brightness &&
-        angle == that.angle;
+        angle == that.angle &&
+        draw_src == that.draw_src;
 }
 
 void SwatchConfig::copy_from(SwatchConfig &that)
@@ -69,6 +72,7 @@ void SwatchConfig::copy_from(SwatchConfig &that)
 	saturation = that.saturation;
     fix_brightness = that.fix_brightness;
     angle = that.angle;
+    draw_src = that.draw_src;
 }
 
 void SwatchConfig::interpolate(SwatchConfig &prev, 
@@ -85,6 +89,7 @@ void SwatchConfig::interpolate(SwatchConfig &prev,
 	this->saturation = (int)(prev.saturation * prev_scale + next.saturation * next_scale);
 	this->angle = (int)(prev.angle * prev_scale + next.angle * next_scale);
     fix_brightness = prev.fix_brightness;
+    draw_src = prev.draw_src;
 }
 
 
@@ -117,7 +122,7 @@ int SwatchSlider::handle_event ()
 	return 1;
 }
 
-SwatchOption::SwatchOption(SwatchMain *plugin, 
+SwatchRadial::SwatchRadial(SwatchMain *plugin, 
     SwatchWindow *gui, 
     int x, 
     int y, 
@@ -133,10 +138,32 @@ SwatchOption::SwatchOption(SwatchMain *plugin,
     this->fix_brightness = fix_brightness;
 }
 
-int SwatchOption::handle_event()
+int SwatchRadial::handle_event()
 {
     plugin->config.fix_brightness = fix_brightness;
     gui->update_fixed();
+    plugin->send_configure_change();
+    return 1;
+}
+
+
+SwatchCheck::SwatchCheck(SwatchMain *plugin, 
+    int x, 
+    int y, 
+    const char *text,
+    int *output)
+ : BC_CheckBox(x, 
+	y, 
+	*output, 
+	text)
+{
+	this->plugin = plugin;
+    this->output = output;
+}
+
+int SwatchCheck::handle_event()
+{
+    *output = get_value();
     plugin->send_configure_change();
     return 1;
 }
@@ -147,9 +174,9 @@ int SwatchOption::handle_event()
 SwatchWindow::SwatchWindow(SwatchMain *plugin)
  : PluginClientWindow(plugin,
 	DP(350), 
-	DP(250), 
+	DP(300), 
 	DP(350), 
-	DP(250), 
+	DP(300), 
 	0)
 {
 	this->plugin = plugin;
@@ -180,20 +207,29 @@ void SwatchWindow::create_objects()
 	add_subwindow (angle = new SwatchSlider(plugin, this, x, y, -180, 180, &plugin->config.angle));
     y += saturation->get_h() + margin;
 
-    add_subwindow(fix_brightness = new SwatchOption(plugin, 
+    add_subwindow(fix_brightness = new SwatchRadial(plugin, 
         this, 
         x, 
         y, 
         _("Constant Brightness"),
         1));
     y += fix_brightness->get_h() + margin;
-    add_subwindow(fix_saturation = new SwatchOption(plugin, 
+    add_subwindow(fix_saturation = new SwatchRadial(plugin, 
         this, 
         x, 
         y, 
         _("Constant Saturation"),
         0));
+    y += fix_saturation->get_h() + margin;
     update_fixed();
+    
+    add_subwindow(draw_src = new SwatchCheck(plugin, 
+        x, 
+        y, 
+        _("Draw source"),
+        &plugin->config.draw_src));
+   
+    
 	show_window();
 }
 
@@ -224,12 +260,14 @@ SwatchMain::SwatchMain(PluginServer *server)
 	need_reconfigure = 1;
 	engine = 0;
     temp = 0;
+    src_temp = 0;
 }
 
 SwatchMain::~SwatchMain()
 {
 	if(engine) delete engine;
     if(temp) delete temp;
+    if(src_temp) delete src_temp;
 }
 
 const char* SwatchMain::plugin_title() { return N_("Color Swatch"); }
@@ -255,7 +293,33 @@ int SwatchMain::process_buffer(VFrame *frame,
 	double frame_rate)
 {
 	need_reconfigure |= load_configuration();
-	if(get_use_opengl()) return run_opengl();
+	int use_opengl = get_use_opengl();
+
+// have to draw output pixels out of order
+    if(config.draw_src) use_opengl = 0;
+
+	if(use_opengl) return run_opengl();
+
+	if(!engine) engine = new SwatchEngine(this,
+		get_project_smp() + 1,
+		get_project_smp() + 1);
+    if(config.draw_src)
+    {
+        if(!src_temp)
+            src_temp = new VFrame(0, 
+		        -1,
+		        frame->get_w(),
+		        frame->get_h(),
+	            frame->get_color_model(),
+		        -1);
+
+        read_frame(src_temp, 
+		    0, 
+		    start_position, 
+		    frame_rate,
+		    use_opengl);
+    }
+
 
 	if(!temp) temp = new VFrame(0, 
 		-1,
@@ -264,17 +328,17 @@ int SwatchMain::process_buffer(VFrame *frame,
 	    frame->get_color_model(),
 		-1);
 
+// draw pattern once
     if(need_reconfigure)
-    {
-	    if(!engine) engine = new SwatchServer(this,
-		    get_project_smp() + 1,
-		    get_project_smp() + 1);
-	    engine->process_packages();
-    }
-    
+	    engine->draw_pattern();
+
+// draw the pattern on the output
     frame->copy_from(temp);
+// draw input on the pattern
+    if(config.draw_src)
+        engine->draw_src();
 
-
+//printf("SwatchMain::process_buffer %d %d\n", __LINE__, config.draw_src);
 	return 0;
 }
 
@@ -289,6 +353,7 @@ void SwatchMain::update_gui()
 			((SwatchWindow*)thread->window)->brightness->update(config.brightness);
 			((SwatchWindow*)thread->window)->saturation->update(config.saturation);
 			((SwatchWindow*)thread->window)->angle->update(config.angle);
+			((SwatchWindow*)thread->window)->draw_src->update(config.draw_src);
             ((SwatchWindow*)thread->window)->update_fixed();
 			((SwatchWindow*)thread->window)->unlock_window();
 		}
@@ -311,6 +376,7 @@ void SwatchMain::save_data(KeyFrame *keyframe)
 	output.tag.set_property("SATURATION", config.saturation);
 	output.tag.set_property("ANGLE", config.angle);
 	output.tag.set_property("FIX_BRIGHTNESS", config.fix_brightness);
+	output.tag.set_property("DRAW_SRC", config.draw_src);
 	output.append_tag();
 	output.terminate_string();
 //printf("SwatchMain::save_data %d %s\n", __LINE__, output.string);
@@ -336,6 +402,7 @@ void SwatchMain::read_data(KeyFrame *keyframe)
 				config.saturation = input.tag.get_property("SATURATION", config.saturation);
 				config.angle = input.tag.get_property("ANGLE", config.angle);
 				config.fix_brightness = input.tag.get_property("FIX_BRIGHTNESS", config.fix_brightness);
+				config.draw_src = input.tag.get_property("DRAW_SRC", config.draw_src);
 			}
 		}
 	}
@@ -454,7 +521,7 @@ SwatchPackage::SwatchPackage()
 
 
 
-SwatchUnit::SwatchUnit(SwatchServer *server, SwatchMain *plugin)
+SwatchUnit::SwatchUnit(SwatchEngine *server, SwatchMain *plugin)
  : LoadClient(server)
 {
 	this->plugin = plugin;
@@ -507,6 +574,81 @@ SwatchUnit::SwatchUnit(SwatchServer *server, SwatchMain *plugin)
     } \
 }
 
+
+#define DRAW_SRC(type, components, max, is_yuv) \
+{ \
+    type **dst_rows = (type**)plugin->get_output()->get_rows(); \
+	for(int i = pkg->y1; i < pkg->y2; i++) \
+	{ \
+		type *pattern_row = (type*)plugin->temp->get_rows()[i]; \
+		type *src_row = (type*)plugin->src_temp->get_rows()[i]; \
+        for(int j = 0; j < w; j++) \
+        { \
+/* the source values */ \
+            type r, g, b; \
+            float r2, g2, b2; \
+            int y, u, v; \
+            if(is_yuv) \
+            { \
+                y = src_row[0]; \
+                int y2 = (y << 16) | (y << 8) | y; \
+                u = src_row[1]; \
+                v = src_row[2]; \
+                int r_i, g_i, b_i; \
+                YUV_TO_RGB(y2, u, v, r_i, g_i, b_i) \
+                r2 = (float)r_i / max; \
+                g2 = (float)g_i / max; \
+                b2 = (float)b_i / max; \
+            } \
+            else \
+            { \
+                r = src_row[0]; \
+                g = src_row[1]; \
+                b = src_row[2]; \
+                r2 = (float)r / max; \
+                g2 = (float)g / max; \
+                b2 = (float)b / max; \
+            } \
+            float hue, s, value; \
+            HSV::rgb_to_hsv(r2, g2, b2, hue, s, value); \
+            float h_rad = TO_RAD(hue - angle); \
+/* get coordinate of color in output */ \
+            int x_out, y_out; \
+            if(fix_brightness) \
+            { \
+                x_out = center_x + (int)(sin(h_rad) * s * max_s); \
+                y_out = center_y + (int)(cos(h_rad) * s * max_s); \
+            } \
+            else \
+            { \
+                x_out = center_x + (int)(sin(h_rad) * value * max_s); \
+                y_out = center_y + (int)(cos(h_rad) * value * max_s); \
+            } \
+            if(x_out >= 0 && x_out < w && y_out >= 0 && y_out < h) \
+            { \
+                type *dst = dst_rows[y_out] + x_out * components; \
+                if(is_yuv) \
+                { \
+                    dst[0] = y; \
+                    dst[1] = u; \
+                    dst[2] = v; \
+                } \
+                else \
+                { \
+                    dst[0] = r; \
+                    dst[1] = g; \
+                    dst[2] = b; \
+                } \
+            } \
+ \
+            src_row += components; \
+        } \
+    } \
+}
+
+#define DRAW_PATTERN_MODE 0
+#define DRAW_SRC_MODE 1
+
 void SwatchUnit::process_package(LoadPackage *package)
 {
 	SwatchPackage *pkg = (SwatchPackage*)package;
@@ -523,32 +665,54 @@ void SwatchUnit::process_package(LoadPackage *package)
     float value = (float)plugin->config.brightness / MAX_VALUE;
     float angle = plugin->config.angle;
 
-	switch(cmodel)
-	{
-		case BC_RGB888:
-			CREATE_SWATCH(unsigned char, 3, 0xff, 0)
-			break;
-
-		case BC_RGBA8888:
-			CREATE_SWATCH(unsigned char, 4, 0xff, 0)
-			break;
-
-		case BC_RGB_FLOAT:
-			CREATE_SWATCH(float, 3, 1.0, 0)
-			break;
-
-		case BC_RGBA_FLOAT:
-			CREATE_SWATCH(float, 4, 1.0, 0)
-			break;
-
-		case BC_YUV888:
-			CREATE_SWATCH(unsigned char, 3, 0xff, 1)
-			break;
-
-		case BC_YUVA8888:
-			CREATE_SWATCH(unsigned char, 4, 0xff, 1)
-			break;
-	}
+    if(server->mode == DRAW_PATTERN_MODE)
+    {
+	    switch(cmodel)
+	    {
+		    case BC_RGB888:
+			    CREATE_SWATCH(unsigned char, 3, 0xff, 0)
+			    break;
+		    case BC_RGBA8888:
+			    CREATE_SWATCH(unsigned char, 4, 0xff, 0)
+			    break;
+		    case BC_RGB_FLOAT:
+			    CREATE_SWATCH(float, 3, 1.0, 0)
+			    break;
+		    case BC_RGBA_FLOAT:
+			    CREATE_SWATCH(float, 4, 1.0, 0)
+			    break;
+		    case BC_YUV888:
+			    CREATE_SWATCH(unsigned char, 3, 0xff, 1)
+			    break;
+		    case BC_YUVA8888:
+			    CREATE_SWATCH(unsigned char, 4, 0xff, 1)
+			    break;
+	    }
+    }
+    else
+    {
+	    switch(cmodel)
+	    {
+		    case BC_RGB888:
+			    DRAW_SRC(unsigned char, 3, 0xff, 0)
+			    break;
+		    case BC_RGBA8888:
+			    DRAW_SRC(unsigned char, 4, 0xff, 0)
+			    break;
+		    case BC_RGB_FLOAT:
+			    DRAW_SRC(float, 3, 1.0, 0)
+			    break;
+		    case BC_RGBA_FLOAT:
+			    DRAW_SRC(float, 4, 1.0, 0)
+			    break;
+		    case BC_YUV888:
+			    DRAW_SRC(unsigned char, 3, 0xff, 1)
+			    break;
+		    case BC_YUVA8888:
+			    DRAW_SRC(unsigned char, 4, 0xff, 1)
+			    break;
+	    }
+    }
 }
 
 
@@ -556,7 +720,7 @@ void SwatchUnit::process_package(LoadPackage *package)
 
 
 
-SwatchServer::SwatchServer(SwatchMain *plugin, 
+SwatchEngine::SwatchEngine(SwatchMain *plugin, 
 	int total_clients, 
 	int total_packages)
  : LoadServer(total_clients, total_packages)
@@ -564,7 +728,19 @@ SwatchServer::SwatchServer(SwatchMain *plugin,
 	this->plugin = plugin;
 }
 
-void SwatchServer::init_packages()
+void SwatchEngine::draw_pattern()
+{
+    mode = DRAW_PATTERN_MODE;
+    process_packages();
+}
+
+void SwatchEngine::draw_src()
+{
+    mode = DRAW_SRC_MODE;
+    process_packages();
+}
+
+void SwatchEngine::init_packages()
 {
 	for(int i = 0; i < get_total_packages(); i++)
 	{
@@ -578,12 +754,12 @@ void SwatchServer::init_packages()
 	}
 }
 
-LoadClient* SwatchServer::new_client()
+LoadClient* SwatchEngine::new_client()
 {
 	return new SwatchUnit(this, plugin);
 }
 
-LoadPackage* SwatchServer::new_package()
+LoadPackage* SwatchEngine::new_package()
 {
 	return new SwatchPackage;
 }

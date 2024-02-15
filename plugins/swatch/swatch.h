@@ -24,7 +24,7 @@
 class SwatchMain;
 class SwatchEngine;
 class SwatchWindow;
-class SwatchServer;
+class SwatchEngine;
 
 
 
@@ -50,6 +50,7 @@ public:
     int brightness;
     int saturation;
     int fix_brightness;
+    int draw_src;
     int angle;
 };
 
@@ -69,10 +70,10 @@ public:
     int *output;
 };
 
-class SwatchOption : public BC_Radial
+class SwatchRadial : public BC_Radial
 {
 public:
-    SwatchOption(SwatchMain *plugin, 
+    SwatchRadial(SwatchMain *plugin, 
         SwatchWindow *gui, 
         int x, 
         int y, 
@@ -84,6 +85,19 @@ public:
     int fix_brightness;
 };
 
+class SwatchCheck : public BC_CheckBox
+{
+public:
+    SwatchCheck(SwatchMain *plugin, 
+        int x, 
+        int y, 
+        const char *text,
+        int *output);
+	int handle_event();
+	SwatchMain *plugin;
+    SwatchWindow *gui;
+    int *output;
+};
 
 class SwatchWindow : public PluginClientWindow
 {
@@ -98,8 +112,9 @@ public:
     SwatchSlider *brightness;
     SwatchSlider *saturation;
     SwatchSlider *angle;
-    SwatchOption *fix_brightness;
-    SwatchOption *fix_saturation;
+    SwatchRadial *fix_brightness;
+    SwatchRadial *fix_saturation;
+    SwatchCheck *draw_src;
     BC_Title *brightness_title;
     BC_Title *saturation_title;
 };
@@ -131,7 +146,8 @@ public:
 	int need_reconfigure;
 
 	VFrame *temp;
-	SwatchServer *engine;
+    VFrame *src_temp;
+	SwatchEngine *engine;
 };
 
 class SwatchPackage : public LoadPackage
@@ -145,21 +161,26 @@ public:
 class SwatchUnit : public LoadClient
 {
 public:
-	SwatchUnit(SwatchServer *server, SwatchMain *plugin);
+	SwatchUnit(SwatchEngine *server, SwatchMain *plugin);
 	void process_package(LoadPackage *package);
-	SwatchServer *server;
+	SwatchEngine *server;
 	SwatchMain *plugin;
 	YUV yuv;
 };
 
-class SwatchServer : public LoadServer
+class SwatchEngine : public LoadServer
 {
 public:
-	SwatchServer(SwatchMain *plugin, int total_clients, int total_packages);
+	SwatchEngine(SwatchMain *plugin, int total_clients, int total_packages);
 	void init_packages();
+
+    void draw_pattern();
+    void draw_src();
+
 	LoadClient* new_client();
 	LoadPackage* new_package();
 	SwatchMain *plugin;
+    int mode;
 };
 
 

@@ -195,7 +195,7 @@ void FileCR2::format_to_asset()
 
 int FileCR2::read_frame(VFrame *frame, char *path)
 {
-printf("FileCR2::read_frame %d cmodel=%d\n", __LINE__, frame->get_color_model());
+//printf("FileCR2::read_frame %d cmodel=%d\n", __LINE__, frame->get_color_model());
     VFrame *frame_ptr = frame;
 
 // decode directly to shared memory with alpha
@@ -205,6 +205,7 @@ printf("FileCR2::read_frame %d cmodel=%d\n", __LINE__, frame->get_color_model())
         dcraw_alpha = 0;
 
 // get a shared memory temporary to decode into
+// RGB888 needed for previews
     if(frame->get_color_model() != BC_RGB_FLOAT &&
         frame->get_color_model() != BC_RGBA_FLOAT)
     {
@@ -266,6 +267,7 @@ printf("FileCR2::read_frame %d cmodel=%d\n", __LINE__, frame->get_color_model())
 //printf("FileCR2::read_frame %d %s\n", __LINE__, path);
 	argv[argc++] = path;
 
+// point dcraw at the frame buffer
 	dcraw_data = (float**)frame_ptr->get_rows();
 
 //Timer timer;

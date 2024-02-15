@@ -2228,6 +2228,7 @@ int File::read_frame(VFrame *frame,
 
 
 // get a shm temporary to store read_frame output in
+// TODO: should return the read_frame argument if it already matches
 VFrame* File::get_read_temp(int colormodel, int rowspan, int w, int h)
 {
 // no conversion needed
