@@ -2074,10 +2074,15 @@ int File::read_frame(VFrame *frame,
                                 BC_WindowBase::get_resources()->vframe_shm);
                         }
 
-// printf("File::read_frame %d use_temp_frame=%d frame=%p %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+// printf("File::read_frame %d use_temp_frame=%d frame=%p temp_frame=%p\n", 
 // __LINE__, 
 // use_temp_frame,
 // frame,
+// temp_frame);
+
+// printf("File::read_frame %d use_temp_frame=%d frame=%p cmodel=%d %d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+// frame->get_color_model(),
+// temp_frame->get_color_model(),
 // frame->get_rows()[0][0],
 // frame->get_rows()[0][1],
 // frame->get_rows()[0][2],
@@ -2125,7 +2130,6 @@ int File::read_frame(VFrame *frame,
 	if(debug) PRINT_TRACE
 	if(file)
 	{
-		int supported_colormodel = colormodel_supported(frame->get_color_model());
 // Can't advance position if cache used.
 		int advance_position = 1;
 
@@ -2143,6 +2147,9 @@ int File::read_frame(VFrame *frame,
 		if(use_cache && cached_frame)
 		{
 			advance_position = 0;
+// printf("File::read_frame %d cached_frame_cmodel=%d\n", 
+// __LINE__,
+// cached_frame->get_color_model());
 // Set the destination for the cached frame
             set_read_pointer(cached_frame->get_color_model(), 
                 cached_frame->get_data(), 
@@ -2293,30 +2300,38 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
 // not using hardware in the server.  Convert in the client using no temp.
         if(!use_opengl)
         {
+            if(read_pointer->get_color_model() == read_frame_dst->get_color_model() &&
+                read_pointer->get_w() == read_frame_dst->get_w() &&
+                read_pointer->get_h() == read_frame_dst->get_h() &&
+                read_pointer->get_bytes_per_line() == read_frame_dst->get_bytes_per_line())
+                read_frame_dst->copy_from(read_pointer);
+            else
+            {
 // take the smallest of the encoded & asset frame sizes as the source size
-            int src_w = MIN(read_pointer->get_w(), asset->width);
-            int src_h = MIN(read_pointer->get_h(), asset->height);
-	        cmodel_transfer(read_frame_dst->get_rows(), 
-		        read_pointer->get_rows(),
-		        read_frame_dst->get_y(),
-		        read_frame_dst->get_u(),
-		        read_frame_dst->get_v(),
-		        read_pointer->get_y(),
-		        read_pointer->get_u(),
-		        read_pointer->get_v(),
-		        0, 
-		        0, 
-		        src_w, 
-		        src_h,
-		        0, 
-		        0, 
-		        read_frame_dst->get_w(), 
-		        read_frame_dst->get_h(),
-		        read_pointer->get_color_model(), 
-		        read_frame_dst->get_color_model(),
-		        0,
-		        read_pointer->get_bytes_per_line(),
-		        read_frame_dst->get_w());
+                int src_w = MIN(read_pointer->get_w(), asset->width);
+                int src_h = MIN(read_pointer->get_h(), asset->height);
+	            cmodel_transfer(read_frame_dst->get_rows(), 
+		            read_pointer->get_rows(),
+		            read_frame_dst->get_y(),
+		            read_frame_dst->get_u(),
+		            read_frame_dst->get_v(),
+		            read_pointer->get_y(),
+		            read_pointer->get_u(),
+		            read_pointer->get_v(),
+		            0, 
+		            0, 
+		            src_w, 
+		            src_h,
+		            0, 
+		            0, 
+		            read_frame_dst->get_w(), 
+		            read_frame_dst->get_h(),
+		            read_pointer->get_color_model(), 
+		            read_frame_dst->get_color_model(),
+		            0,
+		            read_pointer->get_bytes_per_line(),
+		            read_frame_dst->get_w());
+            }
         }
         else
         {
@@ -2340,13 +2355,18 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
         {
 // software in the server
 // take the smallest of the encoded & asset frame sizes as the source size
-// printf("File::convert_cmodel %d read_pointer=%p src=%p dst=%p\n", 
+// printf("File::convert_cmodel %d read_pointer=%p temp_frame=%p read_frame_dst=%p\n", 
 // __LINE__, 
 // read_pointer,
 // temp_frame, 
 // read_frame_dst);
-            int src_w = MIN(read_pointer->get_w(), asset->width);
-            int src_h = MIN(read_pointer->get_h(), asset->height);
+// printf("File::convert_cmodel %d temp_frame_cmodel=%d read_frame_dst_cmodel=%d\n", 
+// __LINE__, 
+// temp_frame->get_color_model(), 
+// read_frame_dst->get_color_model());
+
+            int src_w = MIN(temp_frame->get_w(), asset->width);
+            int src_h = MIN(temp_frame->get_h(), asset->height);
 	        cmodel_transfer(read_frame_dst->get_rows(), 
 		        temp_frame->get_rows(),
 		        read_frame_dst->get_y(),
@@ -2593,28 +2613,28 @@ int File::get_best_colormodel(Asset *asset, int driver)
 	return BC_RGB888;
 }
 
-
-int File::colormodel_supported(int colormodel)
-{
-#ifdef USE_FILEFORK
-	if(!is_fork && file_fork)
-	{
-		unsigned char buffer[sizeof(int)];
-		*(int*)buffer = colormodel;
-		file_fork->send_command(FileFork::COLORMODEL_SUPPORTED, 
-			buffer, 
-			sizeof(int));
-		int result = file_fork->read_result();
-		return result;
-	}
-#endif
-
-
-	if(file)
-		return file->colormodel_supported(colormodel);
-
-	return BC_RGB888;
-}
+// 
+// int File::colormodel_supported(int colormodel)
+// {
+// #ifdef USE_FILEFORK
+// 	if(!is_fork && file_fork)
+// 	{
+// 		unsigned char buffer[sizeof(int)];
+// 		*(int*)buffer = colormodel;
+// 		file_fork->send_command(FileFork::COLORMODEL_SUPPORTED, 
+// 			buffer, 
+// 			sizeof(int));
+// 		int result = file_fork->read_result();
+// 		return result;
+// 	}
+// #endif
+// 
+// 
+// 	if(file)
+// 		return file->colormodel_supported(colormodel);
+// 
+// 	return BC_RGB888;
+// }
 
 
 int64_t File::get_memory_usage() 

@@ -226,7 +226,7 @@ public:
 	static int get_best_colormodel(Asset *asset, int driver);
 // Get nearest colormodel that can be decoded without a temporary frame.
 // Used by read_frame.
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 
 // Used by CICache to calculate the total size of the cache.
 // Based on temporary frames and a call to the file subclass.

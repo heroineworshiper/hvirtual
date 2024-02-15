@@ -1436,15 +1436,15 @@ int FileOGG::set_video_position(int64_t x)
 }
 
 
-int FileOGG::colormodel_supported(int colormodel)
-{
-//	printf("CMS\n");
-
-	if (colormodel == BC_YUV420P)
-		return BC_YUV420P;
-	else
-		return colormodel;
-}
+// int FileOGG::colormodel_supported(int colormodel)
+// {
+// //	printf("CMS\n");
+// 
+// 	if (colormodel == BC_YUV420P)
+// 		return BC_YUV420P;
+// 	else
+// 		return colormodel;
+// }
 int FileOGG::get_best_colormodel(Asset *asset, int driver)
 {
 

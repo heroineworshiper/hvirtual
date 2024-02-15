@@ -59,7 +59,7 @@ public:
 // Open file and decode.
 	int read_frame(VFrame *frame, char *path);
 // Get best colormodel for decoding.
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 //	int64_t get_memory_usage();
 	int read_frame_header(char *path);
 

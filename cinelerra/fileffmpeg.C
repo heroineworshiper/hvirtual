@@ -1822,10 +1822,10 @@ int64_t FileFFMPEG::get_memory_usage()
 }
 
 
-int FileFFMPEG::colormodel_supported(int colormodel)
-{
-	return colormodel;
-}
+// int FileFFMPEG::colormodel_supported(int colormodel)
+// {
+// 	return colormodel;
+// }
 
 int FileFFMPEG::get_best_colormodel(Asset *asset, int driver)
 {

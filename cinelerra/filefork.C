@@ -597,13 +597,13 @@ int FileFork::handle_command()
 			break;
 		}
 
-		case COLORMODEL_SUPPORTED:
-		{
-			int colormodel = *(int*)command_data;
-			result = file->colormodel_supported(colormodel);
-			send_result(result, 0, 0);
-			break;
-		}
+// 		case COLORMODEL_SUPPORTED:
+// 		{
+// 			int colormodel = *(int*)command_data;
+// 			result = file->colormodel_supported(colormodel);
+// 			send_result(result, 0, 0);
+// 			break;
+// 		}
 
 		case GET_MEMORY_USAGE:
 			result = file->get_memory_usage();

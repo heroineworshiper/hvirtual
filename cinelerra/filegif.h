@@ -42,7 +42,7 @@ public:
 	int get_best_colormodel(Asset *asset, int driver);
 
 
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 
 	int read_frame_header(char *path);
 	int read_frame(VFrame *output, VFrame *input);

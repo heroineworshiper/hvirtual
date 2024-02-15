@@ -534,10 +534,10 @@ int64_t FileMOV::get_memory_usage()
 // 	return 0;
 // }
 
-int FileMOV::colormodel_supported(int colormodel)
-{
-	return colormodel;
-}
+// int FileMOV::colormodel_supported(int colormodel)
+// {
+// 	return colormodel;
+// }
 
 int FileMOV::get_best_colormodel(Asset *asset, int driver)
 {

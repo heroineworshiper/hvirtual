@@ -45,7 +45,7 @@ public:
     const char* get_tag(int format);
 
 
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 	int read_frame(VFrame *frame, VFrame *data);
 	int write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit);
 	int can_copy_from(Asset *asset, int64_t position);

@@ -141,7 +141,7 @@ public:
     static int read_index_state(FILE *fd, Indexable *dst);
 
 	int64_t get_memory_usage();
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 	int read_frame(VFrame *frame);
 	int read_samples(double *buffer, int64_t len);
     int seek_5(FileFFMPEGStream *stream, 

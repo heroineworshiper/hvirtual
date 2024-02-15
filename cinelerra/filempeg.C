@@ -956,10 +956,10 @@ int FileMPEG::get_best_colormodel(Asset *asset, int driver)
     return get_best_colormodel_(asset, driver);
 }
 
-int FileMPEG::colormodel_supported(int colormodel)
-{
-	return colormodel;
-}
+// int FileMPEG::colormodel_supported(int colormodel)
+// {
+// 	return colormodel;
+// }
 
 
 

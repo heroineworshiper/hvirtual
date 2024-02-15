@@ -199,7 +199,7 @@ public:
 	int64_t get_memory_usage();
 // Direct copy routines
 	static int get_best_colormodel(Asset *asset, int driver);
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 	int can_copy_from(Asset *asset, int64_t position); // This file can copy frames directly from the asset
 	int reset_parameters_derived();
 

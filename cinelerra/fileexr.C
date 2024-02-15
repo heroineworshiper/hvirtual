@@ -299,10 +299,10 @@ void FileEXR::get_parameters(BC_WindowBase *parent_window,
 	}
 }
 
-int FileEXR::colormodel_supported(int colormodel)
-{
-	return native_cmodel;
-}
+// int FileEXR::colormodel_supported(int colormodel)
+// {
+// 	return native_cmodel;
+// }
 
 int FileEXR::get_best_colormodel(Asset *asset, int driver)
 {

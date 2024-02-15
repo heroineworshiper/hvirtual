@@ -77,10 +77,10 @@ int FileGIF::check_sig(File *file, const uint8_t *test_data)
 	return 0;
 }
 
-int FileGIF::colormodel_supported(int colormodel)
-{
-	return BC_RGB888;
-}
+// int FileGIF::colormodel_supported(int colormodel)
+// {
+// 	return BC_RGB888;
+// }
 
 int FileGIF::get_best_colormodel(Asset *asset, int driver)
 {

@@ -55,7 +55,7 @@ public:
 	static void write_tga(Asset *asset, VFrame *frame, VFrame *data, VFrame* &temp);
 
 	int can_copy_from(Asset *asset, int64_t position);
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 	int read_frame(VFrame *frame, VFrame *data);
 	int write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit);
 	FrameWriterUnit* new_writer_unit(FrameWriter *writer);

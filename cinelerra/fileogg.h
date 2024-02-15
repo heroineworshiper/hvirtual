@@ -123,7 +123,7 @@ public:
 	int64_t get_audio_position();
 	int set_video_position(int64_t x);
 	int set_audio_position(int64_t x);
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 	int write_samples(double **buffer, int64_t len);
 	int write_frames(VFrame ***frames, int len);
 	int read_samples(double *buffer, int64_t len);

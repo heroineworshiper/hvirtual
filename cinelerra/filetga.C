@@ -206,11 +206,11 @@ int FileTGA::can_copy_from(Asset *asset, int64_t position)
 }
 
 
-int  FileTGA::colormodel_supported(int colormodel)
-{
-	return colormodel;
-}
-
+// int  FileTGA::colormodel_supported(int colormodel)
+// {
+// 	return colormodel;
+// }
+// 
 int FileTGA::get_best_colormodel(Asset *asset, int driver)
 {
 	if(!strcasecmp(asset->vcodec, TGA_RGB_RLE) || 

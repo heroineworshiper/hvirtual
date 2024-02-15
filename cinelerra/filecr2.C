@@ -195,12 +195,25 @@ void FileCR2::format_to_asset()
 
 int FileCR2::read_frame(VFrame *frame, char *path)
 {
-//printf("FileCR2::read_frame\n");
+printf("FileCR2::read_frame %d cmodel=%d\n", __LINE__, frame->get_color_model());
+    VFrame *frame_ptr = frame;
 
+// decode directly to shared memory with alpha
 	if(frame->get_color_model() == BC_RGBA_FLOAT)
 		dcraw_alpha = 1;
-	else
-		dcraw_alpha = 0;
+    else
+        dcraw_alpha = 0;
+
+// get a shared memory temporary to decode into
+    if(frame->get_color_model() != BC_RGB_FLOAT &&
+        frame->get_color_model() != BC_RGBA_FLOAT)
+    {
+        frame_ptr = file->get_read_temp(BC_RGB_FLOAT, 
+            frame->get_w() * 3 * sizeof(float), 
+            frame->get_w(), 
+            frame->get_h());
+    }
+//printf("FileCR2::read_frame %d frame_ptr=%p\n", __LINE__, frame_ptr);
 
 // Want to disable interpolation if an interpolation plugin is on, but
 // this is impractical because of the amount of caching.  The interpolation
@@ -253,7 +266,7 @@ int FileCR2::read_frame(VFrame *frame, char *path)
 //printf("FileCR2::read_frame %d %s\n", __LINE__, path);
 	argv[argc++] = path;
 
-	dcraw_data = (float**)frame->get_rows();
+	dcraw_data = (float**)frame_ptr->get_rows();
 
 //Timer timer;
 	int result = dcraw_main(argc, (const char**) argv);
@@ -278,7 +291,7 @@ int FileCR2::read_frame(VFrame *frame, char *path)
 		dcraw_matrix[8]);
 
 
-	frame->get_params()->update("DCRAW_MATRIX", string);
+	frame_ptr->get_params()->update("DCRAW_MATRIX", string);
 
 // float *ptr = (float*)frame->get_rows()[1346];
 // printf("FileCR2::read_frame %d %f %f %f\n", 
@@ -291,14 +304,14 @@ int FileCR2::read_frame(VFrame *frame, char *path)
 	return 0;
 }
 
-int FileCR2::colormodel_supported(int colormodel)
-{
-	if(colormodel == BC_RGB_FLOAT ||
-		colormodel == BC_RGBA_FLOAT)
-		return colormodel;
-	return BC_RGB_FLOAT;
-}
-
+// int FileCR2::colormodel_supported(int colormodel)
+// {
+// 	if(colormodel == BC_RGB_FLOAT ||
+// 		colormodel == BC_RGBA_FLOAT)
+// 		return colormodel;
+// 	return BC_RGB_FLOAT;
+// }
+// 
 
 // Be sure to add a line to File::get_best_colormodel
 int FileCR2::get_best_colormodel(Asset *asset, int driver)

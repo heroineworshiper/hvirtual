@@ -241,21 +241,21 @@ int FileTIFF::read_frame_header(char *path)
 	return result;
 }
 
-int FileTIFF::colormodel_supported(int colormodel)
-{
-	switch(asset->tiff_cmodel)
-	{
-		case FileTIFF::RGB_888: return BC_RGB888; break;
-		case FileTIFF::RGB_161616: return BC_RGB_FLOAT; break;
-		case FileTIFF::GREYSCALE: return BC_RGB888; break;
-		case FileTIFF::RGBA_8888: return BC_RGBA8888; break;
-		case FileTIFF::RGBA_16161616: return BC_RGBA_FLOAT; break;
-		case FileTIFF::RGB_FLOAT: return BC_RGB_FLOAT; break;
-		case FileTIFF::RGBA_FLOAT: return BC_RGBA_FLOAT; break;
-		default: return BC_RGB888; break;
-	}
-}
-
+// int FileTIFF::colormodel_supported(int colormodel)
+// {
+// 	switch(asset->tiff_cmodel)
+// 	{
+// 		case FileTIFF::RGB_888: return BC_RGB888; break;
+// 		case FileTIFF::RGB_161616: return BC_RGB_FLOAT; break;
+// 		case FileTIFF::GREYSCALE: return BC_RGB888; break;
+// 		case FileTIFF::RGBA_8888: return BC_RGBA8888; break;
+// 		case FileTIFF::RGBA_16161616: return BC_RGBA_FLOAT; break;
+// 		case FileTIFF::RGB_FLOAT: return BC_RGB_FLOAT; break;
+// 		case FileTIFF::RGBA_FLOAT: return BC_RGBA_FLOAT; break;
+// 		default: return BC_RGB888; break;
+// 	}
+// }
+// 
 int FileTIFF::get_best_colormodel(Asset *asset, int driver)
 {
 	switch(asset->tiff_cmodel)

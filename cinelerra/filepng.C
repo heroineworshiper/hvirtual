@@ -149,10 +149,10 @@ int FilePNG::can_copy_from(Asset *asset, int64_t position)
 }
 
 
-int FilePNG::colormodel_supported(int colormodel)
-{
-	return colormodel;
-}
+// int FilePNG::colormodel_supported(int colormodel)
+// {
+// 	return colormodel;
+// }
 
 
 int FilePNG::get_best_colormodel(Asset *asset, int driver)

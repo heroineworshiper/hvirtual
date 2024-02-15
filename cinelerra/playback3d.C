@@ -245,6 +245,16 @@ static const char *rgb_to_yuv_frag =
 	"	gl_FragColor = rgba;\n"
 	"}\n";
 
+static const char *rgb_to_rgb_frag = 
+	"	vec4 rgba = texture2D(src_tex, coord);\n"
+	"	gl_FragColor = rgba;\n"
+	"}\n";
+
+static const char *rgba_to_rgba_frag = 
+	"	vec4 rgba = texture2D(src_tex, coord);\n"
+	"	gl_FragColor = rgba;\n"
+	"}\n";
+
 
 static const char *rgba_to_rgb_frag = 
 	"	vec4 rgba = texture2D(src_tex, coord);\n"
@@ -1929,9 +1939,12 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 			{ BC_RGBA8888, BC_RGB_FLOAT, rgba_to_rgb_frag },
 			{ BC_RGBA8888, BC_YUV888, rgba_to_yuv_frag },
 			{ BC_RGBA8888, BC_YUVA8888, rgb_to_yuv_frag },
+			{ BC_RGB_FLOAT, BC_RGB888, rgb_to_rgb_frag },
+			{ BC_RGB_FLOAT, BC_RGBA8888, rgb_to_rgb_frag },
 			{ BC_RGB_FLOAT, BC_YUV888, rgb_to_yuv_frag },
 			{ BC_RGB_FLOAT, BC_YUVA8888, rgb_to_yuv_frag },
 			{ BC_RGBA_FLOAT, BC_RGB888, rgba_to_rgb_frag },
+			{ BC_RGBA_FLOAT, BC_RGBA8888, rgba_to_rgba_frag },
 			{ BC_RGBA_FLOAT, BC_RGB_FLOAT, rgba_to_rgb_frag },
 			{ BC_RGBA_FLOAT, BC_YUV888, rgba_to_yuv_frag },
 			{ BC_RGBA_FLOAT, BC_YUVA8888, rgb_to_yuv_frag },

@@ -69,10 +69,10 @@ const char* FileCR3::formattostr(int format)
     switch(format)
     {
 		case FILE_CR3:
-			return CR2_NAME;
+			return CR3_NAME;
 			break;
 		case FILE_CR3_LIST:
-			return CR2_LIST_NAME;
+			return CR3_LIST_NAME;
 			break;
     }
     return 0;
@@ -123,6 +123,7 @@ int FileCR3::check_sig(File *file, const uint8_t *test_data)
 int FileCR3::read_frame_header(char *path)
 {
     int err = 0;
+//printf("FileCR3::read_frame_header %d\n", __LINE__);
     LibRaw* libraw = new LibRaw;
     err = libraw->open_file(path);
 
@@ -159,6 +160,8 @@ int FileCR3::read_frame(VFrame *frame, char *path)
 {
     int err = 0;
     LibRaw* libraw = new LibRaw;
+    cmodel_init();
+
     err = libraw->open_file(path);
     if(err)
     {
@@ -173,9 +176,13 @@ int FileCR3::read_frame(VFrame *frame, char *path)
 
     libraw->unpack();
 
-printf("FileCR3::read_frame %d %s\n",
-__LINE__,
-path);
+// printf("FileCR3::read_frame %d %s\n",
+// __LINE__,
+// path);
+// printf("FileCR3::read_frame %d: colormodel %d %p\n",
+// __LINE__,
+// frame->get_color_model(),
+// cmodel_yuv_table);
     libraw->imgdata.params.use_camera_wb = 1;
     libraw->dcraw_process();
 
@@ -184,6 +191,12 @@ path);
     int colors;
     int bps;
     libraw->get_mem_image_format(&width, &height, &colors, &bps);
+//     printf("FileCR3::read_frame %d w=%d h=%d colors=%d bps=%d\n",
+//         __LINE__,
+//         width, 
+//         height, 
+//         colors, 
+//         bps);
 //     printf("FileCR3::read_frame %d %p %p %p %p %d %d %d %d\n",
 //         __LINE__,
 //         libraw->imgdata.image[0],
@@ -200,25 +213,82 @@ path);
 //     }
 //     printf("\n");
 
-    int has_alpha = (frame->get_color_model() == BC_RGBA_FLOAT);
-    for(int i = 0; i < height; i++)
+// convert from 16 bit RGB 4 channels to the output
+
+#define CONVERT_HEAD(type) \
+for(int i = 0; i < height; i++) \
+{ \
+    type *output = (type*)frame->get_rows()[i]; \
+    uint16_t *input = libraw->imgdata.image[0] + i * width * 4; \
+    for(int j = 0; j < width; j++) \
+    { \
+
+#define CONVERT_TAIL \
+            input++; \
+    } \
+}
+
+    switch(frame->get_color_model())
     {
-        float *output = (float*)frame->get_rows()[i];
-        uint16_t *input = libraw->imgdata.image[0] + i * width * 4;
-        for(int j = 0; j < width; j++)
-        {
-            for(int k = 0; k < 3; k++)
-            {
+        case BC_RGB888:
+            CONVERT_HEAD(uint8_t)
+                *output++ = (uint8_t)((*input++) >> 8);
+                *output++ = (uint8_t)((*input++) >> 8);
+                *output++ = (uint8_t)((*input++) >> 8);
+            CONVERT_TAIL
+            break;
+        case BC_RGBA8888:
+            CONVERT_HEAD(uint8_t)
+                *output++ = (uint8_t)((*input++) >> 8);
+                *output++ = (uint8_t)((*input++) >> 8);
+                *output++ = (uint8_t)((*input++) >> 8);
+                *output++ = 0xff;
+            CONVERT_TAIL
+            break;
+        case BC_RGB_FLOAT:
+            CONVERT_HEAD(float)
                 *output++ = (float)(*input++) / 0xffff;
                 *output++ = (float)(*input++) / 0xffff;
                 *output++ = (float)(*input++) / 0xffff;
-                if(has_alpha)
-                {
-                    *output++ = 1.0;
-                }
-                input++;
-            }
-        }
+            CONVERT_TAIL
+            break;
+        case BC_RGBA_FLOAT:
+            CONVERT_HEAD(float)
+                *output++ = (float)(*input++) / 0xffff;
+                *output++ = (float)(*input++) / 0xffff;
+                *output++ = (float)(*input++) / 0xffff;
+                *output++ = 1.0;
+            CONVERT_TAIL
+            break;
+        case BC_YUV888:
+            CONVERT_HEAD(uint8_t)
+                int y, u, v;
+                int r = (uint8_t)((*input++) >> 8);
+                int g = (uint8_t)((*input++) >> 8);
+                int b = (uint8_t)((*input++) >> 8);
+                RGB_TO_YUV(y, u, v, r, g, b);
+                *output++ = y;
+                *output++ = u;
+                *output++ = v;
+            CONVERT_TAIL
+            break;
+        case BC_YUVA8888:
+            CONVERT_HEAD(uint8_t)
+                int y, u, v;
+                int r = (uint8_t)((*input++) >> 8);
+                int g = (uint8_t)((*input++) >> 8);
+                int b = (uint8_t)((*input++) >> 8);
+                RGB_TO_YUV(y, u, v, r, g, b);
+                *output++ = y;
+                *output++ = u;
+                *output++ = v;
+                *output++ = 0xff;
+            CONVERT_TAIL
+            break;
+        default:
+            printf("FileCR3::read_frame %d: unsupported output colormodel %d\n",
+                __LINE__,
+                frame->get_color_model());
     }
 
     delete libraw;
@@ -226,14 +296,14 @@ path);
 	return 0;
 }
 
-int FileCR3::colormodel_supported(int colormodel)
-{
-	if(colormodel == BC_RGB_FLOAT ||
-		colormodel == BC_RGBA_FLOAT)
-		return colormodel;
-	return BC_RGB_FLOAT;
-}
-
+// int FileCR3::colormodel_supported(int colormodel)
+// {
+// 	if(colormodel == BC_RGB_FLOAT ||
+// 		colormodel == BC_RGBA_FLOAT)
+// 		return colormodel;
+// 	return BC_RGB_FLOAT;
+// }
+// 
 
 // Be sure to add a line to File::get_best_colormodel
 int FileCR3::get_best_colormodel(Asset *asset, int driver)

@@ -45,7 +45,7 @@ public:
     const char* formattostr(int format);
     const char* get_tag(int format);
 
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 	int read_frame_header(char *path);
 	int read_frame(VFrame *frame, VFrame *data);
 	int64_t get_memory_usage();

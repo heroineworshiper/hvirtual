@@ -148,6 +148,8 @@ N_("EXR Sequence")
 #define PNG_NAME "PNG"
 #define CR2_NAME "Raw Camera"
 #define CR2_LIST_NAME "Raw Sequence"
+#define CR3_NAME "Raw Camera3"
+#define CR3_LIST_NAME "Raw Sequence3"
 #define SND_NAME "Unknown sound"
 #define TGA_LIST_NAME "TGA Sequence"
 #define TGA_NAME "TGA"

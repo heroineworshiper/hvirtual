@@ -670,11 +670,11 @@ int FileScene::get_best_colormodel(Asset *asset, int driver)
 }
 
 
-int FileScene::colormodel_supported(int colormodel)
-{
-	return BC_RGBA8888;
-}
-
+// int FileScene::colormodel_supported(int colormodel)
+// {
+// 	return BC_RGBA8888;
+// }
+// 
 
 int FileScene::can_copy_from(Asset *asset, int64_t position)
 {

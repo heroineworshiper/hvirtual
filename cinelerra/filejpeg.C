@@ -154,10 +154,10 @@ int FileJPEG::can_copy_from(Asset *asset, int64_t position)
 	return 0;
 }
 
-int FileJPEG::colormodel_supported(int colormodel)
-{
-	return colormodel;
-}
+// int FileJPEG::colormodel_supported(int colormodel)
+// {
+// 	return colormodel;
+// }
 
 
 int FileJPEG::get_best_colormodel(Asset *asset, int driver)

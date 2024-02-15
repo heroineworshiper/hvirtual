@@ -133,7 +133,7 @@ public:
 	int64_t get_memory_usage();
 
 // Direct copy routines
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 // This file can copy frames directly from the asset
 	int can_copy_from(Asset *asset, int64_t position); 
 	static const char *strtocompression(char *string);

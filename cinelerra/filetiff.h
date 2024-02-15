@@ -56,7 +56,7 @@ public:
 	static const char* compression_to_str(int value);
 	static const char* cmodel_to_str(int value);
 	int can_copy_from(Asset *asset, int64_t position);
-	int colormodel_supported(int colormodel);
+//	int colormodel_supported(int colormodel);
 	int read_frame_header(char *path);
 	int read_frame(VFrame *output, VFrame *input);
 	int write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit);
