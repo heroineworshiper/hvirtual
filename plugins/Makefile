@@ -22,6 +22,7 @@ DIRS = \
 	chorus \
 	chromakey \
 	chromakeyhsv \
+        clip \
 	colorbalance \
 	color3way \
 	compressor \
