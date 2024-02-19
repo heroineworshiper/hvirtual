@@ -44,19 +44,18 @@
 #ifdef USE_FILEFORK
 
 
-FileFork::FileFork(FileServer *server) : ForkWrapper()
+FileFork::FileFork() : ForkWrapper()
 {
 	file = 0;
-	real_fork = 0;
-	this->server = server;
+    set_title("FileFork");
 //printf("FileFork::FileFork %d\n", __LINE__);
 }
 
 FileFork::~FileFork()
 {
-	if(real_fork)
+	if(ForkWrapper::is_dummy)
 	{
-		MWindow::file_server->delete_filefork(real_fork);
+		MWindow::file_server->delete_filefork(ForkWrapper::real_fork);
 	}
 }
 
@@ -81,7 +80,7 @@ int FileFork::handle_command()
 			file = new File;
 			file->is_fork = 1;
             file->file_fork = this;
-//printf("FileFork::handle_command %d\n", __LINE__);
+//printf("FileFork::handle_command %d OPEN_FILE\n", __LINE__);
 
 // Read file modes
 			int offset = 0;
@@ -123,14 +122,12 @@ int FileFork::handle_command()
 //printf("FileFork::handle_command %d server=%p\n", __LINE__, server);
 //printf("FileFork::handle_command %d server->preferences=%p\n", __LINE__, server->preferences);
 			result = file->open_file(
-				server->preferences, 
+				MWindow::preferences, 
 				new_asset, 
 				rd, 
 				wr);
 			new_asset->Garbage::remove_user();
-// 			printf("FileFork::handle_command %d result=%d\n", 
-// 				__LINE__, 
-// 				(int)result);
+//printf("FileFork::handle_command %d sending result=%d\n", __LINE__, (int)result);
 
 
 
@@ -139,9 +136,9 @@ int FileFork::handle_command()
 			char *string = 0;
 			table.save_string(string);
 			int buffer_size = strlen(string) + 1;
+//printf("FileFork::handle_command %d OPEN_FILE result=%d\n", __LINE__, (int)result);
 			send_result(result, (unsigned char*)string, buffer_size);
 			delete [] string;
-// 			printf("FileFork::handle_command %d\n", __LINE__);
 			break;
 		}
 
@@ -199,7 +196,8 @@ int FileFork::handle_command()
 // file->asset->audio_length, 
 // file->asset->video_length);
 			send_result(0, result_buffer, sizeof(int64_t) * 2);
-			done = 1;
+// exit the child loop here instead of using the stop command
+			ForkWrapper::done = 1;
 			break;
 		}
 

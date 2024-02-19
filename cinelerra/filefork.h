@@ -23,7 +23,6 @@
 #define FILEFORK_H
 
 #include "file.inc"
-#include "fileserver.inc"
 #include "forkwrapper.h"
 
 // This is an object created by File which runs in a separate process to 
@@ -36,7 +35,7 @@
 class FileFork : public ForkWrapper
 {
 public:
-	FileFork(FileServer *server);
+	FileFork();
 	virtual ~FileFork();
 	
 	void init_child();
@@ -44,10 +43,6 @@ public:
 
 // Instance of file that does the actual work.	
 	File *file;
-// If this is a dummy filefork, the pointer of the real filefork in the fileserver
-// memory space.
-	FileFork *real_fork;
-	FileServer *server;
 
 // Command tokens
 	enum

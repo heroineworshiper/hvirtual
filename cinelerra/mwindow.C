@@ -382,8 +382,7 @@ void MWindow::init_defaults(BC_Hash* &defaults, char *config_path)
 
 
 // init plugins with index
-void MWindow::init_plugin_path(Preferences *preferences, 
-	char *path,
+void MWindow::init_plugin_path(char *path,
 	int is_lad)
 {
 	const int debug = 0;
@@ -467,7 +466,7 @@ void MWindow::init_plugin_path(Preferences *preferences,
 					Timer timer;
 					fs.complete_path(path);
 					PluginServer *new_plugin = new PluginServer(path);
-					result = new_plugin->open_plugin(1, preferences, 0, 0, -1);
+					result = new_plugin->open_plugin(1, MWindow::preferences, 0, 0, -1);
 
 					if(!result)
 					{
@@ -485,7 +484,7 @@ void MWindow::init_plugin_path(Preferences *preferences,
 						{
 							new_plugin = new PluginServer(path);
 							result = new_plugin->open_plugin(1,
-								preferences,
+								MWindow::preferences,
 								0,
 								0,
 								id);
@@ -513,14 +512,13 @@ void MWindow::init_plugin_path(Preferences *preferences,
 
 }
 
-void MWindow::init_plugins(Preferences *preferences, 
-	SplashGUI *splash_window)
+void MWindow::init_plugins(SplashGUI *splash_window)
 {
 	const int debug = 0;
 	if(!plugindb) plugindb = new ArrayList<PluginServer*>;
 
 
-	init_plugin_path(preferences, preferences->plugin_dir, 0);
+	init_plugin_path(preferences->plugin_dir, 0);
 
 // Parse LAD environment variable
 	char *env = getenv("LADSPA_PATH");
@@ -547,7 +545,7 @@ void MWindow::init_plugins(Preferences *preferences,
 				memcpy(string, ptr1, len);
 				string[len] = 0;
 
-				init_plugin_path(preferences, string, 1);
+				init_plugin_path(string, 1);
 			}
 
 			if(ptr)
@@ -1735,10 +1733,10 @@ void MWindow::init_shm()
 }
 
 
-void MWindow::init_fileserver(Preferences *preferences)
+void MWindow::init_fileserver()
 {
 #ifdef USE_FILEFORK
-	file_server = new FileServer(preferences);
+	file_server = new FileServer;
 	file_server->start();
 #endif
 }
@@ -1798,7 +1796,7 @@ void MWindow::create_objects(int want_gui,
 	if(debug) PRINT_TRACE
 
 
-	init_plugins(preferences, splash_window);
+	init_plugins(splash_window);
 	if(debug) PRINT_TRACE
 	if(splash_window) splash_window->operation->update(_("Initializing GUI"));
 	init_theme();
@@ -1806,7 +1804,7 @@ void MWindow::create_objects(int want_gui,
 
 // Initialize before too much else is running
 // Preferences & theme are required for building MPEG table of contents
-	init_fileserver(preferences);
+	init_fileserver();
 
     FilePreviewer::instance.initialize();
 

@@ -528,8 +528,8 @@ void BatchRenderThread::start_rendering(char *config_path,
 	load_defaults(boot_defaults);
 	MWindow::preferences = new Preferences;
 	MWindow::preferences->load_defaults(boot_defaults);
-	MWindow::init_plugins(MWindow::preferences, 0);
-	MWindow::init_fileserver(MWindow::preferences);
+	MWindow::init_plugins(0);
+	MWindow::init_fileserver();
     MWindow::init_3d();
 	BC_WindowBase::get_resources()->vframe_shm = 1;
 

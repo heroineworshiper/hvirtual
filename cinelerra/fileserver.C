@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,16 +32,14 @@
 #include <unistd.h>
 
 
-FileServer::FileServer(Preferences *preferences) : ForkWrapper()
+FileServer::FileServer() : ForkWrapper()
 {
-	this->preferences = preferences;
-	lock = new Mutex("FileServer::lock");
+    set_title("FileServer");
 }
 
 FileServer::~FileServer()
 {
 	stop();
-	delete lock;
 }
 
 void FileServer::init_child()
@@ -57,9 +55,10 @@ int FileServer::handle_command()
 	{
 		case NEW_FILEFORK:
 		{
-			FileFork *file_fork = new FileFork(this);
+			FileFork *file_fork = new FileFork;
 			file_fork->start();
 			unsigned char buffer[sizeof(FileFork*) + sizeof(int)];
+// store the pointer in this memory space
 			*(FileFork**)buffer = file_fork;
 			*(int*)(buffer + sizeof(FileFork*)) = file_fork->pid;
 
@@ -67,18 +66,19 @@ int FileServer::handle_command()
 				__LINE__,
 				file_fork->parent_fd,
 				file_fork);
-			send_fd(file_fork->parent_fd);
 			send_result(0, buffer, sizeof(FileFork*) + sizeof(int));
 			break;
 		}
 
 		case DELETE_FILEFORK:
 		{
+// get the pointer in this memory space
 			FileFork *file_fork = *(FileFork**)command_data;
 			if(debug) printf("FileServer::handle_command DELETE_FILEFORK %d file_fork=%p\n",
 				__LINE__,
 				file_fork);
 			delete file_fork;
+            send_result(0, 0, 0);
 			break;
 		}
 	}
@@ -88,36 +88,36 @@ int FileServer::handle_command()
 
 FileFork* FileServer::new_filefork()
 {
-	lock->lock("FileServer::open_file");
-	FileFork *dummy_fork = new FileFork(this);
+	ForkWrapper::lock->lock("FileServer::new_filefork");
+	FileFork *dummy_fork = new FileFork;
+    dummy_fork->set_title("Dummy FileFork");
 // Create real file fork on the server
 	send_command(FileServer::NEW_FILEFORK, 0, 0);
-
-	int parent_fd = get_fd();
 	read_result();
 
-// Transfer fd to dummy file fork
-	dummy_fork->start_dummy(parent_fd, *(int*)(result_data + sizeof(FileFork*)));
-	dummy_fork->real_fork = *(FileFork**)result_data;
+    dummy_fork->setup_dummy(*(ForkWrapper**)result_data, this);
 // printf("FileServer::new_filefork %d this=%p parent_fd=%d dummy_fork=%p real_fork=%p\n",
 // __LINE__,
 // this,
 // parent_fd,
 // dummy_fork,
 // dummy_fork->real_fork);
-	lock->unlock();
+	ForkWrapper::lock->unlock();
 	return dummy_fork;
 }
 
-void FileServer::delete_filefork(FileFork *file_fork)
+void FileServer::delete_filefork(ForkWrapper *real_fork)
 {
-	lock->lock("FileServer::close_file");
+	ForkWrapper::lock->lock("FileServer::delete_filefork");
 // Delete filefork on server
-	unsigned char buffer[sizeof(FileFork*)];
-	*(FileFork**)buffer = file_fork;
-	send_command(FileServer::DELETE_FILEFORK, buffer, sizeof(FileFork*));
-	lock->unlock();
+	unsigned char buffer[sizeof(ForkWrapper*)];
+	*(ForkWrapper**)buffer = real_fork;
+	send_command(FileServer::DELETE_FILEFORK, buffer, sizeof(ForkWrapper*));
+	read_result();
+    ForkWrapper::lock->unlock();
 }
+
+
 
 #endif // USE_FILEFORK
 

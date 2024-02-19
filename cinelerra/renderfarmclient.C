@@ -71,8 +71,8 @@ RenderFarmClient::RenderFarmClient(int port,
 	MWindow::init_defaults(boot_defaults, config_path);
     MWindow::preferences = new Preferences;
 	MWindow::preferences->load_defaults(boot_defaults);
-	MWindow::init_plugins(MWindow::preferences, 0);
-	MWindow::init_fileserver(MWindow::preferences);
+	MWindow::init_plugins(0);
+	MWindow::init_fileserver();
 	BC_WindowBase::get_resources()->vframe_shm = 1;
 }
 

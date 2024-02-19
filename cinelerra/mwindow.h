@@ -592,7 +592,7 @@ public:
 
 // Initialize shared memory
 	void init_shm();
-	static void init_fileserver(Preferences *preferences);
+	static void init_fileserver();
 
 // Initialize channel DB's for playback
 	void init_channeldb();
@@ -617,10 +617,8 @@ public:
 	void init_gwindow();
 	void init_tipwindow();
 // Used by MWindow and RenderFarmClient
-	static void init_plugins(Preferences *preferences, 
-		SplashGUI *splash_window);
-	static void init_plugin_path(Preferences *preferences, 
-		char *path,
+	static void init_plugins(SplashGUI *splash_window);
+	static void init_plugin_path(char *path,
 		int is_lad);
 // 	static void init_plugin_path(Preferences *preferences, 
 // 		FileSystem *fs,

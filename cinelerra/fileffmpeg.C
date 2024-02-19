@@ -1353,7 +1353,6 @@ int FileFFMPEG::create_toc(void *ptr)
                 file->update_progress(offset);
             }
 
-
             if(packet->size > 0)
             {
 //                 printf("FileFFMPEG::create_toc %d: offset=0x%lx dts=%ld size=%d stream=%d\n", 

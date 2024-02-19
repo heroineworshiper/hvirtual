@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
@@ -32,10 +31,12 @@
 #include "preferences.inc"
 
 
+
+
 class FileServer : public ForkWrapper
 {
 public:
-	FileServer(Preferences *preferences);
+	FileServer();
 	virtual ~FileServer();
 
 // Creates a dummy filefork pointer & commands the server to start a real filefork.
@@ -44,21 +45,18 @@ public:
 	
 // Called by the dummy filefork's destructor.
 // Commands the server to delete the real filefork
-	void delete_filefork(FileFork *file_fork);
+	void delete_filefork(ForkWrapper *real_fork);
 
 	void init_child();
 
 	int handle_command();
 
+// commands
 	enum
 	{
 		NEW_FILEFORK,
-		DELETE_FILEFORK
+		DELETE_FILEFORK,
 	};
-
-// Only allow 1 call at a time
-	Mutex *lock;
-	Preferences *preferences;
 };
 
 

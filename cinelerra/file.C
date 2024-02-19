@@ -430,7 +430,7 @@ int File::open_file(Preferences *preferences,
 	int rd, 
 	int wr)
 {
-	int result = 0;
+	int64_t result = 0;
 	const int debug = 0;
 
 	this->preferences = preferences;
@@ -452,13 +452,10 @@ int File::open_file(Preferences *preferences,
 
 
 		file_fork = MWindow::file_server->new_filefork();
-// printf("File::open_file %d %s file_server=%p file_fork=%p rd=%d wr=%d\n", 
+// printf("File::open_file %d path='%s' is_dummy=%d\n", 
 // __LINE__, 
 // asset->path,
-// MWindow::file_server,
-// file_fork,
-// rd, 
-// wr);
+// file_fork->is_dummy);
 
 // Send the asset
 // Convert to hash table
@@ -498,13 +495,14 @@ int File::open_file(Preferences *preferences,
 		delete [] buffer;
 		delete [] string;
 
+//printf("File::open_file %d\n", __LINE__);
 
 // get progress & completion from the fork when building a table of contents
         int done = 0;
         while(!done)
         {
             result = file_fork->read_result();
-
+//printf("File::open_file %d result=%d\n", __LINE__, (int)result);
             switch(result)
             {
 // file fork crashed
@@ -530,17 +528,20 @@ int File::open_file(Preferences *preferences,
 //printf("File::open_file %d\n", __LINE__);
 			        this->asset->load_defaults(&table, "", 1, 1, 1, 1, 1);
 //printf("File::open_file %d\n", __LINE__);
+// exit the result code loop
                     done = 1;
-//this->asset->dump();
                     break;
 		        }
 
 // progress bar commands sent by the fork
                 case FileFork::START_PROGRESS:
                 {
+//printf("File::open_file %d START_PROGRESS\n", __LINE__);
                     int64_t total = *(int64_t*)file_fork->result_data;
                     const char *title = (const char *)file_fork->result_data + sizeof(int64_t);
                     start_progress(title, total);
+// read the next result code through the FileServer tunnel
+                    file_fork->send_command(READ_RESULT, 0, 0);
                     break;
                 }
                 
@@ -548,6 +549,8 @@ int File::open_file(Preferences *preferences,
                 {
                     int64_t value = *(int64_t*)file_fork->result_data;
                     update_progress(value);
+// read the next result code through the FileServer tunnel
+                    file_fork->send_command(READ_RESULT, 0, 0);
                     break;
                 }
 
@@ -555,6 +558,8 @@ int File::open_file(Preferences *preferences,
                 {
                     const char *title = (const char *)file_fork->result_data;
                     update_progress_title(title);
+// read the next result code through the FileServer tunnel
+                    file_fork->send_command(READ_RESULT, 0, 0);
                     break;
                 }
 
@@ -571,6 +576,8 @@ int File::open_file(Preferences *preferences,
                 {
                     const char *title = (const char *)file_fork->result_data;
                     stop_progress(title);
+// read the next result code through the FileServer tunnel
+                    file_fork->send_command(READ_RESULT, 0, 0);
                     break;
                 }
             }
@@ -690,7 +697,7 @@ int File::open_file(Preferences *preferences,
 		file = 0;
 	}
 
-    if(debug) printf("File::open_file %d result=%d\n", __LINE__, result);
+    if(debug) printf("File::open_file %d result=%d\n", __LINE__, (int)result);
 
 
 // Set extra writing parameters to mandatory settings.
@@ -919,7 +926,6 @@ int File::close_file(int ignore_thread)
 
 		delete file_fork;
 		file_fork = 0;
-		
 	}
 
 #endif
@@ -1936,7 +1942,7 @@ int File::read_frame(VFrame *frame,
     VDeviceX11 *device)
 {
 	const int debug = 0;
-    int result = 0;
+    int64_t result = 0;
 
 // reset the location of the output
     use_temp_frame = 0;
