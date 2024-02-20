@@ -80,7 +80,7 @@ public:
 	int send_result(int64_t value, unsigned char *data, int data_size);
 
 // set this FileFork to forward to a real FileFork through a tunnel
-    void setup_dummy(ForkWrapper *real_fork, ForkWrapper *tunnel);
+    void setup_dummy(ForkWrapper *real_fork, ForkWrapper *tunnel, int pid);
 
 	int done;
 	int pid;

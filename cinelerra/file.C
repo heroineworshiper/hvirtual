@@ -1817,19 +1817,28 @@ int File::read_samples(Samples *samples, int64_t len)
 			buffer_bytes);
 		if(debug) PRINT_TRACE
 		int result = file_fork->read_result();
+	    if(debug) printf("File::read_samples %d result=%d pid=%d\n",
+            __LINE__,
+            result,
+            file_fork->pid);
 
 // Crashed
 		if(result && !file_fork->child_running())
 		{
+	        if(debug) PRINT_TRACE
 			delete file_fork;
+	        if(debug) PRINT_TRACE
 			result = open_file(preferences, asset, rd, wr);
+	        if(debug) PRINT_TRACE
 		}
 
+	    if(debug) PRINT_TRACE
 
  		file_fork->send_command(FileFork::GET_MEMORY_USAGE, 
  			0, 
  			0);
  		memory_usage = file_fork->read_result();
+	    if(debug) PRINT_TRACE
 
 //printf("File::read_samples %lld\n", memory_usage);
 

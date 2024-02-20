@@ -57,10 +57,13 @@ ForkWrapper::ForkWrapper()
 ForkWrapper::~ForkWrapper()
 {
 	int status;
+
+//    PRINT_TRACE
 	if(!is_dummy && pid) 
 	{
 		waitpid(pid, &status, 0);
 	}
+//    PRINT_TRACE
 
 	delete [] command_data;
 	if(parent_fd) close(parent_fd);
@@ -419,6 +422,13 @@ int64_t ForkWrapper::read_result()
 int ForkWrapper::child_running()
 {
 	char string[BCTEXTLEN];
+
+    if(pid == 0)
+    {
+        printf("ForkWrapper::child_running %d: pid=0\n", __LINE__);
+        return 0;
+    }
+
 	sprintf(string, "/proc/%d/stat", pid);
 	FILE *fd = fopen(string, "r");
 	if(fd)
@@ -429,7 +439,7 @@ int ForkWrapper::child_running()
 		fgetc(fd);
 		int status = fgetc(fd);
 
-//printf("ForkWrapper::child_running '%c'\n", status);
+////printf("ForkWrapper::child_running '%c'\n", status);
 		fclose(fd);
 		if(status == 'Z') 
 		{
@@ -454,11 +464,12 @@ int ForkWrapper::child_running()
 	}
 }
 
-void ForkWrapper::setup_dummy(ForkWrapper *real_fork, ForkWrapper *tunnel)
+void ForkWrapper::setup_dummy(ForkWrapper *real_fork, ForkWrapper *tunnel, int pid)
 {
     this->is_dummy = 1;
     this->tunnel = tunnel;
 	this->real_fork = real_fork;
+    this->pid = pid;
 }
 
 

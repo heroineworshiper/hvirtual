@@ -95,7 +95,9 @@ FileFork* FileServer::new_filefork()
 	send_command(FileServer::NEW_FILEFORK, 0, 0);
 	read_result();
 
-    dummy_fork->setup_dummy(*(ForkWrapper**)result_data, this);
+    ForkWrapper *real_fork = *(ForkWrapper**)result_data;
+    int pid = *(int*)(result_data + sizeof(FileFork*));
+    dummy_fork->setup_dummy(real_fork, this, pid);
 // printf("FileServer::new_filefork %d this=%p parent_fd=%d dummy_fork=%p real_fork=%p\n",
 // __LINE__,
 // this,
