@@ -586,11 +586,14 @@ void FilePreviewer::rewind_playback()
     if(edl)
     {
 // set up the playback engine
+        Asset *asset = edl->assets->first;
         edl->local_session->set_selectionstart(0);
         edl->local_session->set_selectionend(0);
         play_position = 0;
+// don't change all if seekable
         playback_engine->que->send_command(CURRENT_FRAME, 
-			CHANGE_ALL,
+			(asset->audio_length >= 0 && asset->video_length >= 0) ?
+                CHANGE_NONE : CHANGE_ALL,
 			edl,
 			1);
     }
@@ -627,7 +630,7 @@ void FilePreviewer::seek_playback()
         edl->local_session->set_selectionstart(play_position);
         edl->local_session->set_selectionend(play_position);
         playback_engine->que->send_command(CURRENT_FRAME, 
-			CHANGE_ALL,
+			CHANGE_NONE,
 			edl,
 			1);
     }

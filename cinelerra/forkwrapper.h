@@ -26,6 +26,7 @@
 
 #include "mutex.inc"
 #include <stdint.h>
+#include <arpa/inet.h>
 
 // special command codes
 #define EXIT_CODE 0x7ffffffe
@@ -49,8 +50,18 @@ public:
 
 // title for debugging
     void set_title(const char *title);
+
 // Can't start in the constructor because it'll erase the subclass constructor.
-	void start();
+// use_dummy = don't connect the parent_fd to the child socket
+	void start(int use_dummy);
+
+// connect this FileFork to a child_fd in another FileFork started 
+// with use_dummy == 1
+    void setup_dummy(ForkWrapper *real_fork, 
+        int pid, 
+        struct sockaddr_in *child_addr);
+    void connect_parent_fd();
+
 // Called by subclass to send a command to exit the loop
 // TODO: needs to support tunneling from a dummy
 	void stop();
@@ -79,25 +90,19 @@ public:
 // Called by child to send result
 	int send_result(int64_t value, unsigned char *data, int data_size);
 
-// set this FileFork to forward to a real FileFork through a tunnel
-    void setup_dummy(ForkWrapper *real_fork, ForkWrapper *tunnel, int pid);
-
 	int done;
 	int pid;
 
 	int parent_fd;
 	int child_fd;
 
-// if this ForkWrapper is a dummy pointing to a real filefork in a tunnel process
+// if this ForkWrapper is a dummy pointing to a real filefork in a different
 // memory space
 	int is_dummy;
-// dummies forward all their commands through a tunnel ForkWrapper
-// to their real child & the tunnel ForkWrapper copies the responses to the
-// dummy's result variables
-// The dummy's read_result always instantly returns the last result code received
-// by the tunnel
+// pointer in the other memory space
     ForkWrapper *real_fork;
-    ForkWrapper *tunnel;
+// address of the real filefork
+    struct sockaddr_in child_addr;
 
 // undefined on the parent
 // updated by read_command on the child

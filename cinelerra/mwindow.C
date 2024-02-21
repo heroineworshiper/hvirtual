@@ -1737,7 +1737,7 @@ void MWindow::init_fileserver()
 {
 #ifdef USE_FILEFORK
 	file_server = new FileServer;
-	file_server->start();
+	file_server->start(0);
 #endif
 }
 

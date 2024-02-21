@@ -56,17 +56,24 @@ int FileServer::handle_command()
 		case NEW_FILEFORK:
 		{
 			FileFork *file_fork = new FileFork;
-			file_fork->start();
-			unsigned char buffer[sizeof(FileFork*) + sizeof(int)];
+			file_fork->start(1);
+            
+            int size = sizeof(FileFork*) + sizeof(int) + sizeof(struct sockaddr_in);
+			unsigned char buffer[size];
+            int offset = 0;
+
 // store the pointer in this memory space
-			*(FileFork**)buffer = file_fork;
-			*(int*)(buffer + sizeof(FileFork*)) = file_fork->pid;
+			*(ForkWrapper**)buffer = file_fork;
+            offset += sizeof(ForkWrapper*);
+            *(int*)(buffer + offset) = file_fork->pid;
+            offset += sizeof(int);
+			*(struct sockaddr_in*)(buffer + offset) = file_fork->child_addr;
 
 			if(debug) printf("FileServer::handle_command NEW_FILEFORK %d parent_fd=%d file_fork=%p\n",
 				__LINE__,
 				file_fork->parent_fd,
 				file_fork);
-			send_result(0, buffer, sizeof(FileFork*) + sizeof(int));
+			send_result(0, buffer, size);
 			break;
 		}
 
@@ -95,9 +102,14 @@ FileFork* FileServer::new_filefork()
 	send_command(FileServer::NEW_FILEFORK, 0, 0);
 	read_result();
 
+    int offset = 0;
     ForkWrapper *real_fork = *(ForkWrapper**)result_data;
-    int pid = *(int*)(result_data + sizeof(FileFork*));
-    dummy_fork->setup_dummy(real_fork, this, pid);
+    offset += sizeof(ForkWrapper*);
+    int pid = *(int*)(result_data + offset);
+    offset += sizeof(int);
+    struct sockaddr_in *child_addr = (struct sockaddr_in*)(result_data + offset);
+
+    dummy_fork->setup_dummy(real_fork, pid, child_addr);
 // printf("FileServer::new_filefork %d this=%p parent_fd=%d dummy_fork=%p real_fork=%p\n",
 // __LINE__,
 // this,

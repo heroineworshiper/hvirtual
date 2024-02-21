@@ -2166,7 +2166,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 	const int debug = 0;
 
 	ffmpeg_lock->lock("FileFFMPEG::read_frame 1");
-	
+
 	
 	FileFFMPEGStream *stream = video_streams.get(0);
 	if(debug) printf("FileFFMPEG::read_frame %d stream=%p stream->ffmpeg_file_contex=%p\n", 

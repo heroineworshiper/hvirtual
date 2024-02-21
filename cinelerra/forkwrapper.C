@@ -25,6 +25,7 @@
 #include "forkwrapper.h"
 #include "mutex.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -32,7 +33,7 @@
 #include <sys/un.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
+#include <netinet/tcp.h>
 
 
 
@@ -46,8 +47,8 @@ ForkWrapper::ForkWrapper()
     result_value = RESULT_UNDEFINED;
 	result_data = 0;
 	result_allocated = 0;
-	parent_fd = 0;
-	child_fd = 0;
+	parent_fd = -1;
+	child_fd = -1;
 	pid = 0;
 	is_dummy = 0;
     lock = new Mutex("ForkWrapper::lock");
@@ -66,8 +67,8 @@ ForkWrapper::~ForkWrapper()
 //    PRINT_TRACE
 
 	delete [] command_data;
-	if(parent_fd) close(parent_fd);
-	if(child_fd) close(child_fd);
+	if(parent_fd >= 0) close(parent_fd);
+	if(child_fd >= 0) close(child_fd);
 	delete lock;
 }
 
@@ -76,13 +77,37 @@ void ForkWrapper::set_title(const char *title)
     this->title = title;
 }
 
-void ForkWrapper::start()
+void ForkWrapper::start(int use_dummy)
 {
-// Create the process & socket pair.
-	int sockets[2];
-	socketpair(AF_UNIX, SOCK_STREAM, 0, sockets);
-	parent_fd = sockets[0];
-	child_fd = sockets[1];
+// Create the process & child socket.
+	child_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int flag = 1;
+    setsockopt(child_fd, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int));
+
+    struct sockaddr_in parent_addr;
+    socklen_t addrlen = sizeof(child_addr);
+    bzero(&child_addr, addrlen);
+// Bind to any available interface
+    child_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+// Let the OS choose an ephemeral port
+    child_addr.sin_port = 0;
+
+    if (bind(child_fd, (struct sockaddr *)&child_addr, addrlen) < 0) {
+        printf("ForkWrapper::start %d: bind failed %s\n", 
+            __LINE__, 
+            strerror(errno));
+        close(child_fd);
+        child_fd = -1;
+        return;
+    }
+
+// Get the port number assigned by the OS
+    getsockname(child_fd, (struct sockaddr *)&child_addr, &addrlen);
+
+// create a temporary pipe to wait for the listen call before connecting
+    int temp_pipe[2];
+    int _ = pipe(temp_pipe);
+
 // printf("ForkWrapper::start %d this=%p parent_fd=%d child_fd=%d\n", 
 // __LINE__, 
 // this,
@@ -94,18 +119,45 @@ void ForkWrapper::start()
 // Child process
 	if(!pid)
 	{
-//printf("ForkWrapper::start %d CHILD %s child_fd=%d pid=%d\n", 
-//__LINE__, title, child_fd, getpid());
-
 		BC_Signals::reset_locks();
+
+// wait for the parent to connect
+        listen(child_fd, 1);
+// notify parent we're listening
+        uint8_t temp[1];
+        temp[0] = 0xff;
+        int _ = write(temp_pipe[1], temp, 1);
+
+        child_fd = accept(child_fd, 
+            (struct sockaddr *) &parent_addr,
+            &addrlen);
+        close(temp_pipe[0]);
+        close(temp_pipe[1]);
+// handshake complete
+
+// printf("ForkWrapper::start %d CHILD %s child_fd=%d pid=%d\n", 
+// __LINE__, title, child_fd, getpid());
 		init_child();
 		child_loop();
 		exit(0);
 	}
     else
     {
-//printf("ForkWrapper::start %d PARENT %s parent_fd=%d pid=%d\n", 
-//__LINE__, title, parent_fd, pid);
+// wait until the child starts
+// printf("ForkWrapper::start %d PARENT %s parent_fd=%d pid=%d\n", 
+// __LINE__, title, parent_fd, pid);
+        uint8_t temp[1];
+        int _ = read(temp_pipe[0], temp, 1);
+        close(temp_pipe[0]);
+        close(temp_pipe[1]);
+// handshake complete
+//printf("ForkWrapper::start %d child started\n", __LINE__);
+
+// parent process
+        if(!use_dummy)
+        {
+            connect_parent_fd();
+        }
     }
 }
 
@@ -114,6 +166,26 @@ void ForkWrapper::stop()
 	send_command(EXIT_CODE, 
 		0,
 		0);
+}
+
+void ForkWrapper::connect_parent_fd()
+{
+    socklen_t addrlen = sizeof(child_addr);
+    parent_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int flag = 1;
+    setsockopt(parent_fd, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int));
+// printf("ForkWrapper::connect_parent_fd %d: port=%d\n", 
+// __LINE__, 
+// child_addr.sin_port);
+    if(connect(parent_fd, (struct sockaddr*)&child_addr, addrlen) < 0)
+    {
+        printf("ForkWrapper::connect_parent_fd() %d: connect failed %s\n", 
+            __LINE__, 
+            strerror(errno));
+        close(parent_fd);
+        parent_fd = -1;
+        return;
+    }
 }
 
 void ForkWrapper::init_child()
@@ -161,35 +233,6 @@ void ForkWrapper::child_loop()
 // handle special commands
             switch(command_token)
             {
-                case FORWARD_COMMAND:
-                {
-//printf("ForkWrapper::child_loop %d FORWARD_COMMAND this=%p\n", __LINE__, this);
-// forward a command to a fork in the tunnel memory space
-                    ForkWrapper *real_fork = *(ForkWrapper**)command_data;
-                    uint8_t *wrapped_data = command_data + sizeof(ForkWrapper*);
-                    int wrapped_bytes = command_bytes - sizeof(ForkWrapper*);
-
-// Don't forward certain wrapped commands.  Just read a result code.
-// The tunnel stays locked & the dummy send_command blocks until we get a response.
-                    int wrapped_command = *(int*)wrapped_data;
-                    if(wrapped_command != READ_RESULT)
-                    {
-                        int temp = write(real_fork->parent_fd, wrapped_data, wrapped_bytes);
-                    }
-
-// read result from the real fork
-                    real_fork->read_result();
-// send result to the tunnel
-                    send_result(real_fork->result_value, 
-                        real_fork->result_data, 
-                        real_fork->result_bytes);
-//printf("ForkWrapper::child_loop %d FORWARD_COMMAND this=%p result=%d\n", 
-//__LINE__,
-//this,
-//(int)real_fork->result_value);
-                    break;
-                }
-
 // read a result code outside a dummy ForkWrapper
                 case READ_RESULT:
                     break;
@@ -221,47 +264,8 @@ int ForkWrapper::send_command(int token,
 	*(int*)(header + 0) = token;
 	*(int*)(header + sizeof(int)) = bytes;
 
-    if(is_dummy)
-    {
-// wrap it in a command to the tunnel
-        uint8_t wrapper_header[sizeof(int) * 2];
-        int wrapped_bytes = sizeof(ForkWrapper*) + sizeof(header) + bytes;
-        *(int*)(wrapper_header) = FORWARD_COMMAND;
-        *(int*)(wrapper_header + sizeof(int)) = wrapped_bytes;
-
-        uint8_t wrapper_buffer[sizeof(ForkWrapper*)];
-        *(ForkWrapper**)wrapper_buffer = real_fork;
-        
-
-        tunnel->lock->lock("ForkWrapper::send_command");
-
-        int temp = write(tunnel->parent_fd, wrapper_header, sizeof(wrapper_header));
-        temp = write(tunnel->parent_fd, wrapper_buffer, sizeof(wrapper_buffer));
-        temp = write(tunnel->parent_fd, header, sizeof(header));
-        if(data && bytes) temp = write(tunnel->parent_fd, data, bytes);
-
-// copy the response from the tunnel to this dummy
-        tunnel->read_result();
-        result_value = tunnel->result_value;
-        result_bytes = tunnel->result_bytes;
-        if(result_bytes > 0)
-        {
-            if(result_allocated < result_bytes)
-            {
-                delete [] result_data;
-                result_data = new unsigned char[result_bytes];
-                result_allocated = result_bytes;
-            }
-            memcpy(result_data, tunnel->result_data, result_bytes);
-        }
-
-        tunnel->lock->unlock();
-    }
-    else
-    {
-    	int temp = write(parent_fd, header, sizeof(header));
-	    if(data && bytes) temp = write(parent_fd, data, bytes);
-    }
+    int temp = write(parent_fd, header, sizeof(header));
+	if(data && bytes) temp = write(parent_fd, data, bytes);
 	return 0;
 }
 
@@ -371,12 +375,6 @@ int ForkWrapper::read_timeout(int fd, unsigned char *data, int size)
 
 int64_t ForkWrapper::read_result()
 {
-    if(is_dummy)
-    {
-// return values populated by send_command
-        return result_value;
-    }
-
 	unsigned char buffer[sizeof(int64_t) + sizeof(int)];
 //printf("ForkWrapper::read_result %d parent_fd=%d\n", __LINE__, parent_fd);
 
@@ -464,12 +462,15 @@ int ForkWrapper::child_running()
 	}
 }
 
-void ForkWrapper::setup_dummy(ForkWrapper *real_fork, ForkWrapper *tunnel, int pid)
+void ForkWrapper::setup_dummy(ForkWrapper *real_fork, 
+    int pid, 
+    struct sockaddr_in *child_addr)
 {
     this->is_dummy = 1;
-    this->tunnel = tunnel;
+    this->child_addr = *child_addr;
 	this->real_fork = real_fork;
     this->pid = pid;
+    connect_parent_fd();
 }
 
 

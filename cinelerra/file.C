@@ -541,7 +541,7 @@ int File::open_file(Preferences *preferences,
                     const char *title = (const char *)file_fork->result_data + sizeof(int64_t);
                     start_progress(title, total);
 // read the next result code through the FileServer tunnel
-                    file_fork->send_command(READ_RESULT, 0, 0);
+//                    file_fork->send_command(READ_RESULT, 0, 0);
                     break;
                 }
                 
@@ -550,7 +550,7 @@ int File::open_file(Preferences *preferences,
                     int64_t value = *(int64_t*)file_fork->result_data;
                     update_progress(value);
 // read the next result code through the FileServer tunnel
-                    file_fork->send_command(READ_RESULT, 0, 0);
+//                    file_fork->send_command(READ_RESULT, 0, 0);
                     break;
                 }
 
@@ -559,7 +559,7 @@ int File::open_file(Preferences *preferences,
                     const char *title = (const char *)file_fork->result_data;
                     update_progress_title(title);
 // read the next result code through the FileServer tunnel
-                    file_fork->send_command(READ_RESULT, 0, 0);
+//                    file_fork->send_command(READ_RESULT, 0, 0);
                     break;
                 }
 
@@ -577,7 +577,7 @@ int File::open_file(Preferences *preferences,
                     const char *title = (const char *)file_fork->result_data;
                     stop_progress(title);
 // read the next result code through the FileServer tunnel
-                    file_fork->send_command(READ_RESULT, 0, 0);
+//                    file_fork->send_command(READ_RESULT, 0, 0);
                     break;
                 }
             }
