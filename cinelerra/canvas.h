@@ -319,14 +319,7 @@ public:
 
 	void create_objects();
 
-	Canvas *canvas;
-};
-
-class CanvasSubWindowItem : public BC_MenuItem
-{
-public:
-	CanvasSubWindowItem(Canvas *canvas);
-	int handle_event();
+    CanvasFPS *show_fps;
 	Canvas *canvas;
 };
 
@@ -341,6 +334,14 @@ public:
 	Canvas *canvas;
 	CanvasToggleControls *toggle_controls;
 	CanvasFPS *show_fps;
+};
+
+class CanvasSubWindowItem : public BC_MenuItem
+{
+public:
+	CanvasSubWindowItem(Canvas *canvas);
+	int handle_event();
+	Canvas *canvas;
 };
 
 class CanvasPopupSize : public BC_MenuItem

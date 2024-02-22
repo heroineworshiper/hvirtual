@@ -26,7 +26,7 @@
 #include "language.h"
 #include "clip.h"
 #include "samples.h"
-
+#include "theme.h"
 #include "vframe.h"
 
 #include <string.h>
@@ -65,14 +65,16 @@ void ClipConfig::interpolate(ClipConfig &prev,
 
 
 
+#define WINDOW_W DP(230)
+#define WINDOW_H DP(60)
 
 
 ClipWindow::ClipWindow(Clip *plugin)
  : PluginClientWindow(plugin, 
-	DP(230), 
-	DP(60), 
-	DP(230), 
-	DP(60), 
+	WINDOW_W, 
+	WINDOW_H, 
+	WINDOW_W, 
+	WINDOW_H, 
 	0)
 {
 	this->plugin = plugin;
@@ -84,9 +86,11 @@ ClipWindow::~ClipWindow()
 
 void ClipWindow::create_objects()
 {
-	int x = DP(10), y = DP(10);
-	add_tool(new BC_Title(DP(5), y, _("Level:")));
-	y += DP(20);
+	int margin = plugin->get_theme()->widget_border;
+	int x = margin, y = margin;
+    BC_Title *title;
+	add_tool(title = new BC_Title(x, y, _("Level:")));
+	y += margin + title->get_h();
 	add_tool(level = new ClipLevel(plugin, x, y));
 	show_window();
 }
@@ -102,8 +106,8 @@ ClipLevel::ClipLevel(Clip *plugin, int x, int y)
  : BC_FSlider(x, 
  	y, 
 	0,
-	DP(200),
-	DP(200),
+	WINDOW_W - plugin->get_theme()->widget_border * 2,
+	WINDOW_W - plugin->get_theme()->widget_border * 2,
 	INFINITYGAIN, 
 	0.0,
 	plugin->config.level)

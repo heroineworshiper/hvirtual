@@ -862,10 +862,19 @@ int Canvas::button_press_event()
 	if(get_canvas()->get_buttonpress() == 3)
 	{
 		if(get_fullscreen())
+        {
+            fullscreen_menu->show_fps->set_text(
+                CanvasFPS::calculate_text(MWindow::preferences->show_fps));
 			fullscreen_menu->activate_menu();
-		else
-			canvas_menu->activate_menu();
-		result = 1;
+		}
+        else
+		{
+            canvas_menu->show_fps->set_text(
+                CanvasFPS::calculate_text(MWindow::preferences->show_fps));
+        	canvas_menu->activate_menu();
+		}
+        
+        result = 1;
 	}
 
 	return result;
@@ -1276,7 +1285,7 @@ void CanvasFullScreenPopup::create_objects()
 	if(canvas->use_cwindow)
     {
         add_item(new CanvasPopupAuto(canvas));
-        add_item(new CanvasFPS(canvas));
+        add_item(show_fps = new CanvasFPS(canvas));
     }
 	add_item(new CanvasSubWindowItem(canvas));
 }
