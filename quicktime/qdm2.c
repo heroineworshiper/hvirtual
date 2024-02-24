@@ -150,8 +150,8 @@ static int decode(quicktime_t *file,
 
 		if(frma->data && frma->data_size)
 		{
-			context->extradata = frma->data;
-			context->extradata_size = frma->data_size;
+			context->extradata = frma->data + 4;
+			context->extradata_size = frma->data_size - 4;
 		}
 
 		if(file->cpus > 1)

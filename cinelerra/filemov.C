@@ -1173,9 +1173,12 @@ int FileMOV::read_frame(VFrame *frame)
             match4(asset->vcodec, QUICKTIME_XVID))
         {
 // the ffmpeg decoder doesn't do colorspace conversion
+//printf("FileMOV::read_frame %d\n", __LINE__);
+
 			result = quicktime_decode_video(fd, 
 				0,
 				file->current_layer);
+//printf("FileMOV::read_frame %d\n", __LINE__);
             if(!result)
             {
                 int colormodel;

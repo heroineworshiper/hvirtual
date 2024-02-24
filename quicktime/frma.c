@@ -13,9 +13,12 @@ int quicktime_read_frma(quicktime_t *file,
 	quicktime_atom_t *leaf_atom,
 	quicktime_frma_t *frma)
 {
-	frma->data_size = leaf_atom->size - 8;
+// Extra data for QDM2 has to include the entire stsd table
+//	frma->data_size = leaf_atom->size - 8;
+    frma->data_size = parent_atom->size - 8;
+	quicktime_set_position(file, parent_atom->start + 8);
 	frma->data = calloc(1, frma->data_size + 1024);
-//	quicktime_set_position(file, parent_atom->start + 12);
+
 	quicktime_read_data(file, 
 		frma->data, 
 		frma->data_size);
@@ -38,7 +41,7 @@ int quicktime_read_frma(quicktime_t *file,
  * frma->data[6], 
  * frma->data[7]);
  */
-//	quicktime_atom_skip(file, parent_atom);
+	quicktime_atom_skip(file, parent_atom);
 	return 0;
 }
 

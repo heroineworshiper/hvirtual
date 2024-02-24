@@ -2178,7 +2178,9 @@ int File::read_frame(VFrame *frame,
 		else
 		{
 // Can't advance position here because it needs to be added to the cache
+        	if(debug) PRINT_TRACE
 			file->read_frame(frame);
+        	if(debug) PRINT_TRACE
 
 		    if(use_cache) 
             {

@@ -349,7 +349,35 @@ void FileFFMPEGStream::append_history(void *frame2, int len)
 				}
 				break;
 			}
-			
+
+			case AV_SAMPLE_FMT_S32:
+			{
+				int32_t *input = (int32_t*)frame->data[0];
+				for(int j = 0; j < len; j++)
+				{
+					*output++ = (double)input[j * channels + i] / 0x7fffffff;
+                    if(output >= output_end)
+                    {
+                        output = pcm_history[i];
+                    }
+				}
+				break;
+			}
+
+			case AV_SAMPLE_FMT_FLT:
+			{
+				float *input = (float*)frame->data[0];
+				for(int j = 0; j < len; j++)
+				{
+					*output++ = input[j * channels + i];
+                    if(output >= output_end)
+                    {
+                        output = pcm_history[i];
+                    }
+				}
+				break;
+			}
+
 			case AV_SAMPLE_FMT_S16P:
 			{
 				int16_t *input = (int16_t*)frame->data[i];

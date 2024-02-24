@@ -951,8 +951,7 @@ ffmpeg->last_frame[current_field]);
 // picture_y,
 // input_cmodel,
 // file->color_model);
-// printf("quicktime_ffmpeg_decode %d\n", 
-// __LINE__);
+//printf("quicktime_ffmpeg_decode %d\n", __LINE__);
 
 	return result;
 }

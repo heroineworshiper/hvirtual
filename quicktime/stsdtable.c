@@ -60,6 +60,7 @@ static void read_wave(quicktime_t *file,
 		else
 		if(quicktime_atom_is(&leaf_atom, "frma"))
 		{
+// Extra data for QDM2
 			quicktime_read_frma(file, table, parent_atom, &leaf_atom, &table->frma);
 		}
 		else
