@@ -396,8 +396,16 @@ if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 			if(mpeg3_total_vstreams(fd))
 			{
+                if(file->disable_toc_creation)
+                {
+                    if(asset->audio_data) asset->audio_length = NOSEEK_LENGTH;
+                    if(asset->video_data) asset->video_length = NOSEEK_LENGTH;
+                }
+                else
+                {
 if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
-				if(create_index()) return 1;
+    				if(create_index()) return 1;
+                }
 			}
 
 if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
@@ -412,7 +420,8 @@ if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 				}
 				if(!asset->sample_rate)
 					asset->sample_rate = mpeg3_sample_rate(fd, 0);
-				asset->audio_length = mpeg3_audio_samples(fd, 0);
+                if(asset->audio_length != NOSEEK_LENGTH)
+    				asset->audio_length = mpeg3_audio_samples(fd, 0);
 				if(!asset->channels || 
 					!asset->sample_rate)
 					result = 1;
@@ -423,7 +432,8 @@ if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 				asset->layers = mpeg3_total_vstreams(fd);
 				asset->width = mpeg3_video_width(fd, 0);
 				asset->height = mpeg3_video_height(fd, 0);
-				asset->video_length = mpeg3_video_frames(fd, 0);
+                if(asset->video_length != NOSEEK_LENGTH)
+    				asset->video_length = mpeg3_video_frames(fd, 0);
 				asset->vmpeg_cmodel = 
 					(mpeg3_colormodel(fd, 0) == MPEG3_YUV422P) ? MPEG_YUV422 : MPEG_YUV420;
 				if(!asset->frame_rate)
