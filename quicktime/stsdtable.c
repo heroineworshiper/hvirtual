@@ -54,18 +54,49 @@ static void read_wave(quicktime_t *file,
 		quicktime_atom_read_header(file, &leaf_atom);
 		if(quicktime_atom_is(&leaf_atom, "esds"))
 		{
-			quicktime_read_esds(file, &leaf_atom, &table->esds);
+// elementary stream data for MP4A
+			quicktime_read_esds(file, table, &leaf_atom, &table->esds);
 		}
 		else
 		if(quicktime_atom_is(&leaf_atom, "frma"))
 		{
-// Extra data for QDM2
-			quicktime_read_frma(file, parent_atom, &leaf_atom, &table->frma);
+			quicktime_read_frma(file, table, parent_atom, &leaf_atom, &table->frma);
 		}
 		else
 			quicktime_atom_skip(file, &leaf_atom);
 	}
 }
+
+static void read_dac3(quicktime_t *file, 
+	quicktime_stsd_table_t *table, 
+	quicktime_atom_t *leaf_atom, 
+    quicktime_dac3_t *dac3)
+{
+	dac3->data_size = leaf_atom->size - 8;
+	dac3->data = calloc(1, dac3->data_size + 1024);
+    quicktime_read_data(file, 
+		dac3->data, 
+		dac3->data_size);
+
+// from mov_read_dac3
+    int ac3info, acmod, lfeon, bsmod;
+    ac3info = (table->dac3.data[0] << 16) |
+        (table->dac3.data[1] << 8) |
+        (table->dac3.data[0]);
+    bsmod = (ac3info >> 14) & 0x7;
+    acmod = (ac3info >> 11) & 0x7;
+    lfeon = (ac3info >> 10) & 0x1;
+    table->channels = 0;
+    if(lfeon) table->channels++;
+// from a52dec-0.7.3/include/a52.h
+    const int channel_counts[] = {
+        1, 1, 2, 3, 3, 4, 4, 5, 2
+    };
+    table->channels += channel_counts[acmod];
+// printf("quicktime_ffaudio_decode %d channels=%d\n", 
+// __LINE__, table->channels);
+}
+
 
 void quicktime_read_stsd_audio(quicktime_t *file, 
 	quicktime_stsd_table_t *table, 
@@ -140,9 +171,15 @@ void quicktime_read_stsd_audio(quicktime_t *file,
 
 			if(quicktime_atom_is(&leaf_atom, "esds"))
 			{
-				quicktime_read_esds(file, &leaf_atom, &table->esds);
+				quicktime_read_esds(file, table, &leaf_atom, &table->esds);
 			}
 			else
+            if(quicktime_atom_is(&leaf_atom, "dac3"))
+            {
+// AC3 header
+                read_dac3(file, table, &leaf_atom, &table->dac3);
+            }
+            else
 			{
 // printf("quicktime_read_stsd_audio %d %s\n", 
 // __LINE__, 
@@ -152,9 +189,6 @@ void quicktime_read_stsd_audio(quicktime_t *file,
 		}
     }
 
-// FFMPEG says the esds sometimes contains a sample rate that overrides
-// the sample table.
-	quicktime_esds_samplerate(table, &table->esds);
 }
 
 void quicktime_write_stsd_audio(quicktime_t *file, quicktime_stsd_table_t *table)
@@ -236,7 +270,7 @@ void quicktime_read_stsd_video(quicktime_t *file,
 
 		if(quicktime_atom_is(&leaf_atom, "esds"))
 		{
-			quicktime_read_esds(file, &leaf_atom, &table->esds);
+			quicktime_read_esds(file, table, &leaf_atom, &table->esds);
 		}
 		else
 // TODO: consolidate these into a common mpeg4 header
@@ -433,6 +467,8 @@ void quicktime_stsd_table_delete(quicktime_stsd_table_t *table)
 	quicktime_delete_avcc(&(table->avcc));
 	quicktime_delete_esds(&(table->esds));
 	quicktime_delete_frma(&(table->frma));
+    if(table->dac3.data)
+        free(table->dac3.data);
 	
 }
 
@@ -486,6 +522,14 @@ void quicktime_stsd_audio_dump(quicktime_stsd_table_t *table)
 	quicktime_esds_dump(&table->esds);
 	quicktime_avcc_dump(&table->avcc);
 	quicktime_frma_dump(&table->frma);
+    if(table->dac3.data)
+    {
+        printf("       DAC3 data=");
+        int i;
+        for(i = 0; i < table->dac3.data_size; i++)
+			printf("%02x ", (unsigned char)table->dac3.data[i]);
+		printf("\n");
+    }
 }
 
 void quicktime_stsd_table_dump(void *minf_ptr, quicktime_stsd_table_t *table)

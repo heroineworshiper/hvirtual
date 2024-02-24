@@ -169,6 +169,14 @@ typedef struct
 	int data_size;
 } quicktime_frma_t;
 
+
+typedef struct
+{
+	char *data;
+	int data_size;
+} quicktime_dac3_t;
+
+
 typedef struct
 {
 	char format[4];
@@ -217,6 +225,7 @@ typedef struct
 	quicktime_esds_t esds;
 	quicktime_avcc_t avcc;
 	quicktime_frma_t frma;
+    quicktime_dac3_t dac3;
 } quicktime_stsd_table_t;
 
 

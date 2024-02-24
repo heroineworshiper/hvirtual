@@ -3,6 +3,11 @@
 
 #include "faac.h"
 
+
+// obsolete mp4a using faad.  The faad decoding is now an option
+// in mp4a.c.qtffmpeg
+
+
 // The FAAD includes redefine the same symbols as if they're not intended to
 // be used by the same program.
 #undef MAIN
@@ -89,6 +94,8 @@ static int mp4a_decode(quicktime_t *file,
 	int64_t end_position = current_position + samples;
 	quicktime_vbr_t *vbr = &track_map->vbr;
     int i;
+
+//printf("mp4a_decode %d\n", __LINE__);
 
 // Initialize decoder
 	if(!codec->decoder_initialized)
@@ -522,6 +529,11 @@ void quicktime_init_codec_mp4a(quicktime_audio_map_t *atrack)
 	codec->quantizer_quality = 100;
 }
 
+
+void quicktime_init_codec_opus(quicktime_audio_map_t *atrack)
+{
+
+}
 
 
 

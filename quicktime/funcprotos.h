@@ -203,6 +203,7 @@ void quicktime_finalize_hdrl(quicktime_t *file, quicktime_hdrl_t *hdrl);
 
 void quicktime_delete_esds(quicktime_esds_t *esds);
 void quicktime_read_esds(quicktime_t *file, 
+    quicktime_stsd_table_t *table, 
 	quicktime_atom_t *parent_atom, 
 	quicktime_esds_t *esds);
 void quicktime_write_esds(quicktime_t *file, 
@@ -234,6 +235,7 @@ void quicktime_set_avcc_header(quicktime_avcc_t *avcc,
 
 void quicktime_delete_frma(quicktime_frma_t *frma);
 int quicktime_read_frma(quicktime_t *file, 
+    quicktime_stsd_table_t *table, 
 	quicktime_atom_t *parent_atom,
 	quicktime_atom_t *leaf_atom,
 	quicktime_frma_t *frma);

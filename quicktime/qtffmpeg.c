@@ -1018,22 +1018,14 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 			avcodec_alloc_context3(ffaudio->decoder);
         quicktime_stsd_table_t *stsd = &trak->mdia.minf.stbl.stsd.table[0];
         quicktime_esds_t *esds = &stsd->esds;
-// Always use container parameters
-//         if(esds->got_esds_rate)
-//         {
-//     		ffaudio->decoder_context->sample_rate = esds->sample_rate;
-// 	    	ffaudio->decoder_context->channels = esds->channels;
-// 		}
-//         else
-        {
-            ffaudio->decoder_context->sample_rate = stsd->sample_rate;
-    		ffaudio->decoder_context->channels = stsd->channels;
-        }
+        quicktime_dac3_t *dac3 = &stsd->dac3;
+        ffaudio->decoder_context->sample_rate = stsd->sample_rate;
+    	ffaudio->decoder_context->channels = stsd->channels;
 
 //        ffaudio->decoder_context->profile = FF_PROFILE_AAC_HE;
 
 
-//printf("quicktime_new_ffmpeg %d %d %d %d %d\n", 
+//printf("quicktime_ffaudio_decode %d %d %d %d %d\n", 
 //__LINE__, esds->got_esds_rate, esds->channels, stsd->channels, esds->mpeg4_header_size);
 
 		if(esds->mpeg4_header && esds->mpeg4_header_size) 
@@ -1070,9 +1062,11 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 		AVPacket *packet = av_packet_alloc();
         packet->data = quicktime_vbr_input(vbr);
         packet->size = quicktime_vbr_input_size(vbr);
-// printf("quicktime_ffaudio_decode %d ", __LINE__);
-// quicktime_print_buffer("", packet->data, packet->size);
+// printf("quicktime_ffaudio_decode %d size=%d ", __LINE__, packet->size);
+// #define MIN(x, y) ((x) < (y) ? (x) : (y))
+// quicktime_print_buffer("", packet->data, MIN(8, packet->size));
 // printf("\n");
+
         int result = avcodec_send_packet(ffaudio->decoder_context, packet);
 		av_packet_free(&packet);
 

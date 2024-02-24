@@ -1106,13 +1106,27 @@ int quicktime_init_audio_map(quicktime_t *file,
 	atrack->track = trak;
 	atrack->channels = stsd->channels;
 // STSD & ESDS have different values
-    if(esds->got_esds_rate)
-    {
-        atrack->channels = esds->channels;
-    }
+//     if(esds->got_esds_rate)
+//     {
+//         atrack->channels = esds->channels;
+//     }
 	atrack->current_position = 0;
 	atrack->current_chunk = 1;
 	quicktime_init_acodec(atrack);
+
+// convert STTS table to the samplerate instead of the time scale
+    quicktime_stts_t *stts = &trak->mdia.minf.stbl.stts;
+    quicktime_mdhd_t *mdhd = &trak->mdia.mdhd;
+    if(mdhd->time_scale != (int)stsd->sample_rate)
+    {
+        float ratio = stsd->sample_rate / mdhd->time_scale;
+        int i;
+		for(i = 0; i < stts->total_entries; i++)
+		{
+			stts->table[i].sample_duration = 
+                (int)(stts->table[i].sample_duration * ratio);
+		}
+    }
 
 
 	return 0;
@@ -1137,7 +1151,6 @@ void quicktime_init_maps(quicktime_t *file)
 		while(!file->moov.trak[track]->mdia.minf.is_audio)
 			track++;
 		quicktime_init_audio_map(file, &(file->atracks[i]), file->moov.trak[track]);
-
 
         
 /* Read some audio to fix broken headers */

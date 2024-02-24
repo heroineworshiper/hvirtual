@@ -463,9 +463,14 @@ int64_t quicktime_sample_range_size(quicktime_trak_t *trak,
 	quicktime_stsz_table_t *table = trak->mdia.minf.stbl.stsz.table;
 	int64_t i, total;
 
+// printf("quicktime_sample_range_size %d trak=%p sample_size=%d total_entries=%d\n", 
+// __LINE__,
+// trak,
+// (int)trak->mdia.minf.stbl.stsz.sample_size,
+// (int)trak->mdia.minf.stbl.stsz.total_entries);
 	if(trak->mdia.minf.stbl.stsz.sample_size)
 	{
-/* assume audio */
+/* uncompressed audio */
 		return quicktime_samples_to_bytes(trak, sample - chunk_sample);
 	}
 	else

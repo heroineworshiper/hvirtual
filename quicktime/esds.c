@@ -21,33 +21,137 @@ void quicktime_delete_esds(quicktime_esds_t *esds)
 	if(esds->mpeg4_header) free(esds->mpeg4_header);
 }
 
-void quicktime_esds_samplerate(quicktime_stsd_table_t *table, 
+static uint32_t get_bits(uint64_t *data, int *remane, int count)
+{
+    uint32_t result = 0;
+    int i;
+    for(i = 0; i < count; i++)
+    {
+        result <<= 1;
+        if((*data & (((uint64_t)1) << 63)))
+            result |= 1;
+        *data <<= 1;
+    }
+    *remane -= count;
+    return result;
+}
+
+static uint32_t show_bits(uint64_t data, int count)
+{
+    uint32_t result = 0;
+    int i;
+    for(i = 0; i < count; i++)
+    {
+        result <<= 1;
+        if((data & (((uint64_t)1) << 63)))
+            result |= 1;
+        data <<= 1;
+    }
+    return result;
+}
+
+
+#define AOT_ESCAPE 28
+#define AOT_SBR 5
+#define AOT_PS 26
+#define AOT_ER_BSAC 19
+#define AOT_ALS 33
+
+static int get_object_type(uint64_t *bits, int *remane)
+{
+    int object_type = get_bits(bits, remane, 5);
+    if (object_type == AOT_ESCAPE)
+        object_type = 32 + get_bits(bits, remane, 6);
+    return object_type;
+}
+
+static int samplerate_table[] = 
+{
+     96000, 88200, 64000, 48000, 44100, 32000, 
+     24000, 22050, 16000, 12000, 11025, 8000, 
+     7350, 0, 0, 0
+};
+static int get_sample_rate(uint64_t *bits, int *remane, int *index)
+{
+    *index = get_bits(bits, remane, 4);
+    return *index == 0x0f ? get_bits(bits, remane, 24) :
+        samplerate_table[*index];
+}
+
+static void decode_mp4a_config(quicktime_stsd_table_t *table, 
 	quicktime_esds_t *esds)
 {
-//printf("quicktime_esds_samplerate %d\n", __LINE__);
-// Straight out of ffmpeg
 	if(esds->mpeg4_header_size > 1 &&
 		quicktime_match_32(table->format, QUICKTIME_MP4A))
 	{
-//printf("quicktime_esds_samplerate %d\n", __LINE__);
-		static int samplerate_table[] = 
-		{
-             96000, 88200, 64000, 48000, 44100, 32000, 
-             24000, 22050, 16000, 12000, 11025, 8000, 
-             7350, 0, 0, 0
-        };
-
+// Straight out of ff_mpeg4audio_get_config_gb
+// some bits have been left out
 		unsigned char *ptr = esds->mpeg4_header;
-		int samplerate_index = ((ptr[0] & 7) << 1) + ((ptr[1] >> 7) & 1);
-		esds->channels = (ptr[1] >> 3) & 0xf;
-		esds->sample_rate = 
-			samplerate_table[samplerate_index];
+        uint64_t bits = (((uint64_t)ptr[0]) << 56) |
+            (((uint64_t)ptr[1]) << 48) |
+            (((uint64_t)ptr[2]) << 40) |
+            (((uint64_t)ptr[3]) << 32) |
+            (((uint64_t)ptr[4]) << 24) |
+            (((uint64_t)ptr[5]) << 16) |
+            (((uint64_t)ptr[6]) << 8) |
+            (((uint64_t)ptr[7]));
+        int remane = esds->mpeg4_header_size * 8;
+        int object_type = get_object_type(&bits, &remane);
+        int samplerate_index;
+        esds->sample_rate = get_sample_rate(&bits, &remane, &samplerate_index);
+        esds->channels = get_bits(&bits, &remane, 4);
+        int ext_object_type = 0;
+        int sbr = -1;
+
+// check for W6132 Annex YYYY draft MP3onMP4
+        if(object_type == AOT_SBR || (object_type == AOT_PS &&
+            !(show_bits(bits, 3) & 0x03 && !(show_bits(bits, 9) & 0x3F)))) 
+        {
+            ext_object_type = AOT_SBR;
+            esds->sample_rate = get_sample_rate(&bits, &remane, &samplerate_index);
+            object_type = get_object_type(&bits, &remane);
+            if (object_type == AOT_ER_BSAC)
+                esds->channels = get_bits(&bits, &remane, 4);
+        }
+        
+        if(object_type == AOT_ALS) {
+            printf("decode_mp4a_config %d AOT_ALS not implemented\n", __LINE__);
+        }
+
+// sync extension
+        if (ext_object_type != AOT_SBR) 
+        {
+            while (remane > 15) 
+            {
+                if (show_bits(bits, 11) == 0x2b7) 
+                {
+                    get_bits(&bits, &remane, 11);
+                    ext_object_type = get_object_type(&bits, &remane);
+                    if (ext_object_type == AOT_SBR && (sbr = get_bits(&bits, &remane, 1)) == 1) 
+                    {
+                        esds->sample_rate = get_sample_rate(&bits, &remane, &samplerate_index);
+                    }
+                    break;
+                } else
+                    get_bits(&bits, &remane, 1); // skip 1 bit
+            }
+        }
+
         esds->got_esds_rate = 1;
-// Faad decodes 1/2 the requested samplerate if the samplerate is <= 22050.
+// printf("quicktime_esds_samplerate %d samplerate_index=%d sample_rate=%d channels=%d\n", 
+// __LINE__, 
+// samplerate_index,
+// esds->sample_rate,
+// esds->channels);
+
+// override the stsd with the esds values
+        table->sample_rate = table->esds.sample_rate;
+        table->channels = table->esds.channels;
 	}
 }
 
 void quicktime_read_esds(quicktime_t *file, 
+    quicktime_stsd_table_t *table, 
 	quicktime_atom_t *parent_atom, 
 	quicktime_esds_t *esds)
 {
@@ -57,7 +161,10 @@ void quicktime_read_esds(quicktime_t *file,
 // flags
 	quicktime_read_int24(file);
 // elementary stream descriptor tag
-//printf("quicktime_read_esds %d\n", __LINE__);
+// printf("quicktime_read_esds %d format=%s size=%d\n", 
+// __LINE__, 
+// table->format,
+// (int)parent_atom->size);
 
 	if(quicktime_read_char(file) == 0x3)
 	{
@@ -66,7 +173,7 @@ void quicktime_read_esds(quicktime_t *file,
 		quicktime_read_int16(file);
 // stream priority
 		quicktime_read_char(file);
-// decoder configuration descripton tab
+// decoder configuration descripton tag
 		if(quicktime_read_char(file) == 0x4)
 		{
 			int len2 = decode_length(file);
@@ -96,7 +203,8 @@ void quicktime_read_esds(quicktime_t *file,
 				quicktime_read_data(file, 
 					esds->mpeg4_header, 
 					esds->mpeg4_header_size);
-
+                decode_mp4a_config(table, esds);
+    
 // skip rest
 				quicktime_atom_skip(file, parent_atom);
 				return;

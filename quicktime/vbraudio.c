@@ -125,7 +125,11 @@ int quicktime_read_vbr(quicktime_t *file,
 		vbr->input_allocation = new_allocation;
 	}
 
-//printf("quicktime_read_vbr %d sample offset=%ld sample size=%d\n", __LINE__, offset, size);
+// printf("quicktime_read_vbr %d sample=%d offset=0x%lx sample size=%d\n", 
+// __LINE__, 
+// (int)vbr->sample,
+// (long)offset, 
+// size);
 	quicktime_set_position(file, offset);
 	result = !quicktime_read_data(file, vbr->input_buffer + vbr->input_size, size);
 	vbr->input_size += size;

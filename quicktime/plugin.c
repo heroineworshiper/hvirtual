@@ -54,6 +54,7 @@ static void register_acodecs()
 	register_acodec(quicktime_init_codec_ima4);
 	register_acodec(quicktime_init_codec_mp4a);
 	register_acodec(quicktime_init_codec_opus);
+	register_acodec(quicktime_init_codec_ac3);
 	register_acodec(quicktime_init_codec_qdm2);
 	register_acodec(quicktime_init_codec_ulaw);
 
@@ -167,13 +168,21 @@ int quicktime_find_acodec(quicktime_audio_map_t *atrack)
 
 // For writing and reading Quicktime
 		if(quicktime_match_32(compressor, codec_base->fourcc))
-			return 0;
-		else
+		{
+//             printf("quicktime_find_acodec %d %s\n",
+//                 __LINE__,
+//                 compressor);
+        	return 0;
+		}
+        else
 // For reading AVI, sometimes the fourcc is 0 and the compression_id is used instead.
 // Sometimes the compression_id is the fourcc.
 		if((compressor[0] == 0 || compressor_int == codec_base->wav_id) && 
 			codec_base->wav_id == compression_id)
 		{
+//             printf("quicktime_find_acodec %d %s\n",
+//                 __LINE__,
+//                 compressor);
 			quicktime_copy_char32(compressor, codec_base->fourcc);
 			return 0;
 		}

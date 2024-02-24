@@ -389,6 +389,9 @@ int64_t quicktime_samples_to_bytes(quicktime_trak_t *track, long samples)
 	if(quicktime_match_32(compressor, QUICKTIME_ULAW)) 
 		return samples * channels;
 
+	if(quicktime_match_32(compressor, QUICKTIME_AC3)) 
+		return samples * track->mdia.minf.stbl.stsz.sample_size;
+
 /* Default use the sample size specification for TWOS and RAW */
 	return samples * channels * track->mdia.minf.stbl.stsd.table[0].sample_size / 8;
 }

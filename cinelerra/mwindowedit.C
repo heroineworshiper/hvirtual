@@ -2604,7 +2604,7 @@ void MWindow::undo_entry(BC_WindowBase *calling_window_gui)
 		0);
 	cwindow->playback_engine->interrupt_playback(0);
 
-printf("MWindow::undo_entry %d %d\n", __LINE__, vwindows.size());
+//printf("MWindow::undo_entry %d %d\n", __LINE__, vwindows.size());
 	for(int i = 0; i < vwindows.size(); i++)
 	{
 		if(vwindows.get(i)->is_running())
