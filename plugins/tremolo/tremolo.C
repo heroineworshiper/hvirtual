@@ -487,7 +487,7 @@ void TremoloWindow::param_updated()
 
 
 TremoloWaveForm::TremoloWaveForm(Tremolo *plugin, int x, int y, char *text)
- : BC_PopupMenu(x, y, DP(120), text)
+ : BC_PopupMenu(x, y, DP(180), text)
 {
     this->plugin = plugin;
 }

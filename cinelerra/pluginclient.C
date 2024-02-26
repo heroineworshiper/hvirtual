@@ -1062,9 +1062,25 @@ int PluginClient::get_use_opengl()
 	return server->get_use_opengl();
 }
 
+// Get information about the shared tracks for a GUI.
+// A hard idea with minimal value.
+// int PluginClient::get_total_tracks()
+// {
+// // Walk through the EDL to get shared tracks
+//     if(is_multichannel())
+//         return server->get_total_tracks();
+//     else
+//         return 1;
+// }
+// 
+// const char* PluginClient::get_track_title(int number)
+// {
+//     return server->get_track_title(number);
+// }
+
 int PluginClient::get_total_buffers()
 {
-	return total_in_buffers;
+    return total_in_buffers;
 }
 
 int PluginClient::get_buffer_size()

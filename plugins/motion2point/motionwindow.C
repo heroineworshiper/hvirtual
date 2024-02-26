@@ -169,7 +169,7 @@ void MotionWindow::create_objects()
 	add_subwindow(global_search_positions = new GlobalSearchPositions(plugin, 
 		x + title->get_w() + DP(10), 
 		y, 
-		DP(80)));
+		DP(150)));
 	global_search_positions->create_objects();
 
 	y += DP(30);
@@ -730,8 +730,8 @@ char* MasterLayer::to_text(int mode)
 int MasterLayer::calculate_w(MotionWindow *gui)
 {
 	int result = 0;
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(0)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(1)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(0)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(1)));
 	return result + 50;
 }
 
@@ -806,11 +806,11 @@ char* Action::to_text(int mode)
 int Action::calculate_w(MotionWindow *gui)
 {
 	int result = 0;
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::TRACK)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::TRACK_PIXEL)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::STABILIZE)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::STABILIZE_PIXEL)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::NOTHING)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::TRACK)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::TRACK_PIXEL)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::STABILIZE)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::STABILIZE_PIXEL)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::NOTHING)));
 	return result + 50;
 }
 
@@ -877,10 +877,10 @@ char* Calculation::to_text(int mode)
 int Calculation::calculate_w(MotionWindow *gui)
 {
 	int result = 0;
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::NO_CALCULATE)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::CALCULATE)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::SAVE)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(MotionScan::LOAD)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::NO_CALCULATE)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::CALCULATE)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::SAVE)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::LOAD)));
 	return result + 50;
 }
 
@@ -935,9 +935,9 @@ char* TrackingDirection::to_text(int horizontal_only, int vertical_only)
 int TrackingDirection::calculate_w(MotionWindow *gui)
 {
 	int result = 0;
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(1, 0)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(0, 1)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(0, 0)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(1, 0)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(0, 1)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(0, 0)));
 	return result + 50;
 }
 

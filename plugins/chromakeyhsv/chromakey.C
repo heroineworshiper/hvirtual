@@ -440,7 +440,7 @@ ChromaKeyUseColorPicker::handle_event ()
 
 
 ChromaKeyColorThread::ChromaKeyColorThread (ChromaKeyHSV * plugin, ChromaKeyWindow * gui)
- : ColorThread (1, _("Inner color"))
+ : ColorThread (0, _("Color"))
 {
 	this->plugin = plugin;
 	this->gui = gui;

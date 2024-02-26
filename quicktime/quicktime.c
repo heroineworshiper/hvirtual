@@ -265,7 +265,7 @@ int quicktime_set_audio(quicktime_t *file,
 			sample_rate, 
 			bits, 
 			compressor);
-		quicktime_init_audio_map(file, &(file->atracks[0]), trak);
+		quicktime_init_audio_map(file, 0, trak);
 		file->atracks[file->total_atracks].track = trak;
 		file->atracks[file->total_atracks].channels = channels;
 		file->atracks[file->total_atracks].current_position = 0;
@@ -1098,9 +1098,10 @@ void quicktime_cache_function(quicktime_t *file,
 
 
 int quicktime_init_audio_map(quicktime_t *file, 
-    quicktime_audio_map_t *atrack, 
+    int track_number,
     quicktime_trak_t *trak)
 {
+    quicktime_audio_map_t *atrack = &file->atracks[track_number];
     quicktime_stsd_table_t *stsd = &trak->mdia.minf.stbl.stsd.table[0];
     quicktime_esds_t *esds = &stsd->esds;
 	atrack->track = trak;
@@ -1113,6 +1114,22 @@ int quicktime_init_audio_map(quicktime_t *file,
 	atrack->current_position = 0;
 	atrack->current_chunk = 1;
 	quicktime_init_acodec(atrack);
+
+// Read some audio to fix broken headers
+// It seems to need the headers in the STSD to get started, then
+// override those in some files.
+    if(atrack->codec)
+    {
+        const int temp_count = 4096;
+        float *temp_buffer = malloc(sizeof(float) * temp_count);
+        ((quicktime_codec_t*)atrack->codec)->decode_audio(file, 
+			0, 
+			temp_buffer, 
+			temp_count, 
+			track_number, 
+			0);
+        free(temp_buffer);
+    }
 
 // convert STTS table to the samplerate instead of the time scale
     quicktime_stts_t *stts = &trak->mdia.minf.stbl.stts;
@@ -1150,23 +1167,9 @@ void quicktime_init_maps(quicktime_t *file)
 	{
 		while(!file->moov.trak[track]->mdia.minf.is_audio)
 			track++;
-		quicktime_init_audio_map(file, &(file->atracks[i]), file->moov.trak[track]);
-
-        
-/* Read some audio to fix broken headers */
-        if(file->atracks[i].codec)
-        {
-            const int temp_count = 4096;
-            float *temp_buffer = malloc(sizeof(float) * temp_count);
-            ((quicktime_codec_t*)file->atracks[i].codec)->decode_audio(file, 
-			    0, 
-			    temp_buffer, 
-			    temp_count, 
-			    i, 
-			    0);
-            free(temp_buffer);
-        }
-
+		quicktime_init_audio_map(file, 
+            i, 
+            file->moov.trak[track]);
 	}
 
 	file->total_vtracks = quicktime_video_tracks(file);

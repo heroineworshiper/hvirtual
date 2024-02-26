@@ -999,6 +999,7 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 	int64_t current_position = track_map->current_position;
 	int64_t end_position = current_position + samples;
 	quicktime_vbr_t *vbr = &track_map->vbr;
+    quicktime_stsd_table_t *stsd = &trak->mdia.minf.stbl.stsd.table[0];
     int i;
 
     if(!ffaudio->decoder_initialized)
@@ -1015,7 +1016,7 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 
 		ffaudio->decoder_context = 
 			avcodec_alloc_context3(ffaudio->decoder);
-        quicktime_stsd_table_t *stsd = &trak->mdia.minf.stbl.stsd.table[0];
+        
         quicktime_esds_t *esds = &stsd->esds;
         quicktime_dac3_t *dac3 = &stsd->dac3;
         ffaudio->decoder_context->sample_rate = stsd->sample_rate;
@@ -1089,6 +1090,16 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 // convert to floating point
             if(result >= 0)
             {
+// printf("quicktime_ffaudio_decode %d samplerate=%d channels=%d\n",
+// __LINE__, 
+// ffaudio->decoder_context->sample_rate,
+// ffaudio->decoder_context->channels);
+// overwrite headers
+//                 stsd->sample_rate = ffaudio->decoder_context->sample_rate;
+//     	        stsd->channels = ffaudio->decoder_context->channels;
+//                 track_map->channels = ffaudio->decoder_context->channels;
+
+
 // transfer from frame to temp buffer
                 int samples = quicktime_ffmpeg_get_audio(frame, 
 	    			ffaudio->temp_buffer);

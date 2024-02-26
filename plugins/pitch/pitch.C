@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
@@ -466,7 +465,7 @@ int PitchScale::handle_event()
 
 
 PitchSize::PitchSize(PitchWindow *window, PitchEffect *plugin, int x, int y)
- : BC_PopupMenu(x, y, DP(100), "4096", 1)
+ : BC_PopupMenu(x, y, DP(130), "4096", 1)
 {
 	this->plugin = plugin;
 }

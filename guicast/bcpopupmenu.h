@@ -53,6 +53,7 @@ public:
 		VFrame **data = 0);
 	virtual ~BC_PopupMenu();
 
+    static int calculate_w(BC_WindowBase *gui, const char *text);
 // Adds popupmenu_margin to width
 	static int calculate_w(int w_argument);
 	static int calculate_h(VFrame **data = 0);

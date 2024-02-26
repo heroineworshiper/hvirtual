@@ -212,7 +212,7 @@ DenoiseFFTSamples::DenoiseFFTSamples(DenoiseFFTEffect *plugin,
 	int x, 
 	int y, 
 	char *text)
- : BC_PopupMenu(x, y, DP(100), text, 1)
+ : BC_PopupMenu(x, y, DP(150), text, 1)
 {
 	this->plugin = plugin;
 }

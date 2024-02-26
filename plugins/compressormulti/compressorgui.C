@@ -584,7 +584,7 @@ CompressorSize::CompressorSize(CompressorWindow *gui,
     int y)
  : BC_PopupMenu(x, 
     y, 
-    DP(100), 
+    DP(140), 
     "4096", 
     1)
 {
@@ -798,7 +798,7 @@ int CompressorTrigger::handle_event()
 CompressorInput::CompressorInput(CompressorEffect *plugin, int x, int y) 
  : BC_PopupMenu(x, 
 	y, 
-	DP(100), 
+	DP(140), 
 	CompressorInput::value_to_text(plugin->config.input), 
 	1)
 {
@@ -825,7 +825,7 @@ const char* CompressorInput::value_to_text(int value)
 	switch(value)
 	{
 		case CompressorConfig::TRIGGER: return "Trigger";
-		case CompressorConfig::MAX: return "Maximum";
+		case CompressorConfig::MAX: return "Max";
 		case CompressorConfig::SUM: return "Total";
 	}
 

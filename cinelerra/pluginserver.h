@@ -111,6 +111,11 @@ public:
 // Used in keyframe spanning mode.
 	void apply_keyframe(KeyFrame *src);
 
+// Get information about the shared tracks for a GUI
+// A hard idea with minimal value.
+//     int get_total_tracks();
+//     const char* get_track_title(int number);
+
 // Create new theme object.  Used by theme plugins.
 	Theme* new_theme();
 // Get theme being used by Cinelerra currently.  Used by all plugins.

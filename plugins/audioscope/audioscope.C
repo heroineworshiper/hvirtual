@@ -132,7 +132,7 @@ AudioScopeWindowSize::AudioScopeWindowSize(AudioScope *plugin,
 	char *text)
  : BC_PopupMenu(x, 
 	y, 
-	DP(80), 
+	DP(150), 
 	text)
 {
 	this->plugin = plugin;
@@ -272,7 +272,7 @@ AudioScopeMode::AudioScopeMode(AudioScope *plugin,
 	int y)
  : BC_PopupMenu(x, 
 	y, 
-	DP(180), 
+	DP(200), 
 	mode_to_text(plugin->config.mode))
 {
 	this->plugin = plugin;

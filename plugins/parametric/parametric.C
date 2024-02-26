@@ -233,7 +233,7 @@ int ParametricMagnitude::handle_event()
 ParametricMode::ParametricMode(ParametricEQ *plugin, int x, int y, int band)
  : BC_PopupMenu(x, 
 		y, 
-		DP(150), 
+		DP(180), 
 		mode_to_text(plugin->config.band[band].mode))
 {
 //printf("ParametricMode::ParametricMode %d %d\n", band, plugin->config.band[band].mode);
@@ -364,7 +364,11 @@ int ParametricWetness::handle_event()
 
 
 ParametricSize::ParametricSize(ParametricWindow *window, ParametricEQ *plugin, int x, int y)
- : BC_PopupMenu(x, y, DP(100), "4096", 1)
+ : BC_PopupMenu(x, 
+    y, 
+    window->get_w() - x - plugin->get_theme()->widget_border, 
+    "4096", 
+    1)
 {
 	this->plugin = plugin;
 	this->window = window;

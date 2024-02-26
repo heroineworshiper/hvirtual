@@ -290,10 +290,10 @@ void LensMode::update(int mode)
 int LensMode::calculate_w(LensGUI *gui)
 {
 	int result = 0;
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(LensConfig::STRETCH)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(LensConfig::SHRINK)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(LensConfig::RECTILINEAR_STRETCH)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(LensConfig::RECTILINEAR_SHRINK)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(LensConfig::STRETCH)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(LensConfig::SHRINK)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(LensConfig::RECTILINEAR_STRETCH)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(LensConfig::RECTILINEAR_SHRINK)));
 	return result + 50;
 }
 

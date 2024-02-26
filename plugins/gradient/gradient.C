@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +61,7 @@ GradientConfig::GradientConfig()
 	rate = GradientConfig::LINEAR;
 	center_x = 50;
 	center_y = 50;
+    guides = 0;
 }
 
 int GradientConfig::equivalent(GradientConfig &that)
@@ -80,7 +80,8 @@ int GradientConfig::equivalent(GradientConfig &that)
 		shape == that.shape &&
 		rate == that.rate &&
 		EQUIV(center_x, that.center_x) &&
-		EQUIV(center_y, that.center_y));
+		EQUIV(center_y, that.center_y) &&
+        guides == that.guides);
 }
 
 void GradientConfig::copy_from(GradientConfig &that)
@@ -100,6 +101,7 @@ void GradientConfig::copy_from(GradientConfig &that)
 	rate = that.rate;
 	center_x = that.center_x;
 	center_y = that.center_y;
+    guides = that.guides;
 }
 
 void GradientConfig::interpolate(GradientConfig &prev, 
@@ -112,9 +114,9 @@ void GradientConfig::interpolate(GradientConfig &prev,
 	double prev_scale = (double)(next_frame - current_frame) / (next_frame - prev_frame);
 
 
-	this->angle = (int)(prev.angle * prev_scale + next.angle * next_scale);
-	this->in_radius = (int)(prev.in_radius * prev_scale + next.in_radius * next_scale);
-	this->out_radius = (int)(prev.out_radius * prev_scale + next.out_radius * next_scale);
+	this->angle = prev.angle * prev_scale + next.angle * next_scale;
+	this->in_radius = prev.in_radius * prev_scale + next.in_radius * next_scale;
+	this->out_radius = prev.out_radius * prev_scale + next.out_radius * next_scale;
 	in_r = (int)(prev.in_r * prev_scale + next.in_r * next_scale);
 	in_g = (int)(prev.in_g * prev_scale + next.in_g * next_scale);
 	in_b = (int)(prev.in_b * prev_scale + next.in_b * next_scale);
@@ -127,6 +129,7 @@ void GradientConfig::interpolate(GradientConfig &prev,
 	rate = prev.rate;
 	center_x = prev.center_x * prev_scale + next.center_x * next_scale;
 	center_y = prev.center_y * prev_scale + next.center_y * next_scale;
+    guides = prev.guides;
 }
 
 int GradientConfig::get_in_color()
@@ -240,7 +243,7 @@ void GradientWindow::create_objects()
 	out_color_thread = new GradientOutColorThread(plugin, this);
 	update_in_color();
 	update_out_color();
-	update_shape();
+	update_shape(0);
 
 	draw_3d_border(in_color_x - 2, 
 		in_color_y - 2, 
@@ -254,13 +257,23 @@ void GradientWindow::create_objects()
 		COLOR_H + 4, 
 		1);
 
+    x = x1;
+    y += COLOR_H + margin;
+    add_subwindow(guides = new GradientToggle(plugin,
+        x,
+        y,
+        &plugin->config.guides,
+        _("Draw boundaries")));
+
 	show_window();
 }
 
-void GradientWindow::update_shape()
+void GradientWindow::update_shape(int show_it)
 {
+	int margin = plugin->get_theme()->widget_border;
 	int x = shape_x, y = shape_y;
 
+//printf("GradientWindow::update_shape %d shape=%d x=%d y=%d\n", __LINE__, plugin->config.shape, x, y);
 	if(plugin->config.shape == GradientConfig::LINEAR)
 	{
 		delete center_x_title;
@@ -275,7 +288,7 @@ void GradientWindow::update_shape()
 		if(!angle)
 		{
 			add_subwindow(angle_title = new BC_Title(x, y, _("Angle:")));
-			add_subwindow(angle = new GradientAngle(plugin, x + angle_title->get_w() + 10, y));
+			add_subwindow(angle = new GradientAngle(plugin, x + angle_title->get_w() + margin, y));
 		}
 	}
 	else
@@ -288,15 +301,16 @@ void GradientWindow::update_shape()
 		{
 			add_subwindow(center_x_title = new BC_Title(x, y, _("Center X:")));
 			add_subwindow(center_x = new GradientCenterX(plugin,
-				x + center_x_title->get_w() + 10,
+				x + center_x_title->get_w() + margin,
 				y));
-			x += center_x_title->get_w() + 10 + center_x->get_w() + 10;
+			x += center_x_title->get_w() + margin + center_x->get_w() + margin;
 			add_subwindow(center_y_title = new BC_Title(x, y, _("Center Y:")));
 			add_subwindow(center_y = new GradientCenterY(plugin,
-				x + center_y_title->get_w() + 10,
+				x + center_y_title->get_w() + margin,
 				y));
 		}
 	}
+	if(show_it) show_window();
 }
 
 
@@ -306,7 +320,13 @@ void GradientWindow::update_in_color()
 {
 //printf("GradientWindow::update_in_color 1 %08x\n", plugin->config.get_in_color());
 	set_color(plugin->config.get_in_color());
-	draw_box(in_color_x, in_color_y, COLOR_W, COLOR_H);
+	draw_box_alpha(in_color_x, 
+        in_color_y, 
+        COLOR_W, 
+        COLOR_H, 
+        plugin->config.in_a,
+        CHECKER_W,
+        CHECKER_H);
 	flash(in_color_x, in_color_y, COLOR_W, COLOR_H);
 }
 
@@ -314,7 +334,13 @@ void GradientWindow::update_out_color()
 {
 //printf("GradientWindow::update_out_color 1 %08x\n", plugin->config.get_in_color());
 	set_color(plugin->config.get_out_color());
-	draw_box(out_color_x, out_color_y, COLOR_W, COLOR_H);
+	draw_box_alpha(out_color_x, 
+        out_color_y, 
+        COLOR_W, 
+        COLOR_H, 
+        plugin->config.out_a,
+        CHECKER_W,
+        CHECKER_H);
 	flash(out_color_x, out_color_y, COLOR_W, COLOR_H);
 }
 
@@ -330,7 +356,7 @@ GradientShape::GradientShape(GradientMain *plugin,
 	GradientWindow *gui, 
 	int x, 
 	int y)
- : BC_PopupMenu(x, y, DP(100), to_text(plugin->config.shape), 1)
+ : BC_PopupMenu(x, y, DP(200), to_text(plugin->config.shape), 1)
 {
 	this->plugin = plugin;
 	this->gui = gui;
@@ -359,7 +385,7 @@ int GradientShape::from_text(char *text)
 int GradientShape::handle_event()
 {
 	plugin->config.shape = from_text(get_text());
-	gui->update_shape();
+	gui->update_shape(1);
 	plugin->send_configure_change();
     return 0;
 }
@@ -418,7 +444,7 @@ int GradientAngle::handle_event()
 GradientRate::GradientRate(GradientMain *plugin, int x, int y)
  : BC_PopupMenu(x,
  	y,
-	DP(100),
+	DP(200),
 	to_text(plugin->config.rate),
 	1)
 {
@@ -499,6 +525,29 @@ int GradientOutRadius::handle_event()
 	plugin->send_configure_change();
 	return 1;
 }
+
+
+GradientToggle::GradientToggle (GradientMain *plugin, 
+    int x, 
+    int y,
+    int *output,
+    const char *caption)
+ : BC_CheckBox (x, 
+    y, 
+	output,
+    caption)
+{
+	this->plugin = plugin;
+    this->output = output;
+}
+
+int GradientToggle::handle_event ()
+{
+	*output = get_value();
+	plugin->send_configure_change();
+	return 1;
+}
+
 
 GradientInColorButton::GradientInColorButton(GradientMain *plugin, GradientWindow *window, int x, int y)
  : BC_GenericButton(x, y, _("Inner color:"))
@@ -643,6 +692,35 @@ int GradientMain::is_synthesis()
 	return 1;
 }
 
+#define GRADIENT_VARS(self) \
+	int h = self->input->get_h(); \
+	int w = self->input->get_w(); \
+	int gradient_size = (int)(ceil(hypot(w, h))); \
+	int in_radius = (int)(self->config.in_radius * gradient_size / 100); \
+	int out_radius = (int)(self->config.out_radius * gradient_size / 100); \
+	double sin_angle = sin(self->config.angle * (M_PI / 180)); \
+	double cos_angle = cos(self->config.angle * (M_PI / 180)); \
+	double center_x; \
+	double center_y; \
+    if(self->config.shape == GradientConfig::LINEAR) \
+    { \
+        center_x = w / 2; \
+        center_y = h / 2; \
+    } \
+    else \
+    { \
+        center_x = self->config.center_x * w / 100; \
+        center_y = self->config.center_y * h / 100; \
+    }
+
+#define LINEAR_GUIDE_VARS(radius) \
+    double x1 = center_x + sin_angle * (gradient_size / 2 - radius); \
+    double y1 = center_y - cos_angle * (gradient_size / 2 - radius); \
+    double x2 = x1 - cos_angle * gradient_size / 2; \
+    double y2 = y1 - sin_angle * gradient_size / 2; \
+    double x3 = x1 + cos_angle * gradient_size / 2; \
+    double y3 = y1 + sin_angle * gradient_size / 2;
+
 
 int GradientMain::process_buffer(VFrame *frame,
 	int64_t start_position,
@@ -715,6 +793,34 @@ int GradientMain::process_buffer(VFrame *frame,
 			NEAREST_NEIGHBOR);
 	}
 
+    if(config.guides)
+    {
+        GRADIENT_VARS(this)
+        if(config.shape == GradientConfig::LINEAR)
+        {
+            {
+                LINEAR_GUIDE_VARS(in_radius)
+                output->draw_line((int)x2, (int)y2, (int)x3, (int)y3);
+            }
+
+            {
+                LINEAR_GUIDE_VARS(out_radius)
+                output->draw_line((int)x2, (int)y2, (int)x3, (int)y3);
+            }
+        }
+        else
+        {
+            output->draw_oval(center_x - in_radius, 
+                center_y - in_radius,
+                center_x + in_radius,
+                center_y + in_radius);
+            output->draw_oval(center_x - out_radius, 
+                center_y - out_radius,
+                center_x + out_radius,
+                center_y + out_radius);
+        }
+    }
+
 
 	return 0;
 }
@@ -726,23 +832,26 @@ void GradientMain::update_gui()
 	{
 		if(load_configuration())
 		{
-			((GradientWindow*)thread->window)->lock_window("GradientMain::update_gui");
-			((GradientWindow*)thread->window)->rate->set_text(GradientRate::to_text(config.rate));
-			((GradientWindow*)thread->window)->in_radius->update(config.in_radius);
-			((GradientWindow*)thread->window)->out_radius->update(config.out_radius);
-			((GradientWindow*)thread->window)->shape->set_text(GradientShape::to_text(config.shape));
-			if(((GradientWindow*)thread->window)->angle)
-				((GradientWindow*)thread->window)->angle->update(config.angle);
-			if(((GradientWindow*)thread->window)->center_x)
-				((GradientWindow*)thread->window)->center_x->update(config.center_x);
-			if(((GradientWindow*)thread->window)->center_y)
-				((GradientWindow*)thread->window)->center_y->update(config.center_y);
-			((GradientWindow*)thread->window)->update_in_color();
-			((GradientWindow*)thread->window)->update_out_color();
-			((GradientWindow*)thread->window)->update_shape();
-			((GradientWindow*)thread->window)->unlock_window();
-			((GradientWindow*)thread->window)->in_color_thread->update_gui(config.get_in_color(), config.in_a);
-			((GradientWindow*)thread->window)->out_color_thread->update_gui(config.get_out_color(), config.out_a);
+            GradientWindow *gui = (GradientWindow*)thread->window;
+			gui->lock_window("GradientMain::update_gui");
+			gui->rate->set_text(GradientRate::to_text(config.rate));
+			gui->in_radius->update(config.in_radius);
+			gui->out_radius->update(config.out_radius);
+			gui->shape->set_text(GradientShape::to_text(config.shape));
+			if(gui->angle)
+				gui->angle->update(config.angle);
+			if(gui->center_x)
+				gui->center_x->update(config.center_x);
+			if(gui->center_y)
+				gui->center_y->update(config.center_y);
+			gui->update_in_color();
+			gui->update_out_color();
+            gui->guides->update(config.guides);
+			gui->update_shape(1);
+			gui->unlock_window();
+
+			gui->in_color_thread->update_gui(config.get_in_color(), config.in_a);
+			gui->out_color_thread->update_gui(config.get_out_color(), config.out_a);
 		}
 	}
 }
@@ -774,6 +883,7 @@ void GradientMain::save_data(KeyFrame *keyframe)
 	output.tag.set_property("RATE", config.rate);
 	output.tag.set_property("CENTER_X", config.center_x);
 	output.tag.set_property("CENTER_Y", config.center_y);
+	output.tag.set_property("GUIDES", config.guides);
 	output.append_tag();
 	output.terminate_string();
 }
@@ -809,59 +919,93 @@ void GradientMain::read_data(KeyFrame *keyframe)
 				config.shape = input.tag.get_property("SHAPE", config.shape);
 				config.center_x = input.tag.get_property("CENTER_X", config.center_x);
 				config.center_y = input.tag.get_property("CENTER_Y", config.center_y);
+				config.guides = input.tag.get_property("GUIDES", config.guides);
 			}
 		}
 	}
 }
 
+static void gl_circle(float x, float y, float r)
+{
+    glBegin(GL_LINE_LOOP);
+    for(int i = 0; i < 360; i++) 
+    {
+        float theta = i * M_PI / 180;
+        float x2 = x + r * cos(theta); // radius of circle is 200
+        float y2 = y + r * sin(theta);
+        glVertex3f(x2, y2, 0.0); // center of circle is at (screenWidth / 2, screenHeight / 2)
+    }
+    glEnd();
+}
+
 int GradientMain::handle_opengl()
 {
 #ifdef HAVE_GL
+    GRADIENT_VARS(this)
+
 	const char *head_frag =
 		"uniform sampler2D tex;\n"
-		"uniform float half_w;\n"
-		"uniform float half_h;\n"
 		"uniform float center_x;\n"
 		"uniform float center_y;\n"
-		"uniform float half_gradient_size;\n"
-		"uniform float sin_angle;\n"
-		"uniform float cos_angle;\n"
-		"uniform vec4 out_color;\n"
-		"uniform vec4 in_color;\n"
+		"uniform float texture_w;\n"
+		"uniform float texture_h;\n"
 		"uniform float in_radius;\n"
 		"uniform float out_radius;\n"
-		"uniform float radius_diff;\n"
+		"uniform float sin_angle;\n"
+		"uniform float cos_angle;\n"
+		"uniform float gradient_size;\n"
+		"uniform vec4 out_color;\n"
+		"uniform vec4 in_color;\n"
 		"\n"
 		"void main()\n"
 		"{\n"
-		"	vec2 out_coord = gl_TexCoord[0].st;\n";
+		"	vec2 out_coord = gl_TexCoord[0].st;\n"
+        "	float opacity;\n"
+// convert it to pixels
+        "	float x = out_coord.x * texture_w;\n"
+        "	float y = out_coord.y * texture_h;\n"
+// make relative to center
+        "	x = x - center_x;\n"
+        "	y = center_y - y;\n";
 
 	const char *linear_shape = 
-		"	vec2 in_coord = vec2(out_coord.x - half_w, half_h - out_coord.y);\n"
-		"	float mag = half_gradient_size - \n"
-		"		(in_coord.x * sin_angle + in_coord.y * cos_angle);\n";
+		"	float mag = (gradient_size / 2.0 - \n"
+		"		(x * sin_angle + y * cos_angle) + 0.5);\n";
 
 	const char *radial_shape =
-		"	vec2 in_coord = vec2(out_coord.x - center_x, out_coord.y - center_y);\n"
-		"	float mag = length(vec2(in_coord.x, in_coord.y));\n";
+		"	float mag = length(vec2(x, y));\n";
 
 // No clamp function in NVidia
 	const char *linear_rate = 
-		"	mag = min(max(mag, in_radius), out_radius);\n"
-		"	float opacity = (mag - in_radius) / radius_diff;\n";
+		"	if(mag < in_radius)\n"
+		"		opacity = 0.0;\n"
+		"	else\n"
+		"	if(mag >= out_radius)\n"
+		"		opacity = 1.0;\n"
+		"	else\n"
+		"		opacity = (mag - in_radius) / (out_radius - in_radius);\n";
 
 // NVidia warns about exp, but exp is in the GLSL spec.
 	const char *log_rate = 
-		"	mag = max(mag, in_radius);\n"
-		"	float opacity = 1.0 - \n"
-		"		exp(1.0 * -(mag - in_radius) / radius_diff);\n";
+		"	if(mag < in_radius)\n"
+		"		opacity = 0.0;\n"
+		"	else\n"
+		"		opacity = 1.0 - exp(1.0 * -(mag - in_radius) /\n"
+		"			(out_radius - in_radius));\n";
 
 	const char *square_rate = 
-		"	mag = min(max(mag, in_radius), out_radius);\n"
-		"	float opacity = pow((mag - in_radius) / radius_diff, 2.0);\n"
-		"	opacity = min(opacity, 1.0);\n";
+		"	if(mag < in_radius)\n"
+		"		opacity = 0.0;\n"
+		"	else\n"
+		"	if(mag >= out_radius)\n"
+		"		opacity = 1.0;\n"
+		"	else\n"
+		"		opacity = pow((mag - in_radius) /\n"
+		"			(out_radius - in_radius), 2.0);\n";
 
 	const char *tail_frag = 
+        "	if(opacity < 0.0) opacity = 0.0;\n"
+        "	if(opacity > 1.0) opacity = 1.0;\n"
 		"	vec4 color = mix(in_color, out_color, opacity);\n"
 		"	vec4 bg_color = texture2D(tex, out_coord);\n"
 		"	gl_FragColor.rgb = mix(bg_color.rgb, color.rgb, color.a);\n"
@@ -916,40 +1060,27 @@ int GradientMain::handle_opengl()
 	if(frag)
 	{
 		glUseProgram(frag);
-		float w = get_output()->get_w();
-		float h = get_output()->get_h();
 		float texture_w = get_output()->get_texture_w();
 		float texture_h = get_output()->get_texture_h();
 		glUniform1i(glGetUniformLocation(frag, "tex"), 0);
-		glUniform1f(glGetUniformLocation(frag, "half_w"), w / 2 / texture_w);
-		glUniform1f(glGetUniformLocation(frag, "half_h"), h / 2 / texture_h);
-		if(config.shape == GradientConfig::LINEAR)
-		{
-			glUniform1f(glGetUniformLocation(frag, "center_x"), 
-				w / 2 / texture_w);
-			glUniform1f(glGetUniformLocation(frag, "center_y"), 
-				h / 2 / texture_h);
-		}
-		else
-		{
-			glUniform1f(glGetUniformLocation(frag, "center_x"), 
-				(float)config.center_x * w / 100 / texture_w);
-			glUniform1f(glGetUniformLocation(frag, "center_y"), 
-				(float)config.center_y * h / 100 / texture_h);
-		}
-		float gradient_size = hypotf(w / texture_w, h / texture_h);
-		glUniform1f(glGetUniformLocation(frag, "half_gradient_size"), 
-			gradient_size / 2);
-		glUniform1f(glGetUniformLocation(frag, "sin_angle"), 
-			sin(config.angle * (M_PI / 180)));
-		glUniform1f(glGetUniformLocation(frag, "cos_angle"), 
-			cos(config.angle * (M_PI / 180)));
-		float in_radius = (float)config.in_radius / 100 * gradient_size;
-		glUniform1f(glGetUniformLocation(frag, "in_radius"), in_radius);
-		float out_radius = (float)config.out_radius / 100 * gradient_size;
-		glUniform1f(glGetUniformLocation(frag, "out_radius"), out_radius);
-		glUniform1f(glGetUniformLocation(frag, "radius_diff"), 
-			out_radius - in_radius);
+ 		glUniform1f(glGetUniformLocation(frag, "center_x"), (float)center_x);
+ 		glUniform1f(glGetUniformLocation(frag, "center_y"), (float)center_y);
+ 		glUniform1f(glGetUniformLocation(frag, "texture_w"), texture_w);
+ 		glUniform1f(glGetUniformLocation(frag, "texture_h"), texture_h);
+ 		glUniform1f(glGetUniformLocation(frag, "in_radius"), (float)in_radius);
+ 		glUniform1f(glGetUniformLocation(frag, "out_radius"), (float)out_radius);
+		glUniform1f(glGetUniformLocation(frag, "sin_angle"), sin_angle);
+		glUniform1f(glGetUniformLocation(frag, "cos_angle"), cos_angle);
+		glUniform1f(glGetUniformLocation(frag, "gradient_size"), (float)gradient_size);
+
+
+// printf("GradientMain::handle_opengl %d w=%d h=%d texture_w=%d texture_h=%d center_y=%d\n",
+// __LINE__,
+// w,
+// h,
+// (int)texture_w,
+// (int)texture_h,
+// (int)center_y);
 
 		switch(get_output()->get_color_model())
 		{
@@ -1000,6 +1131,50 @@ int GradientMain::handle_opengl()
 
 	get_output()->draw_texture();
 	glUseProgram(0);
+
+    if(config.guides)
+    {
+		glDisable(GL_TEXTURE_2D);
+// dropshadow it since we don't have XOR
+        for(int pass = 0; pass < 2; pass++)
+        {
+            float offset = 0;
+            if(pass == 0)
+            {
+                glColor4f(0.0, 0.0, 0.0, 1.0);
+                offset = 0;
+            }
+            else
+            {
+                glColor4f(1.0, 1.0, 1.0, 1.0);
+                offset = 1;
+            }
+
+            if(config.shape == GradientConfig::LINEAR)
+            {
+                {
+                    LINEAR_GUIDE_VARS(in_radius)
+		            glBegin(GL_LINES);
+		            glVertex3f(x2 + offset, y2 - h - offset, 0.0);
+		            glVertex3f(x3 + offset, y3 - h - offset, 0.0);
+		            glEnd();
+                }
+                {
+                    LINEAR_GUIDE_VARS(out_radius)
+		            glBegin(GL_LINES);
+		            glVertex3f(x2 + offset, y2 - h - offset, 0.0);
+		            glVertex3f(x3 + offset, y3 - h - offset, 0.0);
+		            glEnd();
+                }
+            }
+            else
+            {
+                gl_circle(center_x + offset, center_y - h - offset, in_radius);
+                gl_circle(center_x + offset, center_y - h - offset, out_radius);
+            }
+        }
+    }
+
 	get_output()->set_opengl_state(VFrame::SCREEN);
 	
 #endif
@@ -1107,8 +1282,8 @@ static float calculate_opacity(float mag,
 			case GradientConfig::LINEAR: \
 				for(int j = 0; j < w; j++) \
 				{ \
-					int x = j - half_w; \
-					int y = -(i - half_h); \
+					int x = j - center_x; \
+					int y = -(i - center_y); \
 		 \
 /* Rotate by effect angle */ \
 					int mag = (int)(gradient_size / 2 - \
@@ -1216,17 +1391,7 @@ static float calculate_opacity(float mag,
 void GradientUnit::process_package(LoadPackage *package)
 {
 	GradientPackage *pkg = (GradientPackage*)package;
-	int h = plugin->input->get_h();
-	int w = plugin->input->get_w();
-	int half_w = w / 2;
-	int half_h = h / 2;
-	int gradient_size = (int)(ceil(hypot(w, h)));
-	int in_radius = (int)(plugin->config.in_radius / 100 * gradient_size);
-	int out_radius = (int)(plugin->config.out_radius / 100 * gradient_size);
-	double sin_angle = sin(plugin->config.angle * (M_PI / 180));
-	double cos_angle = cos(plugin->config.angle * (M_PI / 180));
-	double center_x = plugin->config.center_x * w / 100;
-	double center_y = plugin->config.center_y * h / 100;
+    GRADIENT_VARS(plugin)
 	void *r_table = 0;
 	void *g_table = 0;
 	void *b_table = 0;

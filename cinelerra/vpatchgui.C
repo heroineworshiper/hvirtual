@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -260,7 +259,9 @@ FloatAuto* VFadePatch::get_keyframe(MWindow *mwindow, VPatchGUI *patch)
 VModePatch::VModePatch(MWindow *mwindow, VPatchGUI *patch, int x, int y)
  : BC_PopupMenu(x, 
  	y,
-	patch->patchbay->mode_icons[0]->get_w() + 20,
+	patch->patchbay->mode_icons[0]->get_w() + 
+        BC_WindowBase::get_resources()->popupmenu_margin * 2 +
+        BC_WindowBase::get_resources()->popupmenu_triangle_margin,
 	"",
 	1,
 	mwindow->theme->get_image_set("mode_popup", 0),

@@ -570,7 +570,7 @@ void Theme::draw_mwindow_bg(MWindowGUI *gui)
 
 void Theme::get_cwindow_sizes(CWindowGUI *gui, int cwindow_controls)
 {
-	czoom_w = DP(80);
+	czoom_w = DP(100);
 
 	int edit_w = EditPanel::calculate_w(mwindow, 1, 14);
 	int transport_w = PlayTransport::get_transport_width(mwindow) + toggle_margin;

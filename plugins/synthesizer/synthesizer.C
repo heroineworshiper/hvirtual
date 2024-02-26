@@ -1493,7 +1493,7 @@ int SynthClear::handle_event()
 
 
 SynthWaveForm::SynthWaveForm(Synth *synth, int x, int y, char *text)
- : BC_PopupMenu(x, y, DP(120), text)
+ : BC_PopupMenu(x, y, DP(150), text)
 {
 	this->synth = synth;
 }

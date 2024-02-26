@@ -605,10 +605,22 @@ void TitleWindow::update_color()
 {
 //printf("TitleWindow::update_color %x\n", client->config.color);
 	set_color(client->config.color);
-	draw_box(color_x, color_y, COLOR_W, COLOR_H);
+	draw_box_alpha(color_x, 
+        color_y, 
+        COLOR_W, 
+        COLOR_H, 
+        client->config.alpha,
+        CHECKER_W,
+        CHECKER_H);
 	flash(color_x, color_y, COLOR_W, COLOR_H);
 	set_color(client->config.outline_color);
-	draw_box(outline_color_x, outline_color_y, COLOR_W, COLOR_H);
+	draw_box_alpha(outline_color_x, 
+        outline_color_y, 
+        COLOR_W, 
+        COLOR_H, 
+        client->config.outline_alpha,
+        CHECKER_W,
+        CHECKER_H);
 	set_color(BLACK);
 	draw_rectangle(color_x, color_y, COLOR_W, COLOR_H);
 	draw_rectangle(outline_color_x, outline_color_y, COLOR_W, COLOR_H);
@@ -983,7 +995,7 @@ int TitleTimecode::handle_event()
 TitleTimecodeFormat::TitleTimecodeFormat(TitleMain *client, int x, int y, const char *text)
  : BC_PopupMenu(x, 
  	y, 
-	DP(300), 
+	DP(400), 
 	text,
 	1)
 {

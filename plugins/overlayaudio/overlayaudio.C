@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
@@ -223,7 +222,7 @@ void OverlayAudioWindow::create_objects()
 OutputTrack::OutputTrack(OverlayAudio *plugin, int x , int y)
  : BC_PopupMenu(x, 
  	y, 
-	DP(100),
+	DP(150),
 	OverlayAudioConfig::output_to_text(plugin->config.output_track),
 	1)
 {
@@ -274,7 +273,7 @@ OverlayMode::OverlayMode(OverlayAudio *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	DP(150),
+	DP(180),
 	OverlayAudioConfig::mode_to_text(plugin->config.mode),
 	1)
 {

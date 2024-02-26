@@ -285,7 +285,7 @@ void ReverbWindow::update_canvas()
 
 
 ReverbSize::ReverbSize(ReverbWindow *window, Reverb *plugin, int x, int y)
- : BC_PopupMenu(x, y, DP(100), "4096", 1)
+ : BC_PopupMenu(x, y, DP(200), "4096", 1)
 {
 	this->plugin = plugin;
 	this->window = window;

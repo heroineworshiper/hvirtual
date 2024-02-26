@@ -13,10 +13,18 @@ int quicktime_read_frma(quicktime_t *file,
 	quicktime_atom_t *leaf_atom,
 	quicktime_frma_t *frma)
 {
-// Extra data for QDM2 has to include the entire stsd table
-//	frma->data_size = leaf_atom->size - 8;
-    frma->data_size = parent_atom->size - 8;
-	quicktime_set_position(file, parent_atom->start + 8);
+// Sometimes we get both a frma & esds in the stsd table
+// Extradata for QDM2 has to include the entire stsd table
+    if(quicktime_match_32(table->format, QUICKTIME_QDM2))
+    {
+        frma->data_size = parent_atom->size - 8;
+	    quicktime_set_position(file, parent_atom->start + 8);
+    }
+    else
+    {
+// extradata for MP4A has to include just the esds
+        frma->data_size = leaf_atom->size - 8;
+    }
 	frma->data = calloc(1, frma->data_size + 1024);
 
 	quicktime_read_data(file, 
@@ -41,8 +49,12 @@ int quicktime_read_frma(quicktime_t *file,
  * frma->data[6], 
  * frma->data[7]);
  */
-	quicktime_atom_skip(file, parent_atom);
-	return 0;
+    if(quicktime_match_32(table->format, QUICKTIME_QDM2))
+    {
+	    quicktime_atom_skip(file, parent_atom);
+	}
+    
+    return 0;
 }
 
 void quicktime_frma_dump(quicktime_frma_t *frma)

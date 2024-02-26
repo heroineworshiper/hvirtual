@@ -278,9 +278,9 @@ void SphereCamMode::update(int mode)
 int SphereCamMode::calculate_w(SphereCamGUI *gui)
 {
 	int result = 0;
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(SphereCamConfig::EQUIRECT)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(SphereCamConfig::DO_NOTHING)));
-	result = MAX(result, gui->get_text_width(MEDIUMFONT, to_text(SphereCamConfig::ALIGN)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(SphereCamConfig::EQUIRECT)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(SphereCamConfig::DO_NOTHING)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(SphereCamConfig::ALIGN)));
 	return result + 50;
 }
 

@@ -279,7 +279,7 @@ RecordFragment::RecordFragment(int x,
 	char *text)
  : BC_PopupMenu(x, 
  	y, 
-	DP(100), 
+	DP(150), 
 	text,
 	1)
 { 

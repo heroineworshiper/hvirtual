@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
@@ -297,7 +296,7 @@ OverlayMode::OverlayMode(Overlay *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	DP(150),
+	DP(170),
 	OverlayConfig::mode_to_text(plugin->config.mode),
 	1)
 {
@@ -333,7 +332,7 @@ OverlayDirection::OverlayDirection(Overlay *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	DP(150),
+	DP(170),
 	OverlayConfig::direction_to_text(plugin->config.direction),
 	1)
 {
@@ -374,7 +373,7 @@ OverlayOutput::OverlayOutput(Overlay *plugin,
 	int y)
  : BC_PopupMenu(x,
  	y,
-	DP(100),
+	DP(150),
 	OverlayConfig::output_to_text(plugin->config.output_layer),
 	1)
 {

@@ -126,7 +126,7 @@ SpectrogramMode::SpectrogramMode(Spectrogram *plugin,
 	int y)
  : BC_PopupMenu(x, 
 	y, 
-	DP(120), 
+	DP(180), 
 	mode_to_text(plugin->config.mode))
 {
 	this->plugin = plugin;
@@ -199,7 +199,7 @@ SpectrogramWindowSize::SpectrogramWindowSize(Spectrogram *plugin,
 	char *text)
  : BC_PopupMenu(x, 
 	y, 
-	DP(80), 
+	DP(120), 
 	text)
 {
 	this->plugin = plugin;

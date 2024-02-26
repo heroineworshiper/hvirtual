@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,7 +93,7 @@ void ZoomBar::create_objects()
 		this, 
 		x, 
 		y,
-		get_text_width(MEDIUMFONT, DEFAULT_TEXT) + DP(20)));
+		BC_PopupMenu::calculate_w(this, DEFAULT_TEXT)));
 	auto_zoom_popup->set_tooltip(_("Automation zoom"));
 	auto_zoom_popup->create_objects();
 	x += auto_zoom_popup->get_w() + margin;
@@ -342,7 +341,7 @@ SampleZoomPanel::SampleZoomPanel(MWindow *mwindow,
 	mwindow->edl->local_session->zoom_sample, 
 	x, 
 	y, 
-	DP(130), 
+	DP(150), 
 	MIN_ZOOM_TIME, 
 	MAX_ZOOM_TIME, 
 //	ZOOM_LONG)
@@ -394,7 +393,7 @@ TrackZoomPanel::TrackZoomPanel(MWindow *mwindow, ZoomBar *zoombar, int x, int y)
 	mwindow->edl->local_session->zoom_track, 
 	x, 
 	y, 
-	DP(70),
+	DP(100),
 	MIN_TRACK_ZOOM, 
 	MAX_TRACK_ZOOM, 
 	ZOOM_LONG)

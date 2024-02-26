@@ -106,7 +106,7 @@ int quicktime_delete_vcodec(quicktime_video_map_t *vtrack);
 int quicktime_delete_acodec(quicktime_audio_map_t *atrack);
 
 int quicktime_init_video_map(quicktime_video_map_t *vtrack, quicktime_trak_t *trak);
-int quicktime_init_audio_map(quicktime_t *file, quicktime_audio_map_t *atrack, quicktime_trak_t *trak);
+int quicktime_init_audio_map(quicktime_t *file, int track_number, quicktime_trak_t *trak);
 int quicktime_delete_audio_map(quicktime_audio_map_t *atrack);
 int quicktime_delete_video_map(quicktime_video_map_t *vtrack);
 

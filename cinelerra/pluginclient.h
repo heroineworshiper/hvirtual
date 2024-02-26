@@ -457,6 +457,12 @@ public:
 // Returns 1 if the user supports opengl buffers.
 	int get_use_opengl();
 
+// Get information about the shared tracks for a GUI.
+// A hard idea with minimal value.
+//    int get_total_tracks();
+//    const char* get_track_title(int number);
+
+
 // Get total tracks to process
 	int get_total_buffers();
 

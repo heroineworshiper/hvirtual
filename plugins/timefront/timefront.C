@@ -33,6 +33,7 @@
 #include "overlayframe.h"
 #include "picon_png.h"
 #include "vframe.h"
+#include "theme.h"
 
 
 
@@ -351,7 +352,11 @@ TimeFrontShape::TimeFrontShape(TimeFrontMain *plugin,
 	TimeFrontWindow *gui, 
 	int x, 
 	int y)
- : BC_PopupMenu(x, y, DP(190), to_text(plugin->config.shape), 1)
+ : BC_PopupMenu(x, 
+    y, 
+    gui->get_w() - x - plugin->get_theme()->widget_border, 
+    to_text(plugin->config.shape), 
+    1)
 {
 	this->plugin = plugin;
 	this->gui = gui;
@@ -400,7 +405,10 @@ TimeFrontTrackUsage::TimeFrontTrackUsage(TimeFrontMain *plugin,
 	TimeFrontWindow *gui, 
 	int x, 
 	int y)
- : BC_PopupMenu(x, y, DP(140), to_text(plugin->config.track_usage), 1)
+ : BC_PopupMenu(x, 
+    y, 
+    gui->get_w() - x - plugin->get_theme()->widget_border, 
+    to_text(plugin->config.track_usage), 1)
 {
 	this->plugin = plugin;
 	this->gui = gui;
@@ -493,7 +501,7 @@ int TimeFrontAngle::handle_event()
 TimeFrontRate::TimeFrontRate(TimeFrontMain *plugin, int x, int y)
  : BC_PopupMenu(x,
  	y,
-	DP(100),
+	DP(200),
 	to_text(plugin->config.rate),
 	1)
 {
@@ -616,7 +624,7 @@ TimeFrontShowGrayscale::TimeFrontShowGrayscale(TimeFrontMain *client, int x, int
  : BC_CheckBox(x, 
  	y, 
 	client->config.show_grayscale, 
-	_("Show grayscale (for tuning"))
+	_("Show grayscale for tuning"))
 {
 	this->plugin = client;
 }

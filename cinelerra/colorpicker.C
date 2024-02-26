@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +25,7 @@
 #include "mutex.h"
 #include "mwindow.inc"
 #include "cicolors.h"
+#include "cwindowgui.inc"
 #include "vframe.h"
 
 #include <string.h>
@@ -216,11 +216,11 @@ void ColorObjects::update()
 	wheel->oldhue = h;
 	wheel->oldsaturation = s;
 	wheel->draw(h, s);
-	wheel->flash();
+	wheel->flash(0);
 	wheel_value->draw(h, s, v);
 	wheel_value->flash();
 	output->draw();
-	output->flash();
+	output->flash(1);
 	hue->update((int)h);
 	saturation->update(s);
 	value->update(v);
@@ -671,13 +671,14 @@ int PaletteWheelValue::draw(float hue, float saturation, float value)
 		get_w() - 4, 
 		get_h() - 4, 
 		0);
-	set_color(BLACK);
+	set_color(WHITE);
+    set_inverse();
 	draw_line(2, 
 		get_h() - 3 - (int)(value * (get_h() - 5)), 
 		get_w() - 3, 
 		get_h() - 3 - (int)(value * (get_h() - 5)));
 //printf("PaletteWheelValue::draw %d %f\n", __LINE__, value);
-
+    set_opaque();
 	return 0;
 }
 
@@ -708,7 +709,17 @@ int PaletteOutput::draw()
 	
 	HSV::hsv_to_rgb(r_f, g_f, b_f, objs->h, objs->s, objs->v);
 	set_color(((int)(r_f * 255) << 16) | ((int)(g_f * 255) << 8) | ((int)(b_f * 255)));
-	draw_box(2, 2, get_w() - 4, get_h() - 4);
+
+    if(objs->do_alpha)
+        draw_box_alpha(2, 
+            2, 
+            get_w() - 4, 
+            get_h() - 4, 
+            (int)(objs->a * 255),
+            CHECKER_W,
+            CHECKER_H);
+    else
+    	draw_box(2, 2, get_w() - 4, get_h() - 4);
 	draw_3d_border(0, 
 		0, 
 		get_w(), 
@@ -841,6 +852,7 @@ PaletteAlpha::~PaletteAlpha()
 int PaletteAlpha::handle_event()
 {
 	objs->a = get_value();
+    objs->update();
 	objs->handle_event();
 	return 1;
 }

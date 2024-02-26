@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -599,7 +598,7 @@ ADriverMenu::ADriverMenu(int x,
 	ADevicePrefs *device_prefs, 
 	int do_input,
 	int *output)
- : BC_PopupMenu(x, y, DP(125), adriver_to_string(*output), 1)
+ : BC_PopupMenu(x, y, DP(170), adriver_to_string(*output), 1)
 {
 	this->output = output;
 	this->do_input = do_input;

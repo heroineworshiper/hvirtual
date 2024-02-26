@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -326,7 +326,7 @@ PlaybackModuleFragment::PlaybackModuleFragment(int x,
 	char *text)
  : BC_PopupMenu(x, 
  	y, 
-	DP(100), 
+	DP(130), 
 	text,
 	1)
 { 

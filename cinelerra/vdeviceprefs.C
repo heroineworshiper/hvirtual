@@ -450,7 +450,7 @@ VDriverMenu::VDriverMenu(int x,
 	VDevicePrefs *device_prefs, 
 	int do_input, 
 	int *output)
- : BC_PopupMenu(x, y, DP(200), driver_to_string(*output))
+ : BC_PopupMenu(x, y, DP(230), driver_to_string(*output))
 {
 	this->output = output;
 	this->do_input = do_input;

@@ -170,9 +170,9 @@ int BC_PopupMenu::set_images(VFrame **data)
 	}
 
 	if(w_argument > 0)
-		w = w_argument + 
+		w = w_argument /* + 
 			margin +
-			resources->popupmenu_triangle_margin;
+			resources->popupmenu_triangle_margin */;
 	else
 		w = get_text_width(MEDIUMFONT, text) + 
 			margin +
@@ -182,10 +182,16 @@ int BC_PopupMenu::set_images(VFrame **data)
 	return 0;
 }
 
+int BC_PopupMenu::calculate_w(BC_WindowBase *gui, const char *text)
+{
+    int result = gui->get_text_width(MEDIUMFONT, text);
+    return calculate_w(result);
+}
+
 int BC_PopupMenu::calculate_w(int w_argument)
 {
 	return w_argument + 
-		BC_WindowBase::get_resources()->popupmenu_margin +
+		BC_WindowBase::get_resources()->popupmenu_margin * 2 +
 		BC_WindowBase::get_resources()->popupmenu_triangle_margin;
 }
 
@@ -247,7 +253,7 @@ int BC_PopupMenu::draw_title(int flush)
 		char truncated[BCTEXTLEN];
 		int available_w = get_w() - margin * 2 - resources->popupmenu_triangle_margin;
 		truncate_text(truncated, text, available_w);
-		
+
 		BC_WindowBase::draw_center_text(
 			available_w / 2 + margin + offset, 
 			(int)((float)get_h() / 2 + get_text_ascent(MEDIUMFONT) / 2 - 2) + offset, 
@@ -257,13 +263,17 @@ int BC_PopupMenu::draw_title(int flush)
 	if(icon)
 	{
 		draw_pixmap(icon,
-			(get_w() - margin * 2 - resources->popupmenu_triangle_margin) / 2 + margin + offset - icon->get_w() / 2 ,
+			(margin + (get_w() - margin - resources->popupmenu_triangle_margin)) / 2 - 
+                icon->get_w() / 2,
 			get_h() / 2 - icon->get_h() / 2 + offset);
 	}
 
-	draw_triangle_down_flat(get_w() - margin - resources->popupmenu_triangle_margin, 
+	draw_triangle_down_flat(get_w() - 
+            margin - 
+            resources->popupmenu_triangle_margin, 
 		get_h() / 2 - TRIANGLE_H / 2, 
-		TRIANGLE_W, TRIANGLE_H);
+		TRIANGLE_W, 
+        TRIANGLE_H);
 
 	flash(flush);
 	return 0;

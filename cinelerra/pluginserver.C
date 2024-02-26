@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1299,7 +1299,34 @@ void PluginServer::apply_keyframe(KeyFrame *src)
 	}
 }
 
-
+// int PluginServer::get_total_tracks()
+// {
+//     if(edl)
+//     {
+//         Track* current;
+//         for(current = tracks->first; 
+// 			current; 
+// 			current = NEXT)
+// 		{
+//             if(current->play && current->data_type == TRACK_VIDEO)
+//             {
+//                 
+//             }
+//         }
+//     }
+//     else
+//         return 1;
+// }
+// 
+// const char* PluginServer::get_track_title(int number)
+// {
+//     if(edl)
+//     {
+//     }
+//     else
+//         return 1;
+// }
+// 
 
 
 

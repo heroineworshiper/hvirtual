@@ -1464,14 +1464,20 @@ void TitleMain::convert_encoding()
 			size_t outbytes = config.text.length() * KEYPRESSLEN;
 			int noconv = 0;
 
-			while (inbytes >= 0 && outbytes > 0)
+//printf("TitleMain::convert_encoding %d\n", __LINE__);
+			while (inbytes > 0 && outbytes > 0)
 			{
 				if(iconv(cd, &in_ptr, &inbytes, &out_ptr, &outbytes) == (size_t)-1)
 				{
 					printf("TitleMain::convert_encoding %d: iconv failed!\n", __LINE__);
 					noconv = 1;
 				}
+// printf("TitleMain::convert_encoding %d inbytes=%d outbytes=%d\n", 
+// __LINE__, 
+// (int)inbytes,
+// (int)outbytes);
 			}
+//printf("TitleMain::convert_encoding %d\n", __LINE__);
 
 			outbytes = 0;
 			if(!noconv || utf8)

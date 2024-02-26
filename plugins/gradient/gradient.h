@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,6 +75,7 @@ public:
 	double angle;
 	double in_radius;
 	double out_radius;
+    int guides;
 	int in_r, in_g, in_b, in_a;
 	int out_r, out_g, out_b, out_a;
 };
@@ -171,6 +171,20 @@ public:
 };
 
 
+class GradientToggle : public BC_CheckBox
+{
+public:
+	GradientToggle(GradientMain *plugin, 
+        int x, 
+        int y,
+        int *output,
+        const char *caption);
+	int handle_event();
+	GradientMain *plugin;
+    int *output;
+};
+
+
 class GradientInColorThread : public ColorThread
 {
 public:
@@ -201,7 +215,7 @@ public:
 	void create_objects();
 	void update_in_color();
 	void update_out_color();
-	void update_shape();
+	void update_shape(int show_it);
 
 	GradientMain *plugin;
 	BC_Title *angle_title;
@@ -219,6 +233,7 @@ public:
 	BC_Title *center_y_title;
 	GradientCenterY *center_y;
 	GradientRate *rate;
+    GradientToggle *guides;
 	int in_color_x, in_color_y;
 	int out_color_x, out_color_y;
 	int shape_x, shape_y;
