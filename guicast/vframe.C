@@ -1557,17 +1557,27 @@ void VFrame::dump_params()
 	params->dump();
 }
 
-void VFrame::dump()
+void VFrame::dump(int indent)
 {
-	printf("VFrame::dump %d this=%p\n", __LINE__, this);
-	printf("    w=%d h=%d colormodel=%d rows=%p opengl_state=%d use_shm=%d shmid=%d\n", 
-		w, 
+    char string[indent + 1] = { 0 };
+    for(int i = 0; i < indent; i++)
+        strcat(string, " ");
+	printf("%sVFrame::dump %d this=%p\n", string, __LINE__, this);
+	printf("%s    w=%d h=%d colormodel=%d rows=%p opengl_state=%d use_shm=%d shmid=%d\n", 
+		string,
+        w, 
 		h,
 		color_model,
 		rows,
         opengl_state,
 		use_shm,
 		shmid);
+    printf("%s    texture=%p id=%d\n", string, texture, texture ? texture->get_texture_id() : -1);
+    printf("%s    pbuffer=%p gl_context=%p pbuffer=%x\n", 
+        string, 
+        pbuffer, 
+        pbuffer ? pbuffer->get_gl_context() : (void*)-1, 
+        pbuffer ? (int)pbuffer->get_pbuffer() : -1);
 }
 
 int VFrame::filefork_size()

@@ -145,11 +145,13 @@ public:
 
 	OverlayFrame *overlayer;
 	VFrame *temp;
-	int current_layer;
-	int output_layer;
+// initialize the unused output buffers on the 1st pass
+    int first;
+	int input_buffer;
+	int output_buffer;
 // Inclusive layer numbers
-	int input_layer1;
-	int input_layer2;
+	int input_buffer1;
+	int input_buffer2;
 };
 
 
@@ -395,15 +397,16 @@ int OverlayOutput::handle_event()
 	char *text = get_text();
 
 	if(!strcmp(text, 
-		OverlayConfig::direction_to_text(
+		OverlayConfig::output_to_text(
 			OverlayConfig::TOP)))
 		plugin->config.output_layer = OverlayConfig::TOP;
 	else
 	if(!strcmp(text, 
-		OverlayConfig::direction_to_text(
+		OverlayConfig::output_to_text(
 			OverlayConfig::BOTTOM)))
 		plugin->config.output_layer = OverlayConfig::BOTTOM;
 
+//printf("OverlayOutput::handle_event %d %d\n", __LINE__, plugin->config.output_layer);
 	plugin->send_configure_change();
 	return 1;
 }
@@ -475,32 +478,32 @@ int Overlay::process_buffer(VFrame **frame,
 
 	if(config.direction == OverlayConfig::BOTTOM_FIRST)
 	{
-		input_layer1 = get_total_buffers() - 1;
-		input_layer2 = -1;
+		input_buffer1 = get_total_buffers() - 1;
+		input_buffer2 = -1;
 		step = -1;
 	}
 	else
 	{
-		input_layer1 = 0;
-		input_layer2 = get_total_buffers();
+		input_buffer1 = 0;
+		input_buffer2 = get_total_buffers();
 		step = 1;
 	}
 
 	if(config.output_layer == OverlayConfig::TOP)
 	{
-		output_layer = 0;
+		output_buffer = 0;
 	}
 	else
 	{
-		output_layer = get_total_buffers() - 1;
+		output_buffer = get_total_buffers() - 1;
 	}
 
 
 
 // Direct copy the first layer
-	output = frame[output_layer];
+	output = frame[output_buffer];
 	read_frame(output, 
-		input_layer1, 
+		input_buffer1, 
 		start_position,
 		frame_rate,
 		get_use_opengl());
@@ -509,22 +512,26 @@ int Overlay::process_buffer(VFrame **frame,
 
 
 
-	current_layer = input_layer1;
-	if(get_use_opengl()) 
-		run_opengl();
+// 	input_buffer = input_buffer1;
+// 	if(get_use_opengl()) 
+// 		run_opengl();
 
-	for(int i = input_layer1 + step; i != input_layer2; i += step)
+    first = 1;
+// process the remaneing input buffers
+	for(int i = input_buffer1 + step; i != input_buffer2; i += step)
 	{
+// read into a temp
 		read_frame(temp, 
 			i, 
 			start_position,
 			frame_rate,
 			get_use_opengl());
 
+// stack the temp on the output
 // Call the opengl handler once for each layer
 		if(get_use_opengl()) 
 		{
-			current_layer = i;
+			input_buffer = i;
 			run_opengl();
 		}
 		else
@@ -543,8 +550,16 @@ int Overlay::process_buffer(VFrame **frame,
 				config.mode,
 				NEAREST_NEIGHBOR);
 		}
+        first = 0;
 	}
 
+// for(int i = 0; i < get_total_buffers(); i++)
+// {
+// printf("Overlay::process_buffer %d buffer %d\n", 
+// __LINE__,
+// i);
+// frame[i]->dump(4);
+// }
 
 	return 0;
 }
@@ -604,7 +619,7 @@ int Overlay::handle_opengl()
 
 
 	VFrame *src = temp;
-	VFrame *dst = get_output(output_layer);
+	VFrame *dst = get_output(output_buffer);
 
 	dst->enable_opengl();
 	dst->init_screen();
@@ -725,7 +740,25 @@ int Overlay::handle_opengl()
 	glDisable(GL_TEXTURE_2D);
 
 	dst->set_opengl_state(VFrame::SCREEN);
-#endif
+
+// initialize all the unused output buffers in the 1st pass
+    if(first)
+    {
+        for(int i = 0; i < get_total_buffers(); i++)
+        {
+            if(i != output_buffer)
+            {
+                dst = get_output(i);
+                dst->enable_opengl();
+// make the results more predictable by clearing the unused outputs
+                dst->clear_pbuffer();
+                dst->set_opengl_state(VFrame::SCREEN);
+            }
+        }
+    }
+
+
+#endif // HAVE_GL
     return 0;
 }
 

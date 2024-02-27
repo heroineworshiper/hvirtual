@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
@@ -229,7 +228,7 @@ void MaskAutos::avg_points(MaskPoint *output,
 {
 	if(position2 == position1)
 	{
-		*output = *input1;
+		output->copy_from(*input1);
 	}
 	else
 	{

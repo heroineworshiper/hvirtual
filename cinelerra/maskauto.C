@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -53,6 +52,7 @@ void MaskPoint::copy_from(MaskPoint &ptr)
 MaskPoint& MaskPoint::operator=(MaskPoint& ptr)
 {
     printf("MaskPoint::operator= %d: called\n", __LINE__);
+BC_Signals::dump_stack();
 	copy_from(ptr);
     return *this;
 }
@@ -102,7 +102,7 @@ void SubMask::copy_from(SubMask& ptr)
 	for(int i = 0; i < ptr.points.total; i++)
 	{
 		MaskPoint *point = new MaskPoint;
-		*point = *ptr.points.values[i];
+		point->copy_from(*ptr.points.get(i));
 		points.append(point);
 	}
 }

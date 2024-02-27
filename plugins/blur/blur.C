@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -155,42 +155,6 @@ int BlurMain::process_buffer(VFrame *frame,
 		frame_rate,
 		0);
 
-// Create temp based on alpha keying.
-// Alpha keying needs 2x oversampling.
-
-	if(config.a_key)
-	{
-		PluginVClient::new_temp(frame->get_w() * 2,
-				frame->get_h() * 2,
-				frame->get_color_model());
-		if(!overlayer)
-		{
-			overlayer = new OverlayFrame(PluginClient::get_project_smp() + 1);
-		}
-
-		overlayer->overlay(PluginVClient::get_temp(), 
-			frame, 
-			0, 
-			0, 
-			frame->get_w(), 
-			frame->get_h(), 
-			0, 
-			0, 
-			PluginVClient::get_temp()->get_w(), 
-			PluginVClient::get_temp()->get_h(), 
-			1,        // 0 - 1
-			TRANSFER_REPLACE,
-			NEAREST_NEIGHBOR);
-		input_frame = PluginVClient::get_temp();
-	}
-	else
-	{
-		PluginVClient::new_temp(frame->get_w(),
-				frame->get_h(),
-				frame->get_color_model());
-		input_frame = frame;
-	}
-
 
 //printf("BlurMain::process_realtime 1 %d %d\n", need_reconfigure, config.radius);
 	if(need_reconfigure)
@@ -220,13 +184,79 @@ int BlurMain::process_buffer(VFrame *frame,
 		(!config.vertical && !config.horizontal))
 	{
 // Data never processed
+// discard alpha for consistent results
+        if(config.a_key && (config.vertical || config.horizontal))
+        {
+    		int w = frame->get_w();
+	    	int h = frame->get_h();
+#define DISCARD_ALPHA(type, max) \
+{ \
+	type **rows = (type**)frame->get_rows(); \
+    for(int i = 0; i < h; i++) \
+    { \
+        type *row = rows[i]; \
+        for(int j = 0; j < w; j++) \
+        { \
+            row[3] = max; \
+            row += 4; \
+        } \
+    } \
+}
+
+	        switch(frame->get_color_model())
+	        {
+		        case BC_YUVA8888:
+		        case BC_RGBA8888:
+			        DISCARD_ALPHA(unsigned char, 0xff);
+			        break;
+		        case BC_RGBA_FLOAT:
+			        DISCARD_ALPHA(float, 1.0);
+			        break;
+            }
+       }
 	}
 	else
 	{
+
+
+// Create temp based on alpha keying.
+// Alpha keying needs 2x oversampling.
+	    if(config.a_key)
+	    {
+		    PluginVClient::new_temp(frame->get_w() * 2,
+				    frame->get_h() * 2,
+				    frame->get_color_model());
+		    if(!overlayer)
+		    {
+			    overlayer = new OverlayFrame(PluginClient::get_project_smp() + 1);
+		    }
+
+		    overlayer->overlay(PluginVClient::get_temp(), 
+			    frame, 
+			    0, 
+			    0, 
+			    frame->get_w(), 
+			    frame->get_h(), 
+			    0, 
+			    0, 
+			    PluginVClient::get_temp()->get_w(), 
+			    PluginVClient::get_temp()->get_h(), 
+			    1,        // 0 - 1
+			    TRANSFER_REPLACE,
+			    NEAREST_NEIGHBOR);
+		    input_frame = PluginVClient::get_temp();
+	    }
+	    else
+	    {
+		    PluginVClient::new_temp(frame->get_w(),
+				    frame->get_h(),
+				    frame->get_color_model());
+		    input_frame = frame;
+	    }
+
 // Process blur
 // Need to blur vertically to a temp and 
 // horizontally to the output in 2 discrete passes.
-
 		for(i = 0; i < get_project_smp() + 1; i++)
 		{
 			engine[i]->set_range(
@@ -257,26 +287,26 @@ int BlurMain::process_buffer(VFrame *frame,
 		{
 			engine[i]->wait_process_frame();
 		}
-	}
-
 
 // Downsample
-	if(config.a_key)
-	{
-		overlayer->overlay(frame, 
-			PluginVClient::get_temp(), 
-			0, 
-			0, 
-			PluginVClient::get_temp()->get_w(), 
-			PluginVClient::get_temp()->get_h(), 
-			0, 
-			0, 
-			frame->get_w(), 
-			frame->get_h(), 
-			1,        // 0 - 1
-			TRANSFER_REPLACE,
-			NEAREST_NEIGHBOR);
+	    if(config.a_key)
+	    {
+		    overlayer->overlay(frame, 
+			    PluginVClient::get_temp(), 
+			    0, 
+			    0, 
+			    PluginVClient::get_temp()->get_w(), 
+			    PluginVClient::get_temp()->get_h(), 
+			    0, 
+			    0, 
+			    frame->get_w(), 
+			    frame->get_h(), 
+			    1,        // 0 - 1
+			    TRANSFER_REPLACE,
+			    NEAREST_NEIGHBOR);
+	    }
 	}
+
 
 	return 0;
 }
@@ -495,7 +525,14 @@ void BlurEngine::run()
 				if(plugin->config.g) current_output[k][j * components + 1] = (type)dst[k].g; \
 				if(plugin->config.b) current_output[k][j * components + 2] = (type)dst[k].b; \
 				if(components == 4) \
-					if(plugin->config.a || plugin->config.a_key) current_output[k][j * components + 3] = (type)dst[k].a; \
+				{ \
+/* don't keep the alpha */ \
+				    if(plugin->config.a_key && !(do_horizontal && plugin->config.horizontal)) \
+					    current_output[k][j * components + 3] = max; \
+                	else \
+                    if(plugin->config.a || plugin->config.a_key) \
+                        current_output[k][j * components + 3] = (type)dst[k].a; \
+                } \
 			} \
 		} \
  \
@@ -538,11 +575,14 @@ void BlurEngine::run()
 				if(plugin->config.g) current_output[j][k * components + 1] = (type)dst[k].g; \
 				if(plugin->config.b) current_output[j][k * components + 2] = (type)dst[k].b; \
 				if(components == 4) \
-					if(plugin->config.a && !plugin->config.a_key) \
-						current_output[j][k * components + 3] = (type)dst[k].a; \
-					else \
+                { \
+/* don't keep the alpha */ \
 					if(plugin->config.a_key) \
 						current_output[j][k * components + 3] = max; \
+					else \
+                    if(plugin->config.a) \
+						current_output[j][k * components + 3] = (type)dst[k].a; \
+                } \
 			} \
 		} \
 	} \
@@ -568,16 +608,6 @@ void BlurEngine::run()
 
 			case BC_RGBA_FLOAT:
 				BLUR(float, 1.0, 4);
-				break;
-
-			case BC_RGB161616:
-			case BC_YUV161616:
-				BLUR(uint16_t, 0xffff, 3);
-				break;
-
-			case BC_RGBA16161616:
-			case BC_YUVA16161616:
-				BLUR(uint16_t, 0xffff, 4);
 				break;
 		}
 

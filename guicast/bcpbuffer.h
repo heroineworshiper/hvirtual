@@ -48,6 +48,7 @@ public:
 	void enable_opengl();
 #ifdef HAVE_GL
 	GLXPbuffer get_pbuffer();
+	GLXContext get_gl_context();
 #endif
 
 private:

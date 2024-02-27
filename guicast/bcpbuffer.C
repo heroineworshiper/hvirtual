@@ -60,6 +60,12 @@ GLXPbuffer BC_PBuffer::get_pbuffer()
 {
 	return pbuffer;
 }
+
+GLXContext BC_PBuffer::get_gl_context()
+{
+    return gl_context;
+}
+
 #endif
 
 

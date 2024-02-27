@@ -46,6 +46,9 @@
 #define MAX_INPUTS 4
 #define RENDERED_CHANNELS -1
 
+// 1st buffer is output
+// output buffers beyond 0 are undefined & should be muted
+#define OUTPUT_BUFFER 0
 
 REGISTER_PLUGIN(SwapMain)
 
@@ -472,7 +475,7 @@ int SwapMain::load_configuration()
 	for(int i = 0; i < h; i++) \
 	{ \
 		type *inrow = (type*)temp->get_rows()[i]; \
-		type *outrow = (type*)frame[0]->get_rows()[i]; \
+		type *outrow = (type*)frame[OUTPUT_BUFFER]->get_rows()[i]; \
  \
 		for(int j = 0; j < w; j++) \
 		{ \
@@ -553,11 +556,13 @@ int SwapMain::process_buffer(VFrame **frame,
     if(total_inputs == 0) 
         input_layers[total_inputs++] = RENDERED_CHANNELS;
 
-// for(int i = 0; i < total_inputs; i++)
-// printf("SwapMain::process_buffer %d input=%d layer=%d\n", 
+// for(int i = 0; i < get_total_buffers(); i++)
+// {
+// printf("SwapMain::process_buffer %d buffer %d\n", 
 // __LINE__,
-// i,
-// input_layers[i]);
+// i);
+// frame[i]->dump(4);
+// }
 
     if(total_inputs > 0)
     {
@@ -566,6 +571,7 @@ int SwapMain::process_buffer(VFrame **frame,
 		    frame[0]->get_color_model());
     }
 
+    first = 1;
     for(int i = 0; i < total_inputs; i++)
     {
         input_track = input_layers[i];
@@ -606,10 +612,17 @@ int SwapMain::process_buffer(VFrame **frame,
 			        break;
 	        }
         }
+        first = 0;
     }
 
-// output frames beyond 0 are undefined & should be muted
-	
+// for(int i = 0; i < get_total_buffers(); i++)
+// {
+// printf("SwapMain::process_buffer %d channel %d\n", 
+// __LINE__,
+// i);
+// frame[i]->dump(4);
+// }
+
 	
 	return 0;
 }
@@ -737,8 +750,9 @@ int SwapMain::handle_opengl()
 // "}\n");
 
 
+
     VFrame *src = temp;
-    VFrame *dst = get_output(1);
+    VFrame *dst = get_output(OUTPUT_BUFFER);
 
 	dst->enable_opengl();
 	dst->init_screen();
@@ -756,7 +770,7 @@ int SwapMain::handle_opengl()
 	src->bind_texture(0);
 	dst->bind_texture(1);
 
-printf("SwapMain::handle_opengl %d shader=\n%s\n", __LINE__, output_frag);
+//printf("SwapMain::handle_opengl %d shader=\n%s\n", __LINE__, output_frag);
 	unsigned int shader_id = VFrame::make_shader(0,
 		output_frag,
 		0);
@@ -777,7 +791,25 @@ printf("SwapMain::handle_opengl %d shader=\n%s\n", __LINE__, output_frag);
 	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_TEXTURE_2D);
 	dst->set_opengl_state(VFrame::SCREEN);
-#endif
+
+
+// initialize all the unused output buffers
+    if(first)
+    {
+        for(int i = 0; i < get_total_buffers(); i++)
+        {
+            if(i != OUTPUT_BUFFER)
+            {
+                dst = get_output(i);
+                dst->enable_opengl();
+// make the results more predictable by clearing the unused outputs
+                dst->clear_pbuffer();
+                dst->set_opengl_state(VFrame::SCREEN);
+            }
+        }
+    }
+
+#endif // HAVE_GL
     return 0;
 }
 

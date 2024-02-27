@@ -357,7 +357,7 @@ public:
 
 // Debugging
 	void dump_stacks();
-	void dump();
+	void dump(int indent);
 
 	void dump_params();
 
