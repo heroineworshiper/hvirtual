@@ -861,17 +861,26 @@ int Canvas::button_press_event()
 
 	if(get_canvas()->get_buttonpress() == 3)
 	{
+//printf("Canvas::button_press_event %d %p %p\n", __LINE__, fullscreen_menu, canvas_menu);
 		if(get_fullscreen())
         {
-            fullscreen_menu->show_fps->set_text(
-                CanvasFPS::calculate_text(MWindow::preferences->show_fps));
-			fullscreen_menu->activate_menu();
+            if(fullscreen_menu)
+            {
+                if(fullscreen_menu->show_fps)
+                    fullscreen_menu->show_fps->set_text(
+                        CanvasFPS::calculate_text(MWindow::preferences->show_fps));
+			    fullscreen_menu->activate_menu();
+            }
 		}
         else
 		{
-            canvas_menu->show_fps->set_text(
-                CanvasFPS::calculate_text(MWindow::preferences->show_fps));
-        	canvas_menu->activate_menu();
+            if(canvas_menu)
+            {
+                if(canvas_menu->show_fps)
+                    canvas_menu->show_fps->set_text(
+                       CanvasFPS::calculate_text(MWindow::preferences->show_fps));
+        	    canvas_menu->activate_menu();
+            }
 		}
         
         result = 1;
@@ -1277,6 +1286,7 @@ CanvasFullScreenPopup::CanvasFullScreenPopup(Canvas *canvas)
 		0)
 {
 	this->canvas = canvas;
+    show_fps = 0;
 }
 
 
@@ -1322,6 +1332,8 @@ CanvasPopup::CanvasPopup(Canvas *canvas)
 		0)
 {
 	this->canvas = canvas;
+    toggle_controls = 0;
+    show_fps = 0;
 }
 
 CanvasPopup::~CanvasPopup()
