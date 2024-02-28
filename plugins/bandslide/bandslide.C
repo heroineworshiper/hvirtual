@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +25,6 @@
 #include "filexml.h"
 #include "language.h"
 #include "overlayframe.h"
-#include "picon_png.h"
 #include "theme.h"
 #include "vframe.h"
 
@@ -190,9 +188,17 @@ int BandSlideMain::uses_gui() { return 1; }
 NEW_WINDOW_MACRO(BandSlideMain, BandSlideWindow);
 
 
-VFrame* BandSlideMain::new_picon()
+void BandSlideMain::update_gui()
 {
-	return new VFrame(picon_png);
+	if(thread)
+	{
+        load_configuration();
+        thread->window->lock_window("BandSlideMain::update_gui 1");
+        ((BandSlideWindow*)thread->window)->count->update((int64_t)bands);
+        ((BandSlideWindow*)thread->window)->in->update(direction == 0);
+        ((BandSlideWindow*)thread->window)->out->update(direction == 1);
+        thread->window->unlock_window();
+    }
 }
 
 

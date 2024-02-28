@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -124,6 +123,8 @@ public:
 //	ShapeWipeFilename *filename_widget;
 	ShapeWipeTumble *shape_tumbler;
 	ShapeWipeShape *shape_text;
+    ShapeWipeAntiAlias *anti_alias;
+    ShapeWipePreserveAspectRatio *aspect_ratio;
 	ArrayList<BC_ListBoxItem*> shapes;
 };
 
@@ -142,7 +143,7 @@ public:
 	int uses_gui();
 	int is_transition();
 	const char* plugin_title();
-	VFrame* new_picon();
+	void update_gui();
 	int read_pattern_image(int new_frame_width, int new_frame_height);
 	void reset_pattern_image();
 	void init_shapes();

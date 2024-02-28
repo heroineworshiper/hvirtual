@@ -466,7 +466,7 @@ void PackageRenderer::do_video()
 				{
 					printf("PackageRenderer::do_video %d %p\n", __LINE__, video_output_ptr);
 					printf("PackageRenderer::do_video %d %d\n", __LINE__, result);
-					video_output_ptr->dump();
+					video_output_ptr->dump(0);
 				}
 
  				if(!result)

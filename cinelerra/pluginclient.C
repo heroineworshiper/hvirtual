@@ -748,7 +748,7 @@ void PluginClient::load_defaults_xml()
 			int temp = fread(temp_keyframe.get_data(), data_size, 1, fd);
 // Get window extents
 			char *data = temp_keyframe.get_data();
-//printf("PluginClient::load_defaults_xml %d %s %s\n", __LINE__, path, data);
+//printf("PluginClient::load_defaults_xml %d path=%s data=%s\n", __LINE__, path, data);
 			int state = 0;
 			for(int i = 0; i < data_size - 8; i++)
 			{
@@ -794,7 +794,7 @@ void PluginClient::save_defaults_xml()
 	if(fd)
 	{
 		fprintf(fd, "%d\n%d\n", window_x, window_y);
-//printf("PluginClient::save_defaults_xml %d %s data=%s\n", __LINE__, path, temp_keyframe.get_data());
+//printf("PluginClient::save_defaults_xml %d path=%s data=%s\n", __LINE__, path, temp_keyframe.get_data());
 		if(strlen(temp_keyframe.get_data()))
 		{
 			if(!fwrite(temp_keyframe.get_data(), strlen(temp_keyframe.get_data()), 1, fd))

@@ -721,7 +721,7 @@ void MWindow::search_plugindb(int do_audio,
 	}
 }
 
-PluginServer* MWindow::scan_plugindb(char *title,
+PluginServer* MWindow::scan_plugindb(const char *title,
 		int data_type)
 {
 // 	if(data_type < 0)
@@ -2606,34 +2606,51 @@ void MWindow::update_plugin_states()
 	plugin_gui_lock->lock("MWindow::update_plugin_states");
 	for(int i = 0; i < plugin_guis->total; i++)
 	{
-		int result = 0;
+		int got_it = 0;
 // Get a plugin GUI
 		Plugin *src_plugin = plugin_guis->values[i]->plugin;
 		PluginServer *src_plugingui = plugin_guis->values[i];
 
-// Search for plugin in EDL.  Only the master EDL shows plugin GUIs.
+// Search for plugin in the EDL.  Only the master EDL shows plugin GUIs.
 		for(Track *track = edl->tracks->first; 
-			track && !result; 
+			track && !got_it; 
 			track = track->next)
 		{
 			for(int j = 0; 
-				j < track->plugin_set.total && !result; 
+				j < track->plugin_set.total && !got_it; 
 				j++)
 			{
 				PluginSet *plugin_set = track->plugin_set.values[j];
 				for(Plugin *plugin = (Plugin*)plugin_set->first; 
-					plugin && !result; 
+					plugin && !got_it; 
 					plugin = (Plugin*)plugin->next)
 				{
 					if(plugin == src_plugin &&
-						!strcmp(plugin->title, src_plugingui->title)) result = 1;
+						!strcmp(plugin->title, src_plugingui->title)) 
+                    {
+                        got_it = 1;
+                        break;
+                    }
 				}
 			}
+
+// search for transition
+            for(Edit *edit = track->edits->first; 
+                edit && !got_it;
+                edit = edit->next)
+            {
+                if(edit->transition == src_plugin &&
+                    !strcmp(edit->transition->title, src_plugingui->title))
+                {
+                    got_it = 1;
+                    break;
+                }
+            }
 		}
 
 
 // Doesn't exist anymore
-		if(!result)
+		if(!got_it)
 		{
 			hide_plugin(src_plugin, 0);
 			i--;

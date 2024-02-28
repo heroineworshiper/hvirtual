@@ -130,6 +130,7 @@ void DropoutMain::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 
+//printf("DropoutMain::read_data %d %s\n", __LINE__, keyframe->get_data());
 	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
 
 	while(!input.read_tag())
@@ -149,7 +150,14 @@ int DropoutMain::load_configuration()
 
 void DropoutMain::update_gui()
 {
-printf("DropoutMain::update_gui %d\n", __LINE__);
+	if(thread)
+	{
+        load_configuration();
+//printf("DropoutMain::update_gui %d balance=%d\n", __LINE__, balance);
+        thread->window->lock_window("DropoutMain::update_gui 1");
+        ((DropoutWindow*)thread->window)->balance->update(balance);
+        thread->window->unlock_window();
+    }
 }
 
 

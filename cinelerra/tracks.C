@@ -30,6 +30,7 @@
 #include "filexml.h"
 #include "intauto.h"
 #include "intautos.h"
+#include "keyframe.h"
 #include "localsession.h"
 #include "module.h"
 #include "panauto.h"

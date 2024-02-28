@@ -31,6 +31,7 @@
 #include "filexml.h"
 #include "intauto.h"
 #include "intautos.h"
+#include "keyframe.h"
 #include "labels.h"
 #include "localsession.h"
 #include "mainundo.h"
@@ -457,7 +458,11 @@ void Tracks::set_transition_length(Transition *transition, double length)
 	}
 }
 
-void Tracks::paste_transitions(double start, double end, int track_type, char* title)
+void Tracks::paste_transitions(double start, 
+    double end, 
+    int track_type, 
+    char* title,
+    KeyFrame *keyframe)
 {
 	for(Track *current_track = first; 
 		current_track; 
@@ -480,7 +485,7 @@ void Tracks::paste_transitions(double start, double end, int track_type, char* t
 					current_edit->startproject <= start_units &&
 					current_edit->startproject + current_edit->length > start_units)))
 				{
-					current_edit->insert_transition(title);
+					current_edit->insert_transition(title, keyframe);
 				}
 			}
 		}
@@ -1019,7 +1024,7 @@ int Tracks::move_tracks_down()
 
 
 
-void Tracks::paste_audio_transition(PluginServer *server)
+void Tracks::paste_audio_transition(PluginServer *server, KeyFrame *keyframe)
 {
 	for(Track *current = first; current; current = NEXT)
 	{
@@ -1033,7 +1038,7 @@ void Tracks::paste_audio_transition(PluginServer *server)
 				0);
 			if(current_edit)
 			{
-				paste_transition(server, current_edit);
+				paste_transition(server, current_edit, keyframe);
 			}
 		}
 	}
@@ -1163,12 +1168,16 @@ void Tracks::paste_automation(double selectionstart,
 // 	return 0;
 // }
 
-void Tracks::paste_transition(PluginServer *server, Edit *dest_edit)
+void Tracks::paste_transition(PluginServer *server, 
+    Edit *dest_edit,
+    KeyFrame *keyframe)
 {
-	dest_edit->insert_transition(server->title);
+	dest_edit->insert_transition(server->title, keyframe);
 }
 
-void Tracks::paste_video_transition(PluginServer *server, int first_track)
+void Tracks::paste_video_transition(PluginServer *server, 
+    int first_track,
+    KeyFrame *keyframe)
 {
 	for(Track *current = first; current; current = NEXT)
 	{
@@ -1182,7 +1191,7 @@ void Tracks::paste_video_transition(PluginServer *server, int first_track)
 				0);
 			if(current_edit)
 			{
-				paste_transition(server, current_edit);
+				paste_transition(server, current_edit, keyframe);
 			}
 			if(first_track) break;
 		}

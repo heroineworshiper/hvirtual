@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +25,6 @@
 #include "edl.inc"
 #include "overlayframe.h"
 #include "language.h"
-#include "picon_png.h"
 #include "theme.h"
 #include "vframe.h"
 
@@ -146,13 +144,22 @@ ZoomMain::~ZoomMain()
 }
 
 const char* ZoomMain::plugin_title() { return N_("Zoom"); }
-int ZoomMain::is_video() { return 1; }
 int ZoomMain::is_transition() { return 1; }
 int ZoomMain::uses_gui() { return 1; }
 
-NEW_PICON_MACRO(ZoomMain)
 
 
+void ZoomMain::update_gui()
+{
+	if(thread)
+	{
+        load_configuration();
+        thread->window->lock_window("ZoomMain::update_gui 1");
+        ((ZoomWindow*)thread->window)->limit_x->update(max_magnification_x);
+        ((ZoomWindow*)thread->window)->limit_y->update(max_magnification_y);
+        thread->window->unlock_window();
+    }
+}
 
 
 void ZoomMain::save_data(KeyFrame *keyframe)

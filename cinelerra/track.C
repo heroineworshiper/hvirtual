@@ -382,9 +382,10 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 			else
 			if(file->tag.title_is("EDITS"))
 			{
-				if(load_flags & LOAD_EDITS)
+// edits or transitions
+				if(load_flags & (LOAD_EDITS | LOAD_AUTOMATION))
 				{
-                	error |= edits->load(file, track_offset);
+                	error |= edits->load(file, track_offset, load_flags);
                 }
 			}
 			else

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +24,6 @@
 #include "filexml.h"
 #include "language.h"
 #include "overlayframe.h"
-#include "picon_png.h"
 #include "slide.h"
 #include "theme.h"
 #include "vframe.h"
@@ -212,17 +210,26 @@ SlideMain::~SlideMain()
 }
 
 const char* SlideMain::plugin_title() { return N_("Slide"); }
-int SlideMain::is_video() { return 1; }
 int SlideMain::is_transition() { return 1; }
 int SlideMain::uses_gui() { return 1; }
 
 NEW_WINDOW_MACRO(SlideMain, SlideWindow)
 
 
-VFrame* SlideMain::new_picon()
+void SlideMain::update_gui()
 {
-	return new VFrame(picon_png);
+	if(thread)
+	{
+        load_configuration();
+        thread->window->lock_window("ShapeWipeMain::update_gui 1");
+        ((SlideWindow*)thread->window)->left->update(motion_direction == 0);
+        ((SlideWindow*)thread->window)->right->update(motion_direction == 1);
+        ((SlideWindow*)thread->window)->in->update(direction == 0);
+        ((SlideWindow*)thread->window)->out->update(direction == 1);
+        thread->window->unlock_window();
+    }
 }
+
 
 
 void SlideMain::save_data(KeyFrame *keyframe)

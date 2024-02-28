@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,10 +70,9 @@ public:
 // Transition processing
 	int process_realtime(VFrame *input_ptr, VFrame *output_ptr);
 	int uses_gui();
+    void update_gui();
 	int is_transition();
-	int is_video();
 	const char* plugin_title();
-	VFrame* new_picon();
 	int handle_opengl();
 
 	float magnification_x;

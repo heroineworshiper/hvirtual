@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,7 +93,7 @@ public:
 
 // required for all realtime plugins
 	int load_configuration();
-	VFrame* new_picon();
+	void update_gui();
 	const char* plugin_title();
 	PluginClientWindow* new_window();
 	int process_realtime(VFrame *incoming, VFrame *outgoing);

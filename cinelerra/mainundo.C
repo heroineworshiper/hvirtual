@@ -69,8 +69,9 @@ void MainUndo::update_undo_entry(const char *description,
 	current->set_description((char*)description);
 	current->set_creator(creator);
 	current->set_filename(mwindow->session->filename);
-// printf("MainUndo::update_undo_entry %d %s\n", 
+// printf("MainUndo::update_undo_entry %d current=%p\n%s\n", 
 // __LINE__, 
+// current,
 // file.string);
 
 // Can't undo only 1 record.
@@ -199,7 +200,7 @@ int MainUndo::undo()
 		char *current_data = current->get_data();
 		if(current_data)
 		{
-//printf("MainUndo::undo %d\n%s\n", __LINE__, current_data);
+//printf("MainUndo::undo %d current=%p\n%s\n", __LINE__, current, current_data);
 			file.read_from_string(current_data);
 			load_from_undo(&file, current->get_flags());
 			mwindow->set_filename(current->get_filename());
@@ -289,6 +290,7 @@ int MainUndo::redo()
 // Here the master EDL loads
 int MainUndo::load_from_undo(FileXML *file, uint32_t load_flags)
 {
+//printf("MainUndo::load_from_undo %d flags=0x%x\n", __LINE__, load_flags);
 	mwindow->edl->load_xml(file, load_flags);
 	for(Asset *asset = mwindow->edl->assets->first;
 		asset;
@@ -296,7 +298,7 @@ int MainUndo::load_from_undo(FileXML *file, uint32_t load_flags)
 	{
 		mwindow->mainindexes->add_next_asset(0, asset);
 	}
-	
+
 	for(int i = 0; i < mwindow->edl->nested_edls->size(); i++)
 	{
 		EDL *nested_edl = mwindow->edl->nested_edls->get(i);

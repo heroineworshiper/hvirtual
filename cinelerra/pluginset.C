@@ -156,7 +156,7 @@ Plugin* PluginSet::insert_plugin(const char *title,
 	plugin->plugin_type = plugin_type;
 
 	if(default_keyframe) 
-		*plugin->keyframes->default_auto = *default_keyframe;
+		plugin->keyframes->default_auto->copy_from(default_keyframe);
 	plugin->keyframes->default_auto->position = unit_position;
 
 // May delete the plugin we just added so not desirable while loading.

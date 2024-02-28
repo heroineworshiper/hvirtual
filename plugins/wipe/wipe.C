@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -151,6 +151,18 @@ int WipeMain::uses_gui() { return 1; }
 
 NEW_WINDOW_MACRO(WipeMain, WipeWindow)
 
+
+void WipeMain::update_gui()
+{
+	if(thread)
+	{
+        load_configuration();
+        thread->window->lock_window("WipeMain::update_gui 1");
+        ((WipeWindow*)thread->window)->left->update(direction == 0);
+        ((WipeWindow*)thread->window)->right->update(direction == 1);
+        thread->window->unlock_window();
+    }
+}
 
 
 void WipeMain::save_data(KeyFrame *keyframe)

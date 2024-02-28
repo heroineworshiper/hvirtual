@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +25,6 @@
 #include "irissquare.h"
 #include "language.h"
 #include "overlayframe.h"
-#include "picon_png.h"
 #include "theme.h"
 #include "vframe.h"
 
@@ -144,16 +142,22 @@ IrisSquareMain::~IrisSquareMain()
 }
 
 const char* IrisSquareMain::plugin_title() { return N_("IrisSquare"); }
-int IrisSquareMain::is_video() { return 1; }
 int IrisSquareMain::is_transition() { return 1; }
 int IrisSquareMain::uses_gui() { return 1; }
 
 NEW_WINDOW_MACRO(IrisSquareMain, IrisSquareWindow)
 
 
-VFrame* IrisSquareMain::new_picon()
+void IrisSquareMain::update_gui()
 {
-	return new VFrame(picon_png);
+	if(thread)
+	{
+        load_configuration();
+        thread->window->lock_window("IrisSquareMain::update_gui 1");
+        ((IrisSquareWindow*)thread->window)->in->update(direction == 0);
+        ((IrisSquareWindow*)thread->window)->out->update(direction == 1);
+        thread->window->unlock_window();
+    }
 }
 
 void IrisSquareMain::save_data(KeyFrame *keyframe)

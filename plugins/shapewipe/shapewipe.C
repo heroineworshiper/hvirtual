@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +25,6 @@
 #include "filexml.h"
 #include "language.h"
 #include "overlayframe.h"
-#include "picon_png.h"
 #include "theme.h"
 #include "vframe.h"
 #include "shapewipe.h"
@@ -263,14 +261,14 @@ void ShapeWipeWindow::create_objects()
 	x = window_border;
 	y += shape_text->get_h() + widget_border;
 
-	ShapeWipeAntiAlias *anti_alias;
-	add_subwindow(anti_alias = new ShapeWipeAntiAlias(
-		plugin, 
-		this,
-		x,
-		y));
-	y += anti_alias->get_h() + widget_border;
-	ShapeWipePreserveAspectRatio *aspect_ratio;
+// doesn't work
+// 	add_subwindow(anti_alias = new ShapeWipeAntiAlias(
+// 		plugin, 
+// 		this,
+// 		x,
+// 		y));
+// 	y += anti_alias->get_h() + widget_border;
+	
 	add_subwindow(aspect_ratio = new ShapeWipePreserveAspectRatio(
 		plugin, 
 		this,
@@ -349,7 +347,21 @@ int ShapeWipeMain::uses_gui() { return 1; }
 NEW_WINDOW_MACRO(ShapeWipeMain, ShapeWipeWindow);
 
 
-NEW_PICON_MACRO(ShapeWipeMain)
+
+void ShapeWipeMain::update_gui()
+{
+	if(thread)
+	{
+        load_configuration();
+        thread->window->lock_window("ShapeWipeMain::update_gui 1");
+        ((ShapeWipeWindow*)thread->window)->left->update(direction == 0);
+        ((ShapeWipeWindow*)thread->window)->right->update(direction == 1);
+        ((ShapeWipeWindow*)thread->window)->shape_text->update(shape_name);
+//        ((ShapeWipeWindow*)thread->window)->anti_alias->update(antialias);
+        ((ShapeWipeWindow*)thread->window)->aspect_ratio->update(preserve_aspect);
+        thread->window->unlock_window();
+    }
+}
 
 
 void ShapeWipeMain::save_data(KeyFrame *keyframe)
@@ -358,7 +370,7 @@ void ShapeWipeMain::save_data(KeyFrame *keyframe)
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 	output.tag.set_title("SHAPEWIPE");
 	output.tag.set_property("DIRECTION", direction);
-	output.tag.set_property("ANTIALIAS", antialias);
+//	output.tag.set_property("ANTIALIAS", antialias);
 	output.tag.set_property("PRESERVE_ASPECT", preserve_aspect);
 	output.tag.set_property("FILENAME", filename);
 	output.tag.set_property("SHAPE_NAME", shape_name);
@@ -379,7 +391,7 @@ void ShapeWipeMain::read_data(KeyFrame *keyframe)
 		if(input.tag.title_is("SHAPEWIPE"))
 		{
 			direction = input.tag.get_property("DIRECTION", direction);
-			antialias = input.tag.get_property("ANTIALIAS", antialias);
+//			antialias = input.tag.get_property("ANTIALIAS", antialias);
 			preserve_aspect = input.tag.get_property("PRESERVE_ASPECT", preserve_aspect);
 			input.tag.get_property("FILENAME", filename);
 			input.tag.get_property("SHAPE_NAME", shape_name);
@@ -458,7 +470,7 @@ int ShapeWipeMain::read_pattern_image(int new_frame_width, int new_frame_height)
 		return 1;
 	}
 
-	fread(header, 1, 8, fp);
+	int _ = fread(header, 1, 8, fp);
 	is_png = !png_sig_cmp(header, 0, 8);
 
 	if (!is_png)
@@ -795,6 +807,7 @@ int ShapeWipeMain::process_realtime(VFrame *incoming, VFrame *outgoing)
 			+ min_value;
 	}
 
+// doesn't work
 	if (antialias)
 	{
 		if (direction)

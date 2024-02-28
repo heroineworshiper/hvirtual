@@ -28,6 +28,7 @@
 #include "edl.inc"
 #include "file.inc"
 #include "filexml.inc"
+#include "keyframe.inc"
 #include "linklist.h"
 #include "pluginserver.inc"
 #include "threadindexer.inc"
@@ -75,14 +76,11 @@ public:
 	int move_track_down(Track *track);      // move recordable tracks down
 	int move_tracks_up();                   // move recordable tracks up
 	int move_tracks_down();                 // move recordable tracks down
-	void paste_audio_transition(PluginServer *server);
-	void paste_video_transition(PluginServer *server, int first_track = 0);
 
 // Only tests effects
 	int plugin_exists(Plugin *plugin);
 	int track_exists(Track *track);
 
-	void paste_transition(PluginServer *server, Edit *dest_edit);
 // Return the numbers of tracks with the play patch enabled
 	int playable_audio_tracks();
 	int playable_video_tracks();
@@ -248,7 +246,19 @@ public:
         int new_is_silence);
 	void set_transition_length(double start, double end, double length);
 	void set_transition_length(Transition *transition, double length);
-	void paste_transitions(double start, double end, int track_type, char* title);
+	void paste_audio_transition(PluginServer *server, 
+        KeyFrame *keyframe);
+	void paste_video_transition(PluginServer *server, 
+        int first_track /* = 0 */,
+        KeyFrame *keyframe);
+	void paste_transitions(double start, 
+        double end, 
+        int track_type, 
+        char* title,
+        KeyFrame *keyframe);
+	void paste_transition(PluginServer *server, 
+        Edit *dest_edit,
+        KeyFrame *keyframe);
 
 // ================================== accounting
 

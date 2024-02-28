@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +27,7 @@
 #include "edits.inc"
 #include "filexml.inc"
 #include "indexable.inc"
+#include "keyframe.inc"
 #include "mwindow.inc"
 #include "plugin.inc"
 #include "track.inc"
@@ -107,7 +107,7 @@ public:
 		int edit_autos,
 		Edits *trim_edits);
 
-	void insert_transition(char  *title);
+	void insert_transition(char  *title, KeyFrame *keyframe);
 	void detach_transition();
 // Determine if silence depending on existance of asset or plugin title
 	virtual int silence();

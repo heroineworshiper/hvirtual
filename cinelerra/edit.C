@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +28,7 @@
 #include "edlsession.h"
 #include "filexml.h"
 #include "filesystem.h"
+#include "keyframe.h"
 #include "localsession.h"
 #include "plugin.h"
 #include "mainsession.h"
@@ -208,7 +208,7 @@ int64_t Edit::get_source_end(int64_t default_)
 	return default_;
 }
 
-void Edit::insert_transition(char *title)
+void Edit::insert_transition(char *title, KeyFrame *keyframe)
 {
 //printf("Edit::insert_transition this=%p title=%p title=%s\n", this, title, title);
 	detach_transition();
@@ -216,6 +216,7 @@ void Edit::insert_transition(char *title)
 		this, 
 		title, 
 		track->to_units(edl->session->default_transition_length, 1));
+    transition->get_keyframe()->copy_from(keyframe);
 }
 
 void Edit::detach_transition()

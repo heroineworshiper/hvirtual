@@ -327,10 +327,16 @@ int PluginServer::open_plugin(int master,
 
 // Run initialization functions
 	realtime = client->is_realtime();
+    transition = client->is_transition();
 // Don't load defaults when probing the directory.
+// printf("PluginServer::open_plugin %d master=%d realtime=%d transition=%d\n", 
+// __LINE__,
+// master,
+// realtime,
+// transition);
 	if(!master)
 	{
-		if(realtime)
+		if(realtime || transition)
 			client->load_defaults_xml();
 		else
 			client->load_defaults();
@@ -342,7 +348,6 @@ int PluginServer::open_plugin(int master,
 	uses_gui = client->uses_gui();
 	multichannel = client->is_multichannel();
 	synthesis = client->is_synthesis();
-	transition = client->is_transition();
 	set_title(client->plugin_title());
 
 	if(master && (realtime || transition))

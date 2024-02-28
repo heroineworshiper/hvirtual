@@ -869,6 +869,24 @@ void MWindow::insert_effect(char *title,
 	}
 }
 
+// load the default keyframe for a plugin
+// user must delete the result
+KeyFrame* MWindow::get_default_keyframe(const char *title, 
+    int data_type,
+    PluginServer *server)
+{
+	KeyFrame *default_keyframe = new KeyFrame;
+    if(!server) server = scan_plugindb(title, data_type);
+
+	PluginServer *server2 = new PluginServer(*server);
+	server2->open_plugin(0, preferences, edl, 0, -1);
+	server2->save_data(default_keyframe);
+	server2->close_plugin();
+	delete server2;
+
+    
+    return default_keyframe;
+}
 
 void MWindow::insert_effect(char *title, 
 	SharedLocation *shared_location, 
@@ -879,21 +897,13 @@ void MWindow::insert_effect(char *title,
 	int plugin_type)
 {
 	KeyFrame *default_keyframe = 0;
-	PluginServer *server = 0;
-
-
-
-
-
 
 // Get default keyframe
 	if(plugin_type == PLUGIN_STANDALONE)
 	{
-		default_keyframe = new KeyFrame;
-		server = new PluginServer(*scan_plugindb(title, track->data_type));
-
-		server->open_plugin(0, preferences, edl, 0, -1);
-		server->save_data(default_keyframe);
+        default_keyframe = get_default_keyframe(title, 
+            track->data_type,
+            0);
 	}
 
 
@@ -910,12 +920,7 @@ void MWindow::insert_effect(char *title,
 	track->optimize();
 
 
-	if(plugin_type == PLUGIN_STANDALONE)
-	{
-		server->close_plugin();
-		delete server;
-		delete default_keyframe;
-	}
+	delete default_keyframe;
 }
 
 int MWindow::modify_transitionhandles()
@@ -1996,12 +2001,25 @@ void MWindow::paste_transition()
  	PluginServer *server = session->drag_pluginservers->values[0];
 
 	undo->update_undo_before();
+
+
+// Get default keyframe
+    KeyFrame *default_keyframe = get_default_keyframe(0, 
+        0,
+        server);
+
 	if(server->audio)
 		strcpy(edl->session->default_atransition, server->title);
 	else
 		strcpy(edl->session->default_vtransition, server->title);
 
-	edl->tracks->paste_transition(server, session->edit_highlighted);
+	edl->tracks->paste_transition(server, 
+        session->edit_highlighted, 
+        default_keyframe);
+
+
+    delete default_keyframe;
+
 	save_backup();
 	undo->update_undo_after(_("transition"), LOAD_EDITS);
 
@@ -2016,7 +2034,19 @@ void MWindow::paste_transitions(int track_type, char *title)
 	undo->update_undo_before();
 	double start = edl->local_session->get_selectionstart();
 	double end = edl->local_session->get_selectionend();
-	edl->tracks->paste_transitions(start, end, track_type, title);
+
+
+// Get default keyframe
+    KeyFrame *default_keyframe = get_default_keyframe(title, 
+        track_type,
+        0);
+
+// printf("MWindow::paste_transitions %d keyframe=%s\n", 
+// __LINE__, 
+// default_keyframe->get_data());
+	edl->tracks->paste_transitions(start, end, track_type, title, default_keyframe);
+
+    delete default_keyframe;
 
 	save_backup();
 	undo->update_undo_after(_("attach transitions"), LOAD_EDITS);
@@ -2030,7 +2060,19 @@ void MWindow::paste_transition_cwindow(Track *dest_track)
 {
 	PluginServer *server = session->drag_pluginservers->values[0];
 	undo->update_undo_before();
-	edl->tracks->paste_video_transition(server, 1);
+
+
+// Get default keyframe
+    KeyFrame *default_keyframe = get_default_keyframe(0, 
+        0,
+        server);
+
+
+	edl->tracks->paste_video_transition(server, 1, default_keyframe);
+
+    delete default_keyframe;
+
+
 	save_backup();
 	undo->update_undo_after(_("transition"), LOAD_EDITS);
 	restart_brender();
@@ -2051,7 +2093,17 @@ void MWindow::paste_audio_transition()
 	}
 
 	undo->update_undo_before();
-	edl->tracks->paste_audio_transition(server);
+
+// Get default keyframe
+    KeyFrame *default_keyframe = get_default_keyframe(0, 
+        0,
+        server);
+
+	edl->tracks->paste_audio_transition(server, default_keyframe);
+
+
+    delete default_keyframe;
+
 	save_backup();
 	undo->update_undo_after(_("transition"), LOAD_EDITS);
 
@@ -2073,7 +2125,16 @@ void MWindow::paste_video_transition()
 
 	undo->update_undo_before();
 
-	edl->tracks->paste_video_transition(server);
+// Get default keyframe
+    KeyFrame *default_keyframe = get_default_keyframe(0, 
+        0,
+        server);
+
+
+	edl->tracks->paste_video_transition(server, 0, default_keyframe);
+
+    delete default_keyframe;
+
 	save_backup();
 	undo->update_undo_after(_("transition"), LOAD_EDITS);
 
@@ -2593,7 +2654,8 @@ void MWindow::trim_selection()
 }
 
 
-
+// making this a lambda function would do nothing.
+// the callers would then have to manage their own locking instead of the main window.
 void MWindow::undo_entry(BC_WindowBase *calling_window_gui)
 {
 	calling_window_gui->unlock_window();
@@ -2638,9 +2700,9 @@ void MWindow::undo_entry(BC_WindowBase *calling_window_gui)
 	update_plugin_guis();
 
 
-
+    gui->lock_window("MWindow::undo_entry 1");
 	gui->update(1, 2, 1, 1, 1, 1, 1);
-	
+	gui->unlock_window();
 	
 	
 	cwindow->update(1, 1, 1, 1, 1);

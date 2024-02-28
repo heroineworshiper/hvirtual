@@ -871,7 +871,10 @@ void quicktime_init_codec_vorbis(quicktime_audio_map_t *atrack)
 	codec_base->encode_audio = encode;
 	codec_base->set_parameter = set_parameter;
 	codec_base->flush = flush;
+// the standard code determined later
 	codec_base->fourcc = QUICKTIME_VORBIS;
+// hacked code used in the 1st videos
+//	codec_base->fourcc = "VBIS";
 	codec_base->title = "OGG Vorbis";
 	codec_base->desc = "OGG Vorbis for video. (Not standardized)";
 

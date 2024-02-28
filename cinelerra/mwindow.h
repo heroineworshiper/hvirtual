@@ -45,6 +45,7 @@
 #include "framecache.inc"
 #include "gwindow.inc"
 #include "indexable.inc"
+#include "keyframe.inc"
 #include "keyframegui.inc"
 #include "levelwindow.inc"
 #include "loadmode.inc"
@@ -178,8 +179,13 @@ public:
 		int is_theme,
 		ArrayList<PluginServer*> &results);
 // Find the plugin whose title matches title and return it
-	static PluginServer* scan_plugindb(char *title,
+	static PluginServer* scan_plugindb(const char *title,
 		int data_type);
+// load the default keyframe for a plugin
+// user must delete the result
+    KeyFrame* get_default_keyframe(const char *title, 
+        int data_type,
+        PluginServer *server);
 	void dump_plugins();
     static char* print_indent();
 
