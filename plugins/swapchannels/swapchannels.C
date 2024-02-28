@@ -153,7 +153,7 @@ void SwapWindow::create_objects()
 //printf("SwapWindow::create_objects %d menu_w=%d\n", __LINE__, menu_w);
 
     BC_Title *title;
-    add_subwindow(title = new BC_Title(x, y, _("Source track")));
+    add_subwindow(title = new BC_Title(x, y, _("Source buffer")));
     
     
     
@@ -611,6 +611,19 @@ int SwapMain::process_buffer(VFrame **frame,
 			        SWAP_CHANNELS(unsigned char, 0x80, 0xff, 4);
 			        break;
 	        }
+            
+            
+// clear all the unused output buffers
+            if(first)
+            {
+                for(int i = 0; i < get_total_buffers(); i++)
+                {
+                    if(i != OUTPUT_BUFFER)
+                    {
+                        frame[i]->clear_frame();
+                    }
+                }
+            }
         }
         first = 0;
     }
@@ -793,7 +806,7 @@ int SwapMain::handle_opengl()
 	dst->set_opengl_state(VFrame::SCREEN);
 
 
-// initialize all the unused output buffers
+// clear all the unused output buffers
     if(first)
     {
         for(int i = 0; i < get_total_buffers(); i++)

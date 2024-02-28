@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,18 +18,50 @@
  * 
  */
 
+// A crummy transition just to test an audio transition with a GUI
+
+
 #ifndef CROSSFADE_H
 #define CROSSFADE_H
 
-class CrossfadeMain;
+class DropoutMain;
+class DropoutWindow;
 
 #include "pluginaclient.h"
 
-class CrossfadeMain : public PluginAClient
+
+class DropoutSlider : public BC_ISlider
 {
 public:
-	CrossfadeMain(PluginServer *server);
-	~CrossfadeMain();
+	DropoutSlider(DropoutMain *plugin, 
+        DropoutWindow *window,
+        int x,
+        int y,
+        int w,
+        int *output);
+	int handle_event();
+	DropoutMain *plugin;
+	DropoutWindow *window;
+    int *output;
+};
+
+class DropoutWindow : public PluginClientWindow
+{
+public:
+	DropoutWindow(DropoutMain *plugin);
+	void create_objects();
+	DropoutMain *plugin;
+	DropoutSlider *balance;
+};
+
+
+
+
+class DropoutMain : public PluginAClient
+{
+public:
+	DropoutMain(PluginServer *server);
+	~DropoutMain();
 
 // required for all transition plugins
 	int process_realtime(int64_t size, 
@@ -38,6 +70,15 @@ public:
 	int uses_gui();
 	int is_transition();
 	const char* plugin_title();
+	PluginClientWindow* new_window();
+    void save_data(KeyFrame *keyframe);
+    void read_data(KeyFrame *keyframe);
+    void update_gui();
+    int load_configuration();
+
+    int balance;
 };
 
 #endif
+
+

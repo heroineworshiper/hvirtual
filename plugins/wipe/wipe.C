@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
@@ -25,7 +24,6 @@
 #include "filexml.h"
 #include "language.h"
 #include "overlayframe.h"
-#include "picon_png.h"
 #include "theme.h"
 #include "vframe.h"
 #include "wipe.h"
@@ -148,17 +146,11 @@ WipeMain::~WipeMain()
 }
 
 const char* WipeMain::plugin_title() { return N_("Wipe"); }
-int WipeMain::is_video() { return 1; }
 int WipeMain::is_transition() { return 1; }
 int WipeMain::uses_gui() { return 1; }
 
 NEW_WINDOW_MACRO(WipeMain, WipeWindow)
 
-
-VFrame* WipeMain::new_picon()
-{
-	return new VFrame(picon_png);
-}
 
 
 void WipeMain::save_data(KeyFrame *keyframe)

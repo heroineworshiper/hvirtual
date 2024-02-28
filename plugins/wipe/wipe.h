@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -87,9 +86,7 @@ public:
 	void read_data(KeyFrame *keyframe);
 	int uses_gui();
 	int is_transition();
-	int is_video();
 	const char* plugin_title();
-	VFrame* new_picon();
 
 	int direction;
 };

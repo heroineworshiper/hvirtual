@@ -527,7 +527,7 @@ void BlurEngine::run()
 				if(components == 4) \
 				{ \
 /* don't keep the alpha */ \
-				    if(plugin->config.a_key && !(do_horizontal && plugin->config.horizontal)) \
+				    if(plugin->config.a_key && !plugin->config.horizontal) \
 					    current_output[k][j * components + 3] = max; \
                 	else \
                     if(plugin->config.a || plugin->config.a_key) \

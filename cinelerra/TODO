@@ -14,13 +14,21 @@ Change asset path, CPlayback never returns to redraw the frame.
 
 
 
+Documentation wishlist:
+----------------------------------------------------
+COMPOSITOR KEYFRAMES out of date
+
 
 
 WISH LIST
 ----------------
+print YUV or RGB in swapchannels based on project settings
+Alpha blur in chromakey HSV
+Swap HSV in swapchannels
+Track names in swapchannels
+Multiple loads from a single filebox with apply button
 reverse reverb
 variable fast fwd speed
-flanger
 
 
 

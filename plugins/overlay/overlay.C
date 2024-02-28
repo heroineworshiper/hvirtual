@@ -277,7 +277,7 @@ void OverlayWindow::create_objects()
 	direction->create_objects();
 
 	y += DP(30);
-	add_subwindow(title = new BC_Title(x, y, _("Output layer:")));
+	add_subwindow(title = new BC_Title(x, y, _("Output buffer:")));
 	add_subwindow(output = new OverlayOutput(plugin, 
 		x + title->get_w() + DP(5), 
 		y));
