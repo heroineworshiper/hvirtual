@@ -100,6 +100,7 @@
 #include "trackscroll.h"
 #include "tracks.h"
 #include "transition.h"
+#include "transitiondialog.h"
 #include "transportque.h"
 #include "vframe.h"
 #include "videodevice.inc"
@@ -1790,6 +1791,7 @@ void MWindow::create_objects(int want_gui,
 //	show_splash();
 
 	asset_remove = new AssetRemoveThread(this);
+	attach_transition = new TransitionDialogThread(this);
 
 
 	init_error();

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2013 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -188,6 +187,7 @@ int VirtualConsole::test_reconfigure(int64_t position,
 	Module *module;
 	int direction = renderengine->command->get_direction();
 
+
 // Test playback status against virtual console for current position.
 	for(current_track = renderengine->get_edl()->tracks->first;
 		current_track && !result;
@@ -249,8 +249,12 @@ int VirtualConsole::test_reconfigure(int64_t position,
 				direction == PLAY_REVERSE, 
 				1,
 				1);
-
-
+// printf("VirtualConsole::test_reconfigure %d current_track=%p current_position=%d length=%d longest_duration1=%d\n",
+// __LINE__,
+// current_track,
+// (int)commonrender->current_position,
+// (int)length,
+// (int)longest_duration1);
 // Test the edits
 			longest_duration2 = current_track->edit_change_duration(
 				commonrender->current_position, 

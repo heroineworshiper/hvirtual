@@ -216,8 +216,8 @@ int ARender::process_buffer(Samples **buffer_out,
 		reconfigure = vconsole->test_reconfigure(input_position, 
 			fragment_len);
 
-// printf("ARender::process_buffer %d input_position=%ld fragment_len=%ld reconfigure=%d\n", 
-// __LINE__, input_position, fragment_len, reconfigure);
+printf("ARender::process_buffer %d input_position=%d fragment_len=%d reconfigure=%d\n", 
+__LINE__, (int)input_position, (int)fragment_len, reconfigure);
 
 		if(reconfigure) restart_playback();
 
@@ -248,7 +248,7 @@ int ARender::process_buffer(int64_t input_len, int64_t input_position)
 // renderengine->get_edl()->nested_depth);
 	int result = ((VirtualAConsole*)vconsole)->process_buffer(input_len,
 		input_position);
-//printf("ARender::process_buffer %d %p\n", __LINE__, this);
+//printf("ARender::process_buffer %d input_len=%d input_position=%d\n", __LINE__, (int)input_len, (int)input_position);
 	return result;
 }
 
@@ -344,7 +344,10 @@ if(debug) printf("ARender::run %d\n", __LINE__);
 
 
 		advance_position(current_input_length);
-if(debug) printf("ARender::run %d\n", __LINE__);
+if(debug) printf("ARender::run %d current_position=%d current_input_length=%d\n", 
+__LINE__, 
+(int)current_position,
+(int)current_input_length);
 
 
 		if(vconsole->interrupt) interrupt = 1;

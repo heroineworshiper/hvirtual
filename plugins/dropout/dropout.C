@@ -167,11 +167,11 @@ int DropoutMain::process_realtime(int64_t size,
 {
 	load_configuration();
 
-printf("DropoutMain::process_realtime %d: start=%ld len=%ld size=%ld\n", 
-__LINE__,
-(long)PluginClient::get_source_position(), 
-(long)PluginClient::get_total_len(),
-(long)size);
+// printf("DropoutMain::process_realtime %d: start=%ld len=%ld size=%ld\n", 
+// __LINE__,
+// (long)PluginClient::get_source_position(), 
+// (long)PluginClient::get_total_len(),
+// (long)size);
     int64_t len = PluginClient::get_total_len();
     int64_t midpoint = len * balance / 100;
 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +18,8 @@
  * 
  */
 
-#ifndef MENUATTACHTRANSITION_H
-#define MENUATTACHTRANSITION_H
+#ifndef TRANSITIONDIALOG_H
+#define TRANSITIONDIALOG_H
 
 
 #include "bcdialog.h"
@@ -32,31 +31,21 @@ class TransitionDialogName;
 class TransitionDialogThread;
 class TransitionDialog;
 
-class MenuAttachTransition : public BC_MenuItem
-{
-public:
-	MenuAttachTransition(MWindow *mwindow, int data_type);
-
-	int handle_event();
-
-	MWindow *mwindow;
-	int data_type;
-	TransitionDialogThread *thread;
-};
-
 
 
 
 class TransitionDialogThread : public BC_DialogThread
 {
 public:
-	TransitionDialogThread(MWindow *mwindow, int data_type);
+	TransitionDialogThread(MWindow *mwindow);
 	BC_Window* new_gui();
 	void handle_close_event(int result);
-	void start();
+	void start(int data_type, 
+        Edit *dst_edit); // set based on what's calling it
 
 	char transition_title[BCTEXTLEN];
 	MWindow *mwindow;
+    Edit *dst_edit;
 	int data_type;
 	ArrayList<BC_ListBoxItem*> transition_names;
 };

@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -295,6 +294,8 @@ void Module::update_transition(int64_t current_position,
 		direction,
 		0,
 		0);
+//printf("Module::update_transition %d current_position=%d direction=%d %p\n",
+//__LINE__, (int)current_position, direction, transition);
 
 // For situations where we had a transition but not anymore, 
 // keep the server open.

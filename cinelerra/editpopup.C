@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +35,7 @@
 #include "track.h"
 #include "tracks.h"
 #include "trackcanvas.h"
+#include "transitiondialog.h"
 
 
 #include <string.h>
@@ -59,6 +59,8 @@ EditPopup::~EditPopup()
 void EditPopup::create_objects()
 {
 	add_item(new EditAttachEffect(mwindow, this));
+    add_item(new EditPopupAttachTransition(mwindow, this));
+    add_item(new EditPopupDefaultTransition(mwindow, this));
 	add_item(new EditMoveTrackUp(mwindow, this));
 	add_item(new EditMoveTrackDown(mwindow, this));
 	add_item(new EditPopupDeleteTrack(mwindow, this));
@@ -469,6 +471,37 @@ int EditPopupAddTrack::handle_event()
 	return 1;
 }
 
+
+
+
+EditPopupAttachTransition::EditPopupAttachTransition(MWindow *mwindow, EditPopup *popup)
+ : BC_MenuItem(_("Attach Transition..."))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int EditPopupAttachTransition::handle_event()
+{
+    mwindow->attach_transition->start(popup->track->data_type, 
+        popup->edit);
+	return 1;
+}
+
+
+EditPopupDefaultTransition::EditPopupDefaultTransition(MWindow *mwindow, EditPopup *popup)
+ : BC_MenuItem(_("Default Transition"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int EditPopupDefaultTransition::handle_event()
+{
+    mwindow->paste_default_transition(popup->track->data_type, 
+        popup->edit);
+	return 1;
+}
 
 
 

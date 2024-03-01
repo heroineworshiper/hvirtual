@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1456,6 +1456,10 @@ int64_t Track::edit_change_duration(int64_t input_position,
 	if(reverse)
 	{
 // ================================= Reverse playback
+
+// former method of avoiding a lockup
+//        const int fudge = 1;
+        const int fudge = 0;
 // Get first edit on or after position
 		for(current = edits->first; 
 			current && current->startproject + current->length <= input_position;
@@ -1464,22 +1468,35 @@ int64_t Track::edit_change_duration(int64_t input_position,
 
 		if(current)
 		{
-			if(current->startproject > input_position)
+			if(current->startproject >= input_position)
 			{
-// Before first edit
+// Before this edit
 				;
 			}
 			else
 			if(need_edit(current, test_transitions))
 			{
-// Over an edit of interest.
+// Over an edit with data.
 				if(input_position - current->startproject < input_length)
-					edit_length = input_position - current->startproject + 1;
+					edit_length = input_position - current->startproject + fudge;
+
+                if(test_transitions && current->transition)
+                {
+                    int64_t transition_end = current->startproject + current->transition->length;
+                    if(input_position - transition_end > 0 &&
+                        input_position - transition_end < edit_length)
+                        edit_length = input_position - transition_end;
+                }
+// printf("Track::edit_change_duration %d test_transitions=%d input_position=%d edit_length=%d\n",
+// __LINE__,
+// test_transitions,
+// (int)input_position,
+// (int)edit_length);
 			}
 			else
 			{
-// Over an edit that isn't of interest.
-// Search for next edit of interest.
+// Over an edit with no data
+// Search for next edit with data.
 				for(current = PREVIOUS ; 
 					current && 
 					current->startproject + current->length > input_position - input_length &&
@@ -1487,10 +1504,12 @@ int64_t Track::edit_change_duration(int64_t input_position,
 					current = PREVIOUS)
 					;
 
-					if(current && 
-						need_edit(current, test_transitions) &&
-						current->startproject + current->length > input_position - input_length)
-                    	edit_length = input_position - current->startproject - current->length + 1;
+				if(current && need_edit(current, test_transitions))
+                {
+                    int64_t edit_end = current->startproject + current->length;
+					if(edit_end > input_position - input_length)
+                        edit_length = input_position - edit_end + fudge;
+                }
 			}
 		}
 		else
@@ -1500,7 +1519,10 @@ int64_t Track::edit_change_duration(int64_t input_position,
 			if(current && 
 				((test_transitions && current->transition) ||
 				(!test_transitions && current->asset)))
-				edit_length = input_position - edits->last->startproject - edits->last->length + 1;
+            {
+                int64_t edit_end = edits->last->startproject - edits->last->length;
+				edit_length = input_position - edit_end + fudge;
+            }
 		}
 	}
 	else
@@ -1516,21 +1538,32 @@ int64_t Track::edit_change_duration(int64_t input_position,
 		{
 			if(current->startproject + current->length <= input_position)
 			{
-// Beyond last edit.
+// After this edit.
 				;
 			}
 			else
 			if(need_edit(current, test_transitions))
 			{
-// Over an edit of interest.
+// Over an edit with data.
 // Next edit is going to require a change.
-				if(current->length + current->startproject - input_position < input_length)
-					edit_length = current->startproject + current->length - input_position;
+                int64_t edit_end = current->length + current->startproject;
+				if(edit_end - input_position < input_length)
+					edit_length = edit_end - input_position;
+
+
+                if(test_transitions && current->transition)
+                {
+                    int64_t transition_end = current->startproject + current->transition->length;
+                    if(transition_end - input_position > 0 &&
+                        transition_end - input_position < edit_length)
+                        edit_length = transition_end - input_position;
+                }
+
 			}
 			else
 			{
-// Over an edit that isn't of interest.
-// Search for next edit of interest.
+// Over an edit with no data.
+// Search for next edit with data.
 				for(current = NEXT ; 
 					current && 
 					current->startproject < input_position + input_length &&
@@ -1538,10 +1571,10 @@ int64_t Track::edit_change_duration(int64_t input_position,
 					current = NEXT)
 					;
 
-					if(current && 
-						need_edit(current, test_transitions) &&
-						current->startproject < input_position + input_length) 
-						edit_length = current->startproject - input_position;
+				if(current && 
+					need_edit(current, test_transitions) &&
+					current->startproject < input_position + input_length)
+					edit_length = current->startproject - input_position;
 			}
 		}
 		else

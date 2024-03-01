@@ -83,6 +83,7 @@
 #include "tracking.inc"
 #include "tracks.inc"
 #include "transition.inc"
+#include "transitiondialog.inc"
 #include "transportque.inc"
 #include "videowindow.inc"
 #include "vwindow.inc"
@@ -407,12 +408,14 @@ public:
 // Attach dragged transition
 	void paste_transition();
 // Attach transition to all edits in selection
-	void paste_transitions(int track_type, char *title);
+	void paste_transitions(int track_type, 
+        char *title,
+        Edit *dst_edit);  // set if we're going into 1 edit
 // Attach transition dragged onto CWindow
 	void paste_transition_cwindow(Track *dest_track);
-// Attach default transition to single edit
-	void paste_audio_transition();
-	void paste_video_transition();
+// Attach default transition to all selected edits
+	void paste_default_transition(int data_type, 
+        Edit *dst_edit); // set to paste it into just 1 edit
 	void shuffle_edits();
 	void reverse_edits();
 	void align_edits();
@@ -504,8 +507,9 @@ public:
 	static Playback3D *playback_3d;
 	RemoveThread *remove_thread;
     AssetRemoveThread *asset_remove;
+    TransitionDialogThread *attach_transition;
 
-	
+
 	SplashGUI *splash_window;
 // Main undo stack
 	MainUndo *undo;

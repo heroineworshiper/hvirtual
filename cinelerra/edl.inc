@@ -26,7 +26,7 @@ class EDL;
 // Load flags for undo
 #define LOAD_ALL        0xffffffff
 #define LOAD_EDITS      0x00000001
-#define LOAD_AUTOMATION 0x00000002
+#define LOAD_AUTOMATION 0x00000002 // load transition keyframes + automation
 #define LOAD_PATCHES 	0x00000004
 #define LOAD_CONSOLE 	0x00000008
 #define LOAD_TIMEBAR 	0x00000010

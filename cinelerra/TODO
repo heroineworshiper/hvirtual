@@ -22,6 +22,8 @@ COMPOSITOR KEYFRAMES out of date
 
 WISH LIST
 ----------------
+alpha for previews
+libmpeg3 patches: https://udd.debian.org/patches.cgi?src=libmpeg3&version=1.8.dfsg-4
 print YUV or RGB in swapchannels based on project settings
 Alpha blur in chromakey HSV
 Swap HSV in swapchannels

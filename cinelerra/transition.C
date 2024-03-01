@@ -174,9 +174,16 @@ void Transition::save_xml(FileXML *file)
 void Transition::load_xml(FileXML *file)
 {
 	int result = 0;
+
+
 	file->tag.get_property("TITLE", title);
 	length = file->tag.get_property("LENGTH", length);
 	on = 0;
+
+// printf("Transition::load_xml %d title=%s length=%d\n",
+// __LINE__,
+// title,
+// (int)length);
 	
 	do{
 		result = file->read_tag();

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@
 #include "edlsession.h"
 #include "language.h"
 #include "mainsession.h"
-#include "menuattachtransition.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "plugindialog.h"
 #include "pluginserver.h"
+#include "transitiondialog.h"
 
 
 
@@ -35,52 +35,41 @@
 
 
 
-MenuAttachTransition::MenuAttachTransition(MWindow *mwindow, int data_type)
- : BC_MenuItem(_("Attach Transition..."))
-{
-	this->mwindow = mwindow;
-	this->data_type = data_type;
-	thread = new TransitionDialogThread(mwindow, data_type);
-}
-
-int MenuAttachTransition::handle_event()
-{
-	thread->start();
-	return 1;
-}
-
-
-TransitionDialogThread::TransitionDialogThread(MWindow *mwindow, int data_type)
+TransitionDialogThread::TransitionDialogThread(MWindow *mwindow)
  : BC_DialogThread()
 {
 	this->mwindow = mwindow;
-	this->data_type = data_type;
 }
 
-void TransitionDialogThread::start()
+void TransitionDialogThread::start(int data_type, 
+    Edit *dst_edit) // set based on what's calling it
 {
-	if(!transition_names.total)
-	{
+    if(!is_running())
+    {
+	    this->data_type = data_type;
+        this->dst_edit = dst_edit;
+
+	    transition_names.remove_all_objects();
 // Construct listbox names	
-		ArrayList<PluginServer*> plugindb;
-		mwindow->search_plugindb(data_type == TRACK_AUDIO, 
-			data_type == TRACK_VIDEO, 
-			0, 
-			1,
-			0,
-			plugindb);
-		for(int i = 0; i < plugindb.total; i++)
-			transition_names.append(new BC_ListBoxItem(_(plugindb.values[i]->title)));
-	}
+	    ArrayList<PluginServer*> plugindb;
+	    MWindow::search_plugindb(data_type == TRACK_AUDIO, 
+		    data_type == TRACK_VIDEO, 
+		    0, 
+		    1,
+		    0,
+		    plugindb);
+	    for(int i = 0; i < plugindb.total; i++)
+		    transition_names.append(new BC_ListBoxItem(_(plugindb.get(i)->title)));
 
-	if(data_type == TRACK_AUDIO)
-		strcpy(transition_title, mwindow->edl->session->default_atransition);
-	else
-		strcpy(transition_title, mwindow->edl->session->default_vtransition);
+	    if(data_type == TRACK_AUDIO)
+		    strcpy(transition_title, mwindow->edl->session->default_atransition);
+	    else
+		    strcpy(transition_title, mwindow->edl->session->default_vtransition);
 
-	mwindow->gui->unlock_window();
-	BC_DialogThread::start();
-	mwindow->gui->lock_window("TransitionDialogThread::start");
+	    mwindow->gui->unlock_window();
+	    BC_DialogThread::start();
+	    mwindow->gui->lock_window("TransitionDialogThread::start");
+    }
 }
 
 
@@ -105,7 +94,7 @@ void TransitionDialogThread::handle_close_event(int result)
 {
 	if(!result)
 	{
-		mwindow->paste_transitions(data_type, transition_title);
+        mwindow->paste_transitions(data_type, transition_title, dst_edit);
 	}
 }
 

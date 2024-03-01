@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -4748,6 +4748,7 @@ int TrackCanvas::do_tracks(int cursor_x,
 			cursor_y >= track_y && 
 			cursor_y < track_y + track_h)
 		{
+//printf("TrackCanvas::do_tracks %d %s\n", __LINE__, track->title);
 			gui->edit_menu->update(track, 0);
 			gui->edit_menu->activate_menu();
 			result = 1;
@@ -4793,6 +4794,7 @@ int TrackCanvas::do_edits(int cursor_x,
 // context menu
                     if(get_buttonpress() == RIGHT_BUTTON)
                     {
+//printf("TrackCanvas::do_edits %d %s edit=%p\n", __LINE__, track->title, edit);
                         gui->edit_menu->update(track, edit);
                         gui->edit_menu->activate_menu();
                         result = 1;
@@ -5132,14 +5134,29 @@ int TrackCanvas::do_transitions(int cursor_x,
             {
                 if(mwindow->edl->session->editing_mode == IBEAM_CURSOR)
                 {
-				    double position = (double)cursor_x * 
-					    mwindow->edl->local_session->zoom_sample /
-					    mwindow->edl->session->sample_rate + 
-					    (double)mwindow->edl->local_session->view_start[pane->number] * 
-					    mwindow->edl->local_session->zoom_sample /
-					    mwindow->edl->session->sample_rate;
-					rerender = start_selection(position);
-					mwindow->session->current_operation = SELECT_REGION;
+//printf("TrackCanvas::do_transitions %d %d\n", __LINE__, get_double_click());
+                    if(get_double_click())
+                    {
+// select entire transition
+                        double start = edit_result->track->from_units(
+                            edit_result->startproject);
+                        double end = edit_result->track->from_units(
+                            edit_result->startproject + transition->length);
+                        mwindow->edl->local_session->set_selectionstart(start);
+                        mwindow->edl->local_session->set_selectionend(end);
+                        rerender = 1;
+                    }
+                    else
+                    {
+				        double position = (double)cursor_x * 
+					        mwindow->edl->local_session->zoom_sample /
+					        mwindow->edl->session->sample_rate + 
+					        (double)mwindow->edl->local_session->view_start[pane->number] * 
+					        mwindow->edl->local_session->zoom_sample /
+					        mwindow->edl->session->sample_rate;
+					    rerender = start_selection(position);
+					    mwindow->session->current_operation = SELECT_REGION;
+                    }
                 }
             }
             update_cursor = 1;
@@ -5147,7 +5164,7 @@ int TrackCanvas::do_transitions(int cursor_x,
         else
 		if(get_buttonpress() == 3)
 		{
-			gui->transition_menu->update(transition);
+			gui->transition_menu->update(edit_result, transition);
 			gui->transition_menu->activate_menu();
 		}
 	}

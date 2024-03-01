@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,6 +64,28 @@ public:
     ArrayList<EditInfoThread*> edit_editors;
     
 };
+
+
+class EditPopupAttachTransition : public BC_MenuItem
+{
+public:
+	EditPopupAttachTransition(MWindow *mwindow, EditPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+    EditPopup *popup;
+};
+
+class EditPopupDefaultTransition : public BC_MenuItem
+{
+public:
+	EditPopupDefaultTransition(MWindow *mwindow, EditPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+    EditPopup *popup;
+};
+
+
+
 
 class EditPopupMatchSize : public BC_MenuItem
 {

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,13 +23,16 @@
 #include "edit.h"
 #include "edl.h"
 #include "edlsession.h"
+#include "filexml.h"
 #include "language.h"
+#include "mainundo.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "plugin.h"
 #include "transition.h"
 #include "track.h"
 #include "tracks.h"
+#include "transitiondialog.h"
 #include "transitionpopup.h"
 
 
@@ -191,19 +194,25 @@ TransitionPopup::~TransitionPopup()
 void TransitionPopup::create_objects()
 {
 	length_thread = new TransitionLengthThread(mwindow);
-//	add_item(attach = new TransitionPopupAttach(mwindow, this));
+	add_item(attach = new TransitionPopupAttach(mwindow, this));
+//	add_item(attach_default = new TransitionPopupDefault(mwindow));
+	add_item(copy = new TransitionCopy(mwindow));
+	add_item(paste = new TransitionPaste(mwindow));
 	add_item(show = new TransitionPopupShow(mwindow, this));
 	add_item(on = new TransitionPopupOn(mwindow, this));
 	add_item(length_item = new TransitionPopupLength(mwindow, this));
 	add_item(detach = new TransitionPopupDetach(mwindow, this));
 }
 
-int TransitionPopup::update(Transition *transition)
+int TransitionPopup::update(Edit *edit, Transition *transition)
 {
+    this->edit = edit;
 	this->transition = transition;
 	this->length = transition->edit->track->from_units(transition->length);
 	show->set_checked(transition->show);
 	on->set_checked(transition->on);
+    paste->transition = transition;
+    copy->transition = transition;
 	return 0;
 }
 
@@ -211,22 +220,94 @@ int TransitionPopup::update(Transition *transition)
 
 
 
-TransitionPopupAttach::TransitionPopupAttach(MWindow *mwindow, TransitionPopup *popup)
- : BC_MenuItem(_("Attach..."))
+TransitionPopupAttach::TransitionPopupAttach(MWindow *mwindow,
+    TransitionPopup *popup)
+ : BC_MenuItem(_("Change..."))
 {
 	this->mwindow = mwindow;
-	this->popup = popup;
-}
-
-TransitionPopupAttach::~TransitionPopupAttach()
-{
+    this->popup = popup;
 }
 
 int TransitionPopupAttach::handle_event()
 {
-//	popup->dialog_thread->start();
+    mwindow->attach_transition->start(popup->edit->track->data_type, 
+        popup->edit);
     return 0;
 }
+
+
+
+// TransitionPopupDefault::TransitionPopupDefault(MWindow *mwindow)
+//  : BC_MenuItem(_("Attach default"))
+// {
+// 	this->mwindow = mwindow;
+// }
+// 
+// int TransitionPopupDefault::handle_event()
+// {
+//     return 0;
+// }
+
+
+
+
+
+TransitionPaste::TransitionPaste(MWindow *mwindow)
+ : BC_MenuItem(_("Paste settings"))
+{
+	this->mwindow = mwindow;
+}
+
+int TransitionPaste::handle_event()
+{
+    int64_t len = mwindow->gui->get_clipboard()->clipboard_len(BC_PRIMARY_SELECTION);
+    char *string = new char[len + 1];
+    mwindow->gui->get_clipboard()->from_clipboard(string, 
+		len, 
+		BC_PRIMARY_SELECTION);
+    FileXML file;
+	file.read_from_string(string);
+    int result = file.read_tag();
+
+    if(!result && file.tag.title_is("TRANSITION"))
+    {
+        mwindow->undo->update_undo_before();
+        transition->load_xml(&file);
+    
+        mwindow->save_backup();
+        mwindow->undo->update_undo_after(_("paste settings"), LOAD_AUTOMATION);
+
+        if(transition->track->data_type == TRACK_VIDEO)
+            mwindow->restart_brender();
+        mwindow->update_plugin_guis();
+        mwindow->gui->update(0, 1, 0, 0, 0, 0, 0);
+        mwindow->sync_parameters(CHANGE_ALL);
+    }
+
+    delete [] string;
+	return 1;
+}
+
+
+TransitionCopy::TransitionCopy(MWindow *mwindow)
+ : BC_MenuItem(_("Copy settings"))
+{
+	this->mwindow = mwindow;
+}
+
+int TransitionCopy::handle_event()
+{
+    FileXML file;
+    transition->save_xml(&file);
+    mwindow->gui->get_clipboard()->to_clipboard(file.string, 
+		strlen(file.string), 
+		SECONDARY_SELECTION);
+    mwindow->gui->get_clipboard()->to_clipboard(file.string, 
+		strlen(file.string), 
+		BC_PRIMARY_SELECTION);
+	return 1;
+}
+
 
 
 
@@ -316,4 +397,8 @@ int TransitionPopupLength::handle_event()
 		popup->length);
 	return 1;
 }
+
+
+
+
 

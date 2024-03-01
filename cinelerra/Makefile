@@ -207,7 +207,6 @@ OBJS = \
 	$(OBJDIR)/mbuttons.o \
 	$(OBJDIR)/menuaeffects.o \
 	$(OBJDIR)/menuattacheffect.o \
-	$(OBJDIR)/menuattachtransition.o \
 	$(OBJDIR)/menueditlength.o \
 	$(OBJDIR)/menueffects.o \
 	$(OBJDIR)/menutransitionlength.o \
@@ -308,6 +307,7 @@ OBJS = \
 	$(OBJDIR)/trackscroll.o \
 	$(OBJDIR)/tracksedit.o \
 	$(OBJDIR)/transition.o \
+	$(OBJDIR)/transitiondialog.o \
 	$(OBJDIR)/transitionpopup.o \
 	$(OBJDIR)/transportque.o \
 	$(OBJDIR)/tunerserver.o \
@@ -779,7 +779,6 @@ $(OBJDIR)/maskautos.o:                            maskautos.C
 $(OBJDIR)/maskengine.o:                           maskengine.C
 $(OBJDIR)/mbuttons.o: 				  mbuttons.C
 $(OBJDIR)/menuattacheffect.o:                     menuattacheffect.C
-$(OBJDIR)/menuattachtransition.o:                 menuattachtransition.C
 $(OBJDIR)/menuaeffects.o: 			  menuaeffects.C
 $(OBJDIR)/menueditlength.o:                       menueditlength.C
 $(OBJDIR)/menueffects.o: 			  menueffects.C
@@ -892,6 +891,7 @@ $(OBJDIR)/tracks.o: 				  tracks.C
 $(OBJDIR)/trackscroll.o: 			  trackscroll.C
 $(OBJDIR)/tracksedit.o: 			  tracksedit.C
 $(OBJDIR)/transition.o: 			  transition.C
+$(OBJDIR)/transitiondialog.o:                     transitiondialog.C
 $(OBJDIR)/transitionhandles.o:  		  transitionhandles.C
 $(OBJDIR)/transitionpopup.o: 			  transitionpopup.C
 $(OBJDIR)/transportque.o: 			  transportque.C

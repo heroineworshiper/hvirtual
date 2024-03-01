@@ -287,6 +287,15 @@ double CommonRender::fromunits(int64_t position)
 
 int CommonRender::advance_position(int64_t current_render_length)
 {
+// keep it from freezing
+    if(current_render_length <= 0)
+    {
+        printf("CommonRender::advance_position %d: length=%d overriding\n",
+            __LINE__,
+            (int)current_render_length);
+        current_render_length = 1;
+    }
+
 	int64_t loop_end = tounits(renderengine->get_edl()->local_session->loop_end, 1);
 	int64_t loop_start = tounits(renderengine->get_edl()->local_session->loop_start, 0);
 	int64_t start_position = tounits(renderengine->command->start_position, 0);

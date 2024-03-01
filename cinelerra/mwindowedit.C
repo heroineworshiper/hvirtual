@@ -1307,7 +1307,7 @@ void MWindow::paste()
 {
 	double start = edl->local_session->get_selectionstart();
 	double end = edl->local_session->get_selectionend();
-	int64_t len = gui->get_clipboard()->clipboard_len(SECONDARY_SELECTION);
+	int64_t len = gui->get_clipboard()->clipboard_len(BC_PRIMARY_SELECTION);
 
 	if(len)
 	{
@@ -2000,6 +2000,12 @@ void MWindow::paste_transition()
 // Only the first transition gets dropped.
  	PluginServer *server = session->drag_pluginservers->values[0];
 
+// set the default transition
+	if(server->audio)
+		strcpy(edl->session->default_atransition, server->title);
+	else
+		strcpy(edl->session->default_vtransition, server->title);
+
 	undo->update_undo_before();
 
 
@@ -2008,14 +2014,10 @@ void MWindow::paste_transition()
         0,
         server);
 
-	if(server->audio)
-		strcpy(edl->session->default_atransition, server->title);
-	else
-		strcpy(edl->session->default_vtransition, server->title);
-
-	edl->tracks->paste_transition(server, 
-        session->edit_highlighted, 
-        default_keyframe);
+    session->edit_highlighted->insert_transition(server->title, default_keyframe);
+// 	edl->tracks->paste_transition(server, 
+//         session->edit_highlighted, 
+//         default_keyframe);
 
 
     delete default_keyframe;
@@ -2027,8 +2029,14 @@ void MWindow::paste_transition()
 	sync_parameters(CHANGE_ALL);
 }
 
-void MWindow::paste_transitions(int track_type, char *title)
+void MWindow::paste_transitions(int track_type, char *title, Edit *dst_edit)
 {
+// set the default transition
+	if(track_type == TRACK_AUDIO)
+		strcpy(edl->session->default_atransition, title);
+	else
+		strcpy(edl->session->default_vtransition, title);
+
 	gui->lock_window("MWindow::detach_transitions 1");
 
 	undo->update_undo_before();
@@ -2044,7 +2052,10 @@ void MWindow::paste_transitions(int track_type, char *title)
 // printf("MWindow::paste_transitions %d keyframe=%s\n", 
 // __LINE__, 
 // default_keyframe->get_data());
-	edl->tracks->paste_transitions(start, end, track_type, title, default_keyframe);
+    if(dst_edit)
+        dst_edit->insert_transition(title, default_keyframe);
+    else
+    	edl->tracks->paste_transitions(start, end, track_type, title, default_keyframe);
 
     delete default_keyframe;
 
@@ -2059,6 +2070,12 @@ void MWindow::paste_transitions(int track_type, char *title)
 void MWindow::paste_transition_cwindow(Track *dest_track)
 {
 	PluginServer *server = session->drag_pluginservers->values[0];
+
+// set the default transition
+	if(server->audio)
+		strcpy(edl->session->default_atransition, server->title);
+	else
+		strcpy(edl->session->default_vtransition, server->title);
 	undo->update_undo_before();
 
 
@@ -2068,7 +2085,7 @@ void MWindow::paste_transition_cwindow(Track *dest_track)
         server);
 
 
-	edl->tracks->paste_video_transition(server, 1, default_keyframe);
+	edl->tracks->paste_transition(server, TRACK_VIDEO, 1, default_keyframe);
 
     delete default_keyframe;
 
@@ -2080,14 +2097,19 @@ void MWindow::paste_transition_cwindow(Track *dest_track)
 	sync_parameters(CHANGE_ALL);
 }
 
-void MWindow::paste_audio_transition()
+void MWindow::paste_default_transition(int data_type, Edit *dst_edit)
 {
  	PluginServer *server = scan_plugindb(edl->session->default_atransition,
-		TRACK_AUDIO);
+		data_type);
 	if(!server)
 	{
 		char string[BCTEXTLEN];
-		sprintf(string, _("No default transition %s found."), edl->session->default_atransition);
+        const char *title = 0;
+        if(data_type == TRACK_AUDIO)
+            title = edl->session->default_atransition;
+        else
+            title = edl->session->default_vtransition;
+		sprintf(string, _("Default transition '%s' not found."), title);
 		gui->show_message(string);
 		return;
 	}
@@ -2099,7 +2121,10 @@ void MWindow::paste_audio_transition()
         0,
         server);
 
-	edl->tracks->paste_audio_transition(server, default_keyframe);
+    if(dst_edit)
+        dst_edit->insert_transition(server->title, default_keyframe);
+    else
+    	edl->tracks->paste_transition(server, data_type, 0, default_keyframe);
 
 
     delete default_keyframe;
@@ -2108,40 +2133,41 @@ void MWindow::paste_audio_transition()
 	undo->update_undo_after(_("transition"), LOAD_EDITS);
 
 	sync_parameters(CHANGE_EDL);
+    if(data_type == TRACK_VIDEO) restart_brender();
 	gui->update(0, 1, 0, 0, 0, 0, 0);
 }
 
-void MWindow::paste_video_transition()
-{
- 	PluginServer *server = scan_plugindb(edl->session->default_vtransition,
-		TRACK_VIDEO);
-	if(!server)
-	{
-		char string[BCTEXTLEN];
-		sprintf(string, _("No default transition %s found."), edl->session->default_vtransition);
-		gui->show_message(string);
-		return;
-	}
-
-	undo->update_undo_before();
-
-// Get default keyframe
-    KeyFrame *default_keyframe = get_default_keyframe(0, 
-        0,
-        server);
-
-
-	edl->tracks->paste_video_transition(server, 0, default_keyframe);
-
-    delete default_keyframe;
-
-	save_backup();
-	undo->update_undo_after(_("transition"), LOAD_EDITS);
-
-	sync_parameters(CHANGE_EDL);
-	restart_brender();
-	gui->update(0, 1, 0, 0, 0, 0, 0);
-}
+// void MWindow::paste_video_transition()
+// {
+//  	PluginServer *server = scan_plugindb(edl->session->default_vtransition,
+// 		TRACK_VIDEO);
+// 	if(!server)
+// 	{
+// 		char string[BCTEXTLEN];
+// 		sprintf(string, _("No default transition %s found."), edl->session->default_vtransition);
+// 		gui->show_message(string);
+// 		return;
+// 	}
+// 
+// 	undo->update_undo_before();
+// 
+// // Get default keyframe
+//     KeyFrame *default_keyframe = get_default_keyframe(0, 
+//         0,
+//         server);
+// 
+// 
+// 	edl->tracks->paste_video_transition(server, 0, default_keyframe);
+// 
+//     delete default_keyframe;
+// 
+// 	save_backup();
+// 	undo->update_undo_after(_("transition"), LOAD_EDITS);
+// 
+// 	sync_parameters(CHANGE_EDL);
+// 	restart_brender();
+// 	gui->update(0, 1, 0, 0, 0, 0, 0);
+// }
 
 void MWindow::shuffle_edits()
 {

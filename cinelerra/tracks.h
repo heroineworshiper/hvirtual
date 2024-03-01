@@ -246,19 +246,18 @@ public:
         int new_is_silence);
 	void set_transition_length(double start, double end, double length);
 	void set_transition_length(Transition *transition, double length);
-	void paste_audio_transition(PluginServer *server, 
-        KeyFrame *keyframe);
-	void paste_video_transition(PluginServer *server, 
-        int first_track /* = 0 */,
+	void paste_transition(PluginServer *server, 
+        int data_type,
+        int first_track, // set by a cwindow drag to just paste the 1st track
         KeyFrame *keyframe);
 	void paste_transitions(double start, 
         double end, 
         int track_type, 
         char* title,
         KeyFrame *keyframe);
-	void paste_transition(PluginServer *server, 
-        Edit *dest_edit,
-        KeyFrame *keyframe);
+// 	void paste_transition(PluginServer *server, 
+//         Edit *dest_edit,
+//         KeyFrame *keyframe);
 
 // ================================== accounting
 

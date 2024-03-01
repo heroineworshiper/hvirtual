@@ -1024,26 +1024,6 @@ int Tracks::move_tracks_down()
 
 
 
-void Tracks::paste_audio_transition(PluginServer *server, KeyFrame *keyframe)
-{
-	for(Track *current = first; current; current = NEXT)
-	{
-		if(current->data_type == TRACK_AUDIO &&
-			current->record)
-		{
-			int64_t position = current->to_units(
-				edl->local_session->get_selectionstart(), 0);
-			Edit *current_edit = current->edits->editof(position, 
-				PLAY_FORWARD,
-				0);
-			if(current_edit)
-			{
-				paste_transition(server, current_edit, keyframe);
-			}
-		}
-	}
-}
-
 void Tracks::paste_automation(double selectionstart, 
 	FileXML *file,
 	int default_only,
@@ -1168,20 +1148,22 @@ void Tracks::paste_automation(double selectionstart,
 // 	return 0;
 // }
 
-void Tracks::paste_transition(PluginServer *server, 
-    Edit *dest_edit,
-    KeyFrame *keyframe)
-{
-	dest_edit->insert_transition(server->title, keyframe);
-}
+// void Tracks::paste_transition(PluginServer *server, 
+//     Edit *dest_edit,
+//     KeyFrame *keyframe)
+// {
+// 	dest_edit->insert_transition(server->title, keyframe);
+// }
 
-void Tracks::paste_video_transition(PluginServer *server, 
+
+void Tracks::paste_transition(PluginServer *server, 
+    int data_type,
     int first_track,
     KeyFrame *keyframe)
 {
 	for(Track *current = first; current; current = NEXT)
 	{
-		if(current->data_type == TRACK_VIDEO &&
+		if(current->data_type == data_type &&
 			current->record)
 		{
 			int64_t position = current->to_units(
@@ -1191,12 +1173,37 @@ void Tracks::paste_video_transition(PluginServer *server,
 				0);
 			if(current_edit)
 			{
-				paste_transition(server, current_edit, keyframe);
+                current_edit->insert_transition(server->title, keyframe);
+//				paste_transition(server, current_edit, keyframe);
 			}
 			if(first_track) break;
 		}
 	}
 }
+
+// void Tracks::paste_video_transition(PluginServer *server, 
+//     int first_track,
+//     KeyFrame *keyframe)
+// {
+// 	for(Track *current = first; current; current = NEXT)
+// 	{
+// 		if(current->data_type == TRACK_VIDEO &&
+// 			current->record)
+// 		{
+// 			int64_t position = current->to_units(
+// 				edl->local_session->get_selectionstart(), 0);
+// 			Edit *current_edit = current->edits->editof(position, 
+// 				PLAY_FORWARD,
+// 				0);
+// 			if(current_edit)
+// 			{
+//                 current_edit->insert_transition(server->title, keyframe);
+// //				paste_transition(server, current_edit, keyframe);
+// 			}
+// 			if(first_track) break;
+// 		}
+// 	}
+// }
 
 
 int Tracks::paste_silence(double start, 

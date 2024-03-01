@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,6 @@
 #include "mainsession.h"
 #include "mainundo.h"
 #include "menuattacheffect.h"
-#include "menuattachtransition.h"
 #include "menuaeffects.h"
 #include "menueditlength.h"
 #include "menutransitionlength.h"
@@ -65,6 +64,7 @@
 #include "trackcanvas.h"
 #include "tracks.h"
 #include "transition.h"
+#include "transitiondialog.h"
 #include "transportque.h"
 #include "viewmenu.h"
 #include "zoombar.h"
@@ -161,11 +161,11 @@ void MainMenu::create_objects()
 	add_menu(audiomenu = new BC_Menu(_("Audio")));
 	audiomenu->add_item(new AddAudioTrack(mwindow));
 	audiomenu->add_item(new DefaultATransition(mwindow));
+	audiomenu->add_item(new MenuAttachTransition(mwindow, TRACK_AUDIO));
+	audiomenu->add_item(new MenuAttachEffect(mwindow, TRACK_AUDIO));
 	audiomenu->add_item(new MapAudio1(mwindow));
 	audiomenu->add_item(new MapAudio2(mwindow));
 	audiomenu->add_item(new MapAudio3(mwindow));
-	audiomenu->add_item(new MenuAttachTransition(mwindow, TRACK_AUDIO));
-	audiomenu->add_item(new MenuAttachEffect(mwindow, TRACK_AUDIO));
 	audiomenu->add_item(aeffects = new MenuAEffects(mwindow));
 
 	add_menu(videomenu = new BC_Menu(_("Video")));
@@ -938,6 +938,20 @@ int TrimSelection::handle_event()
 
 
 
+MenuAttachTransition::MenuAttachTransition(MWindow *mwindow, int data_type)
+ : BC_MenuItem(_("Attach Transition..."))
+{
+	this->mwindow = mwindow;
+	this->data_type = data_type;
+}
+
+int MenuAttachTransition::handle_event()
+{
+	mwindow->attach_transition->start(data_type, 0);
+	return 1;
+}
+
+
 
 // ============================================= audio
 
@@ -972,7 +986,7 @@ DefaultATransition::DefaultATransition(MWindow *mwindow)
 
 int DefaultATransition::handle_event()
 {
-	mwindow->paste_audio_transition();
+	mwindow->paste_default_transition(TRACK_AUDIO, 0);
 	return 1;
 }
 
@@ -1069,7 +1083,7 @@ DefaultVTransition::DefaultVTransition(MWindow *mwindow)
 
 int DefaultVTransition::handle_event()
 {
-	mwindow->paste_video_transition();
+	mwindow->paste_default_transition(TRACK_VIDEO, 0);
 	return 1;
 }
 

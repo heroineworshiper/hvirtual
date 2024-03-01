@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +31,15 @@
 class TransitionPopupOn;
 class TransitionPopupShow;
 class TransitionPopupAttach;
+//class TransitionPopupDefault;
 class TransitionPopupDetach;
 class TransitionPopupLength;
+class TransitionPopupCopy;
+class TransitionPopupPaste;
 class TransitionLengthText;
+class TransitionPaste;
+class TransitionCopy;
+
 
 class TransitionLengthThread : public BC_DialogThread
 {
@@ -93,11 +98,12 @@ public:
 	~TransitionPopup();
 
 	void create_objects();
-	int update(Transition *transition);
+	int update(Edit *edit, Transition *transition);
 
 // Acquired through the update command as the plugin currently being operated on
 // Can't be dereferenced.
 	Transition *transition;
+    Edit *edit;
 	double length;
 
 // Set when the user clicks a transition.
@@ -107,10 +113,32 @@ public:
 // Needed for loading updates
 	TransitionPopupOn *on;
 	TransitionPopupShow *show;
+    TransitionCopy *copy;
+    TransitionPaste *paste;
 	TransitionPopupAttach *attach;
+//	TransitionPopupDefault *attach_default;
 	TransitionPopupDetach *detach;
 	TransitionPopupLength *length_item;
 	TransitionLengthThread *length_thread;
+};
+
+
+class TransitionPaste : public BC_MenuItem
+{
+public:
+    TransitionPaste(MWindow *mwindow);
+	int handle_event();
+	MWindow *mwindow;
+	Transition *transition;
+};
+
+class TransitionCopy : public BC_MenuItem
+{
+public:
+    TransitionCopy(MWindow *mwindow);
+	int handle_event();
+	MWindow *mwindow;
+	Transition *transition;
 };
 
 
@@ -118,12 +146,19 @@ class TransitionPopupAttach : public BC_MenuItem
 {
 public:
 	TransitionPopupAttach(MWindow *mwindow, TransitionPopup *popup);
-	~TransitionPopupAttach();
-
 	int handle_event();
 	MWindow *mwindow;
-	TransitionPopup *popup;
+    TransitionPopup *popup;
 };
+
+// class TransitionPopupDefault : public BC_MenuItem
+// {
+// public:
+// 	TransitionPopupDefault(MWindow *mwindow);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// 	Transition *transition;
+// };
 
 class TransitionPopupDetach : public BC_MenuItem
 {

@@ -720,12 +720,12 @@ int PluginClient::save_defaults()
 
 void PluginClient::save_data(KeyFrame *keyframe)
 {
-    printf("PluginClient::save_data %d this=%p\n", __LINE__, this);
+//    printf("PluginClient::save_data %d this=%p\n", __LINE__, this);
 }
 
 void PluginClient::read_data(KeyFrame *keyframe) 
 {
-    printf("PluginClient::read_data %d\n", __LINE__);
+//    printf("PluginClient::read_data %d\n", __LINE__);
 }
 
 void PluginClient::load_defaults_xml() 
