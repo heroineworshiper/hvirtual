@@ -19,6 +19,9 @@
  */
 
 // A crummy transition just to test an audio transition with a GUI
+// Set the balance to 0 or 100 to just fade 1 of the edits.
+// Set the balance to 50 to fade out & fade in.
+
 
 #include "dropout.h"
 #include "edl.inc"
@@ -215,10 +218,6 @@ int DropoutMain::process_realtime(int64_t size,
             }
         }
     }
-    
-	double intercept = (double)PluginClient::get_source_position() / 
-		PluginClient::get_total_len();
-	double slope = (double)1 / PluginClient::get_total_len();
 
 	return 0;
 }

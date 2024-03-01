@@ -21,7 +21,8 @@ COMPOSITOR KEYFRAMES out of date
 
 
 WISH LIST
-----------------
+----------------------------------------------------
+text for labels
 alpha for previews
 libmpeg3 patches: https://udd.debian.org/patches.cgi?src=libmpeg3&version=1.8.dfsg-4
 print YUV or RGB in swapchannels based on project settings
@@ -164,3 +165,5 @@ Remember Asset list position.
 On hold
 --------------
 Paste non realtime plugins leading to a dialog box.
+Something allowing single frame accuracy with drag & drop.
+

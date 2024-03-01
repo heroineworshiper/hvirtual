@@ -43,6 +43,7 @@ DIRS = \
 	dissolve \
 	dot \
 	downsample \
+        dropout \
 	edge \
 	fieldframe \
 	flanger \
@@ -75,6 +76,7 @@ DIRS = \
 	motion \
 	motion2point \
 	motionblur \
+        mute \
 	normalize \
 	oilpainting \
 	overlay \

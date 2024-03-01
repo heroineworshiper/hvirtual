@@ -163,10 +163,10 @@ void MainMenu::create_objects()
 	audiomenu->add_item(new DefaultATransition(mwindow));
 	audiomenu->add_item(new MenuAttachTransition(mwindow, TRACK_AUDIO));
 	audiomenu->add_item(new MenuAttachEffect(mwindow, TRACK_AUDIO));
+	audiomenu->add_item(aeffects = new MenuAEffects(mwindow));
 	audiomenu->add_item(new MapAudio1(mwindow));
 	audiomenu->add_item(new MapAudio2(mwindow));
 	audiomenu->add_item(new MapAudio3(mwindow));
-	audiomenu->add_item(aeffects = new MenuAEffects(mwindow));
 
 	add_menu(videomenu = new BC_Menu(_("Video")));
 	videomenu->add_item(new AddVideoTrack(mwindow));
