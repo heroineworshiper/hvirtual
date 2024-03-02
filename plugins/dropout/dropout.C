@@ -183,8 +183,10 @@ int DropoutMain::process_realtime(int64_t size,
     int64_t start = PluginClient::get_source_position();
     double *in_ptr = incoming->get_data();
     double *out_ptr = outgoing->get_data();
+
     for(int64_t offset = start; offset < start + size; offset += fragment)
     {
+        int start2 = offset - start;
         fragment = size;
         if(offset < midpoint)
         {
@@ -192,8 +194,8 @@ int DropoutMain::process_realtime(int64_t size,
                 fragment = midpoint - offset;
         }
         else
-        if(offset + fragment > len)
-            fragment = len - offset;
+        if(offset + fragment > start + size)
+            fragment = start + size - offset;
 
 // only outgoing
         if(offset < midpoint)
@@ -202,7 +204,7 @@ int DropoutMain::process_realtime(int64_t size,
             double slope = (double)1 / midpoint;
             for(int i = 0; i < fragment; i++)
             {
-                in_ptr[offset + i - start] = out_ptr[offset + i - start] *
+                in_ptr[start2 + i] = out_ptr[start2 + i] *
                     ((double)1 - (slope * i + intercept));
             }
         }
@@ -213,7 +215,7 @@ int DropoutMain::process_realtime(int64_t size,
             double slope = (double)1 / (len - midpoint);
             for(int i = 0; i < fragment; i++)
             {
-                in_ptr[offset + i - start] = in_ptr[offset + i - start] *
+                in_ptr[start2 + i] = in_ptr[start2 + i] *
                     (slope * i + intercept);
             }
         }
