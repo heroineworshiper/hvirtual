@@ -231,6 +231,8 @@ int DissolveMain::handle_opengl()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glColor4f(1, 1, 1, fade);
 	get_input()->draw_texture();
+// restore default
+	glColor4f(1, 1, 1, 1);
 
 
 	glDisable(GL_BLEND);
