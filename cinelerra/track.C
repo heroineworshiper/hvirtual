@@ -1586,7 +1586,8 @@ int64_t Track::edit_change_duration(int64_t input_position,
 		{
 // Not over an edit.  Clamp to the first edit.
 			current = edits->first;
-			edit_length = edits->first->startproject - input_position;
+            if(current)
+    			edit_length = edits->first->startproject - input_position;
 		}
 	}
 
