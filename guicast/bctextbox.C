@@ -1808,7 +1808,7 @@ int BC_TextBox::cut(int do_housekeeping)
 	int text_len = text.length();
 	if(highlight_letter1 != highlight_letter2)
 	{
-		copy_selection(SECONDARY_SELECTION);
+		copy_selection(ALL_SELECTIONS);
 		delete_selection(highlight_letter1, highlight_letter2, text_len);
 		highlight_letter2 = ibeam_letter = highlight_letter1;
 	}
@@ -1830,7 +1830,7 @@ int BC_TextBox::copy(int do_housekeeping)
 	int result = 0;
 	if(highlight_letter1 != highlight_letter2)
 	{
-		copy_selection(SECONDARY_SELECTION);
+		copy_selection(ALL_SELECTIONS);
 		result = 1;
 		if(do_housekeeping)
 		{
@@ -2430,7 +2430,7 @@ void BC_TextBox::select_all()
     draw(1);
 }
 
-void BC_TextBox::copy_selection(int clipboard_num)
+void BC_TextBox::copy_selection(uint32_t clipboard_mask)
 {
 	int text_len = text.length();
 
@@ -2442,7 +2442,7 @@ void BC_TextBox::copy_selection(int clipboard_num)
 
 	get_clipboard()->to_clipboard(text.c_str() + highlight_letter1, 
 		highlight_letter2 - highlight_letter1, 
-		clipboard_num);
+		clipboard_mask);
 }
 
 void BC_TextBox::paste_selection(int clipboard_num)

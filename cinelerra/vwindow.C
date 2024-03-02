@@ -502,10 +502,7 @@ void VWindow::copy()
 		mwindow->gui->lock_window();
 		mwindow->gui->get_clipboard()->to_clipboard(file.string,
 			strlen(file.string),
-			SECONDARY_SELECTION);
-		mwindow->gui->get_clipboard()->to_clipboard(file.string,
-			strlen(file.string),
-			BC_PRIMARY_SELECTION);
+			ALL_SELECTIONS);
 		mwindow->gui->unlock_window();
 	}
 }

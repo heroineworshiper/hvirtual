@@ -301,10 +301,7 @@ int TransitionCopy::handle_event()
     transition->save_xml(&file);
     mwindow->gui->get_clipboard()->to_clipboard(file.string, 
 		strlen(file.string), 
-		SECONDARY_SELECTION);
-    mwindow->gui->get_clipboard()->to_clipboard(file.string, 
-		strlen(file.string), 
-		BC_PRIMARY_SELECTION);
+		ALL_SELECTIONS);
 	return 1;
 }
 

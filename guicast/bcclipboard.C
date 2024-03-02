@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@
 // clipboard notes came from 
 // https://www.uninformativ.de/blog/postings/2017-04-02/0/POSTING-en.html
 
+// the X buffer number for BC_PRIMARY_SELECTION
+#define X_PRIMARY 2
 
 char* BC_Clipboard::g_data[TOTAL_SELECTIONS] = { 0 };
 int BC_Clipboard::g_length[TOTAL_SELECTIONS] = { 0 };
@@ -124,9 +126,7 @@ void BC_Clipboard::run()
 
 	while(!done)
 	{
-//printf("BC_Clipboard::run 1\n");					
 		XNextEvent(out_display, &event);
-//printf("BC_Clipboard::run 2 %d\n", event.type);					
 
 #ifdef SINGLE_THREAD
 		BC_Display::lock_display("BC_Clipboard::run");
@@ -155,11 +155,11 @@ printf("ClientMessage %d ClientMessage\n", __LINE__);
 				XSelectionRequestEvent *request = (XSelectionRequestEvent*)&event;
 				g_lock->lock("BC_Clipboard::run");
                 char *data_ptr = (request->selection == primary ? 
-                    g_data[PRIMARY_SELECTION] : 
-                    g_data[SECONDARY_SELECTION]);
+                    g_data[mask_to_buffer(PRIMARY_SELECTION)] : 
+                    g_data[mask_to_buffer(SECONDARY_SELECTION)]);
                 int length = (request->selection == primary ? 
-                    g_length[PRIMARY_SELECTION] : 
-                    g_length[SECONDARY_SELECTION]);
+                    g_length[mask_to_buffer(PRIMARY_SELECTION)] : 
+                    g_length[mask_to_buffer(SECONDARY_SELECTION)]);
 
 
 //printf("BC_Clipboard::run %d SelectionRequest length=%d\n", 
@@ -233,7 +233,7 @@ printf("ClientMessage %d ClientMessage\n", __LINE__);
         		    reply.xselection.selection = request->selection;
         		    reply.xselection.target    = request->target;
         		    reply.xselection.time      = request->time;
-				XSendEvent(out_display, request->requestor, True, NoEventMask, &reply);
+				    XSendEvent(out_display, request->requestor, True, NoEventMask, &reply);
                 }
 			    XFlush(out_display);
 
@@ -258,15 +258,17 @@ printf("ClientMessage %d ClientMessage\n", __LINE__);
 // request->selection,
 // primary,
 // secondary);
-				if(g_length[PRIMARY_SELECTION] > 0 && request->selection == primary)
+				if(g_length[mask_to_buffer(PRIMARY_SELECTION)] > 0 && 
+                    request->selection == primary)
 				{
-					g_length[PRIMARY_SELECTION] = 0;
+					g_length[mask_to_buffer(PRIMARY_SELECTION)] = 0;
 				}
 				
 				
-				if(g_length[SECONDARY_SELECTION] > 0 && request->selection == secondary)
+				if(g_length[mask_to_buffer(SECONDARY_SELECTION)] > 0 && 
+                    request->selection == secondary)
 				{
-					g_length[SECONDARY_SELECTION] = 0;
+					g_length[mask_to_buffer(SECONDARY_SELECTION)] = 0;
 				}
 				break;
 			}
@@ -282,12 +284,27 @@ printf("ClientMessage %d ClientMessage\n", __LINE__);
 
 }
 
-int BC_Clipboard::to_clipboard(const char *data, int len, int clipboard_num)
+int BC_Clipboard::mask_to_buffer(int32_t clipboard_mask)
 {
-	if(clipboard_num == BC_PRIMARY_SELECTION)
+    switch(clipboard_mask)
+    {
+        case 0x1: return 0; break;
+        case 0x2: return 1; break;
+        case 0x4: return 2; break;
+        default: return 0;
+    }
+}
+
+// process a single mask bit
+void BC_Clipboard::to_1clipboard(const char *data, 
+    int len, 
+    uint32_t clipboard_mask)
+{
+
+	if((clipboard_mask == BC_PRIMARY_SELECTION))
 	{
-		XStoreBuffer(out_display, data, len, clipboard_num);
-		return 0;
+		XStoreBuffer(out_display, data, len, X_PRIMARY);
+        return;
 	}
 
 #ifdef SINGLE_THREAD
@@ -297,6 +314,8 @@ int BC_Clipboard::to_clipboard(const char *data, int len, int clipboard_num)
 #endif
 
     g_lock->lock("BC_Clipboard::to_clipboard");
+
+    int clipboard_num = mask_to_buffer(clipboard_mask);
 // Store in local buffer
 	if(g_data[clipboard_num] && g_length[clipboard_num] != len + 1)
 	{
@@ -319,7 +338,7 @@ int BC_Clipboard::to_clipboard(const char *data, int len, int clipboard_num)
 // len,
 // this->data[clipboard_num]);
 
-	if(clipboard_num == PRIMARY_SELECTION)
+	if(clipboard_mask == PRIMARY_SELECTION)
 	{
 		XSetSelectionOwner(out_display, 
 			primary, 
@@ -327,7 +346,7 @@ int BC_Clipboard::to_clipboard(const char *data, int len, int clipboard_num)
 			CurrentTime);
 	}
 	else
-	if(clipboard_num == SECONDARY_SELECTION)
+	if(clipboard_mask == SECONDARY_SELECTION)
 	{
 		XSetSelectionOwner(out_display, 
 			secondary, 
@@ -345,6 +364,21 @@ int BC_Clipboard::to_clipboard(const char *data, int len, int clipboard_num)
 #else
 	XUnlockDisplay(out_display);
 #endif
+}
+
+
+
+int BC_Clipboard::to_clipboard(const char *data, 
+    int len, 
+    uint32_t clipboard_mask)
+{
+// store 1 mask bit at a time
+    if(clipboard_mask & BC_PRIMARY_SELECTION)
+        to_1clipboard(data, len, BC_PRIMARY_SELECTION);
+    if(clipboard_mask & PRIMARY_SELECTION)
+        to_1clipboard(data, len, PRIMARY_SELECTION);
+    if(clipboard_mask & SECONDARY_SELECTION)
+        to_1clipboard(data, len, SECONDARY_SELECTION);
 	return 0;
 }
 
@@ -352,14 +386,14 @@ int BC_Clipboard::to_clipboard(const char *data, int len, int clipboard_num)
 int BC_Clipboard::from_clipboard(char *data, 
     int maxlen, 
     int *len_return, 
-    int clipboard_num)
+    uint32_t clipboard_mask)
 {
 
-	if(clipboard_num == BC_PRIMARY_SELECTION)
+	if(clipboard_mask == BC_PRIMARY_SELECTION)
 	{
 		char *data2;
 		int len, i;
-		data2 = XFetchBuffer(in_display, &len, clipboard_num);
+		data2 = XFetchBuffer(in_display, &len, X_PRIMARY);
         
         if(data != 0)
         {
@@ -395,7 +429,7 @@ int BC_Clipboard::from_clipboard(char *data,
 	char *temp_data = 0;
 
     property = XInternAtom(in_display, "FOOBAR", False);
-    selection = (clipboard_num == PRIMARY_SELECTION) ? primary : secondary; 
+    selection = (clipboard_mask == PRIMARY_SELECTION) ? primary : secondary; 
 
 
 //printf("BC_Clipboard::from_clipboard %d\n", __LINE__);
@@ -486,15 +520,17 @@ int BC_Clipboard::from_clipboard(char *data,
 
 
 
-int BC_Clipboard::from_clipboard(char *data, int maxlen, int clipboard_num)
+int BC_Clipboard::from_clipboard(char *data, 
+    int maxlen, 
+    uint32_t clipboard_mask)
 {
-//printf("BC_Clipboard::from_clipboard %d clipboard_num=%d\n", __LINE__, clipboard_num);
-    return from_clipboard(data, maxlen, 0, clipboard_num);
+//printf("BC_Clipboard::from_clipboard %d clipboard_mask=%d\n", __LINE__, clipboard_mask);
+    return from_clipboard(data, maxlen, 0, clipboard_mask);
 }
 
-int BC_Clipboard::clipboard_len(int clipboard_num)
+int BC_Clipboard::clipboard_len(uint32_t clipboard_mask)
 {
     int len;
-    from_clipboard(0, 0, &len, clipboard_num);
+    from_clipboard(0, 0, &len, clipboard_mask);
 	return len;
 }

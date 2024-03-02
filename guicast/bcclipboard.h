@@ -25,21 +25,29 @@
 #include "thread.h"
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 
-// The primary selection is filled by highlighting a region
-#define PRIMARY_SELECTION 0
-// The secondary selection is filled by copying
-#define SECONDARY_SELECTION 1
-#define TOTAL_SELECTIONS 2
+// clipboard mask bits
+// The primary buffer is filled by highlighting a region
+// This goes to command line programs
+#define PRIMARY_SELECTION 0x1
+// The secondary buffer is filled by copying
+// this goes to windowed programs
+#define SECONDARY_SELECTION 0x2
 
 // Storage for guicast only
-// The secondary selection has never been reliable either in Cinelerra
-// or anything else.  We just use the guaranteed solution for any data not
+// The other buffers were never reliable either in Cinelerra
+// or anything else so this is a guaranteed solution for any data not
 // intended for use outside Cinelerra.
-#define BC_PRIMARY_SELECTION 2
+#define BC_PRIMARY_SELECTION 0x4
+
+#define ALL_SELECTIONS (PRIMARY_SELECTION | SECONDARY_SELECTION | BC_PRIMARY_SELECTION)
+
+// the number of buffers
+#define TOTAL_SELECTIONS 3
 
 
 
@@ -52,11 +60,15 @@ public:
 	int start_clipboard();
 	void run();
 	int stop_clipboard();
-	int clipboard_len(int clipboard_num);
-	int to_clipboard(const char *data, int len, int clipboard_num);
-	int from_clipboard(char *data, int maxlen, int clipboard_num);
-	int from_clipboard(char *data, int maxlen, int *len_return, int clipboard_num);
+// this stores in every clipboard with a 1 bit
+	int to_clipboard(const char *data, int len, uint32_t clipboard_mask);
+// these take 1 mask bit
+	int clipboard_len(uint32_t clipboard_mask);
+	int from_clipboard(char *data, int maxlen, uint32_t clipboard_mask);
+	int from_clipboard(char *data, int maxlen, int *len_return, uint32_t clipboard_mask);
 
+
+private:
 	Display *in_display, *out_display;
 	Atom completion_atom, primary, secondary, utf8_target, targets, string_target;
 	Window in_win, out_win;
@@ -64,6 +76,14 @@ public:
 	static int g_length[TOTAL_SELECTIONS];
     static Mutex *g_lock;
 	char display_name[BCTEXTLEN];
+
+// convert mask bit to array index
+    int mask_to_buffer(int32_t clipboard_mask);
+// process a single mask bit
+    void to_1clipboard(const char *data, 
+        int len, 
+        uint32_t clipboard_mask);
+
 };
 
 #endif

@@ -22,6 +22,8 @@ COMPOSITOR KEYFRAMES out of date
 
 WISH LIST
 ----------------------------------------------------
+Multiple loads from a single filebox with apply button
+Select a point in the mask dialog.
 text for labels
 alpha for previews
 libmpeg3 patches: https://udd.debian.org/patches.cgi?src=libmpeg3&version=1.8.dfsg-4
@@ -33,7 +35,6 @@ swapchannels:
     Swap HSV
     Track names
     print YUV or RGB in swapchannels based on project settings
-Multiple loads from a single filebox with apply button
 reverse reverb
 variable fast fwd speed
 

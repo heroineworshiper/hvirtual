@@ -470,9 +470,7 @@ int MWindow::copy(double start, double end)
 {
 	if(start == end) return 1;
 
-//printf("MWindow::copy 1\n");
 	FileXML file;
-//printf("MWindow::copy 1\n");
 	edl->copy(start, 
 		end, 
 		0,
@@ -481,19 +479,11 @@ int MWindow::copy(double start, double end)
 		&file, 
 		"",
 		1);
-//printf("MWindow::copy 1\n");
 
 // File is now terminated and rewound
-
-//printf("MWindow::copy 1\n");
 	gui->get_clipboard()->to_clipboard(file.string, 
 		strlen(file.string), 
-		SECONDARY_SELECTION);
-	gui->get_clipboard()->to_clipboard(file.string, 
-		strlen(file.string), 
-		BC_PRIMARY_SELECTION);
-//printf("MWindow::copy\n%s\n", file.string);
-//printf("MWindow::copy 2\n");
+		ALL_SELECTIONS);
 	save_backup();
 	return 0;
 }
@@ -508,10 +498,7 @@ int MWindow::copy_automation()
 		1);
 	gui->get_clipboard()->to_clipboard(file.string, 
 		strlen(file.string), 
-		BC_PRIMARY_SELECTION);
-	gui->get_clipboard()->to_clipboard(file.string, 
-		strlen(file.string), 
-		SECONDARY_SELECTION);
+		ALL_SELECTIONS);
 	return 0;
 }
 
@@ -525,10 +512,7 @@ int MWindow::copy_default_keyframe()
 		0);
 	gui->get_clipboard()->to_clipboard(file.string,
 		strlen(file.string),
-		BC_PRIMARY_SELECTION);
-	gui->get_clipboard()->to_clipboard(file.string,
-		strlen(file.string),
-		SECONDARY_SELECTION);
+		ALL_SELECTIONS);
 	return 0;
 }
 

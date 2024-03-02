@@ -1286,7 +1286,7 @@ int CompressorCopy::handle_event()
     output.terminate_string();
     popup->get_clipboard()->to_clipboard(output.string, 
 		strlen(output.string), 
-		SECONDARY_SELECTION);
+		ALL_SELECTIONS);
     return 1;
 }
 

@@ -220,7 +220,7 @@ private:
 	void draw(int flush);
 	void draw_border();
 	void draw_cursor();
-	void copy_selection(int clipboard_num);
+	void copy_selection(uint32_t clipboard_mask);
 	void paste_selection(int clipboard_num);
 	void delete_selection(int letter1, int letter2, int text_len);
 	void insert_text(char *string);
