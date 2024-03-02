@@ -82,7 +82,8 @@ public:
 		int direction,
 		int sample_rate,
 		Samples *buffer,
-		int64_t fragment_len);
+		int64_t fragment_len,
+        int resampler_index); // 1 if it's the outgoing edit in a transition
 
 
 	int render(Samples *buffer, 
@@ -131,8 +132,8 @@ public:
 	Samples *nested_output[MAX_CHANNELS];
 // number of samples allocated
 	int nested_allocation;
-// resampling for nested output
-	AModuleResample *resample;
+// resampling for import_samples.  2 are needed for a transition
+	AModuleResample *resampler[2];
 };
 
 

@@ -46,7 +46,7 @@ PlaybackEngine::PlaybackEngine()
 {
 	output = 0;
     use_gui = 0;
-    is_previewer = 0;
+    previewer = 0;
 	is_playing_back = 0;
     tracking = 0;
 	tracking_position = 0;
@@ -109,9 +109,9 @@ void PlaybackEngine::set_canvas(Canvas *output)
     this->output = output;
 }
 
-void PlaybackEngine::set_is_previewer(int value)
+void PlaybackEngine::set_previewer(Previewer *previewer)
 {
-    this->is_previewer = value;
+    this->previewer = previewer;
 }
 
 void PlaybackEngine::set_use_gui(int value)
@@ -148,7 +148,7 @@ int PlaybackEngine::create_render_engine()
 	preferences->copy_from(MWindow::preferences);
 
 // hard code the output for preview mode
-    if(is_previewer)
+    if(previewer)
     {
         preferences->playback_config->vconfig->driver = PLAYBACK_PREVIEW;
     }
@@ -204,8 +204,8 @@ void PlaybackEngine::create_cache()
 		audio_cache = new CICache(MWindow::preferences);
 	if(!video_cache) 
 		video_cache = new CICache(MWindow::preferences);
-    audio_cache->set_is_previewer(is_previewer);
-    video_cache->set_is_previewer(is_previewer);
+    audio_cache->set_is_previewer(previewer ? 1 : 0);
+    video_cache->set_is_previewer(previewer ? 1 : 0);
 }
 
 

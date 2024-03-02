@@ -139,6 +139,35 @@ if(debug) printf("MWindow::asset_to_edl %d\n", __LINE__);
 	return 0;
 }
 
+void EDLFactory::transition_to_edl(EDL *edl, 
+    const char *title,
+    int data_type)
+{
+//     edl->session->video_tracks = 0;
+//     edl->session->audio_tracks = 0;
+// 
+//     if(data_type == TRACK_AUDIO)
+//     {
+//         edl->session->audio_channels = 1;
+//         edl->session->audio_tracks = 1;
+//         edl->session->sample_rate = 8000;
+//     }
+// 
+//     if(data_type == TRACK_VIDEO)
+//     {
+//         edl->session->frame_rate = 30;
+//         edl->session->output_w = 320;
+//         edl->session->output_h = 240;
+//         edl->session->aspect_w = 4;
+//         edl->session->aspect_h = 3;
+//         edl->session->video_tracks = 1;
+//     }
+// 
+//     edl->create_default_tracks();
+}
+
+
+
 
 
 

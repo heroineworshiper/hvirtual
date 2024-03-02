@@ -210,6 +210,7 @@ public:
 // previewer has to delete its widgets here
     virtual void clear_preview();
     virtual void handle_resize(int w, int h);
+    void set_gui(BC_Window *gui);
 
 // canned status messages
     void preview_unavailable();
@@ -218,7 +219,7 @@ public:
 // lock run_window thread outside this    
     Mutex *previewer_lock;
 // the current filebox showing previews
-    BC_FileBox *filebox;
+    BC_Window *gui;
 };
 
 class BC_FileBoxRecent : public BC_ListBox

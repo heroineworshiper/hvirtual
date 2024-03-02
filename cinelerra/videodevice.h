@@ -40,6 +40,7 @@
 #include "recordmonitor.inc"
 #include "thread.h"
 #include "picture.inc"
+#include "previewer.inc"
 #include "vdevicebase.inc"
 #include "vdevice1394.inc"
 #include "vdevicebuz.inc"
@@ -137,6 +138,8 @@ public:
 	int set_channel(Channel *channel);
 // Set the quality of the JPEG compressor
 	void set_quality(int quality);
+// set the output for a previewer
+    void set_previewer(Previewer *previewer);
 // Change field order
 	int set_field_order(int odd_field_first);
 	void set_do_cursor(int do_cursor, int do_big_cursor);
@@ -245,6 +248,7 @@ public:
 	int quality;
 // Single frame mode for playback
 	int single_frame;
+    Previewer *previewer;
 
 // Copy of the most recent channel set by set_channel
 	Channel *channel;

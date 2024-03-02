@@ -23,6 +23,8 @@
 
 #include "filepreviewer.h"
 #include "mutex.h"
+#include "previewer.inc"
+#include <unistd.h>
 #include "vdevicepreview.h"
 #include "videodevice.h"
 
@@ -40,11 +42,13 @@ VDevicePreview::~VDevicePreview()
 
 int VDevicePreview::reset_parameters()
 {
+    output_frame = 0;
     return 0;
 }
 
 int VDevicePreview::close_all()
 {
+    delete output_frame;
     reset_parameters();
     return 0;
 }
@@ -57,27 +61,25 @@ int VDevicePreview::open_output()
 int VDevicePreview::write_buffer(VFrame *output, EDL *edl)
 {
 //    printf("VDevicePreview::write_buffer %d\n", __LINE__);
-    FilePreviewer::instance.write_frame(output);
+    device->previewer->write_frame(output);
 }
 
 void VDevicePreview::new_output_buffer(VFrame **result, 
 	int file_colormodel, 
 	EDL *edl)
 {
-    FilePreviewer *previewer = &FilePreviewer::instance;
-    previewer->previewer_lock->lock("VDevicePreview::new_output_buffer");
-    if(previewer->output_frame && 
-        (previewer->output_frame->get_w() != device->out_w ||
-        previewer->output_frame->get_h() != device->out_h ||
-        previewer->output_frame->get_color_model() != BC_RGB888))
+    if(output_frame && 
+        (output_frame->get_w() != device->out_w ||
+        output_frame->get_h() != device->out_h ||
+        output_frame->get_color_model() != BC_RGB888))
     {
-        delete previewer->output_frame;
-        previewer->output_frame = 0;
+        delete output_frame;
+        output_frame = 0;
     }
 
-    if(!previewer->output_frame)
+    if(!output_frame)
     {
-        previewer->output_frame = new VFrame(
+        output_frame = new VFrame(
 			0, 
 			-1,
 			device->out_w,
@@ -85,8 +87,7 @@ void VDevicePreview::new_output_buffer(VFrame **result,
 			BC_RGB888,
 			-1);
     } 
-    *result = previewer->output_frame;
-    previewer->previewer_lock->unlock();
+    *result = output_frame;
 }
 
 

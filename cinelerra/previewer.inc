@@ -18,45 +18,15 @@
  * 
  */
 
-
-#include "mute.h"
-#include "language.h"
-#include "samples.h"
-
-
-REGISTER_PLUGIN(MuteMain)
+#ifndef PREVIEWER_INC
+#define PREVIEWER_INC
 
 
 
-
-MuteMain::MuteMain(PluginServer *server)
- : PluginAClient(server)
-{
-}
-
-const char* MuteMain::plugin_title() { return N_("Mute"); }
-int MuteMain::is_transition() { return 1; }
+class Previewer;
 
 
-
-int MuteMain::process_realtime(int64_t size, 
-	Samples *outgoing, 
-	Samples *incoming)
-{
-    double *in_ptr = incoming->get_data();
-    double *out_ptr = outgoing->get_data();
-    for(int i = 0; i < size; i++)
-    {
-        in_ptr[i] = 0;
-//        in_ptr[i] = out_ptr[i];
-    }
-	return 0;
-}
-
-
-
-
-
+#endif
 
 
 

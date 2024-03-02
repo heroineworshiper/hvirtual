@@ -175,6 +175,7 @@ int VideoDevice::initialize()
 	interrupt = 0;
 	adevice = 0;
 	quality = 80;
+    previewer = 0;
 	cpus = 1;
 	single_frame = 0;
 	channel_changed = 0;
@@ -595,6 +596,11 @@ int VideoDevice::set_channel(Channel *channel)
 		if(output_base) return output_base->set_channel(channel);
 	}
     return 0;
+}
+
+void VideoDevice::set_previewer(Previewer *previewer)
+{
+    this->previewer = previewer;
 }
 
 void VideoDevice::set_quality(int quality)

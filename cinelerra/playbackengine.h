@@ -33,6 +33,7 @@
 #include "maxchannels.h"
 #include "mutex.inc"
 #include "preferences.inc"
+#include "previewer.inc"
 #include "renderengine.inc"
 #include "thread.h"
 #include "bctimer.h"
@@ -47,7 +48,7 @@ public:
 
 	void create_objects();
     void set_canvas(Canvas *output);
-    void set_is_previewer(int value);
+    void set_previewer(Previewer *previewer);
 // draw plugin GUI's
     void set_use_gui(int value);
 	virtual int create_render_engine();
@@ -85,8 +86,8 @@ public:
 
 	void run();
 
-// enable hacks for FilePreviewer
-    int is_previewer;
+// enable hacks for Previewers
+    Previewer *previewer;
 // Maintain caches through console changes
 	CICache *audio_cache, *video_cache;
     Tracking *tracking;

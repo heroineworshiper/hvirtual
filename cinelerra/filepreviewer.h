@@ -25,73 +25,16 @@
 #ifndef FILEPREVIEWER_H
 #define FILEPREVIEWER_H
 
-#include "canvas.inc"
 #include "condition.inc"
 #include "filepreviewer.inc"
-#include "guicast.h"
 #include "mutex.inc"
-#include "playbackengine.h"
+#include "previewer.h"
 #include "thread.h"
 
 #include <string>
 
 using std::string;
 
-
-class FilePreviewerScroll : public BC_ISlider
-{
-public:
-    FilePreviewerScroll(FilePreviewer *previewer, 
-        int x,
-        int y,
-        int w);
-    int handle_event();
-    FilePreviewer *previewer;
-};
-
-class FilePreviewerPlay : public BC_Button
-{
-public:
-    FilePreviewerPlay(FilePreviewer *previewer, 
-        int x,
-        int y);
-    int handle_event();
-    FilePreviewer *previewer;
-    int is_play;
-};
-
-// required by non seekable files
-class FilePreviewerRewind : public BC_Button
-{
-public:
-    FilePreviewerRewind(FilePreviewer *previewer, 
-        int x,
-        int y);
-    int handle_event();
-    FilePreviewer *previewer;
-};
-
-class PreviewCanvas : public BC_SubWindow
-{
-public:
-    PreviewCanvas(FilePreviewer *previewer, 
-        int x,
-        int y,
-        int w,
-        int h);
-    int button_release_event();
-    FilePreviewer *previewer;
-};
-
-class PreviewPlayback : public PlaybackEngine
-{
-public:
-    PreviewPlayback(FilePreviewer *previewer);
-	void init_cursor();
-	void stop_cursor();
-    void update_tracker(double position);
-    FilePreviewer *previewer;
-};
 
 
 // analyzes the file
@@ -106,7 +49,7 @@ public:
 };
 
 // BC_Filebox calls into this to get previews
-class FilePreviewer : public BC_FileBoxPreviewer
+class FilePreviewer : public Previewer
 {
 public:
     FilePreviewer();
@@ -115,23 +58,11 @@ public:
     static FilePreviewer instance;
 
     void initialize();
+// kick off the background thread to analyze the file
     void submit_file(const char *path);
-    void clear_preview();
-    void handle_resize(int w, int h);
-
 // create the widgets
     void create_preview();
-
-    void start_playback();
-    void stop_playback();
-    void interrupt_playback();
-    void rewind_playback();
-    void seek_playback();
-    void write_frame(VFrame *frame);
-    void update_scrollbar(int lock_it);
-    void reset_play_button();
-// do it in the window thread
-    void reset_play_async();
+    void handle_resize(int w, int h);
 
 // wait for a new file
     Condition *file_waiter;
@@ -142,24 +73,7 @@ public:
 
 
     FilePreviewerThread *thread;
-    PreviewPlayback *playback_engine;
 
-// widgets in the file dialog
-    PreviewCanvas *canvas;
-    FilePreviewerPlay *play;
-    FilePreviewerRewind *rewind;
-    FilePreviewerScroll *scroll;
-// bits for creating the widgets
-    EDL *edl;
-    VFrame **play_images;
-    VFrame **rewind_images;
-    VFrame **stop_images;
-    VFrame *speaker_image;
-// video output from the playback engine
-    VFrame *output_frame;
-    double play_position;
-// only update the play_position when this is 1
-    int is_playing;
 };
 
 

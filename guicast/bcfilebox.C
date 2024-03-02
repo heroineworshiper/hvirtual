@@ -542,11 +542,19 @@ int BC_FileBoxPreview::handle_event()
 BC_FileBoxPreviewer::BC_FileBoxPreviewer()
 {
     previewer_lock = new Mutex("BC_FileBoxPreviewer::previewer_lock");
+    gui = 0;
 }
 
 BC_FileBoxPreviewer::~BC_FileBoxPreviewer()
 {
     delete previewer_lock;
+}
+
+void BC_FileBoxPreviewer::set_gui(BC_Window *gui)
+{
+    previewer_lock->lock("BC_FileBoxPreviewer::set_gui");
+    this->gui = gui;
+    previewer_lock->unlock();
 }
 
 void BC_FileBoxPreviewer::submit_file(const char *path)
@@ -568,9 +576,9 @@ void BC_FileBoxPreviewer::preview_unavailable()
 {
 //printf("BC_FileBoxPreviewer::preview_unavailable %d\n", __LINE__);
     previewer_lock->lock("BC_FileBoxPreviewer::preview_unavailable");
-    if(filebox)
+    if(gui)
     {
-        filebox->put_event([](void *ptr)
+        gui->put_event([](void *ptr)
             { 
                 BC_FileBox *filebox = (BC_FileBox*)ptr;
                 
@@ -578,7 +586,7 @@ void BC_FileBoxPreviewer::preview_unavailable()
                 filebox->preview_status->show_window();
 //printf("BC_FileBoxPreviewer::preview_unavailable %d\n", __LINE__);
             }, 
-            filebox);
+            gui);
     }
     previewer_lock->unlock();
 }
@@ -724,9 +732,7 @@ BC_FileBox::~BC_FileBox()
     if(previewer)
     {
         previewer->clear_preview();
-        previewer->previewer_lock->lock("BC_FileBox::~BC_FileBox");
-        previewer->filebox = 0;
-        previewer->previewer_lock->unlock();
+        previewer->set_gui(0);
     }
 
 // this has to be destroyed before tables, because it can call for an update!
@@ -749,9 +755,7 @@ BC_FileBox::~BC_FileBox()
 void BC_FileBox::set_previewer(BC_FileBoxPreviewer *previewer)
 {
     this->previewer = previewer;
-    previewer->previewer_lock->lock("BC_FileBox::set_previewer");
-    previewer->filebox = this;
-    previewer->previewer_lock->unlock();
+    previewer->set_gui(this);
 }
 
 

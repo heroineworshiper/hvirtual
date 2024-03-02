@@ -25,10 +25,14 @@ WISH LIST
 text for labels
 alpha for previews
 libmpeg3 patches: https://udd.debian.org/patches.cgi?src=libmpeg3&version=1.8.dfsg-4
-print YUV or RGB in swapchannels based on project settings
-Alpha blur in chromakey HSV
-Swap HSV in swapchannels
-Track names in swapchannels
+chromakey HSV:
+    Alpha blur in chromakey HSV
+    turn off transparency (a checkbox in the effect window)
+    enable black background (a checkbox in the effect window)
+swapchannels:
+    Swap HSV
+    Track names
+    print YUV or RGB in swapchannels based on project settings
 Multiple loads from a single filebox with apply button
 reverse reverb
 variable fast fwd speed

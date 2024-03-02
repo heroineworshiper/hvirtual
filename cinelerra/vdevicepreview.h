@@ -42,6 +42,7 @@ public:
 	    int file_colormodel, 
 	    EDL *edl);
     int write_buffer(VFrame *output, EDL *edl);
+    VFrame *output_frame;
 };
 
 

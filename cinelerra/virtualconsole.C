@@ -255,6 +255,8 @@ int VirtualConsole::test_reconfigure(int64_t position,
 // (int)commonrender->current_position,
 // (int)length,
 // (int)longest_duration1);
+
+
 // Test the edits
 			longest_duration2 = current_track->edit_change_duration(
 				commonrender->current_position, 
@@ -263,6 +265,12 @@ int VirtualConsole::test_reconfigure(int64_t position,
 				0,
 				1);
 
+// printf("VirtualConsole::test_reconfigure %d current_track=%p current_position=%d length=%d longest_duration1=%d\n",
+// __LINE__,
+// current_track,
+// (int)commonrender->current_position,
+// (int)length,
+// (int)longest_duration1);
 
 // Test the plugins
 			longest_duration3 = current_track->plugin_change_duration(

@@ -47,6 +47,9 @@ public:
         int conform,
         int auto_aspect);
 
+    static void transition_to_edl(EDL *edl, 
+        const char *title,
+        int data_type);
 };
 
 

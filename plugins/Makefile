@@ -163,10 +163,10 @@ install:
 #	cp $(OBJDIR)/*.plugin ../bin/
 	mkdir -p ../bin/fonts
 	cp fonts/* ../bin/fonts
+	cp -a previews ../bin
 	mkdir -p ../bin/shapes
 	cp shapes/* ../bin/shapes
 	cp ../thirdparty/mjpegtools*/mpeg2enc/mpeg2enc ../bin/mpeg2enc.plugin
-
 
 
 

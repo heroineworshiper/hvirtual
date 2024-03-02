@@ -415,6 +415,7 @@ int RenderEngine::open_output()
 			    if(channel) vdevice->set_channel(channel);
 			    vdevice->set_quality(80);
 			    vdevice->set_cpus(preferences->processors);
+                if(playback_engine) vdevice->set_previewer(playback_engine->previewer);
             }
             else
             {
@@ -598,7 +599,7 @@ void RenderEngine::run()
 	interrupt_lock->lock("RenderEngine::run");
 
 
-	if(interrupted)
+	if(interrupted && playback_engine)
 	{
 		playback_engine->tracking_position = playback_engine->get_tracking_position();
 	}

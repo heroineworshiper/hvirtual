@@ -372,6 +372,10 @@ public:
 	VFrame **viewasset_data;
 	VFrame *vtimebar_bg_data;
 
+    VFrame **preview_play;
+    VFrame **preview_rewind;
+    VFrame **preview_stop;
+    VFrame *preview_speaker;
 
 	MWindow *mwindow;
 // Compressed images are loaded in here.

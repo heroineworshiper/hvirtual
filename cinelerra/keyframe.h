@@ -56,7 +56,7 @@ public:
 		char **text, 
 		char **extra);
 	char* get_data();
-	void set_data(char *data);
+	void set_data(const char *data);
 
 // Get parameters in a hash table,
 // the anonymous text in a newly allocated string.

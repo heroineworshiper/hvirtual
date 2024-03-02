@@ -211,11 +211,15 @@ int64_t Edit::get_source_end(int64_t default_)
 void Edit::insert_transition(char *title, KeyFrame *keyframe)
 {
 //printf("Edit::insert_transition this=%p title=%p title=%s\n", this, title, title);
+// preserve the length of an existing transition
+    int64_t length = track->to_units(edl->session->default_transition_length, 1);
+    if(transition) length = transition->length;
 	detach_transition();
 	transition = new Transition(edl, 
 		this, 
 		title, 
-		track->to_units(edl->session->default_transition_length, 1));
+		length);
+// replace the keyframe
     transition->get_keyframe()->copy_from(keyframe);
 }
 

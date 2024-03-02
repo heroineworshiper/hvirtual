@@ -24,13 +24,16 @@
 
 #include "bcdialog.h"
 #include "guicast.h"
+#include "mutex.inc"
 #include "mwindow.inc"
+#include "playbackengine.h"
 #include "plugindialog.inc"
+#include "previewer.h"
 
 class TransitionDialogName;
 class TransitionDialogThread;
 class TransitionDialog;
-
+class TransitionPreviewer;
 
 
 
@@ -59,14 +62,18 @@ public:
 		TransitionDialogThread *thread,
 		int x,
 		int y);
+    ~TransitionDialog();
 
 	void create_objects();
 	int resize_event(int w, int h);
+    void compute_sizes(int w, int h);
 
 	MWindow *mwindow;
 	TransitionDialogThread *thread;
 	TransitionDialogName *name_list;
 	BC_Title *name_title;
+    int preview_x, preview_center_y, preview_w;
+    int list_x, list_y, list_w, list_h;
 };
 
 class TransitionDialogName : public BC_ListBox
@@ -85,6 +92,25 @@ public:
 
 
 
+
+
+class TransitionPreviewer : public Previewer
+{
+public:
+    TransitionPreviewer();
+    ~TransitionPreviewer();
+
+
+    static TransitionPreviewer instance;
+
+    void initialize();
+// Sets up playback in the foreground, since there is no file format detection
+    void submit_transition(const char *title, int data_type);
+// create the widgets
+    void create_preview();
+    void handle_resize(int w, int h);
+    int canvas_w, canvas_h;
+};
 
 #endif
 

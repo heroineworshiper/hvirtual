@@ -338,7 +338,7 @@ char* KeyFrame::get_data()
 	return data;
 }
 
-void KeyFrame::set_data(char *data)
+void KeyFrame::set_data(const char *data)
 {
 	strcpy(this->data, data);
 }

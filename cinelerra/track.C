@@ -1462,7 +1462,7 @@ int64_t Track::edit_change_duration(int64_t input_position,
         const int fudge = 0;
 // Get first edit on or after position
 		for(current = edits->first; 
-			current && current->startproject + current->length <= input_position;
+			current && current->startproject + current->length < input_position;
 			current = NEXT)
 			;
 
@@ -1514,14 +1514,19 @@ int64_t Track::edit_change_duration(int64_t input_position,
 		}
 		else
 		{
-// Not over an edit.  Try the last edit.
+// Not over an edit.  Clamp to the last edit.
 			current = edits->last;
-			if(current && 
-				((test_transitions && current->transition) ||
-				(!test_transitions && current->asset)))
+			if(current)
             {
-                int64_t edit_end = edits->last->startproject - edits->last->length;
-				edit_length = input_position - edit_end + fudge;
+                int64_t edit_end = edits->last->startproject + edits->last->length;
+
+                if(input_position == edit_length)
+                    edit_length = input_position = edits->last->startproject;
+                else
+    				edit_length = input_position - edit_end + fudge;
+// printf("Track::edit_change_duration %d edit_length=%d\n",
+// __LINE__,
+// (int)edit_length);
             }
 		}
 	}
@@ -1579,12 +1584,9 @@ int64_t Track::edit_change_duration(int64_t input_position,
 		}
 		else
 		{
-// Not over an edit.  Try the first edit.
+// Not over an edit.  Clamp to the first edit.
 			current = edits->first;
-			if(current && 
-				((test_transitions && current->transition) ||
-				(!test_transitions && current->asset)))
-				edit_length = edits->first->startproject - input_position;
+			edit_length = edits->first->startproject - input_position;
 		}
 	}
 

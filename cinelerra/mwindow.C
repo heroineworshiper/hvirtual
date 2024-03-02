@@ -1809,6 +1809,7 @@ void MWindow::create_objects(int want_gui,
 	init_fileserver();
 
     FilePreviewer::instance.initialize();
+    TransitionPreviewer::instance.initialize();
 
 // Default project created here
 	init_edl();
