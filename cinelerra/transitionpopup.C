@@ -264,7 +264,7 @@ int TransitionPaste::handle_event()
     char *string = new char[len + 1];
     mwindow->gui->get_clipboard()->from_clipboard(string, 
 		len, 
-		BC_PRIMARY_SELECTION);
+		SECONDARY_SELECTION);
     FileXML file;
 	file.read_from_string(string);
     int result = file.read_tag();

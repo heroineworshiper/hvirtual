@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -316,6 +315,18 @@ CWindowCoord::CWindowCoord(CWindowToolGUI *gui, int x, int y, float value)
 	this->gui = gui;
 }
 
+CWindowCoord::CWindowCoord(CWindowToolGUI *gui, int x, int y, int w, float value)
+ : BC_TumbleTextBox(gui, 
+		(float)value,
+		(float)-65536,
+		(float)65536,
+		x, 
+		y, 
+        w)
+{
+	this->gui = gui;
+}
+
 CWindowCoord::CWindowCoord(CWindowToolGUI *gui, int x, int y, int value)
  : BC_TumbleTextBox(gui, 
 		(int64_t)value,
@@ -327,6 +338,19 @@ CWindowCoord::CWindowCoord(CWindowToolGUI *gui, int x, int y, int value)
 {
 	this->gui = gui;
 }
+
+CWindowCoord::CWindowCoord(CWindowToolGUI *gui, int x, int y, int w, int value)
+ : BC_TumbleTextBox(gui, 
+		(int64_t)value,
+		(int64_t)-65536,
+		(int64_t)65536,
+		x, 
+		y, 
+		w)
+{
+	this->gui = gui;
+}
+
 int CWindowCoord::handle_event()
 {
 	gui->event_caller = this;
@@ -1655,7 +1679,7 @@ CWindowMaskDelete::CWindowMaskDelete(MWindow *mwindow,
 	CWindowToolGUI *gui, 
 	int x, 
 	int y)
- : BC_GenericButton(x, y, _("Delete"))
+ : BC_GenericButton(x, y, _("Delete point"))
 {
 	this->mwindow = mwindow;
 	this->gui = gui;
@@ -1691,14 +1715,17 @@ int CWindowMaskDelete::handle_event()
 			i < submask->points.total - 1;
 			i++)
 		{
-			*submask->points.values[i] = *submask->points.values[i + 1];
+			submask->points.get(i)->copy_from(*submask->points.get(i + 1));
 		}
 
 		if(submask->points.total)
 		{
-			submask->points.remove_object(
-				submask->points.values[submask->points.total - 1]);
+			submask->points.remove_object_number(submask->points.size() - 1);
 		}
+
+        mwindow->cwindow->gui->affected_point--;
+        if(mwindow->cwindow->gui->affected_point < 0)
+            mwindow->cwindow->gui->affected_point = 0;
 // Commit change to span of keyframes
 		((MaskAutos*)track->automation->autos[AUTOMATION_MASK])->update_parameter(&temp_keyframe);
 #else
@@ -1713,13 +1740,12 @@ int CWindowMaskDelete::handle_event()
 				i < submask->points.total - 1;
 				i++)
 			{
-				*submask->points.values[i] = *submask->points.values[i + 1];
+				submask->points.get(i)->copy_from(*submask->points.get(i + 1));
 			}
 
 			if(submask->points.total)
 			{
-				submask->points.remove_object(
-					submask->points.values[submask->points.total - 1]);
+				submask->points.remove_object_number(submask->points.size() - 1);
 			}
 
 
@@ -1746,6 +1772,61 @@ int CWindowMaskDelete::keypress_event()
 		return handle_event();
 	return 0;
 }
+
+
+
+CWindowMaskLinear::CWindowMaskLinear(MWindow *mwindow, CWindowToolGUI *gui, int x, int y)
+ : BC_GenericButton(x, y, _("Make linear"))
+{
+	this->mwindow = mwindow;
+	this->gui = gui;
+}
+
+int CWindowMaskLinear::handle_event()
+{
+	MaskAutos *autos;
+	MaskAuto *keyframe;
+	Track *track;
+	MaskPoint *point;
+	SubMask *mask;
+
+// Get existing keyframe
+	((CWindowMaskGUI*)gui)->get_keyframe(track, 
+		autos,
+		keyframe, 
+		mask,
+		point,
+		0);
+
+	if(point)
+	{
+		mwindow->undo->update_undo_before(_("make linear"), 0);
+
+// Create temp keyframe
+		MaskAuto temp_keyframe(mwindow->edl, autos);
+		temp_keyframe.copy_data(keyframe);
+        
+        
+// Update parameter in the temp
+		mask = temp_keyframe.get_submask(mwindow->edl->session->cwindow_mask);
+        point = mask->points.get(mwindow->cwindow->gui->affected_point);
+        point->control_x1 = 0;
+        point->control_y1 = 0;
+        point->control_x2 = 0;
+        point->control_y2 = 0;
+
+
+// Commit to spanned keyframes
+		autos->update_parameter(&temp_keyframe);
+
+		gui->update_preview();
+		mwindow->undo->update_undo_after(_("make linear"), LOAD_AUTOMATION);
+	}
+
+
+	return 1;
+}
+
 
 
 // CWindowMaskCycleNext::CWindowMaskCycleNext(MWindow *mwindow, CWindowToolGUI *gui, int x, int y)
@@ -1863,14 +1944,18 @@ int CWindowMaskNumber::handle_event()
 
 
 
-CWindowMaskFeather::CWindowMaskFeather(MWindow *mwindow, CWindowToolGUI *gui, int x, int y)
+CWindowMaskFeather::CWindowMaskFeather(MWindow *mwindow, 
+    CWindowToolGUI *gui, 
+    int x, 
+    int y,
+    int w)
  : BC_TumbleTextBox(gui, 
 		(int64_t)0,
 		(int64_t)0,
 		(int64_t)0xff,
 		x, 
 		y, 
-		DP(100))
+		w)
 {
 	this->mwindow = mwindow;
 	this->gui = gui;
@@ -1928,14 +2013,18 @@ int CWindowMaskFeather::handle_event()
 
 
 
-CWindowMaskRadius::CWindowMaskRadius(MWindow *mwindow, CWindowToolGUI *gui, int x, int y)
+CWindowMaskRadius::CWindowMaskRadius(MWindow *mwindow, 
+    CWindowToolGUI *gui, 
+    int x, 
+    int y,
+    int w)
  : BC_TumbleTextBox(gui, 
 		(int64_t)0,
 		(int64_t)0,
 		(int64_t)0xff,
 		x, 
 		y, 
-		DP(100))
+		w)
 {
 	this->mwindow = mwindow;
 	this->gui = gui;
@@ -2079,12 +2168,18 @@ CWindowMaskGUI::~CWindowMaskGUI()
 	delete number;
 	delete feather;
     delete radius;
+    delete point;
+    delete x;
+    delete y;
 	unlock_window();
 }
 
 void CWindowMaskGUI::create_objects()
 {
-	int x = DP(10), y = DP(10), margin = mwindow->theme->widget_border;
+    int margin = mwindow->theme->widget_border;
+	int x = margin;
+    int y = margin;
+    int coord_w = DP(100);
 	MaskAuto *keyframe = 0;
 	Track *track = mwindow->cwindow->calculate_affected_track();
 	if(track)
@@ -2103,8 +2198,6 @@ void CWindowMaskGUI::create_objects()
 	add_subwindow(title = new BC_Title(x, y, _("Value:")));
 	add_subwindow(value = new CWindowMaskValue(mwindow, this, x + title->get_w() + margin, y));
 	y += value->get_h() + margin;
-	add_subwindow(delete_point = new CWindowMaskDelete(mwindow, this, x, y));
-	y += delete_point->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Mask number:")));
 	number = new CWindowMaskNumber(mwindow, 
 		this, 
@@ -2115,31 +2208,54 @@ void CWindowMaskGUI::create_objects()
 
 
 	add_subwindow(title = new BC_Title(x, y, _("Feather:")));
-	feather = new CWindowMaskFeather(mwindow,
+	x += title->get_w() + margin;
+    feather = new CWindowMaskFeather(mwindow,
 		this,
-		x + title->get_w() + margin,
-		y);
+		x,
+		y,
+        coord_w);
 	feather->create_objects();
+    x = margin;
 	y += feather->get_h() + margin;
-    
+
 
 
 	add_subwindow(title = new BC_Title(x, y, _("Radius:")));
+	x += title->get_w() + margin;
 	radius = new CWindowMaskRadius(mwindow,
 		this,
-		x + title->get_w() + margin,
-		y);
+		x,
+		y,
+        coord_w);
 	radius->create_objects();
+    x = margin;
 	y += radius->get_h() + margin;
     
+    BC_Bar *bar;
+    add_subwindow(bar = new BC_Bar(x, y, get_w() - margin * 2));
+    y += bar->get_h() + margin;
     
     
+    add_subwindow(title = new BC_Title(x, y, _("Editing point:")));
+    x += title->get_w() + margin;
+    point = new CWindowCoord(this, 
+		x, 
+		y, 
+        coord_w,
+		0);
+    point->create_objects();
+    point->set_boundaries((int64_t)0, (int64_t)0);
+    x = margin;
+    y += point->get_h() + margin;
+
 	add_subwindow(title = new BC_Title(x, y, _("X:")));
 	x += title->get_w() + margin;
 	this->x = new CWindowCoord(this, 
 		x, 
 		y, 
+        coord_w,
 		(float)0.0);
+    this->x->set_precision(1);
 	this->x->create_objects();
 	x += this->x->get_w() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Y:")));
@@ -2147,11 +2263,20 @@ void CWindowMaskGUI::create_objects()
 	this->y = new CWindowCoord(this, 
 		x, 
 		y, 
+        coord_w,
 		(float)0.0);
+    this->y->set_precision(1);
 	this->y->create_objects();
 	
-	x = DP(10);
+	x = margin;
 	y += this->y->get_h() + margin;
+
+	add_subwindow(delete_point = new CWindowMaskDelete(mwindow, this, x, y));
+	y += delete_point->get_h() + margin;
+
+	add_subwindow(make_linear = new CWindowMaskLinear(mwindow, this, x, y));
+	y += make_linear->get_h() + margin;
+
 	add_subwindow(title = new BC_Title(x, y, _("Press Ctrl to move a point")));
 	y += title->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Press Alt to translate the mask")));
@@ -2189,10 +2314,10 @@ void CWindowMaskGUI::get_keyframe(Track* &track,
 	point = 0;
 	if(keyframe)
 	{
-		if(mwindow->cwindow->gui->affected_point < mask->points.total &&
+		if(mwindow->cwindow->gui->affected_point < mask->points.size() &&
 			mwindow->cwindow->gui->affected_point >= 0)
 		{
-			point = mask->points.values[mwindow->cwindow->gui->affected_point];
+			point = mask->points.get(mwindow->cwindow->gui->affected_point);
 		}
 	}
 }
@@ -2203,14 +2328,18 @@ void CWindowMaskGUI::update()
 	MaskAuto *keyframe;
 	Track *track;
 	MaskPoint *point;
+    int point_number = mwindow->cwindow->gui->affected_point;
 	SubMask *mask;
-//printf("CWindowMaskGUI::update 1\n");
 	get_keyframe(track, 
 		autos,
 		keyframe, 
 		mask,
 		point,
 		0);
+// printf("CWindowMaskGUI::update %d point_number=%d point=%p\n", 
+// __LINE__,
+// point_number,
+// point);
 
 	double position = mwindow->edl->local_session->get_selectionstart(1);
 	position = mwindow->edl->align_to_frame(position, 0);
@@ -2218,17 +2347,38 @@ void CWindowMaskGUI::update()
 	{
 		int64_t position_i = track->to_units(position, 0);
 
-		if(point)
-		{
-			x->update(point->x);
-			y->update(point->y);
-		}
-
 		if(mask)
 		{
+            int max = MAX(mask->points.size() - 1, 0);
+            this->point->set_boundaries((int64_t)0, (int64_t)max);
 			feather->update((int64_t)autos->get_feather(position_i, PLAY_FORWARD));
 			radius->update((int64_t)autos->get_radius(position_i, PLAY_FORWARD));
 			value->update((int64_t)autos->get_value(position_i, PLAY_FORWARD));
+
+// clamp the point number
+            if(point_number >= mask->points.size())
+            {
+                point_number = mask->points.size() - 1;
+                if(point_number >= 0)
+                {
+                    mwindow->cwindow->gui->affected_point = point_number;
+                    point = mask->points.get(point_number);
+                }
+                else
+                    this->point->update((int64_t)0);
+            }
+
+		    if(point)
+		    {
+                this->point->update((int64_t)point_number);
+			    x->update(point->x);
+			    y->update(point->y);
+		    }
+            else
+            {
+                x->update((float)0);
+			    y->update((float)0);
+            }
 		}
 	}
 //printf("CWindowMaskGUI::update 1\n");
@@ -2263,37 +2413,66 @@ void CWindowMaskGUI::handle_event()
 		point,
 		0);
 
-	mwindow->undo->update_undo_before(_("mask point"), this);
+    int point_number = atoi(this->point->get_text());
 
-	if(point)
-	{
+// user selected a different point
+    if(point_number != mwindow->cwindow->gui->affected_point)
+    {
+        mwindow->cwindow->gui->affected_point = point_number;
+// update the text boxes
+        if(mask)
+        {
+		    if(point_number < mask->points.size() &&
+			    point_number >= 0)
+		    {
+			    point = mask->points.get(point_number);
+    			x->update(point->x);
+	    		y->update(point->y);
+		    }
+            else
+            {
+    			x->update((float)0.0);
+	    		y->update((float)0.0);
+            }
+            update_preview();
+        }
+    }
+    else
+    {
+//printf("CWindowMaskGUI::handle_event %d point_number=%d\n", __LINE__, point_number);
+
+	    mwindow->undo->update_undo_before(_("mask point"), this);
+
+	    if(point)
+	    {
 #ifdef USE_KEYFRAME_SPANNING
 // Create temp keyframe
-		MaskAuto temp_keyframe(mwindow->edl, autos);
-		temp_keyframe.copy_data(keyframe);
+		    MaskAuto temp_keyframe(mwindow->edl, autos);
+		    temp_keyframe.copy_data(keyframe);
 // Get affected point in temp keyframe
-		mask = temp_keyframe.get_submask(mwindow->edl->session->cwindow_mask);
-		if(mwindow->cwindow->gui->affected_point < mask->points.total &&
-			mwindow->cwindow->gui->affected_point >= 0)
-		{
-			point = mask->points.values[mwindow->cwindow->gui->affected_point];
-		}
+		    mask = temp_keyframe.get_submask(mwindow->edl->session->cwindow_mask);
+		    if(point_number < mask->points.size() &&
+			    point_number >= 0)
+		    {
+			    point = mask->points.get(point_number);
+		    }
 
-		if(point)
-		{
-			point->x = atof(x->get_text());
-			point->y = atof(y->get_text());
+		    if(point)
+		    {
+			    point->x = atof(x->get_text());
+			    point->y = atof(y->get_text());
 // Commit to spanned keyframes
-			autos->update_parameter(&temp_keyframe);
-		}
+			    autos->update_parameter(&temp_keyframe);
+		    }
 #else
-		point->x = atof(x->get_text());
-		point->y = atof(y->get_text());
+		    point->x = atof(x->get_text());
+		    point->y = atof(y->get_text());
 #endif
-	}
+	    }
 
-	update_preview();
-	mwindow->undo->update_undo_after(_("mask point"), LOAD_AUTOMATION);
+	    update_preview();
+	    mwindow->undo->update_undo_after(_("mask point"), LOAD_AUTOMATION);
+    }
 }
 
 void CWindowMaskGUI::update_preview()

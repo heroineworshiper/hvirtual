@@ -412,17 +412,19 @@ void VirtualVNode::render_mask(VFrame *output_temp,
 
 //printf("VirtualVNode::render_mask 1 %d %d\n", total_points, keyframe->value);
 // Ignore certain masks
-    int min_points = 3;
-    if(keyframe->mode == MASK_MULTIPLY_ALPHA ||
-        keyframe->mode == MASK_MULTIPLY_PATH)
-    {
-        min_points--;
-    }
+//     int min_points = 3;
+//     if(keyframe->mode == MASK_MULTIPLY_ALPHA ||
+//         keyframe->mode == MASK_MULTIPLY_PATH ||
+//         keyframe->mode == MASK_SUBTRACT_PATH)
+//     {
+//         min_points--;
+//     }
 
-	if(total_points < min_points || 
-		(keyframe->value == 0 && 
-            (keyframe->mode == MASK_SUBTRACT_ALPHA ||
-            keyframe->mode == MASK_SUBTRACT_PATH)))
+	if(total_points < 2)
+//         || 
+// 		(keyframe->value == 0 && 
+//             (keyframe->mode == MASK_SUBTRACT_ALPHA ||
+//             keyframe->mode == MASK_SUBTRACT_PATH)))
 	{
 		return;
 	}

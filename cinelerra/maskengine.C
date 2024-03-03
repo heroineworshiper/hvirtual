@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -492,7 +491,7 @@ void MaskUnit::process_package(LoadPackage *package)
 //printf("MaskUnit::process_package %d k=%d total_points=%d\n", __LINE__, k, total_points);
 
 // need enough points to make a closed polygon
-			if(total_points < 3 && 
+			if(total_points < 2 && 
                 (engine->mode == MASK_MULTIPLY_ALPHA ||
                     engine->mode == MASK_SUBTRACT_ALPHA))
             {

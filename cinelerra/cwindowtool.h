@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +95,9 @@ class CWindowCoord : public BC_TumbleTextBox
 {
 public:
 	CWindowCoord(CWindowToolGUI *gui, int x, int y, float value);
+	CWindowCoord(CWindowToolGUI *gui, int x, int y, int w, float value);
 	CWindowCoord(CWindowToolGUI *gui, int x, int y, int value);
+	CWindowCoord(CWindowToolGUI *gui, int x, int y, int w, int value);
 
 // Calls the window's handle_event
 	int handle_event();
@@ -149,6 +150,15 @@ public:
 	CWindowToolGUI *gui;
 };
 
+class CWindowMaskLinear : public BC_GenericButton
+{
+public:
+	CWindowMaskLinear(MWindow *mwindow, CWindowToolGUI *gui, int x, int y);
+	int handle_event();
+	MWindow *mwindow;
+	CWindowToolGUI *gui;
+};
+
 class CWindowMaskCycleNext : public BC_GenericButton
 {
 public:
@@ -180,7 +190,7 @@ public:
 class CWindowMaskFeather : public BC_TumbleTextBox
 {
 public:
-	CWindowMaskFeather(MWindow *mwindow, CWindowToolGUI *gui, int x, int y);
+	CWindowMaskFeather(MWindow *mwindow, CWindowToolGUI *gui, int x, int y, int w);
 	~CWindowMaskFeather();
 	int handle_event();
 	MWindow *mwindow;
@@ -190,7 +200,7 @@ public:
 class CWindowMaskRadius : public BC_TumbleTextBox
 {
 public:
-	CWindowMaskRadius(MWindow *mwindow, CWindowToolGUI *gui, int x, int y);
+	CWindowMaskRadius(MWindow *mwindow, CWindowToolGUI *gui, int x, int y, int w);
 	~CWindowMaskRadius();
 	int handle_event();
 	MWindow *mwindow;
@@ -224,11 +234,12 @@ public:
 		int create_it);
 	void update_preview();
 
-	CWindowCoord *x, *y;
+	CWindowCoord *x, *y, *point;
 	CWindowMaskMode *mode;
 	CWindowMaskFeather *feather;
 	CWindowMaskRadius *radius;
 	CWindowMaskDelete *delete_point;
+    CWindowMaskLinear *make_linear;
 // Not necessary if all keyframes have same points
 //	CWindowMaskCycleNext *next_point;
 //	CWindowMaskCyclePrev *prev_point;

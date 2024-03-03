@@ -1302,7 +1302,7 @@ void MWindow::paste()
 
 		gui->get_clipboard()->from_clipboard(string, 
 			len, 
-			BC_PRIMARY_SELECTION);
+			SECONDARY_SELECTION);
 		FileXML file;
 		file.read_from_string(string);
 
@@ -1474,7 +1474,7 @@ int MWindow::paste_automation()
 		char *string = new char[len + 1];
 		gui->get_clipboard()->from_clipboard(string, 
 			len, 
-			BC_PRIMARY_SELECTION);
+			SECONDARY_SELECTION);
 		FileXML file;
 		file.read_from_string(string);
 
@@ -1511,7 +1511,7 @@ int MWindow::paste_default_keyframe()
 		char *string = new char[len + 1];
 		gui->get_clipboard()->from_clipboard(string, 
 			len, 
-			BC_PRIMARY_SELECTION);
+			SECONDARY_SELECTION);
 		FileXML file;
 		file.read_from_string(string);
 		edl->tracks->paste_automation(edl->local_session->get_selectionstart(), 

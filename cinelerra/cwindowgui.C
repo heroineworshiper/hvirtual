@@ -1387,6 +1387,12 @@ int CWindowCanvas::do_mask(int &redraw,
 	else
 		use_interpolated = 1;
 
+	Auto *prev = 0;
+	mask_autos->get_prev_auto(position,
+		PLAY_FORWARD,
+		prev,
+		1);
+    int mode = ((MaskAuto*)prev)->mode;
 	if(use_interpolated)
 	{
 // Interpolate the points to get exactly what is being rendered at this position.
@@ -1398,11 +1404,6 @@ int CWindowCanvas::do_mask(int &redraw,
 	else
 // Use the prev mask
 	{
-		Auto *prev = 0;
-		mask_autos->get_prev_auto(position,
-			PLAY_FORWARD,
-			prev,
-			1);
 		((MaskAuto*)prev)->get_points(&points, 
 			mwindow->edl->session->cwindow_mask);
 	}
@@ -1464,93 +1465,28 @@ int CWindowCanvas::do_mask(int &redraw,
 		}
 //printf("CWindowCanvas::do_mask 1 %d\n", points.size());
 
-// Never draw closed polygon and a closed
-// polygon is harder to add points to.
 		for(int i = 0; i < points.size() && !result; i++)
 		{
 			MaskPoint *point1 = points.get(i);
-			MaskPoint *point2 = (i >= points.size() - 1) ? 
-				points.get(0) : 
-				points.get(i + 1);
+			MaskPoint *point2 = 0;
+            
+            if(i < points.size() - 1) point2 = points.get(i + 1);
+            else
+            if(i >= points.size() - 1 && 
+                (mode == MASK_MULTIPLY_ALPHA || mode == MASK_SUBTRACT_ALPHA))
+                point2 = points.get(0);
+            
+            
 			float x0, x1, x2, x3;
 			float y0, y1, y2, y3;
 			float old_x, old_y, x, y;
-			int segments = (int)(sqrt(SQR(point1->x - point2->x) + SQR(point1->y - point2->y)));
 
-//printf("CWindowCanvas::do_mask 1 %f, %f -> %f, %f projectorz=%f\n",
-//point1->x, point1->y, point2->x, point2->y, projector_z);
-			for(int j = 0; j <= segments && !result; j++)
-			{
-//printf("CWindowCanvas::do_mask 1 %f, %f -> %f, %f\n", x0, y0, x3, y3);
-				x0 = point1->x;
-				y0 = point1->y;
-				x1 = point1->x + point1->control_x2;
-				y1 = point1->y + point1->control_y2;
-				x2 = point2->x + point2->control_x1;
-				y2 = point2->y + point2->control_y1;
-				x3 = point2->x;
-				y3 = point2->y;
-
-				float t = (float)j / segments;
-				float tpow2 = t * t;
-				float tpow3 = t * t * t;
-				float invt = 1 - t;
-				float invtpow2 = invt * invt;
-				float invtpow3 = invt * invt * invt;
-
-				x = (        invtpow3 * x0
-					+ 3 * t     * invtpow2 * x1
-					+ 3 * tpow2 * invt     * x2 
-					+     tpow3            * x3);
-				y = (        invtpow3 * y0 
-					+ 3 * t     * invtpow2 * y1
-					+ 3 * tpow2 * invt     * y2 
-					+     tpow3            * y3);
-
-				x = (x - half_track_w) * projector_z + projector_x;
-				y = (y - half_track_h) * projector_z + projector_y;
-
-
-// Test new point addition
-				if(button_press)
-				{
-					float line_distance = 
-						sqrt(SQR(x - mask_cursor_x) + SQR(y - mask_cursor_y));
-
-//printf("CWindowCanvas::do_mask 1 x=%f mask_cursor_x=%f y=%f mask_cursor_y=%f %f %f %d, %d\n", 
-//x, mask_cursor_x, y, mask_cursor_y, line_distance, shortest_line_distance, shortest_point1, shortest_point2);
-					if(line_distance < shortest_line_distance || 
-						shortest_point1 < 0)
-					{
-						shortest_line_distance = line_distance;
-						shortest_point1 = i;
-						shortest_point2 = (i >= points.size() - 1) ? 0 : (i + 1);
-//printf("CWindowCanvas::do_mask 2 %f %f %d, %d\n", line_distance, shortest_line_distance, shortest_point1, shortest_point2);
-					}
-
-
-					float point_distance1 = 
-						sqrt(SQR(point1->x - mask_cursor_x) + SQR(point1->y - mask_cursor_y));
-					float point_distance2 = 
-						sqrt(SQR(point2->x - mask_cursor_x) + SQR(point2->y - mask_cursor_y));
-
-					if(point_distance1 < shortest_point_distance || 
-						shortest_point < 0)
-					{
-						shortest_point_distance = point_distance1;
-						shortest_point = i;
-					}
-
-					if(point_distance2 < shortest_point_distance || 
-						shortest_point < 0)
-					{
-						shortest_point_distance = point_distance2;
-						shortest_point = (i >= points.size() - 1) ? 0 : (i + 1);
-					}
-				}
-
-				output_to_canvas(mwindow->edl, 0, x, y);
-
+			x0 = point1->x;
+			y0 = point1->y;
+			x1 = point1->x + point1->control_x2;
+			y1 = point1->y + point1->control_y2;
+			x2 = point1->x + point1->control_x1;
+			y2 = point1->y + point1->control_y1;
 
 #define TEST_BOX(cursor_x, cursor_y, target_x, target_y) \
 	(cursor_x >= target_x - CONTROL_W / 2 && \
@@ -1565,202 +1501,226 @@ int CWindowCanvas::do_mask(int &redraw,
 	cursor_y <= target_y + FIRST_CONTROL_H / 2)
 
 // Test existing point selection
-				if(button_press)
+			if(button_press)
+			{
+				float canvas_x = (x0 - half_track_w) * projector_z + projector_x;
+				float canvas_y = (y0 - half_track_h) * projector_z + projector_y;
+				int cursor_x = get_cursor_x();
+				int cursor_y = get_cursor_y();
+
+// Find nearest control point if shift down
+				if(gui->shift_down())
 				{
-					float canvas_x = (x0 - half_track_w) * projector_z + projector_x;
-					float canvas_y = (y0 - half_track_h) * projector_z + projector_y;
-					int cursor_x = get_cursor_x();
-					int cursor_y = get_cursor_y();
+					float control_x = (x1 - half_track_w) * projector_z + projector_x;
+					float control_y = (y1 - half_track_h) * projector_z + projector_y;
+					output_to_canvas(mwindow->edl, 0, control_x, control_y);
 
-// Test first bezier point
-					if(gui->shift_down())
+					float distance = hypot(control_x - cursor_x, control_y - cursor_y);
+
+					if(distance < selected_control_point_distance)
 					{
-						float control_x = (x1 - half_track_w) * projector_z + projector_x;
-						float control_y = (y1 - half_track_h) * projector_z + projector_y;
-						output_to_canvas(mwindow->edl, 0, control_x, control_y);
-
-						float distance = 
-							sqrt(SQR(control_x - cursor_x) + SQR(control_y - cursor_y));
-
-						if(distance < selected_control_point_distance)
-						{
-							selected_point = i;
-							selected_control_point = 1;
-							selected_control_point_distance = distance;
-						}
-					}
-					else
-// test mane point
-					{
-						output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
-						if(!gui->ctrl_down())
-						{
-							if((i == 0 && TEST_BOX2(cursor_x, 
-                                        cursor_y, 
-                                        canvas_x, 
-                                        canvas_y)) ||
-                                (i > 0 && TEST_BOX(cursor_x, 
-                                        cursor_y, 
-                                        canvas_x, 
-                                        canvas_y)))
-							{
-								selected_point = i;
-							}
-						}
-						else
-						{
-							selected_point = shortest_point;
-						}
+						selected_point = i;
+						selected_control_point = 1;
+						selected_control_point_distance = distance;
 					}
 
-// Test second bezier point
-					canvas_x = (x3 - half_track_w) * projector_z + projector_x;
-					canvas_y = (y3 - half_track_h) * projector_z + projector_y;
-					if(gui->shift_down())
-					{
-						float control_x = (x2 - half_track_w) * projector_z + projector_x;
-						float control_y = (y2 - half_track_h) * projector_z + projector_y;
-						output_to_canvas(mwindow->edl, 0, control_x, control_y);
+// test 2nd control point
+					control_x = (x2 - half_track_w) * projector_z + projector_x;
+					control_y = (y2 - half_track_h) * projector_z + projector_y;
+					output_to_canvas(mwindow->edl, 0, control_x, control_y);
 
-						float distance = 
-							sqrt(SQR(control_x - cursor_x) + SQR(control_y - cursor_y));
+					distance = hypot(control_x - cursor_x, control_y - cursor_y);
 
 //printf("CWindowCanvas::do_mask %d %f %f\n", i, distance, selected_control_point_distance);
-						if(distance < selected_control_point_distance)
-						{
-							selected_point = (i < points.size() - 1 ? i + 1 : 0);
-							selected_control_point = 0;
-							selected_control_point_distance = distance;
-						}
-					}
-// 					else
-// 					if(i < points.size() - 1)
-// 					{
-// 						output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
-// 						if(!gui->ctrl_down())
-// 						{
-// 							if(TEST_BOX(cursor_x, 
-//                                 cursor_y, 
-//                                 canvas_x, 
-//                                 canvas_y))
-// 							{
-// 								selected_point = i + 1;
-// 							}
-// 						}
-// 						else
-// 						{
-// 							selected_point = shortest_point;
-// 						}
-// 					}
-				}
-
-
-
-				if(j > 0)
-				{
-// Draw joining line
-					if(draw /* && i < points.size() - 1 */)
+					if(distance < selected_control_point_distance)
 					{
-						x_points.append((int)x);
-						y_points.append((int)y);
-					}
-
-					if(j == segments)
-					{
-
-
-
-
-						if(draw)
-						{
-//printf("CWindowCanvas::do_mask %d gui->affected_point=%d\n", __LINE__, gui->affected_point);
-// Draw second anchor
-							if(i < points.size() - 1)
-							{
-								if(i == gui->affected_point - 1)
-								{
-                                	get_canvas()->draw_disc((int)x - CONTROL_W / 2, 
-										(int)y - CONTROL_W / 2, 
-										CONTROL_W, 
-										CONTROL_W);
-								}
-                                else
-								{
-                                	get_canvas()->draw_circle((int)x - CONTROL_W / 2, 
-										(int)y - CONTROL_W / 2, 
-										CONTROL_W, 
-										CONTROL_W);
-                                }
-// char string[BCTEXTLEN];
-// sprintf(string, "%d", (i < points.size() - 1 ? i + 1 : 0));
-// canvas->draw_text((int)x + CONTROL_W, (int)y + CONTROL_W, string);
-							}
-
-// Draw second control point.  Discard x2 and y2 after this.
-							x2 = (x2 - half_track_w) * projector_z + projector_x;
-							y2 = (y2 - half_track_h) * projector_z + projector_y;
-							output_to_canvas(mwindow->edl, 0, x2, y2);
-							get_canvas()->draw_line((int)x, (int)y, (int)x2, (int)y2);
-							get_canvas()->draw_rectangle((int)x2 - CONTROL_W / 2,
-								(int)y2 - CONTROL_H / 2,
-								CONTROL_W,
-								CONTROL_H);
-						}
+						selected_point = i;
+						selected_control_point = 0;
+						selected_control_point_distance = distance;
 					}
 				}
 				else
+// test mane point
 				{
-
-
-// Draw first anchor
-					if(i == 0 && draw)
+					output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
+					if(!gui->ctrl_down())
 					{
-                    	if(gui->affected_point == 0)
+						if((i == gui->affected_point && 
+                            TEST_BOX2(cursor_x, 
+                                    cursor_y, 
+                                    canvas_x, 
+                                    canvas_y)) ||
+                            (i != gui->affected_point && 
+                                TEST_BOX(cursor_x, 
+                                    cursor_y, 
+                                    canvas_x, 
+                                    canvas_y)))
 						{
-                            get_canvas()->draw_disc((int)x - FIRST_CONTROL_W / 2, 
-							    (int)y - FIRST_CONTROL_H / 2, 
-							    FIRST_CONTROL_W, 
-							    FIRST_CONTROL_H);
-                        }
-                        else
-						{
-                            get_canvas()->draw_circle((int)x - FIRST_CONTROL_W / 2, 
-							    (int)y - FIRST_CONTROL_H / 2, 
-							    FIRST_CONTROL_W, 
-							    FIRST_CONTROL_H);
-                        }
+							selected_point = i;
+						}
 					}
-
-// Draw first control point.  Discard x1 and y1 after this.
-					if(draw)
+					else
 					{
-						x1 = (x1 - half_track_w) * projector_z + projector_x;
-						y1 = (y1 - half_track_h) * projector_z + projector_y;
-						output_to_canvas(mwindow->edl, 0, x1, y1);
-						get_canvas()->draw_line((int)x, (int)y, (int)x1, (int)y1);
-						get_canvas()->draw_rectangle((int)x1 - CONTROL_W / 2,
-							(int)y1 - CONTROL_H / 2,
-							CONTROL_W,
-							CONTROL_H);
-					
-						x_points.append((int)x);
-						y_points.append((int)y);
+// find nearest point if ctrl down
+                        float distance = hypot(cursor_x - canvas_x, cursor_y - canvas_y);
+                        if(distance < shortest_point_distance)
+                        {
+    						selected_point = i;
+                            shortest_point_distance = distance;
+                        }
 					}
 				}
-//printf("CWindowCanvas::do_mask 1\n");
+			}
 
-				old_x = x;
-				old_y = y;
+
+
+			if(draw)
+			{
+//printf("CWindowCanvas::do_mask %d gui->affected_point=%d\n", __LINE__, gui->affected_point);
+// Draw mane point
+				x = (x0 - half_track_w) * projector_z + projector_x;
+				y = (y0 - half_track_h) * projector_z + projector_y;
+				output_to_canvas(mwindow->edl, 0, x, y);
+
+				if(i == gui->affected_point)
+				{
+                    get_canvas()->draw_circle((int)x - FIRST_CONTROL_W / 2, 
+				        (int)y - FIRST_CONTROL_H / 2, 
+				        FIRST_CONTROL_W, 
+				        FIRST_CONTROL_H);
+				}
+                else
+				{
+                    get_canvas()->draw_circle((int)x - CONTROL_W / 2, 
+						(int)y - CONTROL_W / 2, 
+						CONTROL_W, 
+						CONTROL_W);
+                }
+// char string[BCTEXTLEN];
+// sprintf(string, "%d", (i < points.size() - 1 ? i + 1 : 0));
+// canvas->draw_text((int)x + CONTROL_W, (int)y + CONTROL_W, string);
+
+// draw 1st control point
+			    float x4 = (x1 - half_track_w) * projector_z + projector_x;
+			    float y4 = (y1 - half_track_h) * projector_z + projector_y;
+			    output_to_canvas(mwindow->edl, 0, x4, y4);
+			    get_canvas()->draw_line((int)x, (int)y, (int)x4, (int)y4);
+			    get_canvas()->draw_rectangle((int)x4 - CONTROL_W / 2,
+				    (int)y4 - CONTROL_H / 2,
+				    CONTROL_W,
+				    CONTROL_H);
+
+// Draw 2nd control point.
+				x4 = (x2 - half_track_w) * projector_z + projector_x;
+				y4 = (y2 - half_track_h) * projector_z + projector_y;
+				output_to_canvas(mwindow->edl, 0, x4, y4);
+				get_canvas()->draw_line((int)x, (int)y, (int)x4, (int)y4);
+				get_canvas()->draw_rectangle((int)x4 - CONTROL_W / 2,
+					(int)y4 - CONTROL_H / 2,
+					CONTROL_W,
+					CONTROL_H);
+
+
+// draw line between 2 points
+                if(point2)
+                {
+			        int segments = (int)(sqrt(SQR(point1->x - point2->x) + SQR(point1->y - point2->y)));
+				    x2 = point2->x + point2->control_x1;
+				    y2 = point2->y + point2->control_y1;
+				    x3 = point2->x;
+				    y3 = point2->y;
+
+    //printf("CWindowCanvas::do_mask %d: %f, %f -> %f, %f segments=%d\n",
+    //__LINE__, point1->x, point1->y, point2->x, point2->y, segments);
+			        for(int j = 0; j <= segments && !result; j++)
+			        {
+        //printf("CWindowCanvas::do_mask 1 %f, %f -> %f, %f\n", x0, y0, x3, y3);
+
+				        float t = (float)j / segments;
+				        float tpow2 = t * t;
+				        float tpow3 = t * t * t;
+				        float invt = 1 - t;
+				        float invtpow2 = invt * invt;
+				        float invtpow3 = invt * invt * invt;
+
+				        x = (        invtpow3 * x0
+					        + 3 * t     * invtpow2 * x1
+					        + 3 * tpow2 * invt     * x2 
+					        +     tpow3            * x3);
+				        y = (        invtpow3 * y0 
+					        + 3 * t     * invtpow2 * y1
+					        + 3 * tpow2 * invt     * y2 
+					        +     tpow3            * y3);
+
+				        x = (x - half_track_w) * projector_z + projector_x;
+				        y = (y - half_track_h) * projector_z + projector_y;
+
+
+    // // Test new point addition
+    // 				    if(button_press)
+    // 				    {
+    // 					    float line_distance = 
+    // 						    sqrt(SQR(x - mask_cursor_x) + SQR(y - mask_cursor_y));
+    // 
+    //     //printf("CWindowCanvas::do_mask 1 x=%f mask_cursor_x=%f y=%f mask_cursor_y=%f %f %f %d, %d\n", 
+    //     //x, mask_cursor_x, y, mask_cursor_y, line_distance, shortest_line_distance, shortest_point1, shortest_point2);
+    // 					    if(line_distance < shortest_line_distance || 
+    // 						    shortest_point1 < 0)
+    // 					    {
+    // 						    shortest_line_distance = line_distance;
+    // 						    shortest_point1 = i;
+    // 						    shortest_point2 = (i >= points.size() - 1) ? 0 : (i + 1);
+    //     //printf("CWindowCanvas::do_mask 2 %f %f %d, %d\n", line_distance, shortest_line_distance, shortest_point1, shortest_point2);
+    // 					    }
+    // 
+    // 
+    // 					    float point_distance1 = 
+    // 						    sqrt(SQR(point1->x - mask_cursor_x) + SQR(point1->y - mask_cursor_y));
+    // 					    float point_distance2 = 
+    // 						    sqrt(SQR(point2->x - mask_cursor_x) + SQR(point2->y - mask_cursor_y));
+    // 
+    // 					    if(point_distance1 < shortest_point_distance || 
+    // 						    shortest_point < 0)
+    // 					    {
+    // 						    shortest_point_distance = point_distance1;
+    // 						    shortest_point = i;
+    // 					    }
+    // 
+    // 					    if(point_distance2 < shortest_point_distance || 
+    // 						    shortest_point < 0)
+    // 					    {
+    // 						    shortest_point_distance = point_distance2;
+    // 						    shortest_point = (i >= points.size() - 1) ? 0 : (i + 1);
+    // 					    }
+    // 				    }
+
+				        output_to_canvas(mwindow->edl, 0, x, y);
+
+
+
+				        if(j > 0)
+				        {
+        // Draw joining line
+					        if(draw /* && i < points.size() - 1 */)
+					        {
+						        x_points.append((int)x);
+						        y_points.append((int)y);
+					        }
+				        }
+        //printf("CWindowCanvas::do_mask 1\n");
+
+				        old_x = x;
+				        old_y = y;
+			        }
+                }
 			}
 		}
-//printf("CWindowCanvas::do_mask 1\n");
 
 		if(draw)
 		{
 			get_canvas()->draw_polygon(&x_points, &y_points);
 			get_canvas()->set_opaque();
 		}
-//printf("CWindowCanvas::do_mask 1\n");
 	}
 
 
@@ -1833,12 +1793,12 @@ int CWindowCanvas::do_mask(int &redraw,
 			point->control_y2 = 0;
 
 
-			if(shortest_point2 < shortest_point1)
-			{
-				shortest_point2 ^= shortest_point1;
-				shortest_point1 ^= shortest_point2;
-				shortest_point2 ^= shortest_point1;
-			}
+// 			if(shortest_point2 < shortest_point1)
+// 			{
+// 				shortest_point2 ^= shortest_point1;
+// 				shortest_point1 ^= shortest_point2;
+// 				shortest_point2 ^= shortest_point1;
+// 			}
 
 
 
@@ -1852,15 +1812,24 @@ int CWindowCanvas::do_mask(int &redraw,
 //	shortest_line_distance, shortest_point_distance, shortest_point1, shortest_point2);
 //printf("CWindowCanvas::do_mask %d %d\n", shortest_point1, shortest_point2);
 
-// Append to end of list
-			if(labs(shortest_point1 - shortest_point2) > 1)
-			{
+// Append after previously selected point
+//			if(labs(shortest_point1 - shortest_point2) > 1)
+//			{
 #ifdef USE_KEYFRAME_SPANNING
 
 				MaskPoint *new_point = new MaskPoint;
-				points.append(new_point);
-				*new_point = *point;
-				gui->affected_point = points.size() - 1;
+//printf("CWindowCanvas::do_mask %d affected_point=%d\n", __LINE__, gui->affected_point);
+				if(gui->affected_point < points.size())
+                {
+                    points.insert(new_point, gui->affected_point + 1);
+                    gui->affected_point++;
+                }
+                else
+                {
+                    points.append(new_point);
+				    gui->affected_point = points.size() - 1;
+				}
+                new_point->copy_from(*point);
 
 #else
 
@@ -1871,7 +1840,7 @@ int CWindowCanvas::do_mask(int &redraw,
 					SubMask *submask = current->get_submask(mwindow->edl->session->cwindow_mask);
 					MaskPoint *new_point = new MaskPoint;
 					submask->points.append(new_point);
-					*new_point = *point;
+					new_point->copy_from(*point);
 					if(current == (MaskAuto*)mask_autos->default_auto)
 						current = (MaskAuto*)mask_autos->first;
 					else
@@ -1881,60 +1850,60 @@ int CWindowCanvas::do_mask(int &redraw,
 #endif
 
 				result = 1;
-			}
-			else
-// Insert between 2 points, shifting back point 2
-			if(shortest_point1 >= 0 && shortest_point2 >= 0)
-			{
-
-#ifdef USE_KEYFRAME_SPANNING
-// In case the keyframe point count isn't synchronized with the rest of the keyframes,
-// avoid a crash.
-				if(points.size() >= shortest_point2)
-				{
-					MaskPoint *new_point = new MaskPoint;
-					points.append(0);
-					for(int i = points.size() - 1; 
-						i > shortest_point2; 
-						i--)
-						points.values[i] = points.values[i - 1];
-					points.values[shortest_point2] = new_point;
-
-					*new_point = *point;
-				}
-
-#else
-
-				for(MaskAuto *current = (MaskAuto*)mask_autos->default_auto;
-					current; )
-				{
-					SubMask *submask = current->get_submask(mwindow->edl->session->cwindow_mask);
-// In case the keyframe point count isn't synchronized with the rest of the keyframes,
-// avoid a crash.
-					if(submask->points.size() >= shortest_point2)
-					{
-						MaskPoint *new_point = new MaskPoint;
-						submask->points.append(0);
-						for(int i = submask->points.size() - 1; 
-							i > shortest_point2; 
-							i--)
-							submask->points.values[i] = submask->points.values[i - 1];
-						submask->points.values[shortest_point2] = new_point;
-
-						*new_point = *point;
-					}
-
-					if(current == (MaskAuto*)mask_autos->default_auto)
-						current = (MaskAuto*)mask_autos->first;
-					else
-						current = (MaskAuto*)NEXT;
-				}
-#endif
-
-
-				gui->affected_point = shortest_point2;
-				result = 1;
-			}
+//			}
+// 			else
+// // Insert between 2 points, shifting back point 2
+// 			if(shortest_point1 >= 0 && shortest_point2 >= 0)
+// 			{
+// 
+// #ifdef USE_KEYFRAME_SPANNING
+// // In case the keyframe point count isn't synchronized with the rest of the keyframes,
+// // avoid a crash.
+// 				if(points.size() >= shortest_point2)
+// 				{
+// 					MaskPoint *new_point = new MaskPoint;
+// 					points.append(0);
+// 					for(int i = points.size() - 1; 
+// 						i > shortest_point2; 
+// 						i--)
+// 						points.values[i] = points.values[i - 1];
+// 					points.values[shortest_point2] = new_point;
+// 
+// 					new_point->copy_from(*point);
+// 				}
+// 
+// #else
+// 
+// 				for(MaskAuto *current = (MaskAuto*)mask_autos->default_auto;
+// 					current; )
+// 				{
+// 					SubMask *submask = current->get_submask(mwindow->edl->session->cwindow_mask);
+// // In case the keyframe point count isn't synchronized with the rest of the keyframes,
+// // avoid a crash.
+// 					if(submask->points.size() >= shortest_point2)
+// 					{
+// 						MaskPoint *new_point = new MaskPoint;
+// 						submask->points.append(0);
+// 						for(int i = submask->points.size() - 1; 
+// 							i > shortest_point2; 
+// 							i--)
+// 							submask->points.values[i] = submask->points.values[i - 1];
+// 						submask->points.values[shortest_point2] = new_point;
+// 
+// 						new_point->copy_from(*point);
+// 					}
+// 
+// 					if(current == (MaskAuto*)mask_autos->default_auto)
+// 						current = (MaskAuto*)mask_autos->first;
+// 					else
+// 						current = (MaskAuto*)NEXT;
+// 				}
+// #endif
+// 
+// 
+// 				gui->affected_point = shortest_point2;
+// 				result = 1;
+// 			}
 
 
 // printf("CWindowGUI::do_mask 20\n");
@@ -1959,7 +1928,7 @@ int CWindowCanvas::do_mask(int &redraw,
 					SubMask *submask = current->get_submask(mwindow->edl->session->cwindow_mask);
 					MaskPoint *new_point = new MaskPoint;
 					submask->points.append(new_point);
-					*new_point = *point;
+					new_point->copy_from(*point);
 					if(current == (MaskAuto*)mask_autos->default_auto)
 						current = (MaskAuto*)mask_autos->first;
 					else
@@ -1975,7 +1944,7 @@ int CWindowCanvas::do_mask(int &redraw,
 
 					MaskPoint *new_point = new MaskPoint;
 					points.append(new_point);
-					*new_point = *point;
+					new_point->copy_from(*point);
 				}
 
 				gui->affected_point = points.size() - 1;
@@ -2150,8 +2119,10 @@ int CWindowCanvas::do_mask(int &redraw,
 				
 				output_to_canvas(mwindow->edl, 0, canvas_x, canvas_y);
 // test mane point
-				if((i == 0 && TEST_BOX2(cursor_x, cursor_y, canvas_x, canvas_y)) ||
-                    (i > 0 && TEST_BOX(cursor_x, cursor_y, canvas_x, canvas_y)))
+				if((i == gui->affected_point && 
+                        TEST_BOX2(cursor_x, cursor_y, canvas_x, canvas_y)) ||
+                    (i != gui->affected_point && 
+                        TEST_BOX(cursor_x, cursor_y, canvas_x, canvas_y)))
 				{
 					over_point = 1;
 				}
