@@ -24,11 +24,10 @@
 #include "intauto.h"
 #include "intautos.h"
 
-IntAutos::IntAutos(EDL *edl, Track *track, int default_)
- : Autos(edl, track)
+IntAutos::IntAutos(EDL *edl, Track *track, int default_, int overlay_type)
+ : Autos(edl, track, AUTOMATION_TYPE_INT, overlay_type)
 {
 	this->default_ = default_;
-	type = AUTOMATION_TYPE_INT;
 }
 
 IntAutos::~IntAutos()

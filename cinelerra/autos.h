@@ -36,7 +36,10 @@
 class Autos : public List<Auto>
 {
 public:
-	Autos(EDL *edl, Track *track);
+	Autos(EDL *edl, 
+        Track *track, 
+        int type, // primitive data type below
+        int overlay_type); // overlay type from automation.inc
 		
 	virtual ~Autos();
 
@@ -90,6 +93,8 @@ public:
 // exist.
 	Auto *default_auto;
 
+    int overlay_type;
+// the data type
 	int type;
 	enum
 	{

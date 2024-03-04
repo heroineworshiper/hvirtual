@@ -173,7 +173,8 @@ public:
 		int cursor_x, 
 		int cursor_y, 
 		int buttonpress);
-	int do_keyframes(int cursor_x, 
+	int do_keyframes(double position,
+        int cursor_x, 
 		int cursor_y, 
 		int draw, 
 		int buttonpress, 
@@ -298,7 +299,8 @@ public:
 		int cursor_y,
 		int button_press);
 	int test_resources(int cursor_x, int cursor_y);
-	int do_plugins(int cursor_x, 
+	int do_plugins(double position,
+        int cursor_x, 
 		int cursor_y, 
 		int drag_start,
 		int button_press,

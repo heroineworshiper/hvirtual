@@ -509,15 +509,15 @@ void Tracks::set_automation_mode(double selectionstart,
 	}
 }
 
-int Tracks::clear_default_keyframe()
-{
-	for(Track *current = first; current; current = NEXT)
-	{
-		if(current->record)
-			current->clear_automation(0, 0, 0, 1);
-	}
-	return 0;
-}
+// int Tracks::clear_default_keyframe()
+// {
+// 	for(Track *current = first; current; current = NEXT)
+// 	{
+// 		if(current->record)
+// 			current->clear_automation(0, 0, 0, 1);
+// 	}
+// 	return 0;
+// }
 
 int Tracks::clear_handle(double start, 
 	double end,
@@ -555,14 +555,8 @@ int Tracks::copy_automation(double selectionstart,
 // called by MWindow::copy_automation for copying automation alone
 	Track* current_track;
 
-	file->tag.set_title("AUTO_CLIPBOARD");
-	file->tag.set_property("LENGTH", selectionend - selectionstart);
-	file->tag.set_property("FRAMERATE", edl->session->frame_rate);
-	file->tag.set_property("SAMPLERATE", edl->session->sample_rate);
-	file->append_tag();
-	file->append_newline();
-	file->append_newline();
 
+    edl->start_auto_copy(file, selectionstart, selectionend);
 	for(current_track = first; 
 		current_track; 
 		current_track = current_track->next)
@@ -576,11 +570,7 @@ int Tracks::copy_automation(double selectionstart,
 				autos_only);
 		}
 	}
-
-	file->tag.set_title("/AUTO_CLIPBOARD");
-	file->append_tag();
-	file->append_newline();
-	file->terminate_string();
+    edl->end_auto_copy(file);
 	return 0;
 }
 

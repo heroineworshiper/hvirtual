@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2013 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,30 +23,32 @@
 
 class Automation;
 
+// overlay & automation types
+
+
 // These must match the following arrays:
 // xml_titles in autoconf.C and automation.C.
 // auto_colors in trackcanvas.C
 // auto_operations in trackcanvas.C
 // auto_pixmaps in trackcanvas.C
 // auto_text in gwindowgui.C
-enum
-{
-	AUTOMATION_MUTE,
-	AUTOMATION_CAMERA_X,
-	AUTOMATION_CAMERA_Y,
-	AUTOMATION_CAMERA_Z,
-	AUTOMATION_PROJECTOR_X,
-	AUTOMATION_PROJECTOR_Y,
-	AUTOMATION_PROJECTOR_Z,
-	AUTOMATION_FADE,
-	AUTOMATION_PAN,
-	AUTOMATION_MODE,
-	AUTOMATION_MASK,
-	AUTOMATION_SPEED,
-	AUTOMATION_TOTAL
-};
 
+#define AUTOMATION_MUTE 0
+#define AUTOMATION_CAMERA_X 1
+#define AUTOMATION_CAMERA_Y 2
+#define AUTOMATION_CAMERA_Z 3
+#define AUTOMATION_PROJECTOR_X 4
+#define AUTOMATION_PROJECTOR_Y 5
+#define AUTOMATION_PROJECTOR_Z 6
+#define AUTOMATION_FADE 7
+#define AUTOMATION_PAN 8
+#define AUTOMATION_MODE 9
+#define AUTOMATION_MASK 10
+#define AUTOMATION_SPEED 11
+#define AUTOMATION_TOTAL 12
 
-
+#define TRANSITION_OVERLAYS 12
+#define PLUGIN_KEYFRAMES 13
+#define OVERLAY_TOTAL 14
 
 #endif

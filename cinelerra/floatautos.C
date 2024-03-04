@@ -32,11 +32,11 @@
 
 FloatAutos::FloatAutos(EDL *edl,
 				Track *track, 
-				float default_)
- : Autos(edl, track)
+				float default_,
+                int overlay_type)
+ : Autos(edl, track, AUTOMATION_TYPE_FLOAT, overlay_type)
 {
 	this->default_ = default_;
-	type = AUTOMATION_TYPE_FLOAT;
 }
 
 FloatAutos::~FloatAutos()

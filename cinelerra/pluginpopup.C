@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +18,9 @@
  * 
  */
 
+#include "autoconf.h"
 #include "bcsignals.h"
+#include "keyframes.h"
 #include "language.h"
 #include "mainundo.h"
 #include "mwindow.h"
@@ -44,9 +45,9 @@ PluginPopup::PluginPopup(MWindow *mwindow, MWindowGUI *gui)
 	this->gui = gui;
 	show = 0;
 	presets = 0;
-#if 0
-	thread = new PresetsThread(mwindow);
-#endif
+    copy_default = 0;
+    paste_default = 0;
+    paste = 0;
 }
 
 PluginPopup::~PluginPopup()
@@ -62,22 +63,34 @@ void PluginPopup::create_objects()
 	add_item(on = new PluginPopupOn(mwindow, this));
 }
 
-int PluginPopup::update(Plugin *plugin)
+int PluginPopup::update(double position,
+    Plugin *plugin)
 {
+    this->position = position;
+	this->plugin = plugin;
+
 	if(show) remove_item(show);
 	if(presets) remove_item(presets);
+    if(copy_default) remove_item(copy_default);
+    if(paste_default) remove_item(paste_default);
+    if(paste) remove_item(paste);
 	show = 0;
 	presets = 0;
+    copy_default = 0;
+    paste_default = 0;
+    paste = 0;
 
 	if(plugin->plugin_type == PLUGIN_STANDALONE)
 	{
 		add_item(show = new PluginPopupShow(mwindow, this));
 		add_item(presets = new PluginPresets(mwindow, this));
 		show->set_checked(plugin->show);
+        add_item(paste = new PluginPopupPaste(mwindow, this));
+        add_item(copy_default = new PluginPopupCopyDefault(mwindow, this));
+        add_item(paste_default = new PluginPopupPasteDefault(mwindow, this));
 	}
 
 	on->set_checked(plugin->on);
-	this->plugin = plugin;
 	return 0;
 }
 
@@ -160,21 +173,16 @@ int PluginPopupDetach::handle_event()
 
 
 
-PluginPopupIn::PluginPopupIn(MWindow *mwindow, PluginPopup *popup)
- : BC_MenuItem(_("Send"))
+PluginPopupCopyDefault::PluginPopupCopyDefault(MWindow *mwindow, 
+    PluginPopup *popup)
+ : BC_MenuItem(_("Copy default keyframe"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
 }
-
-PluginPopupIn::~PluginPopupIn()
+int PluginPopupCopyDefault::handle_event()
 {
-}
-
-int PluginPopupIn::handle_event()
-{
-	popup->plugin->in = !get_checked();
-	mwindow->sync_parameters(CHANGE_EDL);
+    mwindow->copy_keyframe(popup->plugin->keyframes->default_auto);
 	return 1;
 }
 
@@ -182,25 +190,37 @@ int PluginPopupIn::handle_event()
 
 
 
-PluginPopupOut::PluginPopupOut(MWindow *mwindow, PluginPopup *popup)
- : BC_MenuItem(_("Receive"))
+PluginPopupPasteDefault::PluginPopupPasteDefault(MWindow *mwindow, 
+    PluginPopup *popup)
+ : BC_MenuItem(_("Paste default keyframe"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
 }
-
-PluginPopupOut::~PluginPopupOut()
+int PluginPopupPasteDefault::handle_event()
 {
-}
-
-int PluginPopupOut::handle_event()
-{
-	popup->plugin->out = !get_checked();
-	mwindow->sync_parameters(CHANGE_EDL);
+    mwindow->paste_automation(0,
+        popup->plugin->keyframes, 
+        popup->plugin->keyframes->default_auto);
 	return 1;
 }
 
 
+
+PluginPopupPaste::PluginPopupPaste(MWindow *mwindow, 
+    PluginPopup *popup)
+ : BC_MenuItem(_("Paste keyframe"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+int PluginPopupPaste::handle_event()
+{
+    mwindow->paste_automation(popup->position,
+        popup->plugin->keyframes, 
+        0);
+	return 1;
+}
 
 
 

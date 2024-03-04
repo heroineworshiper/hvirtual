@@ -419,6 +419,30 @@ int EDL::save_xml(FileXML *file,
 	return 0;
 }
 
+void EDL::start_auto_copy(FileXML *file,
+    double selectionstart, 
+	double selectionend)
+{
+	file->tag.set_title("AUTO_CLIPBOARD");
+// single keyframe has length 0
+	file->tag.set_property("LENGTH", selectionend - selectionstart);
+	file->tag.set_property("FRAMERATE", session->frame_rate);
+	file->tag.set_property("SAMPLERATE", session->sample_rate);
+	file->append_tag();
+	file->append_newline();
+	file->append_newline();
+}
+
+void EDL::end_auto_copy(FileXML *file)
+{
+	file->tag.set_title("/AUTO_CLIPBOARD");
+	file->append_tag();
+	file->append_newline();
+	file->terminate_string();
+}
+
+
+
 int EDL::copy_all(EDL *edl)
 {
 	if(this == edl) return 0;

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,90 +23,106 @@
 #include "filexml.h"
 
 
-static const char *xml_titles[] = 
+
+static int auto_defaults[OVERLAY_TOTAL] = 
 {
-	"SHOW_MUTE",
-	"SHOW_CAMERA_X",
-	"SHOW_CAMERA_Y",
-	"SHOW_CAMERA_Z",
-	"SHOW_PROJECTOR_X",
-	"SHOW_PROJECTOR_Y",
-	"SHOW_PROJECTOR_Z",
-	"SHOW_FADE",
-	"SHOW_PAN",
-	"SHOW_MODE",
-	"SHOW_MASK",
-	"SHOW_SPEED"
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+    1, // TRANSITION_OVERLAYS
+    1  // PLUGIN_KEYFRAMES
 };
 
-static int auto_defaults[] = 
+AutoConf::AutoConf()
 {
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0,
-	0
-};
+    set_all(0);
+}
+
+const char* AutoConf::get_show_title(int type)
+{
+    static const char *show_titles[] = 
+    {
+	    "SHOW_MUTE",
+	    "SHOW_CAMERA_X",
+	    "SHOW_CAMERA_Y",
+	    "SHOW_CAMERA_Z",
+	    "SHOW_PROJECTOR_X",
+	    "SHOW_PROJECTOR_Y",
+	    "SHOW_PROJECTOR_Z",
+	    "SHOW_FADE",
+	    "SHOW_PAN",
+	    "SHOW_MODE",
+	    "SHOW_MASK",
+	    "SHOW_SPEED",
+        "SHOW_TRANSITIONS",
+        "SHOW_PLUGINS"
+    };
+    
+    return show_titles[type];
+}
 
 int AutoConf::load_defaults(BC_Hash* defaults)
 {
-	for(int i = 0; i < AUTOMATION_TOTAL; i++)
+	for(int i = 0; i < OVERLAY_TOTAL; i++)
 	{
-		autos[i] = defaults->get(xml_titles[i], auto_defaults[i]);
+		autos[i] = defaults->get(get_show_title(i), auto_defaults[i]);
 	}
-	transitions = defaults->get("SHOW_TRANSITIONS", 1);
-	plugins = defaults->get("SHOW_PLUGINS", 1);
+//	transitions = defaults->get("SHOW_TRANSITIONS", 1);
+//	plugins = defaults->get("SHOW_PLUGINS", 1);
 	return 0;
 }
 
 void AutoConf::load_xml(FileXML *file)
 {
-	for(int i = 0; i < AUTOMATION_TOTAL; i++)
+	for(int i = 0; i < OVERLAY_TOTAL; i++)
 	{
-		autos[i] = file->tag.get_property(xml_titles[i], auto_defaults[i]);
+		autos[i] = file->tag.get_property(get_show_title(i), auto_defaults[i]);
 	}
-	transitions = file->tag.get_property("SHOW_TRANSITIONS", 1);
-	plugins = file->tag.get_property("SHOW_PLUGINS", 1);
+//	transitions = file->tag.get_property("SHOW_TRANSITIONS", 1);
+//	plugins = file->tag.get_property("SHOW_PLUGINS", 1);
 }
 
 int AutoConf::save_defaults(BC_Hash* defaults)
 {
-	for(int i = 0; i < AUTOMATION_TOTAL; i++)
+	for(int i = 0; i < OVERLAY_TOTAL; i++)
 	{
-		defaults->update(xml_titles[i], autos[i]);
+		defaults->update(get_show_title(i), autos[i]);
 	}
-	defaults->update("SHOW_TRANSITIONS", transitions);
-	defaults->update("SHOW_PLUGINS", plugins);
+//	defaults->update("SHOW_TRANSITIONS", transitions);
+//	defaults->update("SHOW_PLUGINS", plugins);
 	return 0;
 }
 
 void AutoConf::save_xml(FileXML *file)
 {
-	for(int i = 0; i < AUTOMATION_TOTAL; i++)
+	for(int i = 0; i < OVERLAY_TOTAL; i++)
 	{
-		file->tag.set_property(xml_titles[i], autos[i]);
+		file->tag.set_property(get_show_title(i), autos[i]);
 	}
-	file->tag.set_property("SHOW_TRANSITIONS", transitions);
-	file->tag.set_property("SHOW_PLUGINS", plugins);
+//	file->tag.set_property("SHOW_TRANSITIONS", transitions);
+//	file->tag.set_property("SHOW_PLUGINS", plugins);
 }
 
 int AutoConf::set_all(int value)
 {
-	for(int i = 0; i < AUTOMATION_TOTAL; i++)
+	for(int i = 0; i < OVERLAY_TOTAL; i++)
 	{
 		autos[i] = value;
 	}
-	transitions = value;
-	plugins = value;
+//	transitions = value;
+//	plugins = value;
 	return 0;
 }
+
 
 AutoConf& AutoConf::operator=(AutoConf &that)
 {
@@ -117,12 +132,12 @@ AutoConf& AutoConf::operator=(AutoConf &that)
 
 void AutoConf::copy_from(AutoConf *src)
 {
-	for(int i = 0; i < AUTOMATION_TOTAL; i++)
+	for(int i = 0; i < OVERLAY_TOTAL; i++)
 	{
 		autos[i] = src->autos[i];
 	}
-	transitions = src->transitions;
-	plugins = src->plugins;
+//	transitions = src->transitions;
+//	plugins = src->plugins;
 }
 
 

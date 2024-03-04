@@ -92,12 +92,12 @@ ShowTransitions::ShowTransitions(MWindow *mwindow, const char *hotkey)
  : BC_MenuItem(_("Show transitions"), hotkey, hotkey[0])
 { 
 	this->mwindow = mwindow; 
-	set_checked(mwindow->edl->session->auto_conf->transitions); 
+	set_checked(mwindow->edl->session->auto_conf->autos[TRANSITION_OVERLAYS]); 
 }
 int ShowTransitions::handle_event()
 {
 	set_checked(get_checked() ^ 1);
-	mwindow->edl->session->auto_conf->transitions = get_checked();
+	mwindow->edl->session->auto_conf->autos[TRANSITION_OVERLAYS] = get_checked();
 	mwindow->gui->draw_overlays(1);
 //	mwindow->gui->mainmenu->draw_items();
 	mwindow->gui->unlock_window();
@@ -149,7 +149,7 @@ PluginAutomation::PluginAutomation(MWindow *mwindow, const char *hotkey)
 int PluginAutomation::handle_event()
 {
 	set_checked(!get_checked());
-	mwindow->edl->session->auto_conf->plugins = get_checked();
+	mwindow->edl->session->auto_conf->autos[PLUGIN_KEYFRAMES] = get_checked();
 	mwindow->gui->draw_overlays(1);
 	mwindow->gui->unlock_window();
 	mwindow->gwindow->gui->update_toggles(1);

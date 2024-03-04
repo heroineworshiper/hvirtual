@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,11 +23,12 @@
 
 class PluginPopupChange;
 class PluginPopupDetach;
-class PluginPopupIn;
-class PluginPopupOut;
+class PluginPopupCopyDefault;
+class PluginPopupPasteDefault;
 class PluginPopupOn;
 class PluginPopupShow;
 class PluginPresets;
+class PluginPopupPaste;
 
 #include "guicast.h"
 #include "mwindow.inc"
@@ -47,21 +47,13 @@ public:
 	~PluginPopup();
 
 	void create_objects();
-	int update(Plugin *plugin);
+	int update(double position, Plugin *plugin);
 
 	MWindow *mwindow;
 	MWindowGUI *gui;
 // Acquired through the update command as the plugin currently being operated on
 	Plugin *plugin;
-
-
-#if 0
-	PresetsThread *thread;
-#endif
-
-
-
-
+    double position;
 
 
 	PluginPopupChange *change;
@@ -69,6 +61,9 @@ public:
 	PluginPopupShow *show;
 	PluginPopupOn *on;
 	PluginPresets *presets;
+    PluginPopupCopyDefault *copy_default;
+    PluginPopupPasteDefault *paste_default;
+    PluginPopupPaste *paste;
 };
 
 class PluginPopupAttach : public BC_MenuItem
@@ -111,26 +106,29 @@ public:
 };
 
 
-class PluginPopupIn : public BC_MenuItem
+class PluginPopupPaste : public BC_MenuItem
 {
 public:
-	PluginPopupIn(MWindow *mwindow, PluginPopup *popup);
-	~PluginPopupIn();
-
+	PluginPopupPaste(MWindow *mwindow, PluginPopup *popup);
 	int handle_event();
-
 	MWindow *mwindow;
 	PluginPopup *popup;
 };
 
-class PluginPopupOut : public BC_MenuItem
+class PluginPopupCopyDefault : public BC_MenuItem
 {
 public:
-	PluginPopupOut(MWindow *mwindow, PluginPopup *popup);
-	~PluginPopupOut();
-
+	PluginPopupCopyDefault(MWindow *mwindow, PluginPopup *popup);
 	int handle_event();
+	MWindow *mwindow;
+	PluginPopup *popup;
+};
 
+class PluginPopupPasteDefault : public BC_MenuItem
+{
+public:
+	PluginPopupPasteDefault(MWindow *mwindow, PluginPopup *popup);
+	int handle_event();
 	MWindow *mwindow;
 	PluginPopup *popup;
 };

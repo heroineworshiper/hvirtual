@@ -25,9 +25,8 @@
 #include "transportque.inc"
 
 PanAutos::PanAutos(EDL *edl, Track *track)
- : Autos(edl, track)
+ : Autos(edl, track, AUTOMATION_TYPE_PAN, AUTOMATION_PAN)
 {
-	type = AUTOMATION_TYPE_PAN;
 }
 
 PanAutos::~PanAutos()

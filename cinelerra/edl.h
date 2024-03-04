@@ -93,8 +93,14 @@ public:
 		const char *output_path,
 		int is_clip,
 		int is_vwindow);
-    int load_audio_config(FileXML *file, int append_mode, uint32_t load_flags);
-    int load_video_config(FileXML *file, int append_mode, uint32_t load_flags);
+//    int load_audio_config(FileXML *file, int append_mode, uint32_t load_flags);
+//    int load_video_config(FileXML *file, int append_mode, uint32_t load_flags);
+// start an automation copy
+    void start_auto_copy(FileXML *file,
+        double selectionstart, 
+	    double selectionend);
+// end an automation copy
+    void end_auto_copy(FileXML *file);
 
 // Return 1 if rendering requires a virtual console.
 	int get_use_vconsole(VEdit* *playable_edit,

@@ -87,8 +87,8 @@ public:
 		KeyFrame *default_keyframe,
 		int do_optimize);
 
-	PluginAutos *automation;
-	int record;
+//	PluginAutos *automation;
+//	int record;
 };
 
 

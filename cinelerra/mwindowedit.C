@@ -409,21 +409,21 @@ void MWindow::clear_automation()
 	cwindow->update(1, 0, 0);
 }
 
-int MWindow::clear_default_keyframe()
-{
-	undo->update_undo_before();
-	edl->tracks->clear_default_keyframe();
-	save_backup();
-	undo->update_undo_after(_("clear default keyframe"), LOAD_AUTOMATION);
-	
-	restart_brender();
-	gui->draw_overlays(1);
-	sync_parameters(CHANGE_PARAMS);
-	gui->update_patchbay();
-	cwindow->update(1, 0, 0);
-	
-	return 0;
-}
+// int MWindow::clear_default_keyframe()
+// {
+// 	undo->update_undo_before();
+// 	edl->tracks->clear_default_keyframe();
+// 	save_backup();
+// 	undo->update_undo_after(_("clear default keyframe"), LOAD_AUTOMATION);
+// 	
+// 	restart_brender();
+// 	gui->draw_overlays(1);
+// 	sync_parameters(CHANGE_PARAMS);
+// 	gui->update_patchbay();
+// 	cwindow->update(1, 0, 0);
+// 	
+// 	return 0;
+// }
 
 void MWindow::clear_labels()
 {
@@ -502,7 +502,7 @@ int MWindow::copy_automation()
 	return 0;
 }
 
-int MWindow::copy_default_keyframe()
+int MWindow::copy_default_keyframes()
 {
 	FileXML file;
 	edl->tracks->copy_automation(edl->local_session->get_selectionstart(), 
@@ -514,6 +514,91 @@ int MWindow::copy_default_keyframe()
 		strlen(file.string),
 		ALL_SELECTIONS);
 	return 0;
+}
+
+void MWindow::copy_keyframe(Auto *auto_)
+{
+	FileXML file;
+    edl->start_auto_copy(&file, 0, 0);
+
+// create EDL heirarchy to allow the keyframe to be pasted regularly
+    file.tag.set_title("TRACK");
+    int data_type = auto_->autos->track->data_type;
+    int overlay_type = auto_->autos->overlay_type;
+    if(data_type == TRACK_AUDIO) 
+        file.tag.set_property("TYPE", "AUDIO");
+    else
+        file.tag.set_property("TYPE", "VIDEO");
+	file.append_tag();
+	file.append_newline();
+
+    const char *tag_title = tag_title = Automation::get_save_title(overlay_type);
+    file.tag.set_title(tag_title);
+	file.append_tag();
+	file.append_newline();
+
+    auto_->copy(0, 
+        0, 
+        &file, 
+        1); // force it to write 0 for the position & not write a DEFAULT tag
+
+	char string[BCTEXTLEN];
+	sprintf(string, "/%s", tag_title);
+	file.tag.set_title(string);
+	file.append_tag();
+	file.append_newline();
+
+    file.tag.set_title("/TRACK");
+	file.append_tag();
+    file.append_newline();
+    edl->end_auto_copy(&file);
+	gui->get_clipboard()->to_clipboard(file.string,
+		strlen(file.string),
+		ALL_SELECTIONS);
+}
+
+void MWindow::delete_keyframe(Auto *auto_)
+{
+	undo->update_undo_before(_("delete keyframe"), 0);
+	delete auto_;
+	save_backup();
+	undo->update_undo_after(_("delete keyframe"), LOAD_ALL);
+
+	gui->update(0,
+	        1,      // 1 for incremental drawing.  2 for full refresh
+	        0,
+	        0,
+	        0,
+            0,   
+            0);
+	update_plugin_guis();
+	restart_brender();
+	sync_parameters(CHANGE_EDL);
+}
+
+void MWindow::set_keyframe_mode(Auto *auto_, int mode)
+{
+    const char *undo_text = "";
+    if(mode == Auto::LINEAR)
+        undo_text = "make linear";
+    else
+        undo_text = "make bezier";
+
+	undo->update_undo_before(_(undo_text));
+	auto_->mode = mode;
+	save_backup();
+	undo->update_undo_after(_(undo_text), LOAD_ALL);
+
+	gui->update(0,
+	        1,      // 1 for incremental drawing.  2 for full refresh
+	        0,
+	        0,
+	        0,
+            0,   
+            0);
+	update_plugin_guis();
+	restart_brender();
+	sync_parameters(CHANGE_EDL);
 }
 
 
@@ -622,24 +707,24 @@ int MWindow::cut_automation()
 	return 0;
 }
 
-int MWindow::cut_default_keyframe()
-{
-
-	undo->update_undo_before();
-	copy_default_keyframe();
-	edl->tracks->clear_default_keyframe();
-	undo->update_undo_after(_("cut default keyframe"), LOAD_AUTOMATION);
-
-	restart_brender();
-	gui->draw_overlays(1);
-	sync_parameters(CHANGE_PARAMS);
-	gui->update_patchbay();
-	cwindow->update(1, 0, 0);
-	save_backup();
-
-
-	return 0;
-}
+// int MWindow::cut_default_keyframe()
+// {
+// 
+// 	undo->update_undo_before();
+// 	copy_default_keyframe();
+// 	edl->tracks->clear_default_keyframe();
+// 	undo->update_undo_after(_("cut default keyframe"), LOAD_AUTOMATION);
+// 
+// 	restart_brender();
+// 	gui->draw_overlays(1);
+// 	sync_parameters(CHANGE_PARAMS);
+// 	gui->update_patchbay();
+// 	cwindow->update(1, 0, 0);
+// 	save_backup();
+// 
+// 
+// 	return 0;
+// }
 
 void MWindow::delete_inpoint()
 {
@@ -1501,7 +1586,7 @@ int MWindow::paste_automation()
 	return 0;
 }
 
-int MWindow::paste_default_keyframe()
+int MWindow::paste_default_keyframes()
 {
 	int64_t len = gui->get_clipboard()->clipboard_len(SECONDARY_SELECTION);
 
@@ -1519,7 +1604,6 @@ int MWindow::paste_default_keyframe()
 			1, 
 			0,
 			edl->session->typeless_keyframes); 
-//		edl->tracks->paste_default_keyframe(&file); 
 		undo->update_undo_after(_("paste default keyframe"), LOAD_AUTOMATION);
 
 
@@ -1534,6 +1618,109 @@ int MWindow::paste_default_keyframe()
 	}
 
 	return 0;
+}
+
+// paste a single keyframe
+// auto_: if 0, creates a new keyframe at position
+//        if set, paste into an existing keyframe.  
+//        Set to the default to paste into the default keyframe
+void MWindow::paste_automation(double position,
+    Autos *autos, 
+    Auto *auto_)
+{
+	int64_t len = gui->get_clipboard()->clipboard_len(SECONDARY_SELECTION);
+    int debug = 0;
+
+    if(debug) printf("MWindow::paste_automation %d len=%d\n", __LINE__, (int)len);
+	if(len)
+    {
+        int overlay_type = autos->overlay_type;
+        const char *keyframes_tag = Automation::get_save_title(overlay_type);
+        char keyframes_end[BCTEXTLEN];
+        sprintf(keyframes_end, "/%s", keyframes_tag);
+        Track *track = autos->track;
+
+		undo->update_undo_before();
+		char *string = new char[len + 1];
+		gui->get_clipboard()->from_clipboard(string, 
+			len, 
+			SECONDARY_SELECTION);
+		FileXML file;
+		file.read_from_string(string);
+
+// parse down to the keyframe
+        int result = 0;
+	    do{
+	        result = file.read_tag();
+	    }while(!result && 
+		    !file.tag.title_is("AUTO_CLIPBOARD"));
+
+		do
+		{
+			result = file.read_tag();
+
+			if(result) break;
+
+			if(file.tag.title_is("/AUTO_CLIPBOARD"))
+				result = 1;
+			else
+			if(file.tag.title_is("TRACK"))
+			{
+                if(debug) printf("MWindow::paste_automation %d got TRACK\n", __LINE__);
+	            while(!result)
+	            {
+		            result = file.read_tag();
+
+                    if(result) break;
+
+                    if(file.tag.title_is("/TRACK"))
+            	        result = 1;
+                    else
+                    if(file.tag.title_is(keyframes_tag))
+                    {
+                        if(debug) printf("MWindow::paste_automation %d got %s\n", 
+                            __LINE__, keyframes_tag);
+                        while(!result)
+                        {
+                            result = file.read_tag();
+                            if(result) break;
+                            if(file.tag.title_is(keyframes_end))
+                                result = 1;
+                            else
+                            if(file.tag.title_is("KEYFRAME") ||
+                                file.tag.title_is("AUTO"))
+                            {
+                                if(debug) printf("MWindow::paste_automation %d got KEYFRAME\n", 
+                                    __LINE__);
+                                Auto *dst_auto = auto_;
+                                if(!auto_)
+                                {
+                                    int64_t position2 = track->to_units(position, 0);
+                                    dst_auto = autos->insert_auto(position2);
+                                }
+
+                                dst_auto->load(&file);
+                                result = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }while(!result);
+
+		undo->update_undo_after(_("paste default keyframe"), LOAD_AUTOMATION);
+
+
+		restart_brender();
+		if(autos->overlay_type == PLUGIN_KEYFRAMES) update_plugin_guis();
+		gui->draw_overlays(1);
+		sync_parameters(CHANGE_PARAMS);
+		gui->update_patchbay();
+		cwindow->update(1, 0, 0);
+		delete [] string;
+		save_backup();
+	}
 }
 
 

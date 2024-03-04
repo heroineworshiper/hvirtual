@@ -29,7 +29,7 @@
 class IntAutos : public Autos
 {
 public:
-	IntAutos(EDL *edl, Track *track, int default_);
+	IntAutos(EDL *edl, Track *track, int default_, int overlay_type);
 	~IntAutos();
 	
 	
@@ -42,6 +42,7 @@ public:
 		int64_t unit_start,
 		int64_t unit_end);
 	void dump();
+// default value when a new auto is created
 	int default_;
 };
 

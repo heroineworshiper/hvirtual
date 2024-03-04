@@ -173,7 +173,7 @@ public:
 	void set_automation_mode(double selectionstart, 
 		double selectionend,
 		int mode);
-	int clear_default_keyframe();
+//	int clear_default_keyframe();
 	int clear_handle(double start, 
 		double end,
 		double &longest_distance,

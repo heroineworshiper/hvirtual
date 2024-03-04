@@ -31,9 +31,8 @@
 #include "transportque.inc"
 
 KeyFrames::KeyFrames(EDL *edl, Track *track)
- : Autos(edl, track)
+ : Autos(edl, track, Autos::AUTOMATION_TYPE_PLUGIN, PLUGIN_KEYFRAMES)
 {
-	type = Autos::AUTOMATION_TYPE_PLUGIN;
 }
 
 KeyFrames::~KeyFrames()

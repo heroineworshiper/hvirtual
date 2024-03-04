@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -28,12 +27,13 @@
 #include "maxchannels.h"
 #include "module.inc"
 
-// Store what automation is visible.
+// What type of overlays & automation are visible or affected by the
+// clipboard operation.
 
 class AutoConf
 {
 public:
-	AutoConf() {};
+	AutoConf();
 	~AutoConf() {};
 
 	AutoConf& operator=(AutoConf &that);
@@ -43,14 +43,16 @@ public:
 	void load_xml(FileXML *file);
 	void save_xml(FileXML *file);
 	int set_all(int value = 1);  // set all parameters to value (default = 1)
+// convert an overlay type to a tag for defaults
+    static const char* get_show_title(int type);
 
-
-// The array entries correspond to the Automation enums.
-	int autos[AUTOMATION_TOTAL];
+// The array entries correspond to the overlay types.
+	int autos[OVERLAY_TOTAL];
+    static const char** xml_save_titles();
 
 // Other viewable things
-	int transitions;
-	int plugins;
+//	int transitions;
+//	int plugins;
 };
 
 #endif

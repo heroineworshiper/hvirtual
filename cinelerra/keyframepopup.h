@@ -22,6 +22,7 @@
 #ifndef KEYFRAMEPOPUP_H
 #define KEYFRAMEPOPUP_H
 
+#include "autoconf.inc"
 #include "guicast.h"
 #include "keyframegui.inc"
 #include "mwindow.inc"
@@ -38,6 +39,9 @@ class KeyframePopupCopy;
 class KeyframePopupLinear;
 class KeyframePopupBezier;
 class KeyframePopupEdit;
+class KeyframePopupCopyDefault;
+class KeyframePopupPasteDefault;
+class KeyframePopupPaste;
 
 class KeyframePopup : public BC_PopupMenu
 {
@@ -46,17 +50,19 @@ public:
 	~KeyframePopup();
 
 	void create_objects();
-	int update(Plugin *plugin, KeyFrame *keyframe);
-	int update(Automation *automation, Autos *autos, Auto *auto_keyframe);
+	int update(double position,
+        Plugin *plugin, // enables preset operations
+        Autos *autos, // enables default keyframe operations
+        Auto *auto_); // enables single keyframe operations
 
 	MWindow *mwindow;
 	MWindowGUI *gui;
-// Acquired through the update command as the plugin currently being operated on
-	Plugin *keyframe_plugin;
-	Autos *keyframe_autos;
-	Automation *keyframe_automation;
-	Auto *keyframe_auto;
-	
+
+// pointers into the EDL
+    double position;
+	Plugin *plugin;
+	Autos *autos;
+	Auto *auto_;
 
 	
 	KeyframePopupLinear *key_linear;
@@ -64,7 +70,28 @@ public:
 	KeyframePopupDelete *key_delete;
 	KeyframePopupHide *key_hide;
 	KeyframePopupCopy *key_copy;
+    KeyframePopupPaste *paste;
 	KeyframePopupEdit *edit;
+    KeyframePopupCopyDefault *copy_default;
+    KeyframePopupPasteDefault *paste_default;
+};
+
+class KeyframePopupCopyDefault : public BC_MenuItem
+{
+public:
+	KeyframePopupCopyDefault(MWindow *mwindow, KeyframePopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+	KeyframePopup *popup;
+};
+
+class KeyframePopupPasteDefault : public BC_MenuItem
+{
+public:
+	KeyframePopupPasteDefault(MWindow *mwindow, KeyframePopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+	KeyframePopup *popup;
 };
 
 class KeyframePopupLinear : public BC_MenuItem
@@ -116,6 +143,15 @@ public:
 	KeyframePopupCopy(MWindow *mwindow, KeyframePopup *popup);
 	int handle_event();
 	
+	MWindow *mwindow;
+	KeyframePopup *popup;
+};
+
+class KeyframePopupPaste : public BC_MenuItem
+{
+public:
+	KeyframePopupPaste(MWindow *mwindow, KeyframePopup *popup, const char *text);
+	int handle_event();
 	MWindow *mwindow;
 	KeyframePopup *popup;
 };

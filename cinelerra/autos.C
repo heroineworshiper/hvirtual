@@ -31,12 +31,16 @@
 #include <string.h>
 
 
-Autos::Autos(EDL *edl, Track *track)
+Autos::Autos(EDL *edl, 
+        Track *track, 
+        int type, // data type below
+        int overlay_type) // overlay type from automation.inc
  : List<Auto>()
 {
 	this->edl = edl;
 	this->track = track;
-	type = -1;
+	this->type = type;
+    this->overlay_type = overlay_type;
 }
 
 

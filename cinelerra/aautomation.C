@@ -43,7 +43,7 @@ void AAutomation::create_objects()
 {
 	Automation::create_objects();
 
-	autos[AUTOMATION_FADE] = new FloatAutos(edl, track, 0.0);
+	autos[AUTOMATION_FADE] = new FloatAutos(edl, track, 0.0, AUTOMATION_FADE);
 	autos[AUTOMATION_FADE]->create_objects();
 
 	autos[AUTOMATION_PAN] = new PanAutos(edl, track);

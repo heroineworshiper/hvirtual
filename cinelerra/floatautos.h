@@ -34,7 +34,8 @@ public:
 	FloatAutos(EDL *edl, 
 		Track *track,
 // Value for default auto
-		float default_);
+		float default_,
+        int overlay_type);
 	~FloatAutos();
 
 
@@ -64,6 +65,7 @@ public:
 
 	void dump();
 	Auto* new_auto();
+// default value when a new auto is created
 	float default_;
 };
 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -372,10 +371,10 @@ int* GWindowToggle::get_main_value(MWindow *mwindow, int subscript, int other)
 				return &mwindow->edl->session->show_titles;
 				break;
 			case TRANSITIONS:
-				return &mwindow->edl->session->auto_conf->transitions;
+				return &mwindow->edl->session->auto_conf->autos[TRANSITION_OVERLAYS];
 				break;
 			case PLUGIN_AUTOS:
-				return &mwindow->edl->session->auto_conf->plugins;
+				return &mwindow->edl->session->auto_conf->autos[PLUGIN_KEYFRAMES];
 				break;
 		}
 	}

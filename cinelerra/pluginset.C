@@ -35,7 +35,7 @@
 PluginSet::PluginSet(EDL *edl, Track *track)
  : Edits(edl, track)
 {
-	record = 1;
+//	record = 1;
 }
 
 PluginSet::~PluginSet()
@@ -60,7 +60,7 @@ void PluginSet::copy_from(PluginSet *src)
 		append(new_plugin = (Plugin*)create_edit());
 		new_plugin->copy_from(current);
 	}
-	this->record = src->record;
+//	this->record = src->record;
 }
 
 Plugin* PluginSet::get_first_plugin()
@@ -353,7 +353,7 @@ void PluginSet::shift_effects(int64_t start, int64_t length, int edit_autos)
 void PluginSet::copy(int64_t start, int64_t end, FileXML *file)
 {
 	file->tag.set_title("PLUGINSET");	
-	file->tag.set_property("RECORD", record);
+//	file->tag.set_property("RECORD", record);
 	file->append_tag();
 	file->append_newline();
 
@@ -379,7 +379,7 @@ void PluginSet::load(FileXML *file, uint32_t load_flags)
 	Plugin *plugin = (Plugin*)first;
 	int64_t startproject = 0;
 
-	record = file->tag.get_property("RECORD", record);
+//	record = file->tag.get_property("RECORD", record);
 	do{
 		result = file->read_tag();
 

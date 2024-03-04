@@ -49,12 +49,39 @@ Automation::~Automation()
 	}
 }
 
+
+
+const char* Automation::get_save_title(int type)
+{
+// These must match the enumerations
+    static const char *save_titles[] = 
+    {
+	    "MUTEAUTOS",
+	    "CAMERA_X",
+	    "CAMERA_Y",
+	    "CAMERA_Z",
+	    "PROJECTOR_X",
+	    "PROJECTOR_Y",
+	    "PROJECTOR_Z",
+	    "FADEAUTOS",
+	    "PANAUTOS",
+	    "MODEAUTOS",
+	    "MASKAUTOS",
+	    "SPEEDAUTOS",
+        "TRANSITION", 
+        "PLUGINSET"
+    };
+    
+    return save_titles[type];
+}
+
+
 void Automation::create_objects()
 {
-	autos[AUTOMATION_MUTE] = new IntAutos(edl, track, 0);
+	autos[AUTOMATION_MUTE] = new IntAutos(edl, track, 0, AUTOMATION_MUTE);
 	autos[AUTOMATION_MUTE]->create_objects();
 
-	autos[AUTOMATION_SPEED] = new FloatAutos(edl, track, 1.0);
+	autos[AUTOMATION_SPEED] = new FloatAutos(edl, track, 1.0, AUTOMATION_SPEED);
 	autos[AUTOMATION_SPEED]->create_objects();
 }
 
@@ -83,29 +110,11 @@ void Automation::copy_from(Automation *automation)
 	}
 }
 
-// These must match the enumerations
-static const char *xml_titles[] = 
-{
-	"MUTEAUTOS",
-	"CAMERA_X",
-	"CAMERA_Y",
-	"CAMERA_Z",
-	"PROJECTOR_X",
-	"PROJECTOR_Y",
-	"PROJECTOR_Z",
-	"FADEAUTOS",
-	"PANAUTOS",
-	"MODEAUTOS",
-	"MASKAUTOS",
-//	"NUDGEAUTOS"
-	"SPEEDAUTOS"
-};
-
 int Automation::load(FileXML *file)
 {
 	for(int i = 0; i < AUTOMATION_TOTAL; i++)
 	{
-		if(file->tag.title_is(xml_titles[i]) && autos[i])
+		if(file->tag.title_is(get_save_title(i)) && autos[i])
 		{
 			autos[i]->load(file);
 			return 1;
@@ -126,7 +135,7 @@ int Automation::paste(int64_t start,
 
 	for(int i = 0; i < AUTOMATION_TOTAL; i++)
 	{
-		if(file->tag.title_is(xml_titles[i]) && autos[i] && autoconf->autos[i])
+		if(file->tag.title_is(get_save_title(i)) && autos[i] && autoconf->autos[i])
 		{
 			autos[i]->paste(start, 
 				length, 
@@ -151,7 +160,7 @@ int Automation::copy(int64_t start,
 	{
 		if(autos[i])
 		{
-			file->tag.set_title(xml_titles[i]);
+			file->tag.set_title(get_save_title(i));
 			file->append_tag();
 			file->append_newline();
 			autos[i]->copy(start, 
@@ -160,7 +169,7 @@ int Automation::copy(int64_t start,
 							default_only,
 							active_only);
 			char string[BCTEXTLEN];
-			sprintf(string, "/%s", xml_titles[i]);
+			sprintf(string, "/%s", get_save_title(i));
 			file->tag.set_title(string);
 			file->append_tag();
 			file->append_newline();
@@ -335,7 +344,7 @@ void Automation::dump()
 	{
 		if(autos[i])
 		{
-			printf("    %s %p\n", xml_titles[i], autos[i]);
+			printf("    %s %p\n", get_save_title(i), autos[i]);
 			autos[i]->dump();
 		}
 	}

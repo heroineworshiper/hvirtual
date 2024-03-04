@@ -100,7 +100,8 @@ public:
 		int64_t unit_start,
 		int64_t unit_end);
 
-
+// convert an overlay type to a tag for XML
+    static const char* get_save_title(int type);
 
 
 

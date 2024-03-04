@@ -291,14 +291,14 @@ public:
 	int new_type;
 };
 
-class CutDefaultKeyframe : public BC_MenuItem
-{
-public:
-	CutDefaultKeyframe(MWindow *mwindow);
-	int handle_event();
-	MWindow *mwindow;
-};
-
+// class CutDefaultKeyframe : public BC_MenuItem
+// {
+// public:
+// 	CutDefaultKeyframe(MWindow *mwindow);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// };
+// 
 class CopyDefaultKeyframe : public BC_MenuItem
 {
 public:
@@ -315,13 +315,13 @@ public:
 	MWindow *mwindow;
 };
 
-class ClearDefaultKeyframe : public BC_MenuItem
-{
-public:
-	ClearDefaultKeyframe(MWindow *mwindow);
-	int handle_event();
-	MWindow *mwindow;
-};
+// class ClearDefaultKeyframe : public BC_MenuItem
+// {
+// public:
+// 	ClearDefaultKeyframe(MWindow *mwindow);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// };
 
 class PasteSilence : public BC_MenuItem
 {

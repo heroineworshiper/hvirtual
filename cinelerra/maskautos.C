@@ -32,9 +32,8 @@
 
 MaskAutos::MaskAutos(EDL *edl, 
 	Track *track)
- : Autos(edl, track)
+ : Autos(edl, track, AUTOMATION_TYPE_MASK, AUTOMATION_MASK)
 {
-	type = AUTOMATION_TYPE_MASK;
 }
 
 MaskAutos::~MaskAutos()

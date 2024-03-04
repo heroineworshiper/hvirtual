@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -59,9 +58,12 @@ KeyframePopup::KeyframePopup(MWindow *mwindow, MWindowGUI *gui)
 	key_hide = 0;
 	key_delete = 0;
 	key_copy = 0;
+    paste = 0;
 	key_linear = 0;
 	key_bezier = 0;
 	edit = 0;
+    copy_default = 0;
+    paste_default = 0;
 }
 
 KeyframePopup::~KeyframePopup()
@@ -73,15 +75,36 @@ void KeyframePopup::create_objects()
 	add_item(key_hide = new KeyframePopupHide(mwindow, this));
 }
 
-int KeyframePopup::update(Plugin *plugin, KeyFrame *keyframe)
+int KeyframePopup::update(double position,
+    Plugin *plugin, // enables preset operations
+    Autos *autos, // enables default keyframe operations
+    Auto *auto_) // enables single keyframe operations
 {
-	this->keyframe_plugin = plugin;
-	this->keyframe_auto = keyframe;
-	this->keyframe_autos = keyframe->autos;
-	this->keyframe_automation = 0;
+    this->position = position;
+	this->plugin = plugin;
+	this->autos = autos;
+	this->auto_ = auto_;
 
-// Suspect this routine is only used for plugins so this is never reached
-	if(keyframe->autos->type == Autos::AUTOMATION_TYPE_FLOAT)
+    delete paste;
+    paste = 0;
+
+	if(auto_)
+	{
+		if(!key_delete) add_item(key_delete = new KeyframePopupDelete(mwindow, this));
+		if(!key_copy) add_item(key_copy = new KeyframePopupCopy(mwindow, this));
+	}
+	else
+	{
+		if(key_delete) delete key_delete;
+		if(key_copy) delete key_copy;
+		key_delete = 0;
+		key_copy = 0;
+	}
+
+    if(autos)
+        add_item(paste = new KeyframePopupPaste(mwindow, this, "Paste keyframe"));
+
+	if(auto_ && autos && autos->type == Autos::AUTOMATION_TYPE_FLOAT)
 	{
 		if(!key_linear) add_item(key_linear = new KeyframePopupLinear(mwindow, this));
 		if(!key_bezier) add_item(key_bezier = new KeyframePopupBezier(mwindow, this));
@@ -93,6 +116,19 @@ int KeyframePopup::update(Plugin *plugin, KeyFrame *keyframe)
 		key_linear = 0;
 		key_bezier = 0;
 	}
+
+    if(autos && !auto_)
+    {
+        if(!copy_default) add_item(copy_default = new KeyframePopupCopyDefault(mwindow, this));
+        if(!paste_default) add_item(paste_default = new KeyframePopupPasteDefault(mwindow, this));
+    }
+    else
+    {
+        delete copy_default;
+        delete paste_default;
+        copy_default = 0;
+        paste_default = 0;
+    }
 
 	if(plugin)
 	{
@@ -106,67 +142,67 @@ int KeyframePopup::update(Plugin *plugin, KeyFrame *keyframe)
 	return 0;
 }
 
-int KeyframePopup::update(Automation *automation, 
-	Autos *autos, 
-	Auto *auto_keyframe)
-{
-	this->keyframe_plugin = 0;
-	this->keyframe_automation = automation;
-	this->keyframe_autos = autos;
-	this->keyframe_auto = auto_keyframe;
-
-	if(auto_keyframe && autos->type == Autos::AUTOMATION_TYPE_FLOAT)
-	{
-		if(!key_linear) add_item(key_linear = new KeyframePopupLinear(mwindow, this));
-		if(!key_bezier) add_item(key_bezier = new KeyframePopupBezier(mwindow, this));
-	}
-	else
-	{
-		if(key_linear) delete key_linear;
-		if(key_bezier) delete key_bezier;
-		key_linear = 0;
-		key_bezier = 0;
-	}
-
-	if(auto_keyframe)
-	{
-		if(!key_delete) add_item(key_delete = new KeyframePopupDelete(mwindow, this));
-		if(!key_copy) add_item(key_copy = new KeyframePopupCopy(mwindow, this));
-	}
-	else
-	{
-		if(key_delete) delete key_delete;
-		if(key_copy) delete key_copy;
-		key_delete = 0;
-		key_copy = 0;
-	}
-	
-	if(edit)
-	{
-		delete edit;
-		edit = 0;
-	}
-
-/* snap to cursor */
-	if(keyframe_auto)
-	{
-		double current_position = mwindow->edl->local_session->get_selectionstart(1);
-		double new_position = keyframe_automation->track->from_units(keyframe_auto->position);
-		mwindow->edl->local_session->set_selectionstart(new_position);
-		mwindow->edl->local_session->set_selectionend(new_position);
-
-		if (current_position != new_position)
-		{
-			mwindow->edl->local_session->set_selectionstart(new_position);
-			mwindow->edl->local_session->set_selectionend(new_position);
-			mwindow->gui->lock_window();
-			mwindow->gui->update(1, 1, 1, 1, 1, 1, 0);	
-			mwindow->gui->unlock_window();
-		}
-	}
-	
-	return 0;
-}
+// int KeyframePopup::update(Automation *automation, 
+// 	Autos *autos, 
+// 	Auto *auto_keyframe)
+// {
+// 	this->keyframe_plugin = 0;
+// 	this->keyframe_automation = automation;
+// 	this->keyframe_autos = autos;
+// 	this->keyframe_auto = auto_keyframe;
+// 
+// 	if(auto_keyframe && autos->type == Autos::AUTOMATION_TYPE_FLOAT)
+// 	{
+// 		if(!key_linear) add_item(key_linear = new KeyframePopupLinear(mwindow, this));
+// 		if(!key_bezier) add_item(key_bezier = new KeyframePopupBezier(mwindow, this));
+// 	}
+// 	else
+// 	{
+// 		if(key_linear) delete key_linear;
+// 		if(key_bezier) delete key_bezier;
+// 		key_linear = 0;
+// 		key_bezier = 0;
+// 	}
+// 
+// 	if(auto_keyframe)
+// 	{
+// 		if(!key_delete) add_item(key_delete = new KeyframePopupDelete(mwindow, this));
+// 		if(!key_copy) add_item(key_copy = new KeyframePopupCopy(mwindow, this));
+// 	}
+// 	else
+// 	{
+// 		if(key_delete) delete key_delete;
+// 		if(key_copy) delete key_copy;
+// 		key_delete = 0;
+// 		key_copy = 0;
+// 	}
+// 	
+// 	if(edit)
+// 	{
+// 		delete edit;
+// 		edit = 0;
+// 	}
+// 
+// /* snap to cursor */
+// 	if(keyframe_auto)
+// 	{
+// 		double current_position = mwindow->edl->local_session->get_selectionstart(1);
+// 		double new_position = keyframe_automation->track->from_units(keyframe_auto->position);
+// 		mwindow->edl->local_session->set_selectionstart(new_position);
+// 		mwindow->edl->local_session->set_selectionend(new_position);
+// 
+// 		if (current_position != new_position)
+// 		{
+// 			mwindow->edl->local_session->set_selectionstart(new_position);
+// 			mwindow->edl->local_session->set_selectionend(new_position);
+// 			mwindow->gui->lock_window();
+// 			mwindow->gui->update(1, 1, 1, 1, 1, 1, 0);	
+// 			mwindow->gui->unlock_window();
+// 		}
+// 	}
+// 
+// 	return 0;
+// }
 
 
 
@@ -185,23 +221,8 @@ KeyframePopupDelete::~KeyframePopupDelete()
 
 int KeyframePopupDelete::handle_event()
 {
-	mwindow->undo->update_undo_before(_("delete keyframe"), 0);
-	delete popup->keyframe_auto;
-	popup->keyframe_auto = 0;
-	mwindow->save_backup();
-	mwindow->undo->update_undo_after(_("delete keyframe"), LOAD_ALL);
-
-	mwindow->gui->update(0,
-	        1,      // 1 for incremental drawing.  2 for full refresh
-	        0,
-	        0,
-	        0,
-            0,   
-            0);
-	mwindow->update_plugin_guis();
-	mwindow->restart_brender();
-	mwindow->sync_parameters(CHANGE_EDL);
-
+    mwindow->delete_keyframe(popup->auto_);
+	popup->auto_ = 0;
 	return 1;
 }
 
@@ -222,22 +243,7 @@ KeyframePopupLinear::~KeyframePopupLinear()
 
 int KeyframePopupLinear::handle_event()
 {
-	mwindow->undo->update_undo_before();
-	popup->keyframe_auto->mode = Auto::LINEAR;
-	mwindow->save_backup();
-	mwindow->undo->update_undo_after(_("make linear curve"), LOAD_ALL);
-
-	mwindow->gui->update(0,
-	        1,      // 1 for incremental drawing.  2 for full refresh
-	        0,
-	        0,
-	        0,
-            0,   
-            0);
-	mwindow->update_plugin_guis();
-	mwindow->restart_brender();
-	mwindow->sync_parameters(CHANGE_EDL);
-
+    mwindow->set_keyframe_mode(popup->auto_, Auto::LINEAR);
 	return 1;
 }
 
@@ -258,22 +264,7 @@ KeyframePopupBezier::~KeyframePopupBezier()
 
 int KeyframePopupBezier::handle_event()
 {
-	mwindow->undo->update_undo_before();
-	popup->keyframe_auto->mode = Auto::BEZIER;
-	mwindow->save_backup();
-	mwindow->undo->update_undo_after(_("make bezier curve"), LOAD_ALL);
-
-	mwindow->gui->update(0,
-	        1,      // 1 for incremental drawing.  2 for full refresh
-	        0,
-	        0,
-	        0,
-            0,   
-            0);
-	mwindow->update_plugin_guis();
-	mwindow->restart_brender();
-	mwindow->sync_parameters(CHANGE_EDL);
-
+    mwindow->set_keyframe_mode(popup->auto_, Auto::BEZIER);
 	return 1;
 }
 
@@ -290,51 +281,64 @@ KeyframePopupHide::KeyframePopupHide(MWindow *mwindow, KeyframePopup *popup)
 
 int KeyframePopupHide::handle_event()
 {
-// Get the array index of the curve
-	int update_gui = 0;
-	if(popup->keyframe_autos)
-	{
-		if(popup->keyframe_autos->type == Autos::AUTOMATION_TYPE_PLUGIN)
-		{
-			mwindow->edl->session->auto_conf->plugins = 0;
-			update_gui = 1;
-		}
-		else
-		{
-			Track *track = popup->keyframe_autos->track;
-			if(track)
-			{
-				Automation *automation = track->automation;
-				if(automation)
-				{
-					for(int i = 0; i < AUTOMATION_TOTAL; i++)
-					{
-						if(automation->autos[i] == popup->keyframe_autos)
-						{
-							mwindow->edl->session->auto_conf->autos[i] = 0;
-							update_gui = 1;
-							break;
-						}
-					}
-				}
-			}
-		}
-	}
+    mwindow->edl->session->auto_conf->autos[popup->autos->overlay_type] = 0;
+	mwindow->gui->update(0,
+	        1,      // 1 for incremental drawing.  2 for full refresh
+	        0,
+	        0,
+	        0,
+            0,   
+            0);
+	mwindow->gui->mainmenu->update_toggles(1);
+	mwindow->gui->unlock_window();
+	mwindow->gwindow->gui->update_toggles(1);
+	mwindow->gui->lock_window("KeyframePopupHide::handle_event");
 
-	if(update_gui)
-	{
-		mwindow->gui->update(0,
-	        	1,      // 1 for incremental drawing.  2 for full refresh
-	        	0,
-	        	0,
-	        	0,
-            	0,   
-            	0);
-		mwindow->gui->mainmenu->update_toggles(1);
-		mwindow->gui->unlock_window();
-		mwindow->gwindow->gui->update_toggles(1);
-		mwindow->gui->lock_window("KeyframePopupHide::handle_event");
-	}
+// // Get the array index of the curve
+// 	int update_gui = 0;
+// 	if(popup->autos)
+// 	{
+//         		if(popup->keyframe_autos->type == Autos::AUTOMATION_TYPE_PLUGIN)
+// 		{
+// 			mwindow->edl->session->auto_conf->plugins = 0;
+// 			update_gui = 1;
+// 		}
+// 		else
+// 		{
+// 			Track *track = popup->keyframe_autos->track;
+// 			if(track)
+// 			{
+// 				Automation *automation = track->automation;
+// 				if(automation)
+// 				{
+// 					for(int i = 0; i < AUTOMATION_TOTAL; i++)
+// 					{
+// 						if(automation->autos[i] == popup->keyframe_autos)
+// 						{
+// 							mwindow->edl->session->auto_conf->autos[i] = 0;
+// 							update_gui = 1;
+// 							break;
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// 
+// 	if(update_gui)
+// 	{
+// 		mwindow->gui->update(0,
+// 	        	1,      // 1 for incremental drawing.  2 for full refresh
+// 	        	0,
+// 	        	0,
+// 	        	0,
+//             	0,   
+//             	0);
+// 		mwindow->gui->mainmenu->update_toggles(1);
+// 		mwindow->gui->unlock_window();
+// 		mwindow->gwindow->gui->update_toggles(1);
+// 		mwindow->gui->lock_window("KeyframePopupHide::handle_event");
+// 	}
 
 	return 1;
 }
@@ -342,7 +346,7 @@ int KeyframePopupHide::handle_event()
 
 
 KeyframePopupCopy::KeyframePopupCopy(MWindow *mwindow, KeyframePopup *popup)
- : BC_MenuItem(_("Copy"))
+ : BC_MenuItem(_("Copy keyframe"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
@@ -350,94 +354,7 @@ KeyframePopupCopy::KeyframePopupCopy(MWindow *mwindow, KeyframePopup *popup)
 
 int KeyframePopupCopy::handle_event()
 {
-/*
-	FIXME:
-	we want to copy just keyframe under cursor, NOT all keyframes at this frame
-	- very hard to do, so this is good approximation for now...
-*/
-	
-// 	if (popup->keyframe_automation)
-// 	{
-// 		FileXML file;
-// 		EDL *edl = mwindow->edl;
-// 		Track *track = popup->keyframe_automation->track;
-// 		int64_t position = popup->keyframe_auto->position;
-// 		AutoConf autoconf;
-// // first find out type of our auto
-// 		autoconf.set_all(0);
-// 		if (popup->keyframe_autos == (Autos *)popup->keyframe_automation->projector_autos)
-// 			autoconf.projector = 1;
-// 		else if (popup->keyframe_autos == (Autos *)popup->keyframe_automation->pzoom_autos)
-// 			autoconf.pzoom = 1;
-// 		else if (popup->keyframe_autos == (Autos *)popup->keyframe_automation->camera_autos)
-// 			autoconf.camera = 1;
-// 		else if (popup->keyframe_autos == (Autos *)popup->keyframe_automation->czoom_autos)
-// 			autoconf.czoom = 1;		
-// 		else if (popup->keyframe_autos == (Autos *)popup->keyframe_automation->mode_autos)
-// 		   	autoconf.mode = 1;
-// 		else if (popup->keyframe_autos == (Autos *)popup->keyframe_automation->mask_autos)
-// 			autoconf.mask = 1;
-// 		else if (popup->keyframe_autos == (Autos *)popup->keyframe_automation->pan_autos)
-// 			autoconf.pan = 1;		   
-// 		else if (popup->keyframe_autos == (Autos *)popup->keyframe_automation->fade_autos)
-// 			autoconf.fade = 1;
-// 		else if (popup->keyframe_autos == (Autos *)popup->keyframe_automation->mute_autos)
-// 			autoconf.mute = 1;		
-// 
-// 
-// // now create a clipboard
-// 		file.tag.set_title("AUTO_CLIPBOARD");
-// 		file.tag.set_property("LENGTH", 0);
-// 		file.tag.set_property("FRAMERATE", edl->session->frame_rate);
-// 		file.tag.set_property("SAMPLERATE", edl->session->sample_rate);
-// 		file.append_tag();
-// 		file.append_newline();
-// 		file.append_newline();
-// 
-// /*		track->copy_automation(position, 
-// 			position, 
-// 			&file,
-// 			0,
-// 			0);
-// 			*/
-// 		file.tag.set_title("TRACK");
-// // Video or audio
-// 		track->save_header(&file);
-// 		file.append_tag();
-// 		file.append_newline();
-// 
-// 		track->automation->copy(position, 
-// 			position, 
-// 			&file,
-// 			0,
-// 			0,
-// 			&autoconf);
-// 		
-// 		
-// 		
-// 		file.tag.set_title("/TRACK");
-// 		file.append_tag();
-// 		file.append_newline();
-// 		file.append_newline();
-// 		file.append_newline();
-// 		file.append_newline();
-// 
-// 
-// 
-// 		file.tag.set_title("/AUTO_CLIPBOARD");
-// 		file.append_tag();
-// 		file.append_newline();
-// 		file.terminate_string();
-// 
-// 		mwindow->gui->lock_window();
-// 		mwindow->gui->get_clipboard()->to_clipboard(file.string, 
-// 			strlen(file.string), 
-// 			SECONDARY_SELECTION);
-// 		mwindow->gui->unlock_window();
-// 
-// 	} else
-
-	mwindow->copy_automation();
+    mwindow->copy_keyframe(popup->auto_);
 	return 1;
 }
 
@@ -451,9 +368,61 @@ KeyframePopupEdit::KeyframePopupEdit(MWindow *mwindow, KeyframePopup *popup)
 
 int KeyframePopupEdit::handle_event()
 {
-	mwindow->show_keyframe_gui(popup->keyframe_plugin, 0);
+	mwindow->show_keyframe_gui(popup->plugin, 0);
 	return 1;
 }
 
 
+
+
+
+
+KeyframePopupCopyDefault::KeyframePopupCopyDefault(MWindow *mwindow, 
+    KeyframePopup *popup)
+ : BC_MenuItem(_("Copy default keyframe"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+int KeyframePopupCopyDefault::handle_event()
+{
+    mwindow->copy_keyframe(popup->autos->default_auto);
+	return 1;
+}
+
+
+
+
+
+KeyframePopupPasteDefault::KeyframePopupPasteDefault(MWindow *mwindow, 
+    KeyframePopup *popup)
+ : BC_MenuItem(_("Paste default keyframe"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+int KeyframePopupPasteDefault::handle_event()
+{
+    mwindow->paste_automation(0,
+        popup->autos, 
+        popup->autos->default_auto);
+	return 1;
+}
+
+
+KeyframePopupPaste::KeyframePopupPaste(MWindow *mwindow, 
+    KeyframePopup *popup,
+    const char *text)
+ : BC_MenuItem(_(text))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+int KeyframePopupPaste::handle_event()
+{
+    mwindow->paste_automation(popup->position,
+        popup->autos, 
+        popup->auto_);
+	return 1;
+}
 

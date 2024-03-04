@@ -1377,7 +1377,7 @@ void PluginServer::sync_parameters()
 	if(video) mwindow->restart_brender();
 	mwindow->sync_parameters();
 	mwindow->update_keyframe_guis();
-	if(mwindow->edl->session->auto_conf->plugins)
+	if(mwindow->edl->session->auto_conf->autos[PLUGIN_KEYFRAMES])
 	{
 		mwindow->gui->lock_window("PluginServer::sync_parameters");
 		mwindow->gui->draw_overlays(1);

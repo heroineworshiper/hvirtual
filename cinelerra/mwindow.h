@@ -26,6 +26,9 @@
 #include "assetremove.inc"
 #include "assets.inc"
 #include "audiodevice.inc"
+#include "auto.inc"
+#include "autos.inc"
+#include "autoconf.inc"
 #include "awindow.inc"
 #include "batchrender.inc"
 #include "bcprogressbox.inc"
@@ -473,13 +476,29 @@ public:
 	int copy_automation();
 	int paste_automation();
 	void clear_automation();
-	int cut_default_keyframe();
-	int copy_default_keyframe();
+//	int cut_default_keyframe();
+// copy a single keyframe
+    void copy_keyframe(Auto *auto_);
+// paste a single keyframe
+// auto_: if 0, creates a new keyframe at position
+//        if set, paste into an existing keyframe.  
+//        Set to the default to paste into the default keyframe
+    void paste_automation(double position,
+        Autos *autos, 
+        Auto *auto_);
+                     
+// delete a single keyframe
+    void delete_keyframe(Auto *auto_);
+// linear or bezier
+    void set_keyframe_mode(Auto *auto_, int mode);
+
+// default keyframe operations
+	int copy_default_keyframes();
 // Use paste_automation to paste the default keyframe in other position.
 // Use paste_default_keyframe to replace the default keyframe with whatever is
 // in the clipboard.
-	int paste_default_keyframe();
-	int clear_default_keyframe();
+	int paste_default_keyframes();
+//	int clear_default_keyframe();
 
 	int modify_edithandles();
 	int modify_pluginhandles();

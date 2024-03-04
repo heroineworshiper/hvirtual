@@ -267,7 +267,7 @@ void MainMenu::update_toggles(int use_lock)
 
 	show_assets->set_checked(mwindow->edl->session->show_assets);
 	show_titles->set_checked(mwindow->edl->session->show_titles);
-	show_transitions->set_checked(mwindow->edl->session->auto_conf->transitions);
+	show_transitions->set_checked(mwindow->edl->session->auto_conf->autos[TRANSITION_OVERLAYS]);
 	fade_automation->update_toggle();
 	mute_automation->update_toggle();
 	pan_automation->update_toggle();
@@ -277,7 +277,7 @@ void MainMenu::update_toggles(int use_lock)
 	project_x->update_toggle();
 	project_y->update_toggle();
 	project_z->update_toggle();
-	plugin_automation->set_checked(mwindow->edl->session->auto_conf->plugins);
+	plugin_automation->set_checked(mwindow->edl->session->auto_conf->autos[PLUGIN_KEYFRAMES]);
 	mode_automation->update_toggle();
 	mask_automation->update_toggle();
 	speed_automation->update_toggle();
@@ -753,18 +753,18 @@ int KeyframeType::handle_event()
 
 
 
-CutDefaultKeyframe::CutDefaultKeyframe(MWindow *mwindow)
- : BC_MenuItem(_("Cut default keyframe"), "Alt-X", 'X')
-{ 
-	set_alt(); 
-	this->mwindow = mwindow; 
-}
-
-int CutDefaultKeyframe::handle_event()
-{
-	mwindow->cut_default_keyframe(); 
-	return 1;
-}
+// CutDefaultKeyframe::CutDefaultKeyframe(MWindow *mwindow)
+//  : BC_MenuItem(_("Cut default keyframe"), "Alt-X", 'X')
+// { 
+// 	set_alt(); 
+// 	this->mwindow = mwindow; 
+// }
+// 
+// int CutDefaultKeyframe::handle_event()
+// {
+// 	mwindow->cut_default_keyframe(); 
+// 	return 1;
+// }
 
 CopyDefaultKeyframe::CopyDefaultKeyframe(MWindow *mwindow)
  : BC_MenuItem(_("Copy default keyframe"), "Alt-c", 'c')
@@ -775,7 +775,7 @@ CopyDefaultKeyframe::CopyDefaultKeyframe(MWindow *mwindow)
 
 int CopyDefaultKeyframe::handle_event()
 {
-	mwindow->copy_default_keyframe();
+	mwindow->copy_default_keyframes();
 	return 1;
 }
 
@@ -788,22 +788,22 @@ PasteDefaultKeyframe::PasteDefaultKeyframe(MWindow *mwindow)
 
 int PasteDefaultKeyframe::handle_event()
 {
-	mwindow->paste_default_keyframe(); 
+	mwindow->paste_default_keyframes(); 
 	return 1;
 }
 
-ClearDefaultKeyframe::ClearDefaultKeyframe(MWindow *mwindow)
- : BC_MenuItem(_("Clear default keyframe"), "Alt-Del", BACKSPACE)
-{
-	set_alt(); 
-	this->mwindow = mwindow; 
-}
-
-int ClearDefaultKeyframe::handle_event()
-{
-	mwindow->clear_default_keyframe();
-	return 1;
-}
+// ClearDefaultKeyframe::ClearDefaultKeyframe(MWindow *mwindow)
+//  : BC_MenuItem(_("Clear default keyframe"), "Alt-Del", BACKSPACE)
+// {
+// 	set_alt(); 
+// 	this->mwindow = mwindow; 
+// }
+// 
+// int ClearDefaultKeyframe::handle_event()
+// {
+// 	mwindow->clear_default_keyframe();
+// 	return 1;
+// }
 
 Cut::Cut(MWindow *mwindow)
  : BC_MenuItem(_("Cut"), "x", 'x') 

@@ -985,12 +985,12 @@ int Track::copy_automation(double selectionstart,
 
 	automation->copy(start, end, file, default_only, active_only);
 
-	if(edl->session->auto_conf->plugins)
+	if(edl->session->auto_conf->autos[PLUGIN_KEYFRAMES])
 	{
 		for(int i = 0; i < plugin_set.total; i++)
 		{
 		
-			plugin_set.values[i]->copy_keyframes(start, 
+			plugin_set.get(i)->copy_keyframes(start, 
 				end, 
 				file, 
 				default_only,
@@ -1086,7 +1086,7 @@ void Track::clear_automation(double selectionstart,
 
 	automation->clear(start, end, edl->session->auto_conf, 0);
 
-	if(edl->session->auto_conf->plugins)
+	if(edl->session->auto_conf->autos[PLUGIN_KEYFRAMES])
 	{
 		for(int i = 0; i < plugin_set.total; i++)
 		{
