@@ -185,6 +185,8 @@ void Previewer::initialize()
 void Previewer::clear_preview()
 {
     interrupt_playback();
+    
+    previewer_lock->lock("Previewer::clear_preview");
     if(canvas) delete canvas;
     if(play) delete play;
     if(rewind) delete rewind;
@@ -195,21 +197,25 @@ void Previewer::clear_preview()
     play = 0;
     rewind = 0;
     scroll = 0;
+    previewer_lock->unlock();
 }
 
 
 void Previewer::start_playback()
 {
     previewer_lock->lock("Previewer::start_playback");
-    edl->local_session->set_selectionstart(play_position);
-    edl->local_session->set_selectionend(play_position);
-    playback_engine->que->send_command(NORMAL_FWD,
-		CHANGE_NONE, 
-		edl,
-		1,
-		1,
-		0);
-    is_playing = 1;
+    if(edl)
+    {
+        edl->local_session->set_selectionstart(play_position);
+        edl->local_session->set_selectionend(play_position);
+        playback_engine->que->send_command(NORMAL_FWD,
+		    CHANGE_NONE, 
+		    edl,
+		    1,
+		    1,
+		    0);
+        is_playing = 1;
+    }
     previewer_lock->unlock();
 }
 
@@ -335,9 +341,13 @@ void Previewer::write_frame(VFrame *frame)
     }
 
 // must copy it to avoid flickering, as it's being draw in the GUI thread
-//printf("Previewer::write_frame %d output_frame=%p\n", __LINE__, output_frame);
-//output_frame->dump(4);
+//printf("Previewer::write_frame %d frame=%p output_frame=%p\n", 
+//__LINE__, frame, output_frame);
+
     output_frame->copy_from(frame);
+
+//printf("Previewer::write_frame %d\n", 
+//__LINE__);
 
     if(gui)
     {
