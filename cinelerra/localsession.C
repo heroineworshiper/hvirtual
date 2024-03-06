@@ -58,7 +58,7 @@ LocalSession::LocalSession(EDL *edl)
 	
 	automation_min = -10;
 	automation_max = 10;
-	floatauto_type = Auto::BEZIER;
+	floatauto_type = Auto::LINEAR;
 	red = green = blue = 0;
 	red_max = green_max = blue_max = 0;
 	use_max = 0;
@@ -146,7 +146,7 @@ void LocalSession::save_xml(FileXML *file, double start)
 	file->tag.set_property("USE_MAX", use_max);
 	file->tag.set_property("AUTOMATION_MIN", automation_min);
 	file->tag.set_property("AUTOMATION_MAX", automation_max);
-	file->tag.set_property("FLOATAUTO_TYPE", floatauto_type);
+//	file->tag.set_property("FLOATAUTO_TYPE", floatauto_type);
 	file->append_tag();
 	file->append_newline();
 	file->append_newline();
@@ -206,7 +206,7 @@ void LocalSession::load_xml(FileXML *file, unsigned long load_flags)
 		use_max = file->tag.get_property("USE_MAX", use_max);
 		automation_min = file->tag.get_property("AUTOMATION_MIN", automation_min);
 		automation_max = file->tag.get_property("AUTOMATION_MAX", automation_max);
-		floatauto_type = file->tag.get_property("FLOATAUTO_TYPE", floatauto_type);
+//		floatauto_type = file->tag.get_property("FLOATAUTO_TYPE", floatauto_type);
 	}
 
 
@@ -253,7 +253,7 @@ int LocalSession::load_defaults(BC_Hash *defaults)
 	use_max = defaults->get("USE_MAX", 0);
 	automation_min = defaults->get("AUTOMATION_MIN", automation_min);
 	automation_max = defaults->get("AUTOMATION_MAX", automation_max);
-	floatauto_type = defaults->get("FLOATAUTO_TYPE", floatauto_type);
+//	floatauto_type = defaults->get("FLOATAUTO_TYPE", floatauto_type);
 	x_pane = defaults->get("X_PANE", x_pane);
 	y_pane = defaults->get("Y_PANE", y_pane);
 	return 0;
@@ -280,7 +280,7 @@ int LocalSession::save_defaults(BC_Hash *defaults)
 	defaults->update("USE_MAX", use_max);
 	defaults->update("AUTOMATION_MIN", automation_min);
 	defaults->update("AUTOMATION_MAX", automation_max);
-	defaults->update("FLOATAUTO_TYPE", floatauto_type);
+//	defaults->update("FLOATAUTO_TYPE", floatauto_type);
 	defaults->update("X_PANE", x_pane);
 	defaults->update("Y_PANE", y_pane);
 	return 0;

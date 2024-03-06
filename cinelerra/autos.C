@@ -885,6 +885,16 @@ void Autos::get_extents(float *min,
 	
 }
 
+int Autos::auto_exists(Auto *auto_)
+{
+    if(default_auto == auto_) return 1;
+	for(Auto *current = first; current; current = NEXT)
+	{
+        if(current == auto_) return 1;
+    }
+    return 0;
+}
+
 
 void Autos::dump()
 {

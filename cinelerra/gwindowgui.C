@@ -305,10 +305,15 @@ int GWindowToggle::button_press_event()
 
 int GWindowToggle::button_release_event()
 {
-	int result = BC_Toggle::button_release_event();
-	gui->drag_operation = 0;
-	handle_event();
-	return result;
+    if(is_event_win())
+    {
+	    int result = BC_Toggle::button_release_event();
+	    gui->drag_operation = 0;
+	    handle_event();
+	    return result;
+    }
+    else
+        return 0;
 }
 
 
@@ -324,6 +329,14 @@ int GWindowToggle::handle_event()
 	mwindow->gui->lock_window("GWindowToggle::handle_event");
 	if(subscript >= 0)
 	{
+// track height changes based on automation visibility
+		mwindow->gui->update(1,
+			1,
+			0,
+			0,
+			1, 
+			0,
+			0);
 		mwindow->gui->draw_overlays(1);
 	}
 	else

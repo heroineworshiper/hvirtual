@@ -311,6 +311,8 @@ int PatchBay::cursor_motion_event()
 	int cursor_y = get_relative_cursor_y();
 	int update_gui = 0;
 
+//printf("PatchBay::cursor_motion_event %d %d %d\n", 
+//__LINE__, drag_operation, get_button_down());
 	if(drag_operation != Tracks::NONE)
 	{
 		if(cursor_y >= 0 &&
@@ -409,6 +411,7 @@ int PatchBay::cursor_motion_event()
 
 	if(update_gui)
 	{
+//printf("PatchBay::cursor_motion_event %d\n", __LINE__);
 		gui->update_patchbay();
 // redraw visible assets
         if(drag_operation == Tracks::DRAW)

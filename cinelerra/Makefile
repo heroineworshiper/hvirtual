@@ -123,6 +123,7 @@ OBJS = \
 	$(OBJDIR)/drivesync.o \
 	$(OBJDIR)/edit.o \
         $(OBJDIR)/editinfo.o \
+        $(OBJDIR)/editkeyframe.o \
 	$(OBJDIR)/editlength.o \
 	$(OBJDIR)/editpanel.o \
 	$(OBJDIR)/editpopup.o \
@@ -692,6 +693,7 @@ $(OBJDIR)/drivesync.o:  			  drivesync.C
 $(OBJDIR)/dvbtune.o:  			  	  dvbtune.C
 $(OBJDIR)/edit.o: 				  edit.C
 $(OBJDIR)/editinfo.o: 				  editinfo.C
+$(OBJDIR)/editkeyframe.o: 			  editkeyframe.C
 $(OBJDIR)/edithandles.o: 			  edithandles.C
 $(OBJDIR)/editlength.o:                           editlength.C
 $(OBJDIR)/editpanel.o:  			  editpanel.C

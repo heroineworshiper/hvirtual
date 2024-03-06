@@ -63,15 +63,16 @@ public:
 	EDL *edl;
 	Autos *autos;
 	int WIDTH, HEIGHT;
-// Units native to the track
 	int is_default;
+// Units native to the track
 	int64_t position;
 // Calculation to use for floats
 	int mode;
 	enum
 	{
-		BEZIER,
-		LINEAR
+		BEZIER_UNLOCKED,
+		LINEAR,
+        BEZIER_LOCKED
 	}; 
 
 private:

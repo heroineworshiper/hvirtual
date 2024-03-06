@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,57 +32,26 @@
 #include "automation.inc" 
 
 
-class KeyframePopupDelete;
-class KeyframePopupHide;
-class KeyframePopupCopy;
-class KeyframePopupLinear;
-class KeyframePopupBezier;
-class KeyframePopupEdit;
-class KeyframePopupCopyDefault;
-class KeyframePopupPasteDefault;
-class KeyframePopupPaste;
+class KeyframePopup;
 
-class KeyframePopup : public BC_PopupMenu
+
+class KeyframePopupEdit : public BC_MenuItem
 {
 public:
-	KeyframePopup(MWindow *mwindow, MWindowGUI *gui);
-	~KeyframePopup();
-
-	void create_objects();
-	int update(double position,
-        Plugin *plugin, // enables preset operations
-        Autos *autos, // enables default keyframe operations
-        Auto *auto_); // enables single keyframe operations
-
-	MWindow *mwindow;
-	MWindowGUI *gui;
-
-// pointers into the EDL
-    double position;
-	Plugin *plugin;
-	Autos *autos;
-	Auto *auto_;
-
-	
-	KeyframePopupLinear *key_linear;
-	KeyframePopupBezier *key_bezier;
-	KeyframePopupDelete *key_delete;
-	KeyframePopupHide *key_hide;
-	KeyframePopupCopy *key_copy;
-    KeyframePopupPaste *paste;
-	KeyframePopupEdit *edit;
-    KeyframePopupCopyDefault *copy_default;
-    KeyframePopupPasteDefault *paste_default;
-};
-
-class KeyframePopupCopyDefault : public BC_MenuItem
-{
-public:
-	KeyframePopupCopyDefault(MWindow *mwindow, KeyframePopup *popup);
+	KeyframePopupEdit(MWindow *mwindow, KeyframePopup *popup);
 	int handle_event();
 	MWindow *mwindow;
 	KeyframePopup *popup;
 };
+
+// class KeyframePopupCopyDefault : public BC_MenuItem
+// {
+// public:
+// 	KeyframePopupCopyDefault(MWindow *mwindow, KeyframePopup *popup);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// 	KeyframePopup *popup;
+// };
 
 class KeyframePopupPasteDefault : public BC_MenuItem
 {
@@ -98,7 +66,6 @@ class KeyframePopupLinear : public BC_MenuItem
 {
 public:
 	KeyframePopupLinear(MWindow *mwindow, KeyframePopup *popup);
-	~KeyframePopupLinear();
 	int handle_event();
 	
 	MWindow *mwindow;
@@ -109,7 +76,16 @@ class KeyframePopupBezier : public BC_MenuItem
 {
 public:
 	KeyframePopupBezier(MWindow *mwindow, KeyframePopup *popup);
-	~KeyframePopupBezier();
+	int handle_event();
+	
+	MWindow *mwindow;
+	KeyframePopup *popup;
+};
+
+class KeyframePopupBezier2 : public BC_MenuItem
+{
+public:
+	KeyframePopupBezier2(MWindow *mwindow, KeyframePopup *popup);
 	int handle_event();
 	
 	MWindow *mwindow;
@@ -140,7 +116,7 @@ public:
 class KeyframePopupCopy : public BC_MenuItem
 {
 public:
-	KeyframePopupCopy(MWindow *mwindow, KeyframePopup *popup);
+	KeyframePopupCopy(MWindow *mwindow, KeyframePopup *popup, const char *title);
 	int handle_event();
 	
 	MWindow *mwindow;
@@ -157,15 +133,50 @@ public:
 };
 
 
-class KeyframePopupEdit : public BC_MenuItem
+class KeyframePopupPreset : public BC_MenuItem
 {
 public:
-	KeyframePopupEdit(MWindow *mwindow, KeyframePopup *popup);
+	KeyframePopupPreset(MWindow *mwindow, KeyframePopup *popup);
 	int handle_event();
 	
 	MWindow *mwindow;
 	KeyframePopup *popup;
 };
 
+
+class KeyframePopup : public BC_PopupMenu
+{
+public:
+	KeyframePopup(MWindow *mwindow, MWindowGUI *gui);
+	~KeyframePopup();
+
+	void create_objects();
+	int update(double position,
+        Plugin *plugin, // enables preset operations
+        Autos *autos, // enables default keyframe operations
+        Auto *auto_); // enables single keyframe operations
+
+	MWindow *mwindow;
+	MWindowGUI *gui;
+
+// pointers into the EDL
+    double position;
+	Plugin *plugin;
+	Autos *autos;
+	Auto *auto_;
+
+
+    BC_MenuItem *bar;
+	KeyframePopupEdit *edit;
+	KeyframePopupLinear *key_linear;
+	KeyframePopupBezier *key_bezier;
+	KeyframePopupBezier2 *key_bezier2;
+	KeyframePopupDelete *key_delete;
+	KeyframePopupHide *key_hide;
+	KeyframePopupCopy *key_copy;
+    KeyframePopupPaste *paste;
+	KeyframePopupPreset *preset;
+    KeyframePopupPasteDefault *paste_default;
+};
 
  #endif

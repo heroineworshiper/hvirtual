@@ -196,12 +196,13 @@ void TransitionPopup::create_objects()
 	length_thread = new TransitionLengthThread(mwindow);
 	add_item(attach = new TransitionPopupAttach(mwindow, this));
 //	add_item(attach_default = new TransitionPopupDefault(mwindow));
-	add_item(copy = new TransitionCopy(mwindow));
-	add_item(paste = new TransitionPaste(mwindow));
+	add_item(detach = new TransitionPopupDetach(mwindow, this));
+    add_item(new BC_MenuItem("-"));
 	add_item(show = new TransitionPopupShow(mwindow, this));
 	add_item(on = new TransitionPopupOn(mwindow, this));
+	add_item(copy = new TransitionCopy(mwindow));
+	add_item(paste = new TransitionPaste(mwindow));
 	add_item(length_item = new TransitionPopupLength(mwindow, this));
-	add_item(detach = new TransitionPopupDetach(mwindow, this));
 }
 
 int TransitionPopup::update(Edit *edit, Transition *transition)
@@ -222,7 +223,7 @@ int TransitionPopup::update(Edit *edit, Transition *transition)
 
 TransitionPopupAttach::TransitionPopupAttach(MWindow *mwindow,
     TransitionPopup *popup)
- : BC_MenuItem(_("Change..."))
+ : BC_MenuItem(_("Change transition..."))
 {
 	this->mwindow = mwindow;
     this->popup = popup;
@@ -313,7 +314,7 @@ int TransitionCopy::handle_event()
 
 
 TransitionPopupDetach::TransitionPopupDetach(MWindow *mwindow, TransitionPopup *popup)
- : BC_MenuItem(_("Detach"))
+ : BC_MenuItem(_("Detach transition"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;

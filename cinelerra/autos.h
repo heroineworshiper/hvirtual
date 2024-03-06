@@ -83,6 +83,7 @@ public:
 		int *coords_undefined,
 		int64_t unit_start,
 		int64_t unit_end);
+    int auto_exists(Auto *auto_);
 
 	EDL *edl;
 	Track *track;

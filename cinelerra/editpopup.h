@@ -40,6 +40,7 @@ class EditPopupConformProject;
 class EditPopupProjectRemove;
 class EditPopupDiskRemove;
 class EditInfo;
+class EditPopupExpand;
 
 class EditPopup : public BC_PopupMenu
 {
@@ -56,7 +57,9 @@ public:
 	Edit *edit;
 	Track *track;
 	EditPopupResize *resize_option;
+    BC_MenuItem *bar;
     EditInfo *info;
+    EditPopupExpand *expand;
 	EditPopupMatchSize *matchsize_option;
     EditPopupConformProject *conform_project;
     EditPopupProjectRemove *project_remove;
@@ -65,6 +68,15 @@ public:
     
 };
 
+
+class EditPopupExpand : public BC_MenuItem
+{
+public:
+	EditPopupExpand(MWindow *mwindow, EditPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+    EditPopup *popup;
+};
 
 class EditPopupAttachTransition : public BC_MenuItem
 {

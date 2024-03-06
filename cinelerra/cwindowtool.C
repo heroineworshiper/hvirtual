@@ -305,12 +305,12 @@ int CWindowToolGUI::translation_event()
 
 CWindowCoord::CWindowCoord(CWindowToolGUI *gui, int x, int y, float value)
  : BC_TumbleTextBox(gui, 
-		(float)value,
-		(float)-65536,
-		(float)65536,
-		x, 
-		y, 
-		DP(100))
+	(float)value,
+	(float)-65536,
+	(float)65536,
+	x, 
+	y, 
+	DP(100))
 {
 	this->gui = gui;
 }

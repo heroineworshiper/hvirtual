@@ -576,8 +576,10 @@ void MWindow::delete_keyframe(Auto *auto_)
 	sync_parameters(CHANGE_EDL);
 }
 
-void MWindow::set_keyframe_mode(Auto *auto_, int mode)
+void MWindow::set_keyframe_mode(FloatAuto *auto_, int mode)
 {
+    if(auto_->autos->type != Autos::AUTOMATION_TYPE_FLOAT) return;
+
     const char *undo_text = "";
     if(mode == Auto::LINEAR)
         undo_text = "make linear";
@@ -585,6 +587,10 @@ void MWindow::set_keyframe_mode(Auto *auto_, int mode)
         undo_text = "make bezier";
 
 	undo->update_undo_before(_(undo_text));
+    if(mode == Auto::BEZIER_LOCKED &&
+        auto_->mode != Auto::BEZIER_LOCKED)
+        auto_->to_locked();
+        
 	auto_->mode = mode;
 	save_backup();
 	undo->update_undo_after(_(undo_text), LOAD_ALL);
@@ -2060,23 +2066,23 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 		{
 			edl->add_clip(new_edl->clips.values[j]);
 		}
-
-		if(new_edl->total_vwindow_edls())
-		{
-//			if(edl->vwindow_edl) 
-//				edl->vwindow_edl->Garbage::remove_user();
-//			edl->vwindow_edl = new EDL(edl);
-//			edl->vwindow_edl->create_objects();
-//			edl->vwindow_edl->copy_all(new_edl->vwindow_edl);
-
-			for(int j = 0; j < new_edl->total_vwindow_edls(); j++)
-			{
-				EDL *vwindow_edl = new EDL(edl);
-				vwindow_edl->create_objects();
-				vwindow_edl->copy_all(new_edl->get_vwindow_edl(j));
-				edl->append_vwindow_edl(vwindow_edl, 0);
-			}
-		}
+// 
+// 		if(new_edl->total_vwindow_edls())
+// 		{
+// //			if(edl->vwindow_edl) 
+// //				edl->vwindow_edl->Garbage::remove_user();
+// //			edl->vwindow_edl = new EDL(edl);
+// //			edl->vwindow_edl->create_objects();
+// //			edl->vwindow_edl->copy_all(new_edl->vwindow_edl);
+// 
+// 			for(int j = 0; j < new_edl->total_vwindow_edls(); j++)
+// 			{
+// 				EDL *vwindow_edl = new EDL(edl);
+// 				vwindow_edl->create_objects();
+// 				vwindow_edl->copy_all(new_edl->get_vwindow_edl(j));
+// 				edl->append_vwindow_edl(vwindow_edl, 0);
+// 			}
+// 		}
 	}
 
 
@@ -2270,18 +2276,27 @@ void MWindow::paste_transition_cwindow(Track *dest_track)
 
 void MWindow::paste_default_transition(int data_type, Edit *dst_edit)
 {
- 	PluginServer *server = scan_plugindb(edl->session->default_atransition,
-		data_type);
+ 	PluginServer *server = 0;
+    const char *title;
+    
+    if(data_type == TRACK_AUDIO)
+        title = edl->session->default_atransition;
+    else
+        title = edl->session->default_vtransition;
+
+    server = scan_plugindb(title, data_type);
+
+printf("MWindow::paste_default_transition %d title=%s dst_edit=%p server=%p\n", 
+__LINE__,
+title,
+dst_edit,
+server);
+
 	if(!server)
 	{
 		char string[BCTEXTLEN];
-        const char *title = 0;
-        if(data_type == TRACK_AUDIO)
-            title = edl->session->default_atransition;
-        else
-            title = edl->session->default_vtransition;
 		sprintf(string, _("Default transition '%s' not found."), title);
-		gui->show_message(string);
+		gui->show_message(string, RED);
 		return;
 	}
 

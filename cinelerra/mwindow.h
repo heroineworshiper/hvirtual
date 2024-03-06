@@ -41,10 +41,12 @@
 #include "bchash.inc"
 #include "devicedvbinput.inc"
 #include "edit.inc"
+#include "editkeyframe.inc"
 #include "edl.inc"
 #include "fileserver.inc"
 #include "filesystem.inc"
 #include "filexml.inc"
+#include "floatauto.inc"
 #include "framecache.inc"
 #include "gwindow.inc"
 #include "indexable.inc"
@@ -490,7 +492,7 @@ public:
 // delete a single keyframe
     void delete_keyframe(Auto *auto_);
 // linear or bezier
-    void set_keyframe_mode(Auto *auto_, int mode);
+    void set_keyframe_mode(FloatAuto *auto_, int mode);
 
 // default keyframe operations
 	int copy_default_keyframes();
@@ -527,7 +529,7 @@ public:
 	RemoveThread *remove_thread;
     AssetRemoveThread *asset_remove;
     TransitionDialogThread *attach_transition;
-
+    EditKeyframeThread *edit_keyframe;
 
 	SplashGUI *splash_window;
 // Main undo stack

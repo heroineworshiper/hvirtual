@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -162,6 +161,7 @@ class ExpandPatch : public BC_Toggle
 {
 public:
 	ExpandPatch(MWindow *mwindow, PatchGUI *patch, int x, int y);
+    ~ExpandPatch();
 	int button_press_event();
 	int button_release_event();
 	MWindow *mwindow;

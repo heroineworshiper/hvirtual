@@ -54,6 +54,10 @@ void FloatAutos::set_automation_mode(int64_t start, int64_t end, int mode)
 // Is current auto in range?		
 		if(current->position >= start && current->position < end)
 		{
+            if(mode == Auto::BEZIER_LOCKED &&
+                current->mode != Auto::BEZIER_LOCKED)
+                current->to_locked();
+        
 			current->mode = mode;
 // 			float current_value = current->value;
 // 

@@ -3822,6 +3822,11 @@ int BC_WindowBase::get_button_down()
 	return top_level->button_down;
 }
 
+void BC_WindowBase::clear_button_down()
+{
+	top_level->button_down = 0;
+}
+
 int BC_WindowBase::alt_down()
 {
 	return top_level->alt_mask;

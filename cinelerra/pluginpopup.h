@@ -21,6 +21,7 @@
 #ifndef PLUGINPOPUP_H
 #define PLUGINPOPUP_H
 
+class PluginPopupExpand;
 class PluginPopupChange;
 class PluginPopupDetach;
 class PluginPopupCopyDefault;
@@ -55,15 +56,27 @@ public:
 	Plugin *plugin;
     double position;
 
-
+    PluginPopupExpand *expand;
 	PluginPopupChange *change;
 	PluginPopupDetach *detach;
 	PluginPopupShow *show;
 	PluginPopupOn *on;
+    BC_MenuItem *bar;
 	PluginPresets *presets;
     PluginPopupCopyDefault *copy_default;
     PluginPopupPasteDefault *paste_default;
     PluginPopupPaste *paste;
+};
+
+
+
+class PluginPopupExpand : public BC_MenuItem
+{
+public:
+	PluginPopupExpand(MWindow *mwindow, PluginPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+    PluginPopup *popup;
 };
 
 class PluginPopupAttach : public BC_MenuItem

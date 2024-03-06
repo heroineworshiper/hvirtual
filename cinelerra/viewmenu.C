@@ -125,6 +125,14 @@ int ShowAutomation::handle_event()
 {
 	set_checked(get_checked() ^ 1);
 	mwindow->edl->session->auto_conf->autos[subscript] = get_checked();
+// track height changes based on automation visibility
+	mwindow->gui->update(1,
+		1,
+		0,
+		0,
+		1, 
+		0,
+		0);
 	mwindow->gui->draw_overlays(1);
 //	mwindow->gui->mainmenu->draw_items();
 	mwindow->gui->unlock_window();

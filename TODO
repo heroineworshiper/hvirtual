@@ -6,6 +6,7 @@ Detect recursive nested EDL
 
 BIG BUGS
 ----------------
+Redraw the nudge when changing units & 0
 Nested EDLs with different colormodels crash.
 Effects not getting rendered if multiple effects have random starting times.
 Drag effect before timeline is finished drawing after a load -> lockup
@@ -17,13 +18,17 @@ Change asset path, CPlayback never returns to redraw the frame.
 Documentation wishlist:
 ----------------------------------------------------
 COMPOSITOR KEYFRAMES out of date
-
+Points of confusion around the way shared plugins are based on numbers rather than titles
+Chromakey HSV
+Options for condensing the track height
 
 
 WISH LIST
 ----------------------------------------------------
+3 bezier modes: linear, bezier, & locked bezier mode
+Embedded processing functions inside the shared track with keyframes
+    overlay mode, use mask, use plugins, send output to shared track
 Multiple loads from a single filebox with apply button
-Select a point in the mask dialog.
 text for labels
 alpha for previews
 libmpeg3 patches: https://udd.debian.org/patches.cgi?src=libmpeg3&version=1.8.dfsg-4

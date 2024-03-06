@@ -279,6 +279,8 @@ public:
 
 // 1 or 0 if a button is down
 	int get_button_down();
+// must clear it if the widget owning the button down is deleted
+    void clear_button_down();
 // Number of button pressed 1 - 5
 	int get_buttonpress();
 	int get_has_focus();

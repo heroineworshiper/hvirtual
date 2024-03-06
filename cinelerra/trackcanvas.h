@@ -346,9 +346,6 @@ public:
 // Update status bar to reflect drag operation
 	void update_drag_caption();
 
-	int get_title_h();
-	int resource_h();
-
 // Display hourglass if timer expired
 	void test_timer();
 // get the relevant patchbay by traversing the panes

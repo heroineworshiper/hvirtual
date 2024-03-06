@@ -61,11 +61,12 @@ void EditPopup::create_objects()
 	add_item(new EditAttachEffect(mwindow, this));
     add_item(new EditPopupAttachTransition(mwindow, this));
     add_item(new EditPopupDefaultTransition(mwindow, this));
+    add_item(new BC_MenuItem("-"));
+	add_item(expand = new EditPopupExpand(mwindow, this));
 	add_item(new EditMoveTrackUp(mwindow, this));
 	add_item(new EditMoveTrackDown(mwindow, this));
 	add_item(new EditPopupDeleteTrack(mwindow, this));
 	add_item(new EditPopupAddTrack(mwindow, this));
-//	add_item(new EditPopupTitle(mwindow, this));
 
 	resize_option = 0;
 	matchsize_option = 0;
@@ -73,6 +74,7 @@ void EditPopup::create_objects()
     conform_project = 0;
     project_remove = 0;
     disk_remove = 0;
+    bar = 0;
 }
 
 int EditPopup::update(Track *track, Edit *edit)
@@ -80,36 +82,19 @@ int EditPopup::update(Track *track, Edit *edit)
 	this->edit = edit;
 	this->track = track;
 
+    if(track->expand_view)
+        expand->set_text(_("Collapse track"));
+    else
+        expand->set_text(_("Expand track"));
+
 // make them always the same order
-    if(resize_option)
-    {
-    	remove_item(resize_option);
-    }
-
-    if(matchsize_option)
-    {
-    	remove_item(matchsize_option);
-    }
-
-    if(info)
-    {
-        remove_item(info);
-    }
-    
-    if(conform_project)
-    {
-        remove_item(conform_project);
-    }
-
-    if(project_remove)
-    {
-        remove_item(project_remove);
-    }
-
-    if(disk_remove)
-    {
-        remove_item(disk_remove);
-    }
+    delete resize_option;
+    delete matchsize_option;
+    delete info;
+    delete conform_project;
+    delete project_remove;
+    delete disk_remove;
+    delete bar;
 
 	resize_option = 0;
 	matchsize_option = 0;
@@ -117,16 +102,18 @@ int EditPopup::update(Track *track, Edit *edit)
     conform_project = 0;
     project_remove = 0;
     disk_remove = 0;
+    bar = 0;
 
+    if(edit ||
+        track->data_type == TRACK_VIDEO)
+        add_item(bar = new BC_MenuItem("-"));
 
-    if(edit && !info)
-    {
+    if(edit) 
         add_item(info = new EditInfo(mwindow, this));
-    }
 
 
 
-	if(track->data_type == TRACK_VIDEO && !resize_option)
+	if(track->data_type == TRACK_VIDEO)
 	{
 		add_item(resize_option = new EditPopupResize(mwindow, this));
 		add_item(matchsize_option = new EditPopupMatchSize(mwindow, this));
@@ -148,7 +135,25 @@ int EditPopup::update(Track *track, Edit *edit)
 
 
 
+// menus are getting crowded to put this in the plugin popup too
+EditPopupExpand::EditPopupExpand(MWindow *mwindow, EditPopup *popup)
+ : BC_MenuItem("")
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
 
+int EditPopupExpand::handle_event()
+{
+    if(popup->track->expand_view)
+        popup->track->expand_view = 0;
+    else
+        popup->track->expand_view = 1;
+    mwindow->edl->tracks->update_y_pixels(mwindow->theme);
+    mwindow->gui->draw_trackmovement();
+//mwindow->edl->dump();
+    return 1;
+}
 
 
 

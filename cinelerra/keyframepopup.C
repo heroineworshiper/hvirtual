@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include "cpanel.h"
 #include "cwindowgui.h" 
 #include "cwindow.h"
+#include "editkeyframe.h"
 #include "edl.h"
 #include "edlsession.h"
 #include "filexml.h"
@@ -61,9 +62,12 @@ KeyframePopup::KeyframePopup(MWindow *mwindow, MWindowGUI *gui)
     paste = 0;
 	key_linear = 0;
 	key_bezier = 0;
-	edit = 0;
-    copy_default = 0;
+    key_bezier2 = 0;
+	preset = 0;
+    edit = 0;
+//    copy_default = 0;
     paste_default = 0;
+    bar = 0;
 }
 
 KeyframePopup::~KeyframePopup()
@@ -73,6 +77,7 @@ KeyframePopup::~KeyframePopup()
 void KeyframePopup::create_objects()
 {
 	add_item(key_hide = new KeyframePopupHide(mwindow, this));
+
 }
 
 int KeyframePopup::update(double position,
@@ -85,124 +90,84 @@ int KeyframePopup::update(double position,
 	this->autos = autos;
 	this->auto_ = auto_;
 
+// force the order by deleting & recreating all the items
+    delete edit;
+    edit = 0;
     delete paste;
     paste = 0;
+	delete preset;
+	preset = 0;
+	delete key_delete;
+	key_delete = 0;
+	delete key_copy;
+	key_copy = 0;
+//    delete copy_default;
+    delete paste_default;
+//    copy_default = 0;
+    paste_default = 0;
+	delete key_linear;
+	delete key_bezier;
+	delete key_bezier2;
+	key_linear = 0;
+	key_bezier = 0;
+	key_bezier2 = 0;
+    delete bar;
+    bar = 0;
+
+// editing text plugin keyframes is a bridge too far
+// it would require amending the plugin popup & counts as something which
+// already has a dedicated interface
+// float is particularly difficult to edit without a text mode
+    if(autos && 
+        (autos->type == Autos::AUTOMATION_TYPE_FLOAT))
+    {
+        add_item(edit = new KeyframePopupEdit(mwindow, this));
+        if(auto_)
+            edit->set_text(_("Edit keyframe..."));
+        else
+            edit->set_text(_("Edit default keyframe..."));
+    }
 
 	if(auto_)
 	{
 		if(!key_delete) add_item(key_delete = new KeyframePopupDelete(mwindow, this));
-		if(!key_copy) add_item(key_copy = new KeyframePopupCopy(mwindow, this));
 	}
-	else
-	{
-		if(key_delete) delete key_delete;
-		if(key_copy) delete key_copy;
-		key_delete = 0;
-		key_copy = 0;
-	}
+
+	if(!key_copy && auto_)
+        add_item(key_copy = new KeyframePopupCopy(mwindow, this, _("Copy keyframe")));
 
     if(autos)
         add_item(paste = new KeyframePopupPaste(mwindow, this, "Paste keyframe"));
 
 	if(auto_ && autos && autos->type == Autos::AUTOMATION_TYPE_FLOAT)
 	{
-		if(!key_linear) add_item(key_linear = new KeyframePopupLinear(mwindow, this));
-		if(!key_bezier) add_item(key_bezier = new KeyframePopupBezier(mwindow, this));
-	}
-	else
-	{
-		if(key_linear) delete key_linear;
-		if(key_bezier) delete key_bezier;
-		key_linear = 0;
-		key_bezier = 0;
+        add_item(bar = new BC_MenuItem("-"));
+		add_item(key_linear = new KeyframePopupLinear(mwindow, this));
+		add_item(key_bezier = new KeyframePopupBezier(mwindow, this));
+		add_item(key_bezier2 = new KeyframePopupBezier2(mwindow, this));
+        key_linear->set_checked(auto_->mode == Auto::LINEAR);
+        key_bezier->set_checked(auto_->mode == Auto::BEZIER_LOCKED);
+        key_bezier2->set_checked(auto_->mode == Auto::BEZIER_UNLOCKED);
 	}
 
     if(autos && !auto_)
     {
-        if(!copy_default) add_item(copy_default = new KeyframePopupCopyDefault(mwindow, this));
-        if(!paste_default) add_item(paste_default = new KeyframePopupPasteDefault(mwindow, this));
-    }
-    else
-    {
-        delete copy_default;
-        delete paste_default;
-        copy_default = 0;
-        paste_default = 0;
+        if(!key_copy) add_item(key_copy = new KeyframePopupCopy(
+            mwindow, 
+            this,
+            _("Copy default keyframe")));
+        if(!paste_default) 
+            add_item(paste_default = new KeyframePopupPasteDefault(mwindow, 
+                this));
     }
 
 	if(plugin)
 	{
-		if(!edit) add_item(edit = new KeyframePopupEdit(mwindow, this));
-	}
-	else
-	{
-		delete edit;
-		edit = 0;
+		if(!preset) add_item(preset = new KeyframePopupPreset(mwindow, this));
 	}
 	return 0;
 }
 
-// int KeyframePopup::update(Automation *automation, 
-// 	Autos *autos, 
-// 	Auto *auto_keyframe)
-// {
-// 	this->keyframe_plugin = 0;
-// 	this->keyframe_automation = automation;
-// 	this->keyframe_autos = autos;
-// 	this->keyframe_auto = auto_keyframe;
-// 
-// 	if(auto_keyframe && autos->type == Autos::AUTOMATION_TYPE_FLOAT)
-// 	{
-// 		if(!key_linear) add_item(key_linear = new KeyframePopupLinear(mwindow, this));
-// 		if(!key_bezier) add_item(key_bezier = new KeyframePopupBezier(mwindow, this));
-// 	}
-// 	else
-// 	{
-// 		if(key_linear) delete key_linear;
-// 		if(key_bezier) delete key_bezier;
-// 		key_linear = 0;
-// 		key_bezier = 0;
-// 	}
-// 
-// 	if(auto_keyframe)
-// 	{
-// 		if(!key_delete) add_item(key_delete = new KeyframePopupDelete(mwindow, this));
-// 		if(!key_copy) add_item(key_copy = new KeyframePopupCopy(mwindow, this));
-// 	}
-// 	else
-// 	{
-// 		if(key_delete) delete key_delete;
-// 		if(key_copy) delete key_copy;
-// 		key_delete = 0;
-// 		key_copy = 0;
-// 	}
-// 	
-// 	if(edit)
-// 	{
-// 		delete edit;
-// 		edit = 0;
-// 	}
-// 
-// /* snap to cursor */
-// 	if(keyframe_auto)
-// 	{
-// 		double current_position = mwindow->edl->local_session->get_selectionstart(1);
-// 		double new_position = keyframe_automation->track->from_units(keyframe_auto->position);
-// 		mwindow->edl->local_session->set_selectionstart(new_position);
-// 		mwindow->edl->local_session->set_selectionend(new_position);
-// 
-// 		if (current_position != new_position)
-// 		{
-// 			mwindow->edl->local_session->set_selectionstart(new_position);
-// 			mwindow->edl->local_session->set_selectionend(new_position);
-// 			mwindow->gui->lock_window();
-// 			mwindow->gui->update(1, 1, 1, 1, 1, 1, 0);	
-// 			mwindow->gui->unlock_window();
-// 		}
-// 	}
-// 
-// 	return 0;
-// }
 
 
 
@@ -231,19 +196,15 @@ int KeyframePopupDelete::handle_event()
 
 
 KeyframePopupLinear::KeyframePopupLinear(MWindow *mwindow, KeyframePopup *popup)
- : BC_MenuItem(_("Make linear"))
+ : BC_MenuItem(_("Linear"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
 }
 
-KeyframePopupLinear::~KeyframePopupLinear()
-{
-}
-
 int KeyframePopupLinear::handle_event()
 {
-    mwindow->set_keyframe_mode(popup->auto_, Auto::LINEAR);
+    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, Auto::LINEAR);
 	return 1;
 }
 
@@ -252,19 +213,30 @@ int KeyframePopupLinear::handle_event()
 
 
 KeyframePopupBezier::KeyframePopupBezier(MWindow *mwindow, KeyframePopup *popup)
- : BC_MenuItem(_("Make bezier"))
+ : BC_MenuItem(_("Locked bezier"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
 }
 
-KeyframePopupBezier::~KeyframePopupBezier()
-{
-}
-
 int KeyframePopupBezier::handle_event()
 {
-    mwindow->set_keyframe_mode(popup->auto_, Auto::BEZIER);
+    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, Auto::BEZIER_LOCKED);
+	return 1;
+}
+
+
+
+KeyframePopupBezier2::KeyframePopupBezier2(MWindow *mwindow, KeyframePopup *popup)
+ : BC_MenuItem(_("Unlocked bezier"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int KeyframePopupBezier2::handle_event()
+{
+    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, Auto::BEZIER_UNLOCKED);
 	return 1;
 }
 
@@ -345,8 +317,10 @@ int KeyframePopupHide::handle_event()
 
 
 
-KeyframePopupCopy::KeyframePopupCopy(MWindow *mwindow, KeyframePopup *popup)
- : BC_MenuItem(_("Copy keyframe"))
+KeyframePopupCopy::KeyframePopupCopy(MWindow *mwindow, 
+    KeyframePopup *popup,
+    const char *title)
+ : BC_MenuItem(title)
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
@@ -354,19 +328,22 @@ KeyframePopupCopy::KeyframePopupCopy(MWindow *mwindow, KeyframePopup *popup)
 
 int KeyframePopupCopy::handle_event()
 {
-    mwindow->copy_keyframe(popup->auto_);
+    if(popup->auto_)
+        mwindow->copy_keyframe(popup->auto_);
+    else
+        mwindow->copy_keyframe(popup->autos->default_auto);
 	return 1;
 }
 
 
-KeyframePopupEdit::KeyframePopupEdit(MWindow *mwindow, KeyframePopup *popup)
+KeyframePopupPreset::KeyframePopupPreset(MWindow *mwindow, KeyframePopup *popup)
  : BC_MenuItem(_("Presets..."))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
 }
 
-int KeyframePopupEdit::handle_event()
+int KeyframePopupPreset::handle_event()
 {
 	mwindow->show_keyframe_gui(popup->plugin, 0);
 	return 1;
@@ -375,20 +352,38 @@ int KeyframePopupEdit::handle_event()
 
 
 
-
-
-KeyframePopupCopyDefault::KeyframePopupCopyDefault(MWindow *mwindow, 
-    KeyframePopup *popup)
- : BC_MenuItem(_("Copy default keyframe"))
+KeyframePopupEdit::KeyframePopupEdit(MWindow *mwindow, KeyframePopup *popup)
+ : BC_MenuItem("")
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
 }
-int KeyframePopupCopyDefault::handle_event()
+
+int KeyframePopupEdit::handle_event()
 {
-    mwindow->copy_keyframe(popup->autos->default_auto);
+    if(popup->auto_)
+        mwindow->edit_keyframe->start(popup->auto_);
+    else
+        mwindow->edit_keyframe->start(popup->autos->default_auto);
 	return 1;
 }
+
+
+
+
+
+// KeyframePopupCopyDefault::KeyframePopupCopyDefault(MWindow *mwindow, 
+//     KeyframePopup *popup)
+//  : BC_MenuItem(_("Copy default keyframe"))
+// {
+// 	this->mwindow = mwindow;
+// 	this->popup = popup;
+// }
+// int KeyframePopupCopyDefault::handle_event()
+// {
+//     mwindow->copy_keyframe(popup->autos->default_auto);
+// 	return 1;
+// }
 
 
 

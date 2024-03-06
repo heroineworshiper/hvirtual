@@ -77,9 +77,9 @@ public:
 	int move_tracks_up();                   // move recordable tracks up
 	int move_tracks_down();                 // move recordable tracks down
 
-// Only tests effects
 	int plugin_exists(Plugin *plugin);
 	int track_exists(Track *track);
+    int keyframe_exists(Auto *auto_);
 
 // Return the numbers of tracks with the play patch enabled
 	int playable_audio_tracks();

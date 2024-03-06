@@ -103,7 +103,7 @@ EDL::~EDL()
 	}
 
 
-	remove_vwindow_edls();
+//	remove_vwindow_edls();
 
 //	if(vwindow_edl && !vwindow_edl_shared)
 //		vwindow_edl->Garbage::remove_user();
@@ -205,10 +205,10 @@ int EDL::load_xml(FileXML *file,
 // Clear objects
 	folders.remove_all_objects();
 
-	if((load_flags & LOAD_ALL) == LOAD_ALL)	
-	{
-		remove_vwindow_edls();
-	}
+// 	if((load_flags & LOAD_ALL) == LOAD_ALL)	
+// 	{
+// 		remove_vwindow_edls();
+// 	}
 
 
 // Search for start of master EDL.
@@ -380,7 +380,7 @@ int EDL::load_xml(FileXML *file,
 //						vwindow_edl_shared = 0;
 //						vwindow_edl = new_edl;
 
-						append_vwindow_edl(new_edl, 0);
+//						append_vwindow_edl(new_edl, 0);
 
 					}
 					else
@@ -463,20 +463,20 @@ void EDL::copy_clips(EDL *edl)
 {
 	if(this == edl) return;
 
-	remove_vwindow_edls();
+//	remove_vwindow_edls();
 
 //	if(vwindow_edl && !vwindow_edl_shared) 
 //		vwindow_edl->Garbage::remove_user();
 //	vwindow_edl = 0;
 //	vwindow_edl_shared = 0;
 
-	for(int i = 0; i < edl->total_vwindow_edls(); i++)
-	{
-		EDL *new_edl = new EDL(this);
-		new_edl->create_objects();
-		new_edl->copy_all(edl->get_vwindow_edl(i));
-		append_vwindow_edl(new_edl, 0);
-	}
+// 	for(int i = 0; i < edl->total_vwindow_edls(); i++)
+// 	{
+// 		EDL *new_edl = new EDL(this);
+// 		new_edl->create_objects();
+// 		new_edl->copy_all(edl->get_vwindow_edl(i));
+// 		append_vwindow_edl(new_edl, 0);
+// 	}
 
 	for(int i = 0; i < clips.size(); i++)
 		clips.get(i)->Garbage::remove_user();
@@ -726,13 +726,13 @@ int EDL::copy(double start,
 // Don't want this if using clipboard
 		if(all)
 		{
-			for(int i = 0; i < total_vwindow_edls(); i++)
-			{
-				get_vwindow_edl(i)->save_xml(file, 
-					output_path,
-					0,
-					1);
-			}
+// 			for(int i = 0; i < total_vwindow_edls(); i++)
+// 			{
+// 				get_vwindow_edl(i)->save_xml(file, 
+// 					output_path,
+// 					0,
+// 					1);
+// 			}
 
 			for(int i = 0; i < clips.total; i++)
 				clips.values[i]->save_xml(file, 
@@ -1083,8 +1083,8 @@ void EDL::remove_from_project(ArrayList<Indexable*> *assets)
     }
 
 // Remove from VWindow EDLs
-	for(int i = 0; i < total_vwindow_edls(); i++)
-		get_vwindow_edl(i)->remove_from_project(assets);
+//	for(int i = 0; i < total_vwindow_edls(); i++)
+//		get_vwindow_edl(i)->remove_from_project(assets);
 
 	for(int i = 0; i < assets->size(); i++)
 	{
@@ -1269,13 +1269,13 @@ int EDL::dump()
 			printf("\n\n");
 		}
 
-		printf(" VWINDOW EDLS\n");
-		printf("  total: %d\n", total_vwindow_edls());
-		
-		for(int i = 0; i < total_vwindow_edls(); i++)
-		{
-			printf("   %s\n", get_vwindow_edl(i)->local_session->clip_title);
-		}
+// 		printf(" VWINDOW EDLS\n");
+// 		printf("  total: %d\n", total_vwindow_edls());
+// 		
+// 		for(int i = 0; i < total_vwindow_edls(); i++)
+// 		{
+// 			printf("   %s\n", get_vwindow_edl(i)->local_session->clip_title);
+// 		}
 	
 		printf(" ASSETS\n");
 		assets->dump();
@@ -1747,49 +1747,49 @@ int64_t EDL::get_video_frames()
 }
 
 
-void EDL::remove_vwindow_edls()
-{
-	for(int i = 0; i < total_vwindow_edls(); i++)
-	{
-		get_vwindow_edl(i)->Garbage::remove_user();
-	}
-	vwindow_edls.remove_all();
-}
-
-void EDL::remove_vwindow_edl(EDL *edl)
-{
-	if(vwindow_edls.number_of(edl) >= 0)
-	{
-		edl->Garbage::remove_user();
-
-		vwindow_edls.remove(edl);
-	}
-}
-
-
-EDL* EDL::get_vwindow_edl(int number)
-{
-    if(vwindow_edls.size())
-    {
-    	return vwindow_edls.get(number);
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-int EDL::total_vwindow_edls()
-{
-	return vwindow_edls.size();
-}
-
-void EDL::append_vwindow_edl(EDL *edl, int increase_counter)
-{
-	if(vwindow_edls.number_of(edl) >= 0) return;
-
-	if(increase_counter) edl->Garbage::add_user();
-	vwindow_edls.append(edl);
-}
+// void EDL::remove_vwindow_edls()
+// {
+// 	for(int i = 0; i < total_vwindow_edls(); i++)
+// 	{
+// 		get_vwindow_edl(i)->Garbage::remove_user();
+// 	}
+// 	vwindow_edls.remove_all();
+// }
+// 
+// void EDL::remove_vwindow_edl(EDL *edl)
+// {
+// 	if(vwindow_edls.number_of(edl) >= 0)
+// 	{
+// 		edl->Garbage::remove_user();
+// 
+// 		vwindow_edls.remove(edl);
+// 	}
+// }
+// 
+// 
+// EDL* EDL::get_vwindow_edl(int number)
+// {
+//     if(vwindow_edls.size())
+//     {
+//     	return vwindow_edls.get(number);
+//     }
+//     else
+//     {
+//         return 0;
+//     }
+// }
+// 
+// int EDL::total_vwindow_edls()
+// {
+// 	return vwindow_edls.size();
+// }
+// 
+// void EDL::append_vwindow_edl(EDL *edl, int increase_counter)
+// {
+// 	if(vwindow_edls.number_of(edl) >= 0) return;
+// 
+// 	if(increase_counter) edl->Garbage::add_user();
+// 	vwindow_edls.append(edl);
+// }
 
 

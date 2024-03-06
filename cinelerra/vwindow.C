@@ -74,7 +74,7 @@ void VWindow::delete_source(int do_main_edl, int update_gui)
 // gui->get_window_lock(), 
 // edl, 
 // indexable);
-	if(do_main_edl) mwindow->edl->remove_vwindow_edl(get_edl());
+//	if(do_main_edl) mwindow->edl->remove_vwindow_edl(get_edl());
 
 	if(edl)
 	{
@@ -188,14 +188,14 @@ void VWindow::change_source(int edl_number)
 {
 	if(!running()) return;
 
-	if(mwindow->edl->get_vwindow_edl(edl_number))
-	{
-		this->edl = mwindow->edl->get_vwindow_edl(edl_number);
-		this->edl->Garbage::add_user();
-		gui->change_source(get_edl(), get_edl()->local_session->clip_title);
-		update_position(CHANGE_ALL, 1, 1, 1);
-	}
-	else
+// 	if(mwindow->edl->get_vwindow_edl(edl_number))
+// 	{
+// 		this->edl = mwindow->edl->get_vwindow_edl(edl_number);
+// 		this->edl->Garbage::add_user();
+// 		gui->change_source(get_edl(), get_edl()->local_session->clip_title);
+// 		update_position(CHANGE_ALL, 1, 1, 1);
+// 	}
+// 	else
 	{
 		delete_source(1, 1);
 //		if(indexable) indexable->Garbage::remove_user();
@@ -242,7 +242,7 @@ void VWindow::change_source(Indexable *indexable)
 // Create EDL
 	this->edl = new EDL(mwindow->edl);
 	this->edl->create_objects();
-	mwindow->edl->append_vwindow_edl(this->edl, 1);
+//	mwindow->edl->append_vwindow_edl(this->edl, 1);
 
 //	mwindow->edl->vwindow_edl = new EDL(mwindow->edl);
 //	mwindow->edl->vwindow_edl_shared = 0;
@@ -285,7 +285,7 @@ void VWindow::change_source(EDL *edl)
 
 	if(edl)
 	{
-		mwindow->edl->append_vwindow_edl(edl, 1);
+//		mwindow->edl->append_vwindow_edl(edl, 1);
 		this->edl = edl;
 		this->edl->Garbage::add_user();
 

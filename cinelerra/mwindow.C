@@ -41,6 +41,7 @@
 #include "cwindow.h"
 #include "bchash.h"
 #include "devicedvbinput.inc"
+#include "editkeyframe.h"
 #include "editpanel.h"
 #include "edl.h"
 #include "edlfactory.h"
@@ -1792,6 +1793,7 @@ void MWindow::create_objects(int want_gui,
 
 	asset_remove = new AssetRemoveThread(this);
 	attach_transition = new TransitionDialogThread(this);
+    edit_keyframe = new EditKeyframeThread(this);
 
 
 	init_error();

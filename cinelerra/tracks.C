@@ -674,5 +674,15 @@ int Tracks::track_exists(Track *track)
 }
 
 
+int Tracks::keyframe_exists(Auto *auto_)
+{
+	for(Track *current = first; current; current = NEXT)
+	{
+		if(current->keyframe_exists(auto_)) return 1;
+	}
+	return 0;
+}
+
+
 
 

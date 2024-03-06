@@ -45,6 +45,7 @@ class Automation;
 #define AUTOMATION_MODE 9
 #define AUTOMATION_MASK 10
 #define AUTOMATION_SPEED 11
+// end of automation which overlaps the resource pixmap
 #define AUTOMATION_TOTAL 12
 
 #define TRANSITION_OVERLAYS 12

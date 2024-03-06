@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,13 +31,14 @@ FloatAuto::FloatAuto(EDL *edl, FloatAutos *autos)
 	value = 0;
 	control_in_value = 0;
 	control_out_value = 0;
-	mode = BEZIER;
+	mode = BEZIER_UNLOCKED;
 //	control_in_position = 0;
 //	control_out_position = 0;
 }
 
 FloatAuto::~FloatAuto()
 {
+//printf("FloatAuto::~FloatAuto %d %p\n", __LINE__, this);
 }
 
 int FloatAuto::operator==(Auto &that)
@@ -90,6 +90,18 @@ float FloatAuto::outvalue_to_percentage()
 		automation_range;
 }
 
+void FloatAuto::to_locked()
+{
+// preserve the bigger of the 2 control points & mirror it
+    if(fabs(control_in_value) > fabs(control_out_value))
+    {
+        control_out_value = -control_in_value;
+    }
+    else
+    {
+        control_in_value = -control_out_value;
+    }
+}
 
 void FloatAuto::copy_from(Auto *that)
 {

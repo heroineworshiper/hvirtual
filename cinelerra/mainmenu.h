@@ -37,7 +37,7 @@ class ShowGWindow;
 class ShowCWindow;
 class ShowLWindow;
 class Undo;
-class KeyframeType;
+//class KeyframeType;
 class SplitX;
 class SplitY;
 
@@ -114,7 +114,7 @@ public:
 	int total_veffects;
 	BC_Menu *filemenu, *audiomenu, *videomenu;      // needed by most recents
 
-	KeyframeType *keyframe_type;
+//	KeyframeType *keyframe_type;
 	LabelsFollowEdits *labels_follow_edits;
 	PluginsFollowEdits *plugins_follow_edits;
 	KeyframesFollowEdits *keyframes_follow_edits;
@@ -266,26 +266,27 @@ public:
 	MWindow *mwindow;
 };
 
-class StraightenKeyframes : public BC_MenuItem
-{
-public:
-	StraightenKeyframes(MWindow *mwindow);
-	int handle_event();
-	MWindow *mwindow;
-};
+// class StraightenKeyframes : public BC_MenuItem
+// {
+// public:
+// 	StraightenKeyframes(MWindow *mwindow);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// };
+// 
+// class BendKeyframes : public BC_MenuItem
+// {
+// public:
+// 	BendKeyframes(MWindow *mwindow);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// };
 
-class BendKeyframes : public BC_MenuItem
-{
-public:
-	BendKeyframes(MWindow *mwindow);
-	int handle_event();
-	MWindow *mwindow;
-};
-
+// TODO: put default keyframe type in interface preferences
 class KeyframeType : public BC_MenuItem
 {
 public:
-	KeyframeType(MWindow *mwindow, int type);
+	KeyframeType(MWindow *mwindow, const char *text, int type);
 	int handle_event();
 	MWindow *mwindow;
 	int new_type;

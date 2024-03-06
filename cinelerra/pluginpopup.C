@@ -20,6 +20,7 @@
 
 #include "autoconf.h"
 #include "bcsignals.h"
+#include "edl.h"
 #include "keyframes.h"
 #include "language.h"
 #include "mainundo.h"
@@ -31,6 +32,7 @@
 #include "presets.h"
 #include "presetsgui.h"
 #include "track.h"
+#include "tracks.h"
 
 
 
@@ -48,6 +50,7 @@ PluginPopup::PluginPopup(MWindow *mwindow, MWindowGUI *gui)
     copy_default = 0;
     paste_default = 0;
     paste = 0;
+    bar = 0;
 }
 
 PluginPopup::~PluginPopup()
@@ -56,8 +59,10 @@ PluginPopup::~PluginPopup()
 
 void PluginPopup::create_objects()
 {
+	add_item(expand = new PluginPopupExpand(mwindow, this));
 	add_item(change = new PluginPopupChange(mwindow, this));
 	add_item(detach = new PluginPopupDetach(mwindow, this));
+    add_item(new BC_MenuItem("-"));
 	add_item(new PluginPopupUp(mwindow, this));
 	add_item(new PluginPopupDown(mwindow, this));
 	add_item(on = new PluginPopupOn(mwindow, this));
@@ -69,25 +74,36 @@ int PluginPopup::update(double position,
     this->position = position;
 	this->plugin = plugin;
 
-	if(show) remove_item(show);
-	if(presets) remove_item(presets);
-    if(copy_default) remove_item(copy_default);
-    if(paste_default) remove_item(paste_default);
-    if(paste) remove_item(paste);
+	delete show;
+	delete presets;
+    delete copy_default;
+    delete paste_default;
+    delete paste;
+    delete bar;
 	show = 0;
 	presets = 0;
     copy_default = 0;
     paste_default = 0;
     paste = 0;
+    bar = 0;
+
+    Track *track = plugin->track;
+
+    if(track->expand_view)
+        expand->set_text(_("Collapse track"));
+    else
+        expand->set_text(_("Expand track"));
 
 	if(plugin->plugin_type == PLUGIN_STANDALONE)
 	{
 		add_item(show = new PluginPopupShow(mwindow, this));
-		add_item(presets = new PluginPresets(mwindow, this));
 		show->set_checked(plugin->show);
+
+        add_item(bar = new BC_MenuItem("-"));
         add_item(paste = new PluginPopupPaste(mwindow, this));
         add_item(copy_default = new PluginPopupCopyDefault(mwindow, this));
         add_item(paste_default = new PluginPopupPasteDefault(mwindow, this));
+		add_item(presets = new PluginPresets(mwindow, this));
 	}
 
 	on->set_checked(plugin->on);
@@ -98,12 +114,34 @@ int PluginPopup::update(double position,
 
 
 
+// menus are getting crowded to put this in the plugin popup too
+PluginPopupExpand::PluginPopupExpand(MWindow *mwindow, PluginPopup *popup)
+ : BC_MenuItem("")
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int PluginPopupExpand::handle_event()
+{
+    Track *track = popup->plugin->track;
+    if(track->expand_view)
+        track->expand_view = 0;
+    else
+        track->expand_view = 1;
+    mwindow->edl->tracks->update_y_pixels(mwindow->theme);
+    mwindow->gui->draw_trackmovement();
+    return 1;
+}
+
+
+
 
 
 
 
 PluginPopupChange::PluginPopupChange(MWindow *mwindow, PluginPopup *popup)
- : BC_MenuItem(_("Change..."))
+ : BC_MenuItem(_("Change effect..."))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;
@@ -133,7 +171,7 @@ int PluginPopupChange::handle_event()
 
 
 PluginPopupDetach::PluginPopupDetach(MWindow *mwindow, PluginPopup *popup)
- : BC_MenuItem(_("Detach"))
+ : BC_MenuItem(_("Detach effect"))
 {
 	this->mwindow = mwindow;
 	this->popup = popup;

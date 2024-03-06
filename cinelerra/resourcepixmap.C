@@ -133,7 +133,8 @@ void ResourcePixmap::draw_data(TrackCanvas *canvas,
 //	if(mode == IGNORE_THREAD) return;
 
 	int y = 0;
-	if(mwindow->edl->session->show_titles) y += mwindow->theme->get_image("title_bg_data")->get_h();
+	if(mwindow->edl->session->show_titles) 
+        y += mwindow->theme->get_image("title_bg_data")->get_h();
 	Track *track = edit->edits->track;
 
 
@@ -143,7 +144,8 @@ void ResourcePixmap::draw_data(TrackCanvas *canvas,
 	Indexable *indexable = 0;
 	if(edit->asset) indexable = edit->asset;
 	if(edit->nested_edl) indexable = edit->nested_edl;
-	if(indexable && indexes_only)
+	if(mwindow->edl->session->show_assets &&
+        indexable && indexes_only)
 	{
 		IndexFile indexfile(mwindow, indexable);
 		if(!indexfile.open_index())
@@ -172,188 +174,9 @@ void ResourcePixmap::draw_data(TrackCanvas *canvas,
 
 // Redraw everything
 /* Incremental drawing is not possible with resource thread */
-	if(1)
-// 		edit->startsource != this->startsource ||
-// 		mwindow->edl->session->sample_rate != project_samplerate ||
-// 		!EQUIV(mwindow->edl->session->frame_rate, project_framerate) ||
-// 		mwindow->edl->local_session->zoom_sample != zoom_sample || 
-// 		mwindow->edl->local_session->zoom_track != zoom_track ||
-// 		this->pixmap_h != pixmap_h ||
-// 		(data_type == TRACK_AUDIO && 
-// 			mwindow->edl->local_session->zoom_y != zoom_y) ||
-// 		(mode == 2) ||
-// 		need_redraw)
-	{
 // Redraw the whole thing.
-		refresh_x = 0;
-		refresh_w = pixmap_w;
-	}
-// 	else
-// 	{
-// // Start translated right
-// 		if(pixmap_w == this->pixmap_w && edit_x < this->edit_x && edit_w != pixmap_w)
-// 		{
-// 			refresh_w = this->edit_x - edit_x;
-// 			refresh_x = this->pixmap_w - refresh_w;
-// 
-// // Moved completely off the pixmap
-// 			if(refresh_w > this->pixmap_w)
-// 			{
-// 				refresh_w = this->pixmap_w;
-// 				refresh_x = 0;
-// 			}
-// 			else
-// 			{
-// 				copy_area(refresh_w, 
-// 					y, 
-// 					refresh_x, 
-// 					mwindow->edl->local_session->zoom_track, 
-// 					0, 
-// 					y);
-// 			}
-// 		}
-//  		else
-// // Start translated left
-//  		if(pixmap_w == this->pixmap_w && edit_x > this->edit_x && edit_w != pixmap_w)
-//  		{
-// 			refresh_x = 0;
-// 			refresh_w = edit_x - this->edit_x;
-// 
-// // Moved completely off the pixmap
-// 			if(refresh_w > this->pixmap_w)
-// 			{
-// 				refresh_w = this->pixmap_w;
-// 			}
-// 			else
-// 			{
-// 				copy_area(0, 
-// 					y, 
-// 					this->pixmap_w - refresh_w, 
-// 					mwindow->edl->local_session->zoom_track, 
-// 					refresh_w, 
-// 					y);
-// 			}
-//  		}
-// 		else
-// // Start translated right and pixmap came off of right side
-// 		if(pixmap_w < this->pixmap_w && edit_x < this->edit_x && 
-// 			this->edit_x + edit_w > this->pixmap_x + this->pixmap_w)
-// 		{
-// 			refresh_w = (this->edit_x + edit_w) - (this->pixmap_x + this->pixmap_w);
-// 			refresh_x = pixmap_w - refresh_w;
-// 			
-// 			if(refresh_w >= pixmap_w)
-// 			{
-// 				refresh_x = 0;
-// 				refresh_w = pixmap_w;
-// 			}
-// 			else
-// 			{
-// 				copy_area(this->edit_x - edit_x, 
-// 					y, 
-// 					pixmap_w - refresh_w, 
-// 					mwindow->edl->local_session->zoom_track, 
-// 					0, 
-// 					y);
-// 			}
-// 		}
-// 		else
-// // Start translated right and reduced in size on the right.
-// 		if(pixmap_w < this->pixmap_w && edit_x < this->edit_x)
-// 		{
-// 			refresh_x = 0;
-// 			refresh_w = 0;
-// 
-// 			copy_area(this->pixmap_w - pixmap_w, 
-// 				y, 
-// 				pixmap_w, 
-// 				mwindow->edl->local_session->zoom_track, 
-// 				0, 
-// 				y);
-// 		}
-// 		else
-// // Start translated left and pixmap came off left side
-// 		if(edit_x >= 0 && this->edit_x < 0)
-// 		{
-// 			refresh_x = 0;
-// 			refresh_w = -this->edit_x;
-// 
-// 			if(refresh_w > pixmap_w)
-// 			{
-// 				refresh_w = pixmap_w;
-// 			}
-// 			else
-// 			{
-// 				copy_area(0, 
-// 						y, 
-// 						this->pixmap_w, 
-// 						mwindow->edl->local_session->zoom_track, 
-// 						refresh_w, 
-// 						y);
-// 			}
-// 		}
-// 		else
-// // Start translated left and reduced in size on the right
-// 		if(pixmap_w < this->pixmap_w && edit_x > this->edit_x)
-// 		{
-// 			refresh_x = 0;
-// 			refresh_w = 0;
-// 		}
-// 		else
-// // Start translated right and left went into left side.
-// 		if(pixmap_w > this->pixmap_w && edit_x < 0 && this->edit_x > 0)
-// 		{
-// 			refresh_w = pixmap_w - (edit_x + this->pixmap_w);
-// 			refresh_x = pixmap_w - refresh_w;
-// 
-// // Moved completely off new pixmap
-// 			if(refresh_w > pixmap_w)
-// 			{
-// 				refresh_w = pixmap_w;
-// 				refresh_x = 0;
-// 			}
-// 			else
-// 			{
-// 				copy_area(-edit_x, 
-// 					y,
-// 					refresh_x,
-// 					mwindow->edl->local_session->zoom_track,
-// 					0,
-// 					y);
-// 			}
-// 		}
-// 		else
-// // Start translated right and increased in size on the right
-// 		if(pixmap_w > this->pixmap_w && edit_x <= this->edit_x)
-// 		{
-// 			refresh_w = pixmap_w - this->pixmap_w;
-// 			refresh_x = pixmap_w - refresh_w;
-// 		}
-// 		else
-// // Start translated left and increased in size on the right
-// 		if(pixmap_w > this->pixmap_w && edit_x > this->edit_x)
-// 		{
-// 			refresh_x = 0;
-// 			refresh_w = edit_x - this->edit_x;
-// 
-// // Moved completely off new pixmap
-// 			if(refresh_w > this->pixmap_w)
-// 			{
-// 				refresh_w = pixmap_w;
-// 				refresh_x = 0;
-// 			}
-// // Shift and insert
-// 			else
-// 			{
-// 				copy_area(0, 
-// 					y,
-// 					this->pixmap_w,
-// 					mwindow->edl->local_session->zoom_track,
-// 					refresh_w,
-// 					y);
-// 			}
-// 		}
-// 	}
+	refresh_x = 0;
+	refresh_w = pixmap_w;
 
 // Update pixmap settings
 	this->edit_id = edit->id;
@@ -383,45 +206,48 @@ void ResourcePixmap::draw_data(TrackCanvas *canvas,
 
 
 
+    if(mwindow->edl->session->show_assets)
+    {
 // Draw background image
-	if(refresh_w > 0)
-		mwindow->theme->draw_resource_bg(canvas,
-			this, 
-			edit_x,
-			edit_w,
-			pixmap_x,
-			refresh_x, 
-			y,
-			refresh_x + refresh_w,
-			mwindow->edl->local_session->zoom_track + y);
+	    if(refresh_w > 0)
+		    mwindow->theme->draw_resource_bg(canvas,
+			    this, 
+			    edit_x,
+			    edit_w,
+			    pixmap_x,
+			    refresh_x, 
+			    y,
+			    refresh_x + refresh_w,
+			    mwindow->edl->local_session->zoom_track + y);
 //printf("ResourcePixmap::draw_data 70\n");
 
 
 // Draw media which already exists
-	if(track->draw)
-	{
-		switch(track->data_type)
-		{
-			case TRACK_AUDIO:
-				draw_audio_resource(canvas,
-					edit, 
-					refresh_x, 
-					refresh_w);
-				break;
+	    if(track->draw)
+	    {
+		    switch(track->data_type)
+		    {
+			    case TRACK_AUDIO:
+				    draw_audio_resource(canvas,
+					    edit, 
+					    refresh_x, 
+					    refresh_w);
+				    break;
 
-			case TRACK_VIDEO:
-				draw_video_resource(canvas,
-					edit, 
-					edit_x, 
-					edit_w, 
-					pixmap_x,
-					pixmap_w,
-					refresh_x, 
-					refresh_w,
-					mode);
-				break;
-		}
-	}
+			    case TRACK_VIDEO:
+				    draw_video_resource(canvas,
+					    edit, 
+					    edit_x, 
+					    edit_w, 
+					    pixmap_x,
+					    pixmap_w,
+					    refresh_x, 
+					    refresh_w,
+					    mode);
+				    break;
+		    }
+	    }
+    }
 
 // Draw title
 SET_TRACE

@@ -216,6 +216,7 @@ int PatchGUI::update(int x, int y)
 			draw = 0;
 			mute = 0;
 			expand = 0;
+            gang = 0;
 		}
 		else
 		{
@@ -694,7 +695,14 @@ ExpandPatch::ExpandPatch(MWindow *mwindow, PatchGUI *patch, int x, int y)
 	this->patch = patch;
 	set_select_drag(1);
 }
-
+// must escape from a drag operation here because expand can delete itself
+ExpandPatch::~ExpandPatch()
+{
+    button_release_event();
+// Deleting a widget during a button down operation causes problems which must be
+// hacked out of.
+    clear_button_down();
+}
 int ExpandPatch::button_press_event()
 {
 	if(is_event_win() && get_buttonpress() == 1)

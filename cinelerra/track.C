@@ -31,6 +31,7 @@
 #include "floatauto.h"
 #include "floatautos.h"
 #include "keyframe.h"
+#include "keyframes.h"
 #include "labels.h"
 #include "localsession.h"
 #include "mainsession.h"
@@ -237,10 +238,25 @@ printf("Track::operator= 1\n");
 int Track::vertical_span(Theme *theme)
 {
 	int result = 0;
+// shift down if track has media or certain keyframes are visible
+    int got_autos = 0;
+    for(int i = 0; i < AUTOMATION_TOTAL; i++)
+        if(edl->session->auto_conf->autos[i]) got_autos = 1;
+//printf("Track::vertical_span %d expand_view=%d got_autos=%d\n", __LINE__, expand_view, got_autos);
+
+// follows the greater of the plugin heights or the patchbay if expanded
 	if(expand_view)
 	{
-    	result = edl->local_session->zoom_track + 
-			plugin_set.total * 
+// height of the media
+        if(edits->last || got_autos)
+        {
+	        if(edits->last && edl->session->show_titles)
+    		    result += theme->get_image("title_bg_data")->get_h();
+            if(edl->session->show_assets || got_autos)
+                result += edl->local_session->zoom_track;
+        }
+
+    	result += plugin_set.total * 
 			theme->get_image("plugin_bg_data")->get_h();
         if(MWindow::theme->patch_h > result)
         {
@@ -249,11 +265,15 @@ int Track::vertical_span(Theme *theme)
 	}
     else
 	{
-    	result = edl->local_session->zoom_track;
+// fixed height if not expanded
+        if(edl->session->show_assets || got_autos)
+        	result += edl->local_session->zoom_track;
+	    if(edits->last && edl->session->show_titles)
+    		result += theme->get_image("title_bg_data")->get_h();
+        if(edl->local_session->zoom_track > result)
+            result = edl->local_session->zoom_track;
     }
 
-	if(edl->session->show_titles)
-		result += theme->get_image("title_bg_data")->get_h();
 
 	return result;
 }
@@ -890,7 +910,7 @@ void Track::synchronize_params(Track *track)
 
 int Track::dump()
 {
-	printf("   Data type %d\n", data_type);
+	printf("   Data type %d expand_view=%d\n", data_type, expand_view);
 	printf("   Title %s\n", title);
 	printf("   Edits:\n");
 	for(Edit* current = edits->first; current; current = NEXT)
@@ -2000,6 +2020,31 @@ int Track::plugin_exists(Plugin *plugin)
 
 	return 0;
 }
+
+
+int Track::keyframe_exists(Auto *auto_)
+{
+    for(int i = 0; i < AUTOMATION_TOTAL; i++)
+    {
+        Autos *autos = automation->autos[i];
+//        if(!autos) printf("Track::keyframe_exists %d: automation type %d doesn't exist\n", __LINE__, i);
+// not every track type has every automation type
+        if(autos && autos->auto_exists(auto_)) return 1;
+    }
+
+	for(int number = 0; number < plugin_set.size(); number++)
+	{
+		PluginSet *ptr = plugin_set.get(number);
+		for(Plugin *current_plugin = (Plugin*)ptr->first;
+			current_plugin;
+			current_plugin = (Plugin*)current_plugin->next)
+		{
+			if(current_plugin->keyframes->auto_exists(auto_)) return 1;
+		}
+	}
+    return 0;
+}
+
 
 
 		

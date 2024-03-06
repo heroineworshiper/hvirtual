@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
@@ -24,6 +23,7 @@
 
 #include "arraylist.h"
 #include "asset.inc"
+#include "auto.inc"
 #include "autoconf.inc"
 #include "automation.inc"
 #include "datatype.h"
@@ -190,6 +190,7 @@ public:
 		int new_location, 
 		int do_swap);
 	int plugin_exists(Plugin *plugin);
+	int keyframe_exists(Auto *auto_);
 
 	EDL *edl;
 	Tracks *tracks;

@@ -147,13 +147,21 @@ void MainMenu::create_objects()
 	keyframemenu->add_item(new CopyKeyframes(mwindow));
 	keyframemenu->add_item(new PasteKeyframes(mwindow));
 	keyframemenu->add_item(new ClearKeyframes(mwindow));
-	keyframemenu->add_item(new StraightenKeyframes(mwindow));
-	keyframemenu->add_item(new BendKeyframes(mwindow));
-	keyframemenu->add_item(keyframe_type = new KeyframeType(mwindow, 
-		mwindow->edl->local_session->floatauto_type));
+//	keyframemenu->add_item(new StraightenKeyframes(mwindow));
+//	keyframemenu->add_item(new BendKeyframes(mwindow));
 	keyframemenu->add_item(new BC_MenuItem("-"));
 	keyframemenu->add_item(new CopyDefaultKeyframe(mwindow));
 	keyframemenu->add_item(new PasteDefaultKeyframe(mwindow));
+	keyframemenu->add_item(new BC_MenuItem("-"));
+	keyframemenu->add_item(new KeyframeType(mwindow, 
+		_("Change to linear"), 
+        Auto::LINEAR));
+	keyframemenu->add_item(new KeyframeType(mwindow, 
+		_("Change to unlocked bezier"), 
+        Auto::BEZIER_UNLOCKED));
+	keyframemenu->add_item(new KeyframeType(mwindow, 
+		_("Change to locked bezier"), 
+        Auto::BEZIER_LOCKED));
 
 
 
@@ -164,10 +172,11 @@ void MainMenu::create_objects()
 	audiomenu->add_item(new MenuAttachTransition(mwindow, TRACK_AUDIO));
 	audiomenu->add_item(new MenuAttachEffect(mwindow, TRACK_AUDIO));
 	audiomenu->add_item(aeffects = new MenuAEffects(mwindow));
+    
+    audiomenu->add_item(new BC_MenuItem("-"));
 	audiomenu->add_item(new MapAudio1(mwindow));
 	audiomenu->add_item(new MapAudio2(mwindow));
 	audiomenu->add_item(new MapAudio3(mwindow));
-
 	add_menu(videomenu = new BC_Menu(_("Video")));
 	videomenu->add_item(new AddVideoTrack(mwindow));
 	videomenu->add_item(new DefaultVTransition(mwindow));
@@ -256,7 +265,7 @@ int MainMenu::load_defaults(BC_Hash *defaults)
 void MainMenu::update_toggles(int use_lock)
 {
 	if(use_lock) lock_window("MainMenu::update_toggles");
-	keyframe_type->set_checked(mwindow->edl->local_session->floatauto_type == Auto::BEZIER);
+//	keyframe_type->set_checked(mwindow->edl->local_session->floatauto_type == Auto::BEZIER);
 	labels_follow_edits->set_checked(mwindow->edl->session->labels_follow_edits);
 	plugins_follow_edits->set_checked(mwindow->edl->session->plugins_follow_edits);
 	keyframes_follow_edits->set_checked(mwindow->edl->session->autos_follow_edits);
@@ -701,49 +710,46 @@ int ClearKeyframes::handle_event()
 }
 
 
+// 
+// StraightenKeyframes::StraightenKeyframes(MWindow *mwindow)
+//  : BC_MenuItem(_("Change to linear"))
+// {
+// 	this->mwindow = mwindow; 
+// }
+// 
+// int StraightenKeyframes::handle_event()
+// {
+// 	mwindow->set_automation_mode(Auto::LINEAR);
+// 	return 1;
+// }
+// 
+// 
+// 
+// 
+// BendKeyframes::BendKeyframes(MWindow *mwindow)
+//  : BC_MenuItem(_("Change to bezier"))
+// {
+// 	this->mwindow = mwindow; 
+// }
+// 
+// int BendKeyframes::handle_event()
+// {
+// 	mwindow->set_automation_mode(Auto::BEZIER);
+// 	return 1;
+// }
 
-StraightenKeyframes::StraightenKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Change to linear"))
-{
-	this->mwindow = mwindow; 
-}
-
-int StraightenKeyframes::handle_event()
-{
-	mwindow->set_automation_mode(Auto::LINEAR);
-	return 1;
-}
 
 
-
-
-BendKeyframes::BendKeyframes(MWindow *mwindow)
- : BC_MenuItem(_("Change to bezier"))
-{
-	this->mwindow = mwindow; 
-}
-
-int BendKeyframes::handle_event()
-{
-	mwindow->set_automation_mode(Auto::BEZIER);
-	return 1;
-}
-
-
-
-KeyframeType::KeyframeType(MWindow *mwindow, int type)
- : BC_MenuItem("Create bezier")
+KeyframeType::KeyframeType(MWindow *mwindow, const char *text, int type)
+ : BC_MenuItem(text)
 {
 	this->mwindow = mwindow;
-	set_checked(type == Auto::BEZIER);
+    this->new_type = type;
 }
 
 int KeyframeType::handle_event()
 {
-	if(get_checked())
-		mwindow->set_keyframe_type(Auto::LINEAR);
-	else
-		mwindow->set_keyframe_type(Auto::BEZIER);
+	mwindow->set_automation_mode(new_type);
 	return 1;
 }
 

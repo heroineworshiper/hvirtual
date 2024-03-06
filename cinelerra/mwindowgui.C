@@ -859,6 +859,7 @@ void MWindowGUI::update(int scrollbars,
 
 int MWindowGUI::visible(int64_t x1, int64_t x2, int64_t view_x1, int64_t view_x2)
 {
+    if(x2 == x1) return 0;
 	return (x1 >= view_x1 && x1 < view_x2) ||
 		(x2 > view_x1 && x2 <= view_x2) ||
 		(x1 <= view_x1 && x2 >= view_x2);

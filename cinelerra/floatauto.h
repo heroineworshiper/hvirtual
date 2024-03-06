@@ -48,6 +48,8 @@ public:
  	float value_to_percentage();
  	float invalue_to_percentage();
  	float outvalue_to_percentage();
+// convert the control points to locked
+    void to_locked();
 
 // Control values are relative to value
 	float value, control_in_value, control_out_value;
