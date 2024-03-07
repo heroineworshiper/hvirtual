@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +18,7 @@
  * 
  */
 
+#include "automation.h"
 #include "autos.h"
 #include "clip.h"
 #include "edl.h"
@@ -635,42 +635,56 @@ int Autos::clear_auto(int64_t position)
 
 int Autos::load(FileXML *file)
 {
-	while(last)
-		remove(last);    // remove any existing autos
+//	while(last)
+//		remove(last);    // remove any existing autos
 
 	int result = 0, first_auto = 1;
-	Auto *current;
-	
+	Auto *current = first;
+	char end_tag[BCTEXTLEN];
+    sprintf(end_tag, "/%s", Automation::get_save_title(overlay_type));
+    
+    
+    
 	do{
 		result = file->read_tag();
-		
-		if(!result)
+		if(result) break;
+		if(!strcasecmp(file->tag.get_title(), end_tag))
 		{
-// First tag with leading / is taken as end of autos
-			if(/* strstr(file->tag.get_title(), "AUTOS") && */
-
-				file->tag.get_title()[0] == '/')
+			result = 1;
+		}
+		else
+		if(!strcmp(file->tag.get_title(), "AUTO"))
+		{
+			if(first_auto)
 			{
-				result = 1;
+				default_auto->load(file);
+				default_auto->position = 0;
+				first_auto = 0;
 			}
 			else
-			if(!strcmp(file->tag.get_title(), "AUTO"))
 			{
-				if(first_auto)
-				{
-					default_auto->load(file);
-					default_auto->position = 0;
-					first_auto = 0;
-				}
-				else
-				{
-					current = append(new_auto());
-					current->position = file->tag.get_property("POSITION", (int64_t)0);
-					current->load(file);
-				}
+                Auto *dst = 0;
+                if(current)
+                {
+                    dst = current;
+                    current = NEXT;
+                }
+                else
+    				dst = append(new_auto());
+
+				dst->position = file->tag.get_property("POSITION", (int64_t)0);
+				dst->load(file);
 			}
 		}
 	}while(!result);
+
+// delete unused keyframes
+    while(current)
+    {
+        Auto *dst = current;
+        current = NEXT;
+        delete dst;
+    }
 	return 0;
 }
 

@@ -496,62 +496,82 @@ void Plugin::load(FileXML *file)
 // Currently show is ignored when loading
 	show = 0;
 	on = 0;
-	while(keyframes->last) delete keyframes->last;
 
+//	while(keyframes->last) delete keyframes->last;
+
+// overwrite existing keyframes
+    Auto *current = keyframes->first;
 	do{
 		result = file->read_tag();
 
+        if(result) break;
 //printf("Plugin::load 1 %s\n", file->tag.get_title());
-		if(!result)
+
+		if(file->tag.title_is("/PLUGIN"))
 		{
-			if(file->tag.title_is("/PLUGIN"))
-			{
-				result = 1;
-			}
-			else
-			if(file->tag.title_is("SHARED_LOCATION"))
-			{
-				shared_location.load(file);
-			}
-			else
-			if(file->tag.title_is("IN"))
-			{
-				in = 1;
-			}
-			else
-			if(file->tag.title_is("OUT"))
-			{
-				out = 1;
-			}
-			else
-			if(file->tag.title_is("SHOW"))
-			{
-				show = 1;
-			}
-			else
-			if(file->tag.title_is("ON"))
-			{
-				on = 1;
-			}
-			else
-			if(file->tag.title_is("KEYFRAME"))
-			{
+			result = 1;
+		}
+		else
+		if(file->tag.title_is("SHARED_LOCATION"))
+		{
+			shared_location.load(file);
+		}
+		else
+		if(file->tag.title_is("IN"))
+		{
+			in = 1;
+		}
+		else
+		if(file->tag.title_is("OUT"))
+		{
+			out = 1;
+		}
+		else
+		if(file->tag.title_is("SHOW"))
+		{
+			show = 1;
+		}
+		else
+		if(file->tag.title_is("ON"))
+		{
+			on = 1;
+		}
+		else
+		if(file->tag.title_is("KEYFRAME"))
+		{
 // Default keyframe
-				if(first_keyframe)
-				{
-					keyframes->default_auto->load(file);
-					first_keyframe = 0;
-				}
-				else
-// Override default keyframe
-				{
-					KeyFrame *keyframe = (KeyFrame*)keyframes->append(new KeyFrame(edl, keyframes));
-					keyframe->position = file->tag.get_property("POSITION", (int64_t)0);
-					keyframe->load(file);
-				}
+			if(first_keyframe)
+			{
+				keyframes->default_auto->load(file);
+				first_keyframe = 0;
+			}
+			else
+// Other keyframes
+			{
+                KeyFrame *keyframe = 0;
+                if(current) 
+                {
+                    keyframe = (KeyFrame*)current;
+                    current = current->next;
+                }
+                else
+                {
+					keyframe = (KeyFrame*)keyframes->append(new KeyFrame(edl, keyframes));
+                }
+
+				keyframe->position = file->tag.get_property("POSITION", (int64_t)0);
+				keyframe->load(file);
 			}
 		}
 	}while(!result);
+
+// delete unused keyframes
+    while(current)
+    {
+        Auto *keyframe = current;
+        current = NEXT;
+        delete keyframe;
+    }
 }
 
 void Plugin::get_shared_location(SharedLocation *result)

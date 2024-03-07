@@ -412,7 +412,7 @@ int PlayPatch::button_press_event()
 {
 	if(is_event_win() && get_buttonpress() == 1)
 	{
-		mwindow->undo->update_undo_before();
+//		mwindow->undo->update_undo_before();
 		set_status(BC_Toggle::TOGGLE_DOWN);
 		update(!get_value());
 		patch->toggle_behavior(Tracks::PLAY,
@@ -429,7 +429,7 @@ int PlayPatch::button_release_event()
 	int result = BC_Toggle::button_release_event();
 	if(patch->patchbay->drag_operation == Tracks::PLAY)
 	{
-		mwindow->undo->update_undo_after(_("play patch"), LOAD_PATCHES);
+//		mwindow->undo->update_undo_after(_("play patch"), LOAD_PATCHES);
 		patch->patchbay->drag_operation = Tracks::NONE;
 	}
 	return result;
@@ -465,7 +465,7 @@ int RecordPatch::button_press_event()
 {
 	if(is_event_win() && get_buttonpress() == 1)
 	{
-		mwindow->undo->update_undo_before();
+//		mwindow->undo->update_undo_before();
 		set_status(BC_Toggle::TOGGLE_DOWN);
 		update(!get_value());
 		patch->toggle_behavior(Tracks::RECORD,
@@ -482,7 +482,7 @@ int RecordPatch::button_release_event()
 	int result = BC_Toggle::button_release_event();
 	if(patch->patchbay->drag_operation == Tracks::RECORD)
 	{
-		mwindow->undo->update_undo_after(_("record patch"), LOAD_PATCHES);
+//		mwindow->undo->update_undo_after(_("record patch"), LOAD_PATCHES);
 		patch->patchbay->drag_operation = Tracks::NONE;
 	}
 	return result;
@@ -517,7 +517,7 @@ int GangPatch::button_press_event()
 {
 	if(is_event_win() && get_buttonpress() == 1)
 	{
-		mwindow->undo->update_undo_before();
+//		mwindow->undo->update_undo_before();
 		set_status(BC_Toggle::TOGGLE_DOWN);
 		update(!get_value());
 		patch->toggle_behavior(Tracks::GANG,
@@ -534,7 +534,7 @@ int GangPatch::button_release_event()
 	int result = BC_Toggle::button_release_event();
 	if(patch->patchbay->drag_operation == Tracks::GANG)
 	{
-		mwindow->undo->update_undo_after(_("gang patch"), LOAD_PATCHES);
+//		mwindow->undo->update_undo_after(_("gang patch"), LOAD_PATCHES);
 		patch->patchbay->drag_operation = Tracks::NONE;
 	}
 	return result;
@@ -569,7 +569,7 @@ int DrawPatch::button_press_event()
 {
 	if(is_event_win() && get_buttonpress() == 1)
 	{
-		mwindow->undo->update_undo_before();
+//		mwindow->undo->update_undo_before();
 		set_status(BC_Toggle::TOGGLE_DOWN);
 		update(!get_value());
 		patch->toggle_behavior(Tracks::DRAW,
@@ -586,7 +586,7 @@ int DrawPatch::button_release_event()
 	int result = BC_Toggle::button_release_event();
 	if(patch->patchbay->drag_operation == Tracks::DRAW)
 	{
-		mwindow->undo->update_undo_after(_("draw patch"), LOAD_PATCHES);
+//		mwindow->undo->update_undo_after(_("draw patch"), LOAD_PATCHES);
 		patch->patchbay->drag_operation = Tracks::NONE;
 	}
 	return result;
@@ -707,7 +707,7 @@ int ExpandPatch::button_press_event()
 {
 	if(is_event_win() && get_buttonpress() == 1)
 	{
-		mwindow->undo->update_undo_before();
+//		mwindow->undo->update_undo_before();
 		set_status(BC_Toggle::TOGGLE_DOWN);
 		update(!get_value());
 		patch->toggle_behavior(Tracks::EXPAND,
@@ -726,7 +726,7 @@ int ExpandPatch::button_release_event()
 	int result = BC_Toggle::button_release_event();
 	if(patch->patchbay->drag_operation == Tracks::EXPAND)
 	{
-		mwindow->undo->update_undo_after(_("expand patch"), LOAD_PATCHES);
+//		mwindow->undo->update_undo_after(_("expand patch"), LOAD_PATCHES);
 		patch->patchbay->drag_operation = Tracks::NONE;
 	}
 	return result;

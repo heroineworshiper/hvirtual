@@ -583,13 +583,13 @@ int Edits::load_edit(FileXML *file,
 			    else
 			    if(file->tag.title_is("TRANSITION"))
 			    {
-                    if(flags & LOAD_EDITS)
+                    if(!current->transition)
 				        current->transition = new Transition(edl,
 					        current, 
 					        "",
 					        track->to_units(edl->session->default_transition_length, 1));
 
-                    if(flags & (LOAD_EDITS | LOAD_AUTOMATION))
+                    if((flags & LOAD_EDITS) || (flags & LOAD_AUTOMATION))
     				    current->transition->load_xml(file);
 			    }
 			    else

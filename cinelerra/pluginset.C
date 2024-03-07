@@ -376,56 +376,58 @@ void PluginSet::load(FileXML *file, uint32_t load_flags)
 {
 	int result = 0;
 // Current plugin being amended
-	Plugin *plugin = (Plugin*)first;
+	Edit *current = first;
 	int64_t startproject = 0;
 
 //	record = file->tag.get_property("RECORD", record);
 	do{
 		result = file->read_tag();
+        if(result) break;
 
-
-		if(!result)
+		if(file->tag.title_is("/PLUGINSET"))
 		{
-			if(file->tag.title_is("/PLUGINSET"))
-			{
-				result = 1;
-			}
-			else
-			if(file->tag.title_is("PLUGIN"))
-			{
-				int64_t length = file->tag.get_property("LENGTH", (int64_t)0);
-				int plugin_type = file->tag.get_property("TYPE", 1);
-				char title[BCTEXTLEN];
-				title[0] = 0;
-				file->tag.get_property("TITLE", title);
-				SharedLocation shared_location;
-				shared_location.load(file);
+			result = 1;
+		}
+		else
+		if(file->tag.title_is("PLUGIN"))
+		{
+			int64_t length = file->tag.get_property("LENGTH", (int64_t)0);
+			int plugin_type = file->tag.get_property("TYPE", 1);
+			char title[BCTEXTLEN];
+			title[0] = 0;
+			file->tag.get_property("TITLE", title);
+			SharedLocation shared_location;
+			shared_location.load(file);
 
+            Plugin *plugin = 0;
+            if(load_flags & LOAD_EDITS)
+                plugin = insert_plugin(title, 
+					startproject, 
+					length,
+					plugin_type,
+					&shared_location,
+					0,
+					0);
+            else
+            {
+                plugin = (Plugin*)current;
+                current = NEXT;
+            }
 
-				if(load_flags & LOAD_EDITS)
-				{
-					plugin = insert_plugin(title, 
-						startproject, 
-						length,
-						plugin_type,
-						&shared_location,
-						0,
-						0);
-					plugin->load(file);
-					startproject += length;
-				}
-				else
-				if(load_flags & LOAD_AUTOMATION)
-				{
-					if(plugin)
-					{
-						plugin->load(file);
-						plugin = (Plugin*)plugin->next;
-					}
-				}
-			}
+// descend into the PLUGIN tag
+			plugin->load(file);
+			plugin = (Plugin*)plugin->next;
+            startproject += length;
 		}
 	}while(!result);
+
+// delete leftovers
+    while(current)
+    {
+        Edit *plugin2 = current->next;
+        delete current;
+        current = plugin2;
+    }
 }
 
 

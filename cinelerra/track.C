@@ -381,58 +381,55 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 
 	do{
 		result = file->read_tag();
-
-		if(!result)
+        if(result) break;
+		if(file->tag.title_is("/TRACK"))
 		{
-			if(file->tag.title_is("/TRACK"))
-			{
-				result = 1;
-			}
-			else
-			if(file->tag.title_is("TITLE"))
-			{
-				file->read_text_until("/TITLE", title, BCTEXTLEN);
-			}
-			else
-			if(load_flags && automation->load(file)
-			/* strstr(file->tag.get_title(), "AUTOS") */)
-			{
-				;
-			}
-			else
-			if(file->tag.title_is("EDITS"))
-			{
+			result = 1;
+		}
+		else
+		if(file->tag.title_is("TITLE"))
+		{
+			file->read_text_until("/TITLE", title, BCTEXTLEN);
+		}
+		else
+		if(automation->load(file))
+		{
+			;
+		}
+		else
+		if(file->tag.title_is("EDITS"))
+		{
 // edits or transitions
-				if(load_flags & (LOAD_EDITS | LOAD_AUTOMATION))
-				{
-                	error |= edits->load(file, track_offset, load_flags);
-                }
-			}
-			else
-			if(file->tag.title_is("PLUGINSET"))
+			if(load_flags & (LOAD_EDITS | LOAD_AUTOMATION))
 			{
-				if(load_flags & LOAD_EDITS)
-				{
-					PluginSet *plugin_set = new PluginSet(edl, this);
-					this->plugin_set.append(plugin_set);
-					plugin_set->load(file, load_flags);
-				}
-				else
-				if(load_flags & LOAD_AUTOMATION)
-				{
-					if(current_plugin < this->plugin_set.total)
-					{
-						PluginSet *plugin_set = this->plugin_set.values[current_plugin];
-						plugin_set->load(file, load_flags);
-						current_plugin++;
-					}
-				}
-			}
-			else
-            {
-				load_derived(file, load_flags);
+                error |= edits->load(file, track_offset, load_flags);
             }
 		}
+		else
+		if(file->tag.title_is("PLUGINSET"))
+		{
+//printf("Track::load %d flags=%x\n", __LINE__, load_flags);
+			if(load_flags & LOAD_EDITS)
+			{
+				PluginSet *plugin_set = new PluginSet(edl, this);
+				this->plugin_set.append(plugin_set);
+				plugin_set->load(file, load_flags);
+			}
+			else
+			{
+// descend into the PLUGINSET tag
+				if(current_plugin < this->plugin_set.size())
+				{
+					PluginSet *plugin_set = this->plugin_set.values[current_plugin];
+					plugin_set->load(file, load_flags);
+					current_plugin++;
+				}
+			}
+		}
+		else
+        {
+			load_derived(file, load_flags);
+        }
 	}while(!result);
 
 

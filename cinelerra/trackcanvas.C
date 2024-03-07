@@ -2226,12 +2226,14 @@ void TrackCanvas::draw_floatauto(Auto *current,
 		in_y2 = center_pixel + in_y + HANDLE_W / 2;
 
 	// Draw line
+//        set_line_dashes(1);
 		draw_cropped_line(x, 
 			center_pixel + y, 
 			in_x, 
 			center_pixel + in_y, 
 			center_pixel + -zoom_track / 2,
 			center_pixel + zoom_track / 2);
+//        set_line_dashes(0);
 
 		CLAMP(in_y1, center_pixel + -zoom_track / 2, center_pixel + zoom_track / 2);
 		CLAMP(in_y2, center_pixel + -zoom_track / 2, center_pixel + zoom_track / 2);
@@ -2254,12 +2256,14 @@ void TrackCanvas::draw_floatauto(Auto *current,
 		out_y2 = center_pixel + out_y + HANDLE_W / 2;
 
 	// Draw line
+//        set_line_dashes(1);
 		draw_cropped_line(x, 
 			center_pixel + y, 
 			out_x, 
 			center_pixel + out_y, 
 			center_pixel + -zoom_track / 2,
 			center_pixel + zoom_track / 2);
+//        set_line_dashes(0);
 
 		CLAMP(out_y1, center_pixel + -zoom_track / 2, center_pixel + zoom_track / 2);
 		CLAMP(out_y2, center_pixel + -zoom_track / 2, center_pixel + zoom_track / 2);
