@@ -150,7 +150,7 @@ void NestedEDLs::remove_edl(EDL *nested_edl)
 	nested_edl->Garbage::remove_user();
 }
 
-int NestedEDLs::load(FileXML *file, uint32_t load_flags)
+int NestedEDLs::load(FileXML *file)
 {
 	int result = 0;
     int error = 0;
@@ -158,36 +158,34 @@ int NestedEDLs::load(FileXML *file, uint32_t load_flags)
 	while(!result)
 	{
 		result = file->read_tag();
-		if(!result)
+        if(result) break;
+		if(file->tag.title_is("/NESTED_EDLS"))
 		{
-			if(file->tag.title_is("/NESTED_EDLS"))
-			{
-				result = 1;
-			}
-			else
-			if(file->tag.title_is("NESTED_EDL"))
-			{
-				char *path = file->tag.get_property("SRC");
+			result = 1;
+		}
+		else
+		if(file->tag.title_is("NESTED_EDL"))
+		{
+			char *path = file->tag.get_property("SRC");
 //printf("NestedEDLs::load %d %s\n", __LINE__, path);
-                EDL *edl = 0;
-				if(path && path[0] != 0)
-				{
-					edl = get(path, &error);
-				}
+            EDL *edl = 0;
+			if(path && path[0] != 0)
+			{
+				edl = get(path, &error);
+			}
 
-                if(edl)
-                {
-                    edl->session->nested_sample_rate = 
-                        file->tag.get_property("SAMPLE_RATE", (int64_t)-1);
-                    edl->session->nested_frame_rate = 
-                        file->tag.get_property("FRAME_RATE", (double)-1);
+            if(edl)
+            {
+                edl->session->nested_sample_rate = 
+                    file->tag.get_property("SAMPLE_RATE", (int64_t)-1);
+                edl->session->nested_frame_rate = 
+                    file->tag.get_property("FRAME_RATE", (double)-1);
 // printf("NestedEDLs::load %d %s %f %" PRId64 "\n", 
 //     __LINE__, 
 //     path, 
 //     edl->session->nested_frame_rate, 
 //     edl->session->nested_sample_rate);
-                }
-			}
+            }
 		}
 	}
 	return error;

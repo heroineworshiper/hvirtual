@@ -106,12 +106,11 @@ public:
 // ================================== file operations
 
 	int load(FileXML *xml, 
-        int track_offset, 
-        uint32_t flags);
+        int track_offset);
 	int load_edit(FileXML *xml, 
+        Edit* &current,
         int64_t &startproject, 
-        int track_offset, 
-        uint32_t flags);
+        int track_offset);
 
 	virtual Edit* append_new_edit() { return 0; };
 	virtual Edit* insert_edit_after(Edit *previous_edit) { return 0; };

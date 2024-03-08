@@ -361,11 +361,11 @@ int64_t Track::horizontal_span()
 }
 
 
-int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
+int Track::load(FileXML *file, int track_offset)
 {
 	int result = 0;
 	int current_channel = 0;
-	int current_plugin = 0;
+	int current_set = 0;
     int error = 0;
 
 	record = file->tag.get_property("RECORD", record);
@@ -377,7 +377,7 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 	track_w = file->tag.get_property("TRACK_W", track_w);
 	track_h = file->tag.get_property("TRACK_H", track_h);
 
-	load_header(file, load_flags);
+	load_header(file);
 
 	do{
 		result = file->read_tag();
@@ -400,38 +400,36 @@ int Track::load(FileXML *file, int track_offset, uint32_t load_flags)
 		if(file->tag.title_is("EDITS"))
 		{
 // edits or transitions
-			if(load_flags & (LOAD_EDITS | LOAD_AUTOMATION))
-			{
-                error |= edits->load(file, track_offset, load_flags);
-            }
+			error |= edits->load(file, track_offset);
 		}
 		else
 		if(file->tag.title_is("PLUGINSET"))
 		{
-//printf("Track::load %d flags=%x\n", __LINE__, load_flags);
-			if(load_flags & LOAD_EDITS)
-			{
-				PluginSet *plugin_set = new PluginSet(edl, this);
-				this->plugin_set.append(plugin_set);
-				plugin_set->load(file, load_flags);
-			}
-			else
-			{
 // descend into the PLUGINSET tag
-				if(current_plugin < this->plugin_set.size())
-				{
-					PluginSet *plugin_set = this->plugin_set.values[current_plugin];
-					plugin_set->load(file, load_flags);
-					current_plugin++;
-				}
+            PluginSet *plugin_set = 0;
+			if(current_set < this->plugin_set.size())
+			{
+				plugin_set = this->plugin_set.get(current_set);
 			}
+            else
+            {
+				plugin_set = new PluginSet(edl, this);
+				this->plugin_set.append(plugin_set);
+            }
+			plugin_set->load(file);
+			current_set++;
 		}
 		else
         {
-			load_derived(file, load_flags);
+			load_derived(file);
         }
 	}while(!result);
 
+// delete leftovers
+    while(current_set < this->plugin_set.size())
+    {
+        this->plugin_set.remove_object_number(this->plugin_set.size() - 1);
+    }
 
 	return error;
 }
@@ -1140,6 +1138,11 @@ int Track::copy(double start,
 
 
 	file->tag.set_title("TRACK");
+// save typing by not subclassing this
+    if(data_type == TRACK_AUDIO)
+        file->tag.set_property("TYPE", "AUDIO");
+    else
+        file->tag.set_property("TYPE", "VIDEO");
 	file->tag.set_property("RECORD", record);
 	file->tag.set_property("NUDGE", nudge);
 	file->tag.set_property("PLAY", play);
@@ -1148,10 +1151,8 @@ int Track::copy(double start,
 	file->tag.set_property("EXPAND", expand_view);
 	file->tag.set_property("TRACK_W", track_w);
 	file->tag.set_property("TRACK_H", track_h);
-	save_header(file);
 	file->append_tag();
 	file->append_newline();
-	save_derived(file);
 
 	file->tag.set_title("TITLE");
 	file->append_tag();
@@ -1160,13 +1161,6 @@ int Track::copy(double start,
 	file->append_tag();
 	file->append_newline();
 
-// 	if(data_type == TRACK_AUDIO)
-// 		file->tag.set_property("TYPE", "AUDIO");
-// 	else
-// 		file->tag.set_property("TYPE", "VIDEO");
-// 
-// 	file->append_tag();
-// 	file->append_newline();
 
 	edits->copy(start_unit, end_unit, file, output_path);
 

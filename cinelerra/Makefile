@@ -339,9 +339,7 @@ OBJS = \
 	$(OBJDIR)/vmodule.o \
 	$(OBJDIR)/vpatchgui.o \
 	$(OBJDIR)/vplayback.o \
-	$(OBJDIR)/vplugin.o \
 	$(OBJDIR)/vpluginarray.o \
-	$(OBJDIR)/vpluginset.o \
 	$(OBJDIR)/vtimebar.o \
 	$(OBJDIR)/vrender.o \
 	$(OBJDIR)/vtrack.o \
@@ -617,9 +615,7 @@ $(OBJDIR)/affine.o:                               affine.C
 $(OBJDIR)/amodule.o: 				  amodule.C
 $(OBJDIR)/apanel.o: 				  apanel.C
 $(OBJDIR)/apatchgui.o:  			  apatchgui.C
-$(OBJDIR)/aplugin.o: 				  aplugin.C
 $(OBJDIR)/apluginarray.o: 			  apluginarray.C
-$(OBJDIR)/apluginset.o: 			  apluginset.C
 $(OBJDIR)/arender.o: 				  arender.C
 $(OBJDIR)/asset.o:                                asset.C
 $(OBJDIR)/assetedit.o:  			  assetedit.C
@@ -940,3 +936,9 @@ $(OBJDIR)/vwindowgui.o: 			  vwindowgui.C
 $(OBJDIR)/wavecache.o:                            wavecache.C
 $(OBJDIR)/zoombar.o: 				  zoombar.C
 $(OBJDIR)/zoompanel.o:  			  zoompanel.C
+
+
+#$(OBJDIR)/aplugin.o: 				  aplugin.C
+#$(OBJDIR)/vplugin.o \
+#$(OBJDIR)/vpluginset.o \
+#$(OBJDIR)/apluginset.o: 			  apluginset.C

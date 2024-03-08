@@ -145,6 +145,7 @@ Plugin* PluginSet::insert_plugin(const char *title,
 	KeyFrame *default_keyframe,
 	int do_optimize)
 {
+// reuse the silence function to create the plugin
 	Plugin *plugin = (Plugin*)paste_silence(unit_position, 
 		unit_position + unit_length);
 
@@ -372,7 +373,7 @@ void PluginSet::save(FileXML *file)
 	copy(0, length(), file);
 }
 
-void PluginSet::load(FileXML *file, uint32_t load_flags)
+void PluginSet::load(FileXML *file)
 {
 	int result = 0;
 // Current plugin being amended
@@ -400,7 +401,9 @@ void PluginSet::load(FileXML *file, uint32_t load_flags)
 			shared_location.load(file);
 
             Plugin *plugin = 0;
-            if(load_flags & LOAD_EDITS)
+            if(!current)
+            {
+// create
                 plugin = insert_plugin(title, 
 					startproject, 
 					length,
@@ -408,11 +411,19 @@ void PluginSet::load(FileXML *file, uint32_t load_flags)
 					&shared_location,
 					0,
 					0);
+            }
             else
             {
+// overwrite
                 plugin = (Plugin*)current;
+                strcpy(plugin->title, title);
+                plugin->plugin_type = plugin_type;
+                plugin->shared_location.copy_from(&shared_location);
+                plugin->length = length;
+                plugin->startproject = startproject;
                 current = NEXT;
             }
+
 
 // descend into the PLUGIN tag
 			plugin->load(file);

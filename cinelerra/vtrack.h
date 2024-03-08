@@ -45,12 +45,8 @@ public:
 	void create_objects();
 	int load_defaults(BC_Hash *defaults);
 	void set_default_title();
-	PluginSet* new_plugins();
+//	PluginSet* new_plugins();
 	int is_playable(int64_t position, int direction);
-	int save_header(FileXML *file);
-	int save_derived(FileXML *file);
-	int load_header(FileXML *file, uint32_t load_flags);
-	int load_derived(FileXML *file, uint32_t load_flags);
 	int copy_settings(Track *track);
 	void synchronize_params(Track *track);
 	int64_t to_units(double position, int round);

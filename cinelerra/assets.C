@@ -45,7 +45,7 @@ Assets::~Assets()
 	delete_all();
 }
 
-int Assets::load(FileXML *file, uint32_t load_flags)
+int Assets::load(FileXML *file)
 {
 	int result = 0;
 

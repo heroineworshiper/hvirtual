@@ -476,11 +476,12 @@ int Edits::optimize()
 
 // ===================================== file operations
 
-int Edits::load(FileXML *file, int track_offset, uint32_t flags)
+int Edits::load(FileXML *file, int track_offset)
 {
 	int result = 0;
 	int64_t startproject = 0;
     int error = 0;
+    Edit *current = first;
 
 	do{
 		result = file->read_tag();
@@ -489,7 +490,7 @@ int Edits::load(FileXML *file, int track_offset, uint32_t flags)
 		{
 			if(!strcmp(file->tag.get_title(), "EDIT"))
 			{
-				error |= load_edit(file, startproject, track_offset, flags);
+				error |= load_edit(file, current, startproject, track_offset);
 			}
 			else
 			if(!strcmp(file->tag.get_title(), "/EDITS"))
@@ -499,6 +500,14 @@ int Edits::load(FileXML *file, int track_offset, uint32_t flags)
 		}
 	}while(!result);
 
+// delete leftovers
+    while(current)
+    {
+        Edit *edit2 = NEXT;
+        delete current;
+        current = edit2;
+    }
+
 //track->dump();
 	optimize();
 
@@ -506,101 +515,97 @@ int Edits::load(FileXML *file, int track_offset, uint32_t flags)
 }
 
 int Edits::load_edit(FileXML *file, 
+    Edit* &current,
     int64_t &startproject, 
-    int track_offset,
-    uint32_t flags)
+    int track_offset)
 {
-	Edit* current = 0;
     int error = 0;
 
-    if(flags & LOAD_EDITS)
+    if(!current)
     {
-// create a new edit from the file
-    	current = append_new_edit();
-
-    	current->load_properties(file, startproject);
-    }
-    else
-    {
-// get the current edit from the existing project
-        current = editof(startproject, PLAY_FORWARD, 0);
+        current = append_new_edit();
     }
 
-    if(current)
+	current->load_properties(file, startproject);
+
+    startproject += current->length;
+
+	int result = 0;
+    int got_transition = 0;
+
+	do{
+		result = file->read_tag();
+        if(result) break;
+		if(file->tag.title_is("NESTED_EDL"))
+		{
+			char path[BCTEXTLEN];
+			path[0] = 0;
+			file->tag.get_property("SRC", path);
+
+
+			if(path[0] != 0)
+			{
+                current->nested_edl = edl->nested_edls->get(path, &error);
+			}
+// printf("Edits::load_edit %d path=%s nested_edl=%p\n", 
+// __LINE__, 
+// path,
+// current->nested_edl);
+		}
+		else
+		if(file->tag.title_is("FILE"))
+		{
+			char filename[BCTEXTLEN];
+			filename[0] = 0;
+			file->tag.get_property("SRC", filename);
+// Extend path
+			if(filename[0] != 0)
+			{
+				char directory[BCTEXTLEN], edl_directory[BCTEXTLEN];
+				FileSystem fs;
+				fs.set_current_dir("");
+				fs.extract_dir(directory, filename);
+				if(!strlen(directory))
+				{
+					fs.extract_dir(edl_directory, file->filename);
+					fs.join_names(directory, edl_directory, filename);
+					strcpy(filename, directory);
+				}
+				current->asset = edl->assets->get_asset(filename);
+			}
+			else
+			{
+				current->asset = 0;
+			}
+//printf("Edits::load_edit 5\n");
+		}
+		else
+		if(file->tag.title_is("TRANSITION"))
+		{
+            if(!current->transition)
+				current->transition = new Transition(edl,
+					current, 
+					"",
+					track->to_units(edl->session->default_transition_length, 1));
+
+            current->transition->load_xml(file);
+            got_transition = 1;
+		}
+		else
+		if(file->tag.title_is("/EDIT"))
+		{
+			result = 1;
+		}
+	}while(!result);
+
+// delete leftovers
+    if(!got_transition)
     {
-    	startproject += current->length;
+        delete current->transition;
+        current->transition = 0;
+    }
 
-	    int result = 0;
-
-	    do{
-		    result = file->read_tag();
-
-		    if(!result)
-		    {
-			    if(file->tag.title_is("NESTED_EDL") && (flags & LOAD_EDITS))
-			    {
-				    char path[BCTEXTLEN];
-				    path[0] = 0;
-				    file->tag.get_property("SRC", path);
-
-
-				    if(path[0] != 0)
-				    {
-                        current->nested_edl = edl->nested_edls->get(path, &error);
-				    }
-    // printf("Edits::load_edit %d path=%s nested_edl=%p\n", 
-    // __LINE__, 
-    // path,
-    // current->nested_edl);
-			    }
-			    else
-			    if(file->tag.title_is("FILE") && (flags & LOAD_EDITS))
-			    {
-				    char filename[BCTEXTLEN];
-				    filename[0] = 0;
-				    file->tag.get_property("SRC", filename);
-    // Extend path
-				    if(filename[0] != 0)
-				    {
-					    char directory[BCTEXTLEN], edl_directory[BCTEXTLEN];
-					    FileSystem fs;
-					    fs.set_current_dir("");
-					    fs.extract_dir(directory, filename);
-					    if(!strlen(directory))
-					    {
-						    fs.extract_dir(edl_directory, file->filename);
-						    fs.join_names(directory, edl_directory, filename);
-						    strcpy(filename, directory);
-					    }
-					    current->asset = edl->assets->get_asset(filename);
-				    }
-				    else
-				    {
-					    current->asset = 0;
-				    }
-    //printf("Edits::load_edit 5\n");
-			    }
-			    else
-			    if(file->tag.title_is("TRANSITION"))
-			    {
-                    if(!current->transition)
-				        current->transition = new Transition(edl,
-					        current, 
-					        "",
-					        track->to_units(edl->session->default_transition_length, 1));
-
-                    if((flags & LOAD_EDITS) || (flags & LOAD_AUTOMATION))
-    				    current->transition->load_xml(file);
-			    }
-			    else
-			    if(file->tag.title_is("/EDIT"))
-			    {
-				    result = 1;
-			    }
-		    }
-	    }while(!result);
-    } // current
-
+    current = NEXT;
 //printf("Edits::load_edit %d\n", __LINE__);
 //track->dump();
 //printf("Edits::load_edit %d\n", __LINE__);

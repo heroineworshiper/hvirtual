@@ -45,7 +45,7 @@
 #include "vedits.h"
 #include "vframe.h"
 #include "vmodule.h"
-#include "vpluginset.h"
+//#include "vpluginset.h"
 #include "vtrack.h"
 
 VTrack::VTrack(EDL *edl, Tracks *tracks)
@@ -96,10 +96,10 @@ int VTrack::vertical_span(Theme *theme)
 }
 
 
-PluginSet* VTrack::new_plugins()
-{
-	return new VPluginSet(edl, this);
-}
+// PluginSet* VTrack::new_plugins()
+// {
+// 	return new VPluginSet(edl, this);
+// }
 
 int VTrack::load_defaults(BC_Hash *defaults)
 {
@@ -152,26 +152,6 @@ int VTrack::identical(int64_t sample1, int64_t sample2)
 	if(labs(sample1 - sample2) <= 1) return 1; else return 0;
 }
 
-int VTrack::save_header(FileXML *file)
-{
-	file->tag.set_property("TYPE", "VIDEO");
-	return 0;
-}
-
-int VTrack::save_derived(FileXML *file)
-{
-	return 0;
-}
-
-int VTrack::load_header(FileXML *file, uint32_t load_flags)
-{
-	return 0;
-}
-
-int VTrack::load_derived(FileXML *file, uint32_t load_flags)
-{
-	return 0;
-}
 
 
 int VTrack::direct_copy_possible(int64_t start, int direction, int use_nudge)

@@ -46,9 +46,8 @@ public:
 	virtual ~Tracks();
 
 	Tracks& operator=(Tracks &tracks);
-	int load(FileXML *xml, 
-		int &track_offset, 
-		uint32_t load_flags);
+// 	int load(FileXML *xml, 
+// 		int &track_offset);
 	void move_edits(ArrayList<Edit*> *edits, 
 		Track *track,
 		double position,

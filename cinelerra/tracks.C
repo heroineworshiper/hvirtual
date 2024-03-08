@@ -182,44 +182,43 @@ printf("Tracks::operator= 1\n");
 	return *this;
 }
 
-int Tracks::load(FileXML *xml, 
-	int &track_offset, 
-	uint32_t load_flags)
-{
-// add the appropriate type of track
-	char string[BCTEXTLEN];
-	Track *track = 0;
-	string[0] = 0;
-    int error = 0;
-	
-	xml->tag.get_property("TYPE", string);
-
-	if((load_flags & LOAD_ALL) == LOAD_ALL ||
-		(load_flags & LOAD_EDITS))
-	{
-		if(!strcmp(string, "VIDEO"))
-		{
-			add_video_track(0, 0);
-		}
-		else
-		{
-			add_audio_track(0, 0);    // default to audio
-		}
-		track = last;
-	}
-	else
-	{
-		track = get_item_number(track_offset);
-		track_offset++;
-	}
-
-// load it
-	if(track) 
-    {
-        error |= track->load(xml, track_offset, load_flags);
-    }
-	return error;
-}
+// int Tracks::load(FileXML *xml, 
+// 	int &track_offset)
+// {
+// // add the appropriate type of track
+// 	char string[BCTEXTLEN];
+// 	Track *track = 0;
+// 	string[0] = 0;
+//     int error = 0;
+// 	
+// 	xml->tag.get_property("TYPE", string);
+// 
+// 	if((load_flags & LOAD_ALL) == LOAD_ALL ||
+// 		(load_flags & LOAD_EDITS))
+// 	{
+// 		if(!strcasecmp(string, "VIDEO"))
+// 		{
+// 			add_video_track(0, 0);
+// 		}
+// 		else
+// 		{
+// 			add_audio_track(0, 0);    // default to audio
+// 		}
+// 		track = last;
+// 	}
+// 	else
+// 	{
+// 		track = get_item_number(track_offset);
+// 		track_offset++;
+// 	}
+// 
+// // load it
+// 	if(track) 
+//     {
+//         error |= track->load(xml, track_offset);
+//     }
+// 	return error;
+// }
 
 Track* Tracks::add_audio_track(int above, Track *dst_track)
 {

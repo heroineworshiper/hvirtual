@@ -45,12 +45,8 @@ public:
 	void create_objects();
 	int load_defaults(BC_Hash *defaults);
 	void set_default_title();
-	PluginSet* new_plugins();
+//	PluginSet* new_plugins();
 	int vertical_span(Theme *theme);
-	int save_header(FileXML *file);
-	int save_derived(FileXML *file);
-	int load_header(FileXML *file, uint32_t load_flags);
-	int load_derived(FileXML *file, uint32_t load_flags);
 	int copy_settings(Track *track);
 	int identical(int64_t sample1, int64_t sample2);
 	void synchronize_params(Track *track);

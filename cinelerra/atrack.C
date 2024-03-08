@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +21,7 @@
 #include "aedit.h"
 #include "aedits.h"
 #include "amodule.h"
-#include "apluginset.h"
+//#include "apluginset.h"
 #include "atrack.h"
 #include "autoconf.h"
 #include "aautomation.h"
@@ -39,6 +38,7 @@
 #include "localsession.h"
 #include "mainsession.h"
 #include "panautos.h"
+#include "pluginset.h"
 #include "theme.h"
 #include "trackcanvas.h"
 #include "tracks.h"
@@ -74,29 +74,6 @@ int ATrack::copy_settings(Track *track)
 }
 
 
-int ATrack::save_header(FileXML *file)
-{
-	file->tag.set_property("TYPE", "AUDIO");
-	return 0;
-}
-
-int ATrack::save_derived(FileXML *file)
-{
-	char string[BCTEXTLEN];
-	file->append_newline();
-	return 0;
-}
-
-int ATrack::load_header(FileXML *file, uint32_t load_flags)
-{
-	return 0;
-}
-
-
-int ATrack::load_derived(FileXML *file, uint32_t load_flags)
-{
-	return 0;
-}
 
 void ATrack::create_objects()
 {
@@ -117,10 +94,10 @@ int ATrack::vertical_span(Theme *theme)
 	return MAX(track_h, patch_h);
 }
 
-PluginSet* ATrack::new_plugins()
-{
-	return new APluginSet(edl, this);
-}
+// PluginSet* ATrack::new_plugins()
+// {
+// 	return new APluginSet(edl, this);
+// }
 
 int ATrack::load_defaults(BC_Hash *defaults)
 {

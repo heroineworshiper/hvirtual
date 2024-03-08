@@ -43,10 +43,8 @@ public:
 	Assets(EDL *edl);
 	virtual ~Assets();
 
-	int load(FileXML *xml, 
-		uint32_t load_flags);
-	int save(FileXML *xml, 
-		char *output_path);
+	int load(FileXML *xml);
+	int save(FileXML *xml, char *output_path);
 	Assets& operator=(Assets &assets);
 	void copy_from(Assets *assets);
 

@@ -23,7 +23,7 @@ public:
 	int size();
 	EDL* get(int number);
 // returns a flag if an EDL is recursive
-    int load(FileXML *file, uint32_t load_flags);
+    int load(FileXML *file);
 	void clear();
 	void update_index(EDL *nested_edl);
 	void remove_edl(EDL *nested_edl);

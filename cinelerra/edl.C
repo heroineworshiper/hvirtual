@@ -193,8 +193,7 @@ int EDL::create_default_tracks()
 	return 0;
 }
 
-int EDL::load_xml(FileXML *file, 
-	uint32_t load_flags)
+int EDL::load_xml(FileXML *file, uint32_t load_flags)
 {
 	int result = 0;
 // Track numbering offset for replacing undo data.
@@ -235,11 +234,30 @@ int EDL::load_xml(FileXML *file,
 		file->tag.get_property("path", path);
 
 // Erase everything
-		if((load_flags & LOAD_ALL) == LOAD_ALL ||
-			(load_flags & LOAD_EDITS) == LOAD_EDITS)
-		{
-			while(tracks->last) delete tracks->last;
-		}
+// 		if((load_flags & LOAD_ALL) == LOAD_ALL ||
+// 			(load_flags & LOAD_EDITS) == LOAD_EDITS)
+// 		{
+// 			while(tracks->last) delete tracks->last;
+// 		}
+
+// Move all the tracks to pools of 1 type for reuse
+        Track *current = tracks->first;
+        Tracks atracks;
+        Tracks vtracks;
+        while(current)
+        {
+            Track *track2 = NEXT;
+            tracks->remove_pointer(current);
+
+            if(current->data_type == TRACK_AUDIO)
+                atracks.append(current);
+            else
+                vtracks.append(current);
+
+            current = track2;
+        }
+        Track *current_atrack = atracks.first;
+        Track *current_vtrack = vtracks.first;
 
 		if((load_flags & LOAD_ALL) == LOAD_ALL)
 		{
@@ -263,118 +281,141 @@ int EDL::load_xml(FileXML *file,
 
 		do{
 			result = file->read_tag();
+            if(result) break;
 
-			if(!result)
+			if(file->tag.title_is("/XML") ||
+				file->tag.title_is("/EDL") ||
+				file->tag.title_is("/CLIP_EDL") ||
+				file->tag.title_is("/VWINDOW_EDL"))
 			{
-				if(file->tag.title_is("/XML") ||
-					file->tag.title_is("/EDL") ||
-					file->tag.title_is("/CLIP_EDL") ||
-					file->tag.title_is("/VWINDOW_EDL"))
+				result = 1;
+			}
+			else
+			if(file->tag.title_is("CLIPBOARD"))
+			{
+				local_session->clipboard_length = 
+					file->tag.get_property("LENGTH", (double)0);
+			}
+			else
+			if(file->tag.title_is("VIDEO"))
+			{
+				if((load_flags & LOAD_VCONFIG) &&
+					(load_flags & LOAD_SESSION))
+					session->load_video_config(file, 0, load_flags);
+			}
+			else
+			if(file->tag.title_is("AUDIO"))
+			{
+				if((load_flags & LOAD_ACONFIG) &&
+					(load_flags & LOAD_SESSION))
+					session->load_audio_config(file, 0, load_flags);
+			}
+			else
+			if(file->tag.title_is("FOLDER"))
+			{
+				char folder[BCTEXTLEN];
+				strcpy(folder, file->read_text());
+				new_folder(folder);
+			}
+			else
+			if(file->tag.title_is("ASSETS"))
+			{
+				assets->load(file);
+			}
+			else
+			if(file->tag.title_is("NESTED_EDLS"))
+			{
+				error |= nested_edls->load(file);
+			}
+			else
+			if(file->tag.title_is(labels->xml_tag))
+			{
+				if(load_flags & LOAD_TIMEBAR)
 				{
-					result = 1;
-				}
-				else
-				if(file->tag.title_is("CLIPBOARD"))
-				{
-					local_session->clipboard_length = 
-						file->tag.get_property("LENGTH", (double)0);
-				}
-				else
-				if(file->tag.title_is("VIDEO"))
-				{
-					if((load_flags & LOAD_VCONFIG) &&
-						(load_flags & LOAD_SESSION))
-						session->load_video_config(file, 0, load_flags);
-				}
-				else
-				if(file->tag.title_is("AUDIO"))
-				{
-					if((load_flags & LOAD_ACONFIG) &&
-						(load_flags & LOAD_SESSION))
-						session->load_audio_config(file, 0, load_flags);
-				}
-				else
-				if(file->tag.title_is("FOLDER"))
-				{
-					char folder[BCTEXTLEN];
-					strcpy(folder, file->read_text());
-					new_folder(folder);
-				}
-				else
-				if(file->tag.title_is("ASSETS"))
-				{
-					if(load_flags & LOAD_ASSETS)
-					{
-                    	assets->load(file, load_flags);
-                    }
-				}
-				else
-				if(file->tag.title_is("NESTED_EDLS"))
-				{
-					if(load_flags & LOAD_ASSETS)
-					{
-                    	error |= nested_edls->load(file, load_flags);
-                    }
-				}
-				else
-				if(file->tag.title_is(labels->xml_tag))
-				{
-					if(load_flags & LOAD_TIMEBAR)
-					{
-                    	labels->load(file, load_flags);
-                    }
-				}
-				else
-				if(file->tag.title_is("LOCALSESSION"))
-				{
-					if((load_flags & LOAD_SESSION) ||
-						(load_flags & LOAD_TIMEBAR))
+                    labels->load(file, load_flags);
+                }
+			}
+			else
+			if(file->tag.title_is("LOCALSESSION"))
+			{
+				if((load_flags & LOAD_SESSION) ||
+					(load_flags & LOAD_TIMEBAR))
+                {
+					local_session->load_xml(file, load_flags);
+                }
+			}
+			else
+			if(file->tag.title_is("SESSION"))
+			{
+				if((load_flags & LOAD_SESSION) &&
+					!parent_edl)
+                {
+					session->load_xml(file, 0, load_flags);
+                }
+			}
+			else
+			if(file->tag.title_is("TRACK"))
+			{
+                char string[BCTEXTLEN];
+                file->tag.get_property("TYPE", string);
+
+// reuse a previous track before creating a new one
+		        if(!strcasecmp(string, "VIDEO"))
+		        {
+                    if(current_vtrack)
                     {
-						local_session->load_xml(file, load_flags);
-                    }
-				}
-				else
-				if(file->tag.title_is("SESSION"))
-				{
-					if((load_flags & LOAD_SESSION) &&
-						!parent_edl)
+                        Track *track2 = current_vtrack->next;
+                        vtracks.remove_pointer(current_vtrack);
+                        tracks->append(current_vtrack);
+                        current_vtrack = track2;
+			        }
+                    else
+                        tracks->add_video_track(0, 0);
+		        }
+		        else
+		        {
+                    if(current_atrack)
                     {
-						session->load_xml(file, 0, load_flags);
+                        Track *track2 = current_atrack->next;
+                        atracks.remove_pointer(current_atrack);
+                        tracks->append(current_atrack);
+                        current_atrack = track2;
                     }
-				}
-				else
-				if(file->tag.title_is("TRACK"))
-				{
-					error |= tracks->load(file, track_offset, load_flags);
-				}
-				else
+                    else
+    			        tracks->add_audio_track(0, 0);
+		        }
+
+// load it
+				error |= tracks->last->load(file, track_offset);
+			}
+			else
 // Sub EDL.
 // Causes clip creation to fail because that involves an opening EDL tag.
-				if(file->tag.title_is("CLIP_EDL") && !parent_edl)
-				{
-					EDL *new_edl = new EDL(this);
-					new_edl->create_objects();
-					new_edl->load_xml(file, LOAD_ALL);
+			if(file->tag.title_is("CLIP_EDL") && !parent_edl)
+			{
+				EDL *new_edl = new EDL(this);
+				new_edl->create_objects();
+				new_edl->load_xml(file, LOAD_ALL);
 
-					if((load_flags & LOAD_ALL) == LOAD_ALL)
-					{
-                    	clips.append(new_edl);
-					}
-                    else
-					{
-                    	new_edl->Garbage::remove_user();
-                    }
+				if((load_flags & LOAD_ALL) == LOAD_ALL)
+				{
+                    clips.append(new_edl);
 				}
-				else
-				if(file->tag.title_is("VWINDOW_EDL") && !parent_edl)
+                else
 				{
-					EDL *new_edl = new EDL(this);
-					new_edl->create_objects();
-					new_edl->load_xml(file, LOAD_ALL);
+                    new_edl->Garbage::remove_user();
+                }
+			}
+			else
+			if(file->tag.title_is("VWINDOW_EDL") && !parent_edl)
+			{
+				EDL *new_edl = new EDL(this);
+				new_edl->create_objects();
+				new_edl->load_xml(file, LOAD_ALL);
 
 
-					if((load_flags & LOAD_ALL) == LOAD_ALL)
-					{
+				if((load_flags & LOAD_ALL) == LOAD_ALL)
+				{
 //						if(vwindow_edl && !vwindow_edl_shared) 
 //							vwindow_edl->Garbage::remove_user();
 //						vwindow_edl_shared = 0;
@@ -382,16 +423,25 @@ int EDL::load_xml(FileXML *file,
 
 //						append_vwindow_edl(new_edl, 0);
 
-					}
-					else
+				}
+				else
 // Discard if not replacing EDL
-					{
-						new_edl->Garbage::remove_user();
-						new_edl = 0;
-					}
+				{
+					new_edl->Garbage::remove_user();
+					new_edl = 0;
 				}
 			}
 		}while(!result);
+
+// delete leftovers
+        while(atracks.last)
+        {
+            delete atracks.last;
+        }
+        while(vtracks.last)
+        {
+            delete vtracks.last;
+        }
 	}
 	boundaries();
 //dump();

@@ -74,7 +74,7 @@ public:
 // The plugin set number in the track
 	int get_number();
 	void save(FileXML *file);
-	void load(FileXML *file, uint32_t load_flags);
+	void load(FileXML *file);
 	void dump();
 	int optimize();
 
