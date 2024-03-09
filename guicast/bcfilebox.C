@@ -1666,6 +1666,16 @@ void BC_FileBox::delete_files()
 	int i = 1;
 	char *path;
 	FileSystem fs;
+
+// chances are the file being previewed is the file being deleted, so avoid
+// the difficult test of whether the previewer is showing a member of the list
+    if(previewer && show_preview)
+    {
+        previewer->clear_preview();
+        previewer->preview_unavailable();
+    }
+
+
 	while((path = get_path(i)))
 	{
 // Not directory.  Remove it.
