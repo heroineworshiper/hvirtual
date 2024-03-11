@@ -117,11 +117,10 @@ int BC_FileBoxListBox::handle_event()
 int BC_FileBoxListBox::selection_changed()
 {
     int column = filebox->column_of_type(FILEBOX_NAME);
-	BC_ListBoxItem *item = get_selection(column, 0);
 
 // want the most recent of a multiple selection for the preview
 // but the only way is to compare all current selections 
-// with all previous selections
+// with all previous selections.
     ArrayList<int> current_selections;
 //     printf("BC_FileBoxListBox::selection_changed %d: ", 
 //         __LINE__);
@@ -154,9 +153,13 @@ int BC_FileBoxListBox::selection_changed()
 
 //printf("BC_FileBoxListBox::selection_changed %d %d\n", __LINE__, get_selection_number(0, 0));
 
-	if(item)
+// gets the 1st selected item
+//	BC_ListBoxItem *item = get_selection(column, 0);
+	if(new_selection >= 0)
 	{
 		char path[BCTEXTLEN];
+// get the most recent selected item
+	    BC_ListBoxItem *item = filebox->list_column[column].get(new_selection);
 		strcpy(path, item->get_text());
 		filebox->textbox->update(path);
 		filebox->fs->extract_dir(filebox->directory, path);
@@ -166,7 +169,6 @@ int BC_FileBoxListBox::selection_changed()
 		strcpy(filebox->submitted_path, path);
         if(filebox->previewer && filebox->show_preview && new_selection != -1)
         {
-            item = filebox->list_column[column].get(new_selection);
             strcpy(path, item->get_text());
             filebox->fs->complete_path(path);
 //printf("BC_FileBoxListBox::selection_changed %d %s\n", __LINE__, path);
