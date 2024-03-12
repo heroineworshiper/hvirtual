@@ -122,6 +122,7 @@ void LoadFileThread::handle_done_event(int result)
 			{
 				if(!strcmp(in_path, path_list.values[j])) break;
 			}
+//printf("LoadFileThread::handle_done_event %d %s\n", __LINE__, in_path);
 
 			if(j == path_list.total)
 			{

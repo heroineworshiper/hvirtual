@@ -1607,14 +1607,17 @@ char* BC_FileBox::get_path(int selection)
         {
             got_it = 1;
         }
-        else
-        {
-// return the list item
-            list_return.append(item);
-        }
+
+// always return the list item
+        list_return.append(item);
     }
 
     if(!got_it) selection -= 1;
+// printf("BC_FileBox::get_path %d got_it=%d selection=%d list_return=%d\n", 
+// __LINE__, 
+// got_it, 
+// selection,
+// list_return.size());
 
 // return the text box 1st
 	if(!got_it && selection < 0)
