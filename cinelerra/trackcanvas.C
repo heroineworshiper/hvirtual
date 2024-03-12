@@ -1063,22 +1063,36 @@ void TrackCanvas::plugin_dimensions(Plugin *plugin,
     int64_t &w, 
     int64_t &h)
 {
+    int plugin_h = mwindow->theme->get_image("plugin_bg_data")->get_h();
+    int title_h = mwindow->theme->get_image("title_bg_data")->get_h();
     int track_h = plugin->track->vertical_span(mwindow->theme);
     int track_y = y = plugin->track->y_pixel - 
 		mwindow->edl->local_session->track_start[pane->number];
 
+// fixed vertical margin if no media or keyframes
+// if the patch height is smaller than this + the plugin height, nothing 
+// will show
+    int plugin_margin = PLUGIN_MARGIN;
+
 // shift down if track has media or certain keyframes are visible
-    int got_it = 0;
+    int got_autos = 0;
     for(int i = 0; i < AUTOMATION_TOTAL; i++)
-        if(mwindow->edl->session->auto_conf->autos[i]) got_it = 1;
-    if(plugin->track->edits->last || got_it)
+        if(mwindow->edl->session->auto_conf->autos[i]) got_autos = 1;
+    if(plugin->track->edits->last || got_autos)
     {
         if(mwindow->edl->session->show_assets || 
-            got_it)
+            got_autos)
+        {
             y += mwindow->edl->local_session->zoom_track;
-	    if(plugin->track->edits->last &&
+            plugin_margin = 0;
+	    }
+
+        if(plugin->track->edits->last &&
             mwindow->edl->session->show_titles)
-		    y += mwindow->theme->get_image("title_bg_data")->get_h();
+        {
+		    y += title_h;
+            plugin_margin = 0;
+        }
     }
 
 	x = Units::round(plugin->track->from_units(plugin->startproject) *
@@ -1088,9 +1102,9 @@ void TrackCanvas::plugin_dimensions(Plugin *plugin,
 	w = Units::round(plugin->track->from_units(plugin->length) *
 		mwindow->edl->session->sample_rate / 
 		mwindow->edl->local_session->zoom_sample);
-	y += plugin->plugin_set->get_number() * 
-		mwindow->theme->get_image("plugin_bg_data")->get_h();
-	h = mwindow->theme->get_image("plugin_bg_data")->get_h();
+	h = plugin_h;
+
+    y += plugin_margin + plugin->plugin_set->get_number() * plugin_h;
 
 // not visible if off of the track
     if(y + h > track_y + track_h)
