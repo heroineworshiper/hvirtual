@@ -151,7 +151,7 @@ int BC_FileBoxListBox::selection_changed()
 //printf("BC_FileBoxListBox::selection_changed %d: %d\n", __LINE__, new_selection);
 
 
-//printf("BC_FileBoxListBox::selection_changed %d %d\n", __LINE__, get_selection_number(0, 0));
+//printf("BC_FileBoxListBox::selection_changed %d new_selection=%d\n", __LINE__, new_selection);
 
 // gets the 1st selected item
 //	BC_ListBoxItem *item = get_selection(column, 0);
@@ -1697,8 +1697,6 @@ char* BC_FileBox::get_delete_title()
 
 void BC_FileBox::delete_files()
 {
-// Starting at 1 causes it to ignore what's in the textbox.
-	int i = 1;
 	char *path;
 	FileSystem fs;
 
@@ -1710,7 +1708,8 @@ void BC_FileBox::delete_files()
         previewer->preview_unavailable();
     }
 
-
+// TODO: no guarantee this is the same list as the confirmation box
+	int i = 0;
 	while((path = get_path(i)))
 	{
 // Not directory.  Remove it.
