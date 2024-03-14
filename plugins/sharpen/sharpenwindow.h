@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -52,7 +51,7 @@ public:
 	SharpenSlider *sharpen_slider;
 	SharpenInterlace *sharpen_interlace;
 	SharpenHorizontal *sharpen_horizontal;
-	SharpenLuminance *sharpen_luminance;
+//	SharpenLuminance *sharpen_luminance;
 };
 
 class SharpenSlider : public BC_ISlider

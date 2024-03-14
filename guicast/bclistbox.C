@@ -4111,9 +4111,15 @@ int BC_ListBox::activate(int take_focus)
 				&new_y, 
 				&tempwin);
 
+// If it extends left of the screen, clamp it
 			if(new_x < 0) new_x = 0;
+
+// If it extends below the screen, bottom justify
 			if(new_y + popup_h > top_level->get_root_h(0)) 
 				new_y -= get_h() + popup_h;
+
+// If it extends above the screen, clamp it
+            if(new_y < 0) new_y = 0;
 
 			add_subwindow(gui = new BC_Popup(this, 
 				new_x, 

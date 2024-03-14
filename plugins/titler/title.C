@@ -92,7 +92,7 @@ TitleConfig::TitleConfig()
 	timecode = 0;
 	timecode_format = TIME_HMS;
 	outline_size = 0;
-	window_w = DP(640);
+	window_w = DP(800);
 	window_h = DP(480);
 	ucs4text = 0;
 	tlen = 0;

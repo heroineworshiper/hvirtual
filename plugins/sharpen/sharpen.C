@@ -174,7 +174,7 @@ void SharpenMain::update_gui()
 		((SharpenWindow*)thread->window)->sharpen_slider->update((int)config.sharpness);
 		((SharpenWindow*)thread->window)->sharpen_interlace->update(config.interlace);
 		((SharpenWindow*)thread->window)->sharpen_horizontal->update(config.horizontal);
-		((SharpenWindow*)thread->window)->sharpen_luminance->update(config.luminance);
+//		((SharpenWindow*)thread->window)->sharpen_luminance->update(config.luminance);
 		thread->window->unlock_window();
 	}
 }

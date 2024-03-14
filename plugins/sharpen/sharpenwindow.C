@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -22,11 +21,14 @@
 #include "bcdisplayinfo.h"
 #include "language.h"
 #include "sharpenwindow.h"
+#include "theme.h"
 
 
 
 
 
+#define WINDOW_W DP(220)
+#define WINDOW_H DP(150)
 
 
 
@@ -34,10 +36,10 @@
 
 SharpenWindow::SharpenWindow(SharpenMain *client)
  : PluginClientWindow(client,
-	DP(220), 
-	DP(120), 
-	DP(220), 
-	DP(120), 
+	WINDOW_W, 
+	WINDOW_H, 
+	WINDOW_W, 
+	WINDOW_H, 
 	0)
 { 
 	this->client = client; 
@@ -49,16 +51,19 @@ SharpenWindow::~SharpenWindow()
 
 void SharpenWindow::create_objects()
 {
-	int x = DP(10), y = DP(10);
-	add_tool(new BC_Title(x, y, _("Sharpness")));
-	y += DP(20);
+	int widget_border = client->get_theme()->widget_border;
+	int window_border = client->get_theme()->window_border;
+	int x = window_border, y = window_border;
+	BC_Title *title;
+    add_tool(title = new BC_Title(x, y, _("Sharpness")));
+	y += title->get_h() + widget_border;
 	add_tool(sharpen_slider = new SharpenSlider(client, &(client->config.sharpness), x, y));
-	y += DP(30);
+	y += sharpen_slider->get_h() + widget_border;
 	add_tool(sharpen_interlace = new SharpenInterlace(client, x, y));
-	y += DP(30);
+	y += sharpen_interlace->get_h() + widget_border;
 	add_tool(sharpen_horizontal = new SharpenHorizontal(client, x, y));
-	y += DP(30);
-	add_tool(sharpen_luminance = new SharpenLuminance(client, x, y));
+//	y += sharpen_horizontal->get_h() + widget_border;
+//	add_tool(sharpen_luminance = new SharpenLuminance(client, x, y));
 	show_window();
 	flush();
 }

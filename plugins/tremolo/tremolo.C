@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2017-2019 Adam Williams <broadcast at earthling dot net>
