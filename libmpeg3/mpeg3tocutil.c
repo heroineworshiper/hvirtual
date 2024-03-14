@@ -1,5 +1,6 @@
 #include "libmpeg3.h"
 #include "mpeg3protos.h"
+#include "video/mpeg3videoprotos.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -308,7 +309,7 @@ const int debug = 0;
 					file->video_eof[i] = read_int64(buffer, &position);
 					file->total_frame_offsets[i] = read_int32(buffer, &position);
 					file->frame_offsets[i] = malloc(file->total_frame_offsets[i] * sizeof(int64_t));
-if(debug) printf("mpeg3_read_toc 62 %d %d %lld\n", 
+if(debug) printf("mpeg3_read_toc 62 %d %d %d\n", 
 file->total_frame_offsets[i], position, buffer_size);
 					for(j = 0; j < file->total_frame_offsets[i]; j++)
 					{
@@ -654,6 +655,8 @@ int mpeg3_update_index(mpeg3_t *file,
 		if(index->index_allocated && 
 			index->index_channels < atrack->channels)
 		{
+// printf("mpeg3_update_index %d prev channels=%d channels=%d\n", 
+// __LINE__, index->index_channels, atrack->channels);
 			float **new_index_data = calloc(sizeof(float*), atrack->channels);
 			for(i = 0; i < index->index_channels; i++)
 			{
@@ -686,6 +689,15 @@ int mpeg3_update_index(mpeg3_t *file,
 			index->index_channels = atrack->channels;
 		}
 
+// dump to debug file
+// static FILE *debug_fd = 0;
+// if(!debug_fd) debug_fd = fopen("/tmp/test.pcm", "w");
+// for(i = 0; i < fragment; i++)
+//     for(j = 0; j < atrack->channels; j++)
+//         fwrite(&atrack->audio->output[j][i],
+//             1, 
+//             4, 
+//             debug_fd);
 
 
 // Calculate new index chunk
@@ -746,10 +758,10 @@ int mpeg3_update_index(mpeg3_t *file,
 
 
 		atrack->current_position += fragment;
-// printf("mpeg3_update_index %d fragment=%d samples=%ld\n", 
+// printf("mpeg3_update_index %d fragment=%d samples=%d\n", 
 // __LINE__, 
-// fragment,
-// atrack->current_position);
+// (int)fragment,
+// (int)atrack->current_position);
 	}
 
 // Divide index by 2 and increase zoom
@@ -774,15 +786,31 @@ static int handle_audio(mpeg3_t *file,
 
 // Append demuxed data to track buffer
 	if(file->demuxer->audio_size)
+    {
 		mpeg3demux_append_data(atrack->demuxer,
 			file->demuxer->audio_buffer,
 			file->demuxer->audio_size);
-	else
+        atrack->demuxer->program_byte = mpeg3demux_tell_byte(file->demuxer);
+
+// printf("handle_audio %d wrote %d\n", __LINE__, (int)file->demuxer->audio_size);
+// dump to debug file
+// static FILE *debug_fd = 0;
+// if(!debug_fd) debug_fd = fopen("/tmp/test.ac3", "w");
+// fwrite(file->demuxer->audio_buffer,
+// 1, 
+// file->demuxer->audio_size, 
+// debug_fd);
+
+	}
+    else
 	if(file->demuxer->data_size)
-		mpeg3demux_append_data(atrack->demuxer,
+	{
+    	mpeg3demux_append_data(atrack->demuxer,
 			file->demuxer->data_buffer,
 			file->demuxer->data_size);
-
+        atrack->demuxer->program_byte = mpeg3demux_tell_byte(file->demuxer);
+//printf("handle_audio %d\n", __LINE__);
+    }
 
 
 
@@ -1045,29 +1073,36 @@ int mpeg3_do_toc(mpeg3_t *file, int64_t *bytes_processed)
 // start_byte,
 // file->is_audio_stream);
 	int result = mpeg3_read_next_packet(file->demuxer);
-//printf("mpeg3_do_toc %d %d %llx\n", __LINE__, result, mpeg3demux_tell_byte(file->demuxer));
 
 // Determine program interleaving for current packet.
 	int program = mpeg3demux_tell_program(file->demuxer);
 
+// printf("mpeg3_do_toc %d %d %lx %d\n", 
+// __LINE__, 
+// result, 
+// (long)mpeg3demux_tell_byte(file->demuxer),
+// program);
 
 //if(start_byte > 0x1b0000 && start_byte < 0x1c0000)
-/*
- * printf("mpeg3_do_toc 1 start_byte=%llx custum_id=%x got_audio=%d got_video=%d audio_size=%d video_size=%d data_size=%d\n", 
- * start_byte, 
- * file->demuxer->custom_id,
- * file->demuxer->got_audio, 
- * file->demuxer->got_video,
- * file->demuxer->audio_size,
- * file->demuxer->video_size,
- * file->demuxer->data_size);
- */
+
+// printf("mpeg3_do_toc %d start_byte=%ld audio_id=%x video_id=%x got_audio=%d got_video=%d audio_size=%d video_size=%d data_size=%d\n", 
+// __LINE__,
+// (long)start_byte, 
+// file->demuxer->custom_audio_id,
+// file->demuxer->custom_video_id,
+// file->demuxer->got_audio, 
+// file->demuxer->got_video,
+// file->demuxer->audio_size,
+// file->demuxer->video_size,
+// file->demuxer->data_size);
+
 
 // Only handle program 0
 	if(program == 0)
 	{
 // Find current PID in tracks.
-		int custom_id = file->demuxer->custom_id;
+		int custom_audio_id = file->demuxer->custom_audio_id;
+		int custom_video_id = file->demuxer->custom_video_id;
 		int got_it = 0;
 
 
@@ -1088,7 +1123,7 @@ int mpeg3_do_toc(mpeg3_t *file, int64_t *bytes_processed)
 			for(i = 0; i < file->total_astreams && !got_it; i++)
 			{
 				mpeg3_atrack_t *atrack = file->atrack[i];
-				if(custom_id == atrack->pid)
+				if(custom_audio_id == atrack->pid)
 				{
 // Update an audio track
 					handle_audio(file, i);
@@ -1099,14 +1134,14 @@ int mpeg3_do_toc(mpeg3_t *file, int64_t *bytes_processed)
 			}
 
 			if(!got_it && ((file->demuxer->got_audio &&
-				file->demuxer->astream_table[custom_id]) ||
+				file->demuxer->astream_table[custom_audio_id]) ||
 				file->is_audio_stream))
 			{
 				mpeg3_atrack_t *atrack = 
 					file->atrack[file->total_astreams] = 
 						mpeg3_new_atrack(file, 
-							custom_id, 
-							file->demuxer->astream_table[custom_id], 
+							custom_audio_id, 
+							file->demuxer->astream_table[custom_audio_id], 
 							file->demuxer,
 							file->total_astreams);
 
@@ -1139,7 +1174,7 @@ int mpeg3_do_toc(mpeg3_t *file, int64_t *bytes_processed)
 			for(i = 0; i < file->total_vstreams && !got_it; i++)
 			{
 				mpeg3_vtrack_t *vtrack = file->vtrack[i];
-				if(vtrack->pid == custom_id)
+				if(vtrack->pid == custom_video_id)
 				{
 // Update a video track
 					handle_video(file, vtrack);
@@ -1152,13 +1187,13 @@ int mpeg3_do_toc(mpeg3_t *file, int64_t *bytes_processed)
 
 
 			if(!got_it && ((file->demuxer->got_video &&
-				file->demuxer->vstream_table[custom_id]) ||
+				file->demuxer->vstream_table[custom_video_id]) ||
 				file->is_video_stream))
 			{
 				mpeg3_vtrack_t *vtrack = 
 					file->vtrack[file->total_vstreams] = 
 						mpeg3_new_vtrack(file, 
-							custom_id, 
+							custom_video_id, 
 							file->demuxer, 
 							file->total_vstreams);
 
@@ -1310,7 +1345,7 @@ void mpeg3_stop_toc(mpeg3_t *file)
 
 // Store file information
 	PUT_INT32(FILE_INFO);
-	fprintf(file->toc_fd, file->fs->path);
+	fputs(file->fs->path, file->toc_fd);
 	for(j = strlen(file->fs->path); j < MPEG3_STRLEN; j++)
 			fputc(0, file->toc_fd);
 	PUT_INT64(file->source_date);
@@ -1341,7 +1376,7 @@ void mpeg3_stop_toc(mpeg3_t *file)
 // Path
 		PUT_INT32(TITLE_PATH);
 
-		fprintf(file->toc_fd, title->fs->path);
+		fputs(title->fs->path, file->toc_fd);
 
 // Pad path with 0
 		for(j = strlen(title->fs->path); j < MPEG3_STRLEN; j++)

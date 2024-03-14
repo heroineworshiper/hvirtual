@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	sscanf(argv[2], "%lld", &frame_number);
+	sscanf(argv[2], "%jd", &frame_number);
 	if(frame_number < 0) frame_number = 0;
 
 	file = mpeg3_open(argv[1], &error);
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 			int64_t chunk_number = frame_number / MPEG3_AUDIO_CHUNKSIZE;
 			if(chunk_number >= file->atrack[0]->total_sample_offsets)
 				chunk_number = file->atrack[0]->total_sample_offsets - 1;
-			printf("sample=%lld offset=0x%llx\n",
+			printf("sample=%jd offset=0x%jx\n",
 				frame_number,
 				file->atrack[0]->sample_offsets[chunk_number]);
 			exit(0);
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 
 		if(frame_number >= file->vtrack[0]->total_frame_offsets)
 			frame_number = file->vtrack[0]->total_frame_offsets - 1;
-		printf("frame=%lld offset=0x%llx\n", 
+		printf("frame=%jd offset=0x%jx\n", 
 			frame_number,
 			file->vtrack[0]->frame_offsets[frame_number]);
 	}

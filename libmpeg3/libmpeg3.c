@@ -1,6 +1,8 @@
 #include "libmpeg3.h"
 #include "mpeg3private.h"
 #include "mpeg3protos.h"
+#include "audio/mpeg3audio.h"
+#include "video/mpeg3videoprotos.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -230,6 +232,7 @@ int mpeg3_check_sig(char *path)
 				strncasecmp(ext, ".mpg", 4) &&
 				strncasecmp(ext, ".vob", 4) &&
 				strncasecmp(ext, ".mpeg", 4) &&
+				strncasecmp(ext, ".m2t", 4) &&
 				strncasecmp(ext, ".ac3", 4))
 				result = 0;
 		}

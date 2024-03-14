@@ -128,7 +128,6 @@ void FileSndFile::asset_to_format()
 	}
 
 // Not all of these are allowed in all sound formats.
-// Raw can't be float.
 	switch(asset->bits)
 	{
 		case BITSLINEAR8:
@@ -481,9 +480,25 @@ void SndFileConfig::create_objects()
 			add_tool(new BC_Title(x, y, _("Compression:")));
 			y += DP(25);
 			if(asset->format == FILE_WAV)
-				bits_popup = new BitsPopup(this, x, y, &asset->bits, 0, 0, 1, 1, 0);
+				bits_popup = new BitsPopup(this, 
+                    x, 
+                    y, 
+                    &asset->bits, 
+                    0, // use_ima4
+                    0, // use_ulaw
+                    1, // use_adpcm
+                    1, // use_float
+                    0); // use_32linear
 			else
-				bits_popup = new BitsPopup(this, x, y, &asset->bits, 0, 0, 0, 0, 0);
+				bits_popup = new BitsPopup(this, 
+                    x, 
+                    y, 
+                    &asset->bits, 
+                    0, // use_ima4
+                    0, // use_ulaw
+                    0, // use_adpcm
+                    1, // use_float
+                    0); // use_32linear
 			y += DP(40);
 			bits_popup->create_objects();
 			break;

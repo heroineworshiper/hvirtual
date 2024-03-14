@@ -36,6 +36,7 @@
 
 #include "mpeg3css.h"
 #include "mpeg3private.h"
+#include "mpeg3protos.h"
 
 
 #include <unistd.h>

@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
@@ -148,10 +147,10 @@ void FileFormat::create_objects_(char *string2)
 		x, 
 		y, 
 		&asset->bits, 
-		0, 
+		0, // use_ima4
 		1, 
 		1, 
-		0, 
+		1, // use_float
 		1);
 	bitspopup->create_objects();
 	

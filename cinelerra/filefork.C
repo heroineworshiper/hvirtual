@@ -98,6 +98,8 @@ int FileFork::handle_command()
 			offset += sizeof(int);
 			file->disable_toc_creation = *(int*)(command_data + offset);
 			offset += sizeof(int);
+//printf("FileFork::handle_command %d OPEN_FILE %d\n", 
+//__LINE__, file->disable_toc_creation);
 
             file->get_frame_cache()->set_max_size(file->cache_size);
 // Read asset from socket

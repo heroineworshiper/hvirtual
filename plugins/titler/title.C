@@ -407,7 +407,7 @@ FontEntry::~FontEntry()
 
 void FontEntry::dump()
 {
-	printf("%s: %s %s %s %s %s %s %d %d %d %d %s %d %s %s\n",
+	printf("path=%s: foundary=%s family=%s weight=%s slant=%s swidth=%s adstyle=%s %d %d %d %d %s %d %s %s\n",
 		path,
 		foundary,
 		family,
@@ -1596,7 +1596,10 @@ void TitleMain::build_fonts()
 					in_ptr++;
 
 				out_ptr = string2;
-				while(*in_ptr != 0 && *in_ptr != ' ' && *in_ptr != 0xa && *in_ptr != '-')
+				while(*in_ptr != 0 && 
+                    /* *in_ptr != ' ' && */
+                    *in_ptr != 0xa && 
+                    *in_ptr != '-')
 				{
 					*out_ptr++ = *in_ptr++;
 				}
@@ -2054,8 +2057,8 @@ void TitleMain::build_fonts()
 	}
 
 
-// for(int i = 0; i < fonts->total; i++)
-//	fonts->values[i]->dump();
+//for(int i = 0; i < fonts->total; i++)
+//fonts->values[i]->dump();
 
 
 }

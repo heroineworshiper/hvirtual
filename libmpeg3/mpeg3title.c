@@ -53,14 +53,14 @@ int mpeg3_dump_title(mpeg3_title_t *title)
 {
 	int i;
 	
-	printf("mpeg3_dump_title path %s %llx-%llx cell_table_size %d\n", 
+	printf("mpeg3_dump_title path %s %jx-%jx cell_table_size %d\n", 
 		title->fs->path, 
 		title->start_byte,
 		title->end_byte,
 		title->cell_table_size);
 	for(i = 0; i < title->cell_table_size; i++)
 	{
-		printf("%llx-%llx %llx-%llx %x\n", 
+		printf("%jx-%jx %jx-%jx %x\n", 
 			title->cell_table[i].title_start, 
 			title->cell_table[i].title_end, 
 			title->cell_table[i].program_start, 
@@ -147,7 +147,7 @@ int mpeg3_create_title(mpeg3_demuxer_t *demuxer,
 	title->total_bytes = mpeg3io_total_bytes(title->fs);
 	title->start_byte = 0;
 	title->end_byte = title->total_bytes;
-if(debug) fprintf(stderr, "mpeg3_create_title %d path=%s total_bytes=%lld\n",
+if(debug) fprintf(stderr, "mpeg3_create_title %d path=%s total_bytes=%jd\n",
 __LINE__, file->fs->path, title->total_bytes);
 
 
@@ -191,11 +191,13 @@ int mpeg3demux_print_cells(mpeg3_title_t *title, FILE *output)
 		{
 			cell = &title->cell_table[i];
 
-			fprintf(output, "REGION: %llx-%llx %llx-%llx %f %f %d\n",
+			fprintf(output, "REGION: %jx-%jx %jx-%jx %f %f %d\n",
 				cell->program_start,
 				cell->program_end,
 				cell->title_start,
 				cell->title_end,
+				0.0,
+				0.0,
 				cell->program);
 		}
 	}

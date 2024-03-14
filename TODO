@@ -31,7 +31,9 @@ Embedded processing functions inside the shared track with keyframes
 Multiple loads from a single filebox with apply button
 text for labels
 alpha for previews
-libmpeg3 patches: https://udd.debian.org/patches.cgi?src=libmpeg3&version=1.8.dfsg-4
+libmpeg3 patches: 
+    https://udd.debian.org/patches.cgi?src=libmpeg3&version=1.8.dfsg-4
+    debian patch failed
 chromakey HSV:
     Alpha blur in chromakey HSV
     turn off transparency (a checkbox in the effect window)

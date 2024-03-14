@@ -7,6 +7,7 @@
 #include "mpeg3private.h"
 #include "mpeg3protos.h"
 #include "tables.h"
+#include "mpeg3audio.h"
 
 static struct al_table alloc_0[] = {
 	{4,0},{5,3},{3,-3},{4,-7},{5,-15},{6,-31},{7,-63},{8,-127},{9,-255},{10,-511},

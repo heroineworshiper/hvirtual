@@ -985,7 +985,7 @@ int FileMPEG::read_index_state(string *index_path, Indexable *dst)
     mpeg3_t *fd = mpeg3_open((char*)index_path->c_str(), &error);
     if(error || !fd) return 1;
 
-printf("FileMPEG::read_index_state %d %s fd=%p\n", __LINE__, index_path->c_str(), fd);
+//printf("FileMPEG::read_index_state %d %s fd=%p\n", __LINE__, index_path->c_str(), fd);
 // do we have audio indexes?
     if(mpeg3_index_tracks(fd))
     {
@@ -1126,7 +1126,7 @@ int FileMPEG::set_video_position(int64_t x)
 	if(!fd) return 1;
 	if(x >= 0 && x < asset->video_length)
 	{
-//printf("FileMPEG::set_video_position 1 %lld\n", x);
+//printf("FileMPEG::set_video_position %d %d\n", __LINE__, (int)x);
 		mpeg3_set_frame(fd, x, file->current_layer);
 	}
 	else

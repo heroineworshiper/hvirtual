@@ -42,6 +42,7 @@ CICache::CICache(Preferences *preferences)
 	this->preferences = preferences;
 	check_out_lock = new Condition(1, "CICache::check_out_lock", 0);
 	total_lock = new Mutex("CICache::total_lock");
+    is_previewer = 0;
 }
 
 CICache::~CICache()

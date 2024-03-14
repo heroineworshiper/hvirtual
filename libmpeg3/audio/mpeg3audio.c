@@ -372,13 +372,14 @@ static int read_frame(mpeg3audio_t *audio, int render)
 					audio->framesize,
 					temp_output,
 					render);
-//printf("read_frame %d\n", samples);
+//printf("read_frame %d AC3\n", __LINE__);
 				break;
 
 			case AUDIO_MPEG:
 				switch(audio->layer_decoder->layer)
 				{
 					case 2:
+//printf("read_frame %d MPEG layer 2\n", __LINE__);
 						samples = mpeg3audio_dolayer2(audio->layer_decoder, 
 							audio->packet_buffer,
 							audio->framesize,
@@ -388,6 +389,7 @@ static int read_frame(mpeg3audio_t *audio, int render)
 						break;
 
 					case 3:
+//printf("read_frame %d MPEG layer 3\n", __LINE__);
 						samples = mpeg3audio_dolayer3(audio->layer_decoder, 
 							audio->packet_buffer,
 							audio->framesize,
@@ -1026,16 +1028,24 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 
 
 		if(!file->seekable && 
-			track->demuxer->data_size < 
-			MPEG3_AUDIO_STREAM_SIZE) break;
+			track->demuxer->data_size < MPEG3_AUDIO_STREAM_SIZE) break;
 
 		int samples = read_frame(audio, render);
 
-// printf("mpeg3audio_decode_audio %d current_position=%d samples=%d try=%d\n", 
+// printf("mpeg3audio_decode_audio %d current_position=%d samples=%d output_size=%d try=%d\n", 
 // __LINE__, 
-// track->current_position,
+// (int)track->current_position,
 // samples, 
+// audio->output_size,
 // try);
+
+// static long total_samples = 0;
+// total_samples += samples;
+// printf("mpeg3audio_decode_audio %d %d %ld %ld\n", 
+// __LINE__,
+// file->seekable,
+// (long)mpeg3demux_tell_byte(track->demuxer),
+// total_samples);
 
 		if(!samples)
 			try++;
@@ -1088,6 +1098,9 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 	{
 		int diff = audio->output_size - MPEG3_AUDIO_HISTORY;
 		mpeg3_shift_audio(audio, diff);
+// printf("mpeg3audio_decode_audio %d shifting %d samples\n", 
+// __LINE__, 
+// audio->output_size - MPEG3_AUDIO_HISTORY);
 	}
 //printf("mpeg3audio_decode_audio %d %d\n", __LINE__, audio->output_size);
 

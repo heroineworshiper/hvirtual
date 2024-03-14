@@ -2,6 +2,9 @@
 #include "mpeg3protos.h"
 #include "tables.h"
 
+int mpeg3audio_dct64(float *a, float *b, float *c);
+
+
 #define WRITE_SAMPLE(samples, sum) \
 { \
 	(*samples) = (sum); \

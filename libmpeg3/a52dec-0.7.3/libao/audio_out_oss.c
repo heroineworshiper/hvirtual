@@ -124,7 +124,7 @@ int oss_play (ao_instance_t * _instance, int flags, sample_t * _samples)
 	return 1;
 
     float2s16_multi (samples, int16_samples, flags);
-    write (instance->fd, int16_samples, 256 * sizeof (int16_t) * chans);
+    int _ = write (instance->fd, int16_samples, 256 * sizeof (int16_t) * chans);
 
     return 0;
 }

@@ -1,6 +1,7 @@
 #include "../mpeg3private.h"
 #include "../mpeg3protos.h"
 #include "mpeg3video.h"
+#include "mpeg3videoprotos.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -312,7 +313,7 @@ if(debug) printf("mpeg3video_seek %d\n", __LINE__);
 		if(frame_number < 0) frame_number = 0;
 		if(frame_number > video->maxframe) frame_number = video->maxframe;
 
-if(debug) printf("mpeg3video_seek %d %ld %ld\n", __LINE__, frame_number, video->framenum);
+if(debug) printf("mpeg3video_seek %d %ld %d\n", __LINE__, frame_number, video->framenum);
 
 /* Seek to I frame in table of contents. */
 /* Determine time between seek position and previous subtitle. */
@@ -361,7 +362,7 @@ if(debug) printf("mpeg3video_seek %d\n", __LINE__);
 						video->repeat_count = 0;
 
 // Read up to current frame
-if(debug) printf("mpeg3video_seek %d %ld %ld\n", __LINE__, frame_number, video->framenum);
+if(debug) printf("mpeg3video_seek %d %ld %d\n", __LINE__, frame_number, video->framenum);
 						mpeg3video_drop_frames(video, frame_number - video->framenum, 1);
 if(debug) printf("mpeg3video_seek %d\n", __LINE__);
 						break;

@@ -7,6 +7,16 @@
 #include <string.h>
 #include <stdlib.h>
 
+int mpeg3audio_dct36(float *inbuf, float *o1, float *o2, float *wintab, float *tsbuf);
+int mpeg3audio_dct12(float *in,float *rawout1,float *rawout2,register float *wi,register float *ts);
+int mpeg3audio_synth_stereo(mpeg3_layer_t *audio, 
+	float *bandPtr, 
+	int channel, 
+	float *out, 
+	int *pnt);
+int mpeg3audio_reset_synths(mpeg3_layer_t *audio);
+
+
 struct gr_info_s 
 {
       int scfsi;

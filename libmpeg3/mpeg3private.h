@@ -7,7 +7,10 @@
 
 #include <stdio.h>
 
-
+/* We need this define to access stat64 struct on Alpha */
+#ifndef __USE_LARGEFILE64
+#define __USE_LARGEFILE64
+#endif
 
 
 /* Constants */
@@ -348,8 +351,8 @@ typedef struct
 
 /* Elementary stream data when all streams are to be read.  There is no */
 /* read pointer since data is expected to be copied directly to a track. */
-/* Some packets contain audio and video.  Further division into */
-/* stream ID may be needed. */
+/* Some packets contain audio and video.  */
+/* TODO: Further division into stream ID may be needed. */
 	unsigned char *audio_buffer;
 	int audio_allocated;
 	int audio_size;
@@ -418,7 +421,8 @@ typedef struct
 /* Stream ID of last packet */
 	unsigned int stream_id;
 /* Custom ID of last packet */
-	unsigned int custom_id;
+	unsigned int custom_audio_id;
+	unsigned int custom_video_id;
 	int transport_scrambling_control;
 	int adaptation_field_control;
 	int continuity_counter;

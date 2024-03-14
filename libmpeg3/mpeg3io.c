@@ -1,10 +1,12 @@
 #include "mpeg3private.h"
 #include "mpeg3protos.h"
+#include "mpeg3css.h"
 
 #include <mntent.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 mpeg3_fs_t* mpeg3_new_fs(char *path)
@@ -166,7 +168,7 @@ void mpeg3io_read_buffer(mpeg3_fs_t *fs)
 
 
 		fseeko64(fs->fd, new_buffer_position, SEEK_SET);
-		fread(fs->buffer, 1, remainder_start, fs->fd);
+		int _ = fread(fs->buffer, 1, remainder_start, fs->fd);
 
 
 		fs->buffer_position = new_buffer_position;
@@ -210,7 +212,7 @@ void mpeg3io_complete_path(char *complete_path, char *path)
 	if(path[0] != '/')
 	{
 		char current_dir[MPEG3_STRLEN];
-		getcwd(current_dir, MPEG3_STRLEN);
+		char* _ = getcwd(current_dir, MPEG3_STRLEN);
 		sprintf(complete_path, "%s/%s", current_dir, path);
 	}
 	else

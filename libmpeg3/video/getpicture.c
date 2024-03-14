@@ -1,10 +1,12 @@
 #include "mpeg3private.h"
 #include "mpeg3protos.h"
 #include "vlc.h"
+#include "mpeg3videoprotos.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 
 int mpeg3video_get_cbp(mpeg3_slice_t *slice)
 {

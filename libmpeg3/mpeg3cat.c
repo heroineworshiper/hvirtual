@@ -4,6 +4,7 @@
 
 #include "libmpeg3.h"
 #include "mpeg3protos.h"
+#include "mpeg3css.h"
 
 #include <errno.h>
 #include <stdio.h>

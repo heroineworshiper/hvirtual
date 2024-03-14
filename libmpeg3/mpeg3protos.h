@@ -23,7 +23,7 @@ double mpeg3_divide_double_gcc(double x, double y);
 int64_t mpeg3_total_bytes_gcc(mpeg3_title_t *title);
 int64_t mpeg3io_path_total_bytes(char *path);
 int64_t mpeg3io_get_total_bytes(mpeg3_fs_t *fs);
-
+int mpeg3_copy_fs(mpeg3_fs_t *dst, mpeg3_fs_t *src);
 
 
 
@@ -39,6 +39,8 @@ void mpeg3_new_cell(mpeg3_title_t *title,
 /* Called by mpeg3_open for a single file */
 int mpeg3demux_create_title(mpeg3_demuxer_t *demuxer, 
 		FILE *toc);
+int mpeg3_delete_title(mpeg3_title_t *title);
+int mpeg3_create_title(mpeg3_demuxer_t *demuxer, FILE *toc);
 
 
 /* ATRACK */
@@ -94,7 +96,7 @@ void mpeg3_pop_subtitle(mpeg3_strack_t *strack, int number, int delete_it);
 void mpeg3_pop_all_subtitles(mpeg3_strack_t *strack);
 /* Remove all subtitles from all buffers */
 void mpeg3_reset_subtitles(mpeg3_t *file);
-
+int mpeg3_subtitle_tracks(mpeg3_t *file);
 
 
 
@@ -303,6 +305,10 @@ int mpeg3io_close_file(mpeg3_fs_t *fs);
 int mpeg3io_seek(mpeg3_fs_t *fs, int64_t byte);
 int mpeg3io_seek_relative(mpeg3_fs_t *fs, int64_t bytes);
 int mpeg3io_read_data(unsigned char *buffer, int64_t bytes, mpeg3_fs_t *fs);
+void mpeg3io_complete_path(char *complete_path, char *path);
+void mpeg3io_get_directory(char *directory, char *path);
+void mpeg3io_get_filename(char *filename, char *path);
+void mpeg3io_joinpath(char *title_path, char *directory, char *new_filename);
 
 
 
@@ -391,7 +397,7 @@ int mpeg3demux_open_title(mpeg3_demuxer_t *demuxer, int title_number);
 /* Go to the absolute byte given */
 int mpeg3demux_seek_byte(mpeg3_demuxer_t *demuxer, int64_t byte);
 
-/* Seek to the title and cell containing the absolute byte of the 
+/* Seek to the title and cell containing the absolute byte of the */
 /* demuxer. */
 /* Called at the beginning of every packet. */
 int mpeg3_seek_phys(mpeg3_demuxer_t *demuxer);
@@ -472,6 +478,12 @@ int mpeg3bits_open_title(mpeg3_bits_t* stream, int title);
 int64_t mpeg3bits_tell(mpeg3_bits_t* stream);
 /* Reset bit bucket */
 void mpeg3bits_reset(mpeg3_bits_t *stream);
+int mpeg3bits_refill(mpeg3_bits_t* stream);
+int mpeg3bits_use_ptr(mpeg3_bits_t* stream, unsigned char *buffer);
+int mpeg3bits_getbitoffset(mpeg3_bits_t *stream);
+int mpeg3bits_byte_align(mpeg3_bits_t *stream);
+void mpeg3bits_start_forward(mpeg3_bits_t* stream);
+void mpeg3bits_start_reverse(mpeg3_bits_t* stream);
 
 
 
@@ -888,6 +900,21 @@ static unsigned int mpeg3slice_showbits(mpeg3_slice_buffer_t *slice_buffer, int 
 	return (slice_buffer->bits >> (slice_buffer->bits_size - bits)) & (0xffffffff >> (32 - bits));
 }
 
+
+
+
+
+int mpeg3_read_ifo(mpeg3_t *file, int read_cells);
+
+int mpeg3demux_copy_titles(mpeg3_demuxer_t *dst, mpeg3_demuxer_t *src);
+int mpeg3video_set_cpus(mpeg3video_t *video, int cpus);
+int mpeg3audio_seek_sample(mpeg3audio_t *audio, long sample);
+int mpeg3video_seek_frame(mpeg3video_t *video, long frame);
+int mpeg3video_seek_byte(mpeg3video_t *video, int64_t byte);
+int mpeg3video_previous_frame(mpeg3video_t *video);
+int mpeg3video_colormodel(mpeg3video_t *video);
+int mpeg3audio_seek_byte(mpeg3audio_t *audio, int64_t byte);
+int mpeg3io_device(char *path, char *device);
 
 
 

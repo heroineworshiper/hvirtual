@@ -279,6 +279,8 @@ int File::get_parameters(BC_WindowBase *parent_window,
 
 void File::set_disable_toc_creation(int value)
 {
+//printf("File::set_disable_toc_creation %d %d\n", __LINE__, value);
+//BC_Signals::dump_stack();
     disable_toc_creation = value;
 }
 
@@ -482,6 +484,10 @@ int File::open_file(Preferences *preferences,
 		offset += sizeof(int);
 		*(int*)(buffer + offset) = disable_toc_creation;
 		offset += sizeof(int);
+
+//printf("File::open_file %d disable_toc_creation=%d\n", 
+//__LINE__, disable_toc_creation);
+
 		memcpy(buffer + offset, string, strlen(string) + 1);
         offset += strlen(string) + 1;
         if(offset != buffer_size)
@@ -1448,6 +1454,8 @@ int File::set_audio_position(int64_t position)
 int File::set_video_position(int64_t position, 
 	int is_thread) 
 {
+//printf("File::set_video_position %d %d %d\n", 
+//__LINE__, disable_toc_creation, (int)asset->video_length);
     if(asset->video_length == NOSEEK_LENGTH) return 0;
 
 #ifdef USE_FILEFORK

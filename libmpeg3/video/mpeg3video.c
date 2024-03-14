@@ -9,6 +9,9 @@
 // "½Åµ¿ÈÆ" <doogle@shinbiro.com>
 
 
+
+
+
 /* zig-zag scan */
 unsigned char mpeg3_zig_zag_scan_nommx[64] =
 {
