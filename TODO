@@ -6,8 +6,7 @@ Detect recursive nested EDL
 
 BIG BUGS
 ----------------
-abc_fall1999 no longer plays.  Try patches
-Redraw the nudge when changing units & 0
+Old mpeg files no longer play.
 Nested EDLs with different colormodels crash.
 Effects not getting rendered if multiple effects have random starting times.
 Drag effect before timeline is finished drawing after a load -> lockup
@@ -25,7 +24,7 @@ Options for condensing the track height
 
 WISH LIST
 ----------------------------------------------------
-3 bezier modes: linear, bezier, & locked bezier mode
+Search for plugins & fonts
 Embedded processing functions inside the shared track with keyframes
     overlay mode, use mask, use plugins, send output to shared track
 Multiple loads from a single filebox with apply button

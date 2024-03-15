@@ -751,6 +751,7 @@ void TitleEngine::init_packages()
 		pkg->x = char_position->x;
         pkg->y = char_position->y;
         pkg->c = plugin->config.ucs4text[i];
+//printf("TitleEngine::init_packages %d c=%c x=%d\n", __LINE__, pkg->c, pkg->x);
 		current_package++;
 	}
 }
@@ -2079,6 +2080,8 @@ void TitleMain::build_previews(TitleWindow *gui)
 	const char *test_string = "Aa";
 	char new_path[BCTEXTLEN];
 	int text_height = gui->get_text_height(LARGEFONT);
+// crop if the preview is wider than this
+    int max_image_w = FONT_PREVIEW_W;
 	int text_color = BC_WindowBase::get_resources()->default_text_color;
 	int r = (text_color >> 16) & 0xff;
 	int g = (text_color >> 8) & 0xff;
@@ -2186,7 +2189,7 @@ void TitleMain::build_previews(TitleWindow *gui)
 									freetype_face->glyph->bitmap.pitch * in_y;
 
 								for(int out_x = 0; out_x < freetype_face->glyph->bitmap.width &&
-									out_x < total_w;
+									current_x + out_x < total_w;
 									out_x++)
 								{
 									*out_row++ = (*in_row * r + 
@@ -2222,6 +2225,8 @@ void TitleMain::build_previews(TitleWindow *gui)
 			if(pass == 0 && current_w > total_w) total_w = current_w;
 
 		}
+        
+        if(pass == 0 && total_w > max_image_w) total_w = max_image_w;
 	}
 
 	if(freetype_library) FT_Done_FreeType(freetype_library);
@@ -2591,6 +2596,8 @@ void TitleMain::get_total_extents()
 		int char_advance = get_char_advance(config.ucs4text[i], 
 			config.ucs4text[i + 1]);
         current_x += char_advance;
+        char_positions[i].line_w = 0;
+        char_positions[i].end_of_line = 0;
 
 // printf("TitleMain::get_total_extents 1 %c x=%d y=%d w=%d\n", 
 // config.text[i], 
@@ -2602,13 +2609,19 @@ void TitleMain::get_total_extents()
 		{
             int line_w = max_x - min_x;
             if(line_w > text_w) text_w = line_w;
-// printf("TitleMain::get_total_extents %d min_x=%d max_x=%d line_w=%d\n", 
-// __LINE__, min_x, max_x, line_w);
+// store the line_w for later
+            char_positions[i].line_w = line_w;
+            char_positions[i].end_of_line = 1;
+
+//printf("TitleMain::get_total_extents %d i=%d min_x=%d max_x=%d line_w=%d\n", 
+//__LINE__, i, min_x, max_x, line_w);
+
 // shift line horizontally
             for(int j = row_start; j <= i; j++)
             {
                 char_positions[j].x -= min_x;
             }
+
             current_y += line_spacing;
 			text_rows++;
 			current_x = 0;
@@ -2631,13 +2644,12 @@ void TitleMain::get_total_extents()
 // expand the text extents based on the dropshadow & outline
 	text_w += config.dropshadow + config.outline_size * 2;
     text_h += config.dropshadow + config.outline_size * 2;
-//printf("TitleMain::get_total_extents %d text_w=%d\n", __LINE__, text_w);
 
 // Now that total text_w is known
 // Justify rows based on configuration
 	row_start = 0;
-    min_x = 65536;
-    max_x = -65536;
+//    min_x = 65536;
+//    max_x = -65536;
 	for(int i = 0; i < text_len; i++)
 	{
 // printf("TitleMain::get_total_extents %d %c x=%d y=%d w=%d h=%d\n", 
@@ -2647,15 +2659,19 @@ void TitleMain::get_total_extents()
 // char_positions[i].y,
 // char_positions[i].w,
 // char_positions[i].h);
-        if(char_positions[i].x < min_x) min_x = char_positions[i].x;
-        if(char_positions[i].x + char_positions[i].w > max_x)
-            max_x = char_positions[i].x + char_positions[i].w;
-		if(config.ucs4text[i] == 0xa || i == text_len - 1)
+//        if(char_positions[i].x < min_x) min_x = char_positions[i].x;
+//        if(char_positions[i].x + char_positions[i].w > max_x)
+//            max_x = char_positions[i].x + char_positions[i].w;
+		if(char_positions[i].end_of_line)
 		{
-            int line_w = max_x - 
-                min_x + 
+            int line_w = char_positions[i].line_w +
+//                max_x - 
+//                min_x + 
                 config.dropshadow + 
                 config.outline_size * 2;
+//printf("TitleMain::get_total_extents %d i=%d line_w=%d\n", 
+//__LINE__, i, line_w);
+
 			for(int j = row_start; j <= i; j++)
 			{
 				switch(config.hjustification)
@@ -2674,8 +2690,8 @@ void TitleMain::get_total_extents()
 				}
 			}
 			row_start = i + 1;
-            min_x = 65536;
-            max_x = -65536;
+//            min_x = 65536;
+//            max_x = -65536;
 		}
 	}
 

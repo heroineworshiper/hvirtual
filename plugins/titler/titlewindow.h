@@ -35,7 +35,8 @@ class TitleInterlace;
 #include "title.h"
 
 
-
+#define FONT_LIST_W DP(400)
+#define FONT_PREVIEW_W DP(60)
 
 class TitleSubsText;
 class TitleSubs;

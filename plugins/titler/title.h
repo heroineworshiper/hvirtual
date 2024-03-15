@@ -385,6 +385,9 @@ public:
 typedef struct
 {
 	int x, y, w, h;
+// hints for computing the extents
+    int line_w;
+    int end_of_line;
 } title_char_position_t;
 
 class Subtitle
