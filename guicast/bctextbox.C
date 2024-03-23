@@ -268,7 +268,8 @@ int BC_TextBox::calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries,
 			*(ptr + 1) = 0;
 			int suggestion_column = ptr + 1 - string;
 
-			fs.set_filter(get_resources()->filebox_filter);
+// don't filter or sort it if it's the browse button text
+//			fs.set_filter(get_resources()->filebox_filter);
 //			fs.set_sort_order(filebox->sort_order);
 //			fs.set_sort_field(filebox->column_type[filebox->sort_column]);
 

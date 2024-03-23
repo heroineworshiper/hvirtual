@@ -75,6 +75,7 @@
 #include "recordlabel.inc"
 #include "removethread.inc"
 #include "render.inc"
+#include "save.inc"
 #include "sharedlocation.inc"
 #include "sighandler.inc"
 #include "splashgui.inc"
@@ -257,6 +258,8 @@ public:
 	void update_plugins();
 // Call after every edit operation
 	void save_backup();
+    void save_xml(const char *filename, int update_gui, int quit);
+    void save_clip(const char *filename);
 	void show_plugin(Plugin *plugin);
 	void hide_plugin(Plugin *plugin, int lock);
 	void hide_plugins();
@@ -530,6 +533,7 @@ public:
     AssetRemoveThread *asset_remove;
     TransitionDialogThread *attach_transition;
     EditKeyframeThread *edit_keyframe;
+    static SaveThread *save_thread;
 
 	SplashGUI *splash_window;
 // Main undo stack

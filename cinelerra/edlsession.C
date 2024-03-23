@@ -76,7 +76,7 @@ EDLSession::EDLSession(EDL *edl)
 	output_w = -1000;
 	output_h = -1000;
 	video_write_length = -1000;
-	color_model = -100;
+	color_model = BC_RGB888;
 	record_speed = 24;
 	decode_subtitles = 0;
 	subtitle_number = 0;

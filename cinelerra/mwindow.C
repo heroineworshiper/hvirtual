@@ -88,6 +88,7 @@
 #include "removethread.h"
 #include "render.h"
 #include "samplescroll.h"
+#include "save.h"
 #include "sighandler.h"
 #include "splashgui.h"
 #include "statusbar.h"
@@ -165,6 +166,7 @@ MainProgress* MWindow::mainprogress = 0;
 Theme* MWindow::theme = 0;
 Preferences* MWindow::preferences = 0;
 BC_Hash* MWindow::defaults = 0;
+SaveThread* MWindow::save_thread = 0;
 
 int MWindow::is_loading = 0;
 int MWindow::indent = 0;
@@ -1794,7 +1796,7 @@ void MWindow::create_objects(int want_gui,
 	asset_remove = new AssetRemoveThread(this);
 	attach_transition = new TransitionDialogThread(this);
     edit_keyframe = new EditKeyframeThread(this);
-
+    save_thread = new SaveThread;
 
 	init_error();
 	if(debug) PRINT_TRACE
@@ -2839,6 +2841,125 @@ void MWindow::save_backup()
 		char string2[256];
 		sprintf(string2, _("Couldn't open %s for writing."), BACKUP_PATH);
 		gui->show_message(string2);
+	}
+}
+
+
+// common entry point for save & save as
+void MWindow::save_xml(const char *filename, int update_gui, int quit)
+{
+    if(update_gui)
+    {
+	    gui->lock_window("MWindow::save_xml 1");
+// update the project name
+        set_filename(filename);
+        gui->unlock_window();
+    }
+
+	FileXML file;
+    if(update_gui) gui->lock_window("MWindow::save_xml 2");
+    edl->save_xml(&file, 
+		filename,
+		0,
+		0);
+    if(update_gui) gui->unlock_window();
+    file.terminate_string();
+
+	if(file.write_to_file(filename))
+	{
+		char string2[BCTEXTLEN];
+		sprintf(string2, _("Couldn't open %s"), filename);
+		ErrorBox error(PROGRAM_NAME ": Error",
+			gui->get_abs_cursor_x(1),
+			gui->get_abs_cursor_y(1));
+		error.create_objects(string2);
+		error.raise_window();
+		error.run_window();
+		return;
+	}
+	else
+	{
+		char string[BCTEXTLEN];
+		sprintf(string, 
+			_("\"%s\" %dC written"), 
+			filename, 
+			(int)strlen(file.string));
+        if(update_gui) gui->lock_window("MWindow::save_xml 3");
+		gui->show_message(string);
+        if(update_gui) gui->unlock_window();
+	}
+
+	session->changes_made = 0;
+	if(update_gui) gui->mainmenu->add_load(filename);
+// Last command in program
+	if(quit) playback_3d->quit();
+}
+
+void MWindow::save_clip(const char *filename)
+{
+    double start = edl->local_session->get_selectionstart();
+    double end = edl->local_session->get_selectionend();
+
+// save the entire timeline.  Might as well use the save function, but this
+// is a graceful ending.
+	if(start == end)
+    {
+        start = 0;
+        end = edl->tracks->total_length();
+    }
+    
+	FileXML file;
+// reset some GUI bits
+    int64_t track_start[TOTAL_PANES];
+    int64_t view_start[TOTAL_PANES];
+    for(int i = 0; i < TOTAL_PANES; i++)
+    {
+        track_start[i] = edl->local_session->track_start[i];
+        view_start[i] = edl->local_session->view_start[i];
+        edl->local_session->track_start[i] = 0;
+        edl->local_session->view_start[i] = 0;
+    }
+
+	edl->copy(start, 
+		end, 
+		0,
+		0,
+		0,
+		&file, 
+		"",
+		1);
+
+// restore some GUI bits
+    for(int i = 0; i < TOTAL_PANES; i++)
+    {
+        edl->local_session->track_start[i] = track_start[i];
+        edl->local_session->view_start[i] = view_start[i];
+        edl->local_session->track_start[i] = 0;
+        edl->local_session->view_start[i] = 0;
+    }
+
+	if(file.write_to_file(filename))
+	{
+		char string2[BCTEXTLEN];
+		sprintf(string2, _("Couldn't open %s"), filename);
+		ErrorBox error(PROGRAM_NAME ": Error",
+			gui->get_abs_cursor_x(1),
+			gui->get_abs_cursor_y(1));
+		error.create_objects(string2);
+		error.raise_window();
+		error.run_window();
+		return;
+	}
+	else
+	{
+		char string[BCTEXTLEN];
+		sprintf(string, 
+			_("\"%s\" %dC written"), 
+			filename, 
+			(int)strlen(file.string));
+        gui->lock_window("MWindow::save_clip 3");
+		gui->show_message(string);
+        gui->unlock_window();
 	}
 }
 

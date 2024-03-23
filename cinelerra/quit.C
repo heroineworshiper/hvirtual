@@ -33,7 +33,7 @@
 #include "quit.h"
 #include "record.h"
 #include "render.h"
-#include "savefile.h"
+#include "save.h"
 #include "mainsession.h"
 #include "videowindow.h"
 #include "videowindowgui.h"
@@ -45,7 +45,7 @@ Quit::Quit(MWindow *mwindow)
 	this->mwindow = mwindow; 
 }
 
-void Quit::create_objects(Save *save)
+void Quit::create_objects(SaveItem *save)
 { 
 	this->save = save; 
 }
@@ -97,15 +97,10 @@ void Quit::run()
 
 // Quit
 	{
-//printf("Quit::run 2\n");
 		ConfirmQuitWindow confirm(mwindow);
-//printf("Quit::run 2\n");
 		confirm.create_objects(_("Save edit list before exiting?"));
-//printf("Quit::run 2\n");
 		result = confirm.run_window();
-//printf("Quit::run 2\n");
 	}
-//printf("Quit::run 3\n");
 
 	switch(result)
 	{

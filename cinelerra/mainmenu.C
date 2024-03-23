@@ -58,7 +58,7 @@
 #include "quit.h"
 #include "record.h"
 #include "render.h"
-#include "savefile.h"
+#include "save.h"
 #include "setformat.h"
 #include "timebar.h"
 #include "trackcanvas.h"
@@ -99,12 +99,12 @@ void MainMenu::create_objects()
 	load_file->create_objects();
 
 // new and load can be undone so no need to prompt save
-	Save *save;                   //  affected by saveas
-	filemenu->add_item(save = new Save(mwindow));
-	SaveAs *saveas;
-	filemenu->add_item(saveas = new SaveAs(mwindow));
-	save->create_objects(saveas);
-	saveas->set_mainmenu(this);
+	SaveItem *save;                   //  affected by saveas
+	filemenu->add_item(save = new SaveItem);
+	SaveAsItem *saveas;
+	filemenu->add_item(saveas = new SaveAsItem);
+	filemenu->add_item(new SaveClipItem);
+	filemenu->add_item(new BC_MenuItem("-"));
 
 	filemenu->add_item(render = new RenderItem(mwindow));
 	filemenu->add_item(new BatchRenderMenuItem(mwindow));
@@ -115,7 +115,7 @@ void MainMenu::create_objects()
 	filemenu->add_item(new DumpEDL(mwindow));
 	filemenu->add_item(new DumpPlugins(mwindow));
 	filemenu->add_item(new LoadBackup(mwindow));
-	filemenu->add_item(new SaveBackup(mwindow));
+	filemenu->add_item(new SaveBackupItem);
 
 	BC_Menu *editmenu;
 	add_menu(editmenu = new BC_Menu(_("Edit")));
@@ -507,7 +507,7 @@ int MainMenu::add_veffect(char *title)
 	return 0;
 }
 
-int MainMenu::add_load(char *path)
+int MainMenu::add_load(const char *path)
 {
 	if(total_loads == 0)
 	{

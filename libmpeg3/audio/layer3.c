@@ -1406,6 +1406,8 @@ int mpeg3_layer_check(unsigned char *data)
 // JPEG header
 	if((head & 0xffff0000) == 0xffed0000) return 1;
 
+//printf("mpeg3_layer_check %d %08x\n", __LINE__, head);
+// passed
     return 0;
 }
 
@@ -1517,7 +1519,8 @@ int mpeg3_layer_header(mpeg3_layer_t *layer_data, unsigned char *data)
 
     layer = 4 - ((header >> 17) & 3);
 
-//printf("mpeg3_layer_header 1 %d header=%08x layer=%d layer_data->layer=%d\n", __LINE__, header, layer, layer_data->layer);
+//printf("mpeg3_layer_header %d header=%08x layer=%d layer_data->layer=%d\n", 
+//__LINE__, header, layer, layer_data->layer);
 	if(layer_data->layer != 0 &&
 		layer != layer_data->layer)
 	{
@@ -1603,15 +1606,15 @@ int mpeg3_layer_header(mpeg3_layer_t *layer_data, unsigned char *data)
 
 
 
-/*
- * printf("mpeg3_layer_header %d bitrate=%d framesize=%d samplerate=%d channels=%d layer=%d\n", 
- * __LINE__,
- * layer_data->bitrate, 
- * layer_data->framesize, 
- * layer_data->samplerate, 
- * layer_data->channels,
- * layer_data->layer);
- */
+
+// printf("mpeg3_layer_header %d bitrate=%d framesize=%d samplerate=%d channels=%d layer=%d\n", 
+// __LINE__,
+// layer_data->bitrate, 
+// (int)layer_data->framesize, 
+// layer_data->samplerate, 
+// layer_data->channels,
+// layer_data->layer);
+
 
 
 

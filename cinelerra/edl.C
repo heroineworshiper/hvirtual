@@ -914,7 +914,7 @@ double EDL::equivalent_output(EDL *edl)
 }
 
 
-void EDL::set_path(char *path)
+void EDL::set_path(const char *path)
 {
 	strcpy(this->path, path);
 }

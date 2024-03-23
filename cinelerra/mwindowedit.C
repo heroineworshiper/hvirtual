@@ -1422,7 +1422,7 @@ void MWindow::paste()
 		undo->update_undo_after(_("paste"), LOAD_EDITS | LOAD_TIMEBAR);
 		restart_brender();
 		update_plugin_guis();
-		gui->update(1, 2, 1, 1, 0, 1, 0);
+		gui->update(1, 2, 1, 1, 1, 1, 0);
 		gui->unlock_window();
 		
 		awindow->gui->lock_window("MWindow::paste");
@@ -1478,7 +1478,7 @@ int MWindow::paste_assets(double position, Track *dest_track)
 		2,
 		1,
 		0,
-		0,
+		1,
 		1,
 		0);
 	sync_parameters(CHANGE_EDL);

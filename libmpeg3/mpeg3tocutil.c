@@ -758,9 +758,10 @@ int mpeg3_update_index(mpeg3_t *file,
 
 
 		atrack->current_position += fragment;
-// printf("mpeg3_update_index %d fragment=%d samples=%d\n", 
+// printf("mpeg3_update_index %d fragment=%d output_size=%d current_position=%d\n", 
 // __LINE__, 
 // (int)fragment,
+// atrack->audio->output_size,
 // (int)atrack->current_position);
 	}
 
@@ -795,7 +796,7 @@ static int handle_audio(mpeg3_t *file,
 // printf("handle_audio %d wrote %d\n", __LINE__, (int)file->demuxer->audio_size);
 // dump to debug file
 // static FILE *debug_fd = 0;
-// if(!debug_fd) debug_fd = fopen("/tmp/test.ac3", "w");
+// if(!debug_fd) debug_fd = fopen("/tmp/test.mp2", "w");
 // fwrite(file->demuxer->audio_buffer,
 // 1, 
 // file->demuxer->audio_size, 
@@ -814,7 +815,7 @@ static int handle_audio(mpeg3_t *file,
 
 
 
-// printf("handle_audio %d pid=%p audio_size=%d data_size=%d\n", 
+// printf("handle_audio %d pid=0x%x audio_size=%d data_size=%d\n", 
 // __LINE__,
 // file->demuxer->pid,
 // file->demuxer->audio_size, 

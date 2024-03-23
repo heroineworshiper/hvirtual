@@ -165,6 +165,7 @@ static int read_header(mpeg3audio_t *audio)
 /* Layer 1 not supported */
 			if(audio->layer_decoder->layer == 1)
 			{
+//                printf("read_header %d Layer 1 not supported\n", __LINE__);
 				result = 1;
 			}
 
@@ -209,6 +210,11 @@ static int read_header(mpeg3audio_t *audio)
 
 //				if(!result)
 				{
+					got_it = (mpeg3_layer_header(audio->layer_decoder,
+						audio->packet_buffer) != 0);
+
+//if(got_it) printf("read_header %d\n", __LINE__);
+
 // printf("read_header %d got_it=%d packet=%02x%02x%02x%02x\n",
 // __LINE__,
 // got_it,
@@ -216,9 +222,6 @@ static int read_header(mpeg3audio_t *audio)
 // (unsigned char)audio->packet_buffer[1],
 // (unsigned char)audio->packet_buffer[2],
 // (unsigned char)audio->packet_buffer[3]);
-					got_it = (mpeg3_layer_header(audio->layer_decoder,
-						audio->packet_buffer) != 0);
-
 
 				}
 
@@ -323,6 +326,9 @@ static int read_frame(mpeg3audio_t *audio, int render)
 /* Find and read next header */
 	result = read_header(audio);
 
+// printf("read_frame %d result=%d\n", 
+// __LINE__, 
+// result);
 
 /* Read rest of frame */
 	if(!result)
@@ -330,6 +336,12 @@ static int read_frame(mpeg3audio_t *audio, int render)
 		result = mpeg3demux_read_data(track->demuxer, 
 				audio->packet_buffer + audio->packet_position, 
 				audio->framesize - audio->packet_position);
+// printf("read_frame %d result=%d track->format=%d position=%d size=%d\n", 
+// __LINE__, 
+// result, 
+// track->format, 
+// track->demuxer->data_position, 
+// track->demuxer->data_size);
 	}
 
 /* Handle increase in channel count, for ATSC */
@@ -364,6 +376,7 @@ static int read_frame(mpeg3audio_t *audio, int render)
 
 	if(!result)
 	{
+//printf("read_frame %d track->format=%d\n", __LINE__, track->format);
 		switch(track->format)
 		{
 			case AUDIO_AC3:
@@ -941,7 +954,7 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 /* Always render since now the TOC contains index files. */
 	int render = 1;
 	long new_size;
-//printf("mpeg3audio_decode_audio %d\n", __LINE__);
+//printf("mpeg3audio_decode_audio %d output_size=%d\n", __LINE__, audio->output_size);
 
 /* Minimum amount of data must be present for streaming mode */
 	if(!file->seekable && 

@@ -71,10 +71,17 @@ public:
 
 // Don't delete the gui between runs
     void set_keep_gui(int value);
+// call from inside handle_done_event to restart the dialog
+    void set_restart();
+// if you don't intend to access the GUI from outside the dialog thread
+// this calls new_gui outside startup_lock
+    void set_async_gui();
 
 private:
 	BC_Window *gui;
     int keep_gui;
+    int restart;
+    int async_gui;
 	Condition *startup_lock;
 	Mutex *window_lock;
 };

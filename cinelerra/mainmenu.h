@@ -73,7 +73,7 @@ public:
 	int save_defaults(BC_Hash *defaults);
 
 // most recent loads
-	int add_load(char *path);
+	int add_load(const char *path);
 	int init_loads(BC_Hash *defaults);
 	int save_loads(BC_Hash *defaults);
 

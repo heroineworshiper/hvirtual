@@ -581,7 +581,7 @@ void BC_FileBoxPreviewer::preview_unavailable()
     if(gui)
     {
         gui->put_event([](void *ptr)
-            { 
+            {
                 BC_FileBox *filebox = (BC_FileBox*)ptr;
                 
                 filebox->preview_status->update("Preview\nunavailable");

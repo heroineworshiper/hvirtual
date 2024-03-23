@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,54 +18,76 @@
  * 
  */
 
-#ifndef SAVEFILE_H
-#define SAVEFILE_H
+#ifndef SAVE_H
+#define SAVE_H
+
+// common functions which save XML files
 
 #include "guicast.h"
-#include "mainmenu.inc"
-#include "mwindow.inc"
-#include "savefile.inc"
+#include "save.inc"
 
-class SaveBackup : public BC_MenuItem
+
+class SaveBackupItem : public BC_MenuItem
 {
 public:
-	SaveBackup(MWindow *mwindow);
+	SaveBackupItem();
 	int handle_event();
-	MWindow *mwindow;
 };
 
-class Save : public BC_MenuItem
+class SaveItem : public BC_MenuItem
 {
 public:
-	Save(MWindow *mwindow);
+	SaveItem();
 	int handle_event();
-	void create_objects(SaveAs *saveas);
 	int save_before_quit();
-	
-	int quit_now;
-	MWindow *mwindow;
-	SaveAs *saveas;
 };
 
-class SaveAs : public BC_MenuItem, public Thread
+class SaveClipItem : public BC_MenuItem
 {
 public:
-	SaveAs(MWindow *mwindow);
-	int set_mainmenu(MainMenu *mmenu);
+	SaveClipItem();
 	int handle_event();
-	void run();
-	
-	int quit_now;
-	MWindow *mwindow;
-	MainMenu *mmenu;
 };
 
-class SaveFileWindow : public BC_FileBox
+class SaveAsItem : public BC_MenuItem
 {
 public:
-	SaveFileWindow(MWindow *mwindow, char *init_directory);
-	~SaveFileWindow();
-	MWindow *mwindow;
+	SaveAsItem();
+	int handle_event();
 };
+
+
+class SaveThread : public BC_DialogThread
+{
+public:
+	SaveThread();
+	~SaveThread();
+
+	
+	BC_Window* new_gui();
+	void handle_done_event(int result);
+    void reset_flags();
+
+    int quit_now;
+    int do_clip;
+	SaveWindow *window;
+};
+
+
+class SaveWindow : public BC_FileBox
+{
+public:
+	SaveWindow(char *init_path, int do_clip);
+	~SaveWindow();
+};
+
 
 #endif
+
+
+
+
+
+
+
+

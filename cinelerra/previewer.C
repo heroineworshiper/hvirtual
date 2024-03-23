@@ -167,6 +167,9 @@ Previewer::Previewer() : BC_FileBoxPreviewer()
     edl = 0;
     is_playing = 0;
     output_frame = 0;
+    name_text = 0;
+    date_text = 0;
+    size_text = 0;
 }
 
 
@@ -187,16 +190,23 @@ void Previewer::clear_preview()
     interrupt_playback();
     
     previewer_lock->lock("Previewer::clear_preview");
-    if(canvas) delete canvas;
-    if(play) delete play;
-    if(rewind) delete rewind;
-    if(scroll) delete scroll;
+    delete canvas;
+    delete play;
+    delete rewind;
+    delete scroll;
     delete output_frame;
+    delete name_text;
+    delete date_text;
+    delete size_text;
     output_frame = 0;
     canvas = 0;
     play = 0;
     rewind = 0;
     scroll = 0;
+    name_text = 0;
+    date_text = 0;
+    size_text = 0;
+    seekable = 0;
     previewer_lock->unlock();
 }
 
@@ -265,9 +275,15 @@ void Previewer::rewind_playback()
         play_position = 0;
 // don't reload if seekable or not a file
         Asset *asset = edl->assets->first;
+
+// can't know if it's seekable if it's in an EDL
+// printf("Previewer::rewind_playback %d %d %d\n", 
+// __LINE__,
+// (int)asset->audio_length,
+// (int)asset->video_length);
         playback_engine->que->send_command(CURRENT_FRAME, 
-			(!asset || (asset->audio_length >= 0 && asset->video_length >= 0)) ?
-                CHANGE_NONE : CHANGE_ALL,
+//			(!asset || (asset->audio_length >= 0 && asset->video_length >= 0)) ?
+			seekable ? CHANGE_NONE : CHANGE_ALL,
 			edl,
 			1);
     }
@@ -319,7 +335,15 @@ void Previewer::write_frame(VFrame *frame)
 {
     previewer_lock->lock("Previewer::write_frame 1");
 
-    if(output_frame && !output_frame->equivalent(frame))
+    int output_cmodel = BC_RGB888;
+// alpha checkers would be supported here but require heroic programming
+// alpha checkers can only be drawn on the BGR destinations
+//    if(cmodel_has_alpha(frame->get_color_model())) output_cmodel = BC_BGR8888;
+
+    if(output_frame && 
+        (output_cmodel != output_frame->get_color_model() ||
+        output_frame->get_w() != frame->get_w() ||
+        output_frame->get_h() != frame->get_h()))
     {
         delete output_frame;
         output_frame = 0;
@@ -336,15 +360,63 @@ void Previewer::write_frame(VFrame *frame)
             0,
 			frame->get_w(),
 			frame->get_h(),
-			frame->get_color_model(),
+			output_cmodel,
 			-1);
     }
 
-// must copy it to avoid flickering, as it's being draw in the GUI thread
+// must copy it to avoid flickering, as it's being drawn in the GUI thread
 //printf("Previewer::write_frame %d frame=%p output_frame=%p\n", 
 //__LINE__, frame, output_frame);
 
-    output_frame->copy_from(frame);
+    if(output_frame->equivalent(frame) /* && 
+        !cmodel_has_alpha(frame->get_color_model()) */ )
+    {
+        output_frame->copy_from(frame);
+    }
+    else
+//    if(!cmodel_has_alpha(frame->get_color_model()))
+    {
+        cmodel_transfer(output_frame->get_rows(), 
+	        frame->get_rows(),
+	        output_frame->get_y(),
+	        output_frame->get_u(),
+	        output_frame->get_v(),
+	        frame->get_y(),
+	        frame->get_u(),
+	        frame->get_v(),
+            0,        /* Dimensions to capture from input frame */
+	        0, 
+	        frame->get_w(), 
+	        frame->get_h(),
+	        0,       /* Dimensions to project on output frame */
+	        0, 
+	        output_frame->get_w(), 
+	        output_frame->get_h(),
+            frame->get_color_model(), 
+	        output_frame->get_color_model(),
+	        0,
+            frame->get_bytes_per_line(),    // bytes per line
+	        output_frame->get_bytes_per_line());
+    }
+//     else
+//     {
+//         cmodel_transfer_alpha(output_frame->get_rows(), /* Leave NULL if non existent */
+// 	        frame->get_rows(),
+//             0,        /* Dimensions to capture from input frame */
+// 	        0, 
+// 	        frame->get_w(), 
+// 	        frame->get_h(),
+// 	        0,       /* Dimensions to project on output frame */
+// 	        0, 
+// 	        output_frame->get_w(), 
+// 	        output_frame->get_h(),
+//             frame->get_color_model(), 
+// 	        output_frame->get_color_model(),
+//             frame->get_bytes_per_line(),    // bytes per line
+// 	        output_frame->get_bytes_per_line(),
+//             CHECKER_W,
+//             CHECKER_H);
+//     }
 
 //printf("Previewer::write_frame %d\n", 
 //__LINE__);
@@ -358,7 +430,9 @@ void Previewer::write_frame(VFrame *frame)
 //printf("Previewer::write_frame %d: output_frame=%p\n", 
 //__LINE__, previewer->output_frame);
                 if(previewer->output_frame &&
-                    previewer->canvas)
+                    previewer->canvas &&
+                    previewer->edl &&
+                    previewer->edl->tracks->playable_video_tracks())
                 {
                     previewer->canvas->draw_vframe(previewer->output_frame,
                         0,

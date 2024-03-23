@@ -125,8 +125,8 @@ void Track::equivalent_output(Track *track, double *result)
 // Test existing plugin sets
 	for(int i = 0; i < plugin_sets; i++)
 	{
-		plugin_set.values[i]->equivalent_output(
-			track->plugin_set.values[i], 
+		plugin_set.get(i)->equivalent_output(
+			track->plugin_set.get(i), 
 			&result2);
 	}
 

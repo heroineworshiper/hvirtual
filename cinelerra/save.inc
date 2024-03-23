@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,23 +18,16 @@
  * 
  */
 
-#ifndef QUIT_H
-#define QUIT_H
+#ifndef SAVE_INC
+#define SAVE_INC
 
-#include "guicast.h"
-#include "mwindow.inc"
-#include "save.inc"
+class SaveItem;
+class SaveAsItem;
+class SaveBackupItem;
+class SaveClipItem;
+class SaveThread;
+class SaveWindow;
 
-class Quit : public BC_MenuItem, public Thread
-{
-public:
-	Quit(MWindow *mwindow);
-	void create_objects(SaveItem *save);
-	int handle_event();
-	void run();
-	
-	SaveItem *save;
-	MWindow *mwindow;
-};
+
 
 #endif

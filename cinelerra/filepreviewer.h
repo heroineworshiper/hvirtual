@@ -62,6 +62,7 @@ public:
     void submit_file(const char *path);
 // create the widgets
     void create_preview();
+    void create_info(BC_FileBox *filebox, int x, int y);
     void handle_resize(int w, int h);
 
 // wait for a new file

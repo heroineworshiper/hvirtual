@@ -6,7 +6,8 @@ Detect recursive nested EDL
 
 BIG BUGS
 ----------------
-Old mpeg files no longer play.
+Use ffmpeg to decode superman.m2ts
+Applies filebox filter to the auto completion in a browse button textbox.
 Nested EDLs with different colormodels crash.
 Effects not getting rendered if multiple effects have random starting times.
 Drag effect before timeline is finished drawing after a load -> lockup

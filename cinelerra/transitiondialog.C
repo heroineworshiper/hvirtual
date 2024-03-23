@@ -337,6 +337,7 @@ void TransitionPreviewer::submit_transition(const char *title, int data_type)
                 }
             }
         }
+        seekable = 1;
         play_position = 0;
     }
 

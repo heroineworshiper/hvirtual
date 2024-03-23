@@ -284,7 +284,7 @@ OBJS = \
 	$(OBJDIR)/resourcethread.o \
 	$(OBJDIR)/samples.o \
 	$(OBJDIR)/samplescroll.o \
-	$(OBJDIR)/savefile.o \
+	$(OBJDIR)/save.o \
 	$(OBJDIR)/scenegraph.o \
 	$(OBJDIR)/scopewindow.o \
 	$(OBJDIR)/setformat.o \
@@ -861,7 +861,7 @@ $(OBJDIR)/resourcepixmap.o: 			  resourcepixmap.C
 $(OBJDIR)/resourcethread.o:                       resourcethread.C
 $(OBJDIR)/samples.o: 			          samples.C
 $(OBJDIR)/samplescroll.o: 			  samplescroll.C
-$(OBJDIR)/savefile.o: 				  savefile.C
+$(OBJDIR)/save.o: 				  save.C
 $(OBJDIR)/scopewindow.o:                          scopewindow.C
 $(OBJDIR)/scenegraph.o:                           scenegraph.C
 $(OBJDIR)/setformat.o:                            setformat.C

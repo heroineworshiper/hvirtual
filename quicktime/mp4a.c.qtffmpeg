@@ -599,6 +599,18 @@ void quicktime_init_codec_ac3(quicktime_audio_map_t *atrack)
 	codec_base->decode_audio = decode;
 }
 
+// codec from superman..m2ts which doesn't work
+void quicktime_init_codec_ac3b(quicktime_audio_map_t *atrack)
+{
+	quicktime_codec_t *codec_base = (quicktime_codec_t*)atrack->codec;
+    quicktime_mp4a_codec_t *codec = init_common(atrack, 
+        AV_CODEC_ID_AC3,
+	    "AC-3",
+	    "AC3",
+	    "AC3");
+	codec_base->decode_audio = decode;
+}
+
 
 
 

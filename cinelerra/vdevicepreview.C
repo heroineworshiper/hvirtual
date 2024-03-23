@@ -60,7 +60,7 @@ int VDevicePreview::open_output()
 
 int VDevicePreview::write_buffer(VFrame *output, EDL *edl)
 {
-//    printf("VDevicePreview::write_buffer %d\n", __LINE__);
+//printf("VDevicePreview::write_buffer %d %d\n", __LINE__, output->get_color_model());
     device->previewer->write_frame(output);
 }
 
@@ -68,10 +68,21 @@ void VDevicePreview::new_output_buffer(VFrame **result,
 	int file_colormodel, 
 	EDL *edl)
 {
+// negotiate the colormodel
+// we have to convert all the EDL colormodels but not the file colormodels
+    if(file_colormodel != BC_RGB888 &&
+        file_colormodel != BC_RGBA8888 &&
+        file_colormodel != BC_RGB_FLOAT &&
+        file_colormodel != BC_RGBA_FLOAT &&
+        file_colormodel != BC_YUV888 &&
+        file_colormodel != BC_YUVA8888)
+        file_colormodel = BC_RGB888;
+    
+//printf("VDevicePreview::new_output_buffer %d file_colormodel=%d\n", __LINE__, file_colormodel);
     if(output_frame && 
         (output_frame->get_w() != device->out_w ||
         output_frame->get_h() != device->out_h ||
-        output_frame->get_color_model() != BC_RGB888))
+        output_frame->get_color_model() != file_colormodel))
     {
         delete output_frame;
         output_frame = 0;
@@ -84,7 +95,7 @@ void VDevicePreview::new_output_buffer(VFrame **result,
 			-1,
 			device->out_w,
 			device->out_h,
-			BC_RGB888,
+			file_colormodel,
 			-1);
     } 
     *result = output_frame;

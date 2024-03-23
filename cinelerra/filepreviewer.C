@@ -24,21 +24,29 @@
 #include "bcsignals.h"
 #include "canvas.h"
 #include "condition.h"
+#include "edits.h"
 #include "edl.h"
 #include "edlfactory.h"
 #include "edlsession.h"
 #include "file.h"
 #include "filepreviewer.h"
+#include "filesystem.h"
+#include "filexml.h"
 #include "indexfile.h"
+#include "localsession.h"
 #include "mutex.h"
 #include "mwindow.h"
+#include "plugin.h"
+#include "pluginset.h"
 #include "preferences.h"
 #include "theme.h"
 #include "tracks.h"
 #include "transportque.h"
 
+#include <sys/stat.h>
 
-
+#define MAX_WIDTH 10000
+#define MAX_HEIGHT 10000
 
 
 
@@ -72,6 +80,7 @@ void FilePreviewerThread::run()
         {
 // decide if the file can be previewed
             int preview_it = 0;
+            int is_edl = 0;
             File *new_file = new File;
 // don't make TOCs for previews
             new_file->set_disable_toc_creation(1);
@@ -85,6 +94,13 @@ void FilePreviewerThread::run()
             {
                 if(new_asset->video_data || new_asset->audio_data)
                     preview_it = 1;
+                if(new_asset->audio_length >= 0 && 
+                    new_asset->video_length >= 0) 
+                    previewer->seekable = 1;
+                if(new_asset->video_data && 
+                    (new_asset->width > MAX_WIDTH ||
+                    new_asset->height > MAX_HEIGHT))
+                    preview_it = 0;
             }
             else
             if(result == FILE_UNRECOGNIZED_CODEC)
@@ -96,12 +112,176 @@ void FilePreviewerThread::run()
 			    {
 				    indexfile.close_index();
                     preview_it = 1;
+                    previewer->seekable = 1;
 			    }
             }
             else
+            if(result == FILE_IS_XML)
             {
-    // preview not supported for EDLs
+// load the EDL & test conditions for previewing
+                preview_it = 1;
+                is_edl = 1;
 
+                int debug = 1;
+                FileXML xml_file;
+                result = xml_file.read_from_file(current_path.c_str());
+// load failed but fall through to keep indentation reasonable
+                if(result) preview_it = 0;
+
+
+                previewer->previewer_lock->lock("FilePreviewerThread::run");
+// delete the previous EDL
+                if(previewer->edl) 
+                {
+                    previewer->edl->remove_user();
+                    previewer->edl = 0;
+                }
+
+                previewer->edl = new EDL;
+                previewer->edl->create_objects();
+                previewer->edl->set_path(current_path.c_str());
+                result = previewer->edl->load_xml(&xml_file, LOAD_ALL);
+// match the selection to the preview scroll bar
+                previewer->edl->local_session->set_selectionstart(0);
+                previewer->edl->local_session->set_selectionend(0);
+
+// load failed
+                if(result) preview_it = 0;
+
+
+// output must be within frame size limit
+                if(preview_it && 
+                    (previewer->edl->session->output_w > MAX_WIDTH ||
+                    previewer->edl->session->output_h > MAX_HEIGHT)) 
+                {
+                    if(debug) 
+                    {
+                        printf("FilePreviewerThread::run %d: output too big\n", __LINE__);
+                        debug = 0;
+                    }
+                    preview_it = 0;
+                }
+
+// no more than 1 playable video track
+                if(preview_it && 
+                    previewer->edl->tracks->total_playable_vtracks() > 1)
+                {
+                    if(debug) 
+                    {
+                        printf("FilePreviewerThread::run %d: multiple video tracks not supported\n", __LINE__);
+                        debug = 0;
+                    }
+                    preview_it = 0;
+                }
+
+                Track *track = previewer->edl->tracks->first;
+
+// get the video track
+                while(track && 
+                    (track->data_type != TRACK_VIDEO || 
+                    !track->play)) track = track->next;
+
+                if(track)
+                {
+// track must be within frame size limit
+                    if(track->track_w > MAX_WIDTH ||
+                        track->track_h > MAX_HEIGHT)
+                    {
+                        if(debug) 
+                        {
+                            printf("FilePreviewerThread::run %d: track too big\n", __LINE__);
+                            debug = 0;
+                        }
+                        preview_it = 0;
+                    }
+
+// no more than 1 asset in the track
+                    Edit *edit = track->edits->first;
+                    Asset *got_asset = 0;
+                    while(edit)
+                    {
+                        if(edit->asset)
+                        {
+                            if(got_asset && 
+                                edit->asset && 
+                                edit->asset != got_asset)
+                            {
+                                if(debug) 
+                                {
+                                    printf("FilePreviewerThread::run %d: multiple assets not supported\n", __LINE__);
+                                    debug = 0;
+                                }
+                                preview_it = 0;
+                            }
+                            got_asset = edit->asset;
+                        }
+
+// no nested EDLs
+                        if(edit->nested_edl) preview_it = 0;
+
+// fall through
+                        edit = edit->next;
+                    }
+
+// no plugins in the track, in case of a memory hog
+                    if(track->plugin_set.size() > 0)
+                    {
+                        for(int i = 0; i < track->plugin_set.size(); i++)
+                        {
+                            PluginSet *plugin_set = track->plugin_set.get(i);
+                            Plugin *plugin = plugin_set->get_first_plugin();
+                            while(plugin)
+                            {
+                                if(plugin->plugin_type != PLUGIN_NONE && 
+                                    plugin->on) 
+                                {
+                                    if(debug) 
+                                    {
+                                        printf("FilePreviewerThread::run %d: plugins not supported\n", __LINE__);
+                                        debug = 0;
+                                    }
+                                    preview_it = 0;
+                                }
+                                plugin = (Plugin*)plugin->next;
+                            }
+                        }
+                    }
+
+// asset dimensions outside size limit
+                    if(got_asset &&
+                        (got_asset->width > MAX_WIDTH ||
+                        got_asset->height > MAX_HEIGHT))
+                        preview_it = 0;
+
+// test if asset is seekable by opening it
+                    if(preview_it)
+                    {
+                        File *test_file = new File;
+                        Asset *test_asset = new Asset(got_asset->path);
+                        test_file->set_disable_toc_creation(1);
+                        result = test_file->open_file(MWindow::preferences, 
+                            test_asset, 
+                            1, 
+                            0);
+                        if(result == FILE_OK)
+                        {
+                            if(test_asset->audio_length >= 0 && 
+                                test_asset->video_length >= 0) 
+                                previewer->seekable = 1;
+                        }
+                        delete test_file;
+                        test_asset->remove_user();
+                    }
+                }
+
+// failed
+                if(!preview_it)
+                {
+                    previewer->edl->remove_user();
+                    previewer->edl = 0;
+                }
+
+                previewer->previewer_lock->unlock();
             }
 
             if(!preview_it)
@@ -110,31 +290,35 @@ void FilePreviewerThread::run()
             }
             else
             {
-// create the EDL to play back
-                previewer->previewer_lock->lock("FilePreviewerThread::run");
-// delete the objects for the previous file
-                if(previewer->edl) 
+                if(!is_edl)
                 {
-                    previewer->edl->remove_user();
-                    previewer->edl = 0;
-                }
-                previewer->edl = new EDL;
-                previewer->edl->create_objects();
+// create the EDL to play back
+                    previewer->previewer_lock->lock("FilePreviewerThread::run");
+// delete the objects for the previous file
+                    if(previewer->edl) 
+                    {
+                        previewer->edl->remove_user();
+                        previewer->edl = 0;
+                    }
+                    previewer->edl = new EDL;
+                    previewer->edl->create_objects();
+                    previewer->edl->set_path(current_path.c_str());
 // copy session breaks previews, but we want certain bits 
 // from the mane project
-                previewer->edl->session->audio_channels = MWindow::instance->edl->session->audio_channels;
-                EDLFactory::asset_to_edl(previewer->edl, 
-                    new_asset, 
-                    0, 
-                    1,  // conform
-                    1); // auto aspect
-                previewer->previewer_lock->unlock();
-
+                    previewer->edl->session->audio_channels = MWindow::instance->edl->session->audio_channels;
+                    EDLFactory::asset_to_edl(previewer->edl, 
+                        new_asset, 
+                        0, 
+                        1,  // conform
+                        1); // auto aspect
+                    previewer->previewer_lock->unlock();
+                }
 
 
 // continue in the filebox thread
                 previewer->create_preview();
             }
+
 
 // all the bits are copied into the EDL
             delete new_file;
@@ -190,7 +374,7 @@ void FilePreviewer::create_preview()
 //printf("FilePreviewer::create_preview %d edl=%p\n", __LINE__, previewer->edl);
                 if(previewer->edl)
                 {
-//                    int margin = BC_Resources::theme->widget_border;
+                    int margin = BC_Resources::theme->widget_border;
                     Asset *asset = previewer->edl->assets->first;
 //printf("FilePreviewer::create_preview %d asset=%p\n", __LINE__, asset);
 //asset->dump();
@@ -200,12 +384,13 @@ void FilePreviewer::create_preview()
                     int canvas_h = canvas_w;
                     previewer->play_position = 0;
                     filebox->preview_status->hide_window();
-                    if(asset->video_data)
+                    if(previewer->edl->tracks->total_playable_vtracks())
                     {
-                        canvas_h = canvas_w * asset->height / asset->width;
+                        canvas_h = canvas_w * 
+                            previewer->edl->session->output_h / 
+                            previewer->edl->session->output_w;
                     }
                     else
-                    if(asset->audio_data)
                     {
                         canvas_h = canvas_w * 
                             previewer->speaker_image->get_h() / 
@@ -213,7 +398,12 @@ void FilePreviewer::create_preview()
                     }
 
                     int x = filebox->preview_x /* + margin */;
-                    int y = filebox->preview_center_y - canvas_h / 2;
+                    int y = filebox->preview_center_y - 
+                        canvas_h / 2 - 
+                        BC_Title::calculate_h(filebox, 
+                            "X", 
+                            SMALLFONT) * 2 -
+                        previewer->rewind_images[0]->get_h();
                     if(previewer->canvas)
                         previewer->canvas->reposition_window(x,
                             y,
@@ -229,7 +419,10 @@ void FilePreviewer::create_preview()
                     y += canvas_h;
 
 // something seekable & not a still photo
-                    if(asset->audio_length >= 0 && asset->video_length >= 0)
+//                     if(asset && 
+//                         asset->audio_length >= 0 && 
+//                         asset->video_length >= 0)
+                    if(previewer->seekable)
                     {
                         if(previewer->scroll)
                         {
@@ -253,7 +446,7 @@ void FilePreviewer::create_preview()
                     }
 
 // can be played back
-                    if(asset->video_length != STILL_PHOTO_LENGTH)
+                    if(asset && asset->video_length != STILL_PHOTO_LENGTH)
                     {
                         if(previewer->rewind)
                             previewer->rewind->reposition_window(x,
@@ -271,9 +464,10 @@ void FilePreviewer::create_preview()
                             filebox->add_subwindow(previewer->play = new PreviewerPlay(previewer, 
                                 x,
                                 y));
+                        y += previewer->play->get_h();
                     }
 
-                    if(!asset->video_data)
+                    if(!previewer->edl->tracks->total_playable_vtracks())
                     {
                         previewer->canvas->draw_vframe(previewer->speaker_image,
                             0,
@@ -282,6 +476,9 @@ void FilePreviewer::create_preview()
                             previewer->canvas->get_h());
                         previewer->canvas->flash(0);
                     }
+
+                    y += margin;
+                    previewer->create_info(filebox, filebox->preview_x, y);
 
                     filebox->flush();
 // set up the playback engine
@@ -297,6 +494,79 @@ void FilePreviewer::create_preview()
     previewer_lock->unlock();
 }
 
+void FilePreviewer::create_info(BC_FileBox *filebox, int x, int y)
+{
+
+// always show info about the file
+    struct stat ostat;
+    if(!stat(edl->path, &ostat))
+    {
+        char string[BCTEXTLEN];
+        FileSystem fs;
+        fs.extract_name(string, edl->path);
+        filebox->add_subwindow(name_text = new BC_Title(x, 
+            y, 
+            string,
+            SMALLFONT,
+            -1,
+            0,
+            filebox->preview_w));
+        y += name_text->get_h();
+        
+        struct tm *mod_time;
+        mod_time = localtime(&(ostat.st_mtime));
+        int month = mod_time->tm_mon + 1;
+        int day = mod_time->tm_mday;
+        int year = mod_time->tm_year + 1900;
+        int hour = mod_time->tm_hour;
+        int minute = mod_time->tm_min;
+        int second = mod_time->tm_sec;
+		static const char *month_text[13] = 
+		{
+			"Null",
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"May",
+			"Jun",
+			"Jul",
+			"Aug",
+			"Sep",
+			"Oct",
+			"Nov",
+			"Dec"
+		};
+        sprintf(string, 
+			"Date: %s %d, %04d\nTime: %d:%02d:%02d", 
+			month_text[month],
+			day,
+			year,
+            hour,
+            minute,
+            second);
+        
+        filebox->add_subwindow(date_text = new BC_Title(x, 
+            y, 
+            string,
+            SMALLFONT));
+        y += date_text->get_h();
+        
+        sprintf(string, "%ld", (long)ostat.st_size);
+        Units::punctuate(string);
+        strcat(string, " bytes");
+        filebox->add_subwindow(size_text = new BC_Title(x, 
+            y, 
+            string,
+            SMALLFONT,
+            -1,
+            0,
+            filebox->preview_w,
+            1));
+        
+    }
+
+}
 
 
 void FilePreviewer::handle_resize(int w, int h)
@@ -320,7 +590,12 @@ void FilePreviewer::handle_resize(int w, int h)
                 speaker_image->get_w();
         }
         int x = filebox->preview_x /* + margin */;
-        int y = filebox->preview_center_y - canvas_h / 2;
+        int y = filebox->preview_center_y - 
+            canvas_h / 2 -
+            BC_Title::calculate_h(filebox, 
+                "X", 
+                SMALLFONT) * 2 -
+            rewind_images[0]->get_h();
         if(canvas)
         {
             canvas->reposition_window(x,
@@ -368,13 +643,23 @@ void FilePreviewer::handle_resize(int w, int h)
                 y);
             x += rewind->get_w();
         }
-        
+
         if(play)
         {
             play->reposition_window(x,
                 y);
+            y += play->get_h();
         }
+
+        x = filebox->preview_x;
+        y += margin;
+        if(name_text) name_text->reposition(x, y, filebox->preview_w);
+        y += name_text->get_h();
+        if(date_text) date_text->reposition(x, y, filebox->preview_w);
+        y += date_text->get_h();
+        if(size_text) size_text->reposition(x, y, filebox->preview_w);
     }
+    
     previewer_lock->unlock();
 }
 

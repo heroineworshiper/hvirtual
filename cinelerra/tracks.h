@@ -102,8 +102,6 @@ public:
 // add a track
 	Track* add_audio_track(int above, Track *dst_track);
 	Track* add_video_track(int above, Track *dst_track);
-//	Track* add_audio_track(int to_end = 1);
-//	Track* add_video_track(int to_end = 1);
 // delete any track
  	int delete_track(Track* track);       
 // detach shared effects referencing module

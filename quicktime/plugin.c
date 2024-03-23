@@ -55,6 +55,7 @@ static void register_acodecs()
 	register_acodec(quicktime_init_codec_mp4a);
 	register_acodec(quicktime_init_codec_opus);
 	register_acodec(quicktime_init_codec_ac3);
+	register_acodec(quicktime_init_codec_ac3b);
 	register_acodec(quicktime_init_codec_qdm2);
 	register_acodec(quicktime_init_codec_ulaw);
 
