@@ -213,7 +213,7 @@ VFrame* MotionCache::get_image(int ratio,
 	images.append(item);
 
 	lock->unlock();
-	
+
 	return result;
 }
 

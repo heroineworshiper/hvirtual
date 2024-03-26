@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -97,7 +96,7 @@ public:
 // framerate - framerate start_position is relative to.  Used by preceeding plugiun
 //     to calculate output frame number.  Provided so the client can get data
 //     at a higher fidelity than provided by the EDL.
-// start_position - start of frame in forward.  end of frame in reverse.  
+// start_position - start of frame if forward.  end of frame if reverse.  
 //     Relative to start of EDL.
 // frame_rate - frame rate position is scaled to
 	int read_frame(VFrame *buffer, 

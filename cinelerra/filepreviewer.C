@@ -253,7 +253,7 @@ void FilePreviewerThread::run()
                         got_asset->height > MAX_HEIGHT))
                         preview_it = 0;
 
-// test if asset is seekable by opening it
+// test if asset exists & is seekable by opening it
                     if(preview_it)
                     {
                         File *test_file = new File;
@@ -268,6 +268,15 @@ void FilePreviewerThread::run()
                             if(test_asset->audio_length >= 0 && 
                                 test_asset->video_length >= 0) 
                                 previewer->seekable = 1;
+                        }
+                        else
+                        {
+                            if(debug) 
+                            {
+                                printf("FilePreviewerThread::run %d: asset not found\n", __LINE__);
+                                debug = 0;
+                            }
+                            preview_it = 0;
                         }
                         delete test_file;
                         test_asset->remove_user();

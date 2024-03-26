@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
@@ -100,6 +99,8 @@ PackageRenderer::PackageRenderer()
 	timer = new Timer;
 	frames_per_second = 0;
     use_opengl = 0;
+    render_engine = 0;
+    playable_tracks = 0;
 }
 
 PackageRenderer::~PackageRenderer()

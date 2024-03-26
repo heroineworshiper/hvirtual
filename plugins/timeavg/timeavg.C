@@ -229,7 +229,7 @@ int TimeAvgMain::process_buffer(VFrame *frame,
 			}
 		}
 		else
-// Allocate history
+// Allocate history using shared memory
 		{
 			history = new VFrame*[config.frames];
 			for(int i = 0; i < config.frames; i++)

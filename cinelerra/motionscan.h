@@ -121,13 +121,15 @@ public:
 
 	static int64_t abs_diff(unsigned char *prev_ptr,
 		unsigned char *current_ptr,
-		int row_bytes,
+		int prev_row_bytes,
+		int current_row_bytes,
 		int w,
 		int h,
 		int color_model);
 	static int64_t abs_diff_sub(unsigned char *prev_ptr,
 		unsigned char *current_ptr,
-		int row_bytes,
+		int prev_row_bytes,
+		int current_row_bytes,
 		int w,
 		int h,
 		int color_model,

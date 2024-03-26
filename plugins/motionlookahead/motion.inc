@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +21,19 @@
 #ifndef MOTION_INC
 #define MOTION_INC
 
-
-class MotionLookaheadConfig;
 class MotionLookahead;
+class MotionLookaheadWindow;
+
+class MotionFPot;
+class MotionIPot;
+
+
+
 
 
 #endif
+
+
+
+
+

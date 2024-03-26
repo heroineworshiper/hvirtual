@@ -78,18 +78,31 @@ RenderEngine::RenderEngine(PlaybackEngine *playback_engine,
 
 RenderEngine::~RenderEngine()
 {
+PRINT_TRACE
 	close_output();
+PRINT_TRACE
 	delete command;
+PRINT_TRACE
 	delete preferences;
+PRINT_TRACE
 	if(arender) delete arender;
+PRINT_TRACE
 	if(vrender) delete vrender;
+PRINT_TRACE
 	delete input_lock;
+PRINT_TRACE
 	delete start_lock;
+PRINT_TRACE
 	delete output_lock;
+PRINT_TRACE
 	delete interrupt_lock;
+PRINT_TRACE
 	delete first_frame_lock;
+PRINT_TRACE
 	delete config;
+PRINT_TRACE
 	edl->Garbage::remove_user();
+PRINT_TRACE
 }
 
 

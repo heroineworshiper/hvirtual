@@ -214,6 +214,8 @@ OBJS = \
 	$(OBJDIR)/menuveffects.o \
 	$(OBJDIR)/meterpanel.o \
 	$(OBJDIR)/module.o \
+        $(OBJDIR)/motioncache.o \
+        $(OBJDIR)/motionscan.o \
 	$(OBJDIR)/mtimebar.o \
 	$(OBJDIR)/mwindow.o \
 	$(OBJDIR)/mwindowedit.o \
@@ -786,6 +788,8 @@ $(OBJDIR)/menuveffects.o: 			  menuveffects.C
 $(OBJDIR)/messages.o: 				  messages.C
 $(OBJDIR)/meterpanel.o: 			  meterpanel.C
 $(OBJDIR)/module.o: 				  module.C
+$(OBJDIR)/motioncache.o:                          motioncache.C
+$(OBJDIR)/motionscan.o:                           motionscan.C
 $(OBJDIR)/mtimebar.o:                             mtimebar.C
 $(OBJDIR)/mwindow.o: 				  mwindow.C
 $(OBJDIR)/mwindowedit.o: 			  mwindowedit.C
