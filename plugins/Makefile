@@ -75,6 +75,7 @@ DIRS = \
 	loopvideo \
 	motion \
 	motion2point \
+	motionlookahead \
 	motionblur \
         mute \
 	normalize \
