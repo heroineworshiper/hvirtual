@@ -999,12 +999,15 @@ if(debug) printf("AModule::render %d\n", __LINE__);
 					fragment_len + start_position > edit_startproject + transition_len)
 					fragment_len = edit_startproject + transition_len - start_position;
 
-//printf("AModule::render %d fragment_size=%d\n", __LINE__, transition_fragment_len);
+// printf("AModule::render %d fragment_len=%d transition_fragment_len=%d\n", 
+// __LINE__, 
+// (int)fragment_len,
+// (int)transition_fragment_len);
 
 // Read into temp buffers
 // Temp + master or temp + temp ? temp + master
 				if(transition_temp && 
-					transition_temp->get_allocated() < fragment_len)
+					transition_temp->get_allocated() < transition_fragment_len)
 				{
 					delete transition_temp;
 					transition_temp = 0;
@@ -1012,7 +1015,7 @@ if(debug) printf("AModule::render %d\n", __LINE__);
 
 				if(!transition_temp)
 				{
-					transition_temp = new Samples(fragment_len);
+					transition_temp = new Samples(transition_fragment_len);
 				}
 
 if(debug) printf("AModule::render %d %lld\n", __LINE__, (long long)fragment_len);

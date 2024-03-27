@@ -869,7 +869,9 @@ Plugin* Track::get_current_transition(double position,
 			if(current->startproject <= position && current->startproject + current->length > position)
 			{
 //printf("Track::get_current_transition %p\n", current->transition);
-				if(current->transition && position < current->startproject + current->transition->length)
+				if(current->transition &&
+                    current->transition->on && 
+                    position < current->startproject + current->transition->length)
 				{
 					result = current->transition;
 					break;
@@ -884,7 +886,9 @@ Plugin* Track::get_current_transition(double position,
 		{
 			if(current->startproject < position && current->startproject + current->length >= position)
 			{
-				if(current->transition && position <= current->startproject + current->transition->length)
+				if(current->transition && 
+                    current->transition->on && 
+                    position <= current->startproject + current->transition->length)
 				{
 					result = current->transition;
 					break;
@@ -1435,7 +1439,7 @@ int Track::playable_edit(int64_t position, int direction)
 			current->startproject + current->length > position)
 		{
 //printf("Track::playable_edit %p %p\n", current->transition, current->asset);
-			if(current->transition || 
+			if((current->transition && current->transition->on) || 
 				current->asset ||
 				current->nested_edl) result = 1;
 		}
@@ -1446,7 +1450,7 @@ int Track::playable_edit(int64_t position, int direction)
 
 int Track::need_edit(Edit *current, int test_transitions)
 {
-	return ((test_transitions && current->transition) ||
+	return ((test_transitions && current->transition && current->transition->on) ||
 		(!test_transitions && current->asset));
 }
 
@@ -1504,7 +1508,9 @@ int64_t Track::edit_change_duration(int64_t input_position,
 				if(input_position - current->startproject < input_length)
 					edit_length = input_position - current->startproject + fudge;
 
-                if(test_transitions && current->transition)
+                if(test_transitions && 
+                    current->transition && 
+                    current->transition->on)
                 {
                     int64_t transition_end = current->startproject + current->transition->length;
                     if(input_position - transition_end > 0 &&
@@ -1580,7 +1586,9 @@ int64_t Track::edit_change_duration(int64_t input_position,
 					edit_length = edit_end - input_position;
 
 
-                if(test_transitions && current->transition)
+                if(test_transitions && 
+                    current->transition &&
+                    current->transition->on)
                 {
                     int64_t transition_end = current->startproject + current->transition->length;
                     if(transition_end - input_position > 0 &&
@@ -2018,6 +2026,7 @@ int Track::plugin_exists(Plugin *plugin)
 	for(Edit *current = edits->first; current; current = NEXT)
 	{
 		if(current->transition &&
+            current->transition->on &&
 			(Plugin*)current->transition == plugin) return 1;
 	}
 

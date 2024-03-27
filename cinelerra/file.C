@@ -1810,7 +1810,20 @@ int File::read_samples(Samples *samples, int64_t len)
 
 	int result = 0;
 	const int debug = 0;
-	if(debug) PRINT_TRACE
+    if(samples->get_allocated() < len)
+    {
+        printf("File::read_samples %d not enough space.  allocated=%d len=%d\n",
+            __LINE__,
+            (int)samples->get_allocated(),
+            (int)len);
+        return 1;
+	}
+    
+    if(debug) printf("File::read_samples %d samples=%p %d len=%d\n",
+        __LINE__,
+        samples->get_data(),
+        (int)samples->get_allocated(),
+        (int)len);
 
 #ifdef USE_FILEFORK
 	if(!is_fork && file_fork)

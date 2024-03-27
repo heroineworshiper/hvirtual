@@ -288,7 +288,7 @@ int FileJPEG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 //PRINT_TRACE
 	}
 
-PRINT_TRACE
+//PRINT_TRACE
 	return result;
 }
 
