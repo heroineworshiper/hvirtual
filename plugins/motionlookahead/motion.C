@@ -77,20 +77,20 @@ MotionLookaheadConfig::MotionLookaheadConfig()
 	block_x = 50;
 	block_y = 50;
 // Block size in percent of image size
-	block_w = 10;
-	block_h = 10;
+	block_w = 40;
+	block_h = 40;
 // Translation search range in percent of image size
-	range_w = 2;
-	range_h = 2;
+	range_w = 20;
+	range_h = 20;
 
-    enable = 1;
+    enable = 0;
 	do_rotate = 1;
 // rotation search in degrees
-	rotation_range = 5;
+	rotation_range = 10;
 
 	draw_vectors = 1;
 // frames to look ahead
-    frames = 1;
+    frames = 60;
 }
 
 
@@ -368,12 +368,12 @@ int MotionLookahead::process_buffer(VFrame *frame,
             int64_t source_start = get_source_start();
             int64_t source_end = source_start + get_total_len();
             KeyFrame *keyframe = get_prev_keyframe(start_position, 1);
-printf("MotionLookahead::process_buffer %d start_position=%d source_start=%d source_end=%d keyframe=%d\n", 
-__LINE__, 
-(int)start_position, 
-(int)source_start, 
-(int)source_end, 
-(int)keyframe->position);
+// printf("MotionLookahead::process_buffer %d start_position=%d source_start=%d source_end=%d keyframe=%d\n", 
+// __LINE__, 
+// (int)start_position, 
+// (int)source_start, 
+// (int)source_end, 
+// (int)keyframe->position);
 
 // start of plugin is before end of lookahead buffer
             if(source_start > end_position)
@@ -645,6 +645,8 @@ future_angle);
                 center_angle = 0;
             }
             else
+// throw away the last frame's center to make it more stable
+            if(prediction_frames > 1)
             {
 // blend the future position
 //                float blend = prediction_frames - 1;
