@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,16 +64,16 @@ VDeviceBase* VirtualVConsole::get_vdriver()
     }
 }
 
-void VirtualVConsole::get_playable_tracks()
-{
-	if(!playable_tracks)
-		playable_tracks = new PlayableTracks(renderengine->get_edl(), 
-			commonrender->current_position, 
-			renderengine->command->get_direction(),
-			TRACK_VIDEO,
-			1);
-//printf("VirtualVConsole::get_playable_tracks %d %d\n", __LINE__, playable_tracks->size());
-}
+// void VirtualVConsole::get_playable_tracks()
+// {
+// 	if(!playable_tracks)
+// 		playable_tracks = new PlayableTracks(renderengine->get_edl(), 
+// 			commonrender->current_position, 
+// 			renderengine->command->get_direction(),
+// 			TRACK_VIDEO,
+// 			1);
+// //printf("VirtualVConsole::get_playable_tracks %d %d\n", __LINE__, playable_tracks->size());
+// }
 
 VirtualNode* VirtualVConsole::new_entry_node(Track *track, 
 	Module *module,

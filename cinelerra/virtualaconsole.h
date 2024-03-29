@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +34,7 @@ public:
 	virtual ~VirtualAConsole();
 
 	int set_transport(int reverse, float speed);
-	void get_playable_tracks();
+//	void get_playable_tracks();
 
 // process a buffer
 	int process_buffer(int64_t input_len,

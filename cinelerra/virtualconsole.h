@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +40,7 @@ public:
 	virtual ~VirtualConsole();
 
 	virtual void create_objects();
-	virtual void get_playable_tracks();
+	void get_playable_tracks();
 	int allocate_input_buffers();
 	virtual void new_input_buffer(int ring_buffer) { };
 	virtual void delete_input_buffer(int ring_buffer) { };

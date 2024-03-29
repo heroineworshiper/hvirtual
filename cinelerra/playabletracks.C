@@ -85,13 +85,14 @@ int PlayableTracks::is_playable(Track *current_track,
 // Track is off screen and not bounced to other modules
 
 
-	if(result)
-	{
-		if(!current_track->plugin_used(position, direction) &&
-			!current_track->is_playable(position, direction))
-			result = 0;
-	}
+// 	if(result)
+// 	{
+// 		if(!current_track->plugin_used(position, direction) /* &&
+// 			!current_track->is_playable(position, direction) */)
+// 			result = 0;
+// 	}
 
+// can only test conditions for all time because of random access reads
 // Test play patch
 	if(!current_track->play)
 	{
@@ -101,11 +102,10 @@ int PlayableTracks::is_playable(Track *current_track,
 	if(result)
 	{
 // Test for playable edit
-		if(!current_track->playable_edit(position, direction))
+		if(!current_track->playable_edit())
 		{
 // Test for playable effect
-			if(!current_track->is_synthesis(position,
-						direction))
+			if(!current_track->is_synthesis())
 			{
 				result = 0;
 			}

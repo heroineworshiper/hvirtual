@@ -181,6 +181,26 @@ int Track::is_shared(int64_t position, int direction)
     return 0;
 }
 
+int Track::is_synthesis()
+{
+	for(int i = 0; i < plugin_set.total; i++)
+	{
+		Plugin *plugin = (Plugin*)plugin_set.get(i)->first;
+        while(plugin)
+        {
+            if(plugin->on &&
+                (plugin->plugin_type == PLUGIN_SHAREDMODULE ||
+                plugin->is_synthesis(plugin->startproject, 
+					PLAY_FORWARD,
+                    0)))
+            {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 int Track::is_synthesis(int64_t position, 
 	int direction,
     int depth)
@@ -1428,6 +1448,17 @@ void Track::change_modules(int old_location, int new_location, int do_swap)
 	}
 }
 
+int Track::playable_edit()
+{
+	for(Edit *current = edits->first; current; current = NEXT)
+	{
+		if((current->transition && current->transition->on) || 
+			current->asset ||
+			current->nested_edl) return 1;
+	}
+
+    return 0;
+}
 
 int Track::playable_edit(int64_t position, int direction)
 {
@@ -1960,10 +1991,10 @@ int Track::asset_used(Asset *asset)
 	return result;
 }
 
-int Track::is_playable(int64_t position, int direction)
-{
-	return 1;
-}
+// int Track::is_playable(int64_t position, int direction)
+// {
+// 	return 1;
+// }
 
 
 int Track::plugin_used(int64_t position, int64_t direction)

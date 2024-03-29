@@ -271,23 +271,23 @@ int VTrack::draw_floating_autos_derived(float view_start, float zoom_units, Auto
 	return 0;
 }
 
-int VTrack::is_playable(int64_t position, int direction)
-{
-	int result = 0;
-	float in_x, in_y, in_w, in_h;
-	float out_x, out_y, out_w, out_h;
-
-	calculate_output_transfer(position, 
-		direction, 
-		in_x, in_y, in_w, in_h,
-		out_x, out_y, out_w, out_h);
-
-//printf("VTrack::is_playable %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f\n", 
-//in_x, in_y, in_w, in_h, out_x, out_y, out_w, out_h);
-	if(out_w > 0 && out_h > 0) 
-		result = 1;
-	return result;
-}
+// int VTrack::is_playable(int64_t position, int direction)
+// {
+// 	int result = 0;
+// 	float in_x, in_y, in_w, in_h;
+// 	float out_x, out_y, out_w, out_h;
+// 
+// 	calculate_output_transfer(position, 
+// 		direction, 
+// 		in_x, in_y, in_w, in_h,
+// 		out_x, out_y, out_w, out_h);
+// 
+// //printf("VTrack::is_playable %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f %0.0f\n", 
+// //in_x, in_y, in_w, in_h, out_x, out_y, out_w, out_h);
+// 	if(out_w > 0 && out_h > 0) 
+// 		result = 1;
+// 	return result;
+// }
 
 void VTrack::calculate_input_transfer(int asset_w, 
 	int asset_h,

@@ -385,6 +385,9 @@ void FilePreviewer::create_preview()
                 {
                     int margin = BC_Resources::theme->widget_border;
                     Asset *asset = previewer->edl->assets->first;
+// length in seconds
+                    double total = -1;
+                    
 //printf("FilePreviewer::create_preview %d asset=%p\n", __LINE__, asset);
 //asset->dump();
 //previewer->edl->dump();
@@ -411,7 +414,7 @@ void FilePreviewer::create_preview()
                         canvas_h / 2 - 
                         BC_Title::calculate_h(filebox, 
                             "X", 
-                            SMALLFONT) * 2 -
+                            SMALLFONT) * 3 -
                         previewer->rewind_images[0]->get_h();
                     if(previewer->canvas)
                         previewer->canvas->reposition_window(x,
@@ -433,9 +436,9 @@ void FilePreviewer::create_preview()
 //                         asset->video_length >= 0)
                     if(previewer->seekable)
                     {
+                        total = previewer->edl->tracks->total_playable_length();
                         if(previewer->scroll)
                         {
-                            double total = previewer->edl->tracks->total_playable_length();
                             previewer->scroll->reposition_window(x,
                                 y,
                                 canvas_w);
@@ -487,7 +490,10 @@ void FilePreviewer::create_preview()
                     }
 
                     y += margin;
-                    previewer->create_info(filebox, filebox->preview_x, y);
+                    previewer->create_info(filebox, 
+                        filebox->preview_x, 
+                        y,
+                        total);
 
                     filebox->flush();
 // set up the playback engine
@@ -503,7 +509,10 @@ void FilePreviewer::create_preview()
     previewer_lock->unlock();
 }
 
-void FilePreviewer::create_info(BC_FileBox *filebox, int x, int y)
+void FilePreviewer::create_info(BC_FileBox *filebox, 
+    int x, 
+    int y, 
+    double length)
 {
 
 // always show info about the file
@@ -573,6 +582,21 @@ void FilePreviewer::create_info(BC_FileBox *filebox, int x, int y)
             filebox->preview_w,
             1));
         
+        y += size_text->get_h();
+        if(length > 0)
+            Units::totext(string, length, TIME_HMS);
+        else
+            sprintf(string, _("Unknown"));
+        char string2[BCTEXTLEN];
+        sprintf(string2, "Length: %s", string);
+        filebox->add_subwindow(length_text = new BC_Title(x,
+            y,
+            string2,
+            SMALLFONT,
+            -1,
+            0,
+            filebox->preview_w,
+            1));
     }
 
 }
@@ -603,7 +627,7 @@ void FilePreviewer::handle_resize(int w, int h)
             canvas_h / 2 -
             BC_Title::calculate_h(filebox, 
                 "X", 
-                SMALLFONT) * 2 -
+                SMALLFONT) * 3 -
             rewind_images[0]->get_h();
         if(canvas)
         {
@@ -662,11 +686,23 @@ void FilePreviewer::handle_resize(int w, int h)
 
         x = filebox->preview_x;
         y += margin;
-        if(name_text) name_text->reposition(x, y, filebox->preview_w);
-        y += name_text->get_h();
-        if(date_text) date_text->reposition(x, y, filebox->preview_w);
-        y += date_text->get_h();
-        if(size_text) size_text->reposition(x, y, filebox->preview_w);
+        if(name_text) 
+        {
+            name_text->reposition(x, y, filebox->preview_w);
+            y += name_text->get_h();
+        }
+        if(date_text) 
+        {
+            date_text->reposition(x, y, filebox->preview_w);
+            y += date_text->get_h();
+        }
+        if(size_text)
+        {
+            size_text->reposition(x, y, filebox->preview_w);
+            y += size_text->get_h();
+        }
+
+        if(length_text) length_text->reposition(x, y, filebox->preview_w);
     }
     
     previewer_lock->unlock();

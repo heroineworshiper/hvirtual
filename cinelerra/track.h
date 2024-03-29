@@ -160,6 +160,8 @@ public:
 	int is_synthesis(int64_t position, 
 		int direction,
         int depth = 0);
+// test for synthesis plugin anywhere on the track
+    int is_synthesis();
 
 // used by PlayableTracks::is_playable to determine if the track is shared
     int is_shared(int64_t position, int direction);
@@ -167,8 +169,9 @@ public:
 
 // Used by PlayableTracks::is_playable
 // Returns 1 if the track is in the output boundaries.
-	virtual int is_playable(int64_t position, 
-		int direction);
+// Not practical because of random access plugins
+// 	virtual int is_playable(int64_t position, 
+// 		int direction);
 
 // Test direct copy conditions common to all the rendering routines
 	virtual int direct_copy_possible(int64_t start, int direction, int use_nudge);
@@ -375,6 +378,8 @@ public:
 // If the edit under position is playable.
 // Used by PlayableTracks::is_playable.
 	int playable_edit(int64_t position, int direction);
+// test for playable edit anywhere on the track
+	int playable_edit();
 
 // ===================================== for handles, titles, etc
 
