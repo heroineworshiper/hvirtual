@@ -1,3 +1,8 @@
+More tasks:
+https://docs.google.com/spreadsheets/d/18eLwHrABP6ROHvPHfJW-Jtr_xB4wOblhwmzFuSFKKYs/edit#gid=0
+
+
+
 BIG WISHLIST:
 ----------------------------
 Detect recursive nested EDL
@@ -25,23 +30,7 @@ Options for condensing the track height
 
 WISH LIST
 ----------------------------------------------------
-Search for plugins & fonts
-Embedded processing functions inside the shared track with keyframes
-    overlay mode, use mask, use plugins, send output to shared track
-Multiple loads from a single filebox with apply button
 text for labels
-alpha for previews
-libmpeg3 patches: 
-    https://udd.debian.org/patches.cgi?src=libmpeg3&version=1.8.dfsg-4
-    debian patch failed
-chromakey HSV:
-    Alpha blur in chromakey HSV
-    turn off transparency (a checkbox in the effect window)
-    enable black background (a checkbox in the effect window)
-swapchannels:
-    Swap HSV
-    Track names
-    print YUV or RGB in swapchannels based on project settings
 reverse reverb
 variable fast fwd speed
 

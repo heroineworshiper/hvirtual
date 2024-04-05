@@ -64,7 +64,7 @@ void CPlayback::init_cursor()
 void CPlayback::stop_cursor()
 {
     MWindowGUI *gui = MWindow::instance->gui;
-	gui->set_playing_back(0);
+//	gui->set_playing_back(0);
 #ifdef USE_METERS
 	cwindow->gui->lock_window("Tracking::stop_meters 1");
 	cwindow->gui->meters->stop_meters();

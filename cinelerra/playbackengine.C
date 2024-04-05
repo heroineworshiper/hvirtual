@@ -430,7 +430,7 @@ void PlaybackEngine::run()
 		que->command.reset();
 		que->input_lock->unlock();
 
-//printf("PlaybackEngine::run 1 %d\n", command->command);
+//printf("PlaybackEngine::run %d command=%d\n", __LINE__, command->command);
 
 
 		switch(command->command)

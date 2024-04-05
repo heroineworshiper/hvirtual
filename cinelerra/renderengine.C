@@ -209,8 +209,11 @@ int RenderEngine::arm_command(TransportCommand *command)
 
     if(!result)
     {
+	    if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
 	    create_render_threads();
+	    if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
 	    arm_render_threads();
+	    if(debug) printf("RenderEngine::arm_command %d\n", __LINE__);
     }
     else
     {
@@ -592,9 +595,7 @@ void RenderEngine::run()
 	start_lock->unlock();
 	interrupt_lock->unlock();
 
-//printf("RenderEngine::run %d\n", __LINE__);
 	wait_render_threads();
-//printf("RenderEngine::run %d\n", __LINE__);
 
 	interrupt_lock->lock("RenderEngine::run");
 
@@ -611,7 +612,7 @@ void RenderEngine::run()
 	{
 		if(command->command == CURRENT_FRAME)
 		{
-//printf("RenderEngine::run 4.1 %d\n", playback_engine->tracking_position);
+//printf("RenderEngine::run %d %d\n", __LINE__, (int)playback_engine->tracking_position);
 			playback_engine->tracking_position = command->playbackstart;
 		}
 		else

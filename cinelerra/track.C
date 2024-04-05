@@ -196,6 +196,7 @@ int Track::is_synthesis()
             {
                 return 1;
             }
+            plugin = (Plugin*)plugin->next;
         }
     }
     return 0;

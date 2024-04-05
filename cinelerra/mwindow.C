@@ -3117,7 +3117,7 @@ void MWindow::remove_assets_from_project(int push_undo /* = 0 */,
 		awindow->gui->flush();
 		awindow->gui->unlock_window();
 
-	// Removes from playback here
+// Removes from playback here
 		sync_parameters(CHANGE_ALL);
 	}
 }

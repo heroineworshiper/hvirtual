@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -19,15 +18,13 @@
  * 
  */
 
+#include "language.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "recconfirmdelete.h"
 
 
-#include <libintl.h>
-#define _(String) gettext(String)
-#define gettext_noop(String) String
-#define N_(String) gettext_noop (String)
+
 
 
 RecConfirmDelete::RecConfirmDelete(MWindow *mwindow)

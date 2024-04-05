@@ -185,13 +185,11 @@ void CommonRender::start_command()
 
 int CommonRender::restart_playback()
 {
-//printf("CommonRender::restart_playback %d\n", __LINE__);
 	delete_vconsole();
 	create_modules();
 	build_virtual_console();
 //vconsole->dump();
 	start_plugins();
-//printf("CommonRender::restart_playback %d\n", __LINE__);
 
 	done = 0;
 	interrupt = 0;
