@@ -1,0 +1,185 @@
+
+
+
+@node KEYBOARD SHORTCUTS
+@chapter KEYBOARD SHORTCUTS
+
+Alex Ferrer started summarizing most of the keyboard shortcuts.  Most
+of the keys work without any modifier like shift or ctrl.  Most windows
+can be closed with a @b{Ctrl-w}.  Most operations can be cancelled with
+@b{ESC} and accepted with @b{Enter}.
+
+@section PROGRAM WINDOW
+
+
+@subsection Editing Media
+
+@example
+z         Undo
+Shift Z   Re-Do
+x         Cut
+c         Copy
+v         Paste
+Del       Clear
+Shift Spc Paste Silence
+m         Mute region
+a         Select all
+shift + click   When done over an edit causes the highlighted selection to extend to the cursor position.
+                When done over the boundary of an effect causes the trim operation to apply to one effect.
+@end example
+
+@subsection Editing Labels & In/Out Points
+
+@example
+[             Toggle In point 
+]             Toggle Out point 
+l             Toggle label at current position
+Ctrl <-       Go to Previous Label
+Ctrl ->       Go to Next Label
+@end example
+
+
+@subsection Navigation
+
+@example
+Right arrow      Move right*
+Left arrow       Move left*
+Up arrow         Zoom out*
+Down arrow       Zoom in*
+Ctrl Up          Expand waveform amplitude
+Ctrl Dn          Shrink waveform amplitude
+Alt Up           Expand curve amplitude
+Alt Dn           Shrink curve amplitude
+f                Fit time displayed to selection
+Alt f            Fit curve amplitude to highlighted section of curves
+Alt Left         Move left one edit
+Alt Right        Move right one edit
+Page Up          Move up*
+Page Dn          Move down*
+Ctrl Page Up     Expand track height
+Ctrl Page Dn     Shrink track height
+Home             Go to beginning of timeline*
+End              Go to end of timeline*
+
+@end example
+
+* You may have to click on the timeline to deactivate any text boxes or
+tumblers before these work.
+
+
+
+
+@subsection File operations
+
+@example
+n         New project
+o         Load Files
+s         Save Project
+r         Record
+Shift R   Render
+q         Quit
+Shift P   Preferences
+Shift B   Batch Render
+Shift F   Set Format
+@end example
+
+@subsection Key Frame Editing
+
+@example
+
+Shift X    Cut keyframes
+Shift C    Copy keyframes
+Shift V    Paste keyframes
+Shift Del  Clear keyframes
+Alt c      Copy default keyframe
+Alt v      Paste default keyframe
+
+@end example
+
+
+@subsection Track Manipulation
+
+@example
+
+t          Add Audio Track
+u          Insert default Audio Transition
+Shift T    Add Video Track
+Shift U    Insert Default Video Transition
+d          Delete last Track
+Shift L    Loop playback
+Tab        Toggle single track arming status
+Shift-Tab  Toggle every other track's arming status
+
+@end example
+
+@subsection What's drawn on the timeline
+
+@example
+
+1         Show titles
+2         Show transitions
+3         Fade keyframes
+4         Mute keyframes
+5         Mode keyframes
+6         Pan keyframes
+7         Camera keyframes
+8         Projector keyframes
+9         Plugin keyframes
+0         Mask keyframes
+-         Camera Zoom
+=         Projector Zoom
+
+@end example
+
+
+@section VIEWER & COMPOSITOR WINDOWS
+
+@example
+
+x         Cut
+c         Copy
+v         Paste
+v         Splice
+b         Overwrite
+[         Toggle In point 
+]         Toggle Out point 
+l         Toggle label at current position
+Ctrl <-   Go to Previous Label
+Ctrl ->   Go to Next Label
+Home      Go to beginning
+End       Go to end
+z         Undo
+Shift Z   Re-Do
++         Zoom in
+-         Zoom out
+
+@end example
+
+
+
+@section PLAYBACK TRANSPORT
+
+Transport controls work in any window which has a playback transport.  They are
+accessed through the number pad with num lock disabled.
+
+@example
+4 Frame back         5 Reverse Slow     6 Reverse      + Reverse Fast
+1 Frame Forward      2 Forward Slow     3 Play     Enter Fast Forward
+0 Stop
+
+@end example
+
+[ Space bar ] is normal Play, Hitting any key twice is Pause.
+
+
+Hitting any transport control with CTRL down causes only the region
+between the in/out points to be played, if in/out points are defined.
+
+@section RECORD WINDOW
+
+@example
+
+Space              Start and pause recording of the current batch
+l                  Toggle label at current position.
+
+@end example

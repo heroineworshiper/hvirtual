@@ -1,0 +1,191 @@
+
+
+@node SETTING PROJECT ATTRIBUTES
+@chapter SETTING PROJECT ATTRIBUTES
+
+When you play media files in Cinelerra, the media files have a certain
+number of tracks, a certain frame size, a certain sample size, and so
+on and so forth.  No matter what the media file has; however, it is
+still played back according to the project attributes.  If an audio
+file's samplerate is different than the project attributes, it is
+resampled.  If a video file's frame size is different than the project
+attributes, it is composited on a black frame, either cropped or
+bordered with black.
+
+The project attributes are adjusted in @b{Settings->Set Format} and in
+to a more limited extent in @b{File->New}.  When you adjust project
+settings in @b{file->new} a new timeline is created with no data. 
+Every timeline created from this point uses the same settings.  When
+you adjust settings in @b{settings->format}, the timeline is not
+recreated with no data but every timeline created from this point uses
+the same settings.
+
+In addition to the traditional settings for sample rate, frame rate,
+frame size, Cinelerra uses some unusual settings like @b{channel
+positions, color model, and aspect ratio.}
+
+
+
+@menu
+* AUDIO CHANNEL POSITIONS::
+* COLOR MODEL::
+* ASPECT RATIO::
+@end menu
+
+
+
+
+
+@node AUDIO CHANNEL POSITIONS
+@section AUDIO CHANNEL POSITIONS
+
+The currently enabled audio channels and their positions in the user
+interface boxes are displayed in the channel position widget.
+
+@sp 2
+@image{channelpositions}
+@sp 2
+
+
+The channels are numbered.  When rendered, the output from channel 1 is
+rendered to the first output track in the file or the first soundcard
+channel of the soundcard.  Later channels are rendered to their
+successively numbered output tracks.
+
+The audio channel locations correspond to where in the panning widgets
+each of the audio outputs is.  The closer the panning position is to
+one of the audio outputs, the more signal that speaker gets.  Click on
+a speaker icon and drag to change the audio channel location.
+
+The speakers can be in any orientation.  A different speaker
+arrangement is stored for every number of audio channels since normally
+you don't want the same speaker arrangement for different numbers of
+channels.
+
+Channel positions is the only setting which doesn't affect the output
+necessarily.  Click on a speaker icon and drag to change the position
+of a channel.  It is merely a convenience so when more than 2 channels
+are used, the pan controls on the timeline can distinguish between
+them.  It has nothing to do with the actual arrangement of speakers.
+
+
+But different channels can be positioned very close together to make
+them have the same output.
+
+
+
+
+@node COLOR MODEL
+@section COLOR MODEL
+
+Color model is very important for video playback because video has the
+disadvantage of being very slow.  Although it isn't noticable, audio
+intermediates contain much more information than the audio on disk and
+the audio which is played.  Audio always uses the highest bandwidth
+intermediate because it's fast.
+
+Video intermediates must use the least amount of data for the required
+quality because it's slow, but video intermediates still use a higher
+bandwidth color model than video which is stored and video which is
+played.  This allows more processing to be done with less destruction
+of the original data.   
+
+The video is stored on disk in one colormodel, normally compressed
+using a YUV derivative.  When played back, Cinelerra decompresses it
+from the file format directly into the format of the output device.  If
+effects are processed, the decompression is into an intermediate
+colormodel first and the intermediate colormodel is then converted to
+the format of the output device.  The selection of intermediate
+colormodel determines how accurate and fast the effects are.
+
+Cinelerra colormodels are described using a certain packing order of
+components and a certain number of bits for each component.  The
+packing order is printed on the left and the bit allocation is printed
+on the right.
+
+@itemize
+@item
+
+@b{RGB-888} 
+
+This allocates 8 bits for the R, G, and B channels and no alpha. This
+is normally used for uncompressed media with low dynamic range.
+
+@item
+
+@b{RGBA-8888} 
+
+This allocates an alpha channel to the 8 bit RGB colormodel.  It's used
+for overlaying multiple tracks.
+
+@item
+
+@b{YUV-888} 
+
+This allocates 8 bits for Y, U, and V.  This is used for low dynamic
+range operations in which the media is compressed in the YUV color
+space.  Most compressed media is in YUV and this allows it to be
+processed fast with the least color degradation. 
+
+@item
+
+@b{YUVA-8888} 
+
+This allocates an alpha channel to the 8 bit YUV colormodel for
+transparency.
+
+@item
+
+@b{RGB-Float} 
+
+This allocates a 32 bit float for the R, G, and B channels and no
+alpha.  This is used for high dynamic range processing with no
+transparency.
+
+@item
+
+@b{RGBA-Float} This adds a 32 bit float for alpha to RGB-Float.  This
+is used for high dynamic range processing with transparency.
+
+@end itemize
+
+
+
+In order to do effects which involve alpha channels, a colormodel with
+an alpha channel must be selected.  These are RGBA8888, YUVA8888, and
+RGBA Float.  The 4 channel colormodels are notoriously slower than 3
+channel colormodels, with the slowest being RGBA Float.  Some effects,
+like fade, work around the need for alpha channels while other effects,
+like chromakey, require an alpha channel to do anything, so it's a good
+idea to try the effect without alpha channels to see if it works before
+settling on an alpha channel and slowing it down.
+
+The YUV colormodels are usually faster than RGB colormodels when using
+compressed footage.  They also destroy fewer colors than RGB
+colormodels.  If footage stored as JPEG or MPEG is processed many times
+in RGB, the colors will fade while they won't if processed in YUV.
+
+Years of working with high dynamic range footage have shown floating
+point RGB to be the best format for high dynamic range.  While 16 bit
+integers were used in the past, these were too lossy and slow for the
+amount of improvement.
+
+RGB float doesn't destroy information when used with YUV source
+footage.  It also supports brightness above 100%.  Be aware that some
+effects, like Histogram, still clip above 100% when in floating point.
+
+@node ASPECT RATIO
+@section ASPECT RATIO
+
+Aspect ratio determines the shape of the video output when using the
+X11 video output.  The numbers in each direction can be any floating
+point number.  When drawn on the screen, video pixels are stretched to
+match the aspect ratio.
+
+Some file formats, like MPEG video, write the project aspect ratio to
+the file.
+
+
+
+
+

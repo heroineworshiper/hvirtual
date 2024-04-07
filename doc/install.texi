@@ -1,0 +1,187 @@
+
+@node INSTALLATION
+@chapter INSTALLATION
+
+
+The Cinelerra package contains Cinelerra and most of the libraries
+needed to run it.  We try to include all the dependancies because of
+the difficulty in tracking down the right versions.  Also included are
+some utilities for handling files.  The following are the general
+contents of all Cinelerra packages.
+
+@itemize
+
+@item
+
+@b{Foreign language translations} - These go into /usr/share/locale.
+
+@item
+
+@b{Cinelerra executable} - This goes into /usr/bin
+
+@item
+
+@b{Cinelerra plugins} - These go into /usr/lib/cinelerra in 32 bit
+systems and /usr/lib64/cinelerra in 64 bit systems.
+
+@item
+
+@b{soundtest} - Utility for determining sound card buffer size.
+
+@item
+
+@b{mplexlo} - Multiplexing of MPEG elementary streams without standards
+conformance but more efficiently.
+
+@item
+
+@b{mpeg3cat} - Utility for reading an MPEG file from a certain standard
+and outputting it to stdout.
+
+@item
+
+@b{mpeg3toc, mpeg3cat, mpeg3dump} - Utilities/ for indexing and reading MPEG files.
+
+@item
+
+@b{mpeg3peek} - Utility for displaying the byte offset of a frame in an
+MPEG file.
+
+@end itemize
+
+
+
+@menu
+* INSTALLING AN RPM::
+* COMPILING FROM SCRATCH::
+* RUNNING CINELERRA::
+@end menu
+
+
+
+
+
+
+
+
+@node INSTALLING AN RPM
+@section INSTALLING AN RPM
+
+Cinelerra is easiest installed by downloading an RPM and running
+
+@example
+rpm -U --force --nodeps hvirtual*.rpm
+@end example
+
+on a Fedora 4 system.
+
+On systems which don't support RPM look for a utility called
+@b{rpm2cpio}.  Download a Cinelerra RPM and from the /
+directory run
+
+@example
+rpm2cpio hvirtual*.rpm | cpio -i --make-directories
+@end example
+
+This doesn't always work because there are many forks of the C library,
+each incompatible with the others.  This is the biggest reason to
+compile from scratch.
+
+
+
+
+
+
+
+@node COMPILING FROM SCRATCH
+@section COMPILING FROM SCRATCH
+
+It should be noted that the compiler used in building Cinelerra
+binaries is the free GNU compiler and very conservative optimization
+flags.  Alternative optimization flags and compilers produce varying
+results.  Compiling the source is hard and there's no warranty if the
+source code fails to compile, but the method for compiling starts by
+downloading the source code and decompressing.
+
+The compilation is verified on a vanilla Fedora 4 installation,
+workstation mode.  Fedora doesn't install a lot of dependancies like
+@b{nasm} and @b{yasm}.  Yes, 3 assemblers are now required to assemble
+x86 code.  Compiling the source is hard and there's no warranty if the
+source code fails to compile, but the method for compiling starts by
+downloading the source code and decompressing.
+
+@example
+tar jxf cinelerra*.tar.bz2
+@end example
+
+
+The compilation is verified on a Fedora 4 installation.  Fedora 4
+doesn't install a lot of the reqiured compilers.  Mainly @b{nasm} and
+@b{yasm}, 2 of the 3 assemblers.  These have to be installed manually
+for compilation to succeed.
+
+Enter the hvirtual directory
+
+@example
+cd cinelerra
+@end example
+
+Then run
+
+@example
+./configure
+@end example
+
+This checks the build environment for the right tools and should give
+you an error if a tool is missing.  Once that succeeds run
+
+@example
+make
+@end example
+
+The make procedure should run through all the directories and put
+binaries in the @b{i686} or @b{x86_64} directories.  When NFS was
+a lot faster, we compiled Alpha and i686 binaries in the same
+filesystem with the objects in different subdirectories, so all the
+binaries are still put in subdirectories.
+
+A lot of libraries are included to get the version numbers right.  Some
+of the libraries don't compile on SMP systems.  One solution is to
+disable SMP when rebooting and reenable it when compilation is
+finished.  Another solution is to rerun make over and over until it
+gets through the offending libraries.
+
+
+Once finished, make sure you are root and run
+
+@example
+make install
+@end example
+
+to install the binaries.  If installation fails it means something
+failed to compile or you weren't root.  Run @b{make} again and watch
+for errors.
+
+Sometimes you'll want to run @b{make clean} if you're programming
+something or the system libraries change.  In this case, you'll
+probably need to run @b{configure} again because some libraries delete
+their configuration files in @b{make clean}.
+
+@node RUNNING CINELERRA
+@section RUNNING CINELERRA
+
+
+The simplest way to run Cinelerra is by running
+
+
+@example
+/usr/bin/cinelerra
+@end example
+
+This command hides a much more capable command line interface.  Run
+@b{cinelerra -h} to get a listing of command line options.  The use of
+these options is described in several sections.
+
+For rendering from the command line @xref{RENDERING FILES}.
+
+

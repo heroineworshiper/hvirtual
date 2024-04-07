@@ -1,5 +1,6 @@
 TARGET_DIR := ../bin/doc
 
+# images to copy from the theme
 IMAGES = \
 	arrow.png \
 	autokeyframe.png \
@@ -37,22 +38,38 @@ IMAGES = \
 	wrench.png \
 	magnify.png
 
-$(OUTPUT):
-	cinelerra.html
+# custom images for documentation
+CUSTOM_IMAGES := \
+	chromakey.png \
+	chromakeyhsv1.png \
+	chromakeyhsv2.png \
+	chromakeyhsv3.png \
+	chromakeyhsv4.png \
+	chromakeyhsv5.png \
+	chromakeyhsv6.png \
+	chromakeyhsv7.png \
+	chromakeyhsv8.png
+
 
 all:
+	mkdir -p $(TARGET_DIR)
 	for i in $(IMAGES) ; \
-		do if ! test -e $$i ; \
-			then cp -a ../plugins/suv/data/$$i . ; \
+		do if ! test -e $(TARGET_DIR)/$$i ; \
+			then cp -a ../plugins/suv/data/$$i $(TARGET_DIR) ; \
 		fi ; \
 	done
-	makeinfo --html --no-split cinelerra.texi
-#	makeinfo --html cinelerra.texi
+	cp $(CUSTOM_IMAGES) $(TARGET_DIR)
+# use this to create a single document.
+	cd $(TARGET_DIR) && makeinfo --html --no-split ../../doc/cinelerra.texi
+	cd $(TARGET_DIR) && ../../doc/fix_images.py cinelerra.html
+# use this to create multiple HTML pages.  Not searchable
+#	cd $(TARGET_DIR) && makeinfo --html ../../doc/cinelerra.texi
 
-install:
-	mkdir -p $(TARGET_DIR)
-	cp $(IMAGES) $(TARGET_DIR)
-	cp cinelerra.html $(TARGET_DIR)
+
+#install:
+#	mkdir -p $(TARGET_DIR)
+#	cp $(IMAGES) $(TARGET_DIR)
+#	cp cinelerra.html $(TARGET_DIR)
 
 clean:
-	rm -f $(IMAGES) $(OUTPUT)
+	rm -rf $(TARGET_DIR)

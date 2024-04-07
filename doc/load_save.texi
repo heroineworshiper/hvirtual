@@ -1,0 +1,781 @@
+
+@node LOADING AND SAVING FILES
+@chapter LOADING AND SAVING FILES
+
+
+@menu
+* SUPPORTED FILE FORMATS::     What formats Cinelerra can import and export
+* LOADING FILES::              Loading all types of files
+* LOADING THE BACKUP::         Recovering the session from before a crash
+* SAVING FILES::               Saving edit decision lists
+* RENDERING FILES::            Saving media files
+@end menu
+
+
+
+
+
+
+
+
+
+
+@node SUPPORTED FILE FORMATS
+@section SUPPORTED FILE FORMATS
+
+Here are most of the supported file formats and notes regarding their
+compression.  You may be able to load other formats not described here.
+
+The format of the file affects what Cinelerra does with it.  Edit
+decision lists replace the project settings.  Formats which contain
+media but no edit decisions just add data to the tracks.  If your
+project sample rate is 48khz and you load a sound file with 96khz,
+you'll still be playing it at 48khz.   If you load an EDL file at 96khz
+and the current project sample rate is 48khz, you'll change it to
+96khz.
+
+Some file formats are very slow to display on the timeline.  These
+usually have video which is highly compressed.  Drawing highly
+compressed video picons can be very slow.  Disable picon drawing for
+these files with the @b{draw media} toggle to speed up operations.
+
+
+@sp 1
+@image{track_attributes}
+@b{Track attributes}
+
+Supported file formats are currently:
+
+@itemize
+@item
+WAV
+@item
+FLAC
+@item
+PCM
+@item
+AIFF
+@item
+AC3 audio
+@end itemize
+
+@menu
+* QUICKTIME::
+* MPEG-4 AUDIO::
+* IMAGE SEQUENCES::
+* STILL IMAGES::
+* AVI::
+* MPEG FILES CONTAINING VIDEO::
+* DVD MOVIES::
+* MPEG 1 AUDIO::
+* OGG THEORA/VORBIS::
+* EDIT DECISION LIST::
+@end menu
+
+
+@node QUICKTIME
+@subsection QUICKTIME
+Quicktime is not the standard for UNIX but we use it because it's well
+documented.  All of the Quicktime movies on the internet are
+compressed.  Cinelerra doesn't support most compressed Quicktime movies
+but does support some.  If it crashes when loading a Quicktime movie,
+that means the format probably wasn't supported.
+
+@b{NOTES ON QUICKTIME ENCODING}
+
+Here are some notes regarding making Quicktime movies in Cinelerra:
+
+Quicktime is a wrapper for 2 codecs, a video codec and an audio codec. 
+The video and audio codecs are picked separately.  The preferred
+encoding for Quicktime output is MPEG-4 Video and MPEG-4 Audio.  This
+format plays in the commercial players for Windows and has good
+compression quality.  For better compression, use H-264 Video. 
+Unfortunately H-264 decoding is so slow it can't play very large frame
+sizes.
+
+Cinelerra supports 2 nonstandard codecs: Dual MPEG-4 video and dual
+H.264 video.  These won't play in anything but Cinelerra and XMovie. 
+They are designed for movies where the frames have been divided into 2
+fields, each field displayed sequentially.  The dual codecs interleave
+2 video streams to improve efficiency without requiring major changes
+to the player.
+
+@node MPEG-4 AUDIO
+@subsection MPEG-4 AUDIO
+
+This is the same as Quicktime with MPEG-4 Audio as the audio codec.
+
+@node IMAGE SEQUENCES
+@subsection IMAGE SEQUENCES
+
+
+Rendering an image sequence is not the same as rendering a single
+image.  When rendering an image sequence Cinelerra generates a table of
+contents file for the image sequence and makes a different image file
+for every timeline position.  The table of contents can be loaded
+instead of the individual images to get better performance.  To learn
+more about the different image formats supported in an image sequence,
+read about still images.
+
+
+@node STILL IMAGES
+@subsection STILL IMAGES
+
+
+Rendering a single image causes the image file to be overwritten for
+every timeline position.  No table of contents is created.  When
+loaded, the image takes up one frame in length and doesn't change the
+project attributes.
+
+Several still image formats not normally found in other programs are
+described here.
+
+@menu
+* OPEN EXR IMAGES::
+* RAW DIGITAL CAMERA IMAGES::
+@end menu
+
+@node OPEN EXR IMAGES
+@subsubsection OPEN EXR IMAGES
+
+You may not know about Open EXR.  This format stores floating point RGB
+images.  It also supports a small amount of compression.  Projects
+which render to EXR should be in a floating point color model to take
+advantage of it @xref{SETTING PROJECT ATTRIBUTES}.  Several compression
+options are available for EXR.
+
+@itemize
+
+@item
+
+@b{PIZ} Lossless wavelet compression.  This is the best compression.
+
+@item
+@b{ZIP} Lossless gzip algorithm.
+
+@item
+@b{RLE} Lossless run length encoding.  This is the fastest and worst
+compression.
+
+@item
+@b{PXR24} Lossy compression where the floating point numbers are
+converted to 24 bits and compressed with gzip.
+
+@end itemize
+
+Select @b{Use Alpha} if the project colormodel has an alpha channel and
+you want to retain it in the file.  Otherwise the primary colors are
+multiplied by the alpha channel.
+
+@node RAW DIGITAL CAMERA IMAGES
+@subsubsection RAW DIGITAL CAMERA IMAGES
+
+RAW digital camera images are a special kind of image file which
+Cinelerra only imports.  These must be processed in a floating point
+color space once they are on the timeline.  Raw images from Canon
+cameras are the only ones tested.  They need to have the @b{Linearize}
+effect applied to correct gamma.  Because raw images take a long time
+to interpolate, they are usually viewed first in a proxy file and then
+touched up.
+
+First apply the Linearize effect to a track of raw images and set it to
+@b{automatic} with @b{0.6} gamma.  Then render the timeline to a
+Quicktime JPEG file.  Append the Quicktime JPEG file in a new track and
+disable playback of the old track.  Now the gamma corrected copy of
+each raw image can be previewed relatively fast in the same timeline
+position as the original image.
+
+
+
+@node AVI
+@subsection AVI
+
+AVI with assorted audio and video codecs.  Because AVI is so
+fragmented, your luck will vary.
+
+
+@node MPEG FILES CONTAINING VIDEO
+@subsection MPEG FILES CONTAINING VIDEO
+
+
+MPEG files containing video can be loaded directly into Cinelerra.  If
+the file is supported, a table of contents is built.  If the file is
+unsupported, it usually crashes or shows very short tracks. 
+Unfortunately, this method of loading MPEG files isn't good enough if
+you intend to use the files in a renderfarm.  
+
+To use MPEG files in a renderfarm you need to run @b{mpeg3toc} to
+generate a table of contents for the file, then load the table of
+contents.  Mpeg3toc needs the absolute path of the MPEG file.  If you
+don't use an absolute path, it assumes the MPEG file is in the same
+directory that Cinelerra is run from.
+
+MPEG streams are structured into multiple tracks.  Each track can be
+video or audio.  Each audio track can have 1-6 channels.  Cinelerra
+converts each channel of audio into a track.
+
+@b{NOTES ON MPEG VIDEO ENCODING}
+
+MPEG video encoding is done separately from MPEG audio encoding.  In
+MPEG video there are 2 colormodels.  The YUV 4:2:0 colormodel is
+encoded by a highly optimized version of mpeg2enc with presets for
+standard consumer electronics.  In the process of optimizing mpeg2enc,
+they got rid of YUV 4:2:2 encoding.  The YUV 4:2:2 colormodel is
+encoded by a less optimized version of mpeg2enc.
+
+YUV 4:2:2 encoding was kept around because the NTSC version of DV video
+loses too much quality when transferred to YUV 4:2:0.  This DV video
+must be transferred to YUV 4:2:2.
+
+When encoding YUV 4:2:0, the bitrate parameter changes meaning
+depending on whether the bitrate or quantization is fixed.  If the
+bitrate is fixed, it's the target bitrate.  If the quantization is
+fixed, it's the maximum bitrate allowed.  This is a quirk of the
+mpeg2enc version.
+
+@node DVD MOVIES
+@subsection DVD MOVIES
+
+
+DVD's are spit into a number of programs, each identified by a unique
+@b{IFO} file.  If you want to load a DVD, find the corresponding
+@b{IFO} file for the program of interest.  Load the IFO file directly
+and a table of contents will be built.  Alternatively for renderfarm
+usage, a table of contents can be created separately.
+
+Run
+
+@example
+mpeg3toc -v /cdrom/video_ts/vts_01_0.ifo dvd.toc
+@end example
+
+or something similar.  Then load @b{dvd.toc}.
+
+
+
+@node MPEG 1 AUDIO
+@subsection MPEG 1 AUDIO
+
+These are .mp2 and .mp3 files.  If fixed bitrate, they can be loaded
+directly with no table of contents.  Variable bitrate streams need to
+have a table of contents created with @b{mpeg3toc}.
+
+@node OGG THEORA/VORBIS
+@subsection OGG THEORA/VORBIS
+
+
+The OGG format is an antiquated but supposedly unpatented way of
+compressing audio and video.  The quality isn't as good as H.264 or
+MPEG-4 Audio.  In reality, anyone with enough money and desire can find
+a patent violation so the justification for OGG is questionable.
+
+@node EDIT DECISION LIST
+@subsection EDIT DECISION LIST
+
+
+Edit decision lists are generated by Cinelerra for storing projects. 
+They end in .xml.  They change project attributes when loaded.
+
+Because edit decision lists consist of text, they can be edited in a
+text editor.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@node LOADING FILES
+@section LOADING FILES
+
+All data that you work with in Cinelerra is acquired either by
+@b{recording from a device} or by @b{loading from disk}.  This
+section describes loading.
+
+The loading and playing of files is just as you would expect. Just go
+to @b{file->Load}, select a file for loading, and hit @b{ok}. Hit
+the forward play button and it should start playing, regardless of
+whether a progress bar has popped up.
+
+Another way to load files is to pass the filenames as arguments on the
+command line.  This creates new tracks for every file and starts the
+program with all the arguments loaded.
+
+If the file is a still image, the project's attributes are not changed
+and the first frame of the track becomes the image.  If the file has
+audio, Cinelerra may build an index file for it to speed up drawing. 
+You can edit and play the file while the index file is being built.
+
+@menu
+* INSERTION STRATEGY::
+* LOADING MULTIPLE FILES::
+@end menu
+
+
+
+
+
+
+
+
+
+
+
+@node INSERTION STRATEGY
+@subsection INSERTION STRATEGY
+
+Usually three things happen when you load a file.  First the existing
+project is cleared from the screen, second the project's attributes are
+changed to match the file's, and finally the new file's tracks are
+created in the timeline.
+
+But Cinelerra lets you change what happens when you load a file.
+
+In the file selection box there is a range of options for @b{Insertion
+strategy}.  Each of these options loads the file a different way.
+
+@image{insertion_strategy}
+
+@itemize
+
+
+@item
+@b{Replace current project}
+@image{loadmode_new}
+
+All tracks in the current project are deleted and new tracks are
+created to match the source.  Project attributes are only changed when
+loading XML.  If multiple files are selected it adds new tracks for
+every file.
+
+@item
+@b{Replace current project and concatenate tracks}
+@image{loadmode_newcat}
+
+Same as replace current project except if multiple files are selected
+it concatenates the tracks of every file after the first.
+
+@item
+@b{Append in new tracks}
+@image{loadmode_newtracks}
+
+The current project is not deleted and new tracks are created for the
+source.
+
+@item
+@b{Concatenate to existing tracks}
+@image{loadmode_cat}
+
+The current project is not deleted and new files are concatenated to
+the existing tracks.
+
+@item
+@b{Paste at insertion point}
+@image{loadmode_paste}
+
+The file is pasted in like a normal paste operation.
+
+@item
+@b{Create new resources only}
+@image{loadmode_resource}
+
+The timeline is unchanged and new resources are created in the Resource
+Window.
+
+@item
+@b{Nested EDL}
+@image{loadmode_nested}
+
+If the file is an EDL, the output of the EDL is pasted in like a media
+file.  Nested EDLs have 1 video track & a number of audio tracks
+corresponding to the number of output channels.  They allow larger
+sequences composed of many smaller sequences, transitions to be applied
+to the output of another EDL, & global processing on the output of an
+EDL without having to manipulate each track.
+
+
+
+@end itemize
+
+
+The insertion strategy is a recurring option in many of Cinelerra's
+functions.  In each place the options do the same thing.  With these
+options you can almost do all your editing by loading files.
+
+If you load files by passing command line arguments to Cinelerra, the
+files are loaded with @b{Replace current project} rules.
+
+
+
+
+
+@node LOADING MULTIPLE FILES
+@subsection LOADING MULTIPLE FILES
+
+In the file selection box go to the list of files.  Select a file.  Go
+to another file and select it while holding down @b{CTRL}.  This
+selects one additional file.  Go to another file and select it while
+holding down @b{SHIFT}.  This selects every intervening file.  This
+behavior is available in most every list box.
+
+Select a bunch of mp3 files and @b{Replace current project and
+concatenate tracks} in the insertion strategy to create a song
+playlist.
+
+
+
+
+@node LOADING THE BACKUP
+@section LOADING THE BACKUP
+
+There is one special XML file on disk at all times.  After every
+editing operation Cinelerra saves the current project to a backup in
+@b{$HOME/.bcast/backup.xml}.  In the event of a crash go to
+@b{file->load backup} to load the backup.  It is important after a
+crash to reboot Cinelerra without performing any editing operations. 
+Loading the backup should be the first operation or you'll overwrite
+the backup.
+
+
+@node SAVING FILES
+@section SAVING FILES
+
+When Cinelerra saves a file it saves an edit decision list of the
+current project but doesn't save any media.  Go to @b{File->save
+as...}.  Select a file to overwrite or enter a new file.  Cinelerra
+automatically concatenates @b{.xml} to the filename if no
+@b{.xml} extension is given.
+
+The saved file contains all the project settings and locations of every
+edit but instead of media it contains pointers to the original media
+files on disk.
+
+For each media file the XML file stores either an absolute path or just
+the relative path.  If the media is in the same directory as the XML
+file a relative path is saved.  If it's in a different directory an
+absolute path is saved.
+
+In order to move XML files around without breaking the media linkages
+you either need to keep the media in the same directory as XML file
+forever or save the XML file in a different directory than the media
+and not move the media ever again.
+
+If you want to create an audio playlist and burn it on CD-ROM, save the
+XML file in the same directory as the audio files and burn the entire
+directory.  This keeps the media paths relative.
+
+XML files are useful for saving the current state before going to sleep
+and saving audio playlists but they're limited in that they're specific
+to Cinelerra.  You can't play XML files in a dedicated movie player. 
+Realtime effects in an XML file have to be resynthesized every time you
+play it back.  The XML file also requires you to maintain copies of all
+the source assets on hard drives, which can take up space and cost a
+lot of electricity to spin.  For a more persistent storage of the
+output there's rendering.
+
+
+
+
+
+
+@node RENDERING FILES
+@section RENDERING FILES
+
+Rendering takes a section of the timeline, performs all the editing,
+effects and compositing, and stores it in a pure movie file.  You can
+then delete all the source assets, play the rendered file in a movie
+player, or bring it back into Cinelerra for more editing.  It's very
+difficult to retouch any editing decisions in the pure movie file,
+however, so keep the original assets and XML file around several days
+after you render it.
+
+All rendering operations are based on a region of the timeline to be
+rendered.  You need to define this region on the timeline.  The
+navigation section describes methods of defining regions. 
+@xref{NAVIGATING THE PROJECT}.  The rendering functions define the
+region based on a set of rules.  When a region is highlighted or in/out
+points are set, the affected region is rendered.  When no region is
+highlighted, everything after the insertion point is rendered.  Merely
+by positioning the insertion point at the beginning of a track and
+unsetting all in/out points, the entire track is rendered.
+
+
+
+@menu
+* SINGLE FILE RENDERING::      Rendering a single file
+* BATCH RENDERING::            Rendering several files unattended
+* THE RENDER FARM::            Rendering using many computers
+* COMMAND LINE RENDERING::     Rendering from the command line without a GUI
+@end menu
+
+
+
+@node SINGLE FILE RENDERING
+@subsection SINGLE FILE RENDERING
+
+The fastest way to get media to disk is to use the single file
+rendering function.
+
+Go to @b{File->render} to bring up the render dialog.  Select the
+magnifying glass @image{magnify} to bring up a file selection dialog.  This determines
+the filename to write the rendered file to and the encoding parameters.
+
+In the render dialog select a format from the @b{File Format} menu. 
+The format of the file determines whether you can render audio or video
+or both.  Select the @b{Render audio tracks} toggle to generate
+audio tracks and @b{Render video tracks} to generate video tracks.
+
+
+Select the wrench @image{wrench} next to each toggle to set compression
+parameters.  If the file format can't store audio or video the
+compression parameters will be blank.  If @b{Render audio tracks} or
+@b{Render video tracks} is selected and the file format doesn't
+support it, trying to render will pop up an error.
+
+The @b{Create new file at each label} option causes a new file to be
+created when every label in the timeline is encountered.  This is
+useful for dividing long audio recordings into individual tracks.  When
+using the renderfarm, @b{Create new file at each label} causes one
+renderfarm job to be created at every label instead of using the
+internal load balancing algorithm to space jobs.
+
+When @b{Create new file at each label} is selected, a new filename
+is created for every output file.  If the filename given in the render
+dialog has a 2 digit number in it, the 2 digit number is overwritten
+with a different incremental number for every output file.  If no 2
+digit number is given, Cinelerra automatically concatenates a number to
+the end of the given filename for every output file.
+
+In the filename @b{/hmov/track01.wav} the @b{01} would be
+overwritten for every output file.  The filename
+@b{/hmov/track.wav}; however, would become @b{/hmov/track.wav001}
+and so on and so forth.  Filename regeneration is only used when either
+renderfarm mode is active or creating new files for every label is
+active.
+
+Finally the render dialog lets you select an insertion mode.  The
+insertion modes are the same as with loading files.  In this case if
+you select @b{insert nothing} the file will be written out to disk
+without changing the current project.  For other insertion strategies
+be sure to prepare the timeline to have the output inserted at the
+right position before the rendering operation is finished. 
+@xref{EDITING}.  Editing describes how to cause output to be inserted
+at the right position.
+
+It should be noted that even if you only have audio or only have video
+rendered, a @b{paste} insertion strategy will behave like a normal
+paste operation, erasing any selected region of the timeline and
+pasting just the data that was rendered.  If you render only audio and
+have some video tracks armed, the video tracks will get truncated while
+the audio output is pasted into the audio tracks.
+
+
+
+@node BATCH RENDERING
+@subsection BATCH RENDERING
+
+
+
+If you want to render many projects to media files without having to
+repeatedly attend to the @b{Render} dialog, @b{batch rendering} is the
+function to use.  In this function, you specify many EDL files to
+render and the unique output files for each.  Then Cinelerra loads each
+EDL file and renders it automatically, without any user intervention. 
+Each EDL file and its output to be rendered is called a @b{batch}. 
+This allows a huge amount of media to be processed and greatly
+increases the value of an expensive computer.
+
+The first thing to do when preparing to do batch rendering is define
+projects to be rendered.  The batch renderer requires a separate EDL
+file for every batch to be rendered.  Set up a project and define the
+region to be rendered either by highlighting it, setting in/out points
+around it, or positioning the insertion point before it.  Then save the
+project as an EDL.  Define as many projects as needed this way.  The
+batch renderer takes the active region from the EDL file for rendering.
+
+With all the EDL files prepared with active regions, go to
+@b{File->batch render}.  This brings up the batch rendering dialog. 
+The interface for batch rendering is a bit more complex than for single
+file rendering.
+
+
+A list of batches must be defined before starting a batch rendering
+operation.  The table of batches appears on the bottom of the batch
+render dialog and is called @b{batches to render}.  Above this are
+the configuration parameters for a single batch.
+
+Set the @b{output path}, @b{file format}, @b{Audio}, @b{Video}, and
+@b{Create new file at each label} parameters as if it was a single
+file.  These parameters apply to only one batch.  In addition to the
+standard rendering parameters, you must select the source EDL to use in
+the batch.  Do this by setting the @b{EDL path}.
+
+If the @b{batches to render} list is empty or nothing is highlighted,
+click @b{New} to create a new batch.  The new batch will contain all
+the parameters you just set.
+
+Repeatedly press the @b{New} button to create more batches with the
+same parameters.  Highlight any batch and edit the configuration on the
+top of the batch render window.  The highlighted batch is always
+synchronized to the information displayed.
+
+Click and drag batches to change the order in which they're rendered. 
+Hit @b{delete} to permanently remove the highlighted batch.
+
+In the list box is a column which enables or disables the batch.  This
+way batches can be skipped without being deleted.  Click on the
+@b{Enabled} column in the list box to enable or disable a batch.  If it
+is checked, the batch is rendered.  If it is blank, the batch is
+skipped.
+
+The other columns in the batch list are informative.
+
+@itemize
+
+@item
+@b{Output} The output path of the batch.
+@item
+@b{EDL} The source EDL of the batch.
+@item
+@b{Elapsed} The amount of time taken to render the batch if it is finished.
+
+@end itemize
+
+To start rendering from the first enabled batch, hit @b{Start}.
+
+Once rendering, the main window shows the progress of the batch.  Once
+the batch finishes, the elapsed column in the batch list is updated and
+the next batch is rendered until all the enabled batches are finished.
+The currently rendering batch is always highlighted red.
+
+
+To stop rendering before the batches are finished without closing the
+batch render dialog, hit @b{Stop}.
+
+To stop rendering before the batches are finished and close the batch
+render dialog, hit @b{Cancel}.
+
+To exit the batch render dialog whether or not anything is being
+rendered, hit @b{Cancel}.
+
+
+
+
+
+
+
+@node THE RENDER FARM
+@subsection THE RENDER FARM
+
+When bicubic interpolation and HDTV was first done on Cinelerra, the
+time needed to produce the simplest output became unbearable even on
+the fastest dual 1.7Ghz Xeon of the time.  Renderfarm support even in
+the simplest form brings HDTV times back in line with SD while making
+SD faster than realtime.
+
+While the renderfarm interface isn't spectacular, it's simple enough to
+use inside an editing suite with less than a dozen nodes without going
+through the same amount of hassle you would with a several hundred node
+farm.  Renderfarm is invoked transparently for all file->render
+operations when it is enabled in the preferences.
+
+Cinelerra divides the selected region of the timeline into a certain
+number of jobs which are then dispatched to the different nodes
+depending on the load balance.  The nodes process the jobs and write
+their output to individual files on the filesystem.  The output files
+are not concatenated.  It's important for all the nodes to have access
+to the same filesystem on the same mount point for assets.
+
+If a node can't access an input asset it'll display error messages to
+its console but probably not die.  If it can't access an output asset
+it'll cause the rendering to abort.
+
+It should be noted that in the render dialog, the @b{Create new file at
+each label} option causes a new renderfarm job to be created at each
+label instead of by the load balancer.  If this option is selected when
+no labels exist, only one job will be created.
+
+A Cinelerra renderfarm is organized into a master node and any number
+of slave nodes.  The master node is the computer which is running the
+GUI.  The slave nodes are anywhere else on the network and are run from
+the command line.  Run a slave node from the command line with 
+
+@b{cinelerra -d}
+
+That is the simplest configuration.  Type @b{cinelerra -h} to see more
+options.  The default port number may be overridden by passing a port
+number after the -d.
+
+
+Most of the time you'll want to bring in the rendered output and fine
+tune the timing on the timeline.  Also some file formats like MPEG
+can't be direct copied.  Because of this, the jobs are left in
+individual files.
+
+You can load these by creating a new track and specifying
+@b{concatenate to existing tracks} in the load dialog.  Files which
+support direct copy can be concatenated into a single file by rendering
+to the same file format with renderfarm disabled.  Also to get direct
+copy, the track dimensions, output dimensions, and asset dimensions
+must be equal.
+
+MPEG files or files which don't support direct copy have to be
+concatenated with a command line utility.  MPEG files can be
+concatenated with @b{cat}.
+
+Configuration of the renderfarm is described in the configuration
+chapter @xref{RENDERFARM}.  The slave nodes traditionally read and
+write data to a common filesystem over a network, thus they don't need
+hard drives.
+
+Ideally all the nodes on the renderfarm have similar CPU performance. 
+Cinelerra load balances on a first come first serve basis.  If the last
+segment is dispatched to the slowest node, all the fastest nodes may
+end up waiting for the slowest node to finish while they themselves
+could have rendered it faster.
+
+
+
+
+
+@node COMMAND LINE RENDERING
+@subsection COMMAND LINE RENDERING
+
+The command line rendering facility consists of a way to load the
+current set of batch rendering jobs and process them without a GUI. 
+This is useful if you're planning on crashing X repeatedly or want to
+do rendering on the other side of a low bandwidth network.  You might
+have access to a supercomputer in India but still be stuck in America,
+exhiled you might say.  A command line interface is ideal for this.
+
+To perform rendering from the command line, first run Cinelerra in
+graphical mode.  Go to @b{file->batch render}.  Create the batches you
+intend to render in the batch window and close the window.  This saves
+the batches in a file.  Set up the desired renderfarm attributes in
+@b{settings->preferences} and exit Cinelerra.  These settings are used
+the next time command line rendering is used.
+
+On the command line run 
+
+@b{cinelerra -r}
+
+to processes the current batch jobs without a GUI.  Setting up all the
+parameters for this operation is hard.  That's why the command line
+aborts if any output files already exist.
+
+Other parameters exist for specifying alternative files for the
+preferences and the batches.  Attempting to use anything but the
+defaults is very involved so it hasn't been tested.
+
+

@@ -1,0 +1,162 @@
+@node CHROMA KEYERS
+@section CHROMA KEYERS
+
+
+
+@menu
+* CHROMA KEY::
+* CHROMAKEY HSV::
+@end menu
+
+@node CHROMA KEY
+@subsection CHROMA KEY
+
+
+This was the 1st chroma keyer.  It erases pixels which are near the
+selected color in the RGB color cube.  It uses the same algorithm as the
+Gimp selection tools.  It works best with computer generated graphics.
+
+Colors are replaced with black if there is no alpha channel and
+transparency if there is an alpha channel.  The selection of color model
+is important to determine the behavior.
+
+Chroma key uses either the lightness or the hue to determine what is
+erased.  @b{Use value} singles out only the lightness to determine
+transparency.  Select a center color to erase using the @b{Color}
+button.  Alternatively a color can be picked directly from the output
+frame by first using the @b{color picker} in the compositor window and
+then selecting the @b{Use color picker} button.  This sets the chroma
+key color to the current color picker color.
+
+Be aware that the output of the chroma key is fed back to the
+compositor, so selecting a color again from the compositor will use the
+output of the chroma key effect.  The chroma key should be disabled
+when selecting colors with the color picker.
+
+
+If the lightness or hue is within a certain threshold it's erased. 
+Increasing the threshold determines the range of colors to be erased. 
+It's not a simple on/off switch, however.  As the color approaches the
+edge of the threshold, it gradually gets erased if the slope is high or
+is rapidly erased if the slope is low.  The slope as defined here is
+the number of extra values flanking the threshold required to go from
+opaque to transparent.
+
+Normally threshold is very low when using a high slope.  The two
+parameters tend to be exclusive because slope fills in extra threshold.
+
+The slope tries to soften the edges of the chroma key but it doesn't
+work well for compressed sources.  A popular softening technique is to
+use a maximum slope and chain a blur effect below the chroma key effect
+to blur just the alpha.
+
+@center @image{chromakey}
+@center Use the color swatch to visualize the effect of the chromakey.
+
+
+@node CHROMAKEY HSV
+@subsection CHROMAKEY HSV
+
+This chroma keyer is a rough replica of the Avid Spectra Matte.  It
+creates a superior key for video camera sources.  The best way to
+visualize the effect is to attach a Color Swatch to the source footage,
+then Chroma Key HSV.  Set the brightness & saturation in the color
+swatch to 100 for easiest visualization.  In Chroma Key HSV, set the
+alpha offset to 0, min brightness to 0, max brightness to 100 for
+easiest visualization.
+
+@center @image{chromakeyhsv1}
+@center Chromakey HSV test project
+
+To visualize how much of the source is being taken out, set the color
+swatch to @b{draw source}.  This draws pixels in the color swatch that
+are in the source.
+
+Chroma Key HSV creates a transparent wedge in the color swatch.  
+
+The position of the wedge starts with the hue selected by @b{color}.  The
+saturation & value in the color are ignored & should be maximum for the
+most accuracy.  Only the hue is used. 
+
+@b{Use color picker} copies the data in the compositor's color picker to
+the starting color.
+
+@b{Show mask} replaces the non transparent area with white.
+
+@b{KEY PARAMETERS}
+
+The next parameters grow the starting color into a wedge & modify it.
+
+@b{Hue tolerance} An angle that determines how wide the wedge is.  This
+must be between 0 & 45 to get an intuitive shape.
+
+@b{Min brightness, max brightness} determine the range of brightnesses
+the wedge appears in.  If the color swatch is in @b{constant
+saturation}, the brightness range determines the start & end radius of
+the wedge.  If the color swatch is in @b{constant brightness}, the
+brightness range cuts off the wedge as you slide around the color swatch
+brightness value.  For the best experience when experimenting, set min &
+max brightness to 0 & 100.
+
+@center @image{chromakeyhsv2}
+@center Effect of brightness range
+
+
+@b{Saturation start} determines the radius of the point of the wedge
+when the color swatch is in @b{constant brightness}.
+
+@center @image{chromakeyhsv3}
+@center Effect of saturation start
+
+@b{Saturation line} is an additional radius which is taken out of the
+wedge.
+
+@center @image{chromakeyhsv4}
+@center Effect of saturation line
+
+@b{MASK TWEEKING}
+
+@b{In slope} takes transparent area out of the wedge using a gradient
+
+@b{Out slope} adds transparent area to the wedge using a gradient
+
+@center @image{chromakeyhsv5}
+@center Effect of slopes
+
+@b{Alpha offset} When greater than 0, this fills in the wedge with a
+constant alpha.  When less than 0, this takes a constant alpha out of
+the opaque part of the color swatch.  For the best experience when
+experimenting, set it to 0.
+
+@b{SPILL LIGHT CONTROL}
+
+The spill light control tries to remove light reflected by the green
+screen onto the subject.  The idea is to eliminate colors bordering the
+wedge without making them transparent.  The spill light control is
+always applied as a gradient, based on the behavior of the Avid effect.
+
+@b{Spill saturation} This adds a minimum saturation below the saturation
+start at which to begin taking out spill light.  To visualize this, the
+color swatch should be in constant brightness.  Saturation start should
+be greater than 0.  Increasing spill saturation rewinds from the wedge
+point & begins replacing colors from the rewound point.
+
+@center @image{chromakeyhsv6}
+@center Effect of spill saturation
+
+@b{Spill angle} An angle added to the hue tolerance to make the wedge
+wider.  Inside this angle, a constant hue is copied from the neighboring
+part of the color swatch to the area where the spill light would be. 
+Increase the spill angle to copy hue from farther away from the wedge.
+
+@center @image{chromakeyhsv8} 
+@center Effect of spill angle.  By increasing the angle, the yellow & cyan are copied to the wedge area.
+
+@b{Desaturate only} Instead of copying the neighboring hue in the color
+swatch, this takes all the color out, yielding white where the spill
+light would be.  This was the behavior of chromakey HSV when it was 1st
+ported to Cinelerra but is not the Avid behavior.
+
+@center @image{chromakeyhsv7}
+@center Effect of desaturation
+

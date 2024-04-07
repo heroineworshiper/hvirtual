@@ -1,0 +1,30 @@
+
+
+@chapter SHORT CONTENTS
+
+@menu
+* ABOUT CINELERRA::          Cinelerra in brief.
+* INSTALLATION::             Making Cinelerra work on your system.
+* CONFIGURATION::            Adjusting the behavior of Cinelerra.
+* CREATING A NEW PROJECT::   Creating a new project
+* THE MAIN WINDOWS::         The most often used user interfaces.
+* LOADING AND SAVING FILES:: Moving media between disk and Cinelerra.
+* NAVIGATING THE PROJECT::   Moving around the media.
+* EDITING::                  Moving the media in time.
+* USING EFFECTS::            Altering the media.
+* SETTING PROJECT ATTRIBUTES:: Changing the way the media is displayed.
+* COMPOSITING::              Overlaying different sources of video.
+* KEYFRAMES::                Making effects change over time.
+* CAPTURING MEDIA::          Moving media from the real world to disk.
+* IMPROVING PERFORMANCE::    Making Cinelerra run better on Linux.
+* TROUBLESHOOTING::          Problems with Cinelerra.
+* APPLICATION NOTES::        Unusual applications of Cinelerra to common problems.
+* EFFECTS NOTES::            How to use various effects.
+* PLUGIN AUTHORING::         How to write new effects.
+* KEYBOARD SHORTCUTS::       How to accelerate most commands with the keyboard.
+@end menu
+
+
+
+@contents
+

@@ -1,0 +1,494 @@
+
+@node NAVIGATING THE PROJECT
+@chapter NAVIGATING THE PROJECT
+
+The thing you want to do most of the time is get to a certain time and
+place in the media.  Internally the media is organized into tracks. 
+Each track extends across time.  Navigation involves both getting to a
+track and getting to a certain time in the track.
+
+
+
+@menu
+* NAVIGATING THE PROGRAM WINDOW::
+* NAVIGATING THE VIEWER AND COMPOSITOR::
+* NAVIGATING THE RESOURCES::
+* USING THE TRANSPORT CONTROLS::
+* USING BACKGROUND RENDERING::
+@end menu
+
+
+
+@node NAVIGATING THE PROGRAM WINDOW
+@section NAVIGATING THE PROGRAM WINDOW
+
+The program window contains many features for navigation and displays
+the timeline as it is structured in memory: tracks stacked vertically
+and extending across time horizontall.  The horizontal scroll bar
+allows you to scan across time.  The vertical scroll bar allows you to
+scan across tracks.
+
+Below the timeline you'll find the zoom panel.  The zoom panel contains
+values for @b{sample zoom}, @b{amplitude}, @b{track zoom}, and
+@b{curve zoom}.  These values in addition to the scrollbars are the
+main tools for positioning the timeline.
+
+
+
+
+
+
+
+
+@sp 1
+
+@image{zoompanel}
+
+
+Changing the @b{sample zoom} causes the amount of time visible to
+change.  @b{If your mouse has a wheel and it works in X11 go over
+the tumblers and use the wheel to zoom in and out.}
+
+The @b{amplitude} only affects audio.  It determines how big the
+waveform is if the waveform is drawn.
+
+The @b{track zoom} affects all tracks.  It determines the height of
+each track.  If you change the track zoom the amplitude zoom
+compensates so  audio waveforms look proportional.
+
+The @b{curve zoom} affects the curves in all the tracks.  It
+determines the amplitude and offset of the curves.  The tumbler affects
+curve amplitude but the only way to change curve offset is to use the
+@b{fit curves} button.  @image{fit_curves,,,,}
+
+
+In addition to the graphical tools, you'll probably more often use the
+keyboard to navigate.  Use @b{PAGE UP} and @b{PAGE DOWN} to
+scroll up and down the tracks.
+
+Use the @b{LEFT} and @b{RIGHT} arrows to move across time in
+small increments.  You'll often need to scroll beyond the end of the
+timeline but scrollbars won't let you do it.  Instead use the
+@b{RIGHT} arrow to scroll past the end of timeline.
+
+Use the @b{HOME} and @b{END} keys to instantly go to the
+beginning or end of the timeline.  In @b{I-beam} mode, hold down
+shift while pressing @b{HOME} or @b{END} to select the region of
+the timeline between the insertion point and the key pressed.
+
+Use the @b{UP} and @b{DOWN} arrows to change the sample zoom by a
+power of 2.
+
+@b{CTRL-UP} and @b{CTRL-DOWN} cause the amplitude zoom to change.
+
+@b{CTRL-PGUP} and @b{CTRL-PGDOWN} cause the track zoom to change.
+
+@b{ALT-UP} and @b{ALT-DOWN} cause the curve amplitude to change.
+
+
+
+@menu
+* THE INSERTION POINT::
+* THE IN/OUT POINTS::
+* USING LABELS IN THE PROGRAM WINDOW::
+@end menu
+
+
+
+
+
+
+
+
+
+
+
+
+
+@node THE INSERTION POINT
+@subsection THE INSERTION POINT
+
+By default you'll see a flashing insertion point in the program window
+the first time you boot it up.  This is where new media is pasted onto
+the timeline.  It's also the starting point of all playback
+operations.  When rendering, it defines the region of the timeline to
+be rendered.
+
+The insertion point is normally moved by clicking inside the timebar. 
+Any region of the timebar not obscured by labels and in/out points is a
+hotspot for repositioning the insertion point.
+
+@sp 1
+@image{main_timebar,,,,}
+@b{The main timebar}
+
+The insertion point also can be moved by clicking in the timeline
+itself, but not always.  The insertion point has two modes of
+operation: 
+
+@itemize
+@item
+drag and drop mode 
+
+@item
+cut and paste mode
+
+@end itemize
+
+The mode of operation is determined by selecting the arrow or the
+i-beam in the buttonbar.
+
+@sp 1
+@image{editing_mode,,,,}
+@b{The editing mode buttons}
+
+If the arrow is highlighted it enables @b{drag and drop} mode.  In
+drag and drop mode, clicking in the timeline doesn't reposition the
+insertion point.  Instead it selects an entire edit.  Dragging in the
+timeline repositions the edit, snapping it to other edit boundaries. 
+This is normally useful for reordering audio playlists and moving
+effects around.
+
+If the i-beam is highlighted it enables @b{cut and paste mode}.  In
+cut and paste mode clicking in the timeline repositions the insertion
+point.  Dragging in the timeline highlights a region.  The highlighted
+region becomes the playback range during the next playback operation,
+the rendered range during the next render operation, and the region
+affected by cut and paste operations.
+
+@b{Shift-clicking} in the timeline extends the highlighted region.
+
+@b{Double-clicking} in the timeline selects the entire edit the
+cursor is over.
+
+It should be noted that when moving the insertion point and selecting
+regions, the positions are either aligned to frames or aligned to
+samples.  When editing video you'll want to align to frames.  When
+editing audio you'll want to align to samples.  This is set in
+@b{settings->align cursor on frames}.
+
+If the highlighted region is the region affected by cut and paste
+operations, how do I cut and paste in @b{drag and drop} mode?  In
+this case you need to set @b{in/out points} to define an affected region.
+
+
+
+
+
+@node THE IN/OUT POINTS
+@subsection THE IN/OUT POINTS
+
+In both editing modes you can set in/out points.  The in/out points
+define the affected region.  In drag and drop mode they are the only
+way to define an affected region.  In both cut and paste mode and drag
+and drop mode the highlighted area overrides the in/out points.  If a
+highlighted area and in/out points are set, the highlighted area is
+affected by editing operations and the in/out points are ignored.  If
+no region is highlighted, the in/out points are used.
+
+Normally, in/out points do not affect the playback region.  Only if you
+hold down CTRL while issuing a playback command do the in/out points
+determine the playback region.
+
+To set in/out points go to the timebar and position the insertion point
+somewhere.  Hit the @image{in_point_button} @b{in point button}.  Go
+to a position after the in point and hit the @image{out_point_button}
+@b{out point button}.
+
+@sp 1
+@image{inout_points} @b{Timebar with in/out points set}.
+
+Select either the in point or the out point and the insertion point
+jumps to that location.  After selecting an in point, if you hit the
+@b{in point button} the in point will be deleted.  After selecting
+an out point, if you hit the @b{out point button} the out point will
+be deleted.
+
+If you select a region somewhere else while in/out points already
+exist, the existing points will be repositioned when you hit the in/out
+buttons.
+
+@b{Shift-clicking} on an in/out point extends the highlighted region
+to that point.
+
+Instead of using the button bar you can use the @b{[} and @b{]}
+keys to toggle in/out points.
+
+The insertion point and the in/out points allow you to define an
+affected region but they don't let you jump to exact points on the
+timeline very easily.  For this purpose there are labels.
+
+
+
+
+
+@node USING LABELS IN THE PROGRAM WINDOW
+@subsection USING LABELS IN THE PROGRAM WINDOW
+
+Labels are an easy way to set exact locations on the timeline you want
+to jump to.  When you position the insertion point somewhere and hit
+the @image{label_button} @b{label button} a new label appears on the
+timeline.  
+
+@sp 1
+@image{timebar_label} @b{Timebar with a label on it}
+
+No matter what the zoom settings are, clicking on the label positions
+the insertion point exactly where you set it.  Hitting the label button
+again when a label is selected deletes it.
+
+@b{Shift-clicking} on a label extends the highlighted region.
+
+@b{Double-clicking} between two labels highlights the region between
+the labels.
+
+Hitting the @b{l} key has the same effect as the label button.
+
+If you hit the label button when a region is highlighted, two labels
+are toggled at each end of the highlighted region.  If one end already
+has a label, then the existing label is deleted and a label is created
+at the opposite end.
+
+Labels can reposition the insertion point when they are selected but
+they can also be traversed with the @image{label_traversal} @b{label
+traversal} buttons.  When a label is out of view, the label traversal
+buttons reposition the timeline so the label is visible.  There are
+keyboard shortcuts for label traversal, too.
+
+@b{CTRL-LEFT} repositions the insertion point on the previous label.
+
+@b{CTRL-RIGHT} repositions the insertion point on the next label.
+
+With label traversal you can quickly seek back and forth on the
+timeline but you can also select regions.
+
+@b{SHIFT-CTRL-LEFT} extends the highlighted region to the previous
+label.
+
+@b{SHIFT-CTRL-RIGHT} extends the highlighted region to the next label.
+
+Manually hitting the label button or @b{l} key over and over again
+to delete a series of labels can get tedious.  For deleting a set of
+labels, first highlight a region and second use the @b{Edit->Clear
+labels} function.  If in/out points exist, the labels between the
+in/out points are cleared and the highlighted region ignored.
+
+
+
+
+
+
+
+
+@node NAVIGATING THE VIEWER AND COMPOSITOR
+@section NAVIGATING THE VIEWER AND COMPOSITOR
+
+The navigation features of the Viewer and Compositor behave very
+similarly.  Each has a timebar and slider below the video output.  The
+timebar and slider are critical for navigation.
+
+@sp 1
+
+@image{timebarslider,,,,}
+
+The timebar represents the entire time covered by the program.  When
+you define labels and in/out points it defines those, too.  Finally the
+timebar defines a region known as the @b{preview region}.
+
+The @b{preview region} is the region of the timeline which the
+slider effects.  The slider only covers the time covered by the preview
+region.  By using a preview region inside the entire program and using
+the slider inside the preview region you can quickly and precisely seek
+in the compositor and viewer.
+
+When you replace the current project with a file the preview region
+automatically resizes to cover the entire file.  When you append data
+or change the size of the current project, the preview region stays the
+same size and shrinks.  Therefore, you need to resize the preview
+region.
+
+Load a file and then slide around it using the compositor slider.  The
+insertion point in the main window follows the compositor.  Move the
+pointer over the compositor's timebar until it turns into a left resize
+pointer.  The click and drag right.  The preview region should have
+changed and the slider resized proportionally.
+
+Go to the right of the timebar until a right resize pointer appears. 
+Drag left so the preview region shrinks.
+
+Go to the center of the preview region in the timebar and drag it
+around to convince yourself if can be moved.
+
+
+@sp 1
+
+@image{previewregion,,,,}
+
+@b{Preview region in compositor}
+
+If you go to the slider and slide it around with the preview region
+shrunk, you'll see the slider only affects the preview region.  The
+timebar and slider in the viewer window work exactly the same.
+
+Labels and in/out points are fully supported in the viewer and
+compositor.  The only difference between the viewer and compositor is
+the compositor reflects the state of the program while the viewer
+reflects the state of a clip but not the program.
+
+When you hit the @b{label button} in the compositor, the label
+appears both in the compositor timebar and the program timebar.
+
+When you select a label or in/out point in the compositor, the program
+window jumps to that position.
+
+@sp 1
+@image{viewer_labels} @b{Labels and in/out points in the viewer}.
+
+In the viewer and compositor, labels and in/out points are displayed in
+the timebar.  Instead of displaying just a region of the program, the
+timebar displays the entire program here.
+
+
+
+Like the Program window, the Compositor has a zoom capability.  First,
+the pulldown menu on the bottom of the compositor window has a number
+of zoom options.  When set to @b{Auto} the video is zoomed to match
+the compositor window size as closely as possible.  When set to any
+other percentage, the video is zoomed a power of 2 and scrollbars can
+be used to scroll around the output.  When the video is zoomed bigger
+than the window size, not only do scrollbars scan around it but
+@b{middle mouse button} dragging in the video output scans around
+it.  This is exactly when The Gimp does.
+
+Furthermore, the zoom @image{magnify} toggle causes the Compositor
+window to enter zoom mode.  In zoom mode, clicking in the video output
+zooms in while @b{ctrl-clicking} in the video output zooms out.  If
+you have a wheel mouse, rotating the wheel zooms in or out too.
+
+Zooming in or out with the zoom tool does not change the rendered
+output, mind you.  It's merely for scrutinizing video or fitting it in
+the desktop.
+
+
+
+
+
+
+@node NAVIGATING THE RESOURCES
+@section NAVIGATING THE RESOURCES
+
+The resource window is divided into two areas.  One area lists folders
+and another area lists folder contents.  Going into the folder list and
+clicking on a folder updates the contents area with the contents of
+that folder.
+
+The folder and contents can be displayed as icons or text.
+
+@b{Right clicking} in the folder or contents area brings up a menu
+containing formatting options.  Select @b{Display text} to display a
+text listing.  Select @b{Sort items} to sort the contents of the
+folder alphabetically.
+
+
+
+
+
+
+
+
+@node USING THE TRANSPORT CONTROLS
+@section USING THE TRANSPORT CONTROLS
+
+Transport controls are just as useful in navigation as they are in
+playing back footage, hence they are described here in the navigation
+section.  Each of the Viewer, Compositor, and Program windows has a
+transport panel.
+
+@sp 1
+@image{transport_panel} @b{The transport panel}.
+
+The transport panel is controlled by the keyboard as well as the
+graphical interface.  For each of the operations it performs, the
+starting position is the position of the insertion point in the Program
+window and the slider in the Compositor window.  The ending position is
+either the end or start of the timeline or the end or start of the
+selected region if there is one.
+
+The orientation of the end or start depends on the direction of
+playback.  If it's forward the end position is the end of the selected
+region.  If it's backward the end position is the start of the selected
+region.
+
+The insertion point moves to track playback.  When playback stops, the
+insertion point stays where playback stopped.  Thus, by playing back
+you change the position of the insertion point.
+
+The keyboard interface is usually the fastest and has more speeds.  The
+transport keys are arranged in a sideways @b{T} on the number pad.
+
+@itemize
+
+@item
+@b{+} Fast reverse
+@item
+@b{6} Normal reverse
+@item
+@b{5} Slow reverse
+@item
+@b{4} Frame reverse
+@item
+@b{1} Frame forward
+@item
+@b{2} Slow forward
+@item
+@b{3} Normal forward
+@item
+@b{Enter} Fast forward
+@item
+@b{0} Stop
+@item
+@b{Spacebar} Normal forward
+@end itemize
+
+Hitting any key on the keyboard twice pauses it.
+
+When using frame advance functions the behavior may seem odd.  If you
+frame advance forward and then frame advance backward, the displayed
+frame doesn't change.  This is because the playback position isn't the
+frame but the time between two frames.  The rendered frame is the area
+that the playback position crosses.  When you increment the time
+between two frames by one and decrement it by one, you cross the same
+frame both times and so the same frame is displayed.
+
+The transport behavior changes if you hold down CTRL when issuing any
+of the transport commands.  This causes the starting point to be the in
+point if playing forward and the out point if playing backward.  If
+playing forward, the out point becomes the ending point and if playing
+backward, the in point becomes the ending point.  If no in/out points
+are specified, the behavior falls back to using the insertion point and
+track boundaries as the starting and ending points.
+
+
+
+@node USING BACKGROUND RENDERING
+@section USING BACKGROUND RENDERING
+
+
+
+Background rendering allows impossibly slow effects to play back in
+realtime shortly after the effect is pasted in the timeline.  It
+continuously renders temporary output.  When renderfarm is enabled,
+background rendering uses the renderfarm continuously.  This way, any
+size video can be seen in realtime merely by creating a fast enough
+network with enough nodes.
+
+Background rendering is enabled in settings->preferences->performance. 
+It has one interactive function: @b{settings->set background render}.  This
+sets the point where background rendering begins to where the in point
+is.  If any video exists, a red bar appears in the time bar showing
+what has been background rendered.
+
+It's often useful to insert an effect or a transition and then select
+settings->set background render right before the effect to preview it
+in full framerates.
+

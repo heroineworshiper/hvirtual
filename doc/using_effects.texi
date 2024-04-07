@@ -1,0 +1,437 @@
+
+@node USING EFFECTS
+@chapter USING EFFECTS
+
+It would be sufficient to perform all changes to the timeline using
+editing operations, but this isn't very extensible.  Certain timeline
+changes should produce a different effect in the output without
+involving a unique procedure to apply each change.  This is why we have
+effects.
+
+Effects fall into three categories, and each effect in a category is
+applied using the same procedure.
+
+
+@menu
+* REALTIME EFFECTS::
+* RENDERED EFFECTS::
+* TRANSITIONS::
+* LADSPA EFFECTS::
+* EFFECT PRESETS::
+@end menu
+
+
+
+@node REALTIME EFFECTS
+@section REALTIME EFFECTS
+
+These are layered under the track they apply to.  They process the
+track when the track is played back, with no permanent storage of the
+output except when the project is rendered.
+
+@b{APPLYING REALTIME EFFECTS}
+
+All the realtime effects are listed in the resource window, divided
+into two groups: audio effects and video effects.  Audio effects should
+be dragged from the resource window onto audio tracks.  Video effects
+should be dragged onto video tracks.
+
+If there is data on the destination track, the effect is applied to the
+entire track.  If there is no data on the track the effect is deleted. 
+Finally, if a region of the track is selected the effect is pasted into
+the region, regardless of whether there is data.
+
+Some of the effects don't process data but synthesize data.  In the
+case of a synthesis effect, you'll want to select a region of the
+track so the dragging operation pastes it without deleting it.
+
+When dragging more than one effect onto a track, you'll see the effects
+layering from top to bottom, on the bottom of the track.   When the
+track is played back, effects are processed from top to bottom.  The
+output of the top effect becomes the input of the bottom effect and so
+on and so forth.
+
+In addition to dragging from the resource window, there are 2 other
+methods of applying them:
+
+@itemize
+@item
+@b{APPLYING FROM THE TRACK POPUP MENU:}
+
+Right click on a track and select @b{Attach effect} from the popup.  The attach effect
+dialog gives you more control than pure dragging and dropping.  For one
+thing, the attach effect dialog lets you attach two more types of
+effects: shared effects and shared tracks.  Select a plugin from the
+@b{Plugins} column and hit @b{Attach} under the plugins column to attach
+it.  The effect is the same as if the effect was dragged from the
+resource window.
+
+@item
+@b{APPLYING FROM THE AUDIO AND VIDEO MENUS:}
+
+Select @b{Audio->Attach effect...} or @b{Video->Attach effect} to attach
+a realtime effect to all the recordable tracks simultaneously.  The
+advantage with this is most of the time you want to attach the same
+effect to all the audio tracks and the other two methods require
+repeating the same work for every track.
+
+The menu interface has an option called  @b{Attach single standalone and
+share others}.  Enable this to make the first track get a standalone
+effect and to have the other tracks share the standalone effect.  Most
+of the time, you want this to be on.
+
+@end itemize
+
+
+When an effect exists under a track, it most often needs to be
+configured.  Go to the effect and right click on it to bring up the
+effect popup.  In the effect popup is a @b{show} option.  The show
+option causes the GUI for the effect to appear under the cursor.  Most
+effects have GUI's but some don't.  If the effect doesn't have a GUI,
+nothing pops up when the @b{show} option is selected.  When you
+tweek parameters in the effect GUI, the parameters normally effect the
+entire duration of the effect.
+
+
+@menu
+* REALTIME EFFECT TYPES::
+* EDITING REALTIME EFFECTS::
+@end menu
+
+
+
+@node REALTIME EFFECT TYPES
+@subsection REALTIME EFFECT TYPES
+
+The two other effect types supported by the Attach Effect dialog are
+recycled effects.  In order to use a recycled effect, three requiremenets
+must be met:
+
+@itemize
+
+@item
+There must be other effects in the timeline.
+
+@item
+
+The other effects must be of the same type as the track you're
+attaching an effect to.  If the track is an audio track, the effects
+must be audio effects.  If the track is a video track, the effects must
+be video effects.
+
+@item
+
+The insertion point or selected region must start inside the other effects.
+
+@end itemize
+
+In the case of a shared effect, these conditions must be true.  In the
+case of a shared track, there merely must be another track on the
+timeline of the same type as the track you're applying an effect to. 
+If you right clicked on a video track to attach an effect, there won't
+be anything in the @b{shared tracks} column if no other video track
+exists.  If you right clicked on an audio track there won't be anything
+in the shared track column if no other audio track exists.
+
+If shared effects or shared tracks are available, they appear in the
+@b{shared effects} and @b{shared tracks} columns.  The
+@b{attach} button under each column causes anything highlighted in
+the column to be attached under the current track.
+
+Shared effects and shared tracks allow very unique things to be done. 
+In the case of a shared effect, the shared effect is treated like a
+copy of the original effect except in the shared effect the GUI can't
+be brought up.  All configuration of the shared effect is determined by
+the GUI of the original effect and only the GUI of the original effect
+can be brought up.
+
+When a shared effect is played back, it's processed just like a normal
+effect except the configuration is copied from the original effect. 
+Some effects detect when they are being shared, like the reverb effects
+and the compressor.  These effects determine what tracks are sharing
+them and either mix the two tracks together or use one track to stage
+some value.  The reverb mixes tracks together to simulate ambience. 
+The compressor uses one of the sharing tracks as the trigger.
+
+When an original track has a @b{shared track} as one of its effects,
+the shared track itself is used as a realtime effect.  This is more
+commonly known as @b{bouncing tracks} but Cinelerra achieves the
+same operation by attaching shared tracks.  The fade and any effects in
+the shared track are applied to the original track.  Once the shared
+track has processed the data, the original track performs any effects
+which come below the shared track and then composites it on the output.
+
+In addition, once the shared track has processed the output of the
+original track like a realtime effect, the shared track mixes itself
+into the output with it's settings for pan, mode, and projector.  Thus,
+two tracks are mixing the same data on the output.  Most of the time
+you don't want the shared track to mix the same data as the original
+track on the output.  You want it to stop right before the mixing stage
+and give the data back to the original track.  Do this by enabling the
+@image{mutepatch_up} mute toggle next to each track for whom you don't
+want to mix on the output.
+
+Suppose you were making video and you did want the shared track to
+composite the original track's data on the output a second time.  In
+the case of video, the video from the shared track would always appear
+under the video from the original track, regardless of whether it was
+on top of the original track.  This is because shared tracks are
+composited in order of their attachment.  Since it's part of the original
+track it has to be composited before the original track is composited.
+
+
+
+
+
+
+
+@node EDITING REALTIME EFFECTS
+@subsection EDITING REALTIME EFFECTS
+
+Many operations exist for manipulating effects once they are in the
+timeline.  Because mixing effects and media is such complex business,
+the methods used in editing effects aren't as concise as cutting and
+pasting.  Some of the editing happens by dragging in/out points, some
+of the editing happens through popup menus, and some of it happens by
+dragging effects.
+
+Normally when you edit tracks, the effects follow the editing
+decisions.  If you cut from a track, the effect shrinks.  If you drag
+edit in/out points, the effect changes length.  This behavior can be
+disabled by selecting @b{Settings->edit effects} in the project
+window.  This decouples effects from editing operations, but what if
+you just want to edit the effects?
+
+Move the timeline cursor over the effect borders until it changes to a
+resize left or resize right icon.  In this state, if you drag the end
+of the effect, it performs an edit just like dragging the end of a
+track does.  
+
+The three editing behaviors of track trimming apply to effect trimming
+and they are bound to the mouse buttons that you set in @b{interface
+preferences}. @xref{INTERFACE}.  When you perform a trim edit on an
+effect, the effect boundary is moved by dragging on it.  Unlike track
+editing, the effect has no source length.  You can extend the end of an
+effect as much as desired without being limited.
+
+Also unlike track editing, the starting position of the drag operation
+doesn't bind the edit decision to media.  The media the effect is bound
+to doesn't follow effect edits.  Other effects; however, do follow
+editing decisions made on an effect.  If you drag the end of an effect
+which is lined up to effects on other tracks, the effects on the other
+tracks will be edited while the media stays the same.
+
+What happens if you trim the end of an effect in, leaving a lot of
+unaffected time near the end of the track?  When you drag an effect in
+from the Resource Window you can insert the effect in the portion of
+the row unoccupied by the trimming operation.  Realtime effects are
+organized into rows under the track.  Each row can have multiple
+effects.
+
+In some cases you'll want a trimming operation to change only one row
+of effects.  This can be achieved by first positioning the insertion
+point on the start or end of the effect.  Then press @b{shift} while
+beginning the trimming operation.  This causes the operation to change
+only one row of effects.
+
+In addition to trimming, you can move effects up or down.  Every track
+can have a stack of effects under it.  By moving an effect up or down
+you change the order in which effects are processed in the stack.  Go
+to an effect and right click to bring up the effect menu.  The
+@b{Move up} and @b{Move down} options move the effect up or down.
+
+When you're moving effects up or down, be aware that if they're shared
+as @b{shared effects}, any references will be pointing to a
+different effect after the move operation.
+
+Finally, there's dragging of effects.  Dragging effects works just like
+dragging edits.  You must select the @image{arrow} arrow to enter drag and
+drop mode before dragging effects.  The effects snap to media
+boundaries, effect boundaries, and tracks.  Be aware if you drag a
+reference to a shared effect, the reference will usually point to the
+wrong effect afterwards.
+
+Right click on an effect to bring up a menu for the effect.  Select
+@b{attach...} to change the effect or change the reference if it is
+a shared effect.
+
+
+
+
+
+
+
+
+@node RENDERED EFFECTS
+@section RENDERED EFFECTS
+
+
+Another type of effect is performed on a section of the track and the
+result stored somewhere before it is played back.  The result is
+usually pasted into the track to replace the original data.
+
+In 15 years, the only effect we actually ever rendered with this feature
+was @b{normalize}.  We've never rendered an effect which could be
+applied on the timeline, even though this feature supports rendering
+realtime effects.
+
+This feature was implemented back when computers were too slow to play
+back anything in realtime.  Decent sounding reverb took a long time &
+was considered major number crunching.
+
+The rendered effects are not listed in the resource window but instead
+are accessed through the @b{Audio->Render effect} and
+@b{Video->Render effect} menu options.  Each of these menu options
+brings up a dialog for the rendered effect.  Rendered effects apply to
+only one type of track, either audio or video.  If no tracks of the
+type exist, an error pops up.
+
+A region of the timeline to apply the effect to must be defined before
+selecting @b{Render effect...}.  If no in/out points and no
+highlighted region exists, the entire region after the insertion point
+is treated as the affected region.  Otherwise, the region between the
+in/out points or the highlighted region is the affected region.
+
+Secondly, the tracks to apply the rendered affect to need to be
+@b{armed}.  All other tracks are ignored.
+
+Finally, the rendered affect processes certain track attributes when it
+reads its input data but not others.  Transitions in the affected track
+are applied.  Nudge is not and effects are not.  This allows the new
+data to be pasted into the existing position without changing the nudge
+value.
+
+In the render effect dialog is a list of all the realtime and all the
+rendered effects.  The difference here is that the realtime effects are
+rendered to disk and not applied under the track.  Highlight an effect
+in the list to designate it as the one being performed.
+
+Define a file to render the effect to in the @b{Select a file to
+render to} box.  The @image{magnify} magnifying glass allows file
+selection from a list.
+
+Select a file format which can handle the track type.  The
+@image{wrench} wrench allows configuration specific to the file format.
+
+There is also an option for creating a new file at each label.  If you
+have a CD rip on the timeline which you want to divide into different
+files, the labels would become dividing points between the files if
+this option were selected.  When the timeline is divided by labels, the
+effect is re-initialized at every label.  Normalize operations take the
+peak in the current file and not in the entire timeline.
+
+Finally there is an insertion strategy just like in the render dialog. 
+It should be noted that even though the effect applies only to audio or
+video, the insertion strategy applies to all tracks just like a
+clipboard operation.
+
+When you click @b{OK} in the effect dialog, it calls the GUI of the
+effect.  If the effect is also a realtime effect, a second GUI appears
+to prompt for acceptance or rejection of the current settings.  After
+accepting the settings, the effect is processed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@node TRANSITIONS
+@section TRANSITIONS
+
+When one edit ends and another edit begins, the default behaviour is to
+have the first edit's output immediately become the output of the
+second edit when played back.  Transitions are a way for the first
+edit's output to become the second edit's output with different
+variations.
+
+Cinelerra supports audio and video transitions, all of which are listed
+in the resource window.  Transitions may only apply to the matching
+track type.  Transitions under @b{audio transitions} can only apply
+to audio tracks.  Transitions under @b{video transitions} can only
+apply to video tracks.
+
+Load a video file and cut a section from the center so the edit point
+is visible on the timeline.  Go the resource window and click on the
+@b{Video transitions} folder.  Drag a transition from the transition
+list onto the second video edit on the timeline.  A box highlights over
+where the transition will appear.  Releasing it over the second edit
+applies the transition between the first and second edit.
+
+You can now scrub over the transition with the transport controls and
+watch the output in the @b{Compositor window}.  Scrubbing with the
+insertion point doesn't normally show transitions because the
+transition durations are usually too short.  The exact point in time
+when the transition takes effect isn't straightforward.  It starts when
+the second edit begins and lasts a certain amount of time into the
+second edit.  Therefore, the first asset needs to have enough data
+after the edit point to fill the transition into the second edit.
+
+Once the transition is in place, it can be edited similarly to an
+effect.  Move the pointer over the transition and right click to bring
+up the transition menu.  The @b{show} option brings up specific
+parameters for the transition in question if there are any.  The
+@b{length} option adjusts the length of the transition in seconds. 
+Once these two parameters are set, they are applied to future
+transitions until they are changed again.  Finally, the @b{detach}
+option removes the transition from the timeline.
+
+Dragging and dropping transitions from the Resource window to the
+Program window can be really slow and tiring.  Fortunately, once you
+drag a transition from the Resource window, the @b{U} and @b{u}
+keys will paste the same transition.  The @b{U} key pastes the last
+video transition and the @b{u} key pastes the last audio transition
+on all the recordable tracks.  If the insertion point or in point is
+over an edit, the beginning of the edit is covered by the transition.  
+
+It should be noted that when playing transitions from the timeline to a
+hardware accelerated video device, the hardware acceleration will
+usually be turned off momentarily during the transition and on after
+the transition in order to render the transition.  Using an
+unaccelerated video device for the entire timeline normally removes the
+disturbance.
+
+
+
+
+
+@node LADSPA EFFECTS
+@section LADSPA EFFECTS
+
+
+LADSPA effects are supported in realtime and rendered mode for audio. 
+The LADSPA plugins you get from the internet vary in quality.  Most
+can't be tweeked in realtime very easily and work better when
+rendered.  Some crash and some can only be applied to one track due to
+a lack of reentrancy.  Although Cinelerra implements the LADSPA
+interface as accurately as possible, multiple tracks of realtime,
+simultaneous processing go beyond the majority of LADSPA users.  LADSPA
+effects appear in the audio folder as the hammer and screwdriver, to
+signify that they are Plugins for Linux Audio Developers.
+
+LADSPA Effects are enabled merely by setting the @b{LADSPA_PATH}
+environment variable to the location of your LADSPA plugins or putting
+them in the @b{/usr/lib/cinelerra} directory.
+
+
+
+
+
+@node EFFECT PRESETS
+@section EFFECT PRESETS
+
+Save and recall all the settings for an effect by using the @b{presets}
+window.  Bring up the effect context menu by right clicking on the
+effect on the timeline.  Go to @b{Presets...} to bring up the window. 
+Save all the settings to a preset by entering a title in @b{Preset
+title} and clicking @b{save}.  Recall the settings in a preset by
+highlighting it and clicking @b{Apply}.  Delete a preset by highlighting
+it and clicking @b{Delete}.
+

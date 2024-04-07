@@ -1,0 +1,1095 @@
+
+
+
+@node CONFIGURATION
+@chapter CONFIGURATION
+
+
+Because of the variety of uses, Cinelerra cannot be run optimally
+without some intimate configuration for your specific needs. Very few
+parameters are adjustible at compile time.  Runtime configuration is
+the only option for most configuration because of the multitude of
+parameters.
+
+Here we discuss not only the configuration options but which of the
+different API's in Linux are supported.
+
+Go to @b{settings->preferences} and to see the options.
+
+
+@menu
+* ENVIRONMENT VARIABLES::  These environment variables are recognized by Cinelerra
+* AUDIO DRIVERS::          Information about the audio drivers
+* VIDEO DRIVERS::          Information about the video drivers
+* PLAYBACK::               Configuring parameters related to playback.
+* RECORDING::              Configuring parameters related to recording.
+* PERFORMANCE::            Configuring parameters related to how fast things go.
+* INTERFACE::              Configuring the user interface.
+* ABOUT::                  Viewing information about the program.
+@end menu
+
+
+@node ENVIRONMENT VARIABLES
+@section ENVIRONMENT VARIABLES
+
+In UNIX derivatives, environment variables are global variables in the
+shell which all applications can read.  They are set with a command
+like @b{set VARIABLE=value}.  All the environment variables can be
+viewed with a command like @b{env}.  Cinelerra recognizes the following
+environment variables:
+
+@itemize
+
+@item @b{LADSPA_PATH} - If you want to use LADSPA plugins, this must be
+defined: a colon separated list of directories to search for LADSPA
+plugins.  These are not native Cinelerra plugins.  @xref{LADSPA
+EFFECTS}.
+
+
+@end itemize
+
+
+
+
+
+
+@node AUDIO DRIVERS
+@section AUDIO DRIVERS
+
+The audio drivers are used for both recording and playback to get data
+to and from the hardware.  Since the same drivers are used for both
+recording and playback, their functionality is described here in a
+separate section.
+
+
+
+
+@menu
+* COMMON SOUND DRIVER ATTRIBUTES:: Attributes used for more than one sound driver.
+* OSS:: Notes about the OSS driver
+* OSS Envy24:: Notes about the OSS driver for the Envy24 chip
+* ALSA:: Notes about the ALSA driver
+* ESOUND:: Notes about the ESound driver
+* RAW 1394:: Notes about the Raw1394 driver
+* DV 1394:: Notes about the DV1394 driver
+* IEC 61883:: Notes about the IEC 61883 driver
+@end menu
+
+@node COMMON SOUND DRIVER ATTRIBUTES
+@subsection COMMON SOUND DRIVER ATTRIBUTES
+
+@itemize
+
+@item
+DEVICE PATH
+
+Usually a file in the @b{/dev/} directory which controls the
+device.
+
+@item
+
+BITS
+
+The number of bits of precision Cinelerra should set the device for. 
+This sometimes has a figuritive meaning.  Some sound drivers need to be
+set to 32 bits to perform 24 bit playback and won't play anything when
+set to 24 bits.  Some sound drivers need to be set to 24 bits for 24
+bit playback.
+
+@end itemize
+
+
+
+@node OSS
+@subsection OSS
+
+This was the first Linux sound driver.  It had an open source
+implementation and a commercial implementation with more sound cards
+supported.  It was the standard sound driver up to linux 2.4.  It still
+is the only sound driver which an i386 binary can use when running on
+an x86_64 system.
+
+@node OSS Envy24
+@subsection OSS Envy24
+
+The commercial version of OSS had a variant for 24 bit 96 Khz
+soundcards.  This variant required significant changes to the way the
+sound drivers were used, which is what the OSS Envy24 variant is for.
+
+
+@node ALSA
+@subsection ALSA
+
+ALSA is the most common sound driver in Linux 2.6.  It supports the
+most sound cards now.  It takes advantage of low latency features in
+Linux 2.6 to get better performance than OSS had in 2.4 but roughly the
+same performance that OSS had in 2.0.  Unfortunately ALSA is constantly
+changing.  A program which works with it one day may not the next day. 
+New wrappers are being developed on top of ALSA at such a pace, we plan
+to support them at regular intervals, not at every new release of a new
+wrapper.
+
+ALSA is no longer portable between i386 and x86_64.  If an i386 binary
+tries to play back on an x86_64 kernel it'll crash.  For this scenario,
+use OSS.
+
+@node ESOUND
+@subsection ESOUND
+
+ESOUND was a sound server that sat on top of OSS.  It was written for a
+window manager called Enlightenment.  It supported a limited number of
+bits and had high latency compared to modern times but multiplexed
+multiple audio sources.  It's unknown whether it still works.
+
+@node RAW 1394
+@subsection RAW 1394
+
+The first interface between linux software and firewire camcorders. 
+This was the least reliable way to play audio to a camcorder.  It
+consisted of a library on top of the kernel commands.
+
+@node DV 1394
+@subsection DV 1394
+
+The second rewrite of DV camcorder support in Linux.  This was the most
+reliable way to play audio to a camcorder.  This consisted of direct
+kernel commands.
+
+@node IEC 61883
+@subsection IEC 61883
+
+The third rewrite of DV camcorder support in Linux.  This is a library
+on top of RAW 1394 which is a library on top of the kernel commands. 
+It's less reliable than DV 1394 but more reliable than RAW 1394.  The
+next rewrite ought to fix that.
+
+
+
+
+
+
+
+
+@node VIDEO DRIVERS
+@section VIDEO DRIVERS
+
+The audio drivers are used for both recording and playback to get data
+to and from the hardware.  Since the same drivers are used for both
+recording and playback, their functionality is described here in a
+separate section.
+
+
+@menu
+* COMMON VIDEO DRIVER ATTRIBUTES:: Parameters used by more than one driver.
+* X11::
+* X11-XV::
+* X11-OPENGL::
+* BUZ::
+* RAW 1394 VIDEO PLAYBACK::
+* DV 1394 VIDEO PLAYBACK::
+* IEC 61883 VIDEO PLAYBACK::
+@end menu
+
+@node COMMON VIDEO DRIVER ATTRIBUTES
+@subsection COMMON VIDEO DRIVER ATTRIBUTES
+
+
+@itemize
+
+@item
+
+DISPLAY
+
+The is intended for dual monitor
+displays.  Depending on the value of Display, the Compositor window
+will appear on a different monitor from the rest of the windows.
+
+@item
+
+DEVICE PATH
+
+Usually a file in the @b{/dev/} directory
+which controls the device.
+
+@item
+
+SWAP FIELDS
+
+Make the even lines odd and the odd lines even
+when sending to the device.  On an NTSC or 1080i monitor the fields may
+need to be swapped to prevent jittery motion.
+
+@item
+
+OUTPUT CHANNEL
+
+Devices with multiple outputs may need a
+specific connector to send video on.
+
+@item
+
+PORT
+
+The IEEE1394 standard specifies something known as the
+@b{port}.  This is probably the firewire card number in the system
+to use.
+
+@item
+
+CHANNEL
+
+The IEEE1394 standard specifies something known as the
+@b{channel}.  For DV cameras it's always @b{63}.
+
+@end itemize
+
+@node X11
+@subsection X11
+
+This was the first method of video playback on any UNIX system, valid
+all the way until 1999.  It just writes the RGB triplet for each pixel
+directly to the window.  It's the slowest playback method.  It's still
+useful as a fallback when graphics hardware can't handle very large
+frames.
+
+@node X11-XV
+@subsection X11-XV
+
+This was the second big method of video playback in UNIX starting in
+1999.  It converts YUV to RGB in hardware with scaling.  It's the
+preferred playback method but can't handle large frame sizes.  The
+maximum video size for XV is usually 1920x1080.
+
+
+@node X11-OPENGL
+@subsection X11-OPENGL
+
+The most powerful video playback method is OpenGL.  With this driver,
+most effects are done in hardware.  OpenGL allows video sizes up to the
+maximum texture size, which is usually larger than what XV supports,
+depending on the graphics driver.
+
+OpenGL doesn't affect rendering.  It just accelerates playback.  OpenGL
+relies on PBuffers and shaders to do video rendering.  The graphics
+driver must support OpenGL 2 and Cinelerra needs to be explicitely
+compiled with OpenGL 2 support.  This requires compiling it on a system
+with the OpenGL 2 headers.
+
+PBuffers are known to be fickle.  If the graphics card doesn't have
+enough memory or doesn't have the right visuals, PBuffers won't work. 
+Try seeking several frames or restarting Cinelerra if OpenGL doesn't
+work.
+
+Because of OpenGL limitations, X11-OpenGL processes everything in 8 bit
+colormodels, although the difference between YUV and RGB is retained.
+
+The @b{scaling equation} in Preferences is ignored by OpenGL.  OpenGL
+always uses linear scaling.
+
+Project and track sizes need to be multiples of 4 for OpenGL to work.  
+
+To get the most acceleration, OpenGL-enabled effects must be placed
+after software-only effects.  All rendering before the last
+software-only effect is done in software.  The core Cinelerra
+operations like camera and projector are of course OpenGL.
+
+
+
+@node BUZ
+@subsection BUZ
+
+This is a method for playing motion JPEG-A files directly to a
+composite analog signal.  It uses a popular hack of the Video4Linux 1
+driver from 2000 to decompress JPEG in hardware.  Sadly, even though
+analog output is largely obsolete, newer drivers have replaced BUZ.
+
+@node RAW 1394 VIDEO PLAYBACK
+@subsection RAW 1394 VIDEO PLAYBACK
+
+The first interface between linux software and firewire camcorders. 
+This was the least reliable way to play video to a camcorder.  It
+consisted of a library on top of the kernel commands.
+
+
+@node DV 1394 VIDEO PLAYBACK
+@subsection DV 1394 VIDEO PLAYBACK
+
+The second rewrite of DV camcorder support in Linux.  This was the most
+reliable way to play video to a camcorder.  This consisted of direct
+kernel commands.
+
+@node IEC 61883 VIDEO PLAYBACK
+@subsection IEC 61883 VIDEO PLAYBACK
+
+
+The third rewrite of DV camcorder support in Linux.  This is a library
+on top of RAW 1394 which is a library on top of the kernel commands. 
+It's less reliable than DV 1394 but more reliable than RAW 1394.  The
+next rewrite ought to fix that.
+
+
+
+
+
+
+
+@node PLAYBACK
+@section PLAYBACK
+
+
+
+@menu
+* AUDIO OUT::
+* VIDEO OUT::
+@end menu
+
+
+
+@node AUDIO OUT
+@subsection AUDIO OUT
+
+These determine what happens when you play sound from the timeline.
+
+@itemize 
+
+@item
+SAMPLES TO SEND TO CONSOLE:
+
+For playing audio, small fragments of sound are read from disk and
+processed in a virtual console sequentially.  A larger value here
+causes more latency when you change mixing parameters but gives more
+reliable playback.
+
+Some sound drivers don't allow changing of the console fragment so
+latency is unchanged no matter what this value is.
+
+A good way of ensuring high quality playback was to read bigger
+fragments from the disk and break them into smaller fragments for the
+soundcard.  That changed when the virtual console moved from the push
+model to the pull model.  Since different stages of the rendering
+pipeline can change the rate of the incoming data, it would now be real
+hard to disconnect size of the console fragments from the size of the
+fragments read from disk.
+
+@item
+
+AUDIO OFFSET:
+
+The ability to tell the exact playback position on Linux sound drivers
+is pretty bad if it's provided at all.  Since this information is
+required for proper video synchronization, it has to be accurate.  The
+@b{AUDIO OFFSET} allows users to adjust the position returned by the
+sound driver to reflect reality.  The audio offset doesn't affect the
+audio playback or rendering at all.  It merely changes the
+synchronization of video playback.
+
+The easiest way to set the audio offset is to create a timeline with 1
+video track and one audio track.  Expand the audio track and center the
+audio pan.  The frame rate should be something over 24fps and the
+sampling rate should be over 32000.  The frame size should be small
+enough for your computer to render it at the full framerate.  Highlight
+a region of the timeline starting at 10 seconds and ending at 20
+seconds.  Drop a @b{gradient} effect on the video track and configure
+it to be clearly visible.  Drop a @b{synthesizer} effect on the audio
+and configure it to be clearly audible.
+
+Play the timeline from 0 and watch to see if the gradient effect starts
+exactly when the audio starts.  If it doesn't, expand the audio track
+and adjust the nudge.  If the audio starts ahead of the video, decrease
+the nudge value.  If the audio starts after the video, increase the
+nudge value.  Once the tracks play back synchronized, copy the nudge
+value to the @b{AUDIO OFFSET} value in preferences.
+
+@b{Note:} if you change sound drivers or you change the value of @b{USE
+SOFTWARE FOR POSITIONING INFORMATION}, you'll need to change the audio
+offset because different sound drivers are unequally inaccurate.
+
+@item
+
+VIEW FOLLOWS PLAYBACK
+
+Causes the timeline window to scroll when the playback cursor moves. 
+This can bog down the X Server or cause the timeline window to lock up
+for long periods of time while drawing the assetse.
+
+@item
+USE SOFTWARE FOR POSITIONING INFORMATION
+
+Most soundcards and sound drivers don't give reliable information on
+the number of samples the card has played. When playing video you need
+this information for synchronization. This option causes the sound
+driver to be ignored and a software timer to be used for
+synchronization.
+
+@item
+AUDIO PLAYBACK IN REALTIME:
+
+Back in the days when 150Mhz was the maximum, this allowed
+uninterrupted playback on heavy loads.  It forces the audio playback to
+the highest priority in the kernel.  Today it's most useful for
+achieving very low latency between console tweeks and soundcard
+output.  You must be root to get realtime priority.
+
+@item
+AUDIO DRIVER
+
+There are many sound drivers for Linux.  This allows selecting one
+sound driver and setting parameters specific to it.  The sound drivers
+and their parameters are described in the sound driver section. 
+@xref{AUDIO DRIVERS}.
+
+@end itemize
+
+
+
+
+@node VIDEO OUT
+@subsection VIDEO OUT
+
+These determine how video gets from the timeline to your eyes.
+
+@itemize
+
+
+@item PLAY EVERY FRAME
+
+Causes every frame of video to be displayed even if it means falling
+behind the audio.  This should always be on unless you use mostly
+uncompressed codecs.  Most compressed codecs don't support frame
+dropping anymore.
+
+
+
+@item
+
+FRAMERATE ACHIEVED
+
+The number of frames per second being displayed during playback.  This
+is only updated during playback.
+
+@item DECODE FRAMES ASYNCHRONOUSLY
+
+If you have lots of memory and more than one CPU, this option can
+improve playback performance by decoding video on one CPU as fast as
+possible while dedicating other CPU to displaying video only.  It
+assumes all playback operations are forward and no frames are dropped. 
+Operations involving reverse playback or frame dropping are negatively
+impacted.
+
+Since this option requires enourmous amounts of memory, it may crash if
+the input frames are very large.
+
+
+@item
+
+SCALING EQUATION
+
+When video playback involves any kind of scaling or translation, this
+algorithm is used.  This doesn't affect 1:1 playback.
+
+@itemize
+
+@item
+NEAREST NEIGHBOR ENLARGE AND REDUCE
+
+lowest but fastest
+quality.  Produces jagged edges and uneven motion.
+
+
+@item
+
+BICUBIC ENLARGE AND BILINEAR REDUCE
+
+highest but slowest
+quality.  For enlarging a bicubic interpolation is used, which blurs
+slightly but doesn't reveal stair steps.  For reduction a bilinear
+interpolation is used, which produces very sharp images and reduces
+noise.  The bilinear reduced images can be sharpened with a sharpen
+effect with less noise than a normal sized image.
+
+@item
+
+BILINEAR ENLARGE AND BILINEAR REDUCE
+
+when slight enlargement
+is needed a bilinear enlargement looks better than a bicubic
+enlargement.
+
+@end itemize
+
+
+@item
+
+PRELOAD BUFFER FOR QUICKTIME
+
+The Quicktime/AVI decoder can handle DVD sources better when this is
+around 10000000.  This reduces the amount of seeking required. 
+Unfortunately when reading high bitrate sources from a hard drive, this
+tends to slow it down.  For normal use this should be 0.
+
+
+@item 
+
+DVD SUBTITLE TO DISPLAY
+
+DVD IFO files usually contain subtitle tracks.  These must be decoded
+with by the MPEG decoder.  Select @b{Enable subtitles} to enable
+subtitle decoding.  There are usually multiple subtitle tracks starting
+from 0.  The subtitle track to be decoded for all MPEG streams goes in
+the DVD subtitlee to display text box.  Go to the asset corresponding
+to the MPEG file in the Resources window and right click.  Click on
+Info.  The number of subtitle tracks is given at the bottom.
+
+
+@item 
+
+INTERPOLATE CR2 IMAGES
+
+Enables interpolation of CR2 images.  This is required since the raw
+image in a CR2 file is a bayer pattern.  The interpolation uses dcraw's
+built-in interpolation and is very slow.  This operation can be
+disabled and the @b{Interpolate Pixels} effect used instead for fast
+previewing.
+
+
+@item 
+
+WHITE BALANCE CR2 IMAGES
+
+This enables white balancing for CR2 images if interpolation is also
+enabled.  It uses the camera's matrix which is contained in the CR2
+file.  White balancing is not performed if interpolation is not
+performed because white balancing needs a blending of all 3 primary
+colors. 
+
+Disabling white balancing is useful for operations involving dark frame
+subtraction.  The dark frame and the long exposure need to have the
+same color matrix.
+
+If you disable @b{Interpolate CR2 Images} and use the @b{Interpolate
+Pixels} effect, be aware the @b{Interpolate Pixels} effect always does
+both interpolation and white balancing using the camera's matrix,
+regardless of the settings in Preferences.  Dark frame subtraction
+needs to be performed before @b{Interpolate Pixels}.
+
+@item
+
+
+
+
+VIDEO DRIVER
+
+Normally video on the timeline goes to the compositor window during
+continuous playback and when the insertion point is repositioned. 
+Instead of sending video to the Compositor window the video driver can
+be set to send video to another output device during continuous
+playback.  This doesn't affect where video goes when the insertion
+point is repositioned, however.
+
+The video drivers and their parameters are described in the video
+driver section.  @xref{VIDEO DRIVERS}.
+
+
+@end itemize
+
+
+
+
+@node RECORDING
+@section RECORDING
+
+@menu
+* FILE FORMAT::
+* AUDIO IN::
+* VIDEO IN::
+@end menu
+
+
+
+The parameters here affect what happens when you go to
+@b{File->Record...}.  The intention was to make @b{File->Record...} go
+as fast as possible into the record monitoring window, without a
+lengthy dialog to configure the file format.  Instead the file format
+for recording is set here and it is applied to all recordings.  Also
+set here is the hardware for recording, since the hardware determines
+the supported file format in most cases.
+
+
+@node FILE FORMAT
+@subsection FILE FORMAT
+
+This determines the output file format for recordings.  It depends
+heavily on the type of driver used.  The interface is the same as the
+rendering interface.  The @b{Record audio tracks} toggle must be
+enabled to record audio.  The @b{Record video tracks} toggle must be
+enabled to record video.  The wrench button left of each toggle opens a
+configuration dialog to set the codec corresponding to audio and
+video.  The audio and video is wrapped in a wrapper defined by the
+@b{File Format} menu.  Different wrappers may record audio only, video
+only, or both.
+
+Some video drivers can only record to a certain wrapper.  DV, for
+example, can only record to Quicktime with DV as the video compression.
+If the video driver is changed, the file format may be updated to give
+the supported output.  If you change the file format to an unsupported
+format, it may not work with the video driver.
+
+
+
+@node AUDIO IN
+@subsection AUDIO IN
+
+These determine what happens when you record audio.
+
+@itemize
+@item
+
+RECORD DRIVER
+
+This is used for recording audio in the Record window.  It may be
+shared with the Record Driver for video if the audio and video are
+wrapped in the same stream.  It takes variable parameters depending on
+the driver.  The parameters have the same meaning as they do for
+playback.
+
+@itemize
+@item
+
+DEVICE PATH
+
+Usually a file in the @b{/dev/} directory which controls the
+device.
+
+@item
+
+BITS
+
+The number of bits of precision Cinelerra should set the device for. 
+This sometimes has a figuritive meaning.  Some sound drivers need to be
+set to 32 bits to perform 24 bit recording and won't record anything
+when set to 24 bits.  Some sound drivers need to be set to 24 bits for
+24 bit recording.
+
+
+
+@end itemize
+
+@item
+
+SAMPLES TO WRITE AT A TIME
+
+Audio is first read in small fragments from the device.  Many small
+fragments are combined into a large fragment before writing to disk. 
+The disk writing process is done in a different thread.  The value here
+determines how large the combination of fragments is for each disk
+write.
+
+@item
+
+SAMPLE RATE FOR RECORDING
+
+Regardless of what the project settings are.  This is the sample rate
+used for recording.  This should be the highest the audio device
+supports.
+
+@end itemize
+
+@node VIDEO IN
+@subsection VIDEO IN
+
+These determine what happens when you record video.
+
+@itemize
+@item
+
+RECORD DRIVER
+
+This is used for recording video in the Record window.  It may be
+shared with the Record Driver for audio if the audio and video are
+wrapped in the same stream.  It takes variable parameters depending on
+the driver.  The parameters have the same meaning as they do for
+playback.
+
+@item
+
+FRAMES TO RECORD TO DISK AT A TIME
+
+Frames are recorded in a pipeline.  First frames are buffered in the
+device.  Then they're read into a larger buffer for writing to disk. 
+The disk writing is done in a different thread as the device reading. 
+For certain codecs the disk writing uses multiple processors.  This
+value determines how many frames are written to disk at a time.
+
+@item
+
+FRAMES TO BUFFER IN DEVICE
+
+The number of frames to store in the device before reading.  This
+determines how much latency there can be in the system before frames
+are dropped.
+
+@item
+USE SOFTWARE FOR POSITIONING INFORMATION
+
+Video uses audio for
+
+
+synchronization but most soundcards don't give accurate position
+information.  This calculates an estimation of audio position in
+software instead of the hardware for synchronization.
+
+@item
+
+SYNC DRIVES AUTOMATICALLY
+
+For high bitrate recording the drives may be fast enough to store the
+data but Linux may wait several minutes and stall as it writes several
+minutes of data at a time.  This forces Linux to flush its buffers
+every second instead of every few minutes and produce slightly better
+realtime behavior.
+
+@item
+
+SIZE OF CAPTURED FRAME
+
+This is the size of the frames recorded.  It is independant of the
+project frame size because most video devices only record a fixed frame
+size.  If the frame size given here isn't supported by the device it
+might crash Cinelerra.
+
+@item
+FRAME RATE FOR RECORDING
+
+The frame rate recorded is different from the project settings.  This
+sets the recorded frame rate.
+
+@end itemize
+
+
+
+
+
+
+
+
+@node PERFORMANCE
+@section PERFORMANCE
+
+
+You'll spend most of your time configuring this section.  The main
+focus of performance is rendering parameters not available in the
+rendering dialog.  
+
+
+
+
+
+@itemize 
+
+@item
+CACHE ITEMS
+
+
+
+To speed up rendering, several assets are kept open simultaneously.
+This determines how many are kept open.  A number too large may exhaust
+your memory pretty fast and result in a crash.  A number too small may
+result in slow playback as assets need to be reopened more frequently.
+
+
+@item
+
+SECONDS TO PREROLL RENDERS
+
+Some effects need a certain amount of time to settle in.  This sets a
+number of seconds to render without writing to disk before the selected
+region is rendered.  When using the renderfarm you'll sometimes need to
+preroll to get seemless transitions between the jobs.  Every job in a
+renderfarm is prerolled by this value.  This does not affect background
+rendering, however.  Background rendering uses a different preroll
+value.
+
+@item
+
+FORCE SINGLE PROCESSOR USE
+
+Cinelerra tries to use all processors on the system by default but
+sometimes you'll only want to use one processor, like in a renderfarm
+client.  This forces only one processer to be used.  The operating
+system, however, usually uses the second processor anyway for disk
+access so this option is really a 1.25 processor mode.  The value of
+this parameter is used in renderfarm clients.
+
+@end itemize
+
+
+@menu
+* BACKGROUND RENDERING::
+* RENDERFARM::
+@end menu
+
+
+@node BACKGROUND RENDERING
+@subsection BACKGROUND RENDERING
+
+Background rendering was originally concieved to allow HDTV effects to
+be displayed in realtime.  Background rendering causes temporary output
+to constantly be rendered while the timeline is being modified.  The
+temporary output is played during playack whenever possible.  It's very
+useful for transitions and previewing effects which are too slow to
+display in a reasonable amount of time.  If renderfarm is enabled, the
+renderfarm is used for background rendering, giving you the potential
+for realtime effects if enough network bandwidth and CPU nodes exist.
+
+@itemize
+
+
+
+
+
+@item
+FRAMES PER BACKGROUND RENDERING JOB
+
+This only works if renderfarm is being used, otherwise background
+rendering creates a single job for the entire timeline.  The number of
+frames specified here is scaled to the relative CPU speed of rendering
+nodes and used in a single renderfarm job.  The optimum number is 10 -
+30 since network bandwidth is used to initialize each job.
+
+
+
+@item
+FRAMES TO PREROLL BACKGROUND
+
+This is the number of frames to render ahead of each background
+rendering job.  Background rendering is degraded when preroll is used
+since the jobs are small.  When using background rendering, this number
+is ideally 0.  Some effects may require 3 frames of preroll.
+
+
+
+
+
+@item
+OUTPUT FOR BACKGROUND RENDERING
+
+Background rendering generates a sequence of image files in a certain
+directory.  This parameter determines the filename prefix of the image
+files.  It should be on a fast disk, accessible to every node in the
+renderfarm by the same path.  Since hundreds of thousands of image
+files are usually created, @b{ls} commands won't work in the
+background rendering directory.  The @image{magnify} browse button for
+this option normally won't work either, but the @image{wrench}
+configuration button for this option works.
+
+@item
+FILE FORMAT
+
+The file format for background rendering has to be a sequence of
+images. The format of the image sequence determines the quality and
+speed of playback.  JPEG is good most of the time.
+
+
+@end itemize
+
+@node RENDERFARM
+@subsection RENDERFARM
+
+To use the renderfarm set these options.  Ignore them for a standalone
+system
+
+@itemize
+
+@item
+
+USE RENDER FARM FOR RENDERING
+
+When selected, all the
+@b{file->render} operations use the renderfarm.
+
+@item
+
+NODES
+
+Displays all the nodes on the renderfarm and which ones are active. 
+
+Nodes are added by entering the host name of the node, verifying the
+value of @b{port} and hitting @b{add node}.
+
+Computer freaks may be better off editing the
+@b{~/.bcast/.Cinelerra_rc} file than this if they have hundreds of
+nodes.  Remember that .Cinelerra_rc is overwritten whenever a copy of
+Cinelerra exits.
+
+Select the @b{ON} column to activate and deactivate nodes once they
+are created.
+
+Nodes may be edited by highlighting a row and hitting @b{apply changes}.
+
+@item
+
+HOSTNAME
+
+Edit the hostname of an existing node or enter the hostname of a new
+node here.
+
+@item
+
+PORT
+
+Edit the port of an existing node or enter the port of a new node here.
+
+@item
+
+REPLACE NODE
+
+When editing an existing node, hit this to commit the changes to
+@b{HOSTNAME} and @b{PORT}.  The changes won't be committed if you
+don't hit this button.
+
+@item
+
+ADD NODE
+
+Create a new node with the @b{HOSTNAME} and @b{PORT} settings.
+
+@item
+
+DELETE NODE
+
+Deletes whatever node is highlighted in the @b{NODES} list.
+
+@item
+
+SORT NODES
+
+Sorts the @b{NODES} list based on the hostname.
+
+@item
+
+RESET RATES
+
+This sets the framerate for all the nodes to 0.  Frame rates are used
+to scale job sizes based on CPU speed of the node.  Frame rates are
+only calculated when renderfarm is enabled.
+
+
+
+
+
+
+@item
+
+TOTAL JOBS TO CREATE
+
+Determines the number of jobs to dispatch to the renderfarm.  The more
+jobs you create, the more finely balanced the renderfarm becomes.
+
+Determine the total jobs to create by multiplying the number of nodes
+including the master node by some number.  Multiply them by 1 to have
+one job dispatched for every node.  Multiply them by 3 to have 3 jobs
+dispatched for every node.  If you have 10 slave nodes and one master
+node, specify 33 to have a well balanced renderfarm.
+
+@end itemize
+
+
+
+
+
+@node INTERFACE
+@section INTERFACE
+
+These parameters affect purely how the user interface works.
+
+@itemize
+
+@item
+
+INDEX FILES GO HERE
+
+Back in the days when 4 MB/sec was unearthly speed for a hard drive,
+index files were introduced to speed up drawing the audio tracks.  This
+option determines where index files are placed on the hard drive.
+
+
+@item
+
+SIZE OF INDEX FILE
+
+Determines the size of an index file. Larger index sizes allow smaller
+files to be drawn faster while slowing down the drawing of large files.
+Smaller index sizes allow large files to be drawn faster while slowing
+down small files.
+
+@item
+
+NUMBER OF INDEX FILES TO KEEP
+
+To keep the index directory from becoming unruly, old index files are
+deleted. This determines the maximum number of index files to keep in
+the directory.
+
+@item
+
+DELETE ALL INDEXES
+
+When you change the index size or you want to clean out excessive index
+files, this deletes all the index files.
+
+@item
+USE HOURS:MINUTES:SECONDS.XXX
+
+Various representations of time are given.  Select the most convenient
+one.  The time representation can also be changed by @b{CTRL}
+clicking on the time ruler.
+
+@item
+USE THUMBNAILS
+
+The Resource Window displays thumbnails of assets by default.  This can
+take a long time to set up.  This option disables the thumbnails.
+
+@item
+CLICKING IN/OUT POINTS DOES WHAT
+
+Cinelerra not only allows you to perform editing by dragging in/out
+points but also defines three seperate operations which occur when you
+drag an in/out point. For each mouse button you select the behavior in
+this window. The usage of each editing mode is described in editing.
+
+@item
+MIN DB FOR METER
+
+Some sound sources have a lower noise threshold than others. 
+Everything below the noise threshold is meaningless.  This option sets
+the meters to clip below a certain level.  Consumer soundcards usually
+bottom out at -65.  Professional soundcards bottom out at -90.
+@xref{SOUND LEVEL METERS}.
+
+@item
+MAX DB FOR METER
+
+This sets the maximum sound level represented by the sound meters.  No
+matter what this value is, no soundcard can play sound over 0 db.  This
+value is presented merely to show how far over the limit a sound wave
+is.
+@xref{SOUND LEVEL METERS}.
+
+@item
+THEME
+
+Cinelerra supports variable themes.  Select one here and restart
+Cinelerra to see it.
+
+@end itemize
+
+
+
+@node ABOUT
+@section ABOUT
+
+This section gives you information about the copyright, the time of the
+current build, the lack of a warranty, and the versions of some of the
+libraries.  Be sure to agree to the terms of the lack of the warranty.
+

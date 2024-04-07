@@ -1,0 +1,584 @@
+
+
+@node EDITING
+@chapter EDITING
+
+
+Editing comprises both the time domain and the track domain.  Since the
+timeline consists of a stack of tracks, you need to worry about how to
+sort and create tracks in addition to what time certain media appears
+on a track.
+
+In the time domain, Cinelerra offers many ways to approach the editing
+process.  The three main methods are two screen editing, drag and drop
+editing, and cut and paste editing.
+
+There are several concepts Cinelerra uses when editing which apply to
+all the methods.  The @b{timeline} is where all editing decisions are
+represented.  This is a stack of tracks in the center of the main
+window.  It can be scrolled up, down, left and right with the
+scrollbars on the right and bottom of it.  It can also be scrolled up
+and down with a mouse wheel.
+
+The @b{active region} is the range of time which is affected by editing
+commands on the timeline.  The active region is determined first by the
+presence of in/out points in the timeline.  If those don't exist the
+highlighted region is used.  If no highlighted region exists the
+insertion point is used as the start of the active region.  Some
+commands treat all the space to the right of the insertion point as
+active, like @b{Render}, while others treat the active length as 0 if no
+end point for the active region is defined.
+
+Finally, editing decisions never affect source material.  This is
+@b{non destructive editing} and it became popular with audio because it
+was much faster than if you had to copy all the media affected by an
+edit.  Editing only affects pointers to source material, so if you want
+to have a media file at the end of your editing session which
+represents the editing decisions, you need to @b{render} it.
+@xref{RENDERING FILES}.
+
+Every track on the timeline has a set of attributes on
+the left, the most important of which is the @b{arm track}
+attribute.
+
+
+
+@menu
+* THE PATCHBAY::           Enabling different features on different tracks
+* NUDGING TRACKS::         Move entire tracks horizontally
+* PANNING TRACKS::         Changing the audio output channels
+* AUTOMATIC TRACK PANNING::  Panning tracks to common speaker arrangements
+* STANDARD AUDIO MAPPINGS::  Making audio panning that works on other players.
+* MANIPULATING TRACKS::    Moving whole tracks around
+* TWO SCREEN EDITING::     Using two video windows to edit
+* DRAG AND DROP EDITING::  Dragging objects to edit
+* CUT AND PASTE EDITING::  Editing media like text
+* TRIMMING::               Changing in and out points
+@end menu
+
+
+@node THE PATCHBAY
+@section THE PATCHBAY
+
+
+On the left of the timeline is a region affectionately known as the
+patchbay.  The patchbay enables features specific to each track.  All
+tracks have a text area for naming the track.
+
+All tracks have an @b{expander} @image{expandpatch_checked} for viewing
+more options and for viewing the effects on the track.  Click on the
+expander to expand or collapse the track.  If it's pointing sideways,
+the track is collapsed.  If it's pointing down, the track is expanded. 
+The effects appear below the media for the track if they exist.
+
+All tracks have the following row of toggles for several features.
+
+@sp 1
+@image{track_attributes}
+@b{Track attributes}
+
+
+If the toggle is colored, it is enabled.  If the toggle is the
+background color of most of the windows, it is disabled.  Click on the
+toggle to enable or disable the feature.  Several mouse operations
+speed up the configuration of several tracks at a time.
+
+Click on an attribute and drag across adjacent tracks to copy the same
+attribute to those tracks.
+
+Hold down @b{shift} while clicking a track's attribute to enable the
+attribute in the current track and toggle the attribute in all the
+other tracks.
+
+Hold down @b{shift} while clicking an attribute.  Click until all the
+tracks except the selected one are disabled.  Then drag the cursor over
+the adjacent track to enable the attribute in the adjacent track.
+
+
+The other attributes affect the output of the track.
+
+@itemize
+
+@item
+
+@b{Play track} determines whether the track is rendered or not.  If
+it's off, the track is not rendered.  However, if the track is chained
+to any other tracks, the other tracks perform all the effects in the
+chained track, regardless of play status.
+@sp 1
+
+@item
+
+@b{Arm track} determines whether the track is armed or not.   Only the
+@b{armed tracks} are affected by editing operations.  Make sure you
+have enough armed destination tracks when you paste or splice material
+or some tracks in the material will get left out.
+
+In addition to restricting editing operations, the armed tracks in
+combination with the active region determine where material is inserted
+when loading files.  If the files are loaded with one of the insertion
+strategies which doesn't delete the existing project, the armed tracks
+will be used as destination tracks.
+
+Press @b{Tab} while the cursor is anywhere over a track to toggle the
+track arming status.
+
+Press @b{Shift-Tab} while the cursor is over a track to toggle the
+arming status of every other track.
+
+@item
+
+@b{Gang fader} causes the fader to track the movement of whatever other
+fader you're adjusting.  A fader is only ganged if the @b{arm track} is
+also on.  This is normally used to adjust audio levels on all the
+tracks simultaneously.  Gang also causes @b{Nudge} parameters to
+synchronise across all the ganged tracks.
+
+
+@sp 1
+
+@item
+
+@b{Draw media} determines if picons or waveforms are drawn on the
+track.  By default, some file formats load with this off while other
+file formats load with it on.  This depends on whether the file format
+takes a long time to draw on the timeline.  Merely set it to on if you
+want to see picons for any file format.
+@sp 1
+
+@item
+
+@b{Mute track} causes the output to be thrown away once the track is
+completely rendered.  This happens whether or not @b{play track} is
+on.  If the track is part of an effect chain, the output of the effect
+chain track is overlayed on the final output even though it's routed
+back to another track.  Mute track is used to keep the effect chain
+track from overlapping the output of the source track.
+@sp 1
+
+@item
+
+@b{Fader} All tracks have a fader, but the units of each fader depend
+on whether it's audio or video.  Click and drag the fader to fade the
+track in and out.  If it is ganged to other tracks of the same media
+type, with the @b{arm} option enabled, the other faders should follow.
+
+Hold down @b{shift} and drag a fader to center it on 0.
+
+@end itemize
+
+
+
+@node NUDGING TRACKS
+@section NUDGING TRACKS
+
+Each track has a nudge textbox in its patchbay.  You may have to expand
+the track to see it.  These are views of the patchbays when expanded.
+
+@image{apatches}
+
+Pan and nudge for an audio track.
+
+@image{vpatches}
+
+Overlay mode and nudge for a video track.
+
+
+The nudge is the amount the track is shifted left or right during
+playback.  The track is not displayed shifted on the timeline, but it
+is shifted when it's played back.  This is useful for synchronizing
+audio with video, creating fake stereo, or compensating for an effect
+which shifts time, all without tampering with any edits.
+
+Merely enter in the amount of time to shift by to instantly shift the
+track.  Negative numbers make the track play later.  Positive numbers
+make the track play sooner.  The nudge units are either @b{seconds} or
+the native units for the track.  Select the units by @b{right clicking}
+on the nudge textbox and using the context sensitive menu.
+
+Nudge settings are ganged with the @b{Gang faders} toggle and the
+@b{Arm track} toggle.
+
+Use the mouse wheel over the nudge textbox to increment and decriment
+it.
+
+
+
+
+
+@node PANNING TRACKS
+@section PANNING TRACKS
+
+Audio tracks have a panning box in their patchbay.  It may have to be
+expanded to see it.  The panning box is shown here.
+
+@image{apatches}
+
+Pan and nudge for an audio track.
+
+Position the pointer in the panning box and click/drag to reposition
+the audio output among the speaker arrangement.  The loudness of each
+speaker is printed during the dragging operation.  The panning box uses
+a special algorithm to try to allow audio to be focused through one
+speaker or branched between the nearest speakers when more than 2
+speakers are used.
+
+
+
+@node AUTOMATIC TRACK PANNING
+@section AUTOMATIC TRACK PANNING
+
+
+Several convenience functions are provided for automatically setting
+the panning to several common standards.  They are listed in the
+@b{Audio} menu.  These functions only affect audio tracks with
+@b{recording} enabled.
+
+@b{Audio->Map 1:1} - This maps every track to its own channel and wraps
+around when all the channels are allocated.  It's most useful for
+making 2 tracks with 2 channels map to stereo and for making 6 tracks
+with 6 channels map to a 6 channel soundcard.
+
+@b{Audio->Map 5.1:2} - This maps 6 tracks to 2 channels.  The project
+should have 2 channels when using this function.  Go to
+@b{Settings->format} to set the output channels to 2.  This is most
+useful for downmixing 5.1 audio to stereo.
+
+
+
+
+
+@node STANDARD AUDIO MAPPINGS
+@section STANDARD AUDIO MAPPINGS
+
+Although Cinelerra lets you map any audio track to any speaker, there
+are standard mappings you should use to ensure the media can be played
+back elsewhere.  Also, most audio encoders require the audio tracks to
+be mapped to standard speaker numbers or they won't work.
+
+In the @b{channel position} widget @xref{SETTING PROJECT ATTRIBUTES},
+the channels are numbered to correspond to the output tracks they are
+rendered to.  For stereo, the source of channel 1 needs to be the left
+track and the source of channel 2 needs to be the right track.
+
+For 5.1 surround sound, the sources of the 6 channels need to be in the
+order of center, front left, front right, back left, back right, low
+frequency effects.  If the right tracks aren't mapped to the right
+speakers, most audio encoders won't encode the right information if
+they encode anything at all.  The low frequency effects track
+specifically can't store high frequencies in most cases.
+
+
+
+
+
+@node MANIPULATING TRACKS
+@section MANIPULATING TRACKS
+
+Tracks in Cinelerra either contain audio or video.  There is no special
+designation for tracks other than the type of media they contain.  When
+you create a new project, it contains a certain mumber of default
+tracks.  You can still add or delete tracks from a number of menus. 
+The @b{Tracks} menu contains a number of options for dealing with
+multiple tracks simultaneously.  Each track itself has a popup menu
+which affects one track.
+
+Bring up the popup menu by moving over a track and right clicking.  The
+popup menu affects the track whether it's armed or not.
+
+@b{Move up} and @b{move down} moves the one track up or down in
+the stack.  @b{Delete track} deletes the track.
+
+Operations in the @b{Tracks} menu affect only tracks which are
+armed.
+
+@b{Move tracks up} and @b{Move tracks down} shift all the armed
+tracks up or down the stack.
+
+@b{Delete tracks} deletes the armed tracks.
+
+@b{Delete last track} deletes the last track, whether it's armed or
+not.  Holding down the @b{d} key quickly deletes all the tracks.
+
+@b{Concatenate tracks} is more complicated.  It takes every
+@b{playable} track and concatenates it to the end of the first
+@b{armed tracks}.  If there are two armed tracks followed by two
+playable tracks, the concatenate operation puts the two playable tracks
+after the two armed tracks.  If there are three playable tracks
+instead, two tracks are put after the armed tracks and a third track is
+put on the end of the first armed track.  The destination track wraps
+around until all the playable tracks are concatenated.
+
+Finally, you'll want to create new tracks.  The @b{Audio} and
+@b{Video} menus each contain an option to add a track of their
+specific type.  In the case of audio, the new track is put on the
+bottom of the timeline and the output channel of the audio track is
+incremented by one.  In the case of video, the new track is put on the
+top of the timeline.  This way, video has a natural compositing order. 
+New video tracks are overlayed on top of old tracks.
+
+
+
+
+
+
+
+
+
+@node TWO SCREEN EDITING
+@section TWO SCREEN EDITING
+
+This is the fastest way to construct a program out of movie files.  The
+idea consists of viewing a movie file in one window and viewing the
+program in another window.  Sections of the movie file are defined in
+one window and transferred to the end of the program in the other
+window.
+
+The way to begin a two screen editing session is to load some
+resources.  In @b{file->load} load some movies with the insertion
+mode @b{create new resources}.  You want the timeline to stay
+unchanged while new resources are brought in.  Go to the Resource
+Window and select the @b{media} folder.  The newly loaded resources
+should appear.  Drag a resource from the media side of the window over
+the Viewer window.
+
+There should be enough armed tracks on the timeline to put the sections
+of source material that you want.  If there aren't, create new tracks
+or arm more tracks.
+
+In the viewer window seek to the starting point of a clip you want to
+use.  Use either the @b{slider} or the @b{transport controls}. 
+Use the @b{preview region} to narrow down the search.  Set the
+starting point with the @image{in_point_button} @b{in point button}.
+
+Seek to the ending point of the clip you want to use.  Set the ending
+point with the @image{out_point_button} @b{out point button}.  The
+two points should now appear on the timebar and define a clip.
+
+There are several things you can do with the clip now.
+
+@itemize
+
+@item
+
+Splice @image{splice_button} inserts the clip in the timeline, pushing
+everything back.  If an @b{in point} or @b{out point} exists on
+the timeline it's inserted there, otherwise it's inserted after the
+insertion point.  After that, the insertion point moves to the end of
+the clip.  If there is no in/out point, the insertion point will be
+used as the next splice location.  This way you can continuously build
+up the program by splicing.
+
+@item
+
+Overwrite @image{overwrite_button} overwrites the region of the
+timeline with the clip.  If an @b{in point} or @b{out point}
+exists on the timeline it's overwritten there, otherwise it's
+overwritten after the insertion point.  If a region is highlighted or
+both in and out points exist the difference between the active region
+and the clip length is deleted.
+
+
+
+@item
+
+Create a clip @image{toclip_button} generates a new clip for the
+resource window containing the affected region but doesn't change the
+timeline.  Every clip has a title and a description.  These are
+optional.
+
+@item
+
+Copy behaves the same as in cut and paste editing.
+
+@end itemize
+
+Two screen editing can be done purely by keybard shortcuts.  When you
+move the pointer over any button a tooltip should appear, showing what
+key is bound to that button.  In the Viewer window, the number pad keys
+control the transport and the @b{[ ] v} keys perform in/out points
+and splicing.
+
+
+
+
+
+
+
+
+
+
+
+@node DRAG AND DROP EDITING
+@section DRAG AND DROP EDITING
+
+The answer is yes, you can you create a bunch of clips and drag them on
+the timeline.  You can also drag edits around the timeline.
+
+Load some files using @b{file->load}.  Set the insertion mode to
+@b{Create new resources}.  This loads the files into the Resource
+Window.  Create some audio and video tracks on the timeline using the
+video and audio menus.
+
+Open the @b{Media} folder in the resource window.  Drag a media file
+from the resource window to the timeline.  If the media has video, drag
+it onto a video track.  If the media is pure audio, drag it onto an
+audio track.
+
+Cinelerra fills out the audio and video tracks below the dragging
+cursor with data from the file.  This affects what tracks you should
+create initially and which track to drag the media onto.  If the media
+has one video track and two audio tracks, you'll need one video track
+and two audio tracks on the timeline and the media should be dragged
+over the first video track.  If the media has audio only you'll need
+one audio track on the timeline for every audio track in the media and
+the media should be dragged over the first audio track.
+
+When dragging, the media snaps to the start of track if the track is
+empty.  If there are edits on the track, the media snaps to the nearest
+edit boundary.
+
+You can also drag multiple files from the resource window.  Either draw
+a box around the files, use SHIFT, or use CTRL when selecting files. 
+When you drop the files in the timeline, they are concatenated.  The
+behavior of SHIFT and CTRL changes depending on if the resources are in
+text or icons.
+
+To display the resources as text or icons, right click inside the media
+list.  Select either @b{display icons} or @b{display text} to
+change the list format.
+
+When displaying text in the resource window @b{SHIFT-clicking} on
+media files extends the number of highlighted selections. 
+@b{CTRL-clicking} on media files in text mode selects additional
+files one at a time.
+
+When displaying icons in the resource window @b{SHIFT-clicking} or
+@b{CTRL-clicking} selects media files one at a time.
+
+In addition to dragging media files, if you create clips and open the
+@b{clip} folder you can drag clips on the timeline.
+
+In the timeline there is further dragging functionality.  To enable the
+dragging functionality of the timeline, select the arrow toggle
+@image{arrow}.  Move over an edit and drag it.  If more than one
+track is armed, Cinelerra will drag any edits which start on the same
+position as the edit the cursur is currently over.  During a dragging
+operation the edit snaps to the nearest boundary.
+
+Dragging edits around the timeline allows you to sort music playlists,
+sort movie scenes, and give better NAB demos but not much else.
+
+
+
+
+
+
+
+
+
+
+
+@node CUT AND PASTE EDITING
+@section CUT AND PASTE EDITING
+
+This is the traditional method of editing in audio editors.  In the
+case of Cinelerra, you either need to start a second copy of Cinelerra
+and copy from one copy to the other, copy from different tracks in the
+same copy, or load a media file into the Viewer and copy from there.
+
+Load some files onto the timeline.  To perform cut and paste editing
+select the @image{ibeam} i-beam toggle.  Select a region of the
+timeline and select the @image{cut} cut button to cut it.  Move the
+insertion point to another point in the timeline and select the
+@image{paste} paste button.  Assuming no in/out points are defined on
+the timeline this performs a cut and paste operation.
+
+If in/out points are defined, the insertion point and highlighted
+region are overridden by the in/out points for clipboard operations. 
+Thus, with in/out points you can perform cut and paste in drag and drop
+mode as well as cut and paste mode.
+
+When editing audio, it is customary to cut from one part of a waveform
+into the same part of another waveform.  The start and stop points of
+the cut are identical in each waveform and might be offset slightly,
+while the wave data is different.  It would be very hard to highlight
+one waveform to cut it and highlight the second waveform to paste it
+without changing the relative start and stop positions.
+
+One option for simplifying this is to open a second copy of Cinelerra,
+cutting and pasting to transport media between the two copies.  This
+way two highlighed regions can exist simultanously.
+
+Another option is to set in/out points for the source region of the
+source waveform and set labels for the destination region of the
+destination waveform.  Perform a cut, clear the in/out points, select
+the region between the labels, and perform a paste.
+
+
+
+A final operation in cut and paste editing is the @b{edit->clear}
+operation.  If a region is highlighted or in/out points exist, the
+affected region is cleared by @b{edit->clear}.  But if the insertion
+point is over an edit boundary and the edits on each side of the edit
+boundary are the same resource, the edits are combined into one edit
+comprised by the resource.  The start of this one edit is the start of
+the first edit and the end of this one edit is the end of the second
+edit.  This either results in the edit expanding or shrinking.
+
+
+
+
+
+@node TRIMMING
+@section TRIMMING
+
+With some edits on the timeline it's possible to do trimming.  By
+trimming you shrink or grow the edit boundaries by dragging them.  In
+either drag and drop mode or cut and paste mode, move the cursor over
+an edit boundary until it changes shape.  The cursor will either be an
+expand left or an expand right.  If the cursor is an expand left, the
+dragging operation affects the beginning of the edit.  If the cursor is
+an expand right, the dragging operation affects the end of the edit.
+
+When you click on an edit boundary to start dragging, the mouse button
+number determines which dragging behavior is going to be followed.  3
+possible behaviors are bound to mouse buttons in the interface
+preferences. @xref{INTERFACE}.
+
+The effect of each drag operation not only depends on the behavior
+button but whether the beginning or end of the edit is being dragged.
+When you release the mouse button, the trimming operation is performed.
+
+In a @b{Drag all following edits} operation, the beginning of the
+edit either cuts data from the edit if you move it forward or pastes
+new data from before the edit if you move it backward.  The end of the
+edit pastes data into the edit if you move it forward or cuts data from
+the end of the edit if you move it backward.  All the edits thereafter
+shift.  Finally, if you drag the end of the edit past the start of the
+edit, the edit is deleted.
+
+In a @b{Drag only one edit} operation, the behavior is the same when
+you drag the beginning or end of an edit.  The only difference is none
+of the other edits in the track shift.  Instead, anything adjacent to
+the current edit expands or shrinks to fill gaps left by the drag
+operation.
+
+In a @b{Drag source only} operation, nothing is cut or pasted.  If
+you move the beginning or end of the edit forward, the source reference
+in the edit shifts forward.  If you move the beginning or end of the
+edit backward, the source reference shifts backward.  Where the edit
+appears in the timeline remains the same but the source shifts.
+
+For all file formats besides still images, the extent of the trimming
+operation is clamped to the source file length.  Attempting to drag the
+start of the edit beyond the start of the source clamps it to the
+source start.
+
+In all trimming operations, all edits which start on the same position
+as the cursor when the drag operation begins are affected.  Unarm
+tracks to prevent edits from getting affected.
+
+
+
+

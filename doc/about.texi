@@ -1,0 +1,128 @@
+
+@node ABOUT CINELERRA
+@chapter ABOUT CINELERRA
+
+@b{BROADCAST 1.0}
+
+In 1996 our first editor came out: Broadcast 1.0.  It was just a window
+with a waveform in it, it could cut and paste stereo audio waveforms on
+a UNIX box, except unlike other audio editors it could handle files up
+to 2 gigabytes with only 64 megs of RAM.  That was a feature normally
+only accessible to the highest end professional audio houses.
+
+
+@b{BROADCAST 2.0}
+
+In 1997 Broadcast 1.0 was replaced by Broadcast 2.0.  This time the
+window had a menubar, patchbay, console, and transport control. 
+Broadcast 2.0 still only handled audio but this time it handled
+unlimited tracks, and it could perform effects on audio and save the
+resulting waveform to disk.  More notably a few effects could be
+performed as the audio was playing back, in realtime.  A user could mix
+unlimited numbers of tracks, adjust fade, pan, and EQ, and hear the
+result instantly.   Amazingly this real time tweeking is still
+unavailable on most audio programs.
+
+@b{BROADCAST 2000}
+
+But Broadcast 2.0 still didn't handle video and it wasn't very graceful
+at audio either.  In 1999 video broke into the story with Broadcast
+2000.  This iteration of the Broadcast series could do wonders with
+audio and offered a pretty good video feature set.  It could edit video
+files up to 64 terabytes.  It could do everything Broadcast 2.1 did
+with audio except now all effects for video and audio could be chained
+and performed on the fly, with instant feedback as a user tweeked
+parameters during playback.  Broadcast 2000 made it very easy to do a
+lot of processing and editing on video and audio that would otherwise
+involve many hours setting up command line sequences and writing to
+disk. For a time it seemed as if the original dream of immersive movie
+making for everyone regardless of income level had arrived.
+
+@b{CINELERRA}
+
+
+Later on Broadcast 2000 began to come short.  Its audio and video was
+graceful if you knew how to use it efficiently, but quality issues and
+new user interface techniques were emerging.  Broadcast 2000 kept the
+audio interface from its ancestors, which didn't apply well to video. 
+Users likewise were maturing.  No longer would it be sufficient to just
+edit video on a UNIX box.  Most users expected on UNIX the same thing
+they got in Win or Mac. In mid 2000 designs for a Broadcast 2000
+replacement were drafted.  The Broadcast name was officially retired
+from the series and the software would now be called Cinelerra. 
+Cinelerra would allow users to configure certain effects in much less
+time than required with Broadcast 2000.  It would begin to emulate some
+of the features found in Win and Mac software while not attempting to
+become a clone.  It's interface would be designed for video from the
+ground up, while supplementing that with the Broadcast audio
+interface.  As always, quality improvements would happen.
+
+@b{LINUX DERIVATIVES}
+
+Linux became more and more fragmented after corporations adopted it. 
+Threading once worked the same on all derivatives.  Today there are more
+threading models than days of the week.  We try to focus on 1 of the
+most popular Linux derivatives at any moment.  The threading model is
+ported to that Linux derivative shortly before a release, but Linux
+derivatives quickly evolve to new threading models and everything
+breaks.
+
+Also, there is no consistent behaviour for sound and video drivers.  The
+situation with video capture has improved in that modern video sources
+can all be mounted like disk drives.  The audio capture drivers have
+been a bit more reliable.
+
+
+
+
+
+
+@menu
+* ABOUT THIS MANUAL::
+@end menu
+
+@node ABOUT THIS MANUAL
+@section ABOUT THIS MANUAL
+
+This is the original manual for Cinelerra.  This manual has been copied
+and translated into many languages on many websites in varying degrees
+of completeness.
+
+Organizing information in the easiest manner for users to find out what
+they need to know is sort of like cataloging the internet.  They've
+been trying to get it right for 30 years and will probably keep trying
+until the end of time.
+
+There a lot of fragments of documentation scattered throughout the
+internet about Cinelerra.  This document attempts to combine all the
+pieces of information in one piece.
+
+Like the operating system and compiler for a piece of software, the
+document writing format is the most important thing in choosing our
+document format.  We wanted a format which would be readable regardless
+of corporate whims and fads.  A piece of software which compiles on GCC
+and Linux will be usable as long as there are C compilers.  Documents
+written in Texinfo will be readable as long as there's a C compiler.
+
+After many years of searching for the perfect documentation format
+we've arrived at TexInfo.  This format can be converted to HTML,
+printed, automatically indexed, but most importantly is not bound to
+any commercial word processor.
+
+There are no screenshots in this manual.  Screenshots become obsolete
+quickly and as a result confuse the users.  What looks one way in a
+screenshot will always look different in the real program because the
+real program and the manual are always evolving, never perfectly
+synchronized.  It is true that manuals should have screenshots, but our
+objective in omitting screenshots is to keep the software costs minimal
+so you don't have to pay for it.  That includes additional labor to
+synchronize the manual with the software.
+
+In addition to telling you the basic editing features of Cinelerra this
+manual covers tricks that won't be described anywhere else.  We're
+going to try to come up with certain things you can do with Cinelerra
+that you wouldn't think of on your own.
+
+
+
+

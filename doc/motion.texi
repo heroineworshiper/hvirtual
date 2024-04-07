@@ -1,0 +1,502 @@
+@node MOTION EFFECTS
+@section MOTION EFFECTS
+
+@menu
+* MOTION::            Motion tracking with rotation.
+* MOTION 2 POINT::    Motion and rotation tracking from translation only.
+* SUPER STABILIZER::  Basic stabilization
+@end menu
+
+@node MOTION
+@subsection MOTION
+
+The motion tracker is almost a complete application in itself.  The
+motion tracker tracks two types of motion: translation and rotation. 
+It can track both simultaneously or one only.  It can do 1/4 pixel
+tracking or single pixel tracking.  It can stabilize motion or cause
+one track to follow the motion of another track.
+
+Although the motion tracker is applied as a realtime effect, it usually
+must be rendered to see useful results.  The effect takes a long time
+to precisely detect motion.
+
+The motion tracker works by using one region of the frame as the region
+to track.  It compares this region between 2 frames to calculate the
+motion.  This region can be defined anywhere on the screen.  Once the
+motion between 2 frames has been calculated, a number of things can be
+done with that motion vector.  It can be scaled by a user value and
+clamped to a maximum range.  It can be thrown away or accumulated with
+all the motion vectors leading up to the current position.
+
+To save time the motion result can be saved for later reuse, recalled
+from a previous calculation, or discarded.
+
+The motion tracker has a notion of 2 tracks, the master layer and the
+target layer.  The master layer is where the comparison between 2
+frames takes place.  The target layer is where motion is applied either
+to track or compensate for the motion in the master layer.
+
+The intricacies of motion tracking are enough to sustain entire
+companies and build careers around.  The motion tracker in Cinelerra
+isn't as sophisticated as some world class motion trackers but it's
+enough to sweeten some camcorder footage.
+
+Here is a brief description of the motion tracking parameters:
+
+
+@b{Translation options:}
+
+@itemize
+
+@ignore
+@item
+@b{Track translation:} Enables translation operations.  
+The motion tracker tracks X and Y motion in the master layer and 
+adjusts X and Y motion in the target layer.
+@end ignore
+
+@item
+
+@b{Translation search radius:} The size of the area to scan for the
+translation block.
+
+@item
+
+@b{Translation block size:} For the translation operations, a block is
+compared to a number of neighboring blocks to find the one with the
+least difference.  The size of the block to search for is given by this
+parameter.
+
+@item @b{translation direction:} Determine if motion tracking is only
+horizontal, vertical, or both
+
+@ignore
+@item
+@b{Translation search steps:} Ideally the search operation would
+compare the  translation block with every other pixel in the
+translation search radius.  To  speed this operation up, a subset of
+the total positions is searched.   Then the search area is narrowed and
+rescanned by the same number of search steps until the motion is known
+to 1/4 pixel accuracy.
+@end ignore
+
+@item
+
+@b{Block X, Y:} These coordinates determine the center of the
+translation  block based on percentages of the width and height of the
+image.  The center of the block should be part of the image which is
+visible at all times.
+
+@item 
+
+@b{Maximum absolute offset:} In @b{track previous frame} and @b{previous
+frame same block} modes, the motion detected between every frame is
+accumulated to form an absolute motion vector for the entire sequence. 
+The amount of motion detected by the motion tracker is unlimited if this
+is 100.  If it's under 100 the amount of motion is limited to that
+percentage of the image size.  The value must be smaller for larger
+@b{translation block sizes} so there is enough area under the block to
+sense motion with.
+
+@item
+
+@b{Motion settling speed} In @b{track previous frame} and @b{previous frame
+same block} modes, the motion detected between every frame is
+accumulated to form an absolute motion vector for the entire sequence. 
+To keep the absolute motion from exceeding limits, it can be
+automatically reset over time by the settling speed.  If the settling
+speed is 100 the absolute vector resets to 0 after every frame.  If the
+settling speed is less than 100 the absolute vector is reduced slightly
+before the next frame is added.
+@end itemize
+
+@b{Rotation options:}
+
+@itemize
+@item
+@b{Track rotation:} Enables rotation operations.  The motion tracker
+tracks rotation in the master layer and adjusts rotation in the target
+layer.
+
+@ignore
+@item
+@b{Rotation block size:} For rotation operations a single block is
+compared to equally sized blocks, each rotated by a different amount. 
+This is the size of the rotation block.
+@end ignore
+
+@item
+@b{Rotation search radius:} This is the maximum angle of rotation from
+the starting frame the rotation scanner can detect.  The rotation scan
+is from this angle counterclockwise to this angle clockwise.  Thus the
+rotation search radius is half the total range scanned.
+
+@item
+@b{Rotation center:} This is analogous to the block X/Y
+coordinates but for rotation.  If the reference frame for rotation is
+always offset by a constant angle & you only want it to detect the
+difference between the constant rotation & the current rotation, use
+this to take out the constant rotation.
+
+@item
+@b{Maximum angle offset:} 
+This is analogous to the maximum offset for translation.
+
+@item
+@b{Rotation settling speed:} 
+This is analogous to the settling speed for translation.
+
+@ignore
+@item
+@b{Rotation search steps:} Ideally every possible angle would be tested
+to get the rotation.  To speed up the rotation search, the rotation
+search radius is divided into a finite number of angles and only those
+angles compared to the starting frame.  Then the search radius is
+narrowed and an equal number of angles is compared in the smaller
+radius until the highest possible accuracy is achieved.
+
+Normally you need one search step for every degree scanned.  Since the
+rotation scanner scans the rotation search radius in two directions,
+you need two steps for every degree in the search radius to search the
+complete range.
+@end ignore
+@end itemize
+
+
+@b{Global options:}
+
+@itemize
+@item
+
+@b{Draw vectors:} When translation is enabled, 2 boxes are drawn on the
+frame.  One box represents the translation block.  Another box outside
+the translation block represents the extent of the translation search
+radius.  In the center of these boxes is an arrow showing the
+translation between the 2 master frames.
+
+When rotation is enabled a single box the size of the rotation block is
+drawn rotated by the amount of rotation detected.
+
+@item
+
+@b{Track single frame:} When this option is used the motion between a
+single starting frame and the frame currently under the insertion point
+is calculated.  The starting frame is specified in the @b{Frame number}
+blank.  The motion calculated this way is taken as the absolute motion
+vector.  The absolute motion vector for each frame replaces the
+absolute motion vector for the previous frame.  Settling speed has no
+effect on it since it doesn't contain any previous motion vectors. 
+Playback can start anywhere on the timeline since there is no
+dependance on previous results.
+
+@item
+
+@b{Track previous frame:} Causes only the motion between the previous
+frame and the current frame to be calculated.  This is added to an
+absolute motion vector to get the new motion from the start of the
+sequence to the current position.  After every frame processed this
+way, the block position is shifted to always cover the same region of
+the image.  Playback must be started from the start of the motion
+effect in order to accumulate all the necessary motion vectors.
+
+@item
+
+@b{Previous frame same block:} This is useful for stabilizing jerky
+camcorder footage.  In this mode the motion between the previous frame
+and the current frame is calculated.  Instead of adjusting the block
+position to reflect the new location of the image, like Track Previous
+Frame does, the block position is unchanged between each frame.  Thus a
+new region is compared for each frame.
+
+@item
+
+@b{Master layer:} This determines the track which supplies the starting
+frame and ending frame for the motion calculation.  If it's @b{Bottom}
+the bottom track of all the tracks sharing this effect is the master
+layer.  The top track of all the tracks is the target layer.
+
+@item
+
+@b{Calculation:} This determines whether to calculate the motion at all
+and whether to save it to disk.  If it's @b{Don't Calculate} the motion
+calculation is skipped.  If it's @b{Recalculate} the motion calculation
+is performed every time each frame is rendered.  If it's @b{Save} the
+motion calculation is always performed but a copy is also saved.  If
+it's @b{Load}, the motion calculation is loaded from a previous save
+calculation.  If there is no previous save calculation on disk, a new
+motion calculation is performed.
+
+@item
+
+@b{Action:} Once the motion vector is known this determines whether to
+move the target layer opposing the motion vector or following the
+motion vector.  If it's @b{Do Nothing} the target layer is untouched. 
+If it's @b{Track...} the target layer is moved by the same amount as
+the master layer.  This is useful for matching titles to objects in the
+frame.  If it's @b{Stabilize...} the target layer is moved opposite to
+the motion vector.  This is useful for stabilizing an object in the
+frame.  The motion operations can be accurate to single pixels or
+subpixels by changing the action setting.
+
+
+
+
+
+@end itemize
+
+
+
+@menu
+* SECRETS OF MOTION TRACKING::
+* 2 PASS MOTION TRACKING::
+* USING BLUR TO IMPROVE MOTION TRACKING::
+* USING HISTOGRAM TO IMPROVE MOTION TRACKING::
+* INTERPOLATING MOTION BETWEEN FRAMES::
+* FILLING IN THE BLACK AREAS::
+@end menu
+
+
+@node SECRETS OF MOTION TRACKING
+@subsubsection SECRETS OF MOTION TRACKING
+
+Since it is a very slow effect, there is a method to applying the
+motion tracker to get the most out of it.  First disable playback for
+the track to do motion tracking on.  Then drop the effect on a region
+of video with some motion to track.  Then rewind the insertion point to
+the start of the region.  Set @b{Action} -> @b{Do Nothing}.  Set
+@b{Calculation} -> @b{Don't calculate}.  Enable @b{Draw vectors}. Then
+enable playback of the track to see the motion tracking areas.
+
+Enable which of @b{translation motion} or @b{rotation motion} vectors
+you want to track.  By watching the compositor window and adjusting the
+@b{Block x,y} settings, center the block on the part of the image you
+want to track.  Then set search radius, block size, and block
+coordinates for translation and rotation.
+
+Once this is configured, set the calculation to @b{Save coords} and do
+test runs through the sequence to see if the motion tracker works and
+to save the motion vectors.  Once this is done, disable playback for
+the track, disable @b{Draw vectors}, set the motion action to perform
+on the target layer and change the calculation to @b{Load coords}. 
+Finally enable playback for the track.
+
+When using a single starting frame to calculate the motion of a
+sequence, the starting frame should be a single frame with the least
+motion to any of the other frames.  This is rarely frame 0.  Usually
+it's a frame near the middle of the sequence.  This way the search
+radius need only reach halfway to the full extent of the motion in the
+sequence.
+
+If the motion tracker is used on a render farm, @b{Save coords} and
+@b{previous frame} mode won't work.  The results of the save coords
+operation are saved to the hard drives on the render nodes, not the
+master node.  Future rendering operations on these nodes will process
+different frames and read the wrong coordinates from the node
+filesystems.  The fact that render nodes only visualize a portion of
+the timeline also prevents @b{previous frame} from working since it
+depends on calculating an absolute motion vector starting on frame 0.
+
+@node 2 PASS MOTION TRACKING
+@subsubsection 2 PASS MOTION TRACKING
+
+The method described above is 2 pass motion tracking.  One pass is used
+just to calculate the motion vectors.  A second pass is used to apply
+the motion vectors to the footage.  This is faster than a single pass
+because errors in the motion vector calculation can be discovered
+quickly.
+
+This also allows the motion tracking to use a less demanding colormodel
+like RGB888 in the scanning step and a more demanding colormodel like
+RGB Float in the action step.  The scanning step takes much longer than
+action.
+
+This suffers the disadvantage of not being practical for extremely long
+sequences where some error is acceptable and the picture quality is
+lousy to begin with, like stabilizing camcorder footage.
+
+The slower method is to calculate the motion vectors and apply them
+simultaneously.  This method can use one track as the motion vector
+calculation track and another track as the target track for motion
+vector actions.  This is useful for long sequences where some error is
+acceptable.
+
+
+@node USING BLUR TO IMPROVE MOTION TRACKING
+@subsubsection USING BLUR TO IMPROVE MOTION TRACKING
+
+With extremely noisy or interlaced footage, applying a blur effect
+before the motion tracking can improve accuracy.  Either save the
+motion vectors in a @b{tracking pass} and disable the blur for the
+@b{action pass} or apply the blur just to the @b{master layer}.
+
+
+@node USING HISTOGRAM TO IMPROVE MOTION TRACKING
+@subsubsection USING HISTOGRAM TO IMPROVE MOTION TRACKING
+
+A histogram is almost always applied before motion tracking to clamp
+out noise in the darker pixels.  Either save the motion vectors in a
+@b{tracking pass} and disable the histogram for the @b{action pass} or
+apply the histogram just to the @b{master layer}.
+
+
+
+
+@node INTERPOLATING MOTION BETWEEN FRAMES
+@subsubsection INTERPOLATING MOTION BETWEEN FRAMES
+
+The motion tracker can simulate higher frame rates than the media frame
+rate by interpolating the motion.  Interpolation is enabled with the
+@b{maximum absolute offset} and @b{settling speed} options.
+
+First, go to @b{Settings->Format} in the main window and set the
+@b{video frame rate} to a number higher than the media frame rate.
+
+In the @b{Motion} window, select a tracking option which accumulates
+motion.  This is either @b{Track previous frame} or @b{Previous frame
+same block}.  These cause the @b{maximum absolute offset} and
+@b{settling speed} options to take effect.
+
+@b{maximum absolute offset} must be set to the maximum motion to be
+accumulated as a percentage of the video size.  A value of 50 limits the
+motion to 50% of the video size.  50 works well.  The value must be
+smaller for larger @b{translation block sizes} so there is enough area
+under the block to sense motion with.
+
+@b{settling speed} must be set to the rate at which the accumulated
+motion resets to 0 over time.  The reset happens whether or not any
+motion was detected, so when the project frame rate is higher than the
+media frame rate, the frames between media frames regress towards the
+center.  For interpolated motion, the @b{settling speed} value should be
+small, so the movement is smooth.  3 works well.
+
+
+
+
+
+
+
+
+
+@node FILLING IN THE BLACK AREAS
+@subsubsection FILLING IN THE BLACK AREAS
+
+Stabilization always creates black borders in the track resolution.  One
+solution is to shrink the project resolution so the borders are always
+cropped off the output.  Another solution is to apply a @b{Time Average}
+effect after stabilization.
+
+Configure @b{Time Average} the following way:
+
+@itemize
+@item
+@b{Frame count:} 1
+@item
+@b{Accumulate sequence again:} No
+@item
+@b{Replace:} Yes
+@item
+@b{Threshold:} 1
+@item
+@b{Border:} 4
+@end itemize
+
+This makes new frames replace only the pixels in the previous frames
+where there is new data.  The black areas in new frames don't replace
+previous data so the previous data shows through and fills them in.
+
+
+
+
+
+
+
+
+
+
+
+
+@node MOTION 2 POINT
+@subsection MOTION 2 POINT
+
+
+The 2 point motion tracker is the same as using 2 of the translation
+motion trackers to track 2 points.  It doesn't have a rotation tracker. 
+Instead, it uses the angle between the 2 translation points to
+determine  rotation.  The 2 points can be enabled separately.
+
+If 1 point is enabled, only translation is tracked.  
+
+If 2 points are enabled, translation is tracked by point 1 and rotation
+is tracked by point 2.  Stabilization is performed with point 1 as the center.
+
+The other parameters for the 2 point tracker are the same as the single
+point tracker.  In addition, the 2 point tracker supports @b{TRANSLATION
+SEARCH OFFSET}.
+
+@b{TRANSLATION SEARCH OFFSET} forces the motion search to look in a
+region other than directly next to the translation block position.  The
+@b{translation search offset} is added to the new search result, giving
+contiguous motion results throughout any changes in translation search area.
+
+This is useful if the camera position changed in the middle of a
+sequence of images but the subject stayed the same.  Offset the
+translation search area when the camera position changes and the
+detected motion stays contiguous through the entire sequence.
+
+2 point tracking works best if the points don't change shape between
+frames.  It is more prone to rotation errors than single point motion
+tracking if the points change shape.  2 point tracking is mainly used
+for tracking stars.
+
+Use the smallest search blocks possible since larger blocks are harder
+to compare when they're rotated.
+
+
+
+
+@node SUPER STABILIZER
+@subsection SUPER STABILIZER
+
+New techniques specifically for stabilizing video emerged.  The previous
+motion effects were quite large so a new effect was created just for
+stabilizing video.  It's not intended to be accurate as much as make
+footage look good.
+
+The key step it does is read ahead by a certain number of frames to
+determine the future drift of the motion estimation.  Then it
+interpolates every frame to take out the future drift.  This has proven
+superior to centering on past accumulated motion over time.  It hides
+oscillating motion.  If it knows a future motion is going to be the
+opposite of a past motion, it can avoid centering on the past motion.
+
+The main drawback with super stabilizer is it's super slow.  To use it,
+disable the play toggle for the track, then attach it.  Disable
+@b{Enable} in the super stabilizer.  Then enable the play toggle for the
+track.  Enable @b{Draw vectors} to configure the super stabilizer.  Once
+configured, enable @b{Enable} & wait for the lookahead buffer to fill.
+
+Super stabilizer uses a single search block & only detects motion after
+the previous frame.  There is no maximum offset setting because the
+lookahead buffer will always keep it from drifting no farther than the
+future motion.
+
+@b{Enable} Enables processing for the super stabilizer.  Does not affect
+the drawing of the vectors.  Disable it to configure the effect.
+
+@b{Number of frames to look ahead} the size of the lookahead buffer. 
+All these frames are stored in RAM.  The longer it is, the more stable
+the footage but the longer it takes to get started until it's unusable.
+
+@b{Translation search radius} How far to search around the search block.
+
+@b{Translation block size} How big the search block is.
+
+@b{Block position} Where the search area is.
+
+@b{Track rotation} Rotation tracking is optional
+
+@b{Maximum angle offset} How far to search for the rotation.
+
+@b{Draw vectors} Draws the search block to allow configuration.
+
+

@@ -1,0 +1,74 @@
+
+
+@node TROUBLESHOOTING
+@chapter TROUBLESHOOTING
+
+
+@menu
+* BUZ DRIVER CRASHES::
+* DRAGGING IN AND OUT POINTS DOESN'T WORK::
+* LOCKING UP WHEN LOADING FILES::
+* SYNCHRONIZATION LOST WHILE RECORDING::
+* APPLYING LINEARIZE FOLLOWED BY BLUR DOESN'T WORK::
+@end menu
+
+@node BUZ DRIVER CRASHES
+@section BUZ DRIVER CRASHES
+
+First, Zoran capture boards must be accessed using the @b{Buz} video
+driver in @b{Preferences->Recording} and @b{Preferences->Playback}. 
+Some performance tweeks are available in another section. 
+@xref{IMPROVING PERFORMANCE}.
+
+Once tweeked, the Buz driver seems to crash if the number of recording
+buffers is too high.  Make sure @b{Preferences->Recording->Frames to
+buffer in device} is below 10.
+
+
+@node DRAGGING IN AND OUT POINTS DOESN'T WORK
+@section DRAGGING IN AND OUT POINTS DOESN'T WORK
+
+
+Sometimes there will be two edits really close together.  The point
+selected for dragging may be next to the indended edit on an edit too
+small to see at the current zoom level.  Zoom in horizontally.
+
+
+
+@node LOCKING UP WHEN LOADING FILES
+@section LOCKING UP WHEN LOADING FILES
+
+
+The most common reason loading files locks up is because the codec
+isn't supported.  Another reason is because Cinelerra is building
+picons for the Resources window.  If you load a large number of images,
+it needs to decompress every single image to build a picon.  Go into
+settings->preferences->interface and disable @b{Use thumbnails in
+resource window} to skip this process.
+
+
+
+
+
+@node SYNCHRONIZATION LOST WHILE RECORDING
+@section SYNCHRONIZATION LOST WHILE RECORDING
+
+If the framerate of the recording is much lower than the framerate of
+the source, the video will accumulate in the recording buffers over
+time while the audio and video are well out of sync.  Decrease the
+@b{number of frames to buffer in the device} in
+@b{preferences->recording} so the excess frames are dropped instead of
+buffered.
+
+@node APPLYING LINEARIZE FOLLOWED BY BLUR DOESN'T WORK
+@section APPLYING LINEARIZE FOLLOWED BY BLUR DOESN'T WORK
+
+The linearize effect uses the pow function while the blur effect uses a
+number of exp functions in the math library.  For some reason, using
+the pow function breaks later calls to the exp functions in the math
+library.  You need to apply linearize after blur to get it to work.
+
+
+
+
+

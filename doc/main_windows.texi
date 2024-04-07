@@ -1,0 +1,259 @@
+
+
+@node THE MAIN WINDOWS
+@chapter THE MAIN WINDOWS
+
+When Cinelerra first starts, you'll get four main windows.  Hitting
+@b{CTRL-w} in any window closes it.
+
+
+@menu
+* VIEWER::
+* COMPOSITOR::
+* PROGRAM::
+* RESOURCES::
+* SOUND LEVEL METERS::
+* OTHER WINDOWS::
+@end menu
+
+@node VIEWER
+@section VIEWER
+
+
+In here you'll scrub around source media and clips, selecting regions
+to paste into the project.  Operations done in the viewer affect a
+temporary EDL or a clip but not the timeline.
+
+@node COMPOSITOR
+@section COMPOSITOR
+
+
+This window displays the output of the timeline.  It's the interface
+for most compositing operations or operations that affect the
+appearance of the timeline output.  Operations done in the Compositor
+affect the timeline but don't affect clips.
+
+The video output has several navigation functions.  The video output
+size is either locked to the window size or unlocked with scrollbars
+for navigation.  The video output can be zoomed in and out and panned. 
+Navigating the video output this way doesn't affect the rendered
+output, it just changes the point of view in the compositor window.
+
+If it is unlocked from the window size, middle clicking and dragging
+anywhere in the video pans the point of view.
+
+Hitting the + and - keys zooms in and out of the video output.
+
+Underneath the video output are copies of many of the functions
+available in the main window.  In addition there is a
+@image{cwindow_zoom} zoom menu and a @image{cwindow_light} tally light.
+
+The zoom menu jumps to all the possible zoom settings and, through the
+@b{Auto} option, locks the video to the window size.  The zoom menu
+does not affect the window size.
+
+The tally light turns red when rendering is happening.  This is useful
+for knowing if the output is current.
+
+Right clicking anywhere in the video output brings up a menu with all
+the zoom levels and some other options.  In this particular case the
+zoom levels resize the entire window and not just the video.  
+
+The @b{reset camera} and @b{reset projector} options center the camera
+and projector @xref{COMPOSITING}.
+
+The @b{Hide controls} option hides everything except the video.
+
+On the left of the video output is a toolbar specific to the compositor
+window.  Here are the functions in the toolbar:
+
+@menu
+* PROTECT VIDEO::
+* MAGNIFYING GLASS::
+* MASKS TOOL::
+* CAMERA::
+* PROJECTOR::
+* CROP TOOL::
+* EYEDROPPER::
+@ignore
+* TOOL INFO::
+* SAFE REGIONS TOOL::
+@end ignore
+@end menu
+
+@node PROTECT VIDEO
+@subsection PROTECT VIDEO
+
+@image{protect}
+
+This disables changes to the compositor output from clicks in it.  It
+is an extra layer on top of the track arming toggle to prevent
+unwanted changes.
+
+@node MAGNIFYING GLASS
+@subsection MAGNIFYING GLASS
+
+@image{magnify}
+
+This zooms in and out of the compositor output without resizing the
+window.  If the video output is currently locked to the size of the
+window, clicking in it with the magnifying glass unlocks it and
+creates scrollbars for navigation.
+
+Left clicking in the video zooms in.
+
+Ctrl clicking in the video zooms out.
+
+Rotating the wheel on a wheel mouse zooms in and out.
+
+
+@node MASKS TOOL
+@subsection MASKS TOOL
+
+@image{mask}
+
+This brings up the mask editing tool @xref{MASKS}.  Enable the
+@image{toolwindow} tool window to see options for this tool.
+
+@node CAMERA
+@subsection CAMERA
+
+
+@image{camera}
+
+This brings up the camera editing tool @xref{THE CAMERA AND
+PROJECTOR}.  Enable the @image{toolwindow} tool window to see options
+for this tool.
+
+@node PROJECTOR
+@subsection PROJECTOR
+
+@image{projector}
+
+This brings up the projector editing tool @xref{THE CAMERA AND
+PROJECTOR}.  Enable the @image{toolwindow} tool window to see options
+for this tool.
+
+@node CROP TOOL
+@subsection CROP TOOL
+
+@image{crop}
+
+This brings up the cropping tool @xref{CROPPING}.  The
+@image{toolwindow} tool window must be enabled to use this tool.
+
+@node EYEDROPPER
+@subsection EYEDROPPER
+
+@image{eyedrop}
+
+This brings up the eyedropper.  The eyedropper detects whatever color
+is under it and stores it in a temporary area.  Enabling the
+@image{toolwindow} tool info shows the currently selected color.  Click
+anywhere in the video output to select the color at that point.
+
+The eyedropper not only lets you see areas which are clipped, but its
+value can be applied to many effects.  Different effects handle the
+eyedropper differently.
+
+
+@ignore
+@node TOOL INFO
+@subsection TOOL INFO
+
+@image{toolwindow}
+
+This brings up a window containing options for the currently selected
+tool.
+
+@node SAFE REGIONS TOOL
+@subsection SAFE REGIONS TOOL
+
+@image{titlesafe}
+
+This draws the safe regions in the video output.  This doesn't affect
+the rendered output @xref{SAFE REGIONS}.
+@end ignore
+
+
+
+
+
+
+
+
+
+
+@node PROGRAM
+@section PROGRAM
+
+
+This contains the timeline and the entry point for all menu driven
+operations.  The timeline consists of a vertical stack of tracks with
+horizontal representation of time.  This defines the output of
+rendering operations and what is saved when you save files.  Left of
+the timeline is the patchbay which contains options affecting each
+track.
+
+Under the @b{Window} menu you'll find options affecting the main
+windows.  @b{default positions} repositions all the windows to a 4
+screen editing configuration.  On dual headed displays, the
+@b{default positions} operation fills only one monitor with windows.
+
+
+@node RESOURCES
+@section RESOURCES
+
+
+Effects, transitions, clips, and assets are accessed here.  Most of the
+resources are inserted into the project by dragging them out of the
+resource window.  Management of resource allocation is also performed
+here.
+
+@node SOUND LEVEL METERS
+@section SOUND LEVEL METERS
+
+An additional window, the @b{levels window} can be brought up from
+the @b{Window} menu.  The @b{levels} window displays the output
+audio levels after all mixing is done.
+
+Sound level meters appear in many locations.  They can be toggled in
+the viewer and compositor windows with the @image{show_meters} level
+toggle. They appear in the patchbay when a track is expanded (@xref{THE
+PATCHBAY}.)  They appear in the recording monitor when audio is being
+recorded.  
+
+The sound levels in the @b{levels window, compositor, and viewer}
+correspond to the final output levels before they are clipped to the
+soundcard range.  In the @b{record monitor} they are the input values
+from the sound card.  In the @b{patchbay} they are the sound levels for
+each track after all effects are processed and before downmixing for
+the output.
+
+Most of the time, audio levels have numerical markings in DB but in the
+patchbay there isn't enough room.
+
+The sound level is color coded as an extra means of determining the
+sound level.  Even without numerical markings, the sound level color
+can distinguish between several ranges and overload.  Look at the color
+codings in a meter with numerical markings to see what colors
+correspond to what sound level.  Then for meters in the patchbay in
+expanded audio tracks, use the color codings to see if it's overloading.
+
+Be aware that sound levels in Cinelerra can go above 0DB.  This allows
+not only seeing if a track is overloading but how much information is
+being lost by the overloading.  Overloading by less than 3DB is usually
+acceptable.  While overloading is treated as positive numbers in
+Cinelerra, it is clipped to 0 when sent to a sound card or file.
+
+The visible range of the sound level meters is configurable in
+@b{settings->preferences->interface} (@xref{INTERFACE}.)
+
+@node OTHER WINDOWS
+@section OTHER WINDOWS
+
+The @b{Overlays window} can be brought up from the @b{Window}
+menu.  This is a quick way to toggle what is drawn in the timeline. 
+Every option in the @b{View} menu is available here.
+
+

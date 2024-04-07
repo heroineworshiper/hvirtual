@@ -1,0 +1,108 @@
+
+@node CREATING A NEW PROJECT
+@chapter CREATING A NEW PROJECT
+
+There are 2 ways to create a new project: going to @b{File->New} or
+loading new files @xref{LOADING FILES}.  Once a new project is
+created, all the parameters can be changed later without creating a new
+project.  
+
+
+@menu
+* USING THE NEW PROJECT DIALOG::
+* CHANGING PARAMETERS AFTER LOADING::
+@end menu
+
+
+
+@node USING THE NEW PROJECT DIALOG
+@section USING THE NEW PROJECT DIALOG
+
+One way is to go to @b{File->New}.  This dialog contains the parameters
+for the new project.  The sections of the @b{New} dialog are described
+here:
+
+@itemize
+
+@item
+
+@b{Presets} - Select an option from this menu to have all the project
+settings set to one of the known standards.
+
+@item
+@b{Audio -> Tracks} - Sets the number of audio tracks the new project
+should have.  Tracks can be added or deleted later, but options are
+provided here for convenience.
+
+@item
+@b{Audio -> Channels} - Sets the number of audio channels the new
+project should have.  The number of audio channels doesn't have to be
+the same as the number of tracks.
+
+@item
+@b{Audio -> Samplerate} - Sets the samplerate of the audio.  The
+project samplerate doesn't have to be the same as the media sample rate
+that you load.  Media is resampled to match the project sample rate.
+
+@item
+@b{Video -> Tracks} - Sets the number of video tracks the new project
+should have.  Tracks can be added or deleted later, but options are
+provided here for convenience.
+
+@item
+@b{Video -> Framerate} - Sets the framerate of the video.  The project
+framerate doesn't have to be the same as the media frame rate that you
+load.  Media is reframed to match the project framerate.
+
+@item
+@b{Video -> Canvas size} - Sets the size of the video output.  Each
+track also has its own frame size.  Initially the @b{New} dialog
+creates video tracks whose sizes all match the video output, but the
+video track sizes can be changed later without changing the video
+output.
+
+@item
+@b{Video -> Aspect ratio} - Sets the aspect ratio.  The aspect ratio is
+applied to the video output.  The aspect ratio can be different than
+the number of horizontal pixels / the number of vertical pixels. 
+Setting a different aspect ratio than the number of pixels results in
+nonsquare pixels.
+
+@item
+@b{Video -> Auto aspect ratio} - If this is checked, the @b{New} dialog
+always recalculates the @b{Aspect ratio} setting when the @b{Canvas
+size} is changed.  This ensures pixels are always square.
+
+@item 
+@b{Video -> Color model} - This sets the color model video intermediates
+in the project will be stored in.  Color models are described in a 
+separate section @xref{COLOR MODEL}.
+
+@end itemize
+
+
+
+
+
+
+
+
+
+
+
+
+
+@node CHANGING PARAMETERS AFTER LOADING
+@section CHANGING PARAMETERS AFTER LOADING
+
+After a project is created, you have to use the set format dialog to
+change parameters without deleting the project.  Go to @b{Settings->Set
+format}.  
+
+Most of the options are identical to the @b{File->New}
+options except the lack of a number of tracks to create and the
+addition of audio channel locations.
+
+This section is discussed in @xref{SETTING PROJECT ATTRIBUTES}.
+
+

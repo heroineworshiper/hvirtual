@@ -1,0 +1,526 @@
+
+
+@node APPLICATION NOTES
+@chapter APPLICATION NOTES
+
+In this section, you'll find ways to apply Cinelerra to common
+problems.  Other sections are arranged in order of the tools and what
+the tools are used for.  This section is arranged in order of the
+problems and what tools are used to solve the problems.
+
+@menu
+* DOLBY PRO LOGIC ENCODING::
+* ANALOG TV CLEANING::
+* DEFEATING INTERLACING::
+* MAKING VIDEO LOOK LIKE FILM::
+* CLEARING OUT HAZE::
+* MAKING A DVD::
+* MAKING A RINGTONE::
+* TIME STRETCHING AUDIO::
+* PITCH SHIFTING AUDIO::
+* TEXT TO MOVIE::
+@end menu
+
+
+@node DOLBY PRO LOGIC ENCODING
+@section DOLBY PRO LOGIC ENCODING
+
+Dolby pro logic is an easy way to output 6 channel audio from a 2
+channel soundcard with degraded but useful results.  Rudimentary Dolby
+pro logic encoding can be achieved with clever usage of the effects.
+
+Create 2 audio tracks with the same audio.  Apply @b{invert audio} to
+one track.  The signal comes out of the back speakers.
+
+Create a single audio track with monaural audio of a different source. 
+Center it in the @b{pan} control.  The signal comes out of the center
+speaker.
+
+Create other tracks with different signals and pan them left or right
+to put signals in the front left or right speaker.
+
+Finally, if a copy of the signal in the back speakers is desired in any
+single front speaker, the signal in the back speakers must be delayed
+by at least 0.05 seconds and a single new track should be created.  Pan
+the new track to orient the signal in the front speakers.
+
+If the same signal is desired in all the speakers except the center
+speaker, delay the back speakers by 0.5 seconds and delay either the
+front left or front right by 0.2 seconds.
+
+If you want to hear something from the subwoofer, create a new track,
+select a range, drop a synthesizer effect, and set the frequency below
+60 Hz.  The subwoofer merely plays anything below around 60Hz.
+
+Other tricks you can perform to separate the speakers are parametric
+equalization to play only selected ranges of frequencies through
+different speakers and lowpass filtering to play signals through the
+subwoofer.
+
+
+
+
+@node ANALOG TV CLEANING
+@section ANALOG TV CLEANING
+
+
+Unless you live in a rich nation like China or are a terrorist, you
+probably record analog TV more than you record digital TV.  The picture
+quality on analog TV is horrible but you can do things in Cinelerra to
+make it look more like it did in the studio.
+
+First, when capturing the video, capture it in the highest resolution
+possible.  For Europeans it's 720x576 and for Americans it's 720x480. 
+Don't bother adjusting the brightness or contrast in the recording
+monitor, although maxing out the color is useful.  Capture it using
+MJPEG or uncompressed Component Video if possible.  If those are too
+demanding, then capture it using JPEG.  RGB should be a last resort.
+
+Now on the timeline use @b{Settings->Format} to set a YUV colorspace. 
+Drop a @b{Downsample} effect on the footage.  Set it for 
+
+@example
+Horizontal:        2
+Horizontal offset: 0
+Vertical:          2
+Vertical offset:   0
+
+      red
+  x   green
+  x   blue
+      alpha
+@end example
+
+Use the camera tool to shift the picture up or down a line to remove
+the most color interference from the image.  This is the difference
+we're looking for:
+
+@sp 1
+
+@image{cleaning1}
+
+If you have vertical blanking information or crawls which constantly
+change in each frame, block them out with the @b{Mask} tool.  This
+improves compression ratios.
+
+This is about all you can do without destroying more data than you
+would naturally lose in compression.  The more invasive cleaning
+techniques involve deinterlacing.
+
+
+
+
+
+@node DEFEATING INTERLACING
+@section DEFEATING INTERLACING
+
+
+Interlacing is done on most video sources because it costs too much to
+build progressive scanning cameras and progressive scanning CRT's. 
+Many a consumer has been dissapointed to spend 5 paychecks on a
+camcorder and discover what horrible jagged images it produces on a
+computer monitor.
+
+As for progressive scanning camcorders, forget it.  Cost factors are
+probably going to keep progressive scanning cameras from ever equalling
+the spatial resolution of interlaced cameras.  Interlacing is here to
+stay.  That's why they made deinterlacing effects in Cinelerra.
+
+We don't believe there has ever been a perfect deinterlacing effect. 
+They're either irreversible or don't work.  Cinelerra cuts down the
+middle by providing deinterlacing tools that are irreversible sometimes
+and don't work sometimes but are neither one or the other.
+
+@b{Line Doubling}
+
+This one is done by the @b{Deinterlace} effect when set to @b{Odd
+lines} or @b{Even lines}.  When applied to a track it reduces the
+vertical resolution by 1/2 and gives you progressive frames with
+stairstepping.  This is only useful when followed by a scale effect
+which reduces the image to half its size.
+
+@b{Line averaging}
+
+The @b{Deinterlace} effect when set to @b{Average even lines} or
+@b{Average odd lines} does exactly what line doubling does except
+instead of making straight copies of the lines it makes averages of the
+lines.  This is actually useful for all scaling.
+
+There's an option for adaptive line averaging which selects which lines
+to line average and which lines to leave interlaced based on the
+difference between the lines.  It doesn't work.
+
+@b{Inverse Telecine}
+
+This is the most effective deinterlacing tool when the footage is an
+NTSC TV broadcast of a film.  @xref{INVERSE TELECINE}.
+
+
+@b{Time base correction}
+
+The first three tools either destroy footage irreversibly or don't work
+sometimes.  @b{Time base correction} is last because it's the perfect
+deinterlacing tool.  It leaves the footage intact.  It doesn't reduce
+resolution, perceptually at least.  It doesn't cause jittery timing.
+
+The @b{Frames to Fields} effect converts each frame to two frames, so
+it must be used on a timeline whose project frame rate is twice the
+footage's frame rate.  In the first frame it puts a line averaged copy
+of the even lines.  In the second frame it puts a line averaged copy of
+the odd lines.  When played back at full framerates it gives the
+illusion of progressive video with no loss of detail.
+
+Best of all, this effect can be reversed with the @b{Fields to frames}
+effect.  That one combines two frames of footage back into the one
+original interlaced frame of half the framerate.
+
+Be aware that frames to fields inputs frames at half the framerate as
+the project.  Effects before frames to fields process at the reduced
+framerate.
+
+Unfortunately, the output of @b{Frames to Fields} can't be compressed
+as efficiently as the original because it introduces vertical twitter
+and a super high framerate.
+
+Interlaced 29.97fps footage can be made to look like film by applying
+@b{Frames to Fields} and then reducing the project frame rate of the
+resulting 59.94fps footage to 23.97fps.  This produces no timing jitter
+and the occasional odd field gives the illusion of more detail than
+there would be if you just line averaged the original.
+
+
+@b{HDTV exceptions}
+
+1920x1080 HDTV is encoded a special way.  If it's a broadcast of
+original HDTV film, an inverse telecine works fine.  If it's a
+rebroadcast of a 720x480 source, you need to use a time base and line
+doubling algorithm to deinterlace it, @xref{1080 TO 480}.
+
+
+
+
+@node MAKING VIDEO LOOK LIKE FILM
+@section MAKING VIDEO LOOK LIKE FILM
+
+
+
+
+Video sweetening is constantly getting better.  Lately the best thing
+you can do for dirt cheap consumer camcorder video is to turn it into
+progressive 24fps output.  While you can't really do that, you can get
+pretty close for the money.  Mind you, this procedure can degrade high
+quality video just as easily as it improves low quality video.  It
+should only be used for low quality video.
+
+@itemize
+
+@item
+
+Step 1 - Set project framerate to twice the video framerate.
+
+@item
+
+Step 2 - Apply a @b{Sharpen} effect.  Set it to sharpness: 25, no
+interlacing, and horizontal only.
+
+@item
+
+Step 3 - Drop a @b{Frame to Fields} effect on the same track.  Set
+Average Empty Rows on and play through the video a few times to figure
+out which field is first.  If the wrong field is first, the motion is
+shaky.  Secondly, any editing in the doubled frame rate may now screw
+up the field order.  We're still figuring out the easiest way to
+support warnings for field glitches but for now you need to go back to
+the normal framerate to do editing or play test to make sure the fields
+are right.
+
+
+@item
+
+Step 4 - Render just the video to the highest quality file possible.
+
+@item
+
+Step 5 - Import the video back to a new track.  Set the project
+framerate to 24.  The new track should now display more filmish and
+sharper images than the original footage.
+
+@end itemize
+
+This entire procedure could be implemented in one nonrealtime effect,
+but the biggest problem with that is you'll most often want to keep the
+field based output and the 24fps output for posterity.  A nonrealtime
+effect would require all that processing just for the 24fps copy. 
+Still debating that one.
+
+
+
+
+
+
+
+
+
+@node CLEARING OUT HAZE
+@section CLEARING OUT HAZE
+
+Let's face it, if you're employed you live in Silicon Valley.  As such
+you probably photograph a lot of haze and never see blue sky ever. 
+Even if you can afford to briefly go somewhere where there is blue sky,
+horizon shots usually can stand for more depth.  This is what the
+@b{gradient effect} is for.
+
+Drop the gradient effect on hazy tracks.  Set the following parameters:
+
+@example
+Angle: 0
+Inner radius: 0
+Outer radius: 40
+Inner color: blue 100% alpha
+Outer color: blue 0% alpha
+@end example
+
+It's important to set the 0% alpha color to blue even though it's 0%
+alpha.  The color of the outer alpha is still interpolated with the
+inner color.  This is a generally applicable setting for the gradient. 
+Some scenes may work better with orange or brown for an evening feel.
+
+
+
+
+
+
+
+@node MAKING A DVD
+@section MAKING A DVD
+
+@b{A single chapter DVD}
+
+Make a single chapter DVD by rendering video to an MPEG video file. 
+The video should be 720x480, 29.97fps.  The aspect ratio should be 16x9
+or 4x3.
+
+Use the YUV 4:2:0 color model and DVD preset.  Set the bitrate to the
+desired bitrate.  It's not clear exactly what other parameters the MPEG
+encoder uses in the DVD preset but we've enabled the following:
+
+@example
+Derivative: MPEG-2
+Fixed bitrate
+I frame distance: 15
+P frame distance: 0
+Sequence start codes in every GOP
+@end example
+
+Render the audio to an AC3 audio file.  Any bitrate can be used.
+
+@b{Dvdrtools} must be downloaded to generate the actual DVD
+filesystem.  The actual usage of dvdrtools changes frequently but
+currently it involves the mkisofs and ifogen programs.  Mkisofs is
+built automatically in dvdrtools but ifogen may have to be built
+manually by entering the @b{video} directory and running @b{make
+ifogen}.  Mkisofs and ifogen must be put into /usr/bin manually.
+
+Also, the @b{mplex} program from @b{mjpegtools} must be installed.  The
+mjpegtools package is built in the hvirtual distribution and the mplex
+utility may be extracted from there.
+
+Given the files audio.ac3 and video.m2v, rendered by Cinelerra, the
+following commands pack them into a dvd readable by commercial
+appliances.
+
+@example
+mplex -M -f 8 -o final.mpg audio.ac3 video.m2v
+mkdir -p dvd/VIDEO_TS
+ifogen final.mpg -o dvd
+ifogen -T -o dvd
+mkisofs -dvd-video -udf -o dvd.iso dvd/
+@end example
+
+Chapters may be set with the following.  The units are seconds.  Version
+0.3.1 ignores the 1st chapter, so it has to be specified as 0.
+
+@example
+ifogen -o dvd --chapters=0,0021.788,0047.447,0077.043 final.mpg
+@end example
+
+Replace the chapter times.
+
+dvd.iso can be burned directly to a DVD with the following:
+
+@example
+dvdrecord -ignsize -dao -v dev=/dev/hdc fs=67108864 dvd.iso
+@end example
+
+The argument to dev= is the IDE device of the DVD drive.  Burning DVD's
+through SCSI is currently not supported.
+
+
+
+
+
+
+
+
+@node MAKING A RINGTONE
+@section MAKING A RINGTONE
+
+This is how we made ringtones for the low end Motorola V180's and it'll
+probably work with any new phone.  Go to @b{File->Load files...} and
+load a sound file with Insertion strategy: @b{Replace current
+project}.  Go to @b{Settings->Format} change @b{Channels} to 1 and
+@b{Samplerate} to 16000 or 22050.
+
+Either highlight a region of the timeline or set in/out points to use
+for the ringtone.  To improve sound quality on the cell phone, you need
+the maximum amplitude in as many parts of the sound as possible.  Right
+click on track Audio 1 and select @b{Attach effect..}.  Highlight the
+@b{Compressor} effect and hit @b{Attach} in the attachment popup.
+
+Make sure the insertion point or highlighted area is in the region with
+the Compressor effect. Right click on track Audio 2 and select
+@b{Attach effect..}.  Highlight @b{Audio 1: Compressor} and hit
+@b{Attach}.  Click the Audio1 Compressor's magnifying glass
+@image{magnify} to bring up the compressor GUI.
+
+Set the following parameters:
+
+@example
+Reaction secs: @b{-0.1}
+Decay secs: @b{0.1}
+Trigger Type: @b{Total}
+Trigger: @b{0}
+Smooth only: @b{No}
+@end example
+
+
+Click @b{Clear} to clear the graph.  Click anywhere in the
+grid area and drag a new point to 0 Output and -50 Input.  The graph
+should look like this.
+
+@sp 1
+@image{compress}
+
+Go to @b{File->Render}.  Specify the name of an mp3 file to output to. 
+Set the file format to @b{MPEG Audio}.  Click the wrench @image{wrench}
+for Audio and set @b{Layer} to @b{III} and @b{Kbits per second} to
+@b{24} or @b{32}.  Check @b{Render audio tracks} and uncheck @b{Render
+video tracks}.  Hit OK to render the file.
+
+The resulting .mp3 file must be uploaded to a web server.  Then, the
+phone's web browser must download the .mp3 file directly from the URL.
+There also may be a size limit on the file.
+
+
+
+
+
+
+
+@node TIME STRETCHING AUDIO
+@section TIME STRETCHING AUDIO
+
+It may appear that time stretching audio is a matter of selecting a
+region of the audio tracks, enabling recording for the desired tracks,
+going to @b{Audio->Render Effect}, and applying @b{Time Stretch}.  In
+actuality there are 3 audio effects for time stretching: @b{Time
+Stretch}, @b{Resample}, and @b{Asset info dialog}.
+
+Time Stretch applies a fast fourier transform to try to change the
+duration without changing the pitch, but this introduces windowing
+artifacts to the audio.  It's only useful for large changes in time
+because obvious changes in duration make windowing artifacts less
+obtrusive.
+
+For smaller changes in duration, in the range of 5%, @b{Resample}
+should be used.  This changes the pitch of the audio but small enough
+changes aren't noticable.  Resample doesn't introduce any windowing
+artifacts, so this is most useful for slight duration changes where the
+listener isn't supposed to know what's going on.
+
+Another way to change duration slightly is to go to the @b{Resources}
+window, highlight the @b{media} folder, right click on an audio file,
+click on @b{Info}.  Adjust the sample rate in the @b{Info} dialog to
+adjust the duration.  This method also requires left clicking on the
+right boundary of the audio tracks and dragging left or right to
+correspond to the length changes.
+
+
+@node PITCH SHIFTING AUDIO
+@section PITCH SHIFTING AUDIO
+
+Like the time stretching methods, there are three pitch shifting
+methods: @b{Pitch shift}, @b{Resample}, and @b{Asset info dialog}. 
+Pitch shift is a realtime effect which can be dragged and dropped onto
+recordable audio tracks.  Pitch shift uses a fast fourier transform to
+try to change the pitch without changing the duration, but this
+introduces windowing artifacts.
+
+Because the windowing artifacts are less obtrusive in audio which is
+obvously pitch shifted, Pitch shift is mainly useful for extreme pitch
+changes.  For mild pitch changes, use @b{Resample} from the
+@b{Audio->Render Effect} interface.  Resample can change the pitch
+within 5% without a noticable change in duration.
+
+Another way to change pitch slightly is to go to the @b{Resources}
+window, highlight the @b{media} folder, right click on an audio file,
+click on @b{Info}.  Adjust the sample rate in the @b{Info} dialog to
+adjust the pitch.  This method also requires left clicking on the right
+boundary of the audio tracks and dragging left or right to correspond
+to the length changes.
+
+
+@node TEXT TO MOVIE
+@section TEXT TO MOVIE
+
+
+
+Text to movie was added when another one of those startups whose name
+was an unmemorable combination of farting noises that the venture
+capitalist heard, started charging money for a ridulously simple program
+that converted scripts directly to movies.  It was such a simple
+program, we decided to add most of the functionality to Cinelerra.
+
+The easiest way to make a movie is to copy @b{tests/text2movie} and
+@b{tests/text2movie.xml} as a starting point.  Load the
+@b{text2movie.xml} file to see the movie.
+
+The @b{text2movie} file acts like a normal asset, except changes to it
+are immediately reflected on the timeline, without reloading.  Also, the
+length is infiinite.  Edit the @b{text2movie} file to change the
+script.  If the length of the movie increases, drag the right edit
+handle to extend the edit or use @b{edit->edit length}.
+
+1 audio channel is created for every character.  The frame rate, sample
+rate, and frame size are fixed.  Get it from the @b{asset window}. 
+Right click on the asset and go to @b{Asset info...}  Camera angles are
+fixed.
+
+Since its only use was to show dialog between 2 people, that's the
+functionality we focused on.  The character model and voice is selected
+separately in the script, because that was how it was done with the fee
+service.  The models are defined in model files, in the Cinelerra
+executable directory.  Usually @b{/opt/cinelerra/models}.
+
+There is a search path for models, starting with the directory the
+script is in.  You can define new models for the script, without
+affecting the entire system.  The model files are the exact name that
+appears in the script.  They define the total size of the model and the
+images used in the model.
+
+The models are 2D png images, because all the animations are baked.  No
+custom movement is currently supported, that would require a 3D
+renderer.  
+
+Some actions are implemented.  Character2 can cut off character1 if
+character1's dialog ends in @b{...}
+
+Inserting @b{[pause]} anywhere causes the character to pause.  Useful
+for adjusting the timing of dialog.
+
+Speech synthesis is pretty lousy.  Punctuation and spelling needs to be
+adjusted based on the sound.  The dialog is rendered on-demand, so there
+is a delay when each character starts to speak.  Split dialog into
+shorter blocks to reduce the delay.
+
+

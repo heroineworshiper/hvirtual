@@ -1,0 +1,447 @@
+
+@node IMPROVING PERFORMANCE
+@chapter IMPROVING PERFORMANCE
+
+
+Let's get one thing perfectly clear.  Linux is not a very good
+desktop.  It's a server.  Most of what you'll find on modern Linux
+distributions are faceless, network-only programs strategicly designed
+to counteract one Microsoft server feature or another and not to
+perform very well at user interaction.  There are a number of
+parameters on Linux, which ordinary people can adjust to make it behave
+more like a thoroughbred in desktop usage.
+
+
+@menu
+* DISABLING SWAP SPACE::
+* ENLARGING SOUND BUFFERS::
+* FREEING MORE SHARED MEMORY::
+* SPEEDING UP THE HARD DRIVE::
+* DISABLING CRON::
+* REDUCING USB MOUSE SENSITIVITY::
+* ASSORTED X TWEEKS::
+* SPEEDING UP THE FILE SYSTEM::
+* IMPROVING ZORAN VIDEO::
+@end menu
+
+@node DISABLING SWAP SPACE
+@section DISABLING SWAP SPACE
+
+On systems with lots of memory, Cinelerra sometimes runs better without
+a swap space.  If you have 4 GB of RAM, you're probably better off
+without a swap space.  If you have 512MB of RAM, you should keep the
+swap.  If you want to do recording, you should probably disable swap
+space in any case.  There's a reason for this.  Linux only allows half
+the available memory to be used.  Beyond that, it starts searching for
+free pages to swap, in order to cache more disk access.  In a 4 GB
+system, you start waiting for page swaps after using only 2 GB.  
+
+The question then is how to make Linux run without a swap space. 
+Theoretically it should be a matter of running
+
+@example
+swapoff -a
+@end example
+
+Unfortunately, without a swap space the @b{kswapd} tasklet normally
+spins at 100%.  To eliminate this problem, edit @b{linux/mm/vmscan.c}.
+In this file, put a line saying @b{return 0;} before it says 
+
+@example
+	/*
+	 * Kswapd main loop.
+	 */
+@end example
+
+Then recompile the kernel.
+
+
+
+
+@node ENLARGING SOUND BUFFERS
+@section ENLARGING SOUND BUFFERS
+
+In order to improve realtime performance, the audio buffers for all the
+Linux sound drivers were limited from 128k to 64k.  For recording audio
+and video simultaneously and for most audio recording this causes
+dropouts.  Application of low latency and preemtible kernel patches
+make it possible to record more audio recordings but it doesn't improve
+recording video with audio.  This is where you need to hack the kernel.
+
+To see if your sound buffers are suitable, run the included
+@b{soundtest} program with nothing playing or recording.  This
+allocates the largest possible buffers and displays them.  If the
+@b{TOTAL BYTES AVAILABLE} is under 131072, you need to see about
+getting the buffers enlarged in the driver.  While many drivers differ,
+we have a hack for at least one driver.
+
+This only applies to the OSS version of the Soundblaster Live driver. 
+Since every sound card and every sound driver derivative has a
+different implementation you'll need to do some searching for other
+sound cards.  Edit @b{linux/drivers/sound/emu10k1/audio.c}
+
+Where is says
+
+@example
+if (bufsize >= 0x10000)
+@end example
+
+change it to say
+
+@example
+if (bufsize > 0x40000)
+@end example
+
+
+
+Where is says
+
+@example
+		for (i = 0; i < 8; i++)
+			for (j = 0; j < 4; j++)
+@end example
+
+change it to say
+
+@example
+		for (i = 0; i < 16; i++)
+			for (j = 0; j < 4; j++)
+@end example
+
+
+
+In @b{linux/drivers/sound/emu10k1/hwaccess.h}
+
+Change
+
+@b{#define MAXBUFSIZE	65536} 
+
+to 
+
+@b{#define MAXBUFSIZE	262144} 
+
+Finally, in @b{linux/drivers/sound/emu10k1/cardwi.h}
+
+@b{#define WAVEIN_MAXBUFSIZE         65536}
+
+to
+
+@b{#define WAVEIN_MAXBUFSIZE         262144}
+
+Then recompile the kernel modules.
+
+
+
+
+
+
+@node FREEING MORE SHARED MEMORY
+@section FREEING MORE SHARED MEMORY
+
+The Linux kernel only allows 32MB of shared memory to be allocated by
+default.  This needs to be increased to do anything useful.  Run the
+following command:
+
+@b{echo "0x7fffffff" > /proc/sys/kernel/shmmax}
+
+
+
+
+
+@node SPEEDING UP THE HARD DRIVE
+@section SPEEDING UP THE HARD DRIVE
+
+This is a very popular command sequence among Linux gurus, which is not
+done by default on Linux distributions.
+
+@b{hdparm -c3 -d1 -u1 -k1 /dev/hda}
+
+@b{-c3} puts the hard drive into 32 bit I/O with sync.  This normally
+doesn't work due to inept kernel support for most IDE controllers.  If
+you get lost interrupt or SeekComplete errors, quickly use @b{-c0}
+instead of @b{-c3} in your command.
+
+@b{-d1} enables DMA of course.  This frees up the CPU partially during
+data transfers.
+
+@b{-u1} allows multiple interrupts to be handled during hard drive
+transactions.  This frees up even more CPU time.
+
+@b{-k1} prevents Linux from resetting your settings in case of a
+glitch.
+
+
+
+
+
+@node DISABLING CRON
+@section DISABLING CRON
+
+Linux runs some daily operations like compressing man pages.  These may
+be acceptable background tasks while compiling or word processing but
+not while playing video.  Disable these operations by editing
+@b{/etc/rc.d/init.d/anacron}.
+
+Put @b{exit} before the first line not beginning in @b{#}.
+
+In @b{/etc/rc.d/init.d/crond} put @b{exit} before the first line not
+beginning in @b{#}.  Then make like Win 2000 and reboot.
+
+You can't use the @b{at} command anymore, but who uses that command
+anyways?
+
+
+
+
+
+
+
+
+
+@node REDUCING USB MOUSE SENSITIVITY
+@section REDUCING USB MOUSE SENSITIVITY
+
+Gamers like high resolution mice, but this can be painful for precisely
+positioning the mouse on a timeline or video screen.  XFree86 once
+allowed you to reduce PS/2 mouse sensitivity using commands like
+@b{xset m 1 1} but you're out of luck with USB mice or KVM's.
+
+We have a way to reduce USB mouse sensitivity but it requires editing
+the kernel source code.  Even though USB mice have been supported for
+years, the kernel source code for USB mice is constantly being
+rewritten.  These instructions were relevant for 2.6.12.3.  Edit
+@b{/usr/src/linux/drivers/input/mousedev.c}.  
+
+After the line saying 
+
+@example
+struct mousedev_hw_data @{
+@end example
+
+
+put
+
+@example
+#define DOWNSAMPLE_N 100
+#define DOWNSAMPLE_D 350
+int x_accum, y_accum;
+@end example
+
+Next, the section which says something like:
+
+@example
+switch (code) @{
+	case REL_X:	mousedev->packet.dx += value; break;
+	case REL_Y:	mousedev->packet.dy -= value; break;
+	case REL_WHEEL:	mousedev->packet.dz -= value; break;
+@}
+@end example
+
+must be replaced by
+
+@example
+
+	switch (code) @{
+     		case REL_X:
+     			mousedev->packet.x_accum += value * DOWNSAMPLE_N;
+     			mousedev->packet.dx += (int)mousedev->packet.x_accum / (int)DOWNSAMPLE_D;
+     			mousedev->packet.x_accum -= ((int)mousedev->packet.x_accum / (int)DOWNSAMPLE_D) * (int)DOWNSAMPLE_D;
+     			break;
+     		case REL_Y:
+     			mousedev->packet.y_accum += value * DOWNSAMPLE_N;
+     			mousedev->packet.dy -= (int)mousedev->packet.y_accum / (int)DOWNSAMPLE_D;
+     			mousedev->packet.y_accum -= ((int)mousedev->packet.y_accum / (int)DOWNSAMPLE_D) * (int)DOWNSAMPLE_D;
+     			break;
+     		case REL_WHEEL:	mousedev->packet.dz -= value; break;
+	@}
+
+
+
+@end example
+
+Change the value of @b{DOWNSAMPLE_N} to change the mouse sensitivity.
+
+
+
+
+
+
+
+
+@node ASSORTED X TWEEKS
+@section ASSORTED X TWEEKS
+
+
+XFree86 by default can't display Cinelerra's advanced pixmap rendering
+very fast.  The X server stalls during list box drawing.  Fix this by
+adding a line to your XF86Config* files.
+
+In the @b{Section "Device"} area, add a line saying:
+
+@b{Option "XaaNoOffscreenPixmaps"}
+
+and restart the X server.
+
+
+
+Screen blanking is really annoying, unless you're fabulously rich and
+can afford to leave your monitor on 24 hours a day without power saving
+mode.  In @b{/etc/X11/xinit/xinitrc} put 
+
+@example
+xset s off
+xset s noblank
+@end example
+
+before the first @b{if} statement.
+
+How about those windows keys which no Linux distribution even thinks to
+use.  You can make the window keys provide ALT functionality by editing
+@b{/etc/X11/Xmodmap}.  Append the following to it.
+
+@example
+keycode 115 = Hyper_L
+keycode 116 = Hyper_R
+add mod4 = Hyper_L
+add mod5 = Hyper_R
+@end example
+
+The actual changes to a window manager to make it recognize window keys
+for ALT are complex.  In @b{FVWM} at least, you can edit
+@b{/etc/X11/fvwm/system.fvwm2rc} and put
+
+@example
+Mouse 0 T A move-and-raise-or-raiselower
+#Mouse 0 W M move
+Mouse 0 W 4 move
+Mouse 0 W 5 move
+Mouse 0 F A resize-or-raiselower
+Mouse 0 S A resize-or-raiselower
+@end example
+
+in place of the default section for moving and resizing.  Your best
+performance is going to be on FVWM.  Other window managers seem to slow
+down video with extra event trapping and aren't as efficient in layout.
+
+
+
+
+
+
+
+
+
+
+
+@node SPEEDING UP THE FILE SYSTEM
+@section SPEEDING UP THE FILE SYSTEM
+
+You'll often store video on an expensive, gigantic disk array separate
+from your boot disk.  You'll thus have to manually install an EXT
+filesystem on this disk array, using the @b{mke2fs} command.  By far
+the fastest file system is 
+
+@example
+
+mke2fs -i 65536 -b 4096 my_device
+tune2fs -r0 -c10000 my_device
+
+@end example
+
+This has no journaling, reserves as few blocks as possible for
+filenames, and accesses the largest amount of data per block possible.
+A slightly slower file system, which is easier to recover after power
+failures is
+
+@example
+
+mke2fs -j -i 65536 -b 4096 my_device
+tune2fs -r0 -c10000 my_device
+
+@end example
+
+This adds a journal which slows down the writes but makes us immune to
+power failures.
+
+
+
+
+
+
+
+@node IMPROVING ZORAN VIDEO
+@section IMPROVING ZORAN VIDEO
+
+Video recorded from the ZORAN inputs is normally unaligned or not
+completely encoded on the right.  This can be slightly compensated by
+adjusting parameters in the driver sourcecode.
+
+In @b{/usr/src/linux/drivers/media/video/zr36067.c} the structures
+defined near line 623 affect alignment.  At least for NTSC, the 2.4.20
+version of the driver could be improved by changing 
+
+@example
+static struct tvnorm f60ccir601 = @{ 858, 720, 57, 788, 525, 480, 16 @};
+@end example
+
+to
+
+@example
+static struct tvnorm f60ccir601 = @{ 858, 720, 57, 788, 525, 480, 17 @};
+@end example
+
+
+In @b{/usr/src/linux/drivers/media/video/bt819.c} more structures near
+line 76 affect alignment and encoding.
+
+For NTSC 
+
+@example
+@{858 - 24, 2, 523, 1, 0x00f8, 0x0000@},
+@end example
+
+could be changed to 
+@example
+@{868 - 24, 2, 523, 1, 0x00f8, 0x0000@},
+@end example
+
+Adjusting these parameters may or may not move your picture closer to
+the center.  More of the time, they'll cause the driver to lock up
+before capturing the first frame.
+
+
+@subsection NEW IN 2.6.5
+
+In the 2.6 kernels, the video subsystem was rewritten again from
+scratch.  To adjust the Zoran parameters go to
+@b{drivers/media/video/zoran_card.c} and look for a group of lines like
+
+@example
+static struct tvnorm f50sqpixel = @{ 944, 768, 83, 880, 625, 576, 16 @};
+static struct tvnorm f60sqpixel = @{ 780, 640, 51, 716, 525, 480, 12 @};
+static struct tvnorm f50ccir601 = @{ 864, 720, 75, 804, 625, 576, 18 @};
+static struct tvnorm f60ccir601 = @{ 858, 720, 57, 788, 525, 480, 16 @};
+
+static struct tvnorm f50ccir601_lml33 = @{ 864, 720, 75+34, 804, 625, 576, 18 @};
+static struct tvnorm f60ccir601_lml33 = @{ 858, 720, 57+34, 788, 525, 480, 16 @};
+
+/* The DC10 (57/16/50) uses VActive as HSync, so HStart must be 0 */
+static struct tvnorm f50sqpixel_dc10 = @{ 944, 768, 0, 880, 625, 576, 0 @};
+static struct tvnorm f60sqpixel_dc10 = @{ 780, 640, 0, 716, 525, 480, 12 @};
+
+/* FIXME: I cannot swap U and V in saa7114, so i do one
+ * pixel left shift in zoran (75 -> 74)
+ * (Maxim Yevtyushkin <max@@linuxmedialabs.com>) */
+static struct tvnorm f50ccir601_lm33r10 = @{ 864, 720, 74+54, 804, 625, 576, 18 @};
+static struct tvnorm f60ccir601_lm33r10 = @{ 858, 720, 56+54, 788, 525, 480, 16 @};
+@end example
+
+These seem to control the image position.  At least for the LML33 the
+following definition for @b{f60ccir601_lml33} does the trick.
+
+@example
+static struct tvnorm f60ccir601_lml33 = @{ 858, 720, 67+34, 788, 525, 480, 13 @};
+@end example
+
+
+

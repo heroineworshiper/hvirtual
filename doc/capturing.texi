@@ -1,0 +1,244 @@
+
+
+@node CAPTURING MEDIA
+@chapter CAPTURING MEDIA
+
+Ideally, all media would be stored on hard drives, CD-ROM, flash, or
+DVD and loading it into Cinelerra would be a matter of loading a file. 
+In reality, very few sources of media can be accessed like a filesystem
+but instead rely on tape transport mechanisms and dumb I/O mechanisms
+to transfer the data to computers.  These media types are imported into
+Cinelerra through the Record dialog.
+
+The first step in recording is to configure the input device.  In
+@b{Settings->preferences} are a number of recording parameters
+described in configuration @xref{RECORDING}.  These parameters apply to
+recording no matter what the project settings are, because the
+recording parameters are usually the maximum capability of the
+recording hardware while project settings come and go.
+
+Go to @b{File->record} to record a dumb I/O source.  This prompts
+for an output format much like rendering does.  Once that's done, the
+record window and the record monitor pop up.
+
+The record window has discrete sections.  While many parameters change
+depending on if the file has audio or video, the discrete sections are
+always the same.
+
+@itemize
+
+@item
+
+The output format area describes the format of the output file and the
+current position within it.
+
+
+@item
+
+The edit batch area lets you change parameters in the current batch.
+
+@item
+
+The transport controls start and stop recording different ways.
+
+@item
+
+The batch list displays all the defined batches.
+
+@item
+
+The confirmation area lets you determine how the output files are
+imported into the timeline and quit.
+
+@end itemize
+
+@image{recording}
+@sp 2
+@b{Recording window areas}
+
+
+Recording in Cinelerra is organized around batches.  A batch
+essentially defines a distinct output file for the recording.  For now
+you can ignore the batch concept entirely and record merely by hitting
+the record button @image{record}.
+
+The record button opens the current output file if it isn't opened and
+writes captured data to it.  Use the stop button to stop the
+recording.  Recording can be resumed with the record button without
+erasing the file at this point.  In the case of a video file, there is
+a single frame record button @image{singleframe} which records a single
+frame.
+
+When enough media is recorded, choose an insertion method from the
+@b{Insertion Strategy} menu and hit @b{close}.
+
+
+
+
+@menu
+* BATCHES::
+* EDITING TUNER INFORMATION::
+@end menu
+
+
+
+
+@node BATCHES
+@section BATCHES
+
+Now we come to the concept of batches.  Batches try to make the dumb
+I/O look more like a filesystem.  Batches are traditionally used to
+divide tape into different programs and save the different programs as
+different files instead of recording straight through an entire tape. 
+Because of the high cost of developing frame-accurate deck control
+mechanisms, the only use of batches now is recording different programs
+during different times of day.  This is still useful for recording TV
+shows or time lapse movies as anyone who can't afford proper appliances
+knows.
+
+The record window supports a list of batches and two recording modes:
+interactive and batch recording.  Interactive recording happens when
+the record button is pressed.  Interactive recording starts immediately
+and uses the current batch to determine everything except start time. 
+By default, the current batch is configured to behave like tape.
+
+Batch recording happens when the @b{start} button is pressed.  In
+batch recording, the @b{start time} is the time the batch starts
+recording.
+
+First, you'll want to create some batches.  Each batch has certain
+parameters and methods of adjustment.  
+
+
+
+
+@itemize
+
+@item 
+
+@b{On} determines whether the batch is included in batch recording
+operations.  Click the list row under @b{On} to enable or disable
+batches.
+
+
+@item 
+
+@b{Path} is the file the batch is going to be recorded to.  The
+filename specified in the record dialog is the name of the first batch,
+to simplify interactive recording, but the filename may be changed in
+the record window for any batch in the @b{edit batch} area.
+
+
+@item
+
+@b{News} shows whether the file exists or not.  This is a very
+important attribute since there is no confirmation dialog if the file
+exists.  The first time you hit record, the file is opened.  If the
+file exists at this point it's erased.  News says @b{File exists} if
+it exists and @b{OK} if it doesn't.  Every time you resume recording
+in the same batch, the news should say @b{Open}, indicating the file
+is already opened and won't be erased in the next record button press.
+
+If you change out of the current batch after recording, the file is
+closed.  Next time you change into the batch, the file will be erased.
+
+@item
+
+@b{Start time} is the 24 hour time of day the batch will start
+recording if in batch mode.  The start time may become a time of tape
+and reel number if deck control is implemented but for now it's a time
+of day.
+
+@item
+
+@b{Duration} is the length of the batch.  It only has meaning if the
+@b{Mode} of the batch is @b{Timed}.  Once the recording length
+reaches @b{duration} the recording stops, whether in interactive or
+batch mode.
+
+@item
+
+@b{Source} has meaning only when the capturing hardware has multiple
+sources.  Usually the source is a tuner channel or input.  When the
+current batch finishes and the next batch begins recording, the source
+is changed to what the next batch is set to.  This way multiple TV
+stations can be recorded at different times.
+
+
+@end itemize
+
+The record window has a notion of the @b{current batch}.  The
+current batch is not the same as the batch which is highlighted in the
+batch list.  The current batch text is colored red in the batch list. 
+The highlighted batch is merely displayed in the edit batch section for
+editing.
+
+By coloring the current batch red, any batch can be edited by
+highlighting it, without changing the batch to be recorded.
+
+All recording operations take place in the current batch.   If there
+are multiple batches, highlight the desired batch and hit
+@b{activate} to make it the current batch.  If the @b{start}
+button is pressed, the current batch flashes to indicate it's waiting
+for the start time in batch mode.  If the @b{record} button is
+pressed, the current batch is recorded immediately in interactive mode.
+
+In batch and interactive recording modes, when the current batch
+finishes recording the next batch is activated and performed.  All
+future recording is done in batch mode.  When the first batch finishes,
+the next batch flashes until its start time is reached.
+
+Interrupt either the batch or the interactive operation by hitting the
+stop button.
+
+Finally there is the @image{rewind} rewind button.  In either
+interactive or batch recording, the rewind button causes the current
+batch to close its file.  The next recording operation in the current
+batch deletes the file.
+
+
+
+
+
+
+@node EDITING TUNER INFORMATION
+@section EDITING TUNER INFORMATION
+
+
+Sometimes in the recording process and the configuration process,
+you'll need to define and select tuner channels to either record or
+play back to.  In the case of the Video4Linux and Buz recording
+drivers, tuner channels define the source.  When the Buz driver is also
+used for playback, tuner channels define the destination.  
+
+Defining tuner channels is accomplished by pushing the @image{channel}
+channel button.  This brings up the channel editing window.  In this
+window you add, edit, and sort channels.  Also, for certain video
+drivers, you can adjust the picture quality.
+
+The @b{add} operation brings up a channel editing box.  The title of
+the channel appears in the channel list.  The source of the channel is
+the entry in the physical tuner's frequency table corresponding to the
+title.  
+
+Fine tuning in the channel edit dialog adjusts the physical frequency
+slightly if the driver supports it.  The norm and frequency table
+together define which frequency table is selected for defining
+sources.  If the device supports multiple inputs, the input menu
+selects these.
+
+To sort channels, highlight the channel in the list and push @b{move
+up} or @b{move down} to move it.
+
+Once channels are defined, the @b{source} item in the record window
+can be used to select channels for recording.  The same channel
+selecting ability also exists in the record monitor window.  Be aware
+channel selections in the record monitor window and the record window
+are stored in the current batch.
+
+For some drivers an option to @b{swap fields} may be visible.  These
+drivers don't get the field order right every time without human
+intervention.  Toggle this to get the odd and even lines to record in
+the right order.
+
+
