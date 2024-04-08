@@ -1582,19 +1582,33 @@ int CWindowCanvas::do_mask(int &redraw,
 				y = (y0 - half_track_h) * projector_z + projector_y;
 				output_to_canvas(mwindow->edl, 0, x, y);
 
+                int point_w;
+                int point_h;
 				if(i == gui->affected_point)
 				{
-                    get_canvas()->draw_circle((int)x - FIRST_CONTROL_W / 2, 
-				        (int)y - FIRST_CONTROL_H / 2, 
-				        FIRST_CONTROL_W, 
-				        FIRST_CONTROL_H);
+                    point_w = FIRST_CONTROL_W;
+                    point_h = FIRST_CONTROL_H;
 				}
                 else
 				{
-                    get_canvas()->draw_circle((int)x - CONTROL_W / 2, 
-						(int)y - CONTROL_W / 2, 
-						CONTROL_W, 
-						CONTROL_W);
+                    point_w = CONTROL_W;
+                    point_h = CONTROL_H;
+                }
+
+// distinguish point 0
+                if(i == 0)
+                {
+                    get_canvas()->draw_disc((int)x - point_w / 2, 
+						(int)y - point_h / 2, 
+						point_w, 
+						point_h);
+                }
+                else
+                {
+                    get_canvas()->draw_circle((int)x - point_w / 2, 
+						(int)y - point_h / 2, 
+						point_w, 
+						point_h);
                 }
 // char string[BCTEXTLEN];
 // sprintf(string, "%d", (i < points.size() - 1 ? i + 1 : 0));

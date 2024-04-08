@@ -224,7 +224,7 @@ int GWindowGUI::cursor_motion_event()
 {
 	int cursor_x = get_relative_cursor_x();
 	int cursor_y = get_relative_cursor_y();
-	int update_gui = 0;
+//	int update_gui = 0;
 
 	if(drag_operation)
 	{
@@ -238,8 +238,10 @@ int GWindowGUI::cursor_motion_event()
 					if(cursor_y >= other[i]->get_y() &&
 						cursor_y < other[i]->get_y() + other[i]->get_h())
 					{
+                        int prev_status = other[i]->BC_Toggle::get_value();
 						other[i]->BC_Toggle::update(new_status);
-						update_gui = 1;
+                        if(prev_status != new_status) other[i]->handle_event();
+//						update_gui = 1;
 					}
 				}
 				
@@ -248,13 +250,16 @@ int GWindowGUI::cursor_motion_event()
 					if(cursor_y >= auto_toggle[i]->get_y() &&
 						cursor_y < auto_toggle[i]->get_y() + auto_toggle[i]->get_h())
 					{
+                        int prev_status = auto_toggle[i]->BC_Toggle::get_value();
 						auto_toggle[i]->BC_Toggle::update(new_status);
-						update_gui = 1;
+                        if(prev_status != new_status) auto_toggle[i]->handle_event();
+//						update_gui = 1;
 					}
 				}
 			}
 		}
 	}
+
 	return 0;
 }
 
