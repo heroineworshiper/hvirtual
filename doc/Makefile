@@ -48,7 +48,46 @@ CUSTOM_IMAGES := \
 	chromakeyhsv5.png \
 	chromakeyhsv6.png \
 	chromakeyhsv7.png \
-	chromakeyhsv8.png
+	chromakeyhsv8.png \
+        compositing_pipeline.png \
+        cwindow_context.png \
+        cwindow_tools.png \
+        apatches.png \
+        autozoom.png \
+        bezier.png \
+        channelpositions.png \
+        cleaning1.png \
+        compositing_pipeline2.png \
+        compress.png \
+        cwindow_light.png \
+        cwindow_zoom.png \
+        editing_mode.png \
+        fit_curves.png \
+        ibeam_mode.png \
+        inout_points.png \
+        in_point_button.png \
+        insertion_strategy.png \
+        label_button.png \
+        label_traversal.png \
+        linear.png \
+        locked_bezier.png \
+        unlocked_bezier.png \
+        main_timebar.png \
+        mask2.png \
+        out_point_button.png \
+        overwrite_button.png \
+        previewregion.png \
+        recording.png \
+        splice_button.png \
+        timebar_label.png \
+        timebarslider.png \
+        title.png \
+        toclip_button.png \
+        track_attributes.png \
+        transport_panel.png \
+        viewer_labels.png \
+        vpatches.png \
+        zoompanel.png
 
 
 all:

@@ -33,44 +33,64 @@ for most compositing operations or operations that affect the
 appearance of the timeline output.  Operations done in the Compositor
 affect the timeline but don't affect clips.
 
-The video output has several navigation functions.  The video output
-size is either locked to the window size or unlocked with scrollbars
-for navigation.  The video output can be zoomed in and out and panned. 
-Navigating the video output this way doesn't affect the rendered
-output, it just changes the point of view in the compositor window.
+The video output has several navigation functions. 
 
-If it is unlocked from the window size, middle clicking and dragging
-anywhere in the video pans the point of view.
+The video output size is either locked to the window size or unlocked
+with scrollbars for navigation.  The video output can be zoomed in and
+out and panned.  Navigating the video output this way doesn't affect the
+rendered output, it just changes the point of view in the compositor
+window.
 
-Hitting the + and - keys zooms in and out of the video output.
+@b{VIDEO CONTEXT MENU}
 
-Underneath the video output are copies of many of the functions
-available in the main window.  In addition there is a
-@image{cwindow_zoom} zoom menu and a @image{cwindow_light} tally light.
-
-The zoom menu jumps to all the possible zoom settings and, through the
-@b{Auto} option, locks the video to the window size.  The zoom menu
-does not affect the window size.
-
-The tally light turns red when rendering is happening.  This is useful
-for knowing if the output is current.
+@image{cwindow_context}
 
 Right clicking anywhere in the video output brings up a menu with all
-the zoom levels and some other options.  In this particular case the
-zoom levels resize the entire window and not just the video.  
+the zoom levels and some other options.  Selecting a percentage here
+resizes the window.  If the video size is locked to the window size, the
+video changes size.  If the video size is unlocked from the window size,
+the video stays the same size.
+
+Selecting @b{auto} locks the video to the window size.
 
 The @b{reset camera} and @b{reset projector} options center the camera
 and projector @xref{COMPOSITING}.
 
 The @b{Hide controls} option hides everything except the video.
 
+If video is unlocked from the window size, middle clicking and dragging
+anywhere in the video pans the point of view.
+
+Hitting the + and - keys unlocks the video size from the window size &
+zooms in and out of the video output.
+
+Underneath the video output are copies of many of the functions
+available in the main window.  In addition there is a
+@image{cwindow_zoom} zoom menu and a @image{cwindow_light} tally light.
+
+Selecting a percentage in the zoom menu unlocks the video size from the
+window size.  Selecting @b{Auto} locks the video size to the window
+size.
+
+The zoom menu does not affect the window size.
+
+The tally light turns red when rendering is happening.  This is useful
+for knowing if the output is current.
+
+@image{cwindow_tools}
+
 On the left of the video output is a toolbar specific to the compositor
-window.  Here are the functions in the toolbar:
+window.  Select a tool to enable it.  Select it again to disable it.  To
+protect the video from changes, be sure all the tools are deselected. 
+Here are the functions in the toolbar:
 
 @menu
+@ignore
 * PROTECT VIDEO::
+@end ignore
 * MAGNIFYING GLASS::
 * MASKS TOOL::
+* RULER::
 * CAMERA::
 * PROJECTOR::
 * CROP TOOL::
@@ -81,6 +101,7 @@ window.  Here are the functions in the toolbar:
 @end ignore
 @end menu
 
+@ignore
 @node PROTECT VIDEO
 @subsection PROTECT VIDEO
 
@@ -89,6 +110,7 @@ window.  Here are the functions in the toolbar:
 This disables changes to the compositor output from clicks in it.  It
 is an extra layer on top of the track arming toggle to prevent
 unwanted changes.
+@end ignore
 
 @node MAGNIFYING GLASS
 @subsection MAGNIFYING GLASS
@@ -112,8 +134,23 @@ Rotating the wheel on a wheel mouse zooms in and out.
 
 @image{mask}
 
-This brings up the mask editing tool @xref{MASKS}.  Enable the
-@image{toolwindow} tool window to see options for this tool.
+This brings up the mask editing tool @xref{MASKS}.  
+
+@ignore
+Enable the @image{toolwindow} tool window to see options for this tool.
+@end ignore
+
+
+@node RULER
+@subsection RULER
+
+The ruler shows pixel coordinates for the cursor & a line.  Click drag
+in the video output to draw a line to measure.  Click without dragging
+to hide the ruler line.
+
+@b{Always draw it} Causes the ruler line to be drawn in all the other
+tools.  This allows the ruler to be used to align camera & projector
+movements.
 
 @node CAMERA
 @subsection CAMERA
@@ -122,8 +159,12 @@ This brings up the mask editing tool @xref{MASKS}.  Enable the
 @image{camera}
 
 This brings up the camera editing tool @xref{THE CAMERA AND
-PROJECTOR}.  Enable the @image{toolwindow} tool window to see options
+PROJECTOR}.
+
+@ignore
+Enable the @image{toolwindow} tool window to see options
 for this tool.
+@end ignore
 
 @node PROJECTOR
 @subsection PROJECTOR
@@ -131,16 +172,23 @@ for this tool.
 @image{projector}
 
 This brings up the projector editing tool @xref{THE CAMERA AND
-PROJECTOR}.  Enable the @image{toolwindow} tool window to see options
+PROJECTOR}.
+
+@ignore
+Enable the @image{toolwindow} tool window to see options
 for this tool.
+@end ignore
 
 @node CROP TOOL
 @subsection CROP TOOL
 
 @image{crop}
 
-This brings up the cropping tool @xref{CROPPING}.  The
-@image{toolwindow} tool window must be enabled to use this tool.
+This brings up the cropping tool @xref{CROPPING}.
+
+@ignore
+The @image{toolwindow} tool window must be enabled to use this tool.
+@end ignore
 
 @node EYEDROPPER
 @subsection EYEDROPPER
@@ -148,13 +196,25 @@ This brings up the cropping tool @xref{CROPPING}.  The
 @image{eyedrop}
 
 This brings up the eyedropper.  The eyedropper detects whatever color
-is under it and stores it in a temporary area.  Enabling the
-@image{toolwindow} tool info shows the currently selected color.  Click
-anywhere in the video output to select the color at that point.
+is under it and stores it.
 
-The eyedropper not only lets you see areas which are clipped, but its
-value can be applied to many effects.  Different effects handle the
-eyedropper differently.
+@ignore
+Enabling the @image{toolwindow} tool info shows the currently selected color.  
+@end ignore
+
+Click anywhere in the video output to select the color at that point.
+
+@b{radius} Determines the size of the area that the eyedropper scans. 
+The average of the area is used.
+
+@b{use maximum} Uses the maximum values from the scanned area instead of
+the average.
+
+The eyedropper value can be applied to many effects.  Different effects
+handle the eyedropper differently.  They usually have an option called
+@b{use color picker} to use the last scanned eyedropper color.
+
+
 
 
 @ignore

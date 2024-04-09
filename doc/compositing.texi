@@ -47,9 +47,8 @@ track size.  By resizing the tracks you can create splitscreens, pans,
 and zooms.
 
 @sp 2
-@image{compositing_pipeline}
-@sp 2
-@b{Visual representation of the compositing pipeline}.
+@center @image{compositing_pipeline}
+@center @b{Visual representation of the compositing pipeline}.
 
 When editing the camera and projector in the compositing window, the
 first track with @b{record} enabled is the track affected.  Even if
@@ -106,6 +105,8 @@ types are also defined for easy access.  A popular justification
 operation is upper left projection after image reduction.  This is used
 when reducing the size of video with aspect ratio adjustment.
 
+@b{THE TRANSLATION EFFECT}
+
 The translation effect allows simultaneous aspect ratio conversion and
 reduction but is easier to use if the reduced video is put in the upper
 left of the temporary instead of in the center.  The track size is set
@@ -135,15 +136,20 @@ output.
 @node MASKS
 @section MASKS
 
-Masks select a region of the video for either displaying or hiding. 
-Masks are also used in conjunction with another effect to isolate the
+Masks define a region of the video to either set opaque or transparent.
+
+Another thing the mask tool does is draw paths.  Paths are lines while
+masks are areas.  Paths can be simple line drawings or outlines.
+
+Masks can be used in conjunction with another effect to isolate the
 effect to a certain region of the frame.  A copy of one video track may
 be delayed slightly and unmasked in locations where the one copy has
-interference but the other copy doesn't.  Color correction may be
-needed in one section of a frame but not another.  A mask can be
-applied to just a section of the color corrected track while the
-vanilla track shows through.  Removal of boom microphones, airplanes,
-and housewives are other mask uses.
+interference but the other copy doesn't.  Color correction may be needed
+in one section of a frame but not another.  A mask can be applied to
+just a section of the color corrected track while the vanilla track
+shows through.  Removal of boom microphones, airplanes, and housewives
+are other mask uses.
+
 
 The order of the compositing pipeline affects what can be done with
 masks.  Mainly, masks are performed on the temporary after effects and
@@ -153,71 +159,91 @@ masked track and projected with the same mask.
 Our compositing pipeline graph now has a masking stage.  There are 8
 possible masks per track.  Each mask is defined separately, although
 they each perform the same operation, whether it's addition or
-subtraction.
+subtraction, or a path.
 
 @sp 2
-@image{compositing_pipeline2}
-@sp 2
-@b{Compositing pipeline with masks}
+@center @image{compositing_pipeline2}
+@center @b{Compositing pipeline with masks}
 
 To define a mask, go into the Compositor window and enable the
-@image{mask} @b{mask} toggle.  Now go over the video and
-click-drag.  Click-drag again in another part of the image to create
-each new point of the mask.  While it isn't the conventional bezier
-curve behavior, this masking interface performs in realtime what the
-effect of the mask is going to be.  Creating each point of the mask
-expands a rubber band curve.  
+@image{mask} @b{mask} toggle.  
 
-Once points are defined, they can be moved by @b{ctrl-dragging} in
-the vicinity of the corner.  This; however, doesn't smooth out the
-curve.  The in-out points of the bezier curve are accessed by
-@b{shift-dragging} in the vicinity of the corner.  Then
-@b{shift-dragging} near the in or out point causes the point to
-move.
+Now go over the video and click to create a starting point for the
+mask.  Click again in another part of the image to create a new point of
+the polygon.  Every click creates a new point for a mask.  The polygon
+is automatically closed.
+
+Knowing which point is the 1st point is essential for animating masks,
+so the 1st point is always drawn filled in while other points are drawn
+as an outline.  The current point being edited is enlarged.
+
+Once points are defined, they can be moved by @b{ctrl-dragging} in the
+vicinity of the corner.  This; however, doesn't smooth out the curve. 
+The lines are linear by default.  To get curves, @b{shift-drag} on a
+point to create control points.  Then @b{shift-dragging} near a control
+point causes the control point to move.
 
 Finally, once you have a mask, the mask can be translated in one piece
 by @b{alt-dragging} the mask.  Mask editing in Cinelerra is
 identical to how The Gimp edits masks except in this case the effect of
 the mask is always on.
 
+@center @image{mask2}
+@center Different types of mask points
+
+@b{Mask tool window}
+
 The masks have many more parameters which couldn't be represented with
 video overlays.  These are represented in the tool window for masks. 
+
+@ignore
 Selecting the @image{toolwindow} question mark when the @image{mask}
 mask toggle is highlighted brings up the mask options.
+@end ignore
 
-The @b{mode} of the mask determines if the mask removes data or
-makes data visible.  If the mode is subtractive, the mask causes video
-to disappear.  If the mode is additive, the mask causes video to appear
-and everything outside the mask to disappear.
+@b{MODE} determines if the mask removes data or makes data visible, if
+it's a path or a closed polygon.  If the mode is subtractive, the mask
+causes video to disappear.  If the mode is additive, the mask causes
+video to appear and everything outside the mask to disappear.
 
-The @b{value} of the mask determines how extreme the addition or
-subtraction is.  In the subtractive mode, higher values subtract more
-alpha.  In the additive mode, higher values make the region in the mask
-brighter while the region outside the mask is always hidden.
+@b{VALUE} determines how extreme the addition or subtraction is.  In the
+subtractive mode, higher values subtract more alpha.  In the additive
+mode, higher values make the region in the mask brighter while the
+region outside the mask is always hidden.
 
-The mask number determines which one of the 8 possible masks we're
-editing.  Each track has 8 possible masks.  When you click-drag in the
-compositor window, you're only editing one of the masks.  Change the
-value of @b{mask number} to cause another mask to be edited.  The
-previous mask is still active but only the curve overlay for the
-currently selected mask is visible.
+@b{MASK NUMBER} The mask number determines which one of the 8 possible
+masks we're editing.  Each track has 8 possible masks.  When you
+click-drag in the compositor window, you're only editing one of the
+masks.  Change the value of @b{mask number} to cause another mask to be
+edited.  The previous mask is still active but only the curve overlay
+for the currently selected mask is visible.
 
 When multiple masks are used, their effects are ORed together.  Every
-mask in a single track uses the same value and mode.
+mask in a single track uses the same value, mode, feather, radius.
 
-The edges of a mask are hard by default but this rarely is desired. 
+@b{FEATHER} The edges of a mask are hard by default but this rarely is desired. 
 The @b{feather} parameter determines how many pixels to feather the
 mask.  This creates softer edges but takes longer to render.
 
-Finally, there are parameters which affect one point on the current
-mask instead of the whole mask.  These are @b{Delete, x, y}.  The
-active point is defined as the last point dragged in the compositor
-window.  Any point can be activated merely by @b{ctrl-clicking} near
-it without moving the pointer.  Once a point is activated,
-@b{Delete} deletes it and @b{x, y} allow repositioning by numeric
-entry.
+@b{RADIUS} Only applies to paths & determines the width of the path. 
+Feather is still applied to the edges of the path.
 
+Finally, there are parameters for editing one point on the current mask
+instead of the whole mask.
 
+@b{EDITING POINT} Selects the active point for editing.  The points are
+all numbered from the 1st one created.  The active point is drawn
+enlarged in the compositor window.
+
+@b{X, Y} Shows the position of the selected point.  Enter text to
+reposition it.
+
+@b{DELETE POINT} Deletes the selected point
+
+@b{MAKE LINEAR} This deletes the bezier control points to make the lines
+linear.
+
+Notes about animating masks are in the keyframe section.  @xref{MASK KEYFRAMES}
 
 
 @node CROPPING

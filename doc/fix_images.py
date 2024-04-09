@@ -18,15 +18,22 @@ THUMB_W = 320
 
 # input & scaled images
 IMAGES = [
-    'chromakey.png', 'chromakeys.png',
-    'chromakeyhsv1.png', 'chromakeyhsv1s.png',
-    'chromakeyhsv2.png', 'chromakeyhsv2s.png',
-    'chromakeyhsv3.png', 'chromakeyhsv3s.png',
-    'chromakeyhsv4.png', 'chromakeyhsv4s.png',
-    'chromakeyhsv5.png', 'chromakeyhsv5s.png',
-    'chromakeyhsv6.png', 'chromakeyhsv6s.png',
-    'chromakeyhsv7.png', 'chromakeyhsv7s.png',
-    'chromakeyhsv8.png', 'chromakeyhsv8s.png'
+    'chromakey.png',
+    'chromakeyhsv1.png', 
+    'chromakeyhsv2.png', 
+    'chromakeyhsv3.png', 
+    'chromakeyhsv4.png', 
+    'chromakeyhsv5.png', 
+    'chromakeyhsv6.png', 
+    'chromakeyhsv7.png', 
+    'chromakeyhsv8.png', 
+    'compositing_pipeline.png', 
+    'compositing_pipeline2.png', 
+    'linear.png', 
+    'locked_bezier.png', 
+    'unlocked_bezier.png', 
+    'mask2.png',
+    'recording.png'
 ]
 
 
@@ -72,32 +79,37 @@ while True:
                 img_path = img_path[0:offset3]
 
                 gotIt = False
-                for i in range(0, len(IMAGES), 2):
+                for i in range(0, len(IMAGES)):
                     if img_path == IMAGES[i]:
                         gotIt = True
                         break
 
                 if gotIt:
-                    img_path2 = IMAGES[i + 1]
+# get the filename extension
+                    offset4 = img_path.rfind('.')
+# add _s before extension
+                    img_path2 = img_path[0:offset4] + '_s' + img_path[offset4:]
                     print("Got %s -> %s" % (img_path, img_path2))
 
-                    image = Image.open(img_path)
-                    w, h = image.size
-                    print("size %dx%d" % (w, h))
+# test if _s image already exists & scale it
+                    if not os.path.exists(img_path2):
+                        image = Image.open(img_path)
+                        w, h = image.size
+    #                    print("size %dx%d" % (w, h))
 
-                    new_w = THUMB_W
-                    new_h = h * THUMB_W / w
+                        new_w = THUMB_W
+                        new_h = h * THUMB_W / w
 
-                    print("new size %dx%d" % (new_w, new_h))
-                    resized_image = image.resize((new_w, new_h), Image.ANTIALIAS)
-                    resized_image.save(img_path2)
+    #                    print("new size %dx%d" % (new_w, new_h))
+                        resized_image = image.resize((new_w, new_h), Image.ANTIALIAS)
+                        resized_image.save(img_path2)
 
                     new_line = line[0:offset1]
                     new_line += "<A HREF=\"%s\"><IMG SRC=\"%s\"></A>" % \
                         (img_path, img_path2)
                     new_line += line[offset2:]
-                    print("%s offset1=%d offset2=%d" % (line, offset1, offset2))
-                    print("%s" % new_line)
+#                    print("%s offset1=%d offset2=%d" % (line, offset1, offset2))
+#                    print("%s" % new_line)
                     gotOne = True
 
     dst += new_line

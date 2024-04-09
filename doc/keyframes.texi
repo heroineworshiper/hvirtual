@@ -4,105 +4,96 @@
 @chapter KEYFRAMES
 
 
-When you change the fade, camera, projector, or other parameters for a
-track, they stay by default the same for the entire durection of the
-timeline.   Setting static parameters isn't very useful sometimes. 
-Normally you need to move the camera around over time or change mask
-positions.  Masks need to follow objects.  We create dymanic changes by
-defining keyframes.  A keyframe is a certain point in time when the
-settings for one operation change.  In Cinelerra, there are keyframes
-for almost every compositing parameter and effect parameter.
+The fade, mute, mode, pan, mask, speed, camera, projector, transition,
+or effect data for a track is all stored in keyframes.  Keyframes come
+in many forms: curves, toggles, modes, masks, and so on.  How to handle
+the different types of keyframes is described here.
 
-Whenever you adjust any parameter, the value is stored in a keyframe. 
-If the value is stored in a keyframe, why doesn't it always change? 
-The keyframe it is stored in by default is known as the @b{default
-keyframe}.  The default keyframe applies to the entire duration if no
-other keyframes are present.  The default keyframe is not drawn
-anywhere because it always exists.  The only way change occurs over
-time is if non-default keyframes are created.
-
-Display keyframes for any parameter by using the @b{view} menu.  A
-faster way to toggle multiple keyframe types is to bring up
-@b{window->overlays}.  This window allows toggling of every parameter
-in the view menu.  When keyframes are selected, they are drawn on the
-timeline over the tracks they apply to.
-
-Keyframes come in many forms: curves, toggles, modes, and so on. 
-How to handle the different types of keyframes is described here.
 
 @menu
+* DISPLAYING KEYFRAMES::
+* DEFAULT KEYFRAMES::
 * CURVE KEYFRAMES::  Using rubber band curves
-* CHANGING BEZIER & LINEAR MODE::  Change curves from linear to curved
-* SNAPPING TO NEIGHBOR KEYFRAMES::  
 * NAVIGATING CURVE KEYFRAMES::
-* TOGGLE KEYFRAMES::
+* SELECTING BEZIER & LINEAR MODE::  Change curves from linear to curved
+* SNAPPING TO NEIGHBOR KEYFRAMES::  
+* MUTE KEYFRAMES::
 * AUTOMATIC KEYFRAMES::
-* COMPOSITOR KEYFRAMES::  
+* CAMERA/PROJECTOR KEYFRAMES::
+* MASK KEYFRAMES::
 * EDITING KEYFRAMES::   Moving keyframes around
 * KEYFRAME SPANNING::   How to change 1 parameter in many keyframes simultaneously
 @end menu
+
+
+@node DISPLAYING KEYFRAMES
+@section DISPLAYING KEYFRAMES
+
+Display keyframes on the timeline for any parameter by using the
+@b{view} menu & selecting the type of keyframe.  When keyframes are
+selected, they are drawn on the timeline over the tracks they apply to.
+
+A faster way to toggle multiple keyframe types is to bring up
+@b{window->overlays}.  This window allows toggling of every parameter in
+the view menu in a persistent window.  Click drag in this window to set
+multiple check boxes at once.
+
+The @b{keyframes->paste} operations only affect data types which are
+currently visible & in recordable tracks.  Use the visible status & the
+track record status to determine what keyframes are edited by the menu
+operations.
+
+
+@node DEFAULT KEYFRAMES
+@section DEFAULT KEYFRAMES
+
+Controls are constant for the entire duration of the timeline when no
+keyframes have been created.  The values are stored in a special type of
+keyframe called the default keyframe when they're constant.  The default
+keyframe isn't drawn on the timeline but it can be copied to the
+clipboard by going to @b{keyframes->copy default keyframe}.  This menu
+option copies all the default keyframes for all the data types in every
+track marked as recordable.  Paste the clipboard into a text editor to
+see the values of all the default keyframes.
+
+The default keyframe can also be overwritten by the clipboard contents. 
+Edit a @b{VALUE} in the text editor, copy the complete contents of the
+text editor & go to @b{keyframes->paste default keyframe} to overwrite
+the timeline value with the value from the text editor.
+
+It should be noted @b{keyframes->paste default keyframe} only affects
+data types which are currently viewable in the @b{View} menu, regardless
+of if their values are in the clipboard.
+
+If @b{view->fade} is enabled, hit @b{ALT F}, then right click on the
+rubber band curve to get the keyframe context menu.  @b{Edit default
+keyframe} allows editing the default fade keyframe in a window.  Another
+set of copy & paste options in the context menu provide clipboard
+operations for the default keyframe of just the 1 data type.
+
+Setting constant parameters isn't very useful sometimes.  Change values
+over time by creating non default keyframes.
 
 
 
 @node CURVE KEYFRAMES
 @section CURVE KEYFRAMES
 
-Many parameters are stored in rubber band curves.  Go to @b{view->fade} or
-@b{view->...zoom} to show curves on the timeline for those parameters. 
+Fade, Speed, Camera, Projector data is stored in rubber band curves.  Go
+to @b{view->fade} to show rubber band curves on the timeline for fade. 
 In either arrow editing mode or i-beam editing mode, move the cursor
-over the curves in the timeline until it changes shape.  Then merely by
-clicking and dragging on the curve you can create a keyframe at the
-position.
+over the curves in the timeline until it changes into an arrow.  Then
+merely by left clicking and dragging on the curve you can create a
+keyframe at the position.
 
-After the keyframe is created, click drag on it again to reposition
-it.  When you click-drag a second keyframe on the curve, it creates a
-smooth ramp.
+After the keyframe is created, click drag on it again to reposition it. 
+When you create a second keyframe on the curve, it creates a smooth
+ramp.
 
-@node CHANGING BEZIER & LINEAR MODE
-@section CHANGING BEZIER & LINEAR MODE
+Right click on a curve keyframe & select @b{Edit keyframe} in the
+context menu to enter text values for it.  It can also be changed
+between bezier & linear in this editor.
 
-The curve keyframes have bezier and linear modes.  In linear mode, the
-keyframe looks like a square and the lines emanating from it are
-straight.  In bezier mode, the keyframe is rounded and has 2 control
-lines in addition to the rubber band curve lines.
-
-These are keyframes in linear mode.
-
-@image{linear}
-
-These are keyframes in bezier mode.
-
-@image{bezier}
-
-Change the mode of an existing keyframe by right clicking on it to bring
-up the context menu and selecting @b{make linear} or @b{make bezier}.
-
-
-Change the mode of several keyframes by highlighting the entire region of the
-timeline and selecting @b{Keyframes->change to linear} or
-@b{Keyframes->change to bezier}.
-
-When keyframes are created, they can be linear or bezier by default. 
-Change the default mode by checking or unchecking @b{Keyframes->create
-bezier}.
-
-
-For bezier keyframes, @b{ctrl-dragging} on the control lines of a
-keyframe changes the value of either the input control or the output
-control.  Without @b{ctrl} the cursor only affects the central
-keyframe.  This affects the sharpness of the curve.  The input and
-output controls can only be moved vertically.
-
-If the control lines aren't visible, @b{ctrl-drag} on the left or right
-of the keyframe.
-
-@node SNAPPING TO NEIGHBOR KEYFRAMES
-@section SNAPPING TO NEIGHBOR KEYFRAMES
-
-@b{shift-drag} on a curve keyframe to make the keyframe snap to the
-value of either the next or previous keyframe, depending on which
-exists.  This lets you set a constant curve value without having to copy
-the next or previous keyframe.
 
 
 
@@ -115,24 +106,81 @@ variability.  This is done by 2 tools: the automation fit button
 @image{fitautos} and automation zoom menu @image{autozoom}.
 
 The automation fit button scales and offsets the vertical range so the
-selected curve area appears in the timeline.  If a region of the
-timeline is highlighted by the cursor, only that region is scaled. 
-In/out points don't affect the zoomed region.  @b{Alt-f} also performs
-automation fitting.
+selected curves fit in the timeline.  The selected curves are defined by
+the armed tracks, the visible keyframe types, & the highlighed region. 
+If a region of the timeline is highlighted by the cursor, only that
+region is scaled.  If a region is not highlighted, the entire project is
+scaled.  In/out points don't affect the zoomed region.  @b{Alt-f} also
+performs automation fitting.
 
-The automation zoom menu manually changes the vertical scaling of the
-curves in multiples of 2.  Click on its tumbler to change the zoom. 
-@b{Alt-Up and Alt-Dn} change the automation zoom from the keyboard.
+The automation zoom tumbler manually changes the vertical scaling of the
+curves by multiples of 2.  @b{Alt-Up and Alt-Dn} change the automation
+zoom from the keyboard.
 
 
-@node TOGGLE KEYFRAMES
-@section TOGGLE KEYFRAMES
+@node SELECTING BEZIER & LINEAR MODE
+@section SELECTING BEZIER & LINEAR MODE
+
+The curve keyframes have linear, locked bezier, & unlocked bezier
+modes.  In linear mode, the keyframe looks like a square and the curves
+emanating from it are straight.  In bezier modes, the keyframe is
+rounded and has 2 control lines in addition to the rubber band curve
+lines.  In locked bezier mode, the control lines are mirrors & the curve
+is straight when it passes through the keyframe.  In unlocked bezier
+mode, the control lines have different angles & the curve bends when it
+passes through the keyframe.
+
+To select the mode for a single keyframe, right click on it to bring up
+the keyframe menu.  Select @b{linear, locked bezier, or unlocked
+bezier}.
+
+To select the mode of multiple keyframes, highlight a region of the
+timeline, then go to 1 of the @b{Keyframes->change to} options.  These
+options change all the keyframes displayed in the View menu, in the
+highlighted area.
+
+For bezier keyframes, @b{ctrl-dragging} on the control lines of a
+keyframe changes the value of either the input control or the output
+control.  Without @b{ctrl} the cursor only affects the central
+keyframe.  This affects the sharpness of the curve.  The input and
+output controls can only be moved vertically.
+
+If the control lines aren't visible, @b{ctrl-drag} on the left or right
+of the keyframe.
+
+@center @image{linear}
+@center Linear keyframes
+
+
+@center @image{locked_bezier}
+@center Locked bezier keyframes
+
+@center @image{unlocked_bezier}
+@center Unlocked bezier keyframes
+
+@ignore
+When keyframes are created, they can be linear or bezier by default. 
+Change the default mode by checking or unchecking @b{Keyframes->create
+bezier}.
+@end ignore
+
+@node SNAPPING TO NEIGHBOR KEYFRAMES
+@section SNAPPING TO NEIGHBOR KEYFRAMES
+
+@b{shift-drag} on a curve keyframe to make the keyframe snap to the
+value of either the next or previous keyframe, depending on which
+exists.  This lets you set a constant curve value without having to copy
+the next or previous keyframe.
+
+
+
+@node MUTE KEYFRAMES
+@section MUTE KEYFRAMES
 
 Mute is the only toggle keyframe.  Mute keyframes determine where the
 track is processed but not rendered to the output.  Click-drag on these
-curves to create a keyframe.  Unlike curves, the toggle keyframe has
-only two values: on or off.  Ctrl and shift do nothing on toggle
-keyframes.
+curves to create a keyframe.  Unlike curves, the mute keyframe has only
+two values: on or off.  Ctrl and shift do nothing on toggle keyframes.
 
 
 
@@ -143,17 +191,16 @@ keyframes.
 @section AUTOMATIC KEYFRAMES
 
 You may have noticed when a few fade curves are set up, moving the
-insertion point around the curves causes the faders to reflect the
-curve value under the insertion point.  This isn't just to look cool. 
-The faders themselves can set keyframes in automatic keyframe mode. 
+insertion point around the curves causes the faders to reflect the curve
+value under the insertion point.  This isn't just to look cool.  The
+faders themselves can create keyframes in automatic keyframe mode. 
 Automatic keyframe mode is usually more useful than dragging curves.
 
-Enable automatic keyframe mode by enabling the automatic keyframe
-toggle @image{autokeyframe}.  In automatic keyframe mode, every time
-you tweek a keyframeable parameter it creates a keyframe on the
-timeline.  Since automatic keyframes affect many parameters, it's best
-enabled just before you need a keyframe and disabled immediately
-thereafter.
+Enable automatic keyframe mode by enabling the automatic keyframe toggle
+@image{autokeyframe}.  In automatic keyframe mode, every time you tweek
+a fader it creates a keyframe on the timeline.  Since automatic
+keyframes affect many parameters, it's best enabled just before you need
+a keyframe and disabled immediately thereafter.
 
 It's useful to go into the @b{View} menu and make the desired
 parameter visible before performing a change.  The location where the
@@ -161,68 +208,81 @@ automatic keyframe is generated is under the insertion point.  If the
 timeline is playing back during a tweek, several automatic keyframes
 will be generated as you change the parameter.
 
-When automatic keyframe mode is disabled, a similarly strange thing
-happens.  Adjusting a parameter adjusts the keyframe immediately
-preceeding the insertion point.  If two fade keyframes exist and the
-insertion point is between them, changing the fader changes the first
-keyframe.
+When automatic keyframe mode is disabled, adjusting a parameter adjusts
+the keyframe immediately preceeding the insertion point.  If two fade
+keyframes exist and the insertion point is between them, changing the
+fader changes the first keyframe.
 
 There are many parameters which can only be keyframed in automatic
 keyframe mode.  These are parameters for which curves would take up too
 much space on the track or which can't be represented easily by a
 curve.
 
-Effects are only keyframable in automatic mode because of the number of
-parameters in each individual effect.  
+@b{Effects, masks, pan,} are only keyframable in automatic mode because 
+the number of parameters are different in each individual effect or
+because they require too many data points to draw on the timeline.  
 
+
+@ignore
 Camera and projector translation can only be keyframed in automatic
 keyframe mode while camera and projector zoom can be keyframed with
 curves.  It is here that we conclude the discussion of compositing,
 since compositing is highly dependant on the ability to change over
 time.
+@end ignore
 
 
+@node CAMERA/PROJECTOR KEYFRAMES
+@section CAMERA/PROJECTOR KEYFRAMES
 
-@node COMPOSITOR KEYFRAMES
-@section COMPOSITOR KEYFRAMES
+Camera and projector automation is represented by X, Y, Z curves.  It is
+usually cumbersome to adjust camera & projector with the curves so the
+compositor window allows direct entry of keyframes by dragging the
+image.  With a video track loaded, move the insertion point to the
+beginning of the track and enable automatic keyframe mode @image{autokeyframe}.
 
-Camera and projector translation is represented by two parameters: x
-and y.  Therefore it is cumbersome to adjust with curves.  Cinelerra
-solves this problem by relying on automatic keyframes.  With a video
-track loaded, move the insertion point to the beginning of the track
-and enable automatic keyframe mode.
+Edits in the compositor window only affect the 1st recordable track.
 
-Move the projector slightly in the compositor window to create a
-keyframe.  Then go forward several seconds.  Move the projector a long
-distance to create another keyframe and emphasize motion.  This creates
-a second projector box in the compositor, with a line joining the two
-boxes.  The joining line is the motion path.  If you create more
-keyframes, more boxes are created.  Once all the desired keyframes are
-created, disable automatic keyframe mode.
+Enable the projector tool in the compositor window.  Drag the video
+output to create keyframes for X & Y translation.  Shift drag to zoom &
+create a keyframe on the Z curve.  Clicking the justification buttons in
+the projector tool similarly create keyframes.  Selecting @b{reset
+projector} in the video output's context menu generates centered
+keyframes for X Y & Z.
 
-Now when scrubbing around with the compositor window's slider, the
-video projection moves over time.  At any point between two keyframes,
-the motion path is read for all time before the insertion point and
-green for all time after the insertion point.  It's debatable if this
-is a very useful feature but it makes you feel good to know what
-keyframe is going to be affected by the next projector tweek.
+Do @b{ALT F} in the timeline window to make the keyframe curves visible
+on the track.
 
-Click-drag when automatic keyframes are off to adjust the preceeding
-keyframe.  If you're halfway between two keyframes, the first projector
-box is adjusted while the second one stays the same.  Furthermore, the
-video doesn't appear to move in step with the first keyframe.  This is
-because, halfway between two keyframes the projector translation is
-interpolated.  In order to set the second keyframe you'll need to scrub
-after the second keyframe.
+Move the insertion point to to another time on the timeline.  Move the
+projection again in the compositor window to create more keyframes. 
+Once all the desired keyframes are created, disable automatic keyframe
+mode.
 
-By default the motion path is a straight line, but it can be curved
-with control points.  @b{Ctrl-drag} to set either the in or out
-control point of the preceeding keyframe.  Once again, we depart from
-The Gimp because @b{shift} is already used for zoom.  After the in
-or out control points are extrapolated from the keyframe,
-@b{Ctrl-dragging} anywhere in the video adjusts the nearest control
-point.  A control point can be out of view entirely yet still
-controllable.
+Now when scrubbing around between times on the timeline, the video
+projection will interpolate between the keyframes.
+
+If automatic keyframes are off, dragging the video output in the
+compositor window adjusts the previous keyframe.  If the insertion point
+is between keyframes, it won't appear to track the drag operation
+because the position at the insertion point is interpolated between 2
+keyframes.
+
+The camera & projector tools perform the same operations on keyframes.
+
+@b{BEZIER CURVES FOR CAMERA/PROJECTOR}
+
+By default, the motion paths created by camera & projector are a
+straight line, but they can be converted to bezier curves via the
+keyframe menus.
+
+
+@ignore
+@b{Ctrl-drag} to set either the in or out control point of the
+preceeding keyframe.  Once again, we depart from The Gimp because
+@b{shift} is already used for zoom.  After the in or out control points
+are extrapolated from the keyframe, @b{Ctrl-dragging} anywhere in the
+video adjusts the nearest control point.  A control point can be out of
+view entirely yet still controllable.
 
 When editing the camera translation, the behavior of the camera boxes
 is slightly different.  Camera automation is normally used for still
@@ -235,19 +295,39 @@ The situation becomes more intuitive if you bend the motion path
 between two keyframes and scrub between the two keyframes.  The
 division between red and green, the current position between the
 keyframes, is always centered while the camera boxes move.
+@end ignore
 
+@node MASK KEYFRAMES
+@section MASK KEYFRAMES
 
+Mask keyframes can only be set by editing a mask in the compositor with
+auto keyframes @image{autokeyframe} enabled.
 
+The main trick with mask keyframes is the polygons are interpolated
+between the keyframes by interpolating all the points with the same
+number.  Point 0 is interpolated with point 0.  Point 1 is interpolated
+with point 1.  Point 0 is differentiated from the other points to help
+match the points in the different keyframes.
 
+Feather & radius are interpolated between keyframes but the Mode is
+whatever the previous keyframe has.
+
+If the number of points changes between keyframes, the results are
+undefined.
 
 
 @node EDITING KEYFRAMES
 @section EDITING KEYFRAMES
 
-Keyframes can be shifted around and moved between tracks on the
-timeline using similar cut and paste operations to editing media.  Only
-the keyframes selected in the @b{view} menu are affected by keyframe
-editing operations, however.
+
+@b{THE KEYFRAME MENU}
+
+Keyframes can be shifted around and moved between tracks on the timeline
+using the same cut and paste metaphore as editing media.  The
+@b{keyframe} menu performs clipboard operations on multiple keyframes at
+the same time, as defined by what tracks are armed & what data types are
+visible.  Only the keyframes selected in the @b{view} menu are affected
+by keyframe editing operations.
 
 The most popular keyframe editing operation is replication of some
 curve from one track to the other, to make a stereo pair.  The first
@@ -261,6 +341,7 @@ go to @b{keyframes->paste keyframes} to paste the clipboard.
 The media editing commands are mapped to the keyframe editing commands
 by using the @b{shift} key instead of just the keyboard shortcut.  
 
+@ignore
 This leads to the most complicated part of keyframe editing, the
 default keyframe.  Remember that when no keyframes are set at all,
 there is still a default keyframe which stores a global parameter for
@@ -270,6 +351,7 @@ want to transpose between other non-default keyframes?  The
 @b{keyframes->copy default keyframe} and @b{keyframes->paste
 default keyframe} allow conversion of the default keyframe to a
 non-default keyframe.
+@end ignore
 
 @b{Keyframes->copy default keyframe} copies the default keyframe to
 the clipboard, no matter what region of the timeline is selected.  The
@@ -287,7 +369,31 @@ selecting a region and calling @b{keyframes->clear keyframes}.
 Merely click-drag a keyframe before its preceeding keyframe or after
 its following keyframe on the track.
 
+@b{KEYFRAME CONTEXT MENU}
 
+Right clicking on a keyframe or a rubber band curve provides a context
+menu with the same operations as the keyframe menu.  The difference is
+the context menu affects just 1 keyframe at a time.  This can be faster
+than arming tracks & selecting data types to show in the view menu.
+
+The context menu provides an additional @b{Edit keyframe} operation to
+type in the values of a curve keyframe.
+
+@b{EDITING KEYFRAMES IN A TEXT EDITOR}
+
+Select @b{copy keyframe} or @b{copy default keyframe} in the context menu
+to copy a single keyframe to the clipboard.  Paste it in a text editor. 
+Copy it back to the timeline with @b{paste keyframe} or @b{paste default
+keyframe} in the context menu.
+
+@b{MOVING KEYFRAMES BETWEEN AUDIO & VIDEO TRACKS}
+
+Normally, keyframes from audio tracks can't be pasted into video tracks
+& vice versa.  Enabling @b{Settings->Interchangeable audio & video
+keyframes} allows keyrfames copied from a track type to be pasted in
+another track type.  The only factor determining the destination is what
+track is armed.  The only real use for this is copying a speed curve to
+all the tracks.
 
 @node KEYFRAME SPANNING
 @section KEYFRAME SPANNING
