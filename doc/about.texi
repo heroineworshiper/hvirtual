@@ -39,7 +39,7 @@ disk. For a time it seemed as if the original dream of immersive movie
 making for everyone regardless of income level had arrived.
 
 @b{CINELERRA}
-
+ 
 
 Later on Broadcast 2000 began to come short.  Its audio and video was
 graceful if you knew how to use it efficiently, but quality issues and
@@ -109,8 +109,8 @@ we've arrived at TexInfo.  This format can be converted to HTML,
 printed, automatically indexed, but most importantly is not bound to
 any commercial word processor.
 
-There are no screenshots in this manual.  Screenshots become obsolete
-quickly and as a result confuse the users.  What looks one way in a
+There are few screenshots in this manual.  Screenshots become obsolete
+quickly and as a result get confusing.  What looks one way in a
 screenshot will always look different in the real program because the
 real program and the manual are always evolving, never perfectly
 synchronized.  It is true that manuals should have screenshots, but our

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,26 +18,32 @@
  * 
  */
 
-#ifndef HISTOGRAM_INC
-#define HISTOGRAM_INC
 
+// Functions for drawing histograms of images
 
+#ifndef HISTOGRAMTOOLS_INC
+#define HISTOGRAMTOOLS_INC
 
+#define HISTOGRAM_MODES 4
+#define HISTOGRAM_RED 0
+#define HISTOGRAM_GREEN 1
+#define HISTOGRAM_BLUE 2
+#define HISTOGRAM_VALUE 3
 
+// Number of divisions in histogram.  
+// 65536 + min and max range to speed up the tabulation
+#define HISTOGRAM_SLOTS 0x13333
+#define FLOAT_RANGE 1.2
+// Minimum value in percentage
+#define HISTOGRAM_MIN -10
+#define HISTOGRAM_MIN_INPUT -0.1
+// Maximum value in percentage
+#define HISTOGRAM_MAX 110
+#define HISTOGRAM_MAX_INPUT 1.1
 
-
-#define MIN_GAMMA 0.1
-#define MAX_GAMMA 10.0
-
-#define PRECISION 0.001
-#define DIGITS 3
-#define THRESHOLD_SCALE 1000
-
-#define BOX_SIZE 10
-
-
-class HistogramEngine;
-class HistogramMain;
+class HistogramTools;
+class HistogramScanner;
 
 
 #endif
+

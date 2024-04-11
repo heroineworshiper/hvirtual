@@ -12,6 +12,7 @@ utilize fully by mere experimentation.
 * CHROMA KEYERS::     Create transparency based on color.
 * COLOR SWATCH::      Color swatch
 * COMPRESSOR::        How to reduce the dynamic range of audio.
+* MULTIBAND COMPRESSOR:: Reduce the dynamic range of audio by frequency range.
 * DECIMATE::          How to reduce frame rates by eliminating similar frames.
 * DEINTERLACE::       How to convert interlaced video to progressive video.
 * DIFFERENCE KEY::    Create transparency based on color differences.
@@ -129,10 +130,28 @@ range is the user specified value.
 The compressor has a graph which correlates every input sound level to
 an output level.  The horizontal direction is the input sound level in
 dB.  The vertical direction is the ouptut sound level in dB.  The user
-specifies output sound levels by creating points on the graph.  Click
-in the graph to create a point.  If 2 points exist, drag one point
-across another point to delete it.  The most recent point selected has
-its vales displayed in textboxes for more precise adjustment.
+specifies output sound levels by creating points on the graph.  Click in
+the graph to create a point.  If 2 points exist, drag one point across
+another point to delete it.  The most recent point selected has its
+vales displayed in @b{OUTPUT} @b{INPUT} textboxes for more precise
+adjustment.
+
+Right click in the graph to get a context menu.  
+
+@b{copy graph} copies the graph to the clipboard.  It may be pasted in a
+text editor for editing & copied from the text editor.
+
+@b{past graph} to paste the clipboard in the graph.  This allows graphs
+to be copied between band in the multiband compressor.
+
+@b{clear graph} erases all the points.
+
+@center @image{compressor1}
+@center Graph for reducing dynamic range to 0db for all input above -42db.
+
+
+@center @image{compressor2}
+@center Graph for expanding dynamic range to 2db output for every 1db input.
 
 To make the compressor reduce the dynamic range of the audio, make all
 the output values greater than the input values except 0 db.  To make
@@ -194,10 +213,54 @@ the current peak value.  It makes it very easy to see how @b{reaction
 secs} affects the detected peak values.
 
 
+@b{IN:} This meter shows the current value of the trigger during playback.  
+
+@b{GAIN:} This meter shows what gain is being computed from the
+trigger.  If it's above 0, the input is being amplified.  If it's below
+0, the input is being reduced.
 
 
+@node MULTIBAND COMPRESSOR
+@section MULTIBAND COMPRESSOR
 
+This adds more features to the compressor for selecting frequency
+bands.  There are 3 bands, each with its own sound level graph.  Use the
+context menu in the graph to copy curves from 1 band to another or a
+text editor.
 
+The same attack, release, trigger type, trigger, smooth only, window
+size apply to all 3 bands.
+
+@b{CURRENT BAND} Select the current band to show in the graph.
+
+@b{SOLO BAND} Mutes the other bands & only plays the band selected.  The
+solo band for the other bands is automatically deselected when this is
+selected.
+
+@b{BYPASS BAND} Disregards the graph for the current band & passes the
+audio through.  The frequency range is still applied.
+
+@b{FREQ RANGE} The multiband compressor has 3 frequency ranges which may
+not overlap.  The frequency range shows 2 of the 3 border frequencies at
+a time.  
+
+For band 1, the frequency range shows only the maximum frequency of the
+low range. 
+
+For band 2, the frequency range shows the maximum frequency of the low
+range & the minimum frequency of the high range.
+
+For band 3, the frequency range shows the minimum frequency of the high range.
+
+@b{BANDWIDTH} This is only a visual representation of the 3 bands & the
+spectrum of the current audio.  It doesn't take any inputs.
+
+@b{STEEPNESS} This is how steep the transitions between the bands are.  
+
+@b{WINDOW SIZE} This determines the size of the FFT that creates the
+frequency bands.  The higher it is, the more precise the filter but the
+more it has to read ahead.  Higher steepness requires a higher window
+size to truly be realized.
 
 @node DECIMATE
 @section DECIMATE

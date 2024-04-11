@@ -29,6 +29,8 @@ IMAGES = [
     'chromakeyhsv8.png', 
     'compositing_pipeline.png', 
     'compositing_pipeline2.png', 
+    'compressor1.png', 
+    'compressor2.png', 
     'linear.png', 
     'locked_bezier.png', 
     'unlocked_bezier.png', 

@@ -56,7 +56,8 @@ void BC_WindowBase::enable_opengl()
 //	if(video_is_on())
 //	{
 // Make the front buffer's context current.  Pixmaps don't work.
-//printf("BC_WindowBase::enable_opengl %d %p\n", __LINE__, get_synchronous());
+//printf("BC_WindowBase::enable_opengl %d gl_win_context=%p\n", 
+//__LINE__, gl_win_context);
 		get_synchronous()->current_window = this;
 		glXMakeCurrent(top_level->display,
 			win,

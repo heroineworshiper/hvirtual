@@ -619,18 +619,18 @@ void ColorBalanceMain::read_data(KeyFrame *keyframe)
 void ColorBalanceMain::get_aggregation(int *aggregate_interpolate,
 	int *aggregate_gamma)
 {
-	if(!strcmp(get_output()->get_prev_effect(1), "Interpolate Pixels") &&
-		!strcmp(get_output()->get_prev_effect(0), "Gamma"))
-	{
-		*aggregate_interpolate = 1;
-		*aggregate_gamma = 1;
-	}
-	else
-	if(!strcmp(get_output()->get_prev_effect(0), "Interpolate Pixels"))
-	{
-		*aggregate_interpolate = 1;
-	}
-	else
+// 	if(!strcmp(get_output()->get_prev_effect(1), "Interpolate Pixels") &&
+// 		!strcmp(get_output()->get_prev_effect(0), "Gamma"))
+// 	{
+// 		*aggregate_interpolate = 1;
+// 		*aggregate_gamma = 1;
+// 	}
+// 	else
+// 	if(!strcmp(get_output()->get_prev_effect(0), "Interpolate Pixels"))
+// 	{
+// 		*aggregate_interpolate = 1;
+// 	}
+// 	else
 	if(!strcmp(get_output()->get_prev_effect(0), "Gamma"))
 	{
 		*aggregate_gamma = 1;
@@ -653,7 +653,7 @@ int ColorBalanceMain::handle_opengl()
 	get_aggregation(&aggregate_interpolate,
 		&aggregate_gamma);
 
-printf("ColorBalanceMain::handle_opengl %d %d\n", aggregate_interpolate, aggregate_gamma);
+//printf("ColorBalanceMain::handle_opengl %d %d\n", aggregate_interpolate, aggregate_gamma);
 	if(aggregate_interpolate)
 		INTERPOLATE_COMPILE(shader_stack, current_shader)
 

@@ -173,9 +173,13 @@ mask.  Click again in another part of the image to create a new point of
 the polygon.  Every click creates a new point for a mask.  The polygon
 is automatically closed.
 
-Knowing which point is the 1st point is essential for animating masks,
-so the 1st point is always drawn filled in while other points are drawn
-as an outline.  The current point being edited is enlarged.
+To create a point before the last point, select the point before the
+point to be created.  There is no way to insert a point before the 1st
+point.  This is how Google maps has done it & it's worked well.
+
+Knowing the 1st & last point is essential for animating masks, so the
+1st & last points are triangles while the other points are circles.  The
+current point being edited is enlarged.
 
 Once points are defined, they can be moved by @b{ctrl-dragging} in the
 vicinity of the corner.  This; however, doesn't smooth out the curve. 

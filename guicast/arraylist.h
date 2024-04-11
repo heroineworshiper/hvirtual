@@ -38,6 +38,8 @@ public:
 	TYPE append();
 // Insert before item number
 	TYPE insert(TYPE value, int number);
+// insert after item number
+    TYPE insert_after(TYPE value, int number);
 
 // allocate
 	void allocate(int new_available);
@@ -66,6 +68,7 @@ public:
 	int get_array_delete();
 	int size();
 	TYPE get(int number);
+    TYPE* get_pointer(int number);
 	TYPE set(int number, TYPE value);
 
 	void sort();
@@ -157,12 +160,24 @@ TYPE ArrayList<TYPE>::append()            // add to end of list
 template<class TYPE>
 TYPE ArrayList<TYPE>::insert(TYPE value, int number)
 {
-	append(0);
+	append();
 	for(int i = total - 1; i > number; i--)
 	{
 		values[i] = values[i - 1];
 	}
 	values[number] = value;
+    return value;
+}
+
+template<class TYPE>
+TYPE ArrayList<TYPE>::insert_after(TYPE value, int number)
+{
+	append();
+	for(int i = total - 1; i > number + 1; i--)
+	{
+		values[i] = values[i - 1];
+	}
+	values[number + 1] = value;
     return value;
 }
 
@@ -326,9 +341,19 @@ TYPE ArrayList<TYPE>::get(int number)
 		number,
 		total);
     BC_Signals::dump_stack();
-	return 0;
+	return values[total - 1]; 
 }
 
+template<class TYPE>
+TYPE* ArrayList<TYPE>::get_pointer(int number)
+{
+	if(number < total) return &values[number];
+	printf("ArrayList<TYPE>::get_pointer number=%d total=%d\n",
+		number,
+		total);
+    BC_Signals::dump_stack();
+	return &values[total - 1];
+}
 template<class TYPE>
 TYPE ArrayList<TYPE>::set(int number, TYPE value)
 {

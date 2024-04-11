@@ -139,7 +139,6 @@ OBJS = \
 	$(OBJDIR)/filebaseaudio.o \
 	$(OBJDIR)/filebaseima4.o \
 	$(OBJDIR)/filebaseulaw.o \
-	$(OBJDIR)/filecr2.o \
 	$(OBJDIR)/filefork.o \
 	$(OBJDIR)/fileformat.o \
 	$(OBJDIR)/filegif.o \
@@ -171,6 +170,7 @@ OBJS = \
 	$(OBJDIR)/garbage.o \
 	$(OBJDIR)/gwindow.o \
 	$(OBJDIR)/gwindowgui.o \
+        $(OBJDIR)/histogramtools.o \
 	$(OBJDIR)/iec61883input.o \
 	$(OBJDIR)/iec61883output.o \
 	$(OBJDIR)/indexable.o \
@@ -352,6 +352,7 @@ OBJS = \
 	$(OBJDIR)/zoompanel.o
 
 
+#	$(OBJDIR)/filecr2.o \
 #	$(OBJDIR)/edithandles.o \
 #	$(OBJDIR)/dcoffset.o \
 #	$(OBJDIR)/transitionhandles.o \
@@ -534,7 +535,9 @@ CXXFLAGS := $(CFLAGS) -std=c++11
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
 $(shell echo $(CXXFLAGS) > $(OBJDIR)/cxx_flags)
 $(shell echo $(FFMPEG_CFLAGS) -D__STDC_CONSTANT_MACROS > $(OBJDIR)/ffmpeg_cflags)
-$(shell echo $(LDFLAGS1) $(OBJS) $(CFUNCTIONS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(FILECR3) $(AVIOBJS) $(CXXREPOSITORY) $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
+
+#$(shell echo $(LDFLAGS1) $(OBJS) $(CFUNCTIONS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(FILECR3) $(AVIOBJS) $(CXXREPOSITORY) $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
+$(shell echo $(LDFLAGS1) $(OBJS) $(CFUNCTIONS) $(FILEEXR) $(FILEFLAC) $(AUDIOPULSE) $(FFMPEG_OBJS) $(FILECR3) $(AVIOBJS) $(CXXREPOSITORY) $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) $(STATICLIBS) $(LIBS) $(LDFLAGS2) > $(OBJDIR)/objs)
 
 
 
@@ -543,7 +546,8 @@ $(shell echo $(LDFLAGS1) $(OBJS) $(CFUNCTIONS) $(DCRAW) $(FILEEXR) $(FILEFLAC) $
 # Static linking is not possible because the plugins depend on symbols
 # in the main executable.
 # Also VFS only overrides the C library when dynamic linking is used.
-$(OUTPUT): $(OBJS) $(CFUNCTIONS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILECR3) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
+#$(OUTPUT): $(OBJS) $(CFUNCTIONS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILECR3) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
+$(OUTPUT): $(OBJS) $(CFUNCTIONS) $(FILEEXR) $(FFMPEG_OBJS) $(FILECR3) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
 	$(LINKER) `cat $(OBJDIR)/objs`
 #	strip $(OUTPUT)
 
@@ -744,6 +748,7 @@ $(OBJDIR)/framecache.o:                           framecache.C
 $(OBJDIR)/garbage.o:                              garbage.C
 $(OBJDIR)/gwindow.o:                              gwindow.C
 $(OBJDIR)/gwindowgui.o:                           gwindowgui.C
+$(OBJDIR)/histogramtools.o:                       histogramtools.C
 $(OBJDIR)/iec61883input.o:                        iec61883input.C
 $(OBJDIR)/iec61883output.o:                       iec61883output.C
 $(OBJDIR)/indexfile.o:  			  indexfile.C

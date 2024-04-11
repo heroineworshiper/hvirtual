@@ -2,9 +2,10 @@ include ../../global_config
 
 OBJS = $(OBJDIR)/interpolatevideo.o \
 	$(OBJDIR)/interpolatewindow.o \
-	$(OBJDIR)/opticflow.o \
-	$(OBJDIR)/motioncache.o \
-	$(OBJDIR)/motionscan.o
+	$(OBJDIR)/opticflow.o
+
+#	$(OBJDIR)/motioncache.o \
+#	$(OBJDIR)/motionscan.o
 
 OUTPUT = $(PLUGIN_DIR)/interpolatevideo.plugin
 

@@ -5703,6 +5703,7 @@ int CLASS parse_tiff_ifd (int base)
   struct jhead jh;
   FILE *sfp;
 
+printf("parse_tiff_ifd %d\n", __LINE__);
   if (tiff_nifds >= sizeof tiff_ifd / sizeof tiff_ifd[0])
     return 1;
   ifd = tiff_nifds++;
@@ -9890,6 +9891,10 @@ void CLASS write_cinelerra (FILE *ofp)
  	int row, col, c, val;
 	float *output;
 
+    int max_r = 0;
+    int max_g = 0;
+    int max_b = 0;
+    int total_clipped = 0;
   	for (row = 0; row < height; row++) 
   	{
 		output = dcraw_data[row];
@@ -9918,9 +9923,29 @@ void CLASS write_cinelerra (FILE *ofp)
 				*output++ = (float)pixel[2] / 0xffff;
 
 				if(dcraw_alpha) *output++ = 1.0;
+
+//                 if(pixel[0] > max_r) max_r = pixel[0];
+//                 if(pixel[1] > max_g) max_g = pixel[1];
+//                 if(pixel[2] > max_b) max_b = pixel[2];
+//                 if(pixel[0] >= 65535 || pixel[1] >= 65535 || pixel[2] >= 65535)
+//                     total_clipped++;
 			}
 		}
-   } 
+    } 
+
+//     int max_value = 0;
+//     printf("write_cinelerra %d raw_image=%p raw_width=%d raw_height=%d\n", 
+//         __LINE__, raw_image, raw_width, raw_height);
+//     for(row = 0; row < raw_height; row++)
+//     {
+//         for(col = 0; col < raw_width; col++)
+//         {
+//             ushort *pixel = raw_image + row * raw_width + col;
+//             if(*pixel > max_value) max_value = *pixel;
+//         }
+//     }
+//     printf("write_cinelerra %d max_value=%d\n", 
+//         __LINE__, max_value);
 }
 
 

@@ -20,6 +20,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 
+#include "bcpbuffer.h"
 #include "bcsignals.h"
 #include "bcwindowbase.h"
 #include "canvas.h"
@@ -365,34 +366,34 @@ static const char *read_texture_frag =
 
 static const char *multiply_mask4_frag = 
 	"uniform sampler2D src_tex;\n"
-	"uniform sampler2D tex1;\n"
+	"uniform sampler2D dst_tex;\n"
 	"uniform float scale;\n"
 	"void main()\n"
 	"{\n"
 	"	gl_FragColor = texture2D(src_tex, gl_TexCoord[0].st);\n"
-	"	gl_FragColor.a *= texture2D(tex1, gl_TexCoord[0].st / vec2(scale, scale)).r;\n"
+	"	gl_FragColor.a *= texture2D(dst_tex, gl_TexCoord[0].st / vec2(scale, scale)).r;\n"
 	"}\n";
 
 static const char *multiply_mask3_frag = 
 	"uniform sampler2D src_tex;\n"
-	"uniform sampler2D tex1;\n"
+	"uniform sampler2D dst_tex;\n"
 	"uniform float scale;\n"
 	"uniform bool is_yuv;\n"
 	"void main()\n"
 	"{\n"
 	"	gl_FragColor = texture2D(src_tex, gl_TexCoord[0].st);\n"
-	"   float a = texture2D(tex1, gl_TexCoord[0].st / vec2(scale, scale)).r;\n"
-	"	gl_FragColor.rgb *= vec3(a, a, a);\n"
+	"   float a = texture2D(dst_tex, gl_TexCoord[0].st / vec2(scale, scale)).r;\n"
+    "	gl_FragColor.rgb *= vec3(a, a, a);\n"
 	"}\n";
 
 static const char *multiply_yuvmask3_frag = 
 	"uniform sampler2D src_tex;\n"
-	"uniform sampler2D tex1;\n"
+	"uniform sampler2D dst_tex;\n"
 	"uniform float scale;\n"
 	"void main()\n"
 	"{\n"
 	"	gl_FragColor = texture2D(src_tex, gl_TexCoord[0].st);\n"
-	"   float a = texture2D(tex1, gl_TexCoord[0].st / vec2(scale, scale)).r;\n"
+	"   float a = texture2D(dst_tex, gl_TexCoord[0].st / vec2(scale, scale)).r;\n"
 	"	gl_FragColor.gb -= vec2(0.5, 0.5);\n"
 	"	gl_FragColor.rgb *= vec3(a, a, a);\n"
 	"	gl_FragColor.gb += vec2(0.5, 0.5);\n"
@@ -1598,152 +1599,18 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-
-// tesselate with GLU.  No path support.
-#if 0
-// Draw mask with scaling to simulate feathering
-		GLUtesselator *tesselator = gluNewTess();
-		gluTessProperty(tesselator, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_ODD);
-		gluTessCallback(tesselator, GLU_TESS_VERTEX, (GLvoid (*) ( )) &glVertex3dv);
-		gluTessCallback(tesselator, GLU_TESS_BEGIN, (GLvoid (*) ( )) &glBegin);
-		gluTessCallback(tesselator, GLU_TESS_END, (GLvoid (*) ( )) &glEnd);
-		gluTessCallback(tesselator, GLU_TESS_COMBINE, (GLvoid (*) ( ))&combine_callback);
-
-
-// Draw every submask as a new polygon
-		int total_submasks = command->keyframe_set->total_submasks(
-			command->start_position_project, 
-			PLAY_FORWARD);
-		float scale = feather + 1;
- 		int display_list = glGenLists(1);
- 		glNewList(display_list, GL_COMPILE);
-		for(int k = 0; k < total_submasks; k++)
-		{
-			gluTessBeginPolygon(tesselator, NULL);
-			gluTessBeginContour(tesselator);
-			ArrayList<MaskPoint*> *points = new ArrayList<MaskPoint*>;
-			command->keyframe_set->get_points(points, 
-				k, 
-				command->start_position_project, 
-				PLAY_FORWARD);
-
-			int first_point = 0;
-// Need to tabulate every vertex in persistent memory because
-// gluTessVertex doesn't copy them.
-			ArrayList<GLdouble*> coords;
-			for(int i = 0; i < points->total; i++)
-			{
-				MaskPoint *point1 = points->values[i];
-				MaskPoint *point2 = (i >= points->total - 1) ? 
-					points->values[0] : 
-					points->values[i + 1];
-
-
-// This is very slow.
-				float x, y;
-				int segments = (int)(sqrt(SQR(point1->x - point2->x) + SQR(point1->y - point2->y)));
-				if(point1->control_x2 == 0 &&
-					point1->control_y2 == 0 &&
-					point2->control_x1 == 0 &&
-					point2->control_y1 == 0)
-					segments = 1;
-
-				float x0 = point1->x;
-				float y0 = point1->y;
-				float x1 = point1->x + point1->control_x2;
-				float y1 = point1->y + point1->control_y2;
-				float x2 = point2->x + point2->control_x1;
-				float y2 = point2->y + point2->control_y1;
-				float x3 = point2->x;
-				float y3 = point2->y;
-
-				for(int j = 0; j <= segments; j++)
-				{
-					float t = (float)j / segments;
-					float tpow2 = t * t;
-					float tpow3 = t * t * t;
-					float invt = 1 - t;
-					float invtpow2 = invt * invt;
-					float invtpow3 = invt * invt * invt;
-
-					x = (        invtpow3 * x0
-						+ 3 * t     * invtpow2 * x1
-						+ 3 * tpow2 * invt     * x2 
-						+     tpow3            * x3);
-					y = (        invtpow3 * y0 
-						+ 3 * t     * invtpow2 * y1
-						+ 3 * tpow2 * invt     * y2 
-						+     tpow3            * y3);
-
-
-					if(j > 0 || first_point)
-					{
-						GLdouble *coord = new GLdouble[3];
-						coord[0] = x / scale;
-						coord[1] = -h + y / scale;
-						coord[2] = 0;
-						coords.append(coord);
-						first_point = 0;
-					}
-				}
-			}
-
-// Now that we know the total vertices, send them to GLU
-			for(int i = 0; i < coords.total; i++)
-				gluTessVertex(tesselator, coords.values[i], coords.values[i]);
-
-			gluTessEndContour(tesselator);
-			gluTessEndPolygon(tesselator);
-			points->remove_all_objects();
-			delete points;
-			coords.remove_all_objects();
-		}
-        gluDeleteTess(tesselator);
-
-
-		glEndList();
- 		glCallList(display_list);
- 		glDeleteLists(display_list, 1);
-#endif // 0
-
 		glColor4f(1, 1, 1, 1);
 
 
-#if 0
-// Read mask into temporary texture.
-// For feathering, just read the part of the screen after the downscaling.
-
-
-		float w_scaled = w / scale;
-		float h_scaled = h / scale;
-// Don't vary the texture size according to scaling because that 
-// would waste memory.
-// This enables and binds the temporary texture.
-		glActiveTexture(GL_TEXTURE1);
-		BC_Texture::new_texture(&temp_texture,
-			w, 
-			h, 
-			command->frame->get_color_model());
-		temp_texture->bind(1);
-		glReadBuffer(GL_BACK);
-
-// Need to add extra size to fill in the bottom right
-		glCopyTexSubImage2D(GL_TEXTURE_2D,
-			0,
-			0,
-			0,
-			0,
-			0,
-			(int)MIN(w_scaled + 2, w),
-			(int)MIN(h_scaled + 2, h));
-#endif // 0
-//printf("Playback3D::do_mask_sync %d opengl_state=%d\n", __LINE__, command->mask->get_opengl_state());
+// printf("Playback3D::do_mask_sync %d frame=%p gl_context=%p opengl_state=%d\n", 
+// __LINE__, 
+// command->frame,
+// command->frame->get_pbuffer()->get_gl_context(),
+// command->mask->get_opengl_state());
 
 // mask goes into texture unit 1
         if(command->mask->get_opengl_state() == VFrame::RAM)
         {
-//printf("Playback3D::do_mask_sync %d to_texture\n", __LINE__);
             command->mask->to_texture();
         }
 		command->mask->bind_texture(1);
@@ -1782,15 +1649,16 @@ void Playback3D::do_mask_sync(Playback3DCommand *command)
 			glUseProgram(frag_shader);
 			if((variable = glGetUniformLocation(frag_shader, "src_tex")) >= 0)
 				glUniform1i(variable, 0);
-			if((variable = glGetUniformLocation(frag_shader, "tex1")) >= 0)
+			if((variable = glGetUniformLocation(frag_shader, "dst_tex")) >= 0)
 				glUniform1i(variable, 1);
 //			if((variable = glGetUniformLocation(frag_shader, "scale")) >= 0)
 //				glUniform1f(variable, scale);
 			if((variable = glGetUniformLocation(frag_shader, "scale")) >= 0)
 				glUniform1f(variable, 1.0);
 		}
-//printf("Playback3D::do_mask_sync %d\n", __LINE__);
-
+// printf("Playback3D::do_mask_sync %d frame=%p\n", 
+// __LINE__, command->frame);
+// command->frame->dump(4);
 
 
 // Write texture to PBuffer with multiply and scaling for feather.

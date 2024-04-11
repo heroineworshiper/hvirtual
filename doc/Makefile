@@ -50,6 +50,8 @@ CUSTOM_IMAGES := \
 	chromakeyhsv7.png \
 	chromakeyhsv8.png \
         compositing_pipeline.png \
+        compressor1.png \
+        compressor2.png \
         cwindow_context.png \
         cwindow_tools.png \
         apatches.png \

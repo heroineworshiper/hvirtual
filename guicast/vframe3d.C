@@ -40,6 +40,19 @@
 
 int VFrame::get_opengl_state()
 {
+// texture not available if GL context changed
+    if(opengl_state == VFrame::TEXTURE &&
+        BC_WindowBase::get_synchronous()->get_window() &&
+        BC_WindowBase::get_synchronous()->get_window()->get_id() !=
+        get_window_id())
+    {
+printf("VFrame::get_opengl_state %d: invalid texture.  old window id=%d new window id=%d\n", 
+__LINE__,
+get_window_id(),
+BC_WindowBase::get_synchronous()->get_window()->get_id());
+        opengl_state = VFrame::RAM;
+    }
+
 	return opengl_state;
 }
 
@@ -94,6 +107,20 @@ void VFrame::to_texture()
 		get_w(),
 		get_h(),
 		get_color_model());
+
+
+// texture not available if GL context changed
+    if(opengl_state == VFrame::TEXTURE &&
+        BC_WindowBase::get_synchronous()->get_window() &&
+        BC_WindowBase::get_synchronous()->get_window()->get_id() !=
+        get_window_id())
+    {
+printf("VFrame::to_texture %d: invalid texture.  old window id=%d new window id=%d\n", 
+__LINE__,
+get_window_id(),
+BC_WindowBase::get_synchronous()->get_window()->get_id());
+        opengl_state = VFrame::RAM;
+    }
 
 // Determine what to do based on state
 	switch(opengl_state)

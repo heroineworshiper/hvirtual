@@ -476,9 +476,14 @@ track.  Enable @b{Draw vectors} to configure the super stabilizer.  Once
 configured, enable @b{Enable} & wait for the lookahead buffer to fill.
 
 Super stabilizer uses a single search block & only detects motion after
-the previous frame.  There is no maximum offset setting because the
-lookahead buffer will always keep it from drifting no farther than the
-future motion.
+the previous frame.  There is no maximum setting for the accumulated
+drift because the lookahead buffer will always keep it from drifting no
+farther than where it is in the future.  Because the accumulated drift
+heads toward infinity, it's not practical to have a maximum accumulated
+drift.
+
+Like the other motion effects, best results depend on the search block
+having enough details & not having repeating patterns.
 
 @b{Enable} Enables processing for the super stabilizer.  Does not affect
 the drawing of the vectors.  Disable it to configure the effect.

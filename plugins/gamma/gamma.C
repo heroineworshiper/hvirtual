@@ -576,11 +576,11 @@ int GammaMain::handle_opengl()
 
 // Aggregate with interpolate
 	int aggregate = 0;
-	if(prev_effect_is("Interpolate Pixels"))
-	{
-		aggregate = 1;
-		INTERPOLATE_COMPILE(shader_stack, current_shader)
-	}
+// 	if(prev_effect_is("Interpolate Pixels"))
+// 	{
+// 		aggregate = 1;
+// 		INTERPOLATE_COMPILE(shader_stack, current_shader)
+// 	}
 
 	GAMMA_COMPILE(shader_stack, current_shader, aggregate);
 

@@ -118,8 +118,8 @@ void HistogramWindow::create_objects()
 	canvas_w = get_w() - x - x;
 
 	title1_x = x;
-	title2_x = x + (int)(canvas_w * -MIN_INPUT / FLOAT_RANGE);
-	title3_x = x + (int)(canvas_w * (1.0 - MIN_INPUT) / FLOAT_RANGE);
+	title2_x = x + (int)(canvas_w * -HISTOGRAM_MIN_INPUT / FLOAT_RANGE);
+	title3_x = x + (int)(canvas_w * (1.0 - HISTOGRAM_MIN_INPUT) / FLOAT_RANGE);
 	title4_x = x + (int)(canvas_w);
 
 
@@ -513,16 +513,16 @@ void HistogramWindow::draw_canvas_mode(int mode, int color, int y, int h)
 //			max = max * h / normalize;
 			max = (int)(log(max) / log(normalize) * h);
 
-			canvas->set_color(BLACK);
-			canvas->draw_line(i, y, i, y + h - max);
+//			canvas->set_color(BLACK);
+//			canvas->draw_line(i, y, i, y + h - max);
 			canvas->set_color(color);
 			canvas->draw_line(i, y + h - max, i, y + h);
 		}
 	}
 	else
 	{
-		canvas->set_color(BLACK);
-		canvas->draw_box(0, y, canvas_w, h);
+//		canvas->set_color(BLACK);
+//		canvas->draw_box(0, y, canvas_w, h);
 	}
 
 // Draw overlays
@@ -537,7 +537,7 @@ void HistogramWindow::draw_canvas_mode(int mode, int color, int y, int h)
 		float input = (float)i / 
 				canvas_w * 
 				FLOAT_RANGE + 
-				MIN_INPUT;
+				HISTOGRAM_MIN_INPUT;
 		float output = plugin->calculate_level(input, 
 			mode, 
 			0);
@@ -557,6 +557,35 @@ void HistogramWindow::draw_canvas_mode(int mode, int color, int y, int h)
 
 void HistogramWindow::update_canvas()
 {
+// clear it
+    canvas->set_color(BLACK);
+	canvas->draw_box(0, 0, canvas_w, canvas_h);
+
+// Draw 0 and 100% lines.
+	canvas->set_color(RED);
+	int x = (int)(canvas_w * -HISTOGRAM_MIN_INPUT / FLOAT_RANGE);
+    canvas->set_line_dashes(1);
+	for(int i = 0; i < x; i++)
+        canvas->draw_line(i, 
+		    i % 2, 
+		    i, 
+		    canvas_h);
+//     canvas->draw_line(x, 
+// 		0, 
+// 		x, 
+// 		canvas_h);
+	x = (int)(canvas_w * (1.0 - HISTOGRAM_MIN_INPUT) / FLOAT_RANGE);
+	for(int i = x; i < canvas_w; i++)
+        canvas->draw_line(i, 
+		    i % 2, 
+		    i, 
+		    canvas_h);
+// 	canvas->draw_line(x, 
+// 		0, 
+// 		x, 
+// 		canvas_h);
+    canvas->set_line_dashes(0);
+
 	if(plugin->parade)
 	{
 		draw_canvas_mode(HISTOGRAM_RED, RED, 0, canvas_h / 3);
@@ -569,18 +598,6 @@ void HistogramWindow::update_canvas()
 	}
 
 
-// Draw 0 and 100% lines.
-	canvas->set_color(RED);
-	int x = (int)(canvas_w * -MIN_INPUT / FLOAT_RANGE);
-	canvas->draw_line(x, 
-		0, 
-		x, 
-		canvas_h);
-	x = (int)(canvas_w * (1.0 - MIN_INPUT) / FLOAT_RANGE);
-	canvas->draw_line(x, 
-		0, 
-		x, 
-		canvas_h);
 	canvas->flash();
 }
 
@@ -756,9 +773,9 @@ void HistogramCarrot::update()
 	if(this != gui->gamma_carrot)
 	{	
 		new_x = (int)(gui->canvas->get_x() +
-			(*value - MIN_INPUT) *
+			(*value - HISTOGRAM_MIN_INPUT) *
 			gui->canvas->get_w() /
-			(MAX_INPUT - MIN_INPUT) -
+			(HISTOGRAM_MAX_INPUT - HISTOGRAM_MIN_INPUT) -
 			get_w() / 2);
 	}
 	else
@@ -775,8 +792,8 @@ void HistogramCarrot::update()
 			new_x = gui->canvas->get_x() -
 				get_w() / 2 +
 				(int)(gui->canvas->get_w() *
-				(tmp - MIN_INPUT) / 
-				(MAX_INPUT - MIN_INPUT));
+				(tmp - HISTOGRAM_MIN_INPUT) / 
+				(HISTOGRAM_MAX_INPUT - HISTOGRAM_MIN_INPUT));
 	}
 
 	reposition_window(new_x, get_y());
@@ -851,8 +868,8 @@ int HistogramCarrot::cursor_motion_event()
 			int min_x = gui->canvas->get_x() - get_w() / 2;
 			int max_x = gui->canvas->get_x() + gui->canvas->get_w() - get_w() / 2;
 			CLAMP(new_x, min_x, max_x);
-			*value = MIN_INPUT + 
-				(MAX_INPUT - MIN_INPUT) * 
+			*value = HISTOGRAM_MIN_INPUT + 
+				(HISTOGRAM_MAX_INPUT - HISTOGRAM_MIN_INPUT) * 
 				(new_x - min_x) / 
 				(max_x - min_x);
 		}
@@ -895,7 +912,7 @@ HistogramSlider::HistogramSlider(HistogramMain *plugin,
 
 int HistogramSlider::input_to_pixel(float input)
 {
-	return (int)((input - MIN_INPUT) / FLOAT_RANGE * get_w());
+	return (int)((input - HISTOGRAM_MIN_INPUT) / FLOAT_RANGE * get_w());
 }
 
 void HistogramSlider::update()
@@ -1055,8 +1072,8 @@ HistogramText::HistogramText(HistogramMain *plugin,
 	int y)
  : BC_TumbleTextBox(gui, 
 		0.0,
-		(float)MIN_INPUT,
-		(float)MAX_INPUT,
+		(float)HISTOGRAM_MIN_INPUT,
+		(float)HISTOGRAM_MAX_INPUT,
 		x, 
 		y, 
 		DP(70))

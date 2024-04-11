@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,26 +18,39 @@
  * 
  */
 
-#ifndef HISTOGRAM_INC
-#define HISTOGRAM_INC
+
+#ifndef CURVES_INC
+#define CURVES_INC
 
 
 
 
+// change curves.sl if you change this
 
 
-#define MIN_GAMMA 0.1
-#define MAX_GAMMA 10.0
+#define CURVE_MAX 1.0
+#define CURVE_MIN 0.0
+#define POINT_W DP(10)
 
-#define PRECISION 0.001
-#define DIGITS 3
-#define THRESHOLD_SCALE 1000
+// maximum points for opengl
+#define MAX_POINTS 16
 
-#define BOX_SIZE 10
+#define WINDOW_W DP(400)
+#define WINDOW_H DP(400)
+
+class CurvesConfig;
+class CurvesWindow;
+class CurvesMain;
+class CurvesEngine;
 
 
-class HistogramEngine;
-class HistogramMain;
+typedef struct
+{
+    float x, y;
+} curve_point_t;
 
 
 #endif
+
+
+

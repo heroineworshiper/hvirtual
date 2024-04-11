@@ -25,6 +25,7 @@
 
 #include "histogram.inc"
 #include "histogramconfig.inc"
+#include "histogramtools.inc"
 #include "linklist.h"
 #include <stdint.h>
 

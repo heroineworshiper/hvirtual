@@ -236,6 +236,9 @@ int FileCR2::read_frame(VFrame *frame, char *path)
 	argv[argc++] = (char*)"-c";
 // no rotation
 	argv[argc++] = (char*)"-j";
+// linear 16 bit
+	argv[argc++] = (char*)"-4";
+
 
 // printf("FileCR2::read_frame %d interpolate=%d white_balance=%d\n", 
 // __LINE__,

@@ -516,10 +516,11 @@ int MotionLookahead::process_buffer(VFrame *frame,
 			    frame_rate,
 			    0);
             frames_read++;
-printf("MotionLookahead::process_buffer %d position=%d frames_read=%d\n", 
-__LINE__, 
-(int)position, 
-frames_read);
+            if(frames_read < config.frames)
+                printf("MotionLookahead::process_buffer %d position=%d frames_read=%d\n", 
+                    __LINE__, 
+                    (int)position, 
+                    frames_read);
         }
 
 // scan lookahead buffer
@@ -586,8 +587,12 @@ frames_read);
             }
 
             frames_scanned++;
-printf("MotionLookahead::process_buffer %d frames_scanned=%d dx=%d dy=%d angle=%f\n", 
-__LINE__, frames_scanned, current_dx, current_dy, current_angle);
+            if(frames_scanned < config.frames)
+                printf("MotionLookahead::process_buffer %d frames_scanned=%d\n",
+                    __LINE__,
+                    frames_scanned);
+//printf("MotionLookahead::process_buffer %d frames_scanned=%d dx=%d dy=%d angle=%f\n", 
+//__LINE__, frames_scanned, current_dx, current_dy, current_angle);
         }
 
 // step the total accumulated motion forward
@@ -629,15 +634,17 @@ __LINE__, frames_scanned, current_dx, current_dy, current_angle);
             future_dx = least_squares_x.get_b() + least_squares_x.get_m() * prediction_frames;
             future_dy = least_squares_y.get_b() + least_squares_y.get_m() * prediction_frames;
             future_angle = least_squares_angle.get_b() + least_squares_angle.get_m() * prediction_frames;
-printf("MotionLookahead::process_buffer %d prediction_frames=%d center_dx=%f center_dy=%f center_angle=%f\n", 
-__LINE__, 
-prediction_frames,
-future_dx, 
-future_dy, 
-future_angle);
+// printf("MotionLookahead::process_buffer %d prediction_frames=%d center_dx=%f center_dy=%f center_angle=%f\n", 
+// __LINE__, 
+// prediction_frames,
+// future_dx, 
+// future_dy, 
+// future_angle);
 
-
-// copy the current regressed center
+            float center_step_x = 0;
+            float center_step_y = 0;
+            float center_step_angle = 0;
+// reset the center
             if(reset_accums)
             {
                 center_dx = 0;
@@ -645,7 +652,6 @@ future_angle);
                 center_angle = 0;
             }
             else
-// throw away the last frame's center to make it more stable
             if(prediction_frames > 1)
             {
 // blend the future position
@@ -655,10 +661,13 @@ future_angle);
 //                center_dy = (center_dy * blend + future_dy * inv_blend) / prediction_frames;
 //                center_angle = (center_angle * blend + future_angle * inv_blend) / prediction_frames;
 
-// linear interpolate the future position
-                center_dx += (future_dx - center_dx) / prediction_frames;
-                center_dy += (future_dy - center_dy) / prediction_frames;
-                center_angle += (future_angle - center_angle) / prediction_frames;
+// step the accumulated center
+                center_step_x = (future_dx - center_dx) / prediction_frames;
+                center_step_y = (future_dy - center_dy) / prediction_frames;
+                center_step_angle = (future_angle - center_angle) / prediction_frames;
+                center_dx += center_step_x;
+                center_dy += center_step_y;
+                center_angle += center_step_angle;
             }
 
 
@@ -669,15 +678,15 @@ future_angle);
             current_dx = (float)(total_dx - center_dx) / OVERSAMPLE;
             current_dy = (float)(total_dy - center_dy) / OVERSAMPLE;
             current_angle = total_angle - center_angle;
-    // printf("MotionLookahead::process_buffer %d reset_accums=%d center=%d %d %f current=%f %f %f\n", 
-    // __LINE__, 
-    // reset_accums, 
-    // center_dx, 
-    // center_dy, 
-    // center_angle,
-    // current_dx, 
-    // current_dy, 
-    // current_angle);
+printf("MotionLookahead::process_buffer %d position=%d center step=%f %f %f current motion=%f %f %f\n", 
+__LINE__, 
+(int)start_position,
+(float)center_step_x / OVERSAMPLE, 
+(float)center_step_y / OVERSAMPLE, 
+(float)center_step_angle,
+(float)current->dx_result / OVERSAMPLE, 
+(float)current->dy_result / OVERSAMPLE, 
+(float)current->angle_result);
         }
 
 	    frame->clear_frame();

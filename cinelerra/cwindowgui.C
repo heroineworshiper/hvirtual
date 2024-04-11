@@ -1598,10 +1598,47 @@ int CWindowCanvas::do_mask(int &redraw,
 // distinguish point 0
                 if(i == 0)
                 {
-                    get_canvas()->draw_disc((int)x - point_w / 2, 
+//                     get_canvas()->draw_disc((int)x - point_w / 2, 
+// 						(int)y - point_h / 2, 
+// 						point_w, 
+// 						point_h);
+                    get_canvas()->draw_line((int)x, 
 						(int)y - point_h / 2, 
-						point_w, 
-						point_h);
+						(int)x + point_w / 2, 
+						(int)y + point_h / 2);
+                    get_canvas()->draw_line((int)x + point_w / 2, 
+						(int)y + point_h / 2, 
+						(int)x - point_w / 2, 
+						(int)y + point_h / 2);
+                    get_canvas()->draw_line((int)x, 
+						(int)y - point_h / 2, 
+						(int)x - point_w / 2, 
+						(int)y + point_h / 2);
+                }
+                else
+// distinguish last point
+                if(i == points.size() - 1)
+                {
+//                     get_canvas()->draw_line((int)x - point_w / 2, 
+// 						(int)y - point_h / 2, 
+// 						(int)x + point_w / 2, 
+// 						(int)y + point_h / 2);
+//                     get_canvas()->draw_line((int)x + point_w / 2, 
+// 						(int)y - point_h / 2, 
+// 						(int)x - point_w / 2, 
+// 						(int)y + point_h / 2);
+                    get_canvas()->draw_line((int)x, 
+						(int)y + point_h / 2, 
+						(int)x + point_w / 2, 
+						(int)y - point_h / 2);
+                    get_canvas()->draw_line((int)x + point_w / 2, 
+						(int)y - point_h / 2, 
+						(int)x - point_w / 2, 
+						(int)y - point_h / 2);
+                    get_canvas()->draw_line((int)x, 
+						(int)y + point_h / 2, 
+						(int)x - point_w / 2, 
+						(int)y - point_h / 2);
                 }
                 else
                 {

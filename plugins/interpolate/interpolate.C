@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -244,24 +243,27 @@ int InterpolatePixelsMain::process_buffer(VFrame *frame,
 	frame->get_params()->update("INTERPOLATEPIXELS_X", config.x);
 	frame->get_params()->update("INTERPOLATEPIXELS_Y", config.y);
 
+// opengl has been dropped because of the continual manetenance & because
+// the real solution requires a complete port of dcraw's FIR filter.
 	read_frame(frame, 
 		0, 
 		start_position, 
 		frame_rate,
-		get_use_opengl());
+        0);
+//		get_use_opengl());
 //frame->dump_params();
 
-	if(get_use_opengl())
-	{
-// Aggregate with gamma
-		if(next_effect_is("Gamma") ||
-			next_effect_is("Histogram") ||
-			next_effect_is("Color Balance"))
-			return 0;
-
-
-		return run_opengl();
-	}
+// 	if(get_use_opengl())
+// 	{
+// // Aggregate with gamma
+// 		if(next_effect_is("Gamma") ||
+// 			next_effect_is("Histogram") ||
+// 			next_effect_is("Color Balance"))
+// 			return 0;
+// 
+// 
+// 		return run_opengl();
+// 	}
 
 
 	if(get_output()->get_color_model() != BC_RGB_FLOAT &&
@@ -314,7 +316,7 @@ printf("InterpolatePixelsMain::handle_opengl\n");
 	get_output()->bind_texture(0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	
+
 
 	get_output()->draw_texture();
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

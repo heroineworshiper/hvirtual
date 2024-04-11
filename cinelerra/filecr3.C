@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2020-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2020-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -161,6 +161,9 @@ int FileCR3::read_frame(VFrame *frame, char *path)
     int err = 0;
     LibRaw* libraw = new LibRaw;
     cmodel_init();
+// printf("FileCR3::read_frame %d %s\n",
+// __LINE__,
+// path);
 
     err = libraw->open_file(path);
     if(err)
@@ -176,14 +179,28 @@ int FileCR3::read_frame(VFrame *frame, char *path)
 
     libraw->unpack();
 
-// printf("FileCR3::read_frame %d %s\n",
-// __LINE__,
-// path);
 // printf("FileCR3::read_frame %d: colormodel %d %p\n",
 // __LINE__,
 // frame->get_color_model(),
 // cmodel_yuv_table);
-    libraw->imgdata.params.use_camera_wb = 1;
+    if(!file->interpolate_raw)
+    {
+        libraw->imgdata.params.use_camera_wb = 0;
+        libraw->imgdata.params.no_interpolation = 1;
+    }
+    else
+    {
+        libraw->imgdata.params.use_camera_wb = 1;
+        libraw->imgdata.params.no_interpolation = 0;
+    }
+    libraw->imgdata.params.no_auto_bright = 1;
+    libraw->imgdata.params.use_camera_matrix = 1;
+    libraw->imgdata.params.gamm[0] = 1;
+    libraw->imgdata.params.gamm[1] = 1;
+    libraw->imgdata.params.gamm[2] = 1;
+    libraw->imgdata.params.gamm[3] = 1;
+    libraw->imgdata.params.gamm[4] = 1;
+    libraw->imgdata.params.gamm[5] = 1;
     libraw->dcraw_process();
 
     int width;
@@ -197,34 +214,41 @@ int FileCR3::read_frame(VFrame *frame, char *path)
 //         height, 
 //         colors, 
 //         bps);
-//     printf("FileCR3::read_frame %d %p %p %p %p %d %d %d %d\n",
+//     printf("FileCR3::read_frame %d %p %p %p %p raw_width=%d raw_height=%d width=%d height=%d\n",
 //         __LINE__,
 //         libraw->imgdata.image[0],
 //         libraw->imgdata.image[1],
 //         libraw->imgdata.image[2],
 //         libraw->imgdata.image[3],
-//         width,
-//         height,
-//         colors,
-//         bps);
-//     for(int i = 0; i < 16; i++)
+//         libraw->imgdata.sizes.raw_width,
+//         libraw->imgdata.sizes.raw_height,
+//         libraw->imgdata.sizes.width,
+//         libraw->imgdata.sizes.height);
+//     for(int i = 0; i < 4; i++)
 //     {
-//         printf("%04x ", (uint16_t)libraw->imgdata.image[0][i]);
+//         printf("pixel %d: %04x %04x %04x %04x\n", 
+//             i,
+//             (uint16_t)libraw->imgdata.image[i][0],
+//             (uint16_t)libraw->imgdata.image[i][1],
+//             (uint16_t)libraw->imgdata.image[i][2],
+//             (uint16_t)libraw->imgdata.image[i][3]);
 //     }
 //     printf("\n");
 
+// get_mem_image_format returns invalid dimensions for EOS 5D mark III
+    width = libraw->imgdata.sizes.width;
+    height = libraw->imgdata.sizes.height;
 // convert from 16 bit RGB 4 channels to the output
 
 #define CONVERT_HEAD(type) \
 for(int i = 0; i < height; i++) \
 { \
     type *output = (type*)frame->get_rows()[i]; \
-    uint16_t *input = libraw->imgdata.image[0] + i * width * 4; \
     for(int j = 0; j < width; j++) \
     { \
+        uint16_t *input = libraw->imgdata.image[i * width + j];
 
 #define CONVERT_TAIL \
-            input++; \
     } \
 }
 
@@ -233,40 +257,40 @@ for(int i = 0; i < height; i++) \
 // needed for previews
         case BC_RGB888:
             CONVERT_HEAD(uint8_t)
-                *output++ = (uint8_t)((*input++) >> 8);
-                *output++ = (uint8_t)((*input++) >> 8);
-                *output++ = (uint8_t)((*input++) >> 8);
+                *output++ = (uint8_t)(input[0] >> 8);
+                *output++ = (uint8_t)(input[1] >> 8);
+                *output++ = (uint8_t)(input[2] >> 8);
             CONVERT_TAIL
             break;
         case BC_RGBA8888:
             CONVERT_HEAD(uint8_t)
-                *output++ = (uint8_t)((*input++) >> 8);
-                *output++ = (uint8_t)((*input++) >> 8);
-                *output++ = (uint8_t)((*input++) >> 8);
+                *output++ = (uint8_t)(input[0] >> 8);
+                *output++ = (uint8_t)(input[1] >> 8);
+                *output++ = (uint8_t)(input[2] >> 8);
                 *output++ = 0xff;
             CONVERT_TAIL
             break;
         case BC_RGB_FLOAT:
             CONVERT_HEAD(float)
-                *output++ = (float)(*input++) / 0xffff;
-                *output++ = (float)(*input++) / 0xffff;
-                *output++ = (float)(*input++) / 0xffff;
+                *output++ = (float)input[0] / 0xffff;
+                *output++ = (float)input[1] / 0xffff;
+                *output++ = (float)input[2] / 0xffff;
             CONVERT_TAIL
             break;
         case BC_RGBA_FLOAT:
             CONVERT_HEAD(float)
-                *output++ = (float)(*input++) / 0xffff;
-                *output++ = (float)(*input++) / 0xffff;
-                *output++ = (float)(*input++) / 0xffff;
+                *output++ = (float)input[0] / 0xffff;
+                *output++ = (float)input[1] / 0xffff;
+                *output++ = (float)input[2] / 0xffff;
                 *output++ = 1.0;
             CONVERT_TAIL
             break;
         case BC_YUV888:
             CONVERT_HEAD(uint8_t)
                 int y, u, v;
-                int r = (uint8_t)((*input++) >> 8);
-                int g = (uint8_t)((*input++) >> 8);
-                int b = (uint8_t)((*input++) >> 8);
+                int r = (uint8_t)(input[0] >> 8);
+                int g = (uint8_t)(input[1] >> 8);
+                int b = (uint8_t)(input[2] >> 8);
                 RGB_TO_YUV(y, u, v, r, g, b);
                 *output++ = y;
                 *output++ = u;
@@ -276,9 +300,9 @@ for(int i = 0; i < height; i++) \
         case BC_YUVA8888:
             CONVERT_HEAD(uint8_t)
                 int y, u, v;
-                int r = (uint8_t)((*input++) >> 8);
-                int g = (uint8_t)((*input++) >> 8);
-                int b = (uint8_t)((*input++) >> 8);
+                int r = (uint8_t)(input[0] >> 8);
+                int g = (uint8_t)(input[1] >> 8);
+                int b = (uint8_t)(input[2] >> 8);
                 RGB_TO_YUV(y, u, v, r, g, b);
                 *output++ = y;
                 *output++ = u;
@@ -291,9 +315,10 @@ for(int i = 0; i < height; i++) \
                 __LINE__,
                 frame->get_color_model());
     }
+//printf("FileCR3::read_frame %d\n", __LINE__);
 
     delete libraw;
-    
+
 	return 0;
 }
 

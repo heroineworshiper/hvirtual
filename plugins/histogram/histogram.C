@@ -65,7 +65,6 @@ REGISTER_PLUGIN(HistogramMain)
 HistogramMain::HistogramMain(PluginServer *server)
  : PluginVClient(server)
 {
-	
 	engine = 0;
 	for(int i = 0; i < HISTOGRAM_MODES; i++)
 	{
@@ -323,7 +322,7 @@ float HistogramMain::calculate_level(float input,
 		CLAMP(output, 0, 1.0);
 	}
 
-// Apply value curve
+// Apply value curve to rendered output for the channel
 	if(use_value && mode != HISTOGRAM_VALUE)
 	{
 		output = calculate_level(output, HISTOGRAM_VALUE, 0);
@@ -428,7 +427,10 @@ void HistogramMain::calculate_automatic(VFrame *data, int do_value)
 			    total += accum[j];
 			    if(total >= threshold)
 			    {
-				    max_level = (float)j / HISTOGRAM_SLOTS * FLOAT_RANGE + MIN_INPUT;
+				    max_level = (float)j / 
+                        HISTOGRAM_SLOTS * 
+                        FLOAT_RANGE + 
+                        HISTOGRAM_MIN_INPUT;
 				    break;
 			    }
 		    }
@@ -440,7 +442,10 @@ void HistogramMain::calculate_automatic(VFrame *data, int do_value)
 			    total += accum[j];
 			    if(total >= threshold)
 			    {
-				    min_level = (float)j / HISTOGRAM_SLOTS * FLOAT_RANGE + MIN_INPUT;
+				    min_level = (float)j / 
+                        HISTOGRAM_SLOTS * 
+                        FLOAT_RANGE + 
+                        HISTOGRAM_MIN_INPUT;
 				    break;
 			    }
 		    }
@@ -507,7 +512,7 @@ int HistogramMain::process_buffer(VFrame *frame,
         }
 	}
 
-// Apply histogram in hardware
+// Apply histogram in GPU
 	if(use_opengl) return run_opengl();
 
 	if(!engine) engine = new HistogramEngine(this,
@@ -675,15 +680,15 @@ int HistogramMain::handle_opengl()
 	int aggregate_colorbalance = 0;
 // All aggregation possibilities must be accounted for because unsupported
 // effects can get in between the aggregation members.
-	if(!strcmp(get_output()->get_prev_effect(2), "Interpolate Pixels") &&
-		!strcmp(get_output()->get_prev_effect(1), "Gamma") &&
-		!strcmp(get_output()->get_prev_effect(0), "Color Balance"))
-	{
-		aggregate_interpolation = 1;
-		aggregate_gamma = 1;
-		aggregate_colorbalance = 1;
-	}
-	else
+// 	if(!strcmp(get_output()->get_prev_effect(2), "Interpolate Pixels") &&
+// 		!strcmp(get_output()->get_prev_effect(1), "Gamma") &&
+// 		!strcmp(get_output()->get_prev_effect(0), "Color Balance"))
+// 	{
+// 		aggregate_interpolation = 1;
+// 		aggregate_gamma = 1;
+// 		aggregate_colorbalance = 1;
+// 	}
+// 	else
 	if(!strcmp(get_output()->get_prev_effect(1), "Gamma") &&
 		!strcmp(get_output()->get_prev_effect(0), "Color Balance"))
 	{
@@ -691,23 +696,23 @@ int HistogramMain::handle_opengl()
 		aggregate_colorbalance = 1;
 	}
 	else
-	if(!strcmp(get_output()->get_prev_effect(1), "Interpolate Pixels") &&
-		!strcmp(get_output()->get_prev_effect(0), "Gamma"))
-	{
-		aggregate_interpolation = 1;
-		aggregate_gamma = 1;
-	}
-	else
-	if(!strcmp(get_output()->get_prev_effect(1), "Interpolate Pixels") &&
-		!strcmp(get_output()->get_prev_effect(0), "Color Balance"))
-	{
-		aggregate_interpolation = 1;
-		aggregate_colorbalance = 1;
-	}
-	else
-	if(!strcmp(get_output()->get_prev_effect(0), "Interpolate Pixels"))
-		aggregate_interpolation = 1;
-	else
+// 	if(!strcmp(get_output()->get_prev_effect(1), "Interpolate Pixels") &&
+// 		!strcmp(get_output()->get_prev_effect(0), "Gamma"))
+// 	{
+// 		aggregate_interpolation = 1;
+// 		aggregate_gamma = 1;
+// 	}
+// 	else
+// 	if(!strcmp(get_output()->get_prev_effect(1), "Interpolate Pixels") &&
+// 		!strcmp(get_output()->get_prev_effect(0), "Color Balance"))
+// 	{
+// 		aggregate_interpolation = 1;
+// 		aggregate_colorbalance = 1;
+// 	}
+// 	else
+// 	if(!strcmp(get_output()->get_prev_effect(0), "Interpolate Pixels"))
+// 		aggregate_interpolation = 1;
+// 	else
 	if(!strcmp(get_output()->get_prev_effect(0), "Gamma"))
 		aggregate_gamma = 1;
 	else
@@ -1206,8 +1211,8 @@ void HistogramUnit::process_package(LoadPackage *package)
 HistogramEngine::HistogramEngine(HistogramMain *plugin, 
 	int total_clients, 
 	int total_packages)
-// : LoadServer(total_clients, total_packages)
- : LoadServer(1, 1)
+ : LoadServer(total_clients, total_packages)
+// : LoadServer(1, 1)
 {
 	this->plugin = plugin;
 }

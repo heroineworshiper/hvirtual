@@ -363,7 +363,7 @@ double CompressorConfigBase::calculate_db(int band, double x)
 int CompressorConfigBase::set_point(int band, double x, double y)
 {
     BandConfig *ptr = &bands[band];
-	for(int i = ptr->levels.total - 1; i >= 0; i--)
+	for(int i = ptr->levels.size() - 1; i >= 0; i--)
 	{
 		if(ptr->levels.values[i].x < x)
 		{
@@ -786,7 +786,6 @@ void CompressorCanvasBase::update()
 int CompressorCanvasBase::button_press_event()
 {
     BandConfig *band_config = &config->bands[config->current_band];
-// Check existing points
 	if(is_event_win() && 
         cursor_inside())
 	{
@@ -797,6 +796,7 @@ int CompressorCanvasBase::button_press_event()
 		}
         else
         {
+// Check existing points
 		    for(int i = 0; i < band_config->levels.total; i++)
 		    {
 			    double x_db = config->get_x(config->current_band, i);
@@ -919,8 +919,10 @@ int CompressorCanvasBase::cursor_motion_event()
 		}
 
 // out of active area
-        if(get_cursor_x() >= graph_x + graph_w ||
-            get_cursor_y() < graph_y)
+        if(get_cursor_x() < graph_x ||
+            get_cursor_x() >= graph_x + graph_w ||
+            get_cursor_y() < graph_y ||
+            get_cursor_y() >= graph_y + graph_h)
         {
             new_cursor = ARROW_CURSOR;
         }

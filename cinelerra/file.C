@@ -167,7 +167,7 @@ void File::init_table()
     file_table->append(new FileGIF);
     file_table->append(new FileEXR);
     file_table->append(new FileFLAC);
-    file_table->append(new FileCR2);
+//    file_table->append(new FileCR2);
     file_table->append(new FileCR3);
     file_table->append(new FileTGA);
     file_table->append(new FileTIFF);

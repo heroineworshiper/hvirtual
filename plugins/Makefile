@@ -29,6 +29,7 @@ DIRS = \
         compressormulti \
 	crossfade \
         cubemap \
+        curves \
 	dcoffset \
 	decimate \
 	deinterlace \
