@@ -11,7 +11,6 @@ Detect recursive nested EDL
 
 BIG BUGS
 ----------------
-Mask fails in fullscreen opengl
 Use ffmpeg to decode superman.m2ts
 Applies filebox filter to the auto completion in a browse button textbox.
 Nested EDLs with different colormodels crash.

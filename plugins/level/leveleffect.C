@@ -260,6 +260,7 @@ void SoundLevelEffect::update_gui()
             for(int i = 0; i < total_frames; i++)
             {
                 frame = get_gui_frame();
+                if(i < total_frames - 1) delete frame;
             }
             
 		    char string[BCTEXTLEN];
@@ -268,6 +269,7 @@ void SoundLevelEffect::update_gui()
 		    sprintf(string, "%.2f", DB::todb(frame->data[1]));
 		    ((SoundLevelWindow*)thread->window)->soundlevel_rms->update(string);
 		    thread->window->flush();
+            delete frame;
         }
         
 		thread->window->unlock_window();

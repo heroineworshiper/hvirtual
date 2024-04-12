@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -374,11 +374,24 @@ int FileEXR::read_frame(VFrame *frame, VFrame *data)
     int dx = dw.min.x;
     int dy = dw.min.y;
 	Imf::FrameBuffer framebuffer;
-	float **rows = (float**)frame->get_rows();
-	int components = cmodel_components(frame->get_color_model());
+	int components = cmodel_components(native_cmodel);
+
+// use temporary storage
+    VFrame *frame_ptr = frame;
+    if(native_cmodel != frame->get_color_model())
+    {
+        frame_ptr = this->file->get_read_temp(native_cmodel, 
+            frame->get_w() * components * sizeof(float), 
+            frame->get_w(), 
+            frame->get_h());
+    }
+
+	float **rows = (float**)frame_ptr->get_rows();
 
 	if(is_yuv)
 	{
+printf("FileEXR::read_frame %d: YUV not supported\n", __LINE__);
+// Floating point YUV has never been encountered & would serve no purpose
 		if(!temp_y) temp_y = new float[asset->width * asset->height];
 		if(!temp_u) temp_u = new float[asset->width * asset->height / 4];
 		if(!temp_v) temp_v = new float[asset->width * asset->height / 4];
@@ -429,6 +442,8 @@ int FileEXR::read_frame(VFrame *frame, VFrame *data)
 
 	if(is_yuv)
 	{
+// TODO: Have to convert to an intermediate & then Cinelerra
+#if 0
 // Convert to RGB using crazy ILM equations
 		Imath::V3f yw;
 		Imf::Chromaticities cr;
@@ -486,6 +501,7 @@ int FileEXR::read_frame(VFrame *frame, VFrame *data)
 				if(components == 4) out_row1++;
 			}
 		}
+#endif // 0
 	}
 	return 0;
 }

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,6 +69,7 @@ public:
 
 	int native_cmodel;
 	int is_yuv;
+// floating point YUV source is not supported by Cinelerra
 	float *temp_y;
 	float *temp_u;
 	float *temp_v;

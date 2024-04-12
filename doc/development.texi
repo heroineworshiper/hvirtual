@@ -3,28 +3,52 @@
 @chapter PLUGIN AUTHORING
 
 The plugin API in Cinelerra dates back to 1997, before the LADSPA and
-before VST became popular.  It's fundamentally the same as it was in
-1997, with minor modifications to handle keyframes and GUI feedback. 
-The GUI is not abstracted from the programmer.  This allows the
-programmer to use whatever toolkit they want and allows more
-flexibility in appearance but it costs more.
+before VST became popular.  The main features are support for showing
+realtime graphics during playback, random access from plugins,
+keyframes, realtime adjustment during playback.  1 unique thing is the
+GUI is not abstracted from the programmer.  The windows, window sizes &
+graphics are all customizable but it's more labor intensive.
 
-There are several types of plugins, each with a common method of
-implementation and specific changes for that particular type.  The
-easiest way to implement a plugin is to take the simplest existing one
-out of the group and rename the symbols.  
+There are several types of plugins.  The easiest way to implement a
+plugin is to take the simplest existing one out of the group and extend
+it.
+
+The key types of plugins are audio, video, transitions, non realtime,
+realtime, multi channel, single channel.  Some possible types have never
+been created because no practical need was found.  There are very few
+non realtime plugins still around, since new features like random access
+have made that mode unnecessary.  Non realtime mode is generally for
+very slow effects which need random access. Transitions only support
+single channel.  
+
+Simple examples of each plugin type are given in the table.
+
+@itemize
+@item @b{audio, non realtime, multi channel:} Normalize.  
+@item @b{audio, non realtime, single channel:} NONE
+@item @b{audio, realtime, multi channel:} Overlay
+@item @b{audio, realtime, single channel:} Gain
+@item @b{audio, transition, single channel:} Crossfade
+
+@item @b{video, non realtime, multi channel:} NONE
+@item @b{video, non realtime, single channel:} Reframe
+@item @b{video, realtime, multi channel:} Swap channels
+@item @b{video, realtime, single channel:} ReframeRT
+@item @b{video, transition, single channel:} Dissolve
+
+@end itemize
 
 
 
 @menu
-* INTRODUCING THE PULL METHOD:: The current paradigm for plugin writing
-* COMMON PLUGIN FUNCTIONS:: What all effects have to do.
+* THE PULL METHOD:: How random access reads work
+* COMMON PLUGIN OBJECTS:: What all effects have to do.
 * REALTIME PLUGINS:: What realtime effects have to do.
 * NONREALTIME PLUGINS:: What rendered effects have to do.
 * AUDIO PLUGINS:: What audio effects have to do.
 * VIDEO PLUGINS:: What video effects have to do.
 * TRANSITION PLUGINS:: What transitions have to do.
-* PLUGIN GUI'S WHICH UPDATE DURING PLAYBACK:: How to use currently playing data to draw the GUI.
+* PLUGIN GUI'S WHICH UPDATE DURING PLAYBACK:: How to draw currently playing data in the GUI.
 * PLUGIN QUERIES:: How plugins get information about the data to be processed.
 * USING OPENGL:: How to use hardware to speed up operations.
 @end menu
@@ -32,8 +56,8 @@ out of the group and rename the symbols.
 
 
 
-@node INTRODUCING THE PULL METHOD
-@section INTRODUCING THE PULL METHOD
+@node THE PULL METHOD
+@section THE PULL METHOD
 
 Originally plugins were designed with the push method.  The push method
 is intuitive and simple.  A source pushes data to a plugin, the plugin
@@ -44,27 +68,20 @@ realtime.  While plugins can still be designed as if they're pushing
 data, this is not the way they're processed internally anymore.
 
 The latest evolution in Cinelerra's plugin design is the pull method. 
-The rendering pipeline starts at the final output and the final steps
-in the rendering pipeline are reading the data from disk.  Every step
-in the rendering chain involves requesting data from the previous
-step.  When the rendering pipleline eventually requests data from a
-plugin chain, each plugin requests data from the plugin before it.
+The rendering pipeline starts at the final output and the final step
+reads from the previous step in the rendering pipeline.  Every step in
+the rendering chain involves reading from the previous step.  Each step
+can request data from a different point in time so the plugins have
+random access, can change sample rates.
 
-This is less intuitive than the push method but is much more powerful. 
-Realtime plugins written using the pull method can change the rate data
-is presented to the viewer and the direction of playback.  The pull
-method allows plugins to take in data at a higher rate than they send
-it out.
-
-To get the power of rate independance, the pull method requires plugins
-to know more about the data than they needed to under the push method. 
-Plugins need to know what rate the project is at, what rate their
-output is supposed to be at and what rate their input is supposed to be
-at.  These different data rates have to be correlated for a plugin to
-configure itself properly.
+Plugins have access to the project rates @b{get_project_samplerate()}
+@b{get_project_framerate()}, or the requested rate the next step in
+rendering is running at @b{get_samplerate()} @b{get_framerate()}.  The
+project rates are used for reading keyframes.  The rendering rate is
+what the start position & source data is in.  
 
 Keyframes for a plugin are stored relative to the project frame rate. 
-Queries from a plugin for for the current playback position are given
+Queries from a plugin for the current playback position are given
 relative to the project frame rate.  If the plugin's output was
 requested to be at twice the project frame rate, the positions need to
 be converted to the project rate for keyframes to match up.  Two
@@ -79,8 +96,8 @@ rates is described below.
 
 
 
-@node COMMON PLUGIN FUNCTIONS
-@section COMMON PLUGIN FUNCTIONS
+@node COMMON PLUGIN OBJECTS
+@section COMMON PLUGIN OBJECTS
 
 All plugins inherit from a derivative of PluginClient.  This
 PluginClient derivative implements most of the required methods in
@@ -94,11 +111,10 @@ include @b{pluginaclient.h} and video plugins include
 @b{PluginVClient} respectively.
 
 Cinelerra instantiates all plugins at least twice when they are used in
-a movie.  Once instance is the GUI.  The other instance is the signal
+a movie.  One instance is the GUI.  The other instance is the rendering
 processor.  User input, through a complicated sequence, is propogated
-from the GUI instance to the signal processor instance.  If the signal
-processor wants to alter the GUI, it propogates data back to the GUI
-instance.  There are utility functions for doing all this.
+from the GUI instance to the rendering instance.  If the renderer wants
+to alter the GUI, it propogates data back to the GUI instance.  
 
 All plugins define at least three objects:
 
@@ -106,17 +122,16 @@ All plugins define at least three objects:
 
 @item
 
-@b{Processing object} - Contains pointers to all the other objects and
-performs the signal processing.  This object contains a number of
-queries to identify itself and is the object you register to register
-the plugin.
+@b{Processing object} - Inherits from PluginAClient or PluginVClient. 
+Contains pointers to all the other objects and performs the signal
+processing.  This object contains a number of queries to identify itself
+and is the object you register to register the plugin.
 
 
 @item
 
-@b{User interface object} - This is a subclass of
-@b{PluginClientWindow}.  It shows data on the screen and collects
-parameters from the user.
+@b{User interface object} - Inherits from PluginClientWindow.  It shows
+data on the screen and collects parameters from the user.
 
 The window has pointers to a number of widgets, a few initialization
 methods, and a back pointer to the plugin's processing object.  The GUI
@@ -127,10 +142,10 @@ a thread for the GUI.
 
 @item
 
-@b{Configuration object} - This stores the user parameters and always
-needs interpolation, copying, and comparison functions.  Macros for the
-plugin client automatically call configuration methods to interpolate
-keyframes.
+@b{Configuration object} - This doesn't inherit anything.  It stores the
+user parameters and always needs interpolation, copying, and comparison
+functions.  Macros for the plugin client automatically call
+configuration methods to interpolate keyframes.
 
 @end itemize
 
@@ -145,61 +160,52 @@ keyframes.
 @node THE PROCESSING OBJECT
 @subsection THE PROCESSING OBJECT
 
-Load up a simple plugin like gain to see what this object looks like.
-The processing object should inherit from the intended PluginClient
-derivative.  Its constructor should take a PluginServer argument.
+The processing objects have a lot of predefined functions defined in
+macros like 
+
 
 @example
-MyPlugin(PluginServer *server);
+PLUGIN_CLASS_MEMBERS2(config_name, thread_name)
+REGISTER_PLUGIN
+NEW_WINDOW_MACRO
+LOAD_CONFIGURATION_MACRO
 @end example
 
-In the implementation, the plugin must contain a registration line with
-the name of the processing object like
+The commonly used members in PLUGIN_CLASS_MEMBERS2 are described below.
 
-@example
-REGISTER_PLUGIN(MyPlugin)
-@end example
+The macros apply mainly to realtime plugins and are not useful
+in nonrealtime plugins.  Fortunately, nonrealtime plugins are simpler.
 
 
 
+You have to define a bunch of functions to describe the capabilities of
+the plugin.
 
-Another function which is useful but not mandatory is
+@itemize
 
-@example
-int is_multichannel();
-@end example
+@item
+is_multichannel()
 
-It should return 1 if one instance of the plugin handles multiple
-tracks simultaneously or 0 if one instance of the plugin only handles
-one track.  The default is 0 if it is omitted.
+should return 1 if one instance of the plugin
+handles multiple tracks simultaneously or 0 if one instance of the
+plugin only handles one track.  The default is 0 if it is omitted.
 
 Multichannel plugins in their processing function should refer to a
 function called @b{PluginClient::get_total_buffers()} to determine the
 number of channels.
 
 
+@item
+is_realtime()
 
+Tells if the plugin is realtine or not.
 
-To simplify the implementation of realtime plugins, a macro for
-commonly used members has been created for the class header, taking the
-configuration object and user interface thread object as arguments. 
-The macro definitions apply mainly to realtime plugins and are not
-useful in nonrealtime plugins.  Fortunately, nonrealtime plugins are
-simpler.
-
-@example
-PLUGIN_CLASS_MEMBERS(config_name, thread_name)
-@end example
-
-The commonly used members in PLUGIN_CLASS_MEMBERS are described below.
-
-@itemize
 
 @item
 int load_configuration();
 
 Loads the configuration based on surrounding keyframes and current
-position.  The class definition for load_configuration should contain 
+position.  This one is normally defined by a macro.
 
 @example
 LOAD_CONFIGURATION_MACRO(plugin_class, config_class)
@@ -212,8 +218,9 @@ configuration.  The return value of load_configuration is used by
 another commonly used function, update_gui to determine if the GUI really needs to be updated.
 
 The plugin's configuration object is always called @b{config} inside
-PLUGIN_CLASS_MEMBERS.
+PLUGIN_CLASS_MEMBERS2.
 
+@ignore
 @item
 VFrame* new_picon();
 
@@ -230,6 +237,8 @@ to implement new_picon.  In addition, the user should create a
 
 The source PNG image should be called picon.png and can be any format
 supported by PNG.
+@end ignore
+
 
 @item
 char* plugin_title();
@@ -241,8 +250,11 @@ The string has to be unique.
 @item
 void update_gui(); 
 
-Should first load the configuration, test for a return of 1, and then
-redraw the GUI with the new parameters.  All the plugins using GuiCast
+This is called during playback & scrubbing to update the parameters in
+the GUI.
+
+It should first load the configuration, test for a return of 1, and then
+redraw the GUI if the parameters changed.  All the plugins using GuiCast
 have a format like
 
 @example
@@ -273,37 +285,48 @@ functions which load and save configuration data from keyframes.  These
 functions are called by the macros so all you need to worry about is
 accessing the keyframe data.
 
-@example
+@itemize
+
+@item
 void save_data(KeyFrame *keyframe);
+
+@item
 void read_data(KeyFrame *keyframe);
-@end example
 
-The read data functions are only used in realtime plugins.  The read
-data functions translate the plugin configuration between the KeyFrame
-argument and the configuration object for the plugin.  The keyframes
-are stored on the timeline and can change for every project.
+The *data functions are only used in realtime plugins.  They access the
+default settings as well as the keyframe data.  If they're being called
+to access default settings @b{is_defaults()} returns 1.  This way the
+defaults can contain different parameters than the keyframes.
 
-Use an object called @b{FileXML} to do the translation and some
-specific commands to get the data out of the KeyFrame argument.  See
-any existing plugin to see the usage of KeyFrame and FileXML.
+The *data functions translate the plugin configuration between the
+KeyFrame argument and the configuration object for the plugin.  The
+keyframes are stored on the timeline and can change for every project.
 
+Inside the keyframe is an ordinary string.  It's most easily parsed by
+creating a @b{FileXML} object.  That has XML translation and some
+specific commands to get the data out of the KeyFrame argument.  See any
+existing plugin to see the usage of KeyFrame and FileXML.
 
-@example
+@item
 int load_defaults();
-int save_defaults();
-@end example
 
-The load defaults functions are used in realtime and non-realtime
-plugins.  The load defaults functions translate the plugin
-configuration between a BC_Hash object and the plugin's
-configuration.  The BC_Hash object stores configurations in a discrete
-file on disk for each plugin but doesn't isolate different
-configurations for different projects.
+@item
+int save_defaults();
+
+The *defaults functions are only used in non realtime plugins to get
+their settings.  The defaults functions translate the plugin
+configuration between a BC_Hash object and the plugin's configuration. 
+The BC_Hash object stores configurations in a discrete file on disk for
+each plugin but doesn't isolate different configurations for different
+projects.
 
 The function overriding @b{load_defaults} also needs to call @b{defaults
 = new BC_Hash(path);} with the configuration path.  See any existing
 plugin to see the usage of BC_Hash.   The function overriding
 @b{save_defaults} does not create @b{defaults}.
+
+@end itemize
+
 
 Other standard members may be defined in the processing object,
 depending on the plugin type.
@@ -585,46 +608,6 @@ Additional members are implemented to maintain configuration in
 realtime plugins.  Some of these are also needed in nonrealtime
 plugins.
 
-@itemize
-@item
-void read_data(KeyFrame *keyframe);
-
-Loads data from a keyframe into the plugin's configuration.  Inside the
-keyframe is an XML string.  It's most easily parsed by creating a
-@b{FileXML} object.  See an existing plugin to see how the read_data
-function is implemented.
-
-Read data loads data out of the XML object and stores values in the
-plugin's configuration object.  Since configuration objects vary from
-plugin to plugin, these functions can't be automated.
-
-@item
-void save_data(KeyFrame *keyframe);
-
-Saves data from the plugin's configuration to a keyframe.  Inside the
-keyframe you'll put an XML string which is normally created by a
-FileXML object.  See an existing plugin to see how the save_data
-function is implemented.
-
-Save data saves data from the plugin's configuration object into the
-XML object.
-
-@item
-int load_defaults();
-
-Another way the plugin gets parameters is from a defaults file.  The
-load and save defaults routines use a BC_Hash object to parse the
-defaults file.  The defaults object is created in @b{load_defaults} and
-destroyed in the plugin's destructor.  See an existing plugin to see
-how the BC_Hash object is used.
-
-@item
-int save_defaults();
-
-Saves the configuration in the defaults object.
-
-@end itemize
-
 
 
 
@@ -636,11 +619,10 @@ Saves the configuration in the defaults object.
 Some references for non-realtime plugins are @b{Normalize} for audio
 and @b{Reframe} for video.
 
-Like realtime plugins, @b{load_defaults} and @b{save_defaults} must be
-implemented.  In nonrealtime plugins, these are not just used for
-default parameters but to transfer values from the user interface to
-the signal processor.  There doesn't need to be a configuration class
-in nonrealtime plugins.
+To get settings, @b{load_defaults} and @b{save_defaults} must be
+implemented.  These are not just used for default parameters but to
+transfer values from the user interface to the signal processor.  There
+doesn't need to be a configuration class in nonrealtime plugins.
 
 Unlike realtime plugins, the LOAD_CONFIGURATION_MACRO can't be used in
 the plugin header.  Instead, the following methods must be defined.
@@ -890,7 +872,7 @@ non-realtime video plugins.  These are fixed to the project frame rate.
 
 
 
-The simplest video transition is @b{wipe} and the simplest audio
+The simplest video transition is @b{dissolve} and the simplest audio
 transition is @b{crossfade}.  These use a subset of the default class
 members of realtime plugins, but so far no analogue to
 PLUGIN_CLASS_MEMBERS has been done for transitions.
@@ -974,13 +956,18 @@ process_realtime lacks a rate argument, use @b{get_framerate()} or
 @node PLUGIN GUI'S WHICH UPDATE DURING PLAYBACK
 @section PLUGIN GUI'S WHICH UPDATE DURING PLAYBACK
 
-Effects like @b{Histogram} and @b{VideoScope} need to update the GUI
-during playback to display information about the signal.  This is
-achieved with the @b{send_render_gui} and @b{render_gui} methods. 
-Normally in process_buffer, when the processing object wants to update
-the GUI it should call @b{send_render_gui}.  This should only be called
-in process_buffer.  Send_render_gui goes through a search and
-eventually calls @b{render_gui} in the GUI instance of the plugin.
+Effects like @b{Histogram} and @b{Compressor} need to update the GUI
+during playback to display information about the signal.  
+
+
+@b{DRAWING VIDEO DATA}
+
+In video plugins, this is achieved with the @b{send_render_gui} and
+@b{render_gui} methods.  Normally in process_buffer, when the processing
+object wants to update the GUI it should call @b{send_render_gui} to
+send data to the GUI.  This should only be called in process_buffer. 
+Send_render_gui goes through a search and eventually calls
+@b{render_gui} in the GUI instance of the plugin.
 
 Render_gui should have a sequence like
 
@@ -1004,10 +991,36 @@ Send_render_gui and render_gui use one argument, a void pointer to
 transfer information from the processing object to the GUI.  The user
 should typecast this pointer into something useful.
 
+There's normally 1 @b{render_gui} call for every frame or
+process_buffer, while @b{update_gui} is called more frequently by a
+different thread for tracking.
 
+@b{DRAWING AUDIO DATA}
 
+The simplest example of sending data from a plugin renderer to a plugin
+GUI is @b{Level}.  @b{Compessor} is a more complicated example.
 
+Audio plugins send data to their GUI using @b{add_gui_frame} & the GUI
+instance draws it in @b{update_gui} some time later.  These functions
+pass a subclass of @b{PluginClientFrame} which can contain anything the
+GUI should draw.  PluginClientFrame also has some commonly used bits. 
 
+The sending side has to set the @b{edl_position} in the
+PluginClientFrame.  There is a get_playhead_position() function to get a
+starting value for this that corresponds to the start of the current
+process_buffer call.  The problem is process_buffer gets called a lot
+less frequently than update_gui.  To get smoother updates in the GUI,
+some effects like Compressor create multiple PluginClientFrames in each
+process_buffer & offset the edl_position in each frame a little.
+
+The update_gui function has to use @b{pending_gui_frames()} &
+@b{get_gui_frame()} to retrieve the data corresponding to the current
+playback position.  The trick is you have to delete the
+PluginClientFrames that come from get_gui_frame.
+
+Some effects like Level just use the most recent get_gui_frame.  Some
+effects like AudioScope need all the get_gui_frames up to the current
+position, in order to keep an FFT warm.
 
 
 
@@ -1177,18 +1190,16 @@ Do this by using edl_to_local on the keyframe positions.
 
 
 
-Realtime video plugins support OpenGL.  Using OpenGL to do plugin
-routines can speed up playback greatly since it does most of the work
-in hardware.  Unfortunately, every OpenGL routine needs a software
-counterpart for rendering, doubling the amount of software to
-maintain.  Fortunately, having an OpenGL routine means the software
-version doesn't need to be as optimized as it did when software was the
-only way.
+Realtime video plugins & video transitions support OpenGL.  Using OpenGL
+to do plugin routines can speed up playback greatly since it does most
+of the work in the GPU.  Unfortunately, every OpenGL routine needs a
+replica for the CPU, doubling the amount of software to maintain. 
+Fortunately, having an OpenGL routine means the software version doesn't
+need to be as optimized as it did when software was the only way.
 
 As always, the best way to design a first OpenGL plugin is to copy an
-existing one and alter it.  The @b{Brightness} plugin is a simple
-OpenGL plugin to copy.  There are 3 main points in OpenGL rendering and
-1 point for optimizing OpenGL rendering.
+existing one and alter it.  The @b{Brightness} plugin is a simple OpenGL
+plugin to copy.  @b{Dissolve} is a transition that supports opengl. 
 
 @menu
 * GETTING OPENGL DATA:: Getting video data in a form usable by OpenGL
@@ -1205,8 +1216,8 @@ OpenGL plugin to copy.  There are 3 main points in OpenGL rendering and
 The first problem is getting OpenGL-enabled plugins to interact with
 software-only plugins.  To solve this, all the information required to
 do OpenGL playback is stored in the VFrame object which is passed to
-@b{process_buffer}.  To support 3D, the VFrame contains a PBuffer and a
-texture, in addition to VFrame's original rows.
+@b{process_buffer}.  To support GPU processing, the VFrame contains a
+PBuffer and a texture, in addition to VFrame's original rows.
 
 In OpenGL mode, VFrame has 3 states corresponding to the location of
 its video data.  The opengl state is recovered by calling
@@ -1416,6 +1427,10 @@ faster.
 
 @node AGGREGATING PLUGINS
 @subsection AGGREGATING PLUGINS
+
+This feature is probably going away because the benefit was not worth
+the complexity.  It was once handy for determining the maximum possible
+speed of an operation.
 
 Further speed improvements may be obtained by combining OpenGL routines
 from two plugins into a single handle_opengl function.  This is done

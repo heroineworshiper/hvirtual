@@ -40,7 +40,7 @@ public:
 	int is_transition();
 	int is_video();
 	const char* plugin_title();
-	VFrame* new_picon();
+//	VFrame* new_picon();
 	OverlayFrame *overlayer;
 	float fade;
 };

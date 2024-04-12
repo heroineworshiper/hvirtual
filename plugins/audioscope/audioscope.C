@@ -440,7 +440,7 @@ int AudioScopeWindow::resize_event(int w, int h)
 
 
 // Remove all columns which may be a different size.
-	plugin->frame_buffer.remove_all_objects();
+//	plugin->frame_buffer.remove_all_objects();
 
 	window_size_title->reposition_window(window_size_title->get_x(), 
 		window_size_title->get_y() + y_diff);
@@ -856,7 +856,7 @@ int AudioScope::process_buffer(int64_t size,
 void AudioScope::render_stop()
 {
 	buffer_size = 0;
-	frame_buffer.remove_all_objects();
+//	frame_buffer.remove_all_objects();
 }
 
 
@@ -897,6 +897,8 @@ void AudioScope::update_gui()
 			    }
 
 // Reduce history size
+//printf("AudioScope::update_gui %d %d %d\n", 
+//__LINE__, frame_history.size(), config.history_size);
 			    while(frame_history.size() > config.history_size)
 				    frame_history.remove_object_number(0);
 
