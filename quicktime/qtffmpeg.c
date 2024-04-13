@@ -799,11 +799,12 @@ ffmpeg->last_frame[current_field]);
 				frame1 = quicktime_get_keyframe_before(file, 
 					frame1 - 1, 
 					track);
-			}while(frame1 > 0 && (frame1 % ffmpeg->fields) != current_field);
-// printf("quicktime_ffmpeg_decode %d frame1=%d frame2=%d\n", 
+			}while(frame1 > 0 && 
+                (frame1 % ffmpeg->fields) != current_field);
+// printf("quicktime_ffmpeg_decode %d vtrack->current_position=%d frame1=%d\n", 
 // __LINE__, 
-// frame1,
-// frame2);
+// (int)vtrack->current_position,
+// (int)frame1);
 
 // if it's less than SEEK_THRESHOLD frames earlier, rewind another keyframe
 			if(vtrack->current_position - frame1 < SEEK_THRESHOLD)
@@ -813,9 +814,13 @@ ffmpeg->last_frame[current_field]);
 					frame1 = quicktime_get_keyframe_before(file,
 						frame1 - 1,
 						track);
-				}while(frame1 > 0 && (frame1 & ffmpeg->fields) != current_field);
-//printf("quicktime_ffmpeg_decode 2 %d\n", frame1);
+				}while(frame1 > 0 && 
+                    (frame1 % ffmpeg->fields) != current_field);
 			}
+// printf("quicktime_ffmpeg_decode %d vtrack->current_position=%d frame1=%d\n", 
+// __LINE__, 
+// (int)vtrack->current_position,
+// (int)frame1);
 
 // Drop frames instead of starting from the keyframe
 			if(ffmpeg->last_frame[current_field] > frame1 &&
@@ -845,10 +850,10 @@ frame1);
 			first_frame = frame1;
 
 
-// printf("quicktime_ffmpeg_decode %d vtrack->current_position=%ld last_frame=%ld frame1=%d\n", 
+// printf("quicktime_ffmpeg_decode %d vtrack->current_position=%d last_frame=%d frame1=%d\n", 
 // __LINE__,
-// vtrack->current_position,
-// ffmpeg->last_frame[current_field],
+// (int)vtrack->current_position,
+// (int)ffmpeg->last_frame[current_field],
 // frame1);
 // read frames until the current position is decoded
 			while(ffmpeg->last_frame[current_field] < vtrack->current_position &&
@@ -898,14 +903,14 @@ result);
 			vtrack->current_position != ffmpeg->last_frame[current_field])
 		{
 			int64_t track_length = quicktime_track_samples(file, trak);
+printf("quicktime_ffmpeg_decode %d current_position=%d read_position=%d track_length=%d\n", 
+__LINE__, 
+(int)vtrack->current_position, 
+(int)ffmpeg->read_position[current_field],
+(int)track_length);
 			do
 			{
 
-// printf("quicktime_ffmpeg_decode %d current_position=%ld read_position=%ld track_length=%ld\n", 
-// __LINE__, 
-// vtrack->current_position, 
-// ffmpeg->read_position[current_field],
-// track_length);
 
 				result = decode_wrapper(file, 
 					vtrack, 

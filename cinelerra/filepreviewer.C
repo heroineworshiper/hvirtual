@@ -516,12 +516,14 @@ void FilePreviewer::create_info(BC_FileBox *filebox,
 {
 
 // always show info about the file
+// must handle the case of clear_preview not being called before this
     struct stat ostat;
     if(!stat(edl->path, &ostat))
     {
         char string[BCTEXTLEN];
         FileSystem fs;
         fs.extract_name(string, edl->path);
+        delete name_text;
         filebox->add_subwindow(name_text = new BC_Title(x, 
             y, 
             string,
@@ -564,6 +566,7 @@ void FilePreviewer::create_info(BC_FileBox *filebox,
             minute,
             second);
         
+        delete date_text;
         filebox->add_subwindow(date_text = new BC_Title(x, 
             y, 
             string,
@@ -573,6 +576,7 @@ void FilePreviewer::create_info(BC_FileBox *filebox,
         sprintf(string, "%ld", (long)ostat.st_size);
         Units::punctuate(string);
         strcat(string, " bytes");
+        delete size_text;
         filebox->add_subwindow(size_text = new BC_Title(x, 
             y, 
             string,
@@ -589,6 +593,7 @@ void FilePreviewer::create_info(BC_FileBox *filebox,
             sprintf(string, _("Unknown"));
         char string2[BCTEXTLEN];
         sprintf(string2, "Length: %s", string);
+        delete length_text;
         filebox->add_subwindow(length_text = new BC_Title(x,
             y,
             string2,

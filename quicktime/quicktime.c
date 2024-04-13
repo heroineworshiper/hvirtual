@@ -938,6 +938,9 @@ int64_t quicktime_get_keyframe_before(quicktime_t *file, int64_t frame, int trac
 
 	for(i = stss->total_entries - 1; i >= 0; i--)
 	{
+// printf("quicktime_get_keyframe_before %d sample=%d frame=%d\n", 
+// __LINE__, (int)stss->table[i].sample, (int)frame);
+
 		if(stss->table[i].sample <= frame) return stss->table[i].sample - 1;
 	}
 
