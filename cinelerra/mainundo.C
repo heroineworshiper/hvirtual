@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -200,9 +200,10 @@ int MainUndo::undo()
 		char *current_data = current->get_data();
 		if(current_data)
 		{
-//printf("MainUndo::undo %d current=%p\n%s\n", __LINE__, current, current_data);
+//printf("MainUndo::undo %d %s\n", __LINE__, current_data);
 			file.read_from_string(current_data);
 			load_from_undo(&file, current->get_flags());
+//printf("MainUndo::undo %d\n", __LINE__);
 			mwindow->set_filename(current->get_filename());
 			delete [] current_data;
 

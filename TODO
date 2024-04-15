@@ -22,10 +22,9 @@ Change asset path, CPlayback never returns to redraw the frame.
 
 Documentation wishlist:
 ----------------------------------------------------
-COMPOSITOR KEYFRAMES out of date
 Points of confusion around the way shared plugins are based on numbers rather than titles
-Chromakey HSV
 Options for condensing the track height
+Edit popup
 
 
 WISH LIST

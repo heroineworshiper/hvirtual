@@ -41,6 +41,11 @@
 #define HISTOGRAM_MAX 110
 #define HISTOGRAM_MAX_INPUT 1.1
 
+
+#define HISTOGRAM_MIN_GAMMA 0.0
+#define HISTOGRAM_MAX_GAMMA 10.0
+
+
 class HistogramTools;
 class HistogramScanner;
 

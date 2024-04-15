@@ -170,14 +170,18 @@ void HistogramWindow::create_objects()
 	low_input = new HistogramText(plugin,
 		this,
 		x,
-		y);
+		y,
+		(float)HISTOGRAM_MIN_INPUT,
+		(float)HISTOGRAM_MAX_INPUT);
 	low_input->create_objects();
 
 	x = get_w() / 2 - low_input->get_w() / 2;
 	gamma = new HistogramText(plugin,
 		this,
 		x,
-		y);
+		y,
+		(float)HISTOGRAM_MIN_GAMMA,
+		(float)HISTOGRAM_MAX_GAMMA);
 	gamma->create_objects();
 
 
@@ -185,7 +189,9 @@ void HistogramWindow::create_objects()
 	high_input = new HistogramText(plugin,
 		this,
 		x,
-		y);
+		y,
+		(float)HISTOGRAM_MIN_INPUT,
+		(float)HISTOGRAM_MAX_INPUT);
 	high_input->create_objects();
 
 
@@ -237,12 +243,16 @@ void HistogramWindow::create_objects()
 	low_output = new HistogramText(plugin,
 		this,
 		x,
-		y);
+		y,
+		(float)HISTOGRAM_MIN_INPUT,
+		(float)HISTOGRAM_MAX_INPUT);
 	low_output->create_objects();
 	high_output = new HistogramText(plugin,
 		this,
 		get_w() - low_output->get_w() - margin,
-		y);
+		y,
+		(float)HISTOGRAM_MIN_INPUT,
+		(float)HISTOGRAM_MAX_INPUT);
 	high_output->create_objects();
 
 	x = x1;
@@ -272,7 +282,9 @@ void HistogramWindow::create_objects()
 	threshold = new HistogramText(plugin,
 		this,
 		x,
-		y);
+		y,
+		(float)0.1,
+		(float)1.0);
 	threshold->create_objects();
 
 	x = get_w() / 2;
@@ -1069,11 +1081,13 @@ int HistogramMode::handle_event()
 HistogramText::HistogramText(HistogramMain *plugin,
 	HistogramWindow *gui,
 	int x,
-	int y)
+	int y,
+    float min,
+    float max)
  : BC_TumbleTextBox(gui, 
 		0.0,
-		(float)HISTOGRAM_MIN_INPUT,
-		(float)HISTOGRAM_MAX_INPUT,
+        min,
+        max,
 		x, 
 		y, 
 		DP(70))

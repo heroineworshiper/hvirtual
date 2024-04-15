@@ -159,7 +159,9 @@ public:
 	HistogramText(HistogramMain *plugin,
 		HistogramWindow *gui,
 		int x,
-		int y);
+		int y,
+        float min,
+        float max);
 
 	int handle_event();
 	void update();

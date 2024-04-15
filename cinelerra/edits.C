@@ -526,6 +526,10 @@ int Edits::load_edit(FileXML *file,
         current = append_new_edit();
     }
 
+// reset the current edit to silence
+    current->nested_edl = 0;
+    current->asset = 0;
+
 	current->load_properties(file, startproject);
 
     startproject += current->length;
