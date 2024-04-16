@@ -482,8 +482,7 @@ void SUV::initialize()
 
 // CWindow
 	new_image("cpanel_bg", "cpanel_bg.png");
-	new_image("cbuttons_left", "cbuttons_left.png");
-	new_image("cbuttons_right", "cbuttons_right.png");
+	new_image("cbuttons", "cbuttons.png");
 	new_image("cmeter_bg", "cmeter_bg.png");
 
 // VWindow
@@ -935,7 +934,10 @@ void SUV::draw_cwindow_bg(CWindowGUI *gui)
 {
 	gui->draw_3segmentv(0, 0, ccomposite_h, get_image("cpanel_bg"));
 
-	gui->draw_3segmenth(0, ccomposite_h, cstatus_x, get_image("cbuttons_left"));
+	gui->draw_3segmenth(0, 
+        ccomposite_h, 
+        mwindow->session->cwindow_w, 
+        get_image("cbuttons"));
 
 #ifdef USE_METERS
 	if(mwindow->edl->session->cwindow_meter)
@@ -953,10 +955,10 @@ void SUV::draw_cwindow_bg(CWindowGUI *gui)
 	else
 #endif
 	{
-		gui->draw_3segmenth(cstatus_x, 
-			ccomposite_h, 
-			cmeter_x - widget_border - cstatus_x + DP(100), 
-			get_image("cbuttons_right"));
+// 		gui->draw_3segmenth(cstatus_x, 
+// 			ccomposite_h, 
+// 			cmeter_x - widget_border - cstatus_x + DP(100), 
+// 			get_image("cbuttons_right"));
 	}
 }
 
@@ -964,8 +966,8 @@ void SUV::draw_vwindow_bg(VWindowGUI *gui)
 {
 	gui->draw_3segmenth(0, 
 		vcanvas_h, 
-		vdivision_x, 
-		get_image("vbuttons_left"));
+		mwindow->session->vwindow_w, 
+		get_image("cbuttons"));
 #ifdef USE_METERS
 	if(mwindow->edl->session->vwindow_meter)
 	{
@@ -982,10 +984,10 @@ void SUV::draw_vwindow_bg(VWindowGUI *gui)
 	else
 #endif
 	{
-		gui->draw_3segmenth(vdivision_x, 
-			vcanvas_h, 
-			vmeter_x - widget_border - vdivision_x + DP(100), 
-			get_image("cbuttons_right"));
+// 		gui->draw_3segmenth(vdivision_x, 
+// 			vcanvas_h, 
+// 			vmeter_x - widget_border - vdivision_x + DP(100), 
+// 			get_image("cbuttons_right"));
 	}
 
 // Clock border

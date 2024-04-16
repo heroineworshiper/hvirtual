@@ -572,12 +572,12 @@ void Theme::get_cwindow_sizes(CWindowGUI *gui, int cwindow_controls)
 {
 	czoom_w = DP(100);
 
-	int edit_w = EditPanel::calculate_w(mwindow, 1, 14);
+	int edit_w = EditPanel::calculate_w(mwindow, 1, 13);
 	int transport_w = PlayTransport::get_transport_width(mwindow) + toggle_margin;
 	int zoom_w = ZoomPanel::calculate_w(czoom_w);
 	int status_w = get_image("cwindow_active")->get_w();
 // Space between buttons & status icon
-	int division_w = DP(40);
+	int division_w = widget_border;
 
 	ctimebar_h = DP(16);
 
@@ -611,7 +611,7 @@ void Theme::get_cwindow_sizes(CWindowGUI *gui, int cwindow_controls)
 			division_w +
 			status_w > cmeter_x)
 		{
-			buttons_h = get_image("cbuttons_left")->get_h();
+			buttons_h = get_image("cbuttons")->get_h();
 
 			cedit_x = widget_border;
 			cedit_y = mwindow->session->cwindow_h - 
@@ -627,7 +627,7 @@ void Theme::get_cwindow_sizes(CWindowGUI *gui, int cwindow_controls)
 			czoom_x = ctransport_x + transport_w + widget_border;
 			czoom_y = ctransport_y + widget_border;
 
-			cstatus_x = DP(440);
+			cstatus_x = cedit_x + edit_w + widget_border;
 			cstatus_y = mwindow->session->cwindow_h - 
 				get_image("cwindow_active")->get_h() - DP(30);
 		}
@@ -642,14 +642,14 @@ void Theme::get_cwindow_sizes(CWindowGUI *gui, int cwindow_controls)
 				buttons_h + 
 				ctimebar_h + 
 				widget_border;
-			
+
 			cedit_x = ctransport_x + transport_w + widget_border;
 			cedit_y = ctransport_y;
 
-			czoom_x = cedit_x + edit_w + widget_border;
+			czoom_x = cedit_x + edit_w;
 			czoom_y = cedit_y + widget_border;
 //printf("Theme::get_cwindow_sizes %d %d %d\n", __LINE__, czoom_x, zoom_w);
-			cstatus_x = czoom_x + zoom_w + division_w;
+			cstatus_x = czoom_x + zoom_w + widget_border;
 			cstatus_y = ctransport_y;
 		}
 
@@ -680,7 +680,7 @@ SET_TRACE
 		ccomposite_x = -get_image("cpanel_bg")->get_w();
 		ccomposite_y = DP(0);
 		ccomposite_w = get_image("cpanel_bg")->get_w();
-		ccomposite_h = mwindow->session->cwindow_h - get_image("cbuttons_left")->get_h();
+		ccomposite_h = mwindow->session->cwindow_h - get_image("cbuttons")->get_h();
 
 		cslider_x = DP(5);
 		cslider_y = mwindow->session->cwindow_h;
@@ -809,7 +809,7 @@ void Theme::draw_resource_bg(TrackCanvas *canvas,
 
 void Theme::get_vwindow_sizes(VWindowGUI *gui)
 {
-	int edit_w = EditPanel::calculate_w(mwindow, 0, 10);
+	int edit_w = EditPanel::calculate_w(mwindow, 0, 9);
 	int transport_w = PlayTransport::get_transport_width(mwindow) + toggle_margin;
 // Space between buttons & time
 	int division_w = DP(30);
@@ -864,7 +864,7 @@ void Theme::get_vwindow_sizes(VWindowGUI *gui)
 			get_image_set("autokeyframe")[0]->get_h() - 
 			widget_border;
 
-		vdivision_x = DP(280);
+		vdivision_x = vtransport_x + transport_w + widget_border;
 		vtime_x = vdivision_x;
 		vtime_y = vedit_y + DP(20);
 	}
@@ -883,7 +883,7 @@ void Theme::get_vwindow_sizes(VWindowGUI *gui)
 		vedit_x = vtransport_x + transport_w + widget_border;
 		vedit_y = vtransport_y;
 		
-		vdivision_x = vedit_x + edit_w + division_w;
+		vdivision_x = vedit_x + edit_w + widget_border;
 		vtime_x = vdivision_x + vtime_border;
 		vtime_y = vedit_y + widget_border;
 	}

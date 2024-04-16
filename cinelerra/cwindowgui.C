@@ -289,7 +289,7 @@ int CWindowGUI::resize_event(int w, int h)
 		mwindow->theme->cmeter_h);
 #endif
 
-	draw_status(0);
+	draw_status(1);
 
 	BC_WindowBase::resize_event(w, h);
 	return 1;
