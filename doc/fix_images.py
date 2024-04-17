@@ -18,6 +18,9 @@ THUMB_W = 320
 
 # input & scaled images
 IMAGES = [
+    'bobcast5.png',
+    'broadcast.png',
+    'broadcast21.png',
     'chromakey.png',
     'chromakeyhsv1.png', 
     'chromakeyhsv2.png', 

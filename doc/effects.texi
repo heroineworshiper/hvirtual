@@ -1027,19 +1027,21 @@ timeline in seconds and frames.
 @node ADDING FONTS TO THE TITLER
 @subsection ADDING FONTS TO THE TITLER
 
-The X Window system originally didn't have a suitable font renderer for
-video.  It also is restricted to the current bit depth.  It doesn't
-have a convenient way to know which fonts work with the suitable font
-renderer in the desired bit depth.  The easiest way we've found to
-support fonts in the titler is to have a directory for them at
-@b{/usr/lib/cinelerra/fonts}.
+Cinelerra uses libfreetype for drawing titles.  It has a few
+limitations: it can't automatically use the fonts installed in the X
+server.  It can't automatically determine the files to use for normal,
+italic, bold.  Some distributions began putting all their fonts in
+/usr/share/fonts but different programs still have their own directories
+to guarantee they work.
 
-The titler supports mainly @b{TTF}, true type fonts.  It supports
-others but TTF are the most reliable.  To add true type fonts, copy the
-@b{.TTF} files to the @b{/usr/lib/cinelerra/fonts} directory.  In that
-directory run @b{ttmkfdir && mv fonts.scale fonts.dir} and restart
+The easiest way to support fonts has been to put the .ttf files in
+@b{cinelerra/fonts}.  Then run @b{ttmkfdir > fonts.dir} and restart
 Cinelerra.  The new fonts should appear.  The usage of ttmkfdir changes
 frequently so this technique might not work.
+
+The titler supports whatever ttmkfdir & freetype support, mainly
+@b{TTF}, true type fonts.  Other font formats like OTF are best
+converted to TTF.  It's not the biggest limitation of the titler.
 
 @ignore
 @node THE TITLE-SAFE REGION

@@ -40,6 +40,9 @@ IMAGES = \
 
 # custom images for documentation
 CUSTOM_IMAGES := \
+        bobcast5.png \
+        broadcast.png \
+        broadcast21.png \
 	chromakey.png \
 	chromakeyhsv1.png \
 	chromakeyhsv2.png \

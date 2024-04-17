@@ -41,9 +41,10 @@
 #define NO_SRC 4
 #define MAX_SRC 5
 #define TOTAL_SRC 6
-#define TOTAL_CHANNELS 4
+
+
 // no reason to support more than 4 shared tracks
-#define MAX_INPUTS 4
+#define MAX_INPUTS 16
 #define RENDERED_CHANNELS -1
 
 // 1st buffer is output
@@ -278,10 +279,12 @@ int SwapLayerMenu::handle_event()
 
 void SwapLayerMenu::create_objects()
 {
-	add_item(new SwapLayerItem(this, "0"));
-	add_item(new SwapLayerItem(this, "1"));
-	add_item(new SwapLayerItem(this, "2"));
-	add_item(new SwapLayerItem(this, "3"));
+    char string[BCTEXTLEN];
+    for(int i = 0; i < MAX_INPUTS; i++)
+    {
+        sprintf(string, "%d", i);
+        add_item(new SwapLayerItem(this, string));
+    }
 }
 
 
@@ -541,8 +544,8 @@ int SwapMain::process_buffer(VFrame **frame,
 	load_configuration();
 
 // determine which input layers to read.
-// Up to TOTAL_CHANNELS can be read
-    int input_layers[TOTAL_CHANNELS + 1];
+// Up to MAX_INPUTS can be read
+    int input_layers[MAX_INPUTS + 1];
     int total_inputs = 0;
     if(!have_layer(input_layers, config.r_layer, total_inputs))
         input_layers[total_inputs++] = config.r_layer;

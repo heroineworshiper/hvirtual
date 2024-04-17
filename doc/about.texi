@@ -2,16 +2,30 @@
 @node ABOUT CINELERRA
 @chapter ABOUT CINELERRA
 
-@b{BROADCAST 1.0}
+It's important to remember where it came from to differentiate what's
+really needed from bloat.
 
-In 1996 our first editor came out: Broadcast 1.0.  It was just a window
-with a waveform in it, it could cut and paste stereo audio waveforms on
-a UNIX box, except unlike other audio editors it could handle files up
-to 2 gigabytes with only 64 megs of RAM.  That was a feature normally
-only accessible to the highest end professional audio houses.
+@b{BOBCAST/BROADCAST 1.0}
+
+@image{bobcast5}
+
+The 1st attempt at editing media was written in 1996.  It just loaded a
+single WAV file or edit list from the command line & shifted bits of it
+around in a single window.  Then it could render a new wav file or save
+the edit list.  It used bare X11 calls & no toolkit.
+
+The typical source in those days was 1 file containing a complete
+recording session.  Editing just needed to move bits of the 1 file
+around.
+
+Its big magic tricks wer handling files up to 2 gigabytes with only 64
+megs of RAM & non destructive editing.  That was a feature normally only
+accessible to the highest end professional audio houses in those days.
 
 
-@b{BROADCAST 2.0}
+@b{BROADCAST 2.1}
+
+@image{broadcast21}
 
 In 1997 Broadcast 1.0 was replaced by Broadcast 2.0.  This time the
 window had a menubar, patchbay, console, and transport control. 
@@ -24,6 +38,8 @@ result instantly.   Amazingly this real time tweeking is still
 unavailable on most audio programs.
 
 @b{BROADCAST 2000}
+
+@image{broadcast}
 
 But Broadcast 2.0 still didn't handle video and it wasn't very graceful
 at audio either.  In 1999 video broke into the story with Broadcast
