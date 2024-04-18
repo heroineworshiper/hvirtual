@@ -89,7 +89,7 @@ void ClipEdit::handle_close_event(int result)
 
 // For creating new clips, the original was copied in add_clip.
 // For editing old clips, the original was transferred to another variable.
-	if(!create_it) delete clip;
+	if(!create_it) clip->remove_user();
 	original = 0;
 	clip = 0;
 	create_it = 0;

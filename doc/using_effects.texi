@@ -17,6 +17,7 @@ applied using the same procedure.
 * RENDERED EFFECTS::
 * TRANSITIONS::
 * LADSPA EFFECTS::
+* EFFECT KEYFRAMES::
 * EFFECT PRESETS::
 @end menu
 
@@ -419,8 +420,6 @@ signify that they are Plugins for Linux Audio Developers.
 LADSPA Effects are enabled merely by setting the @b{LADSPA_PATH}
 environment variable to the location of your LADSPA plugins or putting
 them in the @b{/usr/lib/cinelerra} directory.
-
-
 
 
 

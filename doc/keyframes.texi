@@ -21,6 +21,7 @@ the different types of keyframes is described here.
 * AUTOMATIC KEYFRAMES::
 * CAMERA/PROJECTOR KEYFRAMES::
 * MASK KEYFRAMES::
+* EFFECT KEYFRAMES::
 * EDITING KEYFRAMES::   Moving keyframes around
 * KEYFRAME SPANNING::   How to change 1 parameter in many keyframes simultaneously
 @end menu
@@ -315,6 +316,52 @@ whatever the previous keyframe has.
 If the number of points changes between keyframes, the results are
 undefined.
 
+@node EFFECT KEYFRAMES
+@section EFFECT KEYFRAMES
+
+Effects have a default keyframe which applies to their entire duration &
+optionally normal keyframes at points in time.  Effect keyframes can be
+created by right clicking on the effect, copying the default keyframe &
+pasting it as a normal keyframe.  They are also created by enabling
+@image{autokeyframe} auto keyframes & changing a parameter in the effect
+GUI.  Right click on an effect keyframe to get a context menu for it. 
+This allows copying single keyframes & pasting them as the default
+keyframe or new keyframes.  Clipboard operations with multiple keyframes
+are done in the @b{Keyframes} menu.
+
+To simultaneously change the same parameter in multiple keyframes,
+@xref{KEYFRAME SPANNING}.
+
+Some effect parameters don't create keyframes, like whether to plot a
+histogram, the size of the GUI window, "copy to all" in 3 way color. 
+These are saved as defaults.
+
+Whether a parameter isn't keyframed, changes instantly or is
+interpolated is done on a case by case basis, but is loosely correlated
+with the type of parameter.  The easiest way to find out what is being
+interpolated is to create 2 keyframes & scrub between them with the GUI
+open.  The GUI should automatically update to show the current values.
+
+@b{Linear parameters which don't affect memory usage or time} are
+interpolated.  Brightness, histogram points, color curve points, pitch
+shift amount, translation points, perspective points, scale values are
+interpolated.
+
+@b{Toggles} always copy the current keyframe value.
+
+@b{Time altering parameters} are always instant.  Resample, reframe, or
+the reference frame in a motion tracker are instant because they affect
+time.
+
+@b{Memory altering parameters} are always instant.  The number of frames
+in a time average is an example that changes memory usage.
+
+@b{Very slow effects} are usually instant.  All the parameters in motion
+effects are instant because they're slow.
+
+@b{Needs based on experience} Some parameters have never needed
+interpolation, like the position of a reference block in Motion or the
+number of reflections in Reverb.
 
 @node EDITING KEYFRAMES
 @section EDITING KEYFRAMES
@@ -401,13 +448,15 @@ all the tracks.
 
 
 To change a single parameter in multiple keyframes without changing the
-other parameters, highlight a region on the timeline and adjust the
-parameter.  Instead of a new keyframe being created, the existing
-keyframes are modified and only the changed parameter is modified.
+other parameters, highlight a region on the timeline which spans
+multiple keyframes and adjust the parameter.  Instead of a new keyframe
+being created, the existing keyframes in the span are modified and only
+the changed parameter is modified.
 
 It doesn't matter if @image{autokeyframe} auto keyframe is enabled.  It
 only works when the keyframe stores multiple parameters.  Only mask and
-effect keyframes do this.  Other types of keyframes are generated as usual.
+effect keyframes do this.  Other types of keyframes are generated as
+usual.
 
 
 

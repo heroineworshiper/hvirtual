@@ -725,6 +725,9 @@ void AWindowGUI::create_persistent_folder(ArrayList<BC_ListBoxItem*> *output,
 
 void AWindowGUI::update_asset_list()
 {
+    char name[BCTEXTLEN];
+    FileSystem fs;
+
 //printf("AWindowGUI::update_asset_list 1\n");
 	for(int i = 0; i < assets.total; i++)
 	{
@@ -790,6 +793,9 @@ void AWindowGUI::update_asset_list()
 
 			if(picon->id == current->id)
 			{
+// update the path
+                fs.extract_name(name, current->path);
+                picon->set_text(name);
 				picon->indexable = current;
 				exists = 1;
 				picon->in_use = 1;
@@ -827,6 +833,9 @@ void AWindowGUI::update_asset_list()
 
 			if(picon->id == indexable->id)
 			{
+// update the path
+                fs.extract_name(name, indexable->path);
+                picon->set_text(name);
 				picon->indexable = indexable;
 				exists = 1;
 				picon->in_use = 1;

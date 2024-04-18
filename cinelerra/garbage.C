@@ -41,10 +41,15 @@ Garbage::Garbage(const char *title)
 Garbage::~Garbage()
 {
 	if(!deleted)
-		printf("Garbage::~Garbage: title=%s users=%d was not deleted by Garbage::remove_user\n", 
+	{
+    	printf("Garbage::~Garbage: title=%s users=%d was not deleted by Garbage::remove_user\n", 
 			title, 
 			users);
-	delete [] title;
+        BC_Signals::dump_stack();
+
+	}
+    
+    delete [] title;
 	delete lock;
 }
 
