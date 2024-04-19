@@ -183,6 +183,7 @@ void EdgeEngine::process(VFrame *dst, VFrame *src, int amount)
 {
 	this->dst = dst;
 	this->src = src;
+    this->amount = amount;
     if(dst == src)
     {
         if(!tmp)
