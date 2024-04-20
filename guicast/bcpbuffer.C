@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +41,7 @@ BC_PBuffer::~BC_PBuffer()
 {
 #ifdef HAVE_GL
 	BC_WindowBase::get_synchronous()->release_pbuffer(window_id, pbuffer);
+//BC_Signals::dump_stack();
 #endif
 }
 
@@ -178,6 +178,7 @@ void BC_PBuffer::new_pbuffer(int w, int h)
 // visinfo,
 // BC_Resources::error,
 // (long)pbuffer);
+//BC_Signals::dump_stack();
 
 			if(visinfo) break;
 		}

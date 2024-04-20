@@ -62,7 +62,7 @@ void BC_DeleteFile::create_objects()
 	lock_window("BC_DeleteFile::create_objects");
 	while((path = filebox->get_path(i)))
 	{
-//printf("BC_DeleteFile::create_objects %d %s\n", __LINE__, path);
+//printf("BC_DeleteFile::create_objects %d i=%d %s\n", __LINE__, i, path);
 		data->append(new BC_ListBoxItem(path));
 		i++;
 	}

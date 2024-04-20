@@ -1589,54 +1589,24 @@ void BC_FileBox::create_listbox(int mode)
 
 char* BC_FileBox::get_path(int selection)
 {
-// if the textbox contains a selection in the list
-// return the selections in the list
-// otherwise return the text entry 1st, followed by the list selections
+// if the list has any selections return the selections in the list
+// otherwise return only the text entry
     int column = column_of_type(FILEBOX_NAME);
-    int got_it = 0;
-    ArrayList<BC_ListBoxItem*> list_return;
-    for(int i = 0; i < list_column[column].size(); i++)
-    {
-        BC_ListBoxItem *item = listbox->get_selection(column, i);
+
+    BC_ListBoxItem *item = listbox->get_selection(column, selection);
 //printf("BC_FileBox::get_path %d item=%p i=%d\n", __LINE__, item, i);
 // end of selections
-        if(!item) break;
-//printf("BC_FileBox::get_path %d i=%d\n", __LINE__, i);
-// textbox matches a list item.  Don't return it.
-        if(!strcmp(item->get_text(), textbox->get_text()))
-        {
-            got_it = 1;
-        }
-
-// always return the list item
-        list_return.append(item);
+    if(item)
+    {
+        fs->join_names(string, directory, item->get_text());
+        return string;
     }
-
-    if(!got_it) selection -= 1;
-// printf("BC_FileBox::get_path %d got_it=%d selection=%d list_return=%d\n", 
-// __LINE__, 
-// got_it, 
-// selection,
-// list_return.size());
-
-// return the text box 1st
-	if(!got_it && selection < 0)
-	{
-		return get_submitted_path();
-	}
-	else
-// return the list items
-    if(selection < list_return.size())
-	{
-		BC_ListBoxItem *item = list_return.get(selection);
-//printf("BC_FileBox::get_path %d item=%p selection=%d\n", __LINE__, item, selection);
-		if(item) 
-		{
-			fs->join_names(string, directory, item->get_text());
-			return string;
-		}
-	}
-	return 0;
+    else
+// return the text box
+    if(selection == 0)
+    	return get_submitted_path();
+    else
+        return 0;
 }
 
 char* BC_FileBox::get_submitted_path()

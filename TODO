@@ -34,6 +34,8 @@ text for labels
 reverse reverb
 variable fast fwd speed
 
+Changing an asset path doesn't make it recompute the format.  Currently
+have to import a new asset & change it in the edit popup.
 
 
 Private plugin data storage in the track.

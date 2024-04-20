@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -308,7 +308,7 @@ void BC_Synchronous::put_texture(int id, int w, int h, int components)
 int BC_Synchronous::get_texture(int w, int h, int components)
 {
 	table_lock->lock("BC_Resources::get_texture");
-	for(int i = 0; i < texture_ids.total; i++)
+	for(int i = 0; i < texture_ids.size(); i++)
 	{
 		if(texture_ids.values[i]->w == w &&
 			texture_ids.values[i]->h == h &&
@@ -318,10 +318,13 @@ int BC_Synchronous::get_texture(int w, int h, int components)
 		{
 			int result = texture_ids.values[i]->id;
 			texture_ids.values[i]->in_use = 1;
+            delete_textures();
 			table_lock->unlock();
 			return result;
 		}
 	}
+    
+    delete_textures();
 	table_lock->unlock();
 	return -1;
 }
@@ -450,15 +453,15 @@ window_id);
 		}
 	}
 
-	for(int i = 0; i < pbuffer_ids.total; i++)
+	for(int i = 0; i < pbuffer_ids.size(); i++)
 	{
-		if(pbuffer_ids.values[i]->window_id == window_id)
+		if(pbuffer_ids.get(i)->window_id == window_id)
 		{
-			glXDestroyPbuffer(display, pbuffer_ids.values[i]->pbuffer);
-			glXDestroyContext(display, pbuffer_ids.values[i]->gl_context);
+			glXDestroyPbuffer(display, pbuffer_ids.get(i)->pbuffer);
+			glXDestroyContext(display, pbuffer_ids.get(i)->gl_context);
 // if(debug)
 // printf("BC_Synchronous::delete_window_sync pbuffer_id=%p window_id=%d\n", 
-// pbuffer_ids.values[i]->pbuffer,
+// pbuffer_ids.get(i)->pbuffer,
 // window_id);
 			pbuffer_ids.remove_object_number(i);
 			i--;
@@ -472,7 +475,6 @@ window_id);
 	if(gl_context) glXDestroyContext(display, gl_context);
 #endif
 }
-
 
 
 #ifdef HAVE_GL
@@ -529,10 +531,16 @@ GLXPbuffer BC_Synchronous::get_pbuffer(int w,
 			ptr->in_use = 1;
 // printf("BC_Synchronous::get_pbuffer %d pbuffer=%lx taken\n",
 // __LINE__, (long)result);
+
+// garbage collect the unused pbuffers here, since it's  a synchronous point
+            delete_pbuffers();
+
 			table_lock->unlock();
 			return result;
 		}
 	}
+
+    delete_pbuffers();
 	table_lock->unlock();
 	return 0;
 }
@@ -553,6 +561,42 @@ void BC_Synchronous::release_pbuffer(int window_id, GLXPbuffer pbuffer)
 	}
 	table_lock->unlock();
 }
+
+void BC_Synchronous::delete_pbuffers()
+{
+    int window_id = current_window->get_id();
+	for(int i = 0; i < pbuffer_ids.size(); i++)
+	{
+		if(pbuffer_ids.get(i)->window_id == window_id &&
+            !pbuffer_ids.get(i)->in_use)
+		{
+//printf("BC_Synchronous::delete_pbuffers %d w=%d h=%d pbuffer=0x%lx\n",
+//__LINE__, pbuffer_ids.get(i)->w, pbuffer_ids.get(i)->h, (long)pbuffer_ids.get(i)->pbuffer);
+			glXDestroyPbuffer(current_window->get_display(), pbuffer_ids.get(i)->pbuffer);
+			glXDestroyContext(current_window->get_display(), pbuffer_ids.get(i)->gl_context);
+            pbuffer_ids.remove_object_number(i);
+            i--;
+        }
+    }
+}
+
+void BC_Synchronous::delete_textures()
+{
+    for(int i = 0; i < texture_ids.size(); i++)
+	{
+        if(!texture_ids.get(i)->in_use &&
+			texture_ids.get(i)->window_id == current_window->get_id())
+        {
+            GLuint id = texture_ids.get(i)->id;
+//printf("BC_Synchronous::delete_textures %d w=%d h=%d texture=0x%x\n",
+//__LINE__, texture_ids.get(i)->w, texture_ids.get(i)->h, texture_ids.get(i)->id);
+            glDeleteTextures(1, &id);
+            texture_ids.remove_object_number(i);
+			i--;
+        }
+    }
+}
+
 
 void BC_Synchronous::delete_pixmap(BC_WindowBase *window, 
 	GLXPixmap pixmap, 
