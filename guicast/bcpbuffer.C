@@ -170,12 +170,14 @@ void BC_PBuffer::new_pbuffer(int w, int h)
 	    	visinfo = glXGetVisualFromFBConfig(current_window->get_display(), 
 				config_result ? config_result[current_config] : 0);
 
-// printf("BC_PBuffer::new_pbuffer %d current_config=%d visinfo=%p error=%d pbuffer=%p\n",
+// printf("BC_PBuffer::new_pbuffer %d w=%d h=%d current_config=%d visinfo=%p error=%d pbuffer=%lx\n",
 // __LINE__,
+// gl_w,
+// gl_h,
 // current_config,
 // visinfo,
 // BC_Resources::error,
-// pbuffer);
+// (long)pbuffer);
 
 			if(visinfo) break;
 		}

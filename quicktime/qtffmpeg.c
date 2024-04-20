@@ -903,11 +903,11 @@ result);
 			vtrack->current_position != ffmpeg->last_frame[current_field])
 		{
 			int64_t track_length = quicktime_track_samples(file, trak);
-printf("quicktime_ffmpeg_decode %d current_position=%d read_position=%d track_length=%d\n", 
-__LINE__, 
-(int)vtrack->current_position, 
-(int)ffmpeg->read_position[current_field],
-(int)track_length);
+// printf("quicktime_ffmpeg_decode %d current_position=%d read_position=%d track_length=%d\n", 
+// __LINE__, 
+// (int)vtrack->current_position, 
+// (int)ffmpeg->read_position[current_field],
+// (int)track_length);
 			do
 			{
 

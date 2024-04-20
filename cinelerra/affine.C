@@ -25,6 +25,7 @@
 #endif
 
 #include "affine.h"
+#include "bcpbuffer.h"
 #include "clip.h"
 #include "vframe.h"
 
@@ -387,6 +388,13 @@ void AffineUnit::process_package(LoadPackage *package)
 		server->output->init_screen();
 		server->output->bind_texture(0);
 		server->output->clear_pbuffer();
+
+// printf("AffineUnit::process_package %d output=%p pbuffer=%lx %d %d\n",
+// __LINE__,
+// server->output,
+// (long)server->output->get_pbuffer()->get_pbuffer(),
+// server->output->get_w(),
+// server->output->get_h());
 
 		int texture_w = server->output->get_texture_w();
 		int texture_h = server->output->get_texture_h();

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
  */
 
 #include "automation.h"
+#include "bcpbuffer.h"
 #include "bcsignals.h"
 #include "clip.h"
 #include "edits.h"
@@ -549,10 +550,10 @@ int VirtualVNode::render_projector(VFrame *input,
 			if(use_opengl)
 			{
 // Nested EDL's overlay on a PBuffer instead of a screen
-// printf("VirtualVNode::render_projector %d input=%p output=%p\n", 
+// printf("VirtualVNode::render_projector %d output=%p pbuffer=%lx\n", 
 // __LINE__, 
-// input, 
-// output);
+// output,
+// (long)output->get_pbuffer()->get_pbuffer());
 // printf("VirtualVNode::render_projector %d\n", __LINE__);
 // for(int i = 0; i < 1024; i++)
 // {

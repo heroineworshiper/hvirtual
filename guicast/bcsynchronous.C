@@ -527,6 +527,8 @@ GLXPbuffer BC_Synchronous::get_pbuffer(int w,
 			*gl_context = ptr->gl_context;
 			*window_id = ptr->window_id;
 			ptr->in_use = 1;
+// printf("BC_Synchronous::get_pbuffer %d pbuffer=%lx taken\n",
+// __LINE__, (long)result);
 			table_lock->unlock();
 			return result;
 		}
@@ -541,8 +543,11 @@ void BC_Synchronous::release_pbuffer(int window_id, GLXPbuffer pbuffer)
 	for(int i = 0; i < pbuffer_ids.total; i++)
 	{
 		PBufferID *ptr = pbuffer_ids.values[i];
-		if(ptr->window_id == window_id)
+		if(ptr->window_id == window_id &&
+            ptr->pbuffer == pbuffer)
 		{
+// printf("BC_Synchronous::release_pbuffer %d pbuffer=%lx released\n",
+// __LINE__, (long)pbuffer);
 			ptr->in_use = 0;
 		}
 	}

@@ -338,6 +338,7 @@ void VFrame::create_pbuffer()
 	if(pbuffer && 
 		pbuffer->window_id != BC_WindowBase::get_synchronous()->current_window->get_id())
 	{
+//printf("VFrame::create_pbuffer %d %p\n", __LINE__, this);
 		delete pbuffer;
 		pbuffer = 0;
 	}
@@ -363,6 +364,8 @@ void VFrame::create_pbuffer()
 	if(!pbuffer)
 	{
 		pbuffer = new BC_PBuffer(fixed_w, fixed_h);
+//printf("VFrame::create_pbuffer %d %p pbuffer=%lx w=%d h=%d\n", 
+//__LINE__, this, (long)pbuffer->get_pbuffer(), get_w(), get_h());
 	}
 #endif // HAVE_GL
 }
