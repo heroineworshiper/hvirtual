@@ -24,6 +24,7 @@
 #include "edlsession.h"
 #include "gwindow.h"
 #include "gwindowgui.h"
+#include "keys.h"
 #include "language.h"
 #include "mainmenu.h"
 #include "mwindow.h"
@@ -114,11 +115,40 @@ ShowAutomation::ShowAutomation(MWindow *mwindow,
 	const char *text,
 	const char *hotkey,
 	int subscript)
- : BC_MenuItem(text, hotkey, hotkey[0])
+ : BC_MenuItem(text, hotkey, hotkey_to_code(hotkey))
 {
 	this->mwindow = mwindow;
 	this->subscript = subscript;
 	set_checked(mwindow->edl->session->auto_conf->autos[subscript]); 
+}
+
+int ShowAutomation::hotkey_to_code(const char *hotkey)
+{
+    if(!strcmp(hotkey, "F1")) return KEY_F1;
+    else
+    if(!strcmp(hotkey, "F2")) return KEY_F2;
+    else
+    if(!strcmp(hotkey, "F3")) return KEY_F3;
+    else
+    if(!strcmp(hotkey, "F4")) return KEY_F4;
+    else
+    if(!strcmp(hotkey, "F5")) return KEY_F5;
+    else
+    if(!strcmp(hotkey, "F6")) return KEY_F6;
+    else
+    if(!strcmp(hotkey, "F7")) return KEY_F7;
+    else
+    if(!strcmp(hotkey, "F8")) return KEY_F8;
+    else
+    if(!strcmp(hotkey, "F9")) return KEY_F9;
+    else
+    if(!strcmp(hotkey, "F10")) return KEY_F10;
+    else
+    if(!strcmp(hotkey, "F11")) return KEY_F11;
+    else
+    if(!strcmp(hotkey, "F12")) return KEY_F12;
+    else
+        return hotkey[0];
 }
 
 int ShowAutomation::handle_event()

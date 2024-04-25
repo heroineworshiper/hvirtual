@@ -233,12 +233,12 @@ void MainMenu::create_objects()
 	viewmenu->add_item(plugin_automation = new PluginAutomation(mwindow, "7"));
 	viewmenu->add_item(mask_automation = new ShowAutomation(mwindow, _("Mask"), "8", AUTOMATION_MASK));
 	viewmenu->add_item(speed_automation = new ShowAutomation(mwindow, _("Speed"), "9", AUTOMATION_SPEED));
-	viewmenu->add_item(camera_x = new ShowAutomation(mwindow, _("Camera X"), "", AUTOMATION_CAMERA_X));
-	viewmenu->add_item(camera_y = new ShowAutomation(mwindow, _("Camera Y"), "", AUTOMATION_CAMERA_Y));
-	viewmenu->add_item(camera_z = new ShowAutomation(mwindow, _("Camera Z"), "", AUTOMATION_CAMERA_Z));
-	viewmenu->add_item(project_x = new ShowAutomation(mwindow, _("Projector X"), "", AUTOMATION_PROJECTOR_X));
-	viewmenu->add_item(project_y = new ShowAutomation(mwindow, _("Projector Y"), "", AUTOMATION_PROJECTOR_Y));
-	viewmenu->add_item(project_z = new ShowAutomation(mwindow, _("Projector Z"), "", AUTOMATION_PROJECTOR_Z));
+	viewmenu->add_item(camera_x = new ShowAutomation(mwindow, _("Camera X"), "F1", AUTOMATION_CAMERA_X));
+	viewmenu->add_item(camera_y = new ShowAutomation(mwindow, _("Camera Y"), "F2", AUTOMATION_CAMERA_Y));
+	viewmenu->add_item(camera_z = new ShowAutomation(mwindow, _("Camera Z"), "F3", AUTOMATION_CAMERA_Z));
+	viewmenu->add_item(project_x = new ShowAutomation(mwindow, _("Projector X"), "F4", AUTOMATION_PROJECTOR_X));
+	viewmenu->add_item(project_y = new ShowAutomation(mwindow, _("Projector Y"), "F5", AUTOMATION_PROJECTOR_Y));
+	viewmenu->add_item(project_z = new ShowAutomation(mwindow, _("Projector Z"), "F6", AUTOMATION_PROJECTOR_Z));
 
 
 	add_menu(windowmenu = new BC_Menu(_("Window")));

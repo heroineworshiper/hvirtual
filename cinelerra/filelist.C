@@ -669,7 +669,8 @@ void FrameWriterUnit::process_package(LoadPackage *package)
 //printf("FrameWriterUnit::process_package 2 %s\n", ptr->path);
 	if(!(file = fopen(ptr->path, "wb")))
 	{
-		printf("FrameWriterUnit::process_package %s: %s\n",
+		printf("FrameWriterUnit::process_package %d: %s: %s\n",
+            __LINE__,
 			ptr->path,
 			strerror(errno));
 		return;

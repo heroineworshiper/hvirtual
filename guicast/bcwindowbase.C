@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1239,6 +1239,20 @@ __LINE__, title, event);
 				    case XK_KP_Insert:      key_pressed = KPINS;     break;
 				    case XK_KP_Decimal:
 				    case XK_KP_Delete:      key_pressed = KPDEL;     break;
+                    case XK_F1:             key_pressed = KEY_F1;    break;
+                    case XK_F2:             key_pressed = KEY_F2;    break;
+                    case XK_F3:             key_pressed = KEY_F3;    break;
+                    case XK_F4:             key_pressed = KEY_F4;    break;
+                    case XK_F5:             key_pressed = KEY_F5;    break;
+                    case XK_F6:             key_pressed = KEY_F6;    break;
+                    case XK_F7:             key_pressed = KEY_F7;    break;
+                    case XK_F8:             key_pressed = KEY_F8;    break;
+                    case XK_F9:             key_pressed = KEY_F9;    break;
+                    case XK_F10:            key_pressed = KEY_F10;   break;
+                    case XK_F11:            key_pressed = KEY_F11;   break;
+                    case XK_F12:            key_pressed = KEY_F12;   break;
+                    
+                    
  	    		    default:           
 					    //key_pressed = keys_return[0]; 
     #ifdef X_HAVE_UTF8_STRING
@@ -1260,7 +1274,8 @@ __LINE__, title, event);
     #endif
 
 
-    //printf("BC_WindowBase::dispatch_event %d %d %x\n", shift_down(), alt_down(), key_pressed);
+//printf("BC_WindowBase::dispatch_event %d: keysym=0x%x shift=%d alt=%d ctrl=%d key_pressed=%d\n", 
+//__LINE__, (int)keysym, shift_down(), ctrl_down(), alt_down(), key_pressed);
 			    result = dispatch_keypress_event();
     // Handle some default keypresses
 			    if(!result)

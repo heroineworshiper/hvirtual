@@ -38,7 +38,7 @@ class GWindowGUI : public BC_Window
 {
 public:
 	GWindowGUI(MWindow *mwindow, int w, int h);
-	static void calculate_extents(BC_WindowBase *gui, int *w, int *h);
+	static void calculate_extents(BC_WindowBase *gui, int *w, int *h, int *x2);
 	void create_objects();
 	int translation_event();
 	int close_event();

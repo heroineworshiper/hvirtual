@@ -170,6 +170,16 @@ void PackageRenderer::create_output()
 	file->set_processors(preferences->processors);
 	file->set_cache(preferences->cache_size);
 
+// create the output directory for background rendering since it's usually
+// in /tmp & Linux deletes /tmp
+    if(package->use_brender)
+    {
+        FileSystem fs;
+        char dir[BCTEXTLEN];
+        fs.extract_dir(dir, package->path);
+        if(!fs.is_dir(dir)) fs.create_dir(dir);
+    }
+
 	result = file->open_file(preferences, 
 					asset, 
 					0, 
@@ -319,13 +329,13 @@ int PackageRenderer::create_engine()
             if(package->use_brender)
                 printf("PackageRenderer::create_engine %d: Hardware rendering is not supported in background rendering.\n", __LINE__);
             else
-                printf("PackageRenderer::create_engine %d: Hardware rendering is not available.\n", __LINE__);
+                printf("PackageRenderer::create_engine %d: Hardware rendering is not available because a canvas couldn't be created.\n", __LINE__);
             printf("Switching to software mode.\n");
             use_opengl = 0;
         }
 	}
 
-    if(preferences->use_gl_rendering)
+    if(use_opengl)
         printf("PackageRenderer::create_engine %d using hardware rendering\n", __LINE__);
 
     if(!result)

@@ -24,6 +24,7 @@
 #include "edl.h"
 #include "edlsession.h"
 #include "gwindowgui.h"
+#include "keys.h"
 #include "mainmenu.h"
 #include "mainsession.h"
 #include "mwindow.h"
@@ -53,7 +54,7 @@ GWindowGUI::GWindowGUI(MWindow *mwindow,
 	new_status = 0;
 }
 
-static const char *other_text[OTHER_TOGGLES] =
+static const char *other_text[] =
 {
 	"Assets",
 	"Titles",
@@ -61,28 +62,48 @@ static const char *other_text[OTHER_TOGGLES] =
 	"Plugin Autos"
 };
 
-static const char *auto_text[] = 
+static const char* other_keys[] = 
 {
-	"Mute",
-	"Camera X",
-	"Camera Y",
-	"Camera Z",
-	"Projector X",
-	"Projector Y",
-	"Projector Z",
-	"Fade",
-	"Pan",
-	"Mode",
-	"Mask",
-	"Speed"
+    "0", "1", "2", "7"
 };
 
-void GWindowGUI::calculate_extents(BC_WindowBase *gui, int *w, int *h)
+static const char *auto_text[] = 
 {
+	"Mute",          // 0
+	"Camera X",     // 1
+	"Camera Y",     // 2
+	"Camera Z",     // 3
+	"Projector X",  // 4
+	"Projector Y",  // 5
+	"Projector Z",  // 6
+	"Fade",          // 7
+	"Pan",           // 8
+	"Mode",          // 9
+	"Mask",          // 10
+	"Speed"          // 11
+};
+
+static const int auto_keys[] = 
+{
+    '4', KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, '3', '6', '5', '8', '9'
+};
+
+static const char* auto_keys2[] = 
+{
+    "4", "F1", "F2", "F3", "F4", "F5", "F6", "3", "6", "5", "8", "9"
+};
+
+void GWindowGUI::calculate_extents(BC_WindowBase *gui, int *w, int *h, int *x2)
+{
+    int margin = BC_Resources::theme->widget_border;
 	int temp1, temp2, temp3, temp4, temp5, temp6, temp7;
 	int current_w, current_h;
-	*w = 10;
-	*h = 10;
+	*w = 0;
+	*h = margin;
+    int key_w = 0;
+    int max_key_w = 0;
+
+// width of toggles
 	for(int i = 0; i < OTHER_TOGGLES; i++)
 	{
 		BC_Toggle::calculate_extents(gui, 
@@ -98,8 +119,13 @@ void GWindowGUI::calculate_extents(BC_WindowBase *gui, int *w, int *h)
 			&temp6,
 			&temp7, 
 			other_text[i]);
+
 		*w = MAX(current_w, *w);
-		*h += current_h + 5;
+		*h += current_h;
+
+        key_w = BC_Title::calculate_w(gui, 
+            other_keys[i]);
+        if(key_w > max_key_w) max_key_w = key_w;
 	}
 
 	for(int i = 0; i < AUTOMATION_TOTAL; i++)
@@ -118,43 +144,71 @@ void GWindowGUI::calculate_extents(BC_WindowBase *gui, int *w, int *h)
 			&temp7, 
 			auto_text[i]);
 		*w = MAX(current_w, *w);
-		*h += current_h + 5;
+		*h += current_h;
+
+        key_w = BC_Title::calculate_w(gui, 
+            auto_keys2[i]);
+        if(key_w > max_key_w) max_key_w = key_w;
 	}
-	*h += 10;
-	*w += 20;
+
+    *x2 = *w + margin * 2;
+	*h += margin;
+	*w += margin * 3 + max_key_w;
 }
 
 
 
 void GWindowGUI::create_objects()
 {
-	int x = 10, y = 10;
+    int margin = BC_Resources::theme->widget_border;
+	int x = margin, y = margin;
+    int x2 = 0;
+    int w1, h1;
 	lock_window("GWindowGUI::create_objects 1");
+    calculate_extents(this, &w1, &h1, &x2);
+    int title_h = BC_Title::calculate_h(this, "F1");
 
 
-	for(int i = 0; i < OTHER_TOGGLES; i++)
-	{
-		add_tool(other[i] = new GWindowToggle(mwindow, 
-			this, 
-			x, 
-			y, 
-			-1,
-			i, 
-			other_text[i]));
-		y += other[i]->get_h() + 5;
-	}
+#define DO_OTHER(i) \
+	add_tool(other[i] = new GWindowToggle(mwindow, \
+		this, \
+		x, \
+		y, \
+		-1, \
+		i, \
+		other_text[i])); \
+    add_tool(new BC_Title(x2, y + other[i]->get_h() - title_h, other_keys[i])); \
+	y += other[i]->get_h();
 
-	for(int i = 0; i < AUTOMATION_TOTAL; i++)
-	{
-		add_tool(auto_toggle[i] = new GWindowToggle(mwindow, 
-			this, 
-			x, 
-			y, 
-			i,
-			-1, 
-			auto_text[i]));
-		y += auto_toggle[i]->get_h() + 5;
-	}
+#define DO_AUTO(i) \
+	add_tool(auto_toggle[i] = new GWindowToggle(mwindow, \
+		this, \
+		x, \
+		y, \
+		i, \
+		-1, \
+		auto_text[i])); \
+    add_tool(new BC_Title(x2, y + auto_toggle[i]->get_h() - title_h, auto_keys2[i])); \
+	y += auto_toggle[i]->get_h();
+    
+// put them in the same order as the menu
+    DO_OTHER(0);
+    DO_OTHER(1);
+    DO_OTHER(2);
+    DO_AUTO(7);
+    DO_AUTO(0);
+    DO_AUTO(9);
+    DO_AUTO(8);
+    DO_OTHER(3);
+    DO_AUTO(10);
+    DO_AUTO(11);
+    DO_AUTO(1);
+    DO_AUTO(2);
+    DO_AUTO(3);
+    DO_AUTO(4);
+    DO_AUTO(5);
+    DO_AUTO(6);
+
 	unlock_window();
 }
 
@@ -206,6 +260,24 @@ int GWindowGUI::close_event()
 
 int GWindowGUI::keypress_event()
 {
+    GWindowToggle *toggle = 0;
+    for(int i = 0; i < OTHER_TOGGLES && !toggle; i++)
+    {
+        if(get_keypress() == other_keys[i][0]) toggle = other[i];
+    }
+    
+    for(int i = 0; i < AUTOMATION_TOTAL && !toggle; i++)
+    {
+        if(get_keypress() == auto_keys[i]) toggle = auto_toggle[i];
+    }
+    
+    if(toggle)
+    {
+        toggle->set_value(!toggle->get_value());
+        toggle->handle_event();
+        return 1;
+    }
+
 	switch(get_keypress())
 	{
 		case 'w':

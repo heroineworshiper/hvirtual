@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,8 +38,8 @@ void GWindow::create_objects()
 {
 	int w, h;
 
-
-	GWindowGUI::calculate_extents(mwindow->gui, &w, &h);
+    int x2;
+	GWindowGUI::calculate_extents(mwindow->gui, &w, &h, &x2);
 	gui = new GWindowGUI(mwindow, w, h);
 	gui->create_objects();
 }

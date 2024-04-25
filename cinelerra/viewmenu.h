@@ -66,6 +66,7 @@ public:
 		const char *text,
 		const char *hotkey,
 		int subscript);
+    static int hotkey_to_code(const char *hotkey);
 	int handle_event();
 	void update_toggle();
 	MWindow *mwindow;
