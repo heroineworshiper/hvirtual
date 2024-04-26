@@ -162,9 +162,9 @@ printf("ClientMessage %d ClientMessage\n", __LINE__);
                     g_length[mask_to_buffer(SECONDARY_SELECTION)]);
 
 
-//printf("BC_Clipboard::run %d SelectionRequest length=%d\n", 
-//__LINE__,
-//length);
+// printf("BC_Clipboard::run %d SelectionRequest this=%p length=%d\n", 
+// __LINE__,
+// this,length);
 // printf("BC_Clipboard::run %d selection=%s property=%s target=%s primary=%ld secondary=%ld\n", 
 // __LINE__, 
 // XGetAtomName(out_display, request->selection), 
@@ -317,20 +317,20 @@ void BC_Clipboard::to_1clipboard(const char *data,
 
     int clipboard_num = mask_to_buffer(clipboard_mask);
 // Store in local buffer
-	if(g_data[clipboard_num] && g_length[clipboard_num] != len + 1)
+	if(g_data[clipboard_num])
 	{
 		delete [] g_data[clipboard_num];
 		g_data[clipboard_num] = 0;
 	}
 
-	if(!g_data[clipboard_num])
-	{
-		g_length[clipboard_num] = len;
-		g_data[clipboard_num] = new char[len + 1];
-		memcpy(g_data[clipboard_num], data, len);
+	g_data[clipboard_num] = new char[len + 1];
+	g_length[clipboard_num] = len;
+	memcpy(g_data[clipboard_num], data, len);
 // null terminate it
-		g_data[clipboard_num][len] = 0;
-	}
+	g_data[clipboard_num][len] = 0;
+
+
+
 // printf("BC_Clipboard::to_clipboard %d this=%p clipboard_num=%d len=%ld data=%p\n", 
 // __LINE__, 
 // this,
@@ -379,6 +379,7 @@ int BC_Clipboard::to_clipboard(const char *data,
         to_1clipboard(data, len, PRIMARY_SELECTION);
     if(clipboard_mask & SECONDARY_SELECTION)
         to_1clipboard(data, len, SECONDARY_SELECTION);
+//printf("BC_Clipboard::to_clipboard %d len=%d\n", __LINE__, len);
 	return 0;
 }
 

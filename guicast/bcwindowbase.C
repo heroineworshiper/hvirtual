@@ -2897,74 +2897,56 @@ string* BC_WindowBase::get_truncated_text(int font, const string *text, int max_
     result->assign(*text);
     
     int w = get_text_width(font, text->c_str());
-    
-    if(w <= max_w)
+
+    if(w <= max_w || text->length() < 1)
     {
         return result;
     }
+// printf("BC_WindowBase::get_truncated_text %d %s max_w=%d\n", 
+// __LINE__, text->c_str(), max_w);
 
-    int center_x = w / 2;
-    int center_index = -1;
-    int center_x2 = -1;
+//    int left_index = 1;
+    int left_index = text->length() - 1;
+//    int right_index = text->length() - 1;
 
-// get center of string
-// TODO: definitely faster to do with libfreetype
-    for(int i = 1; i <= text->length(); i++)
+    int done = 0;
+// splitting in the middle didn't leave useful information
+// so try truncating on the right
+    while(1)
     {
-        int current_w = get_text_width(font, text->c_str(), i);
-        if(abs(current_w - center_x) < abs(center_x2 - center_x) || 
-            center_x2 == -1)
-        {
-            center_x2 = current_w;
-            center_index = i;
-        }
-    }
+        result->assign(text->substr(0, left_index));
+        result->append("...");
+//        result->append(text->substr(right_index, text->length() - right_index));
+//        if(done) break;
 
-// insert ... in the center
-    if(center_index < text->length() && center_index > -1)
-    {
-        result->insert(center_index, "...");
-// recalculate the width
+// recalculate the width.  Invalid characters throw this off.
         w = get_text_width(font, result->c_str());
-    }
-    else
-    {
-// nothing to do
-        return result;
-    }
 
-    while(w > max_w && 
-        center_index > 0 && 
-        center_index + 3 < result->length())
-    {
-// take away a character from the longer side
-        int left_w = get_text_width(font, 
-            result->c_str(), 
-            center_index);
-        int right_w = get_text_width(font, 
-            result->c_str() + center_index + 3, 
-            result->length() - center_index - 3);
-// printf("BC_WindowBase::get_truncated_text %d left_w=%d right_w=%d center_index=%d w=%d\n", 
+// printf("BC_WindowBase::get_truncated_text %d left_index=%d w=%d c=%d result=%s\n", 
 // __LINE__, 
-// left_w,
-// right_w,
-// center_index, 
-// w);
-        if(left_w < right_w)
-        {
-            result->erase(center_index + 3, 1);
-        }
+// left_index,
+// w,
+// result->at(left_index - 1),
+// result->c_str());
+
+//        if(w > max_w || left_index >= right_index)
+//        {
+//            left_index--;
+//            right_index++;
+//            done = 1;
+//        }
+        if(w <= max_w || left_index <= 0) break;
         else
         {
-            result->erase(center_index - 1, 1);
-            center_index--;
+            left_index--;
+//            left_index++;
+//            right_index--;
         }
-        
-        
-// recalculate the width
-        w = get_text_width(font, result->c_str());
     }
+
+// make the sides equal length by adding chars to the left side
     
+
     return result;
 }
 
