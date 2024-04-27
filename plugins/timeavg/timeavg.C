@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -321,6 +320,12 @@ int TimeAvgMain::process_buffer(VFrame *frame,
 // Get first unused entry
 				for(int j = 0; j < history_size; j++)
 				{
+                    if(get_interrupted()) 
+                    {
+                        delete [] new_history_frames;
+                        return 0;
+                    }
+
 					if(!history_valid[j])
 					{
 // Load new frame into it
@@ -379,6 +384,7 @@ int TimeAvgMain::process_buffer(VFrame *frame,
 // start_position);
 		for(int64_t i = prev_frame; i <= start_position; i++)
 		{
+            if(get_interrupted()) return 0;
 			read_frame(frame,
 				0,
 				i,

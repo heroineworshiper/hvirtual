@@ -1023,6 +1023,13 @@ int PluginClient::get_top_direction()
     return PLAY_FORWARD;
 }
 
+int PluginClient::get_interrupted()
+{
+    if(server->attachmentpoint)
+        return server->attachmentpoint->renderengine->interrupted;
+    return 0;
+}
+
 int64_t PluginClient::get_source_position()
 {
 	return source_position;

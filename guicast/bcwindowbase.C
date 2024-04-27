@@ -4120,6 +4120,47 @@ int BC_WindowBase::load_defaults(BC_Hash *defaults)
     resources->filebox_show_preview = defaults->get("FILEBOX_SHOW_PREVIEW", resources->filebox_show_preview);
 	resources->filebox_sortorder = defaults->get("FILEBOX_SORTORDER", resources->filebox_sortorder);
 	defaults->get("FILEBOX_FILTER", resources->filebox_filter);
+
+
+// load the filters
+    int count = 0;
+    resources->filebox_filters.remove_all();
+    const char *default_filters[] = 
+    {
+//         "[*.aac][*.ac3][*.au][*.aif][*.flac][*.mp2][*.mp3][*.ogg][*.wav]",
+//         "[*.avi][*.flv][*.mpg][*.mpeg][*.m1v][*.m2v][*.m4v][*.m2t][*.mts][*.ts][*.mkv][*.mov][*.mp4][*.ogg][*.webm][*.wmv]",
+//         "[*.AVI][*.MKV][*.MOV][*.MPG][*.MP4][*.MTS]",
+//         "[*.exr][*.jpg][*.JPG][*.jpeg][*.png][*.tiff][*.tga][*.list]",
+        "[*.ifo][*.vob]",
+        "[*.mp2][*.mp3][*.wav]",
+        "[*.avi][*.mpg][*.m2v][*.m1v][*.mov]",
+        "heroine*",
+        "*.xml"
+    };
+    int total_default_filters = sizeof(default_filters) / sizeof(char*);
+    
+    while(1)
+    {
+        const char *text = 0;
+        char default_text[BCTEXTLEN];
+        if(count < total_default_filters)
+            strcpy(default_text, default_filters[count]);
+        else
+            default_text[0] = 0;
+        defaults->get("FILEBOX_FILTERS", default_text, count);
+
+        if(default_text[0])
+        {
+            resources->filebox_filters.append(default_text);
+            defaults->update("FILEBOX_FILTERS", default_text, count);
+// printf("BC_WindowBase::load_defaults %d: %s count=%d\n",
+// __LINE__, default_text, count);
+        }
+        else
+            break;
+
+        count++;
+    }
 	return 0;
 }
 

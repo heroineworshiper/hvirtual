@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -216,7 +215,7 @@ int StringFile::readline(char *arg1, float *arg2)
 	return 0;
 }
 
-int StringFile::writeline(char *arg1, int indent)
+int StringFile::writeline(const char *arg1, int indent)
 {
 	int i;
 	
@@ -237,7 +236,7 @@ int StringFile::writeline(char *arg1, int indent)
 	return 0;
 }
 
-int StringFile::writeline(char *arg1, char *arg2, int indent)
+int StringFile::writeline(const char *arg1, const char *arg2, int indent)
 {
 	int i;
 	
@@ -246,28 +245,28 @@ int StringFile::writeline(char *arg1, char *arg2, int indent)
 	return 0;
 }
 
-int StringFile::writeline(char *arg1, long arg2, int indent)
+int StringFile::writeline(const char *arg1, long arg2, int indent)
 {
 	sprintf(string1, "%s %ld\n", arg1, arg2);
 	writeline(string1, indent);
 	return 0;
 }
 
-int StringFile::writeline(char *arg1, int arg2, int indent)
+int StringFile::writeline(const char *arg1, int arg2, int indent)
 {
 	sprintf(string1, "%s %d\n", arg1, arg2);
 	writeline(string1, indent);
 	return 0;
 }
 
-int StringFile::writeline(char *arg1, float arg2, int indent)
+int StringFile::writeline(const char *arg1, float arg2, int indent)
 {
 	sprintf(string1, "%s %f\n", arg1, arg2);
 	writeline(string1, indent);
 	return 0;
 }
 
-int StringFile::writeline(char *arg1, Freq arg2, int indent)
+int StringFile::writeline(const char *arg1, Freq arg2, int indent)
 {	
 	sprintf(string1, "%s %d\n", arg1, arg2.freq);
 	writeline(string1, indent);

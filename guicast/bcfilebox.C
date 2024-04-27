@@ -666,11 +666,9 @@ BC_FileBox::BC_FileBox(int x,
 	if(!want_directory)
 	{
 		filter_list.append(new BC_ListBoxItem("*"));
-		filter_list.append(new BC_ListBoxItem("[*.ifo][*.vob]"));
-		filter_list.append(new BC_ListBoxItem("[*.mp2][*.mp3][*.wav]"));
-		filter_list.append(new BC_ListBoxItem("[*.avi][*.mpg][*.m2v][*.m1v][*.mov]"));
-		filter_list.append(new BC_ListBoxItem("heroine*"));
-		filter_list.append(new BC_ListBoxItem("*.xml"));
+        for(int i = 0; i < get_resources()->filebox_filters.size(); i++)
+            filter_list.append(new BC_ListBoxItem(
+                get_resources()->filebox_filters.get(i).c_str()));
     }
 
 // 	if(want_directory)

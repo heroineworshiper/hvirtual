@@ -167,10 +167,7 @@ Previewer::Previewer() : BC_FileBoxPreviewer()
     edl = 0;
     is_playing = 0;
     output_frame = 0;
-    name_text = 0;
-    date_text = 0;
-    size_text = 0;
-    length_text = 0;
+    info_text = 0;
 }
 
 
@@ -196,20 +193,14 @@ void Previewer::clear_preview()
     delete rewind;
     delete scroll;
     delete output_frame;
-    delete name_text;
-    delete date_text;
-    delete size_text;
-    delete length_text;
+    delete info_text;
     output_frame = 0;
     canvas = 0;
     play = 0;
     rewind = 0;
     scroll = 0;
-    name_text = 0;
-    date_text = 0;
-    size_text = 0;
+    info_text = 0;
     seekable = 0;
-    length_text = 0;
     previewer_lock->unlock();
 }
 

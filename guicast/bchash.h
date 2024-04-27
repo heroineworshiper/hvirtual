@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,17 @@
 
 
 // Key/value table with persistent storage in stringfiles.
+// 1 of the very 1st C++ developments.  It was really a dictionary.
 
 
 #include "bcwindowbase.inc"
 #include "stringfile.inc"
 #include "units.h"
 #include <string>
+#include <map>
 
 using std::string;
+using std::multimap;
 
 
 class BC_Hash
@@ -46,21 +49,32 @@ public:
 	int load_string(const char *string);        // load from string
 	int save_string(char* &string);       // save to new string
 	void save_stringfile(StringFile *file);
-// keep - keeps existing values & overwrites where necessary
-	void load_stringfile(StringFile *file, int keep = 0);
+	void load_stringfile(StringFile *file);
+
+
+// common setter
+// the nth instance of the key is set if instance is > 0
+	int update(const char *name, const char *value, int instance = 0);
+// overloaded setters
 	int update(const char *name, Freq value); // update a value if it exists
 	int update(const char *name, double value); // update a value if it exists
 	int update(const char *name, float value); // update a value if it exists
 	int update(const char *name, int32_t value); // update a value if it exists
 	int update(const char *name, int64_t value); // update a value if it exists
-	int update(const char *name, const char *value); // create it if it doesn't
-	int update(const char *name, string *value); // create it if it doesn't
+	int update(const char *name, string *value);
 
-	double get(const char *name, double default_);   // retrieve a value if it exists
-	float get(const char *name, float default_);   // retrieve a value if it exists
-	int32_t get(const char *name, int32_t default_);   // retrieve a value if it exists
-	int64_t get(const char *name, int64_t default_);   // retrieve a value if it exists
-	char* get(const char *name, char *default_);
+// common getter
+// the nth instance of the key is returned
+// if *value is non zero, the value is copied into the argument
+// & the pointer in the DB is returned
+// returns the value argument if no instance was found
+// pass 0 as the value to get 0 if no instance is found
+    const char* get(const char *key, char *value, int instance = 0);
+// overloaded getters
+	double get(const char *name, double default_);
+	float get(const char *name, float default_);
+	int32_t get(const char *name, int32_t default_);
+	int64_t get(const char *name, int64_t default_);
 // returns the default_ argument with the new value
 	string* get(const char *name, string *default_);
 
@@ -73,19 +87,15 @@ public:
 	void dump();
 
     void clear();
+// all keys & instances of each key
 	int size();
-	char* get_key(int number);
-	char* get_value(int number);
+// iterate through every key & instance of each key for saving
+	const char* get_key(int number);
+	const char* get_value(int number);
 
 private:
-// Reallocate table so at least total entries exist
-	void reallocate_table(int total);
-
-	char **names;  // list of string names
-	char **values;    // list of values
-	int total;             // number of defaults
-	int allocated;         // allocated defaults
-	char filename[BCTEXTLEN];        // filename the defaults are stored in
+    multimap<string, string> db;
+	string filename;        // filename the defaults are stored in
 };
 
 #endif

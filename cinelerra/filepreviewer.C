@@ -139,8 +139,8 @@ void FilePreviewerThread::run()
 
                 previewer->edl = new EDL;
                 previewer->edl->create_objects();
-                previewer->edl->set_path(current_path.c_str());
                 result = previewer->edl->load_xml(&xml_file, LOAD_ALL);
+                previewer->edl->set_path(current_path.c_str());
 // match the selection to the preview scroll bar
                 previewer->edl->local_session->set_selectionstart(0);
                 previewer->edl->local_session->set_selectionend(0);
@@ -521,18 +521,18 @@ void FilePreviewer::create_info(BC_FileBox *filebox,
     if(!stat(edl->path, &ostat))
     {
         char string[BCTEXTLEN];
+        char string2[BCTEXTLEN];
+        char string3[BCTEXTLEN];
         FileSystem fs;
         fs.extract_name(string, edl->path);
-        delete name_text;
-        filebox->add_subwindow(name_text = new BC_Title(x, 
-            y, 
-            string,
-            SMALLFONT,
-            -1,
-            0,
-            filebox->preview_w));
-        y += name_text->get_h();
-        
+        strcat(string, "\n");
+
+        sprintf(string2, "%ld", (long)ostat.st_size);
+        Units::punctuate(string2);
+        strcat(string2, " bytes\n");
+        strcat(string, string2);
+
+
         struct tm *mod_time;
         mod_time = localtime(&(ostat.st_mtime));
         int month = mod_time->tm_mon + 1;
@@ -557,53 +557,70 @@ void FilePreviewer::create_info(BC_FileBox *filebox,
 			"Nov",
 			"Dec"
 		};
-        sprintf(string, 
-			"Date: %s %d, %04d\nTime: %d:%02d:%02d", 
+        sprintf(string2, 
+			"Date: %s %d, %04d\nTime: %d:%02d:%02d\n", 
 			month_text[month],
 			day,
 			year,
             hour,
             minute,
             second);
-        
-        delete date_text;
-        filebox->add_subwindow(date_text = new BC_Title(x, 
-            y, 
-            string,
-            SMALLFONT));
-        y += date_text->get_h();
-        
-        sprintf(string, "%ld", (long)ostat.st_size);
-        Units::punctuate(string);
-        strcat(string, " bytes");
-        delete size_text;
-        filebox->add_subwindow(size_text = new BC_Title(x, 
-            y, 
-            string,
-            SMALLFONT,
-            -1,
-            0,
-            filebox->preview_w,
-            1));
-        
-        y += size_text->get_h();
-        if(length > 0)
-            Units::totext(string, length, TIME_HMS);
-        else
-            sprintf(string, _("Unknown"));
-        char string2[BCTEXTLEN];
-        sprintf(string2, "Length: %s", string);
-        delete length_text;
-        filebox->add_subwindow(length_text = new BC_Title(x,
-            y,
-            string2,
-            SMALLFONT,
-            -1,
-            0,
-            filebox->preview_w,
-            1));
-    }
+        strcat(string, string2);
 
+
+        if(length > 0)
+            Units::totext(string2, length, TIME_HMS);
+        else
+            sprintf(string2, _("Unknown"));
+        sprintf(string3, "Length: %s\n", string2);
+        strcat(string, string3);
+
+        string2[0] = 0;
+        if(edl->tracks->total_playable_vtracks())
+        {
+            sprintf(string3, 
+                "%dx%d", 
+                edl->session->output_w,
+                edl->session->output_h);
+            strcat(string2, string3);
+        }
+        
+        if(edl->tracks->playable_audio_tracks())
+        {
+            if(strlen(string2) > 0) strcat(string2, " ");
+            if((edl->session->sample_rate % 1000) == 0)
+                sprintf(string3, 
+                    "%dkhz", 
+                    (int)edl->session->sample_rate / 1000);
+            else
+                sprintf(string3, 
+                    "%dHz", 
+                    (int)edl->session->sample_rate);
+            strcat(string2, string3);
+        }
+        
+        if(strlen(string3) > 0)
+        {
+            strcat(string3, "\n");
+            strcat(string, string2);
+        }
+
+
+        delete info_text;
+        filebox->add_subwindow(info_text = new BC_Title(x, 
+            y, 
+            string,
+            SMALLFONT,
+            -1,
+            0,
+            filebox->preview_w));
+        y += info_text->get_h();
+    }
+    else
+    {
+        printf("FilePreviewer::create_info %d: edl->path=%s stat failed '%s'\n", 
+            __LINE__, edl->path, strerror(errno));
+    }
 }
 
 
@@ -691,23 +708,11 @@ void FilePreviewer::handle_resize(int w, int h)
 
         x = filebox->preview_x;
         y += margin;
-        if(name_text) 
+        if(info_text) 
         {
-            name_text->reposition(x, y, filebox->preview_w);
-            y += name_text->get_h();
+            info_text->reposition(x, y, filebox->preview_w);
+            y += info_text->get_h();
         }
-        if(date_text) 
-        {
-            date_text->reposition(x, y, filebox->preview_w);
-            y += date_text->get_h();
-        }
-        if(size_text)
-        {
-            size_text->reposition(x, y, filebox->preview_w);
-            y += size_text->get_h();
-        }
-
-        if(length_text) length_text->reposition(x, y, filebox->preview_w);
     }
     
     previewer_lock->unlock();

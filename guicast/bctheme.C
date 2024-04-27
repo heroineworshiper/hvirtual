@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,8 +32,6 @@
 BC_Theme::BC_Theme()
 {
     BC_Resources::theme = this;
-	data_ptr = 0;
-	contents_ptr = 0;
 	last_image = 0;
 	last_pointer = 0;
 
@@ -43,16 +40,18 @@ BC_Theme::BC_Theme()
 
 BC_Theme::~BC_Theme()
 {
-	image_sets.remove_all_objects();
+    for(auto i = image_sets.begin(); i != image_sets.end(); i++)
+        delete i->second;
 }
 
 void BC_Theme::dump()
 {
-	printf("BC_Theme::dump 1 image_sets=%d contents=%d\n", 
-		image_sets.total, 
-		contents.total);
-	for(int i = 0; i < contents.total; i++)
-		printf("    %s %p\n", contents.values[i], pointers.values[i]);
+	printf("BC_Theme::dump %d image_sets=%d images=%d\n", 
+        __LINE__,
+		(int)image_sets.size(), 
+		(int)images.size());
+	for(auto i = images.begin(); i != images.end(); i++)
+		printf("    %s %p\n", i->first.c_str(), i->second);
 }
 
 BC_Resources* BC_Theme::get_resources()
@@ -72,7 +71,8 @@ VFrame* BC_Theme::new_image(const char *title, const char *path)
 //	result->data[0] = new VFrame(get_image_data(path));
 	result->data[0] = new VFrame();
 	result->data[0]->read_png(get_image_data(path), BC_Resources::dpi);
-	image_sets.append(result);
+
+	image_sets[title] = result;
 	return result->data[0];
 }
 
@@ -88,7 +88,7 @@ VFrame** BC_Theme::new_image_set(const char *title, int total, va_list *args)
 {
 	if(!total)
 	{
-		printf("BC_Theme::new_image_set %d %s zero number of images\n",
+		printf("BC_Theme::new_image_set %d: %s zero number of images\n",
 			__LINE__,
 			title);
 	}
@@ -97,7 +97,7 @@ VFrame** BC_Theme::new_image_set(const char *title, int total, va_list *args)
 	if(existing_image_set) return existing_image_set;
 
 	BC_ThemeSet *result = new BC_ThemeSet(total, 1, title);
-	image_sets.append(result);
+    image_sets[title] = result;
 	for(int i = 0; i < total; i++)
 	{
 		char *path = va_arg(*args, char*);
@@ -113,11 +113,11 @@ VFrame** BC_Theme::new_image_set_images(const char *title, int total, ...)
 	BC_ThemeSet *existing_image_set = title[0] ? get_image_set_object(title) : 0;
 	if(existing_image_set)
 	{
-		image_sets.remove_object(existing_image_set);
+		delete existing_image_set;
 	}
 
 	BC_ThemeSet *result = new BC_ThemeSet(total, 0, title);
-	image_sets.append(result);
+	image_sets[title] = result;
 	for(int i = 0; i < total; i++)
 	{
 		result->data[i] = va_arg(list, VFrame*);
@@ -146,25 +146,23 @@ VFrame** BC_Theme::new_image_set(int total, ...)
 	return result;
 }
 
+// get 1 image from an image set
 VFrame* BC_Theme::get_image(const char *title, int use_default)
 {
-	for(int i = 0; i < image_sets.total; i++)
-	{
-		if(!strcmp(image_sets.values[i]->title, title))
-		{
-			return image_sets.values[i]->data[0];
-		}
-	}
+    auto i = image_sets.find(title);
+    if(i != image_sets.end())
+        return i->second->data[0];
 
 
-// Return the first image it can find.  This should always work.
+// Return the first image if nothing found.
 	if(use_default)
 	{
 		printf("BC_Theme::get_image: image \"%s\" not found.\n",
 			title);
-		if(image_sets.total)
+		if(image_sets.begin() != image_sets.end())
 		{
-			return image_sets.values[0]->data[0];
+            i = image_sets.begin();
+			return i->second->data[0];
 		}
 	}
 
@@ -174,13 +172,9 @@ VFrame* BC_Theme::get_image(const char *title, int use_default)
 
 VFrame** BC_Theme::get_image_set(const char *title, int use_default)
 {
-	for(int i = 0; i < image_sets.total; i++)
-	{
-		if(!strcmp(image_sets.values[i]->title, title))
-		{
-			return image_sets.values[i]->data;
-		}
-	}
+    auto i = image_sets.find(title);
+    if(i != image_sets.end())
+        return i->second->data;
 
 // Get the image set with the largest number of images.
 	if(use_default)
@@ -188,18 +182,19 @@ VFrame** BC_Theme::get_image_set(const char *title, int use_default)
 		printf("BC_Theme::get_image_set: image set \"%s\" not found.\n",
 			title);
 		int max_total = 0;
-		int max_number = -1;
-		for(int i = 0; i < image_sets.total; i++)
+		auto max_i = image_sets.end();
+		for(i = image_sets.begin(); i != image_sets.end(); i++)
 		{
-			if(image_sets.values[i]->total > max_total)
+            BC_ThemeSet *image_set = i->second;
+			if(image_set->total > max_total)
 			{
-				max_total = image_sets.values[i]->total;
-				max_number = i;
+				max_total = image_set->total;
+				max_i = i;
 			}
 		}
 
-		if(max_number >= 0)
-			return image_sets.values[max_number]->data;
+		if(max_i != image_sets.end())
+			return max_i->second->data;
 	}
 
 // Give up and go to a movie
@@ -208,17 +203,15 @@ VFrame** BC_Theme::get_image_set(const char *title, int use_default)
 
 BC_ThemeSet* BC_Theme::get_image_set_object(const char *title)
 {
-	for(int i = 0; i < image_sets.total; i++)
-	{
-		if(!strcmp(image_sets.values[i]->title, title))
-		{
-			return image_sets.values[i];
-		}
-	}
-	return 0;
+    return image_sets[title];
 }
 
-
+void BC_Theme::set_image_set(const char *title, BC_ThemeSet *image_set)
+{
+    auto i = image_sets.find(title);
+    if(i != image_sets.end()) delete i->second;
+    image_sets[title] = image_set;
+}
 
 
 
@@ -239,7 +232,7 @@ VFrame** BC_Theme::new_button(const char *overlay_path,
 	default_data.read_png(get_image_data(overlay_path), BC_Resources::dpi);
 
 	BC_ThemeSet *result = new BC_ThemeSet(3, 1, title ? title : (char*)"");
-	if(title) image_sets.append(result);
+	if(title) set_image_set(title, result);
 
 	result->data[0] = new_image(up_path);
 	result->data[1] = new_image(hi_path);
@@ -262,7 +255,7 @@ VFrame** BC_Theme::new_button(const char *overlay_path,
 	VFrame default_data;
 	default_data.read_png(get_image_data(overlay_path), BC_Resources::dpi);
 	BC_ThemeSet *result = new BC_ThemeSet(3, 0, title ? title : (char*)"");
-	if(title) image_sets.append(result);
+	if(title) set_image_set(title, result);
 
 	result->data[0] = new VFrame(*up);
 	result->data[1] = new VFrame(*hi);
@@ -285,7 +278,7 @@ VFrame** BC_Theme::new_toggle(const char *overlay_path,
 	VFrame default_data;
 	default_data.read_png(get_image_data(overlay_path), BC_Resources::dpi);
 	BC_ThemeSet *result = new BC_ThemeSet(5, 1, title ? title : (char*)"");
-	if(title) image_sets.append(result);
+	if(title) set_image_set(title, result);
 
 	result->data[0] = new_image(up_path);
 	result->data[1] = new_image(hi_path);
@@ -310,7 +303,7 @@ VFrame** BC_Theme::new_toggle(const char *overlay_path,
 	default_data.read_png(get_image_data(overlay_path), BC_Resources::dpi);
 
 	BC_ThemeSet *result = new BC_ThemeSet(5, 0, title ? title : (char*)"");
-	if(title) image_sets.append(result);
+	if(title) set_image_set(title, result);
 
 	result->data[0] = new VFrame(*up);
 	result->data[1] = new VFrame(*hi);
@@ -417,26 +410,30 @@ void BC_Theme::overlay(VFrame *dst, VFrame *src, int in_x1, int in_x2, int shift
 
 void BC_Theme::set_data(unsigned char *ptr)
 {
-	contents_ptr = (char*)(ptr + sizeof(int));
+// pointers to statically linked objects
+	char *contents_ptr = (char*)(ptr + sizeof(int));
 	int contents_size = *(int*)ptr - sizeof(int);
-	data_ptr = contents_ptr + contents_size;
+	uint8_t *data_ptr = (uint8_t*)contents_ptr + contents_size;
 
 	for(int i = 0; i < contents_size; )
 	{
-		used.append(0);
-		contents.append(contents_ptr + i);
+// load the key
+        char *key = contents_ptr + i;
 		while(contents_ptr[i] && i < contents_size)
 			i++;
+
+// load the image data
 		if(i < contents_size)
 		{
 			i++;
-			pointers.append((unsigned char*)data_ptr + 
-				*(unsigned int*)(contents_ptr + i));
+            int image_offset = *(unsigned int*)(contents_ptr + i);
 			i += 4;
+            images[key] = (uint8_t*)data_ptr + image_offset;
 		}
 		else
 		{
-			pointers.append((unsigned char*)data_ptr);
+// point to 1st image data
+			images[key] = (uint8_t*)data_ptr;
 			break;
 		}
 	}
@@ -444,9 +441,9 @@ void BC_Theme::set_data(unsigned char *ptr)
 
 unsigned char* BC_Theme::get_image_data(const char *title)
 {
-	if(!data_ptr)
+	if(images.begin() == images.end())
 	{
-		fprintf(stderr, "BC_Theme::get_image_data: no data set\n");
+		fprintf(stderr, "BC_Theme::get_image_data %d: no data set\n", __LINE__);
 		return 0;
 	}
 
@@ -457,37 +454,18 @@ unsigned char* BC_Theme::get_image_data(const char *title)
 	}
 	else
 // Search for image anew.
-	for(int i = 0; i < contents.total; i++)
 	{
-		if(!strcasecmp(contents.values[i], title))
-		{
-			last_pointer = pointers.values[i];
-			last_image = contents.values[i];
-			used.values[i] = 1;
-			return pointers.values[i];
-		}
+        auto i = images.find(title);
+        if(i != images.end())
+        {
+            last_image = i->first.c_str();
+            last_pointer = i->second;
+            return last_pointer;
+        }
 	}
 
 	fprintf(stderr, _("Theme::get_image: %s not found.\n"), title);
 	return 0;
-}
-
-void BC_Theme::check_used()
-{
-// Can't use because some images are gotten the old fashioned way.
-return;
-	int got_it = 0;
-	for(int i = 0; i < used.total; i++)
-	{
-		if(!used.values[i])
-		{
-			if(!got_it)
-				printf(_("BC_Theme::check_used: Images aren't used.\n"));
-			printf("%s ", contents.values[i]);
-			got_it = 1;
-		}
-	}
-	if(got_it) printf("\n");
 }
 
 

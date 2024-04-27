@@ -445,6 +445,11 @@ public:
 // Get the rendering direction of the top level for annotating GUI data
     int get_top_direction();
 
+// Get the interrupted flag.  Slow plugins can poll this & stop mid process.
+// The problem is it leaves the plugin in an unknown state so more work
+// has to be done to avoid crashes, data corruption, memory leaks.
+    int get_interrupted();
+
 // Get the EDL Session.  May return 0 if the server has no edl.
 	EDLSession* get_edlsession();
     Preferences* get_preferences();

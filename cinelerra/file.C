@@ -2097,7 +2097,7 @@ int File::read_frame(VFrame *frame,
 			            {
 				            StringFile params((long)0);
 				            params.read_from_string((char*)(file_fork->result_data + sizeof(int) * 2));
-				            frame->get_params()->load_stringfile(&params, 1);
+				            frame->get_params()->load_stringfile(&params);
 // printf("File::read_frame %d result_data=%s\n", __LINE__, file_fork->result_data + sizeof(int) * 2);
 // memset(frame->get_rows()[1024], 0xff, 4096);
 // frame->dump();

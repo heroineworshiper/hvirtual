@@ -27,7 +27,7 @@
 
 
 
-
+#include "arraylist.h"
 #include "bcdisplayinfo.inc"
 #include "bcfilebox.h"
 #include "bcresources.inc"
@@ -295,6 +295,7 @@ public:
 	int filebox_mode;
 // Filter currently used in filebox
 	char filebox_filter[BCTEXTLEN];
+    ArrayList<string> filebox_filters;
 // History of submitted files
 	filebox_history_t filebox_history[FILEBOX_HISTORY_SIZE];
 // filebox size

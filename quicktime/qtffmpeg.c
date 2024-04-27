@@ -1,6 +1,6 @@
 /*
  * Quicktime 4 Linux
- * Copyright (C) 1997-2023 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1060,7 +1060,8 @@ int quicktime_ffaudio_decode(quicktime_t *file,
 	}
 
 // Decode until buffer is full
-	while(quicktime_vbr_end(vbr) < end_position)
+    int errors = 0;
+	while(quicktime_vbr_end(vbr) < end_position && errors < 100)
 	{
 		if(quicktime_read_vbr(file, track_map)) break;
 
@@ -1084,6 +1085,7 @@ int quicktime_ffaudio_decode(quicktime_t *file,
                 ((-result) >> 8) & 0xff,
                 ((-result) >> 16) & 0xff,
                 ((-result) >> 24) & 0xff);
+            errors++;
         }
         quicktime_shift_vbr(track_map, quicktime_vbr_input_size(vbr));
 

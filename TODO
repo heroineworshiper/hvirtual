@@ -5,8 +5,9 @@ https://docs.google.com/spreadsheets/d/18eLwHrABP6ROHvPHfJW-Jtr_xB4wOblhwmzFuSFK
 
 BIG WISHLIST:
 ----------------------------
-Start & end for background rendering
 Menu toggle for background rendering
+Poll interrupt flag in slow plugins
+   - problematic
 
 
 

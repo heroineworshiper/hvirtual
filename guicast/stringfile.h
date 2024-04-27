@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,12 +45,12 @@ public:
 	int readline(char *arg1, long *arg2);   // read next line from string
 	int readline(char *arg1, int *arg2);   // read next line from string
 	int readline(char *arg1, float *arg2);   // read next line from string
-	int writeline(char *arg1, int indent);   // write next line to string
-	int writeline(char *arg1, char *arg2, int indent);   // write next line to string
-	int writeline(char *arg1, long arg2, int indent);   // write next line to string
-	int writeline(char *arg1, int arg2, int indent);   // write next line to string
-	int writeline(char *arg1, float arg2, int indent);   // write next line to string
-	int writeline(char *arg1, Freq arg2, int indent);   // write next line to string
+	int writeline(const char *arg1, int indent);   // write next line to string
+	int writeline(const char *arg1, const char *arg2, int indent);   // write next line to string
+	int writeline(const char *arg1, long arg2, int indent);   // write next line to string
+	int writeline(const char *arg1, int arg2, int indent);   // write next line to string
+	int writeline(const char *arg1, float arg2, int indent);   // write next line to string
+	int writeline(const char *arg1, Freq arg2, int indent);   // write next line to string
 	int backupline();       // move back one line
 
 	long get_length();

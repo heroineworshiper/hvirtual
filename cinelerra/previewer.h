@@ -117,10 +117,7 @@ public:
     PreviewerPlay *play;
     PreviewerRewind *rewind;
     PreviewerScroll *scroll;
-    BC_Title *name_text;
-    BC_Title *date_text;
-    BC_Title *size_text;
-    BC_Title *length_text;
+    BC_Title *info_text;
 // bits for creating the widgets
     EDL *edl;
     VFrame **play_images;

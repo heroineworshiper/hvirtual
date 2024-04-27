@@ -492,6 +492,8 @@ int MotionLookahead::process_buffer(VFrame *frame,
 // fill lookahead buffer
         while(frames_read < config.frames)
         {
+            if(get_interrupted()) return 0;
+
 // get the destination
             VFrame *dst = 0;
             if(frames.size() < frames_read + 1)
@@ -529,6 +531,7 @@ int MotionLookahead::process_buffer(VFrame *frame,
             int current_dx = 0;
             int current_dy = 0;
             float current_angle = 0;
+            if(get_interrupted()) return 0;
 
 // skip 1st frame
             if(frames_scanned > 0)

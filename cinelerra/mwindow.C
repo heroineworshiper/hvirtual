@@ -885,9 +885,6 @@ void MWindow::init_theme()
 // Create menus with user colors
 	theme->build_menus();
 	init_menus();
-
-	theme->check_used();
-
 //printf("MWindow::init_theme %d total_time=%d\n", __LINE__, (int)timer.get_difference());
 }
 
