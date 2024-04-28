@@ -477,7 +477,7 @@ printf("VDeviceV4L2Thread::run %d\n", __LINE__);
 		};
 
 // Show formats
-#if 1
+#if 0
 printf("VDeviceV4L2Thread::run %d testing formats\n", __LINE__);
    		for(int i = 0; i < sizeof(pixel_formats) / sizeof(int); i++)
    		{

@@ -61,6 +61,12 @@ new VFrame(0, -1, default_data.get_w(), default_data.get_h(), BC_RGBA8888, -1)
 Theme::Theme()
  : BC_Theme()
 {
+// load data in the constructor so it can be overridden by the subclass
+// before initialize
+	extern unsigned char _binary_theme_data_start[];
+	set_data(_binary_theme_data_start);
+
+
 	window_border = DP(10);
 	widget_border = DP(5);
 	this->mwindow = 0;
@@ -147,10 +153,9 @@ void Theme::initialize()
 	message_error = RED;
 
 // Force to use local data for images
-	extern unsigned char _binary_theme_data_start[];
-	set_data(_binary_theme_data_start);
+//printf("Theme::initialize %d\n", __LINE__);
 
-// Set images which weren't set by subclass
+// Set default images
 	new_image("mode_add", "mode_add.png");
 	new_image("mode_divide", "mode_divide.png");
 	new_image("mode_multiply", "mode_multiply.png");

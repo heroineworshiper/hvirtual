@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "mutex.h"
 #include "mwindow.h"
 #include "preferences.h"
+#include "recordconfig.h"
 #include "recordmonitor.inc"
 #include "theme.h"
 #include "vframe.h"
@@ -142,6 +143,7 @@ void Canvas::calculate_sizes(float aspect_ratio,
 	int &w, 
 	int &h)
 {
+
 // Horizontal stretch
 	if((float)output_w / output_h <= aspect_ratio)
 	{
@@ -348,6 +350,7 @@ void Canvas::get_transfers(EDL *edl,
 	if(canvas_h < 0) canvas_h = get_canvas()->get_h();
 
 // Canvas is zoomed to a portion of the output frame
+// Not used in record monitor.
 	if(use_scrollbars)
 	{
 		float in_x1, in_y1, in_x2, in_y2;
@@ -430,14 +433,23 @@ void Canvas::get_transfers(EDL *edl,
 // Use EDL aspect ratio to shrink one of the canvas dimensions
 			float out_w = canvas_x2 - canvas_x1;
 			float out_h = canvas_y2 - canvas_y1;
-			if(out_w / out_h > edl->get_aspect_ratio())
+            float aspect_ratio = edl->get_aspect_ratio();
+
+// compute auto aspect ratio from the recording size
+            if(use_rwindow && edl->session->auto_aspect)
+            {
+                aspect_ratio = (float)MWindow::preferences->vconfig_in->w / 
+                    MWindow::preferences->vconfig_in->h;
+            }
+            
+			if(out_w / out_h > aspect_ratio)
 			{
-				out_w = (int)(out_h * edl->get_aspect_ratio() + 0.5);
+				out_w = (int)(out_h * aspect_ratio + 0.5);
 				canvas_x1 = canvas_w / 2 - out_w / 2;
 			}
 			else
 			{
-				out_h = (int)(out_w / edl->get_aspect_ratio() + 0.5);
+				out_h = (int)(out_w / aspect_ratio + 0.5);
 				canvas_y1 = canvas_h / 2 - out_h / 2;
 // printf("Canvas::get_transfers %d canvas_h=%d out_h=%f canvas_y1=%f\n",
 // __LINE__,

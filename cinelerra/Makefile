@@ -608,7 +608,8 @@ $(CFUNCTIONS): cfunctions.c
 
 $(THEME_DATA):
 	cd $(OBJDIR) && \
-	../../guicast/$(OBJDIR)/bootstrap theme_data.o ../data/mode_*.png
+	../../guicast/$(OBJDIR)/bootstrap theme_data.o \
+	../data/mode_*.png
 
 
 $(OBJDIR)/aattachmentpoint.o: 			  aattachmentpoint.C
@@ -922,8 +923,6 @@ $(OBJDIR)/videoconfig.o: 			  videoconfig.C
 $(OBJDIR)/videodevice.o: 			  videodevice.C
 $(OBJDIR)/videoinprefs.o: 			  videoinprefs.C
 $(OBJDIR)/videooutprefs.o: 			  videooutprefs.C
-$(OBJDIR)/videowindow.o: 			  videowindow.C
-$(OBJDIR)/videowindowgui.o: 			  videowindowgui.C
 $(OBJDIR)/viewmenu.o: 				  viewmenu.C
 $(OBJDIR)/virtualnode.o: 			  virtualnode.C
 $(OBJDIR)/virtualaconsole.o: 			  virtualaconsole.C

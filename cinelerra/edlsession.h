@@ -74,6 +74,8 @@ public:
 // Aspect ratio for video
     float aspect_w;
     float aspect_h;
+// auto aspect ratio/square pixels for recording & playback
+    int auto_aspect;
 	int audio_channels;
 	int audio_tracks;
 // automation follows edits during editing

@@ -757,6 +757,12 @@ project frame size because most video devices only record a fixed frame
 size.  If the frame size given here isn't supported by the device it
 might crash Cinelerra.
 
+The aspect ratio for the recording monitor is determined by the setting
+for @b{auto aspect} in @b{Settings->set format}.  If auto aspect is
+enabled, the recording monitor shows square pixels.  If auto aspect is
+disabled, the recording monitor stretches the captured frame to the
+aspect ratio in @b{Settings->set format}.
+
 @item
 FRAME RATE FOR RECORDING
 

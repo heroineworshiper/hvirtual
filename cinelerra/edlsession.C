@@ -174,6 +174,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 //	assetlist_format = defaults->get("ASSETLIST_FORMAT", ASSETS_TEXT);
 	aspect_w = defaults->get("ASPECTW", (float)4);
 	aspect_h = defaults->get("ASPECTH", (float)3);
+    auto_aspect = defaults->get("AUTOASPECT", 1);
 	audio_channels = defaults->get("ACHANNELS", 2);
 	audio_tracks = defaults->get("ATRACKS", 2);
 	auto_conf->load_defaults(defaults);
@@ -291,6 +292,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 //    defaults->update("ASSETLIST_FORMAT", assetlist_format);
     defaults->update("ASPECTW", aspect_w);
     defaults->update("ASPECTH", aspect_h);
+    defaults->update("AUTOASPECT", auto_aspect);
 	defaults->update("ATRACKS", audio_tracks);
 	defaults->update("AUTOS_FOLLOW_EDITS", autos_follow_edits);
 	defaults->update("BRENDER_START", brender_start);
@@ -468,6 +470,7 @@ int EDLSession::load_video_config(FileXML *file, int append_mode, uint32_t load_
 	output_h = file->tag.get_property("OUTPUTH", output_h);
 	aspect_w = file->tag.get_property("ASPECTW", aspect_w);
 	aspect_h = file->tag.get_property("ASPECTH", aspect_h);
+	auto_aspect = file->tag.get_property("AUTOASPECT", auto_aspect);
 	return 0;
 }
 
@@ -652,6 +655,7 @@ int EDLSession::save_video_config(FileXML *file)
 	file->tag.set_property("OUTPUTH", output_h);
 	file->tag.set_property("ASPECTW", aspect_w);
 	file->tag.set_property("ASPECTH", aspect_h);
+	file->tag.set_property("AUTOASPECT", auto_aspect);
 	file->append_tag();
 	file->append_newline();
 	file->append_newline();
@@ -692,6 +696,7 @@ int EDLSession::copy(EDLSession *session)
 	auto_conf->copy_from(session->auto_conf);
 	aspect_w = session->aspect_w;
 	aspect_h = session->aspect_h;
+    auto_aspect = session->auto_aspect;
 	audio_channels = session->audio_channels;
 	audio_tracks = session->audio_tracks;
 	autos_follow_edits = session->autos_follow_edits;
@@ -799,6 +804,7 @@ void EDLSession::dump()
             "    output_h=%d\n"
 			"    aspect_w=%f\n"
             "    aspect_h=%f\n"
+            "    auto_aspect=%d\n"
             "    decode subtitles=%d\n"
             "    subtitle_number=%d\n"
 			"    proxy_scale=%d\n", 
@@ -813,6 +819,7 @@ void EDLSession::dump()
 		output_h, 
 		aspect_w, 
 		aspect_h,
+        auto_aspect,
 		decode_subtitles,
 		subtitle_number,
 		proxy_scale);

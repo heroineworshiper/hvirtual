@@ -68,7 +68,6 @@ public:
 	float ratio[2];
 	int dimension[2];
 	int orig_dimension[2];
-	int auto_aspect;
 	int constrain_ratio;
 };
 

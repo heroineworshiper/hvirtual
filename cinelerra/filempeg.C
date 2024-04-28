@@ -304,6 +304,15 @@ const char* FileMPEG::get_tag(int format)
 int FileMPEG::check_sig(File *file, const uint8_t *test_data)
 {
     Asset *asset = file->asset;
+// force ffmpeg for some formats
+    char *ext = strrchr(asset->path, '.');
+    if(ext)
+	{
+        if(!strncasecmp(ext, ".m2ts", 5) || 
+			!strncasecmp(ext, ".mts", 4) || 
+			!strncasecmp(ext, ".ts", 3)) return 0;
+    }
+    
 	return mpeg3_check_sig(asset->path);
 }
 

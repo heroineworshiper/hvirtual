@@ -81,6 +81,7 @@ VFrameScene::~VFrameScene()
 VFrame::VFrame(const unsigned char *png_data)
 {
 	reset_parameters(1);
+    use_shm = 0;
 	params = new BC_Hash;
 	read_png(png_data);
 }

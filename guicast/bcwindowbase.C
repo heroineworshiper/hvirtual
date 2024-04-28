@@ -4127,13 +4127,13 @@ int BC_WindowBase::load_defaults(BC_Hash *defaults)
     resources->filebox_filters.remove_all();
     const char *default_filters[] = 
     {
-//         "[*.aac][*.ac3][*.au][*.aif][*.flac][*.mp2][*.mp3][*.ogg][*.wav]",
-//         "[*.avi][*.flv][*.mpg][*.mpeg][*.m1v][*.m2v][*.m4v][*.m2t][*.mts][*.ts][*.mkv][*.mov][*.mp4][*.ogg][*.webm][*.wmv]",
-//         "[*.AVI][*.MKV][*.MOV][*.MPG][*.MP4][*.MTS]",
-//         "[*.exr][*.jpg][*.JPG][*.jpeg][*.png][*.tiff][*.tga][*.list]",
-        "[*.ifo][*.vob]",
-        "[*.mp2][*.mp3][*.wav]",
-        "[*.avi][*.mpg][*.m2v][*.m1v][*.mov]",
+        "[*.aac][*.ac3][*.au][*.aif][*.flac][*.mp2][*.mp3][*.ogg][*.wav]",
+        "[*.avi][*.flv][*.mpg][*.mpeg][*.m1v][*.m2v][*.m4v][*.m2t][*.mts][*.ts][*.mkv][*.mov][*.mp4][*.ogg][*.webm][*.wmv]",
+        "[*.AVI][*.MKV][*.MOV][*.MPG][*.MP4][*.MTS]",
+        "[*.exr][*.jpg][*.JPG][*.jpeg][*.png][*.tiff][*.tga][*.list]",
+//        "[*.ifo][*.vob]",
+//        "[*.mp2][*.mp3][*.wav]",
+//        "[*.avi][*.mpg][*.m2v][*.m1v][*.mov]",
         "heroine*",
         "*.xml"
     };

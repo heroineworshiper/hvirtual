@@ -73,8 +73,6 @@ const char* BrightThemeMain::plugin_title()
 Theme* BrightThemeMain::new_theme()
 {
 	theme = new BrightTheme;
-	extern unsigned char _binary_brighttheme_data_start[];
-	theme->set_data(_binary_brighttheme_data_start);
 	return theme;
 }
 
@@ -88,6 +86,9 @@ Theme* BrightThemeMain::new_theme()
 BrightTheme::BrightTheme()
  : Theme()
 {
+// append to base class data before initialize
+	extern unsigned char _binary_brighttheme_data_start[];
+	set_data(_binary_brighttheme_data_start);
 }
 
 BrightTheme::~BrightTheme()
@@ -97,7 +98,6 @@ BrightTheme::~BrightTheme()
 void BrightTheme::initialize()
 {
 	BC_Resources *resources = BC_WindowBase::get_resources();
-
 
 	resources->text_default = 0x000000;
 	resources->text_background = 0xffffff;
@@ -130,8 +130,8 @@ void BrightTheme::initialize()
 	resources->menu_down = 0xc0c0c0;
 	resources->menu_up = 0xffffff;
 	resources->menu_shadow = 0x000000;
-	resources->popupmenu_margin = DP(5);
-	resources->popupmenu_triangle_margin = DP(15);
+	resources->popupmenu_margin = DP(15);
+	resources->popupmenu_triangle_margin = DP(5);
 
 	resources->listbox_title_color = BLACK;
 
@@ -464,7 +464,8 @@ void BrightTheme::initialize()
 	new_image_set("zoombar_menu", 3, "zoompopup_up.png", "zoompopup_hi.png", "zoompopup_dn.png");
 	new_image_set("zoombar_tumbler", 4, "tumble_up.png", "tumble_hi.png", "tumble_bottom.png", "tumble_top.png");
 
-	new_image_set("mode_popup", 3, "mode_up.png", "mode_hi.png", "mode_dn.png");
+//	new_image_set("mode_popup", 3, "mode_up.png", "mode_hi.png", "mode_dn.png");
+	new_image_set("mode_popup", 3, "zoompopup_up.png", "zoompopup_hi.png", "zoompopup_dn.png");
 	new_image("mode_add", "mode_add.png");
 	new_image("mode_divide", "mode_divide.png");
 	new_image("mode_multiply", "mode_multiply.png");
@@ -479,8 +480,9 @@ void BrightTheme::initialize()
 
 // CWindow
 	new_image("cpanel_bg", "cpanel_bg.png");
-	new_image("cbuttons_left", "cbuttons_left.png");
-	new_image("cbuttons_right", "cbuttons_right.png");
+//	new_image("cbuttons_left", "cbuttons_left.png");
+//	new_image("cbuttons_right", "cbuttons_right.png");
+	new_image("cbuttons", "cbuttons.png");
 	new_image("cmeter_bg", "cmeter_bg.png");
 
 // VWindow
@@ -904,7 +906,10 @@ void BrightTheme::draw_cwindow_bg(CWindowGUI *gui)
 		resources->vscroll_data[0]->get_w(),
 		resources->hscroll_data[0]->get_h());
 	gui->draw_3segmentv(0, 0, ccomposite_h, get_image("cpanel_bg"));
-	gui->draw_3segmenth(0, ccomposite_h, cstatus_x, get_image("cbuttons_left"));
+	gui->draw_3segmenth(0, 
+        ccomposite_h, 
+        mwindow->session->cwindow_w, 
+        get_image("cbuttons"));
 #ifdef USE_METERS
 	if(mwindow->edl->session->cwindow_meter)
 	{
@@ -921,10 +926,10 @@ void BrightTheme::draw_cwindow_bg(CWindowGUI *gui)
 	else
 #endif
 	{
-		gui->draw_3segmenth(cstatus_x, 
-			ccomposite_h, 
-			cmeter_x - widget_border - cstatus_x + DP(100), 
-			get_image("cbuttons_right"));
+// 		gui->draw_3segmenth(cstatus_x, 
+// 			ccomposite_h, 
+// 			cmeter_x - widget_border - cstatus_x + DP(100), 
+// 			get_image("cbuttons_right"));
 	}
 }
 
@@ -932,8 +937,8 @@ void BrightTheme::draw_vwindow_bg(VWindowGUI *gui)
 {
 	gui->draw_3segmenth(0, 
 		vcanvas_h, 
-		vdivision_x, 
-		get_image("vbuttons_left"));
+		mwindow->session->vwindow_w, 
+		get_image("cbuttons"));
 
 
 #ifdef USE_METERS
@@ -952,10 +957,10 @@ void BrightTheme::draw_vwindow_bg(VWindowGUI *gui)
 	else
 #endif
 	{
-		gui->draw_3segmenth(vdivision_x, 
-			vcanvas_h, 
-			vmeter_x - widget_border - vdivision_x + DP(100), 
-			get_image("cbuttons_right"));
+// 		gui->draw_3segmenth(vdivision_x, 
+// 			vcanvas_h, 
+// 			vmeter_x - widget_border - vdivision_x + DP(100), 
+// 			get_image("cbuttons_right"));
 	}
 
 // Clock border

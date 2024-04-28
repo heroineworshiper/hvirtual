@@ -73,8 +73,6 @@ const char* SUVMain::plugin_title()
 Theme* SUVMain::new_theme()
 {
 	theme = new SUV;
-	extern unsigned char _binary_suv_data_start[];
-	theme->set_data(_binary_suv_data_start);
 	return theme;
 }
 
@@ -88,6 +86,9 @@ Theme* SUVMain::new_theme()
 SUV::SUV()
  : Theme()
 {
+// append to base class data before initialize
+	extern unsigned char _binary_suv_data_start[];
+	set_data(_binary_suv_data_start);
 }
 
 SUV::~SUV()
@@ -98,6 +99,8 @@ void SUV::initialize()
 {
 	BC_Resources *resources = BC_WindowBase::get_resources();
 //printf("SUV::initialize\n");
+
+//printf("SUV::initialize %d\n", __LINE__);
 
 	resources->text_default = 0xbfbfbf;
 	resources->text_background = 0x373737;
@@ -468,12 +471,6 @@ void SUV::initialize()
 	new_image_set("zoombar_tumbler", 4, "zoomtumble_up.png", "zoomtumble_hi.png", "zoomtumble_bottom.png", "zoomtumble_top.png");
 
 	new_image_set("mode_popup", 3, "mode_up.png", "mode_hi.png", "mode_dn.png");
-	new_image("mode_add", "mode_add.png");
-	new_image("mode_divide", "mode_divide.png");
-	new_image("mode_multiply", "mode_multiply.png");
-	new_image("mode_normal", "mode_normal.png");
-	new_image("mode_replace", "mode_replace.png");
-	new_image("mode_subtract", "mode_subtract.png");
 	new_image("mode_max", "mode_max.png");
 	new_image("mode_min", "mode_min.png");
 

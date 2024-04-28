@@ -329,6 +329,25 @@ void ScopeUnit::process_package(LoadPackage *package)
 			}
 			break;
 
+		case BC_YUV422P:
+			for(int i = pkg->row1; i < pkg->row2; i++)
+			{
+				unsigned char *y_row = gui->output_frame->get_y() + i * gui->output_frame->get_w();
+				unsigned char *u_row = gui->output_frame->get_u() + i * (gui->output_frame->get_w() / 2);
+				unsigned char *v_row = gui->output_frame->get_v() + i * (gui->output_frame->get_w() / 2);
+				for(int j = 0; j < w; j += 2)
+				{
+					PROCESS_YUV_PIXEL(j, *y_row, *u_row, *v_row);
+					y_row++;
+					PROCESS_YUV_PIXEL(j + 1, *y_row, *u_row, *v_row);
+					y_row++;
+
+					u_row++;
+					v_row++;
+				}
+			}
+			break;
+
 		case BC_YUV422:
 			for(int i = pkg->row1; i < pkg->row2; i++)
 			{

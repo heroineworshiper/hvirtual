@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -172,43 +172,43 @@ int RecordMonitor::get_mbuttons_height()
 	return RECBUTTON_HEIGHT;
 }
 
-int RecordMonitor::fix_size(int &w, int &h, int width_given, float aspect_ratio)
-{
-	w = width_given;
-	h = (int)((float)width_given / aspect_ratio);
-    return 0;
-}
+// int RecordMonitor::fix_size(int &w, int &h, int width_given, float aspect_ratio)
+// {
+// 	w = width_given;
+// 	h = (int)((float)width_given / aspect_ratio);
+//     return 0;
+// }
 
-float RecordMonitor::get_scale(int w)
-{
-	if(mwindow->edl->get_aspect_ratio() > 
-		(float)record->frame_w / record->frame_h)
-	{
-		return (float)w / 
-			((float)record->frame_h * 
-			mwindow->edl->get_aspect_ratio());
-	}
-	else
-	{
-		return (float)w / record->frame_w;
-	}
-}
+// float RecordMonitor::get_scale(int w)
+// {
+// 	if(mwindow->edl->get_aspect_ratio() > 
+// 		(float)record->frame_w / record->frame_h)
+// 	{
+// 		return (float)w / 
+// 			((float)record->frame_h * 
+// 			mwindow->edl->get_aspect_ratio());
+// 	}
+// 	else
+// 	{
+// 		return (float)w / record->frame_w;
+// 	}
+// }
 
 int RecordMonitor::get_canvas_height()
 {
 	return window->get_h() - get_mbuttons_height();
 }
 
-int RecordMonitor::get_channel_x()
-{
-//	return 240;
-	return 5;
-}
-
-int RecordMonitor::get_channel_y()
-{
-	return 2;
-}
+// int RecordMonitor::get_channel_x()
+// {
+// //	return 240;
+// 	return 5;
+// }
+// 
+// int RecordMonitor::get_channel_y()
+// {
+// 	return 2;
+// }
 
 
 
@@ -690,22 +690,22 @@ int RecordMonitorGUI::close_event()
 	return 0;
 }
 
-int RecordMonitorGUI::create_bitmap()
-{
-	if(bitmap && 
-		(bitmap->get_w() != get_w() || 
-			bitmap->get_h() != thread->get_canvas_height()))
-	{
-		delete bitmap;
-		bitmap = 0;
-	}
-
-	if(!bitmap && canvas)
-	{
-//		bitmap = canvas->new_bitmap(get_w(), thread->get_canvas_height());
-	}
-	return 0;
-}
+// int RecordMonitorGUI::create_bitmap()
+// {
+// 	if(bitmap && 
+// 		(bitmap->get_w() != get_w() || 
+// 			bitmap->get_h() != thread->get_canvas_height()))
+// 	{
+// 		delete bitmap;
+// 		bitmap = 0;
+// 	}
+// 
+// 	if(!bitmap && canvas)
+// 	{
+// //		bitmap = canvas->new_bitmap(get_w(), thread->get_canvas_height());
+// 	}
+// 	return 0;
+// }
 
 DoCursor::DoCursor(Record *record, int x, int y)
  : BC_CheckBox(x, y, record->do_cursor, _("Record cursor"))
@@ -823,7 +823,16 @@ int RecordMonitorCanvas::button_press_event()
 void RecordMonitorCanvas::zoom_resize_window(float percentage)
 {
 	int canvas_w, canvas_h;
-	calculate_sizes(mwindow->edl->get_aspect_ratio(), 
+    float aspect_ratio = mwindow->edl->get_aspect_ratio();
+// compute auto aspect ratio from the recording size
+    if(mwindow->edl->session->auto_aspect)
+    {
+        aspect_ratio = (float)MWindow::preferences->vconfig_in->w / 
+            MWindow::preferences->vconfig_in->h;
+    }
+
+
+	calculate_sizes(aspect_ratio, 
 		record->default_asset->width, 
 		record->default_asset->height, 
 		percentage,

@@ -87,7 +87,6 @@ void SetFormatThread::run()
 {
 	orig_dimension[0] = dimension[0] = mwindow->edl->session->output_w;
 	orig_dimension[1] = dimension[1] = mwindow->edl->session->output_h;
-	auto_aspect = mwindow->defaults->get("AUTOASPECT", 0);
 	constrain_ratio = 0;
 	ratio[0] = ratio[1] = 1;
 
@@ -118,7 +117,6 @@ void SetFormatThread::run()
 		apply_changes();
 	}
 
-	mwindow->defaults->update("AUTOASPECT", auto_aspect);
 	new_settings->Garbage::remove_user();
 }
 
@@ -214,8 +212,7 @@ void SetFormatThread::update()
 	window->channels->update((int64_t)new_settings->session->audio_channels);
 	window->frame_rate->update((float)new_settings->session->frame_rate);
 
-	auto_aspect = 0;
-	window->auto_aspect->update(0);
+	window->auto_aspect->update(new_settings->session->auto_aspect);
 
 	constrain_ratio = 0;
 	dimension[0] = new_settings->session->output_w;
@@ -293,7 +290,7 @@ void SetFormatThread::update_window()
 
 void SetFormatThread::update_aspect()
 {
-	if(auto_aspect)
+	if(new_settings->session->auto_aspect)
 	{
 		char string[BCTEXTLEN];
 		MWindow::create_aspect_ratio(new_settings->session->aspect_w, 
@@ -881,7 +878,10 @@ int ScaleRatioText::handle_event()
 
 
 ScaleAspectAuto::ScaleAspectAuto(int x, int y, SetFormatThread *thread)
- : BC_CheckBox(x, y, thread->auto_aspect, _("Auto"))
+ : BC_CheckBox(x, 
+    y, 
+    thread->new_settings->session->auto_aspect, 
+    _("Auto"))
 {
 	this->thread = thread; 
 }
@@ -892,7 +892,7 @@ ScaleAspectAuto::~ScaleAspectAuto()
 
 int ScaleAspectAuto::handle_event()
 {
-	thread->auto_aspect = get_value();
+	thread->new_settings->session->auto_aspect = get_value();
 	thread->update_aspect();
     return 0;
 }

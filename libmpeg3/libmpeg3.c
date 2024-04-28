@@ -233,7 +233,8 @@ int mpeg3_check_sig(char *path)
 				strncasecmp(ext, ".vob", 4) &&
 				strncasecmp(ext, ".mpeg", 4) &&
 				strncasecmp(ext, ".m2t", 4) &&
-				strncasecmp(ext, ".ac3", 4))
+				strncasecmp(ext, ".ac3", 4) &&
+				strncasecmp(ext, ".ts", 3))
 				result = 0;
 		}
 	}
