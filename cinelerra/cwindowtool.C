@@ -620,18 +620,18 @@ void CWindowEyedropGUI::handle_event()
 		if(gui->eyedrop_visible)
 		{
 			gui->lock_window("CWindowEyedropGUI::handle_event");
-// hide it
+// hide overlay
 			int rerender;
-			gui->canvas->do_eyedrop(rerender, 0, 1);
+			gui->canvas->do_eyedrop(rerender, 0, 0, 1);
 		}
 
 		mwindow->edl->session->eyedrop_radius = new_radius;
 
 		if(gui->eyedrop_visible)
 		{
-// draw it
+// draw it & compute the value
 			int rerender;
-			gui->canvas->do_eyedrop(rerender, 0, 1);
+			gui->canvas->do_eyedrop(rerender, 0, 1, 1);
 			gui->unlock_window();
 		}
 	}

@@ -539,13 +539,28 @@ void BC_WindowBase::fill_polygon(ArrayList<int> *x, ArrayList<int> *y, BC_Pixmap
 
 void BC_WindowBase::draw_rectangle(int x, int y, int w, int h)
 {
-	XDrawRectangle(top_level->display, 
-		pixmap->opaque_pixmap, 
-		top_level->gc, 
-		x, 
-		y, 
-		w - 1, 
-		h - 1);
+// This doesn't draw properly with XOR
+// 	XDrawRectangle(top_level->display, 
+// 		pixmap->opaque_pixmap, 
+// 		top_level->gc, 
+// 		x, 
+// 		y, 
+// 		w - 1, 
+// 		h - 1);
+
+    ArrayList<int> x_points;
+    ArrayList<int> y_points;
+    x_points.append(x);
+    x_points.append(x + w - 1);
+    x_points.append(x + w - 1);
+    x_points.append(x);
+    x_points.append(x);
+    y_points.append(y);
+    y_points.append(y);
+    y_points.append(y + h - 1);
+    y_points.append(y + h - 1);
+    y_points.append(y);
+    draw_polygon(&x_points, &y_points, 0);
 }
 
 void BC_WindowBase::draw_3d_border(int x, 

@@ -91,8 +91,11 @@ public:
 	int color_model;
 // Coords for cropping operation
 	int crop_x1, crop_x2, crop_y1, crop_y2;
+// eyedropper stuff is here so it's state is stored with effects
 // radius of eyedropper
 	int eyedrop_radius;
+// Center of last eyedrop box
+	int eyedrop_x, eyedrop_y;
 	float ruler_x1, ruler_y1;
 	float ruler_x2, ruler_y2;
 	int always_draw_ruler;

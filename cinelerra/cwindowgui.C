@@ -2239,27 +2239,32 @@ int CWindowCanvas::do_mask(int &redraw,
 }
 
 
-int CWindowCanvas::do_eyedrop(int &rerender, int button_press, int draw)
+int CWindowCanvas::do_eyedrop(int &rerender, 
+    int button_press, 
+    int config_change,
+    int draw)
 {
 	int result = 0;
 	int radius = mwindow->edl->session->eyedrop_radius;
+	int eyedrop_x = mwindow->edl->session->eyedrop_x;
+	int eyedrop_y = mwindow->edl->session->eyedrop_y;
 	int row1 = 0;
 	int row2 = 0;
 	int column1 = 0;
 	int column2 = 0;
 
-
+//printf("CWindowCanvas::do_eyedrop %d eyedrop_x=%d eyedrop_y=%d refresh_frame=%p draw=%d\n", 
+//__LINE__, eyedrop_x, eyedrop_y, refresh_frame, draw);
 
 	if(refresh_frame)
 	{
-
-		if(draw)
-		{
-printf("CWindowCanvas::do_eyedrop %d x=%d y=%d\n", __LINE__, gui->eyedrop_x, gui->eyedrop_y);
-			row1 = gui->eyedrop_y - radius;
-			row2 = gui->eyedrop_y + radius;
-			column1 = gui->eyedrop_x - radius;
-			column2 = gui->eyedrop_x + radius;
+// recompute the eyedrop box
+        if(draw || config_change)
+        {
+			row1 = eyedrop_y - radius;
+			row2 = eyedrop_y + radius;
+			column1 = eyedrop_x - radius;
+			column2 = eyedrop_x + radius;
 
 			CLAMP(row1, 0, refresh_frame->get_h() - 1);
 			CLAMP(row2, 0, refresh_frame->get_h() - 1);
@@ -2268,6 +2273,11 @@ printf("CWindowCanvas::do_eyedrop %d x=%d y=%d\n", __LINE__, gui->eyedrop_x, gui
 
 			if(row2 <= row1) row2 = row1 + 1;
 			if(column2 <= column1) column2 = column1 + 1;
+        }
+
+		if(draw)
+		{
+//printf("CWindowCanvas::do_eyedrop %d x=%d y=%d\n", __LINE__, gui->eyedrop_x, gui->eyedrop_y);
 
 			float x1 = column1;
 			float y1 = row1;
@@ -2292,7 +2302,7 @@ printf("CWindowCanvas::do_eyedrop %d x=%d y=%d\n", __LINE__, gui->eyedrop_x, gui
 				get_canvas()->set_opaque();
 				get_canvas()->flash();
 			}
-			return 0;
+			if(!config_change) return 0;
 		}
 	}
 
@@ -2302,7 +2312,8 @@ printf("CWindowCanvas::do_eyedrop %d x=%d y=%d\n", __LINE__, gui->eyedrop_x, gui
 		gui->tool_panel->raise_window();
 	}
 
-	if(gui->current_operation == CWINDOW_EYEDROP)
+	if(gui->current_operation == CWINDOW_EYEDROP ||
+        config_change)
 	{
 		mwindow->undo->update_undo_before(_("Eyedrop"), this);
 
@@ -2310,41 +2321,45 @@ printf("CWindowCanvas::do_eyedrop %d x=%d y=%d\n", __LINE__, gui->eyedrop_x, gui
 // Doesn't work during playback because that bypasses the refresh frame.
 		if(refresh_frame)
 		{
-			float cursor_x = get_cursor_x();
-			float cursor_y = get_cursor_y();
-			canvas_to_output(mwindow->edl, 0, cursor_x, cursor_y);
-			CLAMP(cursor_x, 0, refresh_frame->get_w() - 1);
-			CLAMP(cursor_y, 0, refresh_frame->get_h() - 1);
+            if(!config_change)
+            {
+// don't redraw anything if the pointer is outside the canvas GUI
+			    float cursor_x = get_cursor_x();
+			    float cursor_y = get_cursor_y();
+			    canvas_to_output(mwindow->edl, 0, cursor_x, cursor_y);
+			    CLAMP(cursor_x, 0, refresh_frame->get_w() - 1);
+			    CLAMP(cursor_y, 0, refresh_frame->get_h() - 1);
 
-			row1 = cursor_y - radius;
-			row2 = cursor_y + radius;
-			column1 = cursor_x - radius;
-			column2 = cursor_x + radius;
-			CLAMP(row1, 0, refresh_frame->get_h() - 1);
-			CLAMP(row2, 0, refresh_frame->get_h() - 1);
-			CLAMP(column1, 0, refresh_frame->get_w() - 1);
-			CLAMP(column2, 0, refresh_frame->get_w() - 1);
-			if(row2 <= row1) row2 = row1 + 1;
-			if(column2 <= column1) column2 = column1 + 1;
+			    row1 = cursor_y - radius;
+			    row2 = cursor_y + radius;
+			    column1 = cursor_x - radius;
+			    column2 = cursor_x + radius;
+			    CLAMP(row1, 0, refresh_frame->get_h() - 1);
+			    CLAMP(row2, 0, refresh_frame->get_h() - 1);
+			    CLAMP(column1, 0, refresh_frame->get_w() - 1);
+			    CLAMP(column2, 0, refresh_frame->get_w() - 1);
+			    if(row2 <= row1) row2 = row1 + 1;
+			    if(column2 <= column1) column2 = column1 + 1;
 
 
 // hide it
-			if(gui->eyedrop_visible)
-			{
-				int temp;
-				do_eyedrop(temp, 0, 1);
-				gui->eyedrop_visible = 0;
-			}
+			    if(gui->eyedrop_visible)
+			    {
+				    int temp;
+				    do_eyedrop(temp, 0, 0, 1);
+				    gui->eyedrop_visible = 0;
+			    }
 
-			gui->eyedrop_x = cursor_x;
-			gui->eyedrop_y = cursor_y;
+			    mwindow->edl->session->eyedrop_x = eyedrop_x = cursor_x;
+			    mwindow->edl->session->eyedrop_y = eyedrop_y = cursor_y;
 
 // show it
-			{
-				int temp;
-				do_eyedrop(temp, 0, 1);
-				gui->eyedrop_visible = 1;
-			}
+			    {
+				    int temp;
+				    do_eyedrop(temp, 0, 0, 1);
+				    gui->eyedrop_visible = 1;
+			    }
+            }
 
 // Decompression coefficients straight out of jpeglib
 #define V_TO_R    1.40200
@@ -2516,10 +2531,10 @@ void CWindowCanvas::draw_overlays()
 			break;
 
 		case CWINDOW_EYEDROP:
-		if(gui->eyedrop_visible)
+//		if(gui->eyedrop_visible)
 		{
 			int rerender;
-			do_eyedrop(rerender, 0, 1);
+			do_eyedrop(rerender, 0, 0, 1);
 			gui->eyedrop_visible = 1;
 			break;
 		}
@@ -3394,7 +3409,7 @@ int CWindowCanvas::cursor_motion_event()
 			break;
 
 		case CWINDOW_EYEDROP:
-			result = do_eyedrop(rerender, 0, 0);
+			result = do_eyedrop(rerender, 0, 0, 0);
 			break;
 
 		default:
@@ -3521,7 +3536,7 @@ int CWindowCanvas::button_press_event()
 				break;
 
 			case CWINDOW_EYEDROP:
-				result = do_eyedrop(rerender, 1, 0);
+				result = do_eyedrop(rerender, 1, 0, 0);
 				break;
 		}
 	}

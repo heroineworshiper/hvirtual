@@ -5,6 +5,7 @@ https://docs.google.com/spreadsheets/d/18eLwHrABP6ROHvPHfJW-Jtr_xB4wOblhwmzFuSFK
 
 BIG WISHLIST:
 ----------------------------
+Update eyedropper when changing radius
 Menu toggle for background rendering
 Poll interrupt flag in slow plugins
    - problematic
@@ -35,8 +36,6 @@ text for labels
 reverse reverb
 variable fast fwd speed
 
-Changing an asset path doesn't make it recompute the format.  Currently
-have to import a new asset & change it in the edit popup.
 
 
 Private plugin data storage in the track.

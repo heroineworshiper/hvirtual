@@ -218,7 +218,8 @@ int Reverb::process_buffer(int64_t size,
  
 // set random offsets after first reflection
  				ref_offsets[i][j] = ref_offsets[i][0];
- 				ref_offsets[i][j] += ref_division * j - (rand() % ref_division) / 2;
+ 				if(ref_division > 0)
+                    ref_offsets[i][j] += ref_division * j - (rand() % ref_division) / 2;
 
 // set changing levels
                 double level_db = config.ref_level1 + 

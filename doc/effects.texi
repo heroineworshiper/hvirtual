@@ -3,7 +3,7 @@
 @chapter EFFECTS NOTES
 
 Most effects in Cinelerra can be figured out just by using them and
-tweeking.  Here are brief descriptions of effects which you might not
+tweaking.  Here are brief descriptions of effects which you might not
 utilize fully by mere experimentation.
 
 

@@ -958,10 +958,11 @@ int BC_FileBox::resize_event(int w, int h)
 			h - (get_h() - usethis_button->get_y()));
 
 
-	if(filter_popup) filter_popup->reposition_window(w - (get_w() - filter_popup->get_x()), 
+	if(filter_popup) filter_popup->reposition_window(
+        w - (get_w() - filter_popup->get_x()), 
 		h - (get_h() - filter_popup->get_y()),
 		w - DP(30),
-		0);
+		-1);
 
 
 	if(filter_text) filter_text->reposition_window(filter_text->get_x(), 

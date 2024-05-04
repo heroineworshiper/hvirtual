@@ -139,8 +139,7 @@ public:
 // Origin of all 4 crop points during last button press
 	float crop_origin_x1, crop_origin_y1;
 	float crop_origin_x2, crop_origin_y2;
-// Center of last eyedrop drawing
-	int eyedrop_x, eyedrop_y;
+// XOR box is visible
 	int eyedrop_visible;
 
 	float ruler_origin_x, ruler_origin_y;
@@ -254,7 +253,10 @@ public:
 	int get_xscroll();
 	int get_yscroll();
 	float get_zoom();
-	int do_eyedrop(int &rerender, int button_press, int draw);
+	int do_eyedrop(int &rerender, 
+        int button_press, 
+        int config_change,
+        int draw);
 	int do_mask(int &redraw, 
 		int &rerender, 
 		int button_press, 

@@ -34,7 +34,7 @@ unlimited tracks, and it could perform effects on audio and save the
 resulting waveform to disk.  More notably a few effects could be
 performed as the audio was playing back, in realtime.  A user could mix
 unlimited numbers of tracks, adjust fade, pan, and EQ, and hear the
-result instantly.   Amazingly this real time tweeking is still
+result instantly.   Amazingly this real time tweaking is still
 unavailable on most audio programs.
 
 @b{BROADCAST 2000}
