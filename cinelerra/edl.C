@@ -1653,8 +1653,8 @@ int EDL::get_use_vconsole(VEdit* *playable_edit,
 		playable_tracks = new PlayableTracks(this,
 			position,
 			direction,
-			TRACK_VIDEO,
-			1);
+			TRACK_VIDEO /*,
+			1 */);
 	}
 
 

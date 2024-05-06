@@ -101,7 +101,7 @@ PluginServer::PluginServer(PluginServer &that)
 	realtime = that.realtime;
 	multichannel = that.multichannel;
 	preferences = that.preferences;
-	synthesis = that.synthesis;
+//	synthesis = that.synthesis;
 	audio = that.audio;
 	video = that.video;
 	theme = that.theme;
@@ -145,7 +145,7 @@ int PluginServer::reset_parameters()
 	audio = video = theme = 0;
 	uses_gui = 0;
 	realtime = multichannel = fileio = 0;
-	synthesis = 0;
+//	synthesis = 0;
 	start_auto = end_auto = 0;
 	transition = 0;
 	new_plugin = 0;
@@ -216,11 +216,11 @@ char* PluginServer::get_path()
 	return this->path;
 }
 
-int PluginServer::get_synthesis()
-{
-	return synthesis;
-}
-
+// int PluginServer::get_synthesis()
+// {
+// 	return synthesis;
+// }
+// 
 
 void PluginServer::set_title(const char *string)
 {
@@ -347,7 +347,7 @@ int PluginServer::open_plugin(int master,
 	fileio = client->is_fileio();
 	uses_gui = client->uses_gui();
 	multichannel = client->is_multichannel();
-	synthesis = client->is_synthesis();
+//	synthesis = client->is_synthesis();
 	set_title(client->plugin_title());
 
 	if(master && (realtime || transition))
@@ -427,7 +427,8 @@ void PluginServer::write_table(FILE *fd)
 		fileio,
 		uses_gui,
 		multichannel,
-		synthesis,
+//		synthesis,
+        0,
 		transition,
 		is_lad /* ,
 		lad_index */);
@@ -494,6 +495,7 @@ int PluginServer::read_table(char *text)
 		result = 1;
 
 // Toggles
+    int temp;
 	if(ptr2 && *ptr2 != 0)
 	{
 		ptr2++;
@@ -506,7 +508,8 @@ int PluginServer::read_table(char *text)
 			&fileio,
 			&uses_gui,
 			&multichannel,
-			&synthesis,
+//			&synthesis,
+            &temp,
 			&transition,
 			&is_lad /* ,
 			&lad_index */);

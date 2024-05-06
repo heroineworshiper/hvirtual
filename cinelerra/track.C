@@ -181,55 +181,55 @@ int Track::is_shared(int64_t position, int direction)
     return 0;
 }
 
-int Track::is_synthesis()
-{
-	for(int i = 0; i < plugin_set.total; i++)
-	{
-		Plugin *plugin = (Plugin*)plugin_set.get(i)->first;
-        while(plugin)
-        {
-            if(plugin->on &&
-                (plugin->plugin_type == PLUGIN_SHAREDMODULE ||
-                plugin->is_synthesis(plugin->startproject, 
-					PLAY_FORWARD,
-                    0)))
-            {
-                return 1;
-            }
-            plugin = (Plugin*)plugin->next;
-        }
-    }
-    return 0;
-}
+// int Track::is_synthesis()
+// {
+// 	for(int i = 0; i < plugin_set.total; i++)
+// 	{
+// 		Plugin *plugin = (Plugin*)plugin_set.get(i)->first;
+//         while(plugin)
+//         {
+//             if(plugin->on &&
+//                 (plugin->plugin_type == PLUGIN_SHAREDMODULE ||
+//                 plugin->is_synthesis(plugin->startproject, 
+// 					PLAY_FORWARD,
+//                     0)))
+//             {
+//                 return 1;
+//             }
+//             plugin = (Plugin*)plugin->next;
+//         }
+//     }
+//     return 0;
+// }
 
-int Track::is_synthesis(int64_t position, 
-	int direction,
-    int depth)
-{
-	int is_synthesis = 0;
-	for(int i = 0; i < plugin_set.total; i++)
-	{
-		Plugin *plugin = get_current_plugin(position,
-			i,
-			direction,
-			0,
-			0);
-		if(plugin)
-		{
-// Assume data from a shared track is synthesized
-			if(plugin->plugin_type == PLUGIN_SHAREDMODULE) 
-				is_synthesis = 1;
-			else
-				is_synthesis = plugin->is_synthesis(position, 
-					direction,
-                    depth);
-
-//printf("Track::is_synthesis %d %d\n", __LINE__, is_synthesis);
-			if(is_synthesis) break;
-		}
-	}
-	return is_synthesis;
-}
+// int Track::is_synthesis(int64_t position, 
+// 	int direction,
+//     int depth)
+// {
+// 	int is_synthesis = 0;
+// 	for(int i = 0; i < plugin_set.total; i++)
+// 	{
+// 		Plugin *plugin = get_current_plugin(position,
+// 			i,
+// 			direction,
+// 			0,
+// 			0);
+// 		if(plugin)
+// 		{
+// // Assume data from a shared track is synthesized
+// 			if(plugin->plugin_type == PLUGIN_SHAREDMODULE) 
+// 				is_synthesis = 1;
+// 			else
+// 				is_synthesis = plugin->is_synthesis(position, 
+// 					direction,
+//                     depth);
+// 
+// //printf("Track::is_synthesis %d %d\n", __LINE__, is_synthesis);
+// 			if(is_synthesis) break;
+// 		}
+// 	}
+// 	return is_synthesis;
+// }
 
 void Track::copy_from(Track *track)
 {
@@ -1480,10 +1480,10 @@ int Track::playable_edit(int64_t position, int direction)
 }
 
 
-int Track::need_edit(Edit *current, int test_transitions)
+int Track::need_edit(Edit *current /*, int test_transitions */)
 {
-	return ((test_transitions && current->transition && current->transition->on) ||
-		(!test_transitions && current->asset));
+	return ((/* test_transitions && */ current->transition && current->transition->on) ||
+		(/* !test_transitions && */ !current->silence()));
 }
 
 int64_t Track::plugin_change_duration(int64_t input_position,
@@ -1506,7 +1506,7 @@ int64_t Track::plugin_change_duration(int64_t input_position,
 int64_t Track::edit_change_duration(int64_t input_position, 
 	int64_t input_length, 
 	int reverse, 
-	int test_transitions,
+//	int test_transitions,
 	int use_nudge)
 {
 	Edit *current;
@@ -1534,13 +1534,13 @@ int64_t Track::edit_change_duration(int64_t input_position,
 				;
 			}
 			else
-			if(need_edit(current, test_transitions))
+			if(need_edit(current /*, test_transitions */))
 			{
 // Over an edit with data.
 				if(input_position - current->startproject < input_length)
 					edit_length = input_position - current->startproject + fudge;
 
-                if(test_transitions && 
+                if(/* test_transitions && */
                     current->transition && 
                     current->transition->on)
                 {
@@ -1562,11 +1562,11 @@ int64_t Track::edit_change_duration(int64_t input_position,
 				for(current = PREVIOUS ; 
 					current && 
 					current->startproject + current->length > input_position - input_length &&
-					!need_edit(current, test_transitions);
+					!need_edit(current /*, test_transitions */);
 					current = PREVIOUS)
 					;
 
-				if(current && need_edit(current, test_transitions))
+				if(current && need_edit(current /*, test_transitions */))
                 {
                     int64_t edit_end = current->startproject + current->length;
 					if(edit_end > input_position - input_length)
@@ -1609,7 +1609,7 @@ int64_t Track::edit_change_duration(int64_t input_position,
 				;
 			}
 			else
-			if(need_edit(current, test_transitions))
+			if(need_edit(current /*, test_transitions */))
 			{
 // Over an edit with data.
 // Next edit is going to require a change.
@@ -1618,7 +1618,7 @@ int64_t Track::edit_change_duration(int64_t input_position,
 					edit_length = edit_end - input_position;
 
 
-                if(test_transitions && 
+                if(/* test_transitions && */
                     current->transition &&
                     current->transition->on)
                 {
@@ -1636,12 +1636,12 @@ int64_t Track::edit_change_duration(int64_t input_position,
 				for(current = NEXT ; 
 					current && 
 					current->startproject < input_position + input_length &&
-					!need_edit(current, test_transitions);
+					!need_edit(current /*, test_transitions */);
 					current = NEXT)
 					;
 
 				if(current && 
-					need_edit(current, test_transitions) &&
+					need_edit(current /*, test_transitions */) &&
 					current->startproject < input_position + input_length)
 					edit_length = current->startproject - input_position;
 			}
@@ -1991,11 +1991,6 @@ int Track::asset_used(Asset *asset)
 	}
 	return result;
 }
-
-// int Track::is_playable(int64_t position, int direction)
-// {
-// 	return 1;
-// }
 
 
 int Track::plugin_used(int64_t position, int64_t direction)

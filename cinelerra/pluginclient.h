@@ -303,7 +303,6 @@ public:
 	virtual int is_theme();
 	virtual int uses_gui();
 	virtual int is_multichannel();
-	virtual int is_synthesis();
 	virtual int is_transition();
 	virtual const char* plugin_title();   // return the title of the plugin
 	virtual VFrame* new_picon();

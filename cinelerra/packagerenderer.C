@@ -375,8 +375,8 @@ int PackageRenderer::create_engine()
 	    playable_tracks = new PlayableTracks(render_engine->get_edl(), 
 		    video_position, 
 		    PLAY_FORWARD,
-		    TRACK_VIDEO,
-		    1);
+		    TRACK_VIDEO /*,
+		    1 */);
     }
 //printf("PackageRenderer::create_engine %d\n", __LINE__);
     

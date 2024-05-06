@@ -36,8 +36,8 @@
 PlayableTracks::PlayableTracks(EDL *edl, 
 	int64_t current_position, 
 	int direction,
-	int data_type,
-	int use_nudge)
+	int data_type /*,
+	int use_nudge */)
  : ArrayList<Track*>()
 {
 	this->data_type = data_type;
@@ -46,7 +46,7 @@ PlayableTracks::PlayableTracks(EDL *edl,
 		current_track; 
 		current_track = current_track->next)
 	{
-		if(is_playable(current_track, current_position, direction, use_nudge))
+		if(is_playable(current_track, current_position, direction /*, use_nudge */))
 		{
 // printf("PlayableTracks::PlayableTracks %d this=%p current_track=%p total=%d current_position=%lld\n", 
 // __LINE__,
@@ -71,70 +71,24 @@ PlayableTracks::~PlayableTracks()
 
 int PlayableTracks::is_playable(Track *current_track, 
 	int64_t position,
-	int direction,
-	int use_nudge)
+	int direction /*,
+	int use_nudge */)
 {
 	int result = 1;
-	if(use_nudge) position += current_track->nudge;
+	/* if(use_nudge) */ position += current_track->nudge;
 
-	Auto *current = 0;
+	if(current_track->data_type != data_type ||
+        !current_track->play) return 0;
 
-	if(current_track->data_type != data_type) result = 0;
-	
-
-// Track is off screen and not bounced to other modules
-
-
-// 	if(result)
-// 	{
-// 		if(!current_track->plugin_used(position, direction) /* &&
-// 			!current_track->is_playable(position, direction) */)
-// 			result = 0;
-// 	}
-
-// can only test conditions for all time because of random access reads
-// Test play patch
-	if(!current_track->play)
-	{
-		result = 0;
-	}
-
-	if(result)
-	{
-// Test for playable edit
-		if(!current_track->playable_edit())
-		{
-// Test for playable effect
-			if(!current_track->is_synthesis())
-			{
-				result = 0;
-			}
-		}
-	}
+	if(!current_track->plugin_used(position, direction) &&
+        !current_track->playable_edit(position, direction))
+	    return 0;
 
 
-// test mute.  Doesn't work because a plugin like motion needs constant updating.
-// TODO: need a change_duration function for audio support
-//     if(result && data_type == TRACK_VIDEO)
-//     {
-//         current = 0;
-//         IntAuto *mute_keyframe = (IntAuto*)current_track->automation->autos[AUTOMATION_MUTE]->get_prev_auto(
-// 		    position, 
-// 		    direction,
-// 		    current);
-//         if(mute_keyframe && mute_keyframe->value)
-//         {
-//     // muted. Test for shared plugin
-//             if(!current_track->is_shared(position, direction))
-//             {
-//                 result = 0;
-//             }
-//         }
-//     }
-// printf("PlayableTracks::is_playable %d track=%s result=%d\n", 
-// __LINE__, 
-// current_track->title, 
-// result);
+// nested EDLs ended the chance of testing fade, mute, projector
+// There's no easy way to know if a nested EDL has a plugin.
+
+// random access ended the chance of testing plugin synthesis
 
 	return result;
 }

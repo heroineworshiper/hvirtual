@@ -19,15 +19,20 @@
 int main(int argc, char *argv[])
 {
 	int i, j, l;
-	char *src = 0, *dst = 0;
+    char **src = 0;
+    int total_src = 0;
+	char *dst = 0;
+    
 	int verbose = 0;
 
 	if(argc < 3)
 	{
 		fprintf(stderr, "Table of contents generator version %d.%d.%d\n"
 			"Create a table of contents for a DVD or mpeg stream.\n"
-			"Usage: mpeg3toc <path> <output>\n"
+			"Usage: mpeg3toc <path> [-o output]\n"
 			"\n"
+            "-o specify output filename if processing 1 file only\n"
+            "    Default is to append .toc to the input\n"
 			"-v Print tracking information\n"
 			"\n"
 			"The path should be absolute unless you plan\n"
@@ -35,7 +40,8 @@ int main(int argc, char *argv[])
 			"as the filename.  For renderfarms the filesystem prefix\n"
 			"should be / and the movie directory mounted under the same\n"
 			"directory on each node.\n\n"
-			"Example: mpeg3toc -v /cdrom/video_ts/vts_01_0.ifo titanic.toc\n",
+			"Example: mpeg3toc -v /cdrom/video_ts/vts_01_0.ifo -o titanic.toc\n"
+			"Example: mpeg3toc -v a.mp3 b.mp3 c.mp3\n",
 			mpeg3_major(),
 			mpeg3_minor(),
 			mpeg3_release());
@@ -49,24 +55,23 @@ int main(int argc, char *argv[])
 			verbose = 1;
 		}
 		else
+        if(!strcmp(argv[i], "-o"))
+        {
+            dst = argv[i + 1];
+            i++;
+        }
+        else
 		if(argv[i][0] == '-')
 		{
 			fprintf(stderr, "Unrecognized command %s\n", argv[i]);
 			exit(1);
 		}
 		else
-		if(!src)
 		{
-			src = argv[i];
-		}
-		else
-		if(!dst)
-		{
-			dst = argv[i];
-		}
-		else
-		{
-			fprintf(stderr, "Ignoring argument \"%s\"\n", argv[i]);
+// source filename
+            total_src++;
+            src = realloc(src, sizeof(char*) * total_src);
+			src[total_src - 1] = argv[i];
 		}
 	}
 
@@ -76,57 +81,78 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if(!dst)
-	{
-		fprintf(stderr, "destination path not supplied.\n");
+    if(total_src > 1 && dst)
+    {
+        fprintf(stderr, "can't supply more than 1 source when also supplying a destination path.\n");
 		exit(1);
-	}
-
-
+    }
 
 	int64_t total_bytes;
-	mpeg3_t *file = mpeg3_start_toc(src, dst, &total_bytes);
-	if(!file) exit(1);
-	struct timeval new_time;
-	struct timeval prev_time;
-	struct timeval start_time;
-	struct timeval current_time;
-	gettimeofday(&prev_time, 0);
-	gettimeofday(&start_time, 0);
-	
-	
-	while(1)
-	{
-		int64_t bytes_processed = 0;
-		mpeg3_do_toc(file, &bytes_processed);
+    for(i = 0; i < total_src; i++)
+    {
+        char *dst_path;
+        if(dst)
+        {
+            dst_path = strdup(dst);
+        }
+        else
+        {
+            dst_path = malloc(strlen(src[i]) + 5);
+            strcpy(dst_path, src[i]);
+            strcat(dst_path, ".toc");
+        }
 
-		gettimeofday(&new_time, 0);
-		if(verbose && new_time.tv_sec - prev_time.tv_sec > 1)
-		{
-			gettimeofday(&current_time, 0);
-			int64_t elapsed_seconds = current_time.tv_sec - start_time.tv_sec;
-			int64_t total_seconds = elapsed_seconds * total_bytes / bytes_processed;
-			int64_t eta = total_seconds - elapsed_seconds;
-			fprintf(stderr, "%jd%% ETA: %jdm%jds        \r", 
-				bytes_processed * 100 / total_bytes,
-				eta / 60,
-				eta % 60);
-			fflush(stdout);
-			prev_time = new_time;
-		}
+        if(verbose)
+            fprintf(stderr,
+                "%s -> %s\n",
+                src[i],
+                dst_path);
+	    mpeg3_t *file = mpeg3_start_toc(src[i], dst_path, &total_bytes);
 
-		if(bytes_processed >= total_bytes) break;
-	}
+	    if(!file) exit(1);
+	    struct timeval new_time;
+	    struct timeval prev_time;
+	    struct timeval start_time;
+	    struct timeval current_time;
+	    gettimeofday(&prev_time, 0);
+	    gettimeofday(&start_time, 0);
 
-	mpeg3_stop_toc(file);
-	gettimeofday(&current_time, 0);
-	int64_t elapsed = current_time.tv_sec - start_time.tv_sec;
-	if(verbose)
-	{
-		fprintf(stderr, "%jdm%jds elapsed           \n", 
-			elapsed / 60,
-			elapsed % 60);
-	}
+
+	    while(1)
+	    {
+		    int64_t bytes_processed = 0;
+		    mpeg3_do_toc(file, &bytes_processed);
+
+		    gettimeofday(&new_time, 0);
+		    if(verbose && new_time.tv_sec - prev_time.tv_sec > 1)
+		    {
+			    gettimeofday(&current_time, 0);
+			    int64_t elapsed_seconds = current_time.tv_sec - start_time.tv_sec;
+			    int64_t total_seconds = elapsed_seconds * total_bytes / bytes_processed;
+			    int64_t eta = total_seconds - elapsed_seconds;
+			    fprintf(stderr, "%jd%% ETA: %jdm%jds        \r", 
+				    bytes_processed * 100 / total_bytes,
+				    eta / 60,
+				    eta % 60);
+			    fflush(stdout);
+			    prev_time = new_time;
+		    }
+
+		    if(bytes_processed >= total_bytes) break;
+	    }
+
+	    mpeg3_stop_toc(file);
+        free(dst_path);
+
+	    gettimeofday(&current_time, 0);
+	    int64_t elapsed = current_time.tv_sec - start_time.tv_sec;
+	    if(verbose)
+	    {
+		    fprintf(stderr, "%jdm%jds elapsed           \n", 
+			    elapsed / 60,
+			    elapsed % 60);
+	    }
+    }
 
 	return 0;
 }

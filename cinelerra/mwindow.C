@@ -3138,12 +3138,12 @@ void MWindow::dump_plugins()
 {
 	for(int i = 0; i < plugindb->total; i++)
 	{
-		printf("audio=%d video=%d rt=%d multi=%d synth=%d transition=%d theme=%d %s\n",
+		printf("audio=%d video=%d rt=%d multi=%d transition=%d theme=%d %s\n",
 			plugindb->values[i]->audio,
 			plugindb->values[i]->video,
 			plugindb->values[i]->realtime,
 			plugindb->values[i]->multichannel,
-			plugindb->values[i]->get_synthesis(),
+//			plugindb->values[i]->get_synthesis(),
 			plugindb->values[i]->transition,
 			plugindb->values[i]->theme,
 			plugindb->values[i]->title);

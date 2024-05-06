@@ -271,7 +271,7 @@ public:
 	double get_project_framerate();         // get framerate of project data before processing
 	int set_path(char *path);    // required first
 	char* get_path();
-	int get_synthesis();
+//	int get_synthesis();
 	void get_defaults_path(char *path);
 	void save_defaults();
 // Used by PluginArray and MenuEffects to get user parameters and progress bar.
@@ -334,7 +334,7 @@ public:
 // Specifies what type of plugin.
 	int realtime, multichannel, fileio;  
 // Plugin generates media
-	int synthesis;
+//	int synthesis;
 // What data types the plugin can handle.  One of these is set.
 	int audio, video, theme;
 // Can display a GUI

@@ -230,71 +230,71 @@ void Plugin::equivalent_output(Edit *edit, int64_t *result)
 
 
 
-int Plugin::is_synthesis(int64_t position, 
-		int direction,
-        int depth)
-{
-// too many recursions
-    if(depth > 255)
-    {
-        printf("Plugin::is_synthesis %d: infinitely recursive plugin. type=%s title=%s\n",
-            __LINE__,
-            type_to_text(plugin_type),
-            title);
-        return 0;
-    }
-
-	switch(plugin_type)
-	{
-		case PLUGIN_STANDALONE:
-		{
-			if(!track)
-			{
-				printf("Plugin::is_synthesis track not defined\n");
-				return 0;
-			}
-
-
-			PluginServer *plugin_server = MWindow::scan_plugindb(title,
-				track->data_type);
-//printf("Plugin::is_synthesis %d %p\n", __LINE__, plugin_server);
-//plugin_server->dump();
-            if(plugin_server)
-    			return plugin_server->get_synthesis();
-            else
-                return 0;
-			break;
-		}
-
-// Dereference real plugin and descend another level
-		case PLUGIN_SHAREDPLUGIN:
-		{
-			int real_module_number = shared_location.module;
-			int real_plugin_number = shared_location.plugin;
-			Track *track = edl->tracks->number(real_module_number);
-// Get shared plugin from master track
-			Plugin *plugin = track->get_current_plugin(position, 
-				real_plugin_number, 
-				direction, 
-				0,
-				0);
-
-			if(plugin)
-				return plugin->is_synthesis(position, direction, depth + 1);
-			break;
-		}
-
-// Dereference the real track and descend
-		case PLUGIN_SHAREDMODULE:
-		{
-			int real_module_number = shared_location.module;
-			Track *track = edl->tracks->number(real_module_number);
-			return track->is_synthesis(position, direction, depth + 1);
-			break;
-		}
-	}
-	return 0;
-}
+// int Plugin::is_synthesis(int64_t position, 
+// 		int direction,
+//         int depth)
+// {
+// // too many recursions
+//     if(depth > 255)
+//     {
+//         printf("Plugin::is_synthesis %d: infinitely recursive plugin. type=%s title=%s\n",
+//             __LINE__,
+//             type_to_text(plugin_type),
+//             title);
+//         return 0;
+//     }
+// 
+// 	switch(plugin_type)
+// 	{
+// 		case PLUGIN_STANDALONE:
+// 		{
+// 			if(!track)
+// 			{
+// 				printf("Plugin::is_synthesis track not defined\n");
+// 				return 0;
+// 			}
+// 
+// 
+// 			PluginServer *plugin_server = MWindow::scan_plugindb(title,
+// 				track->data_type);
+// //printf("Plugin::is_synthesis %d %p\n", __LINE__, plugin_server);
+// //plugin_server->dump();
+//             if(plugin_server)
+//     			return plugin_server->get_synthesis();
+//             else
+//                 return 0;
+// 			break;
+// 		}
+// 
+// // Dereference real plugin and descend another level
+// 		case PLUGIN_SHAREDPLUGIN:
+// 		{
+// 			int real_module_number = shared_location.module;
+// 			int real_plugin_number = shared_location.plugin;
+// 			Track *track = edl->tracks->number(real_module_number);
+// // Get shared plugin from master track
+// 			Plugin *plugin = track->get_current_plugin(position, 
+// 				real_plugin_number, 
+// 				direction, 
+// 				0,
+// 				0);
+// 
+// 			if(plugin)
+// 				return plugin->is_synthesis(position, direction, depth + 1);
+// 			break;
+// 		}
+// 
+// // Dereference the real track and descend
+// 		case PLUGIN_SHAREDMODULE:
+// 		{
+// 			int real_module_number = shared_location.module;
+// 			Track *track = edl->tracks->number(real_module_number);
+// 			return track->is_synthesis(position, direction, depth + 1);
+// 			break;
+// 		}
+// 	}
+// 	return 0;
+// }
 
 
 

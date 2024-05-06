@@ -88,8 +88,8 @@ __LINE__);
 			nested_edl, 
 			*source_position, 
 			direction,
-			TRACK_VIDEO,
-			1);
+			TRACK_VIDEO /*,
+			1 */);
 		if(playable_tracks->size())
 		{
 			VTrack *nested_track = (VTrack*)playable_tracks->get(0);

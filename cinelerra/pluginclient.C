@@ -602,7 +602,6 @@ int PluginClient::plugin_get_parameters()
 // ========================= main loop
 
 int PluginClient::is_multichannel() { return 0; }
-int PluginClient::is_synthesis() { return 0; }
 int PluginClient::is_realtime() { return 0; }
 int PluginClient::is_fileio() { return 0; }
 int PluginClient::delete_buffer_ptrs() { return 0; }

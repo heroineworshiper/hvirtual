@@ -157,21 +157,15 @@ public:
 // Called by playable tracks to test for playable server.
 // Descends the plugin tree without creating a virtual console.
 // Used by PlayableTracks::is_playable.
-	int is_synthesis(int64_t position, 
-		int direction,
-        int depth = 0);
-// test for synthesis plugin anywhere on the track
-    int is_synthesis();
+// 	int is_synthesis(int64_t position, 
+// 		int direction,
+//         int depth = 0);
+// // test for synthesis plugin anywhere on the track
+//     int is_synthesis();
 
 // used by PlayableTracks::is_playable to determine if the track is shared
     int is_shared(int64_t position, int direction);
 
-
-// Used by PlayableTracks::is_playable
-// Returns 1 if the track is in the output boundaries.
-// Not practical because of random access plugins
-// 	virtual int is_playable(int64_t position, 
-// 		int direction);
 
 // Test direct copy conditions common to all the rendering routines
 	virtual int direct_copy_possible(int64_t start, int direction, int use_nudge);
@@ -367,14 +361,14 @@ public:
 	int64_t edit_change_duration(int64_t input_position, 
 		int64_t input_length, 
 		int reverse, 
-		int test_transitions,
+//		int test_transitions,
 		int use_nudge);
 	int64_t plugin_change_duration(int64_t input_position,
 		int64_t input_length,
 		int reverse,
 		int use_nudge);
 // Utility for edit_change_duration.
-	int need_edit(Edit *current, int test_transitions);
+	int need_edit(Edit *current /*, int test_transitions */);
 // If the edit under position is playable.
 // Used by PlayableTracks::is_playable.
 	int playable_edit(int64_t position, int direction);

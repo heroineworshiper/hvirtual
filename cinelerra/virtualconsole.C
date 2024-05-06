@@ -84,8 +84,8 @@ void VirtualConsole::get_playable_tracks()
 		playable_tracks = new PlayableTracks(renderengine->get_edl(), 
 			commonrender->current_position, 
 			renderengine->command->get_direction(),
-			data_type,
-			1);
+			data_type /*,
+			1 */);
 }
 
 Module* VirtualConsole::module_of(Track *track)
@@ -195,34 +195,39 @@ int VirtualConsole::test_reconfigure(int64_t position,
 
 
 // Test playback status against virtual console for current position.
-// 	for(current_track = renderengine->get_edl()->tracks->first;
-// 		current_track && !result;
-// 		current_track = current_track->next)
-// 	{
-// 		if(current_track->data_type == data_type)
-// 		{
-// // Playable status changed
-// 			if(playable_tracks->is_playable(current_track, 
-// 				commonrender->current_position,
-// 				direction,
-// 				1))
-// 			{
-// 				if(!playable_tracks->is_listed(current_track))
-// 					result = 1;
-// 			}
-// 			else
-// 			if(playable_tracks->is_listed(current_track))
-// 			{
-// 				result = 1;
-// 			}
-// 		}
-// 	}
+	for(current_track = renderengine->get_edl()->tracks->first;
+		current_track && !result;
+		current_track = current_track->next)
+	{
+		if(current_track->data_type == data_type)
+		{
+// Playable status changed
+			if(playable_tracks->is_playable(current_track, 
+				commonrender->current_position,
+				direction /*,
+				1 */))
+			{
+				if(!playable_tracks->is_listed(current_track))
+					result = 1;
+			}
+			else
+			if(playable_tracks->is_listed(current_track))
+			{
+				result = 1;
+			}
+		}
+	}
 
 // Test plugins against virtual console at current position
 	for(int i = 0; i < commonrender->total_modules && !result; i++)
 		result = commonrender->modules[i]->test_plugins();
 
 
+// Length of time until next plugin or edit change.
+
+// It has to fragment the buffer if it's crossing between silence & an edit 
+// or any plugin change.  It doesn't need to fragment if it's crossing 
+// between 2 playable edits.  
 
 
 
@@ -237,15 +242,12 @@ int VirtualConsole::test_reconfigure(int64_t position,
 
 // GCC 3.2 requires this or optimization error results.
 //	int64_t longest_duration1;
-//	int64_t longest_duration2;
+	int64_t longest_duration2;
 	int64_t longest_duration3;
 
 
-// Length of time until next plugin change.
-// It can't practically trim for transitions & edit boundaries here because
-// plugins read from arbitrary offsets.
-// Playable status changes & plugin changes can be
-// worked around without rendering a temporary.
+// Length of time until next change between playable & unplayable.
+// It doesn't need to fragment if it's crossing between 2 playable edits.  
 	for(current_track = renderengine->get_edl()->tracks->first;
 		current_track;
 		current_track = current_track->next)
@@ -265,16 +267,16 @@ int VirtualConsole::test_reconfigure(int64_t position,
 // // (int)commonrender->current_position,
 // // (int)length,
 // // (int)longest_duration1);
-// 
-// 
-// // Test the edits
-// 			longest_duration2 = current_track->edit_change_duration(
-// 				commonrender->current_position, 
-// 				length, 
-// 				direction, 
-// 				0,
-// 				1);
-// 
+
+
+// Test the edits.  Playable status changes if it goes between silence & an edit.
+			longest_duration2 = current_track->edit_change_duration(
+				commonrender->current_position, 
+				length, 
+				direction, 
+//				0,
+				1);
+
 // // printf("VirtualConsole::test_reconfigure %d current_track=%p current_position=%d length=%d longest_duration1=%d\n",
 // // __LINE__,
 // // current_track,
@@ -282,7 +284,7 @@ int VirtualConsole::test_reconfigure(int64_t position,
 // // (int)length,
 // // (int)longest_duration1);
 
-// Test the plugins
+// Test the plugins.  Playable status changes if there's a plugin.
 			longest_duration3 = current_track->plugin_change_duration(
 				commonrender->current_position,
 				length,
@@ -301,10 +303,10 @@ int VirtualConsole::test_reconfigure(int64_t position,
 // 			{
 // 				length = longest_duration1;
 // 			}
-// 			if(longest_duration2 < length)
-// 			{
-// 				length = longest_duration2;
-// 			}
+			if(longest_duration2 < length)
+			{
+				length = longest_duration2;
+			}
 			if(longest_duration3 < length)
 			{
 				length = longest_duration3;

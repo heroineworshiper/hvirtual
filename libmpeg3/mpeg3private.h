@@ -16,7 +16,7 @@
 /* Constants */
 
 #define MPEG3_MAJOR   1
-#define MPEG3_MINOR   8
+#define MPEG3_MINOR   9
 #define MPEG3_RELEASE 0
 
 #define RENDERFARM_FS_PREFIX "vfs://"
