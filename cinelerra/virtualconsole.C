@@ -254,7 +254,8 @@ int VirtualConsole::test_reconfigure(int64_t position,
 	{
 		if(current_track->data_type == data_type)
 		{
-// // Test the transitions
+// // Test the transitions.  
+// // Can't know the transition state because of random access effects.
 // 			longest_duration1 = current_track->edit_change_duration(
 // 				commonrender->current_position, 
 // 				length, 

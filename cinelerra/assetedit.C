@@ -440,11 +440,12 @@ void AssetEditWindow::create_objects()
 					x, 
 					y, 
 					&asset_edit->changed_params->bits, 
-					1, 
-					1, 
-					1,
-					0,
-					1);
+					1,  // ima4
+					1,  // ulaw
+					1,  // adpcm
+					1,  // float
+					1,  // 32linear
+                    1); // 8linear
 				bitspopup->create_objects();
 			}
 			else

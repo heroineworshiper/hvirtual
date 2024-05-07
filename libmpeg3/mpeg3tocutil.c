@@ -633,7 +633,7 @@ int mpeg3_update_index(mpeg3_t *file,
 
 // printf("mpeg3_update_index %d atrack->audio->output_size=%d\n", 
 // __LINE__, 
-// atrack->audio->output_size);
+// (int)atrack->audio->output_size);
 
 
 	while((flush && atrack->audio->output_size) ||
@@ -689,7 +689,7 @@ int mpeg3_update_index(mpeg3_t *file,
 			index->index_channels = atrack->channels;
 		}
 
-// dump to debug file
+// dump 2 channel float to debug file
 // static FILE *debug_fd = 0;
 // if(!debug_fd) debug_fd = fopen("/tmp/test.pcm", "w");
 // for(i = 0; i < fragment; i++)
@@ -758,10 +758,11 @@ int mpeg3_update_index(mpeg3_t *file,
 
 
 		atrack->current_position += fragment;
-// printf("mpeg3_update_index %d fragment=%d output_size=%d current_position=%d\n", 
+// printf("mpeg3_update_index %d fragment=%d prev_offset=%d output_size=%d current_position=%d\n", 
 // __LINE__, 
 // (int)fragment,
-// atrack->audio->output_size,
+// (int)atrack->prev_offset,
+// (int)atrack->audio->output_size,
 // (int)atrack->current_position);
 	}
 
@@ -835,12 +836,14 @@ static int handle_audio(mpeg3_t *file,
  * }
  */
 
+//printf("handle_audio %d %d\n", __LINE__, (int)atrack->audio->output_size);
 // Decode samples
 	mpeg3audio_decode_audio(atrack->audio, 
 		0, 
 		0, 
 		0,
 		MPEG3_AUDIO_HISTORY);
+//printf("handle_audio %d %d\n", __LINE__, (int)atrack->audio->output_size);
 
 // When a chunk is available, 
 // add downsampled samples to the index buffer and create toc entry.

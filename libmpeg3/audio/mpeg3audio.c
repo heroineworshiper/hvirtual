@@ -363,7 +363,7 @@ static int read_frame(mpeg3audio_t *audio, int render)
 	}
 
 
-
+// create a pointer array to the output buffers
 	if(render)
 	{
 		temp_output = malloc(sizeof(float*) * track->channels);
@@ -954,7 +954,7 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 /* Always render since now the TOC contains index files. */
 	int render = 1;
 	long new_size;
-//printf("mpeg3audio_decode_audio %d output_size=%d\n", __LINE__, audio->output_size);
+//printf("mpeg3audio_decode_audio %d output_size=%d\n", __LINE__, (int)audio->output_size);
 
 /* Minimum amount of data must be present for streaming mode */
 	if(!file->seekable && 
@@ -1002,7 +1002,7 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 
 
 
-/* Decode frames until the output is ready */
+/* Decode frames until the output is full or the demuxer is empty */
 	while(1)
 	{
 		if(audio->output_position + audio->output_size >= 
@@ -1010,30 +1010,35 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 			try >= 256 ||
 			mpeg3demux_eof(track->demuxer)) 
 		{
-			int remaining = track->current_position + 
-				len - 
-				audio->output_position - 
-				audio->output_size;
-// 			printf("mpeg3audio_decode_audio %d sample=%d eof=%d output_size=%d len=%d remaining=%d\n",
-// 				__LINE__,
-// 				track->current_position,
-// 				mpeg3demux_eof(track->demuxer),
-// 				audio->output_size,
-// 				len,
-// 				remaining);
+// Return whatever samples the demuxer contained if we are building a TOC.
+// Pad the requested buffer with silence if we are not building a TOC
+            if(file->seekable)
+            {
+			    int remaining = track->current_position + 
+				    len - 
+				    audio->output_position - 
+				    audio->output_size;
+    // printf("mpeg3audio_decode_audio %d try=%d sample=%d eof=%d output_size=%d len=%d remaining=%d\n",
+    // 	__LINE__,
+    // 	track->current_position,
+    // 	mpeg3demux_eof(track->demuxer),
+    // 	audio->output_size,
+    // 	len,
+    // 	remaining);
 
-// fill remaining buffer with 0
-			if(remaining > 0)
-			{
-				for(i = 0; i < track->channels; i++)
-				{
-					for(j = 0; j < remaining; j++)
-					{
-						audio->output[i][audio->output_size + j] = 0;
-					}
-				}
-				audio->output_size += remaining;
-			}
+    // fill remaining buffer with 0
+			    if(remaining > 0)
+			    {
+				    for(i = 0; i < track->channels; i++)
+				    {
+					    for(j = 0; j < remaining; j++)
+					    {
+						    audio->output[i][audio->output_size + j] = 0;
+					    }
+				    }
+				    audio->output_size += remaining;
+			    }
+            }
 
 			break;
 		}
@@ -1045,8 +1050,9 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 
 		int samples = read_frame(audio, render);
 
-// printf("mpeg3audio_decode_audio %d current_position=%d samples=%d output_size=%d try=%d\n", 
+// printf("mpeg3audio_decode_audio %d read_all=%d current_position=%d samples=%d output_size=%d try=%d\n", 
 // __LINE__, 
+// file->demuxer->read_all,
 // (int)track->current_position,
 // samples, 
 // audio->output_size,
@@ -1069,6 +1075,9 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 
 /* Copy the buffer to the output */
 	if(channel >= track->channels) channel = track->channels - 1;
+
+//printf("mpeg3audio_decode_audio %d len=%d try=%d audio->output_size=%d\n", 
+//__LINE__, (int)len, try, (int)audio->output_size);
 
 	if(output_f)
 	{
@@ -1115,7 +1124,7 @@ int mpeg3audio_decode_audio(mpeg3audio_t *audio,
 // __LINE__, 
 // audio->output_size - MPEG3_AUDIO_HISTORY);
 	}
-//printf("mpeg3audio_decode_audio %d %d\n", __LINE__, audio->output_size);
+//printf("mpeg3audio_decode_audio %d %d\n", __LINE__, (int)audio->output_size);
 
 
 	if(audio->output_size > 0)

@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     
 	int verbose = 0;
 
-	if(argc < 3)
+	if(argc < 2)
 	{
 		fprintf(stderr, "Table of contents generator version %d.%d.%d\n"
 			"Create a table of contents for a DVD or mpeg stream.\n"
