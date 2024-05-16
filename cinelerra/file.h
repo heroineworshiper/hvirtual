@@ -83,8 +83,8 @@ public:
 	void set_subtitle(int value);
 // Set whether to interpolate raw images
 	void set_interpolate_raw(int value);
-// Set whether to white balance raw images.  Always 0 if no interpolation.
-//	void set_white_balance_raw(int value);
+// Set whether to white balance raw images.
+	void set_white_balance_raw(int value);
 // When loading, the asset is deleted and a copy created in the EDL.
 //	void set_asset(Asset *asset);
 
@@ -308,7 +308,7 @@ public:
 	int64_t playback_preload;
 	int playback_subtitle;
 	int interpolate_raw;
-//	int white_balance_raw;
+	int white_balance_raw;
 
 // Position information is migrated here to allow samplerate conversion.
 // Current position in file's samplerate.

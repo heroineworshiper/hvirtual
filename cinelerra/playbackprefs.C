@@ -233,14 +233,14 @@ SET_TRACE
 // 		this));
 // 	y += ffmpeg_mov->get_h() + margin;
 
-// 	add_subwindow(white_balance_raw = new PlaybackWhiteBalanceRaw(
-// 		x, 
-// 		y,
-// 		pwindow,
-// 		this));
-// 	y += white_balance_raw->get_h() + margin;
-// 	if(!pwindow->thread->edl->session->interpolate_raw) 
-// 		white_balance_raw->disable();
+	add_subwindow(white_balance_raw = new PlaybackWhiteBalanceRaw(
+		x, 
+		y,
+		pwindow,
+		this));
+	y += white_balance_raw->get_h() + margin;
+//	if(!pwindow->thread->edl->session->interpolate_raw) 
+//		white_balance_raw->disable();
 
 
 SET_TRACE
@@ -562,27 +562,27 @@ int PlaybackFFmpegMov::handle_event()
 
 
 
-// PlaybackWhiteBalanceRaw::PlaybackWhiteBalanceRaw(
-// 	int x, 
-// 	int y, 
-// 	PreferencesWindow *pwindow, 
-// 	PlaybackPrefs *playback)
-//  : BC_CheckBox(x, 
-//  	y, 
-// 	pwindow->thread->edl->session->interpolate_raw &&
-// 		pwindow->thread->edl->session->white_balance_raw, 
-// 	_("White balance CR2 images"))
-// {
-// 	this->pwindow = pwindow;
-// 	this->playback = playback;
-// 	if(!pwindow->thread->edl->session->interpolate_raw) disable();
-// }
-// 
-// int PlaybackWhiteBalanceRaw::handle_event()
-// {
-// 	pwindow->thread->edl->session->white_balance_raw = get_value();
-// 	return 1;
-// }
+PlaybackWhiteBalanceRaw::PlaybackWhiteBalanceRaw(
+	int x, 
+	int y, 
+	PreferencesWindow *pwindow, 
+	PlaybackPrefs *playback)
+ : BC_CheckBox(x, 
+ 	y, 
+//	pwindow->thread->edl->session->interpolate_raw &&
+		pwindow->thread->edl->session->white_balance_raw, 
+	_("White balance CR2 images"))
+{
+	this->pwindow = pwindow;
+	this->playback = playback;
+//	if(!pwindow->thread->edl->session->interpolate_raw) disable();
+}
+
+int PlaybackWhiteBalanceRaw::handle_event()
+{
+	pwindow->thread->edl->session->white_balance_raw = get_value();
+	return 1;
+}
 
 
 

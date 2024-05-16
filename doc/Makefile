@@ -81,6 +81,7 @@ CUSTOM_IMAGES := \
         mask2.png \
         out_point_button.png \
         overwrite_button.png \
+        preview.png \
         previewregion.png \
         recording.png \
         splice_button.png \

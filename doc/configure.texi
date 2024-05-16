@@ -249,27 +249,31 @@ The IEEE1394 standard specifies something known as the
 This was the first method of video playback on any UNIX system, valid
 all the way until 1999.  It just writes the RGB triplet for each pixel
 directly to the window.  It's the slowest playback method.  It's still
-useful as a fallback when graphics hardware can't handle very large
-frames.
+useful as a fallback for incompatible graphics hardware.
 
 @node X11-XV
 @subsection X11-XV
 
 This was the second big method of video playback in UNIX starting in
-1999.  It converts YUV to RGB in hardware with scaling.  It's the
-preferred playback method but can't handle large frame sizes.  The
-maximum video size for XV is usually 1920x1080.
+1999.  It converts YUV to RGB in hardware with scaling.  It was the
+preferred playback method for many years but can't handle large frame
+sizes.  The maximum video size for XV is hardware dependent & usually
+1920x1080.
 
 
 @node X11-OPENGL
 @subsection X11-OPENGL
 
-The most powerful video playback method is OpenGL.  With this driver,
-most effects are done in hardware.  OpenGL allows video sizes up to the
-maximum texture size, which is usually larger than what XV supports,
-depending on the graphics driver.
+The most powerful video playback method is OpenGL but support is
+completely hardware dependent.  Although the OpenGL API was originally
+supposed to be hardware independent, it only ended up getting supported
+by NVidia with other brands moving to OpenCL or Vulcan.
 
-OpenGL doesn't affect rendering.  It just accelerates playback.  OpenGL
+With this driver, most effects are done in the GPU.  OpenGL allows video
+sizes up to the maximum texture size, which is usually larger than
+4096x4096, depending on the graphics driver.
+
+Today, the rendering as well as the playback can be done in OpenGL.  It
 relies on PBuffers and shaders to do video rendering.  The graphics
 driver must support OpenGL 2 and Cinelerra needs to be explicitely
 compiled with OpenGL 2 support.  This requires compiling it on a system
@@ -280,18 +284,17 @@ enough memory or doesn't have the right visuals, PBuffers won't work.
 Try seeking several frames or restarting Cinelerra if OpenGL doesn't
 work.
 
-Because of OpenGL limitations, X11-OpenGL processes everything in 8 bit
-colormodels, although the difference between YUV and RGB is retained.
+X11-OpenGL processes everything in floating point.  Although the
+difference between YUV and RGB is retained, there is no speed difference
+when using alpha or floating point color models.
 
 The @b{scaling equation} in Preferences is ignored by OpenGL.  OpenGL
 always uses linear scaling.
 
-Project and track sizes need to be multiples of 4 for OpenGL to work.  
-
 To get the most acceleration, OpenGL-enabled effects must be placed
 after software-only effects.  All rendering before the last
-software-only effect is done in software.  The core Cinelerra
-operations like camera and projector are of course OpenGL.
+software-only effect is done in software.  The core operations like
+camera and projector are of course OpenGL.
 
 
 
@@ -324,8 +327,9 @@ kernel commands.
 
 The third rewrite of DV camcorder support in Linux.  This is a library
 on top of RAW 1394 which is a library on top of the kernel commands. 
-It's less reliable than DV 1394 but more reliable than RAW 1394.  The
-next rewrite ought to fix that.
+It's less reliable than DV 1394 but more reliable than RAW 1394.  This
+was the last attempt at any kind of dedicated video hardware before
+everything went to internet distribution.
 
 
 
@@ -460,60 +464,34 @@ dropping anymore.
 
 
 
-@item
-
-FRAMERATE ACHIEVED
-
-The number of frames per second being displayed during playback.  This
-is only updated during playback.
-
-@item DECODE FRAMES ASYNCHRONOUSLY
-
-If you have lots of memory and more than one CPU, this option can
-improve playback performance by decoding video on one CPU as fast as
-possible while dedicating other CPU to displaying video only.  It
-assumes all playback operations are forward and no frames are dropped. 
-Operations involving reverse playback or frame dropping are negatively
-impacted.
-
-Since this option requires enourmous amounts of memory, it may crash if
-the input frames are very large.
-
 
 @item
 
 SCALING EQUATION
 
 When video playback involves any kind of scaling or translation, this
-algorithm is used.  This doesn't affect 1:1 playback.
+algorithm is used.  This doesn't affect any other operation besides
+scaling.  When using OpenGL, it always scales using linear
+interpolation.
 
 @itemize
 
 @item
-NEAREST NEIGHBOR ENLARGE AND REDUCE
+LOW QUALITY
 
-lowest but fastest
-quality.  Produces jagged edges and uneven motion.
+This uses nearest neighbor interpolation when scaling in software. 
+Produces jagged edges and uneven motion but it can extract higher
+resolution when downscaling video in a multiple of pixels.  A common
+trick is downscaling 4k to 2k using LOW QUALITY.
 
-
-@item
-
-BICUBIC ENLARGE AND BILINEAR REDUCE
-
-highest but slowest
-quality.  For enlarging a bicubic interpolation is used, which blurs
-slightly but doesn't reveal stair steps.  For reduction a bilinear
-interpolation is used, which produces very sharp images and reduces
-noise.  The bilinear reduced images can be sharpened with a sharpen
-effect with less noise than a normal sized image.
 
 @item
 
-BILINEAR ENLARGE AND BILINEAR REDUCE
+HIGH QUALITY
 
-when slight enlargement
-is needed a bilinear enlargement looks better than a bicubic
-enlargement.
+This applies higher quality interpolation than linear when scaling in
+software but results in softer images when scaling a multiple of
+pixels.  The current algorithm is Lanczos interpolation.
 
 @end itemize
 
@@ -522,10 +500,13 @@ enlargement.
 
 PRELOAD BUFFER FOR QUICKTIME
 
-The Quicktime/AVI decoder can handle DVD sources better when this is
-around 10000000.  This reduces the amount of seeking required. 
-Unfortunately when reading high bitrate sources from a hard drive, this
-tends to slow it down.  For normal use this should be 0.
+The Quicktime decoder can handle DVD sources better when this is around
+10000000.  This reduces the amount of seeking required.  Unfortunately
+when reading high bitrate sources from a hard drive, this tends to slow
+it down.  For normal use this should be 0.
+
+This option was used heavily before 2005.  Since optical disks went
+away, it's been an artifact.
 
 
 @item 
@@ -542,41 +523,42 @@ Info.  The number of subtitle tracks is given at the bottom.
 
 
 @item 
-
 INTERPOLATE CR2 IMAGES
 
-Enables interpolation of CR2 images.  This is required since the raw
-image in a CR2 file is a bayer pattern.  The interpolation uses dcraw's
-built-in interpolation and is very slow.  This operation can be
-disabled and the @b{Interpolate Pixels} effect used instead for fast
-previewing.
+Enables interpolation of CR2/CR3 images.  Interpolation is required
+since a raw image is a bayer pattern.  The interpolation uses
+libraw/dcraw's built-in interpolation and is very slow.  If this
+operation is disabled, the @b{Interpolate Bayer} effect can be used
+instead for faster but lower quality previewing.
 
+Disabling interpolation can enable higher resolution since the
+alternatives don't have to use a lowpass filter.  Disabling
+interpolation & scaling down 50% is 1 alternative but it still uses a
+lowpass filter.  Disabling interpolation & applying @b{Downsample}
+probably gives the best results.  That doesn't apply any lowpass
+filtering.  These options require doubling the red & blue levels in
+@b{color balance} since the green pixels are going to outnumber R & B.
 
-@item 
-
-WHITE BALANCE CR2 IMAGES
-
-This enables white balancing for CR2 images if interpolation is also
-enabled.  It uses the camera's matrix which is contained in the CR2
-file.  White balancing is not performed if interpolation is not
-performed because white balancing needs a blending of all 3 primary
-colors. 
-
-Disabling white balancing is useful for operations involving dark frame
-subtraction.  The dark frame and the long exposure need to have the
-same color matrix.
-
-If you disable @b{Interpolate CR2 Images} and use the @b{Interpolate
-Pixels} effect, be aware the @b{Interpolate Pixels} effect always does
-both interpolation and white balancing using the camera's matrix,
-regardless of the settings in Preferences.  Dark frame subtraction
-needs to be performed before @b{Interpolate Pixels}.
+The @b{Interpolate Bayer} effect tries to extract more resolution than
+downsampling, but has checkerboard artifacts.
 
 @item
+WHITE BALANCE CR2 IMAGES
+
+Enables white balancing for CR2/CR3 images.  This has gone from being
+mandatory to optional when interpolating as libraries have evolved.  It
+originally required diabolical hacks to dcraw but seems to work properly
+in the current libraw version.
+
+Disabling white balancing is useful for operations involving dark frame
+subtraction.  The dark frame and the live exposure need to have the same
+color matrix.
+
+Beware that when white balancing is on & interpolation is off, the green
+pixels still outnumber the R & B so they need a color balance step.
 
 
-
-
+@item
 VIDEO DRIVER
 
 Normally video on the timeline goes to the compositor window during
@@ -826,6 +808,17 @@ system, however, usually uses the second processor anyway for disk
 access so this option is really a 1.25 processor mode.  The value of
 this parameter is used in renderfarm clients.
 
+@item
+
+USE OPENGL FOR RENDERING
+
+OpenGL was traditionally used only for playback when it was limited to
+16 bit float & very low resolution trig tables.  Today, it can be used
+for rendering by enabling this option.  When combined with the
+@xref{COMMAND LINE ENCODER} file format, most of the rendering can be accelerated
+in the GPU.
+
+
 @end itemize
 
 
@@ -846,6 +839,14 @@ useful for transitions and previewing effects which are too slow to
 display in a reasonable amount of time.  If renderfarm is enabled, the
 renderfarm is used for background rendering, giving you the potential
 for realtime effects if enough network bandwidth and CPU nodes exist.
+
+The typical way to enable background rendering is to 1st highlight a
+region of the timeline to play back, then select @b{Settings->Set
+background rendering}, then enable background rendering in the
+preferences.  When finished previewing the section, disable background
+rendering in the preferences.  If it's always enabled, playback will
+have studdering & flashes as incomplete sections of the rendering are
+played with complete sections of rendering.
 
 @itemize
 

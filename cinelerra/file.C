@@ -139,6 +139,7 @@ void File::reset_parameters()
 	preferences = 0;
 	playback_subtitle = -1;
 	interpolate_raw = 1;
+    white_balance_raw = 1;
     disable_toc_creation = 0;
 
 // threaded encoding
@@ -359,18 +360,18 @@ void File::set_interpolate_raw(int value)
 	this->interpolate_raw = value;
 }
 
-// void File::set_white_balance_raw(int value)
-// {
-// #ifdef USE_FILEFORK
-// 	if(!is_fork && file_fork)
-// 	{
-// 		file_fork->send_command(FileFork::SET_WHITE_BALANCE_RAW, (unsigned char*)&value, sizeof(value));
-// 		file_fork->read_result();
-// 	}
-// #endif
-// 
-// 	this->white_balance_raw = value;
-// }
+void File::set_white_balance_raw(int value)
+{
+#ifdef USE_FILEFORK
+	if(!is_fork && file_fork)
+	{
+		file_fork->send_command(FileFork::SET_WHITE_BALANCE_RAW, (unsigned char*)&value, sizeof(value));
+		file_fork->read_result();
+	}
+#endif
+
+	this->white_balance_raw = value;
+}
 
 void File::set_cache_frames(int value)
 {
@@ -477,8 +478,7 @@ int File::open_file(Preferences *preferences,
 		offset += sizeof(int);
 		*(int*)(buffer + offset) = cache_size;
 		offset += sizeof(int);
-//		*(int*)(buffer + offset) = white_balance_raw;
-		*(int*)(buffer + offset) = 0;
+		*(int*)(buffer + offset) = white_balance_raw;
 		offset += sizeof(int);
 		*(int*)(buffer + offset) = interpolate_raw;
 		offset += sizeof(int);

@@ -4,7 +4,7 @@
 
 
 @menu
-* SUPPORTED FILE FORMATS::     What formats Cinelerra can import and export
+* SUPPORTED MEDIA FORMATS::    What formats Cinelerra can import and export
 * LOADING FILES::              Loading all types of files
 * LOADING THE BACKUP::         Recovering the session from before a crash
 * SAVING FILES::               Saving edit decision lists
@@ -20,24 +20,36 @@
 
 
 
-@node SUPPORTED FILE FORMATS
-@section SUPPORTED FILE FORMATS
+@node SUPPORTED MEDIA FORMATS
+@section SUPPORTED MEDIA FORMATS
 
-Here are most of the supported file formats and notes regarding their
-compression.  You may be able to load other formats not described here.
+Cinelerra reads most of the file formats found on the internet, with
+limited support for pro camera output.  You may be able to load other
+formats not described here.  Most of the decoding is done through
+ffmpeg, which entails writing a new API for every new codec.  It tends
+to go a few years between codec updates so a lot of new codecs can be
+combined in a single API rewrite.
 
-The format of the file affects what Cinelerra does with it.  Edit
-decision lists replace the project settings.  Formats which contain
-media but no edit decisions just add data to the tracks.  If your
-project sample rate is 48khz and you load a sound file with 96khz,
-you'll still be playing it at 48khz.   If you load an EDL file at 96khz
-and the current project sample rate is 48khz, you'll change it to
+Most of the video rendering is now done through ffmpeg, using the
+@b{Command Line} file format.  A few formats like Quicktime/MP4 & audio
+formats still come out better when they're sent through their dedicated
+libraries.
+
+Whether it's a media format or an edit decision list affects what
+Cinelerra does with it.  Edit decision lists replace the project
+settings.  Formats which contain media but no edit decisions just add
+data to the tracks unless the @b{Conform Project} option is enabled in
+the load dialog.
+
+
+If your project sample rate is 48khz and you load a sound file with
+96khz, you'll still be playing it at 48khz.   If you load an EDL file at
+96khz and the current project sample rate is 48khz, you'll change it to
 96khz.
 
 Some file formats are very slow to display on the timeline.  These
-usually have video which is highly compressed.  Drawing highly
-compressed video picons can be very slow.  Disable picon drawing for
-these files with the @b{draw media} toggle to speed up operations.
+usually have video which is highly compressed.  Disable picon drawing
+for these files with the @b{draw media} toggle to speed up operations.
 
 
 @sp 1
@@ -60,6 +72,7 @@ AC3 audio
 @end itemize
 
 @menu
+* COMMAND LINE ENCODER::
 * QUICKTIME::
 * MPEG-4 AUDIO::
 * IMAGE SEQUENCES::
@@ -72,14 +85,89 @@ AC3 audio
 * EDIT DECISION LIST::
 @end menu
 
+@node COMMAND LINE ENCODER
+@subsection COMMAND LINE ENCODER
+
+This writes the output through a pipe to a command line program, usually
+ffmpeg but it can also be /dev/null or netcat.  Audio & video are
+supported.  Different command lines can be used for encoding audio &
+video, then multiplexing them into a single file.  There's a GUI for
+presets & storing different command lines.
+
+Someone could conceivably read video from @b{Live video} & write it to
+netcat to use the render operation as a live video processor.
+
+The main use of command line encoding is GPU encoding through ffmpeg.  A
+GPU encoding ffmpeg is not officially included in the Cinelerra
+distribution because of licensing restrictions, although there may or
+may not be an unofficial copy.  
+
+It officially has to be compiled from scratch & it's very specific to
+the hardware.  For nvidia, it needs nvenc support.  There is a buried
+document showing how to build ffmpeg with hardware support on
+
+https://docs.nvidia.com/video-technologies/video-codec-sdk/ffmpeg-with-nvidia-gpu/
+
+We can build an ffmpeg to show you what works.  In the ffmpeg directory,
+run 
+
+./configure --enable-pthreads --disable-ffplay --enable-nonfree --enable-gpl --enable-cuda-nvcc --enable-libnpp --nvccflags=-I/usr/local/cuda/include --extra-cflags=-I/usr/local/cuda/include --extra-ldflags=-L/usr/local/cuda/lib64
+
+This also requires a working CUDA installation.  Then run make.
+
+
+The main encoding we're interested in accelerating is video, so enable
+RENDER VIDEO TRACKS.  Then go to the wrench icon.  It has a number of
+presets.  Highlight a preset & hit load to make it use the preset.  If
+you make changes to the preset, hit save to overwrite it, otherwise the
+change will be applied to the current rendering job but not saved as a
+preset.
+
+If you want to create a new preset, change the title before
+hitting save.  If you screw up a preset that came with the program,
+delete the preset & restart the program.  It'll always recreate the
+default presets.
+
+Ffmpeg HEVC VBR is a variable bitrate encoder for H.265. HEVC CBR is a
+constant bitrate encoder for H.265.  In the command lines are the ffmpeg
+options for a fixed quantization factor or a fixed bitrate.
+
+Finally, there is the ever important null encoder which just throws away
+the output.  This is useful for benchmarking rendering.
+
+The command line takes some formatting codes for the frame rate, frame
+size, & filename.
+
+An important option is the color model.  It most often should be YUV 420
+planar.
+
+
+The audio & video encoder have similar windows.  The audio encoding
+takes a sample format instead of a color model.  A very common error
+with ffmpeg is the dreaded  "input contains (near) nan/+-inf" If you get
+this error, it means the audio encoder expects the samples in 1 format
+but Cinelerra is outputting another format.  It usually happens when
+trying to enclode floating point.  A safe setting is 24 bit linear,
+signed, non dithered, lo hi byte order.  
+
+The wrapper runs after the audio & video encoding is finished.  An
+important option in the wrapper is deleting the temporaries.  If the
+wrapper doesn't work, you may not want to reencode everything to try
+again.  In this case, you don't want to delete the temporaries but want
+to run the wrapper on the command line a 2nd time.
+
+
+
 
 @node QUICKTIME
 @subsection QUICKTIME
-Quicktime is not the standard for UNIX but we use it because it's well
-documented.  All of the Quicktime movies on the internet are
-compressed.  Cinelerra doesn't support most compressed Quicktime movies
-but does support some.  If it crashes when loading a Quicktime movie,
-that means the format probably wasn't supported.
+
+Quicktime was not originally the standard for UNIX but we used it
+because it was well documented.  It later became MP4.  All of the
+Quicktime movies on the internet are compressed.  Cinelerra doesn't
+support most compressed Quicktime movies but does support some.  If it
+crashes when loading a Quicktime movie, that means the format probably
+wasn't supported.
 
 @b{NOTES ON QUICKTIME ENCODING}
 
@@ -318,22 +406,16 @@ audio, Cinelerra may build an index file for it to speed up drawing.
 You can edit and play the file while the index file is being built.
 
 @menu
-* INSERTION STRATEGY::
+* LOAD MODE::
+* CONFORM PROJECT::
 * LOADING MULTIPLE FILES::
+* FILE PREVIEWS::
 @end menu
 
 
 
-
-
-
-
-
-
-
-
-@node INSERTION STRATEGY
-@subsection INSERTION STRATEGY
+@node LOAD MODE
+@subsection LOAD MODE
 
 Usually three things happen when you load a file.  First the existing
 project is cleared from the screen, second the project's attributes are
@@ -342,8 +424,16 @@ created in the timeline.
 
 But Cinelerra lets you change what happens when you load a file.
 
-In the file selection box there is a range of options for @b{Insertion
-strategy}.  Each of these options loads the file a different way.
+In the file selection box there is a range of options for @b{load
+mode}.  Each of these options loads the file a different way. The load
+mode is a recurring theme in many of Cinelerra's functions.  A lot of
+steps that would normally entail editing operations on the timeline can
+be automated by setting the right load mode.
+
+If you load files by passing command line arguments to Cinelerra, the
+files are always loaded with the @b{Replace current project} mode.
+
+
 
 @image{insertion_strategy}
 
@@ -409,15 +499,15 @@ EDL without having to manipulate each track.
 @end itemize
 
 
-The insertion strategy is a recurring option in many of Cinelerra's
-functions.  In each place the options do the same thing.  With these
-options you can almost do all your editing by loading files.
-
-If you load files by passing command line arguments to Cinelerra, the
-files are loaded with @b{Replace current project} rules.
 
 
+@node CONFORM PROJECT
+@subsection CONFORM PROJECT
 
+This causes the project settings to be changed to match the 1st loaded
+media file.  Video size, frame rate, sample rate, but not the number of
+channels are changed.  This only happens in the load modes which replace
+the current project.  
 
 
 @node LOADING MULTIPLE FILES
@@ -430,8 +520,20 @@ holding down @b{SHIFT}.  This selects every intervening file.  This
 behavior is available in most every list box.
 
 Select a bunch of mp3 files and @b{Replace current project and
-concatenate tracks} in the insertion strategy to create a song
-playlist.
+concatenate tracks} in the load mode to create a song playlist.
+
+
+@node FILE PREVIEWS
+@subsection FILE PREVIEWS
+
+File previews are shown only if the @b{show preview} @image{preview}
+toggle is enabled.  Highlighting a file causes it to try to load a
+preview.  There are certain rules for which files it can preview.  There
+are limits to the frame size, file size of an image file.  Certain EDL's
+can be previewed, usually limited to a single video track with no
+effects & only 1 asset.  The reason an EDL can't be previewed will
+usually be printed on the command line.
+
 
 
 
@@ -516,7 +618,7 @@ unsetting all in/out points, the entire track is rendered.
 * SINGLE FILE RENDERING::      Rendering a single file
 * BATCH RENDERING::            Rendering several files unattended
 * THE RENDER FARM::            Rendering using many computers
-* COMMAND LINE RENDERING::     Rendering from the command line without a GUI
+* RENDERING WITHOUT A GUI::     Rendering from the command line without a GUI
 @end menu
 
 
@@ -574,7 +676,7 @@ right position before the rendering operation is finished.
 at the right position.
 
 It should be noted that even if you only have audio or only have video
-rendered, a @b{paste} insertion strategy will behave like a normal
+rendered, a @b{paste} load mode will behave like a normal
 paste operation, erasing any selected region of the timeline and
 pasting just the data that was rendered.  If you render only audio and
 have some video tracks armed, the video tracks will get truncated while
@@ -749,15 +851,16 @@ could have rendered it faster.
 
 
 
-@node COMMAND LINE RENDERING
-@subsection COMMAND LINE RENDERING
+@node RENDERING WITHOUT A GUI
+@subsection RENDERING WITHOUT A GUI
 
-The command line rendering facility consists of a way to load the
-current set of batch rendering jobs and process them without a GUI. 
-This is useful if you're planning on crashing X repeatedly or want to
-do rendering on the other side of a low bandwidth network.  You might
-have access to a supercomputer in India but still be stuck in America,
-exhiled you might say.  A command line interface is ideal for this.
+Cinelerra can be run without a GUI.  The command line rendering facility
+consists of a way to load the current set of batch rendering jobs and
+process them.  This is useful if you're planning on crashing X
+repeatedly or want to do rendering on the other side of a low bandwidth
+network.  You might have access to a supercomputer in China but still be
+stuck in Amerika, exhiled you might say.  A command line interface is
+ideal for this.
 
 To perform rendering from the command line, first run Cinelerra in
 graphical mode.  Go to @b{file->batch render}.  Create the batches you
@@ -774,8 +877,12 @@ to processes the current batch jobs without a GUI.  Setting up all the
 parameters for this operation is hard.  That's why the command line
 aborts if any output files already exist.
 
-Other parameters exist for specifying alternative files for the
-preferences and the batches.  Attempting to use anything but the
-defaults is very involved so it hasn't been tested.
+For specifying an alternative preferences file, there's the -c option.
+
+For loading an alternative batch file, the -r option takes a filename. 
+
+Running cinelerra -h shows a description of all the options. Attempting
+to use anything but the default files is very involved so it has never
+been tested.
 
 

@@ -9,18 +9,30 @@ project.
 
 
 @menu
-* USING THE NEW PROJECT DIALOG::
+* USING FILE->NEW::
 * CHANGING PARAMETERS AFTER LOADING::
 @end menu
 
 
 
-@node USING THE NEW PROJECT DIALOG
-@section USING THE NEW PROJECT DIALOG
+@node USING FILE->NEW
+@section USING FILE->NEW
 
-One way is to go to @b{File->New}.  This dialog contains the parameters
-for the new project.  The sections of the @b{New} dialog are described
-here:
+One way is to go to @b{File->New}.  This merely clears the EDL & creates
+a blank timeline with the project settings previously defined in
+@b{settings->format}.  There was originally a dialiog for new, but it
+was never used.  The number of tracks created depends on the last file
+loaded.  It's proven easiest to create the needed tracks with the Audio
+& Video menus.
+
+
+
+@node CHANGING PARAMETERS AFTER LOADING
+@section CHANGING PARAMETERS AFTER LOADING
+
+After a project is created, you can use the set format dialog to change
+parameters without deleting the project.  Go to @b{Settings->Set
+format}.  The sections of the dialog are described here:
 
 @itemize
 
@@ -81,28 +93,7 @@ separate section @xref{COLOR MODEL}.
 @end itemize
 
 
-
-
-
-
-
-
-
-
-
-
-
-@node CHANGING PARAMETERS AFTER LOADING
-@section CHANGING PARAMETERS AFTER LOADING
-
-After a project is created, you have to use the set format dialog to
-change parameters without deleting the project.  Go to @b{Settings->Set
-format}.  
-
-Most of the options are identical to the @b{File->New}
-options except the lack of a number of tracks to create and the
-addition of audio channel locations.
-
-This section is discussed in @xref{SETTING PROJECT ATTRIBUTES}.
+More about this section is discussed in @xref{SETTING PROJECT
+ATTRIBUTES}.
 
 

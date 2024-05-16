@@ -771,7 +771,7 @@ void ProxyClient::process_package(LoadPackage *ptr)
 	src_file.set_subtitle(edl->session->decode_subtitles ? 
 		edl->session->subtitle_number : -1);
 	src_file.set_interpolate_raw(edl->session->interpolate_raw);
-//	src_file.set_white_balance_raw(edl->session->white_balance_raw);
+	src_file.set_white_balance_raw(edl->session->white_balance_raw);
 // Copy decoding parameters from session to asset so file can see them.
 	package->orig_asset->divx_use_deblocking = edl->session->mpeg4_deblock;
 

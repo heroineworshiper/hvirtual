@@ -85,7 +85,7 @@ public:
 	PlaybackInterpolateRaw *interpolate_raw;
 	PlaybackHWDecode *hw_decode;
     PlaybackFFmpegMov *ffmpeg_mov;
-//	PlaybackWhiteBalanceRaw *white_balance_raw;
+	PlaybackWhiteBalanceRaw *white_balance_raw;
 //	VideoAsynchronous *asynchronous;
 
 	BC_Title *vdevice_title;

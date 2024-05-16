@@ -41,7 +41,7 @@ EDLSession::EDLSession(EDL *edl)
 	playback_cursor_visible = 0;
 	interpolation_type = CUBIC_CUBIC;
 	interpolate_raw = 1;
-//	white_balance_raw = 1;
+	white_balance_raw = 1;
 	test_playback_edits = 1;
 	brender_start = 0.0;
 	brender_end = 0.0;
@@ -121,7 +121,7 @@ int EDLSession::need_rerender(EDLSession *ptr)
 		(decode_subtitles != ptr->decode_subtitles) ||
 		(subtitle_number != ptr->subtitle_number) ||
 		(interpolate_raw != ptr->interpolate_raw) ||
-//		(white_balance_raw != ptr->white_balance_raw) ||
+		(white_balance_raw != ptr->white_balance_raw) ||
 		(proxy_scale != ptr->proxy_scale);
 }
 
@@ -133,7 +133,7 @@ void EDLSession::equivalent_output(EDLSession *session, double *result)
 		session->color_model != color_model ||
 		session->interpolation_type != interpolation_type ||
 		session->interpolate_raw != interpolate_raw ||
-//		session->white_balance_raw != white_balance_raw ||
+		session->white_balance_raw != white_balance_raw ||
 		session->mpeg4_deblock != mpeg4_deblock ||
 		session->decode_subtitles != decode_subtitles ||
 		session->subtitle_number != subtitle_number ||
@@ -222,7 +222,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	frames_per_foot = defaults->get("FRAMES_PER_FOOT", (float)16);
 	interpolation_type = defaults->get("INTERPOLATION_TYPE", interpolation_type);
 	interpolate_raw = defaults->get("INTERPOLATE_RAW", interpolate_raw);
-//	white_balance_raw = defaults->get("WHITE_BALANCE_RAW", white_balance_raw);
+	white_balance_raw = defaults->get("WHITE_BALANCE_RAW", white_balance_raw);
 	labels_follow_edits = defaults->get("LABELS_FOLLOW_EDITS", 1);
 	plugins_follow_edits = defaults->get("PLUGINS_FOLLOW_EDITS", 1);
 	single_standalone = defaults->get("SINGLE_STANDALONE", 1);
@@ -338,7 +338,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("HIGHLIGHTED_TRACK", highlighted_track);
     defaults->update("INTERPOLATION_TYPE", interpolation_type);
     defaults->update("INTERPOLATE_RAW", interpolate_raw);
-//    defaults->update("WHITE_BALANCE_RAW", white_balance_raw);
+    defaults->update("WHITE_BALANCE_RAW", white_balance_raw);
 	defaults->update("LABELS_FOLLOW_EDITS", labels_follow_edits);
 	defaults->update("PLUGINS_FOLLOW_EDITS", plugins_follow_edits);
 	defaults->update("SINGLE_STANDALONE", single_standalone);
@@ -457,7 +457,7 @@ int EDLSession::load_video_config(FileXML *file, int append_mode, uint32_t load_
 	proxy_scale = file->tag.get_property("PROXY_SCALE", proxy_scale);
 	interpolation_type = file->tag.get_property("INTERPOLATION_TYPE", interpolation_type);
 	interpolate_raw = file->tag.get_property("INTERPOLATE_RAW", interpolate_raw);
-//	white_balance_raw = file->tag.get_property("WHITE_BALANCE_RAW", white_balance_raw);
+	white_balance_raw = file->tag.get_property("WHITE_BALANCE_RAW", white_balance_raw);
 	cmodel_to_text(string, color_model);
 	color_model = cmodel_from_text(file->tag.get_property("COLORMODEL", string));
 	video_channels = file->tag.get_property("CHANNELS", video_channels);
@@ -647,7 +647,7 @@ int EDLSession::save_video_config(FileXML *file)
 	file->tag.set_property("PROXY_SCALE", proxy_scale);
 	file->tag.set_property("INTERPOLATION_TYPE", interpolation_type);
 	file->tag.set_property("INTERPOLATE_RAW", interpolate_raw);
-//	file->tag.set_property("WHITE_BALANCE_RAW", white_balance_raw);
+	file->tag.set_property("WHITE_BALANCE_RAW", white_balance_raw);
 	cmodel_to_text(string, color_model);
 	file->tag.set_property("COLORMODEL", string);
     file->tag.set_property("CHANNELS", video_channels);
@@ -751,7 +751,7 @@ int EDLSession::copy(EDLSession *session)
 	highlighted_track = session->highlighted_track;
 	interpolation_type = session->interpolation_type;
 	interpolate_raw = session->interpolate_raw;
-//	white_balance_raw = session->white_balance_raw;
+	white_balance_raw = session->white_balance_raw;
 	labels_follow_edits = session->labels_follow_edits;
 	plugins_follow_edits = session->plugins_follow_edits;
 	single_standalone = session->single_standalone;

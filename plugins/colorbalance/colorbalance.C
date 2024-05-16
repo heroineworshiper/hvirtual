@@ -221,7 +221,7 @@ void ColorBalanceEngine::run()
 	magenta_f = plugin->calculate_transfer(plugin->config.magenta); \
 	yellow_f = plugin->calculate_transfer(plugin->config.yellow); \
  \
-printf("PROCESS_F %f\n", cyan_f); \
+/* printf("PROCESS_F %f\n", cyan_f); */ \
 	for(j = row_start; j < row_end; j++) \
 	{ \
 		for(k = 0; k < input->get_w() * components; k += components) \

@@ -179,28 +179,38 @@ int FileCR3::read_frame(VFrame *frame, char *path)
 
     libraw->unpack();
 
-// printf("FileCR3::read_frame %d: colormodel %d %p\n",
+// printf("FileCR3::read_frame %d: interpolate_raw=%d white_balance_raw=%d\n",
 // __LINE__,
-// frame->get_color_model(),
-// cmodel_yuv_table);
+// file->interpolate_raw,
+// file->white_balance_raw);
+// file->white_balance_raw = 1;
     if(!file->interpolate_raw)
     {
-        libraw->imgdata.params.use_camera_wb = 0;
         libraw->imgdata.params.no_interpolation = 1;
     }
     else
     {
-        libraw->imgdata.params.use_camera_wb = 1;
         libraw->imgdata.params.no_interpolation = 0;
     }
-    libraw->imgdata.params.no_auto_bright = 1;
-    libraw->imgdata.params.use_camera_matrix = 1;
-    libraw->imgdata.params.gamm[0] = 1;
-    libraw->imgdata.params.gamm[1] = 1;
-    libraw->imgdata.params.gamm[2] = 1;
-    libraw->imgdata.params.gamm[3] = 1;
-    libraw->imgdata.params.gamm[4] = 1;
-    libraw->imgdata.params.gamm[5] = 1;
+    
+    if(!file->white_balance_raw)
+    {
+        libraw->imgdata.params.use_camera_wb = 0;
+    }
+    else
+    {
+        libraw->imgdata.params.use_camera_wb = 1;
+        libraw->imgdata.params.no_auto_bright = 1;
+        libraw->imgdata.params.use_camera_matrix = 1;
+        libraw->imgdata.params.gamm[0] = 1;
+        libraw->imgdata.params.gamm[1] = 1;
+        libraw->imgdata.params.gamm[2] = 1;
+        libraw->imgdata.params.gamm[3] = 1;
+        libraw->imgdata.params.gamm[4] = 1;
+        libraw->imgdata.params.gamm[5] = 1;
+    }
+    
+    
     libraw->dcraw_process();
 
     int width;

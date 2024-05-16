@@ -92,7 +92,7 @@ int FileFork::handle_command()
 			offset += sizeof(int);
 			file->cache_size = *(int*)(command_data + offset);
 			offset += sizeof(int);
-//			file->white_balance_raw = *(int*)(command_data + offset);
+			file->white_balance_raw = *(int*)(command_data + offset);
 			offset += sizeof(int);
 			file->interpolate_raw = *(int*)(command_data + offset);
 			offset += sizeof(int);
@@ -170,10 +170,10 @@ int FileFork::handle_command()
 			send_result(0, 0, 0);
 			break;
 
-//		case SET_WHITE_BALANCE_RAW:
-//			file->set_white_balance_raw(*(int*)command_data);
-//			send_result(0, 0, 0);
-//			break;
+		case SET_WHITE_BALANCE_RAW:
+			file->set_white_balance_raw(*(int*)command_data);
+			send_result(0, 0, 0);
+			break;
 
 		case SET_CACHE_FRAMES:
 			file->set_cache_frames(*(int*)command_data);

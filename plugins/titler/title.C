@@ -219,6 +219,11 @@ void TitleConfig::limits()
 {
 	if(window_w < DP(100)) window_w = DP(100);
 	if(window_h < DP(100)) window_h = DP(100);
+    CLAMP(dropshadow, 0, 1000);
+    CLAMP(outline_size, 0, 1000);
+    CLAMP(size, 1, 65536);
+    CLAMP(window_w, 100, 65536);
+    CLAMP(window_h, 100, 65536);
 }
 
 
