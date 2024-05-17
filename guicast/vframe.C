@@ -1573,12 +1573,14 @@ void VFrame::dump(int indent)
         opengl_state,
 		use_shm,
 		shmid);
+#ifdef HAVE_GL
     printf("%s    texture=%p id=%d\n", string, texture, texture ? texture->get_texture_id() : -1);
     printf("%s    pbuffer=%p gl_context=%p pbuffer=%x\n", 
         string, 
         pbuffer, 
         pbuffer ? pbuffer->get_gl_context() : (void*)-1, 
         pbuffer ? (int)pbuffer->get_pbuffer() : -1);
+#endif
 }
 
 int VFrame::filefork_size()

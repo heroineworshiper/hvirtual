@@ -59,7 +59,7 @@ EFFECTS}.
 The audio drivers are used for both recording and playback to get data
 to and from the hardware.  Since the same drivers are used for both
 recording and playback, their functionality is described here in a
-separate section.
+separate section.  The most tested driver is ALSA.
 
 
 
@@ -120,18 +120,9 @@ sound drivers were used, which is what the OSS Envy24 variant is for.
 @node ALSA
 @subsection ALSA
 
-ALSA is the most common sound driver in Linux 2.6.  It supports the
-most sound cards now.  It takes advantage of low latency features in
-Linux 2.6 to get better performance than OSS had in 2.4 but roughly the
-same performance that OSS had in 2.0.  Unfortunately ALSA is constantly
-changing.  A program which works with it one day may not the next day. 
-New wrappers are being developed on top of ALSA at such a pace, we plan
-to support them at regular intervals, not at every new release of a new
-wrapper.
-
-ALSA is no longer portable between i386 and x86_64.  If an i386 binary
-tries to play back on an x86_64 kernel it'll crash.  For this scenario,
-use OSS.
+ALSA is the most common sound driver in Linux.  It supports the most
+sound cards now.  For many years, the ALSA API was constantly changing
+but it's pretty stable today.  
 
 @node ESOUND
 @subsection ESOUND

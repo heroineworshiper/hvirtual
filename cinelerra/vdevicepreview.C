@@ -62,6 +62,7 @@ int VDevicePreview::write_buffer(VFrame *output, EDL *edl)
 {
 //printf("VDevicePreview::write_buffer %d %d\n", __LINE__, output->get_color_model());
     device->previewer->write_frame(output);
+    return 0;
 }
 
 void VDevicePreview::new_output_buffer(VFrame **result, 

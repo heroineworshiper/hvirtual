@@ -307,6 +307,7 @@ void BC_Synchronous::put_texture(int id, int w, int h, int components)
 
 int BC_Synchronous::get_texture(int w, int h, int components)
 {
+#ifdef HAVE_GL
 	table_lock->lock("BC_Resources::get_texture");
 	for(int i = 0; i < texture_ids.size(); i++)
 	{
@@ -326,6 +327,7 @@ int BC_Synchronous::get_texture(int w, int h, int components)
     
     delete_textures();
 	table_lock->unlock();
+#endif
 	return -1;
 }
 

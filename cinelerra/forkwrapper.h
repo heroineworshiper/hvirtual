@@ -35,8 +35,8 @@
 #define READ_RESULT 0x7ffffffd
 
 // special result codes
-#define READ_RESULT_FAILED -0x8000000000000000
-#define RESULT_UNDEFINED -0x7fffffffffffffff
+#define READ_RESULT_FAILED ((int64_t)-0x8000000000000000)
+#define RESULT_UNDEFINED ((int64_t)-0x7fffffffffffffff)
 
 
 class ForkWrapper;

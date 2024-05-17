@@ -161,6 +161,10 @@ static int sharedmem_create(pa_shm *m, pa_mem_type_t type, size_t size, mode_t m
 #endif
 #ifdef HAVE_MEMFD
     case PA_MEM_TYPE_SHARED_MEMFD:
+
+#ifndef MFD_ALLOW_SEALING
+#define MFD_ALLOW_SEALING 0x0002U
+#endif
         fd = memfd_create("pulseaudio", MFD_ALLOW_SEALING);
         break;
 #endif

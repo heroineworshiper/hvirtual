@@ -13,25 +13,24 @@ contents of all Cinelerra packages.
 
 @item
 
-@b{Foreign language translations} - These go into /usr/share/locale.
+@b{Cinelerra executable} - cinelerra
 
 @item
 
-@b{Cinelerra executable} - This goes into /usr/bin
+@b{Cinelerra plugins} - These all end in .plugin
 
 @item
 
-@b{Cinelerra plugins} - These go into /usr/lib/cinelerra in 32 bit
-systems and /usr/lib64/cinelerra in 64 bit systems.
+@b{doc} - The build copy of this documentation
 
 @item
 
-@b{soundtest} - Utility for determining sound card buffer size.
+@b{fonts} - Font files for the titler
 
 @item
 
-@b{mplexlo} - Multiplexing of MPEG elementary streams without standards
-conformance but more efficiently.
+@b{ffmpeg} - A version of ffmpeg for use with the command line encoding
+feature.
 
 @item
 
@@ -40,19 +39,18 @@ and outputting it to stdout.
 
 @item
 
-@b{mpeg3toc, mpeg3cat, mpeg3dump} - Utilities/ for indexing and reading MPEG files.
+@b{mpeg3toc, mpeg3cat, mpeg3dump, mpeg3peek} - Utilities for reading MPEG files.
 
 @item
 
-@b{mpeg3peek} - Utility for displaying the byte offset of a frame in an
-MPEG file.
+@b{previews} - Project files which are loaded as transition previews.
 
 @end itemize
 
 
 
 @menu
-* INSTALLING AN RPM::
+* INSTALLING A PRECOMPILED BINARY::
 * COMPILING FROM SCRATCH::
 * RUNNING CINELERRA::
 @end menu
@@ -64,28 +62,23 @@ MPEG file.
 
 
 
-@node INSTALLING AN RPM
-@section INSTALLING AN RPM
+@node INSTALLING A PRECOMPILED BINARY
+@section INSTALLING A PRECOMPILED BINARY
 
-Cinelerra is easiest installed by downloading an RPM and running
-
-@example
-rpm -U --force --nodeps hvirtual*.rpm
-@end example
-
-on a Fedora 4 system.
-
-On systems which don't support RPM look for a utility called
-@b{rpm2cpio}.  Download a Cinelerra RPM and from the /
-directory run
+Cinelerra is easiest installed by downloading a precompiled binary and
+running
 
 @example
-rpm2cpio hvirtual*.rpm | cpio -i --make-directories
+tar xvf cinelerra*.tar.xz
+cd cinelerra*
+./cinelerra
 @end example
 
-This doesn't always work because there are many forks of the C library,
-each incompatible with the others.  This is the biggest reason to
-compile from scratch.
+It should have all the hardest dependencies already taken care of.
+
+This doesn't always work because there are many versions of libc, each
+incompatible with the others.  This is the biggest reason to compile
+from scratch.
 
 
 
@@ -103,27 +96,19 @@ results.  Compiling the source is hard and there's no warranty if the
 source code fails to compile, but the method for compiling starts by
 downloading the source code and decompressing.
 
-The compilation is verified on a vanilla Fedora 4 installation,
-workstation mode.  Fedora doesn't install a lot of dependancies like
-@b{nasm} and @b{yasm}.  Yes, 3 assemblers are now required to assemble
-x86 code.  Compiling the source is hard and there's no warranty if the
-source code fails to compile, but the method for compiling starts by
-downloading the source code and decompressing.
+The compilation is verified on a vanilla Ubuntu installation of a
+certain version.  It has a lot of dependencies.  The README file
+contains more info on the dependencies.
 
 @example
-tar jxf cinelerra*.tar.bz2
+tar xvf cinelerra*.tar.xz
 @end example
 
 
-The compilation is verified on a Fedora 4 installation.  Fedora 4
-doesn't install a lot of the reqiured compilers.  Mainly @b{nasm} and
-@b{yasm}, 2 of the 3 assemblers.  These have to be installed manually
-for compilation to succeed.
-
-Enter the hvirtual directory
+Enter the main directory
 
 @example
-cd cinelerra
+cd cinelerra*
 @end example
 
 Then run
@@ -140,42 +125,30 @@ make
 @end example
 
 The make procedure should run through all the directories and put
-binaries in the @b{i686} or @b{x86_64} directories.  When NFS was
-a lot faster, we compiled Alpha and i686 binaries in the same
-filesystem with the objects in different subdirectories, so all the
-binaries are still put in subdirectories.
+binaries in the @b{i686} or @b{x86_64} directories.
 
-A lot of libraries are included to get the version numbers right.  Some
-of the libraries don't compile on SMP systems.  One solution is to
-disable SMP when rebooting and reenable it when compilation is
-finished.  Another solution is to rerun make over and over until it
-gets through the offending libraries.
+A lot of libraries are included in thirdparty directories to get the
+version numbers right.
 
-
-Once finished, make sure you are root and run
+Once finished, run
 
 @example
 make install
 @end example
 
-to install the binaries.  If installation fails it means something
-failed to compile or you weren't root.  Run @b{make} again and watch
-for errors.
+to install the binaries in the bin/ sub directory.  It doesn't install
+anything in the system folders.
 
-Sometimes you'll want to run @b{make clean} if you're programming
-something or the system libraries change.  In this case, you'll
-probably need to run @b{configure} again because some libraries delete
-their configuration files in @b{make clean}.
 
 @node RUNNING CINELERRA
 @section RUNNING CINELERRA
 
 
-The simplest way to run Cinelerra is by running
+The simplest way to run Cinelerra is by going into bin/ & running
 
 
 @example
-/usr/bin/cinelerra
+./cinelerra
 @end example
 
 This command hides a much more capable command line interface.  Run

@@ -17,10 +17,11 @@ libraries.
 
 Install the dependencies:
 
-apt install libc6-dev g++ build-essential libz-dev texinfo libpng-dev \
-libxv-dev libasound2-dev libbz2-dev liblzma-dev yasm cmake autoconf \
-pkg-config libtool libxft-dev libxfixes-dev
+apt install build-essential yasm cmake autoconf pkg-config libtool \
+libz-dev texinfo libpng-dev libxv-dev libasound2-dev libbz2-dev liblzma-dev \
+libxft-dev libxfixes-dev
 
+libc6-dev
 
 Edit CUDA_DIR in configure to set your CUDA location.
 

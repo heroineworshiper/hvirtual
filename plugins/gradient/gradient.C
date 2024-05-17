@@ -927,6 +927,7 @@ void GradientMain::read_data(KeyFrame *keyframe)
 
 static void gl_circle(float x, float y, float r)
 {
+#ifdef HAVE_GL
     glBegin(GL_LINE_LOOP);
     for(int i = 0; i < 360; i++) 
     {
@@ -936,6 +937,7 @@ static void gl_circle(float x, float y, float r)
         glVertex3f(x2, y2, 0.0); // center of circle is at (screenWidth / 2, screenHeight / 2)
     }
     glEnd();
+#endif
 }
 
 int GradientMain::handle_opengl()

@@ -407,15 +407,18 @@ disturbance.
 @section LADSPA EFFECTS
 
 
-LADSPA effects are supported in realtime and rendered mode for audio. 
+LADSPA effects are supported in realtime and rendered mode for audio but
+have not been tested in a long time because they just weren't very
+good. 
+
 The LADSPA plugins you get from the internet vary in quality.  Most
-can't be tweeked in realtime very easily and work better when
-rendered.  Some crash and some can only be applied to one track due to
-a lack of reentrancy.  Although Cinelerra implements the LADSPA
-interface as accurately as possible, multiple tracks of realtime,
-simultaneous processing go beyond the majority of LADSPA users.  LADSPA
-effects appear in the audio folder as the hammer and screwdriver, to
-signify that they are Plugins for Linux Audio Developers.
+can't be tweeked in realtime very easily and work better when rendered. 
+Some crash and some can only be applied to one track due to a lack of
+reentrancy.  Although Cinelerra implements the LADSPA interface as
+accurately as possible, multiple tracks of realtime, simultaneous
+processing go beyond the majority of LADSPA users.  LADSPA effects
+appear in the audio folder as the hammer and screwdriver, to signify
+that they are Plugins for Linux Audio Developers.
 
 LADSPA Effects are enabled merely by setting the @b{LADSPA_PATH}
 environment variable to the location of your LADSPA plugins or putting
