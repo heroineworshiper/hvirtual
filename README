@@ -10,7 +10,7 @@ should be put in your system path if it's desired.
 
 Building the source:
 
-Was last tested on Ubuntu 22 x86_64.
+Was last tested on Ubuntu 24 x86_64.
 
 For GPU acceleration, it needs the proprietary Nvidia X11 drivers & CUDA
 libraries.
@@ -20,8 +20,6 @@ Install the dependencies:
 apt install build-essential yasm cmake autoconf pkg-config libtool \
 libz-dev texinfo libpng-dev libxv-dev libasound2-dev libbz2-dev liblzma-dev \
 libxft-dev libxfixes-dev
-
-libc6-dev
 
 Edit CUDA_DIR in configure to set your CUDA location.
 

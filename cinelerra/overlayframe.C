@@ -286,7 +286,6 @@ int OverlayFrame::overlay(VFrame *output,
 
 
 
-
   in_x1 = epsilon_snap(in_x1);
   in_x2 = epsilon_snap(in_x2);
   in_y1 = epsilon_snap(in_y1);
@@ -296,6 +295,10 @@ int OverlayFrame::overlay(VFrame *output,
   out_y1 = epsilon_snap(out_y1);
   out_y2 = epsilon_snap(out_y2);
 
+    if(out_x2 <= out_x1 ||
+        out_y2 <= out_y1 ||
+        in_x2 <= in_x1 ||
+        in_y2 <= in_y1) return 1;
   if (isnan(in_x1) ||
       isnan(in_x2) ||
       isnan(in_y1) ||
