@@ -54,6 +54,7 @@ attribute.
 * DRAG AND DROP EDITING::  Dragging objects to edit
 * CUT AND PASTE EDITING::  Editing media like text
 * TRIMMING::               Changing in and out points
+* THE EDIT INFO DIALOG::   Hacking the EDL fields
 @end menu
 
 
@@ -542,9 +543,16 @@ dragging operation affects the beginning of the edit.  If the cursor is
 an expand right, the dragging operation affects the end of the edit.
 
 When you click on an edit boundary to start dragging, the mouse button
-number determines which dragging behavior is going to be followed.  3
-possible behaviors are bound to mouse buttons in the interface
-preferences. @xref{INTERFACE}.
+number determines which dragging behavior is going to be followed.  
+
+
+@itemize
+@item Left button: Drag all the edits after the insertion point
+
+@item Middle button: Drag only 1 edit
+
+@item Right button: Drag the source positions only
+@end itemize
 
 The effect of each drag operation not only depends on the behavior
 button but whether the beginning or end of the edit is being dragged.
@@ -578,6 +586,42 @@ source start.
 In all trimming operations, all edits which start on the same position
 as the cursor when the drag operation begins are affected.  Unarm
 tracks to prevent edits from getting affected.
+
+
+
+
+@node THE EDIT INFO DIALOG
+@section THE EDIT INFO DIALOG
+
+Right click on an edit -> edit info... to get the edit info dialog for
+the edit.  This provides the raw fields in the edit in text form.
+
+The biggest use of this has been fixing synchronization problems.  Edit 
+positions can be copied here.  Changes here can be undone but redo may
+not work if the changes corrupted the EDL.
+
+@itemize
+
+@item PATH: The source asset of an edit can be swapped here for another
+asset already in the project but the filenames can't be edited.  Only
+the @b{Asset info} dialog can do that.  This box also has an option to
+change the edit to silence.
+
+@item SOURCE START, PROJECT START, LENGTH: Numerical representations of
+the edit's position on the timeline & in the asset can be edited here. 
+
+The values are in units of the project sample rate or frame rate.
+
+This method doesn't protect against corrupting the EDL.  The main use is
+copying the values to another edit in another edit info dialog so the 2
+edits are synchronized.
+
+
+
+
+@end itemize
+
+
 
 
 

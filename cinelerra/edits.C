@@ -713,11 +713,19 @@ void Edits::clear(int64_t start, int64_t end)
 	if(!edit1 && !edit2) return;       // nothing selected
 
 
+// end point beyond end of track
 	if(!edit2)
-	{                // edit2 beyond end of track
+	{                
 		edit2 = last;
 		end = this->length();
 	}
+
+// starting point beyond start of track.  Unusual case caused only by edit info.
+    if(!edit1)
+    {
+        edit1 = first;
+        start = first->startproject;
+    }
 
 	if(edit1 != edit2)
 	{

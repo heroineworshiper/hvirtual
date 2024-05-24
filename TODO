@@ -33,6 +33,9 @@ Edit popup
 
 WISH LIST
 ----------------------------------------------------
+Corner cases introduced by edit info aren't handled.
+ - creating a gap by setting start project doesn't create a silence edit
+ - deleting a gap by setting start project doesn't delete preceeding edits
 Preset contents view with text entry?  Useless for now.
 text for labels
 reverse reverb
