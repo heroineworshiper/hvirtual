@@ -83,6 +83,11 @@ Preferences::Preferences()
     use_hardware_decoding = 0;
     use_ffmpeg_mov = 0;
     show_fps = 0;
+
+    align_deglitch = 1;
+    align_synchronize = 0;
+    align_extend = 0;
+
 	use_renderfarm = 0;
 	force_uniprocessor = 0;
 	renderfarm_port = DEAMON_PORT;
@@ -232,6 +237,11 @@ void Preferences::copy_from(Preferences *that)
     use_hardware_decoding = that->use_hardware_decoding;
     use_ffmpeg_mov = that->use_ffmpeg_mov;
     show_fps = that->show_fps;
+
+    align_deglitch = that->align_deglitch;
+    align_synchronize = that->align_synchronize;
+    align_extend = that->align_extend;
+
 	use_renderfarm = that->use_renderfarm;
 	renderfarm_port = that->renderfarm_port;
 	render_preroll = that->render_preroll;
@@ -408,6 +418,11 @@ int Preferences::load_defaults(BC_Hash *defaults)
 // DEBUG
 //use_ffmpeg_mov = 1;
     show_fps = defaults->get("SHOW_FPS", show_fps);
+
+    align_deglitch = defaults->get("ALIGN_DEGLITCH", align_deglitch);
+    align_synchronize = defaults->get("ALIGN_SYNCHRONIZE", align_synchronize);
+    align_extend = defaults->get("ALIGN_EXTEND", align_extend);
+
 	use_renderfarm = defaults->get("USE_RENDERFARM", use_renderfarm);
 	renderfarm_port = defaults->get("RENDERFARM_PORT", renderfarm_port);
 	render_preroll = defaults->get("RENDERFARM_PREROLL", render_preroll);
@@ -493,6 +508,11 @@ int Preferences::save_defaults(BC_Hash *defaults)
 	defaults->update("USE_HARDWARE_DECODING", use_hardware_decoding);
 	defaults->update("USE_FFMPEG_MOV", use_ffmpeg_mov);
 	defaults->update("SHOW_FPS", show_fps);
+
+    defaults->update("ALIGN_DEGLITCH", align_deglitch);
+    defaults->update("ALIGN_SYNCHRONIZE", align_synchronize);
+    defaults->update("ALIGN_EXTEND", align_extend);
+
 	defaults->update("USE_RENDERFARM", use_renderfarm);
 	defaults->update("LOCAL_RATE", local_rate);
 	defaults->update("RENDERFARM_PORT", renderfarm_port);

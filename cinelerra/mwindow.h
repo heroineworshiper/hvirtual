@@ -548,7 +548,7 @@ public:
 	WaveCache *wave_cache;
 	static Preferences *preferences;
 	PreferencesThread *preferences_thread;
-	MainSession *session;
+	static MainSession *session;
 	static Theme *theme;
 	MainIndexes *mainindexes;
 	static MainProgress *mainprogress;

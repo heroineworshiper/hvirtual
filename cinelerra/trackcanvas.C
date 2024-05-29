@@ -688,7 +688,10 @@ __LINE__, (int)pixmap_w, (int)pixmap_h, (int)edit_w);
 				if(pixmap_w && pixmap_h)
 				{
 // Create pixmap if it doesn't exist
-//printf("TrackCanvas::draw_resources %d edit_x=%ld\n", __LINE__, edit_x);
+// printf("TrackCanvas::draw_resources %d edit_x=%ld pixmap_w=%d\n", 
+// __LINE__, 
+// (long)edit_x,
+// (int)pixmap_w);
 if(debug) PRINT_TRACE
 					ResourcePixmap* pixmap = create_pixmap(edit, 
 						edit_x, 
@@ -700,7 +703,7 @@ if(debug) PRINT_TRACE
 					if(pixmap_w > pixmap->pixmap_w ||
 						pixmap_h > pixmap->pixmap_h)
 						pixmap->resize(pixmap_w, pixmap_h);
-if(debug) printf("TrackCanvas::draw_resources %d: %d %d %d\n",
+if(debug) printf("TrackCanvas::draw_resources %d: pixmap_w=%d pixmap_h=%d edit_w=%d\n",
 __LINE__, (int)pixmap_w, (int)pixmap_h, (int)edit_w);
 					pixmap->draw_data(this,
 						edit,

@@ -40,6 +40,12 @@ IMAGES = \
 
 # custom images for documentation
 CUSTOM_IMAGES := \
+        align_after.png \
+        align_before.png \
+        align_extend.png \
+        align_glitch.png \
+        align_silence.png \
+        align_sync.png \
         bobcast5.png \
         broadcast.png \
         broadcast21.png \

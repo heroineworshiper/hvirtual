@@ -41,6 +41,7 @@
 #include "patchbay.h"
 #include "plugin.h"
 #include "pluginset.h"
+#include "preferences.h"
 #include "theme.h"
 #include "intautos.h"
 #include "track.h"
@@ -1897,7 +1898,7 @@ void Track::align_edits(double start,
 	int64_t start_units = to_units(start, 0);
 	int64_t end_units = to_units(end, 0);
 
-// All other tracks get silence or cut to align the edits on the times.
+// All other tracks get silence or cuts to align the edits to the master track.
 	Edit *master = master_track->edits->first;
 	for(Edit *current = edits->first; 
 		current && master; )
@@ -1907,10 +1908,12 @@ void Track::align_edits(double start,
 			current->startproject + current->length <= end_units)
 		{
             int64_t master_length_units = to_units(master_track->from_units(master->length), 0);
-// starting time of master edit
+// starting times of master edit in the current track units
             int64_t master_start_units = to_units(master_track->from_units(master->startproject), 0);
-// starting time of current edit
+            int64_t master_startsource = to_units(master_track->from_units(master->startsource), 0);
+// starting times of current edit in the current track units
 			int64_t current_startunits = current->startproject;
+			int64_t current_startsource = current->startsource;
 
 // the following occur if multiple aligns are performed
 // master edit is not silence but current edit is silence
@@ -1931,33 +1934,122 @@ void Track::align_edits(double start,
             }
             else
 // current edit is a glitch edit between 2 required edits
-            if(current->length < master_length_units / 2)
+            if(current->length < master_length_units / 2 &&
+                MWindow::preferences->align_deglitch)
             {
                 current = NEXT;
                 continue;
             }
 
 
+// synchronize source position to the master edit
+//             printf("Track::align_edits %d master=%ld current=%ld\n",
+//                 __LINE__,
+//                 (long)master_startsource,
+//                 (long)current_startsource);
+            if(MWindow::preferences->align_synchronize)
+            {
+                current->startsource = master_startsource;
+            }
+
+// advance it before we add silence
+            Edit *prev = current;
+            Edit *prev2 = prev->previous;
 			current = NEXT;
 
-// current edit starts before master edit
+printf("Track::align_edits %d prev2=%p prev=%p current=%p prev->start=%ld current_startunits=%ld master_start_units=%ld\n",
+__LINE__,
+prev2,
+prev,
+current,
+(int64_t)prev->startproject,
+(int64_t)current_startunits,
+(int64_t)master_start_units);
+
+// Current edit starts before master edit
 			if(current_startunits < master_start_units)
 			{
-//printf("Track::align_edits %d\n", __LINE__);
-				edits->paste_silence(current_startunits,
-					master_start_units);
-				shift_keyframes(current_startunits,
-					master_start_units - current_startunits);
+// shift the keyframes by the full amount
+				if(edl->session->autos_follow_edits)
+				    shift_keyframes(current_startunits,
+					    master_start_units - current_startunits);
+                if(edl->session->plugins_follow_edits)
+                    shift_effects(current_startunits, 
+                        master_start_units - current_startunits, 
+                        edl->session->autos_follow_edits);
+
+// extend the previous edit as far as possible into the full amount
+                if(prev2 && MWindow::preferences->align_extend)
+                {
+                    int64_t need = prev2->startsource + 
+                        prev2->length + 
+                        (master_start_units - 
+                        current_startunits);
+                    int64_t have = prev2->get_source_end(need);
+// printf("Track::align_edits %d need=%ld have=%ld\n",
+// __LINE__,
+// (int64_t)need,
+// (int64_t)have);
+                    if(have >= need)
+                    {
+                        int64_t diff = master_start_units - 
+                            prev2->startproject -
+                            prev2->length;
+                        prev2->length += diff;
+// shift the rest down
+                        prev2 = prev2->next;
+                        while(prev2)
+                        {
+                            prev2->startproject += diff;
+                            prev2 = prev2->next;
+                        }
+                    }
+                    else
+                    {
+                        int64_t diff = have - 
+                            prev2->startsource -
+                            prev2->length;
+                        prev2->length += diff;
+                        current_startunits += diff;
+// shift the rest down
+                        prev2 = prev2->next;
+                        while(prev2)
+                        {
+                            prev2->startproject += diff;
+                            prev2 = prev2->next;
+                        }
+
+    				    edits->paste_silence(current_startunits,
+	    				    master_start_units);
+                    }
+                }
+                else
+                {
+    				edits->paste_silence(current_startunits,
+	    				master_start_units);
+                }
 			}
 			else
-// current edit starts after master edit
+// cut ending if current edit starts after master edit
 			if(current_startunits > master_start_units)
 			{
 				edits->clear(master_start_units,
 					current_startunits);
 				if(edl->session->autos_follow_edits)
-					shift_keyframes(master_start_units,
-						current_startunits - master_start_units);
+				{
+                	shift_keyframes(master_start_units,
+						master_start_units - current_startunits);
+                }
+                if(edl->session->plugins_follow_edits)
+                {
+// printf("Track::align_edits %d start=%ld diff=%ld\n",
+// __LINE__,
+// (int64_t)master_start_units,
+// (int64_t)current_startunits - master_start_units);
+                    shift_effects(master_start_units, 
+                        master_start_units - current_startunits, 
+                        edl->session->autos_follow_edits);
+                }
 			}
 
 			master = master->next;

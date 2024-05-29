@@ -66,7 +66,7 @@ public:
 	MWindow *mwindow;
 };
 
-
+class EditAlignThread;
 class MenuEditAlign : public BC_MenuItem
 {
 public:
@@ -75,6 +75,7 @@ public:
 	int handle_event();
 
 	MWindow *mwindow;
+    EditAlignThread *thread;
 };
 
 class MenuSwapAsset : public BC_MenuItem

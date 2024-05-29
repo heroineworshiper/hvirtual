@@ -104,6 +104,7 @@ public:
 // Value of keyframe when button was pressed
 	float drag_start_percentage;
 	long drag_start_position;
+
 // Amount of data rendered, for drawing status in timebar
 	double brender_end;
 // Position of cursor in CWindow output.  Used by ruler.

@@ -219,7 +219,6 @@ void ResourcePixmap::draw_data(TrackCanvas *canvas,
 			    y,
 			    refresh_x + refresh_w,
 			    mwindow->edl->local_session->zoom_track + y);
-//printf("ResourcePixmap::draw_data 70\n");
 
 
 // Draw media which already exists
@@ -250,7 +249,6 @@ void ResourcePixmap::draw_data(TrackCanvas *canvas,
     }
 
 // Draw title
-SET_TRACE
 	if(mwindow->edl->session->show_titles)
 		draw_title(canvas, 
 			edit, 
@@ -258,7 +256,6 @@ SET_TRACE
 			edit_w, 
 			pixmap_x, 
 			pixmap_w);
-SET_TRACE
 }
 
 void ResourcePixmap::draw_title(TrackCanvas *canvas,
@@ -358,7 +355,6 @@ void ResourcePixmap::draw_audio_resource(TrackCanvas *canvas,
 // __LINE__,
 // x,
 // w);
-SET_TRACE
 
 	IndexState *index_state = indexable->index_state;
 	double asset_over_session = (double)indexable->get_sample_rate() / 
@@ -413,11 +409,9 @@ SET_TRACE
 						edit, 
 						x, 
 						w);
-SET_TRACE
 				}
 
 				indexfile.close_index();
-SET_TRACE
 			}
 			break;
 		}

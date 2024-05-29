@@ -66,7 +66,9 @@ void CICache::set_is_previewer(int value)
 }
 
 
-File* CICache::check_out(Asset *asset, EDL *edl, int block)
+File* CICache::check_out(Asset *asset, 
+    EDL *edl, 
+    int block)
 {
 	CICacheItem *current, *new_item = 0;
 
@@ -103,18 +105,27 @@ File* CICache::check_out(Asset *asset, EDL *edl, int block)
 				current->checked_out = 1;
 
 				current->Garbage::add_user();
-//printf("CICache::check_out %d %p %d\n", __LINE__, current, current->Garbage::users);
+//printf("CICache::check_out %d checking out %p\n", __LINE__, current);
 				total_lock->unlock();
 				return current->file;
 			}
+            else
+            {
+// currently checked out
+// printf("CICache::check_out %d %p checked out\n", 
+// __LINE__, 
+// current);
+            }
 		}
 		else
 		{
-//            printf("CICache::check_out %d block=%d\n", __LINE__, block);
+// printf("CICache::check_out %d block=%d\n", __LINE__, block);
 // Create new item
-            total_lock->unlock();
+// Releasing the lock here causes 2 of the same asset to be created but only 1
+// to be released, based on path search.
+//          total_lock->unlock();
             CICacheItem *new_item = new CICacheItem(this, edl, asset);
-			total_lock->lock("CICache::check_out 2");
+//			total_lock->lock("CICache::check_out 2");
             
             append(new_item);
 //            printf("CICache::check_out %d block=%d\n", __LINE__, block);
@@ -126,6 +137,8 @@ File* CICache::check_out(Asset *asset, EDL *edl, int block)
 				new_item->checked_out = 1;
 				new_item->Garbage::add_user();
 				total_lock->unlock();
+//printf("CICache::check_out %d opened %p\n", __LINE__, new_item);
+//BC_Signals::dump_stack();
 				return new_item->file;
 			}
 // Failed to open
@@ -184,12 +197,11 @@ int CICache::check_in(Asset *asset)
 		if(!strcmp(current->asset->path, asset->path))
 		{
 			current->checked_out = 0;
-// printf("CICache::check_in %d current=%p current->users=%d path=%s\n", 
+			current->Garbage::remove_user();
+// printf("CICache::check_in %d current=%p current->users=%d\n", 
 // __LINE__, 
 // current, 
-// current->Garbage::users,
-// current->asset->path);
-			current->Garbage::remove_user();
+// current->Garbage::users);
 // Pointer no longer valid here
 			break;
 		}

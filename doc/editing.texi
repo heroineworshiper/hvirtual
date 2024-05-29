@@ -55,6 +55,7 @@ attribute.
 * CUT AND PASTE EDITING::  Editing media like text
 * TRIMMING::               Changing in and out points
 * THE EDIT INFO DIALOG::   Hacking the EDL fields
+* EDIT MENU TOOLS::        Commands in the edit menu
 @end menu
 
 
@@ -621,6 +622,168 @@ edits are synchronized.
 
 @end itemize
 
+
+
+@node EDIT MENU TOOLS
+@section EDIT MENU TOOLS
+
+
+@subsection Edit Length
+
+This is commonly used for making slide shows.  When still photos are
+loaded from the load dialog in new concatenate mode, they're inserted in
+the timeline with a duration of 1 frame & the project frame rate is set
+to 1fps.  You can load a bunch of photos in this mode, then customize
+the project frame rate & use the edit length command to set the length
+of all of them.
+
+Alternatively, when photos are pasted from the resource window using the
+asset context menu, 1 frame is pasted.  This too can be customized with
+the edit length command.
+
+To set the length of an edit or multiple edits in the timeline, select
+the region which contains the edits to be modified. Now select Edit ->
+Edit Length... to activate the edit length popup. The duration of the
+edits can be set by entering the desired edit length in seconds.
+Pressing OK will change all of the selected edits (in armed tracks) to
+the specified length.
+
+@subsection Align Edits
+
+Cinelerra doesn't have a concept of locked audio & video tracks or a
+track type consisting of combined audio & video.  It makes some things
+harder but is generally simpler.  Since the audio & video are on
+independent tracks, loading media in concatenate mode will result in the
+audio & video getting slightly offset after each file.  
+
+Other problems are in the process of editing, it's important to have
+@b{Settings->align cursor on frames} to make the audio follow the video,
+but even this is prone to small glitches after many edits.
+
+Align edits tries to fix synchronization after a load or many edits.  
+
+To use this feature, select a region which contains all of the edits to
+be aligned in the timeline.  Only edits that are 100% inside the
+selected area will be used.  Arm the tracks to be affected by the
+alignment.  The first armed track is the master track to which all the
+other tracks are synchronized.  For best results, the master track is
+usually a video track & the slave tracks are usually audio tracks. 
+Video has the less quantized values of time, so is less prone to
+glitches.
+
+Now go to Edit -> Align Edits to bring up the alignment options.  The
+simplest alignment operation has all these options disabled.  That
+preserves all the edits in the slave tracks, inserting silence or
+truncating them so they line up with the same numbered edits in the
+master track.  The source start in the edits is unaffected by the
+alignment process.
+
+@center @image{align_before}
+@center Edits before alignment
+@*
+
+
+@center @image{align_after}
+@center Edits after alignment with no options enabled
+
+In typical usage, the best results will be with all the options
+enabled.  They should only be disabled if the result is complete
+garbage.
+
+@itemize
+
+@item @b{Delete glitch edits} The editing process often results in tiny
+fragments of audio between the desired edits.  This treats every slave
+edit shorter than 1/2 of a corresponding master edit as a glitch &
+deletes it.  This can be undesirable when loading files where the audio
+is drastically shorter than the video.
+@*
+
+@center @image{align_glitch}
+@center Typical removal of a glitch edit
+@*
+
+@item @b{Synchronize source positions} Once the edit starting points are
+aligned, this causes the source material in the slave edits to start on
+the same position as the source material in the master edits.  The
+effect is the same as if the audio & video tracks were locked.
+
+This option is most useful when the master & slave tracks come from the
+same assets.  To combine audio & video from different assets & keep them
+synchronized with align edits, the best option is to import the combined
+audio & video as a nested EDL.
+
+@center @image{align_after}
+@center Alignment with source positions unchanged
+@*
+
+@center @image{align_sync}
+@center Alignment with source positions synchronized to the video
+@*
+
+@item @b{Extend edits to fill gaps} By default, if the slave edit is
+shorter than the master edit, it pastes silence to fill the gap.  Enable
+this to extend the slave edit to fill the gap.  If there is not enough
+source material, it fills the rest with silence.  Usually, gaps between
+the edits are not desirable, but adding unknown material to the end of
+the edit isn't always desirable either.  Not always guaranteeing the gap
+is filled makes this more of a toy than a real solution.
+
+@*
+
+
+@center @image{align_after}
+@center Alignment with gap filled with silence
+@*
+
+
+@center @image{align_extend}
+@center Alignment with edit extended to fill silence
+@*
+
+
+If silence already exists at the end of a slave edit, the extend edits
+option currently won't extend the slave edit but will extend the
+silence.  There's a ballooning amount of complexity in what is mainly a
+toy.
+
+@center @image{align_silence}
+@center Edit extension with silence as the edit
+
+
+
+
+
+
+@end itemize
+
+@b{Alignment with labels}
+
+Alignment currently does not affect label positions.  They stay with the
+master track.
+
+@b{Alignment with keyframes & effects}
+
+Depending on @b{Settings->edit effects} & @b{Settings->Keyframes follow
+edits}, the alignment process tries to keep the effects & keyframes
+synchronized with the changes to the edits.  Truly preserving the
+effects would require a 2nd full alignment function just for effects. 
+For the best results, effects should span the entire track if alignment
+is going to be needed.
+
+
+@subsection Reverse Edits
+
+This reverses the order of the selected edits & is commonly used for
+music playlists, slide shows.  Highlight completely the edit areas you
+would like reversed and then go to Edit -> Reverse Edits.  
+
+
+@subsection Shuffle Edits
+
+This randomizes the order of the selected edits & is commonly used for
+music playlists, slide shows.  Highlight completely the edit areas you
+would like reversed and then go to Edit -> Shuffle Edits.  
 
 
 

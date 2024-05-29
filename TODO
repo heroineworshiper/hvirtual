@@ -7,6 +7,7 @@ https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35k
 
 BIG WISHLIST:
 ----------------------------
+Unselect cwindow toggle when closing the tool window.
 Menu toggle for background rendering
 Poll interrupt flag in slow plugins
    - problematic
@@ -33,6 +34,8 @@ Edit popup
 
 WISH LIST
 ----------------------------------------------------
+When it crashes inside gdb, it leaves behind an infinite loop instance.  
+    This doesn't happen from the command line.
 Corner cases introduced by edit info aren't handled.
  - creating a gap by setting start project doesn't create a silence edit
  - deleting a gap by setting start project doesn't delete preceeding edits

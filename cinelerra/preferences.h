@@ -124,6 +124,11 @@ public:
 // Show FPS in compositor
     int show_fps;
 
+// parameters for align edits
+    int align_deglitch;
+    int align_synchronize;
+    int align_extend;
+
 	int use_renderfarm;
 	int renderfarm_port;
 // If the node starts with a / it's on the localhost using a path as the socket.

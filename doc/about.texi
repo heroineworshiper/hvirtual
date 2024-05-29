@@ -54,24 +54,36 @@ involve many hours setting up command line sequences and writing to
 disk. For a time it seemed as if the original dream of immersive movie
 making for everyone regardless of income level had arrived.
 
-@b{CINELERRA}
- 
-
 Later on Broadcast 2000 began to come short.  Its audio and video was
 graceful if you knew how to use it efficiently, but quality issues and
 new user interface techniques were emerging.  Broadcast 2000 kept the
-audio interface from its ancestors, which didn't apply well to video. 
-Users likewise were maturing.  No longer would it be sufficient to just
-edit video on a UNIX box.  Most users expected on UNIX the same thing
-they got in Win or Mac. In mid 2000 designs for a Broadcast 2000
-replacement were drafted.  The Broadcast name was officially retired
-from the series and the software would now be called Cinelerra. 
-Cinelerra would allow users to configure certain effects in much less
-time than required with Broadcast 2000.  It would begin to emulate some
-of the features found in Win and Mac software while not attempting to
-become a clone.  It's interface would be designed for video from the
-ground up, while supplementing that with the Broadcast audio
-interface.  As always, quality improvements would happen.
+audio interface from its ancestors, which didn't apply well to video.
+
+Users likewise were maturing.  No longer was it sufficient to just edit
+video on a UNIX box.  Most users expected on UNIX the same thing they
+got in Win or Mac. A lot of users complained about the lack of support &
+wanted it taken down if it wasn't supported.  Then a lot of users
+complained that it was taken down.
+
+
+@b{CINELERRA}
+ 
+
+In mid 2000, a Broadcast 2000 replacement began.  The Broadcast name was
+officially retired from the series and the software would now be called
+Cinelerra.  Cinelerra would begin to emulate some of the features found
+in Win and Mac software while not attempting to become a clone.  Helas,
+not strictly adhering to standard features has been the biggest source
+of contention.
+
+As with Broadcast 2000, most users oppose this program being distributed
+without full support, full patch debugging & integration, adherance to
+standard features, & want it taken down.  Whether someone should be
+allowed to do their own thing is an ages old question.  Other projects
+got ahead of the support problem from the beginning by raising enough
+funds for full time employment, but doing so requires adhering to
+accepted designs & features they're not always fond of.
+
 
 @b{LINUX DERIVATIVES}
 

@@ -164,6 +164,7 @@ FileServer* MWindow::file_server = 0;
 MainProgressBar* MWindow::file_progress = 0;
 MainProgress* MWindow::mainprogress = 0;
 Theme* MWindow::theme = 0;
+MainSession* MWindow::session = 0;
 Preferences* MWindow::preferences = 0;
 BC_Hash* MWindow::defaults = 0;
 SaveThread* MWindow::save_thread = 0;
