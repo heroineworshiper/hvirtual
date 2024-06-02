@@ -40,7 +40,8 @@ public:
 
 	void update_pcm_history(int64_t current_sample);
 	void append_history(void *frame2, int len);
-	void read_history(double *dst,
+// returns number of samples read
+	int64_t read_history(double *dst,
 		int64_t start_sample, 
 		int channel,
 		int64_t len);

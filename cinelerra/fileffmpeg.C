@@ -448,7 +448,7 @@ void FileFFMPEGStream::append_history(void *frame2, int len)
 }
 
 
-void FileFFMPEGStream::read_history(double *dst,
+int64_t FileFFMPEGStream::read_history(double *dst,
 	int64_t start_sample, 
 	int channel,
 	int64_t len)
@@ -483,6 +483,8 @@ void FileFFMPEGStream::read_history(double *dst,
 	}
 // printf("FileBase::read_history %d\n", 
 // __LINE__);
+    if(len < 0) len = 0;
+    return len;
 }
 
 
@@ -2233,16 +2235,17 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
         if(need_restart)
         {
+            if(ffmpeg_frame) av_frame_free((AVFrame**)&ffmpeg_frame);
             ffmpeg_lock->unlock();
             close_ffmpeg();
             open_ffmpeg();
 	        ffmpeg_lock->lock("FileFFMPEG::read_frame 2");
 
+            ffmpeg_frame = av_frame_alloc();
 	        stream = video_streams.get(0);
 	        ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
 	        decoder_context = (AVCodecContext*)stream->decoder_context;
         }
-//printf("FileFFMPEG::read_frame %d\n", __LINE__);
 
 // Want to seek to the nearest keyframe and read up to the current frame
 // but ffmpeg seeks to the next keyframe.
@@ -2425,9 +2428,9 @@ int FileFFMPEG::read_frame(VFrame *frame)
 // Still have frames buffered in the decoder, so reopen in the next seek.
 // For ffmpeg 5.1 this no longer works & it only recovers if it doesn't restart.
 
-#if LIBAVCODEC_VERSION_MAJOR < 58
+//#if LIBAVCODEC_VERSION_MAJOR < 58
                 need_restart = 1;
-#endif
+//#endif
             }
             else
             {
@@ -2647,7 +2650,7 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 {
 	const int debug = 0;
 	int read_error = 0;
-	ffmpeg_lock->lock("FileFFMPEG::read_samples");
+	ffmpeg_lock->lock("FileFFMPEG::read_samples 1");
 
 
 //printf("FileFFMPEG::read_samples %d\n", __LINE__);
@@ -2687,10 +2690,12 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 	{
         if(need_restart)
         {
+//printf("FileFFMPEG::read_samples %d\n", 
+//__LINE__);
             ffmpeg_lock->unlock();
             close_ffmpeg();
             open_ffmpeg();
-	        ffmpeg_lock->lock("FileFFMPEG::read_frame 2");
+	        ffmpeg_lock->lock("FileFFMPEG::read_samples 2");
 
 	        stream = audio_streams.get(stream_number);
             audio_index = stream->ffmpeg_id;
@@ -2847,9 +2852,11 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 
 
 // Still have frames buffered in the decoder, so send null packet to decoder
-#if LIBAVCODEC_VERSION_MAJOR < 58
+//#if LIBAVCODEC_VERSION_MAJOR < 58
+//printf("FileFFMPEG::read_samples %d\n", 
+//__LINE__);
             need_restart = 1;
-#endif
+//#endif
              av_packet_free(&packet);
              packet = 0;
 
@@ -2899,7 +2906,7 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 		if(packet) av_packet_free(&packet);
 	}
 
-	stream->read_history(buffer, 
+	int samples_read = stream->read_history(buffer, 
 		file->current_sample, 
 		audio_channel,
 		len);
@@ -2907,6 +2914,9 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 // __LINE__);
 
 	ffmpeg_lock->unlock();
+// have to return success if any audio was put in the buffer,
+// otherwise we get dropouts
+    if(samples_read > 0) return 0;
 	return read_error;
 }
 
