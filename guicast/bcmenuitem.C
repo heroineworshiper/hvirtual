@@ -165,7 +165,7 @@ int BC_MenuItem::dispatch_button_press()
 		result = submenu->dispatch_button_press();
 	}
 
-	if(!result && top_level->event_win == menu_popup->get_popup()->win)
+	if(!result && menu_popup->get_popup()->is_event_win())
 	{
 		if(top_level->cursor_x >= 0 && top_level->cursor_x < menu_popup->get_w() &&
 			top_level->cursor_y >= y && top_level->cursor_y < y + h)
@@ -287,7 +287,7 @@ int BC_MenuItem::dispatch_cursor_leave()
 		result = submenu->dispatch_cursor_leave();
 	}
 
-	if(!result && highlighted && top_level->event_win == menu_popup->get_popup()->win)
+	if(!result && highlighted && menu_popup->get_popup()->is_event_win())
 	{
 		highlighted = 0;
 		return 1;

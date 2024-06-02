@@ -7,7 +7,6 @@ https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35k
 
 BIG WISHLIST:
 ----------------------------
-Unselect cwindow toggle when closing the tool window.
 Menu toggle for background rendering
 Poll interrupt flag in slow plugins
    - problematic
@@ -16,7 +15,6 @@ Poll interrupt flag in slow plugins
 
 BIG BUGS
 ----------------
-Use ffmpeg to decode superman.m2ts
 Applies filebox filter to the auto completion in a browse button textbox.
 Nested EDLs with different colormodels crash.
 Effects not getting rendered if multiple effects have random starting times.
@@ -29,13 +27,12 @@ Documentation wishlist:
 ----------------------------------------------------
 Points of confusion around the way shared plugins are based on numbers rather than titles
 Options for condensing the track height
-Edit popup
+Presets
 
 
 WISH LIST
 ----------------------------------------------------
-When it crashes inside gdb, it leaves behind an infinite loop instance.  
-    This doesn't happen from the command line.
+When it crashes because of an offset change, it leaves behind an infinite loop instance.  
 Corner cases introduced by edit info aren't handled.
  - creating a gap by setting start project doesn't create a silence edit
  - deleting a gap by setting start project doesn't delete preceeding edits

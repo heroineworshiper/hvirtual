@@ -46,17 +46,19 @@
 BC_FileBoxRecent::BC_FileBoxRecent(BC_FileBox *filebox, int x, int y)
  : BC_ListBox(x, 
 	y, 
-	DP(250), 
-	filebox->get_text_height(MEDIUMFONT) * FILEBOX_HISTORY_SIZE + 
-		BC_ScrollBar::get_span(SCROLL_HORIZ) +
-		LISTBOX_MARGIN * 2,
+//	DP(250), 
+// 	filebox->get_text_height(MEDIUMFONT) * FILEBOX_HISTORY_SIZE + 
+// 		BC_ScrollBar::get_span(SCROLL_HORIZ) +
+// 		LISTBOX_MARGIN * 2,
+    filebox->recent_w,
+    filebox->recent_h,
 	LISTBOX_TEXT, 
 	&filebox->recent_dirs, 
-	0, 
-	0, 
-	1, 
-	0, 
-	1)
+	0, // column titles
+	0, // column width
+	1, // columns
+	0, // yposition
+	1) // is_popup
 {
 	this->filebox = filebox;
 	set_justify(LISTBOX_LEFT);
@@ -887,6 +889,10 @@ void BC_FileBox::calculate_sizes(int window_w, int window_h)
         margin +
         BC_PopupMenu::calculate_h() +
         margin;
+    recent_w = window_w - margin * 2;
+    recent_h = get_text_height(MEDIUMFONT) * FILEBOX_HISTORY_SIZE + 
+ 		BC_ScrollBar::get_span(SCROLL_HORIZ) +
+ 		LISTBOX_MARGIN * 2;
     list_x = 0;
     list_y = y;
     list_w = window_w;
@@ -944,7 +950,7 @@ int BC_FileBox::resize_event(int w, int h)
 	draw_background(0, 0, w, h);
 	flash(0);
 
-
+    recent_popup->resize_popup(recent_w, recent_h);
     if(previewer) previewer->handle_resize(w, h);
     
 

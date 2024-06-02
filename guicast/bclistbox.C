@@ -1249,7 +1249,7 @@ void BC_ListBox::set_autoplacement(ArrayList<BC_ListBoxItem*> *data,
 int BC_ListBox::get_w()
 {
 	if(is_popup)
-		return BCPOPUPLISTBOX_W;
+		return BC_WindowBase::get_resources()->listbox_button[0]->get_w();
 	else
 		return popup_w;
 }
@@ -1257,7 +1257,7 @@ int BC_ListBox::get_w()
 int BC_ListBox::get_h()
 {
 	if(is_popup)
-		return BCPOPUPLISTBOX_H;
+		return BC_WindowBase::get_resources()->listbox_button[0]->get_h();
 	else
 		return popup_h;
 }
@@ -4036,6 +4036,12 @@ int BC_ListBox::reposition_window(int x, int y, int w, int h, int flush)
 	return 0;
 }
 
+void BC_ListBox::resize_popup(int w, int h)
+{
+    popup_w = w;
+    popup_h = h;
+}
+
 int BC_ListBox::deactivate()
 {
 // printf("BC_ListBox::deactivate %d this=%p gui=%p active=%d\n", 
@@ -4049,7 +4055,7 @@ int BC_ListBox::deactivate()
 		if(is_popup)
 		{
 //printf("BC_ListBox::deactivate %d this=%p gui=%p\n", __LINE__, this, gui);
-			if(gui) 
+			if(gui)
 			{
 				delete gui;
 				flush();

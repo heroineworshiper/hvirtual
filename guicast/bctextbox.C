@@ -3180,6 +3180,19 @@ void BC_TumbleTextBox::reset()
 	increment = 1.0;
 }
 
+void BC_TumbleTextBox::set_tooltip(const char *text)
+{
+    this->tooltip_text.assign(text);
+    if(tumbler)
+    {
+        tumbler->set_tooltip(text);
+    }
+    if(textbox)
+    {
+        textbox->set_tooltip(text);
+    }
+}
+
 void BC_TumbleTextBox::set_precision(int precision)
 {
 	this->precision = precision;
@@ -3239,6 +3252,9 @@ int BC_TumbleTextBox::create_objects()
 			y));
 
 	tumbler->set_increment(increment);
+    tumbler->set_tooltip(tooltip_text.c_str());
+    textbox->set_tooltip(tooltip_text.c_str());
+
 	return 0;
 }
 

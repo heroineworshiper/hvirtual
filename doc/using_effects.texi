@@ -432,8 +432,16 @@ them in the @b{/usr/lib/cinelerra} directory.
 Save and recall all the settings for an effect by using the @b{presets}
 window.  Bring up the effect context menu by right clicking on the
 effect on the timeline.  Go to @b{Presets...} to bring up the window. 
-Save all the settings to a preset by entering a title in @b{Preset
-title} and clicking @b{save}.  Recall the settings in a preset by
-highlighting it and clicking @b{Apply}.  Delete a preset by highlighting
-it and clicking @b{Delete}.
+Save the current keyframe to a preset by entering a title in @b{Preset
+title} and clicking @b{save}.  Highlight an existing preset & click
+@b{save} to overwrite it.
 
+Recall the settings in a preset by highlighting it and clicking
+@b{Load}.  Load will create a keyframe if @image{autokeyframe} auto
+keyframes are enabled.  Delete a preset by highlighting it and clicking
+@b{Delete}.
+
+Double clicking a preset also loads it.  OK in the preset window causes
+the highlighted preset to be loaded.
+
+Factory presets have a *.  These may not be overwritten.  

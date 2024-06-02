@@ -264,11 +264,14 @@ public:
 
 
 	void reset_query();
+// reposition the button or window if not is_popup
 	int reposition_window(int x, 
 		int y, 
 		int w = -1, 
 		int h = -1, 
 		int flush = 1);
+// resize the popup if is_popup
+    void resize_popup(int w, int h);
 	BC_Pixmap* get_bg_surface();
 // Set all items for autoplacement with recursion into sublists
 	void set_autoplacement(ArrayList<BC_ListBoxItem*> *data,

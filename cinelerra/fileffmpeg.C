@@ -2190,7 +2190,7 @@ static void convert_unsupported(AVFrame *ffmpeg_frame,
 
 int FileFFMPEG::read_frame(VFrame *frame)
 {
-	int error = 0;
+	int read_error = 0;
 	const int debug = 0;
 
 	ffmpeg_lock->lock("FileFFMPEG::read_frame 1");
@@ -2358,11 +2358,11 @@ int FileFFMPEG::read_frame(VFrame *frame)
         got_frame = 0;
         last_pts = -1;
 	}
-// if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%ld file->current_frame=%ld error=%d\n", 
+// if(debug) printf("FileFFMPEG::read_frame %d stream->current_frame=%ld file->current_frame=%ld read_error=%d\n", 
 // __LINE__,
 // stream->current_frame,
 // file->current_frame,
-// error);
+// read_error);
 
 
 
@@ -2384,7 +2384,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 // starting frame in the DTS history
     int dts_frame0 = stream->current_frame;
 	while(stream->current_frame < file->current_frame && 
-        !error)
+        !read_error)
 	{
 		got_frame = 0;
 //         printf("FileFFMPEG::read_frame %d current_frame=%ld want_frame=%ld\n", 
@@ -2406,17 +2406,17 @@ int FileFFMPEG::read_frame(VFrame *frame)
 // no frame decoded.  Read in a new packet
         if(!got_frame)
         {
-		    error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
+		    read_error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
 			    packet);
 
-            if(error)
+            if(read_error)
             {
-                printf("FileFFMPEG::read_frame %d error=%c%c%c%c offset=%ld stream->current_frame=%ld file->current_frame=%ld\n",
+                printf("FileFFMPEG::read_frame %d read_error=%c%c%c%c offset=%ld stream->current_frame=%ld file->current_frame=%ld\n",
     		        __LINE__,
-                    (-error) & 0xff,
-                    ((-error) >> 8) & 0xff,
-                    ((-error) >> 16) & 0xff,
-                    ((-error) >> 24) & 0xff,
+                    (-read_error) & 0xff,
+                    ((-read_error) >> 8) & 0xff,
+                    ((-read_error) >> 16) & 0xff,
+                    ((-read_error) >> 24) & 0xff,
                     (long)avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb),
                     stream->current_frame,
                     file->current_frame);
@@ -2437,13 +2437,13 @@ int FileFFMPEG::read_frame(VFrame *frame)
             }
 
 
-// printf("FileFFMPEG::read_frame %d error=%d want stream=%d got=%d\n", 
+// printf("FileFFMPEG::read_frame %d read_error=%d want stream=%d got=%d\n", 
 // __LINE__,
-// error, 
+// read_error, 
 // stream->ffmpeg_id,
 // packet->stream_index);
 
-			if(!error && 
+			if(!read_error && 
                 packet->size > 0 && 
                 packet->stream_index == stream->ffmpeg_id)
 			{
@@ -2487,7 +2487,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
                 }
 			}
             else
-            if(error)
+            if(read_error)
             {
 // at the end of the file, we still have frames buffered in the decoder
                 int got_picture = 0;
@@ -2517,7 +2517,7 @@ int FileFFMPEG::read_frame(VFrame *frame)
 				if(input_frame->data[0] && got_picture) 
                 {
                     got_frame = 1;
-                    error = 0;
+                    read_error = 0;
                 }
             }
 		}
@@ -2640,18 +2640,19 @@ int FileFFMPEG::read_frame(VFrame *frame)
 
 	ffmpeg_lock->unlock();
 	if(debug) printf("FileFFMPEG::read_frame %d\n", __LINE__);
-	return error;
+	return read_error;
 }
 
 int FileFFMPEG::read_samples(double *buffer, int64_t len)
 {
 	const int debug = 0;
-	int error = 0;
+	int read_error = 0;
 	ffmpeg_lock->lock("FileFFMPEG::read_samples");
 
 
 //printf("FileFFMPEG::read_samples %d\n", __LINE__);
 // Compute stream & stream channel from global channel
+    int stream_number = -1;
 	int audio_channel = file->current_channel;
 	int audio_index = -1;
 	FileFFMPEGStream *stream = 0;
@@ -2659,6 +2660,7 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 	{
 		if(audio_channel < audio_streams.get(i)->channels)
 		{
+            stream_number = i;
 			stream = audio_streams.get(i);
 			audio_index = stream->ffmpeg_id;
 			break;
@@ -2683,6 +2685,21 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 	if(file->current_sample < stream->history_start ||
         file->current_sample > stream->history_start + stream->history_size)
 	{
+        if(need_restart)
+        {
+            ffmpeg_lock->unlock();
+            close_ffmpeg();
+            open_ffmpeg();
+	        ffmpeg_lock->lock("FileFFMPEG::read_frame 2");
+
+	        stream = audio_streams.get(stream_number);
+            audio_index = stream->ffmpeg_id;
+	        ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
+	        decoder_context = (AVCodecContext*)stream->decoder_context;
+        }
+
+
+
         if(!has_toc)
         {
 
@@ -2798,7 +2815,7 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
     int dts_sample0 = stream->history_start + stream->history_size;
 // Read samples until the requested range is decoded.
 	while(stream->history_start + stream->history_size < 
-        file->current_sample + len && !error)
+        file->current_sample + len && !read_error)
 	{
 		AVPacket *packet = av_packet_alloc();
 
@@ -2809,7 +2826,7 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 //            __LINE__, 
 //            avio_tell(((AVFormatContext*)stream->ffmpeg_file_context)->pb));
 
-		error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
+		read_error = av_read_frame((AVFormatContext*)stream->ffmpeg_file_context, 
 			packet);
 
 //         printf("FileFFMPEG::read_samples %d ftell=%ld size=%d id=%d\n", 
@@ -2818,61 +2835,39 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 //             packet->size,
 //             packet->stream_index);
 
-        if(error)
+        if(read_error)
         {
-            printf("FileFFMPEG::read_samples %d error=%c%c%c%c current_sample=%ld\n",
+            printf("FileFFMPEG::read_samples %d read_error=%c%c%c%c current_sample=%ld\n",
     			__LINE__,
-                (-error) & 0xff,
-                ((-error) >> 8) & 0xff,
-                ((-error) >> 16) & 0xff,
-                ((-error) >> 24) & 0xff,
+                (-read_error) & 0xff,
+                ((-read_error) >> 8) & 0xff,
+                ((-read_error) >> 16) & 0xff,
+                ((-read_error) >> 24) & 0xff,
                 file->current_sample);
-// give up & reopen the ffmpeg objects
-            av_packet_free(&packet);
-            ffmpeg_lock->unlock();
 
-            close_ffmpeg();
-            open_ffmpeg();
-            return 1;
+
+// Still have frames buffered in the decoder, so send null packet to decoder
+#if LIBAVCODEC_VERSION_MAJOR < 58
+            need_restart = 1;
+#endif
+             av_packet_free(&packet);
+             packet = 0;
+
+// give up & reopen the ffmpeg objects
+//             ffmpeg_lock->unlock();
+//             close_ffmpeg();
+//             open_ffmpeg();
+//             return 1;
         }
         
 
-		unsigned char *packet_ptr = packet->data;
-		int packet_len = packet->size;
 
-		if(packet->stream_index == stream->ffmpeg_id)
+		if(!packet || packet->stream_index == stream->ffmpeg_id)
 		{
 			int got_frame = 0;
             AVFrame *ffmpeg_samples = av_frame_alloc();
 
-
-
             int result = avcodec_send_packet(decoder_context, packet);
-
-// 		    printf("FileFFMPEG::read_samples %d result=%c%c%c%c\n", 
-// 		        __LINE__, 
-// 		        (-result) & 0xff,
-//                 ((-result) >> 8) & 0xff,
-//                 ((-result) >> 16) & 0xff,
-//                 ((-result) >> 24) & 0xff);
-//             quicktime_print_buffer("", packet->data, packet->size);
-
-//             dts_history.append(packet->dts);
-// // compute the number of samples in the packet
-//             int got_it = 0;
-//             int packet_samples = 0;
-//             for(int i = 0; i < stream->audio_offsets.size(); i++)
-//             {
-//                 if(stream->audio_offsets.get(i) >= offset)
-//                 {
-//                     packet_samples = stream->audio_samples.get(i);
-//                     samples_history.append(stream->audio_samples.get(i));
-//                     break;
-//                 }
-//             }
-//             if(!got_it) samples_history.append(0);
-            
-
 
 // decode samples until the buffer is empty
 			while(result >= 0)
@@ -2897,9 +2892,11 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
             }
 
 			av_frame_free(&ffmpeg_samples);
+// ignore the read error if sending a null packet got a buffered frame
+            if(got_frame) read_error = 0;
 		}
 		
-		av_packet_free(&packet);
+		if(packet) av_packet_free(&packet);
 	}
 
 	stream->read_history(buffer, 
@@ -2910,7 +2907,7 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 // __LINE__);
 
 	ffmpeg_lock->unlock();
-	return error;
+	return read_error;
 }
 
 

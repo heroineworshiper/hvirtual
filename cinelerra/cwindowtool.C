@@ -276,7 +276,8 @@ int CWindowToolGUI::close_event()
 
 
 	thread->gui->lock_window("CWindowToolGUI::close_event");
-	thread->gui->composite_panel->set_operation(mwindow->edl->session->cwindow_operation);
+//printf("CWindowToolGUI::close_event %d cwindow_operation=%d\n", __LINE__, mwindow->edl->session->cwindow_operation);
+	thread->gui->set_operation(CWINDOW_NONE);
 	thread->gui->flush();
 	thread->gui->unlock_window();
 

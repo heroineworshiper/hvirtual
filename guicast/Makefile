@@ -135,6 +135,7 @@ LIBCMODEL = $(OBJDIR)/libcmodel.a
 
 TESTLIBS := \
 		$(STATICOUTPUT) \
+		$(LIBCMODEL) \
 		$(LFLAGS) \
 		$(GLLIBS) \
 		-lX11 \

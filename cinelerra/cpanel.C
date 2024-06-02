@@ -79,7 +79,7 @@ void CPanel::reposition_buttons(int x, int y)
 	this->x = x;
 	this->y = y;
 	
-	for(int i = 0; i < CPANEL_OPERATIONS; i++)
+	for(int i = CWINDOW_FIRST; i < CPANEL_OPERATIONS; i++)
 	{
 		operation[i]->reposition_window(x, y);
 		y += operation[i]->get_h();
@@ -89,7 +89,7 @@ void CPanel::reposition_buttons(int x, int y)
 
 void CPanel::set_operation(int value)
 {
-	for(int i = 0; i < CPANEL_OPERATIONS; i++)
+	for(int i = CWINDOW_FIRST; i < CPANEL_OPERATIONS; i++)
 	{
 //		if(i == CWINDOW_TOOL_WINDOW)
 //		{

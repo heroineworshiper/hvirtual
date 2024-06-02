@@ -455,6 +455,7 @@ public:
 
 	int create_objects();
 	void reset();
+    void set_tooltip(const char *text);
 	virtual int handle_event();
 	const char* get_text();
 	int update(const char *value);
@@ -491,6 +492,7 @@ private:
 	BC_TumbleTextBoxText *textbox;
 	BC_Tumbler *tumbler;
 	BC_WindowBase *parent_window;
+    string tooltip_text;
 };
 
 class BC_TumbleTextBoxText : public BC_TextBox

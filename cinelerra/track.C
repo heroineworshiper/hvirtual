@@ -1957,14 +1957,14 @@ void Track::align_edits(double start,
             Edit *prev2 = prev->previous;
 			current = NEXT;
 
-printf("Track::align_edits %d prev2=%p prev=%p current=%p prev->start=%ld current_startunits=%ld master_start_units=%ld\n",
-__LINE__,
-prev2,
-prev,
-current,
-(int64_t)prev->startproject,
-(int64_t)current_startunits,
-(int64_t)master_start_units);
+// printf("Track::align_edits %d prev2=%p prev=%p current=%p prev->start=%ld current_startunits=%ld master_start_units=%ld\n",
+// __LINE__,
+// prev2,
+// prev,
+// current,
+// (int64_t)prev->startproject,
+// (int64_t)current_startunits,
+// (int64_t)master_start_units);
 
 // Current edit starts before master edit
 			if(current_startunits < master_start_units)

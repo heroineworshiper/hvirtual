@@ -284,6 +284,7 @@ public:
 	virtual int handle_event();
 
     void calculate_sizes(int window_w, int window_h);
+    
 	void create_history();
 	void update_history();
 	int refresh(int reload_y_position, int reset_y_position);
@@ -315,6 +316,8 @@ public:
     int list_y;
     int list_w;
     int list_h;
+    int recent_w;
+    int recent_h;
     int preview_x;
     int preview_center_y;
     int preview_w;
