@@ -498,9 +498,12 @@ void FilePreviewer::create_preview()
                     filebox->flush();
 // set up the playback engine
                     previewer->playback_engine->que->send_command(CURRENT_FRAME, 
+                        1.0, // speed
 			            CHANGE_ALL,
 			            previewer->edl,
-			            1);
+			            1, // realtime
+                        0, // resume,
+                        0); // use_inout
                 }
                 previewer->previewer_lock->unlock();
             },

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -127,7 +127,7 @@ int PackageRenderer::initialize(MWindow *mwindow,
 
 //printf("PackageRenderer::initialize %d\n", preferences->processors);
 	command = new TransportCommand;
-	command->command = NORMAL_FWD;
+	command->command = PLAY_FWD;
 	command->get_edl()->copy_all(edl);
 	command->change_type = CHANGE_ALL;
 	command->set_playback_range(edl);

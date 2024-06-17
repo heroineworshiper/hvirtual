@@ -430,9 +430,12 @@ void TransitionPreviewer::create_preview()
         
         gui->flush();
         playback_engine->que->send_command(CURRENT_FRAME, 
+            1.0, // speed
 			CHANGE_ALL,
 			edl,
-			1);
+			1, // realtime
+            0, // resume,
+            0); // use_inout
     }
 
     previewer_lock->unlock();

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1123,7 +1123,7 @@ int MWindowGUI::keypress_event()
 					if (alt_down())
 					{
 						unlock_window();
-						mbuttons->transport->handle_transport(STOP, 1, 0, 0);
+						mbuttons->transport->handle_transport(STOP, 1.0, 1, 0, 0);
 						lock_window("MWindowGUI::keypress_event 1");
 						mwindow->prev_edit_handle(shift_down());
 					}
@@ -1138,7 +1138,7 @@ int MWindowGUI::keypress_event()
 					if (alt_down())
 					{
 						unlock_window();
-						mbuttons->transport->handle_transport(STOP, 1, 0, 0);
+						mbuttons->transport->handle_transport(STOP, 1.0, 1, 0, 0);
 						lock_window("MWindowGUI::keypress_event 2");
 						mwindow->next_edit_handle(shift_down());
 					}

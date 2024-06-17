@@ -50,79 +50,71 @@ void InterfacePrefs::create_objects()
 {
 	int y, x, value;
 	BC_Resources *resources = BC_WindowBase::get_resources();
+	BC_Title *title;
 	int margin = mwindow->theme->widget_border;
 	char string[BCTEXTLEN];
 	x = mwindow->theme->preferencesoptions_x;
 	y = mwindow->theme->preferencesoptions_y;
 
-	add_subwindow(new BC_Title(x, 
-		y, 
-		_("Time Format"), 
-		LARGEFONT, 
-		resources->text_default));
-
-	y += get_text_height(LARGEFONT) + margin;
-
-
-	add_subwindow(hms = new TimeFormatHMS(pwindow, 
-		this, 
-		pwindow->thread->edl->session->time_format == TIME_HMS, 
-		x, 
-		y));
-	y += DP(20);
-	add_subwindow(hmsf = new TimeFormatHMSF(pwindow, 
-		this, 
-		pwindow->thread->edl->session->time_format == TIME_HMSF, 
-		x, 
-		y));
-	y += DP(20);
-	add_subwindow(samples = new TimeFormatSamples(pwindow, 
-		this, 
-		pwindow->thread->edl->session->time_format == TIME_SAMPLES, 
-		x, 
-		y));
-	y += DP(20);
-	add_subwindow(hex = new TimeFormatHex(pwindow, 
-		this, 
-		pwindow->thread->edl->session->time_format == TIME_SAMPLES_HEX, 
-		x, 
-		y));
-	y += DP(20);
-	add_subwindow(frames = new TimeFormatFrames(pwindow, 
-		this, 
-		pwindow->thread->edl->session->time_format == TIME_FRAMES, 
-		x, 
-		y));
-	y += DP(20);
-	int x1 = x;
-	add_subwindow(feet = new TimeFormatFeet(pwindow, 
-		this, 
-		pwindow->thread->edl->session->time_format == TIME_FEET_FRAMES, 
-		x1, 
-		y));
-	x1 += feet->get_w() + margin;
-	BC_Title *title;
-	add_subwindow(title = new BC_Title(x1, y, _("Frames per foot:")));
-	x1 += title->get_w() + margin;
-	sprintf(string, "%0.2f", pwindow->thread->edl->session->frames_per_foot);
-	add_subwindow(new TimeFormatFeetSetting(pwindow, 
-		x1, 
-		y - DP(5), 
-		string));
-	y += DP(20);
-	add_subwindow(seconds = new TimeFormatSeconds(pwindow, 
-		this, 
-		pwindow->thread->edl->session->time_format == TIME_SECONDS, 
-		x, 
-		y));
+// 	add_subwindow(new BC_Title(x, 
+// 		y, 
+// 		_("Time Format"), 
+// 		LARGEFONT, 
+// 		resources->text_default));
+// 
+// 	y += get_text_height(LARGEFONT) + margin;
+// 
+// 
+// 	add_subwindow(hms = new TimeFormatHMS(pwindow, 
+// 		this, 
+// 		pwindow->thread->edl->session->time_format == TIME_HMS, 
+// 		x, 
+// 		y));
+// 	y += DP(20);
+// 	add_subwindow(hmsf = new TimeFormatHMSF(pwindow, 
+// 		this, 
+// 		pwindow->thread->edl->session->time_format == TIME_HMSF, 
+// 		x, 
+// 		y));
+// 	y += DP(20);
+// 	add_subwindow(samples = new TimeFormatSamples(pwindow, 
+// 		this, 
+// 		pwindow->thread->edl->session->time_format == TIME_SAMPLES, 
+// 		x, 
+// 		y));
+// 	y += DP(20);
+// 	add_subwindow(hex = new TimeFormatHex(pwindow, 
+// 		this, 
+// 		pwindow->thread->edl->session->time_format == TIME_SAMPLES_HEX, 
+// 		x, 
+// 		y));
+// 	y += DP(20);
+// 	add_subwindow(frames = new TimeFormatFrames(pwindow, 
+// 		this, 
+// 		pwindow->thread->edl->session->time_format == TIME_FRAMES, 
+// 		x, 
+// 		y));
+// 	y += DP(20);
+ 	int x1 = x;
+// 	add_subwindow(feet = new TimeFormatFeet(pwindow, 
+// 		this, 
+// 		pwindow->thread->edl->session->time_format == TIME_FEET_FRAMES, 
+// 		x1, 
+// 		y));
+// 	x1 += feet->get_w() + margin;
+// 	add_subwindow(seconds = new TimeFormatSeconds(pwindow, 
+// 		this, 
+// 		pwindow->thread->edl->session->time_format == TIME_SECONDS, 
+// 		x, 
+// 		y));
 
 
-	y += DP(35);
-	add_subwindow(new UseTipWindow(pwindow, x, y));
+// 	y += DP(35);
+// 	add_subwindow(new UseTipWindow(pwindow, x, y));
 
-	y += DP(35);
-	add_subwindow(new BC_Bar(margin, y, get_w() - margin * 2));
-	y += margin;
+// 	y += DP(35);
+// 	add_subwindow(new BC_Bar(margin, y, get_w() - margin * 2));
+// 	y += margin;
 
 	add_subwindow(new BC_Title(x, y, _("Index files"), LARGEFONT, resources->text_default));
 
@@ -169,8 +161,22 @@ void InterfacePrefs::create_objects()
 	add_subwindow(new BC_Bar(margin, y, 	get_w() - margin * 2));
 	y += margin;
 
-	add_subwindow(new BC_Title(x, y, _("Editing"), LARGEFONT, resources->text_default));
+	add_subwindow(title = new BC_Title(x, y, _("Editing"), LARGEFONT, resources->text_default));
+    y += title->get_h() + margin;
 
+    ScrubWindowed *checkbox;
+    add_subwindow(checkbox = new ScrubWindowed(pwindow, x, y));
+    y += checkbox->get_h() + margin;
+
+	add_subwindow(title = new BC_Title(x1, y, _("Frames per foot:")));
+	x1 += title->get_w() + margin;
+	sprintf(string, "%0.2f", pwindow->thread->edl->session->frames_per_foot);
+	TimeFormatFeetSetting *text;
+    add_subwindow(text = new TimeFormatFeetSetting(pwindow, 
+		x1, 
+		y, 
+		string));
+	y += text->get_h() + margin;
 
 //	y += 35;
 //	add_subwindow(thumbnails = new ViewThumbnails(x, y, pwindow));
@@ -204,7 +210,7 @@ void InterfacePrefs::create_objects()
 // 			&(pwindow->thread->edl->session->edit_handle_mode[2])));
 // 	text->create_objects();
 
-	y += DP(40);
+//	y += DP(40);
 	x1 = x;
 	add_subwindow(title = new BC_Title(x, y + DP(5), _("Min DB for meter:")));
 	x += title->get_w() + margin * 2;
@@ -228,13 +234,16 @@ void InterfacePrefs::create_objects()
 
 	x = x1;
 	y += theme->get_h() + margin;
-	BC_CheckBox *checkbox;
-	add_subwindow(checkbox = new OverrideDPI(pwindow, x, y));
-	y += checkbox->get_h() + margin;
-	add_subwindow(title = new BC_Title(x, y, _("DPI:")));
+	BC_CheckBox *checkbox2;
+	add_subwindow(checkbox2 = new OverrideDPI(pwindow, x, y));
+	x += checkbox2->get_w() + margin;
+	add_subwindow(title = new BC_Title(x, y + DP(5), _("DPI:")));
 	x += title->get_w() + margin;
-	add_subwindow(new DPIText(pwindow, x, y, DP(100)));
+    DPIText *text2;
+	add_subwindow(text2 = new DPIText(pwindow, x, y, DP(100)));
 
+    x = x1;
+    y += text2->get_h() + margin;
 }
 
 const char* InterfacePrefs::behavior_to_text(int mode)
@@ -263,24 +272,24 @@ int InterfacePrefs::update(int new_value)
 {
 	pwindow->thread->redraw_times = 1;
 	pwindow->thread->edl->session->time_format = new_value;
-	hms->update(new_value == TIME_HMS);
-	hmsf->update(new_value == TIME_HMSF);
-	samples->update(new_value == TIME_SAMPLES);
-	hex->update(new_value == TIME_SAMPLES_HEX);
-	frames->update(new_value == TIME_FRAMES);
-	feet->update(new_value == TIME_FEET_FRAMES);
-	seconds->update(new_value == TIME_SECONDS);
+// 	hms->update(new_value == TIME_HMS);
+// 	hmsf->update(new_value == TIME_HMSF);
+// 	samples->update(new_value == TIME_SAMPLES);
+// 	hex->update(new_value == TIME_SAMPLES_HEX);
+// 	frames->update(new_value == TIME_FRAMES);
+// 	feet->update(new_value == TIME_FEET_FRAMES);
+// 	seconds->update(new_value == TIME_SECONDS);
     return 0;
 }
 
 InterfacePrefs::~InterfacePrefs()
 {
-	delete hms;
-	delete hmsf;
-	delete samples;
-	delete frames;
-	delete hex;
-	delete feet;
+// 	delete hms;
+// 	delete hmsf;
+// 	delete samples;
+// 	delete frames;
+// 	delete hex;
+// 	delete feet;
 	delete min_db;
 	delete max_db;
 //	delete vu_db;
@@ -378,78 +387,78 @@ int IndexCount::handle_event()
 
 
 
-TimeFormatHMS::TimeFormatHMS(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
- : BC_Radial(x, y, value, TIME_HMS_TEXT)
-{ this->pwindow = pwindow; this->tfwindow = tfwindow; }
-
-int TimeFormatHMS::handle_event()
-{
-	tfwindow->update(TIME_HMS);
-	return 1;
-}
-
-TimeFormatHMSF::TimeFormatHMSF(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
- : BC_Radial(x, y, value, TIME_HMSF_TEXT)
-{ this->pwindow = pwindow; this->tfwindow = tfwindow; }
-
-int TimeFormatHMSF::handle_event()
-{
-	tfwindow->update(TIME_HMSF);
-    return 0;
-}
-
-TimeFormatSamples::TimeFormatSamples(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
- : BC_Radial(x, y, value, TIME_SAMPLES_TEXT)
-{ this->pwindow = pwindow; this->tfwindow = tfwindow; }
-
-int TimeFormatSamples::handle_event()
-{
-	tfwindow->update(TIME_SAMPLES);
-    return 0;
-}
-
-TimeFormatFrames::TimeFormatFrames(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
- : BC_Radial(x, y, value, TIME_FRAMES_TEXT)
-{ this->pwindow = pwindow; this->tfwindow = tfwindow; }
-
-int TimeFormatFrames::handle_event()
-{
-	tfwindow->update(TIME_FRAMES);
-    return 0;
-}
-
-TimeFormatHex::TimeFormatHex(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
- : BC_Radial(x, y, value, TIME_SAMPLES_HEX_TEXT)
-{ this->pwindow = pwindow; this->tfwindow = tfwindow; }
-
-int TimeFormatHex::handle_event()
-{
-	tfwindow->update(TIME_SAMPLES_HEX);
-    return 0;
-}
-
-TimeFormatSeconds::TimeFormatSeconds(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
- : BC_Radial(x, y, value, TIME_SECONDS_TEXT)
-{ 
-	this->pwindow = pwindow; 
-	this->tfwindow = tfwindow; 
-}
-
-int TimeFormatSeconds::handle_event()
-{
-	tfwindow->update(TIME_SECONDS);
-    return 0;
-}
-
-TimeFormatFeet::TimeFormatFeet(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
- : BC_Radial(x, y, value, TIME_FEET_FRAMES_TEXT)
-{ this->pwindow = pwindow; this->tfwindow = tfwindow; }
-
-int TimeFormatFeet::handle_event()
-{
-	tfwindow->update(TIME_FEET_FRAMES);
-    return 0;
-}
+// TimeFormatHMS::TimeFormatHMS(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
+//  : BC_Radial(x, y, value, TIME_HMS_TEXT)
+// { this->pwindow = pwindow; this->tfwindow = tfwindow; }
+// 
+// int TimeFormatHMS::handle_event()
+// {
+// 	tfwindow->update(TIME_HMS);
+// 	return 1;
+// }
+// 
+// TimeFormatHMSF::TimeFormatHMSF(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
+//  : BC_Radial(x, y, value, TIME_HMSF_TEXT)
+// { this->pwindow = pwindow; this->tfwindow = tfwindow; }
+// 
+// int TimeFormatHMSF::handle_event()
+// {
+// 	tfwindow->update(TIME_HMSF);
+//     return 0;
+// }
+// 
+// TimeFormatSamples::TimeFormatSamples(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
+//  : BC_Radial(x, y, value, TIME_SAMPLES_TEXT)
+// { this->pwindow = pwindow; this->tfwindow = tfwindow; }
+// 
+// int TimeFormatSamples::handle_event()
+// {
+// 	tfwindow->update(TIME_SAMPLES);
+//     return 0;
+// }
+// 
+// TimeFormatFrames::TimeFormatFrames(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
+//  : BC_Radial(x, y, value, TIME_FRAMES_TEXT)
+// { this->pwindow = pwindow; this->tfwindow = tfwindow; }
+// 
+// int TimeFormatFrames::handle_event()
+// {
+// 	tfwindow->update(TIME_FRAMES);
+//     return 0;
+// }
+// 
+// TimeFormatHex::TimeFormatHex(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
+//  : BC_Radial(x, y, value, TIME_SAMPLES_HEX_TEXT)
+// { this->pwindow = pwindow; this->tfwindow = tfwindow; }
+// 
+// int TimeFormatHex::handle_event()
+// {
+// 	tfwindow->update(TIME_SAMPLES_HEX);
+//     return 0;
+// }
+// 
+// TimeFormatSeconds::TimeFormatSeconds(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
+//  : BC_Radial(x, y, value, TIME_SECONDS_TEXT)
+// { 
+// 	this->pwindow = pwindow; 
+// 	this->tfwindow = tfwindow; 
+// }
+// 
+// int TimeFormatSeconds::handle_event()
+// {
+// 	tfwindow->update(TIME_SECONDS);
+//     return 0;
+// }
+// 
+// TimeFormatFeet::TimeFormatFeet(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y)
+//  : BC_Radial(x, y, value, TIME_FEET_FRAMES_TEXT)
+// { this->pwindow = pwindow; this->tfwindow = tfwindow; }
+// 
+// int TimeFormatFeet::handle_event()
+// {
+// 	tfwindow->update(TIME_FEET_FRAMES);
+//     return 0;
+// }
 
 TimeFormatFeetSetting::TimeFormatFeetSetting(PreferencesWindow *pwindow, int x, int y, char *string)
  : BC_TextBox(x, y, DP(90), 1, string)
@@ -645,17 +654,32 @@ int ViewThemeItem::handle_event()
 
 
 
-UseTipWindow::UseTipWindow(PreferencesWindow *pwindow, int x, int y)
+// UseTipWindow::UseTipWindow(PreferencesWindow *pwindow, int x, int y)
+//  : BC_CheckBox(x, 
+//  	y, 
+// 	pwindow->thread->preferences->use_tipwindow, 
+// 	_("Show tip of the day"))
+// {
+// 	this->pwindow = pwindow;
+// }
+// int UseTipWindow::handle_event()
+// {
+// 	pwindow->thread->preferences->use_tipwindow = get_value();
+// 	return 1;
+// }
+
+
+ScrubWindowed::ScrubWindowed(PreferencesWindow *pwindow, int x, int y)
  : BC_CheckBox(x, 
  	y, 
-	pwindow->thread->preferences->use_tipwindow, 
-	_("Show tip of the day"))
+	pwindow->thread->preferences->scrub_chop, 
+	_("Choppy scrubbing (restart required)"))
 {
 	this->pwindow = pwindow;
 }
-int UseTipWindow::handle_event()
+int ScrubWindowed::handle_event()
 {
-	pwindow->thread->preferences->use_tipwindow = get_value();
+	pwindow->thread->preferences->scrub_chop = get_value();
 	return 1;
 }
 

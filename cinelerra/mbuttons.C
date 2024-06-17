@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,7 +125,7 @@ MainTransport::MainTransport(MWindow *mwindow, MButtons *mbuttons, int x, int y)
 void MainTransport::goto_start()
 {
 	mwindow->gui->unlock_window();
-	handle_transport(REWIND, 1);
+	handle_transport(REWIND, 1.0, 1);
 	mwindow->gui->lock_window();
 	mwindow->goto_start();
 }
@@ -135,7 +134,7 @@ void MainTransport::goto_start()
 void MainTransport::goto_end()
 {
 	mwindow->gui->unlock_window();
-	handle_transport(GOTO_END, 1);
+	handle_transport(GOTO_END, 1.0, 1);
 	mwindow->gui->lock_window();
 	mwindow->goto_end();
 }

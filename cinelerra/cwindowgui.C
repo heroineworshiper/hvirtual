@@ -487,7 +487,8 @@ int CWindowGUI::keypress_event()
 				{
 					int shift_down = this->shift_down();
 					unlock_window();
-					mwindow->gui->mbuttons->transport->handle_transport(STOP, 1, 0, 0);
+					mwindow->gui->mbuttons->transport->handle_transport(
+                        STOP, 1.0, 1, 0, 0);
 
 					mwindow->gui->lock_window("CWindowGUI::keypress_event 2");
 					mwindow->prev_edit_handle(shift_down);
@@ -515,7 +516,8 @@ int CWindowGUI::keypress_event()
 				{
 					int shift_down = this->shift_down();
 					unlock_window();
-					mwindow->gui->mbuttons->transport->handle_transport(STOP, 1, 0, 0);
+					mwindow->gui->mbuttons->transport->handle_transport(
+                        STOP, 1.0, 1, 0, 0);
 
 					mwindow->gui->lock_window("CWindowGUI::keypress_event 2");
 					mwindow->next_edit_handle(shift_down);
@@ -861,7 +863,7 @@ void CWindowSlider::set_position()
 int CWindowSlider::increase_value()
 {
 	unlock_window();
-	cwindow->gui->transport->handle_transport(SINGLE_FRAME_FWD);
+	cwindow->gui->transport->handle_transport(SINGLE_FRAME_FWD, 1.0);
 	lock_window("CWindowSlider::increase_value");
 	return 1;
 }
@@ -869,7 +871,7 @@ int CWindowSlider::increase_value()
 int CWindowSlider::decrease_value()
 {
 	unlock_window();
-	cwindow->gui->transport->handle_transport(SINGLE_FRAME_REWIND);
+	cwindow->gui->transport->handle_transport(SINGLE_FRAME_REWIND, 1.0);
 	lock_window("CWindowSlider::decrease_value");
 	return 1;
 }
@@ -923,7 +925,7 @@ EDL* CWindowTransport::get_edl()
 void CWindowTransport::goto_start()
 {
 	gui->unlock_window();
-	handle_transport(REWIND, 1);
+	handle_transport(REWIND, 1.0, 1);
 
 	mwindow->gui->lock_window("CWindowTransport::goto_start 1");
 	mwindow->goto_start();
@@ -935,7 +937,7 @@ void CWindowTransport::goto_start()
 void CWindowTransport::goto_end()
 {
 	gui->unlock_window();
-	handle_transport(GOTO_END, 1);
+	handle_transport(GOTO_END, 1.0, 1);
 
 	mwindow->gui->lock_window("CWindowTransport::goto_end 1");
 	mwindow->goto_end();
@@ -3471,9 +3473,13 @@ int CWindowCanvas::cursor_motion_event()
 		mwindow->restart_brender();
 		mwindow->sync_parameters(CHANGE_PARAMS);
 		gui->cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
+            1.0, // speed
 			CHANGE_NONE,
 			mwindow->edl,
-			1);
+			1, // realtime
+            0, // resume,
+            0); // use_inout
+
 		if(!redraw) gui->update_tool();
 		gui->lock_window("CWindowCanvas::cursor_motion_event 2");
 	}
@@ -3563,9 +3569,12 @@ int CWindowCanvas::button_press_event()
 		mwindow->restart_brender();
 		mwindow->sync_parameters(CHANGE_PARAMS);
 		gui->cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
+            1.0, // speed
 			CHANGE_NONE,
 			mwindow->edl,
-			1);
+			1, // realtime
+            0, // resume,
+            0); // use_inout
 		if(!redraw) gui->update_tool();
 		gui->lock_window("CWindowCanvas::button_press_event 2");
 	}

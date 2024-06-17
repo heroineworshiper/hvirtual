@@ -195,7 +195,7 @@ int VModule::import_frame(VFrame *output,
 			}
             else
 			{
-            	command = NORMAL_REWIND;
+            	command = PLAY_REV;
             }
 		}
 		else
@@ -206,7 +206,7 @@ int VModule::import_frame(VFrame *output,
 			}
             else
 			{
-            	command = NORMAL_FWD;
+            	command = PLAY_FWD;
             }
 		}
 

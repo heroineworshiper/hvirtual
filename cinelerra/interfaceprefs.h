@@ -25,19 +25,21 @@
 class IndexSize;
 class IndexCount;
 class IndexPathText;
-class TimeFormatHMS;
-class TimeFormatHMSF;
-class TimeFormatSamples;
-class TimeFormatFrames;
-class TimeFormatHex;
-class TimeFormatFeet;
-class TimeFormatSeconds;
+// class TimeFormatHMS;
+// class TimeFormatHMSF;
+// class TimeFormatSamples;
+// class TimeFormatFrames;
+// class TimeFormatHex;
+// class TimeFormatFeet;
+// class TimeFormatSeconds;
 class MeterMinDB;
 class MeterMaxDB;
 class MeterVUDB;
 class MeterVUInt;
 class ViewBehaviourText;
 //class ViewThumbnails;
+class ScrubWindowed;
+
 
 #include "browsebutton.h"
 #include "deleteallindexes.inc"
@@ -62,13 +64,13 @@ public:
 	IndexPathText *ipathtext;
 	DeleteAllIndexes *deleteall;
 
-	TimeFormatHMS *hms;
-	TimeFormatHMSF *hmsf;
-	TimeFormatSamples *samples;
-	TimeFormatHex *hex;
-	TimeFormatFrames *frames;
-	TimeFormatFeet *feet;
-	TimeFormatSeconds *seconds;
+// 	TimeFormatHMS *hms;
+// 	TimeFormatHMSF *hmsf;
+// 	TimeFormatSamples *samples;
+// 	TimeFormatHex *hex;
+// 	TimeFormatFrames *frames;
+// 	TimeFormatFeet *feet;
+// 	TimeFormatSeconds *seconds;
 
 	MeterMinDB *min_db;
 	MeterMaxDB *max_db;
@@ -105,68 +107,68 @@ public:
 	PreferencesWindow *pwindow;
 };
 
-class TimeFormatHMS : public BC_Radial
-{
-public:
-	TimeFormatHMS(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	InterfacePrefs *tfwindow;
-};
-
-class TimeFormatHMSF : public BC_Radial
-{
-public:
-	TimeFormatHMSF(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	InterfacePrefs *tfwindow;
-};
-
-class TimeFormatSamples : public BC_Radial
-{
-public:
-	TimeFormatSamples(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	InterfacePrefs *tfwindow;
-};
-
-class TimeFormatFrames : public BC_Radial
-{
-public:
-	TimeFormatFrames(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	InterfacePrefs *tfwindow;
-};
-
-class TimeFormatHex : public BC_Radial
-{
-public:
-	TimeFormatHex(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	InterfacePrefs *tfwindow;
-};
-
-class TimeFormatFeet : public BC_Radial
-{
-public:
-	TimeFormatFeet(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	InterfacePrefs *tfwindow;
-};
-
-class TimeFormatSeconds : public BC_Radial
-{
-public:
-	TimeFormatSeconds(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	InterfacePrefs *tfwindow;
-};
+// class TimeFormatHMS : public BC_Radial
+// {
+// public:
+// 	TimeFormatHMS(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// 	InterfacePrefs *tfwindow;
+// };
+// 
+// class TimeFormatHMSF : public BC_Radial
+// {
+// public:
+// 	TimeFormatHMSF(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// 	InterfacePrefs *tfwindow;
+// };
+// 
+// class TimeFormatSamples : public BC_Radial
+// {
+// public:
+// 	TimeFormatSamples(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// 	InterfacePrefs *tfwindow;
+// };
+// 
+// class TimeFormatFrames : public BC_Radial
+// {
+// public:
+// 	TimeFormatFrames(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// 	InterfacePrefs *tfwindow;
+// };
+// 
+// class TimeFormatHex : public BC_Radial
+// {
+// public:
+// 	TimeFormatHex(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// 	InterfacePrefs *tfwindow;
+// };
+// 
+// class TimeFormatFeet : public BC_Radial
+// {
+// public:
+// 	TimeFormatFeet(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// 	InterfacePrefs *tfwindow;
+// };
+// 
+// class TimeFormatSeconds : public BC_Radial
+// {
+// public:
+// 	TimeFormatSeconds(PreferencesWindow *pwindow, InterfacePrefs *tfwindow, int value, int x, int y);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// 	InterfacePrefs *tfwindow;
+// };
 
 class TimeFormatFeetSetting : public BC_TextBox
 {
@@ -268,14 +270,22 @@ public:
 	ViewTheme *popup;
 };
 
-class UseTipWindow : public BC_CheckBox
+// class UseTipWindow : public BC_CheckBox
+// {
+// public:
+// 	UseTipWindow(PreferencesWindow *pwindow, int x, int y);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// };
+
+
+class ScrubWindowed : public BC_CheckBox
 {
 public:
-	UseTipWindow(PreferencesWindow *pwindow, int x, int y);
+	ScrubWindowed(PreferencesWindow *pwindow, int x, int y);
 	int handle_event();
 	PreferencesWindow *pwindow;
 };
-
 
 class OverrideDPI : public BC_CheckBox
 {

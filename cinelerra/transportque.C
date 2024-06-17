@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +34,7 @@ TransportCommand::TransportCommand()
 	edl = new EDL;
 	edl->create_objects();
 	command = 0;
+    speed = 1.0;
 	change_type = 0;
 	reset();
 }
@@ -55,6 +55,7 @@ void TransportCommand::reset()
 // Don't reset the change type for commands which don't perform the change
 	if(command != STOP) change_type = 0;
 	command = COMMAND_NONE;
+    speed = 1.0;
 }
 
 EDL* TransportCommand::get_edl()
@@ -78,6 +79,7 @@ void TransportCommand::new_edl()
 void TransportCommand::copy_from(TransportCommand *command)
 {
 	this->command = command->command;
+    this->speed = command->speed;
 	this->change_type = command->change_type;
 	this->edl->copy_all(command->edl);
 	this->start_position = command->start_position;
@@ -106,17 +108,19 @@ int TransportCommand::get_direction()
 	switch(command)
 	{
 		case SINGLE_FRAME_FWD:
-		case NORMAL_FWD:
-		case FAST_FWD:
-		case SLOW_FWD:
+		case PLAY_FWD:
+//		case NORMAL_FWD:
+//		case FAST_FWD:
+//		case SLOW_FWD:
 		case CURRENT_FRAME:
 			return PLAY_FORWARD;
 			break;
 
 		case SINGLE_FRAME_REWIND:
-		case NORMAL_REWIND:
-		case FAST_REWIND:
-		case SLOW_REWIND:
+//		case NORMAL_REWIND:
+//		case FAST_REWIND:
+//		case SLOW_REWIND:
+		case PLAY_REV:
 			return PLAY_REVERSE;
 			break;
 
@@ -128,27 +132,28 @@ int TransportCommand::get_direction()
 
 float TransportCommand::get_speed()
 {
-	switch(command)
-	{
-		case SLOW_FWD:
-		case SLOW_REWIND:
-			return 0.5;
-			break;
-		
-		case NORMAL_FWD:
-		case NORMAL_REWIND:
-		case SINGLE_FRAME_FWD:
-		case SINGLE_FRAME_REWIND:
-		case CURRENT_FRAME:
-			return 1;
-			break;
-		
-		case FAST_FWD:
-		case FAST_REWIND:
-			return 2;
-			break;
-	}
-    return 0;
+    return speed;
+// 	switch(command)
+// 	{
+// 		case SLOW_FWD:
+// 		case SLOW_REWIND:
+// 			return 0.5;
+// 			break;
+// 		
+// 		case NORMAL_FWD:
+// 		case NORMAL_REWIND:
+// 		case SINGLE_FRAME_FWD:
+// 		case SINGLE_FRAME_REWIND:
+// 		case CURRENT_FRAME:
+// 			return 1;
+// 			break;
+// 		
+// 		case FAST_FWD:
+// 		case FAST_REWIND:
+// 			return 2;
+// 			break;
+// 	}
+//     return 0;
 }
 
 // Assume starting without pause
@@ -161,9 +166,10 @@ void TransportCommand::set_playback_range(EDL *edl, int use_inout)
 
 	switch(command)
 	{
-		case SLOW_FWD:
-		case FAST_FWD:
-		case NORMAL_FWD:
+        case PLAY_FWD:
+// 		case SLOW_FWD:
+// 		case FAST_FWD:
+// 		case NORMAL_FWD:
 			start_position = edl->local_session->get_selectionstart(1);
 			if(EQUIV(edl->local_session->get_selectionend(1), edl->local_session->get_selectionstart(1)))
 				end_position = edl->tracks->total_playable_length();
@@ -177,9 +183,10 @@ void TransportCommand::set_playback_range(EDL *edl, int use_inout)
 			}
 			break;
 		
-		case SLOW_REWIND:
-		case FAST_REWIND:
-		case NORMAL_REWIND:
+        case PLAY_REV:
+// 		case SLOW_REWIND:
+// 		case FAST_REWIND:
+// 		case NORMAL_REWIND:
 			end_position = edl->local_session->get_selectionend(1);
 			if(EQUIV(edl->local_session->get_selectionend(1), edl->local_session->get_selectionstart(1)))
 				start_position = 0;
@@ -281,6 +288,7 @@ TransportQue::~TransportQue()
 }
 
 int TransportQue::send_command(int command, 
+        float speed,
 		int change_type, 
 		EDL *new_edl, 
 		int realtime,
@@ -289,6 +297,7 @@ int TransportQue::send_command(int command,
 {
 	input_lock->lock("TransportQue::send_command 1");
 	this->command.command = command;
+    this->command.speed = speed;
 // Mutually exclusive operation
 	this->command.change_type |= change_type;
 	this->command.realtime = realtime;

@@ -268,7 +268,6 @@ public:
 	int get_video_capturesize();    // Number of frames to read from device at a time
 	int get_meter_over_hold(int divisions);
 	int get_meter_peak_hold(int divisions);
-	int get_meter_speed();
 
 	int64_t get_playback_buffer();
 	int enable_duplex();

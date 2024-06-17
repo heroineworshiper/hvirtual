@@ -482,7 +482,7 @@ void BatchRenderThread::calculate_dest_paths(ArrayList<char*> *paths,
 			file->read_from_file(job->edl_path);
 
 // Use command to calculate range.
-			command->command = NORMAL_FWD;
+			command->command = PLAY_FWD;
 			command->get_edl()->load_xml(file, 
 				LOAD_ALL);
 			command->change_type = CHANGE_ALL;

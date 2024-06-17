@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,7 +97,7 @@ int64_t MTimeBar::position_to_pixel(double position)
 void MTimeBar::stop_playback()
 {
 	gui->unlock_window();
-	gui->mbuttons->transport->handle_transport(STOP, 1, 0, 0);
+	gui->mbuttons->transport->handle_transport(STOP, 1.0, 1, 0, 0);
 	gui->lock_window();
 }
 
@@ -470,7 +469,7 @@ void MTimeBar::select_label(double position)
 	EDL *edl = mwindow->edl;
 
 	gui->unlock_window();
-	gui->mbuttons->transport->handle_transport(STOP, 1, 0, 0);
+	gui->mbuttons->transport->handle_transport(STOP, 1.0, 1, 0, 0);
 	gui->lock_window();
 
 	position = mwindow->edl->align_to_frame(position, 1);

@@ -58,7 +58,6 @@ extern void get_exe_path(char *result);
 Preferences::Preferences()
 {
 // Set defaults
-	FileSystem fs;
 
 	preferences_lock = new Mutex("Preferences::preferences_lock");
 
@@ -69,15 +68,16 @@ Preferences::Preferences()
 	index_directory.assign(BCASTDIR);
 	if(index_directory.length() > 0)
 	{
+	    FileSystem fs;
     	fs.complete_path(&index_directory);
 	}
-    
+
     cache_size = 0xa00000;
 	index_size = 0x300000;
 	index_count = 100;
 //	use_thumbnails = 1;
 	theme[0] = 0;
-    
+
     dump_playback = 0;
     use_gl_rendering = 0;
     use_hardware_decoding = 0;
@@ -111,7 +111,7 @@ Preferences::Preferences()
 	brender_fragment = 1;
 	local_rate = 0.0;
 
-	use_tipwindow = 0;
+//	use_tipwindow = 0;
 	override_dpi = 0;
 	dpi = BASE_DPI;
 
@@ -202,7 +202,7 @@ void Preferences::copy_from(Preferences *that)
 //	use_thumbnails = that->use_thumbnails;
 	strcpy(theme, that->theme);
 
-	use_tipwindow = that->use_tipwindow;
+//	use_tipwindow = that->use_tipwindow;
 	override_dpi = that->override_dpi;
 	dpi = that->dpi;
 
@@ -230,6 +230,7 @@ void Preferences::copy_from(Preferences *that)
 	video_every_frame = that->video_every_frame;
 	view_follows_playback = that->view_follows_playback;
 	real_time_playback = that->real_time_playback;
+	scrub_chop = that->scrub_chop;
 	recording_format->copy_from(that->recording_format, 0);
 
     dump_playback = that->dump_playback;
@@ -340,6 +341,7 @@ int Preferences::load_defaults(BC_Hash *defaults)
 	view_follows_playback = defaults->get("VIEW_FOLLOWS_PLAYBACK", 1);
 	video_every_frame = defaults->get("VIDEO_EVERY_FRAME", 1);
 	real_time_playback = defaults->get("PLAYBACK_REALTIME", 0);
+	scrub_chop = defaults->get("SCRUB_CHOP", 1);
 	playback_software_position = defaults->get("PLAYBACK_SOFTWARE_POSITION", 0);
 	aconfig_in->load_defaults(defaults);
 	vconfig_in->load_defaults(defaults);
@@ -361,7 +363,7 @@ int Preferences::load_defaults(BC_Hash *defaults)
 		1,
 		1);
 
-	use_tipwindow = defaults->get("USE_TIPWINDOW", use_tipwindow);
+//	use_tipwindow = defaults->get("USE_TIPWINDOW", use_tipwindow);
 	override_dpi = defaults->get("OVERRIDE_DPI", override_dpi);
 	dpi = defaults->get("DPI", dpi);
 //printf("Preferences::load_defaults %d dpi=%d\n", __LINE__, dpi);
@@ -472,7 +474,7 @@ int Preferences::save_defaults(BC_Hash *defaults)
 	char string[BCTEXTLEN];
 
 
-	defaults->update("USE_TIPWINDOW", use_tipwindow);
+//	defaults->update("USE_TIPWINDOW", use_tipwindow);
 	defaults->update("OVERRIDE_DPI", override_dpi);
 	defaults->update("DPI", dpi);
 
@@ -538,6 +540,7 @@ int Preferences::save_defaults(BC_Hash *defaults)
 
 	playback_config->save_defaults(defaults);
     defaults->update("PLAYBACK_REALTIME", real_time_playback);
+    defaults->update("SCRUB_CHOP", scrub_chop);
     defaults->update("VIDEO_EVERY_FRAME", video_every_frame);
     defaults->update("VIEW_FOLLOWS_PLAYBACK", view_follows_playback);
     defaults->update("PLAYBACK_SOFTWARE_POSITION", playback_software_position);

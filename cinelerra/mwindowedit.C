@@ -107,9 +107,12 @@ void MWindow::add_audio_track_entry(int above, Track *dst)
 //	gui->canvas->flash();
 //	gui->canvas->activate();
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
+        1.0, // speed
 		CHANGE_EDL,
 		edl,
-		1);
+		1, // realtime
+        0, // resume,
+        0); // use_inout
 }
 
 void MWindow::add_video_track_entry(Track *dst)
@@ -135,9 +138,12 @@ void MWindow::add_video_track_entry(Track *dst)
 //	gui->canvas->flash();
 //	gui->canvas->activate();
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-							CHANGE_EDL,
-							edl,
-							1);
+        1.0, // speed
+		CHANGE_EDL,
+		edl,
+		1, // realtime
+        0, // resume,
+        0); // use_inout
 	save_backup();
 }
 
@@ -345,9 +351,12 @@ void MWindow::clear_entry()
 	gui->update(1, 2, 1, 1, 1, 1, 0);
 	cwindow->update(1, 0, 0, 0, 1);
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-	    		   CHANGE_EDL,
-	    		   edl,
-	    		   1);
+        1.0, // speed
+        CHANGE_EDL,
+        edl,
+        1, // realtime
+        0, // resume,
+        0); // use_inout
 }
 
 void MWindow::clear(int clear_handle, int deglitch)
@@ -454,9 +463,12 @@ void MWindow::concatenate_tracks()
 	restart_brender();
 	gui->update(1, 1, 0, 0, 1, 0, 0);
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
+        1.0, // speed
 		CHANGE_EDL,
 		edl,
-		1);
+		1, // realtime
+        0, // resume,
+        0); // use_inout
 }
 
 
@@ -657,9 +669,12 @@ void MWindow::crop_video()
 
 	restart_brender();
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME,
+        1.0, // speed
 		CHANGE_ALL,
 		edl,
-		1);
+		1, // realtime
+        0, // resume,
+        0); // use_inout
 	save_backup();
 }
 
@@ -687,9 +702,12 @@ void MWindow::cut()
 	update_plugin_guis();
 	gui->update(1, 2, 1, 1, 1, 1, 0);
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-							CHANGE_EDL,
-							edl,
-							1);
+        1.0, // speed
+        CHANGE_EDL,
+        edl,
+        1, // realtime
+        0, // resume,
+        0); // use_inout
 }
 
 int MWindow::cut_automation()
@@ -761,9 +779,12 @@ void MWindow::delete_tracks()
 	update_plugin_states();
 	gui->update(1, 1, 1, 0, 1, 0, 0);
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-	    		   CHANGE_EDL,
-	    		   edl,
-	    		   1);
+        1.0, // speed
+        CHANGE_EDL,
+        edl,
+        1, // realtime
+        0, // resume,
+        0); // use_inout
 }
 
 void MWindow::delete_track(Track *track)
@@ -776,9 +797,12 @@ void MWindow::delete_track(Track *track)
 	update_plugin_states();
 	gui->update(1, 1, 1, 0, 1, 0, 0);
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-	    		   CHANGE_EDL,
-	    		   edl,
-	    		   1);
+        1.0, // speed
+        CHANGE_EDL,
+        edl,
+        1, // realtime
+        0, // resume,
+        0); // use_inout
 	save_backup();
 }
 
@@ -1127,9 +1151,12 @@ void MWindow::move_edits(ArrayList<Edit*> *edits,
 
 	restart_brender();
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-		CHANGE_EDL,
-		edl,
-		1);
+        1.0, // speed
+        CHANGE_EDL,
+        edl,
+        1, // realtime
+        0, // resume,
+        0); // use_inout
 
 	update_plugin_guis();
 	gui->update(1,
@@ -1158,9 +1185,12 @@ void MWindow::move_effect(Plugin *plugin,
 
 	restart_brender();
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-		CHANGE_EDL,
-		edl,
-		1);
+        1.0, // speed
+        CHANGE_EDL,
+        edl,
+        1, // realtime
+        0, // resume,
+        0); // use_inout
 
 	update_plugin_guis();
 	gui->update(1,
@@ -1290,9 +1320,12 @@ void MWindow::mute_selection()
 		update_plugin_guis();
 		gui->update(1, 2, 1, 1, 1, 1, 0);
 		cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-								CHANGE_EDL,
-								edl,
-								1);
+        	1.0, // speed
+            CHANGE_EDL,
+            edl,
+            1, // realtime
+            0, // resume,
+            0); // use_inout
 	}
 }
 
@@ -2130,9 +2163,12 @@ void MWindow::paste_silence()
 	gui->update(1, 2, 1, 1, 1, 1, 0);
 	cwindow->update(1, 0, 0, 0, 1);
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-							CHANGE_EDL,
-							edl,
-							1);
+        1.0, // speed
+        CHANGE_EDL,
+        edl,
+        1, // realtime
+        0, // resume,
+        0); // use_inout
 }
 
 void MWindow::detach_transition(Transition *transition)
@@ -2562,9 +2598,12 @@ void MWindow::redo_entry(BC_WindowBase *calling_window_gui)
 	calling_window_gui->unlock_window();
 
 	cwindow->playback_engine->que->send_command(STOP,
+        1.0, // speed
 		CHANGE_NONE, 
-		0,
-		0);
+		0, // EDL
+		0, // realtime
+        0, // resume,
+        0); // use_inout
 	cwindow->playback_engine->interrupt_playback(0);
 
 	for(int i = 0; i < vwindows.size(); i++)
@@ -2572,9 +2611,12 @@ void MWindow::redo_entry(BC_WindowBase *calling_window_gui)
 		if(vwindows.get(i)->is_running())
 		{
 			vwindows.get(i)->playback_engine->que->send_command(STOP,
+                1.0, // speed
 				CHANGE_NONE, 
-				0,
-				0);
+				0, // EDL
+		        0, // realtime
+                0, // resume,
+                0); // use_inout
 			vwindows.get(i)->playback_engine->interrupt_playback(0);
 		}
 	}
@@ -2619,9 +2661,12 @@ void MWindow::redo_entry(BC_WindowBase *calling_window_gui)
 	}
 
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-	    		   CHANGE_ALL,
-	    		   edl,
-	    		   1);
+        1.0, // speed
+        CHANGE_ALL,
+        edl,
+        1, // realtime
+        0, // resume,
+        0); // use_inout
 	
 }
 
@@ -2860,9 +2905,12 @@ void MWindow::trim_selection()
 	gui->update(1, 2, 1, 1, 1, 1, 0);
 	restart_brender();
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-							CHANGE_EDL,
-							edl,
-							1);
+        1.0, // speed
+        CHANGE_EDL,
+        edl,
+        1, // realtime
+        0, // resume,
+        0); // use_inout
 }
 
 
@@ -2873,9 +2921,12 @@ void MWindow::undo_entry(BC_WindowBase *calling_window_gui)
 	calling_window_gui->unlock_window();
 
 	cwindow->playback_engine->que->send_command(STOP,
+        1.0, // speed
 		CHANGE_NONE, 
-		0,
-		0);
+        0, // EDL
+        0, // realtime
+        0, // resume,
+        0); // use_inout
 	cwindow->playback_engine->interrupt_playback(0);
 
 //printf("MWindow::undo_entry %d %d\n", __LINE__, vwindows.size());
@@ -2884,9 +2935,12 @@ void MWindow::undo_entry(BC_WindowBase *calling_window_gui)
 		if(vwindows.get(i)->is_running())
 		{
 			vwindows.get(i)->playback_engine->que->send_command(STOP,
+                1.0, // speed
 				CHANGE_NONE, 
-				0,
-				0);
+				0, // EDL
+		        0, // realtime
+                0, // resume,
+                0); // use_inout
 			vwindows.get(i)->playback_engine->interrupt_playback(0);
 		}
 	}
@@ -2943,9 +2997,12 @@ void MWindow::undo_entry(BC_WindowBase *calling_window_gui)
 	awindow->gui->unlock_window();
 
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-	    		   CHANGE_ALL,
-	    		   edl,
-	    		   1);
+        1.0, // speed
+        CHANGE_ALL,
+        edl,
+        1, // realtime
+        0, // resume,
+        0); // use_inout
 }
 
 

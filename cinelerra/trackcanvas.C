@@ -5238,7 +5238,7 @@ int TrackCanvas::button_press_event()
 		if(get_buttonpress() == LEFT_BUTTON)
 		{
 			gui->unlock_window();
-			gui->mbuttons->transport->handle_transport(STOP, 1, 0, 0);
+			gui->mbuttons->transport->handle_transport(STOP, 1.0, 1, 0, 0);
 			gui->lock_window("TrackCanvas::button_press_event");
 		}
 

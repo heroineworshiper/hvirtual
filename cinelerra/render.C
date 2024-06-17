@@ -690,7 +690,7 @@ void RenderThread::render_single(int test_overwrite,
 
 // Create rendering command
 	TransportCommand *command = new TransportCommand;
-	command->command = NORMAL_FWD;
+	command->command = PLAY_FWD;
 	command->get_edl()->copy_all(edl);
 	command->change_type = CHANGE_ALL;
 // Get highlighted playback range

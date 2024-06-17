@@ -67,9 +67,12 @@ PlaybackEngine::~PlaybackEngine()
 {
 	done = 1;
 	que->send_command(STOP,
+        1.0, // speed
 		CHANGE_NONE, 
-		0,
-		0);
+		0, // EDL
+		0, // realtime
+        0, // resume
+        0); // use_inout
 	interrupt_playback();
 
 	Thread::join();

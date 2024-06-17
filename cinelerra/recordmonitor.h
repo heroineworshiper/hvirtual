@@ -22,7 +22,7 @@
 #ifndef RECORDMONITOR_H
 #define RECORDMONITOR_H
 
-#include "avc1394transport.h"
+//#include "avc1394transport.h"
 #include "bcdialog.h"
 #include "canvas.h"
 #include "channelpicker.inc"
@@ -105,8 +105,8 @@ public:
 	MeterPanel *meters;
 	Canvas *canvas;
 //	RecordTransport *record_transport;
-	AVC1394Transport *avc1394_transport;
-	AVC1394TransportThread *avc1394transport_thread;
+//	AVC1394Transport *avc1394_transport;
+//	AVC1394TransportThread *avc1394transport_thread;
 	RecordChannelPicker *channel_picker;
 	ScopeEnable *scope_toggle;
 	DoCursor *cursor_toggle;
@@ -143,9 +143,9 @@ public:
 	BC_Bitmap *bitmap;
 	RecordMonitor *thread;
 	Record *record;
-	AVC1394Control *avc;
-	BC_Title *avc1394transport_title;
-	BC_Title *avc1394transport_timecode;
+//	AVC1394Control *avc;
+//	BC_Title *avc1394transport_title;
+//	BC_Title *avc1394transport_timecode;
 };
 
 

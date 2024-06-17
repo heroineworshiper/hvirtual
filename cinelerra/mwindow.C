@@ -95,7 +95,7 @@
 #include "theme.h"
 #include "threadloader.h"
 #include "timebar.h"
-#include "tipwindow.h"
+//#include "tipwindow.h"
 #include "trackcanvas.h"
 #include "track.h"
 #include "tracking.h"
@@ -844,11 +844,11 @@ void MWindow::init_gwindow()
 	gwindow->create_objects();
 }
 
-void MWindow::init_tipwindow()
-{
-	twindow = new TipWindow(this);
-	twindow->start();
-}
+// void MWindow::init_tipwindow()
+// {
+// 	twindow = new TipWindow(this);
+// 	twindow->start();
+// }
 
 void MWindow::init_theme()
 {
@@ -1092,9 +1092,12 @@ int MWindow::load_filenames(ArrayList<char*> *filenames,
 // Need to stop playback since tracking depends on the EDL not getting
 // deleted.
 	cwindow->playback_engine->que->send_command(STOP,
+        1.0, // speed
 		CHANGE_NONE, 
-		0,
-		0);
+		0, // EDL
+		0, // realtime
+        0, // resume,
+        0); // use_inout
 	cwindow->playback_engine->interrupt_playback(0);
 //printf("MWindow::load_filenames %d conform=%d\n", __LINE__, conform);
 
@@ -1104,9 +1107,12 @@ int MWindow::load_filenames(ArrayList<char*> *filenames,
 		if(vwindow->running())
 		{
 			vwindow->playback_engine->que->send_command(STOP,
+                1.0, // speed
 				CHANGE_NONE, 
-				0,
-				0);
+				0, // EDL
+		        0, // realtime
+                0, // resume,
+                0); // use_inout
 			vwindow->playback_engine->interrupt_playback(0);
 		}
 	}
@@ -1764,6 +1770,7 @@ void MWindow::create_objects(int want_gui,
 // need DPI before initializing graphics
 	init_defaults(defaults, config_path);
 	if(debug) PRINT_TRACE
+
 	init_preferences();
 
 	BC_Resources::override_dpi = preferences->override_dpi;
@@ -1938,8 +1945,8 @@ void MWindow::create_objects(int want_gui,
 
 
 
-	if(preferences->use_tipwindow)
-		init_tipwindow();
+// 	if(preferences->use_tipwindow)
+// 		init_tipwindow();
 	if(debug) PRINT_TRACE
 
 
@@ -2169,28 +2176,37 @@ void MWindow::sync_parameters(int change_type)
 // Stop and restart
 		{
 			int command = cwindow->playback_engine->command->command;
+            float speed = cwindow->playback_engine->command->speed;
 			cwindow->playback_engine->que->send_command(STOP,
+                1.0, // speed
 				CHANGE_NONE, 
-				0,
-				0);
+				0, // EDL
+		        0, // realtime
+                0, // resume,
+                0); // use_inout
 // Waiting for tracking to finish would make the restart position more
 // accurate but it can't lock the window to stop tracking for some reason.
 // Not waiting for tracking gives a faster response but restart position is
 // only as accurate as the last tracking update.
 			cwindow->playback_engine->interrupt_playback(0);
 			cwindow->playback_engine->que->send_command(command,
-					change_type, 
-					edl,
-					1,
-					0);
+                speed,
+				change_type, 
+				edl,
+				1, // realtime
+                0, // resume,
+                0); // use_inout
 		}
 	}
 	else
 	{
 		cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
-							change_type,
-							edl,
-							1);
+            1.0, // speed
+			change_type,
+			edl,
+			1, // realtime
+            0, // resume,
+            0); // use_inout
 	}
 }
 
@@ -2778,9 +2794,12 @@ void MWindow::update_project(int load_mode)
 
 	if(debug) PRINT_TRACE
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
+        1.0, // speed
 		CHANGE_ALL,
 		edl,
-		1);
+		1, // realtime
+        0, // resume,
+        0); // use_inout
 
 	if(debug) PRINT_TRACE
 

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ public:
 	void new_edl();
 
 	int command;
+    float speed;
 	int change_type;
 // lowest numbered second in playback range
 	double start_position;
@@ -76,13 +77,14 @@ public:
 	~TransportQue();
 
 	int send_command(int command, 
+        float speed, // 0.5, 1.0, 2.0, 4.0
 // The change type is ORed to accumulate changes.
 		int change_type, 
 		EDL *new_edl,
 		int realtime,
 // Persistent starting point
-		int resume = 0,
-		int use_inout = 0);
+		int resume/* = 0*/,
+		int use_inout/* = 0*/);
 	void update_change_type(int change_type);
 
 	TransportCommand command;

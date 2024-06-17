@@ -77,7 +77,6 @@ EDLSession::EDLSession(EDL *edl)
 	output_h = -1000;
 	video_write_length = -1000;
 	color_model = BC_RGB888;
-	record_speed = 24;
 	decode_subtitles = 0;
 	subtitle_number = 0;
 	cwindow_meter = 0;
@@ -246,7 +245,6 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 
 //	safe_regions = defaults->get("SAFE_REGIONS", 0);
 	sample_rate = defaults->get("SAMPLERATE", 48000);
-	scrub_speed = defaults->get("SCRUB_SPEED", (float)2);
 	show_assets = defaults->get("SHOW_ASSETS", 1);
 	show_titles = defaults->get("SHOW_TITLES", 1);
 //	test_playback_edits = defaults->get("TEST_PLAYBACK_EDITS", 1);
@@ -359,7 +357,6 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("RECORD_WRITE_LENGTH", record_write_length); // Heroine kernel 2.2 scheduling sucks.
 //	defaults->update("SAFE_REGIONS", safe_regions);
 	defaults->update("SAMPLERATE", sample_rate);
-    defaults->update("SCRUB_SPEED", scrub_speed);
 	defaults->update("SHOW_ASSETS", show_assets);
 	defaults->update("SHOW_TITLES", show_titles);
 //	defaults->update("TEST_PLAYBACK_EDITS", test_playback_edits);
@@ -775,7 +772,6 @@ int EDLSession::copy(EDLSession *session)
 //	safe_regions = session->safe_regions;
 	sample_rate = session->sample_rate;
     nested_sample_rate = session->nested_sample_rate;
-	scrub_speed = session->scrub_speed;
 	show_assets = session->show_assets;
 	show_titles = session->show_titles;
 	test_playback_edits = session->test_playback_edits;

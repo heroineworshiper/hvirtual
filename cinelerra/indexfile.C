@@ -342,7 +342,7 @@ int IndexFile::open_source()
 	else
 	{
 		TransportCommand command;
-		command.command = NORMAL_FWD;
+		command.command = PLAY_FWD;
 		command.get_edl()->copy_all((EDL*)indexable);
 		command.change_type = CHANGE_ALL;
 		command.realtime = 0;

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,7 +99,7 @@ void CTimeBar::select_label(double position)
 	EDL *edl = mwindow->edl;
 
 	gui->unlock_window();
-	mwindow->gui->mbuttons->transport->handle_transport(STOP, 1, 0, 0);
+	mwindow->gui->mbuttons->transport->handle_transport(STOP, 1.0, 1, 0, 0);
 	gui->lock_window();
 
 	position = mwindow->edl->align_to_frame(position, 1);

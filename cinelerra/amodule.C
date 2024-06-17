@@ -380,11 +380,11 @@ speed_fragment_len);
 
 		if(direction == PLAY_REVERSE)
 		{
-        	command = NORMAL_REWIND;
+        	command = PLAY_REV;
 		}
         else
 		{
-        	command = NORMAL_FWD;
+        	command = PLAY_FWD;
         }
 
 if(debug) printf("AModule::import_samples %d\n", __LINE__);

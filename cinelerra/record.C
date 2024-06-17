@@ -1392,7 +1392,6 @@ int Record::get_software_positioning() { return mwindow->edl->session->record_so
 int64_t Record::get_out_buffersize() { return mwindow->edl->session->playback_buffer; }
 int64_t Record::get_in_buffersize() { return mwindow->edl->session->record_write_length; }
 int Record::get_realtime() { return realtime; }
-int Record::get_meter_speed() { return mwindow->edl->session->record_speed; }
 
 int Record::enable_duplex() { return mwindow->edl->session->enable_duplex; }
 int64_t Record::get_playback_buffer() { return mwindow->edl->session->playback_buffer; }

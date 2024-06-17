@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -224,9 +223,12 @@ void CWindow::update(int position,
 #endif
 
 		playback_engine->que->send_command(CURRENT_FRAME, 
+            1.0, // speed
 			CHANGE_NONE,
 			mwindow->edl,
-			1);
+			1, // realtime
+            0, // resume,
+            0); // use_inout
 	}
 
 	gui->lock_window("CWindow::update 2");

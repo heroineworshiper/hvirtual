@@ -352,7 +352,7 @@ void ResourceThread::open_render_engine(EDL *nested_edl,
 	{
 		TransportCommand command;
 		if(do_audio)
-			command.command = NORMAL_FWD;
+			command.command = PLAY_FWD;
 		else
 			command.command = CURRENT_FRAME;
 		command.get_edl()->copy_all(nested_edl);

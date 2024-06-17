@@ -1307,25 +1307,25 @@ int TypelessKeyframes::handle_event()
 }
 
 
-ScrubSpeed::ScrubSpeed(MWindow *mwindow) : BC_MenuItem(_("Slow Shuttle"))
-{
-	this->mwindow = mwindow;
-}
-
-int ScrubSpeed::handle_event()
-{
-	if(mwindow->edl->session->scrub_speed == .5)
-	{
-		mwindow->edl->session->scrub_speed = 2;
-		set_text(_("Slow Shuttle"));
-	}
-	else
-	{
-		mwindow->edl->session->scrub_speed = .5;
-		set_text(_("Fast Shuttle"));
-	}
-    return 0;
-}
+// ScrubSpeed::ScrubSpeed(MWindow *mwindow) : BC_MenuItem(_("Slow Shuttle"))
+// {
+// 	this->mwindow = mwindow;
+// }
+// 
+// int ScrubSpeed::handle_event()
+// {
+// 	if(mwindow->edl->session->scrub_speed == .5)
+// 	{
+// 		mwindow->edl->session->scrub_speed = 2;
+// 		set_text(_("Slow Shuttle"));
+// 	}
+// 	else
+// 	{
+// 		mwindow->edl->session->scrub_speed = .5;
+// 		set_text(_("Fast Shuttle"));
+// 	}
+//     return 0;
+// }
 
 SaveSettingsNow::SaveSettingsNow(MWindow *mwindow) : BC_MenuItem(_("Save settings now")) 
 { 

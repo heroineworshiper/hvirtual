@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,7 +77,7 @@ void VTimeBar::select_label(double position)
 	if(edl)
 	{
 		unlock_window();
-		gui->transport->handle_transport(STOP, 1, 0, 0);
+		gui->transport->handle_transport(STOP, 1.0, 1, 0, 0);
 		lock_window();
 
 		position = mwindow->edl->align_to_frame(position, 1);

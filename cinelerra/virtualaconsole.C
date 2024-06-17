@@ -32,6 +32,7 @@
 #include "edlsession.h"
 #include "file.h"
 #include "levelwindow.h"
+
 #include "playabletracks.h"
 #include "plugin.h"
 #include "preferences.h"
@@ -244,20 +245,31 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 // Time stretch the fragment to the real_output size
 			if(renderengine->command->get_speed() > 1)
 			{
+// printf("VirtualAConsole::process_buffer %d scrub_chop=%d\n", 
+// __LINE__,
+// renderengine->preferences->scrub_chop);
 // Number of samples in real output buffer for each to sample rendered.
-				int interpolate_len = (int)renderengine->command->get_speed();
-				for(in = 0, out = 0; in < len; )
-				{
-					sample = 0;
-					for(k = 0; k < interpolate_len; k++)
-					{
-						sample += current_buffer[in++];
-					}
+                if(renderengine->preferences->scrub_chop)
+                {
+// chop the buffer length
+                    real_output_len = len / renderengine->command->get_speed();
+                }
+                else
+                {
+				    int interpolate_len = (int)renderengine->command->get_speed();
+				    for(in = 0, out = 0; in < len; )
+				    {
+					    sample = 0;
+					    for(k = 0; k < interpolate_len; k++)
+					    {
+						    sample += current_buffer[in++];
+					    }
 
-					sample /= renderengine->command->get_speed();
-					current_buffer[out++] = sample;
-				}
-				real_output_len = out;
+					    sample /= renderengine->command->get_speed();
+					    current_buffer[out++] = sample;
+				    }
+				    real_output_len = out;
+                }
 			}
 			else
 			if(renderengine->command->get_speed() < 1)

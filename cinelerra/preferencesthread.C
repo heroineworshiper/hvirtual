@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2011-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -274,9 +273,12 @@ int PreferencesThread::apply_settings()
 // This doesn't stop and restart, only reloads the assets before
 // the next play command.
 		mwindow->cwindow->playback_engine->que->send_command(CURRENT_FRAME,
+            1.0, // speed
 			CHANGE_ALL,
 			mwindow->edl,
-			1);
+			1, // realtime
+            0, // resume,
+            0); // use_inout
 //printf("PreferencesThread::apply_settings 10\n");
 	}
 

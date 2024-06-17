@@ -580,14 +580,14 @@ public:
 	MWindow *mwindow;
 };
 
-class ScrubSpeed : public BC_MenuItem
-{
-public:
-	ScrubSpeed(MWindow *mwindow);
-	int handle_event();
-	MWindow *mwindow;
-};
-
+// class ScrubSpeed : public BC_MenuItem
+// {
+// public:
+// 	ScrubSpeed(MWindow *mwindow);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// };
+// 
 class SaveSettingsNow : public BC_MenuItem
 {
 public:

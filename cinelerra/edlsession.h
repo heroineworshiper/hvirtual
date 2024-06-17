@@ -170,8 +170,6 @@ public:
 	int record_software_position;
 // Sync the drives during recording
 	int record_sync_drives;
-// Speed of meters when recording
-	int record_speed;
 // Samples to read from device at a time
 	int record_fragment_size;
 // Samples to write to disk at a time
@@ -182,7 +180,6 @@ public:
 // sample rate if nested.  Only accessed by the owning EDL.
 // -1 if the same as the project sample rate.
 	int64_t nested_sample_rate;
-	float scrub_speed;
 // Show assets in track canvas
 	int show_assets;
 // Show titles in resources

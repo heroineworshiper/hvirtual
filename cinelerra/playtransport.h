@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +61,7 @@ public:
 // update_refresh - causes a frame advance to be issued after STOP to update
 // the refresh frame.
 	void handle_transport(int command, 
+        float speed,
 		int wait_tracking = 0, 
 		int use_inout = 0,
 		int update_refresh = 1);

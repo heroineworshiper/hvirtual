@@ -146,9 +146,6 @@ public:
 // Consolidate output files
 	int renderfarm_consolidate;
 
-// Tip of the day
-	int use_tipwindow;
-
 	int override_dpi;
 	int dpi;
 
@@ -162,7 +159,8 @@ public:
 	int playback_software_position;
 // Play audio in realtime priority
 	int real_time_playback;
-
+// scrubbing style
+    int scrub_chop;
 
 
 // ====================================== Plugin Set ==============================

@@ -81,8 +81,6 @@ OBJS = \
 	$(OBJDIR)/autos.o \
 	$(OBJDIR)/autoconf.o \
 	$(OBJDIR)/automation.o \
-	$(OBJDIR)/avc1394control.o \
-	$(OBJDIR)/avc1394transport.o \
 	$(OBJDIR)/awindow.o \
 	$(OBJDIR)/awindowgui.o \
 	$(OBJDIR)/awindowmenu.o \
@@ -303,7 +301,6 @@ OBJS = \
 	$(OBJDIR)/timelinepane.o \
 	$(OBJDIR)/timebar.o \
 	$(OBJDIR)/timeentry.o \
-	$(OBJDIR)/tipwindow.o \
 	$(OBJDIR)/track.o \
 	$(OBJDIR)/trackcanvas.o \
 	$(OBJDIR)/tracking.o \
@@ -352,6 +349,9 @@ OBJS = \
 	$(OBJDIR)/zoompanel.o
 
 
+#	$(OBJDIR)/avc1394control.o \
+#	$(OBJDIR)/avc1394transport.o \
+#	$(OBJDIR)/tipwindow.o \
 #	$(OBJDIR)/filecr2.o \
 #	$(OBJDIR)/edithandles.o \
 #	$(OBJDIR)/dcoffset.o \
@@ -648,8 +648,6 @@ $(OBJDIR)/auto.o: 				  auto.C
 $(OBJDIR)/autos.o: 				  autos.C
 $(OBJDIR)/autoconf.o: 				  autoconf.C
 $(OBJDIR)/automation.o: 			  automation.C
-$(OBJDIR)/avc1394control.o:		          avc1394control.C
-$(OBJDIR)/avc1394transport.o:                     avc1394transport.C
 $(OBJDIR)/awindow.o: 				  awindow.C
 $(OBJDIR)/awindowgui.o: 			  awindowgui.C
 $(OBJDIR)/awindowmenu.o: 			  awindowmenu.C
@@ -889,7 +887,6 @@ $(OBJDIR)/timebar.o: 				  timebar.C
 $(OBJDIR)/timebomb.o: 				  timebomb.C
 $(OBJDIR)/timeentry.o:  			  timeentry.C
 $(OBJDIR)/timelinepane.o:  			  timelinepane.C
-$(OBJDIR)/tipwindow.o:                            tipwindow.C
 $(OBJDIR)/toggleauto.o: 			  toggleauto.C
 $(OBJDIR)/toggleautos.o: 			  toggleautos.C
 $(OBJDIR)/track.o: 				  track.C
@@ -946,7 +943,11 @@ $(OBJDIR)/zoombar.o: 				  zoombar.C
 $(OBJDIR)/zoompanel.o:  			  zoompanel.C
 
 
+#$(OBJDIR)/avc1394control.o:		          avc1394control.C
+#$(OBJDIR)/avc1394transport.o:                     avc1394transport.C
 #$(OBJDIR)/aplugin.o: 				  aplugin.C
 #$(OBJDIR)/vplugin.o \
 #$(OBJDIR)/vpluginset.o \
 #$(OBJDIR)/apluginset.o: 			  apluginset.C
+
+#$(OBJDIR)/tipwindow.o:                            tipwindow.C

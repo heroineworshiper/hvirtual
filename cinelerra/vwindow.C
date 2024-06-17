@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2023 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -404,9 +404,12 @@ void VWindow::update_position(int change_type,
 //printf("VWindow::update_position %d %p\n", __LINE__, playback_engine);
 //edl->dump();
 		playback_engine->que->send_command(CURRENT_FRAME, 
+            1.0, // speed
 			change_type,
 			edl,
-			1);
+			1, // realtime
+            0, // resume,
+            0); // use_inout
 
 //printf("VWindow::update_position %d\n", __LINE__);
 		if(lock_window) gui->lock_window("VWindow::update_position");

@@ -84,7 +84,7 @@
 #include "threadloader.inc"
 #include "timebar.inc"
 #include "timebomb.h"
-#include "tipwindow.inc"
+//#include "tipwindow.inc"
 #include "track.inc"
 #include "tracking.inc"
 #include "tracks.inc"
@@ -606,7 +606,7 @@ public:
 // Automation window
 	GWindow *gwindow;
 // Tip of the day
-	TipWindow *twindow;
+//	TipWindow *twindow;
 // Levels
 	LevelWindow *lwindow;
 // Lock during creation and destruction of GUI
@@ -650,7 +650,7 @@ public:
 	void init_edl();
 	void init_awindow();
 	void init_gwindow();
-	void init_tipwindow();
+//	void init_tipwindow();
 // Used by MWindow and RenderFarmClient
 	static void init_plugins(SplashGUI *splash_window);
 	static void init_plugin_path(char *path,

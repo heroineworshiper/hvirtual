@@ -238,11 +238,11 @@ RecordMonitorGUI::RecordMonitorGUI(MWindow *mwindow,
 	this->mwindow = mwindow;
 	this->thread = thread;
 	this->record = record;
-	avc = 0;
-	avc1394_transport = 0;
-	avc1394transport_title = 0;
-	avc1394transport_timecode = 0;
-	avc1394transport_thread = 0;
+//	avc = 0;
+//	avc1394_transport = 0;
+//	avc1394transport_title = 0;
+//	avc1394transport_timecode = 0;
+//	avc1394transport_thread = 0;
 	bitmap = 0;
 	channel_picker = 0;
 	reverse_interlace = 0;
@@ -264,18 +264,18 @@ RecordMonitorGUI::~RecordMonitorGUI()
 	}
 	if(bitmap) delete bitmap;
 	if(channel_picker) delete channel_picker;
-	if(avc1394transport_thread)
-		delete avc1394transport_thread;
-	if(avc)
-	{
-		delete avc;
-	}
-	if(avc1394_transport)
-	{
-		delete avc1394_transport;
-	}
-	if(avc1394transport_title)
-		delete avc1394transport_title;
+//	if(avc1394transport_thread)
+//		delete avc1394transport_thread;
+//	if(avc)
+//	{
+//		delete avc;
+//	}
+//	if(avc1394_transport)
+//	{
+//		delete avc1394_transport;
+//	}
+//	if(avc1394transport_title)
+//		delete avc1394transport_title;
 	unlock_window();
 }
 
@@ -314,43 +314,43 @@ void RecordMonitorGUI::create_objects()
 
 	if(record->default_asset->video_data)
 	{
-		if(driver == CAPTURE_FIREWIRE ||
-			driver == CAPTURE_IEC61883)
-		{
-			avc = new AVC1394Control;
-			if(avc->device > -1)
-			{
-				mwindow->theme->get_rmonitor_sizes(record->default_asset->audio_data, 
-					record->default_asset->video_data,
-					do_channel,
-					do_interlace,
-					1,
-					record->default_asset->channels);
-				mwindow->theme->draw_rmonitor_bg(this);
-				background_done = 1;
-
-				avc1394_transport = new AVC1394Transport(mwindow,
-					avc,
-					this,
-					mwindow->theme->rmonitor_tx_x,
-					mwindow->theme->rmonitor_tx_y);
-				avc1394_transport->create_objects();
-
-				add_subwindow(avc1394transport_timecode =
-					new BC_Title(avc1394_transport->x_end,
-						mwindow->theme->rmonitor_tx_y + 10,
-						_("00:00:00:00"),
-						MEDIUM_7SEGMENT,
-						BLACK));
-
-				avc1394transport_thread =
-					new AVC1394TransportThread(avc1394transport_timecode,
-						avc);
-
-				avc1394transport_thread->start();
-
-			}
-		}
+// 		if(driver == CAPTURE_FIREWIRE ||
+// 			driver == CAPTURE_IEC61883)
+// 		{
+// 			avc = new AVC1394Control;
+// 			if(avc->device > -1)
+// 			{
+// 				mwindow->theme->get_rmonitor_sizes(record->default_asset->audio_data, 
+// 					record->default_asset->video_data,
+// 					do_channel,
+// 					do_interlace,
+// 					1,
+// 					record->default_asset->channels);
+// 				mwindow->theme->draw_rmonitor_bg(this);
+// 				background_done = 1;
+// 
+// 				avc1394_transport = new AVC1394Transport(mwindow,
+// 					avc,
+// 					this,
+// 					mwindow->theme->rmonitor_tx_x,
+// 					mwindow->theme->rmonitor_tx_y);
+// 				avc1394_transport->create_objects();
+// 
+// 				add_subwindow(avc1394transport_timecode =
+// 					new BC_Title(avc1394_transport->x_end,
+// 						mwindow->theme->rmonitor_tx_y + 10,
+// 						_("00:00:00:00"),
+// 						MEDIUM_7SEGMENT,
+// 						BLACK));
+// 
+// 				avc1394transport_thread =
+// 					new AVC1394TransportThread(avc1394transport_timecode,
+// 						avc);
+// 
+// 				avc1394transport_thread->start();
+// 
+// 			}
+// 		}
 
 
 
@@ -561,8 +561,8 @@ int RecordMonitorGUI::keypress_event()
 
 		default:
 			if(canvas) result = canvas->keypress_event(this);
-			if(!result && avc1394_transport)
-				result = avc1394_transport->keypress_event(get_keypress());
+//			if(!result && avc1394_transport)
+//				result = avc1394_transport->keypress_event(get_keypress());
 			break;
 	}
 
@@ -592,7 +592,7 @@ int RecordMonitorGUI::resize_event(int w, int h)
 	int do_scopes = do_channel || driver == SCREENCAPTURE;
 	int do_interlace = (driver == CAPTURE_BUZ ||
 		driver == VIDEO4LINUX2MJPG);
-	int do_avc = avc1394_transport ? 1 : 0;
+//	int do_avc = avc1394_transport ? 1 : 0;
 
 	mwindow->session->rmonitor_x = get_x();
 	mwindow->session->rmonitor_y = get_y();
@@ -603,18 +603,19 @@ int RecordMonitorGUI::resize_event(int w, int h)
 		record->default_asset->video_data,
 		do_channel || do_scopes,
 		do_interlace,
-		do_avc,
+//		do_avc,
+        0,
 		record->default_asset->channels);
 	mwindow->theme->draw_rmonitor_bg(this);
 
 
 // 	record_transport->reposition_window(mwindow->theme->rmonitor_tx_x,
 // 		mwindow->theme->rmonitor_tx_y);
-	if(avc1394_transport)
-	{
-		avc1394_transport->reposition_window(mwindow->theme->rmonitor_tx_x,
-			mwindow->theme->rmonitor_tx_y);
-	}
+// 	if(avc1394_transport)
+// 	{
+// 		avc1394_transport->reposition_window(mwindow->theme->rmonitor_tx_x,
+// 			mwindow->theme->rmonitor_tx_y);
+// 	}
 	
 	if(channel_picker) 
 	{

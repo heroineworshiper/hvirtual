@@ -212,7 +212,8 @@ void Previewer::start_playback()
     {
         edl->local_session->set_selectionstart(play_position);
         edl->local_session->set_selectionend(play_position);
-        playback_engine->que->send_command(NORMAL_FWD,
+        playback_engine->que->send_command(PLAY_FWD,
+            1.0, // speed
 		    CHANGE_NONE, 
 		    edl,
 		    1,
@@ -227,6 +228,7 @@ void Previewer::stop_playback()
 {
     previewer_lock->lock("Previewer::stop_playback");
 	playback_engine->que->send_command(STOP,
+        1.0, // speed
 		CHANGE_NONE, 
 		0,
 		0,
@@ -276,10 +278,13 @@ void Previewer::rewind_playback()
 // (int)asset->audio_length,
 // (int)asset->video_length);
         playback_engine->que->send_command(CURRENT_FRAME, 
+            1.0, // speed
 //			(!asset || (asset->audio_length >= 0 && asset->video_length >= 0)) ?
 			seekable ? CHANGE_NONE : CHANGE_ALL,
 			edl,
-			1);
+			1, // realtime
+            0, // resume,
+            0); // use_inout
     }
 
 // rewind the slider
@@ -318,9 +323,12 @@ void Previewer::seek_playback()
         edl->local_session->set_selectionstart(play_position);
         edl->local_session->set_selectionend(play_position);
         playback_engine->que->send_command(CURRENT_FRAME, 
+            1.0, // speed
 			CHANGE_NONE,
 			edl,
-			1);
+			1, // realtime
+            0, // resume,
+            0); // use_inout
     }
     previewer_lock->unlock();
 }
