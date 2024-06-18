@@ -42,6 +42,7 @@ IMAGES = [
     'compressor2.png', 
     'linear.png', 
     'locked_bezier.png', 
+    'program.png',
     'unlocked_bezier.png', 
     'mask2.png',
     'recording.png'

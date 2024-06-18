@@ -925,7 +925,7 @@ EDL* CWindowTransport::get_edl()
 void CWindowTransport::goto_start()
 {
 	gui->unlock_window();
-	handle_transport(REWIND, 1.0, 1);
+	handle_transport(REWIND, 1.0, 1, 0, 1);
 
 	mwindow->gui->lock_window("CWindowTransport::goto_start 1");
 	mwindow->goto_start();
@@ -937,7 +937,7 @@ void CWindowTransport::goto_start()
 void CWindowTransport::goto_end()
 {
 	gui->unlock_window();
-	handle_transport(GOTO_END, 1.0, 1);
+	handle_transport(GOTO_END, 1.0, 1, 0, 1);
 
 	mwindow->gui->lock_window("CWindowTransport::goto_end 1");
 	mwindow->goto_end();

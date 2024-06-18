@@ -76,7 +76,7 @@ void ZoomBar::create_objects()
 	amp_zoom = new AmpZoomPanel(mwindow, this, x, y);
 	amp_zoom->set_menu_images(mwindow->theme->get_image_set("zoombar_menu", 0));
 	amp_zoom->set_tumbler_images(mwindow->theme->get_image_set("zoombar_tumbler", 0));
-	amp_zoom->set_tooltip(_("Amp zoom"));
+	amp_zoom->set_tooltip(_("Audio zoom"));
 	amp_zoom->create_objects();
 	x += amp_zoom->get_w();
 
@@ -94,7 +94,7 @@ void ZoomBar::create_objects()
 		x, 
 		y,
 		BC_PopupMenu::calculate_w(this, DEFAULT_TEXT)));
-	auto_zoom_popup->set_tooltip(_("Automation zoom"));
+	auto_zoom_popup->set_tooltip(_("Curve zoom"));
 	auto_zoom_popup->create_objects();
 	x += auto_zoom_popup->get_w() + margin;
 

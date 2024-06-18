@@ -247,13 +247,16 @@ the rendered output @xref{SAFE REGIONS}.
 @node PROGRAM
 @section PROGRAM
 
+@image{program}
 
 This contains the timeline and the entry point for all menu driven
 operations.  The timeline consists of a vertical stack of tracks with
-horizontal representation of time.  This defines the output of
-rendering operations and what is saved when you save files.  Left of
-the timeline is the patchbay which contains options affecting each
-track.
+horizontal representation of time.  This defines the output of rendering
+operations and what is saved when you save files.  Left of the tracks is
+the patchbay which contains options affecting each track.
+
+Above the tracks is the time bar.  Right click in the time bar to select
+a time format.  The time format is used by all the clocks.
 
 Under the @b{Window} menu you'll find options affecting the main
 windows.  @b{default positions} repositions all the windows to a 4

@@ -1035,26 +1035,22 @@ DELETE ALL INDEXES
 When you change the index size or you want to clean out excessive index
 files, this deletes all the index files.
 
-@item
-USE HOURS:MINUTES:SECONDS.XXX
+@item TIME STRECH SCRUBBING
 
-Various representations of time are given.  Select the most convenient
-one.  The time representation can also be changed by @b{CTRL}
-clicking on the time ruler.
+Scrubbing of audio with the transport controls (@xref{USING THE
+TRANSPORT CONTROLS}) can either use tape style pitch stretching or time
+stretching with constant pitch.  The time stretching mode is more
+intelligible but pitch stretching is the traditional sound a tape deck
+would have made.  Time strech scrubbing does not have all the options or
+use a fast fourier transform like the Time Stretch effect (@xref{TIME
+STRETCHING AUDIO}).
 
-@item
-USE THUMBNAILS
+@item FRAMES PER FOOT
 
-The Resource Window displays thumbnails of assets by default.  This can
-take a long time to set up.  This option disables the thumbnails.
-
-@item
-CLICKING IN/OUT POINTS DOES WHAT
-
-Cinelerra not only allows you to perform editing by dragging in/out
-points but also defines three seperate operations which occur when you
-drag an in/out point. For each mouse button you select the behavior in
-this window. The usage of each editing mode is described in editing.
+When the time format is feet-frames, this defines the number of frames
+per foot.  This mode was intended for correlating the timeline with
+positions on physical film.  Set the time format by right clicking in
+the time bar in the program window @xref{PROGRAM}
 
 @item
 MIN DB FOR METER
@@ -1079,6 +1075,13 @@ THEME
 
 Cinelerra supports variable themes.  Select one here and restart
 Cinelerra to see it.
+
+@item OVERRIDE DPI
+
+The theme tries to scale itself based on the DPI reported by the X
+server.  This doesn't always work, so there is an option to override it
+with a user defined DPI.
+
 
 @end itemize
 

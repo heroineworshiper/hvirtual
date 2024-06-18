@@ -399,16 +399,16 @@ folder alphabetically.
 @node USING THE TRANSPORT CONTROLS
 @section USING THE TRANSPORT CONTROLS
 
-Transport controls are just as useful in navigation as they are in
-playing back footage, hence they are described here in the navigation
-section.  Each of the Viewer, Compositor, and Program windows has a
-transport panel.
+Transport controls navigate relative to the current playhead position,
+while playing back.  Each of the Viewer, Compositor, and Program windows
+has a transport panel.  The Compositor & Program window control playback
+in the compositor window.
 
 @sp 1
 @image{transport_panel} @b{The transport panel}.
 
-The transport panel is controlled by the keyboard as well as the
-graphical interface.  For each of the operations it performs, the
+More powerful control of the transport is provided by the keyboard than
+the graphical interface.  For each of the operations it performs, the
 starting position is the position of the insertion point in the Program
 window and the slider in the Compositor window.  The ending position is
 either the end or start of the timeline or the end or start of the
@@ -429,28 +429,29 @@ transport keys are arranged in a sideways @b{T} on the number pad.
 @itemize
 
 @item
-@b{+} Fast reverse
+@b{+} 4x reverse
 @item
-@b{6} Normal reverse
+@b{6} 2x reverse
 @item
-@b{5} Slow reverse
+@b{5} Normal reverse
 @item
 @b{4} Frame reverse
 @item
 @b{1} Frame forward
 @item
-@b{2} Slow forward
+@b{2} 1x forward
 @item
-@b{3} Normal forward
+@b{3} 2x forward
 @item
-@b{Enter} Fast forward
+@b{Enter} 4x forward
 @item
 @b{0} Stop
 @item
 @b{Spacebar} Normal forward
 @end itemize
 
-Hitting any key on the keyboard twice pauses it.
+Hitting any key on the keyboard twice pauses it & discards the playback
+range defined by the previous selection.
 
 When using frame advance functions the behavior may seem odd.  If you
 frame advance forward and then frame advance backward, the displayed
@@ -460,13 +461,13 @@ that the playback position crosses.  When you increment the time
 between two frames by one and decrement it by one, you cross the same
 frame both times and so the same frame is displayed.
 
-The transport behavior changes if you hold down CTRL when issuing any
-of the transport commands.  This causes the starting point to be the in
-point if playing forward and the out point if playing backward.  If
-playing forward, the out point becomes the ending point and if playing
-backward, the in point becomes the ending point.  If no in/out points
-are specified, the behavior falls back to using the insertion point and
-track boundaries as the starting and ending points.
+Holding down CTRL when issuing any of the transport commands causes the
+starting point to be the in point if playing forward and the out point
+if playing backward.  If playing forward, the out point becomes the
+ending point and if playing backward, the in point becomes the ending
+point.  If no in/out points are specified, the behavior falls back to
+using the insertion point and selection boundaries as the starting and
+ending points.
 
 
 

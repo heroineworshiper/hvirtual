@@ -39,6 +39,7 @@ IMAGES = \
 	magnify.png
 
 # custom images for documentation
+# add images to fix_images.py to scale them
 CUSTOM_IMAGES := \
         align_after.png \
         align_before.png \
@@ -89,6 +90,7 @@ CUSTOM_IMAGES := \
         overwrite_button.png \
         preview.png \
         previewregion.png \
+        program.png \
         recording.png \
         splice_button.png \
         timebar_label.png \

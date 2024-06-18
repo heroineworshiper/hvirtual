@@ -218,17 +218,17 @@ int PlayTransport::keypress_event()
 
 	switch(subwindow->get_keypress())
 	{
-		case KPPLUS:        handle_transport(PLAY_REV, 4.0, 0, use_inout);                result = 1; break;
-		case KP6:           handle_transport(PLAY_REV, 2.0, 0, use_inout);              result = 1; break;
-		case KP5:           handle_transport(PLAY_REV, 1.0, 0, use_inout);                result = 1; break;
-		case KP4:           handle_transport(SINGLE_FRAME_REWIND, 1.0, 00, use_inout);        result = 1; break;
-		case KP1:           handle_transport(SINGLE_FRAME_FWD, 1.0, 00, use_inout);   		  result = 1; break;
-		case KP2:           handle_transport(PLAY_FWD, 1.0, 0, use_inout);           		  result = 1; break;
-		case KP3:           handle_transport(PLAY_FWD, 2.0, 0, use_inout);         		  result = 1; break;
-		case KPENTER:       handle_transport(PLAY_FWD, 4.0, use_inout);           		  result = 1; break;
-		case KPINS:         handle_transport(STOP, 1.0, 0, use_inout);                       result = 1; break;
-		case ' ':           handle_transport(PLAY_FWD, 1.0, 0, use_inout);                 result = 1; break;
-		case 'k':           handle_transport(STOP, 1.0, 0, use_inout);   					  result = 1; break;
+		case KPPLUS:        handle_transport(PLAY_REV, 4.0, 0, use_inout, 1); result = 1; break;
+		case KP6:           handle_transport(PLAY_REV, 2.0, 0, use_inout, 1); result = 1; break;
+		case KP5:           handle_transport(PLAY_REV, 1.0, 0, use_inout, 1); result = 1; break;
+		case KP4:           handle_transport(SINGLE_FRAME_REWIND, 1.0, 0, use_inout, 1); result = 1; break;
+		case KP1:           handle_transport(SINGLE_FRAME_FWD, 1.0, 0, use_inout, 1);    result = 1; break;
+		case KP2:           handle_transport(PLAY_FWD, 1.0, 0, use_inout, 1); result = 1; break;
+		case KP3:           handle_transport(PLAY_FWD, 2.0, 0, use_inout, 1); result = 1; break;
+		case KPENTER:       handle_transport(PLAY_FWD, 4.0, 0, use_inout, 1); result = 1; break;
+		case KPINS:         handle_transport(STOP,     1.0, 0, use_inout, 1); result = 1; break;
+		case ' ':           handle_transport(PLAY_FWD, 1.0, 0, use_inout, 1); result = 1; break;
+		case 'k':           handle_transport(STOP,     1.0, 0, use_inout, 1); result = 1; break;
 		case END:
 			subwindow->lock_window("PlayTransport::keypress_event 3");
 			goto_end();                                   
@@ -251,12 +251,12 @@ int PlayTransport::keypress_event()
 
 void PlayTransport::goto_start()
 {
-	handle_transport(REWIND, 1.0, 1, 0);
+	handle_transport(REWIND,   1.0, 1, 0, 1);
 }
 
 void PlayTransport::goto_end()
 {
-	handle_transport(GOTO_END, 1.0, 1, 0);
+	handle_transport(GOTO_END, 1.0, 1, 0, 1);
 }
 
 
@@ -444,7 +444,7 @@ FastReverseButton::FastReverseButton(MWindow *mwindow, PlayTransport *transport,
 int FastReverseButton::handle_event() 
 {
 	unlock_window();
-	transport->handle_transport(PLAY_REV, 2.0, 0, ctrl_down());
+	transport->handle_transport(PLAY_REV, 2.0, 0, ctrl_down(), 1);
 	lock_window("FastReverseButton::handle_event");
 	return 1;
 }
@@ -459,7 +459,7 @@ ReverseButton::ReverseButton(MWindow *mwindow, PlayTransport *transport, int x, 
 int ReverseButton::handle_event()
 {
 	unlock_window();
-	transport->handle_transport(PLAY_REV, 1.0, 0, ctrl_down());
+	transport->handle_transport(PLAY_REV, 1.0, 0, ctrl_down(), 1);
 	lock_window("ReverseButton::handle_event");
 	return 1;
 }
@@ -474,7 +474,7 @@ FrameReverseButton::FrameReverseButton(MWindow *mwindow, PlayTransport *transpor
 int FrameReverseButton::handle_event()
 {
 	unlock_window();
-	transport->handle_transport(SINGLE_FRAME_REWIND, 1.0, 0, ctrl_down());
+	transport->handle_transport(SINGLE_FRAME_REWIND, 1.0, 0, ctrl_down(), 1);
 	lock_window("FrameReverseButton::handle_event");
 	return 1;
 }
@@ -489,7 +489,7 @@ PlayButton::PlayButton(MWindow *mwindow, PlayTransport *transport, int x, int y)
 int PlayButton::handle_event()
 {
 	unlock_window();
-	transport->handle_transport(PLAY_FWD, 1.0, 0, ctrl_down());
+	transport->handle_transport(PLAY_FWD, 1.0, 0, ctrl_down(), 1);
 	lock_window("PlayButton::handle_event");
 	return 1;
 }
@@ -506,7 +506,7 @@ FramePlayButton::FramePlayButton(MWindow *mwindow, PlayTransport *transport, int
 int FramePlayButton::handle_event()
 {
 	unlock_window();
-	transport->handle_transport(SINGLE_FRAME_FWD, 1.0, 0, ctrl_down());
+	transport->handle_transport(SINGLE_FRAME_FWD, 1.0, 0, ctrl_down(), 1);
 	lock_window("FramePlayButton::handle_event");
 	return 1;
 }
@@ -521,7 +521,7 @@ FastPlayButton::FastPlayButton(MWindow *mwindow, PlayTransport *transport, int x
 int FastPlayButton::handle_event() 
 {
 	unlock_window();
-	transport->handle_transport(PLAY_FWD, 2.0, 0, ctrl_down());
+	transport->handle_transport(PLAY_FWD, 2.0, 0, ctrl_down(), 1);
 	lock_window("FastPlayButton::handle_event");
 	return 1;
 }
@@ -547,7 +547,7 @@ StopButton::StopButton(MWindow *mwindow, PlayTransport *transport, int x, int y)
 int StopButton::handle_event()
 {
 	unlock_window();
-	transport->handle_transport(STOP, 1.0, 0, 0);
+	transport->handle_transport(STOP, 1.0, 0, 0, 1);
 	lock_window("StopButton::handle_event");
 	return 1;
 }

@@ -62,9 +62,9 @@ public:
 // the refresh frame.
 	void handle_transport(int command, 
         float speed,
-		int wait_tracking = 0, 
-		int use_inout = 0,
-		int update_refresh = 1);
+		int wait_tracking /* = 0 */, 
+		int use_inout /* = 0 */,
+		int update_refresh /* = 1 */);
 
 	int pause_transport();
 	int reset_transport();

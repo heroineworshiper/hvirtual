@@ -859,7 +859,7 @@ EDL* VWindowTransport::get_edl()
 void VWindowTransport::goto_start()
 {
 	gui->unlock_window();
-	handle_transport(REWIND, 1.0, 1);
+	handle_transport(REWIND, 1.0, 1, 0, 1);
 	gui->lock_window("VWindowTransport::goto_start");
 	gui->vwindow->goto_start();
 }
@@ -867,7 +867,7 @@ void VWindowTransport::goto_start()
 void VWindowTransport::goto_end()
 {
 	gui->unlock_window();
-	handle_transport(GOTO_END, 1.0, 1);
+	handle_transport(GOTO_END, 1.0, 1, 0, 1);
 	gui->lock_window("VWindowTransport::goto_end");
 	gui->vwindow->goto_end();
 }
