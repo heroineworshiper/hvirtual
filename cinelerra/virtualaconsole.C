@@ -51,13 +51,16 @@ VirtualAConsole::VirtualAConsole(RenderEngine *renderengine, ARender *arender)
 {
 	this->arender = arender;
 	output_temp = 0;
-    bzero(skirt, sizeof(Samples*) * MAX_CHANNELS);
+    bzero(fastfwd_tail, sizeof(Samples*) * MAX_CHANNELS);
 }
 
 VirtualAConsole::~VirtualAConsole()
 {
 	if(output_temp) delete output_temp;
-    for(int i = 0; i < MAX_CHANNELS; i++) if(skirt[i]) delete skirt[i];
+    for(int i = 0; i < MAX_CHANNELS; i++)
+    {
+        delete fastfwd_tail[i];
+    }
 }
 
 
@@ -134,11 +137,11 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 
 
 // Render exit nodes
+    int sample_rate = renderengine->get_edl()->session->sample_rate;
 	for(int i = 0; i < exit_nodes.total; i++)
 	{
 		VirtualANode *node = (VirtualANode*)exit_nodes.values[i];
 		Track *track = node->track;
-        int sample_rate = renderengine->get_edl()->session->sample_rate;
 
 		result |= node->render(output_temp, 
 			len,
@@ -226,13 +229,6 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 		double *audio_out_planar[MAX_CHANNELS];
 		int audio_channels = renderengine->get_edl()->session->audio_channels;
 
-		for(int i = 0, j = 0; 
-			i < audio_channels; 
-			i++)
-		{
-			audio_out_planar[j++] = arender->audio_out[i]->get_data();
-		}
-
 		for(int i = 0; 
 			i < audio_channels; 
 			i++)
@@ -240,6 +236,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 			int in, out;
 			int fragment_end;
 
+			audio_out_planar[i] = arender->audio_out[i]->get_data();
 			double *current_buffer = audio_out_planar[i];
 
 // Time stretch the fragment to the real_output size
@@ -255,36 +252,42 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
                     real_output_len = len / renderengine->command->get_speed();
                     if(real_output_len <= 0) real_output_len = 1;
 
+// split output len into smaller windows to make the chopping intelligible
+                    int fastfwd_window = real_output_len;
+                    while(fastfwd_window >= sample_rate / 40 &&
+                        fastfwd_window > 1) fastfwd_window /= 2;
 
-// fade out end of previous output buffer while 
-// fading in start of current buffer
-                    if(skirt[i] && skirt[i]->get_allocated() < len)
+                    if(fastfwd_tail[i] && fastfwd_tail[i]->get_allocated() < fastfwd_window)
                     {
-                        delete skirt[i];
-                        skirt[i] = 0;
+                        delete fastfwd_tail[i];
+                        fastfwd_tail[i] = 0;
                     }
-                    if(!skirt[i])
+                    if(!fastfwd_tail[i])
                     {
-                        skirt[i] = new Samples(len, 0);
-                        bzero(skirt[i]->get_data(), len * sizeof(double));
+                        fastfwd_tail[i] = new Samples(fastfwd_window, 0);
+                        bzero(fastfwd_tail[i]->get_data(), fastfwd_window * sizeof(double));
                     }
-                    double *current_skirt = skirt[i]->get_data();
+                    double *current_tail = fastfwd_tail[i]->get_data();
 
-                    for(out = 0; 
-                        out < real_output_len; 
-                        out++)
+                    for(in = 0, out = 0; 
+                        in + fastfwd_window <= len && out + fastfwd_window <= real_output_len; 
+                        in += (int)(fastfwd_window * renderengine->command->get_speed()))
                     {
-                        float fraction = (float)out / real_output_len;
-                        sample = current_buffer[out] * fraction;
-                        sample += current_skirt[out] * (1.0 - fraction);
-                        current_buffer[out] = sample;
-                    }
+                        for(int j = 0; j < fastfwd_window; j++)
+                        {
+// fade out end of previous window while 
+// fading in start of next window
+                            float fraction = (float)j / fastfwd_window;
+                            sample = current_buffer[in + j] * fraction;
+                            sample += current_tail[j] * (1.0 - fraction);
+                            current_buffer[out++] = sample;
+                        }
 
-                    int remane = real_output_len;
-                    if(real_output_len + remane > len) remane = len - real_output_len;
-                    memcpy(current_skirt, 
-                        current_buffer + real_output_len,
-                        remane * sizeof(double));
+                        if(in + fastfwd_window * 2 <= len)
+                            memcpy(current_tail, 
+                                current_buffer + in + fastfwd_window, 
+                                fastfwd_window * sizeof(double));
+                    }
                 }
                 else
                 {
