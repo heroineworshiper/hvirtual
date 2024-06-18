@@ -51,12 +51,13 @@ VirtualAConsole::VirtualAConsole(RenderEngine *renderengine, ARender *arender)
 {
 	this->arender = arender;
 	output_temp = 0;
-	output_allocation = 0;
+    bzero(skirt, sizeof(Samples*) * MAX_CHANNELS);
 }
 
 VirtualAConsole::~VirtualAConsole()
 {
 	if(output_temp) delete output_temp;
+    for(int i = 0; i < MAX_CHANNELS; i++) if(skirt[i]) delete skirt[i];
 }
 
 
@@ -112,7 +113,7 @@ this,
 	}
 
 // Create temporary output
-	if(output_temp && output_allocation < len)
+	if(output_temp && output_temp->get_allocated() < len)
 	{
 		delete output_temp;
 		output_temp = 0;
@@ -120,8 +121,7 @@ this,
 
 	if(!output_temp)
 	{
-		output_temp = new Samples(len);
-		output_allocation = len;
+		output_temp = new Samples(len, 1);
 	}
 if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 
@@ -212,7 +212,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 
 
 
-// Pack channels, fix speed and send to device.
+// Fix speed and send to device.
 	if(!renderengine->is_nested &&
 		renderengine->command->realtime && 
 		!interrupt)
@@ -223,14 +223,14 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 // output sample
 		double sample;
 		int k;
-		double *audio_out_packed[MAX_CHANNELS];
+		double *audio_out_planar[MAX_CHANNELS];
 		int audio_channels = renderengine->get_edl()->session->audio_channels;
 
 		for(int i = 0, j = 0; 
 			i < audio_channels; 
 			i++)
 		{
-			audio_out_packed[j++] = arender->audio_out[i]->get_data();
+			audio_out_planar[j++] = arender->audio_out[i]->get_data();
 		}
 
 		for(int i = 0; 
@@ -240,7 +240,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 			int in, out;
 			int fragment_end;
 
-			double *current_buffer = audio_out_packed[i];
+			double *current_buffer = audio_out_planar[i];
 
 // Time stretch the fragment to the real_output size
 			if(renderengine->command->get_speed() > 1)
@@ -253,6 +253,38 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
                 {
 // chop the buffer length
                     real_output_len = len / renderengine->command->get_speed();
+                    if(real_output_len <= 0) real_output_len = 1;
+
+
+// fade out end of previous output buffer while 
+// fading in start of current buffer
+                    if(skirt[i] && skirt[i]->get_allocated() < len)
+                    {
+                        delete skirt[i];
+                        skirt[i] = 0;
+                    }
+                    if(!skirt[i])
+                    {
+                        skirt[i] = new Samples(len, 0);
+                        bzero(skirt[i]->get_data(), len * sizeof(double));
+                    }
+                    double *current_skirt = skirt[i]->get_data();
+
+                    for(out = 0; 
+                        out < real_output_len; 
+                        out++)
+                    {
+                        float fraction = (float)out / real_output_len;
+                        sample = current_buffer[out] * fraction;
+                        sample += current_skirt[out] * (1.0 - fraction);
+                        current_buffer[out] = sample;
+                    }
+
+                    int remane = real_output_len;
+                    if(real_output_len + remane > len) remane = len - real_output_len;
+                    memcpy(current_skirt, 
+                        current_buffer + real_output_len,
+                        remane * sizeof(double));
                 }
                 else
                 {
@@ -300,7 +332,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 		if(!renderengine->adevice->get_interrupted())
 		{
 if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
-			renderengine->adevice->write_buffer(audio_out_packed, 
+			renderengine->adevice->write_buffer(audio_out_planar, 
 				real_output_len);
 if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 		}

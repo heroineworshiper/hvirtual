@@ -55,7 +55,8 @@ public:
 // Temporary for audio rendering.  This stores each track's output before it is
 // mixed into the device buffer.
 	Samples *output_temp;
-	int output_allocation;
+// temporary for crossfading fast forward buffers
+    Samples *skirt[MAX_CHANNELS];
 
 	ARender *arender;
 };
