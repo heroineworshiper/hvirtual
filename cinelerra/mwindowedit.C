@@ -2322,11 +2322,11 @@ void MWindow::paste_default_transition(int data_type, Edit *dst_edit)
 
     server = scan_plugindb(title, data_type);
 
-printf("MWindow::paste_default_transition %d title=%s dst_edit=%p server=%p\n", 
-__LINE__,
-title,
-dst_edit,
-server);
+// printf("MWindow::paste_default_transition %d title=%s dst_edit=%p server=%p\n", 
+// __LINE__,
+// title,
+// dst_edit,
+// server);
 
 	if(!server)
 	{

@@ -119,13 +119,14 @@ int BC_FileBoxListBox::handle_event()
 int BC_FileBoxListBox::selection_changed()
 {
     int column = filebox->column_of_type(FILEBOX_NAME);
+    int debug = 0;
 
 // want the most recent of a multiple selection for the preview
 // but the only way is to compare all current selections 
 // with all previous selections.
     ArrayList<int> current_selections;
-//     printf("BC_FileBoxListBox::selection_changed %d: ", 
-//         __LINE__);
+    if(debug) printf("BC_FileBoxListBox::selection_changed %d: ", 
+        __LINE__);
     int new_selection = -1;
     for(int i = 0; ; i++)
     {
@@ -144,13 +145,13 @@ int BC_FileBoxListBox::selection_changed()
                 }
             }
             if(!got_it) new_selection = selection;
-//            printf("%d ", selection);
+            if(debug) printf("%d ", selection);
         }
         else
             break;
     }
-//    printf("\n");
-//printf("BC_FileBoxListBox::selection_changed %d: %d\n", __LINE__, new_selection);
+    if(debug) printf("\n");
+    if(debug) printf("BC_FileBoxListBox::selection_changed %d: new_selection=%d\n", __LINE__, new_selection);
 
 
 //printf("BC_FileBoxListBox::selection_changed %d new_selection=%d\n", __LINE__, new_selection);
@@ -206,6 +207,7 @@ int BC_FileBoxListBox::sort_order_event()
 	get_resources()->filebox_sortcolumn = filebox->sort_column = get_sort_column();
 	get_resources()->filebox_sortorder = filebox->sort_order = get_sort_order();
 	filebox->refresh(0, 0);
+    prev_selections.remove_all();
 	return 1;
 }
 

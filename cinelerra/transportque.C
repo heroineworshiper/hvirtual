@@ -162,9 +162,9 @@ void TransportCommand::set_playback_range(EDL *edl, int use_inout)
 	if(!edl) edl = this->edl;
 
 
-printf("TransportCommand::set_playback_range %d use_inout=%d\n",
-__LINE__,
-use_inout);
+// printf("TransportCommand::set_playback_range %d use_inout=%d\n",
+// __LINE__,
+// use_inout);
 
 	switch(command)
 	{
