@@ -202,7 +202,7 @@ int ForkWrapper::handle_command()
 void ForkWrapper::child_loop()
 {
 	int result = 0;
-	const int debug = 0;
+	const int debug = 1;
 
 	while(!done)
 	{
@@ -223,12 +223,11 @@ void ForkWrapper::child_loop()
 			command_token);
 
 // server crashed
-        if(result < 0)
+        if(result)
         {
             done = 1;
         }
         else
-        if(!result)
         {
 // handle special commands
             switch(command_token)
