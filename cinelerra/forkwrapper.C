@@ -202,7 +202,7 @@ int ForkWrapper::handle_command()
 void ForkWrapper::child_loop()
 {
 	int result = 0;
-	const int debug = 1;
+	const int debug = 0;
 
 	while(!done)
 	{

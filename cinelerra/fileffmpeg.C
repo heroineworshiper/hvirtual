@@ -453,6 +453,7 @@ int64_t FileFFMPEGStream::read_history(double *dst,
 	int channel,
 	int64_t len)
 {
+    if(!pcm_history) return 0;
 // truncate the length to the history size
 	if(start_sample - history_start + len > history_size)
 		len = history_size - (start_sample - history_start);
@@ -471,6 +472,7 @@ int64_t FileFFMPEGStream::read_history(double *dst,
 // history_start, 
 // history_size, 
 // len);
+// printf("FileBase::read_history %d pcm_history=%p\n", __LINE__, pcm_history);
 	double *input = pcm_history[channel] + read_offset;
     double *output_end = pcm_history[channel] + HISTORY_MAX;
 	for(int i = 0; i < len; i++)
@@ -481,8 +483,7 @@ int64_t FileFFMPEGStream::read_history(double *dst,
             input = pcm_history[channel];
         }
 	}
-// printf("FileBase::read_history %d\n", 
-// __LINE__);
+//printf("FileBase::read_history %d\n", __LINE__);
     if(len < 0) len = 0;
     return len;
 }
@@ -2690,17 +2691,18 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 	{
         if(need_restart)
         {
-//printf("FileFFMPEG::read_samples %d\n", 
-//__LINE__);
+//printf("FileFFMPEG::read_samples %d\n", __LINE__);
             ffmpeg_lock->unlock();
             close_ffmpeg();
             open_ffmpeg();
 	        ffmpeg_lock->lock("FileFFMPEG::read_samples 2");
+//printf("FileFFMPEG::read_samples %d\n", __LINE__);
 
 	        stream = audio_streams.get(stream_number);
             audio_index = stream->ffmpeg_id;
 	        ffmpeg_stream = ((AVFormatContext*)stream->ffmpeg_file_context)->streams[stream->ffmpeg_id];
 	        decoder_context = (AVCodecContext*)stream->decoder_context;
+//printf("FileFFMPEG::read_samples %d\n", __LINE__);
         }
 
 
@@ -2859,6 +2861,7 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 //#endif
              av_packet_free(&packet);
              packet = 0;
+//printf("FileFFMPEG::read_samples %d\n", __LINE__);
 
 // give up & reopen the ffmpeg objects
 //             ffmpeg_lock->unlock();
@@ -2905,13 +2908,13 @@ int FileFFMPEG::read_samples(double *buffer, int64_t len)
 		
 		if(packet) av_packet_free(&packet);
 	}
+//printf("FileFFMPEG::read_samples %d stream=%p\n", __LINE__, stream);
 
 	int samples_read = stream->read_history(buffer, 
 		file->current_sample, 
 		audio_channel,
 		len);
-// printf("FileFFMPEG::read_samples %d\n", 
-// __LINE__);
+//printf("FileFFMPEG::read_samples %d\n", __LINE__);
 
 	ffmpeg_lock->unlock();
 // have to return success if any audio was put in the buffer,
