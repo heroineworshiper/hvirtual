@@ -434,11 +434,11 @@ void ReverbParam::update(int skip_text, int skip_pot)
         }
         if(qpot)
         {
-            ipot->update((int64_t)*output_q);
+            qpot->update((int64_t)*output_q);
         }
         if(fpot)
         {
-            ipot->update((float)*output_f);
+            fpot->update((float)*output_f);
         }
     }
 }

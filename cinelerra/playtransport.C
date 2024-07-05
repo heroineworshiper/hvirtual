@@ -439,7 +439,7 @@ int RewindButton::handle_event()
 FastReverseButton::FastReverseButton(MWindow *mwindow, PlayTransport *transport, int x, int y)
  : PTransportButton(mwindow, transport, x, y, mwindow->theme->get_image_set("fastrev")) 
 {
-	set_tooltip(_("Fast reverse ( + )"));
+	set_tooltip(_("Fast reverse ( 6 )"));
 }
 int FastReverseButton::handle_event() 
 {
@@ -454,7 +454,7 @@ int FastReverseButton::handle_event()
 ReverseButton::ReverseButton(MWindow *mwindow, PlayTransport *transport, int x, int y)
  : PTransportButton(mwindow, transport, x, y, mwindow->theme->get_image_set("reverse")) 
 {
-	set_tooltip(_("Normal reverse ( 6 )"));
+	set_tooltip(_("Normal reverse ( 5 )"));
 }
 int ReverseButton::handle_event()
 {
@@ -484,7 +484,7 @@ int FrameReverseButton::handle_event()
 PlayButton::PlayButton(MWindow *mwindow, PlayTransport *transport, int x, int y)
  : PTransportButton(mwindow, transport, x, y, mwindow->theme->get_image_set("play")) 
 {
-	set_tooltip(_("Normal forward ( 3 )"));
+	set_tooltip(_("Normal forward ( 2 )"));
 }
 int PlayButton::handle_event()
 {
@@ -516,7 +516,7 @@ int FramePlayButton::handle_event()
 FastPlayButton::FastPlayButton(MWindow *mwindow, PlayTransport *transport, int x, int y)
  : PTransportButton(mwindow, transport, x, y, mwindow->theme->get_image_set("fastfwd")) 
 {
-	set_tooltip(_("Fast forward ( Enter )"));
+	set_tooltip(_("Fast forward ( 3 )"));
 }
 int FastPlayButton::handle_event() 
 {

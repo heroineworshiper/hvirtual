@@ -873,14 +873,14 @@ int BC_WindowBase::dispatch_event(BC_Event *event)
 
 
 
-if(debug) printf("BC_WindowBase::dispatch_event %d %s %p\n", 
-__LINE__, title, event);
+if(debug) printf("BC_WindowBase::dispatch_event %d %s %p type=%d\n", 
+__LINE__, title, event, event->xevent->type);
 
 // process an X server event
     if(event->xevent)
     {
         XEvent *xevent = event->xevent;
-	switch(xevent->type)
+        switch(xevent->type)
 	    {
 		    case ClientMessage:
 			    get_key_masks(xevent);
