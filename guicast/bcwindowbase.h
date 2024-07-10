@@ -562,6 +562,18 @@ public:
 		int y, 
 		int w, 
 		int h);
+
+// bits for reader
+    int is_event_subwin();
+    void reposition_cursor(int x, int y);
+    void draw_fg_box(int x, int y, int w, int h);
+    void draw_fg_circle(int x, int y, int w, int h);
+    void draw_fg_disc(int x, int y, int w, int h);
+    void draw_fg_line(int x1, int y1, int x2, int y2);
+    void draw_fg_pixel(int x, int y);
+// get the foreground window for drawing
+    Window get_win();
+
 	void slide_left(int distance);
 	void slide_right(int distance);
 	void slide_up(int distance);

@@ -3799,6 +3799,25 @@ int BC_WindowBase::is_event_win()
 	return this->win == top_level->event_win;
 }
 
+int BC_WindowBase::is_event_subwin()
+{
+    if(this->win == top_level->event_win)
+    {
+        return 1;
+    }
+    
+    for(int i = 0; i < subwindows->size(); i++)
+    {
+        if(subwindows->get(i)->is_event_subwin())
+        {
+            return 1;
+        }
+    }
+    
+    return 0;
+}
+
+
 void BC_WindowBase::set_dragging(int value)
 {
 	is_dragging = value;
@@ -4366,6 +4385,11 @@ void BC_WindowBase::put_event(void (*user_function)(void *), void *data)
 int BC_WindowBase::get_id()
 {
 	return id;
+}
+
+Window BC_WindowBase::get_win()
+{
+    return win;
 }
 
 BC_Bitmap* BC_WindowBase::get_temp_bitmap(int w, int h, int color_model)

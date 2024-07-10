@@ -538,6 +538,20 @@ int CWindowGUI::keypress_event()
 				result = 1; 
 			}
 			break;
+        case UP:
+            unlock_window();
+            mwindow->gui->lock_window("CWindowGUI::keypress_event 5");
+            mwindow->expand_sample();
+            mwindow->gui->unlock_window();
+            lock_window("CWindowGUI::keypress_event 4");
+            break;
+        case DOWN:
+            unlock_window();
+            mwindow->gui->lock_window("CWindowGUI::keypress_event 6");
+            mwindow->zoom_in_sample();
+            mwindow->gui->unlock_window();
+            lock_window("CWindowGUI::keypress_event 5");
+            break;
 	}
 
 	if(!result) result = transport->keypress_event();

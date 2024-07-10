@@ -2311,6 +2311,76 @@ void BC_WindowBase::draw_9segment(int x,
 }
 
 
+void BC_WindowBase::draw_fg_box(int x, int y, int w, int h)
+{
+    XFillRectangle(top_level->display, 
+            win, 
+            top_level->gc, 
+            x, 
+            y, 
+            w, 
+            h);
+}
+
+void BC_WindowBase::draw_fg_circle(int x, int y, int w, int h)
+{
+    XDrawArc(top_level->display, 
+            win, 
+            top_level->gc, 
+            x, 
+            y, 
+            (w - 1), 
+            (h - 2), 
+            0 * 64, 
+            360 * 64);
+}
+
+void BC_WindowBase::draw_fg_disc(int x, int y, int w, int h)
+{
+    XFillArc(top_level->display, 
+            win, 
+            top_level->gc, 
+            x, 
+            y, 
+            (w - 1), 
+            (h - 2), 
+            0 * 64, 
+            360 * 64);
+}
+
+void BC_WindowBase::draw_fg_line(int x1, int y1, int x2, int y2)
+{
+// Some X drivers can't draw 0 length lines
+    if(x1 == x2 && y1 == y2)
+    {
+            draw_fg_pixel(x1, y1);
+    }
+    else
+    {
+            XDrawLine(top_level->display, 
+                    win, 
+                    top_level->gc, 
+                    x1, 
+                    y1, 
+                    x2, 
+                    y2);
+    }
+}
+
+void BC_WindowBase::draw_fg_pixel(int x, int y)
+{
+    XDrawPoint(top_level->display, 
+            win, 
+            top_level->gc, 
+            x, 
+            y);
+}
+
+
+
+
+
+
 
 
 
