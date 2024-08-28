@@ -4221,6 +4221,7 @@ int TrackCanvas::cursor_motion_event()
 				for(int i = 0; i < TOTAL_PANES; i++)
 					if(gui->pane[i]) gui->pane[i]->canvas->timebar_position = position;
 
+//printf("TrackCanvas::cursor_motion_event %d position=%f \n", __LINE__, position);
 //printf("TrackCanvas::cursor_motion_event %d %d %p %p\n", __LINE__, pane->number, pane, pane->timebar);
 				gui->update_timebar(0);
 

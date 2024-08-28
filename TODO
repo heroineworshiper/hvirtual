@@ -7,14 +7,18 @@ https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35k
 
 BIG WISHLIST:
 ----------------------------
-Menu toggle for background rendering
-Poll interrupt flag in slow plugins
-   - problematic
+AVIF
+LUT
+Menu toggle to enable background rendering
+Configurable speeds for playback buttons
+super stabilizer should not process the 1st frame after a seek & crashes a lot
+"Play every frame" not propagating to playbackengine
 
 
 
 BIG BUGS
 ----------------
+Enter text in render dialog.  Change file format.  Filename is completely erased.
 Nested EDL index file isn't updated when the nested EDL changes.
 Applies filebox filter to the auto completion in a browse button textbox.
 Nested EDLs with different colormodels crash.
@@ -33,6 +37,8 @@ Options for condensing the track height
 
 WISH LIST
 ----------------------------------------------------
+Poll interrupt flag in slow plugins
+    - problematic
 When it crashes because of an offset change, it leaves behind an infinite loop instance.  
 Corner cases introduced by edit info aren't handled.
  - creating a gap by setting start project doesn't create a silence edit

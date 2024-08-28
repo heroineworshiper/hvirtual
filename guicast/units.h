@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -138,9 +137,9 @@ public:
 	Units() {};
 
 // No rounding.
-	static float toframes(int64_t samples, int sample_rate, float framerate);
+	static float toframes(int64_t samples, int sample_rate, double framerate);
 // Round up if > .5
-	static int64_t toframes_round(int64_t samples, int sample_rate, float framerate);
+	static int64_t toframes_round(int64_t samples, int sample_rate, double framerate);
 	static double fix_framerate(double value);
 	static double atoframerate(const char *text);
 
@@ -155,32 +154,32 @@ public:
 	static int text_to_format(const char *string);
 	static const char* print_time_format(int time_format, char *string);
 
-	static int64_t tosamples(float frames, int sample_rate, float framerate);
+	static int64_t tosamples(float frames, int sample_rate, double framerate);
 // give text representation as time
 	static char* totext(char *text, 
 				int64_t samples, 
 				int time_format, 
 				int samplerate, 
-				float frame_rate = 0, 
+				double frame_rate = 0, 
 				float frames_per_foot = 0);
 // give text representation as time
 	static char* totext(char *text, 
 				double seconds, 
 				int time_format, 
 				int sample_rate = 0,
-				float frame_rate = 0, 
+				double frame_rate = 0, 
 				float frames_per_foot = 0);    
 // convert time to samples
 	static int64_t fromtext(const char *text, 
 				int samplerate, 
 				int time_format, 
-				float frame_rate, 
+				double frame_rate, 
 				float frames_per_foot);
 // Convert text to seconds
 	static double text_to_seconds(const char *text, 
 				int samplerate, 
 				int time_format, 
-				float frame_rate, 
+				double frame_rate, 
 				float frames_per_foot);   
 
 	static float xy_to_polar(int x, int y);

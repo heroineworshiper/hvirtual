@@ -111,6 +111,7 @@ void MTimeBar::draw_time()
 	char string[BCTEXTLEN];
 	int sample_rate = mwindow->edl->session->sample_rate;
 	double frame_rate = mwindow->edl->session->frame_rate;
+    int time_format = mwindow->edl->session->time_format;
 	int64_t windowspan = 0;
 // Seconds between text markings
 	double text_interval = 3600.0;
@@ -142,286 +143,495 @@ void MTimeBar::draw_time()
 
 
 // Number of seconds per pixel
-	double time_per_pixel = (double)mwindow->edl->local_session->zoom_sample / 
+	double pixel_seconds = (double)mwindow->edl->local_session->zoom_sample / 
 		sample_rate;
 // Seconds in each frame
 	double frame_seconds = (double)1.0 / frame_rate;
+//printf("MTimeBar::draw_time %d frame_seconds=%f\n", __LINE__, frame_seconds);
+
 // Starting time of view in seconds.
 	double view_start = mwindow->edl->local_session->view_start[pane->number] * 
-		time_per_pixel;
-// Ending time of view in seconds
+		pixel_seconds;
+// Ending time of view in seconds.  Will be more characters for certain time
+// formats.
 	double view_end = (double)(mwindow->edl->local_session->view_start[pane->number] +
-		get_w()) * time_per_pixel;
+		get_w()) * pixel_seconds;
 // Get minimum distance between text marks
 	int min_pixels1 = get_text_width(MEDIUMFONT, 
 		Units::totext(string,
 			view_start,
-			mwindow->edl->session->time_format, 
+			time_format, 
 			sample_rate,
-			mwindow->edl->session->frame_rate,
+			frame_rate,
 			mwindow->edl->session->frames_per_foot)) + TEXT_MARGIN;
 	int min_pixels2 = get_text_width(MEDIUMFONT, 
 		Units::totext(string,
 			view_end,
-			mwindow->edl->session->time_format, 
+			time_format, 
 			sample_rate,
-			mwindow->edl->session->frame_rate,
+			frame_rate,
 			mwindow->edl->session->frames_per_foot)) + TEXT_MARGIN;
 	int min_pixels = (int)MAX(min_pixels1, min_pixels2);
+// add extra to align the text on frames
+//     if(time_format == TIME_HMSF && 
+//         frame_seconds / pixel_seconds < min_pixels)
+//     {
+//         min_pixels += (int)(frame_seconds / pixel_seconds);
+//     }
 
+
+
+
+
+// For this format, we have to advance 1 frame at a time if the frames
+// are over 1 pixel wide & use the default algorithm if the frames
+// are under 1 pixel wide
+    if(time_format == TIME_HMSF && frame_seconds > pixel_seconds)
+    {
+        int64_t step = 0;
+// text intervals to draw, in order of priority
+        const double text_intervals[] =
+        {
+            60 * 60, // 1 hour
+            60 * 30, 
+            60 * 15, 
+            60 * 10, 
+            60 * 5, 
+            60, // 1 minute
+            30,
+            15,
+            10,
+            5,
+            1, // 1 second
+            .5,
+            .25, // 1/4 second
+            .0001
+        };
+
+// compute the start time with alignment on a frame
+        double start_position = (mwindow->edl->local_session->view_start[pane->number] -
+                min_pixels) * 
+		    pixel_seconds;
+        int64_t test_frame = (int64_t)(start_position / frame_seconds);
+        start_position = test_frame * frame_seconds;
+// printf("MTimeBar::draw_time %d start_position=%f %f\n", 
+// __LINE__, 
+// start_position,
+// start_position * frame_rate);
+
+// track which pixels have text over them
+        int total_pixels = (int)((view_end - start_position) / pixel_seconds);
+        int start_pixel = mwindow->edl->local_session->view_start[pane->number] - 
+            start_position / pixel_seconds;
+        int taken[total_pixels];
+        bzero(taken, total_pixels * sizeof(int));
+
+        set_color(get_resources()->default_text_color);
+		set_font(MEDIUMFONT);
+        while(start_position + frame_seconds * step < view_end)
+        {
+            double tick_position = start_position + frame_seconds * step;
+//printf("MTimeBar::draw_time %d %f\n", __LINE__, tick_position1);
+		    int pixel = (int64_t)(tick_position / pixel_seconds) - 
+			    mwindow->edl->local_session->view_start[pane->number];
+
+// draw every frame
+            if(frame_seconds / pixel_seconds > TICK_SPACING)
+                draw_line(pixel, TICK_MARGIN, pixel, get_h() - 2);
+
+            step++;
+        }
+
+// iterate over the text interval table, drawing what fits & filling in 
+// the taken table
+        for(int i = 0; i < sizeof(text_intervals) / sizeof(double); i++)
+        {
+            step = 0;
+            while(start_position + frame_seconds * step < view_end)
+            {
+// the exact time
+                double tick_position = start_position + frame_seconds * step;
+// time calculations for detecting a text interval
+                double tick_position1 = tick_position - frame_seconds / 2;
+                double tick_position2 = tick_position + frame_seconds / 2;
+                int64_t test_position1 = (int64_t)(tick_position1 / text_intervals[i]);
+                int64_t test_position2 = (int64_t)(tick_position2 / text_intervals[i]);
+// printf("MTimeBar::draw_time %d tick_position=%f %f %d %d\n", 
+// __LINE__, 
+// tick_position, 
+// tick_position * frame_rate,
+// (int)test_position1,
+// (int)test_position2);
+
+                if(test_position1 != test_position2 || // crossed a text interval
+                    EQUIV(tick_position, 0)) // start of timeline
+                {
+		            int pixel = (int64_t)(tick_position / pixel_seconds) - 
+			            mwindow->edl->local_session->view_start[pane->number];
+                    int taken_pixel = pixel + start_pixel;
+                    if(taken_pixel >= 0 && 
+                        taken_pixel < total_pixels &&
+                        !taken[taken_pixel])
+                    {
+		                Units::totext(string, 
+			                tick_position, 
+			                time_format, 
+			                sample_rate, 
+			                frame_rate,
+			                mwindow->edl->session->frames_per_foot);
+// printf("MTimeBar::draw_time %d tick_position=%f %f %f %f %s\n", 
+// __LINE__, 
+// tick_position, 
+// tick_position * frame_rate,
+// (int)tick_position * frame_rate,
+// tick_position * frame_rate - (int)tick_position * frame_rate,
+// string);
+		                draw_text(pixel + TEXT_MARGIN, get_text_ascent(MEDIUMFONT), string);
+		                draw_line(pixel, LINE_MARGIN, pixel, get_h() - 2);
+
+// scratch pixels before & after to prevent text overlap
+                        int step1 = taken_pixel - min_pixels;
+                        int step2 = taken_pixel + min_pixels;
+                        if(step1 < 0) step1 = 0;
+                        if(step2 > total_pixels) step2 = total_pixels;
+                        for(int j = step1; j < step2; j++)
+                            taken[j] = 1;
+                    }
+                }
+                step++;
+            }
+        }
+    }
+    else
+    {
 
 // Minimum seconds between text marks
-	double min_time = (double)min_pixels * 
-		mwindow->edl->local_session->zoom_sample /
-		sample_rate;
+	    double min_time = (double)min_pixels * 
+		    mwindow->edl->local_session->zoom_sample /
+		    sample_rate;
 
 
+
+	    int progression = 1;
+
+    // Default text spacing
+	    text_interval = 0.5;
+	    double prev_text_interval = 1.0;
+
+	    while(text_interval >= min_time)
+	    {
+		    prev_text_interval = text_interval;
+		    if(progression == 0)
+		    {
+			    text_interval /= 2;
+			    progression++;
+		    }
+		    else
+		    if(progression == 1)
+		    {
+			    text_interval /= 2;
+			    progression++;
+		    }
+		    else
+		    if(progression == 2)
+		    {
+			    text_interval /= 2.5;
+			    progression = 0;
+		    }
+	    }
+
+	    text_interval = prev_text_interval;
+
+	    if(1 >= min_time)
+		    ;
+	    else
+	    if(2 >= min_time)
+		    text_interval = 2;
+	    else
+	    if(5 >= min_time)
+		    text_interval = 5;
+	    else
+	    if(10 >= min_time)
+		    text_interval = 10;
+	    else
+	    if(15 >= min_time)
+		    text_interval = 15;
+	    else
+	    if(20 >= min_time)
+		    text_interval = 20;
+	    else
+	    if(30 >= min_time)
+		    text_interval = 30;
+	    else
+	    if(60 >= min_time)
+		    text_interval = 60;
+	    else
+	    if(120 >= min_time)
+		    text_interval = 120;
+	    else
+	    if(300 >= min_time)
+		    text_interval = 300;
+	    else
+	    if(600 >= min_time)
+		    text_interval = 600;
+	    else
+	    if(1200 >= min_time)
+		    text_interval = 1200;
+	    else
+	    if(1800 >= min_time)
+		    text_interval = 1800;
+	    else
+	    if(3600 >= min_time)
+		    text_interval = 3600;
+
+    // Set text interval
+	    switch(time_format)
+	    {
+		    case TIME_FEET_FRAMES:
+		    {
+			    double foot_seconds = frame_seconds * mwindow->edl->session->frames_per_foot;
+			    if(frame_seconds >= min_time)
+				    text_interval = frame_seconds;
+			    else
+			    if(foot_seconds / 8.0 > min_time)
+				    text_interval = frame_seconds * mwindow->edl->session->frames_per_foot / 8.0;
+			    else
+			    if(foot_seconds / 4.0 > min_time)
+				    text_interval = frame_seconds * mwindow->edl->session->frames_per_foot / 4.0;
+			    else
+			    if(foot_seconds / 2.0 > min_time)
+				    text_interval = frame_seconds * mwindow->edl->session->frames_per_foot / 2.0;
+			    else
+			    if(foot_seconds > min_time)
+				    text_interval = frame_seconds * mwindow->edl->session->frames_per_foot;
+			    else
+			    if(foot_seconds * 2 >= min_time)
+				    text_interval = foot_seconds * 2;
+			    else
+			    if(foot_seconds * 5 >= min_time)
+				    text_interval = foot_seconds * 5;
+			    else
+			    {
+
+				    for(int factor = 10, progression = 0; factor <= 100000; )
+				    {
+					    if(foot_seconds * factor >= min_time)
+					    {
+						    text_interval = foot_seconds * factor;
+						    break;
+					    }
+
+					    if(progression == 0)
+					    {
+						    factor = (int)(factor * 2.5);
+						    progression++;
+					    }
+					    else
+					    if(progression == 1)
+					    {
+						    factor = (int)(factor * 2);
+						    progression++;
+					    }
+					    else
+					    if(progression == 2)
+					    {
+						    factor = (int)(factor * 2);
+						    progression = 0;
+					    }
+				    }
+
+			    }
+			    break;
+		    }
+
+             case TIME_HMSF:
+    // One frame per text mark
+                if(frame_seconds >= min_time)
+				    text_interval = frame_seconds;
+                else
+    // 2 frames per text mark
+ 			    if(frame_seconds * 2 >= min_time)
+ 				    text_interval = frame_seconds * 2;
+ 			    else
+    // 5 frames per text mark
+			    if(frame_seconds * 5 >= min_time)
+				    text_interval = frame_seconds * 5;
+    // HMSF aligns with seconds & minutes for all zooms above 1 frame per text mark
+                 break;
+
+		    case TIME_FRAMES:
+    //        case TIME_HMSF:
+    // One frame per text mark
+			    if(frame_seconds >= min_time)
+				    text_interval = frame_seconds;
+			    else
+    // 2 frames per text mark
+			    if(frame_seconds * 2 >= min_time)
+				    text_interval = frame_seconds * 2;
+			    else
+    // 5 frames per text mark
+			    if(frame_seconds * 5 >= min_time)
+				    text_interval = frame_seconds * 5;
+			    else
+    // >= 10 frames per text mark
+    // Frames aligns with powers of 10 & 25 frames here
+			    {
+    // printf("MTimeBar::draw_time %d frame_seconds=%f min_time=%f ratio=%f\n", 
+    // __LINE__,
+    // frame_seconds,
+    // min_time,
+    // min_time / frame_seconds);
+
+				    for(int factor = 10, progression = 0; factor <= 100000; )
+				    {
+					    if(frame_seconds * factor >= min_time)
+					    {
+						    text_interval = frame_seconds * factor;
+						    break;
+					    }
+
+					    if(progression == 0)
+					    {
+						    factor = (int)(factor * 2.5);
+						    progression++;
+					    }
+					    else
+					    if(progression == 1)
+					    {
+						    factor = (int)(factor * 2);
+						    progression++;
+					    }
+					    else
+					    if(progression == 2)
+					    {
+						    factor = (int)(factor * 2);
+						    progression = 0;
+					    }
+				    }
+
+			    }
+			    break;
+
+		    default:
+			    break;
+	    }
+
+    // Sanity
+	    while(text_interval < min_time)
+	    {
+		    text_interval *= 2;
+	    }
+
+    // Set tick interval
+	    tick_interval = text_interval;
+
+    // enough space to draw ticks between time text
+	    switch(time_format)
+	    {
+		    case TIME_HMSF:
+		    case TIME_FEET_FRAMES:
+		    case TIME_FRAMES:
+			    if(frame_seconds / pixel_seconds > TICK_SPACING)
+				    tick_interval = frame_seconds;
+			    break;
+	    }
 // Get first text mark on or before window start
-	int64_t starting_mark = 0;
+	    int64_t starting_mark = 0;
+	    starting_mark = (int64_t)((double)mwindow->edl->local_session->view_start[pane->number] * 
+		    pixel_seconds / text_interval);
 
-	int progression = 1;
+	    double start_position = (double)starting_mark * text_interval;
+// printf("MTimeBar::draw_time %d start_position=%f text_interval=%f\n", 
+// __LINE__, 
+// start_position,
+// text_interval);
+	    int64_t step = 0;
+	    while(start_position + text_interval * step < view_end)
+	    {
+		    double position1 = start_position + text_interval * step;
+            double tick_position1 = position1;
 
-// Default text spacing
-	text_interval = 0.5;
-	double prev_text_interval = 1.0;
+    // Align the tick marks on frames while keeping the text the same
+//             if(time_format == TIME_HMSF)
+//             {
+//                 int64_t test_frame = (int64_t)(position1 / frame_seconds);
+//                 double position2 = test_frame * frame_seconds;
+//     //            if(!EQUIV(position1, position2))
+//                 {
+//     //                if(test_frame > 0) test_frame++;
+//                     tick_position1 = test_frame * frame_seconds;
+//                 }
+// 
+//     //             char string1[BCTEXTLEN];
+//     //             char string2[BCTEXTLEN];
+//     //             Units::totext(string1, 
+//     // 			    test_frame * frame_seconds, 
+//     // 			    mwindow->edl->session->time_format, 
+//     // 			    sample_rate, 
+//     // 			    mwindow->edl->session->frame_rate,
+//     // 			    mwindow->edl->session->frames_per_foot);
+//     //             Units::totext(string2, 
+//     // 			    (test_frame + 1) * frame_seconds, 
+//     // 			    mwindow->edl->session->time_format, 
+//     // 			    sample_rate, 
+//     // 			    mwindow->edl->session->frame_rate,
+//     // 			    mwindow->edl->session->frames_per_foot);
+//     // printf("MTimeBar::draw_time %d %d %s %s\n", 
+//     // __LINE__, 
+//     // (int)step,
+//     // string1,
+//     // string2);
+//             }
 
-	while(text_interval >= min_time)
-	{
-		prev_text_interval = text_interval;
-		if(progression == 0)
-		{
-			text_interval /= 2;
-			progression++;
-		}
-		else
-		if(progression == 1)
-		{
-			text_interval /= 2;
-			progression++;
-		}
-		else
-		if(progression == 2)
-		{
-			text_interval /= 2.5;
-			progression = 0;
-		}
-	}
+		    int pixel = (int64_t)(tick_position1 / pixel_seconds) - 
+			    mwindow->edl->local_session->view_start[pane->number];
+		    int pixel1 = pixel;
 
-	text_interval = prev_text_interval;
+		    Units::totext(string, 
+			    tick_position1, 
+			    time_format, 
+			    sample_rate, 
+			    frame_rate,
+			    mwindow->edl->session->frames_per_foot);
+	 	    set_color(get_resources()->default_text_color);
+		    set_font(MEDIUMFONT);
 
-	if(1 >= min_time)
-		;
-	else
-	if(2 >= min_time)
-		text_interval = 2;
-	else
-	if(5 >= min_time)
-		text_interval = 5;
-	else
-	if(10 >= min_time)
-		text_interval = 10;
-	else
-	if(15 >= min_time)
-		text_interval = 15;
-	else
-	if(20 >= min_time)
-		text_interval = 20;
-	else
-	if(30 >= min_time)
-		text_interval = 30;
-	else
-	if(60 >= min_time)
-		text_interval = 60;
-	else
-	if(120 >= min_time)
-		text_interval = 120;
-	else
-	if(300 >= min_time)
-		text_interval = 300;
-	else
-	if(600 >= min_time)
-		text_interval = 600;
-	else
-	if(1200 >= min_time)
-		text_interval = 1200;
-	else
-	if(1800 >= min_time)
-		text_interval = 1800;
-	else
-	if(3600 >= min_time)
-		text_interval = 3600;
+		    draw_text(pixel + TEXT_MARGIN, get_text_ascent(MEDIUMFONT), string);
+		    draw_line(pixel, LINE_MARGIN, pixel, get_h() - 2);
 
-// Set text interval
-	switch(mwindow->edl->session->time_format)
-	{
-		case TIME_FEET_FRAMES:
-		{
-			double foot_seconds = frame_seconds * mwindow->edl->session->frames_per_foot;
-			if(frame_seconds >= min_time)
-				text_interval = frame_seconds;
-			else
-			if(foot_seconds / 8.0 > min_time)
-				text_interval = frame_seconds * mwindow->edl->session->frames_per_foot / 8.0;
-			else
-			if(foot_seconds / 4.0 > min_time)
-				text_interval = frame_seconds * mwindow->edl->session->frames_per_foot / 4.0;
-			else
-			if(foot_seconds / 2.0 > min_time)
-				text_interval = frame_seconds * mwindow->edl->session->frames_per_foot / 2.0;
-			else
-			if(foot_seconds > min_time)
-				text_interval = frame_seconds * mwindow->edl->session->frames_per_foot;
-			else
-			if(foot_seconds * 2 >= min_time)
-				text_interval = foot_seconds * 2;
-			else
-			if(foot_seconds * 5 >= min_time)
-				text_interval = foot_seconds * 5;
-			else
-			{
+		    double position2 = start_position + text_interval * (step + 1);
+		    int pixel2 = (int64_t)(position2 / pixel_seconds) - 
+			    mwindow->edl->local_session->view_start[pane->number];
 
-				for(int factor = 10, progression = 0; factor <= 100000; )
-				{
-					if(foot_seconds * factor >= min_time)
-					{
-						text_interval = foot_seconds * factor;
-						break;
-					}
+		    for(double tick_position = position1; 
+			    tick_position < position2; 
+			    tick_position += tick_interval)
+		    {
+                double tick_position1 = tick_position;
+    // Align the tick marks on frames while keeping the text the same
+//                 if(time_format == TIME_HMSF)
+//                 {
+//                     int64_t test_frame = (int64_t)(tick_position1 / frame_seconds);
+//     //                if(test_frame > 0) test_frame++;
+//                     tick_position1 = test_frame * frame_seconds;
+//     //                 if(!EQUIV(tick_position1, tick_position2))
+//     //                 {
+//     //                     tick_position1 = (test_frame + 1) * frame_seconds;
+//     //                 }
+//                 }
 
-					if(progression == 0)
-					{
-						factor = (int)(factor * 2.5);
-						progression++;
-					}
-					else
-					if(progression == 1)
-					{
-						factor = (int)(factor * 2);
-						progression++;
-					}
-					else
-					if(progression == 2)
-					{
-						factor = (int)(factor * 2);
-						progression = 0;
-					}
-				}
-
-			}
-			break;
-		}
-
-		case TIME_FRAMES:
-		case TIME_HMSF:
-// One frame per text mark
-			if(frame_seconds >= min_time)
-				text_interval = frame_seconds;
-			else
-			if(frame_seconds * 2 >= min_time)
-				text_interval = frame_seconds * 2;
-			else
-			if(frame_seconds * 5 >= min_time)
-				text_interval = frame_seconds * 5;
-			else
-			{
-
-				for(int factor = 10, progression = 0; factor <= 100000; )
-				{
-					if(frame_seconds * factor >= min_time)
-					{
-						text_interval = frame_seconds * factor;
-						break;
-					}
-
-					if(progression == 0)
-					{
-						factor = (int)(factor * 2.5);
-						progression++;
-					}
-					else
-					if(progression == 1)
-					{
-						factor = (int)(factor * 2);
-						progression++;
-					}
-					else
-					if(progression == 2)
-					{
-						factor = (int)(factor * 2);
-						progression = 0;
-					}
-				}
-
-			}
-			break;
-
-		default:
-			break;
-	}
-
-// Sanity
-	while(text_interval < min_time)
-	{
-		text_interval *= 2;
-	}
-
-// Set tick interval
-	tick_interval = text_interval;
-
-	switch(mwindow->edl->session->time_format)
-	{
-		case TIME_HMSF:
-		case TIME_FEET_FRAMES:
-		case TIME_FRAMES:
-			if(frame_seconds / time_per_pixel > TICK_SPACING)
-				tick_interval = frame_seconds;
-			break;
-	}
-
-// Get first text mark on or before window start
-	starting_mark = (int64_t)((double)mwindow->edl->local_session->view_start[pane->number] * 
-		time_per_pixel / text_interval);
-
-	double start_position = (double)starting_mark * text_interval;
-	int64_t iteration = 0;
-
-
-//printf("text_interval=%f\n", text_interval);
-	while(start_position + text_interval * iteration < view_end)
-	{
-		double position1 = start_position + text_interval * iteration;
-		int pixel = (int64_t)(position1 / time_per_pixel) - 
-			mwindow->edl->local_session->view_start[pane->number];
-		int pixel1 = pixel;
-
-		Units::totext(string, 
-			position1, 
-			mwindow->edl->session->time_format, 
-			sample_rate, 
-			mwindow->edl->session->frame_rate,
-			mwindow->edl->session->frames_per_foot);
-	 	set_color(get_resources()->default_text_color);
-		set_font(MEDIUMFONT);
-
-		draw_text(pixel + TEXT_MARGIN, get_text_ascent(MEDIUMFONT), string);
-		draw_line(pixel, LINE_MARGIN, pixel, get_h() - 2);
-
-		double position2 = start_position + text_interval * (iteration + 1);
-		int pixel2 = (int64_t)(position2 / time_per_pixel) - 
-			mwindow->edl->local_session->view_start[pane->number];
-
-		for(double tick_position = position1; 
-			tick_position < position2; 
-			tick_position += tick_interval)
-		{
-			pixel = (int64_t)(tick_position / time_per_pixel) - 
-				mwindow->edl->local_session->view_start[pane->number];
-			if(labs(pixel - pixel1) > 1 &&
-				labs(pixel - pixel2) > 1)
-				draw_line(pixel, TICK_MARGIN, pixel, get_h() - 2);
-		}
-		iteration++;
-	}
+			    pixel = (int64_t)(tick_position1 / pixel_seconds) - 
+				    mwindow->edl->local_session->view_start[pane->number];
+			    if(labs(pixel - pixel1) > 1 &&
+				    labs(pixel - pixel2) > 1)
+                {
+    //if(pixel < 100) printf("MTimeBar::draw_time %d %d\n", __LINE__, (int)pixel);
+				    draw_line(pixel, TICK_MARGIN, pixel, get_h() - 2);
+                }
+		    }
+		    step++;
+	    }
+    }
 
 
 }

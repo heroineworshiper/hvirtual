@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +52,13 @@ void MainClock::update(double position)
 		mwindow->edl->session->sample_rate,
 		mwindow->edl->session->frame_rate,
 		mwindow->edl->session->frames_per_foot);
+// printf("MainClock::update %d position=%f %f %f %f %s\n", 
+// __LINE__, 
+// position, 
+// position * mwindow->edl->session->frame_rate,
+// (int)position * mwindow->edl->session->frame_rate,
+// position * mwindow->edl->session->frame_rate - (int)position * mwindow->edl->session->frame_rate,
+// string);
 	BC_Title::update(string);
 }
 

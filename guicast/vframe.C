@@ -838,7 +838,7 @@ int VFrame::read_png(const unsigned char *data)
 		data[6] == 'W' &&
 		data[7] == ' ')
 	{
-printf("VFrame::read_png %d", __LINE__);
+printf("VFrame::read_png %d\n", __LINE__);
 
 		int new_color_model;
 		w = (data[8]) |
@@ -909,12 +909,16 @@ printf("VFrame::read_png %d", __LINE__);
 		h = png_get_image_height(png_ptr, info_ptr);
 
 		int src_color_model = png_get_color_type(png_ptr, info_ptr);
+//printf("VFrame::read_png %d: %d\n", __LINE__, src_color_model);
 		switch(src_color_model)
 		{
 			case PNG_COLOR_TYPE_RGB:
 				new_color_model = BC_RGB888;
 				break;
 
+            case PNG_COLOR_TYPE_GRAY:
+                new_color_model = BC_A8;
+				break;
 
 			case PNG_COLOR_TYPE_GRAY_ALPHA:
 			case PNG_COLOR_TYPE_RGB_ALPHA:
