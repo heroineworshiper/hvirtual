@@ -34,6 +34,7 @@
 #include "filesystem.h"
 #include "localsession.h"
 #include "mainsession.inc"
+#include "mwindow.inc"
 #include "nestededls.h"
 #include "plugin.h"
 #include "strategies.inc"
@@ -330,7 +331,6 @@ void Edits::resample(double old_rate, double new_rate)
 
 
 
-
 int Edits::optimize()
 {
 	int result = 1;
@@ -422,21 +422,13 @@ int Edits::optimize()
 // next_edit->nested_edl);
 
 
-	   		if(
-// both edits are silence & not a plugin
-				(current->silence() && next_edit->silence() && !current->is_plugin) ||
-				(current->startsource + current->length == next_edit->startsource &&
-// source channels are identical
-	       		current->channel == next_edit->channel &&
-// assets are identical
-				current->asset == next_edit->asset && 
-    		   	current->nested_edl == next_edit->nested_edl))
-			{
-//printf("Edits::optimize %d\n", __LINE__);
-        		current->length += next_edit->length;
-        		remove(next_edit);
-        		result = 1;
-        	}
+            result = join(current, next_edit,
+#ifdef ENABLE_RAZOR
+                1 // silence only
+#else
+                0 // silence only
+#endif
+            );
 
     		current = current->next;
 		}
@@ -453,6 +445,32 @@ int Edits::optimize()
 
 //track->dump();
 	return 0;
+}
+
+int Edits::join(Edit *prev, Edit *next, int silence_only)
+{
+    if(!prev || !next) return 0;
+
+	if(
+// both edits are silence & not a plugin
+		(prev->silence() && next->silence() && !prev->is_plugin) 
+        ||
+        (!silence_only &&
+// different edits run into each other
+			(prev->startsource + prev->length == next->startsource &&
+// source channels are identical
+	       	prev->channel == next->channel &&
+// assets are identical
+			prev->asset == next->asset && 
+    		prev->nested_edl == next->nested_edl)
+        ))
+	{
+//printf("Edits::optimize %d\n", __LINE__);
+        prev->length += next->length;
+        remove(next);
+        return 1;
+    }
+    return 0;
 }
 
 
@@ -853,12 +871,21 @@ int Edits::clear_handle(double start,
 						edit_autos);
                 }
 
-				for(current_edit = next_edit; current_edit; current_edit = current_edit->next)
+				for(Edit *current_edit2 = next_edit; current_edit2; current_edit2 = current_edit2->next)
 				{
-					current_edit->startproject += length;
+					current_edit2->startproject += length;
 				}
 
 				distance = track->from_units(length);
+
+// have to merge the edits here if we're supporting razor mode
+#ifdef ENABLE_RAZOR
+//printf("Edits::clear_handle %d %p %p\n", __LINE__, current_edit, next_edit);
+
+                current_edit->length += next_edit->length;
+                remove(next_edit);
+#endif
+
 				optimize();
 				break;
 			}
@@ -1135,7 +1162,6 @@ void Edits::deglitch(int64_t position)
 	}
 	
 }
-
 
 
 

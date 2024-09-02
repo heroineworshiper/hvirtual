@@ -577,7 +577,7 @@ void Theme::get_cwindow_sizes(CWindowGUI *gui, int cwindow_controls)
 {
 	czoom_w = DP(100);
 
-	int edit_w = EditPanel::calculate_w(mwindow, 1, 13);
+	int edit_w = EditPanel::calculate_w(mwindow, 1, 14);
 	int transport_w = PlayTransport::get_transport_width(mwindow) + toggle_margin;
 	int zoom_w = ZoomPanel::calculate_w(czoom_w);
 	int status_w = get_image("cwindow_active")->get_w();

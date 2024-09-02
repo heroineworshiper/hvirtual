@@ -44,6 +44,9 @@
 // Make tweeks span keyframes if a region is selected
 #define USE_KEYFRAME_SPANNING
 
+// Don't automatically merge contiguous edits
+#define ENABLE_RAZOR
+
 // Index of vwindow that always exists
 #define DEFAULT_VWINDOW 0
 

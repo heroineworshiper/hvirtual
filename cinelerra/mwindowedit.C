@@ -380,6 +380,26 @@ void MWindow::clear(int clear_handle, int deglitch)
 	}
 }
 
+void MWindow::razor()
+{
+	double start = edl->local_session->get_selectionstart();
+	double end = edl->local_session->get_selectionend();
+    if(EQUIV(start, end))
+    {
+    	undo->update_undo_before();
+        edl->tracks->razor(start);
+    	edl->optimize(); // in case they razor silence
+	    save_backup();
+	    undo->update_undo_after(_("razor"), LOAD_EDITS);
+
+        gui->update(0, 1, 0, 0, 0, 0, 0);
+    }
+    else
+    {
+        printf("MWindow::razor %d: must select a single point\n", __LINE__);
+    }
+}
+
 void MWindow::set_automation_mode(int mode)
 {
 	undo->update_undo_before();
@@ -1051,7 +1071,7 @@ int MWindow::modify_edithandles()
 	edl->modify_edithandles(session->drag_start, 
 		session->drag_position, 
 		session->drag_handle, 
-		edl->session->edit_handle_mode[session->drag_button],
+		edl->session->edit_handle_mode[session->drag_button - 1],
 		edl->session->labels_follow_edits, 
 		edl->session->plugins_follow_edits,
 		edl->session->autos_follow_edits);
@@ -1071,7 +1091,7 @@ int MWindow::modify_pluginhandles()
 	edl->modify_pluginhandles(session->drag_start, 
 		session->drag_position, 
 		session->drag_handle, 
-		edl->session->edit_handle_mode[session->drag_button],
+		edl->session->edit_handle_mode[session->drag_button - 1],
 		edl->session->labels_follow_edits,
 		edl->session->autos_follow_edits,
 		session->trim_edits);
@@ -1085,7 +1105,7 @@ int MWindow::modify_pluginhandles()
 // Common to edithandles and plugin handles
 void MWindow::finish_modify_handles()
 {
-	int edit_mode = edl->session->edit_handle_mode[session->drag_button];
+	int edit_mode = edl->session->edit_handle_mode[session->drag_button - 1];
 
 	if((session->drag_handle == 1 && edit_mode != MOVE_NO_EDITS) ||
 		(session->drag_handle == 0 && edit_mode == MOVE_ONE_EDIT))

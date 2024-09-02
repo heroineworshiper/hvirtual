@@ -656,6 +656,7 @@ void SUV::initialize()
 	new_button("histogram.png", editpanel_up, editpanel_hi, editpanel_dn, "histogram");
 
 
+	new_button("razor.png", editpanel_up, editpanel_hi, editpanel_dn, "razor");
 	new_button("copy.png", editpanel_up, editpanel_hi, editpanel_dn, "copy");
 	new_button("cut.png", editpanel_up, editpanel_hi, editpanel_dn, "cut");
 	new_button("fit.png", editpanel_up, editpanel_hi, editpanel_dn, "fit");

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include "mainundo.h"
 #include "module.h"
 #include "mainsession.h"
+#include "mwindow.h"
 #include "nestededls.h"
 #include "pluginserver.h"
 #include "pluginset.h"
@@ -111,6 +112,32 @@ void Tracks::clear_transitions(double start, double end)
 					current_edit->detach_transition();
 				}
 			}
+		}
+	}
+}
+
+void Tracks::razor(double start)
+{
+	for(Track *current_track = first; 
+		current_track; 
+		current_track = current_track->next)
+	{
+		if(current_track->record)
+		{
+			int64_t position = current_track->to_units(start, 0);
+
+// do the edits
+            current_track->edits->split_edit(position);
+
+// do the plugins
+            if(edl->session->plugins_follow_edits)
+            {
+                for(int i = 0; i < current_track->plugin_set.size(); i++)
+                {
+                    PluginSet *ptr = current_track->plugin_set.get(i);
+                    ptr->split_edit(position);
+                }
+            }
 		}
 	}
 }
@@ -610,9 +637,9 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
 	double position,
 	int edit_labels,  // Ignored
 	int edit_plugins,  // Ignored
-	int edit_autos) // Ignored
+	int edit_autos)
 {
-//printf("Tracks::move_edits 1\n");
+//printf("Tracks::move_edits %d drag_button=%d\n", __LINE__, MWindow::session->drag_button);
 	for(Track *dest_track = track; dest_track; dest_track = dest_track->next)
 	{
 		if(dest_track->record)
@@ -623,19 +650,20 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
 			Track *source_track = 0;
 
 
-// Get source track
+// Get source track & edit
 			if(dest_track->data_type == TRACK_AUDIO)
 			{
 				int current_aedit = 0;
 
-				while(current_aedit < edits->total &&
-					edits->values[current_aedit]->track->data_type != TRACK_AUDIO)
+				while(current_aedit < edits->size() &&
+					edits->get(current_aedit)->track->data_type != TRACK_AUDIO)
 					current_aedit++;
 
-				if(current_aedit < edits->total)
+				if(current_aedit < edits->size())
 				{
-					source_edit = edits->values[current_aedit];
+					source_edit = edits->get(current_aedit);
 					source_track = source_edit->track;
+// take it off the source list
 					edits->remove_number(current_aedit);
 				}
 			}
@@ -643,14 +671,15 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
 			if(dest_track->data_type == TRACK_VIDEO)
 			{
 				int current_vedit = 0;
-				while(current_vedit < edits->total &&
-					edits->values[current_vedit]->track->data_type != TRACK_VIDEO)
+				while(current_vedit < edits->size() &&
+					edits->get(current_vedit)->track->data_type != TRACK_VIDEO)
 					current_vedit++;
 
-				if(current_vedit < edits->total)
+				if(current_vedit < edits->size())
 				{
-					source_edit = edits->values[current_vedit];
+					source_edit = edits->get(current_vedit);
 					source_track = source_edit->track;
+// take it off the source list
 					edits->remove_number(current_vedit);
 				}
 			}
@@ -658,62 +687,98 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
 //printf("Tracks::move_edits 2 %s %s %d\n", source_track->title, dest_track->title, source_edit->length);
 			if(source_edit)
 			{
-// Copy keyframes
-				FileXML temp;
-				AutoConf temp_autoconf;
-				int64_t position_i = source_track->to_units(position, 0);
-// Source edit changes
-				int64_t source_length = source_edit->length;
+// convert the destination into the media units
+ 				int64_t position_i = source_track->to_units(position, 0);
+ 				int64_t source_length = source_edit->length;
 
-				temp_autoconf.set_all(1);
-
-				source_track->automation->copy(source_edit->startproject, 
-					source_edit->startproject + source_edit->length, 
-					&temp, 
-					0,
-					1);
-				temp.terminate_string();
-				temp.rewind();
-// Insert new keyframes
-//printf("Tracks::move_edits 2 %d %p\n", result->startproject, result->asset);
-				source_track->automation->clear(source_edit->startproject,
-					source_edit->startproject + source_edit->length, 
-					&temp_autoconf,
-					1);
-				int64_t position_a = position_i;
-				if (dest_track == source_track)
+                if(edit_autos)
                 {
-                    if (position_a > source_edit->startproject)
-                            position_a -= source_length;
-                }	        
+// Copy keyframes
+    				FileXML temp;
+    				AutoConf temp_autoconf;
+// Source edit changes
 
-				dest_track->automation->paste_silence(position_a, 
-					position_a + source_length);
-				while(!temp.read_tag())
-					dest_track->automation->paste(position_a, 
-						source_length, 
-						1.0, 
-						&temp, 
-						0,
-						1,
-						&temp_autoconf);
+    				temp_autoconf.set_all(1);
 
+    				source_track->automation->copy(source_edit->startproject, 
+    					source_edit->startproject + source_length, 
+    					&temp, 
+    					0,
+    					1);
+    				temp.terminate_string();
+    				temp.rewind();
 
+// delete source keyframes
+//printf("Tracks::move_edits 2 %d %p\n", result->startproject, result->asset);
+				    source_track->automation->clear(source_edit->startproject,
+					    source_edit->startproject + source_length, 
+					    &temp_autoconf,
+					    1);
+				    int64_t position_a = position_i;
+				    if (!MWindow::session->free_drag &&
+                        dest_track == source_track &&
+                        position_a > source_edit->startproject + source_length)
+                    {
+                        position_a -= source_length;
+                    }
 
-// Insert new edit
-				Edit *dest_edit = dest_track->edits->shift(position_i, 
-					source_length);
-				Edit *result = dest_track->edits->insert_before(dest_edit, 
-					new Edit(edl, dest_track));
-				result->copy_from(source_edit);
-				result->startproject = position_i;
-				result->length = source_length;
+// clear destination keyframes if overwriting & a different track
+                    if(MWindow::session->drag_button != LEFT_BUTTON &&
+                        dest_track != source_track)
+                    {
+                        dest_track->automation->clear(position_a,
+                            position_a + source_length,
+                            &temp_autoconf,
+					        1);
+                    }
 
-// Clear source
-				source_track->edits->clear(source_edit->startproject, 
-					source_edit->startproject + source_length);
-				source_track->optimize();
-				dest_track->optimize();
+// paste automation
+				    dest_track->automation->paste_silence(position_a, 
+					    position_a + source_length);
+				    while(!temp.read_tag())
+					    dest_track->automation->paste(position_a, 
+						    source_length, 
+						    1.0, 
+						    &temp, 
+						    0,
+						    1,
+						    &temp_autoconf);
+                }
+
+// Remove source edit from source track
+                source_track->edits->remove_pointer(source_edit);
+// shift positions of edits in source track
+                for(Edit *current = source_edit->next; current; current = current->next)
+                {
+                    current->startproject -= source_edit->length;
+                }
+// join the neighbors in the source track if they're contiguous
+                source_track->edits->join(source_edit->previous, 
+                    source_edit->next,
+                    0);
+                
+// shift destination position if it's later in the source track
+                if(!MWindow::session->free_drag &&
+                    source_track == dest_track &&
+                    position_i > source_edit->startproject + source_length)
+                    position_i -= source_length;
+
+// clear the destination if we're overwriting & changing tracks.
+                if(MWindow::session->drag_button != LEFT_BUTTON &&
+                    dest_track != source_track)
+                {
+                    dest_track->edits->clear(position_i,
+                        position_i + source_length);
+                }
+
+// insert the source edit into the destination track
+                Edit *dest_edit = dest_track->edits->paste_silence(position_i,
+                    position_i + source_length);
+                dest_edit->copy_from(source_edit);
+                dest_edit->startproject = position_i;
+                delete source_edit;
+                source_track->optimize();
+                dest_track->optimize();
 			}
 		}
 	}

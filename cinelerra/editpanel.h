@@ -189,6 +189,15 @@ public:
 	EditPanel *panel;
 };
 
+class EditRazor : public BC_Button
+{
+public:
+	EditRazor(MWindow *mwindow, EditPanel *panel, int x, int y);
+	int handle_event();
+	MWindow *mwindow;
+	EditPanel *panel;
+};
+
 class EditTransition : public BC_Button
 {
 public:
@@ -388,7 +397,8 @@ public:
 		int use_toclip,
 		int use_meters,
 		int is_mwindow,
-		int use_cut);
+		int use_cut,
+        int use_razor);
 	~EditPanel();
 
 	void set_meters(MeterPanel *meter_panel);
@@ -435,6 +445,7 @@ public:
 	int x, y, x1, y1;
 	int is_mwindow;
 	int use_cut;
+    int use_razor;
 
 	EditFit *fit;
 	EditFitAutos *fit_autos;
@@ -450,6 +461,7 @@ public:
 	EditCut *cut;
 	EditCopy *copy;
 	EditPaste *paste;
+    EditRazor *razor;
 	EditLabelbutton *labelbutton;
 	EditPrevLabel *prevlabel;
 	EditNextLabel *nextlabel;

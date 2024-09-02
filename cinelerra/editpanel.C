@@ -66,7 +66,8 @@ EditPanel::EditPanel(MWindow *mwindow,
 	int use_toclip,
 	int use_meters,
 	int is_mwindow,
-	int use_cut)
+	int use_cut,
+    int use_razor)
 {
 	this->editing_mode = editing_mode;
 	this->use_editing_mode = use_editing_mode;
@@ -86,6 +87,7 @@ EditPanel::EditPanel(MWindow *mwindow,
 	this->use_meters = use_meters;
 	this->is_mwindow = is_mwindow;
 	this->use_cut = use_cut;
+    this->use_razor = use_razor;
 
 	this->x = x;
 	this->y = y;
@@ -100,6 +102,7 @@ EditPanel::EditPanel(MWindow *mwindow,
 	prevedit = 0;
 	nextedit = 0;
 	meters = 0;
+    razor = 0;
 }
 
 EditPanel::~EditPanel()
@@ -136,56 +139,60 @@ void EditPanel::update()
 	subwindow->flush();
 }
 
-void EditPanel::delete_buttons()
-{
-	if(use_editing_mode)
-	{
-		if(arrow) delete arrow;
-		if(ibeam) delete ibeam;
-	}
-	
-	if(use_keyframe)
-		delete keyframe;
+// void EditPanel::delete_buttons()
+// {
+// 	if(use_editing_mode)
+// 	{
+// 		if(arrow) delete arrow;
+// 		if(ibeam) delete ibeam;
+// 	}
+// 	
+// 	if(use_keyframe)
+// 		delete keyframe;
+// 
+// 
+// 	if(inpoint) delete inpoint;
+// 	if(outpoint) delete outpoint;
+// 	if(use_copy) delete copy;
+// 	if(use_splice) delete splice;
+// 	if(use_overwrite) delete overwrite;
+// 	if(use_lift) delete lift;
+// 	if(use_extract) delete extract;
+// 	if(cut) delete cut;
+// 	if(copy) delete copy;
+// 	if(use_paste) delete paste;
+//     delete razor;
+//     razor = 0;
+// 
+// 	if(use_labels)
+// 	{	
+// 		delete labelbutton;
+// 		delete prevlabel;
+// 		delete nextlabel;
+// 		delete prevedit;
+// 		delete nextedit;
+// 	}
+// 
+// 	if(use_fit) 
+// 	{
+// 		delete fit;
+// 		delete fit_autos;
+// 	}
+// 	if(use_undo)
+// 	{
+// 		delete undo;
+// 		delete redo;
+// 	}
+// 	
+// 	prevlabel = 0;
+// 	nextlabel = 0;
+// 	prevedit = 0; 
+// 	nextedit = 0;
+// }
 
-
-	if(inpoint) delete inpoint;
-	if(outpoint) delete outpoint;
-	if(use_copy) delete copy;
-	if(use_splice) delete splice;
-	if(use_overwrite) delete overwrite;
-	if(use_lift) delete lift;
-	if(use_extract) delete extract;
-	if(cut) delete cut;
-	if(copy) delete copy;
-	if(use_paste) delete paste;
-
-	if(use_labels)
-	{	
-		delete labelbutton;
-		delete prevlabel;
-		delete nextlabel;
-		delete prevedit;
-		delete nextedit;
-	}
-
-	if(use_fit) 
-	{
-		delete fit;
-		delete fit_autos;
-	}
-	if(use_undo)
-	{
-		delete undo;
-		delete redo;
-	}
-	
-	prevlabel = 0;
-	nextlabel = 0;
-	prevedit = 0; 
-	nextedit = 0;
-}
-
-int EditPanel::calculate_w(MWindow *mwindow, int use_keyframe, int total_buttons)
+int EditPanel::calculate_w(MWindow *mwindow, 
+    int use_keyframe, 
+    int total_buttons)
 {
 	int result = 0;
 	int button_w = mwindow->theme->get_image_set("ibeam")[0]->get_w();
@@ -270,6 +277,11 @@ SET_TRACE
 		subwindow->add_subwindow(paste = new EditPaste(mwindow, this, x1, y1));
 		x1 += paste->get_w();
 	}
+    if(use_razor)
+    {
+		subwindow->add_subwindow(razor = new EditRazor(mwindow, this, x1, y1));
+		x1 += razor->get_w();
+    }
 	
 	if(use_meters)
 	{
@@ -513,6 +525,12 @@ void EditPanel::reposition_buttons(int x, int y)
 		paste->reposition_window(x1, y1);
 		x1 += paste->get_w();
 	}
+
+    if(use_razor)
+    {
+        razor->reposition_window(x1, y1);
+        x1 += paste->get_w();
+    }
 
 	if(use_meters)
 	{
@@ -992,6 +1010,25 @@ int EditPaste::handle_event()
 	if(!panel->is_mwindow) mwindow->gui->unlock_window();
 	return 1;
 }
+
+
+
+EditRazor::EditRazor(MWindow *mwindow, EditPanel *panel, int x, int y)
+ : BC_Button(x, y, mwindow->theme->get_image_set("razor"))
+{
+	this->mwindow = mwindow;
+	this->panel = panel;
+	set_tooltip(_("Razor"));
+}
+
+int EditRazor::handle_event()
+{
+	if(!panel->is_mwindow) mwindow->gui->lock_window("EditRazor::handle_event");
+	mwindow->razor();
+	if(!panel->is_mwindow) mwindow->gui->unlock_window();
+	return 1;
+}
+
 
 
 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -202,6 +201,7 @@ public:
 		double end, 
 		int edit_plugins,
 		int edit_autos);
+    void razor(double start);
 	int purge_asset(Asset *asset);
 	int asset_used(Asset *asset);
 // Transition popup

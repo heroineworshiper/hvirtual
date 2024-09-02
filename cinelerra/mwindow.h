@@ -314,6 +314,7 @@ public:
 // If clear_handle, edit boundaries are cleared if the range is 0.
 // Called by paste, record, menueffects, render, and CWindow drop.
 	void clear(int clear_handle, int deglitch);
+    void razor();
 	void clear_labels();
 	int clear_labels(double start, double end);
 	void concatenate_tracks();

@@ -52,6 +52,8 @@ attribute.
 * MANIPULATING TRACKS::    Moving whole tracks around
 * TWO SCREEN EDITING::     Using two video windows to edit
 * DRAG AND DROP EDITING::  Dragging objects to edit
+* DRAGGING EDITS::         Moving edits by dragging
+* SPLITTING & JOINING EDITS:: Create more edits for dragging
 * CUT AND PASTE EDITING::  Editing media like text
 * TRIMMING::               Changing in and out points
 * THE EDIT INFO DIALOG::   Hacking the EDL fields
@@ -461,21 +463,54 @@ When displaying icons in the resource window @b{SHIFT-clicking} or
 In addition to dragging media files, if you create clips and open the
 @b{clip} folder you can drag clips on the timeline.
 
+@node DRAGGING EDITS
+@section DRAGGING EDITS
+
+
 In the timeline there is further dragging functionality.  To enable the
 dragging functionality of the timeline, select the arrow toggle
-@image{arrow}.  Move over an edit and drag it.  If more than one
-track is armed, Cinelerra will drag any edits which start on the same
-position as the edit the cursur is currently over.  During a dragging
-operation the edit snaps to the nearest boundary.
+@image{arrow}.  Move over an edit and drag it.  If more than one track
+is armed, Cinelerra will drag all the edits which start on the same
+position as the edit the cursur is currently over.  During this type of
+dragging operation the destination snaps to the nearest boundary.  The
+edit is always inserted at the boundary while shifting the later edits
+right.
 
-Dragging edits around the timeline allows you to sort music playlists,
-sort movie scenes, and give better NAB demos but not much else.
+Dragging edits to different boundaries allows you to sort music
+playlists, sort movie scenes, and give better NAB demos but not much
+else.
+
+@subsection FREE DRAGGING
+
+Hold CTRL while dragging to enter free dragging mode.  In this mode, the
+destination of the edit is any arbitrary position instead of a boundary
+between 2 edits.   Free dragging is useful for moving a lone edit on a
+silent track a few frames.  It can reposition an edit after the end of a
+track without pasting silence.
+
+Free dragging can be entered in I beam @image{ibeam} or arrow
+@image{arrow} mode by holding CTRL 1st, then pressing the button.
+
+@subsection INSERT & OVERWRITE WHILE FREE DRAGGING
+
+Free dragging with the left button causes an insert at the destination. 
+Free dragging with the right button causes an overwrite at the
+destination.  The destination edits are not shifted right in an
+overwrite.
 
 
 
+@node SPLITTING & JOINING EDITS
+@section SPLITTING & JOINING EDITS
 
+Because dragging in the timeline only moves whole edits, an extra step
+is required to move part of an edit.  Use the @b{razor} button
+@image{razor} to split an edit at the cursor position.  It requires a
+single point to be selected rather than a region.
 
-
+To join 2 edits created by a razor operation, press @b{delete} or
+@b{edit->clear} when the cursor is on top of the boundary.  The edit
+ending & start must be contiguous for them to join.
 
 
 
@@ -529,6 +564,15 @@ the first edit and the end of this one edit is the end of the second
 edit.  This either results in the edit expanding or shrinking.
 
 
+@subsection PASTING SILENCE
+
+A key concept in Cinelerra is pasting silence.  To move media right
+without pasting something on the left, you have to select a region on
+the left side of the edit, then go to @b{edit->paste silence}.  Then the
+media is shifted right with silence in front of it.  To adjust the
+position of the media, the silence region is then trimmed or cut to
+adjust its length.  The silence region has edit boundaries just like a
+normal edit for trimming.
 
 
 

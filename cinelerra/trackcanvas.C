@@ -277,11 +277,11 @@ int TrackCanvas::drag_stop(int *redraw)
 
 
 
-	// Behavior for dragged plugins is limited by the fact that a shared plugin
-	// can only refer to a standalone plugin that exists in the same position in
-	// time.  Dragging a plugin from one point in time to another can't produce
-	// a shared plugin to the original plugin.  In this case we relocate the
-	// plugin instead of sharing it.
+// Behavior for dragged plugins is limited by the fact that a shared plugin
+// can only refer to a standalone plugin that exists in the same position in
+// time.  Dragging a plugin from one point in time to another can't produce
+// a shared plugin to the original plugin.  In this case we relocate the
+// plugin instead of sharing it.
 			case DRAG_AEFFECT_COPY:
 			case DRAG_VEFFECT_COPY:
 				if(mwindow->session->track_highlighted &&
@@ -428,10 +428,16 @@ int TrackCanvas::drag_stop(int *redraw)
 						double position_f = 0;
 						if(mwindow->session->free_drag)
 						{
-							position_f = (double)(cursor_x + 
-								mwindow->edl->local_session->view_start[pane->number]) *
-								mwindow->edl->local_session->zoom_sample /
-								mwindow->edl->session->sample_rate;
+                            int64_t x_diff = cursor_x - mwindow->session->drag_origin_x;
+                            position_f = mwindow->session->drag_start +
+                                (double)x_diff *
+						        mwindow->edl->local_session->zoom_sample /
+						        mwindow->edl->session->sample_rate;
+                        
+// 							position_f = (double)(cursor_x + 
+// 								mwindow->edl->local_session->view_start[pane->number]) *
+// 								mwindow->edl->local_session->zoom_sample /
+// 								mwindow->edl->session->sample_rate;
 						}
 						else
 						{
@@ -463,6 +469,9 @@ int TrackCanvas::drag_start_event()
 	int rerender = 0;
 	int new_cursor, update_cursor;
 
+// printf("TrackCanvas::drag_start_event %d %d\n", 
+// __LINE__, 
+// mwindow->session->current_operation);
 	if(mwindow->session->current_operation != NO_OPERATION) return 0;
 
 	if(is_event_win())
@@ -491,7 +500,15 @@ int TrackCanvas::drag_start_event()
 		}
 	}
 
-	if(result) mwindow->session->free_drag = ctrl_down();
+	if(result)
+    {
+        mwindow->session->free_drag = ctrl_down();
+        mwindow->session->drag_button = get_buttonpress();
+// printf("TrackCanvas::drag_start_event %d free_drag=%d drag_button=%d\n", 
+// __LINE__, 
+// mwindow->session->free_drag,
+// mwindow->session->drag_button);
+    }
 
 	return result;
 }
@@ -919,13 +936,20 @@ void TrackCanvas::draw_paste_destination()
 // Get source width in pixels
 				w = 0;
 
-// Use current cursor position
+// Use change in cursor position
 				if(mwindow->session->free_drag)
 				{
-					position = (double)(cursor_x + 
-						mwindow->edl->local_session->view_start[pane->number]) *
+                    int64_t x_diff = cursor_x - mwindow->session->drag_origin_x;
+                    position = mwindow->session->drag_start +
+                        (double)x_diff *
 						mwindow->edl->local_session->zoom_sample /
 						mwindow->edl->session->sample_rate;
+
+// 					position = (double)(cursor_x + 
+// 						mwindow->edl->local_session->view_start[pane->number]) *
+// 						mwindow->edl->local_session->zoom_sample /
+// 						mwindow->edl->session->sample_rate;
+                    position = mwindow->edl->align_to_frame(position, 0);
 				}
 				else
 // Use start of highlighted edit
@@ -1036,22 +1060,22 @@ void TrackCanvas::draw_paste_destination()
 				{
 					int y = dest->y_pixel - mwindow->edl->local_session->track_start[pane->number];
 					int h = dest->vertical_span(mwindow->theme);
+// printf("TrackCanvas::draw_paste_destination %d %d %d %d %d\n",
+// __LINE__,
+// (int)x,
+// (int)y,
+// (int)w,
+// (int)h);
 
 
 //printf("TrackCanvas::draw_paste_destination 2 %d %d %d %d\n", x, y, w, h);
-					if(x < -BC_INFINITY)
+					if(x < -255)
 					{
-						w -= -BC_INFINITY - x;
-						x += -BC_INFINITY - x;
+						w -= -255 - x;
+						x += -255 - x;
 					}
 					w = MIN(65535, w);
 // if(pane->number == TOP_RIGHT_PANE)
-// printf("TrackCanvas::draw_paste_destination %d %d %d %d %d\n",
-// __LINE__,
-// x,
-// y,
-// w,
-// h);
 					draw_highlight_rectangle(x, y, w, h);
 				}
 			}
@@ -2010,7 +2034,7 @@ int TrackCanvas::do_keyframes(double position,
 // auto_operations[auto_type]);
 					if(buttonpress)
 					{
-                        if (buttonpress != 3)
+                        if (buttonpress != RIGHT_BUTTON)
                         {
 							if(auto_type == AUTOMATION_FADE) 
 								synchronize_autos(0, 
@@ -2059,8 +2083,9 @@ int TrackCanvas::do_keyframes(double position,
 				mwindow->session->current_operation = DRAG_PLUGINKEY_PRE;
 				update_drag_caption();
 				rerender = 1;
-			} else
-			if(result && (buttonpress == 3))
+			} 
+            else
+			if(result && (buttonpress == RIGHT_BUTTON) && !ctrl_down())
 			{
 				gui->keyframe_menu->update(position,
                     plugin, 
@@ -4579,7 +4604,8 @@ int TrackCanvas::do_edit_handles(int cursor_x,
 	int result = 0;
 
 	if(!mwindow->edl->session->show_assets &&
-        !mwindow->edl->session->show_titles) return 0;
+        !mwindow->edl->session->show_titles ||
+        ctrl_down()) return 0;
 
 	for(Track *track = mwindow->edl->tracks->first;
 		track && !result;
@@ -4637,7 +4663,7 @@ int TrackCanvas::do_edit_handles(int cursor_x,
 		{
 			mwindow->session->drag_edit = edit_result;
 			mwindow->session->drag_handle = handle_result;
-			mwindow->session->drag_button = get_buttonpress() - 1;
+			mwindow->session->drag_button = get_buttonpress();
 			mwindow->session->drag_position = position;
 			mwindow->session->current_operation = DRAG_EDITHANDLE1;
 			mwindow->session->drag_origin_x = get_cursor_x();
@@ -4735,7 +4761,7 @@ int TrackCanvas::do_plugin_handles(int cursor_x,
 		{
 			mwindow->session->drag_plugin = plugin_result;
 			mwindow->session->drag_handle = handle_result;
-			mwindow->session->drag_button = get_buttonpress() - 1;
+			mwindow->session->drag_button = get_buttonpress();
 			mwindow->session->drag_position = position;
 			mwindow->session->current_operation = DRAG_PLUGINHANDLE1;
 			mwindow->session->drag_origin_x = get_cursor_x();
@@ -4781,6 +4807,7 @@ int TrackCanvas::do_tracks(int cursor_x,
 
 		if(button_press && 
 			get_buttonpress() == RIGHT_BUTTON &&
+            !ctrl_down() && 
 			cursor_y >= track_y && 
 			cursor_y < track_y + track_h)
 		{
@@ -4828,8 +4855,10 @@ int TrackCanvas::do_edits(int cursor_x,
 // button press inside edit
 				if(button_press)
 				{
+//printf("TrackCanvas::do_edits %d\n", __LINE__);
 // context menu
-                    if(get_buttonpress() == RIGHT_BUTTON)
+                    if(get_buttonpress() == RIGHT_BUTTON &&
+                        !ctrl_down())
                     {
 //printf("TrackCanvas::do_edits %d %s edit=%p\n", __LINE__, track->title, edit);
                         gui->edit_menu->update(track, edit);
@@ -4861,20 +4890,24 @@ int TrackCanvas::do_edits(int cursor_x,
 				else
 				if(drag_start && track->record)
 				{
-					if(mwindow->edl->session->editing_mode == EDITING_ARROW)
+					if(mwindow->edl->session->editing_mode == EDITING_ARROW ||
+                        ctrl_down())
 					{
 // Need to create drag window
 						mwindow->session->current_operation = DRAG_EDIT;
 						mwindow->session->drag_edit = edit;
-//printf("TrackCanvas::do_edits 2\n");
+						mwindow->session->drag_origin_x = cursor_x;
+						mwindow->session->drag_origin_y = cursor_y;
+                        mwindow->session->drag_start = edit->track->from_units(edit->startproject);
+//printf("TrackCanvas::do_edits %d\n", __LINE__);
 
 // Drag only one edit if ctrl is initially down
-						if(ctrl_down())
-						{
-							mwindow->session->drag_edits->remove_all();
-							mwindow->session->drag_edits->append(edit);
-						}
-						else
+// 						if(ctrl_down())
+// 						{
+// 							mwindow->session->drag_edits->remove_all();
+// 							mwindow->session->drag_edits->append(edit);
+// 						}
+// 						else
 // Construct list of all affected edits
 						{
 							mwindow->edl->tracks->get_affected_edits(
@@ -4882,8 +4915,6 @@ int TrackCanvas::do_edits(int cursor_x,
 								edit->track->from_units(edit->startproject),
 								edit->track);
 						}
-						mwindow->session->drag_origin_x = cursor_x;
-						mwindow->session->drag_origin_y = cursor_y;
 
 						gui->drag_popup = new BC_DragWindow(gui, 
 							mwindow->theme->get_image("clip_icon") /*, 
@@ -4896,6 +4927,7 @@ int TrackCanvas::do_edits(int cursor_x,
 			}
 		}
 	}
+//printf("TrackCanvas::do_edits %d result=%d\n", __LINE__, result);
 	return result;
 }
 
@@ -4956,7 +4988,7 @@ int TrackCanvas::do_plugins(double position,
 // Start plugin popup
 		if(button_press)
 		{
-			if(get_buttonpress() == 3)
+			if(get_buttonpress() == RIGHT_BUTTON && !ctrl_down())
 			{
 				gui->plugin_menu->update(position, plugin);
 				gui->plugin_menu->activate_menu();
@@ -4985,7 +5017,7 @@ int TrackCanvas::do_plugins(double position,
 // Move plugin
 		if(drag_start && plugin->track->record)
 		{
-			if(mwindow->edl->session->editing_mode == EDITING_ARROW)
+			if(mwindow->edl->session->editing_mode == EDITING_ARROW || ctrl_down())
 			{
 				if(plugin->track->data_type == TRACK_AUDIO)
 					mwindow->session->current_operation = DRAG_AEFFECT_COPY;
@@ -5146,7 +5178,7 @@ int TrackCanvas::do_transitions(int cursor_x,
 //    			new_cursor = UPRIGHT_ARROW_CURSOR;
 		}
 		else
-        if(get_buttonpress() == 1)
+        if(get_buttonpress() == LEFT_BUTTON)
         {
             if(handle_result != NO_HANDLE)
             {
@@ -5205,7 +5237,7 @@ int TrackCanvas::do_transitions(int cursor_x,
             update_cursor = 1;
         }
         else
-		if(get_buttonpress() == 3)
+		if(get_buttonpress() == RIGHT_BUTTON && !ctrl_down())
 		{
 			gui->transition_menu->update(edit_result, transition);
 			gui->transition_menu->activate_menu();
@@ -5228,6 +5260,8 @@ int TrackCanvas::button_press_event()
 	cursor_x = get_cursor_x();
 	cursor_y = get_cursor_y();
 	mwindow->session->trim_edits = 0;
+
+//printf("TrackCanvas::button_press_event %d\n", __LINE__);
 
 	if(is_event_win() && cursor_inside())
 	{
@@ -5270,178 +5304,157 @@ int TrackCanvas::button_press_event()
 			result = 1;
 		}
 		else
-		switch(mwindow->edl->session->editing_mode)
+		if(mwindow->edl->session->editing_mode == EDITING_ARROW || ctrl_down())
 		{
 // Test handles and resource boundaries and highlight a track
-			case EDITING_ARROW:
+			Edit *edit;
+			int handle;
+			if(mwindow->edl->session->auto_conf->autos[TRANSITION_OVERLAYS] && 
+				do_transitions(cursor_x, 
+					cursor_y, 
+					1, 
+					new_cursor, 
+					update_cursor,
+                    rerender))
 			{
-				Edit *edit;
-				int handle;
-				if(mwindow->edl->session->auto_conf->autos[TRANSITION_OVERLAYS] && 
-					do_transitions(cursor_x, 
-						cursor_y, 
-						1, 
-						new_cursor, 
-						update_cursor,
-                        rerender))
-				{
-					break;
-				}
-				else
-				if(do_keyframes(position,
-                    cursor_x, 
-					cursor_y, 
-					0, 
-					get_buttonpress(), 
-					new_cursor, 
-					update_cursor,
-					rerender))
-				{
-					break;
-				}
-				else
-// Test edit boundaries
-				if(do_edit_handles(cursor_x, 
-					cursor_y, 
-					1, 
-					new_cursor, 
-					update_cursor,
-                    rerender))
-				{
-					break;
-				}
-				else
-// Test plugin boundaries
-				if(do_plugin_handles(cursor_x, 
-					cursor_y, 
-					1, 
-					new_cursor, 
-					update_cursor,
-                    rerender))
-				{
-					break;
-				}
-				else
-				if(do_edits(cursor_x, 
-                    cursor_y, 
-                    1, 
-                    0, 
-                    update_cursor, 
-                    rerender, 
-                    new_cursor, 
-                    update_cursor))
-				{
-					break;
-				}
-				else
-				if(do_plugins(position,
-                    cursor_x, 
-                    cursor_y, 
-                    0, 
-                    1, 
-                    update_cursor, 
-                    rerender))
-				{
-					break;
-				}
-				else
-				if(test_resources(cursor_x, cursor_y))
-				{
-					break;
-				}
-				else
-				if(do_tracks(cursor_x, cursor_y, 1))
-				{
-					break;
-				}
-				break;
 			}
-
-// Test handles only and select a region
-			case EDITING_IBEAM:
+			else
+			if(do_keyframes(position,
+                cursor_x, 
+				cursor_y, 
+				0, 
+				get_buttonpress(), 
+				new_cursor, 
+				update_cursor,
+				rerender))
 			{
-				if(mwindow->edl->session->auto_conf->autos[TRANSITION_OVERLAYS] && 
-					do_transitions(cursor_x, 
-						cursor_y, 
-						1, 
-						new_cursor, 
-						update_cursor,
-                        rerender))
-				{
-					break;
-				}
-				else
-				if(do_keyframes(position,
-                    cursor_x, 
-					cursor_y, 
-					0, 
-					get_buttonpress(), 
-					new_cursor, 
-					update_cursor,
-					rerender))
-				{
-					update_overlay = 1;
-					break;
-				}
-				else
+			}
+			else
 // Test edit boundaries
-				if(do_edit_handles(cursor_x, 
-					cursor_y, 
-					1, 
-					new_cursor, 
-					update_cursor,
-                    rerender))
-				{
-					break;
-				}
-				else
+			if(do_edit_handles(cursor_x, 
+				cursor_y, 
+				1, 
+				new_cursor, 
+				update_cursor,
+                rerender))
+			{
+			}
+			else
 // Test plugin boundaries
-				if(do_plugin_handles(cursor_x, 
+			if(do_plugin_handles(cursor_x, 
+				cursor_y, 
+				1, 
+				new_cursor, 
+				update_cursor,
+                rerender))
+			{
+			}
+			else
+			if(do_edits(cursor_x, 
+                cursor_y, 
+                1, 
+                0, 
+                update_cursor, 
+                rerender, 
+                new_cursor, 
+                update_cursor))
+			{
+			}
+			else
+			if(do_plugins(position,
+                cursor_x, 
+                cursor_y, 
+                0, 
+                1, 
+                update_cursor, 
+                rerender))
+			{
+			}
+			else
+			if(test_resources(cursor_x, cursor_y))
+			{
+			}
+			else
+			if(do_tracks(cursor_x, cursor_y, 1))
+			{
+			}
+        }
+        else
+        if(mwindow->edl->session->editing_mode == EDITING_IBEAM)
+        {
+// Test handles only and select a region
+			if(mwindow->edl->session->auto_conf->autos[TRANSITION_OVERLAYS] && 
+				do_transitions(cursor_x, 
 					cursor_y, 
 					1, 
 					new_cursor, 
 					update_cursor,
                     rerender))
-				{
-					break;
-				}
-				else
-				if(do_edits(cursor_x, 
-					cursor_y, 
-					1, 
-					0, 
-					update_cursor, 
-					rerender, 
-					new_cursor, 
-					update_cursor))
-				{
-					break;
-				}
-				else
-				if(do_plugins(position,
-                    cursor_x, 
-					cursor_y, 
-					0, 
-					1, 
-					update_cursor, 
-					rerender))
-				{
-					break;
-				}
-				else
-				if(do_tracks(cursor_x, cursor_y, 1))
-				{
-					break;
-				}
+			{
+			}
+			else
+			if(do_keyframes(position,
+                cursor_x, 
+				cursor_y, 
+				0, 
+				get_buttonpress(), 
+				new_cursor, 
+				update_cursor,
+				rerender))
+			{
+				update_overlay = 1;
+			}
+			else
+// Test edit boundaries
+			if(do_edit_handles(cursor_x, 
+				cursor_y, 
+				1, 
+				new_cursor, 
+				update_cursor,
+                rerender))
+			{
+			}
+			else
+// Test plugin boundaries
+			if(do_plugin_handles(cursor_x, 
+				cursor_y, 
+				1, 
+				new_cursor, 
+				update_cursor,
+                rerender))
+			{
+			}
+			else
+			if(do_edits(cursor_x, 
+				cursor_y, 
+				1, 
+				0, 
+				update_cursor, 
+				rerender, 
+				new_cursor, 
+				update_cursor))
+			{
+			}
+			else
+			if(do_plugins(position,
+                cursor_x, 
+				cursor_y, 
+				0, 
+				1, 
+				update_cursor, 
+				rerender))
+			{
+			}
+			else
+			if(do_tracks(cursor_x, cursor_y, 1))
+			{
+			}
 // Highlight selection
-				else
-				{
-					rerender = start_selection(position);
-					mwindow->session->current_operation = SELECT_REGION;
-					update_cursor = 1;
-				}
-
-				break;
+			else
+			{
+				rerender = start_selection(position);
+				mwindow->session->current_operation = SELECT_REGION;
+				update_cursor = 1;
 			}
 		}
 

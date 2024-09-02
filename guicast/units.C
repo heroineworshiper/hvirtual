@@ -288,6 +288,7 @@ char* Units::totext(char *text,
 // rounding error
             if(frame >= frame_rate)
             {
+//printf("Units::totext %d frame=%d frame_rate=%f\n", __LINE__, (int)frame, frame_rate);
                 frame = 0;
                 second++;
                 if(second >= 60)

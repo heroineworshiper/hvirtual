@@ -27,6 +27,7 @@ IMAGES = \
 	paste.png \
 	projector.png \
 	protect.png \
+        razor.png \
 	record.png \
 	recordpatch.png \
 	rewind.png \
