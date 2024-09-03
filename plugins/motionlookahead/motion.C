@@ -285,7 +285,7 @@ int MotionLookahead::process_buffer(VFrame *frame,
 
     if(config.enable)
     {
-    // reset the vectors in certain circumstances
+// reset the vectors in certain circumstances
         int reset_vectors = 0;
         int reset_accums = 0;
         if(!EQUIV(prev_block_x, config.block_x) ||
@@ -325,6 +325,8 @@ int MotionLookahead::process_buffer(VFrame *frame,
         int64_t end_position = 0;
 // total frames to use for predictions
         int prediction_frames = 0;
+// Skip if 1st frame
+        int skip_current = 0;
 	    if(get_direction() == PLAY_FORWARD)
 	    {
 		    prev_position--;
@@ -333,6 +335,12 @@ int MotionLookahead::process_buffer(VFrame *frame,
             int64_t source_start = get_source_start();
             int64_t source_end = source_start + get_total_len();
             KeyFrame *keyframe = get_next_keyframe(start_position, 1);
+
+// from motion
+            if(start_position - 1 < source_start ||
+                (keyframe->position > 0 &&
+                start_position - 1 < keyframe->position))
+                skip_current = 1;
 //printf("MotionLookahead::process_buffer %d start_position=%d source_start=%d source_end=%d\n", 
 //__LINE__, (int)start_position, (int)source_start, (int)source_end);
 
@@ -368,6 +376,13 @@ int MotionLookahead::process_buffer(VFrame *frame,
             int64_t source_start = get_source_start();
             int64_t source_end = source_start + get_total_len();
             KeyFrame *keyframe = get_prev_keyframe(start_position, 1);
+
+// from motion
+            if(start_position + 1 >= source_end ||
+                (keyframe->position > 0 &&
+                start_position + 1 >= keyframe->position))
+                skip_current = 1;
+
 // printf("MotionLookahead::process_buffer %d start_position=%d source_start=%d source_end=%d keyframe=%d\n", 
 // __LINE__, 
 // (int)start_position, 
@@ -480,17 +495,29 @@ int MotionLookahead::process_buffer(VFrame *frame,
             replay = 0;
         }
 
-    // initialize the lookahead buffer
+// initialize the lookahead buffer
         if(frames_read == 0)
         {
             frames_start = start_position;
         }
 
-//printf("MotionLookahead::process_buffer %d frames_read=%d config.frames=%d\n", 
-//__LINE__, frames_read, config.frames);
 
-// fill lookahead buffer
-        while(frames_read < config.frames)
+// printf("MotionLookahead::process_buffer %d skip_current=%d frames_read=%d frames_start=%d start_position=%d\n", 
+// __LINE__, 
+// skip_current,
+// frames_read,
+// (int)frames_start, 
+// (int)start_position);
+// printf("MotionLookahead::process_buffer %d frames_read=%d frames_start=%d start_position=%d config.frames=%d\n", 
+// __LINE__, 
+// frames_read, 
+// (int)frames_start, 
+// (int)start_position, 
+// config.frames);
+
+// fill lookahead buffer.  Read 1 frame only if we just seeked
+        while(frames_read < config.frames && 
+            (!skip_current || frames_read < 1))
         {
             if(get_interrupted()) return 0;
 
@@ -525,8 +552,9 @@ int MotionLookahead::process_buffer(VFrame *frame,
                     frames_read);
         }
 
-// scan lookahead buffer
-        while(frames_scanned < config.frames)
+// scan lookahead buffer.  Don't scan if just 1 frame
+        while(frames_scanned < config.frames &&
+            frames_scanned < frames_read)
         {
             int current_dx = 0;
             int current_dy = 0;
@@ -621,7 +649,7 @@ int MotionLookahead::process_buffer(VFrame *frame,
             LeastSquares least_squares_x(future_dx);
             LeastSquares least_squares_y(future_dy);
             LeastSquares least_squares_angle(future_angle);
-            for(int i = 1; i < prediction_frames; i++)
+            for(int i = 1; i < prediction_frames && i < frames_read; i++)
             {
                 MotionVector *src = vectors.get(i);
                 future_dx += src->dx_result;
