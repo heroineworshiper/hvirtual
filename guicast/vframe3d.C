@@ -103,10 +103,14 @@ void VFrame::to_texture()
 
 // Must be here so user can create textures without copying data by setting
 // opengl_state to TEXTURE.
-	BC_Texture::new_texture(&texture,
+	if(BC_Texture::new_texture(&texture,
 		get_w(),
 		get_h(),
-		get_color_model());
+		get_color_model()))
+    {
+// existing texture was replaced so reset to RAM
+        opengl_state = VFrame::RAM;
+    }
 
 
 // texture not available if GL context changed
@@ -564,7 +568,7 @@ static int print_error(char *source, unsigned int object, int is_program)
 		glGetProgramInfoLog(object, BCTEXTLEN, &len, string);
 	else
 		glGetShaderInfoLog(object, BCTEXTLEN, &len, string);
-	if(len > 0) printf("Playback3D::print_error:\n%s\n%s\n", source, string);
+	if(len > 0) printf("VFrame::print_error:\n%s\n%s\n", source, string);
 	if(len > 0) return 1;
 #endif
 	return 0;

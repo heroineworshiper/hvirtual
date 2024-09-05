@@ -336,13 +336,13 @@ int MotionLookahead::process_buffer(VFrame *frame,
             int64_t source_end = source_start + get_total_len();
             KeyFrame *keyframe = get_next_keyframe(start_position, 1);
 
-// from motion
+// from original motion
             if(start_position - 1 < source_start ||
                 (keyframe->position > 0 &&
-                start_position - 1 < keyframe->position))
+                start_position - 1 < get_prev_keyframe(start_position, 1)->position))
                 skip_current = 1;
-//printf("MotionLookahead::process_buffer %d start_position=%d source_start=%d source_end=%d\n", 
-//__LINE__, (int)start_position, (int)source_start, (int)source_end);
+//printf("MotionLookahead::process_buffer %d start_position=%d source_start=%d keyframe=%d\n", 
+//__LINE__, (int)start_position, (int)source_start, (int)keyframe->position);
 
 // end of plugin is before end of buffer
             if(end_position > source_end)
@@ -377,10 +377,10 @@ int MotionLookahead::process_buffer(VFrame *frame,
             int64_t source_end = source_start + get_total_len();
             KeyFrame *keyframe = get_prev_keyframe(start_position, 1);
 
-// from motion
+// from original motion
             if(start_position + 1 >= source_end ||
                 (keyframe->position > 0 &&
-                start_position + 1 >= keyframe->position))
+                start_position + 1 >= get_next_keyframe(start_position, 1)->position))
                 skip_current = 1;
 
 // printf("MotionLookahead::process_buffer %d start_position=%d source_start=%d source_end=%d keyframe=%d\n", 

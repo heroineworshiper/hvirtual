@@ -330,7 +330,10 @@ int SwatchMain::process_buffer(VFrame *frame,
 
 // draw pattern once
     if(need_reconfigure)
+    {
 	    engine->draw_pattern();
+        need_reconfigure = 0;
+    }
 
 // draw the pattern on the output
     frame->copy_from(temp);

@@ -46,7 +46,7 @@ public:
 	int handle_event();
 	void run();
 	int want_directory;
-	char result[1024];
+	char result[BCTEXTLEN];
 	const char *title;
 	const char *caption;
 	const char *init_directory;

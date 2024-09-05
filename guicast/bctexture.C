@@ -65,7 +65,7 @@ void BC_Texture::clear_objects()
 	}
 }
 
-void BC_Texture::new_texture(BC_Texture **texture,
+int BC_Texture::new_texture(BC_Texture **texture,
 	int w, 
 	int h, 
 	int colormodel)
@@ -73,15 +73,18 @@ void BC_Texture::new_texture(BC_Texture **texture,
 	if(!(*texture))
 	{
 		(*texture) = new BC_Texture(w, h, colormodel);
+        return 0;
 	}
 	else
 	{
-		(*texture)->create_texture(w, h, colormodel);
+		return (*texture)->create_texture(w, h, colormodel);
 	}
+    return 0;
 }
 
-void BC_Texture::create_texture(int w, int h, int colormodel)
+int BC_Texture::create_texture(int w, int h, int colormodel)
 {
+    int result = 0;
 #ifdef HAVE_GL
 
 // Get max texture size from the server.
@@ -117,14 +120,16 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
 		new_components != texture_components ||
 		BC_WindowBase::get_synchronous()->current_window->get_id() != window_id))
 	{
-// printf("BC_Texture::create_texture released window_id=%d texture_id=%d\n", 
-// BC_WindowBase::get_synchronous()->current_window->get_id(),
-// texture_id);
+printf("BC_Texture::create_texture %d released window_id=%d texture_id=%d\n", 
+__LINE__,
+BC_WindowBase::get_synchronous()->current_window->get_id(),
+texture_id);
 		BC_WindowBase::get_synchronous()->release_texture(
 			window_id,
 			texture_id);
 	    texture_id = -1;
 	    window_id = -1;
+        result = 1;
 	}
 
 
@@ -195,6 +200,7 @@ void BC_Texture::create_texture(int w, int h, int colormodel)
 		glEnable(GL_TEXTURE_2D);
 	}
 #endif
+    return result;
 }
 
 int BC_Texture::calculate_texture_size(int w, int *max)

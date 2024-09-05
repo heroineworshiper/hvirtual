@@ -283,6 +283,8 @@ char* Units::totext(char *text,
                     .5); // help conversion from fraction frame rates to whole frame number
 
 
+//printf("Units::totext %d seconds=%f second=%d frame=%d frame_rate=%f\n", 
+//__LINE__, seconds, (int)second, (int)frame, frame_rate);
 
 
 // rounding error

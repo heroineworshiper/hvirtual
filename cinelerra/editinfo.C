@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,6 +70,11 @@ void EditInfoGUI::create_objects()
     BC_Title *title;
     x1 = 0;
 
+    if(mwindow->session->edit_info_format != TIME_FRAMES &&
+        mwindow->session->edit_info_format != TIME_HMSF &&
+        mwindow->session->edit_info_format != TIME_SAMPLES &&
+        mwindow->session->edit_info_format != TIME_HMS)
+        mwindow->session->edit_info_format = TIME_HMS;
 
     add_subwindow(title = new BC_Title(x, y, _("Type:")));
     x1 = MAX(x1, x + title->get_w());
@@ -161,8 +166,10 @@ void EditInfoGUI::create_objects()
         x1,
         y,
         w_argument - (BC_PopupMenu::calculate_w(w_argument) - w_argument)));
-    format->add_item(new BC_MenuItem(thread->format_to_text(EDIT_INFO_FRAMES)));
-    format->add_item(new BC_MenuItem(thread->format_to_text(EDIT_INFO_HHMMSS)));
+    format->add_item(new BC_MenuItem(thread->format_to_text(TIME_FRAMES)));
+    format->add_item(new BC_MenuItem(thread->format_to_text(TIME_SAMPLES)));
+    format->add_item(new BC_MenuItem(thread->format_to_text(TIME_HMSF)));
+    format->add_item(new BC_MenuItem(thread->format_to_text(TIME_HMS)));
 
 
 
@@ -221,7 +228,11 @@ int EditInfoGUI::resize_event(int w, int h)
 
 void EditInfoGUI::update()
 {
-    if(mwindow->session->edit_info_format == EDIT_INFO_FRAMES)
+// direct copy these formats
+    if((thread->data_type == TRACK_VIDEO &&
+        MWindow::session->edit_info_format == TIME_FRAMES) ||
+        (thread->data_type == TRACK_AUDIO &&
+        MWindow::session->edit_info_format == TIME_SAMPLES))
     {
         startsource->update(thread->startsource);
         startproject->update(thread->startproject);
@@ -229,18 +240,29 @@ void EditInfoGUI::update()
     }
     else
     {
+// convert a seconds intermediate
         char string[BCTEXTLEN];
         Units::totext(string, 
-				thread->from_units(thread->startsource), 
-				TIME_HMS);
+			thread->from_units(thread->startsource), 
+			mwindow->session->edit_info_format,
+            mwindow->edl->get_sample_rate(),
+            mwindow->edl->get_frame_rate());
         startsource->update(string);
+//printf("EditInfoGUI::update %d %f\n", __LINE__, thread->from_units(thread->startsource));
+
+
         Units::totext(string, 
-				thread->from_units(thread->startproject), 
-				TIME_HMS);
+			thread->from_units(thread->startproject), 
+			mwindow->session->edit_info_format,
+            mwindow->edl->get_sample_rate(),
+            mwindow->edl->get_frame_rate());
         startproject->update(string);
+
         Units::totext(string, 
-				thread->from_units(thread->length), 
-				TIME_HMS);
+			thread->from_units(thread->length), 
+			mwindow->session->edit_info_format,
+            mwindow->edl->get_sample_rate(),
+            mwindow->edl->get_frame_rate());
         length->update(string);
     }
 }
@@ -296,25 +318,29 @@ EditInfoNumber::EditInfoNumber(EditInfoGUI *gui,
 
 int EditInfoNumber::handle_event()
 {
-    switch(gui->thread->mwindow->session->edit_info_format)
+// direct copy these formats
+    if((gui->thread->data_type == TRACK_VIDEO &&
+        MWindow::session->edit_info_format == TIME_FRAMES) ||
+        (gui->thread->data_type == TRACK_AUDIO &&
+        MWindow::session->edit_info_format == TIME_SAMPLES))
     {
-        case EDIT_INFO_FRAMES:
-            *output = atol(get_text());
-            break;
-        default:
-            double seconds = Units::text_to_seconds(
-                get_text(), 
-				1000, 
-				TIME_HMS, 
-				1000, 
-				1000);
-            *output = gui->thread->to_units(seconds);
+        *output = atol(get_text());
+    }
+    else
+    {
+// convert a seconds intermediate
+        double seconds = Units::text_to_seconds(
+            get_text(), 
+			gui->mwindow->edl->get_sample_rate(), 
+			MWindow::session->edit_info_format, 
+			gui->mwindow->edl->get_frame_rate(), 
+			1000);  // frames_per_foot
+        *output = gui->thread->to_units(seconds);
+    }
 //             printf("EditInfoNumber::handle_event %d seconds=%f output=%ld\n", 
 //                 __LINE__, 
 //                 seconds,
 //                 *output);
-            break;
-    }
     return 0;
 }
 
@@ -344,46 +370,52 @@ int EditInfoNumber::button_press_event()
 
 void EditInfoNumber::increase()
 {
-    switch(gui->thread->mwindow->session->edit_info_format)
+// step in the track units
+    (*output)++;
+// direct copy these formats
+    if((gui->thread->data_type == TRACK_VIDEO &&
+        MWindow::session->edit_info_format == TIME_FRAMES) ||
+        (gui->thread->data_type == TRACK_AUDIO &&
+        MWindow::session->edit_info_format == TIME_SAMPLES))
     {
-        case EDIT_INFO_FRAMES:
-            (*output)++;
-            update(*output);
-            break;
-        default:
-            (*output) += gui->thread->rate;
-            char string[BCTEXTLEN];
-            Units::totext(string, 
-				gui->thread->from_units(*output), 
-				TIME_HMS);
-            update(string);
-            break;
+        update(*output);
+    }
+    else
+    {
+// convert a seconds intermediate
+        char string[BCTEXTLEN];
+        Units::totext(string, 
+			gui->thread->from_units(*output), 
+			MWindow::session->edit_info_format,
+            gui->mwindow->edl->get_sample_rate(),
+            gui->mwindow->edl->get_frame_rate());
+        update(string);
     }
 }
 
 void EditInfoNumber::decrease()
 {
-    switch(gui->thread->mwindow->session->edit_info_format)
+// step in the track units
+    if(*output > 0)
+        (*output)--;
+// direct copy these formats
+    if((gui->thread->data_type == TRACK_VIDEO &&
+        MWindow::session->edit_info_format == TIME_FRAMES) ||
+        (gui->thread->data_type == TRACK_AUDIO &&
+        MWindow::session->edit_info_format == TIME_SAMPLES))
     {
-        case EDIT_INFO_FRAMES:
-            if(*output > 0)
-            {
-                (*output)--;
-                update(*output);
-            }
-            break;
-        default:
-            (*output) -= gui->thread->rate;
-            if(*output < 0)
-            {
-                *output = 0;
-            }
-            char string[BCTEXTLEN];
-            Units::totext(string, 
-				gui->thread->from_units(*output), 
-				TIME_HMS);
-            update(string);
-            break;
+        update(*output);
+    }
+    else
+    {
+// convert a seconds intermediate
+        char string[BCTEXTLEN];
+        Units::totext(string, 
+			gui->thread->from_units(*output), 
+			MWindow::session->edit_info_format,
+            gui->mwindow->edl->get_sample_rate(),
+            gui->mwindow->edl->get_frame_rate());
+        update(string);
     }
 }
 
@@ -606,33 +638,45 @@ void EditInfoThread::handle_close_event(int result)
 
 char* EditInfoThread::format_to_text(int format)
 {
-    switch(format)
-    {
-        case EDIT_INFO_HHMMSS:
-            return TIME_HMS_TEXT;
-        default:
-            if(data_type == TRACK_AUDIO)
-            {
-                return TIME_SAMPLES_TEXT;
-            }
-            else
-            {
-                return TIME_FRAMES_TEXT;
-            }
-    }
-    return (char*)"";
+    static char string[BCTEXTLEN];
+    string[0] = 0;
+    Units::print_time_format(format, string);
+    return string;
+//     switch(format)
+//     {
+//         case EDIT_INFO_HHMMSS:
+//             return TIME_HMS_TEXT;
+//         case EDIT_INFO_HHMMSSFF:
+//             return TIME_HMSF_TEXT;
+//         default:
+//             if(data_type == TRACK_AUDIO)
+//             {
+//                 return TIME_SAMPLES_TEXT;
+//             }
+//             else
+//             {
+//                 return TIME_FRAMES_TEXT;
+//             }
+//     }
+//     return (char*)"";
 }
 
 int EditInfoThread::text_to_format(char *text)
 {
-    if(!strcmp(text, TIME_HMS_TEXT))
-    {
-        return EDIT_INFO_HHMMSS;
-    }
-    else
-    {
-        return EDIT_INFO_FRAMES;
-    }
+    return Units::text_to_format(text);
+//     if(!strcmp(text, TIME_HMS_TEXT))
+//     {
+//         return EDIT_INFO_HHMMSS;
+//     }
+//     else
+//     if(!strcmp(text, TIME_HMSF_TEXT))
+//     {
+//         return EDIT_INFO_HHMMSSFF;
+//     }
+//     else
+//     {
+//         return EDIT_INFO_FRAMES;
+//     }
 }
 
 // don't have access to the track

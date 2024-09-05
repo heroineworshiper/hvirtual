@@ -42,7 +42,8 @@ public:
 // The user must delete *texture when finished with it.
 // The texture is bound to the current texture unit and enabled.
 // Must be called from a synchronous opengl thread after enable_opengl.
-	static void new_texture(BC_Texture **texture,
+// returns 1 if an existing texture was replaced but not if a new texture was created
+	static int new_texture(BC_Texture **texture,
 		int w, 
 		int h, 
 		int colormodel);
@@ -68,7 +69,8 @@ private:
 
 // creates a new texture or updates an existing texture to work with the
 // current window.
-	void create_texture(int w, int h, int colormodel);
+// returns 1 if an existing texture was replaced but not if a new texture was created
+	int create_texture(int w, int h, int colormodel);
 
 
 	int window_id;

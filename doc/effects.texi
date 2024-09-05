@@ -26,6 +26,7 @@ utilize fully by mere experimentation.
 * LIVE AUDIO::        Pass audio from the soundcard directly to the timeline.
 * LIVE VIDEO::        Pass video from the capture card directly to the timeline.
 * LOOP::              How to loop regions of the timeline.
+* LUT::               Color processing with look up tables
 * MOTION EFFECTS::    Stabilizing & tracking motion
 * REFRAMERT::         Changing the number of frames in a sequence.
 * REFRAME::           Changing the number of frames in a sequence with rendering.
@@ -705,8 +706,6 @@ can't be shared by more than one track.
 
 
 
-
-
 @node LOOP
 @section LOOP
 
@@ -729,6 +728,13 @@ effect, no matter where the keyframe is.  The end of an effect can be
 looped from the beginning by setting the keyframe near the end.
 
 
+
+@node LUT
+@section LUT
+
+This effect looks up the output value of a pixel from a table of the
+input color cube.  It requires an 8 bit RGB 512x512 PNG image containing
+the color cube.  This is the same format ffmpeg uses to apply a LUT.
 
 
 

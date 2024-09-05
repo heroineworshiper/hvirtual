@@ -7,14 +7,10 @@ https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35k
 
 BIG WISHLIST:
 ----------------------------
-Arbitrary drag & slice
-AVIF
-LUT
 Menu toggle to enable background rendering
 Configurable speeds for playback buttons
-super stabilizer should not process the 1st frame after a seek & crashes a lot
 "Play every frame" not propagating to playbackengine
-
+Load & save motion vectors in superstabilizer to allow changes in canvas size
 
 
 BIG BUGS
@@ -38,6 +34,7 @@ Options for condensing the track height
 
 WISH LIST
 ----------------------------------------------------
+AVIF - After an earlier spike, not seeing this widely used
 Poll interrupt flag in slow plugins
     - problematic
 When it crashes because of an offset change, it leaves behind an infinite loop instance.  

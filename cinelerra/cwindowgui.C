@@ -462,18 +462,25 @@ int CWindowGUI::keypress_event()
 			break;
 		case 'x':
 			unlock_window();
-			mwindow->gui->lock_window("CWindowGUI::keypress_event 2");
+			mwindow->gui->lock_window("CWindowGUI::keypress_event x");
 			mwindow->cut();
 			mwindow->gui->unlock_window();
 			lock_window("CWindowGUI::keypress_event 2");
 			break;
 		case BACKSPACE:
 			unlock_window();
-			mwindow->gui->lock_window("CWindowGUI::keypress_event 2");
+			mwindow->gui->lock_window("CWindowGUI::keypress_event Del");
 			mwindow->clear_entry();
 			mwindow->gui->unlock_window();
 			lock_window("CWindowGUI::keypress_event 3");
 			break;
+        case 'L':
+            mwindow->gui->lock_window("CWindowGUI::keypress_event L");
+            mwindow->toggle_loop_playback();
+            mwindow->gui->mainmenu->loop_playback->set_checked(
+                mwindow->edl->local_session->loop_playback);
+            mwindow->gui->unlock_window();
+            break;
 		case ESC:
 			unlock_window();
 			if(mwindow->session->cwindow_fullscreen)
