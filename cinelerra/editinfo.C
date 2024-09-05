@@ -273,6 +273,42 @@ void EditInfoGUI::update()
 
 
 
+EditInfoFormat::EditInfoFormat(MWindow *mwindow, 
+    EditInfoGUI *gui, 
+    EditInfoThread *thread,
+    int x,
+    int y,
+    int w)
+ : BC_PopupMenu(x,
+    y,
+    w,
+    thread->format_to_text(mwindow->session->edit_info_format),
+    1)
+{
+    this->mwindow = mwindow;
+    this->gui = gui;
+    this->thread = thread;
+}
+
+EditInfoFormat::~EditInfoFormat()
+{
+}
+
+
+int EditInfoFormat::handle_event()
+{
+    mwindow->session->edit_info_format = thread->text_to_format(get_text());
+    gui->lock_window("EditInfoFormat::handle_event");
+    gui->update();
+    gui->unlock_window();
+//    printf("EditInfoFormat::handle_event %d %d\n", __LINE__, mwindow->session->edit_info_format);
+    return 1;
+}
+
+
+
+
+
 EditInfoPath::EditInfoPath(int x, 
     int y, 
     int w,

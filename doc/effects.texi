@@ -9,6 +9,7 @@ utilize fully by mere experimentation.
 
 @menu
 * 1080 TO 480::       How to convert HDTV into SD
+* BACKGROUND::        Replacing transparency with rendered backgrounds
 * CHROMA KEYERS::     Create transparency based on color.
 * COLOR SWATCH::      Color swatch
 * COMPRESSOR::        How to reduce the dynamic range of audio.
@@ -81,6 +82,14 @@ in the playback.
 Finally, once you have 720x480 interlaced video you can either apply
 @b{frames to fields} of @b{inverse telecine} to further recover original
 progressive frames.
+
+@node BACKGROUND
+@section BACKGROUND
+
+This creates either a flat color or a color cube for use with the LUT
+(@xref{LUT}) effect.  Use it to fill transparent areas with a custom
+color.  The color cube option is drawn in a fixed part of the frame to
+aid in creating a LUT.
 
 
 
@@ -732,11 +741,28 @@ looped from the beginning by setting the keyframe near the end.
 @node LUT
 @section LUT
 
-This effect looks up the output value of a pixel from a table of the
-input color cube.  It requires an 8 bit RGB 512x512 PNG image containing
-the color cube.  This is the same format ffmpeg uses to apply a LUT.
+This effect looks up the value of every output color in a table of all
+possible input colors.  It requires an 8 bit RGB 512x512 PNG image
+containing the color cube.  This is the same format ffmpeg uses to apply
+a LUT.  The output color is interpolated from 2 color entries in the
+table.
 
+@b{CREATING A LUT TABLE}
 
+To create a color cube for the LUT effect, 1st create a timeline which
+performs all the color processing.  Then apply the @b{Background} effect
+to render a @b{color cube} instead of the source footage.  This requires
+selecting @b{color cube} as the background type.  The background renders
+a fixed size color cube for the LUT.
+
+Move the background effect to before the color processing.  Change the
+project size to 512x512.  Be sure the track size is big enough to
+contain the color cube.  Change the projector to left top justify. 
+Render 1 frame to a PNG image.  The color cube must fill the entire
+512x512 output & be aligned exactly.
+
+There is no cookie cutter feature to generate a LUT because it's an
+extremely rarely used feature.
 
 
 @include motion.texi

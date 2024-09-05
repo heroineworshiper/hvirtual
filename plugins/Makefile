@@ -74,6 +74,7 @@ DIRS = \
 	livevideo \
 	loopaudio \
 	loopvideo \
+        lut \
 	motion \
 	motion2point \
 	motionlookahead \

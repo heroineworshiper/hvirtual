@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +52,9 @@ public:
 	int get_color();
 
 	int r, g, b, a;
+    int type;
+#define COLOR 0
+#define LUT 1
 };
 
 class BackgroundColorObjects : public ColorObjects
@@ -68,6 +70,20 @@ public:
     BackgroundMain *plugin;
 };
 
+class BackgroundType : public BC_PopupMenu
+{
+public:
+    BackgroundType(BackgroundWindow *window, 
+        BackgroundMain *plugin, 
+        int x,
+        int y,
+        int w);
+    int handle_event();
+    static int text_to_format(char *text);
+    static char* format_to_text(int format);
+    BackgroundWindow *window;
+    BackgroundMain *plugin;
+};
 
 class BackgroundWindow : public PluginClientWindow
 {
@@ -80,6 +96,7 @@ public:
 
 	BackgroundMain *plugin;
 	BackgroundColorObjects *color_objs;
+    BackgroundType *type;
 };
 
 
