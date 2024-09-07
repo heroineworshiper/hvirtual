@@ -649,15 +649,25 @@ Plugin* Track::insert_effect(const char *title,
 
 void Track::move_plugins_up(PluginSet *plugin_set)
 {
-	for(int i = 0; i < this->plugin_set.total; i++)
+	for(int i = 0; i < this->plugin_set.size(); i++)
 	{
-		if(this->plugin_set.values[i] == plugin_set)
+		if(this->plugin_set.get(i) == plugin_set)
 		{
-			if(i == 0) break;
+			if(i == 0)
+            {
+// wrap around
+                for(int j = 0; j < this->plugin_set.size() - 1; j++)
+                {
+                    this->plugin_set.set(i, this->plugin_set.get(i + 1));
+                }
+                this->plugin_set.set(this->plugin_set.size() - 1, plugin_set);
+                break;
+            }
 
-			PluginSet *temp = this->plugin_set.values[i - 1];
-			this->plugin_set.values[i - 1] = this->plugin_set.values[i];
-			this->plugin_set.values[i] = temp;
+// swap
+			PluginSet *temp = this->plugin_set.get(i - 1);
+			this->plugin_set.set(i - 1, plugin_set);
+			this->plugin_set.set(i, temp);
 			break;
 		}
 	}
@@ -665,15 +675,25 @@ void Track::move_plugins_up(PluginSet *plugin_set)
 
 void Track::move_plugins_down(PluginSet *plugin_set)
 {
-	for(int i = 0; i < this->plugin_set.total; i++)
+	for(int i = 0; i < this->plugin_set.size(); i++)
 	{
-		if(this->plugin_set.values[i] == plugin_set)
+		if(this->plugin_set.get(i) == plugin_set)
 		{
-			if(i == this->plugin_set.total - 1) break;
+			if(i == this->plugin_set.size() - 1)
+            {
+// wrap around
+                for(int j = this->plugin_set.size() - 1; j > 0; j--)
+                {
+                    this->plugin_set.set(i, this->plugin_set.get(i - 1));
+                }
+                this->plugin_set.set(0, plugin_set);
+                break;
+            }
 
-			PluginSet *temp = this->plugin_set.values[i + 1];
-			this->plugin_set.values[i + 1] = this->plugin_set.values[i];
-			this->plugin_set.values[i] = temp;
+// swap
+			PluginSet *temp = this->plugin_set.get(i + 1);
+			this->plugin_set.set(i + 1, plugin_set);
+			this->plugin_set.set(i, temp);
 			break;
 		}
 	}

@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -54,6 +53,7 @@ int ShowAssets::handle_event()
 		1, 
 		0,
 		0);
+	mwindow->gui->mainmenu->viewmenu->update();
 	mwindow->gui->unlock_window();
 	mwindow->gwindow->gui->update_toggles(1);
 	mwindow->gui->lock_window("ShowAssets::handle_event");
@@ -81,6 +81,7 @@ int ShowTitles::handle_event()
 		1, 
 		0,
 		0);
+	mwindow->gui->mainmenu->viewmenu->update();
 	mwindow->gui->unlock_window();
 	mwindow->gwindow->gui->update_toggles(1);
 	mwindow->gui->lock_window("ShowTitles::handle_event");
@@ -100,7 +101,7 @@ int ShowTransitions::handle_event()
 	set_checked(get_checked() ^ 1);
 	mwindow->edl->session->auto_conf->autos[TRANSITION_OVERLAYS] = get_checked();
 	mwindow->gui->draw_overlays(1);
-//	mwindow->gui->mainmenu->draw_items();
+	mwindow->gui->mainmenu->viewmenu->update();
 	mwindow->gui->unlock_window();
 	mwindow->gwindow->gui->update_toggles(1);
 	mwindow->gui->lock_window("ShowTransitions::handle_event");
@@ -164,7 +165,8 @@ int ShowAutomation::handle_event()
 		0,
 		0);
 	mwindow->gui->draw_overlays(1);
-//	mwindow->gui->mainmenu->draw_items();
+//printf("ShowAutomation::handle_event %d\n", __LINE__);
+	mwindow->gui->mainmenu->viewmenu->update();
 	mwindow->gui->unlock_window();
 	mwindow->gwindow->gui->update_toggles(1);
 	mwindow->gui->lock_window("ShowAutomation::handle_event");
@@ -189,6 +191,7 @@ int PluginAutomation::handle_event()
 	set_checked(!get_checked());
 	mwindow->edl->session->auto_conf->autos[PLUGIN_KEYFRAMES] = get_checked();
 	mwindow->gui->draw_overlays(1);
+	mwindow->gui->mainmenu->viewmenu->update();
 	mwindow->gui->unlock_window();
 	mwindow->gwindow->gui->update_toggles(1);
 	mwindow->gui->lock_window("PluginAutomation::handle_event");

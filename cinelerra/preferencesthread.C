@@ -34,6 +34,7 @@
 #include "interfaceprefs.h"
 #include "keys.h"
 #include "language.h"
+#include "mainmenu.h"
 #include "levelwindow.h"
 #include "levelwindowgui.h"
 #include "mainerror.h"
@@ -198,6 +199,7 @@ int PreferencesThread::apply_settings()
 
 	mwindow->edl->copy_session(edl, 1);
 	mwindow->preferences->copy_from(preferences);
+    mwindow->gui->mainmenu->update_toggles(1);
 	mwindow->init_brender();
 
 //edl->session->recording_format->dump();

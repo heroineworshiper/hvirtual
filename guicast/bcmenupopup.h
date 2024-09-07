@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +41,7 @@ public:
 	BC_MenuPopup();
 	virtual ~BC_MenuPopup();
 
+	friend class BC_Menu;
 	friend class BC_MenuItem;
 	friend class BC_PopupMenu;
 

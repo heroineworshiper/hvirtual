@@ -202,6 +202,7 @@ void Theme::build_menus()
 	frame_sizes.append(new BC_ListBoxItem("320x240"));
 	frame_sizes.append(new BC_ListBoxItem("360x240"));
 	frame_sizes.append(new BC_ListBoxItem("400x300"));
+	frame_sizes.append(new BC_ListBoxItem("512x512"));
 	frame_sizes.append(new BC_ListBoxItem("640x480"));
 	frame_sizes.append(new BC_ListBoxItem("720x480"));
 	frame_sizes.append(new BC_ListBoxItem("1280x720"));

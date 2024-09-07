@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +23,7 @@
 #include "bcmenuitem.h"
 #include "bcmenupopup.h"
 #include "bcpixmap.h"
+#include "bcpopup.h"
 #include "bcresources.h"
 #include "bcsignals.h"
 #include <string.h>
@@ -235,6 +235,21 @@ int BC_Menu::activate_menu()
 	active = 1;
 	draw_title(1, 1);
 	return 0;
+}
+
+void BC_Menu::update()
+{
+    if(menu_popup)
+    {
+        menu_popup->get_dimensions();
+        if(menu_popup->popup)
+            menu_popup->popup->reposition_window(
+                menu_popup->x,
+                menu_popup->y,
+                menu_popup->w,
+                menu_popup->h);
+        menu_popup->draw_items();
+    }
 }
 
 void BC_Menu::draw_items()

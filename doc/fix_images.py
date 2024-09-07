@@ -45,6 +45,7 @@ IMAGES = [
     'program.png',
     'unlocked_bezier.png', 
     'mask2.png',
+    'move_plugin.png',
     'recording.png'
 ]
 

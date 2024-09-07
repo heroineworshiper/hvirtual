@@ -119,7 +119,7 @@ void MainSession::reset()
 	use_vector = 1;
 	use_hist_parade = 1;
 	use_wave_parade = 1;
-    edit_info_format = EDIT_INFO_FRAMES;
+    edit_info_format = TIME_HMS;
 
 
     default_window_positions();

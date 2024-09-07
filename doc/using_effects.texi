@@ -238,8 +238,12 @@ only one row of effects.
 In addition to trimming, you can move effects up or down.  Every track
 can have a stack of effects under it.  By moving an effect up or down
 you change the order in which effects are processed in the stack.  Go
-to an effect and right click to bring up the effect menu.  The
-@b{Move up} and @b{Move down} options move the effect up or down.
+to an effect and right click to bring up the effect menu.  
+
+The @b{Move up} and @b{Move down} options move the effect up or down. 
+The effects wrap around so moving the top one up wraps it around to the
+bottom.  Moving the bottom effect down wraps it around to the top.  This
+allows a new effect to be put on top after being attached.
 
 When you're moving effects up or down, be aware that if they're shared
 as @b{shared effects}, any references will be pointing to a

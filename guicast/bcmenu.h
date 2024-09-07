@@ -66,6 +66,8 @@ public:
 	int activate_menu();
 	int unhighlight();
 	void draw_items();
+// user calls to redraw & resize
+    void update();
 
 private:
 	int draw_title(int flash, int flush);

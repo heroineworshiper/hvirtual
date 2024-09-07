@@ -290,14 +290,18 @@ which affects one track.
 Bring up the popup menu by moving over a track and right clicking.  The
 popup menu affects the track whether it's armed or not.
 
-@b{Move up} and @b{move down} moves the one track up or down in
-the stack.  @b{Delete track} deletes the track.
+@b{Move up} and @b{move down} moves the one track up or down in the
+stack.  The move operations wrap around so move the top track up to put
+it on the bottom.  Move the bottom track down to put it on top.
+
+@b{Delete track} deletes the track.
 
 Operations in the @b{Tracks} menu affect only tracks which are
 armed.
 
-@b{Move tracks up} and @b{Move tracks down} shift all the armed
-tracks up or down the stack.
+@b{Tracks->Move tracks up} and @b{Tracks->Move tracks down} shift all
+the armed tracks up or down the stack.  Tracks of the same type wrap
+around but tracks of different types don't.
 
 @b{Delete tracks} deletes the armed tracks.
 

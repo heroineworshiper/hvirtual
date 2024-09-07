@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,60 +90,41 @@ void Condition::unlock()
 
 int Condition::timed_lock(int microseconds, const char *location)
 {
-    struct timeval now;
-    struct timespec timeout;
-    int result = 0;
-
 #ifndef NO_GUICAST
 	SET_LOCK(this, title, location);
 #endif
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_nsec += microseconds * 1000;
+    ts.tv_sec += (ts.tv_nsec - 1000000000) / 1000000000;
+    ts.tv_nsec %= 1000000000;
+    int result = 0;
+
     pthread_mutex_lock(&mutex);
-    gettimeofday(&now, 0);
-    timeout.tv_sec = now.tv_sec + microseconds / 1000000;
-    timeout.tv_nsec = now.tv_usec * 1000 + (microseconds % 1000000) * 1000;
-
-	struct timeval start_time;
-	struct timeval new_time;
-	int64_t timeout_msec = ((int64_t)microseconds / 1000);
-	gettimeofday(&start_time, 0);
-    while(value <= 0 && result != ETIMEDOUT)
+    while(value <= 0)
 	{
-// This doesn't work in all kernels
-//		result = pthread_cond_timedwait(&cond, &mutex, &timeout);
-// This is based on the most common frame rate since it's mainly used in
-// recording.
-	    pthread_mutex_unlock(&mutex);
-		usleep(20000);
-		gettimeofday(&new_time, 0);
-		new_time.tv_usec -= start_time.tv_usec;
-		new_time.tv_sec -= start_time.tv_sec;
-	    pthread_mutex_lock(&mutex);
-		if(value <= 0 && 
-			(int64_t)new_time.tv_sec * 1000 + (int64_t)new_time.tv_usec / 1000 > timeout_msec)
-			result = ETIMEDOUT;
+		result = pthread_cond_timedwait(&cond, &mutex, &ts);
+
+        if(result == ETIMEDOUT) 
+	    {
+            pthread_mutex_unlock(&mutex);
+#ifndef NO_GUICAST
+		    UNSET_LOCK2
+#endif
+		    return 1;
+        } 
     }
 
-    if(result == ETIMEDOUT) 
-	{
-//printf("Condition::timed_lock 1 %s %s\n", title, location);
-#ifndef NO_GUICAST
-		UNSET_LOCK2
-#endif
-		result = 1;
-    } 
-	else 
-	{
-//printf("Condition::timed_lock 2 %s %s\n", title, location);
-#ifndef NO_GUICAST
-		UNSET_LOCK2
-#endif
-		if(is_binary)
-			value = 0;
-		else
-			value--;
-		result = 0;
-    }
+	if(is_binary)
+		value = 0;
+	else
+		value--;
     pthread_mutex_unlock(&mutex);
+
+	result = 0;
+#ifndef NO_GUICAST
+	UNSET_LOCK2
+#endif
 	return result;
 }
 

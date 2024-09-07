@@ -755,11 +755,16 @@ to render a @b{color cube} instead of the source footage.  This requires
 selecting @b{color cube} as the background type.  The background renders
 a fixed size color cube for the LUT.
 
-Move the background effect to before the color processing.  Change the
-project size to 512x512.  Be sure the track size is big enough to
-contain the color cube.  Change the projector to left top justify. 
-Render 1 frame to a PNG image.  The color cube must fill the entire
-512x512 output & be aligned exactly.
+Move the background effect to before the color processing.  This is
+easiest done by right clicking on it to access the context menu.  Select
+@b{move down} to make it wrap to the top of the stack.
+
+@center @image{move_plugin}
+
+Change the project size to 512x512.  Be sure the track size is big
+enough to contain the color cube.  Change the projector to left top
+justify.  Render 1 frame to a PNG image.  The color cube must fill the
+entire 512x512 output & be aligned exactly.
 
 There is no cookie cutter feature to generate a LUT because it's an
 extremely rarely used feature.

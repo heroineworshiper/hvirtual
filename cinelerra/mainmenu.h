@@ -29,6 +29,7 @@ class CursorOnFrames;
 class TypelessKeyframes;
 class LoopPlayback;
 class DumpPlayback;
+class EnableBRender;
 
 class Redo;
 class ShowVWindow;
@@ -95,6 +96,7 @@ public:
 	ThreadLoader *threadloader;
 	MenuAEffects *aeffects;
 	MenuVEffects *veffects;
+    BC_Menu *viewmenu;
 
 // for previous document loader
 	Load *load_file;
@@ -121,6 +123,7 @@ public:
 	CursorOnFrames *cursor_on_frames;
 	TypelessKeyframes *typeless_keyframes;
 	LoopPlayback *loop_playback;
+    EnableBRender *enable_brender;
 	DumpPlayback *dump_playback;
 	ShowAssets *show_assets;
 	ShowTitles *show_titles;
@@ -536,6 +539,14 @@ class SetBRenderRange : public BC_MenuItem
 {
 public:
 	SetBRenderRange(MWindow *mwindow);
+	int handle_event();
+	MWindow *mwindow;
+};
+
+class EnableBRender : public BC_MenuItem
+{
+public:
+	EnableBRender(MWindow *mwindow);
 	int handle_event();
 	MWindow *mwindow;
 };

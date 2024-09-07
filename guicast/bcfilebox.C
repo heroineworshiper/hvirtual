@@ -892,7 +892,7 @@ void BC_FileBox::calculate_sizes(int window_w, int window_h)
         BC_PopupMenu::calculate_h() +
         margin;
     recent_w = window_w - margin * 2;
-    recent_h = get_text_height(MEDIUMFONT) * FILEBOX_HISTORY_SIZE + 
+    recent_h = get_text_height(MEDIUMFONT) * FILEBOX_HISTORY_SIZE / 2 + 
  		BC_ScrollBar::get_span(SCROLL_HORIZ) +
  		LISTBOX_MARGIN * 2;
     list_x = 0;

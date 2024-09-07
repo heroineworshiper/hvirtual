@@ -213,6 +213,7 @@ void BackgroundWindow::update()
         color_objs->s, 
         color_objs->v);
  	color_objs->a = (float)plugin->config.a / 255;
+    color_objs->update();
     type->set_text(BackgroundType::format_to_text(plugin->config.type));
 }
 

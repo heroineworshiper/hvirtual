@@ -85,7 +85,7 @@ MainMenu::~MainMenu()
 
 void MainMenu::create_objects()
 {
-	BC_Menu *viewmenu, *windowmenu, *settingsmenu, *trackmenu;
+	BC_Menu *windowmenu, *settingsmenu, *trackmenu;
 	PreferencesMenuitem *preferences;
 	Load *append_file;
 	total_loads = 0; 
@@ -211,6 +211,7 @@ void MainMenu::create_objects()
 	settingsmenu->add_item(dump_playback = new DumpPlayback(mwindow));
 	settingsmenu->add_item(loop_playback = new LoopPlayback(mwindow));
 	settingsmenu->add_item(new SetBRenderRange(mwindow));
+    settingsmenu->add_item(enable_brender = new EnableBRender(mwindow));
 // set scrubbing speed
 //	ScrubSpeed *scrub_speed;
 //	settingsmenu->add_item(scrub_speed = new ScrubSpeed(mwindow));
@@ -273,6 +274,7 @@ void MainMenu::update_toggles(int use_lock)
 	cursor_on_frames->set_checked(mwindow->edl->session->cursor_on_frames);
 	dump_playback->set_checked(MWindow::preferences->dump_playback);
 	loop_playback->set_checked(mwindow->edl->local_session->loop_playback);
+    enable_brender->set_checked(MWindow::preferences->use_brender);
 
 	show_assets->set_checked(mwindow->edl->session->show_assets);
 	show_titles->set_checked(mwindow->edl->session->show_titles);
@@ -1222,6 +1224,27 @@ int SetBRenderRange::handle_event()
 	return 1;
 }
 
+
+
+
+EnableBRender::EnableBRender(MWindow *mwindow)
+ : BC_MenuItem(_("Enable Background rendering")) 
+{ 
+	this->mwindow = mwindow; 
+	set_checked(MWindow::preferences->use_brender);
+}
+
+int EnableBRender::handle_event()
+{
+	set_checked(get_checked() ^ 1);
+	MWindow::preferences->use_brender = get_checked();
+	mwindow->gui->lock_window("EnableBRender::handle_event 1");
+	mwindow->gui->draw_overlays(1);
+    mwindow->gui->update(0, 0, 1, 0, 0, 1, 0);
+	mwindow->gui->unlock_window();
+    mwindow->init_brender();
+    return 0;
+}
 
 
 

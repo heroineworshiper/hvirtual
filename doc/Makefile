@@ -87,6 +87,7 @@ CUSTOM_IMAGES := \
         unlocked_bezier.png \
         main_timebar.png \
         mask2.png \
+        move_plugin.png \
         out_point_button.png \
         overwrite_button.png \
         preview.png \
