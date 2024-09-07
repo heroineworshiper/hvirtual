@@ -335,6 +335,7 @@ int BC_MenuPopup::deactivate_menu()
 
 int BC_MenuPopup::draw_items()
 {
+    if(!popup) return 0;
 	if(menu_bar)
 		popup->draw_top_tiles(menu_bar, 0, 0, w, h);
 	else

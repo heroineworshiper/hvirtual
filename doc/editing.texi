@@ -238,17 +238,18 @@ the panning to several common standards.  They are listed in the
 @b{Audio} menu.  These functions only affect audio tracks with
 @b{recording} enabled.
 
-@b{Audio->Map 1:1} - This maps every track to its own channel and wraps
-around when all the channels are allocated.  It's most useful for
-making 2 tracks with 2 channels map to stereo and for making 6 tracks
-with 6 channels map to a 6 channel soundcard.
+@b{Audio->Map LR} - This maps every track to its own channel and wraps
+around when all the channels are allocated.  The most common use is
+mapping track 1 to left & track 2 to right.  For more channels, it maps
+every track to its own speaker.
 
-@b{Audio->Map 5.1:2} - This maps 6 tracks to 2 channels.  The project
+@b{Audio->Map CLRLRC} - This maps 6 tracks to 2 channels.  The project
 should have 2 channels when using this function.  Go to
 @b{Settings->format} to set the output channels to 2.  This is most
 useful for downmixing 5.1 audio to stereo.
 
-
+@b{Audio->Map LRCCLR} - This is alternative mapping of 6 tracks to 2
+channels.
 
 
 
@@ -336,11 +337,15 @@ New video tracks are overlayed on top of old tracks.
 @node TWO SCREEN EDITING
 @section TWO SCREEN EDITING
 
-This is the fastest way to construct a program out of movie files.  The
-idea consists of viewing a movie file in one window and viewing the
-program in another window.  Sections of the movie file are defined in
-one window and transferred to the end of the program in the other
-window.
+The fastest way to construct a program out of movie files is to load
+source files in 1 copy of Cinelerra and copy bits of them to another
+copy of Cinelerra by highlighting sections of the timeline & using the
+clipboard functions.
+
+Cinelerra also currently supports the conventional way of editing which
+involves viewing a movie file in one window and viewing the program in
+another window.  Sections of the movie file are defined in one window
+and transferred to the end of the program in the other window.
 
 The way to begin a two screen editing session is to load some
 resources.  In @b{file->load} load some movies with the insertion
