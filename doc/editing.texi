@@ -340,7 +340,8 @@ New video tracks are overlayed on top of old tracks.
 The fastest way to construct a program out of movie files is to load
 source files in 1 copy of Cinelerra and copy bits of them to another
 copy of Cinelerra by highlighting sections of the timeline & using the
-clipboard functions.
+clipboard functions.  This allows the full functionality to be applied
+to the source footage instead of a subset.
 
 Cinelerra also currently supports the conventional way of editing which
 involves viewing a movie file in one window and viewing the program in

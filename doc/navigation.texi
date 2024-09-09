@@ -428,26 +428,19 @@ transport keys are arranged in a sideways @b{T} on the number pad.
 
 @itemize
 
-@item
-@b{+} 4x reverse
-@item
-@b{6} 2x reverse
-@item
-@b{5} Normal reverse
-@item
-@b{4} Frame reverse
-@item
-@b{1} Frame forward
-@item
-@b{2} 1x forward
-@item
-@b{3} 2x forward
-@item
-@b{Enter} 4x forward
-@item
-@b{0} Stop
-@item
-@b{Spacebar} Normal forward
+@item @b{9} 1/2x reverse
+@item @b{+} 4x reverse
+@item @b{6} 2x reverse
+@item @b{5} Normal reverse
+@item @b{4} Frame reverse
+@item @b{1} Frame forward
+@item @b{2} 1x forward
+@item @b{3} 2x forward
+@item @b{Enter} 4x forward
+@item @b{Del} 1/2x forward
+@item @b{0} Stop
+@item @b{Spacebar} Normal forward
+
 @end itemize
 
 Hitting any key on the keyboard twice pauses it & discards the playback

@@ -219,10 +219,12 @@ int PlayTransport::keypress_event()
 	switch(subwindow->get_keypress())
 	{
 		case KPPLUS:        handle_transport(PLAY_REV, 4.0, 0, use_inout, 1); result = 1; break;
+		case KP9:           handle_transport(PLAY_REV, 0.5, 0, use_inout, 1); result = 1; break;
 		case KP6:           handle_transport(PLAY_REV, 2.0, 0, use_inout, 1); result = 1; break;
 		case KP5:           handle_transport(PLAY_REV, 1.0, 0, use_inout, 1); result = 1; break;
 		case KP4:           handle_transport(SINGLE_FRAME_REWIND, 1.0, 0, use_inout, 1); result = 1; break;
 		case KP1:           handle_transport(SINGLE_FRAME_FWD, 1.0, 0, use_inout, 1);    result = 1; break;
+		case KPDEL:         handle_transport(PLAY_FWD, 0.5, 0, use_inout, 1); result = 1; break;
 		case KP2:           handle_transport(PLAY_FWD, 1.0, 0, use_inout, 1); result = 1; break;
 		case KP3:           handle_transport(PLAY_FWD, 2.0, 0, use_inout, 1); result = 1; break;
 		case KPENTER:       handle_transport(PLAY_FWD, 4.0, 0, use_inout, 1); result = 1; break;
@@ -231,14 +233,14 @@ int PlayTransport::keypress_event()
 		case 'k':           handle_transport(STOP,     1.0, 0, use_inout, 1); result = 1; break;
 		case END:
 			subwindow->lock_window("PlayTransport::keypress_event 3");
-			goto_end();                                   
-			result = 1; 
+			goto_end();
+			result = 1;
 			subwindow->unlock_window();
 			break;
 		case HOME:
 			subwindow->lock_window("PlayTransport::keypress_event 4");
-		    goto_start();                                 
-			result = 1; 
+		    goto_start();
+			result = 1;
 			subwindow->unlock_window();
 			break;
 	}
