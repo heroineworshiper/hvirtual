@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2010-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +22,7 @@
 #include "blur.h"
 #include "blurwindow.h"
 #include "language.h"
-
+#include "theme.h"
 
 
 
@@ -47,20 +46,47 @@ BlurWindow::~BlurWindow()
 
 void BlurWindow::create_objects()
 {
-	int x = DP(10), y = DP(10);
+    int window_border = client->get_theme()->window_border;
+    int widget_border = client->get_theme()->widget_border;
+	int x = window_border, y = window_border;
 	BC_Title *title;
 
-	add_subwindow(new BC_Title(x, y, _("Blur")));
-	y += DP(20);
-	add_subwindow(horizontal = new BlurHorizontal(client, this, x, y));
-	y += DP(30);
-	add_subwindow(vertical = new BlurVertical(client, this, x, y));
-	y += DP(35);
-	add_subwindow(title = new BC_Title(x, y, _("Radius:")));
-	y += title->get_h() + 10;
-	add_subwindow(radius = new BlurRadius(client, this, x, y));
-	add_subwindow(radius_text = new BlurRadiusText(client, this, x + radius->get_w() + 10, y, 100));
-	y += radius->get_h() + 10;
+//	add_subwindow(new BC_Title(x, y, _("Blur")));
+//	y += DP(20);
+	add_subwindow(title = new BC_Title(x, y, _("Horizontal:")));
+	y += title->get_h() + widget_border;
+	add_subwindow(h = new BlurValue(client, 
+        this, 
+        x, 
+        y, 
+        &client->config.horizontal));
+	add_subwindow(h_text = new BlurValueText(client, 
+        this, 
+        x + h->get_w() + widget_border, 
+        y, 
+        100, 
+        &client->config.horizontal));
+    h->text = h_text;
+    h_text->pot = h;
+	y += h->get_h() + widget_border;
+
+	add_subwindow(title = new BC_Title(x, y, _("Vertical:")));
+	y += title->get_h() + widget_border;
+	add_subwindow(v = new BlurValue(client, 
+        this, 
+        x, 
+        y, 
+        &client->config.vertical));
+	add_subwindow(v_text = new BlurValueText(client, 
+        this, 
+        x + h->get_w() + widget_border, 
+        y, 
+        100, 
+        &client->config.vertical));
+    v->text = v_text;
+    v_text->pot = v;
+	y += v->get_h() + widget_border;
+
 	add_subwindow(a_key = new BlurAKey(client, x, y));
 	y += DP(30);
 	add_subwindow(a = new BlurA(client, x, y));
@@ -74,23 +100,26 @@ void BlurWindow::create_objects()
 	show_window();
 }
 
-BlurRadius::BlurRadius(BlurMain *client, BlurWindow *gui, int x, int y)
- : BC_IPot(x, 
+BlurValue::BlurValue(BlurMain *client, 
+    BlurWindow *gui, 
+    int x, 
+    int y,
+    float *output)
+ : BC_FPot(x, 
  	y, 
-	client->config.radius, 
+	*output, 
 	0, 
 	MAXRADIUS)
 {
 	this->client = client;
 	this->gui = gui;
+    this->output = output;
+    set_precision(.1);
 }
-BlurRadius::~BlurRadius()
+int BlurValue::handle_event()
 {
-}
-int BlurRadius::handle_event()
-{
-	client->config.radius = get_value();
-	gui->radius_text->update((int64_t)client->config.radius);
+	*output = get_value();
+	text->update(*output);
 	client->send_configure_change();
 	return 1;
 }
@@ -98,21 +127,28 @@ int BlurRadius::handle_event()
 
 
 
-BlurRadiusText::BlurRadiusText(BlurMain *client, BlurWindow *gui, int x, int y, int w)
+BlurValueText::BlurValueText(BlurMain *client, 
+    BlurWindow *gui, 
+    int x, 
+    int y, 
+    int w,
+    float *output)
  : BC_TextBox(x, 
 	y, 
 	w, 
 	1, 
-	client->config.radius)
+	*output)
 {
 	this->client = client;
 	this->gui = gui;
+    this->output = output;
+    set_precision(1);
 }
 
-int BlurRadiusText::handle_event()
+int BlurValueText::handle_event()
 {
-	client->config.radius = atoi(get_text());
-	gui->radius->update((int64_t)client->config.radius);
+	*output = atof(get_text());
+	pot->update(*output);
 	client->send_configure_change();
 	return 1;
 }
@@ -120,43 +156,43 @@ int BlurRadiusText::handle_event()
 
 
 
-BlurVertical::BlurVertical(BlurMain *client, BlurWindow *window, int x, int y)
- : BC_CheckBox(x, 
- 	y, 
-	client->config.vertical, 
-	_("Vertical"))
-{
-	this->client = client;
-	this->window = window;
-}
-BlurVertical::~BlurVertical()
-{
-}
-int BlurVertical::handle_event()
-{
-	client->config.vertical = get_value();
-	client->send_configure_change();
-    return 0;
-}
-
-BlurHorizontal::BlurHorizontal(BlurMain *client, BlurWindow *window, int x, int y)
- : BC_CheckBox(x, 
- 	y, 
-	client->config.horizontal, 
-	_("Horizontal"))
-{
-	this->client = client;
-	this->window = window;
-}
-BlurHorizontal::~BlurHorizontal()
-{
-}
-int BlurHorizontal::handle_event()
-{
-	client->config.horizontal = get_value();
-	client->send_configure_change();
-    return 0;
-}
+// BlurVertical::BlurVertical(BlurMain *client, BlurWindow *window, int x, int y)
+//  : BC_CheckBox(x, 
+//  	y, 
+// 	client->config.vertical, 
+// 	_("Vertical"))
+// {
+// 	this->client = client;
+// 	this->window = window;
+// }
+// BlurVertical::~BlurVertical()
+// {
+// }
+// int BlurVertical::handle_event()
+// {
+// 	client->config.vertical = get_value();
+// 	client->send_configure_change();
+//     return 0;
+// }
+// 
+// BlurHorizontal::BlurHorizontal(BlurMain *client, BlurWindow *window, int x, int y)
+//  : BC_CheckBox(x, 
+//  	y, 
+// 	client->config.horizontal, 
+// 	_("Horizontal"))
+// {
+// 	this->client = client;
+// 	this->window = window;
+// }
+// BlurHorizontal::~BlurHorizontal()
+// {
+// }
+// int BlurHorizontal::handle_event()
+// {
+// 	client->config.horizontal = get_value();
+// 	client->send_configure_change();
+//     return 0;
+// }
 
 
 

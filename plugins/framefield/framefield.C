@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ public:
 	FrameFieldConfig();
 	int equivalent(FrameFieldConfig &src);
 	int field_dominance;
+    int half_rate; // read at 1/2 the output framerate
 };
 
 
@@ -74,31 +75,19 @@ public:
 };
 
 
-class FrameFieldDouble : public BC_CheckBox
+class FrameFieldOption : public BC_CheckBox
 {
 public:
-	FrameFieldDouble(FrameField *plugin, FrameFieldWindow *gui, int x, int y);
+	FrameFieldOption(FrameField *plugin, 
+        FrameFieldWindow *gui, 
+        int x, 
+        int y,
+        int *output,
+        const char *text);
 	int handle_event();
 	FrameField *plugin;
 	FrameFieldWindow *gui;
-};
-
-class FrameFieldShift : public BC_CheckBox
-{
-public:
-	FrameFieldShift(FrameField *plugin, FrameFieldWindow *gui, int x, int y);
-	int handle_event();
-	FrameField *plugin;
-	FrameFieldWindow *gui;
-};
-
-class FrameFieldAvg : public BC_CheckBox
-{
-public:
-	FrameFieldAvg(FrameField *plugin, FrameFieldWindow *gui, int x, int y);
-	int handle_event();
-	FrameField *plugin;
-	FrameFieldWindow *gui;
+    int *output;
 };
 
 class FrameFieldWindow : public PluginClientWindow
@@ -109,6 +98,7 @@ public:
 	FrameField *plugin;
 	FrameFieldTop *top;
 	FrameFieldBottom *bottom;
+    FrameFieldOption *half_rate;
 };
 
 
@@ -171,11 +161,13 @@ REGISTER_PLUGIN(FrameField)
 FrameFieldConfig::FrameFieldConfig()
 {
 	field_dominance = TOP_FIELD_FIRST;
+    half_rate = 1;
 }
 
 int FrameFieldConfig::equivalent(FrameFieldConfig &src)
 {
-	return src.field_dominance == field_dominance;
+	return src.field_dominance == field_dominance &&
+        src.half_rate == half_rate;
 }
 
 
@@ -203,6 +195,14 @@ void FrameFieldWindow::create_objects()
 	y += top->get_h() + DP(5);
 	add_subwindow(bottom = new FrameFieldBottom(plugin, this, x, y));
 	y += bottom->get_h() + DP(5);
+    
+    add_subwindow(half_rate = new FrameFieldOption(plugin, 
+        this, 
+        x, 
+        y,
+        &plugin->config.half_rate,
+        _("Read half frame rate")));
+    
 	show_window();
 }
 
@@ -266,17 +266,24 @@ int FrameFieldBottom::handle_event()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+FrameFieldOption::FrameFieldOption(FrameField *plugin, 
+    FrameFieldWindow *gui, 
+    int x, 
+    int y,
+    int *output,
+    const char *text)
+ : BC_CheckBox(x, y, *output, text)
+{
+    this->plugin = plugin;
+    this->gui = gui;
+    this->output = output;
+}
+int FrameFieldOption::handle_event()
+{
+	*output = get_value();
+	plugin->send_configure_change();
+	return 1;
+}
 
 
 
@@ -331,7 +338,10 @@ int FrameField::process_buffer(VFrame *frame,
 	}
 
 
-	current_frame_number = start_position / 2;
+    if(config.half_rate)
+    	current_frame_number = start_position / 2;
+    else
+        current_frame_number = start_position;
 
 	VFrame *ptr = frame;
 	if(get_use_opengl())
@@ -369,7 +379,7 @@ int FrameField::process_buffer(VFrame *frame,
 		read_frame(ptr, 
 			0, 
 			current_frame_number, 
-			frame_rate / 2,
+			config.half_rate ? frame_rate / 2 : frame_rate,
 			get_use_opengl());
 		src_frame_number = current_frame_number;
 		new_frame = 1;
@@ -589,6 +599,7 @@ void FrameField::save_data(KeyFrame *keyframe)
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 	output.tag.set_title("FRAME_FIELD");
 	output.tag.set_property("DOMINANCE", config.field_dominance);
+	output.tag.set_property("HALF_RATE", config.half_rate);
 	output.append_tag();
 	output.terminate_string();
 }
@@ -606,6 +617,7 @@ void FrameField::read_data(KeyFrame *keyframe)
 		if(input.tag.title_is("FRAME_FIELD"))
 		{
 			config.field_dominance = input.tag.get_property("DOMINANCE", config.field_dominance);
+			config.half_rate = input.tag.get_property("HALF_RATE", config.half_rate);
 		}
 	}
 }
@@ -619,6 +631,7 @@ void FrameField::update_gui()
 			thread->window->lock_window();
 			((FrameFieldWindow*)thread->window)->top->update(config.field_dominance == TOP_FIELD_FIRST);
 			((FrameFieldWindow*)thread->window)->bottom->update(config.field_dominance == BOTTOM_FIELD_FIRST);
+			((FrameFieldWindow*)thread->window)->bottom->update(config.half_rate);
 			thread->window->unlock_window();
 		}
 	}

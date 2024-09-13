@@ -619,7 +619,7 @@ PerspectiveCoord::PerspectiveCoord(PerspectiveWindow *gui,
 	int y,
 	float value,
 	int is_x)
- : BC_TumbleTextBox(gui, value, (float)-100, (float)200, x, y, DP(100))
+ : BC_TumbleTextBox(gui, value, (float)-200, (float)200, x, y, DP(100))
 {
 	this->plugin = plugin;
 	this->is_x = is_x;

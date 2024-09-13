@@ -36,10 +36,10 @@ class BlurEngine;
 
 typedef struct
 {
-	double r;
-    double g;
-    double b;
-    double a;
+	float r;
+    float g;
+    float b;
+    float a;
 } pixel_f;
 
 class BlurConfig
@@ -55,10 +55,11 @@ public:
 		int64_t next_frame, 
 		int64_t current_frame);
 
-	int vertical;
-	int horizontal;
-	int radius;
+	float vertical;
+	float horizontal;
+//	int radius;
 	int a, r ,g ,b;
+// fake tilt shift
 	int a_key;
 };
 
@@ -91,9 +92,9 @@ private:
 class BlurConstants
 {
 public:
-    double n_p[5], n_m[5];
-    double d_p[5], d_m[5];
-    double bd_p[5], bd_m[5];
+    float n_p[5], n_m[5];
+    float d_p[5], d_m[5];
+    float bd_p[5], bd_m[5];
 };
 
 class BlurEngine : public Thread
@@ -111,25 +112,28 @@ public:
 	int wait_process_frame();
 
 // parameters needed for blur
-	int get_constants(BlurConstants *ptr, double std_dev);
-	int reconfigure(BlurConstants *constants, double alpha);
+	int get_constants(BlurConstants *ptr, 
+        float std_dev);
+	int reconfigure(BlurConstants *constants, float radius);
 	int transfer_pixels(pixel_f *src1, 
 		pixel_f *src2, 
 		pixel_f *src, 
-		double *radius,
+//		float *radius,
 		pixel_f *dest, 
 		int size);
 	int multiply_alpha(pixel_f *row, int size);
 	int separate_alpha(pixel_f *row, int size);
-	int blur_strip3(int &size);
-	int blur_strip4(int &size);
+	int blur_strip3(int size, float radius, BlurConstants *reverse, BlurConstants *forward);
+	int blur_strip4(int size, float radius, BlurConstants *reverse, BlurConstants *forward);
 
 	int color_model;
-	double vmax;
+	float vmax;
 	pixel_f *val_p, *val_m;
-	double *radius;
-	BlurConstants forward_constants;
-	BlurConstants reverse_constants;
+    float *radius;
+	BlurConstants forward_constants_h;
+	BlurConstants reverse_constants_h;
+	BlurConstants forward_constants_v;
+	BlurConstants reverse_constants_v;
 	pixel_f *src, *dst;
     pixel_f initial_p;
     pixel_f initial_m;
@@ -141,7 +145,7 @@ public:
 	int last_frame;
 	int do_horizontal;
 // Detect changes in alpha for alpha radius mode
-	double prev_forward_radius, prev_reverse_radius;
+	float prev_forward_radius, prev_reverse_radius;
 	Mutex input_lock, output_lock;
 	VFrame *frame;
 };

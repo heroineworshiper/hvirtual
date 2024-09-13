@@ -35,14 +35,14 @@
 
 
 
-#define MIN_RADIUS 2
+#define MIN_RADIUS 0.1
 
 
 BlurConfig::BlurConfig()
 {
-	vertical = 1;
-	horizontal = 1;
-	radius = 5;
+	vertical = MIN_RADIUS;
+	horizontal = MIN_RADIUS;
+//	radius = 5;
 	a_key = 0;
 	a = r = g = b = 1;
 }
@@ -51,7 +51,7 @@ int BlurConfig::equivalent(BlurConfig &that)
 {
 	return (vertical == that.vertical && 
 		horizontal == that.horizontal && 
-		radius == that.radius &&
+//		radius == that.radius &&
 		a_key == that.a_key &&
 		a == that.a &&
 		r == that.r &&
@@ -63,7 +63,7 @@ void BlurConfig::copy_from(BlurConfig &that)
 {
 	vertical = that.vertical;
 	horizontal = that.horizontal;
-	radius = that.radius;
+//	radius = that.radius;
 	a_key = that.a_key;
 	a = that.a;
 	r = that.r;
@@ -82,9 +82,9 @@ void BlurConfig::interpolate(BlurConfig &prev,
 
 
 //printf("BlurConfig::interpolate %d %d %d\n", prev_frame, next_frame, current_frame);
-	this->vertical = (int)(prev.vertical * prev_scale + next.vertical * next_scale);
-	this->horizontal = (int)(prev.horizontal * prev_scale + next.horizontal * next_scale);
-	this->radius = (int)(prev.radius * prev_scale + next.radius * next_scale);
+	this->vertical = (float)(prev.vertical * prev_scale + next.vertical * next_scale);
+	this->horizontal = (float)(prev.horizontal * prev_scale + next.horizontal * next_scale);
+//	this->radius = (float)(prev.radius * prev_scale + next.radius * next_scale);
 	a_key = prev.a_key;
 	a = prev.a;
 	r = prev.r;
@@ -173,19 +173,25 @@ int BlurMain::process_buffer(VFrame *frame,
 
 		for(i = 0; i < (get_project_smp() + 1); i++)
 		{
-			engine[i]->reconfigure(&engine[i]->forward_constants, config.radius);
-			engine[i]->reconfigure(&engine[i]->reverse_constants, config.radius);
+			engine[i]->reconfigure(&engine[i]->forward_constants_h, 
+                config.horizontal);
+			engine[i]->reconfigure(&engine[i]->reverse_constants_h, 
+                config.horizontal);
+			engine[i]->reconfigure(&engine[i]->forward_constants_v, 
+                config.vertical);
+			engine[i]->reconfigure(&engine[i]->reverse_constants_v, 
+                config.vertical);
 		}
 		need_reconfigure = 0;
 	}
 
 
-	if(config.radius < MIN_RADIUS || 
-		(!config.vertical && !config.horizontal))
+	if(config.horizontal < MIN_RADIUS &&
+		config.vertical < MIN_RADIUS)
 	{
 // Data never processed
 // discard alpha for consistent results
-        if(config.a_key && (config.vertical || config.horizontal))
+        if(config.a_key)
         {
     		int w = frame->get_w();
 	    	int h = frame->get_h();
@@ -213,7 +219,7 @@ int BlurMain::process_buffer(VFrame *frame,
 			        DISCARD_ALPHA(float, 1.0);
 			        break;
             }
-       }
+        }
 	}
 	else
 	{
@@ -320,10 +326,10 @@ void BlurMain::update_gui()
 		if(reconfigure) 
 		{
 			((BlurWindow*)thread->window)->lock_window("BlurMain::update_gui");
-			((BlurWindow*)thread->window)->horizontal->update(config.horizontal);
-			((BlurWindow*)thread->window)->vertical->update(config.vertical);
-			((BlurWindow*)thread->window)->radius->update(config.radius);
-			((BlurWindow*)thread->window)->radius_text->update((int64_t)config.radius);
+			((BlurWindow*)thread->window)->h->update(config.horizontal);
+			((BlurWindow*)thread->window)->v->update(config.vertical);
+			((BlurWindow*)thread->window)->h_text->update(config.horizontal);
+			((BlurWindow*)thread->window)->v_text->update(config.vertical);
 			((BlurWindow*)thread->window)->a_key->update(config.a_key);
 			((BlurWindow*)thread->window)->a->update(config.a);
 			((BlurWindow*)thread->window)->r->update(config.r);
@@ -347,7 +353,7 @@ void BlurMain::save_data(KeyFrame *keyframe)
 	output.tag.set_title("BLUR");
 	output.tag.set_property("VERTICAL", config.vertical);
 	output.tag.set_property("HORIZONTAL", config.horizontal);
-	output.tag.set_property("RADIUS", config.radius);
+//	output.tag.set_property("RADIUS", config.radius);
 	output.tag.set_property("R", config.r);
 	output.tag.set_property("G", config.g);
 	output.tag.set_property("B", config.b);
@@ -375,7 +381,7 @@ void BlurMain::read_data(KeyFrame *keyframe)
 			{
 				config.vertical = input.tag.get_property("VERTICAL", config.vertical);
 				config.horizontal = input.tag.get_property("HORIZONTAL", config.horizontal);
-				config.radius = input.tag.get_property("RADIUS", config.radius);
+//				config.radius = input.tag.get_property("RADIUS", config.radius);
 //printf("BlurMain::read_data 1 %d %d %s\n", get_source_position(), keyframe->position, keyframe->get_data());
 				config.r = input.tag.get_property("R", config.r);
 				config.g = input.tag.get_property("G", config.g);
@@ -408,7 +414,7 @@ BlurEngine::BlurEngine(BlurMain *plugin)
 	size *= 2;
 	val_p = new pixel_f[size];
 	val_m = new pixel_f[size];
-	radius = new double[size];
+	radius = new float[size];
 	src = new pixel_f[size];
 	dst = new pixel_f[size];
 
@@ -505,19 +511,19 @@ void BlurEngine::run()
  \
 			for(k = 0; k < h; k++) \
 			{ \
-				if(plugin->config.r) src[k].r = (double)current_input[k][j * components]; \
-				if(plugin->config.g) src[k].g = (double)current_input[k][j * components + 1]; \
-				if(plugin->config.b) src[k].b = (double)current_input[k][j * components + 2]; \
+				if(plugin->config.r) src[k].r = (float)current_input[k][j * components]; \
+				if(plugin->config.g) src[k].g = (float)current_input[k][j * components + 1]; \
+				if(plugin->config.b) src[k].b = (float)current_input[k][j * components + 2]; \
 				if(components == 4) \
 				{ \
-					if(plugin->config.a || plugin->config.a_key) src[k].a = (double)current_input[k][j * components + 3]; \
+					if(plugin->config.a || plugin->config.a_key) src[k].a = (float)current_input[k][j * components + 3]; \
 				} \
 			} \
  \
 			if(components == 4) \
-				blur_strip4(h); \
+				blur_strip4(h, plugin->config.vertical, &reverse_constants_v, &forward_constants_v); \
 			else \
-				blur_strip3(h); \
+				blur_strip3(h, plugin->config.vertical, &reverse_constants_v, &forward_constants_v); \
  \
 			for(k = 0; k < h; k++) \
 			{ \
@@ -557,17 +563,17 @@ void BlurEngine::run()
  \
 			for(k = 0; k < w; k++) \
 			{ \
-				if(plugin->config.r) src[k].r = (double)current_input[j][k * components]; \
-				if(plugin->config.g) src[k].g = (double)current_input[j][k * components + 1]; \
-				if(plugin->config.b) src[k].b = (double)current_input[j][k * components + 2]; \
+				if(plugin->config.r) src[k].r = (float)current_input[j][k * components]; \
+				if(plugin->config.g) src[k].g = (float)current_input[j][k * components + 1]; \
+				if(plugin->config.b) src[k].b = (float)current_input[j][k * components + 2]; \
 				if(components == 4) \
-					if(plugin->config.a || plugin->config.a_key) src[k].a = (double)current_input[j][k * components + 3]; \
+					if(plugin->config.a || plugin->config.a_key) src[k].a = (float)current_input[j][k * components + 3]; \
 			} \
  \
  			if(components == 4) \
-				blur_strip4(w); \
+				blur_strip4(w, plugin->config.horizontal, &reverse_constants_h, &forward_constants_h); \
 			else \
-				blur_strip3(w); \
+				blur_strip3(w, plugin->config.horizontal, &reverse_constants_h, &forward_constants_h); \
  \
 			for(k = 0; k < w; k++) \
 			{ \
@@ -615,21 +621,25 @@ void BlurEngine::run()
 	}
 }
 
-int BlurEngine::reconfigure(BlurConstants *constants, double radius)
+int BlurEngine::reconfigure(BlurConstants *constants, float radius)
 {
 // Blurring an oversampled temp
-	if(plugin->config.a_key) radius *= 2;
-	double std_dev = sqrt(-(double)(radius * radius) / 
+	if(plugin->config.a_key)
+    {
+        radius *= 2;
+    }
+
+	float std_dev = sqrt(-(float)(radius * radius) / 
 		(2 * log (1.0 / 255.0)));
 	get_constants(constants, std_dev);
     return 0;
 }
 
-int BlurEngine::get_constants(BlurConstants *ptr, double std_dev)
+int BlurEngine::get_constants(BlurConstants *ptr, float std_dev)
 {
 	int i;
-	double constants[8];
-	double div;
+	float constants[8];
+	float div;
 
 	div = sqrt(2 * M_PI) * std_dev;
 	constants[0] = -1.783 / std_dev;
@@ -684,8 +694,8 @@ int BlurEngine::get_constants(BlurConstants *ptr, double std_dev)
 	for(i = 1; i <= 4; i++)
 		ptr->n_m[i] = ptr->n_p[i] - ptr->d_p[i] * ptr->n_p[0];
 
-	double sum_n_p, sum_n_m, sum_d;
-	double a, b;
+	float sum_n_p, sum_n_m, sum_d;
+	float a, b;
 
 	sum_n_p = 0.0;
 	sum_n_m = 0.0;
@@ -714,12 +724,12 @@ int BlurEngine::get_constants(BlurConstants *ptr, double std_dev)
 int BlurEngine::transfer_pixels(pixel_f *src1, 
 	pixel_f *src2, 
 	pixel_f *src,
-	double *radius,
+//	float *radius,
 	pixel_f *dest, 
 	int size)
 {
 	int i;
-	double sum;
+	float sum;
 
 // printf("BlurEngine::transfer_pixels %d %d %d %d\n", 
 // plugin->config.r, 
@@ -747,7 +757,7 @@ int BlurEngine::transfer_pixels(pixel_f *src1,
 
 // 		if(radius[i] < 2)
 // 		{
-// 			double scale = 2.0 - (radius[i] * radius[i] - 2.0);
+// 			float scale = 2.0 - (radius[i] * radius[i] - 2.0);
 // 			dest[i].r /= scale;
 // 			dest[i].g /= scale;
 // 			dest[i].b /= scale;
@@ -761,11 +771,11 @@ int BlurEngine::transfer_pixels(pixel_f *src1,
 int BlurEngine::multiply_alpha(pixel_f *row, int size)
 {
 	int i;
-	double alpha;
+	float alpha;
 
 // 	for(i = 0; i < size; i++)
 // 	{
-// 		alpha = (double)row[i].a / vmax;
+// 		alpha = (float)row[i].a / vmax;
 // 		row[i].r *= alpha;
 // 		row[i].g *= alpha;
 // 		row[i].b *= alpha;
@@ -776,8 +786,8 @@ int BlurEngine::multiply_alpha(pixel_f *row, int size)
 int BlurEngine::separate_alpha(pixel_f *row, int size)
 {
 	int i;
-	double alpha;
-	double result;
+	float alpha;
+	float result;
 	
 // 	for(i = 0; i < size; i++)
 // 	{
@@ -795,7 +805,10 @@ int BlurEngine::separate_alpha(pixel_f *row, int size)
 	return 0;
 }
 
-int BlurEngine::blur_strip3(int &size)
+int BlurEngine::blur_strip3(int size, 
+    float radius2, 
+    BlurConstants *reverse, 
+    BlurConstants *forward)
 {
 //	multiply_alpha(src, size);
 
@@ -812,24 +825,24 @@ int BlurEngine::blur_strip3(int &size)
 	{
 		terms = (k < 4) ? k : 4;
 
-		radius[k] = plugin->config.radius;
+		radius[k] = radius2;
 
 		for(l = 0; l <= terms; l++)
 		{
 			if(plugin->config.r)
 			{
-				vp->r += forward_constants.n_p[l] * sp_p[-l].r - forward_constants.d_p[l] * vp[-l].r;
-				vm->r += reverse_constants.n_m[l] * sp_m[l].r - reverse_constants.d_m[l] * vm[l].r;
+				vp->r += forward->n_p[l] * sp_p[-l].r - forward->d_p[l] * vp[-l].r;
+				vm->r += reverse->n_m[l] * sp_m[l].r - reverse->d_m[l] * vm[l].r;
 			}
 			if(plugin->config.g)
 			{
-				vp->g += forward_constants.n_p[l] * sp_p[-l].g - forward_constants.d_p[l] * vp[-l].g;
-				vm->g += reverse_constants.n_m[l] * sp_m[l].g - reverse_constants.d_m[l] * vm[l].g;
+				vp->g += forward->n_p[l] * sp_p[-l].g - forward->d_p[l] * vp[-l].g;
+				vm->g += reverse->n_m[l] * sp_m[l].g - reverse->d_m[l] * vm[l].g;
 			}
 			if(plugin->config.b)
 			{
-				vp->b += forward_constants.n_p[l] * sp_p[-l].b - forward_constants.d_p[l] * vp[-l].b;
-				vm->b += reverse_constants.n_m[l] * sp_m[l].b - reverse_constants.d_m[l] * vm[l].b;
+				vp->b += forward->n_p[l] * sp_p[-l].b - forward->d_p[l] * vp[-l].b;
+				vm->b += reverse->n_m[l] * sp_m[l].b - reverse->d_m[l] * vm[l].b;
 			}
 		}
 
@@ -837,18 +850,18 @@ int BlurEngine::blur_strip3(int &size)
 		{
 			if(plugin->config.r)
 			{
-				vp->r += (forward_constants.n_p[l] - forward_constants.bd_p[l]) * initial_p.r;
-				vm->r += (reverse_constants.n_m[l] - reverse_constants.bd_m[l]) * initial_m.r;
+				vp->r += (forward->n_p[l] - forward->bd_p[l]) * initial_p.r;
+				vm->r += (reverse->n_m[l] - reverse->bd_m[l]) * initial_m.r;
 			}
 			if(plugin->config.g)
 			{
-				vp->g += (forward_constants.n_p[l] - forward_constants.bd_p[l]) * initial_p.g;
-				vm->g += (reverse_constants.n_m[l] - reverse_constants.bd_m[l]) * initial_m.g;
+				vp->g += (forward->n_p[l] - forward->bd_p[l]) * initial_p.g;
+				vm->g += (reverse->n_m[l] - reverse->bd_m[l]) * initial_m.g;
 			}
 			if(plugin->config.b)
 			{
-				vp->b += (forward_constants.n_p[l] - forward_constants.bd_p[l]) * initial_p.b;
-				vm->b += (reverse_constants.n_m[l] - reverse_constants.bd_m[l]) * initial_m.b;
+				vp->b += (forward->n_p[l] - forward->bd_p[l]) * initial_p.b;
+				vm->b += (reverse->n_m[l] - reverse->bd_m[l]) * initial_m.b;
 			}
 		}
 		sp_p++;
@@ -857,13 +870,16 @@ int BlurEngine::blur_strip3(int &size)
 		vm--;
 	}
 
-	transfer_pixels(val_p, val_m, src, radius, dst, size);
+	transfer_pixels(val_p, val_m, src, dst, size);
 //	separate_alpha(dst, size);
 	return 0;
 }
 
 
-int BlurEngine::blur_strip4(int &size)
+int BlurEngine::blur_strip4(int size, 
+    float radius2, 
+    BlurConstants *reverse, 
+    BlurConstants *forward)
 {
 	
 //	multiply_alpha(src, size);
@@ -880,9 +896,9 @@ int BlurEngine::blur_strip4(int &size)
 	for(int k = 0; k < size; k++)
 	{
 		if(plugin->config.a_key)
-			radius[k] = (double)plugin->config.radius * src[k].a / vmax;
+			radius[k] = radius2 * src[k].a / vmax;
 		else
-			radius[k] = plugin->config.radius;
+			radius[k] = radius2;
 	}
 
 	for(int k = 0; k < size; k++)
@@ -896,11 +912,11 @@ int BlurEngine::blur_strip4(int &size)
 				prev_forward_radius = radius[k];
 				if(radius[k] >= MIN_RADIUS / 2)
 				{
-					reconfigure(&forward_constants, radius[k]);
+					reconfigure(forward, radius[k]);
 				}
 				else
 				{
-					reconfigure(&forward_constants, (double)MIN_RADIUS / 2);
+					reconfigure(forward, (float)MIN_RADIUS / 2);
 				}
 			}
 
@@ -910,11 +926,11 @@ int BlurEngine::blur_strip4(int &size)
 				prev_reverse_radius = radius[size - 1 - k];
 				if(radius[size - 1 - k] >= MIN_RADIUS / 2)
 				{
-					reconfigure(&reverse_constants, radius[size - 1 - k]);
+					reconfigure(reverse, radius[size - 1 - k]);
 				}
 				else
 				{
-					reconfigure(&reverse_constants, (double)MIN_RADIUS / 2);
+					reconfigure(reverse, (float)MIN_RADIUS / 2);
 				}
 			}
 
@@ -928,23 +944,23 @@ int BlurEngine::blur_strip4(int &size)
 		{
 			if(plugin->config.r)
 			{
-				vp->r += forward_constants.n_p[l] * sp_p[-l].r - forward_constants.d_p[l] * vp[-l].r;
-				vm->r += reverse_constants.n_m[l] * sp_m[l].r - reverse_constants.d_m[l] * vm[l].r;
+				vp->r += forward->n_p[l] * sp_p[-l].r - forward->d_p[l] * vp[-l].r;
+				vm->r += reverse->n_m[l] * sp_m[l].r - reverse->d_m[l] * vm[l].r;
 			}
 			if(plugin->config.g)
 			{
-				vp->g += forward_constants.n_p[l] * sp_p[-l].g - forward_constants.d_p[l] * vp[-l].g;
-				vm->g += reverse_constants.n_m[l] * sp_m[l].g - reverse_constants.d_m[l] * vm[l].g;
+				vp->g += forward->n_p[l] * sp_p[-l].g - forward->d_p[l] * vp[-l].g;
+				vm->g += reverse->n_m[l] * sp_m[l].g - reverse->d_m[l] * vm[l].g;
 			}
 			if(plugin->config.b)
 			{
-				vp->b += forward_constants.n_p[l] * sp_p[-l].b - forward_constants.d_p[l] * vp[-l].b;
-				vm->b += reverse_constants.n_m[l] * sp_m[l].b - reverse_constants.d_m[l] * vm[l].b;
+				vp->b += forward->n_p[l] * sp_p[-l].b - forward->d_p[l] * vp[-l].b;
+				vm->b += reverse->n_m[l] * sp_m[l].b - reverse->d_m[l] * vm[l].b;
 			}
 			if(plugin->config.a && !plugin->config.a_key)
 			{
-				vp->a += forward_constants.n_p[l] * sp_p[-l].a - forward_constants.d_p[l] * vp[-l].a;
-				vm->a += reverse_constants.n_m[l] * sp_m[l].a - reverse_constants.d_m[l] * vm[l].a;
+				vp->a += forward->n_p[l] * sp_p[-l].a - forward->d_p[l] * vp[-l].a;
+				vm->a += reverse->n_m[l] * sp_m[l].a - reverse->d_m[l] * vm[l].a;
 			}
 		}
 
@@ -952,23 +968,23 @@ int BlurEngine::blur_strip4(int &size)
 		{
 			if(plugin->config.r)
 			{
-				vp->r += (forward_constants.n_p[l] - forward_constants.bd_p[l]) * initial_p.r;
-				vm->r += (reverse_constants.n_m[l] - reverse_constants.bd_m[l]) * initial_m.r;
+				vp->r += (forward->n_p[l] - forward->bd_p[l]) * initial_p.r;
+				vm->r += (reverse->n_m[l] - reverse->bd_m[l]) * initial_m.r;
 			}
 			if(plugin->config.g)
 			{
-				vp->g += (forward_constants.n_p[l] - forward_constants.bd_p[l]) * initial_p.g;
-				vm->g += (reverse_constants.n_m[l] - reverse_constants.bd_m[l]) * initial_m.g;
+				vp->g += (forward->n_p[l] - forward->bd_p[l]) * initial_p.g;
+				vm->g += (reverse->n_m[l] - reverse->bd_m[l]) * initial_m.g;
 			}
 			if(plugin->config.b)
 			{
-				vp->b += (forward_constants.n_p[l] - forward_constants.bd_p[l]) * initial_p.b;
-				vm->b += (reverse_constants.n_m[l] - reverse_constants.bd_m[l]) * initial_m.b;
+				vp->b += (forward->n_p[l] - forward->bd_p[l]) * initial_p.b;
+				vm->b += (reverse->n_m[l] - reverse->bd_m[l]) * initial_m.b;
 			}
 			if(plugin->config.a && !plugin->config.a_key)
 			{
-				vp->a += (forward_constants.n_p[l] - forward_constants.bd_p[l]) * initial_p.a;
-				vm->a += (reverse_constants.n_m[l] - reverse_constants.bd_m[l]) * initial_m.a;
+				vp->a += (forward->n_p[l] - forward->bd_p[l]) * initial_p.a;
+				vm->a += (reverse->n_m[l] - reverse->bd_m[l]) * initial_m.a;
 			}
 		}
 
@@ -978,7 +994,7 @@ int BlurEngine::blur_strip4(int &size)
 		vm--;
 	}
 
-	transfer_pixels(val_p, val_m, src, radius, dst, size);
+	transfer_pixels(val_p, val_m, src, dst, size);
 //	separate_alpha(dst, size);
 	return 0;
 }

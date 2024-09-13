@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,10 +32,8 @@ class BlurWindow;
 #include "thread.h"
 
 
-class BlurVertical;
-class BlurHorizontal;
-class BlurRadius;
-class BlurRadiusText;
+class BlurValue;
+class BlurValueText;
 class BlurA;
 class BlurR;
 class BlurG;
@@ -52,10 +49,12 @@ public:
 	void create_objects();
 
 	BlurMain *client;
-	BlurVertical *vertical;
-	BlurHorizontal *horizontal;
-	BlurRadius *radius;
-	BlurRadiusText *radius_text;
+//	BlurVertical *vertical;
+//	BlurHorizontal *horizontal;
+	BlurValue *h;
+	BlurValueText *h_text;
+	BlurValue *v;
+	BlurValueText *v_text;
 	BlurA *a;
 	BlurR *r;
 	BlurG *g;
@@ -101,23 +100,35 @@ public:
 };
 
 
-class BlurRadius : public BC_IPot
+class BlurValue : public BC_FPot
 {
 public:
-	BlurRadius(BlurMain *client, BlurWindow *gui, int x, int y);
-	~BlurRadius();
+	BlurValue(BlurMain *client, 
+        BlurWindow *gui, 
+        int x, 
+        int y, 
+        float *output);
 	int handle_event();
 	BlurMain *client;
 	BlurWindow *gui;
+    BlurValueText *text;
+    float *output;
 };
 
-class BlurRadiusText : public BC_TextBox
+class BlurValueText : public BC_TextBox
 {
 public:
-	BlurRadiusText(BlurMain *client, BlurWindow *gui, int x, int y, int w);
+	BlurValueText(BlurMain *client, 
+        BlurWindow *gui, 
+        int x, 
+        int y, 
+        int w, 
+        float *output);
 	int handle_event();
 	BlurMain *client;
 	BlurWindow *gui;
+    BlurValue *pot;
+    float *output;
 };
 
 class BlurVertical : public BC_CheckBox

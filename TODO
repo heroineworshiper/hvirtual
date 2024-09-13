@@ -1,13 +1,14 @@
 Igor Vladimirsky requests:
 https://docs.google.com/spreadsheets/d/18eLwHrABP6ROHvPHfJW-Jtr_xB4wOblhwmzFuSFKKYs/edit#gid=0
 
-File format requests:
+File format requests (Readonly):
 https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35klaM/edit?usp=sharing 
 
 
 BIG WISHLIST:
 ----------------------------
-Configurable speeds for playback buttons
+Config window for screencap which specifies 
+    a window, X & Y offset, screen corner, cursor.
 Load & save motion vectors in superstabilizer to allow changes in canvas size
 
 
