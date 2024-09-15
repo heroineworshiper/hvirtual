@@ -1208,12 +1208,15 @@ int FileMOV::read_frame(VFrame *frame)
                     rowspan,
                     w,
                     h);
-// printf("FileMOV::read_frame %d rowspan=%d w=%d h=%d colormodel=%d\n",
+// printf("FileMOV::read_frame %d rowspan=%d w=%d h=%d colormodel=%d y=%p u=%p v=%p\n",
 // __LINE__,
 // rowspan,
 // w,
 // h,
-// colormodel);
+// colormodel,
+// y,
+// u - y,
+// v - u);
             }
         }
         else

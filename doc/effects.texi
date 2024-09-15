@@ -1031,14 +1031,14 @@ Without @b{loop} the text scrolls off and never reappears.
 The speed of the animation is determined by @b{speed}  Set it higher to
 speed up the animation.
 
-@b{Drop shadow} draws a black copy of the text to the bottom right of
+@b{DROP SHADOW} draws a black copy of the text to the bottom right of
 the original text.  Useful when drawing text over changing video to
 keep the border always visible.
 
 In addition to the scrolling, @b{Fade in/Fade out} are a second type of
 animation.  If the fade seconds are 0, no fading is done.
 
-@b{Outline} draws an outline on the characters if it's greater than 0. 
+@b{OUTLINE} draws an outline on the characters if it's greater than 0. 
 Set the outline size by changing the number.  Set the outline color with
 the @b{OUTLINE COLOR} button.  If no outline is visible, make sure the
 alpha in @b{OUTLINE COLOR} is nonzero.  To get pure outline characters,
@@ -1049,8 +1049,15 @@ only practical color.
 
 @b{OUTLINE COLOR} picks the color to draw the text outline in.
 
-@b{Stamp timecode} replaces the text with the current position on the
+@b{STAMP TIMECODE} replaces the text with the current position on the
 timeline in seconds and frames.
+
+@b{USE SUBTITLE FILE} causes it to read the text from a .srt subtitle
+file.  Because subtitles normally don't show long enough, it has a hack
+which causes it to not hide the subtitle until the next one is due.
+
+Because they don't time out, it's best to draw the subtitles below the
+video instead of on top of it.
 
 @b{SECRETS OF THE TITLER}
 @menu

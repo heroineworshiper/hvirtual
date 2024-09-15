@@ -300,6 +300,8 @@ static int decode_wrapper(quicktime_t *file,
 // swap positions to get it to read the right frame
 	int64_t position_temp = vtrack->current_position;
 
+//printf("decode_wrapper %d\n", __LINE__);
+
 // try popping a frame without reading a packet
 	if(!ffmpeg->picture[current_field])
 	{
@@ -463,6 +465,7 @@ static int decode_wrapper(quicktime_t *file,
     }
 
 
+//printf("decode_wrapper %d %p\n", __LINE__, ffmpeg->picture[current_field]->data[0]);
 	if(result >= 0 && ffmpeg->picture[current_field]->data[0])
 	{
 		result = 0;
@@ -482,6 +485,10 @@ static int decode_wrapper(quicktime_t *file,
     // 		case AV_PIX_FMT_YUV422:
     // 			file->src_colormodel = BC_YUV422;
     // 			break;
+
+            case AV_PIX_FMT_YUV444P:
+			    file->src_colormodel = BC_YUV444P;
+                break;
 
 		    case AV_PIX_FMT_YUV422P:
 			    file->src_colormodel = BC_YUV422P;
@@ -519,8 +526,8 @@ static int decode_wrapper(quicktime_t *file,
 // file->src_w,
 // file->src_h,
 // file->src_y,
-// file->src_u,
-// file->src_v,
+// file->src_u - file->src_y,
+// file->src_v - file->src_u,
 // picture->linesize[0],
 // picture->linesize[1],
 // picture->linesize[2]);

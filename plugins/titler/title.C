@@ -51,6 +51,8 @@
 #include <fontconfig/fontconfig.h>
 
 #define FONT_SEARCHPATH "/fonts"
+// hide the subtitles after the end time
+//#define SUBTITLE_ENDS 
 
 REGISTER_PLUGIN(TitleMain)
 
@@ -3495,8 +3497,11 @@ int TitleMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 			if(current_subtitle >= 0 && 
 				current_subtitle < subtitle_db.size() &&
 				subtitle_db.get(current_subtitle)->start_time <= current_time 
-				/* &&
-				subtitle_db.get(current_subtitle)->end_time > current_time */ )
+#ifdef SUBTITLE_ENDS
+				&&
+				subtitle_db.get(current_subtitle)->end_time > current_time
+#endif
+                )
 			{
 				config.text.assign(subtitle_db.get(current_subtitle)->text);
 // Force the bottom descenders to be drawn.

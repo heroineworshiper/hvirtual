@@ -11,6 +11,8 @@
 #define FIELD_OFFSET1 3
 //#define FIELD_OFFSET1 1
 #define MONOCHROME
+#define NORMALIZE
+#define USE_RGB
 
 static unsigned char get_nibble(unsigned char **ptr, int *nibble)
 {
@@ -28,7 +30,7 @@ static unsigned char get_nibble(unsigned char **ptr, int *nibble)
 
 /* Returns 1 if failure */
 /* This is largely from spudec, ffmpeg */
-int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
+int mpeg3_decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 {
 	int i, j, pass;
 	unsigned char *ptr = subtitle->data;
@@ -46,14 +48,14 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 	data_size |= *ptr++;
 
 	unsigned char *data_start = ptr;
-/*
- * printf("decompress_subtitle %d 0x%02x%02x size=%d data_size=%d\n", 
- * __LINE__, 
- * subtitle->data[0], 
- * subtitle->data[1], 
- * subtitle->size,
- * data_size);
- */
+
+// printf("decompress_subtitle %d 0x%02x%02x size=%d data_size=%d\n", 
+// __LINE__, 
+// subtitle->data[0], 
+// subtitle->data[1], 
+// subtitle->size,
+// data_size);
+
 
 //	if(ptr + data_size - 2 > end) return 1;
 
@@ -79,11 +81,14 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 	subtitle->start_time = 1897;
 	subtitle->stop_time = 175;
 
+
 /* Control sequence */
+// from spudec_process_control
 	unsigned char *control_start = 0;
 	unsigned char *next_control_start = ptr;
 	int got_alpha = 0;
-	while(ptr < end && control_start != next_control_start)
+    int done = 0;
+	while(!done && ptr < end && control_start != next_control_start)
 	{
 		control_start = next_control_start;
 
@@ -99,10 +104,11 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 
 		next_control_start = subtitle->data + next;
 
-		int done = 0;
 		while(ptr < end && !done)
 		{
 			int type = *ptr++;
+//printf("decompress_subtitle %d: offset=%d control=%x\n", 
+//__LINE__, (int)(ptr - data_start), type);
 
 			switch(type)
 			{
@@ -150,7 +156,11 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 
 				case 0x05:
 /* Extent of image on screen */
-					if(ptr + 6 > end) return 1;
+					if(ptr + 6 > end)
+                    {
+                        printf("decompress_subtitle %d image size overflow\n", __LINE__);
+                        return 1;
+                    }
 //printf("decompress_subtitle %d\n", __LINE__);
 /*
  * printf("decompress_subtitle 10 %02x %02x %02x %02x %02x %02x\n",
@@ -173,13 +183,14 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 					subtitle->y2++;
 					subtitle->w = subtitle->x2 - subtitle->x1;
 					subtitle->h = subtitle->y2 - subtitle->y1 + 2;
-/*
- * printf("decompress_subtitle 20 x1=%d x2=%d y1=%d y2=%d\n", 
- * subtitle->x1, 
- * subtitle->x2, 
- * subtitle->y1, 
- * subtitle->y2);
- */
+
+printf("decompress_subtitle %d x1=%d x2=%d y1=%d y2=%d\n", 
+__LINE__,
+subtitle->x1, 
+subtitle->x2, 
+subtitle->y1, 
+subtitle->y2);
+
 					CLAMP(subtitle->w, 1, 2048);
 					CLAMP(subtitle->h, 1, 2048);
 					CLAMP(subtitle->x1, 0, 2048);
@@ -200,15 +211,18 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 
 				case 0xff:
 					done = 1;
+//printf("decompress_subtitle %d done=%d\n", __LINE__, done);
 					break;
 
 				default:
-//					printf("unknown type %02x\n", type);
+					printf("decompress_subtitle %d: unknown type 0x%02x\n", 
+                        __LINE__, type);
 					break;
 			}
 		}
 	}
 
+//printf("decompress_subtitle %d\n", __LINE__);
 
 
 /* Allocate image buffer */
@@ -218,6 +232,7 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 	subtitle->image_a = (unsigned char*)calloc(1, subtitle->w * subtitle->h + subtitle->w);
 
 /* Decode image */
+// from spudec_process_data
 	int current_nibble = 0;
 	int x = 0, y = 0, field = 0;
 	ptr = data_start;
@@ -227,11 +242,11 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 	{
 
 // Start new field based on offset, not total lines
+#ifdef USE_INTERLACE
 		if(ptr - data_start >= odd_offset - 4 && 
 			field == 0)
 		{
 // Only decode even field because too many bugs
-#ifdef USE_INTERLACE
 			field = 1;
 #ifndef SWAP_FIELDS
 			y = FIELD_OFFSET1;
@@ -243,10 +258,8 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 				ptr++;
 				current_nibble = 0;
 			}
-#else
-			break;
-#endif
 		}
+#endif // USE_INTERLACE
 
 		unsigned int code = get_nibble(&ptr, &current_nibble);
 		if(code < 0x4 && ptr < end)
@@ -300,6 +313,7 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 				subtitle->image_v[y * subtitle->w + x] = v_color;
 				subtitle->image_a[y * subtitle->w + x] = a_color;
 #ifndef USE_INTERLACE
+// line doubling
 				subtitle->image_y[(y + 1) * subtitle->w + x] = y_color;
 				subtitle->image_u[(y + 1) * subtitle->w + x] = u_color;
 				subtitle->image_v[(y + 1) * subtitle->w + x] = v_color;
@@ -312,6 +326,7 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 		if(x >= subtitle->w)
 		{
 			x = 0;
+// lined doubling
 			y += 2;
 
 /* Byte alignment */
@@ -332,7 +347,7 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 		}
 	}
 
-#if 1
+#ifdef NORMALIZE
 // Normalize image colors
 	float min_h = 360;
 	float max_h = 0;
@@ -360,9 +375,15 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 					unsigned char *a_color = subtitle->image_a + i * subtitle->w + j;
 
 // Convert to RGB
+#ifndef USE_RGB
 					float r = (*y_color + *v_color * V_TO_R);
 					float g = (*y_color + *u_color * U_TO_G + *v_color * V_TO_G);
 					float b = (*y_color + *u_color * U_TO_B);
+#else
+                    float r = *y_color;
+                    float g = *u_color;
+                    float b = *v_color;
+#endif
 
 // Multiply alpha
 /*
@@ -423,7 +444,7 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 					else
 					{
 // Set new color in a 2x2 pixel block
-#ifdef MONOCHROME
+#ifndef USE_RGB
 						if(h > threshold)
 						{
 							*y_color = 0xff;
@@ -436,8 +457,20 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 						*u_color = 0x80;
 						*v_color = 0x80;
 
-#endif
-
+#else // !USE_RGB
+						if(h > threshold)
+						{
+							*y_color = 0xff;
+							*u_color = 0xff;
+							*v_color = 0xff;
+						}
+						else
+						{
+							*y_color = 0;
+							*u_color = 0;
+							*v_color = 0;
+						}
+#endif // USE_RGB
 						*a_color = 0xff;
 					}
 				}
@@ -469,7 +502,7 @@ int decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle)
 //printf("min_h=%f max_h=%f threshold=%f\n", min_h, max_h, threshold);
 		}
 	}
-#endif // 0
+#endif // NORMALIZE
 
 
 
@@ -590,7 +623,7 @@ void mpeg3_decode_subtitle(mpeg3video_t *video)
  * subtitle->done);
  */
 /* Decompress subtitle */
-					if(decompress_subtitle(file, subtitle))
+					if(mpeg3_decompress_subtitle(file, subtitle))
 					{
 /* Remove subtitle if failed */
 						mpeg3_pop_subtitle(strack, i, 1);

@@ -252,6 +252,7 @@ int mpeg3_read_yuvframe(mpeg3_t *file,
 // cache_it - store dropped frames in cache
 int mpeg3video_drop_frames(mpeg3video_t *video, long frames, int cache_it);
 void mpeg3_decode_subtitle(mpeg3video_t *video);
+int mpeg3_decompress_subtitle(mpeg3_t *file, mpeg3_subtitle_t *subtitle);
 
 
 

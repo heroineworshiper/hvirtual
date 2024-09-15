@@ -2121,6 +2121,9 @@ static int ffmpeg_to_cmodel(int pix_fmt)
 		case AV_PIX_FMT_YUV422P:
 			return BC_YUV422P;
 			break;
+		case AV_PIX_FMT_YUV444P:
+			return BC_YUV444P;
+			break;
 		case AV_PIX_FMT_YUV410P:
 			return BC_YUV9P;
 			break;

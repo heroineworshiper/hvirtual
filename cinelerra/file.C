@@ -2183,9 +2183,12 @@ int File::read_frame(VFrame *frame,
 		if(use_cache && cached_frame)
 		{
 			advance_position = 0;
-// printf("File::read_frame %d cached_frame_cmodel=%d\n", 
+// printf("File::read_frame %d cached_frame_cmodel=%d y=%p u=%p v=%p\n", 
 // __LINE__,
-// cached_frame->get_color_model());
+// cached_frame->get_color_model(),
+// cached_frame->get_y(),
+// cached_frame->get_u() - cached_frame->get_y(),
+// cached_frame->get_v() - cached_frame->get_u());
 // Set the destination for the cached frame
             set_read_pointer(cached_frame->get_color_model(), 
                 cached_frame->get_data(), 
@@ -2217,7 +2220,7 @@ int File::read_frame(VFrame *frame,
 		            current_layer,
 		            asset->frame_rate,
 		            1, // use_copy
-		            0);
+		            0); // indexable
 //printf("File::read_frame %d caching %ld\n", 
 //__LINE__, current_frame);
             }
@@ -2349,6 +2352,7 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
 // take the smallest of the encoded & asset frame sizes as the source size
                 int src_w = MIN(read_pointer->get_w(), asset->width);
                 int src_h = MIN(read_pointer->get_h(), asset->height);
+//printf("File::convert_cmodel %d y=%p\n", __LINE__, read_pointer->get_y());
 	            cmodel_transfer(read_frame_dst->get_rows(), 
 		            read_pointer->get_rows(),
 		            read_frame_dst->get_y(),

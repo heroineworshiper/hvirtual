@@ -271,6 +271,7 @@ BC_WindowBase::get_synchronous()->get_window()->get_id());
         case BC_YUV9P:
         case BC_YUV411P:
         case BC_YUV422P:
+        case BC_YUV444P:
         case BC_NV12:
         {
             int bytes = get_data_size();

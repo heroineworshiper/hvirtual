@@ -454,6 +454,15 @@ void VFrame::create_row_pointers()
             }
 			break;
 
+        case BC_YUV444P:
+            if(!this->y && this->data)
+            {
+			    y = this->data;
+			    u = this->data + bytes_per_line * h;
+			    v = this->data + bytes_per_line * h * 2;
+            }
+            break;
+
         case BC_YUV9P:
             if(!this->y && this->data)
             {
@@ -1275,6 +1284,12 @@ int VFrame::copy_from(VFrame *frame)
 			memcpy(get_v(), frame->get_v(), bytes_per_line / 2 * h);
 			break;
 
+        case BC_YUV444P:
+			memcpy(get_y(), frame->get_y(), bytes_per_line * h);
+			memcpy(get_u(), frame->get_u(), bytes_per_line * h);
+			memcpy(get_v(), frame->get_v(), bytes_per_line * h);
+            break;
+
 		case BC_YUV411P:
 //printf("%d %d %p %p %p %p %p %p\n", w, h, get_y(), get_u(), get_v(), frame->get_y(), frame->get_u(), frame->get_v());
 			memcpy(get_y(), frame->get_y(), bytes_per_line * h);
@@ -1301,6 +1316,12 @@ int VFrame::copy_from(VFrame *frame)
 			break;
 
 		default:
+            if(cmodel_is_planar(frame->color_model))
+            {
+                printf("VFrame::copy_from %d: unsupported planar source %d\n",
+                    __LINE__,
+                    frame->color_model);
+            }
 // printf("VFrame::copy_from %d\n", calculate_data_size(w, 
 // 				h, 
 // 				-1, 

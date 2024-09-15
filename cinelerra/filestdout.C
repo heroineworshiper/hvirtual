@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -489,7 +489,7 @@ void FileStdout::fix_command(std::string *dst,
 
 int FileStdout::write_frames(VFrame ***frames, int len)
 {
-
+//PRINT_TRACE
 	int result = 0;
     for(int i = 0; i < asset->layers && !result; i++)
 	{
@@ -508,6 +508,7 @@ int FileStdout::write_frames(VFrame ***frames, int len)
                     file->temp_frame = 0;
                 }
 
+//PRINT_TRACE
                 if(!file->temp_frame)
                 {
                     file->temp_frame = new VFrame();
@@ -522,15 +523,15 @@ int FileStdout::write_frames(VFrame ***frames, int len)
 					    asset->command_cmodel,
 					    -1); // bytes per line
                 }
-// printf("FileStdout::write_frames %d %d %d %p %p %p %p\n", 
+// printf("FileStdout::write_frames %d frame=%p cmodel=%d y=%p u=%p v=%p\n", 
 // __LINE__, 
-// asset->layers, 
-// len,
 // file->temp_frame,
+// asset->command_cmodel,
 // file->temp_frame->get_y(),
 // file->temp_frame->get_u(),
 // file->temp_frame->get_v());
 
+//PRINT_TRACE
                 cmodel_transfer(file->temp_frame->get_rows(),
                     src->get_rows(),
                     file->temp_frame->get_y(),

@@ -894,10 +894,12 @@ static void handle_subtitle(mpeg3_t *file,
 	int i;
 	const int debug = 0;
 
-if(debug) fprintf(stderr, "handle_subtitle %d\n", __LINE__);
+if(debug) fprintf(stderr, "handle_subtitle %d stream_id=0x%x bytes=%d\n", 
+__LINE__, stream_id, bytes);
+
 	if(demuxer->subtitle_size + bytes > demuxer->subtitle_allocated)
 	{
-		printf("handle_subtitle: buffer overflow\n");
+		printf("handle_subtitle %d: buffer overflow\n", __LINE__);
 		demuxer->subtitle_size = 0;
 		bytes = MIN(bytes, demuxer->subtitle_allocated);
 	}
@@ -957,7 +959,8 @@ if(debug) fprintf(stderr, "handle_subtitle %d\n", __LINE__);
 				}
 			}
 
-if(debug) fprintf(stderr, "handle_subtitle %d\n", __LINE__);
+if(debug) fprintf(stderr, "handle_subtitle %d bytes_read=%d size=%d\n", 
+__LINE__, (int)subtitle->bytes_read, (int)subtitle->size);
 			if(subtitle->bytes_read >= subtitle->size)
 			{
 				subtitle->done = 1;
@@ -966,6 +969,7 @@ if(debug) fprintf(stderr, "handle_subtitle %d\n", __LINE__);
 				mpeg3_strack_t *strack = mpeg3_create_strack(file, subtitle->id);
 				mpeg3_append_subtitle(strack, subtitle);
 				demuxer->got_subtitle = 1;
+if(debug) fprintf(stderr, "handle_subtitle %d got subtitle\n", __LINE__);
 				subtitle = 0;
 			}
 if(debug) fprintf(stderr, "handle_subtitle %d\n", __LINE__);
@@ -1137,7 +1141,11 @@ static int get_program_pes_packet(mpeg3_demuxer_t *demuxer, unsigned int header)
  * pes_packet_length,
  * demuxer->data_size);
  */
-
+// printf("get_program_pes_packet %d offset=0x%x stream_id=0x%x next char=0x%x\n",
+// __LINE__,
+// (int)pes_packet_start,
+// demuxer->stream_id,
+// mpeg3io_next_char(title->fs));
 
 
 
@@ -1354,9 +1362,11 @@ static int get_program_pes_packet(mpeg3_demuxer_t *demuxer, unsigned int header)
     		}
     	}
     	else
-		if((demuxer->stream_id == 0xbd || demuxer->stream_id == 0xbf) && 
+		if((demuxer->stream_id == 0xbd || 
+            demuxer->stream_id == 0xbf) && 
 			mpeg3io_next_char(title->fs) != 0xff &&
-			((mpeg3io_next_char(title->fs) & 0xf0) == 0x20))
+			((mpeg3io_next_char(title->fs) & 0xf0) == 0x20 || // DVD
+            (mpeg3io_next_char(title->fs) & 0xf0) == 0x80)) // VOBSUB
 		{
 /* DVD subtitle data */
 			int stream_id = demuxer->stream_id = mpeg3io_read_char(title->fs);
@@ -1365,7 +1375,8 @@ static int get_program_pes_packet(mpeg3_demuxer_t *demuxer, unsigned int header)
 			pes_packet_length -= mpeg3io_tell(title->fs) - pes_packet_start;
 
 			handle_subtitle(file, stream_id, demuxer, pes_packet_length);
-//printf("mpeg3_demux id=0x%02x size=%d total_size=%d\n", stream_id, pes_packet_length, subtitle->size);
+//printf("get_program_pes_packet %d id=0x%02x pes_packet_length=%d\n", 
+//__LINE__, stream_id, (int)pes_packet_length);
 
 		}
 		else
@@ -1823,9 +1834,9 @@ int mpeg3_read_next_packet(mpeg3_demuxer_t *demuxer)
 
 
 
-// printf("mpeg3_read_next_packet %d demuxer->program_byte=%ld demuxer->reverse=%d\n", 
+// printf("mpeg3_read_next_packet %d demuxer->program_byte=%d demuxer->reverse=%d\n", 
 // __LINE__,
-// (long)demuxer->program_byte,
+// (int)demuxer->program_byte,
 // demuxer->reverse);
 
 
@@ -1888,7 +1899,10 @@ int mpeg3_read_next_packet(mpeg3_demuxer_t *demuxer)
 					result = mpeg3_seek_phys(demuxer);
 //printf("mpeg3_read_next_packet %d %llx\n", __LINE__, mpeg3demux_tell_byte(demuxer));
 					if(!result) result = mpeg3demux_read_program(demuxer);
-//printf("mpeg3_read_next_packet %d %llx\n", __LINE__, mpeg3demux_tell_byte(demuxer));
+// printf("mpeg3_read_next_packet %d offset=%x result=%d\n", 
+// __LINE__, 
+// (int)mpeg3demux_tell_byte(demuxer),
+// result);
 				}
 				else
 				if(demuxer->read_all && file->is_audio_stream)
@@ -1931,12 +1945,12 @@ int mpeg3_read_next_packet(mpeg3_demuxer_t *demuxer)
 			(demuxer->do_audio || demuxer->do_video));
 	}
 
-/*
- * printf("mpeg3_read_next_packet %d result=%d data_size=0x%x\n", 
- * __LINE__,
- * result,
- * demuxer->data_size);
- */
+
+// printf("mpeg3_read_next_packet %d result=%d data_size=0x%x\n", 
+// __LINE__,
+// result,
+// demuxer->data_size);
+
 
 	return result;
 }

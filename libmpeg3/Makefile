@@ -142,7 +142,7 @@ DIRS += $(A52DIRS)
 
 
 OUTPUT = $(OBJDIR)/libmpeg3.a
-UTILS = $(OBJDIR)/mpeg3dump $(OBJDIR)/mpeg3peek $(OBJDIR)/mpeg3toc  $(OBJDIR)/mpeg3cat
+UTILS = $(OBJDIR)/mpeg3dump $(OBJDIR)/mpeg3peek $(OBJDIR)/mpeg3toc $(OBJDIR)/mpeg3cat
 
 #$(OBJDIR)/mpeg3split
 
@@ -172,6 +172,9 @@ $(OBJDIR)/mpeg3peek: $(OUTPUT) mpeg3peek.c
 
 $(OBJDIR)/mpeg3toc: $(OUTPUT) mpeg3toc.c
 	$(CC) `cat $(OBJDIR)/c_flags` -o $(OBJDIR)/mpeg3toc mpeg3toc.c $(OUTPUT) $(LIBS)
+
+$(OBJDIR)/mpeg3subs: $(OUTPUT) mpeg3subs.c
+	$(CC) `cat $(OBJDIR)/c_flags` -o $(OBJDIR)/mpeg3subs mpeg3subs.c $(OUTPUT) $(LIBS)
 
 $(OBJDIR)/mpeg3cat: $(OUTPUT) mpeg3cat.c
 	$(CC) `cat $(OBJDIR)/c_flags` -o $(OBJDIR)/mpeg3cat mpeg3cat.c $(OUTPUT) $(LIBS)
