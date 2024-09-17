@@ -1,6 +1,6 @@
 /*
  * Quicktime 4 Linux
- * Copyright (C) 1997-2023 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@ typedef struct
 	int fix_bitrate;
     int bitrate;
     int quantizer;
+    int encode_cmodel;
 	int encode_initialized;
 
 // Temporary storage for color conversions
@@ -448,14 +449,17 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
         codec->pic_in->planes[1] = codec->temp_frame + width * height;
         codec->pic_in->planes[2] = codec->temp_frame + width * height + width * height / 4;
 
+        int encoder_cmodel = codec->encode_cmodel;
 		cmodel_transfer(0, /* Leave NULL if non existent */
 			row_pointers,
 			codec->pic_in->planes[0], /* Leave NULL if non existent */
 			codec->pic_in->planes[1],
 			codec->pic_in->planes[2],
+            cmodel_components(encoder_cmodel) == 4 ? codec->pic_in->planes[3] : 0,
 			row_pointers[0], /* Leave NULL if non existent */
 			row_pointers[1],
 			row_pointers[2],
+            cmodel_components(file->color_model) == 4 ? row_pointers[3] : 0,
 			0,        /* Dimensions to capture from input frame */
 			0, 
 			width, 
@@ -465,7 +469,7 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 			width, 
 			height,
 			file->color_model, 
-			BC_YUV420P,
+			encoder_cmodel,
 			0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
 			width,       /* For planar use the luma rowspan */
 			width);
@@ -524,7 +528,7 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 
 // translate fourcc to ffmpeg
     int codec_id = AV_CODEC_ID_H265;
-    if(quicktime_match_32(codec_base->fourcc, QUICKTIME_VP09))
+    if(quicktime_match_32((char*)codec_base->fourcc, (char*)QUICKTIME_VP09))
         codec_id = AV_CODEC_ID_VP9;
 
 	if(!codec->decoder) codec->decoder = quicktime_new_ffmpeg(
@@ -584,6 +588,11 @@ static int set_parameter(quicktime_t *file,
 			codec->quantizer = *(int*)value;
 		}
 		else
+		if(!strcasecmp(key, "h265_cmodel"))
+		{
+			codec->encode_cmodel = *(int*)value;
+		}
+		else
 		if(!strcasecmp(key, "h265_fix_bitrate"))
 		{
 			codec->fix_bitrate = *(int*)value;
@@ -612,7 +621,7 @@ static quicktime_h265_codec_t* init_common(quicktime_video_map_t *vtrack,
 
 
 	quicktime_h265_codec_t *codec = (quicktime_h265_codec_t*)codec_base->priv;
-
+    codec->encode_cmodel = BC_YUV420P;
 	return codec;
 }
 

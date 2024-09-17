@@ -658,9 +658,11 @@ int BC_Bitmap::read_frame(VFrame *frame,
 				get_y_plane(),
 				get_u_plane(),
 				get_v_plane(),
+                0, // out_a_plane
 				frame->get_y(),
 				frame->get_u(),
 				frame->get_v(),
+                frame->get_a(), // in_a_plane
 				in_x, 
 				in_y, 
 				in_w, 

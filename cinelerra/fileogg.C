@@ -1547,9 +1547,11 @@ int FileOGG::read_frame(VFrame *frame)
 			frame->get_y(),
 			frame->get_u(),
 			frame->get_v(),
+            0, // out_a_plane
 			temp_frame->get_y(),
 			temp_frame->get_u(),
 			temp_frame->get_v(),
+            0, // in_a_plane
 			0,
 			0,
 			yuv.y_width,
@@ -2016,9 +2018,11 @@ int FileOGG::write_frames_theora(VFrame ***frames, int len, int e_o_s)
 				temp_frame->get_y(),
 				temp_frame->get_u(),
 				temp_frame->get_v(),
+                0, // out_a_plane
 				frame->get_y(),
 				frame->get_u(),
 				frame->get_v(),
+                0, // in_a_plane
 				0,
 				0,
 				frame->get_w(),

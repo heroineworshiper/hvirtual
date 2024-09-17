@@ -85,8 +85,10 @@ static int supported_cmodels[] =
 {
 // ffmpeg requires planar 8 bit
     BC_YUV420P,
+    BC_YUVA420P,
     BC_YUV422P,
     BC_YUV444P,
+    BC_YUVA444P,
     BC_RGB888,
     BC_RGBA8888,
     BC_YUV888,
@@ -537,9 +539,11 @@ int FileStdout::write_frames(VFrame ***frames, int len)
                     file->temp_frame->get_y(),
                     file->temp_frame->get_u(),
                     file->temp_frame->get_v(),
+                    file->temp_frame->get_a(),
                     src->get_y(),
                     src->get_u(),
                     src->get_v(),
+                    src->get_a(),
                     0,
                     0,
                     asset->width,

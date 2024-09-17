@@ -316,16 +316,11 @@ int VFrame::clear_objects(int do_opengl)
 	}
 
 // Delete row pointers
-	switch(color_model)
+    if(!cmodel_is_planar(color_model) &&
+        color_model != BC_COMPRESSED)
 	{
-		case BC_COMPRESSED:
-		case BC_YUV420P:
-			break;
-
-		default:
-			delete [] rows;
-			rows = 0;
-			break;
+		delete [] rows;
+		rows = 0;
 	}
 
 
@@ -402,52 +397,39 @@ void VFrame::create_row_pointers()
             {
 			    y = this->data;
 			    u = this->data + w * 2 * h;
-			    v = this->data + w * 2 * h + (w / 2) * 2 * (h / 2) + pad;
+			    v = this->data + w * 2 * h + 
+                    (w / 2) * 2 * (h / 2) + pad;
             }
 			break;
         }
-    
+
 		case BC_YUV420P:
+		case BC_YUVA420P:
 		case BC_YUV411P:
         {
             int pad = 0;
 // ffmpeg expects 1 more row for odd numbered heights
             if((h % 2) > 0)
                 pad = w / 2;
-// 			if(!this->v_offset)
-// 			{
-// 				this->y_offset = 0;
-// 				this->u_offset = w * h;
-// 				this->v_offset = w * h + (w / 2) * (h / 2) + pad;
-// 			}
 
 // only create plane pointers if none are provided
             if(!this->y && this->data)
             {
-// 			    y = this->data + this->y_offset;
-// 			    u = this->data + this->u_offset;
-// 			    v = this->data + this->v_offset;
 			    y = this->data;
 			    u = this->data + bytes_per_line * h;
-			    v = this->data + bytes_per_line * h + (bytes_per_line / 2) * (h / 2) + pad;
+			    v = this->data + bytes_per_line * h + 
+                    (bytes_per_line / 2) * (h / 2) + pad;
+                a = this->data + bytes_per_line * h + 
+                    (bytes_per_line / 2) * (h / 2) + pad +
+                    (bytes_per_line / 2) * (h / 2) + pad;
             }
 			break;
         }
 
 		case BC_YUV422P:
-// 			if(!this->v_offset)
-// 			{
-// 				this->y_offset = 0;
-// 				this->u_offset = w * h;
-// 				this->v_offset = w * h + (w / 2) * h;
-// 			}
-
 // only create plane pointers if none are provided
             if(!this->y && this->data)
             {
-// 			    y = this->data + this->y_offset;
-// 			    u = this->data + this->u_offset;
-// 			    v = this->data + this->v_offset;
 			    y = this->data;
 			    u = this->data + bytes_per_line * h;
 			    v = this->data + bytes_per_line * h + (bytes_per_line / 2) * h;
@@ -460,6 +442,16 @@ void VFrame::create_row_pointers()
 			    y = this->data;
 			    u = this->data + bytes_per_line * h;
 			    v = this->data + bytes_per_line * h * 2;
+            }
+            break;
+
+        case BC_YUVA444P:
+            if(!this->y && this->data)
+            {
+			    y = this->data;
+			    u = this->data + bytes_per_line * h;
+			    v = this->data + bytes_per_line * h * 2;
+                a = this->data + bytes_per_line * h * 3;
             }
             break;
 
@@ -1251,7 +1243,9 @@ int VFrame::copy_from(VFrame *frame)
     if(cmodel_is_planar(frame->color_model) &&
         (!get_y() || !frame->get_y() ||
          !get_u() || !frame->get_u() ||
-         !get_v() || !frame->get_v()))
+         !get_v() || !frame->get_v() ||
+         (cmodel_components(frame->color_model) == 4 && 
+            (!get_a() || !frame->get_a()))))
     {
         printf("VFrame::copy_from %d: planes not defined.\n", __LINE__);
 		return 1;
@@ -1277,6 +1271,14 @@ int VFrame::copy_from(VFrame *frame)
 			memcpy(get_v(), frame->get_v(), bytes_per_line / 2 * h / 2);
 			break;
 
+		case BC_YUVA420P:
+//printf("%d %d %p %p %p %p %p %p\n", w, h, get_y(), get_u(), get_v(), frame->get_y(), frame->get_u(), frame->get_v());
+			memcpy(get_y(), frame->get_y(), bytes_per_line * h);
+			memcpy(get_u(), frame->get_u(), bytes_per_line / 2 * h / 2);
+			memcpy(get_v(), frame->get_v(), bytes_per_line / 2 * h / 2);
+			memcpy(get_a(), frame->get_a(), bytes_per_line * h);
+			break;
+
 		case BC_YUV422P:
 //printf("%d %d %p %p %p %p %p %p\n", w, h, get_y(), get_u(), get_v(), frame->get_y(), frame->get_u(), frame->get_v());
 			memcpy(get_y(), frame->get_y(), bytes_per_line * h);
@@ -1288,6 +1290,13 @@ int VFrame::copy_from(VFrame *frame)
 			memcpy(get_y(), frame->get_y(), bytes_per_line * h);
 			memcpy(get_u(), frame->get_u(), bytes_per_line * h);
 			memcpy(get_v(), frame->get_v(), bytes_per_line * h);
+            break;
+
+        case BC_YUVA444P:
+			memcpy(get_y(), frame->get_y(), bytes_per_line * h);
+			memcpy(get_u(), frame->get_u(), bytes_per_line * h);
+			memcpy(get_v(), frame->get_v(), bytes_per_line * h);
+			memcpy(get_a(), frame->get_a(), bytes_per_line * h);
             break;
 
 		case BC_YUV411P:
@@ -1455,6 +1464,11 @@ unsigned char* VFrame::get_u()
 unsigned char* VFrame::get_v()
 {
 	return v;
+}
+
+unsigned char* VFrame::get_a()
+{
+	return a;
 }
 
 void VFrame::set_number(long number)

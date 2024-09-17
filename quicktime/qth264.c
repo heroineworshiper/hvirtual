@@ -1,6 +1,6 @@
 /*
  * Quicktime 4 Linux
- * Copyright (C) 1997-2023 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ typedef struct
 	x264_picture_t *pic[FIELDS];
 	x264_param_t param;
 	int fix_bitrate;
+    int encode_cmodel;
 
 	int encode_initialized[FIELDS];
 
@@ -476,14 +477,17 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 	else
 	{
 //printf("encode 2 %p %p %p\n", codec->pic[current_field]->img.plane[0], codec->pic[current_field]->img.plane[1], codec->pic[current_field]->img.plane[2]);
-		cmodel_transfer(0, /* Leave NULL if non existent */
+		int encoder_cmodel = codec->encode_cmodel;
+        cmodel_transfer(0, /* Leave NULL if non existent */
 			row_pointers,
 			codec->pic[current_field]->img.plane[0], /* Leave NULL if non existent */
 			codec->pic[current_field]->img.plane[1],
 			codec->pic[current_field]->img.plane[2],
+            cmodel_components(encoder_cmodel) == 4 ? codec->pic[current_field]->img.plane[3] : 0,
 			row_pointers[0], /* Leave NULL if non existent */
 			row_pointers[1],
 			row_pointers[2],
+            cmodel_components(file->color_model) == 4 ? row_pointers[3] : 0,
 			0,        /* Dimensions to capture from input frame */
 			0, 
 			width, 
@@ -493,7 +497,7 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 			width, 
 			height,
 			file->color_model, 
-			BC_YUV420P,
+			encoder_cmodel,
 			0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
 			width,       /* For planar use the luma rowspan */
 			codec->pic[current_field]->img.i_stride[0]);
@@ -626,6 +630,11 @@ static int set_parameter(quicktime_t *file,
 //printf("set_parameter %d h264_quantizer=%d\n", __LINE__, *(int*)value);
 		}
 		else
+		if(!strcasecmp(key, "h264_cmodel"))
+		{
+			codec->encode_cmodel = *(int*)value;
+		}
+		else
 		if(!strcasecmp(key, "h264_fix_bitrate"))
 		{
 			codec->fix_bitrate = *(int*)value;
@@ -658,7 +667,7 @@ static quicktime_h264_codec_t* init_common(quicktime_video_map_t *vtrack,
 	codec = (quicktime_h264_codec_t*)codec_base->priv;
 //	x264_param_default(&codec->param);
 	x264_param_default_preset(&codec->param, "medium", NULL);
-
+    codec->encode_cmodel = BC_YUV420P;
 	return codec;
 }
 

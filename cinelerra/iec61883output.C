@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -391,9 +390,11 @@ void IEC61883Output::write_frame(VFrame *input)
 				temp_frame2->get_y(), /* Leave NULL if non existent */
 				temp_frame2->get_u(),
 				temp_frame2->get_v(),
+				temp_frame2->get_a(),
 				input->get_y(), /* Leave NULL if non existent */
 				input->get_u(),
 				input->get_v(),
+				input->get_a(),
 				0,        /* Dimensions to capture from input frame */
 				0, 
 				MIN(temp_frame2->get_w(), input->get_w()),

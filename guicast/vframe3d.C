@@ -153,7 +153,8 @@ BC_WindowBase::get_synchronous()->get_window()->get_id());
 	{
 		case BC_RGB888:
 		case BC_YUV888:
-            if((get_w() % 4))
+// handle mismatched rowspan here instead of the shader
+            if((get_w() % 4) || bytes_per_line != get_w() * 3)
             {
                 for(int i = 0; i < get_h(); i++)
                 {
@@ -184,16 +185,35 @@ BC_WindowBase::get_synchronous()->get_window()->get_id());
 
 		case BC_RGBA8888:
 		case BC_YUVA8888:
-			glTexSubImage2D(GL_TEXTURE_2D,
-				0,
-				0,
-				0,
-				get_w(),
-				get_h(),
-				GL_RGBA,
-				GL_UNSIGNED_BYTE,
-				get_rows()[0]);
-			break;
+// handle mismatched rowspan here instead of the shader
+            if((get_w() % 4) || bytes_per_line != get_w() * 4)
+            {
+                for(int i = 0; i < get_h(); i++)
+                {
+			        glTexSubImage2D(GL_TEXTURE_2D,
+				        0,
+				        0,
+				        i,
+				        get_w(),
+				        1,
+				        GL_RGBA,
+				        GL_UNSIGNED_BYTE,
+				        get_rows()[i]);
+                }
+            }
+            else
+			{
+                glTexSubImage2D(GL_TEXTURE_2D,
+				    0,
+				    0,
+				    0,
+				    get_w(),
+				    get_h(),
+				    GL_RGBA,
+				    GL_UNSIGNED_BYTE,
+				    get_rows()[0]);
+			}
+            break;
 
 		case BC_RGB_FLOAT:
 		case BC_YUV_FLOAT:
@@ -222,7 +242,7 @@ BC_WindowBase::get_synchronous()->get_window()->get_id());
 
 		case BC_A8:
 //printf("VFrame::to_texture %d\n", __LINE__);
-            if((get_w() % 4))
+            if((get_w() % 4) || bytes_per_line != get_w())
             {
                 for(int i = 0; i < get_h(); i++)
                 {
@@ -564,13 +584,27 @@ static int print_error(char *source, unsigned int object, int is_program)
 {
 #ifdef HAVE_GL
     char string[BCTEXTLEN];
+    string[0] = 0;
 	int len = 0;
     if(is_program)
 		glGetProgramInfoLog(object, BCTEXTLEN, &len, string);
 	else
 		glGetShaderInfoLog(object, BCTEXTLEN, &len, string);
-	if(len > 0) printf("VFrame::print_error:\n%s\n%s\n", source, string);
-	if(len > 0) return 1;
+
+	if(len > 0)
+    {
+        printf("VFrame::print_error:\n");
+        int line = 1;
+        printf("%d: ", line++);
+        for(int i = 0; i < strlen(source); i++)
+        {
+            printf("%c", source[i]);
+            if(source[i] == '\n')
+                printf("%d: ", line++);
+        }
+        printf("\n%s\n", string);
+	    return 1;
+    }
 #endif
 	return 0;
 }

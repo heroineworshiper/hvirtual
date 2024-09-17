@@ -383,9 +383,11 @@ void Previewer::write_frame(VFrame *frame)
 	        output_frame->get_y(),
 	        output_frame->get_u(),
 	        output_frame->get_v(),
+            output_frame->get_a(), // out_a_plane
 	        frame->get_y(),
 	        frame->get_u(),
 	        frame->get_v(),
+            frame->get_a(), // in_a_plane
             0,        /* Dimensions to capture from input frame */
 	        0, 
 	        frame->get_w(), 

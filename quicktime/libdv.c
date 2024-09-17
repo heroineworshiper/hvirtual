@@ -154,11 +154,13 @@ int dv_read_video(dv_t *dv,
 			output_rows[0],
 			output_rows[1],
 			output_rows[2],
+            0, // out_a_plane
 			0,
 			0,
 			0,
-			0, 
-			0, 
+            0, // in_a_plane
+			0, // in_x
+			0, // in_y
 			DV_WIDTH, 
 			dv->decoder->height,
 			0, 

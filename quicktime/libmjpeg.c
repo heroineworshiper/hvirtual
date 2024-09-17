@@ -1086,9 +1086,11 @@ int mjpeg_compress(mjpeg_t *mjpeg,
 			mjpeg->temp_rows[0][0],
 			mjpeg->temp_rows[1][0],
 			mjpeg->temp_rows[2][0],
+            0, // out_a_plane
 			y_plane,
 			u_plane,
 			v_plane,
+            0, // in_a_plane
 			0, 
 			0, 
 			mjpeg->output_w, 
@@ -1257,9 +1259,11 @@ int mjpeg_decompress(mjpeg_t *mjpeg,
 			y_plane,
 			u_plane,
 			v_plane,
+            0, // out_a_plane
 			y_in,
 			u_in,
 			v_in,
+            0, // in_a_plane
 			0, 
 			0, 
 			mjpeg->output_w, 

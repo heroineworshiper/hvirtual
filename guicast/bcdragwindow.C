@@ -195,12 +195,14 @@ BC_Pixmap *BC_DragWindow::prepare_frame(VFrame *frame, BC_WindowBase *parent_win
 
 		cmodel_transfer(temp_frame->get_rows(), 
 			frame->get_rows(),
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
+	        0, // out_y_plane, /* Leave NULL if non existent */
+	        0, // out_u_plane,
+	        0, // out_v_plane,
+	        0, // out_a_plane,
+	        0, // in_y_plane, /* Leave NULL if non existent */
+	        0, // in_u_plane,
+	        0, // in_v_plane,
+	        0, // in_a_plane,
 			0, 
 			0, 
 			frame->get_w(), 

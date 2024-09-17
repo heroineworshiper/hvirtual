@@ -192,6 +192,25 @@
     } \
     register_cmodel_function(in, out, 0, function##_);
 
+#define SCALE_A420P(in, out, function) \
+    void function##_(const cmodel_args_t *args) \
+    { \
+        ARGS_TO_LOCALS \
+        if(scale) \
+        { \
+            YUV420P_OUT_HEAD \
+            function(output_y, output_u, output_v, output_a, input_row + column_table[j] * in_pixelsize, j); \
+            DEFAULT_TAIL \
+        } \
+        else \
+        { \
+            YUV420P_OUT_HEAD \
+            function(output_y, output_u, output_v, output_a, input_row + j * in_pixelsize, j); \
+            DEFAULT_TAIL \
+        } \
+    } \
+    register_cmodel_function(in, out, 0, function##_);
+
 #define SCALE_422P(in, out, function) \
     void function##__(const cmodel_args_t *args) \
     { \
@@ -225,6 +244,25 @@
         { \
             YUV444P_OUT_HEAD \
             function(output_y, output_u, output_v, input_row + j * in_pixelsize, j); \
+            DEFAULT_TAIL \
+        } \
+    } \
+    register_cmodel_function(in, out, 0, function##_);
+
+#define SCALE_A444P(in, out, function) \
+    void function##_(const cmodel_args_t *args) \
+    { \
+        ARGS_TO_LOCALS \
+        if(scale) \
+        { \
+            YUV444P_OUT_HEAD \
+            function(output_y, output_u, output_v, output_a, input_row + column_table[j] * in_pixelsize, j); \
+            DEFAULT_TAIL \
+        } \
+        else \
+        { \
+            YUV444P_OUT_HEAD \
+            function(output_y, output_u, output_v, output_a, input_row + j * in_pixelsize, j); \
             DEFAULT_TAIL \
         } \
     } \
@@ -445,7 +483,7 @@ static inline void RGB888_to_YUVA8888(unsigned char *(*output), unsigned char *i
 }
 
 
-static inline void RGB888_to_YUV420P_YUV422P(unsigned char *output_y, 
+static inline void RGB888_to_YUV420P_422P(unsigned char *output_y, 
 	unsigned char *output_u, 
 	unsigned char *output_v, 
 	unsigned char *input,
@@ -460,7 +498,24 @@ static inline void RGB888_to_YUV420P_YUV422P(unsigned char *output_y,
 	output_v[output_column / 2] = v;
 }
 
-static inline void BGR8888_to_YUV420P_YUV422P(unsigned char *output_y, 
+static inline void RGB888_to_YUVA420P_422P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	unsigned char *input,
+	int output_column)
+{
+	int y, u, v;
+
+	RGB_TO_YUV(y, u, v, input[0], input[1], input[2]);
+
+	output_y[output_column] = y;
+	output_u[output_column / 2] = u;
+	output_v[output_column / 2] = v;
+	output_a[output_column] = 0xff;
+}
+
+static inline void BGR8888_to_YUV420P_422P(unsigned char *output_y, 
 	unsigned char *output_u, 
 	unsigned char *output_v, 
 	unsigned char *input,
@@ -488,6 +543,23 @@ static inline void RGB888_to_YUV444P(unsigned char *output_y,
 	output_y[output_column] = y;
 	output_u[output_column] = u;
 	output_v[output_column] = v;
+}
+
+static inline void RGB888_to_YUVA444P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	unsigned char *input,
+	int output_column)
+{
+	int y, u, v;
+
+	RGB_TO_YUV(y, u, v, input[0], input[1], input[2]);
+
+	output_y[output_column] = y;
+	output_u[output_column] = u;
+	output_v[output_column] = v;
+    output_a[output_column] = 0xff;
 }
 
 static inline void RGB888_to_YUV422(unsigned char *(*output), 
@@ -811,7 +883,7 @@ static inline void RGBA8888_to_UYVA8888(unsigned char *(*output), unsigned char 
 	*(*output)++ = input[3];
 }
 
-static inline void RGBA8888_to_YUV420P_YUV422P(unsigned char *output_y, 
+static inline void RGBA8888_to_YUV420P_422P(unsigned char *output_y, 
 	unsigned char *output_u, 
 	unsigned char *output_v, 
 	unsigned char *input,
@@ -829,6 +901,28 @@ static inline void RGBA8888_to_YUV420P_YUV422P(unsigned char *output_y,
 	output_y[output_column] = y;
 	output_u[output_column / 2] = u;
 	output_v[output_column / 2] = v;
+}
+
+static inline void RGBA8888_to_YUVA420P_422P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	unsigned char *input,
+	int output_column)
+{
+	int y, u, v, a, r, g, b;
+	
+	r = input[0];
+	g = input[1];
+	b = input[2];
+	a = input[3];
+
+	RGB_TO_YUV(y, u, v, r, g, b);
+
+	output_y[output_column] = y;
+	output_u[output_column / 2] = u;
+	output_v[output_column / 2] = v;
+	output_a[output_column] = a;
 }
 
 static inline void RGBA8888_to_YUV444P(unsigned char *output_y, 
@@ -849,6 +943,28 @@ static inline void RGBA8888_to_YUV444P(unsigned char *output_y,
 	output_y[output_column] = y;
 	output_u[output_column] = u;
 	output_v[output_column] = v;
+}
+
+static inline void RGBA8888_to_YUVA444P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	unsigned char *input,
+	int output_column)
+{
+	int y, u, v, a, r, g, b;
+	
+	r = input[0];
+	g = input[1];
+	b = input[2];
+	a = input[3];
+
+	RGB_TO_YUV(y, u, v, r, g, b);
+
+	output_y[output_column] = y;
+	output_u[output_column] = u;
+	output_v[output_column] = v;
+	output_a[output_column] = a;
 }
 
 static inline void RGBA8888_to_YUV422(unsigned char *(*output), 
@@ -1064,7 +1180,7 @@ static inline void YUV888_to_YUV101010(unsigned char *(*output), unsigned char *
 	WRITE_YUV101010(y_i, u_i, v_i);
 }
 
-static inline void YUV888_to_YUV420P_YUV422P(unsigned char *output_y, 
+static inline void YUV888_to_YUV420P_422P(unsigned char *output_y, 
 	unsigned char *output_u, 
 	unsigned char *output_v, 
 	unsigned char *input,
@@ -1073,6 +1189,19 @@ static inline void YUV888_to_YUV420P_YUV422P(unsigned char *output_y,
 	output_y[output_column] = input[0];
 	output_u[output_column / 2] = input[1];
 	output_v[output_column / 2] = input[2];
+}
+
+static inline void YUV888_to_YUVA420P_422P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	unsigned char *input,
+	int output_column)
+{
+	output_y[output_column] = input[0];
+	output_u[output_column / 2] = input[1];
+	output_v[output_column / 2] = input[2];
+	output_a[output_column] = input[3];
 }
 
 
@@ -1085,6 +1214,19 @@ static inline void YUV888_to_YUV444P(unsigned char *output_y,
 	output_y[output_column] = input[0];
 	output_u[output_column] = input[1];
 	output_v[output_column] = input[2];
+}
+
+static inline void YUV888_to_YUVA444P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	unsigned char *input,
+	int output_column)
+{
+	output_y[output_column] = input[0];
+	output_u[output_column] = input[1];
+	output_v[output_column] = input[2];
+	output_a[output_column] = input[3];
 }
 
 static inline void YUV888_to_YUV888(unsigned char *(*output), unsigned char *input)
@@ -1392,7 +1534,7 @@ static inline void YUVA8888_to_YUV101010(unsigned char *(*output), unsigned char
 }
 
 
-static inline void YUVA8888_to_YUV420P_YUV422P(unsigned char *output_y, 
+static inline void YUVA8888_to_YUV420P_422P(unsigned char *output_y, 
 	unsigned char *output_u, 
 	unsigned char *output_v, 
 	unsigned char *input,
@@ -1406,6 +1548,19 @@ static inline void YUVA8888_to_YUV420P_YUV422P(unsigned char *output_y,
 	output_v[output_column / 2] = ((input[2] * opacity + 0x80 * transparency) >> 8) + 1;
 }
 
+static inline void YUVA8888_to_YUVA420P_422P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	unsigned char *input,
+	int output_column)
+{
+	output_y[output_column] =     input[0];
+	output_u[output_column / 2] = input[1];
+	output_v[output_column / 2] = input[2];
+	output_a[output_column] =     input[3];
+}
+
 static inline void YUVA8888_to_YUV444P(unsigned char *output_y, 
 	unsigned char *output_u, 
 	unsigned char *output_v, 
@@ -1415,9 +1570,22 @@ static inline void YUVA8888_to_YUV444P(unsigned char *output_y,
 	int opacity = input[3];
 	int transparency = 0xff - opacity;
 
-	output_y[output_column] =     ((input[0] * opacity) >> 8) + 1;
+	output_y[output_column] = ((input[0] * opacity) >> 8) + 1;
 	output_u[output_column] = ((input[1] * opacity + 0x80 * transparency) >> 8) + 1;
 	output_v[output_column] = ((input[2] * opacity + 0x80 * transparency) >> 8) + 1;
+}
+
+static inline void YUVA8888_to_YUVA444P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	unsigned char *input,
+	int output_column)
+{
+	output_y[output_column] = input[0];
+	output_u[output_column] = input[1];
+	output_v[output_column] = input[2];
+	output_a[output_column] = input[3];
 }
 
 static inline void YUVA8888_to_YUV422(unsigned char *(*output), 
@@ -2420,9 +2588,11 @@ void cmodel_init_default()
     SCALE_DEFAULT(BC_RGB888, BC_YUVA8888, RGB888_to_YUVA8888)
     SCALE_DEFAULT(BC_RGB888, BC_YUV101010, RGB888_to_YUV101010)
     SCALE_422_OUT(BC_RGB888, BC_YUV422, RGB888_to_YUV422)
-    SCALE_420P(BC_RGB888, BC_YUV420P, RGB888_to_YUV420P_YUV422P)
-    SCALE_422P(BC_RGB888, BC_YUV422P, RGB888_to_YUV420P_YUV422P)
+    SCALE_420P(BC_RGB888, BC_YUV420P, RGB888_to_YUV420P_422P)
+    SCALE_A420P(BC_RGB888, BC_YUVA420P, RGB888_to_YUVA420P_422P)
+    SCALE_422P(BC_RGB888, BC_YUV422P, RGB888_to_YUV420P_422P)
     SCALE_444P(BC_RGB888, BC_YUV444P, RGB888_to_YUV444P)
+    SCALE_A444P(BC_RGB888, BC_YUVA444P, RGB888_to_YUVA444P)
 
 
     SCALE_TRANSPARENCY(BC_RGBA8888, BC_TRANSPARENCY, RGBA8888_to_TRANSPARENCY)
@@ -2446,9 +2616,11 @@ void cmodel_init_default()
     SCALE_DEFAULT(BC_RGBA8888, BC_YUVA8888, RGBA8888_to_YUVA8888)
     SCALE_DEFAULT(BC_RGBA8888, BC_YUV101010, RGBA8888_to_YUV101010)
     SCALE_422_OUT(BC_RGBA8888, BC_YUV422, RGBA8888_to_YUV422)
-    SCALE_420P(BC_RGBA8888, BC_YUV420P, RGBA8888_to_YUV420P_YUV422P)
-    SCALE_422P(BC_RGBA8888, BC_YUV422P, RGBA8888_to_YUV420P_YUV422P)
+    SCALE_420P(BC_RGBA8888, BC_YUV420P, RGBA8888_to_YUV420P_422P)
+    SCALE_A420P(BC_RGBA8888, BC_YUVA420P, RGBA8888_to_YUVA420P_422P)
+    SCALE_422P(BC_RGBA8888, BC_YUV422P, RGBA8888_to_YUV420P_422P)
     SCALE_444P(BC_RGBA8888, BC_YUV444P, RGBA8888_to_YUV444P)
+    SCALE_A444P(BC_RGBA8888, BC_YUVA444P, RGBA8888_to_YUVA444P)
 
 
     SCALE_DEFAULT(BC_YUV888, BC_RGB8, YUV888_to_RGB8)
@@ -2467,9 +2639,11 @@ void cmodel_init_default()
     SCALE_DEFAULT(BC_YUV888, BC_VYU888, YUV888_to_VYU888)
     SCALE_DEFAULT(BC_YUV888, BC_UYVA8888, YUV888_to_UYVA8888)
     SCALE_422_OUT(BC_YUV888, BC_YUV422, YUV888_to_YUV422)
-    SCALE_420P(BC_YUV888, BC_YUV420P, YUV888_to_YUV420P_YUV422P)
-    SCALE_422P(BC_YUV888, BC_YUV422P, YUV888_to_YUV420P_YUV422P)
+    SCALE_420P(BC_YUV888, BC_YUV420P, YUV888_to_YUV420P_422P)
+    SCALE_A420P(BC_YUV888, BC_YUVA420P, YUV888_to_YUVA420P_422P)
+    SCALE_422P(BC_YUV888, BC_YUV422P, YUV888_to_YUV420P_422P)
     SCALE_444P(BC_YUV888, BC_YUV444P, YUV888_to_YUV444P)
+    SCALE_A444P(BC_YUV888, BC_YUVA444P, YUV888_to_YUVA444P)
 
     SCALE_DEFAULT(BC_YUVA8888, BC_RGB8, YUVA8888_to_RGB8)
     SCALE_DEFAULT(BC_YUVA8888, BC_BGR565, YUVA8888_to_BGR565)
@@ -2487,14 +2661,16 @@ void cmodel_init_default()
     SCALE_DEFAULT(BC_YUVA8888, BC_UYVA8888, YUVA8888_to_UYVA8888)
     SCALE_DEFAULT(BC_YUVA8888, BC_YUV101010, YUVA8888_to_YUV101010)
     SCALE_422_OUT(BC_YUVA8888, BC_YUV422, YUVA8888_to_YUV422)
-    SCALE_420P(BC_YUVA8888, BC_YUV420P, YUVA8888_to_YUV420P_YUV422P)
-    SCALE_422P(BC_YUVA8888, BC_YUV422P, YUVA8888_to_YUV420P_YUV422P)
+    SCALE_420P(BC_YUVA8888, BC_YUV420P, YUVA8888_to_YUV420P_422P)
+    SCALE_A420P(BC_YUVA8888, BC_YUVA420P, YUVA8888_to_YUVA420P_422P)
+    SCALE_422P(BC_YUVA8888, BC_YUV422P, YUVA8888_to_YUV420P_422P)
     SCALE_444P(BC_YUVA8888, BC_YUV444P, YUVA8888_to_YUV444P)
+    SCALE_A444P(BC_YUVA8888, BC_YUVA444P, YUVA8888_to_YUVA444P)
 
 // screencap formats
     SCALE_DEFAULT(BC_BGR8888, BC_RGB888, BGR8888_to_RGB888)
     SCALE_DEFAULT(BC_BGR8888, BC_BGR8888, BGR8888_to_BGR8888)
-    SCALE_420P(BC_BGR8888, BC_YUV420P, BGR8888_to_YUV420P_YUV422P)
+    SCALE_420P(BC_BGR8888, BC_YUV420P, BGR8888_to_YUV420P_422P)
     SCALE_DEFAULT(BC_BGR888, BC_RGB888, BGR888_to_RGB888)
 
 

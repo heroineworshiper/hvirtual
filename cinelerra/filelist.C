@@ -420,9 +420,11 @@ int FileList::read_frame(VFrame *frame)
 				frame->get_y(), /* Leave NULL if non existent */
 				frame->get_u(),
 				frame->get_v(),
+				frame->get_a(),
 				temp->get_y(), /* Leave NULL if non existent */
 				temp->get_u(),
 				temp->get_v(),
+				temp->get_a(),
 				0,        /* Dimensions to capture from input frame */
 				0, 
 				asset->width, 

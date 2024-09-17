@@ -530,11 +530,13 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 			0,
 			0,
 			0,
+            0, // out_a_plane
 			0,
 			0,
 			0,
-			0,
-			0, 
+            0, // in_a_plane
+			0, // in_x
+			0, // in_y
 			temp_picon->get_w(),
 			temp_picon->get_h(),
 			0,

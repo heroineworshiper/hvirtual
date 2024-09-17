@@ -534,9 +534,11 @@ int FileEXR::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 			exr_unit->temp_frame->get_y(), /* Leave NULL if non existent */
 			exr_unit->temp_frame->get_u(),
 			exr_unit->temp_frame->get_v(),
+			exr_unit->temp_frame->get_a(),
 			frame->get_y(), /* Leave NULL if non existent */
 			frame->get_u(),
 			frame->get_v(),
+			frame->get_a(),
 			0,        /* Dimensions to capture from input frame */
 			0, 
 			asset->width, 

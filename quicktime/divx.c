@@ -785,9 +785,11 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
 			row_pointers[0], /* Leave NULL if non existent */
 			row_pointers[1],
 			row_pointers[2],
+            0, // out_a_plane
 			codec->temp_frame, /* Leave NULL if non existent */
 			codec->temp_frame + width_i * height_i,
 			codec->temp_frame + width_i * height_i + width_i * height_i / 4,
+            0, // in_a_plane
 			file->in_x,        /* Dimensions to capture from input frame */
 			file->in_y, 
 			file->in_w, 
@@ -885,9 +887,11 @@ static int encode(quicktime_t *file, unsigned char **row_pointers, int track)
 			codec->temp_frame, /* Leave NULL if non existent */
 			codec->temp_frame + width_i * height_i,
 			codec->temp_frame + width_i * height_i + width_i * height_i / 4,
+            0, // out_a_plane
 			row_pointers[0], /* Leave NULL if non existent */
 			row_pointers[1],
 			row_pointers[2],
+            0, // in_a_plane
 			0,        /* Dimensions to capture from input frame */
 			0, 
 			width, 

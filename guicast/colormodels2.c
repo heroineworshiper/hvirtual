@@ -198,8 +198,10 @@ int cmodel_is_planar(int colormodel)
 	switch(colormodel)
 	{
 		case BC_YUV420P10LE:
+		case BC_YUVA420P:
 		case BC_YUV420P:
 		case BC_YUV422P:
+		case BC_YUVA444P:
 		case BC_YUV444P:
 		case BC_YUV411P:
 		case BC_YUV9P:
@@ -230,7 +232,10 @@ int cmodel_components(int colormodel)
 		case BC_RGBA_FLOAT:   return 4; break;
 		case BC_YUV420P10LE:  return 3; break;
 		case BC_YUV420P:      return 3; break;
+		case BC_YUVA420P:     return 4; break;
 		case BC_YUV422P:      return 3; break;
+		case BC_YUV444P:      return 3; break;
+		case BC_YUVA444P:     return 4; break;
 		case BC_YUV9P:        return 3; break;
 	}
     return 3;
@@ -269,8 +274,10 @@ int cmodel_calculate_pixelsize(int colormodel)
 		case BC_RGBA_FLOAT:   return 16; break;
 // Planar
 		case BC_YUV420P:      return 1; break;
+		case BC_YUVA420P:     return 1; break;
 		case BC_YUV422P:      return 1; break;
 		case BC_YUV444P:      return 1; break;
+		case BC_YUVA444P:     return 1; break;
 		case BC_YUV422:       return 2; break;
 		case BC_YUV411P:      return 1; break;
 		case BC_YUV9P:        return 1; break;
@@ -310,20 +317,31 @@ int cmodel_calculate_datasize(int w,
 {
 	if(bytes_per_line < 0) bytes_per_line = w * 
 		cmodel_calculate_pixelsize(color_model);
+    int pad = 0;
+    if(with_pad)
+    {
 // Pad the planar models with an extra row of RGBA 8 bit texture width
 // for glTexSubImage2D to get all the rows.  
 // Since the texture width is aligned, add 2 rows.
-    int pad = w * 4 * 2;
+        pad = w * 4 * 2;
 // Ffmpeg expects 1 more row of bytes_per_line for odd numbered heights
-    if(bytes_per_line > pad) pad = bytes_per_line;
+        if(bytes_per_line > pad) pad = bytes_per_line;
+    }
+
     int result = 0;
 	switch(color_model)
 	{
 		case BC_YUV420P:
 		case BC_YUV411P:
         case BC_NV12:
-			result = bytes_per_line * h + 2 * (bytes_per_line / 2) * (h / 2);
+			result = bytes_per_line * h + 
+                2 * (bytes_per_line / 2) * (h / 2);
 			break;
+
+		case BC_YUVA420P:
+			result = bytes_per_line * h * 2 + 
+                2 * (bytes_per_line / 2) * (h / 2);
+            break;
 
 		case BC_YUV422P:
 			result = bytes_per_line * h * 2;
@@ -333,12 +351,18 @@ int cmodel_calculate_datasize(int w,
 			result = bytes_per_line * h * 3;
 			break;
 
+		case BC_YUVA444P:
+			result = bytes_per_line * h * 4;
+			break;
+
         case BC_YUV420P10LE:
-            result = h * bytes_per_line  + (bytes_per_line / 2) * (h / 2) * 2;
+            result = h * bytes_per_line  + 
+                (bytes_per_line / 2) * (h / 2) * 2;
             break;
 
         case BC_YUV9P:
-            result = h * bytes_per_line + (bytes_per_line / 4) * (h / 4) * 2;
+            result = h * bytes_per_line + 
+                (bytes_per_line / 4) * (h / 4) * 2;
             break;
 
 		default:
@@ -346,10 +370,7 @@ int cmodel_calculate_datasize(int w,
 			break;
 	}
     
-    if(with_pad)
-        return result + pad;
-    else
-	    return result;
+    return result + pad;
 }
 
 
@@ -393,9 +414,11 @@ void cmodel_transfer(unsigned char **output_rows,
 	unsigned char *out_y_plane,
 	unsigned char *out_u_plane,
 	unsigned char *out_v_plane,
+	unsigned char *out_a_plane,
 	unsigned char *in_y_plane,
 	unsigned char *in_u_plane,
 	unsigned char *in_v_plane,
+	unsigned char *in_a_plane,
 	int in_x, 
 	int in_y, 
 	int in_w, 
@@ -432,10 +455,11 @@ void cmodel_transfer(unsigned char **output_rows,
 		out_x, out_y, out_x + out_w, out_y + out_h);
 
 // printf("cmodel_transfer %d %p %p\n", __LINE__, column_table, row_table);
-// printf("cmodel_transfer %d %d->%d\n", 
+// printf("cmodel_transfer %d %d->%d out_a_plane=%p\n", 
 // __LINE__,
 // in_colormodel, 
-// out_colormodel);
+// out_colormodel,
+// out_a_plane);
 // printf("cmodel_transfer %d %d %d %d,%d %d,%d %d,%d %d,%d\n", 
 // __LINE__,
 // in_colormodel, 
@@ -457,9 +481,11 @@ void cmodel_transfer(unsigned char **output_rows,
 	args.out_y_plane = out_y_plane;
 	args.out_u_plane = out_u_plane;
 	args.out_v_plane = out_v_plane;
+	args.out_a_plane = out_a_plane;
 	args.in_y_plane = in_y_plane;
 	args.in_u_plane = in_u_plane;
 	args.in_v_plane = in_v_plane;
+	args.in_a_plane = in_a_plane;
 	args.in_x = in_x;
 	args.in_y = in_y;
 	args.in_w = in_w;
@@ -525,6 +551,8 @@ void cmodel_transfer(unsigned char **output_rows,
 
 	free(column_table);
 	free(row_table);
+//printf("cmodel_transfer %d\n", 
+//__LINE__);
 }
 
 int cmodel_bc_to_x(int color_model)
@@ -545,8 +573,10 @@ const char* cmodel_to_text(char *string, int cmodel)
 {
 	switch(cmodel)
 	{
+        case BC_YUVA420P: strcpy(string, "YUVA420 Planar");   break;
         case BC_YUV420P: strcpy(string, "YUV420 Planar");   break;
         case BC_YUV422P: strcpy(string, "YUV422 Planar");   break;
+        case BC_YUVA444P: strcpy(string, "YUVA444 Planar");   break;
         case BC_YUV444P: strcpy(string, "YUV444 Planar");   break;
 		case BC_RGB888:       strcpy(string, "RGB-8 Bit");   break;
 		case BC_BGR8888:       strcpy(string, "BGRX-8 Bit");   break;
@@ -564,8 +594,10 @@ const char* cmodel_to_text(char *string, int cmodel)
 int cmodel_from_text(const char *text)
 {
 	if(!strcasecmp(text, "YUV420 Planar")) return BC_YUV420P;
+	if(!strcasecmp(text, "YUVA420 Planar")) return BC_YUVA420P;
 	if(!strcasecmp(text, "YUV422 Planar")) return BC_YUV422P;
 	if(!strcasecmp(text, "YUV444 Planar")) return BC_YUV444P;
+	if(!strcasecmp(text, "YUVA444 Planar")) return BC_YUVA444P;
 	if(!strcasecmp(text, "RGB-8 Bit"))   return BC_RGB888;
 	if(!strcasecmp(text, "RGBA-8 Bit"))  return BC_RGBA8888;
 	if(!strcasecmp(text, "YUV-FLOAT"))   return BC_YUV_FLOAT;
@@ -609,8 +641,10 @@ int cmodel_is_yuv(int colormodel)
 		case BC_YUV161616:
 		case BC_YUVA16161616:
 		case BC_YUV422:
+		case BC_YUVA420P:
 		case BC_YUV420P:
 		case BC_YUV422P:
+		case BC_YUVA444P:
 		case BC_YUV444P:
 		case BC_YUV411P:
 		case BC_YUV_FLOAT:

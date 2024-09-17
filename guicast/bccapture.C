@@ -229,11 +229,13 @@ int BC_Capture::capture_frame(VFrame *frame,
 		frame->get_y(),
 		frame->get_u(),
 		frame->get_v(),
+        0, // out_a_plane
 		0,
 		0,
 		0,
-		0, 
-		0, 
+        0, // in_a_plane
+		0, // in_x
+		0, // in_y
 		w, 
 		h,
 		0, 

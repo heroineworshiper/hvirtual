@@ -91,6 +91,25 @@
     } \
     register_cmodel_function(in, out, 0, function##_);
 
+#define SCALE_A420P_OUT(in, out, function) \
+    void function##_(const cmodel_args_t *args) \
+    { \
+        ARGS_TO_LOCALS \
+        if(scale) \
+        { \
+            YUV420P_OUT_HEAD \
+            function(output_y, output_u, output_v, output_a, (float*)(input_row + column_table[j] * in_pixelsize), j); \
+            DEFAULT_TAIL \
+        } \
+        else \
+        { \
+            YUV420P_OUT_HEAD \
+            function(output_y, output_u, output_v, output_a, (float*)(input_row + j * in_pixelsize), j); \
+            DEFAULT_TAIL \
+        } \
+    } \
+    register_cmodel_function(in, out, 0, function##_);
+
 #define SCALE_422P_OUT(in, out, function) \
     void function##__(const cmodel_args_t *args) \
     { \
@@ -124,6 +143,25 @@
         { \
             YUV444P_OUT_HEAD \
             function(output_y, output_u, output_v, (float*)(input_row + j * in_pixelsize), j); \
+            DEFAULT_TAIL \
+        } \
+    } \
+    register_cmodel_function(in, out, 0, function##_);
+
+#define SCALE_A444P_OUT(in, out, function) \
+    void function##_(const cmodel_args_t *args) \
+    { \
+        ARGS_TO_LOCALS \
+        if(scale) \
+        { \
+            YUV444P_OUT_HEAD \
+            function(output_y, output_u, output_v, output_a, (float*)(input_row + column_table[j] * in_pixelsize), j); \
+            DEFAULT_TAIL \
+        } \
+        else \
+        { \
+            YUV444P_OUT_HEAD \
+            function(output_y, output_u, output_v, output_a, (float*)(input_row + j * in_pixelsize), j); \
             DEFAULT_TAIL \
         } \
     } \
@@ -285,7 +323,7 @@ static inline void RGB_FLOAT_to_YUV101010(unsigned char *(*output),
 }
 
 
-static inline void RGB_FLOAT_to_YUV420P_YUV422P(unsigned char *output_y, 
+static inline void RGB_FLOAT_to_YUV420P_422P(unsigned char *output_y, 
 	unsigned char *output_u, 
 	unsigned char *output_v, 
 	float *input,
@@ -298,7 +336,7 @@ static inline void RGB_FLOAT_to_YUV420P_YUV422P(unsigned char *output_y,
 
 	RGB_TO_YUV16(y, u, v, r, g, b);
 
-// printf("RGB_FLOAT_to_YUV420P_YUV422P %d output_y=%p output_u=%p output_v=%p\n", 
+// printf("RGB_FLOAT_to_YUV420P_422P %d output_y=%p output_u=%p output_v=%p\n", 
 // output_column,
 // output_y,
 // output_u,
@@ -306,6 +344,32 @@ static inline void RGB_FLOAT_to_YUV420P_YUV422P(unsigned char *output_y,
  	output_y[output_column] = y >> 8;
  	output_u[output_column / 2] = u >> 8;
  	output_v[output_column / 2] = v >> 8;
+}
+
+static inline void RGB_FLOAT_to_YUVA420P_422P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	float *input,
+	int output_column)
+{
+	int y, u, v, r, g, b, a;
+	r = (int)(CLIP(input[0], 0, 1) * 0xffff);
+	g = (int)(CLIP(input[1], 0, 1) * 0xffff);
+	b = (int)(CLIP(input[2], 0, 1) * 0xffff);
+	a = (int)(CLIP(input[3], 0, 1) * 0xff);
+
+	RGB_TO_YUV16(y, u, v, r, g, b);
+
+// printf("RGB_FLOAT_to_YUV420P_422P %d output_y=%p output_u=%p output_v=%p\n", 
+// output_column,
+// output_y,
+// output_u,
+// output_v);
+ 	output_y[output_column] = y >> 8;
+ 	output_u[output_column / 2] = u >> 8;
+ 	output_v[output_column / 2] = v >> 8;
+ 	output_a[output_column] = a;
 }
 
 static inline void RGB_FLOAT_to_YUV422(unsigned char *(*output),
@@ -347,6 +411,27 @@ static inline void RGB_FLOAT_to_YUV444P(unsigned char *output_y,
 	output_y[output_column] = y >> 8;
 	output_u[output_column] = u >> 8;
 	output_v[output_column] = v >> 8;
+}
+
+static inline void RGB_FLOAT_to_YUVA444P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	float *input,
+	int output_column)
+{
+	int y, u, v, r, g, b, a;
+	r = (int)(CLIP(input[0], 0, 1) * 0xffff);
+	g = (int)(CLIP(input[1], 0, 1) * 0xffff);
+	b = (int)(CLIP(input[2], 0, 1) * 0xffff);
+	a = (int)(CLIP(input[2], 0, 1) * 0xff);
+
+	RGB_TO_YUV16(y, u, v, r, g, b);
+
+	output_y[output_column] = y >> 8;
+	output_u[output_column] = u >> 8;
+	output_v[output_column] = v >> 8;
+	output_a[output_column] = a;
 }
 
 
@@ -533,7 +618,7 @@ static inline void RGBA_FLOAT_to_YUV101010(unsigned char *(*output),
 }
 
 
-static inline void RGBA_FLOAT_to_YUV420P_YUV422P(unsigned char *output_y, 
+static inline void RGBA_FLOAT_to_YUV420P_422P(unsigned char *output_y, 
 	unsigned char *output_u, 
 	unsigned char *output_v, 
 	float *input,
@@ -550,6 +635,27 @@ static inline void RGBA_FLOAT_to_YUV420P_YUV422P(unsigned char *output_y,
 	output_y[output_column] = y >> 8;
 	output_u[output_column / 2] = u >> 8;
 	output_v[output_column / 2] = v >> 8;
+}
+
+static inline void RGBA_FLOAT_to_YUVA420P_422P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	float *input,
+	int output_column)
+{
+	int y, u, v, r, g, b, a;
+	r = (int)(CLIP(input[0], 0, 1) * 0xffff);
+	g = (int)(CLIP(input[1], 0, 1) * 0xffff);
+	b = (int)(CLIP(input[2], 0, 1) * 0xffff);
+	a = (int)(CLIP(input[3], 0, 1) * 0xff);
+
+	RGB_TO_YUV16(y, u, v, r, g, b);
+
+	output_y[output_column] = y >> 8;
+	output_u[output_column / 2] = u >> 8;
+	output_v[output_column / 2] = v >> 8;
+	output_a[output_column] = a;
 }
 
 static inline void RGBA_FLOAT_to_YUV422(unsigned char *(*output),
@@ -596,6 +702,27 @@ static inline void RGBA_FLOAT_to_YUV444P(unsigned char *output_y,
 	output_v[output_column] = v >> 8;
 }
 
+static inline void RGBA_FLOAT_to_YUVA444P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *output_a, 
+	float *input,
+	int output_column)
+{
+	int y, u, v, r, g, b, a;
+	r = (int)(CLIP(input[0], 0, 1) * 0xffff);
+	g = (int)(CLIP(input[1], 0, 1) * 0xffff);
+	b = (int)(CLIP(input[2], 0, 1) * 0xffff);
+	a = (int)(CLIP(input[3], 0, 1) * 0xff);
+
+	RGB_TO_YUV16(y, u, v, r, g, b);
+
+	output_y[output_column] = y >> 8;
+	output_u[output_column] = u >> 8;
+	output_v[output_column] = v >> 8;
+	output_a[output_column] = a;
+}
+
 
 
 void cmodel_init_float()
@@ -613,9 +740,11 @@ void cmodel_init_float()
     SCALE_FLOAT(BC_RGB_FLOAT, BC_YUVA8888, RGB_FLOAT_to_YUVA8888)
     SCALE_FLOAT(BC_RGB_FLOAT, BC_YUV101010, RGB_FLOAT_to_YUV101010)
     SCALE_422_OUT(BC_RGB_FLOAT, BC_YUV422, RGB_FLOAT_to_YUV422)
-    SCALE_420P_OUT(BC_RGB_FLOAT, BC_YUV420P, RGB_FLOAT_to_YUV420P_YUV422P)
-    SCALE_422P_OUT(BC_RGB_FLOAT, BC_YUV422P, RGB_FLOAT_to_YUV420P_YUV422P)
+    SCALE_420P_OUT(BC_RGB_FLOAT, BC_YUV420P, RGB_FLOAT_to_YUV420P_422P)
+    SCALE_A420P_OUT(BC_RGB_FLOAT, BC_YUVA420P, RGB_FLOAT_to_YUVA420P_422P)
+    SCALE_422P_OUT(BC_RGB_FLOAT, BC_YUV422P, RGB_FLOAT_to_YUV420P_422P)
     SCALE_444P_OUT(BC_RGB_FLOAT, BC_YUV444P, RGB_FLOAT_to_YUV444P)
+    SCALE_A444P_OUT(BC_RGB_FLOAT, BC_YUVA444P, RGB_FLOAT_to_YUVA444P)
 
 
     SCALE_FLOAT(BC_RGBA_FLOAT, BC_RGB8, RGBA_FLOAT_to_RGB8)
@@ -632,8 +761,10 @@ void cmodel_init_float()
     SCALE_FLOAT(BC_RGBA_FLOAT, BC_YUVA8888, RGBA_FLOAT_to_YUVA8888)
     SCALE_FLOAT(BC_RGBA_FLOAT, BC_YUV101010, RGBA_FLOAT_to_YUV101010)
     SCALE_422_OUT(BC_RGBA_FLOAT, BC_YUV422, RGBA_FLOAT_to_YUV422)
-    SCALE_420P_OUT(BC_RGBA_FLOAT, BC_YUV420P, RGBA_FLOAT_to_YUV420P_YUV422P)
-    SCALE_422P_OUT(BC_RGBA_FLOAT, BC_YUV422P, RGBA_FLOAT_to_YUV420P_YUV422P)
+    SCALE_420P_OUT(BC_RGBA_FLOAT, BC_YUV420P, RGBA_FLOAT_to_YUV420P_422P)
+    SCALE_A420P_OUT(BC_RGBA_FLOAT, BC_YUVA420P, RGBA_FLOAT_to_YUVA420P_422P)
+    SCALE_422P_OUT(BC_RGBA_FLOAT, BC_YUV422P, RGBA_FLOAT_to_YUV420P_422P)
     SCALE_444P_OUT(BC_RGBA_FLOAT, BC_YUV444P, RGBA_FLOAT_to_YUV444P)
+    SCALE_A444P_OUT(BC_RGBA_FLOAT, BC_YUVA444P, RGBA_FLOAT_to_YUVA444P)
 
 }

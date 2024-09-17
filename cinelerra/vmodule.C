@@ -620,12 +620,14 @@ input2,
 output);
 							cmodel_transfer((*input)->get_rows(),
 								input2->get_rows(),
-								0,
-								0,
-								0,
-								0,
-								0,
-								0,
+								0, // out_y_plane
+								0, // out_u_plane
+								0, // out_v_plane
+                                0, // out_a_plane
+								0, // in_y_plane
+								0, // in_u_plane
+								0, // in_v_plane
+                                0, // in_a_plane
 								0,
 								0,
 							    input2->get_w(),
@@ -867,14 +869,16 @@ nested_cmodel,
 current_cmodel);
 							cmodel_transfer(output->get_rows(),
 								(*input)->get_rows(),
-								0,
-								0,
-								0,
-								0,
-								0,
-								0,
-								0,
-								0,
+								0, // out_y_plane
+								0, // out_u_plane
+								0, // out_v_plane
+                                0, // out_a_plane
+								0, // in_y_plane
+								0, // in_u_plane
+								0, // in_v_plane
+                                0, // in_a_plane
+                                0,
+                                0,
 								(*input)->get_w(),
 								(*input)->get_h(),
 								0,

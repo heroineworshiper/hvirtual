@@ -230,9 +230,11 @@ static int decode(quicktime_t *file,
 				row_pointers[0],
 				row_pointers[1],
 				row_pointers[2],
+                0, // out_a_plane
 				temp_rows[0],
 				temp_rows[1],
 				temp_rows[2],
+                0, // in_a_plane
 				file->in_x, 
 				file->in_y, 
 				file->in_w, 

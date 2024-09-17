@@ -665,9 +665,11 @@ void Device1394Output::write_frame(VFrame *input)
 				temp_frame2->get_y(), /* Leave NULL if non existent */
 				temp_frame2->get_u(),
 				temp_frame2->get_v(),
+                0, // out_a_plane
 				input->get_y(), /* Leave NULL if non existent */
 				input->get_u(),
 				input->get_v(),
+                0, // in_a_plane
 				0,        /* Dimensions to capture from input frame */
 				0, 
 				MIN(temp_frame2->get_w(), input->get_w()),

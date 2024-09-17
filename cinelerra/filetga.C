@@ -457,9 +457,11 @@ void FileTGA::read_tga(Asset *asset, VFrame *frame, VFrame *data, VFrame* &temp)
 			frame->get_y(),
 			frame->get_u(),
 			frame->get_v(),
+            frame->get_a(), // out_a_plane
 			output_frame->get_y(),
 			output_frame->get_u(),
 			output_frame->get_v(),
+            output_frame->get_a(), // in_a_plane
 			0, 
 			0, 
 			width, 
@@ -554,9 +556,11 @@ void FileTGA::write_tga(Asset *asset, VFrame *frame, VFrame *data, VFrame* &temp
 			input_frame->get_y(),
 			input_frame->get_u(),
 			input_frame->get_v(),
+            input_frame->get_a(), // out_a_plane
 			frame->get_y(),
 			frame->get_u(),
 			frame->get_v(),
+            frame->get_a(), // in_a_plane
 			0, 
 			0, 
 			frame->get_w(), 

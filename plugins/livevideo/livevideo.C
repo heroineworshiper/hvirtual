@@ -484,9 +484,11 @@ int LiveVideo::process_buffer(VFrame *frame,
 					frame->get_y(), /* Leave NULL if non existent */
 					frame->get_u(),
 					frame->get_v(),
+					frame->get_a(),
 					input->get_y(), /* Leave NULL if non existent */
 					input->get_u(),
 					input->get_v(),
+					input->get_a(),
 					0,        /* Dimensions to capture from input frame */
 					0, 
 					w, 

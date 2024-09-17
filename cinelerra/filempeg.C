@@ -1327,9 +1327,11 @@ if(debug) printf("FileMPEG::write_frames %d\n", __LINE__);
 							temp_frame->get_y(),
 							temp_frame->get_u(),
 							temp_frame->get_v(),
+                            temp_frame->get_a(), // out_a_plane
 							frame->get_y(),
 							frame->get_u(),
 							frame->get_v(),
+                            frame->get_a(), // in_a_plane
 							0,
 							0,
 							frame->get_w(),
@@ -1388,9 +1390,11 @@ if(debug) printf("FileMPEG::write_frames %d\n", __LINE__);
 							temp_frame->get_y(),
 							temp_frame->get_u(),
 							temp_frame->get_v(),
+                            temp_frame->get_a(), // out_a_plane
 							frame->get_y(),
 							frame->get_u(),
 							frame->get_v(),
+                            frame->get_a(), // in_a_plane
 							0,
 							0,
 							frame->get_w(),
@@ -1503,9 +1507,11 @@ if(debug) printf("FileMPEG::read_frame %d\n", __LINE__);
 						frame->get_y(),
 						frame->get_u(),
 						frame->get_v(),
+                        frame->get_a(), // out_a_plane
 						(unsigned char*)y,
 						(unsigned char*)u,
 						(unsigned char*)v,
+                        0, // in_a_plane
 						0,
 						0,
 						asset->width,

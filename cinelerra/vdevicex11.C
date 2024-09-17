@@ -283,9 +283,11 @@ int VDeviceX11::close_all()
 					0,
 					0,
 					0,
+                    0, // out_a_plane
 					output_frame->get_y(),
 					output_frame->get_u(),
 					output_frame->get_v(),
+                    output_frame->get_a(),
 					0, 
 					0, 
 					output_frame->get_w(), 
@@ -884,9 +886,11 @@ void VDeviceX11::output_to_bitmap(VFrame *output_frame)
 			0,
 			0,
 			0,
+            0, // out_a_plane
 			output_frame->get_y(),
 			output_frame->get_u(),
 			output_frame->get_v(),
+			output_frame->get_a(),
 			0, 
 			0, 
 			output_frame->get_w(), 
@@ -940,9 +944,11 @@ void VDeviceX11::output_to_bitmap(VFrame *output_frame)
 			    0,
 			    0,
 			    0,
+                0, // out_a_plane
 			    output_frame->get_y(),
 			    output_frame->get_u(),
 			    output_frame->get_v(),
+                output_frame->get_a(), // in_a_plane
 			    (int)output_x1, 
 			    (int)output_y1, 
 			    (int)(output_x2 - output_x1), 

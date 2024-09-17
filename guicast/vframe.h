@@ -155,6 +155,7 @@ public:
 	unsigned char* get_y();
 	unsigned char* get_u();
 	unsigned char* get_v();
+	unsigned char* get_a();
 	int get_w();
 	int get_h();
 	int get_w_fixed();
@@ -442,7 +443,7 @@ private:
 // Size of stored compressed image
 	long compressed_size;   
 // Pointers to yuv planes either in the data pointer or to a shared buffer
-	unsigned char *y, *u, *v;
+	unsigned char *y, *u, *v, *a;
 // 	long y_offset;
 // 	long u_offset;
 // 	long v_offset;

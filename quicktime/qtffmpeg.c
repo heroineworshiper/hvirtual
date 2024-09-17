@@ -475,9 +475,7 @@ static int decode_wrapper(quicktime_t *file,
 	    switch(ffmpeg->decoder_context[current_field]->pix_fmt)
 	    {
 		    case AV_PIX_FMT_YUV420P:
-			    file->src_colormodel = BC_YUV420P;
-			    break;
-    // It's not much of a decoder library
+// It's not much of an abstraction
 		    case AV_PIX_FMT_YUVJ420P:
 			    file->src_colormodel = BC_YUV420P;
 			    break;
@@ -487,10 +485,12 @@ static int decode_wrapper(quicktime_t *file,
     // 			break;
 
             case AV_PIX_FMT_YUV444P:
+		    case AV_PIX_FMT_YUVJ444P:
 			    file->src_colormodel = BC_YUV444P;
                 break;
 
 		    case AV_PIX_FMT_YUV422P:
+		    case AV_PIX_FMT_YUVJ422P:
 			    file->src_colormodel = BC_YUV422P;
 			    break;
 		    case AV_PIX_FMT_YUV410P:
@@ -507,6 +507,7 @@ static int decode_wrapper(quicktime_t *file,
 				    "decode_wrapper %d: unrecognized color model %d\n", 
                     __LINE__,
 				    ffmpeg->decoder_context[current_field]->pix_fmt);
+//printf("AV_PIX_FMT_GBRP=%d\n", AV_PIX_FMT_GBRP);
 			    file->src_colormodel = 0;
 			    break;
 	    }
@@ -560,43 +561,43 @@ static int decode_wrapper(quicktime_t *file,
 
 // Get amount chroma planes are downsampled from luma plane.
 // Used for copying planes into cache.
-static int get_chroma_factor(quicktime_ffmpeg_t *ffmpeg, int current_field)
-{
-	switch(ffmpeg->decoder_context[current_field]->pix_fmt)
-	{
-		case AV_PIX_FMT_YUV420P:
-// assume the UV planes are contiguous so goofy NV formats have the same amount of space
-// in the U plane as 2 distinct UV planes
-		case AV_PIX_FMT_NV12:
-		case AV_PIX_FMT_NV21:
-			return 4;
-			break;
-		case AV_PIX_FMT_YUVJ420P:
-			return 4;
-			break;
-
-// 		case AV_PIX_FMT_YUV422:
+// static int get_chroma_factor(quicktime_ffmpeg_t *ffmpeg, int current_field)
+// {
+// 	switch(ffmpeg->decoder_context[current_field]->pix_fmt)
+// 	{
+// 		case AV_PIX_FMT_YUV420P:
+// // assume the UV planes are contiguous so goofy NV formats have the same amount of space
+// // in the U plane as 2 distinct UV planes
+// 		case AV_PIX_FMT_NV12:
+// 		case AV_PIX_FMT_NV21:
+// 			return 4;
+// 			break;
+// 		case AV_PIX_FMT_YUVJ420P:
+// 			return 4;
+// 			break;
+// 
+// // 		case AV_PIX_FMT_YUV422:
+// // 			return 2;
+// // 			break;
+// 
+// 		case AV_PIX_FMT_YUV422P:
 // 			return 2;
 // 			break;
-
-		case AV_PIX_FMT_YUV422P:
-			return 2;
-			break;
-		case AV_PIX_FMT_YUV410P:
-			return 9;
-			break;
-        case AV_PIX_FMT_YUV420P10LE:
-            return 4;
-            break;
-		default:
-			fprintf(stderr, 
-				"get_chroma_factor: unrecognized color model %d %d\n", 
-				ffmpeg->decoder_context[current_field]->pix_fmt,
-                AV_PIX_FMT_YUV420P10LE);
-			return 9;
-			break;
-	}
-}
+// 		case AV_PIX_FMT_YUV410P:
+// 			return 9;
+// 			break;
+//         case AV_PIX_FMT_YUV420P10LE:
+//             return 4;
+//             break;
+// 		default:
+// 			fprintf(stderr, 
+// 				"get_chroma_factor: unrecognized color model %d %d\n", 
+// 				ffmpeg->decoder_context[current_field]->pix_fmt,
+//                 AV_PIX_FMT_YUV420P10LE);
+// 			return 9;
+// 			break;
+// 	}
+// }
 
 
 // reduce bits per pixel

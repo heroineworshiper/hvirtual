@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,9 +29,11 @@ typedef struct
 	unsigned char *out_y_plane;
 	unsigned char *out_u_plane;
 	unsigned char *out_v_plane;
+	unsigned char *out_a_plane;
 	unsigned char *in_y_plane;
 	unsigned char *in_u_plane;
 	unsigned char *in_v_plane;
+	unsigned char *in_a_plane;
 	int in_x;
 	int in_y;
 	int in_w;
@@ -84,9 +86,11 @@ void register_cmodel_function(int in_colormodel,
 	unsigned char *out_y_plane = args->out_y_plane; \
 	unsigned char *out_u_plane = args->out_u_plane; \
 	unsigned char *out_v_plane = args->out_v_plane; \
+	unsigned char *out_a_plane = args->out_a_plane; \
 	unsigned char *in_y_plane = args->in_y_plane; \
 	unsigned char *in_u_plane = args->in_u_plane; \
 	unsigned char *in_v_plane = args->in_v_plane; \
+	unsigned char *in_a_plane = args->in_a_plane; \
 	int in_x = args->in_x; \
 	int in_y = args->in_y; \
 	int in_w = args->in_w; \
@@ -132,6 +136,7 @@ void register_cmodel_function(int in_colormodel,
 		unsigned char *output_y = out_y_plane + i * out_rowspan + out_x; \
 		unsigned char *output_u = out_u_plane + (i / 2) * (out_rowspan / 2) + (out_x / 2); \
 		unsigned char *output_v = out_v_plane + (i / 2) * (out_rowspan / 2) + (out_x / 2); \
+		unsigned char *output_a = out_a_plane + i * out_rowspan + out_x; \
 		for(j = 0; j < out_w; j++) \
 		{
 
@@ -152,6 +157,7 @@ void register_cmodel_function(int in_colormodel,
 		unsigned char *output_y = out_y_plane + i * out_rowspan + out_x; \
 		unsigned char *output_u = out_u_plane + i * out_rowspan + out_x; \
 		unsigned char *output_v = out_v_plane + i * out_rowspan + out_x; \
+		unsigned char *output_a = out_a_plane + i * out_rowspan + out_x; \
 		for(j = 0; j < out_w; j++) \
 		{
 

@@ -2119,9 +2119,11 @@ static int ffmpeg_to_cmodel(int pix_fmt)
 #endif
 
 		case AV_PIX_FMT_YUV422P:
+		case AV_PIX_FMT_YUVJ422P:
 			return BC_YUV422P;
 			break;
 		case AV_PIX_FMT_YUV444P:
+		case AV_PIX_FMT_YUVJ444P:
 			return BC_YUV444P;
 			break;
 		case AV_PIX_FMT_YUV410P:
@@ -2144,6 +2146,10 @@ static int ffmpeg_to_cmodel(int pix_fmt)
             return BC_RGBA8888;
             break;
 
+        case AV_PIX_FMT_YUVA420P:
+            return BC_YUV420P;
+            break;
+
 //             case AV_PIX_FMT_NV21:
 // 				return BC_NV21;
 //                 printf("FileFFMPEG::ffmpeg_to_cmodel %d: AV_PIX_FMT_NV21\n", __LINE__);
@@ -2155,6 +2161,7 @@ static int ffmpeg_to_cmodel(int pix_fmt)
                 __LINE__,
 				pix_fmt);
 //printf("AV_PIX_FMT_P010LE=%d\n", AV_PIX_FMT_P010LE);
+//printf("AV_PIX_FMT_GBRP9BE=%d\n", AV_PIX_FMT_GBRP9BE);
 			return BC_YUV420P;
 			break;
 	}
@@ -2637,10 +2644,12 @@ int FileFFMPEG::read_frame(VFrame *frame)
             input_frame->linesize[0],
             decoder_context->width,
             decoder_context->height);
-// printf("FileFFMPEG::read_frame %d u_offset=%d v_offset=%d\n", 
+// printf("FileFFMPEG::read_frame %d input_cmodel=%d %d %d %d\n", 
 // __LINE__,
-// (int)(input_frame->data[1] - input_frame->data[0]),
-// (int)(input_frame->data[2] - input_frame->data[0]));
+// input_cmodel,
+// (int)input_frame->linesize[0],
+// (int)input_frame->linesize[1],
+// (int)input_frame->linesize[2]);
  	}
 //PRINT_TRACE
 

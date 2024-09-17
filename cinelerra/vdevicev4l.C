@@ -510,9 +510,11 @@ int VDeviceV4L::frame_to_vframe(VFrame *frame, unsigned char *input)
 			frame->get_y(),
 			frame->get_u(),
 			frame->get_v(),
+            0, // out_a_plane
 			in_frame->get_y(),
 			in_frame->get_u(),
 			in_frame->get_v(),
+            0, // in_a_plane
 			0, 
 			0, 
 			inwidth, 

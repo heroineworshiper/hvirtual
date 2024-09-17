@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,8 +54,10 @@
 #define BC_YUV_FLOAT    35 // test.  YUV to RGB float conversion is negligible
 // Planar
 #define BC_YUV420P      7
+#define BC_YUVA420P     36
 #define BC_YUV422P      17
 #define BC_YUV444P      27
+#define BC_YUVA444P     37
 #define BC_YUV411P      18
 #define BC_YUV9P        28 // Disasterous cmodel from Sorenson
 #define BC_YUV420P10LE  32
@@ -197,15 +199,17 @@ const char* cmodel_to_text(char *string, int cmodel);
 int cmodel_from_text(const char *text);
 
 
-
+// the big colorspace converter
 void cmodel_transfer(unsigned char **output_rows, /* Leave NULL if non existent */
 	unsigned char **input_rows,
 	unsigned char *out_y_plane, /* Leave NULL if non existent */
 	unsigned char *out_u_plane,
 	unsigned char *out_v_plane,
+	unsigned char *out_a_plane,
 	unsigned char *in_y_plane, /* Leave NULL if non existent */
 	unsigned char *in_u_plane,
 	unsigned char *in_v_plane,
+	unsigned char *in_a_plane,
 	int in_x,        /* Dimensions to capture from input frame */
 	int in_y, 
 	int in_w, 
