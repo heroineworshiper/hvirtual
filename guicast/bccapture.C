@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -311,6 +311,26 @@ int BC_Capture::capture_frame(VFrame *frame,
 											unsigned char *dst_v = frame->get_v() + 
 												(dst_y / 2) * (w / 2) +
 												(dst_x / 2);
+											int y, u, v;
+											RGB_TO_YUV(y, u, v, r, g, b);
+											
+											*dst_y_ = (y * a + *dst_y_ * invert_a) / 0xff;
+											*dst_u = (u * a + *dst_u * invert_a) / 0xff;
+											*dst_v = (v * a + *dst_v * invert_a) / 0xff;
+											break;
+										}
+
+										case BC_YUV444P:
+										{
+											unsigned char *dst_y_ = frame->get_y() + 
+												dst_y * w +
+												dst_x;
+											unsigned char *dst_u = frame->get_u() + 
+												dst_y * w +
+												dst_x;
+											unsigned char *dst_v = frame->get_v() + 
+												dst_y * w +
+												dst_x;
 											int y, u, v;
 											RGB_TO_YUV(y, u, v, r, g, b);
 											

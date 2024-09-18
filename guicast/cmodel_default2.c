@@ -530,6 +530,21 @@ static inline void BGR8888_to_YUV420P_422P(unsigned char *output_y,
 	output_v[output_column / 2] = v;
 }
 
+static inline void BGR8888_to_YUV444P(unsigned char *output_y, 
+	unsigned char *output_u, 
+	unsigned char *output_v, 
+	unsigned char *input,
+	int output_column)
+{
+	int y, u, v;
+
+	RGB_TO_YUV(y, u, v, input[2], input[1], input[0]);
+
+	output_y[output_column] = y;
+	output_u[output_column] = u;
+	output_v[output_column] = v;
+}
+
 static inline void RGB888_to_YUV444P(unsigned char *output_y, 
 	unsigned char *output_u, 
 	unsigned char *output_v, 
@@ -2671,6 +2686,7 @@ void cmodel_init_default()
     SCALE_DEFAULT(BC_BGR8888, BC_RGB888, BGR8888_to_RGB888)
     SCALE_DEFAULT(BC_BGR8888, BC_BGR8888, BGR8888_to_BGR8888)
     SCALE_420P(BC_BGR8888, BC_YUV420P, BGR8888_to_YUV420P_422P)
+    SCALE_444P(BC_BGR8888, BC_YUV444P, BGR8888_to_YUV444P)
     SCALE_DEFAULT(BC_BGR888, BC_RGB888, BGR888_to_RGB888)
 
 

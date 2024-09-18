@@ -256,11 +256,11 @@ void RecordVideo::run()
 				record->vdevice->set_field_order(record->reverse_interlace);
 				record->vdevice->set_do_cursor(record->do_cursor,
 					record->do_big_cursor);
-printf("RecordVideo::run %d\n", __LINE__);
+//printf("RecordVideo::run %d\n", __LINE__);
 				read_buffer();
 
 
-printf("RecordVideo::run %d grab_result=%d\n", __LINE__, grab_result);
+//printf("RecordVideo::run %d grab_result=%d\n", __LINE__, grab_result);
 				if(!grab_result)
 				{
 					record->get_current_batch()->current_frame++;

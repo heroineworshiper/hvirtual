@@ -119,7 +119,7 @@ void RecordMonitor::create_objects()
 			record->default_asset->height,
 			window->canvas,
 			0);
-// printf("RecordMonitor::create_objects %d %d %d\n", 
+// printf("RecordMonitor::create_objects %d w=%d h=%d\n", 
 // __LINE__, 
 // record->default_asset->width, 
 // record->default_asset->height);

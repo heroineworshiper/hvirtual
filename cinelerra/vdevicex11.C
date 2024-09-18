@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -449,6 +449,7 @@ int VDeviceX11::get_display_colormodel(int file_colormodel)
 	{
 		switch(file_colormodel)
 		{
+			case BC_YUV444P:
 			case BC_YUV420P:
 			case BC_YUV422P:
 			case BC_YUV422:
@@ -512,8 +513,9 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 // Get the best colormodel the display can handle.
 	int display_colormodel = get_display_colormodel(file_colormodel);
 
-// printf("VDeviceX11::new_output_buffer %d output_frame=%p file_colormodel=%d display_colormodel=%d\n", 
+// printf("VDeviceX11::new_output_buffer %d driver=%d output_frame=%p file_colormodel=%d display_colormodel=%d\n", 
 // __LINE__, 
+// device->out_config->driver,
 // output_frame, 
 // file_colormodel, 
 // display_colormodel);
@@ -567,6 +569,15 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 			output_y2 == device->out_h &&
 			!canvas->xscroll &&
 			!canvas->yscroll);
+// printf("VDeviceX11::new_output_buffer %d x1=%d y1=%d x2=%d y2=%d out_w=%d out_h=%d display_colormodel=%d\n",
+// __LINE__,
+// (int)output_x1,
+// (int)output_y1,
+// (int)output_x2,
+// (int)output_y2,
+// (int)device->out_w,
+// (int)device->out_h,
+// display_colormodel);
 
 // file wants direct frame but we need a temp
 		if(file_colormodel == BC_BGR8888 && !direct_supported)

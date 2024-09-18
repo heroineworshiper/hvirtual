@@ -34,7 +34,10 @@ Condition::Condition(int init_value, const char *title, int is_binary)
 	this->is_binary = is_binary;
 	this->title = title;
 	pthread_mutex_init(&mutex, 0);
-	pthread_cond_init(&cond, NULL);
+	pthread_condattr_t cond_attr;
+	pthread_condattr_init(&cond_attr);
+	pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
+	pthread_cond_init(&cond, &cond_attr);
 	this->value = this->init_value = init_value;
 }
 
@@ -93,17 +96,20 @@ int Condition::timed_lock(int microseconds, const char *location)
 #ifndef NO_GUICAST
 	SET_LOCK(this, title, location);
 #endif
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    ts.tv_nsec += microseconds * 1000;
-    ts.tv_sec += (ts.tv_nsec - 1000000000) / 1000000000;
-    ts.tv_nsec %= 1000000000;
+    struct timespec after;
+    struct timespec before;
+    clock_gettime(CLOCK_MONOTONIC, &before);
+    int64_t nsec2 = (int64_t)before.tv_nsec + (int64_t)microseconds * (int64_t)1000;
+    int64_t sec2 = (int64_t)before.tv_sec + (int64_t)nsec2 / (int64_t)1000000000;
+    nsec2 %= (int64_t)1000000000;
+    after.tv_nsec = nsec2;
+    after.tv_sec = sec2;
     int result = 0;
 
     pthread_mutex_lock(&mutex);
     while(value <= 0)
 	{
-		result = pthread_cond_timedwait(&cond, &mutex, &ts);
+		result = pthread_cond_timedwait(&cond, &mutex, &after);
 
         if(result == ETIMEDOUT) 
 	    {

@@ -1228,6 +1228,7 @@ int VFrame::copy_from(VFrame *frame)
 			frame->get_h(),
 			get_w(),
 			get_h());
+        BC_Signals::dump_stack();
 		return 1;
 	}
     
