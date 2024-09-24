@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +45,7 @@ PlayableTracks::PlayableTracks(EDL *edl,
 		current_track; 
 		current_track = current_track->next)
 	{
-		if(is_playable(current_track, current_position, direction /*, use_nudge */))
+		if(is_playable(edl, current_track, current_position, direction /*, use_nudge */))
 		{
 // printf("PlayableTracks::PlayableTracks %d this=%p current_track=%p total=%d current_position=%lld\n", 
 // __LINE__,
@@ -55,6 +54,9 @@ PlayableTracks::PlayableTracks(EDL *edl,
 // total, 
 // current_position);
 			append(current_track);
+
+// disable all tracks below the 1st visible one
+            if(data_type == TRACK_VIDEO && edl->session->only_top) break;
 		}
 	}
 // printf("PlayableTracks::PlayableTracks %d data_type=%d total=%d current_position=%lld\n", 
@@ -69,7 +71,8 @@ PlayableTracks::~PlayableTracks()
 }
 
 
-int PlayableTracks::is_playable(Track *current_track, 
+int PlayableTracks::is_playable(EDL *edl, 
+    Track *current_track, 
 	int64_t position,
 	int direction /*,
 	int use_nudge */)
@@ -84,6 +87,31 @@ int PlayableTracks::is_playable(Track *current_track,
         !current_track->playable_edit(position, direction))
 	    return 0;
 
+// neglect dependencies & just use mute
+    if(data_type == TRACK_VIDEO && edl->session->disable_muted)
+    {
+        Autos *autos = current_track->automation->autos[AUTOMATION_MUTE];
+        if(direction == PLAY_FORWARD)
+	    {
+            IntAuto *prev_keyframe = 0;
+// Only 1 frame at a time
+            prev_keyframe = (IntAuto*)autos->get_prev_auto(position, 
+		        direction, 
+		        (Auto* &)prev_keyframe);
+// muted
+            if(prev_keyframe->value) return 0;
+        }
+        else
+        {
+            IntAuto *next_keyframe = 0;
+// Only 1 frame at a time
+            next_keyframe = (IntAuto*)autos->get_next_auto(position, 
+		        direction, 
+		        (Auto* &)next_keyframe);
+// muted
+            if(next_keyframe->value) return 0;
+        }
+    }
 
 // nested EDLs ended the chance of testing fade, mute, projector
 // There's no easy way to know if a nested EDL has a plugin.
@@ -102,3 +130,23 @@ int PlayableTracks::is_listed(Track *track)
 	}
 	return 0;
 }
+
+int PlayableTracks::compare(PlayableTracks *that)
+{
+    if(that->size() != this->size()) return 1;
+
+    for(int i = 0; i < that->size(); i++)
+    {
+        if(that->get(i) != this->get(i)) return 1;
+    }
+
+    return 0;
+}
+
+
+
+
+
+
+
+

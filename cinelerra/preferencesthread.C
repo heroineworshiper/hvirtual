@@ -274,14 +274,17 @@ int PreferencesThread::apply_settings()
 //printf("PreferencesThread::apply_settings 1\n");
 // This doesn't stop and restart, only reloads the assets before
 // the next play command.
-		mwindow->cwindow->playback_engine->que->send_command(CURRENT_FRAME,
-            1.0, // speed
-			CHANGE_ALL,
-			mwindow->edl,
-			1, // realtime
-            0, // resume,
-            0); // use_inout
-//printf("PreferencesThread::apply_settings 10\n");
+// 		mwindow->cwindow->playback_engine->que->send_command(CURRENT_FRAME,
+//             1.0, // speed
+// 			CHANGE_ALL,
+// 			mwindow->edl,
+// 			1, // realtime
+//             0, // resume,
+//             0); // use_inout
+// This stops & restarts
+		mwindow->restart_brender();
+		mwindow->sync_parameters(CHANGE_EDL);
+//printf("PreferencesThread::apply_settings %d\n", __LINE__);
 	}
 
 	if(redraw_times || redraw_overlays)

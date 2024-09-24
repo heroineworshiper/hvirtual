@@ -64,6 +64,12 @@ public:
 	void equivalent_output(EDLSession *session, double *result);
 	void dump();
 
+// play every frame
+	int video_every_frame;
+// disable tracks based on mute keyframes
+    int disable_muted;
+// play only the 1st visible track
+    int only_top;
 // current settings are scaled this much from the original settings
 	int proxy_scale;
 // Audio

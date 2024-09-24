@@ -350,7 +350,7 @@ if(debug) printf("VirtualANode::render_as_module %d\n", __LINE__);
 		get_mute_fragment(start_position_project,
 				mute_constant, 
 				mute_fragment_project,
-				(Autos*)track->automation->autos[AUTOMATION_MUTE],
+				track->automation->autos[AUTOMATION_MUTE],
 				direction,
 				0);
 // Fragment is playable

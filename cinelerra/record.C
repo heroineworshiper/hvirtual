@@ -1385,7 +1385,7 @@ int Record::get_rec_mode() { return record_mode; }
 int Record::set_rec_mode(int value) { record_mode = value; return 0; }
 
 int Record::get_video_buffersize() { return mwindow->edl->session->video_write_length; }
-int Record::get_everyframe() { return MWindow::preferences->video_every_frame; }
+//int Record::get_everyframe() { return MWindow::preferences->video_every_frame; }
 
 int Record::get_out_length() { return mwindow->edl->session->playback_buffer; }
 int Record::get_software_positioning() { return mwindow->edl->session->record_software_position; }

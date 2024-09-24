@@ -143,7 +143,13 @@ SET_TRACE
 SET_TRACE
 	add_subwindow(window = new VideoEveryFrame(pwindow, this, x, y));
 	y += window->get_h() + margin;
-	
+
+    add_subwindow(window = new DisableMutedTracks(pwindow, this, x, y));
+    y += window->get_h() + margin;
+
+    add_subwindow(window = new OnlyTop(pwindow, this, x, y));
+    y += window->get_h() + margin;
+
 //	add_subwindow(title1 = new BC_Title(x, y, _("Framerate achieved:")));
 //  x1 = title1->get_x() + title1->get_w() + margin;
 //	add_subwindow(framerate_title = new BC_Title(x1, y, _("--"), MEDIUMFONT, RED));
@@ -155,23 +161,26 @@ SET_TRACE
 
 SET_TRACE
 	BC_Title *title;
- 	add_subwindow(title = new BC_Title(x, y, _("Scaling equation:")));
-	y += title->get_h() + margin;
+ 	add_subwindow(title = new BC_Title(x, y, _("CPU Scaling quality:")));
+    x += title->get_w() + margin;
 	add_subwindow(nearest_neighbor = new PlaybackNearest(pwindow, 
 		this, 
 		pwindow->thread->edl->session->interpolation_type == NEAREST_NEIGHBOR, 
-		DP(10), 
+		x, 
 		y));
-	y += nearest_neighbor->get_h();
+    x += nearest_neighbor->get_w() + margin;
 	add_subwindow(cubic_cubic = new PlaybackBicubicBicubic(pwindow, 
 		this, 
 		pwindow->thread->edl->session->interpolation_type == CUBIC_CUBIC ||
 			pwindow->thread->edl->session->interpolation_type == CUBIC_LINEAR ||
 			pwindow->thread->edl->session->interpolation_type == LINEAR_LINEAR ||
 			pwindow->thread->edl->session->interpolation_type == LANCZOS_LANCZOS, 
-		DP(10), 
+		x, 
 		y));
 	y += cubic_cubic->get_h() + margin;
+    x = margin;
+
+
 // 	add_subwindow(cubic_linear = new PlaybackBicubicBilinear(pwindow, 
 // 		this, 
 // 		pwindow->thread->edl->session->interpolation_type == CUBIC_LINEAR, 
@@ -614,7 +623,7 @@ VideoEveryFrame::VideoEveryFrame(PreferencesWindow *pwindow,
 	PlaybackPrefs *playback_prefs,
 	int x, 
 	int y)
- : BC_CheckBox(x, y, pwindow->thread->preferences->video_every_frame, _("Play every frame"))
+ : BC_CheckBox(x, y, pwindow->thread->edl->session->video_every_frame, _("Play every frame"))
 {
 	this->pwindow = pwindow;
 	this->playback_prefs = playback_prefs;
@@ -622,17 +631,39 @@ VideoEveryFrame::VideoEveryFrame(PreferencesWindow *pwindow,
 
 int VideoEveryFrame::handle_event()
 {
-	pwindow->thread->preferences->video_every_frame = get_value();
-// 	if(!pwindow->thread->edl->session->video_every_frame)
-// 	{
-// 		playback_prefs->asynchronous->update(0, 0);
-// 		playback_prefs->asynchronous->disable();
-// 	}
-// 	else
-// 	{
-// 		playback_prefs->asynchronous->update(pwindow->thread->edl->session->video_asynchronous, 0);
-// 		playback_prefs->asynchronous->enable();
-// 	}
+	pwindow->thread->edl->session->video_every_frame = get_value();
+	return 1;
+}
+
+DisableMutedTracks::DisableMutedTracks(PreferencesWindow *pwindow, 
+	PlaybackPrefs *playback_prefs,
+	int x, 
+	int y)
+ : BC_CheckBox(x, y, pwindow->thread->edl->session->disable_muted, _("Disable muted video tracks"))
+{
+	this->pwindow = pwindow;
+	this->playback_prefs = playback_prefs;
+}
+
+int DisableMutedTracks::handle_event()
+{
+	pwindow->thread->edl->session->disable_muted = get_value();
+	return 1;
+}
+
+OnlyTop::OnlyTop(PreferencesWindow *pwindow, 
+	PlaybackPrefs *playback_prefs,
+	int x, 
+	int y)
+ : BC_CheckBox(x, y, pwindow->thread->edl->session->only_top, _("Play only 1 video track"))
+{
+	this->pwindow = pwindow;
+	this->playback_prefs = playback_prefs;
+}
+
+int OnlyTop::handle_event()
+{
+	pwindow->thread->edl->session->only_top = get_value();
 	return 1;
 }
 

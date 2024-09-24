@@ -46,6 +46,7 @@ class PlaybackRealTime;
 class PlaybackSoftwareTimer;
 class PlaybackViewFollows;
 class PlaybackWhiteBalanceRaw;
+class DisableMutedTracks;
 //class VideoAsynchronous;
 
 #include "adeviceprefs.h"
@@ -155,6 +156,30 @@ class VideoEveryFrame : public BC_CheckBox
 {
 public:
 	VideoEveryFrame(PreferencesWindow *pwindow, 
+		PlaybackPrefs *playback_prefs,
+		int x, 
+		int y);
+	int handle_event();
+	PreferencesWindow *pwindow;
+	PlaybackPrefs *playback_prefs;
+};
+
+class DisableMutedTracks : public BC_CheckBox
+{
+public:
+	DisableMutedTracks(PreferencesWindow *pwindow, 
+		PlaybackPrefs *playback_prefs,
+		int x, 
+		int y);
+	int handle_event();
+	PreferencesWindow *pwindow;
+	PlaybackPrefs *playback_prefs;
+};
+
+class OnlyTop : public BC_CheckBox
+{
+public:
+	OnlyTop(PreferencesWindow *pwindow, 
 		PlaybackPrefs *playback_prefs,
 		int x, 
 		int y);

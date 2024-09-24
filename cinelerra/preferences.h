@@ -153,8 +153,6 @@ public:
 	VideoInConfig *vconfig_in;
 	AudioInConfig *aconfig_in;
 	Asset *recording_format;
-// play every frame
-	int video_every_frame;  
 	int view_follows_playback;
 	int playback_software_position;
 // Play audio in realtime priority

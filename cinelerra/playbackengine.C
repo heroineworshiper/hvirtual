@@ -350,7 +350,7 @@ double PlaybackEngine::get_tracking_position()
 
 
 // Don't interpolate when every frame is played.
-		if(MWindow::preferences->video_every_frame &&
+		if(command->get_edl()->session->video_every_frame &&
 			render_engine &&
 			render_engine->do_video)
 		{

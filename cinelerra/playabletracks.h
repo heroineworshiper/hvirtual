@@ -39,12 +39,15 @@ public:
 	~PlayableTracks();
 
 // return 1 if the track is playable at the position
-	int is_playable(Track *current_track, 
+	int is_playable(EDL *edl,
+        Track *current_track, 
 		int64_t position,
 		int direction /*,
 		int use_nudge */);
 // return 1 if the track is in the list
 	int is_listed(Track *track);
+// return 1 if the arrays differ
+    int compare(PlayableTracks *that);
 
 	int data_type;
 	MWindow *mwindow;

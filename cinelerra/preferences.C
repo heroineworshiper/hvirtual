@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -227,7 +227,6 @@ void Preferences::copy_from(Preferences *that)
 	vconfig_in->copy_from(that->vconfig_in);
 	playback_config->copy_from(that->playback_config);
 	playback_software_position = that->playback_software_position;
-	video_every_frame = that->video_every_frame;
 	view_follows_playback = that->view_follows_playback;
 	real_time_playback = that->real_time_playback;
 	scrub_chop = that->scrub_chop;
@@ -339,7 +338,6 @@ int Preferences::load_defaults(BC_Hash *defaults)
 
 	playback_config->load_defaults(defaults);
 	view_follows_playback = defaults->get("VIEW_FOLLOWS_PLAYBACK", 1);
-	video_every_frame = defaults->get("VIDEO_EVERY_FRAME", 1);
 	real_time_playback = defaults->get("PLAYBACK_REALTIME", 0);
 	scrub_chop = defaults->get("SCRUB_CHOP", 1);
 	playback_software_position = defaults->get("PLAYBACK_SOFTWARE_POSITION", 0);
@@ -541,7 +539,6 @@ int Preferences::save_defaults(BC_Hash *defaults)
 	playback_config->save_defaults(defaults);
     defaults->update("PLAYBACK_REALTIME", real_time_playback);
     defaults->update("SCRUB_CHOP", scrub_chop);
-    defaults->update("VIDEO_EVERY_FRAME", video_every_frame);
     defaults->update("VIEW_FOLLOWS_PLAYBACK", view_follows_playback);
     defaults->update("PLAYBACK_SOFTWARE_POSITION", playback_software_position);
 	recording_format->save_defaults(defaults,

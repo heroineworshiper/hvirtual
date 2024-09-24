@@ -36,6 +36,9 @@ int EDLSession::current_id = 0;
 
 EDLSession::EDLSession(EDL *edl)
 {
+    video_every_frame = 0;
+    disable_muted = 0;
+    only_top = 0;
 	proxy_scale = 1;
 	highlighted_track = 0;
 	playback_cursor_visible = 0;
@@ -121,7 +124,10 @@ int EDLSession::need_rerender(EDLSession *ptr)
 		(subtitle_number != ptr->subtitle_number) ||
 		(interpolate_raw != ptr->interpolate_raw) ||
 		(white_balance_raw != ptr->white_balance_raw) ||
-		(proxy_scale != ptr->proxy_scale);
+		(proxy_scale != ptr->proxy_scale) ||
+        (disable_muted != ptr->disable_muted) ||
+        (only_top != ptr->only_top) ||
+        (video_every_frame != ptr->video_every_frame);
 }
 
 void EDLSession::equivalent_output(EDLSession *session, double *result)
@@ -136,7 +142,9 @@ void EDLSession::equivalent_output(EDLSession *session, double *result)
 		session->mpeg4_deblock != mpeg4_deblock ||
 		session->decode_subtitles != decode_subtitles ||
 		session->subtitle_number != subtitle_number ||
-		session->proxy_scale != proxy_scale)
+		session->proxy_scale != proxy_scale ||
+        session->disable_muted != disable_muted ||
+        session->only_top != only_top)
 		*result = 0;
 
 // If it's before the current brender_start, render extra data.
@@ -268,6 +276,9 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 
 	decode_subtitles = defaults->get("DECODE_SUBTITLES", decode_subtitles);
 	subtitle_number = defaults->get("SUBTITLE_NUMBER", subtitle_number);
+	video_every_frame = defaults->get("VIDEO_EVERY_FRAME", video_every_frame);
+    disable_muted = defaults->get("DISABLE_MUTED", disable_muted);
+    only_top = defaults->get("ONLY_TOP", only_top);
 
 	vwindow_zoom = defaults->get("VWINDOW_ZOOM", (float)1);
 	boundaries();
@@ -379,6 +390,9 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 
 	defaults->update("DECODE_SUBTITLES", decode_subtitles);
 	defaults->update("SUBTITLE_NUMBER", subtitle_number);
+	defaults->update("VIDEO_EVERY_FRAME", video_every_frame);
+	defaults->update("DISABLE_MUTED", disable_muted);
+	defaults->update("ONLY_TOP", only_top);
 
 
 	return 0;
@@ -451,6 +465,10 @@ int EDLSession::load_video_config(FileXML *file, int append_mode, uint32_t load_
 {
 	char string[BCTEXTLEN];
 	if(append_mode) return 0;
+
+	video_every_frame = file->tag.get_property("VIDEO_EVERY_FRAME", video_every_frame);
+    disable_muted = file->tag.get_property("DISABLE_MUTED", disable_muted);
+    only_top = file->tag.get_property("ONLY_TOP", only_top);
 	proxy_scale = file->tag.get_property("PROXY_SCALE", proxy_scale);
 	interpolation_type = file->tag.get_property("INTERPOLATION_TYPE", interpolation_type);
 	interpolate_raw = file->tag.get_property("INTERPOLATE_RAW", interpolate_raw);
@@ -626,7 +644,7 @@ int EDLSession::save_xml(FileXML *file)
 
 
 	file->tag.set_property("DECODE_SUBTITLES", decode_subtitles);
-	file->tag.set_property("subtitle_number", subtitle_number);
+	file->tag.set_property("SUBTITLE_NUMBER", subtitle_number);
 
 
 
@@ -641,6 +659,9 @@ int EDLSession::save_video_config(FileXML *file)
 {
 	char string[BCTEXTLEN];
 	file->tag.set_title("VIDEO");
+	file->tag.set_property("VIDEO_EVERY_FRAME", video_every_frame);
+	file->tag.set_property("DISABLE_MUTED", disable_muted);
+	file->tag.set_property("ONLY_TOP", only_top);
 	file->tag.set_property("PROXY_SCALE", proxy_scale);
 	file->tag.set_property("INTERPOLATION_TYPE", interpolation_type);
 	file->tag.set_property("INTERPOLATE_RAW", interpolate_raw);
@@ -793,6 +814,9 @@ int EDLSession::copy(EDLSession *session)
 
 	subtitle_number = session->subtitle_number;
 	decode_subtitles = session->decode_subtitles;
+    video_every_frame = session->video_every_frame;
+    disable_muted = session->disable_muted;
+    only_top = session->only_top;
 	
 	return 0;
 }

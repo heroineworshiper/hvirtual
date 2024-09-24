@@ -309,7 +309,7 @@ int VirtualVNode::render_as_module(VFrame *video_out,
 	get_mute_fragment(start_position,
 			mute_constant, 
 			mute_fragment, 
-			(Autos*)((VTrack*)track)->automation->autos[AUTOMATION_MUTE],
+			track->automation->autos[AUTOMATION_MUTE],
 			direction,
 			0);
 

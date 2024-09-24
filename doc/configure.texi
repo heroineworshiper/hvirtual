@@ -441,34 +441,69 @@ and their parameters are described in the sound driver section.
 @node VIDEO OUT
 @subsection VIDEO OUT
 
-These determine how video gets from the timeline to your eyes.
+These determine how video gets from the timeline to the screen.
 
 @itemize
 
 
-@item PLAY EVERY FRAME
+@item @b{PLAY EVERY FRAME}
 
 Causes every frame of video to be displayed even if it means falling
-behind the audio.  This should always be on unless you use mostly
-uncompressed codecs.  Most compressed codecs don't support frame
-dropping anymore.
+behind the audio.  This is normally used for previewing motion effects
+which depend on temporal information.  If they skip any frames, they
+don't give an accurate motion estimate.
+
+@end itemize
+
+The next 2 options are optimizations for straight editing without
+compositing.  These break most compositing.
+
+@itemize
+
+@item @b{DISABLE MUTED VIDEO TRACKS}
+
+Muted tracks are not rendered, regardless of dependencies.
+
+@item @b{PLAY ONLY 1 VIDEO TRACK}
+
+Only the 1st track with data is rendered, regardless of dependencies.
+
+@end itemize
+
+Because of nested EDLs & random access plugins, projects have to
+normally render all the playable tracks to catch all the compositing
+scenarios.  It can be extremely slow if you're not doing compositing.
+
+If both options are selected, the project can select between 2 tracks by
+toggling just the top mute curve.  This is useful for non destructive
+multicam editing.
+
+If only @b{DISABLE MUTED VIDEO TRACKS} is selected, projects can elect
+to disable tracks by just using their mute curves while keeping the
+option always selected.
+
+If only @b{PLAY ONLY 1 VIDEO TRACK} is selected, users can select the
+playable track by stacking edits instead of manipulating mute curves. 
+This only plays the top track with an edit or plugin at the position.
+
+Full compositing is rarely used enough that these options will probably
+be on most of the time.  The trick with using mute keyframes instead of
+play keyframes is the play patch can be used to solo the track without
+changing the project.
+
+@itemize
 
 
+@item @b{CPU SCALING QUALITY}
 
-
-@item
-
-SCALING EQUATION
-
-When video playback involves any kind of scaling or translation, this
-algorithm is used.  This doesn't affect any other operation besides
-scaling.  When using OpenGL, it always scales using linear
+When video playback involves any kind of scaling or translation in the
+CPU, this algorithm is used.  This doesn't affect any other operation
+besides scaling.  When using OpenGL, it always scales using linear
 interpolation.
 
 @itemize
 
-@item
-LOW QUALITY
+@item @b{LOW}
 
 This uses nearest neighbor interpolation when scaling in software. 
 Produces jagged edges and uneven motion but it can extract higher
@@ -476,9 +511,7 @@ resolution when downscaling video in a multiple of pixels.  A common
 trick is downscaling 4k to 2k using LOW QUALITY.
 
 
-@item
-
-HIGH QUALITY
+@item @b{HIGH}
 
 This applies higher quality interpolation than linear when scaling in
 software but results in softer images when scaling a multiple of
@@ -503,6 +536,11 @@ away, it's been an artifact.
 @item 
 
 DVD SUBTITLE TO DISPLAY
+
+The recommended way to view subtitles is to extract them with programs
+like mkvextract, subtomov, & the titler.  This option has largely become
+an artifact.  You're not supposed to watch pirated movies in Cinelerra &
+enhance their crummy quality with it anyway.
 
 DVD IFO files usually contain subtitle tracks.  These must be decoded
 with by the MPEG decoder.  Select @b{Enable subtitles} to enable

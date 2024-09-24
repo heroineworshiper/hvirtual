@@ -247,7 +247,7 @@ public:
 	float get_min_db();
 	int get_samplerate();
 	float get_framerate();
-	int get_everyframe();
+//	int get_everyframe();
 	int get_time_format();
 	int get_realtime();
 	float get_frame_rate();

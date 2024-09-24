@@ -415,7 +415,7 @@ void VRender::run()
 // Frame rendered late or this is the first frame.  Flash it now.
 				flash_output();
 
-				if(MWindow::preferences->video_every_frame)
+				if(renderengine->get_edl()->session->video_every_frame)
 				{
 // User wants every frame.
 					frame_step = 1;

@@ -195,28 +195,41 @@ int VirtualConsole::test_reconfigure(int64_t position,
 
 
 // Test playback status against virtual console for current position.
-	for(current_track = renderengine->get_edl()->tracks->first;
-		current_track && !result;
-		current_track = current_track->next)
-	{
-		if(current_track->data_type == data_type)
-		{
-// Playable status changed
-			if(playable_tracks->is_playable(current_track, 
-				commonrender->current_position,
-				direction /*,
-				1 */))
-			{
-				if(!playable_tracks->is_listed(current_track))
-					result = 1;
-			}
-			else
-			if(playable_tracks->is_listed(current_track))
-			{
-				result = 1;
-			}
-		}
-	}
+// Create a new PlayableTracks & compare the arrays
+    PlayableTracks new_playable_tracks(renderengine->get_edl(), 
+		position, 
+		direction,
+		data_type);
+    if(new_playable_tracks.compare(playable_tracks)) result = 1;
+
+//     int disable_lower = 0;
+// 	for(current_track = renderengine->get_edl()->tracks->first;
+// 		current_track && !result;
+// 		current_track = current_track->next)
+// 	{
+// 		if(current_track->data_type == data_type)
+// 		{
+// // Playable status changed
+// 			if(playable_tracks->is_playable(renderengine->get_edl(),
+//                 current_track, 
+// 				commonrender->current_position,
+// 				direction /*,
+// 				1 */) &&
+//                 !disable_lower)
+// 			{
+// 				if(!playable_tracks->is_listed(current_track))
+// 					result = 1;
+// // disable all tracks below the 1st unmuted
+//                 if(renderengine->get_edl()->session->disable_muted &&
+//                     data_type == TRACK_VIDEO) disable_lower = 1;
+// 			}
+// 			else
+// 			if(playable_tracks->is_listed(current_track))
+// 			{
+// 				result = 1;
+// 			}
+// 		}
+// 	}
 
 // Test plugins against virtual console at current position
 	for(int i = 0; i < commonrender->total_modules && !result; i++)
