@@ -305,6 +305,7 @@ int mpeg3_get_file_type(mpeg3_t *file,
 					mpeg3io_close_file(file->fs);
 					return result;
 				}
+//printf("mpeg3_get_file_type %d toc_atracks=%d\n", __LINE__, *toc_atracks);
 			}
 			else
 			{
@@ -458,7 +459,7 @@ if(debug) printf("mpeg3_open_copy %d\n", __LINE__);
 
 
 
-if(debug) printf("mpeg3_open_copy %d\n", __LINE__);
+//printf("mpeg3_open_copy %d toc_atracks=%d\n", __LINE__, toc_atracks);
 
 
 /* Create titles */
@@ -525,6 +526,7 @@ if(debug) printf("mpeg3_open_copy %d\n", __LINE__);
 					file->demuxer,
 					file->total_astreams);
 				if(file->atrack[file->total_astreams]) file->total_astreams++;
+//printf("mpeg3_open_copy %d total_astreams=%d\n", __LINE__, file->total_astreams);
 			}
 		}
 	}

@@ -1365,8 +1365,9 @@ static int get_program_pes_packet(mpeg3_demuxer_t *demuxer, unsigned int header)
 		if((demuxer->stream_id == 0xbd || 
             demuxer->stream_id == 0xbf) && 
 			mpeg3io_next_char(title->fs) != 0xff &&
-			((mpeg3io_next_char(title->fs) & 0xf0) == 0x20 || // DVD
-            (mpeg3io_next_char(title->fs) & 0xf0) == 0x80)) // VOBSUB
+			((mpeg3io_next_char(title->fs) & 0xf0) == 0x20 // DVD
+// VOBSUB breaks DVD audio
+            /* || (mpeg3io_next_char(title->fs) & 0xf0) == 0x80 */)) 
 		{
 /* DVD subtitle data */
 			int stream_id = demuxer->stream_id = mpeg3io_read_char(title->fs);

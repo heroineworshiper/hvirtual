@@ -402,7 +402,10 @@ if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
 
 // Determine if the file needs a table of contents and create one if needed.
 // If it has video it must be scanned since video has keyframes.
-if(debug) printf("FileMPEG::open_file %d\n", __LINE__);
+// if(debug) printf("FileMPEG::open_file %d audio_data=%d video_data=%d\n", 
+// __LINE__,
+// asset->audio_data,
+// asset->video_data);
 			if(mpeg3_total_vstreams(fd))
 			{
                 if(file->disable_toc_creation)

@@ -41,6 +41,7 @@ mpeg3_atrack_t* mpeg3_new_atrack(mpeg3_t *file,
 	if(!new_atrack->audio)
 	{
 /* Failed */
+        printf("mpeg3_new_atrack %d failed to create audio\n", __LINE__);
 		mpeg3_delete_atrack(file, new_atrack);
 		new_atrack = 0;
 	}

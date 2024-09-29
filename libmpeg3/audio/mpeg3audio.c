@@ -51,12 +51,13 @@ static int read_header(mpeg3audio_t *audio)
 	switch(track->format)
 	{
 		case AUDIO_AC3:
-//printf("read_header %d audio->packet_position=%d\n", __LINE__, audio->packet_position);
+//printf("read_header %d AUDIO_AC3 audio->packet_position=%d\n", __LINE__, audio->packet_position);
 #if 1
 			audio->packet_position = 8;
 			result = mpeg3demux_read_data(track->demuxer, 
 				audio->packet_buffer + 1, 
 				7);
+//printf("read_header %d result=%d\n", __LINE__, result);
 
 
 			do
@@ -288,7 +289,7 @@ static int read_header(mpeg3audio_t *audio)
 static int delete_struct(mpeg3audio_t *audio)
 {
 	int i;
-	 mpeg3_atrack_t *track = audio->track;
+	mpeg3_atrack_t *track = audio->track;
 
 	if(audio->output)
 	{
@@ -600,7 +601,7 @@ mpeg3audio_t* mpeg3audio_new(mpeg3_t *file,
 	if(file->seekable)
 		if(calculate_format(file, track)) result = 1;
 
-//printf("mpeg3audio_new %lld\n", mpeg3demux_tell_byte(track->demuxer));
+//printf("mpeg3audio_new %d %d\n", __LINE__, (int)mpeg3demux_tell_byte(track->demuxer));
 /* get stream parameters */
 	if(!result && file->seekable)
 	{
@@ -628,11 +629,11 @@ mpeg3audio_t* mpeg3audio_new(mpeg3_t *file,
 		if(file->is_audio_stream)
 			audio->start_byte = mpeg3demux_tell_byte(demuxer) - 
 				file->packet_size;
-// printf("mpeg3audio_new 1 %d %d %d start_byte=0x%llx\n", 
+// printf("mpeg3audio_new %d format=%d result=%d start_byte=%d\n", 
+// __LINE__,
 // track->format, 
-// audio->layer_decoder->layer, 
 // result,
-// audio->start_byte);
+// (int)audio->start_byte);
 	}
 
 
@@ -657,6 +658,7 @@ mpeg3audio_t* mpeg3audio_new(mpeg3_t *file,
 	else
 	if(file->seekable)
 	{
+printf("mpeg3audio_new %d\n", __LINE__);
 		delete_struct(audio);
 		audio = 0;
 	}
