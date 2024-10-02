@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -309,6 +309,22 @@ void ScopeUnit::process_package(LoadPackage *package)
 			}
 			break;
 			
+
+		case BC_YUV444P:
+			for(int i = pkg->row1; i < pkg->row2; i++)
+			{
+				unsigned char *y_row = gui->output_frame->get_y() + i * gui->output_frame->get_w();
+				unsigned char *u_row = gui->output_frame->get_u() + i * gui->output_frame->get_w();
+				unsigned char *v_row = gui->output_frame->get_v() + i * gui->output_frame->get_w();
+				for(int j = 0; j < w; j++)
+				{
+					PROCESS_YUV_PIXEL(j, *y_row, *u_row, *v_row);
+					y_row++;
+					u_row++;
+					v_row++;
+				}
+			}
+			break;
 
 		case BC_YUV420P:
 			for(int i = pkg->row1; i < pkg->row2; i++)
