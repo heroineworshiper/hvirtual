@@ -440,6 +440,9 @@ int MotionLookahead::process_buffer(VFrame *frame,
             frames_start += diff;
             frames_read -= diff;
             frames_scanned -= diff;
+            if(frames_start < 0) frames_start = 0;
+            if(frames_read < 0) frames_read = 0;
+            if(frames_scanned < 0) frames_scanned = 0;
         }
         else
         if(get_direction() == PLAY_REVERSE &&
@@ -462,6 +465,9 @@ int MotionLookahead::process_buffer(VFrame *frame,
             frames_start -= diff;
             frames_read -= diff;
             frames_scanned -= diff;
+            if(frames_start < 0) frames_start = 0;
+            if(frames_read < 0) frames_read = 0;
+            if(frames_scanned < 0) frames_scanned = 0;
         }
         else
         if(start_position == frames_start)
@@ -532,6 +538,11 @@ int MotionLookahead::process_buffer(VFrame *frame,
             else
             {
                 dst = frames.get(frames_read);
+printf("MotionLookahead::process_buffer %d frames_read=%d frames=%d dst=%p\n", 
+__LINE__, 
+frames_read,
+frames.size(),
+dst);
             }
 
             int64_t position;

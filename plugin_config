@@ -3,7 +3,7 @@ CFLAGS += -I../ -I../../cinelerra \
 	-I../../quicktime \
 	-I../colors \
 	-fPIC \
-	
+
 #	-g
 
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)
@@ -12,7 +12,7 @@ $(shell echo $(LFLAGS) > $(OBJDIR)/l_flags)
 
 $(OUTPUT): $(OBJS)
 	$(LDLINKER) -o $(OUTPUT) $(OBJS) `cat $(OBJDIR)/l_flags`
-	strip $(OUTPUT)
+#	strip $(OUTPUT)
 
 
 install:
