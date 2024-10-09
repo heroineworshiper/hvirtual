@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2016 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +23,10 @@
 
 
 #include "affine.inc"
+#include "guicast.h"
 #include "loadbalance.h"
 #include "motioncache.inc"
+#include "pluginclient.inc"
 #include "vframe.inc"
 #include <stdint.h>
 
@@ -259,6 +260,23 @@ private:
 	double rotation_range;
 };
 
+
+class TrackingType : public BC_PopupMenu
+{
+public:
+	TrackingType(int *output, 
+        PluginClient *plugin, 
+        BC_WindowBase *gui, 
+        int x, 
+        int y);
+	int handle_event();
+	void create_objects();
+	static int calculate_w(BC_WindowBase *gui);
+	static int from_text(const char *text);
+	static const char* to_text(int mode);
+	PluginClient *plugin;
+    int *output;
+};
 
 
 #endif

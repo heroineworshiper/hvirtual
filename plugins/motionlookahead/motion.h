@@ -77,6 +77,7 @@ public:
 	int draw_vectors;
 // frames to look ahead
     int frames;
+    int tracking_type;
 };
 
 class MotionVector

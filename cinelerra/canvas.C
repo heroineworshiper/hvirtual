@@ -435,13 +435,13 @@ void Canvas::get_transfers(EDL *edl,
 			float out_h = canvas_y2 - canvas_y1;
             float aspect_ratio = edl->get_aspect_ratio();
 
-// compute auto aspect ratio from the recording size
+// always square pixels for recording.  See also RecordMonitorCanvas::zoom_resize_window
             if(use_rwindow && edl->session->auto_aspect)
             {
                 aspect_ratio = (float)MWindow::preferences->vconfig_in->w / 
                     MWindow::preferences->vconfig_in->h;
             }
-            
+
 			if(out_w / out_h > aspect_ratio)
 			{
 				out_w = (int)(out_h * aspect_ratio + 0.5);

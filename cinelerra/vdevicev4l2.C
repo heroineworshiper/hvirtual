@@ -191,6 +191,7 @@ VDeviceV4L2Thread::VDeviceV4L2Thread(VideoDevice *device, int color_model)
 	this->device = device;
 	this->color_model = color_model;
 
+//    printf("VDeviceV4L2Thread::VDeviceV4L2Thread %d color_model=%d\n", __LINE__, color_model);
 	video_lock = new Condition(0, "VDeviceV4L2Thread::video_lock");
 	buffer_lock = new Mutex("VDeviceV4L2Thread::buffer_lock");
 	ioctl_lock = new Mutex("VDeviceV4L2Thread::ioctl_lock");
@@ -306,7 +307,7 @@ void VDeviceV4L2Thread::run()
 	int error = 0;
 	Thread::enable_cancel();
 
-printf("VDeviceV4L2Thread::run %d\n", __LINE__);
+//printf("VDeviceV4L2Thread::run %d\n", __LINE__);
 
 
 	if((input_fd = open(device->in_config->v4l2_in_device, 
@@ -1117,7 +1118,9 @@ int VDeviceV4L2::has_signal()
 int VDeviceV4L2::read_buffer(VFrame *frame)
 {
 	int result = 0;
-//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
+// printf("VDeviceV4L2::read_buffer %d color_model=%d\n", 
+// __LINE__, 
+// frame->get_color_model());
 
 	if((device->channel_changed || device->picture_changed) && thread)
 	{
@@ -1142,9 +1145,9 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 			int timed_out;
 //printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
 			VFrame *buffer = thread->get_buffer(&timed_out);
-//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
 			if(buffer)
 			{
+//printf("VDeviceV4L2::read_buffer %d color_model=%d\n", __LINE__, buffer->get_color_model());
 				thread->put_buffer();
 			}
 			
@@ -1184,13 +1187,13 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 		}
 		else
 		{
+//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
 			frame->copy_from(buffer);
+//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
 		}
 
 		thread->put_buffer();
 
-//printf("VDeviceV4L2::read_buffer %d\n", 
-//__LINE__);
 
 	}
 	else

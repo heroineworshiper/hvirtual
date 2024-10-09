@@ -116,8 +116,11 @@ int BC_Hash::save_string(char* &string)
 }
 
 
-const char* BC_Hash::get(const char *key, char *value, int instance)
+const char* BC_Hash::get(const char *key_, char *value, int instance)
 {
+    char key[BCTEXTLEN];
+    fix_spaces(key, key_);
+
     auto range = db.equal_range(key);
     int count = 0;
     for(auto i = range.first; i != range.second; i++)
@@ -179,9 +182,11 @@ string* BC_Hash::get(const char *name, string *default_)
 
 
 
-int BC_Hash::update(const char *key, const char *value, int instance)
+int BC_Hash::update(const char *key_, const char *value, int instance)
 {
     string *dst = 0;
+    char key[BCTEXTLEN];
+    fix_spaces(key, key_);
 
     if(key[0] == 0 && value[0] == 0)
     {
@@ -301,7 +306,21 @@ const char* BC_Hash::get_value(int number)
 	return 0;
 }
 
-
+char* BC_Hash::fix_spaces(char *dst, const char *src)
+{
+    const char *src_ptr = src;
+    char *dst_ptr = dst;
+    while(*src_ptr)
+    {
+        if(*src_ptr == ' ') 
+            *dst_ptr++ = '_';
+        else
+            *dst_ptr++ = *src_ptr;
+        src_ptr++;
+    }
+    *dst_ptr++ = 0;
+    return dst;
+}
 
 
 void BC_Hash::dump()

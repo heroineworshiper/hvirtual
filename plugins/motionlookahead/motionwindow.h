@@ -23,6 +23,7 @@
 
 #include "guicast.h"
 #include "motion.inc"
+#include "motionscan.inc"
 
 
 
@@ -124,7 +125,7 @@ public:
     MotionIPot *range_w;
     MotionIPot *range_h;
     MotionSlider *frames;
-
+    TrackingType *tracking_type;
 };
 
 

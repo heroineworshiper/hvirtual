@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2016-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2016-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +21,11 @@
 #include "affine.h"
 #include "bcsignals.h"
 #include "clip.h"
+#include "language.h"
 #include "motioncache.h"
 #include "motionscan.h"
 #include "mutex.h"
+#include "pluginclient.h"
 #include "vframe.h"
 
 
@@ -1750,6 +1751,80 @@ void MotionScan::clamp_scan(int w,
 // *scan_y2,
 // use_absolute);
 }
+
+
+
+
+
+
+TrackingType::TrackingType(int *output, 
+    PluginClient *plugin, 
+    BC_WindowBase *gui, 
+    int x, 
+    int y)
+ : BC_PopupMenu(x, 
+ 	y, 
+	calculate_w(gui),
+	to_text(*output))
+{
+	this->output = output;
+    this->plugin = plugin;
+}
+
+int TrackingType::handle_event()
+{
+	*output = from_text(get_text());
+	plugin->send_configure_change();
+	return 1;
+}
+
+void TrackingType::create_objects()
+{
+	add_item(new BC_MenuItem(to_text(MotionScan::NO_CALCULATE)));
+	add_item(new BC_MenuItem(to_text(MotionScan::CALCULATE)));
+	add_item(new BC_MenuItem(to_text(MotionScan::SAVE)));
+	add_item(new BC_MenuItem(to_text(MotionScan::LOAD)));
+}
+
+int TrackingType::from_text(const char *text)
+{
+	if(!strcmp(text, _("Don't Calculate"))) return MotionScan::NO_CALCULATE;
+	if(!strcmp(text, _("Recalculate"))) return MotionScan::CALCULATE;
+	if(!strcmp(text, _("Save coords to /tmp"))) return MotionScan::SAVE;
+	if(!strcmp(text, _("Load coords from /tmp"))) return MotionScan::LOAD;
+    return 0;
+}
+
+const char* TrackingType::to_text(int mode)
+{
+	switch(mode)
+	{
+		case MotionScan::NO_CALCULATE:
+			return _("Don't Calculate");
+			break;
+		case MotionScan::CALCULATE:
+			return _("Recalculate");
+			break;
+		case MotionScan::SAVE:
+			return _("Save coords to /tmp");
+			break;
+		case MotionScan::LOAD:
+			return _("Load coords from /tmp");
+			break;
+	}
+    return 0;
+}
+
+int TrackingType::calculate_w(BC_WindowBase *gui)
+{
+	int result = 0;
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::NO_CALCULATE)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::CALCULATE)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::SAVE)));
+	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::LOAD)));
+	return result + 50;
+}
+
 
 
 

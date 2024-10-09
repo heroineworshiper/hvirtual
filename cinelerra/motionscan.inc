@@ -26,7 +26,7 @@
 
 
 class MotionScan;
-
+class TrackingType;
 
 
 #endif

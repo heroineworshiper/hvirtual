@@ -27,8 +27,8 @@
 #include "theme.h"
 
 
-#define WIDTH 375
-#define HEIGHT 160
+#define WIDTH DP(500)
+#define HEIGHT DP(100)
 
 QuestionWindow::QuestionWindow(MWindow *mwindow)
  : BC_Window(PROGRAM_NAME ": Question", 
@@ -46,14 +46,15 @@ QuestionWindow::~QuestionWindow()
 
 void QuestionWindow::create_objects(char *string, int use_cancel)
 {
+    int margin = MWindow::theme->widget_border;
 	lock_window("QuestionWindow::create_objects");
-	int x = 10, y = 10;
-	add_subwindow(new BC_Title(10, 10, string));
-	y += 30;
+	int x = margin, y = margin;
+    BC_Title *title;
+	add_subwindow(title = new BC_Title(x, y, string));
+	y += title->get_h() + margin;
 	add_subwindow(new QuestionYesButton(mwindow, this, x, y));
-	x += get_w() / 2;
+	x = get_w() - margin - BC_GenericButton::calculate_w(this, _("No"));
 	add_subwindow(new QuestionNoButton(mwindow, this, x, y));
-	x = get_w() - 100;
 	if(use_cancel) add_subwindow(new BC_CancelButton(x, y));
 	unlock_window();
 }

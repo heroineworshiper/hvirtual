@@ -21,6 +21,7 @@
 #include "clip.h"
 #include "language.h"
 #include "motion.h"
+#include "motionscan.h"
 #include "motionwindow.h"
 #include "theme.h"
 
@@ -182,8 +183,6 @@ int MotionSlider::handle_event()
 
 
 
-
-
 MotionLookaheadWindow::MotionLookaheadWindow(MotionLookahead *plugin)
  : PluginClientWindow(plugin,
  	DP(340), 
@@ -340,6 +339,16 @@ void MotionLookaheadWindow::create_objects()
         &plugin->config.draw_vectors,
         _("Draw vectors")));
 
+    y += draw_vectors->get_h() + widget_border;
+    BC_Title *title;
+	add_subwindow(title = new BC_Title(x, y, _("Calculation:")));
+    y += title->get_h() + widget_border;
+	add_subwindow(tracking_type = new TrackingType(&plugin->config.tracking_type,
+        plugin, 
+		this, 
+		x, 
+		y));
+	tracking_type->create_objects();
 
 	show_window(1);
 }

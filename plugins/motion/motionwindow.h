@@ -47,19 +47,6 @@ public:
 	MotionWindow *gui;
 };
 
-class TrackingType : public BC_PopupMenu
-{
-public:
-	TrackingType(MotionMain *plugin, MotionWindow *gui, int x, int y);
-	int handle_event();
-	void create_objects();
-	static int calculate_w(MotionWindow *gui);
-	static int from_text(char *text);
-	static char* to_text(int mode);
-	MotionMain *plugin;
-	MotionWindow *gui;
-};
-
 class TrackDirection : public BC_PopupMenu
 {
 public:

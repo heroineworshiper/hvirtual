@@ -94,6 +94,8 @@ public:
 	const char* get_value(int number);
 
 private:
+// replace spaces
+    char* fix_spaces(char *dst, const char *src);
     multimap<string, string> db;
 	string filename;        // filename the defaults are stored in
 };

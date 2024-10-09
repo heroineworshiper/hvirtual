@@ -225,7 +225,8 @@ void MotionWindow::create_objects()
 
 
 	add_subwindow(title = new BC_Title(x, y, _("Calculation:")));
-	add_subwindow(tracking_type = new TrackingType(plugin, 
+	add_subwindow(tracking_type = new TrackingType(&plugin->config.tracking_type,
+        plugin, 
 		this, 
 		x + title->get_w() + DP(10), 
 		y));
@@ -957,78 +958,6 @@ int ActionType::calculate_w(MotionWindow *gui)
 	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::NOTHING)));
 	return result + 50;
 }
-
-
-
-
-
-TrackingType::TrackingType(MotionMain *plugin, MotionWindow *gui, int x, int y)
- : BC_PopupMenu(x, 
- 	y, 
-	calculate_w(gui),
-	to_text(plugin->config.tracking_type))
-{
-	this->plugin = plugin;
-	this->gui = gui;
-}
-
-int TrackingType::handle_event()
-{
-	plugin->config.tracking_type = from_text(get_text());
-	plugin->send_configure_change();
-	return 1;
-}
-
-void TrackingType::create_objects()
-{
-	add_item(new BC_MenuItem(to_text(MotionScan::NO_CALCULATE)));
-	add_item(new BC_MenuItem(to_text(MotionScan::CALCULATE)));
-	add_item(new BC_MenuItem(to_text(MotionScan::SAVE)));
-	add_item(new BC_MenuItem(to_text(MotionScan::LOAD)));
-}
-
-int TrackingType::from_text(char *text)
-{
-	if(!strcmp(text, _("Don't Calculate"))) return MotionScan::NO_CALCULATE;
-	if(!strcmp(text, _("Recalculate"))) return MotionScan::CALCULATE;
-	if(!strcmp(text, _("Save coords to /tmp"))) return MotionScan::SAVE;
-	if(!strcmp(text, _("Load coords from /tmp"))) return MotionScan::LOAD;
-    return 0;
-}
-
-char* TrackingType::to_text(int mode)
-{
-	switch(mode)
-	{
-		case MotionScan::NO_CALCULATE:
-			return _("Don't Calculate");
-			break;
-		case MotionScan::CALCULATE:
-			return _("Recalculate");
-			break;
-		case MotionScan::SAVE:
-			return _("Save coords to /tmp");
-			break;
-		case MotionScan::LOAD:
-			return _("Load coords from /tmp");
-			break;
-	}
-    return 0;
-}
-
-int TrackingType::calculate_w(MotionWindow *gui)
-{
-	int result = 0;
-	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::NO_CALCULATE)));
-	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::CALCULATE)));
-	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::SAVE)));
-	result = MAX(result, BC_PopupMenu::calculate_w(gui, to_text(MotionScan::LOAD)));
-	return result + 50;
-}
-
-
-
-
 
 
 

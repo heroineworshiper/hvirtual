@@ -91,6 +91,7 @@ MotionLookaheadConfig::MotionLookaheadConfig()
 	draw_vectors = 1;
 // frames to look ahead
     frames = 60;
+    tracking_type = MotionScan::CALCULATE;
 }
 
 
@@ -106,7 +107,8 @@ int MotionLookaheadConfig::equivalent(MotionLookaheadConfig &that)
         do_rotate == that.do_rotate &&
         rotation_range == that.rotation_range &&
         draw_vectors == that.draw_vectors &&
-        frames == that.frames;
+        frames == that.frames &&
+        tracking_type == that.tracking_type;
 }
 
 void MotionLookaheadConfig::copy_from(MotionLookaheadConfig &that)
@@ -122,6 +124,7 @@ void MotionLookaheadConfig::copy_from(MotionLookaheadConfig &that)
     rotation_range = that.rotation_range;
     draw_vectors = that.draw_vectors;
     frames = that.frames;
+    tracking_type = that.tracking_type;
 }
 
 void MotionLookaheadConfig::interpolate(MotionLookaheadConfig &prev, 
@@ -212,6 +215,7 @@ void MotionLookahead::save_data(KeyFrame *keyframe)
 	output.tag.set_property("ROTATION_RANGE", config.rotation_range);
 	output.tag.set_property("DRAW_VECTORS", config.draw_vectors);
 	output.tag.set_property("FRAMES", config.frames);
+	output.tag.set_property("TRACKING_TYPE", config.tracking_type);
 	output.append_tag();
 	output.terminate_string();
 }
@@ -243,6 +247,7 @@ void MotionLookahead::read_data(KeyFrame *keyframe)
 				config.do_rotate = input.tag.get_property("ROTATE", config.do_rotate);
 				config.draw_vectors = input.tag.get_property("DRAW_VECTORS", config.draw_vectors);
 				config.frames = input.tag.get_property("FRAMES", config.frames);
+				config.tracking_type = input.tag.get_property("TRACKING_TYPE", config.tracking_type);
 			}
 		}
 	}
@@ -268,6 +273,8 @@ void MotionLookahead::update_gui()
 			gui->do_rotate->update(config.do_rotate);
 			gui->draw_vectors->update(config.draw_vectors);
 			gui->rotation_range->update(config.rotation_range);
+            gui->tracking_type->set_text(
+				TrackingType::to_text(config.tracking_type));
 			thread->window->unlock_window();
 		}
 	}
@@ -587,7 +594,7 @@ dst);
 		            config.block_x * w / 100,
 		            config.block_y * h / 100,
 		            MotionScan::PREVIOUS_SAME_BLOCK,
-		            MotionScan::CALCULATE,
+		            config.tracking_type,
 		            MotionScan::TRACK_PIXEL,
 		            0,
 		            0,

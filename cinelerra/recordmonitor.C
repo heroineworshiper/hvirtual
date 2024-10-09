@@ -777,9 +777,9 @@ RecordMonitorCanvas::RecordMonitorCanvas(MWindow *mwindow,
 	h, 
 	record->default_asset->width,
 	record->default_asset->height,
-	0,
-	0,
-	1)
+	0, // use_scrollbars
+	0, // use_cwindow
+	1) // use_rwindow
 {
 	this->window = window;
 	this->mwindow = mwindow;
@@ -824,14 +824,17 @@ int RecordMonitorCanvas::button_press_event()
 void RecordMonitorCanvas::zoom_resize_window(float percentage)
 {
 	int canvas_w, canvas_h;
-    float aspect_ratio = mwindow->edl->get_aspect_ratio();
-// compute auto aspect ratio from the recording size
-    if(mwindow->edl->session->auto_aspect)
-    {
-        aspect_ratio = (float)MWindow::preferences->vconfig_in->w / 
-            MWindow::preferences->vconfig_in->h;
-    }
+//     float aspect_ratio = mwindow->edl->get_aspect_ratio();
+// // compute auto aspect ratio from the recording size
+//     if(mwindow->edl->session->auto_aspect)
+//     {
+//         aspect_ratio = (float)MWindow::preferences->vconfig_in->w / 
+//             MWindow::preferences->vconfig_in->h;
+//     }
 
+// always use square pixels.  See also Canvas::get_transfers
+    float aspect_ratio = (float)record->default_asset->width / 
+        record->default_asset->height;
 
 	calculate_sizes(aspect_ratio, 
 		record->default_asset->width, 
@@ -842,6 +845,10 @@ void RecordMonitorCanvas::zoom_resize_window(float percentage)
 	int new_w, new_h;
 	new_w = canvas_w + (window->get_w() - mwindow->theme->rmonitor_canvas_w);
 	new_h = canvas_h + (window->get_h() - mwindow->theme->rmonitor_canvas_h);
+// printf("RecordMonitorCanvas::zoom_resize_window %d %d %d\n",
+// __LINE__,
+// canvas_w,
+// canvas_h);
 	window->resize_window(new_w, new_h);
 	window->resize_event(new_w, new_h);
 }
@@ -1027,6 +1034,7 @@ void RecordMonitorThread::init_output_format()
 
 		case CAPTURE_YUYV_WEBCAM:
 			output_colormodel = BC_YUV422;
+//			output_colormodel = BC_YUV422P;
 			break;
 
 		case VIDEO4LINUX:
@@ -1127,9 +1135,17 @@ int RecordMonitorThread::render_dv()
 
 void RecordMonitorThread::render_uncompressed()
 {
-// printf("RecordMonitorThread::render_uncompressed %d %d %p %p %p\n", 
+// printf("RecordMonitorThread::render_uncompressed %d %d %d %d %d\n",
+// __LINE__,
+// output_frame->get_w(),
+// output_frame->get_h(),
+// input_frame->get_w(),
+// input_frame->get_h());
+// printf("RecordMonitorThread::render_uncompressed %d %d %d %d %p %p %p\n", 
 // __LINE__, 
-// input_frame->get_data_size(),
+// input_frame->get_color_model(),
+// output_frame->get_color_model(),
+// (int)input_frame->get_data_size(),
 // input_frame->get_y(),
 // input_frame->get_u(),
 // input_frame->get_v());

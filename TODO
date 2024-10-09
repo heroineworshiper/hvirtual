@@ -9,7 +9,7 @@ BIG WISHLIST:
 ----------------------------
 Config window for screencap which specifies 
     a window, X & Y offset, screen corner, cursor.
-Load & save motion vectors in superstabilizer to allow changes in canvas size
+Specify color space as part of recording parameters.
 
 
 BIG BUGS

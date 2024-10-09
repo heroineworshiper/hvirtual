@@ -636,8 +636,8 @@ ChannelText::ChannelText(ChannelPicker *channel_picker,
 	channel_picker->current_channel_name(),
 	x, 
 	y, 
-	150, 
-	300)
+	DP(150), 
+	DP(300))
 {
 
 	this->channel_picker = channel_picker;
@@ -656,30 +656,30 @@ int ChannelText::handle_event()
 
 
 
-ChannelList::ChannelList(ChannelPicker *channel_picker, int x, int y)
- : BC_ListBox(x, 
- 		y, 
-		100, 
-		200,
-		LISTBOX_TEXT,                   // Display text list or icons
-		&channel_picker->channel_listitems, // Each column has an ArrayList of BC_ListBoxItems.
-		0,                       // Titles for columns.  Set to 0 for no titles
-		0,                      // width of each column
-		1,                     // Total columns.
-		0,                    // Pixel of top of window.
-		1)                   // If this listbox is a popup window
-{
-	this->channel_picker = channel_picker;
-}
-
-ChannelList::~ChannelList()
-{
-}
-	
-int ChannelList::handle_event()
-{
-	return 0;
-}
+// ChannelList::ChannelList(ChannelPicker *channel_picker, int x, int y)
+//  : BC_ListBox(x, 
+//  		y, 
+// 		DP(100), 
+// 		DP(200),
+// 		LISTBOX_TEXT,                   // Display text list or icons
+// 		&channel_picker->channel_listitems, // Each column has an ArrayList of BC_ListBoxItems.
+// 		0,                       // Titles for columns.  Set to 0 for no titles
+// 		0,                      // width of each column
+// 		1,                     // Total columns.
+// 		0,                    // Pixel of top of window.
+// 		1)                   // If this listbox is a popup window
+// {
+// 	this->channel_picker = channel_picker;
+// }
+// 
+// ChannelList::~ChannelList()
+// {
+// }
+// 	
+// int ChannelList::handle_event()
+// {
+// 	return 0;
+// }
 
 
 

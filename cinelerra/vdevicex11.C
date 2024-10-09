@@ -569,6 +569,13 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 			output_y2 == device->out_h &&
 			!canvas->xscroll &&
 			!canvas->yscroll);
+// printf("VDeviceX11::new_output_buffer %d canvas: %dx%d %d %d\n",
+// __LINE__,
+// (int)canvas_w,
+// (int)canvas_h,
+// (int)canvas_y1,
+// (int)canvas_y2);
+
 // printf("VDeviceX11::new_output_buffer %d x1=%d y1=%d x2=%d y2=%d out_w=%d out_h=%d display_colormodel=%d\n",
 // __LINE__,
 // (int)output_x1,
@@ -946,6 +953,12 @@ void VDeviceX11::output_to_bitmap(VFrame *output_frame)
         else
         {
 // all other modes multiply alpha with black
+// printf("VDeviceX11::output_to_bitmap %d bitmap: %dx%d output_frame: %dx%d\n",
+// __LINE__,
+// bitmap->get_w(),
+// bitmap->get_h(),
+// output_frame->get_w(),
+// output_frame->get_h());
 // printf("VDeviceX11::output_to_bitmap %d %d %d\n", 
 // __LINE__, 
 // output_frame->get_color_model(), 
@@ -985,7 +998,10 @@ int VDeviceX11::write_buffer(VFrame *output_frame, EDL *edl)
 
 
 
-//printf("VDeviceX11::write_buffer %d bitmap_type=%d\n", __LINE__, bitmap_type);
+// printf("VDeviceX11::write_buffer %d bitmap_type=%d driver=%d\n", 
+// __LINE__, 
+// bitmap_type,
+// device->out_config->driver);
 
 
 

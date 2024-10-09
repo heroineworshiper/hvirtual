@@ -30,6 +30,7 @@
 #include "filesystem.h"
 #include "mwindow.h"
 #include "theme.h"
+#include "videodevice.inc"
 #include <string.h>
 
 extern "C"
@@ -633,6 +634,7 @@ int FileStdout::write_samples(double **buffer,
 // the user must set the colormodel in the encoding parameters
 int FileStdout::get_best_colormodel(Asset *asset, int driver)
 {
+    if(driver == CAPTURE_YUYV_WEBCAM) return BC_YUV422;
 	return asset->command_cmodel;
 }
 
