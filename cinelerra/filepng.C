@@ -155,7 +155,9 @@ int FilePNG::can_copy_from(Asset *asset, int64_t position)
 // }
 
 
-int FilePNG::get_best_colormodel(Asset *asset, int driver)
+int FilePNG::get_best_colormodel(Asset *asset, 
+    VideoInConfig *in_config, 
+    VideoOutConfig *out_config)
 {
 	if(asset->png_use_alpha)
 		return BC_RGBA8888;

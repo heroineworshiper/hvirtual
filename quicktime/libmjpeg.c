@@ -693,9 +693,16 @@ static void get_mcu_rows(mjpeg_t *mjpeg,
 			if(i > 0 && j >= 8 && mjpeg->jpeg_color_model == BC_YUV420P) break;
 
 			scanline = start_row;
-			if(i > 0 && mjpeg->jpeg_color_model == BC_YUV420P) scanline /= 2;
+            int chroma_factor = 1;
+			if(i > 0 && mjpeg->jpeg_color_model == BC_YUV420P)
+            {
+                chroma_factor = 2;
+            }
+            scanline /= chroma_factor;
 			scanline += j;
-			if(scanline >= engine->coded_field_h) scanline = engine->coded_field_h - 1;
+			if(scanline >= engine->coded_field_h / chroma_factor) 
+                scanline = engine->coded_field_h / chroma_factor - 1;
+//printf("get_mcu_rows %d i=%d start_row=%d scanline=%d\n", __LINE__, i, start_row, scanline);
 			engine->mcu_rows[i][j] = engine->rows[i][scanline];
 		}
 	}
@@ -709,6 +716,7 @@ static void decompress_field(mjpeg_compressor *engine)
 	unsigned char *buffer = mjpeg->input_data + buffer_offset;
 	long buffer_size;
 	int i, j;
+//printf("decompress_field %d\n", __LINE__);
 
 //printf("decompress_field %d %02x%02x %d\n", __LINE__, buffer[0], buffer[1], (int)(engine->instance * mjpeg->input_field2));
 	if(engine->instance == 0 && mjpeg->fields > 1)
@@ -784,16 +792,39 @@ static void decompress_field(mjpeg_compressor *engine)
 	pthread_mutex_unlock(&(mjpeg->decompress_init));
 	get_rows(mjpeg, engine);
 
-//printf("decompress_field 30\n");
+// printf("decompress_field %d output_h=%d coded_h=%d coded_field_h=%d jpeg_color_model=%d output_width=%d output_height=%d\n", __LINE__, 
+// mjpeg->output_h, mjpeg->coded_h, engine->coded_field_h,
+// mjpeg->jpeg_color_model,
+// engine->jpeg_decompress.output_width,
+// engine->jpeg_decompress.output_height);
 
-	while(engine->jpeg_decompress.output_scanline < engine->jpeg_decompress.output_height)
-	{
-		get_mcu_rows(mjpeg, engine, engine->jpeg_decompress.output_scanline);
-		jpeg_read_raw_data(&engine->jpeg_decompress, 
-			engine->mcu_rows, 
-			engine->coded_field_h);
-	}
+    if(engine->jpeg_decompress.output_width > mjpeg->coded_w)
+    {
+        printf("decompress_field %d: JPEG width %d > coded width %d\n",
+            __LINE__,
+            engine->jpeg_decompress.output_width,
+            mjpeg->coded_w);
+    }
+    else
+    {
+        if(engine->jpeg_decompress.output_height > mjpeg->coded_h)
+        {
+            printf("decompress_field %d: JPEG height %d > coded height %d\n",
+                __LINE__,
+                engine->jpeg_decompress.output_height,
+                mjpeg->coded_h);
+        }
+	    while(engine->jpeg_decompress.output_scanline < engine->jpeg_decompress.output_height)
+	    {
+    //printf("decompress_field %d %d\n", __LINE__, engine->jpeg_decompress.output_scanline);
+		    get_mcu_rows(mjpeg, engine, engine->jpeg_decompress.output_scanline);
+		    jpeg_read_raw_data(&engine->jpeg_decompress, 
+			    engine->mcu_rows, 
+			    engine->coded_field_h);
+	    }
+    }
 	jpeg_finish_decompress(&engine->jpeg_decompress);
+//printf("decompress_field %d\n", __LINE__);
 
 
 finish:
@@ -1230,7 +1261,8 @@ int mjpeg_decompress(mjpeg_t *mjpeg,
  * 		mjpeg->coded_h != mjpeg->output_h))
  */
 
-//printf("mjpeg_decompress %d: %d %d %d %d\n", __LINE__, mjpeg->coded_w, mjpeg->coded_h, mjpeg->output_w, mjpeg->output_h);
+//printf("mjpeg_decompress %d: coded_w=%d coded_h=%d output_w=%d output_h=%d\n", 
+//__LINE__, mjpeg->coded_w, mjpeg->coded_h, mjpeg->output_w, mjpeg->output_h);
  	if((mjpeg->jpeg_color_model != mjpeg->color_model ||
  		mjpeg->coded_w != mjpeg->output_w ||
  		mjpeg->coded_h != mjpeg->output_h) 
@@ -1253,6 +1285,9 @@ int mjpeg_decompress(mjpeg_t *mjpeg,
  * mjpeg->jpeg_color_model,
  * mjpeg->color_model);
  */
+// printf("mjpeg_decompress %d coded_w=%d coded_h=%d output_w=%d output_h=%d rowspan=%d\n", 
+// __LINE__, mjpeg->coded_w, mjpeg->coded_h, mjpeg->output_w,  mjpeg->output_h,
+// mjpeg->rowspan);
 
 		cmodel_transfer(row_pointers, 
 			0,
@@ -1277,7 +1312,7 @@ int mjpeg_decompress(mjpeg_t *mjpeg,
 			0,
 			mjpeg->coded_w,
 			mjpeg->rowspan ? mjpeg->rowspan : mjpeg->output_w);
-//printf("mjpeg_decompress 8\n");
+//printf("mjpeg_decompress %d\n", __LINE__);
 	}
 	return 0;
 }

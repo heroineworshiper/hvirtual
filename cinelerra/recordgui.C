@@ -157,6 +157,7 @@ void RecordGUI::create_objects()
 	
 	int margin = mwindow->theme->widget_border;
 	int window_border = mwindow->theme->window_border;
+    VideoInConfig *vconfig_in = MWindow::preferences->vconfig_in;
 	int x = window_border;
 	int y = window_border;
 	int x1 = 0;
@@ -255,8 +256,12 @@ void RecordGUI::create_objects()
 
 	if(record->default_asset->video_data)
 	{
-		add_subwindow(title = new BC_Title(x, y, _("Video compression:")));
-		x3 = MAX(title->get_w(), x3);
+        if(record->default_asset->format == FILE_STDOUT)
+            add_subwindow(title = new BC_Title(x, y, _("Video format:")));
+		else
+            add_subwindow(title = new BC_Title(x, y, _("Video encoder:")));
+        
+        x3 = MAX(title->get_w(), x3);
 		y += pad;
 		add_subwindow(title = new BC_Title(x, y, _("Framerate:")));
 		x3 = MAX(title->get_w(), x3);
@@ -312,11 +317,18 @@ void RecordGUI::create_objects()
 
 	if(record->default_asset->video_data)
 	{
-		add_subwindow(new BC_Title(x, 
-			y, 
-			FileMOV::compressiontostr(record->default_asset->vcodec), 
-			MEDIUMFONT, 
-			mwindow->theme->recordgui_fixed_color));
+        if(record->default_asset->format == FILE_STDOUT)
+		    add_subwindow(new BC_Title(x, 
+			    y, 
+			    cmodel_to_text(string, record->default_asset->command_cmodel), 
+			    MEDIUMFONT, 
+			    mwindow->theme->recordgui_fixed_color));
+        else
+            add_subwindow(new BC_Title(x, 
+			    y, 
+			    FileMOV::compressiontostr(record->default_asset->vcodec), 
+			    MEDIUMFONT, 
+			    mwindow->theme->recordgui_fixed_color));
 	
 		y += pad;
 		sprintf(string, "%0.2f", record->default_asset->frame_rate);

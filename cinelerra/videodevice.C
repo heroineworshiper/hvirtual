@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -222,11 +221,11 @@ int VideoDevice::open_input(VideoInConfig *config,
 #ifdef HAVE_VIDEO4LINUX2
 
 		case VIDEO4LINUX2:
-		case CAPTURE_JPEG_WEBCAM:
-		case CAPTURE_YUYV_WEBCAM:
-		case CAPTURE_MPEG:
-		case VIDEO4LINUX2MJPG:
-		case VIDEO4LINUX2JPEG:
+//		case CAPTURE_JPEG_WEBCAM:
+//		case CAPTURE_YUYV_WEBCAM:
+//		case CAPTURE_MPEG:
+//		case VIDEO4LINUX2MJPG:
+//		case VIDEO4LINUX2JPEG:
 			new_device_base();
 			result = input_base->open_input();
 			break;
@@ -270,14 +269,14 @@ VDeviceBase* VideoDevice::new_device_base()
 
 #ifdef HAVE_VIDEO4LINUX2
 		case VIDEO4LINUX2:
-		case CAPTURE_JPEG_WEBCAM:
-		case CAPTURE_YUYV_WEBCAM:
-		case CAPTURE_MPEG:
+//		case CAPTURE_JPEG_WEBCAM:
+//		case CAPTURE_YUYV_WEBCAM:
+//		case CAPTURE_MPEG:
 			return input_base = new VDeviceV4L2(this);
 
-		case VIDEO4LINUX2MJPG:
-		case VIDEO4LINUX2JPEG:
-			return input_base = new VDeviceV4L2JPEG(this);
+//		case VIDEO4LINUX2MJPG:
+//		case VIDEO4LINUX2JPEG:
+//			return input_base = new VDeviceV4L2JPEG(this);
 #endif
 
 		case SCREENCAPTURE:
@@ -304,17 +303,17 @@ static char* get_channeldb_path(VideoInConfig *vconfig_in)
 			path = (char*)"channels_v4l";
 			break;
 		case VIDEO4LINUX2:
-		case CAPTURE_JPEG_WEBCAM:
-		case CAPTURE_YUYV_WEBCAM:
+//		case CAPTURE_JPEG_WEBCAM:
+//		case CAPTURE_YUYV_WEBCAM:
 			path = (char*)"channels_v4l2";
 			break;
-		case CAPTURE_MPEG:
-			path = (char*)"channels_mpeg";
-			break;
-		case VIDEO4LINUX2MJPG:
-		case VIDEO4LINUX2JPEG:
-			path = (char*)"channels_v4l2jpeg";
-			break;
+//		case CAPTURE_MPEG:
+//			path = (char*)"channels_mpeg";
+//			break;
+//		case VIDEO4LINUX2MJPG:
+//		case VIDEO4LINUX2JPEG:
+//			path = (char*)"channels_v4l2jpeg";
+//			break;
 		case CAPTURE_BUZ:
 			path = (char*)"channels_buz";
 			break;
@@ -341,14 +340,19 @@ VDeviceBase* VideoDevice::get_output_base()
 	return output_base;
 }
 
-int VideoDevice::is_compressed(int driver, int use_file, int use_fixed)
+int VideoDevice::is_compressed(int driver, int v4l2_format, int use_file, int use_fixed)
 {
 // FileMOV needs to have write_frames called so the start codes get scanned.
 	return ((driver == CAPTURE_BUZ && use_fixed) ||
-		(driver == VIDEO4LINUX2MJPG && use_fixed) || 
-		(driver == VIDEO4LINUX2JPEG && use_fixed) || 
-		(driver == CAPTURE_JPEG_WEBCAM && use_fixed) || 
-		(driver == CAPTURE_MPEG && use_fixed) || 
+        (use_fixed && driver == VIDEO4LINUX2 && 
+            (v4l2_format == CAPTURE_JPEG ||
+            v4l2_format == CAPTURE_JPEG_NOHEAD ||
+            v4l2_format == CAPTURE_MJPG ||
+            v4l2_format == CAPTURE_MJPG_1FIELD)) ||
+//		(driver == VIDEO4LINUX2MJPG && use_fixed) || 
+//		(driver == VIDEO4LINUX2JPEG && use_fixed) || 
+//		(driver == CAPTURE_JPEG_WEBCAM && use_fixed) || 
+//		(driver == CAPTURE_MPEG && use_fixed) || 
 		driver == CAPTURE_LML || 
 		driver == CAPTURE_FIREWIRE ||
 		driver == CAPTURE_IEC61883);
@@ -356,37 +360,59 @@ int VideoDevice::is_compressed(int driver, int use_file, int use_fixed)
 
 int VideoDevice::is_compressed(int use_file, int use_fixed)
 {
-	return is_compressed(in_config->driver, use_file, use_fixed);
+	return is_compressed(in_config->driver, 
+        in_config->v4l2_format, 
+        use_file, 
+        use_fixed);
 }
 
 
-void VideoDevice::fix_asset(Asset *asset, int driver)
+void VideoDevice::fix_asset(Asset *asset, int driver, int v4l2_format)
 {
 // Fix asset using legacy routine
 	switch(driver)
 	{
-		case CAPTURE_JPEG_WEBCAM:
-			if(asset->format != FILE_AVI &&
-				asset->format != FILE_MOV)
-				asset->format = FILE_MOV;
-			strcpy(asset->vcodec, QUICKTIME_JPEG);
-			break;
-	
+        case VIDEO4LINUX2:
+            if(v4l2_format == CAPTURE_JPEG ||
+                v4l2_format == CAPTURE_JPEG_NOHEAD ||
+                v4l2_format == CAPTURE_MJPG_1FIELD)
+            {
+                if(asset->format != FILE_AVI &&
+				    asset->format != FILE_MOV)
+				    asset->format = FILE_MOV;
+                strcpy(asset->vcodec, QUICKTIME_JPEG);
+            }
+            if(v4l2_format == CAPTURE_MJPG)
+            {
+                if(asset->format != FILE_AVI &&
+				    asset->format != FILE_MOV)
+				    asset->format = FILE_MOV;
+                strcpy(asset->vcodec, QUICKTIME_MJPA);
+            }
+            break;
+    
+// 		case CAPTURE_JPEG_WEBCAM:
+// 			if(asset->format != FILE_AVI &&
+// 				asset->format != FILE_MOV)
+// 				asset->format = FILE_MOV;
+// 			strcpy(asset->vcodec, QUICKTIME_JPEG);
+// 			break;
+
 		case CAPTURE_BUZ:
 		case CAPTURE_LML:
-		case VIDEO4LINUX2MJPG:
+//		case VIDEO4LINUX2MJPG:
 			if(asset->format != FILE_AVI &&
 				asset->format != FILE_MOV)
 				asset->format = FILE_MOV;
 			strcpy(asset->vcodec, QUICKTIME_MJPA);
 			return;
 
-        case VIDEO4LINUX2JPEG:
-            if(asset->format != FILE_AVI &&
-				asset->format != FILE_MOV)
-				asset->format = FILE_MOV;
-			strcpy(asset->vcodec, QUICKTIME_JPEG);
-			return;
+//         case VIDEO4LINUX2JPEG:
+//             if(asset->format != FILE_AVI &&
+// 				asset->format != FILE_MOV)
+// 				asset->format = FILE_MOV;
+// 			strcpy(asset->vcodec, QUICKTIME_JPEG);
+// 			return;
 
 		case CAPTURE_FIREWIRE:
 		case CAPTURE_IEC61883:
@@ -416,18 +442,18 @@ const char* VideoDevice::drivertostr(int driver)
 		case VIDEO4LINUX2:
 			return VIDEO4LINUX2_TITLE;
 			break;
-		case VIDEO4LINUX2MJPG:
-			return VIDEO4LINUX2MJPG_TITLE;
-			break;
-		case VIDEO4LINUX2JPEG:
-			return VIDEO4LINUX2JPEG_TITLE;
-			break;
-		case CAPTURE_JPEG_WEBCAM:
-			return CAPTURE_JPEG_WEBCAM_TITLE;
-			break;
-		case CAPTURE_YUYV_WEBCAM:
-            return CAPTURE_YUYV_WEBCAM_TITLE;
-			break;
+// 		case VIDEO4LINUX2MJPG:
+// 			return VIDEO4LINUX2MJPG_TITLE;
+// 			break;
+// 		case VIDEO4LINUX2JPEG:
+// 			return VIDEO4LINUX2JPEG_TITLE;
+// 			break;
+// 		case CAPTURE_JPEG_WEBCAM:
+// 			return CAPTURE_JPEG_WEBCAM_TITLE;
+// 			break;
+// 		case CAPTURE_YUYV_WEBCAM:
+//             return CAPTURE_YUYV_WEBCAM_TITLE;
+// 			break;
 		case SCREENCAPTURE:
 			return SCREENCAPTURE_TITLE;
 			break;
@@ -446,9 +472,9 @@ const char* VideoDevice::drivertostr(int driver)
 		case CAPTURE_DVB:
 			return CAPTURE_DVB_TITLE;
 			break;
-		case CAPTURE_MPEG:
-			return CAPTURE_MPEG_TITLE;
-			break;
+// 		case CAPTURE_MPEG:
+// 			return CAPTURE_MPEG_TITLE;
+// 			break;
 		case PLAYBACK_X11:
 			return PLAYBACK_X11_TITLE;
 			break;

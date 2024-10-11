@@ -29,6 +29,7 @@
 #include "maxchannels.h"
 #include "mwindow.h"
 #include "preferences.h"
+#include "recordconfig.h"
 #include "quicktime.h"
 #include "theme.h"
 #include "videodevice.inc"
@@ -316,14 +317,40 @@ void FormatTools::create_objects(int &init_x,
     update_prompts();
 }
 
-void FormatTools::update_driver(int driver)
+void FormatTools::update_driver(VideoInConfig *in_config)
 {
-	this->video_driver = driver;
+//	this->video_driver = driver;
 
-	switch(driver)
+	switch(in_config->driver)
 	{
+        case VIDEO4LINUX2:
+            switch(in_config->v4l2_format)
+            {
+            case CAPTURE_JPEG:
+            case CAPTURE_JPEG_NOHEAD:
+            case CAPTURE_MJPG_1FIELD:
+				format_text->update(MOV_NAME);
+				asset->format = FILE_MOV;
+				locked_compressor = (char*)QUICKTIME_JPEG;
+				strcpy(asset->vcodec, QUICKTIME_JPEG);
+                break;
+            case CAPTURE_MJPG:
+				format_text->update(MOV_NAME);
+				asset->format = FILE_MOV;
+				locked_compressor = (char*)QUICKTIME_MJPA;
+				strcpy(asset->vcodec, QUICKTIME_MJPA);
+                break;
+            default:
+				format_text->update(File::formattostr(asset->format));
+                locked_compressor = 0;
+                break;
+            }
+			audio_switch->update(asset->audio_data);
+			video_switch->update(asset->video_data);
+            break;
+
 		case CAPTURE_DVB:
-		case CAPTURE_MPEG:
+//		case CAPTURE_MPEG:
 // Just give the user information about how the stream is going to be
 // stored but don't change the asset.
 // Want to be able to revert to user settings.
@@ -340,9 +367,9 @@ void FormatTools::update_driver(int driver)
 		case CAPTURE_IEC61883:
 		case CAPTURE_FIREWIRE:
 		case CAPTURE_BUZ:
-		case VIDEO4LINUX2JPEG:
-		case VIDEO4LINUX2MJPG:
-		case CAPTURE_JPEG_WEBCAM:
+//		case VIDEO4LINUX2JPEG:
+//		case VIDEO4LINUX2MJPG:
+//		case CAPTURE_JPEG_WEBCAM:
 			if(asset->format != FILE_AVI &&
 				asset->format != FILE_MOV)
 			{
@@ -354,7 +381,7 @@ void FormatTools::update_driver(int driver)
 				format_text->update(File::formattostr(asset->format));
             }
 
-			switch(driver)
+			switch(in_config->driver)
 			{
 				case CAPTURE_IEC61883:
 				case CAPTURE_FIREWIRE:
@@ -363,20 +390,20 @@ void FormatTools::update_driver(int driver)
 					break;
 
 				case CAPTURE_BUZ:
-				case VIDEO4LINUX2MJPG:
+//				case VIDEO4LINUX2MJPG:
 					locked_compressor = (char*)QUICKTIME_MJPA;
 					strcpy(asset->vcodec, QUICKTIME_MJPA);
 					break;
 
-				case VIDEO4LINUX2JPEG:
-					locked_compressor = (char*)QUICKTIME_JPEG;
-					strcpy(asset->vcodec, QUICKTIME_JPEG);
-					break;
-
-				case CAPTURE_JPEG_WEBCAM:
-					locked_compressor = (char*)QUICKTIME_JPEG;
-					strcpy(asset->vcodec, QUICKTIME_JPEG);
-					break;
+// 				case VIDEO4LINUX2JPEG:
+// 					locked_compressor = (char*)QUICKTIME_JPEG;
+// 					strcpy(asset->vcodec, QUICKTIME_JPEG);
+// 					break;
+// 
+// 				case CAPTURE_JPEG_WEBCAM:
+// 					locked_compressor = (char*)QUICKTIME_JPEG;
+// 					strcpy(asset->vcodec, QUICKTIME_JPEG);
+// 					break;
 			}
 
 			audio_switch->update(asset->audio_data);
@@ -394,6 +421,7 @@ void FormatTools::update_driver(int driver)
 			video_switch->update(asset->video_data);
 			break;
 	}
+    update_prompts();
 	close_format_windows();
 }
 

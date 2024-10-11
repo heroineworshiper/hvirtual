@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +41,7 @@ class VDeviceTextBox;
 class VDeviceIntBox;
 class VDeviceTumbleBox;
 class VDriverMenu;
+class VDriverFormat;
 
 class VDevicePrefs
 {
@@ -82,8 +82,10 @@ private:
 	int create_dvb_objs();
 
 	VDriverMenu *menu;
+    VDriverFormat *format_menu;
 
 	BC_Title *device_title;
+	BC_Title *format_title;
 	BC_Title *port_title;
 	BC_Title *number_title;
 	BC_Title *channel_title;
@@ -154,8 +156,6 @@ public:
 		VDevicePrefs *device_prefs, 
 		int do_input, 
 		int *output);
-	~VDriverMenu();
-	
 	const char* driver_to_string(int driver);
 	void create_objects();
 	
@@ -170,12 +170,36 @@ class VDriverItem : public BC_MenuItem
 {
 public:
 	VDriverItem(VDriverMenu *popup, const char *text, int driver);
-	~VDriverItem();
-	
 	int handle_event();
 
 	VDriverMenu *popup;
 	int driver;
+};
+
+
+class VDriverFormat : public BC_PopupMenu
+{
+public:
+	VDriverFormat(int x, 
+		int y, 
+		VDevicePrefs *device_prefs, 
+		int *output);
+	const char* format_to_string(int format);
+	void create_objects();
+	
+	VDevicePrefs *device_prefs;
+	int *output;
+	char string[BCTEXTLEN];
+};
+
+
+class VDriverFormatItem : public BC_MenuItem
+{
+public:
+	VDriverFormatItem(VDriverFormat *popup, const char *text, int format);
+	int handle_event();
+	VDriverFormat *popup;
+	int format;
 };
 
 

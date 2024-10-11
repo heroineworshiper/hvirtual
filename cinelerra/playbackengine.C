@@ -128,10 +128,10 @@ ChannelDB* PlaybackEngine::get_channeldb()
 	PlaybackConfig *config = preferences->playback_config;
 	switch(config->vconfig->driver)
 	{
-		case VIDEO4LINUX2JPEG:
-		case VIDEO4LINUX2MJPG:
-			return MWindow::instance->channeldb_v4l2jpeg;
-			break;
+//		case VIDEO4LINUX2JPEG:
+//		case VIDEO4LINUX2MJPG:
+// 			return MWindow::instance->channeldb_v4l2jpeg;
+// 			break;
 		case PLAYBACK_BUZ:
 			return MWindow::instance->channeldb_buz;
 			break;

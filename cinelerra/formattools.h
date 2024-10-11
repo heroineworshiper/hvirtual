@@ -28,6 +28,7 @@
 #include "compresspopup.h"
 #include "file.inc"
 #include "formatpopup.h"
+#include "recordconfig.inc"
 #include "mwindow.inc"
 
 class FormatAParams;
@@ -67,7 +68,7 @@ public:
 						int brender); // Supply file formats for background rendering
 // In recording preferences, aspects of the format are locked 
 // depending on the driver used.
-	void update_driver(int driver);
+	void update_driver(VideoInConfig *in_config);
 
 
 	void reposition_window(int &init_x, int &init_y);
@@ -146,7 +147,7 @@ public:
 // user defined width
     int user_w;
 // Determines what the configuration buttons do.
-	int video_driver;
+//	int video_driver;
 };
 
 

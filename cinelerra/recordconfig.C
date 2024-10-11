@@ -163,6 +163,7 @@ VideoInConfig::VideoInConfig()
 	driver = SCREENCAPTURE;
 	sprintf(v4l_in_device, "/dev/video0");
 	sprintf(v4l2_in_device, "/dev/video0");
+    v4l2_format = CAPTURE_RGB;
 	sprintf(lml_in_device, "/dev/mvideo/stream");
 	sprintf(buz_in_device, "/dev/video0");
 	screencapture_display[0] = 0;
@@ -182,7 +183,7 @@ VideoInConfig::VideoInConfig()
 	sprintf(firewire_path, "/dev/raw1394");
 // number of frames to read from device during video recording.
 //	capture_length = 15;   
-	capture_length = 2;   
+	capture_length = 4;
 	w = 720;
 	h = 480;
 	in_framerate = 29.97;
@@ -205,10 +206,10 @@ char* VideoInConfig::get_path()
 			return v4l_in_device;
 			break;
 		case VIDEO4LINUX2:
-		case VIDEO4LINUX2JPEG:
-		case VIDEO4LINUX2MJPG:
-		case CAPTURE_JPEG_WEBCAM:
-		case CAPTURE_YUYV_WEBCAM:
+// 		case VIDEO4LINUX2JPEG:
+// 		case VIDEO4LINUX2MJPG:
+// 		case CAPTURE_JPEG_WEBCAM:
+// 		case CAPTURE_YUYV_WEBCAM:
 			return v4l2_in_device;
 			break;
 		case CAPTURE_BUZ:
@@ -224,6 +225,7 @@ char* VideoInConfig::get_path()
 void VideoInConfig::copy_from(VideoInConfig *src)
 {
 	driver = src->driver;
+    v4l2_format = src->v4l2_format;
 	strcpy(v4l_in_device, src->v4l_in_device);
 	strcpy(v4l2_in_device, src->v4l2_in_device);
 	strcpy(lml_in_device, src->lml_in_device);
@@ -273,12 +275,14 @@ printf("VideoInConfig::load_defaults %d: reverting VIDEO4LINUX driver\n", __LINE
 #endif
 
 #ifndef HAVE_VIDEO4LINUX2
-    if(driver == VIDEO4LINUX2 || 
-        driver == CAPTURE_JPEG_WEBCAM || 
-        driver == CAPTURE_YUYV_WEBCAM || 
-        driver == VIDEO4LINUX2JPEG || 
-        driver == VIDEO4LINUX2MJPG || 
-        driver == CAPTURE_MPEG)
+    if(driver == VIDEO4LINUX2
+// || 
+//        driver == CAPTURE_JPEG_WEBCAM || 
+//        driver == CAPTURE_YUYV_WEBCAM || 
+//        driver == VIDEO4LINUX2JPEG || 
+//        driver == VIDEO4LINUX2MJPG || 
+//        driver == CAPTURE_MPEG\
+    )
     {
 printf("VideoInConfig::load_defaults %d: reverting VIDEO4LINUX2 driver\n", __LINE__);
         driver = SCREENCAPTURE;
@@ -287,6 +291,7 @@ printf("VideoInConfig::load_defaults %d: reverting VIDEO4LINUX2 driver\n", __LIN
 
 	defaults->get("V4L_IN_DEVICE", v4l_in_device);
 	defaults->get("V4L2_IN_DEVICE", v4l2_in_device);
+	v4l2_format = defaults->get("V4L2_FORMAT", v4l2_format);
 	defaults->get("LML_IN_DEVICE", lml_in_device);
 	defaults->get("BUZ_IN_DEVICE", buz_in_device);
 	defaults->get("SCREENCAPTURE_DISPLAY", screencapture_display);
@@ -310,6 +315,7 @@ int VideoInConfig::save_defaults(BC_Hash *defaults)
 	defaults->update("VIDEO_IN_DRIVER", driver);
 	defaults->update("V4L_IN_DEVICE", v4l_in_device);
 	defaults->update("V4L2_IN_DEVICE", v4l2_in_device);
+	defaults->update("V4L2_FORMAT", v4l2_format);
 	defaults->update("LML_IN_DEVICE", lml_in_device);
 	defaults->update("BUZ_IN_DEVICE", buz_in_device);
 	defaults->update("SCREENCAPTURE_DISPLAY", screencapture_display);

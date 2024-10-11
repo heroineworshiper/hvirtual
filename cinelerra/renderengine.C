@@ -295,7 +295,8 @@ Channel* RenderEngine::get_current_channel()
 					return channeldb->get(config->vconfig->buz_out_channel);
 				}
 				break;
-			case VIDEO4LINUX2JPEG:
+			case VIDEO4LINUX2:
+// playback not supported
 				break;
 		}
 	}

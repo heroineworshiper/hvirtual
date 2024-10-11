@@ -403,10 +403,17 @@ int LiveVideo::process_buffer(VFrame *frame,
 				case CAPTURE_FIREWIRE:
 				case CAPTURE_IEC61883:
 				case CAPTURE_BUZ:
-				case VIDEO4LINUX2JPEG:
-				case CAPTURE_JPEG_WEBCAM:
+//				case VIDEO4LINUX2JPEG:
+//				case CAPTURE_JPEG_WEBCAM:
 					input_cmodel = BC_COMPRESSED;
 					break;
+                case VIDEO4LINUX2:
+                    if(preferences->vconfig_in->v4l2_format == CAPTURE_JPEG ||
+                        preferences->vconfig_in->v4l2_format == CAPTURE_JPEG_NOHEAD)
+                        input_cmodel = BC_COMPRESSED;
+					else
+                        input_cmodel = vdevice->get_best_colormodel(preferences->recording_format);
+                    break;
 				default:
 					input_cmodel = vdevice->get_best_colormodel(preferences->recording_format);
 					break;
@@ -523,7 +530,7 @@ int LiveVideo::process_buffer(VFrame *frame,
 						break;
 
 					case CAPTURE_BUZ:
-					case VIDEO4LINUX2JPEG:
+					case VIDEO4LINUX2:
                     {
 // determine the number of fields by scanning it
                         int field2_offset = input->get_field2_offset();
@@ -563,24 +570,24 @@ int LiveVideo::process_buffer(VFrame *frame,
 //printf("LiveVideo::process_buffer %d\n", __LINE__);
 						break;
                     }
-					
-					case CAPTURE_JPEG_WEBCAM:
-// assume 1 field
-						if(!mjpeg)
-							mjpeg = mjpeg_new(frame->get_w(), 
-								frame->get_h(), 
-								1);  // fields
-						mjpeg_decompress(mjpeg, 
-							input->get_data(), 
-							input->get_compressed_size(), 
-							0, 
-							frame->get_rows(), 
-							frame->get_y(), 
-							frame->get_u(), 
-							frame->get_v(),
-							frame->get_color_model(),
-							get_project_smp() + 1);
-						break;
+// 					
+// 					case CAPTURE_JPEG_WEBCAM:
+// // assume 1 field
+// 						if(!mjpeg)
+// 							mjpeg = mjpeg_new(frame->get_w(), 
+// 								frame->get_h(), 
+// 								1);  // fields
+// 						mjpeg_decompress(mjpeg, 
+// 							input->get_data(), 
+// 							input->get_compressed_size(), 
+// 							0, 
+// 							frame->get_rows(), 
+// 							frame->get_y(), 
+// 							frame->get_u(), 
+// 							frame->get_v(),
+// 							frame->get_color_model(),
+// 							get_project_smp() + 1);
+// 						break;
 				}
 			}
 			else

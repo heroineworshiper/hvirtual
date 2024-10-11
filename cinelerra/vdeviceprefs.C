@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2011-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2011-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,6 +92,8 @@ void VDevicePrefs::reset_objects()
 	buz_swap_channels = 0;
 	output_title = 0;
 	channel_picker = 0;
+    format_menu = 0;
+    format_title = 0;
 }
 
 int VDevicePrefs::initialize(int creation)
@@ -115,7 +116,7 @@ int VDevicePrefs::initialize(int creation)
 	if(!menu)
 	{
 		dialog->add_subwindow(menu = new VDriverMenu(x,
-			y + 10,
+			y,
 			this, 
 			(mode == MODERECORD), 
 			driver));
@@ -128,11 +129,11 @@ int VDevicePrefs::initialize(int creation)
 			create_v4l_objs();
 			break;
 		case VIDEO4LINUX2:
-		case CAPTURE_JPEG_WEBCAM:
-		case CAPTURE_YUYV_WEBCAM:
-		case VIDEO4LINUX2JPEG:
-		case VIDEO4LINUX2MJPG:
-		case CAPTURE_MPEG:
+// 		case CAPTURE_JPEG_WEBCAM:
+// 		case CAPTURE_YUYV_WEBCAM:
+// 		case VIDEO4LINUX2JPEG:
+// 		case VIDEO4LINUX2MJPG:
+// 		case CAPTURE_MPEG:
 			create_v4l2_objs();
 			break;
 		case SCREENCAPTURE:
@@ -168,7 +169,7 @@ int VDevicePrefs::initialize(int creation)
 	if(mode == MODERECORD && dialog && !creation)
 	{
 		RecordPrefs *record_prefs = (RecordPrefs*)dialog;
-		record_prefs->recording_format->update_driver(this->driver);
+		record_prefs->recording_format->update_driver(in_config);
 	}
 
 	return 0;
@@ -187,6 +188,9 @@ int VDevicePrefs::delete_objects()
 
 	delete number_title;
 	delete device_number;
+    
+    delete format_title;
+    delete format_menu;
 
 	if(firewire_port) delete firewire_port;
 	if(channel_title) delete channel_title;
@@ -391,16 +395,18 @@ int VDevicePrefs::create_firewire_objs()
 
 int VDevicePrefs::create_v4l_objs()
 {
+	int margin = MWindow::theme->widget_border;
 #ifdef HAVE_VIDEO4LINUX
 
 
 	char *output_char;
 	BC_Resources *resources = BC_WindowBase::get_resources();
-	int x1 = x + menu->get_w() + DP(5);
+	int x1 = x + menu->get_w() + margin;
 	output_char = pwindow->thread->edl->session->vconfig_in->v4l_in_device;
-	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Device path:"), MEDIUMFONT, resources->text_default));
-	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + DP(20), output_char));
-
+	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Device path:")));
+	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, 
+        y + device_title->get_h(), 
+        output_char));
 
 #endif // HAVE_VIDEO4LINUX
 	return 0;
@@ -408,13 +414,27 @@ int VDevicePrefs::create_v4l_objs()
 
 int VDevicePrefs::create_v4l2_objs()
 {
-	char *output_char;
+	int margin = MWindow::theme->widget_border;
 	BC_Resources *resources = BC_WindowBase::get_resources();
-	int x1 = x + menu->get_w() + DP(5);
+	char *output_char;
+	int x1 = x + menu->get_w() + margin;
 	output_char = pwindow->thread->preferences->vconfig_in->v4l2_in_device;
-	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Device path:"), MEDIUMFONT, resources->text_default));
-	dialog->add_subwindow(device_text = new VDeviceTextBox(x1, y + DP(20), output_char));
+	dialog->add_subwindow(device_title = new BC_Title(x1, y, _("Device path:")));
+	int y2 = y + device_title->get_h();
+    dialog->add_subwindow(device_text = new VDeviceTextBox(x1, 
+        y2, 
+        output_char));
 
+    int x2 = x1 + device_text->get_w() + margin;
+    dialog->add_subwindow(format_title = new BC_Title(x2, 
+        y, 
+        _("Codec:")));
+	dialog->add_subwindow(format_menu = new VDriverFormat(x2, 
+        y2, 
+        this,
+        &pwindow->thread->preferences->vconfig_in->v4l2_format));
+    format_menu->create_objects();
+    format_menu->show_window(1);
 	return 0;
 }
 
@@ -450,15 +470,11 @@ VDriverMenu::VDriverMenu(int x,
 	VDevicePrefs *device_prefs, 
 	int do_input, 
 	int *output)
- : BC_PopupMenu(x, y, DP(230), driver_to_string(*output))
+ : BC_PopupMenu(x, y, DP(180), driver_to_string(*output))
 {
 	this->output = output;
 	this->do_input = do_input;
 	this->device_prefs = device_prefs;
-}
-
-VDriverMenu::~VDriverMenu()
-{
 }
 
 const char* VDriverMenu::driver_to_string(int driver)
@@ -471,18 +487,18 @@ const char* VDriverMenu::driver_to_string(int driver)
 		case VIDEO4LINUX2:
 			sprintf(string, VIDEO4LINUX2_TITLE);
 			break;
-		case VIDEO4LINUX2JPEG:
-			return VIDEO4LINUX2JPEG_TITLE;
-			break;
-		case VIDEO4LINUX2MJPG:
-			return VIDEO4LINUX2MJPG_TITLE;
-			break;
-		case CAPTURE_JPEG_WEBCAM:
-			sprintf(string, CAPTURE_JPEG_WEBCAM_TITLE);
-			break;
-		case CAPTURE_YUYV_WEBCAM:
-			sprintf(string, CAPTURE_YUYV_WEBCAM_TITLE);
-			break;
+// 		case VIDEO4LINUX2JPEG:
+// 			return VIDEO4LINUX2JPEG_TITLE;
+// 			break;
+// 		case VIDEO4LINUX2MJPG:
+// 			return VIDEO4LINUX2MJPG_TITLE;
+// 			break;
+// 		case CAPTURE_JPEG_WEBCAM:
+// 			sprintf(string, CAPTURE_JPEG_WEBCAM_TITLE);
+// 			break;
+// 		case CAPTURE_YUYV_WEBCAM:
+// 			sprintf(string, CAPTURE_YUYV_WEBCAM_TITLE);
+// 			break;
 		case SCREENCAPTURE:
 			sprintf(string, SCREENCAPTURE_TITLE);
 			break;
@@ -501,9 +517,9 @@ const char* VDriverMenu::driver_to_string(int driver)
 		case CAPTURE_DVB:
 			sprintf(string, CAPTURE_DVB_TITLE);
 			break;
-		case CAPTURE_MPEG:
-			sprintf(string, CAPTURE_MPEG_TITLE);
-			break;
+// 		case CAPTURE_MPEG:
+// 			sprintf(string, CAPTURE_MPEG_TITLE);
+// 			break;
 		case PLAYBACK_X11:
 			sprintf(string, PLAYBACK_X11_TITLE);
 			break;
@@ -544,11 +560,11 @@ void VDriverMenu::create_objects()
 
 #ifdef HAVE_VIDEO4LINUX2
 		add_item(new VDriverItem(this, VIDEO4LINUX2_TITLE, VIDEO4LINUX2));
-		add_item(new VDriverItem(this, CAPTURE_JPEG_WEBCAM_TITLE, CAPTURE_JPEG_WEBCAM));
-		add_item(new VDriverItem(this, CAPTURE_YUYV_WEBCAM_TITLE, CAPTURE_YUYV_WEBCAM));
-		add_item(new VDriverItem(this, VIDEO4LINUX2JPEG_TITLE, VIDEO4LINUX2JPEG));
-		add_item(new VDriverItem(this, VIDEO4LINUX2MJPG_TITLE, VIDEO4LINUX2MJPG));
-		add_item(new VDriverItem(this, CAPTURE_MPEG_TITLE, CAPTURE_MPEG));
+// 		add_item(new VDriverItem(this, CAPTURE_JPEG_WEBCAM_TITLE, CAPTURE_JPEG_WEBCAM));
+// 		add_item(new VDriverItem(this, CAPTURE_YUYV_WEBCAM_TITLE, CAPTURE_YUYV_WEBCAM));
+// 		add_item(new VDriverItem(this, VIDEO4LINUX2JPEG_TITLE, VIDEO4LINUX2JPEG));
+// 		add_item(new VDriverItem(this, VIDEO4LINUX2MJPG_TITLE, VIDEO4LINUX2MJPG));
+// 		add_item(new VDriverItem(this, CAPTURE_MPEG_TITLE, CAPTURE_MPEG));
 #endif
 
 		add_item(new VDriverItem(this, SCREENCAPTURE_TITLE, SCREENCAPTURE));
@@ -581,14 +597,77 @@ VDriverItem::VDriverItem(VDriverMenu *popup, const char *text, int driver)
 	this->driver = driver;
 }
 
-VDriverItem::~VDriverItem()
-{
-}
-
 int VDriverItem::handle_event()
 {
 	popup->set_text(get_text());
 	*(popup->output) = driver;
+	popup->device_prefs->initialize(0);
+	return 1;
+}
+
+
+
+
+
+VDriverFormat::VDriverFormat(int x, 
+	int y, 
+	VDevicePrefs *device_prefs, 
+	int *output)
+ : BC_PopupMenu(x, y, DP(200), format_to_string(*output))
+{
+	this->output = output;
+	this->device_prefs = device_prefs;
+}
+
+const char* VDriverFormat::format_to_string(int format)
+{
+	switch(format)
+	{
+		case CAPTURE_RGB:
+			sprintf(string, CAPTURE_RGB_TITLE);
+			break;
+		case CAPTURE_YUYV:
+			sprintf(string, CAPTURE_YUYV_TITLE);
+			break;
+		case CAPTURE_JPEG:
+			return CAPTURE_JPEG_TITLE;
+			break;
+		case CAPTURE_JPEG_NOHEAD:
+			return CAPTURE_JPEG_NOHEAD_TITLE;
+			break;
+		case CAPTURE_MJPG:
+			sprintf(string, CAPTURE_MJPG_TITLE);
+			break;
+		case CAPTURE_MJPG_1FIELD:
+			sprintf(string, CAPTURE_MJPG_1FIELD_TITLE);
+			break;
+		default:
+			sprintf(string, "Unknown");
+	}
+	return string;
+}
+
+void VDriverFormat::create_objects()
+{
+	add_item(new VDriverFormatItem(this, CAPTURE_RGB_TITLE, CAPTURE_RGB));
+	add_item(new VDriverFormatItem(this, CAPTURE_YUYV_TITLE, CAPTURE_YUYV));
+	add_item(new VDriverFormatItem(this, CAPTURE_JPEG_TITLE, CAPTURE_JPEG));
+	add_item(new VDriverFormatItem(this, CAPTURE_JPEG_NOHEAD_TITLE, CAPTURE_JPEG_NOHEAD));
+	add_item(new VDriverFormatItem(this, CAPTURE_MJPG_TITLE, CAPTURE_MJPG));
+	add_item(new VDriverFormatItem(this, CAPTURE_MJPG_1FIELD_TITLE, CAPTURE_MJPG_1FIELD));
+}
+
+VDriverFormatItem::VDriverFormatItem(VDriverFormat *popup, const char *text, int format)
+ : BC_MenuItem(text)
+{
+	this->popup = popup;
+	this->format = format;
+}
+
+int VDriverFormatItem::handle_event()
+{
+	popup->set_text(get_text());
+	*(popup->output) = format;
 	popup->device_prefs->initialize(0);
 	return 1;
 }

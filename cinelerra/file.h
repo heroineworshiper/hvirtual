@@ -218,12 +218,12 @@ public:
 
 // These are separated into two routines so a file doesn't have to be
 // allocated.
-// Get best colormodel to translate for hardware accelerated playback.
-// Called by VRender.
-	int get_best_colormodel(int driver);
-// Get best colormodel for hardware accelerated recording.
-// Called by VideoDevice.
-	static int get_best_colormodel(Asset *asset, int driver);
+// Called by VRender & VideoDevice.
+	int get_best_colormodel(VideoInConfig *in_config, 
+        VideoOutConfig *out_config);
+	static int get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config);
 // Get nearest colormodel that can be decoded without a temporary frame.
 // Used by read_frame.
 //	int colormodel_supported(int colormodel);

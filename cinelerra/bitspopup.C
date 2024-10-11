@@ -110,7 +110,7 @@ int BitsPopupMenu::handle_event()
 }
 
 BitsPopupText::BitsPopupText(BitsPopup *popup, int x, int y)
- : BC_TextBox(x, y, DP(200), 1, File::bitstostr(*popup->output))
+ : BC_TextBox(x, y, DP(150), 1, File::bitstostr(*popup->output))
 {
 	this->popup = popup;
 }

@@ -39,7 +39,9 @@ public:
     FileGIF();
 	int check_sig(File *file, const uint8_t *test_data);
     FileBase* create(File *file);
-	int get_best_colormodel(Asset *asset, int driver);
+	int get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config);
 
 
 //	int colormodel_supported(int colormodel);

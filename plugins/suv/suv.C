@@ -119,7 +119,7 @@ void SUV::initialize()
 	resources->menu_title_text = 0xbfbfbf;
 	resources->popup_title_text = 0xbfbfbf;
 	resources->menu_item_text = 0xbfbfbf;
-	resources->generic_button_margin = DP(30);
+	resources->generic_button_margin = DP(5);
 	resources->pot_needle_color = resources->text_default;
 	resources->pot_offset = 1;
 	resources->progress_text = resources->text_default;
@@ -130,7 +130,7 @@ void SUV::initialize()
 	resources->menu_down = 0x4b4b4b;
 	resources->menu_up = 0x4b4b4b;
 	resources->menu_shadow = 0x202020;
-	resources->popupmenu_margin = DP(25);
+	resources->popupmenu_margin = DP(10);
 	resources->popupmenu_triangle_margin = DP(5);
 
 	resources->listbox_title_color = 0xbfbfbf;
@@ -442,10 +442,10 @@ void SUV::initialize()
 
 	preferences_category_overlap = DP(0);
 	preferencescategory_x = DP(0);
-	preferencescategory_y = DP(5);
-	preferencestitle_x = DP(5);
-	preferencestitle_y = DP(10);
-	preferencesoptions_x = DP(5);
+	preferencescategory_y = DP(0);
+	preferencestitle_x = DP(0);
+	preferencestitle_y = DP(0);
+	preferencesoptions_x = DP(0);
 	preferencesoptions_y = DP(0);
 
 // MWindow

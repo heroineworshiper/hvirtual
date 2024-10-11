@@ -304,7 +304,9 @@ void FileEXR::get_parameters(BC_WindowBase *parent_window,
 // 	return native_cmodel;
 // }
 
-int FileEXR::get_best_colormodel(Asset *asset, int driver)
+int FileEXR::get_best_colormodel(Asset *asset, 
+    VideoInConfig *in_config, 
+    VideoOutConfig *out_config)
 {
 	if(asset->exr_use_alpha)
 		return BC_RGBA_FLOAT;

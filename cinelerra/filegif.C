@@ -82,7 +82,9 @@ int FileGIF::check_sig(File *file, const uint8_t *test_data)
 // 	return BC_RGB888;
 // }
 
-int FileGIF::get_best_colormodel(Asset *asset, int driver)
+int FileGIF::get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config)
 {
 	return BC_RGB888;
 }

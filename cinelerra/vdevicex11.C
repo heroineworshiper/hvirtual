@@ -419,7 +419,7 @@ int VDeviceX11::read_buffer(VFrame *frame)
 
 int VDeviceX11::get_best_colormodel(Asset *asset)
 {
-	return File::get_best_colormodel(asset, SCREENCAPTURE);
+	return File::get_best_colormodel(asset, device->in_config, 0 /* SCREENCAPTURE */ );
 
 //	return BC_RGB888;
 }

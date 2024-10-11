@@ -485,13 +485,19 @@ printf("VDeviceV4L2Thread::run %d testing formats\n", __LINE__);
    			v4l2_params.fmt.pix.pixelformat = pixel_formats[i];
    			if(ioctl(input_fd, VIDIOC_S_FMT, &v4l2_params) >= 0)
    			{
-   				printf("VDeviceV4L2Thread::run %d format %d %c%c%c%c is good\n", 
-   					__LINE__, 
-   					i,
-   					((unsigned char*)&pixel_formats[i])[0],
-   					((unsigned char*)&pixel_formats[i])[1],
-   					((unsigned char*)&pixel_formats[i])[2],
-   					((unsigned char*)&pixel_formats[i])[3]);
+//                struct v4l2_format v4l2_params2;
+//                ioctl(input_fd, VIDIOC_G_FMT, &v4l2_params2);
+                
+                
+//                if(v4l2_params.fmt.pix.pixelformat ==
+//                    v4l2_params2.fmt.pix.pixelformat)
+   				    printf("VDeviceV4L2Thread::run %d format %d %c%c%c%c is good\n", 
+   					    __LINE__, 
+   					    i,
+   					    ((unsigned char*)&pixel_formats[i])[0],
+   					    ((unsigned char*)&pixel_formats[i])[1],
+   					    ((unsigned char*)&pixel_formats[i])[2],
+   					    ((unsigned char*)&pixel_formats[i])[3]);
    			}
    		}
 #endif
@@ -500,27 +506,28 @@ printf("VDeviceV4L2Thread::run %d testing formats\n", __LINE__);
 //printf("VDeviceV4L2Thread::run %d\n", __LINE__);
 
 
-		if(device->in_config->driver == VIDEO4LINUX2MJPG)
+		if(device->in_config->v4l2_format == CAPTURE_MJPG ||
+            device->in_config->v4l2_format == CAPTURE_MJPG_1FIELD)
 		{
         	v4l2_params.fmt.pix.pixelformat = 
 				V4L2_PIX_FMT_MJPEG;
 		}
         else
-		if(device->in_config->driver == VIDEO4LINUX2JPEG)
+		if(device->in_config->v4l2_format == CAPTURE_JPEG)
 		{
         	v4l2_params.fmt.pix.pixelformat = 
 				V4L2_PIX_FMT_JPEG;
 		}
         else
-		if(device->in_config->driver == CAPTURE_JPEG_WEBCAM)
-			v4l2_params.fmt.pix.pixelformat = 
-				V4L2_PIX_FMT_MJPEG;
-		else
-		if(device->in_config->driver == CAPTURE_MPEG)
-			v4l2_params.fmt.pix.pixelformat = 
-				V4L2_PIX_FMT_MPEG;
-		else
-		if(device->in_config->driver == CAPTURE_YUYV_WEBCAM)
+// 		if(device->in_config->driver == CAPTURE_JPEG_WEBCAM)
+// 			v4l2_params.fmt.pix.pixelformat = 
+// 				V4L2_PIX_FMT_MJPEG;
+// 		else
+// 		if(device->in_config->driver == CAPTURE_MPEG)
+// 			v4l2_params.fmt.pix.pixelformat = 
+// 				V4L2_PIX_FMT_MPEG;
+// 		else
+		if(device->in_config->v4l2_format == CAPTURE_YUYV)
 			v4l2_params.fmt.pix.pixelformat = 
 				V4L2_PIX_FMT_YUYV;
 		else
@@ -538,6 +545,13 @@ printf("VDeviceV4L2Thread::run %d testing formats\n", __LINE__);
 			perror("VDeviceV4L2Thread::run VIDIOC_S_FMT");
 		if(ioctl(input_fd, VIDIOC_G_FMT, &v4l2_params) < 0)
 			perror("VDeviceV4L2Thread::run VIDIOC_G_FMT");
+
+   		printf("VDeviceV4L2Thread::run %d got format %c%c%c%c\n", 
+   			__LINE__, 
+   			((unsigned char*)&v4l2_params.fmt.pix.pixelformat)[0],
+   			((unsigned char*)&v4l2_params.fmt.pix.pixelformat)[1],
+   			((unsigned char*)&v4l2_params.fmt.pix.pixelformat)[2],
+   			((unsigned char*)&v4l2_params.fmt.pix.pixelformat)[3]);
 
 // Set input
 		Channel *device_channel = 0;
@@ -689,9 +703,10 @@ printf("VDeviceV4L2Thread::run %d testing formats\n", __LINE__);
 // 		printf("VDeviceV4L2Thread::run %d\n", __LINE__);
 
 // Set compression
-		if(device->in_config->driver == VIDEO4LINUX2JPEG ||
-			device->in_config->driver == VIDEO4LINUX2MJPG ||
-			device->in_config->driver == CAPTURE_JPEG_WEBCAM)
+		if(device->in_config->v4l2_format == CAPTURE_JPEG ||
+			device->in_config->v4l2_format == CAPTURE_JPEG_NOHEAD ||
+			device->in_config->v4l2_format == CAPTURE_MJPG ||
+			device->in_config->v4l2_format == CAPTURE_MJPG_1FIELD)
 		{
 			struct v4l2_jpegcompression jpeg_arg;
 			if(ioctl(input_fd, VIDIOC_G_JPEGCOMP, &jpeg_arg) < 0)
@@ -747,10 +762,10 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 				}
 
 				VFrame *frame = device_buffers[i];
-				if(device->in_config->driver == VIDEO4LINUX2JPEG ||
-					device->in_config->driver == VIDEO4LINUX2MJPG ||
-					device->in_config->driver == CAPTURE_JPEG_WEBCAM ||
-					device->in_config->driver == CAPTURE_MPEG)
+				if(device->in_config->v4l2_format == CAPTURE_JPEG ||
+					device->in_config->v4l2_format == CAPTURE_JPEG_NOHEAD ||
+					device->in_config->v4l2_format == CAPTURE_MJPG ||
+					device->in_config->v4l2_format == CAPTURE_MJPG_1FIELD)
 				{
 					frame->set_compressed_memory(data,
 						0,
@@ -998,8 +1013,10 @@ int VDeviceV4L2::get_sources(VideoDevice *device,
 
 	device->channel->use_norm = 1;
 	device->channel->use_input = 1;
-	if(device->in_config->driver != VIDEO4LINUX2JPEG &&
-        device->in_config->driver != VIDEO4LINUX2MJPG) 
+	if(device->in_config->v4l2_format != CAPTURE_JPEG &&
+        device->in_config->v4l2_format != CAPTURE_JPEG_NOHEAD &&
+        device->in_config->v4l2_format != CAPTURE_MJPG &&
+        device->in_config->v4l2_format != CAPTURE_MJPG_1FIELD) 
 		device->channel->has_scanning = 1;
 	else
 		device->channel->has_scanning = 0;
@@ -1095,7 +1112,7 @@ int VDeviceV4L2::cmodel_to_device(int color_model)
 int VDeviceV4L2::get_best_colormodel(Asset *asset)
 {
 	int result = BC_RGB888;
-	result = File::get_best_colormodel(asset, device->in_config->driver);
+	result = File::get_best_colormodel(asset, device->in_config, 0);
 	return result;
 }
 
@@ -1161,9 +1178,18 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 	VFrame *buffer = thread->get_buffer(&timed_out);
 	if(buffer)
 	{
-//printf("VDeviceV4L2::read_buffer %d\n", __LINE__);
+// printf("VDeviceV4L2::read_buffer %d %02x %02x %02x %02x %02x %02x %02x %02x\n", 
+// __LINE__,
+// buffer->get_data()[0],
+// buffer->get_data()[1],
+// buffer->get_data()[2],
+// buffer->get_data()[3],
+// buffer->get_data()[4],
+// buffer->get_data()[5],
+// buffer->get_data()[6],
+// buffer->get_data()[7]);
 // translate webcam data into JPEG
-		if(device->in_config->driver == CAPTURE_JPEG_WEBCAM)
+		if(device->in_config->v4l2_format == CAPTURE_JPEG_NOHEAD)
 		{
 //     		frame->allocate_compressed_data(
 //  				buffer->get_compressed_size());

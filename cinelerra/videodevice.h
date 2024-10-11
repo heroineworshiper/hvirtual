@@ -111,7 +111,10 @@ public:
 // Called by Record::run to determine if compression option is fixed.
 // Called by RecordVideo::rewind_file to determine if FileThread should call
 // write_compressed_frames or write_frames.
-	static int is_compressed(int driver, int use_file, int use_fixed);
+	static int is_compressed(int driver, 
+        int v4l2_format, 
+        int use_file, 
+        int use_fixed);
 	int is_compressed(int use_file, int use_fixed);
 
 // Load the specific channeldb for the device type
@@ -120,7 +123,7 @@ public:
 
 
 // Return codec to store on disk if compressed
-	void fix_asset(Asset *asset, int driver);
+	void fix_asset(Asset *asset, int driver, int v4l2_format);
 	static const char* drivertostr(int driver);
 // Get the best colormodel for recording given the file format.
 // Must be called between open_input and read_buffer.

@@ -36,6 +36,8 @@
 #include "mainerror.h"
 #include "mwindow.inc"
 #include "preferences.h"
+#include "playbackconfig.h"
+#include "recordconfig.h"
 #include "vframe.h"
 #include "videodevice.inc"
 
@@ -81,10 +83,34 @@ static double aspect_ratio_codes[] =
 
 
 
-static int get_best_colormodel_(Asset *asset, int driver)
+static int get_best_colormodel_(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config)
 {
-	switch(driver)
-	{
+    if(in_config)
+    {
+        switch(in_config->driver)
+        {
+		case VIDEO4LINUX:
+		case VIDEO4LINUX2:
+			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
+			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
+			break;
+		case CAPTURE_BUZ:
+		case CAPTURE_LML:
+			return BC_YUV422;
+			break;
+		case CAPTURE_FIREWIRE:
+		case CAPTURE_IEC61883:
+			return BC_YUV422P;
+			break;
+        }
+    }
+    
+    if(out_config)
+    {
+        switch(out_config->driver)
+        {
 		case PLAYBACK_X11:
 			return BC_RGB888;
 			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
@@ -106,20 +132,8 @@ static int get_best_colormodel_(Asset *asset, int driver)
 		case PLAYBACK_FIREWIRE:
 			return BC_YUV422P;
 			break;
-		case VIDEO4LINUX:
-		case VIDEO4LINUX2:
-			if(asset->vmpeg_cmodel == MPEG_YUV420) return BC_YUV420P;
-			if(asset->vmpeg_cmodel == MPEG_YUV422) return BC_YUV422P;
-			break;
-		case CAPTURE_BUZ:
-		case CAPTURE_LML:
-			return BC_YUV422;
-			break;
-		case CAPTURE_FIREWIRE:
-		case CAPTURE_IEC61883:
-			return BC_YUV422P;
-			break;
-	}
+        }
+    }
     return BC_RGB888;
 }
 
@@ -153,9 +167,11 @@ void FileAMPEG::get_parameters(BC_WindowBase *parent_window,
 }
 
 // wraps FileMPEG::get_best_colormodel
-int FileAMPEG::get_best_colormodel(Asset *asset, int driver)
+int FileAMPEG::get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config)
 {
-    return get_best_colormodel_(asset, driver);
+    return get_best_colormodel_(asset, in_config, out_config);
 }
 
 const char* FileAMPEG::formattostr(int format)
@@ -213,9 +229,11 @@ void FileVMPEG::get_parameters(BC_WindowBase *parent_window,
 }
 
 // wraps FileMPEG::get_best_colormodel
-int FileVMPEG::get_best_colormodel(Asset *asset, int driver)
+int FileVMPEG::get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config)
 {
-    return get_best_colormodel_(asset, driver);
+    return get_best_colormodel_(asset, in_config, out_config);
 }
 
 const char* FileVMPEG::formattostr(int format)
@@ -973,9 +991,11 @@ int FileMPEG::close_file()
 	return 0;
 }
 
-int FileMPEG::get_best_colormodel(Asset *asset, int driver)
+int FileMPEG::get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config)
 {
-    return get_best_colormodel_(asset, driver);
+    return get_best_colormodel_(asset, in_config, out_config);
 }
 
 // int FileMPEG::colormodel_supported(int colormodel)

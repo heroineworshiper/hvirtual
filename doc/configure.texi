@@ -610,41 +610,143 @@ driver section.  @xref{VIDEO DRIVERS}.
 @section RECORDING
 
 @menu
-* FILE FORMAT::
-* AUDIO IN::
 * VIDEO IN::
+* AUDIO IN::
+* FILE FORMAT::
 @end menu
 
+Recording depends on an encoding format for the output file & an input
+format from the hardware.  For audio, all the input formats can write to
+all the file formats.  For video, only specific combinations are
+supported.  It is best to work from the top down, since setting certain
+video drivers causes it to force certain file formats.
+
+The parameters here affect what happens in @b{File->Record...}.  The
+intention was to make @b{File->Record...} go as fast as possible into
+the record monitoring window, without a lengthy dialog to configure the
+file format.  Instead, the file format for recording is set here and it
+is applied to all recordings.  The input & file format format are set in
+the same place since they depend on each other.
+
+The filename is set in the record window since it can be different for
+every recording.  It must be set before starting recording & it doesn't
+check for an overwrite.
 
 
-The parameters here affect what happens when you go to
-@b{File->Record...}.  The intention was to make @b{File->Record...} go
-as fast as possible into the record monitoring window, without a
-lengthy dialog to configure the file format.  Instead the file format
-for recording is set here and it is applied to all recordings.  Also
-set here is the hardware for recording, since the hardware determines
-the supported file format in most cases.
+
+@node VIDEO IN
+@subsection VIDEO IN
+
+These determine how frames are injested in @b{File->record} & in the
+@b{live video} effect.
+
+@itemize
+@item
+
+@b{RECORD DRIVER}
+
+There was once a plan to share the video recording
+driver with the audio recording driver if the audio and video were
+multiplexed in the same stream like DVB, but no use case for this
+happened.  It takes variable parameters depending on the driver.  The
+parameters have the same meaning as they do for playback.
+
+Most webcams & USB dongles today use Video4Linux2.  For capturing the
+screen, you'll use Screencap.
+
+@item @b{VIDEO4LINUX2 DEVICE PATH}
+
+For video4linux2, this is usually /dev/video0 or 1 of the /dev/video
+files.  
+
+@item @b{VIDEO4LINUX2 CODEC}
+
+This is the input format read from video4linux2.  It has to be matched
+to the file format & the hardware.  To record video, the file format
+must obviously support video 1st.  Then, the compression setting for the
+file has to be what the hardware codec supports.
+
+Webcams, HDMI to USB, analog to USB generally support YUYV & MJPG 1
+field.  To record YUYV, the file format has to be @b{command line} & the
+compression preset needs to have @b{YUV 422}.
+
+To record MJPG 1 field, the file format has to be Quicktime & the
+compression has to be JPEG.
+
+Keychain cams generally only support MJPG 1 field.
+
+For video4linux2, the frames to buffer in device normally needs to be 4.
+
+@item @b{SCREENCAPTURE}
+
+Screencap only takes a Display as a parameter.  This can be left blank
+to record the local display.
+
+For best results with screencap, the file format should be @b{command
+line} & the compression preset should have @b{YUV 444}.
+
+@item @b{FRAMES TO RECORD TO DISK AT A TIME}
+
+Frames are recorded in a pipeline.  First frames are buffered in the
+device.  Then they're read into a larger buffer for writing to disk. 
+The disk writing is done in a different thread as the device reading. 
+For certain codecs the disk writing uses multiple processors.  This
+value determines how many frames are written to disk at a time.
 
 
-@node FILE FORMAT
-@subsection FILE FORMAT
 
-This determines the output file format for recordings.  It depends
-heavily on the type of driver used.  The interface is the same as the
-rendering interface.  The @b{Record audio tracks} toggle must be
-enabled to record audio.  The @b{Record video tracks} toggle must be
-enabled to record video.  The wrench button left of each toggle opens a
-configuration dialog to set the codec corresponding to audio and
-video.  The audio and video is wrapped in a wrapper defined by the
-@b{File Format} menu.  Different wrappers may record audio only, video
-only, or both.
+@item
 
-Some video drivers can only record to a certain wrapper.  DV, for
-example, can only record to Quicktime with DV as the video compression.
-If the video driver is changed, the file format may be updated to give
-the supported output.  If you change the file format to an unsupported
-format, it may not work with the video driver.
+@b{FRAMES TO BUFFER IN DEVICE}
 
+The number of frames to store in the device before reading.  This
+determines how much latency there can be in the system before frames are
+dropped.  It normally has to be 4.
+
+@item
+@b{USE SOFTWARE FOR POSITIONING INFORMATION}
+
+Video uses audio for synchronization but most soundcards don't give accurate position
+information.  This calculates an estimation of audio position in
+software instead of the hardware for synchronization.
+
+@item
+
+@b{SYNC DRIVES AUTOMATICALLY}
+
+For high bitrate recording the drives may be fast enough to store the
+data but Linux may wait several minutes and stall as it writes several
+minutes of data at a time.  This forces Linux to flush its buffers
+every second instead of every few minutes and produce slightly better
+realtime behavior.
+
+@item
+
+@b{SIZE OF CAPTURED FRAME}
+
+This is the size of the frames recorded.  It is independant of the
+project frame size because most video devices only record a fixed frame
+size.  If the frame size given here isn't supported by the device it
+might crash Cinelerra.
+
+The aspect ratio for the recording monitor is currently assuming only
+square pixels.
+
+In the past, it has been determined by the setting for @b{auto aspect}
+in @b{Settings->set format}.  If auto aspect was enabled, the recording
+monitor showed square pixels.  If auto aspect was disabled, the
+recording monitor stretched the captured frame to the aspect ratio in
+@b{Settings->set format}.  The problem with this was it was easier to
+detect recording anomalies with square pixels while watching video from
+the timeline was easier with stretched pixels.
+
+@item
+@b{FRAME RATE FOR RECORDING}
+
+The frame rate recorded is different from the project settings.  This
+sets the recorded frame rate.
+
+@end itemize
 
 
 @node AUDIO IN
@@ -705,82 +807,25 @@ supports.
 
 @end itemize
 
-@node VIDEO IN
-@subsection VIDEO IN
 
-These determine what happens when you record video.
+@node FILE FORMAT
+@subsection FILE FORMAT
 
-@itemize
-@item
+This determines the output file format for recordings.  It depends
+heavily on the type of driver used.  The interface is the same as the
+rendering interface.  The @b{Record audio tracks} toggle must be
+enabled to record audio.  The @b{Record video tracks} toggle must be
+enabled to record video.  The wrench button left of each toggle opens a
+configuration dialog to set the codec corresponding to audio and
+video.  The audio and video is wrapped in a wrapper defined by the
+@b{File Format} menu.  Different wrappers may record audio only, video
+only, or both.
 
-RECORD DRIVER
-
-This is used for recording video in the Record window.  It may be
-shared with the Record Driver for audio if the audio and video are
-wrapped in the same stream.  It takes variable parameters depending on
-the driver.  The parameters have the same meaning as they do for
-playback.
-
-@item
-
-FRAMES TO RECORD TO DISK AT A TIME
-
-Frames are recorded in a pipeline.  First frames are buffered in the
-device.  Then they're read into a larger buffer for writing to disk. 
-The disk writing is done in a different thread as the device reading. 
-For certain codecs the disk writing uses multiple processors.  This
-value determines how many frames are written to disk at a time.
-
-@item
-
-FRAMES TO BUFFER IN DEVICE
-
-The number of frames to store in the device before reading.  This
-determines how much latency there can be in the system before frames
-are dropped.
-
-@item
-USE SOFTWARE FOR POSITIONING INFORMATION
-
-Video uses audio for
-
-
-synchronization but most soundcards don't give accurate position
-information.  This calculates an estimation of audio position in
-software instead of the hardware for synchronization.
-
-@item
-
-SYNC DRIVES AUTOMATICALLY
-
-For high bitrate recording the drives may be fast enough to store the
-data but Linux may wait several minutes and stall as it writes several
-minutes of data at a time.  This forces Linux to flush its buffers
-every second instead of every few minutes and produce slightly better
-realtime behavior.
-
-@item
-
-SIZE OF CAPTURED FRAME
-
-This is the size of the frames recorded.  It is independant of the
-project frame size because most video devices only record a fixed frame
-size.  If the frame size given here isn't supported by the device it
-might crash Cinelerra.
-
-The aspect ratio for the recording monitor is determined by the setting
-for @b{auto aspect} in @b{Settings->set format}.  If auto aspect is
-enabled, the recording monitor shows square pixels.  If auto aspect is
-disabled, the recording monitor stretches the captured frame to the
-aspect ratio in @b{Settings->set format}.
-
-@item
-FRAME RATE FOR RECORDING
-
-The frame rate recorded is different from the project settings.  This
-sets the recorded frame rate.
-
-@end itemize
+Some video drivers can only record to a certain wrapper.  DV, for
+example, can only record to Quicktime with DV as the video compression.
+If the video driver is changed, the file format may be updated to give
+the supported output.  If you change the file format to an unsupported
+format, it may not work with the video driver.
 
 
 

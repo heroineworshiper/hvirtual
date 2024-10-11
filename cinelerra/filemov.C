@@ -33,6 +33,8 @@
 #include "mutex.h"
 #include "mwindow.h"
 #include "preferences.h"
+#include "playbackconfig.h"
+#include "recordconfig.h"
 #include "vframe.h"
 #include "videodevice.inc"
 
@@ -539,10 +541,90 @@ int64_t FileMOV::get_memory_usage()
 // 	return colormodel;
 // }
 
-int FileMOV::get_best_colormodel(Asset *asset, int driver)
+int FileMOV::get_best_colormodel(Asset *asset, 
+    VideoInConfig *in_config, 
+    VideoOutConfig *out_config)
 {
-	switch(driver)
-	{
+    if(in_config)
+    {
+        switch(in_config->driver)
+        {
+		case VIDEO4LINUX:
+			if(!strncasecmp(asset->vcodec, QUICKTIME_YUV420, 4)) return BC_YUV422;
+			else
+			if(!strncasecmp(asset->vcodec, QUICKTIME_YUV422, 4)) return BC_YUV422;
+			else
+			if(!strncasecmp(asset->vcodec, QUICKTIME_YUV411, 4)) return BC_YUV411P;
+			else
+			if(!strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4)) return BC_YUV420P;
+			else
+			if(!strncasecmp(asset->vcodec, QUICKTIME_MJPA, 4)) return BC_YUV422P;
+			else
+			if(!strncasecmp(asset->vcodec, QUICKTIME_HV60, 4)) return BC_YUV420P;
+			else
+			if(!strncasecmp(asset->vcodec, QUICKTIME_DIVX, 4)) return BC_YUV420P;
+			else
+			if(!strncasecmp(asset->vcodec, QUICKTIME_H263, 4)) return BC_YUV420P;
+			else
+			if(!strncasecmp(asset->vcodec, QUICKTIME_DIV3, 4)) return BC_YUV420P;
+            break;
+
+		case VIDEO4LINUX2:
+            switch(in_config->v4l2_format)
+            {
+            case CAPTURE_RGB: return BC_RGB888; break;
+            case CAPTURE_YUYV: return BC_YUV422; break;
+            case CAPTURE_JPEG: return BC_COMPRESSED; break;
+            case CAPTURE_JPEG_NOHEAD: return BC_COMPRESSED; break;
+            case CAPTURE_MJPG: return BC_COMPRESSED; break;
+            case CAPTURE_MJPG_1FIELD: return BC_COMPRESSED; break;
+            }
+			break;
+
+		case CAPTURE_BUZ:
+		case CAPTURE_LML:
+//		case VIDEO4LINUX2JPEG:
+//		case VIDEO4LINUX2MJPG:
+			if(!strncasecmp(asset->vcodec, QUICKTIME_MJPA, 4) ||
+                !strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4)) 
+				return BC_COMPRESSED;
+			else
+				return BC_YUV422;
+			break;
+
+//		case CAPTURE_JPEG_WEBCAM:
+//			return BC_COMPRESSED;
+//			break;
+
+//		case CAPTURE_YUYV_WEBCAM:
+//			return BC_YUV422;
+//			break;
+		
+		case CAPTURE_FIREWIRE:
+		case CAPTURE_IEC61883:
+			if(!strncasecmp(asset->vcodec, QUICKTIME_DV, 4) ||
+				!strncasecmp(asset->vcodec, QUICKTIME_DVSD, 4) ||
+				!strncasecmp(asset->vcodec, QUICKTIME_DVCP, 4)) 
+				return BC_COMPRESSED;
+			else
+				return BC_YUV422;
+			break;
+		
+		case SCREENCAPTURE:
+			if(!strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4) ||
+				!strncasecmp(asset->vcodec, QUICKTIME_H264, 4) ||
+				!strncasecmp(asset->vcodec, QUICKTIME_H265, 4))
+			{
+				return BC_YUV420P;
+			}
+			break;
+        }
+    }
+    
+    if(out_config)
+    {
+        switch(out_config->driver)
+        {
 		case PLAYBACK_X11:
 //			return BC_RGB888;
 // the direct X11 color model requires scaling in the codec
@@ -610,65 +692,8 @@ int FileMOV::get_best_colormodel(Asset *asset, int driver)
 			else
 				return BC_YUV422P;
 			break;
-		case VIDEO4LINUX:
-		case VIDEO4LINUX2:
-			if(!strncasecmp(asset->vcodec, QUICKTIME_YUV420, 4)) return BC_YUV422;
-			else
-			if(!strncasecmp(asset->vcodec, QUICKTIME_YUV422, 4)) return BC_YUV422;
-			else
-			if(!strncasecmp(asset->vcodec, QUICKTIME_YUV411, 4)) return BC_YUV411P;
-			else
-			if(!strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4)) return BC_YUV420P;
-			else
-			if(!strncasecmp(asset->vcodec, QUICKTIME_MJPA, 4)) return BC_YUV422P;
-			else
-			if(!strncasecmp(asset->vcodec, QUICKTIME_HV60, 4)) return BC_YUV420P;
-			else
-			if(!strncasecmp(asset->vcodec, QUICKTIME_DIVX, 4)) return BC_YUV420P;
-			else
-			if(!strncasecmp(asset->vcodec, QUICKTIME_H263, 4)) return BC_YUV420P;
-			else
-			if(!strncasecmp(asset->vcodec, QUICKTIME_DIV3, 4)) return BC_YUV420P;
-			break;
-
-		case CAPTURE_BUZ:
-		case CAPTURE_LML:
-		case VIDEO4LINUX2JPEG:
-		case VIDEO4LINUX2MJPG:
-			if(!strncasecmp(asset->vcodec, QUICKTIME_MJPA, 4) ||
-                !strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4)) 
-				return BC_COMPRESSED;
-			else
-				return BC_YUV422;
-			break;
-
-		case CAPTURE_JPEG_WEBCAM:
-			return BC_COMPRESSED;
-			break;
-
-		case CAPTURE_YUYV_WEBCAM:
-			return BC_YUV422;
-			break;
-		
-		case CAPTURE_FIREWIRE:
-		case CAPTURE_IEC61883:
-			if(!strncasecmp(asset->vcodec, QUICKTIME_DV, 4) ||
-				!strncasecmp(asset->vcodec, QUICKTIME_DVSD, 4) ||
-				!strncasecmp(asset->vcodec, QUICKTIME_DVCP, 4)) 
-				return BC_COMPRESSED;
-			else
-				return BC_YUV422;
-			break;
-		
-		case SCREENCAPTURE:
-			if(!strncasecmp(asset->vcodec, QUICKTIME_JPEG, 4) ||
-				!strncasecmp(asset->vcodec, QUICKTIME_H264, 4) ||
-				!strncasecmp(asset->vcodec, QUICKTIME_H265, 4))
-			{
-				return BC_YUV420P;
-			}
-			break;
-	}
+        }
+    }
 	return BC_RGB888;
 }
 

@@ -619,7 +619,9 @@ void FileAVI::reset()
 	temp_allocated = 0;
 }
 
-int FileAVI::get_best_colormodel(Asset *asset, int driver)
+int FileAVI::get_best_colormodel(Asset *asset, 
+    VideoInConfig *in_config, 
+    VideoOutConfig *out_config)
 {
 // 	if(colormodel > -1)
 // 	{

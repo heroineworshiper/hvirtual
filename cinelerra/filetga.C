@@ -211,7 +211,9 @@ int FileTGA::can_copy_from(Asset *asset, int64_t position)
 // 	return colormodel;
 // }
 // 
-int FileTGA::get_best_colormodel(Asset *asset, int driver)
+int FileTGA::get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config)
 {
 	if(!strcasecmp(asset->vcodec, TGA_RGB_RLE) || 
 		!strcasecmp(asset->vcodec, TGA_RGB)) return BC_RGB888;

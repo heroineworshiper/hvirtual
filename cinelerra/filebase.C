@@ -71,7 +71,9 @@ FileBase* FileBase::create(File *file)
     return 0;
 }
 
-int FileBase::get_best_colormodel(Asset *asset, int driver)
+int FileBase::get_best_colormodel(Asset *asset, 
+    VideoInConfig *in_config,
+    VideoOutConfig *out_config)
 {
     return BC_RGB888;
 }

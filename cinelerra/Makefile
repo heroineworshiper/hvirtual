@@ -547,7 +547,7 @@ $(shell echo $(LDFLAGS1) $(OBJS) $(CFUNCTIONS) $(FILEEXR) $(FILEFLAC) $(AUDIOPUL
 # in the main executable.
 # Also VFS only overrides the C library when dynamic linking is used.
 #$(OUTPUT): $(OBJS) $(CFUNCTIONS) $(DCRAW) $(FILEEXR) $(FFMPEG_OBJS) $(FILECR3) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a
-$(OUTPUT): $(OBJS) $(CFUNCTIONS) $(FILEEXR) $(FFMPEG_OBJS) $(FILECR3) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a ../libmpeg3/$(OBJDIR)/libmpeg3.a
+$(OUTPUT): $(OBJS) $(CFUNCTIONS) $(FILEEXR) $(FFMPEG_OBJS) $(FILECR3) $(FILEFLAC) $(AUDIOPULSE) $(THEME_DATA) ../guicast/$(OBJDIR)/libguicast.a ../libmpeg3/$(OBJDIR)/libmpeg3.a ../quicktime/$(OBJDIR)/libquicktime.a
 	$(LINKER) `cat $(OBJDIR)/objs`
 #	strip $(OUTPUT)
 

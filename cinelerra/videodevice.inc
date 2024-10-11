@@ -26,17 +26,17 @@ class VideoDevice;
 // Flags for mainwindow->preferences->vconfig_in->driver
 #define VIDEO4LINUX          0
 #define VIDEO4LINUX2         1
-#define VIDEO4LINUX2MJPG     2
+//#define VIDEO4LINUX2MJPG     2
 #define SCREENCAPTURE        3
 #define CAPTURE_LML          4
 #define CAPTURE_FIREWIRE     5
 #define CAPTURE_BUZ          6
 #define CAPTURE_IEC61883     7
 #define CAPTURE_DVB          8
-#define CAPTURE_JPEG_WEBCAM  20
-#define CAPTURE_YUYV_WEBCAM  21
-#define CAPTURE_MPEG         22
-#define VIDEO4LINUX2JPEG     23
+//#define CAPTURE_JPEG_WEBCAM  20
+//#define CAPTURE_YUYV_WEBCAM  21
+//#define CAPTURE_MPEG         22
+//#define VIDEO4LINUX2JPEG     23
 
 #define VIDEO4LINUX_TITLE            "Video4Linux"
 #define VIDEO4LINUX2_TITLE           "Video4Linux2"
@@ -51,6 +51,23 @@ class VideoDevice;
 #define CAPTURE_JPEG_WEBCAM_TITLE    "JPEG Webcam"
 #define CAPTURE_YUYV_WEBCAM_TITLE    "YUYV Webcam"
 #define CAPTURE_MPEG_TITLE           "Video4Linux2 MPEG"
+
+
+// input formats for video4linux2
+#define CAPTURE_RGB 0
+#define CAPTURE_YUYV 1
+#define CAPTURE_JPEG 2
+#define CAPTURE_JPEG_NOHEAD 3
+#define CAPTURE_MJPG 4
+#define CAPTURE_MJPG_1FIELD 5
+
+#define CAPTURE_RGB_TITLE "RGB"
+#define CAPTURE_YUYV_TITLE "YUYV"
+#define CAPTURE_JPEG_TITLE "JPEG"
+#define CAPTURE_JPEG_NOHEAD_TITLE "JPEG no headers"
+#define CAPTURE_MJPG_TITLE "MJPG 2 field"
+#define CAPTURE_MJPG_1FIELD_TITLE "MJPG 1 field"
+
 
 
 #define PLAYBACK_X11 	  10

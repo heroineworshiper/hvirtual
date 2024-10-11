@@ -30,6 +30,8 @@
 #include "filebase.inc"
 #include "filelist.inc"
 #include "overlayframe.inc"
+#include "playbackconfig.inc"
+#include "recordconfig.inc"
 #include "strategies.inc"
 #include "vframe.inc"
 
@@ -56,7 +58,9 @@ public:
 // table functions for file handler
     virtual int check_sig(File *file, const uint8_t *test_data);
     virtual FileBase* create(File *file);
-    virtual int get_best_colormodel(Asset *asset, int driver);
+    virtual int get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config,
+        VideoOutConfig *out_config);
     virtual void get_parameters(BC_WindowBase *parent_window, 
 		Asset *asset, 
 		BC_WindowBase* &format_window,

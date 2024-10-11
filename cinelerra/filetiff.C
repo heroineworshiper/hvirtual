@@ -256,7 +256,9 @@ int FileTIFF::read_frame_header(char *path)
 // 	}
 // }
 // 
-int FileTIFF::get_best_colormodel(Asset *asset, int driver)
+int FileTIFF::get_best_colormodel(Asset *asset, 
+    VideoInConfig *in_config, 
+    VideoOutConfig *out_config)
 {
 	switch(asset->tiff_cmodel)
 	{

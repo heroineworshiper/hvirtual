@@ -47,7 +47,9 @@ public:
 		BC_WindowBase* &format_window,
 		int option_type,
 	    const char *locked_compressor);
-	int get_best_colormodel(Asset *asset, int driver);
+	int get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config);
     const char* formattostr(int format);
     const char* get_tag(int format);
 

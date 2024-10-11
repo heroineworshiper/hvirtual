@@ -2638,12 +2638,15 @@ int File::bytes_per_sample(int bits)
 
 
 
-int File::get_best_colormodel(int driver)
+int File::get_best_colormodel(VideoInConfig *in_config, 
+    VideoOutConfig *out_config)
 {
-	return get_best_colormodel(asset, driver);
+	return get_best_colormodel(asset, in_config, out_config);
 }
 
-int File::get_best_colormodel(Asset *asset, int driver)
+int File::get_best_colormodel(Asset *asset, 
+    VideoInConfig *in_config, 
+    VideoOutConfig *out_config)
 {
     for(int i = 0; i < file_table->size(); i++)
     {
@@ -2652,7 +2655,7 @@ int File::get_best_colormodel(Asset *asset, int driver)
         {
             if(asset->format == table_entry->ids.get(j))
             {
-                return table_entry->get_best_colormodel(asset, driver);
+                return table_entry->get_best_colormodel(asset, in_config, out_config);
             }
         }
     }

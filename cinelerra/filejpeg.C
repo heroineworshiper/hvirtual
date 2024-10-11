@@ -28,6 +28,8 @@
 #include "libmjpeg.h"
 #include "mwindow.inc"
 #include "quicktime.h"
+#include "playbackconfig.h"
+#include "recordconfig.h"
 #include "vframe.h"
 #include "videodevice.inc"
 
@@ -160,10 +162,56 @@ int FileJPEG::can_copy_from(Asset *asset, int64_t position)
 // }
 
 
-int FileJPEG::get_best_colormodel(Asset *asset, int driver)
+int FileJPEG::get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config)
 {
-	switch(driver)
-	{
+    if(in_config)
+    {
+        switch(in_config->driver)
+        {
+		case VIDEO4LINUX:
+			return BC_YUV420P;
+			break;
+		case VIDEO4LINUX2:
+            switch(in_config->v4l2_format)
+            {
+                case CAPTURE_RGB:
+                    return BC_YUV420P;
+                    break;
+                case CAPTURE_YUYV:
+                    return BC_YUV422;
+                    break;
+                case CAPTURE_JPEG:
+                case CAPTURE_JPEG_NOHEAD:
+                case CAPTURE_MJPG_1FIELD:
+                    return BC_COMPRESSED;
+                    break;
+                case CAPTURE_MJPG:
+                    return BC_YUV422;
+                    break;
+            }
+			return BC_YUV420P;
+			break;
+		case CAPTURE_BUZ:
+		case CAPTURE_LML:
+//		case VIDEO4LINUX2MJPG:
+			return BC_YUV422;
+			break;
+//		case VIDEO4LINUX2JPEG:
+//			return BC_YUV420P;
+//			break;
+		case CAPTURE_FIREWIRE:
+		case CAPTURE_IEC61883:
+			return BC_YUV420P;
+			break;
+        }
+    }
+    
+    if(out_config)
+    {
+        switch(out_config->driver)
+        {
 		case PLAYBACK_X11:
 			return BC_RGB888;
 			break;
@@ -180,23 +228,9 @@ int FileJPEG::get_best_colormodel(Asset *asset, int driver)
 		case PLAYBACK_BUZ:
 			return BC_YUV422P;
 			break;
-		case VIDEO4LINUX:
-		case VIDEO4LINUX2:
-			return BC_YUV420P;
-			break;
-		case CAPTURE_BUZ:
-		case CAPTURE_LML:
-		case VIDEO4LINUX2MJPG:
-			return BC_YUV422;
-			break;
-		case VIDEO4LINUX2JPEG:
-			return BC_YUV420P;
-			break;
-		case CAPTURE_FIREWIRE:
-		case CAPTURE_IEC61883:
-			return BC_YUV420P;
-			break;
-	}
+        }
+    }
+
 	return BC_YUV420P;
 }
 

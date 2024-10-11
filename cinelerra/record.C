@@ -184,20 +184,25 @@ int Record::load_defaults()
 
 // Fix encoding parameters depending on driver.
 // These are locked by a specific driver.
-	if(MWindow::preferences->vconfig_in->driver == CAPTURE_LML ||
-		MWindow::preferences->vconfig_in->driver == CAPTURE_BUZ ||
-		MWindow::preferences->vconfig_in->driver == VIDEO4LINUX2MJPG)
+    VideoInConfig *in_config = MWindow::preferences->vconfig_in;
+	if(in_config->driver == CAPTURE_LML ||
+		in_config->driver == CAPTURE_BUZ ||
+		(in_config->driver == VIDEO4LINUX2 &&
+            in_config->v4l2_format == CAPTURE_MJPG))
 	{
     	strncpy(default_asset->vcodec, QUICKTIME_MJPA, 4);
     }
     else
-	if(MWindow::preferences->vconfig_in->driver == VIDEO4LINUX2JPEG)
+	if(in_config->driver == VIDEO4LINUX2 &&
+        (in_config->v4l2_format == CAPTURE_JPEG || 
+        in_config->v4l2_format == CAPTURE_JPEG_NOHEAD ||
+        in_config->v4l2_format == CAPTURE_MJPG_1FIELD))
 	{
     	strncpy(default_asset->vcodec, QUICKTIME_JPEG, 4);
 	}
     else
-	if(MWindow::preferences->vconfig_in->driver == CAPTURE_FIREWIRE ||
-		MWindow::preferences->vconfig_in->driver == CAPTURE_IEC61883)
+	if(in_config->driver == CAPTURE_FIREWIRE ||
+		in_config->driver == CAPTURE_IEC61883)
 	{
 		strncpy(default_asset->vcodec, QUICKTIME_DVSD, 4);
 	}
@@ -361,11 +366,11 @@ void Record::source_to_text(char *string, Batch *batch)
 		case VIDEO4LINUX:
 		case VIDEO4LINUX2:
 		case CAPTURE_BUZ:
-		case VIDEO4LINUX2MJPG:
-		case VIDEO4LINUX2JPEG:
-		case CAPTURE_JPEG_WEBCAM:
-		case CAPTURE_YUYV_WEBCAM:
-		case CAPTURE_MPEG:
+// 		case VIDEO4LINUX2MJPG:
+// 		case VIDEO4LINUX2JPEG:
+// 		case CAPTURE_JPEG_WEBCAM:
+// 		case CAPTURE_YUYV_WEBCAM:
+// 		case CAPTURE_MPEG:
 			if(batch->channel < 0 || batch->channel >= channeldb->size())
 				sprintf(string, _("None"));
 			else
@@ -390,7 +395,8 @@ void Record::run()
 	VideoDevice::load_channeldb(channeldb, MWindow::preferences->vconfig_in);
 	fixed_compression = VideoDevice::is_compressed(
 		MWindow::preferences->vconfig_in->driver,
-		0,
+		MWindow::preferences->vconfig_in->v4l2_format,
+        0,
 		1);
 	load_defaults();
 
@@ -398,7 +404,8 @@ void Record::run()
 	{
 		VideoDevice device;
 		device.fix_asset(default_asset, 
-			MWindow::preferences->vconfig_in->driver);
+			MWindow::preferences->vconfig_in->driver, 
+			MWindow::preferences->vconfig_in->v4l2_format);
 	}
 
 

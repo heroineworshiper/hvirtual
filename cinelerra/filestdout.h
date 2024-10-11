@@ -49,7 +49,9 @@ public:
 		BC_WindowBase* &format_window,
 		int option_type,
 	    const char *locked_compressor);
-	int get_best_colormodel(Asset *asset, int driver);
+	int get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config);
     const char* formattostr(int format);
     void fix_command(std::string *dst, 
         std::string *src, 
@@ -68,7 +70,7 @@ public:
 
 // default values
     static StdoutPreset* default_audio_presets[2];
-    static StdoutPreset* default_video_presets[4];
+    static StdoutPreset* default_video_presets[6];
     static StdoutPreset* default_mplex_presets[3];
 
 

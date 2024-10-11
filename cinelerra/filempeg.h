@@ -68,7 +68,9 @@ public:
 		int option_type,
 	    const char *locked_compressor);
 // wraps FileMPEG::get_best_colormodel
-	int get_best_colormodel(Asset *asset, int driver);
+	int get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config);
     const char* formattostr(int format);
     const char* get_tag(int format);
 };
@@ -85,7 +87,9 @@ public:
 		int option_type,
 	    const char *locked_compressor);
 // wraps FileMPEG::get_best_colormodel
-	int get_best_colormodel(Asset *asset, int driver);
+	int get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config);
     const char* formattostr(int format);
     const char* get_tag(int format);
 };
@@ -105,7 +109,9 @@ public:
     FileMPEG();
 	int check_sig(File *file, const uint8_t *test_data);
     FileBase* create(File *file);
-	int get_best_colormodel(Asset *asset, int driver);
+	int get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config);
     const char* formattostr(int format);
     const char* get_tag(int format);
 

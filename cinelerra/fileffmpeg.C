@@ -40,6 +40,7 @@ void quicktime_print_buffer(char *desc, uint8_t *input, int len);
 //#include "mpegaudio.h"
 #include "mutex.h"
 #include "mwindow.h"
+#include "playbackconfig.h"
 #include "preferences.h"
 #include "quicktime.h"
 #include "videodevice.inc"
@@ -1857,11 +1858,15 @@ int64_t FileFFMPEG::get_memory_usage()
 // 	return colormodel;
 // }
 
-int FileFFMPEG::get_best_colormodel(Asset *asset, int driver)
+int FileFFMPEG::get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config)
 {
 //printf("FileFFMPEG::get_best_colormodel %d driver=%d\n", __LINE__, driver);
-	switch(driver)
-	{
+    if(out_config)
+    {
+	    switch(out_config->driver)
+	    {
 		case PLAYBACK_X11:
 //			return BC_RGB888;
 // the direct X11 color model requires scaling in the codec
@@ -1876,7 +1881,8 @@ int FileFFMPEG::get_best_colormodel(Asset *asset, int driver)
 			
 		default:
 			return BC_YUV420P;
-	}
+	    }
+    }
 }
 
 void FileFFMPEG::dump_context(void *ptr)

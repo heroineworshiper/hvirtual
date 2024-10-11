@@ -74,6 +74,7 @@ public:
     void dump();
 
 	int driver;
+    int v4l2_format;
 	char v4l_in_device[BCTEXTLEN];
 	char v4l2_in_device[BCTEXTLEN];
 	char lml_in_device[BCTEXTLEN];

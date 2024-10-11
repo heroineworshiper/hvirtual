@@ -387,7 +387,6 @@ void PreferencesWindow::create_objects()
 	lock_window("PreferencesWindow::create_objects");
 
 	mwindow->theme->draw_preferences_bg(this);
-	flash();
 
 	int x = mwindow->theme->preferencescategory_x;
 	int y = mwindow->theme->preferencescategory_y;
@@ -562,10 +561,10 @@ int PreferencesButton::handle_event()
 
 PreferencesDialog::PreferencesDialog(MWindow *mwindow, 
 	PreferencesWindow *pwindow)
- : BC_SubWindow(DP(10), 
- 	DP(40), 
-	pwindow->get_w() - DP(20), 
- 	pwindow->get_h() - BC_GenericButton::calculate_h() - DP(10) - DP(40))
+ : BC_SubWindow(DP(5), 
+ 	DP(30), 
+	pwindow->get_w() - DP(10), 
+ 	pwindow->get_h() - BC_GenericButton::calculate_h() - DP(10) - DP(30))
 {
 	this->pwindow = pwindow;
 	this->mwindow = mwindow;

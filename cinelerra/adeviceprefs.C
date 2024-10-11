@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ int ADevicePrefs::initialize(int creation)
 	if(!menu)
 	{
 		dialog->add_subwindow(menu = new ADriverMenu(x, 
-			y + 10, 
+			y, 
 			this, 
 			(mode == MODERECORD),
 			driver));
@@ -598,7 +598,7 @@ ADriverMenu::ADriverMenu(int x,
 	ADevicePrefs *device_prefs, 
 	int do_input,
 	int *output)
- : BC_PopupMenu(x, y, DP(170), adriver_to_string(*output), 1)
+ : BC_PopupMenu(x, y, DP(150), adriver_to_string(*output), 1)
 {
 	this->output = output;
 	this->do_input = do_input;

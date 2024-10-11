@@ -52,29 +52,24 @@ void AboutPrefs::create_objects()
 // 		_("About"), 
 // 		LARGEFONT, 
 // 		resources->text_default));
-	
-	x = mwindow->theme->preferencesoptions_x;
-	y = mwindow->theme->preferencesoptions_y +
-		get_text_height(LARGEFONT);
-
 	char license1[BCTEXTLEN];
 	sprintf(license1, "%s %s", PROGRAM_NAME, CINELERRA_VERSION);
+	
+	x = mwindow->theme->preferencesoptions_x;
+	y = mwindow->theme->preferencesoptions_y;
 
-	set_font(LARGEFONT);
-	set_color(resources->text_default);
-	draw_text(x, y, license1);
 
-	y += get_text_height(LARGEFONT);
+    BC_Title *title1;
+	add_subwindow(title1 = new BC_Title(x, y, license1, LARGEFONT, resources->text_default));
+
+	y += title1->get_h();
 	char license2[BCTEXTLEN];
 	sprintf(license2, 
-		_("(C) %d Adam Williams\n\nheroinewarrior.com"), 
+		_("(C) %d Adam Williams\nheroinewarrior.com"), 
 		COPYRIGHT_DATE);
-	set_font(MEDIUMFONT);
-	draw_text(x, y, license2);
+	add_subwindow(title1 = new BC_Title(x, y, license2, MEDIUMFONT, resources->text_default));
 
-
-
-	y += get_text_height(MEDIUMFONT) * 2 + get_text_height(LARGEFONT);
+	y += title1->get_h() + DP(30);
 
 // 	char versions[BCTEXTLEN];
 // 	sprintf(versions, 
@@ -91,9 +86,8 @@ void AboutPrefs::create_objects()
 
 
 //	y += get_text_height(MEDIUMFONT) * 3;
-	set_font(LARGEFONT);
-	draw_text(x, y, "Contributors:");
-	y += get_text_height(LARGEFONT);
+	add_subwindow(title1 = new BC_Title(x, y, "Contributors:", LARGEFONT, resources->text_default));
+	y += title1->get_h();
 
 	credits.append(new BC_ListBoxItem("Richard Baverstock"));
 	credits.append(new BC_ListBoxItem("Karl Bielefeldt"));

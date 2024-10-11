@@ -29,6 +29,8 @@
 #include "filestdout.h"
 #include "filesystem.h"
 #include "mwindow.h"
+#include "playbackconfig.h"
+#include "recordconfig.h"
 #include "theme.h"
 #include "videodevice.inc"
 #include <string.h>
@@ -58,7 +60,7 @@ StdoutPreset* FileStdout::default_audio_presets[2] =
         0),
 };
 
-StdoutPreset* FileStdout::default_video_presets[4] =
+StdoutPreset* FileStdout::default_video_presets[6] =
 {
     new StdoutPreset("ffmpeg HEVC CBR",
         "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -b:v 5M %1",
@@ -66,6 +68,12 @@ StdoutPreset* FileStdout::default_video_presets[4] =
     new StdoutPreset("ffmpeg HEVC VBR",
         "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -qp:v 30 %1",
         BC_YUV420P),
+    new StdoutPreset("ffmpeg HEVC 444",
+        "ffmpeg -y -f rawvideo -pix_fmt yuv444p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -qp:v 30 %1",
+        BC_YUV444P),
+    new StdoutPreset("ffmpeg HEVC 422",
+        "ffmpeg -y -f rawvideo -pix_fmt yuv422p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -qp:v 30 %1",
+        BC_YUV422P),
     new StdoutPreset("ffmpeg H.264 VBR",
         "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v h264 -qp:v 30 %1",
         BC_YUV420P),
@@ -632,9 +640,24 @@ int FileStdout::write_samples(double **buffer,
 }
 
 // the user must set the colormodel in the encoding parameters
-int FileStdout::get_best_colormodel(Asset *asset, int driver)
+int FileStdout::get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config)
 {
-    if(driver == CAPTURE_YUYV_WEBCAM) return BC_YUV422;
+    if(in_config)
+    {
+        switch(in_config->driver)
+        {
+        case VIDEO4LINUX2:
+            switch(in_config->v4l2_format)
+            {
+            case CAPTURE_YUYV:
+                return BC_YUV422;
+                break;
+            }
+            break;
+        }
+    }
 	return asset->command_cmodel;
 }
 

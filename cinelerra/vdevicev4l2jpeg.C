@@ -123,7 +123,7 @@ int VDeviceV4L2JPEG::read_buffer(VFrame *frame)
 
 // Transfer fields to frame
 		if(device->odd_field_first && 
-            device->in_config->driver == VIDEO4LINUX2MJPG)
+            device->in_config->v4l2_format == CAPTURE_MJPG)
 		{
 			int field2_offset = mjpeg_get_field2((unsigned char*)buffer->get_data(), 
 				buffer->get_compressed_size());

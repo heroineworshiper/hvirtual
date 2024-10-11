@@ -1445,7 +1445,9 @@ int FileOGG::set_video_position(int64_t x)
 // 	else
 // 		return colormodel;
 // }
-int FileOGG::get_best_colormodel(Asset *asset, int driver)
+int FileOGG::get_best_colormodel(Asset *asset, 
+        VideoInConfig *in_config, 
+        VideoOutConfig *out_config)
 {
 
 	return BC_YUV420P;

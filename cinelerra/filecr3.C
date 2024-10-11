@@ -25,6 +25,8 @@
 #include "file.h"
 #include "filecr3.h"
 #include "mutex.h"
+#include "playbackconfig.h"
+#include "recordconfig.h"
 #include <string.h>
 #include <unistd.h>
 
@@ -342,7 +344,9 @@ for(int i = 0; i < height; i++) \
 // 
 
 // Be sure to add a line to File::get_best_colormodel
-int FileCR3::get_best_colormodel(Asset *asset, int driver)
+int FileCR3::get_best_colormodel(Asset *asset, 
+    VideoInConfig *in_config, 
+    VideoOutConfig *out_config)
 {
 //printf("FileCR3::get_best_colormodel %d\n", __LINE__);
 	return BC_RGB_FLOAT;
