@@ -893,7 +893,7 @@ TitleSize::~TitleSize()
 }
 int TitleSize::handle_event()
 {
-	client->config.size = atol(get_text());
+	client->config.size = atoi(get_text());
 //printf("TitleSize::handle_event 1 %s\n", get_text());
 	client->send_configure_change();
 	return 1;

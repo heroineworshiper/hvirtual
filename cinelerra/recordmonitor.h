@@ -37,6 +37,7 @@
 #include "recordscopes.inc"
 #include "recordtransport.inc"
 #include "recordmonitor.inc"
+#include "screencapedit.inc"
 #include "videodevice.inc"
 
 class RecordMonitorThread;
@@ -109,8 +110,9 @@ public:
 //	AVC1394TransportThread *avc1394transport_thread;
 	RecordChannelPicker *channel_picker;
 	ScopeEnable *scope_toggle;
-	DoCursor *cursor_toggle;
-	DoBigCursor *big_cursor_toggle;
+    ScreenCapEdit *screencap;
+//	DoCursor *cursor_toggle;
+//	DoBigCursor *big_cursor_toggle;
 	ReverseInterlace *reverse_interlace;
 	int cursor_x_origin, cursor_y_origin;
 	int translate_x_origin, translate_y_origin;

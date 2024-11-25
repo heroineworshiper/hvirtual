@@ -5,6 +5,8 @@ include ../global_config
 CFLAGS += -I../guicast \
 	-I../quicktime
 
+CFLAGS += -g
+
 PREFIX=/usr
 
 ifeq ($(HAVE_LIBXXF86VM), yes)
@@ -61,6 +63,7 @@ $(OUTPUT): $(OBJS) $(THEME_DATA)
 	$(CC) -o $(OUTPUT) \
 		$(OBJS) \
 		../guicast/$(OBJDIR)/libguicast.a \
+                ../guicast/$(OBJDIR)/libcmodel.a \
 		$(LIBS)
 
 #		../quicktime/$(OBJDIR)/libquicktime.a \
@@ -69,7 +72,7 @@ $(OBJS):
 	$(CC) -c `cat $(OBJDIR)/c_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
 install:
-	rm -f $(PREFIX)/bin/mix2000
+	rm -f $(PREFIX)/bin/mix2005
 	cp $(OUTPUT) $(PREFIX)/bin
 
 

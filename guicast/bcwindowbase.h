@@ -776,6 +776,9 @@ private:
 	int ctrl_mask, shift_mask, alt_mask;
 // Cursor motion information
 	int cursor_x, cursor_y;
+// reject cursor motion event caused by repositon_cursor
+    Window reject_win;
+    int reject_x, reject_y;
 // Button status information
 	int button_down, button_number;
 // When button was pressed and whether it qualifies as a double click

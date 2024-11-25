@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -254,8 +254,10 @@ void RecordVideo::run()
 			{
 				capture_frame = frame_ptr[0][buffer_position];
 				record->vdevice->set_field_order(record->reverse_interlace);
-				record->vdevice->set_do_cursor(record->do_cursor,
-					record->do_big_cursor);
+				record->vdevice->set_screencap(record->do_cursor,
+					record->do_big_cursor,
+                    record->do_keypresses,
+                    record->keypress_size);
 //printf("RecordVideo::run %d\n", __LINE__);
 				read_buffer();
 
@@ -277,8 +279,10 @@ void RecordVideo::run()
 			if(record->monitor_video)
 			{
 				record->vdevice->set_field_order(record->reverse_interlace);
-				record->vdevice->set_do_cursor(record->do_cursor,
-					record->do_big_cursor);
+				record->vdevice->set_screencap(record->do_cursor,
+					record->do_big_cursor,
+                    record->do_keypresses,
+                    record->keypress_size);
 				record->get_current_batch()->session_frames++;
 
 				read_buffer();

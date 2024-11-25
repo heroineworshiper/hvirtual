@@ -25,6 +25,7 @@ static int mixer_event(snd_mixer_t *mixer,
 int AudioALSA::construct_tree()
 {
 	do_elements(1, 0, 0);
+    return 0;
 }
 
 void AudioALSA::read_parameters()
@@ -44,7 +45,7 @@ void AudioALSA::do_elements(int construct_tree,
 	int result = 0;
   	snd_ctl_card_info_t *hw_info = 0;
   	snd_ctl_t *ctl_handle = 0;
-const int debug = 0;
+const int debug = 1;
 
 	char card_id[BCTEXTLEN];
 	char string[BCTEXTLEN];

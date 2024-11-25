@@ -992,8 +992,9 @@ int BC_FileBox::resize_event(int w, int h)
 //	text_button->reposition_window(w - (get_w() - text_button->get_x()), 
 //		text_button->get_y());
     int x = buttons_right - resources->filebox_updir_images[0]->get_w();
-    preview_button->reposition_window(x, 
-		folder_button->get_y());
+    if(preview_button) 
+        preview_button->reposition_window(x, 
+		    folder_button->get_y());
     x -= resources->filebox_updir_images[0]->get_w() + margin;
 	folder_button->reposition_window(x, 
 		folder_button->get_y());

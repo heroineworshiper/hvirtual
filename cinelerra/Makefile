@@ -1,11 +1,14 @@
 include ../global_config
 
+# too unstable.  Might have to use a system level installation
+HAVE_PULSE := n
+
 AVC_DIR := $(shell expr ../thirdparty/libavc1394* )
 DV_DIR := $(shell expr ../quicktime/thirdparty/libdv-*/ )
 EXRDIR := $(shell expr ../thirdparty/openexr* )
 ILMDIR := $(shell expr ../thirdparty/ilmbase* )
 FLAC_DIR := $(shell expr ../thirdparty/flac*/ )
-FFMPEG_DIR := $(shell expr ../quicktime/thirdparty/ffmpeg* )
+FFMPEG_DIR := $(shell expr ../thirdparty/ffmpeg* )
 
 ifeq ($(OBJDIR), i686)
 JPEG_DIR := $(shell expr ../quicktime/thirdparty/jpeg-mmx* )
@@ -287,6 +290,7 @@ OBJS = \
 	$(OBJDIR)/save.o \
 	$(OBJDIR)/scenegraph.o \
 	$(OBJDIR)/scopewindow.o \
+        $(OBJDIR)/screencapedit.o \
 	$(OBJDIR)/setformat.o \
 	$(OBJDIR)/sharedlocation.o \
 	$(OBJDIR)/shmemory.o \
@@ -294,6 +298,7 @@ OBJS = \
 	$(OBJDIR)/splashgui.o \
 	$(OBJDIR)/statusbar.o \
 	$(OBJDIR)/swapasset.o \
+        $(OBJDIR)/textengine.o \
 	$(OBJDIR)/theme.o \
 	$(OBJDIR)/threadexec.o \
 	$(OBJDIR)/threadloader.o \
@@ -321,6 +326,7 @@ OBJS = \
 	$(OBJDIR)/vdevicedvb.o \
 	$(OBJDIR)/vdeviceprefs.o \
 	$(OBJDIR)/vdevicepreview.o \
+	$(OBJDIR)/vdevicescreencap.o \
 	$(OBJDIR)/vdevicev4l.o \
 	$(OBJDIR)/vdevicev4l2.o \
 	$(OBJDIR)/vdevicev4l2jpeg.o \
@@ -367,7 +373,13 @@ FFMPEG_OBJS := $(OBJDIR)/fileffmpeg.o \
 FILECR3 := $(OBJDIR)/filecr3.o
 DCRAW := $(OBJDIR)/dcraw.o
 CFUNCTIONS := $(OBJDIR)/cfunctions.o
+
+
+ifeq ($(HAVE_PULSE), y)
 AUDIOPULSE := $(OBJDIR)/audiopulse.o
+CFLAGS += -DHAVE_PULSE
+endif
+
 
 THEME_DATA := $(OBJDIR)/theme_data.o
 
@@ -400,8 +412,14 @@ STATICLIBS = \
 	../mpeg2enc/$(OBJDIR)/mpeg2enc.a \
 	$(TOOLAME_DIR)/$(OBJDIR)/toolame.a \
 	$(THEME_DATA) \
-	$(THEORA_LIB) \
-        $(PULSE_LIB)
+	$(THEORA_LIB)
+
+
+ifeq ($(HAVE_PULSE), y)
+STATICLIBS := $(STATICLIBS) $(PULSE_LIB)
+endif
+
+        
 
 LIBS := \
 	-L./ \
@@ -431,6 +449,7 @@ LIBS += \
 	-lX11 \
 	-lXext \
 	-lXfixes \
+	-lXi \
 	-lXv \
 	-lpthread \
 	-lm \
@@ -439,7 +458,8 @@ LIBS += \
 	-ldl \
 	-lbz2 \
 	-llzma \
-	-lrt
+	-lrt \
+        -lfreetype
 
 #	-lfontconfig \
 #	-lXxf86vm \
@@ -525,9 +545,15 @@ endif
 
 FFMPEG_CFLAGS := \
 	$(CFLAGS) \
-        $(FFMPEG_CFLAGS)
+        -I$(FFMPEG_DIR)/ \
+        -I$(FFMPEG_DIR)/libavcodec \
+        -I$(FFMPEG_DIR)/libavformat
 
-FFMPEG_LIBS := -lavformat -lavcodec -lavutil -lswresample
+FFMPEG_LIBS := -L$(FFMPEG_DIR)/libavformat \
+        -L$(FFMPEG_DIR)/libavutil \
+        -L$(FFMPEG_DIR)/libavcodec \
+        -L$(FFMPEG_DIR)/libswresample \
+        -lavformat -lavcodec -lavutil -lswresample
 
 CFLAGS += -g
 CXXFLAGS := $(CFLAGS) -std=c++11
@@ -584,8 +610,10 @@ wc:
 $(LIBOBJS) $(OBJS):
 	$(CC) `cat $(OBJDIR)/cxx_flags` $(subst $(OBJDIR)/,, $*.C) -o $*.o
 
+ifeq ($(HAVE_PULSE), y)
 $(AUDIOPULSE): audiopulse.C
 	$(CC) `cat $(OBJDIR)/cxx_flags` -I$(PULSE_DIR)/src/ $(subst $(OBJDIR)/,, $*.C) -o $*.o
+endif
 
 
 $(FILEEXR): fileexr.C
@@ -871,6 +899,7 @@ $(OBJDIR)/samples.o: 			          samples.C
 $(OBJDIR)/samplescroll.o: 			  samplescroll.C
 $(OBJDIR)/save.o: 				  save.C
 $(OBJDIR)/scopewindow.o:                          scopewindow.C
+$(OBJDIR)/screencapedit.o:                        screencapedit.C
 $(OBJDIR)/scenegraph.o:                           scenegraph.C
 $(OBJDIR)/setformat.o:                            setformat.C
 $(OBJDIR)/sharedlocation.o: 			  sharedlocation.C
@@ -879,6 +908,7 @@ $(OBJDIR)/sighandler.o:                           sighandler.C
 $(OBJDIR)/splashgui.o: 				  splashgui.C
 $(OBJDIR)/statusbar.o:  			  statusbar.C
 $(OBJDIR)/swapasset.o:  			  swapasset.C
+$(OBJDIR)/textengine.o:                           textengine.C
 $(OBJDIR)/theme.o: 				  theme.C
 $(OBJDIR)/threadexec.o:                           threadexec.C
 $(OBJDIR)/threadfork.o:                           threadfork.C
@@ -910,6 +940,7 @@ $(OBJDIR)/vdevicebuz.o: 			  vdevicebuz.C
 $(OBJDIR)/vdevicedvb.o:                           vdevicedvb.C
 $(OBJDIR)/vdeviceprefs.o: 			  vdeviceprefs.C
 $(OBJDIR)/vdevicepreview.o: 			  vdevicepreview.C
+$(OBJDIR)/vdevicescreencap.o: 			  vdevicescreencap.C
 $(OBJDIR)/vdevicev4l.o: 			  vdevicev4l.C
 $(OBJDIR)/vdevicev4l2.o:                          vdevicev4l2.C
 $(OBJDIR)/vdevicev4l2jpeg.o:                      vdevicev4l2jpeg.C

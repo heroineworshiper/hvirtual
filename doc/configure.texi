@@ -668,7 +668,8 @@ file has to be what the hardware codec supports.
 
 Webcams, HDMI to USB, analog to USB generally support YUYV & MJPG 1
 field.  To record YUYV, the file format has to be @b{command line} & the
-compression preset needs to have @b{YUV 422}.
+compression preset needs to have @b{YUV 422}.  YUYV produces higher
+quality but lower framerates when resolution is above 720x480.
 
 To record MJPG 1 field, the file format has to be Quicktime & the
 compression has to be JPEG.

@@ -67,7 +67,7 @@ Canvas::Canvas(MWindow *mwindow,
 	this->use_cwindow = use_cwindow;
 	this->use_rwindow = use_rwindow;
 	this->use_vwindow = use_vwindow;
-	this->root_w = subwindow->get_root_w(0, 0);
+	this->root_w = subwindow->get_root_w(1, 0);
 	this->root_h = subwindow->get_root_h(0);
 	canvas_lock = new Mutex("Canvas::canvas_lock", 1);
 }

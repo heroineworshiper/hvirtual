@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -135,6 +135,9 @@ int VRender::process_buffer(int64_t input_position,
 	int use_cache = renderengine->command->single_frame();
 	const int debug = 0;
 
+// printf("VRender::process_buffer %d current_position=%d\n", 
+// __LINE__,
+// (int)current_position);
 
 	if(MWindow::preferences->dump_playback) 
         MWindow::indent += 2;
@@ -218,6 +221,11 @@ int VRender::process_buffer(int64_t input_position,
             {    x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
     			if(!x11_device) use_opengl = 0;
             }
+// printf("VRender::process_buffer %d current_position=%d\n", 
+// __LINE__,
+// (int)current_position);
+
+
 			result = ((VEdit*)playable_edit)->read_frame(video_out, 
 				current_position, 
 				renderengine->command->get_direction(),

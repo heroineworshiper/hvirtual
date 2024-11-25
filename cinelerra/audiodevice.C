@@ -26,7 +26,9 @@
 #include "audiodvb.h"
 #include "audioesound.h"
 #include "audiooss.h"
+#ifdef HAVE_PULSE
 #include "audiopulse.h"
+#endif
 #include "bctimer.h"
 #include "condition.h"
 #include "dcoffset.h"
@@ -178,9 +180,11 @@ int AudioDevice::create_lowlevel(AudioLowLevel* &lowlevel, int driver)
 				break;
             
             
+#ifdef HAVE_PULSE
             case AUDIO_PULSE:
                 lowlevel = new AudioPulse(this);
                 break;
+#endif
 		}
 	}
 	return 0;

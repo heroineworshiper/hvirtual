@@ -24,7 +24,7 @@ all: $(OBJDIR)/soundtest
 #	$(MAKE) -f build/Makefile.sndfile
 	$(MAKE) -C $(FFMPEG_DIR)
 	$(MAKE) -C thirdparty/libsndfile*
-	$(MAKE) -C thirdparty/pulseaudio*
+#	$(MAKE) -C thirdparty/pulseaudio*
 	$(MAKE) -f build/Makefile.gif
 	$(MAKE) -f build/Makefile.exr
 	$(MAKE) -f build/Makefile.esound
@@ -70,7 +70,7 @@ clean:
 	$(MAKE) -C $(FFMPEG_DIR) clean
 	$(MAKE) -C thirdparty/libsndfile* clean
 #	$(MAKE) -f build/Makefile.sndfile clean
-	$(MAKE) -C thirdparty/pulseaudio* clean
+#	$(MAKE) -C thirdparty/pulseaudio* clean
 	$(MAKE) -f build/Makefile.gif clean
 	$(MAKE) -f build/Makefile.exr clean
 	$(MAKE) -f build/Makefile.esound clean

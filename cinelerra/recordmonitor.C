@@ -40,6 +40,7 @@
 #include "recordscopes.h"
 #include "recordtransport.h"
 #include "recordmonitor.h"
+#include "screencapedit.h"
 #include "theme.h"
 #include "videodevice.inc"
 #include "vframe.h"
@@ -248,8 +249,9 @@ RecordMonitorGUI::RecordMonitorGUI(MWindow *mwindow,
 	reverse_interlace = 0;
 	meters = 0;
 	canvas = 0;
-	cursor_toggle = 0;
-	big_cursor_toggle = 0;
+//	cursor_toggle = 0;
+//	big_cursor_toggle = 0;
+    screencap = 0;
 	current_operation = MONITOR_NONE;
 }
 
@@ -257,11 +259,12 @@ RecordMonitorGUI::~RecordMonitorGUI()
 {
 	lock_window("RecordMonitorGUI::~RecordMonitorGUI");
 	delete canvas;
-	if(cursor_toggle)
-	{
-		delete cursor_toggle;
-		delete big_cursor_toggle;
-	}
+// 	if(cursor_toggle)
+// 	{
+// 		delete cursor_toggle;
+// 		delete big_cursor_toggle;
+// 	}
+    delete screencap;
 	if(bitmap) delete bitmap;
 	if(channel_picker) delete channel_picker;
 //	if(avc1394transport_thread)
@@ -296,7 +299,6 @@ void RecordMonitorGUI::create_objects()
 //			driver == CAPTURE_MPEG
         );
 	int do_scopes = do_channel || (driver == SCREENCAPTURE);
-	int do_cursor = (driver == SCREENCAPTURE);
 	int do_interlace = (driver == CAPTURE_BUZ ||
 		(driver == VIDEO4LINUX2 &&
             in_config->v4l2_format == CAPTURE_MJPG));
@@ -406,16 +408,17 @@ void RecordMonitorGUI::create_objects()
 		}
 		
 		
-		if(do_cursor)
+		if(driver == SCREENCAPTURE)
 		{
-			add_subwindow(cursor_toggle = new DoCursor(record,
-				x, 
-				y));
-			x += cursor_toggle->get_w() + mwindow->theme->widget_border;
-			add_subwindow(big_cursor_toggle = new DoBigCursor(record,
-				x, 
-				y));
-			x += big_cursor_toggle->get_w() + mwindow->theme->widget_border;
+// 			add_subwindow(cursor_toggle = new DoCursor(record,
+// 				x, 
+// 				y));
+// 			x += cursor_toggle->get_w() + mwindow->theme->widget_border;
+// 			add_subwindow(big_cursor_toggle = new DoBigCursor(record,
+// 				x, 
+// 				y));
+// 			x += big_cursor_toggle->get_w() + mwindow->theme->widget_border;
+            add_subwindow(screencap = new ScreenCapEdit(this, x, y));
 		}
 		
 
@@ -636,13 +639,13 @@ int RecordMonitorGUI::resize_event(int w, int h)
 			reverse_interlace->get_y());
 	}
 
-	if(cursor_toggle)
-	{
-		cursor_toggle->reposition_window(cursor_toggle->get_x(),
-			cursor_toggle->get_y());
-		big_cursor_toggle->reposition_window(big_cursor_toggle->get_x(),
-			big_cursor_toggle->get_y());
-	}
+// 	if(cursor_toggle)
+// 	{
+// 		cursor_toggle->reposition_window(cursor_toggle->get_x(),
+// 			cursor_toggle->get_y());
+// 		big_cursor_toggle->reposition_window(big_cursor_toggle->get_x(),
+// 			big_cursor_toggle->get_y());
+// 	}
 	
 	if(canvas && record->default_asset->video_data)
 	{
@@ -716,39 +719,39 @@ int RecordMonitorGUI::close_event()
 // 	return 0;
 // }
 
-DoCursor::DoCursor(Record *record, int x, int y)
- : BC_CheckBox(x, y, record->do_cursor, _("Record cursor"))
-{
-	this->record = record;
-}
-
-DoCursor::~DoCursor()
-{
-}
-
-int DoCursor::handle_event()
-{
-	record->do_cursor = get_value();
-	return 0;
-}
-
-
-DoBigCursor::DoBigCursor(Record *record, int x, int y)
- : BC_CheckBox(x, y, record->do_big_cursor, _("Big cursor"))
-{
-	this->record = record;
-}
-
-DoBigCursor::~DoBigCursor()
-{
-}
-
-int DoBigCursor::handle_event()
-{
-	record->do_big_cursor = get_value();
-	return 0;
-}
-
+// DoCursor::DoCursor(Record *record, int x, int y)
+//  : BC_CheckBox(x, y, record->do_cursor, _("Record cursor"))
+// {
+// 	this->record = record;
+// }
+// 
+// DoCursor::~DoCursor()
+// {
+// }
+// 
+// int DoCursor::handle_event()
+// {
+// 	record->do_cursor = get_value();
+// 	return 0;
+// }
+// 
+// 
+// DoBigCursor::DoBigCursor(Record *record, int x, int y)
+//  : BC_CheckBox(x, y, record->do_big_cursor, _("Big cursor"))
+// {
+// 	this->record = record;
+// }
+// 
+// DoBigCursor::~DoBigCursor()
+// {
+// }
+// 
+// int DoBigCursor::handle_event()
+// {
+// 	record->do_big_cursor = get_value();
+// 	return 0;
+// }
+// 
 
 
 
@@ -913,7 +916,7 @@ void RecordMonitorCanvas::preset_translation(int position)
 	        record->set_translation(0, 0);
             break;
         case TOP_RIGHT:
-	        record->set_translation(window->get_root_w() - record->default_asset->width, 
+	        record->set_translation(window->get_root_w(1) - record->default_asset->width, 
                 0);
             break;
         case BOTTOM_LEFT:
@@ -921,7 +924,7 @@ void RecordMonitorCanvas::preset_translation(int position)
                 window->get_root_h(0) - record->default_asset->height);
             break;
         case BOTTOM_RIGHT:
-	        record->set_translation(window->get_root_w() - record->default_asset->width, 
+	        record->set_translation(window->get_root_w(1) - record->default_asset->width, 
                 window->get_root_h(0) - record->default_asset->height);
             break;
     }

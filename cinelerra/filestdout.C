@@ -828,9 +828,9 @@ void ConfirmPreset::create_objects(const char *text)
     int new_w = x + text_w + margin;
 
 // limit to a certain size
-	if(new_w > get_root_w() / 2) 
+	if(new_w > get_root_w(1) / 2) 
     {
-        new_w = get_root_w() / 2;
+        new_w = get_root_w(1) / 2;
     }
 
 	if(new_w > get_w())

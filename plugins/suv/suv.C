@@ -119,7 +119,7 @@ void SUV::initialize()
 	resources->menu_title_text = 0xbfbfbf;
 	resources->popup_title_text = 0xbfbfbf;
 	resources->menu_item_text = 0xbfbfbf;
-	resources->generic_button_margin = DP(5);
+	resources->generic_button_margin = DP(20);
 	resources->pot_needle_color = resources->text_default;
 	resources->pot_offset = 1;
 	resources->progress_text = resources->text_default;
@@ -135,8 +135,8 @@ void SUV::initialize()
 
 	resources->listbox_title_color = 0xbfbfbf;
 
-	resources->listbox_title_margin = DP(20);
-	resources->listbox_title_hotspot = DP(20);
+	resources->listbox_title_margin = DP(10);
+	resources->listbox_title_hotspot = DP(10);
 	resources->listbox_border1 = 0x1a1a1a;
 	resources->listbox_border2 = 0x373737;
 	resources->listbox_border3 = 0x373737;
@@ -989,9 +989,9 @@ void SUV::draw_vwindow_bg(VWindowGUI *gui)
 	}
 
 // Clock border
-	gui->draw_3segmenth(vtime_x - DP(20), 
+	gui->draw_3segmenth(vtime_x - DP(5), 
 		vtime_y + 1, 
-		vtime_w + DP(40),
+		vtime_w + DP(10),
 		get_image("vclock"));
 }
 

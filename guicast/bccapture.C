@@ -20,15 +20,19 @@
 
 #include "bccapture.h"
 #include "bcresources.h"
+#include "bctimer.h"
 #include "bcwindowbase.h"
 //#include "bccmodels.h"
 #include "clip.h"
+#include "keys.h"
 #include "language.h"
 #include "vframe.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <X11/Xutil.h>
+#include <X11/XKBlib.h>
 #include <X11/extensions/Xfixes.h>
+#include <X11/extensions/XInput2.h>
 
 
 
@@ -39,20 +43,132 @@
 // 24 bpp unpacked:       0bgr
 
 
+// BC_CaptureThread::BC_CaptureThread(BC_Capture *capture)
+//  : Thread(1, 0, 0)
+// {
+//     this->capture = capture;
+//     XIEventMask masks[1];
+//     unsigned char mask[(XI_LASTEVENT + 7)/8];
+// 
+//     memset(mask, 0, sizeof(mask));
+//     XISetMask(mask, XI_RawMotion);
+//     XISetMask(mask, XI_RawButtonPress);
+//     XISetMask(mask, XI_RawKeyPress);
+// 
+//     masks[0].deviceid = XIAllMasterDevices;
+//     masks[0].mask_len = sizeof(mask);
+//     masks[0].mask = mask;
+// 
+//     XISelectEvents(capture->display, 
+//         DefaultRootWindow(capture->display), 
+//         masks, 
+//         1);
+//     XFlush(capture->display);
+//     
+// }
+// 
+// BC_CaptureThread::~BC_CaptureThread()
+// {
+//     if(running())
+//     {
+//         cancel();
+//         join();
+//     }
+// }
+// 
+// void BC_CaptureThread::run()
+// {
+//     while(1)
+//     {
+//         XEvent event;
+//         XNextEvent(capture->display, &event);
+//         printf("BC_CaptureThread::run %d type=%d\n",
+//             __LINE__,
+//             event.type);
+//     }
+// }
+// 
+
+
+// ms to show the keypress
+#define MIN_KEY_TIME 1000
+KeypressState::KeypressState()
+{
+    reset();
+}
+
+void KeypressState::reset()
+{
+    id = -1;
+    text[0] = 0;
+    times = 0;
+    time = 0;
+    up = 1;
+}
+
+void KeypressState::begin(int id, char *text, int is_button)
+{
+    if((text && this->text && !strcmp(text, this->text)))
+        times++;
+    else
+    if(is_button && id != WHEEL_UP && id != WHEEL_DOWN && id == this->id)
+        times++;
+    else
+        times = 1;
+
+    this->id = id;
+    if(text) 
+        strcpy(this->text, text);
+    else
+        this->text[0] = 0;
+    up = 0;
+    time = MIN_KEY_TIME;
+}
+
+void KeypressState::end(int id)
+{
+    if(id == this->id) up = 1;
+}
+
+int KeypressState::pressed()
+{
+    return id >= 0 && (!up || time == MIN_KEY_TIME);
+}
+
+void KeypressState::update(int elapsed)
+{
+    if(up && time > 0)
+    {
+        time -= elapsed;
+        if(time <= 0)
+        {
+            time = 0;
+            times = 0;
+            id = -1;
+        }
+    }
+}
+
+
+
 BC_Capture::BC_Capture(int w, int h, const char *display_path)
 {
 	this->w = w;
 	this->h = h;
 
+//    thread = 0;
 	data = 0;
 	use_shm = 1;
 	init_window(display_path);
 	allocate_data();
+    frame_time = new Timer;
+    key_text[0] = 0;
 }
 
 
 BC_Capture::~BC_Capture()
 {
+//    delete thread;
 	delete_data();
 	XCloseDisplay(display);
 }
@@ -98,6 +214,27 @@ int BC_Capture::init_window(const char *display_path)
     {
         use_shm = 0;
     }
+
+// capture user input
+    XIEventMask masks[1];
+    unsigned char mask[(XI_LASTEVENT + 7)/8];
+
+    memset(mask, 0, sizeof(mask));
+    XISetMask(mask, XI_RawButtonPress);
+    XISetMask(mask, XI_RawButtonRelease);
+    XISetMask(mask, XI_RawKeyPress);
+    XISetMask(mask, XI_RawKeyRelease);
+
+    masks[0].deviceid = XIAllMasterDevices;
+    masks[0].mask_len = sizeof(mask);
+    masks[0].mask = mask;
+
+    XISelectEvents(display, 
+        DefaultRootWindow(display), 
+        masks, 
+        1);
+    XFlush(display);
+
 	return 0;
 }
 
@@ -200,11 +337,107 @@ int BC_Capture::get_h() { return h; }
 	CLAMP(v, 0, 0xff); \
 }
 
+// replace some keys with strings
+typedef struct 
+{
+    KeySym keysym;
+    int id;
+    const char *text;
+} key_table_t;
+const key_table_t translation[] = 
+{
+    { XK_Insert, INSERT, "INSERT" },
+    { XK_Return, RETURN, "RETURN" },
+    { XK_Up, UP, "UP" },
+    { XK_Down, DOWN, "DOWN" },
+    { XK_Left, LEFT, "LEFT" },
+    { XK_Right, RIGHT, "RIGHT" },
+    { XK_Next,  PGDN, "PGDN" },
+    { XK_Prior, PGUP, "PGUP" },
+    { XK_BackSpace, BACKSPACE, "BACKSPACE" },
+    { XK_Escape, ESC, "ESC" },
+    { XK_Tab, TAB, "TAB" },
+    { XK_ISO_Left_Tab, LEFTTAB, "TAB" },
+    { XK_underscore, '_', "_" },
+    { XK_asciitilde, '~', "~" },
+    { XK_Delete, DELETE, "DEL" },
+    { XK_Home, HOME, "HOME" },
+    { XK_End, END, "END" },
+	{ XK_KP_Enter, KPENTER, "NUMPAD ENTER" },
+	{ XK_KP_Add, KPPLUS, "NUMPAD +" },
+	{ XK_KP_1, KP1, "NUMPAD 1" },
+	{ XK_KP_End, KP1, "NUMPAD 1" },
+	{ XK_KP_2, KP2, "NUMPAD 2" },
+	{ XK_KP_Down, KP2, "NUMPAD 2" },
+	{ XK_KP_3, KP3, "NUMPAD 3" },
+	{ XK_KP_Page_Down, KP3, "NUMPAD 3" },
+	{ XK_KP_4, KP4, "NUMPAD 4" },
+	{ XK_KP_Left, KP4, "NUMPAD 4" },
+	{ XK_KP_5, KP5, "NUMPAD 5" },
+	{ XK_KP_Begin, KP5, "NUMPAD 5" },
+	{ XK_KP_6, KP6, "NUMPAD 6" },
+	{ XK_KP_Right, KP6, "NUMPAD 6" },
+	{ XK_KP_7, KP7, "NUMPAD 7" },
+	{ XK_KP_Home, KP7, "NUMPAD 7" },
+	{ XK_KP_8, KP8, "NUMPAD 8" },
+	{ XK_KP_Up, KP8, "NUMPAD 8" },
+	{ XK_KP_9, KP9, "NUMPAD 9" },
+	{ XK_KP_Page_Up, KP9, "NUMPAD 9" },
+	{ XK_KP_0, KPINS, "NUMPAD 0" },
+	{ XK_KP_Insert, KPINS, "NUMPAD 0" },
+	{ XK_KP_Decimal, KPDEL, "NUMPAD ." },
+	{ XK_KP_Delete, KPDEL, "NUMPAD ." },
+    { XK_KP_Divide, '/', "/" },
+    { XK_KP_Multiply, '*', "*" },
+    { XK_KP_Subtract, '-', "-" },
+    
+    { XK_F1, KEY_F1, "F1" },
+    { XK_F2, KEY_F2, "F2" },
+    { XK_F3, KEY_F3, "F3" },
+    { XK_F4, KEY_F4, "F4" },
+    { XK_F5, KEY_F5, "F5" },
+    { XK_F6, KEY_F6, "F6" },
+    { XK_F7, KEY_F7, "F7" },
+    { XK_F8, KEY_F8, "F8" },
+    { XK_F9, KEY_F9, "F9" },
+    { XK_F10, KEY_F10, "F10" },
+    { XK_F11, KEY_F11, "F11" },
+    { XK_F12, KEY_F12, "F12" },
+    { ' ', ' ', "SPACE" }
+};
 
-int BC_Capture::capture_frame(VFrame *frame, 
-	int &x1, 
+
+static int keysym_to_key(KeySym keysym)
+{
+    for(int i = 0; i < sizeof(translation) / sizeof(key_table_t); i++)
+    {
+        if(translation[i].keysym == keysym)
+        {
+            return translation[i].id;
+        }
+    }
+    return keysym & 0xff;
+}
+
+static int keysym_to_text(char *dst, KeySym keysym, char *keys_return)
+{
+    for(int i = 0; i < sizeof(translation) / sizeof(key_table_t); i++)
+    {
+        if(translation[i].keysym == keysym)
+        {
+            strcpy(dst, translation[i].text);
+            return translation[i].id;
+        }
+    }
+
+    strcpy(dst, keys_return);
+    return keysym & 0xff;
+}
+
+int BC_Capture::capture_frame(int &x1, 
 	int &y1, 
-	int do_cursor) // the scale of the cursor if nonzero
+	int cursor_size, // the scale of the cursor if nonzero
+    int keypress_size)
 {
 	if(!display) return 1;
 	if(x1 < 0) x1 = 0;
@@ -219,38 +452,9 @@ int BC_Capture::capture_frame(VFrame *frame,
 	else
 		XGetSubImage(display, rootwin, x1, y1, w, h, 0xffffffff, ZPixmap, ximage, 0, 0);
 
-//memset(row_data[0], 0xff, 1920 * 512);
-// printf("BC_Capture::capture_frame %d %d %d\n", 
-// __LINE__, 
-// frame->get_color_model(), 
-// bitmap_color_model);
-	cmodel_transfer(frame->get_rows(), 
-		row_data,
-		frame->get_y(),
-		frame->get_u(),
-		frame->get_v(),
-        0, // out_a_plane
-		0,
-		0,
-		0,
-        0, // in_a_plane
-		0, // in_x
-		0, // in_y
-		w, 
-		h,
-		0, 
-		0, 
-		frame->get_w(), 
-		frame->get_h(),
-		bitmap_color_model, 
-		frame->get_color_model(),
-		0,
-		frame->get_w(),
-		w);
-
-	
-	if(do_cursor)
-	{
+// draw cursor in input image
+    if(cursor_size)
+    {
 		XFixesCursorImage *cursor;
 		cursor = XFixesGetCursorImage(display);
 		if(cursor)
@@ -260,11 +464,11 @@ int BC_Capture::capture_frame(VFrame *frame,
 // 				cursor, 
 // 				frame->get_color_model());
 			
-			int scale = do_cursor;
-			int cursor_x = cursor->x - x1 - cursor->xhot * scale;
-			int cursor_y = cursor->y - y1 - cursor->yhot * scale;
-			int w = frame->get_w();
-			int h = frame->get_h();
+			int scale = cursor_size;
+			cursor_x = cursor->x - x1 - cursor->xhot * scale;
+			cursor_y = cursor->y - y1 - cursor->yhot * scale;
+            cursor_w  = cursor->width * scale;
+            cursor_h  = cursor->height * scale;
 			for(int i = 0; i < cursor->height; i++)
 			{
 				for(int yscale = 0; yscale < scale; yscale++)
@@ -288,57 +492,33 @@ int BC_Capture::capture_frame(VFrame *frame,
 									int r = src[2];
 									int g = src[1];
 									int b = src[0];
-									switch(frame->get_color_model())
+									switch(bitmap_color_model)
 									{
 										case BC_RGB888:
 										{
-											unsigned char *dst = frame->get_rows()[dst_y] +
+											unsigned char *dst = row_data[dst_y] +
 												dst_x * 3;
 											dst[0] = (r * a + dst[0] * invert_a) / 0xff;
 											dst[1] = (g * a + dst[1] * invert_a) / 0xff;
 											dst[2] = (b * a + dst[2] * invert_a) / 0xff;
 											break;
 										}
+                                        
+                                        case BC_BGR8888:
+                                        {
+											unsigned char *dst = row_data[dst_y] +
+												dst_x * 4;
+											dst[0] = (b * a + dst[0] * invert_a) / 0xff;
+											dst[1] = (g * a + dst[1] * invert_a) / 0xff;
+											dst[2] = (r * a + dst[2] * invert_a) / 0xff;
+                                            break;
+                                        }
 
-										case BC_YUV420P:
-										{
-											unsigned char *dst_y_ = frame->get_y() + 
-												dst_y * w +
-												dst_x;
-											unsigned char *dst_u = frame->get_u() + 
-												(dst_y / 2) * (w / 2) +
-												(dst_x / 2);
-											unsigned char *dst_v = frame->get_v() + 
-												(dst_y / 2) * (w / 2) +
-												(dst_x / 2);
-											int y, u, v;
-											RGB_TO_YUV(y, u, v, r, g, b);
-											
-											*dst_y_ = (y * a + *dst_y_ * invert_a) / 0xff;
-											*dst_u = (u * a + *dst_u * invert_a) / 0xff;
-											*dst_v = (v * a + *dst_v * invert_a) / 0xff;
-											break;
-										}
-
-										case BC_YUV444P:
-										{
-											unsigned char *dst_y_ = frame->get_y() + 
-												dst_y * w +
-												dst_x;
-											unsigned char *dst_u = frame->get_u() + 
-												dst_y * w +
-												dst_x;
-											unsigned char *dst_v = frame->get_v() + 
-												dst_y * w +
-												dst_x;
-											int y, u, v;
-											RGB_TO_YUV(y, u, v, r, g, b);
-											
-											*dst_y_ = (y * a + *dst_y_ * invert_a) / 0xff;
-											*dst_u = (u * a + *dst_u * invert_a) / 0xff;
-											*dst_v = (v * a + *dst_v * invert_a) / 0xff;
-											break;
-										}
+                                        default:
+                                            printf("BC_Capture::capture_frame %d: unsupported color model %d\n",
+                                                __LINE__,
+                                                bitmap_color_model);
+                                            break;
 									}
 								}
 								dst_x++;
@@ -354,10 +534,210 @@ int BC_Capture::capture_frame(VFrame *frame,
 // This frees cursor->pixels
 			XFree(cursor);
 		}
-			
-		
+    }
+
+// drain input events
+// printf("BC_Capture::capture_frame %d\n",
+// __LINE__);
+    while(XPending(display))
+	{
+		XEvent event;
+		XNextEvent(display, &event);
+//         printf("BC_Capture::capture_frame %d type=%d\n",
+//             __LINE__,
+//             event.type);
+// unwrap the event
+        if(event.type == GenericEvent)
+        {
+            XGetEventData(display, &event.xcookie);
+            XGenericEventCookie *cookie = &event.xcookie;
+//             printf("BC_Capture::capture_frame %d cookie->evtype=%d\n",
+//                 __LINE__,
+//                 cookie->evtype);
+            XIDeviceEvent *device_event = (XIDeviceEvent *)cookie->data;
+//             printf("BC_Capture::capture_frame %d detail=%d\n",
+//                 __LINE__,
+//                 device_event->detail);
+            switch(cookie->evtype)
+            {
+                case XI_RawButtonPress:
+                    button.begin(device_event->detail, 0, 1);
+// cancel released modifiers
+                    if(ctrl.up) ctrl.reset();
+                    if(shift.up) shift.reset();
+                    if(alt.up) alt.reset();
+                    break;
+                case XI_RawButtonRelease:
+                    button.end(device_event->detail);
+                    break;
+                case XI_RawKeyPress:
+                {
+                    KeySym keysym = XkbKeycodeToKeysym(display, device_event->detail, 0, 0);
+                    KeySym keysym2 = keysym;
+                    XKeyEvent xkey;
+                    xkey.display = display;
+                    xkey.keycode = device_event->detail;
+                    xkey.state = 0;
+                    if(shift.id > 0 && !shift.up) xkey.state = ShiftMask;
+                    char keys_return[BCTEXTLEN];
+                    int len = XLookupString(&xkey, keys_return, BCTEXTLEN, &keysym2, 0);
+                    keys_return[len] = 0;
+                    char string[BCTEXTLEN];
+                    int id = keysym_to_text(string, keysym, keys_return);
+                    int got_modifier = 0;
+                    printf("BC_Capture::capture_frame %d detail=%d keysym=0x%x string=%s\n",
+                        __LINE__,
+                        device_event->detail,
+                        (int)keysym,
+                        string);
+
+                    switch(keysym)
+                    {
+                        case XK_Control_L:
+                        case XK_Control_R:
+                            ctrl.begin(1, 0, 0);
+                            got_modifier = 1;
+                            break;
+                        case XK_Shift_L:
+                        case XK_Shift_R:
+                            shift.begin(1, 0, 0);
+                            got_modifier = 1;
+                            break;
+                        case XK_Alt_L:
+                        case XK_Alt_R:
+                            alt.begin(1, 0, 0);
+                            got_modifier = 1;
+                            break;
+                        default:
+                            key.begin(id, string, 0);
+                            break;
+                    }
+
+// Don't show a modifier & an alnum simultaneously if they're
+// not pressed simultaneously
+// cancel released alnums
+                    if(got_modifier)
+                    {
+                        if(key.up) key.reset();
+                        if(button.up) button.reset();
+                    }
+                    else
+// cancel released modifiers
+                    {
+                        if(ctrl.up) ctrl.reset();
+                        if(shift.up) shift.reset();
+                        if(alt.up) alt.reset();
+                    }
+                    break;
+                }
+
+                case XI_RawKeyRelease:
+                {
+                    KeySym keysym = XkbKeycodeToKeysym(display, device_event->detail, 0, 0);
+                    switch(keysym)
+                    {
+                        case XK_Control_L:
+                        case XK_Control_R:
+                            ctrl.end(1);
+                            break;
+                        case XK_Shift_L:
+                        case XK_Shift_R:
+                            shift.end(1);
+                            break;
+                        case XK_Alt_L:
+                        case XK_Alt_R:
+                            alt.end(1);
+                            break;
+                        default:
+                            key.end(keysym_to_key(keysym));
+                            break;
+                    }
+                    break;
+                }
+            }
+
+            XFreeEventData(display, &event.xcookie);
+        }
 	}
 
+
+// if anything was pressed in the current frame, 
+// disable the keys which were not pressed in the current frame
+// so the keys don't show as simultaneously pressed.
+// This fails if multiple keys are pressed & released in a single frame.
+//     if(button.pressed() || 
+//         ctrl.pressed() || 
+//         shift.pressed() || 
+//         alt.pressed() || 
+//         key.pressed())
+//     {
+// //        if(!button.pressed()) button.reset();
+//         if(!ctrl.pressed()) ctrl.reset();
+//         if(!shift.pressed()) shift.reset();
+//         if(!alt.pressed()) alt.reset();
+//         if(!key.pressed()) key.reset();
+//     }
+
+    int elapsed = frame_time->get_difference(1);
+
+    button.update(elapsed);
+    ctrl.update(elapsed);
+    shift.update(elapsed);
+    alt.update(elapsed);
+    key.update(elapsed);
+
+
+    key_text[0] = 0;
+    if(ctrl.id >= 0) strcat(key_text, "CTRL ");
+    if(shift.id >= 0) strcat(key_text, "SHIFT ");
+    if(alt.id >= 0) strcat(key_text, "ALT ");
+    if(key.id >= 0)
+    {
+        strcat(key_text, key.text);
+        if(key.times > 1)
+        {
+            char string[BCTEXTLEN];
+            sprintf(string, "x%d", key.times);
+            strcat(key_text, string);
+        }
+    }
+
+//     printf("BC_Capture::capture_frame %d button_pressed=%dx%d ctrl=%dx%d shift=%dx%d alt=%dx%d key=%dx%d\n",
+//         __LINE__,
+//         button.id,
+//         button.times,
+//         ctrl.id,
+//         ctrl.times,
+//         shift.id,
+//         shift.times,
+//         alt.times,
+//         alt.times,
+//         key.id,
+//         key.times);
+
+//    printf("BC_Capture::capture_frame %d %s\n", __LINE__, key_text);
+
+//     if(keypress_size)
+//     {
+//         if(!thread) 
+//         {
+//             thread = new BC_CaptureThread(this);
+//             thread->start();
+//         }
+//     }
+//     else
+//     if(thread)
+//     {
+//         delete thread;
+//         thread = 0;
+//     }
+
+//memset(row_data[0], 0xff, 1920 * 512);
+// printf("BC_Capture::capture_frame %d %d %d\n", 
+// __LINE__, 
+// frame->get_color_model(), 
+// bitmap_color_model);
+// TODO: do it in the caller
 
 
 

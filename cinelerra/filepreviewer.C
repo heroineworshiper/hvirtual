@@ -354,6 +354,7 @@ void FilePreviewer::initialize()
 
 void FilePreviewer::submit_file(const char *path)
 {
+//printf("FilePreviewer::submit_file %d\n", __LINE__);
     clear_preview();
 
     analyzer_lock->lock("FilePreviewer::submit_file");

@@ -44,7 +44,7 @@ class BC_WindowList;
 // only DPI above this invoke scaling
 #define MIN_DPI 125
 #define DP(x) (BC_Resources::dp_to_px(x))
-
+#define DUALHEAD_RATIO 1.8
 
 // Use single thread for all windows.
 // This is a bad idea because it's very slow.  Windows which share the same

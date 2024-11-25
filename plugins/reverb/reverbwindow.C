@@ -251,7 +251,7 @@ void ReverbWindow::update()
 {
     for(int i = 0; i < TOTAL_PARAMS; i++)
     {
-        params[i]->update(1, 1);
+        params[i]->update(0, 0);
     }
     size->update(reverb->config.window_size);
     update_canvas();

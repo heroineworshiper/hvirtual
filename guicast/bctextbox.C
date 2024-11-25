@@ -796,6 +796,7 @@ int BC_TextBox::button_press_event()
 
 	if(top_level->event_win == win)
 	{
+        int dispatch_event = 0;
 		if(!active)
 		{
 			hide_tooltip();
@@ -865,6 +866,7 @@ int BC_TextBox::button_press_event()
 				paste_selection(PRIMARY_SELECTION);
                 text_len = text.length();
                 update_undo();
+                dispatch_event = 1;
 			}
 			else
 			{
@@ -893,6 +895,8 @@ int BC_TextBox::button_press_event()
 				yscroll->get_handlelength(),
 				1);
 		}
+    	if(dispatch_event) handle_event();
+
 		return 1;
 	}
 	else

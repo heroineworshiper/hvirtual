@@ -47,6 +47,8 @@ LFLAGS += -L/usr/X11R6/lib64
 endif
 
 CXXFLAGS := $(CFLAGS) $(CXXFLAGS)
+# just for gcc
+CFLAGS += -std=c99
 
 $(shell mkdir -p $(OBJDIR) )
 

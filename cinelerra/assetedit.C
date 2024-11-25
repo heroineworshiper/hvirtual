@@ -419,7 +419,7 @@ void AssetEditWindow::create_objects()
 		else
 		{
 // sample rate conversion from a nested EDL is unsupported
-//		    sprintf(string, "%" PRId64, asset_edit->new_nested_sample_rate);
+		    sprintf(string, "%" PRId64, asset_edit->new_nested_sample_rate);
 //			BC_TextBox *textbox;
 //			add_subwindow(textbox = new AssetEditNestedRate(this, string, x, y));
 //			x += textbox->get_w();

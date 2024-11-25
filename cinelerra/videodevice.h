@@ -145,7 +145,10 @@ public:
     void set_previewer(Previewer *previewer);
 // Change field order
 	int set_field_order(int odd_field_first);
-	void set_do_cursor(int do_cursor, int do_big_cursor);
+	void set_screencap(int do_cursor,  
+        int do_big_cursor, 
+        int do_keypresses,
+        int keypress_size);
 // Set frames to clear after translation change.
 	int set_latency_counter(int value);
 // Values from -100 to 100
@@ -246,7 +249,10 @@ public:
 // All the input sources on the device
 	ArrayList<Channel*> input_sources;
 	int odd_field_first;
-	int do_cursor;
+// the cursor scale or 0
+	int cursor_scale;
+// the font size or 0
+    int keypress_size;
 // Quality for the JPEG compressor
 	int quality;
 // Single frame mode for playback

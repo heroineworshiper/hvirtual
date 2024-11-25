@@ -38,6 +38,7 @@
 #include "vdevicebuz.h"
 #include "vdevicedvb.h"
 #include "vdevicepreview.h"
+#include "vdevicescreencap.h"
 #include "vdevicev4l.h"
 #include "vdevicev4l2.h"
 #include "vdevicev4l2jpeg.h"
@@ -180,7 +181,8 @@ int VideoDevice::initialize()
 	channel_changed = 0;
 	picture_changed = 0;
 	odd_field_first = 0;
-	do_cursor = 0;
+	cursor_scale = 0;
+    keypress_size = 0;
     return 0;
 }
 
@@ -280,7 +282,7 @@ VDeviceBase* VideoDevice::new_device_base()
 #endif
 
 		case SCREENCAPTURE:
-			return input_base = new VDeviceX11(this, 0);
+			return input_base = new VDeviceScreencap(this);
 
 #ifdef HAVE_FIREWIRE
 		case CAPTURE_FIREWIRE:
@@ -594,19 +596,31 @@ int VideoDevice::set_field_order(int odd_field_first)
 	return 0;
 }
 
-void VideoDevice::set_do_cursor(int do_cursor, int do_big_cursor)
+void VideoDevice::set_screencap(int do_cursor,  
+    int do_big_cursor, 
+    int do_keypresses,
+    int keypress_size)
 {
-	int cursor_scale = 0;
-	if(do_cursor)
-	{
-		cursor_scale = 1;
-		if(do_big_cursor)
-		{
-			cursor_scale = 2;
-		}
-	}
+    if(do_cursor)
+    {
+        if(do_big_cursor)
+            this->cursor_scale = 2;
+        else
+            this->cursor_scale = 1;
+    }
+    else
+    {
+        this->cursor_scale = 0;
+    }
 
-	this->do_cursor = cursor_scale;
+    if(do_keypresses)
+    {
+        this->keypress_size = keypress_size;
+    }
+    else
+    {
+        this->keypress_size = 0;
+    }
 }
 
 int VideoDevice::set_channel(Channel *channel)

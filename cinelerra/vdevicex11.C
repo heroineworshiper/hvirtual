@@ -76,60 +76,13 @@ int VDeviceX11::reset_parameters()
 	canvas_y1 = 0;
 	canvas_x2 = 0;
 	canvas_y2 = 0;
-	capture_bitmap = 0;
 	color_model_selected = 0;
 	is_cleared = 0;
     is_rendering = 0;
 
-	for(int i = 0; i < SCREENCAP_BORDERS; i++)
-	{
-		screencap_border[i] = 0;
-	}
 	return 0;
 }
 
-int VDeviceX11::open_input()
-{
-//printf("VDeviceX11::open_input 1\n");
-	capture_bitmap = new BC_Capture(device->in_config->w, 
-		device->in_config->h,
-		device->in_config->screencapture_display);
-//printf("VDeviceX11::open_input %d %p\n", __LINE__, device->mwindow);
-
-	if(device->mwindow)
-	{
-// create overlay
-		device->mwindow->gui->lock_window("VDeviceX11::close_all");
-
-		screencap_border[0] = new BC_Popup(device->mwindow->gui, 
-				device->input_x - SCREENCAP_PIXELS,
-				device->input_y - SCREENCAP_PIXELS,
-				device->in_config->w + SCREENCAP_PIXELS * 2,
-				SCREENCAP_PIXELS,
-				SCREENCAP_COLOR);
-		screencap_border[1] = new BC_Popup(device->mwindow->gui, 
-				device->input_x - SCREENCAP_PIXELS,
-				device->input_y,
-				SCREENCAP_PIXELS,
-				device->in_config->h,
-				SCREENCAP_COLOR);
-		screencap_border[2] = new BC_Popup(device->mwindow->gui, 
-				device->input_x - SCREENCAP_PIXELS,
-				device->input_y + device->in_config->h,
-				device->in_config->w + SCREENCAP_PIXELS * 2,
-				SCREENCAP_PIXELS,
-				SCREENCAP_COLOR);
-		screencap_border[3] = new BC_Popup(device->mwindow->gui, 
-				device->input_x + device->in_config->w,
-				device->input_y,
-				SCREENCAP_PIXELS,
-				device->in_config->h,
-				SCREENCAP_COLOR);
-		device->mwindow->gui->unlock_window();
-	}
-
-	return 0;
-}
 
 int VDeviceX11::open_output()
 {
@@ -351,12 +304,6 @@ int VDeviceX11::close_all()
 		output_frame = 0;
 	}
 
-	if(capture_bitmap)
-	{
-//printf("VDeviceX11::close_all %d\n", __LINE__);
-		delete capture_bitmap;
-	}
-
 	if(is_open && canvas)
 	{
 
@@ -374,56 +321,10 @@ int VDeviceX11::close_all()
 		canvas->unlock_canvas();
 	}
 
-	if(device->mwindow)
-	{
-		device->mwindow->gui->lock_window("VDeviceX11::close_all");
-		for(int i = 0; i < SCREENCAP_BORDERS; i++)
-		{
-			delete screencap_border[i];
-			screencap_border[i] = 0;
-		}
-		device->mwindow->gui->unlock_window();
-	}
-
 	reset_parameters();
 
 	return 0;
 }
-
-int VDeviceX11::read_buffer(VFrame *frame)
-{
-//printf("VDeviceX11::read_buffer %d colormodel=%d\n", __LINE__, frame->get_color_model());
-	if(device->mwindow)
-	{
-		device->mwindow->gui->lock_window("VDeviceX11::close_all");
-
-		screencap_border[0]->reposition_window(device->input_x - SCREENCAP_PIXELS,
-				device->input_y - SCREENCAP_PIXELS);
-		screencap_border[1]->reposition_window(device->input_x - SCREENCAP_PIXELS,
-				device->input_y);
-		screencap_border[2]->reposition_window(device->input_x - SCREENCAP_PIXELS,
-				device->input_y + device->in_config->h);
-		screencap_border[3]->reposition_window(device->input_x + device->in_config->w,
-				device->input_y);
-		device->mwindow->gui->flush();
-		device->mwindow->gui->unlock_window();
-	}
-
-	capture_bitmap->capture_frame(frame, 
-		device->input_x, 
-		device->input_y,
-		device->do_cursor);
-	return 0;
-}
-
-
-int VDeviceX11::get_best_colormodel(Asset *asset)
-{
-	return File::get_best_colormodel(asset, device->in_config, 0 /* SCREENCAPTURE */ );
-
-//	return BC_RGB888;
-}
-
 
 int VDeviceX11::get_display_colormodel(int file_colormodel)
 {

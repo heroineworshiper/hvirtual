@@ -468,8 +468,14 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 		open_render_engine(nested_edl, 0, 1);
 
 		int64_t source_position = (int64_t)(item->position *
-			nested_edl->session->frame_rate /
+			nested_edl->session->get_nested_frame_rate() /
 			item->frame_rate);
+// printf("ResourceThread::do_video %d item->position=%d nested frame rate=%f item frame rate=%f source_position=%d\n",
+// __LINE__,
+// (int)item->position,
+// nested_edl->session->get_nested_frame_rate(),
+// item->frame_rate,
+// (int)source_position);
 		if(render_engine->vrender)
 			render_engine->vrender->process_buffer(
 				temp_picon, 

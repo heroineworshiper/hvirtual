@@ -340,7 +340,14 @@ int VModule::import_frame(VFrame *output,
 			else
 			{
 				max_position = Units::to_int64(nested_edl->tracks->total_playable_length() *
-					frame_rate - 1);
+//					frame_rate
+// necessary when overriding the nested EDL frame rate
+                    nested_edl->session->frame_rate 
+                     - 1);
+// printf("VModule::import_frame %d frame_rate=%f max_position=%d\n",
+// __LINE__,
+// frame_rate,
+// (int)max_position);
 			}
 
 

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,6 +110,7 @@ void BC_DisplayInfo::test_window(int &x_out,
 	XMapWindow(display, win); 
 	XFlush(display);
 	XSync(display, 0);
+
 	XMoveResizeWindow(display, 
 		win, 
 		x_in, 
@@ -136,12 +136,33 @@ void BC_DisplayInfo::test_window(int &x_out,
 	do
 	{
 		XNextEvent(display, &event);
-//printf("BC_DisplayInfo::test_window 1 event=%d %d\n", event.type, XPending(display));
+// printf("BC_DisplayInfo::test_window %d state=%d event=%d XPending=%d\n", 
+// __LINE__, 
+// state,
+// event.type, 
+// XPending(display));
 		if(event.type == ConfigureNotify && event.xany.window == win)
 		{
+// printf("BC_DisplayInfo::test_window %d state=%d ConfigureNotify last_w=%d last_h=%d w=%d h=%d\n", 
+// __LINE__,
+// state,
+// last_w,
+// last_h,
+// event.xconfigure.width,
+// event.xconfigure.height);
 // Get creation repositioning
+// Should get an event for XCreateWindow, XMoveResizeWindow, XResizeWindow
+// + a bunch of dupes.
 			if(last_w != event.xconfigure.width || last_h != event.xconfigure.height)
 			{
+// didn't get the event for XCreateWindow
+                if(state == 0 && event.xconfigure.width != TEST_SIZE)
+                {
+                    printf("BC_DisplayInfo::test_window %d dropped XCreateWindow\n", 
+                        __LINE__);
+                    state++;
+                }
+
 				state++;
 				last_w = event.xconfigure.width;
 				last_h = event.xconfigure.height;

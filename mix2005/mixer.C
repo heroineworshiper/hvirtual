@@ -47,7 +47,6 @@ void Mixer::reset()
 
 int Mixer::create_objects()
 {
-
 	init_driver();
 	load_defaults();
 	theme = new Theme(this);

@@ -18,6 +18,7 @@ int print_copyright()
 		VERSION_MINOR,
 		VERSION_RELEASE);
 	printf("No warranties of any kind.\n");
+    return 0;
 }
 
 

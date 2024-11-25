@@ -1,8 +1,6 @@
-
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,9 +41,7 @@ public:
 	VDeviceX11(VideoDevice *device, Canvas *output);
 	~VDeviceX11();
 
-	int open_input();
 	int close_all();
-	int read_buffer(VFrame *frame);
 	int reset_parameters();
 // User always gets the colormodel requested
 	void new_output_buffer(VFrame **output_frame, int colormodel, EDL *edl);
@@ -58,8 +54,6 @@ public:
 	int output_visible();
 // After loading the bitmap with a picture, write it
 	int write_buffer(VFrame *output_frame, EDL *edl);
-// Get best colormodel for recording
-	int get_best_colormodel(Asset *asset);
 
 
 //=========================== compositing stages ===============================
@@ -141,12 +135,6 @@ private:
 // frame to the texture, the texture, and the PBuffer.
 	int get_display_colormodel(int file_colormodel);
 
-// windows which overlay the screencap area
-#define SCREENCAP_BORDERS 4
-#define SCREENCAP_PIXELS 5
-#define SCREENCAP_COLOR BLACK
-	BC_Popup *screencap_border[SCREENCAP_BORDERS];
-
 // Bitmap to be written to device
 	BC_Bitmap *bitmap;        
 // Wrapper for bitmap or intermediate buffer for user to write to
@@ -173,8 +161,6 @@ private:
 	float canvas_x1, canvas_y1, canvas_x2, canvas_y2;
 // rounded integer dimensions
 	int canvas_w, canvas_h;
-// Screen capture
-	BC_Capture *capture_bitmap;
 // Set when OpenGL rendering has cleared the frame buffer before write_buffer
 	int is_cleared;
 // use this device as an opengl context for rendering

@@ -27,7 +27,7 @@
 #include "bctexture.inc"
 #include "bcwindowbase.inc"
 //#include "bccmodels.h"
-#include "colormodels.h"
+#include "colormodels2.h"
 #include "vframe.inc"
 
 class PngReadFunction;

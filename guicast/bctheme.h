@@ -99,6 +99,7 @@ public:
 
 // Loads compressed data into temporary
 	unsigned char* get_image_data(const char *title);
+	void overlay(VFrame *dst, VFrame *src, int in_x1 = -1, int in_x2 = -1, int shift = 0);
 
 
 
@@ -108,7 +109,6 @@ public:
 	int widget_border;
 
 private:
-	void overlay(VFrame *dst, VFrame *src, int in_x1 = -1, int in_x2 = -1, int shift = 0);
 	void init_contents();
 
 

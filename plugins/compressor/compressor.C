@@ -148,6 +148,7 @@ void CompressorEffect::read_data(KeyFrame *keyframe)
 	FileXML input;
     BandConfig *band_config = &config.bands[0];
 	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+//printf("CompressorEffect::read_data %d: %s\n", __LINE__, keyframe->get_data());
 
 	int result = 0;
 	while(!result)

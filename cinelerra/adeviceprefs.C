@@ -618,7 +618,9 @@ void ADriverMenu::create_objects()
 	add_item(new ADriverItem(this, AUDIO_ALSA_TITLE, AUDIO_ALSA));
 #endif
 
+#ifdef HAVE_PULSE
 	add_item(new ADriverItem(this, AUDIO_PULSE_TITLE, AUDIO_PULSE));
+#endif
 
 	/* if(!do_input) */
     {

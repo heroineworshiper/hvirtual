@@ -208,6 +208,8 @@ public:
 // record the cursor for screencapture
 	int do_cursor;
 	int do_big_cursor;
+    int do_keypresses;
+    int keypress_size;
 // Color model for uncompressed device interface
 	int color_model;
 // Picture quality and parameters the device supports

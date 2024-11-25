@@ -487,6 +487,7 @@ void Reverb::read_data(KeyFrame *keyframe)
 	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
 	int result = 0;
 
+//printf("Reverb::read_data %d: %s\n", __LINE__, keyframe->get_data());
 	result = input.read_tag();
 
 	if(!result)
@@ -524,7 +525,7 @@ void Reverb::update_gui()
 
 		    if(reconfigured)
 		    {
-    //printf("Reverb::update_gui %d %d\n", __LINE__, config.ref_length);
+//printf("Reverb::update_gui %d %d\n", __LINE__, config.ref_length);
                 ((ReverbWindow*)thread->window)->update();
 		    }
 

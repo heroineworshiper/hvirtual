@@ -7,6 +7,9 @@ https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35k
 
 BIG WISHLIST:
 ----------------------------
+pulse audio system dependencies
+migrate other libraries which have stabilized
+smarter default window positions
 Config window for screencap which specifies 
     a window, X & Y offset, screen corner, cursor.
 Specify color space as part of recording parameters.
@@ -14,14 +17,34 @@ Specify color space as part of recording parameters.
 
 BIG BUGS
 ----------------
-Enter text in render dialog.  Change file format.  Filename is completely erased.
 Nested EDL index file isn't updated when the nested EDL changes.
 Applies filebox filter to the auto completion in a browse button textbox.
-Nested EDLs with different colormodels crash.
+Nested EDLs with diffe0x8u080880sdrafrent colormodels crash.
 Effects not getting rendered if multiple effects have random starting times.
 Drag effect before timeline is finished drawing after a load -> lockup
 Load a sound file.  Change the file on the disk.  Crash on exit.
 Change asset path, CPlayback never returns to redraw the frame.
+
+BUGS
+----------------------------------
+fullscreen broken on wayland
+ - detects 4480x2160 for root
+ - xdpyinfo has the same error
+no screencap on wayland
+ - seems to be security related.  xmag is also broken
+Xvideo on wayland?
+
+
+
+NOT REPRODUCIBLE BUGS
+----------------------
+can't preview next selection after a delete
+titler selecting broken if lots of spaces
+ - seems to require spurrious characters
+Quit freezes when background rendering is on.
+ - No quit during slow effect with background rendering.
+ - Not reproducible.
+
 
 
 Documentation wishlist:
@@ -131,6 +154,9 @@ Zoom transition
 
 NOT GOING TO HAPPEN
 ---------------------
+gnome window extents
+ - can't restore original position 
+ - don't care about gnome beyond just getting it to work
 Hide controls in Record Monitor
 Quicktime mp3 needs standards check
  - no need for mp3 anymore
@@ -142,14 +168,6 @@ Batch filename not saved from recording dialog if cancelled.
 
 
 
-
-
-
-Not reproducible
-----------------------
-Quit freezes when background rendering is on.
- - No quit during slow effect with background rendering.
- - Not reproducible.
 
 
 
@@ -176,5 +194,4 @@ Remember Asset list position.
 On hold
 --------------
 Paste non realtime plugins leading to a dialog box.
-Something allowing single frame accuracy with drag & drop.
 

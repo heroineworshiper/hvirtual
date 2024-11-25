@@ -133,10 +133,10 @@ BC_WindowBase::~BC_WindowBase()
 	is_deleting = 1;
 	if(subwindows)
 	{
-		while(subwindows->total)
+		while(subwindows->size())
 		{
 // Subwindow removes its own pointer
-			delete subwindows->values[0];
+			delete subwindows->get(0);
 		}
 		delete subwindows;
 	}
@@ -266,6 +266,7 @@ int BC_WindowBase::initialize()
 	translation_events = 0;
 	ctrl_mask = shift_mask = alt_mask = 0;
 	cursor_x = cursor_y = button_number = 0;
+    reject_win = -1;
 	button_down = 0;
 	button_pressed = 0;
 	button_time1 = 0;
@@ -722,7 +723,8 @@ Display* BC_WindowBase::init_display(const char *display_name)
 		{
 			if((display = XOpenDisplay(0)) == NULL)
 			{
-				printf("BC_WindowBase::init_display: cannot connect to default X server.\n");
+				printf("BC_WindowBase::init_display: cannot connect to default X server %s.\n",
+                    getenv("DISPLAY"));
 				return 0;
 			}
 		}
@@ -819,10 +821,6 @@ int BC_WindowBase::get_key_masks(XEvent *event)
 	alt_mask = (event->xkey.state & Mod1Mask) ? 1 : 0;
 	return 0;
 }
-
-
-
-
 
 
 
@@ -1012,17 +1010,28 @@ __LINE__, title, event, event->xevent->type);
 
 		    case MotionNotify:
 			    get_key_masks(xevent);
-    // Dispatch previous motion event if this is a subsequent motion from a different window
-			    if(motion_events && last_motion_win != xevent->xany.window)
-			    {
-				    dispatch_motion_event();
-			    }
+// reject the event
+                if(xevent->xmotion.x == reject_x &&
+                    xevent->xmotion.y == reject_y &&
+                    xevent->xany.window == reject_win)
+                {
+                    reject_win = -1;
 
-    // Buffer the current motion
-			    motion_events = 1;
-			    last_motion_x = xevent->xmotion.x;
-			    last_motion_y = xevent->xmotion.y;
-			    last_motion_win = xevent->xany.window;
+                }
+                else
+                {
+// Dispatch previous motion event if this is a subsequent motion from a different window
+			        if(motion_events && last_motion_win != xevent->xany.window)
+			        {
+				        dispatch_motion_event();
+			        }
+
+// Buffer the current motion
+			        motion_events = 1;
+			        last_motion_x = xevent->xmotion.x;
+			        last_motion_y = xevent->xmotion.y;
+			        last_motion_win = xevent->xany.window;
+                }
 			    break;
 
 		    case ConfigureNotify:
@@ -1047,12 +1056,12 @@ __LINE__, title, event, event->xevent->type);
 			    cancel_translation = 0;
 
     // Resize history prevents responses to recursive resize requests
-			    for(int i = 0; i < resize_history.total && !cancel_resize; i++)
+			    for(int i = 0; i < resize_history.size() && !cancel_resize; i++)
 			    {
-				    if(resize_history.values[i]->w == last_resize_w &&
-					    resize_history.values[i]->h == last_resize_h)
+				    if(resize_history.get(i)->w == last_resize_w &&
+					    resize_history.get(i)->h == last_resize_h)
 				    {
-					    delete resize_history.values[i];
+					    delete resize_history.get(i);
 					    resize_history.remove_number(i);
 					    cancel_resize = 1;
 				    }
@@ -1178,7 +1187,6 @@ __LINE__, title, event, event->xevent->type);
 			    {
     #endif
 
-
   			    switch(keysym)
 			    {
     // block out extra keys
@@ -1200,6 +1208,7 @@ __LINE__, title, event, event->xevent->type);
     			    case XK_Next:       key_pressed = PGDN;      break;
     			    case XK_Prior:      key_pressed = PGUP;      break;
     			    case XK_BackSpace:  key_pressed = BACKSPACE; break;
+                    
   	    		    case XK_Escape:     key_pressed = ESC;       break;
   	    		    case XK_Tab:
 					    if(shift_down())
@@ -1330,9 +1339,9 @@ if(debug) printf("BC_WindowBase::dispatch_event this=%p %d\n", this, __LINE__);
 int BC_WindowBase::dispatch_expose_event()
 {
 	int result = 0;
-	for(int i = 0; i < subwindows->total && !result; i++)
+	for(int i = 0; i < subwindows->size() && !result; i++)
 	{
-		result = subwindows->values[i]->dispatch_expose_event();
+		result = subwindows->get(i)->dispatch_expose_event();
 	}
 
 // Propagate to user
@@ -1355,9 +1364,9 @@ int BC_WindowBase::dispatch_resize_event(int w, int h)
 	}
 
 // Propagate to subwindows
-	for(int i = 0; i < subwindows->total; i++)
+	for(int i = 0; i < subwindows->size(); i++)
 	{
-		subwindows->values[i]->dispatch_resize_event(w, h);
+		subwindows->get(i)->dispatch_resize_event(w, h);
 	}
 
 // Propagate to user
@@ -1385,9 +1394,9 @@ int BC_WindowBase::dispatch_translation_event()
 		y -= y_correction;
 	}
 
-	for(int i = 0; i < subwindows->total; i++)
+	for(int i = 0; i < subwindows->size(); i++)
 	{
-		subwindows->values[i]->dispatch_translation_event();
+		subwindows->get(i)->dispatch_translation_event();
 	}
 
 	translation_event();
@@ -1442,7 +1451,7 @@ int BC_WindowBase::dispatch_motion_event()
 // Dispatch in stacking order
 	for(int i = subwindows->size() - 1; i >= 0 && !result; i--)
 	{
-		result = subwindows->values[i]->dispatch_motion_event();
+		result = subwindows->get(i)->dispatch_motion_event();
 	}
 
 	if(!result) result = cursor_motion_event();    // give to user
@@ -1457,9 +1466,9 @@ int BC_WindowBase::dispatch_keypress_event()
 		if(active_subwindow) result = active_subwindow->dispatch_keypress_event();
 	}
 
-	for(int i = 0; i < subwindows->total && !result; i++)
+	for(int i = 0; i < subwindows->size() && !result; i++)
 	{
-		result = subwindows->values[i]->dispatch_keypress_event();
+		result = subwindows->get(i)->dispatch_keypress_event();
 	}
 
 	if(!result) result = keypress_event();
@@ -1475,9 +1484,9 @@ int BC_WindowBase::dispatch_keyrelease_event()
 		if(active_subwindow) result = active_subwindow->dispatch_keyrelease_event();
 	}
 
-	for(int i = 0; i < subwindows->total && !result; i++)
+	for(int i = 0; i < subwindows->size() && !result; i++)
 	{
-		result = subwindows->values[i]->dispatch_keyrelease_event();
+		result = subwindows->get(i)->dispatch_keyrelease_event();
 	}
 
 	if(!result) result = keyrelease_event();
@@ -1487,9 +1496,9 @@ int BC_WindowBase::dispatch_keyrelease_event()
 
 int BC_WindowBase::dispatch_focus_in()
 {
-	for(int i = 0; i < subwindows->total; i++)
+	for(int i = 0; i < subwindows->size(); i++)
 	{
-		subwindows->values[i]->dispatch_focus_in();
+		subwindows->get(i)->dispatch_focus_in();
 	}
 
 	focus_in_event();
@@ -1499,9 +1508,9 @@ int BC_WindowBase::dispatch_focus_in()
 
 int BC_WindowBase::dispatch_focus_out()
 {
-	for(int i = 0; i < subwindows->total; i++)
+	for(int i = 0; i < subwindows->size(); i++)
 	{
-		subwindows->values[i]->dispatch_focus_out();
+		subwindows->get(i)->dispatch_focus_out();
 	}
 
 	focus_out_event();
@@ -1533,9 +1542,9 @@ int BC_WindowBase::dispatch_button_press()
 		if(active_subwindow && !result) result = active_subwindow->dispatch_button_press();
 	}
 
-	for(int i = 0; i < subwindows->total && !result; i++)
+	for(int i = 0; i < subwindows->size() && !result; i++)
 	{
-		result = subwindows->values[i]->dispatch_button_press();
+		result = subwindows->get(i)->dispatch_button_press();
 	}
 
 	if(!result) result = button_press_event();
@@ -1556,9 +1565,9 @@ int BC_WindowBase::dispatch_button_release()
 			result = dispatch_drag_stop();
 	}
 
-	for(int i = 0; i < subwindows->total && !result; i++)
+	for(int i = 0; i < subwindows->size() && !result; i++)
 	{
-		result = subwindows->values[i]->dispatch_button_release();
+		result = subwindows->get(i)->dispatch_button_release();
 	}
 
 	if(!result)
@@ -1575,9 +1584,9 @@ int BC_WindowBase::dispatch_repeat_event(int64_t duration)
 
 // all repeat event handlers get called and decide based on activity and duration
 // whether to respond
-	for(int i = 0; i < subwindows->total; i++)
+	for(int i = 0; i < subwindows->size(); i++)
 	{
-		subwindows->values[i]->dispatch_repeat_event(duration);
+		subwindows->get(i)->dispatch_repeat_event(duration);
 	}
 
 
@@ -1591,11 +1600,11 @@ int BC_WindowBase::dispatch_repeat_event(int64_t duration)
 #ifdef SINGLE_THREAD
 		BC_Display::display_global->unlock_repeaters(duration);
 #else
-		for(int i = 0; i < repeaters.total; i++)
+		for(int i = 0; i < repeaters.size(); i++)
 		{
-			if(repeaters.values[i]->delay == duration)
+			if(repeaters.get(i)->delay == duration)
 			{
-				repeaters.values[i]->repeat_lock->unlock();
+				repeaters.get(i)->repeat_lock->unlock();
 			}
 		}
 #endif
@@ -1639,9 +1648,9 @@ int BC_WindowBase::dispatch_cursor_leave()
 {
 	unhide_cursor();
 
-	for(int i = 0; i < subwindows->total; i++)
+	for(int i = 0; i < subwindows->size(); i++)
 	{
-		subwindows->values[i]->dispatch_cursor_leave();
+		subwindows->get(i)->dispatch_cursor_leave();
 	}
 
 	cursor_leave_event();
@@ -1658,9 +1667,9 @@ int BC_WindowBase::dispatch_cursor_enter()
 	if(!result && active_popup_menu) result = active_popup_menu->dispatch_cursor_enter();
 	if(!result && active_subwindow) result = active_subwindow->dispatch_cursor_enter();
 
-	for(int i = 0; !result && i < subwindows->total; i++)
+	for(int i = 0; !result && i < subwindows->size(); i++)
 	{
-		result = subwindows->values[i]->dispatch_cursor_enter();
+		result = subwindows->get(i)->dispatch_cursor_enter();
 	}
 
 	if(!result) result = cursor_enter_event();
@@ -1690,9 +1699,9 @@ int BC_WindowBase::dispatch_drag_start()
 	if(!result && active_popup_menu) result = active_popup_menu->dispatch_drag_start();
 	if(!result && active_subwindow) result = active_subwindow->dispatch_drag_start();
 	
-	for(int i = 0; i < subwindows->total && !result; i++)
+	for(int i = 0; i < subwindows->size() && !result; i++)
 	{
-		result = subwindows->values[i]->dispatch_drag_start();
+		result = subwindows->get(i)->dispatch_drag_start();
 	}
 
 	if(!result) result = is_dragging = drag_start_event();
@@ -1703,9 +1712,9 @@ int BC_WindowBase::dispatch_drag_stop()
 {
 	int result = 0;
 
-	for(int i = 0; i < subwindows->total && !result; i++)
+	for(int i = 0; i < subwindows->size() && !result; i++)
 	{
-		result = subwindows->values[i]->dispatch_drag_stop();
+		result = subwindows->get(i)->dispatch_drag_stop();
 	}
 
 	if(is_dragging && !result) 
@@ -1721,9 +1730,9 @@ int BC_WindowBase::dispatch_drag_stop()
 int BC_WindowBase::dispatch_drag_motion()
 {
 	int result = 0;
-	for(int i = 0; i < subwindows->total && !result; i++)
+	for(int i = 0; i < subwindows->size() && !result; i++)
 	{
-		result = subwindows->values[i]->dispatch_drag_motion();
+		result = subwindows->get(i)->dispatch_drag_motion();
 	}
 	
 	if(is_dragging && !result)
@@ -1784,9 +1793,9 @@ int BC_WindowBase::show_tooltip(int w, int h)
 int BC_WindowBase::hide_tooltip()
 {
 	if(subwindows)
-		for(int i = 0; i < subwindows->total; i++)
+		for(int i = 0; i < subwindows->size(); i++)
 		{
-			subwindows->values[i]->hide_tooltip();
+			subwindows->get(i)->hide_tooltip();
 		}
 
 	if(tooltip_on)
@@ -2534,6 +2543,25 @@ int BC_WindowBase::get_cursor()
 	return current_cursor;
 }
 
+void BC_WindowBase::reposition_cursor(int x, int y)
+{
+    XWarpPointer(
+        top_level->display,
+        None,
+        win,
+        0,
+        0,
+        0,
+        0,
+        x,
+        y);
+    reject_x = x;
+    reject_y = y;
+    reject_win = win;
+}
+
+
+
 void BC_WindowBase::start_hourglass()
 {
 	top_level->start_hourglass_recursive();
@@ -2557,9 +2585,9 @@ void BC_WindowBase::start_hourglass_recursive()
 	if(!is_transparent)
 	{
 		set_cursor(HOURGLASS_CURSOR, 1, 0);
-		for(int i = 0; i < subwindows->total; i++)
+		for(int i = 0; i < subwindows->size(); i++)
 		{
-			subwindows->values[i]->start_hourglass_recursive();
+			subwindows->get(i)->start_hourglass_recursive();
 		}
 	}
 }
@@ -2580,9 +2608,9 @@ void BC_WindowBase::stop_hourglass_recursive()
 		if(!is_transparent)
 			set_cursor(current_cursor, 1, 0);
 
-		for(int i = 0; i < subwindows->total; i++)
+		for(int i = 0; i < subwindows->size(); i++)
 		{
-			subwindows->values[i]->stop_hourglass_recursive();
+			subwindows->get(i)->stop_hourglass_recursive();
 		}
 	}
 }
@@ -3358,7 +3386,10 @@ int BC_WindowBase::get_root_w(int ignore_dualhead, int lock_display)
 	int result = WidthOfScreen(screen_ptr);
 // If dual head, the screen width is > 16x9 but we only want to fill one screen
 	if(!ignore_dualhead) 
-		if((float)result / HeightOfScreen(screen_ptr) > 1.8) result /= 2;
+		if((float)result / HeightOfScreen(screen_ptr) > DUALHEAD_RATIO) result /= 2;
+
+// printf("BC_WindowBase::get_root_w %d w=%d h=%d\n", 
+// __LINE__, WidthOfScreen(screen_ptr), HeightOfScreen(screen_ptr));
 
 	if(lock_display) unlock_window();
 	return result;
@@ -3381,11 +3412,11 @@ int BC_WindowBase::get_root_x(int lock_display)
 	int root_h = HeightOfScreen(screen_ptr);
 	int result = 0;
 // Shift X based on position of current window if dual head
-	if((float)root_w / root_h > 1.8)
-	{
-		if(top_level->get_x() >= root_w / 2)
-			result = root_w / 2;
-	}
+// 	if((float)root_w / root_h > DUALHEAD_RATIO)
+// 	{
+// 		if(top_level->get_x() >= root_w / 2)
+// 			result = root_w / 2;
+// 	}
 	if(lock_display) unlock_window();
 	return result;
 }
@@ -3528,9 +3559,9 @@ int BC_WindowBase::cycle_textboxes(int amount)
 int BC_WindowBase::find_next_textbox(BC_WindowBase **first_textbox, BC_WindowBase **next_textbox, int &result)
 {
 // Search subwindows for textbox
-	for(int i = 0; i < subwindows->total && result < 2; i++)
+	for(int i = 0; i < subwindows->size() && result < 2; i++)
 	{
-		BC_WindowBase *test_subwindow = subwindows->values[i];
+		BC_WindowBase *test_subwindow = subwindows->get(i);
 		test_subwindow->find_next_textbox(first_textbox, next_textbox, result);
 	}
 
@@ -3577,9 +3608,9 @@ int BC_WindowBase::find_prev_textbox(BC_WindowBase **last_textbox, BC_WindowBase
 	}
 
 // Search subwindows for textbox
-	for(int i = subwindows->total - 1; i >= 0 && result < 2; i--)
+	for(int i = subwindows->size() - 1; i >= 0 && result < 2; i--)
 	{
-		BC_WindowBase *test_subwindow = subwindows->values[i];
+		BC_WindowBase *test_subwindow = subwindows->get(i);
 		test_subwindow->find_prev_textbox(last_textbox, prev_textbox, result);
 	}
 	return 0;
@@ -3694,9 +3725,9 @@ int BC_WindowBase::match_window(Window win)
 {
 	if (this->win == win) return 1;
 	int result = 0;
-	for(int i = 0; i < subwindows->total; i++)
+	for(int i = 0; i < subwindows->size(); i++)
 	{
-		result = subwindows->values[i]->match_window(win);
+		result = subwindows->get(i)->match_window(win);
 		if (result) return result;
 	}
 	return 0;
@@ -3910,9 +3941,9 @@ int BC_WindowBase::resize_window(int w, int h)
 	pixmap = new BC_Pixmap(this, w, h);
 
 // Propagate to menubar
-	for(int i = 0; i < subwindows->total; i++)
+	for(int i = 0; i < subwindows->size(); i++)
 	{
-		subwindows->values[i]->dispatch_resize_event(w, h);
+		subwindows->get(i)->dispatch_resize_event(w, h);
 	}
 
 	draw_background(0, 0, w, h);
@@ -3994,9 +4025,9 @@ int BC_WindowBase::reposition_window(int x, int y, int w, int h)
 		delete pixmap;
 		pixmap = new BC_Pixmap(this, this->w, this->h);
 // Propagate to menubar
-		for(int i = 0; i < subwindows->total; i++)
+		for(int i = 0; i < subwindows->size(); i++)
 		{
-			subwindows->values[i]->dispatch_resize_event(this->w, this->h);
+			subwindows->get(i)->dispatch_resize_event(this->w, this->h);
 		}
 
 //		draw_background(0, 0, w, h);

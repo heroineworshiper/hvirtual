@@ -68,5 +68,6 @@
 #define NEWLINE             13
 #define END                 276
 #define HOME                277
+#define INSERT              294
 
 #endif

@@ -203,7 +203,6 @@ public:
 
 
 // Draw a single character into the glyph cache
-// 
 class GlyphPackage : public LoadPackage
 {
 public:

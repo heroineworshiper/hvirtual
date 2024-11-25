@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,11 @@
  * 
  */
 
-#ifndef VDEVICEX11_INC
-#define VDEVICEX11_INC
+#ifndef SCREENCAPEDIT_INC
+#define SCREENCAPEDIT_INC
 
-class VDeviceX11;
+class ScreenCapEdit;
+class ScreenCapEditThread;
+class ScreenCapEditGUI;
 
 #endif

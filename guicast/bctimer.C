@@ -63,9 +63,10 @@ int64_t Timer::get_difference(struct timeval *result)
 	return (int64_t)result->tv_sec * 1000 + (int64_t)result->tv_usec / 1000;
 }
 
-int64_t Timer::get_difference()
+int64_t Timer::get_difference(int update_it)
 {
 	gettimeofday(&new_time, 0);
+    struct timeval new_time2 = new_time;
 
 	new_time.tv_usec -= current_time.tv_usec;
 	new_time.tv_sec -= current_time.tv_sec;
@@ -74,6 +75,7 @@ int64_t Timer::get_difference()
 		new_time.tv_usec += 1000000;
 		new_time.tv_sec--;
 	}
+    if(update_it) current_time = new_time2;
 
 	return (int64_t)new_time.tv_sec * 1000 + 
 		(int64_t)new_time.tv_usec / 1000;

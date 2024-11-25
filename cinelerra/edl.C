@@ -1667,6 +1667,10 @@ int EDL::get_use_vconsole(VEdit* *playable_edit,
 	{
 		playable_track = (VTrack*)playable_tracks->get(0);
 	}
+// printf("EDL::get_use_vconsole %d position=%d playable_tracks=%d\n",
+// __LINE__,
+// (int)position,
+// playable_tracks->size());
 
 // Don't need playable tracks anymore
 	if(!share_playable_tracks)

@@ -405,6 +405,7 @@ void PresetsDBPlugin::load(FileXML *file, int is_factory)
 			else
 			if(file->tag.title_is("KEYFRAME"))
 			{
+//printf("PresetsDBPlugin::load %d\n", __LINE__);
 				sprintf(string, "Unknown");
 				const char *keyframe_title = file->tag.get_property("TITLE", string);
 				PresetsDBKeyframe *keyframe = new PresetsDBKeyframe(keyframe_title, is_factory);
@@ -506,7 +507,7 @@ void PresetsDBPlugin::load_preset(const char *preset_title,
 			FileSystem fs;
 			fs.complete_path(path);
 
-printf("PresetsDBPlugin::load_preset %d %s %s\n", __LINE__, title, path);
+//printf("PresetsDBPlugin::load_preset %d title=%s path=%s\n", __LINE__, title, path);
 
 			FILE *fd = fopen(path, "w");
 			if(fd)

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -158,10 +158,10 @@ int VEdit::read_frame(VFrame *video_out,
 		input_position,
 		direction);
 
-if(debug) printf("VEdit::read_frame %d source_position=%lld input_position=%lld\n", 
-__LINE__, 
-(long long)source_position,
-(long long)input_position);
+// printf("VEdit::read_frame %d source_position=%ld input_position=%ld\n", 
+// __LINE__, 
+// (long)source_position,
+// (long)input_position);
 
 	File *file = cache->check_out(asset,
 		edl);

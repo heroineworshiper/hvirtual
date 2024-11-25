@@ -2600,7 +2600,8 @@ void TitleMain::get_total_extents()
 		    char_positions[i].h = 0;
         }
 
-		int char_advance = get_char_advance(config.ucs4text[i], 
+		int char_advance = 0;
+        if(i < text_len - 1) char_advance = get_char_advance(config.ucs4text[i], 
 			config.ucs4text[i + 1]);
         current_x += char_advance;
         char_positions[i].line_w = 0;

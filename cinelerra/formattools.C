@@ -462,6 +462,8 @@ void FormatTools::update_extension()
 	
 	if(extensions.size())
 	{
+//printf("FormatTools::update_extension %d asset->path=%s\n", 
+//__LINE__, asset->path);
 		char *ptr = strrchr(asset->path, '.');
 		if(!ptr)
 		{
@@ -497,7 +499,6 @@ void FormatTools::update_extension()
 				need_extension = 1;
 		}
 
-//printf("FormatTools::update_extension %d %d\n", __LINE__, need_extension);
 // copy extension
 		if(need_extension) 
 		{
@@ -987,6 +988,7 @@ FormatPathText::~FormatPathText()
 }
 int FormatPathText::handle_event() 
 {
+//printf("FormatPathText::handle_event %d %s\n", __LINE__, get_text());
 // Suggestions
 	calculate_suggestions(format->file_entries);
 
