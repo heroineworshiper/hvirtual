@@ -47,8 +47,9 @@
 
 // Use the asset format.
 // If the framerates or samplerates don't match the project, 
-// it won't paste synchronized media.
-//#define STANDALONE_EDL
+// it won't paste the right timing.  We could just conform the frame
+// sizes so the timing would behave like pasting directly from the asset window.
+#define STANDALONE_EDL
 
 VWindow::VWindow(MWindow *mwindow) : BC_DialogThread()
 {
@@ -243,11 +244,13 @@ void VWindow::change_source(Indexable *indexable)
 		nested_edl->copy_all((EDL*)indexable);
 	}
 
-// Create EDL inside the mane EDL
 #ifndef STANDALONE_EDL
+// Create EDL inside the mane EDL
+// All viewer EDLs currently share the mane EDL's session, so they can't
+// conform to the asset.
 	this->edl = new EDL(mwindow->edl);
 #else
-// Create EDL as a standalone EDL
+// Create EDL as a standalone EDL so it can conform to the asset.
 	this->edl = new EDL;
 #endif
 	this->edl->create_objects();
@@ -259,8 +262,6 @@ void VWindow::change_source(Indexable *indexable)
 
 	if(asset)
     {
-// All viewer EDLs currently share the mane EDL's session, so they can't
-// conform to the asset.
 		EDLFactory::asset_to_edl(this->edl, 
             asset, 
             0, 
@@ -271,12 +272,21 @@ void VWindow::change_source(Indexable *indexable)
             1); // auto aspect
 #endif
 
-printf("VWindow::change_source %d aspect=%f\n", __LINE__, edl->get_aspect_ratio());
 	}
     else
 	{
+#ifdef STANDALONE_EDL
+        this->edl->copy_session(nested_edl, 1);
+#endif
     	mwindow->edl_to_nested(this->edl, nested_edl);
     }
+
+#ifdef STANDALONE_EDL
+// copy the mane time bases to make paste work
+    this->edl->session->frame_rate = mwindow->edl->session->frame_rate;
+    this->edl->session->sample_rate = mwindow->edl->session->sample_rate;
+#endif
+
 
 // Update GUI
 	gui->change_source(this->edl, title);

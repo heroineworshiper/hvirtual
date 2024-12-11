@@ -433,12 +433,17 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 
 		if(!output_frame)
 		{
+// printf("VDeviceX11::new_output_buffer %d %d,%d\n",
+// __LINE__,
+// device->out_w, 
+// device->out_h);
 			output_frame = new VFrame(0, 
 				-1,
 				device->out_w, 
 				device->out_h, 
 				file_colormodel,
 				-1);
+
 //BUFFER2(output_frame->get_rows()[0], "VDeviceX11::new_output_buffer 1");
 		}
 
