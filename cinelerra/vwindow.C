@@ -45,6 +45,10 @@
 #include "vwindow.h"
 #include "vwindowgui.h"
 
+// Use the asset format.
+// If the framerates or samplerates don't match the project, 
+// it won't paste synchronized media.
+//#define STANDALONE_EDL
 
 VWindow::VWindow(MWindow *mwindow) : BC_DialogThread()
 {
@@ -239,8 +243,13 @@ void VWindow::change_source(Indexable *indexable)
 		nested_edl->copy_all((EDL*)indexable);
 	}
 
-// Create EDL
+// Create EDL inside the mane EDL
+#ifndef STANDALONE_EDL
 	this->edl = new EDL(mwindow->edl);
+#else
+// Create EDL as a standalone EDL
+	this->edl = new EDL;
+#endif
 	this->edl->create_objects();
 //	mwindow->edl->append_vwindow_edl(this->edl, 1);
 
@@ -248,15 +257,21 @@ void VWindow::change_source(Indexable *indexable)
 //	mwindow->edl->vwindow_edl_shared = 0;
 //	mwindow->edl->vwindow_edl->create_objects();
 
-//printf("VWindow::change_source 1 %d %p %p\n", __LINE__, asset, nested_edl);
 	if(asset)
     {
-// Can't conform the VWindow EDL to the asset because pasting from the VWindow
-// copies the VWindow dimensions to the mane EDL.
+// All viewer EDLs currently share the mane EDL's session, so they can't
+// conform to the asset.
 		EDLFactory::asset_to_edl(this->edl, 
             asset, 
             0, 
+#ifndef STANDALONE_EDL
             0); // conform
+#else
+            1,  // conform
+            1); // auto aspect
+#endif
+
+printf("VWindow::change_source %d aspect=%f\n", __LINE__, edl->get_aspect_ratio());
 	}
     else
 	{

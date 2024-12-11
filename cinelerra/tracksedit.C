@@ -715,16 +715,17 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
 					    &temp_autoconf,
 					    1);
 				    int64_t position_a = position_i;
-				    if (!MWindow::session->free_drag &&
+// shift destination position if it's later in the source track
+				    if(//!MWindow::session->free_drag &&
                         dest_track == source_track &&
                         position_a > source_edit->startproject + source_length)
                     {
                         position_a -= source_length;
                     }
 
-// clear destination keyframes if overwriting & a different track
-                    if(MWindow::session->drag_button != LEFT_BUTTON &&
-                        dest_track != source_track)
+// clear destination keyframes if overwriting
+                    if(MWindow::session->drag_button != LEFT_BUTTON /* &&
+                        dest_track != source_track */)
                     {
                         dest_track->automation->clear(position_a,
                             position_a + source_length,
@@ -758,14 +759,14 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
                     0);
                 
 // shift destination position if it's later in the source track
-                if(!MWindow::session->free_drag &&
+                if(//!MWindow::session->free_drag &&
                     source_track == dest_track &&
                     position_i > source_edit->startproject + source_length)
                     position_i -= source_length;
 
-// clear the destination if we're overwriting & changing tracks.
-                if(MWindow::session->drag_button != LEFT_BUTTON &&
-                    dest_track != source_track)
+// clear the destination if we're overwriting
+                if(MWindow::session->drag_button != LEFT_BUTTON /* &&
+                    dest_track != source_track */)
                 {
                     dest_track->edits->clear(position_i,
                         position_i + source_length);

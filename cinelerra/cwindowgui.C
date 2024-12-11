@@ -1039,7 +1039,7 @@ void CWindowCanvas::draw_refresh(int flush)
 
 		if(refresh_frame)
 		{
-            Canvas::draw_refresh(flush);
+            draw_refresh2(0, mwindow->edl);
 		}
 		else
 		{
@@ -1050,6 +1050,8 @@ void CWindowCanvas::draw_refresh(int flush)
 		}
 
     	draw_overlays();
+
+//printf("CWindowCanvas::draw_refresh %d %d\n", __LINE__, flush);
 	    get_canvas()->flash(flush);
 	}
 }

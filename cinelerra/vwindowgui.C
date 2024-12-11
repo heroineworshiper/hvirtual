@@ -903,6 +903,7 @@ void VWindowCanvas::zoom_resize_window(float percentage)
 	int canvas_w, canvas_h;
 	int new_w, new_h;
 
+//printf("VWindowCanvas::zoom_resize_window %d %f\n", __LINE__, edl->get_aspect_ratio());
 // Get required canvas size
 	calculate_sizes(edl->get_aspect_ratio(), 
 		edl->session->output_w, 
@@ -948,7 +949,7 @@ void VWindowCanvas::draw_refresh(int flush)
 	{
 		if(refresh_frame && edl)
 		{
-            Canvas::draw_refresh(flush);
+            draw_refresh2(0, edl);
         }
         else
         {

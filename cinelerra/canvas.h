@@ -145,6 +145,7 @@ public:
 	virtual int get_yscroll() { return 0; };
 	virtual float get_zoom() { return 0; };
 // Redraws the image
+	void draw_refresh2(int flush, EDL *edl);
 	virtual void draw_refresh(int flush);
 
 // Get top left offset of canvas relative to output.

@@ -434,6 +434,8 @@ void Canvas::get_transfers(EDL *edl,
 			float out_w = canvas_x2 - canvas_x1;
 			float out_h = canvas_y2 - canvas_y1;
             float aspect_ratio = edl->get_aspect_ratio();
+//printf("Canvas::get_transfers %d aspect=%f\n", __LINE__, aspect_ratio);
+//BC_Signals::dump_stack();
 
 // always square pixels for recording.  See also RecordMonitorCanvas::zoom_resize_window
             if(use_rwindow && edl->session->auto_aspect)
@@ -508,17 +510,39 @@ void Canvas::clear()
 
 void Canvas::draw_refresh(int flush)
 {
-//printf("Canvas::draw_refresh %d refresh_frame=%p\n", __LINE__, refresh_frame);
+    draw_refresh2(flush, 0);
+}
+
+void Canvas::draw_refresh2(int flush, EDL *edl)
+{
+// printf("Canvas::draw_refresh2 %d refresh_frame=%p edl=%p\n", 
+// __LINE__, 
+// refresh_frame,
+// edl);
     float in_x1, in_y1, in_x2, in_y2;
     float out_x1, out_y1, out_x2, out_y2;
+
+// default to the mane EDL
+    if(!edl)
+    {
+        if(mwindow) 
+            edl = mwindow->edl;
+        else
+        {
+            printf("Canvas::draw_refresh %d no mwindow & no EDL\n", __LINE__);
+            return;
+        }
+    }
     
-    if(!refresh_frame || !mwindow)
+    if(!refresh_frame /* || !mwindow */)
     {
         return;
     }
     
     
-    get_transfers(mwindow->edl, 
+    get_transfers(
+        //mwindow->edl, 
+        edl,
 	    in_x1, 
 	    in_y1, 
 	    in_x2, 
@@ -620,7 +644,7 @@ void Canvas::draw_refresh(int flush)
         }
         else
         {
-//printf("Canvas::draw_refresh %d %d\n", __LINE__, refresh_frame->get_opengl_state());
+//printf("Canvas::draw_refresh %d\n", __LINE__);
 			get_canvas()->draw_vframe(refresh_frame,
                 dest_x,
                 dest_y,
