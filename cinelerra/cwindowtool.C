@@ -821,7 +821,7 @@ void CWindowCameraGUI::handle_event()
 
 				z_auto->value = zoom;
 				mwindow->gui->lock_window("CWindowCameraGUI::handle_event");
-				mwindow->gui->draw_overlays(1);
+				mwindow->gui->draw_overlays(1, 1);
 				mwindow->gui->unlock_window();
 				update_preview();
 			}
@@ -1276,7 +1276,7 @@ void CWindowProjectorGUI::handle_event()
 				z_auto->value = zoom;
 
 				mwindow->gui->lock_window("CWindowProjectorGUI::handle_event");
-				mwindow->gui->draw_overlays(1);
+				mwindow->gui->draw_overlays(1, 1);
 				mwindow->gui->unlock_window();
 
 				update_preview();

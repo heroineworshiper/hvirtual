@@ -104,7 +104,7 @@ TrackCanvas::TrackCanvas(MWindow *mwindow,
 	temp_picon = 0;
 	resource_timer = new Timer;
 	hourglass_enabled = 0;
-	timebar_position = -1;
+//	timebar_position = -1;
 }
 
 TrackCanvas::~TrackCanvas()
@@ -163,7 +163,7 @@ int TrackCanvas::drag_stop_event()
 
 int TrackCanvas::drag_motion_event()
 {
-	return gui->drag_motion();
+	return gui->drag_motion(-1);
 }
 
 int TrackCanvas::drag_motion(Track **over_track,
@@ -249,6 +249,7 @@ int TrackCanvas::drag_stop(int *redraw)
 	int cursor_x = get_relative_cursor_x();
 	int cursor_y = get_relative_cursor_y();
 
+// do nothing if not over this pane
 	if(get_cursor_over_window() &&
 		cursor_x >= 0 && 
 		cursor_y >= 0 && 
@@ -407,11 +408,24 @@ int TrackCanvas::drag_stop(int *redraw)
 			case DRAG_ASSET:
 				if(mwindow->session->track_highlighted)
 				{
+                    double position_f = 0;
+					if(mwindow->session->free_drag)
+					{
+						position_f = (double)(cursor_x - 
+                            mwindow->session->drag_diff_x + 
+							mwindow->edl->local_session->view_start[pane->number]) *
+							mwindow->edl->local_session->zoom_sample /
+							mwindow->edl->session->sample_rate;
+                        if(position_f < 0) position_f = 0;
+					}
+					else
+                    {
+					    int64_t position = mwindow->session->edit_highlighted ?
+						    mwindow->session->edit_highlighted->startproject :
+						    mwindow->session->track_highlighted->edits->length();
+					    double position_f = mwindow->session->track_highlighted->from_units(position);
+                    }
                     mwindow->session->current_operation = NO_OPERATION;
-					int64_t position = mwindow->session->edit_highlighted ?
-						mwindow->session->edit_highlighted->startproject :
-						mwindow->session->track_highlighted->edits->length();
-					double position_f = mwindow->session->track_highlighted->from_units(position);
 					Track *track = mwindow->session->track_highlighted;
 					mwindow->paste_assets(position_f, track);
 					result = 1;    // need to be one no matter what, since we have track highlited so we have to cleanup....
@@ -428,16 +442,18 @@ int TrackCanvas::drag_stop(int *redraw)
 						double position_f = 0;
 						if(mwindow->session->free_drag)
 						{
-                            int64_t x_diff = cursor_x - mwindow->session->drag_origin_x;
-                            position_f = mwindow->session->drag_start +
-                                (double)x_diff *
-						        mwindow->edl->local_session->zoom_sample /
-						        mwindow->edl->session->sample_rate;
-                        
-// 							position_f = (double)(cursor_x + 
-// 								mwindow->edl->local_session->view_start[pane->number]) *
-// 								mwindow->edl->local_session->zoom_sample /
-// 								mwindow->edl->session->sample_rate;
+//                             int64_t x_diff = cursor_x - mwindow->session->drag_origin_x;
+//                             position_f = mwindow->session->drag_start +
+//                                 (double)x_diff *
+// 						        mwindow->edl->local_session->zoom_sample /
+// 						        mwindow->edl->session->sample_rate;
+
+							position_f = (double)(cursor_x - 
+                                mwindow->session->drag_diff_x + 
+								mwindow->edl->local_session->view_start[pane->number]) *
+								mwindow->edl->local_session->zoom_sample /
+								mwindow->edl->session->sample_rate;
+                            if(position_f < 0) position_f = 0;
 						}
 						else
 						{
@@ -518,9 +534,9 @@ int TrackCanvas::cursor_leave_event()
 // Because drag motion calls get_cursor_over_window we can be sure that
 // all highlights get deleted now.
 // This ended up blocking keyboard input from the drag operations.
-	if(timebar_position >= 0)
+	if(mwindow->session->timebar_position >= 0)
 	{
-		timebar_position = -1;
+		mwindow->session->timebar_position = -1;
 		if(pane->timebar) pane->timebar->update(1);
 	}
 	
@@ -904,8 +920,16 @@ void TrackCanvas::draw_paste_destination()
 	int64_t x;
 	double position;
 
+// do nothing if not over this pane
+	if(!(get_cursor_over_window() &&
+		cursor_x >= 0 && 
+		cursor_y >= 0 && 
+		cursor_x < get_w() && 
+		cursor_y < get_h())) return;
+
 //if(pane->number == BOTTOM_RIGHT_PANE)
-//printf("TrackCanvas::draw_paste_destination %d %p\n", __LINE__, mwindow->session->track_highlighted);
+// printf("TrackCanvas::draw_paste_destination %d current_operation=%d free_drag=%d\n", 
+// __LINE__, mwindow->session->current_operation, mwindow->session->free_drag);
 
 	if((mwindow->session->current_operation == DRAG_ASSET &&
 			(mwindow->session->drag_assets->total ||
@@ -936,20 +960,24 @@ void TrackCanvas::draw_paste_destination()
 // Get source width in pixels
 				w = 0;
 
-// Use change in cursor position
 				if(mwindow->session->free_drag)
 				{
-                    int64_t x_diff = cursor_x - mwindow->session->drag_origin_x;
-                    position = mwindow->session->drag_start +
-                        (double)x_diff *
+//                    int64_t x_diff = cursor_x - mwindow->session->drag_origin_x;
+//                     position = mwindow->session->drag_start +
+//                         (double)x_diff *
+// 					    mwindow->edl->local_session->zoom_sample /
+// 					    mwindow->edl->session->sample_rate;
+
+					position = (double)(cursor_x - 
+                        mwindow->session->drag_diff_x +
+						mwindow->edl->local_session->view_start[pane->number]) *
 						mwindow->edl->local_session->zoom_sample /
 						mwindow->edl->session->sample_rate;
-
-// 					position = (double)(cursor_x + 
-// 						mwindow->edl->local_session->view_start[pane->number]) *
-// 						mwindow->edl->local_session->zoom_sample /
-// 						mwindow->edl->session->sample_rate;
+                    if(position < 0) position = 0;
                     position = mwindow->edl->align_to_frame(position, 0);
+                    mwindow->session->timebar_position = position;
+// printf("TrackCanvas::draw_paste_destination %d position=%f\n", 
+// __LINE__, position);
 				}
 				else
 // Use start of highlighted edit
@@ -957,12 +985,14 @@ void TrackCanvas::draw_paste_destination()
 				{
 					position = mwindow->session->track_highlighted->from_units(
 						mwindow->session->edit_highlighted->startproject);
+                    mwindow->session->timebar_position = position;
 				}
 				else
 // Use end of highlighted track, disregarding effects
 				{
 					position = mwindow->session->track_highlighted->from_units(
 						mwindow->session->track_highlighted->edits->length());
+                    mwindow->session->timebar_position = position;
 				}
 
 // Get the x coordinate
@@ -1401,24 +1431,14 @@ void TrackCanvas::draw_highlighting()
 		case DRAG_ASSET:
 			if(session->track_highlighted)
 			{
-//				track_dimensions(session->track_highlighted, x, y, w, h);
-
-//				if(MWindowGUI::visible(y, y + h, 0, get_h()))
-//				{
-					draw_paste_destination();
-//				}
+				draw_paste_destination();
 			}
 			break;
 
 		case DRAG_EDIT:
 			if(session->track_highlighted)
 			{
-//				track_dimensions(session->track_highlighted, x, y, w, h);
-//
-//				if(MWindowGUI::visible(y, y + h, 0, get_h()))
-//				{
-					draw_paste_destination();
-//				}
+				draw_paste_destination();
 			}
 			break;
 
@@ -3706,7 +3726,7 @@ void TrackCanvas::update_drag_handle()
 		gui->mainclock->update(new_position);
 		
 		
-		timebar_position = new_position;
+		mwindow->session->timebar_position = new_position;
 		gui->update_timebar(0);
 // Que the CWindow.  Doesn't do anything if selectionstart and selection end 
 // aren't changed.
@@ -4215,7 +4235,8 @@ int TrackCanvas::cursor_motion_event()
 	// Don't que the CWindow
 				}
 
-				timebar_position = mwindow->edl->local_session->get_selectionend(1);
+				mwindow->session->timebar_position = 
+                    mwindow->edl->local_session->get_selectionend(1);
 
 				gui->hide_cursor(0);
 				gui->draw_cursor(1);
@@ -4243,8 +4264,7 @@ int TrackCanvas::cursor_motion_event()
 				update_clock = 1;
 
 // set all timebars
-				for(int i = 0; i < TOTAL_PANES; i++)
-					if(gui->pane[i]) gui->pane[i]->canvas->timebar_position = position;
+				mwindow->session->timebar_position = position;
 
 //printf("TrackCanvas::cursor_motion_event %d position=%f \n", __LINE__, position);
 //printf("TrackCanvas::cursor_motion_event %d %d %p %p\n", __LINE__, pane->number, pane, pane->timebar);
@@ -4893,12 +4913,14 @@ int TrackCanvas::do_edits(int cursor_x,
 					if(mwindow->edl->session->editing_mode == EDITING_ARROW ||
                         ctrl_down())
 					{
+// Start dragging an edit
 // Need to create drag window
 						mwindow->session->current_operation = DRAG_EDIT;
 						mwindow->session->drag_edit = edit;
 						mwindow->session->drag_origin_x = cursor_x;
 						mwindow->session->drag_origin_y = cursor_y;
                         mwindow->session->drag_start = edit->track->from_units(edit->startproject);
+                        mwindow->session->drag_diff_x = cursor_x - edit_x;
 //printf("TrackCanvas::do_edits %d\n", __LINE__);
 
 // Drag only one edit if ctrl is initially down

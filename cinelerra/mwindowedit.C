@@ -416,7 +416,7 @@ void MWindow::set_automation_mode(int mode)
 
 	restart_brender();
 	update_plugin_guis();
-	gui->draw_overlays(1);
+	gui->draw_overlays(1, 1);
 	sync_parameters(CHANGE_PARAMS);
 	gui->update_patchbay();
 	cwindow->update(1, 0, 0);
@@ -432,7 +432,7 @@ void MWindow::clear_automation()
 
 	restart_brender();
 	update_plugin_guis();
-	gui->draw_overlays(1);
+	gui->draw_overlays(1, 1);
 	sync_parameters(CHANGE_PARAMS);
 	gui->update_patchbay();
 	cwindow->update(1, 0, 0);
@@ -744,7 +744,7 @@ int MWindow::cut_automation()
 
 	restart_brender();
 	update_plugin_guis();
-	gui->draw_overlays(1);
+	gui->draw_overlays(1, 1);
 	sync_parameters(CHANGE_PARAMS);
 	gui->update_patchbay();
 	cwindow->update(1, 0, 0);
@@ -1636,7 +1636,7 @@ int MWindow::paste_automation()
 
 		restart_brender();
 		update_plugin_guis();
-		gui->draw_overlays(1);
+		gui->draw_overlays(1, 1);
 		sync_parameters(CHANGE_PARAMS);
 		gui->update_patchbay();
 		cwindow->update(1, 0, 0);
@@ -1668,7 +1668,7 @@ int MWindow::paste_default_keyframes()
 
 		restart_brender();
 		update_plugin_guis();
-		gui->draw_overlays(1);
+		gui->draw_overlays(1, 1);
 		sync_parameters(CHANGE_PARAMS);
 		gui->update_patchbay();
 		cwindow->update(1, 0, 0);
@@ -1773,7 +1773,7 @@ void MWindow::paste_automation(double position,
 
 		restart_brender();
 		if(autos->overlay_type == PLUGIN_KEYFRAMES) update_plugin_guis();
-		gui->draw_overlays(1);
+		gui->draw_overlays(1, 1);
 		sync_parameters(CHANGE_PARAMS);
 		gui->update_patchbay();
 		cwindow->update(1, 0, 0);

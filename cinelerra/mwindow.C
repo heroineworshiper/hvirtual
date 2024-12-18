@@ -1057,7 +1057,7 @@ void MWindow::set_brender_range()
 	}
 
 	restart_brender();
-	gui->draw_overlays(1);
+	gui->draw_overlays(1, 1);
 }
 
 // stop the progress box created while building tables of contents
@@ -2111,7 +2111,7 @@ void MWindow::toggle_loop_playback()
 	set_loop_boundaries();
 	save_backup();
 
-	gui->draw_overlays(1);
+	gui->draw_overlays(1, 1);
 	sync_parameters(CHANGE_PARAMS);
 }
 

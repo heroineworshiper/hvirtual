@@ -71,7 +71,7 @@ MainSession::MainSession(MWindow *mwindow)
 	vwindow_fullscreen = 0;
 	actual_frame_rate = 0;
 	record_scope = 0;
-
+    timebar_position = -1;
 }
 
 MainSession::~MainSession()
@@ -120,7 +120,6 @@ void MainSession::reset()
 	use_hist_parade = 1;
 	use_wave_parade = 1;
     edit_info_format = TIME_HMS;
-
 
     default_window_positions();
 }

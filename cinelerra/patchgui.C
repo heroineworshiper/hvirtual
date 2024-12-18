@@ -640,7 +640,7 @@ int MutePatch::button_press_event()
 
 		if(mwindow->edl->session->auto_conf->autos[AUTOMATION_MUTE])
 		{
-			mwindow->gui->draw_overlays(1);
+			mwindow->gui->draw_overlays(1, 1);
 		}
 		return 1;
 	}
@@ -753,7 +753,7 @@ int TitlePatch::handle_event()
 	mwindow->undo->update_undo_before(_("track title"), this);
 	strcpy(patch->track->title, get_text());
 	mwindow->update_plugin_titles();
-	mwindow->gui->draw_overlays(1);
+	mwindow->gui->draw_overlays(1, 1);
 	mwindow->undo->update_undo_after(_("track title"), LOAD_PATCHES);
 	return 1;
 }

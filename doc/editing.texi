@@ -454,24 +454,31 @@ edit boundary.
 
 You can also drag multiple files from the resource window.  Either draw
 a box around the files, use SHIFT, or use CTRL when selecting files. 
-When you drop the files in the timeline, they are concatenated.  The
-behavior of SHIFT and CTRL changes depending on if the resources are in
-text or icons.
+When you drop the files in the timeline, they are concatenated.
+
+@b{SHIFT-clicking} on media files extends the number of highlighted
+selections.  @b{CTRL-clicking} on media files selects additional files
+one at a time.
+
+@ignore
+The behavior of SHIFT and CTRL changes depending on if the resources are
+in text or icons.
+
 
 To display the resources as text or icons, right click inside the media
 list.  Select either @b{display icons} or @b{display text} to
 change the list format.
 
-When displaying text in the resource window @b{SHIFT-clicking} on
-media files extends the number of highlighted selections. 
-@b{CTRL-clicking} on media files in text mode selects additional
-files one at a time.
+When displaying text in the resource window 
 
 When displaying icons in the resource window @b{SHIFT-clicking} or
 @b{CTRL-clicking} selects media files one at a time.
 
 In addition to dragging media files, if you create clips and open the
 @b{clip} folder you can drag clips on the timeline.
+
+@end ignore
+
 
 @node DRAGGING EDITS
 @section DRAGGING EDITS
@@ -492,21 +499,37 @@ else.
 
 @subsection FREE DRAGGING
 
-Hold CTRL while dragging to enter free dragging mode.  In this mode, the
-destination of the edit is any arbitrary position instead of a boundary
-between 2 edits.   Free dragging is useful for moving a lone edit on a
-silent track a few frames.  It can reposition an edit after the end of a
-track without pasting silence.
+Hold CTRL while dragging to enter free dragging mode.  Free dragging
+works when moving existing edits in the timeline or when dragging an
+asset from the resource window to the timeline.  It's not currently
+implemented for dragging effects.
 
 Free dragging can be entered in I beam @image{ibeam} or arrow
 @image{arrow} mode by holding CTRL 1st, then pressing the button.
 
+In this mode, the destination of the edit is any arbitrary position
+instead of a boundary between 2 edits.   Free dragging is most useful
+for moving a lone edit on a silent track a few frames.  It can
+reposition an edit after the end of a track without pasting silence.
+
+
 @subsection INSERT & OVERWRITE WHILE FREE DRAGGING
+
+The behavior of free dragging is different when dragging to a different
+track & dragging to the same track.  When dragging to a different track,
+there is an option to insert or overwrite the destination.
 
 Free dragging with the left button causes an insert at the destination. 
 Free dragging with the right button causes an overwrite at the
 destination.  The destination edits are not shifted right in an
 overwrite.
+
+When free dragging to the same track, the only behavior is a shift of
+the source edit left or right.  When shifting left, the material to the
+left is cleared.  When shifting right, silence is pasted to the left. 
+The edit on the left can be extended right by middle mouse button
+dragging the edit's right boundary.  All the edits after the edit being
+dragged follow the drag movement.
 
 
 

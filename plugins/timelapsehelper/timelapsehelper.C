@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2020 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2020-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +31,8 @@
 #include "guicast.h"
 #include "keyframe.h"
 #include "language.h"
+#include "mwindow.h"
+#include "mwindowgui.h"
 #include "transportque.inc"
 #include "pluginvclient.h"
 #include "theme.h"
@@ -156,13 +157,14 @@ void TimelapseHelperConfig::interpolate(TimelapseHelperConfig &prev,
 
 
 
-
+#define TEXT _("Number of frames per block:")
+#define W BC_Title::calculate_w(MWindow::instance->gui, TEXT) + MWindow::theme->window_border * 2
 
 TimelapseHelperWindow::TimelapseHelperWindow(TimelapseHelper *plugin)
  : PluginClientWindow(plugin, 
-	DP(230), 
+	W, 
 	DP(160), 
-	DP(230), 
+	W, 
 	DP(160), 
 	0)
 {
@@ -175,17 +177,18 @@ TimelapseHelperWindow::~TimelapseHelperWindow()
 
 void TimelapseHelperWindow::create_objects()
 {
-    int margin = client->get_theme()->widget_border;
+    int margin = client->get_theme()->window_border;
+    int margin2 = client->get_theme()->widget_border;
 	int x = margin, y = margin;
 
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Number of frames per block:")));
-	y += title->get_h() + margin;
+	y += title->get_h() + margin2;
 	size = new TimelapseHelperSize(plugin, 
 		this, 
 		x, 
 		y,
-        get_w() - x - margin);
+        get_w() - x - margin - BC_Tumbler::calculate_w());
     size->create_objects();
 	show_window();
 }

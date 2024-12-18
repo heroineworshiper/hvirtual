@@ -3485,7 +3485,7 @@ int CWindowCanvas::cursor_motion_event()
 	
 	
 		mwindow->gui->lock_window("CWindowCanvas::cursor_motion_event 1");
-		mwindow->gui->draw_overlays(1);
+		mwindow->gui->draw_overlays(1, 1);
 		mwindow->gui->unlock_window();
 		
 		gui->lock_window("CWindowCanvas::cursor_motion_event 1");
@@ -3578,7 +3578,7 @@ int CWindowCanvas::button_press_event()
 	
 	
 		mwindow->gui->lock_window("CWindowCanvas::button_press_event 1");
-		mwindow->gui->draw_overlays(1);
+		mwindow->gui->draw_overlays(1, 1);
 		mwindow->gui->unlock_window();
 		gui->update_tool();
 		

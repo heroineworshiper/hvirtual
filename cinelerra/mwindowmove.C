@@ -233,7 +233,7 @@ void MWindow::fit_autos()
 	gui->zoombar->update();
 
 // Draw
-	gui->draw_overlays(1);
+	gui->draw_overlays(1, 1);
 }
 
 
@@ -247,7 +247,7 @@ void MWindow::expand_autos()
 	edl->local_session->automation_min = center - range;
 	edl->local_session->automation_max = center + range;
 	gui->zoombar->update_autozoom();
-	gui->draw_overlays(1);
+	gui->draw_overlays(1, 1);
 }
 
 void MWindow::shrink_autos()
@@ -260,7 +260,7 @@ void MWindow::shrink_autos()
 	edl->local_session->automation_min = center - new_range;
 	edl->local_session->automation_max = center + new_range;
 	gui->zoombar->update_autozoom();
-	gui->draw_overlays(1);
+	gui->draw_overlays(1, 1);
 }
 
 
@@ -269,7 +269,7 @@ void MWindow::zoom_autos(float min, float max)
 	edl->local_session->automation_min = min;
 	edl->local_session->automation_max = max;
 	gui->zoombar->update_autozoom();
-	gui->draw_overlays(1);
+	gui->draw_overlays(1, 1);
 }
 
 

@@ -397,7 +397,7 @@ int PatchBay::cursor_motion_event()
 
 								if(mwindow->edl->session->auto_conf->autos[AUTOMATION_MUTE])
 								{
-									gui->draw_overlays(1);
+									gui->draw_overlays(1, 1);
 								}
 								update_gui = 1;
 							}

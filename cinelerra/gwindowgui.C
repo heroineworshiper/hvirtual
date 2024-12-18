@@ -414,7 +414,7 @@ int GWindowToggle::handle_event()
 			1, 
 			0,
 			0);
-		mwindow->gui->draw_overlays(1);
+		mwindow->gui->draw_overlays(1, 1);
 	}
 	else
 	{
@@ -433,7 +433,7 @@ int GWindowToggle::handle_event()
 
 			case TRANSITIONS:
 			case PLUGIN_AUTOS:
-				mwindow->gui->draw_overlays(1);
+				mwindow->gui->draw_overlays(1, 1);
 				break;
 		}
 	}

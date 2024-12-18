@@ -359,7 +359,7 @@ void KeyFrameThread::apply_preset(const char *title, int is_factory)
 			mwindow->undo->update_undo_after(_("apply preset"), LOAD_AUTOMATION); 
 
 			mwindow->update_plugin_guis(0);
-			mwindow->gui->draw_overlays(1);
+			mwindow->gui->draw_overlays(1, 1);
 			mwindow->sync_parameters(CHANGE_PARAMS);
 			mwindow->gui->unlock_window();
 		}

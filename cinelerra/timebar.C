@@ -428,6 +428,8 @@ void TimeBar::update(int flush)
  	EDL *edl = get_edl();
 	int64_t pixel = -1;
 
+// printf("TimeBar::update %d highlighted=%d current_operation=%d\n", 
+// __LINE__, highlighted, current_operation);
 // Draw highlight position
 	if(edl &&
 		(highlighted || current_operation == TIMEBAR_DRAG) &&

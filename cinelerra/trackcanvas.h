@@ -372,7 +372,7 @@ public:
 // Don't stop hourglass if it was never started before the operation.
 	int hourglass_enabled;
 // position used by timebar, when the timebar needs to draw a highlight
-	double timebar_position;
+//	double timebar_position;
 
 // Temporary for picon drawing
 	VFrame *temp_picon;

@@ -559,14 +559,14 @@ void MWindowGUI::update_title(char *path)
 	flush();
 }
 
-void MWindowGUI::draw_overlays(int flash_it)
+void MWindowGUI::draw_overlays(int flash_it, int flush_it)
 {
 	for(int i = 0; i < TOTAL_PANES; i++)
 	{
 		if(pane[i])
 		{
 			pane[i]->canvas->draw_overlays();
-			if(flash_it) pane[i]->canvas->flash();
+			if(flash_it) pane[i]->canvas->flash(flush_it);
 		}
 	}
 }
@@ -575,6 +575,8 @@ void MWindowGUI::update_timebar(int flush_it)
 {
 	for(int i = 0; i < TOTAL_PANES; i++)
 	{
+//printf("MWindowGUI::update_timebar %d i=%d pane=%p timebar=%p\n", 
+//__LINE__, i, pane[i], pane[i] ? pane[i]->timebar : 0);
 		if(pane[i] && pane[i]->timebar)
 		{
 			pane[i]->timebar->update(flush_it);
@@ -878,7 +880,7 @@ int MWindowGUI::show_message(const char *message, int color)
 
 
 // Drag motion called from other window
-int MWindowGUI::drag_motion()
+int MWindowGUI::drag_motion(int ctrl_down)
 {
 	if(get_hidden()) return 0;
 
@@ -894,13 +896,17 @@ int MWindowGUI::drag_motion()
 	}
 
 
-// there's no point in drawing highlights has until drag operation has been set
+// there's no point in drawing highlights until drag operation has been set
 	if (!mwindow->session->current_operation)
 		return 0;
 
 	if(mwindow->session->free_drag) redraw = 1;
 
-	if(ctrl_down()) 
+    if(ctrl_down < 0) ctrl_down = this->ctrl_down();
+
+// printf("MWindowGUI::drag_motion %d free_drag=%d\n", 
+// __LINE__, mwindow->session->free_drag);
+	if(ctrl_down) 
 	{
 		redraw = 1;
 		mwindow->session->free_drag = 1;
@@ -946,7 +952,7 @@ int MWindowGUI::drag_motion()
 		redraw = 1;
 	}
 
-// printf("drag_motion %d %d over_track=%p over_edit=%p\n", 
+// printf("MWindowGUI::drag_motion %d: redraw=%d over_track=%p over_edit=%p\n", 
 // __LINE__,
 // redraw,
 // over_track,
@@ -954,7 +960,12 @@ int MWindowGUI::drag_motion()
 	if(redraw)
 	{
 		lock_window("MWindowGUI::drag_motion");
-		draw_overlays(1);
+// calculates the drag destination in here
+		draw_overlays(1, 0);
+// draw the destination time in the clock
+        mainclock->update(mwindow->session->timebar_position);
+// draw the drag destination in the time bar
+        update_timebar(1);
 		unlock_window();
 	}
 	return 0;
@@ -970,6 +981,13 @@ int MWindowGUI::drag_stop()
 		if(pane[i]) result |= pane[i]->canvas->drag_stop(
 			&redraw);
 	}
+
+// cancel anything which wasn't trapped by a pane
+    if(!result && 
+        mwindow->session->current_operation == DRAG_EDIT)
+    {
+        result = 1;
+    }
 
 // since we don't have subwindows we have to terminate any drag operation
 	if(result)

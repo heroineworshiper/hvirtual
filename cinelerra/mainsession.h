@@ -97,13 +97,17 @@ public:
 	int drag_handle;
 // Current position of drag cursor
 	double drag_position;
-// Starting position of drag cursor
+// Starting position of object being dragged
 	double drag_start;
+// difference in pixels between cursor & object start
+    int drag_diff_x;
 // Cursor position when button was pressed
 	int drag_origin_x, drag_origin_y;
 // Value of keyframe when button was pressed
 	float drag_start_percentage;
 	long drag_start_position;
+// position to draw dashed cursor on the timebar
+    double timebar_position;
 
 // Amount of data rendered, for drawing status in timebar
 	double brender_end;

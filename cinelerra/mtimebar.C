@@ -789,32 +789,37 @@ double MTimeBar::test_highlight()
 // Don't crash during initialization
 	if(pane->canvas)
 	{
+//printf("MTimeBar::test_highlight %d current_operation=%d timebar_position=%f\n", 
+//__LINE__, mwindow->session->current_operation, mwindow->session->timebar_position);
 		if(mwindow->session->current_operation == NO_OPERATION)
 		{
-			if(pane->canvas->is_event_win() &&
-				pane->canvas->cursor_inside())
-			{
-				int cursor_x = pane->canvas->get_cursor_x();
-				double position = (double)cursor_x * 
-					(double)mwindow->edl->local_session->zoom_sample / 
-					(double)mwindow->edl->session->sample_rate + 
-					(double)mwindow->edl->local_session->view_start[pane->number] * 
-					(double)mwindow->edl->local_session->zoom_sample / 
-					(double)mwindow->edl->session->sample_rate;
-				pane->canvas->timebar_position = mwindow->edl->align_to_frame(position, 0);
-			}
-			
-//printf("MTimeBar::test_highlight %d %d %f\n", __LINE__, pane->canvas->cursor_inside(), pane->canvas->timebar_position);
-			return pane->canvas->timebar_position;
+// 			if(pane->canvas->is_event_win() &&
+// 				pane->canvas->cursor_inside())
+// 			{
+// 				int cursor_x = pane->canvas->get_cursor_x();
+// 				double position = (double)cursor_x * 
+// 					(double)mwindow->edl->local_session->zoom_sample / 
+// 					(double)mwindow->edl->session->sample_rate + 
+// 					(double)mwindow->edl->local_session->view_start[pane->number] * 
+// 					(double)mwindow->edl->local_session->zoom_sample / 
+// 					(double)mwindow->edl->session->sample_rate;
+// 				pane->canvas->timebar_position = mwindow->edl->align_to_frame(position, 0);
+// printf("MTimeBar::test_highlight %d cursor_inside=%d cursor_x=%d timebar_position=%f\n", 
+// __LINE__, pane->canvas->cursor_inside(), cursor_x, pane->canvas->timebar_position);
+// 			}
+
+// calculated inside TrackCanvas
+			return mwindow->session->timebar_position;
 		}
 		else
 		if(mwindow->session->current_operation == SELECT_REGION ||
-			mwindow->session->current_operation == DRAG_EDITHANDLE2)
+			mwindow->session->current_operation == DRAG_EDITHANDLE2 ||
+            mwindow->session->current_operation == DRAG_EDIT)
 		{
-//printf("MTimeBar::test_highlight %d %f\n", __LINE__, mwindow->gui->canvas->timebar_position);
-			return pane->canvas->timebar_position;
+//printf("MTimeBar::test_highlight %d %f\n", __LINE__, mwindow->session->timebar_position);
+			return mwindow->session->timebar_position;
 		}
-		
+
 		return -1;
 	}
 	else

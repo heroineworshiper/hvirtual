@@ -85,7 +85,7 @@ public:
 		int patchbay, 
 		int clock,
 		int buttonbar);
-	void draw_overlays(int flash_it);
+	void draw_overlays(int flash_it, int flush_it = 1);
 	void draw_indexes(Indexable *indexable);
 	void update_title(char *path);
 	void update_timebar(int flush_it);
@@ -121,7 +121,7 @@ public:
 	void show_error(char *message, int color = BLACK);
 	int repeat_event(int64_t duration);
 // Entry point for drag events in all windows
-	int drag_motion();
+	int drag_motion(int ctrl_down = -1);
 	int drag_stop();
 	void default_positions();
 	int total_panes();

@@ -1399,8 +1399,15 @@ int AWindowAssets::drag_start_event()
 			mwindow->session->current_operation = DRAG_ASSET;
 			collect_assets = 1;
 		}
-		
-		
+
+        if(mwindow->session->current_operation == DRAG_ASSET ||
+            mwindow->session->current_operation == DRAG_AEFFECT ||
+            mwindow->session->current_operation == DRAG_VEFFECT)
+        {
+            mwindow->session->free_drag = ctrl_down();
+            mwindow->session->drag_diff_x = 0;
+        }
+
 		if(collect_pluginservers)
 		{
 			int i = 0;
@@ -1430,7 +1437,7 @@ int AWindowAssets::drag_motion_event()
 	unlock_window();
 
 	mwindow->gui->lock_window("AWindowAssets::drag_motion_event");
-	mwindow->gui->drag_motion();
+	mwindow->gui->drag_motion(ctrl_down());
 	mwindow->gui->unlock_window();
 
 	for(int i = 0; i < mwindow->vwindows.size(); i++)

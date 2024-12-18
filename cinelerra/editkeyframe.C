@@ -120,7 +120,7 @@ void EditKeyframeThread::apply(EditKeyframeDialog *gui,
         mwindow->undo->update_undo_after(_("edit keyframe"), LOAD_AUTOMATION);
 
 	    mwindow->restart_brender();
-        mwindow->gui->draw_overlays(1);
+        mwindow->gui->draw_overlays(1, 1);
         mwindow->sync_parameters(CHANGE_PARAMS);
     }
     else

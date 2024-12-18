@@ -1239,7 +1239,7 @@ int EnableBRender::handle_event()
 	set_checked(get_checked() ^ 1);
 	MWindow::preferences->use_brender = get_checked();
 	mwindow->gui->lock_window("EnableBRender::handle_event 1");
-	mwindow->gui->draw_overlays(1);
+	mwindow->gui->draw_overlays(1, 1);
     mwindow->gui->update(0, 0, 1, 0, 0, 1, 0);
 	mwindow->gui->unlock_window();
     mwindow->init_brender();
