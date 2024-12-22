@@ -331,11 +331,18 @@ void Edits::resample(double old_rate, double new_rate)
 
 
 
-int Edits::optimize()
+int Edits::optimize(int silence_only)
 {
 	int result = 1;
 	Edit *current;
-
+    if(silence_only < 0)
+    {
+#ifdef ENABLE_RAZOR
+        silence_only = 1;
+#else
+        silence_only = 0;
+#endif
+    }
 
 //printf("Edits::optimize %d\n", __LINE__);
 // Sort edits by starting point
@@ -422,13 +429,7 @@ int Edits::optimize()
 // next_edit->nested_edl);
 
 
-            result = join(current, next_edit,
-#ifdef ENABLE_RAZOR
-                1 // silence only
-#else
-                0 // silence only
-#endif
-            );
+            result = join(current, next_edit, silence_only);
 
     		current = current->next;
 		}
@@ -465,7 +466,7 @@ int Edits::join(Edit *prev, Edit *next, int silence_only)
     		prev->nested_edl == next->nested_edl)
         ))
 	{
-//printf("Edits::optimize %d\n", __LINE__);
+//printf("Edits::join %d\n", __LINE__);
         prev->length += next->length;
         remove(next);
         return 1;

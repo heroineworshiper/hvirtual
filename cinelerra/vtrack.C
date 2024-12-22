@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,12 +59,16 @@ VTrack::~VTrack()
 {
 }
 
+Edits* VTrack::new_edits()
+{
+    return new VEdits(edl, this);
+}
+
 void VTrack::create_objects()
 {
 	Track::create_objects();
 	automation = new VAutomation(edl, this);
 	automation->create_objects();
-	edits = new VEdits(edl, this);
 }
 
 // Used by PlaybackEngine

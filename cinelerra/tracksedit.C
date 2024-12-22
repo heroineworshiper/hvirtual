@@ -639,7 +639,8 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
 	int edit_plugins, 
 	int edit_autos)
 {
-//printf("Tracks::move_edits %d drag_button=%d\n", __LINE__, MWindow::session->drag_button);
+    int overwrite_mode = (MWindow::session->drag_button != LEFT_BUTTON);
+//printf("Tracks::move_edits %d overwrite_mode=%d\n", __LINE__, overwrite_mode);
 	for(Track *dest_track = track; dest_track; dest_track = dest_track->next)
 	{
 		if(dest_track->record)
@@ -687,45 +688,107 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
 //printf("Tracks::move_edits 2 %s %s %d\n", source_track->title, dest_track->title, source_edit->length);
 			if(source_edit)
 			{
-// convert the destination into the media units
- 				int64_t position_i = source_track->to_units(position, 0);
+// align the positions to frames
+                double aligned_position = edl->align_to_frame(position, 0);
+
+// convert the positions into media units
+ 				int64_t position_i = source_track->to_units(aligned_position, 0);
  				int64_t source_length = source_edit->length;
 
-// handle free dragging into the same track
+// handle free dragging into the same track & with insert mode
                 if(MWindow::session->free_drag &&
-                    source_track == dest_track)
+                    source_track == dest_track &&
+                    !overwrite_mode)
                 {
-                    double edit_startproject = source_track->from_units(source_edit->startproject);
-                    double drag_position = edl->align_to_frame(position, 0);
-// shift everything right, adding silence on the left
+                    int64_t length = 0;
+                    int64_t src_start;
+                    int64_t dst_start;
+                    int is_before = 0;
+// move stuff from the right to the left of the source edit
                     if(position_i > source_edit->startproject)
                     {
-                        dest_track->paste_silence(
-                            edit_startproject,
-                            drag_position,
-                            edit_plugins,
-                            edit_autos);
+                        length = position_i - source_edit->startproject;
+                        src_start = source_edit->startproject + source_edit->length;
+                        dst_start = source_edit->startproject;
+                        is_before = 1;
                     }
                     else
-// shift everything left, overwriting the left
+// move stuff from the left to the right of the source edit
                     if(position_i < source_edit->startproject)
                     {
-                        dest_track->clear(drag_position, 
-	                        edit_startproject, 
-	                        1, // edit_edits
-	                        0, // edit_labels
-	                        edit_plugins,
-	                        edit_autos,
-	                        1, // convert_units
-	                        0 /* trim_edits */);
+                        length = source_edit->startproject - position_i;
+                        src_start = source_edit->startproject - length;
+                        dst_start = position_i + source_edit->length;
                     }
+
 // do nothing if we didn't move
+                    if(length > 0)
+                    {
+                        if(edit_autos)
+                        {
+                            FileXML temp;
+                            AutoConf temp_autoconf;
+                            temp_autoconf.set_all(1);
+// cut automation from source position
+                            source_track->automation->copy(src_start, 
+    					        src_start + length, 
+    					        &temp, 
+    					        0,
+    					        1);
+    				        temp.terminate_string();
+    				        temp.rewind();
+				            source_track->automation->clear(src_start,
+					            src_start + length, 
+					            &temp_autoconf,
+					            1);
+
+// paste automation in dest position
+                            dest_track->automation->paste_silence(dst_start, 
+					            dst_start + length);
+// each automation type is pasted separately
+                            while(!temp.read_tag())
+					            dest_track->automation->paste(dst_start, 
+						            length, 
+						            1.0, 
+						            &temp, 
+						            0,
+						            1,
+						            &temp_autoconf);
+                        }
+
+// cut edits from source position
+                        FileXML temp;
+                        source_track->edits->copy(src_start, 
+                            src_start + length, 
+                            &temp, 
+                            0); // output_path
+                        temp.terminate_string();
+    				    temp.rewind();
+                        source_track->edits->clear(src_start, 
+                            src_start + length);
+//                        temp.dump();
+// paste edits in dest position
+                        Edits *source_edits;
+                        source_edits = dest_track->new_edits();
+                        source_edits->load(&temp, 0);
+                        dest_track->edits->insert_edits(source_edits, 
+	                        dst_start,
+	                        length,
+	                        0); // edit_autos
+
+// join newly created edits.  This also joins all the razor tools but
+// it's far simpler than optimizing only the affected range.
+                        dest_track->edits->optimize(0);
+                    }
                 }
                 else
-// Handle constrained dragging or free dragging into a different track
-// Do nothing if we're going into the same track & 
-// within the source edit & 1 edit after the source edit
-                if(!(source_track == dest_track &&
+// Handle constrained dragging, 
+// free dragging into a different track,
+// or all free dragging with overwrite mode.
+// Do nothing if we're constrained dragging into the same track, 
+// within 1 edit after the source edit
+                if(!(!MWindow::session->free_drag &&
+                    source_track == dest_track &&
                     position_i >= source_edit->startproject &&
                         (source_edit->next == 0 ||
                         position_i < source_edit->next->startproject + 
@@ -733,13 +796,11 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
                 {
                     if(edit_autos)
                     {
-    // Copy keyframes
+				        int64_t position_a = position_i;
+// Copy keyframes from source edit
     				    FileXML temp;
     				    AutoConf temp_autoconf;
-    // Source edit changes
-
     				    temp_autoconf.set_all(1);
-
     				    source_track->automation->copy(source_edit->startproject, 
     					    source_edit->startproject + source_length, 
     					    &temp, 
@@ -748,23 +809,31 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
     				    temp.terminate_string();
     				    temp.rewind();
 
-    // delete source keyframes
-    //printf("Tracks::move_edits 2 %d %p\n", result->startproject, result->asset);
-				        source_track->automation->clear(source_edit->startproject,
-					        source_edit->startproject + source_length, 
-					        &temp_autoconf,
-					        1);
-				        int64_t position_a = position_i;
-    // shift destination position if it's later in the source track
-				        if(!MWindow::session->free_drag &&
-                            dest_track == source_track &&
-                            position_a > source_edit->startproject + source_length)
+// delete source keyframes if not free dragging with overwrite
+				        if(!(MWindow::session->free_drag && overwrite_mode))
                         {
-                            position_a -= source_length;
+                            source_track->automation->clear(source_edit->startproject,
+					            source_edit->startproject + source_length, 
+					            &temp_autoconf,
+					            1); // shift_autos
+// shift destination position if it's later in the source track
+				            if(dest_track == source_track &&
+                                position_a > source_edit->startproject + source_length)
+                            {
+                                position_a -= source_length;
+                            }
+                        }
+                        else
+                        {
+// mute source keyframes if free dragging with overwrite
+                            source_track->automation->clear(source_edit->startproject,
+					            source_edit->startproject + source_length, 
+					            &temp_autoconf,
+					            0); // shift_autos
                         }
 
-    // clear destination keyframes if overwriting
-                        if(MWindow::session->drag_button != LEFT_BUTTON &&
+// clear destination keyframes if overwriting
+                        if(overwrite_mode &&
                             dest_track != source_track)
                         {
                             dest_track->automation->clear(position_a,
@@ -773,7 +842,7 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
 					            1);
                         }
 
-    // paste automation
+// paste automation
 				        dest_track->automation->paste_silence(position_a, 
 					        position_a + source_length);
 				        while(!temp.read_tag())
@@ -786,37 +855,46 @@ void Tracks::move_edits(ArrayList<Edit*> *edits,
 						        &temp_autoconf);
                     }
 
-
-
-    // Remove source edit from source track
+// Remove source edit from source track
                     source_track->edits->remove_pointer(source_edit);
-    // shift positions of edits in source track
+
+// shift positions of edits in the source track
                     for(Edit *current = source_edit->next; current; current = current->next)
                     {
-                        current->startproject -= source_edit->length;
+                        current->startproject -= source_length;
                     }
-    // join the neighbors in the source track if they're contiguous
-                    source_track->edits->join(source_edit->previous, 
-                        source_edit->next,
-                        0);
 
-    // shift destination position if it's later in the source track
-                    if(!MWindow::session->free_drag &&
-                        source_track == dest_track &&
-                        position_i > source_edit->startproject + source_length)
-                        position_i -= source_length;
+                    if(!(MWindow::session->free_drag && overwrite_mode))
+                    {
+// join the neighbors in the source track if they're contiguous
+                        source_track->edits->join(source_edit->previous, 
+                            source_edit->next,
+                            0);
 
-printf("Tracks::move_edits %d drag_button=%d\n", 
-__LINE__, MWindow::session->drag_button);
-    // clear the destination if we're overwriting
-                    if(MWindow::session->drag_button != LEFT_BUTTON &&
-                        dest_track != source_track)
+// shift destination position if it's later in the source track
+                        if(source_track == dest_track &&
+                            position_i > source_edit->startproject + source_length)
+                            position_i -= source_length;
+                    }
+                    else
+// replace source edit with silence if free dragging with overwrite
+                    {
+                        int64_t source_start = source_edit->startproject;
+                        source_track->edits->paste_silence(source_start, 
+                            source_start + source_length);
+                    }
+
+// printf("Tracks::move_edits %d drag_button=%d\n", 
+// __LINE__, MWindow::session->drag_button);
+// clear the destination if we're overwriting
+                    if(overwrite_mode /* &&
+                        dest_track != source_track */)
                     {
                         dest_track->edits->clear(position_i,
                             position_i + source_length);
                     }
 
-    // insert the source edit into the destination track
+// insert the source edit into the destination track
                     Edit *dest_edit = dest_track->edits->paste_silence(position_i,
                         position_i + source_length);
                     dest_edit->copy_from(source_edit);

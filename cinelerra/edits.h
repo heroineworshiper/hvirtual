@@ -137,7 +137,7 @@ public:
 		int edit_autos,
 		Edits *trim_edits);
 	void deglitch(int64_t position);
-	virtual int optimize();
+	virtual int optimize(int silence_only = -1);
     int join(Edit *prev, Edit *next, int silence_only);
 
 

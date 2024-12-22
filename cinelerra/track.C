@@ -80,8 +80,14 @@ Track::~Track()
 
 void Track::create_objects()
 {
+	edits = new_edits();
 }
 
+Edits* Track::new_edits()
+{
+    printf("Track::new_edits %d: undefined\n", __LINE__);
+    return 0;
+}
 
 int Track::copy_settings(Track *track)
 {

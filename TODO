@@ -17,6 +17,7 @@ Specify color space as part of recording parameters.
 
 BIG BUGS
 ----------------
+Close edit info dialogs
 Nested EDL index file isn't updated when the nested EDL changes.
 Applies filebox filter to the auto completion in a browse button textbox.
 Nested EDLs with diffe0x8u080880sdrafrent colormodels crash.

@@ -59,8 +59,9 @@ public:
 	Track();
 	virtual ~Track();
 
-	void create_objects();
+	virtual void create_objects();
 	int get_id();
+    virtual Edits* new_edits();
 	virtual int load_defaults(BC_Hash *defaults);
 	int load(FileXML *file, int track_offset);
 	virtual int save_header(FileXML *file) { return 0; };

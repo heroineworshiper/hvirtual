@@ -42,6 +42,7 @@ public:
 	ATrack() { };
 	~ATrack();
 
+    Edits* new_edits();
 	void create_objects();
 	int load_defaults(BC_Hash *defaults);
 	void set_default_title();

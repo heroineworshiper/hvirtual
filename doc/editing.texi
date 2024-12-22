@@ -509,27 +509,39 @@ Free dragging can be entered in I beam @image{ibeam} or arrow
 
 In this mode, the destination of the edit is any arbitrary position
 instead of a boundary between 2 edits.   Free dragging is most useful
-for moving a lone edit on a silent track a few frames.  It can
-reposition an edit after the end of a track without pasting silence.
+for moving a lone edit on a silent track or repositioning a single edit
+without affecting any edits after it.
+
+An asset in the resource window can be free dragged into the timeline by
+1st left click dragging, then pressing CTRL to enter free dragging
+mode.  Pressing CTRL in the resource window before dragging causes it to
+select multiple items.
 
 
 @subsection INSERT & OVERWRITE WHILE FREE DRAGGING
 
-The behavior of free dragging is different when dragging to a different
-track & dragging to the same track.  When dragging to a different track,
-there is an option to insert or overwrite the destination.
+The behavior of free dragging is different when dragging with the left
+button or the right button.
 
-Free dragging with the left button causes an insert at the destination. 
-Free dragging with the right button causes an overwrite at the
-destination.  The destination edits are not shifted right in an
-overwrite.
+Free dragging with the left button causes an insert at the destination &
+shifts the neighbors at the source position left to replace the source
+edit.  Free dragging with the right button overwrites the existing edits
+at the destination & leaves a gap where the source position was.
 
-When free dragging to the same track, the only behavior is a shift of
-the source edit left or right.  When shifting left, the material to the
-left is cleared.  When shifting right, silence is pasted to the left. 
-The edit on the left can be extended right by middle mouse button
-dragging the edit's right boundary.  All the edits after the edit being
-dragged follow the drag movement.
+Only left button dragging is supported when the source is in the
+resource window.  The right button activates a context menu.
+
+@subsection FREE DRAGGING INSIDE A SINGLE TRACK
+
+When free dragging to the same track, the behavior of left button insert
+mode is different because no material is added to the destination track
+or taken out of the source track.  The only behavior is a shift of the
+source edit left or right.  When shifting left, the neighboring material
+on the left is moved to the right.  When shifting right, the neighboring
+material on the right is moved to the left.
+
+Right button overwrite mode in a single track behaves the same as going
+to a different track.
 
 
 

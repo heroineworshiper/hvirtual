@@ -57,6 +57,18 @@ ATrack::~ATrack()
 {
 }
 
+Edits* ATrack::new_edits()
+{
+    return new AEdits(edl, this);
+}
+
+void ATrack::create_objects()
+{
+	Track::create_objects();
+	automation = new AAutomation(edl, this);
+	automation->create_objects();
+}
+
 // Used by PlaybackEngine
 void ATrack::synchronize_params(Track *track)
 {
@@ -74,14 +86,6 @@ int ATrack::copy_settings(Track *track)
 }
 
 
-
-void ATrack::create_objects()
-{
-	Track::create_objects();
-	automation = new AAutomation(edl, this);
-	automation->create_objects();
-	edits = new AEdits(edl, this);
-}
 
 int ATrack::vertical_span(Theme *theme)
 {
