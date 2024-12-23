@@ -53,7 +53,6 @@ EditPopup::EditPopup(MWindow *mwindow, MWindowGUI *gui)
 
 EditPopup::~EditPopup()
 {
-    edit_editors.remove_all_objects();
 }
 
 void EditPopup::create_objects()
@@ -226,30 +225,7 @@ EditInfo::~EditInfo()
 }
 int EditInfo::handle_event()
 {
-    int got_it = 0;
-    if(!popup->edit)
-    {
-        return 0;
-    }
-
-    for(int i = 0; i < popup->edit_editors.size(); i++)
-    {
-        EditInfoThread *thread = popup->edit_editors.get(i);
-        if(!thread->running())
-        {
-            thread->show_edit(popup->edit);
-            got_it = 1;
-            break;
-        }
-    }
-    
-    if(!got_it)
-    {
-//printf("EditInfo::handle_event %d edit=%p\n", __LINE__, popup->edit);
-        EditInfoThread *thread = new EditInfoThread(mwindow);
-        popup->edit_editors.append(thread);
-        thread->show_edit(popup->edit);
-    }
+    mwindow->show_edit_editor(popup->edit);
 	return 1;
 }
 

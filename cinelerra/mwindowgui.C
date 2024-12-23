@@ -1230,108 +1230,104 @@ int MWindowGUI::keypress_event()
 				}
 				break;
 
-// 			case TAB:
-// 			case LEFTTAB:
-// 				int cursor_x = 0;
-// 				int cursor_y = 0;
-// 				for(int i = 0; i < TOTAL_PANES; i++)
-// 				{
-// 					if(pane[i])
-// 					{
-// 						cursor_x = pane[i]->canvas->get_relative_cursor_x();
-// 						cursor_y = pane[i]->canvas->get_relative_cursor_y();
-// 					}
-// 				}
-// 				
-// 
-// 				if(get_keypress() == TAB)
-// 				{
-// // Switch the record button
-// 					for(Track *track = mwindow->edl->tracks->first; track; track = track->next)
-// 					{
-// 						int64_t track_x, track_y, track_w, track_h;
-// 						canvas->track_dimensions(track, track_x, track_y, track_w, track_h);
-// 
-// 						if(cursor_y >= track_y && 
-// 							cursor_y < track_y + track_h)
-// 						{
-// 							if (track->record)
-// 								track->record = 0;
-// 							else
-// 								track->record = 1;
-// 							result = 1; 
-// 							break;
-// 						}
-// 					}
-// 				} 
-// 				else 
-// 				{
-// 					Track *this_track = 0;
-// 					for(Track *track = mwindow->edl->tracks->first; track; track = track->next)
-// 					{
-// 						int64_t track_x, track_y, track_w, track_h;
-// 						canvas->track_dimensions(track, track_x, track_y, track_w, track_h);
-// 
-// 						if(cursor_y >= track_y && 
-// 							cursor_y < track_y + track_h)
-// 						{
-// 							// This is our track
-// 							this_track = track;
-// 							break;
-// 						}
-// 					}
-// 
-// 					int total_selected = mwindow->edl->tracks->total_of(Tracks::RECORD);
-// 
-// 	// nothing previously selected
-// 					if(total_selected == 0)
-// 					{
-// 						mwindow->edl->tracks->select_all(Tracks::RECORD,
-// 							1);
-// 					}
-// 					else
-// 					if(total_selected == 1)
-// 					{
-// 	// this patch was previously the only one on
-// 						if(this_track && this_track->record)
-// 						{
-// 							mwindow->edl->tracks->select_all(Tracks::RECORD,
-// 								1);
-// 						}
-// 	// another patch was previously the only one on
-// 						else
-// 						{
-// 							mwindow->edl->tracks->select_all(Tracks::RECORD,
-// 								0);
-// 							if (this_track) 
-// 								this_track->record = 1;
-// 
-// 						}
-// 					}
-// 					else
-// 					if(total_selected > 1)
-// 					{
-// 						mwindow->edl->tracks->select_all(Tracks::RECORD,
-// 							0);
-// 						if (this_track) 
-// 							this_track->record = 1;
-// 					}
-// 
-// 				}
-// 
-// 				update (0,
-// 						1,
-// 						0,
-// 						0,
-// 						1,
-// 						0,
-// 						1);
-// 				unlock_window();
-// 				mwindow->cwindow->update(0, 1, 1);
-// 				lock_window("TrackCanvas::keypress_event 3");
-// 
-// 				result = 1;
-// 				break;
+			case TAB:
+			case LEFTTAB:
+				int cursor_x = 0;
+				int cursor_y = 0;
+                Track *this_track = 0;
+				for(int i = 0; i < TOTAL_PANES; i++)
+				{
+					if(pane[i])
+					{
+						cursor_x = pane[i]->canvas->get_relative_cursor_x();
+						cursor_y = pane[i]->canvas->get_relative_cursor_y();
+                        if(cursor_y >= 0 && 
+                            cursor_y < pane[i]->canvas->get_h() &&
+                            cursor_x >= 0 &&
+                            cursor_x < pane[i]->canvas->get_w())
+                        {
+// inside the current pane
+// printf("MWindowGUI::keypress_event %d pane=%d\n", 
+// __LINE__, i);
+                            int64_t track_x, track_y, track_w, track_h;
+             	            for(Track *track = mwindow->edl->tracks->first;
+		                        track;
+		                        track = track->next)
+	                        {
+                                pane[i]->canvas->track_dimensions(track, track_x, track_y, track_w, track_h);
+         						if(cursor_y >= track_y && 
+         							cursor_y < track_y + track_h)
+         						{
+                                    this_track = track;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+					}
+				}
+
+
+				if(get_keypress() == TAB && this_track)
+				{
+// Switch the record button
+					if(this_track->record)
+						this_track->record = 0;
+					else
+						this_track->record = 1;
+					result = 1; 
+				} 
+				else
+                if(get_keypress() == LEFTTAB && this_track)
+				{
+					int total_selected = mwindow->edl->tracks->total_of(Tracks::RECORD);
+
+// nothing previously selected
+					if(total_selected == 0)
+					{
+						mwindow->edl->tracks->select_all(Tracks::RECORD,
+							1);
+					}
+					else
+					if(total_selected == 1)
+					{
+// this patch was previously the only one on
+						if(this_track->record)
+						{
+							mwindow->edl->tracks->select_all(Tracks::RECORD,
+								1);
+						}
+// another patch was previously the only one on
+						else
+						{
+							mwindow->edl->tracks->select_all(Tracks::RECORD,
+								0);
+							this_track->record = 1;
+						}
+					}
+					else
+					if(total_selected > 1)
+					{
+						mwindow->edl->tracks->select_all(Tracks::RECORD,
+							0);
+						this_track->record = 1;
+					}
+
+				}
+
+				update (0,
+						1,
+						0,
+						0,
+						1,
+						0,
+						1);
+				unlock_window();
+				mwindow->cwindow->update(0, 1, 1);
+				lock_window("TrackCanvas::keypress_event 3");
+
+ 				result = 1;
+ 				break;
 		}
 
 // since things under cursor have changed...

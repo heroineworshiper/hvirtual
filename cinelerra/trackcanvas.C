@@ -423,10 +423,11 @@ int TrackCanvas::drag_stop(int *redraw)
 					    int64_t position = mwindow->session->edit_highlighted ?
 						    mwindow->session->edit_highlighted->startproject :
 						    mwindow->session->track_highlighted->edits->length();
-					    double position_f = mwindow->session->track_highlighted->from_units(position);
+					    position_f = mwindow->session->track_highlighted->from_units(position);
                     }
                     mwindow->session->current_operation = NO_OPERATION;
 					Track *track = mwindow->session->track_highlighted;
+//printf("TrackCanvas::drag_stop %d position_f=%f\n", __LINE__, position_f);
 					mwindow->paste_assets(position_f, track);
 					result = 1;    // need to be one no matter what, since we have track highlited so we have to cleanup....
 				}

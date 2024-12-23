@@ -41,6 +41,7 @@
 #include "cwindow.h"
 #include "bchash.h"
 #include "devicedvbinput.inc"
+#include "editinfo.h"
 #include "editkeyframe.h"
 #include "editpanel.h"
 #include "edl.h"
@@ -2427,6 +2428,43 @@ void MWindow::hide_plugins()
 	plugin_gui_lock->unlock();
 
 	hide_keyframe_guis();
+    hide_edit_editors();
+}
+
+void MWindow::show_edit_editor(Edit *edit)
+{
+    int got_it = 0;
+    if(!edit)
+    {
+        return;
+    }
+
+    for(int i = 0; i < edit_editors.size(); i++)
+    {
+        EditInfoThread *thread = edit_editors.get(i);
+        if(!thread->running())
+        {
+            thread->show_edit(edit);
+            got_it = 1;
+            break;
+        }
+    }
+    
+    if(!got_it)
+    {
+        EditInfoThread *thread = new EditInfoThread(this);
+        edit_editors.append(thread);
+        thread->show_edit(edit);
+    }
+}
+
+void MWindow::hide_edit_editors()
+{
+	for(int i = 0; i < edit_editors.size(); i++)
+	{
+		edit_editors.get(i)->close_window();
+	}
+//    edit_editors.remove_all_objects();
 }
 
 void MWindow::hide_keyframe_guis()

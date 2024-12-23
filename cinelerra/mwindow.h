@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@
 #include "bchash.inc"
 #include "devicedvbinput.inc"
 #include "edit.inc"
+#include "editinfo.inc"
 #include "editkeyframe.inc"
 #include "edl.inc"
 #include "fileserver.inc"
@@ -287,6 +288,8 @@ public:
 	void hide_keyframe_gui(Plugin *plugin);
 	void hide_keyframe_gui(PluginServer *plugin_server);
 	void update_keyframe_guis();
+    void show_edit_editor(Edit *edit);
+    void hide_edit_editors();
 
 
 // ============================= editing commands ========================
@@ -582,8 +585,9 @@ public:
 #ifdef USE_DEAD_PLUGINS
 	ArrayList<PluginServer*> *dead_plugins;
 #endif
-// Keyframe editors
+// Transient windows
 	ArrayList<KeyFrameThread*> *keyframe_threads;
+    ArrayList<EditInfoThread*> edit_editors;
 
 
 // Adjust sample position to line up with frames.

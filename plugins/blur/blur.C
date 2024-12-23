@@ -112,6 +112,7 @@ BlurMain::BlurMain(PluginServer *server)
 	need_reconfigure = 1;
 	engine = 0;
 	overlayer = 0;
+    lock = 1;
 }
 
 BlurMain::~BlurMain()

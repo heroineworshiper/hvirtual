@@ -64,8 +64,6 @@ public:
     EditPopupConformProject *conform_project;
     EditPopupProjectRemove *project_remove;
     EditPopupDiskRemove *disk_remove;
-    ArrayList<EditInfoThread*> edit_editors;
-    
 };
 
 

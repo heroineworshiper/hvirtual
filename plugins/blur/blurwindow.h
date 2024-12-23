@@ -48,6 +48,7 @@ public:
 	
 	void create_objects();
 
+    void sync_values(BlurValue *pot_src);
 	BlurMain *client;
 //	BlurVertical *vertical;
 //	BlurHorizontal *horizontal;
@@ -60,6 +61,21 @@ public:
 	BlurG *g;
 	BlurB *b;
 	BlurAKey *a_key;
+    BC_Hash *defaults;
+};
+
+class BlurToggle : public BC_CheckBox
+{
+public:
+	BlurToggle(BlurMain *client, 
+		int *output, 
+		int x, 
+		int y,
+		const char *text);
+	int handle_event();
+
+	BlurMain *client;
+	int *output;
 };
 
 class BlurAKey : public BC_CheckBox

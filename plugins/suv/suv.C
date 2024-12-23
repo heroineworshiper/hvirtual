@@ -24,7 +24,7 @@
 #include "suv.h"
 #include "edl.h"
 #include "edlsession.h"
-#include "mainmenu.h"
+//#include "mainmenu.h"
 #include "mainsession.h"
 #include "mbuttons.h"
 #include "meterpanel.h"

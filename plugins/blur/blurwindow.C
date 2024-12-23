@@ -37,10 +37,19 @@ BlurWindow::BlurWindow(BlurMain *client)
 	0)
 { 
 	this->client = client; 
+	char string[BCTEXTLEN];
+// set the default directory
+	sprintf(string, "%sblur.rc", BCASTDIR);
+    defaults = new BC_Hash(string);
+	defaults->load();
+    client->lock = defaults->get("LOCK", client->lock);
 }
 
 BlurWindow::~BlurWindow()
 {
+	defaults->update("LOCK", client->lock);
+	defaults->save();
+    delete defaults;
 //printf("BlurWindow::~BlurWindow 1\n");
 }
 
@@ -87,18 +96,71 @@ void BlurWindow::create_objects()
     v_text->pot = v;
 	y += v->get_h() + widget_border;
 
+
+    BlurToggle *toggle;
+	add_tool(toggle = new BlurToggle(client, 
+		&client->lock, 
+		x, 
+		y,
+		"Lock"));
+	y += toggle->get_h() + widget_border;
+
+
+
+
 	add_subwindow(a_key = new BlurAKey(client, x, y));
-	y += DP(30);
+	y += a_key->get_h() + widget_border;
 	add_subwindow(a = new BlurA(client, x, y));
-	y += DP(30);
+	y += a->get_h() + widget_border;
 	add_subwindow(r = new BlurR(client, x, y));
-	y += DP(30);
+	y += r->get_h() + widget_border;
 	add_subwindow(g = new BlurG(client, x, y));
-	y += DP(30);
+	y += g->get_h() + widget_border;
 	add_subwindow(b = new BlurB(client, x, y));
 	
 	show_window();
 }
+
+void BlurWindow::sync_values(BlurValue *pot_src)
+{
+    if(!client->lock) return;
+
+    if(pot_src != h)
+    {
+        h->update(*pot_src->output);
+        h_text->update(*pot_src->output);
+        *h->output = *pot_src->output;
+    }
+
+    if(pot_src != v)
+    {
+        v->update(*pot_src->output);
+        v_text->update(*pot_src->output);
+        *v->output = *pot_src->output;
+    }
+}
+
+
+
+BlurToggle::BlurToggle(BlurMain *client, 
+	int *output, 
+	int x, 
+	int y,
+	const char *text)
+ : BC_CheckBox(x, y, *output, text)
+{
+	this->output = output;
+	this->client = client;
+}
+
+int BlurToggle::handle_event()
+{
+	*output = get_value();
+	client->send_configure_change();
+	return 1;
+}
+
+
 
 BlurValue::BlurValue(BlurMain *client, 
     BlurWindow *gui, 
@@ -120,6 +182,7 @@ int BlurValue::handle_event()
 {
 	*output = get_value();
 	text->update(*output);
+    gui->sync_values(this);
 	client->send_configure_change();
 	return 1;
 }
@@ -149,6 +212,7 @@ int BlurValueText::handle_event()
 {
 	*output = atof(get_text());
 	pot->update(*output);
+    gui->sync_values(pot);
 	client->send_configure_change();
 	return 1;
 }

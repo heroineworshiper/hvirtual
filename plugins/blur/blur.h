@@ -81,6 +81,7 @@ public:
 	PLUGIN_CLASS_MEMBERS(BlurConfig)
 
 	int need_reconfigure;
+    int lock;
 
 private:
 	BlurEngine **engine;

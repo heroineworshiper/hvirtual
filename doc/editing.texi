@@ -499,6 +499,8 @@ else.
 
 @subsection FREE DRAGGING
 
+The default dragging mode is constrained to edit boundaries.
+
 Hold CTRL while dragging to enter free dragging mode.  Free dragging
 works when moving existing edits in the timeline or when dragging an
 asset from the resource window to the timeline.  It's not currently
@@ -528,8 +530,9 @@ shifts the neighbors at the source position left to replace the source
 edit.  Free dragging with the right button overwrites the existing edits
 at the destination & leaves a gap where the source position was.
 
-Only left button dragging is supported when the source is in the
-resource window.  The right button activates a context menu.
+Only left button insert dragging is supported when the source is in the
+resource window or in constrained dragging.  The right button in these
+modes activates a context menu.
 
 @subsection FREE DRAGGING INSIDE A SINGLE TRACK
 
