@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,6 +108,7 @@ void GammaWindow::update()
 
 void GammaWindow::update_histogram()
 {
+//printf("GammaWindow::update_histogram %d engine=%p\n", __LINE__, client->engine);
 	histogram->clear_box(0, 0, histogram->get_w(), histogram->get_h());
 	if(client->engine)
 	{

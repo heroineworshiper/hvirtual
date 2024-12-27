@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -501,18 +500,18 @@ void GammaMain::render_gui(void *data, int size)
 	if(!engine) engine = new GammaEngine(this);
 	if(ptr->engine && ptr->config.automatic)
 	{
+		thread->window->lock_window("GammaMain::render_gui");
 		memcpy(engine->accum, 
 			ptr->engine->accum, 
 			sizeof(int) * HISTOGRAM_SIZE);
-		thread->window->lock_window("GammaMain::render_gui");
 		((GammaWindow*)thread->window)->update();
 		thread->window->unlock_window();
 	}
 	else
 	{
+		thread->window->lock_window("GammaMain::render_gui");
 		engine->process_packages(GammaEngine::HISTOGRAM, 
 			ptr->frame);
-		thread->window->lock_window("GammaMain::render_gui");
 		((GammaWindow*)thread->window)->update_histogram();
 		thread->window->unlock_window();
 	}
