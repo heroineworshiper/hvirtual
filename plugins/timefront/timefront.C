@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
@@ -42,7 +41,8 @@ REGISTER_PLUGIN(TimeFrontMain)
 
 
 
-
+#define MIN_FRAMES 1
+#define MAX_FRAMES 255
 
 
 TimeFrontConfig::TimeFrontConfig()
@@ -589,8 +589,8 @@ TimeFrontFrameRange::TimeFrontFrameRange(TimeFrontMain *plugin, int x, int y)
 	0,
 	DP(200),
 	DP(200),
-	(int)1,
-	(int)255,
+	(int)MIN_FRAMES,
+	(int)MAX_FRAMES,
 	(int)plugin->config.frame_range)
 {
 	this->plugin = plugin;
@@ -650,7 +650,7 @@ TimeFrontMain::TimeFrontMain(PluginServer *server)
 
 TimeFrontMain::~TimeFrontMain()
 {
-	
+	framelist.remove_all_objects();
 
 	if(gradient) delete gradient;
 	if(engine) delete engine;
@@ -756,13 +756,16 @@ int TimeFrontMain::is_synthesis()
 		for (int j = 0; j < width; j++) \
 		{ \
 			unsigned int choice = invertion gradient_row[j]; \
+            if(choice >= framelist.size()) choice = framelist.size() - 1; \
+ \
 			{ \
-				out_row[0] = framelist[choice]->get_rows()[i][j * components + 0]; \
-				out_row[1] = framelist[choice]->get_rows()[i][j * components + 1]; \
-				out_row[2] = framelist[choice]->get_rows()[i][j * components + 2]; \
+				out_row[0] = framelist.get(choice)->get_rows()[i][j * components + 0]; \
+				out_row[1] = framelist.get(choice)->get_rows()[i][j * components + 1]; \
+				out_row[2] = framelist.get(choice)->get_rows()[i][j * components + 2]; \
 				if (components == 4) \
-					out_row[3] = framelist[choice]->get_rows()[i][j * components + 3]; \
+					out_row[3] = framelist.get(choice)->get_rows()[i][j * components + 3]; \
 			} \
+ \
 			out_row += components; \
 		} \
 	}
@@ -775,16 +778,51 @@ int TimeFrontMain::process_buffer(VFrame **frame,
 //int TimeFrontMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 {
 	VFrame **outframes = frame;
-	VFrame *(framelist[1024]);
-	framelist[0] = new VFrame (0, -1, outframes[0]->get_w(), outframes[0]->get_h(), outframes[0]->get_color_model(), -1);
-	read_frame(framelist[0],
+	need_reconfigure |= load_configuration();
+
+    CLAMP(config.frame_range, MIN_FRAMES, MAX_FRAMES);
+
+// resize the frame cache
+    if(config.frame_range != framelist.size())
+    {
+        if(framelist.size() < config.frame_range)
+        {
+            while(framelist.size() < config.frame_range)
+            {
+                VFrame *temp;
+                framelist.append(temp = new VFrame(outframes[0]->get_w(), 
+                    outframes[0]->get_h(), 
+                    outframes[0]->get_color_model()));
+                temp->clear_frame();
+            }
+        }
+
+        if(framelist.size() > config.frame_range)
+        {
+            while(framelist.size() > config.frame_range)
+            {
+                framelist.remove_object_number(framelist.size() - 1);
+            }
+        }
+    }
+
+// rotate the history
+    VFrame *temp = framelist.get(framelist.size() - 1);
+    for(int i = framelist.size() - 1; i > 0; i--)
+    {
+        framelist.set(i, framelist.get(i - 1));
+    }
+    framelist.set(0, temp);
+
+// read the current frame
+//	framelist[0] = new VFrame (0, -1, outframes[0]->get_w(), outframes[0]->get_h(), outframes[0]->get_color_model(), -1);
+	read_frame(framelist.get(0),
 		0,
 		start_position,
 		frame_rate,
 		0);
-	this->input = framelist[0];
+	this->input = framelist.get(0);
 	this->output = outframes[0];
-	need_reconfigure |= load_configuration();
 	if (config.shape == TimeFrontConfig::OTHERTRACK)
 	{
 //		this->output = frame[1];
@@ -832,7 +870,7 @@ int TimeFrontMain::process_buffer(VFrame **frame,
 			outframes[0]->get_h(),
 			BC_A8,
 			-1);
-		VFrame *tfframe = framelist[0];
+		VFrame *tfframe = framelist.get(0);
 		switch (tfframe->get_color_model())
 		{
 			case BC_YUVA8888:
@@ -922,24 +960,24 @@ int TimeFrontMain::process_buffer(VFrame **frame,
 		}
 	}	
 
-	if (!config.show_grayscale)
-	{
-		for (int i = 1; i <= config.frame_range; i++) 
-		{
-			framelist[i] = new VFrame (0, 
-				-1, 
-				outframes[0]->get_w(), 
-				outframes[0]->get_h(), 
-				outframes[0]->get_color_model(),
-				-1);
-
-			read_frame(framelist[i],
-				0,
-				start_position - i,
-				frame_rate,
-				0);
-		}
-	}
+// 	if (!config.show_grayscale)
+// 	{
+// 		for (int i = 1; i <= config.frame_range; i++) 
+// 		{
+// 			framelist[i] = new VFrame (0, 
+// 				-1, 
+// 				outframes[0]->get_w(), 
+// 				outframes[0]->get_h(), 
+// 				outframes[0]->get_color_model(),
+// 				-1);
+// 
+// 			read_frame(framelist[i],
+// 				0,
+// 				start_position - i,
+// 				frame_rate,
+// 				0);
+// 		}
+// 	}
 	
 
 	int width = outframes[0]->get_w();
@@ -1069,12 +1107,12 @@ int TimeFrontMain::process_buffer(VFrame **frame,
 		}
 	}
 
-	delete framelist[0];
-	if (!config.show_grayscale)
-	{
-		for (int i = 1; i <= config.frame_range; i++) 
-			delete framelist[i];
-	}
+// 	delete framelist[0];
+// 	if (!config.show_grayscale)
+// 	{
+// 		for (int i = 1; i <= config.frame_range; i++) 
+// 			delete framelist[i];
+// 	}
 	return 0;
 }
 

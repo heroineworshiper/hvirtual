@@ -258,6 +258,10 @@ public:
 	VFrame *gradient;
 	VFrame *input, *output;
 	TimeFrontServer *engine;
+    
+    
+    
+    ArrayList<VFrame*> framelist;
 };
 
 class TimeFrontPackage : public LoadPackage
