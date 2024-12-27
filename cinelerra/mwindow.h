@@ -23,6 +23,7 @@
 
 #include "arraylist.h"
 #include "asset.inc"
+#include "assetedit.inc"
 #include "assetremove.inc"
 #include "assets.inc"
 #include "audiodevice.inc"
@@ -290,6 +291,8 @@ public:
 	void update_keyframe_guis();
     void show_edit_editor(Edit *edit);
     void hide_edit_editors();
+    void show_asset_editor(Indexable *ptr);
+    void hide_asset_editors();
 
 
 // ============================= editing commands ========================
@@ -588,6 +591,7 @@ public:
 // Transient windows
 	ArrayList<KeyFrameThread*> *keyframe_threads;
     ArrayList<EditInfoThread*> edit_editors;
+	ArrayList<AssetEdit*> asset_editors;
 
 
 // Adjust sample position to line up with frames.

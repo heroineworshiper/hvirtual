@@ -499,6 +499,8 @@ int Overlay::process_buffer(VFrame **frame,
 	}
 
 
+//printf("Overlay::process_buffer %d: mode=%d use_opengl=%d\n", 
+//__LINE__, config.mode, get_use_opengl());
 
 // Direct copy the first layer
 	output = frame[output_buffer];
@@ -520,6 +522,8 @@ int Overlay::process_buffer(VFrame **frame,
 // process the remaneing input buffers
 	for(int i = input_buffer1 + step; i != input_buffer2; i += step)
 	{
+//printf("Overlay::process_buffer %d: i=%d mode=%d use_opengl=%d\n", 
+//__LINE__, i, config.mode, get_use_opengl());
 // read into a temp
 		read_frame(temp, 
 			i, 
@@ -552,6 +556,8 @@ int Overlay::process_buffer(VFrame **frame,
 		}
         first = 0;
 	}
+//printf("Overlay::process_buffer %d: mode=%d use_opengl=%d\n", 
+//__LINE__, config.mode, get_use_opengl());
 
 // for(int i = 0; i < get_total_buffers(); i++)
 // {

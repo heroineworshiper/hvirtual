@@ -329,10 +329,10 @@ BC_WindowBase::get_synchronous()->get_window()->get_id());
 #endif
 }
 
-// void VFrame::to_ram()
-// {
-// #ifdef HAVE_GL
-// printf("VFrame::to_ram %d %d %d\n", __LINE__, get_w(), get_h());
+void VFrame::to_ram()
+{
+#ifdef HAVE_GL
+printf("VFrame::to_ram %d: not supported\n", __LINE__);
 // 	switch(opengl_state)
 // 	{
 // // Only pbuffer is supported since this is only called after the 
@@ -354,8 +354,8 @@ BC_WindowBase::get_synchronous()->get_window()->get_id());
 // 			opengl_state = VFrame::RAM;
 // 			return;
 // 	}
-// #endif
-// }
+#endif
+}
 
 void VFrame::create_pbuffer()
 {

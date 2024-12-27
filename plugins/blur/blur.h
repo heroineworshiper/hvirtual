@@ -24,7 +24,14 @@
 class BlurMain;
 class BlurEngine;
 
-#define MAXRADIUS 100
+// note from blur-gauss.c: gauss
+/*
+ * IIR goes wrong if the blur radius is less than 1, so we silently
+ * switch to RLE in this case.  See bug #315953
+ */
+#define MIN_RADIUS 0.1
+#define IIR_RADIUS 1.0
+#define MAX_RADIUS 100
 
 #include "blurwindow.inc"
 #include "bchash.inc"
@@ -69,6 +76,8 @@ public:
 	BlurMain(PluginServer *server);
 	~BlurMain();
 
+    friend class BlurEngine;
+
 // required for all realtime plugins
 	int process_buffer(VFrame *frame,
 		int64_t start_position,
@@ -84,6 +93,8 @@ public:
     int lock;
 
 private:
+    int cpus;
+    int use_rle;
 	BlurEngine **engine;
 	OverlayFrame *overlayer;
 	VFrame *input_frame;
@@ -93,9 +104,20 @@ private:
 class BlurConstants
 {
 public:
+    BlurConstants();
+    ~BlurConstants();
+
+// IIR
     float n_p[5], n_m[5];
     float d_p[5], d_m[5];
     float bd_p[5], bd_m[5];
+// RLE
+    float *curve;
+    float *curve2;
+    int length;
+    float *sum;
+    float *sum2;
+    float total;
 };
 
 class BlurEngine : public Thread
@@ -113,8 +135,8 @@ public:
 	int wait_process_frame();
 
 // parameters needed for blur
-	int get_constants(BlurConstants *ptr, 
-        float std_dev);
+	int get_iir_constants(BlurConstants *ptr, float std_dev);
+    void make_rle_curve(BlurConstants *ptr, float sigma);
 	int reconfigure(BlurConstants *constants, float radius);
 	int transfer_pixels(pixel_f *src1, 
 		pixel_f *src2, 
@@ -122,23 +144,22 @@ public:
 //		float *radius,
 		pixel_f *dest, 
 		int size);
-	int multiply_alpha(pixel_f *row, int size);
-	int separate_alpha(pixel_f *row, int size);
-	int blur_strip3(int size, float radius, BlurConstants *reverse, BlurConstants *forward);
-	int blur_strip4(int size, float radius, BlurConstants *reverse, BlurConstants *forward);
+	int blur_strip3(int size, float radius, BlurConstants *constants);
+	int blur_strip4(int size, float radius, BlurConstants *constants);
 
 	int color_model;
 	float vmax;
 	pixel_f *val_p, *val_m;
     float *radius;
-	BlurConstants forward_constants_h;
-	BlurConstants reverse_constants_h;
-	BlurConstants forward_constants_v;
-	BlurConstants reverse_constants_v;
+	BlurConstants constants_h;
+	BlurConstants constants_v;
 	pixel_f *src, *dst;
+	pixel_f *rle2, *pix2;
+	pixel_f *rle, *pix;
     pixel_f initial_p;
     pixel_f initial_m;
 	int terms;
+    int size;
 	BlurMain *plugin;
 // A margin is introduced between the input and output to give a seemless transition between blurs
 	int start_y, start_x;
@@ -146,7 +167,7 @@ public:
 	int last_frame;
 	int do_horizontal;
 // Detect changes in alpha for alpha radius mode
-	float prev_forward_radius, prev_reverse_radius;
+	float prev_radius;
 	Mutex input_lock, output_lock;
 	VFrame *frame;
 };

@@ -35,7 +35,6 @@ AWindow::AWindow(MWindow *mwindow) : Thread()
 
 AWindow::~AWindow()
 {
-	asset_editors.remove_all_objects();
 }
 
 void AWindow::create_objects()

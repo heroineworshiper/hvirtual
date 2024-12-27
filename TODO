@@ -10,14 +10,12 @@ BIG WISHLIST:
 pulse audio system dependencies
 migrate other libraries which have stabilized
 smarter default window positions
-Config window for screencap which specifies 
-    a window, X & Y offset, screen corner, cursor.
+Config window for screencap which specifies X & Y offset
 Specify color space as part of recording parameters.
 
 
 BIG BUGS
 ----------------
-Close edit info dialogs
 Nested EDL index file isn't updated when the nested EDL changes.
 Applies filebox filter to the auto completion in a browse button textbox.
 Nested EDLs with diffe0x8u080880sdrafrent colormodels crash.
@@ -28,6 +26,8 @@ Change asset path, CPlayback never returns to redraw the frame.
 
 BUGS
 ----------------------------------
+Shared plugin can end up feeding 1 RAM output & 1 opengl output.
+    - VFrame::to_ram would need to work.
 fullscreen broken on wayland
  - detects 4480x2160 for root
  - xdpyinfo has the same error

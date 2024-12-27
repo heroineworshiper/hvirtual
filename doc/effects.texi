@@ -10,6 +10,7 @@ utilize fully by mere experimentation.
 @menu
 * 1080 TO 480::       How to convert HDTV into SD
 * BACKGROUND::        Replacing transparency with rendered backgrounds
+* BLUR::              Blur
 * CHROMA KEYERS::     Create transparency based on color.
 * COLOR SWATCH::      Color swatch
 * COMPRESSOR::        How to reduce the dynamic range of audio.
@@ -90,6 +91,20 @@ This creates either a flat color or a color cube for use with the LUT
 (@xref{LUT}) effect.  Use it to fill transparent areas with a custom
 color.  The color cube option is drawn in a fixed part of the frame to
 aid in creating a LUT.
+
+
+@node BLUR
+@section BLUR
+
+Applies a gaussian blur.  Changing the horizontal value changes the
+horizontal blurring.  Changing the vertical value changes the vertical
+blurring.  Enabling @b{lock} causes the values to be the same.
+
+@b{Alpha determines radius} causes higher alpha to blur more & all the
+output alpha to be set to maximum.  This is used for fake tilt shift,
+fake depth of field, & hiding sections of the image.
+
+
 
 
 

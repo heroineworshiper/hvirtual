@@ -170,8 +170,8 @@ BlurValue::BlurValue(BlurMain *client,
  : BC_FPot(x, 
  	y, 
 	*output, 
-	0, 
-	MAXRADIUS)
+	0.0, // allow the user to disable it by setting it below MIN_RADIUS
+	MAX_RADIUS)
 {
 	this->client = client;
 	this->gui = gui;
@@ -199,8 +199,11 @@ BlurValueText::BlurValueText(BlurMain *client,
  : BC_TextBox(x, 
 	y, 
 	w, 
-	1, 
-	*output)
+	1, // rows
+	*output,
+    1, // has_border
+    MEDIUMFONT,
+    1) // precision
 {
 	this->client = client;
 	this->gui = gui;

@@ -204,7 +204,7 @@ int VirtualVNode::render(VFrame *output_temp,
 	return 0;
 }
 
-void VirtualVNode::render_as_plugin(VFrame *output_temp, 
+void VirtualVNode::render_as_plugin(VFrame *frame, 
 	int64_t start_position,
 	double frame_rate,
 	int use_opengl)
@@ -216,7 +216,7 @@ void VirtualVNode::render_as_plugin(VFrame *output_temp,
 
 //printf("VirtualVNode::render_as_plugin %d\n", __LINE__);
 	((VAttachmentPoint*)attachment)->render(
-		output_temp,
+		frame,
 		plugin_buffer_number,
 		start_position,
 		frame_rate,
@@ -224,12 +224,24 @@ void VirtualVNode::render_as_plugin(VFrame *output_temp,
 		use_opengl);
 
 	if(MWindow::preferences->dump_playback) 
-		printf("%sVirtualVNode::render_as_plugin %d track='%s' plugin='%s' use_gl=%d\n", 
+		printf("%sVirtualVNode::render_as_plugin %d: track='%s' plugin='%s' use_gl=%d frame->opengl_state=%d\n", 
 			MWindow::print_indent(),
             __LINE__,
             track->title,
             real_plugin->title,
-			use_opengl);
+			use_opengl,
+            frame->get_opengl_state());
+
+// read back from GPU to RAM.  
+// This happens if a shared plugin with opengl outputs feeds a RAM input.
+    if(!use_opengl && frame->get_opengl_state() != VFrame::RAM)
+    {
+        printf("VirtualVNode::render_as_plugin %d: track='%s' plugin='%s' reading from GPU to RAM not supported\n",
+            __LINE__,
+            track->title,
+            real_plugin->title);
+//        frame->to_ram();
+    }
 }
 
 

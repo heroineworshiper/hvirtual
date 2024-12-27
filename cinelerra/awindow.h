@@ -44,7 +44,6 @@ public:
 
 	AWindowGUI *gui;
 	MWindow *mwindow;
-	ArrayList<AssetEdit*> asset_editors;
 //	AssetRemoveThread *asset_remove;
 	ClipEdit *clip_edit;
 };

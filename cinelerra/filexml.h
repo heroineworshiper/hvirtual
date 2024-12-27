@@ -65,6 +65,7 @@ public:
 //	int set_property(const char *text, int value);
 	int set_property(const char *text, float value);
 	int set_property(const char *text, double value);
+    int has_property(const char *text);
 	int write_tag();
 
 // encode the special character at the head of the string

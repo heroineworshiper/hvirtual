@@ -19,6 +19,7 @@
  */
 
 #include "asset.h"
+#include "assetedit.h"
 #include "assetremove.h"
 #include "assets.h"
 #include "audioalsa.h"
@@ -2429,6 +2430,7 @@ void MWindow::hide_plugins()
 
 	hide_keyframe_guis();
     hide_edit_editors();
+    hide_asset_editors();
 }
 
 void MWindow::show_edit_editor(Edit *edit)
@@ -2465,6 +2467,40 @@ void MWindow::hide_edit_editors()
 		edit_editors.get(i)->close_window();
 	}
 //    edit_editors.remove_all_objects();
+}
+
+void MWindow::show_asset_editor(Indexable *ptr)
+{
+	int got_it = 0;
+// try reusing an existing window
+	for(int i = 0; i < asset_editors.size(); i++)
+	{
+		AssetEdit *thread = asset_editors.get(i);
+		if(!thread->running())
+		{
+			thread->edit_asset(ptr);
+			got_it = 1;
+            break;
+		}
+	}
+
+// make a new window
+	if(!got_it)
+	{
+		AssetEdit *thread = new AssetEdit(this);
+		asset_editors.append(thread);
+		thread->edit_asset(ptr);
+	}
+}
+
+void MWindow::hide_asset_editors()
+{
+	for(int i = 0; i < asset_editors.size(); i++)
+	{
+		asset_editors.get(i)->close_window();
+	}
+    
+//	asset_editors.remove_all_objects();
 }
 
 void MWindow::hide_keyframe_guis()

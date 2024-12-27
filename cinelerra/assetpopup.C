@@ -148,40 +148,7 @@ int AssetPopupInfo::handle_event()
 {
 	if(mwindow->session->drag_assets->size())
 	{
-		int got_it = 0;
-// try reusing an existing window
-		for(int i = 0; i < mwindow->awindow->asset_editors.size(); i++)
-		{
-			AssetEdit *thread = mwindow->awindow->asset_editors.get(i);
-			if(!thread->running())
-			{
-				thread->edit_asset(mwindow->session->drag_assets->values[0]);
-				got_it = 1;
-                break;
-			}
-		}
-
-// make a new window
-		if(!got_it)
-		{
-			AssetEdit *thread = new AssetEdit(mwindow);
-			mwindow->awindow->asset_editors.append(thread);
-			thread->edit_asset(
-				mwindow->session->drag_assets->values[0]);
-		}
-
-// old way
-// 		if(mwindow->awindow->asset_edit->running() && 
-// 			mwindow->awindow->asset_edit->window)
-// 		{
-// 			mwindow->awindow->asset_edit->window->raise_window();
-// 			mwindow->awindow->asset_edit->window->flush();
-// 		}
-// 		else
-// 		{
-// 			mwindow->awindow->asset_edit->edit_asset(
-// 				mwindow->session->drag_assets->values[0]);
-// 		}
+        mwindow->show_asset_editor(mwindow->session->drag_assets->get(0));
 	}
 	else
 	if(mwindow->session->drag_clips->total)

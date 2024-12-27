@@ -622,6 +622,18 @@ int XMLTag::get_title(char *value)
 	return 0;
 }
 
+int XMLTag::has_property(const char *text)
+{
+    for(int i = 0; i < total_properties; i++)
+	{
+		if(!strcasecmp(tag_properties[i], text))
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
 int XMLTag::test_property(char *property, char *value)
 {
 	int i, result;

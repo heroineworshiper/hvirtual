@@ -481,7 +481,7 @@ int HistogramMain::process_buffer(VFrame *frame,
 	this->input = frame;
 	this->output = frame;
 
-//printf("HistogramMain::process_buffer %d: %d\n", __LINE__, use_opengl);
+//printf("HistogramMain::process_buffer %d: use_opengl=%d\n", __LINE__, use_opengl);
 	read_frame(frame, 
 		0, 
 		start_position, 
@@ -490,7 +490,8 @@ int HistogramMain::process_buffer(VFrame *frame,
 // Generate tables here.  The same table is used by many packages to render
 // each horizontal stripe.  Need to cover the entire output range in  each
 // table to avoid green borders
-
+//printf("HistogramMain::process_buffer %d: use_opengl=%d\n", __LINE__, use_opengl);
+//frame->dump(4);
 
 	if(need_reconfigure || 
 		!lookup[0] || 
