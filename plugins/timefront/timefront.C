@@ -18,7 +18,7 @@
  * 
  */
 
-// Timefront contributed by Andraz Tori
+// Timefront contributed by Andraz Tori & later fixed
 
 
 
@@ -102,9 +102,9 @@ void TimeFrontConfig::interpolate(TimeFrontConfig &prev,
 	double prev_scale = (double)(next_frame - current_frame) / (next_frame - prev_frame);
 
 
-	this->angle = (int)(prev.angle * prev_scale + next.angle * next_scale);
-	this->in_radius = (int)(prev.in_radius * prev_scale + next.in_radius * next_scale);
-	this->out_radius = (int)(prev.out_radius * prev_scale + next.out_radius * next_scale);
+	this->angle = (prev.angle * prev_scale + next.angle * next_scale);
+	this->in_radius = (prev.in_radius * prev_scale + next.in_radius * next_scale);
+	this->out_radius = (prev.out_radius * prev_scale + next.out_radius * next_scale);
 	frame_range = (int)(prev.frame_range * prev_scale + next.frame_range * next_scale);
 	track_usage = prev.track_usage;
 	shape = prev.shape;
@@ -145,7 +145,7 @@ TimeFrontWindow::TimeFrontWindow(TimeFrontMain *plugin)
 	out_radius = 0;
 	track_usage_title = 0;
 	track_usage = 0;
-	
+	prev_shape = -1;
 }
 
 TimeFrontWindow::~TimeFrontWindow()
@@ -185,6 +185,8 @@ void TimeFrontWindow::create_objects()
 void TimeFrontWindow::update_shape()
 {
 	int x = shape_x, y = shape_y;
+
+    if(prev_shape == plugin->config.shape) return;
 
 	if(plugin->config.shape == TimeFrontConfig::LINEAR)
 	{
@@ -335,7 +337,7 @@ void TimeFrontWindow::update_shape()
 
 	}
 	show_window();
-
+    prev_shape = plugin->config.shape;
 }
 
 
@@ -490,6 +492,7 @@ TimeFrontAngle::TimeFrontAngle(TimeFrontMain *plugin, int x, int y)
 	180)
 {
 	this->plugin = plugin;
+    set_precision(.1);
 }
 
 int TimeFrontAngle::handle_event()
@@ -1067,22 +1070,22 @@ __LINE__, (int)new_frame_numbers[i]);
 			switch (outframes[0]->get_color_model())
 			{
 				case BC_RGB888:
-					GRADIENTTOPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range -);
+					GRADIENTTOPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range - 1 -);
 					break;
 				case BC_RGBA8888:
-					GRADIENTTOPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range -);
+					GRADIENTTOPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range - 1 -);
 					break;
 				case BC_YUV888:
-					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range -);
+					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range - 1 -);
 					break;
 				case BC_YUVA8888:
-					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range -);
+					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range - 1 -);
 					break;
 				case BC_RGB_FLOAT:
-					GRADIENTTOPICTURE(float, float, 3, 1.0f, config.frame_range -);
+					GRADIENTTOPICTURE(float, float, 3, 1.0f, config.frame_range - 1 -);
 					break;
 				case BC_RGBA_FLOAT:
-					GRADIENTTOPICTURE(float, float, 4, 1.0f, config.frame_range -);
+					GRADIENTTOPICTURE(float, float, 4, 1.0f, config.frame_range - 1 -);
 					break;
 				default:
 					break;
@@ -1120,22 +1123,22 @@ __LINE__, (int)new_frame_numbers[i]);
 		switch (outframes[0]->get_color_model())
 		{
 			case BC_RGB888:
-				COMPOSITEIMAGE(unsigned char, 3, config.frame_range -);
+				COMPOSITEIMAGE(unsigned char, 3, config.frame_range - 1 -);
 				break;
 			case BC_RGBA8888:
-				COMPOSITEIMAGE(unsigned char, 4, config.frame_range -);
+				COMPOSITEIMAGE(unsigned char, 4, config.frame_range - 1 -);
 				break;
 			case BC_YUV888:
-				COMPOSITEIMAGE(unsigned char, 3, config.frame_range -);
+				COMPOSITEIMAGE(unsigned char, 3, config.frame_range - 1 -);
 				break;
 			case BC_YUVA8888:
-				COMPOSITEIMAGE(unsigned char, 4, config.frame_range -);
+				COMPOSITEIMAGE(unsigned char, 4, config.frame_range - 1 -);
 				break;
 			case BC_RGB_FLOAT:
-				COMPOSITEIMAGE(float, 3, config.frame_range -);
+				COMPOSITEIMAGE(float, 3, config.frame_range - 1 -);
 				break;
 			case BC_RGBA_FLOAT:
-				COMPOSITEIMAGE(float, 4, config.frame_range -);
+				COMPOSITEIMAGE(float, 4, config.frame_range - 1 -);
 				break;
 
 			default:
@@ -1177,27 +1180,29 @@ void TimeFrontMain::update_gui()
 		if(load_configuration())
 		{
 			thread->window->lock_window("TimeFrontMain::update_gui");
-			((TimeFrontWindow*)thread->window)->frame_range->update(config.frame_range);
-			((TimeFrontWindow*)thread->window)->shape->set_text(TimeFrontShape::to_text(config.shape));
-			((TimeFrontWindow*)thread->window)->show_grayscale->update(config.show_grayscale);
-			((TimeFrontWindow*)thread->window)->invert->update(config.invert);
-			((TimeFrontWindow*)thread->window)->shape->set_text(TimeFrontShape::to_text(config.shape));
-			if (((TimeFrontWindow*)thread->window)->rate)
-				((TimeFrontWindow*)thread->window)->rate->set_text(TimeFrontRate::to_text(config.rate));
-			if (((TimeFrontWindow*)thread->window)->in_radius)
-				((TimeFrontWindow*)thread->window)->in_radius->update(config.in_radius);
-			if (((TimeFrontWindow*)thread->window)->out_radius)
-				((TimeFrontWindow*)thread->window)->out_radius->update(config.out_radius);
-			if (((TimeFrontWindow*)thread->window)->track_usage)
-				((TimeFrontWindow*)thread->window)->track_usage->set_text(TimeFrontTrackUsage::to_text(config.track_usage));
-			if(((TimeFrontWindow*)thread->window)->angle)
-				((TimeFrontWindow*)thread->window)->angle->update(config.angle);
-			if(((TimeFrontWindow*)thread->window)->center_x)
-				((TimeFrontWindow*)thread->window)->center_x->update(config.center_x);
-			if(((TimeFrontWindow*)thread->window)->center_y)
-				((TimeFrontWindow*)thread->window)->center_y->update(config.center_y);
-			
-			((TimeFrontWindow*)thread->window)->update_shape();
+            TimeFrontWindow *win = (TimeFrontWindow*)thread->window;
+			win->frame_range->update(config.frame_range);
+			win->shape->set_text(TimeFrontShape::to_text(config.shape));
+			win->show_grayscale->update(config.show_grayscale);
+			win->invert->update(config.invert);
+			if (win->rate)
+				win->rate->set_text(TimeFrontRate::to_text(config.rate));
+			if (win->in_radius)
+				win->in_radius->update(config.in_radius);
+			if (win->out_radius)
+				win->out_radius->update(config.out_radius);
+			if (win->track_usage)
+				win->track_usage->set_text(TimeFrontTrackUsage::to_text(config.track_usage));
+printf("TimeFrontMain::update_gui %d %f %f\n",
+__LINE__, win->angle->get_value(), config.angle);
+			if(win->angle)
+				win->angle->update(config.angle);
+			if(win->center_x)
+				win->center_x->update(config.center_x);
+			if(win->center_y)
+				win->center_y->update(config.center_y);
+
+			win->update_shape();
 			thread->window->unlock_window();
 		}
 	}

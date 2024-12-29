@@ -211,6 +211,7 @@ public:
 	void update_shape();
 
 	TimeFrontMain *plugin;
+    int prev_shape;
 	BC_Title *angle_title;
 	BC_Title *rate_title, *in_radius_title, *out_radius_title, *track_usage_title;
 	TimeFrontAngle *angle;
