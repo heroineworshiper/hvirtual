@@ -39,6 +39,9 @@ class TimeFrontServer;
 #include "thread.h"
 #include "vframe.inc"
 
+#define MIN_FRAMES 1
+#define MAX_FRAMES 255
+
 class TimeFrontConfig
 {
 public:
@@ -262,6 +265,8 @@ public:
     
     
     ArrayList<VFrame*> framelist;
+// timeline position of each frame
+    ArrayList<int64_t> frame_numbers;
 };
 
 class TimeFrontPackage : public LoadPackage

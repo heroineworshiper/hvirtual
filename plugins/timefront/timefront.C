@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  */
+
+// Timefront contributed by Andraz Tori
+
+
 
 #include <math.h>
 #include <stdint.h>
@@ -41,8 +45,6 @@ REGISTER_PLUGIN(TimeFrontMain)
 
 
 
-#define MIN_FRAMES 1
-#define MAX_FRAMES 255
 
 
 TimeFrontConfig::TimeFrontConfig()
@@ -780,8 +782,6 @@ int TimeFrontMain::process_buffer(VFrame **frame,
 	VFrame **outframes = frame;
 	need_reconfigure |= load_configuration();
 
-    CLAMP(config.frame_range, MIN_FRAMES, MAX_FRAMES);
-
 // resize the frame cache
     if(config.frame_range != framelist.size())
     {
@@ -794,6 +794,7 @@ int TimeFrontMain::process_buffer(VFrame **frame,
                     outframes[0]->get_h(), 
                     outframes[0]->get_color_model()));
                 temp->clear_frame();
+                frame_numbers.append(-1);
             }
         }
 
@@ -801,26 +802,78 @@ int TimeFrontMain::process_buffer(VFrame **frame,
         {
             while(framelist.size() > config.frame_range)
             {
-                framelist.remove_object_number(framelist.size() - 1);
+                framelist.remove_object();
+                frame_numbers.remove();
             }
         }
     }
 
-// rotate the history
-    VFrame *temp = framelist.get(framelist.size() - 1);
-    for(int i = framelist.size() - 1; i > 0; i--)
+// update the frame history
+    VFrame* new_framelist[config.frame_range];
+    int64_t new_frame_numbers[config.frame_range];
+
+// transfer existing frames
+    for(int i = 0; i < config.frame_range; i++)
     {
-        framelist.set(i, framelist.get(i - 1));
+        int64_t want = start_position - i;
+        new_frame_numbers[i] = want;
+        int got_it = 0;
+        for(int j = 0; j < frame_numbers.size(); j++)
+        {
+            if(frame_numbers.get(j) == want)
+            {
+                new_framelist[i] = framelist.get(j);
+                framelist.remove_number(j);
+                frame_numbers.remove_number(j);
+                got_it = 1;
+                break;
+            }
+        }
+        if(!got_it) new_framelist[i] = 0;
     }
-    framelist.set(0, temp);
+
+// load missing frames backwards so we read forwards in the timeline
+    for(int i = config.frame_range - 1; i >= 0; i--)
+    {
+        if(!new_framelist[i])
+        {
+            new_framelist[i] = framelist.get(0);
+            framelist.remove_number(0);
+printf("TimeFrontMain::process_buffer %d: reading %d\n", 
+__LINE__, (int)new_frame_numbers[i]);
+            if(new_frame_numbers[i] >= 0)
+            {
+                read_frame(new_framelist[i],
+		            0,
+		            new_frame_numbers[i],
+		            frame_rate,
+		            0);
+            }
+            else
+            {
+                new_framelist[i]->clear_frame();
+            }
+        }
+    }
+
+// transfer new frames to the history
+    frame_numbers.remove_all();
+    for(int i = 0; i < config.frame_range; i++)
+    {
+        framelist.append(new_framelist[i]);
+        frame_numbers.append(new_frame_numbers[i]);
+    }
+    
+
+
 
 // read the current frame
 //	framelist[0] = new VFrame (0, -1, outframes[0]->get_w(), outframes[0]->get_h(), outframes[0]->get_color_model(), -1);
-	read_frame(framelist.get(0),
-		0,
-		start_position,
-		frame_rate,
-		0);
+// 	read_frame(framelist.get(0),
+// 		0,
+// 		start_position,
+// 		frame_rate,
+// 		0);
 	this->input = framelist.get(0);
 	this->output = outframes[0];
 	if (config.shape == TimeFrontConfig::OTHERTRACK)
@@ -1207,6 +1260,9 @@ void TimeFrontMain::read_data(KeyFrame *keyframe)
 			}
 		}
 	}
+    
+
+    CLAMP(config.frame_range, MIN_FRAMES, MAX_FRAMES);
 }
 
 
