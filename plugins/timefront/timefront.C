@@ -20,7 +20,14 @@
 
 // Timefront contributed by Andraz Tori & later fixed
 
-
+// Inversion is off by 1 but for the sake of engagement, we can 
+// preserve the off by 1 error to exactly match the other forks.
+#define OFF_BY_1
+#ifdef OFF_BY_1
+    #define INVERSE_FACTOR 0
+#else
+    #define INVERSE_FACTOR 1
+#endif
 
 #include <math.h>
 #include <stdint.h>
@@ -783,14 +790,24 @@ int TimeFrontMain::process_buffer(VFrame **frame,
 //int TimeFrontMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 {
 	VFrame **outframes = frame;
+	int width = outframes[0]->get_w();
+	int height = outframes[0]->get_h();
+
 	need_reconfigure |= load_configuration();
 
+    int want_range = config.frame_range;
+// off by 1 error for inverse
+#ifdef OFF_BY_1
+    if(config.invert) want_range += 1;
+#endif
+
 // resize the frame cache
-    if(config.frame_range != framelist.size())
+// the original loaded frame_range + 1 & dropped frame 0 in inverse mode
+    if(want_range != framelist.size())
     {
-        if(framelist.size() < config.frame_range)
+        if(framelist.size() < want_range)
         {
-            while(framelist.size() < config.frame_range)
+            while(framelist.size() < want_range)
             {
                 VFrame *temp;
                 framelist.append(temp = new VFrame(outframes[0]->get_w(), 
@@ -801,9 +818,9 @@ int TimeFrontMain::process_buffer(VFrame **frame,
             }
         }
 
-        if(framelist.size() > config.frame_range)
+        if(framelist.size() > want_range)
         {
-            while(framelist.size() > config.frame_range)
+            while(framelist.size() > want_range)
             {
                 framelist.remove_object();
                 frame_numbers.remove();
@@ -812,11 +829,11 @@ int TimeFrontMain::process_buffer(VFrame **frame,
     }
 
 // update the frame history
-    VFrame* new_framelist[config.frame_range];
-    int64_t new_frame_numbers[config.frame_range];
+    VFrame* new_framelist[want_range];
+    int64_t new_frame_numbers[want_range];
 
 // transfer existing frames
-    for(int i = 0; i < config.frame_range; i++)
+    for(int i = 0; i < want_range; i++)
     {
         int64_t want = start_position - i;
         new_frame_numbers[i] = want;
@@ -836,14 +853,12 @@ int TimeFrontMain::process_buffer(VFrame **frame,
     }
 
 // load missing frames backwards so we read forwards in the timeline
-    for(int i = config.frame_range - 1; i >= 0; i--)
+    for(int i = want_range - 1; i >= 0; i--)
     {
         if(!new_framelist[i])
         {
             new_framelist[i] = framelist.get(0);
             framelist.remove_number(0);
-printf("TimeFrontMain::process_buffer %d: reading %d\n", 
-__LINE__, (int)new_frame_numbers[i]);
             if(new_frame_numbers[i] >= 0)
             {
                 read_frame(new_framelist[i],
@@ -861,7 +876,7 @@ __LINE__, (int)new_frame_numbers[i]);
 
 // transfer new frames to the history
     frame_numbers.remove_all();
-    for(int i = 0; i < config.frame_range; i++)
+    for(int i = 0; i < want_range; i++)
     {
         framelist.append(new_framelist[i]);
         frame_numbers.append(new_frame_numbers[i]);
@@ -896,18 +911,16 @@ __LINE__, (int)new_frame_numbers[i]);
 	}
 
 // Generate new gradient
+	if(!gradient) gradient = new VFrame(0, 
+		-1,
+		outframes[0]->get_w(),
+		outframes[0]->get_h(),
+		BC_A8,
+		-1);
+
 	if(need_reconfigure)
 	{
 		need_reconfigure = 0;
-
-		if(!gradient) gradient = new VFrame(0, 
-			-1,
-			outframes[0]->get_w(),
-			outframes[0]->get_h(),
-			BC_A8,
-			-1);
-
-			
 		if (config.shape != TimeFrontConfig::OTHERTRACK &&
 		    config.shape != TimeFrontConfig::ALPHA)
 		{
@@ -918,14 +931,9 @@ __LINE__, (int)new_frame_numbers[i]);
 		}
 		
 	}
+
 	if (config.shape == TimeFrontConfig::ALPHA)
 	{
-		if(!gradient) gradient = new VFrame(0, 
-			-1,
-			outframes[0]->get_w(),
-			outframes[0]->get_h(),
-			BC_A8,
-			-1);
 		VFrame *tfframe = framelist.get(0);
 		switch (tfframe->get_color_model())
 		{
@@ -950,12 +958,6 @@ __LINE__, (int)new_frame_numbers[i]);
 	} else
 	if (config.shape == TimeFrontConfig::OTHERTRACK)
 	{
-		if(!gradient) gradient = new VFrame(0, 
-			-1,
-			outframes[0]->get_w(),
-			outframes[0]->get_h(),
-			BC_A8,
-			-1);
 		VFrame *tfframe = outframes[1];
 		read_frame(tfframe,
 			1,
@@ -1036,8 +1038,6 @@ __LINE__, (int)new_frame_numbers[i]);
 // 	}
 	
 
-	int width = outframes[0]->get_w();
-	int height = outframes[0]->get_h();
 	if (config.show_grayscale)
 	{
 		if (!config.invert)
@@ -1070,22 +1070,22 @@ __LINE__, (int)new_frame_numbers[i]);
 			switch (outframes[0]->get_color_model())
 			{
 				case BC_RGB888:
-					GRADIENTTOPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range - 1 -);
+					GRADIENTTOPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range - INVERSE_FACTOR -);
 					break;
 				case BC_RGBA8888:
-					GRADIENTTOPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range - 1 -);
+					GRADIENTTOPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range - INVERSE_FACTOR -);
 					break;
 				case BC_YUV888:
-					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range - 1 -);
+					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range - INVERSE_FACTOR -);
 					break;
 				case BC_YUVA8888:
-					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range - 1 -);
+					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range - INVERSE_FACTOR -);
 					break;
 				case BC_RGB_FLOAT:
-					GRADIENTTOPICTURE(float, float, 3, 1.0f, config.frame_range - 1 -);
+					GRADIENTTOPICTURE(float, float, 3, 1.0f, config.frame_range - INVERSE_FACTOR -);
 					break;
 				case BC_RGBA_FLOAT:
-					GRADIENTTOPICTURE(float, float, 4, 1.0f, config.frame_range - 1 -);
+					GRADIENTTOPICTURE(float, float, 4, 1.0f, config.frame_range - INVERSE_FACTOR -);
 					break;
 				default:
 					break;
@@ -1123,28 +1123,30 @@ __LINE__, (int)new_frame_numbers[i]);
 		switch (outframes[0]->get_color_model())
 		{
 			case BC_RGB888:
-				COMPOSITEIMAGE(unsigned char, 3, config.frame_range - 1 -);
+				COMPOSITEIMAGE(unsigned char, 3, config.frame_range - INVERSE_FACTOR -);
 				break;
 			case BC_RGBA8888:
-				COMPOSITEIMAGE(unsigned char, 4, config.frame_range - 1 -);
+				COMPOSITEIMAGE(unsigned char, 4, config.frame_range - INVERSE_FACTOR -);
 				break;
 			case BC_YUV888:
-				COMPOSITEIMAGE(unsigned char, 3, config.frame_range - 1 -);
+				COMPOSITEIMAGE(unsigned char, 3, config.frame_range - INVERSE_FACTOR -);
 				break;
 			case BC_YUVA8888:
-				COMPOSITEIMAGE(unsigned char, 4, config.frame_range - 1 -);
+				COMPOSITEIMAGE(unsigned char, 4, config.frame_range - INVERSE_FACTOR -);
 				break;
 			case BC_RGB_FLOAT:
-				COMPOSITEIMAGE(float, 3, config.frame_range - 1 -);
+				COMPOSITEIMAGE(float, 3, config.frame_range - INVERSE_FACTOR -);
 				break;
 			case BC_RGBA_FLOAT:
-				COMPOSITEIMAGE(float, 4, config.frame_range - 1 -);
+				COMPOSITEIMAGE(float, 4, config.frame_range - INVERSE_FACTOR -);
 				break;
 
 			default:
 				break;
 		}
 	}
+
+
 	if (config.shape == TimeFrontConfig::ALPHA)
 	{
 		// Set alpha to max
@@ -1193,8 +1195,6 @@ void TimeFrontMain::update_gui()
 				win->out_radius->update(config.out_radius);
 			if (win->track_usage)
 				win->track_usage->set_text(TimeFrontTrackUsage::to_text(config.track_usage));
-printf("TimeFrontMain::update_gui %d %f %f\n",
-__LINE__, win->angle->get_value(), config.angle);
 			if(win->angle)
 				win->angle->update(config.angle);
 			if(win->center_x)
