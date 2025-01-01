@@ -20,14 +20,6 @@
 
 // Timefront contributed by Andraz Tori & later fixed
 
-// Inversion is off by 1 but for the sake of engagement, we can 
-// preserve the off by 1 error to exactly match the other forks.
-#define OFF_BY_1
-#ifdef OFF_BY_1
-    #define INVERSE_FACTOR 0
-#else
-    #define INVERSE_FACTOR 1
-#endif
 
 #include <math.h>
 #include <stdint.h>
@@ -795,11 +787,9 @@ int TimeFrontMain::process_buffer(VFrame **frame,
 
 	need_reconfigure |= load_configuration();
 
-    int want_range = config.frame_range;
-// off by 1 error for inverse
-#ifdef OFF_BY_1
-    if(config.invert) want_range += 1;
-#endif
+// It always wants frame_range + 1 so frame_range 2 draws 3 frames including
+// the current frame.
+    int want_range = config.frame_range + 1;
 
 // resize the frame cache
 // the original loaded frame_range + 1 & dropped frame 0 in inverse mode
@@ -1070,22 +1060,22 @@ int TimeFrontMain::process_buffer(VFrame **frame,
 			switch (outframes[0]->get_color_model())
 			{
 				case BC_RGB888:
-					GRADIENTTOPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range - INVERSE_FACTOR -);
+					GRADIENTTOPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range -);
 					break;
 				case BC_RGBA8888:
-					GRADIENTTOPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range - INVERSE_FACTOR -);
+					GRADIENTTOPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range -);
 					break;
 				case BC_YUV888:
-					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range - INVERSE_FACTOR -);
+					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 3, 255, config.frame_range -);
 					break;
 				case BC_YUVA8888:
-					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range - INVERSE_FACTOR -);
+					GRADIENTTOYUVPICTURE(unsigned char, unsigned short, 4, 255, config.frame_range -);
 					break;
 				case BC_RGB_FLOAT:
-					GRADIENTTOPICTURE(float, float, 3, 1.0f, config.frame_range - INVERSE_FACTOR -);
+					GRADIENTTOPICTURE(float, float, 3, 1.0f, config.frame_range -);
 					break;
 				case BC_RGBA_FLOAT:
-					GRADIENTTOPICTURE(float, float, 4, 1.0f, config.frame_range - INVERSE_FACTOR -);
+					GRADIENTTOPICTURE(float, float, 4, 1.0f, config.frame_range -);
 					break;
 				default:
 					break;
@@ -1123,22 +1113,22 @@ int TimeFrontMain::process_buffer(VFrame **frame,
 		switch (outframes[0]->get_color_model())
 		{
 			case BC_RGB888:
-				COMPOSITEIMAGE(unsigned char, 3, config.frame_range - INVERSE_FACTOR -);
+				COMPOSITEIMAGE(unsigned char, 3, config.frame_range -);
 				break;
 			case BC_RGBA8888:
-				COMPOSITEIMAGE(unsigned char, 4, config.frame_range - INVERSE_FACTOR -);
+				COMPOSITEIMAGE(unsigned char, 4, config.frame_range -);
 				break;
 			case BC_YUV888:
-				COMPOSITEIMAGE(unsigned char, 3, config.frame_range - INVERSE_FACTOR -);
+				COMPOSITEIMAGE(unsigned char, 3, config.frame_range -);
 				break;
 			case BC_YUVA8888:
-				COMPOSITEIMAGE(unsigned char, 4, config.frame_range - INVERSE_FACTOR -);
+				COMPOSITEIMAGE(unsigned char, 4, config.frame_range -);
 				break;
 			case BC_RGB_FLOAT:
-				COMPOSITEIMAGE(float, 3, config.frame_range - INVERSE_FACTOR -);
+				COMPOSITEIMAGE(float, 3, config.frame_range -);
 				break;
 			case BC_RGBA_FLOAT:
-				COMPOSITEIMAGE(float, 4, config.frame_range - INVERSE_FACTOR -);
+				COMPOSITEIMAGE(float, 4, config.frame_range -);
 				break;
 
 			default:
