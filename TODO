@@ -18,7 +18,7 @@ BIG BUGS
 ----------------
 Nested EDL index file isn't updated when the nested EDL changes.
 Applies filebox filter to the auto completion in a browse button textbox.
-Nested EDLs with diffe0x8u080880sdrafrent colormodels crash.
+Nested EDLs with different colormodels crash.
 Effects not getting rendered if multiple effects have random starting times.
 Drag effect before timeline is finished drawing after a load -> lockup
 Load a sound file.  Change the file on the disk.  Crash on exit.
@@ -26,8 +26,6 @@ Change asset path, CPlayback never returns to redraw the frame.
 
 BUGS
 ----------------------------------
-Shared plugin can end up feeding 1 RAM output & 1 opengl output.
-    - VFrame::to_ram would need to work.
 fullscreen broken on wayland
  - detects 4480x2160 for root
  - xdpyinfo has the same error
