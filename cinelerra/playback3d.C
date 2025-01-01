@@ -678,7 +678,8 @@ void Playback3D::copy_from_sync(Playback3DCommand *command)
 		}
 		else
 		{
-			printf("Playback3D::copy_from_sync: invalid formats opengl_state=%d %dx%d -> %dx%d\n",
+			printf("Playback3D::copy_from_sync %d: invalid formats opengl_state=%d %dx%d -> %dx%d\n",
+                __LINE__,
 				command->input->get_opengl_state(),
 				command->input->get_w(),
 				command->input->get_h(),

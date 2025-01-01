@@ -117,16 +117,23 @@ void VAttachmentPoint::render(VFrame *output,
 				output->set_opengl_state(VFrame::RAM);
 			}
 			else
-			if(renderengine && renderengine->vdevice)
+			if(renderengine && renderengine->vdevice /* && use_opengl */)
 			{
-// Need to copy PBuffer to texture
-// printf("VAttachmentPoint::render temp=%p output=%p\n", 
+// Need to copy PBuffer to texture.
+// printf("VAttachmentPoint::render temp=%p output=%p use_opengl=%d\n", 
 // buffer_vector[buffer_number],
-// output);
+// output,
+// use_opengl);
+// buffer_vector[buffer_number]->dump(4);
 				VDeviceX11 *x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
-				x11_device->copy_frame(output, 
+				int want_texture = 1;
+// If the caller isn't using opengl, we are in the unfortunate state of 
+// copying from GPU to CPU.  This can happen if
+// a multichannel opengl is outputting to a single channel non opengl.
+                if(!use_opengl) want_texture = 0;
+                x11_device->copy_frame(output, 
                     buffer_vector[buffer_number], 
-                    1);
+                    want_texture);
 			}
 			return;
 		}

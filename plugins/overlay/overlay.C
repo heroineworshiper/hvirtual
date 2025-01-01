@@ -561,9 +561,7 @@ int Overlay::process_buffer(VFrame **frame,
 
 // for(int i = 0; i < get_total_buffers(); i++)
 // {
-// printf("Overlay::process_buffer %d buffer %d\n", 
-// __LINE__,
-// i);
+// printf("Overlay::process_buffer %d: buffer %d\n", __LINE__, i);
 // frame[i]->dump(4);
 // }
 

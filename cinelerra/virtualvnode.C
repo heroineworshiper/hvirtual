@@ -224,23 +224,28 @@ void VirtualVNode::render_as_plugin(VFrame *frame,
 		use_opengl);
 
 	if(MWindow::preferences->dump_playback) 
-		printf("%sVirtualVNode::render_as_plugin %d: track='%s' plugin='%s' use_gl=%d frame->opengl_state=%d\n", 
+		printf("%sVirtualVNode::render_as_plugin %d: track='%s' plugin='%s' use_gl=%d frame=%p opengl_state=%d\n", 
 			MWindow::print_indent(),
             __LINE__,
             track->title,
             real_plugin->title,
 			use_opengl,
+            frame,
             frame->get_opengl_state());
 
 // read back from GPU to RAM.  
 // This happens if a shared plugin with opengl outputs feeds a RAM input.
+// But it should currently be handled in VAttachmentPoint::render
     if(!use_opengl && frame->get_opengl_state() != VFrame::RAM)
     {
         printf("VirtualVNode::render_as_plugin %d: track='%s' plugin='%s' reading from GPU to RAM not supported\n",
             __LINE__,
             track->title,
             real_plugin->title);
-//        frame->to_ram();
+//         VDeviceX11 *x11_device = (VDeviceX11*)((VirtualVConsole*)vconsole)->get_vdriver();
+//         x11_device->copy_frame(frame,  // dst
+// 				frame,  // src
+// 				0); // want_texture
     }
 }
 
