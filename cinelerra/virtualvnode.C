@@ -137,8 +137,8 @@ int VirtualVNode::read_data(VFrame *output_temp,
 	}
 
 
-// This is a plugin on parent module with a preceeding effect.
-// Get data from preceeding effect on parent module.
+// This is a plugin on parent module with a preceding effect.
+// Get data from preceding effect on parent module.
 	if(parent_node && (previous_plugin = parent_node->get_previous_plugin(this)))
 	{
 		result = ((VirtualVNode*)previous_plugin)->render(output_temp,
@@ -280,7 +280,7 @@ int VirtualVNode::render_as_module(VFrame *video_out,
 
 	output_temp->push_next_effect("VirtualVNode::render_as_module");
 
-// Process last subnode.  This propogates up the chain of subnodes and finishes
+// Process last subnode.  This propagates up the chain of subnodes and finishes
 // the chain.
 	if(subnodes.total)
 	{

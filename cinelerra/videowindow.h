@@ -65,7 +65,7 @@ public:
 	int video_visible;
 	int video_cropping;    // Currently performing a cropping operation
 //	float zoom_factor;
-	int video_window_w;    // Horizontal size of the window independant of frame size
+	int video_window_w;    // Horizontal size of the window independent of frame size
 	VFrame **vbuffer;      // output frame buffer
 	VideoWindowGUI *gui;
 	MWindow *mwindow;

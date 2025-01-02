@@ -3304,7 +3304,7 @@ int MWindow::run_script(FileXML *script)
 			{
 // Run record as a thread.  It is a terminal command.
 				;
-// Will read the complete scipt file without letting record read it if not
+// Will read the complete script file without letting record read it if not
 // terminated.
 				result2 = 1;
 			}

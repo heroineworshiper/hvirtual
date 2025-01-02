@@ -48,7 +48,7 @@ utilize fully by mere experimentation.
 @section 1080 TO 480
 
 
-Most TV broadcasts are recieved with a 1920x1080 resolution but
+Most TV broadcasts are received with a 1920x1080 resolution but
 originate from a 720x480 source at the studio.  It's a waste of space
 to compress the entire 1920x1080 if the only resolvable details are
 720x480.  Unfortunately resizing 1920x1080 video to 720x480 isn't as
@@ -154,7 +154,7 @@ range is the user specified value.
 
 The compressor has a graph which correlates every input sound level to
 an output level.  The horizontal direction is the input sound level in
-dB.  The vertical direction is the ouptut sound level in dB.  The user
+dB.  The vertical direction is the output sound level in dB.  The user
 specifies output sound levels by creating points on the graph.  Click in
 the graph to create a point.  If 2 points exist, drag one point across
 another point to delete it.  The most recent point selected has its
@@ -369,7 +369,7 @@ can soften the transparency border.
 @section FIELDS TO FRAMES
 
 This effects reads frames at twice the project framerate, combining 2
-input frames into a single interlaced output frame.  Effects preceeding
+input frames into a single interlaced output frame.  Effects preceding
 @b{fields to frames} process frames at twice the project frame rate. 
 Each input frame is called a field.
 
@@ -424,7 +424,7 @@ disabled regions play through.
 @section HISTOGRAM
 
 
-This shows the number of occurances of each color on a histogram plot.
+This shows the number of occurrences of each color on a histogram plot.
 
 It is always performed in floating point RGB regardless of
 the project colorspace.  The histogram has two sets of transfer
@@ -803,7 +803,7 @@ length of output video by the inverse of the scale factor.  If the
 scale factor is greater than 1, the output will end before the end of
 the sequence on the timeline.  If it's less than 1, the output will end
 after the end of the sequence on the timeline.  The ReframeRT effect
-must be lengthened to the necessary length to accomodate the scale
+must be lengthened to the necessary length to accommodate the scale
 factor.  Change the length of the effect by clicking on the endpoint of
 the effect and dragging.
 
@@ -892,7 +892,7 @@ you to set keyframes.  This allows may possibilities.
 
 Every @b{enabled} keyframe is treated as the start of a new reversed
 region and the end of a previous reversed region.  Several @b{enabled}
-keyframes in succession yield several regions reversed independant of
+keyframes in succession yield several regions reversed independent of
 each other.  An @b{enabled} keyframe followed by a @b{disabled}
 keyframe yields one reversed region followed by a forward region.
 
@@ -958,7 +958,7 @@ Inside the time average effect is an accumulation buffer and a
 divisor.  A number of frames are accumulated in the accumulation buffer
 and divided by the divisor to get the average.
 
-Because the time average can consume enourmous amounts of memory, it is
+Because the time average can consume enormous amounts of memory, it is
 best applied by first disabling playback for the track, dropping the
 time average in it, configuring time average for the desired number of
 frames, and re-enabling playback for the track.
@@ -1036,7 +1036,7 @@ be justified while at the same time letting you push it within the
 title safe region.
 
 The @b{motion type} scrolls the text in any of the four directions. 
-When using this, the text may dissappear.  Move the insertion point
+When using this, the text may disappear.  Move the insertion point
 along the timeline until the text is far enough along the animation to
 reappear.  The text scrolls on and scrolls off.
 

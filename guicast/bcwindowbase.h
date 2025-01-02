@@ -681,7 +681,7 @@ private:
 	int untrigger_tooltip();
 	void draw_tooltip();
 	int arm_repeat(int64_t duration);
-// delete all repeater opjects for a close
+// delete all repeater objects for a close
 	int unset_all_repeaters();
 
 // Block and get event from common events.

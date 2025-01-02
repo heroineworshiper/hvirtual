@@ -119,7 +119,7 @@ private:
 	char path[BCTEXTLEN];
 	char default_path[BCTEXTLEN];
 
-// Individial compressed images
+// Individual compressed images
 	std::map<std::string, uint8_t*> images;
 // optimize search for the last image
 	const char *last_image;

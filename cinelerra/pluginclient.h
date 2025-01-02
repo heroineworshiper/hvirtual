@@ -358,17 +358,17 @@ public:
 	void save_defaults_xml();
 // Tell the client if the load is the defaults
 	int is_defaults();
-// must call before delete to get the GUI defualts to save
+// must call before delete to get the GUI defaults to save
     void delete_thread();
 
 	virtual void update_gui();
 	virtual void save_data(KeyFrame *keyframe);    // write the plugin settings to text in text format
 	virtual void read_data(KeyFrame *keyframe);    // read the plugin settings from the text
-	int send_hide_gui();                                    // should be sent when the GUI recieves a close event from the user
+	int send_hide_gui();                                    // should be sent when the GUI receives a close event from the user
 // Destroys the window but not the thread pointer.
 	void hide_gui();
 
-	int get_configure_change();                             // get propogated configuration change from a send_configure_change
+	int get_configure_change();                             // get propagated configuration change from a send_configure_change
 
 // Called by plugin server to update GUI with rendered data.
 // Manely for video.  Audio has to render data in update_gui
@@ -403,7 +403,7 @@ public:
 // get current camera and projector position
 	void get_camera(float *x, float *y, float *z, int64_t position);
 	void get_projector(float *x, float *y, float *z, int64_t position);
-// When this plugin is adjusted, propogate parameters back to EDL and virtual
+// When this plugin is adjusted, propagate parameters back to EDL and virtual
 // console.  This gets a keyframe from the EDL, with the position set to the
 // EDL tracking position.
 	int send_configure_change();                            
@@ -586,13 +586,13 @@ public:
 	int interactive;                // for the progress bar plugin
 	int success;
 	int total_out_buffers;          // total send buffers allocated by the server
-	int total_in_buffers;           // total recieve buffers allocated by the server
+	int total_in_buffers;           // total receive buffers allocated by the server
 	int wr, rd;                     // File permissions for fileio plugins.
 
 // These give the largest fragment the plugin is expected to handle.
 // size of a send buffer to the server
 	int64_t out_buffer_size;  
-// size of a recieve buffer from the server
+// size of a receive buffer from the server
 	int64_t in_buffer_size;   
 
 

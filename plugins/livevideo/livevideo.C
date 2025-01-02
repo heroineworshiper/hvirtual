@@ -506,7 +506,7 @@ int LiveVideo::process_buffer(VFrame *frame,
 					h,
 					input->get_color_model(), 
 					frame->get_color_model(),
-					0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
+					0,         /* When transferring BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
 					input->get_bytes_per_line(),       /* For planar use the luma rowspan */
 					frame->get_bytes_per_line());     /* For planar use the luma rowspan */
 				frame->set_opengl_state(VFrame::RAM);
