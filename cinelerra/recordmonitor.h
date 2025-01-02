@@ -200,7 +200,7 @@ private:
 	void process_scope();
 	void process_hist();
 
-	int ready;   // Ready to recieve the next frame
+	int ready;   // Ready to receive the next frame
 	int done;
 	RecVideoMJPGThread *jpeg_engine;
 	RecVideoDVThread *dv_engine;

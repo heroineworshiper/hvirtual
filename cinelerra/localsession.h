@@ -38,7 +38,7 @@ public:
 	~LocalSession();
 
 
-// Get selected range based on precidence of in/out points and
+// Get selected range based on precedence of in/out points and
 // highlighted region.
 // 1) If a highlighted selection exists it's used.
 // 2) If in_point or out_point exists they're used.
@@ -118,7 +118,7 @@ public:
 private:
 // The reason why selection ranges and inpoints have to be separate:
 // The selection position has to change to set new in points.
-// For editing functions we have a precidence for what determines
+// For editing functions we have a precedence for what determines
 // the selection.
 
 	double selectionstart, selectionend;

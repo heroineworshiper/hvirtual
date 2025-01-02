@@ -282,7 +282,7 @@ specifically can't store high frequencies in most cases.
 
 Tracks in Cinelerra either contain audio or video.  There is no special
 designation for tracks other than the type of media they contain.  When
-you create a new project, it contains a certain mumber of default
+you create a new project, it contains a certain number of default
 tracks.  You can still add or delete tracks from a number of menus. 
 The @b{Tracks} menu contains a number of options for dealing with
 multiple tracks simultaneously.  Each track itself has a popup menu
@@ -593,7 +593,7 @@ without changing the relative start and stop positions.
 
 One option for simplifying this is to open a second copy of Cinelerra,
 cutting and pasting to transport media between the two copies.  This
-way two highlighed regions can exist simultanously.
+way two highlighted regions can exist simultaneously.
 
 Another option is to set in/out points for the source region of the
 source waveform and set labels for the destination region of the

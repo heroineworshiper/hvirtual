@@ -77,7 +77,7 @@ not strictly adhering to standard features has been the biggest source
 of contention.
 
 As with Broadcast 2000, most users oppose this program being distributed
-without full support, full patch debugging & integration, adherance to
+without full support, full patch debugging & integration, adherence to
 standard features, & want it taken down.  Whether someone should be
 allowed to do their own thing is an ages old question.  Other projects
 got ahead of the support problem from the beginning by raising enough

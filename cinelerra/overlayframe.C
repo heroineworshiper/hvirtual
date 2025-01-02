@@ -33,7 +33,7 @@
 #include "units.h"
 #include "vframe.h"
 
-/* New resampler code; replace the original somehwat blurry engine
+/* New resampler code; replace the original somewhat blurry engine
    with a fairly standard kernel resampling core.  This could be used
    for full affine transformation but only implements scale/translate.
    Mostly reuses the old blending macro code. */
@@ -89,7 +89,7 @@ static float sinc (const float x){
 }
 
 /* All resampling (except Nearest Neighbor) is performed via
-   transformed 2D resampling kernels bult from 1D lookups. */
+   transformed 2D resampling kernels built from 1D lookups. */
 OverlayKernel::OverlayKernel(int interpolation_type){
   int i;
   this->type = interpolation_type;

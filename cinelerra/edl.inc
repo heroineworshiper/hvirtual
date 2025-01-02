@@ -86,7 +86,7 @@ class EDL;
 
 
 #define CWINDOW_NONE -1   // the new value for none
-//#define CWINDOW_PROTECT     0 // skip 1 for backwards compatability
+//#define CWINDOW_PROTECT     0 // skip 1 for backwards compatibility
 #define CWINDOW_FIRST 1 // first operation
 #define CWINDOW_ZOOM        1
 #define CWINDOW_MASK        2

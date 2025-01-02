@@ -117,7 +117,7 @@ techniques involve deinterlacing.
 
 Interlacing is done on most video sources because it costs too much to
 build progressive scanning cameras and progressive scanning CRT's. 
-Many a consumer has been dissapointed to spend 5 paychecks on a
+Many a consumer has been disappointed to spend 5 paychecks on a
 camcorder and discover what horrible jagged images it produces on a
 computer monitor.
 

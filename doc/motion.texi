@@ -187,7 +187,7 @@ vector.  The absolute motion vector for each frame replaces the
 absolute motion vector for the previous frame.  Settling speed has no
 effect on it since it doesn't contain any previous motion vectors. 
 Playback can start anywhere on the timeline since there is no
-dependance on previous results.
+dependence on previous results.
 
 @item
 

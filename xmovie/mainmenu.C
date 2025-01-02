@@ -159,7 +159,7 @@ int MainMenu::add_load(char *path)
 	{
 		if(!strcmp(load_previous[i]->get_text(), text))     // already exists
 		{                                // swap for top load
-			for(int j = i; j > 0; j--)   // move preceeding loads down
+			for(int j = i; j > 0; j--)   // move preceding loads down
 			{
 				load_previous[j]->set_text(load_previous[j - 1]->get_text());
 				load_previous[j]->set_path(load_previous[j - 1]->path);

@@ -1037,7 +1037,7 @@ void FindObjectMain::process_blob()
         blob_param.pBD = cvCreateBlobDetectorCC();
 /* Create blob tracker module: */
         blob_param.pBT = cvCreateBlobTrackerCCMSPF();
-/* Create whole pipline: */
+/* Create whole pipeline: */
         blob_pTracker = cvCreateBlobTrackerAuto1(&blob_param);
 		
 	}

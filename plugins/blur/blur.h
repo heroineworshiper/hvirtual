@@ -161,7 +161,7 @@ public:
 	int terms;
     int size;
 	BlurMain *plugin;
-// A margin is introduced between the input and output to give a seemless transition between blurs
+// A margin is introduced between the input and output to give a seamless transition between blurs
 	int start_y, start_x;
 	int end_y, end_x;
 	int last_frame;

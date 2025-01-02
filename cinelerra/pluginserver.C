@@ -918,7 +918,7 @@ int PluginServer::read_frame(VFrame *buffer,
 //     VirtualNode
 //     Module
 // If we're a VirtualNode, read_data in the virtual plugin node handles
-//     backward propogation and produces the data.
+//     backward propagation and produces the data.
 // If we're a Module, render in the module produces the data.
 //PRINT_TRACE
 

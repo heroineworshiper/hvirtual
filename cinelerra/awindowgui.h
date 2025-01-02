@@ -128,7 +128,7 @@ public:
 	AWindowDivider *divider;
 
 // Store data to speed up responses
-// Persistant data for listboxes
+// Persistent data for listboxes
 // All assets in current EDL
 	ArrayList<BC_ListBoxItem*> assets;
 	ArrayList<BC_ListBoxItem*> folders;

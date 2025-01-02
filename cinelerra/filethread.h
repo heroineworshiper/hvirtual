@@ -30,7 +30,7 @@
 #include "vframe.inc"
 
 
-// This allows the file hander to write in the background without 
+// This allows the file handler to write in the background without 
 // blocking the write commands.
 // Used for recording.
 

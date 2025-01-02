@@ -105,7 +105,7 @@ entire duration of the effect.
 @subsection REALTIME EFFECT TYPES
 
 The two other effect types supported by the Attach Effect dialog are
-recycled effects.  In order to use a recycled effect, three requiremenets
+recycled effects.  In order to use a recycled effect, three requiremeents
 must be met:
 
 @itemize

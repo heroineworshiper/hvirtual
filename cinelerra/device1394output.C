@@ -680,7 +680,7 @@ void Device1394Output::write_frame(VFrame *input)
 				MIN(temp_frame2->get_h(), input->get_h()),
 				input->get_color_model(), 
 				BC_YUV422,
-				0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
+				0,         /* When transferring BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
 				input->get_bytes_per_line(),       /* For planar use the luma rowspan */
 				temp_frame2->get_bytes_per_line());     /* For planar use the luma rowspan */
 

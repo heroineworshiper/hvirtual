@@ -93,7 +93,7 @@ public:
 		int64_t start_position);
 
 // Called by realtime plugin to read frame from previous entity
-// framerate - framerate start_position is relative to.  Used by preceeding plugiun
+// framerate - framerate start_position is relative to.  Used by preceding plugiun
 //     to calculate output frame number.  Provided so the client can get data
 //     at a higher fidelity than provided by the EDL.
 // start_position - start of frame if forward.  end of frame if reverse.  

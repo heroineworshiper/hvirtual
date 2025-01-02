@@ -24,7 +24,7 @@ track and getting to a certain time in the track.
 
 The program window contains many features for navigation and displays
 the timeline as it is structured in memory: tracks stacked vertically
-and extending across time horizontall.  The horizontal scroll bar
+and extending across time horizontal.  The horizontal scroll bar
 allows you to scan across time.  The vertical scroll bar allows you to
 scan across tracks.
 

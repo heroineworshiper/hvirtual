@@ -637,7 +637,7 @@ global_origin_angle);
 		block_y1 += total_dy / OVERSAMPLE;
 		block_x2 += total_dx / OVERSAMPLE;
 		block_y2 += total_dy / OVERSAMPLE;
-// Rotation is independant of accumulated angle
+// Rotation is independent of accumulated angle
 //		this->scan_angle1 += total_angle;
 //		this->scan_angle2 += total_angle;
 	}

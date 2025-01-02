@@ -7,7 +7,7 @@
 
 Because of the variety of uses, Cinelerra cannot be run optimally
 without some intimate configuration for your specific needs. Very few
-parameters are adjustible at compile time.  Runtime configuration is
+parameters are adjustable at compile time.  Runtime configuration is
 the only option for most configuration because of the multitude of
 parameters.
 
@@ -266,7 +266,7 @@ sizes up to the maximum texture size, which is usually larger than
 
 Today, the rendering as well as the playback can be done in OpenGL.  It
 relies on PBuffers and shaders to do video rendering.  The graphics
-driver must support OpenGL 2 and Cinelerra needs to be explicitely
+driver must support OpenGL 2 and Cinelerra needs to be explicitly
 compiled with OpenGL 2 support.  This requires compiling it on a system
 with the OpenGL 2 headers.
 
@@ -725,7 +725,7 @@ realtime behavior.
 
 @b{SIZE OF CAPTURED FRAME}
 
-This is the size of the frames recorded.  It is independant of the
+This is the size of the frames recorded.  It is independent of the
 project frame size because most video devices only record a fixed frame
 size.  If the frame size given here isn't supported by the device it
 might crash Cinelerra.
@@ -867,7 +867,7 @@ SECONDS TO PREROLL RENDERS
 Some effects need a certain amount of time to settle in.  This sets a
 number of seconds to render without writing to disk before the selected
 region is rendered.  When using the renderfarm you'll sometimes need to
-preroll to get seemless transitions between the jobs.  Every job in a
+preroll to get seamless transitions between the jobs.  Every job in a
 renderfarm is prerolled by this value.  This does not affect background
 rendering, however.  Background rendering uses a different preroll
 value.
@@ -878,7 +878,7 @@ FORCE SINGLE PROCESSOR USE
 
 Cinelerra tries to use all processors on the system by default but
 sometimes you'll only want to use one processor, like in a renderfarm
-client.  This forces only one processer to be used.  The operating
+client.  This forces only one processor to be used.  The operating
 system, however, usually uses the second processor anyway for disk
 access so this option is really a 1.25 processor mode.  The value of
 this parameter is used in renderfarm clients.
@@ -906,7 +906,7 @@ in the GPU.
 @node BACKGROUND RENDERING
 @subsection BACKGROUND RENDERING
 
-Background rendering was originally concieved to allow HDTV effects to
+Background rendering was originally conceived to allow HDTV effects to
 be displayed in realtime.  Background rendering causes temporary output
 to constantly be rendered while the timeline is being modified.  The
 temporary output is played during playack whenever possible.  It's very
@@ -1119,13 +1119,13 @@ DELETE ALL INDEXES
 When you change the index size or you want to clean out excessive index
 files, this deletes all the index files.
 
-@item TIME STRECH SCRUBBING
+@item TIME STRETCH SCRUBBING
 
 Scrubbing of audio with the transport controls (@xref{USING THE
 TRANSPORT CONTROLS}) can either use tape style pitch stretching or time
 stretching with constant pitch.  The time stretching mode is more
 intelligible but pitch stretching is the traditional sound a tape deck
-would have made.  Time strech scrubbing does not have all the options or
+would have made.  Time stretch scrubbing does not have all the options or
 use a fast fourier transform like the Time Stretch effect (@xref{TIME
 STRETCHING AUDIO}).
 

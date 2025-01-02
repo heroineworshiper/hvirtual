@@ -553,7 +553,7 @@ void MWindow::copy_keyframe(Auto *auto_)
 	FileXML file;
     edl->start_auto_copy(&file, 0, 0);
 
-// create EDL heirarchy to allow the keyframe to be pasted regularly
+// create EDL hierarchy to allow the keyframe to be pasted regularly
     file.tag.set_title("TRACK");
     int data_type = auto_->autos->track->data_type;
     int overlay_type = auto_->autos->overlay_type;

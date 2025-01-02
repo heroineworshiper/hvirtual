@@ -27,7 +27,7 @@
 #include "renderfarmfsclient.inc"
 
 
-// This should override the stdio commands and inderect operations on any file
+// This should override the stdio commands and indirect operations on any file
 // starting with RENDERFARM_FS_PREFIX to the network.
 
 // The server runs on the master node.

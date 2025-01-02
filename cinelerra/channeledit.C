@@ -673,7 +673,7 @@ int ChannelEditPicture::handle_event()
 
 
 
-// ========================= confirm overwrite by channel scannin
+// ========================= confirm overwrite by channel scanning
 
 
 ConfirmScan::ConfirmScan(ChannelEditWindow *gui, int x, int y)
