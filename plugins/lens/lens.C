@@ -1018,19 +1018,19 @@ int LensMain::handle_opengl()
 		"	vec4 in_y;\n"
 		"	in_x = z_in * cos(a2) * aspect.x + center_coord.x;\n"
 		"	in_y = z_in * sin(a2) * aspect.y + center_coord.y;\n"
-		"	if(a1.r > PI / 2 || in_x.r < 0.0 || in_x.r >= image_extents.x || in_y.r < 0.0 || in_y.r >= image_extents.y)\n"
+		"	if(a1.r > PI / 2.0 || in_x.r < 0.0 || in_x.r >= image_extents.x || in_y.r < 0.0 || in_y.r >= image_extents.y)\n"
 		"		gl_FragColor.r = border_color.r;\n"
 		"	else\n"
 		"		gl_FragColor.r = texture2D(tex, vec2(in_x.r, in_y.r) / texture_extents).r;\n"
-		"	if(a1.g > PI / 2 || in_x.g < 0.0 || in_x.g >= image_extents.x || in_y.g < 0.0 || in_y.g >= image_extents.y)\n"
+		"	if(a1.g > PI / 2.0 || in_x.g < 0.0 || in_x.g >= image_extents.x || in_y.g < 0.0 || in_y.g >= image_extents.y)\n"
 		"		gl_FragColor.g = border_color.g;\n"
 		"	else\n"
 		"		gl_FragColor.g = texture2D(tex, vec2(in_x.g, in_y.g) / texture_extents).g;\n"
-		"	if(a1.b > PI / 2 || in_x.b < 0.0 || in_x.b >= image_extents.x || in_y.b < 0.0 || in_y.b >= image_extents.y)\n"
+		"	if(a1.b > PI / 2.0 || in_x.b < 0.0 || in_x.b >= image_extents.x || in_y.b < 0.0 || in_y.b >= image_extents.y)\n"
 		"		gl_FragColor.b = border_color.b;\n"
 		"	else\n"
 		"		gl_FragColor.b = texture2D(tex, vec2(in_x.b, in_y.b) / texture_extents).b;\n"
-		"	if(a1.a > PI / 2 || in_x.a < 0.0 || in_x.a >= image_extents.x || in_y.a < 0.0 || in_y.a >= image_extents.y)\n"
+		"	if(a1.a > PI / 2.0 || in_x.a < 0.0 || in_x.a >= image_extents.x || in_y.a < 0.0 || in_y.a >= image_extents.y)\n"
 		"		gl_FragColor.a = border_color.a;\n"
 		"	else\n"
 		"		gl_FragColor.a = texture2D(tex, vec2(in_x.a, in_y.a) / texture_extents).a;\n"
@@ -1103,8 +1103,8 @@ int LensMain::handle_opengl()
 		"	vec2 coord_diff = outcoord - center_coord;\n"
 		"	float z = sqrt(coord_diff.x * coord_diff.x +\n"
 		"					coord_diff.y * coord_diff.y);\n"
-		"	vec4 radius1 = (vec4(z, z, z, z) / r) * 2.0 * radius;\n"
-		"	vec4 z_in = r * atan(radius1) / (3.14159 / 2.0);\n"
+		"	vec4 radius1 = vec4(z, z, z, z) / r;\n"
+		"	vec4 z_in = r * tan(radius1) / (3.14159 / 2.0);\n"
 		"\n"
 		"	float angle;\n"
 		"	if(coord_diff.x == 0.0)\n"
@@ -1137,7 +1137,7 @@ int LensMain::handle_opengl()
 		"		gl_FragColor.a = border_color.a;\n"
 		"	else\n"
 		"		gl_FragColor.a = texture2D(tex, vec2(in_x.a, in_y.a) / texture_extents).a;\n"
-		"}\n";
+        "}\n";
 
 	get_output()->to_texture();
 	get_output()->enable_opengl();
@@ -1247,12 +1247,12 @@ int LensMain::handle_opengl()
 				break;
 
 			case LensConfig::RECTILINEAR_SHRINK:
-				max_z = sqrt(SQR(width) + SQR(height)) / 2;
+				max_z = MAX(width, height) / 2 * config.radius;
 				glUniform4f(glGetUniformLocation(frag_shader, "r"), 
-					max_z / M_PI / (fov[0] / 2.0),
-					max_z / M_PI / (fov[1] / 2.0),
-					max_z / M_PI / (fov[2] / 2.0),
-					max_z / M_PI / (fov[3] / 2.0));
+					max_z / fov[0],
+					max_z / fov[1],
+					max_z / fov[2],
+					max_z / fov[3]);
 				glUniform1f(glGetUniformLocation(frag_shader, "radius"), 
 					config.radius);
 				break;
