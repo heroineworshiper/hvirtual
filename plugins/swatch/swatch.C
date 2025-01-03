@@ -295,6 +295,7 @@ int SwatchMain::process_buffer(VFrame *frame,
 	need_reconfigure |= load_configuration();
 	int use_opengl = get_use_opengl();
 
+//printf("SwatchMain::process_buffer %d use_opengl=%d\n", __LINE__, use_opengl);
 // have to draw output pixels out of order
     if(config.draw_src) use_opengl = 0;
 

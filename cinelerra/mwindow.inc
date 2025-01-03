@@ -47,6 +47,10 @@
 // Don't automatically merge contiguous edits
 #define ENABLE_RAZOR
 
+// If the output of certain stages is RAM, 
+// request GPU & do a GPU to RAM transfer
+#define FORCE_GPU
+
 // Index of vwindow that always exists
 #define DEFAULT_VWINDOW 0
 

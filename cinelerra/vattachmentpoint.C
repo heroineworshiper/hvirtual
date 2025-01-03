@@ -177,8 +177,21 @@ void VAttachmentPoint::render(VFrame *output,
 	else
 // process single track
 	{
+// multichannel temporary
 		VFrame *output_temp[1];
 		output_temp[0] = output;
+
+#ifdef FORCE_GPU
+        int use_opengl2 = use_opengl;
+// If the output is RAM, request GPU & do a GPU to RAM transfer
+        if(renderengine && 
+            renderengine->vdevice &&
+            renderengine->vdevice->out_config->driver == PLAYBACK_X11_GL &&
+            !use_opengl2)
+            use_opengl = 1;
+#endif
+
+
 		if(renderengine)
 			plugin_servers.values[buffer_number]->set_use_opengl(use_opengl,
 				renderengine->vdevice);
@@ -189,6 +202,19 @@ void VAttachmentPoint::render(VFrame *output,
 				frame_rate / 
 				renderengine->get_edl()->session->frame_rate),
 			renderengine->command->get_direction());
+
+#ifdef FORCE_GPU
+// pbuffer to RAM
+        if(output->get_opengl_state() != VFrame::RAM && 
+            !use_opengl2)
+        {
+            VDeviceX11 *x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
+            x11_device->copy_frame(output, 
+                output, 
+                0);
+            use_opengl = 0;
+        }
+#endif
 	}
 }
 

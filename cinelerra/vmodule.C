@@ -1069,7 +1069,8 @@ int VModule::render(VFrame *output,
 		
 		(*transition_input)->copy_stacks(output);
 
-// transitions don't support opengl
+// transitions use a push model, so we have no prior knowledge of them 
+// supporting opengl
 		result = import_frame((*transition_input), 
 			current_edit, 
 			start_position,
@@ -1101,6 +1102,18 @@ int VModule::render(VFrame *output,
         if(MWindow::preferences->dump_playback)
             MWindow::indent -= 2;
 
+#ifdef FORCE_GPU
+        int use_opengl2 = use_opengl;
+//printf("VModule::render %d use_opengl2=%d\n", __LINE__, use_opengl2);
+// If the output is RAM, request GPU & do a GPU to RAM transfer
+        if(renderengine && 
+            renderengine->vdevice &&
+            renderengine->vdevice->out_config->driver == PLAYBACK_X11_GL &&
+            !use_opengl2)
+            use_opengl = 1;
+#endif
+
+
 // Execute plugin with transition_input and output here
 		if(renderengine) 
 			transition_server->set_use_opengl(use_opengl, renderengine->vdevice);
@@ -1111,6 +1124,18 @@ int VModule::render(VFrame *output,
 				(start_position_project - current_edit->startproject - 1),
 			transition->length);
 
+#ifdef FORCE_GPU
+// pbuffer to RAM
+        if(output->get_opengl_state() != VFrame::RAM && 
+            !use_opengl2)
+        {
+            VDeviceX11 *x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
+            x11_device->copy_frame(output, 
+                output, 
+                0);
+            use_opengl = 0;
+        }
+#endif
 	}
 	else
 	{
