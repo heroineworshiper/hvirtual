@@ -961,9 +961,10 @@ int PluginServer::read_frame(VFrame *buffer,
 
     if(MWindow::preferences->dump_playback)
     {
-        printf("%sPluginServer::read_frame %d start_position=%ld channel=%d nodes=%d modules=%d\n", 
+        printf("%sPluginServer::read_frame %d use_gl=%d start_position=%ld channel=%d nodes=%d modules=%d\n", 
             MWindow::print_indent(),
 			__LINE__, 
+            use_opengl,
 			(long)start_position,
             channel,
             nodes->size(),

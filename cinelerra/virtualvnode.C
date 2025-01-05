@@ -468,7 +468,7 @@ void VirtualVNode::render_mask(VFrame *output_temp,
 	if(use_opengl)
 	{
 // apply the mask in hardware if it wasn't already applied in masker
-//printf("VirtualVNode::render_mask %d\n", __LINE__);
+printf("VirtualVNode::render_mask %d opengl_state=%d\n", __LINE__, output_temp->get_opengl_state());
         if(output_temp->get_opengl_state() != VFrame::RAM)
         {
 //printf("VirtualVNode::render_mask %d opengl_state=%d\n", __LINE__, output_temp->get_opengl_state());

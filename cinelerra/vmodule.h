@@ -67,7 +67,8 @@ public:
 		double frame_rate,
 		int direction,
 		int debug_render,
-		int use_opengl);
+		int use_opengl,
+        int is_transition);
 	int render(VFrame *output,
 		int64_t start_position,
 		int direction,

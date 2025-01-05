@@ -102,7 +102,8 @@ int VModule::import_frame(VFrame *output,
 	double frame_rate,
 	int direction,
 	int debug_render,
-	int use_opengl)
+	int use_opengl,
+    int is_transition)
 {
 	int64_t direction_position;
 // Translation of edit
@@ -151,9 +152,9 @@ int VModule::import_frame(VFrame *output,
 	VDeviceX11 *x11_device = 0;
 	if(use_opengl && renderengine && renderengine->vdevice)
 	{
-			x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
-			if(!x11_device) use_opengl = 0;
-			output->set_opengl_state(VFrame::RAM);
+		x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
+		if(!x11_device) use_opengl = 0;
+		output->set_opengl_state(VFrame::RAM);
 	}
 
 	if(!output) printf("VModule::import_frame %d output=%p x11_device=%p nested_edl=%p\n", 
@@ -176,6 +177,16 @@ int VModule::import_frame(VFrame *output,
         current_edit->edl->nested_depth < NESTED_DEPTH)
 	{
 		int command;
+
+#ifdef FORCE_GPU
+        if(!is_transition &&
+            renderengine && 
+            renderengine->vdevice &&
+            renderengine->vdevice->out_config->driver == PLAYBACK_X11_GL &&
+            !use_opengl)
+            use_opengl = 1;
+#endif
+
 		if(debug) printf("VModule::import_frame %d nested_edl=%p current_edit->nested_edl=%p\n", 
 			__LINE__,
 			nested_edl,
@@ -1027,7 +1038,9 @@ int VModule::render(VFrame *output,
 		return 0;
 	}
 
-
+#ifdef FORCE_GPU
+    int use_opengl2 = use_opengl;
+#endif
 
 
 // Process transition
@@ -1077,7 +1090,8 @@ int VModule::render(VFrame *output,
 			frame_rate,
 			direction,
             debug_render,
-			0 /* use_opengl */ );
+			0, /* use_opengl */ 
+            1); // is_transition
 
 
 // Load transition buffer
@@ -1089,7 +1103,8 @@ int VModule::render(VFrame *output,
 			frame_rate,
 			direction,
             debug_render,
-			0 /* use_opengl */);
+			0, /* use_opengl */
+            1); // is_transition
 //printf("VModule::render %d\n", __LINE__);
 
 // printf("VModule::render %d %p %p %p %p\n", 
@@ -1103,9 +1118,8 @@ int VModule::render(VFrame *output,
             MWindow::indent -= 2;
 
 #ifdef FORCE_GPU
-        int use_opengl2 = use_opengl;
 //printf("VModule::render %d use_opengl2=%d\n", __LINE__, use_opengl2);
-// If the output is RAM, request GPU & do a GPU to RAM transfer
+// If the output is RAM, request GPU from the transition & do a GPU to RAM transfer
         if(renderengine && 
             renderengine->vdevice &&
             renderengine->vdevice->out_config->driver == PLAYBACK_X11_GL &&
@@ -1123,31 +1137,33 @@ int VModule::render(VFrame *output,
 				(start_position_project - current_edit->startproject) :
 				(start_position_project - current_edit->startproject - 1),
 			transition->length);
-
-#ifdef FORCE_GPU
-// pbuffer to RAM
-        if(output->get_opengl_state() != VFrame::RAM && 
-            !use_opengl2)
-        {
-            VDeviceX11 *x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
-            x11_device->copy_frame(output, 
-                output, 
-                0);
-            use_opengl = 0;
-        }
-#endif
 	}
 	else
 	{
-// Load output buffer
+// Load output buffer directly
 		result = import_frame(output, 
 			current_edit, 
 			start_position,
 			frame_rate,
 			direction,
             debug_render,
-			use_opengl);
+			use_opengl,
+            0); // is_transition
 	}
+
+#ifdef FORCE_GPU
+// transition or nested EDL may force GPU usage
+// pbuffer to RAM
+    if(output->get_opengl_state() != VFrame::RAM && 
+        !use_opengl2)
+    {
+        VDeviceX11 *x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
+        x11_device->copy_frame(output, 
+            output, 
+            0);
+        use_opengl = 0;
+    }
+#endif
 
     if(MWindow::preferences->dump_playback)
     {
