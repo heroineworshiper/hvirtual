@@ -37,6 +37,7 @@ utilize fully by mere experimentation.
 * SWAP FRAMES::       Fixing temporal field order
 * THRESHOLD::         How to get monochrome out of a region of the image.
 * TIME AVERAGE::      How to stack images.
+* TIME FRONT::        Select pixels to display based on time
 * TITLER::            How to add text to a track from inside Cinelerra.
 * VIDEO SCOPE::       How to view the dynamic range of intensity and hue.
 @end menu
@@ -1016,6 +1017,38 @@ darker than the background.
 
 
 
+@node TIME FRONT
+@section TIME FRONT
+
+This takes each pixel from different frames in a history buffer.  The
+selection of what frame in the history goes to each pixel is determined
+by the pixel's alpha value in an alpha mask.  The alpha mask can be
+generated synthetically or be taken from a video source.
+
+The history buffer always starts from the lower numbered frames in the
+timeline & goes to the current frame - 1, regardless of the playback
+direction.  If the mask pixel is 0, the lowest numbered frame is taken. 
+If the mask pixel is maximum, the highest numbered frame is taken.
+
+@b{Type:} The source of the mask.  @b{Linear, Radial:} generate synthetic
+gradients.  These have extra options to define the gradient. @b{Alpha as
+timefront:} uses the alpha in the current frame.  @b{Other track:} uses
+either the luminance or the alpha of another track.
+
+@b{Angle, rate, inner radius, outer radius:} Define the shape if a
+synthetic gradient is used.
+
+@b{Time range:} Number of frames in the history buffer.  These are in
+addition to the current frame, so 1 rewinds 1 frame.  255 rewinds 255
+frames.
+
+@b{Inversion:} Reverses the history buffer so the most recent frame is
+taken for mask values of 0 & the oldest frame is taken for mask values
+of maximum.
+
+@b{Show grayscale for tuning:} Shows the mask instead of the output
+frame.  The level of grayscale is a visual indicator of what frame is
+taken from the history buffer for each pixel.
 
 
 
