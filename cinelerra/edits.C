@@ -809,6 +809,30 @@ void Edits::clear_recursive(int64_t start,
 		edit_autos,
 		0,
 		trim_edits);
+// join any plugins that were split in this operation, 
+// to preserve razor tool operations.
+// TODO: It might be smarter to always do this for plugins in the optimize function.
+// note: optimize specifically doesn't join contiguous plugins & razor doesn't
+// split plugins
+    if(edit_plugins)
+    {
+		for(int i = 0; i < track->plugin_set.size(); i++)
+		{
+            Edits *plugins = (Edits*)track->plugin_set.get(i);
+			for(Edit *plugin = plugins->first; plugin; plugin = plugin->next)
+            {
+                Edit *next_plugin = plugin->next;
+                if(next_plugin && 
+                    plugin->startproject + plugin->length == start &&
+                    next_plugin->startproject == start)
+                {
+                    plugin->length += next_plugin->length;
+                    remove(next_plugin);
+                    break;
+                }
+            }
+		}
+    }
 }
 
 

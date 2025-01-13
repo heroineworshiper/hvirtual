@@ -1328,10 +1328,10 @@ int Track::clear(double start,
 
 	if(edit_plugins)
 	{
-		for(int i = 0; i < plugin_set.total; i++)
+		for(int i = 0; i < plugin_set.size(); i++)
 		{
-			if(!trim_edits || trim_edits == (Edits*)plugin_set.values[i])
-				plugin_set.values[i]->clear((int64_t)start, (int64_t)end, edit_autos);
+			if(!trim_edits || trim_edits == (Edits*)plugin_set.get(i))
+				plugin_set.get(i)->clear((int64_t)start, (int64_t)end, edit_autos);
 		}
 	}
 
