@@ -322,20 +322,46 @@ static const char *blend_add_frag =
 	"	result_color.rgb = dst_color.rgb + src_color.rgb;\n";
 
 static const char *blend_max_frag = 
-	"	result_color.r = max(abs(dst_color.r), abs(src_color.r));\n"
-    "   result_color.g = (abs(dst_color.g) > abs(src_color.g) ? dst_color.g : src_color.g);\n"
-	"	result_color.b = (abs(dst_color.g) > abs(src_color.b) ? dst_color.b : src_color.b);\n";
+	"	result_color.r = max(dst_color.r, src_color.r);\n"
+    "   if(chroma_offset.g > 0.1)\n"
+    "   {\n"
+    "       result_color.g = (abs(src_color.g) > abs(dst_color.g) ? src_color.g : dst_color.g);\n"
+    "       result_color.b = (abs(src_color.b) > abs(dst_color.b) ? src_color.b : dst_color.b);\n"
+    "   }\n"
+    "   else\n"
+    "   {\n"
+	"	    result_color.g = max(dst_color.g, src_color.g);\n"
+	"	    result_color.b = max(dst_color.b, src_color.b);\n"
+    "   }\n";
 
 static const char *blend_min_frag = 
-	"	result_color.r = min(abs(dst_color.r), abs(src_color.r));\n"
-	"	result_color.g = (abs(dst_color.g) < abs(src_color.g) ? dst_color.g : src_color.g);\n"
-	"	result_color.b = (abs(dst_color.b) < abs(src_color.b) ? dst_color.b : src_color.b);\n";
+	"	result_color.r = min(dst_color.r, src_color.r);\n"
+    "   if(chroma_offset.g > 0.1)\n"
+    "   {\n"
+    "       result_color.g = (abs(src_color.g) < abs(dst_color.g) ? src_color.g : dst_color.g);\n"
+    "       result_color.b = (abs(src_color.b) < abs(dst_color.b) ? src_color.b : dst_color.b);\n"
+    "   }\n"
+    "   else\n"
+    "   {\n"
+	"	    result_color.g = min(dst_color.g, src_color.g);\n"
+	"	    result_color.b = min(dst_color.b, src_color.b);\n"
+    "   }\n";
 
 static const char *blend_subtract_frag = 
 	"	result_color.rgb = dst_color.rgb - src_color.rgb;\n";
 
 static const char *blend_multiply_frag = 
-	"	result_color.rgb = dst_color.rgb * src_color.rgb;\n";
+	"	result_color.r = dst_color.r * src_color.r;\n"
+    "   if(chroma_offset.g > 0.1)\n"
+    "   {\n"
+    "       result_color.g = (abs(src_color.g) > abs(dst_color.g) ? src_color.g : dst_color.g);\n"
+    "       result_color.b = (abs(src_color.b) > abs(dst_color.b) ? src_color.b : dst_color.b);\n"
+    "   }\n"
+    "   else\n"
+    "   {\n"
+	"	    result_color.g = dst_color.g * src_color.g;\n"
+	"	    result_color.b = dst_color.b * src_color.b;\n"
+    "   }\n";
 
 // divide is another function which was never used but just uses this order
 // because gimp does.
@@ -593,7 +619,8 @@ void Playback3D::copy_from_sync(Playback3DCommand *command)
 		window->lock_window("Playback3D:copy_from_sync");
 		window->enable_opengl();
 
-		if(command->input->get_opengl_state() == VFrame::SCREEN &&
+		if((command->input->get_opengl_state() == VFrame::SCREEN ||
+            command->input->get_opengl_state() == VFrame::TEXTURE) &&
 			command->input->get_w() == command->frame->get_w() &&
 			command->input->get_h() == command->frame->get_h())
 		{
@@ -605,24 +632,34 @@ void Playback3D::copy_from_sync(Playback3DCommand *command)
 // command->frame->get_color_model());
 			int w = command->input->get_w();
 			int h = command->input->get_h();
-// With NVidia at least,
-// 			if(command->input->get_w() % 4)
-// 			{
-// 				printf("Playback3D::copy_from_sync: w=%d not supported because it is not divisible by 4.\n", w);
-// 			}
-// 			else
 // Copy to texture
 			if(command->want_texture)
 			{
+                if(command->input->get_opengl_state() == VFrame::SCREEN)
+                {
 //printf("Playback3D::copy_from_sync 1 dst=%p src=%p\n", command->frame, command->input);
 // Screen_to_texture requires the source pbuffer enabled.
-				command->input->enable_opengl();
-				command->frame->screen_to_texture();
-				command->frame->set_opengl_state(VFrame::TEXTURE);
+				    command->input->enable_opengl();
+				    command->frame->screen_to_texture();
+				    command->frame->set_opengl_state(VFrame::TEXTURE);
+                }
 			}
 			else
-// Copy from pbuffer to RAM
+// Copy from pbuffer or texture to RAM
 			{
+// texture must go to screen 1st
+// If we get here, it's usually because someone forgot to initialize the 
+// opengl state.  Texture RAM is only used inside a drawing operation.
+                if(command->input->get_opengl_state() == VFrame::TEXTURE)
+                {
+printf("Playback3D::copy_from_sync %d texture -> screen -> RAM\n", __LINE__);
+                    command->input->enable_opengl();
+	                command->input->init_screen();
+	                command->input->bind_texture(0);
+                    command->input->draw_texture();
+                    command->input->set_opengl_state(VFrame::TEXTURE);
+                }
+
 // printf("Playback3D::copy_from_sync %d src=%dx%d dst=%dx%d color_model=%d rows=%p\n", 
 // __LINE__, 
 // command->input->get_w(),

@@ -575,8 +575,14 @@ int SwapMain::process_buffer(VFrame **frame,
     }
 
     first = 1;
+    last = 0;
     for(int i = 0; i < total_inputs; i++)
     {
+        if(i == total_inputs - 1)
+            last = 1;
+        else
+            last = 0;
+
         input_track = input_layers[i];
         if(input_track != RENDERED_CHANNELS &&
             input_track < get_total_buffers())
@@ -589,6 +595,8 @@ int SwapMain::process_buffer(VFrame **frame,
 // opengl it once for each source track
 	    if(get_use_opengl())
 	    {
+// printf("SwapMain::process_buffer %d i=%d input_track=%d state=%d\n", 
+// __LINE__, i, input_track, temp->get_opengl_state());
 		    run_opengl();
 	    }
         else
@@ -617,19 +625,30 @@ int SwapMain::process_buffer(VFrame **frame,
             
             
 // clear all the unused output buffers
-            if(first)
-            {
-                for(int i = 0; i < get_total_buffers(); i++)
-                {
-                    if(i != OUTPUT_BUFFER)
-                    {
-                        frame[i]->clear_frame();
-                    }
-                }
-            }
+//             if(first)
+//             {
+//                 for(int j = 0; j < get_total_buffers(); j++)
+//                 {
+//                     if(j != OUTPUT_BUFFER)
+//                     {
+//                         frame[j]->clear_frame();
+//                     }
+//                 }
+//             }
         }
         first = 0;
     }
+
+// copy OUTPUT_BUFFER to all the output layers
+// some projects use this
+    for(int j = 0; j < get_total_buffers(); j++)
+    {
+        if(j != OUTPUT_BUFFER)
+        {
+            frame[j]->copy_from(frame[OUTPUT_BUFFER]);
+        }
+    }
+    
 
 // for(int i = 0; i < get_total_buffers(); i++)
 // {
@@ -808,21 +827,47 @@ int SwapMain::handle_opengl()
 	glDisable(GL_TEXTURE_2D);
 	dst->set_opengl_state(VFrame::SCREEN);
 
-
+// 1 of these 2 stages is required for it to work.
 // clear all the unused output buffers
-    if(first)
+//     if(first)
+//     {
+//         for(int i = 0; i < get_total_buffers(); i++)
+//         {
+//             if(i != OUTPUT_BUFFER)
+//             {
+//                 dst = get_output(i);
+//                 dst->enable_opengl();
+// // make the results more predictable by clearing the unused outputs
+//                 dst->clear_pbuffer();
+//                 dst->set_opengl_state(VFrame::SCREEN);
+//             }
+//         }
+//     }
+
+// copy OUTPUT_BUFFER to all the output buffers
+    if(last && get_total_buffers() > 1)
     {
+//printf("SwapMain::handle_opengl %d\n", __LINE__);
+        src = dst;
+// move source to texture
+	    src->enable_opengl();
+	    src->init_screen();
+	    src->to_texture();
         for(int i = 0; i < get_total_buffers(); i++)
         {
             if(i != OUTPUT_BUFFER)
             {
+//printf("SwapMain::handle_opengl %d\n", __LINE__);
                 dst = get_output(i);
-                dst->enable_opengl();
-// make the results more predictable by clearing the unused outputs
-                dst->clear_pbuffer();
+	            dst->enable_opengl();
+	            dst->init_screen();
+	            src->bind_texture(0);
+                src->draw_texture();
                 dst->set_opengl_state(VFrame::SCREEN);
             }
         }
+
+        src->set_opengl_state(VFrame::SCREEN);
     }
 
 #endif // HAVE_GL

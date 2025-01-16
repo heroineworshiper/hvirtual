@@ -179,6 +179,7 @@ public:
 	VFrame *temp;
     int input_track;
     int first;
+    int last;
 };
 
 

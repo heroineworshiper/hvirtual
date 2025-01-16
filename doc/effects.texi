@@ -35,6 +35,7 @@ utilize fully by mere experimentation.
 * RESAMPLE::          Change the number of samples in a sequence with rendering.
 * REVERSE VIDEO/AUDIO:: How to play regions in reverse.
 * SWAP FRAMES::       Fixing temporal field order
+* SWAP CHANNELS::     Route color channels to different channels & tracks
 * THRESHOLD::         How to get monochrome out of a region of the image.
 * TIME AVERAGE::      How to stack images.
 * TIME FRONT::        Select pixels to display based on time
@@ -916,8 +917,23 @@ order, which is what @b{SWAP FRAMES} can correct.
 
 
 
+@node SWAP CHANNELS
+@section SWAP FRAMES
 
+In RGB colorspaces, this sends the user specified R, G, B channel in the
+source channel column to the destination channel in the destination
+column.  In YUV colorspaces, the RGB selection corresponds to Y, U, V
+channels.  The alpha is always a discrete channel but not present unless
+the project has an alpha.
 
+If swap channels is shared between multiple tracks, the source track is
+selected by the source buffer.  Source buffer 0 is the top track. 
+Higher numbered source buffers are the lower tracks in the timeline.
+
+The same output is copied to all the shared tracks so some projects can
+perform different processing on each output track.  The alpha in 2
+overlapping tracks will accumulate, so you must mute the lower tracks to
+avoid this.
 
 
 

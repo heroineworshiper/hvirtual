@@ -1035,6 +1035,9 @@ int VModule::render(VFrame *output,
             MWindow::indent -= 2;
         }
 		output->clear_frame();
+// Silence always goes to RAM
+        output->set_opengl_state(VFrame::RAM);
+//printf("VModule::render %d: use_opengl=%d state=%d\n", __LINE__, use_opengl, output->get_opengl_state());
 		return 0;
 	}
 

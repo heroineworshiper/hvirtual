@@ -599,21 +599,47 @@ int Overlay::handle_opengl()
 		"	result_color.rgb = dst_color.rgb + src_color.rgb;\n";
 
 	static const char *blend_max_frag = 
-		"	result_color.r = max(abs(dst_color.r, src_color.r);\n"
-		"	result_color.g = max(abs(dst_color.g, src_color.g);\n"
-		"	result_color.b = max(abs(dst_color.b, src_color.b);\n";
+	    "	result_color.r = max(dst_color.r, src_color.r);\n"
+        "   if(chroma_offset.g > 0.1)\n"
+        "   {\n"
+        "       result_color.g = (abs(src_color.g) > abs(dst_color.g) ? src_color.g : dst_color.g);\n"
+        "       result_color.b = (abs(src_color.b) > abs(dst_color.b) ? src_color.b : dst_color.b);\n"
+        "   }\n"
+        "   else\n"
+        "   {\n"
+	    "	    result_color.g = max(dst_color.g, src_color.g);\n"
+	    "	    result_color.b = max(dst_color.b, src_color.b);\n"
+        "   }\n";
 
 	static const char *blend_min_frag = 
-		"	result_color.r = min(abs(dst_color.r, src_color.r);\n"
-		"	result_color.g = min(abs(dst_color.g, src_color.g);\n"
-		"	result_color.b = min(abs(dst_color.b, src_color.b);\n";
+	    "	result_color.r = min(dst_color.r, src_color.r);\n"
+        "   if(chroma_offset.g > 0.1)\n"
+        "   {\n"
+        "       result_color.g = (abs(src_color.g) < abs(dst_color.g) ? src_color.g : dst_color.g);\n"
+        "       result_color.b = (abs(src_color.b) < abs(dst_color.b) ? src_color.b : dst_color.b);\n"
+        "   }\n"
+        "   else\n"
+        "   {\n"
+	    "	    result_color.g = min(dst_color.g, src_color.g);\n"
+	    "	    result_color.b = min(dst_color.b, src_color.b);\n"
+        "   }\n";
 
 	static const char *blend_subtract_frag = 
 		"	result_color.rgb = dst_color.rgb - src_color.rgb;\n";
 
 
 	static const char *blend_multiply_frag = 
-		"	result_color.rgb = dst_color.rgb * src_color.rgb;\n";
+	    "	result_color.r = dst_color.r * src_color.r;\n"
+        "   if(chroma_offset.g > 0.1)\n"
+        "   {\n"
+        "       result_color.g = (abs(src_color.g) > abs(dst_color.g) ? src_color.g : dst_color.g);\n"
+        "       result_color.b = (abs(src_color.b) > abs(dst_color.b) ? src_color.b : dst_color.b);\n"
+        "   }\n"
+        "   else\n"
+        "   {\n"
+	    "	    result_color.g = dst_color.g * src_color.g;\n"
+	    "	    result_color.b = dst_color.b * src_color.b;\n"
+        "   }\n";
 
 	static const char *blend_divide_frag = 
 		"	result_color.rgb = dst_color.rgb / src_color.rgb;\n"

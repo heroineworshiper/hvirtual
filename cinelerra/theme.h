@@ -224,6 +224,8 @@ public:
 	int play_h;
 	int pane_color;
 	int drag_pane_color;
+// division line for tracks
+    int track_division_color;
 	int preferencescategory_x, preferencescategory_y;
 // Overlap between category buttons
 	int preferences_category_overlap;

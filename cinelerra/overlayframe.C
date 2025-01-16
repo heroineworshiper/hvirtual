@@ -579,19 +579,15 @@ static float my_abs(float x)
     case TRANSFER_MAX:                                                  \
       {                                                                 \
         r = (temp_type)MAX(input1, output[0]);                          \
-        temp_type g1 = ((temp_type)input2 - chroma_offset);             \
-        if(g1 < 0) g1 = -g1;                                            \
-        temp_type g2 = ((temp_type)output[1] - chroma_offset);          \
-        if(g2 < 0) g2 = -g2;                                            \
-        if(g1 > g2)                                                     \
+        temp_type abs_input2 = my_abs((temp_type)input2 - chroma_offset);     \
+        temp_type abs_output1 = my_abs((temp_type)output[1] - chroma_offset); \
+        temp_type abs_input3 = my_abs((temp_type)input3 - chroma_offset);     \
+        temp_type abs_output2 = my_abs((temp_type)output[2] - chroma_offset); \
+        if(abs_input2 > abs_output1)                                    \
           g = input2;                                                   \
         else                                                            \
           g = output[1];                                                \
-        temp_type b1 = ((temp_type)input3 - chroma_offset);             \
-        if(b1 < 0) b1 = -b1;                                            \
-        temp_type b2 = ((temp_type)output[2] - chroma_offset);          \
-        if(b2 < 0) b2 = -b2;                                            \
-        if(b1 > b2)                                                     \
+        if(abs_input3 > abs_output2)                                    \
           b = input3;                                                   \
         else                                                            \
           b = output[2];                                                \
@@ -603,19 +599,15 @@ static float my_abs(float x)
     case TRANSFER_MIN:                                                  \
       {                                                                 \
         r = (temp_type)MIN(input1, output[0]);                          \
-        temp_type g1 = ((temp_type)input2 - chroma_offset);             \
-        if(g1 < 0) g1 = -g1;                                            \
-        temp_type g2 = ((temp_type)output[1] - chroma_offset);          \
-        if(g2 < 0) g2 = -g2;                                            \
-        if(g1 > g2)                                                     \
+        temp_type abs_input2 = my_abs((temp_type)input2 - chroma_offset);     \
+        temp_type abs_output1 = my_abs((temp_type)output[1] - chroma_offset); \
+        temp_type abs_input3 = my_abs((temp_type)input3 - chroma_offset);     \
+        temp_type abs_output2 = my_abs((temp_type)output[2] - chroma_offset); \
+        if(abs_input2 < abs_output1)                                    \
           g = input2;                                                   \
         else                                                            \
           g = output[1];                                                \
-        temp_type b1 = ((temp_type)input3 - chroma_offset);             \
-        if(b1 < 0) b1 = -b1;                                            \
-        temp_type b2 = ((temp_type)output[2] - chroma_offset);          \
-        if(b2 < 0) b2 = -b2;                                            \
-        if(b1 > b2)                                                     \
+        if(abs_input3 < abs_output2)                                                     \
           b = input3;                                                   \
         else                                                            \
           b = output[2];                                                \

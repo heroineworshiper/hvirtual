@@ -981,10 +981,14 @@ int MWindowGUI::drag_stop()
 		if(pane[i]) result |= pane[i]->canvas->drag_stop(
 			&redraw);
 	}
+// printf("MWindowGUI::drag_stop %d result=%d current_operation=%d\n", 
+// __LINE__, result, mwindow->session->current_operation);
 
 // cancel anything which wasn't trapped by a pane
     if(!result && 
-        mwindow->session->current_operation == DRAG_EDIT)
+        mwindow->session->current_operation == DRAG_EDIT ||
+        mwindow->session->current_operation == DRAG_VEFFECT_COPY ||
+        mwindow->session->current_operation == DRAG_AEFFECT_COPY)
     {
         result = 1;
     }
@@ -1002,6 +1006,7 @@ int MWindowGUI::drag_stop()
 		mwindow->session->plugin_highlighted = 0;
 		mwindow->session->pluginset_highlighted = 0;
 		mwindow->session->current_operation = NO_OPERATION;
+//printf("MWindowGUI::drag_stop %d\n", __LINE__);
 	}
 
 

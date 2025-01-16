@@ -929,6 +929,9 @@ int PluginServer::read_frame(VFrame *buffer,
 
 // Push our name on the next effect stack
 	buffer->push_next_effect(title);
+// reset the opengl state in case the previous step is a renderer
+// which doesn't read a frame.
+    buffer->set_opengl_state(VFrame::RAM);
 //printf("PluginServer::read_frame %p\n", buffer);
 //buffer->dump_stacks();
 

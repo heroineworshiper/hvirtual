@@ -270,9 +270,11 @@ int Track::vertical_span(Theme *theme)
     int title_h = theme->get_image("title_bg_data")->get_h();
 
 // shift down if track has media or certain keyframes are visible
-    int got_autos = 0;
-    for(int i = 0; i < AUTOMATION_TOTAL; i++)
-        if(edl->session->auto_conf->autos[i]) got_autos = 1;
+// 1/16/25: always reserve space for the media, because of dragging problems
+// Maybe it conveys a lack of media or something.
+//     int got_autos = 0;
+//     for(int i = 0; i < AUTOMATION_TOTAL; i++)
+//         if(edl->session->auto_conf->autos[i]) got_autos = 1;
 //printf("Track::vertical_span %d expand_view=%d got_autos=%d\n", __LINE__, expand_view, got_autos);
 
 // follows the greater of the plugin heights or the patchbay if expanded
@@ -283,7 +285,7 @@ int Track::vertical_span(Theme *theme)
 // will show
         int plugin_margin = PLUGIN_MARGIN;
 // height of the media
-        if(edits->last || got_autos)
+//        if(edits->last || got_autos)
         {
 	        if(edits->last && edl->session->show_titles)
     		{
@@ -291,7 +293,7 @@ int Track::vertical_span(Theme *theme)
                 plugin_margin = 0;
             }
 
-            if(edl->session->show_assets || got_autos)
+//            if(edl->session->show_assets || got_autos)
             {
                 result += edl->local_session->zoom_track;
                 plugin_margin = 0;
@@ -307,7 +309,7 @@ int Track::vertical_span(Theme *theme)
     else
 	{
 // fixed height if not expanded
-        if(edl->session->show_assets || got_autos)
+//        if(edl->session->show_assets || got_autos)
         	result += edl->local_session->zoom_track;
 	    if(edits->last && edl->session->show_titles)
     		result += title_h;

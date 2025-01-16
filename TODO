@@ -11,7 +11,7 @@ pulse audio system dependencies
 migrate other libraries which have stabilized
 smarter default window positions
 Config window for screencap which specifies X & Y offset
-Specify color space as part of recording parameters.
+
 
 
 BIG BUGS
@@ -23,6 +23,8 @@ Effects not getting rendered if multiple effects have random starting times.
 Drag effect before timeline is finished drawing after a load -> lockup
 Load a sound file.  Change the file on the disk.  Crash on exit.
 Change asset path, CPlayback never returns to redraw the frame.
+
+
 
 BUGS
 ----------------------------------

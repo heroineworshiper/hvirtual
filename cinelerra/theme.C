@@ -119,7 +119,7 @@ Theme::Theme()
 
 	pane_color = BLACK;
 	drag_pane_color = WHITE;
-
+    track_division_color = DKGREY;
 	
 
 

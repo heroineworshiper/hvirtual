@@ -620,9 +620,6 @@ void TrackCanvas::draw_resources(int mode,
 	
 	if(debug) PRINT_TRACE
 
-	if(!mwindow->edl->session->show_assets &&
-        !mwindow->edl->session->show_titles) return;
-
 
 // can't stop thread here, because this is called for every pane
 //	if(mode != IGNORE_THREAD && !indexes_only)
@@ -658,17 +655,44 @@ void TrackCanvas::draw_resources(int mode,
 		current = NEXT)
 	{
 		if(debug) PRINT_TRACE
+
+        if(indexes_only && current->data_type != TRACK_AUDIO)
+            continue;
+
+// track divider
+        int64_t track_x = 0, track_y = 0, track_w = 16, track_h = 16;
+        track_dimensions(current, track_x, track_y, track_w, track_h);
+        set_color(mwindow->theme->track_division_color);
+        set_line_dashes(1);
+        if(current != mwindow->edl->tracks->first)
+            draw_line(track_x, 
+                track_y, 
+                track_x + track_w, 
+                track_y, 
+                background_pixmap);
+        if(current != mwindow->edl->tracks->last)
+            draw_line(track_x, 
+                track_y + track_h, 
+                track_x + track_w, 
+                track_y + track_h, 
+                background_pixmap);
+        set_line_dashes(0);
+//printf("TrackCanvas::draw_resources %d %d\n", __LINE__, (int)track_y);
+
+	    if(!mwindow->edl->session->show_assets &&
+            !mwindow->edl->session->show_titles) continue;
+
 		for(Edit *edit = current->edits->first; edit; edit = edit->next)
 		{
 			if(debug) PRINT_TRACE
 			if(!edit->asset && !edit->nested_edl) continue;
 			if(indexes_only)
 			{
-				if(edit->track->data_type != TRACK_AUDIO)
-                {
-                    continue;
-                }
-
+// 				if(edit->track->data_type != TRACK_AUDIO)
+//                 {
+//                     continue;
+//                 }
+// 
 				if(edit->nested_edl && 
 					strcmp(indexable->path, edit->nested_edl->path))
                 {
@@ -1133,13 +1157,15 @@ void TrackCanvas::plugin_dimensions(Plugin *plugin,
     int plugin_margin = PLUGIN_MARGIN;
 
 // shift down if track has media or certain keyframes are visible
-    int got_autos = 0;
-    for(int i = 0; i < AUTOMATION_TOTAL; i++)
-        if(mwindow->edl->session->auto_conf->autos[i]) got_autos = 1;
-    if(plugin->track->edits->last || got_autos)
+// 1/16/25: always reserve space for the media, because of dragging problems
+// Maybe it conveys a lack of media or something.
+//     int got_autos = 0;
+//     for(int i = 0; i < AUTOMATION_TOTAL; i++)
+//         if(mwindow->edl->session->auto_conf->autos[i]) got_autos = 1;
+//    if(plugin->track->edits->last || got_autos)
     {
-        if(mwindow->edl->session->show_assets || 
-            got_autos)
+//        if(mwindow->edl->session->show_assets || 
+//            got_autos)
         {
             y += mwindow->edl->local_session->zoom_track;
             plugin_margin = 0;
@@ -1647,9 +1673,6 @@ void TrackCanvas::draw_plugins()
 								}
 								current_show++;
 							}
-
-
-							
 						}
 					}
 				}

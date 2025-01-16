@@ -3590,7 +3590,7 @@ int TitleMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 //PRINT_TRACE
 		overlay_mask();
 	}
-
+//printf("TitleMain::process_realtime %d state=%d\n", __LINE__, output_ptr->get_opengl_state());
 	return 0;
 }
 
