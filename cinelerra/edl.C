@@ -229,9 +229,9 @@ int EDL::load_xml(FileXML *file, uint32_t load_flags)
 
 	if(!result)
 	{
-// Get path for backups
+// Get path for the case of restoring a backup
 //		path[0] = 0;
-		file->tag.get_property("path", path);
+		file->tag.get_property("PATH", path);
 
 // Erase everything
 // 		if((load_flags & LOAD_ALL) == LOAD_ALL ||
@@ -1379,8 +1379,8 @@ void EDL::insert_asset(Asset *asset,
 		length = new_nested_edl->tracks->total_playable_length() *
             new_nested_edl->session->frame_rate /
             new_nested_edl->session->get_nested_frame_rate();
-		layers = 1;
-		channels = new_nested_edl->session->audio_channels;
+		layers = new_nested_edl->tracks->total_playable_tracks(TRACK_VIDEO);
+		channels = new_nested_edl->tracks->total_playable_tracks(TRACK_AUDIO);
 	}
 
 #define NOSEEK_SECONDS 3600

@@ -263,8 +263,8 @@ public:
 	AutoConf auto_conf;      // which autos are visible
 	int overlays_visible;
 	double total_playable_length();     // Longest track.
-// Used by equivalent_output, file previews
-	int total_playable_vtracks();
+// Used by equivalent_output, file previews, nested EDL
+	int total_playable_tracks(int type);
 	double total_recordable_length();   // Longest track with recording on
 	int totalpixels();       // height of all tracks in pixels
 	int number_of(Track *track);        // track number of pointer

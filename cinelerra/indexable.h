@@ -58,7 +58,7 @@ public:
 // In the top EDL, this is the path it was loaded from.  Restores 
 // project titles from backups.  This is only used for loading backups & nested EDLs.
 // All other loads keep the path in mainsession->filename.
-// This can't use the output_path argument to save_xml because that points
+// This can't be the output_path argument to save_xml because that points
 // to the backup file, not the project file.
 	char path[BCTEXTLEN];
 // Folder in resource manager

@@ -68,7 +68,7 @@ Tracks::~Tracks()
 
 void Tracks::equivalent_output(Tracks *tracks, double *result)
 {
-	if(total_playable_vtracks() != tracks->total_playable_vtracks())
+	if(total_playable_tracks(TRACK_VIDEO) != tracks->total_playable_tracks(TRACK_VIDEO))
 	{
 		*result = 0;
 	}
@@ -644,12 +644,12 @@ Track* Tracks::number(int number)
 }
 
 
-int Tracks::total_playable_vtracks()
+int Tracks::total_playable_tracks(int type)
 {
 	int result = 0;
 	for(Track *current = first; current; current = NEXT)
 	{
-		if(current->data_type == TRACK_VIDEO && current->play) result++;
+		if(current->data_type == type && current->play) result++;
 	}
 	return result;
 }

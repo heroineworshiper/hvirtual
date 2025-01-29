@@ -1348,9 +1348,11 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 				{
 					EDL *nested_edl = new EDL;
 					nested_edl->create_objects();
-					nested_edl->set_path(filenames->values[i]);
 					error |= nested_edl->load_xml(&xml_file, LOAD_ALL);
-//printf("MWindow::load_filenames %p %s\n", nested_edl, nested_edl->project_path);
+// override the backup path name so the right name appears in the timeline
+					nested_edl->set_path(filenames->values[i]);
+//printf("MWindow::load_filenames %d %p %s %s\n", 
+//__LINE__, nested_edl, filenames->values[i], nested_edl->path);
 					edl_to_nested(new_edl, nested_edl);
 					nested_edl->Garbage::remove_user();
                     
@@ -1360,8 +1362,9 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
                 {
                     EDL *nested_edl = new EDL;
 					nested_edl->create_objects();
-					nested_edl->set_path(filenames->values[i]);
 					error |= nested_edl->load_xml(&xml_file, LOAD_ALL);
+// override the backup path name so the right name appears in the timeline
+					nested_edl->set_path(filenames->values[i]);
 // this creates a nested EDL resource only & returns it
                     EDL *nested_edl2 = edl->nested_edls->get_copy(nested_edl);
 // printf("MWindow::load_filenames %d nested_edl2 %p users=%d nested_edl %p users=%d new_edl %p users=%d\n", 
@@ -2774,9 +2777,16 @@ int MWindow::edl_to_nested(EDL *new_edl,
 
 
 
-// Nest all video & audio outputs
-	new_edl->session->video_tracks = 1;
-	new_edl->session->audio_tracks = nested_edl->session->audio_channels;
+// Compute the tracks from the number of outputs & the number of playable tracks
+    if(nested_edl->tracks->total_playable_tracks(TRACK_VIDEO))
+    	new_edl->session->video_tracks = 1;
+    else
+        new_edl->session->video_tracks = 0;
+
+    if(nested_edl->tracks->total_playable_tracks(TRACK_AUDIO))
+	    new_edl->session->audio_tracks = nested_edl->session->audio_channels;
+    else
+        new_edl->session->audio_tracks = 0;
 	new_edl->create_default_tracks();
 
 
@@ -2790,7 +2800,8 @@ int MWindow::edl_to_nested(EDL *new_edl,
 	char string[BCTEXTLEN];
 	FileSystem fs;
 	fs.extract_name(string, nested_edl->path);
-//printf("MWindow::edl_to_nested %p %s\n", nested_edl, nested_edl->path);
+//printf("MWindow::edl_to_nested %d %p %s\n", 
+//__LINE__, nested_edl, nested_edl->path);
 
 	strcpy(new_edl->local_session->clip_title, string);
 

@@ -164,7 +164,7 @@ void FilePreviewerThread::run()
 
 // no more than 1 playable video track
                 if(preview_it && 
-                    previewer->edl->tracks->total_playable_vtracks() > 1)
+                    previewer->edl->tracks->total_playable_tracks(TRACK_VIDEO) > 1)
                 {
                     if(debug) 
                     {
@@ -397,7 +397,7 @@ void FilePreviewer::create_preview()
                     int canvas_h = canvas_w;
                     previewer->play_position = 0;
                     filebox->preview_status->hide_window();
-                    if(previewer->edl->tracks->total_playable_vtracks())
+                    if(previewer->edl->tracks->total_playable_tracks(TRACK_VIDEO))
                     {
                         canvas_h = canvas_w * 
                             previewer->edl->session->output_h / 
@@ -480,7 +480,7 @@ void FilePreviewer::create_preview()
                         y += previewer->play->get_h();
                     }
 
-                    if(!previewer->edl->tracks->total_playable_vtracks())
+                    if(!previewer->edl->tracks->total_playable_tracks(TRACK_VIDEO))
                     {
                         previewer->canvas->draw_vframe(previewer->speaker_image,
                             0,
@@ -580,7 +580,7 @@ void FilePreviewer::create_info(BC_FileBox *filebox,
         strcat(string, string3);
 
         string2[0] = 0;
-        if(edl->tracks->total_playable_vtracks())
+        if(edl->tracks->total_playable_tracks(TRACK_VIDEO))
         {
             sprintf(string3, 
                 "%dx%d", 

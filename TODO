@@ -17,6 +17,7 @@ Config window for screencap which specifies X & Y offset
 BIG BUGS
 ----------------
 Nested EDL index file isn't updated when the nested EDL changes.
+ - would need to mark canceled index files to avoid building what the user canceled
 Applies filebox filter to the auto completion in a browse button textbox.
 Nested EDLs with different colormodels crash.
 Effects not getting rendered if multiple effects have random starting times.
