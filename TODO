@@ -1,7 +1,7 @@
 Igor Vladimirsky requests:
 https://docs.google.com/spreadsheets/d/18eLwHrABP6ROHvPHfJW-Jtr_xB4wOblhwmzFuSFKKYs/edit#gid=0
 
-File format requests (Readonly):
+File format requests:
 https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35klaM/edit?usp=sharing 
 
 
@@ -19,6 +19,7 @@ BIG BUGS
 Nested EDL index file isn't updated when the nested EDL changes.
  - would need to mark canceled index files to avoid building what the user canceled
 Applies filebox filter to the auto completion in a browse button textbox.
+ - hardly ever use filebox filters
 Nested EDLs with different colormodels crash.
 Effects not getting rendered if multiple effects have random starting times.
 Drag effect before timeline is finished drawing after a load -> lockup

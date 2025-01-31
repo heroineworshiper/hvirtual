@@ -189,7 +189,7 @@ BC_WindowBase::~BC_WindowBase()
 		if (clockfont)
 			XFreeFont(display, clockfont);
 
-
+        delete_im();
 		flush();
 
 //printf("BC_WindowBase::~BC_WindowBase %d %p %p\n", __LINE__, gl_win_context, get_resources()->get_synchronous());
@@ -566,7 +566,7 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 					true);
 
 		}
-		
+		init_im();
 	}
 
 #ifdef HAVE_LIBXXF86VM
@@ -823,11 +823,108 @@ int BC_WindowBase::get_key_masks(XEvent *event)
 }
 
 
+void BC_WindowBase::init_im()
+{
+	XIMStyles *xim_styles;
+	XIMStyle xim_style;
+
+	if(!(input_method = XOpenIM(display, NULL, NULL, NULL)))
+	{
+		printf("BC_WindowBase::init_im: Could not open input method.\n");
+		XSetLocaleModifiers("@im=local");
+		if(!(input_method = XOpenIM(display, NULL, NULL, NULL))) {
+		printf("BC_WindowBase::init_im: Could not open input method local.\n");
+		exit(1);
+		}
+	}
+	if(XGetIMValues(input_method, XNQueryInputStyle, &xim_styles, NULL) ||
+			xim_styles == NULL)
+	{
+		printf("BC_WindowBase::init_im: Input method doesn't support any styles.\n");
+		XCloseIM(input_method);
+		exit(1);
+	}
+
+	xim_style = 0;
+	for(int z = 0;  z < xim_styles->count_styles;  z++)
+	{
+		if(xim_styles->supported_styles[z] == (XIMPreeditNothing | XIMStatusNothing))
+		{
+			xim_style = xim_styles->supported_styles[z];
+			break;
+		}
+	}
+	XFree(xim_styles);
+
+	if(xim_style == 0)
+	{
+		printf("BC_WindowBase::init_im: Input method doesn't support the style we need.\n");
+		XCloseIM(input_method);
+		exit(1);
+	}
+
+	input_context = XCreateIC(input_method, XNInputStyle, xim_style,
+		XNClientWindow, win, XNFocusWindow, win, NULL);
+	if(!input_context)
+	{
+		printf("BC_WindowBase::init_im: Failed to create input context.\n");
+		XCloseIM(input_method);
+		exit(1);
+	}
+}
+
+void BC_WindowBase::delete_im()
+{
+	if( input_context ) {
+		XDestroyIC(input_context);
+		input_context = 0;
+	}
+	if( input_method ) {
+		XCloseIM(input_method);
+		input_method = 0;
+	}
+}
+
+int BC_WindowBase::keysym_lookup(XEvent *event)
+{
+	for( int i = 0; i < KEYPRESSLEN; ++i ) keys_return[i] = 0;
+	for( int i = 0; i < 4; ++i ) wkey_string[i] = 0;
+
+	if( event->xany.send_event && !event->xany.serial ) {
+		keysym = (KeySym) event->xkey.keycode;
+		keys_return[0] = keysym;
+		return 0;
+	}
+	wkey_string_length = 0;
+
+	if( input_context ) {
+		wchar_t wkey[4];
+		wkey_string_length = XwcLookupString(input_context,
+			(XKeyEvent*)event, wkey, 4, &keysym, 0);
+		for( int i=0; i<wkey_string_length; ++i )
+			wkey_string[i] = wkey[i];
+//printf("keysym_lookup 1 %d %d %lx %x %x %x %x\n", wkey_string_length, keysym,
+//  wkey_string[0], wkey_string[1], wkey_string[2], wkey_string[3]);
+
+		Status stat;
+		int ret = Xutf8LookupString(input_context, (XKeyEvent*)event,
+				keys_return, KEYPRESSLEN, &keysym, &stat);
+//printf("keysym_lookup 2 %d %d %lx %x %x\n", ret, stat, keysym, keys_return[0], keys_return[1]);
+		if( stat == XLookupBoth ) return ret;
+		if( stat == XLookupKeySym ) return 0;
+	}
+	int ret = XLookupString((XKeyEvent*)event, keys_return, KEYPRESSLEN, &keysym, 0);
+	wkey_string_length = ret;
+	for( int i=0; i<ret; ++i ) wkey_string[i] = keys_return[i];
+	return ret;
+}
+
+
 
 int BC_WindowBase::dispatch_event(BC_Event *event)
 {
     Window tempwin;
-  	KeySym keysym;
+//  	KeySym keysym;
 	int result;
 	XClientMessageEvent *ptr;
 	int temp;
@@ -1090,65 +1187,76 @@ __LINE__, title, event, event->xevent->type);
 			    get_key_masks(xevent);
   			    keys_return[0] = 0;
     #ifdef X_HAVE_UTF8_STRING
-			    for (int a = 0; a < KEYPRESSLEN; a++) keys_return[a] = 0;
-			    // this is routine re-adapted from xev.c - xutils
-			    im = XOpenIM (display, NULL, NULL, NULL);
-			    XIMStyles *xim_styles;
-   	            XIMStyle xim_style;
-   	            if (im == NULL) 
-   	            {
-       		    printf ("XOpenIM failed\n");
-    		    }
+                keysym = -1;
+		        if(XFilterEvent(xevent, win)) {
+			        break;
+		        }
+		        if( keysym_lookup(xevent) < 0 ) {
+			        printf("keysym %x\n", (uint32_t)keysym);
+			        break;
+		        }
 
-			    if (im) 
-			    {
-				    char *imvalret;
-        			    imvalret = XGetIMValues (im, XNQueryInputStyle, &xim_styles, NULL);
-        			    if (imvalret != NULL || xim_styles == NULL) 
-        			    {
-            				    printf ("input method doesn't support any styles\n");
-        			    }
 
-    	       			    if (xim_styles) 
-    	       			    {
-            	         		    xim_style = 0;            	               
-            		       		    for (int z = 0;  z < xim_styles->count_styles;  z++) 
-            		       		    {
-                	       			    if (xim_styles->supported_styles[z] == (XIMPreeditNothing | XIMStatusNothing)) 
-                	       			    {
-                    					    xim_style = xim_styles->supported_styles[z];
-                    	 				    break;
-                    	 			    }
-            				    }
 
-            				    if (xim_style == 0) 
-            				    {
-                				    printf ("input method doesn't support the style we support\n");
-            				    }
-            				    XFree (xim_styles);
-        			    }
-    			    } 
-			    if (im && xim_style) 
-			    {
-        			    ic = XCreateIC (im, 
-                        	    XNInputStyle, xim_style, 
-                       		    XNClientWindow, win, 
-                       		    XNFocusWindow, win, 
-				    NULL);
-				    if (ic == NULL) 
-				    {
-            				    printf ("XCreateIC failed\n");
-        			    }
-			    }
-
-			    if (ic)
-			    {
-	  			    Xutf8LookupString(ic, (XKeyEvent*)xevent, keys_return, KEYPRESSLEN, &keysym, 0);
-  			    } 
-			    else 
-  			    {
-  				    XLookupString((XKeyEvent*)xevent, keys_return, KEYPRESSLEN, &keysym, 0);
-  			    }
+// 			    for (int a = 0; a < KEYPRESSLEN; a++) keys_return[a] = 0;
+// 			    // this is routine re-adapted from xev.c - xutils
+// 			    im = XOpenIM (display, NULL, NULL, NULL);
+// 			    XIMStyles *xim_styles;
+//    	            XIMStyle xim_style;
+//    	            if (im == NULL) 
+//    	            {
+//        		    printf ("XOpenIM failed\n");
+//     		    }
+// 
+// 			    if (im) 
+// 			    {
+// 				    char *imvalret;
+//         			    imvalret = XGetIMValues (im, XNQueryInputStyle, &xim_styles, NULL);
+//         			    if (imvalret != NULL || xim_styles == NULL) 
+//         			    {
+//             				    printf ("input method doesn't support any styles\n");
+//         			    }
+// 
+//     	       			    if (xim_styles) 
+//     	       			    {
+//             	         		    xim_style = 0;            	               
+//             		       		    for (int z = 0;  z < xim_styles->count_styles;  z++) 
+//             		       		    {
+//                 	       			    if (xim_styles->supported_styles[z] == (XIMPreeditNothing | XIMStatusNothing)) 
+//                 	       			    {
+//                     					    xim_style = xim_styles->supported_styles[z];
+//                     	 				    break;
+//                     	 			    }
+//             				    }
+// 
+//             				    if (xim_style == 0) 
+//             				    {
+//                 				    printf ("input method doesn't support the style we support\n");
+//             				    }
+//             				    XFree (xim_styles);
+//         			    }
+//     			    } 
+// 			    if (im && xim_style) 
+// 			    {
+//         			    ic = XCreateIC (im, 
+//                         	    XNInputStyle, xim_style, 
+//                        		    XNClientWindow, win, 
+//                        		    XNFocusWindow, win, 
+// 				    NULL);
+// 				    if (ic == NULL) 
+// 				    {
+//             				    printf ("XCreateIC failed\n");
+//         			    }
+// 			    }
+// 
+// 			    if (ic)
+// 			    {
+// 	  			    Xutf8LookupString(ic, (XKeyEvent*)xevent, keys_return, KEYPRESSLEN, &keysym, 0);
+//   			    } 
+// 			    else 
+//   			    {
+//   				    XLookupString((XKeyEvent*)xevent, keys_return, KEYPRESSLEN, &keysym, 0);
+//   			    }
 
     #else // X_HAVE_UTF8_STRING
 			    XLookupString((XKeyEvent*)xevent, keys_return, KEYPRESSLEN, &keysym, 0);
@@ -1335,6 +1443,7 @@ __LINE__, title, event, event->xevent->type);
 if(debug) printf("BC_WindowBase::dispatch_event this=%p %d\n", this, __LINE__);
 	return 0;
 }
+
 
 int BC_WindowBase::dispatch_expose_event()
 {

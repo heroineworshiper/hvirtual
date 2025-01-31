@@ -98,11 +98,9 @@
 
 
 
-#ifdef HAVE_GL
-//typedef void* GLXContext;
-#endif
 
 using std::string;
+typedef uint32_t wchr_t;
 
 class BC_ResizeCall
 {
@@ -676,6 +674,9 @@ private:
 	int dispatch_event(BC_Event *event);
 
 	int get_key_masks(XEvent *event);
+    void init_im();
+    void delete_im();
+    int keysym_lookup(XEvent *event);
 
 	int trigger_tooltip();
 	int untrigger_tooltip();
@@ -791,8 +792,12 @@ private:
 	int button_pressed;
 // Last key pressed
 	int key_pressed;
+// key data
+	KeySym keysym;
 #ifdef X_HAVE_UTF8_STRING
 	char* key_pressed_utf8;
+	int wkey_string_length;
+	wchr_t wkey_string[4];
 #endif
 // During a selection drag involving toggles, set the same value for each toggle
 	int toggle_value;
@@ -922,8 +927,13 @@ private:
 #endif
 
 #ifdef X_HAVE_UTF8_STRING
-	XIM im;		/* Used to communicate with the input method (IM) server */
-	XIC ic;		/* Used for retaining the state, properties, and semantics of communication with the input method (IM) server */
+//	XIM im;		/* Used to communicate with the input method (IM) server */
+//	XIC ic;		/* Used for retaining the state, properties, and semantics of communication with the input method (IM) server */
+	// Used to communicate with the input method (IM) server
+	XIM input_method;
+	// Used for retaining the state, properties, and semantics
+	//  of communication with the input method (IM) server
+	XIC input_context;
 #endif
 
 
