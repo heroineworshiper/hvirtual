@@ -34,6 +34,7 @@
 #include "bctimer.h"
 #include "vframe.h"
 
+#include <iconv.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -42,6 +43,119 @@
 #define HORIZONTAL_MARGIN 4
 #define HORIZONTAL_MARGIN_NOBORDER 2
 #define UNDOLEVELS 500
+
+
+
+// begin cingg
+class utf8conv {
+	uint8_t *obfr, *out, *oend;
+	uint8_t *ibfr, *inp, *iend;
+public:
+	utf8conv(void *out, int olen, void *inp, int ilen) {
+		this->obfr = this->out = (uint8_t*)out;
+		this->oend = this->out + olen;
+		this->ibfr = this->inp = (uint8_t*)inp;
+		this->iend = this->inp + ilen;
+	}
+	int cur() { return inp>=iend ? -1 : *inp; }
+	int next() { return inp>=iend ? -1 : *inp++; }
+	int next(int ch) { return out>=oend ? -1 : *out++ = ch; }
+	int ilen() { return inp-ibfr; }
+	int olen() { return out-obfr; }
+	int wnext();
+	int wnext(unsigned int v);
+};
+
+int utf8conv::
+wnext(unsigned int v)
+{
+  if( v < 0x00000080 ) { next(v);  return 1; }
+  int n = v < 0x00000800 ? 2 : v < 0x00010000 ? 3 :
+          v < 0x00200000 ? 4 : v < 0x04000000 ? 5 : 6;
+  int m = (0xff00 >> n), i = n-1;
+  next((v>>(6*i)) | m);
+  while( --i >= 0 ) next(((v>>(6*i)) & 0x3f) | 0x80);
+  return n;
+}
+
+int utf8conv::
+wnext()
+{
+  int v = 0, n = 0, ch = next();
+  if( ch >= 0x80 ) {
+    static const unsigned char byts[] = {
+      1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 5,
+    };
+    int i = ch - 0xc0;
+    n = i<0 ? 0 : byts[i/4];
+    for( v=ch, i=n; --i>=0; v+=next() ) v <<= 6;
+    static const unsigned int ofs[6] = {
+      0x00000000U, 0x00003080U, 0x000E2080U,
+      0x03C82080U, 0xFA082080U, 0x82082080U
+    };
+    v -= ofs[n];
+  }
+  else
+    v = ch;
+  return v;
+}
+
+
+static size_t encode(const char *from_enc, const char *to_enc,
+	char *input, int input_length, char *output, int output_length)
+{
+	if( !from_enc || *from_enc == 0 ||
+	    !strcmp(from_enc,"UTF8") || !strcmp(from_enc, "US-ASCII") )
+		from_enc = "UTF-8";
+
+	if( !to_enc || *to_enc == 0 ||
+	    !strcmp(to_enc,"UTF8") || !strcmp(to_enc, "US-ASCII") )
+		to_enc = "UTF-8";
+
+	iconv_t cd;
+	char *outbase = output;
+	size_t inbytes = input_length < 0 ? strlen(input) : input_length;
+	size_t outbytes = output_length;
+
+	if( inbytes && outbytes ) {
+		if( !strcmp(from_enc, to_enc) ) {
+			if( inbytes > outbytes ) inbytes = outbytes;
+			memcpy(output,  input, inbytes);
+			output += inbytes;
+			outbytes -= inbytes;
+		}
+		else if( !strcmp(from_enc, "UTF-8") && !strcmp(to_enc,"UTF32LE") ) {
+			utf8conv uc(0,0, input,inbytes);
+			uint32_t *op = (uint32_t *)output;
+			uint32_t *ep = (uint32_t *)(output+output_length);
+			for( int wch; op<ep && (wch=uc.wnext())>=0; *op++=wch );
+			output = (char *)op;
+			outbytes = (char*)ep - output;
+		}
+		else if( !strcmp(from_enc, "UTF32LE") && !strcmp(to_enc,"UTF-8") ) {
+			utf8conv uc(output,output_length, 0,0);
+			uint32_t *ip = (uint32_t *)input;
+			uint32_t *ep = (uint32_t *)(input+inbytes);
+			for( ; ip<ep && uc.wnext(*ip)>=0; ++ip );
+			output += uc.olen();
+			outbytes -= uc.olen();
+		}
+		else if( (cd = iconv_open(to_enc, from_enc)) != (iconv_t)-1 ) {
+			iconv(cd, &input, &inbytes, &output, &outbytes);
+			iconv_close(cd);
+		}
+		else {
+			printf(_("Conversion from %s to %s is not available\n"),
+				from_enc, to_enc);
+		}
+	}
+	if( outbytes > sizeof(uint32_t) )
+		outbytes = sizeof(uint32_t);
+	for( uint32_t i = 0; i < outbytes; i++)
+		output[i] = 0;
+	return output - outbase;
+}
+// end cingg
 
 BC_TextBox::BC_TextBox(int x, 
 	int y, 
@@ -1176,45 +1290,79 @@ void BC_TextBox::default_keypress(int &dispatch_event, int &result)
         return;
     }
 
-	if((top_level->get_keypress() == RETURN) ||
-        (top_level->get_keypress() > 30 && top_level->get_keypress() <= 255))
-//		(top_level->get_keypress() > 30 && top_level->get_keypress() < 127))
-	{
-		if((top_level->get_keypress() == RETURN) || 
-			(top_level->get_keypress() > 30))
-		{
-// Substitute UNIX linefeed
-			if(top_level->get_keypress() == RETURN)
-			{
-				temp_string[0] = 0xa;
-				temp_string[1] = 0;
-			}
-			else
-			{ 
-#ifdef X_HAVE_UTF8_STRING
-				if (top_level->get_keypress_utf8() != 0)
-				{
-					memcpy(temp_string, top_level->get_keypress_utf8(), KEYPRESSLEN);
-				} 
-				else 
-				{
-					temp_string[0] = top_level->get_keypress();
-					temp_string[1] = 0;
-				}
-#else
-				temp_string[0] = top_level->get_keypress();
-				temp_string[1] = 0;
-#endif
-			}
-		}
-		
-		insert_text((char*)temp_string);
+
+
+
+// 	if((top_level->get_keypress() == RETURN) ||
+//         (top_level->get_keypress() > 30 && top_level->get_keypress() <= 255))
+// //		(top_level->get_keypress() > 30 && top_level->get_keypress() < 127))
+// 	{
+// 		if((top_level->get_keypress() == RETURN) || 
+// 			(top_level->get_keypress() > 30))
+// 		{
+// // Substitute UNIX linefeed
+// 			if(top_level->get_keypress() == RETURN)
+// 			{
+// 				temp_string[0] = 0xa;
+// 				temp_string[1] = 0;
+// 			}
+// 			else
+// 			{ 
+// #ifdef X_HAVE_UTF8_STRING
+// 				if (top_level->get_keypress_utf8() != 0)
+// 				{
+// 					memcpy(temp_string, top_level->get_keypress_utf8(), KEYPRESSLEN);
+// 				} 
+// 				else 
+// 				{
+// 					temp_string[0] = top_level->get_keypress();
+// 					temp_string[1] = 0;
+// 				}
+// #else
+// 				temp_string[0] = top_level->get_keypress();
+// 				temp_string[1] = 0;
+// #endif
+// 			}
+// 		}
+// 		
+
+
+// begin cingg
+	    int key = top_level->get_keypress(), len;
+	    wchr_t *wkeys = top_level->get_wkeystring(&len);
+	    switch( key ) {
+	    case KPENTER:	key = '\n';	goto kpchr;
+	    case KPMINUS:	key = '-';	goto kpchr;
+	    case KPPLUS:	key = '+';	goto kpchr;
+	    case KPDEL:	key = '.';	goto kpchr;
+	    case RETURN:	key = '\n';	goto kpchr;
+	    case KPINS:	key = '0';	goto kpchr;
+	    case KP1: case KP2: case KP3: case KP4: case KP5:
+	    case KP6: case KP7: case KP8: case KP9:
+		    key = key - KP1 + '1';
+	    kpchr: {
+		    wkeys[0] = key;  wkeys[1] = 0;  len = 1;
+		    break; }
+	    default:
+		    if( key < 32 || key > 255 ) return;
+	    }
+// end cingg
+
+// convert wchr to UTF8 here
+        encode("UTF32LE", // from_enc
+            "UTF-8", // to_enc
+	        (char*)wkeys, // input 
+            len, // input_length
+            temp_string, // output
+            sizeof(temp_string)); // output_length
+
+ 		insert_text((char*)temp_string);
 		find_ibeam(1);
         update_undo();
 		draw(1);
 		dispatch_event = 1;
 		result = 1;
-	}
+//	}
 }
 
 int BC_TextBox::keypress_event()

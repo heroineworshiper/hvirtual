@@ -888,7 +888,7 @@ void BC_WindowBase::delete_im()
 int BC_WindowBase::keysym_lookup(XEvent *event)
 {
 	for( int i = 0; i < KEYPRESSLEN; ++i ) keys_return[i] = 0;
-	for( int i = 0; i < 4; ++i ) wkey_string[i] = 0;
+	for( int i = 0; i < sizeof(wkey_string) / sizeof(wchr_t); ++i ) wkey_string[i] = 0;
 
 	if( event->xany.send_event && !event->xany.serial ) {
 		keysym = (KeySym) event->xkey.keycode;
@@ -919,6 +919,13 @@ int BC_WindowBase::keysym_lookup(XEvent *event)
 	return ret;
 }
 
+
+wchr_t* BC_WindowBase::get_wkeystring(int *length)
+{
+	if(length)
+		*length = top_level->wkey_string_length;
+	return top_level->wkey_string;
+}
 
 
 int BC_WindowBase::dispatch_event(BC_Event *event)

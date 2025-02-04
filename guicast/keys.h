@@ -37,6 +37,7 @@
 
 // Number pad keys
 #define KPPLUS              265
+#define KPMINUS             295
 #define KPENTER             266
 #define KP1                 267
 #define KP2                 268

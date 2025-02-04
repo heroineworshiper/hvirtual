@@ -677,6 +677,7 @@ private:
     void init_im();
     void delete_im();
     int keysym_lookup(XEvent *event);
+    wchr_t* get_wkeystring(int *length);
 
 	int trigger_tooltip();
 	int untrigger_tooltip();
