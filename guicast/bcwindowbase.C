@@ -524,15 +524,17 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 			size_hints.y = this->y;
 		}
 
-		XSetStandardProperties(display, 
-			win, 
-			title, 
-			title, 
-			None, 
-			0, 
-			0, 
-			&size_hints);
+		XSetWMProperties(display, win, 0, 0, 0, 0, &size_hints, 0, 0);
+// 		XSetStandardProperties(display, 
+// 			win, 
+// 			title, 
+// 			title, 
+// 			None, 
+// 			0, 
+// 			0, 
+// 			&size_hints);
 		get_atoms();
+		set_title(title);
 
 #ifndef SINGLE_THREAD		
         if(!clipboard)
@@ -4178,9 +4180,47 @@ void BC_WindowBase::set_background(VFrame *bitmap)
 
 void BC_WindowBase::set_title(const char *text)
 {
-	XSetStandardProperties(top_level->display, top_level->win, text, text, None, 0, 0, 0); 
 	strcpy(this->title, _(text));
-	flush();
+// test for UTF-8
+    int is_utf = 0;
+    for(uint8_t *ptr = (uint8_t*)text; *ptr != 0; ptr++)
+    {
+        if(*ptr > 127)
+        {
+            is_utf = 1;
+            break;
+        }
+	}
+
+    if(is_utf)
+    {
+	    const unsigned char *wm_title = (const unsigned char *)title;
+	    int title_len = strlen((const char *)title);
+	    if( is_utf >= 0 ) {
+		    Atom xa_wm_name = XA_WM_NAME;
+		    Atom xa_icon_name = XA_WM_ICON_NAME;
+		    Atom xa_string = XA_STRING;
+		    XChangeProperty(display, win, xa_wm_name, xa_string, 8,
+				    PropModeReplace, wm_title, title_len);
+		    XChangeProperty(display, win, xa_icon_name, xa_string, 8,
+				    PropModeReplace, wm_title, title_len);
+	    }
+	    if( is_utf != 0 ) {
+		    Atom xa_net_wm_name = XInternAtom(display, "_NET_WM_NAME", True);
+		    Atom xa_net_icon_name = XInternAtom(display, "_NET_WM_ICON_NAME", True);
+		    Atom xa_utf8_string = XInternAtom(display, "UTF8_STRING", True);
+		    XChangeProperty(display, win, xa_net_wm_name, xa_utf8_string, 8,
+					    PropModeReplace, wm_title, title_len);
+		    XChangeProperty(display, win, xa_net_icon_name, xa_utf8_string, 8,
+					    PropModeReplace, wm_title, title_len);
+	    }
+    }
+    else
+    {
+        XSetStandardProperties(top_level->display, top_level->win, text, text, None, 0, 0, 0); 
+	}
+
+    flush();
 }
 
 char* BC_WindowBase::get_title()

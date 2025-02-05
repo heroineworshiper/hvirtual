@@ -1328,6 +1328,8 @@ void BC_TextBox::default_keypress(int &dispatch_event, int &result)
 
 
 // begin cingg
+// this defaults to using the 32 bit char encoding of the keypress
+// then downconverts it to UTF-8
 	    int key = top_level->get_keypress(), len;
 	    wchr_t *wkeys = top_level->get_wkeystring(&len);
 	    switch( key ) {
