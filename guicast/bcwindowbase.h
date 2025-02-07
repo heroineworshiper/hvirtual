@@ -506,7 +506,7 @@ public:
 	void set_inverse();
 	void set_background(VFrame *bitmap);
 // Change the window title.  The title is translated internally.
-	void set_title(const char *text);
+	void set_title(const char *text, int flush = 1);
 	char* get_title();
 // draw bitmaps to the foreground/win instead of the back buffer/pixmap
 	void start_video();

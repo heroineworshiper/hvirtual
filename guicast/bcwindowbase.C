@@ -534,7 +534,7 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 // 			0, 
 // 			&size_hints);
 		get_atoms();
-		set_title(title);
+		set_title(title, 0);
 
 #ifndef SINGLE_THREAD		
         if(!clipboard)
@@ -4178,7 +4178,7 @@ void BC_WindowBase::set_background(VFrame *bitmap)
 	draw_background(0, 0, w, h);
 }
 
-void BC_WindowBase::set_title(const char *text)
+void BC_WindowBase::set_title(const char *text, int flush)
 {
 	strcpy(this->title, _(text));
 // test for UTF-8
@@ -4194,6 +4194,7 @@ void BC_WindowBase::set_title(const char *text)
 
     if(is_utf)
     {
+// from cingg
 	    const unsigned char *wm_title = (const unsigned char *)title;
 	    int title_len = strlen((const char *)title);
 	    if( is_utf >= 0 ) {
@@ -4220,7 +4221,7 @@ void BC_WindowBase::set_title(const char *text)
         XSetStandardProperties(top_level->display, top_level->win, text, text, None, 0, 0, 0); 
 	}
 
-    flush();
+    if(flush) this->flush();
 }
 
 char* BC_WindowBase::get_title()
