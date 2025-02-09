@@ -79,7 +79,7 @@ them have the same output.
 @section COLOR MODEL
 
 Color model is very important for video playback because video has the
-disadvantage of being very slow.  Although it isn't noticable, audio
+disadvantage of being very slow.  Although it isn't noticeable, audio
 intermediates contain much more information than the audio on disk and
 the audio which is played.  Audio always uses the highest bandwidth
 intermediate because it's fast.

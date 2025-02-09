@@ -25,7 +25,7 @@
 // Thread running parallel to run_window which listens for X server events 
 // only.  Hopefully, having it as the only thing calling the X server without 
 // locks won't crash.  Previously, events were dispatched from BC_Repeater 
-// asynchronous to the events recieved by XNextEvent.  BC_Repeater tended to
+// asynchronous to the events received by XNextEvent.  BC_Repeater tended to
 // lock up for no reason.
 
 

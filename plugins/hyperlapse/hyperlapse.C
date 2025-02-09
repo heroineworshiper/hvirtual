@@ -287,7 +287,7 @@ int Hyperlapse::process_buffer(VFrame *frame,
 	}
 	
 
-// move currrent image to previous position
+// move current image to previous position
 	if(next_position >= 0 && next_position == actual_previous_number)
 	{
 		IplImage *temp = prev_image;

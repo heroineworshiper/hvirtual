@@ -112,9 +112,9 @@ include @b{pluginaclient.h} and video plugins include
 
 Cinelerra instantiates all plugins at least twice when they are used in
 a movie.  One instance is the GUI.  The other instance is the rendering
-processor.  User input, through a complicated sequence, is propogated
+processor.  User input, through a complicated sequence, is propagated
 from the GUI instance to the rendering instance.  If the renderer wants
-to alter the GUI, it propogates data back to the GUI instance.  
+to alter the GUI, it propagates data back to the GUI instance.  
 
 All plugins define at least three objects:
 
@@ -340,7 +340,7 @@ depending on the plugin type.
 The configuration object is critical for GUI updates, signal
 processing, and default settings in realtime plugins.  Be aware it is
 not used in nonrealtime plugins.  The configuration object inherits
-from nothing and has no dependancies.  It's merely a class containing
+from nothing and has no dependencies.  It's merely a class containing
 three functions and variables specific to the plugin's parameters.
 
 Usually the configuration object starts with the name of the plugin
@@ -379,7 +379,7 @@ required functions and the configuration variables.
 Now you must define the three functions.  @b{Equivalent} is called by
 LOAD_CONFIGURATION_MACRO to determine if the local configuration
 parameters are identical to the configuration parameters in the
-arguement.  If equivalent returns 0, the LOAD_CONFIGURATION_MACRO 
+argument.  If equivalent returns 0, the LOAD_CONFIGURATION_MACRO 
 causes the GUI to redraw.  If equivalent returns 1, the
 LOAD_CONFIGURATION_MACRO doesn't redraw the GUI.
 
@@ -515,7 +515,7 @@ to make the window appear all at once.
 Every widget in the GUI needs to detect when its value changes.  In
 GuiCast the @b{handle_event} method is called whenever the value
 changes.  In @b{handle_event}, the widget then needs to call
-@b{plugin->send_configure_change()} to propogate the change to any
+@b{plugin->send_configure_change()} to propagate the change to any
 copies of the plugin which are processing data.
 
 
@@ -594,7 +594,7 @@ supplied to process_buffer if you don't need a temporary.
 
 It also needs a set of position arguments to determine when you want to
 read the data from.  The start position, rate, and len passed to a read
-function need not be the same as the values recieved by the
+function need not be the same as the values received by the
 process_buffer function.  This way plugins can read data at a different
 rate than they output data.
 
@@ -893,7 +893,7 @@ PLUGIN_DESTRUCTOR_MACRO to initialize the processing object.  You'll
 also need a BC_Hash object and a Thread object for these macros.
 
 Since the GUI is optional, overwrite a function called @b{uses_gui()}
-to signifiy whether or not the transition has a GUI.  Return 1 if it
+to signify whether or not the transition has a GUI.  Return 1 if it
 does and 0 if it doesn't.
 
 Transitions need a @b{load_defaults} and @b{save_defaults} function so
@@ -1085,7 +1085,7 @@ plugin needs to process.
 There are two rates for media a realtime plugin has to be aware of: the
 project rate and the requested rate.  Functions are provided for
 getting the project and requested rate.  In addition, doing time
-dependant effects requires using several functions which tell where you
+dependent effects requires using several functions which tell where you
 are in the effect.
 
 @itemize
@@ -1455,7 +1455,7 @@ attached with calls to @b{next_effect_is} and @b{prev_effect_is}.
 These take the name of the processor plugin as a string argument and
 return 1 if the next or previous plugin is the processor plugin.  If
 either returns 1, the fall through plugin must still call @b{read_frame} to
-propogate the data but return after that.
+propagate the data but return after that.
 
 The processor plugin must call @b{next_effect_is} and
 @b{prev_effect_is} to determine if it's aggregated with a fall through

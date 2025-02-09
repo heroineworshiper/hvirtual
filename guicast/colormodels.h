@@ -60,7 +60,7 @@
 #define BC_YUV422P      17
 #define BC_YUV444P      27
 #define BC_YUV411P      18
-#define BC_YUV9P        28 // Disasterous cmodel from Sorenson
+#define BC_YUV9P        28 // Disastrous cmodel from Sorenson
 #define BC_YUV420P10LE  32
 #define BC_NV12         33 // Y plane, interleaved UV plane
 #define BC_NV21         34 // Y plane, interleaved VU plane
@@ -244,7 +244,7 @@ void cmodel_transfer(unsigned char **output_rows, /* Leave NULL if non existent 
 	int out_h,
 	int in_colormodel, 
 	int out_colormodel,
-	int bg_color,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
+	int bg_color,         /* When transferring BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
 	int in_rowspan,       /* For planar use the luma rowspan */
 	int out_rowspan);     /* For planar use the luma rowspan */
 

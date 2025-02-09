@@ -59,7 +59,7 @@ int BC_Hash::load()
 void BC_Hash::load_stringfile(StringFile *file)
 {
 	char key[BCTEXTLEN], value[BCTEXTLEN];
-// keys previously loaded by this function with the number of occurrances
+// keys previously loaded by this function with the number of occurrences
 // can't force update to always append since this function has to overwrite
     std::map<string, int> instances;
 
