@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
@@ -264,14 +263,17 @@ int FreezeFrameMain::process_buffer(VFrame *frame,
 				frame->get_h(),
 				frame->get_color_model(),
 				-1);
-printf("FreezeFrameMain::process_buffer %d first_frame_position=%lld\n", __LINE__, first_frame_position);
 
 		read_frame(first_frame, 
 				0, 
 				get_direction() == PLAY_REVERSE ? first_frame_position + 1 : first_frame_position,
 				frame_rate,
 				get_use_opengl());
+printf("FreezeFrameMain::process_buffer %d first_frame_position=%ld\n", 
+__LINE__, 
+(long)first_frame_position);
 		if(get_use_opengl()) return run_opengl();
+
 		frame->copy_from(first_frame);
 	}
 	else
@@ -303,13 +305,23 @@ printf("FreezeFrameMain::process_buffer %d first_frame_position=%lld\n", __LINE_
 // Had a keyframe in frozen range.  Load new first frame
 		if(previous_first_frame != first_frame_position)
 		{
+printf("FreezeFrameMain::process_buffer %d reloading first frame from %ld\n", 
+__LINE__, 
+(long)first_frame_position);
+
 			read_frame(first_frame, 
 				0, 
 				get_direction() == PLAY_REVERSE ? first_frame_position + 1 : first_frame_position,
 				frame_rate,
 				get_use_opengl());
 		}
+
+// printf("FreezeFrameMain::process_buffer %d opengl_state=%d\n", 
+// __LINE__,
+// first_frame->get_opengl_state());
+
 		if(get_use_opengl()) return run_opengl();
+
 		frame->copy_from(first_frame);
 	}
 
@@ -333,9 +345,12 @@ printf("FreezeFrameMain::process_buffer %d first_frame_position=%lld\n", __LINE_
 int FreezeFrameMain::handle_opengl()
 {
 #ifdef HAVE_GL
+// printf("FreezeFrameMain::handle_opengl %d opengl_state=%d\n", 
+// __LINE__,
+// first_frame->get_opengl_state());
+    first_frame->to_texture();
 	get_output()->enable_opengl();
 	get_output()->init_screen();
-	first_frame->to_texture();
 	first_frame->bind_texture(0);
 	first_frame->draw_texture();
 	get_output()->set_opengl_state(VFrame::SCREEN);

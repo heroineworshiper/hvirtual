@@ -108,6 +108,9 @@ void VFrame::to_texture()
 		get_h(),
 		get_color_model()))
     {
+// printf("VFrame::to_texture %d opengl_state=%d\n", 
+// __LINE__,
+// get_opengl_state());
 // existing texture was replaced so reset to RAM
         opengl_state = VFrame::RAM;
     }
@@ -132,6 +135,9 @@ BC_WindowBase::get_synchronous()->get_window()->get_id());
 		case VFrame::TEXTURE:
 			return;
 
+// Note: we're switching to the pbuffer context here, so the caller needs to call
+// enable_opengl to switch to the destination context after this function.
+// TODO: switch the context back
 		case VFrame::SCREEN:
 // 			if((get_w() % 4) || (get_h() % 4)) 
 // 			{

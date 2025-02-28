@@ -47,8 +47,28 @@ track size.  By resizing the tracks you can create splitscreens, pans,
 and zooms.
 
 @sp 2
-@center @image{compositing_pipeline}
+@center @image{compositing_pipeline3}
 @center @b{Visual representation of the compositing pipeline}.
+
+The compositing journey begins by shifting the playback position by the
+nudge value specified in the patchbay.  All operations in the pipeline
+are shifted by this amount.
+
+Then, if the speed curve has a value other than 1, the read position in
+the source file is stretched based on the speed curve.  The source file
+is then read into a temporary defined by the track size, using the
+camera parameters to scale & translate it.
+
+The next step is to apply a transition if one exists.  Then the effects
+are processed from top to bottom.  Then, if any masks are defined for
+the track, they are applied to the track temporary after the effects.
+
+The final step is the projector where fade, overlay mode, projector
+scaling & translation are applied between the track temporary & the
+output canvas.  If the track is muted, the projector step isn't
+performed.
+
+In an audio track, the panning is applied in the last step.
 
 When editing the camera and projector in the compositing window, the
 first track with @b{record} enabled is the track affected.  Even if
@@ -160,10 +180,6 @@ Our compositing pipeline graph now has a masking stage.  There are 8
 possible masks per track.  Each mask is defined separately, although
 they each perform the same operation, whether it's addition or
 subtraction, or a path.
-
-@sp 2
-@center @image{compositing_pipeline2}
-@center @b{Compositing pipeline with masks}
 
 To define a mask, go into the Compositor window and enable the
 @image{mask} @b{mask} toggle.  

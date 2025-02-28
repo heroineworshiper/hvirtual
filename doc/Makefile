@@ -1,6 +1,7 @@
 TARGET_DIR := ../bin/doc
 
 # images to copy from the theme
+# these need the latest date stamp to get the browser to take the latest image
 IMAGES = \
 	arrow.png \
 	autokeyframe.png \
@@ -39,30 +40,9 @@ IMAGES = \
 	wrench.png \
 	magnify.png
 
-# custom images for documentation
-# add images to fix_images.py to scale them
+# custom images from this directory
+# Images requiring scaling go in fix_images.py
 CUSTOM_IMAGES := \
-        align_after.png \
-        align_before.png \
-        align_extend.png \
-        align_glitch.png \
-        align_silence.png \
-        align_sync.png \
-        bobcast5.png \
-        broadcast.png \
-        broadcast21.png \
-	chromakey.png \
-	chromakeyhsv1.png \
-	chromakeyhsv2.png \
-	chromakeyhsv3.png \
-	chromakeyhsv4.png \
-	chromakeyhsv5.png \
-	chromakeyhsv6.png \
-	chromakeyhsv7.png \
-	chromakeyhsv8.png \
-        compositing_pipeline.png \
-        compressor1.png \
-        compressor2.png \
         cwindow_context.png \
         cwindow_tools.png \
         apatches.png \
@@ -82,18 +62,11 @@ CUSTOM_IMAGES := \
         insertion_strategy.png \
         label_button.png \
         label_traversal.png \
-        linear.png \
-        locked_bezier.png \
-        unlocked_bezier.png \
         main_timebar.png \
-        mask2.png \
-        move_plugin.png \
         out_point_button.png \
         overwrite_button.png \
         preview.png \
         previewregion.png \
-        program.png \
-        recording.png \
         splice_button.png \
         timebar_label.png \
         timebarslider.png \
@@ -110,13 +83,13 @@ all:
 	mkdir -p $(TARGET_DIR)
 	for i in $(IMAGES) ; \
 		do if ! test -e $(TARGET_DIR)/$$i ; \
-			then cp -a ../plugins/suv/data/$$i $(TARGET_DIR) ; \
+			then cp ../plugins/brighttheme/data/$$i $(TARGET_DIR) ; \
 		fi ; \
 	done
 	cp $(CUSTOM_IMAGES) $(TARGET_DIR)
 # use this to create a single document.
 	cd $(TARGET_DIR) && makeinfo --html --no-split ../../doc/cinelerra.texi
-	cd $(TARGET_DIR) && ../../doc/fix_images.py cinelerra.html
+	./fix_images.py
 # use this to create multiple HTML pages.  Not searchable
 #	cd $(TARGET_DIR) && makeinfo --html ../../doc/cinelerra.texi
 
