@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2024-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -140,8 +140,8 @@ void MotionLookaheadConfig::boundaries()
 {
 	CLAMP(block_w, MIN_BLOCK, MAX_BLOCK);
 	CLAMP(block_h, MIN_BLOCK, MAX_BLOCK);
-	CLAMP(range_w, MIN_RADIUS, MAX_RADIUS);
-	CLAMP(range_h, MIN_RADIUS, MAX_RADIUS);
+	CLAMP(range_w, 0, MAX_RADIUS);
+	CLAMP(range_h, 0, MAX_RADIUS);
     CLAMP(rotation_range, MIN_ROTATION, MAX_ROTATION);
     CLAMP(frames, MIN_LOOKAHEAD, MAX_LOOKAHEAD);
 }
@@ -184,6 +184,7 @@ MotionLookahead::~MotionLookahead()
 	delete engine;
 	delete rotate_engine;
     delete translate_engine;
+
     frames.remove_all_objects();
     vectors.remove_all_objects();
 }
@@ -431,18 +432,21 @@ int MotionLookahead::process_buffer(VFrame *frame,
             start_position > frames_start && 
             start_position < frames_start + config.frames)
         {
-// shift the lookahead buffers for a seek before we invalidate any data
+// shift the lookahead buffers for a seek
             int diff = start_position - frames_start;
-            VFrame *temp_frame = frames.get(0);
-            for(int i = 0; i < frames.size() - diff; i++)
-                frames.set(i, frames.get(i + diff));
-            frames.set(frames.size() - diff, temp_frame);
-
+            for(int j = 0; j < diff; j++)
+            {
+                VFrame *temp_frame = frames.get(0);
+                for(int i = 0; i < frames.size() - 1; i++)
+                    frames.set(i, frames.get(i + 1));
+                frames.set(frames.size() - 1, temp_frame);
 // invalidate motion vectors
-            MotionVector *temp_vector = vectors.get(0);
-            for(int i = 0; i < vectors.size() - diff; i++)
-                vectors.set(i, vectors.get(i + diff));
-            vectors.set(vectors.size() - diff, temp_vector);
+                MotionVector *temp_vector = vectors.get(0);
+                for(int i = 0; i < vectors.size() - 1; i++)
+                    vectors.set(i, vectors.get(i + 1));
+                vectors.set(vectors.size() - 1, temp_vector);
+            }
+
 
             frames_start += diff;
             frames_read -= diff;
@@ -456,18 +460,21 @@ int MotionLookahead::process_buffer(VFrame *frame,
             start_position < frames_start && 
             start_position > frames_start - config.frames)
         {
-// shift the lookahead buffers for a seek before we invalidate any data
+// shift the lookahead buffers for a seek
             int diff = frames_start - start_position;
-            VFrame *temp_frame = frames.get(0);
-            for(int i = 0; i < frames.size() - diff; i++)
-                frames.set(i, frames.get(i + diff));
-            frames.set(frames.size() - diff, temp_frame);
+            for(int j = 0; j < diff; j++)
+            {
+                VFrame *temp_frame = frames.get(0);
+                for(int i = 0; i < frames.size() - 1; i++)
+                    frames.set(i, frames.get(i + 1));
+                frames.set(frames.size() - 1, temp_frame);
 
 // invalidate motion vectors
-            MotionVector *temp_vector = vectors.get(0);
-            for(int i = 0; i < vectors.size() - diff; i++)
-                vectors.set(i, vectors.get(i + diff));
-            vectors.set(vectors.size() - diff, temp_vector);
+                MotionVector *temp_vector = vectors.get(0);
+                for(int i = 0; i < vectors.size() - 1; i++)
+                    vectors.set(i, vectors.get(i + 1));
+                vectors.set(vectors.size() - 1, temp_vector);
+            }
 
             frames_start -= diff;
             frames_read -= diff;
@@ -545,11 +552,11 @@ int MotionLookahead::process_buffer(VFrame *frame,
             else
             {
                 dst = frames.get(frames_read);
-printf("MotionLookahead::process_buffer %d frames_read=%d frames=%d dst=%p\n", 
-__LINE__, 
-frames_read,
-frames.size(),
-dst);
+// printf("MotionLookahead::process_buffer %d frames_read=%d frames=%d dst=%p\n", 
+// __LINE__, 
+// frames_read,
+// frames.size(),
+// dst);
             }
 
             int64_t position;
@@ -727,15 +734,15 @@ dst);
             current_dx = (float)(total_dx - center_dx) / OVERSAMPLE;
             current_dy = (float)(total_dy - center_dy) / OVERSAMPLE;
             current_angle = total_angle - center_angle;
-printf("MotionLookahead::process_buffer %d position=%d center step=%f %f %f current motion=%f %f %f\n", 
-__LINE__, 
-(int)start_position,
-(float)center_step_x / OVERSAMPLE, 
-(float)center_step_y / OVERSAMPLE, 
-(float)center_step_angle,
-(float)current->dx_result / OVERSAMPLE, 
-(float)current->dy_result / OVERSAMPLE, 
-(float)current->angle_result);
+// printf("MotionLookahead::process_buffer %d position=%d center step=%f %f %f current motion=%f %f %f\n", 
+// __LINE__, 
+// (int)start_position,
+// (float)center_step_x / OVERSAMPLE, 
+// (float)center_step_y / OVERSAMPLE, 
+// (float)center_step_angle,
+// (float)current->dx_result / OVERSAMPLE, 
+// (float)current->dy_result / OVERSAMPLE, 
+// (float)current->angle_result);
         }
 
 	    frame->clear_frame();

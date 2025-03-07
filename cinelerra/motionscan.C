@@ -319,6 +319,10 @@ void MotionScan::init_packages()
 				(scan_x2 - scan_x1) / current_downsample / x_steps;
 			pkg->search_y = downsampled_scan_y1 + current_y_step *
 				(scan_y2 - scan_y1) / current_downsample / y_steps;
+// printf("MotionScan::init_packages %d search_x=%d search_y=%d\n",
+// __LINE__,
+// pkg->search_x,
+// pkg->search_y);
 
 			if(do_rotate)
 			{
@@ -464,6 +468,8 @@ void MotionScan::pixel_search(int &x_result, int &y_result, double &r_result)
 // compute the smallest angle which can be measured at the current resolution
 	x_steps = (scan_x2 - scan_x1) / current_downsample;
 	y_steps = (scan_y2 - scan_y1) / current_downsample;
+    if(x_steps < 1) x_steps = 1;
+    if(y_steps < 1) y_steps = 1;
 
 // in rads
 	double test_angle1 = atan2((double)downsampled_current_h / 2 - 1, (double)downsampled_current_w / 2);
@@ -1126,8 +1132,8 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 
 
 // Give up if invalid coords.
-			if(scan_y2 <= scan_y1 ||
-				scan_x2 <= scan_x1 ||
+			if((scan_y2 <= scan_y1 &&
+				scan_x2 <= scan_x1) ||
 				block_x2 <= block_x1 ||
 				block_y2 <= block_y1)
 			{
@@ -1150,7 +1156,13 @@ printf("MotionScan::scan_frame: data matches. skipping.\n");
 // Single pixel
 			{
 				pixel_search(x_result, y_result, r_result);
-//printf("MotionScan::scan_frame %d x_result=%d y_result=%d\n", __LINE__, x_result / OVERSAMPLE, y_result / OVERSAMPLE);
+// printf("MotionScan::scan_frame %d current_downsample=%d scan_x1=%d scan_x2=%d x_result=%d y_result=%d\n", 
+// __LINE__, 
+// current_downsample,
+// scan_x1,
+// scan_x2,
+// x_result / OVERSAMPLE, 
+// y_result / OVERSAMPLE);
 				
 				if(failed)
 				{

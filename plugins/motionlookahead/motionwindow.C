@@ -279,14 +279,14 @@ void MotionLookaheadWindow::create_objects()
 		x, 
 		title1->get_y(),
 		&plugin->config.range_w,
-        MIN_RADIUS,
+        0,
         MAX_RADIUS));
     x += range_w->get_w() + widget_border;
     add_subwindow(range_h = new MotionIPot(plugin, 
 		x, 
 		title1->get_y(),
 		&plugin->config.range_h,
-        MIN_RADIUS,
+        0,
         MAX_RADIUS));
 
     x = x2;
