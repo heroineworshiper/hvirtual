@@ -38,7 +38,7 @@
 // rendering or foreground rendering can be happening but not both.
 
 // A BRenderThread client runs in the background and a BRender object 
-// interfaces the main window.  The BRender client recieves commands to
+// interfaces the main window.  The BRender client receives commands to
 // restart, start, and stop background rendering on its own time to avoid 
 // interrupting the main window.
 

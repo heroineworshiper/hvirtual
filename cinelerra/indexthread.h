@@ -29,7 +29,7 @@
 
 #define TOTAL_BUFFERS 2
 
-// Formerly a thread that recieved buffers from Indexfile and 
+// Formerly a thread that received buffers from Indexfile and 
 // calculated the index asynchronously.
 
 class IndexThread

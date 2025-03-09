@@ -83,7 +83,7 @@ int AttachmentPoint::render_init()
 	if(plugin_server && plugin->on)
 	{
 // Start new plugin servers if the number of nodes changed.
-// The number of nodes can change independantly of the module's 
+// The number of nodes can change independently of the module's 
 // attachment count.
 		if(virtual_plugins.total != new_virtual_plugins.total)
 		{

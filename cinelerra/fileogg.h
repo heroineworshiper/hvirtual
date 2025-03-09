@@ -86,7 +86,7 @@ typedef struct
 	sync_window_t *audiosync;
 	sync_window_t *videosync;
 	
-    //to do some manual page flusing
+    //to do some manual page flushing
     int v_pkg;
     int a_pkg;
 

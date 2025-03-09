@@ -66,7 +66,7 @@ int Messages::read_message(char *text)
 
 	if((msgrcv(msgid, (struct msgbuf*)&buffer, MESSAGESIZE, input_flag, 0)) < 0)
 	{
-		printf(_("recieve message failed\n"));
+		printf(_("receive message failed\n"));
 		sleep(1);     // don't flood the screen during the loop
 		return -1;
 	}
@@ -82,7 +82,7 @@ long Messages::read_message()
 	
 	if((msgrcv(msgid, (struct msgbuf*)&buffer, MESSAGESIZE, input_flag, 0)) < 0)
 	{
-		printf(_("recieve message failed\n"));
+		printf(_("receive message failed\n"));
 		sleep(1);
 		return -1;
 	}
@@ -103,9 +103,9 @@ char* Messages::read_message_raw()
 	
 	if((msgrcv(msgid, (struct msgbuf*)&buffer, MESSAGESIZE, input_flag, 0)) < 0)
 	{
-		printf(_("recieve message failed\n"));
+		printf(_("receive message failed\n"));
 		sleep(1);
-		return "RECIEVE MESSAGE FAILED";
+		return "RECEIVE MESSAGE FAILED";
 	}
 	else
 		return buffer.text;

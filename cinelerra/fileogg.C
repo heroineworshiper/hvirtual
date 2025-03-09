@@ -316,7 +316,7 @@ int FileOGG::open_file(int rd, int wr)
 
 		if(asset->video_data)
 		{
-			ogg_stream_init (&tf->to, rand ());    /* oops, add one ot the above */
+			ogg_stream_init (&tf->to, rand ());    /* oops, add one to the above */
 		
 			theora_info_init (&tf->ti);
 			
