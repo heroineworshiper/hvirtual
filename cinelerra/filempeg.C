@@ -1187,7 +1187,7 @@ int FileMPEG::write_samples(double **buffer, int64_t len)
 	{
 // Convert to int16
 		int channels = MIN(asset->channels, 2);
-		int64_t audio_size = len * channels * 2;
+		int audio_size = len * channels * 2;
 		if(toolame_allocation < audio_size)
 		{
 			if(toolame_temp) delete [] toolame_temp;

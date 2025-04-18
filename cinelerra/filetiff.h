@@ -26,7 +26,6 @@
 #include "file.inc"
 #include "filelist.h"
 #include "mutex.inc"
-#include <tiffio.h>
 #include "vframe.inc"
 
 // This header file is representative of any single frame file format.

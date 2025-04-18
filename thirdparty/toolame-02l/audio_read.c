@@ -20,6 +20,9 @@
 *
 ************************************************************************/
 
+// CINELERRA
+int toolame_buffer_read(char *dst, int size, int n);
+
 unsigned long
 read_samples (FILE * musicin, short sample_buffer[2304],
 	      unsigned long num_samples, unsigned long frame_size)
@@ -36,6 +39,7 @@ read_samples (FILE * musicin, short sample_buffer[2304],
     samples_read = frame_size;
   else
     samples_read = samples_to_read;
+// CINELERRA BEGIN
 /*
  *   if ((samples_read =
  *        fread (sample_buffer, sizeof (short), (int) samples_read,
@@ -44,7 +48,18 @@ read_samples (FILE * musicin, short sample_buffer[2304],
  	if((samples_read = toolame_buffer_read((char*)sample_buffer, 
 		sizeof(short), 
 		samples_read)) == 0)
-    fprintf (stderr, "Hit end of audio data\n");
+// CINELERRA END
+        fprintf (stderr, "Hit end of audio data\n");
+
+
+
+// CINELERRA BEGIN
+// static FILE *debug_fd = 0;
+// if(!debug_fd) debug_fd = fopen("/tmp/read_samples.pcm", "w");
+// fwrite(sample_buffer, 2 * samples_read, 1, debug_fd);
+// fflush(debug_fd);
+// CINELERRA END
+
   /*
      Samples are big-endian. If this is a little-endian machine
      we must swap

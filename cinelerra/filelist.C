@@ -20,6 +20,7 @@
 
 #include "asset.h"
 #include "bcsignals.h"
+#include "clip.h"
 #include "file.h"
 #include "filelist.h"
 #include "guicast.h"
@@ -47,8 +48,10 @@ FileList::FileList(Asset *asset,
 {
     reset_parameters_derived();
 	asset->video_data = 1;
-	this->list_prefix = (char*)list_prefix;
-	this->file_extension = (char*)file_extension;
+	this->list_prefix = list_prefix;
+	this->file_extension = file_extension;
+	this->list_prefix2 = 0;
+	this->file_extension2 = 0;
 	this->frame_type = frame_type;
 	this->list_type = list_type;
 	table_lock = new Mutex("FileList::table_lock");
@@ -109,13 +112,17 @@ int FileList::open_file(int rd, int wr)
 			if(stream)
 			{
 				char string[BCTEXTLEN];
-				int temp = fread(string, strlen(list_prefix), 1, stream);
+                int max_len = 0;
+                if(list_prefix) max_len = strlen(list_prefix);
+                if(list_prefix2) max_len = MAX(strlen(list_prefix2), max_len);
+				int temp = fread(string, max_len, 1, stream);
 				fclose(stream);
 
 //printf("FileList::open_file %d string=%s list_prefix=%s\n", __LINE__, string, list_prefix);
-				if(!strncasecmp(string, list_prefix, strlen(list_prefix)))
+				if((list_prefix && !strncasecmp(string, list_prefix, strlen(list_prefix))) ||
+                    (list_prefix2 && !strncasecmp(string, list_prefix2, strlen(list_prefix2))))
 				{
-
+// list of frames
 					asset->format = list_type;
 
 // Open index here or get frame size from file.
@@ -126,6 +133,7 @@ int FileList::open_file(int rd, int wr)
 				else
 				{
 //printf("FileList::open_file %d\n", __LINE__);
+// stand alone frame
 					asset->format = frame_type;
 					result = read_frame_header(asset->path);
 					asset->layers = 1;

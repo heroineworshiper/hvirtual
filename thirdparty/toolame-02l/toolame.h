@@ -20,14 +20,15 @@ void smr_dump(double smr[2][SBLIMIT], int nch);
 
 
 
-
+// CINELERRA BEGIN
+#include <semaphore.h>
 
 // Input buffer management private structures.
 // This is not reentrant but neither is toolame.
 
-extern pthread_mutex_t toolame_input_lock;
-extern pthread_mutex_t toolame_output_lock;
-extern pthread_mutex_t toolame_copy_lock;
+extern sem_t toolame_input_lock;
+extern sem_t toolame_output_lock;
+extern pthread_mutex_t toolame_lock;
 extern char *toolame_buffer;
 extern int toolame_buffer_bytes;
 extern int toolame_error;
@@ -36,3 +37,5 @@ extern int toolame_eof;
 #define TOOLAME_BUFFER_BYTES 0x200000
 // replaces fread
 int toolame_buffer_read(char *dst, int size, int n);
+
+// CINELERRA END

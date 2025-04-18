@@ -41,6 +41,8 @@ FileCR3::FileCR3(Asset *asset, File *file)
 	{
     	asset->format = FILE_CR3;
     }
+    list_prefix2 = "CR2LIST";
+    file_extension2 = ".cr2";
 }
 
 FileCR3::~FileCR3()

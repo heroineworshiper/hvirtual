@@ -27,24 +27,28 @@ FILE *musicin;
 Bit_stream_struc bs;
 char *programName;
 char toolameversion[10] = "0.2l";
+
+// CINELERRA BEGIN
+
 options toolame_glopts;
 
 // Input buffer management.  This is not reentrant but neither is toolame.
 
-pthread_mutex_t toolame_input_lock;
-pthread_mutex_t toolame_output_lock;
+sem_t toolame_input_lock;
+sem_t toolame_output_lock;
+pthread_mutex_t toolame_lock;
 char *toolame_buffer = 0;
 int toolame_buffer_bytes = 0;
 int toolame_error = 0;
 int toolame_eof = 0;
 
-// functions for library access
 
+// functions for library access
 void toolame_init_buffers()
 {
-	pthread_mutex_init(&toolame_input_lock, 0);
-	pthread_mutex_init(&toolame_output_lock, 0);
-	pthread_mutex_lock(&toolame_input_lock);
+    pthread_mutex_init(&toolame_lock, 0);
+	sem_init(&toolame_input_lock, 0, 0);
+	sem_init(&toolame_output_lock, 0, 1);
 	if(!toolame_buffer) toolame_buffer = malloc(TOOLAME_BUFFER_BYTES);
 	toolame_buffer_bytes = 0;
 	toolame_error = 0;
@@ -66,28 +70,34 @@ int toolame_send_buffer(char *data, int bytes)
 
 	if(!bytes)
 	{
-//		pthread_mutex_lock(&toolame_output_lock);
 		toolame_eof = 1;
-		pthread_mutex_unlock(&toolame_input_lock);
+		sem_post(&toolame_input_lock);
 		return 0;
 	}
 
 	while(!got_it)
 	{
-		pthread_mutex_lock(&toolame_output_lock);
+		sem_wait(&toolame_output_lock);
 		if(toolame_error)
 		{
-			pthread_mutex_unlock(&toolame_input_lock);
+			sem_post(&toolame_input_lock);
 			return 1;
 		}
 
+        pthread_mutex_lock(&toolame_lock);
 		if(toolame_buffer_bytes < TOOLAME_BUFFER_BYTES - bytes)
 		{
 			memcpy(toolame_buffer + toolame_buffer_bytes, data, bytes);
+// static FILE *debug_fd = 0;
+// if(!debug_fd) debug_fd = fopen("/tmp/toolame_send_buffer.pcm", "w");
+// fwrite(toolame_buffer + toolame_buffer_bytes, bytes, 1, debug_fd);
+// fflush(debug_fd);
 			toolame_buffer_bytes += bytes;
+//printf("toolame_send_buffer %d toolame_buffer_bytes=%d\n", __LINE__, toolame_buffer_bytes);
 			got_it = 1;
 		}
-		pthread_mutex_unlock(&toolame_input_lock);
+        pthread_mutex_unlock(&toolame_lock);
+		sem_post(&toolame_input_lock);
 	}
 
 	return 0;
@@ -100,33 +110,49 @@ int toolame_buffer_read(char *dst, int size, int n)
 
 	while(!got_it && !toolame_eof && !toolame_error)
 	{
-		pthread_mutex_lock(&toolame_input_lock);
-// printf("toolame_buffer_read 1 size=%d n=%d eof=%d %d %d\n", 
-// size, n, toolame_eof, got_it, toolame_error);
-		if(toolame_eof || toolame_buffer_bytes >= size * n)
-			got_it = 1;
-		else
-			pthread_mutex_unlock(&toolame_output_lock);
+        pthread_mutex_lock(&toolame_lock);
+        if(toolame_eof || toolame_error || toolame_buffer_bytes >= size * n)
+		{
+        	got_it = 1;
+            pthread_mutex_unlock(&toolame_lock);
+        }
+        else
+        {
+            pthread_mutex_unlock(&toolame_lock);
+		    sem_wait(&toolame_input_lock);
+        }
 	}
 
+    pthread_mutex_lock(&toolame_lock);
 	result = size * n;
 	if(result > toolame_buffer_bytes)
 		result = toolame_buffer_bytes;
 	memcpy(dst, toolame_buffer, result);
 
+// static FILE *debug_fd = 0;
+// if(!debug_fd) debug_fd = fopen("/tmp/toolame_buffer_read.pcm", "w");
+// fwrite(toolame_buffer, result, 1, debug_fd);
+// fflush(debug_fd);
+// printf("toolame_buffer_read %d toolame_buffer_bytes=%d\n", __LINE__, toolame_buffer_bytes);
+
 	if(size * n > result)
 		bzero(dst + result, size * n - result);
-	memcpy(toolame_buffer, toolame_buffer + result, toolame_buffer_bytes - result);
+	memmove(toolame_buffer, toolame_buffer + result, toolame_buffer_bytes - result);
 	toolame_buffer_bytes -= result;
-	pthread_mutex_unlock(&toolame_output_lock);
+    pthread_mutex_unlock(&toolame_lock);
 
-//printf("toolame_buffer_read 100 %d\n", result);
+	sem_post(&toolame_output_lock);
+
+// bytes to samples
+    result /= size;
+//printf("toolame_buffer_read %d size=%d n=%d result=%d\n", __LINE__, size, n, result);
 	return result;
 }
 
 
 
 
+// CINELERRA END
 
 
 
@@ -445,9 +471,11 @@ int toolame (int argc, char **argv)
 	break;
       default:
 	fprintf (stderr, "Invalid psy model specification: %i\n", model);
+// CINELERRA BEGIN
 toolame_error = 1;
-pthread_mutex_unlock(&toolame_output_lock);
+sem_post(&toolame_output_lock);
 return 1;
+// CINELERRA END
 	exit (0);
       }
 
@@ -530,9 +558,11 @@ return 1;
       fprintf (stderr, "If you are reading this, the program is broken\n");
       fprintf (stderr, "email [mfc at NOTplanckenerg.com] without the NOT\n");
       fprintf (stderr, "with the command line arguments and other info\n");
+// CINELERRA BEGIN
 toolame_error = 1;
-pthread_mutex_unlock(&toolame_output_lock);
+sem_post(&toolame_output_lock);
 return 1;
+// CINELERRA END
       exit (0);
     }
 
@@ -568,8 +598,10 @@ return 1;
 	   (FLOAT) sentBits / (frameNum * 1152) *
 	   s_freq[header.version][header.sampling_frequency]);
 
-pthread_mutex_unlock(&toolame_output_lock);
+// CINELERRA BEGIN
+sem_post(&toolame_output_lock);
 return 0;
+// CINELERRA END
 //  if (fclose (musicin) != 0) {
 //    fprintf (stderr, "Could not close \"%s\".\n", original_file_name);
 //    exit (2);

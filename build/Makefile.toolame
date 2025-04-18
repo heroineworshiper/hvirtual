@@ -28,7 +28,7 @@ OBJS := \
 OUTPUT = $(DIR)/$(OBJDIR)/toolame.a
 
 # 2018: GCC currently doesn't export inline functions
-CFLAGS += -I$(DIR) -DNEWENCODE -DNEWATAN -DNDEBUG -DINLINE=
+CFLAGS = -O3 -I$(DIR) -DNEWENCODE -DNEWATAN -DNDEBUG -DINLINE=
 
 
 $(shell sh -c 'mkdir -p $(DIR)/$(OBJDIR)' )

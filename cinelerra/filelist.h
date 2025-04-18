@@ -85,6 +85,12 @@ public:
 // Single frame files are always stored in a temp & reused.
 // This means no hardware colormodel conversion
 	VFrame *temp;
+// a file list with 1 prefix
+	const char *list_prefix;
+	const char *file_extension;
+// a file list with multiple prefixes
+    const char *list_prefix2;
+    const char *file_extension2;
 
 private:
 	int read_raw(VFrame *frame, 
@@ -93,8 +99,6 @@ private:
 		int alpha, int use_alpha, int use_float, int interpolate);
 	int reset_parameters_derived();
 	ArrayList<char*> path_list;     // List of files
-	char *list_prefix;
-	char *file_extension;
 	int frame_type;
 	int list_type;
 	Mutex *table_lock;

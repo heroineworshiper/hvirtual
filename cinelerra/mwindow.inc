@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
 #define MWINDOW_INC
 
 #define PROGRAM_NAME "Cinelerra"
-#define CINELERRA_VERSION "9"
-#define COPYRIGHT_DATE 2024
+#define CINELERRA_VERSION "10"
+#define COPYRIGHT_DATE 2025
 #define DEFAULT_THEME "S.U.V."
 #define CONFIG_FILE "Cinelerra_rc"
 // user presets
@@ -32,7 +32,7 @@
 #define FACTORY_FILE "Cinelerra_factory"
 #define PICTURE_FILE "Cinelerra_picture"
 #define PLUGIN_FILE "Cinelerra_plugins"
-#define PLUGIN_FILE_VERSION 8
+#define PLUGIN_FILE_VERSION 9
 
 // Behavior of region selections
 #define SELECTION_SAMPLES 0

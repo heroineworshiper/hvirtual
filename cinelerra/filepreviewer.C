@@ -247,8 +247,8 @@ void FilePreviewerThread::run()
                         }
                     }
 
-// asset dimensions outside size limit
-                    if(got_asset &&
+// no asset or asset dimensions outside size limit
+                    if(!got_asset ||
                         (got_asset->width > MAX_WIDTH ||
                         got_asset->height > MAX_HEIGHT))
                         preview_it = 0;

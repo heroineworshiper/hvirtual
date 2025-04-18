@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <tiffio.h>
 
 FileTIFF::FileTIFF(Asset *asset, File *file)
  : FileList(asset, file, "TIFFLIST", ".tif", FILE_TIFF, FILE_TIFF_LIST)
@@ -361,57 +362,122 @@ int FileTIFF::read_frame(VFrame *output, VFrame *input)
 	    tiff_mmap, 
 		tiff_unmap);
 
-// This loads the original TIFF data into each scanline of the output frame, 
-// assuming the output scanlines are bigger than the input scanlines.
-// Then it expands the input data in reverse to fill the row.
-	for(int i = 0; i < asset->height; i++)
-	{
-		TIFFReadScanline(stream, output->get_rows()[i], i, 0);
+//printf("FileTIFF::read_frame %d %d\n", __LINE__, output->get_color_model());
 
-// For the greyscale model, the output is RGB888 but the input must be expanded
-		if(asset->tiff_cmodel == FileTIFF::GREYSCALE)
-		{
-			unsigned char *row = output->get_rows()[i];
-			for(int j = output->get_w() - 1; j >= 0; j--)
-			{
-				unsigned char value = row[j];
-				row[j * 3] = value;
-				row[j * 3 + 1] = value;
-				row[j * 3 + 2] = value;
-			}
-		}
-// For the 16 bit models, the output is floating point.
-		else
-		if(asset->tiff_cmodel == FileTIFF::RGB_161616)
-		{
-			uint16_t *input_row = (uint16_t*)output->get_rows()[i];
-			float *output_row = (float*)output->get_rows()[i];
-			for(int j = output->get_w() - 1; j >= 0; j--)
-			{
-				uint16_t r = input_row[j * 3];
-				uint16_t g = input_row[j * 3 + 1];
-				uint16_t b = input_row[j * 3 + 2];
-				output_row[j * 3] = (float)r / 65535;
-				output_row[j * 3 + 1] = (float)g / 65535;
-				output_row[j * 3 + 2] = (float)b / 65535;
-			}
-		}
-		else
-		if(asset->tiff_cmodel == FileTIFF::RGBA_16161616)
-		{
-			uint16_t *input_row = (uint16_t*)output->get_rows()[i];
-			float *output_row = (float*)output->get_rows()[i];
-			for(int j = output->get_w() - 1; j >= 0; j--)
-			{
-				uint16_t r = input_row[j * 4];
-				uint16_t g = input_row[j * 4 + 1];
-				uint16_t b = input_row[j * 4 + 2];
-				output_row[j * 4] = (float)r / 65535;
-				output_row[j * 4 + 1] = (float)g / 65535;
-				output_row[j * 4 + 2] = (float)b / 65535;
-			}
-		}
-	}
+// These read directly into the output
+    if((asset->tiff_cmodel == RGB_888 && output->get_color_model() == BC_RGB888) ||
+        (asset->tiff_cmodel == RGBA_8888 && output->get_color_model() == BC_RGBA8888) ||
+        (asset->tiff_cmodel == RGB_FLOAT && output->get_color_model() == BC_RGB_FLOAT) ||
+        (asset->tiff_cmodel == RGBA_FLOAT && output->get_color_model() == BC_RGBA_FLOAT))
+    {
+	    for(int i = 0; i < asset->height; i++)
+	    {
+		    TIFFReadScanline(stream, output->get_rows()[i], i, 0);
+        }
+    }
+    else
+    {
+// This loads the original TIFF data into a temp line.
+// Conversions are supported on a need basis.
+        uint8_t temp[asset->width * 4 * sizeof(float)];
+	    for(int i = 0; i < asset->height; i++)
+	    {
+		    TIFFReadScanline(stream, temp, i, 0);
+
+    // For the greyscale model, the output is RGB888 but the input must be expanded
+		    if(asset->tiff_cmodel == FileTIFF::GREYSCALE &&
+                output->get_color_model() == BC_RGB888)
+		    {
+                uint8_t *src = temp;
+			    uint8_t *dst = output->get_rows()[i];
+			    for(int j = output->get_w() - 1; j >= 0; j--)
+			    {
+				    unsigned char value = src[j];
+				    dst[j * 3] = value;
+				    dst[j * 3 + 1] = value;
+				    dst[j * 3 + 2] = value;
+			    }
+		    }
+		    else
+		    if(asset->tiff_cmodel == FileTIFF::RGB_FLOAT &&
+                output->get_color_model() == BC_RGB888)
+		    {
+			    float *input_row = (float*)temp;
+			    uint8_t *output_row = (uint8_t*)output->get_rows()[i];
+			    for(int j = 0; j < output->get_w(); j++)
+			    {
+				    float r = input_row[j * 3];
+				    float g = input_row[j * 3 + 1];
+				    float b = input_row[j * 3 + 2];
+                    CLAMP(r, 0, 1);
+                    CLAMP(g, 0, 1);
+                    CLAMP(b, 0, 1);
+				    output_row[j * 3] = (uint8_t)(r * 255);
+				    output_row[j * 3 + 1] = (uint8_t)(g * 255);
+				    output_row[j * 3 + 2] = (uint8_t)(b * 255);
+			    }
+		    }
+		    else
+		    if(asset->tiff_cmodel == FileTIFF::RGBA_FLOAT &&
+                output->get_color_model() == BC_RGB888)
+		    {
+			    float *input_row = (float*)temp;
+			    uint8_t *output_row = (uint8_t*)output->get_rows()[i];
+			    for(int j = 0; j < output->get_w(); j++)
+			    {
+				    float r = input_row[j * 3];
+				    float g = input_row[j * 3 + 1];
+				    float b = input_row[j * 3 + 2];
+                    CLAMP(r, 0, 1);
+                    CLAMP(g, 0, 1);
+                    CLAMP(b, 0, 1);
+				    output_row[j * 3] = (uint8_t)(r * 255);
+				    output_row[j * 3 + 1] = (uint8_t)(g * 255);
+				    output_row[j * 3 + 2] = (uint8_t)(b * 255);
+			    }
+		    }
+    // For the 16 bit models, the output is floating point.
+		    else
+		    if(asset->tiff_cmodel == FileTIFF::RGB_161616 &&
+                output->get_color_model() == BC_RGB_FLOAT)
+		    {
+			    uint16_t *input_row = (uint16_t*)temp;
+			    float *output_row = (float*)output->get_rows()[i];
+			    for(int j = output->get_w() - 1; j >= 0; j--)
+			    {
+				    uint16_t r = input_row[j * 3];
+				    uint16_t g = input_row[j * 3 + 1];
+				    uint16_t b = input_row[j * 3 + 2];
+				    output_row[j * 3] = (float)r / 65535;
+				    output_row[j * 3 + 1] = (float)g / 65535;
+				    output_row[j * 3 + 2] = (float)b / 65535;
+			    }
+		    }
+		    else
+		    if(asset->tiff_cmodel == FileTIFF::RGBA_16161616 &&
+                output->get_color_model() == BC_RGBA_FLOAT)
+		    {
+			    uint16_t *input_row = (uint16_t*)temp;
+			    float *output_row = (float*)output->get_rows()[i];
+			    for(int j = output->get_w() - 1; j >= 0; j--)
+			    {
+				    uint16_t r = input_row[j * 4];
+				    uint16_t g = input_row[j * 4 + 1];
+				    uint16_t b = input_row[j * 4 + 2];
+				    output_row[j * 4] = (float)r / 65535;
+				    output_row[j * 4 + 1] = (float)g / 65535;
+				    output_row[j * 4 + 2] = (float)b / 65535;
+			    }
+		    }
+            else
+            {
+                printf("FileTIFF::read_frame %d unsupported transfer %d -> %d\n", 
+                    __LINE__, 
+                    asset->tiff_cmodel,
+                    output->get_color_model());
+            }
+	    }
+    }
 
 	TIFFClose(stream);
 	delete unit;
