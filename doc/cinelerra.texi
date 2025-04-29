@@ -10,9 +10,9 @@
 @top
 
 @center SECRETS OF CINELERRA
-@center Version 9
+@center Version 10
 @center by Adam Williams
-@center Copyright @copyright{} 2011-2024
+@center Copyright @copyright{} 2011-2025
 @center Sections from https://cinelerra-gg.org/download/CinelerraGG_Manual/Contents.html
 
 

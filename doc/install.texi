@@ -71,7 +71,7 @@ running
 @example
 tar xvf cinelerra*.tar.xz
 cd cinelerra*
-./cinelerra
+./cinelerra.sh
 @end example
 
 It should have all the hardest dependencies already taken care of.
@@ -148,7 +148,7 @@ The simplest way to run Cinelerra is by going into bin/ & running
 
 
 @example
-./cinelerra
+./cinelerra.sh
 @end example
 
 This command hides a much more capable command line interface.  Run

@@ -283,8 +283,23 @@ void VWindow::change_source(Indexable *indexable)
 
 #ifdef STANDALONE_EDL
 // copy the mane time bases to make paste work
-    this->edl->session->frame_rate = mwindow->edl->session->frame_rate;
-    this->edl->session->sample_rate = mwindow->edl->session->sample_rate;
+	int new_samplerate = mwindow->edl->session->sample_rate;
+	int old_samplerate = this->edl->session->sample_rate;
+	double new_framerate = mwindow->edl->session->frame_rate;
+	double old_framerate = this->edl->session->frame_rate;
+    if(!EQUIV(new_framerate, old_framerate))
+    {
+        this->edl->session->frame_rate = mwindow->edl->session->frame_rate;
+        this->edl->resample(old_framerate, new_framerate, TRACK_VIDEO);
+    }
+
+    if(new_samplerate != old_samplerate)
+    {
+        this->edl->session->sample_rate = mwindow->edl->session->sample_rate;
+        this->edl->resample(old_samplerate, new_samplerate, TRACK_AUDIO);
+    }
+
+
 #endif
 
 

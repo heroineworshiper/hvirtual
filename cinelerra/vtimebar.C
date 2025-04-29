@@ -114,7 +114,7 @@ void VTimeBar::select_label(double position)
 double VTimeBar::pixel_to_position(int pixel)
 {
 	double edl_length = get_edl_length();
-
+//printf("VTimeBar::pixel_to_position %d %f\n", __LINE__, edl_length);
 	return (double)pixel * edl_length / get_w();
 }
 

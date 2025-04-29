@@ -785,6 +785,7 @@ void VWindowSlider::set_position()
 	{
 		double new_length = edl->tracks->total_playable_length();
 
+//printf("VWindowSlider::set_position %d %f\n", __LINE__, new_length);
 // 		if(EQUIV(edl->local_session->preview_end, 0))
 // 			edl->local_session->preview_end = new_length;
 // 		if(edl->local_session->preview_end > new_length)

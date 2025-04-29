@@ -30,7 +30,7 @@ ARCH=`uname -m`
 
 
 
-CI_VERSION=9
+CI_VERSION=10
 
 
 #MIX_VERSION=1.2
@@ -132,7 +132,11 @@ cp -a \
 
 echo "Compressing Cinelerra"
 cd $DEST/
-rm -r $CI_NAME/thirdparty/festival $CI_NAME/thirdparty/speech_tools $CI_NAME/thirdparty/OpenCV-2.3.1
+rm -r $CI_NAME/thirdparty/festival \
+    $CI_NAME/thirdparty/speech_tools \
+    $CI_NAME/thirdparty/OpenCV-2.3.1 \
+    $CI_NAME/thirdparty/pulseaudio*
+
 find $CI_NAME/ -name CMakeCache.txt -exec rm {} \;
 find $CI_NAME -name .svn -exec rm -rf {} \; -prune
 find $CI_NAME -name .git -exec rm -rf {} \; -prune
