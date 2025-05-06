@@ -438,7 +438,7 @@ int MainMenu::add_aeffect(char *title)
 	{
 		if(!strcmp(aeffect[i]->get_text(), title))     // already exists
 		{                                // swap for top effect
-			for(int j = i; j > 0; j--)   // move preceeding effects down
+			for(int j = i; j > 0; j--)   // move preceding effects down
 			{
 				aeffect[j]->set_text(aeffect[j - 1]->get_text());
 			}
@@ -480,7 +480,7 @@ int MainMenu::add_veffect(char *title)
 	{
 		if(!strcmp(veffect[i]->get_text(), title))     // already exists
 		{                                // swap for top effect
-			for(int j = i; j > 0; j--)   // move preceeding effects down
+			for(int j = i; j > 0; j--)   // move preceding effects down
 			{
 				veffect[j]->set_text(veffect[j - 1]->get_text());
 			}
@@ -526,7 +526,7 @@ int MainMenu::add_load(const char *path)
 	{
 		if(!strcmp(load[i]->get_text(), text))     // already exists
 		{                                // swap for top load
-			for(int j = i; j > 0; j--)   // move preceeding loads down
+			for(int j = i; j > 0; j--)   // move preceding loads down
 			{
 				load[j]->set_text(load[j - 1]->get_text());
 				load[j]->set_path(load[j - 1]->path);

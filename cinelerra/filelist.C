@@ -443,7 +443,7 @@ int FileList::read_frame(VFrame *frame)
 				asset->height,
 				temp->get_color_model(), 
 				frame->get_color_model(),
-				0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
+				0,         /* When transferring BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
 				temp->get_w(),       /* For planar use the luma rowspan */
 				frame->get_w());
 		}

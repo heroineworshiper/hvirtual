@@ -1534,7 +1534,7 @@ int File::write_samples(Samples **buffer, int64_t len)
 	{
 		write_lock->lock("File::write_samples");
 
-// Convert to arrays for backwards compatability
+// Convert to arrays for backwards compatibility
 		double *temp[asset->channels];
 		for(int i = 0; i < asset->channels; i++)
 		{

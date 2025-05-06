@@ -130,7 +130,7 @@ struct buz_params
 
    int  quality;                  /* Measure for quality of compressed images.
                                      Scales linearly with the size of the compressed images.
-                                     Must be beetween 0 and 100, 100 is a compression
+                                     Must be between 0 and 100, 100 is a compression
                                      ratio of 1:4 */
 
    int  odd_even;                 /* Which field should come first ??? */
@@ -144,8 +144,8 @@ struct buz_params
 
    unsigned long jpeg_markers;    /* Which markers should go into the JPEG output.
                                      Unless you exactly know what you do, leave them untouched.
-                                     Inluding less markers will make the resulting code
-                                     smaller, but there will be fewer aplications
+                                     Including less markers will make the resulting code
+                                     smaller, but there will be fewer applications
                                      which can read it.
                                      The presence of the APP and COM marker is
                                      influenced by APP0_len and COM_len ONLY! */
@@ -153,7 +153,7 @@ struct buz_params
 #define JPEG_MARKER_DQT (1<<4)    /* Define Quantization Tables */
 #define JPEG_MARKER_DRI (1<<5)    /* Define Restart Interval */
 #define JPEG_MARKER_COM (1<<6)    /* Comment segment */
-#define JPEG_MARKER_APP (1<<7)    /* App segment, driver will allways use APP0 */
+#define JPEG_MARKER_APP (1<<7)    /* App segment, driver will always use APP0 */
 
    int  VFIFO_FB;                 /* Flag for enabling Video Fifo Feedback.
                                      If this flag is turned on and JPEG decompressing
@@ -237,7 +237,7 @@ struct buz
    struct video_device video_dev;
    struct i2c_bus i2c;
 
-   int initialized;             /* flag if buz has been correctly initalized */
+   int initialized;             /* flag if buz has been correctly initialized */
    int user;                    /* number of current users (0 or 1) */
 
    unsigned short id;           /* number of this device */
