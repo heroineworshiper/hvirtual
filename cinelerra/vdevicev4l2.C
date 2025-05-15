@@ -767,6 +767,7 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 					device->in_config->v4l2_format == CAPTURE_MJPG ||
 					device->in_config->v4l2_format == CAPTURE_MJPG_1FIELD)
 				{
+// compressed buffer
 					frame->set_compressed_memory(data,
 						0,
 						0,
@@ -774,36 +775,61 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 				}
 				else
 				{
+// uncompressed buffer
 					int y_offset = 0;
 					int u_offset = 0;
 					int v_offset = 0;
 
-					switch(color_model)
-					{
-						case BC_YUV422P:
-							u_offset = device->in_config->w * device->in_config->h;
-							v_offset = device->in_config->w * device->in_config->h + device->in_config->w * device->in_config->h / 2;
-							break;
-						case BC_YUV420P:
-						case BC_YUV411P:
-// In 2.6.7, the v and u are inverted for 420 but not 422
-							v_offset = device->in_config->w * device->in_config->h;
-							u_offset = device->in_config->w * device->in_config->h + device->in_config->w * device->in_config->h / 4;
-							break;
-					}
+// VIDIOC_QUERYBUF can return the wrong length & crash
+                    int need = device->in_config->w * 
+                        device->in_config->h * 
+		                cmodel_calculate_pixelsize(color_model);
+                    if(buffer.length < need)
+                    {
+                        printf("VDeviceV4L2Thread::run %d: insufficient buffer size %d.  Need %d\n",
+                            __LINE__,
+                            buffer.length,
+                            need);
+					    error = 1;
+                        munmap(data, buffer.length);
+                        break;
+                    }
+                    else
+                    {
+					    switch(color_model)
+					    {
+						    case BC_YUV422P:
+							    u_offset = device->in_config->w * device->in_config->h;
+							    v_offset = device->in_config->w * device->in_config->h + device->in_config->w * device->in_config->h / 2;
+							    break;
+						    case BC_YUV420P:
+						    case BC_YUV411P:
+    // In 2.6.7, the v and u are inverted for 420 but not 422
+							    v_offset = device->in_config->w * device->in_config->h;
+							    u_offset = device->in_config->w * device->in_config->h + device->in_config->w * device->in_config->h / 4;
+							    break;
+					    }
 
-//printf("VDeviceV4L2Thread::run color_model=%d\n", color_model);
-					frame->reallocate(data,
-						0,
-						0,
-						0,
-						0,
-						device->in_config->w,
-						device->in_config->h,
-						color_model,
-						VFrame::calculate_bytes_per_pixel(color_model) *
-							device->in_config->w);
-				}
+// printf("VDeviceV4L2Thread::run %d color_model=%d data=%p length=%d %d %d %d\n", 
+// __LINE__,
+// color_model,
+// data,
+// buffer.length,
+// y_offset,
+// u_offset,
+// v_offset);
+					    frame->reallocate(data,
+						    0,
+						    0,
+						    0,
+						    0,
+						    device->in_config->w,
+						    device->in_config->h,
+						    color_model,
+						    VFrame::calculate_bytes_per_pixel(color_model) *
+							    device->in_config->w);
+				    }
+                }
 			}
 		}
 		Thread::enable_cancel();

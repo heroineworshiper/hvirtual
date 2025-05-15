@@ -316,8 +316,9 @@ int VFrame::clear_objects(int do_opengl)
 	}
 
 // Delete row pointers
-    if(!cmodel_is_planar(color_model) &&
-        color_model != BC_COMPRESSED)
+//    if(!cmodel_is_planar(color_model) &&
+//        color_model != BC_COMPRESSED)
+    if(rows)
 	{
 		delete [] rows;
 		rows = 0;
