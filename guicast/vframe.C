@@ -392,14 +392,14 @@ void VFrame::create_row_pointers()
             int pad = 0;
 // ffmpeg expects 1 more row for odd numbered heights
             if((h % 2) > 0)
-                pad = w / 2 * 2;
+                pad = bytes_per_line / 2 * 2;
 // only create plane pointers if none are provided
             if(!this->y && this->data)
             {
 			    y = this->data;
-			    u = this->data + w * 2 * h;
-			    v = this->data + w * 2 * h + 
-                    (w / 2) * 2 * (h / 2) + pad;
+			    u = this->data + bytes_per_line * h;
+			    v = this->data + bytes_per_line * h + 
+                    (bytes_per_line / 2) * (h / 2) + pad;
             }
 			break;
         }

@@ -1945,9 +1945,11 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 			}
 		}
 
-// printf("Playback3D::convert_cmodel_sync %d rowspan=%ld\n", 
+// printf("Playback3D::convert_cmodel_sync %d rowspan=%d src_cmodel=%d dst_cmodel=%d\n", 
 // __LINE__, 
-// command->input->get_bytes_per_line());
+// (int)command->input->get_bytes_per_line(),
+// src_cmodel,
+// dst_cmodel);
 
 // got a colormodel converter
 		if(shader_stack[1])
