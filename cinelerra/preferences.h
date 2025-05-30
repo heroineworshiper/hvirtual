@@ -30,6 +30,7 @@
 #include "maxchannels.h"
 #include "mutex.inc"
 #include "preferences.inc"
+#include "transportque.inc"
 #include "videoconfig.inc"
 
 #include <string>
@@ -81,6 +82,15 @@ public:
 // Determined by /proc/cpuinfo and force_uniprocessor.
 // interactive forces it to ignore force_uniprocessor
 	int calculate_processors(int interactive = 0);
+
+// translate speed table to a command & value
+    float get_playback_value(int index);
+    int get_playback_command(int index, int direction);
+// access to all possible speeds
+    static const char* speed_to_text(float speed);
+    static float text_to_speed(const char *text);
+    static int total_speeds();
+    static float speed(int index);
 
 // ================================= Performance ================================
 // directory to look in for indexes
@@ -159,7 +169,8 @@ public:
 	int real_time_playback;
 // scrubbing style
     int scrub_chop;
-
+// scrubbing speeds.  0.0 is frame advance
+    float speed_table[TOTAL_SPEEDS];
 
 // ====================================== Plugin Set ==============================
 	char plugin_dir[BCTEXTLEN];

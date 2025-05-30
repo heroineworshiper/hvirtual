@@ -47,6 +47,18 @@
 #define GOTO_END             	  12
 #define CURRENT_FRAME             13
 
+
+// indexes inside the speed table
+#define SPEED_NUMPAD_1 0
+#define SPEED_NUMPAD_2 1
+#define SPEED_NUMPAD_3 2
+#define SPEED_NUMPAD_ENTER 3
+#define SPEED_NUMPAD_DEL 4
+#define SPEED_BUTTON_1 5
+#define SPEED_BUTTON_2 6
+#define TOTAL_SPEEDS 7
+
+
 // Level of change.  Changes have to be inclusive of all the lesser changes.
 // Delete cache
 #define CHANGE_ALL                  -1

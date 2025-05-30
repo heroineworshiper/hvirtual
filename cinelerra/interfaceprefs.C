@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,9 +49,11 @@ InterfacePrefs::InterfacePrefs(MWindow *mwindow, PreferencesWindow *pwindow)
 void InterfacePrefs::create_objects()
 {
 	int y, x, value;
+    BC_Bar *bar;
 	BC_Resources *resources = BC_WindowBase::get_resources();
 	BC_Title *title;
-	int margin = mwindow->theme->widget_border;
+    Theme *theme = MWindow::theme;
+	int margin = theme->widget_border;
 	char string[BCTEXTLEN];
 	x = mwindow->theme->preferencesoptions_x;
 	y = mwindow->theme->preferencesoptions_y;
@@ -158,8 +160,8 @@ void InterfacePrefs::create_objects()
 
 
 	y += DP(35);
-	add_subwindow(new BC_Bar(margin, y, 	get_w() - margin * 2));
-	y += margin;
+	add_subwindow(bar = new BC_Bar(margin, y, 	get_w() - margin * 2));
+	y += bar->get_h() + margin;
 
 	add_subwindow(title = new BC_Title(x, y, _("Editing"), LARGEFONT, resources->text_default));
     y += title->get_h() + margin;
@@ -225,15 +227,15 @@ void InterfacePrefs::create_objects()
 
 	x = x1;
 	y += DP(30);
-	ViewTheme *theme;
+	ViewTheme *theme_menu;
 	add_subwindow(title = new BC_Title(x, y, _("Theme:")));
 	x += title->get_w() + margin;
-	add_subwindow(theme = new ViewTheme(x, y, pwindow));
-	theme->create_objects();
+	add_subwindow(theme_menu = new ViewTheme(x, y, pwindow));
+	theme_menu->create_objects();
 
 
 	x = x1;
-	y += theme->get_h() + margin;
+	y += theme_menu->get_h() + margin;
 	BC_CheckBox *checkbox2;
 	add_subwindow(checkbox2 = new OverrideDPI(pwindow, x, y));
 	x += checkbox2->get_w() + margin;
@@ -244,6 +246,61 @@ void InterfacePrefs::create_objects()
 
     x = x1;
     y += text2->get_h() + margin;
+
+// playback speeds
+	add_subwindow(bar = new BC_Bar(margin, y, get_w() - margin * 2));
+	y += bar->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Playback speeds"), LARGEFONT, resources->text_default));
+    y += title->get_h() + margin;
+
+    SpeedMenu *speed;
+    int max_w = BC_PopupMenu::calculate_w(this, Preferences::speed_to_text(0.0));
+    int margin2 = (max_w - theme->get_image("speed_4")->get_w()) / 2;
+    int margin3 = (max_w - theme->get_image("speed_rev")->get_w()) / 2;
+    max_w = MAX(max_w, theme->get_image("speed_4")->get_w());
+    int min_h = theme->get_image("speed_4")->get_h();
+    int max_h = theme->get_image("speed_plus")->get_h();
+    y += max_h + margin;
+    int y1 = y - min_h - margin;
+
+    draw_vframe(theme->get_image("speed_4"), x + margin2, y1);
+    add_subwindow(speed = new SpeedMenu(pwindow, x, y, SPEED_NUMPAD_1));
+    speed->create_objects();
+    int y2 = y + speed->get_h() + margin;
+    draw_vframe(theme->get_image("speed_1"), x + margin2, y2);
+    x += max_w + margin;
+    
+    draw_vframe(theme->get_image("speed_5"), x + margin2, y1);
+    add_subwindow(speed = new SpeedMenu(pwindow, x, y, SPEED_NUMPAD_2));
+    speed->create_objects();
+    draw_vframe(theme->get_image("speed_2"), x + margin2, y2);
+    x += max_w + margin;
+
+    draw_vframe(theme->get_image("speed_6"), x + margin2, y1);
+    add_subwindow(speed = new SpeedMenu(pwindow, x, y, SPEED_NUMPAD_3));
+    speed->create_objects();
+    draw_vframe(theme->get_image("speed_3"), x + margin2, y2);
+    x += max_w + margin;
+
+    draw_vframe(theme->get_image("speed_plus"), x + margin2, y - max_h - margin);
+    add_subwindow(speed = new SpeedMenu(pwindow, x, y, SPEED_NUMPAD_ENTER));
+    speed->create_objects();
+    draw_vframe(theme->get_image("speed_enter"), x + margin2, y2);
+    x += max_w + margin;
+
+    draw_vframe(theme->get_image("speed_9"), x + margin2, y1);
+    add_subwindow(speed = new SpeedMenu(pwindow, x, y, SPEED_NUMPAD_DEL));
+    speed->create_objects();
+    draw_vframe(theme->get_image("speed_period"), x + margin2, y2);
+    x += max_w + margin;
+
+    int y3 = y - theme->get_image("speed_rev")->get_h() - margin;
+    draw_vframe(theme->get_image("speed_rev"), x + margin3, y3);
+    add_subwindow(speed = new SpeedMenu(pwindow, x, y, SPEED_BUTTON_2));
+    speed->create_objects();
+    draw_vframe(theme->get_image("speed_fwd"), x + margin3, y2);
+    x = x1;
+    
 }
 
 const char* InterfacePrefs::behavior_to_text(int mode)
@@ -719,6 +776,39 @@ int DPIText::handle_event()
 }
 
 
+SpeedMenu::SpeedMenu(PreferencesWindow *gui, int x, int y, int index)
+ : BC_PopupMenu(x, 
+	y, 
+	calculate_w(gui, Preferences::speed_to_text(0.0)), 
+	calculate_text(index))
+{
+    this->gui = gui;
+    this->index = index;
+}
+
+
+void SpeedMenu::create_objects()
+{
+    for(int i = 0; i < Preferences::total_speeds(); i++)
+        add_item(
+            new BC_MenuItem(
+            Preferences::speed_to_text(
+                Preferences::speed(i))));
+}
+
+
+int SpeedMenu::handle_event()
+{
+// convert text to a table value
+    gui->thread->preferences->speed_table[index] = Preferences::text_to_speed(get_text());
+}
+
+
+
+const char* SpeedMenu::calculate_text(int index)
+{
+    return Preferences::speed_to_text(MWindow::preferences->speed_table[index]);
+}
 
 
 

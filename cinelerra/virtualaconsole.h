@@ -56,7 +56,11 @@ public:
 // mixed into the device buffer.
 	Samples *output_temp;
 // temporaries for crossfading fast forward buffers
-    Samples *fastfwd_tail[MAX_CHANNELS];
+    Samples *chopper_buf[MAX_CHANNELS];
+    double chopper_count[MAX_CHANNELS];
+// temporaries for interpolating fast forward
+    double fastfwd_accum[MAX_CHANNELS];
+    double fastfwd_count[MAX_CHANNELS];
 
 	ARender *arender;
 };

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +44,18 @@ class ScrubWindowed;
 #include "deleteallindexes.inc"
 #include "mwindow.inc"
 #include "preferencesthread.h"
+
+
+class SpeedMenu : public BC_PopupMenu
+{
+public:
+    SpeedMenu(PreferencesWindow *gui, int x, int y, int index);
+    void create_objects();
+    int handle_event();
+    static const char* calculate_text(int index);
+    PreferencesWindow *gui;
+    int index;
+};
 
 
 class InterfacePrefs : public PreferencesDialog

@@ -187,6 +187,7 @@ int PlayTransport::flip_vertical(int vertical, int &x, int &y)
 int PlayTransport::keypress_event()
 {
 	int result = 0;
+    
 	if(subwindow->shift_down())
 	{
 		switch(subwindow->get_keypress())
@@ -216,21 +217,27 @@ int PlayTransport::keypress_event()
 	subwindow->unlock_window();
 
 
+    Preferences *p = MWindow::preferences;
+#define HANDLE_TRANSPORT(direction, index) \
+    handle_transport(p->get_playback_command(index, direction), p->get_playback_value(index), 0, use_inout, 1); \
+    result = 1; \
+    break;
+
 	switch(subwindow->get_keypress())
 	{
-		case KPPLUS:        handle_transport(PLAY_REV, 4.0, 0, use_inout, 1); result = 1; break;
-		case KP9:           handle_transport(PLAY_REV, 0.5, 0, use_inout, 1); result = 1; break;
-		case KP6:           handle_transport(PLAY_REV, 2.0, 0, use_inout, 1); result = 1; break;
-		case KP5:           handle_transport(PLAY_REV, 1.0, 0, use_inout, 1); result = 1; break;
-		case KP4:           handle_transport(SINGLE_FRAME_REWIND, 1.0, 0, use_inout, 1); result = 1; break;
-		case KP1:           handle_transport(SINGLE_FRAME_FWD, 1.0, 0, use_inout, 1);    result = 1; break;
-		case KPDEL:         handle_transport(PLAY_FWD, 0.5, 0, use_inout, 1); result = 1; break;
-		case KP2:           handle_transport(PLAY_FWD, 1.0, 0, use_inout, 1); result = 1; break;
-		case KP3:           handle_transport(PLAY_FWD, 2.0, 0, use_inout, 1); result = 1; break;
-		case KPENTER:       handle_transport(PLAY_FWD, 4.0, 0, use_inout, 1); result = 1; break;
-		case KPINS:         handle_transport(STOP,     1.0, 0, use_inout, 1); result = 1; break;
-		case ' ':           handle_transport(PLAY_FWD, 1.0, 0, use_inout, 1); result = 1; break;
-		case 'k':           handle_transport(STOP,     1.0, 0, use_inout, 1); result = 1; break;
+		case KPPLUS:  HANDLE_TRANSPORT(PLAY_REVERSE, SPEED_NUMPAD_ENTER)
+		case KP9:     HANDLE_TRANSPORT(PLAY_REVERSE, SPEED_NUMPAD_DEL)
+		case KP6:     HANDLE_TRANSPORT(PLAY_REVERSE, SPEED_NUMPAD_3)
+		case KP5:     HANDLE_TRANSPORT(PLAY_REVERSE, SPEED_NUMPAD_2)
+		case KP4:     HANDLE_TRANSPORT(PLAY_REVERSE, SPEED_NUMPAD_1)
+		case KP1:     HANDLE_TRANSPORT(PLAY_FORWARD, SPEED_NUMPAD_1)
+		case KPDEL:   HANDLE_TRANSPORT(PLAY_FORWARD, SPEED_NUMPAD_DEL)
+		case KP2:     HANDLE_TRANSPORT(PLAY_FORWARD, SPEED_NUMPAD_2)
+		case KP3:     HANDLE_TRANSPORT(PLAY_FORWARD, SPEED_NUMPAD_3)
+		case KPENTER: HANDLE_TRANSPORT(PLAY_FORWARD, SPEED_NUMPAD_ENTER)
+		case KPINS:   handle_transport(STOP,     1.0, 0, use_inout, 1); result = 1; break;
+		case ' ':     handle_transport(PLAY_FWD, 1.0, 0, use_inout, 1); result = 1; break;
+		case 'k':     handle_transport(STOP,     1.0, 0, use_inout, 1); result = 1; break;
 		case END:
 			subwindow->lock_window("PlayTransport::keypress_event 3");
 			goto_end();
@@ -438,6 +445,10 @@ int RewindButton::handle_event()
 	return 1;
 }
 
+#define HANDLE_TRANSPORT2(direction, index) \
+    Preferences *p = MWindow::preferences; \
+    transport->handle_transport(p->get_playback_command(index, direction), p->get_playback_value(index), 0, ctrl_down(), 1);
+
 FastReverseButton::FastReverseButton(MWindow *mwindow, PlayTransport *transport, int x, int y)
  : PTransportButton(mwindow, transport, x, y, mwindow->theme->get_image_set("fastrev")) 
 {
@@ -446,7 +457,7 @@ FastReverseButton::FastReverseButton(MWindow *mwindow, PlayTransport *transport,
 int FastReverseButton::handle_event() 
 {
 	unlock_window();
-	transport->handle_transport(PLAY_REV, 2.0, 0, ctrl_down(), 1);
+    HANDLE_TRANSPORT2(PLAY_REVERSE, SPEED_BUTTON_2)
 	lock_window("FastReverseButton::handle_event");
 	return 1;
 }
@@ -461,7 +472,7 @@ ReverseButton::ReverseButton(MWindow *mwindow, PlayTransport *transport, int x, 
 int ReverseButton::handle_event()
 {
 	unlock_window();
-	transport->handle_transport(PLAY_REV, 1.0, 0, ctrl_down(), 1);
+    HANDLE_TRANSPORT2(PLAY_REVERSE, SPEED_BUTTON_1)
 	lock_window("ReverseButton::handle_event");
 	return 1;
 }
@@ -491,7 +502,7 @@ PlayButton::PlayButton(MWindow *mwindow, PlayTransport *transport, int x, int y)
 int PlayButton::handle_event()
 {
 	unlock_window();
-	transport->handle_transport(PLAY_FWD, 1.0, 0, ctrl_down(), 1);
+    HANDLE_TRANSPORT2(PLAY_FORWARD, SPEED_BUTTON_1)
 	lock_window("PlayButton::handle_event");
 	return 1;
 }
@@ -523,7 +534,7 @@ FastPlayButton::FastPlayButton(MWindow *mwindow, PlayTransport *transport, int x
 int FastPlayButton::handle_event() 
 {
 	unlock_window();
-	transport->handle_transport(PLAY_FWD, 2.0, 0, ctrl_down(), 1);
+    HANDLE_TRANSPORT2(PLAY_FORWARD, SPEED_BUTTON_2)
 	lock_window("FastPlayButton::handle_event");
 	return 1;
 }

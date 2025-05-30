@@ -51,15 +51,18 @@ VirtualAConsole::VirtualAConsole(RenderEngine *renderengine, ARender *arender)
 {
 	this->arender = arender;
 	output_temp = 0;
-    bzero(fastfwd_tail, sizeof(Samples*) * MAX_CHANNELS);
+    bzero(chopper_buf, sizeof(Samples*) * MAX_CHANNELS);
+    bzero(chopper_count, sizeof(double) * MAX_CHANNELS);
+    bzero(fastfwd_accum, sizeof(double) * MAX_CHANNELS);
+    bzero(fastfwd_count, sizeof(double) * MAX_CHANNELS);
 }
 
 VirtualAConsole::~VirtualAConsole()
 {
-	if(output_temp) delete output_temp;
+	delete output_temp;
     for(int i = 0; i < MAX_CHANNELS; i++)
     {
-        delete fastfwd_tail[i];
+        delete chopper_buf[i];
     }
 }
 
@@ -95,10 +98,10 @@ int VirtualAConsole::process_buffer(int64_t len,
 {
 	int result = 0;
 	const int debug = 0;
-if(debug) printf("VirtualAConsole::process_buffer %d this=%p len=%lld\n", 
+if(debug) printf("VirtualAConsole::process_buffer %d this=%p len=%d\n", 
 __LINE__, 
 this,
-(long long)len);
+(int)len);
 
 
 // clear output buffers
@@ -158,7 +161,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 	{
 		if(arender->audio_out[i])
 		{
-			double *current_buffer = arender->audio_out[i]->get_data();
+			double *audio_out = arender->audio_out[i]->get_data();
 
 
 			for(int j = 0; j < len; )
@@ -185,7 +188,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 				for( ; j < meter_render_end; j++)
 				{
 // Level history comes before clipping to get over status
-					double *sample = &current_buffer[j];
+					double *sample = &audio_out[j];
 
 
 					if(fabs(*sample) > peak) peak = fabs(*sample);
@@ -222,7 +225,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 	{
 // speed parameters
 // length compensated for speed
-		int real_output_len;
+		int real_output_len = 0;
 // output sample
 		double sample;
 		int k;
@@ -233,91 +236,153 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 			i < audio_channels; 
 			i++)
 		{
-			int in, out;
+			int in = 0;
+            int out = 0;
 			int fragment_end;
 
 			audio_out_planar[i] = arender->audio_out[i]->get_data();
-			double *current_buffer = audio_out_planar[i];
+			double *audio_out = audio_out_planar[i];
 
 // Time stretch the fragment to the real_output size
-			if(renderengine->command->get_speed() > 1)
+            double speed = renderengine->command->get_speed();
+			if(speed > 1)
 			{
 // printf("VirtualAConsole::process_buffer %d scrub_chop=%d\n", 
 // __LINE__,
 // renderengine->preferences->scrub_chop);
-// Number of samples in real output buffer for each to sample rendered.
                 if(renderengine->preferences->scrub_chop)
                 {
-// chop the buffer length
-                    real_output_len = len / renderengine->command->get_speed();
-                    if(real_output_len <= 0) real_output_len = 1;
-
 // split output len into smaller windows to make the chopping intelligible
-                    int fastfwd_window = real_output_len;
-                    while(fastfwd_window >= sample_rate / 40 &&
-                        fastfwd_window > 1) fastfwd_window /= 2;
+                    double chopper_window = sample_rate * speed / 40;
 
-                    if(fastfwd_tail[i] && fastfwd_tail[i]->get_allocated() < fastfwd_window)
+                    double drop_count = 0;
+// length of overlapping section of each window
+                    double dissolve_count = 0;
+                    double total_in = 0;
+                    if(speed >= 2.0)
                     {
-                        delete fastfwd_tail[i];
-                        fastfwd_tail[i] = 0;
+// for speeds over 2x, drop samples between overlapping windows
+                        dissolve_count = chopper_window / speed;
+                        drop_count = chopper_window - dissolve_count * 2;
                     }
-                    if(!fastfwd_tail[i])
+                    else
                     {
-                        fastfwd_tail[i] = new Samples(fastfwd_window, 0);
-                        bzero(fastfwd_tail[i]->get_data(), fastfwd_window * sizeof(double));
+// for speeds under 2x, all of the input is used & 
+// the 2 windows overlap slightly
+                        dissolve_count = chopper_window - chopper_window / speed;
+                        drop_count = chopper_window / speed - dissolve_count;
                     }
-                    double *current_tail = fastfwd_tail[i]->get_data();
+                    total_in = drop_count + dissolve_count * 2;
+// amount to dissolve & buffer
+                    int dissolve_count_i = (int)ceil(dissolve_count);
+// printf("VirtualAConsole::process_buffer %d chopper_window=%f dissolve_count_i=%d drop_count=%f dissolve_count=%f total_in=%f total_out=%f\n", 
+// __LINE__,
+// chopper_window,
+// dissolve_count_i,
+// drop_count,
+// dissolve_count,
+// total_in,
+// (speed > 2.0) ? dissolve_count : drop_count + dissolve_count);
 
-                    for(in = 0, out = 0; 
-                        in + fastfwd_window <= len && out + fastfwd_window <= real_output_len; 
-                        in += (int)(fastfwd_window * renderengine->command->get_speed()))
+                    if(chopper_buf[i] && chopper_buf[i]->get_allocated() < dissolve_count_i)
                     {
-                        for(int j = 0; j < fastfwd_window; j++)
+                        delete chopper_buf[i];
+                        chopper_buf[i] = 0;
+                    }
+                    if(!chopper_buf[i])
+                    {
+                        chopper_buf[i] = new Samples(dissolve_count_i, 0);
+                        bzero(chopper_buf[i]->get_data(), dissolve_count_i * sizeof(double));
+                    }
+                    double *current_buf = chopper_buf[i]->get_data();
+                    double *current_counter = &chopper_count[i];
+                    int offset;
+                    for(in = 0; in < len; in++)
+                    {
+                        if(*current_counter < drop_count)
                         {
-// fade out end of previous window while 
-// fading in start of next window
-                            float fraction = (float)j / fastfwd_window;
-                            sample = current_buffer[in + j] * fraction;
-                            sample += current_tail[j] * (1.0 - fraction);
-                            current_buffer[out++] = sample;
+                            if(speed < 2.0)
+                                audio_out[out++] = audio_out[in];
+                        }
+                        else
+                        {
+                            int do_copy = 0;
+                            if(*current_counter < drop_count + dissolve_count)
+                            {
+                                offset = (int)(*current_counter - drop_count);
+                                if(speed < 2.0)
+                                    do_copy = 1;
+                            }
+                            else
+                            {
+                                offset = (int)(*current_counter - drop_count - dissolve_count);
+                                if(speed >= 2.0)
+                                    do_copy = 1;
+                            }
+
+                            if(do_copy)
+                            {
+// copy new dissolve_count to chopper buffer
+                                current_buf[offset] = audio_out[in];
+                            }
+                            else
+                            {
+// blend dissolve_count of new samples with chopper buffer & send the samples
+                                double fraction = (double)offset /
+                                    dissolve_count;
+                                current_buf[offset] = current_buf[offset] * (1.0 - fraction) +
+                                    audio_out[in] * fraction;
+                                audio_out[out++] = current_buf[offset];
+                            }
                         }
 
-                        if(in + fastfwd_window * 2 <= len)
-                            memcpy(current_tail, 
-                                current_buffer + in + fastfwd_window, 
-                                fastfwd_window * sizeof(double));
+                        (*current_counter)++;
+                        if(*current_counter >= total_in)
+                            *current_counter -= total_in;
                     }
+// output drops 1 window in 1.5x & 3x
+                    real_output_len = out;
+//printf("VirtualAConsole::process_buffer %d real_output_len=%d\n", __LINE__, real_output_len);
                 }
                 else
                 {
-				    int interpolate_len = (int)renderengine->command->get_speed();
-				    for(in = 0, out = 0; in < len; )
+				    double *current_accum = &fastfwd_accum[i];
+                    double *current_count = &fastfwd_count[i];
+                    for(in = 0, out = 0; in < len; in++)
 				    {
-					    sample = 0;
-					    for(k = 0; k < interpolate_len; k++)
-					    {
-						    sample += current_buffer[in++];
-					    }
-
-					    sample /= renderengine->command->get_speed();
-					    current_buffer[out++] = sample;
+                        double sample = audio_out[in];
+                        *current_count += 1.0;
+                        double remane_count = *current_count - speed;
+                        if(remane_count >= 0)
+                        {
+// output a sample
+                            *current_accum += sample * (1.0 - remane_count);
+                            *current_accum /= speed;
+                            audio_out[out++] = *current_accum;
+                            *current_accum = sample * remane_count;
+                            *current_count = remane_count;
+                        }
+                        else
+                        {
+// accumulate a sample
+                            *current_accum += sample;
+                        }
 				    }
 				    real_output_len = out;
                 }
 			}
 			else
-			if(renderengine->command->get_speed() < 1)
+			if(speed < 1)
 			{
 // number of samples to skip
- 				int interpolate_len = (int)(1.0 / renderengine->command->get_speed());
+ 				int interpolate_len = (int)(1.0 / speed);
 				real_output_len = len * interpolate_len;
 
 				for(in = len - 1, out = real_output_len - 1; in >= 0; )
 				{
 					for(k = 0; k < interpolate_len; k++)
 					{
-						current_buffer[out--] = current_buffer[in];
+						audio_out[out--] = audio_out[in];
 					}
 					in--;
 				}
@@ -334,7 +399,7 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
 		}
 		if(!renderengine->adevice->get_interrupted())
 		{
-if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
+if(debug) printf("VirtualAConsole::process_buffer %d real_output_len=%d\n", __LINE__, real_output_len);
 			renderengine->adevice->write_buffer(audio_out_planar, 
 				real_output_len);
 if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);

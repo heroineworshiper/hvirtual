@@ -758,6 +758,20 @@ void BrightTheme::initialize()
 	new_toggle("toolwindow.png", cpanel_up, cpanel_hi, cpanel_checked, cpanel_dn, cpanel_checkedhi, "tool");
 
 
+// speed preferences
+    new_image("speed_4", "speed_4.png");
+    new_image("speed_5", "speed_5.png");
+    new_image("speed_6", "speed_6.png");
+    new_image("speed_plus", "speed_plus.png");
+    new_image("speed_9", "speed_9.png");
+    new_image("speed_1", "speed_1.png");
+    new_image("speed_2", "speed_2.png");
+    new_image("speed_3", "speed_3.png");
+    new_image("speed_enter", "speed_enter.png");
+    new_image("speed_period", "speed_period.png");
+    new_image("speed_rev", "speed_rev.png");
+    new_image("speed_fwd", "speed_fwd.png");
+
 
 	flush_images();
 

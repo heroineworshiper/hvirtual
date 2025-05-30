@@ -230,6 +230,7 @@ void Preferences::copy_from(Preferences *that)
 	view_follows_playback = that->view_follows_playback;
 	real_time_playback = that->real_time_playback;
 	scrub_chop = that->scrub_chop;
+    memcpy(speed_table, that->speed_table, sizeof(speed_table));
 	recording_format->copy_from(that->recording_format, 0);
 
     dump_playback = that->dump_playback;
@@ -340,6 +341,13 @@ int Preferences::load_defaults(BC_Hash *defaults)
 	view_follows_playback = defaults->get("VIEW_FOLLOWS_PLAYBACK", 1);
 	real_time_playback = defaults->get("PLAYBACK_REALTIME", 0);
 	scrub_chop = defaults->get("SCRUB_CHOP", 1);
+    speed_table[SPEED_NUMPAD_1] = defaults->get("SPEED_NUMPAD_1", 0.0);
+    speed_table[SPEED_NUMPAD_2] = defaults->get("SPEED_NUMPAD_2", 1.0);
+    speed_table[SPEED_NUMPAD_3] = defaults->get("SPEED_NUMPAD_3", 2.0);
+    speed_table[SPEED_NUMPAD_ENTER] = defaults->get("SPEED_NUMPAD_ENTER", 4.0);
+    speed_table[SPEED_NUMPAD_DEL] = defaults->get("SPEED_NUMPAD_DEL", 0.5);
+    speed_table[SPEED_BUTTON_1] = defaults->get("SPEED_BUTTON_1", 1.0);
+    speed_table[SPEED_BUTTON_2] = defaults->get("SPEED_BUTTON_2", 2.0);
 	playback_software_position = defaults->get("PLAYBACK_SOFTWARE_POSITION", 0);
 	aconfig_in->load_defaults(defaults);
 	vconfig_in->load_defaults(defaults);
@@ -539,6 +547,13 @@ int Preferences::save_defaults(BC_Hash *defaults)
 	playback_config->save_defaults(defaults);
     defaults->update("PLAYBACK_REALTIME", real_time_playback);
     defaults->update("SCRUB_CHOP", scrub_chop);
+    defaults->update("SPEED_NUMPAD_1", speed_table[SPEED_NUMPAD_1]);
+    defaults->update("SPEED_NUMPAD_2", speed_table[SPEED_NUMPAD_2]);
+    defaults->update("SPEED_NUMPAD_3", speed_table[SPEED_NUMPAD_3]);
+    defaults->update("SPEED_NUMPAD_ENTER", speed_table[SPEED_NUMPAD_ENTER]);
+    defaults->update("SPEED_NUMPAD_DEL", speed_table[SPEED_NUMPAD_DEL]);
+    defaults->update("SPEED_BUTTON_1", speed_table[SPEED_BUTTON_1]);
+    defaults->update("SPEED_BUTTON_2", speed_table[SPEED_BUTTON_2]);
     defaults->update("VIEW_FOLLOWS_PLAYBACK", view_follows_playback);
     defaults->update("PLAYBACK_SOFTWARE_POSITION", playback_software_position);
 	recording_format->save_defaults(defaults,
@@ -821,10 +836,81 @@ int Preferences::calculate_processors(int interactive)
 }
 
 
+float Preferences::get_playback_value(int index)
+{
+    float value = speed_table[index];
+// convert frame advance
+    if(EQUIV(value, 0.0)) return 1.0;
+// convert the rest
+    return value;
+}
 
 
+int Preferences::get_playback_command(int index, int direction)
+{
+    float value = speed_table[index];
+// printf("Preferences::get_playback_command %d index=%d value=%f\n", 
+// __LINE__, index, value);
+// convert frame advance
+    if(EQUIV(value, 0.0))
+    {
+        if(direction == PLAY_FORWARD) 
+            return SINGLE_FRAME_FWD;
+        else
+            return SINGLE_FRAME_REWIND;
+    }
 
+// convert the rest
+    if(direction == PLAY_FORWARD)
+        return PLAY_FWD;
+    else
+        return PLAY_REV;
+}
 
+static const float speeds[] = 
+{ 
+    0.0, 
+    0.5, 
+    1.0, 
+    1.5, 
+    2.0, 
+    3.0, 
+    4.0 
+};
+static const char* speed_texts[] = 
+{
+    "Frame",
+    ".5x",
+    "1x",
+    "1.5x",
+    "2x",
+    "3x",
+    "4x"
+};
+
+const char* Preferences::speed_to_text(float value)
+{
+    for(int i = 0; i < sizeof(speeds) / sizeof(float); i++)
+        if(EQUIV(value, speeds[i])) return speed_texts[i];
+    return speed_texts[2];
+}
+
+float Preferences::text_to_speed(const char *text)
+{
+    for(int i = 0; i < sizeof(speeds) / sizeof(float); i++)
+        if(!strcmp(text, speed_texts[i])) return speeds[i];
+    return speeds[2];
+}
+
+int Preferences::total_speeds()
+{
+    return sizeof(speeds) / sizeof(float);
+}
+
+float Preferences::speed(int index)
+{
+    return speeds[index];
+}
 
 
 

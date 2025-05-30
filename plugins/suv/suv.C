@@ -707,7 +707,19 @@ void SUV::initialize()
 	new_image("cwindow_inactive", "cwindow_inactive.png");
 	new_image("cwindow_active", "cwindow_active.png");
 
-
+// speed preferences
+    new_image("speed_4", "speed_4.png");
+    new_image("speed_5", "speed_5.png");
+    new_image("speed_6", "speed_6.png");
+    new_image("speed_plus", "speed_plus.png");
+    new_image("speed_9", "speed_9.png");
+    new_image("speed_1", "speed_1.png");
+    new_image("speed_2", "speed_2.png");
+    new_image("speed_3", "speed_3.png");
+    new_image("speed_enter", "speed_enter.png");
+    new_image("speed_period", "speed_period.png");
+    new_image("speed_rev", "speed_rev.png");
+    new_image("speed_fwd", "speed_fwd.png");
 
 	new_image_set("category_button",
 		3,
