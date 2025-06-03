@@ -1390,7 +1390,10 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 					error |= new_edl->load_xml(&xml_file, LOAD_ALL);
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 					test_plugins(new_edl, filenames->values[i]);
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d update_filename=%d %s\n", 
+__LINE__,
+update_filename,
+filenames->values[i]);
 
 					if(load_mode == LOADMODE_REPLACE || 
 						load_mode == LOADMODE_REPLACE_CONCATENATE)

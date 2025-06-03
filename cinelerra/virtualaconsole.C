@@ -253,7 +253,10 @@ if(debug) printf("VirtualAConsole::process_buffer %d\n", __LINE__);
                 if(renderengine->preferences->scrub_chop)
                 {
 // split output len into smaller windows to make the chopping intelligible
-                    double chopper_window = sample_rate * speed / 40;
+// must use longer fragments for lower speeds for intelligibility
+                    int denominator = 40;
+                    if(speed < 2.0) denominator = 20;
+                    double chopper_window = sample_rate * speed / denominator;
 
                     double drop_count = 0;
 // length of overlapping section of each window

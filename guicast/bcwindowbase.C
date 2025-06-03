@@ -4180,24 +4180,26 @@ void BC_WindowBase::set_background(VFrame *bitmap)
 
 void BC_WindowBase::set_title(const char *text, int flush)
 {
+//printf("BC_WindowBase::set_title %d %s\n", __LINE__, text);
 	strcpy(this->title, _(text));
 // test for UTF-8
-    int is_utf = 0;
-    for(uint8_t *ptr = (uint8_t*)text; *ptr != 0; ptr++)
-    {
-        if(*ptr > 127)
-        {
-            is_utf = 1;
-            break;
-        }
-	}
+//     int is_utf = 0;
+//     for(uint8_t *ptr = (uint8_t*)text; *ptr != 0; ptr++)
+//     {
+//         if(*ptr > 127)
+//         {
+//             is_utf = 1;
+//             break;
+//         }
+// 	}
 
-    if(is_utf)
-    {
+//     if(is_utf)
+//     {
 // from cingg
 	    const unsigned char *wm_title = (const unsigned char *)title;
 	    int title_len = strlen((const char *)title);
-	    if( is_utf >= 0 ) {
+//	    if( is_utf >= 0 ) 
+//        {
 		    Atom xa_wm_name = XA_WM_NAME;
 		    Atom xa_icon_name = XA_WM_ICON_NAME;
 		    Atom xa_string = XA_STRING;
@@ -4205,8 +4207,7 @@ void BC_WindowBase::set_title(const char *text, int flush)
 				    PropModeReplace, wm_title, title_len);
 		    XChangeProperty(display, win, xa_icon_name, xa_string, 8,
 				    PropModeReplace, wm_title, title_len);
-	    }
-	    if( is_utf != 0 ) {
+
 		    Atom xa_net_wm_name = XInternAtom(display, "_NET_WM_NAME", True);
 		    Atom xa_net_icon_name = XInternAtom(display, "_NET_WM_ICON_NAME", True);
 		    Atom xa_utf8_string = XInternAtom(display, "UTF8_STRING", True);
@@ -4214,12 +4215,14 @@ void BC_WindowBase::set_title(const char *text, int flush)
 					    PropModeReplace, wm_title, title_len);
 		    XChangeProperty(display, win, xa_net_icon_name, xa_utf8_string, 8,
 					    PropModeReplace, wm_title, title_len);
-	    }
-    }
-    else
-    {
-        XSetStandardProperties(top_level->display, top_level->win, text, text, None, 0, 0, 0); 
-	}
+//	    }
+//     }
+//     else
+//     {
+// This no longer works after following the utf8 path
+//         XSetStandardProperties(top_level->display, top_level->win, 0, 0, None, 0, 0, 0);
+//         XSetStandardProperties(top_level->display, top_level->win, text, text, None, 0, 0, 0);
+// 	}
 
     if(flush) this->flush();
 }
