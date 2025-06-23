@@ -121,6 +121,7 @@ int BC_FileBoxListBox::selection_changed()
     int column = filebox->column_of_type(FILEBOX_NAME);
     int debug = 0;
 
+
 // want the most recent of a multiple selection for the preview
 // but the only way is to compare all current selections 
 // with all previous selections.
@@ -145,16 +146,14 @@ int BC_FileBoxListBox::selection_changed()
                 }
             }
             if(!got_it) new_selection = selection;
-            if(debug) printf("%d ", selection);
+            if(debug) printf("selection=%d ", selection);
         }
         else
             break;
     }
     if(debug) printf("\n");
-    if(debug) printf("BC_FileBoxListBox::selection_changed %d: new_selection=%d\n", __LINE__, new_selection);
-
-
-//printf("BC_FileBoxListBox::selection_changed %d new_selection=%d\n", __LINE__, new_selection);
+    if(debug) printf("BC_FileBoxListBox::selection_changed %d: new_selection=%d\n", 
+        __LINE__, new_selection);
 
 // gets the 1st selected item
 //	BC_ListBoxItem *item = get_selection(column, 0);
@@ -356,7 +355,7 @@ BC_FileBoxCancel::~BC_FileBoxCancel()
 int BC_FileBoxCancel::handle_event()
 {
 //	filebox->submit_file(filebox->textbox->get_text());
-	filebox->newfolder_thread->interrupt();
+//	filebox->newfolder_thread->interrupt();
     filebox->store_yposition();
 	filebox->set_done(1);
 	return 1;
@@ -460,7 +459,9 @@ BC_FileBoxNewfolder::BC_FileBoxNewfolder(int x, int y, BC_FileBox *filebox)
 }
 int BC_FileBoxNewfolder::handle_event()
 {
-	filebox->newfolder_thread->start_new_folder();
+	filebox->unlock_window();
+	filebox->newfolder_thread->start();
+	filebox->lock_window("BC_FileBoxNewfolder::handle_event");
 	return 1;
 }
 
@@ -473,7 +474,9 @@ BC_FileBoxRename::BC_FileBoxRename(int x, int y, BC_FileBox *filebox)
 }
 int BC_FileBoxRename::handle_event()
 {
-	filebox->rename_thread->start_rename();
+	filebox->unlock_window();
+	filebox->rename_thread->start();
+	filebox->lock_window("BC_FileBoxRename::handle_event");
 	return 1;
 }
 
@@ -1389,7 +1392,7 @@ int BC_FileBox::submit_file(const char *path, int use_this)
 		strcpy(this->current_path, path2);          // save complete path
 		strcpy(this->submitted_path, path2);          // save complete path
 		update_history();
-		newfolder_thread->interrupt();
+//		newfolder_thread->interrupt();
 		set_done(0);
 		return 0;
 	}
@@ -1699,6 +1702,7 @@ printf("BC_FileBox::delete_files: removing \"%s\"\n", path);
 		i++;
 	}
 	refresh(0, 0);
+    listbox->prev_selections.remove_all();
 }
 
 BC_Button* BC_FileBox::get_ok_button()

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,9 @@
 #define BC_RENAME_H
 
 
+#include "bcdialog.h"
 #include "bcfilebox.inc"
 #include "bcwindow.h"
-#include "thread.h"
 
 
 class BC_Rename : public BC_Window
@@ -42,24 +42,19 @@ private:
 	BC_RenameThread *thread;
 };
 
-class BC_RenameThread : public Thread
+class BC_RenameThread : public BC_DialogThread
 {
 public:
 	BC_RenameThread(BC_FileBox *filebox);
-	~BC_RenameThread();
 
-	void run();
-	int interrupt();
-	int start_rename();
+	void handle_done_event(int result);
+	BC_Window* new_gui();
 
 	char orig_path[BCTEXTLEN];
 	char orig_name[BCTEXTLEN];
 
 private:
-	Mutex *change_lock;
-	Condition *completion_lock;
 	BC_FileBox *filebox;
-	BC_Rename *window;
 };
 
 

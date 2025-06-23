@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,9 @@
 #define BC_NEWFOLDER_H
 
 
+#include "bcdialog.h"
 #include "bcfilebox.inc"
 #include "bcwindow.h"
-#include "thread.h"
 
 
 class BC_NewFolder : public BC_Window
@@ -41,21 +41,16 @@ private:
 	BC_TextBox *textbox;
 };
 
-class BC_NewFolderThread : public Thread
+class BC_NewFolderThread : public BC_DialogThread
 {
 public:
 	BC_NewFolderThread(BC_FileBox *filebox);
-	~BC_NewFolderThread();
 
-	void run();
-	int interrupt();
-	int start_new_folder();
+	void handle_done_event(int result);
+	BC_Window* new_gui();
 
 private:
-	Mutex *change_lock;
-	Condition *completion_lock;
 	BC_FileBox *filebox;
-	BC_NewFolder *window;
 };
 
 

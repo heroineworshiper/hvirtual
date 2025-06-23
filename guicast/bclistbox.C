@@ -1471,9 +1471,9 @@ BC_ListBoxItem* BC_ListBox::get_selection_recursive(
 {
 	if(!data) return 0;
 
-	for(int i = 0; i < data[master_column].total; i++)
+	for(int i = 0; i < data[master_column].size(); i++)
 	{
-		BC_ListBoxItem *item = data[master_column].values[i];
+		BC_ListBoxItem *item = data[master_column].get(i);
 		if(item->selected)
 		{
 //printf("BC_ListBox::get_selection_recursive %d\n", __LINE__);
@@ -1481,7 +1481,7 @@ BC_ListBoxItem* BC_ListBox::get_selection_recursive(
 			if(selection_number < 0)
 			{
 
-				return data[column].values[i];
+				return data[column].get(i);
 			}
 		}
 
@@ -1516,12 +1516,15 @@ int BC_ListBox::get_selection_number_recursive(
 	if(!data) return 0;
 	if(!counter) counter = &temp;
 
-	for(int i = 0; i < data[master_column].total; i++)
+	for(int i = 0; i < data[master_column].size(); i++)
 	{
 		(*counter)++;
-		BC_ListBoxItem *item = data[master_column].values[i];
+		BC_ListBoxItem *item = data[master_column].get(i);
 		if(item->selected)
 		{
+// printf("BC_ListBox::get_selection_number_recursive %d selection_number=%d\n", 
+// __LINE__,
+// selection_number);
 			selection_number--;
 			if(selection_number < 0)
 			{
