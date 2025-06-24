@@ -69,6 +69,7 @@ VRender::VRender(RenderEngine *renderengine)
 	framerate_counter = 0;
 	video_out = 0;
 	render_strategy = -1;
+    timer = new Timer(1);
 }
 
 VRender::~VRender()
@@ -374,6 +375,7 @@ void VRender::run()
 	session_frame = 0;
 	framerate_counter = 0;
 	framerate_timer.update();
+    timer->reset_delay();
 
 	start_lock->unlock();
 	if(debug) printf("VRender::run %d\n", __LINE__);
@@ -462,7 +464,8 @@ void VRender::run()
 					{
 						int64_t delay_time = (int64_t)((start_time - current_time) * 
 							1000);
-						timer.delay(delay_time);
+// TODO: need to interrupt here
+						timer->delay(delay_time);
 					}
 					else
 					{
@@ -548,15 +551,20 @@ void VRender::run()
 	if(debug) printf("VRender::run %d done=%d\n", __LINE__, done);
 }
 
-int VRender::start_playback()
+// int VRender::start_playback()
+// {
+// // start reading input and sending to vrenderthread
+// // use a thread only if there's a video device
+// 	if(renderengine->command->realtime)
+// 	{
+// 		start();
+// 	}
+//     return 0;
+// }
+
+void VRender::interrupt_playback()
 {
-// start reading input and sending to vrenderthread
-// use a thread only if there's a video device
-	if(renderengine->command->realtime)
-	{
-		start();
-	}
-    return 0;
+    timer->cancel_delay();
 }
 
 int64_t VRender::tounits(double position, int round)

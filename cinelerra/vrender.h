@@ -54,8 +54,8 @@ public:
 	void run();
 	int wait_for_startup();
 
-	int start_playback();     // start the thread
-
+//	int start_playback();     // start the thread
+    void interrupt_playback();  // interrupt a frame delay
 
 // process frames to put in buffer_out
 // use_opengl - used by nested render engines
@@ -117,7 +117,7 @@ public:
 
 private:
 	int init_device_buffers();
-	Timer timer;
+	Timer *timer;
 
 // for getting actual framerate
 	int64_t framerate_counter;

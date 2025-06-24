@@ -290,7 +290,7 @@ void RecordVideo::run()
 			else
 // Brief pause to keep CPU from burning up
 			{
-				Timer::delay(250);
+				usleep(250000);
 			}
 		}
 

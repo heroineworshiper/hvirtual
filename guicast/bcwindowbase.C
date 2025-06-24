@@ -239,6 +239,8 @@ BC_WindowBase::~BC_WindowBase()
 	BC_Display::unlock_display();
 #endif
 
+    delete cursor_timer;
+
 	UNSET_ALL_LOCKS(this)
 }
 

@@ -464,6 +464,7 @@ int RenderEngine::start_command()
 		interrupt_lock->lock("RenderEngine::start_command");
 		start_lock->lock("RenderEngine::start_command 1");
 		Thread::start();
+// wait for it to really start
 		start_lock->lock("RenderEngine::start_command 2");
 		start_lock->unlock();
 	}
@@ -529,6 +530,7 @@ void RenderEngine::interrupt_playback()
 	if(vdevice)
 	{
 		vdevice->interrupt_playback();
+        vrender->interrupt_playback();
 	}
 	interrupt_lock->unlock();
 }

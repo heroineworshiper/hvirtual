@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -25,13 +24,26 @@
 #include <unistd.h>
 #include <stdio.h>
 
-Timer::Timer()
+Timer::Timer(int interruptable)
 {
+    this->interruptable = interruptable;
+    pipefd[0] = -1;
+    pipefd[1] = -1;
+    if(interruptable) reset_delay();
+
 	update();
+//printf("Timer::Timer %d %p\n", __LINE__, this);
 }
 
 Timer::~Timer()
 {
+//printf("Timer::~Timer %d %d %d\n", __LINE__, pipefd[0], pipefd[1]);
+//printf("Timer::~Timer %d %p\n", __LINE__, this);
+    if(interruptable) 
+    {
+        close(pipefd[0]);
+        close(pipefd[1]);
+    }
 }
 
 int Timer::update()
@@ -88,11 +100,55 @@ int64_t Timer::get_scaled_difference(long denominator)
 		(int64_t)((double)new_time.tv_usec / 1000000 * denominator);
 }
 
-int Timer::delay(long milliseconds)
+int Timer::delay(int64_t milliseconds)
 {
-	struct timeval delay_duration;
-	delay_duration.tv_sec = 0;
-	delay_duration.tv_usec = milliseconds * 1000;
-	select(0,  NULL,  NULL, NULL, &delay_duration);
-	return 0;
+    if(interruptable) 
+    {
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(pipefd[0], &read_fds); // Monitor pipe read end
+	    struct timeval timeout;
+	    timeout.tv_sec = 0;
+	    timeout.tv_usec = milliseconds * 1000;
+
+//printf("Timer::delay %d %d %d\n", __LINE__, pipefd[0], pipefd[1]);
+	    int result = select(pipefd[0] + 1, &read_fds,  NULL, NULL, &timeout);
+//printf("Timer::delay %d result=%d %d %d\n", __LINE__, result, pipefd[0], pipefd[1]);
+// timed out
+        if(result == 0) return 0;
+        return 1;
+    }
+    else
+    {
+        usleep(milliseconds * 1000);
+    }
 }
+
+void Timer::cancel_delay()
+{
+    if(interruptable)
+    {
+//printf("Timer::cancel_delay %d\n", __LINE__);
+        uint8_t buf = 'x';
+        int _ = write(pipefd[1], &buf, 1);
+    }
+}
+
+void Timer::reset_delay()
+{
+    if(interruptable)
+    {
+        if(pipefd[0] >= 0)
+        {
+            close(pipefd[0]);
+            close(pipefd[1]);
+        }
+
+    // create a new pipe
+        int result = pipe(pipefd);
+//printf("Timer::reset_delay %d result=%d %d %d\n", 
+//__LINE__, result, pipefd[0], pipefd[1]);
+    }
+}
+
+

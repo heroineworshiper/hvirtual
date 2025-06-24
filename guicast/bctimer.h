@@ -29,7 +29,9 @@
 class Timer
 {
 public:
-	Timer();
+// must set interruptable to use cancel_delay, since it takes too many
+// file descriptors
+	Timer(int interruptable = 0);
 	virtual ~Timer();
 	
 // set last update to now
@@ -44,12 +46,20 @@ public:
 
 // get difference in arbitrary units between now and last update    
 	int64_t get_scaled_difference(long denominator);        
-	static int delay(long milliseconds);
+// delay with a means of interrupting it.  Return 1 if canceled
+	int delay(int64_t milliseconds);
+// interrupt the delay routine
+    void cancel_delay();
+// User must reset the delay file descriptor after every cancel
+    void reset_delay();
 
 private:
 	struct timeval current_time;
 	struct timeval new_time;
 	struct timeval delay_duration;
+// interruptable file descriptor for the delay routine
+    int pipefd[2];
+    int interruptable;
 };
 
 

@@ -179,6 +179,7 @@ void CommonRender::start_command()
 		Thread::set_realtime(MWindow::preferences->real_time_playback &&
 			data_type == TRACK_AUDIO);
 		Thread::start();
+// wait for the thread to start before returning
 		start_lock->lock("CommonRender::start_command");
 	}
 }
