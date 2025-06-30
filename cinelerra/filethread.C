@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2009-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2009-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -254,17 +254,19 @@ void FileThread::run()
 // 	}
 // 	else
 	{
+// stop writing after the 1st failure, since return_value doesn't
+// propagate instantly & the writers can lock up
+		return_value = 0;
 		while(!done)
 		{
 			output_lock[local_buffer]->lock("FileThread::run 1");
-			return_value = 0;
 
 
 // Timer timer;
 // timer.update();
 			if(!last_buffer[local_buffer])
 			{
-				if(output_size[local_buffer])
+				if(output_size[local_buffer] && !return_value)
 				{
 					file_lock->lock("FileThread::run 2");
 					if(do_audio)
@@ -293,8 +295,8 @@ void FileThread::run()
 					file_lock->unlock();
 					return_value = result;
 				}
-				else
-					return_value = 0;
+// 				else
+// 					return_value = 0;
 
 				output_size[local_buffer] = 0;
 			}

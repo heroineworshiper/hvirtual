@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1591,6 +1591,7 @@ CWindowMaskMode::CWindowMaskMode(MWindow *mwindow,
 
 void CWindowMaskMode::create_objects()
 {
+	add_item(new BC_MenuItem(mode_to_text(MASK_NONE)));
 	add_item(new BC_MenuItem(mode_to_text(MASK_MULTIPLY_ALPHA)));
 	add_item(new BC_MenuItem(mode_to_text(MASK_SUBTRACT_ALPHA)));
 	add_item(new BC_MenuItem(mode_to_text(MASK_MULTIPLY_PATH)));
@@ -1618,7 +1619,7 @@ char* CWindowMaskMode::mode_to_text(int mode)
 			break;
 	}
 
-	return _("Subtract alpha");
+	return _("None");
 }
 
 int CWindowMaskMode::text_to_mode(char *text)
@@ -1635,7 +1636,7 @@ int CWindowMaskMode::text_to_mode(char *text)
 	if(!strcasecmp(text, _("Subtract path")))
 		return MASK_SUBTRACT_PATH;
 
-	return MASK_SUBTRACT_ALPHA;
+	return MASK_NONE;
 }
 
 int CWindowMaskMode::handle_event()

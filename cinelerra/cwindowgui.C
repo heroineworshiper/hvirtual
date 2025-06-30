@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1498,6 +1498,7 @@ int CWindowCanvas::do_mask(int &redraw,
             
             if(i < points.size() - 1) point2 = points.get(i + 1);
             else
+// closed polygon for these modes
             if(i >= points.size() - 1 && 
                 (mode == MASK_MULTIPLY_ALPHA || mode == MASK_SUBTRACT_ALPHA))
                 point2 = points.get(0);

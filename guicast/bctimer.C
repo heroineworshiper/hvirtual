@@ -122,6 +122,7 @@ int Timer::delay(int64_t milliseconds)
     {
         usleep(milliseconds * 1000);
     }
+    return 0;
 }
 
 void Timer::cancel_delay()

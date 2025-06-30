@@ -2625,16 +2625,32 @@ void TrackCanvas::draw_floatline(int center_pixel,
 		X_TO_FLOATLINE(x)
 
 		if(*prev_y == 0x7fffffff) *prev_y = y;
-		if(/* x > x1 && */
-			y >= center_pixel - yscale / 2 && 
-			y < center_pixel + yscale / 2 - 1)
+        int x3 = x - 1;
+        int x4 = x;
+        int y3 = *prev_y;
+        int y4 = y;
+        if(y3 > y4)
+        {
+            int t = x3;
+            x3 = x4;
+            x4 = t;
+            t = y3;
+            y3 = y4;
+            y4 = t;
+        }
+		if(center_pixel - yscale / 2 <= y4 && 
+            center_pixel + yscale / 2 - 1 > y3)
 		{
 // printf("TrackCanvas::draw_floatline y=%d min=%d max=%d\n",
 // y,
 // (int)(center_pixel - yscale / 2),
 // (int)(center_pixel + yscale / 2 - 1));
+            if(y4 > center_pixel + yscale / 2 - 1)
+                y4 = center_pixel + yscale / 2 - 1;
+            if(y3 < center_pixel - yscale / 2)
+                y3 = center_pixel - yscale / 2;
 
- 			draw_line(x - 1, *prev_y, x, y);
+ 			draw_line(x3, y3, x4, y4);
 		}
 		*prev_y = y;
 	}
@@ -2668,6 +2684,8 @@ int TrackCanvas::test_floatline(int center_pixel,
 
 	if(cursor_x >= x1 && 
 		cursor_x < x2 &&
+        y >= center_pixel - yscale / 2 && 
+        y < center_pixel + yscale / 2 - 1 &&
 		cursor_y >= y - HANDLE_W / 2 && 
 		cursor_y < y + HANDLE_W / 2 &&
 		!ctrl_down())

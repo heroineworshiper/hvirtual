@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,8 @@ enum
 	MASK_MULTIPLY_ALPHA,
 	MASK_SUBTRACT_ALPHA,
     MASK_MULTIPLY_PATH,
-    MASK_SUBTRACT_PATH
+    MASK_SUBTRACT_PATH,
+    MASK_NONE
 };
 
 #define SUBMASKS 8

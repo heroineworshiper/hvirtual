@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -446,7 +446,8 @@ void VirtualVNode::render_mask(VFrame *output_temp,
 //         min_points--;
 //     }
 
-	if(total_points < 2)
+// Cases where we do nothing
+	if(total_points < 2 || keyframe->mode == MASK_NONE)
 //         || 
 // 		(keyframe->value == 0 && 
 //             (keyframe->mode == MASK_SUBTRACT_ALPHA ||
@@ -455,12 +456,17 @@ void VirtualVNode::render_mask(VFrame *output_temp,
 		return;
 	}
 
-// Fake certain masks
+//printf("VirtualVNode::render_mask %d %d\n", __LINE__, keyframe->value);
+
+// Cases where input is invisible
 	if(keyframe->value == 0 && 
         (keyframe->mode == MASK_MULTIPLY_ALPHA ||
             keyframe->mode == MASK_MULTIPLY_PATH))
 	{
-		output_temp->clear_frame();
+        if(use_opengl)
+            ((VDeviceX11*)((VirtualVConsole*)vconsole)->get_vdriver())->clear_input(output_temp);
+        else
+      		output_temp->clear_frame();
 		return;
 	}
 
@@ -476,7 +482,7 @@ void VirtualVNode::render_mask(VFrame *output_temp,
 	if(use_opengl)
 	{
 // apply the mask in hardware if it wasn't already applied in masker
-printf("VirtualVNode::render_mask %d opengl_state=%d\n", __LINE__, output_temp->get_opengl_state());
+//printf("VirtualVNode::render_mask %d opengl_state=%d\n", __LINE__, output_temp->get_opengl_state());
         if(output_temp->get_opengl_state() != VFrame::RAM)
         {
 //printf("VirtualVNode::render_mask %d opengl_state=%d\n", __LINE__, output_temp->get_opengl_state());

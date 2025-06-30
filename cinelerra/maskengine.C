@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -501,7 +501,8 @@ void MaskUnit::process_package(LoadPackage *package)
             else
 // make an open polygon
             if((engine->mode == MASK_MULTIPLY_PATH ||
-                engine->mode == MASK_SUBTRACT_PATH))
+                engine->mode == MASK_SUBTRACT_PATH ||
+                engine->mode == MASK_NONE))
             {
 // need enough points to make a line
                 if(total_points < 2)
