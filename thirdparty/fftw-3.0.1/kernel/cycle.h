@@ -69,9 +69,9 @@
    dnl Cray UNICOS _rtc() (real-time clock) intrinsic
    AC_MSG_CHECKING([for _rtc intrinsic])
    rtc_ok=yes
-   AC_TRY_LINK([#ifdef HAVE_INTRINSICS_H
+   [AC_LINK_IFELSE([AC_LANG_PROGRAM([#ifdef HAVE_INTRINSICS_H
 #include <intrinsics.h>
-#endif], [_rtc()], [AC_DEFINE(HAVE__RTC,1,[Define if you have the UNICOS _rtc() intrinsic.])], [rtc_ok=no])
+#endif], [_rtc()])], [AC_DEFINE(HAVE__RTC,1,[Define if you have the UNICOS _rtc() intrinsic.])], [rtc_ok=no])
    AC_MSG_RESULT($rtc_ok)
 
    dnl ---------------------------------------------------------------------
