@@ -20,7 +20,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_LANG([C])
 
-AC_PROG_CC_STDC
+AC_PROG_CC
 AC_USE_SYSTEM_EXTENSIONS
 AM_PROG_CC_C_O
 AC_PROG_CXX
@@ -63,8 +63,6 @@ VERSION_MINOR=`echo $CLEAN_VERSION | $SED "s/.*\.//"`
 SHARED_VERSION_INFO="1:$VERSION_MINOR:0"
 
 #------------------------------------------------------------------------------------
-
-AC_HEADER_STDC
 
 AC_CHECK_HEADERS(endian.h)
 AC_CHECK_HEADERS(byteswap.h)
