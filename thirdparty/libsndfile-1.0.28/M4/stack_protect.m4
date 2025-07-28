@@ -67,7 +67,7 @@ AC_DEFUN([XIPH_GXX_STACK_PROTECTOR],
 	AC_LINK_IFELSE([AC_LANG_PROGRAM([
 			#include <cstdio>
 			],
-		[puts("Hello, World!"); return 0;],
+		[puts("Hello, World!"); return 0;],)]
                 [
 		        AC_MSG_RESULT([yes])
 			        CFLAGS="$xiph_stack_check_old_cflags $SSP_FLAGS"
