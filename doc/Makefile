@@ -78,6 +78,31 @@ CUSTOM_IMAGES := \
         vpatches.png \
         zoompanel.png
 
+PYTHON := $(shell \
+    for p in python python3 python2; do \
+        if command -v $$p >/dev/null 2>&1; then \
+            echo $$p; \
+            break; \
+        fi; \
+    done; \
+)
+
+ifeq ($(PYTHON),)
+$(error "No usable python found (tried: python, python3, python2)")
+endif
+
+ifeq ($(PYTHON),python3)
+FIX_IMAGES_SCRIPT := fix_images_python3.py
+else ifeq ($(PYTHON),python)
+PYMAJOR := $(shell python --version 2>&1 | sed -E 's/Python ([[:digit:]])\..*/\1/' -)
+
+ifeq ($(PYMAJOR),3)
+FIX_IMAGES_SCRIPT := fix_images_python3.py
+else
+FIX_IMAGES_SCRIPT := fix_images.py
+
+else
+FIX_IMAGES_SCRIPT := fix_images.py
 
 all:
 	mkdir -p $(TARGET_DIR)
@@ -89,7 +114,7 @@ all:
 	cp $(CUSTOM_IMAGES) $(TARGET_DIR)
 # use this to create a single document.
 	cd $(TARGET_DIR) && makeinfo --html --no-split ../../doc/cinelerra.texi
-	./fix_images.py
+	$(PYTHON) $(FIX_IMAGES_SCRIPT)
 # use this to create multiple HTML pages.  Not searchable
 #	cd $(TARGET_DIR) && makeinfo --html ../../doc/cinelerra.texi
 

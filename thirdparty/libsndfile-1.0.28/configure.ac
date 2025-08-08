@@ -632,6 +632,31 @@ dnl The following line causes the libtool distributed with the source
 dnl to be replaced if the build system has a more recent version.
 AC_SUBST(LIBTOOL_DEPS)
 
+# The 'python' command is not always created on Linux systems when the Python is installed..
+AC_PATH_PROGS([PYTHON], [python python3 python2], [no])
+if test "$PYTHON" = "no"; then
+  AC_MSG_ERROR([No usable python found (tried: python, python3, python2)])
+fi
+AC_SUBST([PYTHON])
+
+case "$PYTHON" in
+	*python3)
+		CREATE_SYMBOLS_SCRIPT=create_symbols_file_python3.py
+		;;
+	*python)
+		PYMAJOR := $(shell python --version 2>&1 | sed -E 's/Python ([[:digit:]])\..*/\1/' -)
+		if test "$PYMAJOR" = "3"; then
+			CREATE_SYMBOLS_SCRIPT=create_symbols_file_python3.py
+		else
+			CREATE_SYMBOLS_SCRIPT=create_symbols_file.py
+		fi
+		;;
+	*)
+	CREATE_SYMBOLS_SCRIPT=create_symbols_file.py
+	;;
+esac
+AC_SUBST([CREATE_SYMBOLS_SCRIPT])
+
 AC_CONFIG_FILES([ \
 	src/Makefile man/Makefile examples/Makefile tests/Makefile regtest/Makefile \
 	M4/Makefile doc/Makefile Win32/Makefile Octave/Makefile programs/Makefile \
