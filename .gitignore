@@ -13,3 +13,5 @@
 *.orig
 *.lai
 x86_64
+.vscode
+**/autom4te.cache/*
