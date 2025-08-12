@@ -153,6 +153,7 @@ OBJS = \
 	$(OBJDIR)/filescene.o \
 	$(OBJDIR)/fileserver.o \
 	$(OBJDIR)/filesndfile.o \
+	$(OBJDIR)/filespooler.o \
 	$(OBJDIR)/filestdout.o \
 	$(OBJDIR)/filetga.o \
 	$(OBJDIR)/filethread.o \
@@ -757,6 +758,7 @@ $(OBJDIR)/fileogg.o:                              fileogg.C
 $(OBJDIR)/filepng.o: 				  filepng.C
 $(OBJDIR)/filepreviewer.o:                        filepreviewer.C
 $(OBJDIR)/filesndfile.o: 			  filesndfile.C
+$(OBJDIR)/filespooler.o: 			  filespooler.C
 $(OBJDIR)/filestdout.o: 			  filestdout.C
 $(OBJDIR)/filetga.o: 			  	  filetga.C
 $(OBJDIR)/filethread.o: 			  filethread.C

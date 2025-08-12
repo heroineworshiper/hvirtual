@@ -30,7 +30,6 @@
 #include "preferences.inc"
 
 
-
 // Mapper between cinelerra & ffmpeg stream
 class FileFFMPEGStream
 {
