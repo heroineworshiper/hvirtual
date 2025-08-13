@@ -118,7 +118,6 @@ void KeyFrames::update_parameter(KeyFrame *src)
 	selection_start = edl->align_to_frame(selection_start, 0);
 	selection_end = edl->align_to_frame(selection_end, 0);
 
-//printf("KeyFrames::update_parameter %d\n", __LINE__);
 	if(EQUIV(selection_start, selection_end))
 	{
 // Search for keyframe to write to

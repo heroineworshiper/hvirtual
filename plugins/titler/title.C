@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2593,6 +2593,23 @@ void TitleMain::get_total_extents()
 		    char_positions[i].h = glyph->height;
         }
         else
+        if(config.ucs4text[i] == '\n')
+        {
+// kludge to get leading & trailing linefeeds to justify correctly
+            int top = current_y;
+            if(top < min_y) min_y = top;
+            int bottom = top + line_spacing;
+            if(bottom > max_y) max_y = bottom;
+            int right = current_x;
+            if(right > max_x) max_x = right;
+            int left = current_x;
+            if(left < min_x) min_x = left;
+            char_positions[i].x = left;
+		    char_positions[i].y = top;
+		    char_positions[i].w = 0;
+		    char_positions[i].h = line_spacing;
+        }
+        else
         {
             char_positions[i].x = current_x;
 		    char_positions[i].y = current_y;
@@ -2639,6 +2656,7 @@ void TitleMain::get_total_extents()
 		}
 	}
     text_h = max_y - min_y;
+//printf("TitleMain::get_total_extents %d min_y=%d\n", __LINE__, min_y);
 
 // shift again for vertical offset
 	for(int i = 0; i < text_len; i++)

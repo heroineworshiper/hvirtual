@@ -130,6 +130,9 @@ void BandConfig::copy_from(BandConfig *src)
 
 int BandConfig::equiv(BandConfig *src)
 {
+// printf("BandConfig::equiv %d %p %d %d\n", __LINE__,
+// src, levels.total, src->levels.total);
+
     if(levels.total != src->levels.total ||
         solo != src->solo ||
         bypass != src->bypass ||
@@ -246,6 +249,7 @@ void CompressorConfigBase::copy_from(CompressorConfigBase &that)
 
 int CompressorConfigBase::equivalent(CompressorConfigBase &that)
 {
+//printf("CompressorConfigBase::equivalent %d\n", __LINE__);
     for(int band = 0; band < total_bands; band++)
     {
         if(!bands[band].equiv(&that.bands[band]))

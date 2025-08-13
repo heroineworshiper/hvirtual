@@ -676,7 +676,8 @@ compression has to be JPEG.
 
 Keychain cams generally only support MJPG 1 field.
 
-For video4linux2, the frames to buffer in device normally needs to be 4.
+For video4linux2, the frames to buffer in device normally needs to be 4
+to get the full framerate.  If it's 2, it'll only get 1/2 the framerate.
 
 @item @b{SCREENCAPTURE}
 

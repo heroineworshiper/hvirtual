@@ -108,7 +108,7 @@ public:
 // read text, put it in *output, and return it
 // decode - decode special characters.
 // Text array is dynamically allocated and deleted when FileXML is deleted
-	char* read_text(int decode = 1);         
+	char* read_text(int decode = 1);
 	int read_text_until(const char *tag_end, char *output, int max_len);     // store text in output until the tag is reached
 	int read_tag();          // read next tag from file, ignoring any text, and put it in tag
 	// return 1 on failure

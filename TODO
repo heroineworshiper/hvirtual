@@ -16,6 +16,11 @@ Config window for screencap which specifies X & Y offset
 
 BIG BUGS
 -----------------------------------
+Make vocodor generate its own passband functions
+FFmpeg failure not propagating to record window.
+FFmpeg file spooler.
+ - ffmpeg reads from its own avio library.  Needs to override libc
+* to indicate changed file
 Command line gets stuck when it finishes encoding.
 Reverb artifacts
 Nested EDL index file isn't updated when the nested EDL changes.

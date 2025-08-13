@@ -311,9 +311,17 @@ this_value);
 
 
 // Capture text	which differs
-	if(strcmp(this_text, src_text)) (*text) = strdup(src_text);
+//printf("KeyFrame::get_diff %d src_text=%s\n", __LINE__, src_text);
+	if(strcmp(this_text, src_text))
+    {
+        (*text) = strdup(src_text);
+//printf("KeyFrame::get_diff %d\n", __LINE__);
+    }
 
-	if(strcmp(this_extra, src_extra)) (*extra) = strdup(src_extra);
+	if(strcmp(this_extra, src_extra)) 
+    {
+        (*extra) = strdup(src_extra);
+    }
 
 	
 	delete [] this_text;
@@ -339,6 +347,7 @@ char* KeyFrame::get_data()
 
 void KeyFrame::set_data(const char *data)
 {
+printf("KeyFrame::set_data %d data=%s\n", __LINE__, data);
 	strcpy(this->data, data);
 }
 

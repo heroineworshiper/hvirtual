@@ -52,6 +52,8 @@ void RecordScopeThread::handle_done_event(int result)
 	record_monitor->window->lock_window("RecordScopeThread::handle_done_event");
 	record_monitor->window->scope_toggle->update(0);
 	record_monitor->window->unlock_window();
+
+	mwindow->session->record_scope = 0;
 }
 
 BC_Window* RecordScopeThread::new_gui()
