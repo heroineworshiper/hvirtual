@@ -56,6 +56,7 @@ public:
 	VFrame* get_buffer(int *timed_out);
 	void put_buffer();
 	void allocate_buffers(int number);
+    void set_picture(int initialize);
 
 	Mutex *buffer_lock;
 // Some of the drivers in 2.6.7 can't handle simultaneous QBUF and DQBUF calls.

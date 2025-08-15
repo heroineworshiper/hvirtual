@@ -26,6 +26,8 @@
 #include "filespooler.h"
 #include "mutex.h"
 #include <string.h>
+#include <unistd.h>
+#include <dlfcn.h>
 
 // commands
 #define READ 0
@@ -33,9 +35,13 @@
 #define CLOSE 2
 #define BUFSIZE 0x100000
 
+static __off_t (*lseek_func)(int, __off_t, int) = 0;
+
+
 FileSpooler::FileSpooler()
 {
     fd = 0;
+    fileno = -1;
     buffer = new uint8_t[BUFSIZE];
     in_ptr = 0;
     out_ptr = 0;
@@ -50,13 +56,24 @@ FileSpooler::FileSpooler()
 
 FileSpooler::~FileSpooler()
 {
-    if(fd)
+    if(fd || fileno >= 0)
     {
         command = CLOSE;
         command_lock->unlock();
         Thread::join();
-        fclose(fd);
     }
+
+    if(fd)
+        fclose(fd);
+
+// return the position to where the reader thinks it is    
+    if(fileno >= 0)
+    {
+ 	    if(!lseek_func)
+     	    lseek_func = (__off_t(*)(int, __off_t, int))dlsym(RTLD_NEXT, "lseek");
+        (*lseek_func)(fileno, out_position, SEEK_SET);
+    }
+
     delete [] buffer;
     delete command_lock;
     delete buffer_lock;
@@ -70,16 +87,36 @@ int FileSpooler::open(const char *path)
         return 1;
     else
         Thread::start();
+    return 0;
 }
 
-void FileSpooler::seek(int64_t offset)
+int FileSpooler::open(int fileno)
 {
+    this->fileno = fileno;
+    Thread::start();
+    return fileno;
+}
+
+// unimplemented for fd
+int64_t FileSpooler::seek(int64_t offset, int whence)
+{
+    if(fileno >= 0 || fd)
+    {
+        command = SEEK;
+        seek_offset = offset;
+        seek_whence = whence;
+        command_lock->unlock();
+// wait for it
+        output_lock->lock();
+        return out_position;
+    }
+    return 0;
 }
 
 int FileSpooler::read(uint8_t *buffer, int size)
 {
     int offset = 0;
-    if(!fd) return 0;
+    if(!fd && fileno < 0) return 0;
     
     while(offset < size)
     {
@@ -101,6 +138,7 @@ int FileSpooler::read(uint8_t *buffer, int size)
         if(error)
         {
             buffer_lock->unlock();
+//printf("FileSpooler::read %d ERROR size=%d offset=%d\n", __LINE__, size, offset);
             return offset;
         }
         else
@@ -117,6 +155,7 @@ int FileSpooler::read(uint8_t *buffer, int size)
     command = READ;
     command_lock->unlock();
 
+//printf("FileSpooler::read %d size=%d offset=%d\n", __LINE__, size, offset);
     return offset;
 }
 
@@ -125,6 +164,8 @@ void FileSpooler::run()
     while(1)
     {
         command_lock->lock();
+
+//printf("FileSpooler::run %d command=%d\n", __LINE__, command);
         switch(command)
         {
             case READ:
@@ -134,7 +175,20 @@ void FileSpooler::run()
                     int fragment = BUFSIZE - buffer_filled;
                     if(in_ptr + fragment > BUFSIZE) fragment = BUFSIZE - in_ptr;
                     buffer_lock->unlock();
-                    int result = fread(buffer + in_ptr, 0, fragment, fd);
+                    int result = 0;
+                    if(fd)
+                        result = fread(buffer + in_ptr, 0, fragment, fd);
+                    else
+                    if(fileno >= 0)
+                    {
+                        static ssize_t (*func)(int, void *, size_t) = 0;
+ 	                    if(!func)
+     	                    func = (ssize_t(*)(int, void *, size_t))dlsym(RTLD_NEXT, "read");
+                        
+                        result = (*func)(fileno, buffer + in_ptr, fragment);
+//printf("FileSpooler::run %d fragment=%d\n", __LINE__, fragment);
+                    }
+
                     if(result <= 0) error = 1;
 
                     if(!error)
@@ -153,12 +207,31 @@ void FileSpooler::run()
                 output_lock->unlock();
                 break;
 
+            case SEEK:
+                buffer_lock->lock();
+                if(fileno >= 0)
+                {
+ 	                if(!lseek_func)
+     	                lseek_func = (__off_t(*)(int, __off_t, int))dlsym(RTLD_NEXT, "lseek");
+
+                    out_position = (*lseek_func)(fileno, seek_offset, seek_whence);
+                    buffer_filled = 0;
+                    in_ptr = 0;
+                    out_ptr = 0;
+                    error = 0;
+//printf("FileSpooler::run %d: seeked to %ld\n", __LINE__, (long)out_position);
+                }
+                buffer_lock->unlock();
+
+// release the user
+                output_lock->unlock();
+                break;
+
             case CLOSE:
+                output_lock->unlock();
                 return;
                 break;
         }
-        
-        
     }
 }
 

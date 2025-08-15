@@ -37,17 +37,24 @@ public:
     FileSpooler();
     ~FileSpooler();
 
+// open our own fd
     int open(const char *path);
+// share an existing fd
+    int open(int fileno);
     int read(uint8_t *buffer, int size);
-    void seek(int64_t offset);
+    int64_t seek(int64_t offset, int whenc);
     void run();
 
+// unique fd
     FILE *fd;
+// shared fd
+    int fileno;
     Mutex *buffer_lock;
     Condition *command_lock;
     Condition *output_lock; 
     int command;
-    int64_t command_offset;
+    int64_t seek_offset;
+    int seek_whence;
     uint8_t *buffer;
 // position in the buffer of the input
     int64_t in_ptr;
