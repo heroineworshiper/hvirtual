@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -66,14 +65,6 @@ public:
 	int is_default;
 // Units native to the track
 	int64_t position;
-// Calculation to use for floats
-	int mode;
-	enum
-	{
-		BEZIER_UNLOCKED,
-		LINEAR,
-        BEZIER_LOCKED
-	}; 
 
 private:
 	virtual int value_to_str(char *string, float value) { return 0; };

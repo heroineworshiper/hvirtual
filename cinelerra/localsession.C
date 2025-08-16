@@ -58,7 +58,7 @@ LocalSession::LocalSession(EDL *edl)
 	
 	automation_min = -10;
 	automation_max = 10;
-	floatauto_type = Auto::LINEAR;
+	floatauto_type = FloatAuto::LINEAR;
 	red = green = blue = 0;
 	red_max = green_max = blue_max = 0;
 	use_max = 0;

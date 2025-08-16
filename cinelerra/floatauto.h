@@ -52,6 +52,15 @@ public:
 
 // Control values are relative to value
 	float value, control_in_value, control_out_value;
+// Calculation to use for floats
+	int mode;
+	enum
+	{
+		BEZIER_UNLOCKED,
+		LINEAR,
+        BEZIER_LOCKED,
+        BEZIER_TANGENT
+	}; 
 
 private:
 	int value_to_str(char *string, float value);

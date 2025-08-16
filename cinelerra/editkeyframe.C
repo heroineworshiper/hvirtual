@@ -82,8 +82,8 @@ void EditKeyframeThread::apply(EditKeyframeDialog *gui,
 {
 //printf("EditKeyframeThread::apply %d %p\n", __LINE__, auto_);
 // convert it to locked bezier
-    if(auto_copy->mode == Auto::BEZIER_LOCKED &&
-        auto_->mode != Auto::BEZIER_LOCKED)
+    if(auto_copy->mode == FloatAuto::BEZIER_LOCKED &&
+        auto_->mode != FloatAuto::BEZIER_LOCKED)
     {
         auto_copy->to_locked();
         gui->in->update(auto_copy->control_in_value);
@@ -92,7 +92,7 @@ void EditKeyframeThread::apply(EditKeyframeDialog *gui,
     else
 // mirror the changed control point
     if(changed_value &&
-        auto_copy->mode == Auto::BEZIER_LOCKED)
+        auto_copy->mode == FloatAuto::BEZIER_LOCKED)
     {
         if(changed_value == &auto_copy->control_in_value)
         {
@@ -208,12 +208,27 @@ void EditKeyframeDialog::create_objects()
 		y,
 		EditKeyframeMode::mode_to_text(thread->auto_copy->mode)));
 	mode->create_objects();
-
+    lock_texts();
    
     BC_OKButton *ok;
 	add_subwindow(ok = new BC_OKButton(this));
     ok->set_esc(1);
 	show_window();
+}
+
+void EditKeyframeDialog::lock_texts()
+{
+    if(thread->auto_copy->mode == FloatAuto::LINEAR ||
+        thread->auto_copy->mode == FloatAuto::BEZIER_TANGENT)
+    {
+        in->disable();
+        out->disable();
+    }
+    else
+    {
+        in->enable();
+        out->enable();
+    }
 }
 
 
@@ -260,14 +275,16 @@ EditKeyframeMode::EditKeyframeMode(MWindow *mwindow,
 }
 void EditKeyframeMode::create_objects()
 {
-	add_item(new BC_MenuItem(mode_to_text(Auto::LINEAR)));
-	add_item(new BC_MenuItem(mode_to_text(Auto::BEZIER_UNLOCKED)));
-	add_item(new BC_MenuItem(mode_to_text(Auto::BEZIER_LOCKED)));
+	add_item(new BC_MenuItem(mode_to_text(FloatAuto::LINEAR)));
+	add_item(new BC_MenuItem(mode_to_text(FloatAuto::BEZIER_UNLOCKED)));
+	add_item(new BC_MenuItem(mode_to_text(FloatAuto::BEZIER_LOCKED)));
+//	add_item(new BC_MenuItem(mode_to_text(FloatAuto::BEZIER_TANGENT)));
 }
 int EditKeyframeMode::handle_event()
 {
     gui->thread->auto_copy->mode = text_to_mode(get_text());
     gui->thread->apply(gui, 0);
+    gui->lock_texts();
     return 1;
 }
 
@@ -275,13 +292,16 @@ char* EditKeyframeMode::mode_to_text(int mode)
 {
     switch(mode)
     {
-        case Auto::BEZIER_UNLOCKED:
+        case FloatAuto::BEZIER_UNLOCKED:
             return _("Unlocked bezier");
             break;
-        case Auto::LINEAR:
+        case FloatAuto::BEZIER_TANGENT:
+            return _("Tangent bezier");
+            break;
+        case FloatAuto::LINEAR:
             return _("Linear");
             break;
-        case Auto::BEZIER_LOCKED:
+        case FloatAuto::BEZIER_LOCKED:
         default:
             return _("Locked bezier");
             break;
@@ -292,14 +312,15 @@ int EditKeyframeMode::text_to_mode(char *text)
 {
     int modes[] = 
     {
-        Auto::BEZIER_UNLOCKED,
-        Auto::LINEAR,
-        Auto::BEZIER_LOCKED
+        FloatAuto::BEZIER_UNLOCKED,
+        FloatAuto::LINEAR,
+        FloatAuto::BEZIER_LOCKED,
+        FloatAuto::BEZIER_TANGENT
     };
     int total_modes = sizeof(modes) / sizeof(int);
     for(int i = 0; i < total_modes; i++)
         if(!strcmp(mode_to_text(i), text)) return i;
-    return Auto::LINEAR;
+    return FloatAuto::LINEAR;
 }
 
 

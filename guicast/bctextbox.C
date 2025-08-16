@@ -810,7 +810,7 @@ void BC_TextBox::draw(int flush)
 			if(enabled)
 				set_color(resources->text_default);
 			else
-				set_color(MEGREY);
+				set_color(MDGREY);
 
 // printf("BC_TextBox::draw %d k=%d text_row=%s\n", 
 // __LINE__, k, text_row.c_str());

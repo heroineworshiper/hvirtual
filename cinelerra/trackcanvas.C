@@ -2282,7 +2282,7 @@ void TrackCanvas::draw_floatauto(Auto *current,
 
 	if(y2 - 1 > y1)
 	{
-		if(((FloatAuto*)current)->mode == Auto::LINEAR)
+		if(((FloatAuto*)current)->mode == FloatAuto::LINEAR)
 		{
 			draw_box(x1, y1, x2 - x1, y2 - y1);
 		}
@@ -2303,8 +2303,8 @@ void TrackCanvas::draw_floatauto(Auto *current,
 	}
 
 // In handle
-	if(current->mode == Auto::BEZIER_LOCKED ||
-        current->mode == Auto::BEZIER_UNLOCKED)
+	if(((FloatAuto*)current)->mode == FloatAuto::BEZIER_LOCKED ||
+        ((FloatAuto*)current)->mode == FloatAuto::BEZIER_UNLOCKED)
 	{
 		in_x1 = in_x - HANDLE_W / 2;
 		in_x2 = in_x + HANDLE_W / 2;
@@ -2509,8 +2509,8 @@ int TrackCanvas::test_floatauto(Auto *current,
 		cursor_y >= in_y1 && 
 		cursor_y < in_y2 &&
 		current->position > 0 &&
-		(current->mode == Auto::BEZIER_LOCKED || 
-            current->mode == Auto::BEZIER_UNLOCKED))
+		(((FloatAuto*)current)->mode == FloatAuto::BEZIER_LOCKED || 
+            ((FloatAuto*)current)->mode == FloatAuto::BEZIER_UNLOCKED))
 	{
 		if(buttonpress && (buttonpress != 3))
 		{
@@ -2532,8 +2532,8 @@ int TrackCanvas::test_floatauto(Auto *current,
 		cursor_x < out_x2 && 
 		cursor_y >= out_y1 && 
 		cursor_y < out_y2 &&
-		(current->mode == Auto::BEZIER_LOCKED ||
-            current->mode == Auto::BEZIER_UNLOCKED))
+		(((FloatAuto*)current)->mode == FloatAuto::BEZIER_LOCKED ||
+            ((FloatAuto*)current)->mode == FloatAuto::BEZIER_UNLOCKED))
 	{
 		if(buttonpress && (buttonpress != 3))
 		{
@@ -3926,8 +3926,8 @@ int TrackCanvas::update_drag_floatauto(int cursor_x, int cursor_y)
 			{
 				result = 1;
 				current->control_in_value = value;
-                if(current->mode == Auto::BEZIER_LOCKED)
-                    current->control_out_value = -value;
+                if(((FloatAuto*)current)->mode == FloatAuto::BEZIER_LOCKED)
+                    ((FloatAuto*)current)->control_out_value = -value;
 				synchronize_autos(0, current->autos->track, current, 0);
 
 				char string[BCTEXTLEN];
@@ -3944,8 +3944,8 @@ int TrackCanvas::update_drag_floatauto(int cursor_x, int cursor_y)
 			{
 				result = 1;
 				current->control_out_value = value;
-                if(current->mode == Auto::BEZIER_LOCKED)
-                    current->control_in_value = -value;
+                if(((FloatAuto*)current)->mode == FloatAuto::BEZIER_LOCKED)
+                    ((FloatAuto*)current)->control_in_value = -value;
 				synchronize_autos(0, current->autos->track, current, 0);
 
 				char string[BCTEXTLEN];

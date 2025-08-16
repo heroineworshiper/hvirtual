@@ -19,7 +19,6 @@
  */
 
 #include "assets.h"
-#include "auto.h"
 #include "batchrender.h"
 #include "bcsignals.h"
 #include "cache.h"
@@ -33,6 +32,7 @@
 #include "featheredits.h"
 #include "filesystem.h"
 #include "filexml.h"
+#include "floatauto.h"
 #include "keys.h"
 #include "language.h"
 #include "levelwindow.h"
@@ -155,13 +155,16 @@ void MainMenu::create_objects()
 	keyframemenu->add_item(new BC_MenuItem("-"));
 	keyframemenu->add_item(new KeyframeType(mwindow, 
 		_("Change to linear"), 
-        Auto::LINEAR));
+        FloatAuto::LINEAR));
 	keyframemenu->add_item(new KeyframeType(mwindow, 
 		_("Change to unlocked bezier"), 
-        Auto::BEZIER_UNLOCKED));
+        FloatAuto::BEZIER_UNLOCKED));
 	keyframemenu->add_item(new KeyframeType(mwindow, 
 		_("Change to locked bezier"), 
-        Auto::BEZIER_LOCKED));
+        FloatAuto::BEZIER_LOCKED));
+// 	keyframemenu->add_item(new KeyframeType(mwindow, 
+// 		_("Change to tangent bezier"), 
+//         FloatAuto::BEZIER_TANGENT));
 
 
 
@@ -266,7 +269,7 @@ int MainMenu::load_defaults(BC_Hash *defaults)
 void MainMenu::update_toggles(int use_lock)
 {
 	if(use_lock) lock_window("MainMenu::update_toggles");
-//	keyframe_type->set_checked(mwindow->edl->local_session->floatauto_type == Auto::BEZIER);
+//	keyframe_type->set_checked(mwindow->edl->local_session->floatauto_type == FloatAuto::BEZIER);
 	labels_follow_edits->set_checked(mwindow->edl->session->labels_follow_edits);
 	plugins_follow_edits->set_checked(mwindow->edl->session->plugins_follow_edits);
 	keyframes_follow_edits->set_checked(mwindow->edl->session->autos_follow_edits);
