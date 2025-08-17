@@ -44,7 +44,7 @@ public:
 	void create_objects();
 	int reposition(int x, int y);
 	int update(int x, int y);
-	void synchronize_fade(float value_change);
+//	void synchronize_fade(float value_change);
 
 	VTrack *vtrack;
 	VModePatch *mode;

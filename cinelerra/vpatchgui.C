@@ -168,14 +168,14 @@ int VPatchGUI::update(int x, int y)
 
 
 
-void VPatchGUI::synchronize_fade(float value_change)
-{
-	if(fade && !change_source) 
-	{
-		fade->update(Units::to_int64(fade->get_value() + value_change));
-		fade->update_edl();
-	}
-}
+// void VPatchGUI::synchronize_fade(float value_change)
+// {
+// 	if(fade && !change_source) 
+// 	{
+// 		fade->update(Units::to_int64(fade->get_value() + value_change));
+// 		fade->update_edl();
+// 	}
+// }
 
 
 VFadePatch::VFadePatch(MWindow *mwindow, VPatchGUI *patch, int x, int y, int w)
@@ -206,7 +206,7 @@ float VFadePatch::update_edl()
 	float result = get_value() - current->value;
 	current->value = get_value();
 
-	mwindow->undo->update_undo_after(_("fade"), LOAD_AUTOMATION);
+//	mwindow->undo->update_undo_after(_("fade"), LOAD_AUTOMATION);
 
 	return result;
 }
@@ -227,11 +227,12 @@ int VFadePatch::handle_event()
 		patch->patchbay->synchronize_faders(change, TRACK_VIDEO, patch->track);
 
 	patch->change_source = 0;
-
-
+	mwindow->undo->update_undo_after(_("fade"), LOAD_AUTOMATION);
 	mwindow->gui->unlock_window();
+
 	mwindow->restart_brender();
 	mwindow->sync_parameters(CHANGE_PARAMS);
+
 	mwindow->gui->lock_window("VFadePatch::handle_event");
 	if(mwindow->edl->session->auto_conf->autos[AUTOMATION_FADE])
 	{
@@ -306,7 +307,6 @@ int VModePatch::handle_event()
 	{
 		mwindow->gui->draw_overlays(1);
 	}
-	mwindow->session->changes_made = 1;
 	return 1;
 }
 

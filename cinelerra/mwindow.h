@@ -126,7 +126,9 @@ public:
 
 	int load_defaults();
 	int save_defaults();
-	int set_filename(const char *filename);
+	void set_filename(const char *filename);
+// updates the window title to show if it was modified
+    void update_modified();
 // Total vertical pixels in timeline
 	int get_tracks_height();
 // Total horizontal pixels in timeline

@@ -35,6 +35,11 @@
 // a huge number of undo updates.
 
 
+// even numbered entries are the before entries
+// odd numbered entries are the after entries
+// redo loads an after entry
+// undo loads a before entry
+
 class UndoStackItem : public ListItem<UndoStackItem>
 {
 public:
@@ -48,6 +53,7 @@ public:
 	void set_filename(char *filename);
 	const char* get_description();
 	void set_flags(uint64_t flags);
+    void set_modified(int modified);
 
 // Decompress the buffers and return them in a newly allocated string.
 // The string must be deleted by the user.
@@ -57,6 +63,7 @@ public:
 	int get_size();
 	int is_key();
 	uint64_t get_flags();
+    int get_modified();
 	
 
 // Get pointer to incremental data for use in an apply_difference command.
@@ -75,6 +82,8 @@ private:
 
 // type of modification
 	uint64_t load_flags;
+// value of changes_made
+    int changes_made;
 	
 // data after the modification for redos
 	char *data;

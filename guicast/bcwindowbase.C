@@ -4183,7 +4183,9 @@ void BC_WindowBase::set_background(VFrame *bitmap)
 void BC_WindowBase::set_title(const char *text, int flush)
 {
 //printf("BC_WindowBase::set_title %d %s\n", __LINE__, text);
-	strcpy(this->title, _(text));
+    if(strcmp(this->title, _(text)))
+    {
+    	strcpy(this->title, _(text));
 // test for UTF-8
 //     int is_utf = 0;
 //     for(uint8_t *ptr = (uint8_t*)text; *ptr != 0; ptr++)
@@ -4226,7 +4228,8 @@ void BC_WindowBase::set_title(const char *text, int flush)
 //         XSetStandardProperties(top_level->display, top_level->win, text, text, None, 0, 0, 0);
 // 	}
 
-    if(flush) this->flush();
+        if(flush) this->flush();
+    }
 }
 
 char* BC_WindowBase::get_title()

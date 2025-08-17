@@ -892,8 +892,15 @@ void* UndoStackItem::get_creator()
 	return creator;
 }
 
+void UndoStackItem::set_modified(int modified)
+{
+    this->changes_made = modified;
+}
 
-
+int UndoStackItem::get_modified()
+{
+    return changes_made;
+}
 
 
 

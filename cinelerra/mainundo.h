@@ -45,12 +45,15 @@ public:
 // the before undo is discarded and the previous after undo is replaced.
 	void update_undo_before(const char *description = "", 
 		void *creator = 0);
+// ores changes_made with session->changes_made
 	void update_undo_after(const char *description, 
 		uint32_t load_flags,
 		int changes_made = 1);
 
 // Used in undo and redo to reset the creators in all the records.
 	void reset_creators();
+// called by save routines to make the current entry the only unmodified one
+    void reset_modified();
 
 	int undo();
 	int redo();

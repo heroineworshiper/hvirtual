@@ -87,7 +87,7 @@ public:
 		int buttonbar);
 	void draw_overlays(int flash_it, int flush_it = 1);
 	void draw_indexes(Indexable *indexable);
-	void update_title(char *path);
+//	void update_title(char *path);
 	void update_timebar(int flush_it);
 	void update_timebar_highlights();
 	void update_patchbay();
