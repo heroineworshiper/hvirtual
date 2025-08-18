@@ -7,7 +7,7 @@ https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35k
 
 BIG WISHLIST:
 -----------------------------------
-Tangent keyframe mode
+Make vocodor generate its own passband functions
 pulse audio system dependencies
 migrate other libraries which have stabilized
 smarter default window positions
@@ -17,8 +17,6 @@ Config window for screencap which specifies X & Y offset
 
 BIG BUGS
 -----------------------------------
-Make vocodor generate its own passband functions
-* to indicate unsaved changes
 ffmpeg command gets stuck when it finishes encoding & prompts for overwrite.
 Reverb artifacts
 Nested EDL index file isn't updated when the nested EDL changes.

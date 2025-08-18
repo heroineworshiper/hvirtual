@@ -60,7 +60,7 @@ int SaveItem::handle_event()
 	{
 // save it
         MWindow::instance->save_xml(MWindow::instance->session->filename, 
-            0, 
+            1, 
             MWindow::save_thread->quit_now);
 	}
 	return 1;
