@@ -100,7 +100,7 @@ Module* VirtualConsole::module_of(Track *track)
 
 Module* VirtualConsole::module_number(int track_number)
 {
-// The track number is an absolute number of the track independant of
+// The track number is an absolute number of the track independent of
 // the tracks with matching data type but virtual modules only exist for
 // the matching data type.
 // Convert from absolute track number to data type track number.

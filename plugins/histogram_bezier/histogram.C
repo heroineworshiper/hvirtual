@@ -480,7 +480,7 @@ float HistogramMain::calculate_linear(float input,
 		  }
 		  else if (config.smoothMode == HISTOGRAM_BEZIER)
 		  {
-		  	/* Using standart DeCasteljau algorithm */
+		  	/* Using standard DeCasteljau algorithm */
 		  	float y1right = y1 + grad1 * x1right;
 		  	float y2left = y2 + grad2 * x2left;
 

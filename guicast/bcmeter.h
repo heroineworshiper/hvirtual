@@ -56,7 +56,7 @@ public:
 
 	int initialize();
 	int set_delays(
-// Number of updates before over dissappears
+// Number of updates before over disappears
 		int over_delay, /* = 150, */
 // Number of updates before peak updates
 		int peak_delay /* = 15 */);

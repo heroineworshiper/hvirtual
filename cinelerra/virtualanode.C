@@ -130,8 +130,8 @@ int VirtualANode::read_data(Samples *output_temp,
 				parent_edit);
 
 
-// This is a plugin on parent module with a preceeding effect.
-// Get data from preceeding effect on parent module.
+// This is a plugin on parent module with a preceding effect.
+// Get data from preceding effect on parent module.
 	if(parent_node && 
 		(previous_plugin = parent_node->get_previous_plugin(this)))
 	{
@@ -238,7 +238,7 @@ int VirtualANode::render_as_module(Samples **audio_out,
 	EDL *edl = vconsole->renderengine->get_edl();
 	const int debug = 0;
 
-// Process last subnode.  This calls read_data, propogates up the chain 
+// Process last subnode.  This calls read_data, propagates up the chain 
 // of subnodes, and finishes the chain.
 	if(subnodes.total)
 	{

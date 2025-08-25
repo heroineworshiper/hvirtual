@@ -296,7 +296,7 @@ int FilePNG::write_frame(VFrame *frame, VFrame *data, FrameWriterUnit *unit)
 			asset->height,
 			frame->get_color_model(), 
 			png_unit->temp_frame->get_color_model(),
-			0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
+			0,         /* When transferring BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
 			asset->width,       /* For planar use the luma rowspan */
 			asset->height);
 		

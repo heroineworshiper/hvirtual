@@ -33,10 +33,10 @@
 #include "vdevicev4l2.inc"
 
 
-// Short delay is necessary whenn capturing a lousy source.
+// Short delay is necessary when capturing a lousy source.
 //#define BUFFER_TIMEOUT 250000
 
-// Long delay is necessary to avoid losing synchronization due to spurrious
+// Long delay is necessary to avoid losing synchronization due to spurious
 // resets.
 //#define BUFFER_TIMEOUT 10000000
 
@@ -69,7 +69,7 @@ public:
 	int total_buffers;
 	int current_inbuffer;
 	int current_outbuffer;
-// Don't block if first frame not recieved yet.
+// Don't block if first frame not received yet.
 // This frees up the GUI during driver initialization.
 	int first_frame;
 	int done;
