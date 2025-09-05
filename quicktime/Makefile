@@ -282,13 +282,6 @@ $(shell echo  $(CFLAGS) $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
 
 all: $(OBJDIR) $(OUTPUT) $(UTILS)
 
-$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(X264_LIB) $(X265_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
-#	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
-#	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
-#	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
-#	find $(FFMPEG_DIR)/libswresample/ -name *.o >> $(OBJDIR)/objs
-	ar rcs $(OUTPUT) `cat $(OBJDIR)/objs`
-
 # this is the only way we figured out to merge .a files
 #$(FFMPEG_LIB):
 #	$(MAKE) -C $(FFMPEG_DIR)
@@ -363,6 +356,13 @@ $(VORBIS_LIB):
 	ar x ../../$(VORBIS_DIR)/lib/.libs/libvorbisenc.a && \
 	ar x ../../$(VORBIS_DIR)/lib/.libs/libvorbisfile.a
 
+
+$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(X264_LIB) $(X265_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
+#	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libswresample/ -name *.o >> $(OBJDIR)/objs
+	ar rcs $(OUTPUT) `cat $(OBJDIR)/objs`
 
 
 $(OBJDIR)/mts2mp4: $(OBJDIR)/mts2mp4.o $(OUTPUT)
