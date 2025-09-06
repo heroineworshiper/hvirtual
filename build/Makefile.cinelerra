@@ -53,7 +53,8 @@ endif
 	$(MAKE) -C $(MJPEGDIR)/utils 
 	$(MAKE) -C $(MJPEGDIR)/mpeg2enc 
 	$(MAKE) -C $(MJPEGDIR)/mplex
-	cp $(MJPEGDIR)/mpeg2enc/mpeg2enc bin/mpeg2enc.plugin
+	mkdir -p $(DST)
+	cp $(MJPEGDIR)/mpeg2enc/mpeg2enc $(DST)/mpeg2enc.plugin
 	$(MAKE) -C thirdparty/libtheora*
 #	$(MAKE) -C thirdparty/ilmbase*
 #	$(MAKE) -C thirdparty/ilmbase* install
@@ -85,7 +86,7 @@ clean:
 	$(MAKE) -f build/Makefile.tiff clean
 	$(MAKE) -f build/Makefile.toolame clean
 	$(MAKE) -f build/Makefile.uuid clean
-	rm -rf bin/*
+	rm -rf $(DST)/*
 	make -C doc clean
 	$(MAKE) -f build/Makefile.libraw clean
 	$(MAKE) -i -C thirdparty/libraw1394* clean
@@ -121,14 +122,14 @@ wc:
 install:
 	$(MAKE) -C plugins install
 	cp libmpeg3/$(OBJDIR)/mpeg3dump libmpeg3/$(OBJDIR)/mpeg3peek libmpeg3/$(OBJDIR)/mpeg3toc  libmpeg3/$(OBJDIR)/mpeg3cat $(DST)
-	cp quicktime/$(OBJDIR)/make_streamable $(DST)
+	cp quicktime/$(OBJDIR)/make_streamable $(DST)/
 	$(MAKE) -C po install
 #	$(MAKE) -C doc install
-	cp COPYING README bin
-	cp $(FFMPEG_DIR)/ffmpeg $(DST)
-#	cp thirdparty/festival/src/main/festival bin
-#	cp -a thirdparty/festival/lib bin/
-#	cp -a models bin
+	cp COPYING README $(DST)
+	cp $(FFMPEG_DIR)/ffmpeg $(DST)/
+#	cp thirdparty/festival/src/main/festival $(DST)/
+#	cp -a thirdparty/festival/lib $(DST)/
+#	cp -a models $(DST)/
 	cd $(DST) && find -name '.svn' -exec rm -r {} \; -prune
 	cp cinelerra/Cinelerra_factory $(DST)
 	cp -a cinelerra/cinelerra.sh $(DST)
