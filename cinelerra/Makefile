@@ -461,6 +461,7 @@ LIBS += \
 	-lrt \
         -lfreetype
 
+LIBS += `pkg-config --libs vdpau`
 #	-lfontconfig \
 #	-lXxf86vm \
 
