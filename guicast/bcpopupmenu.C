@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +51,7 @@ BC_PopupMenu::BC_PopupMenu(int x,
 	highlighted = popup_down = 0;
 	menu_popup = 0;
 	icon = 0;
+    no_text_update = 0;
 	if(margin >= 0)
 	{
     	this->margin = margin;
@@ -82,6 +82,7 @@ BC_PopupMenu::BC_PopupMenu(int x,
 	highlighted = popup_down = 0;
 	menu_popup = 0;
 	icon = 0;
+    no_text_update = 0;
 	this->use_title = use_title;
 	strcpy(this->text, text);
 	for(int i = 0; i < TOTAL_IMAGES; i++)
@@ -116,6 +117,14 @@ void BC_PopupMenu::set_text(const char *text)
 	}
 }
 
+void BC_PopupMenu::copy_text(const char *text)
+{
+	if(use_title)
+	{
+		strcpy(this->text, text);
+	}
+}
+
 void BC_PopupMenu::set_icon(BC_Pixmap *icon)
 {
 	if(use_title)
@@ -123,6 +132,17 @@ void BC_PopupMenu::set_icon(BC_Pixmap *icon)
 		this->icon = icon;
 		if(menu_popup) draw_title(1);
 	}
+}
+
+
+void BC_PopupMenu::set_no_text_update(int value)
+{
+    no_text_update = value;
+}
+
+int BC_PopupMenu::get_no_text_update()
+{
+    return no_text_update;
 }
 
 int BC_PopupMenu::initialize()

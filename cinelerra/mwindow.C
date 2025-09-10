@@ -1568,12 +1568,9 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 		track = track->next;
 	}
 
-	if(load_mode == LOADMODE_REPLACE ||
-		load_mode == LOADMODE_REPLACE_CONCATENATE)
-	{
-		session->changes_made = 0;
-	}
-	else
+// OR the changes_made, since we are not prompting for an overwrite
+	if(load_mode != LOADMODE_REPLACE &&
+		load_mode != LOADMODE_REPLACE_CONCATENATE)
 	{
 		session->changes_made = 1;
 	}
@@ -3407,7 +3404,7 @@ void MWindow::update_modified()
 	{
 		if(session->filename[0] == 0)
 		{
-			sprintf(string2, PROGRAM_NAME);
+			sprintf(string2, PROGRAM_NAME ": Program");
 		}
 		else
 		{

@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ class ZoomTumbler;
 class ZoomHash
 {
 public:
-	ZoomHash(double value, char *text);
+	ZoomHash(double value, const char *text);
 	~ZoomHash();
 
 	double value;
@@ -75,9 +75,8 @@ public:
 	void create_objects();
 	double get_value();
 	char* get_text();
-	void set_text(const char *text);
     void set_tooltip(const char *text);
-	char* value_to_text(double value, int use_table = 1);
+	const char* value_to_text(double value, int use_table /* = 1 */, int force_int);
 	double text_to_zoom(char *text, int use_table = 1);
 	void update(double value);
 	void update(const char *value);

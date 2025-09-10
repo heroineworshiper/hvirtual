@@ -213,7 +213,7 @@ int MainUndo::undo()
 			file.read_from_string(current_data);
 			load_from_undo(&file, current->get_flags());
 //printf("MainUndo::undo %d\n", __LINE__);
-//			mwindow->set_filename(current->get_filename());
+			mwindow->set_filename(current->get_filename());
             mwindow->session->changes_made = current->get_modified();
 			delete [] current_data;
 
@@ -273,7 +273,7 @@ int MainUndo::redo()
 
 		if(current_data)
 		{
-//			mwindow->set_filename(current->get_filename());
+			mwindow->set_filename(current->get_filename());
 			file.read_from_string(current_data);
             mwindow->session->changes_made = current->get_modified();
 			load_from_undo(&file, current->get_flags());
@@ -366,5 +366,20 @@ void MainUndo::reset_modified()
 	}
     mwindow->session->changes_made = 0;
 }
+
+void MainUndo::reset_filename(const char *filename)
+{
+	for(UndoStackItem *current = undo_stack->first;
+		current;
+		current = NEXT)
+	{
+		current->set_filename(filename);
+    }
+}
+
+
+
+
+
 
 

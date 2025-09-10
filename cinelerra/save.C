@@ -22,6 +22,7 @@
 #include "filepreviewer.h"
 #include "language.h"
 #include "mainsession.h"
+#include "mainundo.h"
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "save.h"
@@ -183,6 +184,7 @@ void SaveThread::handle_done_event(int result)
         }
         else
         {
+            MWindow::instance->undo->reset_filename(path);
             MWindow::instance->save_xml(path, 
                 1, 
                 quit_now);

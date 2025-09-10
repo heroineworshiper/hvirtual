@@ -206,7 +206,8 @@ void CWindowGUI::create_objects()
 		mwindow->theme->czoom_w);
 	zoom_panel->create_objects();
 	zoom_panel->zoom_text->add_item(new BC_MenuItem(AUTO_ZOOM));
-	if(!mwindow->edl->session->cwindow_scrollbars) zoom_panel->set_text(AUTO_ZOOM);
+	if(!mwindow->edl->session->cwindow_scrollbars) 
+        zoom_panel->update(AUTO_ZOOM);
 
 // 	destination = new CWindowDestination(mwindow, 
 // 		this, 

@@ -54,6 +54,8 @@ public:
 	void reset_creators();
 // called by save routines to make the current entry the only unmodified one
     void reset_modified();
+// called by the save as operation to make all the undos reflect a name change
+    void reset_filename(const char *filename);
 
 	int undo();
 	int redo();

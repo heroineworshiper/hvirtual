@@ -341,10 +341,11 @@ SampleZoomPanel::SampleZoomPanel(MWindow *mwindow,
 	mwindow->edl->local_session->zoom_sample, 
 	x, 
 	y, 
-	DP(150), 
+    DP(110),
+//	DP(150), 
 	MIN_ZOOM_TIME, 
 	MAX_ZOOM_TIME, 
-//	ZOOM_LONG)
+//    ZOOM_LONG)
 	ZOOM_TIME)
 {
 	this->mwindow = mwindow;

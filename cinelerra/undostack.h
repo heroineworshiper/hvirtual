@@ -50,7 +50,7 @@ public:
 // previous key buffer.
 	void set_data(char *data);
 	void set_description(char *description);
-	void set_filename(char *filename);
+	void set_filename(const char *filename);
 	const char* get_description();
 	void set_flags(uint64_t flags);
     void set_modified(int modified);
