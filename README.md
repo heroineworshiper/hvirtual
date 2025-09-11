@@ -28,8 +28,7 @@ Edit CUDA_DIR in configure to set your CUDA location.
 
 
 
-* Run `autoreconf -f -i -I M4 thirdparty/libsndfile-1.0.28/`.
-* Run `./configure`.  
+* Run `./bootstrap.sh`.  
 * Run `make`. 
 * Run `make install` to put it in the bin/ directory. 
 * Run `./cinelerra.sh` in the bin/ directory.
