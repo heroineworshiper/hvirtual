@@ -208,6 +208,7 @@ FFMPEG_OBJS := \
 	$(OBJDIR)/qth265.o \
 	$(OBJDIR)/wma.o
 
+ALL_OBJS := $(OBJS) $(FFMPEG_OBJS) $(JPEG_LIB)/*.o $(DV_LIB)/*.o $(FAAD_LIB)/*.o $(FAAC_LIB)/*.o $(X264_LIB)/*.o $(X265_LIB)/*.o $(OGG_LIB)/*.o $(VORBIS_LIB)/*.o $(LAME_OBJS)
 
 
 UTILS := \
@@ -278,7 +279,6 @@ LIBS += `pkg-config --libs vdpau`
 $(shell mkdir -p $(DIRS) )
 $(shell echo  $(CFLAGS) > $(OBJDIR)/c_flags)
 $(shell echo  $(LAME_CFLAGS) > $(OBJDIR)/lame_flags)
-$(shell echo  $(OBJS) $(FFMPEG_OBJS) $(JPEG_LIB)/*.o $(DV_LIB)/*.o $(FAAD_LIB)/*.o $(FAAC_LIB)/*.o $(X264_LIB)/*.o $(X265_LIB)/*.o $(OGG_LIB)/*.o $(VORBIS_LIB)/*.o $(LAME_OBJS) > $(OBJDIR)/objs)
 $(shell echo  $(CFLAGS) $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
 
 all: $(OBJDIR) $(OUTPUT) $(UTILS)
@@ -358,12 +358,12 @@ $(VORBIS_LIB):
 	ar x ../../$(VORBIS_DIR)/lib/.libs/libvorbisfile.a
 
 
-$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(X264_LIB) $(X265_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
+$(OUTPUT): $(ALL_OBJS)
 #	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
 #	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
 #	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
 #	find $(FFMPEG_DIR)/libswresample/ -name *.o >> $(OBJDIR)/objs
-	ar rcs $(OUTPUT) `cat $(OBJDIR)/objs`
+	ar rcs $(OUTPUT) $(ALL_OBJS)
 
 
 $(OBJDIR)/mts2mp4: $(OBJDIR)/mts2mp4.o $(OUTPUT)
