@@ -145,12 +145,14 @@ all: $(DIRS)
 # force parallel compilation of all directories
 .PHONY: FORCE
 $(DIRS): FORCE
+	mkdir -p $(OBJDIR)
 	$(MAKE) -C $@
 
 clean:
 	find \( -name core \
 		-o -name '*.o' \
 		-o -name '*.plugin' \) -exec rm -rf {} \;
+	rm -r $(OBJDIR)
 
 wc:
 	cat *.C *.h | wc
