@@ -86,7 +86,7 @@ public:
 
 // temporary interleaved audio buffer
 	uint8_t *temp_samples;
-// bytes allocaed
+// bytes allocated
 	int temp_allocated;
 // don't wrap
     int failed;

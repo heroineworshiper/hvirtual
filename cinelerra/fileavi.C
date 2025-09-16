@@ -666,7 +666,7 @@ void FileAVI::get_parameters(BC_WindowBase *parent_window,
 int FileAVI::set_audio_position(int64_t x)
 {
 #ifdef USE_AVIFILE
-// quicktime sets positions for each track seperately so store position in audio_position
+// quicktime sets positions for each track separately so store position in audio_position
 	if(x >= 0 && x < asset->audio_length)
 		return astream_in[file->current_layer]->Seek(x);
 	else

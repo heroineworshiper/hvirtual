@@ -279,7 +279,7 @@ void GlyphUnit::process_package(LoadPackage *package)
 // Char not found
 		if (gindex == 0) 
 		{
-// carrige return
+// carriage return
 			if (glyph->char_code != 10)  
 				printf(_("GlyphUnit::process_package FT_Load_Char failed - char: %i.\n"),
 					glyph->char_code);

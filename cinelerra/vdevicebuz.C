@@ -540,7 +540,7 @@ int VDeviceBUZ::open_input_core(Channel *channel)
 // 	if(ioctl(jvideo_fd, VIDIOCGCAP, &vc) < 0)
 // 		perror("VDeviceBUZ::open_input VIDIOCGCAP");
 
-// API dependant initialization
+// API dependent initialization
 	if(ioctl(jvideo_fd, BUZIOC_G_PARAMS, &bparm) < 0)
 		perror("VDeviceBUZ::open_input BUZIOC_G_PARAMS");
 

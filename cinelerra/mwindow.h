@@ -445,7 +445,7 @@ public:
         int64_t length,
         int channel,
         int is_silence);
-// swap all occurrances of an asset with another one
+// swap all occurrences of an asset with another one
     void swap_asset(string *old_path, 
         string *new_path, 
         int old_is_silence,

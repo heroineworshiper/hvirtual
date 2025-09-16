@@ -71,7 +71,7 @@ int DissolveMain::process_realtime(VFrame *incoming, VFrame *outgoing)
 	if(!overlayer) overlayer = new OverlayFrame(get_project_smp() + 1);
 
 // There is a problem when dissolving from a big picture to a small picture.
-// In order to make it dissolve correctly, we have to manually decrese alpha of big picture.
+// In order to make it dissolve correctly, we have to manually decrease alpha of big picture.
 // 	switch (outgoing->get_color_model())
 // 	{
 // 		case BC_RGBA8888:

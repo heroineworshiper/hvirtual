@@ -301,7 +301,7 @@ public:
 
 // buffers
 	int64_t out_buffer_size;   // size of a send buffer to the plugin
-	int64_t in_buffer_size;    // size of a recieve buffer from the plugin
+	int64_t in_buffer_size;    // size of a receive buffer from the plugin
 	int total_in_buffers;
 	int total_out_buffers;
 

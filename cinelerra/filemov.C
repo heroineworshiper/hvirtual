@@ -752,7 +752,7 @@ int64_t FileMOV::get_audio_length()
 int FileMOV::set_audio_position(int64_t x)
 {
 	if(!fd) return 1;
-// quicktime sets positions for each track seperately so store position in audio_position
+// quicktime sets positions for each track separately so store position in audio_position
 	if(x >= 0 && x < asset->audio_length)
 		return quicktime_set_audio_position(fd, x, 0);
 	else

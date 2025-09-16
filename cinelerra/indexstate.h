@@ -56,7 +56,7 @@ public:
 	int index_status;     // Macro from assets.inc
 	int64_t index_zoom;      // zoom factor of index data
 	int64_t index_start;     // byte start of index data in the index file
-// Total bytes in the source file when the index was buillt
+// Total bytes in the source file when the index was built
 	int64_t index_bytes;
 	int64_t index_end, old_index_end;    // values for index build
 // for .idx files, the offset of each channel in the index buffer in floats

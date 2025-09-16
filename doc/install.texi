@@ -4,7 +4,7 @@
 
 
 The Cinelerra package contains Cinelerra and most of the libraries
-needed to run it.  We try to include all the dependancies because of
+needed to run it.  We try to include all the dependencies because of
 the difficulty in tracking down the right versions.  Also included are
 some utilities for handling files.  The following are the general
 contents of all Cinelerra packages.

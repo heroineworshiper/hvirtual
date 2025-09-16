@@ -455,7 +455,7 @@ void ReframeRT::save_data(KeyFrame *keyframe)
 // cause data to be stored directly in text
 	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 	output.tag.set_title("REFRAMERT");
-// for backwards compatability, we call num scale
+// for backwards compatibility, we call num scale
 	output.tag.set_property("SCALE", config.num);
 	output.tag.set_property("DENOM", config.denom);
 	output.tag.set_property("STRETCH", config.stretch);
@@ -475,7 +475,7 @@ void ReframeRT::read_data(KeyFrame *keyframe)
 	{
 		if(input.tag.title_is("REFRAMERT"))
 		{
-// for backwards compatability, we call num scale
+// for backwards compatibility, we call num scale
 			config.num = input.tag.get_property("SCALE", config.num);
 			config.denom = input.tag.get_property("DENOM", config.denom);
 			config.stretch = input.tag.get_property("STRETCH", config.stretch);

@@ -471,7 +471,7 @@ int FileSystem::update(const char *new_dir)
 	{
 		include_this = 1;
 
-// File is directory heirarchy
+// File is directory hierarchy
 		if(!strcmp(new_filename->d_name, ".") || 
 			!strcmp(new_filename->d_name, "..")) include_this = 0;
 
