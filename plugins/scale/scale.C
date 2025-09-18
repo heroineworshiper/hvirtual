@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +37,7 @@ ScaleConfig::ScaleConfig()
 	w = 1;
 	h = 1;
 	constrain = 0;
+    nearest = 0;
 }
 
 void ScaleConfig::copy_from(ScaleConfig &src)
@@ -45,12 +45,14 @@ void ScaleConfig::copy_from(ScaleConfig &src)
 	w = src.w;
 	h = src.h;
 	constrain = src.constrain;
+    nearest = src.nearest;
 }
 int ScaleConfig::equivalent(ScaleConfig &src)
 {
 	return EQUIV(w, src.w) && 
 		EQUIV(h, src.h) && 
-		constrain == src.constrain;
+		constrain == src.constrain &&
+        nearest == src.nearest;
 }
 
 void ScaleConfig::interpolate(ScaleConfig &prev, 
@@ -65,6 +67,7 @@ void ScaleConfig::interpolate(ScaleConfig &prev,
 	this->w = prev.w * prev_scale + next.w * next_scale;
 	this->h = prev.h * prev_scale + next.h * next_scale;
 	this->constrain = prev.constrain;
+    this->nearest = prev.nearest;
 }
 
 
@@ -116,6 +119,13 @@ void ScaleMain::save_data(KeyFrame *keyframe)
 		output.tag.set_title("CONSTRAIN");
 		output.append_tag();
 	}
+
+	if(config.nearest)
+	{
+		output.tag.set_title("NEAREST");
+		output.append_tag();
+	}
+
 	output.terminate_string();
 // data is now in *text
 }
@@ -128,6 +138,7 @@ void ScaleMain::read_data(KeyFrame *keyframe)
 
 	int result = 0;
 	config.constrain = 0;
+    config.nearest = 0;
 
 	while(!result)
 	{
@@ -144,6 +155,11 @@ void ScaleMain::read_data(KeyFrame *keyframe)
 			if(input.tag.title_is("CONSTRAIN"))
 			{
 				config.constrain = 1;
+			}
+			else
+			if(input.tag.title_is("NEAREST"))
+			{
+				config.nearest = 1;
 			}
 		}
 	}
@@ -230,7 +246,7 @@ int ScaleMain::process_buffer(VFrame *frame,
 		out_y2, 
 		1,
 		TRANSFER_REPLACE,
-		get_interpolation_type());
+		config.nearest ? NEAREST_NEIGHBOR : CUBIC_CUBIC); //get_interpolation_type());
 
 	return 0;
 }
@@ -303,6 +319,12 @@ int ScaleMain::handle_opengl()
 	get_output()->init_screen();
 	get_output()->clear_pbuffer();
 	get_output()->bind_texture(0);
+    if(config.nearest)
+    {
+    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+
 	get_output()->draw_texture(in_x1, 
 		in_y1, 
 		in_x2, 
@@ -329,6 +351,7 @@ void ScaleMain::update_gui()
 		((ScaleWin*)thread->window)->width->update(config.w);
 		((ScaleWin*)thread->window)->height->update(config.h);
 		((ScaleWin*)thread->window)->constrain->update(config.constrain);
+		((ScaleWin*)thread->window)->nearest->update(config.nearest);
 		thread->window->unlock_window();
 	}
 }

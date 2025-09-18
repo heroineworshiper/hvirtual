@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,25 +22,16 @@
 #include "clip.h"
 #include "language.h"
 #include "scale.h"
-
-
-
-
-
-
-
-
-
-
+#include "theme.h"
 
 
 
 ScaleWin::ScaleWin(ScaleMain *client)
  : PluginClientWindow(client,
 	DP(180), 
-	DP(150), 
+	DP(200), 
 	DP(180), 
-	DP(150), 
+	DP(200), 
 	0)
 { 
 	this->client = client; 
@@ -53,19 +43,31 @@ ScaleWin::~ScaleWin()
 
 void ScaleWin::create_objects()
 {
-	int x = DP(10), y = DP(10);
+    int margin = client->get_theme()->widget_border;
+	int x =margin, y = margin;
 
-	add_tool(new BC_Title(x, y, _("X Scale:")));
-	y += DP(20);
+    BC_Title *title;
+	add_tool(title = new BC_Title(x, y, _("X Scale:")));
+	y += title->get_h() + margin;
 	width = new ScaleWidth(this, client, x, y);
 	width->create_objects();
-	y += DP(30);
-	add_tool(new BC_Title(x, y, _("Y Scale:")));
-	y += DP(20);
+	y += width->get_h() + margin;
+	add_tool(title = new BC_Title(x, y, _("Y Scale:")));
+	y += title->get_h() + margin;
 	height = new ScaleHeight(this, client, x, y);
 	height->create_objects();
-	y += DP(35);
-	add_tool(constrain = new ScaleConstrain(client, x, y));
+	y += height->get_h() + margin;
+	add_tool(constrain = new ScaleToggle(client, 
+        x, 
+        y, 
+        _("Constrain ratio"), 
+        &client->config.constrain));
+    y += constrain->get_h() + margin;
+	add_tool(nearest = new ScaleToggle(client, 
+        x, 
+        y, 
+        _("Nearest neighbor"), 
+        &client->config.nearest));
 	show_window();
 	flush();
 }
@@ -85,7 +87,7 @@ ScaleWidth::ScaleWidth(ScaleWin *win,
 //printf("ScaleWidth::ScaleWidth %f\n", client->config.w);
 	this->client = client;
 	this->win = win;
-	set_increment(0.1);
+	set_increment(0.01);
 }
 
 ScaleWidth::~ScaleWidth()
@@ -122,7 +124,7 @@ ScaleHeight::ScaleHeight(ScaleWin *win, ScaleMain *client, int x, int y)
 {
 	this->client = client;
 	this->win = win;
-	set_increment(0.1);
+	set_increment(0.01);
 }
 ScaleHeight::~ScaleHeight()
 {
@@ -147,17 +149,24 @@ int ScaleHeight::handle_event()
 
 
 
-ScaleConstrain::ScaleConstrain(ScaleMain *client, int x, int y)
- : BC_CheckBox(x, y, client->config.constrain, _("Constrain ratio"))
+ScaleToggle::ScaleToggle(ScaleMain *client, 
+    int x, 
+    int y, 
+    const char *text, 
+    int *value)
+ : BC_CheckBox(x, y, *value, text)
 {
 	this->client = client;
+    this->value = value;
 }
-ScaleConstrain::~ScaleConstrain()
+ScaleToggle::~ScaleToggle()
 {
 }
-int ScaleConstrain::handle_event()
+int ScaleToggle::handle_event()
 {
-	client->config.constrain = get_value();
+	*value = get_value();
 	client->send_configure_change();
     return 0;
 }
+
+

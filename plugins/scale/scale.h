@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +26,7 @@
 class ScaleMain;
 class ScaleWidth;
 class ScaleHeight;
-class ScaleConstrain;
+class ScaleToggle;
 class ScaleThread;
 class ScaleWin;
 
@@ -53,6 +52,7 @@ public:
 
 	float w, h;
 	int constrain;
+    int nearest;
 };
 
 
@@ -78,14 +78,15 @@ public:
 	ScaleWin *win;
 };
 
-class ScaleConstrain : public BC_CheckBox
+class ScaleToggle : public BC_CheckBox
 {
 public:
-	ScaleConstrain(ScaleMain *client, int x, int y);
-	~ScaleConstrain();
+	ScaleToggle(ScaleMain *client, int x, int y, const char *text, int *value);
+	~ScaleToggle();
 	int handle_event();
 
 	ScaleMain *client;
+    int *value;
 };
 
 class ScaleWin : public PluginClientWindow
@@ -100,7 +101,8 @@ public:
 	ScaleMain *client;
 	ScaleWidth *width;
 	ScaleHeight *height;
-	ScaleConstrain *constrain;
+	ScaleToggle *constrain;
+	ScaleToggle *nearest;
 };
 
 
