@@ -324,6 +324,11 @@ int ScaleMain::handle_opengl()
     	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
+    else
+    {
+    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
 
 	get_output()->draw_texture(in_x1, 
 		in_y1, 
@@ -333,6 +338,8 @@ int ScaleMain::handle_opengl()
 		out_y1, 
 		out_x2, 
 		out_y2);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	get_output()->set_opengl_state(VFrame::SCREEN);
 #endif
     return 0;
