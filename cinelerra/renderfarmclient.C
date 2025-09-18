@@ -506,7 +506,7 @@ int RenderFarmClientThread::read_package(int socket_fd, RenderPackage *package)
 // Signifies end of session.
 	if(!data) 
 	{
-//		printf(_("RenderFarmClientThread::read_package no output path recieved.\n"));
+//		printf(_("RenderFarmClientThread::read_package no output path received.\n"));
 		unlock();
 		return 1;
 	}

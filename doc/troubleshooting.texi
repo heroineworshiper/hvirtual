@@ -30,7 +30,7 @@ buffer in device} is below 10.
 
 
 Sometimes there will be two edits really close together.  The point
-selected for dragging may be next to the indended edit on an edit too
+selected for dragging may be next to the intended edit on an edit too
 small to see at the current zoom level.  Zoom in horizontally.
 
 

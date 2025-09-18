@@ -62,7 +62,7 @@ public:
 	double playbackstart;
 // Send output to device
 	int realtime;
-// Use persistant starting point
+// Use persistent starting point
 	int resume;
 
 private:

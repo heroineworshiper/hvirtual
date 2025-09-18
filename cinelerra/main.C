@@ -362,7 +362,7 @@ COPYRIGHT_DATE);
 
 //SET_TRACE
 
-// load the initial files on seperate tracks
+// load the initial files on separate tracks
 // use a new thread so it doesn't block the GUI
 			if(filenames.total)
 			{

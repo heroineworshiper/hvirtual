@@ -53,7 +53,7 @@ void AVC1394Control::initialize()
 		if(!errno)
 		{
 //printf("AVC1394Control::initialize(): 3\n");
-			fprintf(stderr, "AVC1394Control::initialize(): Not Compatable!\n");
+			fprintf(stderr, "AVC1394Control::initialize(): Not Compatible!\n");
 		} 
 		else 
 		{

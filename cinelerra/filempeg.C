@@ -57,7 +57,7 @@
 
 
 
-// M JPEG dependancies
+// M JPEG dependencies
 static double frame_rate_codes[] = 
 {
 	0,

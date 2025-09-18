@@ -373,7 +373,7 @@ track.
 @section TRACK AND OUTPUT SIZES
 
 The size of the temporary and the size of the output in our compositing
-pipeline are independant and variable.  This fits into everything
+pipeline are independent and variable.  This fits into everything
 covered so far.  The camera's viewport is the temporary size.  Effects
 are processed in the temporary and are affected by the temporary size. 
 Projectors are rendered to the output and are affected by the output

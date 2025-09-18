@@ -108,7 +108,7 @@ variability.  This is done by 2 tools: the automation fit button
 
 The automation fit button scales and offsets the vertical range so the
 selected curves fit in the timeline.  The selected curves are defined by
-the armed tracks, the visible keyframe types, & the highlighed region. 
+the armed tracks, the visible keyframe types, & the highlighted region. 
 If a region of the timeline is highlighted by the cursor, only that
 region is scaled.  If a region is not highlighted, the entire project is
 scaled.  In/out points don't affect the zoomed region.  @b{Alt-f} also
@@ -210,7 +210,7 @@ timeline is playing back during a tweek, several automatic keyframes
 will be generated as you change the parameter.
 
 When automatic keyframe mode is disabled, adjusting a parameter adjusts
-the keyframe immediately preceeding the insertion point.  If two fade
+the keyframe immediately preceding the insertion point.  If two fade
 keyframes exist and the insertion point is between them, changing the
 fader changes the first keyframe.
 
@@ -228,7 +228,7 @@ because they require too many data points to draw on the timeline.
 Camera and projector translation can only be keyframed in automatic
 keyframe mode while camera and projector zoom can be keyframed with
 curves.  It is here that we conclude the discussion of compositing,
-since compositing is highly dependant on the ability to change over
+since compositing is highly dependent on the ability to change over
 time.
 @end ignore
 
@@ -279,7 +279,7 @@ keyframe menus.
 
 @ignore
 @b{Ctrl-drag} to set either the in or out control point of the
-preceeding keyframe.  Once again, we depart from The Gimp because
+preceding keyframe.  Once again, we depart from The Gimp because
 @b{shift} is already used for zoom.  After the in or out control points
 are extrapolated from the keyframe, @b{Ctrl-dragging} anywhere in the
 video adjusts the nearest control point.  A control point can be out of
@@ -370,7 +370,7 @@ number of reflections in Reverb.
 @b{THE KEYFRAME MENU}
 
 Keyframes can be shifted around and moved between tracks on the timeline
-using the same cut and paste metaphore as editing media.  The
+using the same cut and paste metaphor as editing media.  The
 @b{keyframe} menu performs clipboard operations on multiple keyframes at
 the same time, as defined by what tracks are armed & what data types are
 visible.  Only the keyframes selected in the @b{view} menu are affected
@@ -413,7 +413,7 @@ keyframe reflected until all the non-default keyframes are removed.
 
 Finally, there is a convenient way to delete keyframes besides
 selecting a region and calling @b{keyframes->clear keyframes}. 
-Merely click-drag a keyframe before its preceeding keyframe or after
+Merely click-drag a keyframe before its preceding keyframe or after
 its following keyframe on the track.
 
 @b{KEYFRAME CONTEXT MENU}

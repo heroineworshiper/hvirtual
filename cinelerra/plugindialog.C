@@ -774,7 +774,7 @@ PluginDialogSingle::PluginDialogSingle(PluginDialog *dialog, int x, int y)
  : BC_CheckBox(x, 
  	y, 
 	dialog->thread->single_standalone, 
-	_("Attach single standlone and share others"))
+	_("Attach single standalone and share others"))
 {
 	this->dialog = dialog;
 }

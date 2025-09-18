@@ -109,7 +109,7 @@ public:
 
 	void insert_transition(char  *title, KeyFrame *keyframe);
 	void detach_transition();
-// Determine if silence depending on existance of asset or plugin title
+// Determine if silence depending on existence of asset or plugin title
 	virtual int silence();
 
 // Media edit information

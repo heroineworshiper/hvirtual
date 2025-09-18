@@ -1988,7 +1988,7 @@ void CLASS foveon_interpolate()
 }
 
 /*
-   Seach from the current directory up to the root looking for
+   Search from the current directory up to the root looking for
    a ".badpixels" file, and fix those pixels now.
  */
 void CLASS bad_pixels()
@@ -4786,8 +4786,8 @@ int CLASS dcraw_main (int argc, char **argv)
     "\n-x <num>  Set exposure compensation in stops (default 0.00)"
     "\n-S <num>  Adjust saturation"
     "\n-C <num>  Adjust contrast"
-    "\n-k <num>  Set interpolation threshold paramater k1\n\t  for T = k1*Min + k2 * (Max - Min) (default = 1.5)"
-    "\n-K <num>  Set interpolation threshold paramater k2\n\t  for T = k1*Min + k2 * (Max - Min) (default = 0.5)"
+    "\n-k <num>  Set interpolation threshold parameter k1\n\t  for T = k1*Min + k2 * (Max - Min) (default = 1.5)"
+    "\n-K <num>  Set interpolation threshold parameter k2\n\t  for T = k1*Min + k2 * (Max - Min) (default = 0.5)"
     "\n-j <num>  Set parameter for color matrix"
     "\n-1        Write 24-bpp PPM using 16 bit calculation"
     "\n-2        Write 24-bpp PPM (default)"

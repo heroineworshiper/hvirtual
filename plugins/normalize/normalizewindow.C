@@ -84,7 +84,7 @@ int NormalizeWindowOverload::handle_event()
 
 
 NormalizeWindowSeparate::NormalizeWindowSeparate(int x, int y, int *separate_tracks)
- : BC_CheckBox(x, y, *separate_tracks, _("Treat tracks independantly"))
+ : BC_CheckBox(x, y, *separate_tracks, _("Treat tracks independently"))
 {
 	this->separate_tracks = separate_tracks;
 }

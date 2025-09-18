@@ -229,7 +229,7 @@ void AssetPicon::create_objects()
 // 						pixmap_h,
 // 						BC_RGB888, 
 // 						BC_RGB888,
-// 						0,         /* When transfering BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
+// 						0,         /* When transferring BC_RGBA8888 to non-alpha this is the background color in 0xRRGGBB hex */
 // 						0,       /* For planar use the luma rowspan */
 // 						0);     /* For planar use the luma rowspan */
 // 

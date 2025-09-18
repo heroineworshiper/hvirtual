@@ -165,7 +165,7 @@ int VDevicePrefs::initialize(int creation)
 
 
 
-// Update driver dependancies in file format
+// Update driver dependencies in file format
 	if(mode == MODERECORD && dialog && !creation)
 	{
 		RecordPrefs *record_prefs = (RecordPrefs*)dialog;

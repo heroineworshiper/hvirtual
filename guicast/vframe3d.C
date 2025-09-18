@@ -636,7 +636,7 @@ unsigned int VFrame::make_shader(int dump, ...)
 		char *text = va_arg(list, char*);
 		if(!text) break;
 
-// Replace one occurrance in each source of main() with a unique id.
+// Replace one occurrence in each source of main() with a unique id.
 		char main_replacement[BCTEXTLEN];
 		sprintf(main_replacement, "main%03d()", current_shader);
 //printf("VFrame::make_shader %s %s\n", text, main_replacement);

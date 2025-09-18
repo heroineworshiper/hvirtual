@@ -6,11 +6,11 @@
 #include "vframe.inc"
 
 
-// Issues encoutered with overlay
+// Issues encountered with overlay
 
 // Floating point vs. int.  On alpha the floating point interpolation is about
 // 2x faster than integer interpolation.  Integer interpolation uses 32 
-// siginificant bits while floating point uses 24, however.
+// significant bits while floating point uses 24, however.
 
 // Single step vs. two step process.
 

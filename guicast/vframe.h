@@ -302,7 +302,7 @@ public:
 // Requires a null terminated argument list of shaders to link together.
 // At least one shader argument must have a main() function.  make_shader
 // replaces all the main() functions with unique functions and calls them in
-// sequence, so multiple independant shaders can be linked.
+// sequence, so multiple independent shaders can be linked.
 	static unsigned int make_shader(int dump, ...);
 	static void dump_shader(int shader_id);
 

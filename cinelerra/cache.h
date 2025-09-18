@@ -119,7 +119,7 @@ private:
 
 // to prevent one from checking the same asset out before it's checked in
 // yet without blocking the asset trying to get checked in
-// use a seperate mutex for checkouts and checkins
+// use a separate mutex for checkouts and checkins
 	Mutex *total_lock;
 	Condition *check_out_lock;
 // Copy of EDL

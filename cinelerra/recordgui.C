@@ -166,7 +166,7 @@ void RecordGUI::create_objects()
 		BC_Title::calculate_h(this, "X")) + margin;
 	int button_y = 0;
 
-// Curent batch
+// Current batch
 	add_subwindow(title = new BC_Title(x, y, _("Path:")));
 	x1 = MAX(title->get_w(), x1);
 	y += pad;
