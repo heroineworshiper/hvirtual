@@ -31,54 +31,54 @@ if test x$ac_cv_header_endian_h = xyes ; then
 
 	# First try <endian.h> which should set BYTE_ORDER.
 
-	[AC_TRY_LINK([
+	[AC_LINK_IFELSE([AC_LANG_PROGRAM([
 		#include <endian.h>
 		#if BYTE_ORDER != LITTLE_ENDIAN
 			not big endian
 		#endif
-		], return 0 ;, 
-			ac_cv_c_byte_order=little
+		], [return 0 ;])], 
+			[ac_cv_c_byte_order=little]
 		)]
 				
-	[AC_TRY_LINK([
+	[AC_LINK_IFELSE([AC_LANG_PROGRAM([
 		#include <endian.h>
 		#if BYTE_ORDER != BIG_ENDIAN
 			not big endian
 		#endif
-		], return 0 ;, 
-			ac_cv_c_byte_order=big
+		], [return 0 ;])], 
+			[ac_cv_c_byte_order=big]
 		)]
 
 	fi
 
 if test $ac_cv_c_byte_order = unknown ; then
 
-	[AC_TRY_LINK([
+	[AC_LINK_IFELSE([AC_LANG_PROGRAM([
 		#include <sys/types.h>
 		#include <sys/param.h>
 		#if !BYTE_ORDER || !BIG_ENDIAN || !LITTLE_ENDIAN
 			bogus endian macros
 		#endif
-		], return 0 ;, 
+		], [return 0 ;])], 
 
-		[AC_TRY_LINK([
+		[AC_LINK_IFELSE([AC_LANG_PROGRAM([
 			#include <sys/types.h>
 			#include <sys/param.h>
 			#if BYTE_ORDER != LITTLE_ENDIAN
 				not big endian
 			#endif
-			], return 0 ;, 
-				ac_cv_c_byte_order=little
+			], [return 0 ;])], 
+				[ac_cv_c_byte_order=little]
 			)]
 				
-		[AC_TRY_LINK([
+		[AC_LINK_IFELSE([AC_LANG_PROGRAM([
 			#include <sys/types.h>
 			#include <sys/param.h>
 			#if BYTE_ORDER != LITTLE_ENDIAN
 				not big endian
 			#endif
-			], return 0 ;, 
-				ac_cv_c_byte_order=little
+			], [return 0 ;])], 
+				[ac_cv_c_byte_order=little]
 			)]
 
 		)]
