@@ -548,16 +548,16 @@ void MWindowGUI::deactivate_timeline()
 	}
 }
 
-void MWindowGUI::update_title(char *path)
-{
-	FileSystem fs;
-	char filename[BCTEXTLEN], string[BCTEXTLEN];
-	fs.extract_name(filename, path);
-	sprintf(string, PROGRAM_NAME ": %s", filename);
-	set_title(string);
-//printf("MWindowGUI::update_title %s\n", string);
-	flush();
-}
+// void MWindowGUI::update_title(char *path)
+// {
+// 	FileSystem fs;
+// 	char filename[BCTEXTLEN], string[BCTEXTLEN];
+// 	fs.extract_name(filename, path);
+// 	sprintf(string, PROGRAM_NAME ": %s", filename);
+// 	set_title(string);
+// //printf("MWindowGUI::update_title %s\n", string);
+// 	flush();
+// }
 
 void MWindowGUI::draw_overlays(int flash_it, int flush_it)
 {
@@ -799,7 +799,7 @@ void MWindowGUI::update(int scrollbars,
 	if(debug) PRINT_TRACE
 	
 	
-	
+	mwindow->update_modified();
 	mwindow->edl->tracks->update_y_pixels(mwindow->theme);
 	
 	if(do_canvas && do_canvas != IGNORE_THREAD)

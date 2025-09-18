@@ -92,7 +92,7 @@ public:
     ~EditKeyframeDialog();
 
 	void create_objects();
-
+    void lock_texts();
 
 
 	MWindow *mwindow;

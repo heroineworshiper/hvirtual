@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2021 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include "zoompanel.h"
 
 
-ZoomHash::ZoomHash(double value, char *text)
+ZoomHash::ZoomHash(double value, const char *text)
 {
 	this->value = value;
 	this->text = new char[strlen(text) + 1];
@@ -124,16 +124,18 @@ void ZoomPanel::calculate_menu()
 	{
 		for(int i = 0; i < user_size; i++)
 		{
-			zoom_text->add_item(new BC_MenuItem(value_to_text(user_table[i], 0)));
-			zoom_table.append(new ZoomHash(user_table[i], value_to_text(user_table[i], 0)));
+            const char *text = value_to_text(user_table[i], 0, 0);
+			zoom_text->add_item(new BC_MenuItem(text));
+			zoom_table.append(new ZoomHash(user_table[i], text));
 		}
 	}
 	else
 	{
 		for(double zoom = min; zoom <= max; zoom *= 2)
 		{
-			zoom_text->add_item(new BC_MenuItem(value_to_text(zoom, 0)));
-			zoom_table.append(new ZoomHash(zoom, value_to_text(zoom, 0)));
+            const char *text = value_to_text(zoom, 0, 0);
+			zoom_text->add_item(new BC_MenuItem(text));
+			zoom_table.append(new ZoomHash(zoom, text));
 		}
 	}
 }
@@ -207,15 +209,10 @@ char* ZoomPanel::get_text()
 	return zoom_text->get_text();
 }
 
-void ZoomPanel::set_text(const char *text)
-{
-	zoom_text->set_text(text);
-}
-
 void ZoomPanel::update(double value)
 {
 	this->value = value;
-	zoom_text->set_text(value_to_text(value));
+	zoom_text->set_text(value_to_text(value, 1, 1));
 }
 
 void ZoomPanel::update(const char *value)
@@ -224,17 +221,22 @@ void ZoomPanel::update(const char *value)
 }
 
 
-char* ZoomPanel::value_to_text(double value, int use_table)
+const char* ZoomPanel::value_to_text(double value, int use_table, int force_int)
 {
+// want the power of 2 in the title & the time text in the popup menu
+    if(zoom_type == ZOOM_TIME && force_int)
+    {
+        sprintf(string, "%ld", (long)value);
+        return string;
+    }
+
 	if(use_table)
 	{
 		for(int i = 0; i < zoom_table.total; i++)
 		{
-//printf("ZoomPanel::value_to_text %p\n", zoom_table.values[i]);
 			if(EQUIV(zoom_table.values[i]->value, value))
 				return zoom_table.values[i]->text;
 		}
-//printf("ZoomPanel::value_to_text: should never get here\n");
 		return zoom_table.values[0]->text;
 	}
 
@@ -330,12 +332,13 @@ ZoomPopup::ZoomPopup(MWindow *mwindow, ZoomPanel *panel, int x, int y)
  : BC_PopupMenu(x, 
 		y, 
 		panel->w, 
-		panel->value_to_text(panel->value, 0), 
+		panel->value_to_text(panel->value, 0, 1), 
 		1,
 		panel->menu_images)
 {
 	this->mwindow = mwindow;
 	this->panel = panel;
+    set_no_text_update(1);
 }
 
 ZoomPopup::~ZoomPopup()
@@ -381,7 +384,7 @@ int ZoomTumbler::handle_up_event()
 		RECLIP(panel->value, panel->min, panel->max);
 	}
 
-	panel->zoom_text->set_text(panel->value_to_text(panel->value));
+	panel->zoom_text->set_text(panel->value_to_text(panel->value, 1, 1));
 	panel->handle_event();
 	return 1;
 }
@@ -402,7 +405,7 @@ int ZoomTumbler::handle_down_event()
 		panel->value /= 2;
 		RECLIP(panel->value, panel->min, panel->max);
 	}
-	panel->zoom_text->set_text(panel->value_to_text(panel->value));
+	panel->zoom_text->set_text(panel->value_to_text(panel->value, 1, 1));
 	panel->handle_event();
 	return 1;
 }

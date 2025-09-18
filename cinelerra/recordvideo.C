@@ -388,7 +388,7 @@ void RecordVideo::run()
 			ErrorBox error_box(PROGRAM_NAME ": Error",
 				mwindow->gui->get_abs_cursor_x(1),
 				mwindow->gui->get_abs_cursor_y(1));
-			error_box.create_objects(_("No space left on disk."));
+			error_box.create_objects(_("Error writing data."));
 			error_box.run_window();
 			batch_done = 1;
 		}
@@ -431,7 +431,7 @@ void RecordVideo::write_buffer(int skip_new)
 {
 	write_result = record->file->write_video_buffer(buffer_position);
 // HACK
-write_result = 0;
+//write_result = 0;
 
 	buffer_position = 0;
 	if(!skip_new && !write_result) 

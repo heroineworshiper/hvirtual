@@ -25,6 +25,7 @@
 #include "clip.h"
 #include "file.h"
 #include "filesndfile.h"
+#include "filesystem.h"
 #include "language.h"
 #include "mwindow.inc"
 
@@ -37,6 +38,7 @@ FileSndFile::FileSndFile(Asset *asset, File *file)
 	temp_allocated = 0;
 	fd_config.format = 0;
 	fd = 0;
+    virtual_fd = 0;
 // 	if(asset->format == FILE_UNKNOWN)
 // 		asset->format = FILE_PCM;
 }
@@ -55,6 +57,9 @@ FileSndFile::FileSndFile()
     ids.append(FILE_AU);
     ids.append(FILE_AIFF);
     ids.append(FILE_SND);
+	fd = 0;
+    virtual_fd = 0;
+	fd = 0;
     has_audio = 1;
     has_wr = 1;
     has_rd = 1;
@@ -269,6 +274,60 @@ void FileSndFile::format_to_asset()
 //asset->dump();
 }
 
+static sf_count_t vfget_filelen(void *user_data)
+{
+    FileSndFile *file = (FileSndFile *)user_data;
+	return FileSystem::get_size(file->asset->path);
+}
+
+
+static sf_count_t vfseek(sf_count_t offset, int whence, void *user_data)
+{
+    FileSndFile *file = (FileSndFile *)user_data;
+
+	switch (whence)
+	{	case SEEK_SET:
+			fseek(file->virtual_fd, offset + file->asset->header, whence);
+            return ftell(file->virtual_fd) - file->asset->header;
+			break ;
+
+		case SEEK_CUR:
+			fseek(file->virtual_fd, offset, whence);
+            return ftell(file->virtual_fd) - file->asset->header;
+			break ;
+
+		case SEEK_END:
+            fseek(file->virtual_fd, offset, whence);
+			return ftell(file->virtual_fd) - file->asset->header;
+			break ;
+		default :
+			break ;
+	}
+
+	return ftell(file->virtual_fd);
+}
+
+static sf_count_t vfread (void *ptr, sf_count_t count, void *user_data)
+{
+    FileSndFile *file = (FileSndFile *)user_data;
+    return fread(ptr, 1, count, file->virtual_fd);
+} /* vfread */
+
+static sf_count_t
+vfwrite (const void *ptr, sf_count_t count, void *user_data)
+{
+    FileSndFile *file = (FileSndFile *)user_data;
+    printf("No fwrite for %s\n", file->asset->path);
+    return 0;
+}
+
+static sf_count_t vftell (void *user_data)
+{
+    FileSndFile *file = (FileSndFile *)user_data;
+    return ftell(file->virtual_fd - file->asset->header);
+} /* vftell */
+
+
 int FileSndFile::open_file(int rd, int wr)
 {
 	int result = 0;
@@ -277,8 +336,25 @@ int FileSndFile::open_file(int rd, int wr)
 	{
 		if(asset->format == FILE_PCM)
 		{
+// override I/O to support header size
+	        vio.get_filelen = vfget_filelen;
+	        vio.seek = vfseek;
+	        vio.read = vfread;
+	        vio.write = vfwrite;
+	        vio.tell = vftell;
+            virtual_fd = fopen(asset->path, "r");
+            if(virtual_fd)
+            {
+                fseek(virtual_fd, asset->header, SEEK_SET);
+            }
+            else
+            {
+                printf("FileSndFile::open_file %d couldn't open %s\n",
+                    __LINE__,
+                    asset->path);
+            }
 			asset_to_format();
-			fd = sf_open(asset->path, SFM_READ, &fd_config);
+			fd = sf_open_virtual(&vio, SFM_READ, &fd_config, this);
 // Already given by user
 			if(fd) format_to_asset();
 		}
@@ -309,6 +385,8 @@ int FileSndFile::open_file(int rd, int wr)
 int FileSndFile::close_file()
 {
 	if(fd) sf_close(fd);
+    if(virtual_fd) fclose(virtual_fd);
+    virtual_fd = 0;
 	fd = 0;
 	FileBase::close_file();
 	fd_config.format = 0;

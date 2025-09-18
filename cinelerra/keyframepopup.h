@@ -92,6 +92,16 @@ public:
 	KeyframePopup *popup;
 };
 
+class KeyframePopupBezier3 : public BC_MenuItem
+{
+public:
+	KeyframePopupBezier3(MWindow *mwindow, KeyframePopup *popup);
+	int handle_event();
+	
+	MWindow *mwindow;
+	KeyframePopup *popup;
+};
+
 class KeyframePopupDelete : public BC_MenuItem
 {
 public:
@@ -171,6 +181,7 @@ public:
 	KeyframePopupLinear *key_linear;
 	KeyframePopupBezier *key_bezier;
 	KeyframePopupBezier2 *key_bezier2;
+	KeyframePopupBezier3 *key_bezier3;
 	KeyframePopupDelete *key_delete;
 	KeyframePopupHide *key_hide;
 	KeyframePopupCopy *key_copy;

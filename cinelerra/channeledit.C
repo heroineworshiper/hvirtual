@@ -93,10 +93,8 @@ void ChannelEditThread::run()
 	{
 // Copy new channels to master list
 		channel_picker->channeldb->clear();
-		
 		channel_picker->channeldb->copy_from(new_channels);
 		channel_picker->update_channel_list();
-
 	}
 
 	channel_picker->handle_channel_edit(result);
@@ -218,7 +216,7 @@ ChannelEditWindow::~ChannelEditWindow()
 	}
 	channel_list.remove_all();
 	delete edit_thread;
-	delete picture_thread;
+//	delete picture_thread;
 	delete scan_confirm_thread;
 }
 
@@ -261,8 +259,8 @@ void ChannelEditWindow::create_objects()
 	}
 	add_subwindow(new ChannelEditDel(this, x, y));
 	y += button->get_h() + margin;
-	add_subwindow(new ChannelEditPicture(this, x, y));
-	y += button->get_h() + margin;
+//	add_subwindow(new ChannelEditPicture(this, x, y));
+//	y += button->get_h() + margin;
 	x = margin;
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
@@ -270,7 +268,7 @@ void ChannelEditWindow::create_objects()
 
 	edit_thread = new ChannelEditEditThread(this, 
 		channel_picker);
-	picture_thread = new ChannelEditPictureThread(channel_picker);
+//	picture_thread = new ChannelEditPictureThread(channel_picker);
 	show_window();
 }
 
@@ -328,6 +326,7 @@ int ChannelEditWindow::add_channel()
 
 int ChannelEditWindow::update_list()
 {
+    int selected = list_box->get_selection_number(0, 0);
 // Create channel list
 	channel_list.remove_all_objects();
 	for(int i = 0; i < thread->new_channels->size(); i++)
@@ -337,7 +336,16 @@ int ChannelEditWindow::update_list()
 				thread->new_channels->get(i)->title));
 	}
 
-	list_box->update(&channel_list, 0, 0, 1, list_box->get_yposition());
+// reselect the same item.  Wouldn't work so well if we deleted a channel.
+    if(selected < channel_list.size())
+        channel_list.get(selected)->set_selected(1);
+
+	list_box->update(&channel_list, 
+        0, 
+        0, 
+        1, 
+        list_box->get_xposition(),
+        list_box->get_yposition());
     return 0;
 }
 
@@ -370,12 +378,12 @@ int ChannelEditWindow::edit_channel()
     return 0;
 }
 
-int ChannelEditWindow::edit_picture()
-{
-	picture_thread->edit_picture();
-    return 0;
-}
-
+// int ChannelEditWindow::edit_picture()
+// {
+// 	picture_thread->edit_picture();
+//     return 0;
+// }
+// 
 void ChannelEditWindow::scan_confirm()
 {
 	channel_picker->load_scan_defaults(&thread->scan_params);
@@ -648,19 +656,19 @@ int ChannelEdit::handle_event()
     return 0;
 }
 
-ChannelEditPicture::ChannelEditPicture(ChannelEditWindow *window, int x, int y)
- : BC_GenericButton(x, y, _("Picture..."))
-{
-	this->window = window;
-}
-ChannelEditPicture::~ChannelEditPicture()
-{
-}
-int ChannelEditPicture::handle_event()
-{
-	window->edit_picture();
-    return 0;
-}
+// ChannelEditPicture::ChannelEditPicture(ChannelEditWindow *window, int x, int y)
+//  : BC_GenericButton(x, y, _("Picture..."))
+// {
+// 	this->window = window;
+// }
+// ChannelEditPicture::~ChannelEditPicture()
+// {
+// }
+// int ChannelEditPicture::handle_event()
+// {
+// 	window->edit_picture();
+//     return 0;
+// }
 
 
 
@@ -1544,8 +1552,10 @@ int ChannelEditPictureWindow::calculate_w(ChannelPicker *channel_picker)
 
 void ChannelEditPictureWindow::create_objects()
 {
-	int x = 10, y = 10;
-	int widget_border = ((Theme*)channel_picker->get_theme())->widget_border;
+    Theme *theme = (Theme*)channel_picker->get_theme();
+	int x = theme->window_border;
+    int y = theme->window_border;
+	int widget_border = theme->widget_border;
 	int x1 = get_w() - BC_Pot::calculate_w() * 2 - widget_border * 2;
 	int x2 = get_w() - BC_Pot::calculate_w() - widget_border;
 	int pad = BC_Pot::calculate_h();
@@ -1788,26 +1798,35 @@ ChannelEditCommon::~ChannelEditCommon()
 
 int ChannelEditCommon::handle_event()
 {
+#ifdef REALTIME_ADJUST
+	channel_picker->set_picture(device_id, get_value());
+#endif
 	return 1;
 }
 
 int ChannelEditCommon::button_release_event()
 {
+#ifndef REALTIME_ADJUST
 	if(BC_Pot::button_release_event())
 	{
 		channel_picker->set_picture(device_id, get_value());
 		return 1;
 	}
+#else
+    return BC_IPot::button_release_event();
+#endif
 	return 0;
 }
 
 int ChannelEditCommon::keypress_event()
 {
+#ifndef REALTIME_ADJUST
 	if(BC_Pot::keypress_event())
 	{
 		channel_picker->set_picture(device_id, get_value());
 		return 1;
 	}
+#endif
 	return 0;
 }
 

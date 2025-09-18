@@ -35,6 +35,7 @@ void quicktime_print_buffer(char *desc, uint8_t *input, int len);
 #include "file.h"
 #include "fileffmpeg.h"
 #include "filefork.h"
+#include "filespooler.h"
 #include "framecache.h"
 #include "indexfile.h"
 //#include "mpegaudio.h"
@@ -48,6 +49,8 @@ void quicktime_print_buffer(char *desc, uint8_t *input, int len);
 #include <string.h>
 #include <string>
 #include <unistd.h>
+#include <dlfcn.h>
+#include <fcntl.h>
 
 using std::string;
 
@@ -101,8 +104,147 @@ using std::string;
 Mutex* FileFFMPEG::ffmpeg_lock = new Mutex("FileFFMPEG::ffmpeg_lock");
 
 
+// diabolical hack to read asynchronously while building the TOC
+// showed no improvement with modern hard drives
+//#define USE_SPOOLER
+
+#ifdef USE_SPOOLER
+static int want_fd = 0;
+static int spool_fd = -1;
+static const char* want_fd_path = 0;
+static int use_spooler = 0;
+static FileSpooler *file_spooler = 0;
+
+extern "C"
+{
+
+// ffmpeg reads 32768-131072 bytes & lseek when building a TOC
+int open (const char *__file, int __oflag, ...)
+{
+    static int (*func)(const char *, int , ...) = 0;
+    va_list args;
+    va_start(args, __oflag);
+    int result = -1;
+ 	if(!func)
+     	func = (int(*)(const char *, int , ...))dlsym(RTLD_NEXT, "open");
+
+// pass the optional mode argument    
+    if(__oflag & (O_CREAT | O_TMPFILE))
+    {
+        result = (*func)(__file, __oflag, va_arg(args, mode_t));
+    }
+    else
+    {
+// pass no mode argument
+        result = (*func)(__file, __oflag);
+    }
+    va_end(args);
+
+    if(result >= 0 && want_fd && !strcmp(want_fd_path, __file))
+    {
+        spool_fd = result;
+        printf("open %d: got spool_fd=%d path=%s\n", __LINE__, result, __file);
+    }
+    return result;
+}
+
+int close (int __fd)
+{
+    static int (*func)(int) = 0;
+ 	if(!func)
+     	func = (int(*)(int))dlsym(RTLD_NEXT, "close");
+// should never get here
+    if(use_spooler && spool_fd >= 0 && __fd == spool_fd)
+    {
+        printf("close %d: spooler still running\n", __LINE__);
+        spool_fd = -1;
+    }
+    return (*func)(__fd);
+}
 
 
+
+ssize_t read (int __fd, void *__buf, size_t __nbytes)
+{
+//     static Timer profiler;
+//     static int downsample = 0;
+//     static int64_t before = 0;
+//     static int64_t after = 0;
+
+
+    static ssize_t (*func)(int, void *, size_t) = 0;
+ 	if(!func)
+     	func = (ssize_t(*)(int, void *, size_t))dlsym(RTLD_NEXT, "read");
+    
+
+    if(use_spooler && __fd == spool_fd) 
+    {
+//        printf("read fd=%d n=%d\n", __fd, __nbytes);
+//        before += profiler.get_diff_us(1);
+
+
+        int result = file_spooler->read((uint8_t*)__buf, __nbytes);
+// skip file spooler for testing
+//        int result = (*func)(__fd, __buf, __nbytes);
+
+//         after += profiler.get_diff_us(1);
+//         downsample++;
+//         if((downsample % 1000) == 0)
+//         {
+//             printf("read fd=%d n=%d before=%d after=%d\n", 
+//                 __fd, __nbytes, (int)before, (int)after);
+//             before = 0;
+//             after = 0;
+//         }
+
+        return result;
+    }
+
+    int result = (*func)(__fd, __buf, __nbytes);
+    return result;
+}
+
+__off_t lseek (int __fd, __off_t __offset, int __whence)
+{
+    static __off_t (*func)(int, __off_t, int) = 0;
+ 	if(!func)
+     	func = (__off_t(*)(int, __off_t, int))dlsym(RTLD_NEXT, "lseek");
+
+    if(use_spooler && __fd == spool_fd) 
+        return file_spooler->seek(__offset, __whence);
+
+//printf("lseek fd=%d offset=%ld whence=%d\n", __fd, (long)__offset, __whence);
+    return (*func)(__fd, __offset, __whence);
+}
+
+
+// int fgetc (FILE *__stream)
+// {
+// 	static int (*func)(FILE *) = 0;
+// 	int result = 0, done = 0;
+// 	if(!func)
+//     	func = (int(*)(FILE *))dlsym(RTLD_NEXT, "fgetc");
+// printf("fgetc\n");
+// 	result = (*func)(__stream);
+// 	return result;
+// }
+
+
+// size_t fread (void *__restrict __ptr, size_t __size,
+// 		     size_t __n, FILE *__restrict __stream)
+// {
+// // the default function
+// 	static int (*func)(void *, size_t, size_t, FILE *) = 0;
+// 	if(!func)
+//     	func = (int(*)(void *, size_t, size_t, FILE *))dlsym(RTLD_NEXT, "fread");
+// 
+// printf("fread size=%d n=%d\n", __size, __n);
+//     return (*func)(__ptr, __size, __n, __stream);
+// }
+
+
+}
+#endif // USE_SPOOLER
 
 
 FileFFMPEGStream::FileFFMPEGStream()
@@ -717,11 +859,20 @@ int FileFFMPEG::open_ffmpeg()
     ffmpeg_lock->lock("FileFFMPEG::open_file");
 
     if(debug) printf("FileFFMPEG::open_ffmpeg %d asset=%p\n", __LINE__, asset);
+#ifdef USE_SPOOLER
+    want_fd = 1;
+    want_fd_path = asset->path;
+#endif
+
 	result = avformat_open_input(
 		&ffmpeg_file_context, 
 		asset->path, 
 		0,
 		0);
+#ifdef USE_SPOOLER
+    want_fd = 0;
+    want_fd_path = 0;
+#endif
 
 	if(debug) printf("FileFFMPEG::open_ffmpeg %d result=%d\n", __LINE__, result);
 
@@ -1344,6 +1495,13 @@ int FileFFMPEG::create_toc(void *ptr)
             }
         }
 
+#ifdef USE_SPOOLER
+// enter the file spooler
+        file_spooler = new FileSpooler;
+        file_spooler->open(spool_fd);
+        use_spooler = 1;
+#endif
+
         av_seek_frame(ffmpeg, 
 			0, 
 			0, 
@@ -1357,7 +1515,7 @@ int FileFFMPEG::create_toc(void *ptr)
         file->start_progress(progress_title.c_str(), total_bytes);
         if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
 
-
+        Timer profiler;
         while(1)
         {
             AVPacket *packet = av_packet_alloc();
@@ -1580,10 +1738,19 @@ int FileFFMPEG::create_toc(void *ptr)
             av_packet_free(&packet);
         }
 
+//        printf("FileFFMPEG::create_toc %d diff=%dms\n", __LINE__, (int)profiler.get_difference());
 
         if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
         file->stop_progress("done creating table of contents");
         if(debug) printf("FileFFMPEG::create_toc %d\n", __LINE__);
+
+// exit the file spooler
+#ifdef USE_SPOOLER
+        use_spooler = 0;
+        delete file_spooler;
+        file_spooler = 0;
+        spool_fd = -1;
+#endif
 
         av_seek_frame(ffmpeg, 
 			0, 

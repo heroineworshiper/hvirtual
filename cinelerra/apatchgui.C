@@ -208,14 +208,14 @@ int APatchGUI::update(int x, int y)
 	return y1;
 }
 
-void APatchGUI::synchronize_fade(float value_change)
-{
-	if(fade && !change_source) 
-	{
-		fade->update(fade->get_value() + value_change);
-		fade->update_edl();
-	}
-}
+// void APatchGUI::synchronize_fade(float value_change)
+// {
+// 	if(fade && !change_source) 
+// 	{
+// 		fade->update(fade->get_value() + value_change);
+// 		fade->update_edl();
+// 	}
+// }
 
 
 
@@ -233,6 +233,7 @@ AFadePatch::AFadePatch(MWindow *mwindow, APatchGUI *patch, int x, int y, int w)
 	this->patch = patch;
 }
 
+// store the GUI value in the EDL
 float AFadePatch::update_edl()
 {
 	FloatAuto *current;
@@ -247,7 +248,7 @@ float AFadePatch::update_edl()
 	float result = get_value() - current->value;
 	current->value = get_value();
 
-	mwindow->undo->update_undo_after(_("fade"), LOAD_AUTOMATION);
+//	mwindow->undo->update_undo_after(_("fade"), LOAD_AUTOMATION);
 
 	return result;
 }
@@ -267,6 +268,7 @@ int AFadePatch::handle_event()
 		patch->patchbay->synchronize_faders(change, TRACK_AUDIO, patch->track);
 	patch->change_source = 0;
 
+	mwindow->undo->update_undo_after(_("fade"), LOAD_AUTOMATION);
 	mwindow->sync_parameters(CHANGE_PARAMS);
 
 	if(mwindow->edl->session->auto_conf->autos[AUTOMATION_FADE])

@@ -57,7 +57,7 @@ public:
 		BC_Toggle *toggle,
 		int *output);
 	virtual int update(int x, int y);
-	virtual void synchronize_fade(float change) {};
+//	virtual void synchronize_fade(float change) {};
 	void synchronize_faders(float change, int audio, int video);
 	char* calculate_nudge_text(int *changed);
 	int64_t calculate_nudge(const char *string);

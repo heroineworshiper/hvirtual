@@ -30,6 +30,7 @@
 #include "edl.h"
 #include "edlsession.h"
 #include "filexml.h"
+#include "floatauto.h"
 #include "gwindow.h"
 #include "gwindowgui.h"
 #include "keyframe.h"
@@ -63,6 +64,7 @@ KeyframePopup::KeyframePopup(MWindow *mwindow, MWindowGUI *gui)
 	key_linear = 0;
 	key_bezier = 0;
     key_bezier2 = 0;
+    key_bezier3 = 0;
 	preset = 0;
     edit = 0;
 //    copy_default = 0;
@@ -108,9 +110,11 @@ int KeyframePopup::update(double position,
 	delete key_linear;
 	delete key_bezier;
 	delete key_bezier2;
+    delete key_bezier3;
 	key_linear = 0;
 	key_bezier = 0;
 	key_bezier2 = 0;
+    key_bezier3 = 0;
     delete bar;
     bar = 0;
 
@@ -145,9 +149,11 @@ int KeyframePopup::update(double position,
 		add_item(key_linear = new KeyframePopupLinear(mwindow, this));
 		add_item(key_bezier = new KeyframePopupBezier(mwindow, this));
 		add_item(key_bezier2 = new KeyframePopupBezier2(mwindow, this));
-        key_linear->set_checked(auto_->mode == Auto::LINEAR);
-        key_bezier->set_checked(auto_->mode == Auto::BEZIER_LOCKED);
-        key_bezier2->set_checked(auto_->mode == Auto::BEZIER_UNLOCKED);
+//		add_item(key_bezier3 = new KeyframePopupBezier3(mwindow, this));
+        key_linear->set_checked(((FloatAuto*)auto_)->mode == FloatAuto::LINEAR);
+        key_bezier->set_checked(((FloatAuto*)auto_)->mode == FloatAuto::BEZIER_LOCKED);
+        key_bezier2->set_checked(((FloatAuto*)auto_)->mode == FloatAuto::BEZIER_UNLOCKED);
+//        key_bezier3->set_checked(((FloatAuto*)auto_)->mode == FloatAuto::BEZIER_TANGENT);
 	}
 
     if(autos && !auto_)
@@ -204,7 +210,7 @@ KeyframePopupLinear::KeyframePopupLinear(MWindow *mwindow, KeyframePopup *popup)
 
 int KeyframePopupLinear::handle_event()
 {
-    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, Auto::LINEAR);
+    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, FloatAuto::LINEAR);
 	return 1;
 }
 
@@ -221,7 +227,7 @@ KeyframePopupBezier::KeyframePopupBezier(MWindow *mwindow, KeyframePopup *popup)
 
 int KeyframePopupBezier::handle_event()
 {
-    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, Auto::BEZIER_LOCKED);
+    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, FloatAuto::BEZIER_LOCKED);
 	return 1;
 }
 
@@ -236,7 +242,21 @@ KeyframePopupBezier2::KeyframePopupBezier2(MWindow *mwindow, KeyframePopup *popu
 
 int KeyframePopupBezier2::handle_event()
 {
-    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, Auto::BEZIER_UNLOCKED);
+    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, FloatAuto::BEZIER_UNLOCKED);
+	return 1;
+}
+
+
+KeyframePopupBezier3::KeyframePopupBezier3(MWindow *mwindow, KeyframePopup *popup)
+ : BC_MenuItem(_("Tangent bezier"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int KeyframePopupBezier3::handle_event()
+{
+    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, FloatAuto::BEZIER_TANGENT);
 	return 1;
 }
 

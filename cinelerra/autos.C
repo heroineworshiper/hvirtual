@@ -395,8 +395,6 @@ Auto* Autos::insert_auto(int64_t position)
 		}
 
 		result->position = position;
-// Set curve type
-		result->mode = edl->local_session->floatauto_type;
 	}
 	else
 	{

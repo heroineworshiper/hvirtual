@@ -54,8 +54,8 @@ void FloatAutos::set_automation_mode(int64_t start, int64_t end, int mode)
 // Is current auto in range?		
 		if(current->position >= start && current->position < end)
 		{
-            if(mode == Auto::BEZIER_LOCKED &&
-                current->mode != Auto::BEZIER_LOCKED)
+            if(mode == FloatAuto::BEZIER_LOCKED &&
+                current->mode != FloatAuto::BEZIER_LOCKED)
                 current->to_locked();
         
 			current->mode = mode;
@@ -93,6 +93,8 @@ Auto* FloatAutos::new_auto()
 {
 	FloatAuto *result = new FloatAuto(edl, this);
 	result->value = default_;
+// Set curve type
+	result->mode = edl->local_session->floatauto_type;
 	return result;
 }
 
@@ -198,8 +200,8 @@ int FloatAutos::automation_is_constant(int64_t start,
 
 // Change occurs between keyframes
 			if(!EQUIV(float_current->value, float_next->value) ||
-				((float_current->mode != Auto::LINEAR ||
-					float_next->mode != Auto::LINEAR) &&
+				((float_current->mode != FloatAuto::LINEAR ||
+					float_next->mode != FloatAuto::LINEAR) &&
 				(!EQUIV(float_current->control_out_value, 0) ||
 					!EQUIV(float_next->control_in_value, 0))))
 			{
@@ -215,8 +217,8 @@ int FloatAutos::automation_is_constant(int64_t start,
 // Change occurs between keyframes if values differ or are joined by a curve.
 //printf("FloatAutos::automation_is_constant %d\n", __LINE__);
 			if(!EQUIV(float_current->value, float_previous->value) ||
-				((float_current->mode != Auto::LINEAR ||
-					float_previous->mode != Auto::LINEAR) &&
+				((float_current->mode != FloatAuto::LINEAR ||
+					float_previous->mode != FloatAuto::LINEAR) &&
 				(!EQUIV(float_current->control_out_value, 0) ||
 					!EQUIV(float_previous->control_in_value, 0))))
 			{
@@ -300,8 +302,8 @@ float FloatAutos::get_value(int64_t position,
 		{
 			if(EQUIV(previous->value, next->value))
 			{
-				if((previous->mode == Auto::LINEAR &&
-					next->mode == Auto::LINEAR) ||
+				if((previous->mode == FloatAuto::LINEAR &&
+					next->mode == FloatAuto::LINEAR) ||
 					(EQUIV(previous->control_out_value, 0) &&
 					EQUIV(next->control_in_value, 0)))
 				{
@@ -314,8 +316,8 @@ float FloatAutos::get_value(int64_t position,
 		{
 			if(EQUIV(previous->value, next->value))
 			{
-				if((previous->mode == Auto::LINEAR &&
-					next->mode == Auto::LINEAR) ||
+				if((previous->mode == FloatAuto::LINEAR &&
+					next->mode == FloatAuto::LINEAR) ||
 					(EQUIV(previous->control_in_value, 0) &&
 					EQUIV(next->control_out_value, 0)))
 				{
@@ -350,8 +352,8 @@ float FloatAutos::get_value(int64_t position,
 	}
 
 	float result = 0;
-	if(previous->mode == Auto::LINEAR &&
-		next->mode == Auto::LINEAR)
+	if(previous->mode == FloatAuto::LINEAR &&
+		next->mode == FloatAuto::LINEAR)
 	{
 		result = previous->value + t * (next->value - previous->value);
 	}

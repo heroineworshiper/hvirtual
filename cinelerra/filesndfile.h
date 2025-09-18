@@ -65,6 +65,9 @@ public:
 
 	SNDFILE *fd;
 	SF_INFO fd_config;
+    SF_VIRTUAL_IO vio;
+// file descriptor for the vio functions
+    FILE *virtual_fd;
 // Temp for interleaved channels
 	double *temp_double;
 	int64_t temp_allocated;

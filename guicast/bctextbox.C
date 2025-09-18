@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -699,6 +699,8 @@ void BC_TextBox::draw_cursor()
 {
 //	set_color(background_color);
 
+// printf("BC_TextBox::draw_cursor %d ibeam_x=%d ibeam_y=%d\n",
+// __LINE__, ibeam_x, ibeam_y);
 	if(ibeam_x >= 0 &&
 		ibeam_y >= 0)
 	{
@@ -747,12 +749,14 @@ void BC_TextBox::draw(int flush)
 // Draw text with selection
 	set_font(font);
 	text_len = text.length();
-//printf("BC_TextBox::draw 0 %s %d %d %d %d\n", text, text_y, text_len, get_w(), text_height);
+// printf("BC_TextBox::draw %d %s text_y=%d text_len=%d w=%d text_height=%d\n", 
+// __LINE__,
+// text.c_str(), text_y, text_len, get_w(), text_height);
 
+    row_begin = row_end = 0;
 	for(i = 0, k = text_y; i < text_len && k < get_h(); k += text_height)
 	{
 // Draw row of text
-		if(text[i] == '\n') i++;
 		row_begin = i;
 		text_row.erase();
 		for(j = 0; text[i] != '\n' && i < text_len; j++, i++)
@@ -806,8 +810,10 @@ void BC_TextBox::draw(int flush)
 			if(enabled)
 				set_color(resources->text_default);
 			else
-				set_color(MEGREY);
+				set_color(MDGREY);
 
+// printf("BC_TextBox::draw %d k=%d text_row=%s\n", 
+// __LINE__, k, text_row.c_str());
 			draw_text(text_x, 
 				k + text_ascent, 
 				text_row.c_str());
@@ -822,9 +828,18 @@ void BC_TextBox::draw(int flush)
 					ibeam_letter - row_begin);
 			}
 		}
+
+// Get the row's end
+		if(text[i] == '\n')
+        {
+// printf("BC_TextBox::draw %d row_begin=%d row_end=%d\n", 
+// __LINE__, row_begin, row_end);
+            i++;
+        }
 	}
 
 //printf("BC_TextBox::draw 3 %d\n", ibeam_y);
+// ibeam didn't occur in the text
 	if(need_ibeam)
 	{
 		if(text_len == 0)
@@ -834,8 +849,10 @@ void BC_TextBox::draw(int flush)
 		}
 		else
 		{
-			ibeam_x = -1;
-			ibeam_y = -1;
+			ibeam_y = k - text_y;
+			ibeam_x = 0;
+// 			ibeam_x = -1;
+// 			ibeam_y = -1;
 		}
 	}
 
@@ -2412,6 +2429,7 @@ int BC_TextBox::get_cursor_letter(int cursor_x, int cursor_y)
 		result = text_len;
 	}
 
+//printf("BC_TextBox::get_cursor_letter %d result=%d\n", __LINE__, result);
 
 	return result;
 }

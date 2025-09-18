@@ -85,6 +85,7 @@ void CompressorConfig::copy_from(CompressorConfig &that)
 
 int CompressorConfig::equivalent(CompressorConfig &that)
 {
+//printf("CompressorConfig::equivalent %d\n", __LINE__);
     if(!CompressorConfigBase::equivalent(that))
     {
         return 0;
@@ -272,7 +273,7 @@ void CompressorEffect::update_gui()
 		thread->window->lock_window("CompressorEffect::update_gui 1");
         int reconfigured = 0;
 // Can't update points if the user is editing
-        if(((CompressorWindow*)thread->window)->canvas->is_dragging())
+        if(!((CompressorWindow*)thread->window)->canvas->is_dragging())
         {
             reconfigured = load_configuration();
         }

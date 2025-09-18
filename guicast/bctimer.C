@@ -93,6 +93,22 @@ int64_t Timer::get_difference(int update_it)
 		(int64_t)new_time.tv_usec / 1000;
 }
 
+int64_t Timer::get_diff_us(int update_it)
+{
+    struct timeval new_time;
+    gettimeofday(&new_time, 0);
+    struct timeval new_time2 = new_time;
+    int64_t diff = new_time.tv_usec - current_time.tv_usec;
+    if(diff < 0) 
+    {
+        diff += 1000000;
+        new_time.tv_sec--;
+    }
+    diff += (new_time.tv_sec - current_time.tv_sec) * 1000000;
+    if(update_it) current_time = new_time2;
+    return diff;
+}
+
 int64_t Timer::get_scaled_difference(long denominator)
 {
 	get_difference(&new_time);

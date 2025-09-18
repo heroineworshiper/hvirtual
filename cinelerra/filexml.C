@@ -161,7 +161,7 @@ char* FileXML::read_text(int decode)
 //printf("FileXML::read_text %d %c\n", text_position, string[text_position]);
 	for(i = 0; text_position < position; text_position++)
 	{
-// filter out first newline
+// filter out leading newlines
 		if((i > 0 && i < output_length - 1) || string[text_position] != '\n') 
 		{
 // check if we have to decode special characters
@@ -171,20 +171,29 @@ char* FileXML::read_text(int decode)
 			{
 				if (text_position + 3 < length)
 				{
+                    if(string[text_position + 1] == '#' && 
+                        string[text_position + 2] == 'x' && 
+                        string[text_position + 3] == 'A')
+                    {
+                        character = '\n';
+						text_position += 3;
+                    }
+                    else
 					if (string[text_position + 1] == 'l' && 
                         string[text_position + 2] == 't' && 
                         string[text_position + 3] == ';')
 					{
 						character = '<';
 						text_position += 3;
-					}		
+					}
+                    else
 					if (string[text_position + 1] == 'g' && 
                         string[text_position + 2] == 't' && 
                         string[text_position + 3] == ';')
 					{
 						character = '>';
 						text_position += 3;
-					}		
+					}
 				}
 				if (text_position + 4 < length)
 				{
@@ -822,6 +831,7 @@ int XMLTag::set_property(const char *text, const char *value)
 
 const char* XMLTag::encode_char(char *temp_string, const char *text)
 {
+    const char newline[] = "&#xA";
 	const char leftb[] = "&lt;";
 	const char rightb[] = "&gt;";
 	const char amp[] = "&amp;";
@@ -829,6 +839,7 @@ const char* XMLTag::encode_char(char *temp_string, const char *text)
 	const char *replacement = 0;
 
 	switch (text[0]) {
+        case '\n': replacement = newline; break;
 		case '<': replacement = leftb; break;
 		case '>': replacement = rightb; break;
 		case '&': replacement = amp; break;

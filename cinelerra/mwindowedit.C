@@ -409,10 +409,21 @@ void MWindow::set_automation_mode(int mode)
 		mode); 
 	save_backup();
 
-	if(mode == Auto::LINEAR)
-		undo->update_undo_after(_("set linear"), LOAD_AUTOMATION); 
-	else
-		undo->update_undo_after(_("set bezier"), LOAD_AUTOMATION); 
+	switch(mode)
+    {
+        case FloatAuto::LINEAR:
+    		undo->update_undo_after(_("set linear"), LOAD_AUTOMATION);
+            break;
+	    case FloatAuto::BEZIER_UNLOCKED:
+    		undo->update_undo_after(_("set bezier unlocked"), LOAD_AUTOMATION);
+            break;
+	    case FloatAuto::BEZIER_LOCKED:
+    		undo->update_undo_after(_("set bezier locked"), LOAD_AUTOMATION);
+            break;
+	    case FloatAuto::BEZIER_TANGENT:
+    		undo->update_undo_after(_("set bezier tangent"), LOAD_AUTOMATION);
+            break;
+    }
 
 	restart_brender();
 	update_plugin_guis();
@@ -613,14 +624,25 @@ void MWindow::set_keyframe_mode(FloatAuto *auto_, int mode)
     if(auto_->autos->type != Autos::AUTOMATION_TYPE_FLOAT) return;
 
     const char *undo_text = "";
-    if(mode == Auto::LINEAR)
-        undo_text = "make linear";
-    else
-        undo_text = "make bezier";
+    switch(mode)
+    {
+        case FloatAuto::LINEAR:
+            undo_text = "make linear";
+            break;
+        case FloatAuto::BEZIER_UNLOCKED:
+            undo_text = "make bezier unlocked";
+            break;
+        case FloatAuto::BEZIER_LOCKED:
+            undo_text = "make bezier locked";
+            break;
+        case FloatAuto::BEZIER_TANGENT:
+            undo_text = "make bezier tangent";
+            break;
+    }
 
 	undo->update_undo_before(_(undo_text));
-    if(mode == Auto::BEZIER_LOCKED &&
-        auto_->mode != Auto::BEZIER_LOCKED)
+    if(mode == FloatAuto::BEZIER_LOCKED &&
+        auto_->mode != FloatAuto::BEZIER_LOCKED)
         auto_->to_locked();
         
 	auto_->mode = mode;

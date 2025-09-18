@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -797,14 +796,13 @@ void NudgePatch::set_value(int64_t value)
 		patch->patchbay->synchronize_nudge(patch->track->nudge, patch->track);
 
 	mwindow->undo->update_undo_after(_("nudge"), LOAD_PATCHES);
-
 	mwindow->gui->unlock_window();
+
 	if(patch->track->data_type == TRACK_VIDEO)
 		mwindow->restart_brender();
 	mwindow->sync_parameters(CHANGE_PARAMS);
-	mwindow->gui->lock_window("NudgePatch::handle_event 2");
 
-	mwindow->session->changes_made = 1;
+	mwindow->gui->lock_window("NudgePatch::handle_event 2");
 }
 
 

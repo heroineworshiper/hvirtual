@@ -12,7 +12,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-; * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
@@ -626,7 +626,8 @@ int IndexFile::redraw_edits(int force)
 {
 	int64_t difference = redraw_timer->get_scaled_difference(1000);
 
-	if(difference > 16 || force)
+// 16ms was too disruptive
+	if(difference > 100 || force)
 	{
 		IndexState *index_state = get_state();
 		redraw_timer->update();

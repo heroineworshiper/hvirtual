@@ -64,6 +64,7 @@ void MainUndo::update_undo_entry(const char *description,
 // Remove all entries after current and create new one
 	UndoStackItem *current = undo_stack->push();
 
+    current->set_modified(mwindow->session->changes_made);
 	current->set_flags(load_flags);
 	current->set_data(file.string);
 	current->set_description((char*)description);
@@ -162,6 +163,13 @@ void MainUndo::update_undo_after(const char *description,
 		current->set_flags(load_flags);
 		current->set_description((char*)description);
 	}
+
+// always has to be done after update_undo_after
+    mwindow->gui->put_event([](void *ptr)
+        {
+            MWindow::instance->update_modified();
+        },
+        0);
 }
 
 
@@ -190,6 +198,7 @@ int MainUndo::undo()
 // Now have an even number
 	if(current)
 	{
+// store our place in the stack
 		undo_stack->current = current;
 // Set the redo text to the current description
 		if(mwindow->gui) 
@@ -205,6 +214,7 @@ int MainUndo::undo()
 			load_from_undo(&file, current->get_flags());
 //printf("MainUndo::undo %d\n", __LINE__);
 			mwindow->set_filename(current->get_filename());
+            mwindow->session->changes_made = current->get_modified();
 			delete [] current_data;
 
 // move current entry back one step
@@ -221,6 +231,8 @@ int MainUndo::undo()
 						current->get_description());
 				else
 					mwindow->gui->mainmenu->undo->update_caption("");
+//printf("MainUndo::undo %d %d\n", __LINE__, mwindow->session->changes_made);
+                mwindow->update_modified();
 			}
 		}
 	}
@@ -256,12 +268,14 @@ int MainUndo::redo()
 	{
 		FileXML file;
 		char *current_data = current->get_data();
+// store our place in the stack
 		undo_stack->current = current;
 
 		if(current_data)
 		{
 			mwindow->set_filename(current->get_filename());
 			file.read_from_string(current_data);
+            mwindow->session->changes_made = current->get_modified();
 			load_from_undo(&file, current->get_flags());
 			delete [] current_data;
 
@@ -279,6 +293,7 @@ int MainUndo::redo()
 					mwindow->gui->mainmenu->redo->update_caption(current->get_description());
 				else
 					mwindow->gui->mainmenu->redo->update_caption("");
+                mwindow->update_modified();
 			}
 		}
 	}
@@ -319,6 +334,52 @@ void MainUndo::reset_creators()
 		current->set_creator(0);
 	}
 }
+
+void MainUndo::reset_modified()
+{
+// printf("MainUndo::reset_modified %d current=%p\n", 
+// __LINE__, undo_stack->current);
+
+	for(UndoStackItem *current = undo_stack->first;
+		current;
+		current = NEXT)
+	{
+		current->set_modified(1);
+    }
+
+    if(undo_stack->current)
+    {
+        UndoStackItem *current = undo_stack->current;
+        current->set_modified(0);
+        if((undo_stack->number_of(current) % 2))
+        {
+// on an after entry.  Update the next before entry
+            current = NEXT;
+            if(current) current->set_modified(0);
+        }
+        else
+        {
+// on a before entry.  Update the previous after entry
+            current = PREVIOUS;
+            if(current) current->set_modified(0);
+        }
+	}
+    mwindow->session->changes_made = 0;
+}
+
+void MainUndo::reset_filename(const char *filename)
+{
+	for(UndoStackItem *current = undo_stack->first;
+		current;
+		current = NEXT)
+	{
+		current->set_filename(filename);
+    }
+}
+
+
+
+
 
 
 

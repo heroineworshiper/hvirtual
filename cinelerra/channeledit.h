@@ -78,7 +78,7 @@ public:
 	int delete_channel(int channel);
 	int delete_channel(Channel *channel);
 	int edit_channel();
-	int edit_picture();
+//	int edit_picture();
 	int update_list();  // Synchronize the list box with the channel arrays
 	int update_list(Channel *channel);  // Synchronize the list box and the channel
 	int update_output();
@@ -95,7 +95,7 @@ public:
 	ChannelEditThread *thread;
 	ChannelPicker *channel_picker;
 	ChannelEditEditThread *edit_thread;
-	ChannelEditPictureThread *picture_thread;
+//	ChannelEditPictureThread *picture_thread;
 	ConfirmScanThread *scan_confirm_thread;
 };
 
@@ -180,14 +180,14 @@ public:
 	ChannelEditWindow *window;
 };
 
-class ChannelEditPicture : public BC_GenericButton
-{
-public:
-	ChannelEditPicture(ChannelEditWindow *window, int x, int y);
-	~ChannelEditPicture();
-	int handle_event();
-	ChannelEditWindow *window;
-};
+// class ChannelEditPicture : public BC_GenericButton
+// {
+// public:
+// 	ChannelEditPicture(ChannelEditWindow *window, int x, int y);
+// 	~ChannelEditPicture();
+// 	int handle_event();
+// 	ChannelEditWindow *window;
+// };
 
 
 

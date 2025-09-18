@@ -43,6 +43,8 @@ public:
 // must be positive or error results
 	int64_t get_difference(struct timeval *result); // also stores in timeval
 	int64_t get_difference(int update_it = 0);
+// difference in microseconds
+    int64_t get_diff_us(int update_it = 0);
 
 // get difference in arbitrary units between now and last update    
 	int64_t get_scaled_difference(long denominator);        

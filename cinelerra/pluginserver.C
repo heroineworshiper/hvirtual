@@ -1301,12 +1301,14 @@ void PluginServer::apply_keyframe(KeyFrame *src)
 
 	if(!plugin)
 	{
+//printf("PluginServer::apply_keyframe %d plugin=%p\n", __LINE__, plugin);
 		keyframe->copy_data(src);
 	}
 	else
 	{
 // Span keyframes
-//printf("PluginServer::apply_keyframe %d plugin=%p\n", __LINE__, plugin);
+// printf("PluginServer::apply_keyframe %d plugin=%p src=%s\n", 
+// __LINE__, plugin, src->get_data());
 		plugin->keyframes->update_parameter(src);
 	}
 }

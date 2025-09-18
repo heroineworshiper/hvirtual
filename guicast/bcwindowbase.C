@@ -399,7 +399,6 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
     	this->display_name[0] = 0;
     }
 
-	strcpy(this->title, _(title));
 	if(bg_pixmap) shared_bg_pixmap = 1;
 
 	if(parent_window) top_level = parent_window->top_level;
@@ -572,6 +571,11 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 		}
 		init_im();
 	}
+    else
+    {
+// copied in set_title for MAIN_WINDOW
+    	strcpy(this->title, _(title));
+    }
 
 #ifdef HAVE_LIBXXF86VM
     if(window_type == VIDMODE_SCALED_WINDOW && vm != -1)
@@ -4183,7 +4187,9 @@ void BC_WindowBase::set_background(VFrame *bitmap)
 void BC_WindowBase::set_title(const char *text, int flush)
 {
 //printf("BC_WindowBase::set_title %d %s\n", __LINE__, text);
-	strcpy(this->title, _(text));
+    if(strcmp(this->title, _(text)))
+    {
+    	strcpy(this->title, _(text));
 // test for UTF-8
 //     int is_utf = 0;
 //     for(uint8_t *ptr = (uint8_t*)text; *ptr != 0; ptr++)
@@ -4226,7 +4232,8 @@ void BC_WindowBase::set_title(const char *text, int flush)
 //         XSetStandardProperties(top_level->display, top_level->win, text, text, None, 0, 0, 0);
 // 	}
 
-    if(flush) this->flush();
+        if(flush) this->flush();
+    }
 }
 
 char* BC_WindowBase::get_title()

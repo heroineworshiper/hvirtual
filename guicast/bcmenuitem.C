@@ -221,8 +221,11 @@ int BC_MenuItem::dispatch_button_release(int &redraw)
 
 			if(!handle_event() && menu_popup && menu_popup->popup_menu)
 			{
-				menu_popup->popup_menu->set_text(text);
-				menu_popup->popup_menu->handle_event();
+				if(!menu_popup->popup_menu->get_no_text_update()) 
+                    menu_popup->popup_menu->set_text(text);
+				else
+                    menu_popup->popup_menu->copy_text(text);
+                menu_popup->popup_menu->handle_event();
 			}
 			return 1;
 		}

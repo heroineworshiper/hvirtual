@@ -30,6 +30,9 @@
 #include "bchash.inc"
 #include "mwindow.inc"
 
+// allow realtime picture adjustment.  Locked up some versions of video4linux
+#define REALTIME_ADJUST
+
 class PictureItem
 {
 public:

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,6 +65,8 @@ public:
 	BC_MenuItem* get_item(int i);
 // Set title of menu
 	void set_text(const char *text);
+// Set title of menu but don't redraw.  Hack.
+	void copy_text(const char *text);
 // Set icon of menu.  Disables text.
 	void set_icon(BC_Pixmap *pixmap);
 // Draw title of menu
@@ -86,6 +87,8 @@ public:
 	int drag_stop_event();
 	int drag_motion_event();
 	int set_images(VFrame **data);
+    void set_no_text_update(int value);
+    int get_no_text_update();
 
 private:
 	char text[BCTEXTLEN];
@@ -102,6 +105,9 @@ private:
 	int button_press_x, button_press_y;
 	int w_argument;
 	int status;
+// HACK: don't automatically update the text in an item selection.
+// Used for showing menu items in time format & text in powers of 2
+    int no_text_update;
 };
 
 

@@ -264,7 +264,7 @@ void RecordAudio::run()
 		ErrorBox error_box(PROGRAM_NAME ": Error",
 			mwindow->gui->get_abs_cursor_x(1),
 			mwindow->gui->get_abs_cursor_y(1));
-		error_box.create_objects(_("No space left on disk."));
+		error_box.create_objects(_("Error writing data."));
 		error_box.run_window();
 		batch_done = 1;
 	}
@@ -308,9 +308,9 @@ void RecordAudio::write_buffer(int skip_new)
 // block until buffer is ready for writing
 	write_result = record->file->write_audio_buffer(fragment_position);
 // HACK
-write_result = 0;
+//write_result = 0;
 // Defeat errors if video
-	if(record->default_asset->video_data) write_result = 0;
+//	if(record->default_asset->video_data) write_result = 0;
 	fragment_position = 0;
 	if(!skip_new && !write_result) input = record->file->get_audio_buffer();
 }

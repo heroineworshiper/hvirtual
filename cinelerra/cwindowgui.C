@@ -206,7 +206,8 @@ void CWindowGUI::create_objects()
 		mwindow->theme->czoom_w);
 	zoom_panel->create_objects();
 	zoom_panel->zoom_text->add_item(new BC_MenuItem(AUTO_ZOOM));
-	if(!mwindow->edl->session->cwindow_scrollbars) zoom_panel->set_text(AUTO_ZOOM);
+	if(!mwindow->edl->session->cwindow_scrollbars) 
+        zoom_panel->update(AUTO_ZOOM);
 
 // 	destination = new CWindowDestination(mwindow, 
 // 		this, 
@@ -681,8 +682,8 @@ int CWindowGUI::drag_stop()
 		{
 			mwindow->save_backup();
 			mwindow->restart_brender();
-			mwindow->gui->update(1, 1, 1, 1, 0, 1, 0);
 			mwindow->undo->update_undo_after(_("insert assets"), LOAD_ALL);
+			mwindow->gui->update(1, 1, 1, 1, 0, 1, 0);
 			mwindow->gui->unlock_window();
 			mwindow->sync_parameters(LOAD_ALL);
 		}

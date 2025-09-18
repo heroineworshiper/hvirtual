@@ -97,7 +97,7 @@ int Save::handle_event()
 
 		if(file.write_to_file(mwindow->session->filename))
 		{
-			char string2[256];
+			char string2[BCTEXTLEN];
 			sprintf(string2, _("Couldn't open %s"), mwindow->session->filename);
 			ErrorBox error(PROGRAM_NAME ": Error",
 				mwindow->gui->get_abs_cursor_x(1),
@@ -116,7 +116,8 @@ int Save::handle_event()
 				(int)strlen(file.string));
 			mwindow->gui->show_message(string);
 		}
-		mwindow->session->changes_made = 0;
+
+        mwindow->undo->reset_modified();
 // Last command in program
 //		if(saveas->quit_now) mwindow->gui->set_done(0);
 		if(saveas->quit_now) mwindow->playback_3d->quit();
@@ -206,7 +207,7 @@ void SaveAs::run()
 
 	if(file.write_to_file(filename))
 	{
-		char string2[256];
+		char string2[BCTEXTLEN];
 		mwindow->set_filename("");      // update the project name
 		sprintf(string2, _("Couldn't open %s."), filename);
 		ErrorBox error(PROGRAM_NAME ": Error",
@@ -227,7 +228,7 @@ void SaveAs::run()
 	}
 
 
-	mwindow->session->changes_made = 0;
+    mwindow->undo->reset_modified();
 	mmenu->add_load(filename);
 // Last command in program
 //	if(quit_now) mwindow->gui->set_done(0);

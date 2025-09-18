@@ -661,7 +661,7 @@ void UndoStackItem::set_description(char *description)
 	strcpy(this->description, description);
 }
 
-void UndoStackItem::set_filename(char *filename)
+void UndoStackItem::set_filename(const char *filename)
 {
 	delete [] this->session_filename;
 	this->session_filename = strdup(filename);
@@ -892,8 +892,15 @@ void* UndoStackItem::get_creator()
 	return creator;
 }
 
+void UndoStackItem::set_modified(int modified)
+{
+    this->changes_made = modified;
+}
 
-
+int UndoStackItem::get_modified()
+{
+    return changes_made;
+}
 
 
 

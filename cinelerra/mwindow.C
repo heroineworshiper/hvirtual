@@ -1568,10 +1568,20 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 		track = track->next;
 	}
 
+// OR the changes_made, since we are not prompting for an overwrite
+	if(load_mode != LOADMODE_REPLACE &&
+		load_mode != LOADMODE_REPLACE_CONCATENATE)
+	{
+		session->changes_made = 1;
+	}
+
 // need to update undo before project, since mwindow is unlocked & a new load
 // can begin here.  Should really prevent loading until we're done.
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
-	undo->update_undo_after(_("load"), LOAD_ALL);
+	undo->update_undo_after(_("load"), 
+        LOAD_ALL,
+        (load_mode != LOADMODE_REPLACE &&
+		    load_mode != LOADMODE_REPLACE_CONCATENATE));
 
 	for(int i = 0; i < new_edls.size(); i++)
 	{
@@ -1591,15 +1601,6 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
-	if(load_mode == LOADMODE_REPLACE ||
-		load_mode == LOADMODE_REPLACE_CONCATENATE)
-	{
-		session->changes_made = 0;
-	}
-	else
-	{
-		session->changes_made = 1;
-	}
 
 	stop_file_progress();
 
@@ -2953,14 +2954,6 @@ void MWindow::save_backup()
 // common entry point for save & save as
 void MWindow::save_xml(const char *filename, int update_gui, int quit)
 {
-    if(update_gui)
-    {
-	    gui->lock_window("MWindow::save_xml 1");
-// update the project name
-        set_filename(filename);
-        gui->unlock_window();
-    }
-
 	FileXML file;
     if(update_gui) gui->lock_window("MWindow::save_xml 2");
     edl->save_xml(&file, 
@@ -2994,8 +2987,15 @@ void MWindow::save_xml(const char *filename, int update_gui, int quit)
         if(update_gui) gui->unlock_window();
 	}
 
-	session->changes_made = 0;
-	if(update_gui) gui->mainmenu->add_load(filename);
+	undo->reset_modified();
+	if(update_gui)
+    {
+	    gui->lock_window("MWindow::save_xml 1");
+// update the project name
+        set_filename(filename);
+        gui->mainmenu->add_load(filename);
+        gui->unlock_window();
+    }
 // Last command in program
 	if(quit) playback_3d->quit();
 }
@@ -3387,32 +3387,36 @@ void MWindow::time_format_common()
 	gui->unlock_window();
 }
 
-
-int MWindow::set_filename(const char *filename)
+#define MODIFIED_TEXT " *"
+void MWindow::set_filename(const char *filename)
 {
 	strcpy(session->filename, filename);
 	strcpy(edl->path, filename);
 
+    update_modified();
+}
 
+void MWindow::update_modified()
+{
+	char string[BCTEXTLEN], string2[BCTEXTLEN];
+    
 	if(gui)
 	{
-		if(filename[0] == 0)
+		if(session->filename[0] == 0)
 		{
-			gui->set_title(PROGRAM_NAME);
+			sprintf(string2, PROGRAM_NAME ": Program");
 		}
 		else
 		{
 			FileSystem dir;
-			char string[BCTEXTLEN], string2[BCTEXTLEN];
-			dir.extract_name(string, filename);
+			dir.extract_name(string, session->filename);
 			sprintf(string2, PROGRAM_NAME ": %s", string);
-			gui->set_title(string2);
 		}
+        if(session->changes_made) strcat(string2, MODIFIED_TEXT);
+        
+		gui->set_title(string2);
 	}
-	return 0; 
 }
-
-
 
 
 

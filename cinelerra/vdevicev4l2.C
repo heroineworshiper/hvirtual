@@ -578,54 +578,7 @@ printf("VDeviceV4L2Thread::run %d testing formats\n", __LINE__);
 			}
 		}
 
-
-
-
-// Set picture controls.  This driver requires the values to be set once to default
-// values and then again to different values before it takes up the values.
-// Unfortunately VIDIOC_S_CTRL resets the audio to mono in 2.6.7.
-		PictureConfig *picture = device->picture;
-		for(int i = 0; i < picture->controls.total; i++)
-		{
-			struct v4l2_control ctrl_arg;
-			struct v4l2_queryctrl arg;
-			PictureItem *item = picture->controls.values[i];
-			arg.id = item->device_id;
-			if(!ioctl(input_fd, VIDIOC_QUERYCTRL, &arg))
-			{
-				ctrl_arg.id = item->device_id;
-				ctrl_arg.value = 0;
-				if(ioctl(input_fd, VIDIOC_S_CTRL, &ctrl_arg) < 0)
-					perror("VDeviceV4L2Thread::run VIDIOC_S_CTRL");
-			}
-			else
-			{
-				printf("VDeviceV4L2Thread::run VIDIOC_S_CTRL 1 id %d failed\n",
-					item->device_id);
-			}
-		}
-
-
-		for(int i = 0; i < picture->controls.total; i++)
-		{
-			struct v4l2_control ctrl_arg;
-			struct v4l2_queryctrl arg;
-			PictureItem *item = picture->controls.values[i];
-			arg.id = item->device_id;
-
-			if(!ioctl(input_fd, VIDIOC_QUERYCTRL, &arg))
-			{
-				ctrl_arg.id = item->device_id;
-				ctrl_arg.value = item->value;
-				if(ioctl(input_fd, VIDIOC_S_CTRL, &ctrl_arg) < 0)
-					perror("VDeviceV4L2Thread::run VIDIOC_S_CTRL");
-			}
-			else
-			{
-				printf("VDeviceV4L2Thread::run VIDIOC_S_CTRL 2 id %d failed\n",
-					item->device_id);
-			}
-		}
+        set_picture(1);
 
 
 // Translate input to API structures
@@ -887,6 +840,12 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 		usleep(1000000 * 1001 / 60000);
 		Thread::disable_cancel();
 
+#ifdef REALTIME_ADJUST
+        if(device->picture_changed)
+        {
+            set_picture(0);
+        }
+#endif
 
 		if(result < 0)
 		{
@@ -934,6 +893,63 @@ printf("VDeviceV4L2Thread::run got %d buffers\n", total_buffers);
 		}
 	}
 }
+
+void VDeviceV4L2Thread::set_picture(int initialize)
+{
+// Set picture controls.  Some versions of the driver required the values to be set once to default
+// values and then again to different values before it took up the values.
+// Unfortunately VIDIOC_S_CTRL resets the audio to mono in 2.6.7.
+// Other versions locked up if this was done while capturing.
+    device->picture_lock->lock();
+	PictureConfig *picture = device->picture;
+    if(initialize)
+    {
+	    for(int i = 0; i < picture->controls.size(); i++)
+	    {
+		    struct v4l2_control ctrl_arg;
+		    struct v4l2_queryctrl arg;
+		    PictureItem *item = picture->controls.get(i);
+		    arg.id = item->device_id;
+		    if(!ioctl(input_fd, VIDIOC_QUERYCTRL, &arg))
+		    {
+			    ctrl_arg.id = item->device_id;
+			    ctrl_arg.value = 0;
+			    if(ioctl(input_fd, VIDIOC_S_CTRL, &ctrl_arg) < 0)
+				    perror("VDeviceV4L2Thread::run VIDIOC_S_CTRL");
+		    }
+		    else
+		    {
+			    printf("VDeviceV4L2Thread::run VIDIOC_S_CTRL 1 id %d failed\n",
+				    item->device_id);
+		    }
+	    }
+    }
+
+
+	for(int i = 0; i < picture->controls.size(); i++)
+	{
+		struct v4l2_control ctrl_arg;
+		struct v4l2_queryctrl arg;
+		PictureItem *item = picture->controls.get(i);
+		arg.id = item->device_id;
+
+		if(!ioctl(input_fd, VIDIOC_QUERYCTRL, &arg))
+		{
+			ctrl_arg.id = item->device_id;
+			ctrl_arg.value = item->value;
+			if(ioctl(input_fd, VIDIOC_S_CTRL, &ctrl_arg) < 0)
+				perror("VDeviceV4L2Thread::run VIDIOC_S_CTRL");
+		}
+		else
+		{
+			printf("VDeviceV4L2Thread::run VIDIOC_S_CTRL 2 id %d failed\n",
+				item->device_id);
+		}
+	}
+    device->picture_changed = 0;
+    device->picture_lock->unlock();
+}
+
 
 VFrame* VDeviceV4L2Thread::get_buffer(int *timed_out)
 {
@@ -1165,7 +1181,11 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 // __LINE__, 
 // frame->get_color_model());
 
-	if((device->channel_changed || device->picture_changed) && thread)
+	if((device->channel_changed
+#ifndef REALTIME_ADJUST
+         || device->picture_changed
+#endif
+         ) && thread)
 	{
 		delete thread;
 		thread = 0;
@@ -1174,7 +1194,9 @@ int VDeviceV4L2::read_buffer(VFrame *frame)
 	if(!thread)
 	{
 		device->channel_changed = 0;
+#ifndef REALTIME_ADJUST
 		device->picture_changed = 0;
+#endif
 		thread = new VDeviceV4L2Thread(device, frame->get_color_model());
 		thread->start();
 
