@@ -1032,7 +1032,13 @@ if(debug) printf("FileFFMPEG::open_ffmpeg %d audio_length=%lld\n", __LINE__, (lo
 							    case AV_CODEC_ID_VP8:
 								    strcpy (asset->vcodec, QUICKTIME_VP08);
 								    break;
+                                case AV_CODEC_ID_AV1:
+                                    strcpy (asset->vcodec, QUICKTIME_AV1);
+                                    break;
                                 default:
+                                    printf("FileFFMPEG::open_ffmpeg %d unknown codec ID %d\n",
+                                        __LINE__,
+                                        decoder_context->codec_id);
                                     asset->vcodec[0] = 0;
                                     break;
                             }

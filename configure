@@ -15,6 +15,7 @@ echo CUDA_DIR=$CUDA_DIR
 ERROR=0
 
 # test for nasm
+# 10/1/25: required for ffmpeg-8 on x86_64
 
 if [ $OBJDIR = i686 ];
 then

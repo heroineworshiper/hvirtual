@@ -50,6 +50,7 @@ extern "C" {
 #define QUICKTIME_HEV1 "hev1"
 #define QUICKTIME_VP09 "vp09"
 #define QUICKTIME_VP08 "vp08"
+#define QUICKTIME_AV1  "AV01"
 
 /* Basterdization of MPEG-4 which encodes alternating fields in series */
 /* NOT STANDARD */
