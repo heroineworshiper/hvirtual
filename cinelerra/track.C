@@ -1787,7 +1787,7 @@ void Track::shuffle_edits(double start, double end, int first_track)
 					double position = label->position - 
 						start_seconds1 + 
 						start_seconds2;
-					edl->labels->insert_label(position);
+					edl->labels->insert_label(position, label->color);
 					new_labels.remove_object_number(i);
 				}
 			}
@@ -1902,7 +1902,7 @@ void Track::reverse_edits(double start, double end, int first_track)
 					double position = label->position - 
 						start_seconds1 + 
 						start_seconds2;
-					edl->labels->insert_label(position);
+					edl->labels->insert_label(position, label->color);
 					new_labels.remove_object_number(i);
 				}
 			}

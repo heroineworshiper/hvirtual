@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -153,6 +152,7 @@ public:
 		VFrame *checked_vframe,
 		VFrame *dn_vframe,
 		VFrame *checkedhi_vframe);
+    void build_labels();
 
 // colors for the main message text
 	int message_normal, message_error;
@@ -339,7 +339,7 @@ public:
 	VFrame **in_point;
 	VFrame **insert_data;
 	VFrame *keyframe_data;
-	VFrame **label_toggle;
+	VFrame **label_toggle[LABEL_COLORS];
 	VFrame **lift_data;
 	VFrame *maskkeyframe_data;
 	VFrame *modekeyframe_data;

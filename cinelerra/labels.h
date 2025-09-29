@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,23 +32,10 @@
 #include "stringfile.inc"
 #include "timebar.inc"
 
-#define LABELSIZE 15
-
-class LabelToggle : public BC_Label
-{
-public:
-	LabelToggle(MWindow *mwindow, Label *label, int x, int y, long position);
-	~LabelToggle();
-	
-	int handle_event();
-	MWindow *mwindow;
-	Label *label;
-};
-
 class Label : public ListItem<Label>
 {
 public:
-	Label(EDL *edl, Labels *labels, double position);
+	Label(EDL *edl, Labels *labels, double position, int color);
 	Label();
 	~Label();
 
@@ -58,6 +44,8 @@ public:
 	Labels *labels;
 // Seconds
 	double position;
+// index of the color
+    int color;
 };
 
 class Labels : public List<Label>
@@ -70,7 +58,7 @@ public:
 
 	Labels& operator=(Labels &that);
 	void copy_from(Labels *labels);
-	int toggle_label(double start, double end);
+	int toggle_label(double start, double end, int color);
     double total_length();
 	int delete_all();
 	int save(FileXML *xml);
@@ -80,7 +68,7 @@ public:
 		double length, 
 		int paste_silence = 1);
 // Always add label without toggling
-	void insert_label(double position);
+	void insert_label(double position, int color);
 
 	int modify_handles(double oldposition, 
 		double newposition, 

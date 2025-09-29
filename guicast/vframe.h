@@ -111,6 +111,7 @@ public:
 
 // scale based on the dpi for the GUI
 	void read_png(const unsigned char *data, int dpi);
+    static void scale(VFrame *dst, VFrame *src);
 
 // Read a PNG into the frame with alpha
 	int read_png(const unsigned char *data);

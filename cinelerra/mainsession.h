@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -170,6 +170,14 @@ public:
 	int use_hist_parade;
 	int use_wave_parade;
     int edit_info_format;
+// index of current label color
+    int label_color;
+// eyedropper stuff is here so it's less painful in its most common use case,
+// 1 off probing of a color.
+// pairing the eyedropper with the EDL & effects was never used.
+	int eyedrop_radius; 
+// Center of last eyedrop box
+	int eyedrop_x, eyedrop_y;
 
 
 	int afolders_w;

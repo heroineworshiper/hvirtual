@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -523,9 +523,7 @@ public:
 	void set_proxy(int new_scale, 
 		ArrayList<Indexable*> *orig_assets,
 		ArrayList<Indexable*> *proxy_assets);	
-	
-	
-	
+
 
 // Send new EDL to caches
 	void age_caches();
@@ -563,10 +561,17 @@ public:
 	static MainProgress *mainprogress;
 	BRender *brender;
 
+    static uint32_t label_colors[LABEL_COLORS];
+
+
 // Menu items
 	ArrayList<ColormodelItem*> colormodels;
 
+// reset all meters
 	int reset_meters();
+// update all the edit panels
+    void update_edit_panels();	
+
 
 // Channel DB for playback only.  Record channel DB's are in record.C
 	ChannelDB *channeldb_buz;
@@ -684,9 +689,7 @@ public:
 	static void init_3d();
 	void init_playbackcursor();
 	void delete_plugins();
-// 
 	void clean_indexes();
-//	TimeBomb timebomb;
 	SigHandler *sighandler;
 };
 

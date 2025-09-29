@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -174,7 +174,17 @@ SaveThread* MWindow::save_thread = 0;
 int MWindow::is_loading = 0;
 int MWindow::indent = 0;
 
-
+uint32_t MWindow::label_colors[LABEL_COLORS] = 
+{
+    0xff0000, // red
+    0x00ffff, // cyan
+    0xff00ff, // purple
+    0x00ff00, // green
+    0x0000ff, // blue
+    0xffff00, // yellow
+    0x675200, // brown
+    0x8a8a8a  // grey
+};
 
 MWindow::MWindow()
  : Thread(1, 0, 0)
@@ -3486,6 +3496,33 @@ int MWindow::reset_meters()
 	gui->reset_meters();
 	gui->unlock_window();
 	return 0; 
+}
+
+void MWindow::update_edit_panels()
+{
+    gui->put_event([](void *ptr)
+        {
+            MWindow::instance->gui->mbuttons->edit_panel->update();
+        },
+        0);
+    cwindow->gui->put_event([](void *ptr)
+        {
+            MWindow::instance->cwindow->gui->edit_panel->update();
+        },
+        0);
+	for(int j = 0; j < vwindows.size(); j++)
+	{
+		VWindow *vwindow = vwindows.get(j);
+		if(vwindow->is_running())
+		{
+            vwindow->gui->put_event([](void *ptr)
+                {
+                    VWindow *vwindow = (VWindow*)ptr;
+                    vwindow->gui->edit_panel->update();
+                },
+                vwindow);
+		}
+	}
 }
 
 

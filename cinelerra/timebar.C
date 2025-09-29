@@ -56,11 +56,30 @@ LabelGUI::LabelGUI(MWindow *mwindow,
 	TimeBar *timebar, 
 	int64_t pixel, 
 	int y, 
+	Label *label,
+	VFrame **data)
+ : BC_Toggle(translate_pixel(mwindow, pixel), 
+ 		y, 
+		data ? data : mwindow->theme->label_toggle[label->color],
+		0)
+{
+	this->mwindow = mwindow;
+	this->timebar = timebar;
+	this->gui = 0;
+	this->pixel = pixel;
+	this->position = label->position;
+    this->color = label->color;
+}
+
+LabelGUI::LabelGUI(MWindow *mwindow, 
+	TimeBar *timebar, 
+	int64_t pixel, 
+	int y, 
 	double position,
 	VFrame **data)
  : BC_Toggle(translate_pixel(mwindow, pixel), 
  		y, 
-		data ? data : mwindow->theme->label_toggle,
+		data ? data : mwindow->theme->label_toggle[0],
 		0)
 {
 	this->mwindow = mwindow;
@@ -68,6 +87,7 @@ LabelGUI::LabelGUI(MWindow *mwindow,
 	this->gui = 0;
 	this->pixel = pixel;
 	this->position = position;
+    this->color = 0;
 }
 
 LabelGUI::~LabelGUI()
@@ -77,12 +97,12 @@ LabelGUI::~LabelGUI()
 int LabelGUI::get_y(MWindow *mwindow, TimeBar *timebar)
 {
 	return timebar->get_h() - 
-		mwindow->theme->label_toggle[0]->get_h();
+		mwindow->theme->label_toggle[0][0]->get_h();
 }
 
 int LabelGUI::translate_pixel(MWindow *mwindow, int pixel)
 {
-	int result = pixel - mwindow->theme->label_toggle[0]->get_w() / 2;
+	int result = pixel - mwindow->theme->label_toggle[0][0]->get_w() / 2;
 	return result;
 }
 
@@ -153,17 +173,6 @@ int OutPointGUI::get_y(MWindow *mwindow, TimeBar *timebar)
 }
 
 
-PresentationGUI::PresentationGUI(MWindow *mwindow, 
-	TimeBar *timebar, 
-	int64_t pixel, 
-	double position)
- : LabelGUI(mwindow, timebar, pixel, get_y(mwindow, timebar), position)
-{
-}
-PresentationGUI::~PresentationGUI()
-{
-}
-
 
 
 
@@ -190,7 +199,6 @@ TimeBar::~TimeBar()
 	if(in_point) delete in_point;
 	if(out_point) delete out_point;
 	labels.remove_all_objects();
-	presentations.remove_all_objects();
 }
 
 void TimeBar::create_objects()
@@ -239,7 +247,7 @@ void TimeBar::update_labels()
 			if(pixel >= 0 && pixel < get_w())
 			{
 // Create new label
-				if(output >= labels.total)
+				if(output >= labels.size())
 				{
 					LabelGUI *new_label;
 					add_subwindow(new_label = 
@@ -247,7 +255,7 @@ void TimeBar::update_labels()
 							this, 
 							pixel, 
 							LabelGUI::get_y(mwindow, this), 
-							current->position));
+							current));
 					new_label->set_cursor(ARROW_CURSOR, 0, 0);
 					labels.append(new_label);
 				}
@@ -255,6 +263,9 @@ void TimeBar::update_labels()
 // Reposition old label
 				{
 					LabelGUI *gui = labels.values[output];
+                    if(gui->color != current->color)
+                        gui->set_images(mwindow->theme->label_toggle[current->color]);
+                    
 					if(gui->pixel != pixel)
 					{
 						gui->pixel = pixel;
@@ -265,7 +276,7 @@ void TimeBar::update_labels()
 						gui->draw_face(1,0);
 					}
 
-					labels.values[output]->position = current->position;
+					gui->position = current->position;
 				}
 
 				if(edl->local_session->get_selectionstart(1) <= current->position &&

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -586,12 +586,7 @@ void BrightTheme::initialize()
 		"in_dn.png", 
 		"in_checkedhi.png");
 
-	label_toggle = new_image_set(5,
-		"labeltoggle_up.png", 
-		"labeltoggle_uphi.png", 
-		"label_checked.png", 
-		"labeltoggle_dn.png", 
-		"label_checkedhi.png");
+    build_labels();
 
 	new_image_set("histogram_carrot",
 		5,

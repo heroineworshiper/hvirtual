@@ -543,7 +543,7 @@ void CWindowEyedropGUI::create_objects()
 	radius = new CWindowCoord(this,
 		x2,
 		title7->get_y(),
-		mwindow->edl->session->eyedrop_radius);
+		mwindow->session->eyedrop_radius);
 	radius->create_objects();
 	radius->set_boundaries((int64_t)0, (int64_t)255);
 
@@ -571,7 +571,7 @@ void CWindowEyedropGUI::create_objects()
 
 void CWindowEyedropGUI::update()
 {
-	radius->update((int64_t)mwindow->edl->session->eyedrop_radius);
+	radius->update((int64_t)mwindow->session->eyedrop_radius);
 
 	float r, g, b, y, u, v;
 	if(mwindow->edl->local_session->use_max)
@@ -615,7 +615,7 @@ void CWindowEyedropGUI::update()
 void CWindowEyedropGUI::handle_event()
 {
 	int new_radius = atoi(radius->get_text());
-	if(new_radius != mwindow->edl->session->eyedrop_radius)
+	if(new_radius != mwindow->session->eyedrop_radius)
 	{
 		CWindowGUI *gui = mwindow->cwindow->gui;
 		if(gui->eyedrop_visible)
@@ -626,7 +626,7 @@ void CWindowEyedropGUI::handle_event()
 			gui->canvas->do_eyedrop(rerender, 0, 0, 1);
 		}
 
-		mwindow->edl->session->eyedrop_radius = new_radius;
+		mwindow->session->eyedrop_radius = new_radius;
 
 		if(gui->eyedrop_visible)
 		{

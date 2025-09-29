@@ -50,15 +50,15 @@ BC_MenuItem::BC_MenuItem(const char *text, const char *hotkey_text, int hotkey)
 	if(hotkey_text) set_hotkey_text(hotkey_text);
 
 	this->hotkey = hotkey;
-	checked = 0;
-	highlighted = 0;
-	down = 0;
-	submenu = 0;
-	shift_hotkey = 0;
-	alt_hotkey = 0;
-	ctrl_hotkey = 0;
-	menu_popup = 0;
 }
+
+BC_MenuItem::BC_MenuItem(BC_Pixmap *icon)
+{
+	reset();
+    
+    set_icon(icon);
+}
+
 
 BC_MenuItem::~BC_MenuItem()
 {
@@ -79,6 +79,15 @@ void BC_MenuItem::reset()
 	text[0] = 0;
 	hotkey_text[0] = 0;
 	icon = 0;
+	checked = 0;
+	highlighted = 0;
+	down = 0;
+	submenu = 0;
+	shift_hotkey = 0;
+	alt_hotkey = 0;
+	ctrl_hotkey = 0;
+	menu_popup = 0;
+    hotkey = 0;
 }
 
 int BC_MenuItem::initialize(BC_WindowBase *top_level, BC_MenuBar *menu_bar, BC_MenuPopup *menu_popup)
@@ -415,6 +424,13 @@ int BC_MenuItem::draw()
 		}
 		else
 		{
+            if(icon)
+            {
+                menu_popup->get_popup()->draw_pixmap(icon, 
+							10 + offset, 
+							y + (h - icon->get_h()) / 2 + offset);
+            }
+        
 			menu_popup->get_popup()->set_font(MEDIUMFONT);
 			menu_popup->get_popup()->draw_text(10 + offset, y + h - text_line - 2 + offset, text);
 			menu_popup->get_popup()->draw_text(menu_popup->get_key_x() + offset, y + h - text_line - 2 + offset, hotkey_text);

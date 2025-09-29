@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -251,6 +250,25 @@ public:
 	EditPanel *panel;
 };
 
+class LabelColor : public BC_PopupMenu
+{
+public:
+    LabelColor(EditPanel *panel, int x, int y);
+    int handle_event();
+	void create_objects();
+    void update();
+    EditPanel *panel;
+};
+
+class LabelColorItem : public BC_MenuItem
+{
+public:
+	LabelColorItem(LabelColor *popup, int color);
+	int handle_event();
+	LabelColor *popup;
+	int color;
+};
+
 class EditFit : public BC_Button
 {
 public:
@@ -427,6 +445,7 @@ public:
 	MWindow *mwindow;
 	BC_WindowBase *subwindow;
 	MeterPanel *meter_panel;
+    BC_Pixmap *label_colors[LABEL_COLORS];
 
 	int use_editing_mode;
 	int use_keyframe;
@@ -463,6 +482,7 @@ public:
 	EditPaste *paste;
     EditRazor *razor;
 	EditLabelbutton *labelbutton;
+    LabelColor *label_color;
 	EditPrevLabel *prevlabel;
 	EditNextLabel *nextlabel;
 	EditPrevEdit *prevedit;

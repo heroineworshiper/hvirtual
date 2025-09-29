@@ -240,7 +240,6 @@ void BC_Theme::set_image_set(const char *title, BC_ThemeSet *image_set)
 
 
 
-
 VFrame** BC_Theme::new_button(const char *overlay_path, 
 	const char *up_path, 
 	const char *hi_path, 
@@ -427,6 +426,65 @@ void BC_Theme::overlay(VFrame *dst, VFrame *src, int in_x1, int in_x2, int shift
 			break;
 	}
 }
+
+void BC_Theme::swap_color(VFrame *dst, VFrame *src, uint32_t src_color, uint32_t dst_color)
+{
+	int w;
+	int h;
+	unsigned char **in_rows;
+	unsigned char **out_rows;
+	w = MIN(src->get_w(), dst->get_w());
+	h = MIN(dst->get_h(), src->get_h());
+	in_rows = src->get_rows();
+	out_rows = dst->get_rows();
+    uint8_t in_r = (src_color >> 16) & 0xff;
+    uint8_t in_g = (src_color >> 8) & 0xff;
+    uint8_t in_b = src_color & 0xff;
+    uint8_t out_r = (dst_color >> 16) & 0xff;
+    uint8_t out_g = (dst_color >> 8) & 0xff;
+    uint8_t out_b = dst_color & 0xff;
+
+    switch(src->get_color_model())
+    {
+        case BC_RGBA8888:
+            for(int i = 0; i < h; i++)
+            {
+                uint8_t *in_row = in_rows[i];
+                uint8_t *out_row = out_rows[i];
+                for(int j = 0; j < w; j++)
+                {
+                    if(in_row[0] == in_r &&
+                        in_row[1] == in_g &&
+                        in_row[2] == in_b)
+                    {
+                        out_row[0] = out_r;
+                        out_row[1] = out_g;
+                        out_row[2] = out_b;
+                    }
+                    else
+                    {
+                        out_row[0] = in_row[0];
+                        out_row[1] = in_row[1];
+                        out_row[2] = in_row[2];
+                    }
+                    out_row[3] = in_row[3];
+
+                    in_row += 4;
+                    out_row += 4;
+                }
+            }
+            break;
+
+        default:
+            printf("BC_Theme::swap_color %d: unsupported colormodel %d", 
+                __LINE__, 
+                src->get_color_model());
+            break;
+    }
+}
+
+
+
 
 void BC_Theme::set_data(unsigned char *ptr)
 {

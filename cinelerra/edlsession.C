@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -190,9 +190,6 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	brender_end = defaults->get("BRENDER_END", brender_end);
 	cmodel_to_text(string, BC_RGBA8888);
 	color_model = cmodel_from_text(defaults->get("COLOR_MODEL", string));
-	eyedrop_radius = defaults->get("EYEDROP_RADIUS", 0);
-	eyedrop_x = defaults->get("EYEDROP_X", 0);
-	eyedrop_y = defaults->get("EYEDROP_Y", 0);
 	crop_x1 = defaults->get("CROP_X1", 0);
 	crop_x2 = defaults->get("CROP_X2", 320);
 	crop_y1 = defaults->get("CROP_Y1", 0);
@@ -310,9 +307,6 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("BRENDER_END", brender_end);
 	cmodel_to_text(string, color_model);
 	defaults->update("COLOR_MODEL", string);
-	defaults->update("EYEDROP_RADIUS", eyedrop_radius);
-	defaults->update("EYEDROP_X", eyedrop_x);
-	defaults->update("EYEDROP_Y", eyedrop_y);
 	defaults->update("CROP_X1", crop_x1);
 	defaults->update("CROP_X2", crop_x2);
 	defaults->update("CROP_Y1", crop_y1);
@@ -427,9 +421,6 @@ void EDLSession::boundaries()
 // 	output_h /= 2;
 // 	output_h *= 2;
 
-	Workarounds::clamp(eyedrop_radius, 0, 255);
-	Workarounds::clamp(eyedrop_x, 0, 65535);
-	Workarounds::clamp(eyedrop_y, 0, 65535);
 	Workarounds::clamp(crop_x1, 0, output_w);
 	Workarounds::clamp(crop_x2, 0, output_w);
 	Workarounds::clamp(crop_y1, 0, output_h);
@@ -536,9 +527,6 @@ int EDLSession::load_xml(FileXML *file,
 		autos_follow_edits = file->tag.get_property("AUTOS_FOLLOW_EDITS", autos_follow_edits);
 		brender_start = file->tag.get_property("BRENDER_START", brender_start);
 		brender_end = file->tag.get_property("BRENDER_END", brender_end);
-		eyedrop_radius = file->tag.get_property("EYEDROP_RADIUS", eyedrop_radius);
-		eyedrop_x = file->tag.get_property("EYEDROP_X", eyedrop_x);
-		eyedrop_y = file->tag.get_property("EYEDROP_Y", eyedrop_y);
 		crop_x1 = file->tag.get_property("CROP_X1", crop_x1);
 		crop_y1 = file->tag.get_property("CROP_Y1", crop_y1);
 		crop_x2 = file->tag.get_property("CROP_X2", crop_x2);
@@ -601,9 +589,6 @@ int EDLSession::save_xml(FileXML *file)
 	file->tag.set_property("AUTOS_FOLLOW_EDITS", autos_follow_edits);
 	file->tag.set_property("BRENDER_START", brender_start);
 	file->tag.set_property("BRENDER_END", brender_end);
-	file->tag.set_property("EYEDROP_RADIUS", eyedrop_radius);
-	file->tag.set_property("EYEDROP_X", eyedrop_x);
-	file->tag.set_property("EYEDROP_Y", eyedrop_y);
 	file->tag.set_property("CROP_X1", crop_x1);
 	file->tag.set_property("CROP_Y1", crop_y1);
 	file->tag.set_property("CROP_X2", crop_x2);
@@ -731,9 +716,6 @@ int EDLSession::copy(EDLSession *session)
 	brender_start = session->brender_start;
 	brender_end = session->brender_end;
 	color_model = session->color_model;
-	eyedrop_radius = session->eyedrop_radius;
-	eyedrop_x = session->eyedrop_x;
-	eyedrop_y = session->eyedrop_y;
 	crop_x1 = session->crop_x1;
 	crop_y1 = session->crop_y1;
 	crop_x2 = session->crop_x2;

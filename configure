@@ -14,9 +14,7 @@ echo CUDA_DIR=$CUDA_DIR
 
 ERROR=0
 
-# test for nasm
-# 10/1/25: required for ffmpeg-8 on x86_64
-
+# test for nasm if 32 bit
 if [ $OBJDIR = i686 ];
 then
 
@@ -142,7 +140,7 @@ FFMPEG_LFLAGS="-L$FFMPEG_DIR/libavformat -L$FFMPEG_DIR/libavcodec -L$FFMPEG_DIR/
 FFMPEG_LIBS="-lavformat -lavcodec -lavutil -lswresample -ldl -lm -lpthread -lz -lbz2 -llzma"
 
 cd $FFMPEG_DIR
-./configure --enable-pthreads --disable-ffplay --enable-nonfree --disable-doc --enable-gpl --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64
+./configure --disable-x86asm --enable-pthreads --disable-ffplay --enable-nonfree --disable-doc --enable-gpl --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64
 if [ $? -ne 0 ]; then 
 ERROR=1
 fi

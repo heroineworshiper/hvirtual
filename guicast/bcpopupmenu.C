@@ -48,10 +48,7 @@ BC_PopupMenu::BC_PopupMenu(int x,
 		int margin)
  : BC_SubWindow(x, y, 0, 0, -1)
 {
-	highlighted = popup_down = 0;
-	menu_popup = 0;
-	icon = 0;
-    no_text_update = 0;
+	reset();
 	if(margin >= 0)
 	{
     	this->margin = margin;
@@ -63,14 +60,33 @@ BC_PopupMenu::BC_PopupMenu(int x,
 
 	this->use_title = use_title;
 	strcpy(this->text, text);
-	for(int i = 0; i < TOTAL_IMAGES; i++)
-	{
-		images[i] = 0;
-	}
 	this->data = data;
 	this->w_argument = w;
-	status = BUTTON_UP;
 }
+
+
+// BC_PopupMenu::BC_PopupMenu(int x, 
+// 		int y, 
+// 		int w, 
+// 		int use_title,
+// 		BC_Pixmap *icon,
+// 		int margin)
+//  : BC_SubWindow(x, y, 0, 0, -1)
+// {
+// 	reset();
+// 	icon = icon;
+// 	if(margin >= 0)
+// 	{
+//     	this->margin = margin;
+// 	}
+//     else
+// 	{
+//     	this->margin = BC_WindowBase::get_resources()->popupmenu_margin;
+//     }
+// 
+// 	this->use_title = use_title;
+// 	this->w_argument = w;
+// }
 
 BC_PopupMenu::BC_PopupMenu(int x, 
 		int y, 
@@ -79,19 +95,11 @@ BC_PopupMenu::BC_PopupMenu(int x,
 		VFrame **data)
  : BC_SubWindow(x, y, w, -1, -1)
 {
-	highlighted = popup_down = 0;
-	menu_popup = 0;
-	icon = 0;
-    no_text_update = 0;
+	reset();
 	this->use_title = use_title;
 	strcpy(this->text, text);
-	for(int i = 0; i < TOTAL_IMAGES; i++)
-	{
-		images[i] = 0;
-	}
 	this->data = data;
 	this->w_argument = 0;
-	status = BUTTON_UP;
 }
 
 BC_PopupMenu::~BC_PopupMenu()
@@ -101,6 +109,22 @@ BC_PopupMenu::~BC_PopupMenu()
 	{
 		if(images[i]) delete images[i];
 	}
+}
+
+void BC_PopupMenu::reset()
+{
+	highlighted = 0;
+    popup_down = 0;
+	menu_popup = 0;
+	icon = 0;
+    no_text_update = 0;
+    text[0] = 0;
+    data = 0;
+	for(int i = 0; i < TOTAL_IMAGES; i++)
+	{
+		images[i] = 0;
+	}
+	status = BUTTON_UP;
 }
 
 char* BC_PopupMenu::get_text()
@@ -342,6 +366,7 @@ int BC_PopupMenu::activate_menu()
 				&new_x, 
 				&new_y, 
 				&tempwin);
+//printf("BC_PopupMenu::activate_menu %d w=%d\n", __LINE__, w);
 			menu_popup->activate_menu(new_x, 
 				new_y, 
 				w, 

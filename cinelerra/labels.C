@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -110,15 +109,16 @@ void Labels::insert_labels(Labels *labels, double start, double length, int past
 		if(!exists)
 		{
 			if(old_label)
-				insert_before(old_label, new Label(edl, this, new_label->position + start));
+				insert_before(old_label, 
+                    new Label(edl, this, new_label->position + start, new_label->color));
 			else
-				append(new Label(edl, this, new_label->position + start));
+				append(new Label(edl, this, new_label->position + start, new_label->color));
 		}
 	}
 }
 
 
-void Labels::insert_label(double position)
+void Labels::insert_label(double position, int color)
 {
 	int exists = 0;
 	Label *old_label = 0;
@@ -139,14 +139,14 @@ void Labels::insert_label(double position)
 	if(!exists)
 	{
 		if(old_label)
-			insert_before(old_label, new Label(edl, this, position));
+			insert_before(old_label, new Label(edl, this, position, color));
 		else
-			append(new Label(edl, this, position));
+			append(new Label(edl, this, position, color));
 	}
 }
 
 
-int Labels::toggle_label(double start, double end)
+int Labels::toggle_label(double start, double end, int color)
 {
 	Label *current;
 //printf("Labels::toggle_label 1 %f %f\n", start, end);
@@ -171,13 +171,13 @@ int Labels::toggle_label(double start, double end)
 		}
 		else
 		{        // insert before it
-			current = insert_before(current, new Label(edl, this, start));
+			current = insert_before(current, new Label(edl, this, start, color));
 		}
 	}
 	else
 	{           // insert after last
-//printf("Labels::toggle_label 1\n");
-		current = append(new Label(edl, this, start));
+//printf("Labels::toggle_label %d %d\n", __LINE__, color);
+		current = append(new Label(edl, this, start, color));
 	}
 
 // handle selection end
@@ -200,12 +200,12 @@ int Labels::toggle_label(double start, double end)
 			}
 			else
 			{
-				current = insert_before(current, new Label(edl, this, end));
+				current = insert_before(current, new Label(edl, this, end, color));
 			}
 		}
 		else
 		{
-			current = append(new Label(edl, this, end));
+			current = append(new Label(edl, this, end, color));
 		}
 	}
 	return 0;
@@ -234,6 +234,7 @@ int Labels::copy(double start, double end, FileXML *xml)
 	{
 		xml->tag.set_title(string);
 		xml->tag.set_property("TIME", (double)current->position - start);
+		xml->tag.set_property("COLOR", current->color);
 //printf("Labels::copy %f\n", current->position - start);
 		xml->append_tag();
 	}
@@ -264,7 +265,7 @@ void Labels::copy_from(Labels *labels)
 
 	for(Label *current = labels->first; current; current = NEXT)
 	{
-		append(new Label(edl, this, current->position));
+		append(new Label(edl, this, current->position, current->color));
 	}
 }
 
@@ -289,6 +290,7 @@ int Labels::save(FileXML *xml)
 	{
 		xml->tag.set_title("LABEL");
 		xml->tag.set_property("TIME", (double)current->position);
+		xml->tag.set_property("COLOR", current->color);
 		xml->append_tag();
 	}
 	
@@ -323,11 +325,13 @@ int Labels::load(FileXML *xml, uint32_t load_flags)
 				double position = xml->tag.get_property("TIME", (double)-1);
 				if(position < 0)
 					position = xml->tag.get_property("SAMPLE", (double)-1);
+                int color = xml->tag.get_property("COLOR", 0);
 //printf("Labels::load %f\n", position);
 				if(position > -1)
 				{
 					Label *current = label_of(position);
-					current = insert_before(current, new Label(edl, this, position));
+					current = insert_before(current, 
+                        new Label(edl, this, position, color));
 				}
 			}
 			else
@@ -552,12 +556,13 @@ Label::Label()
 {
 }
 
-Label::Label(EDL *edl, Labels *labels, double position)
+Label::Label(EDL *edl, Labels *labels, double position, int color)
  : ListItem<Label>()
 {
 	this->edl = edl;
 	this->labels = labels;
 	this->position = position;
+    this->color = color;
 }
 
 
@@ -565,22 +570,3 @@ Label::~Label()
 {
 //	if(toggle) delete toggle;
 }
-
-LabelToggle::LabelToggle(MWindow *mwindow, 
-	Label *label, 
-	int x, 
-	int y, 
-	long position)
- : BC_Label(x, y, 0)
-{
-	this->mwindow = mwindow;
-	this->label = label;
-}
-
-LabelToggle::~LabelToggle() { }
-
-int LabelToggle::handle_event()
-{
-	return 0;
-}
-

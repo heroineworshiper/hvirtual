@@ -34,6 +34,7 @@ class BC_MenuItem
 {
 public:
 	BC_MenuItem(const char *text, const char *hotkey_text = "", int hotkey = 0);
+	BC_MenuItem(BC_Pixmap *icon);
 	virtual ~BC_MenuItem();
 
 	friend class BC_MenuPopup;

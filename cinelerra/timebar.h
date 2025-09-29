@@ -55,6 +55,12 @@ public:
 		TimeBar *timebar, 
 		int64_t pixel, 
 		int y, 
+		Label *label,
+		VFrame **data = 0);
+	LabelGUI(MWindow *mwindow, 
+		TimeBar *timebar, 
+		int64_t pixel, 
+		int y, 
 		double position,
 		VFrame **data = 0);
 	virtual ~LabelGUI();
@@ -69,15 +75,7 @@ public:
 	TimeBar *timebar;
 	int64_t pixel;
 	double position;
-};
-
-class TestPointGUI : public LabelGUI
-{
-public:
-	TestPointGUI(MWindow *mwindow, 
-		TimeBar *timebar, 
-		int64_t pixel, 
-		double position);
+    int color;
 };
 
 class InPointGUI : public LabelGUI
@@ -100,16 +98,6 @@ public:
 		double position);
 	virtual ~OutPointGUI();
 	static int get_y(MWindow *mwindow, TimeBar *timebar);
-};
-
-class PresentationGUI : public LabelGUI
-{
-public:
-	PresentationGUI(MWindow *mwindow, 
-		TimeBar *timebar, 
-		int64_t pixel, 
-		double position);
-	~PresentationGUI();
 };
 
 class TimeBar : public BC_SubWindow
@@ -189,7 +177,6 @@ private:
 	ArrayList<LabelGUI*> labels;
 	InPointGUI *in_point;
 	OutPointGUI *out_point;
-	ArrayList<PresentationGUI*> presentations;
 
 
 

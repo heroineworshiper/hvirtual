@@ -43,6 +43,14 @@ public:
 		VFrame **data = 0,
 // Alternative text margin
 		int margin = -1);
+// 	BC_PopupMenu(int x, 
+// 		int y, 
+// 		int w, 
+// 		int use_title /* = 1 */,
+// // Data for alternative title images
+// 		BC_Pixmap *icon,
+// // Alternative text margin
+// 		int margin /* = -1 */);
 
 	BC_PopupMenu(int x, 
 		int y, 
@@ -52,6 +60,7 @@ public:
 		VFrame **data = 0);
 	virtual ~BC_PopupMenu();
 
+    void reset();
     static int calculate_w(BC_WindowBase *gui, const char *text);
 // Adds popupmenu_margin to width
 	static int calculate_w(int w_argument);

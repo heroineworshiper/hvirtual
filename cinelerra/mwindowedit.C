@@ -1607,7 +1607,9 @@ if(debug) printf("MWindow::load_assets %d\n", __LINE__);
 		{
 			for(RecordLabel *label = labels->first; label; label = label->next)
 			{
-				new_edl->labels->toggle_label(label->position, label->position);
+				new_edl->labels->toggle_label(label->position, 
+                    label->position, 
+                    session->label_color);
 			}
 		}
 	}
@@ -2897,7 +2899,8 @@ int MWindow::toggle_label(int is_mwindow)
 	position1 = edl->align_to_frame(position1, 0);
 	position2 = edl->align_to_frame(position2, 0);
 
-	edl->labels->toggle_label(position1, position2);
+
+	edl->labels->toggle_label(position1, position2, session->label_color);
 	save_backup();
 
 	if(!is_mwindow)

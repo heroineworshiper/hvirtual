@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 #include "language.h"
 #include "localsession.h"
 #include "mainclock.h"
+#include "mainsession.h"
 #include "mainundo.h"
 #include "mbuttons.h"
 #include "meterpanel.h"
@@ -136,6 +137,7 @@ void EditPanel::update()
 			meters->update(mwindow->edl->session->vwindow_meter);
 		}
 	}
+    if(label_color) label_color->update();
 	subwindow->flush();
 }
 
@@ -299,11 +301,42 @@ SET_TRACE
 
 	if(use_labels)
 	{
+// create label color icons
+// decode unscaled image for chroma key
+        VFrame image(MWindow::theme->get_image_data("label_color.png"));
+	    int src_w = image.get_w();
+	    int src_h = image.get_h();
+	    int dst_w = image.get_w();
+	    int dst_h = image.get_h();
+        if(BC_Resources::dpi >= MIN_DPI)
+        {
+            dst_w = src_w * BC_Resources::dpi / BASE_DPI;
+            dst_h = src_h * BC_Resources::dpi / BASE_DPI;
+        }
+        VFrame temp(src_w, src_h, image.get_color_model());
+        VFrame temp2(dst_w, dst_h, image.get_color_model());
+        for(int i = 0; i < LABEL_COLORS; i++)
+        {
+            BC_Theme::swap_color(&temp, &image, 0x00ff00, MWindow::label_colors[i]);
+// scale it to the DPI after chroma key
+            VFrame::scale(&temp2, &temp);
+            label_colors[i] = new BC_Pixmap(subwindow, 
+		        &temp2,
+		        PIXMAP_ALPHA);
+        }
+
 		subwindow->add_subwindow(labelbutton = new EditLabelbutton(mwindow, 
 			this, 
 			x1, 
 			y1));
 		x1 += labelbutton->get_w();
+        
+        subwindow->add_subwindow(label_color = new LabelColor(this, 
+			x1, 
+			y1 + (labelbutton->get_h() - BC_PopupMenu::calculate_h()) / 2));
+		label_color->create_objects();
+		x1 += label_color->get_w();
+        
 		subwindow->add_subwindow(prevlabel = new EditPrevLabel(mwindow, 
 			this, 
 			x1, 
@@ -1133,6 +1166,54 @@ int EditLabelbutton::handle_event()
 	return 1;
 }
 
+
+LabelColor::LabelColor(EditPanel *panel, int x, int y)
+ : BC_PopupMenu(x, 
+ 	y,
+	panel->label_colors[0]->get_w() + 
+        BC_WindowBase::get_resources()->popupmenu_margin * 2 +
+        BC_WindowBase::get_resources()->popupmenu_triangle_margin,
+    "",
+	1,
+	MWindow::theme->get_image_set("mode_popup", 0),
+	10)
+{
+    this->panel = panel;
+    set_icon(panel->label_colors[MWindow::session->label_color]);
+    set_tooltip(_("Label color"));
+}
+
+void LabelColor::create_objects()
+{
+    for(int i = 0; i < LABEL_COLORS; i++)
+        add_item(new LabelColorItem(this, i));
+}
+
+int LabelColor::handle_event()
+{
+    MWindow::instance->update_edit_panels();
+    return 1;
+}
+
+void LabelColor::update()
+{
+    set_icon(panel->label_colors[MWindow::session->label_color]);
+}
+
+
+LabelColorItem::LabelColorItem(LabelColor *popup, int color)
+ : BC_MenuItem(popup->panel->label_colors[color])
+{
+    this->popup = popup;
+    this->color = color;
+}
+
+int LabelColorItem::handle_event()
+{
+    MWindow::session->label_color = color;
+    popup->handle_event();
+    return 1;
+}
 
 
 

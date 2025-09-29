@@ -53,6 +53,9 @@
 // Index of vwindow that always exists
 #define DEFAULT_VWINDOW 0
 
+#define LABEL_COLORS 8
+
+
 class MWindow;
 
 #endif

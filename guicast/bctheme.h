@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,7 +89,6 @@ public:
 	VFrame* new_image(const char *title, const char *path);
 	VFrame* new_image(const char *path);
 
-
 // These retrieve images based on case sensitive title
 	VFrame* get_image(const char *title, int use_default = 1);
 	VFrame** get_image_set(const char *title, int use_default = 1);
@@ -99,8 +98,9 @@ public:
 
 // Loads compressed data into temporary
 	unsigned char* get_image_data(const char *title);
-	void overlay(VFrame *dst, VFrame *src, int in_x1 = -1, int in_x2 = -1, int shift = 0);
-
+// tools for preparing widget graphics
+	static void overlay(VFrame *dst, VFrame *src, int in_x1 = -1, int in_x2 = -1, int shift = 0);
+    static void swap_color(VFrame *dst, VFrame *src, uint32_t src_color, uint32_t dst_color);
 
 
 

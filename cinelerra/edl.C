@@ -37,8 +37,9 @@
 #include "indexstate.h"
 #include "labels.h"
 #include "localsession.h"
-#include "mainsession.inc"
+#include "mainsession.h"
 #include "mutex.h"
+#include "mwindow.h"
 #include "nestededls.h"
 #include "panauto.h"
 #include "panautos.h"
@@ -1469,7 +1470,9 @@ void EDL::insert_asset(Asset *asset,
 	{
 		for(RecordLabel *label = labels->first; label; label = label->next)
 		{
-			this->labels->toggle_label(label->position, label->position);
+			this->labels->toggle_label(label->position, 
+                label->position, 
+                MWindow::session->label_color);
 		}
 	}
 }

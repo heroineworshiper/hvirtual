@@ -602,7 +602,8 @@ void VWindowEditing::toggle_label()
 	{
 		EDL *edl = vwindow->get_edl();
 		edl->labels->toggle_label(edl->local_session->get_selectionstart(1),
-			edl->local_session->get_selectionend(1));
+			edl->local_session->get_selectionend(1),
+            MWindow::session->label_color);
 		vwindow->gui->timebar->update(1);
 	}
 }

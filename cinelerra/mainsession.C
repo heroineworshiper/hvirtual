@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -109,6 +109,10 @@ void MainSession::boundaries()
 	cwindow_controls = CLIP(cwindow_controls, 0, 1);
     transitiondialog_w = MAX(100, transitiondialog_w);
     transitiondialog_h = MAX(100, transitiondialog_h);
+    label_color = CLIP(label_color, 0, LABEL_COLORS - 1);
+    eyedrop_radius = CLIP(eyedrop_radius, 0, 255);
+	eyedrop_x = CLIP(eyedrop_x, 0, 65535);
+	eyedrop_y = CLIP(eyedrop_y, 0, 65535);
 }
 
 void MainSession::reset()
@@ -120,6 +124,10 @@ void MainSession::reset()
 	use_hist_parade = 1;
 	use_wave_parade = 1;
     edit_info_format = TIME_HMS;
+    label_color = 3;
+    eyedrop_radius = 0;
+    eyedrop_x = 0;
+    eyedrop_y = 0;
 
     default_window_positions();
 }
@@ -339,6 +347,10 @@ int MainSession::load_defaults(BC_Hash *defaults)
 	current_tip = defaults->get("CURRENT_TIP", current_tip);
 	actual_frame_rate = defaults->get("ACTUAL_FRAME_RATE", (float)-1);
 
+    label_color = defaults->get("LABEL_COLOR", label_color);
+	eyedrop_radius = defaults->get("EYEDROP_RADIUS", eyedrop_radius);
+	eyedrop_x = defaults->get("EYEDROP_X", eyedrop_x);
+	eyedrop_y = defaults->get("EYEDROP_Y", eyedrop_y);
 
 	boundaries();
 	return 0;
@@ -457,6 +469,10 @@ int MainSession::save_defaults(BC_Hash *defaults)
     defaults->update("ACTUAL_FRAME_RATE", actual_frame_rate);
 	defaults->update("CURRENT_TIP", current_tip);
 
+	defaults->update("LABEL_COLOR", label_color);
+	defaults->update("EYEDROP_RADIUS", eyedrop_radius);
+	defaults->update("EYEDROP_X", eyedrop_x);
+	defaults->update("EYEDROP_Y", eyedrop_y);
 
 	return 0;
 }

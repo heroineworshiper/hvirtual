@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2011 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -465,6 +465,58 @@ void Theme::build_toggle(VFrame** &data,
 	for(int i = 0; i < 5; i++)
 		overlay(data[i], 
 			&default_data);
+}
+
+
+static uint32_t lighten(uint32_t src)
+{
+    int in_r = (src >> 16) & 0xff;
+    int in_g = (src >> 8) & 0xff;
+    int in_b = src & 0xff;
+    int amount = 0x60;
+    int out_r = CLIP(in_r + amount, 0, 0xff);
+    int out_g = CLIP(in_g + amount, 0, 0xff);
+    int out_b = CLIP(in_b + amount, 0, 0xff);
+    return (out_r << 16) | (out_g << 8) | out_b;
+}
+
+
+void Theme::build_labels()
+{
+    VFrame image0(get_image_data("labeltoggle_up.png"));
+    VFrame image1(get_image_data("labeltoggle_hi.png"));
+    VFrame image2(get_image_data("labeltoggle_checked.png"));
+    VFrame image3(get_image_data("labeltoggle_dn.png"));
+    VFrame image4(get_image_data("labeltoggle_checkedhi.png"));
+	int src_w = image0.get_w();
+	int src_h = image0.get_h();
+	int dst_w = image0.get_w();
+	int dst_h = image0.get_h();
+    if(BC_Resources::dpi >= MIN_DPI)
+    {
+        dst_w = src_w * BC_Resources::dpi / BASE_DPI;
+        dst_h = src_h * BC_Resources::dpi / BASE_DPI;
+    }
+
+    VFrame temp(src_w, src_h, image0.get_color_model());
+
+    for(int i = 0; i < LABEL_COLORS; i++)
+    {
+	    label_toggle[i] = new VFrame*[5];
+        for(int j = 0; j < 5; j++)
+            label_toggle[i][j] = new VFrame(dst_w, dst_h, image0.get_color_model());
+
+        BC_Theme::swap_color(&temp, &image0, 0x00ff00, MWindow::label_colors[i]);
+        VFrame::scale(label_toggle[i][0], &temp);
+        BC_Theme::swap_color(&temp, &image1, 0x00ff00, lighten(MWindow::label_colors[i]));
+        VFrame::scale(label_toggle[i][1], &temp);
+        BC_Theme::swap_color(&temp, &image2, 0x00ff00, MWindow::label_colors[i]);
+        VFrame::scale(label_toggle[i][2], &temp);
+        BC_Theme::swap_color(&temp, &image3, 0x00ff00, MWindow::label_colors[i]);
+        VFrame::scale(label_toggle[i][3], &temp);
+        BC_Theme::swap_color(&temp, &image4, 0x00ff00, lighten(MWindow::label_colors[i]));
+        VFrame::scale(label_toggle[i][4], &temp);
+    }
 }
 
 

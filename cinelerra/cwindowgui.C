@@ -2273,9 +2273,9 @@ int CWindowCanvas::do_eyedrop(int &rerender,
     int draw)
 {
 	int result = 0;
-	int radius = mwindow->edl->session->eyedrop_radius;
-	int eyedrop_x = mwindow->edl->session->eyedrop_x;
-	int eyedrop_y = mwindow->edl->session->eyedrop_y;
+	int radius = mwindow->session->eyedrop_radius;
+	int eyedrop_x = mwindow->session->eyedrop_x;
+	int eyedrop_y = mwindow->session->eyedrop_y;
 	int row1 = 0;
 	int row2 = 0;
 	int column1 = 0;
@@ -2378,8 +2378,8 @@ int CWindowCanvas::do_eyedrop(int &rerender,
 				    gui->eyedrop_visible = 0;
 			    }
 
-			    mwindow->edl->session->eyedrop_x = eyedrop_x = cursor_x;
-			    mwindow->edl->session->eyedrop_y = eyedrop_y = cursor_y;
+			    mwindow->session->eyedrop_x = eyedrop_x = cursor_x;
+			    mwindow->session->eyedrop_y = eyedrop_y = cursor_y;
 
 // show it
 			    {
