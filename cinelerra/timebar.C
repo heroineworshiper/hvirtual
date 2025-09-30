@@ -262,7 +262,7 @@ void TimeBar::update_labels()
 				else
 // Reposition old label
 				{
-					LabelGUI *gui = labels.values[output];
+					LabelGUI *gui = labels.get(output);
                     if(gui->color != current->color)
                         gui->set_images(mwindow->theme->label_toggle[current->color]);
                     
@@ -279,6 +279,7 @@ void TimeBar::update_labels()
 					gui->position = current->position;
 				}
 
+// check all the labels in the highlighed region
 				if(edl->local_session->get_selectionstart(1) <= current->position &&
 					edl->local_session->get_selectionend(1) >= current->position)
 					labels.values[output]->update(1);
@@ -292,7 +293,7 @@ void TimeBar::update_labels()
 	}
 
 // Delete excess labels
-	while(labels.total > output)
+	while(labels.size() > output)
 	{
 		labels.remove_object();
 	}
@@ -303,18 +304,29 @@ void TimeBar::update_labels()
 
 void TimeBar::update_highlights()
 {
-	for(int i = 0; i < labels.total; i++)
+	for(int i = 0; i < labels.size(); i++)
 	{
-		LabelGUI *label = labels.values[i];
-		if(mwindow->edl->equivalent(label->position, 
-				mwindow->edl->local_session->get_selectionstart(1)) ||
-			mwindow->edl->equivalent(label->position, 
-				mwindow->edl->local_session->get_selectionend(1)))
-		{
-			if(!label->get_value()) label->update(1);
-		}
+		LabelGUI *label = labels.get(i);
+        
+// check all the labels in the highlighed region
+		if(mwindow->edl->local_session->get_selectionstart(1) <= label->position &&
+			mwindow->edl->local_session->get_selectionend(1) >= label->position)
+			label->update(1);
 		else
-			if(label->get_value()) label->update(0);
+		if(label->get_value())
+			label->update(0);
+
+
+// check only labels on the cursor positin
+// 		if(mwindow->edl->equivalent(label->position, 
+// 				mwindow->edl->local_session->get_selectionstart(1)) ||
+// 			mwindow->edl->equivalent(label->position, 
+// 				mwindow->edl->local_session->get_selectionend(1)))
+// 		{
+// 			if(!label->get_value()) label->update(1);
+// 		}
+// 		else
+// 			if(label->get_value()) label->update(0);
 	}
 
 	if(mwindow->edl->equivalent(mwindow->edl->local_session->get_inpoint(), 
