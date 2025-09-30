@@ -638,7 +638,8 @@ $(CFUNCTIONS): cfunctions.c
 $(THEME_DATA):
 	cd $(OBJDIR) && \
 	../../guicast/$(OBJDIR)/bootstrap theme_data.o \
-	../data/mode_*.png
+	../data/mode_*.png \
+        ../data/icon.png
 
 
 $(OBJDIR)/aattachmentpoint.o: 			  aattachmentpoint.C

@@ -89,38 +89,62 @@ void AboutPrefs::create_objects()
 	add_subwindow(title1 = new BC_Title(x, y, "Contributors:", LARGEFONT, resources->text_default));
 	y += title1->get_h();
 
-	credits.append(new BC_ListBoxItem("Richard Baverstock"));
-	credits.append(new BC_ListBoxItem("Karl Bielefeldt"));
-	credits.append(new BC_ListBoxItem("Kevin Brosius"));
-	credits.append(new BC_ListBoxItem("Jean-Luc Coulon"));
-	credits.append(new BC_ListBoxItem("Jerome Cornet"));
-	credits.append(new BC_ListBoxItem("Pierre Marc Dumuid"));
-	credits.append(new BC_ListBoxItem("Nicola Ferralis"));
-	credits.append(new BC_ListBoxItem("Alex Ferrer"));
-	credits.append(new BC_ListBoxItem("Gustavo Iñiguez"));
-	credits.append(new BC_ListBoxItem("Stefan de Konink"));
-	credits.append(new BC_ListBoxItem("Nathan Kurz"));
-	credits.append(new BC_ListBoxItem("Greg Mekkes"));
-	credits.append(new BC_ListBoxItem("Jean-Michel Poure"));
-	credits.append(new BC_ListBoxItem("Monty Montgomery"));
-	credits.append(new BC_ListBoxItem("Bill Morrow"));
+    const char* names[] = {
+	    "Richard Baverstock",
+	    "Karl Bielefeldt",
+	    "Kevin Brosius",
+	    "Jean-Luc Coulon",
+	    "Jerome Cornet",
+	    "Pierre Marc Dumuid",
+	    "Nicola Ferralis",
+	    "Alex Ferrer",
+	    "Gustavo Iñiguez",
+	    "Stefan de Konink",
+	    "Nathan Kurz",
+	    "Greg Mekkes",
+	    "Jean-Michel Poure",
+	    "Monty Montgomery",
+	    "Bill Morrow",
 #ifdef X_HAVE_UTF8_STRING
-	credits.append(new BC_ListBoxItem("Einar Rünkaru"));
+	    "Einar Rünkaru",
 #else
-	credits.append(new BC_ListBoxItem("Einar R\374nkaru"));
+	    "Einar R\374nkaru",
 #endif
-	credits.append(new BC_ListBoxItem("Paolo Rampino"));
-	credits.append(new BC_ListBoxItem("Andrew Randrianasulu"));
-	credits.append(new BC_ListBoxItem("Petter Reinholdtsen"));
-	credits.append(new BC_ListBoxItem("Eric Seigne"));
-	credits.append(new BC_ListBoxItem("Johannes Sixt"));
-	credits.append(new BC_ListBoxItem("Joe Stewart"));
-	credits.append(new BC_ListBoxItem("Dan Streetman"));
-	credits.append(new BC_ListBoxItem("Mark Taraba"));
-	credits.append(new BC_ListBoxItem("Andraz Tori"));
-	credits.append(new BC_ListBoxItem("Jonas Wulff"));
-	credits.append(new BC_ListBoxItem("David Martnez Moreno"));
+	    "Paolo Rampino",
+	    "Andrew Randrianasulu",
+	    "Petter Reinholdtsen",
+	    "Eric Seigne",
+	    "Johannes Sixt",
+	    "Joe Stewart",
+	    "Dan Streetman",
+	    "Mark Taraba",
+	    "Andraz Tori",
+	    "Jonas Wulff",
+	    "David Martnez Moreno",
+    };
+#define TOTAL (sizeof(names) / sizeof(char*))
 
+// create randomized list
+    srand(time(NULL));
+    int got_it[TOTAL] = { 0 };
+    for(int i = 0; i < TOTAL; i++)
+    {
+        int count = rand() % (TOTAL + 1 - i);
+        for(int j = 0; j < TOTAL; j++)
+        {
+            if(got_it[j]) continue;
+            count--;
+            if(count <= 0)
+            {
+                credits.append(new BC_ListBoxItem(names[j]));
+                got_it[j] = 1;
+//printf("%d ", j);
+                break;
+            }
+        }
+        if(count > 0) printf("AboutPrefs::create_objects %d: Bug\n", __LINE__);
+    }
+//printf("\n");
 
 
 

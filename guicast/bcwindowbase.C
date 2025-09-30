@@ -536,6 +536,7 @@ int BC_WindowBase::create_window(BC_WindowBase *parent_window,
 // 			&size_hints);
 		get_atoms();
 		set_title(title, 0);
+//printf("BC_WindowBase::create_window %d title=%s\n", __LINE__, title);
 
 #ifndef SINGLE_THREAD		
         if(!clipboard)
@@ -4219,8 +4220,10 @@ void BC_WindowBase::set_title(const char *text, int flush)
 		    Atom xa_net_wm_name = XInternAtom(display, "_NET_WM_NAME", True);
 		    Atom xa_net_icon_name = XInternAtom(display, "_NET_WM_ICON_NAME", True);
 		    Atom xa_utf8_string = XInternAtom(display, "UTF8_STRING", True);
+// FVWM limits text to width of icon
 		    XChangeProperty(display, win, xa_net_wm_name, xa_utf8_string, 8,
 					    PropModeReplace, wm_title, title_len);
+//printf("BC_WindowBase::set_title %d %s %d\n", __LINE__, wm_title, title_len);
 		    XChangeProperty(display, win, xa_net_icon_name, xa_utf8_string, 8,
 					    PropModeReplace, wm_title, title_len);
 //	    }

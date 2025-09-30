@@ -165,11 +165,12 @@ void Theme::initialize()
 
 
 // Images all themes have
-	new_image("mwindow_icon", "heroine_icon.png");
-	new_image("vwindow_icon", "heroine_icon.png");
-	new_image("cwindow_icon", "heroine_icon.png");
-	new_image("awindow_icon", "heroine_icon.png");
-	new_image("record_icon", "heroine_icon.png");
+// created by tests/icon.xml
+	new_image("mwindow_icon", "icon.png");
+	new_image("vwindow_icon", "icon.png");
+	new_image("cwindow_icon", "icon.png");
+	new_image("awindow_icon", "icon.png");
+	new_image("record_icon", "icon.png");
 	new_image("clip_icon", "clip_icon.png");
 
 

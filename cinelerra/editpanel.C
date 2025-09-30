@@ -575,6 +575,9 @@ void EditPanel::reposition_buttons(int x, int y)
 	{
 		labelbutton->reposition_window(x1, y1);
 		x1 += labelbutton->get_w();
+        label_color->reposition_window(x1, 
+            y1 + (labelbutton->get_h() - BC_PopupMenu::calculate_h()) / 2);
+        x1 += label_color->get_w();
 		prevlabel->reposition_window(x1, y1);
 		x1 += prevlabel->get_w();
 		nextlabel->reposition_window(x1, y1);
