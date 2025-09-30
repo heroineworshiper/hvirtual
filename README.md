@@ -17,17 +17,22 @@ libraries.
 
 Install the dependencies:
 
+```
 apt install build-essential yasm cmake autoconf pkg-config libtool \
 libz-dev texinfo libpng-dev libxv-dev libasound2-dev libbz2-dev liblzma-dev \
 libxft-dev libxfixes-dev \
-libglx-dev libgl-dev libxi-dev libsdl2-dev
+libglx-dev libgl-dev libxi-dev libsdl2-dev \
+gettext
+```
 
 Edit CUDA_DIR in configure to set your CUDA location.
 
 
 
-Run ./configure.  Then run make.  Then run 'make install' to put it in the
-bin/ directory.  Run ./cinelerra.sh in the bin/ directory.
+* Run `./bootstrap.sh`.  
+* Run `make`. 
+* Run `make install` to put it in the bin/ directory. 
+* Run `./cinelerra.sh` in the bin/ directory.
 
 
 

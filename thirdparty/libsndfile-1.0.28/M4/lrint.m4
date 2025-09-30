@@ -16,14 +16,14 @@ AC_DEFUN([MN_C99_FUNC_LRINT],
 [
 lrint_save_CFLAGS=$CFLAGS
 CFLAGS="-lm"
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([
 #define		_ISOC9X_SOURCE	1
 #define 	_ISOC99_SOURCE	1
 #define		__USE_ISOC99	1
 #define 	__USE_ISOC9X	1
 
 #include <math.h>
-], if (!lrint(3.14159)) lrint(2.7183);, ac_cv_c99_lrint=yes, ac_cv_c99_lrint=no)
+], [if (!lrint(3.14159)) lrint(2.7183);])], [ac_cv_c99_lrint=yes], [ac_cv_c99_lrint=no])
 
 CFLAGS=$lrint_save_CFLAGS
 

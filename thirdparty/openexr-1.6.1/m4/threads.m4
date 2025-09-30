@@ -164,10 +164,10 @@ for flag in $acx_pthread_flags; do
         # pthread_cleanup_push because it is one of the few pthread
         # functions on Solaris that doesn't have a non-functional libc stub.
         # We try pthread_create on general principles.
-        AC_TRY_LINK([#include <pthread.h>],
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <pthread.h>],
                     [pthread_t th; pthread_join(th, 0);
                      pthread_attr_init(0); pthread_cleanup_push(0, 0);
-                     pthread_create(0,0,0,0); pthread_cleanup_pop(0); ],
+                     pthread_create(0,0,0,0); pthread_cleanup_pop(0); ])],
                     [acx_pthread_ok=yes])
 
         LIBS="$save_LIBS"
@@ -194,7 +194,7 @@ if test "x$acx_pthread_ok" = xyes; then
 	AC_MSG_CHECKING([for joinable pthread attribute])
 	attr_name=unknown
 	for attr in PTHREAD_CREATE_JOINABLE PTHREAD_CREATE_UNDETACHED; do
-	    AC_TRY_LINK([#include <pthread.h>], [int attr=$attr;],
+	    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <pthread.h>], [int attr=$attr;])],
                         [attr_name=$attr; break])
 	done
         AC_MSG_RESULT($attr_name)

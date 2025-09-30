@@ -313,7 +313,7 @@ case $host in
   AC_CACHE_CHECK([whether the C compiler needs -belf], lt_cv_cc_needs_belf,
     [AC_LANG_SAVE
      AC_LANG_C
-     AC_TRY_LINK([],[],[lt_cv_cc_needs_belf=yes],[lt_cv_cc_needs_belf=no])
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([],[])],[lt_cv_cc_needs_belf=yes],[lt_cv_cc_needs_belf=no])
      AC_LANG_RESTORE])
   if test x"$lt_cv_cc_needs_belf" != x"yes"; then
     # this is probably gcc 2.8.0, egcs 1.0 or newer; no need for -belf
@@ -330,9 +330,9 @@ ifdef([AC_PROVIDE_AC_LIBTOOL_WIN32_DLL],
   # recent cygwin and mingw systems supply a stub DllMain which the user
   # can override, but on older systems we have to supply one
   AC_CACHE_CHECK([if libtool should supply DllMain function], lt_cv_need_dllmain,
-    [AC_TRY_LINK([],
+    [AC_LINK_IFELSE([AC_LANG_PROGRAM([],
       [extern int __attribute__((__stdcall__)) DllMain(void*, int, void*);
-      DllMain (0, 0, 0);],
+      DllMain (0, 0, 0);])],
       [lt_cv_need_dllmain=no],[lt_cv_need_dllmain=yes])])
 
   case $host/$CC in
@@ -342,7 +342,9 @@ ifdef([AC_PROVIDE_AC_LIBTOOL_WIN32_DLL],
     SAVE_CFLAGS="$CFLAGS"
     CFLAGS="$CFLAGS -mdll"
     AC_CACHE_CHECK([how to link DLLs], lt_cv_cc_dll_switch,
-      [AC_TRY_LINK([], [], [lt_cv_cc_dll_switch=-mdll],[lt_cv_cc_dll_switch=-dll])])
+      [AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM([], [])], [lt_cv_cc_dll_switch=-mdll],[lt_cv_cc_dll_switch=-dll])
+      ])
     CFLAGS="$SAVE_CFLAGS" ;;
   *-*-cygwin* | *-*-pw32*)
     # cygwin systems need to pass --dll to the linker, and not link
@@ -1236,7 +1238,7 @@ AC_CACHE_VAL([lt_cv_prog_cc_static_works], [dnl
   lt_cv_prog_cc_static_works=no
   save_LDFLAGS="$LDFLAGS"
   LDFLAGS="$LDFLAGS $lt_cv_prog_cc_static"
-  AC_TRY_LINK([], [], [lt_cv_prog_cc_static_works=yes])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])], [lt_cv_prog_cc_static_works=yes])
   LDFLAGS="$save_LDFLAGS"
 ])
 

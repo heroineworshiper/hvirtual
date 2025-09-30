@@ -124,10 +124,10 @@ for flag in $acx_pthread_flags; do
         # pthread_cleanup_push because it is one of the few pthread
         # functions on Solaris that doesn't have a non-functional libc stub.
         # We try pthread_create on general principles.
-        AC_TRY_LINK([#include <pthread.h>],
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <pthread.h>],
                     [pthread_t th; pthread_join(th, 0);
                      pthread_attr_init(0); pthread_cleanup_push(0, 0);
-                     pthread_create(0,0,0,0); pthread_cleanup_pop(0); ],
+                     pthread_create(0,0,0,0); pthread_cleanup_pop(0); ])],
                     [acx_pthread_ok=yes])
 
         LIBS="$save_LIBS"
@@ -153,13 +153,13 @@ if test "x$acx_pthread_ok" = xyes; then
         # Detect AIX lossage: threads are created detached by default
         # and the JOINABLE attribute has a nonstandard name (UNDETACHED).
         AC_MSG_CHECKING([for joinable pthread attribute])
-        AC_TRY_LINK([#include <pthread.h>],
-                    [int attr=PTHREAD_CREATE_JOINABLE;],
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <pthread.h>],
+                    [int attr=PTHREAD_CREATE_JOINABLE;])],
                     ok=PTHREAD_CREATE_JOINABLE, ok=unknown)
         if test x"$ok" = xunknown; then
-                AC_TRY_LINK([#include <pthread.h>],
-                            [int attr=PTHREAD_CREATE_UNDETACHED;],
-                            ok=PTHREAD_CREATE_UNDETACHED, ok=unknown)
+                AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <pthread.h>],
+                            [int attr=PTHREAD_CREATE_UNDETACHED;])],
+                            [ok=PTHREAD_CREATE_UNDETACHED], [ok=unknown])
         fi
         if test x"$ok" != xPTHREAD_CREATE_JOINABLE; then
                 AC_DEFINE(PTHREAD_CREATE_JOINABLE, $ok,
@@ -725,7 +725,7 @@ AC_DEFUN([_AC_PATH_LIB_CHECK_LINK],
 ac_save_LIBS="$LIBS"
 CFLAGS="$CFLAGS $UP[]_CFLAGS"
 LIBS="$LIBS $UP[]_LIBS"
-AC_TRY_LINK([ #include <stdio.h> ], ,
+AC_LINK_IFELSE([AC_LANG_PROGRAM([ #include <stdio.h> ], [])],
             [m4_if([$1], , :, [$1])],
             [m4_if([$2], , :, [$2])])
 CFLAGS="$ac_save_CFLAGS"

@@ -226,9 +226,9 @@ AC_CHECK_DECLS([drand48, memalign, posix_memalign])
 dnl Cray UNICOS _rtc() (real-time clock) intrinsic
 AC_MSG_CHECKING([for _rtc intrinsic])
 rtc_ok=yes
-AC_TRY_LINK([#ifdef HAVE_INTRINSICS_H
+AC_LINK_IFELSE([AC_LANG_PROGRAM([#ifdef HAVE_INTRINSICS_H
 #include <intrinsics.h>
-#endif], [_rtc()], [AC_DEFINE(HAVE__RTC,1,[Define if you have the UNICOS _rtc() intrinsic.])], [rtc_ok=no])
+#endif], [_rtc()])], [AC_DEFINE(HAVE__RTC,1,[Define if you have the UNICOS _rtc() intrinsic.])], [rtc_ok=no])
 AC_MSG_RESULT($rtc_ok)
 
 if test "$PRECISION" = "l"; then
@@ -236,8 +236,8 @@ if test "$PRECISION" = "l"; then
 fi
 
 AC_MSG_CHECKING([for isnan])
-AC_TRY_LINK([#include <math.h>
-], if (!isnan(3.14159)) isnan(2.7183);, ok=yes, ok=no)
+AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <math.h>
+], [if (!isnan(3.14159)) isnan(2.7183);])], [ok=yes], [ok=no])
 if test "$ok" = "yes"; then
 	AC_DEFINE(HAVE_ISNAN,1,[Define if the isnan() function/macro is available.])
 fi

@@ -83,10 +83,10 @@ int main ()
        CXXFLAGS="$CXXFLAGS $LIBFLACPP_CFLAGS"
        LIBS="$LIBS $LIBFLACPP_LIBS"
        LD_LIBRARY_PATH="$LIBFLACPP_LIBDIR:$LIBFLAC_LIBDIR:$LD_LIBRARY_PATH"
-       AC_TRY_LINK([
+       AC_LINK_IFELSE([AC_LANG_PROGRAM([
 #include <stdio.h>
 #include <FLAC++/decoder.h>
-],     [ return 0; ],
+],     [ return 0; ])],
        [ echo "*** The test program compiled, but did not run. This usually means"
        echo "*** that the run-time linker is not finding libFLAC++ or finding the wrong"
        echo "*** version of libFLAC++. If it is not finding libFLAC++, you'll need to set your"

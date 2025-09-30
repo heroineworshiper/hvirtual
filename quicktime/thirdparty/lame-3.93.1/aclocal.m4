@@ -761,7 +761,7 @@ case "$lt_target" in
   SAVE_CFLAGS="$CFLAGS"
   CFLAGS="$CFLAGS -belf"
   AC_CACHE_CHECK([whether the C compiler needs -belf], lt_cv_cc_needs_belf,
-    [AC_TRY_LINK([],[],[lt_cv_cc_needs_belf=yes],[lt_cv_cc_needs_belf=no])])
+    [AC_LINK_IFELSE([AC_LANG_PROGRAM([],[])],[lt_cv_cc_needs_belf=yes],[lt_cv_cc_needs_belf=no])])
   if test x"$lt_cv_cc_needs_belf" != x"yes"; then
     # this is probably gcc 2.8.0, egcs 1.0 or newer; no need for -belf
     CFLAGS="$SAVE_CFLAGS"
@@ -1393,10 +1393,10 @@ main ()
           echo "*** Could not run GTK test program, checking why..."
           CFLAGS="$CFLAGS $GTK_CFLAGS"
           LIBS="$LIBS $GTK_LIBS"
-          AC_TRY_LINK([
+          AC_LINK_IFELSE([AC_LANG_PROGRAM([
 #include <gtk/gtk.h>
 #include <stdio.h>
-],      [ return ((gtk_major_version) || (gtk_minor_version) || (gtk_micro_version)); ],
+],      [ return ((gtk_major_version) || (gtk_minor_version) || (gtk_micro_version)); ])],
         [ echo "*** The test program compiled, but did not run. This usually means"
           echo "*** that the run-time linker is not finding GTK or finding the wrong"
           echo "*** version of GTK. If it is not finding GTK, you'll need to set your"

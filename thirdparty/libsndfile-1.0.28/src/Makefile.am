@@ -105,19 +105,19 @@ checkprograms : $(check_PROGRAMS)
 # end user to create these files.
 
 Symbols.gnu-binutils: create_symbols_file.py
-	python $(srcdir)/create_symbols_file.py linux $(VERSION) > $@
+	${PYTHON} $(srcdir)/$(CREATE_SYMBOLS_SCRIPT) linux $(VERSION) > $@
 
 Symbols.darwin: create_symbols_file.py
-	python $(srcdir)/create_symbols_file.py darwin $(VERSION) > $@
+	${PYTHON} $(srcdir)/$(CREATE_SYMBOLS_SCRIPT) darwin $(VERSION) > $@
 
 libsndfile-1.def: create_symbols_file.py
-	python $(srcdir)/create_symbols_file.py win32 $(VERSION) > $@
+	${PYTHON} $(srcdir)/$(CREATE_SYMBOLS_SCRIPT) win32 $(VERSION) > $@
 
 Symbols.os2: create_symbols_file.py
-	python $(srcdir)/create_symbols_file.py os2 $(VERSION) > $@
+	${PYTHON} $(srcdir)/$(CREATE_SYMBOLS_SCRIPT) os2 $(VERSION) > $@
 
 Symbols.static: create_symbols_file.py
-	python $(srcdir)/create_symbols_file.py static $(VERSION) > $@
+	${PYTHON} $(srcdir)/$(CREATE_SYMBOLS_SCRIPT) static $(VERSION) > $@
 
 #======================================================================
 # Building windows resource files (if needed).
