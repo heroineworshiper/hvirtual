@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -171,6 +171,7 @@ public:
     int scrub_chop;
 // scrubbing speeds.  0.0 is frame advance
     float speed_table[TOTAL_SPEEDS];
+    string label_text[LABEL_COLORS];
 
 // ====================================== Plugin Set ==============================
 	char plugin_dir[BCTEXTLEN];

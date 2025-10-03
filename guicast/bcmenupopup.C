@@ -129,7 +129,7 @@ int BC_MenuPopup::remove_item(BC_MenuItem *item, int recursive)
 
 int BC_MenuPopup::total_menuitems()
 {
-	return menu_items.total;
+	return menu_items.size();
 }
 
 int BC_MenuPopup::dispatch_button_press()
@@ -370,38 +370,46 @@ int BC_MenuPopup::draw_items()
 
 int BC_MenuPopup::get_dimensions()
 {
+    int margin = 10;
 	int widest_text = 10, widest_key = 10;
-	int text_w, key_w;
 	int i = 0;
 
 // pad for border
-	h = 2;
+	h = MENUITEM_MARGIN;
 // Set up parameters in each item and get total h. 
 	for(i = 0; i < menu_items.size(); i++)
 	{
-		text_w = 10 + top_level->get_text_width(MEDIUMFONT, menu_items.values[i]->text);
-		if(menu_items.values[i]->checked) text_w += check->get_w() + 1;
+        BC_MenuItem *item = menu_items.get(i);
+		int text_w = top_level->get_text_width(MEDIUMFONT, item->text);
+		if(item->checked) text_w += check->get_w() + 1;
+        if(item->icon) text_w += item->icon->get_w() + margin;
 
-		key_w = 10 + top_level->get_text_width(MEDIUMFONT, menu_items.values[i]->hotkey_text);
-		if(text_w > widest_text) widest_text = text_w;
+        int key_w = 0;
+        if(item->hotkey_text[0])
+        {
+            text_w += margin;
+    		key_w = margin + top_level->get_text_width(MEDIUMFONT, item->hotkey_text);
+		}
+        
+        if(text_w > widest_text) widest_text = text_w;
 		if(key_w > widest_key) widest_key = key_w;
 
-		if(!strcmp(menu_items.values[i]->text, "-")) 
-			menu_items.values[i]->h = 5;
+		if(!strcmp(item->text, "-")) 
+			item->h = 5;
 		else
 		{
-//			menu_items.values[i]->h = top_level->get_text_height(MEDIUMFONT) + 4;
-			menu_items.values[i]->h = item_bg[0]->get_h();
+//			item->h = top_level->get_text_height(MEDIUMFONT) + 4;
+			item->h = item_bg[0]->get_h();
 		}
 // printf("BC_MenuPopup::get_dimensions %d text_w=%d key_w=%d\n", 
 // __LINE__, 
 // text_w, 
 // key_w);
 
-		menu_items.values[i]->y = h;
-		menu_items.values[i]->highlighted = 0;
-		menu_items.values[i]->down = 0;
-		h += menu_items.values[i]->h;
+		item->y = h;
+		item->highlighted = 0;
+		item->down = 0;
+		h += item->h;
 	}
 	w = widest_text + widest_key + 10;
 // printf("BC_MenuPopup::get_dimensions %d w=%d\n", 
@@ -412,7 +420,7 @@ int BC_MenuPopup::get_dimensions()
 // pad for division
 	key_x = widest_text + 5;
 // pad for border
-	h += 2;
+	h += MENUITEM_MARGIN;
 // printf("BC_MenuPopup::get_dimensions %d w=%d\n", 
 // __LINE__, 
 // w);

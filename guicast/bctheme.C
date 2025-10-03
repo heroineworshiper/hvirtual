@@ -59,6 +59,14 @@ BC_Resources* BC_Theme::get_resources()
 	return BC_WindowBase::get_resources();
 }
 
+void BC_Theme::scale(int &w, int &h)
+{
+    if(BC_Resources::dpi >= MIN_DPI)
+    {
+        w = w * BC_Resources::dpi / BASE_DPI;
+        h = h * BC_Resources::dpi / BASE_DPI;
+    }
+}
 
 // These create single images for storage in the image_sets table.
 VFrame* BC_Theme::new_image(const char *title, const char *path)

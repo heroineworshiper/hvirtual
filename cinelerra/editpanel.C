@@ -40,6 +40,7 @@
 #include "mwindow.h"
 #include "mwindowgui.h"
 #include "playbackengine.h"
+#include "preferences.h"
 #include "theme.h"
 #include "timebar.h"
 #include "trackcanvas.h"
@@ -63,7 +64,7 @@ EditPanel::EditPanel(MWindow *mwindow,
 	int use_paste, 
 	int use_undo,
 	int use_fit,
-	int use_labels,
+//	int use_labels,
 	int use_toclip,
 	int use_meters,
 	int is_mwindow,
@@ -83,7 +84,7 @@ EditPanel::EditPanel(MWindow *mwindow,
 	this->mwindow = mwindow;
 	this->subwindow = subwindow;
 	this->use_fit = use_fit;
-	this->use_labels = use_labels;
+//	this->use_labels = use_labels;
 	this->use_toclip = use_toclip;
 	this->use_meters = use_meters;
 	this->is_mwindow = is_mwindow;
@@ -139,6 +140,17 @@ void EditPanel::update()
 	}
     if(label_color) label_color->update();
 	subwindow->flush();
+}
+
+void EditPanel::update_label_text()
+{
+    if(label_color)
+    {
+        while(label_color->total_items() > 0)
+            label_color->remove_item(label_color->get_item(0));
+        label_color->create_objects();
+        label_color->update();
+    }
 }
 
 // void EditPanel::delete_buttons()
@@ -202,6 +214,9 @@ int EditPanel::calculate_w(MWindow *mwindow,
 	{
 		result += button_w + mwindow->theme->toggle_margin;
 	}
+
+// label color
+    result += LabelColor::calculate_w();
 	
 	result += button_w * total_buttons;
 	return result;
@@ -299,29 +314,14 @@ SET_TRACE
         }
 	}
 
-	if(use_labels)
-	{
+// 	if(use_labels)
+// 	{
 // create label color icons
 // decode unscaled image for chroma key
-        VFrame image(MWindow::theme->get_image_data("label_color.png"));
-	    int src_w = image.get_w();
-	    int src_h = image.get_h();
-	    int dst_w = image.get_w();
-	    int dst_h = image.get_h();
-        if(BC_Resources::dpi >= MIN_DPI)
-        {
-            dst_w = src_w * BC_Resources::dpi / BASE_DPI;
-            dst_h = src_h * BC_Resources::dpi / BASE_DPI;
-        }
-        VFrame temp(src_w, src_h, image.get_color_model());
-        VFrame temp2(dst_w, dst_h, image.get_color_model());
         for(int i = 0; i < LABEL_COLORS; i++)
         {
-            BC_Theme::swap_color(&temp, &image, 0x00ff00, MWindow::label_colors[i]);
-// scale it to the DPI after chroma key
-            VFrame::scale(&temp2, &temp);
             label_colors[i] = new BC_Pixmap(subwindow, 
-		        &temp2,
+		        MWindow::theme->label_icon[i],
 		        PIXMAP_ALPHA);
         }
 
@@ -349,7 +349,7 @@ SET_TRACE
 			y1,
 			is_mwindow));
 		x1 += nextlabel->get_w();
-	}
+//	}
 
 // all windows except VWindow since it's only implemented in MWindow.
 	if(use_cut)
@@ -571,8 +571,8 @@ void EditPanel::reposition_buttons(int x, int y)
 		x1 += meters->get_w();
 	}
 
-	if(use_labels)
-	{
+// 	if(use_labels)
+// 	{
 		labelbutton->reposition_window(x1, y1);
 		x1 += labelbutton->get_w();
         label_color->reposition_window(x1, 
@@ -582,7 +582,7 @@ void EditPanel::reposition_buttons(int x, int y)
 		x1 += prevlabel->get_w();
 		nextlabel->reposition_window(x1, y1);
 		x1 += nextlabel->get_w();
-	}
+//	}
 
 	if(prevedit) 
 	{
@@ -1173,9 +1173,7 @@ int EditLabelbutton::handle_event()
 LabelColor::LabelColor(EditPanel *panel, int x, int y)
  : BC_PopupMenu(x, 
  	y,
-	panel->label_colors[0]->get_w() + 
-        BC_WindowBase::get_resources()->popupmenu_margin * 2 +
-        BC_WindowBase::get_resources()->popupmenu_triangle_margin,
+    calculate_w(),
     "",
 	1,
 	MWindow::theme->get_image_set("mode_popup", 0),
@@ -1183,7 +1181,22 @@ LabelColor::LabelColor(EditPanel *panel, int x, int y)
 {
     this->panel = panel;
     set_icon(panel->label_colors[MWindow::session->label_color]);
-    set_tooltip(_("Label color"));
+#define LABEL_TOOLTIP _("Label color: ")
+    char string[BCTEXTLEN];
+    strcpy(string, LABEL_TOOLTIP);
+    strcat(string, MWindow::preferences->label_text[MWindow::session->label_color].c_str());
+    set_tooltip(string);
+}
+
+int LabelColor::calculate_w()
+{
+    VFrame *image = MWindow::theme->label_color;
+    int w = image->get_w();
+    int h = image->get_h();
+    BC_Theme::scale(w, h);
+	return w + 
+        BC_WindowBase::get_resources()->popupmenu_margin * 2 +
+        BC_WindowBase::get_resources()->popupmenu_triangle_margin;
 }
 
 void LabelColor::create_objects()
@@ -1201,14 +1214,19 @@ int LabelColor::handle_event()
 void LabelColor::update()
 {
     set_icon(panel->label_colors[MWindow::session->label_color]);
+    char string[BCTEXTLEN];
+    strcpy(string, LABEL_TOOLTIP);
+    strcat(string, MWindow::preferences->label_text[MWindow::session->label_color].c_str());
+    set_tooltip(string);
 }
 
 
 LabelColorItem::LabelColorItem(LabelColor *popup, int color)
- : BC_MenuItem(popup->panel->label_colors[color])
+ : BC_MenuItem(MWindow::preferences->label_text[color].c_str())
 {
     this->popup = popup;
     this->color = color;
+    set_icon(popup->panel->label_colors[color]);
 }
 
 int LabelColorItem::handle_event()

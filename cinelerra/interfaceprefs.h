@@ -118,6 +118,15 @@ public:
 	PreferencesWindow *pwindow;
 };
 
+class LabelText : public BC_TextBox
+{
+public:
+	LabelText(PreferencesWindow *pwindow, int x, int y, int color);
+	int handle_event();
+	PreferencesWindow *pwindow;
+    int color;
+};
+
 // class TimeFormatHMS : public BC_Radial
 // {
 // public:

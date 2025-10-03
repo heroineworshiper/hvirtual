@@ -555,8 +555,8 @@ VWindowEditing::VWindowEditing(MWindow *mwindow, VWindow *vwindow)
 	1, 
 	0,
 	0,
-	0,
-	1,
+	0, // use_fit
+//	1,
 	1,
 	1,
 	0,

@@ -340,6 +340,8 @@ public:
 	VFrame **insert_data;
 	VFrame *keyframe_data;
 	VFrame **label_toggle[LABEL_COLORS];
+// scaled color icons for menus
+    VFrame *label_icon[LABEL_COLORS];
 	VFrame **lift_data;
 	VFrame *maskkeyframe_data;
 	VFrame *modekeyframe_data;
@@ -378,6 +380,9 @@ public:
     VFrame **preview_rewind;
     VFrame **preview_stop;
     VFrame *preview_speaker;
+
+// unscaled template for popup menu
+    VFrame *label_color;
 
 	MWindow *mwindow;
 // Compressed images are loaded in here.

@@ -324,7 +324,7 @@ public:
 	void clear(int clear_handle, int deglitch);
     void razor();
 	void clear_labels();
-	int clear_labels(double start, double end);
+	void change_labels();
 	void concatenate_tracks();
 	void copy();
 	int copy(double start, double end);

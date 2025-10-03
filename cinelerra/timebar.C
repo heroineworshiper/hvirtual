@@ -69,6 +69,7 @@ LabelGUI::LabelGUI(MWindow *mwindow,
 	this->pixel = pixel;
 	this->position = label->position;
     this->color = label->color;
+    set_tooltip(MWindow::preferences->label_text[this->color].c_str());
 }
 
 LabelGUI::LabelGUI(MWindow *mwindow, 
@@ -264,7 +265,12 @@ void TimeBar::update_labels()
 				{
 					LabelGUI *gui = labels.get(output);
                     if(gui->color != current->color)
+                    {
+                        gui->color = current->color;
                         gui->set_images(mwindow->theme->label_toggle[current->color]);
+                    }
+
+                    gui->set_tooltip(MWindow::preferences->label_text[current->color].c_str());
                     
 					if(gui->pixel != pixel)
 					{

@@ -83,6 +83,7 @@ public:
 // Setting follow to 1 causes labels to move forward after clear.
 // Setting it to 0 implies ignoring the labels follow edits setting.
 	int clear(double start, double end, int follow = 1);
+    void change(double start, double end, int color);
 	int paste_silence(double start, double end);
 	int optimize();  // delete duplicates
 // Get nearest labels or 0 if start or end of timeline

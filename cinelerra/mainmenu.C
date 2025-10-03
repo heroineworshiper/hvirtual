@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -140,6 +140,7 @@ void MainMenu::create_objects()
 	editmenu->add_item(new DetachTransitions(mwindow));
 	editmenu->add_item(new BC_MenuItem("-"));
 	editmenu->add_item(new ClearLabels(mwindow));
+	editmenu->add_item(new ChangeLabels(mwindow));
 
 	BC_Menu *keyframemenu;
 	add_menu(keyframemenu = new BC_Menu(_("Keyframes")));
@@ -899,6 +900,17 @@ ClearLabels::ClearLabels(MWindow *mwindow) : BC_MenuItem(_("Clear labels"))
 int ClearLabels::handle_event()
 {
 	mwindow->clear_labels();
+	return 1;
+}
+
+ChangeLabels::ChangeLabels(MWindow *mwindow) : BC_MenuItem(_("Change label color"))
+{ 
+	this->mwindow = mwindow; 
+}
+
+int ChangeLabels::handle_event()
+{
+	mwindow->change_labels();
 	return 1;
 }
 

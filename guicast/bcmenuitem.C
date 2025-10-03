@@ -38,7 +38,6 @@
 #define MENUITEM_DN 2
 
 
-#define MENUITEM_MARGIN 2
 
 // ================================ Menu Item ==================================
 
@@ -335,6 +334,7 @@ int BC_MenuItem::draw()
 {
 	int text_line = top_level->get_text_descent(MEDIUMFONT);
 	BC_Resources *resources = top_level->get_resources();
+    int margin = 10;
 
 	if(!strcmp(text, "-"))
 	{
@@ -408,9 +408,10 @@ int BC_MenuItem::draw()
 		}
 
 		menu_popup->get_popup()->set_color(resources->menu_item_text);
+// TODO: checked & icon
 		if(checked)
 		{
-//			menu_popup->get_popup()->draw_check(10 + offset, y + 2 + offset);
+//			menu_popup->get_popup()->draw_check(margin + offset, y + 2 + offset);
 			menu_popup->get_popup()->draw_pixmap(menu_popup->check,
 				offset, 
 				y + (this->h - menu_popup->check->get_h()) / 2 + offset);
@@ -424,15 +425,17 @@ int BC_MenuItem::draw()
 		}
 		else
 		{
+            int x = margin;
             if(icon)
             {
                 menu_popup->get_popup()->draw_pixmap(icon, 
-							10 + offset, 
+							x + offset, 
 							y + (h - icon->get_h()) / 2 + offset);
+                x += icon->get_w() + margin;
             }
         
 			menu_popup->get_popup()->set_font(MEDIUMFONT);
-			menu_popup->get_popup()->draw_text(10 + offset, y + h - text_line - 2 + offset, text);
+			menu_popup->get_popup()->draw_text(x + offset, y + h - text_line - 2 + offset, text);
 			menu_popup->get_popup()->draw_text(menu_popup->get_key_x() + offset, y + h - text_line - 2 + offset, hotkey_text);
 		}
 	}

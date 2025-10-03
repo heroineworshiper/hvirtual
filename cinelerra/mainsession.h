@@ -170,7 +170,8 @@ public:
 	int use_hist_parade;
 	int use_wave_parade;
     int edit_info_format;
-// index of current label color
+// index of current label color, also here because the most common use case
+// doesn't have it tied to the EDL
     int label_color;
 // eyedropper stuff is here so it's less painful in its most common use case,
 // 1 off probing of a color.

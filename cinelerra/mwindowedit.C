@@ -468,8 +468,9 @@ void MWindow::clear_automation()
 void MWindow::clear_labels()
 {
 	undo->update_undo_before();
-	clear_labels(edl->local_session->get_selectionstart(), 
-		edl->local_session->get_selectionend()); 
+    edl->labels->clear(edl->local_session->get_selectionstart(), 
+		edl->local_session->get_selectionend(), 
+        0);
 	undo->update_undo_after(_("clear labels"), LOAD_TIMEBAR);
 	
 	gui->update_timebar(1);
@@ -477,11 +478,23 @@ void MWindow::clear_labels()
 	save_backup();
 }
 
-int MWindow::clear_labels(double start, double end)
+void MWindow::change_labels()
 {
-	edl->labels->clear(start, end, 0);
-	return 0;
+	undo->update_undo_before();
+
+
+    edl->labels->change(edl->local_session->get_selectionstart(), 
+		edl->local_session->get_selectionend(), 
+        session->label_color);
+
+
+	undo->update_undo_after(_("change label color"), LOAD_TIMEBAR);
+	
+	gui->update_timebar(1);
+	cwindow->update(0, 0, 0, 0, 1);
+	save_backup();
 }
+
 
 void MWindow::concatenate_tracks()
 {

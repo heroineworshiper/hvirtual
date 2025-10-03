@@ -741,8 +741,8 @@ CWindowEditing::CWindowEditing(MWindow *mwindow, CWindow *cwindow)
 	1,
 	1,
 	1,
-	0,
-	1,
+	0, // use_fit
+//	1,
 	1,
 	1,
 	0,

@@ -254,6 +254,7 @@ class LabelColor : public BC_PopupMenu
 {
 public:
     LabelColor(EditPanel *panel, int x, int y);
+    static int calculate_w();
     int handle_event();
 	void create_objects();
     void update();
@@ -411,7 +412,7 @@ public:
 		int use_paste, 
 		int use_undo,
 		int use_fit, 
-		int use_labels,
+//		int use_labels,
 		int use_toclip,
 		int use_meters,
 		int is_mwindow,
@@ -423,6 +424,7 @@ public:
 	static int calculate_w(MWindow *mwindow, int use_keyframe, int total_buttons);
 	static int calculate_h(MWindow *mwindow);
 	void update();
+    void update_label_text();
 	void delete_buttons();
 	void create_buttons();
 	void reposition_buttons(int x, int y);
@@ -458,7 +460,7 @@ public:
 	int use_undo;
 	int use_fit;
 	int use_copy;
-	int use_labels;
+//	int use_labels;
 	int use_toclip;
 	int use_meters;
 	int x, y, x1, y1;

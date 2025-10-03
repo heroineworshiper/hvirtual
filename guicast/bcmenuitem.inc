@@ -26,6 +26,7 @@
 
 class BC_MenuItem;
 
+#define MENUITEM_MARGIN 2
 
 
 #endif

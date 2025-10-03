@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include "filesystem.h"
 #include "guicast.h"
 #include "mutex.h"
+#include "mwindow.inc"
 #include "preferences.h"
 #include "theme.h"
 #include "videoconfig.h"
@@ -129,6 +130,19 @@ Preferences::Preferences()
 	aconfig_in = new AudioInConfig;
 	vconfig_in = new VideoInConfig;
 	recording_format = new Asset;
+    const char* default_label_text[] =
+    {
+        "Render section",
+        "Still frame",
+        "Stopped here",
+        "Edit point",
+        "Bald eagle",
+        "Lion",
+        "Cat",
+        "Dog"
+    };
+    for(int i = 0; i < LABEL_COLORS; i++)
+        label_text[i].assign(default_label_text[i]);
 }
 
 Preferences::~Preferences()
@@ -277,6 +291,10 @@ void Preferences::copy_from(Preferences *that)
 		processors = calculate_processors(0);
 	}
 
+    for(int i = 0; i < LABEL_COLORS; i++)
+    {
+        label_text[i] = that->label_text[i];
+    }
 
 	boundaries();
 }
@@ -368,6 +386,12 @@ int Preferences::load_defaults(BC_Hash *defaults)
 		1,
 		1,
 		1);
+
+    for(int i = 0; i < LABEL_COLORS; i++)
+    {
+        sprintf(string, "LABEL_TEXT%d", i);
+        defaults->get(string, &label_text[i]);
+    }
 
 //	use_tipwindow = defaults->get("USE_TIPWINDOW", use_tipwindow);
 	override_dpi = defaults->get("OVERRIDE_DPI", override_dpi);
@@ -492,6 +516,11 @@ int Preferences::save_defaults(BC_Hash *defaults)
 //	defaults->update("GLOBAL_PLUGIN_DIR", global_plugin_dir);
 	defaults->update("THEME", theme);
 
+    for(int i = 0; i < LABEL_COLORS; i++)
+    {
+        sprintf(string, "LABEL_TEXT%d", i);
+        defaults->update(string, &label_text[i]);
+    }
 
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{

@@ -348,6 +348,7 @@ int MainSession::load_defaults(BC_Hash *defaults)
 	actual_frame_rate = defaults->get("ACTUAL_FRAME_RATE", (float)-1);
 
     label_color = defaults->get("LABEL_COLOR", label_color);
+
 	eyedrop_radius = defaults->get("EYEDROP_RADIUS", eyedrop_radius);
 	eyedrop_x = defaults->get("EYEDROP_X", eyedrop_x);
 	eyedrop_y = defaults->get("EYEDROP_Y", eyedrop_y);

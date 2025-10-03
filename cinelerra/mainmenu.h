@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -347,6 +347,14 @@ class ClearLabels : public BC_MenuItem
 {
 public:
 	ClearLabels(MWindow *mwindow);
+	int handle_event();
+	MWindow *mwindow;
+};
+
+class ChangeLabels : public BC_MenuItem
+{
+public:
+	ChangeLabels(MWindow *mwindow);
 	int handle_event();
 	MWindow *mwindow;
 };

@@ -23,6 +23,7 @@
 #include "edl.h"
 #include "edlsession.h"
 #include "language.h"
+#include "mainsession.h"
 #include "mwindow.h"
 #include "preferences.h"
 #include "preferencesthread.h"
@@ -300,7 +301,26 @@ void InterfacePrefs::create_objects()
     speed->create_objects();
     draw_vframe(theme->get_image("speed_fwd"), x + margin3, y2);
     x = x1;
-    
+
+    y = y2 + max_h + margin;
+	add_subwindow(bar = new BC_Bar(margin, y, get_w() - margin * 2));
+	y += bar->get_h() + margin;
+	add_subwindow(title = new BC_Title(x, y, _("Label text"), LARGEFONT, resources->text_default));
+    y += title->get_h() + margin;
+    for(int i = 0; i < LABEL_COLORS; i++)
+    {
+        if((i % 3) == 0) x = x1;
+        draw_vframe(theme->label_icon[i], x, y);
+        x += theme->label_icon[0]->get_w() + margin;
+        LabelText *text;
+        
+        add_subwindow(text = new LabelText(pwindow, 
+            x, 
+            y, 
+            i));
+        x += text->get_w() + margin;
+        if((i % 3) == 2) y += text->get_h() + margin;
+    }
 }
 
 const char* InterfacePrefs::behavior_to_text(int mode)
@@ -526,6 +546,22 @@ int TimeFormatFeetSetting::handle_event()
 	pwindow->thread->edl->session->frames_per_foot = atof(get_text());
 	if(pwindow->thread->edl->session->frames_per_foot < 1) pwindow->thread->edl->session->frames_per_foot = 1;
 	return 0;
+}
+
+
+
+
+LabelText::LabelText(PreferencesWindow *pwindow, int x, int y, int color)
+ : BC_TextBox(x, y, DP(200), 1, &pwindow->thread->preferences->label_text[color])
+{
+    this->pwindow = pwindow;
+    this->color = color;
+}
+
+int LabelText::handle_event()
+{
+    pwindow->thread->preferences->label_text[color].assign(get_text());
+    return 1;
 }
 
 
@@ -792,8 +828,8 @@ void SpeedMenu::create_objects()
     for(int i = 0; i < Preferences::total_speeds(); i++)
         add_item(
             new BC_MenuItem(
-            Preferences::speed_to_text(
-                Preferences::speed(i))));
+                Preferences::speed_to_text(
+                    Preferences::speed(i))));
 }
 
 

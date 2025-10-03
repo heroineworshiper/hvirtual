@@ -101,7 +101,8 @@ public:
 // tools for preparing widget graphics
 	static void overlay(VFrame *dst, VFrame *src, int in_x1 = -1, int in_x2 = -1, int shift = 0);
     static void swap_color(VFrame *dst, VFrame *src, uint32_t src_color, uint32_t dst_color);
-
+// scale the size arguments based on DPI
+    static void scale(int &w, int &h);
 
 
 	void dump();

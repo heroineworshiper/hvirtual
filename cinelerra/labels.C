@@ -51,7 +51,7 @@ void Labels::dump()
 {
 	for(Label *current = first; current; current = NEXT)
 	{
-		printf("  label: %f\n", current->position);
+		printf("  label: %f color=%d\n", current->position, current->color);
 	}
 }
 
@@ -396,6 +396,19 @@ int Labels::clear(double start, double end, int follow)
 	}
 
 	return 0;
+}
+
+void Labels::change(double start, double end, int color)
+{
+	Label *current;
+	Label *next;
+	current = label_of(start);
+	while(current && current->position <= end)
+	{
+		next = NEXT;
+		current->color = color;             
+		current = next;
+	}
 }
 
 

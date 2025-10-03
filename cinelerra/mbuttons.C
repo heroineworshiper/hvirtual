@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,8 +154,8 @@ MainEditing::MainEditing(MWindow *mwindow, MButtons *mbuttons, int x, int y)
 	1,
 	1,
 	1,
-	1,
-	1,
+	1, // use_fit
+//	1,
 	1,
 	0,
 	1,
