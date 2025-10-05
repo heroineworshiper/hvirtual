@@ -91,14 +91,14 @@ void KeyFrame::copy(int64_t start, int64_t end, FileXML *file, int default_auto)
 }
 
 
-void KeyFrame::copy_from(Auto *that)
+void KeyFrame::copy_from(Auto *that, int use_default)
 {
-	copy_from((KeyFrame*)that);
+	copy_from((KeyFrame*)that, use_default);
 }
 
-void KeyFrame::copy_from(KeyFrame *that)
+void KeyFrame::copy_from(KeyFrame *that, int use_default)
 {
-	Auto::copy_from(that);
+	Auto::copy_from(that, use_default);
 	KeyFrame *keyframe = (KeyFrame*)that;
 	data = keyframe->data;
 	position = keyframe->position;

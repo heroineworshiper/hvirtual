@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +26,6 @@
 #include "keyframes.h"
 #include "localsession.h"
 #include "mwindow.h"
-#include "messages.h"
 #include "plugin.h"
 #include "pluginpopup.h"
 #include "pluginset.h"

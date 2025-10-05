@@ -390,7 +390,7 @@ int ReframeRT::process_buffer(VFrame *frame,
 // if there are keyframes, the first keyframe can be after the effect start (and it controls settings before it)
 // so let's calculate using a fake keyframe with the same settings but position == effect start
 	KeyFrame *fake_keyframe = new KeyFrame();
-	fake_keyframe->copy_from(next_keyframe);
+	fake_keyframe->copy_from(next_keyframe, 0);
 	fake_keyframe->position = local_to_edl(get_source_start());
 	next_keyframe = fake_keyframe;
 

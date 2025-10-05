@@ -34,8 +34,8 @@ public:
 	IntAuto(EDL *edl, IntAutos *autos);
 	~IntAuto();
 
-	void copy_from(Auto *that);
-	void copy_from(IntAuto *that);
+	void copy_from(Auto *that, int use_default);
+	void copy_from(IntAuto *that, int use_default);
 	int operator==(Auto &that);
 	int operator==(IntAuto &that);
 

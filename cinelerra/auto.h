@@ -43,7 +43,7 @@ public:
 
 	virtual Auto& operator=(Auto &that);
 	virtual int operator==(Auto &that);
-	virtual void copy_from(Auto *that);
+	virtual void copy_from(Auto *that, int use_default /* 0 */);
 	virtual void copy(int64_t start, 
 		int64_t end, 
 		FileXML *file, 

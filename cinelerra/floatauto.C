@@ -103,14 +103,14 @@ void FloatAuto::to_locked()
     }
 }
 
-void FloatAuto::copy_from(Auto *that)
+void FloatAuto::copy_from(Auto *that, int use_default)
 {
-	copy_from((FloatAuto*)that);
+	copy_from((FloatAuto*)that, use_default);
 }
 
-void FloatAuto::copy_from(FloatAuto *that)
+void FloatAuto::copy_from(FloatAuto *that, int use_default)
 {
-	Auto::copy_from(that);
+	Auto::copy_from(that, use_default);
 	this->value = that->value;
 	this->control_in_value = that->control_in_value;
 	this->control_out_value = that->control_out_value;

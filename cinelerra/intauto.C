@@ -69,16 +69,16 @@ void IntAuto::copy(int64_t start, int64_t end, FileXML *file, int default_auto)
 }
 
 
-void IntAuto::copy_from(Auto *that)
+void IntAuto::copy_from(Auto *that, int use_default)
 {
-	copy_from((IntAuto*)that);
+	copy_from((IntAuto*)that, use_default);
 //printf("IntAuto::copy_from(Auto *that) %d\n", value);
 }
 
-void IntAuto::copy_from(IntAuto *that)
+void IntAuto::copy_from(IntAuto *that, int use_default)
 {
 //printf("IntAuto::copy_from(IntAuto *that) %d %d\n", value, that->value);
-	Auto::copy_from(that);
+	Auto::copy_from(that, use_default);
 	this->value = that->value;
 }
 

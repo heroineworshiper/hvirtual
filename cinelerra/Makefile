@@ -820,7 +820,6 @@ $(OBJDIR)/menueditlength.o:                       menueditlength.C
 $(OBJDIR)/menueffects.o: 			  menueffects.C
 $(OBJDIR)/menutransitionlength.o:                 menutransitionlength.C
 $(OBJDIR)/menuveffects.o: 			  menuveffects.C
-$(OBJDIR)/messages.o: 				  messages.C
 $(OBJDIR)/meterpanel.o: 			  meterpanel.C
 $(OBJDIR)/module.o: 				  module.C
 $(OBJDIR)/motioncache.o:                          motioncache.C
@@ -977,6 +976,7 @@ $(OBJDIR)/zoombar.o: 				  zoombar.C
 $(OBJDIR)/zoompanel.o:  			  zoompanel.C
 
 
+#$(OBJDIR)/messages.o: 				  messages.C
 #$(OBJDIR)/avc1394control.o:		          avc1394control.C
 #$(OBJDIR)/avc1394transport.o:                     avc1394transport.C
 #$(OBJDIR)/aplugin.o: 				  aplugin.C

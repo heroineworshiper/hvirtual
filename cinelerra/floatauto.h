@@ -39,8 +39,8 @@ public:
 	int operator==(Auto &that);
 	int operator==(FloatAuto &that);
 	int identical(FloatAuto *src);
-	void copy_from(Auto *that);
-	void copy_from(FloatAuto *that);
+	void copy_from(Auto *that, int use_default /* 0 */);
+	void copy_from(FloatAuto *that, int use_default /* 0 */);
 	void copy(int64_t start, int64_t end, FileXML *file, int default_only);
 	void load(FileXML *xml);
 

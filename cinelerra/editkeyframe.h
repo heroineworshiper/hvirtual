@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ public:
 	void start(Auto *auto_);
     void apply(EditKeyframeDialog *gui,
         float *changed_value);
+    void apply_common();
 
 	MWindow *mwindow;
     Autos *autos;
@@ -46,6 +47,9 @@ public:
     FloatAuto *auto_;
 // copy being edited
     FloatAuto *auto_copy;
+// before & after values
+    FloatAuto *before;
+    FloatAuto *after;
 };
 
 

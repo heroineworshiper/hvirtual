@@ -88,9 +88,9 @@ void PanAuto::copy(int64_t start, int64_t end, FileXML *file, int default_auto)
 }
 
 
-void PanAuto::copy_from(Auto *that)
+void PanAuto::copy_from(Auto *that, int use_default)
 {
-	Auto::copy_from(that);
+	Auto::copy_from(that, use_default);
 
 	PanAuto *pan_auto = (PanAuto*)that;
 	memcpy(this->values, pan_auto->values, MAXCHANNELS * sizeof(float));

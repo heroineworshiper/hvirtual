@@ -141,7 +141,7 @@ void Autos::copy_from(Autos *autos)
 {
 	Auto *current = autos->first, *this_current = first;
 
-	default_auto->copy_from(autos->default_auto);
+	default_auto->copy_from(autos->default_auto, 0);
 
 // Detect common memory leak bug
 	if(autos->first && !autos->last)
@@ -158,7 +158,7 @@ void Autos::copy_from(Autos *autos)
 		{
 			append(this_current = new_auto());
 		}
-		this_current->copy_from(current);
+		this_current->copy_from(current, 0);
 		this_current = this_current->next;
 	}
 
@@ -182,11 +182,11 @@ void Autos::insert_track(Autos *automation,
 // Insert silence
 	insert(start_unit, start_unit + length_units);
 
-	if(replace_default) default_auto->copy_from(automation->default_auto);
+	if(replace_default) default_auto->copy_from(automation->default_auto, 0);
 	for(Auto *current = automation->first; current; current = NEXT)
 	{
 		Auto *new_auto = insert_auto(start_unit + current->position);
-		new_auto->copy_from(current);
+		new_auto->copy_from(current, 0);
 // Override copy_from
 		new_auto->position = current->position + start_unit;
 	}
@@ -383,7 +383,7 @@ Auto* Autos::insert_auto(int64_t position)
 		if(current)
 		{
 			insert_after(current, result = new_auto());
-			result->copy_from(current);
+			result->copy_from(current, 0);
 		}
 		else
 		{
@@ -391,7 +391,7 @@ Auto* Autos::insert_auto(int64_t position)
 			if(!current) current = default_auto;
 
 			insert_before(first, result = new_auto());
-			if(current) result->copy_from(current);
+			if(current) result->copy_from(current, 0);
 		}
 
 		result->position = position;

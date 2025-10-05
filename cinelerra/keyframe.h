@@ -43,9 +43,9 @@ public:
 // Copy to clipboard
 	void copy(int64_t start, int64_t end, FileXML *file, int default_only);
 // Copy data + everything else from that to this
-	void copy_from(Auto *that);
-	void copy_from(KeyFrame *that);
-	void copy_from_common(KeyFrame *that);
+	void copy_from(Auto *that, int use_default);
+	void copy_from(KeyFrame *that, int use_default);
+	void copy_from_common(KeyFrame *that, int use_default);
 	int operator==(Auto &that);
 	int operator==(KeyFrame &that);
 	void copy_data(KeyFrame *src);

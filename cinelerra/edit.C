@@ -220,7 +220,7 @@ void Edit::insert_transition(char *title, KeyFrame *keyframe)
 		title, 
 		length);
 // replace the keyframe
-    transition->get_keyframe()->copy_from(keyframe);
+    transition->get_keyframe()->copy_from(keyframe, 0);
 }
 
 void Edit::detach_transition()

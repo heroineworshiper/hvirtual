@@ -38,6 +38,7 @@ FileXML::FileXML()
 {
 	left_delimiter = '<';
 	right_delimiter = '>';
+	tag.set_delimiters(left_delimiter, right_delimiter);
     text = new std::string;
     shared = 0;
 	position = 0;
@@ -116,7 +117,7 @@ const char* FileXML::get_ptr()
 
 const char* FileXML::read_text(int decode)
 {
-	long text_position = position;
+	int text_position = position;
 	int i;
 
 // use < to mark end of text and start of tag
@@ -334,9 +335,10 @@ int FileXML::read_from_file(const char *filename, int ignore_error)
         text->resize(new_length);
 		int temp = fread(&(*text)[0], 1, new_length, in);
 		(*text)[new_length] = 0;
-//printf("FileXML::read_from_file %d filename=%s length=%d temp=%d text=%d %d %d %d\n", 
-//__LINE__, filename, (int)text->length(), temp, text->at(0), text->at(1), text->at(2), text->at(3));
+// printf("FileXML::read_from_file %d filename=%s length=%d temp=%d text=%s\n", 
+// __LINE__, filename, (int)text->length(), temp, text->c_str());
 		position = 0;
+	    fclose(in);
 	}
 	else
 	{
@@ -346,7 +348,6 @@ int FileXML::read_from_file(const char *filename, int ignore_error)
 				strerror(errno));
 		return 1;
 	}
-	fclose(in);
 	return 0;
 }
 
@@ -385,7 +386,6 @@ int FileXML::get_len()
 
 XMLTag::XMLTag()
 {
-    tag_title[0] = 0;
 }
 
 XMLTag::~XMLTag()
@@ -450,9 +450,13 @@ int XMLTag::read_tag(const char *input, int &position, int length)
 {
 	int tag_start;
 	int i, j, terminating_char;
+//printf("XMLTag::read_tag %d position=%d length=%d left_delimiter=%d\n", 
+//__LINE__, position, length, left_delimiter);
 
 // search for beginning of a tag
 	while(position < length && input[position] != left_delimiter) position++;
+//printf("XMLTag::read_tag %d position=%d length=%d\n", 
+//__LINE__, position, length);
 
 	if(position >= length) return 1;
 
@@ -462,36 +466,37 @@ int XMLTag::read_tag(const char *input, int &position, int length)
 		input[position] == '\n' ||	 // also skip new lines
 		input[position] == left_delimiter))           // skip <
 		position++;
+//printf("XMLTag::read_tag %d position=%d length=%d\n", 
+//__LINE__, position, length);
 
 	if(position >= length) return 1;
 
 	tag_start = position;
 
 // read title
+    tag_title.clear();
 	for(i = 0; 
-		i < MAX_TITLE && 
 		position < length && 
 		input[position] != '=' && 
 		input[position] != ' ' &&       // space ends title
 		input[position] != right_delimiter;
 		position++, i++)
 	{
-		tag_title[i] = input[position];
+		tag_title.push_back(input[position]);
 	}
-	tag_title[i] = 0;
 
+//printf("XMLTag::read_tag %d %s\n", __LINE__, tag_title.c_str());
 	if(position >= length) return 1;
 
 	if(input[position] == '=')
 	{
 // no title but first key
-		tag_title[0] = 0;
+		tag_title.clear();
 		position = tag_start;       // rewind
 	}
 
 // read properties
 	for(i = 0;
-		i < MAX_PROPERTIES &&
 		position < length &&
 		input[position] != right_delimiter;
 		i++)
@@ -506,7 +511,7 @@ int XMLTag::read_tag(const char *input, int &position, int length)
 
 // read the key
 		for(j = 0; 
-			j < MAX_LENGTH &&
+			j < BCTEXTLEN &&
 			position < length &&
 			input[position] != right_delimiter &&
 			input[position] != ' ' &&
@@ -537,7 +542,7 @@ int XMLTag::read_tag(const char *input, int &position, int length)
 
 // read until the terminating char
 		for(j = 0;
-			j < MAX_LENGTH &&
+			j < BCTEXTLEN &&
 			position < length &&
 			input[position] != right_delimiter &&
 			input[position] != '\n' &&
@@ -562,7 +567,7 @@ int XMLTag::read_tag(const char *input, int &position, int length)
 // skip the >
 	if(position < length && input[position] == right_delimiter) position++;
 
-	if(properties.size() || tag_title[0]) 
+	if(properties.size() || !tag_title.empty()) 
 		return 0; 
 	else 
 		return 1;
@@ -571,18 +576,18 @@ int XMLTag::read_tag(const char *input, int &position, int length)
 
 int XMLTag::title_is(const char *title)
 {
-	if(!strcasecmp(title, tag_title)) return 1;
+	if(!strcasecmp(title, tag_title.c_str())) return 1;
 	else return 0;
 }
 
-char* XMLTag::get_title()
+const char* XMLTag::get_title()
 {
-	return tag_title;
+	return tag_title.c_str();
 }
 
 int XMLTag::get_title(char *value)
 {
-	if(tag_title[0] != 0) strcpy(value, tag_title);
+	if(!tag_title.empty()) strcpy(value, tag_title.c_str());
 	return 0;
 }
 
@@ -743,7 +748,7 @@ double XMLTag::get_property(const char *property, double default_)
 
 void XMLTag::set_title(const char *text)       // set the title field
 {
-	strcpy(tag_title, text);
+	tag_title.assign(text);
 }
 
 void XMLTag::set_property(const char *text, int32_t value)

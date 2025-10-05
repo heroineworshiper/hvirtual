@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,9 +27,9 @@
 #include <string>
 #include <map>
 
-#define MAX_TITLE 1024
-#define MAX_PROPERTIES 1024
-#define MAX_LENGTH 4096
+//#define MAX_TITLE 1024
+//#define MAX_PROPERTIES 1024
+//#define MAX_LENGTH 4096
 using std::string;
 using std::multimap;
 
@@ -47,7 +46,7 @@ public:
 	int read_tag(const char *input, int &position, int length);
 
 	int title_is(const char *title);        // test against title and return 1 if they match
-	char *get_title();
+	const char *get_title();
 	int get_title(char *value);
 //	int test_property(char *property, char *value);
 //	const char *get_property_text(int number);
@@ -85,7 +84,7 @@ public:
 // convert all the encodings to special characters
     void decode_text(char *text);
 
-	char tag_title[MAX_TITLE];       // title of this tag
+	std::string tag_title;       // title of this tag
 
 
 // key, value list of properties for this tag

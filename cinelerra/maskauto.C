@@ -295,14 +295,14 @@ void MaskAuto::update_parameter(MaskAuto *ref, MaskAuto *src)
 	}
 }
 
-void MaskAuto::copy_from(Auto *src)
+void MaskAuto::copy_from(Auto *src, int use_default)
 {
-	copy_from((MaskAuto*)src);
+	copy_from((MaskAuto*)src, use_default);
 }
 
-void MaskAuto::copy_from(MaskAuto *src)
+void MaskAuto::copy_from(MaskAuto *src, int use_default)
 {
-	Auto::copy_from(src);
+	Auto::copy_from(src, use_default);
 	copy_data(src);
 }
 

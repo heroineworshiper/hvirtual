@@ -73,8 +73,8 @@ public:
 	int identical(MaskAuto *src);
 	void load(FileXML *file);
 	void copy(int64_t start, int64_t end, FileXML *file, int default_auto);
-	void copy_from(Auto *src);
-	void copy_from(MaskAuto *src);
+	void copy_from(Auto *src, int use_default);
+	void copy_from(MaskAuto *src, int use_default);
 // Copy data but not position
 	void copy_data(MaskAuto *src);
 	void get_points(ArrayList<MaskPoint*> *points, 

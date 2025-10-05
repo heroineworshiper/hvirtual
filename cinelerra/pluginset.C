@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -157,7 +156,7 @@ Plugin* PluginSet::insert_plugin(const char *title,
 	plugin->plugin_type = plugin_type;
 
 	if(default_keyframe) 
-		plugin->keyframes->default_auto->copy_from(default_keyframe);
+		plugin->keyframes->default_auto->copy_from(default_keyframe, 0);
 	plugin->keyframes->default_auto->position = unit_position;
 
 // May delete the plugin we just added so not desirable while loading.

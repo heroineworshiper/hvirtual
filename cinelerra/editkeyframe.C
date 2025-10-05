@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,8 @@ EditKeyframeThread::EditKeyframeThread(MWindow *mwindow)
 {
 	this->mwindow = mwindow;
     auto_copy = new FloatAuto;
+    before = new FloatAuto;
+    after = new FloatAuto;
 }
 
 void EditKeyframeThread::start(Auto *auto_)
@@ -46,8 +48,8 @@ void EditKeyframeThread::start(Auto *auto_)
     {
         this->auto_ = (FloatAuto*)auto_;
         
-        auto_copy->copy_from(auto_);
-        auto_copy->is_default = auto_->is_default;
+        auto_copy->copy_from(auto_, 1);
+        before->copy_from(auto_, 1);
 
 //printf("EditKeyframeThread::start %d %d\n", __LINE__, auto_->is_default);
         mwindow->gui->unlock_window();
@@ -63,17 +65,52 @@ BC_Window* EditKeyframeThread::new_gui()
 	mwindow->gui->lock_window("EditKeyframeThread::new_gui");
 	int x = mwindow->gui->get_abs_cursor_x(0);
 	int y = mwindow->gui->get_abs_cursor_y(0);
+	mwindow->gui->unlock_window();
 	EditKeyframeDialog *window = new EditKeyframeDialog(mwindow, 
 		this,
 		x, 
 		y);
 	window->create_objects();
-	mwindow->gui->unlock_window();
 	return window;
 }
 
 void EditKeyframeThread::handle_close_event(int result)
 {
+    if(before->identical(auto_copy)) return;
+    if(result)
+    {
+// revert it
+        mwindow->gui->lock_window("EditKeyframeThread::handle_close_event");
+        if(mwindow->edl->tracks->keyframe_exists(auto_))
+        {
+            auto_->copy_from(before, 0);
+            apply_common();
+        }
+        mwindow->gui->unlock_window();
+    }
+    else
+    {
+        mwindow->gui->lock_window("EditKeyframeThread::handle_close_event");
+        if(mwindow->edl->tracks->keyframe_exists(auto_))
+        {
+    // single undo update when the window is closed
+            after->copy_from(auto_copy, 0);
+    // revert to the before value
+            auto_->copy_from(before, 0);
+            mwindow->undo->update_undo_before(_("edit keyframe"), this);
+    // revert to the after value
+            auto_->copy_from(after, 0);
+            mwindow->undo->update_undo_after(_("edit keyframe"), LOAD_AUTOMATION);
+        }
+        mwindow->gui->unlock_window();
+    }
+}
+
+void EditKeyframeThread::apply_common()
+{
+	mwindow->restart_brender();
+    mwindow->gui->draw_overlays(1, 1);
+    mwindow->sync_parameters(CHANGE_PARAMS);
 }
 
 // copy from the temporary to the EDL keyframe with undo code
@@ -112,16 +149,14 @@ void EditKeyframeThread::apply(EditKeyframeDialog *gui,
 
     if(mwindow->edl->tracks->keyframe_exists(auto_))
     {
-        mwindow->undo->update_undo_before();
+//        mwindow->undo->update_undo_before(_("edit keyframe"), this);
 
-        auto_->copy_from(auto_copy);
+        auto_->copy_from(auto_copy, 0);
 
 
-        mwindow->undo->update_undo_after(_("edit keyframe"), LOAD_AUTOMATION);
+//        mwindow->undo->update_undo_after(_("edit keyframe"), LOAD_AUTOMATION);
 
-	    mwindow->restart_brender();
-        mwindow->gui->draw_overlays(1, 1);
-        mwindow->sync_parameters(CHANGE_PARAMS);
+        apply_common();
     }
     else
     {
@@ -164,6 +199,7 @@ void EditKeyframeDialog::create_objects()
 	int x = window_border;
 	int y = window_border;
 
+    lock_window("EditKeyframeDialog::create_objects");
     BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("In control:")));
 	int y1 = y + title->get_h() + widget_border;
@@ -210,10 +246,12 @@ void EditKeyframeDialog::create_objects()
 	mode->create_objects();
     lock_texts();
    
-    BC_OKButton *ok;
-	add_subwindow(ok = new BC_OKButton(this));
-    ok->set_esc(1);
+//    BC_OKButton *ok;
+	add_subwindow(new BC_OKButton(this));
+	add_subwindow(new BC_CancelButton(this));
+//    ok->set_esc(1);
 	show_window();
+    unlock_window();
 }
 
 void EditKeyframeDialog::lock_texts()

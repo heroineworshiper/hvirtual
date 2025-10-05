@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -118,10 +118,11 @@ int KeyframePopup::update(double position,
     delete bar;
     bar = 0;
 
-// editing text plugin keyframes is a bridge too far
-// it would require amending the plugin popup & counts as something which
-// already has a dedicated interface
-// float is particularly difficult to edit without a text mode
+// Float is the only one we can edit because it's 
+// particularly difficult to edit without a text mode.
+// Editing text plugin keyframes is a bridge too far.
+// It would require amending the plugin popup & counts as something which
+// already has a dedicated interface, the plugin GUI.
     if(autos && 
         (autos->type == Autos::AUTOMATION_TYPE_FLOAT))
     {

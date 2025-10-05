@@ -49,7 +49,7 @@ Auto::Auto(EDL *edl, Autos *autos)
 
 Auto& Auto::operator=(Auto& that)
 {
-	copy_from(&that);
+	copy_from(&that, 0);
 	return *this;
 }
 
@@ -64,9 +64,10 @@ void Auto::copy(int64_t start, int64_t end, FileXML *file, int default_only)
 	printf("Auto::copy called\n");
 }
 
-void Auto::copy_from(Auto *that)
+void Auto::copy_from(Auto *that, int use_default)
 {
 	this->position = that->position;
+    if(use_default) this->is_default = that->is_default;
 }
 
 

@@ -23,6 +23,6 @@
 #define MESSAGES_INC
 
 class Messages;
-#define MESSAGESIZE 4096
+//#define MESSAGESIZE 4096
 
 #endif
