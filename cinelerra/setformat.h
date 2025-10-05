@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,6 +59,7 @@ public:
 	void update_aspect();
 // Update all parameters from preset menu
 	void update();
+    void update_interpolation(int interpolation);
 
 
 	Mutex *window_lock;
@@ -98,11 +99,10 @@ public:
 	SetChannelsCanvas(MWindow *mwindow, 
 		SetFormatThread *thread, 
 		int x, 
-		int y,
-		int w,
-		int h);
+		int y);
 	~SetChannelsCanvas();
-	
+
+	int initialize();
 	int draw(int angle = -1);
 	int get_dimensions(int channel_position, int &x, int &y, int &w, int &h);
 	int button_press_event();
@@ -202,6 +202,193 @@ public:
 	SetFormatWindow *gui;
 };
 
+
+class LabelText : public BC_TextBox
+{
+public:
+	LabelText(SetFormatThread *thread, int x, int y, int color);
+	int handle_event();
+	SetFormatThread *thread;
+    int color;
+};
+
+
+/*
+ * class VideoAsynchronous : public BC_CheckBox
+ * {
+ * public:
+ * 	VideoAsynchronous(PreferencesWindow *pwindow, int x, int y);
+ * 	int handle_event();
+ * 	PreferencesWindow *pwindow;
+ * };
+ */
+
+class VideoEveryFrame : public BC_CheckBox
+{
+public:
+	VideoEveryFrame(SetFormatThread *thread,
+		int x, 
+		int y);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+class DisableMutedTracks : public BC_CheckBox
+{
+public:
+	DisableMutedTracks(SetFormatThread *thread,
+		int x, 
+		int y);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+class OnlyTop : public BC_CheckBox
+{
+public:
+	OnlyTop(SetFormatThread *thread,
+		int x, 
+		int y);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+// class PlaybackDeblock : public BC_CheckBox
+// {
+// public:
+// 	PlaybackDeblock(PreferencesWindow *pwindow, int x, int y);
+// 	int handle_event();
+// 	PreferencesWindow *pwindow;
+// };
+
+class PlaybackNearest : public BC_Radial
+{
+public:
+	PlaybackNearest(SetFormatThread *thread, int value, int x, int y);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+class PlaybackBicubicBicubic : public BC_Radial
+{
+public:
+	PlaybackBicubicBicubic(SetFormatThread *thread, int value, int x, int y);
+	int handle_event();
+    SetFormatThread *thread;
+};
+
+class PlaybackBicubicBilinear : public BC_Radial
+{
+public:
+	PlaybackBicubicBilinear(SetFormatThread *thread, 
+		int value, 
+		int x, 
+		int y);
+	int handle_event();
+    SetFormatThread *thread;
+};
+
+class PlaybackLanczos : public BC_Radial
+{
+public:
+	PlaybackLanczos(SetFormatThread *thread, 
+		int value, 
+		int x, 
+		int y);
+	int handle_event();
+    SetFormatThread *thread;
+};
+
+class PlaybackBilinearBilinear : public BC_Radial
+{
+public:
+	PlaybackBilinearBilinear(SetFormatThread *thread, 
+		int value, 
+		int x, 
+		int y);
+	int handle_event();
+    SetFormatThread *thread;
+};
+
+class PlaybackPreload : public BC_TextBox
+{
+public:
+	PlaybackPreload(int x, 
+		int y, 
+		SetFormatThread *thread, 
+		char *text);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+class PlaybackInterpolateRaw : public BC_CheckBox
+{
+public:
+	PlaybackInterpolateRaw(int x, 
+		int y, 
+		SetFormatThread *thread);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+class PlaybackWhiteBalanceRaw : public BC_CheckBox
+{
+public:
+	PlaybackWhiteBalanceRaw(int x, 
+		int y, 
+		SetFormatThread *thread);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+class PlaybackSubtitle : public BC_CheckBox
+{
+public:
+	PlaybackSubtitle(int x, 
+		int y, 
+		SetFormatThread *thread);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+class PlaybackSubtitleNumber : public BC_TumbleTextBox
+{
+public:
+	PlaybackSubtitleNumber(int x, 
+		int y, 
+		SetFormatThread *thread);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+
+class TimeFormatFeetSetting : public BC_TextBox
+{
+public:
+	TimeFormatFeetSetting(SetFormatThread *thread, int x, int y, char *string);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+
+
+class MeterMinDB : public BC_TextBox
+{
+public:
+	MeterMinDB(SetFormatThread *thread, char *text, int x, int y);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
+
+class MeterMaxDB : public BC_TextBox
+{
+public:
+	MeterMaxDB(SetFormatThread *thread, char *text, int x, int y);
+	int handle_event();
+	SetFormatThread *thread;
+};
+
 class SetFormatWindow : public BC_Window
 {
 public:
@@ -229,6 +416,17 @@ public:
 	SetFrameRateTextBox *frame_rate;
 	BC_TextBox *color_model;
 	ScaleAspectAuto *auto_aspect;
+	PlaybackNearest *nearest_neighbor;
+	PlaybackBicubicBicubic *cubic_cubic;
+//	PlaybackBicubicBilinear *cubic_linear;
+//	PlaybackBilinearBilinear *linear_linear;
+//	PlaybackLanczos *lanczos;
+//	PlaybackDeblock *mpeg4_deblock;
+	PlaybackInterpolateRaw *interpolate_raw;
+	PlaybackWhiteBalanceRaw *white_balance_raw;
+//	VideoAsynchronous *asynchronous;
+	MeterMinDB *min_db;
+	MeterMaxDB *max_db;
 };
 
 	

@@ -249,7 +249,7 @@ void CurvesMain::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
 // cause data to be stored directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("CURVES");
 	output.tag.set_property("PLOT", config.plot);
 	output.tag.set_property("SPLIT", config.split);
@@ -281,7 +281,7 @@ void CurvesMain::save_data(KeyFrame *keyframe)
 void CurvesMain::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 	int result = 0;
 	int current_input_mode = 0;
     config.reset(-1, 0);

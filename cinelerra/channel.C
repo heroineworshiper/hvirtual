@@ -113,7 +113,7 @@ void Channel::copy_usage(Channel *channel)
 int Channel::load(FileXML *file)
 {
 	int done = 0;
-	char *text;
+	const char *text;
 
 
 	while(!done)

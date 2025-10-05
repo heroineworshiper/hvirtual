@@ -354,7 +354,7 @@ void Module::update_transition(int64_t current_position,
 
 void Module::dump()
 {
-	printf("  Module title=%s\n", track->title);
+	printf("  Module title=%s\n", track->title.c_str());
 	printf("   Plugins total_attachments=%d\n", total_attachments);
 	for(int i = 0; i < total_attachments; i++)
 	{

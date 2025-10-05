@@ -590,7 +590,7 @@ int Edits::load_edit(FileXML *file,
 				fs.extract_dir(directory, filename);
 				if(!strlen(directory))
 				{
-					fs.extract_dir(edl_directory, file->filename);
+					fs.extract_dir(edl_directory, file->filename.c_str());
 					fs.join_names(directory, edl_directory, filename);
 					strcpy(filename, directory);
 				}

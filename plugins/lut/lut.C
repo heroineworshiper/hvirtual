@@ -298,7 +298,7 @@ int LUTEffect::is_realtime()
 void LUTEffect::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("LUT");
 	output.tag.set_property("PATH", config.path.c_str());
 	output.append_tag();
@@ -308,12 +308,12 @@ void LUTEffect::save_data(KeyFrame *keyframe)
 void LUTEffect::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
     while(!input.read_tag())
     {
         if(input.tag.title_is("LUT"))
         {
-            config.path.assign(input.tag.get_property_text("PATH"));
+            config.path.assign(input.tag.get_value("PATH"));
         }
     }
 }

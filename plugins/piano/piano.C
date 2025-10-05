@@ -82,7 +82,7 @@ void Piano::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 // cause htal file to read directly from text
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 //printf("Piano::read_data %s\n", keyframe->get_data());
 	int result = 0, current_osc = 0, total_oscillators = 0;
@@ -119,7 +119,7 @@ void Piano::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
 // cause htal file to store data directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 
 	output.tag.set_title("SYNTH");
 	output.tag.set_property("WETNESS", config.wetness);

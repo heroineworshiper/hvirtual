@@ -181,7 +181,7 @@ int PatchGUI::update(int x, int y)
 		}
 		else
 		{
-			title->update(track->title);
+			title->update(track->title.c_str());
 		}
 	}
 	else
@@ -740,7 +740,7 @@ TitlePatch::TitlePatch(MWindow *mwindow, PatchGUI *patch, int x, int y)
  		y, 
 		patch->patchbay->get_w() - x - mwindow->theme->widget_border, 
 		1,
-		patch->track->title,
+		patch->track->title.c_str(),
         1)
 {
 	this->mwindow = mwindow;
@@ -750,7 +750,7 @@ TitlePatch::TitlePatch(MWindow *mwindow, PatchGUI *patch, int x, int y)
 int TitlePatch::handle_event()
 {
 	mwindow->undo->update_undo_before(_("track title"), this);
-	strcpy(patch->track->title, get_text());
+	patch->track->title.assign(get_text());
 	mwindow->update_plugin_titles();
 	mwindow->gui->draw_overlays(1, 1);
 	mwindow->undo->update_undo_after(_("track title"), LOAD_PATCHES);

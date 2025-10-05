@@ -226,7 +226,7 @@ void InvertVideoEffect::update_gui()
 void InvertVideoEffect::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("INVERTVIDEO");
 	output.tag.set_property("R", config.r);
 	output.tag.set_property("G", config.g);
@@ -239,7 +239,7 @@ void InvertVideoEffect::save_data(KeyFrame *keyframe)
 void InvertVideoEffect::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 	while(!input.read_tag())
 	{
 		if(input.tag.title_is("INVERTVIDEO"))
@@ -329,7 +329,7 @@ int InvertVideoEffect::process_buffer(VFrame *frame,
 int InvertVideoEffect::handle_opengl()
 {
 #ifdef HAVE_GL
-	static char *invert_frag = 
+	static const char *invert_frag = 
 		"uniform sampler2D tex;\n"
 		"uniform bool do_r;\n"
 		"uniform bool do_g;\n"

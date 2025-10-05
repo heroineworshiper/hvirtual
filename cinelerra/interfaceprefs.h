@@ -83,9 +83,7 @@ public:
 // 	TimeFormatFeet *feet;
 // 	TimeFormatSeconds *seconds;
 
-	MeterMinDB *min_db;
-	MeterMaxDB *max_db;
-	MeterVUDB *vu_db;
+//	MeterVUDB *vu_db;
 //	MeterVUInt *vu_int;
 	ViewBehaviourText *button1, *button2, *button3;
 //	ViewThumbnails *thumbnails;
@@ -116,15 +114,6 @@ public:
 	IndexCount(int x, int y, PreferencesWindow *pwindow, char *text);
 	int handle_event();
 	PreferencesWindow *pwindow;
-};
-
-class LabelText : public BC_TextBox
-{
-public:
-	LabelText(PreferencesWindow *pwindow, int x, int y, int color);
-	int handle_event();
-	PreferencesWindow *pwindow;
-    int color;
 };
 
 // class TimeFormatHMS : public BC_Radial
@@ -190,50 +179,23 @@ public:
 // 	InterfacePrefs *tfwindow;
 // };
 
-class TimeFormatFeetSetting : public BC_TextBox
-{
-public:
-	TimeFormatFeetSetting(PreferencesWindow *pwindow, int x, int y, char *string);
-	int handle_event();
-	PreferencesWindow *pwindow;
-};
-
-
-
-class MeterMinDB : public BC_TextBox
-{
-public:
-	MeterMinDB(PreferencesWindow *pwindow, char *text, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-};
-
-
-class MeterMaxDB : public BC_TextBox
-{
-public:
-	MeterMaxDB(PreferencesWindow *pwindow, char *text, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-};
-
-class MeterVUDB : public BC_Radial
-{
-public:
-	MeterVUDB(PreferencesWindow *pwindow, char *text, int y);
-	int handle_event();
-//	MeterVUInt *vu_int;
-	PreferencesWindow *pwindow;
-};
-
-class MeterVUInt : public BC_Radial
-{
-public:
-	MeterVUInt(PreferencesWindow *pwindow, char *text, int y);
-	int handle_event();
-	MeterVUDB *vu_db;
-	PreferencesWindow *pwindow;
-};
+// class MeterVUDB : public BC_Radial
+// {
+// public:
+// 	MeterVUDB(PreferencesWindow *pwindow, char *text, int y);
+// 	int handle_event();
+// //	MeterVUInt *vu_int;
+// 	PreferencesWindow *pwindow;
+// };
+// 
+// class MeterVUInt : public BC_Radial
+// {
+// public:
+// 	MeterVUInt(PreferencesWindow *pwindow, char *text, int y);
+// 	int handle_event();
+// 	MeterVUDB *vu_db;
+// 	PreferencesWindow *pwindow;
+// };
 
 class ViewBehaviourText : public BC_PopupMenu
 {

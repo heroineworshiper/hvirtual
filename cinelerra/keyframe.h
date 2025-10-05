@@ -26,6 +26,7 @@
 #include "filexml.inc"
 #include "keyframes.inc"
 #include "messages.inc"
+#include <string>
 
 // The default constructor is used for menu effects and pasting effects.
 
@@ -37,6 +38,7 @@ public:
 	virtual ~KeyFrame();
 	
 	void load(FileXML *file);
+    int read_fd(FILE *fd);
 
 // Copy to clipboard
 	void copy(int64_t start, int64_t end, FileXML *file, int default_only);
@@ -55,8 +57,11 @@ public:
 		BC_Hash **params, 
 		char **text, 
 		char **extra);
-	char* get_data();
+	std::string* get_data();
+// copy the text from the source argument
 	void set_data(const char *data);
+    void set_data(std::string *data);
+    void set_data(FileXML *xml);
 
 // Get parameters in a hash table,
 // the anonymous text in a newly allocated string.
@@ -68,7 +73,7 @@ public:
 		char *extra);
 
 private:
-	char data[MESSAGESIZE];
+	std::string data;
 };
 
 #endif

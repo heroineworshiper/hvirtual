@@ -657,6 +657,7 @@ FrameRatePulldown::FrameRatePulldown(MWindow *mwindow,
 {
 	this->mwindow = mwindow;
 	this->output = output;
+    set_tooltip(_("Presets"));
 }
 int FrameRatePulldown::handle_event()
 {
@@ -686,6 +687,7 @@ FrameSizePulldown::FrameSizePulldown(Theme *theme,
 	this->theme = theme;
 	this->output_w = output_w;
 	this->output_h = output_h;
+    set_tooltip(_("Presets"));
 }
 int FrameSizePulldown::handle_event()
 {

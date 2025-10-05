@@ -232,7 +232,7 @@ void VirtualVNode::render_as_plugin(VFrame *frame,
 		printf("%sVirtualVNode::render_as_plugin %d: track='%s' plugin='%s' use_gl=%d frame=%p opengl_state=%d\n", 
 			MWindow::print_indent(),
             __LINE__,
-            track->title,
+            track->title.c_str(),
             real_plugin->title,
 			use_opengl,
             frame,
@@ -393,7 +393,7 @@ int VirtualVNode::render_fade(VFrame *output,
 		printf("%sVirtualVNode::render_fade %d track='%s' fade=%f use_gl=%d\n", 
             MWindow::print_indent(),
             __LINE__,
-            track->title, 
+            track->title.c_str(), 
             intercept,
             use_opengl);
 
@@ -515,12 +515,12 @@ int VirtualVNode::render_projector(VFrame *input,
 	VRender *vrender = ((VirtualVConsole*)vconsole)->vrender;
 	if(vconsole->debug_tree) 
 		printf("  VirtualVNode::render_projector input=%p output=%p cmodel=%d title=%s\n", 
-			input, output, output->get_color_model(), track->title);
+			input, output, output->get_color_model(), track->title.c_str());
     if(MWindow::preferences->dump_playback)
         printf("%sVirtualVNode::render_projector %d track='%s' use_gl=%d\n", 
             MWindow::print_indent(),
             __LINE__,
-			track->title,
+			track->title.c_str(),
             use_opengl);
 
 

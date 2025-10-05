@@ -228,7 +228,7 @@ int LiveAudio::process_buffer(int64_t size,
 		EDLSession *session = PluginClient::get_edlsession();
 		if(session)
 		{
-			fragment_size = session->record_fragment_size;
+			fragment_size = preferences->record_fragment_size;
 			history_channels = preferences->aconfig_in->channels;
 		
 			adevice = new AudioDevice;
@@ -238,7 +238,7 @@ int LiveAudio::process_buffer(int64_t size,
 				get_project_samplerate(), 
 				fragment_size,
 				preferences->aconfig_in->channels,
-				session->real_time_record);
+				preferences->real_time_record);
 			adevice->start_recording();
 			first_buffer = 1;
 			history_position = start_position;

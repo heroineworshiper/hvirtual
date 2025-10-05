@@ -158,7 +158,7 @@ int ThresholdMain::process_buffer(VFrame *frame,
 void ThresholdMain::save_data(KeyFrame *keyframe)
 {
 	FileXML file;
-	file.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	file.set_shared_string(keyframe->get_data());
 	file.tag.set_title("THRESHOLD");
 	file.tag.set_property("MIN", config.min);
 	file.tag.set_property("MAX", config.max);
@@ -170,7 +170,7 @@ void ThresholdMain::save_data(KeyFrame *keyframe)
 void ThresholdMain::read_data(KeyFrame *keyframe)
 {
 	FileXML file;
-	file.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	file.set_shared_string(keyframe->get_data());
 	int result = 0;
 	while(!result)
 	{

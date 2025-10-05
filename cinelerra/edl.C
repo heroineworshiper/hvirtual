@@ -223,6 +223,7 @@ int EDL::load_xml(FileXML *file, uint32_t load_flags)
 	{
 		do{
 		  result = file->read_tag();
+//printf("EDL::load_xml %d %s\n", __LINE__, file->tag.get_title());
 		}while(!result && 
 			!file->tag.title_is("XML") && 
 			!file->tag.title_is("EDL"));

@@ -66,7 +66,7 @@
 
 
 PreferencesMenuitem::PreferencesMenuitem(MWindow *mwindow)
- : BC_MenuItem(_("Preferences..."), "Shift+P", 'P')
+ : BC_MenuItem(_("Global settings..."), "Shift+P", 'P')
 {
 	this->mwindow = mwindow; 
 
@@ -198,16 +198,6 @@ int PreferencesThread::apply_settings()
 		!preferences->brender_asset->equivalent(*mwindow->preferences->brender_asset, 0, 1);
 
 
-    int redraw_labels = 0;
-    for(int i = 0; i < LABEL_COLORS; i++)
-    {
-        if(mwindow->preferences->label_text[i].compare(preferences->label_text[i]))
-        {
-            redraw_labels = 1;
-            break;
-        }
-    }
-
 
 
 	mwindow->edl->copy_session(edl, 1);
@@ -227,36 +217,6 @@ int PreferencesThread::apply_settings()
 // 			_("This project's dimensions are not multiples of 4 so\n"
 // 			"it can't be rendered by OpenGL."));
 // 	}
-
-    if(redraw_labels)
-    {
-        mwindow->gui->put_event([](void *ptr)
-            {
-                MWindow::instance->gui->mbuttons->edit_panel->update_label_text();
-                MWindow::instance->gui->update_timebar(0);
-            },
-            0);
-        mwindow->cwindow->gui->put_event([](void *ptr)
-            {
-                MWindow::instance->cwindow->gui->edit_panel->update_label_text();
-                MWindow::instance->cwindow->gui->timebar->update_labels();
-            },
-            0);
-	    for(int j = 0; j < mwindow->vwindows.size(); j++)
-	    {
-		    VWindow *vwindow = mwindow->vwindows.get(j);
-		    if(vwindow->is_running())
-		    {
-                vwindow->gui->put_event([](void *ptr)
-                    {
-                        VWindow *vwindow = (VWindow*)ptr;
-                        vwindow->gui->edit_panel->update_label_text();
-                        vwindow->gui->timebar->update_labels();
-                    },
-                    vwindow);
-		    }
-	    }
-    }
 
 	if(redraw_meters)
 	{
@@ -389,7 +349,7 @@ PreferencesWindow::PreferencesWindow(MWindow *mwindow,
 	PreferencesThread *thread,
 	int x,
 	int y)
- : BC_Window(PROGRAM_NAME ": Preferences", 
+ : BC_Window(PROGRAM_NAME ": Global settings", 
  	x,
 	y,
  	WIDTH, 

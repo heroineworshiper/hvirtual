@@ -286,7 +286,7 @@ PresetsDBPlugin* PresetsDB::new_plugin(const char *plugin_title)
 
 void PresetsDB::save_preset(const char *plugin_title, 
 	const char *preset_title, 
-	char *data)
+	const char *data)
 {
 	PresetsDBPlugin *plugin = get_plugin(plugin_title);
 	if(!plugin) plugin = new_plugin(plugin_title);
@@ -351,7 +351,7 @@ PresetsDBKeyframe::~PresetsDBKeyframe()
 	delete [] data;
 }
 
-void PresetsDBKeyframe::set_data(char *data)
+void PresetsDBKeyframe::set_data(const char *data)
 {
 	delete [] this->data;
 	this->data = new char[strlen(data) + 1];
@@ -410,9 +410,9 @@ void PresetsDBPlugin::load(FileXML *file, int is_factory)
 				const char *keyframe_title = file->tag.get_property("TITLE", string);
 				PresetsDBKeyframe *keyframe = new PresetsDBKeyframe(keyframe_title, is_factory);
 
-				char data[MESSAGESIZE];
-				file->read_text_until("/KEYFRAME", data, MESSAGESIZE);
-				keyframe->set_data(data);
+				std::string data;
+				file->read_text_until("/KEYFRAME", &data);
+				keyframe->set_data(data.c_str());
 				keyframes.append(keyframe);
 		
 			}

@@ -111,7 +111,9 @@ public:
 // Number of processors for interactive operations.
 	int real_processors;
 
-// Default positions for channels
+// Persistent storage of channel positions for every number of channels
+// so when you select 2 channels, it automatically sets L + R
+// when you select 6 channels, it automatically sets LRCCLR
 	int channel_positions[MAXCHANNELS * MAXCHANNELS];
 
 	Asset *brender_asset;
@@ -163,6 +165,20 @@ public:
 	VideoInConfig *vconfig_in;
 	AudioInConfig *aconfig_in;
 	Asset *recording_format;
+
+// number of frames to write to disk at a time during video recording.
+	int video_write_length;
+// Use software to calculate record position
+	int record_software_position;
+// Sync the drives during recording
+	int record_sync_drives;
+// Samples to read from device at a time
+	int record_fragment_size;
+// Samples to write to disk at a time
+	int64_t record_write_length;
+	int real_time_record;
+
+
 	int view_follows_playback;
 	int playback_software_position;
 // Play audio in realtime priority
@@ -171,7 +187,6 @@ public:
     int scrub_chop;
 // scrubbing speeds.  0.0 is frame advance
     float speed_table[TOTAL_SPEEDS];
-    string label_text[LABEL_COLORS];
 
 // ====================================== Plugin Set ==============================
 	char plugin_dir[BCTEXTLEN];

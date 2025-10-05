@@ -586,7 +586,7 @@ int FileFork::handle_command()
 				sizeof(int) * 2);
 			xml.read_tag();
 // Asset doesn't read the XML path.
-			Asset *new_asset = new Asset(xml.tag.get_property("SRC"));
+			Asset *new_asset = new Asset(xml.tag.get_value("SRC"));
 			new_asset->read(&xml, 1);
 			result = file->can_copy_from(new_asset, 
 				position, 

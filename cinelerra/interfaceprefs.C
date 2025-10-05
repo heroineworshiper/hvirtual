@@ -164,22 +164,12 @@ void InterfacePrefs::create_objects()
 	add_subwindow(bar = new BC_Bar(margin, y, 	get_w() - margin * 2));
 	y += bar->get_h() + margin;
 
-	add_subwindow(title = new BC_Title(x, y, _("Editing"), LARGEFONT, resources->text_default));
+	add_subwindow(title = new BC_Title(x, y, _("Editing (restart required)"), LARGEFONT, resources->text_default));
     y += title->get_h() + margin;
 
     ScrubWindowed *checkbox;
     add_subwindow(checkbox = new ScrubWindowed(pwindow, x, y));
     y += checkbox->get_h() + margin;
-
-	add_subwindow(title = new BC_Title(x1, y, _("Frames per foot:")));
-	x1 += title->get_w() + margin;
-	sprintf(string, "%0.2f", pwindow->thread->edl->session->frames_per_foot);
-	TimeFormatFeetSetting *text;
-    add_subwindow(text = new TimeFormatFeetSetting(pwindow, 
-		x1, 
-		y, 
-		string));
-	y += text->get_h() + margin;
 
 //	y += 35;
 //	add_subwindow(thumbnails = new ViewThumbnails(x, y, pwindow));
@@ -214,20 +204,8 @@ void InterfacePrefs::create_objects()
 // 	text->create_objects();
 
 //	y += DP(40);
-	x1 = x;
-	add_subwindow(title = new BC_Title(x, y + DP(5), _("Min DB for meter:")));
-	x += title->get_w() + margin * 2;
-	sprintf(string, "%d", pwindow->thread->edl->session->min_meter_db);
-	add_subwindow(min_db = new MeterMinDB(pwindow, string, x, y));
-
-	x += min_db->get_w() + margin * 2;
-	add_subwindow(title = new BC_Title(x, y + DP(5), _("Max DB:")));
-	x += title->get_w() + margin * 2;
-	sprintf(string, "%d", pwindow->thread->edl->session->max_meter_db);
-	add_subwindow(max_db = new MeterMaxDB(pwindow, string, x, y));
 
 	x = x1;
-	y += DP(30);
 	ViewTheme *theme_menu;
 	add_subwindow(title = new BC_Title(x, y, _("Theme:")));
 	x += title->get_w() + margin;
@@ -239,7 +217,7 @@ void InterfacePrefs::create_objects()
 	y += theme_menu->get_h() + margin;
 	BC_CheckBox *checkbox2;
 	add_subwindow(checkbox2 = new OverrideDPI(pwindow, x, y));
-	x += checkbox2->get_w() + margin;
+	y += checkbox2->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y + DP(5), _("DPI:")));
 	x += title->get_w() + margin;
     DPIText *text2;
@@ -301,26 +279,6 @@ void InterfacePrefs::create_objects()
     speed->create_objects();
     draw_vframe(theme->get_image("speed_fwd"), x + margin3, y2);
     x = x1;
-
-    y = y2 + max_h + margin;
-	add_subwindow(bar = new BC_Bar(margin, y, get_w() - margin * 2));
-	y += bar->get_h() + margin;
-	add_subwindow(title = new BC_Title(x, y, _("Label text"), LARGEFONT, resources->text_default));
-    y += title->get_h() + margin;
-    for(int i = 0; i < LABEL_COLORS; i++)
-    {
-        if((i % 3) == 0) x = x1;
-        draw_vframe(theme->label_icon[i], x, y);
-        x += theme->label_icon[0]->get_w() + margin;
-        LabelText *text;
-        
-        add_subwindow(text = new LabelText(pwindow, 
-            x, 
-            y, 
-            i));
-        x += text->get_w() + margin;
-        if((i % 3) == 2) y += text->get_h() + margin;
-    }
 }
 
 const char* InterfacePrefs::behavior_to_text(int mode)
@@ -367,8 +325,8 @@ InterfacePrefs::~InterfacePrefs()
 // 	delete frames;
 // 	delete hex;
 // 	delete feet;
-	delete min_db;
-	delete max_db;
+//	delete min_db;
+//	delete max_db;
 //	delete vu_db;
 //	delete vu_int;
 //	delete thumbnails;
@@ -537,33 +495,6 @@ int IndexCount::handle_event()
 //     return 0;
 // }
 
-TimeFormatFeetSetting::TimeFormatFeetSetting(PreferencesWindow *pwindow, int x, int y, char *string)
- : BC_TextBox(x, y, DP(90), 1, string)
-{ this->pwindow = pwindow; }
-
-int TimeFormatFeetSetting::handle_event()
-{
-	pwindow->thread->edl->session->frames_per_foot = atof(get_text());
-	if(pwindow->thread->edl->session->frames_per_foot < 1) pwindow->thread->edl->session->frames_per_foot = 1;
-	return 0;
-}
-
-
-
-
-LabelText::LabelText(PreferencesWindow *pwindow, int x, int y, int color)
- : BC_TextBox(x, y, DP(200), 1, &pwindow->thread->preferences->label_text[color])
-{
-    this->pwindow = pwindow;
-    this->color = color;
-}
-
-int LabelText::handle_event()
-{
-    pwindow->thread->preferences->label_text[color].assign(get_text());
-    return 1;
-}
-
 
 
 
@@ -617,66 +548,35 @@ int ViewBehaviourItem::handle_event()
 
 
 
-MeterMinDB::MeterMinDB(PreferencesWindow *pwindow, char *text, int x, int y)
- : BC_TextBox(x, y, DP(50), 1, text)
-{ 
-	this->pwindow = pwindow; 
-}
 
-int MeterMinDB::handle_event()
-{ 
-	pwindow->thread->redraw_meters = 1;
-	pwindow->thread->edl->session->min_meter_db = atol(get_text()); 
-	return 0;
-}
-
-
-
-
-MeterMaxDB::MeterMaxDB(PreferencesWindow *pwindow, char *text, int x, int y)
- : BC_TextBox(x, y, DP(50), 1, text)
-{ 
-	this->pwindow = pwindow; 
-}
-
-int MeterMaxDB::handle_event()
-{ 
-	pwindow->thread->redraw_meters = 1;
-	pwindow->thread->edl->session->max_meter_db = atol(get_text()); 
-	return 0;
-}
-
-
-
-
-
-MeterVUDB::MeterVUDB(PreferencesWindow *pwindow, char *text, int y)
- : BC_Radial(DP(145), y, pwindow->thread->edl->session->meter_format == METER_DB, text)
-{ 
-	this->pwindow = pwindow; 
-}
-
-int MeterVUDB::handle_event() 
-{ 
-	pwindow->thread->redraw_meters = 1;
-//	vu_int->update(0); 
-	pwindow->thread->edl->session->meter_format = METER_DB; 
-	return 1;
-}
-
-MeterVUInt::MeterVUInt(PreferencesWindow *pwindow, char *text, int y)
- : BC_Radial(DP(205), y, pwindow->thread->edl->session->meter_format == METER_INT, text)
-{ 
-	this->pwindow = pwindow; 
-}
-
-int MeterVUInt::handle_event() 
-{ 
-	pwindow->thread->redraw_meters = 1;
-	vu_db->update(0); 
-	pwindow->thread->edl->session->meter_format = METER_INT; 
-	return 1;
-}
+// 
+// MeterVUDB::MeterVUDB(PreferencesWindow *pwindow, char *text, int y)
+//  : BC_Radial(DP(145), y, pwindow->thread->edl->session->meter_format == METER_DB, text)
+// { 
+// 	this->pwindow = pwindow; 
+// }
+// 
+// int MeterVUDB::handle_event() 
+// { 
+// 	pwindow->thread->redraw_meters = 1;
+// //	vu_int->update(0); 
+// 	pwindow->thread->edl->session->meter_format = METER_DB; 
+// 	return 1;
+// }
+// 
+// MeterVUInt::MeterVUInt(PreferencesWindow *pwindow, char *text, int y)
+//  : BC_Radial(DP(205), y, pwindow->thread->edl->session->meter_format == METER_INT, text)
+// { 
+// 	this->pwindow = pwindow; 
+// }
+// 
+// int MeterVUInt::handle_event() 
+// { 
+// 	pwindow->thread->redraw_meters = 1;
+// 	vu_db->update(0); 
+// 	pwindow->thread->edl->session->meter_format = METER_INT; 
+// 	return 1;
+// }
 
 
 
@@ -766,7 +666,7 @@ ScrubWindowed::ScrubWindowed(PreferencesWindow *pwindow, int x, int y)
  : BC_CheckBox(x, 
  	y, 
 	pwindow->thread->preferences->scrub_chop, 
-	_("Time stretch scrubbing (restart required)"))
+	_("Time stretch scrubbing"))
 {
 	this->pwindow = pwindow;
 }

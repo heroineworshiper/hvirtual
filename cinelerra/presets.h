@@ -36,7 +36,7 @@ public:
 	PresetsDBKeyframe(const char *title, int is_factory);
 	~PresetsDBKeyframe();
 
-	void set_data(char *data);
+	void set_data(const char *data);
 
 	char *title;
 	char *data;
@@ -99,7 +99,7 @@ public:
 	PresetsDBPlugin* new_plugin(const char *plugin_title);
 	void save_preset(const char *plugin_title, 
 		const char *preset_title, 
-		char *data);
+		const char *data);
 	void delete_preset(const char *plugin_title, 
 		const char *preset_title,
 		int is_factory);

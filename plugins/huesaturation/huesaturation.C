@@ -585,7 +585,7 @@ LOAD_CONFIGURATION_MACRO(HueEffect, HueConfig)
 void HueEffect::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("HUESATURATION");
 	output.tag.set_property("HUE", config.hue);
 	output.tag.set_property("SATURATION", config.saturation);
@@ -596,7 +596,7 @@ void HueEffect::save_data(KeyFrame *keyframe)
 void HueEffect::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 	while(!input.read_tag())
 	{
 		if(input.tag.title_is("HUESATURATION"))

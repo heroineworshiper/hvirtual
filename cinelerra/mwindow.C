@@ -2991,7 +2991,7 @@ void MWindow::save_xml(const char *filename, int update_gui, int quit)
 		sprintf(string, 
 			_("\"%s\" %dC written"), 
 			filename, 
-			(int)strlen(file.string));
+			file.get_len());
         if(update_gui) gui->lock_window("MWindow::save_xml 3");
 		gui->show_message(string);
         if(update_gui) gui->unlock_window();
@@ -3071,7 +3071,7 @@ void MWindow::save_clip(const char *filename)
 		sprintf(string, 
 			_("\"%s\" %dC written"), 
 			filename, 
-			(int)strlen(file.string));
+			file.get_len());
         gui->lock_window("MWindow::save_clip 3");
 		gui->show_message(string);
         gui->unlock_window();

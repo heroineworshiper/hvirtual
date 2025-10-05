@@ -272,7 +272,7 @@ public:
 	int get_meter_peak_hold(int divisions);
 
 	int64_t get_playback_buffer();
-	int enable_duplex();
+//	int enable_duplex();
 
 	int realtime;
 	int to_tracks;

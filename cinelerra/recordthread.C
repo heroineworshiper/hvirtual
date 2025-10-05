@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include "file.h"
 #include "mutex.h"
 #include "mwindow.h"
+#include "preferences.h"
 #include "record.h"
 #include "recordaudio.h"
 #include "recordgui.h"
@@ -287,7 +288,7 @@ TRACE("RecordThread::run 3");
 TRACE("RecordThread::run 4");
 				record->open_output_file();
 TRACE("RecordThread::run 5");
-				if(mwindow->edl->session->record_sync_drives)
+				if(mwindow->preferences->record_sync_drives)
 				{
 					drivesync = new DriveSync;
 					drivesync->start();
@@ -310,7 +311,7 @@ TRACE("RecordThread::run 6");
 TRACE("RecordThread::run 7");
 
 				if(record->default_asset->video_data)
-					record->file->start_video_thread(mwindow->edl->session->video_write_length,
+					record->file->start_video_thread(mwindow->preferences->video_write_length,
 						record->vdevice->get_best_colormodel(record->default_asset),
 						RING_BUFFERS,
 						record->vdevice->is_compressed(1, 0));

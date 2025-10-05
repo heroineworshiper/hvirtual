@@ -493,13 +493,14 @@ void BrightTheme::initialize()
 
 
 	new_image("new_bg", "new_bg.png");
-	new_image("setformat_bg", "setformat_bg.png");
+//	new_image("setformat_bg", "setformat_bg.png");
+	new_image("channels_bg", "channels_bg.png");
 
 
 //	timebar_view_data = new_image("timebar_view.png");
 
-	setformat_w = get_image("setformat_bg")->get_w();
-	setformat_h = get_image("setformat_bg")->get_h();
+	setformat_w = DP(600);
+	setformat_h = DP(900);
 	setformat_x1 = DP(15);
 	setformat_x2 = DP(120);
 

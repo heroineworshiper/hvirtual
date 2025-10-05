@@ -337,7 +337,7 @@ void Flanger::save_data(KeyFrame *keyframe)
 	FileXML output;
 
 // cause xml file to store data directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 
 	output.tag.set_title("FLANGER");
 	output.tag.set_property("OFFSET", config.offset);
@@ -357,7 +357,7 @@ void Flanger::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 // cause xml file to read directly from text
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 	int result = 0;
 
 	result = input.read_tag();

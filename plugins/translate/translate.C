@@ -124,7 +124,7 @@ void TranslateMain::save_data(KeyFrame *keyframe)
 	FileXML output;
 
 // cause data to be stored directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 
 // Store data
 	output.tag.set_title("TRANSLATE");
@@ -146,7 +146,7 @@ void TranslateMain::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	int result = 0;
 
@@ -238,7 +238,7 @@ int TranslateMain::process_realtime(VFrame *input_ptr, VFrame *output_ptr)
 			config.out_y + config.out_h,
 			1,
 			TRANSFER_REPLACE,
-			get_interpolation_type());
+			CUBIC_CUBIC /* get_interpolation_type() */);
 
     return 0;
 }

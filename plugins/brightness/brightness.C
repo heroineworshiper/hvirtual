@@ -140,7 +140,7 @@ int BrightnessMain::process_buffer(VFrame *frame,
 int BrightnessMain::handle_opengl()
 {
 #ifdef HAVE_GL
-	static char *brightness_yuvluma_frag = 
+	static const char *brightness_yuvluma_frag = 
 		"uniform sampler2D tex;\n"
 		"uniform float brightness;\n"
 		"uniform float contrast;\n"
@@ -153,7 +153,7 @@ int BrightnessMain::handle_opengl()
 		"	gl_FragColor = yuva;\n"
 		"}\n";
 
-	static char *brightness_yuv_frag = 
+	static const char *brightness_yuv_frag = 
 		"uniform sampler2D tex;\n"
 		"uniform float brightness;\n"
 		"uniform float contrast;\n"
@@ -167,7 +167,7 @@ int BrightnessMain::handle_opengl()
 		"	gl_FragColor = yuva;\n"
 		"}\n";
 
-	static char *brightness_rgb_frag =
+	static const char *brightness_rgb_frag =
 		"uniform sampler2D tex;\n"
 		"uniform float brightness;\n"
 		"uniform float contrast;\n"
@@ -181,7 +181,7 @@ int BrightnessMain::handle_opengl()
 		"	gl_FragColor = rgba;\n"
 		"}\n";
 
-	static char *brightness_rgbluma_frag =
+	static const char *brightness_rgbluma_frag =
 		"uniform sampler2D tex;\n"
 		"uniform float brightness;\n"
 		"uniform float contrast;\n"
@@ -283,7 +283,7 @@ void BrightnessMain::save_data(KeyFrame *keyframe)
 	FileXML output;
 
 // cause data to be stored directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("BRIGHTNESS");
 	output.tag.set_property("BRIGHTNESS", config.brightness);
 	output.tag.set_property("CONTRAST",  config.contrast);
@@ -296,7 +296,7 @@ void BrightnessMain::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	int result = 0;
 

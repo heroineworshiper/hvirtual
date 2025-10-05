@@ -81,7 +81,7 @@ int RecordAudio::arm_recording()
 	record_channels = record->default_asset->channels;
 
 // Realtime is set in the audio driver
-//	if(mwindow->edl->session->real_time_record) Thread::set_realtime();
+//	if(mwindow->preferences->real_time_record) Thread::set_realtime();
 
 	timer.update();
 	trigger_lock->lock("RecordAudio::arm_recording");
@@ -322,7 +322,7 @@ int64_t RecordAudio::sync_position()
 	{
 //printf("RecordAudio::sync_position 1\n");
 		timer_lock->lock("RecordAudio::sync_position");
-		if(!mwindow->edl->session->record_software_position)
+		if(!mwindow->preferences->record_software_position)
 		{
 //printf("RecordAudio::sync_position 1\n");
 			result = record->adevice->current_position();

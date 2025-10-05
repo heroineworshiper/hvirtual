@@ -66,7 +66,7 @@ void MainUndo::update_undo_entry(const char *description,
 
     current->set_modified(mwindow->session->changes_made);
 	current->set_flags(load_flags);
-	current->set_data(file.string);
+	current->set_data(file.get_text());
 	current->set_description((char*)description);
 	current->set_creator(creator);
 	current->set_filename(mwindow->session->filename);

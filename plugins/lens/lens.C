@@ -778,7 +778,7 @@ void LensMain::save_data(KeyFrame *keyframe)
 
 
 // cause data to be stored directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("LENS");
 	for(int i = 0; i < FOV_CHANNELS; i++)
 	{
@@ -803,7 +803,7 @@ void LensMain::read_data(KeyFrame *keyframe)
 	char string[BCTEXTLEN];
 
 
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	int result = 0;
 

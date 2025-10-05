@@ -655,7 +655,7 @@ void DownSampleMain::save_data(KeyFrame *keyframe)
 	FileXML output;
 
 // cause data to be stored directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("DOWNSAMPLE");
 
 	output.tag.set_property("HORIZONTAL", config.horizontal);
@@ -676,7 +676,7 @@ void DownSampleMain::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	int result = 0;
 
@@ -708,7 +708,7 @@ void DownSampleMain::read_data(KeyFrame *keyframe)
 int DownSampleMain::handle_opengl()
 {
 #ifdef HAVE_GL
-	static char *downsample_frag = 
+	static const char *downsample_frag = 
 		"uniform sampler2D tex;\n"
 		"uniform float w;\n"
 		"uniform float h;\n"

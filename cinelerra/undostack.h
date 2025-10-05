@@ -48,7 +48,7 @@ public:
 
 // Must be inserted into the list before calling this, so it can get the
 // previous key buffer.
-	void set_data(char *data);
+	void set_data(const char *data);
 	void set_description(char *description);
 	void set_filename(const char *filename);
 	const char* get_description();

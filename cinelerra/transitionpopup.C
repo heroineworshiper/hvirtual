@@ -300,8 +300,8 @@ int TransitionCopy::handle_event()
 {
     FileXML file;
     transition->save_xml(&file);
-    mwindow->gui->get_clipboard()->to_clipboard(file.string, 
-		strlen(file.string), 
+    mwindow->gui->get_clipboard()->to_clipboard(file.get_text(), 
+		file.get_len(), 
 		ALL_SELECTIONS);
 	return 1;
 }

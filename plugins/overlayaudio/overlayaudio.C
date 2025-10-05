@@ -336,7 +336,7 @@ int OverlayAudio::is_multichannel() { return 1; }
 void OverlayAudio::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	int result = 0;
 	while(!result)
@@ -357,7 +357,7 @@ void OverlayAudio::read_data(KeyFrame *keyframe)
 void OverlayAudio::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 
 	output.tag.set_title("OVERLAY");
 	output.tag.set_property("OUTPUT", config.output_track);

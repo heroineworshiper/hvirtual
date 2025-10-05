@@ -686,7 +686,7 @@ int UndoStackItem::has_data()
 	return data_size ? 1 : 0;
 }
 
-void UndoStackItem::set_data(char *data)
+void UndoStackItem::set_data(const char *data)
 {
 	delete [] this->data;
 	this->data = 0;

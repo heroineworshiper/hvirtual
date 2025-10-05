@@ -27,6 +27,10 @@
 #include "edl.inc"
 #include "filexml.inc"
 #include "maxchannels.h"
+#include "mwindow.inc"
+#include <string>
+
+using std::string;
 
 
 // Session shared between all clips
@@ -131,7 +135,7 @@ public:
 // Editing mode
 	int editing_mode;
 	EDL *edl;
-	int enable_duplex;
+//	int enable_duplex;
 // AWindow format
 	int folderlist_format;
 // frames per second
@@ -166,15 +170,6 @@ public:
 	int decode_subtitles;
 	int subtitle_number;
 //	int playback_strategy;
-	int real_time_record;
-// Use software to calculate record position
-	int record_software_position;
-// Sync the drives during recording
-	int record_sync_drives;
-// Samples to read from device at a time
-	int record_fragment_size;
-// Samples to write to disk at a time
-	int64_t record_write_length;
 // Show title and action safe regions in CWindow
 //	int safe_regions;
     int64_t sample_rate;
@@ -201,11 +196,10 @@ public:
 // decode video asynchronously
 //	int video_asynchronous;
 	int video_tracks;
-// number of frames to write to disk at a time during video recording.
-	int video_write_length;
 // Use the vwindow meter or not
 	int vwindow_meter;
 	float vwindow_zoom;
+    string label_text[LABEL_COLORS];
 
 // Global ID counter
 	static int current_id;

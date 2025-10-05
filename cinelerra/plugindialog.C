@@ -293,7 +293,7 @@ void PluginDialog::create_objects()
 	for(int i = 0; i < plugin_locations.total; i++)
 	{
 		Track *track = mwindow->edl->tracks->number(plugin_locations.values[i]->module);
-		char *track_title = track->title;
+		const char *track_title = track->title.c_str();
 		int number = plugin_locations.values[i]->plugin;
 		Plugin *plugin = track->get_current_plugin(mwindow->edl->local_session->get_selectionstart(1), 
 			number, 
@@ -309,7 +309,7 @@ void PluginDialog::create_objects()
 	for(int i = 0; i < module_locations.total; i++)
 	{
 		Track *track = mwindow->edl->tracks->number(module_locations.values[i]->module);
-		module_data.append(new BC_ListBoxItem(track->title));
+		module_data.append(new BC_ListBoxItem(track->title.c_str()));
 	}
 
 

@@ -119,7 +119,9 @@ void VTrack::set_default_title()
 	{
 		if(current->data_type == TRACK_VIDEO) i++;
 	}
-	sprintf(title, _("Video %d"), i);
+    char temp[BCTEXTLEN];
+	sprintf(temp, _("Video %d"), i);
+    title.assign(temp);
 }
 
 int64_t VTrack::to_units(double position, int round)

@@ -543,8 +543,8 @@ void VWindow::copy()
 			"",
 			1);
 		mwindow->gui->lock_window();
-		mwindow->gui->get_clipboard()->to_clipboard(file.string,
-			strlen(file.string),
+		mwindow->gui->get_clipboard()->to_clipboard(file.get_text(),
+			file.get_len(),
 			ALL_SELECTIONS);
 		mwindow->gui->unlock_window();
 	}

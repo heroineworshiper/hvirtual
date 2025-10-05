@@ -4178,6 +4178,8 @@ void BC_WindowBase::set_background(VFrame *bitmap)
 {
 	if(bg_pixmap && !shared_bg_pixmap) delete bg_pixmap;
 
+    if(!this->pixmap) printf("BC_WindowBase::set_background %d: no pixmap\n", __LINE__);
+
 	bg_pixmap = new BC_Pixmap(this, 
 			bitmap, 
 			PIXMAP_OPAQUE);

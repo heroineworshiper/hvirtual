@@ -25,10 +25,14 @@
 #include "bcwindowbase.inc"
 #include "sizes.h"
 #include <stdio.h>
+#include <string>
+#include <map>
 
 #define MAX_TITLE 1024
 #define MAX_PROPERTIES 1024
 #define MAX_LENGTH 4096
+using std::string;
+using std::multimap;
 
 
 class XMLTag
@@ -40,51 +44,56 @@ public:
 	int set_delimiters(char left_delimiter, char right_delimiter);
 	int reset_tag();     // clear all structures
 
-	int read_tag(char *input, long &position, long length);
+	int read_tag(const char *input, int &position, int length);
 
 	int title_is(const char *title);        // test against title and return 1 if they match
 	char *get_title();
 	int get_title(char *value);
-	int test_property(char *property, char *value);
-	const char *get_property_text(int number);
+//	int test_property(char *property, char *value);
+//	const char *get_property_text(int number);
+// iterate through the raw map data
+    int total_properties();
+	const char *get_key(int number);
+    const char *get_value(int number);
+// get the formatted map data
 	int get_property_int(int number);
 	float get_property_float(int number);
-	char *get_property(const char *property);
+//	char *get_property(const char *property);
 	const char* get_property(const char *property, char *value);
 	int32_t get_property(const char *property, int32_t default_);
 	int64_t get_property(const char *property, int64_t default_);
 //	int get_property(const char *property, int default_);
 	float get_property(const char *property, float default_);
 	double get_property(const char *property, double default_);
-	const char* get_property_text(const char *property);
+	const char* get_value(const char *key);
+	const char* get_property(const char *name, string *value);
 
-	int set_title(const char *text);       // set the title field
-	int set_property(const char *text, const char *value);
-	int set_property(const char *text, int32_t value);
-	int set_property(const char *text, int64_t value);
+	void set_title(const char *text);       // set the title field
+	void set_property(const char *text, const char *value);
+	void set_property(const char *text, int32_t value);
+	void set_property(const char *text, int64_t value);
 //	int set_property(const char *text, int value);
-	int set_property(const char *text, float value);
-	int set_property(const char *text, double value);
+	void set_property(const char *text, float value);
+	void set_property(const char *text, double value);
     int has_property(const char *text);
 	int write_tag();
 
 // encode the special character at the head of the string
 // TODO: move to FileXML
- 	static const char* encode_char(char *temp_string, const char *text);
+ 	static const char* encode_char(char *temp_string, char c);
 
 // convert all the encodings to special characters
     void decode_text(char *text);
 
 	char tag_title[MAX_TITLE];       // title of this tag
 
-	char *tag_properties[MAX_PROPERTIES];      // list of properties for this tag
-	char *tag_property_values[MAX_PROPERTIES];     // values for this tag
 
-	int total_properties;
-	int len;         // current size of the string
+// key, value list of properties for this tag
+    multimap<string, string> properties;
 
-	char string[MAX_LENGTH];
-	char temp_string[32];       // for converting numbers
+    std::string text;
+	char temp1[BCTEXTLEN];
+	char temp2[BCTEXTLEN];
 	char left_delimiter, right_delimiter;
 };
 
@@ -92,24 +101,24 @@ public:
 class FileXML
 {
 public:
-	FileXML(char left_delimiter = '<', char right_delimiter = '>');
+	FileXML();
+	FileXML(char left_delimiter, char right_delimiter);
 	~FileXML();
 
 	void dump();
 	int terminate_string();         // append the terminal 0
 	int append_newline();       // append a newline to string
 	int append_tag();           // append tag object
-	int append_text(const char *text);
 // add generic text to the string
-	int append_text(const char *text, long len);        
+	int append_text(const char *text);
 // append text with special characters
     void encode_text(const char *text);
 
 // read text, put it in *output, and return it
 // decode - decode special characters.
 // Text array is dynamically allocated and deleted when FileXML is deleted
-	char* read_text(int decode = 1);
-	int read_text_until(const char *tag_end, char *output, int max_len);     // store text in output until the tag is reached
+	const char* read_text(int decode = 1);
+	void read_text_until(const char *tag_end, std::string *output);     // store text in output until the tag is reached
 	int read_tag();          // read next tag from file, ignoring any text, and put it in tag
 	// return 1 on failure
 
@@ -118,23 +127,29 @@ public:
 	int read_from_file(const char *filename, int ignore_error = 0);          // read an entire file from disk
 	int read_from_string(char *string);          // read from a string
 
-	int reallocate_string(long new_available);     // change size of string to accommodate new output
-	int set_shared_string(char *shared_string, long available);    // force writing to a message buffer
+// use text object owned by someone else
+    void set_shared_string(std::string *shared_string);
 	int rewind();
 // Get current pointer in the string
-	char* get_ptr();
-
-	char *string;      // string that contains the actual file
-	long position;    // current position in string file
-	long length;      // length of string file for reading - terminating 0
-	long available;    // possible length before reallocation
-	int share_string;      // string is shared between this and a message buffer so don't delete
+	const char* get_ptr();
+// get the string
+    const char* get_text();
+    int get_len();
 
 	XMLTag tag;
-	long output_length;
-	char *output;       // for reading text
+	std::string filename;  // Filename used in the last read_from_file or write_to_file
+
+private:
+	std::string *text;      // string that contains the actual file
+	int shared;      // text object is owned by someone else so don't delete
+	int position;    // current position in text object
+//	long length;      // length of string file for reading - terminating 0
+//	long available;    // possible length before reallocation
+
+    std::string output; // temporary for decoding
+//	char *output;       
+//	long output_length;
 	char left_delimiter, right_delimiter;
-	char filename[MAX_TITLE];  // Filename used in the last read_from_file or write_to_file
 };
 
 #endif

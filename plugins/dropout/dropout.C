@@ -122,7 +122,7 @@ NEW_WINDOW_MACRO(DropoutMain, DropoutWindow)
 void DropoutMain::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("DROPOUT");
 	output.tag.set_property("BALANCE", balance);
 	output.append_tag();
@@ -134,7 +134,7 @@ void DropoutMain::read_data(KeyFrame *keyframe)
 	FileXML input;
 
 //printf("DropoutMain::read_data %d %s\n", __LINE__, keyframe->get_data());
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	while(!input.read_tag())
 	{

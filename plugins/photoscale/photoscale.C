@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2011-2017 Adam Williams <broadcast at earthling dot net>
@@ -408,7 +407,7 @@ int PhotoScaleMain::process_buffer(VFrame *frame,
 			(float)out_y2, 
 			1,
 			TRANSFER_REPLACE,
-			get_interpolation_type());
+			CUBIC_CUBIC /* get_interpolation_type() */);
 		
 	}
 
@@ -442,7 +441,7 @@ void PhotoScaleMain::save_data(KeyFrame *keyframe)
 	FileXML output;
 
 // cause data to be stored directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("PHOTOSCALE");
 	output.tag.set_property("WIDTH", config.width);
 	output.tag.set_property("HEIGHT", config.height);
@@ -455,7 +454,7 @@ void PhotoScaleMain::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	int result = 0;
 

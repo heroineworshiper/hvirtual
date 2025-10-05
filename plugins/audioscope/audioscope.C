@@ -1060,7 +1060,7 @@ LOAD_CONFIGURATION_MACRO(AudioScope, AudioScopeConfig)
 void AudioScope::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	int result = 0;
 	while(!result)
@@ -1089,7 +1089,7 @@ void AudioScope::read_data(KeyFrame *keyframe)
 void AudioScope::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 
 //printf("AudioScope::save_data %d %d %d\n", __LINE__, config.w, config.h);
 	output.tag.set_title("AUDIOSCOPE");

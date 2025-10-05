@@ -98,7 +98,7 @@ int RecordVideo::arm_recording()
 	if(record_thread->monitor)
 		buffer_size = 1;
 	else
-		buffer_size = mwindow->edl->session->video_write_length;
+		buffer_size = mwindow->preferences->video_write_length;
 
 	trigger_lock->lock("RecordVideo::arm_recording");
 	Thread::start();

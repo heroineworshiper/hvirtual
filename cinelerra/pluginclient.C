@@ -739,36 +739,30 @@ void PluginClient::load_defaults_xml()
 	FILE *fd = fopen(path, "r");
 	if(fd)
 	{
-		fseek(fd, 0, SEEK_END);
-		int data_size = ftell(fd);
-		fseek(fd, 0, SEEK_SET);
-		if(data_size < MESSAGESIZE)
-		{
-			int temp = fread(temp_keyframe.get_data(), data_size, 1, fd);
+        temp_keyframe.read_fd(fd);
 // Get window extents
-			char *data = temp_keyframe.get_data();
+		const char *data = temp_keyframe.get_data()->c_str();
+        int data_size = temp_keyframe.get_data()->length();
 //printf("PluginClient::load_defaults_xml %d path=%s data=%s\n", __LINE__, path, data);
-			int state = 0;
-			for(int i = 0; i < data_size - 8; i++)
+		int state = 0;
+		for(int i = 0; i < data_size - 8; i++)
+		{
+			if(data[i] == '<') break;
+			if(isdigit(data[i]))
 			{
-				if(data[i] == '<') break;
-				if(isdigit(data[i]))
+				if(state == 0)
 				{
-					if(state == 0)
-					{
-						window_x = atoi(data + i);
-						state++;
-					}
-					else
-					{
-						window_y = atoi(data + i);
-						break;
-					}
-					while(i < data_size && isdigit(data[i])) i++;
+					window_x = atoi(data + i);
+					state++;
 				}
+				else
+				{
+					window_y = atoi(data + i);
+					break;
+				}
+				while(i < data_size && isdigit(data[i])) i++;
 			}
 		}
-
 		fclose(fd);
 
 
@@ -794,14 +788,17 @@ void PluginClient::save_defaults_xml()
 	{
 		fprintf(fd, "%d\n%d\n", window_x, window_y);
 //printf("PluginClient::save_defaults_xml %d path=%s data=%s\n", __LINE__, path, temp_keyframe.get_data());
-		if(strlen(temp_keyframe.get_data()))
+		if(temp_keyframe.get_data()->length())
 		{
-			if(!fwrite(temp_keyframe.get_data(), strlen(temp_keyframe.get_data()), 1, fd))
+			if(!fwrite(temp_keyframe.get_data()->c_str(), 
+                    temp_keyframe.get_data()->length(), 
+                    1, 
+                    fd))
 			{
 				fprintf(stderr, "PluginClient::save_defaults_xml %d: \"%s\" %d bytes: %s\n",
 					__LINE__,
 					path,
-					(int)strlen(temp_keyframe.get_data()),
+					(int)temp_keyframe.get_data()->length(),
 					strerror(errno));
 			}
 		}

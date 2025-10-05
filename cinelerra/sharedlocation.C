@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -139,7 +138,7 @@ void SharedLocation::calculate_title(char *string,
 		char plugin_title[BCTEXTLEN];
 
 		if(track)
-			strcpy(track_title, track->title);
+			strcpy(track_title, track->title.c_str());
 		else
 			sprintf(track_title, _("None"));
 
@@ -157,7 +156,7 @@ void SharedLocation::calculate_title(char *string,
 		track = edl->tracks->get_item_number(module);
 
 		if(track)
-			strcpy(string, track->title);
+			strcpy(string, track->title.c_str());
 		else
 			sprintf(string, _("None"));
 //printf("SharedLocation::calculate_title %p %s\n", string);

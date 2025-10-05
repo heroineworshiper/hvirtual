@@ -125,7 +125,7 @@ int VirtualANode::read_data(Samples *output_temp,
 		printf("  VirtualANode::read_data position=%lld rate=%lld title=%s parent_node=%p parent_edit=%p\n", 
 				(long long)start_position,
 				(long long)sample_rate,
-				track->title,
+				track->title.c_str(),
 				parent_node,
 				parent_edit);
 

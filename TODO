@@ -7,6 +7,7 @@ https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35k
 
 BIG WISHLIST:
 -----------------------------------
+Dates of contributors
 Sort assets by timeline order
 Make vocodor generate its own passband functions
 pulse audio system dependencies
@@ -18,6 +19,9 @@ Config window for screencap which specifies X & Y offset
 
 BIG BUGS
 -----------------------------------
+After BC_Listbox pulldown is activated, the tooltip breaks
+Empty space in filebox below filter popup
+Fast playback drifts
 ffmpeg command gets stuck when it finishes encoding & prompts for overwrite.
 Reverb artifacts
 Nested EDL index file isn't updated when the nested EDL changes.

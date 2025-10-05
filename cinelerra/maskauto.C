@@ -125,12 +125,11 @@ void SubMask::load(FileXML *file)
 			else
 			if(file->tag.title_is("POINT"))
 			{
-				char string[BCTEXTLEN];
-				string[0] = 0;
-				file->read_text_until("/POINT", string, BCTEXTLEN);
+				std::string text;
+				file->read_text_until("/POINT", &text);
 
 				MaskPoint *point = new MaskPoint;
-				char *ptr = string;
+				const char *ptr = text.c_str();
 //printf("MaskAuto::load 1 %s\n", ptr);
 
 				point->x = atof(ptr);

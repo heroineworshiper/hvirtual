@@ -661,7 +661,7 @@ void PluginAClientLAD::save_data(KeyFrame *keyframe)
 	char string[BCTEXTLEN];
 
 // cause data to be stored directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+//	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
 	output.tag.set_title(lad_to_upper(string, plugin_title()));
 
 	int current_port = 0;
@@ -683,6 +683,9 @@ void PluginAClientLAD::save_data(KeyFrame *keyframe)
 
 	output.append_tag();
 	output.terminate_string();
+
+
+    keyframe->set_data(output.get_text());
 }
 
 void PluginAClientLAD::read_data(KeyFrame *keyframe)
@@ -690,7 +693,7 @@ void PluginAClientLAD::read_data(KeyFrame *keyframe)
 	FileXML input;
 	char string[BCTEXTLEN];
 
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 	config.initialize(server);
 
 	int result = 0;

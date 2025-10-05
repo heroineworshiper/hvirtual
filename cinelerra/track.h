@@ -49,6 +49,7 @@
 #include "transition.inc"
 
 #include <stdint.h>
+#include <string>
 
 // UNITS ARE SAMPLES FOR ALL
 
@@ -206,7 +207,7 @@ public:
 // dragging operations.  This would allow every edit in a column to get dragged
 // simultaneously.
 	int gang;
-	char title[BCTEXTLEN];
+	std::string title;
 	int play;
 	int record;
 // Nudge in track units.  Positive shifts track earlier in time.  This way

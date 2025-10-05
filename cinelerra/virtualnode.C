@@ -81,7 +81,7 @@ void VirtualNode::dump(int indent)
 	PRINT_INDENT
 	printf("VirtualNode %p title=%s real_module=%p %s\n", 
 		this, 
-		track->title,
+		track->title.c_str(),
 		real_module,
 		is_exit ? "*" : " ");
 	if(real_module)

@@ -73,7 +73,7 @@ EDL* NestedEDLs::get_copy(EDL *src)
 	return dst;
 }
 
-EDL* NestedEDLs::get(char *path, int *error)
+EDL* NestedEDLs::get(const char *path, int *error)
 {
 // can go no further
     if(edl->nested_depth >= NESTED_DEPTH)
@@ -166,7 +166,7 @@ int NestedEDLs::load(FileXML *file)
 		else
 		if(file->tag.title_is("NESTED_EDL"))
 		{
-			char *path = file->tag.get_property("SRC");
+			const char *path = file->tag.get_value("SRC");
 //printf("NestedEDLs::load %d %s\n", __LINE__, path);
             EDL *edl = 0;
 			if(path && path[0] != 0)

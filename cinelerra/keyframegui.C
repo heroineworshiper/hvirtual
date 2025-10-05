@@ -267,7 +267,7 @@ void KeyFrameThread::save_preset(const char *title, int is_factory)
     // Send to database
 	    presets_db->save_preset(plugin_title, 
 		    title, 
-		    keyframe->get_data());
+		    keyframe->get_data()->c_str());
 
 	    if(plugin)
 	    {

@@ -537,8 +537,8 @@ int MWindow::copy(double start, double end)
 		1);
 
 // File is now terminated and rewound
-	gui->get_clipboard()->to_clipboard(file.string, 
-		strlen(file.string), 
+	gui->get_clipboard()->to_clipboard(file.get_text(), 
+		file.get_len(), 
 		ALL_SELECTIONS);
 	save_backup();
 	return 0;
@@ -552,8 +552,8 @@ int MWindow::copy_automation()
 		&file,
 		0,
 		1);
-	gui->get_clipboard()->to_clipboard(file.string, 
-		strlen(file.string), 
+	gui->get_clipboard()->to_clipboard(file.get_text(), 
+		file.get_len(), 
 		ALL_SELECTIONS);
 	return 0;
 }
@@ -566,8 +566,8 @@ int MWindow::copy_default_keyframes()
 		&file,
 		1,
 		0);
-	gui->get_clipboard()->to_clipboard(file.string,
-		strlen(file.string),
+	gui->get_clipboard()->to_clipboard(file.get_text(),
+		file.get_len(),
 		ALL_SELECTIONS);
 	return 0;
 }
@@ -608,8 +608,8 @@ void MWindow::copy_keyframe(Auto *auto_)
 	file.append_tag();
     file.append_newline();
     edl->end_auto_copy(&file);
-	gui->get_clipboard()->to_clipboard(file.string,
-		strlen(file.string),
+	gui->get_clipboard()->to_clipboard(file.get_text(),
+		file.get_len(),
 		ALL_SELECTIONS);
 }
 

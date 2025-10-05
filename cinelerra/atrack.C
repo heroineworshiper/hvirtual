@@ -117,7 +117,10 @@ void ATrack::set_default_title()
 	{
 		if(current->data_type == TRACK_AUDIO) i++;
 	}
-	sprintf(title, _("Audio %d"), i);
+    
+    char temp[BCTEXTLEN];
+	sprintf(temp, _("Audio %d"), i);
+    title.assign(temp);
 }
 
 int64_t ATrack::to_units(double position, int round)

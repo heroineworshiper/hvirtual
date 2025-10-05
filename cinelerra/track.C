@@ -62,7 +62,6 @@ Track::Track(EDL *edl, Tracks *tracks) : ListItem<Track>()
 	expand_view = 0;
 	draw = 1;
 	gang = 1;
-	title[0] = 0;
 	record = 1;
 	play = 1;
 	nudge = 0;
@@ -99,7 +98,7 @@ int Track::copy_settings(Track *track)
 	this->play = track->play;
 	this->track_w = track->track_w;
 	this->track_h = track->track_h;
-	strcpy(this->title, track->title);
+	this->title = track->title;
 	return 0;
 }
 
@@ -432,7 +431,7 @@ int Track::load(FileXML *file, int track_offset)
 		else
 		if(file->tag.title_is("TITLE"))
 		{
-			file->read_text_until("/TITLE", title, BCTEXTLEN);
+			file->read_text_until("/TITLE", &title);
 		}
 		else
 		if(automation->load(file))
@@ -973,7 +972,7 @@ void Track::synchronize_params(Track *track)
 int Track::dump()
 {
 	printf("   Data type %d expand_view=%d\n", data_type, expand_view);
-	printf("   Title %s\n", title);
+	printf("   Title %s\n", title.c_str());
 	printf("   Edits:\n");
 	for(Edit* current = edits->first; current; current = NEXT)
 	{
@@ -1223,7 +1222,7 @@ int Track::copy(double start,
 
 	file->tag.set_title("TITLE");
 	file->append_tag();
-	file->append_text(title);
+	file->append_text(title.c_str());
 	file->tag.set_title("/TITLE");
 	file->append_tag();
 	file->append_newline();

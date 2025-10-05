@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -167,7 +166,7 @@ int RotateFrame::get_rightdimensions(VFrame *frame,
 			break; \
  \
         case 180: \
-        	for(int i = 0, j = height - 1; i < j; i++, j--) \
+        	for(int i = 0, j = height - 1; i <= j; i++, j--) \
             { \
             	for(int k = 0, l = width - 1; k < width; k++, l--) \
                 { \

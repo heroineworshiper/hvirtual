@@ -61,7 +61,7 @@ int Assets::load(FileXML *file)
 			else
 			if(file->tag.title_is("ASSET"))
 			{
-				char *path = file->tag.get_property("SRC");
+				const char *path = file->tag.get_value("SRC");
 				if(path && path[0] != 0)
 				{
 					Asset *new_asset = new Asset(path);

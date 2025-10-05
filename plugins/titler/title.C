@@ -3692,7 +3692,7 @@ void TitleMain::save_data(KeyFrame *keyframe)
 #ifdef X_HAVE_UTF8_STRING
 	convert_encoding();
 #endif
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("TITLE");
 	output.tag.set_property("FONT", config.font);
 	output.tag.set_property("ENCODING", config.encoding);
@@ -3737,7 +3737,7 @@ void TitleMain::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	int result = 0;
 	int new_interlace = 0;
@@ -3780,7 +3780,7 @@ void TitleMain::read_data(KeyFrame *keyframe)
 				config.window_w = input.tag.get_property("WINDOW_W", config.window_w);
 				config.window_h = input.tag.get_property("WINDOW_H", config.window_h);
 				config.use_subs = input.tag.get_property("USE_SUBS", config.use_subs);
-				config.subs_path.assign(input.tag.get_property_text("SUBS_PATH"));
+				config.subs_path.assign(input.tag.get_value("SUBS_PATH"));
 				config.text.assign(input.read_text());
 			}
 			else

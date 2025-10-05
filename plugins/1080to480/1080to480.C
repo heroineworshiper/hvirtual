@@ -270,7 +270,7 @@ int _1080to540Main::process_realtime(VFrame *input, VFrame *output)
 void _1080to540Main::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("1080TO540");
 	output.tag.set_property("FIRST_FIELD", config.first_field);
 	output.append_tag();
@@ -280,7 +280,7 @@ void _1080to540Main::save_data(KeyFrame *keyframe)
 void _1080to540Main::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	while(!input.read_tag())
 	{

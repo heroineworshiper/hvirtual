@@ -880,10 +880,10 @@ void Record::get_audio_write_length(int &buffer_size,
 //	CLAMP(fragment_size, 1024, 32768);
 
 // Make sure size written is a multiple of fragment
-	fragment_size = mwindow->edl->session->record_fragment_size;
+	fragment_size = mwindow->preferences->record_fragment_size;
 
 	for(buffer_size = fragment_size; 
-		buffer_size < mwindow->edl->session->record_write_length; 
+		buffer_size < mwindow->preferences->record_write_length; 
 		buffer_size += fragment_size)
 		;
 }
@@ -1092,29 +1092,29 @@ int Record::open_input_devices(int duplex, int context)
 // Configure audio
 	if(adevice)
 	{
-		adevice->set_software_positioning(mwindow->edl->session->record_software_position);
+		adevice->set_software_positioning(mwindow->preferences->record_software_position);
 
 // Initialize full duplex
 // Duplex is only needed if the timeline and the recording have audio
 		if(duplex && mwindow->edl->tracks->playable_audio_tracks())
 		{
 // Case 1: duplex device is identical to input device
-// 			if(AudioInConfig::is_duplex(aconfig_in, mwindow->edl->session->aconfig_duplex))
+// 			if(AudioInConfig::is_duplex(aconfig_in, mwindow->preferences->aconfig_duplex))
 // 			{
-// 			  	adevice->open_duplex(mwindow->edl->session->aconfig_duplex,
+// 			  	adevice->open_duplex(mwindow->preferences->aconfig_duplex,
 // 							default_asset->sample_rate,
 // 							get_in_length(),
-// 							mwindow->edl->session->real_time_playback);
+// 							mwindow->preferences->real_time_playback);
 // 				audio_opened = 1;
 // 			}
 // 			else
 // Case 2: two separate devices
 // 			{
-// 			  	adevice->open_output(mwindow->edl->session->aconfig_duplex,
+// 			  	adevice->open_output(mwindow->preferences->aconfig_duplex,
 // 						default_asset->sample_rate,
-// 						mwindow->edl->session->playback_buffer,
+// 						mwindow->preferences->playback_buffer,
 // 						mwindow->edl->session->audio_channels,
-// 						mwindow->edl->session->real_time_playback);
+// 						mwindow->preferences->real_time_playback);
 // 			}
 		}
 
@@ -1125,7 +1125,7 @@ int Record::open_input_devices(int duplex, int context)
 				default_asset->sample_rate, 
 				get_in_length(),
 				default_asset->channels,
-				mwindow->edl->session->real_time_record);
+				mwindow->preferences->real_time_record);
 			adevice->start_recording();
 		}
 	}
@@ -1296,7 +1296,7 @@ int Record::get_in_length()
 {
 // 	int64_t fragment_size = 1;
 // 	while(fragment_size < default_asset->sample_rate / 
-// 		mwindow->edl->session->record_speed)
+// 		mwindow->preferences->record_speed)
 // 		fragment_size *= 2;
 // 	fragment_size /= 2;
 // 	fragment_size = MAX(fragment_size, 512);
@@ -1306,7 +1306,7 @@ int Record::get_in_length()
 // //printf("Record::get_in_length %d %d\n", __LINE__, fragment_size);
 // 	return fragment_size;
 
-	return mwindow->edl->session->record_fragment_size;
+	return mwindow->preferences->record_fragment_size;
 }
 
 int Record::set_video_picture()
@@ -1408,14 +1408,14 @@ float Record::get_min_db() { return mwindow->edl->session->min_meter_db; }
 int Record::get_rec_mode() { return record_mode; }
 int Record::set_rec_mode(int value) { record_mode = value; return 0; }
 
-int Record::get_video_buffersize() { return mwindow->edl->session->video_write_length; }
+int Record::get_video_buffersize() { return mwindow->preferences->video_write_length; }
 //int Record::get_everyframe() { return MWindow::preferences->video_every_frame; }
 
 int Record::get_out_length() { return mwindow->edl->session->playback_buffer; }
-int Record::get_software_positioning() { return mwindow->edl->session->record_software_position; }
+int Record::get_software_positioning() { return mwindow->preferences->record_software_position; }
 int64_t Record::get_out_buffersize() { return mwindow->edl->session->playback_buffer; }
-int64_t Record::get_in_buffersize() { return mwindow->edl->session->record_write_length; }
+int64_t Record::get_in_buffersize() { return mwindow->preferences->record_write_length; }
 int Record::get_realtime() { return realtime; }
 
-int Record::enable_duplex() { return mwindow->edl->session->enable_duplex; }
+//int Record::enable_duplex() { return mwindow->preferences->enable_duplex; }
 int64_t Record::get_playback_buffer() { return mwindow->edl->session->playback_buffer; }

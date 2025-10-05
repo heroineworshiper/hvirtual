@@ -17,7 +17,7 @@ public:
 // Return copy of the src EDL which belongs to the current object.
 	EDL* get_copy(EDL *src);
 // Return new EDL loaded from path
-	EDL* get(char *path, int *error);
+	EDL* get(const char *path, int *error);
 // search for an EDL based on path
     EDL* search(const char *path);
 	int size();

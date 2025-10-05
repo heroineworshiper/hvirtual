@@ -1030,7 +1030,7 @@ int VModule::render(VFrame *output,
                 MWindow::print_indent(),
 			    __LINE__, 
 			    (long)start_position_project,
-			    track->title,
+			    track->title.c_str(),
 			    use_opengl);
             MWindow::indent -= 2;
         }
@@ -1175,7 +1175,7 @@ int VModule::render(VFrame *output,
             MWindow::print_indent(),
 			__LINE__, 
 			(long)start_position_project,
-			track->title,
+			track->title.c_str(),
 			use_opengl);
     }
 

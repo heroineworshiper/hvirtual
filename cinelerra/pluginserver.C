@@ -232,7 +232,7 @@ void PluginServer::set_title(const char *string)
 void PluginServer::generate_display_title(char *string)
 {
 	if(plugin && plugin->track) 
-		sprintf(string, "%s: %s", plugin->track->title, title);
+		sprintf(string, "%s: %s", plugin->track->title.c_str(), title);
 	else
 		strcpy(string, title);
 }

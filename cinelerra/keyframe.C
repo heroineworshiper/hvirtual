@@ -32,17 +32,27 @@
 KeyFrame::KeyFrame()
  : Auto()
 {
-	data[0] = 0;
 }
 
 KeyFrame::KeyFrame(EDL *edl, KeyFrames *autos)
  : Auto(edl, (Autos*)autos)
 {
-	data[0] = 0;
 }
 
 KeyFrame::~KeyFrame()
 {
+}
+
+int KeyFrame::read_fd(FILE *fd)
+{
+	fseek(fd, 0, SEEK_END);
+	int size = ftell(fd);
+	fseek(fd, 0, SEEK_SET);
+    data.reserve(size + 1);
+    data.resize(size);
+	int temp = fread(&data[0], 1, size, fd);
+	data[size] = 0;
+    return (temp != size);
 }
 
 void KeyFrame::load(FileXML *file)
@@ -52,7 +62,7 @@ void KeyFrame::load(FileXML *file)
 //	position = file->tag.get_property((char*)"POSITION", position);
 //printf("KeyFrame::load 1\n");
 
-	file->read_text_until((char*)"/KEYFRAME", data, MESSAGESIZE);
+	file->read_text_until((char*)"/KEYFRAME", &data);
 //printf("KeyFrame::load 2 data=\n%s\nend of data\n", data);
 }
 
@@ -72,7 +82,7 @@ void KeyFrame::copy(int64_t start, int64_t end, FileXML *file, int default_auto)
 // with new newlines.
 //	file->append_newline();
 
-	file->append_text(data);
+	file->append_text(data.c_str());
 //	file->append_newline();
 
 	file->tag.set_title((char*)"/KEYFRAME");
@@ -90,37 +100,37 @@ void KeyFrame::copy_from(KeyFrame *that)
 {
 	Auto::copy_from(that);
 	KeyFrame *keyframe = (KeyFrame*)that;
-	strcpy(data, keyframe->data);
+	data = keyframe->data;
 	position = keyframe->position;
 }
 
 void KeyFrame::copy_data(KeyFrame *src)
 {
-	strcpy(data, src->data);
+	data = src->data;
 }
 
 int KeyFrame::identical(KeyFrame *src)
 {
-	return !strcasecmp(src->data, data);
+	return !src->data.compare(data);
 }
 
 
 void KeyFrame::get_contents(BC_Hash *ptr, char **text, char **extra)
 {
 	FileXML input;
-	input.set_shared_string(data, strlen(data));
+	input.set_shared_string(&data);
 	int result = 0;
-	char *this_text = 0;
-	char *this_extra = 0;
+	const char *this_text = 0;
+	const char *this_extra = 0;
 	while(!result)
 	{
 		result = input.read_tag();
 		if(!result)
 		{
-			for(int i = 0; i < input.tag.total_properties; i++)
+			for(int i = 0; i < input.tag.total_properties(); i++)
 			{
-				const char *key = input.tag.get_property_text(i);
-				const char *value = input.tag.get_property(key);
+				const char *key = input.tag.get_key(i);
+				const char *value = input.tag.get_value(i);
 				ptr->update(key, value);
 			}
 
@@ -134,6 +144,7 @@ void KeyFrame::get_contents(BC_Hash *ptr, char **text, char **extra)
 			break;
 		}
 	}
+
 }
 
 void KeyFrame::update_parameter(BC_Hash *params, 
@@ -142,7 +153,7 @@ void KeyFrame::update_parameter(BC_Hash *params,
 {
 	FileXML output;
 	FileXML input;
-	input.set_shared_string(get_data(), strlen(get_data()));
+	input.set_shared_string(&data);
 	int result = 0;
 	BC_Hash this_params;
 	char *this_text = 0;
@@ -254,7 +265,7 @@ void KeyFrame::update_parameter(BC_Hash *params,
 
 // Move output to input
 			output.terminate_string();
-			strcpy(this->data, output.string);
+			this->data.assign(output.get_text());
 			break;
 		}
 	}
@@ -270,8 +281,8 @@ void KeyFrame::get_diff(KeyFrame *src,
 	char **extra)
 {
 	const int debug = 0;
-	FileXML input;
-	input.set_shared_string(data, strlen(data));
+//	FileXML input;
+//	input.set_shared_string(data, strlen(data));
 	int result = 0;
 	BC_Hash this_params;
 	char *this_text = 0;
@@ -340,20 +351,33 @@ int KeyFrame::operator==(KeyFrame &that)
 	return identical(&that);
 }
 
-char* KeyFrame::get_data()
+std::string* KeyFrame::get_data()
 {
-	return data;
+	return &data;
 }
 
 void KeyFrame::set_data(const char *data)
 {
-printf("KeyFrame::set_data %d data=%s\n", __LINE__, data);
-	strcpy(this->data, data);
+//printf("KeyFrame::set_data %d data=%s\n", __LINE__, data);
+	this->data.assign(data);
 }
+
+void KeyFrame::set_data(std::string *data)
+{
+    this->data = *data;
+}
+
+void KeyFrame::set_data(FileXML *xml)
+{
+//printf("KeyFrame::set_data %d data=%s\n", __LINE__, data.c_str());
+	this->data.assign(xml->get_text());
+}
+
+
 
 
 void KeyFrame::dump()
 {
 	printf("     position: %lld\n", (long long)position);
-	printf("     data: %s\n", data);
+	printf("     data: %s\n", data.c_str());
 }

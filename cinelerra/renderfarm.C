@@ -485,7 +485,7 @@ void RenderFarmServerThread::run()
 //	delete fs_server;
 }
 
-int RenderFarmServerThread::write_string(char *string)
+int RenderFarmServerThread::write_string(const char *string)
 {
 	int i, len;
 	i = 0;
@@ -537,7 +537,7 @@ void RenderFarmServerThread::send_asset()
 	file.terminate_string();
 
 	write_string(string1);
-	write_string(file.string);
+	write_string(file.get_text());
 	delete [] string1;
 }
 
@@ -554,7 +554,7 @@ void RenderFarmServerThread::send_edl()
 	file.terminate_string();
 //printf("RenderFarmServerThread::send_edl\n%s\n\n", file.string);
 
-	write_string(file.string);
+	write_string(file.get_text());
 //printf("RenderFarmServerThread::send_edl 2\n");
 }
 

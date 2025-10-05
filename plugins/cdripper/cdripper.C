@@ -325,7 +325,7 @@ printf("CDRipMain::process_loop 1\n");
 			fragment_length *= NFRAMES * FRAMESIZE;
 			endofselection = 1;
 		}
-printf("CDRipMain::process_loop 2 %d %d\n", arg.addr.lba, endlba);
+printf("CDRipMain::process_loop 2 %d %d\n", (int)arg.addr.lba, (int)endlba);
 
 		for(i = 0; i < fragment_length; 
 			i += NFRAMES * FRAMESIZE,

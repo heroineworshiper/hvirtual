@@ -231,7 +231,7 @@ void YUVEffect::update_gui()
 void YUVEffect::save_data(KeyFrame *keyframe)
 {
 	FileXML output;
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("YUV");
 	output.tag.set_property("Y", config.y);
 	output.tag.set_property("U", config.u);
@@ -243,7 +243,7 @@ void YUVEffect::save_data(KeyFrame *keyframe)
 void YUVEffect::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 	while(!input.read_tag())
 	{
 		if(input.tag.title_is("YUV"))

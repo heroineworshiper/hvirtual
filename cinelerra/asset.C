@@ -491,7 +491,7 @@ int Asset::read(FileXML *file,
 // Take path of XML file.
 		if(!asset_directory[0])
 		{
-			fs.extract_dir(input_directory, file->filename);
+			fs.extract_dir(input_directory, file->filename.c_str());
 
 // Input file has a path
 			if(input_directory[0])
@@ -524,7 +524,7 @@ int Asset::read(FileXML *file,
 			else
 			if(file->tag.title_is("FORMAT"))
 			{
-				const char *string = file->tag.get_property("TYPE");
+				const char *string = file->tag.get_value("TYPE");
 				format = File::strtoformat(string);
 				use_header = 
 					file->tag.get_property("USE_HEADER", use_header);

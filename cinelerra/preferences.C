@@ -38,6 +38,7 @@
 #include "playbackconfig.h"
 #include "quicktime.h"
 #include "recordconfig.h"
+#include "workarounds.h"
 
 #include <string.h>
 #include <unistd.h>
@@ -130,19 +131,14 @@ Preferences::Preferences()
 	aconfig_in = new AudioInConfig;
 	vconfig_in = new VideoInConfig;
 	recording_format = new Asset;
-    const char* default_label_text[] =
-    {
-        "Render section",
-        "Still frame",
-        "Stopped here",
-        "Edit point",
-        "Bald eagle",
-        "Lion",
-        "Cat",
-        "Dog"
-    };
-    for(int i = 0; i < LABEL_COLORS; i++)
-        label_text[i].assign(default_label_text[i]);
+
+	video_write_length = 30;
+    record_software_position = 1;
+    record_sync_drives = 1;
+    record_fragment_size = 2048;
+    record_write_length = 131072;
+    real_time_record = 0;
+    
 }
 
 Preferences::~Preferences()
@@ -247,6 +243,14 @@ void Preferences::copy_from(Preferences *that)
     memcpy(speed_table, that->speed_table, sizeof(speed_table));
 	recording_format->copy_from(that->recording_format, 0);
 
+	real_time_record = that->real_time_record;
+	record_sync_drives = that->record_sync_drives;
+	record_fragment_size = that->record_fragment_size;
+	record_write_length = that->record_write_length;
+	record_software_position = that->record_software_position;
+	video_write_length = that->video_write_length;
+
+
     dump_playback = that->dump_playback;
     use_gl_rendering = that->use_gl_rendering;
     use_hardware_decoding = that->use_hardware_decoding;
@@ -291,11 +295,6 @@ void Preferences::copy_from(Preferences *that)
 		processors = calculate_processors(0);
 	}
 
-    for(int i = 0; i < LABEL_COLORS; i++)
-    {
-        label_text[i] = that->label_text[i];
-    }
-
 	boundaries();
 }
 
@@ -303,6 +302,7 @@ void Preferences::boundaries()
 {
 	renderfarm_job_count = MAX(renderfarm_job_count, 1);
 	CLAMP(cache_size, MIN_CACHE_SIZE, MAX_CACHE_SIZE);
+	Workarounds::clamp(video_write_length, 1, 1000);
 }
 
 Preferences& Preferences::operator=(Preferences &that)
@@ -387,11 +387,14 @@ int Preferences::load_defaults(BC_Hash *defaults)
 		1,
 		1);
 
-    for(int i = 0; i < LABEL_COLORS; i++)
-    {
-        sprintf(string, "LABEL_TEXT%d", i);
-        defaults->get(string, &label_text[i]);
-    }
+
+	real_time_record = defaults->get("REALTIME_RECORD", real_time_record);
+	record_software_position = defaults->get("RECORD_SOFTWARE_POSITION", record_software_position);
+	record_sync_drives = defaults->get("RECORD_SYNC_DRIVES", record_sync_drives);
+	record_fragment_size = defaults->get("RECORD_FRAGMENT_SIZE", record_fragment_size);
+	record_write_length = defaults->get("RECORD_WRITE_LENGTH", record_write_length);
+	video_write_length = defaults->get("VIDEO_WRITE_LENGTH", video_write_length);
+
 
 //	use_tipwindow = defaults->get("USE_TIPWINDOW", use_tipwindow);
 	override_dpi = defaults->get("OVERRIDE_DPI", override_dpi);
@@ -516,12 +519,6 @@ int Preferences::save_defaults(BC_Hash *defaults)
 //	defaults->update("GLOBAL_PLUGIN_DIR", global_plugin_dir);
 	defaults->update("THEME", theme);
 
-    for(int i = 0; i < LABEL_COLORS; i++)
-    {
-        sprintf(string, "LABEL_TEXT%d", i);
-        defaults->update(string, &label_text[i]);
-    }
-
 	for(int i = 0; i < MAXCHANNELS; i++)
 	{
 		char string2[BCTEXTLEN];
@@ -592,6 +589,16 @@ int Preferences::save_defaults(BC_Hash *defaults)
 		1,
 		1,
 		1);
+
+
+	defaults->update("VIDEO_WRITE_LENGTH", video_write_length);
+    defaults->update("RECORD_SOFTWARE_POSITION", record_software_position);
+	defaults->update("RECORD_SYNC_DRIVES", record_sync_drives);
+	defaults->update("RECORD_FRAGMENT_SIZE", record_fragment_size); 
+	defaults->update("RECORD_WRITE_LENGTH", record_write_length); // Heroine kernel 2.2 scheduling sucks.
+	defaults->update("REALTIME_RECORD", real_time_record);
+
+
 	aconfig_in->save_defaults(defaults);
     vconfig_in->save_defaults(defaults);
 	return 0;

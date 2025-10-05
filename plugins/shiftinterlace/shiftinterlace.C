@@ -279,7 +279,7 @@ void ShiftInterlaceMain::save_data(KeyFrame *keyframe)
 	FileXML output;
 
 // cause data to be stored directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("SHIFTINTERLACE");
 	output.tag.set_property("ODD_OFFSET", config.odd_offset);
 	output.tag.set_property("EVEN_OFFSET", config.even_offset);
@@ -293,7 +293,7 @@ void ShiftInterlaceMain::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	int result = 0;
 

@@ -1290,8 +1290,8 @@ int CompressorCopy::handle_event()
         0,
         0);
     output.terminate_string();
-    popup->get_clipboard()->to_clipboard(output.string, 
-		strlen(output.string), 
+    popup->get_clipboard()->to_clipboard(output.get_text(), 
+		output.get_len(), 
 		ALL_SELECTIONS);
     return 1;
 }

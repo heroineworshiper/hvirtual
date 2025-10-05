@@ -325,17 +325,17 @@ SET_TRACE
 		        PIXMAP_ALPHA);
         }
 
+        subwindow->add_subwindow(label_color = new LabelColor(this, 
+			x1, 
+			y1 + (inpoint->get_h() - BC_PopupMenu::calculate_h()) / 2));
+		label_color->create_objects();
+		x1 += label_color->get_w();
+
 		subwindow->add_subwindow(labelbutton = new EditLabelbutton(mwindow, 
 			this, 
 			x1, 
 			y1));
 		x1 += labelbutton->get_w();
-        
-        subwindow->add_subwindow(label_color = new LabelColor(this, 
-			x1, 
-			y1 + (labelbutton->get_h() - BC_PopupMenu::calculate_h()) / 2));
-		label_color->create_objects();
-		x1 += label_color->get_w();
         
 		subwindow->add_subwindow(prevlabel = new EditPrevLabel(mwindow, 
 			this, 
@@ -1184,7 +1184,7 @@ LabelColor::LabelColor(EditPanel *panel, int x, int y)
 #define LABEL_TOOLTIP _("Label color: ")
     char string[BCTEXTLEN];
     strcpy(string, LABEL_TOOLTIP);
-    strcat(string, MWindow::preferences->label_text[MWindow::session->label_color].c_str());
+    strcat(string, MWindow::instance->edl->session->label_text[MWindow::session->label_color].c_str());
     set_tooltip(string);
 }
 
@@ -1216,13 +1216,13 @@ void LabelColor::update()
     set_icon(panel->label_colors[MWindow::session->label_color]);
     char string[BCTEXTLEN];
     strcpy(string, LABEL_TOOLTIP);
-    strcat(string, MWindow::preferences->label_text[MWindow::session->label_color].c_str());
+    strcat(string, MWindow::instance->edl->session->label_text[MWindow::session->label_color].c_str());
     set_tooltip(string);
 }
 
 
 LabelColorItem::LabelColorItem(LabelColor *popup, int color)
- : BC_MenuItem(MWindow::preferences->label_text[color].c_str())
+ : BC_MenuItem(MWindow::instance->edl->session->label_text[color].c_str())
 {
     this->popup = popup;
     this->color = color;

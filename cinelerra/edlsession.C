@@ -78,11 +78,24 @@ EDLSession::EDLSession(EDL *edl)
 	max_meter_db = -1000;
 	output_w = -1000;
 	output_h = -1000;
-	video_write_length = -1000;
 	color_model = BC_RGB888;
 	decode_subtitles = 0;
 	subtitle_number = 0;
 	cwindow_meter = 0;
+
+    const char* default_label_text[] =
+    {
+        "Render section",
+        "Still frame",
+        "Stopped here",
+        "Edit point",
+        "Bald eagle",
+        "Lion",
+        "Cat",
+        "Dog"
+    };
+    for(int i = 0; i < LABEL_COLORS; i++)
+        label_text[i].assign(default_label_text[i]);
 }
 
 EDLSession::~EDLSession()
@@ -220,7 +233,7 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 //	edit_handle_mode[1] = defaults->get("EDIT_HANDLE_MODE1", MOVE_ONE_EDIT);
 //	edit_handle_mode[2] = defaults->get("EDIT_HANDLE_MODE2", MOVE_NO_EDITS);
 	editing_mode = defaults->get("EDITING_MODE", EDITING_IBEAM);
-	enable_duplex = defaults->get("ENABLE_DUPLEX", 1);
+//	enable_duplex = defaults->get("ENABLE_DUPLEX", 1);
 //	folderlist_format = defaults->get("FOLDERLIST_FORMAT", FOLDERS_TEXT);
 	frame_rate = defaults->get("FRAMERATE", (double)30000.0/1001);
 	frames_per_foot = defaults->get("FRAMES_PER_FOOT", (float)16);
@@ -239,12 +252,6 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	output_h = defaults->get("OUTPUTH", 480);
 	playback_buffer = defaults->get("PLAYBACK_BUFFER", 4096);
 	playback_preload = defaults->get("PLAYBACK_PRELOAD", 0);
-	real_time_record = defaults->get("REALTIME_RECORD", 0);
-	record_software_position = defaults->get("RECORD_SOFTWARE_POSITION", 1);
-	record_sync_drives = defaults->get("RECORD_SYNC_DRIVES", 0);
-//	record_speed = defaults->get("RECORD_SPEED", 24);
-	record_fragment_size = defaults->get("RECORD_FRAGMENT_SIZE", 2048);
-	record_write_length = defaults->get("RECORD_WRITE_LENGTH", 131072);
 	
 	
 
@@ -267,7 +274,6 @@ int EDLSession::load_defaults(BC_Hash *defaults)
 	video_channels = defaults->get("VCHANNELS", 1);
 //	video_asynchronous = defaults->get("VIDEO_ASYNCHRONOUS", 0);
 	video_tracks = defaults->get("VTRACKS", 1);
-	video_write_length = defaults->get("VIDEO_WRITE_LENGTH", 30);
 	vwindow_meter = defaults->get("VWINDOW_METER", 0);
 
 
@@ -278,6 +284,13 @@ int EDLSession::load_defaults(BC_Hash *defaults)
     only_top = defaults->get("ONLY_TOP", only_top);
 
 	vwindow_zoom = defaults->get("VWINDOW_ZOOM", (float)1);
+
+
+    for(int i = 0; i < LABEL_COLORS; i++)
+    {
+        sprintf(string, "LABEL_TEXT%d", i);
+        defaults->get(string, &label_text[i]);
+    }
 	boundaries();
 
 	return 0;
@@ -334,7 +347,7 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 //     defaults->update("EDIT_HANDLE_MODE1", edit_handle_mode[1]);
 //     defaults->update("EDIT_HANDLE_MODE2", edit_handle_mode[2]);
 	defaults->update("EDITING_MODE", editing_mode);
-	defaults->update("ENABLE_DUPLEX", enable_duplex);
+//	defaults->update("ENABLE_DUPLEX", enable_duplex);
 //    defaults->update("FOLDERLIST_FORMAT", folderlist_format);
 	defaults->update("FRAMERATE", frame_rate);
 	defaults->update("FRAMES_PER_FOOT", frames_per_foot);
@@ -354,12 +367,6 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("OUTPUTH", output_h);
     defaults->update("PLAYBACK_BUFFER", playback_buffer);
 	defaults->update("PLAYBACK_PRELOAD", playback_preload);
-	defaults->update("REALTIME_RECORD", real_time_record);
-    defaults->update("RECORD_SOFTWARE_POSITION", record_software_position);
-	defaults->update("RECORD_SYNC_DRIVES", record_sync_drives);
-//	defaults->update("RECORD_SPEED", record_speed);  
-	defaults->update("RECORD_FRAGMENT_SIZE", record_fragment_size); 
-	defaults->update("RECORD_WRITE_LENGTH", record_write_length); // Heroine kernel 2.2 scheduling sucks.
 //	defaults->update("SAFE_REGIONS", safe_regions);
 	defaults->update("SAMPLERATE", sample_rate);
 	defaults->update("SHOW_ASSETS", show_assets);
@@ -378,7 +385,6 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("VCHANNELS", video_channels);
 //    defaults->update("VIDEO_ASYNCHRONOUS", video_asynchronous);
 	defaults->update("VTRACKS", video_tracks);
-	defaults->update("VIDEO_WRITE_LENGTH", video_write_length);
 	defaults->update("VWINDOW_METER", vwindow_meter);
 	defaults->update("VWINDOW_ZOOM", vwindow_zoom);
 
@@ -387,6 +393,12 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 	defaults->update("VIDEO_EVERY_FRAME", video_every_frame);
 	defaults->update("DISABLE_MUTED", disable_muted);
 	defaults->update("ONLY_TOP", only_top);
+
+    for(int i = 0; i < LABEL_COLORS; i++)
+    {
+        sprintf(string, "LABEL_TEXT%d", i);
+        defaults->update(string, &label_text[i]);
+    }
 
 
 	return 0;
@@ -400,6 +412,14 @@ int EDLSession::save_defaults(BC_Hash *defaults)
 
 void EDLSession::boundaries()
 {
+	for(int i = 0; i < MAXCHANNELS; i++)
+	{
+        while(achannel_positions[i] >= 360) 
+            achannel_positions[i] -= 360;
+        while(achannel_positions[i] < 0) 
+            achannel_positions[i] += 360;
+    }
+
 	Workarounds::clamp(proxy_scale, 1, 32);
 	Workarounds::clamp(audio_tracks, 0, (int)BC_INFINITY);
 	Workarounds::clamp(audio_channels, 1, MAXCHANNELS - 1);
@@ -414,7 +434,6 @@ void EDLSession::boundaries()
 	Workarounds::clamp(frames_per_foot, 1, 32);
 	Workarounds::clamp(output_w, 16, (int)BC_INFINITY);
 	Workarounds::clamp(output_h, 16, (int)BC_INFINITY);
-	Workarounds::clamp(video_write_length, 1, 1000);
 //printf("EDLSession::boundaries 1\n");
 // 	output_w /= 2;
 // 	output_w *= 2;
@@ -567,6 +586,13 @@ int EDLSession::load_xml(FileXML *file,
 
 		decode_subtitles = file->tag.get_property("DECODE_SUBTITLES", decode_subtitles);
 		subtitle_number = file->tag.get_property("subtitle_number", subtitle_number);
+
+        for(int i = 0; i < LABEL_COLORS; i++)
+        {
+            sprintf(string, "LABEL_TEXT%d", i);
+            file->tag.get_property(string, &label_text[i]);
+        }
+
 		boundaries();
 	}
 	
@@ -631,6 +657,11 @@ int EDLSession::save_xml(FileXML *file)
 	file->tag.set_property("DECODE_SUBTITLES", decode_subtitles);
 	file->tag.set_property("SUBTITLE_NUMBER", subtitle_number);
 
+    for(int i = 0; i < LABEL_COLORS; i++)
+    {
+        sprintf(string, "LABEL_TEXT%d", i);
+        file->tag.set_property(string, label_text[i].c_str());
+    }
 
 
 	file->append_tag();
@@ -743,7 +774,7 @@ int EDLSession::copy(EDLSession *session)
 //	edit_handle_mode[1] = session->edit_handle_mode[1];
 //	edit_handle_mode[2] = session->edit_handle_mode[2];
 	editing_mode = session->editing_mode;
-	enable_duplex = session->enable_duplex;
+//	enable_duplex = session->enable_duplex;
 	folderlist_format = session->folderlist_format;
 	frame_rate = session->frame_rate;
 	nested_frame_rate = session->nested_frame_rate;
@@ -766,12 +797,7 @@ int EDLSession::copy(EDLSession *session)
 	playback_buffer = session->playback_buffer;
 	playback_cursor_visible = session->playback_cursor_visible;
 	playback_preload = session->playback_preload;
-	real_time_record = session->real_time_record;
 //	record_speed = session->record_speed;
-	record_sync_drives = session->record_sync_drives;
-	record_fragment_size = session->record_fragment_size;
-	record_write_length = session->record_write_length;
-	record_software_position = session->record_software_position;
 //	safe_regions = session->safe_regions;
 	sample_rate = session->sample_rate;
     nested_sample_rate = session->nested_sample_rate;
@@ -789,7 +815,6 @@ int EDLSession::copy(EDLSession *session)
 	video_channels = session->video_channels;
 //	video_asynchronous = session->video_asynchronous;
 	video_tracks = session->video_tracks;
-	video_write_length = session->video_write_length;
 	vwindow_meter = session->vwindow_meter;
 	vwindow_zoom = session->vwindow_zoom;
 	proxy_scale = session->proxy_scale;
@@ -799,6 +824,11 @@ int EDLSession::copy(EDLSession *session)
     video_every_frame = session->video_every_frame;
     disable_muted = session->disable_muted;
     only_top = session->only_top;
+
+    for(int i = 0; i < LABEL_COLORS; i++)
+    {
+        label_text[i] = session->label_text[i];
+    }
 	
 	return 0;
 }

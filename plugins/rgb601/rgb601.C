@@ -89,7 +89,7 @@ void RGB601Main::save_data(KeyFrame *keyframe)
 	FileXML output;
 
 // cause data to be stored directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("RGB601");
 	output.tag.set_property("DIRECTION", config.direction);
 	output.append_tag();
@@ -100,7 +100,7 @@ void RGB601Main::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	int result = 0;
 	float new_threshold;

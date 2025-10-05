@@ -68,7 +68,6 @@ public:
 	static char* strategy_to_string(int strategy);
 	void delete_strategy();
 
-	void update(int interpolation);
 //	int draw_framerate(int flush /* = 1 */);
 
 	ADevicePrefs *audio_device;
@@ -77,19 +76,10 @@ public:
 
 	PlaybackConfig *playback_config;
 //	BC_Title *framerate_title;
-	PlaybackNearest *nearest_neighbor;
-	PlaybackBicubicBicubic *cubic_cubic;
-//	PlaybackBicubicBilinear *cubic_linear;
-//	PlaybackBilinearBilinear *linear_linear;
-//	PlaybackLanczos *lanczos;
-	PlaybackDeblock *mpeg4_deblock;
-	PlaybackInterpolateRaw *interpolate_raw;
-	PlaybackHWDecode *hw_decode;
-    PlaybackFFmpegMov *ffmpeg_mov;
-	PlaybackWhiteBalanceRaw *white_balance_raw;
-//	VideoAsynchronous *asynchronous;
 
 	BC_Title *vdevice_title;
+	PlaybackHWDecode *hw_decode;
+    PlaybackFFmpegMov *ffmpeg_mov;
 };
 
 class PlaybackModuleFragment : public BC_PopupMenu
@@ -142,151 +132,6 @@ public:
 	PreferencesWindow *pwindow;
 };
 
-/*
- * class VideoAsynchronous : public BC_CheckBox
- * {
- * public:
- * 	VideoAsynchronous(PreferencesWindow *pwindow, int x, int y);
- * 	int handle_event();
- * 	PreferencesWindow *pwindow;
- * };
- */
-
-class VideoEveryFrame : public BC_CheckBox
-{
-public:
-	VideoEveryFrame(PreferencesWindow *pwindow, 
-		PlaybackPrefs *playback_prefs,
-		int x, 
-		int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *playback_prefs;
-};
-
-class DisableMutedTracks : public BC_CheckBox
-{
-public:
-	DisableMutedTracks(PreferencesWindow *pwindow, 
-		PlaybackPrefs *playback_prefs,
-		int x, 
-		int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *playback_prefs;
-};
-
-class OnlyTop : public BC_CheckBox
-{
-public:
-	OnlyTop(PreferencesWindow *pwindow, 
-		PlaybackPrefs *playback_prefs,
-		int x, 
-		int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *playback_prefs;
-};
-
-class PlaybackDeblock : public BC_CheckBox
-{
-public:
-	PlaybackDeblock(PreferencesWindow *pwindow, int x, int y);
-	int handle_event();
-	PreferencesWindow *pwindow;
-};
-
-class PlaybackNearest : public BC_Radial
-{
-public:
-	PlaybackNearest(PreferencesWindow *pwindow, PlaybackPrefs *prefs, int value, int x, int y);
-
-	int handle_event();
-
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *prefs;
-};
-
-class PlaybackBicubicBicubic : public BC_Radial
-{
-public:
-	PlaybackBicubicBicubic(PreferencesWindow *pwindow, PlaybackPrefs *prefs, int value, int x, int y);
-
-	int handle_event();
-
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *prefs;
-};
-
-class PlaybackBicubicBilinear : public BC_Radial
-{
-public:
-	PlaybackBicubicBilinear(PreferencesWindow *pwindow, 
-		PlaybackPrefs *prefs, 
-		int value, 
-		int x, 
-		int y);
-
-	int handle_event();
-
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *prefs;
-};
-
-class PlaybackLanczos : public BC_Radial
-{
-public:
-	PlaybackLanczos(PreferencesWindow *pwindow, 
-		PlaybackPrefs *prefs, 
-		int value, 
-		int x, 
-		int y);
-
-	int handle_event();
-
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *prefs;
-};
-
-class PlaybackBilinearBilinear : public BC_Radial
-{
-public:
-	PlaybackBilinearBilinear(PreferencesWindow *pwindow, 
-		PlaybackPrefs *prefs, 
-		int value, 
-		int x, 
-		int y);
-
-	int handle_event();
-
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *prefs;
-};
-
-class PlaybackPreload : public BC_TextBox
-{
-public:
-	PlaybackPreload(int x, 
-		int y, 
-		PreferencesWindow *pwindow, 
-		PlaybackPrefs *playback, 
-		char *text);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *playback;
-};
-
-class PlaybackInterpolateRaw : public BC_CheckBox
-{
-public:
-	PlaybackInterpolateRaw(int x, 
-		int y, 
-		PreferencesWindow *pwindow, 
-		PlaybackPrefs *playback);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *playback;
-};
 
 class PlaybackHWDecode : public BC_CheckBox
 {
@@ -294,7 +139,7 @@ public:
 	PlaybackHWDecode(int x, 
 		int y, 
 		PreferencesWindow *pwindow, 
-		PlaybackPrefs *playback);
+	    PlaybackPrefs *playback);
 	int handle_event();
 	PreferencesWindow *pwindow;
 	PlaybackPrefs *playback;
@@ -306,43 +151,7 @@ public:
 	PlaybackFFmpegMov(int x, 
 		int y, 
 		PreferencesWindow *pwindow, 
-		PlaybackPrefs *playback);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *playback;
-};
-
-class PlaybackWhiteBalanceRaw : public BC_CheckBox
-{
-public:
-	PlaybackWhiteBalanceRaw(int x, 
-		int y, 
-		PreferencesWindow *pwindow, 
-		PlaybackPrefs *playback);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *playback;
-};
-
-class PlaybackSubtitle : public BC_CheckBox
-{
-public:
-	PlaybackSubtitle(int x, 
-		int y, 
-		PreferencesWindow *pwindow, 
-		PlaybackPrefs *playback);
-	int handle_event();
-	PreferencesWindow *pwindow;
-	PlaybackPrefs *playback;
-};
-
-class PlaybackSubtitleNumber : public BC_TumbleTextBox
-{
-public:
-	PlaybackSubtitleNumber(int x, 
-		int y, 
-		PreferencesWindow *pwindow, 
-		PlaybackPrefs *playback);
+	    PlaybackPrefs *playback);
 	int handle_event();
 	PreferencesWindow *pwindow;
 	PlaybackPrefs *playback;

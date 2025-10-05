@@ -2461,7 +2461,7 @@ int File::can_copy_from(Asset *asset,
 		FileXML xml;
 		asset->write(&xml, 1, "");
 		xml.terminate_string();
-		int buffer_size = strlen(xml.string) + 1 + 
+		int buffer_size = xml.get_len() + 1 + 
 			sizeof(int64_t) +
 			sizeof(int) + 
 			sizeof(int);
@@ -2473,8 +2473,8 @@ int File::can_copy_from(Asset *asset,
 			sizeof(int64_t) +
 			sizeof(int) + 
 			sizeof(int), 
-			xml.string, 
-			strlen(xml.string) + 1);
+			xml.get_text(), 
+			xml.get_len() + 1);
 
 		file_fork->send_command(FileFork::CAN_COPY_FROM, 
 			buffer, 

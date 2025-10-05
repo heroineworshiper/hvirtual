@@ -86,7 +86,7 @@ void RecordPrefs::create_objects()
 
 
 	y += video_in_device->get_h() + margin;
-	sprintf(string, "%d", pwindow->thread->edl->session->video_write_length);
+	sprintf(string, "%d", pwindow->thread->preferences->video_write_length);
 
 
 	add_subwindow(title1 = new BC_Title(x, y, _("Frames to record to disk at a time:")));
@@ -112,12 +112,12 @@ void RecordPrefs::create_objects()
 
 	y += DP(27);
 	add_subwindow(new RecordSoftwareTimer(pwindow, 
-		pwindow->thread->edl->session->record_software_position, 
+		pwindow->thread->preferences->record_software_position, 
 		x, 
 		y));
 	y += DP(27);
 	add_subwindow(new RecordSyncDrives(pwindow, 
-		pwindow->thread->edl->session->record_sync_drives, 
+		pwindow->thread->preferences->record_sync_drives, 
 		x, 
 		y));
 	y += DP(35);
@@ -190,7 +190,7 @@ void RecordPrefs::create_objects()
 	x2 = MAX(x2, title3->get_w() + margin);
 
 
-	sprintf(string, "%ld", (long)pwindow->thread->edl->session->record_fragment_size);
+	sprintf(string, "%ld", (long)pwindow->thread->preferences->record_fragment_size);
 	RecordFragment *menu;
 	add_subwindow(menu = new RecordFragment(x2,
 		y,
@@ -209,7 +209,7 @@ void RecordPrefs::create_objects()
 	menu->add_item(new BC_MenuItem("262144"));
 
 
-	sprintf(string, "%ld", pwindow->thread->edl->session->record_write_length);
+	sprintf(string, "%ld", pwindow->thread->preferences->record_write_length);
 	add_subwindow(textbox = new RecordWriteLength(mwindow, 
 		pwindow, 
 		x2, 
@@ -233,7 +233,7 @@ void RecordPrefs::create_objects()
 		pwindow, 
 		x, 
 		y, 
-		pwindow->thread->edl->session->real_time_record));
+		pwindow->thread->preferences->real_time_record));
 	y += DP(45);
 
 
@@ -297,7 +297,7 @@ RecordFragment::RecordFragment(int x,
 
 int RecordFragment::handle_event() 
 {
-	pwindow->thread->edl->session->record_fragment_size = atol(get_text()); 
+	pwindow->thread->preferences->record_fragment_size = atol(get_text()); 
 	return 1;
 }
 
@@ -315,7 +315,7 @@ RecordWriteLength::RecordWriteLength(MWindow *mwindow, PreferencesWindow *pwindo
 
 int RecordWriteLength::handle_event()
 { 
-	pwindow->thread->edl->session->record_write_length = atol(get_text());
+	pwindow->thread->preferences->record_write_length = atol(get_text());
 	return 1; 
 }
 
@@ -336,7 +336,7 @@ RecordRealTime::RecordRealTime(MWindow *mwindow,
 
 int RecordRealTime::handle_event()
 {
-	pwindow->thread->edl->session->real_time_record = get_value();
+	pwindow->thread->preferences->real_time_record = get_value();
     return 0;
 }
 
@@ -359,7 +359,7 @@ int RecordSampleRate::handle_event()
 // 
 // int DuplexEnable::handle_event()
 // {
-// 	pwindow->thread->edl->session->enable_duplex = get_value();
+// 	pwindow->thread->preferences->enable_duplex = get_value();
 // }
 // 
 
@@ -427,7 +427,7 @@ VideoWriteLength::VideoWriteLength(PreferencesWindow *pwindow, char *text, int x
 
 int VideoWriteLength::handle_event()
 { 
-	pwindow->thread->edl->session->video_write_length = atol(get_text()); 
+	pwindow->thread->preferences->video_write_length = atol(get_text()); 
 	return 1;
 }
 
@@ -484,7 +484,7 @@ RecordSoftwareTimer::RecordSoftwareTimer(PreferencesWindow *pwindow, int value, 
 
 int RecordSoftwareTimer::handle_event() 
 {
-	pwindow->thread->edl->session->record_software_position = get_value(); 
+	pwindow->thread->preferences->record_software_position = get_value(); 
 	return 1;
 }
 
@@ -498,7 +498,7 @@ RecordSyncDrives::RecordSyncDrives(PreferencesWindow *pwindow, int value, int x,
 
 int RecordSyncDrives::handle_event() 
 {
-	pwindow->thread->edl->session->record_sync_drives = get_value(); 
+	pwindow->thread->preferences->record_sync_drives = get_value(); 
 	return 1;
 }
 

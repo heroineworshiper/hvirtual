@@ -470,7 +470,7 @@ void BackgroundMain::save_data(KeyFrame *keyframe)
 	FileXML output;
 
 // cause data to be stored directly in text
-	output.set_shared_string(keyframe->get_data(), MESSAGESIZE);
+	output.set_shared_string(keyframe->get_data());
 	output.tag.set_title("BACKGROUND");
 
 	output.tag.set_property("R", config.r);
@@ -486,7 +486,7 @@ void BackgroundMain::read_data(KeyFrame *keyframe)
 {
 	FileXML input;
 
-	input.set_shared_string(keyframe->get_data(), strlen(keyframe->get_data()));
+	input.set_shared_string(keyframe->get_data());
 
 	while(!input.read_tag())
 	{
