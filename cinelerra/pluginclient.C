@@ -1128,6 +1128,7 @@ int PluginClient::send_configure_change()
 		server->mwindow->undo->update_undo_before("tweek", this);
 
 // Call save routine in plugin
+    keyframe->get_data()->clear();
 	save_data(keyframe);
 
 #endif

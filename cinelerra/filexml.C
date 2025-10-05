@@ -94,7 +94,12 @@ int FileXML::append_tag()
 
 int FileXML::append_text(const char *text)
 {
+// started writing to a string that wasn't empty
+    if(!this->text->empty() && position == 0) this->text->clear();
+
     this->text->append(text);
+    position += strlen(text);
+    
 	return 0;
 }
 
@@ -230,6 +235,7 @@ void FileXML::read_text_until(const char *tag_end, std::string *output)
 	int result = 0;
 	
     int length = text->length();
+    output->clear();
 	while(!result && position < length)
 	{
 		while(position < length && text->at(position) != left_delimiter)

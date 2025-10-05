@@ -92,7 +92,7 @@ void PanAuto::copy_from(Auto *that, int use_default)
 {
 	Auto::copy_from(that, use_default);
 
-	PanAuto *pan_auto = (PanAuto*)that;
+	PanAuto *pan_auto = dynamic_cast<PanAuto*>(that);
 	memcpy(this->values, pan_auto->values, MAXCHANNELS * sizeof(float));
 	this->handle_x = pan_auto->handle_x;
 	this->handle_y = pan_auto->handle_y;

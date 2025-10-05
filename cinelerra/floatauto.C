@@ -105,7 +105,7 @@ void FloatAuto::to_locked()
 
 void FloatAuto::copy_from(Auto *that, int use_default)
 {
-	copy_from((FloatAuto*)that, use_default);
+	copy_from(dynamic_cast<FloatAuto*>(that), use_default);
 }
 
 void FloatAuto::copy_from(FloatAuto *that, int use_default)

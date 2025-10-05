@@ -1260,6 +1260,7 @@ int PluginServer::set_automation(FloatAutos *autos, FloatAuto **start_auto, Floa
 void PluginServer::save_data(KeyFrame *keyframe)
 {
 	if(!plugin_open) return;
+    keyframe->get_data()->clear();
 	client->save_data(keyframe);
 }
 

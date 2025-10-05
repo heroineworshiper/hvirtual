@@ -93,7 +93,7 @@ void KeyFrame::copy(int64_t start, int64_t end, FileXML *file, int default_auto)
 
 void KeyFrame::copy_from(Auto *that, int use_default)
 {
-	copy_from((KeyFrame*)that, use_default);
+	copy_from(dynamic_cast<KeyFrame*>(that), use_default);
 }
 
 void KeyFrame::copy_from(KeyFrame *that, int use_default)

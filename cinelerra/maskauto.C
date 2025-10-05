@@ -297,7 +297,7 @@ void MaskAuto::update_parameter(MaskAuto *ref, MaskAuto *src)
 
 void MaskAuto::copy_from(Auto *src, int use_default)
 {
-	copy_from((MaskAuto*)src, use_default);
+	copy_from(dynamic_cast<MaskAuto*>(src), use_default);
 }
 
 void MaskAuto::copy_from(MaskAuto *src, int use_default)

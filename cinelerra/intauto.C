@@ -71,7 +71,7 @@ void IntAuto::copy(int64_t start, int64_t end, FileXML *file, int default_auto)
 
 void IntAuto::copy_from(Auto *that, int use_default)
 {
-	copy_from((IntAuto*)that, use_default);
+	copy_from(dynamic_cast<IntAuto*>(that), use_default);
 //printf("IntAuto::copy_from(Auto *that) %d\n", value);
 }
 
