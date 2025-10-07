@@ -505,6 +505,8 @@ int Edits::load(FileXML *file, int track_offset)
 	do{
 		result = file->read_tag();
 
+printf("Edits::load %d %s\n", __LINE__, file->tag.get_title());
+
 		if(!result)
 		{
 			if(!strcmp(file->tag.get_title(), "EDIT"))
@@ -559,6 +561,7 @@ int Edits::load_edit(FileXML *file,
 	do{
 		result = file->read_tag();
         if(result) break;
+//printf("Edits::load_edit %d tag=%s\n", __LINE__, file->tag.get_title());
 		if(file->tag.title_is("NESTED_EDL"))
 		{
 			char path[BCTEXTLEN];
@@ -595,6 +598,8 @@ int Edits::load_edit(FileXML *file,
 					strcpy(filename, directory);
 				}
 				current->asset = edl->assets->get_asset(filename);
+printf("Edits::load_edit %d filename=%s asset=%p\n", 
+__LINE__, filename, current->asset);
 			}
 			else
 			{

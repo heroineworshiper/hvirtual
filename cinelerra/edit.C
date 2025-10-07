@@ -394,6 +394,8 @@ int Edit::load_properties(FileXML *file, int64_t &startproject)
 	file->tag.get_property("USER_TITLE", user_title);
 	this->startproject = startproject;
 	load_properties_derived(file);
+// printf("Edit::load_properties %d\n", __LINE__);
+// dump();
 	return 0;
 }
 

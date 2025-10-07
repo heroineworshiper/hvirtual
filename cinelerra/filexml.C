@@ -442,8 +442,14 @@ int XMLTag::write_tag()
 		for(int j = 0; j < len; j++)
 		{
             const char *encoded = encode_char(temp1, i->second.at(j));
+//if(encoded[0] == '&') 
+//    printf("XMLTag::write_tag %d %s\n", __LINE__, encoded);
             text.append(encoded);
 		}
+//printf("XMLTag::write_tag %d %s %s\n", 
+//__LINE__, i->second.c_str(), text.c_str());
+
+
 // add a quote
 		if(need_quote) text.push_back('\"');
 	}     // next property
@@ -800,11 +806,12 @@ void XMLTag::set_property(const char *key, const char *value)
 
 const char* XMLTag::encode_char(char *temp_string, char c)
 {
-    const char newline[] = "&#xA";
-	const char leftb[] = "&lt;";
-	const char rightb[] = "&gt;";
-	const char amp[] = "&amp;";
-    const char quote[] = "&quot;";
+// g++ doesn't properly set const char x[] array declarations
+    const char *newline = "&#xA";
+	const char *leftb = "&lt;";
+	const char *rightb = "&gt;";
+	const char *amp = "&amp;";
+    const char *quote = "&quot;";
 	const char *replacement = 0;
 
 	switch (c) {
@@ -816,10 +823,7 @@ const char* XMLTag::encode_char(char *temp_string, char c)
 		default: replacement = 0; break;
 	}
 
-	if (replacement)
-	{
-		return replacement;
-	}
+	if(replacement) return replacement;
     
     
     temp_string[0] = c;

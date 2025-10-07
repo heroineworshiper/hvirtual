@@ -178,7 +178,7 @@ Asset* Assets::get_asset(const char *filename)
 
 	while(current)
 	{
-//printf("Assets::get_asset %p %s\n", filename, filename);
+printf("Assets::get_asset %d %s %s\n", __LINE__, filename, current->path);
 		if(current->test_path(filename))
 		{
 			result = current;
