@@ -1928,6 +1928,7 @@ int BC_WindowBase::hide_tooltip()
 		tooltip_on = 0;
 		delete tooltip_popup;
 		tooltip_popup = 0;
+        tooltip_done = 0;
 	}
 	return 0;
 }

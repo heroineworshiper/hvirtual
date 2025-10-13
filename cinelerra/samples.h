@@ -42,6 +42,7 @@ public:
 
 	void reset();
 	void clear_objects();
+    void clear();
 	void share(int shmid);
 	void allocate(int samples, int use_shm);
 // Get the buffer

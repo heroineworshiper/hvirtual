@@ -255,7 +255,7 @@ int BC_FileBoxListBox::evaluate_query(char *string)
 BC_FileBoxTextBox::BC_FileBoxTextBox(int x, int y, BC_FileBox *filebox)
  : BC_TextBox(x, 
  	y, 
-	filebox->get_w() - DP(20), 
+	filebox->get_w() - BC_Resources::theme->widget_border - x, 
 	1, 
 	filebox->want_directory ?
 		filebox->directory :
@@ -290,7 +290,10 @@ int BC_FileBoxTextBox::handle_event()
 BC_FileBoxFilterText::BC_FileBoxFilterText(int x, int y, BC_FileBox *filebox)
  : BC_TextBox(x, 
  	y, 
-	filebox->get_w() - DP(50), 
+	filebox->get_w() - 
+        x - 
+        BC_Resources::theme->widget_border -
+        BC_WindowBase::get_resources()->listbox_button[0]->get_w(), 
 	1, 
 	filebox->get_resources()->filebox_filter)
 {
@@ -719,11 +722,11 @@ BC_FileBox::BC_FileBox(int x,
 	}
 
 
-	if(h_padding == -1)
-	{
-		h_padding = BC_WindowBase::get_resources()->ok_images[0]->get_h() - 
-			20;
-	}
+// 	if(h_padding == -1)
+// 	{
+// 		h_padding = BC_WindowBase::get_resources()->ok_images[0]->get_h() - 
+// 			20;
+// 	}
 	this->h_padding = h_padding;
 	delete_thread = new BC_DeleteThread(this);
 
@@ -901,8 +904,12 @@ void BC_FileBox::calculate_sizes(int window_w, int window_h)
     list_x = 0;
     list_y = y;
     list_w = window_w;
+    int text_h = BC_TextBox::calculate_h(this, MEDIUMFONT, 1, 1);
 	list_h = window_h - 
 		y - 
+        text_h - margin -
+        (!want_directory ? text_h + margin : 0) -
+        BC_OKButton::calculate_h() - margin -
 		h_padding;
 
 	if(want_directory)
@@ -965,7 +972,7 @@ int BC_FileBox::resize_event(int w, int h)
 // 	cancel_button->reposition_window(w - (get_w() - cancel_button->get_x()), 
 // 		h - (get_h() - cancel_button->get_y()));
 	if(usethis_button)
-		usethis_button->reposition_window(w / 2 - DP(50), 
+		usethis_button->reposition_window(w / 2 - usethis_button->get_w() / 2, 
 			h - (get_h() - usethis_button->get_y()));
 
 

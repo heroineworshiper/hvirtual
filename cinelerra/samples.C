@@ -28,6 +28,7 @@
 #include "clip.h"
 #include "samples.h"
 #include <stdio.h>
+#include <string.h>
 #include <sys/shm.h>
 #include <unistd.h>
 
@@ -85,6 +86,11 @@ void Samples::clear_objects()
 	}
 
 	reset();
+}
+
+void Samples::clear()
+{
+    if(data) bzero(data, allocated * sizeof(double));
 }
 
 

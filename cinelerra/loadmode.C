@@ -112,7 +112,7 @@ int LoadMode::calculate_w(BC_WindowBase *gui,
 	int use_nested)
 {
 	int margin = theme->widget_border;
-	int total = gui->get_text_width(MEDIUMFONT, _("Load mode:")) + margin;
+	int total = gui->get_text_width(MEDIUMFONT, _("Load mode:")) /* + margin */;
 	for(int i = 0; i < TOTAL_LOADMODES; i++)
 	{
 		if((i != LOADMODE_NOTHING || use_none) &&
@@ -140,7 +140,7 @@ int LoadMode::calculate_w(BC_WindowBase *gui,
 				&text_w,
 				&text_h, 
 				0);
-			total += w + margin;
+			total += w /* + margin */;
 		}
 	}
 	return total;
@@ -160,7 +160,7 @@ void LoadMode::create_objects()
 	int margin = mwindow->theme->widget_border;
 
 	window->add_subwindow(title = new BC_Title(x, y, _("Load Mode:")));
-	x += title->get_w() + margin;
+	x += title->get_w() /* + margin */;
 	int x1 = x;
 	for(int i = 0; i < TOTAL_LOADMODES; i++)
 	{
@@ -179,7 +179,7 @@ void LoadMode::create_objects()
 				i, 
 				mode_images[i],
 				tooltips[i]));
-			x += mode[i]->get_w() + margin;
+			x += mode[i]->get_w() /* + margin */;
 		}
 	}
 
@@ -226,7 +226,7 @@ int LoadMode::reposition_window(int x, int y)
 	this->x = x;
 	this->y = y;
 	title->reposition_window(x, y);
-	x += title->get_w() + margin;
+	x += title->get_w() /* + margin */;
 	int x1 = x;
 	for(int i = 0; i < TOTAL_LOADMODES; i++)
 	{
@@ -239,7 +239,7 @@ int LoadMode::reposition_window(int x, int y)
 // 				y += images[0]->get_h() + margin;
 // 			}
 			mode[i]->reposition_window(x, y);
-			x += mode[i]->get_w() + margin;
+			x += mode[i]->get_w() /* + margin */;
 		}
 	}
 

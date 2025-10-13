@@ -25,6 +25,7 @@
 #include "arender.inc"
 #include "filethread.inc"     // RING_BUFFERS
 #include "samples.inc"
+#include "timestretch.inc"
 #include "virtualconsole.h"
 
 class VirtualAConsole : public VirtualConsole
@@ -55,12 +56,8 @@ public:
 // Temporary for audio rendering.  This stores each track's output before it is
 // mixed into the device buffer.
 	Samples *output_temp;
-// temporaries for crossfading fast forward buffers
-    Samples *chopper_buf[MAX_CHANNELS];
-    double chopper_count[MAX_CHANNELS];
-// temporaries for interpolating fast forward
-    double fastfwd_accum[MAX_CHANNELS];
-    double fastfwd_count[MAX_CHANNELS];
+
+    TimeStretch *stretch[MAX_CHANNELS];
 
 	ARender *arender;
 };

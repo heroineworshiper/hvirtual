@@ -143,9 +143,6 @@ void SUV::initialize()
 	resources->listbox_bg = 0;
 	resources->listbox_text = 0xbfbfbf;
 
-	resources->filebox_margin = DP(130);
-	resources->file_color = 0xbfbfbf;
-	resources->directory_color = 0xa0a0ff;
 
 
 	new_toggle("loadmode_new.png", 
@@ -292,7 +289,7 @@ void SUV::initialize()
 // 		"colon.png",
 // 		"period.png",
 // 		"a.png",
-// 		"b.png",
+// 		"b.png""ok,
 // 		"c.png",
 // 		"d.png",
 // 		"e.png",
@@ -508,9 +505,6 @@ void SUV::initialize()
 	setformat_channels_y = DP(242);
 	setformat_channels_w = DP(250);
 	setformat_channels_h = DP(250);
-
-	loadfile_pad = get_image_set("loadmode_new")[0]->get_h() + 10;
-	browse_pad = DP(20);
 
 
 	new_toggle("playpatch.png", 
@@ -762,6 +756,19 @@ void SUV::initialize()
 
 
 	flush_images();
+
+    resources->dirbox_margin = 0;
+	resources->filebox_margin = 0;
+	resources->file_color = 0xbfbfbf;
+	resources->directory_color = 0xa0a0ff;
+
+// extra height between loadmode block & OK button
+	loadfile_pad = resources->checkbox_images[0]->get_h() + 
+        widget_border * 3 +
+        get_image_set("loadmode_new")[0]->get_h() -
+        resources->ok_images[0]->get_h();
+	browse_pad = 0;
+
 
 //	title_font = MEDIUMFONT_3D;
 	title_font = MEDIUMFONT;

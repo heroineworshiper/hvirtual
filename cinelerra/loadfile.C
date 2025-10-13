@@ -202,8 +202,10 @@ void LoadFileWindow::create_objects()
     int margin = mwindow->theme->widget_border;
 	int x = get_w() / 2 - 
 		LoadMode::calculate_w(this, mwindow->theme, 0, 1) / 2;
-	int y = get_cancel_button()->get_y() - 
-		LoadMode::calculate_h(this, mwindow->theme);
+	int y = get_h() - 
+		LoadMode::calculate_h(this, mwindow->theme) -
+        BC_CheckBox::calculate_h(this) - 
+        margin * 2;
 	loadmode = new LoadMode(mwindow, this, x, y, &thread->load_mode, 0, 1);
 	loadmode->create_objects();
     y += loadmode->get_h() + margin;
@@ -216,13 +218,12 @@ void LoadFileWindow::create_objects()
 int LoadFileWindow::resize_event(int w, int h)
 {
 //	int x = w / 2 - DP(200);
-	int x = w / 2 - 
-		LoadMode::calculate_w(this, mwindow->theme, 0, 1) / 2;
-	int y = get_cancel_button()->get_y() - 
-		LoadMode::calculate_h(this, mwindow->theme);
     int margin = mwindow->theme->widget_border;
 	draw_background(0, 0, w, h);
 
+	int x = w / 2 - 
+		LoadMode::calculate_w(this, mwindow->theme, 0, 1) / 2;
+	int y = h - (get_h() - loadmode->get_y());
 	loadmode->reposition_window(x, y);
     y += loadmode->get_h() + margin;
     conform->reposition_window(x, y);

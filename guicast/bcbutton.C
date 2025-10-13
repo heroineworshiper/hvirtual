@@ -297,8 +297,8 @@ int BC_OKButton::handle_event()
 
 int BC_OKButton::resize_event(int w, int h)
 {
-	reposition_window(10,
-		h - BC_WindowBase::get_resources()->cancel_images[0]->get_h() - 10);
+	reposition_window(get_x(),
+		h - (get_parent()->get_h() - get_y()));
 	return 1;
 }
 
@@ -373,8 +373,8 @@ int BC_CancelButton::handle_event()
 
 int BC_CancelButton::resize_event(int w,int h)
 {
-	reposition_window(w - BC_WindowBase::get_resources()->cancel_images[0]->get_w() - 10, 
-	 	h - BC_WindowBase::get_resources()->cancel_images[0]->get_h() - 10);
+	reposition_window(w - (get_parent()->get_w() - get_x()), 
+	 	h - (get_parent()->get_h() - get_y()));
 	return 1;
 }
 

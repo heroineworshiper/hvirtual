@@ -806,12 +806,12 @@ void XMLTag::set_property(const char *key, const char *value)
 
 const char* XMLTag::encode_char(char *temp_string, char c)
 {
-// g++ doesn't properly set const char x[] array declarations
-    const char *newline = "&#xA";
-	const char *leftb = "&lt;";
-	const char *rightb = "&gt;";
-	const char *amp = "&amp;";
-    const char *quote = "&quot;";
+// const without static doesn't guarantee it's available for a return value
+    static const char newline[] = "&#xA";
+	static const char leftb[] = "&lt;";
+	static const char rightb[] = "&gt;";
+	static const char amp[] = "&amp;";
+    static const char quote[] = "&quot;";
 	const char *replacement = 0;
 
 	switch (c) {

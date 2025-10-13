@@ -150,11 +150,6 @@ void BrightTheme::initialize()
 	resources->listbox_bg = 0;
 	resources->listbox_text = BLACK;
 
-	resources->filebox_margin = DP(130);
-	resources->file_color = 0x000000;
-	resources->directory_color = 0x0000ff;
-
-	resources->scroll_minhandle = DP(24);
 
 	new_toggle("loadmode_new.png", 
 		"loadmode_up.png",
@@ -770,6 +765,20 @@ void BrightTheme::initialize()
 
 
 	flush_images();
+
+    resources->dirbox_margin = 0;
+	resources->filebox_margin = 0;
+// extra height between loadmode block & OK button
+	loadfile_pad = resources->checkbox_images[0]->get_h() + 
+        widget_border * 3 +
+        get_image_set("loadmode_new")[0]->get_h() -
+        resources->ok_images[0]->get_h();
+	browse_pad = 0;
+
+	resources->file_color = 0x000000;
+	resources->directory_color = 0x0000ff;
+
+	resources->scroll_minhandle = DP(24);
 
 	title_font = MEDIUMFONT;
 	title_color = 0x000000;

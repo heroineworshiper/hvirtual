@@ -304,9 +304,10 @@ OBJS = \
 	$(OBJDIR)/threadexec.o \
 	$(OBJDIR)/threadloader.o \
 	$(OBJDIR)/threadfork.o \
-	$(OBJDIR)/timelinepane.o \
 	$(OBJDIR)/timebar.o \
 	$(OBJDIR)/timeentry.o \
+	$(OBJDIR)/timelinepane.o \
+	$(OBJDIR)/timestretch.o \
 	$(OBJDIR)/track.o \
 	$(OBJDIR)/trackcanvas.o \
 	$(OBJDIR)/tracking.o \
@@ -919,6 +920,7 @@ $(OBJDIR)/timebar.o: 				  timebar.C
 $(OBJDIR)/timebomb.o: 				  timebomb.C
 $(OBJDIR)/timeentry.o:  			  timeentry.C
 $(OBJDIR)/timelinepane.o:  			  timelinepane.C
+$(OBJDIR)/timestretch.o:  			  timestretch.C
 $(OBJDIR)/toggleauto.o: 			  toggleauto.C
 $(OBJDIR)/toggleautos.o: 			  toggleautos.C
 $(OBJDIR)/track.o: 				  track.C

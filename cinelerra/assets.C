@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -178,7 +177,7 @@ Asset* Assets::get_asset(const char *filename)
 
 	while(current)
 	{
-printf("Assets::get_asset %d %s %s\n", __LINE__, filename, current->path);
+//printf("Assets::get_asset %d %s %s\n", __LINE__, filename, current->path);
 		if(current->test_path(filename))
 		{
 			result = current;
