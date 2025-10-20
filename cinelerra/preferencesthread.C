@@ -23,6 +23,7 @@
 #include "audiodevice.inc"
 #include "bcsignals.h"
 #include "cache.h"
+#include "clip.h"
 #include "cplayback.h"
 #include "ctimebar.h"
 #include "cwindow.h"
@@ -192,12 +193,21 @@ int PreferencesThread::apply_settings()
 	
 	rerender = 
 		edl->session->need_rerender(mwindow->edl->session) ||
-		(preferences->force_uniprocessor != preferences->force_uniprocessor) ||
+        preferences->scrub_chop != MWindow::preferences->scrub_chop ||
+		(preferences->force_uniprocessor != MWindow::preferences->force_uniprocessor) ||
 		(*this_aconfig != *aconfig) ||
 		(*this_vconfig != *vconfig) ||
-		!preferences->brender_asset->equivalent(*mwindow->preferences->brender_asset, 0, 1);
+		!preferences->brender_asset->equivalent(*MWindow::preferences->brender_asset, 0, 1);
 
-
+    if(!rerender)
+    {
+        for(int i = 0; i < preferences->total_speeds(); i++)
+            if(!EQUIV(preferences->speed(i), MWindow::preferences->speed(i)))
+            {
+                rerender = 1;
+                break;
+            }
+    }
 
 
 	mwindow->edl->copy_session(edl, 1);

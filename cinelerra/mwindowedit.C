@@ -495,6 +495,21 @@ void MWindow::change_labels()
 	save_backup();
 }
 
+void MWindow::label_edits()
+{
+	undo->update_undo_before();
+
+    edl->label_edits(edl->local_session->get_selectionstart(), 
+		edl->local_session->get_selectionend(), 
+        session->label_color);
+    
+
+
+	undo->update_undo_after(_("label all edits"), LOAD_TIMEBAR);
+	gui->update_timebar(1);
+	cwindow->update(0, 0, 0, 0, 1);
+	save_backup();
+}
 
 void MWindow::concatenate_tracks()
 {

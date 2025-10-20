@@ -359,6 +359,14 @@ public:
 	MWindow *mwindow;
 };
 
+class LabelEdits : public BC_MenuItem
+{
+public:
+	LabelEdits(MWindow *mwindow);
+	int handle_event();
+	MWindow *mwindow;
+};
+
 class DetachTransitions : public BC_MenuItem
 {
 public:

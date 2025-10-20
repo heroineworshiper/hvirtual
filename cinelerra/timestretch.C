@@ -197,13 +197,13 @@ int TimeStretch::process(double *audio_out,
                     dissolve_remane += dissolve_remane0;
 
 // apply integer parts of remaneders to their sections
-                    if(abs((int)drop_remane) > 0)
+                    if((int)drop_remane > 0)
                     {
                         drop_count += (int)drop_remane;
                         drop_remane -= (int)drop_remane;
                     }
 
-                    if(abs((int)dissolve_remane) > 0)
+                    if((int)dissolve_remane > 0)
                     {
                         dissolve_count += (int)dissolve_remane;
                         dissolve_remane -= (int)dissolve_remane;

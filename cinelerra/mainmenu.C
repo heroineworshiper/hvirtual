@@ -141,6 +141,7 @@ void MainMenu::create_objects()
 	editmenu->add_item(new BC_MenuItem("-"));
 	editmenu->add_item(new ClearLabels(mwindow));
 	editmenu->add_item(new ChangeLabels(mwindow));
+	editmenu->add_item(new LabelEdits(mwindow));
 
 	BC_Menu *keyframemenu;
 	add_menu(keyframemenu = new BC_Menu(_("Keyframes")));
@@ -911,6 +912,17 @@ ChangeLabels::ChangeLabels(MWindow *mwindow) : BC_MenuItem(_("Change label color
 int ChangeLabels::handle_event()
 {
 	mwindow->change_labels();
+	return 1;
+}
+
+LabelEdits::LabelEdits(MWindow *mwindow) : BC_MenuItem(_("Label all edits"))
+{ 
+	this->mwindow = mwindow; 
+}
+
+int LabelEdits::handle_event()
+{
+	mwindow->label_edits();
 	return 1;
 }
 

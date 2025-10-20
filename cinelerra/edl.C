@@ -1018,6 +1018,37 @@ int EDL::clear(double start,
 	return 0;
 }
 
+void EDL::label_edits(double start, double end, int color)
+{
+	for(Track *current_track = tracks->first; 
+		current_track; 
+		current_track = current_track->next)
+	{
+        if(current_track->record)
+        {
+			int64_t start_units = current_track->to_units(start, 0);
+			int64_t end_units = current_track->to_units(end, 0);
+
+			for(Edit *current_edit = current_track->edits->first;
+				current_edit;
+				current_edit = current_edit->next)
+			{
+				if(current_edit->startproject >= start_units &&
+					current_edit->startproject < end_units)
+				{
+                    double position = current_track->from_units(current_edit->startproject);
+                    labels->toggle_label(position, 
+                        position, 
+                        MWindow::session->label_color);
+                }
+            }
+
+// top armed track only
+            break;
+        }
+    }
+}
+
 void EDL::modify_transitionhandles(
     Edit *edit,
     Transition *transition,

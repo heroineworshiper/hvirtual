@@ -325,6 +325,7 @@ public:
     void razor();
 	void clear_labels();
 	void change_labels();
+    void label_edits();
 	void concatenate_tracks();
 	void copy();
 	int copy(double start, double end);

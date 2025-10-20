@@ -212,6 +212,7 @@ public:
 		int clear_labels,
 		int clear_plugins,
 		int edit_autos);
+    void label_edits(double start, double end, int color);
 	int deglitch(double position);
 // Insert the asset at a point in the EDL
 	void insert_asset(Asset *asset, 
