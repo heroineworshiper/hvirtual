@@ -189,41 +189,10 @@ void SetFormatThread::apply_changes()
 	mwindow->restart_brender();
 
 
-    if(redraw_labels)
-    {
-        mwindow->gui->put_event([](void *ptr)
-            {
-                MWindow::instance->gui->mbuttons->edit_panel->update_label_text();
-                MWindow::instance->gui->update_timebar(0);
-            },
-            0);
-        mwindow->cwindow->gui->put_event([](void *ptr)
-            {
-                MWindow::instance->cwindow->gui->edit_panel->update_label_text();
-                MWindow::instance->cwindow->gui->timebar->update_labels();
-            },
-            0);
-	    for(int j = 0; j < mwindow->vwindows.size(); j++)
-	    {
-		    VWindow *vwindow = mwindow->vwindows.get(j);
-		    if(vwindow->is_running())
-		    {
-                vwindow->gui->put_event([](void *ptr)
-                    {
-                        VWindow *vwindow = (VWindow*)ptr;
-                        vwindow->gui->edit_panel->update_label_text();
-                        vwindow->gui->timebar->update_labels();
-                    },
-                    vwindow);
-		    }
-	    }
-    }
+    if(redraw_labels) mwindow->redraw_labels(1, 1);
+    if(redraw_meters) mwindow->redraw_meters();
 
 	mwindow->gui->lock_window("SetFormatThread::apply_changes");
-    if(redraw_meters) 
-        mwindow->gui->set_meter_format(new_settings->session->meter_format,
-			new_settings->session->min_meter_db,
-			new_settings->session->max_meter_db);
 	mwindow->gui->update(1,
 		1,
 		1,
@@ -236,16 +205,6 @@ void SetFormatThread::apply_changes()
 	mwindow->cwindow->gui->lock_window("SetFormatThread::apply_changes");
 	mwindow->cwindow->gui->resize_event(mwindow->cwindow->gui->get_w(), 
 		mwindow->cwindow->gui->get_h());
-#ifdef USE_METERS
-	if(redraw_meters)
-    {
-        mwindow->cwindow->gui->meters->set_meters(new_channels, 1);
-		mwindow->cwindow->gui->meters->change_format(
-            new_settings->session->meter_format,
-			new_settings->session->min_meter_db,
-			new_settings->session->max_meter_db);
-    }
-#endif
 #ifdef USE_SLIDER
 	mwindow->cwindow->gui->slider->set_position();
 #endif
@@ -255,35 +214,15 @@ void SetFormatThread::apply_changes()
 	for(int i = 0; i < mwindow->vwindows.size(); i++)
 	{
 		VWindow *vwindow = mwindow->vwindows.get(i);
-		vwindow->gui->lock_window("SetFormatThread::apply_changes");
-		vwindow->gui->resize_event(vwindow->gui->get_w(), 
-			vwindow->gui->get_h());
-#ifdef USE_METERS
-		if(redraw_meters)
-        {
-            vwindow->gui->meters->set_meters(new_channels, 1);
-			vwindow->gui->meters->change_format(
-                new_settings->session->meter_format,
-				new_settings->session->min_meter_db,
-				new_settings->session->max_meter_db);
+		if(vwindow->is_running())
+		{
+		    vwindow->gui->lock_window("SetFormatThread::apply_changes");
+		    vwindow->gui->resize_event(vwindow->gui->get_w(), 
+			    vwindow->gui->get_h());
+		    vwindow->gui->flush();
+		    vwindow->gui->unlock_window();
         }
-#endif
-		vwindow->gui->flush();
-		vwindow->gui->unlock_window();
 	}
-
-// update the meters
-    if(redraw_meters)
-    {
-	    mwindow->lwindow->gui->lock_window("SetFormatThread::apply_changes");
-	    mwindow->lwindow->gui->panel->set_meters(new_channels, 1);
-		mwindow->lwindow->gui->panel->change_format(
-            new_settings->session->meter_format,
-			new_settings->session->min_meter_db,
-			new_settings->session->max_meter_db);
-	    mwindow->lwindow->gui->flush();
-	    mwindow->lwindow->gui->unlock_window();
-    }
 
 // Warn user
 // 	if(((mwindow->edl->session->output_w % 4) ||
@@ -993,7 +932,9 @@ int SetChannelsCanvas::get_dimensions(int channel_position,
 
 int SetChannelsCanvas::button_press_event()
 {
-	if(!cursor_inside()) return 0;
+// printf("SetChannelsCanvas::button_press_event %d %d\n",
+// __LINE__, cursor_inside());
+	if(!(is_event_win() && cursor_inside())) return 0;
 // get active channel
 	for(int i = 0; 
 		i < thread->new_settings->session->audio_channels; 

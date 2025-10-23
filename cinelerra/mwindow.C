@@ -110,6 +110,7 @@
 #include "videodevice.inc"
 #include "videowindow.h"
 #include "vplayback.h"
+#include "vtimebar.h"
 #include "vwindowgui.h"
 #include "vwindow.h"
 #include "wavecache.h"
@@ -1413,8 +1414,11 @@ filenames->values[i]);
 							filenames->values[i]);
 						if(update_filename)
 							set_filename(new_edl->local_session->clip_title);
+
+                        redraw_labels(1, 0);
+                        redraw_meters();
 					}
-				}		
+				}
 
                 if(new_edl)
                 {
@@ -1643,7 +1647,111 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	return 0;
 }
 
+void MWindow::redraw_meters()
+{
+    gui->put_event([](void *ptr)
+    {
+        MWindow *mwindow = (MWindow*)ptr;
+        EDL *edl = mwindow->edl;
+        mwindow->gui->set_meter_format(
+            edl->session->meter_format,
+			edl->session->min_meter_db,
+			edl->session->max_meter_db);
+    },
+    this);
 
+    lwindow->gui->put_event([](void *ptr)
+    {
+        EDL *edl = MWindow::instance->edl;
+        LevelWindow *lwindow = (LevelWindow*)ptr;
+	    lwindow->gui->panel->set_meters(edl->session->audio_channels, 1);
+		lwindow->gui->panel->change_format(
+            edl->session->meter_format,
+			edl->session->min_meter_db,
+			edl->session->max_meter_db);
+	    lwindow->gui->flush();
+    },
+    lwindow);
+
+#ifdef USE_METERS
+    mwindow->cwindow->gui->meters->set_meters(new_channels, 1);
+	mwindow->cwindow->gui->meters->change_format(
+        new_settings->session->meter_format,
+		new_settings->session->min_meter_db,
+		new_settings->session->max_meter_db);
+
+	for(int j = 0; j < mwindow->vwindows.size(); j++)
+	{
+		VWindow *vwindow = mwindow->vwindows.get(j);
+		if(vwindow->is_running())
+		{
+            vwindow->gui->meters->set_meters(new_channels, 1);
+			vwindow->gui->meters->change_format(
+                new_settings->session->meter_format,
+				new_settings->session->min_meter_db,
+				new_settings->session->max_meter_db);
+		}
+	}
+#endif // USE_METERS
+}
+
+void MWindow::redraw_labels(int do_menus, int do_timebars)
+{
+    if(do_menus)
+    {
+        gui->put_event([](void *ptr)
+            {
+                MWindow::instance->gui->mbuttons->edit_panel->update_label_text();
+            },
+            0);
+        cwindow->gui->put_event([](void *ptr)
+            {
+                MWindow::instance->cwindow->gui->edit_panel->update_label_text();
+            },
+            0);
+	    for(int j = 0; j < vwindows.size(); j++)
+	    {
+		    VWindow *vwindow = vwindows.get(j);
+		    if(vwindow->is_running())
+		    {
+                vwindow->gui->put_event([](void *ptr)
+                    {
+                        VWindow *vwindow = (VWindow*)ptr;
+                        vwindow->gui->edit_panel->update_label_text();
+                    },
+                    vwindow);
+		    }
+	    }
+    }
+
+    if(do_timebars)
+    {
+        gui->put_event([](void *ptr)
+            {
+                MWindow::instance->gui->update_timebar(0);
+            },
+            0);
+        cwindow->gui->put_event([](void *ptr)
+            {
+                MWindow::instance->cwindow->gui->timebar->update_labels();
+            },
+            0);
+	    for(int j = 0; j < vwindows.size(); j++)
+	    {
+		    VWindow *vwindow = vwindows.get(j);
+		    if(vwindow->is_running())
+		    {
+                vwindow->gui->put_event([](void *ptr)
+                    {
+                        VWindow *vwindow = (VWindow*)ptr;
+                        vwindow->gui->timebar->update_labels();
+                    },
+                    vwindow);
+		    }
+	    }
+    }
+
+}
 
 
 void MWindow::test_plugins(EDL *new_edl, char *path)

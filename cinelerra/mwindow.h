@@ -219,6 +219,16 @@ public:
 
 
 	int redraw_time_dependancies();     // after reconfiguring the time format, sample rate, frame rate
+// reset all meters
+	int reset_meters();
+// update all the edit panels
+    void update_edit_panels();	
+// apply changes to the number of channels & meter range
+    void redraw_meters();
+// apply changes to the label text
+    void redraw_labels(int do_menus, int do_timebars);
+
+
 
 // =========================================== movement
 
@@ -568,10 +578,6 @@ public:
 // Menu items
 	ArrayList<ColormodelItem*> colormodels;
 
-// reset all meters
-	int reset_meters();
-// update all the edit panels
-    void update_edit_panels();	
 
 
 // Channel DB for playback only.  Record channel DB's are in record.C

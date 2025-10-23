@@ -521,6 +521,10 @@ int EDLSession::load_audio_config(FileXML *file, int append_mode, uint32_t load_
 	}
 
 	sample_rate = file->tag.get_property("SAMPLERATE", (int64_t)sample_rate);
+
+    min_meter_db = file->tag.get_property("MIN_METER_DB", (int64_t)min_meter_db);
+    max_meter_db = file->tag.get_property("MAX_METER_DB", (int64_t)max_meter_db);
+
 	return 0;
 }
 
@@ -708,7 +712,7 @@ int EDLSession::save_video_config(FileXML *file)
 
 int EDLSession::save_audio_config(FileXML *file)
 {
-	char string[1024];
+	char string[BCTEXTLEN];
 	file->tag.set_title("AUDIO");
 	file->tag.set_property("SAMPLERATE", (int64_t)sample_rate);
 	file->tag.set_property("CHANNELS", (int64_t)audio_channels);
@@ -719,6 +723,9 @@ int EDLSession::save_audio_config(FileXML *file)
 		file->tag.set_property(string, achannel_positions[i]);
 	}
 	
+	file->tag.set_property("MIN_METER_DB", (int64_t)min_meter_db);
+	file->tag.set_property("MAX_METER_DB", (int64_t)max_meter_db);
+
 	file->append_tag();
 	file->append_newline();
 	file->append_newline();

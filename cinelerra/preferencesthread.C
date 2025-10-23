@@ -228,43 +228,43 @@ int PreferencesThread::apply_settings()
 // 			"it can't be rendered by OpenGL."));
 // 	}
 
-	if(redraw_meters)
-	{
-#ifdef USE_METERS
-		mwindow->cwindow->gui->lock_window("PreferencesThread::apply_settings");
-		mwindow->cwindow->gui->meters->change_format(edl->session->meter_format,
-			edl->session->min_meter_db,
-			edl->session->max_meter_db);
-		mwindow->cwindow->gui->unlock_window();
-
-
-		for(int i = 0; i < mwindow->vwindows.size(); i++)
-		{
-			VWindow *vwindow = mwindow->vwindows.get(i);
-			vwindow->gui->lock_window("PreferencesThread::apply_settings");
-			vwindow->gui->meters->change_format(edl->session->meter_format,
-				edl->session->min_meter_db,
-				edl->session->max_meter_db);
-			vwindow->gui->unlock_window();
-
-		}
-#endif
-
-
-		mwindow->gui->lock_window("PreferencesThread::apply_settings 1");
-		mwindow->gui->set_meter_format(edl->session->meter_format,
-			edl->session->min_meter_db,
-			edl->session->max_meter_db);
-		mwindow->gui->unlock_window();
-
-
-
-		mwindow->lwindow->gui->lock_window("PreferencesThread::apply_settings");
-		mwindow->lwindow->gui->panel->change_format(edl->session->meter_format,
-			edl->session->min_meter_db,
-			edl->session->max_meter_db);
-		mwindow->lwindow->gui->unlock_window();
-	}
+// 	if(redraw_meters)
+// 	{
+// #ifdef USE_METERS
+// 		mwindow->cwindow->gui->lock_window("PreferencesThread::apply_settings");
+// 		mwindow->cwindow->gui->meters->change_format(edl->session->meter_format,
+// 			edl->session->min_meter_db,
+// 			edl->session->max_meter_db);
+// 		mwindow->cwindow->gui->unlock_window();
+// 
+// 
+// 		for(int i = 0; i < mwindow->vwindows.size(); i++)
+// 		{
+// 			VWindow *vwindow = mwindow->vwindows.get(i);
+// 			vwindow->gui->lock_window("PreferencesThread::apply_settings");
+// 			vwindow->gui->meters->change_format(edl->session->meter_format,
+// 				edl->session->min_meter_db,
+// 				edl->session->max_meter_db);
+// 			vwindow->gui->unlock_window();
+// 
+// 		}
+// #endif
+// 
+// 
+// 		mwindow->gui->lock_window("PreferencesThread::apply_settings 1");
+// 		mwindow->gui->set_meter_format(edl->session->meter_format,
+// 			edl->session->min_meter_db,
+// 			edl->session->max_meter_db);
+// 		mwindow->gui->unlock_window();
+// 
+// 
+// 
+// 		mwindow->lwindow->gui->lock_window("PreferencesThread::apply_settings");
+// 		mwindow->lwindow->gui->panel->change_format(edl->session->meter_format,
+// 			edl->session->min_meter_db,
+// 			edl->session->max_meter_db);
+// 		mwindow->lwindow->gui->unlock_window();
+// 	}
 
 	if(redraw_overlays)
 	{
