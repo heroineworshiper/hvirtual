@@ -133,10 +133,10 @@ int main ()
           echo "*** Could not run ESD test program, checking why..."
           CFLAGS="$CFLAGS $ESD_CFLAGS"
           LIBS="$LIBS $ESD_LIBS"
-          AC_TRY_LINK([
+          AC_LINK_IFELSE([AC_LANG_PROGRAM([
 #include <stdio.h>
 #include <esd.h>
-],      [ return 0; ],
+],      [ return 0; ])],
         [ echo "*** The test program compiled, but did not run. This usually means"
           echo "*** that the run-time linker is not finding ESD or finding the wrong"
           echo "*** version of ESD. If it is not finding ESD, you'll need to set your"

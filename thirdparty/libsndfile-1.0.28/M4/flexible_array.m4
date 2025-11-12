@@ -17,16 +17,16 @@ AC_DEFUN([MN_C99_FLEXIBLE_ARRAY],
 # Initialize to unknown
 ac_cv_c99_flexible_array=no
 
-AC_TRY_LINK([[
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 	#include <stdlib.h>
 	typedef struct {
 	int k;
 	char buffer [] ;
 	} MY_STRUCT ;
 	]], 
-	[  MY_STRUCT *p = calloc (1, sizeof (MY_STRUCT) + 42); ],
-	ac_cv_c99_flexible_array=yes,
-	ac_cv_c99_flexible_array=no
+	[[  MY_STRUCT *p = calloc (1, sizeof (MY_STRUCT) + 42); ]])],
+	[ac_cv_c99_flexible_array=yes],
+	[ac_cv_c99_flexible_array=no]
 	))]
 ) # MN_C99_FLEXIBLE_ARRAY
 

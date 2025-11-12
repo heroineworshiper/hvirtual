@@ -20,7 +20,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_LANG([C])
 
-AC_PROG_CC_STDC
+AC_PROG_CC
 AC_USE_SYSTEM_EXTENSIONS
 AM_PROG_CC_C_O
 AC_PROG_CXX
@@ -63,8 +63,6 @@ VERSION_MINOR=`echo $CLEAN_VERSION | $SED "s/.*\.//"`
 SHARED_VERSION_INFO="1:$VERSION_MINOR:0"
 
 #------------------------------------------------------------------------------------
-
-AC_HEADER_STDC
 
 AC_CHECK_HEADERS(endian.h)
 AC_CHECK_HEADERS(byteswap.h)
@@ -633,6 +631,31 @@ AC_SUBST(TEST_BINDIR)
 dnl The following line causes the libtool distributed with the source
 dnl to be replaced if the build system has a more recent version.
 AC_SUBST(LIBTOOL_DEPS)
+
+# The 'python' command is not always created on Linux systems when the Python is installed..
+AC_PATH_PROGS([PYTHON], [python python3 python2], [no])
+if test "$PYTHON" = "no"; then
+  AC_MSG_ERROR([No usable python found (tried: python, python3, python2)])
+fi
+AC_SUBST([PYTHON])
+
+case "$PYTHON" in
+	*python3)
+		CREATE_SYMBOLS_SCRIPT=create_symbols_file_python3.py
+		;;
+	*python)
+		PYMAJOR := $(shell python --version 2>&1 | sed -E 's/Python ([[:digit:]])\..*/\1/' -)
+		if test "$PYMAJOR" = "3"; then
+			CREATE_SYMBOLS_SCRIPT=create_symbols_file_python3.py
+		else
+			CREATE_SYMBOLS_SCRIPT=create_symbols_file.py
+		fi
+		;;
+	*)
+	CREATE_SYMBOLS_SCRIPT=create_symbols_file.py
+	;;
+esac
+AC_SUBST([CREATE_SYMBOLS_SCRIPT])
 
 AC_CONFIG_FILES([ \
 	src/Makefile man/Makefile examples/Makefile tests/Makefile regtest/Makefile \

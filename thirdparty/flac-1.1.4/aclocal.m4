@@ -1434,7 +1434,7 @@ x86_64-*linux*|ppc*-*linux*|powerpc*-*linux*|s390*-*linux*|sparc*-*linux*)
   CFLAGS="$CFLAGS -belf"
   AC_CACHE_CHECK([whether the C compiler needs -belf], lt_cv_cc_needs_belf,
     [AC_LANG_PUSH(C)
-     AC_TRY_LINK([],[],[lt_cv_cc_needs_belf=yes],[lt_cv_cc_needs_belf=no])
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([],[])],[lt_cv_cc_needs_belf=yes],[lt_cv_cc_needs_belf=no])
      AC_LANG_POP])
   if test x"$lt_cv_cc_needs_belf" != x"yes"; then
     # this is probably gcc 2.8.0, egcs 1.0 or newer; no need for -belf
@@ -7314,10 +7314,10 @@ int main ()
        echo "*** Could not run Ogg test program, checking why..."
        CFLAGS="$CFLAGS $OGG_CFLAGS"
        LIBS="$LIBS $OGG_LIBS"
-       AC_TRY_LINK([
+       AC_LINK_IFELSE([AC_LANG_PROGRAM([
 #include <stdio.h>
 #include <ogg/ogg.h>
-],     [ return 0; ],
+],     [ return 0; ])],
        [ echo "*** The test program compiled, but did not run. This usually means"
        echo "*** that the run-time linker is not finding Ogg or finding the wrong"
        echo "*** version of Ogg. If it is not finding Ogg, you'll need to set your"
@@ -7380,20 +7380,20 @@ AC_DEFUN([AM_ICONV_LINK],
   AC_CACHE_CHECK(for iconv, am_cv_func_iconv, [
     am_cv_func_iconv="no, consider installing GNU libiconv"
     am_cv_lib_iconv=no
-    AC_TRY_LINK([#include <stdlib.h>
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <stdlib.h>
 #include <iconv.h>],
       [iconv_t cd = iconv_open("","");
        iconv(cd,NULL,NULL,NULL,NULL);
-       iconv_close(cd);],
+       iconv_close(cd);])],
       am_cv_func_iconv=yes)
     if test "$am_cv_func_iconv" != yes; then
       am_save_LIBS="$LIBS"
       LIBS="$LIBS $LIBICONV"
-      AC_TRY_LINK([#include <stdlib.h>
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <stdlib.h>
 #include <iconv.h>],
         [iconv_t cd = iconv_open("","");
          iconv(cd,NULL,NULL,NULL,NULL);
-         iconv_close(cd);],
+         iconv_close(cd);])],
         am_cv_lib_iconv=yes
         am_cv_func_iconv=yes)
       LIBS="$am_save_LIBS"
@@ -7667,7 +7667,7 @@ AC_DEFUN([AC_LIB_HAVE_LINKFLAGS],
   AC_CACHE_CHECK([for lib[]$1], [ac_cv_lib[]Name], [
     ac_save_LIBS="$LIBS"
     LIBS="$LIBS $LIB[]NAME"
-    AC_TRY_LINK([$3], [$4], [ac_cv_lib[]Name=yes], [ac_cv_lib[]Name=no])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([$3], [$4])], [ac_cv_lib[]Name=yes], [ac_cv_lib[]Name=no])
     LIBS="$ac_save_LIBS"
   ])
   if test "$ac_cv_lib[]Name" = yes; then
@@ -8274,8 +8274,8 @@ dnl From Bruno Haible.
 AC_DEFUN([AM_LANGINFO_CODESET],
 [
   AC_CACHE_CHECK([for nl_langinfo and CODESET], am_cv_langinfo_codeset,
-    [AC_TRY_LINK([#include <langinfo.h>],
-      [char* cs = nl_langinfo(CODESET);],
+    [AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <langinfo.h>],
+      [char* cs = nl_langinfo(CODESET);])],
       am_cv_langinfo_codeset=yes,
       am_cv_langinfo_codeset=no)
     ])

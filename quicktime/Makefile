@@ -270,9 +270,10 @@ DIRS += \
 
 LIBS := $(OUTPUT) ../guicast/$(OBJDIR)/libcmodel.a $(MPEG3_DIR)/$(OBJDIR)/libmpeg3.a $(FFMPEG_LFLAGS) $(FFMPEG_LIBS) -lpng -lz -lpthread -ldl -lm -llzma -lrt
 #LIBS += `pkg-config --libs libva-x11`
-#LIBS += `pkg-config --libs x11`
+LIBS += `pkg-config --libs x11`
 #LIBS += `pkg-config --libs libva-drm`
- 
+LIBS += `pkg-config --libs vdpau`
+
 
 $(shell mkdir -p $(DIRS) )
 $(shell echo  $(CFLAGS) > $(OBJDIR)/c_flags)
@@ -281,13 +282,6 @@ $(shell echo  $(OBJS) $(FFMPEG_OBJS) $(JPEG_LIB)/*.o $(DV_LIB)/*.o $(FAAD_LIB)/*
 $(shell echo  $(CFLAGS) $(FFMPEG_CFLAGS) > $(OBJDIR)/ffmpeg_cflags)
 
 all: $(OBJDIR) $(OUTPUT) $(UTILS)
-
-$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(X264_LIB) $(X265_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
-#	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
-#	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
-#	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
-#	find $(FFMPEG_DIR)/libswresample/ -name *.o >> $(OBJDIR)/objs
-	ar rcs $(OUTPUT) `cat $(OBJDIR)/objs`
 
 # this is the only way we figured out to merge .a files
 #$(FFMPEG_LIB):
@@ -363,6 +357,13 @@ $(VORBIS_LIB):
 	ar x ../../$(VORBIS_DIR)/lib/.libs/libvorbisenc.a && \
 	ar x ../../$(VORBIS_DIR)/lib/.libs/libvorbisfile.a
 
+
+$(OUTPUT): $(OBJS) $(FFMPEG_OBJS) $(ENCOREMMX_OBJS) $(JPEG_NASM) $(LAME_OBJS) $(FAAD_LIB) $(FAAC_LIB) $(X264_LIB) $(X265_LIB) $(DV_LIB) $(JPEG_LIB) $(OGG_LIB) $(VORBIS_LIB)
+#	find $(FFMPEG_DIR)/libavcodec/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libavformat/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libavutil/ -name *.o >> $(OBJDIR)/objs
+#	find $(FFMPEG_DIR)/libswresample/ -name *.o >> $(OBJDIR)/objs
+	ar rcs $(OUTPUT) `cat $(OBJDIR)/objs`
 
 
 $(OBJDIR)/mts2mp4: $(OBJDIR)/mts2mp4.o $(OUTPUT)
