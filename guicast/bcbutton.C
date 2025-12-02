@@ -265,8 +265,8 @@ BC_OKButton::BC_OKButton(int x, int y)
 BC_OKButton::BC_OKButton(BC_WindowBase *parent_window, VFrame **images)
  : BC_Button(BC_Resources::theme->widget_border, 
  	parent_window->get_h() - 
-        images[0]->get_h() - 
-        BC_Resources::theme->widget_border, 
+        images[0]->get_h() /* - 
+        BC_Resources::theme->widget_border */, 
  	images)
 {
 	set_tooltip("OK");
@@ -276,8 +276,8 @@ BC_OKButton::BC_OKButton(BC_WindowBase *parent_window, VFrame **images)
 BC_OKButton::BC_OKButton(BC_WindowBase *parent_window)
  : BC_Button(BC_Resources::theme->widget_border, 
  	parent_window->get_h() - 
-        BC_WindowBase::get_resources()->ok_images[0]->get_h() - 
-        BC_Resources::theme->widget_border, 
+        BC_WindowBase::get_resources()->ok_images[0]->get_h() /* - 
+        BC_Resources::theme->widget_border */, 
  	BC_WindowBase::get_resources()->ok_images)
 {
 	set_tooltip("OK");
@@ -346,8 +346,8 @@ BC_CancelButton::BC_CancelButton(BC_WindowBase *parent_window)
         BC_WindowBase::get_resources()->cancel_images[0]->get_w() - 
         BC_Resources::theme->widget_border, 
  	parent_window->get_h() - 
-        BC_WindowBase::get_resources()->cancel_images[0]->get_h() - 
-        BC_Resources::theme->widget_border, 
+        BC_WindowBase::get_resources()->cancel_images[0]->get_h() /* - 
+        BC_Resources::theme->widget_border */, 
  	BC_WindowBase::get_resources()->cancel_images)
 {
 	set_tooltip("Cancel");
@@ -358,8 +358,8 @@ BC_CancelButton::BC_CancelButton(BC_WindowBase *parent_window, VFrame **images)
         images[0]->get_w() - 
         BC_Resources::theme->widget_border, 
  	parent_window->get_h() - 
-        images[0]->get_h() - 
-        BC_Resources::theme->widget_border, 
+        images[0]->get_h() /* - 
+        BC_Resources::theme->widget_border */, 
  	images)
 {
 	set_tooltip("Cancel");

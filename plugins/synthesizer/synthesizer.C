@@ -567,6 +567,9 @@ static const char *keyboard_map[] =
 void SynthWindow::create_objects()
 {
 	int margin = client->get_theme()->widget_border;
+    int canvas_w = DP(230);
+    int canvas_h = DP(160);
+    int osc_w = DP(250);
 
 	BC_MenuBar *menu;
 	add_subwindow(menu = new BC_MenuBar(0, 0, get_w()));
@@ -597,70 +600,90 @@ void SynthWindow::create_objects()
 	harmonicmenu->add_item(new SynthFreqPow1(synth));
 	harmonicmenu->add_item(new SynthFreqPow2(synth));
 
-	int x = DP(10), y = DP(30), i;
-	
-	add_subwindow(new BC_Title(x, y, _("Waveform:")));
-	x += DP(240);
-	add_subwindow(new BC_Title(x, y, _("Wave Function:")));
-	y += DP(20);
-	x = DP(10);
-	add_subwindow(canvas = new SynthCanvas(synth, this, x, y, DP(230), DP(160)));
+	int x = margin;
+    int y = DP(30);
+    int i;
+    int y1 = y;
+    int x1 = margin;
+    int x2 = margin + canvas_w + margin;
+
+    BC_Title *title;
+	add_subwindow(title = new BC_Title(x1, y, _("Waveform:")));
+	add_subwindow(title = new BC_Title(x2, y, _("Wave Function:")));
+	y += title->get_h();
+	add_subwindow(canvas = new SynthCanvas(synth, 
+        this, 
+        x1, 
+        y, 
+        canvas_w, 
+        canvas_h));
 	canvas->update();
 
-	x += DP(240);
 	char string[BCTEXTLEN];
 	waveform_to_text(string, synth->config.wavefunction);
 
-	add_subwindow(waveform = new SynthWaveForm(synth, x, y, string));
+	add_subwindow(waveform = new SynthWaveForm(synth, x2, y, string));
 	waveform->create_objects();
-	y += DP(30);
-	int x1 = x + waveform->get_w() + DP(10);
+	y += waveform->get_h();
+	int x3 = x2 + waveform->get_w() + margin;
 
 
-	add_subwindow(new BC_Title(x, y, _("Base Frequency:")));
-	y += DP(30);
-	add_subwindow(base_freq = new SynthBaseFreq(synth, this, x, y));
+	add_subwindow(title = new BC_Title(x2, y, _("Base Frequency:")));
+	y += title->get_h();
+    int y_diff = (BC_Pot::calculate_h() - BC_TextBox::calculate_h(this, MEDIUMFONT, 1, 1)) / 2;
+	add_subwindow(base_freq = new SynthBaseFreq(synth, 
+        this, 
+        x2, 
+        y + y_diff));
 	base_freq->update((float)synth->config.base_freq[0]);
-	x += base_freq->get_w() + synth->get_theme()->widget_border;
+	x = x2 + base_freq->get_w() + margin;
 
-	add_subwindow(freqpot = new SynthFreqPot(synth, this, x, y - DP(10)));
+	add_subwindow(freqpot = new SynthFreqPot(synth, 
+        this, 
+        x, 
+        y));
 	base_freq->freq_pot = freqpot;
 	freqpot->freq_text = base_freq;
-	x -= base_freq->get_w() + synth->get_theme()->widget_border;
-	y += DP(40);
+	y += freqpot->get_h() + margin;
 
-	BC_Title *title;
-	add_subwindow(title = new BC_Title(x, y, _("Wetness:")));
-	add_subwindow(wetness = new SynthWetness(synth, x + title->get_w() + margin, y - DP(10)));
+    y_diff = (BC_Pot::calculate_h() - BC_Title::calculate_h(this, "W")) / 2;
+	add_subwindow(title = new BC_Title(x2, y + y_diff, _("Wetness:")));
+	add_subwindow(wetness = new SynthWetness(synth, 
+        x2 + title->get_w() + margin, 
+        y));
 
-	y += DP(40);
-	add_subwindow(new SynthClear(synth, x, y));
-
-
-	x = DP(50);  
-	y = DP(220);
-	add_subwindow(new BC_Title(x, y, _("Level"))); 
-	x += DP(75);
-	add_subwindow(new BC_Title(x, y, _("Phase"))); 
-	x += DP(75);
-	add_subwindow(new BC_Title(x, y, _("Harmonic")));
+	y += wetness->get_h();
+	add_subwindow(new SynthClear(synth, x2, y));
 
 
+    int x4 = DP(30);
+    int x5 = DP(105);
+    int x6 = DP(180);
+	y = canvas->get_y() + canvas->get_h() + margin;
+	add_subwindow(new BC_Title(x4, y, _("Level"))); 
+	add_subwindow(new BC_Title(x5, y, _("Phase"))); 
+	add_subwindow(title = new BC_Title(x6, y, _("Harmonic")));
 
-	y += DP(20); 
-	x = DP(10);
-	add_subwindow(osc_subwindow = new BC_SubWindow(x, y, DP(265), get_h() - y));
-	x += DP(265);
-	add_subwindow(osc_scroll = new OscScroll(synth, this, x, y, get_h() - y));
 
 
-	x += DP(20);
-	add_subwindow(new SynthAddOsc(synth, this, x, y));
-	y += DP(30);
-	add_subwindow(new SynthDelOsc(synth, this, x, y));
+	y += title->get_h(); 
+	add_subwindow(osc_subwindow = new BC_SubWindow(x1, y, osc_w, get_h() - y));
+	add_subwindow(osc_scroll = new OscScroll(synth, 
+        this, 
+        x1 + osc_w, 
+        y, 
+        get_h() - y));
+    
+
+	x = x1 + osc_w + osc_scroll->get_w() + margin;
+    SynthAddOsc *add;
+	add_subwindow(add = new SynthAddOsc(synth, this, x, y));
+	y += add->get_h() + margin;
+    SynthDelOsc *sub;
+	add_subwindow(sub = new SynthDelOsc(synth, this, x, y));
 
 // Create keyboard
-	y = DP(30);
+	y = y1;
 
 #include "white_up_png.h"
 #include "white_hi_png.h"
@@ -684,27 +707,28 @@ void SynthWindow::create_objects()
 	black_key[4] = new VFrame(black_checkedhi_png);
 
 
-	add_subwindow(note_subwindow = new BC_SubWindow(x1, 
+	add_subwindow(note_subwindow = new BC_SubWindow(x3, 
 		y, 
-		get_w() - x1, 
+		get_w() - x3, 
 		white_key[0]->get_h() + MARGIN +
 		get_text_height(MEDIUMFONT) + MARGIN +
 		get_text_height(MEDIUMFONT) + MARGIN));
 	add_subwindow(note_scroll = new NoteScroll(synth,
 		this,
-		x1,
+		x3,
 		note_subwindow->get_y() + note_subwindow->get_h(),
 		note_subwindow->get_w()));
 
+    y = note_scroll->get_y() + note_scroll->get_h() + MARGIN;
 	add_subwindow(momentary = new SynthMomentary(this, 
-		x1, 
-		note_scroll->get_y() + note_scroll->get_h() + MARGIN, 
+		x3, 
+		y, 
 		_("Momentary notes")));
-
+    y += momentary->get_h() + margin;
 
 	add_subwindow(note_instructions = new BC_Title(
-		x1,
-		momentary->get_y() + momentary->get_h() + MARGIN,
+		x3,
+		y,
 		_("Ctrl or Shift to select multiple notes.")));
 
 	update_scrollbar();

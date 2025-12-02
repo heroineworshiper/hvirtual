@@ -90,6 +90,9 @@ float DB::todb(float power)
 }
 
 
+
+
+
 Freq::Freq()
 {
 	init_table();
@@ -156,7 +159,7 @@ double Freq::tofreq_f(double index)
         return 0;
     }
 
-    return 440.0 * pow(2, (double)(index - 421) / OCTAVE);
+    return 440.0 * pow(2, (double)(index - 421) / OCTAVE_SLOTS);
 }
 
 double Freq::fromfreq_f(double f)
@@ -166,7 +169,7 @@ double Freq::fromfreq_f(double f)
         return 0;
     }
 
-    double result = log(f / 440) / log(2.0) * OCTAVE + 421;
+    double result = log(f / 440) / log(2.0) * OCTAVE_SLOTS + 421;
     if(result < 0) 
     {
         return 0;

@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -846,7 +846,10 @@ void BC_FileBox::create_objects()
             get_w() - x - margin));
 
 	x = margin;
-	y += directory_title->get_h() + DP(5);
+//     if(directory_title->get_h() > recent_popup->get_h())
+//     	y += directory_title->get_h() + margin;
+//     else
+//         y += recent_popup->get_h() + margin;
 	listbox = 0;
 
 	create_listbox(get_display_mode());
@@ -865,7 +868,9 @@ void BC_FileBox::create_objects()
         if(!show_preview) preview_status->hide_window();
     }
 
-	y += listbox->get_h() + margin;
+	y = list_y + list_h + margin;
+//printf("BC_FileBox::calculate_sizes %d list_y=%d list_h=%d y=%d\n", 
+//__LINE__, list_y, list_h, y);
 	add_subwindow(textbox = new BC_FileBoxTextBox(x, y, this));
 	y += textbox->get_h() + margin;
 
@@ -892,30 +897,36 @@ void BC_FileBox::calculate_sizes(int window_w, int window_h)
 	BC_Resources *resources = BC_WindowBase::get_resources();
     int margin = BC_Resources::theme->widget_border;
     buttons_right = window_w - margin;
+    int title_h = BC_Title::calculate_h(this, "Xj");
     int y = margin + 
-        BC_Title::calculate_h(this, "Xj") + 
+        title_h +    // instructions
         margin +
-        BC_PopupMenu::calculate_h() +
         margin;
     recent_w = window_w - margin * 2;
     recent_h = get_text_height(MEDIUMFONT) * FILEBOX_HISTORY_SIZE / 2 + 
  		BC_ScrollBar::get_span(SCROLL_HORIZ) +
  		LISTBOX_MARGIN * 2;
+    if(title_h > BC_PopupMenu::calculate_h())
+        y += title_h;
+    else
+        y += BC_PopupMenu::calculate_h();
     list_x = 0;
     list_y = y;
     list_w = window_w;
     int text_h = BC_TextBox::calculate_h(this, MEDIUMFONT, 1, 1);
 	list_h = window_h - 
-		y - 
-        text_h - margin -
-        (!want_directory ? text_h + margin : 0) -
-        BC_OKButton::calculate_h() - margin -
+		list_y - 
+        text_h - margin -  // filename textbox
+        (!want_directory ? text_h + margin : 0) -   // filter textbox
+        BC_OKButton::calculate_h() - margin -   // OK buttons
 		h_padding;
 
 	if(want_directory)
 		list_h -= BC_WindowBase::get_resources()->dirbox_margin;
 	else
 		list_h -= BC_WindowBase::get_resources()->filebox_margin;
+//printf("BC_FileBox::calculate_sizes %d list_y=%d list_h=%d\n", 
+//__LINE__, list_y, list_h);
 
     if(previewer)
     {

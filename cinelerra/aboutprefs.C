@@ -1,7 +1,7 @@
 
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2025 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ void AboutPrefs::create_objects()
 	y += title1->get_h();
 	char license2[BCTEXTLEN];
 	sprintf(license2, 
-		_("(C) %d Adam Williams\nheroinewarrior.com"), 
+		_("(C) 1997-%d Adam Williams\nheroinewarrior.com"), 
 		COPYRIGHT_DATE);
 	add_subwindow(title1 = new BC_Title(x, y, license2, MEDIUMFONT, resources->text_default));
 

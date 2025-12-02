@@ -966,7 +966,7 @@ double ParametricEQ::calculate_envelope()
 					if(pass == 1)
 					{
 // slots per DB
-                        double slope = (1.0 - config.band[band].quality) * OCTAVE / 6;
+                        double slope = (1.0 - config.band[band].quality) * OCTAVE_SLOTS / 6;
 						double magnitude = config.band[band].magnitude;
 						double cutoff = Freq::fromfreq_f(config.band[band].freq);
 						for(int i = 0; i < config.window_size / 2; i++)
@@ -1002,7 +1002,7 @@ double ParametricEQ::calculate_envelope()
 				case ParametricBand::HIGHPASS:
 					if(pass == 1)
 					{
-                        double slope = (1.0 - config.band[band].quality) * OCTAVE / 6;
+                        double slope = (1.0 - config.band[band].quality) * OCTAVE_SLOTS / 6;
 						double magnitude = config.band[band].magnitude;
 						double cutoff = Freq::fromfreq_f(config.band[band].freq);
 						for(int i = 0; i < config.window_size / 2; i++)

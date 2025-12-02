@@ -20,7 +20,7 @@ endif
 DEST := /usr/bin
 
 CXXFLAGS += -std=c++11
-#CFLAGS += -g
+CFLAGS += -g
 
 ifeq ($(OBJDIR), i686)
 BOOTSTRAPFLAGS := -DBOOTSTRAP="\"objcopy -B i386 -I binary -O elf32-i386\""

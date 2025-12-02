@@ -337,6 +337,19 @@ int FileXML::read_from_file(const char *filename, int ignore_error)
 		fseek(in, 0, SEEK_END);
 		int new_length = ftell(in);
 		fseek(in, 0, SEEK_SET);
+        
+        if(new_length <= 0)
+        {
+		    if(!ignore_error) 
+			    fprintf(stderr, "FileXML::read_from_file \"%s\" %s\n",
+				    filename,
+				    strerror(errno));
+            fclose(in);
+            return 1;
+        }
+//printf("FileXML::read_from_file %d filename=%s new_length=%d\n",
+//__LINE__, filename, new_length);
+
         text->reserve(new_length + 1);
         text->resize(new_length);
 		int temp = fread(&(*text)[0], 1, new_length, in);

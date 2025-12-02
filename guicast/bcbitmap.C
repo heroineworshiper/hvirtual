@@ -306,6 +306,7 @@ int BC_Bitmap::allocate_data()
 		data[0] = 0;
 
 // Use RGB frame
+// allocate 1 to get the bytes per line
 //printf("BCBitmap::allocate_data 1\n");
 		ximage[0] = XCreateImage(top_level->display, 
 					top_level->vis, 
@@ -320,11 +321,13 @@ int BC_Bitmap::allocate_data()
 //printf("BCBitmap::allocate_data 1 %d\n", h * ximage[0]->bytes_per_line + 4);
 
 		data[0] = (unsigned char*)malloc(h * ximage[0]->bytes_per_line + 4);
-//printf("BCBitmap::allocate_data 2\n");
+//printf("BCBitmap::allocate_data %d %p %p %p %d %d %d %d\n", 
+//__LINE__, this, ximage[0], data[0], w, h, get_default_depth(), ximage[0]->bytes_per_line);
 
 		XDestroyImage(ximage[0]);
 //printf("BCBitmap::allocate_data 1\n");
 
+// allocate the real one
 		ximage[0] = XCreateImage(top_level->display, 
 					top_level->vis, 
 					get_default_depth(), 

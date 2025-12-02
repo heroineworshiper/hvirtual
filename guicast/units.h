@@ -32,8 +32,6 @@
 #define MAXGAIN 50
 // total slots in frequency table
 #define TOTALFREQS 1024
-// slots per octave
-#define OCTAVE 105
 #define TOTAL_TIMEFORMATS 7
 
 // h:mm:ss.sss
@@ -62,6 +60,8 @@
 #define TIME_HMS3 7
 #define TIME_HMS3_TEXT _("Hours:Minutes:Seconds")
 
+// slots per octave
+#define OCTAVE_SLOTS 105
 
 
 class DB
