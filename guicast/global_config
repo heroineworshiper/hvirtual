@@ -1,0 +1,9 @@
+OBJDIR := $(shell uname --machine)
+HAVE_GL := n
+HAVE_CFLAGS := n
+CC = g++
+GCC = gcc
+CFLAGS = -O2
+LFLAGS = -L/usr/X11R6/lib
+LDLINKER = g++ -shared
+VIDEO_CMODELS := n

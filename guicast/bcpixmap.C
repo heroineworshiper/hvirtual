@@ -304,7 +304,7 @@ void BC_Pixmap::copy_area(int x, int y, int w, int h, int x2, int y2)
 		y2);
 }
 
-int BC_Pixmap::write_drawable(Drawable &pixmap, 
+int BC_Pixmap::write_drawable(Drawable &win, 
 			int dest_x, 
 			int dest_y,
 			int dest_w,
@@ -330,7 +330,7 @@ int BC_Pixmap::write_drawable(Drawable &pixmap,
 		XSetClipOrigin(top_level->display, alpha_gc, dest_x - src_x, dest_y - src_y);
 		XCopyArea(top_level->display, 
 			this->opaque_pixmap, 
-			pixmap, 
+			win, 
 			alpha_gc, 
 			src_x, 
 			src_y, 
@@ -344,7 +344,7 @@ int BC_Pixmap::write_drawable(Drawable &pixmap,
 	{
 		XCopyArea(top_level->display, 
 			this->opaque_pixmap, 
-			pixmap, 
+			win, 
 			top_level->gc, 
 			src_x, 
 			src_y, 

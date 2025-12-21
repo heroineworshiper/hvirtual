@@ -3090,6 +3090,8 @@ int BC_PopupTextBox::create_objects()
 	parent_window->add_subwindow(textbox = new BC_PopupTextBoxText(this, x, y));
 	x += textbox->get_w();
 	parent_window->add_subwindow(listbox = new BC_PopupTextBoxList(this, x, y));
+    listbox->set_tooltip(tooltip_text.c_str());
+    textbox->set_tooltip(tooltip_text.c_str());
 	return 0;
 }
 
@@ -3181,6 +3183,19 @@ int BC_PopupTextBox::calculate_w()
 	return BC_WindowBase::get_resources()->listbox_button[0]->get_w();
 }
 
+
+void BC_PopupTextBox::set_tooltip(const char *text)
+{
+    this->tooltip_text.assign(text);
+    if(listbox)
+    {
+        listbox->set_tooltip(text);
+    }
+    if(textbox)
+    {
+        textbox->set_tooltip(text);
+    }
+}
 
 
 

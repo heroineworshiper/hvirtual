@@ -375,6 +375,7 @@ public:
 	virtual ~BC_PopupTextBox();
 	int create_objects();
 	virtual int handle_event();
+    void set_tooltip(const char *text);
 	const char* get_text();
     BC_PopupTextBoxText* get_textbox();
 	int get_number();
@@ -400,6 +401,7 @@ private:
 	int x, y, text_w, list_w, list_h;
 	int list_format;
 	char *default_text;
+    string tooltip_text;
 	ArrayList<BC_ListBoxItem*> *list_items;
 	BC_PopupTextBoxText *textbox;
 	BC_PopupTextBoxList *listbox;

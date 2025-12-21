@@ -37,6 +37,7 @@ public:
 	FileItem(char *path, 
 		char *name, 
 		int is_dir, 
+        int is_link,
 		int64_t size, 
 		int month, 
 		int day, 
@@ -54,6 +55,7 @@ public:
 	char *path;
 	char *name;
 	int is_dir;
+    int is_link;
 	int64_t size;
 	int month;
 	int day;

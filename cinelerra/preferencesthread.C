@@ -668,31 +668,31 @@ int PreferencesCancel::handle_event()
 
 
 
-
-PreferencesCategory::PreferencesCategory(MWindow *mwindow, PreferencesThread *thread, int x, int y)
- : BC_PopupTextBox(thread->window, 
-		&thread->window->categories,
-		thread->category_to_text(thread->current_dialog),
-		x, 
-		y, 
-		DP(200),
-		DP(150))
-{
-	this->mwindow = mwindow;
-	this->thread = thread;
-}
-
-PreferencesCategory::~PreferencesCategory()
-{
-}
-
-int PreferencesCategory::handle_event()
-{
-SET_TRACE
-	thread->window->set_current_dialog(thread->text_to_category(get_text()));
-SET_TRACE
-	return 1;
-}
+// 
+// PreferencesCategory::PreferencesCategory(MWindow *mwindow, PreferencesThread *thread, int x, int y)
+//  : BC_PopupTextBox(thread->window, 
+// 		&thread->window->categories,
+// 		thread->category_to_text(thread->current_dialog),
+// 		x, 
+// 		y, 
+// 		DP(200),
+// 		DP(150))
+// {
+// 	this->mwindow = mwindow;
+// 	this->thread = thread;
+// }
+// 
+// PreferencesCategory::~PreferencesCategory()
+// {
+// }
+// 
+// int PreferencesCategory::handle_event()
+// {
+// SET_TRACE
+// 	thread->window->set_current_dialog(thread->text_to_category(get_text()));
+// SET_TRACE
+// 	return 1;
+// }
 
 
 

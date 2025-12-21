@@ -45,6 +45,7 @@ FileItem::FileItem()
 FileItem::FileItem(char *path, 
 	char *name, 
 	int is_dir, 
+    int is_link,
 	int64_t size, 
 	int month, 
 	int day, 
@@ -56,6 +57,7 @@ FileItem::FileItem(char *path,
 	if(this->path) strcpy(this->path, path);
 	if(this->name) strcpy(this->name, name);
 	this->is_dir = is_dir;
+    this->is_link = is_link;
 	this->size = size;
 	this->month = month;
 	this->day = day;
@@ -75,6 +77,7 @@ int FileItem::reset()
 	path = 0;
 	name = 0;
 	is_dir = 0;
+    is_link = 0;
 	size = 0;
 	month = 0;
 	day = 0;
@@ -506,6 +509,11 @@ int FileSystem::update(const char *new_dir)
 					strcat(name_only, "/"); // is a directory
 					new_file->is_dir = 1;
 				}
+                
+                if(S_ISLNK(ostat.st_mode))
+                {
+                    new_file->is_link = 1;
+                }
 
 // File is excluded from filter
 				if(include_this && test_filter(new_file)) include_this = 0;

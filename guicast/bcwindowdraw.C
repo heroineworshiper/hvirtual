@@ -2310,6 +2310,17 @@ void BC_WindowBase::draw_9segment(int x,
 		dst);
 }
 
+// used for drawing cursors
+void BC_WindowBase::draw_fg_pixmap(BC_Pixmap *pixmap, int x, int y)
+{
+    pixmap->write_drawable(win, 
+		x, 
+		y,
+		-1,
+		-1,
+		0,
+		0);
+}
 
 void BC_WindowBase::draw_fg_box(int x, int y, int w, int h)
 {
@@ -2320,6 +2331,29 @@ void BC_WindowBase::draw_fg_box(int x, int y, int w, int h)
             y, 
             w, 
             h);
+}
+
+void BC_WindowBase::draw_fg_rect(int x, int y, int w, int h)
+{
+// XDrawRectangle doesn't do XOR properly
+    XPoint points[5];
+    points[0].x = x;
+    points[0].y = y;
+    points[1].x = x + w - 1;
+    points[1].y = y;
+    points[2].x = x + w - 1;
+    points[2].y = y + h - 1;
+    points[3].x = x;
+    points[3].y = y + h - 1;
+    points[4].x = x;
+    points[4].y = y;
+
+    XDrawLines(top_level->display,
+    	win,
+    	top_level->gc,
+    	points,
+    	5,
+    	CoordModeOrigin);
 }
 
 void BC_WindowBase::draw_fg_circle(int x, int y, int w, int h)
