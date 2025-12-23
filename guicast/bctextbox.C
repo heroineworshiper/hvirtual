@@ -3057,6 +3057,8 @@ BC_PopupTextBox::BC_PopupTextBox(BC_WindowBase *parent_window,
     this->list_w = text_w + BC_WindowBase::get_resources()->listbox_button[0]->get_w();
 	this->parent_window = parent_window;
 	this->list_items = list_items;
+    listbox = 0;
+    textbox = 0;
 }
 
 BC_PopupTextBox::~BC_PopupTextBox()

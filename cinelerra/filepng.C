@@ -331,7 +331,8 @@ int FilePNG::read_frame(VFrame *output, VFrame *input)
 	png_read_info(png_ptr, info_ptr);
 
  	int png_color_type = png_get_color_type(png_ptr, info_ptr);
-	int png_color_depth = png_get_bit_depth(png_ptr,info_ptr);
+	int png_color_depth = png_get_bit_depth(png_ptr, info_ptr);
+    int png_channels = png_get_channels(png_ptr, info_ptr);
 
 // convert greyscale to RGB in libpng
  	if (png_color_type == PNG_COLOR_TYPE_GRAY ||
@@ -354,10 +355,17 @@ int FilePNG::read_frame(VFrame *output, VFrame *input)
 
 // compute the input color model after libpng conversion
     int input_cmodel = BC_RGB888;
+// printf("FilePNG::read_frame %d png_color_type=%d png_color_depth=%d png_channels=%d\n", 
+// __LINE__, 
+// png_color_type,
+// png_color_depth,
+// png_channels);
     switch(png_color_type)
     {
-        case PNG_COLOR_TYPE_GRAY:
         case PNG_COLOR_TYPE_PALETTE:
+            input_cmodel = BC_RGBA8888;
+            break;
+        case PNG_COLOR_TYPE_GRAY:
         case PNG_COLOR_TYPE_RGB:
             input_cmodel = BC_RGB888;
             break;
