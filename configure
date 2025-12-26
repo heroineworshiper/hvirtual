@@ -140,7 +140,7 @@ FFMPEG_LFLAGS="-L$FFMPEG_DIR/libavformat -L$FFMPEG_DIR/libavcodec -L$FFMPEG_DIR/
 FFMPEG_LIBS="-lavformat -lavcodec -lavutil -lswresample -ldl -lm -lpthread -lz -lbz2 -llzma"
 
 cd $FFMPEG_DIR
-./configure --disable-x86asm --enable-pthreads --disable-ffplay --enable-nonfree --disable-doc --enable-gpl --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64
+./configure --disable-x86asm --enable-pthreads --disable-vaapi --disable-vdpau --disable-ffplay --enable-nonfree --disable-doc --enable-gpl --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64
 if [ $? -ne 0 ]; then 
 ERROR=1
 fi
@@ -213,7 +213,7 @@ if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 echo CONFIGURING SNDFILE
 #cd thirdparty/libsndfile* && chmod a+x ./configure && ./configure && \
 cd thirdparty/libsndfile* && \
-autoconf && autoreconf && ./configure && \
+autoconf && autoreconf && ./configure --disable-external-libs && \
 cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi

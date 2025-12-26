@@ -70,13 +70,13 @@ if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 LIBFAAD_PATH=`expr thirdparty/faad2*/`
 
 echo "CONFIGURING FAAD"
-cd $LIBFAAD_PATH && ./configure && sed 's/       /\t/' Makefile > Makefile2 && mv -f Makefile2 Makefile && cd ../..
+cd $LIBFAAD_PATH && autoreconf -fi && ./configure && sed 's/       /\t/' Makefile > Makefile2 && mv -f Makefile2 Makefile && cd ../..
 #cd $LIBFAAD_PATH && ./configure && cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
 echo "CONFIGURING FAAC"
-cd thirdparty/faac* && ./configure && cd ../..
+cd thirdparty/faac* && autoreconf -fi && ./configure && cd ../..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
