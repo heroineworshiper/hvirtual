@@ -1627,6 +1627,19 @@ static inline void YUVA8888_to_YUV422(unsigned char *(*output),
 
 // ********************************* YUV101010 -> *****************************
 
+// #define READ_YUV101010 \
+// 	uint64_t y, u, v; \
+// 	uint32_t input_i = input[0] | \
+// 		(input[1] << 8) | \
+// 		(input[2] << 16) | \
+// 		(input[3] << 24); \
+//  \
+// 	y = ((input_i & 0xffc00000) >> 16) | 0x3f; \
+// 	u = ((input_i & 0x3ff000) >> 6) | 0x3f; \
+// 	v = ((input_i & 0xffc) << 4) | 0x3f;
+
+// https://developer.apple.com/library/archive/technotes/tn2162/_index.html
+// 'v410' 4:4:4 Compression Type
 #define READ_YUV101010 \
 	uint64_t y, u, v; \
 	uint32_t input_i = input[0] | \
@@ -1634,10 +1647,9 @@ static inline void YUVA8888_to_YUV422(unsigned char *(*output),
 		(input[2] << 16) | \
 		(input[3] << 24); \
  \
-	y = ((input_i & 0xffc00000) >> 16) | 0x3f; \
-	u = ((input_i & 0x3ff000) >> 6) | 0x3f; \
-	v = ((input_i & 0xffc) << 4) | 0x3f;
-
+	v = ((input_i & 0xffc00000) >> 16) | 0x3f; \
+	y = ((input_i & 0x3ff000) >> 6) | 0x3f; \
+	u = ((input_i & 0xffc) << 4) | 0x3f;
 
 
 

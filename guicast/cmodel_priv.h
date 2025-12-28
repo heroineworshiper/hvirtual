@@ -164,11 +164,24 @@ void register_cmodel_function(int in_colormodel,
 
 
 
+// #define WRITE_YUV101010(y, u, v) \
+// { \
+// 	uint32_t output_i = ((y & 0xffc0) << 16) | \
+// 		((u & 0xffc0) << 6) | \
+// 		((v & 0xffc0) >> 4); \
+// 	*(*output)++ = (output_i & 0xff); \
+// 	*(*output)++ = (output_i & 0xff00) >> 8; \
+// 	*(*output)++ = (output_i & 0xff0000) >> 16; \
+// 	*(*output)++ = (output_i & 0xff000000) >> 24; \
+// }
+
+// https://developer.apple.com/library/archive/technotes/tn2162/_index.html
+// 'v410' 4:4:4 Compression Type
 #define WRITE_YUV101010(y, u, v) \
 { \
-	uint32_t output_i = ((y & 0xffc0) << 16) | \
-		((u & 0xffc0) << 6) | \
-		((v & 0xffc0) >> 4); \
+	uint32_t output_i = ((v & 0xffc0) << 16) | \
+		((y & 0xffc0) << 6) | \
+		((u & 0xffc0) >> 4); \
 	*(*output)++ = (output_i & 0xff); \
 	*(*output)++ = (output_i & 0xff00) >> 8; \
 	*(*output)++ = (output_i & 0xff0000) >> 16; \
