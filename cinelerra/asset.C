@@ -97,15 +97,18 @@ int Asset::init_values()
 	jpeg_quality = 80;
 	aspect_ratio = -1;
 
+    video_preset = FileStdout::default_video_presets[0]->title;
     video_command = FileStdout::default_video_presets[0]->command;
     command_cmodel = FileStdout::default_video_presets[0]->color_model;
 
+    audio_preset = FileStdout::default_audio_presets[0]->title;
     audio_command = FileStdout::default_audio_presets[0]->command;
     command_bits = FileStdout::default_audio_presets[0]->bits;
     command_byte_order = FileStdout::default_audio_presets[0]->byte_order;
     command_signed_ = FileStdout::default_audio_presets[0]->signed_;
     command_dither = FileStdout::default_audio_presets[0]->dither;
 
+    wrapper_preset = FileStdout::default_mplex_presets[0]->title;
     wrapper_command = FileStdout::default_mplex_presets[0]->command;
     command_delete_temps = FileStdout::default_mplex_presets[0]->delete_temps;
 
@@ -260,11 +263,15 @@ void Asset::copy_format(Asset *asset, int do_index)
     command_byte_order = asset->command_byte_order;
     command_signed_ = asset->command_signed_;
     command_dither = asset->command_dither;
+    
+    video_preset = asset->video_preset;
     video_command = asset->video_command;
+    audio_preset = asset->audio_preset;
     audio_command = asset->audio_command;
 
 
     do_wrapper = asset->do_wrapper;
+    wrapper_preset = asset->wrapper_preset;
     wrapper_command = asset->wrapper_command;
     command_delete_temps = asset->command_delete_temps;
 
@@ -915,15 +922,18 @@ void Asset::load_defaults(BC_Hash *defaults,
 
 
 // command line encoder
+    GET_DEFAULT("VIDEO_PRESET", &video_preset);
     GET_DEFAULT("VIDEO_COMMAND", &video_command);
     command_cmodel = GET_DEFAULT("COMMAND_CMODEL", command_cmodel);
 
+    GET_DEFAULT("AUDIO_PRESET", &audio_preset);
     GET_DEFAULT("AUDIO_COMMAND", &audio_command);
     command_bits = GET_DEFAULT("COMMAND_BITS", command_bits);
 	command_dither = GET_DEFAULT("COMMAND_DITHER", command_dither);
 	command_signed_ = GET_DEFAULT("COMMAND_SIGNED", command_signed_);
 	command_byte_order = GET_DEFAULT("COMMAND_BYTE_ORDER", command_byte_order);
 
+    GET_DEFAULT("WRAPPER_PRESET", &wrapper_preset);
     GET_DEFAULT("WRAPPER_COMMAND", &wrapper_command);
     command_delete_temps = GET_DEFAULT("COMMAND_DELETE_TEMPS", command_delete_temps);
 
@@ -990,13 +1000,16 @@ void Asset::save_defaults(BC_Hash *defaults,
 		UPDATE_DEFAULT("MP4A_QUANTQUAL", mp4a_quantqual);
 
 // Command line encoder
+        UPDATE_DEFAULT("AUDIO_PRESET", &audio_preset);
         UPDATE_DEFAULT("AUDIO_COMMAND", &audio_command);
         UPDATE_DEFAULT("COMMAND_BITS", command_bits);
         UPDATE_DEFAULT("COMMAND_BYTE_ORDER", command_byte_order);
         UPDATE_DEFAULT("COMMAND_SIGNED", command_signed_);
         UPDATE_DEFAULT("COMMAND_DITHER", command_dither);
+        UPDATE_DEFAULT("WRAPPER_PRESET", &wrapper_preset);
         UPDATE_DEFAULT("WRAPPER_COMMAND", &wrapper_command);
         UPDATE_DEFAULT("COMMAND_DELETE_TEMPS", command_delete_temps);
+        UPDATE_DEFAULT("VIDEO_PRESET", &video_preset);
         UPDATE_DEFAULT("VIDEO_COMMAND", &video_command);
         UPDATE_DEFAULT("COMMAND_CMODEL", command_cmodel);
 
@@ -1128,6 +1141,7 @@ int Asset::dump()
 	printf("   video_length %lld \n", (long long)video_length);
 
 
+    printf("   audio_preset=%s\n", audio_preset.c_str());
     printf("   audio_command=%s\n", audio_command.c_str());
 
 	printf("   ms_bitrate_tolerance=%d\n", ms_bitrate_tolerance);
@@ -1143,9 +1157,11 @@ int Asset::dump()
 	printf("   mov_sphere=%d\n", mov_sphere);
 	printf("   jpeg_sphere=%d\n", jpeg_sphere);
 	printf("   command_cmodel=%d\n", command_cmodel);
+	printf("   video_preset=%s\n", video_preset.c_str());
 	printf("   video_command=%s\n", video_command.c_str());
-    
+
     printf("   do_wrapper=%d\n", do_wrapper);
+    printf("   wrapper_preset=%s\n", wrapper_preset.c_str());
     printf("   wrapper_command=%s\n", wrapper_command.c_str());
 	return 0;
 }

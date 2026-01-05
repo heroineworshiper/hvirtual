@@ -172,6 +172,10 @@ public:
 
 
 // command line encoder options
+// preset titles
+    std::string video_preset;
+    std::string audio_preset;
+    std::string wrapper_preset;
     std::string video_command;
 // colorspace for encoding video
     int command_cmodel;

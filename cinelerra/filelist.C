@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -257,7 +257,12 @@ int FileList::read_list_header()
 		while(!feof(stream))
 		{
 			char *temp = fgets(string, BCTEXTLEN, stream);
-			if(strlen(string) && string[0] != '#' && string[0] != ' ' && !feof(stream))
+			if(strlen(string) && 
+                string[0] != '#' && 
+                string[0] != ' ' && 
+                string[0] != '\n' &&
+                string[0] != '\r' &&
+                !feof(stream))
 			{
 				string[strlen(string) - 1] = 0;
 				path_list.append(new_entry = new char[strlen(string) + 1]);

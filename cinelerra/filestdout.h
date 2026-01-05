@@ -204,6 +204,7 @@ public:
 
     const char* get_option_text();
     std::string* get_command_text();
+    std::string* get_preset_title();
 	void create_objects();
     virtual void create_objects2(int x, int y);
 	int close_event();
@@ -219,7 +220,7 @@ public:
 // Options which are saved to a defaults file
 	ArrayList<BC_ListBoxItem*> *preset_names;
     ArrayList<StdoutPreset*> *preset_data;
-    std::string preset_title;
+//    std::string preset_title;
 
     StdoutText *command_title;
     StdoutText *command;

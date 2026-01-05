@@ -936,8 +936,8 @@ void StdoutBaseConfig::load_defaults()
     }
 
 // the contents of the preset title textbox
-    sprintf(string, "%sPRESET_TITLE", option_text);
-    defaults->get(string, &preset_title);
+//    sprintf(string, "%sPRESET_TITLE", option_text);
+//    defaults->get(string, &preset_title);
 
 // the current command line comes from the asset
 }
@@ -969,8 +969,8 @@ void StdoutBaseConfig::save_defaults()
     }
 
 // save the current preset textbox
-    sprintf(string, "%sPRESET_TITLE", option_text);
-    defaults->update(string, &preset_title);
+//    sprintf(string, "%sPRESET_TITLE", option_text);
+//    defaults->update(string, &preset_title);
 
 // command line comes from the asset
 
@@ -996,6 +996,17 @@ std::string* StdoutBaseConfig::get_command_text()
         case AUDIO_PARAMS: return &asset->audio_command;
         case VIDEO_PARAMS: return &asset->video_command;
         case MPLEX_PARAMS: return &asset->wrapper_command;
+    }
+    return 0;
+}
+
+std::string* StdoutBaseConfig::get_preset_title()
+{
+    switch(option_type)
+    {
+        case AUDIO_PARAMS: return &asset->audio_preset;
+        case VIDEO_PARAMS: return &asset->video_preset;
+        case MPLEX_PARAMS: return &asset->wrapper_preset;
     }
     return 0;
 }
@@ -1034,7 +1045,7 @@ void StdoutBaseConfig::create_objects()
     add_tool(title = new BC_Title(x, y, _("Preset title:")));
 	y += title->get_h() + margin;
 
-    add_subwindow(command_title = new StdoutText(&preset_title,
+    add_subwindow(command_title = new StdoutText(get_preset_title(),
         x, 
 	    y,
         get_w() - x - margin,
@@ -1044,8 +1055,7 @@ void StdoutBaseConfig::create_objects()
     add_tool(title = new BC_Title(x, y, _("Command line:")));
 	y += title->get_h() + margin;
 
-    std::string *command_text = get_command_text();
-    add_subwindow(command = new StdoutText(command_text,
+    add_subwindow(command = new StdoutText(get_command_text(),
         x, 
 	    y,
         get_w() - x - margin,
@@ -1236,7 +1246,8 @@ void StdoutBaseConfig::load_preset()
     {
         StdoutPreset *src = preset_data->get(number);
         command->update(src->command.c_str());
-        preset_title.assign(preset_names->get(number)->get_text());
+        std::string *preset_title = get_preset_title();
+        preset_title->assign(preset_names->get(number)->get_text());
         command_title->update(preset_names->get(number)->get_text());
 
 // copy only the parameters for the option_type so a video preset doesn't
