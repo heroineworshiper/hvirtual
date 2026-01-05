@@ -89,8 +89,9 @@ const char* FileTGA::get_tag(int format)
     switch(format)
     {
 		case FILE_TGA:
-		case FILE_TGA_LIST:
             return "tga";
+		case FILE_TGA_LIST:
+            return "list";
     }
     return 0;
 }

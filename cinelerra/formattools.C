@@ -988,7 +988,6 @@ FormatPathText::~FormatPathText()
 }
 int FormatPathText::handle_event() 
 {
-//printf("FormatPathText::handle_event %d %s\n", __LINE__, get_text());
 // Suggestions
 	calculate_suggestions(format->file_entries);
 

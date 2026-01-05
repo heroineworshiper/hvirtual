@@ -77,8 +77,9 @@ const char* FilePNG::get_tag(int format)
     switch(format)
     {
 		case FILE_PNG:
-		case FILE_PNG_LIST:
             return "png";
+		case FILE_PNG_LIST:
+            return "list";
     }
     return 0;
 }

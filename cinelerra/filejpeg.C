@@ -85,8 +85,9 @@ const char* FileJPEG::get_tag(int format)
     switch(format)
     {
 		case FILE_JPEG:
-		case FILE_JPEG_LIST:
             return "jpg";
+		case FILE_JPEG_LIST:
+            return "list";
     }
     return 0;
 }

@@ -185,7 +185,7 @@ public:
 	void set_keypress_draw(int value);
 	int get_ibeam_letter();
 	void set_ibeam_letter(int number, int redraw = 1);
-// Used for custom formatting text boxes
+// Prevent suggestions after certain operations
 	int get_last_keypress();
 // Table of separators to skip.  Used by time textboxes
 // The separator format is "0000:0000".  Things not alnum are considered

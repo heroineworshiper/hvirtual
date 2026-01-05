@@ -24,6 +24,7 @@ Config window for screencap which specifies X & Y offset
 
 BIG BUGS
 -----------------------------------
+cut not working in filename text boxes
 can't paste certain time formats in selection text
 ffmpeg command gets stuck when it finishes encoding & prompts for overwrite.
 Reverb artifacts

@@ -217,8 +217,9 @@ const char* FileEXR::get_tag(int format)
     switch(format)
     {
 		case FILE_EXR:
-		case FILE_EXR_LIST:
             return "exr";
+		case FILE_EXR_LIST:
+            return "list";
     }
     return 0;
 }

@@ -78,8 +78,9 @@ const char* FileTIFF::get_tag(int format)
     switch(format)
     {
 		case FILE_TIFF:
-		case FILE_TIFF_LIST:
             return "tif";
+		case FILE_TIFF_LIST:
+            return "list";
     }
     return 0;
 }
