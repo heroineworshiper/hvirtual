@@ -158,7 +158,7 @@ public:
 	FormatPathText(int x, int y, FormatTools *format);
 	~FormatPathText();
 	int handle_event();
-	
+
 	FormatTools *format;
 };
 

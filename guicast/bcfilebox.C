@@ -274,10 +274,12 @@ BC_FileBoxTextBox::~BC_FileBoxTextBox()
 int BC_FileBoxTextBox::handle_event()
 {
 	int result = 0;
-	if(get_keypress() != RETURN)
+	if(get_keypress() != RETURN &&
+        !get_no_complete())
 	{
 		result = calculate_suggestions(&filebox->list_column[0]);
 	}
+    set_no_complete(0);
 	return result;
 }
 

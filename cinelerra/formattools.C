@@ -980,7 +980,7 @@ FormatPathText::FormatPathText(int x, int y, FormatTools *format)
 	1, 
 	format->asset->path) 
 {
-	this->format = format; 
+	this->format = format;
 }
 
 FormatPathText::~FormatPathText() 
@@ -989,8 +989,8 @@ FormatPathText::~FormatPathText()
 int FormatPathText::handle_event() 
 {
 // Suggestions
-	calculate_suggestions(format->file_entries);
-
+	if(!get_no_complete()) calculate_suggestions(format->file_entries);
+    set_no_complete(0);
 
 
 	strcpy(format->asset->path, get_text());

@@ -22,14 +22,14 @@
 #ifndef BROWSEBUTTON_H
 #define BROWSEBUTTON_H
 
+#include "bcdialog.h"
 #include "guicast.h"
 #include "mutex.inc"
 #include "theme.inc"
-#include "thread.h"
 
 class BrowseButtonWindow;
 
-class BrowseButton : public BC_Button, public Thread
+class BrowseButton : public BC_Button, public BC_DialogThread
 {
 public:
 	BrowseButton(Theme *theme, 
@@ -44,7 +44,12 @@ public:
 	~BrowseButton();
 	
 	int handle_event();
-	void run();
+    
+    BC_Window* new_gui();
+	void handle_done_event(int result);
+	void handle_close_event(int result);
+
+
 	int want_directory;
 	char result[BCTEXTLEN];
 	const char *title;
@@ -53,8 +58,6 @@ public:
 	BC_TextBox *textbox;
 	Theme *theme;
 	BC_WindowBase *parent_window;
-	BrowseButtonWindow *gui;
-	Mutex *startup_lock;
 	int x, y;
 };
 

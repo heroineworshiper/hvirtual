@@ -212,6 +212,8 @@ public:
 // if multiple suggestions.
 // column - starting column to replace
 	void set_suggestions(ArrayList<char*> *suggestions, int column);
+    void set_no_complete(int value);
+    int get_no_complete();
 	BC_ScrollTextBoxYScroll *yscroll;
 	BC_TextMenu *menu;
 
@@ -270,8 +272,9 @@ private:
 // Cause the repeater to skip a cursor refresh if a certain event happened
 // within a certain time of the last repeat event
 	Timer *skip_cursor;
-// Used for custom formatting text boxes
+// Prevent auto complete in certain cases
 	int last_keypress;
+    int no_complete;
 	char *separators;
 	ArrayList<BC_ListBoxItem*> *suggestions;
 	BC_TextBoxSuggestions *suggestions_popup;

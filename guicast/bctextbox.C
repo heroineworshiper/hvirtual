@@ -275,6 +275,7 @@ int BC_TextBox::reset_parameters(int rows, int has_border, int font)
 		skip_cursor = new Timer;
 	keypress_draw = 1;
 	last_keypress = 0;
+    no_complete = 0;
 	separators = 0;
 	yscroll = 0;
 	menu = 0;
@@ -353,15 +354,25 @@ void BC_TextBox::set_precision(int precision)
 	this->precision = precision;
 }
 
+void BC_TextBox::set_no_complete(int value)
+{
+    this->no_complete = value;
+}
+
+int BC_TextBox::get_no_complete()
+{
+    return no_complete;
+}
+
 // Compute suggestions for a path
 int BC_TextBox::calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries, 
     int ignore_fs)
 {
 // Let user delete or cut
 	if(get_last_keypress() != BACKSPACE &&
-        get_last_keypress() != DELETE)
+        get_last_keypress() != DELETE &&
+        !get_no_complete())
 	{
-
 // Compute suggestions
 		FileSystem fs;
 		ArrayList<char*> suggestions;
@@ -455,6 +466,9 @@ int BC_TextBox::calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries,
 			set_suggestions(&suggestions, 0);
 		}
 	}
+
+    set_no_complete(0);
+
 
 	return 1;
 }
@@ -1948,7 +1962,7 @@ int BC_TextBox::keypress_event()
 				if(!read_only && (get_keypress() == 'x' || get_keypress() == 'X'))
 				{
 // don't insert a suggestion after a cut
-                    last_keypress = BACKSPACE;
+                    set_no_complete(1);
 					result = cut(0);
 
 					dispatch_event = 1;
@@ -1996,7 +2010,7 @@ int BC_TextBox::cut(int do_housekeeping)
 	{
 		skip_cursor->update();
 // don't insert a suggestion after a cut
-        last_keypress = BACKSPACE;
+        set_no_complete(1);
 		handle_event();
 	}
 	return 1;
@@ -2696,7 +2710,7 @@ void BC_TextBox::undo()
         item->to_textbox(this);
         draw(1);
 // don't insert a suggestion after an undo operation
-        last_keypress = BACKSPACE;
+        set_no_complete(1);
         handle_event();
     }
 }
@@ -2709,7 +2723,7 @@ void BC_TextBox::redo()
         item->to_textbox(this);
         draw(1);
 // don't insert a suggestion after a redo operation
-        last_keypress = BACKSPACE;
+        set_no_complete(1);
         handle_event();
     }
 }

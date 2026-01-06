@@ -39,7 +39,7 @@ BrowseButton::BrowseButton(Theme *theme,
 	const char *caption, 
 	int want_directory)
  : BC_Button(x, y, theme->get_image_set("magnify_button")), 
-   Thread(1, 0, 0)
+   BC_DialogThread()
 {
 	this->parent_window = parent_window;
 	this->want_directory = want_directory;
@@ -49,65 +49,38 @@ BrowseButton::BrowseButton(Theme *theme,
 	this->textbox = textbox;
 	this->theme = theme;
 	set_tooltip(_("Look for file"));
-	gui = 0;
-	startup_lock = new Mutex("BrowseButton::startup_lock");
 }
 
 BrowseButton::~BrowseButton()
 {
-	startup_lock->lock("BrowseButton::~BrowseButton");
-	if(gui)
-	{
-		gui->lock_window();
-		gui->set_done(1);
-		gui->unlock_window();
-	}
-	startup_lock->unlock();
-	Thread::join();
-	delete startup_lock;
 }
 
 int BrowseButton::handle_event()
 {
-	if(Thread::running())
-	{
-		if(gui)
-		{
-			gui->lock_window("BrowseButton::handle_event");
-			gui->raise_window();
-			gui->unlock_window();
-		}
-		return 1;
-	}
-
 	x = parent_window->get_abs_cursor_x(0);
 	y = parent_window->get_abs_cursor_y(0);
-	startup_lock->lock("BrowseButton::handle_event 1");
-	Thread::start();
-
-	startup_lock->lock("BrowseButton::handle_event 2");
-	startup_lock->unlock();
-	return 1;
+    start();
+    return 1;
 }
 
-void BrowseButton::run()
+
+BC_Window* BrowseButton::new_gui()
 {
-	BrowseButtonWindow browsewindow(theme,
+	BrowseButtonWindow *browsewindow = new BrowseButtonWindow(theme,
 		this,
 		parent_window, 
 		textbox->get_text(), 
 		title, 
 		caption, 
 		want_directory);
-	gui = &browsewindow;
-	startup_lock->unlock();
-	
-	browsewindow.lock_window("BrowseButton::run");
-	browsewindow.create_objects();
-	browsewindow.unlock_window();
-	int result2 = browsewindow.run_window();
 
-	if(!result2)
+	browsewindow->create_objects();
+	return browsewindow;
+}
+
+void BrowseButton::handle_done_event(int result)
+{
+	if(!result)
 	{
 // 		if(want_directory)
 // 		{
@@ -118,16 +91,21 @@ void BrowseButton::run()
 // 			textbox->update(browsewindow.get_filename());
 // 		}
 
-		parent_window->lock_window("BrowseButton::run");
-		textbox->update(browsewindow.get_submitted_path());
+        BrowseButtonWindow *browsewindow = (BrowseButtonWindow*)get_gui();
+		parent_window->lock_window("BrowseButton::handle_close_event");
+//printf("BrowseButton::handle_close_event %d %p %p %p\n", 
+//__LINE__, textbox, browsewindow, browsewindow->get_submitted_path());
+// TODO: don't complete the path
+		textbox->update(browsewindow->get_submitted_path());
 		parent_window->flush();
+        textbox->set_no_complete(1);
 		textbox->handle_event();
 		parent_window->unlock_window();
 	}
+}
 
-	startup_lock->lock("BrowseButton::run");
-	gui = 0;
-	startup_lock->unlock();
+void BrowseButton::handle_close_event(int result)
+{
 }
 
 

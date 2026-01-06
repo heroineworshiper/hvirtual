@@ -47,6 +47,7 @@ BC_DialogThread::~BC_DialogThread()
 		gui->set_done(1);
 		gui->unlock_window();
 	}
+// gui is deleted in run
 	startup_lock->unlock();
 	Thread::join();
 
