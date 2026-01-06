@@ -7,7 +7,6 @@ https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35k
 
 BIG WISHLIST:
 -----------------------------------
-Indication of symbolic links
 Dates of contributors
 Resource window needs help
  - Sort assets by timeline order
@@ -24,7 +23,6 @@ Config window for screencap which specifies X & Y offset
 
 BIG BUGS
 -----------------------------------
-cut not working in filename text boxes
 can't paste certain time formats in selection text
 ffmpeg command gets stuck when it finishes encoding & prompts for overwrite.
 Reverb artifacts

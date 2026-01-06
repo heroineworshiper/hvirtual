@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +35,6 @@ BC_ListBoxItem::BC_ListBoxItem()
 	color = BC_WindowBase::get_resources()->listbox_text;
 	this->text = new char[1];
 	text[0] = 0;
-	selectable = 1;
 }
 
 BC_ListBoxItem::BC_ListBoxItem(const char *text, 
@@ -51,7 +49,6 @@ BC_ListBoxItem::BC_ListBoxItem(const char *text,
 
 	strcpy(this->text, text);
 	this->color = color;
-	selectable = 1;
 }
 
 BC_ListBoxItem::BC_ListBoxItem(const char *text, int color)
@@ -62,7 +59,6 @@ BC_ListBoxItem::BC_ListBoxItem(const char *text, int color)
 	this->text = new char[strlen(text) + 1];
 	strcpy(this->text, text);
 	this->color = color;
-	selectable = 1;
 }
 
 BC_ListBoxItem::~BC_ListBoxItem()
@@ -78,6 +74,7 @@ BC_ListBoxItem::~BC_ListBoxItem()
 
 int BC_ListBoxItem::initialize()
 {
+	selectable = 1;
 	autoplace_icon = 1;
 	autoplace_text = 1;
 	text = 0;
@@ -93,6 +90,7 @@ int BC_ListBoxItem::initialize()
 	sublist = 0;
 	columns = 0;
 	expand = 0;
+    italic = 0;
 	return 0;
 }
 
@@ -290,6 +288,16 @@ int BC_ListBoxItem::get_expand()
 void BC_ListBoxItem::set_expand(int value)
 {
 	expand = value;
+}
+
+int BC_ListBoxItem::get_italic()
+{
+    return italic;
+}
+
+void BC_ListBoxItem::set_italic(int value)
+{
+    italic = value;
 }
 
 

@@ -315,6 +315,7 @@ public:
 	int filebox_margin;
 	int dirbox_margin;
 	int directory_color;
+	int link_color;
 	int file_color;
     int filebox_preview_w;
     int filebox_show_preview;
@@ -323,11 +324,13 @@ public:
 // fixed fonts
 	static const char *large_font;
 	static const char *medium_font;
+	static const char *italic_font;
 	static const char *small_font;
 	static const char *clock_font;
 // fixed fonts use point sizes, not pixel sizes
 	static int large_fontsize;
 	static int medium_fontsize;
+	static int italic_fontsize;
 	static int small_fontsize;
 	static int clock_fontsize;
 
@@ -339,11 +342,13 @@ public:
 // trutype fonts
 	static const char *large_font_xft;
 	static const char *medium_font_xft;
+	static const char *italic_font_xft;
 	static const char *small_font_xft;
 	static const char *clock_font_xft;
 // XFT uses pixel sizes
 	static double large_font_xftsize;
 	static double medium_font_xftsize;
+	static double italic_font_xftsize;
 	static double small_font_xftsize;
 	static double clock_font_xftsize;
 

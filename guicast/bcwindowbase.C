@@ -180,14 +180,11 @@ BC_WindowBase::~BC_WindowBase()
 // 		if(smallfont_xft) 
 // 			XftFontClose (display, (XftFont*)smallfont_xft);
 #endif
-		if (smallfont)
-			XFreeFont(display, smallfont);
-		if (mediumfont)
-			XFreeFont(display, mediumfont);
-		if (largefont)
-			XFreeFont(display, largefont);
-		if (clockfont)
-			XFreeFont(display, clockfont);
+		if (smallfont) XFreeFont(display, smallfont);
+		if (mediumfont) XFreeFont(display, mediumfont);
+		if (italicfont) XFreeFont(display, italicfont);
+		if (largefont) XFreeFont(display, largefont);
+		if (clockfont) XFreeFont(display, clockfont);
 
         delete_im();
 		flush();
@@ -312,6 +309,7 @@ int BC_WindowBase::initialize()
 #endif
 	largefont_xft = 0;
 	mediumfont_xft = 0;
+    italicfont_xft = 0;
 	smallfont_xft = 0;
 	clockfont_xft = 0;
 #ifdef SINGLE_THREAD
@@ -2330,13 +2328,22 @@ void* BC_WindowBase::query_xft_font(const char *font_string, double size)
 	}
 	else
 	{
-        result = XftFontOpen(display,
-             screen,
-             XFT_FAMILY, XftTypeString, font_string,
-             XFT_PIXEL_SIZE, XftTypeDouble, size,
-             NULL);
+        if(strstr(font_string, "Italic"))
+            result = XftFontOpen(display,
+                 screen,
+                 XFT_FAMILY, XftTypeString, font_string,
+                 XFT_PIXEL_SIZE, XftTypeDouble, size,
+                 XFT_SLANT,  XftTypeInteger, XFT_SLANT_ITALIC,
+                 NULL);
+        else
+            result = XftFontOpen(display,
+                 screen,
+                 XFT_FAMILY, XftTypeString, font_string,
+                 XFT_PIXEL_SIZE, XftTypeDouble, size,
+                 NULL);
+// printf("BC_WindowBase::query_xft_font %d %s size=%d result=%p\n", 
+// __LINE__, font_string, (int)size, result);
 
-        
 // 		char string[BCTEXTLEN];
 // 		sprintf(string, "%s-%d", font_string, size);
 // 		result = XftFontOpenName(display,
@@ -2353,6 +2360,7 @@ int BC_WindowBase::init_fonts()
 {
 	largefont = query_font(resources.large_font, resources.large_fontsize);
 	mediumfont = query_font(resources.medium_font, resources.medium_fontsize);
+	italicfont = query_font(resources.italic_font, resources.italic_fontsize);
 	smallfont = query_font(resources.small_font, resources.small_fontsize);
 	clockfont = query_font(resources.clock_font, resources.clock_fontsize);
 	
@@ -2365,20 +2373,24 @@ int BC_WindowBase::init_fonts()
 // resources.dpi);
 	largefont_xft = query_xft_font(resources.large_font_xft, resources.large_font_xftsize);
 	mediumfont_xft = query_xft_font(resources.medium_font_xft, resources.medium_font_xftsize);
+	italicfont_xft = query_xft_font(resources.italic_font_xft, resources.italic_font_xftsize);
 	clockfont_xft = query_xft_font(resources.clock_font_xft, resources.clock_font_xftsize);
 	smallfont_xft = query_xft_font(resources.small_font_xft, resources.small_font_xftsize);
 
 // Extension failed to locate fonts
 	if(!largefont_xft || 
 		!mediumfont_xft || 
+		!italicfont_xft || 
 		!smallfont_xft || 
 		!clockfont_xft)
 	{
-		printf("BC_WindowBase::init_fonts: no xft fonts found %s=%p %s=%p %s=%p\n",
+		printf("BC_WindowBase::init_fonts: no xft fonts found %s=%p %s=%p %s=%p %s=%p\n",
 			resources.large_font_xft,
 			largefont_xft,
 			resources.medium_font_xft,
 			mediumfont_xft,
+			resources.italic_font_xft,
+			italicfont_xft,
 			resources.small_font_xft,
 			smallfont_xft);
 		get_resources()->use_xft = 0;
@@ -2754,6 +2766,7 @@ XFontStruct* BC_WindowBase::get_font_struct(int font)
 	switch(font)
 	{
 		case MEDIUMFONT: return top_level->mediumfont; break;
+		case ITALICFONT: return top_level->italicfont; break;
 		case SMALLFONT:  return top_level->smallfont;  break;
 		case LARGEFONT:  return top_level->largefont;  break;
 		case CLOCKFONT:  return top_level->clockfont;  break;
@@ -2790,6 +2803,7 @@ XftFont* BC_WindowBase::get_xft_struct(int font)
 		case MEDIUMFONT:   return (XftFont*)top_level->mediumfont_xft; break;
 		case SMALLFONT:    return (XftFont*)top_level->smallfont_xft;  break;
 		case LARGEFONT:    return (XftFont*)top_level->largefont_xft;  break;
+		case ITALICFONT:    return (XftFont*)top_level->italicfont_xft;  break;
 		case CLOCKFONT:    return (XftFont*)top_level->clockfont_xft;  break;
 	}
 

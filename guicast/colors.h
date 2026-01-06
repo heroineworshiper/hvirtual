@@ -49,6 +49,7 @@
 #define MECYAN              0x009696
 #define MDCYAN              0x007E7E
 #define DKCYAN              0x004949
+#define CYAN                0x00ffff
 
 #define LTPURPLE            0xFFC0FF
 #define MEPURPLE            0xFF00FF

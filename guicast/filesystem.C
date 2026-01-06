@@ -509,8 +509,12 @@ int FileSystem::update(const char *new_dir)
 					strcat(name_only, "/"); // is a directory
 					new_file->is_dir = 1;
 				}
-                
-                if(S_ISLNK(ostat.st_mode))
+
+// need lstat to determine if it's a link
+                struct stat ostat2;
+                lstat(full_path, &ostat2);
+//printf("FileSystem::update %d %s %x\n", __LINE__, full_path, ostat.st_mode);
+                if(S_ISLNK(ostat2.st_mode))
                 {
                     new_file->is_link = 1;
                 }

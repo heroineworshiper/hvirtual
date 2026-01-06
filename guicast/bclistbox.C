@@ -4542,6 +4542,7 @@ void BC_ListBox::draw_text_recursive(ArrayList<BC_ListBoxItem*> *data,
 			}
 
 
+            if(item->get_italic()) set_font(ITALICFONT);
 // Indent only applies to first column
 			gui->draw_text(
 				x + 
@@ -4552,6 +4553,7 @@ void BC_ListBox::draw_text_recursive(ArrayList<BC_ListBoxItem*> *data,
 					(row_height - get_text_height(MEDIUMFONT)) / 2 + 
 					get_text_ascent(MEDIUMFONT), 
 				item->text);
+            if(item->get_italic()) set_font(MEDIUMFONT);
 
 
 // Update expander

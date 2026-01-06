@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,6 +73,8 @@ public:
 	int set_autoplace_text(int value);
 	void set_selectable(int value);
 	int get_selectable();
+    int get_italic();
+    void set_italic(int value);
 
 // The item with the sublist must be in column 0.  Only this is searched by
 // BC_ListBox.
@@ -101,6 +103,7 @@ private:
 	int autoplace_icon, autoplace_text;
 	char *text;
 	int color;
+    int italic;
 // 1 - currently selected
 // 2 - previously selected and now adding selections with shift
 	int selected;

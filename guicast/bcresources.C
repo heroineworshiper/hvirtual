@@ -69,10 +69,12 @@ int BC_Resources::initialized = 0;
 
 const char* BC_Resources::small_font;
 const char* BC_Resources::medium_font;
+const char* BC_Resources::italic_font;
 const char* BC_Resources::large_font;
 const char* BC_Resources::clock_font;
 int BC_Resources::large_fontsize;
 int BC_Resources::medium_fontsize;
+int BC_Resources::italic_fontsize;
 int BC_Resources::small_fontsize;
 int BC_Resources::clock_fontsize;
 Mutex* BC_Resources::xft_lock;
@@ -85,10 +87,12 @@ Mutex* BC_Resources::xft_lock;
 
 const char* BC_Resources::small_font_xft;
 const char* BC_Resources::medium_font_xft;
+const char* BC_Resources::italic_font_xft;
 const char* BC_Resources::large_font_xft;
 const char* BC_Resources::clock_font_xft;
 double BC_Resources::large_font_xftsize;
 double BC_Resources::medium_font_xftsize;
+double BC_Resources::italic_font_xftsize;
 double BC_Resources::small_font_xftsize;
 double BC_Resources::clock_font_xftsize;
 
@@ -772,6 +776,7 @@ void BC_Resources::init()
 //		filebox_text_images = default_filebox_text_images;
 //		filebox_icons_images = default_filebox_icons_images;
 		directory_color = BLUE;
+        link_color = CYAN;
 		file_color = BLACK;
 
 		filebox_sortcolumn = 0;
@@ -865,23 +870,27 @@ void BC_Resources::init_fonts()
 //printf("BC_Resources::BC_Resources %d dpi=%d\n", __LINE__, dpi);
 	small_font = N_("-*-helvetica-medium-r-normal");
 	medium_font = N_("-*-helvetica-bold-r-normal");
+	italic_font = N_("-*-helvetica-bold-o-normal");
 	large_font = N_("-*-helvetica-bold-r-normal");
 	clock_font = N_("-*-helvetica-bold-r-normal");
 // fixed fonts use point sizes, not pixel sizes
 	large_fontsize = nearest_size(supported, DP(24));
 	medium_fontsize = nearest_size(supported, DP(14));
+	italic_fontsize = nearest_size(supported, DP(14));
 	small_fontsize = nearest_size(supported, DP(10));
 	clock_fontsize = nearest_size(supported, DP(24));
 
 
 	small_font_xft = N_("Sans");
 	medium_font_xft = N_("Sans");
+	italic_font_xft = N_("SansItalic");
 	large_font_xft = N_("Sans");
 	clock_font_xft = N_("Sans");
 
 // XFT uses pixel sizes
 	large_font_xftsize = DP(24);
 	medium_font_xftsize = DP(16);
+	italic_font_xftsize = DP(16);
 	small_font_xftsize = DP(12);
 	clock_font_xftsize = DP(21);
 }

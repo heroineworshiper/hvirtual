@@ -1096,13 +1096,18 @@ int BC_FileBox::create_tables()
 		int is_dir = file_item->is_dir;
 		BC_Pixmap* icon = get_icon(file_item->name, is_dir);
         int color = get_resources()->file_color;
+        int is_link = file_item->is_link;
+//printf("BC_FileBox::create_tables %d %s %d\n", 
+//__LINE__, file_item->name, file_item->is_link);
         if(is_dir) color = get_resources()->directory_color;
+//        if(is_link) color = get_resources()->link_color;
 
 // Name entry
 		new_item = new BC_ListBoxItem(file_item->name,
 			icon, 
 			color);
 		if(is_dir) new_item->set_searchable(0);
+        if(is_link) new_item->set_italic(1);
 		list_column[column_of_type(FILEBOX_NAME)].append(new_item);
 
 // Size entry
