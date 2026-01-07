@@ -72,7 +72,7 @@ void DC_Offset::run()
 // thread in progress box
 	progress->stop_progress();
 	delete progress;
-	
+
 	char string[256];
 	int i;
 

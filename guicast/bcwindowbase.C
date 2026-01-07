@@ -243,6 +243,7 @@ BC_WindowBase::~BC_WindowBase()
 
 int BC_WindowBase::initialize()
 {
+    title[0] = 0;
 	test_keypress = 0;
 	keys_return[0] = 0;
 	is_deleting = 0;
@@ -4204,7 +4205,7 @@ void BC_WindowBase::set_background(VFrame *bitmap)
 
 void BC_WindowBase::set_title(const char *text, int flush)
 {
-//printf("BC_WindowBase::set_title %d %s\n", __LINE__, text);
+//printf("BC_WindowBase::set_title %d %s %s\n", __LINE__, this->title, text);
     if(strcmp(this->title, _(text)))
     {
     	strcpy(this->title, _(text));
