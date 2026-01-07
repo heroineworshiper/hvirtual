@@ -44,7 +44,7 @@ class BC_TextMenuSelect;
 using std::string;
 
 
-class BC_TextBoxUndo : public ListItem<BC_TextBoxUndo>
+class BC_TextBoxUndo
 {
 public:
     BC_TextBoxUndo();
@@ -62,26 +62,29 @@ public:
     string text;
 };
 
-class BC_TextBoxUndos : public List<BC_TextBoxUndo>
+class BC_TextBoxUndos
 {
 public:
     BC_TextBoxUndos();
     ~BC_TextBoxUndos();
-    
+
 // Create a new undo entry and put on the stack.
 // The current pointer points to the new entry.
 // delete future undos if in the middle
 // delete undos older than UNDOLEVELS if last
- 	BC_TextBoxUndo* push();
-// move to the previous undo entry
-	void pull();
-// move to the next undo entry for a redo
-	BC_TextBoxUndo* pull_next();
-   
+ 	BC_TextBoxUndo* push_before();
+ 	BC_TextBoxUndo* push_after();
+// get the previous undo entry
+	BC_TextBoxUndo* pop_undo();
+// get the next redo entry
+	BC_TextBoxUndo* pop_redo();
+    void clear();
+
     void dump();
 
-    
-	BC_TextBoxUndo* current;
+    int current;
+	ArrayList<BC_TextBoxUndo*> before;
+	ArrayList<BC_TextBoxUndo*> after;
 };
 
 class BC_TextBox : public BC_SubWindow
@@ -185,8 +188,6 @@ public:
 	void set_keypress_draw(int value);
 	int get_ibeam_letter();
 	void set_ibeam_letter(int number, int redraw = 1);
-// Prevent suggestions after certain operations
-	int get_last_keypress();
 // Table of separators to skip.  Used by time textboxes
 // The separator format is "0000:0000".  Things not alnum are considered
 // separators.  The alnums are replaced by user text.
@@ -200,7 +201,8 @@ public:
         int ignore_fs = 0);
 
 // push the current state
-   void update_undo();
+   void push_undo_before();
+   void push_undo_after();
 // erase all levels & push the current state
    void reset_undo();
    void undo();
@@ -212,8 +214,6 @@ public:
 // if multiple suggestions.
 // column - starting column to replace
 	void set_suggestions(ArrayList<char*> *suggestions, int column);
-    void set_no_complete(int value);
-    int get_no_complete();
 	BC_ScrollTextBoxYScroll *yscroll;
 	BC_TextMenu *menu;
 
@@ -274,7 +274,7 @@ private:
 	Timer *skip_cursor;
 // Prevent auto complete in certain cases
 	int last_keypress;
-    int no_complete;
+    int last_ctrl;
 	char *separators;
 	ArrayList<BC_ListBoxItem*> *suggestions;
 	BC_TextBoxSuggestions *suggestions_popup;

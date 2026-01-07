@@ -98,7 +98,6 @@ void BrowseButton::handle_done_event(int result)
 // TODO: don't complete the path
 		textbox->update(browsewindow->get_submitted_path());
 		parent_window->flush();
-        textbox->set_no_complete(1);
 		textbox->handle_event();
 		parent_window->unlock_window();
 	}

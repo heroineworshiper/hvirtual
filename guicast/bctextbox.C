@@ -275,7 +275,7 @@ int BC_TextBox::reset_parameters(int rows, int has_border, int font)
 		skip_cursor = new Timer;
 	keypress_draw = 1;
 	last_keypress = 0;
-    no_complete = 0;
+    last_ctrl = 0;
 	separators = 0;
 	yscroll = 0;
 	menu = 0;
@@ -329,7 +329,6 @@ int BC_TextBox::initialize()
 
 	add_subwindow(menu = new BC_TextMenu(this));
 	menu->create_objects();
-    update_undo();
 
 	return 0;
 }
@@ -354,24 +353,16 @@ void BC_TextBox::set_precision(int precision)
 	this->precision = precision;
 }
 
-void BC_TextBox::set_no_complete(int value)
-{
-    this->no_complete = value;
-}
-
-int BC_TextBox::get_no_complete()
-{
-    return no_complete;
-}
-
 // Compute suggestions for a path
 int BC_TextBox::calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries, 
     int ignore_fs)
 {
-// Let user delete or cut
-	if(get_last_keypress() != BACKSPACE &&
-        get_last_keypress() != DELETE &&
-        !get_no_complete())
+// Only for alnum keypresses
+	if(last_ctrl == 0 &&
+        last_keypress != 0 &&
+        last_keypress != BACKSPACE &&
+        last_keypress != DELETE &&
+        last_keypress != RETURN)
 	{
 // Compute suggestions
 		FileSystem fs;
@@ -467,7 +458,8 @@ int BC_TextBox::calculate_suggestions(ArrayList<BC_ListBoxItem*> *entries,
 		}
 	}
 
-    set_no_complete(0);
+    last_keypress = 0;
+    last_ctrl = 0;
 
 
 	return 1;
@@ -510,10 +502,12 @@ void BC_TextBox::set_suggestions(ArrayList<char*> *suggestions, int column)
 // Show the highlighted text
 		if(suggestions->size() == 1)
 		{
+            push_undo_before();
 			char *current_suggestion = suggestions->get(0);
 			highlight_letter1 = text.length();
 			text.append(current_suggestion + highlight_letter1 - suggestion_column);
 			highlight_letter2 = text.length();
+            push_undo_after();
 //printf("BC_TextBox::set_suggestions %d %d\n", __LINE__, suggestion_column);
 
 			draw(1);
@@ -1009,9 +1003,10 @@ int BC_TextBox::button_press_event()
 				highlight_letter3 = highlight_letter4 = 
 					ibeam_letter = highlight_letter1 = 
 					highlight_letter2 = cursor_letter;
+                push_undo_before();
 				paste_selection(PRIMARY_SELECTION);
                 text_len = text.length();
-                update_undo();
+                push_undo_after();
                 dispatch_event = 1;
 			}
 			else
@@ -1365,20 +1360,20 @@ void BC_TextBox::default_keypress(int &dispatch_event, int &result)
 	    int key = top_level->get_keypress(), len;
 	    wchr_t *wkeys = top_level->get_wkeystring(&len);
 	    switch( key ) {
-	    case KPENTER:	key = '\n';	goto kpchr;
-	    case KPMINUS:	key = '-';	goto kpchr;
-	    case KPPLUS:	key = '+';	goto kpchr;
-	    case KPDEL:	key = '.';	goto kpchr;
-	    case RETURN:	key = '\n';	goto kpchr;
-	    case KPINS:	key = '0';	goto kpchr;
-	    case KP1: case KP2: case KP3: case KP4: case KP5:
-	    case KP6: case KP7: case KP8: case KP9:
-		    key = key - KP1 + '1';
-	    kpchr: {
-		    wkeys[0] = key;  wkeys[1] = 0;  len = 1;
-		    break; }
-	    default:
-		    if( key < 32 || key > 255 ) return;
+	        case KPENTER:	key = '\n';	goto kpchr;
+	        case KPMINUS:	key = '-';	goto kpchr;
+	        case KPPLUS:	key = '+';	goto kpchr;
+	        case KPDEL:	key = '.';	goto kpchr;
+	        case RETURN:	key = '\n';	goto kpchr;
+	        case KPINS:	key = '0';	goto kpchr;
+	        case KP1: case KP2: case KP3: case KP4: case KP5:
+	        case KP6: case KP7: case KP8: case KP9:
+		        key = key - KP1 + '1';
+	        kpchr: {
+		        wkeys[0] = key;  wkeys[1] = 0;  len = 1;
+		        break; }
+	        default:
+		        if( key < 32 || key > 255 ) return;
 	    }
 // end cingg
 
@@ -1390,9 +1385,10 @@ void BC_TextBox::default_keypress(int &dispatch_event, int &result)
             temp_string, // output
             sizeof(temp_string)); // output_length
 
+        push_undo_before();
  		insert_text((char*)temp_string);
 		find_ibeam(1);
-        update_undo();
+        push_undo_after();
 		draw(1);
 		dispatch_event = 1;
 		result = 1;
@@ -1412,6 +1408,8 @@ int BC_TextBox::keypress_event()
 
 	text_len = text.length();
 	last_keypress = get_keypress();
+    last_ctrl = ctrl_down();
+
 //printf("BC_TextBox::keypress_event %d %x\n", __LINE__, get_keypress());
 	switch(get_keypress())
 	{
@@ -1961,8 +1959,6 @@ int BC_TextBox::keypress_event()
 				else
 				if(!read_only && (get_keypress() == 'x' || get_keypress() == 'X'))
 				{
-// don't insert a suggestion after a cut
-                    set_no_complete(1);
 					result = cut(0);
 
 					dispatch_event = 1;
@@ -1995,6 +1991,7 @@ int BC_TextBox::keypress_event()
 int BC_TextBox::cut(int do_housekeeping)
 {
 	int text_len = text.length();
+    push_undo_before();
 	if(highlight_letter1 != highlight_letter2)
 	{
 		copy_selection(ALL_SELECTIONS);
@@ -2004,13 +2001,11 @@ int BC_TextBox::cut(int do_housekeeping)
 
 	find_ibeam(1);
 	if(keypress_draw) draw(1);
-    update_undo();
+    push_undo_after();
 	
 	if(do_housekeeping)
 	{
 		skip_cursor->update();
-// don't insert a suggestion after a cut
-        set_no_complete(1);
 		handle_event();
 	}
 	return 1;
@@ -2033,10 +2028,11 @@ int BC_TextBox::copy(int do_housekeeping)
 
 int BC_TextBox::paste(int do_housekeeping)
 {
+    push_undo_before();
 	paste_selection(SECONDARY_SELECTION);
 	find_ibeam(1);
 	if(keypress_draw) draw(1);
-    update_undo();
+    push_undo_after();
 	if(do_housekeeping)
 	{
 		skip_cursor->update();
@@ -2655,10 +2651,6 @@ void BC_TextBox::set_keypress_draw(int value)
 	keypress_draw = value;
 }
 
-int BC_TextBox::get_last_keypress()
-{
-	return last_keypress;
-}
 
 int BC_TextBox::get_ibeam_letter()
 {
@@ -2684,11 +2676,20 @@ int BC_TextBox::get_rows()
 	return rows;
 }
 
-void BC_TextBox::update_undo()
+void BC_TextBox::push_undo_before()
 {
     if(undo_enabled)
     {
-        BC_TextBoxUndo *item = undos.push();
+        BC_TextBoxUndo *item = undos.push_before();
+        item->from_textbox(this);
+    }
+}
+
+void BC_TextBox::push_undo_after()
+{
+    if(undo_enabled)
+    {
+        BC_TextBoxUndo *item = undos.push_after();
         item->from_textbox(this);
     }
 }
@@ -2696,34 +2697,28 @@ void BC_TextBox::update_undo()
 void BC_TextBox::reset_undo()
 {
     undos.clear();
-    update_undo();
 }
 
 void BC_TextBox::undo()
 {
-    undos.pull();
-    BC_TextBoxUndo *item = undos.current;
+    BC_TextBoxUndo *item = undos.pop_undo();
 
 
     if(item)
     {
         item->to_textbox(this);
         draw(1);
-// don't insert a suggestion after an undo operation
-        set_no_complete(1);
         handle_event();
     }
 }
 
 void BC_TextBox::redo()
 {
-    BC_TextBoxUndo *item = undos.pull_next();
+    BC_TextBoxUndo *item = undos.pop_redo();
     if(item)
     {
         item->to_textbox(this);
         draw(1);
-// don't insert a suggestion after a redo operation
-        set_no_complete(1);
         handle_event();
     }
 }
@@ -3731,7 +3726,6 @@ int BC_TextMenuPaste::handle_event()
 
 
 BC_TextBoxUndo::BC_TextBoxUndo()
- : ListItem<BC_TextBoxUndo>()
 {
     highlight_letter1 = 0;
     highlight_letter2 = 0;
@@ -3753,6 +3747,9 @@ void BC_TextBoxUndo::to_textbox(BC_TextBox *textbox)
     textbox->text_x = text_x;
     textbox->text_y = text_y;
     textbox->text = text;
+// printf("BC_TextBoxUndo::to_textbox %d text=%s\n",
+// __LINE__,
+// text.c_str());
 }
 
 void BC_TextBoxUndo::from_textbox(BC_TextBox *textbox)
@@ -3763,80 +3760,71 @@ void BC_TextBoxUndo::from_textbox(BC_TextBox *textbox)
     text_x = textbox->text_x;
     text_y = textbox->text_y;
     text = textbox->text;
-// printf("BC_TextBoxUndo::from_textbox %d text_x=%d text_y=%d\n",
+// printf("BC_TextBoxUndo::from_textbox %d text=%s\n",
 // __LINE__,
-// text_x,
-// text_y);
+// text.c_str());
 }
 
 
 BC_TextBoxUndos::BC_TextBoxUndos()
- : List<BC_TextBoxUndo>()
 {
     current = 0;
 }
 
 BC_TextBoxUndos::~BC_TextBoxUndos()
 {
+    clear();
 }
 
-BC_TextBoxUndo* BC_TextBoxUndos::push()
+void BC_TextBoxUndos::clear()
 {
-// current is only 0 if before first undo
-	if(current)
-	{
-    	current = insert_after(current);
-	}
-    else
-	{
-    	current = insert_before(first);
-    }
-
-// delete future undos if necessary
-	if(current && current->next)
-	{
-		while(current->next) remove(last);
-	}
-
-
-// delete oldest if necessary
-	if(total() > UNDOLEVELS)
-	{
-		remove(first);
-	}
-	
-	return current;
+    before.remove_all_objects();
+    after.remove_all_objects();
+    current = 0;
 }
 
-
-void BC_TextBoxUndos::pull()
+BC_TextBoxUndo* BC_TextBoxUndos::push_before()
 {
-    if(current)
+    if(current >= UNDOLEVELS)
     {
-        current = PREVIOUS;
+        before.remove_object(0);
+        after.remove_object(0);
+        current--;
     }
+    BC_TextBoxUndo *result = new BC_TextBoxUndo;
+    before.append(result);
+	return result;
 }
 
-BC_TextBoxUndo* BC_TextBoxUndos::pull_next()
+BC_TextBoxUndo* BC_TextBoxUndos::push_after()
 {
-// use first entry if none
-	if(!current)
-	{
-    	current = first;
-	}
-    else
-// use next entry if there is a next entry
-	if(current->next)
-	{
-    	current = NEXT;
+    BC_TextBoxUndo *result = new BC_TextBoxUndo;
+    after.append(result);
+    current++;
+	return result;
+}
+
+
+BC_TextBoxUndo* BC_TextBoxUndos::pop_undo()
+{
+    BC_TextBoxUndo *result = 0;
+    if(current > 0 && current <= before.size())
+    {
+        current--;
+        result = before.get(current);
     }
-// don't change current if there is no next entry
-	else
-	{
-    	return 0;
+    return result;
+}
+
+BC_TextBoxUndo* BC_TextBoxUndos::pop_redo()
+{
+    BC_TextBoxUndo *result = 0;
+    if(current < after.size())
+    {
+        result = after.get(current);
+        current++;
     }
-		
-	return current;
+    return result;
 }
 
 void BC_TextBoxUndos::dump()

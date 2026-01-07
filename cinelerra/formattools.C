@@ -989,9 +989,7 @@ FormatPathText::~FormatPathText()
 int FormatPathText::handle_event() 
 {
 // Suggestions
-	if(!get_no_complete()) calculate_suggestions(format->file_entries);
-    set_no_complete(0);
-
+	calculate_suggestions(format->file_entries);
 
 	strcpy(format->asset->path, get_text());
 	format->handle_event();
