@@ -44,6 +44,8 @@ TimeStretch::TimeStretch()
 
 TimeStretch::~TimeStretch()
 {
+//printf("TimeStretch::~TimeStretch %d this=%p chopper_buf=%p\n", 
+//__LINE__, this, chopper_buf);
     delete chopper_buf;
 }
 

@@ -381,7 +381,7 @@ ChromaKeySlider::ChromaKeySlider(ChromaKeyHSV *plugin,
 
 int ChromaKeySlider::handle_event()
 {
-	*output = get_value ();
+	*output = get_value();
 	plugin->send_configure_change ();
 	return 1;
 }

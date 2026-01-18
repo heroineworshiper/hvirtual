@@ -1780,7 +1780,7 @@ void VFrame::draw_line(int x1, int y1, int x2, int y2)
 {
 	int w = labs(x2 - x1);
 	int h = labs(y2 - y1);
-//printf("FindObjectMain::draw_line 1 %d %d %d %d\n", x1, y1, x2, y2);
+//printf("FindObjectMain::draw_line %d: %d %d %d %d\n", __LINE__, x1, y1, x2, y2);
 
 	if(!w && !h)
 	{
@@ -1801,10 +1801,17 @@ void VFrame::draw_line(int x1, int y1, int x2, int y2)
 		}
 		int numerator = y2 - y1;
 		int denominator = x2 - x1;
+//printf("FindObjectMain::draw_line %d %d %d\n", __LINE__, numerator, denominator);
+		CLAMP(x1, 0, get_w() - 1);
+        CLAMP(x2, 0, get_w() - 1);
 		for(int i = x1; i <= x2; i++)
 		{
-			int y = y1 + (int64_t)(i - x1) * (int64_t)numerator / (int64_t)denominator;
-			draw_pixel(i, y);
+            int y;
+            if(denominator != 0)
+			    y = y1 + (int64_t)(i - x1) * (int64_t)numerator / (int64_t)denominator;
+			else
+                y = y1;
+            draw_pixel(i, y);
 		}
 	}
 	else
@@ -1821,13 +1828,20 @@ void VFrame::draw_line(int x1, int y1, int x2, int y2)
 		}
 		int numerator = x2 - x1;
 		int denominator = y2 - y1;
-		for(int i = y1; i <= y2; i++)
+//printf("FindObjectMain::draw_line %d: %d %d\n", __LINE__, numerator, denominator);
+		CLAMP(y1, 0, get_h() - 1);
+        CLAMP(y2, 0, get_h() - 1);
+        for(int i = y1; i <= y2; i++)
 		{
-			int x = x1 + (int64_t)(i - y1) * (int64_t)numerator / (int64_t)denominator;
-			draw_pixel(x, i);
+			int x;
+            if(denominator != 0)
+                x = x1 + (int64_t)(i - y1) * (int64_t)numerator / (int64_t)denominator;
+			else
+                x = x1;
+            draw_pixel(x, i);
 		}
+//printf("FindObjectMain::draw_line %d\n", __LINE__);
 	}
-//printf("FindObjectMain::draw_line 2\n");
 }
 
 

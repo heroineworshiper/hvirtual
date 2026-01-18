@@ -28,7 +28,7 @@
 #include "resample.h"
 #include "samples.h"
 #include "theme.h"
-#include "timestretch.h"
+#include "timestretchplugin.h"
 #include "timestretchengine.h"
 #include "transportque.inc"
 #include "vframe.h"
@@ -42,13 +42,13 @@
 #define INPUT_SIZE 65536
 
 
-REGISTER_PLUGIN(TimeStretch)
+REGISTER_PLUGIN(TimeStretchPlugin)
 
 
 
 
 
-TimeStretchFraction::TimeStretchFraction(TimeStretch *plugin, int x, int y)
+TimeStretchFraction::TimeStretchFraction(TimeStretchPlugin *plugin, int x, int y)
  : BC_TextBox(x, y, DP(100), 1, (float)(1.0 / plugin->scale))
 {
 	this->plugin = plugin;
@@ -64,7 +64,7 @@ int TimeStretchFraction::handle_event()
 
 
 
-TimeStretchFreq::TimeStretchFreq(TimeStretch *plugin, 
+TimeStretchFreq::TimeStretchFreq(TimeStretchPlugin *plugin, 
 	TimeStretchWindow *gui, 
 	int x, 
 	int y)
@@ -87,7 +87,7 @@ int TimeStretchFreq::handle_event()
 
 
 
-TimeStretchTime::TimeStretchTime(TimeStretch *plugin, 
+TimeStretchTime::TimeStretchTime(TimeStretchPlugin *plugin, 
 	TimeStretchWindow *gui, 
 	int x, 
 	int y)
@@ -116,7 +116,7 @@ int TimeStretchTime::handle_event()
 
 
 
-TimeStretchWindow::TimeStretchWindow(TimeStretch *plugin, int x, int y)
+TimeStretchWindow::TimeStretchWindow(TimeStretchPlugin *plugin, int x, int y)
  : BC_Window(PROGRAM_NAME ": Time stretch", 
  				x - DP(160),
 				y - DP(75),
@@ -169,7 +169,7 @@ void TimeStretchWindow::create_objects()
 
 
 
-PitchEngine::PitchEngine(TimeStretch *plugin)
+PitchEngine::PitchEngine(TimeStretchPlugin *plugin)
  : CrossfadeFFT()
 {
 	this->plugin = plugin;
@@ -301,7 +301,7 @@ int PitchEngine::signal_process()
 
 
 
-TimeStretchResample::TimeStretchResample(TimeStretch *plugin)
+TimeStretchResample::TimeStretchResample(TimeStretchPlugin *plugin)
 {
 	this->plugin = plugin;
 }
@@ -327,7 +327,7 @@ int TimeStretchResample::read_samples(Samples *buffer,
 
 
 
-TimeStretch::TimeStretch(PluginServer *server)
+TimeStretchPlugin::TimeStretchPlugin(PluginServer *server)
  : PluginAClient(server)
 {
 	temp = 0;
@@ -339,7 +339,7 @@ TimeStretch::TimeStretch(PluginServer *server)
 }
 
 
-TimeStretch::~TimeStretch()
+TimeStretchPlugin::~TimeStretchPlugin()
 {
 	if(temp) delete [] temp;
 	if(input) delete input;
@@ -350,9 +350,9 @@ TimeStretch::~TimeStretch()
 
 	
 	
-const char* TimeStretch::plugin_title() { return N_("Time stretch"); }
+const char* TimeStretchPlugin::plugin_title() { return N_("Time stretch"); }
 
-int TimeStretch::get_parameters()
+int TimeStretchPlugin::get_parameters()
 {
 	BC_DisplayInfo info;
 	TimeStretchWindow window(this, info.get_abs_cursor_x(), info.get_abs_cursor_y());
@@ -362,13 +362,13 @@ int TimeStretch::get_parameters()
 	return result;
 }
 
-VFrame* TimeStretch::new_picon()
+VFrame* TimeStretchPlugin::new_picon()
 {
 	return new VFrame(picon_png);
 }
 
 
-int TimeStretch::start_loop()
+int TimeStretchPlugin::start_loop()
 {
 	scaled_size = (int64_t)(get_total_len() * scale);
 	if(PluginClient::interactive)
@@ -406,7 +406,7 @@ int TimeStretch::start_loop()
 	return 0;
 }
 
-int TimeStretch::stop_loop()
+int TimeStretchPlugin::stop_loop()
 {
 	if(PluginClient::interactive)
 	{
@@ -416,7 +416,7 @@ int TimeStretch::stop_loop()
 	return 0;
 }
 
-int TimeStretch::process_loop(Samples *buffer, int64_t &write_length)
+int TimeStretchPlugin::process_loop(Samples *buffer, int64_t &write_length)
 {
 	int result = 0;
 	int64_t predicted_total = (int64_t)((double)get_total_len() * scale + 0.5);
@@ -486,7 +486,7 @@ int TimeStretch::process_loop(Samples *buffer, int64_t &write_length)
 
 
 
-int TimeStretch::load_defaults()
+int TimeStretchPlugin::load_defaults()
 {
 	char directory[BCTEXTLEN];
 
@@ -501,7 +501,7 @@ int TimeStretch::load_defaults()
 	return 0;
 }
 
-int TimeStretch::save_defaults()
+int TimeStretchPlugin::save_defaults()
 {
 	defaults->update("SCALE", scale);
 	defaults->update("USE_FFT", use_fft);

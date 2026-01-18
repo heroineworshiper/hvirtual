@@ -194,6 +194,7 @@ int BC_Hash::update(const char *key_, const char *value, int instance)
         BC_Signals::dump_stack();
         return 0;
     }
+
 // find existing instance of the key
     auto range = db.equal_range(key);
     int count = 0;

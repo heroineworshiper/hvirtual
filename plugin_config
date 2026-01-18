@@ -4,6 +4,8 @@ CFLAGS += -I../ -I../../cinelerra \
 	-I../colors \
 	-fPIC \
 
+
+
 #	-g
 
 $(shell echo $(CFLAGS) > $(OBJDIR)/c_flags)

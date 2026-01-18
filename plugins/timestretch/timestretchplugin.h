@@ -19,8 +19,8 @@
  * 
  */
 
-#ifndef TIMESTRETCH_H
-#define TIMESTRETCH_H
+#ifndef TIMESTRETCHPLUGIN_H
+#define TIMESTRETCHPLUGIN_H
 
 #include "bchash.inc"
 #include "fourier.h"
@@ -34,7 +34,7 @@
 
 
 
-class TimeStretch;
+class TimeStretchPlugin;
 class TimeStretchWindow;
 
 
@@ -43,27 +43,27 @@ class TimeStretchWindow;
 class TimeStretchFraction : public BC_TextBox
 {
 public:
-	TimeStretchFraction(TimeStretch *plugin, int x, int y);
+	TimeStretchFraction(TimeStretchPlugin *plugin, int x, int y);
 	int handle_event();
-	TimeStretch *plugin;
+	TimeStretchPlugin *plugin;
 };
 
 
 class TimeStretchFreq : public BC_Radial
 {
 public:
-	TimeStretchFreq(TimeStretch *plugin, TimeStretchWindow *gui, int x, int y);
+	TimeStretchFreq(TimeStretchPlugin *plugin, TimeStretchWindow *gui, int x, int y);
 	int handle_event();
-	TimeStretch *plugin;
+	TimeStretchPlugin *plugin;
 	TimeStretchWindow *gui;
 };
 
 class TimeStretchTime : public BC_Radial
 {
 public:
-	TimeStretchTime(TimeStretch *plugin, TimeStretchWindow *gui, int x, int y);
+	TimeStretchTime(TimeStretchPlugin *plugin, TimeStretchWindow *gui, int x, int y);
 	int handle_event();
-	TimeStretch *plugin;
+	TimeStretchPlugin *plugin;
 	TimeStretchWindow *gui;
 };
 
@@ -71,12 +71,12 @@ public:
 class TimeStretchWindow : public BC_Window
 {
 public:
-	TimeStretchWindow(TimeStretch *plugin, int x, int y);
+	TimeStretchWindow(TimeStretchPlugin *plugin, int x, int y);
 	~TimeStretchWindow();
 
 	void create_objects();
 
-	TimeStretch *plugin;
+	TimeStretchPlugin *plugin;
 	TimeStretchFreq *freq;
 	TimeStretchTime *time;
 };
@@ -85,7 +85,7 @@ public:
 class PitchEngine : public CrossfadeFFT
 {
 public:
-	PitchEngine(TimeStretch *plugin);
+	PitchEngine(TimeStretchPlugin *plugin);
 	~PitchEngine();
 
 
@@ -94,7 +94,7 @@ public:
 		Samples *buffer);
 	int signal_process();
 
-	TimeStretch *plugin;
+	TimeStretchPlugin *plugin;
 	double *temp;
 	double *input_buffer;
 	int input_size;
@@ -105,20 +105,20 @@ public:
 class TimeStretchResample : public Resample
 {
 public:
-	TimeStretchResample(TimeStretch *plugin);
+	TimeStretchResample(TimeStretchPlugin *plugin);
 
 	int read_samples(Samples *buffer, int64_t start, int64_t len);
 	
-	TimeStretch *plugin;
+	TimeStretchPlugin *plugin;
 };
 
 
 
-class TimeStretch : public PluginAClient
+class TimeStretchPlugin : public PluginAClient
 {
 public:
-	TimeStretch(PluginServer *server);
-	~TimeStretch();
+	TimeStretchPlugin(PluginServer *server);
+	~TimeStretchPlugin();
 	
 	
 	const char* plugin_title();

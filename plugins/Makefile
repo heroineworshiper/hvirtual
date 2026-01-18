@@ -12,6 +12,7 @@ DIRS = \
         background \
 	bandslide \
 	bandwipe \
+        blobtracker \
 	blur \
 	brightness \
 	brighttheme \
