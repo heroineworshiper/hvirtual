@@ -25,6 +25,8 @@ IMAGES = [
     'align_glitch.png',
     'align_silence.png',
     'align_sync.png',
+    'blob.png',
+    'blob2.png',
     'bobcast5.png',
     'broadcast.png',
     'broadcast21.png',

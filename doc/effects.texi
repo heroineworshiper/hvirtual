@@ -289,6 +289,9 @@ frequency bands.  The higher it is, the more precise the filter but the
 more it has to read ahead.  Higher steepness requires a higher window
 size to truly be realized.
 
+
+
+
 @node DECIMATE
 @section DECIMATE
 

@@ -532,6 +532,18 @@ int BlobTracker::test_blob(std::vector<int> *current_x,
             case BC_YUV888:
                 TEST_BRIGHTEST(uint8_t, uint32_t, 3, 1)
                 break;
+            case BC_RGBA8888:
+                TEST_BRIGHTEST(uint8_t, uint32_t, 4, 0)
+                break;
+            case BC_YUVA8888:
+                TEST_BRIGHTEST(uint8_t, uint32_t, 4, 1)
+                break;
+            case BC_RGB_FLOAT:
+                TEST_BRIGHTEST(float, float, 3, 0)
+                break;
+            case BC_RGBA_FLOAT:
+                TEST_BRIGHTEST(float, float, 4, 0)
+                break;
         }
 
         if(brightness > *brightest ||

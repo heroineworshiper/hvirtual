@@ -43,6 +43,8 @@ IMAGES = \
 # custom images from this directory
 # Images requiring scaling go in fix_images.py
 CUSTOM_IMAGES := \
+        blob.png \
+        blob2.png \
         cwindow_context.png \
         cwindow_tools.png \
         apatches.png \

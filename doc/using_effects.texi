@@ -1,6 +1,9 @@
 
-@node USING EFFECTS
-@chapter USING EFFECTS
+@node GENERAL EFFECT USAGE
+@chapter GENERAL EFFECT USAGE
+
+This section is for general usage of the effects.  For notes on each
+effect, go to @xref{EFFECTS NOTES}.
 
 It would be sufficient to perform all changes to the timeline using
 editing operations, but this isn't very extensible.  Certain timeline

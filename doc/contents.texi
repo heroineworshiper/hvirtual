@@ -11,7 +11,7 @@
 * LOADING AND SAVING FILES:: Moving media between disk and Cinelerra.
 * NAVIGATING THE PROJECT::   Moving around the media.
 * EDITING::                  Moving the media in time.
-* USING EFFECTS::            Altering the media.
+* GENERAL EFFECT USAGE::     How to process media.
 * SETTING PROJECT ATTRIBUTES:: Changing the way the media is displayed.
 * COMPOSITING::              Overlaying different sources of video.
 * KEYFRAMES::                Making effects change over time.

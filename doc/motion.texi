@@ -2,10 +2,53 @@
 @section MOTION EFFECTS
 
 @menu
+* BLOB TRACKER::      Stabilization using blob detection
 * MOTION::            Motion tracking with rotation.
 * MOTION 2 POINT::    Motion and rotation tracking from translation only.
 * SUPER STABILIZER::  Basic stabilization
 @end menu
+
+
+@node BLOB TRACKER
+@subsection BLOB TRACKER
+
+This effect stabilizes video by centering on the left edge of a matching
+blob.  Blob tracker is designed to be used with a chroma key or
+threshold effect.  It's most effective for stabilizing flying things or
+things which can be easily keyed.
+
+@center @image{blob}
+
+The chroma key or threshold sets matching areas to 0 alpha or black.  If
+the color model has alpha, blob tracker takes the 0 alpha as blobs.  If
+the color model has no alpha, blob tracker takes black areas as blobs. 
+Threshold doesn't zero out the alpha, so it has to be used with a 3
+channel color model.  It further selects 1 winner from all the blobs. 
+It shifts the bottom track based on the blob detected in the top track.
+
+The @b{ALGORITHM} option selects the type of blob.  If it is @b{Largest}
+it goes for the largest blob.  If it is @b{Brightest} it goes for the
+brightest blob of any size.  The brightness value is always taken from
+the @b{target layer}.  The blob outlines are always taken from the
+@b{blob layer}.
+
+The minimum blob size it detects is determined by the @b{Min blob size}
+option.  This is the square root of the total number of pixels in the
+blob.  @b{Detected size} shows the square root of the largest blob size
+detected in the current frame, to aid in setting the limit.
+
+@b{Blob layer} & @b{Target layer} determine what input is used for blob
+detection, brightness detection, & stabilization.
+
+@b{Draw guides} draws the outline of the winning blob.
+
+@b{Stabilize} shifts the target layer to center the winning blob.
+
+@center @image{blob2}
+
+In this case, it has stabilized on the brightest blob, outlining it.
+
+
 
 @node MOTION
 @subsection MOTION
@@ -503,5 +546,8 @@ the footage but the longer it takes to get started until it's unusable.
 @b{Maximum angle offset} How far to search for the rotation.
 
 @b{Draw vectors} Draws the search block to allow configuration.
+
+
+
 
 
