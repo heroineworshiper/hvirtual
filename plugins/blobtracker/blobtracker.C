@@ -32,6 +32,9 @@
 
 REGISTER_PLUGIN(BlobTracker)
 
+#define RGB_TO_VALUE(r, g, b) \
+((r) * R_TO_Y + (g) * G_TO_Y + (b) * B_TO_Y)
+
 BlobConfig::BlobConfig()
 {
     targ_x = 50;
@@ -185,7 +188,6 @@ int BlobTracker::process_buffer(VFrame **frame,
     }
     mask->clear_frame();
 // best hit
-// left center pixel
     int blob_x = 0x7fffffff;
     int blob_y = -1;
     int blob_size = 0;
@@ -486,6 +488,8 @@ int BlobTracker::test_blob(std::vector<int> *current_x,
     int max_y = -1;
     float brightness = 0;
     int n = current_x->size();
+    std::vector<int> brightest_x;
+    std::vector<int> brightest_y;
 
 // too small
     if(n < config.min_size * config.min_size)
@@ -502,6 +506,27 @@ int BlobTracker::test_blob(std::vector<int> *current_x,
         if(n > *blob_size)
         {
             result = 1;
+// left center of all pixels
+            for(int i = 0; i < n; i++)
+            {
+                if((*current_x)[i] < min_x)
+                {
+// recompute center of left edge
+                    min_x = (*current_x)[i];
+                    min_y = max_y = (*current_y)[i];
+                }
+                else
+                if((*current_x)[i] == min_x)
+                {
+// expand Y of left edge
+                    if((*current_y)[i] < min_y) min_y = (*current_y)[i];
+                    else
+                    if((*current_y)[i] > max_y) max_y = (*current_y)[i];
+                }
+            }
+
+            *blob_x = min_x;
+            *blob_y = (min_y + max_y) / 2;
         }
     }
     else
@@ -514,15 +539,26 @@ int BlobTracker::test_blob(std::vector<int> *current_x,
     for(int i = 0; i < n; i++) \
     { \
         type *src_pixel = src_rows[(*current_y)[i]] + (*current_x)[i] * components; \
+        float value; \
         if(is_yuv) \
-            accum = MAX(src_pixel[0], accum); \
+            value = src_pixel[0]; \
         else \
+            value = RGB_TO_VALUE(src_pixel[0], src_pixel[1], src_pixel[2]); \
+        if(value > brightness) \
         { \
-            accum_type value = src_pixel[0] + src_pixel[1] + src_pixel[2]; \
-            accum = MAX(value, accum); \
+            brightness = src_pixel[0]; \
+/*            brightest_x.clear(); */ \
+/*            brightest_y.clear(); */ \
+/*            brightest_x.push_back((*current_x)[i]); */ \
+/*            brightest_y.push_back((*current_y)[i]); */ \
         } \
+/*        else */ \
+/*        if(value == accum) */ \
+/*        { */ \
+/*            brightest_x.push_back((*current_x)[i]); */ \
+/*            brightest_y.push_back((*current_y)[i]); */ \
+/*        } */ \
     } \
-    brightness = accum; \
 }
         switch(color_model)
         {
@@ -550,31 +586,64 @@ int BlobTracker::test_blob(std::vector<int> *current_x,
             (brightness == *brightest && n > *blob_size))
         {
             result = 1;
+// center of brightest pixels
+//             *blob_x = 0;
+//             *blob_y = 0;
+//             for(int i = 0; i < brightest_x.size(); i++)
+//             {
+//                 *blob_x += brightest_x[i];
+//                 *blob_y += brightest_y[i];
+//             }
+//             *blob_x /= brightest_x.size();
+//             *blob_y /= brightest_y.size();
+
+// left center of brightest pixels
+// printf("BlobTracker::test_blob %d brightest=%d brightness=%d\n", 
+// __LINE__, (int)brightest_x.size(), (int)brightness);
+//             for(int i = 0; i < brightest_x.size(); i++)
+//             {
+//                 if(brightest_x[i] < min_x)
+//                 {
+// // recompute center of left edge
+//                     min_x = brightest_x[i];
+//                     min_y = max_y = brightest_y[i];
+//                 }
+//                 else
+//                 if(brightest_x[i] == min_x)
+//                 {
+// // expand Y of left edge
+//                     if(brightest_y[i] < min_y) min_y = brightest_y[i];
+//                     else
+//                     if(brightest_y[i] > max_y) max_y = brightest_y[i];
+//                 }
+//             }
+
+// left center of all pixels
+            for(int i = 0; i < n; i++)
+            {
+                if((*current_x)[i] < min_x)
+                {
+// recompute center of left edge
+                    min_x = (*current_x)[i];
+                    min_y = max_y = (*current_y)[i];
+                }
+                else
+                if((*current_x)[i] == min_x)
+                {
+// expand Y of left edge
+                    if((*current_y)[i] < min_y) min_y = (*current_y)[i];
+                    else
+                    if((*current_y)[i] > max_y) max_y = (*current_y)[i];
+                }
+            }
+
+            *blob_x = min_x;
+            *blob_y = (min_y + max_y) / 2;
         }
     }
 
     if(result)
     {
-        for(int i = 0; i < n; i++)
-        {
-            if((*current_x)[i] < min_x)
-            {
-// recompute center of left edge
-                min_x = (*current_x)[i];
-                min_y = max_y = (*current_y)[i];
-            }
-            else
-            if((*current_x)[i] == min_x)
-            {
-// expand Y of left edge
-                if((*current_y)[i] < min_y) min_y = (*current_y)[i];
-                else
-                if((*current_y)[i] > max_y) max_y = (*current_y)[i];
-            }
-        }
-
-        *blob_x = min_x;
-        *blob_y = (min_y + max_y) / 2;
         *brightest = brightness;
         *blob_size = n;
 //        printf("BlobTracker::test_blob %d brightness=%d *brightest=%d n=%d\n",

@@ -48,6 +48,8 @@ detection, brightness detection, & stabilization.
 
 In this case, it has stabilized on the brightest blob, outlining it.
 
+If the result is too shaky, make the keying more selective & reduce the
+minimum blob size to shrink the hit size.
 
 
 @node MOTION
