@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2019 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -699,18 +699,21 @@ void Spectrogram::reset()
 
 const char* Spectrogram::plugin_title() { return N_("Spectrogram"); }
 int Spectrogram::is_realtime() { return 1; }
+int Spectrogram::is_multichannel() { return 1; }
 
 int Spectrogram::process_buffer(int64_t size, 
-		Samples *buffer,
+		Samples **buffer,
 		int64_t start_position,
 		int sample_rate)
 {
+    int channels = PluginClient::get_total_buffers();
 // Pass through
-	read_samples(buffer,
-		0,
-		sample_rate,
-		start_position,
-		size);
+    for(int i = 0; i < channels; i++)
+	    read_samples(buffer[i],
+		    i,
+		    sample_rate,
+		    start_position,
+		    size);
 
 
 	load_configuration();
@@ -765,11 +768,22 @@ int Spectrogram::process_buffer(int64_t size,
 		audio_buffer = new_samples;
 	}
 
-// shift data into audio buffer
+// shift data into audio buffer with channel averaging
     double *data = audio_buffer->get_data();
-	memcpy(data + buffer_size, 
-		buffer->get_data(),
-		sizeof(double) * size);
+    for(int i = 0; i < size; i++)
+    {
+        double accum = 0;
+        double *dst = data + buffer_size + i;
+        for(int j = 0; j < channels; j++)
+        {
+            double *src = buffer[j]->get_data() + i;
+            accum += *src;
+        }
+        *dst = accum / channels;
+    }
+// 	memcpy(data + buffer_size, 
+// 		buffer->get_data(),
+// 		sizeof(double) * size);
 	buffer_size += size;
 
 //printf("Spectrogram::process_buffer %d %d\n", __LINE__, buffer_size);
@@ -912,28 +926,35 @@ void Spectrogram::update_gui()
 #define DIVISION1 0.0
 #define DIVISION2 -20.0
 #define DIVISION3 INFINITYGAIN
-						    if(db > DIVISION2)
-						    {
-							    h = 240 - (float)(db - DIVISION2) / (DIVISION1 - DIVISION2) *
-								    240;
-							    CLAMP(h, 0, 240);
-							    s = 1.0;
-							    v = 1.0;
-							    HSV::hsv_to_rgb(r_out, g_out, b_out, h, s, v);
-							    r = (int)(r_out * 0xff);
-							    g = (int)(g_out * 0xff);
-							    b = (int)(b_out * 0xff);
-						    }
-						    else
+// 2/2026: monochrome easier to read.
+// Need to blend the color values in fix_gui_frame
+// 						    if(db > DIVISION2)
+// 						    {
+// 							    h = 240 - (float)(db - DIVISION2) / (DIVISION1 - DIVISION2) *
+// 								    240;
+// 							    CLAMP(h, 0, 240);
+// 							    s = 1.0;
+// 							    v = 1.0;
+// 							    HSV::hsv_to_rgb(r_out, g_out, b_out, h, s, v);
+// 							    r = (int)(r_out * 0xff);
+// 							    g = (int)(g_out * 0xff);
+// 							    b = (int)(b_out * 0xff);
+// 						    }
+// 						    else
 						    if(db > DIVISION3)
 						    {
 							    h = 0.0;
 							    s = 0.0;
 							    v = (float)(db - DIVISION3) / (DIVISION2 - DIVISION3);
-							    HSV::hsv_to_rgb(r_out, g_out, b_out, h, s, v);
-							    r = (int)(r_out * 0xff);
-							    g = (int)(g_out * 0xff);
-							    b = (int)(b_out * 0xff);
+                                CLAMP(v, 0, 1);
+							    r = (int)(v * 0xff);
+							    g = (int)(v * 0xff);
+							    b = (int)(v * 0xff);
+
+//							    HSV::hsv_to_rgb(r_out, g_out, b_out, h, s, v);
+//							    r = (int)(r_out * 0xff);
+//							    g = (int)(g_out * 0xff);
+//							    b = (int)(b_out * 0xff);
 						    }
 						    else
 						    {

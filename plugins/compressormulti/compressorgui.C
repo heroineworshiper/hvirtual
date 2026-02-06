@@ -867,7 +867,7 @@ int CompressorClear::handle_event()
 
 
 CompressorSmooth::CompressorSmooth(CompressorEffect *plugin, int x, int y) 
- : BC_CheckBox(x, y, plugin->config.smoothing_only, _("Smooth only"))
+ : BC_CheckBox(x, y, plugin->config.smoothing_only, _("Envelope"))
 {
 	this->plugin = plugin;
 }

@@ -26,7 +26,6 @@ BIG BUGS
 -----------------------------------
 can't paste certain time formats in selection text
 ffmpeg command gets stuck when it finishes encoding & prompts for overwrite.
-Reverb artifacts
 Nested EDL index file isn't updated when the nested EDL changes.
  - would need to mark canceled index files to avoid building what the user canceled
 Applies filebox filter to the auto completion in a browse button textbox.

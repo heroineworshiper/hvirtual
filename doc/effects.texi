@@ -141,21 +141,19 @@ in the color space.
 @node COMPRESSOR
 @section COMPRESSOR
 
-Contrary to computer science experience, the audio compressor does not
-reduce the amount of data required to store the audio.  The audio
-compressor reduces the dynamic range of the audio.  In Cinelerra the
-compressor actually performs the function of an expander and
-compressor.
+The audio compressor reduces or expands the dynamic range of the audio. 
+In Cinelerra the compressor actually performs the function of an
+expander and compressor.
 
 The compressor works by calculating the maximum sound level within a
-certain time period of the current position.  The maximum sound level
-is taken as the input sound level.  For every input sound level there
-is an output sound level specified by the user.  The gain at the
-current position is adjusted so the maximum sound level in the time
-range is the user specified value.
+certain time period of the current position.  The maximum sound level is
+taken as the trigger value.  For every trigger value there is an output
+sound level specified by the user.  The gain at the current position is
+adjusted so the maximum sound level in the time range is the user
+specified output value.
 
-The compressor has a graph which correlates every input sound level to
-an output level.  The horizontal direction is the input sound level in
+The compressor has a graph which correlates every trigger sound level to
+an output level.  The horizontal direction is the trigger sound level in
 dB.  The vertical direction is the output sound level in dB.  The user
 specifies output sound levels by creating points on the graph.  Click in
 the graph to create a point.  If 2 points exist, drag one point across
@@ -234,10 +232,11 @@ several tracks and playing with the trigger value, you can make a sine
 wave on one track follow the amplitude of a drum on another track for
 example.
 
-@b{Smooth only:} For visualizing what the compressor is doing to the
-soundlevel, this option causes it to replace the soundwave with just
-the current peak value.  It makes it very easy to see how @b{reaction
-secs} affects the detected peak values.
+@b{Envelope:} This replaces the output waveform with just the current
+trigger value.  It allows visualizing what the compressor is doing to
+the soundlevel.  It makes it very easy to see how @b{reaction secs}
+affects the detected peak values.  The envelope output can also be used
+as a control value in another effect.
 
 
 @b{IN:} This meter shows the current value of the trigger during playback.  
@@ -250,13 +249,13 @@ trigger.  If it's above 0, the input is being amplified.  If it's below
 @node MULTIBAND COMPRESSOR
 @section MULTIBAND COMPRESSOR
 
-This adds more features to the compressor for selecting frequency
-bands.  There are 3 bands, each with its own sound level graph.  Use the
-context menu in the graph to copy curves from 1 band to another or a
-text editor.
+This adds more features to the compressor for individually compressing
+different frequency bands.  There are 3 bands, each with its own sound
+level graph.  Use the context menu in the graph to copy curves from 1
+band to another or a text editor.
 
-The same attack, release, trigger type, trigger, smooth only, window
-size apply to all 3 bands.
+The same attack, release, trigger type, trigger, envelope, window size
+apply to all 3 bands.
 
 @b{CURRENT BAND} Select the current band to show in the graph.
 

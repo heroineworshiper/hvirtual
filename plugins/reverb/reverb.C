@@ -63,7 +63,7 @@ Reverb::Reverb(PluginServer *server)
     dsp_in_allocated = 0;
 	need_reconfigure = 1;
     envelope = 0;
-    last_position = 0;
+    last_position = (int64_t)0x7fffffffffffffff;
     
     fft = 0;
 }
@@ -72,7 +72,7 @@ Reverb::~Reverb()
 {
 	if(fft)
 	{
-		for(int i = 0; i < total_in_buffers; i++)
+		for(int i = 0; i < get_total_buffers(); i++)
 		{
 			delete [] dsp_in[i];
 			delete [] ref_channels[i];
@@ -123,14 +123,14 @@ int Reverb::process_buffer(int64_t size,
         dsp_in_length = 0;
         if(fft)
         {
-		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    for(int i = 0; i < PluginClient::get_total_buffers(); i++)
 		    {
  			    if(fft[i]) fft[i]->delete_fft();
 		    }
         }
         if(dsp_in)
         {
-		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    for(int i = 0; i < PluginClient::get_total_buffers(); i++)
 		    {
                 if(dsp_in[i]) bzero(dsp_in[i], sizeof(double) * dsp_in_allocated);
 		    }
@@ -154,7 +154,7 @@ int Reverb::process_buffer(int64_t size,
 
         if(fft && fft[0]->window_size != config.window_size)
         {
-		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		    for(int i = 0; i < PluginClient::get_total_buffers(); i++)
 		    {
  			    delete fft[i];
 		    }
@@ -164,8 +164,8 @@ int Reverb::process_buffer(int64_t size,
 
         if(!fft)
         {
-            fft = new ReverbFFT*[PluginClient::total_in_buffers];
-		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+            fft = new ReverbFFT*[PluginClient::get_total_buffers()];
+		    for(int i = 0; i < PluginClient::get_total_buffers(); i++)
 		    {
 			    fft[i] = new ReverbFFT(this, i);
                 fft[i]->initialize(config.window_size);
@@ -175,11 +175,11 @@ int Reverb::process_buffer(int64_t size,
 // allocate the stuff
         if(!dsp_in)
         {
-            dsp_in = new double*[PluginClient::total_in_buffers];
- 		    ref_channels = new int*[PluginClient::total_in_buffers];
- 		    ref_offsets = new int*[PluginClient::total_in_buffers];
- 		    ref_levels = new double*[PluginClient::total_in_buffers];
-		    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+            dsp_in = new double*[PluginClient::get_total_buffers()];
+ 		    ref_channels = new int*[PluginClient::get_total_buffers()];
+ 		    ref_offsets = new int*[PluginClient::get_total_buffers()];
+ 		    ref_levels = new double*[PluginClient::get_total_buffers()];
+		    for(int i = 0; i < PluginClient::get_total_buffers(); i++)
 		    {
  			    dsp_in[i] = 0;
                 ref_channels[i] = 0;
@@ -191,7 +191,7 @@ int Reverb::process_buffer(int64_t size,
         }
 
 
-		for(int i = 0; i < PluginClient::total_in_buffers; i++)
+		for(int i = 0; i < PluginClient::get_total_buffers(); i++)
 		{
  			if(ref_channels[i]) delete [] ref_channels[i];
  			if(ref_offsets[i]) delete [] ref_offsets[i];
@@ -214,7 +214,7 @@ int Reverb::process_buffer(int64_t size,
  			for(int j = 1; j < config.ref_total; j++)
  			{
 // set random channels for remaining reflections
- 				ref_channels[i][j] = rand() % total_in_buffers;
+ 				ref_channels[i][j] = rand() % get_total_buffers();
  
 // set random offsets after first reflection
  				ref_offsets[i][j] = ref_offsets[i][0];
@@ -242,7 +242,7 @@ int Reverb::process_buffer(int64_t size,
 
 // Always read in the new samples & process the bandpass, even if there is no
 // bandpass.  This way the user can tweek the bandpass without causing glitches.
-    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+    for(int i = 0; i < PluginClient::get_total_buffers(); i++)
 	{
         new_dsp_length = dsp_in_length;
         new_spectrogram_frames = 0;
@@ -286,7 +286,7 @@ int Reverb::process_buffer(int64_t size,
 
 
 // copy the DSP buffer to the output
-    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+    for(int i = 0; i < PluginClient::get_total_buffers(); i++)
     {
         memcpy(buffer[i]->get_data(), dsp_in[i], size * sizeof(double));
     }
@@ -295,7 +295,7 @@ int Reverb::process_buffer(int64_t size,
 
 // shift the DSP buffer forward
     int remane = dsp_in_allocated - size;
-    for(int i = 0; i < PluginClient::total_in_buffers; i++)
+    for(int i = 0; i < PluginClient::get_total_buffers(); i++)
     {
         memmove(dsp_in[i], dsp_in[i] + size, remane * sizeof(double));
         bzero(dsp_in[i] + remane, size * sizeof(double));
@@ -324,7 +324,7 @@ void Reverb::reallocate_dsp(int new_dsp_allocated)
     if(new_dsp_allocated > dsp_in_allocated)
     {
 // copy samples already read into the new buffers
-        for(int i = 0; i < PluginClient::total_in_buffers; i++)
+        for(int i = 0; i < PluginClient::get_total_buffers(); i++)
 		{
             double *old_dsp = dsp_in[i];
             double *new_dsp = new double[new_dsp_allocated];
@@ -745,7 +745,7 @@ void ReverbUnit::process_package(LoadPackage *package)
 
 
 ReverbEngine::ReverbEngine(Reverb *plugin)
- : LoadServer(plugin->PluginClient::smp + 1, plugin->total_in_buffers)
+ : LoadServer(plugin->PluginClient::smp + 1, plugin->get_total_buffers())
 {
 	this->plugin = plugin;
 }

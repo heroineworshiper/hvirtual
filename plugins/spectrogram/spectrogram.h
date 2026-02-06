@@ -260,8 +260,9 @@ public:
 	
 	PLUGIN_CLASS_MEMBERS2(SpectrogramConfig)
 	int is_realtime();
+    int is_multichannel();
 	int process_buffer(int64_t size, 
-		Samples *buffer,
+		Samples **buffer,
 		int64_t start_position,
 		int sample_rate);
 	void read_data(KeyFrame *keyframe);
