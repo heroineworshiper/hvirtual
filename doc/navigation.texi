@@ -46,8 +46,12 @@ main tools for positioning the timeline.
 
 
 Changing the @b{sample zoom} causes the amount of time visible to
-change.  @b{If your mouse has a wheel and it works in X11 go over
-the tumblers and use the wheel to zoom in and out.}
+change.  @b{If your mouse has a wheel and it works in X11 go over the
+tumblers and use the wheel to zoom in and out.}  The sample zoom is in
+units of samples per pixel.  It does this so different windows of
+different sizes can easily show the same zoom level.  Past attempts to
+show the width of the window in time units were more difficult to
+navigate.
 
 The @b{amplitude} only affects audio.  It determines how big the
 waveform is if the waveform is drawn.

@@ -1976,12 +1976,13 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 	{
 
 		EDL *new_edl = new_edls->values[i];
+// in seconds
 		double edl_length = new_edl->local_session->clipboard_length ?
 			new_edl->local_session->clipboard_length :
 			new_edl->tracks->total_length();
-// printf("MWindow::paste_edls 2 %f %f\n", 
+//printf("MWindow::paste_edls %d edl_length=%f\n", __LINE__, edl_length);
 // new_edl->local_session->clipboard_length, 
-// new_edl->tracks->total_length());
+//new_edl->tracks->total_length());
 // new_edl->dump();
 
 
@@ -2003,7 +2004,8 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 		new_edl->resample(new_edl->session->frame_rate, 
 			edl->session->frame_rate, 
 			TRACK_VIDEO);
-
+        new_edl->session->sample_rate = edl->session->sample_rate;
+        new_edl->session->frame_rate = edl->session->frame_rate;
 
 
 

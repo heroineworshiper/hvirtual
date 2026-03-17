@@ -514,8 +514,12 @@ void Track::insert_track(Track *track,
 	int64_t min_length = to_units(
 		MAX(edl_length, track->get_length()),
 		1);
-//printf("Track::insert_track %d %s %lld\n", __LINE__, title, min_length);
-
+// printf("Track::insert_track %d %s edl_length=%f track->get_length=%f min_length=%d\n", 
+// __LINE__, title.c_str(), edl_length, track->get_length(), (int)min_length);
+// printf("Track::insert_track %d %d %d\n", 
+// __LINE__, 
+// (int)track->edl->session->sample_rate,
+// (int)(track->edits->last->startproject + track->edits->last->length));
 // Decide whether to copy settings based on load_mode
 	if(replace_default) copy_settings(track);
 
