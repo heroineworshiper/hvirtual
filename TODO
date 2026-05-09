@@ -24,7 +24,6 @@ Config window for screencap which specifies X & Y offset
 
 BIG BUGS
 -----------------------------------
-document multicolored labels
 picon is sometimes off by 1 when interpolating from 30fps file to 29.97fps project
 can't paste certain time formats in selection text
 ffmpeg command gets stuck when it finishes encoding & prompts for overwrite.

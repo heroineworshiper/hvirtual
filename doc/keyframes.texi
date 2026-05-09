@@ -15,7 +15,7 @@ the different types of keyframes is described here.
 * DEFAULT KEYFRAMES::
 * CURVE KEYFRAMES::  Using rubber band curves
 * NAVIGATING CURVE KEYFRAMES::
-* SELECTING BEZIER & LINEAR MODE::  Change curves from linear to curved
+* SELECTING A CURVE TYPE::  Creating curves of different types
 * SNAPPING TO NEIGHBOR KEYFRAMES::  
 * MUTE KEYFRAMES::
 * AUTOMATIC KEYFRAMES::
@@ -119,11 +119,16 @@ curves by multiples of 2.  @b{Alt-Up and Alt-Dn} change the automation
 zoom from the keyboard.
 
 
-@node SELECTING BEZIER & LINEAR MODE
-@section SELECTING BEZIER & LINEAR MODE
+@node SELECTING A CURVE TYPE
+@section SELECTING A CURVE TYPE
 
-The curve keyframes have linear, locked bezier, & unlocked bezier
-modes.  In linear mode, the keyframe looks like a square and the curves
+The curve keyframes have constant, linear, locked bezier, & unlocked
+bezier modes.  In constant mode, the value of the previous keyframe is
+constant until the next keyframe.  This way, you only need to define 1
+keyframe for a region to have the same value.  The pan keyframes only
+support linear interpolation.
+
+In linear mode, the keyframe looks like a square and the curves
 emanating from it are straight.  In bezier modes, the keyframe is
 rounded and has 2 control lines in addition to the rubber band curve
 lines.  In locked bezier mode, the control lines are mirrors & the curve
@@ -132,7 +137,7 @@ mode, the control lines have different angles & the curve bends when it
 passes through the keyframe.
 
 To select the mode for a single keyframe, right click on it to bring up
-the keyframe menu.  Select @b{linear, locked bezier, or unlocked
+the keyframe menu.  Select @b{constant, linear, locked bezier, or unlocked
 bezier}.
 
 To select the mode of multiple keyframes, highlight a region of the
@@ -148,6 +153,9 @@ output controls can only be moved vertically.
 
 If the control lines aren't visible, @b{ctrl-drag} on the left or right
 of the keyframe.
+
+@center @image{constant}
+@center Constant keyframes
 
 @center @image{linear}
 @center Linear keyframes

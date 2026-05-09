@@ -41,7 +41,7 @@ IMAGES = \
 	magnify.png
 
 # custom images from this directory
-# Images requiring scaling go in fix_images.py
+# Images requiring scaling go in fix_images.py instead of here
 CUSTOM_IMAGES := \
         blob.png \
         blob2.png \
@@ -63,6 +63,7 @@ CUSTOM_IMAGES := \
         in_point_button.png \
         insertion_strategy.png \
         label_button.png \
+        label_color.png \
         label_traversal.png \
         main_timebar.png \
         out_point_button.png \

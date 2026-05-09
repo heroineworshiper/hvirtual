@@ -42,6 +42,7 @@ IMAGES = [
     'compositing_pipeline3.png', 
     'compressor1.png', 
     'compressor2.png', 
+    'constant.png',
     'linear.png', 
     'locked_bezier.png', 
     'program.png',

@@ -240,15 +240,37 @@ timeline very easily.  For this purpose there are labels.
 @subsection USING LABELS IN THE PROGRAM WINDOW
 
 Playing through the timeline & setting labels is the primary method of
-determining editing times in Cinelerra.  They're also used for setting
-track start times for rendering a file list.
+determining precise editing times in Cinelerra.  They're also used as
+the start times for rendering a list of files.
 
 The playhead can jump to any label.  When you position the insertion
 point somewhere and hit the @image{label_button} @b{label button} a new
-label appears on the timeline.  
+label appears on the timeline.
+
+To aid in categorizing different points in time, labels can be a variety
+of colors selected in the @image{label_color} color menu.  The colors
+have corresponding titles which can be set in @b{Settings->EDL
+settings}.  
+
+The text or color has no effect on the label functionality.  The 8
+possible colors are based on the Commodore 64 palette & can't be
+changed.
+
+Change the color of a range of labels to the currently selected color by
+highlighting a region or setting in/out points, then going to
+@b{Edit->Change label color}.
+
+Clear all the labels in a region by going to @b{Edit->Clear labels}.
+
+It's often useful to label the start of every edit.  Then each edit can
+be rendered to a different file in the @b{File->Render} dialog by
+enabling @b{Create new file at each label}.  Automatically label every
+edit in the selected region by going to @b{Edit->Label all edits}.
+
 
 @sp 1
-@image{timebar_label} @b{Timebar with a label on it}
+@center @image{timebar_label}
+@center @b{Timebar with labels in a variety of colors}
 
 No matter what the zoom settings are, clicking on the label positions
 the insertion point exactly where you set it.  Hitting the label button
@@ -301,15 +323,25 @@ in/out points are cleared and the highlighted region ignored.
 @section NAVIGATING THE VIEWER AND COMPOSITOR
 
 The navigation features of the Viewer and Compositor behave very
-similarly.  Each has a timebar and slider below the video output.  The
-timebar and slider are critical for navigation.
+similarly.  Each has a timebar slider below the video output.  The
+timebar slider shows the labels in the timeline & the insertion point. 
+Click in it to drag the insertion point or jump to a label.
 
 @sp 1
 
-@image{timebarslider,,,,}
+@center @image{timebarslider}
 
-The timebar represents the entire time covered by the program.  When
-you define labels and in/out points it defines those, too.  Finally the
+A timebar with labels, in/out points, & the current insertion point is
+shown.
+
+
+
+
+
+
+
+@ignore
+When you define labels and in/out points it defines those, too.  Finally the
 timebar defines a region known as the @b{preview region}.
 
 The @b{preview region} is the region of the timeline which the
@@ -364,7 +396,7 @@ window jumps to that position.
 In the viewer and compositor, labels and in/out points are displayed in
 the timebar.  Instead of displaying just a region of the program, the
 timebar displays the entire program here.
-
+@end ignore
 
 
 Like the Program window, the Compositor has a zoom capability.  First,
