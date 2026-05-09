@@ -72,6 +72,16 @@ public:
 	KeyframePopup *popup;
 };
 
+class KeyframePopupConstant : public BC_MenuItem
+{
+public:
+	KeyframePopupConstant(MWindow *mwindow, KeyframePopup *popup);
+	int handle_event();
+	
+	MWindow *mwindow;
+	KeyframePopup *popup;
+};
+
 class KeyframePopupBezier : public BC_MenuItem
 {
 public:
@@ -179,6 +189,7 @@ public:
     BC_MenuItem *bar;
 	KeyframePopupEdit *edit;
 	KeyframePopupLinear *key_linear;
+	KeyframePopupConstant *key_constant;
 	KeyframePopupBezier *key_bezier;
 	KeyframePopupBezier2 *key_bezier2;
 	KeyframePopupBezier3 *key_bezier3;

@@ -717,7 +717,7 @@ void ResourcePixmap::draw_video_resource(TrackCanvas *canvas,
 	double frames_per_picon = edit->frames_per_picon();
 
 // Current pixel relative to pixmap
-	int x = 0;
+	double x = 0;
 	int y = 0;
 	if(mwindow->edl->session->show_titles) 
 		y += mwindow->theme->get_image("title_bg_data")->get_h();
@@ -737,7 +737,7 @@ void ResourcePixmap::draw_video_resource(TrackCanvas *canvas,
 	{
 		project_frame = Units::to_int64((double)((int64_t)refresh_x + pixmap_x - edit_x) / 
 			frame_w);
-		x = Units::round((double)project_frame * frame_w + edit_x - pixmap_x);
+		x = (double)project_frame * frame_w + edit_x - pixmap_x;
  	}
 
 
@@ -762,9 +762,9 @@ void ResourcePixmap::draw_video_resource(TrackCanvas *canvas,
 				picon_h,
 				id);
 		}
-// printf("ResourcePixmap::draw_video_resource %d source_frame=%ld picon_frame=%p\n", 
+// printf("ResourcePixmap::draw_video_resource %d source_frame=%d picon_frame=%p\n", 
 // __LINE__, 
-// source_frame,
+// (int)source_frame,
 // picon_frame);
 
 		if(picon_frame != 0)
@@ -814,12 +814,12 @@ void ResourcePixmap::draw_video_resource(TrackCanvas *canvas,
         
 		if(frames_per_picon > 1)
 		{
-			x += Units::round(picon_w);
+			x += picon_w;
 			project_frame = Units::to_int64(frames_per_picon * (int64_t)((double)(x + pixmap_x - edit_x) / picon_w));
 		}
 		else
 		{
-			x += Units::round(frame_w);
+			x += frame_w;
 			project_frame = (int64_t)((double)(x + pixmap_x - edit_x) / frame_w);
 		}
 

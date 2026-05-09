@@ -62,6 +62,7 @@ KeyframePopup::KeyframePopup(MWindow *mwindow, MWindowGUI *gui)
 	key_copy = 0;
     paste = 0;
 	key_linear = 0;
+    key_constant = 0;
 	key_bezier = 0;
     key_bezier2 = 0;
     key_bezier3 = 0;
@@ -108,10 +109,12 @@ int KeyframePopup::update(double position,
 //    copy_default = 0;
     paste_default = 0;
 	delete key_linear;
+    delete key_constant;
 	delete key_bezier;
 	delete key_bezier2;
     delete key_bezier3;
 	key_linear = 0;
+    key_constant = 0;
 	key_bezier = 0;
 	key_bezier2 = 0;
     key_bezier3 = 0;
@@ -151,10 +154,12 @@ int KeyframePopup::update(double position,
 		add_item(key_bezier = new KeyframePopupBezier(mwindow, this));
 		add_item(key_bezier2 = new KeyframePopupBezier2(mwindow, this));
 //		add_item(key_bezier3 = new KeyframePopupBezier3(mwindow, this));
+		add_item(key_constant = new KeyframePopupConstant(mwindow, this));
         key_linear->set_checked(((FloatAuto*)auto_)->mode == FloatAuto::LINEAR);
         key_bezier->set_checked(((FloatAuto*)auto_)->mode == FloatAuto::BEZIER_LOCKED);
         key_bezier2->set_checked(((FloatAuto*)auto_)->mode == FloatAuto::BEZIER_UNLOCKED);
 //        key_bezier3->set_checked(((FloatAuto*)auto_)->mode == FloatAuto::BEZIER_TANGENT);
+        key_constant->set_checked(((FloatAuto*)auto_)->mode == FloatAuto::CONSTANT);
 	}
 
     if(autos && !auto_)
@@ -212,6 +217,21 @@ KeyframePopupLinear::KeyframePopupLinear(MWindow *mwindow, KeyframePopup *popup)
 int KeyframePopupLinear::handle_event()
 {
     mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, FloatAuto::LINEAR);
+	return 1;
+}
+
+
+
+KeyframePopupConstant::KeyframePopupConstant(MWindow *mwindow, KeyframePopup *popup)
+ : BC_MenuItem(_("Constant"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int KeyframePopupConstant::handle_event()
+{
+    mwindow->set_keyframe_mode((FloatAuto*)popup->auto_, FloatAuto::CONSTANT);
 	return 1;
 }
 

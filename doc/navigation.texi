@@ -114,9 +114,9 @@ power of 2.
 
 By default you'll see a flashing insertion point in the program window
 the first time you boot it up.  This is where new media is pasted onto
-the timeline.  It's also the starting point of all playback
-operations.  When rendering, it defines the region of the timeline to
-be rendered.
+the timeline.  It's also the starting point of all playback operations. 
+When rendering, it defines the start of the region of the timeline to be
+rendered.
 
 The insertion point is normally moved by clicking inside the timebar. 
 Any region of the timebar not obscured by labels and in/out points is a
@@ -126,7 +126,17 @@ hotspot for repositioning the insertion point.
 @image{main_timebar,,,,}
 @b{The main timebar}
 
-The insertion point also can be moved by clicking in the timeline
+When repositioning the insertion point, the frame on the right side of
+the line is rendered.  When playing forward, the frame on the left side
+of the line is last frame rendered.  When playing backward, the frame on
+the right side of the line is the last frame rendered.  This makes audio
+editing more intuitive.
+
+For the rendered frame to always be on the left side of the insertion
+point, it would have to render frame -1 when the line was at position
+0.  Audio playback would start 1 frame early.
+
+The insertion point also can be repositioned by clicking in the timeline
 itself, but not always.  The insertion point has two modes of
 operation: 
 
@@ -229,10 +239,13 @@ timeline very easily.  For this purpose there are labels.
 @node USING LABELS IN THE PROGRAM WINDOW
 @subsection USING LABELS IN THE PROGRAM WINDOW
 
-Labels are an easy way to set exact locations on the timeline you want
-to jump to.  When you position the insertion point somewhere and hit
-the @image{label_button} @b{label button} a new label appears on the
-timeline.  
+Playing through the timeline & setting labels is the primary method of
+determining editing times in Cinelerra.  They're also used for setting
+track start times for rendering a file list.
+
+The playhead can jump to any label.  When you position the insertion
+point somewhere and hit the @image{label_button} @b{label button} a new
+label appears on the timeline.  
 
 @sp 1
 @image{timebar_label} @b{Timebar with a label on it}

@@ -24,8 +24,8 @@
 
 class TrackCanvas;
 
-#define HANDLE_W DP(8)
-#define HANDLE_H DP(8)
+#define HANDLE_W DP(10)
+#define HANDLE_H DP(10)
 #define PLUGIN_MARGIN 2
 
 #endif

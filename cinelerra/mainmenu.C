@@ -167,6 +167,9 @@ void MainMenu::create_objects()
 // 	keyframemenu->add_item(new KeyframeType(mwindow, 
 // 		_("Change to tangent bezier"), 
 //         FloatAuto::BEZIER_TANGENT));
+	keyframemenu->add_item(new KeyframeType(mwindow, 
+		_("Change to constant"), 
+        FloatAuto::CONSTANT));
 
 
 

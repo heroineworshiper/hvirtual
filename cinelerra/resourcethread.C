@@ -498,6 +498,9 @@ void ResourceThread::do_video(VResourceThreadItem *item)
 		int64_t normalized_position = (int64_t)(item->position *
 			asset->frame_rate /
 			item->frame_rate);
+// printf("ResourceThread::do_video %d normalized_position=%d\n",
+// __LINE__,
+// (int)normalized_position);
 		source->set_video_position(normalized_position, 
 			0);
 

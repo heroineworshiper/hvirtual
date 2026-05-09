@@ -257,6 +257,7 @@ void EditKeyframeDialog::create_objects()
 void EditKeyframeDialog::lock_texts()
 {
     if(thread->auto_copy->mode == FloatAuto::LINEAR ||
+        thread->auto_copy->mode == FloatAuto::CONSTANT ||
         thread->auto_copy->mode == FloatAuto::BEZIER_TANGENT)
     {
         in->disable();
@@ -317,6 +318,7 @@ void EditKeyframeMode::create_objects()
 	add_item(new BC_MenuItem(mode_to_text(FloatAuto::BEZIER_UNLOCKED)));
 	add_item(new BC_MenuItem(mode_to_text(FloatAuto::BEZIER_LOCKED)));
 //	add_item(new BC_MenuItem(mode_to_text(FloatAuto::BEZIER_TANGENT)));
+	add_item(new BC_MenuItem(mode_to_text(FloatAuto::CONSTANT)));
 }
 int EditKeyframeMode::handle_event()
 {
@@ -339,6 +341,9 @@ char* EditKeyframeMode::mode_to_text(int mode)
         case FloatAuto::LINEAR:
             return _("Linear");
             break;
+        case FloatAuto::CONSTANT:
+            return _("Constant");
+            break;
         case FloatAuto::BEZIER_LOCKED:
         default:
             return _("Locked bezier");
@@ -353,7 +358,8 @@ int EditKeyframeMode::text_to_mode(char *text)
         FloatAuto::BEZIER_UNLOCKED,
         FloatAuto::LINEAR,
         FloatAuto::BEZIER_LOCKED,
-        FloatAuto::BEZIER_TANGENT
+        FloatAuto::BEZIER_TANGENT,
+        FloatAuto::CONSTANT,
     };
     int total_modes = sizeof(modes) / sizeof(int);
     for(int i = 0; i < total_modes; i++)

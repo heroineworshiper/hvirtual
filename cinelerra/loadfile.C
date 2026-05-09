@@ -144,7 +144,10 @@ void LoadFileThread::handle_done_event(int result)
 		return;
 	}
 
-	mwindow->interrupt_indexes();
+    if(load_mode == LOADMODE_REPLACE ||
+        load_mode == LOADMODE_REPLACE_CONCATENATE)
+    	mwindow->interrupt_indexes();
+
 // all the windows have to be locked
 	mwindow->gui->lock_window("LoadFileThread::run");
 	result = mwindow->load_filenames(&path_list, load_mode, 1, conform);

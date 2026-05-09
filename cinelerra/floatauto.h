@@ -59,7 +59,8 @@ public:
 		BEZIER_UNLOCKED,
 		LINEAR,
         BEZIER_LOCKED,
-        BEZIER_TANGENT
+        BEZIER_TANGENT,
+        CONSTANT
 	}; 
 
 private:

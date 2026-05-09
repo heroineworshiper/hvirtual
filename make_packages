@@ -30,7 +30,7 @@ ARCH=`uname -m`
 
 
 
-CI_VERSION=10
+CI_VERSION=10.1
 
 
 #MIX_VERSION=1.2

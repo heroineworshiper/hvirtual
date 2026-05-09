@@ -423,6 +423,9 @@ void MWindow::set_automation_mode(int mode)
 	    case FloatAuto::BEZIER_TANGENT:
     		undo->update_undo_after(_("set bezier tangent"), LOAD_AUTOMATION);
             break;
+	    case FloatAuto::CONSTANT:
+    		undo->update_undo_after(_("set constant"), LOAD_AUTOMATION);
+            break;
     }
 
 	restart_brender();
@@ -665,6 +668,9 @@ void MWindow::set_keyframe_mode(FloatAuto *auto_, int mode)
             break;
         case FloatAuto::BEZIER_TANGENT:
             undo_text = "make bezier tangent";
+            break;
+        case FloatAuto::CONSTANT:
+            undo_text = "make constant";
             break;
     }
 

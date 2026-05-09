@@ -22,8 +22,8 @@
 #define MWINDOW_INC
 
 #define PROGRAM_NAME "Cinelerra"
-#define CINELERRA_VERSION "10"
-#define COPYRIGHT_DATE 2025
+#define CINELERRA_VERSION "10.1"
+#define COPYRIGHT_DATE 2026
 #define DEFAULT_THEME "S.U.V."
 #define CONFIG_FILE "Cinelerra_rc"
 // user presets

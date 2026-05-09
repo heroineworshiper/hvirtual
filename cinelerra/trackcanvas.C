@@ -2287,6 +2287,19 @@ void TrackCanvas::draw_floatauto(Auto *current,
 			draw_box(x1, y1, x2 - x1, y2 - y1);
 		}
 		else
+        if(((FloatAuto*)current)->mode == FloatAuto::CONSTANT)
+        {
+            ArrayList<int> polygon_x;
+			ArrayList<int> polygon_y;
+			polygon_x.append((x1 + x2) / 2 + 1);
+			polygon_y.append(y1 + 1);
+			polygon_x.append(x2 + 1);
+			polygon_y.append(y2 + 1);
+			polygon_x.append(x1 + 1);
+			polygon_y.append(y2 + 1);
+			fill_polygon(&polygon_x, &polygon_y);
+        }
+        else
 		{
 			ArrayList<int> polygon_x;
 			ArrayList<int> polygon_y;
