@@ -24,6 +24,11 @@ Config window for screencap which specifies X & Y offset
 
 BIG BUGS
 -----------------------------------
+record not reliably pasting readable file in timeline
+ - command line output
+ - not deleting temporary file
+labels being moved by load operations despite settings
+ - menu not updated to show the right value in some operation
 picon is sometimes off by 1 when interpolating from 30fps file to 29.97fps project
 can't paste certain time formats in selection text
 ffmpeg command gets stuck when it finishes encoding & prompts for overwrite.

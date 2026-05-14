@@ -26,9 +26,11 @@
 #include "drivesync.h"
 #include "edl.h"
 #include "edlsession.h"
+#include "errorbox.h"
 #include "file.h"
 #include "mutex.h"
 #include "mwindow.h"
+#include "mwindowgui.h"
 #include "preferences.h"
 #include "record.h"
 #include "recordaudio.h"
@@ -286,7 +288,19 @@ TRACE("RecordThread::run 3");
 			{
 // This draws to RecordGUI, incidentally
 TRACE("RecordThread::run 4");
-				record->open_output_file();
+				if(record->open_output_file())
+                {
+			        ErrorBox error_box(PROGRAM_NAME ": Error",
+				        mwindow->gui->get_abs_cursor_x(1),
+				        mwindow->gui->get_abs_cursor_y(1));
+			        error_box.create_objects(_("Error opening file."));
+			        error_box.run_window();
+                    engine_done = 1;
+                    state_lock->unlock();
+                    loop_lock->unlock();
+                    break;
+                }
+
 TRACE("RecordThread::run 5");
 				if(mwindow->preferences->record_sync_drives)
 				{
