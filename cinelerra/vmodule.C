@@ -350,15 +350,16 @@ int VModule::import_frame(VFrame *output,
 			}
 			else
 			{
+// position limit in current EDL frame rate.  Converted later to nested EDL frame rate
 				max_position = Units::to_int64(nested_edl->tracks->total_playable_length() *
-//					frame_rate
-// necessary when overriding the nested EDL frame rate
-                    nested_edl->session->frame_rate 
+					frame_rate
                      - 1);
-// printf("VModule::import_frame %d frame_rate=%f max_position=%d\n",
+// printf("VModule::import_frame %d nested_length=%f frame_rate=%f max_position=%d position=%d\n",
 // __LINE__,
-// frame_rate,
-// (int)max_position);
+// nested_edl->tracks->total_playable_length(),
+// nested_edl->session->frame_rate,
+// (int)max_position,
+// (int)position);
 			}
 
 
@@ -847,12 +848,12 @@ if(debug) printf("VModule::import_frame %d %p %p\n",
 __LINE__,
 (*input)->get_rows(),
 (*input));
+// printf("VModule::import_frame %d position=%d nested_position=%d\n", 
+// __LINE__, (int)position, (int)nested_position);
 					result = nested_renderengine->vrender->process_buffer(
 						(*input), 
 						nested_position,
 						use_opengl);
-if(debug) printf("VModule::import_frame %d\n", 
-__LINE__);
 
 // If colormodels differ, change colormodels in opengl if possible.
 // Swap output for temp if not possible.

@@ -2587,7 +2587,7 @@ int TrackCanvas::test_floatauto(Auto *current,
 	float value2 = autos->get_value(position2, PLAY_FORWARD, previous1, next1); \
 	double position = unit_start + x * zoom_units; \
 	double value = 0; \
-	if(position2 > position1) \
+	if(position2 > position1 && (!previous1 || previous1->mode != FloatAuto::CONSTANT)) \
 	{ \
 		value = value1 + \
 			(value2 - value1) * \
@@ -2618,6 +2618,7 @@ void TrackCanvas::draw_floatline(int center_pixel,
 // Solve bezier equation for either every pixel or a certain large number of
 // points.
 
+//printf("TrackCanvas::draw_floatline %d x1=%d x2=%d\n", __LINE__, x1, x2);
 
 
 // Not using slope intercept
@@ -2628,6 +2629,7 @@ void TrackCanvas::draw_floatline(int center_pixel,
 
 // Call by reference fails for some reason here
 	FloatAuto *previous1 = previous, *next1 = next;
+    int prev_mode = FloatAuto::LINEAR;
 	float automation_min = mwindow->edl->local_session->automation_min;
 	float automation_max = mwindow->edl->local_session->automation_max;
 	float automation_range = automation_max - automation_min;
@@ -2651,6 +2653,7 @@ void TrackCanvas::draw_floatline(int center_pixel,
             y3 = y4;
             y4 = t;
         }
+
 		if(center_pixel - yscale / 2 <= y4 && 
             center_pixel + yscale / 2 - 1 > y3)
 		{
@@ -2663,9 +2666,27 @@ void TrackCanvas::draw_floatline(int center_pixel,
             if(y3 < center_pixel - yscale / 2)
                 y3 = center_pixel - yscale / 2;
 
- 			draw_line(x3, y3, x4, y4);
+
+//printf("TrackCanvas::draw_floatline %d x=%d prev_y=%d y=%d\n", 
+//__LINE__, x, *prev_y, y);
+
+// always have previous if y3 != y4
+// don't draw a diagonal line if it's constant
+            if(y3 == y4 || previous->mode != FloatAuto::CONSTANT)
+            {
+         		draw_line(x3, y3, x4, y4);
+            }
+            else
+            {
+// Draw a right angle
+// Doesn't always get here
+// y3 not always != y4
+                draw_line(x3, y3, x4, y3);
+         		draw_line(x4, y3, x4, y4);
+            }
 		}
 		*prev_y = y;
+        if(previous) prev_mode = previous->mode;
 	}
 
 
@@ -3033,7 +3054,7 @@ int TrackCanvas::do_float_autos(Track *track,
 	double slope;
 	int skip = 0;
 	int prev_y1 = 0x7fffffff;
-	int prev_y2 = 0x7fffffff;
+//	int prev_y2 = 0x7fffffff;
 	
 	auto_instance = 0;
 
@@ -3290,7 +3311,8 @@ int TrackCanvas::do_float_autos(Track *track,
 				(int)ay, 
 				(int)ax2, 
 				(int)ay2,
-				&prev_y2);
+//				&prev_y2);
+				&prev_y1);
 	}
 
 

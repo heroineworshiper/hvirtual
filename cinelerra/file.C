@@ -1452,16 +1452,16 @@ int File::set_audio_position(int64_t position)
 }
 
 int File::set_video_position(int64_t position, 
-	int is_thread) 
+	int is_thread)
 {
-//printf("File::set_video_position %d %d %d\n", 
-//__LINE__, disable_toc_creation, (int)asset->video_length);
     if(asset->video_length == NOSEEK_LENGTH) return 0;
 
 #ifdef USE_FILEFORK
 // Thread should only call in the fork
 	if(!is_fork && !is_thread)
 	{
+// printf("File::set_video_position %d position=%d asset->video_length=%d\n", 
+// __LINE__, (int)position, (int)asset->video_length);
 //printf("File::set_video_position %d %lld\n", __LINE__, position);
 // store it for debugging
         current_frame = position;
