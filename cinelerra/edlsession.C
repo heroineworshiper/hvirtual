@@ -112,7 +112,7 @@ double EDLSession::get_nested_frame_rate()
     }
     else
     {
-// user specified frame rate override
+// user specified override
         return nested_frame_rate;
     }
 }

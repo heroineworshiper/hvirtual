@@ -350,10 +350,12 @@ int VModule::import_frame(VFrame *output,
 			}
 			else
 			{
-// position limit in current EDL frame rate.  Converted later to nested EDL frame rate
-				max_position = Units::to_int64(nested_edl->tracks->total_playable_length() *
-					frame_rate
-                     - 1);
+// length of nested EDL in seconds, scaled based on user specified frame rate
+                double nested_length = nested_edl->tracks->total_playable_length() *
+                        nested_edl->session->frame_rate / 
+                        nested_edl->session->get_nested_frame_rate();
+// maximum frame number in current EDL frame rate.
+				max_position = Units::to_int64(nested_length * frame_rate - 1);
 // printf("VModule::import_frame %d nested_length=%f frame_rate=%f max_position=%d position=%d\n",
 // __LINE__,
 // nested_edl->tracks->total_playable_length(),
@@ -403,7 +405,7 @@ int VModule::import_frame(VFrame *output,
 				if(debug) printf("VModule::import_frame %d\n", __LINE__);
 				asset_w = nested_edl->session->output_w;
 				asset_h = nested_edl->session->output_h;
-// Get source position in nested frame rate in direction of playback.
+// Get source position in frames, in nested frame rate, in direction of playback.
 				nested_position = Units::to_int64(position * 
 					nested_edl->session->get_nested_frame_rate() / 
 					frame_rate);

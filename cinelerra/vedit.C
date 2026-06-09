@@ -191,7 +191,7 @@ __LINE__,
 if(debug) printf("VEdit::read_frame %d\n", __LINE__);
 
 		file->set_layer(channel);
-printf("VEdit::read_frame %d source_position=%d\n", __LINE__, (int)source_position);
+//printf("VEdit::read_frame %d source_position=%d\n", __LINE__, (int)source_position);
 		file->set_video_position(source_position, 0);
 
 		if(use_cache) file->set_cache_frames(use_cache);
