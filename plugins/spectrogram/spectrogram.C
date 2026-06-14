@@ -578,6 +578,8 @@ void SpectrogramWindow::calculate_frequency(int x, int y, int do_overlay)
 		time_pixel = get_w() - x;
 	}
 
+//printf("SpectrogramWindow::calculate_frequency %d %d\n", 
+//__LINE__, plugin->frame_history.size());
 	CLAMP(time_pixel, 0, plugin->frame_history.size() - 1);
 	if(plugin->frame_history.size())
 	{
@@ -598,19 +600,21 @@ void SpectrogramWindow::calculate_frequency(int x, int y, int do_overlay)
 		}
 
 		int freq = Freq::tofreq(freq_index);
-		
-		
+
+
 		CLAMP(freq_pixel, 0, ptr->data_size - 1);
 		double level = ptr->data[freq_pixel];
-		
+
 		char string[BCTEXTLEN];
 		sprintf(string, "Freq: %d Hz", freq);
 		freq_title->update(string);
-		
+
 		sprintf(string, "Amplitude: %.2f dB", level);
 		amplitude_title->update(string);
+//printf("SpectrogramWindow::calculate_frequency %d %d %f\n", 
+//__LINE__, freq, level);
 	}
-	
+
 	if(do_overlay) 
 	{
 		canvas->draw_overlay();
@@ -860,10 +864,12 @@ int Spectrogram::process_buffer(int64_t size,
 
 void Spectrogram::render_stop()
 {
+//printf("Spectrogram::render_stop %d\n", __LINE__);
 	buffer_size = 0;
 	audio_buffer_start = -MAX_WINDOW * 2;
 //	frame_buffer.remove_all_objects();
-	frame_history.remove_all_objects();
+// need the buffers for the cursor
+//	frame_history.remove_all_objects();
 }
 
 
