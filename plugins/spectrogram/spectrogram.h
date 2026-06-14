@@ -186,6 +186,8 @@ public:
 	void calculate_frequency(int x, int y, int do_overlay);
 
 	SpectrogramCanvas *canvas;
+// double buffer for horizontal mode text
+    BC_Pixmap *pixmap;
 
 	BC_Title *level_title;
 	SpectrogramLevel *level;
@@ -267,6 +269,7 @@ public:
 		int sample_rate);
 	void read_data(KeyFrame *keyframe);
 	void save_data(KeyFrame *keyframe);
+    void draw_grid();
 	void update_gui();
 	void render_stop();
 	void fix_gui_frame(SpectrogramFrame *frame);

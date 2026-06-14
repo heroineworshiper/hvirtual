@@ -25,7 +25,7 @@ Config window for screencap which specifies X & Y offset
 BIG BUGS
 -----------------------------------
 can't load with replace when an index file is being built
- - intermittently waits for the index file to finish
+ - intermittently waits for the index file to finish.  Not reproducible.
 record not reliably pasting readable file in timeline
  - command line output
  - not deleting temporary file

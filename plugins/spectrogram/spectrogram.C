@@ -385,10 +385,12 @@ SpectrogramWindow::SpectrogramWindow(Spectrogram *plugin)
 {
 	this->plugin = plugin;
 	probe_x = probe_y = -1;
+    pixmap = 0;
 }
 
 SpectrogramWindow::~SpectrogramWindow()
 {
+    delete pixmap;
 }
 
 void SpectrogramWindow::create_objects()
@@ -627,6 +629,7 @@ void SpectrogramWindow::calculate_frequency(int x, int y, int do_overlay)
 void SpectrogramWindow::update_gui()
 {
 	char string[BCTEXTLEN];
+
 	level->update(plugin->config.level);
 	sprintf(string, "%d", plugin->config.window_size);
 	window_size->set_text(string);
@@ -877,6 +880,40 @@ void Spectrogram::render_stop()
 
 NEW_WINDOW_MACRO(Spectrogram, SpectrogramWindow)
 
+void Spectrogram::draw_grid()
+{
+    Theme *theme = get_theme();
+	SpectrogramWindow *window = (SpectrogramWindow*)thread->get_window();
+	SpectrogramCanvas *canvas = (SpectrogramCanvas*)window->canvas;
+	int w = canvas->get_w();
+	int h = canvas->get_h();
+    int freq_divisions = 10;
+    int margin = DP(2);
+    char string[BCTEXTLEN];
+    canvas->set_color(theme->graph_grid_color);
+    canvas->set_font(SMALLFONT);
+    int ascent = canvas->get_text_ascent(SMALLFONT);
+
+
+    for(int i = 0; i <= freq_divisions; i++)
+    {
+        int y1 = (freq_divisions - i) * h / freq_divisions;
+        int freq = Freq::tofreq(i * TOTALFREQS / freq_divisions);
+		sprintf(string, "%d", freq);
+        if(i == freq_divisions)
+            canvas->draw_text(0, y1 + ascent, string);
+        else
+            canvas->draw_text(0, y1 - margin, string);
+
+        if(i > 0 && i < freq_divisions)
+        {
+    	    canvas->set_line_dashes(1);
+            canvas->draw_line(0, y1, w, y1);
+            canvas->set_line_dashes(0);
+        }
+    }
+}
+
 void Spectrogram::update_gui()
 {
 	if(thread)
@@ -897,19 +934,40 @@ void Spectrogram::update_gui()
 // spectrogram
 		    if(total_frames)
 		    {
+            	Theme *theme = get_theme();
 			    SpectrogramCanvas *canvas = (SpectrogramCanvas*)window->canvas;
-			    canvas->draw_overlay();
+                int freq_divisions = 10;
+                int margin = DP(2);
 
 			    if(config.mode == HORIZONTAL)
 			    {
+					int w = canvas->get_w();
+					int h = canvas->get_h();
+                    int ascent = canvas->get_text_ascent(SMALLFONT);
+                    int margin = DP(2);
+                    
+                    if(window->pixmap && 
+                        (window->pixmap->get_w() != w ||
+                        window->pixmap->get_h() != h))
+                    {
+                        delete window->pixmap;
+                        window->pixmap = 0;
+                    }
+                    if(!window->pixmap)
+                    {
+                        window->pixmap = new BC_Pixmap(window, w, h);
+                        canvas->clear_box(0, 0, w, h, window->pixmap);
+                    }
+                    BC_Pixmap *pixmap = window->pixmap;
+
 // Shift left
-				    int pixels = canvas->get_h();
 				    canvas->copy_area(total_frames * config.xzoom, 
 					    0, 
 					    0, 
 					    0, 
-					    canvas->get_w() - total_frames * config.xzoom,
-					    canvas->get_h());
+					    w - total_frames * config.xzoom,
+					    h,
+                        pixmap);
 
 
 // Draw new columns
@@ -917,11 +975,11 @@ void Spectrogram::update_gui()
 					    frame < total_frames;
 					    frame++)
 				    {
-					    int x = canvas->get_w() - (total_frames - frame) * config.xzoom;
+					    int x = w - (total_frames - frame) * config.xzoom;
 					    SpectrogramFrame *ptr = (SpectrogramFrame*)get_gui_frame();
                         fix_gui_frame(ptr);
 
-					    for(int i = 0; i < pixels; i++)
+					    for(int i = 0; i < h; i++)
 					    {
 						    float db = ptr->data[
 							    MIN(i, ptr->data_size - 1)];
@@ -971,12 +1029,13 @@ void Spectrogram::update_gui()
 							    (g << 8) |
 							    (b));
 						    if(config.xzoom == 1)
-							    canvas->draw_pixel(x, i);
+							    canvas->draw_pixel(x, i, pixmap);
 						    else
 							    canvas->draw_line(x,
 								    i,
 								    x + config.xzoom,
-								    i);
+								    i, 
+                                    pixmap);
 					    }
 
 // Copy a frame into history for each pixel
@@ -996,6 +1055,10 @@ void Spectrogram::update_gui()
 
                         delete ptr;
 				    }
+
+// blit the pixmap
+                    canvas->draw_pixmap(pixmap);
+                    draw_grid();
 			    }
 			    else
 // mode == VERTICAL
@@ -1014,6 +1077,11 @@ void Spectrogram::update_gui()
 
     // Draw frames from history
 				    canvas->clear_box(0, 0, canvas->get_w(), canvas->get_h());
+
+					int w = canvas->get_w();
+					int h = canvas->get_h();
+
+
 				    for(int frame = 0; frame < frame_history.size(); frame++)
 				    {
 					    SpectrogramFrame *ptr = frame_history.get(frame);
@@ -1033,8 +1101,6 @@ void Spectrogram::update_gui()
 
 					    int x1 = 0;
 					    int y1 = 0;
-					    int w = canvas->get_w();
-					    int h = canvas->get_h();
 					    int number = 0;
 
     //printf("Spectrogram::update_gui %d ", __LINE__);
@@ -1065,7 +1131,61 @@ void Spectrogram::update_gui()
 					    canvas->set_line_width(1);
     //printf("\n");
 				    }
+// the grid
+                    int db_per_division = 5;
+                    float min_db = INFINITYGAIN;
+                    float max_db = 0;
+                    int total_divisions = (int)((max_db - min_db) / db_per_division);
+                    int ascent = canvas->get_text_ascent(SMALLFONT);
+                    char string[BCTEXTLEN];
 
+	                canvas->set_color(theme->graph_grid_color);
+                    canvas->set_font(SMALLFONT);
+// DB
+                    for(int i = 0; i <= total_divisions; i++)
+	                {
+                        int y1 = (int)(i * h / total_divisions);
+                        int y2 = y1 + ascent;
+                        if(i == 0)
+                        {
+                            canvas->draw_text(0, y2, "0");
+                        }
+                        else
+                        if(i == total_divisions)
+    		            {
+            	            sprintf(string, "oo");
+                            canvas->draw_text(0, y1 - margin, string);
+    		            }
+                        else
+			            {
+                            sprintf(string, "%d", (int)(max_db - i * db_per_division));
+                            canvas->draw_text(0, y1 - margin, string);
+                        }
+
+                        if(i != 0 && i != total_divisions)
+                        {
+                            canvas->set_line_dashes(1);
+                            canvas->draw_line(0, y1, w, y1);
+                            canvas->set_line_dashes(0);
+                        }
+                    }
+
+// freq
+                    for(int i = 1; i <= freq_divisions; i++)
+                    {
+                        int x1 = i * w / freq_divisions;
+                        int freq = Freq::tofreq(i * TOTALFREQS / freq_divisions);
+		                sprintf(string, "%d", freq);
+                        int x2 = x1 - canvas->get_text_width(SMALLFONT, string);
+                        canvas->draw_text(x2, h - margin, string);
+                        
+                        if(i < freq_divisions)
+                        {
+    	                    canvas->set_line_dashes(1);
+                            canvas->draw_line(x1, 0, x1, h);
+                            canvas->set_line_dashes(0);
+                        }
+                    }
 			    }
 
 
