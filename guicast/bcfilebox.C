@@ -1146,7 +1146,7 @@ int BC_FileBox::create_tables()
 				"Dec"
 			};
 			sprintf(string, 
-				"%s %d, %d", 
+				"%s %d %d", 
 				month_text[file_item->month],
 				file_item->day,
 				file_item->year);

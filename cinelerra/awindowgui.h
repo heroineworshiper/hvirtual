@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,23 +34,26 @@
 #include "newfolder.inc"
 #include "pluginserver.inc"
 
-class AWindowAssets;
-class AWindowFolders;
-class AWindowNewFolder;
-class AWindowDeleteFolder;
-class AWindowRenameFolder;
+//class AWindowAssets;
+//class AWindowFolders;
+//class AWindowNewFolder;
+//class AWindowDeleteFolder;
+//class AWindowRenameFolder;
 class AWindowDeleteDisk;
 class AWindowDeleteProject;
-class AWindowDivider;
+//class AWindowDivider;
 class AWindowInfo;
 class AWindowRedrawIndex;
 class AWindowPaste;
-class AWindowAppend;
+//class AWindowAppend;
 class AWindowView;
 
+#define AWINDOW_COLUMNS 4
 
 class AWindowGUI;
 
+// Not really a picon anymore but a list item that references 
+// an object in the EDL
 class AssetPicon : public BC_ListBoxItem
 {
 public:
@@ -72,16 +74,52 @@ public:
 	int id;
 
 // Check ID first.  Update these next before dereferencing
+// TODO: probably need to store ID's instead of pointers
 // Asset if asset
 	Indexable *indexable;
 // EDL if clip
 	EDL *edl;
+// Server if a plugin
+	PluginServer *plugin;
 
 	int in_use;
-
+    int64_t size;
+    int month;
+    int day;
+    int year;
+    int64_t calendar_time;
 
 	int persistent;
-	PluginServer *plugin;
+};
+
+class AWindowFolders : public BC_ListBox
+{
+public:
+	AWindowFolders(AWindowGUI *gui, int x, int y);
+	int handle_event();
+    AWindowGUI *gui;
+};
+
+class AWindowAssets : public BC_ListBox
+{
+public:
+	AWindowAssets(MWindow *mwindow, AWindowGUI *gui, int x, int y, int w, int h);
+	~AWindowAssets();
+	
+	int handle_event();
+	int selection_changed();
+//	void draw_background();
+	int drag_start_event();
+	int drag_motion_event();
+	int drag_stop_event();
+	int button_press_event();
+	int column_resize_event();
+    int sort_order_event();
+    int move_column_event();
+    int evaluate_query(char *string);
+
+	MWindow *mwindow;
+	AWindowGUI *gui;
 };
 
 
@@ -96,9 +134,11 @@ public:
 	int translation_event();
 	int close_event();
 	int keypress_event();
-	void update_assets();
-	void sort_assets();
-	void reposition_objects();
+// the mane updater
+	void update_assets(int do_folder = 1);
+    void clear_tables();
+//	void sort_assets();
+//	void reposition_objects();
 	int current_folder_number();
 // Call back for MWindow entry point
 	int drag_motion();
@@ -110,40 +150,38 @@ public:
 		int do_video, 
 		int is_realtime, 
 		int is_transition);
-	void copy_picons(ArrayList<BC_ListBoxItem*> *dst, 
-		ArrayList<BC_ListBoxItem*> *src, 
-		char *folder);
-	void sort_picons(ArrayList<BC_ListBoxItem*> *src, 
-		char *folder);
+    const char* columntype_to_text(int type);
 // Return the selected asset in asset_list
-	Indexable* selected_asset();
-	PluginServer* selected_plugin();
-	AssetPicon* selected_folder();
+//	Indexable* selected_asset();
+//	PluginServer* selected_plugin();
+//	AssetPicon* selected_folder();
 
 	MWindow *mwindow;
 	AWindow *awindow;
 
+    int folders_w;
+    int folders_h;
+
 	AWindowAssets *asset_list;
 	AWindowFolders *folder_list;
-	AWindowDivider *divider;
+    BC_Title *folder_title;
+//	AWindowDivider *divider;
 
-// Store data to speed up responses
-// Persistent data for listboxes
-// All assets in current EDL
-	ArrayList<BC_ListBoxItem*> assets;
+// Fixed tables for the listbox
+// TODO: probably should be ditched if we're not making custom picons
 	ArrayList<BC_ListBoxItem*> folders;
+	ArrayList<BC_ListBoxItem*> assets;
 	ArrayList<BC_ListBoxItem*> aeffects;
 	ArrayList<BC_ListBoxItem*> veffects;
 	ArrayList<BC_ListBoxItem*> atransitions;
 	ArrayList<BC_ListBoxItem*> vtransitions;
 
-// Currently displayed data for listboxes
-// Currently displayed assets + comments
-	ArrayList<BC_ListBoxItem*> displayed_assets[2];
+// Currently displayed tables for the listbox
+// Either BC_ListBoxItem or AssetPicon
+	ArrayList<BC_ListBoxItem*> column_data[ASSET_COLUMNS];
+	const char *column_titles[ASSET_COLUMNS];
 
-	const char *asset_titles[ASSET_COLUMNS];
-
-// Persistent icons
+// Fixed icons for dragging
 	BC_Pixmap *folder_icon;
 	BC_Pixmap *file_icon;
 	BC_Pixmap *audio_icon;
@@ -157,92 +195,76 @@ public:
 
 // Popup menus
 	AssetPopup *asset_menu;
-	AssetListMenu *assetlist_menu;
+//	AssetListMenu *assetlist_menu;
 //	FolderListMenu *folderlist_menu;
 // Temporary for reading picons from files
-	VFrame *temp_picon;
+//	VFrame *temp_picon;
 
 private:
-	void update_folder_list();
+//	void update_folder_list();
 	void update_asset_list();
-	void filter_displayed_assets();
+	void filter_column_data();
+	void copy_tables(ArrayList<BC_ListBoxItem*> *src, const char *folder);
+	void sort_tables();
 };
 
-class AWindowAssets : public BC_ListBox
-{
-public:
-	AWindowAssets(MWindow *mwindow, AWindowGUI *gui, int x, int y, int w, int h);
-	~AWindowAssets();
-	
-	int handle_event();
-	int selection_changed();
-	void draw_background();
-	int drag_start_event();
-	int drag_motion_event();
-	int drag_stop_event();
-	int button_press_event();
-	int column_resize_event();
 
-	MWindow *mwindow;
-	AWindowGUI *gui;
-};
+// class AWindowDivider : public BC_SubWindow
+// {
+// public:
+// 	AWindowDivider(MWindow *mwindow, AWindowGUI *gui, int x, int y, int w, int h);
+// 	~AWindowDivider();
+// 
+// 	int button_press_event();
+// 	int cursor_motion_event();
+// 	int button_release_event();
+// 
+// 	MWindow *mwindow;
+// 	AWindowGUI *gui;
+// };
 
-class AWindowDivider : public BC_SubWindow
-{
-public:
-	AWindowDivider(MWindow *mwindow, AWindowGUI *gui, int x, int y, int w, int h);
-	~AWindowDivider();
-
-	int button_press_event();
-	int cursor_motion_event();
-	int button_release_event();
-
-	MWindow *mwindow;
-	AWindowGUI *gui;
-};
-
-class AWindowFolders : public BC_ListBox
-{
-public:
-	AWindowFolders(MWindow *mwindow, AWindowGUI *gui, int x, int y, int w, int h);
-	~AWindowFolders();
-	
-	int selection_changed();
-	int button_press_event();
-
-	MWindow *mwindow;
-	AWindowGUI *gui;
-};
-
-class AWindowNewFolder : public BC_Button
-{
-public:
-	AWindowNewFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y);
-	int handle_event();
-	MWindow *mwindow;
-	AWindowGUI *gui;
-	int x, y;
-};
-
-class AWindowDeleteFolder : public BC_Button
-{
-public:
-	AWindowDeleteFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y);
-	int handle_event();
-	MWindow *mwindow;
-	AWindowGUI *gui;
-	int x, y;
-};
-
-class AWindowRenameFolder : public BC_Button
-{
-public:
-	AWindowRenameFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y);
-	int handle_event();
-	MWindow *mwindow;
-	AWindowGUI *gui;
-	int x, y;
-};
+// class AWindowFolders : public BC_ListBox
+// {
+// public:
+// 	AWindowFolders(MWindow *mwindow, AWindowGUI *gui, int x, int y, int w, int h);
+// 	~AWindowFolders();
+// 	
+// 	int selection_changed();
+// 	int button_press_event();
+// 
+// 	MWindow *mwindow;
+// 	AWindowGUI *gui;
+// };
+// 
+// class AWindowNewFolder : public BC_Button
+// {
+// public:
+// 	AWindowNewFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// 	AWindowGUI *gui;
+// 	int x, y;
+// };
+// 
+// class AWindowDeleteFolder : public BC_Button
+// {
+// public:
+// 	AWindowDeleteFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// 	AWindowGUI *gui;
+// 	int x, y;
+// };
+// 
+// class AWindowRenameFolder : public BC_Button
+// {
+// public:
+// 	AWindowRenameFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// 	AWindowGUI *gui;
+// 	int x, y;
+// };
 
 class AWindowDeleteDisk : public BC_Button
 {
@@ -294,15 +316,15 @@ public:
 	int x, y;
 };
 
-class AWindowAppend : public BC_Button
-{
-public:
-	AWindowAppend(MWindow *mwindow, AWindowGUI *gui, int x, int y);
-	int handle_event();
-	MWindow *mwindow;
-	AWindowGUI *gui;
-	int x, y;
-};
+// class AWindowAppend : public BC_Button
+// {
+// public:
+// 	AWindowAppend(MWindow *mwindow, AWindowGUI *gui, int x, int y);
+// 	int handle_event();
+// 	MWindow *mwindow;
+// 	AWindowGUI *gui;
+// 	int x, y;
+// };
 
 class AWindowView : public BC_Button
 {

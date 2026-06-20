@@ -77,7 +77,13 @@ class EDL;
 #define FOLDERS_TEXT 0
 #define FOLDERS_ICONS 1
 
-#define ASSET_COLUMNS 2
+// asset window columns
+#define ASSET_COLUMNS 4
+// Column definitions
+#define AWINDOW_NAME 0
+#define AWINDOW_SIZE 1
+#define AWINDOW_DATE 2
+#define AWINDOW_COMMENT 3
 
 // Active tool in CWindow corresponds to a member of the CPanel array
 // and the current drag operation

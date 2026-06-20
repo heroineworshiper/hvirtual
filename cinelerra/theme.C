@@ -978,19 +978,19 @@ void Theme::get_awindow_sizes(AWindowGUI *gui)
 {
 	abuttons_x = 0; 
 	abuttons_y = 0;
-	afolders_x = 0;
+//	afolders_x = 0;
 //	afolders_y = deletedisk_data[0]->get_h();
-	afolders_y = 0;
-	afolders_w = mwindow->session->afolders_w;
-	afolders_h = mwindow->session->awindow_h - afolders_y;
-	adivider_x = afolders_x + afolders_w;
-	adivider_y = 0;
-	adivider_w = DP(5);
-	adivider_h = afolders_h;
-	alist_x = afolders_x + afolders_w + DP(5);
-	alist_y = afolders_y;
-	alist_w = mwindow->session->awindow_w - alist_x;
-	alist_h = afolders_h;
+//	afolders_y = 0;
+//	afolders_w = mwindow->session->afolders_w;
+//	afolders_h = mwindow->session->awindow_h - afolders_y;
+//	adivider_x = afolders_x + afolders_w;
+//	adivider_y = 0;
+//	adivider_w = DP(5);
+//	adivider_h = afolders_h;
+//	alist_x = afolders_x + afolders_w + DP(5);
+//	alist_y = afolders_y;
+//	alist_w = mwindow->session->awindow_w - alist_x;
+//	alist_h = afolders_h;
 }
 
 void Theme::get_rmonitor_sizes(int do_audio, 

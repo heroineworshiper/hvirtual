@@ -40,7 +40,6 @@ public:
 	void run();
 	void create_objects();
 
-	char current_folder[BCTEXTLEN];
 
 	AWindowGUI *gui;
 	MWindow *mwindow;

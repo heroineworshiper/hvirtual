@@ -141,7 +141,13 @@ public:
 // asset window
 	int awindow_x, awindow_y, awindow_w, awindow_h;
 // AWindow column widths
-	int asset_columns[ASSET_COLUMNS];
+	int asset_column_w[ASSET_COLUMNS];
+// column types
+	int asset_column_type[ASSET_COLUMNS];
+// column to sort by
+    int asset_sort;
+// sort order
+    int asset_descending;
 	int gwindow_x, gwindow_y;
 // record monitor
 	int rmonitor_x, rmonitor_y, rmonitor_w, rmonitor_h;

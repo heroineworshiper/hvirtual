@@ -345,8 +345,8 @@ SampleZoomPanel::SampleZoomPanel(MWindow *mwindow,
 //	DP(150), 
 	MIN_ZOOM_TIME, 
 	MAX_ZOOM_TIME, 
-//    ZOOM_LONG)
-	ZOOM_TIME)
+    ZOOM_LONG)
+//	ZOOM_TIME)
 {
 	this->mwindow = mwindow;
 	this->zoombar = zoombar;

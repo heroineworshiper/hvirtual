@@ -60,7 +60,7 @@ void AssetPopup::create_objects()
 {
 //	add_item(format = new AssetListFormat(mwindow));
 	add_item(info = new AssetPopupInfo(mwindow, this));
-	add_item(new AssetPopupSort(mwindow, this));
+//	add_item(new AssetPopupSort(mwindow, this));
 	add_item(index = new AssetPopupBuildIndex(mwindow, this));
 	add_item(view = new AssetPopupView(mwindow, this));
 	add_item(view_window = new AssetPopupViewWindow(mwindow, this));
@@ -189,23 +189,23 @@ int AssetPopupBuildIndex::handle_event()
 
 
 
-AssetPopupSort::AssetPopupSort(MWindow *mwindow, AssetPopup *popup)
- : BC_MenuItem(_("Sort items"))
-{
-	this->mwindow = mwindow;
-	this->popup = popup;
-}
-
-AssetPopupSort::~AssetPopupSort()
-{
-}
-
-int AssetPopupSort::handle_event()
-{
-	mwindow->awindow->gui->sort_assets();
-	return 1;
-}
-
+// AssetPopupSort::AssetPopupSort(MWindow *mwindow, AssetPopup *popup)
+//  : BC_MenuItem(_("Sort items"))
+// {
+// 	this->mwindow = mwindow;
+// 	this->popup = popup;
+// }
+// 
+// AssetPopupSort::~AssetPopupSort()
+// {
+// }
+// 
+// int AssetPopupSort::handle_event()
+// {
+// 	mwindow->awindow->gui->sort_assets();
+// 	return 1;
+// }
+// 
 
 
 

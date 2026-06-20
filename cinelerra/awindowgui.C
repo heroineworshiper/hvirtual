@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include "awindowmenu.h"
 #include "bcsignals.h"
 #include "cache.h"
+#include "clip.h"
 #include "colormodels.h"
 #include "cursors.h"
 #include "cwindowgui.h"
@@ -50,6 +51,8 @@
 #include "vframe.h"
 #include "vwindowgui.h"
 #include "vwindow.h"
+
+#include <sys/stat.h>
 
 
 
@@ -129,6 +132,11 @@ void AssetPicon::reset()
 	in_use = 1;
 	id = 0;
 	persistent = 0;
+    size = 0;
+    calendar_time = 0;
+    month = 0;
+    day = 0;
+    year = 0;
 }
 
 void AssetPicon::create_objects()
@@ -145,6 +153,25 @@ void AssetPicon::create_objects()
 	{
 		fs.extract_name(name, indexable->path);
 		set_text(name);
+        struct stat ostat;
+        if(!stat(indexable->path, &ostat))
+        {
+            struct tm *mod_time;
+            mod_time = localtime(&(ostat.st_mtime));
+            calendar_time = ostat.st_mtime;
+            size = ostat.st_size;
+            month = mod_time->tm_mon + 1;
+            day = mod_time->tm_mday;
+            year = mod_time->tm_year + 1900;
+        }
+        else
+        {
+            calendar_time = 0;
+            size = 0;
+            month = 0;
+            day = 0;
+            year = 0;
+        }
 	}
 	
 	if(indexable && indexable->is_asset)
@@ -372,41 +399,46 @@ AWindowGUI::AWindowGUI(MWindow *mwindow, AWindow *awindow)
 // mwindow->session->awindow_h);
 	this->mwindow = mwindow;
 	this->awindow = awindow;
-	temp_picon = 0;
+//	temp_picon = 0;
 }
 
 AWindowGUI::~AWindowGUI()
 {
+    clear_tables();
 	assets.remove_all_objects();
 	folders.remove_all_objects();
 	aeffects.remove_all_objects();
 	veffects.remove_all_objects();
 	atransitions.remove_all_objects();
 	vtransitions.remove_all_objects();
-	displayed_assets[1].remove_all_objects();
 	delete file_icon;
 	delete audio_icon;
 	delete folder_icon;
 	delete clip_icon;
 	delete newfolder_thread;
 	delete asset_menu;
-	delete assetlist_menu;
+//	delete assetlist_menu;
 //	delete folderlist_menu;
-	if(temp_picon) delete temp_picon;
+//	if(temp_picon) delete temp_picon;
 }
 
 void AWindowGUI::create_objects()
 {
-	int x, y;
+	int x = 0;
+    int y = 0;
+    Theme *theme = mwindow->theme;
 	AssetPicon *picon;
 
 	lock_window("AWindowGUI::create_objects");
-SET_TRACE
-//printf("AWindowGUI::create_objects 1\n");
-	asset_titles[0] = _("Title");
-	asset_titles[1] = _("Comments");
 
-SET_TRACE
+    
+
+
+
+//printf("AWindowGUI::create_objects 1\n");
+    for(int i = 0; i < ASSET_COLUMNS; i++)
+    	column_titles[i] = columntype_to_text(mwindow->session->asset_column_type[i]);
+
 
 	set_icon(mwindow->theme->get_image("awindow_icon"));
 	file_icon = new BC_Pixmap(this, 
@@ -425,7 +457,6 @@ SET_TRACE
 		BC_WindowBase::get_resources()->type_to_icon[ICON_FILM],
 		PIXMAP_ALPHA);
 
-SET_TRACE
 
 	clip_icon = new BC_Pixmap(this, 
 		mwindow->theme->get_image("clip_icon"),
@@ -443,90 +474,86 @@ SET_TRACE
 		mwindow->theme->get_image("veffect_icon"),
 		PIXMAP_ALPHA);
 
-SET_TRACE
 
 // Mandatory folders
-	folders.append(picon = new AssetPicon(mwindow,
-		this,
-		AEFFECT_FOLDER));
-	picon->persistent = 1;
-	folders.append(picon = new AssetPicon(mwindow,
-		this,
-		VEFFECT_FOLDER));
-	picon->persistent = 1;
-	folders.append(picon = new AssetPicon(mwindow,
-		this,
-		ATRANSITION_FOLDER));
-	picon->persistent = 1;
-	folders.append(picon = new AssetPicon(mwindow,
-		this,
-		VTRANSITION_FOLDER));
-	picon->persistent = 1;
+	folders.append(new BC_ListBoxItem(MEDIA_FOLDER));
+	folders.append(new BC_ListBoxItem(CLIP_FOLDER));
+	folders.append(new BC_ListBoxItem(AEFFECT_FOLDER));
+	folders.append(new BC_ListBoxItem(VEFFECT_FOLDER));
+	folders.append(new BC_ListBoxItem(ATRANSITION_FOLDER));
+	folders.append(new BC_ListBoxItem(VTRANSITION_FOLDER));
 
-SET_TRACE
+    int widest = 0;
+    for(int i = 0; i < folders.size(); i++)
+    {
+        int w = get_text_width(LARGEFONT, folders.get(i)->get_text());
+        if(w > widest) widest = w;
+    }
+    folders_w = widest + LISTBOX_MARGIN * 2;
+    folders_h = get_text_height(MEDIUMFONT) * folders.size() + 
+ 		LISTBOX_MARGIN * 2;
+
+
+
 
 	create_persistent_folder(&aeffects, 1, 0, 1, 0);
 	create_persistent_folder(&veffects, 0, 1, 1, 0);
 	create_persistent_folder(&atransitions, 1, 0, 0, 1);
 	create_persistent_folder(&vtransitions, 0, 1, 0, 1);
 
-SET_TRACE
 
 	mwindow->theme->get_awindow_sizes(this);
 
-SET_TRACE
+
+	add_subwindow(folder_list = new AWindowFolders(this,
+ 		x, 
+    	y));
+    add_subwindow(folder_title = new BC_Title(
+        x + folder_list->get_w(), 
+        y + (folder_list->get_h() - BC_Title::calculate_h(this, "Xj")),
+        mwindow->edl->session->current_folder));
+    y += folder_list->get_h();
+
 	add_subwindow(asset_list = new AWindowAssets(mwindow,
 		this,
- 		mwindow->theme->alist_x, 
-    	mwindow->theme->alist_y, 
-    	mwindow->theme->alist_w, 
-    	mwindow->theme->alist_h));
+ 		0, 
+    	y, 
+    	get_w(), 
+    	get_h() - y));
 
-SET_TRACE
-	add_subwindow(divider = new AWindowDivider(mwindow,
-		this,
-		mwindow->theme->adivider_x,
-		mwindow->theme->adivider_y,
-		mwindow->theme->adivider_w,
-		mwindow->theme->adivider_h));
+// 	add_subwindow(divider = new AWindowDivider(mwindow,
+// 		this,
+// 		mwindow->theme->adivider_x,
+// 		mwindow->theme->adivider_y,
+// 		mwindow->theme->adivider_w,
+// 		mwindow->theme->adivider_h));
 
-SET_TRACE
-	divider->set_cursor(HSEPARATE_CURSOR, 0, 0);
+//	divider->set_cursor(HSEPARATE_CURSOR, 0, 0);
 
-SET_TRACE
-	add_subwindow(folder_list = new AWindowFolders(mwindow,
-		this,
- 		mwindow->theme->afolders_x, 
-    	mwindow->theme->afolders_y, 
-    	mwindow->theme->afolders_w, 
-    	mwindow->theme->afolders_h));
+// 	add_subwindow(folder_list = new AWindowFolders(mwindow,
+// 		this,
+//  		mwindow->theme->afolders_x, 
+//     	mwindow->theme->afolders_y, 
+//     	mwindow->theme->afolders_w, 
+//     	mwindow->theme->afolders_h));
 	
-SET_TRACE
 
 	x = mwindow->theme->abuttons_x;
 	y = mwindow->theme->abuttons_y;
-
-SET_TRACE
 
 	newfolder_thread = new NewFolderThread(mwindow, this);
 
 	add_subwindow(asset_menu = new AssetPopup(mwindow, this));
 	asset_menu->create_objects();
 
-SET_TRACE
 
-	add_subwindow(assetlist_menu = new AssetListMenu(mwindow, this));
-
-SET_TRACE
-	assetlist_menu->create_objects();
-
-SET_TRACE
+//	add_subwindow(assetlist_menu = new AssetListMenu(mwindow, this));
+//	assetlist_menu->create_objects();
 
 //	add_subwindow(folderlist_menu = new FolderListMenu(mwindow, this));
 //	folderlist_menu->create_objects();
 //printf("AWindowGUI::create_objects 2\n");
 
-SET_TRACE
 	unlock_window();
 }
 
@@ -538,20 +565,25 @@ int AWindowGUI::resize_event(int w, int h)
 	mwindow->session->awindow_h = h;
 
 	mwindow->theme->get_awindow_sizes(this);
-	mwindow->theme->draw_awindow_bg(this);
+//	mwindow->theme->draw_awindow_bg(this);
 
-	asset_list->reposition_window(mwindow->theme->alist_x, 
-    	mwindow->theme->alist_y, 
-    	mwindow->theme->alist_w, 
-    	mwindow->theme->alist_h);
-	divider->reposition_window(mwindow->theme->adivider_x,
-		mwindow->theme->adivider_y,
-		mwindow->theme->adivider_w,
-		mwindow->theme->adivider_h);
-	folder_list->reposition_window(mwindow->theme->afolders_x, 
-    	mwindow->theme->afolders_y, 
-    	mwindow->theme->afolders_w, 
-    	mwindow->theme->afolders_h);
+ 	asset_list->reposition_window(asset_list->get_x(), 
+     	asset_list->get_y(), 
+     	w, 
+     	h - asset_list->get_y());
+
+// 	asset_list->reposition_window(mwindow->theme->alist_x, 
+//     	mwindow->theme->alist_y, 
+//     	mwindow->theme->alist_w, 
+//     	mwindow->theme->alist_h);
+// 	divider->reposition_window(mwindow->theme->adivider_x,
+// 		mwindow->theme->adivider_y,
+// 		mwindow->theme->adivider_w,
+// 		mwindow->theme->adivider_h);
+// 	folder_list->reposition_window(mwindow->theme->afolders_x, 
+//     	mwindow->theme->afolders_y, 
+//     	mwindow->theme->afolders_w, 
+//     	mwindow->theme->afolders_h);
 	
 	int x = mwindow->theme->abuttons_x;
 	int y = mwindow->theme->abuttons_y;
@@ -587,24 +619,24 @@ int AWindowGUI::translation_event()
 	return 0;
 }
 
-void AWindowGUI::reposition_objects()
-{
-	mwindow->theme->get_awindow_sizes(this);
-	asset_list->reposition_window(mwindow->theme->alist_x, 
-    	mwindow->theme->alist_y, 
-    	mwindow->theme->alist_w, 
-    	mwindow->theme->alist_h);
-	divider->reposition_window(mwindow->theme->adivider_x,
-		mwindow->theme->adivider_y,
-		mwindow->theme->adivider_w,
-		mwindow->theme->adivider_h);
-	folder_list->reposition_window(mwindow->theme->afolders_x, 
-    	mwindow->theme->afolders_y, 
-    	mwindow->theme->afolders_w, 
-    	mwindow->theme->afolders_h);
-	flush();
-}
-
+// void AWindowGUI::reposition_objects()
+// {
+// 	mwindow->theme->get_awindow_sizes(this);
+// 	asset_list->reposition_window(mwindow->theme->alist_x, 
+//     	mwindow->theme->alist_y, 
+//     	mwindow->theme->alist_w, 
+//     	mwindow->theme->alist_h);
+// 	divider->reposition_window(mwindow->theme->adivider_x,
+// 		mwindow->theme->adivider_y,
+// 		mwindow->theme->adivider_w,
+// 		mwindow->theme->adivider_h);
+// 	folder_list->reposition_window(mwindow->theme->afolders_x, 
+//     	mwindow->theme->afolders_y, 
+//     	mwindow->theme->afolders_w, 
+//     	mwindow->theme->afolders_h);
+// 	flush();
+// }
+// 
 int AWindowGUI::close_event()
 {
 	hide_window();
@@ -637,60 +669,60 @@ int AWindowGUI::keypress_event()
 	return 0;
 }
 
-void AWindowGUI::update_folder_list()
-{
-//printf("AWindowGUI::update_folder_list 1\n");
-	for(int i = 0; i < folders.total; i++)
-	{
-		AssetPicon *picon = (AssetPicon*)folders.values[i];
-		picon->in_use--;
-	}
-//printf("AWindowGUI::update_folder_list 1\n");
-
-// Search assets for folders
-	for(int i = 0; i < mwindow->edl->folders.total; i++)
-	{
-		char *folder = mwindow->edl->folders.values[i];
-		int exists = 0;
-//printf("AWindowGUI::update_folder_list 1.1\n");
-
-		for(int j = 0; j < folders.total; j++)
-		{
-			AssetPicon *picon = (AssetPicon*)folders.values[j];
-			if(!strcasecmp(picon->get_text(), folder))
-			{
-				exists = 1;
-				picon->in_use = 1;
-				break;
-			}
-		}
-
-		if(!exists)
-		{
-			AssetPicon *picon = new AssetPicon(mwindow, this, folder);
-			picon->create_objects();
-			folders.append(picon);
-		}
-//printf("AWindowGUI::update_folder_list 1.3\n");
-	}
-//printf("AWindowGUI::update_folder_list 1\n");
-//for(int i = 0; i < folders.total; i++)
-//	printf("AWindowGUI::update_folder_list %s\n", folders.values[i]->get_text());
-
-// Delete excess
-	for(int i = folders.total - 1; i >= 0; i--)
-	{
-		AssetPicon *picon = (AssetPicon*)folders.values[i];
-		if(!picon->in_use && !picon->persistent)
-		{
-			delete picon;
-			folders.remove_number(i);
-		}
-	}
-//for(int i = 0; i < folders.total; i++)
-//	printf("AWindowGUI::update_folder_list %s\n", folders.values[i]->get_text());
-//printf("AWindowGUI::update_folder_list 2\n");
-}
+// void AWindowGUI::update_folder_list()
+// {
+// printf("AWindowGUI::update_folder_list %d %d\n", __LINE__, folders.size());
+// 	for(int i = 0; i < folders.total; i++)
+// 	{
+// 		AssetPicon *picon = (AssetPicon*)folders.values[i];
+// 		picon->in_use--;
+// 	}
+// //printf("AWindowGUI::update_folder_list 1\n");
+// 
+// // Search assets for folders
+// 	for(int i = 0; i < mwindow->edl->folders.total; i++)
+// 	{
+// 		char *folder = mwindow->edl->folders.values[i];
+// 		int exists = 0;
+// //printf("AWindowGUI::update_folder_list 1.1\n");
+// 
+// 		for(int j = 0; j < folders.total; j++)
+// 		{
+// 			AssetPicon *picon = (AssetPicon*)folders.values[j];
+// 			if(!strcasecmp(picon->get_text(), folder))
+// 			{
+// 				exists = 1;
+// 				picon->in_use = 1;
+// 				break;
+// 			}
+// 		}
+// 
+// 		if(!exists)
+// 		{
+// 			AssetPicon *picon = new AssetPicon(mwindow, this, folder);
+// 			picon->create_objects();
+// 			folders.append(picon);
+// 		}
+// //printf("AWindowGUI::update_folder_list 1.3\n");
+// 	}
+// //printf("AWindowGUI::update_folder_list 1\n");
+// //for(int i = 0; i < folders.total; i++)
+// //	printf("AWindowGUI::update_folder_list %s\n", folders.values[i]->get_text());
+// 
+// // Delete excess
+// 	for(int i = folders.total - 1; i >= 0; i--)
+// 	{
+// 		AssetPicon *picon = (AssetPicon*)folders.values[i];
+// 		if(!picon->in_use && !picon->persistent)
+// 		{
+// 			delete picon;
+// 			folders.remove_number(i);
+// 		}
+// 	}
+// //for(int i = 0; i < folders.total; i++)
+// //	printf("AWindowGUI::update_folder_list %s\n", folders.values[i]->get_text());
+// printf("AWindowGUI::update_folder_list %d %d\n", __LINE__, folders.size());
+// }
 
 void AWindowGUI::create_persistent_folder(ArrayList<BC_ListBoxItem*> *output, 
 	int do_audio, 
@@ -866,7 +898,6 @@ void AWindowGUI::update_asset_list()
 	for(int i = assets.size() - 1; i >= 0; i--)
 	{
 		AssetPicon *picon = (AssetPicon*)assets.get(i);
-//printf("AWindowGUI::update_asset_list %s %d\n", picon->asset->path, picon->in_use);
 		if(!picon->in_use)
 		{
 			delete picon;
@@ -880,30 +911,30 @@ void AWindowGUI::update_asset_list()
 
 
 
-void AWindowGUI::sort_assets()
-{
-//printf("AWindowGUI::sort_assets 1 %s\n", mwindow->edl->session->current_folder);
-	if(!strcasecmp(mwindow->edl->session->current_folder, AEFFECT_FOLDER))
-		sort_picons(&aeffects, 
-			0);
-	else
-	if(!strcasecmp(mwindow->edl->session->current_folder, VEFFECT_FOLDER))
-		sort_picons(&veffects, 
-			0);
-	else
-	if(!strcasecmp(mwindow->edl->session->current_folder, ATRANSITION_FOLDER))
-		sort_picons(&atransitions, 
-			0);
-	else
-	if(!strcasecmp(mwindow->edl->session->current_folder, VTRANSITION_FOLDER))
-		sort_picons(&vtransitions, 
-			0);
-	else
-		sort_picons(&assets, 
-			mwindow->edl->session->current_folder);
-
-	update_assets();
-}
+// void AWindowGUI::sort_assets()
+// {
+// //printf("AWindowGUI::sort_assets 1 %s\n", mwindow->edl->session->current_folder);
+// 	if(!strcasecmp(mwindow->edl->session->current_folder, AEFFECT_FOLDER))
+// 		sort_table(&aeffects, 
+// 			0);
+// 	else
+// 	if(!strcasecmp(mwindow->edl->session->current_folder, VEFFECT_FOLDER))
+// 		sort_table(&veffects, 
+// 			0);
+// 	else
+// 	if(!strcasecmp(mwindow->edl->session->current_folder, ATRANSITION_FOLDER))
+// 		sort_table(&atransitions, 
+// 			0);
+// 	else
+// 	if(!strcasecmp(mwindow->edl->session->current_folder, VTRANSITION_FOLDER))
+// 		sort_table(&vtransitions, 
+// 			0);
+// 	else
+// 		sort_table(&assets, 
+// 			mwindow->edl->session->current_folder);
+// 
+// 	update_assets();
+// }
 
 
 
@@ -930,131 +961,282 @@ void AWindowGUI::collect_assets()
 	}
 }
 
-void AWindowGUI::copy_picons(ArrayList<BC_ListBoxItem*> *dst, 
-	ArrayList<BC_ListBoxItem*> *src, 
-	char *folder)
+void AWindowGUI::clear_tables()
 {
-// Remove current pointers
-	dst[0].remove_all();
-	dst[1].remove_all_objects();
+    for(int i = 0; i < ASSET_COLUMNS; i++)
+    {
+        if(mwindow->session->asset_column_type[i] == AWINDOW_NAME)
+// Remove pointers to fixed column data
+	        column_data[i].remove_all();
+        else
+// remove temporary column data
+            column_data[i].remove_all_objects();
+    }
+}
+
+// copy items from the fixed tables to the currently displayed list tables
+void AWindowGUI::copy_tables(ArrayList<BC_ListBoxItem*> *src, 
+	const char *folder)
+{
+    char string[BCTEXTLEN];
+    clear_tables();
 
 // Create new pointers
-//if(folder) printf("AWindowGUI::copy_picons 1 %s\n", folder);
-	for(int i = 0; i < src->total; i++)
+//if(folder) printf("AWindowGUI::copy_table 1 %s\n", folder);
+	for(int i = 0; i < src->size(); i++)
 	{
-		AssetPicon *picon = (AssetPicon*)src->values[i];
-//printf("AWindowGUI::copy_picons 2 %s\n", picon->asset->folder);
+		AssetPicon *picon = (AssetPicon*)src->get(i);
 		if(!folder ||
 			(folder && picon->indexable && !strcasecmp(picon->indexable->folder, folder)) ||
 			(folder && picon->edl && !strcasecmp(picon->edl->local_session->folder, folder)))
 		{
-			BC_ListBoxItem *item2, *item1;
-			dst[0].append(item1 = picon);
-			if(picon->edl)
-				dst[1].append(item2 = new BC_ListBoxItem(picon->edl->local_session->clip_notes));
-			else
-				dst[1].append(item2 = new BC_ListBoxItem(""));
-			item1->set_autoplace_text(1);
-			item2->set_autoplace_text(1);
-//printf("AWindowGUI::copy_picons 3 %s\n", picon->get_text());
+            for(int j = 0; j < ASSET_COLUMNS; j++)
+            {
+                BC_ListBoxItem *item = 0;
+                switch(mwindow->session->asset_column_type[j])
+                {
+// name points to fixed object
+                    case AWINDOW_NAME:
+                        column_data[j].append(item = picon);
+                        break;
+// others point to allocated objects
+                    case AWINDOW_SIZE:
+                        if(picon->indexable)
+                        {
+                            sprintf(string, "%lld", (long long)picon->size);
+                            column_data[j].append(item = new BC_ListBoxItem(string));
+                        }
+                        else
+                        {
+                            column_data[j].append(item = new BC_ListBoxItem(""));
+                        }
+                        break;
+                    case AWINDOW_DATE:
+                        if(picon->indexable)
+                        {
+                            static const char *month_text[13] = 
+			                {
+				                "Null",
+				                "Jan",
+				                "Feb",
+				                "Mar",
+				                "Apr",
+				                "May",
+				                "Jun",
+				                "Jul",
+				                "Aug",
+				                "Sep",
+				                "Oct",
+				                "Nov",
+				                "Dec"
+			                };
+			                sprintf(string, 
+				                "%s %d %d", 
+				                month_text[picon->month],
+				                picon->day,
+				                picon->year);
+			                column_data[j].append(item = new BC_ListBoxItem(string));
+                        }
+                        else
+                        {
+                            column_data[j].append(item = new BC_ListBoxItem(""));
+                        }
+                        break;
+                    case AWINDOW_COMMENT:
+                        if(picon->edl)
+                            column_data[j].append(item = new BC_ListBoxItem(picon->edl->local_session->clip_notes));
+                        else
+                            column_data[j].append(item = new BC_ListBoxItem(""));
+                        break;
+                    default:
+                        printf("AWindowGUI::copy_table %d: undefined column type %d\n", 
+                            __LINE__,
+                            mwindow->session->asset_column_type[j]);
+                        break;
+                }
+                if(item) item->set_autoplace_text(1);
+            }
+
+//			BC_ListBoxItem *item2, *item1;
+//			dst[0].append(item1 = picon);
+//			if(picon->edl)
+//				dst[1].append(item2 = new BC_ListBoxItem(picon->edl->local_session->clip_notes));
+//			else
+//				dst[1].append(item2 = new BC_ListBoxItem(""));
+//			item1->set_autoplace_text(1);
+//			item2->set_autoplace_text(1);
+//printf("AWindowGUI::copy_table 3 %s\n", picon->get_text());
 		}
 	}
 }
 
-void AWindowGUI::sort_picons(ArrayList<BC_ListBoxItem*> *src, 
-		char *folder)
+void AWindowGUI::sort_tables()
 {
-//printf("AWindowGUI::sort_picons 1\n")
+// override the sort field based on the current folder
+// kludgy but we have never used any folder but media
+    const char *folder = mwindow->edl->session->current_folder;
+    int sort_field = mwindow->session->asset_sort;
+    int sort_descending = mwindow->session->asset_descending;
+    int *column_types = mwindow->session->asset_column_type;
+
+    if(!strcasecmp(folder, MEDIA_FOLDER))
+    {
+        // allow all fields
+    }
+    else
+    if(!strcasecmp(folder, CLIP_FOLDER))
+    {
+// sort clips by name or comment only
+        if(sort_field != AWINDOW_NAME &&
+            sort_field != AWINDOW_COMMENT)
+        {
+            sort_field = AWINDOW_NAME;
+        }
+    }
+    else
+    {
+// sort plugins by name only
+        sort_field = AWINDOW_NAME;
+    }
+
+// discover the sort column
+    int sort_column = 0;
+    for(int i = 0; i < ASSET_COLUMNS; i++)
+    {
+// these 2 use ints stored in the name column (AssetPicon)
+        if(sort_field == AWINDOW_SIZE || sort_field == AWINDOW_DATE)
+        {
+            if(column_types[i] == AWINDOW_NAME)
+            {
+                sort_column = i;
+                break;
+            }
+        }
+        else
+// these use text only
+        if(column_types[i] == sort_field) 
+        {
+            sort_column = i;
+            break;
+        }
+    }
+
+// bubble sort
 	int done = 0;
+    int total = column_data[0].size();
+
+// recompute the positions
+    for(int i = 0; i < total; i++)
+    {
+        for(int j = 0; j < ASSET_COLUMNS; j++)
+        {
+            column_data[j].get(i)->set_autoplace_text(1);
+        }
+    }
+    
 	while(!done)
 	{
 		done = 1;
-		for(int i = 0; i < src->size() - 1; i++)
+		for(int i = 0; i < total - 1; i++)
 		{
-			BC_ListBoxItem *item1 = src->get(i);
-			BC_ListBoxItem *item2 = src->get(i + 1);
-			item1->set_autoplace_icon(1);
-			item2->set_autoplace_icon(1);
-			item1->set_autoplace_text(1);
-			item2->set_autoplace_text(1);
-			if(strcmp(item1->get_text(), item2->get_text()) > 0)
-			{
-				src->set(i + 1, item1);
-				src->set(i, item2);
+			BC_ListBoxItem *item1 = column_data[sort_column].get(i);
+			BC_ListBoxItem *item2 = column_data[sort_column].get(i + 1);
+            int flip = 0;
+
+            switch(sort_field)
+            {
+// sort by text
+                case AWINDOW_NAME:
+                case AWINDOW_COMMENT:
+			        if((!sort_descending && strcasecmp(item1->get_text(), item2->get_text()) > 0) ||
+                        (sort_descending && strcasecmp(item1->get_text(), item2->get_text()) < 0))
+                        flip = 1;
+                    break;
+
+// sort by int
+                case AWINDOW_SIZE:
+                    if((!sort_descending && ((AssetPicon*)item1)->size > ((AssetPicon*)item2)->size) ||
+                        (sort_descending && ((AssetPicon*)item1)->size < ((AssetPicon*)item2)->size))
+                        flip = 1;
+                    break;
+                case AWINDOW_DATE:
+                    if((!sort_descending && ((AssetPicon*)item1)->calendar_time > ((AssetPicon*)item2)->calendar_time) ||
+                        (sort_descending && ((AssetPicon*)item1)->calendar_time < ((AssetPicon*)item2)->calendar_time))
+                        flip = 1;
+                    break;
+            }
+            
+            if(flip)
+            {
+                for(int j = 0; j < ASSET_COLUMNS; j++)
+                {
+			        item1 = column_data[j].get(i);
+			        item2 = column_data[j].get(i + 1);
+				    column_data[j].set(i + 1, item1);
+				    column_data[j].set(i, item2);
+                }
 				done = 0;
-			}
+            }
 		}
 	}
 }
 
 
-void AWindowGUI::filter_displayed_assets()
+void AWindowGUI::filter_column_data()
 {
-	if(!strcasecmp(mwindow->edl->session->current_folder, AEFFECT_FOLDER))
-		copy_picons(displayed_assets, 
-			&aeffects, 
-			0);
+    const char *folder = mwindow->edl->session->current_folder;
+	if(!strcasecmp(folder, AEFFECT_FOLDER))
+		copy_tables(&aeffects, 0);
 	else
-	if(!strcasecmp(mwindow->edl->session->current_folder, VEFFECT_FOLDER))
-		copy_picons(displayed_assets, 
-			&veffects, 
-			0);
+	if(!strcasecmp(folder, VEFFECT_FOLDER))
+		copy_tables(&veffects, 0);
 	else
-	if(!strcasecmp(mwindow->edl->session->current_folder, ATRANSITION_FOLDER))
-		copy_picons(displayed_assets, 
-			&atransitions, 
-			0);
+	if(!strcasecmp(folder, ATRANSITION_FOLDER))
+		copy_tables(&atransitions, 0);
 	else
-	if(!strcasecmp(mwindow->edl->session->current_folder, VTRANSITION_FOLDER))
-		copy_picons(displayed_assets, 
-			&vtransitions, 
-			0);
+	if(!strcasecmp(folder, VTRANSITION_FOLDER))
+		copy_tables(&vtransitions, 0);
 	else
-		copy_picons(displayed_assets, 
-			&assets, 
-			mwindow->edl->session->current_folder);
+		copy_tables(&assets, folder);
 }
 
 
-void AWindowGUI::update_assets()
+void AWindowGUI::update_assets(int do_folder)
 {
-//PRINT_TRACE
-	update_folder_list();
-//PRINT_TRACE
+//printf("AWindowGUI::update_assets %d\n", __LINE__);
+//	update_folder_list();
 	update_asset_list();
-//PRINT_TRACE
-	filter_displayed_assets();
-//PRINT_TRACE
+	filter_column_data();
+    sort_tables();
 
 //for(int i = 0; i < folders.total; i++)
-//printf("AWindowGUI::update_assets 4\n");
 //	printf("AWindowGUI::update_assets %s\n", folders.values[i]->get_text());
-	if(mwindow->edl->session->folderlist_format != folder_list->get_format())
-		folder_list->update_format(mwindow->edl->session->folderlist_format, 0);
-//PRINT_TRACE
-	folder_list->update(&folders,
-		0,
-		0,
-		1,
-		folder_list->get_xposition(),
-		folder_list->get_yposition(),
-		-1);
-//PRINT_TRACE
+// 	if(mwindow->edl->session->folderlist_format != folder_list->get_format())
+// 		folder_list->update_format(mwindow->edl->session->folderlist_format, 0);
+// 	folder_list->update(&folders,
+// 		0,
+// 		0,
+// 		1,
+// 		folder_list->get_xposition(),
+// 		folder_list->get_yposition(),
+// 		-1);
 
-	if(mwindow->edl->session->assetlist_format != asset_list->get_format())
-		asset_list->update_format(mwindow->edl->session->assetlist_format, 0);
-//PRINT_TRACE
+//	if(mwindow->edl->session->assetlist_format != asset_list->get_format())
+//		asset_list->update_format(mwindow->edl->session->assetlist_format, 0);
 
-
-	asset_list->update(displayed_assets,
-		asset_titles,
-		mwindow->session->asset_columns,
+//for(int i = 0; i < ASSET_COLUMNS; i++)
+//printf("AWindowGUI::update_assets %d %d\n", __LINE__, column_data[i].size());
+	asset_list->update(column_data,
+		column_titles,
+		mwindow->session->asset_column_w,
 		ASSET_COLUMNS, 
 		asset_list->get_xposition(),
 		asset_list->get_yposition(),
 		-1,
 		0);
-//PRINT_TRACE
+
+    if(do_folder)
+        folder_title->update(mwindow->edl->session->current_folder);
 
 	flush();
 	return;
@@ -1089,143 +1271,201 @@ int AWindowGUI::drag_stop()
 	return 0;
 }
 
-Indexable* AWindowGUI::selected_asset()
+
+const char* AWindowGUI::columntype_to_text(int type)
 {
-	AssetPicon *picon = (AssetPicon*)asset_list->get_selection(0, 0);
-	if(picon) return picon->indexable;
-    return 0;
-}
-
-PluginServer* AWindowGUI::selected_plugin()
-{
-	AssetPicon *picon = (AssetPicon*)asset_list->get_selection(0, 0);
-	if(picon) return picon->plugin;
-    return 0;
-}
-
-AssetPicon* AWindowGUI::selected_folder()
-{
-	AssetPicon *picon = (AssetPicon*)folder_list->get_selection(0, 0);
-    return picon;
-}
-
-
-
-
-
-
-
-
-
-
-AWindowDivider::AWindowDivider(MWindow *mwindow, AWindowGUI *gui, int x, int y, int w, int h)
- : BC_SubWindow(x, y, w, h)
-{
-	this->mwindow = mwindow;
-	this->gui = gui;
-}
-AWindowDivider::~AWindowDivider()
-{
-}
-
-int AWindowDivider::button_press_event()
-{
-	if(is_event_win() && cursor_inside())
+	switch(type)
 	{
-		mwindow->session->current_operation = DRAG_PARTITION;
-		return 1;
+		case AWINDOW_NAME:
+			return _("Title");
+			break;
+		case AWINDOW_SIZE:
+			return _("Size");
+			break;
+		case AWINDOW_DATE:
+			return _("Date");
+			break;
+		case AWINDOW_COMMENT:
+			return _("Comment");
+			break;
 	}
-	return 0;
-}
-
-int AWindowDivider::cursor_motion_event()
-{
-	if(mwindow->session->current_operation == DRAG_PARTITION)
-	{
-		mwindow->session->afolders_w = gui->get_relative_cursor_x();
-		gui->reposition_objects();
-	}
-	return 0;
-}
-
-int AWindowDivider::button_release_event()
-{
-	if(mwindow->session->current_operation == DRAG_PARTITION)
-	{
-		mwindow->session->current_operation = NO_OPERATION;
-		return 1;
-	}
-	return 0;
+	return "";
 }
 
 
+// Indexable* AWindowGUI::selected_asset()
+// {
+// 	AssetPicon *picon = (AssetPicon*)asset_list->get_selection(0, 0);
+// 	if(picon) return picon->indexable;
+//     return 0;
+// }
+// 
+// PluginServer* AWindowGUI::selected_plugin()
+// {
+// 	AssetPicon *picon = (AssetPicon*)asset_list->get_selection(0, 0);
+// 	if(picon) return picon->plugin;
+//     return 0;
+// }
+
+// AssetPicon* AWindowGUI::selected_folder()
+// {
+// 	AssetPicon *picon = (AssetPicon*)folder_list->get_selection(0, 0);
+//     return picon;
+// }
 
 
 
 
-AWindowFolders::AWindowFolders(MWindow *mwindow, AWindowGUI *gui, int x, int y, int w, int h)
+
+
+
+
+
+
+// AWindowDivider::AWindowDivider(MWindow *mwindow, AWindowGUI *gui, int x, int y, int w, int h)
+//  : BC_SubWindow(x, y, w, h)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// }
+// AWindowDivider::~AWindowDivider()
+// {
+// }
+// 
+// int AWindowDivider::button_press_event()
+// {
+// 	if(is_event_win() && cursor_inside())
+// 	{
+// 		mwindow->session->current_operation = DRAG_PARTITION;
+// 		return 1;
+// 	}
+// 	return 0;
+// }
+// 
+// int AWindowDivider::cursor_motion_event()
+// {
+// 	if(mwindow->session->current_operation == DRAG_PARTITION)
+// 	{
+// 		mwindow->session->afolders_w = gui->get_relative_cursor_x();
+// 		gui->reposition_objects();
+// 	}
+// 	return 0;
+// }
+// 
+// int AWindowDivider::button_release_event()
+// {
+// 	if(mwindow->session->current_operation == DRAG_PARTITION)
+// 	{
+// 		mwindow->session->current_operation = NO_OPERATION;
+// 		return 1;
+// 	}
+// 	return 0;
+// }
+// 
+// 
+// 
+// 
+// 
+// 
+// AWindowFolders::AWindowFolders(MWindow *mwindow, AWindowGUI *gui, int x, int y, int w, int h)
+//  : BC_ListBox(x, 
+//  		y, 
+// 		w, 
+// 		h,
+// 		mwindow->edl->session->folderlist_format == FOLDERS_ICONS ? 
+// 			LISTBOX_ICONS : LISTBOX_TEXT, 
+// 		&gui->folders, // Each column has an ArrayList of BC_ListBoxItems.
+// 		0,             // Titles for columns.  Set to 0 for no titles
+// 		0,                // width of each column
+// 		1,                      // Total columns.
+// 		0,                    // Pixel of top of window.
+// 		0,                        // If this listbox is a popup window
+// 		LISTBOX_SINGLE,  // Select one item or multiple items
+// 		ICON_TOP,        // Position of icon relative to text of each item
+// 		1)               // Allow drags
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_drag_scroll(0);
+// }
+// 
+// AWindowFolders::~AWindowFolders()
+// {
+// }
+// 	
+// int AWindowFolders::selection_changed()
+// {
+// 	AssetPicon *picon = (AssetPicon*)get_selection(0, 0);
+// 	if(picon)
+// 	{
+// //		if(get_button_down() && get_buttonpress() == 3)
+// //		{
+// //			gui->folderlist_menu->update_titles();
+// //			gui->folderlist_menu->activate_menu();
+// //		}
+// 
+// 		strcpy(mwindow->edl->session->current_folder, picon->get_text());
+// //printf("AWindowFolders::selection_changed 1\n");
+// 		gui->asset_list->draw_background();
+// 		gui->update_assets();
+// 	}
+// 	return 1;
+// }
+// 
+// int AWindowFolders::button_press_event()
+// {
+// 	int result = 0;
+// 
+// 	result = BC_ListBox::button_press_event();
+// 
+// 	if(!result)
+// 	{
+// //		if(get_buttonpress() == 3 && is_event_win() && cursor_inside())
+// //		{
+// //			gui->folderlist_menu->update_titles();
+// //			gui->folderlist_menu->activate_menu();
+// //			result = 1;
+// //		}
+// 	}
+// 
+// 
+// 	return result;
+// }
+
+
+
+
+
+
+
+AWindowFolders::AWindowFolders(AWindowGUI *gui, 
+    int x, 
+    int y)
  : BC_ListBox(x, 
- 		y, 
-		w, 
-		h,
-		mwindow->edl->session->folderlist_format == FOLDERS_ICONS ? 
-			LISTBOX_ICONS : LISTBOX_TEXT, 
-		&gui->folders, // Each column has an ArrayList of BC_ListBoxItems.
-		0,             // Titles for columns.  Set to 0 for no titles
-		0,                // width of each column
-		1,                      // Total columns.
-		0,                    // Pixel of top of window.
-		0,                        // If this listbox is a popup window
-		LISTBOX_SINGLE,  // Select one item or multiple items
-		ICON_TOP,        // Position of icon relative to text of each item
-		1)               // Allow drags
+	y, 
+    gui->folders_w,
+    gui->folders_h,
+	LISTBOX_TEXT, 
+	&gui->folders, 
+	0, // column titles
+	0, // column width
+	1, // columns
+	0, // yposition
+	1) // is_popup
 {
-	this->mwindow = mwindow;
 	this->gui = gui;
-	set_drag_scroll(0);
+	set_justify(LISTBOX_LEFT);
 }
 
-AWindowFolders::~AWindowFolders()
+int AWindowFolders::handle_event()
 {
-}
-	
-int AWindowFolders::selection_changed()
-{
-	AssetPicon *picon = (AssetPicon*)get_selection(0, 0);
-	if(picon)
+	BC_ListBoxItem *selection = get_selection(0, 0);
+	if(selection != 0)
 	{
-//		if(get_button_down() && get_buttonpress() == 3)
-//		{
-//			gui->folderlist_menu->update_titles();
-//			gui->folderlist_menu->activate_menu();
-//		}
-
-		strcpy(mwindow->edl->session->current_folder, picon->get_text());
-//printf("AWindowFolders::selection_changed 1\n");
-		gui->asset_list->draw_background();
-		gui->update_assets();
+ 		strcpy(MWindow::instance->edl->session->current_folder, selection->get_text());
+		gui->update_assets(1);
 	}
 	return 1;
-}
-
-int AWindowFolders::button_press_event()
-{
-	int result = 0;
-
-	result = BC_ListBox::button_press_event();
-
-	if(!result)
-	{
-//		if(get_buttonpress() == 3 && is_event_win() && cursor_inside())
-//		{
-//			gui->folderlist_menu->update_titles();
-//			gui->folderlist_menu->activate_menu();
-//			result = 1;
-//		}
-	}
-
-
-	return result;
 }
 
 
@@ -1241,19 +1481,24 @@ AWindowAssets::AWindowAssets(MWindow *mwindow, AWindowGUI *gui, int x, int y, in
 		h,
 		mwindow->edl->session->assetlist_format == ASSETS_ICONS ? 
 			LISTBOX_ICONS : LISTBOX_TEXT,
-		&gui->assets,  	  // Each column has an ArrayList of BC_ListBoxItems.
-		gui->asset_titles,             // Titles for columns.  Set to 0 for no titles
-		mwindow->session->asset_columns,                // width of each column
-		1,                      // Total columns.
-		0,                    // Pixel of top of window.
-		0,                        // If this listbox is a popup window
+		gui->column_data, // Each column has an ArrayList of BC_ListBoxItems.
+		gui->column_titles, // Titles for columns.  Set to 0 for no titles
+		mwindow->session->asset_column_w,  // width of each column
+		ASSET_COLUMNS, // Total columns.
+		0, // Pixel of top of window.
+		0, // If this listbox is a popup window
 		LISTBOX_MULTIPLE,  // Select one item or multiple items
-		ICON_TOP,        // Position of icon relative to text of each item
-		1)               // Allow drag
+		ICON_TOP, // Position of icon relative to text of each item
+		1) // Allow drag
 {
 	this->mwindow = mwindow;
 	this->gui = gui;
 	set_drag_scroll(0);
+// don't allow the user to reorder items
+    set_process_drag(0);
+	set_sort_column(mwindow->session->asset_sort);
+	set_sort_order(mwindow->session->asset_descending);
+    set_allow_drag_column(1);
 }
 
 AWindowAssets::~AWindowAssets()
@@ -1269,8 +1514,8 @@ int AWindowAssets::button_press_event()
 	if(!result && get_buttonpress() == 3 && is_event_win() && cursor_inside())
 	{
 		BC_ListBox::deactivate_selection();
-		gui->assetlist_menu->update_titles();
-		gui->assetlist_menu->activate_menu();
+//		gui->assetlist_menu->update_titles();
+//		gui->assetlist_menu->activate_menu();
 		result = 1;
 	}
 
@@ -1329,8 +1574,8 @@ int AWindowAssets::selection_changed()
 			!strcasecmp(mwindow->edl->session->current_folder, ATRANSITION_FOLDER) ||
 			!strcasecmp(mwindow->edl->session->current_folder, VTRANSITION_FOLDER))
 		{
-			gui->assetlist_menu->update_titles();
-			gui->assetlist_menu->activate_menu();
+//			gui->assetlist_menu->update_titles();
+//			gui->assetlist_menu->activate_menu();
 		}
 		else
 		{
@@ -1351,18 +1596,18 @@ int AWindowAssets::selection_changed()
 	return 0;
 }
 
-void AWindowAssets::draw_background()
-{
-	BC_ListBox::draw_background();
-	set_color(RED);
-	set_font(LARGEFONT);
-	draw_text(get_w() - 
-			get_text_width(LARGEFONT, mwindow->edl->session->current_folder) - 4, 
-		30, 
-		mwindow->edl->session->current_folder, 
-		-1, 
-		get_bg_surface());
-}
+// void AWindowAssets::draw_background()
+// {
+// 	BC_ListBox::draw_background();
+// 	set_color(RED);
+// 	set_font(LARGEFONT);
+// 	draw_text(get_w() - 
+// 			get_text_width(LARGEFONT, mwindow->edl->session->current_folder) - 4, 
+// 		30, 
+// 		mwindow->edl->session->current_folder, 
+// 		-1, 
+// 		get_bg_surface());
+// }
 
 int AWindowAssets::drag_start_event()
 {
@@ -1500,66 +1745,139 @@ int AWindowAssets::drag_stop_event()
 
 int AWindowAssets::column_resize_event()
 {
-	mwindow->session->asset_columns[0] = get_column_width(0);
-	mwindow->session->asset_columns[1] = get_column_width(1);
+    for(int i = 0; i < ASSET_COLUMNS; i++)
+    	mwindow->session->asset_column_w[i] = get_column_width(i);
 	return 1;
 }
 
 
-
-
-
-
-
-
-
-
-
-
-AWindowNewFolder::AWindowNewFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y)
- : BC_Button(x, y, mwindow->theme->newbin_data)
+int AWindowAssets::sort_order_event()
 {
-	this->mwindow = mwindow;
-	this->gui = gui;
-	set_tooltip(_("New bin"));
-}
-
-int AWindowNewFolder::handle_event()
-{
-	gui->newfolder_thread->start_new_folder();
+	mwindow->session->asset_sort = 
+        mwindow->session->asset_column_type[get_sort_column()];
+	mwindow->session->asset_descending = get_sort_order();
+	gui->update_assets(0);
+    mwindow->save_defaults();
 	return 1;
 }
 
-AWindowDeleteFolder::AWindowDeleteFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y)
- : BC_Button(x, y, mwindow->theme->deletebin_data)
+
+int AWindowAssets::move_column_event()
 {
-	this->mwindow = mwindow;
-	this->gui = gui;
-	set_tooltip(_("Delete bin"));
+    int src = get_from_column();
+    int dst = get_to_column();
+    if(src != dst)
+    {
+        gui->clear_tables();
+        int *types = mwindow->session->asset_column_type;
+        int *w = mwindow->session->asset_column_w;
+
+        int temp = types[dst];
+        types[dst] = types[src];
+        types[src] = temp;
+
+        temp = w[dst];
+        w[dst] = w[src];
+        w[src] = temp;
+
+        for(int i = 0; i < ASSET_COLUMNS; i++)
+    	    gui->column_titles[i] = gui->columntype_to_text(types[i]);
+        gui->update_assets(0);
+        mwindow->save_defaults();
+    }
+	return 1;
 }
 
-int AWindowDeleteFolder::handle_event()
+int AWindowAssets::evaluate_query(char *string)
 {
-	if(gui->folder_list->get_selection(0, 0))
+// Search name column
+    int *column_types = mwindow->session->asset_column_type;
+	ArrayList<BC_ListBoxItem*> *column = 0;
+    for(int i = 0; i < ASSET_COLUMNS; i++)
+        if(column_types[i] == AWINDOW_NAME) 
+        {
+            column = &gui->column_data[i];
+            break;
+        }
+// Get current selection
+	int current_selection = get_selection_number(0, 0);
+
+// Get best score in remaining items
+	int lowest_score = 0x7fffffff;
+	int best_item = -1;
+	if(current_selection < 0) current_selection = 0;
+	for(int i = current_selection; i < column->size(); i++)
 	{
-		BC_ListBoxItem *folder = gui->folder_list->get_selection(0, 0);
-		mwindow->delete_folder(folder->get_text());
+		int len1 = strlen(string);
+		int len2 = strlen(column->get(i)->get_text());
+		int current_score = strncasecmp(string, 
+			column->get(i)->get_text(),
+			MIN(len1, len2));
+//printf(" %d i=%d %d %s %s\n", __LINE__, i, current_score, string, column->get(i)->get_text());
+
+		if(abs(current_score) < lowest_score)
+		{
+			lowest_score = abs(current_score);
+			best_item = i;
+		}
 	}
-	return 1;
+
+
+	return best_item;
 }
 
-AWindowRenameFolder::AWindowRenameFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y)
- : BC_Button(x, y, mwindow->theme->renamebin_data)
-{
-	this->mwindow = mwindow;
-	this->gui = gui;
-	set_tooltip(_("Rename bin"));
-}
 
-int AWindowRenameFolder::handle_event()
-{
-	return 1;
-}
+
+
+
+
+
+
+
+// AWindowNewFolder::AWindowNewFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y)
+//  : BC_Button(x, y, mwindow->theme->newbin_data)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_tooltip(_("New bin"));
+// }
+// 
+// int AWindowNewFolder::handle_event()
+// {
+// 	gui->newfolder_thread->start_new_folder();
+// 	return 1;
+// }
+// 
+// AWindowDeleteFolder::AWindowDeleteFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y)
+//  : BC_Button(x, y, mwindow->theme->deletebin_data)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_tooltip(_("Delete bin"));
+// }
+// 
+// int AWindowDeleteFolder::handle_event()
+// {
+// 	if(gui->folder_list->get_selection(0, 0))
+// 	{
+// 		BC_ListBoxItem *folder = gui->folder_list->get_selection(0, 0);
+// 		mwindow->delete_folder(folder->get_text());
+// 	}
+// 	return 1;
+// }
+// 
+// AWindowRenameFolder::AWindowRenameFolder(MWindow *mwindow, AWindowGUI *gui, int x, int y)
+//  : BC_Button(x, y, mwindow->theme->renamebin_data)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_tooltip(_("Rename bin"));
+// }
+// 
+// int AWindowRenameFolder::handle_event()
+// {
+// 	return 1;
+// }
 
 AWindowDeleteDisk::AWindowDeleteDisk(MWindow *mwindow, AWindowGUI *gui, int x, int y)
  : BC_Button(x, y, mwindow->theme->deletedisk_data)
@@ -1627,18 +1945,18 @@ int AWindowPaste::handle_event()
 	return 1;
 }
 
-AWindowAppend::AWindowAppend(MWindow *mwindow, AWindowGUI *gui, int x, int y)
- : BC_Button(x, y, mwindow->theme->appendasset_data)
-{
-	this->mwindow = mwindow;
-	this->gui = gui;
-	set_tooltip(_("Append asset in new tracks"));
-}
-
-int AWindowAppend::handle_event()
-{
-	return 1;
-}
+// AWindowAppend::AWindowAppend(MWindow *mwindow, AWindowGUI *gui, int x, int y)
+//  : BC_Button(x, y, mwindow->theme->appendasset_data)
+// {
+// 	this->mwindow = mwindow;
+// 	this->gui = gui;
+// 	set_tooltip(_("Append asset in new tracks"));
+// }
+// 
+// int AWindowAppend::handle_event()
+// {
+// 	return 1;
+// }
 
 AWindowView::AWindowView(MWindow *mwindow, AWindowGUI *gui, int x, int y)
  : BC_Button(x, y, mwindow->theme->viewasset_data)

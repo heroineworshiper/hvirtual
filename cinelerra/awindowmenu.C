@@ -48,7 +48,7 @@ AssetListMenu::~AssetListMenu()
 void AssetListMenu::create_objects()
 {
 //	add_item(format = new AssetListFormat(mwindow));
-	add_item(new AssetListSort(mwindow));
+//	add_item(new AssetListSort(mwindow));
 	update_titles();
 }
 
@@ -103,17 +103,17 @@ void AssetListMenu::update_titles()
 
 
 
-AssetListSort::AssetListSort(MWindow *mwindow)
- : BC_MenuItem(_("Sort items"))
-{
-	this->mwindow = mwindow;
-}
-
-int AssetListSort::handle_event()
-{
-	mwindow->awindow->gui->sort_assets();
-	return 1;
-}
+// AssetListSort::AssetListSort(MWindow *mwindow)
+//  : BC_MenuItem(_("Sort items"))
+// {
+// 	this->mwindow = mwindow;
+// }
+// 
+// int AssetListSort::handle_event()
+// {
+// 	mwindow->awindow->gui->sort_assets();
+// 	return 1;
+// }
 
 
 

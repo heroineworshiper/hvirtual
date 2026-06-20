@@ -113,6 +113,11 @@ void MainSession::boundaries()
     eyedrop_radius = CLIP(eyedrop_radius, 0, 255);
 	eyedrop_x = CLIP(eyedrop_x, 0, 65535);
 	eyedrop_y = CLIP(eyedrop_y, 0, 65535);
+    for(int i = 0; i < ASSET_COLUMNS; i++)
+    {
+        CLAMP(asset_column_type[i], 0, ASSET_COLUMNS - 1);
+    }
+    asset_sort = CLIP(asset_sort, 0, ASSET_COLUMNS - 1);
 }
 
 void MainSession::reset()
@@ -178,8 +183,13 @@ void MainSession::default_window_positions()
 	awindow_y = mwindow_y;
 	awindow_w = root_x + root_w - awindow_x - border_left - border_right;
 	awindow_h = mwindow_h;
-    asset_columns[0] = DP(100);
-    asset_columns[1] = DP(100);
+    for(int i = 0; i < ASSET_COLUMNS; i++)
+    {
+        asset_column_w[i] = DP(100);
+        asset_column_type[i] = i;
+    }
+    asset_sort = 0;
+    asset_descending = 0;
 
 	ewindow_w = DP(640);
 	ewindow_h = DP(240);
@@ -271,9 +281,13 @@ int MainSession::load_defaults(BC_Hash *defaults)
 	awindow_h = defaults->get("AWINDOW_H", awindow_h);
 	for(int i = 0; i < ASSET_COLUMNS; i++)
 	{
-		sprintf(string, "ASSET_COLUMN%d", i);
-		asset_columns[i] = defaults->get(string, DP(100));
+		sprintf(string, "ASSET_COLUMN_W%d", i);
+		asset_column_w[i] = defaults->get(string, asset_column_w[i]);
+		sprintf(string, "ASSET_COLUMN_TYPE%d", i);
+		asset_column_type[i] = defaults->get(string, asset_column_type[i]);
 	}
+    asset_sort = defaults->get("ASSET_SORT", asset_sort);
+    asset_descending = defaults->get("ASSET_DESCENDING", asset_descending);
 
 	ewindow_w = defaults->get("EWINDOW_W", ewindow_w);
 	ewindow_h = defaults->get("EWINDOW_H", ewindow_h);
@@ -394,9 +408,13 @@ int MainSession::save_defaults(BC_Hash *defaults)
 	defaults->update("AWINDOW_H", awindow_h);
 	for(int i = 0; i < ASSET_COLUMNS; i++)
 	{
-		sprintf(string, "ASSET_COLUMN%d", i);
-		defaults->update(string, asset_columns[i]);
+		sprintf(string, "ASSET_COLUMN_W%d", i);
+		defaults->update(string, asset_column_w[i]);
+		sprintf(string, "ASSET_COLUMN_TYPE%d", i);
+		defaults->update(string, asset_column_type[i]);
 	}
+    defaults->update("ASSET_SORT", asset_sort);
+    defaults->update("ASSET_DESCENDING", asset_descending);
 
 	defaults->update("EWINDOW_W", ewindow_w);
 	defaults->update("EWINDOW_H", ewindow_h);

@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 1997-2012 Adam Williams <broadcast at earthling dot net>
@@ -29,7 +28,6 @@
 AWindow::AWindow(MWindow *mwindow) : Thread()
 {
 	this->mwindow = mwindow;
-	current_folder[0] = 0;
 }
 
 
