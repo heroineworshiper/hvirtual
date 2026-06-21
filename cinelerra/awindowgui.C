@@ -289,6 +289,7 @@ void AssetPicon::create_objects(Asset *asset,
 	else
 	if(plugin)
 	{
+        this->plugin = plugin;
 		strcpy(name, _(plugin->title));
 		set_text(name);
 		if(plugin->picon)
