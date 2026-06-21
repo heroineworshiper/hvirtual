@@ -57,13 +57,18 @@ class AWindowGUI;
 class AssetPicon : public BC_ListBoxItem
 {
 public:
-	AssetPicon(MWindow *mwindow, AWindowGUI *gui, Indexable *indexable);
-	AssetPicon(MWindow *mwindow, AWindowGUI *gui, EDL *edl);
-	AssetPicon(MWindow *mwindow, AWindowGUI *gui, PluginServer *plugin);
-	AssetPicon(MWindow *mwindow, AWindowGUI *gui, const char *folder);
+	AssetPicon(MWindow *mwindow, 
+        AWindowGUI *gui, 
+        Asset *asset,
+	    EDL *nested_edl,
+        EDL *clip,
+        PluginServer *plugin);
 	virtual ~AssetPicon();
 
-	void create_objects();
+	void create_objects(Asset *asset,
+	    EDL *nested_edl,
+        EDL *clip,
+        PluginServer *plugin);
 	void reset();
 
 	MWindow *mwindow;
@@ -75,12 +80,16 @@ public:
 
 // Check ID first.  Update these next before dereferencing
 // TODO: probably need to store ID's instead of pointers
-// Asset if asset
-	Indexable *indexable;
+// Asset if asset or nested EDL
+//	Indexable *indexable;
 // EDL if clip
-	EDL *edl;
+//	EDL *edl;
 // Server if a plugin
 	PluginServer *plugin;
+// non persistent objects
+    int is_nested;
+    int is_asset;
+    int is_clip;
 
 	int in_use;
     int64_t size;

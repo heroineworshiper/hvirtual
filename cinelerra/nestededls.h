@@ -20,7 +20,10 @@ public:
 	EDL* get(const char *path, int *error);
 // search for an EDL based on path
     EDL* search(const char *path);
+// search based on ID
+    EDL *search(int id);
 	int size();
+// get array entry
 	EDL* get(int number);
 // returns a flag if an EDL is recursive
     int load(FileXML *file);

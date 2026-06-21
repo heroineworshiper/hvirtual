@@ -224,6 +224,8 @@ public:
 	int insert_clips(ArrayList<EDL*> *new_edls, int load_mode, Track *first_track = 0);
 // Add a copy of EDL* to the clip array.  Returns the copy.
 	EDL* add_clip(EDL *edl);
+// get a clip by ID
+    EDL* search_clips(int id);
 
 	void get_shared_plugins(Track *source, 
 		ArrayList<SharedLocation*> *plugin_locations,

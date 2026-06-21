@@ -1384,6 +1384,15 @@ printf("EDL::add_clip %d %d\n", __LINE__, clips.size());
 	return new_edl;
 }
 
+EDL* EDL::search_clips(int id)
+{
+    for(int i = 0; i < clips.size(); i++)
+    {
+        if(clips.get(i)->id == id) return clips.get(i);
+    }
+    return 0;
+}
+
 void EDL::insert_asset(Asset *asset, 
 	EDL *nested_edl,
 	double position, 

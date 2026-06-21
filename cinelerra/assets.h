@@ -79,6 +79,8 @@ public:
 
 // return the asset containing this path or 0 if not found
 	Asset* get_asset(const char *filename);
+// get by ID
+    Asset* get_asset(int id); 
 // remove asset from table
 	Asset* remove_asset(Asset *asset);
 

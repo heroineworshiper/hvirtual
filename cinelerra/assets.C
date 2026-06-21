@@ -189,6 +189,23 @@ Asset* Assets::get_asset(const char *filename)
 	return result;	
 }
 
+Asset* Assets::get_asset(int id)
+{
+	Asset* current = first;
+
+	while(current)
+	{
+		if(current->id == id)
+		{
+			return current;
+			break;
+		}
+		current = current->next;
+	}
+
+	return 0;	
+}
+
 Asset* Assets::remove_asset(Asset *asset)
 {
 	remove_pointer(asset);

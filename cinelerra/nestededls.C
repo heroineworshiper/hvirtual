@@ -120,6 +120,17 @@ EDL* NestedEDLs::search(const char *path)
     return 0;
 }
 
+EDL* NestedEDLs::search(int id)
+{
+	for(int i = 0; i < nested_edls.size(); i++)
+	{
+		EDL *dst = nested_edls.get(i);
+		if(dst->id == id)
+			return dst;
+	}
+    return 0;
+}
+
 void NestedEDLs::clear()
 {
 	for(int i = 0; i < nested_edls.size(); i++)

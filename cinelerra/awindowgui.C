@@ -59,47 +59,16 @@
 
 AssetPicon::AssetPicon(MWindow *mwindow, 
 	AWindowGUI *gui, 
-	Indexable *indexable)
+    Asset *asset,
+	EDL *nested_edl,
+    EDL *clip,
+    PluginServer *plugin)
  : BC_ListBoxItem()
 {
 	reset();
 	this->mwindow = mwindow;
 	this->gui = gui;
-	this->indexable = indexable;
-	this->id = indexable->id;
-}
-
-AssetPicon::AssetPicon(MWindow *mwindow, 
-	AWindowGUI *gui, 
-	EDL *edl)
- : BC_ListBoxItem()
-{
-	reset();
-	this->mwindow = mwindow;
-	this->gui = gui;
-	this->edl = edl;
-	this->id = edl->id;
-}
-
-AssetPicon::AssetPicon(MWindow *mwindow, 
-	AWindowGUI *gui, 
-	const char *folder)
- : BC_ListBoxItem(folder, gui->folder_icon)
-{
-	reset();
-	this->mwindow = mwindow;
-	this->gui = gui;
-}
-
-AssetPicon::AssetPicon(MWindow *mwindow, 
-	AWindowGUI *gui, 
-	PluginServer *plugin)
- : BC_ListBoxItem()
-{
-	reset();
-	this->mwindow = mwindow;
-	this->gui = gui;
-	this->plugin = plugin;
+    create_objects(asset, nested_edl, clip, plugin);
 }
 
 AssetPicon::~AssetPicon()
@@ -124,22 +93,27 @@ AssetPicon::~AssetPicon()
 
 void AssetPicon::reset()
 {
-	plugin = 0;
-	indexable = 0;
-	edl = 0;
+	is_asset = 0;
+    is_nested = 0;
+    is_clip = 0;
+    plugin = 0;
+
 	icon = 0;
 	icon_vframe = 0;
 	in_use = 1;
 	id = 0;
 	persistent = 0;
-    size = 0;
-    calendar_time = 0;
-    month = 0;
-    day = 0;
-    year = 0;
+    size = -1;
+    calendar_time = -1;
+    month = -1;
+    day = -1;
+    year = -1;
 }
 
-void AssetPicon::create_objects()
+void AssetPicon::create_objects(Asset *asset,
+	EDL *nested_edl,
+    EDL *clip,
+    PluginServer *plugin)
 {
 	FileSystem fs;
 	char name[BCTEXTLEN];
@@ -149,12 +123,16 @@ void AssetPicon::create_objects()
 	pixmap_h = 50;
 
 	if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
-	if(indexable)
+// get the path
+    const char *path = 0;
+    if(asset) path = asset->path;
+    if(nested_edl) path = nested_edl->path;
+	if(path)
 	{
-		fs.extract_name(name, indexable->path);
+		fs.extract_name(name, path);
 		set_text(name);
         struct stat ostat;
-        if(!stat(indexable->path, &ostat))
+        if(!stat(path, &ostat))
         {
             struct tm *mod_time;
             mod_time = localtime(&(ostat.st_mtime));
@@ -166,21 +144,22 @@ void AssetPicon::create_objects()
         }
         else
         {
-            calendar_time = 0;
-            size = 0;
-            month = 0;
-            day = 0;
-            year = 0;
+            calendar_time = -1;
+            size = -1;
+            month = -1;
+            day = -1;
+            year = -1;
         }
 	}
 	
-	if(indexable && indexable->is_asset)
+	if(asset)
 	{
 		if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
-		Asset *asset = (Asset*)indexable;
+        is_asset = 1;
+        id = asset->id;
 		if(asset->video_data)
 		{
-			if(mwindow->preferences->use_thumbnails)
+//			if(mwindow->preferences->use_thumbnails)
 // 			{
 // 				gui->unlock_window();
 // 				if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
@@ -271,10 +250,10 @@ void AssetPicon::create_objects()
 // 				}
 // 			}
 //			else
-			{
+//			{
 				icon = gui->video_icon;
 				icon_vframe = BC_WindowBase::get_resources()->type_to_icon[ICON_FILM];			
-			}
+//			}
 		}
 		else
 		if(asset->audio_data)
@@ -289,17 +268,20 @@ void AssetPicon::create_objects()
 		if(debug) printf("AssetPicon::create_objects %d\n", __LINE__);
 	}
 	else
-	if(indexable && !indexable->is_asset)
+	if(nested_edl)
 	{
+        is_nested = 1;
+        id = nested_edl->id;
 		set_icon(gui->video_icon);
 		set_icon_vframe(BC_WindowBase::get_resources()->type_to_icon[ICON_FILM]);
-		
 	}
 	else
-	if(edl)
+	if(clip)
 	{
+        is_clip = 1;
+        id = clip->id;
 //printf("AssetPicon::create_objects 4 %s\n", edl->local_session->clip_title);
-		strcpy(name, edl->local_session->clip_title);
+		strcpy(name, clip->local_session->clip_title);
 		set_text(name);
 		set_icon(gui->clip_icon);
 		set_icon_vframe(mwindow->theme->get_image("clip_icon"));
@@ -748,8 +730,12 @@ void AWindowGUI::create_persistent_folder(ArrayList<BC_ListBoxItem*> *output,
 // Create new listitem
 		if(!exists)
 		{
-			AssetPicon *picon = new AssetPicon(mwindow, this, server);
-			picon->create_objects();
+			AssetPicon *picon = new AssetPicon(mwindow, 
+                this, 
+                0, 
+                0,
+                0,
+                server);
 			output->append(picon);
 		}
 	}
@@ -780,14 +766,13 @@ void AWindowGUI::update_asset_list()
 		int exists = 0;
 		
 // Look for clip in existing listitems
-		for(int j = 0; j < assets.total && !exists; j++)
+		for(int j = 0; j < assets.size() && !exists; j++)
 		{
 			AssetPicon *picon = (AssetPicon*)assets.values[j];
 			
-			if(picon->id == mwindow->edl->clips.values[i]->id)
+			if(picon->is_clip && picon->id == mwindow->edl->clips.get(i)->id)
 			{
-				picon->edl = mwindow->edl->clips.values[i];
-				picon->set_text(mwindow->edl->clips.values[i]->local_session->clip_title);
+				picon->set_text(mwindow->edl->clips.get(i)->local_session->clip_title);
 				exists = 1;
 				picon->in_use = 1;
 			}
@@ -798,8 +783,10 @@ void AWindowGUI::update_asset_list()
 		{
 			AssetPicon *picon = new AssetPicon(mwindow, 
 				this, 
-				mwindow->edl->clips.values[i]);
-			picon->create_objects();
+                0,
+                0,
+				mwindow->edl->clips.get(i),
+                0);
 			assets.append(picon);
 		}
 	}
@@ -819,16 +806,15 @@ void AWindowGUI::update_asset_list()
 		int exists = 0;
 
 // Look for asset in existing listitems
-		for(int j = 0; j < assets.total && !exists; j++)
+		for(int j = 0; j < assets.size() && !exists; j++)
 		{
-			AssetPicon *picon = (AssetPicon*)assets.values[j];
+			AssetPicon *picon = (AssetPicon*)assets.get(j);
 
-			if(picon->id == current->id)
+			if(picon->is_asset && picon->id == current->id)
 			{
 // update the path
                 fs.extract_name(name, current->path);
                 picon->set_text(name);
-				picon->indexable = current;
 				exists = 1;
 				picon->in_use = 1;
 				break;
@@ -838,11 +824,12 @@ void AWindowGUI::update_asset_list()
 // Create new listitem
 		if(!exists)
 		{
-//printf("AWindowGUI::update_asset_list %d\n", __LINE__);
-			AssetPicon *picon = new AssetPicon(mwindow, this, current);
-//printf("AWindowGUI::update_asset_list %d\n", __LINE__);
-			picon->create_objects();
-//printf("AWindowGUI::update_asset_list %d\n", __LINE__);
+			AssetPicon *picon = new AssetPicon(mwindow, 
+                this, 
+                current,
+                0,
+                0,
+                0);
 			assets.append(picon);
 		}
 	}
@@ -856,19 +843,18 @@ void AWindowGUI::update_asset_list()
 	for(int i = 0; i < mwindow->edl->nested_edls->size(); i++)
 	{
 		int exists = 0;
-		Indexable *indexable = mwindow->edl->nested_edls->get(i);
+		EDL *edl = mwindow->edl->nested_edls->get(i);
 
 // Look for asset in existing listitems
-		for(int j = 0; j < assets.total && !exists; j++)
+		for(int j = 0; j < assets.size() && !exists; j++)
 		{
-			AssetPicon *picon = (AssetPicon*)assets.values[j];
+			AssetPicon *picon = (AssetPicon*)assets.get(j);
 
-			if(picon->id == indexable->id)
+			if(picon->is_nested && picon->id == edl->id)
 			{
 // update the path
-                fs.extract_name(name, indexable->path);
+                fs.extract_name(name, edl->path);
                 picon->set_text(name);
-				picon->indexable = indexable;
 				exists = 1;
 				picon->in_use = 1;
 				break;
@@ -880,8 +866,10 @@ void AWindowGUI::update_asset_list()
 		{
 			AssetPicon *picon = new AssetPicon(mwindow, 
 				this, 
-				indexable);
-			picon->create_objects();
+                0,
+				edl,
+                0,
+                0);
 			assets.append(picon);
 		}
 	}
@@ -894,7 +882,7 @@ void AWindowGUI::update_asset_list()
 
 
 
-//printf("AWindowGUI::update_asset_list %d\n", __LINE__);
+// remove elements no longer in use
 	for(int i = assets.size() - 1; i >= 0; i--)
 	{
 		AssetPicon *picon = (AssetPicon*)assets.get(i);
@@ -956,8 +944,21 @@ void AWindowGUI::collect_assets()
 		AssetPicon *result = (AssetPicon*)asset_list->get_selection(0, i++);
 		if(!result) break;
 
-		if(result->indexable) mwindow->session->drag_assets->append(result->indexable);
-		if(result->edl) mwindow->session->drag_clips->append(result->edl);
+		if(result->is_asset)
+        {
+            Asset *asset = mwindow->edl->assets->get_asset(result->id);
+            if(asset) mwindow->session->drag_assets->append(asset);
+		}
+        if(result->is_nested) 
+        {
+            EDL *edl = mwindow->edl->nested_edls->search(result->id);
+            if(edl) mwindow->session->drag_assets->append(edl);
+		}
+        if(result->is_clip)
+        {
+            EDL *clip = mwindow->edl->search_clips(result->id);
+            mwindow->session->drag_clips->append(clip);
+        }
 	}
 }
 
@@ -979,17 +980,16 @@ void AWindowGUI::copy_tables(ArrayList<BC_ListBoxItem*> *src,
 	const char *folder)
 {
     char string[BCTEXTLEN];
-    clear_tables();
 
 // Create new pointers
 //if(folder) printf("AWindowGUI::copy_table 1 %s\n", folder);
 	for(int i = 0; i < src->size(); i++)
 	{
 		AssetPicon *picon = (AssetPicon*)src->get(i);
-		if(!folder ||
-			(folder && picon->indexable && !strcasecmp(picon->indexable->folder, folder)) ||
-			(folder && picon->edl && !strcasecmp(picon->edl->local_session->folder, folder)))
-		{
+// 		if(!folder ||
+// 			(folder && picon->indexable && !strcasecmp(picon->indexable->folder, folder)) ||
+// 			(folder && picon->edl && !strcasecmp(picon->edl->local_session->folder, folder)))
+// 		{
             for(int j = 0; j < ASSET_COLUMNS; j++)
             {
                 BC_ListBoxItem *item = 0;
@@ -1001,7 +1001,7 @@ void AWindowGUI::copy_tables(ArrayList<BC_ListBoxItem*> *src,
                         break;
 // others point to allocated objects
                     case AWINDOW_SIZE:
-                        if(picon->indexable)
+                        if(picon->size >= 0)
                         {
                             sprintf(string, "%lld", (long long)picon->size);
                             column_data[j].append(item = new BC_ListBoxItem(string));
@@ -1012,7 +1012,7 @@ void AWindowGUI::copy_tables(ArrayList<BC_ListBoxItem*> *src,
                         }
                         break;
                     case AWINDOW_DATE:
-                        if(picon->indexable)
+                        if(picon->calendar_time >= 0)
                         {
                             static const char *month_text[13] = 
 			                {
@@ -1043,8 +1043,14 @@ void AWindowGUI::copy_tables(ArrayList<BC_ListBoxItem*> *src,
                         }
                         break;
                     case AWINDOW_COMMENT:
-                        if(picon->edl)
-                            column_data[j].append(item = new BC_ListBoxItem(picon->edl->local_session->clip_notes));
+                        if(picon->is_clip)
+                        {
+                            EDL *clip = mwindow->edl->search_clips(picon->id);
+                            if(clip)
+                                column_data[j].append(item = new BC_ListBoxItem(clip->local_session->clip_notes));
+                            else
+                                column_data[j].append(item = new BC_ListBoxItem(""));
+                        }
                         else
                             column_data[j].append(item = new BC_ListBoxItem(""));
                         break;
@@ -1066,7 +1072,7 @@ void AWindowGUI::copy_tables(ArrayList<BC_ListBoxItem*> *src,
 //			item1->set_autoplace_text(1);
 //			item2->set_autoplace_text(1);
 //printf("AWindowGUI::copy_table 3 %s\n", picon->get_text());
-		}
+//		}
 	}
 }
 
@@ -1203,6 +1209,7 @@ void AWindowGUI::filter_column_data()
 
 void AWindowGUI::update_assets(int do_folder)
 {
+    clear_tables();
 //printf("AWindowGUI::update_assets %d\n", __LINE__);
 //	update_folder_list();
 	update_asset_list();
@@ -1550,11 +1557,27 @@ int AWindowAssets::handle_event()
 //printf("AWindowAssets::handle_event 2 %d %d\n", get_buttonpress(), get_selection(0, 0));
 			mwindow->vwindows.get(DEFAULT_VWINDOW)->gui->lock_window("AWindowAssets::handle_event");
 			
-			if(((AssetPicon*)get_selection(0, 0))->indexable)
-				mwindow->vwindows.get(DEFAULT_VWINDOW)->change_source(((AssetPicon*)get_selection(0, 0))->indexable);
-			else
-			if(((AssetPicon*)get_selection(0, 0))->edl)
-				mwindow->vwindows.get(DEFAULT_VWINDOW)->change_source(((AssetPicon*)get_selection(0, 0))->edl);
+            AssetPicon *result = (AssetPicon*)get_selection(0, 0);
+			if(result->is_asset)
+            {
+                Asset *asset = mwindow->edl->assets->get_asset(result->id);
+                if(asset)
+    				mwindow->vwindows.get(DEFAULT_VWINDOW)->change_source(asset);
+			}
+            else
+            if(result->is_nested)
+            {
+                EDL *edl = mwindow->edl->nested_edls->search(result->id);
+                if(edl)
+                     mwindow->vwindows.get(DEFAULT_VWINDOW)->change_source(edl);
+            }
+            else
+			if(result->is_clip)
+            {
+                EDL *clip = mwindow->edl->search_clips(result->id);
+                if(clip)
+				    mwindow->vwindows.get(DEFAULT_VWINDOW)->change_source(clip);
+            }
 
 			mwindow->vwindows.get(DEFAULT_VWINDOW)->gui->unlock_window();
 		}
@@ -1579,13 +1602,9 @@ int AWindowAssets::selection_changed()
 		}
 		else
 		{
-			if(((AssetPicon*)get_selection(0, 0))->indexable)
+            AssetPicon *result = (AssetPicon*)get_selection(0, 0);
+			if(result->is_asset || result->is_nested || result->is_clip)
 				gui->asset_menu->update();
-			else
-			if(((AssetPicon*)get_selection(0, 0))->edl)
-				gui->asset_menu->update();
-
-
 
 			gui->asset_menu->activate_menu();
 		}
