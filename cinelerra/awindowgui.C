@@ -958,7 +958,7 @@ void AWindowGUI::collect_assets()
         if(result->is_clip)
         {
             EDL *clip = mwindow->edl->search_clips(result->id);
-            mwindow->session->drag_clips->append(clip);
+            if(clip) mwindow->session->drag_clips->append(clip);
         }
 	}
 }

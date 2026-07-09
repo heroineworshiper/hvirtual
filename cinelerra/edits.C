@@ -174,7 +174,6 @@ void Edits::insert_edits(Edits *source_edits,
 		paste_silence(length(), position);
 	}
 
-
 	for(Edit *source_edit = source_edits->first;
 		source_edit;
 		source_edit = source_edit->next)
@@ -272,7 +271,6 @@ Edit* Edits::split_edit(int64_t position)
 	edit->length = position - edit->startproject;
 	new_edit->startproject = edit->startproject + edit->length;
 	new_edit->startsource += edit->length;
-
 
 // Decide what to do with the transition
 	if(edit->length && edit->transition)
@@ -1083,6 +1081,8 @@ void Edits::deglitch(int64_t position)
 		edl->session->frame_rate) / 2;
 	Edit *current = 0;
 
+//printf("Edits::deglitch %d threshold=%d\n", __LINE__, (int)threshold);
+//track->dump();
 // the last edit before the splice
 	Edit *edit1 = 0;
 	if(first)
@@ -1116,7 +1116,7 @@ void Edits::deglitch(int64_t position)
 			}
 		}
 
-	// ignore if it starts before the splice
+// ignore if it starts before the splice
 		if(current && current->startproject < position)
 		{
 			edit2 = 0;
@@ -1126,8 +1126,8 @@ void Edits::deglitch(int64_t position)
 
 
 
-// printf("Edits::deglitch %d position=%ld edit1=%p edit2=%p\n", __LINE__,
-// position, 
+// printf("Edits::deglitch %d position=%d edit1=%p edit2=%p\n", __LINE__,
+// (int)position, 
 // edit1, 
 // edit2);
 // delete junk between the edits
@@ -1135,16 +1135,34 @@ void Edits::deglitch(int64_t position)
 	{
 		if(edit1 != 0)
 		{
-// end the starting edit later
+// end the starting edit later, gobbling up the runt edits
 			current = edit1->next;
 			while(current != 0 &&
 				current != edit2 &&
-				current->startproject < position)
+				current->startproject < position) 
 			{
 				Edit* next = NEXT;
+// printf("Edits::deglitch %d current->startproject=%d current->length=%d position=%d\n", 
+// __LINE__,
+// (int)current->startproject,
+// (int)current->length,
+// (int)position);
 
-				edit1->length += current->length;
-				remove(current);
+// keep the next edit & shift it if it spans the insertion point
+                if(current->startproject + current->length > position)
+                {
+                    int64_t diff = position - current->startproject;
+                    edit1->length += diff;
+                    next->startproject += diff;
+                    next->startsource += diff;
+                    next->length -= diff;
+                }
+                else
+                {
+// absorb the next edit into the starting edit if it ends before the insertion point
+				    edit1->length += current->length;
+				    remove(current);
+                }
 
 				current = next;
 			}
@@ -1161,7 +1179,7 @@ void Edits::deglitch(int64_t position)
 				Edit *previous = PREVIOUS;
 
 				int64_t length = current->length;
-//printf("Edits::deglitch %d length=%ld\n", __LINE__, length);
+//printf("Edits::deglitch %d length=%d\n", __LINE__, (int)length);
 				if(!edit2->silence() && 
 					length > edit2->startsource)
 				{
@@ -1191,6 +1209,7 @@ void Edits::deglitch(int64_t position)
 		}
 	}
 	
+//track->dump();
 }
 
 
