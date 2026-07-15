@@ -796,7 +796,7 @@ void MWindowGUI::update(int scrollbars,
 	int buttonbar)
 {
 	const int debug = 0;
-	if(debug) PRINT_TRACE
+	if(debug) printf("MWindowGUI::update %d %d\n", __LINE__, get_window_lock());
 	
 	
 	mwindow->update_modified();
@@ -819,7 +819,7 @@ void MWindowGUI::update(int scrollbars,
 	{
 	    if(debug) PRINT_TRACE
 		resource_thread->start_draw();
-    	if(debug) PRINT_TRACE
+    	if(debug) printf("MWindowGUI::update %d %d\n", __LINE__, get_window_lock());
 	}
 	
 	if(zoombar) this->zoombar->update();

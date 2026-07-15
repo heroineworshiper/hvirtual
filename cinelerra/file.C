@@ -59,6 +59,7 @@
 #include "mainprogress.h"
 #include "mutex.h"
 #include "mwindow.h"
+#include "mwindowgui.h"
 #include "pluginserver.h"
 #include "preferences.h"
 #include "samples.h"
@@ -767,7 +768,8 @@ void File::start_progress(const char *title, int64_t total)
 // has to be a standalone window to allow the user to cancel
 			MWindow::file_progress = MWindow::mainprogress->start_progress(title, 
 				total,
-                1);
+                1,
+                0); // called when MwindowGUI is locked
 
         }
         else

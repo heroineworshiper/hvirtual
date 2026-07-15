@@ -78,7 +78,8 @@ public:
 // use_window - force opening of a new window if 1.
 	MainProgressBar* start_progress(const char *text, 
 		int64_t total_length, 
-		int use_window = 0);
+		int use_window = 0,
+        int use_lock = 1);
 	void end_progress(MainProgressBar* progress_bar);
 
     static string* format_newlines(const char *text);

@@ -211,6 +211,9 @@ public:
 		int update_filename = 1,
 // conform the project for certain file types
         int conform = 0);
+// lock all windows for a file load
+    void lock_windows();
+    void unlock_windows();
 
 // Print out plugins which are referenced in the EDL but not loaded.
 	void test_plugins(EDL *new_edl, char *path);
@@ -640,6 +643,8 @@ public:
 	Mutex *keyframe_gui_lock;
 // Lock during creation and destruction of brender so playback doesn't use it.
 	Mutex *brender_lock;
+// all the windows were locked by lock_windows
+    int windows_locked;
 
 // Single device drivers which must be shared between audio and video go here.
 // They are managed by the garbage collector.

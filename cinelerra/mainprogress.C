@@ -65,6 +65,7 @@ void MainProgressBar::start()
 
 void MainProgressBar::stop_progress()
 {
+//printf("MainProgressBar::stop_progress %d locked=%d\n", __LINE__, mwindow->gui->get_window_lock());
 	if(progress_box)
 	{
 		progress_box->stop_progress();
@@ -77,6 +78,7 @@ void MainProgressBar::stop_progress()
 		mwindow->gui->statusbar->default_message();
 		mwindow->gui->unlock_window();
 	}
+//printf("MainProgressBar::stop_progress %d locked=%d\n", __LINE__, mwindow->gui->get_window_lock());
 }
 
 int MainProgressBar::is_cancelled()
@@ -253,7 +255,8 @@ string* MainProgress::format_newlines(const char *text)
 
 MainProgressBar* MainProgress::start_progress(const char *text, 
 	int64_t total_length,
-	int use_window)
+	int use_window,
+    int use_lock)
 {
 	MainProgressBar *result = 0;
 
@@ -275,8 +278,8 @@ MainProgressBar* MainProgress::start_progress(const char *text,
 	{
 		result = new MainProgressBar(mwindow, this);
 		progress_bars.append(result);
-		result->progress_box = new BC_ProgressBox(gui->get_abs_cursor_x(1), 
-			gui->get_abs_cursor_y(1), 
+		result->progress_box = new BC_ProgressBox(gui->get_abs_cursor_x(use_lock), 
+			gui->get_abs_cursor_y(use_lock), 
 			text, 
 			total_length);
 	}

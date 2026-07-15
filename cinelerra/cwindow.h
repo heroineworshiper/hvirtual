@@ -43,7 +43,8 @@ public:
 		int overlays, 
 		int tool_window, 
 		int operation = 0,
-		int timebar = 0);
+		int timebar = 0,
+        int use_lock = 1);
 	void run();
 	Track* calculate_affected_track();
 // Get keyframe for editing in the CWindow.

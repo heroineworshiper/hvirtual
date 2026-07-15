@@ -211,7 +211,8 @@ void CWindow::update(int position,
 	int overlays, 
 	int tool_window, 
 	int operation,
-	int timebar)
+	int timebar,
+    int use_lock)
 {
 
 	if(position)
@@ -231,7 +232,7 @@ void CWindow::update(int position,
             0); // use_inout
 	}
 
-	gui->lock_window("CWindow::update 2");
+	if(use_lock) gui->lock_window("CWindow::update 2");
 
 
 // Create tool window
@@ -276,7 +277,7 @@ void CWindow::update(int position,
 
 
 
-	gui->unlock_window();
+	if(use_lock) gui->unlock_window();
 
 
 

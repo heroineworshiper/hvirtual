@@ -1131,22 +1131,8 @@ int MWindow::load_filenames(ArrayList<char*> *filenames,
 	}
 
 
-// lock all the windows
-    gui->lock_window("MWindow::load_filenames 1");
-    cwindow->gui->lock_window("MWindow::load_filenames 2");
-    awindow->gui->lock_window("MWindow::load_filenames 3");
-    lwindow->gui->lock_window("MWindow::load_filenames 4");
-    gwindow->gui->lock_window("MWindow::load_filenames 5");
-	for(int j = 0; j < vwindows.size(); j++)
-	{
-		VWindow *vwindow = vwindows.get(j);
-		if(vwindow->is_running())
-		{
-			vwindow->gui->lock_window("MWindow::load_filenames 6");
-        }
-    }
+    lock_windows();
 
-	gui->start_hourglass();
 // make progress box for file loading persistent
 	MWindow::is_loading = 1;
 if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
@@ -1155,7 +1141,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	undo->update_undo_before();
 
 
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d %d\n", __LINE__, gui->get_window_lock());
 
 // Define new_edls and new_assets to load
 	int result = 0;
@@ -1179,10 +1165,10 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 		sprintf(string, "Loading %s", new_asset->path);
 		gui->show_message(string);
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d %d\n", __LINE__, gui->get_window_lock());
 
 		result = new_file->open_file(preferences, new_asset, 1, 0);
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d %d\n", __LINE__, gui->get_window_lock());
 
 
 		switch(result)
@@ -1453,7 +1439,7 @@ filenames->values[i]);
 		new_files.append(new_file);
 	}
 
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d %d\n", __LINE__, gui->get_window_lock());
 
 
 	if(!result) 
@@ -1464,7 +1450,8 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 
 
-if(debug) printf("MWindow::load_filenames %d new_edls=%d\n", __LINE__, new_edls.size());
+if(debug) printf("MWindow::load_filenames %d locked=%d new_edls=%d\n", 
+__LINE__, gui->get_window_lock(), new_edls.size());
 
 // Paste them.
 // Don't back up here.
@@ -1495,9 +1482,9 @@ if(debug) printf("MWindow::load_filenames %d new_edls=%d\n", __LINE__, new_edls.
 	}
 
 
-    
 
-if(debug) printf("MWindow::load_filenames %d result=%d\n", __LINE__, result);
+if(debug) printf("MWindow::load_filenames %d locked=%d result=%d\n", 
+__LINE__, gui->get_window_lock(), result);
 
 // Add new assets to EDL and schedule assets for index building.
 	for(int i = 0; i < new_edls.size(); i++)
@@ -1544,11 +1531,11 @@ if(debug) printf("MWindow::load_filenames %d result=%d\n", __LINE__, result);
 
 
 	}
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d %d\n", __LINE__, gui->get_window_lock());
 
 // Start examining next batch of index files
 	if(got_indexes) mainindexes->start_build();
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d %d\n", __LINE__, gui->get_window_lock());
 
 // Open plugin GUIs
 	Track *track = edl->tracks->first;
@@ -1591,7 +1578,7 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 
 // need to update undo before project, since mwindow is unlocked & a new load
 // can begin here.  Should really prevent loading until we're done.
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d %d\n", __LINE__, gui->get_window_lock());
 	undo->update_undo_after(_("load"), 
         LOAD_ALL,
         (load_mode != LOADMODE_REPLACE &&
@@ -1614,37 +1601,73 @@ if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
 	new_files.remove_all_objects();
 
 
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d %d\n", __LINE__, gui->get_window_lock());
 
 	stop_file_progress();
 
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
-	gui->stop_hourglass();
 
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d %d\n", __LINE__, gui->get_window_lock());
 //edl->dump();
 	update_project(load_mode);
 
-if(debug) printf("MWindow::load_filenames %d\n", __LINE__);
+if(debug) printf("MWindow::load_filenames %d %d\n", __LINE__, gui->get_window_lock());
 
+    unlock_windows();
 
-// unlock all the windows
+	return 0;
+}
+
+void MWindow::lock_windows()
+{
+// lock all the windows
+    gui->lock_window("MWindow::lock_windows 1");
+    cwindow->gui->lock_window("MWindow::lock_windows 2");
+    awindow->gui->lock_window("MWindow::lock_windows 3");
+    lwindow->gui->lock_window("MWindow::lock_windows 4");
+    gwindow->gui->lock_window("MWindow::lock_windows 5");
 	for(int j = 0; j < vwindows.size(); j++)
 	{
 		VWindow *vwindow = vwindows.get(j);
 		if(vwindow->is_running())
 		{
+			vwindow->gui->lock_window("MWindow::lock_windows 6");
+            vwindow->gui->start_hourglass();
+        }
+    }
+
+	gui->start_hourglass();
+    cwindow->gui->start_hourglass();
+    awindow->gui->start_hourglass();
+    lwindow->gui->start_hourglass();
+    gwindow->gui->start_hourglass();
+    windows_locked = 1;
+}
+
+void MWindow::unlock_windows()
+{
+// unlock all the windows
+    windows_locked = 0;
+	for(int j = 0; j < vwindows.size(); j++)
+	{
+		VWindow *vwindow = vwindows.get(j);
+		if(vwindow->is_running())
+		{
+            vwindow->gui->stop_hourglass();
 			vwindow->gui->unlock_window();
         }
     }
+
+    gwindow->gui->stop_hourglass();
+    lwindow->gui->stop_hourglass();
+    awindow->gui->stop_hourglass();
+    cwindow->gui->stop_hourglass();
+	gui->stop_hourglass();
+
     gwindow->gui->unlock_window();
     lwindow->gui->unlock_window();
     awindow->gui->unlock_window();
     cwindow->gui->unlock_window();
     gui->unlock_window();
-//printf("MWindow::load_filenames %d\n", __LINE__);
-
-	return 0;
 }
 
 void MWindow::redraw_meters()
@@ -2936,7 +2959,7 @@ void MWindow::update_project(int load_mode)
 {
 	const int debug = 0;
 	
-	if(debug) PRINT_TRACE
+	if(debug) printf("MWindow::update_project %d %d\n", __LINE__, gui->get_window_lock());
 	restart_brender();
 	edl->tracks->update_y_pixels(theme);
 
@@ -2953,9 +2976,14 @@ void MWindow::update_project(int load_mode)
 	if(debug) PRINT_TRACE
 	gui->unlock_window();
 
-	cwindow->gui->lock_window("MWindow::update_project 2");
-	cwindow->update(0, 0, 1, 1, 1);
-	cwindow->gui->unlock_window();
+	if(!windows_locked) cwindow->gui->lock_window("MWindow::update_project 2");
+	cwindow->update(0, 
+        0, 
+        1, 
+        1, 
+        1, 
+        !windows_locked); // use_lock
+	if(!windows_locked) cwindow->gui->unlock_window();
 
 	if(debug) PRINT_TRACE
 
@@ -2985,19 +3013,19 @@ void MWindow::update_project(int load_mode)
 		VWindow *vwindow = vwindows.get(DEFAULT_VWINDOW);
 		if(vwindow->is_running())
 		{
-			vwindow->gui->lock_window("MWindow::update_project 3");
+			if(!windows_locked) vwindow->gui->lock_window("MWindow::update_project 3");
 			vwindow->update(1);
-			vwindow->gui->unlock_window();
+			if(!windows_locked) vwindow->gui->unlock_window();
 		}
 	}
 
 	if(debug) PRINT_TRACE
-	cwindow->gui->lock_window("MWindow::update_project 4");
+	if(!windows_locked) cwindow->gui->lock_window("MWindow::update_project 4");
 #ifdef USE_SLIDER
 	cwindow->gui->slider->set_position();
 #endif
 	cwindow->gui->timebar->update(0);
-	cwindow->gui->unlock_window();
+	if(!windows_locked) cwindow->gui->unlock_window();
 
 	if(debug) PRINT_TRACE
 	cwindow->playback_engine->que->send_command(CURRENT_FRAME, 
@@ -3010,10 +3038,10 @@ void MWindow::update_project(int load_mode)
 
 	if(debug) PRINT_TRACE
 
-	awindow->gui->lock_window("MWindow::update_project 5");
+	if(!windows_locked) awindow->gui->lock_window("MWindow::update_project 5");
 	awindow->gui->update_assets();
 	awindow->gui->flush();
-	awindow->gui->unlock_window();
+	if(!windows_locked) awindow->gui->unlock_window();
 
 	if(debug) PRINT_TRACE
 

@@ -1859,6 +1859,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 
 	double original_length = edl->tracks->total_playable_length();
 //	double original_preview_end = edl->local_session->preview_end;
+//printf("MWindow::paste_edls %d locked=%d\n", __LINE__, gui->get_window_lock());
 
 // Delete current project
 	if(load_mode == LOADMODE_REPLACE ||
@@ -1884,7 +1885,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 
 		gui->unlock_window();
 
-		gwindow->gui->update_toggles(1);
+		gwindow->gui->update_toggles(!windows_locked);
 
 		gui->lock_window("MWindow::paste_edls");
 
@@ -1899,7 +1900,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 	}
 
 
-//PRINT_TRACE
+//printf("MWindow::paste_edls %d locked=%d\n", __LINE__, gui->get_window_lock());
 
 // Create new tracks in master EDL
 	if(load_mode == LOADMODE_REPLACE || 
@@ -1966,6 +1967,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 //PRINT_TRACE
 
 	}
+//printf("MWindow::paste_edls %d locked=%d\n", __LINE__, gui->get_window_lock());
 
 
 
@@ -2028,6 +2030,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 // user canceled the load operation
         if(result == FILE_USER_CANCELED)
         {
+//printf("MWindow::paste_edls %d locked=%d\n", __LINE__, gui->get_window_lock());
             return result;
         }
 // Capture index file status from mainindex test
@@ -2166,6 +2169,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
         }
 	}
 
+//printf("MWindow::paste_edls %d locked=%d\n", __LINE__, gui->get_window_lock());
 
 // Move loading of clips and vwindow to the end - this fixes some
 // strange issue, for index not being shown
@@ -2197,6 +2201,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 // 			}
 // 		}
 	}
+//printf("MWindow::paste_edls %d locked=%d\n", __LINE__, gui->get_window_lock());
 
 
 	if(paste_position) delete [] paste_position;
@@ -2214,6 +2219,7 @@ int MWindow::paste_edls(ArrayList<EDL*> *new_edls,
 
 // Start examining next batch of index files
 	mainindexes->start_build();
+//printf("MWindow::paste_edls %d locked=%d\n", __LINE__, gui->get_window_lock());
 
 
 // Don't save a backup after loading since the loaded file is on disk already.
