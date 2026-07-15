@@ -2043,7 +2043,7 @@ int BC_WindowBase::get_atoms()
 
 void BC_WindowBase::init_cursors()
 {
-	arrow_cursor = XCreateFontCursor(display, XC_top_left_arrow);
+	arrow_cursor = XCreateFontCursor(display, XC_left_ptr);
 	cross_cursor = XCreateFontCursor(display, XC_crosshair);
 	ibeam_cursor = XCreateFontCursor(display, XC_xterm);
 	vseparate_cursor = XCreateFontCursor(display, XC_sb_v_double_arrow);

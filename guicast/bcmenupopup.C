@@ -27,6 +27,7 @@
 #include "bcresources.h"
 #include "bcwindowbase.h"
 #include "clip.h"
+#include "cursors.h"
 
 #include <string.h>
 
@@ -307,6 +308,7 @@ int BC_MenuPopup::activate_menu(int x,
 					0);
 //		popup->set_background(top_level->get_resources()->menu_bg);
 	}
+    popup->set_cursor(UPRIGHT_ARROW_CURSOR, 0, 0);
 
 	draw_items();
 	popup->show_window();
