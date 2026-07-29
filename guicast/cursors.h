@@ -37,5 +37,7 @@
 #define CROSS_CURSOR        12
 #define HOURGLASS_CURSOR    13
 #define TRANSPARENT_CURSOR  14
+#define UP_CURSOR           15
+#define DOWN_CURSOR         16
 
 #endif

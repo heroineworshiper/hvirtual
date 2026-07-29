@@ -909,6 +909,8 @@ private:
 	Cursor temp_cursor;
 	Cursor left_cursor;
 	Cursor right_cursor;
+	Cursor up_cursor;
+	Cursor down_cursor;
 	Cursor upright_arrow_cursor;
 	Cursor upleft_resize_cursor;
 	Cursor upright_resize_cursor;

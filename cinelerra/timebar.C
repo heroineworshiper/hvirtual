@@ -208,7 +208,9 @@ void TimeBar::create_objects()
 	out_point = 0;
 //printf("TimeBar::create_objects %d\n", __LINE__);
 	current_operation = TIMEBAR_NONE;
-	set_cursor(UPRIGHT_ARROW_CURSOR, 0, 0);
+//	set_cursor(UPRIGHT_ARROW_CURSOR, 0, 0);
+// hot spot on top to avoid confusion
+    set_cursor(UP_CURSOR, 0, 0);
 	update(0);
 }
 
@@ -257,7 +259,7 @@ void TimeBar::update_labels()
 							pixel, 
 							LabelGUI::get_y(mwindow, this), 
 							current));
-					new_label->set_cursor(ARROW_CURSOR, 0, 0);
+//					new_label->set_cursor(ARROW_CURSOR, 0, 0);
 					labels.append(new_label);
 				}
 				else
@@ -397,7 +399,7 @@ void TimeBar::update_points()
 			this, 
 			pixel, 
 			edl->local_session->get_inpoint()));
-		in_point->set_cursor(ARROW_CURSOR, 0, 0);
+//		in_point->set_cursor(ARROW_CURSOR, 0, 0);
 	}
 
 	if(edl) pixel = position_to_pixel(edl->local_session->get_outpoint());
@@ -436,7 +438,7 @@ void TimeBar::update_points()
 			this, 
 			pixel, 
 			edl->local_session->get_outpoint()));
-		out_point->set_cursor(ARROW_CURSOR, 0, 0);
+//		out_point->set_cursor(ARROW_CURSOR, 0, 0);
 	}
 	
 //	flush();

@@ -2051,6 +2051,8 @@ void BC_WindowBase::init_cursors()
 	move_cursor = XCreateFontCursor(display, XC_fleur);
 	left_cursor = XCreateFontCursor(display, XC_sb_left_arrow);
 	right_cursor = XCreateFontCursor(display, XC_sb_right_arrow);
+	up_cursor = XCreateFontCursor(display, XC_sb_up_arrow);
+	down_cursor = XCreateFontCursor(display, XC_sb_down_arrow);
 	upright_arrow_cursor = XCreateFontCursor(display, XC_arrow);
 	upleft_resize_cursor = XCreateFontCursor(display, XC_top_left_corner);
 	upright_resize_cursor = XCreateFontCursor(display, XC_top_right_corner);
@@ -2645,6 +2647,8 @@ Cursor BC_WindowBase::get_cursor_struct(int cursor)
 		case MOVE_CURSOR:  	       return top_level->move_cursor;          	       break;
 		case LEFT_CURSOR:   	   return top_level->left_cursor;   	    	   break;
 		case RIGHT_CURSOR:         return top_level->right_cursor;  	    	   break;
+		case UP_CURSOR:   	       return top_level->up_cursor;   	    	   break;
+		case DOWN_CURSOR:          return top_level->down_cursor;  	    	   break;
 		case UPRIGHT_ARROW_CURSOR: return top_level->upright_arrow_cursor;  	   break;
 		case UPLEFT_RESIZE:        return top_level->upleft_resize_cursor;     	   break;
 		case UPRIGHT_RESIZE:       return top_level->upright_resize_cursor;    	   break;
