@@ -195,10 +195,10 @@ cd libmpeg3* && ./configure && cd ..
 
 if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
-echo CONFIGURING FFTW
-cd thirdparty/fftw* && CFLAGS=-fPIC ./configure --disable-fortran && cd ../..
+#echo CONFIGURING FFTW
+#cd thirdparty/fftw* && CFLAGS=-fPIC ./configure --disable-fortran && cd ../..
 
-if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
+#if [ $? -ne 0 ]; then echo "Giving up and going to a movie."; exit 1; fi
 
 echo CONFIGURING MJPEGTOOLS
 cd thirdparty/mjpegtools* && \
