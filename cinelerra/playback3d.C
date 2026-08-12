@@ -1839,11 +1839,6 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 		window->enable_opengl();
 
 
-// printf("Playback3D::convert_cmodel_sync %d debug=%d state=%d\n", 
-//     __LINE__, 
-//     debug,
-//     command->input->get_opengl_state());
-
 // Transfer from input's texture into frame's pbuffer
 		command->frame->enable_opengl();
 		command->frame->init_screen();
@@ -1853,6 +1848,18 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
 // Colormodel permutation
 		int src_cmodel = command->input->get_color_model();
 		int dst_cmodel = command->dst_cmodel;
+
+// printf("Playback3D::convert_cmodel_sync %d state=%d src_cmodel=%d dst_cmodel=%d\n", 
+//     __LINE__, 
+//     command->input->get_opengl_state(),
+//     src_cmodel,
+//     dst_cmodel);
+// int i;
+// for(i = 0; i < 16; i++)
+// {
+// printf("%02x ", command->input->get_y()[i]);
+// }
+// printf("\n");
 		typedef struct
 		{
 			int src;
@@ -2010,6 +2017,8 @@ void Playback3D::convert_cmodel_sync(Playback3DCommand *command)
                 min_h,
                 0);
 
+//printf("Playback3D::convert_cmodel_sync %d min_w=%d min_h=%d image_w=%d texture_w=%d\n", 
+//__LINE__, (int)min_w, (int)min_h, (int)image_w, (int)texture_w);
 			glUseProgram(0);
 
 	        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

@@ -19,7 +19,7 @@
  */
 
 
-
+// all the ffmpeg decoders from H265 onward
 
 
 
@@ -530,6 +530,9 @@ static int decode(quicktime_t *file, unsigned char **row_pointers, int track)
     int codec_id = AV_CODEC_ID_H265;
     if(quicktime_match_32((char*)codec_base->fourcc, (char*)QUICKTIME_VP09))
         codec_id = AV_CODEC_ID_VP9;
+    else
+    if(quicktime_match_32((char*)codec_base->fourcc, (char*)QUICKTIME_AV1))
+        codec_id = AV_CODEC_ID_AV1;
 
 	if(!codec->decoder) codec->decoder = quicktime_new_ffmpeg(
 		file->cpus,
@@ -648,6 +651,14 @@ void quicktime_init_codec_vp09(quicktime_video_map_t *vtrack)
         QUICKTIME_VP09,
         "VP9",
         "VP9");
+}
+
+void quicktime_init_codec_av01(quicktime_video_map_t *vtrack)
+{
+    quicktime_h265_codec_t *result = init_common(vtrack,
+        QUICKTIME_AV1,
+        "AV1",
+        "AV1");
 }
 
 

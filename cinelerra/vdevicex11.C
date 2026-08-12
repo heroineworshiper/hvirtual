@@ -433,16 +433,19 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 
 		if(!output_frame)
 		{
-// printf("VDeviceX11::new_output_buffer %d %d,%d\n",
-// __LINE__,
-// device->out_w, 
-// device->out_h);
 			output_frame = new VFrame(0, 
 				-1,
 				device->out_w, 
 				device->out_h, 
 				file_colormodel,
 				-1);
+// printf("VDeviceX11::new_output_buffer %d %d,%d output_frame=%p %d,%d\n",
+// __LINE__,
+// device->out_w, 
+// device->out_h,
+// output_frame,
+// output_frame->get_w(),
+// output_frame->get_h());
 
 //BUFFER2(output_frame->get_rows()[0], "VDeviceX11::new_output_buffer 1");
 		}
@@ -772,7 +775,7 @@ void VDeviceX11::new_output_buffer(VFrame **result,
 	}
 
 	*result = output_frame;
-//printf("VDeviceX11::new_output_buffer 10 %d\n", canvas->get_canvas()->get_window_lock());
+//printf("VDeviceX11::new_output_buffer %d result=%p\n", __LINE__, *result);
 
 	canvas->get_canvas()->unlock_window();
 	canvas->unlock_canvas();

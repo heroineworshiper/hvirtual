@@ -465,7 +465,10 @@ static int decode_wrapper(quicktime_t *file,
     }
 
 
-//printf("decode_wrapper %d %p\n", __LINE__, ffmpeg->picture[current_field]->data[0]);
+// printf("decode_wrapper %d pix_fmt=%d data=%p\n", 
+// __LINE__, 
+// ffmpeg->decoder_context[current_field]->pix_fmt, 
+// ffmpeg->picture[current_field]->data[0]);
 	if(result >= 0 && ffmpeg->picture[current_field]->data[0])
 	{
 		result = 0;

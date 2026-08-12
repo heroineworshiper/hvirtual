@@ -219,7 +219,8 @@ int VRender::process_buffer(int64_t input_position,
                 video_out->get_h());
             VDeviceX11 *x11_device = 0;
             if(use_opengl && renderengine && renderengine->vdevice)
-            {    x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
+            {
+                x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
     			if(!x11_device) use_opengl = 0;
             }
 // printf("VRender::process_buffer %d current_position=%d\n", 

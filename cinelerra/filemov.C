@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,6 +76,7 @@ N_("MPEG-4 Audio")
 #define DIVX_NAME "MPEG-4"
 #define HV64_NAME "Dual H.264"
 #define MP4V_NAME "MPEG-4 Video"
+#define AV1_NAME "AV1"
 #define H265_NAME "H.265"
 #define H264_NAME "H.264"
 #define H263_NAME "H.263"
@@ -649,6 +650,7 @@ int FileMOV::get_best_colormodel(Asset *asset,
 			if(match4(asset->vcodec, QUICKTIME_H263)) return BC_YUV420P;
 			if(match4(asset->vcodec, QUICKTIME_H264)) return BC_YUV420P;
 			if(match4(asset->vcodec, QUICKTIME_H265)) return BC_YUV420P;
+			if(match4(asset->vcodec, QUICKTIME_AV1)) return BC_YUV420P;
 			if(match4(asset->vcodec, QUICKTIME_HV64)) return BC_YUV420P;
             return BC_YUV888;
 // YUV 9 low res
@@ -673,6 +675,7 @@ int FileMOV::get_best_colormodel(Asset *asset,
 				match4(asset->vcodec, QUICKTIME_H263) ||
 				match4(asset->vcodec, QUICKTIME_H264) ||
 				match4(asset->vcodec, QUICKTIME_H265) ||
+				match4(asset->vcodec, QUICKTIME_AV1) ||
 				match4(asset->vcodec, QUICKTIME_HV64) ||
 				match4(asset->vcodec, QUICKTIME_DIV3) || 
 				match4(asset->vcodec, QUICKTIME_SVQ3) || 
@@ -1177,7 +1180,8 @@ int FileMOV::read_frame(VFrame *frame)
     {
 // Select the frame buffer from the codec
         const char *vcodec = asset->vcodec;
-        if(match4(asset->vcodec, QUICKTIME_H265) ||
+        if(match4(asset->vcodec, QUICKTIME_AV1) ||
+            match4(asset->vcodec, QUICKTIME_H265) ||
             match4(asset->vcodec, QUICKTIME_H264) ||
             match4(asset->vcodec, QUICKTIME_HEV1) ||
             match4(asset->vcodec, QUICKTIME_VP09) ||
@@ -1240,8 +1244,14 @@ int FileMOV::read_frame(VFrame *frame)
 // h,
 // colormodel,
 // y,
-// u - y,
-// v - u);
+// (void*)(u - y),
+// (void*)(v - u));
+// int i;
+// for(i = 0; i < 16; i++)
+// {
+// printf("%02x ", y[i]);
+// }
+// printf("\n");
             }
         }
         else
@@ -1371,6 +1381,7 @@ const char* FileMOV::strtocompression(const char *string)
 {
 	if(!strcasecmp(string, _(DIVX_NAME))) return QUICKTIME_DIVX;
 	if(!strcasecmp(string, _(H264_NAME))) return QUICKTIME_H264;
+	if(!strcasecmp(string, _(AV1_NAME))) return QUICKTIME_AV1;
 	if(!strcasecmp(string, _(H265_NAME))) return QUICKTIME_H265;
 	if(!strcasecmp(string, _(HV64_NAME))) return QUICKTIME_HV64;
 	if(!strcasecmp(string, _(MP4V_NAME))) return QUICKTIME_MP4V;
@@ -1413,6 +1424,7 @@ const char* FileMOV::compressiontostr(const char *string)
 	if(match4(string, QUICKTIME_H263)) return _(H263_NAME);
 	if(match4(string, QUICKTIME_H264)) return _(H264_NAME);
 	if(match4(string, QUICKTIME_H265)) return _(H265_NAME);
+	if(match4(string, QUICKTIME_AV1)) return _(AV1_NAME);
 	if(match4(string, QUICKTIME_HV64)) return _(HV64_NAME);
 	if(match4(string, QUICKTIME_DIVX)) return _(DIVX_NAME);
 	if(match4(string, QUICKTIME_MP4V)) return _(MP4V_NAME);

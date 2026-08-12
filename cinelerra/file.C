@@ -2442,7 +2442,14 @@ void File::convert_cmodel(int use_opengl, VDeviceX11 *device)
         if(device)
         {
 // hardware in the server
-//printf("File::convert_cmodel %d src=%p dst=%p\n", __LINE__, temp_frame, read_frame_dst);
+// printf("File::convert_cmodel %d src=%p w=%d h=%d dst=%p w=%d h=%d\n", 
+// __LINE__, 
+// temp_frame, 
+// temp_frame->get_w(), 
+// temp_frame->get_h(), 
+// read_frame_dst,
+// read_frame_dst->get_w(),
+// read_frame_dst->get_h());
             temp_frame->set_opengl_state(VFrame::RAM);
             device->convert_cmodel(temp_frame, read_frame_dst);
         }

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 
-
+# to use system libdav1d to decode AV1: 'USE_AV1=y ./configure'
 
 OBJDIR=`uname -m`
 TOPDIR=`pwd`
@@ -138,9 +138,11 @@ echo CONFIGURING FFMPEG
 FFMPEG_CFLAGS="-I$FFMPEG_DIR -I$FFMPEG_DIR/libavformat -I$FFMPEG_DIR/libavcodec"
 FFMPEG_LFLAGS="-L$FFMPEG_DIR/libavformat -L$FFMPEG_DIR/libavcodec -L$FFMPEG_DIR/libavutil -L$FFMPEG_DIR/libswresample"
 FFMPEG_LIBS="-lavformat -lavcodec -lavutil -lswresample -ldl -lm -lpthread -lz -lbz2 -llzma"
+FFMPEG_AV1_FLAG=""
+if [ $USE_AV1 = "y" ]; then FFMPEG_AV1_FLAG="--enable-libdav1d"; fi
 
 cd $FFMPEG_DIR
-./configure --disable-x86asm --enable-pthreads --disable-vaapi --disable-vdpau --disable-ffplay --enable-nonfree --disable-doc --enable-gpl --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64
+./configure --disable-x86asm --enable-pthreads --disable-vaapi --disable-vdpau --disable-ffplay --enable-nonfree --disable-doc --enable-gpl --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64 $FFMPEG_AV1_FLAG
 if [ $? -ne 0 ]; then 
 ERROR=1
 fi
@@ -310,6 +312,7 @@ HAVE_GL := $HAVE_GL
 FFMPEG_CFLAGS := $FFMPEG_CFLAGS
 FFMPEG_LFLAGS := $FFMPEG_LFLAGS
 FFMPEG_DIR := $FFMPEG_DIR
+HAVE_AV1 := $HAVE_AV1
 EOF
 
 

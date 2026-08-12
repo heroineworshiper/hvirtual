@@ -29,6 +29,8 @@ Edit CUDA_DIR in configure to set your CUDA location.
 Run ./configure.  Then run make.  Then run 'make install' to put it in the
 bin/ directory.  Run ./cinelerra.sh in the bin/ directory.
 
+To get AV1 support & you have a system level libdav1d, run 
+'USE_AV1=y ./configure'
 
 
 

@@ -544,6 +544,10 @@ LIBS += \
 
 endif
 
+ifeq ($(HAVE_AV1), y)
+LIBS += -ldav1d
+endif
+
 
 FFMPEG_CFLAGS := \
 	$(CFLAGS) \
