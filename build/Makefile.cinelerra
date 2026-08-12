@@ -17,6 +17,7 @@ DST = bin
 # TODO: need to automatically copy in all the ldd results or
 # parse a list
 LIBPNG := /lib/x86_64-linux-gnu/libpng12.so.0
+LIBDAV1D := /usr/local/lib/x86_64-linux-gnu/libdav1d.so*
 
 
 DISTNAME = bcast2000demo.tar
@@ -138,6 +139,12 @@ install:
 		cp $(LIBPNG) $(DST); \
 	else \
 		echo "Skipping $(LIBPNG)"; \
+	fi
+	@if [ -f "$(LIBDAV1D)" ]; then \
+		echo "Copying $(LIBDAV1D)"; \
+		cp $(LIBDAV1D) $(DST); \
+	else \
+		echo "Skipping $(LIBDAV1D)"; \
 	fi
 
 COMPILE = $(GCC) -c $(CFLAGS) $? -o $*.o

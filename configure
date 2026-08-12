@@ -1,8 +1,7 @@
 #!/bin/sh
 
 
-# to use system libdav1d to decode AV1: 'USE_AV1=y ./configure'
-
+if pkg-config --exists dav1d; then USE_AV1=y; else USE_AV1=n; fi
 OBJDIR=`uname -m`
 TOPDIR=`pwd`
 CUDA_DIR=/usr/local/cuda/
@@ -11,6 +10,7 @@ FFMPEG_DIR=$TOPDIR/thirdparty/ffmpeg-5.1
 
 echo "Configuring Cinelerra with the following options:"
 echo CUDA_DIR=$CUDA_DIR
+echo USE_AV1=$USE_AV1
 
 ERROR=0
 
@@ -139,7 +139,7 @@ FFMPEG_CFLAGS="-I$FFMPEG_DIR -I$FFMPEG_DIR/libavformat -I$FFMPEG_DIR/libavcodec"
 FFMPEG_LFLAGS="-L$FFMPEG_DIR/libavformat -L$FFMPEG_DIR/libavcodec -L$FFMPEG_DIR/libavutil -L$FFMPEG_DIR/libswresample"
 FFMPEG_LIBS="-lavformat -lavcodec -lavutil -lswresample -ldl -lm -lpthread -lz -lbz2 -llzma"
 FFMPEG_AV1_FLAG=""
-if [ $USE_AV1 = "y" ]; then FFMPEG_AV1_FLAG="--enable-libdav1d"; fi
+if [ $USE_AV1 = "0" ]; then FFMPEG_AV1_FLAG="--enable-libdav1d"; fi
 
 cd $FFMPEG_DIR
 ./configure --disable-x86asm --enable-pthreads --disable-vaapi --disable-vdpau --disable-ffplay --enable-nonfree --disable-doc --enable-gpl --nvccflags=-I$CUDA_DIR/include --extra-cflags=-I$CUDA_DIR/include --extra-ldflags=-L$CUDA_DIR/lib64 $FFMPEG_AV1_FLAG
