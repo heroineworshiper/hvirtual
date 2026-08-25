@@ -133,6 +133,7 @@ public:
 	BC_Title *shared_title;
 	PluginDialogShared *shared_list;
 	BC_Title *module_title;
+	BC_Title *text;
 	PluginDialogModules *module_list;
 	PluginDialogSingle *single_standalone;
 

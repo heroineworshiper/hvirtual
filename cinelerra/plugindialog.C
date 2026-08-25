@@ -456,14 +456,13 @@ void PluginDialog::create_objects()
 
     if(!thread->plugin)
     {
-        BC_Title *title;
-        add_subwindow(title = new BC_Title(mwindow->session->plugindialog_w / 2,
+        add_subwindow(text = new BC_Title(mwindow->session->plugindialog_w / 2,
             y,
             _("Ctrl to select multiple effects"),
             MEDIUMFONT,
             -1,
             1));
-        y += title->get_h() + margin;
+        y += text->get_h() + margin;
     }
 
 	add_subwindow(new BC_OKButton(this));
@@ -480,6 +479,7 @@ void PluginDialog::create_objects()
 
 int PluginDialog::resize_event(int w, int h)
 {
+	int margin = mwindow->theme->widget_border;
 	mwindow->session->plugindialog_w = w;
 	mwindow->session->plugindialog_h = h;
 	mwindow->theme->get_plugindialog_sizes();
@@ -533,14 +533,22 @@ int PluginDialog::resize_event(int w, int h)
 // 			mwindow->theme->plugindialog_moduleattach_y);
 
 
+    int y = mwindow->theme->plugindialog_new_y + 
+		mwindow->theme->plugindialog_new_h +
+		margin;
 	if(single_standalone)
 	{
 		single_standalone->reposition_window(
 			mwindow->theme->plugindialog_new_x + BC_OKButton::calculate_w() + DP(10), 
-			mwindow->theme->plugindialog_new_y + 
-				mwindow->theme->plugindialog_new_h +
-				get_text_height(MEDIUMFONT));
+			y);
+        y += single_standalone->get_h() + margin;
 	}
+    if(text)
+    {
+        text->reposition_window(mwindow->session->plugindialog_w / 2 -
+                text->get_w() / 2,
+            y);
+    }
 
 	flush();
     return 0;
