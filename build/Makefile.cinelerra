@@ -17,7 +17,7 @@ DST = bin
 # TODO: need to automatically copy in all the ldd results or
 # parse a list
 LIBPNG := /lib/x86_64-linux-gnu/libpng12.so.0
-LIBDAV1D := /usr/local/lib/x86_64-linux-gnu/libdav1d.so*
+LIBDAV1D := `pkg-config --variable=libdir dav1d`/libdav1d.so.7
 
 
 DISTNAME = bcast2000demo.tar
@@ -122,7 +122,7 @@ wc:
 install:
 	$(MAKE) -C plugins install
 	cp libmpeg3/$(OBJDIR)/mpeg3dump libmpeg3/$(OBJDIR)/mpeg3peek libmpeg3/$(OBJDIR)/mpeg3toc  libmpeg3/$(OBJDIR)/mpeg3cat $(DST)
-	cp quicktime/$(OBJDIR)/make_streamable $(DST)
+#	cp quicktime/$(OBJDIR)/make_streamable $(DST)
 	$(MAKE) -C po install
 #	$(MAKE) -C doc install
 	cp COPYING README bin

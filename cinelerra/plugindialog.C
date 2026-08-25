@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +39,19 @@
 #include "transition.h"
 
 
+PluginDialogItem::PluginDialogItem()
+{
+    type = PLUGIN_NONE;
+    number = 0;
+}
+
+PluginDialogItem::PluginDialogItem(int type, int number)
+{
+    this->type = type;
+    this->number = number;
+}
+
+
 PluginDialogThread::PluginDialogThread(MWindow *mwindow)
  : BC_DialogThread()
 {
@@ -66,6 +78,24 @@ void PluginDialogThread::start_window(Track *track,
 		this->plugin = plugin;
 		this->is_mainmenu = is_mainmenu;
 		single_standalone = mwindow->edl->session->single_standalone;
+// GET A LIST OF ALL THE PLUGINS AVAILABLE
+	    mwindow->search_plugindb(data_type == TRACK_AUDIO, 
+		    data_type == TRACK_VIDEO, 
+		    1, 
+		    0,
+		    0,
+		    plugindb);
+
+	    mwindow->edl->get_shared_plugins(track,
+		    &plugin_locations,
+		    is_mainmenu,
+		    data_type);
+	    mwindow->edl->get_shared_tracks(track,
+		    &module_locations,
+		    is_mainmenu,
+		    data_type);
+
+
 
 		if(plugin)
 		{
@@ -109,67 +139,95 @@ BC_Window* PluginDialogThread::new_gui()
 
 void PluginDialogThread::handle_done_event(int result)
 {
-	PluginDialog *window = (PluginDialog*)BC_DialogThread::get_gui();
-	if(window->selected_available >= 0)
-	{
-		window->attach_new(window->selected_available);
-	}
-	else
-	if(window->selected_shared >= 0)
-	{
-		window->attach_shared(window->selected_shared);
-	}
-	else
-	if(window->selected_modules >= 0)
-	{
-		window->attach_module(window->selected_modules);
-	}
-	mwindow->edl->session->single_standalone = single_standalone;
+//	PluginDialog *window = (PluginDialog*)BC_DialogThread::get_gui();
+// 	if(window->selected_available >= 0)
+// 	{
+// 		window->attach_new(window->selected_available);
+// 	}
+// 	else
+// 	if(window->selected_shared >= 0)
+// 	{
+// 		window->attach_shared(window->selected_shared);
+// 	}
+// 	else
+// 	if(window->selected_modules >= 0)
+// 	{
+// 		window->attach_module(window->selected_modules);
+// 	}
 }
 
 void PluginDialogThread::handle_close_event(int result)
 {
+//printf("PluginDialogThread::handle_close_event %d %d %d\n", __LINE__, result, selections.size());
+	mwindow->edl->session->single_standalone = single_standalone;
 	if(!result)
 	{
-		if(plugin_type)
+		if(selections.size() > 0)
 		{
+//printf("PluginDialogThread::handle_close_event %d\n", __LINE__);
 			mwindow->gui->lock_window("PluginDialogThread::run 3");
 
 
 			mwindow->undo->update_undo_before();
-			if(is_mainmenu)
-			{
-				mwindow->insert_effect(plugin_title, 
-					&shared_location,
-					data_type,
-					plugin_type,
-					single_standalone);
-			}
-			else
-			{
-				if(plugin)
-				{
-					if(mwindow->edl->tracks->plugin_exists(plugin))
-					{
-						plugin->change_plugin(plugin_title,
-							&shared_location,
-							plugin_type);
-					}
-				}
-				else
-				{
-					if(mwindow->edl->tracks->track_exists(track))
-					{
-						mwindow->insert_effect(plugin_title, 
-										&shared_location,
-										track,
-										0,
-										0,
-										0,
-										plugin_type);
-					}
-				}
-			}
+
+
+// attach the selections in order
+            for(int i = 0; i < selections.size(); i++)
+            {
+                PluginDialogItem *item = selections.get(i);
+                char *plugin_title = 0;
+                SharedLocation shared_location;
+
+                switch(item->type)
+                {
+                    case PLUGIN_STANDALONE:
+                        plugin_title = plugindb.values[item->number]->title;
+                        break;
+                    case PLUGIN_SHAREDPLUGIN:
+                        shared_location = *(plugin_locations.values[item->number]);
+                        break;
+                    case PLUGIN_SHAREDMODULE:
+                        shared_location = *(module_locations.values[item->number]);
+                        break;
+                }
+
+
+			    if(is_mainmenu)
+			    {
+				    mwindow->insert_effect(plugin_title, 
+					    &shared_location,
+					    data_type,
+					    item->type,
+					    single_standalone);
+			    }
+			    else
+			    {
+				    if(plugin)
+				    {
+					    if(mwindow->edl->tracks->plugin_exists(plugin))
+					    {
+						    plugin->change_plugin(plugin_title,
+							    &shared_location,
+							    item->type);
+					    }
+				    }
+				    else
+				    {
+					    if(mwindow->edl->tracks->track_exists(track))
+					    {
+						    mwindow->insert_effect(plugin_title, 
+										    &shared_location,
+										    track,
+										    0,
+										    0,
+										    0,
+										    item->type);
+					    }
+				    }
+			    }
+            }
+
+
 			
 			mwindow->save_backup();
 			mwindow->undo->update_undo_after(_("attach effect"), LOAD_EDITS | LOAD_PATCHES);
@@ -187,7 +245,12 @@ void PluginDialogThread::handle_close_event(int result)
 			mwindow->gui->unlock_window();
 		}
 	}
+
 	plugin = 0;
+    plugindb.remove_all();
+    selections.remove_all_objects();
+	plugin_locations.remove_all_objects();
+	module_locations.remove_all_objects();
 }
 
 
@@ -223,15 +286,11 @@ PluginDialog::~PluginDialog()
 {
 	int i;
 	lock_window("PluginDialog::~PluginDialog");
+//printf("PluginDialog::~PluginDialog %d\n", __LINE__);
 	standalone_data.remove_all_objects();
-	
 	shared_data.remove_all_objects();
-	
 	module_data.remove_all_objects();
 
-	plugin_locations.remove_all_objects();
-
-	module_locations.remove_all_objects();
 
 	delete standalone_list;
 	delete shared_list;
@@ -264,37 +323,19 @@ void PluginDialog::create_objects()
 
 
 
-// GET A LIST OF ALL THE PLUGINS AVAILABLE
-	mwindow->search_plugindb(thread->data_type == TRACK_AUDIO, 
-		thread->data_type == TRACK_VIDEO, 
-		1, 
-		0,
-		0,
-		plugindb);
-
-	mwindow->edl->get_shared_plugins(thread->track,
-		&plugin_locations,
-		thread->is_mainmenu,
-		thread->data_type);
-	mwindow->edl->get_shared_tracks(thread->track,
-		&module_locations,
-		thread->is_mainmenu,
-		thread->data_type);
-
-
 
 
 
 
 
 // Construct listbox items
-	for(int i = 0; i < plugindb.total; i++)
-		standalone_data.append(new BC_ListBoxItem(_(plugindb.values[i]->title)));
-	for(int i = 0; i < plugin_locations.total; i++)
+	for(int i = 0; i < thread->plugindb.total; i++)
+		standalone_data.append(new BC_ListBoxItem(_(thread->plugindb.values[i]->title)));
+	for(int i = 0; i < thread->plugin_locations.total; i++)
 	{
-		Track *track = mwindow->edl->tracks->number(plugin_locations.values[i]->module);
+		Track *track = mwindow->edl->tracks->number(thread->plugin_locations.values[i]->module);
 		const char *track_title = track->title.c_str();
-		int number = plugin_locations.values[i]->plugin;
+		int number = thread->plugin_locations.values[i]->plugin;
 		Plugin *plugin = track->get_current_plugin(mwindow->edl->local_session->get_selectionstart(1), 
 			number, 
 			PLAY_FORWARD,
@@ -306,9 +347,9 @@ void PluginDialog::create_objects()
 		sprintf(string, "%s: %s", track_title, _(plugin_title));
 		shared_data.append(new BC_ListBoxItem(string));
 	}
-	for(int i = 0; i < module_locations.total; i++)
+	for(int i = 0; i < thread->module_locations.total; i++)
 	{
-		Track *track = mwindow->edl->tracks->number(module_locations.values[i]->module);
+		Track *track = mwindow->edl->tracks->number(thread->module_locations.values[i]->module);
 		module_data.append(new BC_ListBoxItem(track->title.c_str()));
 	}
 
@@ -402,15 +443,28 @@ void PluginDialog::create_objects()
 // 		_("One standalone effect is attached to the first track.\n"
 // 		"Shared effects are attached to the remaining tracks.")));
 
+    int y = mwindow->theme->plugindialog_new_y + 
+		mwindow->theme->plugindialog_new_h +
+		margin;
 	if(thread->is_mainmenu)
 	{
 		add_subwindow(single_standalone = new PluginDialogSingle(this, 
 			mwindow->theme->plugindialog_new_x + BC_OKButton::calculate_w() + DP(10), 
-			mwindow->theme->plugindialog_new_y + 
-				mwindow->theme->plugindialog_new_h +
-				get_text_height(MEDIUMFONT)));
+			y));
+        y += single_standalone->get_h() + margin;
 	}
 
+    if(!thread->plugin)
+    {
+        BC_Title *title;
+        add_subwindow(title = new BC_Title(mwindow->session->plugindialog_w / 2,
+            y,
+            _("Ctrl to select multiple effects"),
+            MEDIUMFONT,
+            -1,
+            1));
+        y += title->get_h() + margin;
+    }
 
 	add_subwindow(new BC_OKButton(this));
 	add_subwindow(new BC_CancelButton(this));
@@ -492,36 +546,101 @@ int PluginDialog::resize_event(int w, int h)
     return 0;
 }
 
-int PluginDialog::attach_new(int number)
+void PluginDialog::add_selections(ArrayList<BC_ListBoxItem*> *src,
+    int type)
 {
-	if(number > -1 && number < standalone_data.total) 
-	{
-		strcpy(thread->plugin_title, plugindb.values[number]->title);
-		thread->plugin_type = PLUGIN_STANDALONE;         // type is plugin
-	}
-	return 0;
+    for(int i = 0; i < src->size(); i++)
+    {
+        BC_ListBoxItem *new_item = src->get(i);
+        if(new_item->get_selected())
+        {
+//printf("PluginDialog::add_selections %d i=%d\n", __LINE__, i);
+            int got_it = 0;
+            for(int j = 0; j < thread->selections.size(); j++)
+            {
+                PluginDialogItem *old_item = thread->selections.get(j);
+                if(old_item->type == type && old_item->number == i)
+                {
+                    got_it = 1;
+                    break;
+                }
+            }
+//printf("PluginDialog::add_selections %d got_it=%d selections=%d\n", 
+//__LINE__, got_it, thread->selections.size());
+            if(!got_it) 
+                thread->selections.append(new PluginDialogItem(type, i));
+        }
+    }
 }
 
-int PluginDialog::attach_shared(int number)
+void PluginDialog::update_selections()
 {
-	if(number > -1 && number < shared_data.total) 
-	{
-		thread->plugin_type = PLUGIN_SHAREDPLUGIN;         // type is shared plugin
-		thread->shared_location = *(plugin_locations.values[number]); // copy location
-	}
-	return 0;
+// only 1 selection when replacing a plugin
+    if(thread->plugin)
+    {
+        thread->selections.remove_all_objects();
+    }
+
+// delete items which are no longer selected
+    for(int i = 0; i < thread->selections.size(); i++)
+    {
+        PluginDialogItem *item = thread->selections.get(i);
+        ArrayList<BC_ListBoxItem*> *data = 0;
+        switch(item->type)
+        {
+            case PLUGIN_STANDALONE:
+                data = &standalone_data;
+                break;
+            case PLUGIN_SHAREDPLUGIN:
+                data = &shared_data;
+                break;
+            case PLUGIN_SHAREDMODULE:
+                data = &module_data;
+                break;    
+        }
+        if(data && !data->get(item->number)->get_selected())
+        {
+            thread->selections.remove_object_number(i);
+            i--;
+        }
+    }
+
+// add new selections
+    add_selections(&standalone_data, PLUGIN_STANDALONE);
+    add_selections(&shared_data, PLUGIN_SHAREDPLUGIN);
+    add_selections(&module_data, PLUGIN_SHAREDMODULE);
 }
 
-int PluginDialog::attach_module(int number)
-{
-	if(number > -1 && number < module_data.total) 
-	{
-//		title->update(module_data.values[number]->get_text());
-		thread->plugin_type = PLUGIN_SHAREDMODULE;         // type is module
-		thread->shared_location = *(module_locations.values[number]); // copy location
-	}
-	return 0;
-}
+// int PluginDialog::attach_new(int number)
+// {
+// 	if(number > -1 && number < standalone_data.total) 
+// 	{
+// 		strcpy(thread->plugin_title, plugindb.values[number]->title);
+// 		thread->plugin_type = PLUGIN_STANDALONE;         // type is plugin
+// 	}
+// 	return 0;
+// }
+// 
+// int PluginDialog::attach_shared(int number)
+// {
+// 	if(number > -1 && number < shared_data.total) 
+// 	{
+// 		thread->plugin_type = PLUGIN_SHAREDPLUGIN;         // type is shared plugin
+// 		thread->shared_location = *(plugin_locations.values[number]); // copy location
+// 	}
+// 	return 0;
+// }
+// 
+// int PluginDialog::attach_module(int number)
+// {
+// 	if(number > -1 && number < module_data.total) 
+// 	{
+// //		title->update(module_data.values[number]->get_text());
+// 		thread->plugin_type = PLUGIN_SHAREDMODULE;         // type is module
+// 		thread->shared_location = *(module_locations.values[number]); // copy location
+// 	}
+// 	return 0;
+// }
 
 int PluginDialog::save_settings()
 {
@@ -587,10 +706,11 @@ PluginDialogNew::PluginDialogNew(PluginDialog *dialog,
 	standalone_data) 
 { 
 	this->dialog = dialog; 
+    if(!dialog->thread->plugin) set_selection_mode(LISTBOX_MULTIPLE);
 }
 PluginDialogNew::~PluginDialogNew() { }
 int PluginDialogNew::handle_event() 
-{ 
+{
 // 	dialog->attach_new(get_selection_number(0, 0)); 
 // 	deactivate();
 
@@ -599,15 +719,19 @@ int PluginDialogNew::handle_event()
 }
 int PluginDialogNew::selection_changed()
 {
-	dialog->selected_available = get_selection_number(0, 0);
+    dialog->update_selections();
 
+//	dialog->selected_available = get_selection_number(0, 0);
 
-	dialog->shared_list->set_all_selected(&dialog->shared_data, 0);
-	dialog->shared_list->draw_items(1);
-	dialog->module_list->set_all_selected(&dialog->module_data, 0);
-	dialog->module_list->draw_items(1);
-	dialog->selected_shared = -1;
-	dialog->selected_modules = -1;
+    if(dialog->thread->plugin)
+    {
+	    dialog->shared_list->set_all_selected(&dialog->shared_data, 0);
+	    dialog->shared_list->draw_items(1);
+	    dialog->module_list->set_all_selected(&dialog->module_data, 0);
+	    dialog->module_list->draw_items(1);
+//	    dialog->selected_shared = -1;
+//	    dialog->selected_modules = -1;
+    }
 	return 1;
 }
 
@@ -664,6 +788,7 @@ PluginDialogShared::PluginDialogShared(PluginDialog *dialog,
 	shared_data) 
 { 
 	this->dialog = dialog; 
+    if(!dialog->thread->plugin) set_selection_mode(LISTBOX_MULTIPLE);
 }
 PluginDialogShared::~PluginDialogShared() { }
 int PluginDialogShared::handle_event()
@@ -675,15 +800,20 @@ int PluginDialogShared::handle_event()
 }
 int PluginDialogShared::selection_changed()
 {
-	dialog->selected_shared = get_selection_number(0, 0);
+    dialog->update_selections();
+
+//	dialog->selected_shared = get_selection_number(0, 0);
 
 
-	dialog->standalone_list->set_all_selected(&dialog->standalone_data, 0);
-	dialog->standalone_list->draw_items(1);
-	dialog->module_list->set_all_selected(&dialog->module_data, 0);
-	dialog->module_list->draw_items(1);
-	dialog->selected_available = -1;
-	dialog->selected_modules = -1;
+    if(dialog->thread->plugin)
+    {
+	    dialog->standalone_list->set_all_selected(&dialog->standalone_data, 0);
+	    dialog->standalone_list->draw_items(1);
+	    dialog->module_list->set_all_selected(&dialog->module_data, 0);
+	    dialog->module_list->draw_items(1);
+//	    dialog->selected_available = -1;
+//	    dialog->selected_modules = -1;
+    }
 	return 1;
 }
 
@@ -745,6 +875,7 @@ PluginDialogModules::PluginDialogModules(PluginDialog *dialog,
 	module_data) 
 { 
 	this->dialog = dialog; 
+    if(!dialog->thread->plugin) set_selection_mode(LISTBOX_MULTIPLE);
 }
 PluginDialogModules::~PluginDialogModules() { }
 int PluginDialogModules::handle_event()
@@ -757,15 +888,21 @@ int PluginDialogModules::handle_event()
 }
 int PluginDialogModules::selection_changed()
 {
-	dialog->selected_modules = get_selection_number(0, 0);
+    dialog->update_selections();
 
 
-	dialog->standalone_list->set_all_selected(&dialog->standalone_data, 0);
-	dialog->standalone_list->draw_items(1);
-	dialog->shared_list->set_all_selected(&dialog->shared_data, 0);
-	dialog->shared_list->draw_items(1);
-	dialog->selected_available = -1;
-	dialog->selected_shared = -1;
+//	dialog->selected_modules = get_selection_number(0, 0);
+
+
+    if(dialog->thread->plugin)
+    {
+	    dialog->standalone_list->set_all_selected(&dialog->standalone_data, 0);
+	    dialog->standalone_list->draw_items(1);
+	    dialog->shared_list->set_all_selected(&dialog->shared_data, 0);
+	    dialog->shared_list->draw_items(1);
+//	    dialog->selected_available = -1;
+//	    dialog->selected_shared = -1;
+    }
 	return 1;
 }
 

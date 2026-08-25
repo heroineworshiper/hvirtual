@@ -47,6 +47,17 @@ class PluginDialog;
 #include "track.inc"
 #include "transition.inc"
 
+class PluginDialogItem
+{
+public:
+    PluginDialogItem();
+    PluginDialogItem(int type, int number);
+// PLUGIN_NONE, PLUGIN_STANDALONE, PLUGIN_SHAREDPLUGIN, PLUGIN_SHAREDMODULE
+    int type;
+// Item in the listbox to test the selection value
+    int number;
+};
+
 class PluginDialogThread : public BC_DialogThread
 {
 public:
@@ -69,12 +80,18 @@ public:
 	Track *track;
 	int data_type;
 	Transition *transition;
-// Plugin being modified if there is one
+// Destination plugin if we're modifying an existing plugin
 	Plugin *plugin;
 	char window_title[BCTEXTLEN];
-// If attaching from main menu
+// If attaching new effects from the main menu or track menu
 	int is_mainmenu;
 
+// attachments to apply, in selection order
+    ArrayList<PluginDialogItem*> selections;
+// data matching the list items
+	ArrayList<SharedLocation*> plugin_locations; // locations of all shared plugins
+	ArrayList<SharedLocation*> module_locations; // locations of all shared modules
+	ArrayList<PluginServer*> plugindb;           // locations of all simple plugins, no need for memory freeing!
 
 // type of attached plugin
 	int plugin_type;    // 0: none  1: plugin   2: shared plugin   3: module
@@ -101,9 +118,13 @@ public:
 
 	void create_objects();
 
-	int attach_new(int number);
-	int attach_shared(int number);
-	int attach_module(int number);
+// add new selections & delete old selections in the output list
+    void update_selections();
+    void add_selections(ArrayList<BC_ListBoxItem*> *src,
+        int type);
+// 	int attach_new(int number);
+// 	int attach_shared(int number);
+// 	int attach_module(int number);
 	int save_settings();
 	int resize_event(int w, int h);
 
@@ -117,15 +138,13 @@ public:
 
 
 	PluginDialogThru *thru;
-	
+
 	PluginDialogThread *thread;
 
+// data in the list boxes
 	ArrayList<BC_ListBoxItem*> standalone_data;
 	ArrayList<BC_ListBoxItem*> shared_data;
 	ArrayList<BC_ListBoxItem*> module_data;
-	ArrayList<SharedLocation*> plugin_locations; // locations of all shared plugins
-	ArrayList<SharedLocation*> module_locations; // locations of all shared modules
-	ArrayList<PluginServer*> plugindb;           // locations of all simple plugins, no need for memory freeing!
 
 	int selected_available;
 	int selected_shared;
