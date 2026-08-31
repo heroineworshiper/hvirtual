@@ -448,8 +448,12 @@ void PluginDialog::create_objects()
 		margin;
 	if(thread->is_mainmenu)
 	{
+#define PLUGINDIALOGSINGLE _("Attach single standalone and share others")
+        int x = (mwindow->session->plugindialog_w -
+            BC_Title::calculate_w(this, PLUGINDIALOGSINGLE) -
+            margin) / 2;
 		add_subwindow(single_standalone = new PluginDialogSingle(this, 
-			mwindow->theme->plugindialog_new_x + BC_OKButton::calculate_w() + DP(10), 
+			x, 
 			y));
         y += single_standalone->get_h() + margin;
 	}
@@ -538,15 +542,18 @@ int PluginDialog::resize_event(int w, int h)
 		margin;
 	if(single_standalone)
 	{
+        int x = (mwindow->session->plugindialog_w -
+            BC_Title::calculate_w(this, PLUGINDIALOGSINGLE) -
+            margin) / 2;
 		single_standalone->reposition_window(
-			mwindow->theme->plugindialog_new_x + BC_OKButton::calculate_w() + DP(10), 
+			x, 
 			y);
         y += single_standalone->get_h() + margin;
 	}
     if(text)
     {
-        text->reposition_window(mwindow->session->plugindialog_w / 2 -
-                text->get_w() / 2,
+        text->reposition_window((mwindow->session->plugindialog_w -
+                text->get_w()) / 2,
             y);
     }
 
@@ -919,7 +926,7 @@ PluginDialogSingle::PluginDialogSingle(PluginDialog *dialog, int x, int y)
  : BC_CheckBox(x, 
  	y, 
 	dialog->thread->single_standalone, 
-	_("Attach single standalone and share others"))
+	PLUGINDIALOGSINGLE)
 {
 	this->dialog = dialog;
 }

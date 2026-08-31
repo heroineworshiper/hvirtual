@@ -43,7 +43,7 @@ Plugin::Plugin(EDL *edl,
 	is_plugin = 1;
 	this->track = track;
 	this->plugin_set = 0;
-	strcpy(this->title, title);
+	if(title) strcpy(this->title, title);
 	plugin_type = PLUGIN_NONE;
 	in = 1;
 	out = 1;
@@ -62,7 +62,7 @@ Plugin::Plugin(EDL *edl,
 	is_plugin = 1;
 	this->track = plugin_set->track;
 	this->plugin_set = plugin_set;
-	strcpy(this->title, title);
+	if(title) strcpy(this->title, title);
 	plugin_type = PLUGIN_NONE;
 	in = 1;
 	out = 1;
@@ -351,8 +351,8 @@ void Plugin::change_plugin(char *title,
 		SharedLocation *shared_location, 
 		int plugin_type)
 {
-	strcpy(this->title, title);
-	this->shared_location = *shared_location;
+	if(title) strcpy(this->title, title);
+	if(shared_location) this->shared_location = *shared_location;
 	this->plugin_type = plugin_type;
 }
 
