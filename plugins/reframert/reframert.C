@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008-2017 Adam Williams <broadcast at earthling dot net>
@@ -209,11 +208,12 @@ ReframeRTWindow::~ReframeRTWindow()
 
 void ReframeRTWindow::create_objects()
 {
-	int x = plugin->get_theme()->window_border;
-	int y = plugin->get_theme()->window_border;
+    int margin = plugin->get_theme()->widget_border;
+	int x = margin;
+	int y = margin;
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Input frames:")));
-	y += title->get_h() + plugin->get_theme()->widget_border;
+	y += title->get_h() + margin;
 	num = new ReframeRTNum(plugin, 
 		this,
 		x, 
@@ -221,9 +221,9 @@ void ReframeRTWindow::create_objects()
 	num->create_objects();
 	num->set_increment(1.0);
 
-	y += num->get_h() + plugin->get_theme()->widget_border;
+	y += num->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Output frames:")));
-	y += title->get_h() + plugin->get_theme()->widget_border;
+	y += title->get_h() + margin;
 	denom = new ReframeRTDenom(plugin, 
 		this,
 		x, 
@@ -232,12 +232,12 @@ void ReframeRTWindow::create_objects()
 	denom->set_increment(1.0);
 	
 	
-	y += denom->get_h() + plugin->get_theme()->widget_border;
+	y += denom->get_h() + margin;
 	add_subwindow(stretch = new ReframeRTStretch(plugin, 
 		this,
 		x, 
 		y));
-	y += stretch->get_h() + plugin->get_theme()->widget_border;
+	y += stretch->get_h() + margin;
 	add_subwindow(downsample = new ReframeRTDownsample(plugin, 
 		this,
 		x, 
@@ -262,7 +262,7 @@ ReframeRTNum::ReframeRTNum(ReframeRT *plugin,
 	(float)1000000,
  	x, 
 	y, 
-	gui->get_w() - plugin->get_theme()->window_border * 3)
+	gui->get_w() - plugin->get_theme()->widget_border - BC_Tumbler::calculate_w())
 {
 	this->plugin = plugin;
 }
@@ -291,7 +291,7 @@ ReframeRTDenom::ReframeRTDenom(ReframeRT *plugin,
 	(float)1000000,
  	x, 
 	y, 
-	gui->get_w() - plugin->get_theme()->window_border * 3)
+	gui->get_w() - plugin->get_theme()->widget_border - BC_Tumbler::calculate_w())
 {
 	this->plugin = plugin;
 }

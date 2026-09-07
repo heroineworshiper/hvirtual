@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2010-2017 Adam Williams <broadcast at earthling dot net>
@@ -94,26 +93,29 @@ ResampleRTWindow::~ResampleRTWindow()
 
 void ResampleRTWindow::create_objects()
 {
-	int x = plugin->get_theme()->window_border;
-	int y = plugin->get_theme()->window_border;
+    int margin = plugin->get_theme()->widget_border;
+	int x = margin;
+	int y = margin;
 
 	BC_Title *title;
 	add_subwindow(title = new BC_Title(x, y, _("Input samples:")));
-	y += title->get_h() + plugin->get_theme()->widget_border;
+	y += title->get_h() + margin;
 
 	num = new ResampleRTNum(this,
 		plugin, 
 		x, 
-		y);
+		y,
+        get_w() - x - margin - BC_Tumbler::calculate_w());
 	num->create_objects();
 	
-	y += num->get_h() + plugin->get_theme()->widget_border;
+	y += num->get_h() + margin;
 	add_subwindow(title = new BC_Title(x, y, _("Output samples:")));
-	y += title->get_h() + plugin->get_theme()->widget_border;
+	y += title->get_h() +margin;
 	denom = new ResampleRTDenom(this,
 		plugin, 
 		x, 
-		y);
+		y,
+        get_w() - x - margin - BC_Tumbler::calculate_w());
 	denom->create_objects();
 	
 	
@@ -128,14 +130,15 @@ void ResampleRTWindow::create_objects()
 ResampleRTNum::ResampleRTNum(ResampleRTWindow *window,
 	ResampleRT *plugin, 
 	int x, 
-	int y)
+	int y,
+    int w)
  : BC_TumbleTextBox(window,
  	plugin->config.num,
 	(float)1,
 	(float)1000000000,
  	x, 
 	y, 
-	DP(100))
+	w)
 {
 	this->plugin = plugin;
 	set_increment(0.001);
@@ -155,14 +158,15 @@ int ResampleRTNum::handle_event()
 ResampleRTDenom::ResampleRTDenom(ResampleRTWindow *window,
 	ResampleRT *plugin, 
 	int x, 
-	int y)
+	int y,
+    int w)
  : BC_TumbleTextBox(window,
  	plugin->config.denom,
 	(float)1,
 	(float)1000000000,
  	x, 
 	y, 
-	DP(100))
+	w)
 {
 	this->plugin = plugin;
 	set_increment(0.001);
@@ -273,10 +277,25 @@ int ResampleRT::process_buffer(int64_t size,
 		need_reconfigure = 0;
 	}
 
+//printf("ResampleRT::process_buffer %d sample_rate=%d %f %f\n", 
+//__LINE__, sample_rate, config.num, config.denom);
+// scale to integer ranges
+    int num_i;
+    int denom_i;
+    if(config.num > 0x7fff || config.denom > 0x7fff)
+    {
+        num_i = (int)config.num;
+        denom_i = (int)config.denom;
+    }
+    else
+    {
+        num_i = (int)(65536 * config.num);
+        denom_i = (int)(65536 * config.denom);
+    }
 	resample->resample(buffer,
 		size,
-		(int)(65536 * config.num),
-		(int)(65536 * config.denom),
+		num_i,
+		denom_i,
 		start_position,
 		get_direction());	
 
