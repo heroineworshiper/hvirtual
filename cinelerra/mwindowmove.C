@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  * 
  */
 
+#include "asset.h"
 #include "clip.h"
 #include "cplayback.h"
 #include "cwindow.h"
@@ -669,12 +670,12 @@ int MWindow::next_edit_handle(int shift_down)
 		TimelinePane *pane = gui->get_focused_pane();
 		if(edl->local_session->get_selectionend(1) >= 
 			(double)edl->local_session->view_start[pane->number] *
-			edl->local_session->zoom_sample /
-			edl->session->sample_rate + 
-			pane->canvas->time_visible() ||
+			    edl->local_session->zoom_sample /
+			    edl->session->sample_rate + 
+			    pane->canvas->time_visible() ||
 			edl->local_session->get_selectionend(1) < (double)edl->local_session->view_start[pane->number] *
-			edl->local_session->zoom_sample /
-			edl->session->sample_rate)
+			    edl->local_session->zoom_sample /
+			    edl->session->sample_rate)
 		{
 			samplemovement((int64_t)(edl->local_session->get_selectionend(1) *
 				edl->session->sample_rate /
@@ -769,6 +770,72 @@ int MWindow::prev_edit_handle(int shift_down)
 	return 0;
 }
 
+
+
+void MWindow::find_asset()
+{
+    if(session->drag_assets->size())
+    {
+        Asset *asset = (Asset*)session->drag_assets->get(0);
+        int got_it = 0;
+        int x;
+        int y;
+        double new_position;
+// get 1st usage of the asset
+        for(Track *track = edl->tracks->first; track && !got_it; track = track->next)
+        {
+            for(Edit *edit = track->edits->first; edit; edit = edit->next)
+            {
+                if(edit->asset && edit->asset->id == asset->id)
+                {
+                    TimelinePane *pane = gui->get_focused_pane();
+                    got_it = 1;
+                    y = track->y_pixel;
+                    if(edl->local_session->track_start[pane->number] > y ||
+                        edl->local_session->track_start[pane->number] +
+                            pane->view_h < y + edl->local_session->zoom_track)
+                    {
+                        trackmovement(y - edl->local_session->track_start[pane->number], pane->number);
+                    }
+                    
+                    
+                    new_position = track->from_units(edit->startproject);
+                    edl->local_session->set_selectionend(new_position);
+                    edl->local_session->set_selectionstart(new_position);
+                    update_plugin_guis();
+		            if(new_position >= 
+			            (double)edl->local_session->view_start[pane->number] *
+			                edl->local_session->zoom_sample /
+			                edl->session->sample_rate + 
+			                pane->canvas->time_visible() ||
+			            new_position < (double)edl->local_session->view_start[pane->number] *
+			                edl->local_session->zoom_sample /
+			                edl->session->sample_rate)
+		            {
+			            samplemovement((int64_t)(new_position *
+				            edl->session->sample_rate /
+				            edl->local_session->zoom_sample - 
+				            pane->canvas->get_w() / 
+				            2),
+				            pane->number);
+			            cwindow->update(1, 0, 0, 0, 0);
+		            }
+		            else
+		            {
+			            gui->update_patchbay();
+			            gui->update_timebar(0);
+			            gui->hide_cursor(0);
+			            gui->draw_cursor(0);
+			            gui->zoombar->update();
+			            gui->flash_canvas(1);
+			            cwindow->update(1, 0, 0, 0, 1);
+		            }
+                    break;
+                }
+            }
+        }
+    }
+}
 
 
 

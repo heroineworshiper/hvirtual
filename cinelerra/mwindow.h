@@ -479,7 +479,9 @@ public:
 		ArrayList<Indexable*> *drag_assets /* mwindow->session->drag_assets */,
 		ArrayList<EDL*> *drag_clips /* mwindow->session->drag_clips */);
 	void remove_assets_from_disk(ArrayList<Indexable*> *assets);
-	void resize_track(Track *track, int w, int h);
+	void remove_unused();
+    void find_asset();
+    void resize_track(Track *track, int w, int h);
 	
 	void set_automation_mode(int mode);
 	void set_keyframe_type(int mode);

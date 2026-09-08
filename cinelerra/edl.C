@@ -1159,9 +1159,9 @@ void EDL::remove_from_project(ArrayList<Indexable*> *assets)
 // Remove from clips
 	if(!parent_edl)
     {
-		for(int j = 0; j < clips.total; j++)
+		for(int j = 0; j < clips.size(); j++)
 		{
-			clips.values[j]->remove_from_project(assets);
+			clips.get(j)->remove_from_project(assets);
 		}
     }
 
@@ -1188,6 +1188,31 @@ void EDL::remove_from_project(ArrayList<Indexable*> *assets)
 			this->nested_edls->remove_edl((EDL*)assets->get(i));
 		}
 	}
+}
+
+int EDL::is_used(Asset *asset)
+{
+	if(!parent_edl)
+    {
+		for(int j = 0; j < clips.size(); j++)
+		{
+			if(clips.get(j)->is_used(asset)) return 1;
+		}
+    }
+
+    for(Track *track = tracks->first;
+        track;
+        track = track->next)
+    {
+        for(Edit *edit = track->edits->first;
+            edit;
+            edit = edit->next)
+        {
+            if(edit->asset && edit->asset->id == asset->id)
+                return 1;
+        }
+    }
+    return 0;
 }
 
 void EDL::update_assets(EDL *src)

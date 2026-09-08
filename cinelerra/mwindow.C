@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3053,11 +3053,11 @@ void MWindow::update_project(int load_mode)
 
 void MWindow::rebuild_indices()
 {
-	for(int i = 0; i < session->drag_assets->total; i++)
+	for(int i = 0; i < session->drag_assets->size(); i++)
 	{
 	    string source_filename;
         string index_filename;
-        string path(session->drag_assets->values[i]->path);
+        string path(session->drag_assets->get(i)->path);
 //printf("MWindow::rebuild_indices 1 %s\n", session->drag_assets->values[i]->path);
 // Erase file
 		IndexFile::get_index_filename(&source_filename, 
@@ -3386,6 +3386,46 @@ void MWindow::remove_assets_from_disk(ArrayList<Indexable*> *assets)
 		1, 
 		assets,
 		0);
+}
+
+void MWindow::remove_unused()
+{
+    ArrayList<Indexable*> assets;
+    for(Asset *current = edl->assets->first; current; current = NEXT)
+    {
+        int got_it = 0;
+        got_it = edl->is_used(current);
+        if(!got_it) assets.append(current);
+    }
+
+    if(assets.size())
+    {
+        undo->update_undo_before();
+        for(int i = 0; i < assets.size(); i++)
+            edl->assets->remove_asset((Asset*)assets.get(i));
+        undo->update_undo_after(_("remove unused assets"), LOAD_ALL);
+
+        awindow->gui->put_event([](void *ptr)
+            {
+                AWindowGUI *gui = (AWindowGUI*)ptr;
+                gui->lock_window("MWindow::remove_unused");
+                gui->update_assets();
+                gui->unlock_window();
+            },
+            awindow->gui);
+    }
+    
+    int *x = new int[1];
+    *x = assets.size();
+    gui->put_event([](void *ptr)
+        {
+            char string[BCTEXTLEN];
+            int *x = (int*)ptr;
+            sprintf(string, "Removed %d assets", *x);
+            MWindow::instance->gui->show_message(string);
+            delete [] x;
+        },
+        x);
 }
 
 void MWindow::dump_plugins()

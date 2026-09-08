@@ -64,12 +64,19 @@ void AssetPopup::create_objects()
 	add_item(index = new AssetPopupBuildIndex(mwindow, this));
 	add_item(view = new AssetPopupView(mwindow, this));
 	add_item(view_window = new AssetPopupViewWindow(mwindow, this));
+	add_item(new AssetPopupFind(mwindow, this));
+
+    add_item(new BC_MenuItem("-"));
 	add_item(new AssetPopupPaste(mwindow, this));
 	add_item(new AssetMatchSize(mwindow, this));
 	add_item(new AssetMatchRate(mwindow, this));
 	add_item(new AssetMatchAll(mwindow, this));
+    
+    
+    add_item(new BC_MenuItem("-"));
 	add_item(new AssetPopupProjectRemove(mwindow, this));
 	add_item(new AssetPopupDiskRemove(mwindow, this));
+	add_item(new AssetPopupRemoveUnused(mwindow, this));
 }
 
 void AssetPopup::paste_assets()
@@ -417,13 +424,6 @@ AssetPopupProjectRemove::AssetPopupProjectRemove(MWindow *mwindow, AssetPopup *p
 	this->mwindow = mwindow;
 	this->popup = popup;
 }
-
-
-
-AssetPopupProjectRemove::~AssetPopupProjectRemove()
-{
-}
-
 int AssetPopupProjectRemove::handle_event()
 {
 	mwindow->remove_assets_from_project(1, 
@@ -443,18 +443,42 @@ AssetPopupDiskRemove::AssetPopupDiskRemove(MWindow *mwindow, AssetPopup *popup)
 	this->popup = popup;
 }
 
-
-AssetPopupDiskRemove::~AssetPopupDiskRemove()
-{
-}
-
-
 int AssetPopupDiskRemove::handle_event()
 {
 	mwindow->asset_remove->start(mwindow->session->drag_assets);
 	return 1;
 }
 
+
+AssetPopupRemoveUnused::AssetPopupRemoveUnused(MWindow *mwindow, AssetPopup *popup)
+ : BC_MenuItem(_("Remove unused from project"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int AssetPopupRemoveUnused::handle_event()
+{
+    mwindow->remove_unused();
+	return 1;
+}
+
+AssetPopupFind::AssetPopupFind(MWindow *mwindow, AssetPopup *popup)
+ : BC_MenuItem(_("Find in project"))
+{
+	this->mwindow = mwindow;
+	this->popup = popup;
+}
+
+int AssetPopupFind::handle_event()
+{
+    mwindow->gui->put_event([](void *ptr)
+        {
+            ((MWindow*)ptr)->find_asset();
+        },
+        mwindow);
+	return 1;
+}
 
 
 

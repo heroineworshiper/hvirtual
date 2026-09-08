@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -151,9 +150,7 @@ class AssetMatchRate : public BC_MenuItem
 {
 public:
 	AssetMatchRate(MWindow *mwindow, AssetPopup *popup);
-
 	int handle_event();
-
 	MWindow *mwindow;
 	AssetPopup *popup;
 };
@@ -162,9 +159,7 @@ class AssetMatchAll : public BC_MenuItem
 {
 public:
 	AssetMatchAll(MWindow *mwindow, AssetPopup *popup);
-
 	int handle_event();
-
 	MWindow *mwindow;
 	AssetPopup *popup;
 };
@@ -173,10 +168,7 @@ class AssetPopupProjectRemove : public BC_MenuItem
 {
 public:
 	AssetPopupProjectRemove(MWindow *mwindow, AssetPopup *popup);
-	~AssetPopupProjectRemove();
-
 	int handle_event();
-
 	MWindow *mwindow;
 	AssetPopup *popup;
 };
@@ -185,10 +177,25 @@ class AssetPopupDiskRemove : public BC_MenuItem
 {
 public:
 	AssetPopupDiskRemove(MWindow *mwindow, AssetPopup *popup);
-	~AssetPopupDiskRemove();
-
 	int handle_event();
+	MWindow *mwindow;
+	AssetPopup *popup;
+};
 
+class AssetPopupRemoveUnused : public BC_MenuItem
+{
+public:
+	AssetPopupRemoveUnused(MWindow *mwindow, AssetPopup *popup);
+	int handle_event();
+	MWindow *mwindow;
+	AssetPopup *popup;
+};
+
+class AssetPopupFind : public BC_MenuItem
+{
+public:
+	AssetPopupFind(MWindow *mwindow, AssetPopup *popup);
+	int handle_event();
 	MWindow *mwindow;
 	AssetPopup *popup;
 };

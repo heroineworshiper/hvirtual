@@ -56,7 +56,8 @@ public:
 	ResampleRTNum(ResampleRTWindow *window,
 		ResampleRT *plugin,
 		int x,
-		int y);
+		int y,
+        int w);
 	int handle_event();
 	ResampleRT *plugin;
 };
@@ -67,7 +68,8 @@ public:
 	ResampleRTDenom(ResampleRTWindow *window,
 		ResampleRT *plugin,
 		int x,
-		int y);
+		int y,
+        int w);
 	int handle_event();
 	ResampleRT *plugin;
 };
