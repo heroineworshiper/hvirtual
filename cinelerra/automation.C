@@ -135,6 +135,8 @@ int Automation::paste(int64_t start,
 
 	for(int i = 0; i < AUTOMATION_TOTAL; i++)
 	{
+//printf("Automation::paste %d %s %p %d\n", 
+//__LINE__, get_save_title(i), autos[i], autoconf->autos[i]);
 		if(file->tag.title_is(get_save_title(i)) && autos[i] && autoconf->autos[i])
 		{
 			autos[i]->paste(start, 

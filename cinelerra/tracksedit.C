@@ -1296,6 +1296,7 @@ void Tracks::paste_automation(double selectionstart,
 						dst_track = current_vtrack;
 					}
 
+//printf("Tracks::paste_automation %d dst_track=%p\n", __LINE__, dst_track);
 					if(dst_track)
 					{
 						double frame_rate2 = frame_rate;

@@ -88,6 +88,14 @@ int VTrack::copy_settings(Track *track)
 	return 0;
 }
 
+
+int VTrack::save_header(FileXML *file)
+{
+    file->tag.set_property("TYPE", "VIDEO");
+    return 0;
+}
+
+
 int VTrack::vertical_span(Theme *theme)
 {
 	int track_h = Track::vertical_span(theme);

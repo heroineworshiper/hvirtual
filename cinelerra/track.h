@@ -65,6 +65,7 @@ public:
     virtual Edits* new_edits();
 	virtual int load_defaults(BC_Hash *defaults);
 	int load(FileXML *file, int track_offset);
+// common fields for automation & edit copying
 	virtual int save_header(FileXML *file) { return 0; };
 	virtual int save_derived(FileXML *file) { return 0; };
 	virtual int load_header(FileXML *file) { return 0; };

@@ -1118,7 +1118,7 @@ int Track::paste_automation(double selectionstart,
 	length = to_units(total_length, 0);
 	result = 0;
 	current_pluginset = 0;
-//printf("Track::paste_automation 1\n");
+//printf("Track::paste_automation %d\n", __LINE__);
 
 	while(!result)
 	{
@@ -1126,6 +1126,7 @@ int Track::paste_automation(double selectionstart,
 
 		if(!result)
 		{
+//printf("Track::paste_automation %d %s\n", __LINE__, file->tag.get_title());
 			if(file->tag.title_is("/TRACK"))
 			{
             	result = 1;
@@ -1208,11 +1209,7 @@ int Track::copy(double start,
 
 
 	file->tag.set_title("TRACK");
-// save typing by not subclassing this
-    if(data_type == TRACK_AUDIO)
-        file->tag.set_property("TYPE", "AUDIO");
-    else
-        file->tag.set_property("TYPE", "VIDEO");
+    save_header(file);
 	file->tag.set_property("RECORD", record);
 	file->tag.set_property("NUDGE", nudge);
 	file->tag.set_property("PLAY", play);

@@ -85,6 +85,12 @@ int ATrack::copy_settings(Track *track)
 	return 0;
 }
 
+int ATrack::save_header(FileXML *file)
+{
+    file->tag.set_property("TYPE", "AUDIO");
+    return 0;
+}
+
 
 
 int ATrack::vertical_span(Theme *theme)

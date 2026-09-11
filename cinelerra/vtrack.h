@@ -53,6 +53,7 @@ public:
 	int64_t to_units(double position, int round);
 	double to_doubleunits(double position);
 	double from_units(int64_t position);
+    int save_header(FileXML *file);
 
 	void calculate_input_transfer(int asset_w, 
 		int asset_h, 
