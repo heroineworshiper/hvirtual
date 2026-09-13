@@ -115,8 +115,8 @@ VFrame* plugin_class::new_picon() \
 int plugin_class::load_configuration() \
 { \
 	KeyFrame *prev_keyframe, *next_keyframe; \
-	prev_keyframe = get_prev_keyframe(get_source_position()); \
-	next_keyframe = get_next_keyframe(get_source_position()); \
+	prev_keyframe = get_prev_keyframe(get_source_position(), 1); \
+	next_keyframe = get_next_keyframe(get_source_position(), 1); \
  \
  	int64_t next_position = edl_to_local(next_keyframe->position); \
  	int64_t prev_position = edl_to_local(prev_keyframe->position); \

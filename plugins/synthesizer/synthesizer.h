@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2010 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,6 +147,7 @@ class NoteScroll;
 class SynthWetness;
 class SynthNote;
 class SynthMomentary;
+class SynthSweep;
 
 class SynthWindow : public PluginClientWindow
 {
@@ -183,6 +183,7 @@ public:
 	BC_Title *note_titles[TOTALNOTES];
 	BC_Title *note_instructions;
 	SynthMomentary *momentary;
+    SynthSweep *sweep;
 	VFrame *white_key[5];
 	VFrame *black_key[5];
 	int y1;
@@ -200,6 +201,14 @@ class SynthMomentary : public BC_CheckBox
 {
 public:
 	SynthMomentary(SynthWindow *window, int x, int y, char *text);
+	int handle_event();
+	SynthWindow *window;
+};
+
+class SynthSweep : public BC_CheckBox
+{
+public:
+	SynthSweep(SynthWindow *window, int x, int y, char *text);
 	int handle_event();
 	SynthWindow *window;
 };
@@ -613,6 +622,7 @@ public:
 	int is_realtime();
 
 	float level;
+// 0 - 1
 	float phase;
 	float freq_factor;
 	int number;
@@ -642,6 +652,8 @@ public:
 	int wavefunction;        // SINE, SAWTOOTH, etc
 	ArrayList<SynthOscillatorConfig*> oscillator_config;
 	int momentary_notes;
+// frequency sweep or instant change
+    int sweep;
 };
 
 
@@ -675,9 +687,16 @@ public:
 	double get_oscillator_point(float x, 
 		double normalize_constant, 
 		int oscillator);
+	int overlay_synth(int64_t start,
+        int length, 
+		double freq0,
+        double slope,
+		double *output);
 	double solve_eqn(double *output, 
+        int64_t start,
 		int length,
-		double freq, 
+		double freq0, 
+        double slope,
 		double normalize_constant,
 		int oscillator);
 	double get_point(float x, double normalize_constant);
@@ -686,21 +705,14 @@ public:
 	double function_noise();
 	double function_sawtooth(double x);
 	double function_triangle(double x);
-	void reconfigure();
-	int overlay_synth(double freq,
-		int64_t length, 
-		double *input, 
-		double *output);
 	void update_gui();
 	void reset();
 
 
 
 	int window_w, window_h;
-	int need_reconfigure;
+    int piano_x;
 	DB db;
-// Samples since last reconfiguration
-	int64_t waveform_sample;
 };
 
 

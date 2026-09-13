@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,9 +74,10 @@ void AssetPopup::create_objects()
     
     
     add_item(new BC_MenuItem("-"));
+// same order as edit popup
+	add_item(new AssetPopupRemoveUnused(mwindow, this));
 	add_item(new AssetPopupProjectRemove(mwindow, this));
 	add_item(new AssetPopupDiskRemove(mwindow, this));
-	add_item(new AssetPopupRemoveUnused(mwindow, this));
 }
 
 void AssetPopup::paste_assets()

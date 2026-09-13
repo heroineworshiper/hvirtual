@@ -36,6 +36,7 @@ utilize fully by mere experimentation.
 * REVERSE VIDEO/AUDIO:: How to play regions in reverse.
 * SWAP FRAMES::       Fixing temporal field order
 * SWAP CHANNELS::     Route color channels to different channels & tracks
+* SYNTHESIZER::       Generate test tones
 * THRESHOLD::         How to get monochrome out of a region of the image.
 * TIME AVERAGE::      How to stack images.
 * TIME FRONT::        Select pixels to display based on time
@@ -937,7 +938,27 @@ perform different processing on each output track.  The alpha in 2
 overlapping tracks will accumulate, so you must mute the lower tracks to
 avoid this.
 
+@node SYNTHESIZER
+@section SYNTHESIZER
 
+This is based on the synthesizer effect in the original Sound Sculptor
+for Mac.  It was extended with a piano GUI for inputting note frequencies.
+
+Click in the piano GUI to set the frequency to a note.  Click drag to
+quickly change the frequency.  This is only useful when playing back. 
+Type alphanumeric keys to enter notes from the keyboard. 
+
+Press SHIFT or CTRL to overlay multiple notes.  Multiple notes are only
+indicated on the piano GUI.
+
+@b{momentary notes} If the timeline is playing back, this causes the
+frequency to be nonzero only if the mouse button is down on the piano
+GUI.  It doesn't work with the keyboard input or when not playing.  It's
+a simple way for the interface to play a some kind of music.
+
+@b{sweep frequency} This interpolates the frequency between the
+keyframes.  It's used for testing audio gear.  When deselected, the
+frequency is fixed to the previous keyframe.
 
 
 

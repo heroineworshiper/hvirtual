@@ -481,6 +481,9 @@ capitalist heard, started charging money for a ridulously simple program
 that converted scripts directly to movies.  It was such a simple
 program, we decided to add most of the functionality to Cinelerra.
 
+Years later, generative AI made it thoroughly obsolete so it was
+discontinued.
+
 The easiest way to make a movie is to copy @b{tests/text2movie} and
 @b{tests/text2movie.xml} as a starting point.  Load the
 @b{text2movie.xml} file to see the movie.

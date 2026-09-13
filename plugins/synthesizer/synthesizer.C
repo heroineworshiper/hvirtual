@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2017 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  */
+
 
 #include "bcdisplayinfo.h"
 #include "clip.h"
@@ -69,7 +70,6 @@ int Synth::is_synthesis() { return 1; }
 
 void Synth::reset()
 {
-	need_reconfigure = 1;
 }
 
 
@@ -105,8 +105,11 @@ void Synth::read_data(KeyFrame *keyframe)
 				{
 					window_w = input.tag.get_property("WINDOW_W", window_w);
 					window_h = input.tag.get_property("WINDOW_H", window_h);
+                    piano_x = input.tag.get_property("PIANO_X", piano_x);
 				}
 				config.momentary_notes = input.tag.get_property("MOMENTARY_NOTES", config.momentary_notes);
+                config.sweep = input.tag.get_property("SWEEP", config.sweep);
+                
 
 //printf("Synth::read_data %d %d %d\n", __LINE__, window_w, window_h);
 				for(int i = 0; i < MAX_FREQS; i++)
@@ -146,7 +149,9 @@ void Synth::save_data(KeyFrame *keyframe)
 	output.tag.set_property("WETNESS", config.wetness);
 	output.tag.set_property("WINDOW_W", window_w);
 	output.tag.set_property("WINDOW_H", window_h);
+	output.tag.set_property("PIANO_X", piano_x);
 	output.tag.set_property("MOMENTARY_NOTES", config.momentary_notes);
+	output.tag.set_property("SWEEP", config.sweep);
 
 	for(int i = 0; i < MAX_FREQS; i++)
 	{
@@ -222,8 +227,10 @@ double Synth::get_total_power()
 
 
 double Synth::solve_eqn(double *output, 
+    int64_t start,
 	int length,
-	double freq, 
+	double freq0, 
+    double slope,
 	double normalize_constant,
 	int oscillator)
 {
@@ -231,84 +238,62 @@ double Synth::solve_eqn(double *output,
 		this->config.oscillator_config.values[oscillator];
 	if(config->level <= INFINITYGAIN) return 0;
 
-	double result;
+    int64_t x = start;
+    double samplerate = get_samplerate();
 	double power = this->db.fromdb(config->level) * normalize_constant;
-// Period of fundamental frequency in samples
-	double orig_period = (double)get_samplerate() /
-		freq;
-// Starting sample in waveform
-	double x = waveform_sample;
-//printf("Synth::solve_eqn %d %f\n", __LINE__, config->phase);
-	double phase_offset = config->phase * orig_period;
-// Period of current oscillator
-	double period = orig_period / config->freq_factor;
+// current harmonic phase in radians
+	double phase_offset = config->phase * 2.0f * M_PI;
+// current harmonic frequency multiple
+    double freq_factor = config->freq_factor;
 	int sample;
 	double step = 1;
 	if(get_direction() == PLAY_REVERSE) step = -1;
 
-	switch(this->config.wavefunction)
-	{
-		case DC:
-			for(sample = 0; sample < length; sample++)
-			{
-				output[sample] += power;
-			}
-			break;
 
-		case SINE:
-			for(sample = 0; sample < length; sample++)
-			{
-				output[sample] += sin((x + phase_offset) / 
-					period * 
-					2 * 
-					M_PI) * power;
-				x += step;
-			}
-			break;
+    if(this->config.wavefunction == DC)
+    {
+		for(sample = 0; sample < length; sample++)
+		    output[sample] += power;
+    }
+    else
+    if(this->config.wavefunction == NOISE)
+    {
+		for(sample = 0; sample < length; sample++)
+		    output[sample] += function_noise() * power;
+    }
+    else
+    {
+		for(sample = 0; sample < length; sample++)
+		{
+            double t = (double)x / samplerate;
+// phase with sweep compensation
+            double phase = 2.0f * M_PI * (freq0 * t + .5f * slope * t * t);
+// apply harmonic
+            phase = freq_factor * phase + phase_offset;
 
-		case SAWTOOTH:
-			for(sample = 0; sample < length; sample++)
-			{
-				output[sample] += function_sawtooth((x + phase_offset) / 
-					period) * power;
-				x += step;
+            switch(this->config.wavefunction)
+            {
+        		case SINE:
+                    output[sample] += sin(phase) * power;
+                    break;
+		        case SAWTOOTH:
+				    output[sample] += function_sawtooth(phase / 2 / M_PI) * power;
+				    break;
+                case SQUARE:
+                    output[sample] += function_square(phase / 2 / M_PI) * power;
+                    break;
+                case TRIANGLE:
+                    output[sample] += function_triangle(phase / 2 / M_PI) * power;
+                    break;
+                case PULSE:
+                    output[sample] += function_pulse(phase / 2 / M_PI) * power;
+                    break;
 			}
-			break;
 
-		case SQUARE:
-			for(sample = 0; sample < length; sample++)
-			{
-				output[sample] += function_square((x + phase_offset) / 
-					period) * power;
-				x += step;
-			}
-			break;
+			x += step;
+		}
+    }
 
-		case TRIANGLE:
-			for(sample = 0; sample < length; sample++)
-			{
-				output[sample] += function_triangle((x + phase_offset) / 
-					period) * power;
-				x += step;
-			}
-			break;
-
-		case PULSE:
-			for(sample = 0; sample < length; sample++)
-			{
-				output[sample] += function_pulse((x + phase_offset) / 
-					period) * power;
-				x += step;
-			}
-			break;
-
-		case NOISE:
-			for(sample = 0; sample < length; sample++)
-			{
-				output[sample] += function_noise() * power;
-			}
-			break;
-	}
     return 0;
 }
 
@@ -388,10 +373,26 @@ int Synth::process_realtime(int64_t size,
 	Samples *output_ptr)
 {
 // sample relative to start of plugin
-	waveform_sample = get_source_position();
+	int64_t plugin_sample = get_source_position();
 
-	need_reconfigure |= load_configuration();
-	if(need_reconfigure) reconfigure();
+//	load_configuration();
+// load here to sweep frequency
+    KeyFrame *prev_keyframe = get_prev_keyframe(plugin_sample, 1);
+    KeyFrame *next_keyframe = get_next_keyframe(plugin_sample, 1);
+ 	int64_t prev_position = edl_to_local(prev_keyframe->position);
+ 	int64_t next_position = edl_to_local(next_keyframe->position);
+    SynthConfig prev_config;
+    SynthConfig next_config;
+    read_data(next_keyframe);
+    next_config.copy_from(config);
+// load last so prev goes in the mane config
+    read_data(prev_keyframe);
+    prev_config.copy_from(config);
+// sample relative to starting keyframe
+    int64_t waveform_sample = plugin_sample - prev_position;
+
+// printf("Synth::process_realtime %d waveform_sample=%d next_position=%d prev_position=%d\n", 
+// __LINE__, (int)waveform_sample, (int)next_position, (int)prev_position);
 
 	double wetness = DB::fromdb(config.wetness);
 	if(EQUIV(config.wetness, INFINITYGAIN)) wetness = 0;
@@ -405,40 +406,53 @@ int Synth::process_realtime(int64_t size,
 	{
 		if(!EQUIV(config.base_freq[j], 0))
 		{
+// test for frequency sweep
+            if(config.sweep &&
+                next_position != prev_position &&
+                !EQUIV(prev_config.base_freq[j], next_config.base_freq[j]))
+            {
+                double slope = (next_config.base_freq[j] - prev_config.base_freq[j]) * get_samplerate() /
+                    (double)(next_position - prev_position);
+// printf("Synth::process_realtime %d slope=%f %f %f\n", 
+// __LINE__, slope, prev_config.base_freq[j], next_config.base_freq[j]);
 
-// Compute fragment
-			overlay_synth(
-				config.base_freq[j],
-				size, 
-				input_ptr->get_data(), 
-				output_ptr->get_data());
+                overlay_synth(waveform_sample,
+				    size, 
+                    prev_config.base_freq[j],
+                    slope,
+				    output_ptr->get_data());
+            }
+            else
+            {
+			    overlay_synth(waveform_sample,
+				    size, 
+                    config.base_freq[j],
+                    0,
+				    output_ptr->get_data());
+            }
 	//printf("Synth::process_realtime 2\n");
 		}
 	}
 
-//	waveform_sample += size;	
 	return 0;
 }
 
-int Synth::overlay_synth(double freq,
-	int64_t length, 
-	double *input, 
+int Synth::overlay_synth(int64_t start,
+	int length, 
+    double freq0,
+    double slope,
 	double *output)
 {
 	double normalize_constant = 1.0 / get_total_power();
-	for(int i = 0; i < config.oscillator_config.total; i++)
+	for(int i = 0; i < config.oscillator_config.size(); i++)
 		solve_eqn(output, 
+            start,
 			length,
-			freq,
+			freq0,
+            slope,
 			normalize_constant,
 			i);
 	return length;
-}
-
-void Synth::reconfigure()
-{
-	need_reconfigure = 0;
-//	waveform_sample = 0;
 }
 
 int Synth::freq_exists(double freq)
@@ -468,8 +482,11 @@ void Synth::new_freq(double freq)
 
 	for(int i = 0; i < MAX_FREQS; i++)
 	{
-		if(EQUIV(config.base_freq[i], 0))
+		if(EQUIV(config.base_freq[i], 0) || config.base_freq[i] > freq)
 		{
+// shift higher frequencies back
+            for(int j = MAX_FREQS - 1; j > i; j--)
+                config.base_freq[j] = config.base_freq[j - 1];
 			config.base_freq[i] = freq;
 //printf("Synth::new_freq %d\n", __LINE__);
 			break;
@@ -484,7 +501,7 @@ void Synth::delete_freq(double freq)
 		if(EQUIV(config.base_freq[i], freq))
 		{
 //printf("Synth::delete_freq %d\n", __LINE__);
-// Shift frequencies back
+// Shift higher frequencies forward
 			for(int j = i; j < MAX_FREQS - 1; j++)
 			{
 				config.base_freq[j] = config.base_freq[j + 1];
@@ -726,6 +743,12 @@ void SynthWindow::create_objects()
 		_("Momentary notes")));
     y += momentary->get_h() + margin;
 
+	add_subwindow(sweep = new SynthSweep(this, 
+		x3, 
+		y, 
+		_("Sweep frequency")));
+    y += sweep->get_h() + margin;
+
 	add_subwindow(note_instructions = new BC_Title(
 		x3,
 		y,
@@ -789,7 +812,8 @@ void SynthWindow::update_gui()
 	waveform_to_text(string, synth->config.wavefunction);
 	waveform->set_text(string);
 	momentary->update(synth->config.momentary_notes);
-	
+	sweep->update(synth->config.sweep);
+
 	update_scrollbar();
 	update_oscillators();
 	canvas->update();
@@ -1070,6 +1094,22 @@ SynthMomentary::SynthMomentary(SynthWindow *window, int x, int y, char *text)
 int SynthMomentary::handle_event()
 {
 	window->synth->config.momentary_notes = get_value();
+	window->synth->send_configure_change();
+	return 1;
+}
+
+SynthSweep::SynthSweep(SynthWindow *window, int x, int y, char *text)
+ : BC_CheckBox(x, 
+	y, 
+	window->synth->config.sweep, 
+	text)
+{
+	this->window = window;
+}
+
+int SynthSweep::handle_event()
+{
+	window->synth->config.sweep = get_value();
 	window->synth->send_configure_change();
 	return 1;
 }
@@ -1465,7 +1505,7 @@ NoteScroll::NoteScroll(Synth *synth,
 	SCROLL_HORIZ,
 	w, 
 	window->white_key[0]->get_w() * TOTALNOTES * 7 / 12 + window->white_key[0]->get_w(), 
-	0, 
+	synth->piano_x, 
 	window->note_subwindow->get_w())
 {
 	this->synth = synth;
@@ -1478,6 +1518,7 @@ NoteScroll::~NoteScroll()
 
 int NoteScroll::handle_event()
 {
+    synth->piano_x = get_value();
 	window->update_notes();
 	return 1;
 }
@@ -2258,6 +2299,7 @@ void SynthConfig::reset()
 	}
 	
 	momentary_notes = 0;
+    sweep = 0;
 }
 
 int SynthConfig::equivalent(SynthConfig &that)
@@ -2268,7 +2310,8 @@ int SynthConfig::equivalent(SynthConfig &that)
 
 	if(wavefunction != that.wavefunction ||
 		oscillator_config.total != that.oscillator_config.total ||
-		momentary_notes != that.momentary_notes) return 0;
+		momentary_notes != that.momentary_notes || 
+        sweep != that.sweep) return 0;
 
 	for(int i = 0; i < oscillator_config.total; i++)
 	{
@@ -2286,6 +2329,7 @@ void SynthConfig::copy_from(SynthConfig& that)
 		base_freq[i] = that.base_freq[i];
 	wavefunction = that.wavefunction;
 	momentary_notes = that.momentary_notes;
+    sweep = that.sweep;
 
 	int i;
 	for(i = 0; 
@@ -2322,10 +2366,12 @@ void SynthConfig::interpolate(SynthConfig &prev,
 	double prev_scale = (double)(next_frame - current_frame) / (next_frame - prev_frame);
 
 	copy_from(prev);
-	wetness = (int)(prev.wetness * prev_scale + next.wetness * next_scale);
+//	wetness = (int)(prev.wetness * prev_scale + next.wetness * next_scale);
 //	base_freq = (int)(prev.base_freq * prev_scale + next.base_freq * next_scale);
 
 	momentary_notes = prev.momentary_notes;
+    sweep = prev.sweep;
+// TODO: interpolate frequencies for GUI
 }
 
 
