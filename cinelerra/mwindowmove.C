@@ -57,10 +57,13 @@ int MWindow::expand_sample()
 {
 	if(gui)
 	{
-		if(edl->local_session->zoom_sample < 0x100000)
+		if(edl->local_session->zoom_sample < MAX_ZOOM_TIME)
 		{
             int64_t prev_zoom_sample = edl->local_session->zoom_sample;
-			edl->local_session->zoom_sample *= 2;
+			if(EQUIV(edl->local_session->zoom_sample, MIN_ZOOM_TIME)) 
+                edl->local_session->zoom_sample = 1;
+            else
+    			edl->local_session->zoom_sample *= 2;
 			gui->zoombar->sample_zoom->update(edl->local_session->zoom_sample);
 			zoom_sample(prev_zoom_sample, edl->local_session->zoom_sample);
 		}
@@ -72,10 +75,12 @@ int MWindow::zoom_in_sample()
 {
 	if(gui)
 	{
-		if(edl->local_session->zoom_sample > 1)
+		if(edl->local_session->zoom_sample > MIN_ZOOM_TIME)
 		{
             int64_t prev_zoom_sample = edl->local_session->zoom_sample;
 			edl->local_session->zoom_sample /= 2;
+            if(edl->local_session->zoom_sample < 1)
+                edl->local_session->zoom_sample = MIN_ZOOM_TIME;
 			gui->zoombar->sample_zoom->update(edl->local_session->zoom_sample);
 			zoom_sample(prev_zoom_sample, edl->local_session->zoom_sample);
 		}
@@ -83,9 +88,9 @@ int MWindow::zoom_in_sample()
 	return 0;
 }
 
-int MWindow::zoom_sample(int64_t prev_zoom_sample, int64_t zoom_sample)
+int MWindow::zoom_sample(double prev_zoom_sample, double zoom_sample)
 {
-	CLIP(zoom_sample, 1, 0x100000);
+	CLIP(zoom_sample, MIN_ZOOM_TIME, MAX_ZOOM_TIME);
 	TimelinePane *focused_pane = gui->get_focused_pane();
 
 	edl->local_session->zoom_sample = zoom_sample;
@@ -170,10 +175,13 @@ void MWindow::fit_selection()
 		double total_samples = edl->tracks->total_length() * 
 			edl->session->sample_rate;
 		TimelinePane *pane = gui->get_focused_pane();
-		for(edl->local_session->zoom_sample = 1; 
+		for(edl->local_session->zoom_sample = MIN_ZOOM_TIME; 
 			pane->canvas->get_w() * edl->local_session->zoom_sample < total_samples; 
 			edl->local_session->zoom_sample *= 2)
-			;
+        {
+			if(EQUIV(edl->local_session->zoom_sample, MIN_ZOOM_TIME)) 
+                edl->local_session->zoom_sample = 0.5;
+        }
 	}
 	else
 	{
@@ -181,13 +189,16 @@ void MWindow::fit_selection()
 			edl->local_session->get_selectionstart(1)) * 
 			edl->session->sample_rate;
 		TimelinePane *pane = gui->get_focused_pane();
-		for(edl->local_session->zoom_sample = 1; 
+		for(edl->local_session->zoom_sample = MIN_ZOOM_TIME; 
 			pane->canvas->get_w() * edl->local_session->zoom_sample < total_samples; 
 			edl->local_session->zoom_sample *= 2)
-			;
+        {
+			if(EQUIV(edl->local_session->zoom_sample, MIN_ZOOM_TIME)) 
+                edl->local_session->zoom_sample = 0.5;
+        }
 	}
 
-	edl->local_session->zoom_sample = MIN(0x100000, 
+	edl->local_session->zoom_sample = MIN(MAX_ZOOM_TIME, 
 		edl->local_session->zoom_sample);
 	zoom_sample(prev_zoom_sample, edl->local_session->zoom_sample);
 }

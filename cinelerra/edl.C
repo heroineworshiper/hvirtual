@@ -896,10 +896,8 @@ int EDL::trim_selection(double start,
 int EDL::equivalent(double position1, double position2)
 {
 	double threshold = (double).5 / session->frame_rate;
-	if(session->cursor_on_frames) 
-		threshold = (double).5 / session->frame_rate;
-	else
-		threshold = (double)1 / session->sample_rate;
+	if(!session->cursor_on_frames) 
+		threshold = (double).5 / session->sample_rate;
 
 	if(fabs(position2 - position1) < threshold)
     	return 1;
@@ -1624,22 +1622,22 @@ void EDL::get_shared_tracks(Track *track,
 	}
 }
 
-// Convert position to frames if cursor alignment is enabled
+// Convert position in seconds to frames if cursor alignment is enabled
 double EDL::align_to_frame(double position, int round)
 {
+// Assert some things
+	if(session->sample_rate == 0)
+		printf("EDL::align_to_frame: sample_rate == 0\n");
+
+	if(session->frame_rate == 0)
+		printf("EDL::align_to_frame: frame_rate == 0\n");
+
 //printf("EDL::align_to_frame 1 %f\n", position);
 	if(session->cursor_on_frames)
 	{
 // Seconds -> Frames
-		double temp = (double)position * session->frame_rate;
+		double temp = position * session->frame_rate;
 //printf("EDL::align_to_frame 2 %f\n", temp);
-
-// Assert some things
-		if(session->sample_rate == 0)
-			printf("EDL::align_to_frame: sample_rate == 0\n");
-
-		if(session->frame_rate == 0)
-			printf("EDL::align_to_frame: frame_rate == 0\n");
 
 // Round frames
 // Always round down negative numbers
@@ -1666,6 +1664,23 @@ double EDL::align_to_frame(double position, int round)
 
 		return temp;
 	}
+    else
+    {
+// align to samples if sub sample zoom
+// Seconds -> Samples
+		double temp = position * session->sample_rate;
+        if(round) 
+		{
+			temp = Units::round(temp);
+		}
+		else
+		{
+            temp = Units::to_int64(temp);
+        }
+// Samples -> Seconds
+		temp /= session->sample_rate;
+        return temp;
+    }
 //printf("EDL::align_to_frame 3 %d\n", position);
 
 

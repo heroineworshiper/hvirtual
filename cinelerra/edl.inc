@@ -111,7 +111,8 @@ class EDL;
 #define CWINDOW_MASK_TRANSLATE 0x17
 
 // Inclusive limits for zoom panel
-#define MIN_ZOOM_TIME 1
+#define MIN_ZOOM_TIME (1.0f/16)
+#define MIN_ZOOM_TEXT "1/16"
 #define MAX_ZOOM_TIME 0x100000
 #define MIN_AMP_ZOOM 8
 #define MAX_AMP_ZOOM 262144

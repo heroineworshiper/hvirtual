@@ -99,7 +99,7 @@ public:
 
 
 // Zooming of the timeline.  Number of samples per pixel.  
-	int64_t zoom_sample;
+	double zoom_sample;
 // Amplitude zoom
 	int64_t zoom_y;
 // Track zoom

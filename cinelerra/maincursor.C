@@ -117,14 +117,14 @@ void MainCursor::draw(int do_plugintoggles)
 		zoom_sample = mwindow->edl->local_session->zoom_sample;
 //printf("MainCursor::draw %f %f\n", selectionstart, selectionend);
 
-		pixel1 = Units::to_int64((selectionstart * 
+		pixel1 = Units::to_int64(selectionstart * 
 			mwindow->edl->session->sample_rate / 
 			zoom_sample - 
-			view_start));
-		pixel2 = Units::to_int64((selectionend *
+			view_start);
+		pixel2 = Units::to_int64(selectionend *
 			mwindow->edl->session->sample_rate / 
 			zoom_sample - 
-			view_start));
+			view_start);
 		if(pixel1 < -10) pixel1 = -10;
 		if(pixel2 > pane->canvas->get_w() + 10) 
 			pixel2 = pane->canvas->get_w() + 10;

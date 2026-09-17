@@ -1,4 +1,3 @@
-
 /*
  * CINELERRA
  * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
@@ -52,7 +51,7 @@ public:
 	TimelinePane *pane;
 	int visible;
 	double selectionstart, selectionend;
-	int64_t zoom_sample;
+	double zoom_sample;
 	double view_start;
 	int64_t pixel2, pixel1;
 	int active;

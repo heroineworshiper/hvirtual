@@ -31,7 +31,7 @@ class ZoomTumbler;
 
 #define ZOOM_PERCENTAGE 0
 #define ZOOM_FLOAT 1
-#define ZOOM_TIME 2
+//#define ZOOM_TIME 2
 #define ZOOM_LONG 3
 
 class ZoomHash

@@ -147,6 +147,8 @@ void MTimeBar::draw_time()
 		sample_rate;
 // Seconds in each frame
 	double frame_seconds = (double)1.0 / frame_rate;
+// Seconds in each sample
+    double sample_seconds = (double)1.0 / sample_rate;
 //printf("MTimeBar::draw_time %d frame_seconds=%f\n", __LINE__, frame_seconds);
 
 // Starting time of view in seconds.
@@ -231,9 +233,9 @@ void MTimeBar::draw_time()
         while(start_position + frame_seconds * step < view_end)
         {
             double tick_position = start_position + frame_seconds * step;
-//printf("MTimeBar::draw_time %d %f\n", __LINE__, tick_position1);
 		    int pixel = (int64_t)(tick_position / pixel_seconds) - 
 			    mwindow->edl->local_session->view_start[pane->number];
+//printf("MTimeBar::draw_time %d %f\n", __LINE__, tick_position1);
 
 // draw every frame
             if(frame_seconds / pixel_seconds > TICK_SPACING)
@@ -310,11 +312,12 @@ void MTimeBar::draw_time()
 		    mwindow->edl->local_session->zoom_sample /
 		    sample_rate;
 
-
+//printf("MTimeBar::draw_time %d min_time=%f zoom_sample=%f\n", 
+//__LINE__, min_time, mwindow->edl->local_session->zoom_sample);
 
 	    int progression = 1;
 
-    // Default text spacing
+// Default text spacing
 	    text_interval = 0.5;
 	    double prev_text_interval = 1.0;
 
@@ -534,7 +537,15 @@ void MTimeBar::draw_time()
 			    if(frame_seconds / pixel_seconds > TICK_SPACING)
 				    tick_interval = frame_seconds;
 			    break;
+            case TIME_SAMPLES:
+            case TIME_SAMPLES_HEX:
+                if(EQUIV(mwindow->edl->local_session->zoom_sample, MIN_ZOOM_TIME))
+                {
+                    tick_interval = sample_seconds;
+                }
+                break;
 	    }
+
 // Get first text mark on or before window start
 	    int64_t starting_mark = 0;
 	    starting_mark = (int64_t)((double)mwindow->edl->local_session->view_start[pane->number] * 
@@ -549,7 +560,16 @@ void MTimeBar::draw_time()
 	    while(start_position + text_interval * step < view_end)
 	    {
 		    double position1 = start_position + text_interval * step;
+
+// HACK: make text line up on whole samples
+            if(EQUIV(mwindow->edl->local_session->zoom_sample, MIN_ZOOM_TIME))
+            {
+                position1 = Units::round(position1 / tick_interval) * tick_interval;
+            }
+
             double tick_position1 = position1;
+//printf("MTimeBar::draw_time %d position1=%f %f %f\n", 
+//__LINE__, position1, position1 / tick_interval, text_interval / tick_interval);
 
     // Align the tick marks on frames while keeping the text the same
 //             if(time_format == TIME_HMSF)
@@ -600,11 +620,16 @@ void MTimeBar::draw_time()
 		    draw_line(pixel, LINE_MARGIN, pixel, get_h() - 2);
 
 		    double position2 = start_position + text_interval * (step + 1);
+// HACK: make text line up on whole samples
+            if(EQUIV(mwindow->edl->local_session->zoom_sample, MIN_ZOOM_TIME))
+            {
+                position2 = Units::round(position2 / tick_interval) * tick_interval;
+            }
 		    int pixel2 = (int64_t)(position2 / pixel_seconds) - 
 			    mwindow->edl->local_session->view_start[pane->number];
 
 		    for(double tick_position = position1; 
-			    tick_position < position2; 
+			    tick_position < position2;
 			    tick_position += tick_interval)
 		    {
                 double tick_position1 = tick_position;
@@ -625,7 +650,9 @@ void MTimeBar::draw_time()
 			    if(labs(pixel - pixel1) > 1 &&
 				    labs(pixel - pixel2) > 1)
                 {
-    //if(pixel < 100) printf("MTimeBar::draw_time %d %d\n", __LINE__, (int)pixel);
+//printf("MTimeBar::draw_time %d %d %d\n", __LINE__, (int)pixel, (int)pixel2);
+//printf("MTimeBar::draw_time %d tick_position1/tick_interval=%f pixel_seconds=%f pixel=%d\n", 
+//__LINE__, tick_position1 / tick_interval, pixel_seconds, (int)pixel);
 				    draw_line(pixel, TICK_MARGIN, pixel, get_h() - 2);
                 }
 		    }

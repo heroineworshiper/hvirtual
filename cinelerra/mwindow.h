@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -241,7 +241,7 @@ public:
 	int reposition_timebar(int new_pixel, int new_height);
 	int expand_sample();
 	int zoom_in_sample();
-	int zoom_sample(int64_t prev_zoom_sample, int64_t zoom_sample);
+	int zoom_sample(double prev_zoom_sample, double zoom_sample);
 	void zoom_amp(int64_t zoom_amp);
 	void zoom_track(int64_t zoom_track);
 	int fit_sample();

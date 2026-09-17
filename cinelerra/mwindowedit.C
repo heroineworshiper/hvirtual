@@ -364,8 +364,10 @@ void MWindow::clear(int clear_handle, int deglitch)
 	double start = edl->local_session->get_selectionstart();
 	double end = edl->local_session->get_selectionend();
 // start & end must be different or we must be clearing a handle
-	if(clear_handle || !EQUIV(start, end))
+	if(clear_handle || 
+        fabs(start - end) < .5f / edl->session->sample_rate)
 	{
+//printf("MWindow::clear %d %d %f %f\n", __LINE__, clear_handle, start, end);
 		edl->clear(start, 
 			end, 
 			edl->session->labels_follow_edits, 

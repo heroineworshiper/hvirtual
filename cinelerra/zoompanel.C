@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2025 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -136,6 +136,11 @@ void ZoomPanel::calculate_menu()
             const char *text = value_to_text(zoom, 0, 0);
 			zoom_text->add_item(new BC_MenuItem(text));
 			zoom_table.append(new ZoomHash(zoom, text));
+// skip fractions for sub sample zoom
+            if(zoom < 1)
+            {
+                zoom = .5;
+            }
 		}
 	}
 }
@@ -224,11 +229,11 @@ void ZoomPanel::update(const char *value)
 const char* ZoomPanel::value_to_text(double value, int use_table, int force_int)
 {
 // want the power of 2 in the title & the time text in the popup menu
-    if(zoom_type == ZOOM_TIME && force_int)
-    {
-        sprintf(string, "%ld", (long)value);
-        return string;
-    }
+//     if(zoom_type == ZOOM_TIME && force_int)
+//     {
+//         sprintf(string, "%ld", (long)value);
+//         return string;
+//     }
 
 	if(use_table)
 	{
@@ -251,37 +256,45 @@ const char* ZoomPanel::value_to_text(double value, int use_table, int force_int)
 			break;
 
 		case ZOOM_LONG:
-			sprintf(string, "%ld", (long)value);
+// hack for sub sample zoom
+            if(EQUIV(value, MIN_ZOOM_TIME))
+                sprintf(string, "%s", MIN_ZOOM_TEXT);
+            else
+    			sprintf(string, "%ld", (long)value);
 			break;
 
-		case ZOOM_TIME:
-		{
-//			sprintf(string, "%ld", (long)value);
- 			double total_seconds = (double)(mwindow->theme->mcanvas_w - 
-					mwindow->theme->patchbay_w -
-					BC_ScrollBar::get_span(SCROLL_VERT)) * 
- 				value / 
- 				mwindow->edl->session->sample_rate;
- 			Units::totext(string, 
- 				total_seconds, 
-				mwindow->edl->session->time_format, 
- 				mwindow->edl->session->sample_rate, 
- 				mwindow->edl->session->frame_rate, 
- 				mwindow->edl->session->frames_per_foot);
-			break;
-		}
+// 		case ZOOM_TIME:
+// 		{
+// //			sprintf(string, "%ld", (long)value);
+//  			double total_seconds = (double)(mwindow->theme->mcanvas_w - 
+// 					mwindow->theme->patchbay_w -
+// 					BC_ScrollBar::get_span(SCROLL_VERT)) * 
+//  				value / 
+//  				mwindow->edl->session->sample_rate;
+//  			Units::totext(string, 
+//  				total_seconds, 
+// 				mwindow->edl->session->time_format, 
+//  				mwindow->edl->session->sample_rate, 
+//  				mwindow->edl->session->frame_rate, 
+//  				mwindow->edl->session->frames_per_foot);
+// 			break;
+// 		}
 	}
 	return string;
 }
 
 double ZoomPanel::text_to_zoom(char *text, int use_table)
 {
+//    printf("ZoomPanel::text_to_zoom %d %s %d %d\n", 
+//        __LINE__, text, use_table, zoom_table.size());
 	if(use_table)
 	{
-		for(int i = 0; i < zoom_table.total; i++)
+		for(int i = 0; i < zoom_table.size(); i++)
 		{
-			if(!strcasecmp(text, zoom_table.values[i]->text))
-				return zoom_table.values[i]->value;
+//            printf("ZoomPanel::text_to_zoom %d %s %s %f\n", 
+//                __LINE__, text, zoom_table.get(i)->text, zoom_table.get(i)->value);
+			if(!strcasecmp(text, zoom_table.get(i)->text))
+				return zoom_table.get(i)->value;
 		}
 		return zoom_table.values[0]->value;
 	}
@@ -294,29 +307,33 @@ double ZoomPanel::text_to_zoom(char *text, int use_table)
 		case ZOOM_FLOAT:
 		case ZOOM_LONG:
 //		case ZOOM_TIME:
+// sub sample zoom
+            if(!strcmp(text, MIN_ZOOM_TEXT)) return MIN_ZOOM_TIME;
 			return atof(text);
 			break;
-		case ZOOM_TIME:
-		{
-			double result = 1;
-			double total_samples = Units::fromtext(text, 
-				mwindow->edl->session->sample_rate, 
-				mwindow->edl->session->time_format, 
-				mwindow->edl->session->frame_rate,
-				mwindow->edl->session->frames_per_foot);
-			total_samples /= mwindow->theme->mcanvas_w - 
-				mwindow->theme->patchbay_w -
-				BC_ScrollBar::get_span(SCROLL_VERT);
-			double difference = fabs(total_samples - result);
-			while(fabs(result - total_samples) <= difference)
-			{
-				difference = fabs(result - total_samples);
-				result *= 2;
-			}
-			return result;
-			break;
-		}
+// 		case ZOOM_TIME:
+// 		{
+// 			double result = 1;
+// 			double total_samples = Units::fromtext(text, 
+// 				mwindow->edl->session->sample_rate, 
+// 				mwindow->edl->session->time_format, 
+// 				mwindow->edl->session->frame_rate,
+// 				mwindow->edl->session->frames_per_foot);
+// 			total_samples /= mwindow->theme->mcanvas_w - 
+// 				mwindow->theme->patchbay_w -
+// 				BC_ScrollBar::get_span(SCROLL_VERT);
+// 			double difference = fabs(total_samples - result);
+// 			while(fabs(result - total_samples) <= difference)
+// 			{
+// 				difference = fabs(result - total_samples);
+// 				result *= 2;
+// 			}
+// 			return result;
+// 			break;
+// 		}
 	}
+
+//    printf("ZoomPanel::text_to_zoom %d text %s not found\n", __LINE__, text);
     return 0;
 }
 
@@ -380,7 +397,10 @@ int ZoomTumbler::handle_up_event()
 	}
 	else
 	{
-		panel->value *= 2;
+        if(EQUIV(panel->value, MIN_ZOOM_TIME)) 
+            panel->value = 1;
+		else
+            panel->value *= 2;
 		RECLIP(panel->value, panel->min, panel->max);
 	}
 
@@ -403,6 +423,7 @@ int ZoomTumbler::handle_down_event()
 	else
 	{
 		panel->value /= 2;
+        if(panel->value < 1 && EQUIV(panel->min, MIN_ZOOM_TIME)) panel->value = MIN_ZOOM_TIME;
 		RECLIP(panel->value, panel->min, panel->max);
 	}
 	panel->zoom_text->set_text(panel->value_to_text(panel->value, 1, 1));

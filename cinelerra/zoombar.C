@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 1997-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 1997-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -354,7 +354,7 @@ SampleZoomPanel::SampleZoomPanel(MWindow *mwindow,
 int SampleZoomPanel::handle_event()
 {
 	mwindow->zoom_sample(mwindow->edl->local_session->zoom_sample,
-        (int64_t)get_value());
+        get_value());
 	return 1;
 }
 

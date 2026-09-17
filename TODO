@@ -7,7 +7,6 @@ https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35k
 
 BIG WISHLIST:
 -----------------------------------
-Sub sample zoom to access single sample plugins & runt edits.
 Y zoom, clear, don't create keyframe from selection in spectrogram
 Resource window upgrades
  - possibly a previewer in the resource window
@@ -23,6 +22,7 @@ Config window for screencap which specifies X & Y offset
 
 BIG BUGS
 -----------------------------------
+record showing JPEG compressor for all still photos
 can't load with replace when an index file is being built
  - intermittently waits for the index file to finish.  Not reproducible.
 record not reliably pasting readable file in timeline
