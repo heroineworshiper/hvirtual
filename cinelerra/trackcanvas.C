@@ -1187,6 +1187,16 @@ void TrackCanvas::plugin_dimensions(Plugin *plugin,
 		mwindow->edl->session->sample_rate / 
 		mwindow->edl->local_session->zoom_sample);
 	h = plugin_h;
+// printf("TrackCanvas::plugin_dimensions %d %f %f %f %ld\n",
+// __LINE__, 
+// plugin->track->from_units(plugin->startproject),
+// plugin->track->from_units(plugin->startproject) * 
+//     mwindow->edl->session->sample_rate,
+// plugin->track->from_units(plugin->startproject) * 
+//     mwindow->edl->session->sample_rate / 
+// 	mwindow->edl->local_session->zoom_sample,
+// (long)x);
+
 
     y += plugin_margin + plugin->plugin_set->get_number() * plugin_h;
 
@@ -1580,12 +1590,18 @@ void TrackCanvas::draw_plugins()
 				{
 					int64_t total_x, y, total_w, h;
 					plugin_dimensions(plugin, total_x, y, total_w, h);
+// printf("TrackCanvas::do_plugins %d %ld %ld %ld %ld\n",
+// __LINE__,
+// (long)total_x, (long)y, (long)total_w, (long)h);
 
 					if(MWindowGUI::visible(total_x, total_x + total_w, 0, get_w()) &&
 						MWindowGUI::visible(y, y + h, 0, get_h()) &&
 						plugin->plugin_type != PLUGIN_NONE)
 					{
-						int x = total_x, w = total_w;
+						int64_t x = total_x;
+                        int64_t w = total_w;
+                        int64_t total_x2 = total_x;
+                        int64_t total_w2 = total_w;
                         int top_margin = 2;
                         int left_margin = 5;
 						int right_margin = 5;
@@ -1593,14 +1609,21 @@ void TrackCanvas::draw_plugins()
 						{
 							w -= -x;
 							x = 0;
+                            total_w2 -= -(total_x2 - 5);
+                            total_x2 = -5;
 						}
 						if(w + x > get_w()) w -= (w + x) - get_w();
+                        if(total_w2 + total_x2 > get_w() + 5) 
+                            total_w2 -= (total_w2 + total_x2) - get_w() - 5;
 
+//printf("TrackCanvas::do_plugins %d %ld %ld %ld %ld\n",
+//__LINE__,
+//(long)x, (long)w, (long)total_x, (long)total_w);
 						draw_3segmenth(x, 
 							y, 
 							w, 
-							total_x,
-							total_w,
+							total_x2,
+							total_w2,
 							mwindow->theme->get_image("plugin_bg_data"),
 							0);
 						set_color(mwindow->theme->title_color);
@@ -1633,7 +1656,7 @@ void TrackCanvas::draw_plugins()
 
 
 // Update plugin toggles
-						int toggle_x = total_x + total_w;
+						int64_t toggle_x = total_x + total_w;
 						int toggle_y = y;
 						toggle_x = MIN(get_w() - right_margin, toggle_x);
 
@@ -2716,16 +2739,18 @@ int TrackCanvas::test_floatline(int center_pixel,
 	FloatAuto *previous1 = 0, *next1 = 0;
 	X_TO_FLOATLINE(cursor_x);
 
+//printf("TrackCanvas::test_floatline %d cursor_y=%d y=%d\n", 
+//__LINE__, cursor_y, y);
 	if(cursor_x >= x1 && 
 		cursor_x < x2 &&
-        y >= center_pixel - yscale / 2 && 
-        y < center_pixel + yscale / 2 - 1 &&
+        cursor_y >= center_pixel - yscale / 2 &&
+        cursor_y < center_pixel + yscale / 2 &&
 		cursor_y >= y - HANDLE_W / 2 && 
 		cursor_y < y + HANDLE_W / 2 &&
 		!ctrl_down())
 	{
 		result = 1;
-
+printf("TrackCanvas::test_floatline %d\n", __LINE__);
 // Menu
 		if(buttonpress == 3)
 		{

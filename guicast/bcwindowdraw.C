@@ -1363,33 +1363,36 @@ void BC_WindowBase::draw_3segmenth(int x,
 		pixmap);
 }
 
-void BC_WindowBase::draw_3segmenth(int x, 
-		int y, 
-		int w, 
-		int total_x,
-		int total_w,
+void BC_WindowBase::draw_3segmenth(int64_t x, 
+		int64_t y, 
+		int64_t w, 
+		int64_t total_x,
+		int64_t total_w,
 		VFrame *image,
 		BC_Pixmap *pixmap)
 {
 	if(total_w <= 0 || w <= 0 || h <= 0) return;
 	int third_image = image->get_w() / 3;
 	int half_image = image->get_w() / 2;
-	int left_boundary = third_image;
-	int right_boundary = total_w - third_image;
-	int left_in_x = 0;
-	int left_in_w = third_image;
-	int left_out_x = total_x;
-	int left_out_w = third_image;
-	int right_in_x = image->get_w() - third_image;
-	int right_in_w = third_image;
-	int right_out_x = total_x + total_w - third_image;
-	int right_out_w = third_image;
-	int center_out_x = total_x + third_image;
-	int center_out_w = total_w - third_image * 2;
-	int image_x, image_w;
+	int64_t left_in_x = 0;
+	int64_t left_in_w = third_image;
+	int64_t left_out_x = total_x;
+	int64_t left_out_w = third_image;
+	int64_t right_in_x = image->get_w() - third_image;
+	int64_t right_in_w = third_image;
+	int64_t right_out_x = total_x + total_w - third_image;
+	int64_t right_out_w = third_image;
+	int64_t center_out_x = total_x + third_image;
+	int64_t center_out_w = total_w - third_image * 2;
 
-//printf("BC_WindowBase::draw_3segment 1 left_out_x=%d left_out_w=%d center_out_x=%d center_out_w=%d right_out_x=%d right_out_w=%d\n", 
-//	left_out_x, left_out_w, center_out_x, center_out_w, right_out_x, right_out_w);
+// printf("BC_WindowBase::draw_3segment %d left_out_x=%ld left_out_w=%ld center_out_x=%ld center_out_w=%ld right_out_x=%ld right_out_w=%ld\n", 
+// __LINE__,
+// (long)left_out_x, 
+// (long)left_out_w, 
+// (long)center_out_x, 
+// (long)center_out_w, 
+// (long)right_out_x, 
+// (long)right_out_w);
 
 	if(left_out_x < x)
 	{
@@ -1446,8 +1449,14 @@ void BC_WindowBase::draw_3segmenth(int x,
 		image->get_h());
 
 
-//printf("BC_WindowBase::draw_3segment 2 left_out_x=%d left_out_w=%d center_out_x=%d center_out_w=%d right_out_x=%d right_out_w=%d\n", 
-//	left_out_x, left_out_w, center_out_x, center_out_w, right_out_x, right_out_w);
+// printf("BC_WindowBase::draw_3segment %d left_out_x=%ld left_out_w=%ld center_out_x=%ld center_out_w=%ld right_out_x=%ld right_out_w=%ld\n", 
+// __LINE__,
+// (long)left_out_x, 
+// (long)left_out_w, 
+// (long)center_out_x, 
+// (long)center_out_w, 
+// (long)right_out_x, 
+// (long)right_out_w);
 	if(left_out_w > 0)
 	{
 		draw_bitmap(temp_bitmap, 
@@ -1508,11 +1517,11 @@ void BC_WindowBase::draw_3segmenth(int x,
 
 
 
-void BC_WindowBase::draw_3segmenth(int x, 
-		int y, 
-		int w, 
-		int total_x,
-		int total_w,
+void BC_WindowBase::draw_3segmenth(int64_t x, 
+		int64_t y, 
+		int64_t w, 
+		int64_t total_x,
+		int64_t total_w,
 		BC_Pixmap *src,
 		BC_Pixmap *dst)
 {
@@ -1520,19 +1529,16 @@ void BC_WindowBase::draw_3segmenth(int x,
 	if(!src) printf("BC_WindowBase::draw_3segmenth src=0\n");
 	int quarter_src = src->get_w() / 4;
 	int half_src = src->get_w() / 2;
-	int left_boundary = quarter_src;
-	int right_boundary = total_w - quarter_src;
-	int left_in_x = 0;
-	int left_in_w = quarter_src;
-	int left_out_x = total_x;
-	int left_out_w = quarter_src;
-	int right_in_x = src->get_w() - quarter_src;
-	int right_in_w = quarter_src;
-	int right_out_x = total_x + total_w - quarter_src;
-	int right_out_w = quarter_src;
-	int center_out_x = total_x + quarter_src;
-	int center_out_w = total_w - quarter_src * 2;
-	int src_x, src_w;
+	int64_t left_in_x = 0;
+	int64_t left_in_w = quarter_src;
+	int64_t left_out_x = total_x;
+	int64_t left_out_w = quarter_src;
+	int64_t right_in_x = src->get_w() - quarter_src;
+	int64_t right_in_w = quarter_src;
+	int64_t right_out_x = total_x + total_w - quarter_src;
+	int64_t right_out_w = quarter_src;
+	int64_t center_out_x = total_x + quarter_src;
+	int64_t center_out_w = total_w - quarter_src * 2;
 
 //printf("BC_WindowBase::draw_3segment 1 left_out_x=%d left_out_w=%d center_out_x=%d center_out_w=%d right_out_x=%d right_out_w=%d\n", 
 //	left_out_x, left_out_w, center_out_x, center_out_w, right_out_x, right_out_w);
@@ -1634,8 +1640,6 @@ void BC_WindowBase::draw_3segmenth(int x,
 	if(w <= 0) return;
 	int third_image = src->get_w() / 3;
 	int half_output = w / 2;
-	int left_boundary = third_image;
-	int right_boundary = w - third_image;
 	int left_in_x = 0;
 	int left_in_w = third_image;
 	int left_out_x = x;
@@ -1644,7 +1648,6 @@ void BC_WindowBase::draw_3segmenth(int x,
 	int right_in_w = third_image;
 	int right_out_x = x + w - third_image;
 	int right_out_w = third_image;
-	int image_x, image_w;
 
 //printf("BC_WindowBase::draw_3segment 1 left_out_x=%d left_out_w=%d center_out_x=%d center_out_w=%d right_out_x=%d right_out_w=%d\n", 
 //	left_out_x, left_out_w, center_out_x, center_out_w, right_out_x, right_out_w);
@@ -1725,8 +1728,6 @@ void BC_WindowBase::draw_3segmentv(int x,
 	if(h <= 0) return;
 	int third_image = src->get_h() / 3;
 	int half_output = h / 2;
-	int left_boundary = third_image;
-	int right_boundary = h - third_image;
 	int left_in_y = 0;
 	int left_in_h = third_image;
 	int left_out_y = y;
@@ -1831,8 +1832,6 @@ void BC_WindowBase::draw_3segmentv(int x,
 	if(h <= 0) return;
 	int third_image = src->get_h() / 3;
 	int half_output = h / 2;
-	int left_boundary = third_image;
-	int right_boundary = h - third_image;
 	int left_in_y = 0;
 	int left_in_h = third_image;
 	int left_out_y = y;

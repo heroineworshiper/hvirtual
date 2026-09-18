@@ -320,7 +320,7 @@ void ResourcePixmap::draw_title(TrackCanvas *canvas,
 		
 // Justify the text on the left boundary of the edit if it is visible.
 // Otherwise justify it on the left side of the screen.
-		int text_x = total_x + left_margin;
+		int64_t text_x = total_x + left_margin;
 		text_x = MAX(left_margin, text_x);
 //printf("ResourcePixmap::draw_title 1 %d\n", text_x);
 		canvas->draw_text(text_x, 

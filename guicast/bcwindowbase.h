@@ -414,18 +414,18 @@ public:
 		VFrame *right_image,
 		BC_Pixmap *pixmap = 0);
 // For drawing a changing level
-	void draw_3segmenth(int x, 
-		int y, 
-		int w, 
-		int total_x,
-		int total_w,
+	void draw_3segmenth(int64_t x, 
+		int64_t y, 
+		int64_t w, 
+		int64_t total_x,
+		int64_t total_w,
 		VFrame *image,
 		BC_Pixmap *pixmap);
-	void draw_3segmenth(int x, 
-		int y, 
-		int w, 
-		int total_x,
-		int total_w,
+	void draw_3segmenth(int64_t x, 
+		int64_t y, 
+		int64_t w, 
+		int64_t total_x,
+		int64_t total_w,
 		BC_Pixmap *src,
 		BC_Pixmap *dst = 0);
 // For drawing a single level

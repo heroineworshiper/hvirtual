@@ -849,13 +849,13 @@ void Theme::draw_rwindow_bg(RecordGUI *gui)
 
 void Theme::draw_resource_bg(TrackCanvas *canvas,
 	ResourcePixmap *pixmap, 
-	int edit_x,
-	int edit_w,
-	int pixmap_x,
-	int x1, 
-	int y1, 
-	int x2,
-	int y2)
+	int64_t edit_x,
+	int64_t edit_w,
+	int64_t pixmap_x,
+	int64_t x1, 
+	int64_t y1, 
+	int64_t x2,
+	int64_t y2)
 {
 	VFrame *image;
 
@@ -870,6 +870,13 @@ void Theme::draw_resource_bg(TrackCanvas *canvas,
 		case 32:  image = get_image("resource32");   break;
 	}
 
+// printf("Theme::draw_resource_bg %d edit_x=%ld edit_w=%ld pixmap_x=%ld x1=%ld x2=%ld\n",
+// __LINE__,
+// (long)edit_x,
+// (long)edit_w,
+// (long)pixmap_x,
+// (long)x1, 
+// (long)x2);
 	canvas->draw_3segmenth(x1, 
 		y1, 
 		x2 - x1, 
