@@ -317,19 +317,23 @@ void RecordGUI::create_objects()
 
 	if(record->default_asset->video_data)
 	{
+//printf("RecordGUI::create_objects %d %s %s\n", 
+//__LINE__, record->default_asset->vcodec, FileMOV::compressiontostr(record->default_asset->vcodec));
+        const char *compressor = 0;
         if(record->default_asset->format == FILE_STDOUT)
-		    add_subwindow(new BC_Title(x, 
-			    y, 
-			    cmodel_to_text(string, record->default_asset->command_cmodel), 
-			    MEDIUMFONT, 
-			    mwindow->theme->recordgui_fixed_color));
+            compressor = cmodel_to_text(string, record->default_asset->command_cmodel);
         else
-            add_subwindow(new BC_Title(x, 
-			    y, 
-			    FileMOV::compressiontostr(record->default_asset->vcodec), 
-			    MEDIUMFONT, 
-			    mwindow->theme->recordgui_fixed_color));
-	
+        if(record->default_asset->format == FILE_MOV)
+            compressor = FileMOV::compressiontostr(record->default_asset->vcodec);
+        else
+            compressor = File::formattostr(record->default_asset->format);
+		add_subwindow(new BC_Title(x, 
+			y, 
+			compressor, 
+			MEDIUMFONT, 
+			mwindow->theme->recordgui_fixed_color));
+            
+    
 		y += pad;
 		sprintf(string, "%0.2f", record->default_asset->frame_rate);
 		add_subwindow(new BC_Title(x, 

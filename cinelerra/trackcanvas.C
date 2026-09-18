@@ -4718,14 +4718,14 @@ int TrackCanvas::do_edit_handles(int cursor_x,
 			if(cursor_x >= edit_x && cursor_x <= edit_x + edit_w &&
 				cursor_y >= edit_y && cursor_y < edit_y + edit_h)
 			{
-				if(cursor_x < edit_x + HANDLE_W)
+				if(cursor_x < edit_x + get_handle_w())
 				{
 					edit_result = edit;
 					handle_result = LEFT_HANDLE;
 					result = 1;
 				}
 				else
-				if(cursor_x >= edit_x + edit_w - HANDLE_W)
+				if(cursor_x >= edit_x + edit_w - get_handle_w())
 				{
 					edit_result = edit;
 					handle_result = RIGHT_HANDLE;
@@ -4817,14 +4817,14 @@ int TrackCanvas::do_plugin_handles(int cursor_x,
 					cursor_y >= plugin_y && cursor_y < plugin_y + plugin_h &&
                     plugin_h > 0)
 				{
-					if(cursor_x < plugin_x + HANDLE_W)
+					if(cursor_x < plugin_x + get_handle_w())
 					{
 						plugin_result = plugin;
 						handle_result = LEFT_HANDLE;
 						result = 1;
 					}
 					else
-					if(cursor_x >= plugin_x + plugin_w - HANDLE_W)
+					if(cursor_x >= plugin_x + plugin_w - get_handle_w())
 					{
 						plugin_result = plugin;
 						handle_result = RIGHT_HANDLE;
@@ -5228,13 +5228,13 @@ int TrackCanvas::do_transitions(int cursor_x,
                         edit_result = edit;
 						transition = edit->transition;
 
-                        if(cursor_x >= x + w - HANDLE_W &&
+                        if(cursor_x >= x + w - get_handle_w() &&
                             cursor_x < x + w)
                         {
                             handle_result = RIGHT_HANDLE;
                         }
                         else
-                        if(cursor_x < x + HANDLE_W)
+                        if(cursor_x < x + get_handle_w())
                         {
                             handle_result = LEFT_HANDLE;
                         }
@@ -5637,6 +5637,14 @@ double TrackCanvas::time_visible()
 	return (double)get_w() * 
 		mwindow->edl->local_session->zoom_sample / 
 		mwindow->edl->session->sample_rate;
+}
+
+int TrackCanvas::get_handle_w()
+{
+    if(EQUIV(mwindow->edl->local_session->zoom_sample, MIN_ZOOM_TIME))
+        return EDIT_HANDLE_W;
+    else
+        return EDIT_HANDLE_W2;
 }
 
 // Patchbay* TrackCanvas::get_patchbay()

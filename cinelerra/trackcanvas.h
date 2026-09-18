@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008-2014 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -345,6 +344,8 @@ public:
 
 // Update status bar to reflect drag operation
 	void update_drag_caption();
+// compute the edit handle width based on the sample zoom
+    int get_handle_w();
 
 // Display hourglass if timer expired
 	void test_timer();

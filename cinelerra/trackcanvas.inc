@@ -24,8 +24,14 @@
 
 class TrackCanvas;
 
+// edit handle hit point.  Smaller than single sample edit in sub sample zoom.
+#define EDIT_HANDLE_W DP(5)  // in sub sample zoom
+#define EDIT_HANDLE_W2 DP(10)  // in higher zoom
+
+// keyframe hit point.  Must be >= edit_handle_w
 #define HANDLE_W DP(10)
-#define HANDLE_H DP(10)
+// not used
+//#define HANDLE_H DP(10)
 #define PLUGIN_MARGIN 2
 
 #endif
