@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2008-2022 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include "mwindow.inc"
 #include "nestededls.h"
 #include "plugin.h"
+#include "pluginset.h"
 #include "strategies.inc"
 #include "track.h"
 #include "transition.h"
@@ -803,7 +804,8 @@ void Edits::clear_recursive(int64_t start,
 	int edit_autos,
 	Edits *trim_edits)
 {
-//printf("Edits::clear_recursive 1\n");
+// printf("Edits::clear_recursive %d start=%d end=%d edit_plugins=%d\n", 
+// __LINE__, (int)start, (int)end, edit_plugins);
 	track->clear(start, 
 		end, 
 		edit_edits,
@@ -821,11 +823,16 @@ void Edits::clear_recursive(int64_t start,
     {
 		for(int i = 0; i < track->plugin_set.size(); i++)
 		{
-            Edits *plugins = (Edits*)track->plugin_set.get(i);
-			for(Edit *plugin = plugins->first; plugin; plugin = plugin->next)
+            PluginSet *plugins = (PluginSet*)track->plugin_set.get(i);
+			for(Plugin *plugin = (Plugin*)plugins->first; 
+                plugin; 
+                plugin = (Plugin*)plugin->next)
             {
-                Edit *next_plugin = plugin->next;
+                Plugin *next_plugin = (Plugin*)plugin->next;
                 if(next_plugin && 
+// test for matching function only
+                    next_plugin->identical(plugin) && 
+// test for contiguous extents
                     plugin->startproject + plugin->length == start &&
                     next_plugin->startproject == start)
                 {

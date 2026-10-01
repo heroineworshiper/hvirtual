@@ -70,14 +70,16 @@ public:
 		int direction,
         int depth = 0);
 
+// use identical instead of these
 	virtual int operator==(Plugin& that);
 	virtual int operator==(Edit& that);
 
 	virtual void copy_from(Edit *edit);
 
 
-// Called by == operators, Edit::equivalent output
-// to test title and keyframe of transition.
+// Called by == operators, Edit::equivalent_output, Edits::clear_recursive
+// to test the operation but not the extents of a plugin/transition.
+// Does not call Edit::identical
 	virtual int identical(Plugin *that);
 // Called by render_gui.  Only need the track, position, and pluginset
 // to determine a corresponding GUI.

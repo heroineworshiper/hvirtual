@@ -3160,7 +3160,7 @@ void MWindow::save_clip(const char *filename)
     }
     
 	FileXML file;
-// reset some GUI bits
+// temporarily reset some GUI bits to get the saved file to show offset 0
     int64_t track_start[TOTAL_PANES];
     int64_t view_start[TOTAL_PANES];
     for(int i = 0; i < TOTAL_PANES; i++)
@@ -3185,8 +3185,6 @@ void MWindow::save_clip(const char *filename)
     {
         edl->local_session->track_start[i] = track_start[i];
         edl->local_session->view_start[i] = view_start[i];
-        edl->local_session->track_start[i] = 0;
-        edl->local_session->view_start[i] = 0;
     }
 
 	if(file.write_to_file(filename))

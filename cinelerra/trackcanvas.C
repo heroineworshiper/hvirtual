@@ -2693,9 +2693,9 @@ void TrackCanvas::draw_floatline(int center_pixel,
 //printf("TrackCanvas::draw_floatline %d x=%d prev_y=%d y=%d\n", 
 //__LINE__, x, *prev_y, y);
 
-// always have previous if y3 != y4
+// always have previous if y3 != y4, but still crashes
 // don't draw a diagonal line if it's constant
-            if(y3 == y4 || previous->mode != FloatAuto::CONSTANT)
+            if(y3 == y4 || (previous && previous->mode != FloatAuto::CONSTANT))
             {
          		draw_line(x3, y3, x4, y4);
             }

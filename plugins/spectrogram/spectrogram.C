@@ -314,7 +314,8 @@ int SpectrogramCanvas::button_press_event()
 	{
 		calculate_point();
 		current_operation = DRAG;
-		plugin->send_configure_change();
+
+//		plugin->send_configure_change();
 		return 1;
 	}
 	return 0;

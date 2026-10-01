@@ -157,9 +157,11 @@ int VModule::import_frame(VFrame *output,
 		output->set_opengl_state(VFrame::RAM);
 	}
 
-	if(!output) printf("VModule::import_frame %d output=%p x11_device=%p nested_edl=%p\n", 
+	if(!output) printf("VModule::import_frame %d output=%p use_opengl=%d renderengine=%p x11_device=%p nested_edl=%p\n", 
 		__LINE__,
 		output,
+        use_opengl,
+        renderengine,
 		x11_device,
 		nested_edl);
 
@@ -184,7 +186,11 @@ int VModule::import_frame(VFrame *output,
             renderengine->vdevice &&
             renderengine->vdevice->out_config->driver == PLAYBACK_X11_GL &&
             !use_opengl)
+        {
             use_opengl = 1;
+            x11_device = (VDeviceX11*)renderengine->vdevice->get_output_base();
+            if(!x11_device) use_opengl = 0;
+        }
 #endif
 
 		if(debug) printf("VModule::import_frame %d nested_edl=%p current_edit->nested_edl=%p\n", 
