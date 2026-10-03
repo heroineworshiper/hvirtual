@@ -85,6 +85,7 @@
 #include "pluginserver.h"
 #include "pluginset.h"
 #include "preferences.h"
+#include "rawcopy.h"
 #include "record.h"
 #include "recordlabel.h"
 #include "removethread.h"
@@ -999,6 +1000,7 @@ ENABLE_BUFFER
 void MWindow::init_render()
 {
 	render = new Render(this);
+//    raw_copy = new RawCopyThread;
 //	renderlist = new Render(this);
 	batch_render = new BatchRenderThread(this);
 }
@@ -3146,6 +3148,62 @@ void MWindow::save_xml(const char *filename, int update_gui, int quit)
 	if(quit) playback_3d->quit();
 }
 
+void MWindow::save_raw(const char *filename)
+{
+// same region as a clip
+    double start = edl->local_session->get_selectionstart();
+    double end = edl->local_session->get_selectionend();
+
+// save the entire timeline.
+	if(start == end)
+    {
+        start = 0;
+        end = edl->tracks->total_length();
+    }
+
+    FILE *fd = fopen(filename, "w");
+	char error_text[BCTEXTLEN];
+    int error = 0;
+    if(!fd)
+    {
+		sprintf(error_text, _("Couldn't open %s"), filename);
+        error = 1;
+    }
+
+    if(!error)
+    {
+        if(edl->tracks->save_raw(fd, start, end))
+        {
+		    sprintf(error_text, _("No data was written"));
+            error = 1;
+            fclose(fd);
+        }
+    }
+
+    if(error)
+    {
+		ErrorBox error(PROGRAM_NAME ": Error",
+			gui->get_abs_cursor_x(1),
+			gui->get_abs_cursor_y(1));
+		error.create_objects(error_text);
+		error.raise_window();
+		error.run_window();
+		return;
+    }
+    else
+    {
+		char string[BCTEXTLEN];
+		sprintf(string, 
+			_("\"%s\" %dC written"), 
+			filename, 
+			(int)ftell(fd));
+        fclose(fd);
+        gui->lock_window("MWindow::save_raw");
+		gui->show_message(string);
+        gui->unlock_window();
+    }
+}
+
 void MWindow::save_clip(const char *filename)
 {
     double start = edl->local_session->get_selectionstart();
@@ -3159,8 +3217,10 @@ void MWindow::save_clip(const char *filename)
         end = edl->tracks->total_length();
     }
     
+
+
 	FileXML file;
-// temporarily reset some GUI bits to get the saved file to show offset 0
+// temporarily reset some GUI bits to get the saved file scrolled to offset 0
     int64_t track_start[TOTAL_PANES];
     int64_t view_start[TOTAL_PANES];
     for(int i = 0; i < TOTAL_PANES; i++)

@@ -107,6 +107,20 @@ int SaveClipItem::handle_event()
 }
 
 
+SaveRawItem::SaveRawItem()
+ : BC_MenuItem(_("Save cut list..."))
+{
+}
+
+int SaveRawItem::handle_event() 
+{
+	MWindow::save_thread->quit_now = 0;
+    MWindow::save_thread->do_raw = 1;
+	MWindow::save_thread->start();
+	return 1;
+}
+
+
 
 
 
@@ -128,9 +142,14 @@ SaveThread::~SaveThread()
 BC_Window* SaveThread::new_gui()
 {
 	char init_path[BCTEXTLEN];
+    const char *text = PROGRAM_NAME ": Save";
+
 	sprintf(init_path, "~");
 	MWindow::defaults->get("DIRECTORY", init_path);
-	window = new SaveWindow(init_path, do_clip);
+    if(do_clip) text = PROGRAM_NAME ": Save selection";
+    if(do_raw) text = PROGRAM_NAME ": Save cut list";
+    
+	window = new SaveWindow(init_path, text);
 	window->create_objects();
     return window;
 }
@@ -162,8 +181,9 @@ void SaveThread::handle_done_event(int result)
 
 
 // Extend the filename with .xml
-	if(strlen(path) < 4 || 
-		strcasecmp(&path[strlen(path) - 4], ".xml"))
+	if(!do_raw &&
+        (strlen(path) < 4 || 
+		strcasecmp(&path[strlen(path) - 4], ".xml")))
 	{
 		strcat(path, ".xml");
 	}
@@ -178,6 +198,11 @@ void SaveThread::handle_done_event(int result)
     else
 // save it
     {
+        if(do_raw)
+        {
+            MWindow::instance->save_raw(path);
+        }
+        else
         if(do_clip)
         {
             MWindow::instance->save_clip(path);
@@ -197,15 +222,16 @@ void SaveThread::reset_flags()
 {
     quit_now = 0;
     do_clip = 0;
+    do_raw = 0;
 }
 
 
-SaveWindow::SaveWindow(char *init_path, int do_clip)
+SaveWindow::SaveWindow(char *init_path, const char *text)
  : BC_FileBox(MWindow::instance->gui->get_abs_cursor_x(1),
  	MWindow::instance->gui->get_abs_cursor_y(1) - 
         BC_WindowBase::get_resources()->filebox_h / 2,
  	init_path, 
-	do_clip ? PROGRAM_NAME ": Save selection" : PROGRAM_NAME ": Save", 
+	text, 
 	_("Enter a filename to save as"))
 { 
     set_previewer(&FilePreviewer::instance);

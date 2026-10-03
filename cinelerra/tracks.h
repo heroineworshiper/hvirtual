@@ -157,6 +157,7 @@ public:
 		FileXML *file, 
 		const char *output_path = "");
 
+    int save_raw(FILE *fd, double start, double end);
 
 
 	int copy_assets(FileXML *xml, 

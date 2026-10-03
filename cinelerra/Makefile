@@ -105,6 +105,7 @@ OBJS = \
 	$(OBJDIR)/clipedit.o \
 	$(OBJDIR)/cicolors.o \
 	$(OBJDIR)/colorpicker.o \
+	$(OBJDIR)/commandtools.o \
 	$(OBJDIR)/commonrender.o \
         $(OBJDIR)/compressortools.o \
 	$(OBJDIR)/confirmsave.o \
@@ -705,6 +706,7 @@ $(OBJDIR)/chantables.o: 			  chantables.C
 $(OBJDIR)/clipedit.o: 			  	  clipedit.C
 $(OBJDIR)/cicolors.o:                             cicolors.C
 $(OBJDIR)/colorpicker.o:                          colorpicker.C
+$(OBJDIR)/commandtools.o: 			  commandtools.C
 $(OBJDIR)/commonrender.o: 			  commonrender.C
 $(OBJDIR)/compressortools.o:                      compressortools.C
 $(OBJDIR)/confirmsave.o: 			  confirmsave.C

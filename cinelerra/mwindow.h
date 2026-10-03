@@ -74,6 +74,7 @@
 #include "pluginset.inc"
 #include "preferences.inc"
 #include "preferencesthread.inc"
+#include "rawcopy.inc"
 #include "recordlabel.inc"
 #include "removethread.inc"
 #include "render.inc"
@@ -277,6 +278,7 @@ public:
 	void save_backup();
     void save_xml(const char *filename, int update_gui, int quit);
     void save_clip(const char *filename);
+    void save_raw(const char *filename);
 	void show_plugin(Plugin *plugin);
 	void hide_plugin(Plugin *plugin, int lock);
 	void hide_plugins();
@@ -621,6 +623,7 @@ public:
 
 	BatchRenderThread *batch_render;
 	Render *render;
+//    RawCopyThread *raw_copy;
 // Master edl
 	EDL *edl;
 // Main Window GUI

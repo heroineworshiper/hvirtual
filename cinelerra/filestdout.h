@@ -23,16 +23,14 @@
 
 #include "asset.inc" 
 #include "bitspopup.inc"
+#include "commandtools.h"
 #include "filebase.h"
 #include "file.inc"
 #include <string>
 
 // Command line encoder
-class StdoutBaseConfig;
 class StdoutAudioConfig;
 class StdoutVideoConfig;
-class StdoutText;
-class StdoutPreset;
 
 
 class FileStdout : public FileBase
@@ -69,9 +67,9 @@ public:
 	int close_file_derived();
 
 // default values
-    static StdoutPreset* default_audio_presets[2];
-    static StdoutPreset* default_video_presets[6];
-    static StdoutPreset* default_mplex_presets[3];
+    static CommandPreset* default_audio_presets[2];
+    static CommandPreset* default_video_presets[6];
+    static CommandPreset* default_mplex_presets[3];
 
 
 
@@ -90,149 +88,6 @@ public:
 	int temp_allocated;
 // don't wrap
     int failed;
-};
-
-
-
-
-class StdoutPresetsList : public BC_ListBox
-{
-public:
-	StdoutPresetsList(StdoutBaseConfig *gui,
-		int x,
-		int y,
-		int w, 
-		int h);
-	int selection_changed();
-	int handle_event();
-    StdoutBaseConfig *gui;
-};
-
-// Delete the highlighted preset
-class StdoutDelete : public BC_GenericButton
-{
-public:
-	StdoutDelete(StdoutBaseConfig *gui, int x, int y);
-	int handle_event();
-    StdoutBaseConfig *gui;
-};
-
-// Copy the highlighted preset to the current command text
-class StdoutApply : public BC_GenericButton
-{
-public:
-	StdoutApply(StdoutBaseConfig *gui, int x, int y);
-	int handle_event();
-    StdoutBaseConfig *gui;
-};
-
-// Save the current command to a new or existing preset
-class StdoutSave : public BC_GenericButton
-{
-public:
-	StdoutSave(StdoutBaseConfig *gui, int x, int y);
-	int handle_event();
-    StdoutBaseConfig *gui;
-};
-
-// Name or contents of a command
-class StdoutText : public BC_TextBox
-{
-public:
-    StdoutText(std::string *output,
-        int x, 
-		int y,
-        int w,
-        int rows);
-	int handle_event();
-    std::string *output;
-};
-
-class StdoutPreset
-{
-public:
-    StdoutPreset();
-    StdoutPreset(const char *title, 
-        const char *command);
-    StdoutPreset(const char *title, 
-        const char *command, 
-        int color_model);
-    StdoutPreset(const char *title, 
-        const char *command, 
-        int bits, 
-        int byte_order, 
-        int signed_, 
-        int dither);
-
-    static StdoutPreset* createMplex(const char *title, 
-        const char *command,
-        int delete_temps);
-
-    void reset();
-    std::string command;
-    std::string title;
-
-    int delete_temps;
-
-    int color_model;
-
-    int bits;
-    int byte_order;
-    int signed_;
-    int dither;
-};
-
-
-class ConfirmPreset : public BC_Window
-{
-public:
-	ConfirmPreset(StdoutBaseConfig *gui);
-	void create_objects(const char *text);
-};
-
-class StdoutBaseConfig : public BC_Window
-{
-public:
-    StdoutBaseConfig(BC_WindowBase *parent_window, 
-        Asset *asset, 
-        const char *title,
-        int option_type);
-    virtual ~StdoutBaseConfig();
-
-    void load_defaults();
-    void save_defaults();
-
-    const char* get_option_text();
-    std::string* get_command_text();
-    std::string* get_preset_title();
-	void create_objects();
-    virtual void create_objects2(int x, int y);
-	int close_event();
-    int resize_event(int w, int h);
-    void save_preset();
-    void delete_preset();
-    void load_preset();
-// update the widgets with the current asset values
-    virtual void update();
-    int get_preset(const char *title);
-    int get_preset(std::string *title);
-
-// Options which are saved to a defaults file
-	ArrayList<BC_ListBoxItem*> *preset_names;
-    ArrayList<StdoutPreset*> *preset_data;
-//    std::string preset_title;
-
-    StdoutText *command_title;
-    StdoutText *command;
-    StdoutDelete *delete_;
-    StdoutSave *save;
-    StdoutApply *apply;
-    StdoutPresetsList *list;
-    BC_Hash *defaults;
-    BC_Bar *bar;
-	BC_WindowBase *parent_window;
-	Asset *asset;
-    int option_type;
 };
 
 
@@ -269,7 +124,7 @@ public:
     StdoutVideoConfig *gui;
 };
 
-class StdoutAudioConfig : public StdoutBaseConfig
+class StdoutAudioConfig : public CommandTools
 {
 public:
 	StdoutAudioConfig(BC_WindowBase *parent_window, Asset *asset);
@@ -285,7 +140,7 @@ public:
     BC_CheckBox *signed_;
 };
 
-class StdoutVideoConfig : public StdoutBaseConfig
+class StdoutVideoConfig : public CommandTools
 {
 public:
 	StdoutVideoConfig(BC_WindowBase *parent_window, Asset *asset);
@@ -298,7 +153,7 @@ public:
 	ArrayList<BC_ListBoxItem*> cmodels;
 };
 
-class StdoutMplexConfig : public StdoutBaseConfig
+class StdoutMplexConfig : public CommandTools
 {
 public:
 	StdoutMplexConfig(BC_WindowBase *parent_window, Asset *asset);

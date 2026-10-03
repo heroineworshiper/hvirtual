@@ -105,7 +105,7 @@ public:
 
 
 	RecordMenuItem *record;
-	RenderItem *render;
+//	RenderItem *render;
 	New *new_project;
 	MenuAEffectItem *aeffect[TOTAL_EFFECTS];
 	MenuVEffectItem *veffect[TOTAL_EFFECTS];

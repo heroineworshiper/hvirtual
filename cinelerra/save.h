@@ -49,6 +49,13 @@ public:
 	int handle_event();
 };
 
+class SaveRawItem : public BC_MenuItem
+{
+public:
+	SaveRawItem();
+	int handle_event();
+};
+
 class SaveAsItem : public BC_MenuItem
 {
 public:
@@ -70,6 +77,7 @@ public:
 
     int quit_now;
     int do_clip;
+    int do_raw;
 	SaveWindow *window;
 };
 
@@ -77,7 +85,7 @@ public:
 class SaveWindow : public BC_FileBox
 {
 public:
-	SaveWindow(char *init_path, int do_clip);
+	SaveWindow(char *init_path, const char *text);
 	~SaveWindow();
 };
 

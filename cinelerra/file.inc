@@ -179,6 +179,8 @@ N_("EXR Sequence")
 #define AUDIO_PARAMS 0
 #define VIDEO_PARAMS 1
 #define MPLEX_PARAMS 2
+// extra value for raw copy
+#define RAW_PARAMS 3 
 
 #if 0
 N_("8 Bit Linear")

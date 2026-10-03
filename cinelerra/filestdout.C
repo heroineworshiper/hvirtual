@@ -40,19 +40,18 @@ extern "C"
 #include <uuid.h>
 }
 
-#define MAX_PRESETS 255
 
 
 
-StdoutPreset* FileStdout::default_audio_presets[2] = 
+CommandPreset* FileStdout::default_audio_presets[2] = 
 {
-    new StdoutPreset("ffmpeg AAC",
+    new CommandPreset("ffmpeg AAC",
         "ffmpeg -y -f f32le -ar %r -ac %c -i - -f mp4 -c:a aac -b:a 192k %1",
         BITSFLOAT,
         BYTE_ORDER_LOHI,
         1,
         0),
-    new StdoutPreset("null",
+    new CommandPreset("null",
         "cat > /dev/null",
         BITSFLOAT,
         BYTE_ORDER_LOHI,
@@ -60,33 +59,33 @@ StdoutPreset* FileStdout::default_audio_presets[2] =
         0),
 };
 
-StdoutPreset* FileStdout::default_video_presets[6] =
+CommandPreset* FileStdout::default_video_presets[6] =
 {
-    new StdoutPreset("ffmpeg HEVC CBR",
+    new CommandPreset("ffmpeg HEVC CBR",
         "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -b:v 5M %1",
         BC_YUV420P),
-    new StdoutPreset("ffmpeg HEVC VBR",
+    new CommandPreset("ffmpeg HEVC VBR",
         "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -qp:v 30 %1",
         BC_YUV420P),
-    new StdoutPreset("ffmpeg HEVC 444",
+    new CommandPreset("ffmpeg HEVC 444",
         "ffmpeg -y -f rawvideo -pix_fmt yuv444p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -qp:v 30 %1",
         BC_YUV444P),
-    new StdoutPreset("ffmpeg HEVC 422",
+    new CommandPreset("ffmpeg HEVC 422",
         "ffmpeg -y -f rawvideo -pix_fmt yuv422p -r %r -s:v %wx%h -i - -f h264 -c:v hevc -qp:v 30 %1",
         BC_YUV422P),
-    new StdoutPreset("ffmpeg H.264 VBR",
+    new CommandPreset("ffmpeg H.264 VBR",
         "ffmpeg -y -f rawvideo -pix_fmt yuv420p -r %r -s:v %wx%h -i - -f h264 -c:v h264 -qp:v 30 %1",
         BC_YUV420P),
-    new StdoutPreset("null",
+    new CommandPreset("null",
         "cat > /dev/null",
         BC_YUV420P),
 };
 
-StdoutPreset* FileStdout::default_mplex_presets[3] = 
+CommandPreset* FileStdout::default_mplex_presets[3] = 
 {
-    StdoutPreset::createMplex("ffmpeg MP4", "ffmpeg -y -i %3 -i %2 -c:v copy -c:a copy %1", 0),
-    StdoutPreset::createMplex("ffmpeg MP4 video", "ffmpeg -y -i %2 -c:v copy %1", 0),
-    StdoutPreset::createMplex("ffmpeg MP4 audio", "ffmpeg -y -i %3 -c:a copy %1", 0)
+    CommandPreset::createMplex("ffmpeg MP4", "ffmpeg -y -i %3 -i %2 -c:v copy -c:a copy %1", 0),
+    CommandPreset::createMplex("ffmpeg MP4 video", "ffmpeg -y -i %2 -c:v copy %1", 0),
+    CommandPreset::createMplex("ffmpeg MP4 audio", "ffmpeg -y -i %3 -c:a copy %1", 0)
 };
 
 // Need planer colormodels not in MWindow::colormodels
@@ -662,654 +661,22 @@ int FileStdout::get_best_colormodel(Asset *asset,
 }
 
 
-StdoutPresetsList::StdoutPresetsList(StdoutBaseConfig *gui,
-	int x,
-	int y,
-	int w, 
-	int h)
- : BC_ListBox(x, 
-	y, 
-	w, 
-	h,
-	LISTBOX_TEXT,
-	gui->preset_names)
-{
-    this->gui = gui;
-}
-
-int StdoutPresetsList::selection_changed()
-{
-    return 1;
-}
-
-int StdoutPresetsList::handle_event()
-{
-    int number = get_selection_number(0, 0);
-	if(number >= 0)
-    {
-        gui->load_preset();
-    }
-    return 1;
-}
-
-
-
-
-#define DELETE_TEXT _("Delete")
-#define APPLY_TEXT _("Load")
-#define SAVE_TEXT _("Save")
-StdoutDelete::StdoutDelete(StdoutBaseConfig *gui, int x, int y)
- : BC_GenericButton(x, y, DELETE_TEXT)
-{
-    this->gui = gui;
-    set_tooltip("Delete the highlighted preset.");
-}
-int StdoutDelete::handle_event()
-{
-    gui->delete_preset();
-    return 1;
-}
-
-
-StdoutApply::StdoutApply(StdoutBaseConfig *gui, int x, int y)
- : BC_GenericButton(x, y, APPLY_TEXT)
-{
-    this->gui = gui;
-    set_tooltip("Apply the highlighted preset to the command line.");
-}
-int StdoutApply::handle_event()
-{
-    gui->load_preset();
-    return 1;
-}
-
-
-
-StdoutSave::StdoutSave(StdoutBaseConfig *gui, int x, int y)
- : BC_GenericButton(x, y, SAVE_TEXT)
-{
-    this->gui = gui;
-    set_tooltip("Save the command & title as a preset.");
-}
-int StdoutSave::handle_event()
-{
-    gui->save_preset();
-    return 1;
-}
-
-
-
-
-
-StdoutText::StdoutText(std::string *output,
-    int x, 
-	int y,
-    int w,
-    int rows)
- : BC_TextBox(x, y, w, rows, output->c_str())
-{
-    this->output = output;
-}
-
-int StdoutText::handle_event()
-{
-    output->assign(get_text());
-    return 1;
-}
-
-
-StdoutPreset::StdoutPreset()
-{
-    reset();
-}
-
-StdoutPreset::StdoutPreset(const char *title, const char *command, 
-    int color_model)
-{
-    reset();
-    this->title.assign(title);
-    this->command.assign(command);
-    this->color_model = color_model;
-}
-
-StdoutPreset::StdoutPreset(const char *title, const char *command, 
-    int bits, 
-    int byte_order, 
-    int signed_, 
-    int dither)
-{
-    reset();
-    this->title.assign(title);
-    this->command.assign(command);
-    this->bits = bits;
-    this->byte_order = byte_order;
-    this->signed_ = signed_;
-    this->dither = dither;
-}
-
-void StdoutPreset::reset()
-{
-    color_model = BC_YUV420P;
-    bits = BITSLINEAR16;
-    byte_order = BYTE_ORDER_LOHI;
-    signed_ = 1;
-    dither = 0;
-}
-
-StdoutPreset* StdoutPreset::createMplex(const char *title,
-    const char *command,
-    int delete_temps)
-{
-    StdoutPreset *result = new StdoutPreset;
-    result->reset();
-    result->title.assign(title);
-    result->command.assign(command);
-    result->delete_temps = delete_temps;
-    return result;
-}
-
-
-ConfirmPreset::ConfirmPreset(StdoutBaseConfig *gui)
- : BC_Window(PROGRAM_NAME ": Preset Exists", 
- 		gui->get_abs_cursor_x(1) - DP(160), 
-		gui->get_abs_cursor_y(1) - DP(120), 
-		DP(320), 
-		DP(150))
-{
-}
-
-void ConfirmPreset::create_objects(const char *text)
-{
-    int margin = MWindow::theme->widget_border;
-	int x = margin, y = margin;
-	lock_window("ConfirmPreset::create_objects");
-    
-    int text_w = get_text_width(MEDIUMFONT, text);
-    int new_w = x + text_w + margin;
-
-// limit to a certain size
-	if(new_w > get_root_w(1) / 2) 
-    {
-        new_w = get_root_w(1) / 2;
-    }
-
-	if(new_w > get_w())
-	{
-		resize_window(new_w, get_h());
-	}
-
-	add_subwindow(new BC_Title(x, 
-		y, 
-		text));
-
-	add_subwindow(new BC_OKButton(this));
-	add_subwindow(new BC_CancelButton(this));
-	show_window(1);
-	unlock_window();
-}
-
-
-StdoutBaseConfig::StdoutBaseConfig(BC_WindowBase *parent_window, 
-    Asset *asset, 
-    const char *window_title,
-    int option_type)
- : BC_Window(window_title,
- 	parent_window->get_abs_cursor_x(1),
- 	parent_window->get_abs_cursor_y(1),
-	MWindow::theme->command_w,
-	MWindow::theme->command_h)
-{
-//printf("StdoutBaseConfig::StdoutBaseConfig %d\n", __LINE__);
-	this->parent_window = parent_window;
-	this->asset = asset;
-    this->option_type = option_type;
-    load_defaults();
-}
-
-StdoutBaseConfig::~StdoutBaseConfig()
-{
-    save_defaults();
-    delete defaults;
-
-	preset_names->remove_all_objects();
-    delete preset_names;
-	preset_data->remove_all_objects();
-    delete preset_data;
-}
-
-void StdoutBaseConfig::load_defaults()
-{
-	char string[BCTEXTLEN];
-    switch(option_type)
-    {
-        case AUDIO_PARAMS:
-            sprintf(string, "%saudio_commandlines", BCASTDIR);
-            break;
-
-        case VIDEO_PARAMS:
-            sprintf(string, "%svideo_commandlines", BCASTDIR);
-            break;
-
-        case MPLEX_PARAMS:
-            sprintf(string, "%smplex_commandlines", BCASTDIR);
-            break;
-    }
-	FileSystem fs;
-    fs.complete_path(string);
-    defaults = new BC_Hash(string);
-    defaults->load();
-
-    preset_names = new ArrayList<BC_ListBoxItem*>;
-    preset_data = new ArrayList<StdoutPreset*>;
-
-// load the presets
-	std::string title;
-    const char *option_text = get_option_text();
-
-    for(int i = 0; i < MAX_PRESETS; i++)
-    {
-        sprintf(string, "%sPRESET_TITLE%d", option_text, i);
-        title.erase();
-        defaults->get(string, &title);
-        if(!title.size())
-        {
-            break;
-        }
-
-        StdoutPreset *preset = new StdoutPreset;
-
-        sprintf(string, "%sPRESET_TEXT%d", option_text, i);
-        defaults->get(string, &preset->command);
-        sprintf(string, "%sPRESET_COLOR_MODEL%d", option_text, i);
-        preset->color_model = defaults->get(string, preset->color_model);
-        sprintf(string, "%sPRESET_BITS%d", option_text, i);
-        preset->bits = defaults->get(string, preset->bits);
-        sprintf(string, "%sPRESET_BYTE_ORDER%d", option_text, i);
-        preset->byte_order = defaults->get(string, preset->byte_order);
-        sprintf(string, "%sPRESET_SIGNED%d", option_text, i);
-        preset->signed_ = defaults->get(string, preset->signed_);
-        sprintf(string, "%sPRESET_DITHER%d", option_text, i);
-        preset->dither = defaults->get(string, preset->dither);
-
-        preset_names->append(new BC_ListBoxItem(title.c_str()));
-        preset_data->append(preset);
-    }
-
-// the contents of the preset title textbox
-//    sprintf(string, "%sPRESET_TITLE", option_text);
-//    defaults->get(string, &preset_title);
-
-// the current command line comes from the asset
-}
-
-void StdoutBaseConfig::save_defaults()
-{
-    defaults->clear();
-
-    const char *option_text = get_option_text();
-	char string[BCTEXTLEN];
-    for(int i = 0; i < preset_names->size() && i < preset_data->size(); i++)
-    {
-        StdoutPreset *preset = preset_data->get(i);
-        sprintf(string, "%sPRESET_TITLE%d", option_text, i);
-        defaults->update(string, preset_names->get(i)->get_text());
-
-        sprintf(string, "%sPRESET_TEXT%d", option_text, i);
-        defaults->update(string, &preset->command);
-        sprintf(string, "%sPRESET_COLOR_MODEL%d", option_text, i);
-        defaults->update(string, preset->color_model);
-        sprintf(string, "%sPRESET_BITS%d", option_text, i);
-        defaults->update(string, preset->bits);
-        sprintf(string, "%sPRESET_BYTE_ORDER%d", option_text, i);
-        defaults->update(string, preset->byte_order);
-        sprintf(string, "%sPRESET_SIGNED%d", option_text, i);
-        defaults->update(string, preset->signed_);
-        sprintf(string, "%sPRESET_DITHER%d", option_text, i);
-        defaults->update(string, preset->dither);
-    }
-
-// save the current preset textbox
-//    sprintf(string, "%sPRESET_TITLE", option_text);
-//    defaults->update(string, &preset_title);
-
-// command line comes from the asset
-
-	defaults->save();
-}
-
-
-const char* StdoutBaseConfig::get_option_text()
-{
-    switch(option_type)
-    {
-        case AUDIO_PARAMS: return "AUDIO_";
-        case VIDEO_PARAMS: return "VIDEO_";
-        case MPLEX_PARAMS: return "MPLEX_";
-    }
-    return "";
-}
-
-std::string* StdoutBaseConfig::get_command_text()
-{
-    switch(option_type)
-    {
-        case AUDIO_PARAMS: return &asset->audio_command;
-        case VIDEO_PARAMS: return &asset->video_command;
-        case MPLEX_PARAMS: return &asset->wrapper_command;
-    }
-    return 0;
-}
-
-std::string* StdoutBaseConfig::get_preset_title()
-{
-    switch(option_type)
-    {
-        case AUDIO_PARAMS: return &asset->audio_preset;
-        case VIDEO_PARAMS: return &asset->video_preset;
-        case MPLEX_PARAMS: return &asset->wrapper_preset;
-    }
-    return 0;
-}
-
-void StdoutBaseConfig::create_objects()
-{
-    BC_Title *title;
-    int margin = MWindow::theme->widget_border;
-    int x = margin, y = margin;
-
-	lock_window("StdoutBaseConfig::create_objects");
-
-    int button_w = 0;
-    button_w = MAX(button_w, BC_GenericButton::calculate_w(this, DELETE_TEXT));
-    button_w = MAX(button_w, BC_GenericButton::calculate_w(this, APPLY_TEXT));
-    button_w = MAX(button_w, BC_GenericButton::calculate_w(this, SAVE_TEXT));
-    int x2 = get_w() - margin - button_w;
-
-    add_tool(title = new BC_Title(x, y, _("Presets:")));
-	y += title->get_h() + margin;
-    
-    add_tool(list = new StdoutPresetsList(this,
-	    x,
-	    y,
-	    x2 - x - margin, 
-	    DP(100)));
-    int y2 = y + list->get_h() + margin;
-    add_tool(delete_ = new StdoutDelete(this, x2, y));
-    y += delete_->get_h() + margin;
-    add_tool(save = new StdoutSave(this, x2, y));
-    y += save->get_h() + margin;
-    add_tool(apply = new StdoutApply(this, x2, y));
-    y += apply->get_h() + margin;
-
-    y = y2;
-    add_tool(title = new BC_Title(x, y, _("Preset title:")));
-	y += title->get_h() + margin;
-
-    add_subwindow(command_title = new StdoutText(get_preset_title(),
-        x, 
-	    y,
-        get_w() - x - margin,
-        1));
-    y += command_title->get_h() + margin;
-
-    add_tool(title = new BC_Title(x, y, _("Command line:")));
-	y += title->get_h() + margin;
-
-    add_subwindow(command = new StdoutText(get_command_text(),
-        x, 
-	    y,
-        get_w() - x - margin,
-        1));
-    y += command->get_h() + margin;
-
-    if(option_type == MPLEX_PARAMS)
-    {
-        add_tool(title = new BC_Title(x, y, "%3 becomes the audio filename.\n"
-            "%2 becomes the video filename.\n"
-            "%1 becomes the output filename."));
-	}
-    else
-    if(option_type == AUDIO_PARAMS)
-    {
-        add_tool(title = new BC_Title(x, y, 
-            "%r becomes the sample rate\n"
-            "%c becomes the channels\n"
-            "%1 becomes the output filename"));
-    }
-    else
-    if(option_type == VIDEO_PARAMS)
-    {
-        add_tool(title = new BC_Title(x, y, 
-            "%r becomes the frame rate\n"
-            "%w becomes the width\n"
-            "%h becomes the height\n"
-            "%1 becomes the output filename"));
-    }
-
-    y += title->get_h() + margin;
-
-    
-    add_tool(bar = new BC_Bar(x, y, get_w() - margin - x));
-    y += margin + bar->get_h();
-    
-
-    create_objects2(x, y);
-
-    BC_OKButton *button;
-	add_subwindow(button = new BC_OKButton(this));
-    button->set_esc(1);
-	show_window(1);
-	unlock_window();
-}
-
-void StdoutBaseConfig::create_objects2(int x, int y)
-{
-    
-}
-
-int StdoutBaseConfig::close_event()
-{
-	set_done(0);
-	return 1;
-}
-
-int StdoutBaseConfig::resize_event(int w, int h)
-{
-    int margin = MWindow::theme->widget_border;
-    int x = margin, y = margin;
-
-    command_title->reposition_window(command_title->get_x(),
-		command_title->get_y(),
-		w - command_title->get_x() - margin);
-    command->reposition_window(command->get_x(),
-		command->get_y(),
-		w - command->get_x() - margin);
-    bar->reposition_window(bar->get_x(), 
-        bar->get_y(), 
-        w - bar->get_x() - margin);
-    return 0;
-}
-
-void StdoutBaseConfig::save_preset()
-{
-// ignore if no title
-	if(command_title->get_text()[0])
-    {
-// replace existing preset
-        int got_it = 0;
-        StdoutPreset *dst = 0;
-        for(int i = 0; 
-            i < preset_names->size() && i < preset_data->size(); 
-            i++)
-        {
-// printf("StdoutBaseConfig::save_preset %d %s %s %d\n", 
-// __LINE__, 
-// preset_names->get(i)->get_text(),
-// command_title->get_text(),
-// strcmp(preset_names->get(i)->get_text(),
-//                command_title->get_text()));
-            if(!strcmp(preset_names->get(i)->get_text(),
-                command_title->get_text()))
-            {
-                dst = preset_data->get(i);
-                got_it = 1;
-                break;
-            }
-        }
-
-// confirm replace
-        int result = 0;
-        if(got_it)
-        {
-            char string[BCTEXTLEN];
-            sprintf(string, "Overwrite '%s'?", command_title->get_text());
-            ConfirmPreset confirm(this);
-            confirm.create_objects(string);
-            result = confirm.run_window();
-        }
-
-// create a new preset
-        if(!got_it)
-        {
-            preset_names->append(new BC_ListBoxItem(command_title->get_text()));
-            dst = new StdoutPreset;
-            preset_data->append(dst);
-        }
-
-        if(!result)
-        {
-            dst->command.assign(command->get_text());
-            dst->color_model = asset->command_cmodel;
-            dst->bits = asset->command_bits;
-            dst->byte_order = asset->command_byte_order;
-            dst->signed_ = asset->command_signed_;
-            dst->dither = asset->command_dither;
-            save_defaults();
-
-            list->update(preset_names,
-		        0,
-		        0,
-		        1);
-        }
-    }
-    else
-    {
-		ErrorBox error(PROGRAM_NAME ": Error",
-			get_abs_cursor_x(1),
-			get_abs_cursor_y(1));
-		error.create_objects("Need a title to save the preset");
-		error.raise_window();
-		error.run_window();
-    }
-
-}
-
-void StdoutBaseConfig::delete_preset()
-{
-// ignore if no selection
-    int number = list->get_selection_number(0, 0);
-	if(number >= 0 && 
-        number < preset_names->size() && 
-        number < preset_data->size())
-    {
-        int result = 0;
-        char string[BCTEXTLEN];
-        sprintf(string, "Delete '%s'?", preset_names->get(number)->get_text());
-        ConfirmPreset confirm(this);
-        confirm.create_objects(string);
-        result = confirm.run_window();
-
-
-        if(!result)
-        {
-            preset_names->remove_object_number(number);
-            preset_data->remove_object_number(number);
-            list->update(preset_names,
-		        0, // column_titles
-		        0, // column_widths
-		        1, // columns
-                0, // xposition
-                0, // yposition
-                -1, // highlighted_number
-                1); // recalc_positions
-            save_defaults();
-        }
-    }
-}
-
-
-void StdoutBaseConfig::load_preset()
-{
-// ignore if nothing selected
-    int number = list->get_selection_number(0, 0);
-	if(number >= 0)
-    {
-        StdoutPreset *src = preset_data->get(number);
-        command->update(src->command.c_str());
-        std::string *preset_title = get_preset_title();
-        preset_title->assign(preset_names->get(number)->get_text());
-        command_title->update(preset_names->get(number)->get_text());
-
-// copy only the parameters for the option_type so a video preset doesn't
-// overwrite the audio settings
-        std::string *command_text = get_command_text();
-        command_text->assign(src->command);
-
-        if(option_type == VIDEO_PARAMS)
-            asset->command_cmodel = src->color_model;
-        if(option_type == AUDIO_PARAMS)
-        {
-            asset->command_bits = src->bits;
-            asset->command_byte_order = src->byte_order;
-            asset->command_signed_ = src->signed_;
-            asset->command_dither = src->dither;
-        }
-
-        update();
-        save_defaults();
-    }
-}
-
-void StdoutBaseConfig::update()
-{
-}
-
-int StdoutBaseConfig::get_preset(const char *title)
-{
-    for(int i = 0; i < preset_names->size() && i < preset_data->size(); i++)
-    {
-        if(!strcmp(preset_names->get(i)->get_text(),
-            title))
-        {
-            return i;
-        }
-    }
-    
-    return -1;
-}
-
-int StdoutBaseConfig::get_preset(std::string *title)
-{
-    return get_preset(title->c_str());
-}
-
-
 
 StdoutAudioConfig::StdoutAudioConfig(BC_WindowBase *parent_window, Asset *asset)
- : StdoutBaseConfig(parent_window,
+ : CommandTools(parent_window,
     asset,
     PROGRAM_NAME ": Audio Compression",
     AUDIO_PARAMS)
 {
 //printf("StdoutAudioConfig::StdoutAudioConfig %d\n", __LINE__);
 // seed it with defaults
-    for(int i = 0; i < sizeof(FileStdout::default_audio_presets) / sizeof(StdoutPreset*); i++)
+    for(int i = 0; i < sizeof(FileStdout::default_audio_presets) / sizeof(CommandPreset*); i++)
     {
-        StdoutPreset *preset = FileStdout::default_audio_presets[i];
+        CommandPreset *preset = FileStdout::default_audio_presets[i];
         if(get_preset(&preset->title) < 0)
         {
             preset_names->append(new BC_ListBoxItem(preset->title.c_str()));
-            preset_data->append(new StdoutPreset(*preset));
+            preset_data->append(new CommandPreset(*preset));
         }
     }
 }
@@ -1397,19 +764,19 @@ int StdoutAudioLOHI::handle_event()
 
 
 StdoutVideoConfig::StdoutVideoConfig(BC_WindowBase *parent_window, Asset *asset)
- : StdoutBaseConfig(parent_window,
+ : CommandTools(parent_window,
     asset,
     PROGRAM_NAME ": Video Compression",
     VIDEO_PARAMS)
 {
 // seed it with defaults
-    for(int i = 0; i < sizeof(FileStdout::default_video_presets) / sizeof(StdoutPreset*); i++)
+    for(int i = 0; i < sizeof(FileStdout::default_video_presets) / sizeof(CommandPreset*); i++)
     {
-        StdoutPreset *preset = FileStdout::default_video_presets[i];
+        CommandPreset *preset = FileStdout::default_video_presets[i];
         if(get_preset(&preset->title) < 0)
         {
             preset_names->append(new BC_ListBoxItem(preset->title.c_str()));
-            preset_data->append(new StdoutPreset(*preset));
+            preset_data->append(new CommandPreset(*preset));
         }
     }
 }
@@ -1495,19 +862,19 @@ int StdoutColormodel::handle_event()
 
 
 StdoutMplexConfig::StdoutMplexConfig(BC_WindowBase *parent_window, Asset *asset)
- : StdoutBaseConfig(parent_window,
+ : CommandTools(parent_window,
     asset,
     PROGRAM_NAME ": Wrapper Settings",
     MPLEX_PARAMS)
 {
 // seed it with defaults
-    for(int i = 0; i < sizeof(FileStdout::default_mplex_presets) / sizeof(StdoutPreset*); i++)
+    for(int i = 0; i < sizeof(FileStdout::default_mplex_presets) / sizeof(CommandPreset*); i++)
     {
-        StdoutPreset *preset = FileStdout::default_mplex_presets[i];
+        CommandPreset *preset = FileStdout::default_mplex_presets[i];
         if(get_preset(&preset->title) < 0)
         {
             preset_names->append(new BC_ListBoxItem(preset->title.c_str()));
-            preset_data->append(new StdoutPreset(*preset));
+            preset_data->append(new CommandPreset(*preset));
         }
     }
 }

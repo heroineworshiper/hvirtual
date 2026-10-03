@@ -56,6 +56,7 @@
 #include "preferencesthread.h"
 #include "proxy.h"
 #include "quit.h"
+#include "rawcopy.h"
 #include "record.h"
 #include "render.h"
 #include "save.h"
@@ -104,9 +105,11 @@ void MainMenu::create_objects()
 	SaveAsItem *saveas;
 	filemenu->add_item(saveas = new SaveAsItem);
 	filemenu->add_item(new SaveClipItem);
+	filemenu->add_item(new SaveRawItem);
 	filemenu->add_item(new BC_MenuItem("-"));
 
-	filemenu->add_item(render = new RenderItem(mwindow));
+	filemenu->add_item(/* render = */ new RenderItem(mwindow));
+
 	filemenu->add_item(new BatchRenderMenuItem(mwindow));
 	filemenu->add_item(record = new RecordMenuItem(mwindow));
 	filemenu->add_item(new BC_MenuItem("-"));

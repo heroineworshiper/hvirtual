@@ -1523,3 +1523,50 @@ int Tracks::scale_time(float rate_scale, int ignore_record, int scale_edits, int
 	return 0;
 }
 
+
+int Tracks::save_raw(FILE *fd, double start, double end)
+{
+// only saving 1st playable track of any data type
+    int got_it = 0;
+    for(Track *track = first; track; track = track->next)
+    {
+        if(track->play)
+        {
+            for(Edit *edit = track->edits->first; edit; edit = edit->next)
+            {
+                if(edit->asset)
+                {
+//printf("Tracks::save_raw %d start=%f end=%f\n", __LINE__, start, end);
+                    double edit_startproject = track->from_units(edit->startproject);
+                    double edit_endproject = track->from_units(edit->startproject + edit->length);
+                    if(edit_startproject < end && edit_endproject > start)
+                    {
+                        double start_adjust = 0;
+                        double end_adjust = 0;
+                        if(edit_startproject < start) 
+                            start_adjust = start - edit_startproject;
+                        if(edit_endproject > end)
+                            end_adjust = edit_endproject - end;
+                        double source_start = track->from_units(edit->startsource) + start_adjust;
+                        double source_end = track->from_units(edit->startsource + edit->length) - end_adjust;
+
+                        char start_text[BCTEXTLEN];
+                        char end_text[BCTEXTLEN];
+                        Units::totext(start_text, source_start, TIME_HMS);
+                        Units::totext(end_text, source_end, TIME_HMS);
+                        
+                        fprintf(fd, 
+                            "file '%s'\ninpoint %s\noutpoint %s\n\n",
+                            edit->asset->path,
+                            start_text,
+                            end_text);
+                        got_it = 1;
+                    }
+                }
+            }
+            break;
+        }
+    }
+    
+    return !got_it;
+}

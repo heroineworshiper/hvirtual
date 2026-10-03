@@ -1603,22 +1603,25 @@ void TrackCanvas::draw_plugins()
                         int64_t total_x2 = total_x;
                         int64_t total_w2 = total_w;
                         int top_margin = 2;
+// offset of text & widgets from sides
                         int left_margin = 5;
 						int right_margin = 5;
+// extra pixels before & after the sides for bevels
+                        int edge_margin = 5;
 						if(x < 0)
 						{
+                            total_x2 = -edge_margin;
+                            total_w2 -= -x - edge_margin;
 							w -= -x;
 							x = 0;
-                            total_w2 -= -(total_x2 - 5);
-                            total_x2 = -5;
 						}
 						if(w + x > get_w()) w -= (w + x) - get_w();
-                        if(total_w2 + total_x2 > get_w() + 5) 
-                            total_w2 -= (total_w2 + total_x2) - get_w() - 5;
+                        if(total_w2 + total_x2 > get_w() + edge_margin) 
+                            total_w2 -= (total_w2 + total_x2) - get_w() - edge_margin;
 
-//printf("TrackCanvas::do_plugins %d %ld %ld %ld %ld\n",
-//__LINE__,
-//(long)x, (long)w, (long)total_x, (long)total_w);
+printf("TrackCanvas::do_plugins %d x=%ld w=%ld total_x=%ld total_w=%ld\n",
+__LINE__,
+(long)x, (long)w, (long)total_x, (long)total_w);
 						draw_3segmenth(x, 
 							y, 
 							w, 
