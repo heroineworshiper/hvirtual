@@ -7,7 +7,9 @@
 * SUPPORTED MEDIA FORMATS::    What formats Cinelerra can import and export
 * LOADING FILES::              Loading all types of files
 * LOADING THE BACKUP::         Recovering the session from before a crash
-* SAVING FILES::               Saving edit decision lists
+* SAVING THE PROJECT::         Saving edit decision lists
+* SAVING A CLIP TO A FILE::    Save a region as a new EDL
+* SAVING A CUT LIST::          Save minimal information for an external program
 * RENDERING FILES::            Saving media files
 @end menu
 
@@ -56,9 +58,16 @@ for these files with the @b{draw media} toggle to speed up operations.
 @image{track_attributes}
 @b{Track attributes}
 
-Supported file formats are currently:
+Media is ingested through ffmpeg so your luck will vary.  Well supported
+file formats are currently:
 
 @itemize
+@item
+MKV
+@item
+MOV
+@item
+MP4
 @item
 WAV
 @item
@@ -550,14 +559,16 @@ Loading the backup should be the first operation or you'll overwrite
 the backup.
 
 
-@node SAVING FILES
-@section SAVING FILES
+@node SAVING THE PROJECT
+@section SAVING THE PROJECT
 
 When Cinelerra saves a file it saves an edit decision list of the
-current project but doesn't save any media.  Go to @b{File->save
+current project but doesn't save any media.  
+
+The big save function which saves the entire project is @b{File->save
 as...}.  Select a file to overwrite or enter a new file.  Cinelerra
-automatically concatenates @b{.xml} to the filename if no
-@b{.xml} extension is given.
+automatically concatenates @b{.xml} to the filename if no @b{.xml}
+extension is given.
 
 The saved file contains all the project settings and locations of every
 edit but instead of media it contains pointers to the original media
@@ -588,7 +599,42 @@ output there's rendering.
 
 
 
+@node SAVING A CLIP TO A FILE
+@section SAVING A CLIP TO A FILE
 
+This performs the same operation as @b{File->save as...} but only the
+highlighted region or the in/out region is saved. This is most often
+used for saving regions to later load as nested EDLs.  If no region is
+selected, it saves the entire timeline.
+
+
+@node SAVING A CUT LIST
+@section SAVING A CUT LIST
+
+This saves a list of edits to a file which is compatible with ffmpeg's
+concatenate function.  After saving a cut list, run
+
+ffmpeg -f concat -safe 0 -i list.txt -c copy output.mp4
+
+to create a lossless concatenation of all the edits.  This is useful for
+trimming down large amounts of archival footage.  It used to be possible
+for the render function to losslessly copy frames in the days of JPEG
+movies, but temporal compression made it impossible.  Ffmpeg has
+lossless copying of frames by rounding the starting points down to a
+keyframe.  The timing is less precise than rendering.
+
+The cut list is only based on the selected region or the in/out points,
+like the save selection function.  If no region is selected, it saves
+the entire EDL like the save function.
+
+The edits are only taken from the 1st playable track.  It can be audio
+or video.
+
+Areas of silence, effects processing are lost.  The audio
+synchronization is lost.  It's more useful for pure video or audio
+files.
+
+It does apply nested EDLs & nudge settings.
 
 
 @node RENDERING FILES
