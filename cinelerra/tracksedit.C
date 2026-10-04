@@ -1532,15 +1532,18 @@ int Tracks::save_raw(FILE *fd, double start, double end)
     {
         if(track->play)
         {
+            double nudge = track->from_units(track->nudge);
+            double start2 = start + nudge;
+            double end2 = end + nudge;
             for(Edit *edit = track->edits->first; edit; edit = edit->next)
             {
 // edit is selected
                 double edit_startproject = track->from_units(edit->startproject);
                 double edit_endproject = track->from_units(edit->startproject + edit->length);
-//printf("Tracks::save_raw %d start=%f end=%f edit_startproject=%f edit_endproject=%f\n", 
-//__LINE__, start, end, edit_startproject, edit_endproject);
+//printf("Tracks::save_raw %d start2=%f end2=%f edit_startproject=%f edit_endproject=%f\n", 
+//__LINE__, start2, end2, edit_startproject, edit_endproject);
 
-                if(edit_startproject < end && edit_endproject > start)
+                if(edit_startproject < end2 && edit_endproject > start2)
                 {
                     if(edit->silence())
                     {
@@ -1550,14 +1553,14 @@ int Tracks::save_raw(FILE *fd, double start, double end)
                     }
                     else
                     {
-//printf("Tracks::save_raw %d start=%f end=%f\n", __LINE__, start, end);
+//printf("Tracks::save_raw %d start2=%f end2=%f\n", __LINE__, start2, end2);
 // trim to selected area
                         double start_adjust = 0;
                         double end_adjust = 0;
-                        if(edit_startproject < start) 
-                            start_adjust = start - edit_startproject;
-                        if(edit_endproject > end)
-                            end_adjust = edit_endproject - end;
+                        if(edit_startproject < start2) 
+                            start_adjust = start2 - edit_startproject;
+                        if(edit_endproject > end2)
+                            end_adjust = edit_endproject - end2;
                         double source_start = track->from_units(edit->startsource);
                         double source_end = track->from_units(edit->startsource + edit->length);
 
