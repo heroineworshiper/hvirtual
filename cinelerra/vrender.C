@@ -192,7 +192,6 @@ int VRender::process_buffer(int64_t input_position,
 				if(renderengine->command->get_direction() == PLAY_REVERSE)
 					corrected_position--;
 
-				file->stop_video_thread();
 				if(use_cache) file->set_cache_frames(1);
 				int64_t normalized_position = (int64_t)(corrected_position *
 					asset->frame_rate /
@@ -234,7 +233,6 @@ int VRender::process_buffer(int64_t input_position,
 				renderengine->get_vcache(),
 				1,
 				use_cache,
-				0,
                 use_opengl,
                 x11_device);
 //             printf("VRender::process_buffer %d state=%d color_model=%d\n", 

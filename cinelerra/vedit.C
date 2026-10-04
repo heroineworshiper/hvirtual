@@ -139,7 +139,6 @@ int VEdit::read_frame(VFrame *video_out,
 	CICache *cache,
 	int use_nudge,
 	int use_cache,
-	int use_asynchronous,
     int use_opengl,
     VDeviceX11 *device)
 {
@@ -183,12 +182,6 @@ if(debug) printf("VEdit::read_frame %d %lld %lld\n",
 __LINE__,
 (long long)input_position,
 (long long)source_position);
-
-// 		if(use_asynchronous)
-// 			file->start_video_decode_thread();
-// 		else
-			file->stop_video_thread();
-if(debug) printf("VEdit::read_frame %d\n", __LINE__);
 
 		file->set_layer(channel);
 //printf("VEdit::read_frame %d source_position=%d\n", __LINE__, (int)source_position);

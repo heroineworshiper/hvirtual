@@ -49,7 +49,6 @@ public:
 			CICache *cache,
 			int use_nudge,
 			int use_cache,
-			int use_asynchronous,
             int use_opengl,
             VDeviceX11 *device);
 	

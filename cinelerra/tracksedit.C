@@ -1523,7 +1523,7 @@ int Tracks::scale_time(float rate_scale, int ignore_record, int scale_edits, int
 	return 0;
 }
 
-
+// returns 1 if it didn't get anything
 int Tracks::save_raw(FILE *fd, double start, double end)
 {
 // only saving 1st playable track of any data type
@@ -1534,39 +1534,66 @@ int Tracks::save_raw(FILE *fd, double start, double end)
         {
             for(Edit *edit = track->edits->first; edit; edit = edit->next)
             {
-                if(edit->asset)
+// edit is selected
+                double edit_startproject = track->from_units(edit->startproject);
+                double edit_endproject = track->from_units(edit->startproject + edit->length);
+//printf("Tracks::save_raw %d start=%f end=%f edit_startproject=%f edit_endproject=%f\n", 
+//__LINE__, start, end, edit_startproject, edit_endproject);
+
+                if(edit_startproject < end && edit_endproject > start)
                 {
-//printf("Tracks::save_raw %d start=%f end=%f\n", __LINE__, start, end);
-                    double edit_startproject = track->from_units(edit->startproject);
-                    double edit_endproject = track->from_units(edit->startproject + edit->length);
-                    if(edit_startproject < end && edit_endproject > start)
+                    if(edit->silence())
                     {
+                        printf("Tracks::save_raw %d: silence at %f not supported\n",
+                            __LINE__,
+                            edit_startproject);
+                    }
+                    else
+                    {
+//printf("Tracks::save_raw %d start=%f end=%f\n", __LINE__, start, end);
+// trim to selected area
                         double start_adjust = 0;
                         double end_adjust = 0;
                         if(edit_startproject < start) 
                             start_adjust = start - edit_startproject;
                         if(edit_endproject > end)
                             end_adjust = edit_endproject - end;
-                        double source_start = track->from_units(edit->startsource) + start_adjust;
-                        double source_end = track->from_units(edit->startsource + edit->length) - end_adjust;
+                        double source_start = track->from_units(edit->startsource);
+                        double source_end = track->from_units(edit->startsource + edit->length);
 
-                        char start_text[BCTEXTLEN];
-                        char end_text[BCTEXTLEN];
-                        Units::totext(start_text, source_start, TIME_HMS);
-                        Units::totext(end_text, source_end, TIME_HMS);
-                        
-                        fprintf(fd, 
-                            "file '%s'\ninpoint %s\noutpoint %s\n\n",
-                            edit->asset->path,
-                            start_text,
-                            end_text);
-                        got_it = 1;
+                        source_start += start_adjust;
+                        source_end -= end_adjust;
+
+                        if(edit->asset)
+                        {
+                            char start_text[BCTEXTLEN];
+                            char end_text[BCTEXTLEN];
+                            Units::totext(start_text, source_start, TIME_HMS);
+                            Units::totext(end_text, source_end, TIME_HMS);
+
+                            fprintf(fd, 
+                                "file '%s'\ninpoint %s\noutpoint %s\n\n",
+                                edit->asset->path,
+                                start_text,
+                                end_text);
+                            got_it = 1;
+                        }
+                        else
+                        if(edit->nested_edl)
+                        {
+//printf("Tracks::save_raw %d source_start=%f source_end=%f\n", 
+//__LINE__, source_start, source_end);
+                            got_it = 
+                                !edit->nested_edl->tracks->save_raw(fd, 
+                                    source_start, 
+                                    source_end);
+                        }
                     }
                 }
             }
             break;
         }
     }
-    
+
     return !got_it;
 }
