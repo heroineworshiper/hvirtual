@@ -179,13 +179,18 @@ void SaveThread::handle_done_event(int result)
         return;
     }
 
+    const char *extension = 0;
+    if(do_raw)
+        extension = ".txt";
+    else
+        extension = ".xml";
 
 // Extend the filename with .xml
-	if(!do_raw &&
-        (strlen(path) < 4 || 
-		strcasecmp(&path[strlen(path) - 4], ".xml")))
+	if(extension &&
+        (strlen(path) < strlen(extension) || 
+		strcasecmp(&path[strlen(path) - strlen(extension)], extension)))
 	{
-		strcat(path, ".xml");
+		strcat(path, extension);
 	}
 
 	result = ConfirmSave::test_file(MWindow::instance, path);

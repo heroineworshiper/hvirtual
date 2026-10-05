@@ -630,9 +630,11 @@ the entire EDL like the save function.
 The edits are only taken from the 1st playable track.  It can be audio
 or video.
 
-Areas of silence, effects processing are lost.  The audio
+Areas of silence, effects processing, compositing are lost.  The audio
 synchronization is lost.  It's more useful for pure video or audio
-files.
+archives.  It might be possible to manually synchronize the audio by
+making ffmpeg output a single edit at a time, observing where it
+started.
 
 It does apply nested EDLs & nudge settings.
 
