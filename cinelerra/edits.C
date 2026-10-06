@@ -168,6 +168,8 @@ void Edits::insert_edits(Edits *source_edits,
 // Length pasted so far
 	int64_t source_len = 0;
 
+//printf("Edits::insert_edits %d\n", __LINE__);
+//dump();
 // Fill region between end of edit table and beginning of pasted segment
 // with silence.  Can't call from insert_new_edit because it's recursive.
 	if(position > length())
@@ -216,7 +218,7 @@ void Edits::insert_edits(Edits *source_edits,
 			future_edit->startproject += dest_edit->length;
 			future_edit->shift_keyframes(dest_edit->length);
 		}
-		
+
 		source_len += source_edit->length;
 	}
 
@@ -229,6 +231,8 @@ void Edits::insert_edits(Edits *source_edits,
 //printf("Edits::insert_edits %d\n", __LINE__);
 		paste_silence(position + source_len, position + min_length);
 	}
+//printf("Edits::insert_edits %d\n", __LINE__);
+//dump();
 }
 
 
@@ -1219,5 +1223,12 @@ void Edits::deglitch(int64_t position)
 //track->dump();
 }
 
-
+void Edits::dump()
+{
+    printf("   Edits:\n");
+	for(Edit* current = first; current; current = NEXT)
+	{
+		current->dump();
+	}
+}
 

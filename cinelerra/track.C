@@ -977,11 +977,7 @@ int Track::dump()
 {
 	printf("   Data type %d expand_view=%d\n", data_type, expand_view);
 	printf("   Title %s\n", title.c_str());
-	printf("   Edits:\n");
-	for(Edit* current = edits->first; current; current = NEXT)
-	{
-		current->dump();
-	}
+	edits->dump();
 	automation->dump();
 	printf("   Plugin Sets: %d\n", plugin_set.total);
 

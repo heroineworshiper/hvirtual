@@ -87,6 +87,7 @@ public:
 // Shift edits on or after position by distance
 // Return the edit now on the position.
 	virtual Edit* shift(int64_t position, int64_t difference);
+    void dump();
 
 	EDL *edl;
 	Track *track;

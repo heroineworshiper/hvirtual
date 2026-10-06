@@ -1619,9 +1619,9 @@ void TrackCanvas::draw_plugins()
                         if(total_w2 + total_x2 > get_w() + edge_margin) 
                             total_w2 -= (total_w2 + total_x2) - get_w() - edge_margin;
 
-printf("TrackCanvas::do_plugins %d x=%ld w=%ld total_x=%ld total_w=%ld\n",
-__LINE__,
-(long)x, (long)w, (long)total_x, (long)total_w);
+// printf("TrackCanvas::do_plugins %d x=%ld w=%ld total_x=%ld total_w=%ld\n",
+// __LINE__,
+// (long)x, (long)w, (long)total_x, (long)total_w);
 						draw_3segmenth(x, 
 							y, 
 							w, 
