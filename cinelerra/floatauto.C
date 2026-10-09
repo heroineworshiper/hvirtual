@@ -52,6 +52,12 @@ int FloatAuto::operator==(FloatAuto &that)
 	return identical((FloatAuto*)&that);
 }
 
+int FloatAuto::uses_controls()
+{
+    return mode == BEZIER_UNLOCKED ||
+        mode == BEZIER_LOCKED ||
+        mode == BEZIER_TANGENT;
+}
 
 int FloatAuto::identical(FloatAuto *src)
 {

@@ -110,6 +110,8 @@ int FloatAutos::automation_is_constant(int64_t start,
 {
 	int total_autos = total();
 	int64_t end;
+//printf("FloatAutos::automation_is_constant %d start=%d end=%d\n", 
+//__LINE__, (int)start, (int)(start + length));
 
 	if(direction == PLAY_FORWARD)
 	{
@@ -166,9 +168,20 @@ int FloatAutos::automation_is_constant(int64_t start,
 			prev_position < start && 
 			current->position >= end)
 		{
-// Get value now in case change doesn't occur
 			constant = float_current->value;
-			test_previous_current = 1;
+            FloatAuto *float_previous = (FloatAuto*)current->previous;
+// previous constant keyframe always provides a constant value
+			if(float_previous->mode == FloatAuto::CONSTANT)
+            {
+// Get value now in case change doesn't occur
+                constant = float_previous->value;
+            }
+            else
+            {
+// Get value now in case change doesn't occur
+    			constant = float_current->value;
+                test_previous_current = 1;
+            }
 		}
 		prev_position = current->position;
 
@@ -199,18 +212,15 @@ int FloatAutos::automation_is_constant(int64_t start,
 			FloatAuto *float_next = (FloatAuto*)current->next;
 
 // Change occurs between keyframes
-			if(float_current->mode != FloatAuto::CONSTANT)
-            {
-                if(!EQUIV(float_current->value, float_next->value) ||
-				    ((float_current->mode != FloatAuto::LINEAR ||
-					    float_next->mode != FloatAuto::LINEAR) &&
-				    (!EQUIV(float_current->control_out_value, 0) ||
-					    !EQUIV(float_next->control_in_value, 0))))
-			    {
+            if(!EQUIV(float_current->value, float_next->value) ||
+				((float_current->uses_controls() ||
+					float_next->uses_controls()) &&
+				(!EQUIV(float_current->control_out_value, 0) ||
+					!EQUIV(float_next->control_in_value, 0))))
+			{
 //printf("FloatAutos::automation_is_constant %d\n", __LINE__);
-				    return 0;
-			    }
-            }
+				return 0;
+			}
 		}
 
 		if(test_previous_current)
@@ -219,14 +229,12 @@ int FloatAutos::automation_is_constant(int64_t start,
 
 // Change occurs between keyframes if values differ or are joined by a curve.
 //printf("FloatAutos::automation_is_constant %d\n", __LINE__);
-			if(float_current->mode != FloatAuto::LINEAR)
-            {
-                if(!EQUIV(float_current->value, float_previous->value) ||
-				    ((float_current->mode != FloatAuto::LINEAR ||
-					    float_previous->mode != FloatAuto::LINEAR) &&
-				    (!EQUIV(float_current->control_out_value, 0) ||
-					    !EQUIV(float_previous->control_in_value, 0))))
-			    {
+            if(!EQUIV(float_current->value, float_previous->value) ||
+				((float_current->uses_controls() ||
+					float_previous->uses_controls()) &&
+				(!EQUIV(float_current->control_out_value, 0) ||
+					!EQUIV(float_previous->control_in_value, 0))))
+			{
 // printf("FloatAutos::automation_is_constant %d %d %d %f %f %f %f\n", 
 // start, 
 // float_previous->position, 
@@ -236,9 +244,8 @@ int FloatAutos::automation_is_constant(int64_t start,
 // float_previous->control_out_value, 
 // float_current->control_in_value);
 //printf("FloatAutos::automation_is_constant %d\n", __LINE__);
-				    return 0;
-			    }
-            }
+				return 0;
+			}
 		}
 	}
 //printf("FloatAutos::automation_is_constant %d\n", __LINE__);
@@ -305,16 +312,21 @@ float FloatAutos::get_value(int64_t position,
 	else
 	{
         if(previous->mode == FloatAuto::CONSTANT)
-            return previous->value;
+        {
+            if(direction == PLAY_FORWARD)
+                return previous->value;
+            else
+                return next->value;
+        }
 
 		if(direction == PLAY_FORWARD)
 		{
 			if(EQUIV(previous->value, next->value))
 			{
-				if((previous->mode == FloatAuto::LINEAR &&
-					next->mode == FloatAuto::LINEAR) ||
+				if((!previous->uses_controls() &&
+					    !next->uses_controls()) ||
 					(EQUIV(previous->control_out_value, 0) &&
-					EQUIV(next->control_in_value, 0)))
+					    EQUIV(next->control_in_value, 0)))
 				{
 					return previous->value;
 				}
@@ -325,10 +337,10 @@ float FloatAutos::get_value(int64_t position,
 		{
 			if(EQUIV(previous->value, next->value))
 			{
-				if((previous->mode == FloatAuto::LINEAR &&
-					next->mode == FloatAuto::LINEAR) ||
+				if((!previous->uses_controls() &&
+					    !next->uses_controls()) ||
 					(EQUIV(previous->control_in_value, 0) &&
-					EQUIV(next->control_out_value, 0)))
+					    EQUIV(next->control_out_value, 0)))
 				{
 					return previous->value;
 				}

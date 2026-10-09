@@ -2753,7 +2753,7 @@ int TrackCanvas::test_floatline(int center_pixel,
 		!ctrl_down())
 	{
 		result = 1;
-printf("TrackCanvas::test_floatline %d\n", __LINE__);
+//printf("TrackCanvas::test_floatline %d\n", __LINE__);
 // Menu
 		if(buttonpress == 3)
 		{

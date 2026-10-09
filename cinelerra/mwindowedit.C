@@ -364,6 +364,8 @@ void MWindow::clear(int clear_handle, int deglitch)
 	double start = edl->local_session->get_selectionstart();
 	double end = edl->local_session->get_selectionend();
 // start & end must be different or we must be clearing a handle
+// Assume a start & end that came from a user event will always pass 
+// the == operator
 	if(clear_handle || start != end)
 //        fabs(start - end) < .5f / edl->session->sample_rate)
 	{

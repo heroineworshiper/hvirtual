@@ -421,7 +421,7 @@ if(debug) printf("VirtualANode::render_fade %d\n", __LINE__);
 		direction,
 		fade_value))
 	{
-if(debug) printf("VirtualANode::render_fade %d\n", __LINE__);
+if(debug) printf("VirtualANode::render_fade %d CONSTANT\n", __LINE__);
 		if(fade_value <= INFINITYGAIN)
 			value = 0;
 		else
@@ -434,7 +434,7 @@ if(debug) printf("VirtualANode::render_fade %d\n", __LINE__);
 	}
 	else
 	{
-if(debug) printf("VirtualANode::render_fade %d\n", __LINE__);
+if(debug) printf("VirtualANode::render_fade %d CHANGING\n", __LINE__);
 		for(int64_t i = 0; i < len; i++)
 		{
 			int64_t slope_len = len - i;
