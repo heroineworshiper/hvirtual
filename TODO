@@ -24,6 +24,8 @@ Config window for screencap which specifies X & Y offset
 
 BIG BUGS
 -----------------------------------
+adjust keyframe on timeline should update the edit keyframe dialog
+ - never been used
 can't load with replace when an index file is being built
  - intermittently waits for the index file to finish.  Not reproducible.
 record not reliably pasting readable file in timeline

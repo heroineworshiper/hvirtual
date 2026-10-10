@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -150,7 +149,7 @@ public:
 	int get_neighbors(int64_t start, int64_t end, Auto **before, Auto **after);
 // 1 if automation doesn't change
 	virtual int automation_is_constant(int64_t start, int64_t end);       
-	virtual double get_automation_constant(int64_t start, int64_t end);
+//	virtual double get_automation_constant(int64_t start, int64_t end);
 	int init_automation(int64_t &buffer_position,
 				int64_t &input_start, 
 				int64_t &input_end, 

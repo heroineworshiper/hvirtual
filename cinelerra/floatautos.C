@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -254,24 +253,24 @@ int FloatAutos::automation_is_constant(int64_t start,
 	return 1;
 }
 
-double FloatAutos::get_automation_constant(int64_t start, int64_t end)
-{
-	Auto *current_auto, *before = 0, *after = 0;
-	
-// quickly get autos just outside range	
-	get_neighbors(start, end, &before, &after);
-
-// no auto before range so use first
-	if(before)
-		current_auto = before;
-	else
-		current_auto = first;
-
-// no autos at all so use default value
-	if(!current_auto) current_auto = default_auto;
-
-	return ((FloatAuto*)current_auto)->value;
-}
+// double FloatAutos::get_automation_constant(int64_t start, int64_t end)
+// {
+// 	Auto *current_auto, *before = 0, *after = 0;
+// 	
+// // quickly get autos just outside range	
+// 	get_neighbors(start, end, &before, &after);
+// 
+// // no auto before range so use first
+// 	if(before)
+// 		current_auto = before;
+// 	else
+// 		current_auto = first;
+// 
+// // no autos at all so use default value
+// 	if(!current_auto) current_auto = default_auto;
+// 
+// 	return ((FloatAuto*)current_auto)->value;
+// }
 
 
 float FloatAutos::get_value(int64_t position, 
@@ -311,11 +310,15 @@ float FloatAutos::get_value(int64_t position,
 	}
 	else
 	{
-        if(previous->mode == FloatAuto::CONSTANT)
+// constant if left keyframe is constant
+        if(direction == PLAY_FORWARD)
         {
-            if(direction == PLAY_FORWARD)
+            if(previous->mode == FloatAuto::CONSTANT)
                 return previous->value;
-            else
+        }
+        else
+        {
+            if(next->mode == FloatAuto::CONSTANT)
                 return next->value;
         }
 
@@ -373,13 +376,15 @@ float FloatAutos::get_value(int64_t position,
 	}
 
 	float result = 0;
-	if(previous->mode == FloatAuto::LINEAR &&
-		next->mode == FloatAuto::LINEAR)
+// linear if left side is linear
+	if((direction == PLAY_FORWARD && previous->mode == FloatAuto::LINEAR) || 
+        (direction == PLAY_REVERSE && next->mode == FloatAuto::LINEAR))
 	{
 		result = previous->value + t * (next->value - previous->value);
 	}
 	else
 	{
+// bezier curve
  		float tpow2 = t * t;
 		float tpow3 = t * t * t;
 		float invt = 1 - t;

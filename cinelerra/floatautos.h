@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +46,7 @@ public:
 		int64_t length, 
 		int direction,
 		double &constant);
-	double get_automation_constant(int64_t start, int64_t end);
+//	double get_automation_constant(int64_t start, int64_t end);
 // Get value at a specific point.  This needs previous and next stores
 // because it is used for every pixel in the timeline drawing function.
 	float get_value(int64_t position, 

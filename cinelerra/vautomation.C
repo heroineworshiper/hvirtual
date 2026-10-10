@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,29 +87,35 @@ int VAutomation::direct_copy_possible(int64_t start, int direction)
 	if(!Automation::direct_copy_possible(start, direction))
 		return 0;
 
-// Automation is constant
-	double constant;
-	if(((FloatAutos*)autos[AUTOMATION_FADE])->automation_is_constant(
-		start, end, direction, constant))
-	{
+// Fade is not 100%
+    FloatAuto *previous = 0;
+    FloatAuto *next = 0;
+	double constant = ((FloatAutos*)autos[AUTOMATION_FADE])->get_value(start, 
+	    direction, 
+	    previous, 
+	    next);
+//	if(((FloatAutos*)autos[AUTOMATION_FADE])->automation_is_constant(
+//		start, end, direction, constant))
+//	{
 		if(!EQUIV(constant, 100))
 			return 0;
-	}
-	else
+//	}
+//	else
 // Automation varies
-		return 0;
+//		return 0;
 
 // Track must not be muted
-	if(autos[AUTOMATION_MUTE]->automation_is_constant(start, end))
-	{
-		if(autos[AUTOMATION_MUTE]->get_automation_constant(start, end) > 0)
+//	if(autos[AUTOMATION_MUTE]->automation_is_constant(start, end))
+//	{
+		if(((IntAutos*)autos[AUTOMATION_MUTE])->get_value(start, direction) > 0)
 			return 0;
-	}
-	else
-		return 0;
+//	}
+//	else
+//		return 0;
 
 // Projector must be centered.
-	FloatAuto *previous = 0, *next = 0;
+	previous = 0;
+    next = 0;
 	float z = ((FloatAutos*)autos[AUTOMATION_PROJECTOR_Z])->get_value(
 		start, direction, previous, next);
 	if(!EQUIV(z, 1)) return 0;

@@ -1,7 +1,6 @@
-
 /*
  * CINELERRA
- * Copyright (C) 2008 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2008-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +22,7 @@
 #include "clip.h"
 #include "intauto.h"
 #include "intautos.h"
+#include "transportque.inc"
 
 IntAutos::IntAutos(EDL *edl, Track *track, int default_, int overlay_type)
  : Autos(edl, track, AUTOMATION_TYPE_INT, overlay_type)
@@ -74,9 +74,10 @@ int IntAutos::automation_is_constant(int64_t start, int64_t end)
 	return result;
 }
 
-double IntAutos::get_automation_constant(int64_t start, int64_t end)
+int IntAutos::get_value(int64_t start, int direction)
 {
 	Auto *current_auto, *before = 0, *after = 0;
+    int64_t end = (direction == PLAY_FORWARD) ? (start + 1) : (start - 1);
 	
 // quickly get autos just outside range	
 	get_neighbors(start, end, &before, &after);
@@ -90,7 +91,7 @@ double IntAutos::get_automation_constant(int64_t start, int64_t end)
 // no autos at all so use default value
 	if(!current_auto) current_auto = default_auto;
 
-	return ((IntAuto*)current_auto)->value;
+	return (int)((IntAuto*)current_auto)->value;
 }
 
 

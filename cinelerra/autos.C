@@ -768,117 +768,117 @@ int Autos::automation_is_constant(int64_t start, int64_t end)
 	return 0;
 }
 
-double Autos::get_automation_constant(int64_t start, int64_t end)
-{
-	return 0;
-}
+// double Autos::get_automation_constant(int64_t start, int64_t end)
+// {
+// 	return 0;
+// }
 
 
-int Autos::init_automation(int64_t &buffer_position,
-				int64_t &input_start, 
-				int64_t &input_end, 
-				int &automate, 
-				double &constant, 
-				int64_t input_position,
-				int64_t buffer_len,
-				Auto **before, 
-				Auto **after,
-				int reverse)
-{
-	buffer_position = 0;
+// int Autos::init_automation(int64_t &buffer_position,
+// 				int64_t &input_start, 
+// 				int64_t &input_end, 
+// 				int &automate, 
+// 				double &constant, 
+// 				int64_t input_position,
+// 				int64_t buffer_len,
+// 				Auto **before, 
+// 				Auto **after,
+// 				int reverse)
+// {
+// 	buffer_position = 0;
+// 
+// // set start and end boundaries for automation info
+// 	input_start = reverse ? input_position - buffer_len : input_position;
+// 	input_end = reverse ? input_position : input_position + buffer_len;
+// 
+// // test automation for constant value
+// // and set up *before and *after
+// 	if(automate)
+// 	{
+// 		if(automation_is_constant(input_start, input_end))
+// 		{
+// 			constant += get_automation_constant(input_start, input_end);
+// 			automate = 0;
+// 		}
+// 	}
+// 	return automate;
+// }
+// 
+// 
+// int Autos::init_slope(Auto **current_auto, 
+// 				double &slope_start, 
+// 				double &slope_value,
+// 				double &slope_position, 
+// 				int64_t &input_start, 
+// 				int64_t &input_end, 
+// 				Auto **before, 
+// 				Auto **after,
+// 				int reverse)
+// {
+// // apply automation
+// 	*current_auto = reverse ? *after : *before;
+// // no auto before start so use first auto in range
+// // already know there is an auto since automation isn't constant
+// 	if(!*current_auto)
+// 	{
+// 		*current_auto = reverse ? last : first;
+// //		slope_value = (*current_auto)->value;
+// 		slope_start = input_start;
+// 		slope_position = 0;
+// 	}
+// 	else
+// 	{
+// // otherwise get the first slope point and advance auto
+// //		slope_value = (*current_auto)->value;
+// 		slope_start = (*current_auto)->position;
+// 		slope_position = reverse ? slope_start - input_end : input_start - slope_start;
+// 		(*current_auto) = reverse ? (*current_auto)->previous : (*current_auto)->next;
+// 	}
+// 	return 0;
+// }
+// 
 
-// set start and end boundaries for automation info
-	input_start = reverse ? input_position - buffer_len : input_position;
-	input_end = reverse ? input_position : input_position + buffer_len;
-
-// test automation for constant value
-// and set up *before and *after
-	if(automate)
-	{
-		if(automation_is_constant(input_start, input_end))
-		{
-			constant += get_automation_constant(input_start, input_end);
-			automate = 0;
-		}
-	}
-	return automate;
-}
-
-
-int Autos::init_slope(Auto **current_auto, 
-				double &slope_start, 
-				double &slope_value,
-				double &slope_position, 
-				int64_t &input_start, 
-				int64_t &input_end, 
-				Auto **before, 
-				Auto **after,
-				int reverse)
-{
-// apply automation
-	*current_auto = reverse ? *after : *before;
-// no auto before start so use first auto in range
-// already know there is an auto since automation isn't constant
-	if(!*current_auto)
-	{
-		*current_auto = reverse ? last : first;
-//		slope_value = (*current_auto)->value;
-		slope_start = input_start;
-		slope_position = 0;
-	}
-	else
-	{
-// otherwise get the first slope point and advance auto
-//		slope_value = (*current_auto)->value;
-		slope_start = (*current_auto)->position;
-		slope_position = reverse ? slope_start - input_end : input_start - slope_start;
-		(*current_auto) = reverse ? (*current_auto)->previous : (*current_auto)->next;
-	}
-	return 0;
-}
-
-
-int Autos::get_slope(Auto **current_auto, 
-				double &slope_start, 
-				double &slope_end, 
-				double &slope_value,
-				double &slope, 
-				int64_t buffer_len, 
-				int64_t buffer_position,
-				int reverse)
-{
-// get the slope
-	if(*current_auto)
-	{
-		slope_end = reverse ? slope_start - (*current_auto)->position : (*current_auto)->position - slope_start;
-		if(slope_end) 
-//			slope = ((*current_auto)->value - slope_value) / slope_end;
-//		else
-			slope = 0;
-	}
-	else
-	{
-		slope = 0;
-		slope_end = buffer_len - buffer_position;
-	}
-	return 0;
-}
-
-int Autos::advance_slope(Auto **current_auto, 
-				double &slope_start, 
-				double &slope_value,
-				double &slope_position, 
-				int reverse)
-{
-	if(*current_auto) 
-	{
-		slope_start = (*current_auto)->position;
-//		slope_value = (*current_auto)->value;
-		(*current_auto) = reverse ? (*current_auto)->previous : (*current_auto)->next;
-		slope_position = 0;
-	}
-	return 0;
-}
+// int Autos::get_slope(Auto **current_auto, 
+// 				double &slope_start, 
+// 				double &slope_end, 
+// 				double &slope_value,
+// 				double &slope, 
+// 				int64_t buffer_len, 
+// 				int64_t buffer_position,
+// 				int reverse)
+// {
+// // get the slope
+// 	if(*current_auto)
+// 	{
+// 		slope_end = reverse ? slope_start - (*current_auto)->position : (*current_auto)->position - slope_start;
+// 		if(slope_end) 
+// //			slope = ((*current_auto)->value - slope_value) / slope_end;
+// //		else
+// 			slope = 0;
+// 	}
+// 	else
+// 	{
+// 		slope = 0;
+// 		slope_end = buffer_len - buffer_position;
+// 	}
+// 	return 0;
+// }
+// 
+// int Autos::advance_slope(Auto **current_auto, 
+// 				double &slope_start, 
+// 				double &slope_value,
+// 				double &slope_position, 
+// 				int reverse)
+// {
+// 	if(*current_auto) 
+// 	{
+// 		slope_start = (*current_auto)->position;
+// //		slope_value = (*current_auto)->value;
+// 		(*current_auto) = reverse ? (*current_auto)->previous : (*current_auto)->next;
+// 		slope_position = 0;
+// 	}
+// 	return 0;
+// }
 
 int64_t Autos::get_length()
 {

@@ -2341,10 +2341,9 @@ void TrackCanvas::draw_floatauto(Auto *current,
 		}
 	}
 
-// In handle
-	if(((FloatAuto*)current)->mode == FloatAuto::BEZIER_LOCKED ||
-        ((FloatAuto*)current)->mode == FloatAuto::BEZIER_UNLOCKED)
+	if(current->previous && ((FloatAuto*)current->previous)->uses_controls())
 	{
+// In handle
 		in_x1 = in_x - HANDLE_W / 2;
 		in_x2 = in_x + HANDLE_W / 2;
 		in_y1 = center_pixel + in_y - HANDLE_W / 2;
@@ -2373,8 +2372,12 @@ void TrackCanvas::draw_floatauto(Auto *current,
 //  		draw_box(in_x1, in_y1, in_x2 - in_x1, in_y2 - in_y1);
 //  	}
 //     
+    }
 
-	// Out handle
+	if(((FloatAuto*)current)->uses_controls())
+	{
+
+// Out handle
 		out_x1 = out_x - HANDLE_W / 2;
 		out_x2 = out_x + HANDLE_W / 2;
 		out_y1 = center_pixel + out_y - HANDLE_W / 2;
@@ -2522,6 +2525,7 @@ int TrackCanvas::test_floatauto(Auto *current,
 //__LINE__, cursor_x, cursor_y, out_x1, out_x2, out_y, out_y1, out_y2);
 
 //printf("TrackCanvas::test_floatauto %d %d %d %d %d %d\n", cursor_x, cursor_y, x1, x2, y1, y2);
+
 // Test value
 	if(!ctrl_down() &&
 		cursor_x >= x1 && 
@@ -2548,8 +2552,7 @@ int TrackCanvas::test_floatauto(Auto *current,
 		cursor_y >= in_y1 && 
 		cursor_y < in_y2 &&
 		current->position > 0 &&
-		(((FloatAuto*)current)->mode == FloatAuto::BEZIER_LOCKED || 
-            ((FloatAuto*)current)->mode == FloatAuto::BEZIER_UNLOCKED))
+        (current->previous && ((FloatAuto*)current->previous)->uses_controls()))
 	{
 		if(buttonpress && (buttonpress != 3))
 		{
@@ -2571,8 +2574,7 @@ int TrackCanvas::test_floatauto(Auto *current,
 		cursor_x < out_x2 && 
 		cursor_y >= out_y1 && 
 		cursor_y < out_y2 &&
-		(((FloatAuto*)current)->mode == FloatAuto::BEZIER_LOCKED ||
-            ((FloatAuto*)current)->mode == FloatAuto::BEZIER_UNLOCKED))
+		((FloatAuto*)current)->uses_controls())
 	{
 		if(buttonpress && (buttonpress != 3))
 		{
@@ -2909,7 +2911,7 @@ int TrackCanvas::test_toggleline(Autos *autos,
 					mwindow->edl->local_session->zoom_sample / 
 					mwindow->edl->session->sample_rate;
 				int64_t unit_position = autos->track->to_units(position, 0);
-				int new_value = (int)((IntAutos*)autos)->get_automation_constant(unit_position, unit_position);
+				int new_value = ((IntAutos*)autos)->get_value(unit_position, PLAY_FORWARD);
 
 				mwindow->undo->update_undo_before();
 

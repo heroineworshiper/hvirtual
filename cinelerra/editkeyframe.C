@@ -254,20 +254,22 @@ void EditKeyframeDialog::create_objects()
     unlock_window();
 }
 
+// must have access to control points if the left keyframe is bezier
+// or if they create a left bezier keyframe after editing this one
 void EditKeyframeDialog::lock_texts()
 {
-    if(thread->auto_copy->mode == FloatAuto::LINEAR ||
-        thread->auto_copy->mode == FloatAuto::CONSTANT ||
-        thread->auto_copy->mode == FloatAuto::BEZIER_TANGENT)
-    {
-        in->disable();
-        out->disable();
-    }
-    else
-    {
-        in->enable();
-        out->enable();
-    }
+//     if(thread->auto_copy->mode == FloatAuto::LINEAR ||
+//         thread->auto_copy->mode == FloatAuto::CONSTANT ||
+//         thread->auto_copy->mode == FloatAuto::BEZIER_TANGENT)
+//     {
+//         in->disable();
+//         out->disable();
+//     }
+//     else
+//     {
+//         in->enable();
+//         out->enable();
+//     }
 }
 
 

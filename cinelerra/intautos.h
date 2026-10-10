@@ -35,7 +35,7 @@ public:
 	
 	Auto* new_auto();
 	int automation_is_constant(int64_t start, int64_t end);       
-	double get_automation_constant(int64_t start, int64_t end);
+	int get_value(int64_t start, int direction);
 	void get_extents(float *min, 
 		float *max,
 		int *coords_undefined,
