@@ -87,8 +87,8 @@ Preferences::Preferences()
     show_fps = 0;
 
     align_deglitch = 1;
-    align_synchronize = 0;
-    align_extend = 0;
+    align_synchronize = 1;
+    align_extend = 1;
 
 	use_renderfarm = 0;
 	force_uniprocessor = 0;
@@ -454,9 +454,9 @@ int Preferences::load_defaults(BC_Hash *defaults)
 //use_ffmpeg_mov = 1;
     show_fps = defaults->get("SHOW_FPS", show_fps);
 
-    align_deglitch = defaults->get("ALIGN_DEGLITCH", align_deglitch);
-    align_synchronize = defaults->get("ALIGN_SYNCHRONIZE", align_synchronize);
-    align_extend = defaults->get("ALIGN_EXTEND", align_extend);
+//    align_deglitch = defaults->get("ALIGN_DEGLITCH", align_deglitch);
+//    align_synchronize = defaults->get("ALIGN_SYNCHRONIZE", align_synchronize);
+//    align_extend = defaults->get("ALIGN_EXTEND", align_extend);
 
 	use_renderfarm = defaults->get("USE_RENDERFARM", use_renderfarm);
 	renderfarm_port = defaults->get("RENDERFARM_PORT", renderfarm_port);

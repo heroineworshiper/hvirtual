@@ -1,6 +1,6 @@
 /*
  * CINELERRA
- * Copyright (C) 2010-2024 Adam Williams <broadcast at earthling dot net>
+ * Copyright (C) 2010-2026 Adam Williams <broadcast at earthling dot net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -238,18 +238,19 @@ int MenuEditReverse::handle_event()
 
 
 MenuEditAlign::MenuEditAlign(MWindow *mwindow)
- : BC_MenuItem(_("Align Edits..."))
+ : BC_MenuItem(_("Align Edits"), "=", '=')
 {
 	this->mwindow = mwindow;
-	thread = new EditAlignThread;
+//	thread = new EditAlignThread;
 }
 
 
 
 int MenuEditAlign::handle_event()
 {
-	thread->start();
-//	mwindow->align_edits();
+// show dialog
+//	thread->start();
+	mwindow->align_edits();
 	return 1;
 }
 
