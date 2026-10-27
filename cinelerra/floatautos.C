@@ -50,8 +50,9 @@ void FloatAutos::set_automation_mode(int64_t start, int64_t end, int mode)
 		FloatAuto *previous_auto = (FloatAuto*)PREVIOUS;
 		FloatAuto *next_auto = (FloatAuto*)NEXT;
 
-// Is current auto in range?		
-		if(current->position >= start && current->position < end)
+// Is current auto in range?
+// support changing a single keyframe without selecting a range
+		if(current->position >= start && current->position <= end)
 		{
             if(mode == FloatAuto::BEZIER_LOCKED &&
                 current->mode != FloatAuto::BEZIER_LOCKED)

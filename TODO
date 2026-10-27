@@ -4,6 +4,9 @@ https://docs.google.com/spreadsheets/d/18eLwHrABP6ROHvPHfJW-Jtr_xB4wOblhwmzFuSFK
 File format requests:
 https://docs.google.com/spreadsheets/d/19CuGS6pWwJpse8GetM5E_7_7rTQM0udaXPtTc35klaM/edit?usp=sharing 
 
+claude shit:
+https://hackmd.io/@haindpwn/libmpeg3-toc-parser-oob-write
+
 
 BIG WISHLIST:
 -----------------------------------
@@ -24,6 +27,8 @@ Config window for screencap which specifies X & Y offset
 
 BIG BUGS
 -----------------------------------
+align should cut out blank frames when the audio of the a clip ends 
+    after the video of the same clip
 adjust keyframe on timeline should update the edit keyframe dialog
  - never been used
 can't load with replace when an index file is being built
